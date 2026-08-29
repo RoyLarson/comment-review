@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 16 of 46 tasks done
+Progress: 16 of 48 tasks done
 Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
@@ -605,6 +605,14 @@ earlier reading of T20 conflated them.
       an undeclared change beside it.
 - [x] T46 -- `reset` returns the rig to its ref between theories. Verify: a file
       the variant ADDED is gone, and the reset manifest equals the base.
+- [ ] T47 -- The aggregator's delta reads BACKWARDS for an improve-mode run. It is
+      first-minus-second in sorted config order, and `skill-creator` prescribes
+      `old_skill` for the baseline, which sorts BEFORE `with_skill`. Measured
+      2026-08-29: 40% vs 80% reported as `Delta: -0.40`. Verify: a run where the
+      newer arm scores higher reports a POSITIVE pass_rate delta.
+- [ ] T48 -- Say in the harness's own notes which arm name goes on which side,
+      whatever T47 lands on. Verify: the rule is written where a run is set up,
+      not only in a result.
 
 ## What this costs today
 

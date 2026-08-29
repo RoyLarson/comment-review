@@ -211,22 +211,31 @@ stated it rather than back-filled.
       ! **IT TAKES A HASH AND A PATH LIST, NOT A CASE ROW.** No row carries `start`/`end` yet --
       that is T15 -- so this does not wait on the suite, and the suite does not wait on this.
 
-- [ ] **B3 -- RUN: with-skill and baseline in the SAME turn.** Works
+- [x] **B3 -- RUN: with-skill and baseline in the SAME turn.** Works
       `the-harness-cannot-run-the-system-it-grades`. SKILL.md is explicit that the baseline is not
       collected afterwards. ! The baseline here is the OLD AGENT WORKFLOW on the NEW machinery
       (`decision-log.md Process: #52`), not "no skill" -- this is an improve-mode comparison, not a
       does-the-skill-help one. Verify: both arms write outputs under the prescribed layout, and
       `timing.json` is captured from each task notification as it arrives.
 
-      !! **THE CODE HALF LANDED 2026-08-29 AND THE BOX STAYS OPEN.** `evals/workspace.py`, four
-      tests in `tests/harness/test_workspace.py`, four more in `test_end_to_end.py`. **The second
-      clause needs a real run** -- a notification only exists when a subagent finishes -- so the
-      work is not done and an unchecked box is what says so.
+      !! **BOTH HALVES DONE 2026-08-29.** The code landed first -- `evals/workspace.py`, four
+      tests in `tests/harness/test_workspace.py`, four more in `test_end_to_end.py` -- and the box
+      stayed open until a real run supplied the second clause, because a notification only exists
+      when a subagent finishes.
 
       | half | state |
       | --- | --- |
       | the prescribed layout, `eval_metadata.json`, `timing.json` | built, and read by the real aggregator |
-      | two arms dispatched in one turn, timing taken from each notification | **not started** -- an agent action at run time |
+      | two arms dispatched in one turn, timing taken from each notification | **DONE** -- `evidence/harness-first-two-arm-run/` |
+
+      ! **THE RUN: `v0.1.6` (`52e1d9ef5`) against `v0.2.2` (`ccb2404cb`)**, both complete
+      22-file plugin sets, over `galley.py` staged at `1ad4ba72`, both dispatched in ONE message
+      so neither was collected after the other. Timing was written from each notification AS IT
+      ARRIVED and not batched, which is what SKILL.md asks and the only chance to capture it.
+
+      ! **AND THE ISOLATION CLAIM WAS CHECKED TWICE**, once from each side: both snapshot
+      manifests verified UNTOUCHED afterwards, and a blind grader confirmed from the OUTPUT that
+      neither arm cited anything beyond its snapshot, the census and the file under review.
 
       !! **THE LAYOUT IS DERIVED FROM `aggregate_benchmark.py`, BECAUSE `SKILL.md` IS WRONG ABOUT
       IT.** SKILL.md:180 gives `<workspace>/iteration-<N>/eval-<ID>/with_skill/outputs/` and never
@@ -256,6 +265,34 @@ stated it rather than back-filled.
       exactly `text`/`passed`/`evidence`, then `python -m scripts.aggregate_benchmark`, then the
       analyst pass. Verify: `benchmark.json` reports mean +/- stddev and a delta over the default
       three runs.
+
+      !! **THE CHAIN RAN 2026-08-29 AND THE BOX STAYS OPEN, on the words "three runs".** One run
+      per arm was graded and aggregated -- `evidence/harness-first-two-arm-run/` -- so
+      `benchmark.json` exists and carries a delta, and **every `stddev` in it is 0.0 because
+      n=1.** A stddev over one sample is not a stddev, and this box asks for a spread.
+
+      | the clause | state |
+      | --- | --- |
+      | `grading.json` with exactly `text`/`passed`/`evidence` | DONE, and the aggregator read it |
+      | `aggregate_benchmark` produces `benchmark.json` | DONE |
+      | mean **+/- stddev** over the default three runs | **NOT DONE** -- one run per arm |
+      | the analyst pass | **NOT DONE** |
+      | grading via `agents/grader.md` | **NOT DONE** -- a purpose-written grader prompt was used, blind per arm |
+
+      !! **THE DELTA'S SIGN IS BACKWARDS AND IT IS NOT OUR BUG.** The aggregator computes
+      first-minus-second in SORTED config order, and `skill-creator`'s SKILL.md prescribes
+      `old_skill` for an improve-mode baseline -- which sorts BEFORE `with_skill`. **40% against
+      80% printed as `Delta: -0.40`.** Filed as T47/T48. ! It is the THIRD place this dependency's
+      prose and code disagree, after A2's `assertions` and B3's missing `run-N` level -- and each
+      time the code wins silently.
+
+      ! **BLIND PER ARM, DELIBERATELY.** Each grader saw one arm, the answer key and the file
+      under review, and never the other arm. A single grader holding both would be marking a
+      comparison rather than a run.
+
+      ! **THE GRADER MODEL IS NOT RECORDED, AND D2 ASKS FOR IT.** Both graders were dispatched as
+      `general-purpose` subagents with no model pinned, so the package cannot name what graded it.
+      That is a gap in the run and a thing to fix before a grade is quoted anywhere.
 
 - [x] **B5 -- BUILT 2026-08-29: the rig -- `overlay` a declared `variant`, `reset` between
       theories.** Works `the-harness-cannot-run-the-system-it-grades` T45 and T46. Six tests in
