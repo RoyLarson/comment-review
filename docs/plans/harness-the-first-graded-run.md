@@ -218,6 +218,39 @@ stated it rather than back-filled.
       does-the-skill-help one. Verify: both arms write outputs under the prescribed layout, and
       `timing.json` is captured from each task notification as it arrives.
 
+      !! **THE CODE HALF LANDED 2026-08-29 AND THE BOX STAYS OPEN.** `evals/workspace.py`, four
+      tests in `tests/harness/test_workspace.py`, four more in `test_end_to_end.py`. **The second
+      clause needs a real run** -- a notification only exists when a subagent finishes -- so the
+      work is not done and an unchecked box is what says so.
+
+      | half | state |
+      | --- | --- |
+      | the prescribed layout, `eval_metadata.json`, `timing.json` | built, and read by the real aggregator |
+      | two arms dispatched in one turn, timing taken from each notification | **not started** -- an agent action at run time |
+
+      !! **THE LAYOUT IS DERIVED FROM `aggregate_benchmark.py`, BECAUSE `SKILL.md` IS WRONG ABOUT
+      IT.** SKILL.md:180 gives `<workspace>/iteration-<N>/eval-<ID>/with_skill/outputs/` and never
+      mentions a `run-N` level anywhere in the file. The aggregator requires one:
+
+          aggregate_benchmark.py:105   if not list(config_dir.glob("run-*")): continue
+
+      ! **AND THAT `continue` IS SILENT**, where the missing-`grading.json` case one line group
+      below prints a warning at :116. **A workspace built from the prose is invisible to the
+      tool**: every arm skipped, `benchmark.json` written, exit 0, nothing measured. ! It is the
+      same shape as A2's `assertions` -- **the prose and the code disagree, and the code wins
+      quietly** -- which is now twice in one plan, on the same dependency.
+
+      ! **SO THE TEST RUNS THE REAL AGGREGATOR** over a workspace this module builds, and asserts
+      both arms reach `benchmark.json`. Asserting the layout against my own belief about the
+      layout could only agree with itself.
+
+      ! **MEASURED END TO END 2026-08-29** at Roy's request -- *"grab the 0.1.0 scripts and the
+      0.2.2 scripts and run the test on a couple of the local script files to make certain this
+      runs and sticks together."* `v0.1.0` does not exist; the earliest tag is `v0.1.6`. Two
+      snapshots (`v0.1.6` `52e1d9ef5`, `v0.2.2` `ccb2404cb`, 22 files each, **all 22 differing**),
+      two of this repo's scripts staged byte-identical against `git show`, the workspace built,
+      the aggregator reporting both arms, and a variant loaded and reset. **It holds together.**
+
 - [ ] **B4 -- GRADE: run the grader and aggregate.** Works
       `the-harness-cannot-run-the-system-it-grades`. `agents/grader.md` -> `grading.json` with
       exactly `text`/`passed`/`evidence`, then `python -m scripts.aggregate_benchmark`, then the
