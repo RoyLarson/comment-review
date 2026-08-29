@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (105)
+### open  (104)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -276,11 +276,10 @@ that changed a published name or rule:
 | [revise-copies-everything](revise-copies-everything.md) | backend | — | 0/4 | `pull` copies `.git`, `.venv` and `corpora` into every revise root -- 284MB measured on this repo, per editorial stage, to set a docket over ~4MB of source |
 | [master-proof-and-edit-copy](master-proof-and-edit-copy.md) | backend | — | 5/5 | `seed` returns a flat mark list and nothing holds the several copies one stage produces; `docs/vocabulary.md` lists `master proof` as unnamed |
 | [topology-is-a-source-edit](topology-is-a-source-edit.md) | backend | — | 5/5 | `desk/stages.py`'s `STAGES` is a two-row literal, so a run cannot say which roles run when, what each reads, or how a role fans out |
-| [change-is-raw-text-not-lines](change-is-raw-text-not-lines.md) | backend | — | 0/4 | `desk/mark.py:396` refuses a `change` that is not a list of lines; `docs/the-mark.md` rules it is the updated paragraph as RAW TEXT; `results/differences.diff3` takes strings |
+| [change-is-raw-text-not-lines](change-is-raw-text-not-lines.md) | backend | — | 3/4 | `desk/mark.py:396` refuses a `change` that is not a list of lines; `docs/the-mark.md` rules it is the updated paragraph as RAW TEXT; `results/differences.diff3` takes strings |
 | [docket-role-is-per-page-not-per-alteration](docket-role-is-per-page-not-per-alteration.md) | backend | — | 0/3 | role sits on the page in docket.py's schema, so provenance is lost the moment two roles settle places on one page |
 | [sheet-rename-gate-cannot-see-the-source](sheet-rename-gate-cannot-see-the-source.md) | systems | — | 0/2 | the gate's scope excludes the tree the retired sense actually survived in -- docs/gates.md: a check that could not have failed is not evidence |
 | [doc-on-the-declaring-line](doc-on-the-declaring-line.md) | backend | — | 0/3 | A docstring written on its declaration's own line takes no address, and the round trip invents a blank line |
-| [mark-is-a-dict-not-a-type](mark-is-a-dict-not-a-type.md) | backend | — | 7/7 | `desk/mark.py` defines `Instruction`, `Shape`, `Row` and `problems(where, mark: dict)` -- but no `Mark`. The structure lives as prose in `docs/the-mark.md` plus string literals at 31 sites, so nothing parses and nothing can disagree |
 | [brief-forbids-the-full-address](brief-forbids-the-full-address.md) | agents | yes | 0/3 | reviewer-brief.md:109 instructs the bare cue; the seeder writes the full address and the checker refuses a substantive mark without it |
 | [brief-says-prose-is-withheld](brief-says-prose-is-withheld.md) | agents | yes | 0/3 | reviewer-brief.md:113 says the record withholds the prose so a role cannot rule without reading the code; flows/marks.py:81 puts raw_text on every mark and collator.py makes it load-bearing |
 | [brief-says-three-series](brief-says-three-series.md) | agents | yes | 0/3 | reviewer-brief.md:69 and :221 say three series; reading/series.py ADDRESSED is ('a','b','c','f') and SKILL.md:378 says four, so a role cannot resolve the @f0 place the same brief tells it to cite |
@@ -418,3 +417,4 @@ the reason is inside the file.
 | [foot-of-file-two-places](completed/foot-of-file-two-places.md) | The closing gap and the back matter both own prose at the foot, separated by a trailing leading -- the head rule in reverse. Roy ruled it 2026-08-26; decision-log.md Addressing: #19. |
 | [notations-collides-with-annotations](completed/notations-collides-with-annotations.md) | The name is alteration; the write side has all three containers -- alteration, schedule, docket -- and the docket is its own area carrying each page's path and sha, so the binder no longer reaches the write chain. decision-log.md Vocabulary: #14. |
 | [a-closing-quote-with-a-comment](completed/a-closing-quote-with-a-comment.md) | Fixed in paragraphs_stdlib -- a comment on a line a docstring owns is no longer a second paragraph. Both re-measurements verified 2026-08-29; the lexical Python reader was not needed. |
+| [mark-is-a-dict-not-a-type](completed/mark-is-a-dict-not-a-type.md) | desk/mark.py now defines Mark and parses one at the boundary -- a dict becomes a Mark or named problems, with no third outcome. The ruling field is 'instruction', typed Instruction. Proved by the defect it ends: the shipped brief's own worked example went from problems_in ([], 0) -- silently discarded and recounted as a coverage gap -- to ([], 1), counted as ruled. |
