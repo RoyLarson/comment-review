@@ -135,7 +135,20 @@ def pull(docket: dict, repo: Path, into: Path, revise: int) -> Pulled:
         # `Process: #35`'s check, not an opt-in. `AddressesMoved` propagates
         # uncaught: a mismatch here means the assembled revise cannot be
         # trusted, which is a defect in this run, not a state to paper over.
-        assert_addresses_held(repo, pulled)
+        #
+        # !! AND THE COPY GOES WITH IT, WHICH IT DID NOT UNTIL 2026-08-28. The
+        # raise left a complete, ordinary-looking revise root on disk -- and a
+        # root whose ADDRESSES MOVED is worse than a partial one, because
+        # nothing about it looks wrong: a later stage reading it would measure
+        # every mark against the wrong place, which is the single failure
+        # `Process: #35` exists to prevent. ! This module already carries
+        # `Process: #20` one level up for the refusal path; the same ruling
+        # decides this one.
+        try:
+            assert_addresses_held(repo, pulled)
+        except AddressesMoved:
+            shutil.rmtree(into, ignore_errors=True)
+            raise
         return pulled
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
