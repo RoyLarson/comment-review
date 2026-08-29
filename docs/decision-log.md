@@ -914,11 +914,18 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   !! **THE TRADE'S OWN WORD WAS UNAVAILABLE, AND THE REGISTER RULE IS WHY.** Bibliography calls
   this a **state** -- copies differing by changes made during production rather than a new edition
-  -- which is exactly the concept. MEASURED before it was proposed: `state` appears **22 times in
-  the shipped tree and is `block-context`'s named remit** (`reviewer-brief.md:187`, and
-  `agents/comment-review-block-context.md:23`). ! `setting` was out for the same reason, `set`
-  being the compositor's verb. **A trade word that collides with a role's remit is worse than
-  plain English**, because the collision lands in what an agent reads.
+  -- which is exactly the concept. It is refused because **`state` is already one of
+  `block-context`'s three named claim-kinds** (`agents/comment-review-block-context.md:23`), and
+  carries three further senses in what an agent reads. ! `setting` was out for the same reason,
+  `set` being the compositor's verb. **A trade word that collides with a role's remit is worse
+  than plain English**, because the collision lands in what an agent reads.
+
+  ! **THIS ENTRY FIRST CITED `reviewer-brief.md:187` AND THAT CITATION WAS FALSE**, corrected the
+  same day. That line reads *"A DEFECT YOU STATE IN `reason`"* -- the ordinary verb, not a remit
+  term. The count it carried, *"22 times in the shipped tree"*, was a raw case-insensitive grep
+  that conflated the claim-kind, three other noun senses and the verb. **The ruling does not move;
+  the evidence for it was overstated and is now stated correctly.** The full measurement is
+  `TODO/one-remit-is-a-closed-set.md`.
 
   ! **`cancel` WAS THE PRECISE ONE AND WAS REFUSED ON ORDINARY ENGLISH.** A cancel is a leaf
   reprinted and pasted over the faulty original -- literally this operation, with `cancellans` and

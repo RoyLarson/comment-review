@@ -334,7 +334,7 @@ other tasks can proceed without them._
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
 
-### blocked  (4)
+### blocked  (5)
 
 _None._
 
@@ -342,6 +342,7 @@ _None._
 | [code-concerns-cannot-carry-a-proposed-change](code-concerns-cannot-carry-a-proposed-change.md) | backend | — | 0/9 | code_concerns is a bare list of strings, so a code problem reaches no gate |
 | [docstrings-that-contradict-themselves](docstrings-that-contradict-themselves.md) | backend | — | 2/12 | each states a rule and then denies it, in the same file |
 | [isolate-the-codes-contribution](isolate-the-codes-contribution.md) | testing | — | 4/10 | Two graded arms, orchestration held constant; the rewording is the confound |
+| [one-remit-is-a-closed-set](one-remit-is-a-closed-set.md) | agents | yes | 0/4 | `block-context` states a counted closed set of three claim-kinds; the other three roles name their remits as section headings. None of block-context's three is in the vocabulary, and `state` carries four senses in what an agent reads |
 ---
 
 ## Completed
