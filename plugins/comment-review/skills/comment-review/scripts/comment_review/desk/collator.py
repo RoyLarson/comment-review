@@ -1,4 +1,4 @@
-"""Source-verification -- the first of `collator.py`'s two named steps.
+"""`collator.py`'s two named steps -- source-verification, and reconciliation's start.
 
     known_addresses(binder)     every place the binder still carries
     address_problems(...)       T3.1 -- does the address resolve
@@ -7,12 +7,15 @@
     source_problems(...)        T3.2 -- does every `source` resolve, with its
                                  `verbatim` within reach of the cited line
     source_verification(...)    all three, over one mark
+    places(proof)                T4.1 -- one stage's marks, grouped by every
+                                 place each TOUCHES
 
 `decision-log.md Vocabulary: #19` names the module and its two steps, keyed on
 scope: source-verification is per MARK, against the page it rules on;
-reconciliation is per PLACE, across the marks of one stage and is not built
-here. **THE COLLATOR RULES ON NOTHING** (`Vocabulary: #11`) -- every function
-below reports; none of them decides what a mark should have said.
+reconciliation is per PLACE, across the marks of one stage. **THE COLLATOR
+RULES ON NOTHING** (`Vocabulary: #11`) -- every function below reports; none
+of them decides what a mark should have said. `places` only GROUPS -- what a
+group of marks at one place MEANS is settle/escalate, not built here.
 
 !! TWO OF THE THREE CHECKS COST NO FILE READ, because of `flows/marks.py`'s
 `seed()`: the address and the paragraph's own `raw_text` are already on the
@@ -28,7 +31,7 @@ A stale mark surfaces later, through the proof-setter pass -- not here.
 from pathlib import Path
 
 from comment_review.binder.binder import rows_of
-from comment_review.desk.mark import INSTRUCTIONS
+from comment_review.desk.mark import INSTRUCTIONS, Instruction
 from comment_review.machine.exceptions import READ_ERRORS
 
 #: `reviewer-brief.md`: "your text must appear within three lines" of the
@@ -211,4 +214,58 @@ def verify_report(report: dict, binder: dict, root: Path) -> list[str]:
             out += source_verification(
                 where, mark, known=known, root=root, cache=cache
             )
+    return out
+
+
+def _touches(mark: dict) -> list[str]:
+    """Every place one mark reaches -- its own `address`, plus a `move`'s `claim.to`.
+
+    ! `move` is the one instruction naming two places: `claim.from` is the
+    same as the mark's own `address`, so only `claim.to` adds a second.
+    """
+    touched = []
+    address = mark.get("address")
+    if isinstance(address, str) and address:
+        touched.append(address)
+    if mark.get("mark") == Instruction.MOVE:
+        claim = mark.get("claim")
+        destination = claim.get("to") if isinstance(claim, dict) else None
+        if isinstance(destination, str) and destination and destination not in touched:
+            touched.append(destination)
+    return touched
+
+
+def places(proof: dict) -> dict[str, list[dict]]:
+    """T4.1 -- one stage's marks, grouped by every place each TOUCHES.
+
+    `decision-log.md Vocabulary: #19`'s reconciliation step, per PLACE across
+    the marks of one stage. `collate-buckets-a-move-at-one-end`: a `move` from
+    `a0` to `a8` grouped only under `a0` never meets another role's mark on
+    `a8`, so the two are decided as if they never touched the same text. This
+    groups a `move` into BOTH buckets instead.
+
+    Args:
+        proof: a `master_proof`, as `desk.proof.gather` returns it.
+
+    Returns:
+        address -> the marks touching it, each a copy of the role's mark with
+        the role that made it added under `role`. An unruled entry (`mark` is
+        `None`) is skipped, the same coverage-gap rule `verify_report` and
+        `flows.marks.problems_in` use. `clean` marks group like any other
+        instruction -- what a group of marks at one place MEANS is
+        reconciliation's settle/escalate step, not this one's.
+    """
+    out: dict[str, list[dict]] = {}
+    for copy in proof.get("edit_copies", []):
+        role = copy.get("role")
+        for sheet in copy.get("sheets", []):
+            marks = sheet.get("marks") if isinstance(sheet, dict) else None
+            if not isinstance(marks, list):
+                continue
+            for mark in marks:
+                if not isinstance(mark, dict) or mark.get("mark") is None:
+                    continue
+                entry = {**mark, "role": role}
+                for address in _touches(mark):
+                    out.setdefault(address, []).append(entry)
     return out

@@ -13,17 +13,31 @@ and not beside either test module.
 
 ! `a_docket_that_rewrites` and `the_row_for` were added in Task 10, for
 `tests/test_stage_root.py`.
+
+! `a_master_proof`, `a_correct`, `a_move`, `a_clean`, `a_query` and `an_add`
+were added in Task 9, for `tests/test_reconcile.py` -- Tasks 9 through 12 all
+share them. Every mark is built through `desk.mark.INSTRUCTIONS`, never as a
+hand-typed literal, so a changed row breaks a helper loudly instead of
+letting it drift.
 """
 
 from pathlib import Path
 
 from comment_review.binder.binder import bind
+from comment_review.desk.mark import ANCHOR_EXAMPLE, INSTRUCTIONS, Instruction, Shape
+from comment_review.desk.proof import gather
+from comment_review.flows.marks import seed
 from comment_review.flows.page_for import page_of, source_of
 
 #: `src/comment_review/desk/` -- the source `a_small_real_tree` copies from.
 #: Any package with a handful of ordinary Python files would do; this one was
 #: picked because it is small and holds real comments in more than one series.
 _DESK = Path(__file__).resolve().parents[1] / "src" / "comment_review" / "desk"
+
+#: A real citation `a_correct`, `a_move`, `a_query` and `an_add` reuse for
+#: `sources` -- `mark.py`'s own first line, read once at import time.
+_MARK_PY_CITE = "src/comment_review/desk/mark.py:1"
+_MARK_PY_LINE_1 = (_DESK / "mark.py").read_text(encoding="utf-8").splitlines()[0]
 
 
 def pages_of(root: Path) -> list:
@@ -188,3 +202,140 @@ def the_row_for(binder: dict, name: str) -> dict:
                 return row
         raise AssertionError(f"no filled 'b' row on {name!r}")
     raise AssertionError(f"no page named {name!r} in binder")
+
+
+def _synthetic_binder(addresses: list[str]) -> dict:
+    """A binder shaped only well enough for the real `seed()` to produce real
+    sheets from -- one page per address's file half, one row per its cue half.
+
+    ! `places()`, what this feeds, groups by whatever `address` a mark
+    already carries and never resolves one against a binder or reads a page,
+    so this needs no real file on disk -- only the shape `seed()` requires.
+    """
+    by_path: dict[str, list[str]] = {}
+    for address in addresses:
+        path, _, cue = address.partition("@")
+        by_path.setdefault(path, []).append(cue)
+    return {
+        "read_from": {"root": "tests/helpers.py", "revise": 0},
+        "pages": [
+            {
+                "path": path,
+                "sha": "0" * 40,
+                "rows": [{"cue": cue, "anchor": "", "raw_text": ""} for cue in cues],
+            }
+            for path, cues in by_path.items()
+        ],
+    }
+
+
+def a_master_proof(by_role: dict) -> dict:
+    """A `master_proof`, composed through the real `seed()` and `gather()`.
+
+    Args:
+        by_role: role name -> {address: mark}, one mark per place that role
+            rules on, built by `a_correct`, `a_move`, `a_clean`, `a_query` or
+            `an_add`.
+
+    Returns:
+        `{"stage": ..., "read_from": ..., "edit_copies": [...]}`, as
+        `desk.proof.gather` returns it. One `edit_copy` per role, seeded for
+        real over a synthetic binder sized to that role's own addresses, then
+        each seeded entry overlaid with the caller's mark -- the same
+        `entry.update(...)` pattern `tests/test_collator.py` uses over a real
+        one.
+    """
+    copies = []
+    for role, marks_by_address in by_role.items():
+        copy = seed(_synthetic_binder(list(marks_by_address)), role)
+        for sheet in copy["sheets"]:
+            for entry in sheet["marks"]:
+                mark = marks_by_address.get(entry["address"])
+                if mark is not None:
+                    entry.update(mark)
+        copies.append(copy)
+    return gather("4c", copies)
+
+
+def _mark(instruction: Instruction, address: str, claim: dict) -> dict:
+    """One mark, its required fields read off `INSTRUCTIONS[instruction]` --
+    never hand-typed, so a row changed under this helper breaks it loudly.
+
+    Args:
+        instruction: which of the seven.
+        address: this mark's own `address`.
+        claim: exactly the keys `INSTRUCTIONS[instruction].claim_all` names.
+
+    Returns:
+        A mark carrying `address`, `mark`, `reason`, `claim`, and `sources`
+        and `change` where the row owes them.
+
+    Raises:
+        AssertionError: `claim` does not carry exactly the keys the row's
+            `claim_all` demands.
+    """
+    spec = INSTRUCTIONS[instruction]
+    if set(claim) != set(spec.claim_all):
+        raise AssertionError(
+            f"{instruction}: claim needs {sorted(spec.claim_all)}, got {sorted(claim)}"
+        )
+    mark: dict = {
+        "address": address,
+        "mark": instruction,
+        "reason": f"written for the reconcile test suite ({instruction})",
+        "claim": claim,
+    }
+    if spec.owes_sources:
+        mark["sources"] = [{"cite": _MARK_PY_CITE, "verbatim": _MARK_PY_LINE_1}]
+    if spec.owes_change:
+        mark["change"] = [f"# set by the reconcile test suite ({instruction})"]
+    return mark
+
+
+def a_clean(address: str) -> dict:
+    """A `clean` mark -- the null mark. `INSTRUCTIONS[Instruction.CLEAN]` owes
+    no `claim`, no `sources`, no `change`."""
+    return _mark(Instruction.CLEAN, address, {})
+
+
+def a_correct(address: str, sentence: str = "the paragraph's own claim") -> dict:
+    """A `correct` mark -- `claim.false` is `sentence`, `claim.true` the fix,
+    the two keys `INSTRUCTIONS[Instruction.CORRECT]` demands."""
+    return _mark(
+        Instruction.CORRECT,
+        address,
+        {"false": sentence, "true": f"corrected: {sentence}"},
+    )
+
+
+def a_move(origin: str, destination: str) -> dict:
+    """A `move` mark -- `origin` as its own `address`, `destination` as
+    `claim.to`. `collator.places()` must group it into both."""
+    return _mark(Instruction.MOVE, origin, {"from": origin, "to": destination})
+
+
+def a_query(address: str, shape: Shape = Shape.UNABLE_TO_DETERMINE) -> dict:
+    """A `query` mark in one of the three `Shape`s -- default
+    `unable-to-determine`, the one a collate step can act on."""
+    return _mark(
+        Instruction.QUERY,
+        address,
+        {
+            "shape": shape,
+            "attempted": "checked the paragraph against the code it sits with",
+            "settles": "another role's ruling on the same place",
+        },
+    )
+
+
+def an_add(address: str) -> dict:
+    """An `add` mark -- `claim.anchor` NAMED IN BACKTICKS, using
+    `desk.mark.ANCHOR_EXAMPLE` rather than a hand-typed name."""
+    return _mark(
+        Instruction.ADD,
+        address,
+        {
+            "missing": "a sentence stating what the code does here",
+            "anchor": ANCHOR_EXAMPLE,
+        },
+    )
