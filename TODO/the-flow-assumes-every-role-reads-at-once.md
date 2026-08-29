@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 7 tasks done
+Progress: 4 of 7 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, reviewing the draft plan for the mark and the collator. Roy:
@@ -66,7 +66,7 @@ what makes it falsifiable.
 - [x] T3 -- Pull a revise at each editorial boundary: the settled docket through `proof_setter`
       into a tree copy with the drafts overlaid. Verify: the revise root holds every library file,
       only the scheduled pages differ, and `prove_unchanged` passes on it.
-- [ ] T4 -- Gate the address space. Verify: re-censusing a revise yields the address set the
+- [x] T4 -- Gate the address space. Verify: re-censusing a revise yields the address set the
       original yielded, over real files -- and the check FAILS on a revise whose code was changed
       by hand, which is what proves it can bite.
 - [ ] T5 -- Every read for a stage resolves against that stage's root. Verify: a `source` citing a

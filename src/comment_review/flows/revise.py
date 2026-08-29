@@ -32,8 +32,13 @@ import tempfile
 from pathlib import Path
 from typing import NamedTuple
 
+from comment_review.binder.binder import bind
+from comment_review.desk.collator import known_addresses
 from comment_review.flows import proof_setter
+from comment_review.flows.page_for import page_of
+from comment_review.machine.repo import walk_files
 from comment_review.reading.addresser import address_for
+from comment_review.reading.lexer import language_for
 
 
 class Pulled(NamedTuple):
@@ -62,6 +67,18 @@ class Pulled(NamedTuple):
     revise: int
     set_by: dict[str, str]
     refusals: list[proof_setter.Refusal]
+
+
+class AddressesMoved(Exception):
+    """`pulled.root` does not address the same places `original` did.
+
+    !! THE WHOLE SAFETY ARGUMENT FOR THE STAGED DESIGN -- `docs/decision-log.md
+    Process: #35`. Everything downstream assumes a mark written at a later
+    stage against `foo.py@b7` names the place an earlier stage saw, which is
+    true only while the executable code is byte-identical. This names the one
+    way that stops holding: a revise whose code moved, so a place below the
+    change renumbers under it.
+    """
 
 
 def pull(docket: dict, repo: Path, into: Path, revise: int) -> Pulled:
@@ -111,11 +128,69 @@ def pull(docket: dict, repo: Path, into: Path, revise: int) -> Pulled:
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(made.draft, target)
 
-        return Pulled(
+        pulled = Pulled(
             root=into, revise=revise, set_by=_set_by(docket), refusals=[]
         )
+        # !! THE GATE RUNS BEFORE THE SUCCESS RETURN, on every pull -- this is
+        # `Process: #35`'s check, not an opt-in. `AddressesMoved` propagates
+        # uncaught: a mismatch here means the assembled revise cannot be
+        # trusted, which is a defect in this run, not a state to paper over.
+        assert_addresses_held(repo, pulled)
+        return pulled
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
+
+
+def assert_addresses_held(original: Path, pulled: Pulled) -> None:
+    """Raise `AddressesMoved` unless `pulled` addresses the same places `original` did.
+
+    Args:
+        original: the checkout the revise was pulled from -- censused at
+            revise 0, the original's own number.
+        pulled: the revise. `pulled.root` is censused at `pulled.revise`.
+
+    Raises:
+        AddressesMoved: naming the addresses that appeared in the revise and
+            the ones that disappeared from the original.
+    """
+    before = known_addresses(_binder_over(Path(original), 0))
+    after = known_addresses(_binder_over(Path(pulled.root), pulled.revise))
+    appeared = sorted(after - before)
+    disappeared = sorted(before - after)
+    if appeared or disappeared:
+        raise AddressesMoved(
+            f"addresses moved between {original} and {pulled.root}: "
+            f"{len(appeared)} appeared {appeared}, "
+            f"{len(disappeared)} disappeared {disappeared}"
+        )
+
+
+def _binder_over(root: Path, revise: int) -> dict:
+    """Every page under `root`, censused at `revise` -- what the gate compares.
+
+    ! ADDRESSES ONLY. `annotate` and `code_names` resolve CITATIONS, a
+    question this gate never asks, so building a page is as far as this goes.
+
+    ! EVERY LANGUAGE THE CENSUS KNOWS, not only Python -- `Process: #35` is a
+    claim about code in general, and a Python-only walk would pass a revise
+    that renumbered a Rust or Go file clean.
+
+    !! `absent=True`, so an EMPTY place is carried too. `bind`'s default
+    drops a place that holds no prose, and appended code with no comment or
+    docstring is exactly that -- a new `undocumented` declaration would be
+    invisible to this gate without it, which is the one case `Process: #35`
+    exists to catch.
+    """
+    root = Path(root)
+    pages = []
+    for path in walk_files(root):
+        if language_for(path) is None:
+            continue
+        rel = path.resolve().relative_to(root.resolve()).as_posix()
+        page, why = page_of(path, rel=rel)
+        if page is not None:
+            pages.append(page)
+    return bind(pages, read_from={"root": str(root), "revise": revise}, absent=True)
 
 
 def _set_by(docket: dict) -> dict[str, str]:
