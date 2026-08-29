@@ -9,6 +9,16 @@ Raised:   2026-08-27, splitting the residue out of Roy's correction on relationa
           findings ("It is disjoint but both parts are fully cite-able and stated in
           the current findings") -- two of the three forms need no new shape; this
           one is a bucketing defect and not a shape defect at all
+Updated:  2026-08-29 — T2's *decided once* half landed only now, in desk/collator.py's
+          _join_moves. The grouping half (T1) had been delivered, but reconcile sorted
+          each of a move's two places INDEPENDENTLY, so the origin could settle while
+          the destination went back for a re-read -- and docket_from packages settled
+          alone, so the docket deleted the origin and never wrote the destination.
+          _join_moves lifts every move to the strongest outcome either end was given, to
+          a fixed point, before any bucket is read. Tested both directions in
+          tests/test_reconcile.py, and no-docket-carries-one-end in
+          tests/test_docket.py; all four go red when _join_moves is replaced with a no-
+          op.
 ```
 
 ## Objective
