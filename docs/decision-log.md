@@ -1848,5 +1848,39 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ground under it tells a later analysis nothing.
 
   ! **AND THE PRECONDITION IS STABILITY, NOT MAPPING.** Before asking whether the axes map to an
-  overall, ask whether the same judge returns the same letters on the same artifact twice. If it
-  does not, the grade is noise and no function would have rescued it.
+  overall, ask whether the same judge returns the same letters on the same artifact twice.
+
+  !! **THAT LAST SENTENCE OVERREACHED AND IS CORRECTED.** It read *"if it does not, the grade is
+  noise and no mapping exists to find."* Roy, 2026-08-29: *"just because there is variance in the
+  result doesn't make the measure invalid it makes it uncertain. A repeat or three or four or five
+  off the same result fixes the variance."* **Variance is reducible by N; validity is not reducible
+  by anything.** Disagreement between two runs sets the sample size, it does not condemn the
+  instrument -- which is what B4's *"mean +/- stddev over the default three runs"* was already
+  asking for.
+
+- **#57.** **END IS A POSITIVE KEY ONLY, AND A FINDING OUTSIDE IT IS ADJUDICATED AGAINST THE CODE**
+  (Roy, 2026-08-29): *"The human -- me in a lot of these cases -- certainly missed things. Numpy
+  and the other libraries are full of missed things."*
+
+  !! **THE FIRST RUBRIC'S `RESTRAINT` AXIS WAS INVALID, AND THIS IS WHY.** It graded a run down for
+  filing on any paragraph the END diff left alone -- reading *"the human did not fix this"* as
+  *"this was correct"*. END is evidence about what DID change and says nothing about the rest, so
+  the axis **penalised a run for finding a real defect the human missed** and the instrument could
+  not record a run being BETTER than its key.
+
+  ! **SO `unkeyed` REPLACES IT (rubric v2).** Every finding outside the key is itemised and ruled
+  against the CODE -- `true`, `false`, or `query` -- which is the same standard the role itself is
+  held to. The axis GRADE covers the false ones, because those are the harm; the true ones are
+  itemised and weighed in the overall, since a run finding ten real defects and a run finding none
+  must not come out alike.
+
+  !! **AND ON A REAL CORPUS THE UNKEYED SET IS THE COMMON CASE, NOT THE EXCEPTION.** END is one
+  person's fix on one day. **A small DETECTION set is therefore not by itself a poor run**, and a
+  grade read off the START/END chain alone would systematically understate every good run on a
+  tree like `numpy`.
+
+  ! **`reader_value` IS RECORDED AND NOT GRADED** (same ruling). This repo says the gates cannot
+  tell whether prose is TRUE *or* whether a reader learns the REASON; the axes cover the first
+  only. Whether the second is a real axis stays open -- adding the softest axis before the spread
+  on the hard ones is measured would put the most variance into the grade when it can least carry
+  it.

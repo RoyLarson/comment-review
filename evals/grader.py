@@ -40,12 +40,23 @@ MODEL = "claude-opus-5"
 
 #: Bumped whenever `rubric.md` changes. Grades made under different rubrics
 #: answer different questions and must not be pooled.
-RUBRIC_VERSION = 1
+#:
+#: !! v2 REPLACED `restraint` WITH `unkeyed`, because `restraint` was INVALID:
+#: it graded a run down for filing on any paragraph END left alone, which reads
+#: *"the human did not fix this"* as *"this was correct"*. END is a POSITIVE key.
+#: Roy, 2026-08-29: *"The human -- me in a lot of these cases -- certainly missed
+#: things. Numpy and the other libraries are full of missed things."*
+RUBRIC_VERSION = 2
 
 RUBRIC = pathlib.Path(__file__).resolve().parent / "rubric.md"
 
 GRADES = ["A", "B", "C", "D", "F", "N/A"]
-AXES = ["detection", "diagnosis", "prescription", "restraint", "evidence"]
+AXES = ["detection", "diagnosis", "prescription", "unkeyed", "evidence"]
+
+#: How a claim outside the END diff is ruled -- against the CODE, not the key.
+#: ! `true` IS NOT A DEFECT. It is a finding the human missed, which on a real
+#: corpus is the common case rather than the exception.
+UNKEYED_VERDICTS = ["true", "false", "query"]
 
 
 class NoCredential(Exception):
@@ -80,10 +91,38 @@ GRADING_SCHEMA = {
                     "required": AXES,
                     "additionalProperties": False,
                 },
+                # !! ITEMISED, NOT COUNTED INTO AN AXIS. A run finding ten real
+                # defects the human missed and a run finding none must not come
+                # out alike, and the `unkeyed` grade -- which is about the FALSE
+                # ones -- cannot tell them apart on its own.
+                "unkeyed_claims": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "cite": {"type": "string"},
+                            "verdict": {"type": "string", "enum": UNKEYED_VERDICTS},
+                            "reason": {"type": "string"},
+                        },
+                        "required": ["cite", "verdict", "reason"],
+                        "additionalProperties": False,
+                    },
+                },
+                # ! RECORDED, NOT GRADED, and deliberately outside `axes` -- see
+                # `rubric.md`. Whether a reader learns the REASON is the half of
+                # this system's stated purpose the axes do not cover, and
+                # whether it is a real axis is still open.
+                "reader_value": {"type": "string"},
                 "overall": {"type": "string", "enum": GRADES},
                 "overall_reason": {"type": "string"},
             },
-            "required": ["axes", "overall", "overall_reason"],
+            "required": [
+                "axes",
+                "unkeyed_claims",
+                "reader_value",
+                "overall",
+                "overall_reason",
+            ],
             "additionalProperties": False,
         },
     }

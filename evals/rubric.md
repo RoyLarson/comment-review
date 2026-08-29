@@ -1,8 +1,15 @@
 # The grading rubric -- what the judge is handed
 
-**Version: 1.** Bump this whenever any wording below changes. A grade records the version it was
+**Version: 2.** Bump this whenever any wording below changes. A grade records the version it was
 made under, because grades taken under different rubrics are not comparable and a later analysis
 that mixes them is fitting a curve to two different questions.
+
+!! **v2 REPLACED `RESTRAINT`, WHICH WAS INVALID.** It graded a run down for filing on any
+paragraph END left alone -- treating *"the human did not fix this"* as *"this was correct"*.
+**END is a POSITIVE key: it is evidence about what DID change and says nothing about the rest.**
+So a run that found a real defect the human missed was marked down for it, and the instrument
+could not record a run being BETTER than its key. Ruled by Roy, 2026-08-29: adjudicate a finding
+outside END **against the code** instead.
 
 You are grading ONE run of ONE editorial role against a defined END state. You see one arm. You do
 not know what any other arm did, and you must not speculate about one.
@@ -30,7 +37,7 @@ Grade each **A to F**, or **N/A** where the axis has no subject.
 | **DETECTION** | Did a record land on the paragraphs the END diff changed? |
 | **DIAGNOSIS** | Does the claim name the reason the END diff shows -- the actual mechanism? |
 | **PRESCRIPTION** | Does the proposed text assert what END asserts? |
-| **RESTRAINT** | What did it file on paragraphs END left alone? |
+| **UNKEYED** | Of the claims END does not adjudicate, how many are FALSE of the code? |
 | **EVIDENCE** | Does every cited `verbatim` really appear at its cite? |
 
 ### DETECTION
@@ -61,18 +68,33 @@ Only gradeable where DIAGNOSIS is C or better. **N/A** otherwise.
   sentence differ in wording; that is not a defect.
 - **F** -- the proposal would leave the reader believing something END contradicts.
 
-### RESTRAINT
+### UNKEYED -- claims END does not adjudicate
 
-One grade for the whole run.
+**Itemise every finding that falls outside the END diff, and rule each one against the CODE**:
+`true`, `false`, or `query`. Put them in `unkeyed_claims` with your reason for each.
 
-- **A** -- nothing filed on paragraphs END left alone, beyond well-founded `query`s.
-- **F** -- a wide sweep of corrections on prose that was never wrong.
+**The axis grade is about the FALSE ones only** -- they are the harm:
+
+- **A** -- no false claim outside the key.
+- **F** -- a sweep of confident corrections to prose that was never wrong.
+- **N/A** -- the run filed nothing outside the key.
+
+!! **A TRUE CLAIM OUTSIDE THE KEY IS VALUE, NOT NOISE, AND IT IS THE COMMON CASE ON A REAL
+CORPUS.** Roy, 2026-08-29: *"The human -- me in a lot of these cases -- certainly missed things.
+Numpy and the other libraries are full of missed things."* **END is one person's fix on one day.**
+On a real tree most of what a good run finds will have no counterpart in the diff, so a small
+DETECTION set is not by itself a poor run -- read the unkeyed list before concluding anything from
+the chain.
+
+! **WHICH IS WHY THE TRUE ONES ARE ITEMISED RATHER THAN COUNTED INTO THIS AXIS.** They are not a
+grade here; they are evidence you weigh in the OVERALL. A run finding ten real defects the human
+missed and a run finding none must not come out alike, and this axis alone cannot tell them apart.
 
 ! **A `query` IS NOT A FALSE POSITIVE.** A role saying *"I could not settle this from what I was
-handed"* is doing its job. Count assertions, not hedges.
+handed"* is doing its job. Rule assertions; record hedges as `query` and hold them against nobody.
 
-! **SILENCE IS NOT RESTRAINT.** A run that filed nothing has not shown restraint; it has shown
-nothing. Where DETECTION is F because the run was empty, RESTRAINT is **N/A**, not A.
+! **SILENCE IS NOT RESTRAINT.** A run that filed nothing has not shown care; it has shown nothing.
+Where the run was empty this is **N/A**, never A -- and DETECTION already carries the F.
 
 ### EVIDENCE
 
@@ -80,6 +102,23 @@ One grade for the whole run, and the only axis with a mechanical answer -- you a
 verification result. Report what it says.
 
 - **F** -- any cited `verbatim` does not appear at its cite.
+
+---
+
+---
+
+## Reader value -- recorded, NOT graded
+
+In `reader_value`, write one or two sentences: **would a reader of the resulting prose learn WHY
+the code is the way it is, or only what it does?**
+
+! **NO GRADE, DELIBERATELY.** Roy, 2026-08-29: record it unscored, decide later. This repo says
+the gates cannot tell whether prose is TRUE *or* whether a reader learns the reason -- the axes
+above cover the first only. Whether the second is a real axis is an open question, and adding the
+softest one before the spread on the hard ones is even measured would put the most variance into
+the grade at the moment it can least carry it.
+
+! It is not evidence for or against the overall. Write what you saw.
 
 ---
 

@@ -39,8 +39,8 @@ def test_the_rubric_version_travels_with_the_grade():
     The later question -- does any mapping exist from the axes to the overall --
     can only be asked of samples graded the same way.
     """
-    assert grader.RUBRIC_VERSION == 1
-    assert "Version: 1" in grader.rubric_text()
+    assert grader.RUBRIC_VERSION == 2
+    assert "Version: 2" in grader.rubric_text()
 
 
 def test_the_schema_demands_every_axis_and_the_reason():
@@ -49,7 +49,7 @@ def test_the_schema_demands_every_axis_and_the_reason():
     axes = schema["properties"]["axes"]["properties"]
 
     assert set(axes) == {
-        "detection", "diagnosis", "prescription", "restraint", "evidence"
+        "detection", "diagnosis", "prescription", "unkeyed", "evidence"
     }
     for axis in axes.values():
         assert set(axis["properties"]) == {"grade", "reason"}
@@ -58,6 +58,39 @@ def test_the_schema_demands_every_axis_and_the_reason():
     assert "overall" in schema["properties"]
     assert "overall_reason" in schema["properties"]
     assert schema["additionalProperties"] is False
+
+
+def test_a_claim_outside_the_key_is_adjudicated_against_the_code():
+    """END is a POSITIVE key -- absence of a fix is not evidence of correctness.
+
+    Roy, 2026-08-29, ruling on how a finding outside the END diff is treated:
+    adjudicate it against the code. A true finding the human missed is not a
+    false positive, and an instrument that cannot record a run EXCEEDING its key
+    is measuring the wrong thing.
+    """
+    schema = grader.GRADING_SCHEMA["format"]["schema"]
+    claims = schema["properties"]["unkeyed_claims"]
+
+    assert claims["type"] == "array"
+    entry = claims["items"]["properties"]
+    assert set(entry) == {"cite", "verdict", "reason"}
+    assert entry["verdict"]["enum"] == ["true", "false", "query"]
+
+    assert "unkeyed_claims" in schema["required"]
+
+
+def test_reader_value_is_recorded_and_carries_no_grade():
+    """Roy, 2026-08-29: record it unscored, decide later.
+
+    ! IT IS NOT IN `axes`, WHICH IS THE WHOLE POINT. Adding the softest axis
+    before the spread on the hard ones is even measured would put the most
+    variance into the grade at the moment it is least able to carry it.
+    """
+    schema = grader.GRADING_SCHEMA["format"]["schema"]
+
+    assert schema["properties"]["reader_value"]["type"] == "string"
+    assert "reader_value" not in schema["properties"]["axes"]["properties"]
+    assert "reader_value" in schema["required"]
 
 
 def test_the_prompt_carries_the_rubric_and_the_artifacts(tmp_path):
@@ -76,7 +109,7 @@ def test_the_prompt_carries_the_rubric_and_the_artifacts(tmp_path):
         mechanical={"citations_checked": 3, "citations_failed": 0},
     )
 
-    assert "Version: 1" in prompt
+    assert "Version: 2" in prompt
     assert "a made-up finding" in prompt
     assert "def f():" in prompt
     assert "1ad4ba72" in prompt and "deadbeef" in prompt
@@ -107,7 +140,7 @@ def test_a_grade_records_what_produced_it():
     recorded = grader.stamp({"overall": "C"}, arm="old_skill", eval_id="a-case")
 
     assert recorded["model"] == "claude-opus-5"
-    assert recorded["rubric_version"] == 1
+    assert recorded["rubric_version"] == 2
     assert recorded["arm"] == "old_skill"
     assert recorded["eval_id"] == "a-case"
     assert recorded["overall"] == "C"
@@ -127,9 +160,11 @@ def test_the_summary_carries_only_the_MECHANICAL_rate(tmp_path):
                 "detection": {"grade": "A", "reason": "r"},
                 "diagnosis": {"grade": "F", "reason": "r"},
                 "prescription": {"grade": "N/A", "reason": "r"},
-                "restraint": {"grade": "B", "reason": "r"},
+                "unkeyed": {"grade": "B", "reason": "r"},
                 "evidence": {"grade": "A", "reason": "r"},
             },
+            "unkeyed_claims": [],
+            "reader_value": "the replacement states the what, never the why",
             "overall": "D",
             "overall_reason": "right paragraph, wrong reason",
         },
