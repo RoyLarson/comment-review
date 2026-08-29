@@ -8,7 +8,10 @@
     Role            the four editorial roles, closed, independent of any
                     run's topology
     ROLES           the companion to `Role` -- membership is asked of THIS
-    Stage           one row: a name, a kind, the roles it dispatches
+    Dispatch        one role dispatched within a stage, and the pages it sees
+    Stage           one row: a name, a kind, the roles it dispatches, and
+                    (once a run's topology names them) what it reads, what
+                    it carries, and its dispatches
     STAGES          the MARK sequence, `SKILL.md:544-583`
     pulls_revise    is this stage's output followed by a revise?
 
@@ -71,6 +74,19 @@ never hand-typed, following `T1.15` of `docs/plans/0.2.4-the-mark-and-the-
 collator.md`. No site in this module asks membership of `Kind` itself --
 `x in SomeEnum` raises `TypeError` on Python 3.11, measured at `lexer.py:87`
 -- so there is no companion frozenset here; nothing in this file needs one.
+
+!! `STAGE` GAINED THREE DEFAULTED FIELDS -- `reads`, `carries`, `dispatches` --
+for `desk/topology.py` to build. `docs/superpowers/specs/2026-08-29-the-
+master-proof-and-reconciliation-design.md` section 2 specifies a `Stage`
+NamedTuple of its own; it EVOLVES this one in place instead, because a second
+same-named type in this package is the collision `Kind` already had to
+declare once. `topology.py` imports `Stage` and `Dispatch` from here rather
+than defining them.
+
+! `roles` STAYS, UNCHANGED, ALONGSIDE `dispatches`. `STAGES` below still
+constructs every row with three positional arguments, and the new fields
+default so that keeps working. A later task removes `roles` once nothing
+reads it.
 """
 
 from enum import StrEnum, auto
@@ -133,21 +149,52 @@ class Role(StrEnum):
 ROLES = tuple(Role)
 
 
+class Dispatch(NamedTuple):
+    """One role dispatched within a stage, and the pages it sees.
+
+    Attributes:
+        role: which of the four editorial roles this dispatch runs.
+        paths: the glob patterns selecting this dispatch's pages. Empty
+            means every page in the binder -- `desk/topology.py` fills this
+            in from a `[[stage.dispatch]]` table with no `paths` key.
+    """
+
+    role: Role
+    paths: tuple[str, ...]
+
+
 class Stage(NamedTuple):
     """One stage of MARK.
 
     Attributes:
         name: the stage's own label, drawn from `SKILL.md`'s stage-4 table
-            (`4a`, `4c`).
+            (`4a`, `4c`) or, for a stage a run's topology file names, that
+            file's own `name` key.
         kind: a `Kind` -- what `pulls_revise` reads. Typed as `Kind` and not
             `str`: annotated `str`, the type gate admitted
             `Stage("x", "banana", ())`, measured 2026-08-28.
         roles: the role names this stage dispatches, in `SKILL.md`'s order.
+        reads: what this stage reads -- `"original"`, or `"revise:<name>"`
+            naming an earlier stage's pulled revise. Set by `topology.py`;
+            defaults to `"original"` so `STAGES` below keeps constructing
+            with three positional arguments.
+        carries: the names of earlier stages whose `edit_copies` this stage
+            carries forward, unsettled, alongside what it reads. Format
+            only -- `docs/superpowers/specs/2026-08-29-the-master-proof-and-
+            reconciliation-design.md` section 2 -- `topology.py` refuses a
+            non-empty value rather than building it.
+        dispatches: the `Dispatch` rows this stage runs, in the run's
+            topology file order. Set by `topology.py`; defaults to `()` so
+            `STAGES` below keeps constructing with three positional
+            arguments.
     """
 
     name: str
     kind: Kind
     roles: tuple[str, ...]
+    reads: str = "original"
+    carries: tuple[str, ...] = ()
+    dispatches: tuple[Dispatch, ...] = ()
 
 
 #: The MARK sequence -- `SKILL.md:544-583`. 4a runs `ownership-context` alone

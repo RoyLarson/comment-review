@@ -1,0 +1,21 @@
+# All four editorial roles at once, one stage, four edit_copies.
+# docs/superpowers/specs/2026-08-29-the-master-proof-and-reconciliation-design.md
+# section 2, table row "all four at once": 1 stage, 4 edit_copies, 1 revise.
+
+[[stage]]
+name    = "4"
+kind    = "editorial"
+reads   = "original"
+carries = []
+
+  [[stage.dispatch]]
+  role = "ownership-context"
+
+  [[stage.dispatch]]
+  role = "block-context"
+
+  [[stage.dispatch]]
+  role = "function-context"
+
+  [[stage.dispatch]]
+  role = "module-context"

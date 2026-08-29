@@ -1,0 +1,36 @@
+# 4a then 4c: ownership-context alone, then the other three against its
+# resolved placement. Two stages, one edit_copy then three, two revises --
+# docs/superpowers/specs/2026-08-29-the-master-proof-and-reconciliation-
+# design.md section 2, table row "4a then 4c". The 4c stage's block-context
+# dispatch is transcribed from that section's own TOML example (lines
+# 96-113): fanned across two path globs, while function-context and
+# module-context each keep every page.
+
+[[stage]]
+name    = "4a"
+kind    = "editorial"
+reads   = "original"
+carries = []
+
+  [[stage.dispatch]]
+  role = "ownership-context"
+
+[[stage]]
+name    = "4c"
+kind    = "editorial"
+reads   = "revise:4a"
+carries = []
+
+  [[stage.dispatch]]
+  role  = "block-context"
+  paths = ["src/comment_review/reading/*.py"]
+
+  [[stage.dispatch]]
+  role  = "block-context"
+  paths = ["src/comment_review/binder/*.py"]
+
+  [[stage.dispatch]]
+  role = "function-context"
+
+  [[stage.dispatch]]
+  role = "module-context"
