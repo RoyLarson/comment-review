@@ -615,7 +615,7 @@ def test_mark_draws_its_choices_from_the_enum_not_from_a_schedule():
 
 Run: `uv run pytest -q tests/test_stages.py -k closed_set`
 
-- [ ] **Step 3: Add `Role`, delete the `STAGES` literal, repoint `mark.py`**
+- [x] **Step 3: Add `Role`, delete the `STAGES` literal, repoint `mark.py`**
 
 `Stage`, `Kind` and `pulls_revise` stay -- `pulls_revise` reads `stage.kind` and is unchanged. The
 two-row `STAGES` literal goes; `tests/test_stages.py`'s cases that read it move to reading a topology
@@ -634,7 +634,7 @@ uv run python scripts/build_plugin.py && uv run pytest -q
 
 Commit the code and its tests with `-F`. **No box moves in this commit.**
 
-- [ ] **Step 6: Tick the boxes -- ITS OWN COMMIT**
+- [x] **Step 6: Tick the boxes -- ITS OWN COMMIT**
 
 !! **THE TICKS ARE A SEPARATE COMMIT, NEVER FOLDED INTO THE WORK.** Roy, 2026-08-29:
 *"the pair is its own commit - separate from the work"*. **Three places move together

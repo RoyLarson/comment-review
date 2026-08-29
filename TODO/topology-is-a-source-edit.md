@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 5 tasks done
+Progress: 4 of 5 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, designing P4 with Roy: *"the order of reviewers and
@@ -24,7 +24,7 @@ The stage list is a literal, so every topology is a source edit.
       later stage is refused, `reads` naming an `enriching` stage is refused BY
       NAME rather than resolved to the previous editorial one, and `reads =
       "original"` always resolves.
-- [ ] Split `STAGES`: the four roles stay in code as a closed `StrEnum`, the
+- [x] Split `STAGES`: the four roles stay in code as a closed `StrEnum`, the
       schedule moves to the file. Verify: `commands/mark.py`'s `--role` draws its
       `choices=` from the enum and not from a run's topology, and the file's
       `role` keys are validated against that enum.
