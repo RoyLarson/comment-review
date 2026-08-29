@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 7 tasks done
+Progress: 1 of 7 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, reviewing the draft plan for the mark and the collator. Roy:
@@ -56,7 +56,7 @@ what makes it falsifiable.
 
 ## Tasks
 
-- [ ] T1 -- A stage list as DATA, each entry naming its kind -- `editorial` (fills a sheet, its
+- [x] T1 -- A stage list as DATA, each entry naming its kind -- `editorial` (fills a sheet, its
       marks are reconciled, a revise is pulled after it) or `enriching` (hands back facts that go
       into the next binder, no docket, no revise). Verify: an enriching entry pulls no revise, and
       adding a stage is a row rather than a code change.
