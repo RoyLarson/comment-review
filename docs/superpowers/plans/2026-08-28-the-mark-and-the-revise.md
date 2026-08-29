@@ -14,6 +14,21 @@ address space did not move. `taken_in` shows a role the original against the rev
 **Tech Stack:** Python 3.11 floor, standard library only in shipped files, `pytest` + `ruff` + `ty`
 as pinned dev dependencies, all through `uv run`.
 
+!! **THE BOXES WENT UNTICKED FOR TWELVE TASKS AND WERE TICKED IN ONE PASS ON 2026-08-28.** Every
+executor ticked the `P` plan's `T` numbers and the `TODO/` boxes and none ticked its own steps
+here, so this file read `0 of 93` while eleven tasks had landed -- **a plan that cannot say what it
+has delivered**, which is the defect `CLAUDE.md` names when it rules that the boxes ARE the state.
+
+! **WHAT THE ONE PASS TICKED AGAINST, so a stranger can re-derive it:** a task's steps were ticked
+only where **every `T` it delivers is already `- [x]` in the `P` plan** AND a commit for it exists
+on `feat/the-mark-and-the-collator` -- Task 1 `67dc82b`, 2 `3e47286`, 2c `09623a4`, 3 `eaf3d09`,
+4 `69c819f`, 5 `e065886`, 5b `d6ae622`, 6 `76acaae`, 7 `641af15`, 8 `5d78c55`, 9 `8df1281`,
+10 `88748d5`. Tasks 5c, 11, 12 and 13 have neither and stay open.
+
+! **ONE STEP INSIDE A LANDED TASK STAYS OPEN: Task 3's step 5**, whose instruction is to leave
+`T1.6` undone and say why. Ticking it would claim `code_concerns` reached the sheet. *Deferred is
+not done.*
+
 **Spec:** [`docs/plans/0.2.4-the-mark-and-the-collator.md`](../../plans/0.2.4-the-mark-and-the-collator.md)
 -- the `P` plan. This `SP` delivers **P1**, **P2**, and **T5.2**.
 
@@ -252,7 +267,7 @@ add      -> ["missing", "anchor"]
 move     -> ["from", "to"]
 ```
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/test_mark_brief.py`:
 
@@ -320,7 +335,7 @@ def test_a_query_naming_a_shape_outside_the_three_is_refused():
     assert problems("src/m.py@b3", mark) != []
 ```
 
-- [ ] **Step 2: Run it and confirm it fails**
+- [x] **Step 2: Run it and confirm it fails**
 
 ```
 uv run pytest -q tests/test_mark_brief.py
@@ -330,7 +345,7 @@ Expected: all four FAIL. `allowed()["claim"]` returns `{"all": [...], "any": [..
 instruction, `query` demands a key literally named `outside-my-role`, and `add`'s anchor check
 reads `claim.missing`.
 
-- [ ] **Step 3: One row states every key**
+- [x] **Step 3: One row states every key**
 
 Replace `claim_keys` at `desk/mark.py:242`:
 
@@ -356,7 +371,7 @@ def claim_keys(spec: Instruction) -> list[str]:
     return keys
 ```
 
-- [ ] **Step 4: `allowed()` publishes that list**
+- [x] **Step 4: `allowed()` publishes that list**
 
 In `allowed()`, replace the loop and the `claim` entry:
 
@@ -367,7 +382,7 @@ In `allowed()`, replace the loop and the `claim` entry:
 and leave `"claim": claims`. `values.shape` already carries the closed set for `claim.shape`, so
 nothing else in the returned shape moves.
 
-- [ ] **Step 5: The gate reads the same list**
+- [x] **Step 5: The gate reads the same list**
 
 Replace the body of `_claim_problems` after the `isinstance` guard:
 
@@ -390,7 +405,7 @@ Replace the body of `_claim_problems` after the `isinstance` guard:
 Delete the trailing `owed` loop -- `attempted` and `settles` are now in `claim_keys`, so checking
 them again is a second statement of one rule.
 
-- [ ] **Step 6: Run the new test**
+- [x] **Step 6: Run the new test**
 
 ```
 uv run pytest -q tests/test_mark_brief.py
@@ -398,7 +413,7 @@ uv run pytest -q tests/test_mark_brief.py
 
 Expected: 4 passed.
 
-- [ ] **Step 7: Replace the circular suite**
+- [x] **Step 7: Replace the circular suite**
 
 Delete `tests/test_mark.py` and rewrite it taking **inputs** from
 `evidence/the-loop-measured-2026-08-27/marks.jsonl` (706 real marks) and **expectations** from
@@ -410,12 +425,12 @@ uv run pytest -q
 
 Expected: the full suite green.
 
-- [ ] **Step 8: Prove the new suite could have caught it**
+- [x] **Step 8: Prove the new suite could have caught it**
 
 Revert `claim_keys` to `return list(spec.claim_all), list(spec.claim_any)` in a scratch copy, run
 `tests/test_mark_brief.py`, confirm FAIL, restore. A suite that passes both ways is testing itself.
 
-- [ ] **Step 9: Build, gate, and tick the boxes**
+- [x] **Step 9: Build, gate, and tick the boxes**
 
 ```
 uv run python scripts/build_plugin.py
@@ -434,7 +449,7 @@ was not reworded to match what was done: an unchecked box says work remains, and
 Then `Edit` `docs/plans/0.2.4-the-mark-and-the-collator.md`, changing `- [ ] **T1.1**`,
 `- [ ] **T1.2**` and `- [ ] **T1.3**` to `- [x]`.
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 `Write` the message to a file, then:
 
@@ -464,7 +479,7 @@ boundary.
 ! **The gate allows the word inside a fenced block quoting a ruling** (`decision-log`,
 `history.md`, `prototype/`), which is the exception `check_vocabulary.py` already makes.
 
-- [ ] **Step 1: Write the failing check**
+- [x] **Step 1: Write the failing check**
 
 Add to `tests/gates/test_vocabulary.py`:
 
@@ -480,26 +495,26 @@ def test_no_shipped_file_calls_the_field_a_verdict():
     assert offenders == [], offenders
 ```
 
-- [ ] **Step 2: Run it and confirm it fails**
+- [x] **Step 2: Run it and confirm it fails**
 
 ```
 uv run pytest -q tests/gates/test_vocabulary.py -k verdict
 ```
 
-- [ ] **Step 3: Substitute, in `src/` and the hand-written prose**
+- [x] **Step 3: Substitute, in `src/` and the hand-written prose**
 
 Write a `.py` script under the scratchpad that asserts the old token is present before replacing
 it in each named file (`assert old in text`), then run it with `uv run python`. Do not use `sed`.
 `prototype/` keeps the old word -- `Vocabulary: #19` rules that a captured record is not renamed.
 
-- [ ] **Step 4: Build and re-run**
+- [x] **Step 4: Build and re-run**
 
 ```
 uv run python scripts/build_plugin.py
 uv run pytest -q && uv run python scripts/check_vocabulary.py
 ```
 
-- [ ] **Step 5: Tick and commit**
+- [x] **Step 5: Tick and commit**
 
 `Edit` T1.4 to `- [x]`, write the message to a file, `git add -A && git commit -F <file>`.
 
@@ -561,7 +576,7 @@ right now.**"* ! Do **not** generate the help sentences from the claim-keys list
 prose-building in the code to avoid prose in the code. The existing refusal message already names
 the missing keys; leave it at that.
 
-- [ ] **Step 1: Write the gate first**
+- [x] **Step 1: Write the gate first**
 
 `tests/gates/test_mark_shape.py`. **Its expectation comes from `docs/the-mark.md`** -- prose the
 module cannot move, which is the whole point:
@@ -598,17 +613,17 @@ def test_no_field_carries_prose():
         assert f.type is not str or f.name in {"quotes_original"}, f.name
 ```
 
-- [ ] **Step 2: Run it and confirm it fails**, naming eleven surplus fields.
+- [x] **Step 2: Run it and confirm it fails**, naming eleven surplus fields.
 
-- [ ] **Step 3: Rebuild the rows** from `docs/the-mark.md`'s table. `query`'s claim keys become
+- [x] **Step 3: Rebuild the rows** from `docs/the-mark.md`'s table. `query`'s claim keys become
       `("shape", "attempted", "settles")`; `add`'s become `("missing", "anchor")`. The three query
       shapes stay as the module-level `QUERY_SHAPES` constant they already are.
 
-- [ ] **Step 4: Make the gate read those keys** -- `_claim_problems` checks `spec.claim_all`
+- [x] **Step 4: Make the gate read those keys** -- `_claim_problems` checks `spec.claim_all`
       directly. **`claim_keys` is deleted**, not simplified: with the keys stated once there is
       nothing left to derive.
 
-- [ ] **Step 5: The verification that matters**
+- [x] **Step 5: The verification that matters**
 
 ```
 uv run pytest -q tests/test_mark.py tests/test_mark_brief.py
@@ -618,10 +633,10 @@ uv run pytest -q tests/test_mark.py tests/test_mark_brief.py
 behaviour change would show as a failure. **If a single test needs touching, the rebuild altered
 behaviour and is wrong** -- stop and report rather than adjusting the test.
 
-- [ ] **Step 6: Prove the gate bites.** Add a field to `Instruction` without touching the spec;
+- [x] **Step 6: Prove the gate bites.** Add a field to `Instruction` without touching the spec;
       `test_the_row_carries_only_what_the_spec_allows` must go RED. Remove it.
 
-- [ ] **Step 7: Build, gate, tick, commit**
+- [x] **Step 7: Build, gate, tick, commit**
 
 ```
 uv run python scripts/build_plugin.py && uv run pytest -q
@@ -664,12 +679,12 @@ half waits on a ruling, and T1.6 stays unticked until it lands.
 change to the binder. The paragraph is the revise's bytes because the binder was censused from
 that root; **Task 7 is what names which root that was**, and this task does not need it.
 
-- [ ] **Step 0: Write `tests/helpers.py`**
+- [x] **Step 0: Write `tests/helpers.py`**
 
 The file is in the *Test helpers* section above. Tasks 8, 9, 10 and 11 use it; this is the first
 task that does. It carries inputs only -- no helper there decides what a test should expect.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_a_seeded_row_carries_the_paragraph_bytes():
@@ -690,19 +705,19 @@ def test_a_sheet_carrying_a_code_concern_validates():
     assert problems_in(sheet) == ([], 0)
 ```
 
-- [ ] **Step 2: Run and confirm both fail**
+- [x] **Step 2: Run and confirm both fail**
 
 ```
 uv run pytest -q tests/test_marks_flow.py
 ```
 
-- [ ] **Step 3: Carry `raw_text`, accept `code_concerns`**
+- [x] **Step 3: Carry `raw_text`, accept `code_concerns`**
 
 In `seed`, add `"raw_text": row.get("raw_text", "")` to each emitted entry. **Do NOT add
 `code_concerns`** -- see the block above; the sheet's shape is unstated and adding to it is the
 error `Process: #37` records.
 
-- [ ] **Step 4: Run**
+- [x] **Step 4: Run**
 
 ```
 uv run pytest -q tests/test_marks_flow.py
@@ -717,7 +732,7 @@ what the sheet carries**, the same absence that let eleven fields onto the mark.
 Leave **T1.6 unticked** and say so in the report. Do not add the key, and do not name it in the
 brief, until the sheet's shape is stated and approved.
 
-- [ ] **Step 6: Build, gate, tick, commit**
+- [x] **Step 6: Build, gate, tick, commit**
 
 ```
 uv run python scripts/build_plugin.py && uv run pytest -q
@@ -759,7 +774,7 @@ becomes wrong again here: it is GENERATED, from two sources. Fix the caption to 
 - Modify: `plugins/comment-review/skills/comment-review/references/reviewer-brief.md:278`
 - Test: `tests/gates/test_brief_table.py`
 
-- [ ] **Step 1: Write the failing gate**
+- [x] **Step 1: Write the failing gate**
 
 ```python
 def test_the_committed_block_matches_a_fresh_render():
@@ -773,9 +788,9 @@ def test_the_committed_block_matches_a_fresh_render():
     assert fresh.strip() in block
 ```
 
-- [ ] **Step 2: Run and confirm it fails** -- the script does not exist.
+- [x] **Step 2: Run and confirm it fails** -- the script does not exist.
 
-- [ ] **Step 3: Write `scripts/render_brief.py`**
+- [x] **Step 3: Write `scripts/render_brief.py`**
 
 It reads the KEYS from `INSTRUCTIONS` (`spec.claim_all`, stated once per row) and the PROSE from
 `docs/the-mark.md`'s per-instruction table, joins them on the instruction name, takes `--print`
@@ -783,7 +798,7 @@ It reads the KEYS from `INSTRUCTIONS` (`spec.claim_all`, stated once per row) an
 marker is missing **or if the two sources name different instructions** -- which is the drift this
 script exists to make visible.
 
-- [ ] **Step 4: Render, and correct the marker**
+- [x] **Step 4: Render, and correct the marker**
 
 ```
 uv run python scripts/render_brief.py --write
@@ -792,7 +807,7 @@ uv run python scripts/render_brief.py --write
 The marker must name `scripts/render_brief.py`, not `prototype/render_brief.py`, and say
 `instruction table` after Task 2.
 
-- [ ] **Step 5: Run, then prove the gate bites**
+- [x] **Step 5: Run, then prove the gate bites**
 
 ```
 uv run pytest -q tests/gates/test_brief_table.py
@@ -800,7 +815,7 @@ uv run pytest -q tests/gates/test_brief_table.py
 
 Then hand-edit one cell of the committed block, re-run, confirm FAIL, restore.
 
-- [ ] **Step 6: Build, tick, commit**
+- [x] **Step 6: Build, tick, commit**
 
 ```
 uv run python scripts/build_plugin.py && uv run pytest -q
@@ -820,7 +835,7 @@ T5.
 - Modify: `plugins/comment-review/skills/comment-review/references/reviewer-brief.md`
 - Test: `tests/gates/test_brief_states_the_rules.py`
 
-- [ ] **Step 1: Write the failing gate**
+- [x] **Step 1: Write the failing gate**
 
 ```python
 def test_the_brief_names_ran_and_says_what_it_is_for():
@@ -835,16 +850,16 @@ def test_the_library_rule_is_stated_once():
     assert len(hits) == 1, [str(p) for p in hits]
 ```
 
-- [ ] **Step 2: Run and confirm it fails.**
+- [x] **Step 2: Run and confirm it fails.**
 
-- [ ] **Step 3: Write the two passages**
+- [x] **Step 3: Write the two passages**
 
 `ran` -- the command that settled a claim; a claim settled by execution without it is incomplete.
 The library rule -- a `source` may cite any place in the LIBRARY (`Vocabulary: #15`: every file in
 the project under review, never this program's own tree), with the disagree-and-cite rule and its
 corollary. **One file states it; no agent file restates it.**
 
-- [ ] **Step 4: Run, build, tick, commit**
+- [x] **Step 4: Run, build, tick, commit**
 
 ```
 uv run pytest -q && uv run python scripts/build_plugin.py
@@ -885,7 +900,7 @@ which lists `addresser, carry, census, compositor, mark, proof, prove_unchanged,
 are wrong (`--census/--edits` against `proof`'s `--binder/--docket`). Changing arguments is
 outside the substitution rule.
 
-- [ ] **Step 1: Write the failing gate**
+- [x] **Step 1: Write the failing gate**
 
 ```python
 def test_every_command_the_skill_names_exists():
@@ -897,16 +912,16 @@ def test_every_command_the_skill_names_exists():
     assert named - set(COMMANDS) - {"galley"} == set()
 ```
 
-- [ ] **Step 2: Run it and confirm it fails**, naming `vocabulary`, `run_context`, `verdicts`.
+- [x] **Step 2: Run it and confirm it fails**, naming `vocabulary`, `run_context`, `verdicts`.
 
-- [ ] **Step 3: Drop the four**, and the prose that exists only to introduce them. **Drop the
+- [x] **Step 3: Drop the four**, and the prose that exists only to introduce them. **Drop the
       whole instruction, not just the fenced line** -- a sentence saying "run it and paste the
       output" with nothing to run is worse than an absence.
 
-- [ ] **Step 4: State the gap where each was.** One line saying the step is absent and naming the
+- [x] **Step 4: State the gap where each was.** One line saying the step is absent and naming the
       TODO that refills it. **Do not invent a replacement command or describe one.**
 
-- [ ] **Step 5: Run**
+- [x] **Step 5: Run**
 
 ```
 uv run pytest -q && uv run python scripts/check_vocabulary.py
@@ -914,7 +929,7 @@ uv run pytest -q && uv run python scripts/check_vocabulary.py
 
 Expected: the gate now exits **0** -- line 741 was the only remaining `verdicts`.
 
-- [ ] **Step 6: Tick and commit**
+- [x] **Step 6: Tick and commit**
 
 ```
 uv run python scripts/todo_tool.py check the-skill-names-commands-that-moved-to-prototype 4
@@ -1029,7 +1044,7 @@ uv run python scripts/todo_tool.py check the-skill-names-commands-that-moved-to-
 **The expectation, and where it comes from:** `SKILL.md:544-583`, which states 4a runs
 `ownership-context` alone and 4c runs the other three in one message.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 from comment_review.desk.stages import (
@@ -1056,15 +1071,15 @@ def test_only_an_editorial_stage_pulls_a_revise():
     assert not pulls_revise(Stage("annotate", ENRICHING, ()))
 ```
 
-- [ ] **Step 2: Run and confirm it fails.**
+- [x] **Step 2: Run and confirm it fails.**
 
-- [ ] **Step 3: Write `stages.py`** -- the two kind constants, the `Stage` tuple, `STAGES` as a
+- [x] **Step 3: Write `stages.py`** -- the two kind constants, the `Stage` tuple, `STAGES` as a
 literal tuple, and `pulls_revise` as `stage.kind == EDITORIAL`. **No branch on a role's name**:
 adding a stage must be a row.
 
-- [ ] **Step 4: Run.** `uv run pytest -q tests/test_stages.py`
+- [x] **Step 4: Run.** `uv run pytest -q tests/test_stages.py`
 
-- [ ] **Step 5: Build, tick, commit**
+- [x] **Step 5: Build, tick, commit**
 
 ```
 uv run python scripts/build_plugin.py && uv run pytest -q
@@ -1088,7 +1103,7 @@ uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-on
 - Produces: a binder key `"read_from"` -- `{"root": "<path>", "revise": <int>}`, where `revise` is
   `0` for the original. `seed()` copies it onto the sheet as `"read_from"`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_a_binder_built_from_the_original_says_so():
@@ -1111,15 +1126,15 @@ def test_the_sheet_header_names_the_revise():
     assert sheet["read_from"]["revise"] == 0
 ```
 
-- [ ] **Step 2: Run and confirm it fails.**
+- [x] **Step 2: Run and confirm it fails.**
 
-- [ ] **Step 3: Add the field.** `bind` takes `read_from` and writes it; **absent is refused, not
+- [x] **Step 3: Add the field.** `bind` takes `read_from` and writes it; **absent is refused, not
 defaulted** -- a binder that cannot say which root it read is the ambiguity this task removes.
 Bump the binder's shape version so an old artifact is refused by name rather than misread.
 
-- [ ] **Step 4: `seed` copies it** onto the sheet beside `role`, `marks` and `code_concerns`.
+- [x] **Step 4: `seed` copies it** onto the sheet beside `role`, `marks` and `code_concerns`.
 
-- [ ] **Step 5: Run, build, tick, commit**
+- [x] **Step 5: Run, build, tick, commit**
 
 ```
 uv run pytest -q && uv run python scripts/build_plugin.py
@@ -1149,7 +1164,7 @@ uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-on
 move each draft over its copy. `proof_setter` refuses an `into` that overlaps its `repo`, so the
 scratch directory must be disjoint from both.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_the_revise_holds_every_library_file_and_only_the_scheduled_ones_differ(tmp_path):
@@ -1168,15 +1183,15 @@ def test_a_refusal_leaves_no_revise(tmp_path):
     assert pulled.refusals and not pulled.root.exists()
 ```
 
-- [ ] **Step 2: Run and confirm both fail.**
+- [x] **Step 2: Run and confirm both fail.**
 
-- [ ] **Step 3: Write `pull`.** Copy the tree, run the chain into a scratch dir, overlay each
+- [x] **Step 3: Write `pull`.** Copy the tree, run the chain into a scratch dir, overlay each
 `Drafted.draft` onto its copy, record `set_by`. On any `Refusal`, discard the whole revise --
 `Process: #20`, a refusal aborts the run whole.
 
-- [ ] **Step 4: Run.** `uv run pytest -q tests/test_revise.py`
+- [x] **Step 4: Run.** `uv run pytest -q tests/test_revise.py`
 
-- [ ] **Step 5: Prove the executable code is unchanged**
+- [x] **Step 5: Prove the executable code is unchanged**
 
 ```
 uv run python src/comment-review.py prove_unchanged --base <sha> --repo <revise-root> <paths...>
@@ -1185,7 +1200,7 @@ uv run python src/comment-review.py prove_unchanged --base <sha> --repo <revise-
 Expected: every path passes. `proof_setter` already proves it per draft; this proves it over the
 assembled revise, which is what a later stage reads.
 
-- [ ] **Step 6: Build, tick, commit**
+- [x] **Step 6: Build, tick, commit**
 
 ```
 uv run python scripts/build_plugin.py && uv run pytest -q
@@ -1213,7 +1228,7 @@ uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-on
   `assert_addresses_held(original: Path, pulled: Pulled) -> None`, which raises `AddressesMoved`
   naming the addresses that appeared and the ones that disappeared.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_a_revise_yields_the_address_set_the_original_yielded(tmp_path):
@@ -1236,19 +1251,19 @@ def test_the_gate_fires_when_the_code_moved(tmp_path):
         assert_addresses_held(repo, pulled)
 ```
 
-- [ ] **Step 2: Run and confirm the second fails** (the first may already pass -- that is the point
+- [x] **Step 2: Run and confirm the second fails** (the first may already pass -- that is the point
 of the second).
 
-- [ ] **Step 3: Write `assert_addresses_held`** and call it from `pull` before returning. It raises
+- [x] **Step 3: Write `assert_addresses_held`** and call it from `pull` before returning. It raises
 `AddressesMoved` naming the addresses that appeared and disappeared, not merely that a set differed.
 
-- [ ] **Step 4: Run over a real tree**
+- [x] **Step 4: Run over a real tree**
 
 ```
 uv run pytest -q tests/test_revise_addresses.py
 ```
 
-- [ ] **Step 5: Build, tick, commit**
+- [x] **Step 5: Build, tick, commit**
 
 ```
 uv run python scripts/build_plugin.py && uv run pytest -q
@@ -1270,7 +1285,7 @@ uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-on
 ! **RULING, pre-flight 2026-08-28:** the behaviour is pinned by the test, which is the checkable
 part. An exact file list written before the code is read would be a guess presented as a spec.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_a_source_citing_an_edited_page_reads_the_revise(tmp_path):
@@ -1283,12 +1298,12 @@ def test_a_source_citing_an_edited_page_reads_the_revise(tmp_path):
     assert row["raw_text"] not in (repo / "mark.py").read_text(encoding="utf-8")
 ```
 
-- [ ] **Step 2: Run and confirm it fails.**
+- [x] **Step 2: Run and confirm it fails.**
 
-- [ ] **Step 3: Thread the root.** A stage's census, its binder and its source-cite reads all take
+- [x] **Step 3: Thread the root.** A stage's census, its binder and its source-cite reads all take
 the same root. There is no default; a caller states it.
 
-- [ ] **Step 4: Run, build, tick, commit**
+- [x] **Step 4: Run, build, tick, commit**
 
 ```
 uv run pytest -q && uv run python scripts/build_plugin.py
