@@ -971,7 +971,7 @@ record (SKILL.md 643, 666)   DEAD -- a fifth beyond the four Task 5b dropped
 **deleted the gate rather than commit it red or invent an exemption it had no ruling for.** That
 was correct then; the ruling now exists.
 
-- [ ] **Step 1: Write the gate, both halves**
+- [x] **Step 1: Write the gate, both halves**
 
 **The name half AND the flag half.** `galley` is the case proving a name-only gate is not enough:
 its name resolves and the invocation still cannot run.
@@ -992,31 +992,37 @@ def test_every_command_named_in_agent_facing_prose_exists(): ...
 def test_every_flag_named_beside_it_is_accepted_by_that_command(): ...
 ```
 
-- [ ] **Step 2: Run it and confirm BOTH fail** -- names on `record`, flags on `galley`.
+- [x] **Step 2: Run it and confirm BOTH fail** -- names on `record`, flags on `galley`.
 
-- [ ] **Step 3: Resolve `record` at 643 and 666.** It is dead. **Drop the invocation** the way Task
+- [x] **Step 3: Resolve `record` at 643 and 666.** It is dead. **Drop the invocation** the way Task
       5b dropped its four, leaving one line naming the TODO. **Do not invent a replacement** --
       what supersedes `record` is `decision-log.md Process: #14`'s alterations question and is not
       designed.
 
-- [ ] **Step 4: Fix `galley`'s flags** to `--binder/--docket`, which is what `proof` takes.
+- [x] **Step 4: Fix `galley`'s flags** to `--binder/--docket`, which is what `proof` takes.
       ! **This is the one argument change this task is licensed to make**, because Roy's ruling puts
       accurate command instructions in this lane. Do not touch when or why the stage runs.
 
-- [ ] **Step 5: Document what each live command does**, beside its invocation: what it is, what it
+      ! **SUPERSEDED IN PART, mid-task, by Roy 2026-08-28**: `proof` never took `--binder` (removed
+      2026-08-26), so the corrected flags are `--repo`/`--docket`/`--out`, and `galley` itself was
+      then dropped as a command -- the invocation reads `proof` directly, `__main__.ALIASES` and
+      its resolution step are deleted, and the tests that pinned the alias went with it. See
+      `docs/history.md` and this task's own report.
+
+- [x] **Step 5: Document what each live command does**, beside its invocation: what it is, what it
       does, its flags, its output. Take every fact from the command's own `argparse` and its
       module docstring -- **not from the prose already there**, which is what drifted.
 
-- [ ] **Step 6: Run**
+- [x] **Step 6: Run**
 
 ```
 uv run pytest -q tests/gates/test_skill_commands.py
 ```
 
-- [ ] **Step 7: Prove the flag half bites.** Change one documented flag to one the parser does not
+- [x] **Step 7: Prove the flag half bites.** Change one documented flag to one the parser does not
       take; the test must go RED. Restore.
 
-- [ ] **Step 8: Build, tick, commit**
+- [x] **Step 8: Build, tick, commit**
 
 ```
 uv run python scripts/build_plugin.py && uv run pytest -q

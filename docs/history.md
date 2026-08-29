@@ -149,6 +149,19 @@ have nothing to complain about."* The alias moved into `__main__.ALIASES`,
 which maps `"galley"` to `"proof"` and imports that module directly; the file
 is gone. To read it, `git show 1119cb3~1:src/comment_review/commands/galley.py`.
 
+! **The alias itself went 2026-08-28, once the reason for keeping it did.**
+`ALIASES` existed for one caller -- `SKILL.md` still typing `galley` at stage
+7a -- and it existed to avoid editing that file. Roy, 2026-08-28, on being
+told accurate command instructions are this lane's job either way: *"Since we
+have determined that correcting commands in the brief and usage instructions
+is something you should do can we drop galley as a command? Since it is an
+alias and a workaround for not editing the agents files."* `SKILL.md` now
+invokes `proof` directly with the flags it actually parses -- `--repo`,
+`--docket`, `--out` -- and `__main__.py` no longer carries an `ALIASES` dict
+or the resolution step that read it. `test_galley_DELEGATES_to_proof` in
+`tests/test_proof_command.py`, which pinned the alias, went with it rather
+than being weakened to keep passing.
+
 ## Constants that outlived their reader
 
 **Deleted 2026-08-20**, all four found by sweeping the index for shipped names nothing reads:

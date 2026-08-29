@@ -22,28 +22,12 @@ class TestTheCommand:
     """`commands/proof.py` exposes this flow and orchestrates nothing: it takes
     a binder and hands it straight to `proof_setter.run`.
 
-    ! `galley` IS THE OLD NAME FOR IT since 2026-08-26. It used to resolve an
-    address through `rows_of(census)` -- the binder-row coupling this chain was
-    ruled out of -- and keep a staleness comparison, an overlap guard and a
-    draft loop of its own; all of it went, and the name now runs this chain.
-    See `docs/history.md`."""
-
-    def test_galley_DELEGATES_to_proof(self, monkeypatch):
-        """`SKILL.md` still invokes `galley` at stage 7a, so the name has to
-        reach the chain -- `__main__.ALIASES` maps it to `proof` and imports
-        that module, rather than a `commands/galley.py` of its own. ! It does
-        NOT make a skill run work: the flags differ -- `--census`/`--edits`
-        against `--binder`/`--docket` -- which is
-        `TODO/the-skill-names-commands-that-moved-to-prototype.md`."""
-        from comment_review.__main__ import ALIASES, COMMANDS, main
-        from comment_review.commands import proof
-
-        assert "galley" not in COMMANDS
-        assert ALIASES["galley"] == "proof"
-        called: list[bool] = []
-        monkeypatch.setattr(proof, "main", lambda: called.append(True) or 7)
-        assert main(["galley"]) == 7
-        assert called == [True]
+    ! `galley` WAS THE OLD NAME FOR IT, from 2026-08-26 until the CLI alias
+    was removed 2026-08-28. It used to resolve an address through
+    `rows_of(census)` -- the binder-row coupling this chain was ruled out of
+    -- and keep a staleness comparison, an overlap guard and a draft loop of
+    its own; all of it went, and the name is gone with it. See
+    `docs/history.md`."""
 
     def test_the_command_holds_no_orchestration(self):
         """! A COMMAND EXPOSES A FLOW; IT IS NOT ONE. `commands/census.py` took

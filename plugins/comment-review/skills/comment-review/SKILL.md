@@ -375,9 +375,9 @@ pkg:core.py@c3    the room BESIDE a line of code
 The path is flattened on `:`, a character no path may hold, so `a/b.py` and `a.b.py` cannot
 collide. `docs/addressing.md` is the settled definition.
 
-!! **YOU CANNOT WORK A CUE OUT. ASK.** The three series are counted by three separate
-addressers, and no number in one tells you a number in another -- nor does a line's position tell
-you either.
+!! **YOU CANNOT WORK A CUE OUT. ASK.** The four series (`a`, `b`, `c`, `f`) are counted by four
+separate addressers, and no number in one tells you a number in another -- nor does a line's
+position tell you either.
 
 ```bash
 python <skill>/scripts/comment-review.py addresser --census <FULL CENSUS> --anchor LINE --series a|b|c|f
@@ -636,14 +636,10 @@ was backwards. The code still settles code claims -- a
 disagreement with the mirror is itself a finding.
 
 **And you SEED each reviewer's report before dispatching it.** One file per role, named for
-the role, with a slot already laid down for every prose paragraph:
+the role, with a slot already laid down for every prose paragraph.
 
-```bash
-for role in ownership-context block-context function-context module-context; do
-  python <skill>/scripts/comment-review.py record --seed --census <run-dir>/census.json \
-    --reviewer "$role" --out <run-dir>/"$role".json
-done
-```
+! **Seeding a report by command is absent** -- the command moved to `prototype/` and no longer
+runs. See `TODO/the-skill-names-commands-that-moved-to-prototype.md`.
 
 !! **A REVIEWER FILLS A TEMPLATE; IT DOES NOT COMPOSE A DOCUMENT.** Each slot arrives carrying
 the `address` and the `anchor`, and the reviewer sets only the five that are its
@@ -660,11 +656,10 @@ cites the empty INTERVAL prose is missing from, and intervals get no seeded slot
 tells the reviewer this; you need it to read the count `--check` prints, which counts slots
 and not findings.
 
-**Check each file when the agent returns**, before the collator:
+**Check each file when the agent returns**, before the collator.
 
-```bash
-python <skill>/scripts/comment-review.py record --check <run-dir>/<role>.json --census <run-dir>/census.json
-```
+! **Checking a report by command is absent** -- the command moved to `prototype/` and no longer
+runs. See `TODO/the-skill-names-commands-that-moved-to-prototype.md`.
 
 ! It separates INCOMPLETE from MALFORMED and exits differently on each: a reviewer part-way
 through its paragraphs is not in error, a record whose shape is wrong is. **Send a malformed file
@@ -892,15 +887,18 @@ nothing can address it -- `address_problem` refuses a record whose ADDRESS match
 entry, which is every round-2 record until this runs:
 
 ```bash
-python <skill>/scripts/comment-review.py galley --repo . --census <run-dir>/census.json \
-  --edits <run-dir>/edits.json --out <run-dir>/galley
+python <skill>/scripts/comment-review.py proof --repo . --docket <run-dir>/docket.json \
+  --out <run-dir>/galley
 python <skill>/scripts/comment-review.py census --json --repo <run-dir>/galley \
   --out <run-dir>/galley-census.json <the same paths, under the galley>
 ```
 
-`--edits` is `{"<address>": "<your replacement paragraph>"}` -- the same address the record
-carries, so nothing between stage 5 and the galley converts. **Nothing under the repo is
-touched**; a galley is a copy and it is discarded with the run.
+`--docket` is `{"pages": [{"path", "sha", "alterations": [{"cue", "text"}]}]}` -- one entry per
+page under review, `sha` the page's text hash when it was read, and each alteration's `cue` the
+address's series-and-number, since the page's own PATH is already carried once by the page entry
+rather than repeated per alteration. **`--out` must not already exist**, and it holds a full copy
+of `--repo` with the docket's pages overlaid -- **nothing under the repo itself is touched**; a
+galley is a copy and it is discarded with the run.
 
 ! **A round-2 record is an ORDINARY record** citing the galley census, so it joins exactly as a
 round-1 record does. Run the collator against `galley-census.json` for it.
@@ -909,16 +907,12 @@ round-1 record does. Run the collator against `galley-census.json` for it.
 every paragraph below it, so the same prose holds different indices in the two censuses. They relate
 by PATH and CONTENT, and you are the only participant holding both.
 
-! **`galley.py` REFUSES rather than guesses.** It exits nonzero and NAMES what refused --
-**read that, rather than the list you remember**: this section carried three of the seven
-reasons and was wrong about the set for two releases, in the same way the RE-REVIEW set is
-the collator's to print and not this file's to derive.
-
-!! **One of them is not about your edits.** A census taken before the fields the galley needs
-is refused WHOLE, before any paragraph is read, because every per-field default is a guess about a
-file this tool is about to overwrite -- and the one default that was tried put a deleted
-statement back. Re-run `census.py` and set the galley again. ! It is `CANNOT USE`, not
-`REFUSED`, and it exits **2**: nothing was wrong with the proposal.
+! **`proof` REFUSES rather than guesses.** It exits nonzero and NAMES what refused -- **read
+that, rather than a list you remember**: a `--docket` that fails to read prints `CANNOT READ`,
+one that does not match the shape above prints `CANNOT READ THE DOCKET: <reason>`, and a bad
+`--out` prints `REFUSED: --out <reason>` -- each at exit **2**. A refusal further into the chain
+-- the address space having moved, or a page's own draft/set/reread step -- prints `REFUSED:
+<reason>` or `REFUSED at <step>: <where> -- <reason>` and exits **1**.
 
 ## Stage 6 -- COMPACT: only if there is a cap
 

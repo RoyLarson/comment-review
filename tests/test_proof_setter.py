@@ -236,10 +236,10 @@ class TestTheFlowItselfRefusesADraftDirectoryOverTheRepo:
         stricter form still stands there.
 
         ! IT WAS THREE CALLERS UNTIL 2026-08-26, WHEN `commands/galley.py` WAS
-        DELETED. `galley` is now an alias in `__main__.ALIASES` that dispatches
-        straight to `proof`'s own module, so it holds no chain and asks nothing
-        -- `test_galley_DELEGATES_to_proof` in `tests/test_proof_command.py` is
-        what pins that."""
+        DELETED, leaving the two below. `galley` ran on as a CLI alias in
+        `__main__.ALIASES` that dispatched straight to `proof`'s own module,
+        asking nothing of its own, until that alias was removed 2026-08-28 --
+        `docs/history.md` is what pins that."""
         for rel in ("commands/proof.py", "flows/proof_setter.py"):
             text = (PKG / rel).read_text(encoding="utf-8")
             assert "undraftable(" in text, rel
