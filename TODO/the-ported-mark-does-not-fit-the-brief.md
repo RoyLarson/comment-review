@@ -2,13 +2,29 @@
 
 ```
 Status:   open
-Progress: 4 of 5 tasks done
+Progress: 5 of 5 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, reviewing `desk/mark.py` against the role's needs before building
           the collator. Roy asked for the review: "I know we moved the mark already and
           it looks correct but we should review it and make certain it still fully fits
           the role for the initial round."
+Superseded: 2026-08-28 — 2026-08-28, Roy, on T4: *"It should not have been added to this
+            todo."* This file's Objective is that A MARK WRITTEN FROM THE BRIEF VERBATIM
+            IS REFUSED BY THE GATE -- the gate and the instruction disagreeing about
+            what a valid mark is. Giving the SHEET a new `code_concerns` container is a
+            different subject, and it was already tracked: `code-concerns-cannot-carry-
+            a-proposed-change.md` carries it in nine tasks, T1 defining the shape and T3
+            publishing it in the brief. So T4 was BOTH misfiled AND a duplicate. ! IT IS
+            CHECKED AS SUPERSEDED, NOT DONE -- `CLAUDE.md`'s table: superseded work
+            carries `[x]` so the record of it stays legible, and the work itself remains
+            OPEN where it belongs, on a file whose Status already reads `blocked` on the
+            `*` ruling in `a-role-with-no-code-out-damages-the-prose`. ! IT WAS ALSO
+            `T1.6` OF `docs/plans/0.2.4-the-mark-and-the-collator.md` until the same
+            day, when Roy ruled it *"indefinitely deferred"* and it left that plan's
+            task list -- a plan is one release's scope and closes, so an indefinitely
+            deferred box in it would have made 0.2.4 unreleasable by arithmetic nobody
+            chose.
 ```
 
 ## Objective
@@ -58,7 +74,7 @@ Only `add` disagreed, and the port is what moved.
       accepted, and a `query` naming a shape outside the three is refused.
 - [x] T3 -- Rebuild `tests/test_mark.py` so no case is built from the table it checks. Verify:
       the suite FAILS before T1 and passes after -- one that passes both ways is testing itself.
-- [ ] T4 -- Give the sheet a `code_concerns` list, and say so in the brief. Verify: a sheet
+- [x] T4 -- Give the sheet a `code_concerns` list, and say so in the brief. Verify: a sheet
       carrying one validates, and the brief names the key.
 - [x] T5 -- Rebuild the generator and gate it. Verify: it writes the block from `INSTRUCTIONS`,
       and a test fails when the committed block and a fresh render disagree.
