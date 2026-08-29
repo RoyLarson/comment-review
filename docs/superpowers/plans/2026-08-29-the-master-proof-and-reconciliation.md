@@ -664,7 +664,7 @@ Commit with `-F`.
 - Produces: `fan(binder: dict, stage: Stage) -> list[dict]` -- one `edit_copy` per dispatch, in the
   stage's own dispatch order. `OverlappingShards(Exception)` and `UncoveredPage(Exception)`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_every_page_reaches_exactly_one_shard_of_each_role():
@@ -697,16 +697,16 @@ def test_a_page_in_two_shards_of_one_role_is_refused():
         fan(binder, stage)
 ```
 
-- [ ] **Step 2: Run and confirm both fail**
+- [x] **Step 2: Run and confirm both fail**
 
 Run: `uv run pytest -q tests/test_fan_out.py`
 Expected: FAIL with `ModuleNotFoundError`.
 
-- [ ] **Step 3: Write `fan`**
+- [x] **Step 3: Write `fan`**
 
 A dispatch with no `paths` gets every page. Overlap and uncovered pages each raise, naming the paths.
 
-- [ ] **Step 4: Commit the WORK**
+- [x] **Step 4: Commit the WORK**
 
 ```
 uv run pytest -q && uv run python scripts/build_plugin.py
@@ -714,7 +714,7 @@ uv run pytest -q && uv run python scripts/build_plugin.py
 
 Commit the code and its tests with `-F`. **No box moves in this commit.**
 
-- [ ] **Step 5: Tick the boxes -- ITS OWN COMMIT**
+- [x] **Step 5: Tick the boxes -- ITS OWN COMMIT**
 
 !! **THE TICKS ARE A SEPARATE COMMIT, NEVER FOLDED INTO THE WORK.** Roy, 2026-08-29:
 *"the pair is its own commit - separate from the work"*. **Three places move together

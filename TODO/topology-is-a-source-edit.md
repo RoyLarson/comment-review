@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 5 tasks done
+Progress: 5 of 5 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, designing P4 with Roy: *"the order of reviewers and
@@ -28,7 +28,7 @@ The stage list is a literal, so every topology is a source edit.
       schedule moves to the file. Verify: `commands/mark.py`'s `--role` draws its
       `choices=` from the enum and not from a run's topology, and the file's
       `role` keys are validated against that enum.
-- [ ] Fan a binder out by dispatch. Verify: every page reaches exactly one shard
+- [x] Fan a binder out by dispatch. Verify: every page reaches exactly one shard
       of each role, no page reaches two shards of one role, and a dispatch with no
       `paths` gets every page.
 - [x] Accept `carries` in the format and REFUSE a non-empty value. Verify:
