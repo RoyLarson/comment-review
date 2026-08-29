@@ -13,6 +13,7 @@ from helpers import binder_of
 
 from comment_review.desk.stages import Dispatch, Kind, Role, Stage
 from comment_review.flows.fan_out import OverlappingShards, UncoveredPage, fan
+from comment_review.flows.marks import seed
 
 # !! ABSOLUTE, matching `tests/test_marks_flow.py`'s own `DESK` -- a relative
 # `Path("src/comment_review/desk")` only rglobs correctly when the suite runs
@@ -104,6 +105,42 @@ def test_two_different_roles_over_the_same_page_is_not_a_conflict():
     )
     copies = fan(binder, stage)
     assert [c["role"] for c in copies] == ["block-context", "function-context"]
+
+
+def test_a_binder_that_cannot_say_which_tree_it_read_is_refused_here_too():
+    """`seed` refuses a binder carrying no `read_from`, and that refusal is
+    what tells a role a revise apart from the original. Fanning out must not
+    supply a default the direct path refuses -- the two answers on ONE binder
+    are compared, so neither side can be read off the other.
+    """
+    binder = binder_of(DESK, 0)
+    del binder["read_from"]
+    stage = Stage(
+        "4c",
+        Kind.EDITORIAL,
+        "original",
+        (),
+        (Dispatch(Role.BLOCK_CONTEXT, ()),),
+    )
+    with pytest.raises(KeyError):
+        seed(binder, "block-context")
+    with pytest.raises(KeyError):
+        fan(binder, stage)
+
+
+def test_every_shard_carries_the_binder_s_own_read_from():
+    binder = binder_of(DESK, 0)
+    stage = Stage(
+        "4c",
+        Kind.EDITORIAL,
+        "original",
+        (),
+        (Dispatch(Role.BLOCK_CONTEXT, ()), Dispatch(Role.MODULE_CONTEXT, ())),
+    )
+    assert [c["read_from"] for c in fan(binder, stage)] == [
+        binder["read_from"],
+        binder["read_from"],
+    ]
 
 
 def test_the_glob_matches_across_a_directory_separator():

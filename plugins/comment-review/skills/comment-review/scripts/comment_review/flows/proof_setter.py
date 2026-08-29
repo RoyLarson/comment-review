@@ -46,7 +46,7 @@ from typing import NamedTuple
 from comment_review.docket import docket as docket_mod
 from comment_review.flows.page_for import page_of, source_of
 from comment_review.machine import constants
-from comment_review.machine.repo import undraftable
+from comment_review.machine.repo import can_escape, undraftable
 from comment_review.reading.addresser import cue_of
 from comment_review.results import compositor, galley
 from comment_review.results.prove_unchanged import code_fingerprint
@@ -179,7 +179,7 @@ def run(docket: dict, repo: Path, into: Path) -> tuple[list[Drafted], list[Refus
     # to. It was asked per file instead, against `repo` and against `into`
     # separately, and each refusal then named where the path landed rather
     # than the page path that could not be placed anywhere.
-    outside = sorted(s.path for s in schedules if _can_escape(s.path))
+    outside = sorted(s.path for s in schedules if can_escape(s.path))
     if outside:
         return [], [
             Refusal(
@@ -242,29 +242,6 @@ def run(docket: dict, repo: Path, into: Path) -> tuple[list[Drafted], list[Refus
     return drafted, []
 
 
-def _can_escape(rel: str) -> bool:
-    """Would joining this page path to a root land somewhere other than under it?
-
-    !! A QUESTION ABOUT THE STRING, AND ONLY ABOUT THE STRING. It answers for
-    every root at once, which is what lets the two roots below stop asking
-    separately -- but it cannot answer for the filesystem, so `_one` still
-    compares the RESOLVED target. See the guard there for what is left to it.
-
-    ! THE DRIVE AND THE ROOT ARE ASKED BESIDE `is_absolute`, because Windows has
-    a third form neither covers: `Path("C:util.py").is_absolute()` is `False`
-    and it carries a drive, so joining it to a root on any other drive
-    DISCARDS the root.
-
-    Args:
-        rel: a page path as the SCHEDULE records it -- the repo's own form.
-
-    Returns:
-        `True` when it is absolute, drive-relative, rooted, or walks up.
-    """
-    p = Path(rel)
-    return bool(p.is_absolute() or p.drive or p.root) or ".." in p.parts
-
-
 def _discard_all(drafted: list[Drafted], created: set[Path]) -> None:
     """Remove every draft this run wrote, on the way out.
 
@@ -322,7 +299,7 @@ def _one(
     created: set[Path],
 ) -> tuple[Drafted | None, Refusal | None]:
     """One page through every step, or the first step that refused."""
-    # !! LEXICAL CONTAINMENT IS `run`'s, ONE STEP UP: `_can_escape` has already
+    # !! LEXICAL CONTAINMENT IS `run`'s, ONE STEP UP: `can_escape` has already
     # refused an absolute, drive-relative, rooted or `..`-walking page path for
     # the whole run. What is left to the two comparisons in this function is the
     # half no check on a STRING can answer -- what the filesystem RESOLVES the

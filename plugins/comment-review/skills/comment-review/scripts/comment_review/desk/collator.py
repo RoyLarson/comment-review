@@ -9,10 +9,12 @@
     source_verification(...)    all three, over one mark
     places(proof)                T4.1 -- one stage's marks, grouped by every
                                  place each TOUCHES
+    UnnamedRole                  an `edit_copy` reached `places` with no `role`
     reconcile(proof)             T4.2 -- `Process: #49`: settle, escalate, or
                                  send a place back for a re-read
     docket_from(reconciled, proof) T4.5 -- reconciliation's SETTLED places,
                                  packaged as the docket the write chain reads
+    UnusableChange               a settled mark's `change` cannot be set
 
 `decision-log.md Vocabulary: #19` names the module and its two steps, keyed on
 scope: source-verification is per MARK, against the page it rules on;
@@ -41,7 +43,7 @@ from comment_review.binder.binder import rows_of
 from comment_review.desk.mark import INSTRUCTIONS, Instruction
 from comment_review.machine import constants
 from comment_review.machine.exceptions import READ_ERRORS
-from comment_review.machine.repo import read_raw
+from comment_review.machine.repo import can_escape, read_raw
 from comment_review.reading.addresser import cue_of, flatten, unflatten
 
 #: `reviewer-brief.md`: "your text must appear within three lines" of the
@@ -178,6 +180,17 @@ def source_problems(where: str, mark: dict, root: Path, cache: Cache) -> list[st
             out.append(f"{at}: `cite` {cite!r} is not `path:line`")
             continue
         path, lineno = parsed
+        # !! THE CITE IS A ROLE'S OWN STRING, AND `root / path` DISCARDS `root`
+        # WHEN `path` IS ABSOLUTE. MEASURED 2026-08-29: a `cite` of
+        # `C:/outside/secrets.txt:1` with that file's own line as `verbatim`
+        # returned NO problems -- the citation was reported VERIFIED -- and the
+        # file's contents were left in `cache`. `repo.can_escape` is the same
+        # question `flows/proof_setter.run` asks of a schedule's page paths, and
+        # it covers the `..` walk with the absolute form.
+        if can_escape(path):
+            out.append(f"{at}: `cite` {cite!r} names a path outside the "
+                        "checkout")
+            continue
         lines = _lines(root, path, cache)
         if lines is None:
             out.append(f"{at}: `cite` {cite!r} does not resolve -- the file "
@@ -276,6 +289,21 @@ def _touches(mark: dict) -> list[str]:
     return touched
 
 
+class UnnamedRole(Exception):
+    """An `edit_copy` handed to `places` carries no `role` name.
+
+    !! EVERY GROUPED MARK IS STAMPED WITH THE ROLE THAT MADE IT, and that name
+    is what `_outcome` sorts and what `docket_from` writes as a page's `role`
+    -- the provenance `flows.revise.pull._set_by` routes on. A missing one has
+    no harmless reading, and it had two different unnamed ones. MEASURED
+    2026-08-29: with TWO marks at one place and one `edit_copy` missing `role`,
+    `sorted(roles)` raised a bare `TypeError: '<' not supported between
+    instances of 'str' and 'NoneType'`, aborting the whole stage with a
+    traceback; with a SINGLE unnamed role nothing was compared, so the run
+    passed and wrote `"role": None` into the docket.
+    """
+
+
 def places(proof: dict) -> dict[str, list[dict]]:
     """T4.1 -- one stage's marks, grouped by every place each TOUCHES.
 
@@ -295,10 +323,20 @@ def places(proof: dict) -> dict[str, list[dict]]:
         `flows.marks.problems_in` use. `clean` marks group like any other
         instruction -- what a group of marks at one place MEANS is
         reconciliation's settle/escalate step, not this one's.
+
+    Raises:
+        UnnamedRole: an `edit_copy` carries no `role` string. Asked of EVERY
+            copy, before its sheets are read, so one copy holding no marks at
+            all still refuses -- see the exception for the two shapes.
     """
     out: dict[str, list[dict]] = {}
-    for copy in proof.get("edit_copies", []):
+    for i, copy in enumerate(proof.get("edit_copies", [])):
         role = copy.get("role")
+        if not isinstance(role, str) or not role.strip():
+            raise UnnamedRole(
+                f"edit_copy {i} carries no `role` -- every mark it holds would "
+                "be grouped under a name no reader can route on"
+            )
         for sheet in copy.get("sheets", []):
             marks = sheet.get("marks") if isinstance(sheet, dict) else None
             if not isinstance(marks, list):
@@ -549,6 +587,10 @@ def reconcile(proof: dict) -> Reconciled:
         A `Reconciled` -- see its own docstring for each list's shape. A
         place with no change-owing mark (every mark there is `clean` or
         `query`) appears in none of the three.
+
+    Raises:
+        UnnamedRole: from `places`, when an `edit_copy` cannot say which role
+            wrote it.
     """
     outcomes: dict[str, tuple[str, dict]] = {}
     for address, marks in places(proof).items():
@@ -583,6 +625,30 @@ def _real_pages(proof: dict) -> tuple[list[str], dict[str, str]]:
     return paths, shas
 
 
+class UnusableChange(Exception):
+    """A settled mark's `change` cannot be set as this docket entry's text.
+
+    !! `None` IS THE DELETE SIGNAL, SO EVERY WAY OF FAILING TO PRODUCE TEXT
+    MUST NOT REACH IT. `docket/docket.py`'s own header names the hazard: *"a
+    key whose value failed to serialise arrives looking exactly like a
+    deliberate deletion."* MEASURED 2026-08-29: `_alteration_text` read
+    `change if isinstance(change, list) else []` and joined it, so a `correct`
+    whose `change` was the STRING `"# the new comment"` produced `None`,
+    `docket.read` accepted it -- null is the legal delete -- and the paragraph
+    was EMPTIED.
+
+    ! IT IS A LIVE SHAPE, NOT A HYPOTHETICAL ONE. `reviewer-brief.md` mandates
+    `change` as raw text while `desk.mark.problems` demands an array;
+    `TODO/change-is-raw-text-not-lines.md` is where that contradiction is
+    settled. This exception does not settle it -- it makes either half of it
+    fail loudly instead of vacating a paragraph.
+
+    ! AN EMPTY `change` IS READ THROUGH `INSTRUCTIONS[...].may_empty`, the row
+    flag that says which instruction may leave a paragraph with nothing in it
+    -- `drop`, and only `drop` -- rather than by naming that instruction here.
+    """
+
+
 def _alteration_text(address: str, mark: dict) -> str | None:
     """The docket's `text` for one settled mark's `change` -- joined, or `None`.
 
@@ -599,15 +665,34 @@ def _alteration_text(address: str, mark: dict) -> str | None:
         mark: the one owing mark that settled this place.
 
     Returns:
-        `None` (delete) at a `move`'s origin, or when `change` is empty --
-        the shape `may_empty` allows for exactly `drop`. Otherwise `change`'s
-        lines joined with a newline.
+        `None` (delete) at a `move`'s origin, or for an empty `change` on an
+        instruction whose `may_empty` allows it. Otherwise `change`'s lines
+        joined with a newline.
+
+    Raises:
+        UnusableChange: `change` is not a list of strings, or it is empty on an
+            instruction that may not empty a paragraph -- see the exception.
     """
     if mark.get("mark") == Instruction.MOVE and address == mark.get("address"):
         return None
+    instruction = mark.get("mark")
+    spec = INSTRUCTIONS.get(instruction) if isinstance(instruction, str) else None
     change = mark.get("change")
-    lines = change if isinstance(change, list) else []
-    return "\n".join(lines) if lines else None
+    if not isinstance(change, list) or not all(
+        isinstance(line, str) for line in change
+    ):
+        raise UnusableChange(
+            f"{address}: `change` is {type(change).__name__}, not an ARRAY of "
+            "line strings, so this alteration has no text to set"
+        )
+    if not change:
+        if spec is None or not spec.may_empty:
+            raise UnusableChange(
+                f"{address}: `change` is empty and {instruction!r} may not "
+                "leave the paragraph with nothing in it"
+            )
+        return None
+    return "\n".join(change)
 
 
 def docket_from(reconciled: Reconciled, proof: dict) -> dict:
@@ -629,6 +714,10 @@ def docket_from(reconciled: Reconciled, proof: dict) -> dict:
         `{"pages": [{"path", "sha", "role", "alterations": [...]}]}`, one
         page per REAL path a settled place touches. `docket.read` rules on
         this shape; nothing here does.
+
+    Raises:
+        UnusableChange: a settled mark's `change` cannot be set -- see
+            `_alteration_text`.
 
     !! `role` IS ONE PER PAGE, matching `docket.read`'s own schema and
     `flows.revise.pull._set_by`, which reads it the same way -- so a page whose

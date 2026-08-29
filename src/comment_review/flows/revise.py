@@ -36,7 +36,7 @@ from comment_review.binder.binder import bind
 from comment_review.desk.collator import known_addresses
 from comment_review.flows import proof_setter
 from comment_review.flows.page_for import page_of
-from comment_review.machine.repo import walk_files
+from comment_review.machine.repo import remove_tree, walk_files
 from comment_review.reading.addresser import address_for
 from comment_review.reading.lexer import language_for
 
@@ -125,7 +125,16 @@ def pull(docket: dict, repo: Path, into: Path, revise: int) -> Pulled:
             # here is the copy `pull` made before calling it, and
             # `Process: #20` applies to that copy exactly as it applies to
             # the drafts.
-            shutil.rmtree(into)
+            #
+            # !! `repo.remove_tree`, NOT `shutil.rmtree`, SINCE 2026-08-29 --
+            # the copy above includes `.git`, whose loose objects git writes
+            # READ-ONLY and Windows refuses to unlink. MEASURED on this
+            # machine: `shutil.rmtree` raised `PermissionError: [WinError 5]`
+            # and left 15 entries, so a refused `proof` run on the platform
+            # `CLAUDE.md` names as primary exited with a traceback AND left a
+            # complete-looking revise root holding none of the corrections --
+            # falsifying `Pulled.refusals`' own docstring.
+            remove_tree(into)
             return Pulled(root=into, revise=revise, set_by={}, refusals=refusals)
 
         for made in drafted:
@@ -168,10 +177,16 @@ def pull(docket: dict, repo: Path, into: Path, revise: int) -> Pulled:
         # copy and the gate leaves exactly the same half-set on disk, and the
         # claim being kept here is about what a later stage can find, not about
         # which class of thing went wrong. Re-raised immediately.
-        shutil.rmtree(into, ignore_errors=True)
+        #
+        # ! `ignore_errors` STILL, AND `remove_tree` STILL CLEARS THE WRITE BIT
+        # FIRST. An exception is already in flight here, so a second one raised
+        # while removing would replace the one the caller needs; what
+        # `shutil.rmtree(ignore_errors=True)` did instead was skip every
+        # read-only `.git` object and leave the copy standing at exit.
+        remove_tree(into, ignore_errors=True)
         raise
     finally:
-        shutil.rmtree(scratch, ignore_errors=True)
+        remove_tree(scratch, ignore_errors=True)
 
 
 def assert_addresses_held(original: Path, pulled: Pulled) -> None:

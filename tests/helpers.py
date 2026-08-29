@@ -298,6 +298,12 @@ def a_clean(address: str) -> dict:
     return _mark(Instruction.CLEAN, address, {})
 
 
+def a_drop(address: str, sentence: str = "the paragraph's own claim") -> dict:
+    """A `drop` mark -- the one row `INSTRUCTIONS[...].may_empty` is True for,
+    so an empty `change` on it is the edit rather than a missing one."""
+    return _mark(Instruction.DROP, address, {"drop": sentence})
+
+
 def a_correct(address: str, sentence: str = "the paragraph's own claim") -> dict:
     """A `correct` mark -- `claim.false` is `sentence`, `claim.true` the fix,
     the two keys `INSTRUCTIONS[Instruction.CORRECT]` demands."""

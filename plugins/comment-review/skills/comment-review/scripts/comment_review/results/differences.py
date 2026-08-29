@@ -171,7 +171,7 @@ def _side_slice(
     start: int,
     end: int,
 ) -> list[str]:
-    """One role's content for base span `[start, end)`.
+    r"""One role's content for base span `[start, end)`.
 
     Walks that role's own opcodes -- which partition the whole base range --
     keeping only the ones overlapping this span. An `equal` opcode is safe to
@@ -179,13 +179,34 @@ def _side_slice(
     correspondence with `base`; a non-`equal` opcode is never partial here,
     because `_conflict_spans` already grew `[start, end)` to the full extent
     of every opcode inside it.
+
+    !! AN `insert` OPCODE HAS `i1 == i2` AND IS TESTED THE WAY `_touching_roles`
+    TESTS IT -- `start <= i1 <= end`, the closed test a zero-width position
+    needs. A half-open overlap test (`i2 <= start or i1 >= end`) is FALSE for
+    every empty base range, so one shared test dropped every pure insert.
+    MEASURED 2026-08-29: `diff3("# a\n# b\n", {"block-context":
+    "# a\n# INSERTED\n# b\n"})` rendered the conflict span with the added
+    line nowhere, under a `======= block-context` header `_touching_roles`
+    still printed -- so a role that used `add`, one of the seven instructions,
+    read in the artifact a human rules on as having proposed nothing. With a
+    second role at the same span the inserting role's section renders
+    byte-identical to base, which reads as agreement rather than as a loss.
+
+    ! THE TWO TESTS CANNOT MEET AT ONE SPAN'S EDGE. `_conflict_spans` merges
+    whenever `start <= merged[-1][1]`, so no two spans it returns are adjacent,
+    and an insert at a shared boundary cannot be claimed by both.
     """
     out = []
     for tag, i1, i2, j1, j2 in opcodes:
-        if i2 <= start or i1 >= end:
-            continue
         if tag == "equal":
+            if i2 <= start or i1 >= end:
+                continue
             out.extend(base_lines[max(i1, start) : min(i2, end)])
-        else:
-            out.extend(side_lines[j1:j2])
+            continue
+        if i1 == i2:
+            if not start <= i1 <= end:
+                continue
+        elif i2 <= start or i1 >= end:
+            continue
+        out.extend(side_lines[j1:j2])
     return out

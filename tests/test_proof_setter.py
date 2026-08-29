@@ -445,7 +445,7 @@ def test_a_rel_that_ESCAPES_the_repo_is_REFUSED_AT_READ(tmp_path, monkeypatch):
     naming a page outside `repo`, and a file nobody put under review had already
     been read.
 
-    ! IT NAMES THE BINDER PAGE PATH NOW. `run` asks `_can_escape` of every page
+    ! IT NAMES THE BINDER PAGE PATH NOW. `run` asks `can_escape` of every page
     path as it reads the shas, before the loop, so the refusal states the fault
     rather than whichever of the two roots the path happened to leave first."""
     repo = tmp_path / "repo"
@@ -490,7 +490,7 @@ def test_a_rel_that_RESOLVES_INSIDE_the_repo_but_outside_into_is_REFUSED(tmp_pat
     rule moved up. `repo` and `into` are siblings here, so
     `sub/../../repo/util.py` resolves INSIDE `repo` -- a legitimate read -- and
     outside `into`; each guard therefore answered for its own root and neither
-    could state the fault. `run` now asks `_can_escape` of the binder page path
+    could state the fault. `run` now asks `can_escape` of the binder page path
     once, which is true of both roots at once, so this refuses at `read` before
     any file is opened."""
     repo = tmp_path / "repo"

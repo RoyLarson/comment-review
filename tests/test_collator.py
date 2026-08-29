@@ -152,6 +152,56 @@ class TestSourceProblems:
         assert problems
         assert f"within {3} lines" in problems[0]
 
+    def test_an_ABSOLUTE_cite_cannot_reach_outside_the_checkout(self, tmp_path):
+        """`root / path` DISCARDS `root` when `path` is absolute, so a role's
+        own `cite` could name any file on the machine and have its `verbatim`
+        confirmed against it.
+
+        ! The root here is a real, empty directory the secret does not sit
+        under, and the `verbatim` is the secret file's own line -- so the only
+        way this passes is by refusing before the join.
+        """
+        root = tmp_path / "repo"
+        root.mkdir()
+        outside = tmp_path / "outside"
+        outside.mkdir()
+        secret = outside / "secrets.txt"
+        secret.write_text("TOKEN=the-line-outside\n", encoding="utf-8")
+
+        mark = _well_formed()
+        mark["sources"] = [
+            {"cite": f"{secret}:1", "verbatim": "TOKEN=the-line-outside"}
+        ]
+        cache: dict = {}
+        problems = source_problems("here", mark, root, cache)
+        assert problems
+        assert "outside the checkout" in problems[0]
+        assert cache == {}  # nothing outside the root was ever opened
+
+    def test_a_cite_that_WALKS_UP_cannot_reach_outside_the_checkout(self, tmp_path):
+        """The other shape of the same escape -- `..`, which resolves out of
+        the root without ever being absolute."""
+        root = tmp_path / "repo"
+        root.mkdir()
+        outside = tmp_path / "outside"
+        outside.mkdir()
+        (outside / "secrets.txt").write_text(
+            "TOKEN=the-line-outside\n", encoding="utf-8"
+        )
+
+        mark = _well_formed()
+        mark["sources"] = [
+            {
+                "cite": "../outside/secrets.txt:1",
+                "verbatim": "TOKEN=the-line-outside",
+            }
+        ]
+        cache: dict = {}
+        problems = source_problems("here", mark, root, cache)
+        assert problems
+        assert "outside the checkout" in problems[0]
+        assert cache == {}
+
     def test_the_cache_reads_one_file_once(self):
         """Two marks citing the same file share one cache entry."""
         cache: dict = {}

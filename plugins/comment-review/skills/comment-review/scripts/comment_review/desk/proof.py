@@ -24,10 +24,16 @@ to the `edit_copy` that seeded it, one level down.
 class MismatchedRoot(Exception):
     """Two `edit_copies` handed to `gather` were censused from different roots.
 
-    !! THE ONLY RULE THIS MODULE ENFORCES, and it has to be one that can
+    !! THE ONLY RULE WITH A NAMED EXCEPTION HERE, and it has to be one that can
     fail: two edit_copies censused from different revises cannot be
     reconciled, because their addresses answer to different trees -- an `a0`
     from one tells nothing about the `a0` in the other.
+
+    ! IT COULD NOT FIRE FOR AN ABSENT FIELD, WHICH IS WHY `gather` SUBSCRIPTS.
+    Reading `copy.get("read_from", {})` made every copy that carried none agree
+    on `{}`, so a set of edit_copies that could not say which tree they were
+    censused from compared EQUAL and gathered without complaint. The absence is
+    now `flows.marks.seed`'s own `KeyError`, one level further along.
     """
 
 
@@ -52,10 +58,14 @@ def gather(stage: str, edit_copies: list[dict]) -> dict:
     Raises:
         MismatchedRoot: a later edit_copy's `read_from` disagrees with the
             first's -- naming both values.
+        KeyError: an edit_copy carries no `read_from` at all. `seed` writes the
+            field onto every copy it hands out and refuses a binder without
+            one, so a copy reaching here without it was not seeded or was
+            stripped after it was.
     """
     read_from: dict = {}
     for i, copy in enumerate(edit_copies):
-        this = copy.get("read_from", {})
+        this = copy["read_from"]
         if i == 0:
             read_from = {**this}
         elif this != read_from:

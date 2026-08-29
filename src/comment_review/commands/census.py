@@ -184,8 +184,9 @@ def _report(args: argparse.Namespace) -> int:
         #
         # ! A file outside the repo keeps the path AS IT WAS PASSED -- see
         # `_repo_relative`, which says what that means. `flows/proof_setter.py`
-        # refuses such a page rather than guessing where it belongs: its
-        # `_can_escape` reads the binder's page paths before any file is opened.
+        # refuses such a page rather than guessing where it belongs:
+        # `repo.can_escape` reads the binder's page paths before any file is
+        # opened.
         # ! HOISTED. `_repo_relative` calls `Path.resolve()`, a filesystem
         # call, and both arguments are the same for every paragraph of a file.
         # Measured 2026-08-18: 120 us a call, so one 793-paragraph file spent

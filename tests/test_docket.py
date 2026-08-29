@@ -23,9 +23,9 @@ than the format's own witness.
 import json
 
 import pytest
-from helpers import a_correct, a_master_proof, a_move
+from helpers import a_correct, a_drop, a_master_proof, a_move
 
-from comment_review.desk.collator import docket_from, reconcile
+from comment_review.desk.collator import UnusableChange, docket_from, reconcile
 from comment_review.docket.docket import read, schedules_of
 from comment_review.flows.revise import _set_by
 
@@ -221,6 +221,41 @@ def test_a_settled_move_DELETES_its_origin_and_writes_its_destination():
     alterations = {one["cue"]: one["text"] for one in docket["pages"][0]["alterations"]}
     assert alterations["a0"] is None
     assert isinstance(alterations["a8"], str) and alterations["a8"]
+
+
+def test_a_change_that_is_RAW_TEXT_refuses_rather_than_emptying_the_paragraph():
+    """!! `None` IS THE DELETE SIGNAL, so a `change` that cannot be joined must
+    not reach it -- `docket/docket.py`'s own header: *"a key whose value failed
+    to serialise arrives looking exactly like a deliberate deletion."*
+
+    ! The raw-text form is the one `reviewer-brief.md` mandates while
+    `desk.mark.problems` demands an array; `TODO/change-is-raw-text-not-lines.md`
+    settles WHICH, and this asserts only that neither half vacates a paragraph
+    in silence."""
+    mark = a_correct("m.py@b1")
+    mark["change"] = "\n".join(mark["change"])
+    proof = a_master_proof({"block-context": {"m.py@b1": mark}})
+    with pytest.raises(UnusableChange):
+        docket_from(reconcile(proof), proof)
+
+
+def test_an_EMPTY_change_refuses_where_the_instruction_may_not_empty():
+    mark = a_correct("m.py@b1")
+    mark["change"] = []
+    proof = a_master_proof({"block-context": {"m.py@b1": mark}})
+    with pytest.raises(UnusableChange):
+        docket_from(reconcile(proof), proof)
+
+
+def test_an_EMPTY_change_IS_the_delete_where_the_row_may_empty():
+    """`drop` is the one row `INSTRUCTIONS[...].may_empty` is True for, which
+    is what the refusal above is read from rather than from a named
+    instruction."""
+    mark = a_drop("m.py@b1")
+    mark["change"] = []
+    proof = a_master_proof({"block-context": {"m.py@b1": mark}})
+    docket = docket_from(reconcile(proof), proof)
+    assert docket["pages"][0]["alterations"] == [{"cue": "b1", "text": None}]
 
 
 def test_NO_DOCKET_CARRIES_ONE_END_OF_A_MOVE():

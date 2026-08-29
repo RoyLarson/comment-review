@@ -42,3 +42,15 @@ def test_an_edit_copy_from_another_root_is_refused():
     b["read_from"] = {**b["read_from"], "revise": 1}
     with pytest.raises(MismatchedRoot):
         gather("4c", [a, b])
+
+
+def test_edit_copies_that_cannot_say_which_tree_they_read_are_refused():
+    """Copies with the field STRIPPED compared equal under a `{}` default, so
+    the one rule this module enforces could not fire on them -- two copies that
+    cannot say which tree they were censused from agreed with each other."""
+    roles = ("block-context", "module-context")
+    copies = [seed(binder_of(DESK, 0), role) for role in roles]
+    for copy in copies:
+        del copy["read_from"]
+    with pytest.raises(KeyError):
+        gather("4c", copies)

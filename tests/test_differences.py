@@ -137,6 +137,19 @@ def _edit_line(raw_text: str, index: int, marker: str) -> str:
     return "".join(lines)
 
 
+def _insert_line(raw_text: str, index: int, added: str) -> str:
+    """`raw_text` with `added` as a whole NEW line before line `index`.
+
+    ! THE SHAPE `_edit_line` CANNOT PRODUCE. A replace leaves the base line
+    count alone, so `SequenceMatcher` never emits an `insert` opcode for one --
+    which is why every diff3 case above was blind to how an insert renders.
+    `add` is one of the seven instructions, and it is prose that was not there.
+    """
+    lines = raw_text.splitlines(True)
+    lines.insert(index, added + "\n")
+    return "".join(lines)
+
+
 def parse_diff3(lines: list[str], roles: list[str]) -> tuple[str, dict[str, str]]:
     """`diff3`'s own inverse, for `roles` it is known to carry.
 
@@ -226,6 +239,38 @@ def test_diff3_shows_disjoint_edits_the_two_sided_form_does_not(tmp_path):
     two_sided = unified(side_a, side_b, "paragraph")
     hunks = [line for line in two_sided if line.startswith("@@")]
     assert len(hunks) == 1
+
+
+def test_diff3_renders_a_pure_INSERT_a_role_proposed(tmp_path):
+    """A role that ADDS a line rendered as having proposed nothing: the added
+    line appeared nowhere under its own `======= <role>` header, in the
+    artifact a human rules on."""
+    repo = a_small_real_tree(tmp_path)
+    base = _three_line_row(repo)
+    side = _insert_line(base, 1, "# ADDED BY block-context")
+
+    rendered = diff3(base, {"block-context": side})
+    assert "# ADDED BY block-context\n" in rendered
+    parsed_base, parsed_sides = parse_diff3(rendered, ["block-context"])
+    assert parsed_base == base
+    assert parsed_sides == {"block-context": side}
+
+
+def test_diff3_keeps_an_INSERT_beside_another_role_s_edit(tmp_path):
+    """The worse shape: with a second role editing the same span, the inserting
+    role's section rendered byte-identical to base -- which reads as agreement
+    rather than as a lost proposal."""
+    repo = a_small_real_tree(tmp_path)
+    base = _three_line_row(repo)
+    inserted = _insert_line(base, 1, "# ADDED BY block-context")
+    replaced = _edit_line(base, 1, " -- EDITED BY module-context")
+
+    roles = ["block-context", "module-context"]
+    rendered = diff3(base, {"block-context": inserted, "module-context": replaced})
+    parsed_base, parsed_sides = parse_diff3(rendered, roles)
+    assert parsed_base == base
+    assert parsed_sides == {"block-context": inserted, "module-context": replaced}
+    assert parsed_sides["block-context"] != base
 
 
 def test_diff3_keeps_every_side_when_several_roles_conflict_at_one_place(tmp_path):

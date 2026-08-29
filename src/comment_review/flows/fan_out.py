@@ -77,6 +77,23 @@ def fan(binder: dict, stage: Stage) -> list[dict]:
             SAME role -- the address `path@cue` would then be marked twice.
         UncoveredPage: a page in `binder` matches NO dispatch of some role
             that this stage dispatches at all -- that role would never see it.
+        KeyError: the binder carries no `read_from` -- `flows.marks.seed`'s
+            own refusal, reached because the shard below is built with
+            `binder["read_from"]` and not with a default.
+
+    !! THE SHARD TAKES `read_from` BY SUBSCRIPT, AND TOOK IT WITH A `{}`
+    DEFAULT UNTIL 2026-08-29. `seed` refuses a binder that cannot say which
+    tree it read -- the refusal `bind` added on 2026-08-28 and `seed` carried
+    one step further the same day -- and this function rebuilt the argument
+    with the fallback that refusal exists to remove, so `seed`'s `KeyError`
+    could never fire through fan-out. MEASURED: `fan` over a binder with no
+    `read_from` returned shards carrying `read_from={}` and raised nothing,
+    while `seed(binder, role)` on the same binder raised `KeyError`.
+
+    ! AND EVERY SHARD AGREED ON `{}`, so `desk.proof.gather`'s `MismatchedRoot`
+    could not fire either -- the ambiguity surfaced four steps later at
+    `mark --check`, blamed on the role, after four agents had read and filled
+    the shards.
     """
     pages = binder.get("pages", [])
     all_paths = [str(page.get("path", "")) for page in pages]
@@ -113,7 +130,7 @@ def fan(binder: dict, stage: Stage) -> list[dict]:
 
     return [
         seed(
-            {"read_from": binder.get("read_from", {}), "pages": matched},
+            {"read_from": binder["read_from"], "pages": matched},
             dispatch.role,
         )
         for dispatch, matched in shards
