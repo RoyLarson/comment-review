@@ -129,13 +129,22 @@ judgement this whole system exists to replace.
       failing** -- `verify` returned `[]` -- which is what says the directory walk is load-bearing
       rather than decorative.
 
-      !! **IT READS THE OBJECT STORE, NOT A WORKTREE, AND THAT IS A CHANGE FROM THIS BOX'S OWN
-      SKETCH.** The box said `cp -r` out of a `git worktree`. `git archive` writes the blobs as
-      git stores them; **a checkout on this machine applies `core.autocrlf` and hands back CRLF**,
-      while B2 verifies a staged file against `git show`, which is the stored blob. Taking both
-      from the object store is what lets B2's byte comparison agree -- through a worktree it would
-      fail on every text file, on line endings alone. ! It also removes a worktree lifecycle, so
-      there is no cleanup step that can leave a stale one behind.
+      !! **IT USES `git archive` RATHER THAN A WORKTREE, WHICH THE BOX SKETCHED AS `cp -r`.** The
+      gain is that no worktree lifecycle exists, so no cleanup step can leave a stale one behind.
+
+      !! **AND THE REASON FIRST WRITTEN HERE WAS WRONG, CORRECTED 2026-08-29 WHILE BUILDING B2.**
+      It read that `git archive` *"writes the blobs as git stores them"* and that a checkout would
+      differ. **The opposite is true**: `git archive` applies the same eol filter a checkout does,
+      and MEASURED on this repo it returned CRLF under `core.autocrlf=true` for a blob stored with
+      LF. ! The correction does not move B1's code -- checkout form is the right form for a tree a
+      run EXECUTES -- it moves the claim, and it splits the two boxes: **B1 snapshots what the
+      skill RUNS, in checkout form; B2 stages what the skill READS, as the stored blob.**
+
+      !! **NOTHING IN B1 COULD HAVE CAUGHT IT, AND THAT IS THE INTERESTING PART.** `verify`
+      re-digests the files it has just written, so the snapshot is compared against ITSELF and no
+      eol form can fail it -- `docs/gates.md`'s *"a gate can be green because it shares the
+      defect"*, arriving on this plan's own first mechanic. **What disagreed was B2's byte-identity
+      test, because it asks a SECOND command.**
 
       ! **NO CLI YET, DELIBERATELY.** Nothing calls this from a shell until B3 needs to hand a
       subagent the path, and an interface written before its caller is guessed at.
@@ -167,10 +176,36 @@ judgement this whole system exists to replace.
       are ANNOTATED: `v0.2.3^{}` for the commit, which that TODO calls *"the trap anyone
       re-deriving which code produced a measurement hits first"*, and which this session hit.
 
-- [ ] **B2 -- STAGE: materialise START into the directory to be graded.** Works
-      `the-harness-cannot-run-the-system-it-grades`. Check the START hash out, copy the case's
-      paths into the eval workspace, leave everything else behind. Verify: the staged tree matches
-      `git show START:<path>` byte for byte for every path in the case.
+- [x] **B2 -- BUILT 2026-08-29: `evals/stage_case.py`, three tests in
+      `tests/harness/test_stage_case.py`.** Works `the-harness-cannot-run-the-system-it-grades`.
+      Verify: the staged tree matches `git show START:<path>` byte for byte for every path in the
+      case -- **asserted directly, over `v0.2.3^{}` and two real paths.**
+
+      | the box says | the test |
+      | --- | --- |
+      | byte for byte against `git show` | `test_every_staged_path_is_byte_identical_to_git_show` |
+      | leave everything else behind | `test_nothing_but_the_case_paths_is_staged` -- the staged set EQUALS the case set |
+      | -- | `test_a_path_absent_at_that_commit_is_refused` |
+
+      !! **THE READ AND THE CHECK USE DIFFERENT COMMANDS, AND THAT IS THE POINT.** `stage` reads
+      with `git cat-file blob`; the test compares against `git show`. A check issuing the same
+      command as the code it checks can only agree with itself -- which is how B1's eol claim
+      survived, one box earlier.
+
+      !! **THE THIRD TEST IS NOT A HYPOTHETICAL, AND ITS PATH IS THE REALISTIC SHAPE.**
+      `src/comment_review/machine/__init__.py` exists ON DISK and on HEAD, and not at `v0.2.3` --
+      git says so in those words: *"exists on disk, but not in '3e1fedf'"*. **That is how a case
+      written today against an older START actually goes wrong**, and staging it quietly would
+      grade a tree missing the file the case is ABOUT, with the role reporting nothing where the
+      defect was. ! Every path is checked BEFORE any is written, so a bad case leaves no
+      half-staged tree, and the refusal names all of them at once.
+
+      ! **THE STAGED TREE IS NOW THE SAME BYTES ON EVERY MACHINE**, which a checkout filter cannot
+      promise. Two runs of one case on two platforms would otherwise stage different files and be
+      graded as though they had not.
+
+      ! **IT TAKES A HASH AND A PATH LIST, NOT A CASE ROW.** No row carries `start`/`end` yet --
+      that is T15 -- so this does not wait on the suite, and the suite does not wait on this.
 
 - [ ] **B3 -- RUN: with-skill and baseline in the SAME turn.** Works
       `the-harness-cannot-run-the-system-it-grades`. SKILL.md is explicit that the baseline is not

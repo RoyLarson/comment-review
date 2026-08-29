@@ -11,10 +11,23 @@ path.
 tagged", so `agents/` and `scripts/` have to be captured at ONE ref or the two
 things that split exists to separate are mixed at the point of capture.
 
-! IT READS THE OBJECT STORE, NOT A CHECKOUT. `git archive` writes the blobs as
-git stores them; a worktree checkout on this machine applies `core.autocrlf` and
-hands back CRLF. B2 verifies a staged file against `git show`, which is also the
-stored blob -- so taking both from the object store is what lets the two agree.
+!! IT WRITES CHECKOUT FORM, WHICH IS WHAT A PLUGIN IS. `git archive` applies the
+same eol filter a checkout does -- MEASURED 2026-08-29 on this repo, where it
+returned CRLF under `core.autocrlf=true` for a blob stored with LF. That is the
+right form here: this tree is the plugin a run EXECUTES, and an installed plugin
+is checkout form.
+
+! IT IS THE OPPOSITE CHOICE FROM `stage_case.py`, DELIBERATELY. What B2 stages is
+the tree UNDER REVIEW, graded byte-for-byte against `git show`, so it reads the
+stored blob instead. Two artifacts, two questions -- what the skill runs, and what
+the skill reads.
+
+!! THIS PARAGRAPH SAID THE REVERSE WHEN B1 LANDED, and the claim went in
+uncontradicted because `verify` re-digests the files it just wrote: the snapshot
+is compared against ITSELF, so no eol form could ever fail it. `docs/gates.md`
+names that exactly -- a gate green because it shares the defect. It was B2's
+first byte-identity test, which compares against a SECOND command, that
+disagreed.
 """
 
 from __future__ import annotations
