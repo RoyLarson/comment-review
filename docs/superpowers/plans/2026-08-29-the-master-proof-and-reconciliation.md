@@ -993,7 +993,7 @@ Commit with `-F`.
 invalidates it. This task RE-DERIVES the number; whatever it comes to is the new baseline. Carrying
 the old one forward beside a rule that contradicts it is the failure.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_the_docket_names_the_role_that_set_each_alteration():
@@ -1010,19 +1010,19 @@ def test_set_by_stops_mapping_everything_to_empty():
     assert set(_set_by(docket).values()) == {"block-context"}
 ```
 
-- [ ] **Step 2: Run and confirm both fail**
+- [x] **Step 2: Run and confirm both fail**
 
 Run: `uv run pytest -q tests/test_docket.py -k role`
 
-- [ ] **Step 3: Write `docket_from` and add `role` to the schema**
+- [x] **Step 3: Write `docket_from` and add `role` to the schema**
 
-- [ ] **Step 4: Re-derive the measurement**
+- [x] **Step 4: Re-derive the measurement**
 
 Count, over `evidence/the-loop-measured-2026-08-27/`'s round-2 marks: how many of the 16 places carry
 2+ marks owing a change. Write the number, and the new settle/escalate/re-read split, into
 `docs/plans/0.2.4-the-mark-and-the-collator.md` beside T4.5.
 
-- [ ] **Step 5: Commit the WORK**
+- [x] **Step 5: Commit the WORK**
 
 ```
 uv run pytest -q && uv run python scripts/build_plugin.py
@@ -1030,7 +1030,7 @@ uv run pytest -q && uv run python scripts/build_plugin.py
 
 Commit the code and its tests with `-F`. **No box moves in this commit.**
 
-- [ ] **Step 6: Tick the boxes -- ITS OWN COMMIT**
+- [x] **Step 6: Tick the boxes -- ITS OWN COMMIT**
 
 !! **THE TICKS ARE A SEPARATE COMMIT, NEVER FOLDED INTO THE WORK.** Roy, 2026-08-29:
 *"the pair is its own commit - separate from the work"*. **Three places move together

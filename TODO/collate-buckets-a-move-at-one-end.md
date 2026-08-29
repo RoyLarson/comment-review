@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 3 tasks done
+Progress: 3 of 3 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-27, splitting the residue out of Roy's correction on relational
@@ -60,5 +60,5 @@ an `agents` file.
 - [x] T2 -- Make a mark contribute to every place it touches while being decided once. Verify:
       T1 passes, and a `move` whose destination carries no other mark still settles without
       escalating.
-- [ ] T3 -- Prove the widening did not make `move` escalate by default. Verify: a run of the
+- [x] T3 -- Prove the widening did not make `move` escalate by default. Verify: a run of the
       round-2 marks settles the same 13 of 16 places it settled before.
