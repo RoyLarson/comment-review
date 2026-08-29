@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A Claude Code **plugin** (`comment-review`) plus the machinery used to develop and measure it.
 The plugin is an editorial board for the comments and docstrings a change touched: four
 read-only reviewer agents walk one page, a task agent (the `/comment-review` skill)
-synthesizes verdicts, the human approves the exact replacement text, and WRITE puts it on disk and
+synthesizes instructions, the human approves the exact replacement text, and WRITE puts it on disk and
 proves the executable code byte-identical.
 
 !! **AND THE SUBJECT IS THE DESIGN AS MUCH AS THE WORDING.** A comment says what code is FOR,
@@ -19,7 +19,7 @@ raises a code concern and does not bend the prose to fit.
 2026-08-23: *"we can't tell the agents to review all of this and not give them an out for
 properly resolving the issues. Several times they were overly restricted by what they could do
 and that caused tension in the recommendations."* The harness records the shape:
-`module-context` found a module announcing one subject while holding four, had no verdict for
+`module-context` found a module announcing one subject while holding four, had no instruction for
 *split this module*, and widened the docstring to announce TWO -- the defect its own trigger is
 named for.
 
@@ -288,12 +288,12 @@ read it before touching the skill. The pipeline:
    `ownership-context` alone at 4a, the other three in one message at 4c against its
    resolved placement.** One role REQUIRED, three OPTIONAL -- a claim attached to the wrong
    scope is measured against the wrong code, and the other three cannot notice.
-5. **APPLY** (task agent) -- one verdict per block, full-length replacement text.
+5. **APPLY** (task agent) -- one instruction per block, full-length replacement text.
 6. **COMPACT** (task agent) -- cut to the cap; skipped entirely if there is no cap.
 7. **APPROVAL** -- present the final text and stop (7a); on approval, apply verbatim (7b).
 8. **REVIEW** (task agent) -- read the finished page against itself.
 
-The seven verdicts (`clean`, `query`, `drop`, `correct`, `patch`, `add`,
+The seven instructions (`clean`, `query`, `drop`, `correct`, `patch`, `add`,
 `move`) and the checkable/necessary matrix that resolves them are defined in SKILL.md -- read it
 rather than re-deriving the rules here, since it is the single source and this file must not
 restate it.
@@ -405,7 +405,7 @@ elision and a dash are spelled the same. **When a ruling is quoted here, quote a
 commit that first recorded it is the source, and `git log -S` finds it.
 
 ! **AN EMPTY LIST MEANS THE LANGUAGE HAS NO `a` SERIES AT ALL** -- not an empty one. `yaml`,
-`toml`, `ini` and `sql` have no docstring practice, and carried an `a0` no verdict could fill until
+`toml`, `ini` and `sql` have no docstring practice, and carried an `a0` no instruction could fill until
 this landed.
 
 !! **C AND C++ SIT IN THAT GROUP FOR A DIFFERENT REASON, AND IT IS DEFERRAL RATHER THAN
@@ -824,9 +824,9 @@ a measurement: nothing in this repo tests it.
   function-context need something to resolve the claim against. Write what is measured, what is
   enforced, or what was observed, and let the reader judge. If a sentence cannot be falsified
   by reading the code or re-running a command, it does not belong.
-- `clean` is reserved, not a synonym for "vaguely good": it is one of the seven verdicts named
+- `clean` is reserved, not a synonym for "vaguely good": it is one of the seven instructions named
   under "The skill's 8 stages" above and must not be used as a loose adjective for code or
-  prose anywhere in this repo. As a verdict it means nothing to report from that role, and
+  prose anywhere in this repo. As an instruction it means nothing to report from that role, and
   each role's `clean` asserts something specific -- read what, in that role's own file under
   `plugins/comment-review/agents/`, which states it.
 

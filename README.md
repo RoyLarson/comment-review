@@ -18,7 +18,7 @@ through its prose.
 
 ! **THE OTHER HALF IS NOT BUILT.** A role can today only DESCRIBE a code problem; it cannot
 propose the change. That gap has a measured cost: a reviewer that finds a structural problem
-and has no way to resolve it reaches for the only verdict it has and edits the prose --
+and has no way to resolve it reaches for the only instruction it has and edits the prose --
 `module-context` did exactly that, widening a two-subject docstring to announce two subjects,
 which is the defect its own trigger is named for.
 
@@ -206,10 +206,10 @@ The skill is broken up into eight phases to cover an editorial system.
 3) FIND REFERENCES - Determine external links to the code comments that might also need updating
 4) MARK - Provide appropriate editorial marks to the Annotated comments and documentation to determine what to do
 
-| verdict    | the claim is                                     | what you do with it                                                       |
+| instruction | the claim is                                    | what you do with it                                                       |
 | ---------- | ------------------------------------------------- | -------------------------------------------------------------------------- |
 | `clean`    | nothing to report **from this role**, on a block it READ | nothing. Not a pass, and not a claim the block is correct -- one role having no finding. A block outside what the role reads is `query` |
-| `query`    | unsettled                                        | resolve it or escalate it. It blocks every other verdict on that sentence |
+| `query`    | unsettled                                        | resolve it or escalate it. It blocks every other instruction on that sentence |
 | `drop`     | true but not worth keeping                       | delete the sentence                                                       |
 | `correct`  | **FALSE**                                        | apply the true/false pair. **Always before any `patch`**                  |
 | `patch`    | **TRUE**, badly worded                           | apply the rewrite                                                         |
@@ -278,7 +278,7 @@ lives outside every project and is available in all of them.
 
 | path                      | what                                                                                                                                                    |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `plugins/comment-review/` | the plugin -- `skills/` (with `scripts/`: `census.py`, `referrers.py`, `verdicts.py`, `run_context.py`, `prove_unchanged.py`), `agents/`, manifests      |
+| `plugins/comment-review/` | the plugin -- `skills/` (with `scripts/`: `comment-review.py`, the launcher, beside the `comment_review/` package BUILT from `src/`), `agents/`, manifests |
 | `docs/`                   | durable guidance: how the census gets structure (`parsing.md`), and the rules for changing the skill itself (`limitations.md`)                          |
 | `evidence/`               | why each rule exists: ten probe reports that attacked the design, a genetic search over 28 candidate rewrites, and the triage that ranked what survived |
 | `evals/`                  | twelve planted hazards, a grader, and the authorship split                                                                                              |
@@ -335,7 +335,7 @@ lexer and AST, everything else gets a comment-syntax record and a hand-rolled st
 skipper that is wrong on heredocs, raw strings and template nesting.
 
 ! **No comment carries an owner, in any language.** A docstring's owner comes free from
-the AST; a `#` run's does not, and nothing infers it -- so every ownership-context verdict rests on
+the AST; a `#` run's does not, and nothing infers it -- so every ownership-context instruction rests on
 a reviewer reading the file. See [docs/parsing.md](docs/parsing.md) for where structure
 could come from and what was already tried and rejected.
 
@@ -364,7 +364,7 @@ is a false pass rather than a partial result.
 
 ### Smaller, also measured
 
-- There is **no verdict for an executable example** -- a doctest, a `@example`, a README
+- There is **no instruction for an executable example** -- a doctest, a `@example`, a README
   snippet under test. Its expected output can be *wrong* in a way that is a test failure
   rather than a wording problem, and the reviewer has no vocabulary for saying so.
 - The docstring-format rule, read literally, condemns every numpydoc `Notes` section. A

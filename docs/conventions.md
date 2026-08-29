@@ -17,7 +17,7 @@ to ..."*. **The lane scopes what you may change.** If a task touches a file anot
 
 The four reviewer files, `SKILL.md`, and the reference each stage reads. It owns the WORDING an
 agent acts on: what a role's remit is, what it must refuse, what the task agent does between
-stages, and how a verdict is expressed.
+stages, and how an instruction is expressed.
 
 ! **It does not own what the tools DO.** A reviewer that needs a different fact from the census
 is a `backend` request; the agent file may not describe an output the census does not produce.
