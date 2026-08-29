@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 5 tasks done
+Progress: 5 of 5 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, designing P4 with Roy -- `binder` goes out and
@@ -23,7 +23,7 @@ The middle has no container for one stage's marks, so nothing can reconcile them
 - [x] Carry the sha on the sheet, so nothing downstream reads the binder for it.
       Verify: a docket can be built from a `master_proof` alone, and no module
       outside `binder/` imports `binder.read` to obtain a sha.
-- [ ] Build the `master_proof`: `{stage, read_from, edit_copies: [...]}`. Verify:
+- [x] Build the `master_proof`: `{stage, read_from, edit_copies: [...]}`. Verify:
       it holds every `edit_copy` of one stage, a stage with one role and a stage
       with seven shards both assemble, and it refuses an `edit_copy` whose
       `read_from` disagrees with the others'.

@@ -344,7 +344,7 @@ Commit with `-F`.
   `{"stage": str, "read_from": dict, "edit_copies": [...]}`, and
   `MismatchedRoot(Exception)`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_a_master_proof_holds_every_edit_copy_of_one_stage():
@@ -374,22 +374,22 @@ def test_an_edit_copy_from_another_root_is_refused():
         gather("4c", [a, b])
 ```
 
-- [ ] **Step 2: Run and confirm all three fail**
+- [x] **Step 2: Run and confirm all three fail**
 
 Run: `uv run pytest -q tests/test_master_proof.py`
 Expected: FAIL with `ModuleNotFoundError: comment_review.desk.proof`.
 
-- [ ] **Step 3: Write `gather`**
+- [x] **Step 3: Write `gather`**
 
 It takes the `read_from` from the first copy and raises `MismatchedRoot` naming both values when a
 later copy disagrees. It sorts nothing and drops nothing -- the order it is given is the order it
 holds.
 
-- [ ] **Step 4: Run**
+- [x] **Step 4: Run**
 
 Run: `uv run pytest -q tests/test_master_proof.py`
 
-- [ ] **Step 5: Commit the WORK**
+- [x] **Step 5: Commit the WORK**
 
 ```
 uv run python scripts/build_plugin.py && uv run pytest -q
@@ -397,7 +397,7 @@ uv run python scripts/build_plugin.py && uv run pytest -q
 
 Commit the code and its tests with `-F`. **No box moves in this commit.**
 
-- [ ] **Step 6: Tick the boxes -- ITS OWN COMMIT**
+- [x] **Step 6: Tick the boxes -- ITS OWN COMMIT**
 
 !! **THE TICKS ARE A SEPARATE COMMIT, NEVER FOLDED INTO THE WORK.** Roy, 2026-08-29:
 *"the pair is its own commit - separate from the work"*. **Three places move together
