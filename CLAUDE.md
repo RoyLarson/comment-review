@@ -161,25 +161,19 @@ uv run pytest -q -k galley          # one file, one class or one test
 # Stage 3 inbound: which tracked files NAME the files under review
 uv run python src/comment-review.py referrers --repo . <paths...>
 
-# !! THE FOUR COMMANDS BELOW MOVED TO `prototype/` ON 2026-08-25 and no longer
-# run. Roy: *"all of the old code in the agent section are prototypes."* They
-# are left here, marked, because the commands that replace them are not designed
-# yet -- see `prototype/README.md` and
-# `TODO/the-skill-names-commands-that-moved-to-prototype.md`.
+# !! `verdicts` AND `run_context` WERE LISTED HERE AND ARE DELETED, 2026-08-28,
+# on Roy's instruction. Both moved to `prototype/` on 2026-08-25 and no longer
+# run; they were kept under a banner saying so, which `decision-log.md
+# Process: #41` had already ruled against for the prose a ROLE follows --
+# instructing anyone to run a command that does not exist is worse than saying
+# nothing. What replaces them is not designed:
+# `TODO/the-skill-names-commands-that-moved-to-prototype.md` T1 and T2.
 #
-# Stage 5 gate: join reviewer reports against the census, check every citation.
-# Each report file is NAMED FOR ITS ROLE -- the tool takes the role name from
-# the file stem, and --reviewers compares against those stems.
-uv run python src/comment-review.py verdicts \
-  --census <census>.json --repo . \
-  --reviewers ownership-context,block-context,function-context,module-context \
-  ownership-context.md block-context.md function-context.md module-context.md
-
-# Stage 4 gate: the dispatch packet
-uv run python src/comment-review.py run_context --template
-uv run python src/comment-review.py run_context --check <file>
+# ! `vocabulary` BELOW IS ALSO DEAD AND IS DELIBERATELY LEFT. Roy named the two
+# to delete and not the third.
 
 # What one agent is GIVEN. The task agent runs this at stage 4 and pastes the output verbatim.
+# ! MOVED TO `prototype/` 2026-08-25 and does not run -- see the note above.
 uv run python src/comment-review.py vocabulary --reviewer block-context
 uv run python src/comment-review.py vocabulary --roles
 
