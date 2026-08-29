@@ -183,7 +183,23 @@ def allowed() -> dict:
         `instruction` -> the seven; `claim` -> the keys each instruction's claim must
         carry; `values` -> the fields whose value is itself a closed set;
         `scope_shape` -> the one shape that is a boundary report rather than
-        work; `anchor_form` -> the form an `add`'s anchor takes.
+        work; `anchor_form` -> the form an `add`'s anchor takes;
+        `sheet_header` -> the keys a sheet carries beside its marks.
+
+    !! `sheet_header` LANDED 2026-08-28, AND UNTIL THEN `read_from` WAS
+    PUBLISHED NOWHERE. `seed` began putting it on every sheet and `problems_in`
+    began refusing a sheet without it, while a grep for the name across
+    `SKILL.md`, `references/` and `agents/` returned nothing -- so the field a
+    role is required to carry was one no role was told about.
+
+    ! `decision-log.md Process: #34` is what makes that a defect rather than an
+    omission: the field exists so a later role can know it holds a REVISE and
+    not the original. A role that is never told it exists cannot use it for
+    that, which is the whole benefit the staged flow was designed to buy.
+
+    ! WHAT A ROLE DOES WITH IT IS THE `agents` LANE. This states the key and its
+    shape, which `docs/conventions.md` puts on this side; the instruction to
+    READ it before ruling belongs in the reviewer brief and is not written here.
     """
     claims = {name: list(spec.claim_all) for name, spec in INSTRUCTIONS.items()}
     return {
@@ -196,6 +212,14 @@ def allowed() -> dict:
         # has only moved the guessing.
         "anchor_form": f"the anchor NAMED in backticks, e.g. {ANCHOR_EXAMPLE}",
         "source_keys": {"required": ["cite", "verbatim"], "optional": ["ran"]},
+        "sheet_header": {
+            "role": "the role this sheet was seeded for",
+            "read_from": (
+                "the tree this sheet was censused from -- "
+                '`{"root": "<path>", "revise": <number>}`, '
+                "where revise 0 is the original"
+            ),
+        },
     }
 
 

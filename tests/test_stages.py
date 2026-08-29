@@ -14,9 +14,7 @@ already state, transcribed by hand.
 
 from comment_review.desk.stages import (
     EDITORIAL,
-    ENRICHING,
     STAGES,
-    Stage,
     pulls_revise,
 )
 
@@ -46,4 +44,9 @@ def test_only_an_editorial_stage_pulls_a_revise():
     # forbids. Both rows being EDITORIAL, it also only ever evaluated the True
     # branch.
     assert [s.name for s in STAGES if pulls_revise(s)] == ["4a", "4c"]
-    assert not pulls_revise(Stage("annotate", ENRICHING, ()))
+    # ! THE FALSE BRANCH IS NOT ASSERTED, and was until 2026-08-28 by way of a
+    # hand-built `Stage("annotate", ENRICHING, ())`. Roy dropped `ENRICHING`
+    # -- *"I don't know what that is drop it"* -- so `Kind` has one member and
+    # no `Stage` can reach that branch. A test constructing the member back
+    # would be asserting a shape nothing produces.
+    assert [s.name for s in STAGES] == ["4a", "4c"]

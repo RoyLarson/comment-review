@@ -8,6 +8,7 @@ A COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `decision-log.md Process: #12`.
 
 import argparse
 import json
+import os
 import sys
 from collections import Counter, defaultdict
 from contextlib import redirect_stdout
@@ -257,17 +258,25 @@ def _report(args: argparse.Namespace) -> int:
         # so a shape it cannot read is caught HERE -- at the one moment the
         # writer and the reader are both present -- instead of at whichever
         # command opens the file next.
-        # !! `as_posix()`, AND IT WROTE `str(repo)` UNTIL 2026-08-28. `repo` is
-        # resolved, so on Windows that emitted `C:\\Users\\<name>\\projects\\...`
-        # into an artifact that is handed to agents and kept as evidence -- next
-        # to `pages[].path` values that are repo-relative posix, written by
-        # `_repo_relative` and `as_posix()` five lines away. ! TWO CALLERS
-        # ALREADY DISAGREED: this one wrote a native absolute path and
-        # `tests/helpers.py` wrote a relative one, for a field whose whole
-        # purpose is a later stage COMPARING a revise root against the original.
+        # !! RELATIVE TO `Path.cwd()`, RULED BY ROY 2026-08-28. This wrote
+        # `str(repo)` on a RESOLVED path, so on Windows it emitted
+        # `C:\\Users\\<name>\\projects\\...` into an artifact that is handed to
+        # agents and kept as evidence -- beside `pages[].path` values that are
+        # repo-relative posix, written by `_repo_relative` five lines away.
+        #
+        # ! TWO CALLERS ALREADY DISAGREED before this: the census wrote a native
+        # absolute path and `tests/helpers.py` wrote a relative one, for a field
+        # whose whole purpose is a later stage COMPARING a revise root against
+        # the original.
+        #
+        # ! `relpath` RATHER THAN `Path.relative_to`, because a revise root is a
+        # temporary directory OUTSIDE the checkout -- `relative_to` raises there
+        # and `relpath` walks up with `..`. The reader resolves this against its
+        # own cwd, which is the same cwd the run was started from.
+        root = Path(os.path.relpath(repo, Path.cwd())).as_posix()
         binder = bind(
             pages,
-            read_from={"root": repo.as_posix(), "revise": 0},
+            read_from={"root": root, "revise": 0},
             absent=args.include_absent,
         )
         missing = unaddressed(rows_of(binder))

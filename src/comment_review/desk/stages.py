@@ -1,10 +1,8 @@
 """The MARK sequence, as data: what each stage hands back, and what follows it.
 
-    Kind          the two things a stage can be, closed
+    Kind          what a stage can be. ONE member today
     EDITORIAL     hands back marks -- verify -> reconcile -> revise step ->
                   pull a revise
-    ENRICHING     hands back facts -- into the next binder. No docket, no
-                  revise
     Stage         one row: a name, a kind, the roles it dispatches
     STAGES        the MARK sequence, `SKILL.md:544-583`
     pulls_revise  is this stage's output followed by a revise?
@@ -14,9 +12,19 @@ all editorial-role agents see everything at the same time and only rule on it
 once."* The skill never worked that way -- `SKILL.md` stage 4 already runs
 `ownership-context` alone at 4a, settling WHERE each paragraph belongs, and
 the other three at 4c, in one message, measuring a claim against the code at
-their own scope. `annotate.py` is already an ENRICHING stage in everything
-but name, which is why a second kind is a row in this list rather than a new
-mechanism -- `TODO/the-flow-assumes-every-role-reads-at-once.md` T1.
+their own scope.
+
+!! A SECOND MEMBER, `ENRICHING`, WAS WRITTEN HERE AND IS DROPPED. Roy,
+2026-08-28: *"I don't know what that is drop it and we can deal with whatever
+it was supposed to mean."* It was argued for on the grounds that `annotate.py`
+is *"already an ENRICHING stage in everything but name"* -- and `annotate` is
+stage 3, not in this stage-4 list, so nothing in `src/` ever constructed one.
+
+! SO `Kind` HAS ONE MEMBER AND `pulls_revise` IS TRUE FOR EVERY ROW IT IS
+GIVEN. That is stated rather than hidden: both are kept because a stage's kind
+is the thing a second stage type would vary, and the shape is what makes adding
+it a row. ! WHAT IS NOT CLAIMED is that the False branch is exercised -- it is
+not, and no `Stage` in this file can reach it.
 
 !! ADDING A STAGE IS A ROW, NOT A BRANCH. Nothing in this module or in
 `pulls_revise` asks a stage's or a role's NAME; `pulls_revise` reads only
@@ -36,13 +44,13 @@ from typing import NamedTuple
 
 
 class Kind(StrEnum):
-    """What a stage hands back: EDITORIAL marks, or ENRICHING facts.
+    """What a stage hands back. EDITORIAL -- marks -- is the only one.
 
     !! DECLARED POLYSEMY, and it went undeclared until 2026-08-28. This is the
     SECOND `Kind` in this package: `reading.series.Kind` has nine members
     (DOCSTRING, INTERVAL, MARGIN, MATTER, LEADING, ...) and answers *what kind
     of PLACE is this*, and it is imported by `binder/binder.py`, `binder/page.py`,
-    `commands/census.py` and `reading/lexer.py`. This one has two and answers
+    `commands/census.py` and `reading/lexer.py`. This one answers
     *what does a STAGE hand back*. ! A reader meeting `stage.kind` after
     `paragraph.kind` has nothing telling them the word changed subject, and a
     module needing both must alias one -- `docs/vocabulary.md` is where this
@@ -57,11 +65,9 @@ class Kind(StrEnum):
         return name.lower()
 
     EDITORIAL = auto()
-    ENRICHING = auto()
 
 
 EDITORIAL = Kind.EDITORIAL
-ENRICHING = Kind.ENRICHING
 
 
 class Stage(NamedTuple):
