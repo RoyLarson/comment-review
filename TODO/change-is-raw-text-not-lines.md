@@ -15,6 +15,15 @@ Updated:  2026-08-29 — The collator no longer VACATES a paragraph while this i
           or empty on an instruction whose may_empty is False. Which form the gate
           should DEMAND is still this file's question; both forms now fail loudly
           instead of one emptying the page.
+Updated:  2026-08-29 — The gate moved to RAW TEXT under mark-is-a-dict-not-a-type.
+          desk.mark.parse now accepts a change that is the updated paragraph as one
+          string, refuses the retired line-array form BY NAME, and still allows an empty
+          change only where the row may_empty. tests/test_mark.py asserts both
+          directions and tests/test_brief_worked_example.py runs the brief own example
+          through mark --check. That satisfies tasks 1, 2 and 3 of this file; task 4,
+          correcting the-fields-do-not-say-a-mark-may-cite-across T2, was NOT done.
+          Boxes left for the systems lane to tick, since that pass was scoped to the
+          mark type.
 ```
 
 ## Objective
