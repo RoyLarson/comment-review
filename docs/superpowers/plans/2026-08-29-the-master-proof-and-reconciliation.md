@@ -814,7 +814,7 @@ Commit with `-F`.
 !! **THE PASS LIST IS ALREADY A COLUMN.** `owes_change` is False for exactly `clean` and `query`.
 Read it from `INSTRUCTIONS`; do not retype the two names.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_one_change_settles_because_nobody_composed_anything():
@@ -853,17 +853,17 @@ def test_clean_and_query_owe_no_change_so_they_compose_nothing():
     assert out.rereads == [] and out.escalations == []
 ```
 
-- [ ] **Step 2: Run and confirm all four fail**
+- [x] **Step 2: Run and confirm all four fail**
 
 Run: `uv run pytest -q tests/test_reconcile.py -k settle or reread or escalate`
 
-- [ ] **Step 3: Write `reconcile`**
+- [x] **Step 3: Write `reconcile`**
 
 Count the marks at a place whose instruction `owes_change`. Zero: nothing. One: settle. Two or more
 on the same sentence: escalate. Two or more on different sentences: a re-read naming the roles.
 Nothing is rendered -- `Vocabulary: #11`.
 
-- [ ] **Step 4: Commit the WORK**
+- [x] **Step 4: Commit the WORK**
 
 ```
 uv run pytest -q && uv run python scripts/build_plugin.py
@@ -871,7 +871,7 @@ uv run pytest -q && uv run python scripts/build_plugin.py
 
 Commit the code and its tests with `-F`. **No box moves in this commit.**
 
-- [ ] **Step 5: Tick the boxes -- ITS OWN COMMIT**
+- [x] **Step 5: Tick the boxes -- ITS OWN COMMIT**
 
 !! **THE TICKS ARE A SEPARATE COMMIT, NEVER FOLDED INTO THE WORK.** Roy, 2026-08-29:
 *"the pair is its own commit - separate from the work"*. **Three places move together
