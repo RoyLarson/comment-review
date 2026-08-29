@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (92)
+### open  (94)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -274,6 +274,8 @@ that changed a published name or rule:
 | [annotate-belongs-in-concordance](annotate-belongs-in-concordance.md) | backend | — | 0/3 | annotate.py is stage 3 -- it resolves every reference a node makes -- which is the concordance's subject, not the binder's |
 | [prototype-move-orphaned-tasks](prototype-move-orphaned-tasks.md) | systems | — | 0/4 | 25 open TODOs carry an unchecked task naming a module that moved to `prototype/` on 2026-08-25, so the task's site is gone and its verification cannot be run |
 | [revise-copies-everything](revise-copies-everything.md) | backend | — | 0/4 | `pull` copies `.git`, `.venv` and `corpora` into every revise root -- 284MB measured on this repo, per editorial stage, to set a docket over ~4MB of source |
+| [master-proof-and-edit-copy](master-proof-and-edit-copy.md) | backend | — | 0/5 | `seed` returns a flat mark list and nothing holds the several copies one stage produces; `docs/vocabulary.md` lists `master proof` as unnamed |
+| [topology-is-a-source-edit](topology-is-a-source-edit.md) | backend | — | 0/5 | `desk/stages.py`'s `STAGES` is a two-row literal, so a run cannot say which roles run when, what each reads, or how a role fans out |
 
 ### in-progress  (19)
 
