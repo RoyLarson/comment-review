@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (98)
+### open  (99)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -280,6 +280,7 @@ that changed a published name or rule:
 | [docket-role-is-per-page-not-per-alteration](docket-role-is-per-page-not-per-alteration.md) | backend | — | 0/3 | role sits on the page in docket.py's schema, so provenance is lost the moment two roles settle places on one page |
 | [sheet-rename-gate-cannot-see-the-source](sheet-rename-gate-cannot-see-the-source.md) | systems | — | 0/2 | the gate's scope excludes the tree the retired sense actually survived in -- docs/gates.md: a check that could not have failed is not evidence |
 | [doc-on-the-declaring-line](doc-on-the-declaring-line.md) | backend | — | 0/3 | A docstring written on its declaration's own line takes no address, and the round trip invents a blank line |
+| [mark-is-a-dict-not-a-type](mark-is-a-dict-not-a-type.md) | backend | — | 0/7 | `desk/mark.py` defines `Instruction`, `Shape`, `Row` and `problems(where, mark: dict)` -- but no `Mark`. The structure lives as prose in `docs/the-mark.md` plus string literals at 31 sites, so nothing parses and nothing can disagree |
 
 ### in-progress  (19)
 
