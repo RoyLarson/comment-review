@@ -432,7 +432,7 @@ Commit with `-F`.
 ! **THE THREE FIXTURES ARE THE SPEC'S OWN TOPOLOGIES**, copied from its section 2. They are INPUTS,
 and the expectation is the spec's prose.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_each_topology_in_the_spec_parses():
@@ -461,17 +461,17 @@ def test_a_role_outside_the_closed_set_is_refused():
     assert stages == [] and "not-a-role" in why
 ```
 
-- [ ] **Step 2: Run and confirm all three fail**
+- [x] **Step 2: Run and confirm all three fail**
 
 Run: `uv run pytest -q tests/test_topology.py`
 Expected: FAIL with `ModuleNotFoundError`.
 
-- [ ] **Step 3: Write `read`**
+- [x] **Step 3: Write `read`**
 
 `tomllib` parses; every refusal returns a reason naming the offending key and its stage. A dispatch
 with no `paths` yields `paths == ()`, meaning every page.
 
-- [ ] **Step 4: Commit the WORK**
+- [x] **Step 4: Commit the WORK**
 
 ```
 uv run pytest -q tests/test_topology.py
@@ -480,7 +480,7 @@ uv run python scripts/build_plugin.py && uv run pytest -q
 
 Commit the code and its tests with `-F`. **No box moves in this commit.**
 
-- [ ] **Step 5: Tick the boxes -- ITS OWN COMMIT**
+- [x] **Step 5: Tick the boxes -- ITS OWN COMMIT**
 
 !! **THE TICKS ARE A SEPARATE COMMIT, NEVER FOLDED INTO THE WORK.** Roy, 2026-08-29:
 *"the pair is its own commit - separate from the work"*. **Three places move together

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 1 of 5 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, designing P4 with Roy: *"the order of reviewers and
@@ -16,7 +16,7 @@ The stage list is a literal, so every topology is a source edit.
 
 ## Tasks
 
-- [ ] Define the topology file and its validator -- an ordered list of stages,
+- [x] Define the topology file and its validator -- an ordered list of stages,
       each a list of DISPATCHES. Verify: the three topologies in the spec each
       parse, `paths` on a dispatch fans one role while leaving others whole, and a
       dispatch naming a role outside the closed set is refused.
