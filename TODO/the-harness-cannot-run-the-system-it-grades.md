@@ -453,11 +453,11 @@ reported NEEDS-EYES, and the replacement owes the same refusal.
 Roy, 2026-08-24: *"supersede P5 to that todo because it is testing's work anyways."* It was the
 last open box on the `0.2.4-rework-the-foliator-owns-the-address` plan, and it could not be
 worked there: **both of its halves are missing an instrument, and both instruments are this
-file's.** T30 and T31 carry it.
+file's.** T43 and T44 carry it.
 
 ! **NAMED, NOT LINKED, AND THAT IS THE RULE.** A `T` takes no dependency on a `P` -- see
 `docs/conventions.md`, *T, P and SP*. What arrived here is the WORK; the plan that used to hold
-it can be deleted tomorrow and T30 and T31 stay answerable, which is the test.
+it can be deleted tomorrow and T43 and T44 stay answerable, which is the test.
 
 !! **THE PAGE CLAIMS TO DOMINATE BOTH PRIOR FORMATS, WHICH IS NOT A PREFERENCE.** Roy,
 2026-08-20: the page is *"partially to get the best of both worlds."* It fails if either half
@@ -475,10 +475,40 @@ tokens on effectively the same level of output. They did miss a lot in the diffe
 ! Nothing in `evidence/` records it and the shipped tree carries only the byte figures -- 39% of
 the listing was repeated paths, `--filtered` saved 61%. **The measurement that justifies the
 single most consequential thing about what a reviewer sees exists in run history and nowhere a
-reader can find it**, which is T30.
+reader can find it**, which is T43.
 
-! **T31 IS DOWNSTREAM OF THE SCORER**, T28: a hand-run comparison is the thing this file exists
+! **T44 IS DOWNSTREAM OF THE SCORER**, T40: a hand-run comparison is the thing this file exists
 to end, so the dominance claim waits on something that can disagree with it.
+
+## !! THE GRADED FIELD IS `expectations`, AND `assertions` IS READ BY NOTHING
+
+**MEASURED 2026-08-29 over the marketplace copy of `skill-creator`**, which is what P-A2 asked
+for. The two names looked like a disagreement between Anthropic's own docs. They are not a
+disagreement, and they do not split input from output: **every SCHEMA says `expectations` and
+only the PROSE says `assertions`.**
+
+| name | read from | by |
+| --- | --- | --- |
+| `expectations` | `grading.json` | `scripts/aggregate_benchmark.py:157`, `:161`, `:252` |
+| `expectations` | `evals.json`, as `evals[].expectations` | `references/schemas.md:20`, `:35` |
+| `expectations` | the grader's input, and its output | `agents/grader.md:15`, `:112`, `:188` |
+| `expectations` | the comparator's input | `agents/comparator.md:18` |
+| `assertions` | **nothing** | -- |
+
+!! **AND THE ONE PLACE `assertions` LOOKS MACHINE-FACING IS NOT.** `SKILL.md:195` shows
+`"assertions": []` inside an `eval_metadata.json`. The only script that opens that file is
+`aggregate_benchmark.py:87-91`, which takes `eval_id` and falls back to the directory name when
+it is missing. **Nothing else is read out of it.**
+
+! **SO THE FAILURE MODE IS SILENT, WHICH IS WHY THE BOX CAME BEFORE ANY CASE WAS WRITTEN.** A
+case spelling the field `assertions` is accepted, graded against an empty list, and reports zero
+expectations -- a green run that asked nothing. That is `docs/gates.md`'s question exactly:
+not *does the check pass* but *could the check fail*.
+
+! **`expected`, `observed` and `outcome` ARE OURS AND DO NOT MOVE.** All six
+`evals/test-cases.jsonl` rows carry them, and they describe the KNOWN DEFECT -- the answer key a
+case is built from. `expectations` is the list a grader rules on. Two artifacts, two owners; the
+earlier reading of T20 conflated them.
 
 ## Tasks
 
@@ -520,8 +550,8 @@ to end, so the dominance claim waits on something that can disagree with it.
       `skill-creator`. Verify: the answer is written into this file.
 - [ ] T19 -- Build that runner. Verify: one command runs one row by `id` and exits nonzero
       on a miss.
-- [x] T20 -- SUPERSEDED: `evals/evals.json` is gone and the `assertions` field it wanted
-      exists as `expected`, `observed` and `outcome`. Verify: `ls evals/`.
+- [x] T20 -- SUPERSEDED: `evals/evals.json` is gone, so a field cannot be added to it.
+      ! Its second clause was WRONG and is corrected 2026-08-29 -- see the note below.
 - [ ] T21 -- Run the six `evals/test-cases.jsonl` cases through `skill-creator`. Verify: a
       `benchmark.json` exists and reports a delta; today none does.
 - [x] T22 -- SUPERSEDED: `grade_hazards.py` is not in this tree and is not returning in

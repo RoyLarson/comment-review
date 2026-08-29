@@ -59,13 +59,36 @@ judgement this whole system exists to replace.
       list of PATHS -- so a pre-step can materialise a hash into paths and the hash lives in our
       own sidecar. Both models can now hold.
 
-- [ ] **A2 -- Settle the field name before any case is written: `assertions` or
-      `expectations`.** Works `the-harness-cannot-run-the-system-it-grades`. Anthropic's own docs
-      disagree -- `references/schemas.md` shows `expectations` in `evals.json`, SKILL.md calls it
-      *"the `assertions` field"*, `eval_metadata.json` uses `assertions`, and `grading.json` needs
-      `expectations` with `text`/`passed`/`evidence`. Verify: read `aggregate_benchmark.py` and
-      record which name it consumes; the existing task *"Add `assertions` to `evals/evals.json`"*
-      is corrected or confirmed by what that file does.
+- [x] **A2 -- SETTLED 2026-08-29 BY MEASUREMENT: the field is `expectations`, and `assertions` is
+      read by nothing.** Works `the-harness-cannot-run-the-system-it-grades`. The docs looked like
+      they disagreed; they do not. **The split is prose versus schema, not input versus output.**
+      Measured over the marketplace copy of `skill-creator`:
+
+      | name | where it is READ | by |
+      | --- | --- | --- |
+      | `expectations` | `grading.json` | `scripts/aggregate_benchmark.py:157`, again at `:161` and `:252` |
+      | `expectations` | `evals.json` -- `evals[].expectations` | `references/schemas.md:20`, `:35` |
+      | `expectations` | handed to and emitted by the grader | `agents/grader.md:15`, `:112`, `:188` |
+      | `expectations` | the comparator's input | `agents/comparator.md:18` |
+      | `assertions` | **nothing** | -- |
+
+      !! **`assertions` SURVIVES ONLY IN SKILL.md's PROSE** -- nine sites, `:145` to `:463` -- plus
+      ONE JSON snippet at `SKILL.md:195` showing `"assertions": []` inside `eval_metadata.json`.
+      ! **And that file is read for one key.** `aggregate_benchmark.py:87-91` opens
+      `eval_metadata.json` and takes `eval_id` from it, falling back to the directory name; it
+      never looks at `assertions`. **So a case that spelled the field `assertions` would be
+      accepted, graded against nothing, and report zero expectations -- silently.**
+
+      ! **THE EXISTING TASK IS CORRECTED, NOT CONFIRMED.** *"Add `assertions` to
+      `evals/evals.json`"* named a key no tool reads. The key is `expectations`, and `evals.json`
+      itself was removed 2026-08-23 -- so it lands on whatever B4 hands `skill-creator`, not on a
+      file in this tree.
+
+      ! **OUR OWN `expected`/`observed`/`outcome` ARE NOT THIS FIELD AND DO NOT MOVE.** All six
+      `evals/test-cases.jsonl` rows carry them; they describe the KNOWN DEFECT a case is built
+      from, which is the answer key. `expectations` is the list a grader rules on. ! The same
+      survey re-confirms **T15**: every one of the six pins a single `commit`, so no row carries
+      the `start`/`end` pair A3 settled.
 
 - [x] **A3 -- DONE 2026-08-23 by `e31b438`, and the shape is `start`/`end`.** Works
       `the-harness-cannot-run-the-system-it-grades`. Case 3 `rename-left-history-in-the-comments`
