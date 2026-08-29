@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 2 of 5 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, designing P4 with Roy -- `binder` goes out and
@@ -16,11 +16,11 @@ The middle has no container for one stage's marks, so nothing can reconcile them
 
 ## Tasks
 
-- [ ] Give `seed` the sheets level: an `edit_copy` is `{role, read_from, sheets:
+- [x] Give `seed` the sheets level: an `edit_copy` is `{role, read_from, sheets:
       [{path, sha, marks}]}`, mirroring the binder's pages. Verify: an `edit_copy`
       names every page it was given, and a fan-out shard's `edit_copy` names only
       its own.
-- [ ] Carry the sha on the sheet, so nothing downstream reads the binder for it.
+- [x] Carry the sha on the sheet, so nothing downstream reads the binder for it.
       Verify: a docket can be built from a `master_proof` alone, and no module
       outside `binder/` imports `binder.read` to obtain a sha.
 - [ ] Build the `master_proof`: `{stage, read_from, edit_copies: [...]}`. Verify:

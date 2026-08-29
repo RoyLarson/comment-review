@@ -116,7 +116,7 @@ collator's two steps, and this is the second.
   `{"role": str, "read_from": dict, "sheets": [{"path": str, "sha": str, "marks": [...]}]}`.
   Each mark keeps today's keys -- `address`, `anchor`, `raw_text`, `mark`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_an_edit_copy_holds_a_sheet_per_page_with_its_sha():
@@ -139,22 +139,22 @@ def test_every_mark_reaches_the_sheet_for_its_own_page():
             assert mark["address"].startswith(sheet["path"])
 ```
 
-- [ ] **Step 2: Run and confirm both fail**
+- [x] **Step 2: Run and confirm both fail**
 
 Run: `uv run pytest -q tests/test_marks_flow.py -k edit_copy_holds`
 Expected: FAIL with `KeyError: 'sheets'`.
 
-- [ ] **Step 3: Build sheets from the binder's pages**
+- [x] **Step 3: Build sheets from the binder's pages**
 
 `seed` stops calling `rows_of`. It walks `binder["pages"]` and, for each, emits a sheet carrying that
 page's `path` and `sha`. `rows_of` stamps the path onto each row today, which is what let the flat
 form lose the page; keep the per-row `address` exactly as it is.
 
-- [ ] **Step 4: Run and confirm both pass**
+- [x] **Step 4: Run and confirm both pass**
 
 Run: `uv run pytest -q tests/test_marks_flow.py`
 
-- [ ] **Step 5: Prove no module outside `binder/` reads the binder for a sha**
+- [x] **Step 5: Prove no module outside `binder/` reads the binder for a sha**
 
 Run: `uv run python -c "import ast,sys;sys.path.insert(0,'src');print('write a scan')"` -- replace
 with a real check: walk `src/comment_review/`, and for each module outside `binder/`, assert no
@@ -162,7 +162,7 @@ with a real check: walk `src/comment_review/`, and for each module outside `bind
 precisely, assert the weaker and still-checkable claim: no module outside `binder/` imports
 `binder.read` **and** references `sha` in the same file. State in the test which claim it makes.
 
-- [ ] **Step 6: Commit the WORK**
+- [x] **Step 6: Commit the WORK**
 
 ```
 uv run python scripts/build_plugin.py && uv run pytest -q
@@ -170,7 +170,7 @@ uv run python scripts/build_plugin.py && uv run pytest -q
 
 Commit the code and its tests with `-F`. **No box moves in this commit.**
 
-- [ ] **Step 7: Tick the boxes -- ITS OWN COMMIT**
+- [x] **Step 7: Tick the boxes -- ITS OWN COMMIT**
 
 !! **THE TICKS ARE A SEPARATE COMMIT, NEVER FOLDED INTO THE WORK.** Roy, 2026-08-29:
 *"the pair is its own commit - separate from the work"*. **Three places move together
