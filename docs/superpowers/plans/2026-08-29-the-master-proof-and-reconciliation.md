@@ -275,7 +275,7 @@ Commit with `-F`.
 `docs/conventions.md`. What may NOT change is what the instruction MEANS. If a sentence would make an
 agent do something different, stop and say so.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_no_agent_facing_file_calls_the_per_role_container_a_sheet():
@@ -289,23 +289,23 @@ def test_no_agent_facing_file_calls_the_per_role_container_a_sheet():
                 )
 ```
 
-- [ ] **Step 2: Run and confirm it fails**
+- [x] **Step 2: Run and confirm it fails**
 
 Run: `uv run pytest -q tests/gates/test_vocabulary.py -k per_role_container`
 Expected: FAIL naming `SKILL.md` lines.
 
-- [ ] **Step 3: Rename, and add the containers to the vocabulary**
+- [x] **Step 3: Rename, and add the containers to the vocabulary**
 
 `docs/vocabulary.md` gains the four-container table and `master proof` stops being marked
 *"unnamed."* Its existing `master proof` row is EDITED, not duplicated.
 
-- [ ] **Step 4: Run**
+- [x] **Step 4: Run**
 
 ```
 uv run pytest -q && uv run python scripts/check_vocabulary.py
 ```
 
-- [ ] **Step 5: Commit the WORK**
+- [x] **Step 5: Commit the WORK**
 
 ```
 uv run python scripts/build_plugin.py && uv run pytest -q
@@ -313,7 +313,7 @@ uv run python scripts/build_plugin.py && uv run pytest -q
 
 Commit the code and its tests with `-F`. **No box moves in this commit.**
 
-- [ ] **Step 6: Tick the boxes -- ITS OWN COMMIT**
+- [x] **Step 6: Tick the boxes -- ITS OWN COMMIT**
 
 !! **THE TICKS ARE A SEPARATE COMMIT, NEVER FOLDED INTO THE WORK.** Roy, 2026-08-29:
 *"the pair is its own commit - separate from the work"*. **Three places move together

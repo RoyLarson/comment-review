@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 5 tasks done
+Progress: 4 of 5 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, designing P4 with Roy -- `binder` goes out and
@@ -30,7 +30,7 @@ The middle has no container for one stage's marks, so nothing can reconcile them
 - [x] Move `problems_in` and `verify_report` onto sheets. Verify: both walk
       `sheets` rather than a flat `marks` list, and the suite passes with no
       expectation edited -- only the shape the tests read.
-- [ ] Rename the per-role container from `sheet` to `edit_copy` in
+- [x] Rename the per-role container from `sheet` to `edit_copy` in
       `flows/marks.py`, `SKILL.md` and `reviewer-brief.md`, and give `sheet` the
       page-unit sense. Verify: no agent-facing file calls the per-role container a
       sheet, and `docs/vocabulary.md` carries all four containers with `master
