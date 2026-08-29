@@ -257,9 +257,17 @@ def _report(args: argparse.Namespace) -> int:
         # so a shape it cannot read is caught HERE -- at the one moment the
         # writer and the reader are both present -- instead of at whichever
         # command opens the file next.
+        # !! `as_posix()`, AND IT WROTE `str(repo)` UNTIL 2026-08-28. `repo` is
+        # resolved, so on Windows that emitted `C:\\Users\\<name>\\projects\\...`
+        # into an artifact that is handed to agents and kept as evidence -- next
+        # to `pages[].path` values that are repo-relative posix, written by
+        # `_repo_relative` and `as_posix()` five lines away. ! TWO CALLERS
+        # ALREADY DISAGREED: this one wrote a native absolute path and
+        # `tests/helpers.py` wrote a relative one, for a field whose whole
+        # purpose is a later stage COMPARING a revise root against the original.
         binder = bind(
             pages,
-            read_from={"root": str(repo), "revise": 0},
+            read_from={"root": repo.as_posix(), "revise": 0},
             absent=args.include_absent,
         )
         missing = unaddressed(rows_of(binder))

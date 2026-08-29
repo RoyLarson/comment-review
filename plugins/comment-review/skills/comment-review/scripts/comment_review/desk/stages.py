@@ -36,7 +36,19 @@ from typing import NamedTuple
 
 
 class Kind(StrEnum):
-    """What a stage hands back: EDITORIAL marks, or ENRICHING facts."""
+    """What a stage hands back: EDITORIAL marks, or ENRICHING facts.
+
+    !! DECLARED POLYSEMY, and it went undeclared until 2026-08-28. This is the
+    SECOND `Kind` in this package: `reading.series.Kind` has nine members
+    (DOCSTRING, INTERVAL, MARGIN, MATTER, LEADING, ...) and answers *what kind
+    of PLACE is this*, and it is imported by `binder/binder.py`, `binder/page.py`,
+    `commands/census.py` and `reading/lexer.py`. This one has two and answers
+    *what does a STAGE hand back*. ! A reader meeting `stage.kind` after
+    `paragraph.kind` has nothing telling them the word changed subject, and a
+    module needing both must alias one -- `docs/vocabulary.md` is where this
+    repo records a word carrying several meanings, and the undeclared one is
+    the defect.
+    """
 
     @staticmethod
     def _generate_next_value_(

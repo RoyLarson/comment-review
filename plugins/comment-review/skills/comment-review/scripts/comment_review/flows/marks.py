@@ -55,7 +55,10 @@ def seed(binder: dict, role: str) -> dict:
     """
     return {
         "role": role,
-        "read_from": binder["read_from"],
+        # ! COPIED, NOT ALIASED -- see `bind`, which does the same at the other
+        # end. Aliasing made the binder, every sheet seeded from it and the
+        # caller's own dict one object.
+        "read_from": {**binder["read_from"]},
         "marks": [
             {
                 "address": row.get("address", ""),
@@ -85,6 +88,16 @@ def problems_in(report: dict) -> tuple[list[str], int]:
     out, ruled = [], 0
     if not isinstance(report.get("role"), str) or not report["role"].strip():
         out.append("the report needs the `role` that wrote it")
+    # !! THE HEADER IS CHECKED ON THE WAY BACK, and was not until 2026-08-28.
+    # `seed` refuses a binder that cannot say which root it read, and this side
+    # -- `mark --check` -- ruled only on `marks` and `role`, so a sheet whose
+    # `read_from` had been stripped, emptied or rewritten to a DIFFERENT root
+    # passed at exit 0. ! That is the same asymmetry as the one fixed at `bind`
+    # and `seed` earlier the same day, one step further along the chain: the
+    # field the staged-revise design turns on could vanish between seed and
+    # check with nothing able to notice.
+    if not isinstance(report.get("read_from"), dict) or not report["read_from"]:
+        out.append("the report needs the `read_from` it was seeded with")
 
     for i, mark in enumerate(report["marks"], 1):
         if not isinstance(mark, dict):

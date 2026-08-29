@@ -29,6 +29,10 @@ def test_a_seeded_row_carries_the_paragraph_bytes():
 def test_a_sheet_carrying_a_code_concern_validates():
     sheet = {
         "role": "block-context",
+        # ! `read_from` IS PART OF A WELL-FORMED SHEET since 2026-08-28 --
+        # `seed` puts it there and `problems_in` now rules on it, so a literal
+        # that omits it is testing a sheet no role can return.
+        "read_from": {"root": "src/comment_review/desk", "revise": 0},
         "marks": [],
         "code_concerns": [
             {"where": "src/m.py:12", "concern": "the guard admits a negative"}
