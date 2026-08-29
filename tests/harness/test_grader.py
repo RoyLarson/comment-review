@@ -183,15 +183,76 @@ def test_the_summary_carries_only_the_MECHANICAL_rate(tmp_path):
     assert "D" not in json.dumps(graded["summary"])
 
 
-def test_it_refuses_clearly_when_there_is_no_credential(monkeypatch, tmp_path):
-    """A missing key is a setup problem and must read as one, not as a stack trace."""
-    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+class _Keyless:
+    """A client that fails the way the real SDK does with no credential.
+
+    MEASURED against `anthropic==1.2.0`: a `TypeError` whose message is
+    "Could not resolve authentication method ...", raised BEFORE any network
+    call -- so the SDK had already tried the env key, the auth token and the
+    `ant auth login` profile.
+    """
+
+    class messages:  # noqa: N801 - mirrors the SDK's attribute, not a class name
+        @staticmethod
+        def create(**_):
+            raise TypeError(
+                "Could not resolve authentication method. Expected one of "
+                "api_key, auth_token, or credentials to be set."
+            )
+
+
+class _Broken:
+    """A client whose call has a genuine bug in it."""
+
+    class messages:  # noqa: N801
+        @staticmethod
+        def create(**_):
+            raise TypeError("create() got an unexpected keyword argument 'moddel'")
+
+
+def _files(tmp_path):
+    findings = tmp_path / "findings.md"
+    findings.write_text("RECORD\n", encoding="utf-8")
+    under_review = tmp_path / "x.py"
+    under_review.write_text("pass\n", encoding="utf-8")
+    return findings, under_review
+
+
+def test_it_refuses_clearly_when_no_credential_resolves(tmp_path):
+    """A missing credential is a setup problem and must read as one.
+
+    !! IT DOES NOT GATE ON `ANTHROPIC_API_KEY`, AND DID UNTIL 2026-08-29. An
+    unset variable does not mean there is no credential -- a profile written by
+    `ant auth login` is resolved by the same constructor -- so the old check
+    refused a machine that was correctly set up the other way.
+
+    ! THE CLIENT IS INJECTED so this costs nothing and reaches no API. Driving
+    the real SDK would pass for free where there is no credential and quietly
+    bill where there is one.
+    """
+    findings, under_review = _files(tmp_path)
 
     with pytest.raises(grader.NoCredential) as refused:
         grader.grade(
-            findings=tmp_path / "nope.md", under_review=tmp_path / "nope.py",
+            findings=findings, under_review=under_review,
             start="a", end="b", end_diff="", mechanical={},
-            arm="old_skill", eval_id="c",
+            arm="old_skill", eval_id="c", client=_Keyless(),
         )
 
     assert "ANTHROPIC_API_KEY" in str(refused.value)
+    assert "ant auth login" in str(refused.value)
+
+
+def test_a_real_TypeError_is_not_mistaken_for_a_missing_credential(tmp_path):
+    """Matching on the type alone would hide a bug in the call as a setup problem."""
+    findings, under_review = _files(tmp_path)
+
+    with pytest.raises(TypeError) as raised:
+        grader.grade(
+            findings=findings, under_review=under_review,
+            start="a", end="b", end_diff="", mechanical={},
+            arm="old_skill", eval_id="c", client=_Broken(),
+        )
+
+    assert not isinstance(raised.value, grader.NoCredential)
+    assert "moddel" in str(raised.value)

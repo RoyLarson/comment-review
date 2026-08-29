@@ -30,7 +30,6 @@ inherits a context lineage besides (`decision-log.md Process: #55`).
 from __future__ import annotations
 
 import json
-import os
 import pathlib
 
 #: The judge. An exact id, never a family alias -- `opus` names a family, so two
@@ -60,7 +59,31 @@ UNKEYED_VERDICTS = ["true", "false", "query"]
 
 
 class NoCredential(Exception):
-    """No API key, which is a setup problem rather than a grading failure."""
+    """No credential resolved, which is a setup problem, not a grading failure."""
+
+
+#: What the SDK says when it has tried every credential path and found none.
+#: MEASURED 2026-08-29 against `anthropic==1.2.0`: a `TypeError` raised BEFORE
+#: any network call, so translating it costs nothing and reaches no API.
+NO_AUTH = "Could not resolve authentication method"
+
+
+def _client():
+    """The SDK client, constructed the zero-arg way ON PURPOSE.
+
+    !! AN UNSET `ANTHROPIC_API_KEY` DOES NOT MEAN THERE IS NO CREDENTIAL, and
+    this module checked exactly that until 2026-08-29. The zero-arg constructor
+    resolves an env key, an auth token, OR a profile written by `ant auth login`
+    -- so gating on the variable REFUSES a machine that is correctly set up the
+    other way.
+
+    ! AND CONSTRUCTING TELLS YOU NOTHING EITHER: measured, `Anthropic()` builds
+    fine with `api_key = None` and fails later. The only honest check is to make
+    the request and translate the failure.
+    """
+    import anthropic
+
+    return anthropic.Anthropic()
 
 
 def _axis_schema() -> dict:
@@ -233,40 +256,46 @@ def grade(
     mechanical: dict,
     arm: str,
     eval_id: str,
+    client=None,
 ) -> dict:
     """Call the judge, and return the artifact to write.
 
-    ! THE CREDENTIAL IS CHECKED BEFORE THE FILES ARE READ, so a machine with no
-    key fails on the thing that is actually missing rather than on a path.
+    ! `client` IS INJECTABLE SO THE REFUSAL CAN BE TESTED WITHOUT A NETWORK OR A
+    BILL. A test that drove the real SDK would pass for free on a machine with no
+    credential and quietly cost money on one that has it -- which is a test whose
+    behaviour depends on who runs it.
     """
-    if not os.environ.get("ANTHROPIC_API_KEY"):
-        raise NoCredential(
-            "ANTHROPIC_API_KEY is not set. The grader is a direct API call so its "
-            "model can be pinned to an exact version; set the key, or run "
-            "`ant auth login`, before grading."
+    client = client or _client()
+    try:
+        response = client.messages.create(
+            model=MODEL,
+            max_tokens=16000,
+            output_config={**GRADING_SCHEMA, "effort": "high"},
+            messages=[
+                {
+                    "role": "user",
+                    "content": build_prompt(
+                        findings=findings,
+                        under_review=under_review,
+                        start=start,
+                        end=end,
+                        end_diff=end_diff,
+                        mechanical=mechanical,
+                    ),
+                }
+            ],
         )
-
-    import anthropic
-
-    client = anthropic.Anthropic()
-    response = client.messages.create(
-        model=MODEL,
-        max_tokens=16000,
-        output_config={**GRADING_SCHEMA, "effort": "high"},
-        messages=[
-            {
-                "role": "user",
-                "content": build_prompt(
-                    findings=findings,
-                    under_review=under_review,
-                    start=start,
-                    end=end,
-                    end_diff=end_diff,
-                    mechanical=mechanical,
-                ),
-            }
-        ],
-    )
+    except TypeError as e:
+        # ! MATCHED ON THE MESSAGE, not on the type. `TypeError` is what the SDK
+        # happens to raise here, and swallowing every one of them would hide a
+        # real bug in the call above as though it were a missing key.
+        if NO_AUTH not in str(e):
+            raise
+        raise NoCredential(
+            "No Anthropic credential resolved. The grader is a direct API call so "
+            "its model can be pinned to an exact version. Set ANTHROPIC_API_KEY, "
+            "or run `ant auth login` -- either is read automatically."
+        ) from e
     text = next(b.text for b in response.content if b.type == "text")
     return to_grading_json(
         json.loads(text), mechanical=mechanical, arm=arm, eval_id=eval_id
