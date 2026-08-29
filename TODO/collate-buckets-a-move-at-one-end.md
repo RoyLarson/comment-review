@@ -71,4 +71,13 @@ an `agents` file.
       T1 passes, and a `move` whose destination carries no other mark still settles without
       escalating.
 - [x] T3 -- Prove the widening did not make `move` escalate by default. Verify: a run of the
-      round-2 marks settles the same 13 of 16 places it settled before.
+      round-2 marks settles 11 of 16 places, escalates 0 and re-reads 5.
+      ! **THIS SAID "THE SAME 13 OF 16" AND THAT FIGURE IS SUPERSEDED**, corrected 2026-08-29.
+      It was measured under SILENT-MERGE semantics, which `decision-log.md Process: #49`
+      replaced: 3 places carrying 2+ marks on different sentences and 2 `add` places move to
+      re-read, and the 3 that previously escalated now settle -- `13 - 5 + 3 = 11`. The 16 is
+      places carrying at least one mark that owes a change, out of 76 addresses round 2 marked
+      at all. Re-derived twice: through `desk.collator.reconcile`, and separately straight from
+      `evidence/the-loop-measured-2026-08-27/marks.jsonl`, so the check is not the code agreeing
+      with itself. ! **A CHECKED BOX ASSERTING A SUPERSEDED FACT READS AS SETTLED**, which is why
+      the wording is corrected rather than left beside the new number.
