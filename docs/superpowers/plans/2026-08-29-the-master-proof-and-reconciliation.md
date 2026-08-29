@@ -593,7 +593,7 @@ Commit with `-F`.
 !! **A RUN'S TOPOLOGY MUST NOT DECIDE WHICH ROLE NAMES ARE VALID.** `commands/mark.py` draws
 `--role`'s `choices=` from `STAGES` today (T1.16, 2026-08-28). It moves to `Role`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_the_four_roles_are_a_closed_set_independent_of_any_topology():
@@ -621,12 +621,12 @@ Run: `uv run pytest -q tests/test_stages.py -k closed_set`
 two-row `STAGES` literal goes; `tests/test_stages.py`'s cases that read it move to reading a topology
 fixture.
 
-- [ ] **Step 4: Prove the CLI still refuses a bad role**
+- [x] **Step 4: Prove the CLI still refuses a bad role**
 
 Run: `uv run python src/comment-review.py mark --seed --role not-a-role`
 Expected: exit 2, `invalid choice`, the four names printed.
 
-- [ ] **Step 5: Commit the WORK**
+- [x] **Step 5: Commit the WORK**
 
 ```
 uv run python scripts/build_plugin.py && uv run pytest -q
