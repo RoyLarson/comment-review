@@ -8,7 +8,6 @@ A COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `decision-log.md Process: #12`.
 
 import argparse
 import json
-import os
 import sys
 from collections import Counter, defaultdict
 from contextlib import redirect_stdout
@@ -29,6 +28,7 @@ from comment_review.machine import exceptions
 from comment_review.machine.repo import (
     path_index,
     read_source,
+    relative_to,
     tracked_paths,
     walk_files,
 )
@@ -291,18 +291,11 @@ def _report(args: argparse.Namespace) -> int:
         # number: indistinguishable from having read the original. There is no
         # default revise beyond the original's own 0; a caller states it, same
         # as `--repo`.
-        # !! AND IT FALLS BACK TO THE ABSOLUTE PATH ACROSS DRIVES, which was an
-        # uncaught `ValueError` until 2026-08-28. MEASURED on Windows:
-        # `os.path.relpath(r"D:\\corpora\\numpy", r"C:\\Users\\Roy")` raises
-        # `ValueError: path is on mount 'D:', start on mount 'C:'` -- so
-        # `census --json --repo D:\\...` from a `C:` cwd was a traceback where
-        # the earlier `str(repo)` worked. ! This repo names Windows as its
-        # primary platform and fetches corpora to arbitrary roots, so the two
-        # drives are an ordinary case rather than an exotic one.
-        try:
-            root = Path(os.path.relpath(repo, Path.cwd())).as_posix()
-        except ValueError:
-            root = repo.as_posix()
+        # ! `repo.relative_to` IS WHAT `machine.repo.relative_to` WRAPS, and it
+        # owns the two cases this line must not carry: the `..` walk to a revise
+        # root outside the checkout, and two different drives, where no relative
+        # path exists at all. Both are measured there.
+        root = relative_to(repo, Path.cwd()).as_posix()
         binder = bind(
             pages,
             read_from={"root": root, "revise": args.revise},

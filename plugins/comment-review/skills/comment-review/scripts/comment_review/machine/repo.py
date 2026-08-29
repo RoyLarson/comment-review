@@ -346,3 +346,52 @@ def walk_files(root: Path):
             # as settled fact.
             if not EXCLUDED_DIRS.intersection(p.relative_to(root).parts):
                 yield p
+
+
+def relative_to(target: Path, start: Path) -> Path:
+    """`target` expressed from `start`, walking up with `..` where it must.
+
+    !! `pathlib` ALONE. Roy, 2026-08-28: *"No os.path. Only Pathlib. Fix this
+    everywhere."* `census.py` reached for `os.path.relpath` on 2026-08-28
+    because `Path.relative_to` RAISES when the target is not under the start,
+    and a revise root is a temporary directory outside the checkout -- so the
+    `..` walk this function does is the part `pathlib` does not ship.
+
+    Args:
+        target: the path to express.
+        start: the path to express it from -- `Path.cwd()` for the census.
+
+    Returns:
+        A relative path when both share an anchor, `Path(".")` when they are
+        the same place, and the RESOLVED ABSOLUTE `target` when they do not
+        share one.
+
+    !! THE ABSOLUTE FALLBACK IS THE WINDOWS CASE, AND IT IS THE ONE THAT
+    CRASHED. MEASURED 2026-08-28: asking `os.path.relpath` for a path on drive
+    `D:` from a start on drive `C:` raises `ValueError: path is on mount 'D:',
+    start on mount 'C:'`, so a census of a repo on one drive from a cwd on
+    another was an uncaught traceback. ! There is no relative path between two
+    anchors, so returning one is impossible and raising is unhelpful; the
+    resolved target is the only honest answer. This repo names Windows as its
+    primary platform and fetches corpora to arbitrary roots, which is what
+    makes two drives ordinary rather than exotic.
+    """
+    here = target.resolve()
+    there = start.resolve()
+    if here.anchor != there.anchor:
+        return here
+    shared = 0
+    # ! `strict=False` IS THE ANSWER HERE, not the lenient one: the two paths
+    # are EXPECTED to differ in length -- that difference is exactly what the
+    # `..` count below is measured from -- so stopping at the shorter one is
+    # the intent rather than a tolerated mismatch.
+    for mine, yours in zip(here.parts, there.parts, strict=False):
+        if mine != yours:
+            break
+        shared += 1
+    up = [".."] * (len(there.parts) - shared)
+    rest = here.parts[shared:]
+    # ! `Path(".")` FOR THE SAME PLACE, which is what a census of the checkout
+    # it is standing in reports. `Path()` with no arguments is `Path(".")`
+    # already, but saying it is the difference between a value and an accident.
+    return Path(*up, *rest) if (up or rest) else Path(".")
