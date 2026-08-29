@@ -12,7 +12,24 @@ already state, transcribed by hand.
          module-context, in ONE message               against the code
 """
 
-from comment_review.desk.stages import STAGES, Kind, Stage, pulls_revise
+from pathlib import Path
+
+from comment_review.desk.stages import ROLES, STAGES, Kind, Stage, pulls_revise
+
+
+def test_the_four_roles_are_a_closed_set_independent_of_any_topology():
+    # EXPECTATION FROM `SKILL.md`'s stage-4 table, transcribed by hand.
+    assert [str(r) for r in ROLES] == [
+        "ownership-context", "block-context", "function-context", "module-context"
+    ]
+
+
+def test_mark_draws_its_choices_from_the_enum_not_from_a_schedule():
+    import comment_review.commands.mark as mark_cmd
+
+    source = Path(mark_cmd.__file__).read_text(encoding="utf-8")
+    assert "STAGES" not in source, "a run's topology must not decide valid role names"
+    assert "ROLES" in source or "Role" in source
 
 
 def test_ownership_context_runs_alone_and_first():

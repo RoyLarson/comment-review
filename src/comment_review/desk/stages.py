@@ -5,6 +5,9 @@
                     pull a revise
     Kind.ENRICHING  hands back facts -- into the next binder. No docket, no
                     revise, and no producer yet
+    Role            the four editorial roles, closed, independent of any
+                    run's topology
+    ROLES           the companion to `Role` -- membership is asked of THIS
     Stage           one row: a name, a kind, the roles it dispatches
     STAGES          the MARK sequence, `SKILL.md:544-583`
     pulls_revise    is this stage's output followed by a revise?
@@ -97,6 +100,37 @@ class Kind(StrEnum):
 
     EDITORIAL = auto()
     ENRICHING = auto()
+
+
+class Role(StrEnum):
+    """The four editorial roles -- a closed set, independent of any topology.
+
+    !! A RUN'S TOPOLOGY MUST NOT DECIDE WHICH ROLE NAMES ARE VALID --
+    `TODO/topology-is-a-source-edit.md`. `STAGES` below names which roles run
+    together and in what order; `Role` names which roles EXIST at all, and
+    that question does not move when the schedule does.
+
+    ! No site in this module asks membership of `Role` itself -- `x in
+    SomeEnum` raises `TypeError` on Python 3.11, measured at `lexer.py:87` --
+    `ROLES = tuple(Role)` below is the companion asked instead.
+    """
+
+    @staticmethod
+    def _generate_next_value_(
+        name: str, start: int, count: int, last_values: list[str]
+    ) -> str:
+        return name.lower().replace("_", "-")
+
+    OWNERSHIP_CONTEXT = auto()
+    BLOCK_CONTEXT = auto()
+    FUNCTION_CONTEXT = auto()
+    MODULE_CONTEXT = auto()
+
+
+#: The companion to `Role` -- membership is asked of THIS, never of the
+#: class. `SKILL.md`'s stage-4 table order: `ownership-context` alone at 4a,
+#: then `block-context`, `function-context`, `module-context` at 4c.
+ROLES = tuple(Role)
 
 
 class Stage(NamedTuple):
