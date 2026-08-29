@@ -805,6 +805,40 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   the text is `taken in`"* -- so the command is named for the question it answers: what has been
   taken in on this page before I arrived.
 
+- **#25.** **A CLOSED SET IS A `StrEnum` AND THE CLI PUBLISHES IT** (Roy, 2026-08-28, on an agent
+  file telling a role to write `"outside my role"` where the gate takes `outside-my-role`): *"Should
+  be a StrEnum with an appropriate flag on the cli to make it work"*, and *"Same for all of the
+  other flags and input definers."*
+
+  ! **THE MEMBER, ITS `__str__` AND ITS FLAG ARE RELATED BUT NOT IDENTICAL**, and Roy named the seam
+  himself: *"You know that the difference between `QueryEnum.OUTSIDE_MY_ROLE` And its `__str__` And
+  the flag `--outside-my-role` All have to be related but not exact. And while I don't usually like
+  monkeying with `__new__` You can always slide that in the middle to make
+  `QueryEnum("outside-my-role")` work."*
+
+  ! **AND A CLI FLAG HAS NO MISSING CASE** (Roy, same day): *"If it is a cli flag there is no
+  missing it is a true and it gets set. I don't think checking if it is close earns anything other
+  than telling us that we can program correctly."* A near-miss check was proposed and refused.
+
+  ! **THE CONVENTION ALREADY EXISTED AND `desk/` NEVER GOT IT** -- `reading/series.py` holds
+  `Kind(StrEnum)`, whose docstring records the same failure repeating. `Process: #38` is the
+  companion rule: an enum member gets no second name.
+
+- **#26.** **`prototype/` IS NOT AN AUTHORITY FOR WHAT THE GATE OWES** (Roy, 2026-08-28): *"Why are
+  you talking about code in `prototype/original/`? And fixing things based upon something in
+  there?"*
+
+  ! **WHAT THE GATE OWES COMES FROM THE SHIPPED PROSE A ROLE READS**; how a dead module happened to
+  do it is archaeology -- *"Nothing imports it, nothing ships it, it does not run."* ! The TESTS
+  were already right, every expectation coming from the brief or a checked literal. **It was the
+  REASONING that leaned on the record**, which is worse in a plan than in a test, because a plan is
+  what the next person reads.
+
+- **#27.** **`change` IS THE UPDATED PARAGRAPH AS RAW TEXT** (Roy, 2026-08-28): *"I don't want to
+  have to figure out indentation again or comment style. All of the agents can read the page again
+  on their own."* A seeded row carries `raw_text` -- the paragraph, not the page -- so an edit
+  round-trips to the root's exact bytes, indentation and comment markers included.
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**
@@ -1446,3 +1480,72 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **SO THE TWO HALVES ARE:** do not reach into a tuple POSITIONALLY and lose what the slot means
   (`series.py` had this); and do not BIND a member to a second name at all (`stages.py` broke this).
   Both are the same defect -- a link that a reader, and a rename, cannot follow.
+
+- **#39.** **A VERSION NUMBER IS A CLAIM ABOUT WHAT CAN SHIP, NOT A CHAPTER MARKER** (Roy,
+  2026-08-28): *"We don't have an operational backend and until we do we can't ship this."* Every
+  plan under 0.2.4 is the same release still being made; the number advances when what it names can
+  be shipped, not because a branch feels like new work.
+
+- **#40.** **THE PROSE THAT SHIPS IS UPDATED IN THE BRANCH THAT CHANGES IT** (Roy, 2026-08-28):
+  *"Add the updated commands/words to the brief, agent files, and the instructions generator. We
+  don't want to accidentally leave behind stuff this important."*
+
+  ! **AND THE LANE LINE IS HIS**: *"How the agents function and the specific rules that are used to
+  encourage the agents to do better is the agents lane. Giving them the information necessary to run
+  the Python part is fine."* So a field name, a command, a key list, a generated table, and the fact
+  that a role holds revise 2 rather than the original are `backend`'s. **How much deference an
+  earlier stage's edit is owed is not.**
+
+- **#41.** **A DEAD COMMAND IS DROPPED FROM AGENT PROSE, NOT MARKED DEAD** (Roy, 2026-08-28):
+  *"Drop the commands from the brief and from the task agent/managing-editor ... We will fill the
+  commands section back in later."*
+
+  ! **THE ALTERNATIVE CONSIDERED WAS `CLAUDE.md`'s OWN TREATMENT** of these same commands -- leave
+  them under a banner saying they moved. **Instructing an agent to run a command that does not exist
+  is worse than saying nothing**, and a marked-dead command still spends the budget
+  `docs/limitations.md` holds that file to.
+
+  ! **THE CONSEQUENCE IS STATED RATHER THAN HIDDEN**: stage 4 then has no step emitting a role's
+  vocabulary and stage 5 no citation gate. **Both were already absent from the code** -- the prose
+  described a system that stopped existing on 2026-08-25.
+
+- **#42.** **THE COPY CHIEF IS NOT IN 0.2.4** (Roy, 2026-08-28): *"I think not yet - the
+  reconciliation step will pass stuff to it next."* Reconciliation and the revise step EMIT
+  escalations and resolve nothing.
+
+- **#43.** **`code_concerns` ON THE SHEET IS INDEFINITELY DEFERRED** (Roy, 2026-08-28): *"T1.6 is
+  indefinitely deferred."*
+
+  !! **SO IT LEFT THE PLAN'S TASK LIST INSTEAD OF SITTING IN IT UNCHECKED.** `CLAUDE.md` rules that
+  an unchecked box says work remains, and that the release gate is EVERY BOX TICKED -- so an
+  indefinitely deferred task left in P1 would not describe a pause, it would make 0.2.4
+  unreleasable forever by arithmetic nobody chose. ! **A plan is one release's scope and CLOSES; a
+  TODO's lifetime is indefinite.** *"Indefinitely deferred"* is a statement about lifetime, so the
+  item belongs in the tracker built for it.
+
+  ! **WHAT IT WAITS ON, named rather than left open-ended:** a file stating what the SHEET carries.
+  `Process: #37` records what having no such file for the MARK cost -- eleven fields entered `src/`
+  unapproved.
+
+- **#44.** **A TASK BELONGS TO THE TODO WHOSE SUBJECT IT SHARES** (Roy, 2026-08-28, on
+  `code_concerns` filed under `the-ported-mark-does-not-fit-the-brief`): *"It should not have been
+  added to this todo."*
+
+  ! **THAT FILE'S OBJECTIVE IS A GATE/INSTRUCTION DISAGREEMENT** -- a mark written from the brief
+  VERBATIM refused by `desk/mark.py`. A new container on the SHEET is a different subject, and was
+  already tracked in nine tasks on `code-concerns-cannot-carry-a-proposed-change`. **Misfiled AND
+  duplicated.** ! It was checked as SUPERSEDED, not done: a superseded box keeps the record legible
+  where a deleted one leaves no trace it was ever there.
+
+- **#45.** **SOURCE-VERIFICATION DOES NOT RE-READ THE PAGE OR CHECK ITS SHA** (Roy, 2026-08-28):
+  *"Too early for the strictness and the look up time each time."* Nothing ruled says a mark must be
+  refused because its page moved, and asking costs a read per mark.
+
+  ! **WHERE A STALE EDIT SURFACES INSTEAD** -- Roy, the same morning: *"copy-chief gets to see an
+  update and compare through the normal proof-setter pass before it moves on and it can find the
+  broken edits somehow."*
+
+  ! **AND THE TWO BEST CHECKS ARE FREE**, because the paragraph is on the sheet as `raw_text`
+  (`Vocabulary: #27`): *does the address resolve* and *is the quoted sentence really in it* need no
+  file read at all. Only a `source` citing another file costs one, through a per-file cache -- the
+  706 recorded marks carry 382 citations over 9 roots, so the reads collapse.
