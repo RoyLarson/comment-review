@@ -20,7 +20,18 @@ from pathlib import Path
 from comment_review.machine import exceptions
 from comment_review.machine.repo import git
 
-NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+# !! IMPORTED, AND IT WAS REDEFINED HERE VERBATIM UNTIL 2026-08-28. `lexer.py`
+# owns this tuple and `concordance/code_names.py` already imported it from
+# there, so two modules in ONE package disagreed about where it came from --
+# one importing, one keeping a copy.
+#
+# ! THE COPY IS A DRIFT THAT NOTHING ANNOUNCES. Add `ast.TypeAlias` to the
+# lexer's tuple and `code_names` follows while this module silently does not:
+# no error, no type complaint, both still tuples of AST classes, and the only
+# symptom is a public definition this file stops offering as a token.
+# `decision-log.md Process: #38` is the same argument about an enum member --
+# a second binding no rename can follow.
+from comment_review.reading.lexer import NAMED_DEFS
 
 
 def tokens_for(path: Path, text: str) -> set[str]:

@@ -1,8 +1,10 @@
 """The MARK sequence, as data: what each stage hands back, and what follows it.
 
-    Kind            what a stage can be. ONE member today
+    Kind            what a stage can be, closed
     Kind.EDITORIAL  hands back marks -- verify -> reconcile -> revise step ->
                     pull a revise
+    Kind.ENRICHING  hands back facts -- into the next binder. No docket, no
+                    revise, and no producer yet
     Stage           one row: a name, a kind, the roles it dispatches
     STAGES          the MARK sequence, `SKILL.md:544-583`
     pulls_revise    is this stage's output followed by a revise?
@@ -33,17 +35,27 @@ once."* The skill never worked that way -- `SKILL.md` stage 4 already runs
 the other three at 4c, in one message, measuring a claim against the code at
 their own scope.
 
-!! A SECOND MEMBER, `ENRICHING`, WAS WRITTEN HERE AND IS DROPPED. Roy,
-2026-08-28: *"I don't know what that is drop it and we can deal with whatever
-it was supposed to mean."* It was argued for on the grounds that `annotate.py`
-is *"already an ENRICHING stage in everything but name"* -- and `annotate` is
-stage 3, not in this stage-4 list, so nothing in `src/` ever constructed one.
+!! `Kind.ENRICHING` HAS NO PRODUCER, AND IS KEPT ANYWAY. It was dropped on
+2026-08-28 and restored the same day. Roy: *"Put it back on the Kind because it
+might have uses in `annotate.py` once `annotate.py` goes to `concordance.py`
+which it is part of."*
 
-! SO `Kind` HAS ONE MEMBER AND `pulls_revise` IS TRUE FOR EVERY ROW IT IS
-GIVEN. That is stated rather than hidden: both are kept because a stage's kind
-is the thing a second stage type would vary, and the shape is what makes adding
-it a row. ! WHAT IS NOT CLAIMED is that the False branch is exercised -- it is
-not, and no `Stage` in this file can reach it.
+! WHAT IT MEANS: a stage that hands back FACTS rather than marks -- resolutions
+fed into the next stage's binder. It seeds no docket and pulls no revise, which
+is what `pulls_revise` reads it for. `annotate` is stage 3 and resolves exactly
+that kind of fact; it is not in this stage-4 list today, so nothing in `src/`
+constructs an ENRICHING `Stage` yet.
+
+! WHY THAT IS NOT SPECULATIVE MACHINERY: the candidate is NAMED and the move is
+already filed -- `TODO/annotate-belongs-in-concordance.md`. ! WHAT IS NOT
+CLAIMED is that anything exercises it: no `STAGES` row is ENRICHING, so
+`pulls_revise`'s False branch is unreachable from this module's own data.
+
+!! AND THE DROP IS RECORDED BECAUSE OF HOW IT HAPPENED. A session showed Roy a
+bare `ENRICHING` -- which was then ALSO a module-level alias -- while asking
+whether it earned its place; he read it as a constant, which it was, and said to
+drop it. The session removed the MEMBER, a wider change than the answer covered.
+`decision-log.md Process: #38` holds that, and the alias it came from is gone.
 
 !! ADDING A STAGE IS A ROW, NOT A BRANCH. Nothing in this module or in
 `pulls_revise` asks a stage's or a role's NAME; `pulls_revise` reads only
@@ -84,6 +96,7 @@ class Kind(StrEnum):
         return name.lower()
 
     EDITORIAL = auto()
+    ENRICHING = auto()
 
 
 class Stage(NamedTuple):
@@ -119,11 +132,12 @@ STAGES: tuple[Stage, ...] = (
 def pulls_revise(stage: Stage) -> bool:
     """Does a revise get pulled after this stage runs?
 
-    Only a `Kind.EDITORIAL` stage does -- `decision-log.md Process: #34`.
+    Only a `Kind.EDITORIAL` stage does -- `decision-log.md Process: #34`. A
+    `Kind.ENRICHING` stage hands facts into the next binder; it seeds no docket
+    and pulls nothing.
 
-    ! TRUE FOR EVERY `Stage` THIS MODULE DEFINES, because `Kind` has one
-    member. The comparison is written out rather than dropped because a
-    second kind is what this predicate exists to distinguish; what is NOT
-    claimed is that the False branch is reachable from here.
+    ! TRUE FOR EVERY ROW IN `STAGES`, because both are EDITORIAL and nothing
+    constructs an ENRICHING `Stage` yet. The False branch is reachable only
+    from a `Stage` a caller builds itself.
     """
     return stage.kind == Kind.EDITORIAL

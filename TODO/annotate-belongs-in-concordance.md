@@ -7,6 +7,27 @@ Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28 (2026-08-28, Roy: 'File a todo to put this as part of concordance -
           src/comment_review/binder/annotate.py')
+Measured: 2026-08-28 — 2026-08-28, Roy: *"probably has duplicated logic in both
+          `referrers.py` and `code_?.py`"*. MEASURED, and there are TWO overlaps of
+          different weight. (1) FIXED THE SAME DAY: `NAMED_DEFS` was defined verbatim in
+          BOTH `reading/lexer.py:297` and `concordance/referrers.py:23`, while
+          `concordance/code_names.py` IMPORTED it from the lexer -- so two modules in
+          one package disagreed about where the tuple came from. Adding a member to the
+          lexer's tuple would have carried `code_names` and silently not `referrers`,
+          with no error and no type complaint. `referrers` now imports it; `decision-
+          log.md Process: #38` is the same argument about an enum member. (2) STILL
+          OPEN, and it is the one this file is for: `referrers.tokens_for` and
+          `code_names.code_names` each `ast.parse` a Python file inside `except
+          exceptions.PARSE_ERRORS`, each seed their result with the file's `stem`, and
+          each collect definition names by `isinstance(node, NAMED_DEFS)`. What DIFFERS
+          is only the policy on top -- `referrers` walks `tree.body` and keeps PUBLIC
+          top-level names, `code_names` walks `ast.walk` and keeps names, attributes,
+          args, aliases and constants too. ! SO THE SHARED PART IS *parse a Python file
+          and yield its definitions, or say why not*, and the two callers differ in what
+          they then keep. `annotate.py` is NOT part of this overlap: it is regex over
+          PROSE and parses no Python -- it is the CONSUMER of what these two harvest,
+          which is the argument for it moving into the same package rather than for
+          merging it with them.
 ```
 
 ## Objective

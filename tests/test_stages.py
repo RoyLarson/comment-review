@@ -12,7 +12,7 @@ already state, transcribed by hand.
          module-context, in ONE message               against the code
 """
 
-from comment_review.desk.stages import STAGES, Kind, pulls_revise
+from comment_review.desk.stages import STAGES, Kind, Stage, pulls_revise
 
 
 def test_ownership_context_runs_alone_and_first():
@@ -39,10 +39,9 @@ def test_only_an_editorial_stage_pulls_a_revise():
     # objects, which is self-consistency and is what this file's docstring
     # forbids. Both rows being EDITORIAL, it also only ever evaluated the True
     # branch.
-    assert [s.name for s in STAGES if pulls_revise(s)] == ["4a", "4c"]
-    # ! THE FALSE BRANCH IS NOT ASSERTED, and was until 2026-08-28 by way of a
-    # hand-built `Stage("annotate", ENRICHING, ())`. Roy dropped `ENRICHING`
-    # -- *"I don't know what that is drop it"* -- so `Kind` has one member and
-    # no `Stage` can reach that branch. A test constructing the member back
-    # would be asserting a shape nothing produces.
     assert [s.name for s in STAGES] == ["4a", "4c"]
+    assert [s.name for s in STAGES if pulls_revise(s)] == ["4a", "4c"]
+    # ! THE FALSE BRANCH NEEDS A `Stage` BUILT HERE, because no row in `STAGES`
+    # is ENRICHING -- `annotate` is the named candidate and is stage 3, not in
+    # this list. `stages.py` says so rather than implying the enum is exercised.
+    assert not pulls_revise(Stage("annotate", Kind.ENRICHING, ()))
