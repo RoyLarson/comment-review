@@ -71,3 +71,34 @@ def test_a_dispatch_with_no_paths_means_every_page():
     )
     assert why == ""
     assert stages[0].dispatches[0].paths == ()
+
+
+def test_reading_a_later_stage_is_refused():
+    stages, why = read(
+        '[[stage]]\nname="1"\nkind="editorial"\nreads="revise:2"\n'
+        '[[stage.dispatch]]\nrole="block-context"\n'
+        '[[stage]]\nname="2"\nkind="editorial"\nreads="original"\n'
+        '[[stage.dispatch]]\nrole="module-context"\n'
+    )
+    assert stages == [] and "revise:2" in why
+
+
+def test_reading_an_enriching_stage_is_refused_BY_NAME():
+    # ! An enriching stage pulls no revise, so naming it in `reads` cannot be
+    # quietly resolved to the previous editorial one.
+    stages, why = read(
+        '[[stage]]\nname="a"\nkind="enriching"\nreads="original"\n'
+        '[[stage.dispatch]]\nrole="block-context"\n'
+        '[[stage]]\nname="b"\nkind="editorial"\nreads="revise:a"\n'
+        '[[stage.dispatch]]\nrole="module-context"\n'
+    )
+    assert stages == []
+    assert "enriching" in why and "a" in why
+
+
+def test_a_non_empty_carries_is_refused_with_a_reason():
+    stages, why = read(
+        '[[stage]]\nname="1"\nkind="editorial"\nreads="original"\ncarries=["0"]\n'
+        '[[stage.dispatch]]\nrole="block-context"\n'
+    )
+    assert stages == [] and "carries" in why

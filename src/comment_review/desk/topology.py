@@ -19,13 +19,13 @@ this module implements specifies a `Stage` NamedTuple of its own; `Stage`
 already exists in `desk/stages.py`; this module evolves that one in place
 instead of declaring a second same-named type in one package.
 
-! **`reads` AND `carries` ARE CAPTURED, NOT YET CROSS-CHECKED.** This module
-parses both keys onto the `Stage` it returns -- `reads` defaults to
-`"original"`, `carries` to `()` -- but does not yet enforce section 2's
-"barrier" (`reads` may only name an earlier, editorial stage's pulled
-revise) or refuse a non-empty `carries` (format only, not built). Those
-refusals are `TODO/topology-is-a-source-edit.md` T2 and T5, a later change
-to this same function.
+! **`reads` ENFORCES SECTION 2'S "BARRIER".** A `"revise:<name>"` value may
+only name a stage that appears EARLIER in the file's own `[[stage]]` order
+and whose `kind` is `"editorial"` -- a forward reference is refused, and an
+`"enriching"` stage named in `reads` is refused BY NAME rather than quietly
+resolved to the previous editorial one (`Process: #34`). `carries` parses as
+`()`; a non-empty value is refused as format-only, not built
+(`Process: #50`). `TODO/topology-is-a-source-edit.md` T2 and T5.
 
 ! **FAN-OUT'S FILE-PARTITION GUARDS ARE NOT THIS MODULE'S.** Section 2
 states two guards over how a dispatch's `paths` glob against a binder's
@@ -59,6 +59,7 @@ def read(text: str) -> tuple[list[Stage], str]:
         return [], "topology: key 'stage' is missing or empty"
 
     stages: list[Stage] = []
+    kind_by_name: dict[str, Kind] = {}
     for raw in raw_stages:
         if not isinstance(raw, dict):
             return [], "topology: a 'stage' entry is not a table"
@@ -79,11 +80,31 @@ def read(text: str) -> tuple[list[Stage], str]:
         if not isinstance(reads, str):
             return [], f"stage {name!r}: key 'reads' must be a string"
 
+        if reads.startswith("revise:"):
+            read_name = reads[len("revise:") :]
+            read_kind = kind_by_name.get(read_name)
+            if read_kind is None:
+                return [], (
+                    f"stage {name!r}: key 'reads' is {reads!r}, naming a "
+                    "stage not run earlier in the file -- a stage may only "
+                    "read a revise pulled by an earlier stage"
+                )
+            if read_kind == Kind.ENRICHING:
+                return [], (
+                    f"stage {name!r}: key 'reads' is {reads!r}, but stage "
+                    f"{read_name!r} is 'enriching' and pulls no revise"
+                )
+
         raw_carries = raw.get("carries", [])
         if not isinstance(raw_carries, list) or not all(
             isinstance(c, str) for c in raw_carries
         ):
             return [], f"stage {name!r}: key 'carries' must be a list of strings"
+        if raw_carries:
+            return [], (
+                f"stage {name!r}: key 'carries' is not empty -- 'carries' "
+                "is format only, not built (Process: #50)"
+            )
 
         raw_dispatches = raw.get("dispatch")
         if not isinstance(raw_dispatches, list) or not raw_dispatches:
@@ -125,5 +146,6 @@ def read(text: str) -> tuple[list[Stage], str]:
                 dispatches=tuple(dispatches),
             )
         )
+        kind_by_name[name] = kind
 
     return stages, ""
