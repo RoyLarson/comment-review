@@ -9,6 +9,9 @@ Raised:   2026-08-29 (2026-08-29, Roy, watching three failed edits in a row: "ha
           whole text comment marks and all is brittle and subject to breakage easily. We
           may need to rethink this and strip/fill in the comment marks ourselves else
           the agents are seeing noise and potentially creating trouble.")
+Corrected: 2026-08-29 — the '#:' marker question was struck -- the comment token is '#'
+           per the language row, and ':' is prose; a session had asserted a semantic the
+           lexer does not implement
 ```
 
 ## Objective
@@ -64,10 +67,15 @@ because it rebuilt each file from positions it had just read out of that file.
 
 ## Open -- these are RULINGS, not tasks
 
-1. **Is the marker carried, or chosen?** `#:` and `# ` mean different things here (140 lines of
-   `#:` in `src/`). If fill re-derives the marker, a `#:` silently becomes a `#`. Carrying it as a
-   property of the paragraph seems right, but it means a role cannot CHANGE a marker -- which
-   forecloses a legitimate edit.
+1. ~~**Is the marker carried, or chosen?**~~ **SETTLED, and it was never a question.** This read
+   *"`#:` and `# ` mean different things here (140 lines of `#:` in `src/`)"* and **that was
+   false.** Roy, 2026-08-29: *"technically ':' is part of the prose the comment tag is still `#`.
+   That is what python picks up on. It doesn't care that some human or machine likes to add extra
+   glyphs to indicate that this is a special comment."* ! `language.py` agrees -- Python's row is
+   `line_comment = ("#",)`, and NOTHING in `reading/lexer.py` treats `#:` as anything. The 140
+   hits are this repo's own source USING that style; a session read a convention off the corpus
+   and asserted it as a semantic the system implements. **The token is what the language row says;
+   everything after it is prose, `:` and `!!` included.**
 2. **What does `a` fill at when there is no next `b`?** A declaration whose body is only its
    docstring has no following `b`, so the rule has no value to read.
 3. **Scope: Python first, or every language?** The rules above are stated for Python. A lexical
@@ -88,9 +96,10 @@ because it rebuilt each file from positions it had just read out of that file.
       every paragraph of every corpus file, `fill(strip(p)) == p` byte-for-byte. !
       THIS IS THE WHOLE SAFETY ARGUMENT and it must be able to FAIL -- run it over
       fetched corpora, not hand-written fixtures, per `docs/gates.md`.
-- [ ] The marker is carried, never re-derived. Verify: a `#:` paragraph fills back
-      as `#:` and not as `# ` -- 140 lines in `src/` alone, and the two mean
-      different things.
+- [ ] The prose is EVERYTHING after the comment token, and the token is what the language row
+      says it is. Verify: `#: x` strips to `: x` and fills back to `#: x`; `# x` strips to ` x`
+      and fills back to `# x`. ! Stripping an optional space after the token is what breaks this
+      -- `#: x` has none, so a fill that re-adds one writes `# : x`.
 - [ ] A blank line inside a paragraph survives. Verify: a bare `#` line (140 in
       `src/`) fills back as `#` with no trailing space, and the round trip is
       byte-exact.
