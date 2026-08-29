@@ -85,9 +85,72 @@ authority, never of the role's own copy. What this removes is a FACT CARRIED TO 
 
 ## 2. Topology, and fan-out
 
-**The topology is data, in a run-scoped file** -- an ordered list of `{name, kind, roles, paths}`.
-`desk/stages.py`'s `STAGES` is a literal today, so every configuration would otherwise be a source
-edit.
+**The topology is data, in a run-scoped file** -- an ordered list of stages, each holding a list of
+DISPATCHES. `desk/stages.py`'s `STAGES` is a literal today, so every configuration would otherwise
+be a source edit.
+
+```toml
+[[stage]]
+name     = "4c"          # the stage's own label
+kind     = "editorial"   # or "enriching" -- decides whether a revise is pulled
+reads    = "revise:4a"   # "original", or the revise a named earlier stage pulled
+carries  = []            # edit_copies of earlier stages, handed along unsettled
+
+  [[stage.dispatch]]
+  role  = "block-context"
+  paths = ["src/comment_review/reading/*.py"]
+
+  [[stage.dispatch]]
+  role  = "block-context"          # the same role again -- this is fan-out
+  paths = ["src/comment_review/binder/*.py"]
+
+  [[stage.dispatch]]
+  role  = "function-context"       # no `paths` -- every page
+```
+
+!! **`paths` IS ON THE DISPATCH, NOT THE STAGE, AND THE FIRST DRAFT HAD IT ON THE STAGE.** MEASURED
+by writing the three topologies out: a stage fans out ONE role while leaving the others whole --
+`block-context` split two ways above, `function-context` not split at all. A stage-level `paths`
+cannot say that. **A stage is a list of dispatches, not a list of roles**, and two dispatches naming
+one role IS the fan-out.
+
+### The three topologies, written out
+
+| topology | stages | each `master_proof` holds | revises |
+| --- | --- | --- | --- |
+| all four at once | 1 | 4 `edit_copies` | 1 |
+| pure sequential | 4 | 1 `edit_copy` | 4 |
+| `4a` then `4c` | 2 | 1, then 3 | 2 |
+
+! **THE RE-READ RULES FIRE IN PROPORTION TO CONCURRENCY**, which is the design working rather than
+a special case: all-at-once composes four sets of edits nobody read, and pure sequential composes
+none.
+
+### `reads` and `carries` are different inputs, and only one is built
+
+| what a stage reads | it sees | status |
+| --- | --- | --- |
+| `reads = "revise:N"` | the rebuilt tree with stage N's SETTLED corrections set -- corrected TEXT, not marks | **built**, P2 |
+| `carries = ["N"]` | the binder, plus stage N's `edit_copies` -- the PROPOSALS, unsettled | **format only; not built** |
+
+!! **THE DIFFERENCE IS WHAT A LOSING PROPOSAL LOOKS LIKE.** A revise shows only what settled, so a
+later role cannot see a mark that lost; `carries` shows the marks themselves, so a later role can
+disagree with a SUGGESTION rather than with the applied result.
+
+!! **`carries` IS A HYPOTHESIS, NOT A FEATURE.** Roy, 2026-08-29: *"It is something that should be
+tested by the agents and testing lane on what allows for better answers. I think that giving the
+later roles information might help, but it might not."*
+
+! **SO IT IS THE VARIABLE `CLAUDE.md`'s TWO-LANE RULE TURNS**: land the machinery with
+effectiveness UNCHANGED, then change what agents are told, then measure whether recommendations
+improved. ! **AND THE MEASUREMENT CANNOT RUN YET** --
+[`the-harness-cannot-run-the-system-it-grades`](../../../TODO/the-harness-cannot-run-the-system-it-grades.md)
+is open and is what blocks both halves of that rule today. Whether carrying an `edit_copy` forward
+helps is genuinely unanswered.
+
+! **THE VALIDATOR REFUSES A NON-EMPTY `carries` RATHER THAN IGNORING IT.** A key that is silently
+dropped is indistinguishable from one that worked, which is the failure this repo's gates exist to
+refuse.
 
 | | |
 | --- | --- |
@@ -106,7 +169,7 @@ bad"*, and on why fan-out exists at all: *"It makes them more efficient and we h
 it makes them more diligent in actually inspecting the blocks, where they get overloaded on too
 many records. Because it is tight detailed work it matters for their role most."*
 
-Fan-out splits `binder["pages"]` by the paths a stage entry names and seeds one `edit_copy` per
+Fan-out splits `binder["pages"]` by the paths a DISPATCH names and seeds one `edit_copy` per
 shard. Two guards:
 
 - no page appears in two shards of the same role

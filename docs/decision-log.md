@@ -1650,3 +1650,31 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   Sequential was safe by construction. ! Nothing already built changes: `pulls_revise`, the revise
   sheet and the four revise outcomes exist. **What changes is the trigger** -- composition and
   `add`, not only disagreement.
+
+- **#50.** **A STAGE IS A LIST OF DISPATCHES, AND `carries` IS BUILT AS A HYPOTHESIS** (Roy,
+  2026-08-29).
+
+  !! **`paths` BELONGS TO THE DISPATCH, NOT THE STAGE.** MEASURED by writing the three topologies
+  out: a stage fans ONE role out while leaving the others whole, and a stage-level `paths` cannot
+  say that. **Two dispatches naming one role IS the fan-out.** The first draft of the format had
+  `{name, kind, roles, paths}` and could not express the topology it was written for.
+
+  !! **`reads` AND `carries` ARE DIFFERENT INPUTS.** `reads = "revise:N"` hands a stage the rebuilt
+  tree with stage N's SETTLED corrections set -- corrected text, no marks, and a proposal that lost
+  is invisible. `carries = ["N"]` hands it the binder PLUS stage N's `edit_copies` -- the proposals
+  themselves, unsettled, so a later role can disagree with a SUGGESTION rather than with the
+  applied result. ! Only `reads` is built (P2).
+
+  !! **`carries` IS A HYPOTHESIS, NOT A FEATURE.** Roy: *"I would prefer the carries to be
+  available. It is something that should be tested by the agents and testing lane on what allows
+  for better answers. I think that giving the later roles information might help, but it might
+  not."*
+
+  ! **SO IT IS THE VARIABLE THE TWO-LANE RULE TURNS** -- `CLAUDE.md`: land the machinery with
+  effectiveness UNCHANGED, then change what agents are told, then measure whether recommendations
+  improved. ! **THE MEASUREMENT CANNOT RUN YET**:
+  `TODO/the-harness-cannot-run-the-system-it-grades.md` is open and blocks both halves of that rule
+  today, so whether carrying an `edit_copy` forward helps is genuinely unanswered.
+
+  ! **THE VALIDATOR REFUSES A NON-EMPTY `carries` RATHER THAN IGNORING IT.** A key silently dropped
+  is indistinguishable from one that worked.
