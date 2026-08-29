@@ -11,6 +11,8 @@
                                  place each TOUCHES
     reconcile(proof)             T4.2 -- `Process: #49`: settle, escalate, or
                                  send a place back for a re-read
+    docket_from(reconciled, proof) T4.5 -- reconciliation's SETTLED places,
+                                 packaged as the docket the write chain reads
 
 `decision-log.md Vocabulary: #19` names the module and its two steps, keyed on
 scope: source-verification is per MARK, against the page it rules on;
@@ -38,7 +40,7 @@ from typing import NamedTuple
 from comment_review.binder.binder import rows_of
 from comment_review.desk.mark import INSTRUCTIONS, Instruction
 from comment_review.machine.exceptions import READ_ERRORS
-from comment_review.reading.addresser import cue_of, flatten
+from comment_review.reading.addresser import cue_of, flatten, unflatten
 
 #: `reviewer-brief.md`: "your text must appear within three lines" of the
 #: cited line -- lines either side of it that a `source`'s `verbatim` may sit
@@ -438,3 +440,98 @@ def reconcile(proof: dict) -> Reconciled:
         else:
             rereads.append(entry)
     return Reconciled(settled, escalations, rereads)
+
+
+def _real_pages(proof: dict) -> tuple[list[str], dict[str, str]]:
+    """Every page an `edit_copy` was seeded over -- its real path, and its sha.
+
+    An address carries only the FLATTENED path half; the real one, and the
+    sha `docket_from` must record, live on the sheets `flows.marks.seed`
+    already put the page's own `path` and `sha` onto.
+    """
+    paths: list[str] = []
+    shas: dict[str, str] = {}
+    for copy in proof.get("edit_copies", []):
+        for sheet in copy.get("sheets", []):
+            path = sheet.get("path") if isinstance(sheet, dict) else None
+            if isinstance(path, str) and path and path not in shas:
+                paths.append(path)
+                shas[path] = str(sheet.get("sha", ""))
+    return paths, shas
+
+
+def _alteration_text(address: str, mark: dict) -> str | None:
+    """The docket's `text` for one settled mark's `change` -- joined, or `None`.
+
+    !! A `move`'s ORIGIN IS A DELETE, NEVER ITS `change`. `_touches` groups a
+    `move` mark into both its own `address` (the origin, where the paragraph
+    is REMOVED) and `claim.to` (the destination, where `change` is WRITTEN),
+    so the same mark reaches here twice under two different `address`
+    arguments. Comparing `address` to the mark's OWN `address` is what tells
+    the two apart -- equal means this call is for the origin.
+
+    Args:
+        address: the place this docket entry is FOR -- a settled entry's own
+            `address`, which for a `move` may be either end.
+        mark: the one owing mark that settled this place.
+
+    Returns:
+        `None` (delete) at a `move`'s origin, or when `change` is empty --
+        the shape `may_empty` allows for exactly `drop`. Otherwise `change`'s
+        lines joined with a newline.
+    """
+    if mark.get("mark") == Instruction.MOVE and address == mark.get("address"):
+        return None
+    change = mark.get("change")
+    lines = change if isinstance(change, list) else []
+    return "\n".join(lines) if lines else None
+
+
+def docket_from(reconciled: Reconciled, proof: dict) -> dict:
+    """T4.5 -- `reconciled.settled`, packaged as the docket the write chain reads.
+
+    !! ONLY `settled` BECOMES A DOCKET. An escalation or a re-read names a
+    place two or more marks owe a change to and no single mark can answer
+    for alone -- the copy chief that would decide between them is out of
+    0.2.4 (`Process: #42`), so there is nothing yet to write for those
+    places.
+
+    Args:
+        reconciled: `reconcile(proof)`'s outcome.
+        proof: the same `master_proof` `reconciled` was derived from -- read
+            here only for the real page paths and shas its `edit_copies`'
+            sheets carry; nothing here reads a file or re-reads a page.
+
+    Returns:
+        `{"pages": [{"path", "sha", "role", "alterations": [...]}]}`, one
+        page per REAL path a settled place touches. `docket.read` rules on
+        this shape; nothing here does.
+
+    !! `role` IS ONE PER PAGE, matching `docket.read`'s own schema and
+    `flows.revise.pull._set_by`, which reads it the same way. A page whose
+    settled places were set by more than one role carries only the role of
+    the LAST one folded in here -- the docket has no per-alteration role
+    field to say more.
+    """
+    paths, shas = _real_pages(proof)
+    pages: dict[str, dict] = {}
+    for entry in reconciled.settled:
+        address = entry["address"]
+        mark = entry["marks"][0]
+        role = entry["roles"][0]
+        addr = cue_of(address)
+        real_path = unflatten(addr.path, paths) or addr.path
+        page = pages.setdefault(
+            real_path,
+            {
+                "path": real_path,
+                "sha": shas.get(real_path, ""),
+                "role": role,
+                "alterations": [],
+            },
+        )
+        page["role"] = role
+        page["alterations"].append(
+            {"cue": addr.cue, "text": _alteration_text(address, mark)}
+        )
+    return {"pages": list(pages.values())}

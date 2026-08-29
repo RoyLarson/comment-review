@@ -3,6 +3,7 @@
     {"pages": [
         {"path": "pkg/a/util.py",
          "sha":  "e3b0c44298fc",
+         "role":  "block-context",
          "alterations": [{"cue": "b1", "text": "# the new comment"},
                          {"cue": "c0", "text": null}]}]}
 
@@ -57,6 +58,13 @@ is explicit enough."* ! The galley took `""` as its vacation signal until this
 landed, and a key whose value failed to serialise arrives looking exactly like
 a deliberate deletion. Two spellings for one act is how a bug upstream becomes
 a deletion downstream at exit 0.
+
+! `role` IS OPTIONAL AND, WHEN PRESENT, ONE PER PAGE -- the role whose mark
+settled every alteration this schedule carries. `desk.collator.docket_from`
+is what writes it, from T4.2's settled places; `flows.revise.pull._set_by`
+reads it back into `address -> role`, the provenance P6's reversal pairs
+against. A docket with no `role` field maps every one of its addresses to
+`""`, unchanged from before this field existed.
 """
 
 from typing import NamedTuple
@@ -74,11 +82,17 @@ class Schedule(NamedTuple):
         sha: of the page's text when the agents read it. `proof_setter` compares
             it against the file it is about to set.
         alterations: cue -> the replacement text, or None to delete.
+        role: the role whose mark settled every alteration here, or "" when
+            the docket carries none. `proof_setter` does not read this --
+            `flows.revise.pull._set_by` does, straight off the raw docket
+            dict; carried here so a caller unwinding a docket through
+            `schedules_of` sees every field the format defines.
     """
 
     path: str
     sha: str
     alterations: dict[str, str | None]
+    role: str = ""
 
 
 def read(text: str) -> tuple[dict, str]:
@@ -126,6 +140,9 @@ def read(text: str) -> tuple[dict, str]:
         seen.add(path)
         if not isinstance(page.get("sha"), str) or not page["sha"]:
             return {}, f"{path}: every page needs the `sha` it was read at"
+        role = page.get("role")
+        if role is not None and (not isinstance(role, str) or not role):
+            return {}, f"{path}: `role`, when present, must be a non-empty string"
         alterations = page.get("alterations")
         if not isinstance(alterations, list) or not alterations:
             return {}, f"{path}: `alterations` must be a non-empty list"
@@ -178,6 +195,7 @@ def schedules_of(docket: dict) -> list[Schedule]:
             path=str(page["path"]),
             sha=str(page["sha"]),
             alterations={str(one["cue"]): one["text"] for one in page["alterations"]},
+            role=str(page.get("role", "")),
         )
         for page in docket.get("pages", [])
     ]

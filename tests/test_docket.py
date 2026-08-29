@@ -1,13 +1,20 @@
 """The DOCKET: pages, each with its path, its sha and its schedule of alterations.
 
-!! EVERY DOCKET HERE IS HAND-WRITTEN JSON, and that is deliberate. A docket
-arrives from OUTSIDE this system -- the desk makes it, and the desk is not built
--- so it is a file format, not a value the code produces. Building one with a
-helper and reading it back would be the code agreeing with itself, which is the
-shape `docs/gates.md` records the round trip scoring 699 of 699 on.
+!! EVERY DOCKET HERE IS HAND-WRITTEN JSON EXCEPT THE `role` TESTS BELOW, and
+that is deliberate for the rest. A docket arrives from OUTSIDE this system --
+the desk makes it -- so its FORMAT is a file format, not a value the code
+produces. Building one with a helper and reading it back would be the code
+agreeing with itself, which is the shape `docs/gates.md` records the round
+trip scoring 699 of 699 on.
 
 ! `conftest.docket_from` exists for the CHAIN's cases, which assert things about
-drafting rather than about the format. Nothing here uses it.
+drafting rather than about the format. Most of this file does not use it.
+
+!! `desk.collator.docket_from` IS DIFFERENT: it is the desk's own production
+code, T4.5's answer to "the desk is not built" -- so the two `role` tests
+below assert what THAT function produces, the one case in this file where
+building a docket and reading it back is the actual thing under test rather
+than the format's own witness.
 
 ! THE NAME IS SETTLED, 2026-08-26 -- `decision-log.md Vocabulary: #14`. It was
 `notations`, one letter from the `annotations` that `binder/annotate.py` owns.
@@ -16,8 +23,11 @@ drafting rather than about the format. Nothing here uses it.
 import json
 
 import pytest
+from helpers import a_correct, a_master_proof
 
+from comment_review.desk.collator import docket_from, reconcile
 from comment_review.docket.docket import read, schedules_of
+from comment_review.flows.revise import _set_by
 
 
 def a_docket(pages) -> str:
@@ -166,3 +176,18 @@ class TestSchedulesOf:
     def test_the_alterations_are_cue_to_text(self):
         docket, _ = read(a_docket([("m.py", "sha", [("b1", "# new"), ("c0", None)])]))
         assert schedules_of(docket)[0].alterations == {"b1": "# new", "c0": None}
+
+
+def test_the_docket_names_the_role_that_set_each_alteration():
+    proof = a_master_proof({"block-context": {"m.py@b1": a_correct("m.py@b1")}})
+    docket = docket_from(reconcile(proof), proof)
+    assert docket["pages"][0]["role"] == "block-context"
+
+
+def test_set_by_stops_mapping_everything_to_empty():
+    # `revise.pull._set_by` reads an optional `role` per page and used to map
+    # every address to "" because nothing wrote it -- see `_set_by`'s own
+    # docstring. `docket_from` is what writes it now.
+    proof = a_master_proof({"block-context": {"m.py@b1": a_correct("m.py@b1")}})
+    docket = docket_from(reconcile(proof), proof)
+    assert set(_set_by(docket).values()) == {"block-context"}

@@ -52,13 +52,11 @@ class Pulled(NamedTuple):
             T2 is what a binder later reads this against.
         set_by: address -> the role that set it, over every alteration the
             docket named. This is the provenance a later phase (P6) routes
-            on, not decoration. ! THE DOCKET CARRIES NO `role` FIELD YET --
-            `docket.py`'s schema has three keys per page (`path`, `sha`,
-            `alterations`) and none per role. A page dict MAY carry one
-            anyway (`read` and `schedules_of` ignore unknown keys), and this
-            reads it when present; a docket with none maps every one of its
-            addresses to `""`. The producer that tags a docket by role is not
-            built yet -- see the TODO above, T1 and T2.
+            on, not decoration. `role` is one per page in `docket.py`'s
+            schema (`path`, `sha`, `role`, `alterations`) and optional --
+            `desk.collator.docket_from` is what writes it, from T4.2's
+            settled places; a docket with none maps every one of its
+            addresses to `""`.
         refusals: every `proof_setter.Refusal`, or `[]` on success. Non-empty
             means `root` was discarded and does not exist.
     """
@@ -231,8 +229,9 @@ def _binder_over(root: Path, revise: int) -> dict:
 def _set_by(docket: dict) -> dict[str, str]:
     """Every altered address, mapped to the role that set it.
 
-    ! READS AN OPTIONAL, NOT-YET-PRODUCED FIELD. See `Pulled.set_by`'s own
-    docstring for why `""` is what a docket with no `role` field yields.
+    ! READS AN OPTIONAL FIELD. `role` is per page and `desk.collator.docket_from`
+    is what writes it; see `Pulled.set_by`'s own docstring for why `""` is what
+    a docket with no `role` field yields.
 
     Args:
         docket: as `docket.read` returned it.
