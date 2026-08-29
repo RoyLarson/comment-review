@@ -265,7 +265,7 @@ that changed a published name or rule:
 | [collate-buckets-a-move-at-one-end](collate-buckets-a-move-at-one-end.md) | backend | — | 0/3 | `collate` buckets a two-ended mark at one end |
 | [the-fields-do-not-say-a-mark-may-cite-across](the-fields-do-not-say-a-mark-may-cite-across.md) | agents | yes | 4/8 | The mark's fields permit a cross-citation and never say so |
 | [a-conflict-has-no-rendering](a-conflict-has-no-rendering.md) | backend | — | 3/4 | A conflict is detected and nothing renders it |
-| [a-revise-answer-has-no-artifact](a-revise-answer-has-no-artifact.md) | backend | — | 0/8 | A role can be asked to revise and has nothing to answer ON |
+| [a-revise-answer-has-no-artifact](a-revise-answer-has-no-artifact.md) | backend | — | 5/8 | A role can be asked to revise and has nothing to answer ON |
 | [the-ported-mark-does-not-fit-the-brief](the-ported-mark-does-not-fit-the-brief.md) | backend | — | 5/5 | The ported mark refuses marks the shipped brief tells a role to write |
 | [the-flow-assumes-every-role-reads-at-once](the-flow-assumes-every-role-reads-at-once.md) | backend | — | 7/7 | The flow assumes every role reads the same page at the same time, once |
 | [move-change-contract-unenforceable](move-change-contract-unenforceable.md) | backend | — | 0/2 | move's change_all loop is never the decisive check -- the general array-of-lines check runs first and either already passed or already refused the mark |
