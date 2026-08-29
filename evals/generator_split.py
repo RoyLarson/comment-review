@@ -26,13 +26,41 @@ import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
-SKILL = (
-    Path(__file__).resolve().parents[1]
-    / "plugins/comment-review/skills/comment-review/scripts"
-)
-sys.path.insert(0, str(SKILL))
+# !! THE PACKAGE, NOT A `sys.path` INSERT INTO `plugins/`. This reached into the
+# SHIPPED tree and imported a flat `census` module from it. The 2026-08-24 move
+# put the Python in `src/comment_review/` and split that module across four
+# areas, so the import raised `ModuleNotFoundError` before an argument was read
+# -- for five days, while `CLAUDE.md` documented this as a working command.
+#
+# ! AND NOTHING COULD SEE IT: `ruff` passes on an import resolving to nothing,
+# and `ty check` is pointed at `src/comment_review/` alone, so `evals/` was
+# never type-checked. It needed someone to RUN it.
+#
+# ! `plugins/` IS BUILT FROM `src/` AND IS THE WRONG SIDE TO READ. The insert
+# also meant this scored whatever the last build left behind rather than the
+# source -- the same class of mistake `marketplace-resolves-live` records.
+#
+# ! THE INSERT STAYS, BECAUSE THE PACKAGE IS NOT INSTALLED. `pyproject.toml`
+# declares no build backend, so there is nothing on `sys.path` to import and
+# `tests/conftest.py:63` reaches for `src/` the same way. What changed is WHICH
+# TREE: the source, not a built copy of it.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-import census  # noqa: E402  - the census is the skill's, not a second copy
+from comment_review.binder.annotate import annotate  # noqa: E402
+from comment_review.binder.page import page_for
+from comment_review.concordance.code_names import (
+    NO_HARVESTER,
+    WALKED_TREE,
+    code_names,
+)
+from comment_review.machine.exceptions import PARSE_ERRORS, READ_ERRORS
+from comment_review.machine.repo import (
+    path_index,
+    read_source,
+    tracked_paths,
+    walk_files,
+)
+from comment_review.reading.language import language_for
 
 # `Co-Authored-By: Claude`, `Assisted-by: ...`, `Generated with ...`. Broad on
 # purpose: a false positive dilutes the contrast and understates the effect,
@@ -117,7 +145,7 @@ def main() -> int:
     # the corpus is the subject and the caller is somewhere else entirely.
     targets = [repo / p for p in sys.argv[2:]] or [repo]
 
-    files = sorted({f for t in targets for f in census._walk(t)})
+    files = sorted({f for t in targets for f in walk_files(t)})
     # !! `unread` IS REPORTED. `code_names` returns it precisely because a hole
     # in the name corpus is not benign: every symbol defined only in an
     # unreadable file becomes a false `names-a-symbol` note, and those notes
@@ -132,15 +160,15 @@ def main() -> int:
     # checkout can never reach. Standing noise masks the real corruption the
     # banner exists to surface, so the known holes are counted and the genuine
     # failures are the only thing that raises a warning.
-    tracked = census.tracked_paths(repo)
-    known, unread = census.code_names([repo], tracked=tracked)
-    holes = [r for r in unread if census.NO_HARVESTER in r]
-    caveats = [r for r in unread if census.WALKED_TREE in r]
+    tracked = tracked_paths(repo)
+    known, unread = code_names([repo], tracked=tracked)
+    holes = [r for r in unread if NO_HARVESTER in r]
+    caveats = [r for r in unread if WALKED_TREE in r]
     failed = [r for r in unread if r not in holes and r not in caveats]
     for row in caveats:
         print(f"! {row}\n")
     if holes:
-        langs = Counter(r.rsplit(census.NO_HARVESTER, 1)[1].strip(" )") for r in holes)
+        langs = Counter(r.rsplit(NO_HARVESTER, 1)[1].strip(" )") for r in holes)
         spread = ", ".join(f"{lang} {n}" for lang, n in sorted(langs.items()))
         print(
             f"  {len(holes)} files have no name harvester ({spread}); liveness is\n"
@@ -153,7 +181,7 @@ def main() -> int:
         if len(failed) > 5:
             print(f"    ... and {len(failed) - 5} more")
         print("  Symbol notes below are WEAKER than they look until this is empty.\n")
-    paths = census.path_index(repo)
+    paths = path_index(repo)
 
     buckets: dict[str, list] = defaultdict(list)
     notes: dict[str, Counter] = defaultdict(Counter)
@@ -161,9 +189,13 @@ def main() -> int:
     per_file: dict[str, dict[int, str]] = {}
 
     for f in files:
+        # !! THE READ AND THE SHA ARE ONE ACT. `page_for` requires a sha, and
+        # `read_source` is the only place that pairs it with the exact bytes
+        # read -- `decision-log.md Process: #22`. A sha taken downstream answers
+        # *which reader ran*, not *did the file change*.
         try:
-            text = f.read_text(encoding="utf-8")
-        except (OSError, UnicodeDecodeError):
+            source = read_source(f)
+        except READ_ERRORS:
             continue
         # !! Through `page_for`, which DISPATCHES ON THE LANGUAGE. This called
         # `blocks_stdlib` -- Python's `tokenize` plus `ast` -- on every file
@@ -173,15 +205,15 @@ def main() -> int:
         # `.go` file was scanned for `#` comments only and contributed zero
         # prose blocks, deflating every bucket without a word. Any polyglot
         # corpus in `corpora.toml` hits this.
-        lang = census.language_for(f)
+        lang = language_for(f)
         if lang is None:
             continue
         rel = f.relative_to(repo).as_posix() if f.is_absolute() else f.as_posix()
         per_file[rel] = line_authors(repo, rel)
         all_shas.update(per_file[rel].values())
         try:
-            blocks = census.page_for(f, text, lang)
-        except census.PARSE_ERRORS:
+            blocks = page_for(f, source.text, lang, rel, sha=source.sha)
+        except PARSE_ERRORS:
             # ! A file this repo's own census would REFUSE is a gap in the
             # split, not a crash in it. Named, so the count is readable.
             notes["unparsed"][rel] += 1
@@ -189,7 +221,7 @@ def main() -> int:
         for b in blocks:
             if not b.text.strip():
                 continue
-            census.annotate(b, known, paths, repo)
+            annotate(b, known, paths, repo)
             buckets["_pending"].append((rel, b))
 
     # ! A SHALLOW CLONE SILENTLY CORRUPTS THIS. Blame attributes every line older

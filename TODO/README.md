@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (95)
+### open  (94)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -276,9 +276,8 @@ that changed a published name or rule:
 | [prototype-move-orphaned-tasks](prototype-move-orphaned-tasks.md) | systems | — | 0/4 | 25 open TODOs carry an unchecked task naming a module that moved to `prototype/` on 2026-08-25, so the task's site is gone and its verification cannot be run |
 | [revise-copies-everything](revise-copies-everything.md) | backend | — | 0/4 | `pull` copies `.git`, `.venv` and `corpora` into every revise root -- 284MB measured on this repo, per editorial stage, to set a docket over ~4MB of source |
 | [vocabulary-sweep-reads-a-moved-path](vocabulary-sweep-reads-a-moved-path.md) | systems | — | 0/3 | The one instrument that finds terms of art with no definition has crashed at startup since the 2026-08-24 package move, and three open TODOs are written against it working |
-| [generator-split-is-dead-at-import](generator-split-is-dead-at-import.md) | testing | — | 0/4 | `import census` resolves to nothing since 2026-08-24, so a command CLAUDE.md documents raises ModuleNotFoundError before it parses an argument -- and the eight symbols it wants are now spread across four areas |
 
-### in-progress  (19)
+### in-progress  (20)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -301,6 +300,7 @@ that changed a published name or rule:
 | [the-read-only-contract-is-enforced-by-nothing](the-read-only-contract-is-enforced-by-nothing.md) | agents | yes | 2/7 | The read-only contract is enforced by nothing, and four reviewers wrote files |
 | [the-shipped-python-does-not-pass-its-own-review](the-shipped-python-does-not-pass-its-own-review.md) | backend | yes | 7/12 | **Our own scripts spend a sixth of their prose on what the code does NOT do.** ! **Roy's reason, 2026-08-16: *"I don't want the system picking up bad cues from the documentation in the code."*** An agent reads these files and then writes in them. Re-measured after that day's rewrites: **136 of 697 (20%)** comment and docstring lines carry `cannot` / `never` / `does not` / `is not` / `nothing` -- UP from 123/714, because the prose written that day carries the same defect -- `census.py` worst at 52/284. Roy: *"census.py creates the pCST and that is it. Comments about 'cannot answer OWNERSHIP' are not helpful."* ! Not every negative is wrong -- an output (*"reports UNPROVABLE rather than passing"*) and a refusal aimed at a future editor both earn their place -- so the first task is writing the test that tells them apart !! **The hand-pass rule is STRUCK, 2026-08-18.** It told itself not to run `/comment-review` on this repo; Roy: *"By definition the code has to go through the review to state that it has passed."* A hand pass produces a rewrite, and this file's title is a claim about what the review RETURNS -- so it now closes on a run graded from the diff. ! The harness does not gate that: running the skill needs the skill |
 | [lexer-and-language-findings](lexer-and-language-findings.md) | backend | — | 3/28 | Ten findings in lexer.py and language.py, from three review rounds |
+| [generator-split-is-dead-at-import](generator-split-is-dead-at-import.md) | testing | — | 3/4 | `import census` resolves to nothing since 2026-08-24, so a command CLAUDE.md documents raises ModuleNotFoundError before it parses an argument -- and the eight symbols it wants are now spread across four areas |
 
 ### decision-needed  (23)
 
