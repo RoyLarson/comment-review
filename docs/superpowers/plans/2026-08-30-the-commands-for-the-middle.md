@@ -55,63 +55,101 @@ job-board plan close 0.2.4-the-commands-for-the-middle P<n> \
 
 ---
 
-## Task 1: Define the `edit_copy` in the source
+## Task 1: Give the containers a type
 
-**Delivers P16 and P17.** Nothing else may start: `P4`, `P7` and `P14` are all built on a container that is currently defined nowhere.
+**Delivers P21.** Nothing else may start: `P4`, `P7` and `P14` are built on a shape that exists only in code.
+
+!! **THE CONTAINERS ARE ONE SHAPE, AND THE CHIEF'S IS NOT SPECIAL** -- `decision-log.md
+Vocabulary: #30`. The chief step is a FOLD: `master_proof` holding N `edit_copies` becomes ONE
+`edit_copy` whose `role` is `copy-chief`. It is the RESULT, so every place carries exactly one
+mark, which is what an ordinary `edit_copy` already is.
+
+! **A `state` FIELD WAS PROPOSED AND IS STRUCK.** `settled`, `escalated` and `reread` are the
+INTERMEDIATE, and the intermediate already has a type -- `desk.collator.Reconciled`.
+
+! **AND THE TYPE LIVES IN `desk/`, NOT A MARKDOWN SOURCE.** An agent authors a mark, so
+`docs/the-mark.md` publishes its shape to a role. **No agent authors a container** -- `seed`,
+`fan` and `gather` build them -- so the type IS the definition, as `desk/mark.py` defines `Mark`.
 
 **Files:**
-- Modify: `docs/the-mark.md`
-- Create: `tests/gates/test_edit_copy_shape.py`
+- Create: `src/comment_review/desk/containers.py`
+- Create: `tests/test_containers.py`
+- Modify: `src/comment_review/flows/marks.py` (`seed` returns the type)
+- Modify: `src/comment_review/desk/proof.py` (`gather` takes and returns it)
 
 **Interfaces:**
-- Consumes: the existing shape, which lives only in code -- `flows/marks.py:36` (`seed`) and `desk/mark.py:318` (`allowed`).
-- Produces: `docs/the-mark.md` as the single source for both shapes, and a gate that reads it.
-
-- [ ] **Step 1: Read what exists, and write down the two shapes**
-
-Read `flows/marks.py:36` and `desk/mark.py:318`. The ordinary `edit_copy` is:
-
-```
-{"role": str, "read_from": {"root": str, "revise": int},
- "sheets": [{"path": str, "sha": str, "marks": [ ... ]}]}
-```
-
-- [ ] **Step 2: Write the failing gate**
-
-`tests/gates/test_edit_copy_shape.py` -- it READS the field names out of `docs/the-mark.md` and compares them to what `seed()` actually produces over a real binder. Follow `tests/gates/test_mark_shape.py`, which does exactly this for the mark's field table.
+- Consumes: the shape as built today -- `flows/marks.py:36` (`seed`) and `desk/mark.py:318` (`allowed`).
+- Produces:
 
 ```python
-def test_the_edit_copy_carries_exactly_the_keys_the_spec_NAMES():
-    named = _keys_from_the_mark_md("edit_copy")
-    built = set(seed(binder_of(a_small_real_tree(tmp_path), 0), "block-context"))
-    assert named == built
+@dataclass(frozen=True)
+class Sheet:
+    path: str
+    sha: str
+    marks: list[Mark]
+
+@dataclass(frozen=True)
+class EditCopy:
+    role: str
+    read_from: dict
+    sheets: list[Sheet]
+    rounds: dict[str, dict[str, int]] = field(default_factory=dict)
+
+@dataclass(frozen=True)
+class MasterProof:
+    stage: str
+    read_from: dict
+    edit_copies: list[EditCopy]
 ```
 
-- [ ] **Step 3: Run it and watch it fail**
+! **`rounds` IS ON THE ENVELOPE, NOT ON A MARK.** The chief's copy from round N is the input to
+round N+1, so the tally rides the container -- `{"m.py@b1": {"composition": 1, "conflict": 0}}` --
+and the mark's SEVEN FIELDS STAY SEVEN.
 
-Run: `uv run pytest tests/gates/test_edit_copy_shape.py -q`
-Expected: FAIL -- `docs/the-mark.md` names no `edit_copy` at all (zero hits today).
+- [ ] **Step 1: Write the failing test -- the type matches what `seed` already builds**
 
-- [ ] **Step 4: Write both shapes into `docs/the-mark.md`**
+```python
+def test_the_edit_copy_type_matches_what_seed_BUILDS(tmp_path):
+    built = seed(binder_of(a_small_real_tree(tmp_path), 0), "block-context")
+    parsed, problems = EditCopy.read("probe", built)
+    assert problems == []
+    assert parsed.role == "block-context"
+    assert parsed.sheets and parsed.sheets[0].path
+```
 
-Two tables. The ordinary `edit_copy`, and the copy chief's, which adds:
+! **THE EXPECTATION COMES FROM `seed` OVER A REAL TREE, NOT FROM A LITERAL.** A hand-written
+`edit_copy` would confirm the type against itself.
 
-| key | what it is |
-| --- | --- |
-| `state` | one of `settled`, `escalated`, `reread` |
-| `rounds` | per place, BY KIND -- `{"composition": int, "conflict": int}` |
-| `set_by` | the role, the roles, or the chief |
+- [ ] **Step 2: Run it and watch it fail**
 
-! **P17 is the part that makes it usable: say what an entry carries in EACH state.** A settled entry carries its alteration; an escalated one carries every competing mark; a reread one carries the composed text and who is party to it. A reader must be able to tell the state from the entry alone.
+Run: `uv run pytest tests/test_containers.py -q`
+Expected: FAIL -- `desk.containers` does not exist.
 
-- [ ] **Step 5: Run the gate and the suite**
+- [ ] **Step 3: Write `desk/containers.py` with the three types and a boundary parse**
 
-Run: `uv run pytest -q` and `uv run python scripts/check_vocabulary.py`
-Expected: PASS, and the count is above 1298.
+Follow `desk/mark.py`: `read(where, entry) -> (Type | None, problems)`. **One object or named
+problems, and no third outcome.**
 
-- [ ] **Step 6: Commit the work**
+- [ ] **Step 4: Write the failing test for the chief's copy -- same type, no new shape**
 
-- [ ] **Step 7: Close P16 and P17, in a separate commit, citing Step 6's sha**
+```python
+def test_the_chiefs_copy_is_an_ordinary_edit_copy(tmp_path):
+    chief = EditCopy(role="copy-chief", read_from={...}, sheets=[...],
+                     rounds={"m.py@b1": {"composition": 1, "conflict": 0}})
+    parsed, problems = EditCopy.read("probe", asdict(chief))
+    assert problems == []
+```
+
+- [ ] **Step 5: Run to green, then make `seed` and `gather` return the types**
+
+- [ ] **Step 6: Run every gate**
+
+`uv run pytest -q`, `ruff check .`, `ty check src/comment_review/`, `build_plugin.py --check`,
+`check_shipped_syntax.py`, `check_vocabulary.py`
+
+- [ ] **Step 7: Commit the work**
+
+- [ ] **Step 8: Close P21, in a separate commit, citing Step 7's sha**
 
 ---
 

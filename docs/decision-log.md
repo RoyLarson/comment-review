@@ -917,6 +917,45 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ([`no-mark-for-let-it-stand`](../TODO/no-mark-for-let-it-stand.md)), so two of the chief's
   three are named and one is not yet filed.
 
+- **#30.** **THE COPY CHIEF'S `edit_copy` IS THE SAME SHAPE, AND THE CHIEF STEP IS A FOLD** (Roy,
+  2026-08-30): *"I felt (maybe wrongly) that these would end up being the same shape and the
+  master-proof would go from multiple edit-copies to one edit-copy in the copy-chief step."* **Not
+  wrongly.**
+
+      master_proof { edit_copies: [ role_a, role_b, role_c, role_d ] }
+          -> gather / places / reconcile  ==> Reconciled(settled, escalations, rereads)
+          -> the chief: taken_in | stet | recast
+          -> edit_copy { role: "copy-chief", sheets: [...] }     ONE. Same shape.
+
+  !! **BECAUSE IT IS THE RESULT OF THE FOLD, NOT A WORKSPACE DURING IT.** After the chief acts
+  every place has exactly ONE answer -- a settled place keeps its mark, an escalated one becomes
+  `taken_in`, `stet` or `recast`, a re-read one becomes the composed text. One mark per place is
+  an ordinary `edit_copy`.
+
+  !! **AND IT IS WHY `docket_from` TAKES ONE ARGUMENT.** It transcribes an ordinary `edit_copy`;
+  nothing about the chief's is special.
+
+  ! **A PLAN STEP PROPOSING THREE STATES ON AN ENTRY -- `settled`, `escalated`, `reread` -- IS
+  STRUCK.** Those are the INTERMEDIATE, and the intermediate already has a type:
+  `desk.collator.Reconciled`. Writing them onto entries would have been a second representation
+  of something that exists.
+
+  ! **THE ROUND TALLY GOES ON THE CONTAINER, NOT THE MARK.** The chief's copy from round N is the
+  input to round N+1, so the count rides the envelope -- `{"rounds": {"m.py@b1": {"composition":
+  1, "conflict": 0}}}` -- and the mark's seven fields stay seven.
+
+  !! **THE CONTAINERS GET A TYPE IN `desk/`, NOT A MARKDOWN SOURCE, AND THE DISTINCTION IS WHO
+  AUTHORS THEM.** Roy: *"They need a place somewhere in the desk/ folder."* `docs/the-mark.md`
+  exists because **an agent authors a mark**, so its shape must be published to a role and cannot
+  live only in code. **No agent ever authors a container** -- `seed`, `fan` and `gather` build
+  them -- so the type IS the definition, the way `desk/mark.py` defines `Mark`.
+
+  ! **AND THE SHAPE HAS BEEN CODE-ONLY UNTIL NOW**, at `flows/marks.py:36` and `desk/mark.py:318`,
+  which is the state `the-mark.md`'s own header calls out: *"the shape had no owning file, and
+  something else became the spec."* The ordinary `edit_copy` is real and shipping -- 60+ uses
+  across eight modules; the chief's was an idea with one mention in `src/`, a comment saying the
+  copy chief is out of scope.
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**
