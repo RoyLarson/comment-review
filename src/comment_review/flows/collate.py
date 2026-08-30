@@ -6,8 +6,8 @@ Seven acts, in order:
 
     CHECK      every copy's marks, stacked -- `desk.collator.problems_in`
     DRIFT      a returned `raw_text` that is not the seeded one
-    STAND DOWN every mark `CHECK` already reported, to an ordinary
-               `desk.mark.untouched` slot -- `_reconcilable`
+    DROP       every mark `CHECK` already reported, from what `RECONCILE`
+               sees -- `_reconcilable`
     GATHER     `desk.proof.gather` -- the master_proof
     PLACE      `desk.collator.places` -- marks grouped by the place they touch
     RECONCILE  `desk.collator.reconcile` -- settled, escalated, re-read
@@ -26,13 +26,14 @@ should be stacked and capable of being read off correctly so that each can be
 fixed or sent back to the role."* That is verification's discipline, which
 `desk/collator.py`'s own header already states against reconciliation's raise.
 
-!! AND THE STAND-DOWN IS WHAT LETS THE CHECK'S DISCIPLINE SURVIVE PAST IT.
+!! AND THE DROP IS WHAT LETS THE CHECK'S DISCIPLINE SURVIVE PAST IT.
 `desk.collator.places` -- what `reconcile` calls first -- RAISES
 `MalformedMark` on the first entry it cannot parse, so handing it a copy
 `CHECK` already found broken would abort the whole fold on ONE bad mark
 rather than routing it back to its role while the rest of the stage settles.
-`_reconcilable` stands every such entry down to the shape `places` already
-skips, over a COPY of the edit_copy -- the caller's own is never mutated.
+`_reconcilable` removes every such entry, over a COPY of the edit_copy -- the
+caller's own is never mutated. See `_reconcilable`'s own docstring for why
+this is a drop and not a stand-down to `desk.mark.untouched`.
 """
 
 from dataclasses import dataclass, field
@@ -192,6 +193,11 @@ def _chief_copy(read_from: dict, resolved: dict[str, Mark], proof: dict) -> dict
     `unflatten` resolves it against the proof's own sheet paths, exactly as
     `docket_from` does, so the sheets name files that are actually there.
     """
+    # ! DUPLICATES `desk.collator._real_pages`, which builds the identical
+    # (paths, shas) pair over the identical proof shape for `docket_from`.
+    # `_real_pages` is a private name in a file this module must not edit, so
+    # this loop is its own copy rather than an import of an underscore-prefixed
+    # function from another module.
     paths: list[str] = []
     shas: dict[str, str] = {}
     for copy in proof.get("edit_copies", []):
@@ -217,25 +223,37 @@ def _chief_copy(read_from: dict, resolved: dict[str, Mark], proof: dict) -> dict
 
 
 def _reconcilable(copy: dict) -> dict:
-    """This role's edit_copy with every malformed mark stood down to a gap.
+    """This role's edit_copy with every malformed mark dropped.
 
     !! FORCED BY THE TESTS, NOT IN THE ORIGINAL BRIEF. `desk.collator.places`
     -- what `reconcile` calls first -- RAISES `MalformedMark` on the first
     entry `desk.mark.parse` refuses, and `problems_in` parses every entry the
-    same way, so anything this function stands down was already reported in
-    `Collated.problems` before `collate` ever reaches `reconcile`. Without
-    this step a single bad mark in one copy would abort the whole fold rather
-    than being routed back to its role while the rest of the stage settles.
+    same way, so anything this function drops was already reported in
+    `Collated.problems` before `collate` ever reaches `reconcile`.
 
-    ! A MALFORMED ENTRY BECOMES AN ORDINARY `desk.mark.untouched` SLOT, built
-    from its own `address`, `anchor` and `raw_text` through `Mark.seed` --
-    the same shape `flows.marks.seed` hands out. `places` skips an untouched
-    slot outright, so the place it named is absent from reconciliation
-    exactly as if nobody had ruled there.
+    !! NECESSARY BECAUSE THE ALTERNATIVE BLOCKS THREE ROLES OVER ONE. A
+    simpler fix -- refuse the whole run where `problems` is non-empty -- was
+    considered and rejected, ruled by Roy 2026-08-30: `Problem(role, address,
+    message)` exists precisely so "the errors should be stacked and capable
+    of being read off correctly so that each can be fixed or sent back to the
+    role." Per-role routing means one role's bad mark must not stop the other
+    roles' work from settling; a refusal here would do exactly that, over the
+    whole stage, for a defect that names one role and one place.
 
-    ! AN ENTRY THAT IS NOT EVEN AN OBJECT IS DROPPED, since `Mark.seed` needs
-    an `address`, `anchor` and `raw_text` to seed from and a bare string or
-    number carries none.
+    ! A MALFORMED ENTRY IS DROPPED, NOT STOOD DOWN TO `desk.mark.untouched`.
+    `places` already skips a `marks` entry two ways -- when `untouched(entry)`
+    is True, and when the entry is simply absent from the list -- and dropping
+    takes the second path. Standing one down to `Mark.seed`'s shape would
+    write `instruction: None`, which is what `untouched` reads as *nobody
+    wrote here*; a malformed mark means a role DID write here and got the
+    shape wrong. Giving those two facts one representation is the same
+    conflation `untouched`'s own docstring exists to forbid, in the other
+    direction. Dropping keeps them apart, and needs no `Mark.seed` call.
+
+    ! THE INFORMATION IS NOT LOST EITHER WAY. `problems_in` runs on the
+    ORIGINAL copy, before this function touches it, so the role and the
+    address are already captured in `Collated.problems` by the time this
+    drops the entry from what `reconcile` sees.
 
     Returns:
         A NEW edit_copy dict -- new `sheets` and `marks` lists -- so the
@@ -256,16 +274,8 @@ def _reconcilable(copy: dict) -> dict:
                 marks.append(entry)
                 continue
             where = str(entry.get("address") or "a mark")
-            mark, why = parse(where, entry)
-            if mark is None:
-                marks.append(
-                    Mark.seed(
-                        str(entry.get("address") or ""),
-                        str(entry.get("anchor") or ""),
-                        str(entry.get("raw_text") or ""),
-                    )
-                )
-            else:
+            mark, _why = parse(where, entry)
+            if mark is not None:
                 marks.append(entry)
         sheets.append({**sheet, "marks": marks})
     return {**copy, "sheets": sheets}
@@ -287,15 +297,16 @@ def collate(stage: str, edit_copies: list[dict], binder: dict) -> Collated:
 
     Raises:
         desk.collator.UnnamedRole: a copy carries no `role`. ! `_reconcilable`
-            cannot repair this -- there is no address to seed a stand-down
-            from -- so it is the one way `places` still refuses here.
+            works entry by entry and cannot repair this -- a missing `role` is
+            a fact about the whole copy, not about any one mark -- so it is
+            the one way `places` still refuses here.
         desk.proof.MismatchedRoot: two copies were censused from different
             roots.
 
     ! `desk.collator.MalformedMark` NEVER REACHES A CALLER OF `collate`.
-    `_reconcilable` stands every entry `places` would otherwise refuse down to
-    an untouched slot before `reconcile` runs, so the raise `places` itself
-    still documents cannot fire from here.
+    `_reconcilable` drops every entry `places` would otherwise refuse before
+    `reconcile` runs, so the raise `places` itself still documents cannot fire
+    from here.
     """
     base = base_texts(binder)
     problems: list[Problem] = []
