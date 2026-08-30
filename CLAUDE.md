@@ -204,6 +204,30 @@ uv run python scripts/todo_tool.py resync     # after a merge, before trusting a
 uv run ruff check .
 uv run ruff format .
 
+# !! A FORMATTER OR LINTER DELTA IS PART OF THE TASK THAT SURFACED IT. Roy,
+# 2026-08-30, on deferring one to the end of an in-flight edit: the delay to the
+# next code checkpoint is acceptable, "but it becomes critical-path then and must
+# be fixed then." ! It is not filed, not batched, and not left for the release.
+#
+# ! WHY IT HAS TO BE A RULE: `ruff check` CANNOT SEE A FORMATTING DELTA AT ALL.
+# The two commands answer different questions and only one of them is in the
+# suite, so a skipped format stays invisible until someone runs the formatter and
+# gets a diff spanning files they never touched.
+#
+# !! BOTH ARE GREEN REPO-WIDE AS OF 2026-08-30 -- `ruff format --check .` reports
+# 171 files already formatted, and `ruff check .` passes. **That is stated so a
+# new error is attributable: it is something the current change introduced, not a
+# backlog it inherited.** ! MEASURED the same day: 24 files were unformatted and
+# were read as inherited drift, when they were this branch's own work from an
+# earlier session. Roy: "I cleared the session that wrote those in this branch."
+# A baseline is what makes that mistake unavailable.
+#
+# ! AND THE FORMATTER CAN CREATE A LINT ERROR, so `ruff check` runs again after
+# it. MEASURED 2026-08-30: `scripts/render_brief.py` opened a docstring on a
+# quoted word (`""""none" for ...`), `ruff format` inserted a space to
+# disambiguate the quotes, and `ruff check` then reported `D210`. Neither tool is
+# wrong; the two together need a second pass.
+
 # Type gate. Roy, 2026-08-22: "type drifts happen because we have been willing
 # to ignore a ty gate and that is probably not the right thing to do."
 # ! IT FOUND THINGS NO TEST DID, on the day it was added: `cue` annotated a
