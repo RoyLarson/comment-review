@@ -1808,3 +1808,28 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **THE COST IS REAL AND FILED.** `TODO/revise-copies-everything.md` measures a full copy at
   284MB per editorial stage on this repo. **That is an argument about what `pull` copies, not
   about whether it runs.**
+
+- **#53.** **`Vocabulary: #11` NAMES `collator.py` AND RULES NOTHING ELSE** (Roy, 2026-08-30):
+  *"verdicts.py is retired in the prototype and it is broken. The only true statement it should
+  carry is that we picked the name collator.py to be the thing that brings the marks back
+  together. And puts them in a format ready for comparison."*
+
+  !! **SO THE MODULE'S OWN HEADER OVERCLAIMS.** `desk/collator.py` states *"THE COLLATOR RULES ON
+  NOTHING ... it never judges which mark is right, never renders the composed text, and never
+  reads a file"* and cites `#11`. **`#11` says none of that.** It rules that `verdicts.py` was not
+  the copy chief and that the rename goes to `collator.py`; every other clause describes how the
+  module happened to behave, written in the register of a constraint.
+
+  !! **AND IT WAS USED AS ONE, TWICE IN ONE CONVERSATION.** A session quoted the docstring as a
+  design boundary, concluded a COMPOSE could not live in reconciliation, then cited `#11` as the
+  authority behind it -- a ruling about **retired, broken prototype code**. ! **Composing two
+  edits on disjoint spans is ARITHMETIC, not judgement**, so nothing in `#11` forbids it.
+
+  !! **THE STANDARD, AND IT IS GENERAL.** Roy: *"lets be careful to validate that the functions in
+  it are necessary and appropriate for the design we have laid out and that we are not forcing the
+  design to meet imaginary constraints from the collator.py because collator.py can change and
+  probably ought to change. **Making the design fit to collator.py is not the way.**"*
+
+  ! **A CLAIM IN A FILE IS A CLAIM TO VERIFY, NEVER A CONSTRAINT TO OBEY** -- this repo's whole
+  remit, arriving from the inside. A module naming retired machinery pulls a reader's reasoning
+  toward a design that no longer exists.
