@@ -1870,3 +1870,45 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **THE MOVE LANDS WITH THE FLOW, NOT BEFORE IT.** `Process: #12` has a command expose a FLOW,
   so `mark --check` reaches these through `flows/collate.py` rather than importing `desk/` --
   which is what it does today via `flows/marks.py`.
+
+- **#55.** **THE TOPOLOGY IS VERIFIED BY A COMMAND THE AGENT RUNS, AND THE COMMAND ALSO BUILDS
+  IT** (Roy, 2026-08-30): *"this is actually pretty simple because an agent does the actual
+  running of the system, we need a command like `topology --verify` which errors out if it is
+  broken. Then the task agent verifies that the setup is correct and has the correct
+  pieces/specifications before running the whole system across the pages. topology should also
+  have the tools for the agent to correctly specify the order and the splits and the topology
+  based upon the directives given."*
+
+  !! **IT RESOLVES A PLACEMENT THAT LOOKED LIKE A DILEMMA.** `topology.read(text)` sees `tomllib`
+  and `desk/stages.py` and nothing else -- **no tree, no binder** -- so it cannot know whether a
+  glob matches a page. Two bad answers were on the table: give `read` a second parameter, breaking
+  the `read(text) -> (thing, error)` shape `binder.read` and `docket.read` both hold; or add a
+  free function nothing forces a caller to run, **which is exactly how five verification functions
+  came to be built and unwired.**
+
+  ! **A COMMAND HAS A REPO, AND AN AGENT INVOKES IT.** So `read` keeps ruling on the file's own
+  shape, and the command rules on whether that topology fits THIS checkout. Nothing needs a
+  parameter it cannot use, and nothing waits to be remembered.
+
+  !! **AND IT IS NOT A FLAG ON A COMMAND -- TOPOLOGY IS ITS OWN CONFIGURATION SYSTEM.** Roy, the
+  same day: *"What I am really saying is that topology is its own configuration
+  workflow/command system."* It configures a RUN, the way the board tool configures work: a
+  surface of its own, with a workflow the agent follows before any page is read.
+
+      directives  ->  BUILD a topology     which roles, in what order, split how
+                  ->  VERIFY it            against this checkout, errors when it does not fit
+                  ->  only then run        distribute / collate / pull, stage by stage
+
+  !! **THE AGENT DOES NOT HAND-WRITE TOML.** It is given directives and needs a topology that
+  satisfies them, so the tool that reads the format is the tool that writes it -- and the same
+  tool says whether what it wrote fits the tree it will run against.
+
+  ! **THE WORKFLOW IS THE POINT, NOT THE VERB.** A run that starts against an unverified topology
+  fails partway, after roles have already read and filled their copies. Verification before the
+  first page is read is what makes a bad configuration cost nothing.
+
+  ! **MEASURED, and it is why this surfaced:** `tests/fixtures/topologies/4a-then-4c.toml` refuses
+  any tree but this repo's -- its globs name `src/comment_review/reading/*.py` and
+  `.../binder/*.py`, so a scratch tree raises `UncoveredPage: block-context: no dispatch covers`.
+  **The refusal is correct** -- fan-out must cover every page -- but it surfaces from `fan`,
+  blaming the tree for the topology's assumption, and only once a run is already underway.
