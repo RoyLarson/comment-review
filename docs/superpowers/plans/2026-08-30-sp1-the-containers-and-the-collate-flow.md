@@ -107,7 +107,7 @@ the sentence there means Task 7 lands a function the file's own first line denie
 citation. `grep -rn "Vocabulary: #11" src/` returns exactly one line, and it is
 `results/differences.py:5`. **The target moved; the defect did not.**
 
-- [ ] **Step 1: Confirm where the claim is, before changing anything**
+- [x] **Step 1: Confirm where the claim is, before changing anything**
 
 ```bash
 grep -rn "Vocabulary: #11" src/comment_review/
@@ -116,7 +116,7 @@ grep -rn "Vocabulary: #11" src/comment_review/
 Expected: one line, `src/comment_review/results/differences.py:5`. If `collator.py` also
 appears, fix both in Step 2 and say so in the commit.
 
-- [ ] **Step 2: Rewrite `results/differences.py`'s header**
+- [x] **Step 2: Rewrite `results/differences.py`'s header**
 
 Replace lines 1-17 with:
 
@@ -153,7 +153,7 @@ too."*** `#11` rules that the copy chief is the one who rules on collated marks 
 the rename goes to `collator.py`. It says nothing about what any module may render, and
 citing it as a boundary is what `#53` struck.
 
-- [ ] **Step 3: Verify the claim is gone and nothing else moved**
+- [x] **Step 3: Verify the claim is gone and nothing else moved**
 
 ```bash
 grep -rn "Vocabulary: #11" src/comment_review/
@@ -162,7 +162,7 @@ uv run pytest -q
 
 Expected: the grep returns nothing; the suite passes unchanged.
 
-- [ ] **Step 4: Confirm `collator.py`'s remaining prose is checkable**
+- [x] **Step 4: Confirm `collator.py`'s remaining prose is checkable**
 
 Read `src/comment_review/desk/collator.py:1-28` and check each claim against the code:
 
@@ -176,7 +176,7 @@ If any is false, correct it in the same commit and name it. If all hold, say so 
 commit -- **a check that was run and passed is worth recording, since the next reader
 otherwise re-runs it.**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/comment_review/results/differences.py
@@ -214,7 +214,7 @@ dataclass agrees with `backend`'s spec file.
 restatements in it; after this the file contains no number that `docs/the-mark.md` does
 not state.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `tests/gates/test_mark_shape.py`:
 
@@ -235,7 +235,7 @@ def test_no_count_in_this_file_restates_the_spec():
     )
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 ```bash
 uv run pytest -q tests/gates/test_mark_shape.py::test_no_count_in_this_file_restates_the_spec
@@ -244,7 +244,7 @@ uv run pytest -q tests/gates/test_mark_shape.py::test_no_count_in_this_file_rest
 Expected: FAIL -- `NUMBER = {` is not in the file yet, raising `IndexError` on the split.
 That is a legitimate red: the constant this test is written around does not exist.
 
-- [ ] **Step 3: Add the word-to-integer map and read every count from the spec**
+- [x] **Step 3: Add the word-to-integer map and read every count from the spec**
 
 Insert after the `SPEC = ...` line:
 
@@ -334,7 +334,7 @@ And rename `test_the_owes_table_names_the_same_seven_rows` to
 `set(OWES_TABLE) == set(INSTRUCTIONS)` and carries no number, so the count in the NAME is
 the last restatement left.
 
-- [ ] **Step 4: State the must-match rule in `docs/the-mark.md`**
+- [x] **Step 4: State the must-match rule in `docs/the-mark.md`**
 
 Directly under the fields table (after the `| \`change\` | ... |` row and its blank
 line), add:
@@ -357,7 +357,7 @@ BY THE GATE**, and their sum must equal the names these two tables state. Same r
 fields table: the numbers live here, never in the test.
 ```
 
-- [ ] **Step 5: Run the whole gate**
+- [x] **Step 5: Run the whole gate**
 
 ```bash
 uv run pytest -q tests/gates/test_mark_shape.py
@@ -366,7 +366,7 @@ uv run pytest -q tests/gates/test_mark_shape.py
 Expected: PASS, all tests, including
 `test_no_count_in_this_file_restates_the_spec`.
 
-- [ ] **Step 6: Prove the generalised gate still bites**
+- [x] **Step 6: Prove the generalised gate still bites**
 
 By hand, in three moves:
 
@@ -383,7 +383,7 @@ half-rewrite of the spec file is exactly the failure that rule was written for.
 ! **THIS IS THE STEP THAT MAKES THE TASK WORTH ANYTHING.** `docs/gates.md`: *"does the
 check pass" is not the question; "could the check fail" is.*
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add tests/gates/test_mark_shape.py docs/the-mark.md
@@ -419,7 +419,7 @@ things need it back:
 the verbatim check take the base from the BINDER. The field on the mark is what came
 BACK, and its only reader is Task 9's drift check.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `tests/test_mark.py`:
 
@@ -453,7 +453,7 @@ def test_a_mark_that_lost_its_raw_text_still_parses():
     assert mark.raw_text == ""
 ```
 
-- [ ] **Step 2: Run them to verify they fail**
+- [x] **Step 2: Run them to verify they fail**
 
 ```bash
 uv run pytest -q tests/test_mark.py -k raw_text
@@ -461,7 +461,7 @@ uv run pytest -q tests/test_mark.py -k raw_text
 
 Expected: FAIL with `AttributeError: 'Mark' object has no attribute 'raw_text'`.
 
-- [ ] **Step 3: Add the row to `docs/the-mark.md`**
+- [x] **Step 3: Add the row to `docs/the-mark.md`**
 
 Change the heading on line 30:
 
@@ -479,7 +479,7 @@ Insert after the `anchor` row:
 half of the diff pair is which, not the field list, and its first column is not
 backticked so `_field_names()` does not read it.
 
-- [ ] **Step 4: Add the field to `Mark`**
+- [x] **Step 4: Add the field to `Mark`**
 
 In `src/comment_review/desk/mark.py`, delete the paragraph at lines 262-266 --
 
@@ -528,7 +528,7 @@ Add the field, third:
     change: str
 ```
 
-- [ ] **Step 5: Carry it through `parse`**
+- [x] **Step 5: Carry it through `parse`**
 
 In `parse`'s `Args:` block, replace
 
@@ -558,7 +558,7 @@ Add the field to the construction, third, matching declaration order:
             instruction=instruction,
 ```
 
-- [ ] **Step 6: Run the tests**
+- [x] **Step 6: Run the tests**
 
 ```bash
 uv run pytest -q tests/test_mark.py tests/gates/test_mark_shape.py
@@ -567,7 +567,7 @@ uv run pytest -q
 
 Expected: PASS. The gate accepts eight because Task 2 made it read the heading.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add docs/the-mark.md src/comment_review/desk/mark.py tests/test_mark.py
@@ -598,7 +598,7 @@ and nothing notices. `Mark.seed` puts the write half where the read half already
 back onto the copy chief's `edit_copy`; building that dict by hand re-creates the exact
 defect this task removes, one module further along.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 def test_seed_builds_the_slot_from_the_marks_own_names():
@@ -643,7 +643,7 @@ def test_as_entry_round_trips_through_parse():
     assert again == mark
 ```
 
-- [ ] **Step 2: Run them to verify they fail**
+- [x] **Step 2: Run them to verify they fail**
 
 ```bash
 uv run pytest -q tests/test_mark.py -k "seed or as_entry"
@@ -651,7 +651,7 @@ uv run pytest -q tests/test_mark.py -k "seed or as_entry"
 
 Expected: FAIL with `AttributeError: type object 'Mark' has no attribute 'seed'`.
 
-- [ ] **Step 3: Implement `SEEDED`, `seed` and `as_entry`**
+- [x] **Step 3: Implement `SEEDED`, `seed` and `as_entry`**
 
 Change the import at the top of `desk/mark.py`:
 
@@ -726,7 +726,7 @@ Add to the `Mark` class body, after the field declarations:
         return entry
 ```
 
-- [ ] **Step 4: Point `flows/marks.py` at it**
+- [x] **Step 4: Point `flows/marks.py` at it**
 
 Replace the mark-building literal at `src/comment_review/flows/marks.py:81-90`:
 
@@ -758,7 +758,7 @@ Update `seed`'s own docstring `Returns:` so it names where the slot's shape come
             the old key.
 ```
 
-- [ ] **Step 5: Run the tests**
+- [x] **Step 5: Run the tests**
 
 ```bash
 uv run pytest -q tests/test_mark.py tests/test_marks_flow.py
@@ -767,7 +767,7 @@ uv run pytest -q
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/comment_review/desk/mark.py src/comment_review/flows/marks.py tests/test_mark.py
@@ -803,7 +803,7 @@ It also wires `owes_destination`, **declared at `desk/mark.py:206` and read by n
 2026-08-27) needs an addresser, which `desk/mark.py` imports nothing of -- it stays
 `collator-defects` T3, beside `P28` in SP-2.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_a_move_onto_its_own_address_is_refused_by_name():
@@ -846,7 +846,7 @@ def test_a_move_to_a_different_address_still_parses():
     assert mark is not None
 ```
 
-- [ ] **Step 2: Run them to verify the first fails**
+- [x] **Step 2: Run them to verify the first fails**
 
 ```bash
 uv run pytest -q tests/test_mark.py -k move_onto_its_own
@@ -855,7 +855,7 @@ uv run pytest -q tests/test_mark.py -k move_onto_its_own
 Expected: FAIL -- `assert mark is None` fails, because `parse` returns a mark and no
 problems for it today.
 
-- [ ] **Step 3: Implement the check**
+- [x] **Step 3: Implement the check**
 
 Add above `parse` in `desk/mark.py`:
 
@@ -916,7 +916,7 @@ destination is entirely the collator's:
     entry alone; that it is ADDRESSABLE is not.
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 ```bash
 uv run pytest -q tests/test_mark.py
@@ -925,7 +925,7 @@ uv run pytest -q
 
 Expected: PASS.
 
-- [ ] **Step 5: Confirm the measured docket shape is now unreachable**
+- [x] **Step 5: Confirm the measured docket shape is now unreachable**
 
 ```bash
 uv run pytest -q tests/test_collator.py tests/test_docket.py
@@ -934,7 +934,7 @@ uv run pytest -q tests/test_collator.py tests/test_docket.py
 Expected: PASS. If any test built a self-move as an input, it now refuses at `parse` --
 fix the test to use a real destination, and say so in the commit.
 
-- [ ] **Step 6: Close the TODO tasks**
+- [x] **Step 6: Close the TODO tasks**
 
 ```bash
 uv run python scripts/todo_tool.py check collator-defects 1
@@ -946,7 +946,7 @@ one of four single-defect files `collator-defects` carries a standing note about
 stand until the board migration and are superseded into it **in one pass** -- Roy,
 2026-08-30, *"Do not close them by hand."*
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/comment_review/desk/mark.py tests/test_mark.py TODO/
@@ -986,7 +986,7 @@ what let `Instruction` be an enum the wire never carried.
 entry that is not an object must be CARRIED so `desk.mark.parse` can refuse it by name; a
 container that filtered to dicts would make a bare string vanish instead of being flagged.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/test_containers.py`:
 
@@ -1120,7 +1120,7 @@ class TestTheShape:
             assert "rounds" not in names, kind.__name__
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 ```bash
 uv run pytest -q tests/test_containers.py
@@ -1128,7 +1128,7 @@ uv run pytest -q tests/test_containers.py
 
 Expected: FAIL -- `ModuleNotFoundError: No module named 'comment_review.desk.containers'`.
 
-- [ ] **Step 3: Implement the module**
+- [x] **Step 3: Implement the module**
 
 Create `src/comment_review/desk/containers.py`:
 
@@ -1331,7 +1331,7 @@ def parse_master_proof(
     )
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 ```bash
 uv run pytest -q tests/test_containers.py
@@ -1340,7 +1340,7 @@ uv run pytest -q
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/comment_review/desk/containers.py tests/test_containers.py
@@ -1374,7 +1374,7 @@ disjointness that render only shows.
 and are already correct about the hard case (an `insert` at a span boundary, measured
 2026-08-29). `Process: #53`: *"Making the design fit to `collator.py` is not the way."*
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/test_differences.py`:
 
@@ -1441,7 +1441,7 @@ class TestCompose:
 Add `CannotCompose` and `compose` to the module's import line in the test file, and
 `import pytest` if it is not already there.
 
-- [ ] **Step 2: Run them to verify they fail**
+- [x] **Step 2: Run them to verify they fail**
 
 ```bash
 uv run pytest -q tests/test_differences.py -k Compose
@@ -1449,7 +1449,7 @@ uv run pytest -q tests/test_differences.py -k Compose
 
 Expected: FAIL with `ImportError: cannot import name 'compose'`.
 
-- [ ] **Step 3: Implement `compose`**
+- [x] **Step 3: Implement `compose`**
 
 Add to `src/comment_review/results/differences.py`, after `diff3`:
 
@@ -1521,7 +1521,7 @@ def compose(base: str, sides: dict[str, str]) -> str:
     return "".join(out)
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 ```bash
 uv run pytest -q tests/test_differences.py
@@ -1530,7 +1530,7 @@ uv run pytest -q
 
 Expected: PASS.
 
-- [ ] **Step 5: Prove the test can disagree with the implementation**
+- [x] **Step 5: Prove the test can disagree with the implementation**
 
 !! **THIS STEP IS THE ONE `docs/gates.md` REQUIRES OF THIS TASK.** `compose` is built from
 the same opcode machinery that produced the texts it merges, so a test asserting the
@@ -1547,7 +1547,7 @@ Expected: `test_two_edits_on_different_lines_merge` and
 `test_an_insert_and_a_distant_edit_compose` FAIL. Restore the line and confirm they pass.
 Record the result in the commit message.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/comment_review/results/differences.py tests/test_differences.py
@@ -1587,7 +1587,7 @@ the role."* `desk.mark.parse` returns flat sentences each opening with a `where`
 `unruled`); a `kind` would say which list a thing is already in, which is the two
 spellings of one rule this repo has measured drifting apart.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/test_collator.py`:
 
@@ -1624,7 +1624,7 @@ class TestProblemsAreRoutable:
         assert any(p.address == "" and "`role`" in p.message for p in problems)
 ```
 
-- [ ] **Step 2: Run them to verify they fail**
+- [x] **Step 2: Run them to verify they fail**
 
 ```bash
 uv run pytest -q tests/test_collator.py -k Routable
@@ -1633,7 +1633,7 @@ uv run pytest -q tests/test_collator.py -k Routable
 Expected: FAIL with `ImportError: cannot import name 'problems_in' from
 'comment_review.desk.collator'`.
 
-- [ ] **Step 3: Move the three verbs and add `Problem`**
+- [x] **Step 3: Move the three verbs and add `Problem`**
 
 Cut `problems_in`, `unruled` and `tally` from `src/comment_review/flows/marks.py`
 (lines 98-205) and paste them into `src/comment_review/desk/collator.py`, after
@@ -1722,7 +1722,7 @@ Add `from comment_review.binder.binder import _read_from_problem, rows_of` to
 Remove the now-unused imports from `flows/marks.py`: `_read_from_problem`,
 `INSTRUCTIONS`, `Instruction`, `parse`, `untouched`. Keep `Mark` and `address_for`.
 
-- [ ] **Step 4: Repoint `commands/mark.py`**
+- [x] **Step 4: Repoint `commands/mark.py`**
 
 ```python
 from comment_review.desk.collator import problems_in, tally, unruled
@@ -1743,14 +1743,14 @@ expose a FLOW, and `flows/collate.py` does not exist until Task 10. Importing `d
 from a command is the state this task leaves behind for one commit, and the plan says so
 rather than leaving a reader to wonder.
 
-- [ ] **Step 5: Move the tests**
+- [x] **Step 5: Move the tests**
 
 Move every test in `tests/test_marks_flow.py` that exercises `problems_in`, `unruled` or
 `tally` into `tests/test_collator.py`, changing only the import. **Do not rewrite an
 assertion** -- a moved test that also changed what it asserts proves nothing about the
 move.
 
-- [ ] **Step 6: Run the tests**
+- [x] **Step 6: Run the tests**
 
 ```bash
 uv run pytest -q
@@ -1758,7 +1758,7 @@ uv run pytest -q
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/comment_review/desk/collator.py src/comment_review/flows/marks.py \
@@ -1797,7 +1797,7 @@ them.
 ! **DRIFT IS REPORTED, NOT REFUSED.** The tree can legitimately move between `seed` and
 the return. A refusal would discard a whole copy over a change nobody made.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 class TestTheBaseIsTheBinders:
@@ -1849,7 +1849,7 @@ class TestTheBaseIsTheBinders:
         assert any("is not in the paragraph" in p for p in problems)
 ```
 
-- [ ] **Step 2: Run them to verify they fail**
+- [x] **Step 2: Run them to verify they fail**
 
 ```bash
 uv run pytest -q tests/test_collator.py -k TheBaseIsTheBinders
@@ -1859,7 +1859,7 @@ Expected: FAIL with `ImportError: cannot import name 'base_texts'`. The last tes
 differently once the import exists -- it passes today for the wrong reason, so run it
 again after Step 3 and confirm it still passes for the right one.
 
-- [ ] **Step 3: Implement `base_texts` and `drift_in`**
+- [x] **Step 3: Implement `base_texts` and `drift_in`**
 
 Add to `desk/collator.py`, after `known_addresses`:
 
@@ -1938,7 +1938,7 @@ def drift_in(report: dict, base: dict[str, str]) -> list[Problem]:
     return out
 ```
 
-- [ ] **Step 4: Re-source the verbatim check**
+- [x] **Step 4: Re-source the verbatim check**
 
 In `claim_verbatim_problems`, rename the third parameter and rewrite its doc:
 
@@ -1977,7 +1977,7 @@ In `verify_report`, replace the per-entry `raw_text` dig:
 
 and delete the two lines that read `entry.get("raw_text")`.
 
-- [ ] **Step 5: Run the tests**
+- [x] **Step 5: Run the tests**
 
 ```bash
 uv run pytest -q tests/test_collator.py
@@ -1988,7 +1988,7 @@ Expected: PASS, including
 `test_verify_report_measures_the_claim_against_the_BINDER`, which now passes because the
 base comes from the binder rather than because the mark happened to agree.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/comment_review/desk/collator.py tests/test_collator.py
@@ -2026,7 +2026,7 @@ stay three and the collator keeps answering one question.
 a different fact, and giving one shape two meanings is the conflation `untouched` exists
 to prevent.
 
-- [ ] **Step 1: Extend `tests/helpers.py` for a real base**
+- [x] **Step 1: Extend `tests/helpers.py` for a real base**
 
 `_synthetic_binder` writes `raw_text: ""`, which no compose can act on. Add beside it:
 
@@ -2102,7 +2102,7 @@ def a_correct_setting(address: str, sentence: str, change: str) -> dict:
     return mark
 ```
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 Create `tests/test_collate.py`:
 
@@ -2343,7 +2343,7 @@ class TestTheStackedCheck:
         assert [m for s in got.chief["sheets"] for m in s["marks"]] != []
 ```
 
-- [ ] **Step 3: Run them to verify they fail**
+- [x] **Step 3: Run them to verify they fail**
 
 ```bash
 uv run pytest -q tests/test_collate.py
@@ -2351,7 +2351,7 @@ uv run pytest -q tests/test_collate.py
 
 Expected: FAIL -- `ModuleNotFoundError: No module named 'comment_review.flows.collate'`.
 
-- [ ] **Step 4: Implement the flow**
+- [x] **Step 4: Implement the flow**
 
 Create `src/comment_review/flows/collate.py`:
 
@@ -2615,7 +2615,7 @@ def collate(stage: str, edit_copies: list[dict], binder: dict) -> Collated:
     )
 ```
 
-- [ ] **Step 5: Run the tests**
+- [x] **Step 5: Run the tests**
 
 ```bash
 uv run pytest -q tests/test_collate.py
@@ -2624,7 +2624,7 @@ uv run pytest -q
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/comment_review/flows/collate.py tests/test_collate.py tests/helpers.py
@@ -2663,7 +2663,7 @@ function whose docstring is about two `add`s.
 ! **AND THE ORDER OF INDEPENDENT MOVES IS WALK ORDER**, with nothing stating it is safe or
 re-derivable -- measured as four alterations with deletes and writes interleaved.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 class TestTheMovesAreADag:
@@ -2755,7 +2755,7 @@ class TestTheMovesAreADag:
         assert order.index("m.py@b5") < order.index("m.py@b1")
 ```
 
-- [ ] **Step 2: Run them to verify they fail**
+- [x] **Step 2: Run them to verify they fail**
 
 ```bash
 uv run pytest -q tests/test_collate.py -k Dag
@@ -2763,7 +2763,7 @@ uv run pytest -q tests/test_collate.py -k Dag
 
 Expected: FAIL with `ImportError: cannot import name '_move_order'`.
 
-- [ ] **Step 3: Implement the pairing, the cycle check and the order**
+- [x] **Step 3: Implement the pairing, the cycle check and the order**
 
 Add to `flows/collate.py`:
 
@@ -2909,7 +2909,7 @@ with the attribute doc:
             re-derives it. Empty where no move resolved.
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 ```bash
 uv run pytest -q tests/test_collate.py
@@ -2918,7 +2918,7 @@ uv run pytest -q
 
 Expected: PASS.
 
-- [ ] **Step 5: Close the TODO tasks**
+- [x] **Step 5: Close the TODO tasks**
 
 ```bash
 uv run python scripts/todo_tool.py check collator-defects 12
@@ -2926,7 +2926,7 @@ uv run python scripts/todo_tool.py check collator-defects 13
 uv run python scripts/todo_tool.py check collator-defects 14
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/comment_review/flows/collate.py tests/test_collate.py TODO/
