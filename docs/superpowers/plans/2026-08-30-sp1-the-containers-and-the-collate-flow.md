@@ -790,7 +790,7 @@ git commit -F <message file>
 **Closes:** `TODO/collator-defects.md` T1 and T2.
 
 **Necessity.** MEASURED 2026-08-30 by running it: a `move` from `m.py@b1` to `m.py@b1`
-parses clean, `collator._touches` dedupes both ends to one address, `reconcile` SETTLES
+parses with no problems reported, `collator._touches` dedupes both ends to one address, `reconcile` SETTLES
 it, and `docket_from` emits one alteration -- `('m.py', 'b1', None)`. **The paragraph is
 deleted and never written back.** It is the half-move `_join_moves` exists to prevent,
 arriving through the one shape it cannot see: `ends_of` filters
@@ -807,7 +807,8 @@ It also wires `owes_destination`, **declared at `desk/mark.py:206` and read by n
 
 ```python
 def test_a_move_onto_its_own_address_is_refused_by_name():
-    """MEASURED 2026-08-30: this parsed clean, `_touches` deduped its two ends
+    """MEASURED 2026-08-30: this parsed with no problems reported, `_touches`
+    deduped its two ends
     to one address, `reconcile` settled it, and the docket carried a single
     alteration deleting the paragraph -- `('m.py', 'b1', None)` -- with no
     matching write."""
@@ -851,7 +852,8 @@ def test_a_move_to_a_different_address_still_parses():
 uv run pytest -q tests/test_mark.py -k move_onto_its_own
 ```
 
-Expected: FAIL -- `assert mark is None` fails, because it parses clean today.
+Expected: FAIL -- `assert mark is None` fails, because `parse` returns a mark and no
+problems for it today.
 
 - [ ] **Step 3: Implement the check**
 
@@ -863,7 +865,8 @@ def _destination_problems(where: str, address: object, claim: object) -> list[st
 
     !! A DESTINATION EQUAL TO THE ORIGIN IS REFUSED, and it is the half of
     `owes_destination` one mark can answer alone. MEASURED 2026-08-30: such a
-    mark parsed clean, `collator._touches` deduped its two ends to one address,
+    mark parsed with no problems reported, `collator._touches` deduped its two
+    ends to one address,
     and `docket_from` wrote the delete at the origin with no matching write --
     the paragraph removed and never put back.
 
