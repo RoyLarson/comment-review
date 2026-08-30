@@ -2975,7 +2975,7 @@ No caller does that today.
 no middle command at all, which is this plan's whole premise. Naming the new commands
 there is `P10`, SP-6.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/test_collate_command.py`:
 
@@ -3150,7 +3150,7 @@ class TestTheGateSeesIt:
         assert "collate" in COMMANDS
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 ```bash
 uv run pytest -q tests/test_collate_command.py
@@ -3159,7 +3159,7 @@ uv run pytest -q tests/test_collate_command.py
 Expected: FAIL with `ImportError: cannot import name 'collate' from
 'comment_review.commands'`.
 
-- [ ] **Step 3: Implement the command**
+- [x] **Step 3: Implement the command**
 
 Create `src/comment_review/commands/collate.py`:
 
@@ -3289,7 +3289,7 @@ def main() -> int:
     return OK
 ```
 
-- [ ] **Step 4: Register it**
+- [x] **Step 4: Register it**
 
 In `src/comment_review/__main__.py`'s `Command` enum, add in alphabetical position:
 
@@ -3299,7 +3299,7 @@ In `src/comment_review/__main__.py`'s `Command` enum, add in alphabetical positi
     COMPOSITOR = auto()
 ```
 
-- [ ] **Step 5: Drop `--check` from `mark`**
+- [x] **Step 5: Drop `--check` from `mark`**
 
 In `src/comment_review/commands/mark.py`: delete the `--check` argument, the whole
 `if args.check:` branch, and the now-unused imports of `problems_in`, `tally`, `unruled`
@@ -3314,7 +3314,7 @@ RUN THE CHECK. ! The cost: a role can no longer validate its own returned copy
 alone -- the whole stage's copies must be in hand. No caller does that today.
 ```
 
-- [ ] **Step 6: Run the tests**
+- [x] **Step 6: Run the tests**
 
 ```bash
 uv run pytest -q tests/test_collate_command.py tests/gates/test_skill_commands.py
@@ -3324,7 +3324,7 @@ uv run pytest -q
 Expected: PASS. `test_skill_commands.py` keeps passing because `SKILL.md` names no middle
 command.
 
-- [ ] **Step 7: Close the TODO tasks**
+- [x] **Step 7: Close the TODO tasks**
 
 ```bash
 uv run python scripts/todo_tool.py check no-command-for-the-middle 1
@@ -3332,7 +3332,14 @@ uv run python scripts/todo_tool.py check no-command-for-the-middle 2
 uv run python scripts/todo_tool.py check no-command-for-the-middle 3
 ```
 
-- [ ] **Step 8: Commit**
+!! **TASK 1 DID NOT STAY CLOSED.** Ticked here against its original wording --
+"ONE command writes the docket `proof --docket` reads" -- which a review then
+found false of what shipped: `collate` writes the copy chief's `edit_copy`,
+and `proof --docket` reads a docket; `commands/proof.py` refuses one given
+the other. **Unticked and reworded to the remainder in `7bc5887`.** Tasks 2
+and 3 stayed closed on their own terms and are unaffected.
+
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/comment_review/commands/ src/comment_review/__main__.py \
@@ -3340,9 +3347,17 @@ git add src/comment_review/commands/ src/comment_review/__main__.py \
 git commit -F <message file>
 ```
 
+! **AND TWO MORE COMMITS FOLLOWED, NOT NAMED IN THIS STEP.** `9971a0b`
+caught `flows.collate.collate`'s two documented raises (`UnnamedRole`,
+`MismatchedRoot`) escaping `commands/collate.py` uncaught -- a raise is not
+a refusal -- and `0da4055` reworded a comment that described one ordering
+in the opposite direction word to `desk.collator.OUTCOMES`, and added a test
+proving `main`'s ESCALATIONS-before-REREADS branch order rather than only
+reading it sound.
+
 ---
 
-- [ ] **Step 9: Tick the boxes -- THIS STEP, in its own commit AFTER the one above**
+- [x] **Step 9: Tick the boxes -- THIS STEP, in its own commit AFTER the one above**
 
 Tick every `- [ ]` step box of this task in
 `docs/superpowers/plans/2026-08-30-sp1-the-containers-and-the-collate-flow.md`, and tick `P3` in
