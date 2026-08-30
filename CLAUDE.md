@@ -214,6 +214,17 @@ uv run ruff format .
 # suite, so a skipped format stays invisible until someone runs the formatter and
 # gets a diff spanning files they never touched.
 #
+# !! AND THE SECOND REASON IS THAT DRIFT MAKES A LATER DIFF LIE, WHICH IS WORST
+# OVER `plugins/`. Roy, 2026-08-30: *"why running the formatter should never have
+# been optional. It allows for drift on nothing real."* MEASURED that day: the
+# repo-wide `ruff format` that cleared 24 files also rewrote `plugins/`, which is
+# BUILT rather than written -- so the shipped tree carried a fresh commit while
+# holding a materially older program. `commands/mark.py` there still imported
+# `problems_in`, `tally` and `unruled` from `flows.marks` where `src/` had moved
+# them to `desk.collator`, and `desk/containers.py` and `flows/collate.py` were
+# absent from it entirely. ! A FORMATTER PASS AND A REBUILD ARE INDISTINGUISHABLE
+# AT A GLANCE in that directory, and nothing in the history says which happened.
+#
 # !! BOTH ARE GREEN REPO-WIDE AS OF 2026-08-30 -- `ruff format --check .` reports
 # 171 files already formatted, and `ruff check .` passes. **That is stated so a
 # new error is attributable: it is something the current change introduced, not a
