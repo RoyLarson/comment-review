@@ -8,6 +8,9 @@ Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy, after the collator experiment: run tests on
           whether showing a stripped version of the code leads to better comments about
           the current state)
+Related:  2026-08-30 — the collator rewrite that prompted this file is at commit
+          e4feba0; its report named two things the code could not say, which is the list
+          task 4 asks for
 ```
 
 ## Objective
