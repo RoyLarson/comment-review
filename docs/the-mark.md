@@ -39,6 +39,13 @@ superseding ruling applied rather than annotated.
 | `sources` | `{cite, verbatim, ran}` | the role |
 | `change` | the RESULT: **the updated paragraph, as RAW TEXT** | the role |
 
+!! **THE NUMBER IN THIS HEADING AND THE ROWS IN THIS TABLE MUST AGREE, AND A GATE READS
+BOTH.** `tests/gates/test_mark_shape.py` takes the count from the heading's own word and
+asserts the table holds that many, then asserts the dataclass carries exactly those names
+in that order. **No count is typed in the test**, so adding a field means editing this
+file and `desk/mark.py` together -- which is the only form of the check that cannot be
+satisfied by editing the code alone.
+
 !! **`claim` IS THE SPEC AND `change` IS THE RESULT.** Roy, 2026-08-17: *"the change is what allows
 the apply section to apply the claim appropriately."* Every check that reads the ORIGINAL sentence
 reads it out of `claim`; `change` is a whole paragraph and no sentence can be parsed back out of
@@ -197,6 +204,10 @@ to THIS FILE first.
     not diffable           add alone. There is no original to diff against
     anchor named in backticks   add alone, and it is a FORM check on `claim.anchor`
     destination addressable     move alone
+
+!! **THE COLUMN COUNT IN THIS HEADING AND THE FLAG COUNT IN THE LABEL ABOVE ARE BOTH READ
+BY THE GATE**, and their sum must equal the names these two tables state. Same rule as the
+fields table: the numbers live here, never in the test.
 
 !! **A ROW CARRIES NO PROSE. THE EXPLANATION LIVES IN THE INSTRUCTION SET AND THE CLI HELP.**
 Roy, 2026-08-28: *"What finishes can be put into the instruction set and the cli help. I forbid
