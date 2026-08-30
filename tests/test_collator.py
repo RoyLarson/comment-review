@@ -17,12 +17,14 @@ from pathlib import Path
 
 import pytest
 from conftest import ROOT
-from helpers import a_small_real_tree, binder_of
+from helpers import a_clean, a_correct, a_small_real_tree, binder_of
 
 from comment_review.binder.binder import rows_of
 from comment_review.desk.collator import (
     address_problems,
+    base_texts,
     claim_verbatim_problems,
+    drift_in,
     known_addresses,
     problems_in,
     source_problems,
@@ -363,7 +365,7 @@ class TestSourceVerification:
         problems = source_verification(
             "here",
             _well_formed(),
-            raw_text=RAW_TEXT,
+            base=RAW_TEXT,
             known=KNOWN,
             root=ROOT,
             cache={},
@@ -420,6 +422,58 @@ class TestVerifyReport:
         problems = verify_report(copy, BINDER, ROOT)
         assert problems
         assert any("instruction" in p for p in problems)
+
+
+class TestTheBaseIsTheBinders:
+    """D10 -- a compose or a verbatim check reads its base off the binder,
+    never off a mark's own returned `raw_text`."""
+
+    def test_base_texts_keys_every_address_the_binder_carries(self, tmp_path):
+        binder = binder_of(a_small_real_tree(tmp_path), 0)
+        base = base_texts(binder)
+        carried = {r["address"] for r in rows_of(binder) if r.get("address")}
+        assert set(base) == carried
+
+    def test_a_returned_raw_text_that_changed_is_REPORTED(self, tmp_path):
+        """!! THE 699/699 SHAPE, REFUSED. A check that reads its base off the
+        entry it is checking cannot disagree with it -- `docs/gates.md`."""
+        repo = a_small_real_tree(tmp_path)
+        binder = binder_of(repo, 0)
+        copy = seed(binder, "block-context")
+        entry = copy["sheets"][0]["marks"][0]
+        entry.update(a_clean(entry["address"]))
+        entry["raw_text"] = "# not what was seeded\n"
+        drift = drift_in(copy, base_texts(binder))
+        assert [p.address for p in drift] == [entry["address"]]
+        assert drift[0].role == "block-context"
+
+    def test_an_untouched_slot_is_not_drift(self, tmp_path):
+        """Nobody wrote here, so there is nothing to have drifted."""
+        repo = a_small_real_tree(tmp_path)
+        binder = binder_of(repo, 0)
+        copy = seed(binder, "block-context")
+        assert drift_in(copy, base_texts(binder)) == []
+
+    def test_a_faithful_copy_reports_no_drift(self, tmp_path):
+        repo = a_small_real_tree(tmp_path)
+        binder = binder_of(repo, 0)
+        copy = seed(binder, "block-context")
+        entry = copy["sheets"][0]["marks"][0]
+        entry.update(a_clean(entry["address"]))
+        assert drift_in(copy, base_texts(binder)) == []
+
+    def test_verify_report_measures_the_claim_against_the_BINDER(self, tmp_path):
+        """A mark whose `claim.false` is absent from the seeded paragraph is
+        reported even when the mark's own `raw_text` was rewritten to contain
+        it -- which is the whole point of taking the base from the binder."""
+        repo = a_small_real_tree(tmp_path)
+        binder = binder_of(repo, 0)
+        copy = seed(binder, "block-context")
+        entry = copy["sheets"][0]["marks"][0]
+        entry.update(a_correct(entry["address"], "a sentence nobody wrote"))
+        entry["raw_text"] = "a sentence nobody wrote"
+        problems = verify_report(copy, binder, repo)
+        assert any("is not in the paragraph" in p for p in problems)
 
 
 class TestEachCheckCanFire:

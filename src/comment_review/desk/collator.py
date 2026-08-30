@@ -1,6 +1,11 @@
 """SOURCE-VERIFICATION and RECONCILIATION: marks against the tree, then each other.
 
     known_addresses()          every address the binder carries
+    base_texts()                every address -> the paragraph the binder
+                               seeded there
+    drift_in()                  every ruled mark whose returned `raw_text`
+                               is not the one `base_texts` named for its
+                               address
     address_problems()         a mark's address is one of them
     claim_verbatim_problems()  the sentence the claim quotes is really in the
                                paragraph the row seeded
@@ -22,13 +27,18 @@
 !! THREE KINDS OF CHECK, AND WHAT EACH NEEDS IS WHAT SEPARATES THEM.
 `desk/mark.py` answers everything a mark can be judged by on its own. One
 kind needs the PAGE the role read and the FILES it cited (`address_problems`
-through `verify_report`). One kind needs only the report itself, and nothing
-outside it (`Problem`, `problems_in`, `unruled`, `tally`) -- `decision-log.md
-Process: #54` put them here because they ask whether every place in the copy
-was ruled on, a question about the SET, and one mark cannot answer for the
-set alone. One kind needs the marks the OTHER roles handed back (`places`
-through `docket_from`). Nothing above `places` compares two marks, and
-nothing below `verify_report` opens a file.
+through `verify_report`, and `base_texts`, which turns the binder into what
+`claim_verbatim_problems` and `verify_report` measure a returned claim
+against -- never a mark's own `raw_text`, the base a party being checked
+could have altered). One kind needs only the report itself, and nothing the
+checkout has to be opened for (`Problem`, `problems_in`, `unruled`, `tally`,
+and `drift_in`, which compares a report against `base_texts`'s own output
+rather than reading a file) -- `decision-log.md Process: #54` put the first
+four here because they ask whether every place in the copy was ruled on, a
+question about the SET, and one mark cannot answer for the set alone. One
+kind needs the marks the OTHER roles handed back (`places` through
+`docket_from`). Nothing above `places` compares two marks, and nothing in
+the second or third kind opens a file.
 
 !! AND THEY REFUSE DIFFERENTLY. Verification RETURNS a message per broken
 rule, each opening with the mark it is about, so a whole report is checked
@@ -77,6 +87,80 @@ def known_addresses(binder: dict) -> frozenset[str]:
         row["address"] for row in rows_of(binder) if row.get("address")
     )
 
+def base_texts(binder: dict) -> dict[str, str]:
+    """Every address the binder carries -> the paragraph it SEEDED there.
+
+    !! THE BASE IS THE BINDER'S, NEVER A RETURNED MARK'S. `raw_text` is seeded
+    and comes back on the mark, so a compose or a verbatim check reading it off
+    the mark would measure a claim against text the party being checked
+    supplied. `docs/gates.md` holds the measured case: the round-trip identity
+    scored 699 of 699 on its first run by rebuilding each file from line
+    positions it had just read out of that file.
+
+    Args:
+        binder: as `binder.read` returns one.
+
+    Returns:
+        address -> that place's `raw_text`. A row carrying no address is
+        dropped, matching `known_addresses`.
+    """
+    return {
+        row["address"]: str(row.get("raw_text", ""))
+        for row in rows_of(binder)
+        if row.get("address")
+    }
+
+
+def drift_in(report: dict, base: dict[str, str]) -> "list[Problem]":
+    """Every ruled mark whose returned `raw_text` is not the one it was handed.
+
+    ! REPORTED, NOT REFUSED. The tree can move between `seed` and the return,
+    which is an ordinary thing rather than a malformed copy -- so a whole copy
+    is never discarded over it. What a run must not do is compose over a base
+    nobody sanctioned, which `base_texts` prevents separately.
+
+    ! AN UNTOUCHED SLOT IS SKIPPED. Nobody wrote there, so nothing drifted.
+
+    ! AN ADDRESS THE BINDER DOES NOT CARRY IS NOT DRIFT EITHER -- that is
+    `address_problems`' question, and reporting it twice in two vocabularies is
+    the duplication `Problem` exists to avoid.
+
+    Args:
+        report: one edit_copy, as it came back.
+        base: `base_texts` of the binder it was seeded from.
+
+    Returns:
+        One `Problem` per drifted place, in sheet then mark order.
+    """
+    role = report.get("role")
+    named = role if isinstance(role, str) else ""
+    sheets = report.get("sheets")
+    if not isinstance(sheets, list):
+        return []
+    out: list[Problem] = []
+    for sheet in sheets:
+        marks = sheet.get("marks") if isinstance(sheet, dict) else None
+        if not isinstance(marks, list):
+            continue
+        for entry in marks:
+            if not isinstance(entry, dict) or untouched(entry):
+                continue
+            address = str(entry.get("address") or "")
+            if address not in base:
+                continue
+            got = str(entry.get("raw_text") or "")
+            if got != base[address]:
+                out.append(
+                    Problem(
+                        named,
+                        address,
+                        "`raw_text` is not the paragraph this place was seeded "
+                        "with -- the copy came back with a different base",
+                    )
+                )
+    return out
+
+
 def address_problems(where: str, mark: Mark, known: frozenset[str]) -> list[str]:
     """Whether this mark's address names a place the binder carries.
 
@@ -98,7 +182,7 @@ def address_problems(where: str, mark: Mark, known: frozenset[str]) -> list[str]
         ]
     return []
 
-def claim_verbatim_problems(where: str, mark: Mark, raw_text: str) -> list[str]:
+def claim_verbatim_problems(where: str, mark: Mark, base: str) -> list[str]:
     """Whether the sentence this mark's claim quotes is really in the paragraph.
 
     !! WHICH KEY HOLDS IT IS READ OFF THE ROW, never branched on the
@@ -113,8 +197,9 @@ def claim_verbatim_problems(where: str, mark: Mark, raw_text: str) -> list[str]:
     Args:
         where: how to name this mark in a message -- its address, or a position.
         mark: one role's ruling, already through `desk.mark.parse`.
-        raw_text: the paragraph the ROW seeded. It is the seeded row's field
-            and not one of `Mark`'s seven, which is why it is passed in.
+        base: the paragraph THE BINDER SEEDED at this place, from `base_texts`.
+            ! NOT `mark.raw_text`, which is what came BACK -- a check reading
+            its own base off the thing it is checking cannot disagree with it.
 
     Returns:
         One message, or an empty list. A key that is absent, is not a string,
@@ -127,7 +212,7 @@ def claim_verbatim_problems(where: str, mark: Mark, raw_text: str) -> list[str]:
     value = mark.claim.get(key)
     if not isinstance(value, str) or not value.strip():
         return []
-    if value not in raw_text:
+    if value not in base:
         return [f"{where}: `claim.{key}` is not in the paragraph this row seeded"]
     return []
 
@@ -256,7 +341,7 @@ def source_verification(
     where: str,
     mark: Mark,
     *,
-    raw_text: str,
+    base: str,
     known: frozenset[str],
     root: Path,
     cache: Cache,
@@ -271,14 +356,15 @@ def source_verification(
     Args:
         where: how to name this mark in a message -- its address, or a position.
         mark: one role's ruling, already through `desk.mark.parse`.
-        raw_text: the paragraph the row seeded, for the quoted sentence.
+        base: the paragraph THE BINDER SEEDED at this place, for the quoted
+            sentence -- see `claim_verbatim_problems`.
         known: `known_addresses` of the binder the mark was seeded from.
         root: the checkout every `cite` is resolved against.
         cache: path -> lines, shared across the marks of one report.
     """
     return (
         address_problems(where, mark, known)
-        + claim_verbatim_problems(where, mark, raw_text)
+        + claim_verbatim_problems(where, mark, base)
         + source_problems(where, mark, root, cache)
     )
 
@@ -313,6 +399,7 @@ def verify_report(report: dict, binder: dict, root: Path) -> list[str]:
     if not isinstance(sheets, list):
         return []
     known = known_addresses(binder)
+    base = base_texts(binder)
     cache: Cache = {}
     out: list[str] = []
     i = 0
@@ -332,11 +419,10 @@ def verify_report(report: dict, binder: dict, root: Path) -> list[str]:
             if mark is None:
                 out += why
                 continue
-            raw_text = entry.get("raw_text")
             out += source_verification(
                 where,
                 mark,
-                raw_text=raw_text if isinstance(raw_text, str) else "",
+                base=base.get(mark.address, ""),
                 known=known,
                 root=root,
                 cache=cache,
