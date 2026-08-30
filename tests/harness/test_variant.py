@@ -86,7 +86,7 @@ def test_a_variant_may_add_a_file_the_ref_never_had(tmp_path):
 
 
 def test_reset_returns_the_rig_to_the_ref(tmp_path):
-    """"Reset and run a new theory" -- the next run must not inherit the last one.
+    """ "Reset and run a new theory" -- the next run must not inherit the last one.
 
     ! A FILE THE VARIANT ADDED IS THE CASE THAT DECIDES THIS. Re-extracting over
     the directory would leave it behind, and the next theory would be graded on

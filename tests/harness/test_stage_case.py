@@ -24,7 +24,8 @@ CASE_PATHS = [
 def blob_at(commit: str, path: str) -> bytes:
     out = subprocess.run(
         ["git", "-C", str(REPO), "show", f"{commit}:{path}"],
-        capture_output=True, check=True,
+        capture_output=True,
+        check=True,
     )
     return out.stdout
 
@@ -43,7 +44,7 @@ def test_every_staged_path_is_byte_identical_to_git_show(tmp_path):
 
 
 def test_nothing_but_the_case_paths_is_staged(tmp_path):
-    """"Leave everything else behind" -- the reviewer must see the case, not the repo.
+    """ "Leave everything else behind" -- the reviewer must see the case, not the repo.
 
     A staged tree carrying the whole checkout would let a role resolve a
     reference the case never handed it, and the grade would not be about the

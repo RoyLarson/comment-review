@@ -32,9 +32,18 @@ def test_every_name_it_needs_resolves():
     says nothing about whether the calls inside `main` resolve.
     """
     for name in (
-        "walk_files", "tracked_paths", "path_index", "code_names",
-        "NO_HARVESTER", "WALKED_TREE", "language_for", "page_for",
-        "annotate", "read_source", "PARSE_ERRORS", "READ_ERRORS",
+        "walk_files",
+        "tracked_paths",
+        "path_index",
+        "code_names",
+        "NO_HARVESTER",
+        "WALKED_TREE",
+        "language_for",
+        "page_for",
+        "annotate",
+        "read_source",
+        "PARSE_ERRORS",
+        "READ_ERRORS",
     ):
         assert hasattr(generator_split, name), name
 
@@ -53,7 +62,9 @@ def test_it_splits_a_real_target_in_this_repo():
     # which is the substitution `CLAUDE.md` forbids for exactly this reason.
     done = subprocess.run(
         [sys.executable, str(SCRIPT), str(REPO), "evals/workspace.py"],
-        capture_output=True, text=True, cwd=REPO,
+        capture_output=True,
+        text=True,
+        cwd=REPO,
     )
 
     assert done.returncode == 0, done.stderr

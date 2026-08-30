@@ -32,7 +32,9 @@ def test_ty_resolves_every_import_in_evals():
     """The gate `ty check src/comment_review/` could never have reached."""
     done = subprocess.run(
         ["uv", "run", "ty", "check", "evals/"],
-        cwd=REPO, capture_output=True, text=True,
+        cwd=REPO,
+        capture_output=True,
+        text=True,
     )
 
     assert done.returncode == 0, done.stdout + done.stderr
@@ -48,6 +50,8 @@ def test_every_evals_module_actually_imports():
     for module in sorted(EVALS.glob("*.py")):
         done = subprocess.run(
             [sys.executable, "-c", f"import {module.stem}"],
-            cwd=EVALS, capture_output=True, text=True,
+            cwd=EVALS,
+            capture_output=True,
+            text=True,
         )
         assert done.returncode == 0, f"{module.name}: {done.stderr}"

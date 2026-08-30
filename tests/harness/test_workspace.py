@@ -92,9 +92,16 @@ def test_the_real_aggregator_finds_both_arms(tmp_path):
     workspace.write_eval_metadata(ws, 1, "the-first-case")
 
     done = subprocess.run(
-        ["python", "scripts/aggregate_benchmark.py",
-         str(ws / "iteration-1"), "--skill-name", "comment-review"],
-        cwd=SKILL_CREATOR, capture_output=True, text=True,
+        [
+            "python",
+            "scripts/aggregate_benchmark.py",
+            str(ws / "iteration-1"),
+            "--skill-name",
+            "comment-review",
+        ],
+        cwd=SKILL_CREATOR,
+        capture_output=True,
+        text=True,
     )
 
     assert done.returncode == 0, done.stderr

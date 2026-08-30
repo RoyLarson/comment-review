@@ -70,9 +70,7 @@ def stage(
     """
     absent = [path for path in paths if not _exists_at(repo, commit, path)]
     if absent:
-        raise PathNotAtCommit(
-            f"not in {commit[:7]}: {', '.join(sorted(absent))}"
-        )
+        raise PathNotAtCommit(f"not in {commit[:7]}: {', '.join(sorted(absent))}")
 
     for path in paths:
         blob = subprocess.run(
@@ -148,9 +146,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--case", required=True, help="a row id in the case file")
     parser.add_argument("--repo", type=pathlib.Path, default=here.parent)
-    parser.add_argument(
-        "--cases", type=pathlib.Path, default=here / "test-cases.jsonl"
-    )
+    parser.add_argument("--cases", type=pathlib.Path, default=here / "test-cases.jsonl")
     parser.add_argument(
         "--out",
         type=pathlib.Path,
@@ -192,7 +188,7 @@ def main(argv: list[str] | None = None) -> int:
     sites = row.get("sites", [])
     print(f"STAGED   {row['id']}")
     print(f"  start  {row['start'][:8]}  {len(staged)} file(s) -> {start_tree}")
-    print(f"  end    {row['end'][:8]}  key -> {key} ({len(key.read_text()) } bytes)")
+    print(f"  end    {row['end'][:8]}  key -> {key} ({len(key.read_text())} bytes)")
     print(f"  roles  {', '.join(row['roles'])}")
     print(f"  sites  {len(sites)} keyed")
     for path in staged:

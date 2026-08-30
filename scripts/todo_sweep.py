@@ -135,7 +135,9 @@ def check_hashes() -> list[str]:
         return []
     proc = subprocess.run(
         ["git", "cat-file", "--batch-check"],
-        cwd=ROOT, input="\n".join(sorted(wanted)).encode(), stdout=subprocess.PIPE,
+        cwd=ROOT,
+        input="\n".join(sorted(wanted)).encode(),
+        stdout=subprocess.PIPE,
     )
     return [
         line.split()[0]
@@ -174,8 +176,10 @@ def main() -> int:
     if everything or args.links:
         show("LINK resolves nowhere", check_links())
     if everything or args.hashes:
-        show("HASH no longer resolves -- re-locate before trusting the claim",
-             check_hashes())
+        show(
+            "HASH no longer resolves -- re-locate before trusting the claim",
+            check_hashes(),
+        )
 
     print("\n(an input, not a gate -- every row needs a person)")
     return 0

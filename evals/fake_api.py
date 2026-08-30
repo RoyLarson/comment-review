@@ -192,8 +192,13 @@ class _Handler(BaseHTTPRequestHandler):
         scenario = self.server.scenario
         if scenario in FOUR_HUNDREDS:
             payload = json.dumps(
-                {"type": "error", "error": {"type": "invalid_request_error",
-                                            "message": FOUR_HUNDREDS[scenario]}}
+                {
+                    "type": "error",
+                    "error": {
+                        "type": "invalid_request_error",
+                        "message": FOUR_HUNDREDS[scenario],
+                    },
+                }
             ).encode("utf-8")
             self.send_response(400)
             self.send_header("Content-Type", "application/json")

@@ -51,7 +51,8 @@ GRADING = {
 def blob_at(commit: str, path: str) -> bytes:
     return subprocess.run(
         ["git", "-C", str(REPO), "show", f"{commit}:{path}"],
-        capture_output=True, check=True,
+        capture_output=True,
+        check=True,
     ).stdout
 
 
@@ -93,8 +94,12 @@ def test_the_rig_assembles_and_the_aggregator_reads_it(tmp_path):
     case = tmp_path / "case"
     stage_case.stage(REPO, START, CASE_PATHS, case)
     workspace.write_eval_metadata(
-        ws, 1, "two-local-scripts", prompt="review the comments in these files",
-        files=CASE_PATHS, start=START,
+        ws,
+        1,
+        "two-local-scripts",
+        prompt="review the comments in these files",
+        files=CASE_PATHS,
+        start=START,
     )
 
     taken = {}
@@ -105,9 +110,16 @@ def test_the_rig_assembles_and_the_aggregator_reads_it(tmp_path):
         workspace.record_timing(run, total_tokens=84852, duration_ms=23332)
 
     done = subprocess.run(
-        ["python", "scripts/aggregate_benchmark.py",
-         str(ws / "iteration-1"), "--skill-name", "comment-review"],
-        cwd=SKILL_CREATOR, capture_output=True, text=True,
+        [
+            "python",
+            "scripts/aggregate_benchmark.py",
+            str(ws / "iteration-1"),
+            "--skill-name",
+            "comment-review",
+        ],
+        cwd=SKILL_CREATOR,
+        capture_output=True,
+        text=True,
     )
     assert done.returncode == 0, done.stderr
 

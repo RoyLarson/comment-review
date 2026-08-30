@@ -828,9 +828,7 @@ def test_a_file_where_the_tree_goes_says_which_one_it_wants(tmp_path, case, caps
     lone = tmp_path / "x.py"
     lone.write_text("pass\n", encoding="utf-8")
 
-    code = reread.main(
-        _argv(case, tmp_path / "o.json", **{"--under-review": lone})
-    )
+    code = reread.main(_argv(case, tmp_path / "o.json", **{"--under-review": lone}))
 
     assert code == 1
     said = _refusals(capsys)
@@ -842,9 +840,7 @@ def test_an_empty_staged_tree_is_refused_before_it_is_billed(tmp_path, case, cap
     empty = tmp_path / "empty"
     empty.mkdir()
 
-    code = reread.main(
-        _argv(case, tmp_path / "o.json", **{"--under-review": empty})
-    )
+    code = reread.main(_argv(case, tmp_path / "o.json", **{"--under-review": empty}))
 
     assert code == 1
     assert any("holds no files" in r for r in _refusals(capsys))
@@ -1016,14 +1012,22 @@ def test_the_guard_refuses_through_main(tmp_path, case, capsys):
 
     code = reread.main(
         [
-            "--findings", str(case["findings"]),
-            "--under-review", str(case["under_review"]),
-            "--start", "aaaa",
-            "--end", "bbbb",
-            "--end-diff", str(key),
-            "--arm", "with_skill",
-            "--eval-id", "a-case",
-            "--out", str(out),
+            "--findings",
+            str(case["findings"]),
+            "--under-review",
+            str(case["under_review"]),
+            "--start",
+            "aaaa",
+            "--end",
+            "bbbb",
+            "--end-diff",
+            str(key),
+            "--arm",
+            "with_skill",
+            "--eval-id",
+            "a-case",
+            "--out",
+            str(out),
         ]
     )
 

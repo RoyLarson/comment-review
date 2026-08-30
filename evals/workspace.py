@@ -32,9 +32,7 @@ import json
 import pathlib
 
 
-def eval_dir(
-    workspace: pathlib.Path, iteration: int, eval_id: str
-) -> pathlib.Path:
+def eval_dir(workspace: pathlib.Path, iteration: int, eval_id: str) -> pathlib.Path:
     """The case's directory, which is the level `eval_metadata.json` sits at."""
     return workspace / f"iteration-{iteration}" / f"eval-{eval_id}"
 

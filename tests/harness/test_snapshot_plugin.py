@@ -45,9 +45,20 @@ def test_the_manifest_holds_every_path_git_lists_at_that_commit(tmp_path):
     manifest = snapshot_plugin.snapshot(REPO, TAG, tmp_path / "snap")
 
     listed = subprocess.run(
-        ["git", "-C", str(REPO), "ls-tree", "-r", "--name-only", TAG_COMMIT,
-         "--", snapshot_plugin.PLUGIN_PATH],
-        capture_output=True, text=True, check=True,
+        [
+            "git",
+            "-C",
+            str(REPO),
+            "ls-tree",
+            "-r",
+            "--name-only",
+            TAG_COMMIT,
+            "--",
+            snapshot_plugin.PLUGIN_PATH,
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout.split()
 
     agents = f"{snapshot_plugin.PLUGIN_PATH}/agents/"
