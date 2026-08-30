@@ -52,6 +52,11 @@ T50:      2026-08-29 — CLOSED 2026-08-29 by the first keyed run: 5 readings of
           moved and the perception did not -- filed as TODO/rubric-ab-boundary.md
           (agents). Package: evidence/the-threshold-moved-not-the-perception/. Cost
           $0.68 a reading.
+Measured: 2026-08-30 — Two keyed cases added to evals/test-cases.jsonl with start/end,
+          from prose-only commits whose own messages call themselves answer keys;
+          tests/harness/test_case_rows.py gates that every keyed row resolves against
+          git. T15 left unchecked: the six older rows still pin one commit, and they
+          record an observed miss with no END to carry.
 ```
 
 ## Objective
