@@ -257,12 +257,53 @@ cause.
 
 ---
 
+## Where a finding goes -- a TASK first, a FILE only when nothing holds it
+
+Roy, 2026-08-30: *"Every finding gets a TODO task - only open new files if the todo
+truely doesn't have a good home. For general fixes a new TODO can be made per module.
+When there are multiple dependencies where it is a design objective that needs the todos
+that can be split into a new file"*
+
+**`CLAUDE.md` says every finding gets a TODO, *"an existing one it fits, or its own."*
+This is the test for WHICH -- and the default is the task.**
+
+| the finding | where it goes |
+| --- | --- |
+| fits an open TODO's subject | **a task on that file** |
+| a general fix with no obvious file | **a per-MODULE TODO**, opened once and added to |
+| a design objective whose several dependencies each need their own tasks | **its own file** |
+
+!! **A NEW FILE IS THE EXCEPTION AND HAS TO EARN ITSELF.** MEASURED 2026-08-30: **34 of
+159 open TODOs carry three tasks or fewer**, two of them ONE, against a mean of 7.3 over
+1,155 tasks. Re-derive with `grep -h "^Progress:" TODO/*.md`. ! Each was a defensible
+filing on the day it was made; what they add up to is a board whose index is longer than
+most of the work in it, where a reader scanning `TODO/README.md` cannot tell a SUBJECT
+from a single observation.
+
+!! **AND THE COST IS PAID BY WHOEVER WORKS THE MODULE, NOT BY WHOEVER FILED.** Four
+separate files each holding one `desk/collator.py` defect are four things to find, four
+Objectives saying the same thing about one module, and four closes. That is why
+[`collator-defects`](../TODO/collator-defects.md) exists and carries a standing note that
+the four are superseded into it **in one pass** rather than closed by hand one at a time.
+
+! **THE TELL THAT A FILE IS WARRANTED IS DEPENDENCY, NOT SIZE.** Tasks that must land in
+an order, or that block each other, are a design objective and may have their own file.
+Tasks that merely share a module are a module TODO. **A single observation is never a
+file.**
+
+! **AND A FILE OPENED IN ERROR IS SUPERSEDED, NOT DELETED.** `CLAUDE.md`'s rule covers a
+filing mistake as much as work overtaken: move the tasks to their home, then
+`complete --superseded` with an outcome naming where they went.
+
+---
+
 ## Working agreements
 
 - **Name the lane and ask.** A one-line question costs less than a change the owning lane has to
   discover by reading a diff.
-- **A finding gets a TODO, in whatever lane owns the thing found.** The lane that FOUND it files
-  it; the lane that OWNS it works it.
+- **A finding gets a TODO TASK, in whatever lane owns the thing found.** The lane that FOUND it
+  files it; the lane that OWNS it works it. **A new FILE only when nothing holds it** -- see
+  *Where a finding goes*, above.
 - **A gate is not a lane's to relax.** See `systems`, above.
 - **A ruling is recorded by whoever received it** -- `docs/decision-log.md` for what and when,
   `docs/history.md` for why. Neither is owned.

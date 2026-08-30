@@ -8,8 +8,8 @@ nothing else.
 Plan:     docs/plans/0.2.4-the-commands-for-the-middle.md
 Steps:    P36, P34, P35, P21, P13, P1, P2, P24, P3, P37, plus D9
 Closes:   TODO/no-command-for-the-middle.md      tasks 1, 2, 3   (P3)
-          TODO/move-order-and-cycles.md         tasks 1, 2, 3   (D8)
-          TODO/move-onto-itself-deletes.md      tasks 1, 2      (D9)
+          TODO/collator-defects.md              T12, T13, T14   (D8)
+          TODO/collator-defects.md              T1, T2          (D9)
 Lane:     backend
 Branch:   feat/the-mark-and-the-collator
 Raised:   2026-08-30
@@ -255,14 +255,19 @@ FIRST half of `owes_destination`, **declared at `desk/mark.py:206` and read by n
 
 ! **THE SECOND HALF STAYS UNWIRED AND IS FILED.** *"the destination needs to be
 addressable"* (Roy, 2026-08-27) needs an addresser, and is not a question one mark can
-answer alone. It is task 3 of
-[`move-onto-itself-deletes`](../../../TODO/move-onto-itself-deletes.md), which SP-1 does
-not close, and it sits beside `P28`'s address integrity in SP-2.
+answer alone. It is `collator-defects` T3, which SP-1 does not close, and it sits beside
+`P28`'s address integrity in SP-2.
 
-! **THE DEFECT WAS ALREADY ON THE BOARD**, filed 2026-08-30 by an agent writing
-`collator.py`'s prose from the code alone -- `move-onto-itself-deletes` tasks 1 and 2,
-and one of the four in [`collator-defects`](../../../TODO/collator-defects.md). D9 works
-those two rather than filing a third statement of them.
+!! **THE DEFECT WAS ALREADY ON THE BOARD**, filed 2026-08-30 by an agent writing
+`collator.py`'s prose from the code alone. **SP-1 closes
+[`collator-defects`](../../../TODO/collator-defects.md) T1 and T2** -- the per-module
+TODO for `desk/collator.py`.
+
+! **AND [`move-onto-itself-deletes`](../../../TODO/move-onto-itself-deletes.md) HOLDS
+THE SAME TWO AND IS NOT TOUCHED.** It is one of four single-defect files that
+`collator-defects` carries a standing note about: they **stand until the board migration
+lands and are superseded into it in one pass** -- Roy, 2026-08-30, *"Do not close them by
+hand."* Working the task is SP-1's; closing that file is the migration's.
 
 !! **THE CONSEQUENCE FOR D8's TESTABILITY IS STATED HERE RATHER THAN DISCOVERED LATER.**
 With `parse` refusing the self-move and `reconcile` already breaking shared addresses,
@@ -608,7 +613,8 @@ the point.*
 
 ## What SP-1 files rather than fixes
 
-! Every finding gets a TODO in whatever lane owns it, per `CLAUDE.md`. Known now:
+! Every finding gets a TODO TASK in whatever lane owns it, and a new FILE only when
+nothing holds it -- `docs/conventions.md`, *Where a finding goes*. Known now:
 
 - **The chief's copy has no `set_by`** (D7). If attribution of a composed place needs to
   be machine-readable rather than prose in `reason`, that is a field question for SP-4,
@@ -622,9 +628,16 @@ the point.*
 - **Nothing checks a copy's `read_from` against the binder it was seeded from.**
   `flows/marks.py:136-141` names this gap and says the comparison *"belongs wherever the
   two meet"* -- which is `collate`, now that one exists. It is not an SP-1 step and no
-  plan step covers it, so it is filed rather than slipped in:
-  [`read-from-never-compared`](../../../TODO/read-from-never-compared.md).
+  plan step covers it, so it is filed rather than slipped in -- as a TASK on
+  [`no-command-for-the-middle`](../../../TODO/no-command-for-the-middle.md), the TODO for
+  the command that would perform it.
 
 ! **AND THE ORDERING FINDING IS ON THE BOARD RATHER THAN ONLY IN D8** --
-[`move-order-and-cycles`](../../../TODO/move-order-and-cycles.md), which SP-1 closes.
-`CLAUDE.md`: a finding recorded only in a plan dies when the plan closes.
+[`collator-defects`](../../../TODO/collator-defects.md) T12, T13 and T14, which SP-1
+closes. `CLAUDE.md`: a finding recorded only in a plan dies when the plan closes.
+
+! **BOTH WERE FILED AS THEIR OWN FILES FIRST AND THAT WAS WRONG**, corrected the same
+day. `docs/conventions.md`, *Where a finding goes*, now states the test: a task on an
+existing file, a per-module TODO for a general fix, and a new file only for a design
+objective whose dependencies each need tasks. The two are superseded in
+`TODO/completed/`, each naming where its tasks went.

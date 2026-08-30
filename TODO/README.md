@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (114)
+### open  (112)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -283,7 +283,7 @@ that changed a published name or rule:
 | [brief-change-is-raw-text](brief-change-is-raw-text.md) | agents | yes | 0/2 | reviewer-brief.md:140 says change is the updated paragraph as RAW TEXT, not lines; desk/mark.py refuses a change that is not an ARRAY of lines, on a measurement of its own |
 | [skill-inverts-the-anchor-line](skill-inverts-the-anchor-line.md) | agents | — | 0/2 | SKILL.md's CANDIDATE paragraph describes the opposite of the line commands/census.py prints, and the reasoning built on it is what the task agent carries into every proposal |
 | [external-address-cites-dead-modules](external-address-cites-dead-modules.md) | backend | — | 0/1 | desk/external_address.py says the address is declared in binder/record.py and resolved in desk/desk.py; record.py left on b50e7a4 and desk.py is in no directory of this tree |
-| [no-command-for-the-middle](no-command-for-the-middle.md) | backend | — | 0/5 | `gather`, `places`, `reconcile` and `docket_from` have no CLI face, so nothing turns checked marks into the docket `proof --docket` requires. Measured 2026-08-29 on a real run: every other step of the chain is a command; this one had to be driven from a hand-written script |
+| [no-command-for-the-middle](no-command-for-the-middle.md) | backend | — | 0/6 | `gather`, `places`, `reconcile` and `docket_from` have no CLI face, so nothing turns checked marks into the docket `proof --docket` requires. Measured 2026-08-29 on a real run: every other step of the chain is a command; this one had to be driven from a hand-written script |
 | [query-names-no-sentence](query-names-no-sentence.md) | backend | — | 0/3 | every other substantive instruction names the sentence it rules on through a `claim` key -- `false` for `correct`, `drop` for `drop`, `from` for `patch` -- and `query` has none, so `_sentence_key` falls back to an identity and two queries at one place read as two different sentences |
 | [brief-example-and-scope](brief-example-and-scope.md) | agents | — | 0/3 | the brief's worked example shows a 40-character `sha` where `bind` writes 16, and the brief says a source resolves against 'the repo' without saying whether that is the scoped tree or the checkout it was cut from |
 | [rows-of-derives-no-type](rows-of-derives-no-type.md) | backend | — | 0/4 | `binder.rows_of` returns `list[dict]` where `docket.schedules_of` returns `list[Schedule]`; the codebase holds one example of each pattern, the typed one is the one that catches things, and `rows_of` has 8 callers and no covering tests |
@@ -292,10 +292,8 @@ that changed a published name or rule:
 | [cache-keyed-without-root](cache-keyed-without-root.md) | backend | — | 0/2 | `collator.Cache` maps a cited path to its lines with no root in the key, so one cache used across two roots -- an original and a revise -- answers from whichever file was read first |
 | [cite-at-raises-on-a-nondigit](cite-at-raises-on-a-nondigit.md) | backend | — | 0/3 | `collator._cite_at` guards the line number with `isdigit()` then calls `int()`, and the two disagree on what a digit is -- a superscript passes the guard and raises |
 | [strip-before-review-experiment](strip-before-review-experiment.md) | agents | — | 0/5 | the `collator.py` prose was deleted whole and rewritten by an agent that could read only the code -- it found three defects the old prose never mentioned and named two things the code cannot say; whether that beats editing in place is untested |
-| [collator-defects](collator-defects.md) | backend | -- | 0/11 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
+| [collator-defects](collator-defects.md) | backend | -- | 0/14 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
 | [staged-chain-untested](staged-chain-untested.md) | backend | — | 0/3 | the four-stage chain runs and the edits accumulate, proven 2026-08-30 -- but no test in the suite drives it, and the only committed fan-out topology refuses any tree but this repo's |
-| [move-order-and-cycles](move-order-and-cycles.md) | backend | — | 0/3 | Nothing orders the settled moves, and nothing refuses a cycle |
-| [read-from-never-compared](read-from-never-compared.md) | backend | — | 0/2 | Nothing compares a returned edit_copy's read_from against the binder it was seeded from |
 
 ### in-progress  (19)
 
@@ -433,3 +431,5 @@ the reason is inside the file.
 | [change-is-raw-text-not-lines](completed/change-is-raw-text-not-lines.md) | desk/mark.parse takes `change` as raw text and refuses a list by name; the brief, docs/the-mark.md and the checker now agree, and the superseded line-array claim in the-fields-do-not-say-a-mark-may-cite-across T2 is corrected in place |
 | [master-proof-and-edit-copy](completed/master-proof-and-edit-copy.md) | desk/proof.gather builds a master_proof of one stage's edit_copies and refuses a mismatched root; seed nests marks under one sheet per page, each carrying path and sha |
 | [topology-is-a-source-edit](completed/topology-is-a-source-edit.md) | a run's stages are read from a TOML topology -- desk/topology.read, with three refusals -- and the STAGES literal and Stage.roles are deleted |
+| [move-order-and-cycles-SUPERSEDED](completed/move-order-and-cycles-SUPERSEDED.md) | Filed as its own file in error; the three tasks are collator-defects T12, T13, T14 -- the per-module TODO for desk/collator.py, which already absorbs single-defect files |
+| [read-from-never-compared-SUPERSEDED](completed/read-from-never-compared-SUPERSEDED.md) | Filed as its own file in error; the check is a task on no-command-for-the-middle, which is the TODO for the command that performs it |

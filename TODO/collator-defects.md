@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 11 tasks closed
+Progress: 0 of 14 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -51,3 +51,18 @@ Four defects in collator.py, found by reading only the code.
       mark -- today one bad cite aborts the whole report.
 - [ ] T11 | Audit the other guards for the same shape. Verify: no `isdigit()` in
       `src/` is followed by an `int()` that can still fail.
+- [ ] T12 | Implement the topological order over the resolved moves, where an edge
+      B to A means B's origin is A's destination, so B vacates the address before
+      A fills it. Verify: two independent moves emit in an order that does not
+      depend on which role's copy was read first, and a move whose origin another
+      move fills is emitted first -- measured 2026-08-30, four alterations reach
+      the docket in walk order with deletes and writes interleaved.
+- [ ] T13 | Implement the cycle refusal. Verify: a set of moves forming a cycle is
+      carried forward as a re-read naming the cycle, driven with a Reconciled
+      built directly, since no cycle reaches the resolution step through reconcile
+      today.
+- [ ] T14 | Implement the test that a chained move does not settle FOR A STATED
+      REASON. Verify: giving move a quotes_original key makes the chain settle
+      under today's grouping, and the DAG rule refuses it anyway -- so the
+      protection does not rest on _sentence_key returning id(mark), which is a
+      side effect of a function whose docstring is about two adds.

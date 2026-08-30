@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 0 of 6 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -34,3 +34,8 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       stage 1, pulls revise-1, runs stage 2 against that revise, and stops -- the
       topology already expresses the order and `fan_out` already partitions, but
       nothing drives them.
+- [ ] The command compares each returned edit_copy's read_from against the binder
+      it was seeded from. Verify: a copy naming a different root or revise is
+      reported by name, and one seeded from that binder passes --
+      flows/marks.py:136-141 names this gap itself and says the comparison belongs
+      wherever the two meet, which is the middle command once one exists.
