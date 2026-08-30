@@ -27,9 +27,9 @@ from comment_review.flows.collate import collate
 from comment_review.machine import exceptions
 
 #: Exit codes, extending `mark`'s own 0/1/2 with the two outcomes a caller
-#: branches on. STRONGEST FIRST, matching `desk.collator.OUTCOMES`' order: a
-#: run holding both reports 4, since an escalation is the stronger claim on a
-#: person's attention.
+#: branches on. `main` CHECKS `got.escalations` BEFORE `got.rereads`, so a
+#: run holding both reports `ESCALATIONS` (4) rather than `REREADS` (3): an
+#: escalation is the stronger claim on a person's attention.
 OK = 0
 BROKEN = 1
 UNREADABLE = 2

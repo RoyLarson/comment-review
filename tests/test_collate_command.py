@@ -81,6 +81,64 @@ class TestExitCodes:
         )
         assert code == 4
 
+    def test_escalation_beats_reread_when_both_are_present(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """Proves the ORDER `main` checks, not just its result: `if
+        got.escalations: return ESCALATIONS` sits before `if got.rereads:
+        return REREADS`, so a run holding both reports 4, never 3.
+
+        !! DRIVEN THROUGH THE REAL FLOW, not a hand-built `Collated` -- a
+        stage CAN produce both at once, on two different addresses of one
+        page: `m.py@b1` gets two `correct` marks ruling on the same sentence
+        with different `change`s (an escalation, per `desk.collator._outcome`
+        -- `_identical` refuses since the changes disagree), and `m.py@b2`
+        gets one `add` (a re-read, per the same function's `add` rule, which
+        fires regardless of how many marks are owing at that place).
+
+        Confirmed to FAIL if the two `if` branches in `commands/collate.py`
+        are swapped -- see the task report for the swapped-branch run.
+        """
+        binder = a_binder_over({"m.py@b1": BASE, "m.py@b2": "# four\n# five\n# six\n"})
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {
+                    "m.py@b1": a_correct_setting("m.py@b1", "two", "# a\n"),
+                    "m.py@b2": an_add("m.py@b2"),
+                },
+                "function-context": {
+                    "m.py@b1": a_correct_setting("m.py@b1", "two", "# b\n"),
+                },
+            },
+        )
+        binder_path = tmp_path / "binder.json"
+        binder_path.write_text(json.dumps(binder), encoding="utf-8")
+        paths = []
+        for i, copy in enumerate(copies):
+            path = tmp_path / f"copy{i}.json"
+            path.write_text(json.dumps(copy), encoding="utf-8")
+            paths.append(str(path))
+        argv = [
+            "collate",
+            "--stage",
+            "4c",
+            "--binder",
+            str(binder_path),
+            "--out",
+            str(tmp_path / "chief.json"),
+        ]
+        for path in paths:
+            argv += ["--edit-copy", path]
+        monkeypatch.setattr("sys.argv", argv)
+        code = command.main()
+        out = capsys.readouterr().out
+        # ! BOTH OUTCOMES REACHED, so a failure of this precondition (rather
+        # than of the order itself) is distinguishable from the real claim.
+        assert "escalated" in out
+        assert "re-read" in out
+        assert code == 4
+
     def test_a_broken_mark_exits_one(self, tmp_path, monkeypatch, capsys):
         binder = a_binder_over({"m.py@b1": BASE})
         copies = copies_over(
