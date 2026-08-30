@@ -10,6 +10,7 @@ from helpers import (
     a_clean,
     a_correct,
     a_correct_setting,
+    a_move,
     an_add,
     copies_over,
 )
@@ -256,3 +257,86 @@ class TestTheStackedCheck:
         got = collate("4c", copies, binder)
         assert [p.address for p in got.drift] == ["m.py@b1"]
         assert [m for s in got.chief["sheets"] for m in s["marks"]] != []
+
+
+class TestTheMovesAreADag:
+    def test_a_move_resolves_only_if_BOTH_its_ends_resolve(self):
+        """`_join_moves` gives both ends one outcome one layer up; this is the
+        same rule at the resolution layer, so no auto-resolution can apply half
+        a move -- the paragraph read twice, or deleted and never rewritten."""
+        binder = two_places()
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {"m.py@b1": a_move("m.py@b1", "m.py@b5")},
+                "function-context": {
+                    "m.py@b5": a_correct_setting("m.py@b5", "two", "# a\n")
+                },
+            },
+        )
+        got = collate("4c", copies, binder)
+        assert [m for s in got.chief["sheets"] for m in s["marks"]] == []
+        assert {e["address"] for e in got.rereads} >= {"m.py@b1", "m.py@b5"}
+
+    def test_independent_moves_emit_in_a_stable_order(self):
+        binder = a_binder_over({f"m.py@b{n}": BASE for n in (1, 2, 7, 8)})
+        marks = {
+            "m.py@b1": a_move("m.py@b1", "m.py@b2"),
+            "m.py@b7": a_move("m.py@b7", "m.py@b8"),
+        }
+        first = collate("4c", copies_over(binder, {"block-context": marks}), binder)
+        flipped = dict(reversed(list(marks.items())))
+        second = collate("4c", copies_over(binder, {"block-context": flipped}), binder)
+        assert first.order == second.order
+
+    def test_a_move_whose_origin_another_move_fills_is_emitted_FIRST(self):
+        """B must VACATE the address before A fills it."""
+        binder = a_binder_over({f"m.py@b{n}": BASE for n in (1, 5, 9)})
+        marks = {
+            "m.py@b1": a_move("m.py@b1", "m.py@b5"),
+            "m.py@b5": a_move("m.py@b5", "m.py@b9"),
+        }
+        copies = copies_over(binder, {"block-context": marks})
+        got = collate("4c", copies, binder)
+        resolved = {e["address"]: e for s in got.chief["sheets"] for e in s["marks"]}
+        if "m.py@b1" in resolved and "m.py@b5" in resolved:
+            assert got.order.index("m.py@b5") < got.order.index("m.py@b1")
+
+    def test_a_cycle_is_carried_forward_and_NAMED(self):
+        """! DRIVEN WITH A `Reconciled` BUILT DIRECTLY, because no cycle
+        reaches the resolution step through `reconcile` today -- a shared
+        address is a two-mark place. That is exactly why the rule is written:
+        the protection upstream is a side effect, and a side effect is not a
+        rule."""
+        from comment_review.desk.mark import parse
+        from comment_review.flows.collate import _move_order
+
+        def a_resolved_move(origin, destination):
+            mark, why = parse(origin, a_move(origin, destination))
+            assert why == [], why
+            return mark
+
+        resolved = {
+            "m.py@b1": a_resolved_move("m.py@b1", "m.py@b2"),
+            "m.py@b2": a_resolved_move("m.py@b2", "m.py@b1"),
+        }
+        order, cycle = _move_order(resolved)
+        assert order == []
+        assert set(cycle) == {"m.py@b1", "m.py@b2"}
+
+    def test_a_chain_orders_rather_than_cycling(self):
+        from comment_review.desk.mark import parse
+        from comment_review.flows.collate import _move_order
+
+        def a_resolved_move(origin, destination):
+            mark, why = parse(origin, a_move(origin, destination))
+            assert why == [], why
+            return mark
+
+        resolved = {
+            "m.py@b1": a_resolved_move("m.py@b1", "m.py@b5"),
+            "m.py@b5": a_resolved_move("m.py@b5", "m.py@b9"),
+        }
+        order, cycle = _move_order(resolved)
+        assert cycle == []
+        assert order.index("m.py@b5") < order.index("m.py@b1")

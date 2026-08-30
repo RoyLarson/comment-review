@@ -73,6 +73,9 @@ class Collated:
             of a `move` in a cycle.
         unruled: role -> the addresses nobody wrote in.
         tally: role -> how many of each instruction that copy carried.
+        order: the resolved `move` origins, in an order that vacates every
+            address before it is filled. Ties broken by address, so a stranger
+            re-derives it. Empty where no move resolved.
     """
 
     chief: dict
@@ -82,6 +85,7 @@ class Collated:
     rereads: list[dict] = field(default_factory=list)
     unruled: dict[str, list[str]] = field(default_factory=dict)
     tally: dict[str, dict] = field(default_factory=dict)
+    order: list[str] = field(default_factory=list)
 
 
 def _identical(owing: list[Placed]) -> Mark | None:
@@ -179,6 +183,105 @@ def _resolve(reconciled, base: dict[str, str]) -> tuple[dict, list[dict], list[d
             resolved[entry["address"]] = composed
 
     return resolved, escalations, rereads
+
+
+def _touched_by(mark: Mark) -> list[str]:
+    """Every address one mark lands on -- its own, and a `move`'s destination.
+
+    ! THE SAME RULE `desk.collator._touches` APPLIES ONE LAYER UP, restated
+    here rather than imported because that function is private to the module
+    that groups places, and this one decides an ORDER. Both are read off
+    `Instruction.MOVE` and `claim.to`, so neither can drift into a different
+    idea of what a move touches without the other's tests going red.
+    """
+    touched = [mark.address] if mark.address else []
+    if mark.instruction is Instruction.MOVE:
+        destination = mark.claim.get("to")
+        if isinstance(destination, str) and destination and destination not in touched:
+            touched.append(destination)
+    return touched
+
+
+def _pair_moves(resolved: dict[str, Mark]) -> set[str]:
+    """Addresses to withdraw, so no `move` is resolved at one end only.
+
+    !! A `move` IS ONE INSTRUCTION AT TWO PLACES -- a delete at the origin and
+    a write at the destination -- so resolving one end and not the other
+    applies HALF of it: the paragraph read twice, or deleted and never
+    rewritten. `desk.collator._join_moves` states the same rule over outcomes;
+    this states it over resolutions.
+
+    ! IT RUNS TO A FIXED POINT, because moves chain: withdrawing one pair can
+    orphan the next.
+
+    Returns:
+        The addresses whose resolution must be given up.
+    """
+    withdrawn: set[str] = set()
+    changed = True
+    while changed:
+        changed = False
+        for address, mark in resolved.items():
+            if address in withdrawn or mark.instruction is not Instruction.MOVE:
+                continue
+            ends = _touched_by(mark)
+            if any(end not in resolved or end in withdrawn for end in ends):
+                for end in ends:
+                    if end in resolved and end not in withdrawn:
+                        withdrawn.add(end)
+                        changed = True
+    return withdrawn
+
+
+def _move_order(resolved: dict[str, Mark]) -> tuple[list[str], list[str]]:
+    """The resolved MOVES in an order safe to apply, and any caught in a cycle.
+
+    !! THE EDGE IS "VACATE BEFORE FILL". For two moves B and A, B must run
+    first when B's ORIGIN is A's DESTINATION -- otherwise A writes that address
+    and B then deletes it, and A's change is gone.
+
+    ! TIES ARE BROKEN BY ADDRESS, so a stranger can re-derive the order and two
+    runs over the same inputs produce the same list.
+
+    ! A CYCLE IS RETURNED, NOT RAISED. Roy, 2026-08-30: *"we can't allow
+    circles so it has to resolve from a DAG."* The caller carries those places
+    forward as re-reads and names them, which is what `Process: #22` asks --
+    sending a place back is an act someone is on record for.
+
+    ! A SELF-MOVE CANNOT REACH HERE. `desk.mark.parse` refuses `claim.to ==
+    address` (Task 5), so the length-one cycle is gone before resolution.
+
+    Args:
+        resolved: address -> the one Mark for it, moves and non-moves alike.
+            Keyed by the mark's OWN address, so a move appears once.
+
+    Returns:
+        `(the move origins in a safe order, the origins caught in a cycle)`.
+    """
+    moves = {
+        address: mark
+        for address, mark in resolved.items()
+        if mark.instruction is Instruction.MOVE and address == mark.address
+    }
+    needs: dict[str, set[str]] = {}
+    for origin, mark in moves.items():
+        destination = str(mark.claim.get("to", ""))
+        needs[origin] = {destination} if destination in moves else set()
+
+    out: list[str] = []
+    remaining = dict(needs)
+    while remaining:
+        ready = sorted(
+            origin
+            for origin, wanted in remaining.items()
+            if not (wanted & set(remaining))
+        )
+        if not ready:
+            return out, sorted(remaining)
+        for origin in ready:
+            out.append(origin)
+            del remaining[origin]
+    return out, []
 
 
 def _chief_copy(read_from: dict, resolved: dict[str, Mark], proof: dict) -> dict:
@@ -324,6 +427,35 @@ def collate(stage: str, edit_copies: list[dict], binder: dict) -> Collated:
     proof = gather(stage, [_reconcilable(copy) for copy in edit_copies])
     reconciled = reconcile(proof)
     resolved, escalations, rereads = _resolve(reconciled, base)
+
+    # !! BOTH ENDS OR NEITHER, THEN AN ORDER. D8 of the SP-1 spec: a set of
+    # moves is a graph over addresses, and half a move is worse than none.
+    by_address = {
+        entry["address"]: entry
+        for entry in reconciled.settled + reconciled.escalations + reconciled.rereads
+    }
+    for address in _pair_moves(resolved):
+        del resolved[address]
+        entry = by_address.get(address)
+        if entry is not None and entry not in rereads:
+            rereads.append(entry)
+
+    order, cycle = _move_order(resolved)
+    if cycle:
+        # ! SNAPSHOT BEFORE POPPING. `cycle` names every address caught, and a
+        # two-cycle's ends touch each other -- popping the first end's touched
+        # addresses can remove the second end from `resolved` before its own
+        # turn reads it, which is a KeyError over the exact input this rule
+        # exists to handle.
+        caught = {address: resolved[address] for address in cycle}
+        for mark in caught.values():
+            for end in _touched_by(mark):
+                resolved.pop(end, None)
+                entry = by_address.get(end)
+                if entry is not None and entry not in rereads:
+                    rereads.append(entry)
+        order, _again = _move_order(resolved)
+
     return Collated(
         chief=_chief_copy(proof.get("read_from", {}), resolved, proof),
         problems=problems,
@@ -332,4 +464,5 @@ def collate(stage: str, edit_copies: list[dict], binder: dict) -> Collated:
         rereads=rereads,
         unruled=left,
         tally=counts,
+        order=order,
     )
