@@ -890,6 +890,33 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   EVERY BINDER READ IS COUPLING**: `collator.known_addresses` must keep reading it, because
   checking that a role did not invent an address has to be asked of the authority.
 
+- **#29.** **THE COPY CHIEF'S THIRD ACT IS `recast`** (Roy, 2026-08-30, ratifying it in two
+  words: *"recast works"*). The chief has three, and they are not the role's four:
+
+    taken_in    a role's text is carried into the page
+    stet        the original stands; the correction is declined
+    recast      the chief's OWN prose, replacing every side
+
+  !! **IT EXISTS FOR THE CASE THAT SHOULD NOT ARISE.** Roy, 2026-08-29: *"the
+  chief-composes-by-hand needs to be available no matter what ... `copy-chief-edit --sheet x
+  --mark-address b3 --replace "Resolved New Prose"` which is different than stet or taken_in ...
+  This should never happen but..."* ! **A path with no answer is where a run stops dead**, so the
+  branch nobody expects to take is the one that must exist: no clean composition, or genuine
+  disagreement where neither side is right and neither can be made right from its own statement.
+
+  ! **AND IT IS THE LAST RESORT, NOT THE MECHANISM.** Two `hold`s on DISJOINT spans compose
+  ARITHMETICALLY -- `hold` already says *my mark stands*, so two of them are already saying both
+  are true, and `Process: #22`'s four need no fifth. `recast` is reachable only when that
+  composition REFUSES. ! The ordinary path leaves the chief transcribing nothing, which matters
+  because a derived composition can be re-derived and was set by BOTH roles, where a hand
+  transcription attributes to the chief, who wrote none of it.
+
+  ! **THE WORD IS THE TRADE'S**, for rewriting a passage in a different form, and it was reached
+  by the method this repo requires -- name the job by what it DOES, then look for publishing's
+  word for it. ! `stet` is still an open `agents` ruling
+  ([`no-mark-for-let-it-stand`](../TODO/no-mark-for-let-it-stand.md)), so two of the chief's
+  three are named and one is not yet filed.
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**
