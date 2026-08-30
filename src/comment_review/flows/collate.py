@@ -145,6 +145,13 @@ def _composition(entry: dict, base: str) -> Mark | None:
     except CannotCompose:
         return None
     roles = sorted(sides)
+    # !! `sources` WALKS `roles`, THE SAME ALPHABETICAL ORDER AS `reason`
+    # BELOW -- not `owing`'s DISPATCH order, which is an accident of how
+    # `edit_copies` was handed to `collate` and not a property of the data.
+    # `differences.compose` already sorts its own `roles` the same way, so
+    # alphabetical is the order a reader can re-derive without knowing what
+    # order the copies arrived in.
+    sources_by_role = {placed.role: placed.mark.sources for placed in owing}
     return Mark(
         address=entry["address"],
         anchor=owing[0].mark.anchor,
@@ -156,7 +163,7 @@ def _composition(entry: dict, base: str) -> Mark | None:
             + ", ".join(roles)
             + " -- each touched a span the others did not"
         ),
-        sources=tuple(source for placed in owing for source in placed.mark.sources),
+        sources=tuple(source for role in roles for source in sources_by_role[role]),
         change=text,
     )
 
@@ -363,7 +370,14 @@ def _chief_copy(read_from: dict, resolved: dict[str, Mark], proof: dict) -> dict
             path = sheet.get("path") if isinstance(sheet, dict) else None
             if isinstance(path, str) and path and path not in shas:
                 paths.append(path)
-                shas[path] = str(sheet.get("sha", ""))
+                # ! `.get("sha", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT. A
+                # sheet carrying `"sha": null` reaches here with the key
+                # PRESENT and holding None, so `.get` returns None and
+                # `str(None)` is the four-character word "None" -- folded
+                # into the same missing-sha case instead, matching
+                # `desk.collator._real_pages`.
+                raw_sha = sheet.get("sha")
+                shas[path] = raw_sha if isinstance(raw_sha, str) else ""
 
     sheets: dict[str, dict] = {}
     seen: set[int] = set()

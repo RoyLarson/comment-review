@@ -24,24 +24,24 @@
     reconcile()                each place -> settled, escalation or re-read
     docket_from()              the settled places, as a docket
 
-!! FOUR KINDS OF CHECK, AND WHAT EACH NEEDS IS WHAT SEPARATES THEM.
-`desk/mark.py` answers everything a mark can be judged by on its own. One
-kind needs the PAGE the role read and the FILES it cited (`base_texts`,
-which turns the binder into what `claim_verbatim_problems` and
-`verify_report` measure a returned claim against -- never a mark's own
-`raw_text`, the base a party being checked could have altered -- and
-`address_problems` through `verify_report`). One kind needs only the report
-itself, and nothing outside it (`Problem`, `problems_in`, `unruled`,
-`tally`) -- `decision-log.md Process: #54` put them here because they ask
-whether every place in the copy was ruled on, a question about the SET, and
-one mark cannot answer for the set alone. One kind needs the marks the
-OTHER roles handed back (`places` through `docket_from`). A FOURTH kind
-compares what came back against what went out: `drift_in`, which needs both
-the returned report and the base `base_texts` derived from the binder it
-was seeded from -- checking the SAME field of the SAME entry at two
-different times, what it was seeded with against what came back, rather
-than checking a claim against evidence (the first kind) or one role's mark
-against another's (the third).
+!! FOUR KINDS OF CHECK, AND WHAT EACH NEEDS IS WHAT SEPARATES THEM. NAMED BY
+MEMBER, NOT BY FILE-ORDER RANGE -- `desk/mark.py` answers everything a mark
+can be judged by on its own. One kind needs the PAGE the role read and the
+FILES it cited: `known_addresses` and `base_texts` turn the binder into what
+`address_problems`, `claim_verbatim_problems`, `source_problems`,
+`source_verification` and `verify_report` measure a mark against -- never a
+mark's own `raw_text`, the base a party being checked could have altered.
+One kind needs only the report itself, and nothing outside it (`Problem`,
+`problems_in`, `unruled`, `tally`) -- `decision-log.md Process: #54` put
+them here because they ask whether every place in the copy was ruled on, a
+question about the SET, and one mark cannot answer for the set alone. One
+kind needs the marks the OTHER roles handed back (`places`, `reconcile`,
+`docket_from`). A FOURTH kind compares what came back against what went
+out: `drift_in`, which needs both the returned report and the base
+`base_texts` derived from the binder it was seeded from -- checking the
+SAME field of the SAME entry at two different times, what it was seeded
+with against what came back, rather than checking a claim against evidence
+(the first kind) or one role's mark against another's (the third).
 Nothing above `places` compares two marks, and nothing below `verify_report`
 opens a file.
 
@@ -937,7 +937,7 @@ def _real_pages(proof: dict) -> tuple[list[str], dict[str, str]]:
         `(paths in first-seen order, path -> sha)`. A page several edit_copies
         carry keeps the FIRST sha seen. The paths are what `unflatten` resolves
         an address's flattened path against, which is why the list is kept
-        beside the mapping.
+        beside the mapping. A missing OR a null `sha` reads as "".
     """
     paths: list[str] = []
     shas: dict[str, str] = {}
@@ -946,7 +946,13 @@ def _real_pages(proof: dict) -> tuple[list[str], dict[str, str]]:
             path = sheet.get("path") if isinstance(sheet, dict) else None
             if isinstance(path, str) and path and path not in shas:
                 paths.append(path)
-                shas[path] = str(sheet.get("sha", ""))
+                # ! `.get("sha", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT. A
+                # sheet carrying `"sha": null` reaches here with the key
+                # PRESENT and holding None, so `.get` returns None and
+                # `str(None)` is the four-character word "None" -- folded
+                # into the same missing-sha case instead.
+                raw_sha = sheet.get("sha")
+                shas[path] = raw_sha if isinstance(raw_sha, str) else ""
     return paths, shas
 
 

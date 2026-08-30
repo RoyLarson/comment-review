@@ -16,8 +16,18 @@ authors a container -- `flows.distribute.seed`, `flows.fan_out.fan` and
 
 !! THE WIRE STAYS DICTS. Each parse has `desk.mark.parse`'s own contract --
 `(T, [])` or `(None, [one message per broken rule])` -- so a caller holds a
-checked object and consumers stop re-deriving the same keys with `isinstance`
-ladders. `desk/collator.py` alone did that in four functions.
+checked object rather than re-deriving the same keys with `isinstance`
+ladders.
+
+!! NOT YET WIRED. `grep -rn "containers" src/` finds no production importer
+of this module: `desk/collator.py` still hand-rolls its own `isinstance`
+checks in four functions rather than calling `parse_edit_copy` or
+`parse_master_proof`. Roy has ruled it will be wired --
+`TODO/containers-and-verification-are-unwired.md` tracks the work. A
+container guards the ENVELOPE -- is this document the shape a copy must be,
+or does it error out -- while `desk.collator.problems_in` reports on the
+CONTENTS, so each per-mark problem still routes back to the role that wrote
+it; the two are not competing contracts.
 
 ! THE CHIEF'S COPY IS AN ORDINARY `EditCopy`. `Vocabulary: #30`: after the fold
 every place has exactly one answer, and one mark per place is an ordinary copy.
@@ -95,9 +105,9 @@ def parse_sheet(where: str, data: object) -> tuple[Sheet | None, list[str]]:
         data: one entry of an edit_copy's `sheets`, as it came back.
 
     Returns:
-        `(Sheet, [])` or `(None, [messages])`. An absent `sha` is admitted as
-        "" -- a page can be censused from a tree that is not a repo, which is
-        what `flows.revise.pull` produces.
+        `(Sheet, [])` or `(None, [messages])`. An absent OR a null `sha` is
+        admitted as "" -- a page can be censused from a tree that is not a
+        repo, which is what `flows.revise.pull` produces.
     """
     if not isinstance(data, dict):
         return None, [f"{where}: a sheet must be an object"]
@@ -107,7 +117,13 @@ def parse_sheet(where: str, data: object) -> tuple[Sheet | None, list[str]]:
     marks = data.get("marks")
     if not isinstance(marks, list):
         return None, [f"{where}: {path} needs a `marks` list"]
-    return Sheet(path=path, sha=str(data.get("sha", "")), marks=tuple(marks)), []
+    # ! `.get("sha", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT. A `"sha":
+    # null` reaching here is a PRESENT key holding None, so `.get` returns
+    # None and `str(None)` is the four-character word "None" -- folded into
+    # the same absent-sha case above instead.
+    raw_sha = data.get("sha")
+    sha = raw_sha if isinstance(raw_sha, str) else ""
+    return Sheet(path=path, sha=sha, marks=tuple(marks)), []
 
 
 def parse_edit_copy(where: str, data: object) -> tuple[EditCopy | None, list[str]]:
@@ -173,7 +189,12 @@ def parse_master_proof(
         data: a master_proof, as `desk.proof.gather` returns one.
 
     Returns:
-        `(MasterProof, [])` or `(None, [messages])`. Every bad copy is reported.
+        `(MasterProof, [])` or `(None, [messages])`. Every bad copy is
+        reported, and so is a `read_from` that fails `_read_from_problem` --
+        the same check `parse_edit_copy` runs on an edit_copy's own field --
+        or that disagrees with the first edit_copy's, which is the
+        disagreement `desk.proof.gather` itself refuses with
+        `MismatchedRoot` before a master_proof is ever built.
     """
     if not isinstance(data, dict):
         return None, [f"{where}: a master_proof must be an object"]
@@ -191,9 +212,28 @@ def parse_master_proof(
     if problems:
         return None, problems
     read_from = data.get("read_from")
+    # !! `read_from` IS CHECKED ONLY WHERE THERE IS A FIRST COPY TO CHECK IT
+    # AGAINST. `desk.proof.gather` writes `{}` for an empty `edit_copies` --
+    # there is no first copy to take it from -- so refusing `{}` here for a
+    # proof carrying none would refuse a shape `gather` itself produces.
+    if copies:
+        why_header = _read_from_problem(data)
+        if why_header:
+            return None, [f"{where}: master_proof's {why_header}"]
+        if read_from != copies[0].read_from:
+            return None, [
+                f"{where}: `read_from` {read_from!r} disagrees with the "
+                f"first edit_copy's {copies[0].read_from!r}"
+            ]
+    # ! `.get("stage", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT. A `"stage":
+    # null` reaching here is a PRESENT key holding None, so `.get` returns
+    # None and `str(None)` is the four-character word "None" -- folded into
+    # the same absent-stage case instead.
+    raw_stage = data.get("stage")
+    stage = raw_stage if isinstance(raw_stage, str) else ""
     return (
         MasterProof(
-            stage=str(data.get("stage", "")),
+            stage=stage,
             read_from={**read_from} if isinstance(read_from, dict) else {},
             edit_copies=tuple(copies),
         ),

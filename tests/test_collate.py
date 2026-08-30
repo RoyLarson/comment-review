@@ -195,6 +195,57 @@ class TestTheChiefsCopy:
         assert "block-context" in entry["reason"]
         assert "function-context" in entry["reason"]
 
+    def test_sources_and_reason_AGREE_on_the_roles_ORDER(self):
+        """!! `reason` NAMES THE ROLES ALPHABETICALLY (`roles = sorted(sides)`
+        below `_composition`). `sources` must walk the SAME order rather than
+        `owing`'s dispatch order -- the order `edit_copies` happened to be
+        handed to `collate` in, which is not a property of the data. Three
+        roles, dispatched in a non-alphabetical order, over three
+        non-adjacent spans of a 7-line base so all three compose."""
+        binder = a_binder_over({"m.py@b1": "# a\n# b\n# c\n# d\n# e\n# f\n# g\n"})
+        by_role = {
+            "zebra-context": a_correct_setting(
+                "m.py@b1", 0, "# A\n# b\n# c\n# d\n# e\n# f\n# g\n"
+            ),
+            "apple-context": a_correct_setting(
+                "m.py@b1", 1, "# a\n# b\n# c\n# D\n# e\n# f\n# g\n"
+            ),
+            "mango-context": a_correct_setting(
+                "m.py@b1", 2, "# a\n# b\n# c\n# d\n# e\n# f\n# G\n"
+            ),
+        }
+        for role, mark in by_role.items():
+            mark["sources"] = [{"cite": f"{role}.py:1", "verbatim": "x"}]
+        copies = copies_over(
+            binder, {role: {"m.py@b1": mark} for role, mark in by_role.items()}
+        )
+        assert [c["role"] for c in copies] == [
+            "zebra-context",
+            "apple-context",
+            "mango-context",
+        ]
+        got = collate("4c", copies, binder)
+        entry = [m for s in got.chief["sheets"] for m in s["marks"]][0]
+        roles_in_reason = entry["reason"].split(" by ")[1].split(" -- ")[0].split(", ")
+        roles_in_sources = [s["cite"].split(".py:")[0] for s in entry["sources"]]
+        assert roles_in_reason == sorted(roles_in_reason)
+        assert roles_in_sources == roles_in_reason
+
+    def test_a_null_sha_reads_as_ABSENT_not_the_word_None(self):
+        """!! `.get("sha", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT. A sheet
+        carrying `"sha": null` reaches this module's own copy of
+        `desk.collator._real_pages` with the key PRESENT and holding None, so
+        `.get` returns None and `str(None)` is the four-character word "None"
+        -- the same class of defect as a null `verbatim` rendering as the
+        word "None" in `results/verdicts.py`."""
+        binder = one_place()
+        copies = copies_over(
+            binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
+        )
+        copies[0]["sheets"][0]["sha"] = None
+        got = collate("4c", copies, binder)
+        assert got.chief["sheets"][0]["sha"] == ""
+
     def test_an_unresolved_place_is_ABSENT_not_untouched(self):
         """!! `untouched` MEANS NOBODY WROTE HERE. A place two roles wrote on
         that nothing resolved is a different fact, and writing it as an

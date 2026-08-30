@@ -184,6 +184,21 @@ def test_the_docket_names_the_role_that_set_each_alteration():
     assert docket["pages"][0]["role"] == "block-context"
 
 
+def test_a_null_sha_reads_as_ABSENT_not_the_word_None():
+    """!! `.get("sha", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT. A sheet
+    carrying `"sha": null` reaches `desk.collator._real_pages` with the key
+    PRESENT and holding None, so `.get` returns None and `str(None)` is the
+    four-character word "None" -- the same class of defect `results/verdicts.py`
+    had over a null `verbatim`, which happened to render as text a cited line
+    really held. Here nothing would catch it: `docket.read`'s own `sha` check
+    only refuses an EMPTY string (line 77 above), so "None" would have passed
+    through as a plausible-looking sha."""
+    proof = a_master_proof({"block-context": {"m.py@b1": a_correct("m.py@b1")}})
+    proof["edit_copies"][0]["sheets"][0]["sha"] = None
+    docket = docket_from(reconcile(proof), proof)
+    assert docket["pages"][0]["sha"] == ""
+
+
 def test_set_by_stops_mapping_everything_to_empty():
     # `revise.pull._set_by` reads an optional `role` per page and used to map
     # every address to "" because nothing wrote it -- see `_set_by`'s own

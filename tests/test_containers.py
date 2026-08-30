@@ -109,6 +109,59 @@ class TestWhatItRefuses:
         assert proof is None
         assert "`edit_copies` list" in why[0]
 
+    def test_a_master_proof_whose_read_from_disagrees_with_the_first_copy(
+        self, tmp_path
+    ):
+        """`desk.proof.gather` refuses this same disagreement with
+        `MismatchedRoot` before a master_proof is ever built -- a proof
+        reaching `parse_master_proof` with one is malformed, not merely
+        unusual."""
+        binder = binder_of(a_small_real_tree(tmp_path), 0)
+        proof = gather("4c", [seed(binder, "block-context")])
+        proof["read_from"] = {"root": "somewhere else", "revise": 99}
+        got, why = parse_master_proof("4c", proof)
+        assert got is None
+        assert "disagrees with the first edit_copy's" in why[0]
+
+    def test_a_master_proof_whose_read_from_is_malformed(self, tmp_path):
+        """The same shape check `_read_from_problem` runs for an edit_copy,
+        reused here for the master_proof's own `read_from` field."""
+        binder = binder_of(a_small_real_tree(tmp_path), 0)
+        proof = gather("4c", [seed(binder, "block-context")])
+        proof["read_from"] = {"root": proof["read_from"]["root"]}
+        got, why = parse_master_proof("4c", proof)
+        assert got is None
+        assert "`revise`" in why[0]
+
+    def test_a_master_proof_WITH_NO_EDIT_COPIES_still_parses(self):
+        """`desk.proof.gather`'s own contract: an empty `edit_copies` gathers
+        to `read_from={}`, since there is no first copy to take it from --
+        that is not the disagreement or malformed shape the two cases above
+        refuse."""
+        got, why = parse_master_proof("4c", {"stage": "4c", "edit_copies": []})
+        assert why == []
+        assert got is not None
+        assert got.read_from == {}
+
+
+class TestANullFieldIsAbsentNotTheWordNone:
+    """`.get(key, "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT -- a key present
+    and holding `None` returns `None` from `.get`, and `str(None)` is the
+    four-character word "None". The same class of defect as a null
+    `verbatim` rendering as the word "None" in `results/verdicts.py`."""
+
+    def test_a_null_sha(self):
+        sheet, why = parse_sheet("sheet 1", {"path": "m.py", "sha": None, "marks": []})
+        assert why == []
+        assert sheet is not None
+        assert sheet.sha == ""
+
+    def test_a_null_stage(self):
+        proof, why = parse_master_proof("4c", {"stage": None, "edit_copies": []})
+        assert why == []
+        assert proof is not None
+        assert proof.stage == ""
+
 
 class TestTheShape:
     def test_no_container_declares_a_field_nothing_reads(self):
