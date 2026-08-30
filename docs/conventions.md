@@ -212,6 +212,51 @@ forever, and a boundary never written down as temporary calcifies by silence.
 
 ---
 
+## What a box may SAY -- the four openings, and why everything else is a trap
+
+Roy, 2026-08-29: *"the box must declare what it is implementing, updating, deleting or for
+Roy explicitly the question that needs to be answered once it becomes part of the critical
+path. everything else is prose and is a trap."*
+
+**A box opens with ONE of four things.** Whatever follows is the `Verify:` -- how a stranger
+checks it -- and that may carry as many clauses as the one deliverable needs.
+
+| the box declares | it reads |
+| --- | --- |
+| **implement** | *"Implement X, where ..."* |
+| **update** | *"Update X so that ..."* |
+| **delete** | *"Delete X ..."* |
+| **a question for Roy** | the question itself, asked |
+
+!! **A STATEMENT OF FACT IS NOT A BOX.** *"The last revise IS the 7a draft"* is already true
+or false, so nothing in it says when the work is done -- and it stays readable as a task
+either way. A bare noun phrase -- *"The composition answer set"* -- names an artifact and no
+work at all.
+
+!! **THE PROOF THAT A BOX WAS MALFORMED IS THAT IT COULD BE SUPERSEDED IN PART.** A box
+naming one deliverable cannot be half-overtaken. `0.2.4`'s **T6.1** named four answers as the
+closed set and **T6.3** named four outcomes; `decision-log.md Process: #49` then added a
+SECOND question to the revise step, and each box was left half-right -- correct for a
+conflict, wrong for a composition. Both were retired whole, which took the conflict half's
+only specification with them and had to be carried back as T6.12-T6.14.
+
+!! **AND A PROSE BOX CAN BE TICKED OVER A HALF THAT WAS NEVER REACHABLE.** `0.2.4`'s **T4.3**
+reads *"A scope-declaring `query` is a boundary report and does not block the other roles"* --
+an assertion, not work -- and carries its own note: *"THE SECOND CLAUSE IS NOT VERIFIED BY
+WHAT LANDED."* It is `[x]`.
+
+! **MEASURED 2026-08-29 on `docs/plans/0.2.4-the-mark-and-the-collator.md`: 38 of 67 boxes are
+prose, 25 name an action, and NONE poses a question** -- so the decisions that plan waits on
+are not visible as boxes anywhere in it.
+
+! **THE RULE IS MECHANICAL, WHICH IS THE WHOLE POINT.** *"Is this a verifiable checkpoint"*
+is a judgement and was already written down; *"does this box open with implement, update,
+delete, or a question"* is a reading, and a stranger can run it down a file. `CLAUDE.md`
+states the symptom -- *"the tell is that it cannot be finished"* -- and this states the
+cause.
+
+---
+
 ## Working agreements
 
 - **Name the lane and ask.** A one-line question costs less than a change the owning lane has to
