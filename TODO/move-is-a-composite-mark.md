@@ -1,12 +1,15 @@
 # A move is a composite mark and the code cannot express one
 
 ```
-Status:   decision-needed
+Status:   open
 Progress: 0 of 9 tasks done
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
           a singular one, after a review measured both of its ends corrupted)
+Updated:  2026-08-30 — Task 9 was the only question owed and Roy answered it 2026-08-30:
+          no seeded destination, separate semantics, a move gets its own spot in the
+          edit copies. Task 9 is now an implement box.
 ```
 
 ## Objective
@@ -115,6 +118,9 @@ and now there is one object that cannot be half-held.
 - [ ] Delete the provisional single-mark move handling in `flows/collate.py` and
       the kind-promotion in `desk/collator.py` `_join_moves` once the composite
       makes them unreachable. Verify: both are gone and the suite stays green.
-- [ ] Must a move's DESTINATION place be seeded -- present in the binder with its
-      own `raw_text` -- so drift is detectable at both ends? It would make a move
-      onto a place no role read a refusal, which is new behaviour.
+- [ ] Implement a MOVE REGION in the edit copy's shape, distinct from the
+      one-slot-per-place marks, and declare it in `desk/containers.py`. RULED
+      2026-08-30 -- the destination is NOT seeded; a move gets its own spot.
+      Verify: `parse_edit_copy` accepts a copy carrying a move in that region and
+      refuses a move written into a per-place slot; a test asserts an edit copy
+      whose only ruling is a move round-trips.

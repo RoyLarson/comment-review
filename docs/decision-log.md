@@ -1961,3 +1961,87 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **IT SUPERSEDES `the-mark.md`'s *"Both raw text, in one `change`"*,** and leaves `#49`'s
   indivisibility rule standing: the two halves still travel together, and now there is one object
   that cannot be half-held.
+
+- **#57.** **A CONTAINER STATES WHAT MAY BE CONTAINED AND ERRORS OUT, AND IT IS WIRED** (Roy,
+  2026-08-30, asked whether `desk/containers.py` should be wired, given a reporting boundary
+  beside it): *"yes because the system is broken without it. It may not error but it also is not
+  protected from future errors which the containers are an explicit statement for what is
+  contained and what can be contained or errors out"*
+
+  !! **MEASURED 2026-08-30: `desk/containers.py` HAD NO PRODUCTION IMPORTER.** It declared
+  `Sheet`, `EditCopy`, `MasterProof` and their parses while `desk/collator.py` hand-rolled its own
+  `isinstance` checks with its own definition of a valid copy -- **two definitions, one of them
+  reached by nothing.**
+
+  !! **AND IT RESOLVES THE REFUSE-VERSUS-REPORT TENSION BY LEVEL, NOT BY PRECEDENCE.**
+  `parse_edit_copy` REFUSES while `flows/collate.py`'s `problems_in` REPORTS and continues, and
+  that looked like two contracts competing for one boundary. It is two boundaries: **a container
+  guards the ENVELOPE** -- is this document the shape a copy must be, or does it error out --
+  **while `problems_in` rules on the CONTENTS**, so each per-mark problem routes back to the role
+  that wrote it. Neither answers the other's question.
+
+  ! **THE ARGUMENT IS ABOUT FUTURE ERRORS, NOT PRESENT ONES** -- *"It may not error but it also is
+  not protected"*. A shape nothing states is a shape every consumer re-derives, and the
+  re-derivations drift silently because each one is locally correct.
+
+- **#58.** **`desk/collator.py` IS NOT SPLIT; ITS SOURCE-VERIFICATION HALF IS WIRED INTO THE
+  FLOW** (Roy, 2026-08-30, asked whether the module's *"SOURCE-VERIFICATION and RECONCILIATION"*
+  title warranted a split): *"Nope the source-verification side needs to be wired into the flow -
+  same as 1) the flow coordinates the things in the modules do"*
+
+  !! **MEASURED 2026-08-30: `verify_report` HAS ONLY TEST CALLERS.** `grep -rn "verify_report"
+  src/ tests/` returns five prose mentions inside `collator.py` itself and six call sites, all in
+  `tests/test_collator.py`. So `address_problems`, `claim_verbatim_problems`, `source_problems`,
+  `source_verification` and `verify_report` are reached by tests and by nothing in production.
+
+  !! **AND THIS IS WHERE THE *"NEEDS AN AND"* HEURISTIC POINTS THE WRONG WAY.**
+  `module-context`'s tell -- a docstring that cannot describe itself without *and* -- read as
+  evidence for a split. The defect was the opposite: **a module half with no caller READS like a
+  second module**, because nothing in the running system ties it to the first. The fix is a
+  caller, not a boundary.
+
+  ! **THE RULE UNDER IT IS THE FLOW'S REMIT:** *"the flow coordinates the things in the modules
+  do."* A module may own a job without owning the decision of when it runs. An unwired half is a
+  coordination defect, and moving it to a new file would have left it exactly as unwired.
+
+- **#59.** **`desk/mark.py`'s LEAVES COME OUT** (Roy, 2026-08-30, asked whether the module's four
+  subjects at one scope warranted a split): *"Yes pull out the leaves out of mark.py"*
+
+  ! It is the same shape as `#54` -- the mark answers for ITSELF and the collator answers for the
+  SET -- applied one level down, inside the mark's own file.
+
+- **#60.** **A MOVE GETS ITS OWN SPOT IN THE EDIT COPIES, AND ITS DESTINATION IS NOT SEEDED**
+  (Roy, 2026-08-30, asked whether a move's destination place must be seeded so drift is
+  detectable at both ends): *"no - separate semantics - will have to make a special spot in the
+  edit-copies for move marks because even one level up they are out of sync with what they state
+  they do"*
+
+  !! **AN EDIT COPY IS ONE SLOT PER PLACE, AND A MOVE SPANS TWO.** So the defect is not only in
+  the mark -- **one level up, the container's own statement of what it holds is false for a
+  move.** Seeding the destination would have forced a two-place ruling through a one-place slot,
+  which is the shape that produced every measured move defect in `#56`.
+
+  ! **IT IS WHY `#57` AND `#56` ARE ONE PIECE OF WORK.** A container that states what may be
+  contained cannot state it correctly until there is a region for the one instruction that acts
+  on two places at once. Filed as task 9 of `TODO/move-is-a-composite-mark.md`.
+
+- **#61.** **THE TWO BACKTICK PATTERNS ARE TWO DEFINITIONS, AND THE WHITESPACE DIFFERENCE IS
+  DELIBERATE** (Roy, 2026-08-30, asked whether `desk/mark.py`'s `ANCHOR_NAME` and
+  `binder/annotate.py`'s `TICKED` should be one definition): *"annotate.py was about finding
+  references in documentation for the agents. It was about building an index like you would find
+  in the back of a book. I had to be looser with the answer than other thing because Spaced out
+  words or not could have been used in doc strings"*
+
+  | | asks | pattern |
+  | --- | --- | --- |
+  | `TICKED` | what does this documentation REFER to -- the back-of-book INDEX the agents read | `` `([^`\s]+)` `` |
+  | `ANCHOR_NAME` | did this role NAME a declaration when it filed an `add` | `` `[^`\s][^`]*` `` |
+
+  !! **SO A SHARED PATTERN WOULD HAVE BEEN THE DEFECT, NOT THE FIX.** They answer different
+  questions, and the repo's one-name-per-thing rule cuts the other way here: two jobs need two
+  definitions. ! What was missing is **a sentence in each saying which question it answers** --
+  without it, the next reader finds two backtick regexes and assumes one drifted, which is the
+  reading this entry exists to prevent.
+
+  ! **IT IS A COUNTER-CASE TO `Vocabulary: #11`'s DIRECTION**, and worth keeping beside it: one
+  name per thing is about NAMES, not about every pattern that happens to match similar text.
