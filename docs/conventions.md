@@ -212,6 +212,37 @@ forever, and a boundary never written down as temporary calcifies by silence.
 
 ---
 
+## What every addition must answer -- necessity, and a purpose named BEFORE the code
+
+Roy, 2026-08-30: *"The constraint on any design is still -- Is this field necessary to
+make the system correct, is this change or addition to code serving an actual previously
+unidentified purpose. That is what the TODOS and PLANS are for as much as anything they
+are identifying the purpose of the pieces before they get implemented."*
+
+**Two questions, asked of every field, flag, function and module before it is written:**
+
+| | |
+| --- | --- |
+| **necessary** | is this needed to make the system CORRECT |
+| **purposeful** | does it serve an actual purpose that is not already served |
+
+!! **AND THE ANSWER IS WRITTEN DOWN BEFORE THE CODE, NOT DEFENDED AFTER IT.** A `T` names
+the work and a `P` names the step, and both exist so a piece's purpose is on the record
+before anyone implements it. **A purpose first stated in a review is a justification, not
+a design** -- it is produced by looking at the code, so it can only ever agree with it.
+
+! **THE MEASURED FAILURE IS A FIELD THAT ANSWERS NEITHER.** `desk/mark.py` declares
+`owes_destination` and **nothing reads it**: measured 2026-08-30,
+`grep -rn "owes_destination" src/` returns three lines and all three are in the file that
+declares it. A flag nobody reads cannot make the system correct and serves no purpose,
+and it survived because no plan ever had to say what it was for.
+
+! **IT IS THE SAME STANDARD THIS REPO APPLIES TO PROSE, ARRIVING FROM THE OTHER SIDE.**
+`CLAUDE.md` refuses a sentence that cannot be falsified by reading the code; this refuses
+a piece of code that cannot be justified by naming what would otherwise be wrong.
+
+---
+
 ## What a box may SAY -- the four openings, and why everything else is a trap
 
 Roy, 2026-08-29: *"the box must declare what it is implementing, updating, deleting or for
