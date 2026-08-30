@@ -67,7 +67,11 @@ def a_small_real_tree(tmp_path: Path) -> Path:
     "every library file" half of `test_revise.py`'s first case.
     """
     repo = tmp_path / "repo"
-    repo.mkdir()
+    # ! `exist_ok=True` -- `tests/test_containers.py`'s master_proof case calls
+    # this twice against the same `tmp_path` to get two copies of the same
+    # tree; every other call site in this suite calls it once, so this was
+    # never exercised until then.
+    repo.mkdir(exist_ok=True)
     for name in ("mark.py", "stages.py", "collator.py", "__init__.py"):
         (repo / name).write_bytes((_DESK / name).read_bytes())
     return repo
