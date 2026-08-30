@@ -57,6 +57,17 @@ Measured: 2026-08-30 — Two keyed cases added to evals/test-cases.jsonl with st
           tests/harness/test_case_rows.py gates that every keyed row resolves against
           git. T15 left unchecked: the six older rows still pin one commit, and they
           record an observed miss with no END to carry.
+Built:    2026-08-30 — A rehearsal API server, evals/fake_api.py, stands in for the
+          Messages endpoint via ANTHROPIC_BASE_URL, so the whole paid path runs for
+          free: the real SDK, a real socket, and the shipped grade(). Six scenarios,
+          five of them failures that have cost a run or a bill. Verified through the
+          reread CLI end to end, exit 0 on a grade and exit 3 on a truncation.
+Built:    2026-08-30 — A rehearsal API server, evals/fake_api.py, stands in for the
+          Messages endpoint via ANTHROPIC_BASE_URL, so the whole paid path runs for
+          free: the real SDK, a real socket, and the shipped grade() unmodified. Six
+          scenarios, five of them failures that have cost a run or a bill. Verified
+          through the reread CLI end to end -- exit 0 on a grade, exit 3 on a
+          truncation.
 ```
 
 ## Objective
