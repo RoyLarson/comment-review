@@ -2181,3 +2181,28 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **THE MECHANICAL GUARD IS UNCHANGED.** `tests/harness/conftest.py` still makes
   `grader._client()` raise. **Who MAY run a billed call and whether a TEST may reach the API are
   different questions**, and this ruling answers only the first.
+
+- **#66.** **THE GRADER COMPARES THE RUN'S OWN REVISE DIFF AGAINST END'S DIFF** (Roy, 2026-08-30,
+  approving the framing: *"The new framing looks correct"*).
+
+  !! **THE MARKS ARE THE RUN'S SELF-REPORT, WHICH IS THE ONE THING `CLAUDE.md` FORBIDS GRADING
+  FROM**: *"Grade a comment-review run from its diff, never from its own report -- self-reported
+  confidence has been measured to not discriminate real from fabricated findings."* The mark's
+  seven fields are precisely a role's account of what it found and why, so grading them is the
+  measured failure wearing the new shape.
+
+  ! **AND A DIFF AGAINST A DIFF IS LIKE FOR LIKE.** END is a diff; `taken_in` renders the run's
+  revise as one. **A claim that never became text is simply absent from it**, which is what makes
+  a fabricated finding unscoreable rather than merely penalised.
+
+  ! **THE MARKS ARE NOT WASTED -- THEY BECOME THE MECHANICAL HALF.** `collator.problems_in`,
+  `tally` and `unruled` already compute what `reread.py --mechanical` takes as a hand-written
+  `{citations_checked, citations_failed}`.
+
+  !! **AND IT DISSOLVES T18 RATHER THAN ANSWERING IT.** That task asked whether a row is executed
+  by *"a script in this repo or `skill-creator`"* -- a choice that stopped existing once the chain
+  turned out to be shipped commands already: `mark --seed`, the roles, `mark --check`, collate,
+  `proof`, `taken_in`. ! What is actually missing is one link, and `commands/mark.py` says so
+  itself: *"`flows/collate.py` is what these three will reach through, and it does not exist
+  yet."* **T18 and T19 are superseded by T54 and T55**, and the `*` comes off: no ruling was
+  owed, a module was.

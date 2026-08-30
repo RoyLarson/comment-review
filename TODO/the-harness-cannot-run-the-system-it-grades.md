@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 18 of 53 tasks done
+Progress: 20 of 55 tasks done
 Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
@@ -68,6 +68,14 @@ Built:    2026-08-30 — A rehearsal API server, evals/fake_api.py, stands in fo
           scenarios, five of them failures that have cost a run or a bill. Verified
           through the reread CLI end to end -- exit 0 on a grade, exit 3 on a
           truncation.
+Reframed: 2026-08-30 — T18 and T19 are SUPERSEDED by T54 and T55. What executes a row
+          was never a choice between a script here and skill-creator: the chain is
+          already shipped commands, and the missing link is flows/collate.py, which
+          commands/mark.py names as not existing yet. And what the grader compares is
+          settled by a rule this repo already held -- grade from the DIFF, never from
+          the run's own report -- so the artifact is the run's revise diff against END's
+          diff, not a findings file and not the marks, which ARE the self-report that
+          rule forbids grading from. Roy approved the framing 2026-08-30.
 ```
 
 ## Objective
@@ -585,9 +593,9 @@ earlier reading of T20 conflated them.
       REFERENCE ONLY files. Verify: re-run a case without them, compare verdicts.
 - [ ] T17 -- Survey public histories for a commit whose prose and code disagree, and its
       later fix. Verify: one such pair is a row in `evals/test-cases.jsonl`.
-- [ ] T18 -- * Rule what executes a `test-cases.jsonl` row: a script in this repo or
+- [x] T18 -- * Rule what executes a `test-cases.jsonl` row: a script in this repo or
       `skill-creator`. Verify: the answer is written into this file.
-- [ ] T19 -- Build that runner. Verify: one command runs one row by `id` and exits nonzero
+- [x] T19 -- Build that runner. Verify: one command runs one row by `id` and exits nonzero
       on a miss.
 - [x] T20 -- SUPERSEDED: `evals/evals.json` is gone, so a field cannot be added to it.
       ! Its second clause was WRONG and is corrected 2026-08-29 -- see the note below.
@@ -665,6 +673,14 @@ earlier reading of T20 conflated them.
 - [ ] T53 -- Accumulate the axis/overall pairs across runs so the mapping question
       can be asked at all. Verify: one file holds every grade with its rubric
       version and model id.
+- [ ] T54 -- Update evals/reread.py to take the run's revise diff where it takes
+      --findings, and to source --mechanical from the mark check rather than a
+      hand-written JSON. Verify: a keyed case grades with no hand-authored
+      artifact in the command.
+- [ ] T55 -- Implement the wiring that carries one keyed case through mark,
+      collate, proof and taken_in, so the artifact graded is the diff the run
+      itself produced. Verify: one command takes a case id and yields a revise
+      diff. Deferred until flows/collate.py exists.
 
 ## What this costs today
 
