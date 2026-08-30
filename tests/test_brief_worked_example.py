@@ -1,4 +1,4 @@
-"""T7 -- the brief's OWN worked example, run through `mark --check`.
+"""T7 -- the brief's OWN worked example, run through `collate`.
 
 !! THE DEFECT THIS EXISTS FOR, MEASURED 2026-08-29. `reviewer-brief.md` keys a
 mark's ruling `instruction` and `desk/mark.py` read `mark`, so the example the
@@ -15,6 +15,11 @@ code was right.
 this file would agree with whatever the code expects on the day it was typed,
 which is exactly how the two drifted apart.
 
+!! THE END-TO-END CASE MOVED FROM `mark --check` TO `collate`, 2026-08-30.
+`--check` left `mark` entirely and became `collate`'s first act -- see
+`src/comment_review/commands/mark.py`'s own docstring -- so the command a
+role's output actually meets is now `collate`, not `mark --check`.
+
     uv run pytest -q tests/test_brief_worked_example.py
 """
 
@@ -24,8 +29,9 @@ import sys
 
 import pytest
 from conftest import ROOT
+from helpers import a_binder_over
 
-from comment_review.commands.mark import main as mark_main
+from comment_review.commands.collate import main as collate_main
 from comment_review.desk.collator import problems_in, tally, unruled
 from comment_review.desk.mark import parse, untouched
 
@@ -90,16 +96,36 @@ def test_tally_names_the_instruction_the_brief_wrote():
     assert tally(EXAMPLE) == {ENTRY["instruction"]: 1}
 
 
-def test_mark_check_accepts_it_as_a_ruled_mark(tmp_path, capsys, monkeypatch):
-    """The command a role's output actually meets, end to end."""
-    path = tmp_path / "edit_copy.json"
-    path.write_text(json.dumps(EXAMPLE), encoding="utf-8")
-    monkeypatch.setattr(sys, "argv", ["mark", "--check", str(path)])
-    code = mark_main()
+def test_collate_accepts_it_as_a_ruled_mark(tmp_path, capsys, monkeypatch):
+    """The command a role's output actually meets, end to end.
+
+    ! `--binder` carries no page for `b47`, so `drift_in`'s `address not in
+    base` skip fires and nothing is compared -- the drift check is not what
+    this test is about.
+    """
+    copy_path = tmp_path / "edit_copy.json"
+    copy_path.write_text(json.dumps(EXAMPLE), encoding="utf-8")
+    binder_path = tmp_path / "binder.json"
+    binder_path.write_text(json.dumps(a_binder_over({})), encoding="utf-8")
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "collate",
+            "--stage",
+            "4c",
+            "--binder",
+            str(binder_path),
+            "--out",
+            str(tmp_path / "chief.json"),
+            "--edit-copy",
+            str(copy_path),
+        ],
+    )
+    code = collate_main()
     printed = capsys.readouterr().out
     assert code == 0, printed
-    assert "1 ruled on, 0 left unruled" in printed
-    assert ENTRY["instruction"] in printed
+    assert "1 places resolved" in printed
 
 
 @pytest.mark.parametrize("key", ["claim", "reason", "sources", "change"])

@@ -2,12 +2,17 @@
 
     comment_review mark --shape
     comment_review mark --seed --binder B.json --role block-context --out F.json
-    comment_review mark --check F.json
 
 The work is `flows.marks` and `desk.mark`; this is only the console face of it.
 
 !! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
 A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`.
+
+!! `--check` LEFT 2026-08-30 AND IS `collate`'s FIRST ACT. `desk.collator.places`
+already raises on an entry `parse` refuses, so a malformed copy could never be
+folded; what a separate command added was the chance to fold WITHOUT EVER HAVING
+RUN THE CHECK. ! The cost: a role can no longer validate its own returned copy
+alone -- the whole stage's copies must be in hand. No caller does that today.
 """
 
 import argparse
@@ -16,45 +21,24 @@ import sys
 from pathlib import Path
 
 from comment_review.binder.binder import read as read_binder
-
-# ! IMPORTING `desk/` FROM A COMMAND IS A LAYERING VIOLATION AND IS TEMPORARY.
-# `decision-log.md Process: #12` has a command expose a FLOW; `flows/collate.py`
-# is what these three will reach through, and it does not exist yet.
-from comment_review.desk.collator import problems_in, tally, unruled
 from comment_review.desk.mark import allowed
 from comment_review.desk.stages import ROLES
 from comment_review.flows.marks import seed
 from comment_review.machine import exceptions
 
 
-def _load(path: str) -> tuple[dict, str]:
-    """Read one JSON object, or say why it could not be read."""
-    try:
-        text = Path(path).read_text(encoding="utf-8")
-    except exceptions.READ_ERRORS as err:
-        return {}, f"cannot read {path}: {err}"
-    try:
-        got = json.loads(text)
-    except ValueError as err:
-        return {}, f"{path} is not JSON: {err}"
-    if not isinstance(got, dict):
-        return {}, f"{path} is a JSON {type(got).__name__}, not an object"
-    return got, ""
-
-
 def main() -> int:
-    """Publish the shape, seed an `edit_copy`, or check a filled one.
+    """Publish the shape, or seed an `edit_copy`.
 
     Returns:
-        0 when the shape printed, the edit_copy was written, or it is sound;
-        1 when a filled file breaks a rule; 2 when an input could not be read.
+        0 when the shape printed or the edit_copy was written; 2 when an
+        input could not be read.
     """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument(
         "--shape", action="store_true", help="print what a mark may carry, as JSON"
     )
     ap.add_argument("--seed", action="store_true", help="write a fillable edit_copy")
-    ap.add_argument("--check", metavar="PATH", help="check a filled edit_copy")
     ap.add_argument("--binder", help="the binder to seed from (--seed only)")
     # `choices=` takes the string values, not the `Role` members themselves:
     # argparse's "invalid choice" message reprs each choice, and a `StrEnum`
@@ -97,21 +81,6 @@ def main() -> int:
         places = sum(len(sheet["marks"]) for sheet in edit_copy["sheets"])
         print(f"{args.out}: {places} places for {args.role} to rule on")
         return 0
-
-    if args.check:
-        report, why = _load(args.check)
-        if why:
-            print(why, file=sys.stderr)
-            return 2
-        broken, ruled = problems_in(report)
-        for problem in broken:
-            where = problem.address or problem.role or "the report"
-            print(f"{where}: {problem.message}")
-        left = unruled(report)
-        counts = ", ".join(f"{n} {name}" for name, n in sorted(tally(report).items()))
-        summary = f"{ruled} ruled on, {len(left)} left unruled"
-        print(summary + (f" -- {counts}" if counts else ""))
-        return 1 if broken else 0
 
     ap.print_usage()
     return 2
