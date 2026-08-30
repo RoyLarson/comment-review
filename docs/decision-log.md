@@ -1884,3 +1884,21 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   only. Whether the second is a real axis stays open -- adding the softest axis before the spread
   on the hard ones is measured would put the most variance into the grade when it can least carry
   it.
+
+- **#58.** **RUNNING THE GRADER IS ROY'S ALONE** (Roy, 2026-08-29): *"Also running this is a Roy
+  only task."*
+
+  ! **THE RULE ITSELF LIVES IN [`conventions.md`](conventions.md)**, *The grader costs money, and
+  only Roy runs it* -- because that file is loaded into every session by `CLAUDE.md`'s `@` lines
+  and this one is not. A rule recorded only here is findable; it is not present.
+
+  ! **WHAT IS DATED HERE IS THE RULING AND WHAT IT COST.** MEASURED the same day, on the first
+  live T50: two readings **$0.61**, on a case with no END, so three of the five axes graded `N/A`
+  -- **one axis of stability at the price of five**. The session had twice noted the case had no
+  key and handed over the command anyway.
+
+  !! **AND THE FIRST GRADED RUN'S OTHER FINDING WAS ABOUT THE INSTRUMENT, NOT THE SUBJECT.**
+  `reread.py` counted those three `N/A` pairs as AGREEMENT, so three vacuous holds outvoted two
+  real disagreements and the comparison reported stability it had not observed. **A field that
+  cannot vary cannot disagree** -- `docs/gates.md`'s own case, arriving from inside the tool
+  built to measure it.

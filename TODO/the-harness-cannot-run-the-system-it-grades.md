@@ -29,6 +29,18 @@ Absorbed: 2026-08-24 — P5 of the 0.2.4 foliator plan came here as T43 and T44.
           ! RENUMBERED ON MERGE, 2026-08-29 -- the pair is T43/T44 and the scorer is T40.
           T30, T31 and T28 were the 0.2.4 file's numbers, and this file's own task list
           already used all three
+Runner:   2026-08-29 — T50's runner exists: evals/reread.py grades one artifact N times
+          with one client and reports the axis letters side by side plus a stated
+          'agreed'. It compares and never averages, for grader.py's own reason. 14 tests
+          in tests/harness/test_reread.py, all seven mutations caught. The box stays
+          OPEN -- no reading has been taken; it waits only on a credential reaching the
+          process.
+Measured: 2026-08-29 — First live T50, 2026-08-29: 2 readings, $0.61, claude-opus-5,
+          rubric v2, on the keyless case a-docstring-never-matches-its-own-file.
+          detection/diagnosis/prescription all N/A both readings for want of an END;
+          unkeyed A->B and evidence B->A both MOVED; overall held at B. agreed=False
+          over 3 of 6 fields. T50 stays open until a run on a KEYED case exercises the
+          other three axes.
 ```
 
 ## Objective

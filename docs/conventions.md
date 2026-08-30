@@ -212,6 +212,41 @@ forever, and a boundary never written down as temporary calcifies by silence.
 
 ---
 
+## The grader costs money, and only Roy runs it
+
+Roy, 2026-08-29: *"Also running this is a Roy only task."*
+
+**A graded run is a real API call at a pinned model, billed to Roy's account.** A session
+builds the grader, tests it against an injected client, and hands over the command. **It does
+not run one**, and it does not plan on being able to.
+
+! **THE CREDENTIAL IS NOT IN A SESSION'S ENVIRONMENT, and that is the arrangement rather than
+an accident.** MEASURED 2026-08-29: `ANTHROPIC_API_KEY` resolved in Roy's shell and was absent
+from the agent session's throughout, so every command the session ran refused at the first
+gate. ! A session that reads this and still tries will get a refusal, not a bill -- but it
+will have spent the turn.
+
+!! **AND A TEST THAT REACHES THE API IS THE SAME MISTAKE WEARING A SUITE.** It passes for free
+where there is no credential and bills where there is one, so **its behaviour depends on who
+runs it**, which is not a test. [`tests/harness/conftest.py`](../tests/harness/conftest.py)
+makes `grader._client` raise for every harness test; an honest test injects its own stub and
+never reaches it. ! Made mechanical because the rule alone did not hold -- a test driving a
+CLI that takes no `client` was written with no substitution hours after its own file's
+docstring stated the rule.
+
+!! **WHAT A SESSION OWES INSTEAD IS A RUN WORTH PAYING FOR, AND THAT IS THE PART IT CAN GET
+WRONG.** MEASURED 2026-08-29, the first live T50: two readings cost **$0.61**, and the case
+handed over had no END -- so `detection`, `diagnosis` and `prescription` all graded `N/A` and
+the run bought **one axis of stability at the price of five**. The session had noted the
+missing END twice and still chose that case.
+
+! **So the guard is in the tool**: `evals/reread.py` refuses a keyless case unless
+`--allow-no-end` says the caller means it, and the refusal names the price. **Choosing the
+case is the expensive decision, and it is made before the money is spent** -- which is the
+same rule as *refuse before the calls*, applied to the thing that actually cost something.
+
+---
+
 ## Working agreements
 
 - **Name the lane and ask.** A one-line question costs less than a change the owning lane has to

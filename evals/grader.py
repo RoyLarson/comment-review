@@ -30,6 +30,7 @@ inherits a context lineage besides (`decision-log.md Process: #55`).
 from __future__ import annotations
 
 import json
+import os
 import pathlib
 
 #: The judge. An exact id, never a family alias -- `opus` names a family, so two
@@ -58,8 +59,24 @@ AXES = ["detection", "diagnosis", "prescription", "unkeyed", "evidence"]
 UNKEYED_VERDICTS = ["true", "false", "query"]
 
 
-class NoCredential(Exception):
+class SetupProblem(Exception):
+    """The machine is not set up to grade -- not a bad grade, and not a bug.
+
+    ! A SHARED BASE SO ONE `except` COVERS BOTH, because a caller does the same
+    thing either way: say what is missing and stop, rather than retrying.
+    """
+
+
+class NoCredential(SetupProblem):
     """No credential resolved, which is a setup problem, not a grading failure."""
+
+
+class NoWorkspace(SetupProblem):
+    """A credential resolved, but the request names no workspace to act in."""
+
+
+class NoCredit(SetupProblem):
+    """Credential and workspace both resolved; the account cannot pay."""
 
 
 #: What the SDK says when it has tried every credential path and found none.
@@ -67,23 +84,112 @@ class NoCredential(Exception):
 #: any network call, so translating it costs nothing and reaches no API.
 NO_AUTH = "Could not resolve authentication method"
 
+#: The HEADER NAME, which is what every workspace 400 has in common.
+#:
+#: !! MATCHING THE FULL SENTENCE CAUGHT ONLY ONE OF TWO, and this read
+#: `"anthropic-workspace-id is required"` for an hour on 2026-08-29. MEASURED,
+#: both on live calls minutes apart:
+#:
+#:     no header sent      "anthropic-workspace-id is required when
+#:                          authenticating with an identity-linked API key"
+#:     header sent, bad    "anthropic-workspace-id header must be a valid
+#:                          workspace ID."
+#:
+#: The second went to a raw traceback because the first was what was matched --
+#: which is the failure the translation exists to prevent, reproduced by making
+#: the pattern more specific than the thing it identifies.
+NO_WORKSPACE = "anthropic-workspace-id"
+
+#: What the API says when the account cannot pay for the call. MEASURED
+#: 2026-08-29, reached only after auth and the workspace both resolved -- so it
+#: is the LAST setup gate, and the first that costs nothing to hit.
+NO_CREDIT = "credit balance is too low"
+
+#: Read by `_client` and sent as a header. ! THE SDK DOES NOT READ IT ON THIS
+#: PATH: `_fill_missing_from_env` fills a PROFILE's config, so with a bare
+#: `ANTHROPIC_API_KEY` and no profile there is no config to fill and the
+#: variable is never consulted. Sending the header is what makes it work.
+WORKSPACE_ENV = "ANTHROPIC_WORKSPACE_ID"
+
 
 def _client():
-    """The SDK client, constructed the zero-arg way ON PURPOSE.
+    """The SDK client, letting it resolve the credential itself.
 
     !! AN UNSET `ANTHROPIC_API_KEY` DOES NOT MEAN THERE IS NO CREDENTIAL, and
-    this module checked exactly that until 2026-08-29. The zero-arg constructor
-    resolves an env key, an auth token, OR a profile written by `ant auth login`
-    -- so gating on the variable REFUSES a machine that is correctly set up the
-    other way.
+    this module checked exactly that until 2026-08-29. The constructor resolves
+    an env key, an auth token, OR a profile written by `ant auth login` -- so
+    gating on the variable REFUSES a machine that is correctly set up the other
+    way.
 
     ! AND CONSTRUCTING TELLS YOU NOTHING EITHER: measured, `Anthropic()` builds
     fine with `api_key = None` and fails later. The only honest check is to make
     the request and translate the failure.
+
+    !! THE WORKSPACE HEADER IS SENT HERE BECAUSE THE SDK WILL NOT SEND IT. An
+    identity-linked key REQUIRES `anthropic-workspace-id`, and the env var that
+    names it is only read when a profile supplies the config it fills -- so on
+    the plain-key path the header has to be set explicitly or every request is
+    a 400. ! Absent when the variable is unset, because a workspace-scoped key
+    must not be sent one.
     """
     import anthropic
 
-    return anthropic.Anthropic()
+    workspace = os.environ.get(WORKSPACE_ENV)
+    headers = {"anthropic-workspace-id": workspace} if workspace else {}
+    return anthropic.Anthropic(default_headers=headers)
+
+
+def setup_problem(message: str) -> SetupProblem | None:
+    """The setup fault this API error names, or None if it names none.
+
+    !! THREE GATES SIT IN FRONT OF A GRADE, AND EACH WAS FOUND BY A LIVE RUN
+    FAILING IN FRONT OF SOMEONE -- credential, then workspace, then credit,
+    discovered in that order on 2026-08-29 because each one has to pass before
+    the next can be reached. ! Adding the fourth is a clause here rather than a
+    fourth place to catch an exception, which is what this was on the first two.
+
+    !! IT RETURNS RATHER THAN RAISES so the caller keeps `raise ... from e` and
+    the original error stays chained. A translation that discarded the cause
+    would trade one unreadable failure for a different one.
+
+    ! ANYTHING NOT NAMED HERE IS NOT A SETUP PROBLEM and gets `None`, so its
+    traceback survives. A malformed request of OUR OWN making is also a 400,
+    and hiding that behind a friendly sentence is how a bug in this file would
+    come to read as a problem with someone's account.
+    """
+    if NO_WORKSPACE in message:
+        # ! WHICH OF THE TWO IS SAID, because the fix differs: one needs a value
+        # supplied, the other needs the value REPLACED, and "set the workspace"
+        # is unhelpful advice to someone who already did.
+        sent = os.environ.get(WORKSPACE_ENV)
+        if sent:
+            detail = (
+                f"{WORKSPACE_ENV} is {sent!r}, and the API rejected that as not "
+                "a valid workspace ID."
+            )
+        else:
+            detail = f"{WORKSPACE_ENV} is not set, so the request named no workspace."
+        return NoWorkspace(
+            f"The credential resolved, but the request names no usable "
+            f"workspace. {detail} An IDENTITY-LINKED key -- one the console "
+            f"describes as available for ALL workspaces -- cannot be inferred, "
+            f"so it must name the one it acts in. Set {WORKSPACE_ENV} to a "
+            "`wrkspc_...` id from console.anthropic.com -> Settings -> "
+            'Workspaces. ! The literal "default" is NOT accepted on this header '
+            "-- measured 2026-08-29; the SDK documents it for the federation "
+            "token exchange only. ! A workspace-SCOPED key needs none of this: "
+            "leave the variable unset."
+        )
+    if NO_CREDIT in message:
+        return NoCredit(
+            "The credential and the workspace both resolved -- this is the last "
+            "setup gate -- but the account cannot pay for the call. Add credit "
+            "at console.anthropic.com -> Plans & Billing, to the organisation "
+            f"that owns the workspace {os.environ.get(WORKSPACE_ENV) or 'in use'}"
+            ". ! A grade is a real API call at a pinned model, so grading is a "
+            "metered activity and every reading is billed: `--runs 3` is three."
+        )
+    return None
 
 
 def _axis_schema() -> dict:
@@ -296,6 +402,15 @@ def grade(
             "its model can be pinned to an exact version. Set ANTHROPIC_API_KEY, "
             "or run `ant auth login` -- either is read automatically."
         ) from e
+    except Exception as e:
+        # ! MATCHED ON THE MESSAGE FOR THE SAME REASON, and re-raised otherwise.
+        # Catching the SDK's own error class would need it imported at module
+        # level, which this module deliberately avoids -- and a 400 this table
+        # does not name is a real failure that must keep its traceback.
+        problem = setup_problem(str(e))
+        if problem is None:
+            raise
+        raise problem from e
     text = next(b.text for b in response.content if b.type == "text")
     return to_grading_json(
         json.loads(text), mechanical=mechanical, arm=arm, eval_id=eval_id
