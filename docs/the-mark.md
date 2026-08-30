@@ -27,12 +27,13 @@ superseding ruling applied rather than annotated.
 
 ---
 
-## The fields -- seven
+## The fields -- eight
 
 | field | what it is | who fills it |
 | --- | --- | --- |
 | `address` | `path@cue`. WHICH PLACE | **seeded** -- copied from the row, never built |
 | `anchor` | the line of code the place sits on | seeded |
+| `raw_text` | the paragraph as it stands, verbatim -- what the role's `change` is a rewrite OF | **seeded** -- copied from the row |
 | `instruction` | one of the seven | the role |
 | `claim` | the surgical spec -- structured keys, per instruction | the role |
 | `reason` | WHY. The evidence, in prose. No checker settles it | the role |

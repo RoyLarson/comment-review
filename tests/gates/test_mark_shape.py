@@ -6,7 +6,7 @@ scheme entered `desk/mark.py` during a port that was never proposed and never
 approved, because nothing could name what the row was allowed to carry.
 
 !! TWO TABLES, TWO TYPES. `Row` answers "The classifiers"; `Mark` answers "The
-fields -- seven". Both are READ out of the spec here, never restated -- adding
+fields -- eight". Both are READ out of the spec here, never restated -- adding
 a row to either table fails this file until the type follows, which is the only
 form of the check that cannot be satisfied by editing the code alone.
 
@@ -78,7 +78,7 @@ def test_the_fields_table_holds_WHAT_ITS_OWN_HEADING_SAYS():
 def test_the_mark_carries_exactly_the_fields_the_spec_NAMES():
     """!! THE EXPECTATION IS THE SPEC'S TABLE, NOT A LIST TYPED HERE. Roy,
     2026-08-29: *"mark.py should define a Mark that follows 'the_mark.md' that
-    is not negotiable."* A test restating the seven could only confirm, and a
+    is not negotiable."* A test restating the eight could only confirm, and a
     restated field name is exactly how `mark` and `instruction` came to name
     one thing in two files."""
     have = [f.name for f in dataclasses.fields(Mark)]
@@ -86,7 +86,7 @@ def test_the_mark_carries_exactly_the_fields_the_spec_NAMES():
 
 
 def test_no_field_is_spelled_two_ways():
-    """T6's verify: the file and the code name the same seven, so a reader
+    """T6's verify: the file and the code name the same eight, so a reader
     grepping either spelling finds the whole set. The retired spelling of the
     ruling field was `mark`, which is also the name of the OBJECT -- the
     self-nesting that made this ambiguous."""

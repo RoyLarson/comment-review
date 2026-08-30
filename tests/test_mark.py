@@ -401,3 +401,32 @@ class TestTheRulesBite:
         bad = well_formed("query")
         bad["claim"]["shape"] = "i-give-up"
         assert problems("here", bad) != []
+
+
+def test_the_mark_carries_the_raw_text_the_row_seeded():
+    """`raw_text` is seeded onto every slot and must survive the round trip --
+    `decision-log.md Process: #54` makes "did this parse back correctly" the
+    mark's own question, and a field that never comes back has no round trip."""
+    entry = {
+        "address": "m.py@b1",
+        "anchor": "def f(x):",
+        "raw_text": "# the paragraph as it stands\n",
+        "instruction": "clean",
+    }
+    mark, why = parse("m.py@b1", entry)
+    assert why == []
+    assert mark is not None
+    assert mark.raw_text == "# the paragraph as it stands\n"
+
+
+def test_a_mark_that_lost_its_raw_text_still_parses():
+    """!! AN ABSENT `raw_text` IS NOT A SHAPE PROBLEM. It is seeded, so its
+    absence is DRIFT -- a copy that did not come back with what it was handed
+    -- and `decision-log.md` D10 of the SP-1 spec rules drift REPORTED, by the
+    collator, never refused at the boundary. Refusing an absent field here
+    while a CHANGED field is only reported would be two treatments of one
+    problem."""
+    mark, why = parse("m.py@b1", {"address": "m.py@b1", "instruction": "clean"})
+    assert why == []
+    assert mark is not None
+    assert mark.raw_text == ""

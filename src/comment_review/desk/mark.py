@@ -251,19 +251,24 @@ INSTRUCTIONS: dict[Instruction, Row] = {
 
 @dataclass(frozen=True)
 class Mark:
-    """One role's ruling on one place -- `docs/the-mark.md`'s seven fields.
+    """One role's ruling on one place -- `docs/the-mark.md`'s eight fields.
 
     !! THE FIELD ORDER IS THE CHAIN OF CUSTODY, not alphabetical and not
     convenience -- the ruling, then the claim, the reason, the sources and the
     change it produces, with the two seeded fields that say WHERE in front of
-    them. `docs/the-mark.md`, "The fields -- seven", holds Roy's own sentence
+    them. `docs/the-mark.md`, "The fields -- eight", holds Roy's own sentence
     for it, in the register that ruling was given in.
 
-    ! NOTHING IS ADDED HERE THAT THE SPEC DOES NOT NAME. `raw_text` is the
-    SEEDED ROW's, not the mark's -- `docs/the-mark.md` puts it on the row a
-    role is handed, and `collator.claim_verbatim_problems` takes it as its own
-    argument for that reason. `role` belongs to the `edit_copy` the mark came
-    back in, and `collator.Placed` is what carries the pair.
+    ! `role` IS NOT A FIELD, and `collator.Placed` is what carries the pair. It
+    belongs to the `edit_copy` a mark came back in, not to the mark.
+
+    !! `raw_text` IS THE THIRD SEEDED FIELD AND WAS EXCLUDED UNTIL 2026-08-30.
+    It went out on every slot and `parse` dropped it, so one of the three
+    seeded fields could not be written from this class's own names -- which is
+    what left a dict literal in `flows/marks.py` that a rename could not reach.
+    ! WHAT COMES BACK IS NOT THE BASE. The binder's row is; a returned
+    `raw_text` that differs from it is DRIFT, which `desk.collator.drift_in`
+    reports.
 
     Attributes:
         address: `path@cue`. WHICH PLACE -- seeded, copied from the row, never
@@ -271,6 +276,10 @@ class Mark:
             for.
         anchor: the line of code the place sits on -- seeded, and empty where
             the census resolved none.
+        raw_text: the paragraph as it stands -- seeded, and what a role's
+            `change` is a rewrite of. ! CARRIED, NEVER TRUSTED AS THE BASE:
+            every check that measures a claim against the paragraph reads the
+            BINDER's text, through `collator.base_texts`.
         instruction: one of the seven, as an `Instruction` member, so
             `INSTRUCTIONS[mark.instruction]` resolves with no cast.
         claim: the surgical spec -- structured keys, per instruction. Which
@@ -293,6 +302,7 @@ class Mark:
 
     address: str
     anchor: str
+    raw_text: str
     instruction: Instruction
     claim: dict
     reason: str
@@ -517,9 +527,11 @@ def parse(where: str, entry: object) -> tuple[Mark | None, list[str]]:
 
     Args:
         where: how to name this mark in a message -- an address, or a position.
-        entry: one role's ruling on one place, as it came back. Keys the spec
-            does not name (`raw_text`, seeded onto the row) are carried by the
-            entry and are not part of the `Mark`.
+        entry: one role's ruling on one place, as it came back. ! AN ABSENT
+            `raw_text` IS NOT REFUSED -- it is seeded, so its absence is drift
+            rather than a malformed shape, and `desk.collator.drift_in` is
+            what rules on it. Refusing an absent field here while a CHANGED one
+            is only reported would be two treatments of one problem.
 
     Returns:
         `(Mark, [])` or `(None, [one message per broken rule])`, in the order a
@@ -568,6 +580,7 @@ def parse(where: str, entry: object) -> tuple[Mark | None, list[str]]:
         Mark(
             address=str(entry.get("address") or ""),
             anchor=str(entry.get("anchor") or ""),
+            raw_text=str(entry.get("raw_text") or ""),
             instruction=instruction,
             # ! COPIED, NOT ALIASED -- a `Mark` is frozen, and sharing the
             # caller's own containers would leave it mutable through them.
