@@ -6,7 +6,7 @@ nothing else.
 
 ```
 Plan:     docs/plans/0.2.4-the-commands-for-the-middle.md
-Steps:    P36, P34, P35, P21, P13, P1, P2, P24, P3, P37
+Steps:    P36, P34, P35, P21, P13, P1, P2, P24, P3, P37, plus D9
 Closes:   TODO/no-command-for-the-middle.md T1, T2, T3
 Lane:     backend
 Branch:   feat/the-mark-and-the-collator
@@ -51,6 +51,11 @@ WITH THE FLOW, NOT BEFORE IT ... `mark --check` reaches these through
 `flows/collate.py`"* -- and SP-1 is where that flow is built. Landing `P24` in SP-2
 instead would have SP-1 ship `P37`'s clause *"seed and the shape verbs reach commands
 through the renamed flow"* one plan before `P24` makes it false.
+
+!! **AND ONE ADDITION BEYOND THE TEN STEPS: D9**, `parse` refusing a self-move. It is
+here rather than filed for later because D8 is the rule that would otherwise be written
+around a defect measured live -- a self-move settling to a bare delete -- and a rule
+shaped by a defect encodes it.
 
 !! **`P22` MOVES OUT TO SP-6.** Its verify -- *"no command reports only a count the way
 `mark --check` does today"* -- is a rule for every middle command, and SP-1 builds one.
@@ -164,16 +169,71 @@ already drops `role` from a page two roles settled on.
 ! **THIS IS THE ASSUMPTION MOST LIKELY TO BE OVERTURNED**, and it is written here rather
 than discovered in the code so that overturning it costs one edit.
 
-### D8 -- an auto-resolution must re-pair `move`s
+### D8 -- the resolved `move`s are a DAG, topologically ordered, and a cycle refuses
 
-`_join_moves` gives both ends of a `move` one outcome, because a `move` is one
-instruction at two places -- a delete at the origin and a write at the destination.
-**An auto-resolution that promoted one end and not the other would apply half of it**:
-the paragraph read twice, or deleted and never rewritten.
+A `move` is one instruction at two places -- a delete at the origin and a write at the
+destination -- so a SET of moves is a graph over addresses, and applying it needs an
+order.
 
-So: after the resolutions are computed, **a place holding a `move` is resolved only if
-every place that `move` touches also resolved**; otherwise all of its ends are carried
-forward. Like `_join_moves` this runs to a fixed point, because moves chain.
+**The edge, and its direction.** For two resolved moves, an edge `B -> A` when B's
+ORIGIN is A's DESTINATION: **B must vacate the address before A fills it.**
+
+    A: b1 -> b5     A first    A writes b5, then B deletes b5   -- A's change is LOST
+    B: b5 -> b9     B first    B empties b5, then A fills it    -- both land
+
+The rules, in order:
+
+1. **Pair.** A place holding a `move` resolves only if every place that `move` touches
+   also resolved; otherwise all of its ends are carried forward. Runs to a fixed point,
+   because moves chain. This mirrors `_join_moves` one layer down.
+2. **Refuse a cycle.** Every move in it is carried forward as a re-read, named as a
+   cycle.
+3. **Sort.** The resolved moves are emitted in **topological order, ties broken by
+   address**, so a stranger can re-derive the docket's alteration order. Within one
+   move, the delete at the origin precedes the write at the destination.
+
+!! **MEASURED 2026-08-30, AND WHAT PROTECTS THIS TODAY IS AN ACCIDENT.**
+
+| shape | outcome | docket |
+| --- | --- | --- |
+| `b1->b5`, `b5->b9` (chain) | all three ends `rereads` | empty |
+| `b1->b2`, `b2->b1` (cycle) | both ends `rereads` | empty |
+| `b1->b1` (self) | **`settled`** | **`b1 -> None`** -- see D9 |
+| `b1->b2`, `b7->b8` (apart) | all four `settled` | 4 alterations, WALK ORDER |
+
+! **A CHAIN OR CYCLE OF LENGTH 2 OR MORE NEVER REACHES THE SETTLED SET, BECAUSE ITS
+SHARED ADDRESS IS A TWO-MARK PLACE.** `_sentence_key` returns `id(mark)` for a `move` --
+its `quotes_original` is `""` -- so two of them never compare equal, the place becomes a
+re-read, and `_join_moves` propagates that to every end. **No rule anywhere says a
+chained move must not settle.** It falls out of a function whose docstring is about two
+`add`s, and `docs/gates.md` is exactly about this: a check that holds because something
+else happens to be true is not the check anyone thinks they have.
+
+! **AND THE ORDER OF INDEPENDENT MOVES IS WALK ORDER**, with nothing stating it is safe
+or re-derivable -- four alterations with deletes and writes interleaved.
+
+### D9 -- a self-move is refused by `desk/mark.py`
+
+**MEASURED:** `m.py@b1 -> m.py@b1` SETTLES, and the docket carries one alteration,
+`b1 -> None`. `_touches` dedupes both ends to one address, so `_alteration_text` emits
+the delete at the origin and **the write is lost -- the paragraph is deleted and never
+rewritten.** It is the half-move `_join_moves` exists to prevent, arriving through the
+one shape it cannot see: `ends_of` filters `len(_touches(...)) > 1`.
+
+`parse` refuses `claim.to == mark.address`. It is one mark answering for itself -- no
+binder, no page, no filesystem -- which is `Process: #54`'s own split, and it wires the
+FIRST half of `owes_destination`, **declared at `desk/mark.py:206` and read by nothing**.
+
+! **THE SECOND HALF STAYS UNWIRED AND IS FILED.** *"the destination needs to be
+addressable"* (Roy, 2026-08-27) needs an addresser, and is not a question one mark can
+answer alone.
+
+!! **THE CONSEQUENCE FOR D8's TESTABILITY IS STATED HERE RATHER THAN DISCOVERED LATER.**
+With `parse` refusing the self-move and `reconcile` already breaking shared addresses,
+**no cycle reaches the resolution step through `reconcile` today.** The DAG's test
+therefore drives the resolution step with a `Reconciled` built directly -- its real
+parameter type -- and the reason the rule is written at all is D8's first note: **the
+protection upstream is a side effect, and a side effect is not a rule.**
 
 ## The work, in order
 
@@ -221,6 +281,12 @@ Consequences, all of which delete threading rather than add it:
 **Verify.** `tests/gates/test_mark_shape.py` passes with the field in both the table and
 the dataclass and fails if either moves alone. `grep -rn "raw_text" src/` shows no
 function taking it as a parameter beside a `Mark`.
+
+**And in the same file, D9 -- `parse` refuses `claim.to == mark.address`.** ! **THIS IS
+AN ADDITION BEYOND THE PLAN'S TEN STEPS**, ruled 2026-08-30 after the self-move was
+measured settling to a bare delete. Verify: a mark whose destination is its own address
+is refused by name, and `owes_destination` is read by something for the first time since
+it was declared.
 
 ! **HALF OF THIS ALREADY TRAVELS.** `seed` writes `raw_text` onto every slot
 (`flows/marks.py:87`) and `docs/the-mark.md:53` says the seeded row carries it. What
@@ -310,8 +376,9 @@ The resolutions at step 5, over `Reconciled`'s three lists:
 | a `reread` whose sides `compose` | the composed text as a synthesized `correct` (D7) |
 | anything else | **carried forward NAMED** |
 
-Then D8: any place holding a `move` is resolved only if every place that `move` touches
-resolved, run to a fixed point.
+Then D8, over the resolved `move`s: **pair** (a move resolves only if every place it
+touches resolved, to a fixed point), **refuse any cycle**, and **emit in topological
+order**, ties broken by address.
 
 `Collated` returns:
 
@@ -337,7 +404,9 @@ paths, exactly as `docket_from` does today -- and each carries that page's `sha`
 chief's copy and the two carried-forward lists, and **what it cannot resolve it carries
 forward named, resolving nothing on its own**. A stage whose four roles all returned
 `clean` produces a chief copy with zero marks and empty carried-forward lists. A stage
-with one `move` whose destination escalated carries BOTH ends forward.
+with one `move` whose destination escalated carries BOTH ends forward. Two independent
+moves are emitted in a stable order that does not depend on which role's copy was read
+first; a cycle is carried forward and named as one.
 
 ! **`Vocabulary: #30`'s FOLD, ARRIVING:** *"After the chief acts every place has exactly
 ONE answer."* SP-1 delivers the places that need no chief; the chief's own three acts are
@@ -416,7 +485,9 @@ boundary parses.
 | `test_containers.py` | each type parses what `seed`/`gather` build over a real tree; each refuses a malformed wire value by name |
 | `test_differences.py` (extended) | `compose` merges disjoint spans, refuses overlapping ones by name, and handles a boundary `insert` |
 | `test_mark.py` (extended) | `raw_text` survives the round trip; `Mark.seed` breaks on a renamed field |
-| `test_collate.py` | the flow over real seeded copies: each resolution, each carried-forward case, the `move` re-pairing, the chief's copy shape |
+| `test_collate.py` | the flow over real seeded copies: each resolution, each carried-forward case, the `move` pairing and topological order, the chief's copy shape |
+| `test_collate.py` (cycles) | the DAG refusal, driven with a `Reconciled` built directly -- see D9's last note for why no cycle reaches it through `reconcile` |
+| `test_mark.py` (D9) | a self-move is refused by name; the four shapes of D8's table reach the outcomes measured there |
 | `test_collator.py` (extended) | the three verbs still answer what they answered from their new home |
 
 !! **AND ONE THING MUST BE PROVED ABLE TO FAIL** -- `docs/gates.md`'s rule, *"does the
@@ -457,6 +528,10 @@ the point.*
   where `docket_from` already drops `role` from a page two roles settled on.
 - **`collate` reports buckets and not the command that continues them** -- `P22`, SP-6,
   by this plan's own scoping.
+- **`owes_destination`'s second half is still unwired** -- *"the destination needs to be
+  addressable"* (Roy, 2026-08-27). D9 wires the self-move half only; whether `claim.to`
+  names an addressable place needs an addresser and belongs beside `P28`'s address
+  integrity in SP-2.
 - **Nothing checks a copy's `read_from` against the binder it was seeded from.**
   `flows/marks.py:136-141` names this gap and says the comparison *"belongs wherever the
   two meet"* -- which is `collate`, now that one exists. It is not an SP-1 step and no
