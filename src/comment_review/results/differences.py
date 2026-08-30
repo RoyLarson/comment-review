@@ -145,15 +145,22 @@ def compose(base: str, sides: dict[str, str]) -> str:
     three roles of which one edited compose to that one's text.
 
     Args:
-        base: the paragraph before any of these edits -- the BINDER's
-            `raw_text`, never a returned mark's. `desk.collator.base_texts` is
-            what supplies it; see the SP-1 spec's D10 for why.
+        base: the paragraph before any of these edits. !! IT MUST BE THE TEXT
+            THE RUN SEEDED, never a `raw_text` that came back on a mark -- a
+            check that reads its base off the thing it is checking cannot
+            disagree with it.
         sides: role name -> that role's proposed `change`, both whole
             paragraphs as raw text (`decision-log.md Vocabulary: #27`).
 
     Returns:
         The composed paragraph. An empty `sides` returns `base` unchanged --
         nothing was proposed, so nothing is applied.
+
+    ! TOUCHING COUNTS AS MEETING, NOT ONLY OVERLAPPING. `_conflict_spans`
+    merges spans that abut, so two sides editing ADJACENT base lines are one
+    span with two touching roles and refuse together. That is conservative by
+    intent -- the interleaving of two abutting rewrites is not arithmetic --
+    and it means disjoint here is stricter than different lines.
 
     Raises:
         CannotCompose: some span was edited by two or more sides, naming the
