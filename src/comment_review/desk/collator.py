@@ -1,11 +1,8 @@
 """SOURCE-VERIFICATION and RECONCILIATION: marks against the tree, then each other.
 
     known_addresses()          every address the binder carries
-    base_texts()                every address -> the paragraph the binder
+    base_texts()               every address -> the paragraph the binder
                                seeded there
-    drift_in()                  every ruled mark whose returned `raw_text`
-                               is not the one `base_texts` named for its
-                               address
     address_problems()         a mark's address is one of them
     claim_verbatim_problems()  the sentence the claim quotes is really in the
                                paragraph the row seeded
@@ -17,6 +14,9 @@
     Problem                    one thing wrong with one mark, named to route
     problems_in()              every rule `desk.mark` settles, over a whole
                                edit_copy
+    drift_in()                 every ruled mark whose returned `raw_text`
+                               is not the one `base_texts` named for its
+                               address
     unruled()                  the addresses nobody wrote in
     tally()                    how many of each instruction the edit_copy carries
     places()                   every ruled mark of a master_proof, grouped by
@@ -30,15 +30,16 @@ kind needs the PAGE the role read and the FILES it cited (`address_problems`
 through `verify_report`, and `base_texts`, which turns the binder into what
 `claim_verbatim_problems` and `verify_report` measure a returned claim
 against -- never a mark's own `raw_text`, the base a party being checked
-could have altered). One kind needs only the report itself, and nothing the
-checkout has to be opened for (`Problem`, `problems_in`, `unruled`, `tally`,
-and `drift_in`, which compares a report against `base_texts`'s own output
-rather than reading a file) -- `decision-log.md Process: #54` put the first
-four here because they ask whether every place in the copy was ruled on, a
-question about the SET, and one mark cannot answer for the set alone. One
-kind needs the marks the OTHER roles handed back (`places` through
-`docket_from`). Nothing above `places` compares two marks, and nothing in
-the second or third kind opens a file.
+could have altered). One kind needs only the report itself, and nothing
+outside it (`Problem`, `problems_in`, `drift_in`, `unruled`, `tally`) --
+`decision-log.md Process: #54` put the first four here because they ask
+whether every place in the copy was ruled on, a question about the SET, and
+one mark cannot answer for the set alone; `drift_in` joined them because it
+too takes only a report and data already derived from the binder --
+`base_texts`'s own output -- rather than the checkout itself. One kind needs
+the marks the OTHER roles handed back (`places` through `docket_from`).
+Nothing above `places` compares two marks, and nothing below `verify_report`
+opens a file.
 
 !! AND THEY REFUSE DIFFERENTLY. Verification RETURNS a message per broken
 rule, each opening with the mark it is about, so a whole report is checked
@@ -109,57 +110,6 @@ def base_texts(binder: dict) -> dict[str, str]:
         for row in rows_of(binder)
         if row.get("address")
     }
-
-
-def drift_in(report: dict, base: dict[str, str]) -> "list[Problem]":
-    """Every ruled mark whose returned `raw_text` is not the one it was handed.
-
-    ! REPORTED, NOT REFUSED. The tree can move between `seed` and the return,
-    which is an ordinary thing rather than a malformed copy -- so a whole copy
-    is never discarded over it. What a run must not do is compose over a base
-    nobody sanctioned, which `base_texts` prevents separately.
-
-    ! AN UNTOUCHED SLOT IS SKIPPED. Nobody wrote there, so nothing drifted.
-
-    ! AN ADDRESS THE BINDER DOES NOT CARRY IS NOT DRIFT EITHER -- that is
-    `address_problems`' question, and reporting it twice in two vocabularies is
-    the duplication `Problem` exists to avoid.
-
-    Args:
-        report: one edit_copy, as it came back.
-        base: `base_texts` of the binder it was seeded from.
-
-    Returns:
-        One `Problem` per drifted place, in sheet then mark order.
-    """
-    role = report.get("role")
-    named = role if isinstance(role, str) else ""
-    sheets = report.get("sheets")
-    if not isinstance(sheets, list):
-        return []
-    out: list[Problem] = []
-    for sheet in sheets:
-        marks = sheet.get("marks") if isinstance(sheet, dict) else None
-        if not isinstance(marks, list):
-            continue
-        for entry in marks:
-            if not isinstance(entry, dict) or untouched(entry):
-                continue
-            address = str(entry.get("address") or "")
-            if address not in base:
-                continue
-            got = str(entry.get("raw_text") or "")
-            if got != base[address]:
-                out.append(
-                    Problem(
-                        named,
-                        address,
-                        "`raw_text` is not the paragraph this place was seeded "
-                        "with -- the copy came back with a different base",
-                    )
-                )
-    return out
-
 
 def address_problems(where: str, mark: Mark, known: frozenset[str]) -> list[str]:
     """Whether this mark's address names a place the binder carries.
@@ -531,6 +481,56 @@ def problems_in(report: dict) -> tuple[list[Problem], int]:
             _, why = parse(where, mark)
             out += [Problem(named, address, message) for message in why]
     return out, ruled
+
+
+def drift_in(report: dict, base: dict[str, str]) -> list[Problem]:
+    """Every ruled mark whose returned `raw_text` is not the one it was handed.
+
+    ! REPORTED, NOT REFUSED. The tree can move between `seed` and the return,
+    which is an ordinary thing rather than a malformed copy -- so a whole copy
+    is never discarded over it. What a run must not do is compose over a base
+    nobody sanctioned, which `base_texts` prevents separately.
+
+    ! AN UNTOUCHED SLOT IS SKIPPED. Nobody wrote there, so nothing drifted.
+
+    ! AN ADDRESS THE BINDER DOES NOT CARRY IS NOT DRIFT EITHER -- that is
+    `address_problems`' question, and reporting it twice in two vocabularies is
+    the duplication `Problem` exists to avoid.
+
+    Args:
+        report: one edit_copy, as it came back.
+        base: `base_texts` of the binder it was seeded from.
+
+    Returns:
+        One `Problem` per drifted place, in sheet then mark order.
+    """
+    role = report.get("role")
+    named = role if isinstance(role, str) else ""
+    sheets = report.get("sheets")
+    if not isinstance(sheets, list):
+        return []
+    out: list[Problem] = []
+    for sheet in sheets:
+        marks = sheet.get("marks") if isinstance(sheet, dict) else None
+        if not isinstance(marks, list):
+            continue
+        for entry in marks:
+            if not isinstance(entry, dict) or untouched(entry):
+                continue
+            address = str(entry.get("address") or "")
+            if address not in base:
+                continue
+            got = str(entry.get("raw_text") or "")
+            if got != base[address]:
+                out.append(
+                    Problem(
+                        named,
+                        address,
+                        "`raw_text` is not the paragraph this place was seeded "
+                        "with -- the copy came back with a different base",
+                    )
+                )
+    return out
 
 
 def unruled(report: dict) -> list[str]:
