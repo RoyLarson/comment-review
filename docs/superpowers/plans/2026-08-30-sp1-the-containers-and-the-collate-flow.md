@@ -3332,7 +3332,17 @@ uv run python scripts/todo_tool.py check no-command-for-the-middle 2
 uv run python scripts/todo_tool.py check no-command-for-the-middle 3
 ```
 
-- [ ] **Step 8: Tick the boxes -- THIS STEP, before the commit**
+- [ ] **Step 8: Commit**
+
+```bash
+git add src/comment_review/commands/ src/comment_review/__main__.py \
+        tests/test_collate_command.py TODO/
+git commit -F <message file>
+```
+
+---
+
+- [ ] **Step 9: Tick the boxes -- THIS STEP, in its own commit AFTER the one above**
 
 Tick every `- [ ]` step box of this task in
 `docs/superpowers/plans/2026-08-30-sp1-the-containers-and-the-collate-flow.md`, and tick `P3` in
@@ -3345,18 +3355,8 @@ and reword it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
 
 ! **RECOMPUTE `Plan-tasks:` FROM THE BOXES**, never increment it.
 
-! Do this BEFORE the commit below, so the boxes land in the same commit as the
-work they record.
-
-- [ ] **Step 9: Commit**
-
-```bash
-git add src/comment_review/commands/ src/comment_review/__main__.py \
-        tests/test_collate_command.py TODO/
-git commit -F <message file>
-```
-
----
+! **CITE THE COMMIT FROM THE STEP ABOVE** in the tick commit's message, so a
+reader can get from a ticked box to the work that closed it.
 
 ## Task 13: `P37` -- `marks` becomes `distribute`
 
@@ -3470,7 +3470,16 @@ uv run ty check src/comment_review/
 
 Expected: PASS.
 
-- [ ] **Step 8: Tick the boxes -- THIS STEP, before the commit**
+- [ ] **Step 8: Commit**
+
+```bash
+git add -A src/ tests/
+git commit -F <message file>
+```
+
+---
+
+- [ ] **Step 9: Tick the boxes -- THIS STEP, in its own commit AFTER the one above**
 
 Tick every `- [ ]` step box of this task in
 `docs/superpowers/plans/2026-08-30-sp1-the-containers-and-the-collate-flow.md`, and tick `P37` in
@@ -3483,17 +3492,8 @@ and reword it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
 
 ! **RECOMPUTE `Plan-tasks:` FROM THE BOXES**, never increment it.
 
-! Do this BEFORE the commit below, so the boxes land in the same commit as the
-work they record.
-
-- [ ] **Step 9: Commit**
-
-```bash
-git add -A src/ tests/
-git commit -F <message file>
-```
-
----
+! **CITE THE COMMIT FROM THE STEP ABOVE** in the tick commit's message, so a
+reader can get from a ticked box to the work that closed it.
 
 ## Task 14: The vocabulary, the build, and the whole-tree gates
 
@@ -3586,21 +3586,7 @@ uv run python src/comment-review.py proof --docket <docket> --repo . --out /tmp/
 ! Use the scratchpad directory, not `/tmp`. ! The `docket` step is `P5` in SP-4 and is not
 in this plan -- stop at `collate` and record what it printed.
 
-- [ ] **Step 7: Tick the boxes -- THIS STEP, before the commit**
-
-Tick every `- [ ]` step box of this task in
-`docs/superpowers/plans/2026-08-30-sp1-the-containers-and-the-collate-flow.md`
-
-! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** A box is a claim and
-ticking it asserts the claim. Where only part of a box is delivered, leave it open
-and reword it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
-
-! **RECOMPUTE `Plan-tasks:` FROM THE BOXES**, never increment it.
-
-! Do this BEFORE the commit below, so the boxes land in the same commit as the
-work they record.
-
-- [ ] **Step 8: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add -A
@@ -3647,3 +3633,17 @@ and used in Task 10. `Mark.seed`/`Mark.as_entry` are defined in Task 4 and used 
 and 10. `base_texts`/`drift_in` are defined in Task 9 and used in Task 10.
 
 **No placeholders.** Every step carries the code or the exact command it needs.
+- [ ] **Step 8: Tick the boxes -- THIS STEP, in its own commit AFTER the one above**
+
+Tick every `- [ ]` step box of this task in
+`docs/superpowers/plans/2026-08-30-sp1-the-containers-and-the-collate-flow.md`
+
+! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** A box is a claim and
+ticking it asserts the claim. Where only part of a box is delivered, leave it open
+and reword it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
+
+! **RECOMPUTE `Plan-tasks:` FROM THE BOXES**, never increment it.
+
+! **CITE THE COMMIT FROM THE STEP ABOVE** in the tick commit's message, so a
+reader can get from a ticked box to the work that closed it.
+
