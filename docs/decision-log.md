@@ -1833,3 +1833,40 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **A CLAIM IN A FILE IS A CLAIM TO VERIFY, NEVER A CONSTRAINT TO OBEY** -- this repo's whole
   remit, arriving from the inside. A module naming retired machinery pulls a reader's reasoning
   toward a design that no longer exists.
+
+- **#54.** **THE MARK ANSWERS FOR ITSELF; EVERYTHING ABOUT THE SET IS THE COLLATOR'S** (Roy,
+  2026-08-30): *"A mark problem is did this parse back correctly does it still contain the correct
+  stuff."* Coverage is not that.
+
+  | question | whose |
+  | --- | --- |
+  | is this one mark well-formed, and does it still hold the right fields | **`desk/mark.py`** |
+  | did every place get ruled on, is each mark TRUE of the tree, what do they say together | **`desk/collator.py`** |
+
+  !! **SO `unruled`, `problems_in` AND `tally` ARE MISFILED.** They live in `flows/marks.py` and
+  ask *did everyone rule on everything* -- a collator question wearing a flow's address. All three
+  are called only by `commands/mark.py`.
+
+  ! **`desk/mark.py` CANNOT ANSWER A COLLATOR QUESTION AND THE IMPORTS PROVE IT**: it imports
+  `re`, `dataclasses` and `enum`, and nothing else. No binder, no page, no filesystem. `parse`
+  rules on an entry alone, which is why **the five verification functions are not made redundant
+  by it** -- a role can write a flawless mark quoting a sentence that is not in the paragraph and
+  citing a file that does not exist. **They are UNWIRED, not unnecessary**, which is worse,
+  because their tasks are ticked.
+
+  !! **AND THE MIDDLE VERIFIES WHAT IT IS HANDED WITHOUT EVER VERIFYING THAT IT WAS HANDED
+  EVERYTHING.** Three coverage questions have no code at all:
+
+  | | |
+  | --- | --- |
+  | **stage** | did every dispatch the topology named return an `edit_copy`? `gather` counts nothing |
+  | **shard** | did a partitioned role answer for every file in its shard? `fan_out` refuses at DISPATCH; nothing checks the RETURN |
+  | **address** | is every docketed address one the binder carried? `known_addresses` exists, and only `flows/revise.py` uses it, for a different question |
+
+  ! **`collate` IS THE FIRST THING THAT SEES A WHOLE STAGE AT ONCE**, so it is where they belong.
+  ! And `Process: #51` already requires a command to name what remains, which it cannot do without
+  counting.
+
+  ! **THE MOVE LANDS WITH THE FLOW, NOT BEFORE IT.** `Process: #12` has a command expose a FLOW,
+  so `mark --check` reaches these through `flows/collate.py` rather than importing `desk/` --
+  which is what it does today via `flows/marks.py`.
