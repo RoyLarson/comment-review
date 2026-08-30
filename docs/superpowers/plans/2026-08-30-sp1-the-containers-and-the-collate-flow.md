@@ -3398,7 +3398,7 @@ through the renamed flow; `unruled`, `problems_in` and `tally` do not -- they we
 collator in Task 8 and reach `commands/collate.py` through `flows/collate.py`, which is
 what `Process: #12` and `#54` require.
 
-- [ ] **Step 1: Find every reference before moving anything**
+- [x] **Step 1: Find every reference before moving anything**
 
 ```bash
 grep -rn "flows.marks\|flows/marks\|commands.mark\b\|commands/mark\|mark --check\|mark --seed\|mark --shape" \
@@ -3407,7 +3407,7 @@ grep -rn "flows.marks\|flows/marks\|commands.mark\b\|commands/mark\|mark --check
 
 Write the list down. It is the checklist for Step 4.
 
-- [ ] **Step 2: Rename the files**
+- [x] **Step 2: Rename the files**
 
 ```bash
 git mv src/comment_review/flows/marks.py src/comment_review/flows/distribute.py
@@ -3415,7 +3415,7 @@ git mv src/comment_review/commands/mark.py src/comment_review/commands/distribut
 git mv tests/test_marks_flow.py tests/test_distribute_flow.py
 ```
 
-- [ ] **Step 3: Rename the enum member**
+- [x] **Step 3: Rename the enum member**
 
 In `src/comment_review/__main__.py`:
 
@@ -3430,7 +3430,7 @@ In `src/comment_review/__main__.py`:
 -- `MARK` goes. The value derives from the member name, so `DISTRIBUTE` becomes
 `"distribute"` with nothing hand-typed.
 
-- [ ] **Step 4: Repoint every reference from Step 1's list**
+- [x] **Step 4: Repoint every reference from Step 1's list**
 
 `from comment_review.flows.marks import seed` -> `from comment_review.flows.distribute
 import seed`, in `tests/helpers.py`, `tests/test_containers.py`, `tests/test_collate.py`,
@@ -3444,7 +3444,7 @@ Every comment naming `mark --check` names what the code does now. The known site
 | `flows/fan_out.py:95` | "`mark --check`, blamed on the role" | "the per-copy check, blamed on the role" |
 | `flows/distribute.py` (was `marks.py`) | "-- `mark --check` -- ruled only on" | "-- the per-copy check -- ruled only on" |
 
-- [ ] **Step 5: Update the flow's own header**
+- [x] **Step 5: Update the flow's own header**
 
 `src/comment_review/flows/distribute.py`'s first line becomes:
 
@@ -3467,7 +3467,7 @@ itself, and everything about the SET is the collator's.
 keeping the existing `!!` notes about seeding, coverage gaps and what this flow does not
 check.
 
-- [ ] **Step 6: Verify nothing still names the old spellings**
+- [x] **Step 6: Verify nothing still names the old spellings**
 
 ```bash
 grep -rn "flows.marks\|flows/marks\|mark --check\|mark --seed\|mark --shape" src/ tests/
@@ -3475,7 +3475,16 @@ grep -rn "flows.marks\|flows/marks\|mark --check\|mark --seed\|mark --shape" src
 
 Expected: empty.
 
-- [ ] **Step 7: Run everything**
+! **NOT LITERALLY EMPTY, AND DELIBERATELY SO.** `tests/test_brief_worked_example.py`
+still names `mark --check` at two sites (its own docstring lines discussing when
+`--check` LEFT `mark` for `collate`, 2026-08-30, a fact about the flag's REMOVAL in
+an earlier task, not about this task's rename). Rewriting those to "the per-copy
+check" would make the sentence describing the split say the two sides are the same
+thing. The one site that named a real path -- `commands/mark.py`'s own docstring --
+was repointed to `commands/distribute.py`. No `flows.marks`, `flows/marks`, `mark
+--seed` or `mark --shape` remains anywhere.
+
+- [x] **Step 7: Run everything**
 
 ```bash
 uv run pytest -q
@@ -3485,16 +3494,18 @@ uv run ty check src/comment_review/
 
 Expected: PASS.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add -A src/ tests/
 git commit -F <message file>
 ```
 
+! **COMMIT `6187f71`.**
+
 ---
 
-- [ ] **Step 9: Tick the boxes -- THIS STEP, in its own commit AFTER the one above**
+- [x] **Step 9: Tick the boxes -- THIS STEP, in its own commit AFTER the one above**
 
 Tick every `- [ ]` step box of this task in
 `docs/superpowers/plans/2026-08-30-sp1-the-containers-and-the-collate-flow.md`, and tick `P37` in
