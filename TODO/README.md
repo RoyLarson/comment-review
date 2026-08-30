@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (105)
+### open  (104)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -274,9 +274,6 @@ that changed a published name or rule:
 | [annotate-belongs-in-concordance](annotate-belongs-in-concordance.md) | backend | — | 0/3 | annotate.py is stage 3 -- it resolves every reference a node makes -- which is the concordance's subject, not the binder's |
 | [prototype-move-orphaned-tasks](prototype-move-orphaned-tasks.md) | systems | — | 0/4 | 25 open TODOs carry an unchecked task naming a module that moved to `prototype/` on 2026-08-25, so the task's site is gone and its verification cannot be run |
 | [revise-copies-everything](revise-copies-everything.md) | backend | — | 0/4 | `pull` copies `.git`, `.venv` and `corpora` into every revise root -- 284MB measured on this repo, per editorial stage, to set a docket over ~4MB of source |
-| [master-proof-and-edit-copy](master-proof-and-edit-copy.md) | backend | — | 5/5 | `seed` returns a flat mark list and nothing holds the several copies one stage produces; `docs/vocabulary.md` lists `master proof` as unnamed |
-| [topology-is-a-source-edit](topology-is-a-source-edit.md) | backend | — | 5/5 | `desk/stages.py`'s `STAGES` is a two-row literal, so a run cannot say which roles run when, what each reads, or how a role fans out |
-| [change-is-raw-text-not-lines](change-is-raw-text-not-lines.md) | backend | — | 3/4 | `desk/mark.py:396` refuses a `change` that is not a list of lines; `docs/the-mark.md` rules it is the updated paragraph as RAW TEXT; `results/differences.diff3` takes strings |
 | [docket-role-is-per-page-not-per-alteration](docket-role-is-per-page-not-per-alteration.md) | backend | — | 0/3 | role sits on the page in docket.py's schema, so provenance is lost the moment two roles settle places on one page |
 | [sheet-rename-gate-cannot-see-the-source](sheet-rename-gate-cannot-see-the-source.md) | systems | — | 0/2 | the gate's scope excludes the tree the retired sense actually survived in -- docs/gates.md: a check that could not have failed is not evidence |
 | [doc-on-the-declaring-line](doc-on-the-declaring-line.md) | backend | — | 0/3 | A docstring written on its declaration's own line takes no address, and the round trip invents a blank line |
@@ -286,7 +283,9 @@ that changed a published name or rule:
 | [brief-change-is-raw-text](brief-change-is-raw-text.md) | agents | yes | 0/2 | reviewer-brief.md:140 says change is the updated paragraph as RAW TEXT, not lines; desk/mark.py refuses a change that is not an ARRAY of lines, on a measurement of its own |
 | [skill-inverts-the-anchor-line](skill-inverts-the-anchor-line.md) | agents | — | 0/2 | SKILL.md's CANDIDATE paragraph describes the opposite of the line commands/census.py prints, and the reasoning built on it is what the task agent carries into every proposal |
 | [external-address-cites-dead-modules](external-address-cites-dead-modules.md) | backend | — | 0/1 | desk/external_address.py says the address is declared in binder/record.py and resolved in desk/desk.py; record.py left on b50e7a4 and desk.py is in no directory of this tree |
-| [no-command-for-the-middle](no-command-for-the-middle.md) | backend | — | 0/4 | `gather`, `places`, `reconcile` and `docket_from` have no CLI face, so nothing turns checked marks into the docket `proof --docket` requires. Measured 2026-08-29 on a real run: every other step of the chain is a command; this one had to be driven from a hand-written script |
+| [no-command-for-the-middle](no-command-for-the-middle.md) | backend | — | 0/5 | `gather`, `places`, `reconcile` and `docket_from` have no CLI face, so nothing turns checked marks into the docket `proof --docket` requires. Measured 2026-08-29 on a real run: every other step of the chain is a command; this one had to be driven from a hand-written script |
+| [query-names-no-sentence](query-names-no-sentence.md) | backend | — | 0/3 | every other substantive instruction names the sentence it rules on through a `claim` key -- `false` for `correct`, `drop` for `drop`, `from` for `patch` -- and `query` has none, so `_sentence_key` falls back to an identity and two queries at one place read as two different sentences |
+| [brief-example-and-scope](brief-example-and-scope.md) | agents | — | 0/3 | the brief's worked example shows a 40-character `sha` where `bind` writes 16, and the brief says a source resolves against 'the repo' without saying whether that is the scoped tree or the checkout it was cut from |
 
 ### in-progress  (19)
 
@@ -420,3 +419,6 @@ the reason is inside the file.
 | [notations-collides-with-annotations](completed/notations-collides-with-annotations.md) | The name is alteration; the write side has all three containers -- alteration, schedule, docket -- and the docket is its own area carrying each page's path and sha, so the binder no longer reaches the write chain. decision-log.md Vocabulary: #14. |
 | [a-closing-quote-with-a-comment](completed/a-closing-quote-with-a-comment.md) | Fixed in paragraphs_stdlib -- a comment on a line a docstring owns is no longer a second paragraph. Both re-measurements verified 2026-08-29; the lexical Python reader was not needed. |
 | [mark-is-a-dict-not-a-type](completed/mark-is-a-dict-not-a-type.md) | desk/mark.py now defines Mark and parses one at the boundary -- a dict becomes a Mark or named problems, with no third outcome. The ruling field is 'instruction', typed Instruction. Proved by the defect it ends: the shipped brief's own worked example went from problems_in ([], 0) -- silently discarded and recounted as a coverage gap -- to ([], 1), counted as ruled. |
+| [change-is-raw-text-not-lines](completed/change-is-raw-text-not-lines.md) | desk/mark.parse takes `change` as raw text and refuses a list by name; the brief, docs/the-mark.md and the checker now agree, and the superseded line-array claim in the-fields-do-not-say-a-mark-may-cite-across T2 is corrected in place |
+| [master-proof-and-edit-copy](completed/master-proof-and-edit-copy.md) | desk/proof.gather builds a master_proof of one stage's edit_copies and refuses a mismatched root; seed nests marks under one sheet per page, each carrying path and sha |
+| [topology-is-a-source-edit](completed/topology-is-a-source-edit.md) | a run's stages are read from a TOML topology -- desk/topology.read, with three refusals -- and the STAGES literal and Stage.roles are deleted |

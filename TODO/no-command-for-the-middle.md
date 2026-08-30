@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks done
+Progress: 0 of 5 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -30,3 +30,7 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [ ] `tests/gates/test_skill_commands.py` sees it. Verify: the command appears in
       `COMMANDS`, `--help` names it, and the gate that checks SKILL.md's commands
       resolve covers this one.
+- [ ] A command SEQUENCES the stages a topology names. Verify: one invocation runs
+      stage 1, pulls revise-1, runs stage 2 against that revise, and stops -- the
+      topology already expresses the order and `fan_out` already partitions, but
+      nothing drives them.

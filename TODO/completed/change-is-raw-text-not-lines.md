@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 4 tasks done
+Progress: 4 of 4 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, task 9 of the master-proof plan -- an implementer
@@ -42,7 +42,7 @@ The gate demands `change` as a line array and the spec rules it raw text.
 - [x] Make the brief and `docs/the-mark.md` agree with the gate once it moves.
       Verify: a mark written from `reviewer-brief.md` verbatim is accepted, which
       is the check `P1` exists to keep true.
-- [ ] Correct `the-fields-do-not-say-a-mark-may-cite-across` T2, which is CHECKED
+- [x] Correct `the-fields-do-not-say-a-mark-may-cite-across` T2, which is CHECKED
       and asserts the superseded line-array fact. Verify: that task states raw
       text, or says plainly that it was completed under the old rule and names
       this file.

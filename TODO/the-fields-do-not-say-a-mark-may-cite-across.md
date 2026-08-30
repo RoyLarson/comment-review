@@ -103,9 +103,15 @@ merge-or-fight table never sees the overlap. Filed as
 - [x] T1 -- State in `reviewer-brief.md` that a source may cite a place other than the mark's
       own, with the disagree-and-cite rule and its corollary. Verify: `grep -rn` for the rule
       returns exactly one path.
-- [x] T2 -- State the same for the fields whose misreading was measured -- `change` is a LINE
-      ARRAY, `sources` are `{cite, verbatim}` pairs, `address` is COPIED and never built. Verify:
-      each appears once, in the brief, not restated in an agent file.
+- [x] T2 -- State the same for the fields whose misreading was measured -- `change` is the updated
+      paragraph in RAW TEXT, `sources` are `{cite, verbatim}` pairs, `address` is COPIED and never
+      built. Verify: each appears once, in the brief, not restated in an agent file.
+      ! **THIS SAID `change` IS A LINE ARRAY, AND WAS COMPLETED UNDER THAT RULE.** Roy ruled
+      2026-08-28 that `change` is the updated paragraph as raw text (`docs/the-mark.md`), and the
+      code followed on 2026-08-29 -- `desk/mark.parse` now refuses a list BY NAME. **A checked box
+      asserting a superseded fact reads as settled**, which is why the wording is corrected here
+      rather than left to be re-derived. Tracked in
+      [`change-is-raw-text-not-lines`](change-is-raw-text-not-lines.md).
 - [x] T3 -- State what `ran` is for and when it is OWED: a claim settled by RUNNING something
       carries the command that settled it. ! It is the only field the experiment ADDED, ratified
       by Roy 2026-08-27, so no role has ever been told it exists -- an undescribed field is an
