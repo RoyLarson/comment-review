@@ -128,6 +128,33 @@ what did not resolve rides beside it in the flow's return.
 `mark --check` disappears. `collate` checks every `edit_copy` handed to it before
 gathering -- `problems_in` and `unruled` per copy -- and refuses if any is malformed.
 
+!! **THE PROBLEMS STACK, AND EACH ONE IS READ OFF AND ACTED ON SEPARATELY.** Roy,
+2026-08-30: *"the errors should be stacked and capable of being read off correctly so
+that each can be fixed or sent back to the role."* Two consequences, and both change the
+code rather than the wording:
+
+- **The check does not stop at the first bad copy.** Every copy is walked and every
+  problem collected, so one run names the whole set. This is the discipline
+  `collator.py`'s own header already states for verification -- *"a whole report is
+  checked in one pass and every problem is read at once"* -- against reconciliation,
+  which raises. **The per-copy check is verification's half, so it reports.**
+- **A problem is structured, not a sentence.** `desk.mark.parse` returns flat strings
+  each opening with a `where`, and a caller cannot route on a sentence. The collator
+  wraps each into
+
+      Problem(role: str, address: str, message: str)
+
+  `role` is the copy it came back in, `address` the place, `message` the rule broken.
+  **That is what makes *send this one back to that role* a thing the task agent can do
+  from the report** rather than by re-reading the file.
+
+! **ORDER IS COPY ORDER THEN MARK ORDER**, so the report reads in the order a person
+would walk the copies, and two runs over the same inputs produce the same list.
+
+! **THE THREE QUESTIONS STAY THREE LISTS** -- `problems`, `drift` and `unruled`. A
+`kind` field on `Problem` would say which list it is already in, which is the two
+spellings of one rule this repo has measured drifting apart.
+
 ! **IT CANNOT BE SKIPPED AND IT COULD BE BEFORE.** `places()` already raises
 `MalformedMark` on an entry `parse` refuses, so a malformed copy could never be folded;
 what a separate command added was the chance to run the fold without ever having run the
@@ -244,6 +271,40 @@ therefore drives the resolution step with a `Reconciled` built directly -- its r
 parameter type -- and the reason the rule is written at all is D8's first note: **the
 protection upstream is a side effect, and a side effect is not a rule.**
 
+### D10 -- the compose's base comes from the BINDER, and a drifted `raw_text` is reported
+
+`raw_text` is **seeded, not authored**. `seed` writes it onto every slot from the binder
+row (`flows/marks.py:87`), and `docs/the-mark.md:53` says the seeded row carries it.
+`P34` makes `parse` read it back off what the role RETURNED.
+
+**Two things would then rest on text the party being checked could have altered:**
+`claim_verbatim_problems` compares the quoted sentence against it, and `P13`'s compose
+diffs every side against it. That is the shape [`docs/gates.md`](../../gates.md) names --
+the round-trip identity scored **699 of 699 on its first run** because it rebuilt each
+file from the positions it had just read out of that file, and began finding things only
+when it was made to set from the CUES instead.
+
+Two rules, answering two questions:
+
+| question | answer |
+| --- | --- |
+| which text does the compose diff against | **the binder row for that address**, never the returned entry |
+| did the copy come back with its base intact | collate **REPORTS** any returned `raw_text` differing from the seeded one |
+
+! **DRIFT IS REPORTED AND NOT REFUSED**, because there is a legitimate cause -- the tree
+moving between `seed` and the return. A refusal would discard a whole copy over a change
+nobody made.
+
+!! **AND `--binder` COMES BACK.** D6's command section removed it on the measured ground
+that nothing in SP-1 read one. **That measurement was taken before this decision**, and
+the binder is now the base source and the drift check's other side:
+`collate(stage, edit_copies, binder)`.
+
+! **THE EXPOSURE IS NOT NEW AND IS NOT LIVE TODAY.** `verify_report` already holds the
+binder and uses it only for `known_addresses`, so `claim_verbatim_problems` has compared
+against role-supplied text since it was written. Nothing composed, so nothing rested on
+it. **`P13` is what makes it load-bearing.**
+
 ## The work, in order
 
 ### 1 -- `P36` -- `desk/collator.py`'s prose
@@ -280,12 +341,20 @@ not exist.
 
 Consequences, all of which delete threading rather than add it:
 
-- `claim_verbatim_problems(where, mark)` reads `mark.raw_text` instead of taking it as a
-  loose third argument.
-- `source_verification` drops its `raw_text` keyword.
-- `verify_report` stops digging `entry.get("raw_text")` back out of the wire entry.
-- `Placed` stays `(mark, role)` and carries the base for free. **No
-  `Placed(mark, role, raw_text)` and no `Mark` holding a `Placed`.**
+- `verify_report` stops digging `entry.get("raw_text")` back out of the wire entry. The
+  field arrives on the `Mark`, through `parse`.
+- `claim_verbatim_problems(where, mark, base)` keeps a base parameter, **but its SOURCE
+  changes**: `base` is the binder's text for that address, not what the role returned
+  (D10).
+- `Placed` stays `(mark, role)`. **No `Placed(mark, role, raw_text)` and no `Mark`
+  holding a `Placed`** -- the base is looked up by address in `flows/collate.py`, which
+  holds the binder and the places together.
+
+!! **AND `P34`'s CLAUSE *"`Placed` CARRIES THE BASE TEXT FOR FREE BECAUSE THE MARK DOES"*
+IS NARROWED BY D10, WHICH IS SAID HERE RATHER THAN LEFT TO DISAGREE.** The mark carries
+the RETURNED `raw_text` -- which is the round trip `Process: #54` asks for, and the drift
+check's subject. It is the base only when nothing drifted, so nothing measures a claim
+against it. `Placed` still needs no third field; that half of the clause holds.
 
 **Verify.** `tests/gates/test_mark_shape.py` passes with the field in both the table and
 the dataclass and fails if either moves alone. `grep -rn "raw_text" src/` shows no
@@ -365,14 +434,16 @@ disjoint spans are saying it and the composition is arithmetic.
 **Deliver.** One flow, in this order:
 
 ```
-collate(stage, edit_copies) -> Collated
+collate(stage, edit_copies, binder) -> Collated
 
   1  CHECK    problems_in and unruled over each copy   (D5)
               -> refuse if any copy breaks a rule
+              plus the raw_text drift report            (D10)
   2  GATHER   desk.proof.gather(stage, edit_copies)
   3  PLACE    desk.collator.places(proof)
   4  RECONCILE desk.collator.reconcile(proof)          (untouched -- D1)
-  5  RESOLVE  the automatic resolutions                 (P2)
+  5  RESOLVE  the automatic resolutions, composing      (P2, P13)
+              against the BINDER's text                 (D10)
   6  FOLD     write the copy chief's edit_copy          (D4)
 ```
 
@@ -399,7 +470,9 @@ class Collated:
     rereads: list[dict]             # carried forward: a compose refused, or an `add`
                                     # -- both as `reconcile` built each entry,
                                     #    `{"address", "roles", "marks"}`
-    problems: list[str]             # the per-copy check, in copy order
+    problems: list[Problem]         # every copy's, stacked, copy then mark  (D5)
+    drift: list[Problem]            # a returned raw_text that is not the
+                                    # seeded one, by role and address        (D10)
     unruled: dict[str, list[str]]   # role -> the addresses nobody wrote in
     tally: dict[str, dict]          # role -> instruction counts
 ```
@@ -425,7 +498,9 @@ ONE answer."* SP-1 delivers the places that need no chief; the chief's own three
 
 **Deliver.** `unruled`, `problems_in` and `tally` move from `flows/marks.py` to
 `desk/collator.py`, and reach a command through `flows/collate.py` rather than by an
-import of `desk/` (`Process: #12`, `Process: #54`).
+import of `desk/` (`Process: #12`, `Process: #54`). **`problems_in`'s return changes
+with the move** -- `tuple[list[Problem], int]` rather than `tuple[list[str], int]`, per
+D5. `Problem` is defined beside them, because it is a report item about the SET.
 
 **Verify.** `commands/` imports none of the three from `desk/`. `grep -rn "from
 comment_review.desk" src/comment_review/commands/` names no collator function.
@@ -443,17 +518,18 @@ command's NAME was incidental to that ruling and `P37` was already changing it.
 **Deliver.** `commands/collate.py`, added to `Command`:
 
 ```
-comment_review collate --stage 4c --out chief.json \
+comment_review collate --stage 4c --binder B.json --out chief.json \
     --edit-copy a.json --edit-copy b.json --edit-copy c.json
 ```
 
-! **THERE IS NO `--binder`, BECAUSE NOTHING IN SP-1 READS ONE.** `known_addresses` is
-`P28`'s in SP-2, and `gather` already refuses copies that disagree with each OTHER about
-`read_from`. A flag nothing reads is the same defect as a field nothing reads (D2).
+! **`--binder` IS READ FOR TWO THINGS AND NEITHER IS `known_addresses`** -- it supplies
+the compose's base and the other side of the drift report, both D10. Address integrity
+over the docket is still `P28`'s in SP-2.
 
 stdout names the three buckets -- what resolved, what escalated, what owes a re-read --
-each carried-forward place named by address and roles, never counted alone. Exit codes
-per D6.
+each carried-forward place named by address and roles, never counted alone. **Every
+`Problem` prints on its own line carrying its role and address** (D5), so a reader can
+act on one without re-reading the copies. Exit codes per D6.
 
 **Verify.** Closes `A-T1`, `A-T2`, `A-T3`:
 
@@ -497,7 +573,9 @@ boundary parses.
 | `test_collate.py` | the flow over real seeded copies: each resolution, each carried-forward case, the `move` pairing and topological order, the chief's copy shape |
 | `test_collate.py` (cycles) | the DAG refusal, driven with a `Reconciled` built directly -- see D9's last note for why no cycle reaches it through `reconcile` |
 | `test_mark.py` (D9) | a self-move is refused by name; the four shapes of D8's table reach the outcomes measured there |
-| `test_collator.py` (extended) | the three verbs still answer what they answered from their new home |
+| `test_collator.py` (extended) | the three verbs still answer what they answered from their new home; a `Problem` names its role and address |
+| `test_collate.py` (stacking) | three copies, two of them malformed, produce one report naming BOTH -- and it fails against a check that stops at the first (D5) |
+| `test_collate.py` (drift) | a returned `raw_text` differing from the binder's is reported by role and address, and the compose still uses the binder's text (D10) |
 
 !! **AND ONE THING MUST BE PROVED ABLE TO FAIL** -- `docs/gates.md`'s rule, *"does the
 check pass" is not the question; "could the check fail" is.* The compose is the exposure:
