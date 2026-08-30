@@ -473,3 +473,42 @@ def test_as_entry_round_trips_through_parse():
     again, why_again = parse("m.py@b1", mark.as_entry())
     assert why_again == []
     assert again == mark
+
+
+def test_a_move_onto_its_own_address_is_refused_by_name():
+    """MEASURED 2026-08-30: this parsed clean, `_touches` deduped its two ends
+    to one address, `reconcile` settled it, and the docket carried a single
+    alteration deleting the paragraph -- `('m.py', 'b1', None)` -- with no
+    matching write."""
+    entry = {
+        "address": "m.py@b1",
+        "anchor": "def f(x):",
+        "raw_text": "# a paragraph\n",
+        "instruction": "move",
+        "claim": {"from": "a paragraph", "to": "m.py@b1"},
+        "reason": "it reads better beside the function it describes",
+        "sources": [{"cite": "m.py:1", "verbatim": "def f(x):"}],
+        "change": "# a paragraph\n",
+    }
+    mark, why = parse("m.py@b1", entry)
+    assert mark is None
+    assert len(why) == 1
+    assert "`claim.to` is this mark's own `address`" in why[0]
+
+
+def test_a_move_to_a_different_address_still_parses():
+    """The guard must not refuse an ordinary move -- the one that names a real
+    second place."""
+    entry = {
+        "address": "m.py@b1",
+        "anchor": "def f(x):",
+        "raw_text": "# a paragraph\n",
+        "instruction": "move",
+        "claim": {"from": "a paragraph", "to": "m.py@b8"},
+        "reason": "it reads better beside the function it describes",
+        "sources": [{"cite": "m.py:1", "verbatim": "def f(x):"}],
+        "change": "# a paragraph\n",
+    }
+    mark, why = parse("m.py@b1", entry)
+    assert why == []
+    assert mark is not None

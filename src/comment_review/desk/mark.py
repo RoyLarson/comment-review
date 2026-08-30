@@ -571,6 +571,42 @@ def untouched(entry: object) -> bool:
     return not any(data.get(key) for key in ROLE_FIELDS)
 
 
+def _destination_problems(where: str, address: object, claim: object) -> list[str]:
+    """WHERE a `move` sends the paragraph, checked against where it already IS.
+
+    !! A DESTINATION EQUAL TO THE ORIGIN IS REFUSED, and it is the half of
+    `owes_destination` one mark can answer alone. MEASURED 2026-08-30: such a
+    mark parsed clean, `collator._touches` deduped its two ends to one address,
+    and `docket_from` wrote the delete at the origin with no matching write --
+    the paragraph removed and never put back.
+
+    ! THE OTHER HALF IS NOT ASKED HERE. Whether the destination is ADDRESSABLE
+    (Roy, 2026-08-27) needs an addresser, and this module imports `re`,
+    `dataclasses` and `enum` and nothing else.
+
+    Args:
+        where: how to name this mark in a message.
+        address: the mark's own `address`, as the entry carried it.
+        claim: the mark's `claim`, as the entry carried it.
+
+    Returns:
+        One message, or an empty list. A claim that is not an object, or a
+        `to` that is not a filled string, says nothing here -- `_claim_problems`
+        is what refuses those, and this step has nothing to compare.
+    """
+    if not isinstance(claim, dict) or not isinstance(address, str):
+        return []
+    destination = claim.get("to")
+    if not isinstance(destination, str):
+        return []
+    if destination.strip() and destination.strip() == address.strip():
+        return [
+            f"{where}: `claim.to` is this mark's own `address` -- a move to "
+            "where the paragraph already is deletes it and writes nothing back"
+        ]
+    return []
+
+
 def parse(where: str, entry: object) -> tuple[Mark | None, list[str]]:
     """THE BOUNDARY -- one entry becomes a `Mark`, or becomes named problems.
 
@@ -580,9 +616,10 @@ def parse(where: str, entry: object) -> tuple[Mark | None, list[str]]:
     one re-derived the same fields by key.
 
     ! What is NOT checked here, because it needs the page the role read: whether
-    the address resolves, whether a quoted sentence is really in the paragraph,
-    and whether a `move`'s destination is addressable. Those belong to
-    SOURCE-VERIFICATION, in `collator`.
+    the address resolves, and whether a quoted sentence is really in the
+    paragraph. Those belong to SOURCE-VERIFICATION, in `collator`. ! A `move`'s
+    destination is HALF here: that it is not the origin is answerable from the
+    entry alone; that it is ADDRESSABLE is not.
 
     ! CALL `untouched` FIRST where a coverage gap is legal. This function has
     no reading of a slot nobody ruled on other than a refusal, which is correct
@@ -629,6 +666,8 @@ def parse(where: str, entry: object) -> tuple[Mark | None, list[str]]:
     if spec.substantive and not filled(entry.get("reason")):
         out.append(f"{where}: {instruction} needs a `reason`")
     out += _claim_problems(where, instruction, entry.get("claim"))
+    if spec.owes_destination:
+        out += _destination_problems(where, entry.get("address"), entry.get("claim"))
     if spec.owes_sources:
         out += _source_problems(where, entry.get("sources"))
     if spec.owes_change:

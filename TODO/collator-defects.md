@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 14 tasks done
+Progress: 2 of 14 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -20,10 +20,10 @@ Four defects in collator.py, found by reading only the code.
 
 ## Tasks
 
-- [ ] T1 | Refuse a `move` whose `claim.to` equals its own `address`, by name.
+- [x] T1 | Refuse a `move` whose `claim.to` equals its own `address`, by name.
       Verify: `desk.mark.parse` returns a named problem -- today it returns (mark,
       []), measured 2026-08-30.
-- [ ] T2 | Prove the docket cannot carry that shape. Verify: a test asserts no
+- [x] T2 | Prove the docket cannot carry that shape. Verify: a test asserts no
       alteration is a delete with no matching write, and it FAILS against today's
       code, which produces a docket entry of path m.py, cue b1, text None.
 - [ ] T3 | Check the neighbouring shapes. Verify: a `move` across files, and one
