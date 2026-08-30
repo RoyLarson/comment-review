@@ -96,7 +96,7 @@ uv run ty check src/comment_review/
 - Consumes: nothing.
 - Produces: nothing. This task changes prose only.
 
-**Necessity.** `Vocabulary: #53` rules that `Vocabulary: #11` names `collator.py` and
+**Necessity.** `Process: #53` rules that `Vocabulary: #11` names `collator.py` and
 rules nothing else, and that a claim in a file is a claim to VERIFY, never a constraint to
 obey. Task 7 adds a `compose` to `results/differences.py`, whose header today says the
 module *"Rules on nothing"* and cites `#11` as the authority. **A compose ACTS.** Leaving
@@ -1372,7 +1372,7 @@ disjointness that render only shows.
 ! **IT LIVES HERE AND NOT IN THE COLLATOR.** It is arithmetic over text using
 `_conflict_spans`, `_touching_roles` and `_side_slice`, which already exist in this file
 and are already correct about the hard case (an `insert` at a span boundary, measured
-2026-08-29). `Vocabulary: #53`: *"Making the design fit to `collator.py` is not the way."*
+2026-08-29). `Process: #53`: *"Making the design fit to `collator.py` is not the way."*
 
 - [ ] **Step 1: Write the failing tests**
 

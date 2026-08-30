@@ -220,7 +220,7 @@ that changed a published name or rule:
 | [exception-hierarchy](exception-hierarchy.md) | backend | — | 2/10 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | — | 6/16 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
 | [computed-and-never-read](computed-and-never-read.md) | backend | — | 3/10 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
-| [dangling-links-resolve-nowhere](dangling-links-resolve-nowhere.md) | systems | — | 0/5 | 31 relative links resolve nowhere, and two of them are in a live TODO |
+| [dangling-links-resolve-nowhere](dangling-links-resolve-nowhere.md) | systems | — | 0/6 | 31 relative links resolve nowhere, and two of them are in a live TODO |
 | [fixtures-do-not-test-the-shape](fixtures-do-not-test-the-shape.md) | testing | — | 0/5 | A per-language fixture can pass without exercising the shape its language is measured on |
 | [drop-the-column](drop-the-column.md) | backend | — | 6/9 | the column is len(anchor)+1 everywhere; the address system answers what it was added for |
 | [held-runs-need-a-one-off-migration](held-runs-need-a-one-off-migration.md) | testing | — | 2/5 | the report cannot name a place, but the recorded hash can -- a script, not a feature |

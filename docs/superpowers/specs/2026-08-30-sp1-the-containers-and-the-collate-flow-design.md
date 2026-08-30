@@ -113,7 +113,7 @@ forbids.
 ### D3 -- the compose lives in `results/differences.py`
 
 Beside `diff3`, sharing `_conflict_spans`, `_touching_roles` and `_side_slice`. It is
-arithmetic over text using machinery that already exists, and `Vocabulary: #53` rules
+arithmetic over text using machinery that already exists, and `Process: #53` rules
 that *"making the design fit to `collator.py` is not the way."*
 
 ### D4 -- an unresolved place is ABSENT from the chief's copy, not untouched
