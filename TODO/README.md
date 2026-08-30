@@ -345,13 +345,14 @@ other tasks can proceed without them._
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
 
-### blocked  (3)
+### blocked  (4)
 
 _None._
 
 | [code-concerns-cannot-carry-a-proposed-change](code-concerns-cannot-carry-a-proposed-change.md) | backend | — | 0/9 | code_concerns is a bare list of strings, so a code problem reaches no gate |
 | [docstrings-that-contradict-themselves](docstrings-that-contradict-themselves.md) | backend | — | 2/12 | each states a rule and then denies it, in the same file |
 | [isolate-the-codes-contribution](isolate-the-codes-contribution.md) | testing | — | 4/10 | Two graded arms, orchestration held constant; the rewording is the confound |
+| [board-predates-task-ids](board-predates-task-ids.md) | systems | — | 0/5 | task lines carry no ids, so a plan cannot name one; a trial migration was reverted because it silently cleared 57 `Requires-Roy` flags and refused nine files whose task labels carry a literal pipe |
 ---
 
 ## Completed
