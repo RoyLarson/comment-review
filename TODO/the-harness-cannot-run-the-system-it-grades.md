@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 17 of 53 tasks done
+Progress: 18 of 53 tasks done
 Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
@@ -45,6 +45,13 @@ Filed:    2026-08-29 — The first reading is written up in evidence/the-judge-d
           with-itself/ -- t50.json plus what it does and does not settle, per D2. T50
           stays OPEN: it closes on a run over a KEYED case, and evals/prose_commits.py
           now finds those (10 candidates whose whole diff is prose).
+T50:      2026-08-29 — CLOSED 2026-08-29 by the first keyed run: 5 readings of one
+          findings.md, claude-opus-5, rubric v2, all six fields measured. 4 of 6
+          identical; detection B A B A B and prescription B A A A A moved one letter.
+          Every reading gave the SAME factual account on detection, so the threshold
+          moved and the perception did not -- filed as TODO/rubric-ab-boundary.md
+          (agents). Package: evidence/the-threshold-moved-not-the-perception/. Cost
+          $0.68 a reading.
 ```
 
 ## Objective
@@ -632,7 +639,7 @@ earlier reading of T20 conflated them.
 - [x] T49 -- The grader is a pinned API call, not a subagent -- `evals/grader.py`,
       `claude-opus-5`, rubric v1, eight tests. Verify: the model id in a written
       `grading.json` is an exact id, never a family alias.
-- [ ] T50 -- * IS THE PERCEPTION STABLE? Grade one artifact twice with the same
+- [x] T50 -- * IS THE PERCEPTION STABLE? Grade one artifact twice with the same
       judge and compare. Verify: the two runs' axis letters are recorded side by
       side, and whether they agree is stated.
 - [ ] T51 -- Calibrate on the END tree: the human's own fix must score at the top.

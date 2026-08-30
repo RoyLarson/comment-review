@@ -1,0 +1,37 @@
+diff --git a/plugins/comment-review/skills/comment-review/scripts/compositor.py b/plugins/comment-review/skills/comment-review/scripts/compositor.py
+index b4cdbfe..507474a 100644
+--- a/plugins/comment-review/skills/comment-review/scripts/compositor.py
++++ b/plugins/comment-review/skills/comment-review/scripts/compositor.py
+@@ -221,16 +221,22 @@ def set_page(page: Page, newline: str | None = None) -> str:
+ def transcribes(paragraph: dict, lines: list[str]) -> bool:
+     """Does this paragraph's stored text still read the way the file does?
+ 
+-    !! BEFORE AND AFTER ARE THIS MODULE'S TO VERIFY. Roy, 2026-08-21: *"that
+-    check if it was actually possible should live in compositor since before and
+-    after are in some ways its job to verify."* It was `galley.paragraph_matches`
+-    until then, where it sat beside the splice it guarded.
+-
+-    !! CONTIGUITY MADE IT ONE COMPARISON. The old check needed a case per kind --
+-    a `c` compared in two halves, an empty place compared for emptiness, an
+-    undocumented declaration exempted -- because a paragraph could own lines 2
+-    and 4 but not 3. Every paragraph is contiguous since `leading` took the
+-    blanks, so its stored lines are its range and there is nothing to reassemble.
++    !! ONE PREDICATE, AND ITS TWO CALLERS TRUST OPPOSITE SIDES OF IT. The galley
++    reads False as *the file moved since the census*; a census test reads False
++    as *the lexer stored this wrong*. Nothing here can tell those apart, and it
++    is not this function's to say -- it reports the disagreement and the caller
++    supplies which input it came to check.
++
++    ! IT WAS `galley.paragraph_matches` until 2026-08-21, where it sat beside the
++    splice it guarded. It is here because the compositor is what compares a page
++    against the text it came from, which is the same question at a different
++    scale -- see `identity` and `lossless` below.
++
++    ! CONTIGUITY REMOVED ONE CASE, not the branching. An empty place used to be
++    checked by reading every line of its range for blankness; it now answers True
++    outright, because a place holding no line has no text to disagree with the
++    file about. The `c` case BELOW IS UNCHANGED and still compares in two halves,
++    which is what the column is for.
+ 
+     ! A PLACE THAT HOLDS NO LINE IS TRUE, not false. It has no text to disagree
+     with the file about; whether prose has appeared there since is the question

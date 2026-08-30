@@ -64,6 +64,7 @@ evidence/*
 !evidence/the-loop-measured-2026-08-27/
 !evidence/harness-first-two-arm-run/
 !evidence/the-judge-disagreed-with-itself/
+!evidence/the-threshold-moved-not-the-perception/
 !evidence/*.md
 
 # Where a graded run is driven from and what it leaves behind: the file under

@@ -1,0 +1,1135 @@
+{
+  "agreed": false,
+  "arm": "with_skill",
+  "eval_id": "transcribes-one-comparison",
+  "fields": {
+    "detection": {
+      "agreed": false,
+      "letters": [
+        "B",
+        "A",
+        "B",
+        "A",
+        "B"
+      ],
+      "measured": true
+    },
+    "diagnosis": {
+      "agreed": true,
+      "letters": [
+        "A",
+        "A",
+        "A",
+        "A",
+        "A"
+      ],
+      "measured": true
+    },
+    "evidence": {
+      "agreed": true,
+      "letters": [
+        "A",
+        "A",
+        "A",
+        "A",
+        "A"
+      ],
+      "measured": true
+    },
+    "overall": {
+      "agreed": true,
+      "letters": [
+        "A",
+        "A",
+        "A",
+        "A",
+        "A"
+      ],
+      "measured": true
+    },
+    "prescription": {
+      "agreed": false,
+      "letters": [
+        "B",
+        "A",
+        "A",
+        "A",
+        "A"
+      ],
+      "measured": true
+    },
+    "unkeyed": {
+      "agreed": true,
+      "letters": [
+        "A",
+        "A",
+        "A",
+        "A",
+        "A"
+      ],
+      "measured": true
+    }
+  },
+  "measured": 6,
+  "model": "claude-opus-5",
+  "of": 6,
+  "readings": [
+    {
+      "editorial": {
+        "arm": "with_skill",
+        "axes": {
+          "detection": {
+            "grade": "B",
+            "reason": "END changed exactly one paragraph -- the `transcribes` docstring (@a4) -- and the run filed five records on it, including two `correct`s aimed at precisely the sentences END rewrote (\"CONTIGUITY MADE IT ONE COMPARISON\" and \"there is nothing to reassemble\"). Not an A because record 36 issued a `clean` that explicitly certifies \"BEFORE AND AFTER ARE THIS MODULE'S TO VERIFY\", a note END also rewrote (demoted to `!`, Roy quote cut, and a new rationale substituted), and the run never reaches END's new headline claim that the predicate has two callers trusting opposite sides of it."
+          },
+          "diagnosis": {
+            "grade": "A",
+            "reason": "Records 33 and 34 name the mechanism END's rewrite turns on, almost clause for clause. Run: \"the body still runs two comparisons ... a `c` is compared in two halves at the anchor test, and an empty or unstored paragraph is exempted before either comparison is reached\"; END: \"CONTIGUITY REMOVED ONE CASE, not the branching. An empty place ... now answers True outright ... The `c` case BELOW IS UNCHANGED and still compares in two halves, which is what the column is for.\" The `here[0] = here[0][column-1:]` slice cited as the surviving reassembly is the same fact END's \"which is what the column is for\" rests on. The only mechanism it did not reach is the caller-asymmetry point."
+          },
+          "evidence": {
+            "grade": "A",
+            "reason": "The supplied mechanical verification result is empty -- no cited `verbatim` was reported as failing to appear at its cite. The run also self-declares the two cases where a quoted clause wraps two physical lines (records 34 and 48) and gives the second-line fragment, which is the honest form of that citation."
+          },
+          "prescription": {
+            "grade": "B",
+            "reason": "The proposed replacements assert what END asserts on the contiguity claim: record 33's \"CONTIGUITY MADE IT ONE RANGE, and a `c` still costs a second comparison\" and record 34's \"its stored lines are its range -- a `c` is still reassembled from its two halves, and nothing else is\" leave a reader believing exactly what END's version says, in different words. Short of A because the prescriptions are narrower than END's: nothing proposes END's \"one predicate, two callers trust opposite sides\" framing or the restated reason the function lives in the compositor, and record 37 leaves the provenance sentence as an open query rather than proposing the demotion END made."
+          },
+          "unkeyed": {
+            "grade": "A",
+            "reason": "Roughly forty records fall outside the keyed paragraph and I could not rule any of them false against the code. The `correct`s are all checkable contradictions between prose and the module's own lines (exit code vs `broken`, `CRLF in text` vs \"THE FIRST ENDING WINS\", the duplicated \"the one fact\"/\"the one thing here taken from `page.text`\", `identity`'s four return shapes vs a Returns naming one, \"only the second needs assembling\" over a list whose first item is the assembled one), the `clean`s are supported by the lines they cite, and the thirteen hedges are genuine out-of-file reference questions recorded as `query` rather than asserted."
+          }
+        },
+        "eval_id": "transcribes-one-comparison",
+        "model": "claude-opus-5",
+        "overall": "A",
+        "overall_reason": "On the one paragraph END touched, the run landed the defect and named END's own mechanism -- the `c` still compared in two halves, the empty case exempted early, the column slice that is still a reassembly -- and its proposed text asserts what END asserts. Around it sits a large unkeyed set with no false claim I could find and roughly a dozen genuine prose-versus-code contradictions the human left in place (the exit code, \"THE FIRST ENDING WINS\", \"only the second needs assembling\", `identity`'s Returns). The blemishes are real but small: a `clean` scoped over a sentence END went on to rewrite, and no reach at END's caller-asymmetry framing.",
+        "reader_value": "The run's rewrites mostly restore accuracy rather than reason -- \"one of two facts\", \"nonzero only where `lossless` fails\" -- and its keyed proposal stops at what the code does now. END goes further, telling the reader why the predicate cannot distinguish its two callers' readings of False and why it lives in the compositor at all; the run's version of that passage would leave a reader with a correct account of the branching but not of the design pressure behind it.",
+        "rubric_version": 2,
+        "unkeyed_claims": [
+          {
+            "cite": "1 -- `@a0` query: `--repo` is parsed and never read; `rel` never passed",
+            "reason": "Hedged, and the underlying fact is true of the code: `args.repo` is never read and both `lossless(path)` and `identity(path)` are called without `rel`.",
+            "verdict": "query"
+          },
+          {
+            "cite": "2 -- `@a0` correct: \"KNOWS NO LINE NUMBERS\" refuted by `transcribes`",
+            "reason": "The module-scope heading is overbroad: `transcribes` reads `original_start`, `original_end` and `original_column` and indexes `lines` with them. The setting path indeed knows none, which is why the run's rewrite splits the claim rather than deleting it.",
+            "verdict": "true"
+          },
+          {
+            "cite": "3 -- `@a0` correct: \"NOTHING IS WRITTEN OVER THE REAL FILE HERE\" vs `approve()`",
+            "reason": "`approve()` is in this module and calls `shutil.copyfile(drafted, real)`; the same paragraph says so three lines later. At module scope the heading contradicts its own next clause.",
+            "verdict": "true"
+          },
+          {
+            "cite": "4 -- `@a0` correct: \"byte for byte, in any language\" vs 12 of 699",
+            "reason": "The file's own `lossless` docstring records 12 of 699 files failing `identity`, and `set_page` calls that a ruled sacrifice, so the unqualified byte-for-byte claim is contradicted from inside the same file.",
+            "verdict": "true"
+          },
+          {
+            "cite": "5 -- `@a0` query: \"THIS IS THE ONLY WRITER\"",
+            "reason": "An exclusivity claim over a population outside the file; correctly hedged, and the note that there are two write sites inside the file (`write_text`, `copyfile`) is accurate.",
+            "verdict": "query"
+          },
+          {
+            "cite": "6 -- `@a0` correct: \"only the second needs assembling\" should be the first",
+            "reason": "The two shapes are listed `c` first, and it is the `c` that is assembled (`out.append(f\"{code}{prose[0] ...}\")`), while the second shape is `out.extend(prose)` as it stands.",
+            "verdict": "true"
+          },
+          {
+            "cite": "7 -- `@a0` correct: \"the one thing here taken from `page.text`\"",
+            "reason": "`page.text` is also read for the trailing newline (`page.text.endswith((\"\\n\", \"\\r\"))`) and in the no-places guard, so the line ending is not the only thing taken from it.",
+            "verdict": "true"
+          },
+          {
+            "cite": "8 -- `@a0` query: `galley.py`, `references/vocabulary.toml`, `prove_unchanged.py` unresolved",
+            "reason": "Genuinely unsettleable under reference-only reading; the run explicitly refuses to treat unresolved census paths as obituaries, which is the right call.",
+            "verdict": "query"
+          },
+          {
+            "cite": "9, 12, 13 -- `@c8`/`@c9`/`@c10` clean: `# noqa: E402`",
+            "reason": "Each import follows executable statements (`sys.path.insert`), which is exactly the condition E402 reports, so the directives are live.",
+            "verdict": "true"
+          },
+          {
+            "cite": "10 -- `@b9` clean: read directly, visible in the import graph",
+            "reason": "`from language import language_for` is a direct import and the name is used in `lossless` and `identity`; the sentence describes what the graph shows.",
+            "verdict": "true"
+          },
+          {
+            "cite": "11 -- `@b9` query: \"the only two modules that touch a file\"",
+            "reason": "Exclusivity over other modules, unreachable from this file alone; hedged.",
+            "verdict": "query"
+          },
+          {
+            "cite": "14 -- `@a1` clean: the `line_endings` summary line",
+            "reason": "`return CRLF if CRLF in text else LF` is what the summary states.",
+            "verdict": "true"
+          },
+          {
+            "cite": "15 -- `@a1` correct: \"THE FIRST ENDING WINS\" is not what the code enforces",
+            "reason": "`CRLF in text` is a membership test, so a file whose first ending is LF and whose later ending is CRLF is still set with CRLF. The prose states a positional rule the code does not have.",
+            "verdict": "true"
+          },
+          {
+            "cite": "16 -- `@a1` query: \"`galley.py` has answered it this way\"",
+            "reason": "Depends on a module the role could not open; hedged.",
+            "verdict": "query"
+          },
+          {
+            "cite": "17 -- `@a2` clean: `_held`",
+            "reason": "The body keys by folio from the address and stores `raw_lines`; an empty place contributes none, as stated.",
+            "verdict": "true"
+          },
+          {
+            "cite": "18 -- `@a3` clean: the walk, `lossless` beside `identity`, the `newline` arg",
+            "reason": "The loop walks `page.foliation.reading` and extends with what each place holds; `lossless` compares sorted lines and `identity` compares texts, exactly the described relation.",
+            "verdict": "true"
+          },
+          {
+            "cite": "19 -- `@a3` correct: \"the one fact a paragraph cannot state\"",
+            "reason": "The comment at the `tail` line states a second such fact in the same terms, so \"the one fact\" is refuted inside the same function.",
+            "verdict": "true"
+          },
+          {
+            "cite": "20, 21 -- `@a3` queries: series order / 699-12 measurement / \"one time per file\"",
+            "reason": "Corpus measurements and workflow quantities the checkout cannot settle; the observation that a second copy of the same numbers is consistency rather than verification is sound.",
+            "verdict": "query"
+          },
+          {
+            "cite": "22 -- `@b27` clean: the leading-edge comment and its DROP/ADD worked example",
+            "reason": "`edges` keys by the first key only, `previous` starts `\"\"`, and an empty place hits `continue` before `previous` moves -- the worked example holds as written.",
+            "verdict": "true"
+          },
+          {
+            "cite": "23, 24 -- `@b27` queries: 90% of `c`->`c`, 88% of 15,987",
+            "reason": "Unverifiable corpus statistics; the note that the first states no population size is a fair observation.",
+            "verdict": "query"
+          },
+          {
+            "cite": "25 -- `@b32` clean: an empty place breaks no edge; a `c` is never empty",
+            "reason": "The guard requires both no prose and not-beside-code, and the `c` branch appends its code line regardless of prose.",
+            "verdict": "true"
+          },
+          {
+            "cite": "26 -- `@b32` query: `tie_leading`",
+            "reason": "The name is defined nowhere in this file; the run confirms the skip and correctly declines to confirm the guarantee.",
+            "verdict": "query"
+          },
+          {
+            "cite": "27 -- `@b37` clean: a `c` is the line of code",
+            "reason": "The three lines below concatenate code with the first prose line and append the rest whole.",
+            "verdict": "true"
+          },
+          {
+            "cite": "28 -- `@b42` clean: the closing edge",
+            "reason": "The loop sets each place's edge before the place, so the final `out.extend(...)` pays the last owed edge.",
+            "verdict": "true"
+          },
+          {
+            "cite": "29 -- `@b44` clean: no-places refusal",
+            "reason": "The guard is the stated conjunction and raises; `draft()` does write what `set_page` returns, so the consequence given is the real one.",
+            "verdict": "true"
+          },
+          {
+            "cite": "30 -- `@b44` query: `page_for`, sentry measurement, \"4 files ... today\", the TODO",
+            "reason": "All four leave the file; flagging a dated \"today\" count as staleness-prone with no visible symptom is a legitimate hedge.",
+            "verdict": "query"
+          },
+          {
+            "cite": "31 -- `@b48` clean: an empty page is empty text",
+            "reason": "The branch returns `\"\"` rather than `page.text`, and `identity`'s `got == text` would indeed pass over a wiped page if it did otherwise.",
+            "verdict": "true"
+          },
+          {
+            "cite": "32 -- `@b49` clean: the trailing newline is the file's",
+            "reason": "`tail` appends one ending exactly when the source text ended in one.",
+            "verdict": "true"
+          },
+          {
+            "cite": "35 -- `@a4` correct: \"`vars(b)`\" names nothing in this file",
+            "reason": "The parameter is `paragraph: dict` read only by key, and the only `b` in the module is a loop variable in `identity`; END left this Args line untouched, so it is an unkeyed finding, and it is a real illegibility.",
+            "verdict": "true"
+          },
+          {
+            "cite": "37 -- `@a4` query: `galley.paragraph_matches`",
+            "reason": "Hedged pointer-vs-obituary question. END in fact kept the name and dated it, which is consistent with not deleting it on a guess.",
+            "verdict": "query"
+          },
+          {
+            "cite": "38 -- `@b62` clean: a `c` shares its first line with code",
+            "reason": "The anchor comparison and the column slice are what the comment describes.",
+            "verdict": "true"
+          },
+          {
+            "cite": "39 -- `@a5` clean: the real file is not touched in `draft`",
+            "reason": "The body writes only to `into` and returns it; the run separately records the unenforced-destination gap as a code concern rather than a prose defect, which is the correct split.",
+            "verdict": "true"
+          },
+          {
+            "cite": "40 -- `@a6` clean: a copy, not a splice",
+            "reason": "The body is a single `shutil.copyfile` with no range.",
+            "verdict": "true"
+          },
+          {
+            "cite": "41 -- `@a7` correct: \"They differ on exactly one shape\"",
+            "reason": "A mixed-ending file is a second divergence: `line_endings` returns CRLF for any CRLF, every line is rejoined with it, so `identity` fails on bytes while `lossless` passes on sorted lines.",
+            "verdict": "true"
+          },
+          {
+            "cite": "42 -- `@a7` clean: the weaker invariant",
+            "reason": "Sorted-line comparison returning None on equality is the weaker form against `identity`'s byte comparison, as described.",
+            "verdict": "true"
+          },
+          {
+            "cite": "43 -- `@a7` query: MEASURED 699 files, 12 and 0",
+            "reason": "Corpus-dependent; hedged.",
+            "verdict": "query"
+          },
+          {
+            "cite": "44 -- `@a8` correct: `identity`'s Returns names one of four outcomes",
+            "reason": "Unreadable file, missing language record, `ValueError` refusal and the line-count fallthrough are all returns that are not \"the FIRST line that differs\".",
+            "verdict": "true"
+          },
+          {
+            "cite": "45 -- `@b108` clean: reported like any other refusal",
+            "reason": "The `except ValueError` returns `str(exc)` as the function's value instead of propagating, and the raise it names is `set_page`'s.",
+            "verdict": "true"
+          },
+          {
+            "cite": "46 -- `@a9` correct: \"nonzero if any file differs\"",
+            "reason": "`return 1 if broken else 0` counts only `lossless` rejections; an identity failure increments `moved` and exits 0. The comment two lines above states the real rule, so the file contradicts itself.",
+            "verdict": "true"
+          },
+          {
+            "cite": "47 -- `@b139` clean: \"ONLY A LOST OR INVENTED LINE FAILS\"",
+            "reason": "The return is driven by `broken` alone, incremented only on a `lossless` rejection.",
+            "verdict": "true"
+          },
+          {
+            "cite": "48 -- `@b139` correct: normalisation also happens to line endings",
+            "reason": "A mixed-ending file lands in the same `moved` bucket for a different reason, so attributing all normalisation to the series order is inaccurate.",
+            "verdict": "true"
+          },
+          {
+            "cite": "CODE CONCERNS -- unused `--repo`/`rel`, unguarded `draft` destination, mixed-ending normalisation bucket, `ValueError` unhandled in `draft`, undocumented raise in `set_page`",
+            "reason": "All five are checkable against the file as quoted: the flag is never read, `into` is unconstrained, `line_endings` normalises mixed files into `moved`, and only `lossless` and `identity` catch the `ValueError` that `draft`'s write path can raise.",
+            "verdict": "true"
+          }
+        ]
+      },
+      "mechanical": {},
+      "summary": {
+        "failed": 0,
+        "pass_rate": 0.0,
+        "passed": 0,
+        "total": 0
+      }
+    },
+    {
+      "editorial": {
+        "arm": "with_skill",
+        "axes": {
+          "detection": {
+            "grade": "A",
+            "reason": "END changed exactly one paragraph -- the `transcribes` docstring (@a4, the two `!!` notes) -- and the run filed five records on it, three of them `correct`, two of which land on the very sentences END rewrote (\"CONTIGUITY MADE IT ONE COMPARISON\" and \"there is nothing to reassemble\"). The one blemish: record 36's `clean` certifies \"BEFORE AND AFTER ARE THIS MODULE'S TO VERIFY\", a heading END went on to demote and rewrite -- but the run did not certify the paragraph as a whole and caught the substantive falsehoods in it, so this is a partial over-certification inside a hit, not a missed paragraph."
+          },
+          "diagnosis": {
+            "grade": "A",
+            "reason": "Record 33 names END's mechanism directly: the branching did not go away, the `c` case still compares in two halves at the anchor test. Record 34 names the second half: the first line is sliced back to the column, so a `c` IS still reassembled -- which is precisely END's \"The `c` case BELOW IS UNCHANGED and still compares in two halves, which is what the column is for.\" Only nuance: the run counts the empty/unstored early return as a surviving case, where END rules that the one case contiguity DID remove was the empty place's blankness scan (it now answers True outright). Adjacent detail, not a wrong mechanism."
+          },
+          "evidence": {
+            "grade": "A",
+            "reason": "The mechanical verification result supplied is empty -- no cited `verbatim` is reported as failing to appear at its cite. Reported as given."
+          },
+          "prescription": {
+            "grade": "A",
+            "reason": "\"CONTIGUITY MADE IT ONE RANGE, and a `c` still costs a second comparison\" and \"a `c` is still reassembled from its two halves, and nothing else is\" assert what END asserts -- one case removed, the branching and the two-half `c` comparison intact. A reader given the run's text would not believe anything END contradicts. It does not reach END's added framing (one predicate, two callers reading False in opposite directions), but that is new reasoning the human supplied rather than a correction the proposal gets wrong."
+          },
+          "unkeyed": {
+            "grade": "A",
+            "reason": "Forty-odd records fall outside the key and I could not find a false assertion among them. The `correct` records are checkable against the code shown and each holds -- notably the exit-code contradiction in `main`, the mixed-ending second shape that breaks `identity` while `lossless` passes, the membership test that refutes \"THE FIRST ENDING WINS\", and the mis-ordered \"only the second needs assembling\". The thirteen `query`s are all genuine reach limits (corpus measurements, cross-module exclusivity claims, unopenable files) and are held against nobody."
+          }
+        },
+        "eval_id": "transcribes-one-comparison",
+        "model": "claude-opus-5",
+        "overall": "A",
+        "overall_reason": "The run landed on the single paragraph END rewrote, named the exact mechanism END's change turns on -- the `c` case still comparing in two halves, so contiguity did not collapse the branching -- and proposed text that asserts what END asserts; and outside the key it filed roughly twenty checkable claims with no false one among them, including two substantive defects the human's diff never touched (`main` exiting 0 on an `identity` failure, and mixed line endings as a second shape where `identity` and `lossless` diverge). The only marks against it are a `clean` that partially certified a heading END went on to demote, and not reaching the two-callers reason END supplied -- neither enough to pull it off the top.",
+        "reader_value": "The run's proposals are overwhelmingly about restoring truth -- what the code actually does -- and rarely about why it does it; the rewrites narrow scope, add exceptions and fix counts, but a reader of them learns the accurate behaviour rather than the reason. END, by contrast, spent its change on a reason the run did not reach: that one predicate serves two callers who read False in opposite directions, and that it is not this function's job to say which. On the specific defect both found, the run's text conveys the mechanism (the column is why the `c` still splits) well enough for a reader to see why the branching survives.",
+        "rubric_version": 2,
+        "unkeyed_claims": [
+          {
+            "cite": "record 1 -- `--repo` is parsed and never read; `rel` never passed",
+            "reason": "Filed as a hedge, and correctly so: the code shows `args.repo` unused and both call sites omit `rel`, but whether the usage line is ahead of or behind the code is not settleable from the file.",
+            "verdict": "query"
+          },
+          {
+            "cite": "record 2 -- \"KNOWS NO LINE NUMBERS\" is refuted by `transcribes` reading original_start/end/column",
+            "reason": "The heading is made at module scope; `transcribes` takes three stored positions off the paragraph and indexes `lines` with them. The proposed narrowing to the setting step is the accurate scope.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 3 -- \"NOTHING IS WRITTEN OVER THE REAL FILE HERE\" vs `approve()`",
+            "reason": "`approve()` is in this module and does `shutil.copyfile(drafted, real)`; the paragraph's own next clause says so. The heading contradicts itself three lines later, and \"UNTIL `approve()`\" resolves it.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 4 -- \"byte for byte, in any language\" is false; 12 of 699 fail",
+            "reason": "The file measures its own exception twice (set_page's series-order note and `lossless`), so the unqualified equality is contradicted from inside the same file.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 5 -- \"THIS IS THE ONLY WRITER\" unverifiable, and two write sites exist in-file",
+            "reason": "Correctly hedged: it is an exclusivity claim over a population outside the file. The observation that `write_text` and `copyfile` are both here is accurate.",
+            "verdict": "query"
+          },
+          {
+            "cite": "record 6 -- \"only the second needs assembling\" should be the first",
+            "reason": "The list puts the `c` place first and the prose-only shapes second; it is the `c` that is concatenated from code plus prose, while the others are extended as they stand.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 7 -- line ending is \"the one thing here taken from `page.text`\", but the trailing newline is a second",
+            "reason": "`tail = ending if page.text.endswith((\"\\n\", \"\\r\")) else \"\"` reads a second fact off `page.text`, and the guard at the no-places check reads it a third time.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 8 -- `galley.py`, `references/vocabulary.toml`, `prove_unchanged.py` unresolvable",
+            "reason": "A reach limit stated as one, with the root-relative-resolution artifact explicitly distinguished from a dangling pointer.",
+            "verdict": "query"
+          },
+          {
+            "cite": "records 9, 12, 13 -- `# noqa: E402` clean",
+            "reason": "All three imports follow executable statements (the sys.path insertion), which is exactly what E402 reports.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 10 -- `language.py` is imported directly and used directly",
+            "reason": "`from language import language_for` and two call sites in `lossless` and `identity`; the import graph shows what the sentence claims.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 11 -- \"the only two modules that touch a file\"",
+            "reason": "Exclusivity over a population of modules the run was forbidden to open; properly hedged.",
+            "verdict": "query"
+          },
+          {
+            "cite": "record 14 -- `line_endings` summary line clean",
+            "reason": "\"CRLF if any line has one, else LF\" is exactly `return CRLF if CRLF in text else LF`.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 15 -- \"THE FIRST ENDING WINS\" is a membership test, not a positional one",
+            "reason": "`CRLF in text` is true for a CRLF anywhere; a file whose first ending is LF and whose later ending is CRLF is set with CRLF. The prose states a direction the code does not enforce.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 16 -- \"`galley.py` has answered it this way since it was written\"",
+            "reason": "Rests on another module's state; unopenable.",
+            "verdict": "query"
+          },
+          {
+            "cite": "records 17, 18, 22, 25, 27, 28, 29, 31, 32, 38, 39, 40, 42, 45, 47 -- clean certifications",
+            "reason": "Each names the enforcing lines and the reasoning checks out against the code shown: the edges dict keyed by first key alone with `previous` starting `\"\"`, the skip-before-reassignment argument, the `c` branch concatenation, the closing extend, the refusal guard, the `return \"\"` rather than `page.text`, the tail, the sorted-lines vs byte comparison, and the ValueError-to-string report.",
+            "verdict": "true"
+          },
+          {
+            "cite": "records 20, 21, 23, 24, 26, 30, 43 -- corpus measurements, `tie_leading`, `page_for`, the TODO, \"one time per file\"",
+            "reason": "All are claims that leave the file (corpus counts, other modules, workflow quantifiers). The run distinguishes agreement between two in-file copies of the same numbers from verification, which is the right reading.",
+            "verdict": "query"
+          },
+          {
+            "cite": "record 35 -- `vars(b)` names nothing this function can be handed",
+            "reason": "The parameter is `paragraph: dict`, read only by key, and the only `b` in the file is a loop variable in `identity`. The citation is illegible from here; END left it, but the finding stands against the code.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 41 -- \"They differ on exactly one shape\" is false; mixed endings is a second",
+            "reason": "A mixed-ending file is joined with one ending, so bytes differ and `identity` fails, while `splitlines` strips endings so the sorted line multisets match and `lossless` passes. A real second shape the human's diff does not touch.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 44 -- `identity`'s Returns documents one of four outcomes",
+            "reason": "unread, no-language-record, the propagated refusal, and the line-count fallback are all returns that are not \"the FIRST line that differs\".",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 46 -- \"nonzero if any file differs\" but the return reads `broken` only",
+            "reason": "`return 1 if broken else 0`; a file failing `identity` increments `moved` and exits 0. The comment two lines above the return states the real rule, so the file contradicts itself.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 48 -- \"a normalised file is the ruled series order\" omits mixed-ending normalisation",
+            "reason": "Follows from record 41: a mixed-ending file also lands in `moved` for a different ruled reason, so the sentence over-claims and would mask a third cause.",
+            "verdict": "true"
+          },
+          {
+            "cite": "CODE CONCERNS -- unused `--repo`/`rel`, `draft` accepting any `into`, mixed-ending bucket, unhandled ValueError in `draft`, missing Raises on `set_page`",
+            "reason": "Each is verifiable in the code shown: `args.repo` unread, `into` unconstrained, `line_endings` normalising into `moved`, and `draft` calling `set_page` with no handler while `lossless` and `identity` both catch.",
+            "verdict": "true"
+          }
+        ]
+      },
+      "mechanical": {},
+      "summary": {
+        "failed": 0,
+        "pass_rate": 0.0,
+        "passed": 0,
+        "total": 0
+      }
+    },
+    {
+      "editorial": {
+        "arm": "with_skill",
+        "axes": {
+          "detection": {
+            "grade": "B",
+            "reason": "END changed exactly one paragraph -- the `transcribes` docstring (@a4) -- and the run filed five records there (33, 34, 35, 36, 37), including two `correct`s on the very sentences END rewrote (the CONTIGUITY note and its closing 'nothing to reassemble' clause). Against that: record 36 issues a sentence-level `clean` that explicitly certifies *\"BEFORE AND AFTER ARE THIS MODULE'S TO VERIFY\"*, which END demoted to `!` and rewrote wholesale to supply the reason the predicate lives here. So the changed paragraph is squarely addressed but one of the two rewritten notes was certified rather than flagged, which is why this is not an A."
+          },
+          "diagnosis": {
+            "grade": "A",
+            "reason": "On the half of END's change that fixes a falsity, the run names the mechanism END names, almost word for word. Record 33: *\"CONTIGUITY MADE IT ONE RANGE, and a `c` still costs a second comparison\"* against END's *\"CONTIGUITY REMOVED ONE CASE, not the branching ... The `c` case BELOW IS UNCHANGED and still compares in two halves\"* -- same mechanism, same evidence (the anchor test at 260 and the reslice at 262), and record 34 independently pins 'nothing to reassemble' to the same reslice. The run does not reach END's second, additive move (the predicate's two callers reading False as opposite things), and having certified the note END replaced there it could not have; but the reason END's *correction* turns on is identified precisely rather than adjacently."
+          },
+          "evidence": {
+            "grade": "A",
+            "reason": "The supplied mechanical verification result is empty -- no cited `verbatim` was reported as failing to appear at its cite. Spot-checking the numbering the run uses (line 3 usage line, line 13 'IT SETS FROM THE FOLIATION'S READING ORDER', lines 9-10 for the galley/vocabulary cites, 81, 217, 385) is internally consistent with the START file, and the run flags on its own account the two places (records 34, 48) where a quoted clause wraps and it cites the fragment actually on the line."
+          },
+          "prescription": {
+            "grade": "A",
+            "reason": "The proposed text asserts what END asserts about the contiguity claim: that contiguity collapsed the range rather than the branching, and that a `c` is still compared/reassembled from two halves and nothing else is. Wording differs from END's, which the rubric expressly permits; a reader given the run's version would not believe anything END contradicts. It omits END's added caller-asymmetry note, but that is an addition beyond the corrected claim, not a contradiction of it."
+          },
+          "unkeyed": {
+            "grade": "A",
+            "reason": "Twelve assertive corrections and ~20 `clean`s fall outside the key and I could not rule any of them false against the code. Several are substantial defects the human's END diff did not touch: the module docstring's 'only the second needs assembling' inverts its own list; 'THE FIRST ENDING WINS' misdescribes a membership test; 'exactly one shape' misses mixed-ending files; `main`'s docstring promises nonzero 'if any file differs' while the return reads `broken` only. The thirteen `query`s are honest hedges about facts outside the file (corpus measurements, other modules) and are held against nobody."
+          }
+        },
+        "eval_id": "transcribes-one-comparison",
+        "model": "claude-opus-5",
+        "overall": "A",
+        "overall_reason": "The run landed on the one paragraph END rewrote and, on the falsity END was fixing, named the mechanism in END's own terms -- contiguity collapsed the range, not the branching, and the `c` still compares in two halves -- with a prescription that asserts what END asserts and evidence that verifies clean. Around it sits a dozen unkeyed corrections I could not falsify, several of them real defects the human left standing (the inverted 'only the second needs assembling', 'THE FIRST ENDING WINS' against a membership test, mixed endings as a second `identity`/`lossless` divergence, and `main`'s exit code contradicting its own docstring), with no false claim anywhere in the set. The one thing holding it off a clean sweep is record 36's `clean` certifying the provenance note END went on to demote and rewrite.",
+        "reader_value": "The run's rewrites mostly buy truth rather than reason -- 'one of two facts', 'nonzero only where `lossless` fails' -- though records 41 and 48 do teach the why by naming the two ruled normalisations and pointing at `line_endings`. What it does not supply is END's actual explanatory move on the key paragraph: that the predicate's two callers read False as opposite things and it is not this function's to say which, so a reader of the run's version would learn that the contiguity claim overstates itself without learning why the branching has to stay.",
+        "rubric_version": 2,
+        "unkeyed_claims": [
+          {
+            "cite": "record 1 (@a0, `--repo` teaches an option that changes nothing)",
+            "reason": "Filed as a hedge, and correctly so -- but the underlying observation is true of the code: `--repo` is parsed at 363 and `args.repo` is never read, and `rel` is never passed at 370/375.",
+            "verdict": "query"
+          },
+          {
+            "cite": "record 2 (@a0, 'KNOWS NO LINE NUMBERS' at module scope)",
+            "reason": "`transcribes` in this module reads `original_start`, `original_end` and `original_column` and indexes `lines` with them. Pedantic, since the heading is about setting, but factually a module-scope claim the module falsifies; the proposed rewrite asserts nothing false.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 3 (@a0, 'NOTHING IS WRITTEN OVER THE REAL FILE HERE')",
+            "reason": "`approve()` is in this module and calls `shutil.copyfile(drafted, real)`; the paragraph's own next clause says so. Real internal tension, correctly located.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 4 (@a0, 'byte for byte, in any language')",
+            "reason": "The file's own measurements say 12 of 699 fail `identity`, and `set_page` calls that a ruled sacrifice -- so the unqualified byte-for-byte claim is contradicted twice in the same file.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 6 (@a0, 'only the second needs assembling')",
+            "reason": "The list places the `c` first, and the `c` is the shape assembled (code concatenated with the first prose line at 181); the second shape is extended as-is at 184. The ordinal is inverted. END did not fix this; it is a genuine miss.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 7 (@a0, 'the one thing here taken from `page.text`')",
+            "reason": "Line 217 takes a second fact off `page.text` -- whether the file ended in a newline -- and line 189 reads it again as a guard.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 15 (@a1, 'THE FIRST ENDING WINS')",
+            "reason": "`return CRLF if CRLF in text else LF` is a membership test, not positional: a file whose first ending is LF and whose hundredth is CRLF is set with CRLF. The prose states a direction the code does not enforce.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 19 (@a3, 'the one fact a paragraph cannot state')",
+            "reason": "Consistent with record 7 and with the comment at 214-216, which states a second such fact in the same terms.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 35 (@a4 Args, '`vars(b)`')",
+            "reason": "No `b` this function can be handed exists in the file; the only `b` is a zip loop variable in `identity`. The citation is illegible as written. Outside the key -- END left the Args block alone.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 41 (@a7, 'They differ on exactly one shape')",
+            "reason": "A mixed-ending file is a second shape: every line is rejoined with CRLF, so `identity` fails on bytes while `lossless` passes on sorted `splitlines()`. Strong catch the human missed.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 44 (@a8, identity's Returns)",
+            "reason": "Three other return paths exist -- `unread:`, no language record, the propagated refusal string -- plus the line-count fallback at 356, so the Returns section documents one of four outcomes.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 46 (@a9, 'nonzero if any file differs')",
+            "reason": "`return 1 if broken else 0`, and `broken` counts only `lossless` rejections; an `identity` failure increments `moved` and exits 0. The comment at 383 states the real rule, so the file contradicts itself.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 48 (@b139, 'A normalised file is the ruled series order')",
+            "reason": "Mixed-ending normalisation lands in the same `moved` bucket for a different reason, so the claim over-narrows the set of accepted normalisations.",
+            "verdict": "true"
+          },
+          {
+            "cite": "records 9, 12, 13 (`# noqa: E402` trailing comments certified clean)",
+            "reason": "All three imports follow executable statements (the `sys.path` insert), which is precisely what E402 reports.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 22 (@b27, edge lookup by first key alone, DROP/ADD worked example)",
+            "reason": "`edges` is keyed by the first element of the pair and discards the second; `previous` starts `\"\"`; a skipped place hits `continue` before `previous` is reassigned, so the worked example holds as stated.",
+            "verdict": "true"
+          },
+          {
+            "cite": "records 25, 27, 28, 31, 32, 38, 47 (clean on the loop guard, the `c` branch, the closing edge, the empty-page return, the tail, the column halves, 'ONLY A LOST OR INVENTED LINE FAILS')",
+            "reason": "Each is checkable against the lines cited and each prose statement matches what those lines do; I found no certification here that the code contradicts.",
+            "verdict": "true"
+          },
+          {
+            "cite": "record 39 (@a5 clean, with the `into`-may-be-the-original gap routed to CODE CONCERNS)",
+            "reason": "Correct on both counts: nothing in `draft` reaches the original, and nothing refuses an `into` equal to it -- properly separated as a code concern rather than a prose defect.",
+            "verdict": "true"
+          },
+          {
+            "cite": "records 5, 8, 11, 16, 20, 21, 23, 24, 26, 30, 37, 43 (queries on corpus measurements, other modules, `tie_leading`, `galley.paragraph_matches`, the TODO)",
+            "reason": "All are hedges naming what would settle them, on facts genuinely outside the single file the run could read. Not false positives; record 37's query in particular sits on material END retained as a pointer.",
+            "verdict": "query"
+          },
+          {
+            "cite": "CODE CONCERNS: `draft` does not catch `set_page`'s `ValueError` while `lossless` and `identity` both do",
+            "reason": "True of the code as shown; the refusal propagates out of the write path and the docstring names no raise.",
+            "verdict": "true"
+          }
+        ]
+      },
+      "mechanical": {},
+      "summary": {
+        "failed": 0,
+        "pass_rate": 0.0,
+        "passed": 0,
+        "total": 0
+      }
+    },
+    {
+      "editorial": {
+        "arm": "with_skill",
+        "axes": {
+          "detection": {
+            "grade": "A",
+            "reason": "END changed exactly one paragraph: the `transcribes` docstring (@a4, START lines 222-246). The run filed five records on that paragraph, and two of them (33, 34) land on the precise sentences END rewrote -- \"CONTIGUITY MADE IT ONE COMPARISON\" and \"there is nothing to reassemble\". Nothing changed by END was passed over or certified wholesale. The only blemish is that record 36's `clean` explicitly names \"BEFORE AND AFTER ARE THIS MODULE'S TO VERIFY\" among the sentences it certifies, and END did rewrite that note (demoting it from `!!` to `!` and re-grounding it on the compositor's page-vs-source role); but the certification is sentence-scoped inside a paragraph that carries live records, not a blanket clean over the changed region."
+          },
+          "diagnosis": {
+            "grade": "A",
+            "reason": "END's rewrite turns on exactly the mechanism records 33 and 34 name: contiguity removed one case (the empty place), not the branching, and \"The `c` case BELOW IS UNCHANGED and still compares in two halves.\" Record 33 says the body still runs two comparisons and a `c` is still compared in two halves at the anchor test; record 34 says line 262 still reassembles the first line from its two halves. That is END's reason, not an adjacent one. Minor shortfall: the run does not reach END's new headline framing -- one predicate whose two callers read False as opposite things -- but that is an addition of reason rather than the defect END corrected."
+          },
+          "evidence": {
+            "grade": "A",
+            "reason": "The mechanical verification result supplied is empty -- no cited `verbatim` was reported as failing to appear at its cite. Reporting what it says: no evidence failures."
+          },
+          "prescription": {
+            "grade": "A",
+            "reason": "Record 33 proposes \"CONTIGUITY MADE IT ONE RANGE, and a `c` still costs a second comparison\"; record 34 proposes \"its stored lines are its range -- a `c` is still reassembled from its two halves, and nothing else is.\" Both assert what END asserts (one case removed, the `c` two-halves comparison retained), differing only in wording. A reader given these rewrites would believe nothing END contradicts."
+          },
+          "unkeyed": {
+            "grade": "A",
+            "reason": "Forty-odd findings fall outside the key and I could not rule any of them false of the code. The thirteen `query`s are all genuine reach limits (measurements over a corpus not in the checkout, exclusivity claims over other modules, symbols defined elsewhere) and are held against nobody. The `correct` records outside the key -- the \"only the second needs assembling\" inversion, \"THE FIRST ENDING WINS\" against a membership test, \"exactly one shape\" against the mixed-ending shape, `identity`'s Returns covering one of four outcomes, and `main`'s \"nonzero if any file differs\" against `return 1 if broken else 0` -- all check out against the code as printed. The `clean`s I spot-checked are all supported by the lines they cite."
+          }
+        },
+        "eval_id": "transcribes-one-comparison",
+        "model": "claude-opus-5",
+        "overall": "A",
+        "overall_reason": "The single paragraph END rewrote carries the run's records, and two of them name END's exact mechanism -- the `c` still compares in two halves, so \"one comparison\" and \"nothing to reassemble\" are false -- with rewrites that assert what END asserts. Around that, roughly forty unkeyed findings and I could not rule one of them false: the inverted \"only the second needs assembling\", the positional \"FIRST ENDING WINS\" against a membership test, \"exactly one shape\", and `main`'s exit-code contradiction are real defects the human's diff left in place, and the thirteen unresolvable claims were filed as queries rather than asserted. Held back from anything higher only by the missed reframing END led with and by a sentence-scoped `clean` over a note END went on to rewrite.",
+        "reader_value": "The run's own reasoning is heavily causal -- it repeatedly says which line enforces a sentence and why the prose's direction differs from the code's -- and its rewrites (records 33, 34, 41, 48) hand the reader the reason a case survived rather than just the outcome. But it stops at correcting overstatement; it never proposes the kind of note END actually added, which explains WHY the predicate cannot resolve the disagreement it reports (two callers trusting opposite sides of one False). A reader of the run's prose would learn accurately what the code does and where the docs lied; a reader of END would additionally learn why the function refuses to say more.",
+        "rubric_version": 2,
+        "unkeyed_claims": [
+          {
+            "cite": "1 -- @a0 query, `--repo D` in the usage line",
+            "reason": "Hedged, and correctly: `--repo` is parsed at line 363 and `args.repo` is never read, `rel` is never passed at either call site. The observation is true; whether the doc or the code is ahead is genuinely unsettleable here.",
+            "verdict": "query"
+          },
+          {
+            "cite": "2 -- @a0 correct, \"KNOWS NO LINE NUMBERS\"",
+            "reason": "`transcribes` in this module reads `original_start`, `original_end` and `original_column` and indexes `lines` with them, so a module-scope claim that this module knows no line numbers is contradicted inside it. The proposed narrowing to \"SETTING knows no line numbers\" is the honest form.",
+            "verdict": "true"
+          },
+          {
+            "cite": "3 -- @a0 correct, \"NOTHING IS WRITTEN OVER THE REAL FILE HERE\"",
+            "reason": "`approve()` is in this module and does `shutil.copyfile(drafted, real)`; the paragraph's own next clause says so. The heading is refuted by its own sentence.",
+            "verdict": "true"
+          },
+          {
+            "cite": "4 -- @a0 correct, \"byte for byte, in any language\"",
+            "reason": "The file's own measurements say 12 of 699 files fail `identity`, and `set_page`'s docstring calls that a ruled sacrifice. The unqualified claim overstates what the module achieves.",
+            "verdict": "true"
+          },
+          {
+            "cite": "5 -- @a0 query, \"THIS IS THE ONLY WRITER\"",
+            "reason": "An exclusivity claim over a population outside the file; the run enumerated the two write sites it could see and stopped. Proper hedge.",
+            "verdict": "query"
+          },
+          {
+            "cite": "6 -- @a0 correct, \"only the second needs assembling\"",
+            "reason": "The list below the sentence puts the `c` place first and \"everything\" second, and it is the `c` that is assembled (`out.append(f\"{code}{prose[0]...}\")`) while the second shape is extended as it stands. The ordinal is inverted.",
+            "verdict": "true"
+          },
+          {
+            "cite": "7 -- @a0 correct, \"the one thing here taken from `page.text`\"",
+            "reason": "`page.text` is also read for the trailing newline (`page.text.endswith((\"\\n\",\"\\r\"))`) and as the no-places guard, and the module's own comment at 214-216 calls the trailing newline a fact no paragraph can state. \"The one thing\" is false.",
+            "verdict": "true"
+          },
+          {
+            "cite": "8 -- @a0 query, `galley.py` / `vocabulary.toml` / `prove_unchanged.py`",
+            "reason": "Cross-file citations the run was not permitted to resolve; declining to call them dead pointers is the correct call, not a false positive.",
+            "verdict": "query"
+          },
+          {
+            "cite": "9, 12, 13 -- @c8/@c9/@c10 clean, `# noqa: E402`",
+            "reason": "All three imports sit after the executable `sys.path` mutation, which is exactly the condition E402 reports; the suppressions are warranted.",
+            "verdict": "true"
+          },
+          {
+            "cite": "10 -- @b9 clean, \"read DIRECTLY ... visible in the import graph\"",
+            "reason": "`from language import language_for` is a direct import and the name is used in `lossless` and `identity`; the sentence describes the graph accurately.",
+            "verdict": "true"
+          },
+          {
+            "cite": "11 -- @b9 query, \"the only two modules that touch a file\"",
+            "reason": "Population lies outside the file under review; hedged rather than asserted.",
+            "verdict": "query"
+          },
+          {
+            "cite": "14 -- @a1 clean, summary of `line_endings`",
+            "reason": "`return CRLF if CRLF in text else LF` is exactly \"CRLF if any line has one, else LF\".",
+            "verdict": "true"
+          },
+          {
+            "cite": "15 -- @a1 correct, \"THE FIRST ENDING WINS\"",
+            "reason": "The implementation is a membership test, not a positional one: a file whose first ending is LF and whose later ending is CRLF is set with CRLF. The heading contradicts both the code and its own summary line.",
+            "verdict": "true"
+          },
+          {
+            "cite": "16 -- @a1 query, \"`galley.py` has answered it this way\"",
+            "reason": "Precedent in a module the run could not open; hedge is appropriate.",
+            "verdict": "query"
+          },
+          {
+            "cite": "17 -- @a2 clean, `_held`",
+            "reason": "The body keys by folio off the address and stores `raw_lines`; an empty place contributes nothing. Both sentences hold.",
+            "verdict": "true"
+          },
+          {
+            "cite": "18 -- @a3 clean, the walk and `lossless` beside `identity`",
+            "reason": "The loop walks `foliation.reading` and extends with what each place holds, so growth needs no arithmetic; `lossless` compares sorted lines and `identity` compares texts, exactly as described.",
+            "verdict": "true"
+          },
+          {
+            "cite": "19 -- @a3 correct, \"the one fact a paragraph cannot state\"",
+            "reason": "Same defect as record 7, inside the same function: the trailing newline is a second such fact, and the comment at 214-216 says so in the same words.",
+            "verdict": "true"
+          },
+          {
+            "cite": "20 -- @a3 query, fixed series order and the 699/12 measurement",
+            "reason": "The order is set by the foliation, not this function, and the corpus measurement is unreachable from the checkout; correctly noted that a second copy of the same numbers is consistency, not verification.",
+            "verdict": "query"
+          },
+          {
+            "cite": "21 -- @a3 query, \"it is one time per file\"",
+            "reason": "A workflow quantity nothing in the file bounds. Proper hedge.",
+            "verdict": "query"
+          },
+          {
+            "cite": "22 -- @b27 clean, the leading/edge passage",
+            "reason": "The comprehension keys edges by the first key alone, `previous` starts as `\"\"`, and a skipped place hits `continue` before `previous` moves -- so the DROP/ADD worked example is what the code does.",
+            "verdict": "true"
+          },
+          {
+            "cite": "23, 24 -- @b27 query, the 90% and 88%-of-15,987 measurements",
+            "reason": "Corpus statistics the module neither derives nor stores; hedged, and the observation that the 90% figure states no population size is fair.\n",
+            "verdict": "query"
+          },
+          {
+            "cite": "25 -- @b32 clean, empty place breaks no edge; a `c` is never empty",
+            "reason": "The guard `if not prose and not beside_code` cannot be satisfied by a `c`, and the `c` branch appends its code line regardless of prose.",
+            "verdict": "true"
+          },
+          {
+            "cite": "26 -- @b32 query, `tie_leading`",
+            "reason": "The symbol is defined nowhere in this file; the run confirms the skip and declines to confirm the guarantee. Correct scoping.",
+            "verdict": "query"
+          },
+          {
+            "cite": "27 -- @b37 clean, a `c` is the line of code",
+            "reason": "Lines 180-182 concatenate code with the first prose line and append the rest whole, which is what the comment claims.",
+            "verdict": "true"
+          },
+          {
+            "cite": "28 -- @b42 clean, the closing edge",
+            "reason": "The loop sets each place's edge before the place, so the final `out.extend(...)` after the loop is the owed closing edge.",
+            "verdict": "true"
+          },
+          {
+            "cite": "29 -- @b44 clean, no places over a file with text is a refusal",
+            "reason": "`if not page.foliation.reading and page.text:` raises, and `draft()` writes what `set_page` returns, so the stated consequence of not refusing is real.",
+            "verdict": "true"
+          },
+          {
+            "cite": "30 -- @b44 query, sentry measurement, \"4 files ... today\", `page_for`, the TODO",
+            "reason": "All four rest outside the file; flagging a dated \"today\" count as the kind that goes stale silently is a useful, non-asserted observation.",
+            "verdict": "query"
+          },
+          {
+            "cite": "31 -- @b48 clean, an empty page is empty text",
+            "reason": "`return \"\"` rather than `page.text`, and `identity`'s `got == text` is exactly the comparison that would have been fooled.",
+            "verdict": "true"
+          },
+          {
+            "cite": "32 -- @b49 clean, the trailing newline",
+            "reason": "`tail = ending if page.text.endswith((\"\\n\",\"\\r\")) else \"\"` is both sentences.",
+            "verdict": "true"
+          },
+          {
+            "cite": "35 -- @a4 correct, \"`vars(b)`\" names nothing",
+            "reason": "END left the Args block alone, so this is unkeyed. Of the code as printed the claim holds: the parameter is `paragraph: dict`, and the only `b` in the file is a loop variable in `identity`. Naming it illegible rather than wrong is the right register.",
+            "verdict": "true"
+          },
+          {
+            "cite": "41 -- @a7 correct, \"They differ on exactly one shape\"",
+            "reason": "A mixed-ending file is a second shape on which the two invariants disagree: `line_endings` returns CRLF for any CRLF, every line is rejoined with it, so bytes differ (`identity` fails) while sorted `splitlines` are equal (`lossless` passes). Real, and the file's own `line_endings` docstring rules it deliberate.",
+            "verdict": "true"
+          },
+          {
+            "cite": "42 -- @a7 clean, the weaker invariant",
+            "reason": "Sorted-line comparison versus byte comparison is exactly the weaker/stricter pair described.",
+            "verdict": "true"
+          },
+          {
+            "cite": "43 -- @a7 query, MEASURED 699/12/0",
+            "reason": "Unreachable corpus; hedged.",
+            "verdict": "query"
+          },
+          {
+            "cite": "44 -- @a8 correct, `identity`'s Returns",
+            "reason": "The function also returns `unread: ...`, `no language record for ...`, the propagated refusal string, and a lines-in/lines-out summary. The Returns section documents one of four outcomes.",
+            "verdict": "true"
+          },
+          {
+            "cite": "45 -- @b108 clean, reported like any other refusal",
+            "reason": "`except ValueError as exc: return str(exc)` returns rather than propagates, and the raise it names is `set_page`'s.",
+            "verdict": "true"
+          },
+          {
+            "cite": "46 -- @a9 correct, \"nonzero if any file differs\"",
+            "reason": "`return 1 if broken else 0`, and `broken` counts only `lossless` rejections; an identity failure increments `moved` and exits 0. The comment two lines above states the real rule, so the file contradicts itself across three lines. The strongest unkeyed catch in the run.",
+            "verdict": "true"
+          },
+          {
+            "cite": "47 -- @b139 clean, \"ONLY A LOST OR INVENTED LINE FAILS\"",
+            "reason": "Driven by `broken` alone, incremented only on a `lossless` rejection.",
+            "verdict": "true"
+          },
+          {
+            "cite": "48 -- @b139 correct, \"a normalised file is the ruled series order\"",
+            "reason": "A mixed-ending file also lands in `moved` for a different ruled reason, so the sentence's exhaustive attribution is false and would shelter a real normalisation defect.",
+            "verdict": "true"
+          },
+          {
+            "cite": "CODE CONCERNS -- unused `--repo`/`rel`; `draft` accepts any `into`; mixed-ending files exit 0; `draft` does not catch `set_page`'s `ValueError`",
+            "reason": "All four check out against the printed code: `args.repo` is never read, `rel` is never passed, `into` is unconstrained, `line_endings` normalises silently into the `moved` bucket, and only `lossless` and `identity` wrap the raise.",
+            "verdict": "true"
+          }
+        ]
+      },
+      "mechanical": {},
+      "summary": {
+        "failed": 0,
+        "pass_rate": 0.0,
+        "passed": 0,
+        "total": 0
+      }
+    },
+    {
+      "editorial": {
+        "arm": "with_skill",
+        "axes": {
+          "detection": {
+            "grade": "B",
+            "reason": "The END diff changed exactly one paragraph -- the `transcribes` docstring (@a4, lines ~222-246) -- and the run filed five records on it (33, 34, 35, 36, 37). Two of the three notes END rewrote were ruled on directly: record 33 lands on `CONTIGUITY MADE IT ONE COMPARISON` and record 34 on `there is nothing to reassemble`, which are the clauses END replaced. Against that, record 36's `clean` explicitly certifies *\"BEFORE AND AFTER ARE THIS MODULE'S TO VERIFY\"*, the third note, which END demoted to a `!` and replaced with the new `ONE PREDICATE, AND ITS TWO CALLERS TRUST OPPOSITE SIDES OF IT` heading -- a sentence the human went on to rewrite was signed off. Paragraph found, most of the changed text ruled on, one changed clause certified: B, not A, and not the F reserved for a paragraph declared clean outright."
+          },
+          "diagnosis": {
+            "grade": "A",
+            "reason": "Record 33's reason is END's mechanism almost word for word: the branching was not collapsed, `a `c` is compared in two halves at the anchor test`, so the claim of one comparison is false. END: `CONTIGUITY REMOVED ONE CASE, not the branching ... The `c` case BELOW IS UNCHANGED and still compares in two halves`. Record 34 names the same thing at the `nothing to reassemble` clause and cites line 262, the very slice that does the reassembly. The one thing the run does not reach is END's new content -- that the predicate's two callers read False for opposite reasons -- but that is an addition the human made, not a mechanism the run misdiagnosed. Small divergence: the run counts the empty-place early return as a surviving *case*, where END frames that case as the one contiguity did simplify; this does not misdirect a reader away from END's fix."
+          },
+          "evidence": {
+            "grade": "A",
+            "reason": "The mechanical verification handed to me is empty -- no cited `verbatim` is reported as failing to appear at its cite -- so this axis reports no failures. The run additionally pre-declares the two cases (records 34 and 48) where its quoted clause wraps across two physical lines and gives the second fragment, which is the honest handling of that hazard rather than a concealment of it."
+          },
+          "prescription": {
+            "grade": "A",
+            "reason": "Record 33 proposes `CONTIGUITY MADE IT ONE RANGE, and a `c` still costs a second comparison`; record 34 proposes `its stored lines are its range -- a `c` is still reassembled from its two halves, and nothing else is`. Both assert precisely what END asserts (`The `c` case BELOW IS UNCHANGED and still compares in two halves, which is what the column is for`), differing only in wording. A reader holding the run's text believes nothing END contradicts. It does not add END's caller-asymmetry note, but the axis is whether the proposal asserts what END asserts about the defect, and it does."
+          },
+          "unkeyed": {
+            "grade": "A",
+            "reason": "Nothing outside the key is false of the code, on my reading, and several unkeyed findings are substantive and checkable from the file alone: `nonzero if any file differs` against `return 1 if broken else 0` (a real self-contradiction three lines from a comment that states the true rule), `they differ on exactly one shape` against the mixed-ending normalisation that fails `identity` and passes `lossless`, `only the second needs assembling` where the `c` is listed first and is the one concatenated, `the one thing here taken from `page.text`` against the `tail` guard, `THE FIRST ENDING WINS` against a membership test, and `identity`'s Returns documenting one of four outcomes. The thirteen `query`s are all honest jurisdiction refusals over files the role was forbidden to open and are held against nobody. A couple of the `correct`s (records 2 and 3) push a module-scope heading harder than a charitable reading requires, but each is grounded in code the run cites and neither would leave a reader believing something false."
+          }
+        },
+        "eval_id": "transcribes-one-comparison",
+        "model": "claude-opus-5",
+        "overall": "A",
+        "overall_reason": "The run hit the single paragraph END rewrote and diagnosed the exact mechanism the human's fix turns on -- that contiguity did not collapse the branching and the `c` is still compared and reassembled in two halves -- with proposed text that asserts what END asserts; and outside the key it filed a large body of true, code-cited findings, including a genuine three-line self-contradiction in `main`'s exit contract and the mixed-ending second shape on which `identity` and `lossless` part, with no false positives and honest hedging where the reading limit bound it. What holds it short of a flawless mark is record 36, which certified as clean the one note in that paragraph END went on to replace, and the absence of any hint of END's new insight that the predicate's two callers read False for opposite reasons.",
+        "reader_value": "The run's prose consistently keeps the *why*: its fixes retain the ruling and the measurement behind each behaviour rather than flattening to description -- record 41 rewrites 'exactly one shape' into 'two shapes, and both are RULED', naming where each is ruled, and record 48 keeps 'doing what each was ruled to do' while adding the second cause. Its `query`s also teach the reader something real about the instrument's limits (which claims rest on a corpus the checkout does not carry, which on modules the role may not open), so a reader ends up knowing not just what the compositor does but which of its guarantees are ruled sacrifices and which are measured.",
+        "rubric_version": 2,
+        "unkeyed_claims": [
+          {
+            "cite": "1 -- @a0 query: usage line teaches `--repo D`, which `main` never reads",
+            "reason": "Hedged; and the underlying observation is correct -- `args.repo` is parsed at 363 and never read, `rel` never passed at 370/375.",
+            "verdict": "query"
+          },
+          {
+            "cite": "2 -- @a0 correct: \"KNOWS NO LINE NUMBERS\" vs `transcribes` reading original_start/end/column",
+            "reason": "The module does read three stored positions and index the file with them; the heading sits at module scope. A charitable reading scopes 'it' to the setting step, so the fix is a clarification rather than a refutation, but the cited facts hold.",
+            "verdict": "true"
+          },
+          {
+            "cite": "3 -- @a0 correct: \"NOTHING IS WRITTEN OVER THE REAL FILE HERE\" vs `approve()`",
+            "reason": "`approve` is in this module and `shutil.copyfile(drafted, real)` writes the real file; the paragraph's own next clause says so. The heading as written is in tension with the module it heads.",
+            "verdict": "true"
+          },
+          {
+            "cite": "4 -- @a0 correct: \"byte for byte, in any language\" vs 12 of 699",
+            "reason": "The file's own measurements at lines 106 and 301 record 12 identity failures; the unqualified 'in any language' overstates what the module proves.",
+            "verdict": "true"
+          },
+          {
+            "cite": "5 -- @a0 query: \"THIS IS THE ONLY WRITER\" population unenumerable",
+            "reason": "Exclusivity over a population outside the file; correctly hedged, and it notes two write sites inside the file.",
+            "verdict": "query"
+          },
+          {
+            "cite": "6 -- @a0 correct: \"only the second needs assembling\" is the FIRST",
+            "reason": "The two shapes are listed `c` first, prose-only second; the `c` is the one built by concatenation at line 181, and the prose shape is extended as it stands at 184. The prose points at the wrong item.",
+            "verdict": "true"
+          },
+          {
+            "cite": "7 -- @a0 correct: \"the one thing here taken from `page.text`\"",
+            "reason": "`page.text` is also read for the trailing newline at line 217 (and as the guard at 189), so it is one of two facts.",
+            "verdict": "true"
+          },
+          {
+            "cite": "8 -- @a0 query: galley.py / vocabulary.toml / prove_unchanged.py unresolved",
+            "reason": "Refuses to distinguish root-relative resolution from a dangling pointer without tree access; correct restraint under the reading limit.",
+            "verdict": "query"
+          },
+          {
+            "cite": "9, 12, 13 -- @c8/@c9/@c10 clean on `# noqa: E402`",
+            "reason": "All three imports follow executable statements (the sys.path insertion), which is exactly what E402 reports; the directives are warranted.",
+            "verdict": "true"
+          },
+          {
+            "cite": "10 -- @b9 clean: read directly, visible in the import graph",
+            "reason": "`from language import language_for` is a direct import and the name is used at 309 and 340; the sentence describes what the graph shows.",
+            "verdict": "true"
+          },
+          {
+            "cite": "11 -- @b9 query: \"the only two modules that touch a file\"",
+            "reason": "Exclusivity over other modules the role could not open; properly hedged.",
+            "verdict": "query"
+          },
+          {
+            "cite": "14 -- @a1 clean on the summary line",
+            "reason": "`return CRLF if CRLF in text else LF` is exactly 'CRLF if any line has one, else LF'.",
+            "verdict": "true"
+          },
+          {
+            "cite": "15 -- @a1 correct: \"THE FIRST ENDING WINS\" -> any CRLF wins",
+            "reason": "The test is membership, not position: a file whose first ending is LF and whose hundredth is CRLF is set CRLF. The heading contradicts the summary line above it.",
+            "verdict": "true"
+          },
+          {
+            "cite": "16 -- @a1 query: \"`galley.py` has answered it this way\"",
+            "reason": "Precedent in a module outside the reading; hedged.",
+            "verdict": "query"
+          },
+          {
+            "cite": "17 -- @a2 clean: prose each place holds, by folio",
+            "reason": "Lines 88-90 key by folio off the address and store raw_lines; an empty place contributes no entry.",
+            "verdict": "true"
+          },
+          {
+            "cite": "18 -- @a3 clean: the walk, lossless beside identity, the newline arg",
+            "reason": "The loop walks `page.foliation.reading` and extends with whatever each place holds, so growth needs no arithmetic; 316 vs 350 are the sorted-lines and byte comparisons as described.",
+            "verdict": "true"
+          },
+          {
+            "cite": "19 -- @a3 correct: \"the one fact a paragraph cannot state\"",
+            "reason": "The trailing newline is a second such fact, stated in the same terms in the comment at 214-216 and read at 217.",
+            "verdict": "true"
+          },
+          {
+            "cite": "20 -- @a3 query: fixed series order, MEASURED 699/12",
+            "reason": "The order is the foliation's to fix and the corpus is unavailable; the run correctly notes that a second copy of the same numbers in-file is consistency, not verification.",
+            "verdict": "query"
+          },
+          {
+            "cite": "21 -- @a3 query: \"it is one time per file\"",
+            "reason": "A workflow quantity nothing in the module bounds; hedged.",
+            "verdict": "query"
+          },
+          {
+            "cite": "22 -- @b27 clean: edge, first key alone, DROP P / ADD N",
+            "reason": "The comprehension at 158 discards the second key, `previous` starts as `\"\"`, and the `continue` at 172 precedes the reassignment of `previous` -- the worked example holds against the code.",
+            "verdict": "true"
+          },
+          {
+            "cite": "23, 24 -- @b27 queries on the 90% and 88%/15,987 measurements",
+            "reason": "Corpus measurements the checkout does not carry; hedged, and the observation that the 90% figure states no population size is fair.",
+            "verdict": "query"
+          },
+          {
+            "cite": "25 -- @b32 clean: an empty place breaks no edge; a `c` is never empty",
+            "reason": "The guard at 171 requires both no prose and not-beside-code, so a `c` cannot satisfy it, and 181 appends the code line regardless.",
+            "verdict": "true"
+          },
+          {
+            "cite": "26 -- @b32 query: `tie_leading`",
+            "reason": "The name is defined outside the file; the run confirms the skip and refuses the guarantee. Correct.",
+            "verdict": "query"
+          },
+          {
+            "cite": "27 -- @b37 clean: a `c` is the line of code",
+            "reason": "180-182 concatenate code with the first prose line and append the remainder whole, exactly as described.",
+            "verdict": "true"
+          },
+          {
+            "cite": "28 -- @b42 clean: the closing edge",
+            "reason": "The loop sets each place's edge before the place, so line 188 pays the last place's owed edge.",
+            "verdict": "true"
+          },
+          {
+            "cite": "29 -- @b44 clean: no places over a file with text is a refusal",
+            "reason": "The guard at 189 is the conjunction named and raises; `draft` at 277 does write what `set_page` returns, so the stated consequence is the real one.",
+            "verdict": "true"
+          },
+          {
+            "cite": "30 -- @b44 query: sentry measurement, \"4 files ... today\", page_for, the TODO",
+            "reason": "Four out-of-file claims, hedged; the note that a dated 'today' count decays without symptom is sound.",
+            "verdict": "query"
+          },
+          {
+            "cite": "31 -- @b48 clean: an empty page is empty text",
+            "reason": "Line 213 returns `\"\"`, and the reasoning is checkable against `identity`'s comparison at 350.",
+            "verdict": "true"
+          },
+          {
+            "cite": "32 -- @b49 clean: the trailing newline is the file's",
+            "reason": "217-218 append one ending exactly when the source ended in one.",
+            "verdict": "true"
+          },
+          {
+            "cite": "35 -- @a4 correct: \"`vars(b)`\" names nothing in this file",
+            "reason": "The parameter is `paragraph: dict`, read only by key, and the only `b` in the file is a loop variable at 353; the citation is illegible from here. END left the Args block alone, so this is an unkeyed but accurate observation.",
+            "verdict": "true"
+          },
+          {
+            "cite": "37 -- @a4 query: `galley.paragraph_matches`",
+            "reason": "Hedged on whether the name is a live pointer or an obituary; END in fact kept the provenance and dated it, which vindicates not deleting it.",
+            "verdict": "query"
+          },
+          {
+            "cite": "38 -- @b62 clean: a `c` shares its first line with code",
+            "reason": "260 and 262 compare the anchor against everything left of the column and slice the remainder, which is the two halves described.",
+            "verdict": "true"
+          },
+          {
+            "cite": "39 -- @a5 clean: the real file is not touched here",
+            "reason": "`draft` writes only to `into`; the run correctly routes the missing-guard issue to CODE CONCERNS rather than calling the prose false.",
+            "verdict": "true"
+          },
+          {
+            "cite": "40 -- @a6 clean: a copy, not a splice",
+            "reason": "The body is a single whole-file `copyfile` with no range.",
+            "verdict": "true"
+          },
+          {
+            "cite": "41 -- @a7 correct: \"exactly one shape\" -- mixed endings are a second",
+            "reason": "A mixed-ending file is rejoined with one ending, so bytes differ and `identity` fails, while `splitlines` strips endings and `lossless` passes. That is a second shape on which the two invariants part, and it is ruled deliberate by `line_endings`.",
+            "verdict": "true"
+          },
+          {
+            "cite": "42 -- @a7 clean: the weaker invariant",
+            "reason": "316 compares sorted lines and returns None on equality, against 350's byte comparison.",
+            "verdict": "true"
+          },
+          {
+            "cite": "43 -- @a7 query: MEASURED 699 files: 12 and 0",
+            "reason": "Corpus-dependent; hedged.",
+            "verdict": "query"
+          },
+          {
+            "cite": "44 -- @a8 correct: Returns names one of four outcomes",
+            "reason": "339 (unread), the no-language-record return, 349 (refusal) and 356 (line counts) are three further outcomes beyond 'the FIRST line that differs'.",
+            "verdict": "true"
+          },
+          {
+            "cite": "45 -- @b108 clean: reported like any other refusal",
+            "reason": "346-349 return the exception text rather than propagating; the raise named is `set_page`'s at 205.",
+            "verdict": "true"
+          },
+          {
+            "cite": "46 -- @a9 correct: \"nonzero if any file differs\"",
+            "reason": "`return 1 if broken else 0` and `broken` counts only `lossless` rejections; an identity failure increments `moved` and exits 0. The comment two lines above states the real rule -- a genuine contradiction inside three lines, and the most consequential unkeyed find in the run.",
+            "verdict": "true"
+          },
+          {
+            "cite": "47 -- @b139 clean: \"ONLY A LOST OR INVENTED LINE FAILS\"",
+            "reason": "The return is driven by `broken` alone, incremented only at 372 on a `lossless` rejection.",
+            "verdict": "true"
+          },
+          {
+            "cite": "48 -- @b139 correct: normalisation also happens to line endings",
+            "reason": "Same mechanism as record 41: a mixed-ending file lands in the `moved` bucket for a reason other than the series order, so 'a normalised file IS the ruled series order' is too strong.",
+            "verdict": "true"
+          },
+          {
+            "cite": "CODE CONCERNS -- `--repo` parsed and never read; `rel` never passed",
+            "reason": "Verifiable at 363, 370, 375.",
+            "verdict": "true"
+          },
+          {
+            "cite": "CODE CONCERNS -- `draft` accepts any `into` and creates parents; nothing refuses the original path",
+            "reason": "276-277 do exactly this; the docstring's 'never the original' is a convention, not an enforcement.",
+            "verdict": "true"
+          },
+          {
+            "cite": "CODE CONCERNS -- a mixed-ending file is reported `moved` and exits 0, the same bucket a real defect would arrive in",
+            "reason": "Follows from `line_endings`, the join at 218 and the exit rule at 385.",
+            "verdict": "true"
+          },
+          {
+            "cite": "CODE CONCERNS -- `draft` does not catch the `ValueError` that `lossless` and `identity` catch",
+            "reason": "`set_page` raises at 205; 314 and 346 catch, 277 does not, and no Raises section documents it.",
+            "verdict": "true"
+          },
+          {
+            "cite": "CODE CONCERNS -- candidate `add`: `set_page` documents Returns but not that it raises",
+            "reason": "Accurate, and correctly withheld as a record because the role could not obtain an address from the addresser.",
+            "verdict": "true"
+          }
+        ]
+      },
+      "mechanical": {},
+      "summary": {
+        "failed": 0,
+        "pass_rate": 0.0,
+        "passed": 0,
+        "total": 0
+      }
+    }
+  ],
+  "rubric_version": 2,
+  "runs": 5
+}
