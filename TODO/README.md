@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (112)
+### open  (111)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -268,7 +268,6 @@ that changed a published name or rule:
 | [a-revise-answer-has-no-artifact](a-revise-answer-has-no-artifact.md) | backend | — | 4/8 | A role can be asked to revise and has nothing to answer ON |
 | [the-ported-mark-does-not-fit-the-brief](the-ported-mark-does-not-fit-the-brief.md) | backend | — | 5/5 | The ported mark refuses marks the shipped brief tells a role to write |
 | [the-flow-assumes-every-role-reads-at-once](the-flow-assumes-every-role-reads-at-once.md) | backend | — | 7/7 | The flow assumes every role reads the same page at the same time, once |
-| [move-change-contract-unenforceable](move-change-contract-unenforceable.md) | backend | — | 0/2 | move's change_all loop is never the decisive check -- the general array-of-lines check runs first and either already passed or already refused the mark |
 | [build-gate-crlf-fragile](build-gate-crlf-fragile.md) | systems | — | 0/2 | build_plugin.py's raw byte compare fails on a line-ending-only difference introduced by a Windows git checkout |
 | [shape-is-three-words](shape-is-three-words.md) | backend | yes | 0/5 | `shape` carries three senses, only one reaches an agent as a field name; and the axis it names is on `query` alone while `clean` has a recorded, unfilled need for the same thing |
 | [annotate-belongs-in-concordance](annotate-belongs-in-concordance.md) | backend | — | 0/3 | annotate.py is stage 3 -- it resolves every reference a node makes -- which is the concordance's subject, not the binder's |
@@ -287,7 +286,7 @@ that changed a published name or rule:
 | [query-names-no-sentence](query-names-no-sentence.md) | backend | — | 0/3 | every other substantive instruction names the sentence it rules on through a `claim` key -- `false` for `correct`, `drop` for `drop`, `from` for `patch` -- and `query` has none, so `_sentence_key` falls back to an identity and two queries at one place read as two different sentences |
 | [brief-example-and-scope](brief-example-and-scope.md) | agents | — | 0/3 | the brief's worked example shows a 40-character `sha` where `bind` writes 16, and the brief says a source resolves against 'the repo' without saying whether that is the scoped tree or the checkout it was cut from |
 | [rows-of-derives-no-type](rows-of-derives-no-type.md) | backend | — | 0/4 | `binder.rows_of` returns `list[dict]` where `docket.schedules_of` returns `list[Schedule]`; the codebase holds one example of each pattern, the typed one is the one that catches things, and `rows_of` has 8 callers and no covering tests |
-| [move-onto-itself-deletes](move-onto-itself-deletes.md) | backend | — | 0/3 | a `move` whose `claim.to` equals its own `address` parses clean, touches one end instead of two, and lands in the docket as `text: None` -- the paragraph is removed and never written back |
+| [move-onto-itself-deletes](move-onto-itself-deletes.md) | backend | — | 1/3 | a `move` whose `claim.to` equals its own `address` parses clean, touches one end instead of two, and lands in the docket as `text: None` -- the paragraph is removed and never written back |
 | [crlf-verbatim-never-matches](crlf-verbatim-never-matches.md) | backend | — | 0/3 | `collator._lines` preserves CR, LF and CRLF deliberately, then the comparison window is rejoined with `\n` -- so a `verbatim` spanning two lines of a CRLF file is compared against text that no longer holds its line endings |
 | [cache-keyed-without-root](cache-keyed-without-root.md) | backend | — | 0/2 | `collator.Cache` maps a cited path to its lines with no root in the key, so one cache used across two roots -- an original and a revise -- answers from whichever file was read first |
 | [cite-at-raises-on-a-nondigit](cite-at-raises-on-a-nondigit.md) | backend | — | 0/3 | `collator._cite_at` guards the line number with `isdigit()` then calls `int()`, and the two disagree on what a digit is -- a superscript passes the guard and raises |
@@ -319,7 +318,7 @@ that changed a published name or rule:
 | [the-shipped-python-does-not-pass-its-own-review](the-shipped-python-does-not-pass-its-own-review.md) | backend | yes | 7/12 | **Our own scripts spend a sixth of their prose on what the code does NOT do.** ! **Roy's reason, 2026-08-16: *"I don't want the system picking up bad cues from the documentation in the code."*** An agent reads these files and then writes in them. Re-measured after that day's rewrites: **136 of 697 (20%)** comment and docstring lines carry `cannot` / `never` / `does not` / `is not` / `nothing` -- UP from 123/714, because the prose written that day carries the same defect -- `census.py` worst at 52/284. Roy: *"census.py creates the pCST and that is it. Comments about 'cannot answer OWNERSHIP' are not helpful."* ! Not every negative is wrong -- an output (*"reports UNPROVABLE rather than passing"*) and a refusal aimed at a future editor both earn their place -- so the first task is writing the test that tells them apart !! **The hand-pass rule is STRUCK, 2026-08-18.** It told itself not to run `/comment-review` on this repo; Roy: *"By definition the code has to go through the review to state that it has passed."* A hand pass produces a rewrite, and this file's title is a claim about what the review RETURNS -- so it now closes on a run graded from the diff. ! The harness does not gate that: running the skill needs the skill |
 | [lexer-and-language-findings](lexer-and-language-findings.md) | backend | — | 3/28 | Ten findings in lexer.py and language.py, from three review rounds |
 
-### decision-needed  (24)
+### decision-needed  (25)
 
 _None -- the remaining rulings sit inside the two files rather than blocking them entirely; the
 other tasks can proceed without them._
@@ -347,6 +346,7 @@ other tasks can proceed without them._
 | [two-live-runs-proposed-fifteen-changes](two-live-runs-proposed-fifteen-changes.md) | agents | yes | 11/21 | Two live runs proposed fifteen changes |
 | [null-is-not-a-decision](null-is-not-a-decision.md) | backend | yes | 0/2 | `null` is the delete signal, and it is also what a failed serialisation writes |
 | [strip-and-fill-the-markers](strip-and-fill-the-markers.md) | backend | yes | 0/8 | A role is handed the paragraph with its `#`/`"""` markers and indentation, and must reproduce them exactly in `change`. Measured 2026-08-29: three consecutive attempts by an agent with full context broke the file, and each failure read as a defect in the setter |
+| [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | yes | 0/9 | A move is a composite mark and the code cannot express one |
 
 ### in flight  (0)
 
@@ -433,3 +433,4 @@ the reason is inside the file.
 | [topology-is-a-source-edit](completed/topology-is-a-source-edit.md) | a run's stages are read from a TOML topology -- desk/topology.read, with three refusals -- and the STAGES literal and Stage.roles are deleted |
 | [move-order-and-cycles-SUPERSEDED](completed/move-order-and-cycles-SUPERSEDED.md) | Filed as its own file in error; the three tasks are collator-defects T12, T13, T14 -- the per-module TODO for desk/collator.py, which already absorbs single-defect files |
 | [read-from-never-compared-SUPERSEDED](completed/read-from-never-compared-SUPERSEDED.md) | Filed as its own file in error; the check is a task on no-command-for-the-middle, which is the TODO for the command that performs it |
+| [move-change-contract-unenforceable-SUPERSEDED](completed/move-change-contract-unenforceable-SUPERSEDED.md) | Superseded by move-is-a-composite-mark: it names change_all, a classifier removed on 2026-08-29, and the dict-branch question it asks is answered by the composite ruling -- neither branch |

@@ -231,11 +231,24 @@ the work and a `P` names the step, and both exist so a piece's purpose is on the
 before anyone implements it. **A purpose first stated in a review is a justification, not
 a design** -- it is produced by looking at the code, so it can only ever agree with it.
 
-! **THE MEASURED FAILURE IS A FIELD THAT ANSWERS NEITHER.** `desk/mark.py` declares
-`owes_destination` and **nothing reads it**: measured 2026-08-30,
-`grep -rn "owes_destination" src/` returns three lines and all three are in the file that
+! **THE MEASURED FAILURE IS A FIELD THAT ANSWERS NEITHER.** `desk/mark.py` declared
+`owes_destination` and **nothing read it**: measured 2026-08-30,
+`grep -rn "owes_destination" src/` returned three lines and all three were in the file that
 declares it. A flag nobody reads cannot make the system correct and serves no purpose,
 and it survived because no plan ever had to say what it was for.
+
+!! **SUPERSEDED THE SAME DAY, AND THE WAY IT WAS SUPERSEDED IS THE POINT.** `f17b712`
+gave the flag a reader -- `parse` now runs `_destination_problems` under it, refusing a
+`move` whose `claim.to` equals its own address. The grep returns five lines, one of them a
+read. **The measurement above stands as of its date and the rule it argues for is
+unchanged; what moved is the example.**
+
+! **A FIELD DOES NOT BECOME NECESSARY BY BEING WIRED -- IT BECOMES NECESSARY WHEN SOMETHING
+WOULD OTHERWISE BE WRONG.** Here something was: a move onto its own address reached the
+docket as a bare delete, so the flag now answers *what would be incorrect without it*. That
+is the answer this section asks for, arriving a plan late rather than never. ! The three
+lines were the honest reading on the day; leaving them uncorrected would make this section
+an instance of the rot it exists to forbid.
 
 ! **IT IS THE SAME STANDARD THIS REPO APPLIES TO PROSE, ARRIVING FROM THE OTHER SIDE.**
 `CLAUDE.md` refuses a sentence that cannot be falsified by reading the code; this refuses

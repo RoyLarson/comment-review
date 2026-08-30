@@ -1912,3 +1912,52 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `.../binder/*.py`, so a scratch tree raises `UncoveredPage: block-context: no dispatch covers`.
   **The refusal is correct** -- fan-out must cover every page -- but it surfaces from `fan`,
   blaming the tree for the topology's assumption, and only once a run is already underway.
+
+- **#56.** **A `move` IS A COMPOSITE MARK -- A DROP AT THE ORIGIN AND AN ADD AT THE DESTINATION**
+  (Roy, 2026-08-30): *"A move needs to be what it is and that is a composite Mark - Drop Here Add
+  There. They have to go together and the ought to have a similar facade but the underneath I don't
+  know how we make it work correctly without admitting that it is a composite instead of a singular
+  mark. Nothing else acts on two places at once"*
+
+  !! **THE FACT THAT FORCES IT: A SENTENCE MOVES WITHOUT THE PARAGRAPH MOVING.** Roy, correcting a
+  reading that an address names one paragraph so a move empties its origin: *"No a sentance can move
+  without the paragraph moving"*. **The origin keeps a REMAINDER.** Both ends therefore hold new
+  text, and both must be written -- which is what `#49`'s composite requirement already implied and
+  no code does.
+
+  !! **AND `drop` DECLARES A SENTENCE LEFT, NOT A PARAGRAPH -- WHICH MAKES IT CHECKABLE.** Roy, the
+  same day: *"And for drop - remember it is just declaring that a sentance disappeared not the whole
+  paragraph - it is checkable that the difference is missing and not an addition..."* So the origin
+  half is verifiable as a PURE DELETION against its seeded `raw_text` -- an insertion anywhere in
+  that diff refuses the mark -- and the destination half as a pure addition.
+
+  ! **THE PAIR CARRIES THE STRONGER CHECK: the text deleted at the origin must EQUAL the text added
+  at the destination.** A move that loses a sentence in transit, or invents one on arrival, fails
+  it. `results/differences.py` already holds the opcode machinery this runs on.
+
+  !! **MEASURED 2026-08-30: THE CODE CANNOT EXPRESS A CORRECT MOVE AT ALL.**
+  `desk/mark.py:536` refuses any `change` that is not a `str`, for every instruction, while
+  `the-mark.md`'s claim table says a `move`'s `change` carries the same two key names as its claim,
+  holding the two resulting PARAGRAPHS. **The specified shape is refused at the boundary, and the
+  single string that is accepted is wrong by construction** -- it reaches the docket as a whole-file
+  delete at the origin and both paragraphs written at the destination.
+
+  ! **`change_all` WAS THE CLASSIFIER THAT CARRIED THE DICT-SHAPE CHECK, and it was removed on
+  2026-08-29 with the raw-text ruling.** That ruling was aimed at LINE ARRAYS -- *"raw text not
+  lines or sentences"* -- and took the dict form with it, unremarked, because `move` is the only
+  instruction that used one. `TODO/move-change-contract-unenforceable.md` was filed against the
+  older shape and names a field that no longer exists.
+
+  ! **NOTHING IN THE SUITE DISAGREES, BECAUSE THE FIXTURE BUILDS THE ACCEPTED FORM.**
+  `tests/helpers.py`'s `a_move` gives its claim the correct `from`/`to` places and its `change` a
+  plain string, so every move test confirms the shape the boundary happens to admit.
+
+  !! **AND THE COMPOSITE IS THE SMALLER CHANGE, NOT THE LARGER ONE.** Two bound marks each carry a
+  plain `str` change, so `_change_problems` stays ONE rule for all seven instructions and no
+  downstream stage learns that one instruction's `change` is not text. The alternative -- restoring
+  a dict branch -- teaches every stage a second shape and leaves atomicity a property prose asserts
+  rather than one the structure holds.
+
+  ! **IT SUPERSEDES `the-mark.md`'s *"Both raw text, in one `change`"*,** and leaves `#49`'s
+  indivisibility rule standing: the two halves still travel together, and now there is one object
+  that cannot be half-held.
