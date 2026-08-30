@@ -1,5 +1,14 @@
 # The commands for the middle -- Implementation Plan
 
+> !! **SUPERSEDED 2026-08-30. DO NOT EXECUTE THIS FILE.** It is one plan over all
+> of `0.2.4`; the plan is worked as **six** superpowers plans, per the split table in
+> [`docs/plans/0.2.4-the-commands-for-the-middle.md`](../../plans/0.2.4-the-commands-for-the-middle.md).
+> Its Tasks 1-4 are carried into
+> [`2026-08-30-sp1-the-containers-and-the-collate-flow.md`](2026-08-30-sp1-the-containers-and-the-collate-flow.md),
+> which lists the **four things in here that are now wrong** -- read that list before
+> reusing anything below. It is kept, not deleted, because the reasoning in it is
+> what the six were drawn from.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Give the middle of the pipeline a console face, so the chain runs from a binder to a revise with no Python written by hand.
