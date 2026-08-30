@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (112)
+### open  (114)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -294,6 +294,8 @@ that changed a published name or rule:
 | [strip-before-review-experiment](strip-before-review-experiment.md) | agents | — | 0/5 | the `collator.py` prose was deleted whole and rewritten by an agent that could read only the code -- it found three defects the old prose never mentioned and named two things the code cannot say; whether that beats editing in place is untested |
 | [collator-defects](collator-defects.md) | backend | -- | 0/11 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
 | [staged-chain-untested](staged-chain-untested.md) | backend | — | 0/3 | the four-stage chain runs and the edits accumulate, proven 2026-08-30 -- but no test in the suite drives it, and the only committed fan-out topology refuses any tree but this repo's |
+| [move-order-and-cycles](move-order-and-cycles.md) | backend | — | 0/3 | Nothing orders the settled moves, and nothing refuses a cycle |
+| [read-from-never-compared](read-from-never-compared.md) | backend | — | 0/2 | Nothing compares a returned edit_copy's read_from against the binder it was seeded from |
 
 ### in-progress  (19)
 
