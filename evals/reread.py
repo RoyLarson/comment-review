@@ -1,7 +1,7 @@
 """T50 -- the same judge reads one artifact twice, and the letters are compared.
 
 !! THIS ASKS WHETHER THE INSTRUMENT IS STABLE, NOT WHETHER IT IS RIGHT. Roy,
-2026-08-29 (`decision-log.md Process: #56`): *"just because there is variance in
+2026-08-29 (`decision-log.md Process: #61`): *"just because there is variance in
 the result doesn't make the measure invalid it makes it uncertain. A repeat or
 three or four or five off the same result fixes the variance."* **Variance is
 reducible by N; validity is not reducible by anything.** So a disagreement found
@@ -63,7 +63,7 @@ def letters(judged: dict) -> dict:
     """The graded letters of one reading, flattened to field -> letter.
 
     ! THE REASONS ARE LEFT BEHIND ON PURPOSE. They are kept in full in the
-    written artifact, because `decision-log.md Process: #56` says the reason is
+    written artifact, because `decision-log.md Process: #61` says the reason is
     the data; what this returns is only the part two readings can be compared on.
     """
     flat = {axis: judged["axes"][axis]["grade"] for axis in grader.AXES}

@@ -25,6 +25,7 @@ from comment_review.desk.mark import (
     ANCHOR_EXAMPLE,
     INSTRUCTIONS,
     QUERY_SHAPES,
+    Mark,
     allowed,
     parse,
     untouched,
@@ -40,6 +41,7 @@ def problems(where: str, entry: object) -> list[str]:
     than at every call site.
     """
     return parse(where, entry)[1]
+
 
 MARKS_PATH = (
     Path(__file__).resolve().parents[1]
@@ -401,3 +403,113 @@ class TestTheRulesBite:
         bad = well_formed("query")
         bad["claim"]["shape"] = "i-give-up"
         assert problems("here", bad) != []
+
+
+def test_the_mark_carries_the_raw_text_the_row_seeded():
+    """`raw_text` is seeded onto every slot and must survive the round trip --
+    `decision-log.md Process: #54` makes "did this parse back correctly" the
+    mark's own question, and a field that never comes back has no round trip."""
+    entry = {
+        "address": "m.py@b1",
+        "anchor": "def f(x):",
+        "raw_text": "# the paragraph as it stands\n",
+        "instruction": "clean",
+    }
+    mark, why = parse("m.py@b1", entry)
+    assert why == []
+    assert mark is not None
+    assert mark.raw_text == "# the paragraph as it stands\n"
+
+
+def test_a_mark_that_lost_its_raw_text_still_parses():
+    """!! AN ABSENT `raw_text` IS NOT A SHAPE PROBLEM. It is seeded, so its
+    absence is DRIFT -- a copy that did not come back with what it was handed
+    -- and `decision-log.md` D10 of the SP-1 spec rules drift REPORTED, by the
+    collator, never refused at the boundary. Refusing an absent field here
+    while a CHANGED field is only reported would be two treatments of one
+    problem."""
+    mark, why = parse("m.py@b1", {"address": "m.py@b1", "instruction": "clean"})
+    assert why == []
+    assert mark is not None
+    assert mark.raw_text == ""
+
+
+def test_seed_builds_the_slot_from_the_marks_own_names():
+    row = Mark.seed("m.py@b1", "def f(x):", "# as it stands\n")
+    assert row == {
+        "address": "m.py@b1",
+        "anchor": "def f(x):",
+        "raw_text": "# as it stands\n",
+        "instruction": None,
+    }
+
+
+def test_seed_refuses_a_name_the_mark_does_not_declare(monkeypatch):
+    """!! THE POINT OF THE FUNCTION, AND THE ONLY WAY IT CAN FAIL. `P35` asks
+    that a renamed field break AT CONSTRUCTION rather than leave another
+    module writing the old key -- so `SEEDED` is checked against the
+    dataclass's own fields every call, and this proves that check fires."""
+    monkeypatch.setattr(Mark, "SEEDED", ("address", "anchor", "raw_txt"))
+    with pytest.raises(AttributeError) as caught:
+        Mark.seed("m.py@b1", "def f(x):", "# as it stands\n")
+    assert "raw_txt" in str(caught.value)
+
+
+def test_as_entry_round_trips_through_parse():
+    """A mark written back onto a sheet parses as the mark it came from --
+    which is what lets the copy chief's `edit_copy` be an ordinary one."""
+    entry = {
+        "address": "m.py@b1",
+        "anchor": "def f(x):",
+        "raw_text": "# as it stands\n",
+        "instruction": "correct",
+        "claim": {"false": "as it stands", "true": "as it should read"},
+        "reason": "the paragraph names a parameter the signature dropped",
+        "sources": [{"cite": "m.py:1", "verbatim": "def f(x):"}],
+        "change": "# as it should read\n",
+    }
+    mark, why = parse("m.py@b1", entry)
+    assert why == []
+    assert mark is not None
+    again, why_again = parse("m.py@b1", mark.as_entry())
+    assert why_again == []
+    assert again == mark
+
+
+def test_a_move_onto_its_own_address_is_refused_by_name():
+    """MEASURED 2026-08-30: this parsed with no problems reported, `_touches`
+    deduped its two ends to one address, `reconcile` settled it, and the
+    docket carried a single alteration deleting the paragraph --
+    `('m.py', 'b1', None)` -- with no matching write."""
+    entry = {
+        "address": "m.py@b1",
+        "anchor": "def f(x):",
+        "raw_text": "# a paragraph\n",
+        "instruction": "move",
+        "claim": {"from": "a paragraph", "to": "m.py@b1"},
+        "reason": "it reads better beside the function it describes",
+        "sources": [{"cite": "m.py:1", "verbatim": "def f(x):"}],
+        "change": "# a paragraph\n",
+    }
+    mark, why = parse("m.py@b1", entry)
+    assert mark is None
+    assert len(why) == 1
+    assert "`claim.to` is this mark's own `address`" in why[0]
+
+
+def test_a_move_to_a_different_address_still_parses():
+    """The guard must not refuse an ordinary move -- the one that names a real
+    second place."""
+    entry = {
+        "address": "m.py@b1",
+        "anchor": "def f(x):",
+        "raw_text": "# a paragraph\n",
+        "instruction": "move",
+        "claim": {"from": "a paragraph", "to": "m.py@b8"},
+        "reason": "it reads better beside the function it describes",
+        "sources": [{"cite": "m.py:1", "verbatim": "def f(x):"}],
+        "change": "# a paragraph\n",
+    }
+    mark, why = parse("m.py@b1", entry)
+    assert why == []
+    assert mark is not None

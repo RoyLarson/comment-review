@@ -904,7 +904,73 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   EVERY BINDER READ IS COUPLING**: `collator.known_addresses` must keep reading it, because
   checking that a role did not invent an address has to be asked of the authority.
 
-- **#29.** **An eval case's two hashes are `start` and `end`, not `base` and `fixed`** (Roy,
+- **#29.** **THE COPY CHIEF'S THIRD ACT IS `recast`** (Roy, 2026-08-30, ratifying it in two
+  words: *"recast works"*). The chief has three, and they are not the role's four:
+
+    taken_in    a role's text is carried into the page
+    stet        the original stands; the correction is declined
+    recast      the chief's OWN prose, replacing every side
+
+  !! **IT EXISTS FOR THE CASE THAT SHOULD NOT ARISE.** Roy, 2026-08-29: *"the
+  chief-composes-by-hand needs to be available no matter what ... `copy-chief-edit --sheet x
+  --mark-address b3 --replace "Resolved New Prose"` which is different than stet or taken_in ...
+  This should never happen but..."* ! **A path with no answer is where a run stops dead**, so the
+  branch nobody expects to take is the one that must exist: no clean composition, or genuine
+  disagreement where neither side is right and neither can be made right from its own statement.
+
+  ! **AND IT IS THE LAST RESORT, NOT THE MECHANISM.** Two `hold`s on DISJOINT spans compose
+  ARITHMETICALLY -- `hold` already says *my mark stands*, so two of them are already saying both
+  are true, and `Process: #22`'s four need no fifth. `recast` is reachable only when that
+  composition REFUSES. ! The ordinary path leaves the chief transcribing nothing, which matters
+  because a derived composition can be re-derived and was set by BOTH roles, where a hand
+  transcription attributes to the chief, who wrote none of it.
+
+  ! **THE WORD IS THE TRADE'S**, for rewriting a passage in a different form, and it was reached
+  by the method this repo requires -- name the job by what it DOES, then look for publishing's
+  word for it. ! `stet` is still an open `agents` ruling
+  ([`no-mark-for-let-it-stand`](../TODO/no-mark-for-let-it-stand.md)), so two of the chief's
+  three are named and one is not yet filed.
+
+- **#30.** **THE COPY CHIEF'S `edit_copy` IS THE SAME SHAPE, AND THE CHIEF STEP IS A FOLD** (Roy,
+  2026-08-30): *"I felt (maybe wrongly) that these would end up being the same shape and the
+  master-proof would go from multiple edit-copies to one edit-copy in the copy-chief step."* **Not
+  wrongly.**
+
+      master_proof { edit_copies: [ role_a, role_b, role_c, role_d ] }
+          -> gather / places / reconcile  ==> Reconciled(settled, escalations, rereads)
+          -> the chief: taken_in | stet | recast
+          -> edit_copy { role: "copy-chief", sheets: [...] }     ONE. Same shape.
+
+  !! **BECAUSE IT IS THE RESULT OF THE FOLD, NOT A WORKSPACE DURING IT.** After the chief acts
+  every place has exactly ONE answer -- a settled place keeps its mark, an escalated one becomes
+  `taken_in`, `stet` or `recast`, a re-read one becomes the composed text. One mark per place is
+  an ordinary `edit_copy`.
+
+  !! **AND IT IS WHY `docket_from` TAKES ONE ARGUMENT.** It transcribes an ordinary `edit_copy`;
+  nothing about the chief's is special.
+
+  ! **A PLAN STEP PROPOSING THREE STATES ON AN ENTRY -- `settled`, `escalated`, `reread` -- IS
+  STRUCK.** Those are the INTERMEDIATE, and the intermediate already has a type:
+  `desk.collator.Reconciled`. Writing them onto entries would have been a second representation
+  of something that exists.
+
+  ! **THE ROUND TALLY GOES ON THE CONTAINER, NOT THE MARK.** The chief's copy from round N is the
+  input to round N+1, so the count rides the envelope -- `{"rounds": {"m.py@b1": {"composition":
+  1, "conflict": 0}}}` -- and the mark's seven fields stay seven.
+
+  !! **THE CONTAINERS GET A TYPE IN `desk/`, NOT A MARKDOWN SOURCE, AND THE DISTINCTION IS WHO
+  AUTHORS THEM.** Roy: *"They need a place somewhere in the desk/ folder."* `docs/the-mark.md`
+  exists because **an agent authors a mark**, so its shape must be published to a role and cannot
+  live only in code. **No agent ever authors a container** -- `seed`, `fan` and `gather` build
+  them -- so the type IS the definition, the way `desk/mark.py` defines `Mark`.
+
+  ! **AND THE SHAPE HAS BEEN CODE-ONLY UNTIL NOW**, at `flows/marks.py:36` and `desk/mark.py:318`,
+  which is the state `the-mark.md`'s own header calls out: *"the shape had no owning file, and
+  something else became the spec."* The ordinary `edit_copy` is real and shipping -- 60+ uses
+  across eight modules; the chief's was an idea with one mention in `src/`, a comment saying the
+  copy chief is out of scope.
+
+- **#31.** **An eval case's two hashes are `start` and `end`, not `base` and `fixed`** (Roy,
   2026-08-23: *"Overwrite its terms with yours. I knew that this collision could happen while
   writing that case but it needed to be written and going back and forth can cause other
   unnecessary complications."*). `base` already carries two other meanings here --
@@ -912,12 +978,12 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `prove_unchanged.py --base` takes a merge-base -- and START/END is the wording the range ruling
   was made in. ! **The collision was known when the case was written and the case was written
   anyway**, which is the right order: a term is cheap to overwrite and an unwritten case is not.
-  ! **RENUMBERED TWICE ON MERGE, `#10` -> `#12` on 2026-08-24 and `#12` -> `#29` on 2026-08-29**,
+  ! **RENUMBERED TWICE ON MERGE, `#10` -> `#12` on 2026-08-24 and `#12` -> `#31` on 2026-08-29**,
   by this section's own rule -- each time both branches had written the same number, and the entry
   ACCEPTS BOTH rather than either side winning. The only citation is
   `TODO/the-harness-cannot-run-the-system-it-grades.md`, which moved with it.
 
-- **#30.** **THE SET COPIED OVER A SNAPSHOT TO TEST ONE THEORY IS A `variant`** (Roy, 2026-08-29,
+- **#32.** **THE SET COPIED OVER A SNAPSHOT TO TEST ONE THEORY IS A `variant`** (Roy, 2026-08-29,
   ruling on four register-checked candidates). It is a HARNESS term and does not ship: nothing
   under `plugins/` uses it, so it is not in `vocabulary.toml`, whose gate refuses a definition
   written for nobody.
@@ -1742,7 +1808,165 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **THE VALIDATOR REFUSES A NON-EMPTY `carries` RATHER THAN IGNORING IT.** A key silently dropped
   is indistinguishable from one that worked.
 
-- **#51.** **A version changes the AGENTS or the MACHINERY, never both -- VOCABULARY TERMS
+- **#51.** **A COMMAND THAT LEAVES WORK UNDONE NAMES THE WORK AND THE COMMAND THAT CONTINUES IT**
+  (Roy, 2026-08-30): *"There is some amount of the agents are having to do stuff. Just because we
+  can put it in the flow doesn't mean the agents get notified that they should do more work or
+  that there is something for them to do."*
+
+  !! **AN AGENT LEARNS THERE IS WORK FROM THE RUN'S OUTPUT, NOT FROM A RULE IT IS EXPECTED TO
+  REMEMBER.** A stage that settles 4 of 10 places has left six pieces of work; a report saying `4
+  settled` and stopping has told nobody. The run must name what remains AND what to invoke.
+
+  !! **THIS SETTLES THE ROUND CAP, WHICH WAS BEING ARGUED ON THE WRONG AXIS.** The question was
+  read as *enforce it in code* against *state it as guidance*, and it is neither.
+
+  | proposed | why it is not the answer |
+  | --- | --- |
+  | enforce a tally in the flow | **the loop cannot run away.** Nothing advances a round but a command someone invokes -- there is no daemon and no retry -- so carried state prevents an accident that cannot happen |
+  | a sentence in `--help` | an agent reads `--help` when it does not know a command, not when it has just run one |
+  | **the run's own report** | the agent is told, at the moment there is something to do |
+
+  ! Roy, 2026-08-30, on the explicit act: *"It has to be an explicit step to do so instead of a
+  built in part of the flow but it could be something as simple as -- If there are unresolved
+  conflicts you can run this command twice to send the stuff back."*
+
+  ! **AND IT MATCHES `Process: #22`'s ANTI-DECISION DECISION.** Sending a place back is an act
+  someone is on record for. Machinery that silently permits or refuses a third round decides by
+  default and puts nobody's name on it.
+
+  !! **IT IS A RULE FOR EVERY COMMAND, NOT THIS ONE.** MEASURED 2026-08-30: `mark --check` prints
+  `"12 ruled on, 0 left unruled"` (`commands/mark.py:106`) -- a count, naming neither the places
+  left nor what to run next. **The whole middle is being built now, so the rule lands before the
+  commands rather than after.**
+
+- **#52.** **A REVISE IS ALWAYS PULLED, EVEN WHEN A STAGE SETTLED NOTHING** (Roy, 2026-08-30):
+  *"The plan was to make a copy in a tempdir and run the write step so that they would get
+  reference to the stage N edits and also pull a binder for the update."*
+
+  !! **SO `reads: revise:N` ALWAYS NAMES A REAL TREE.** An empty docket yields a copy with zero
+  overlays -- not a wasted one. **The revise is not only the edits**; it is the tree the next
+  stage reads and the binder it is censused from, whose `read_from` names that revise.
+
+  ! **A PROPOSAL TO REFUSE AN EMPTY DOCKET IS STRUCK.** It read *"nothing to set"* as *"nothing to
+  do"*, which is wrong twice over: a stage settling nothing is an ORDINARY editorial outcome --
+  three roles disagreeing on one page -- and the binder is owed either way.
+
+  !! **AND `pull` BUILDS A BINDER TODAY THAT IT THROWS AWAY.** `flows/revise.py:241` binds the
+  assembled root with `absent=True` for `assert_addresses_held`, then discards it; `Pulled`
+  returns `root`, `revise`, `set_by` and `refusals` and no binder. ! **The gate's binder is not
+  the stage's**: `absent=True` carries every empty place, which is what the address check needs
+  and what a role must not be handed. So emitting one is a second bind rather than a return of
+  what is already there.
+
+  ! **THE COST IS REAL AND FILED.** `TODO/revise-copies-everything.md` measures a full copy at
+  284MB per editorial stage on this repo. **That is an argument about what `pull` copies, not
+  about whether it runs.**
+
+- **#53.** **`Vocabulary: #11` NAMES `collator.py` AND RULES NOTHING ELSE** (Roy, 2026-08-30):
+  *"verdicts.py is retired in the prototype and it is broken. The only true statement it should
+  carry is that we picked the name collator.py to be the thing that brings the marks back
+  together. And puts them in a format ready for comparison."*
+
+  !! **SO THE MODULE'S OWN HEADER OVERCLAIMS.** `desk/collator.py` states *"THE COLLATOR RULES ON
+  NOTHING ... it never judges which mark is right, never renders the composed text, and never
+  reads a file"* and cites `#11`. **`#11` says none of that.** It rules that `verdicts.py` was not
+  the copy chief and that the rename goes to `collator.py`; every other clause describes how the
+  module happened to behave, written in the register of a constraint.
+
+  !! **AND IT WAS USED AS ONE, TWICE IN ONE CONVERSATION.** A session quoted the docstring as a
+  design boundary, concluded a COMPOSE could not live in reconciliation, then cited `#11` as the
+  authority behind it -- a ruling about **retired, broken prototype code**. ! **Composing two
+  edits on disjoint spans is ARITHMETIC, not judgement**, so nothing in `#11` forbids it.
+
+  !! **THE STANDARD, AND IT IS GENERAL.** Roy: *"lets be careful to validate that the functions in
+  it are necessary and appropriate for the design we have laid out and that we are not forcing the
+  design to meet imaginary constraints from the collator.py because collator.py can change and
+  probably ought to change. **Making the design fit to collator.py is not the way.**"*
+
+  ! **A CLAIM IN A FILE IS A CLAIM TO VERIFY, NEVER A CONSTRAINT TO OBEY** -- this repo's whole
+  remit, arriving from the inside. A module naming retired machinery pulls a reader's reasoning
+  toward a design that no longer exists.
+
+- **#54.** **THE MARK ANSWERS FOR ITSELF; EVERYTHING ABOUT THE SET IS THE COLLATOR'S** (Roy,
+  2026-08-30): *"A mark problem is did this parse back correctly does it still contain the correct
+  stuff."* Coverage is not that.
+
+  | question | whose |
+  | --- | --- |
+  | is this one mark well-formed, and does it still hold the right fields | **`desk/mark.py`** |
+  | did every place get ruled on, is each mark TRUE of the tree, what do they say together | **`desk/collator.py`** |
+
+  !! **SO `unruled`, `problems_in` AND `tally` ARE MISFILED.** They live in `flows/marks.py` and
+  ask *did everyone rule on everything* -- a collator question wearing a flow's address. All three
+  are called only by `commands/mark.py`.
+
+  ! **`desk/mark.py` CANNOT ANSWER A COLLATOR QUESTION AND THE IMPORTS PROVE IT**: it imports
+  `re`, `dataclasses` and `enum`, and nothing else. No binder, no page, no filesystem. `parse`
+  rules on an entry alone, which is why **the five verification functions are not made redundant
+  by it** -- a role can write a flawless mark quoting a sentence that is not in the paragraph and
+  citing a file that does not exist. **They are UNWIRED, not unnecessary**, which is worse,
+  because their tasks are ticked.
+
+  !! **AND THE MIDDLE VERIFIES WHAT IT IS HANDED WITHOUT EVER VERIFYING THAT IT WAS HANDED
+  EVERYTHING.** Three coverage questions have no code at all:
+
+  | | |
+  | --- | --- |
+  | **stage** | did every dispatch the topology named return an `edit_copy`? `gather` counts nothing |
+  | **shard** | did a partitioned role answer for every file in its shard? `fan_out` refuses at DISPATCH; nothing checks the RETURN |
+  | **address** | is every docketed address one the binder carried? `known_addresses` exists, and only `flows/revise.py` uses it, for a different question |
+
+  ! **`collate` IS THE FIRST THING THAT SEES A WHOLE STAGE AT ONCE**, so it is where they belong.
+  ! And `Process: #51` already requires a command to name what remains, which it cannot do without
+  counting.
+
+  ! **THE MOVE LANDS WITH THE FLOW, NOT BEFORE IT.** `Process: #12` has a command expose a FLOW,
+  so `mark --check` reaches these through `flows/collate.py` rather than importing `desk/` --
+  which is what it does today via `flows/marks.py`.
+
+- **#55.** **THE TOPOLOGY IS VERIFIED BY A COMMAND THE AGENT RUNS, AND THE COMMAND ALSO BUILDS
+  IT** (Roy, 2026-08-30): *"this is actually pretty simple because an agent does the actual
+  running of the system, we need a command like `topology --verify` which errors out if it is
+  broken. Then the task agent verifies that the setup is correct and has the correct
+  pieces/specifications before running the whole system across the pages. topology should also
+  have the tools for the agent to correctly specify the order and the splits and the topology
+  based upon the directives given."*
+
+  !! **IT RESOLVES A PLACEMENT THAT LOOKED LIKE A DILEMMA.** `topology.read(text)` sees `tomllib`
+  and `desk/stages.py` and nothing else -- **no tree, no binder** -- so it cannot know whether a
+  glob matches a page. Two bad answers were on the table: give `read` a second parameter, breaking
+  the `read(text) -> (thing, error)` shape `binder.read` and `docket.read` both hold; or add a
+  free function nothing forces a caller to run, **which is exactly how five verification functions
+  came to be built and unwired.**
+
+  ! **A COMMAND HAS A REPO, AND AN AGENT INVOKES IT.** So `read` keeps ruling on the file's own
+  shape, and the command rules on whether that topology fits THIS checkout. Nothing needs a
+  parameter it cannot use, and nothing waits to be remembered.
+
+  !! **AND IT IS NOT A FLAG ON A COMMAND -- TOPOLOGY IS ITS OWN CONFIGURATION SYSTEM.** Roy, the
+  same day: *"What I am really saying is that topology is its own configuration
+  workflow/command system."* It configures a RUN, the way the board tool configures work: a
+  surface of its own, with a workflow the agent follows before any page is read.
+
+      directives  ->  BUILD a topology     which roles, in what order, split how
+                  ->  VERIFY it            against this checkout, errors when it does not fit
+                  ->  only then run        distribute / collate / pull, stage by stage
+
+  !! **THE AGENT DOES NOT HAND-WRITE TOML.** It is given directives and needs a topology that
+  satisfies them, so the tool that reads the format is the tool that writes it -- and the same
+  tool says whether what it wrote fits the tree it will run against.
+
+  ! **THE WORKFLOW IS THE POINT, NOT THE VERB.** A run that starts against an unverified topology
+  fails partway, after roles have already read and filled their copies. Verification before the
+  first page is read is what makes a bad configuration cost nothing.
+
+  ! **MEASURED, and it is why this surfaced:** `tests/fixtures/topologies/4a-then-4c.toml` refuses
+  any tree but this repo's -- its globs name `src/comment_review/reading/*.py` and
+  `.../binder/*.py`, so a scratch tree raises `UncoveredPage: block-context: no dispatch covers`.
+  **The refusal is correct** -- fan-out must cover every page -- but it surfaces from `fan`,
+  blaming the tree for the topology's assumption, and only once a run is already underway.
+
+- **#56.** **A version changes the AGENTS or the MACHINERY, never both -- VOCABULARY TERMS
   excepted, in both directions** (Roy, 2026-08-23: *"either it is agent work being done or it is
   code work being done not both anymore. That allows the tests to verify was the python tools
   better or did the agent reviews get better."*; and *"The agents files can be updated in a
@@ -1751,7 +1975,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   problems."*). One variable per release is what makes a score attributable. A term renamed on
   one side and not the other is drift, which `check_vocabulary.py` gates.
 
-- **#52.** **The baseline is the OLD agent workflow run on the NEW machinery** (Roy, 2026-08-23:
+- **#57.** **The baseline is the OLD agent workflow run on the NEW machinery** (Roy, 2026-08-23:
   *"we will want to patch the agent workflow from the old into the new just to get the baseline.
   The old results are conflated by the machinery more than how well the agents did."*). #51 does
   not hold retroactively: the current work changed both, so no score taken before it is
@@ -1763,14 +1987,14 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `docs/plans/harness-the-first-graded-run.md` and
   `TODO/the-harness-cannot-run-the-system-it-grades.md` were moved with them.
 
-- **#53.** **THE HARNESS IS A RIG THEORIES ARE LOADED INTO, NOT A COMPARISON OF TWO TAGS** (Roy,
+- **#58.** **THE HARNESS IS A RIG THEORIES ARE LOADED INTO, NOT A COMPARISON OF TWO TAGS** (Roy,
   2026-08-29): *"copying in code changes and soon to be agent changes into the plugin set is going
   to be dynamic. That actually allows us to make a better testing system because we can make
   several test cases to run and copy in the pieces to run the test then reset and run a new
   theory."* So **load, run, reset, load the next** is the primary cycle, and a ref-to-ref
   comparison is one use of it rather than the shape of the thing.
 
-  ! **IT DOES NOT LOOSEN `#51`.** One variable per release still decides what a SCORE may be
+  ! **IT DOES NOT LOOSEN `#56`.** One variable per release still decides what a SCORE may be
   attributed to; this decides what the rig can be asked to run. A variant touching both the agents
   and the machinery is buildable and its delta is still unattributable -- the rule lives on the
   reading, not on the mechanism.
@@ -1782,7 +2006,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   impossible. **The tamper check and the record of the theory are the same mechanism; the only
   difference is whether it was declared.**
 
-- **#54.** **THE GRADE IS CLOSENESS FROM THE RECOMMENDATIONS TO THE END STATE, JUDGED BY AN AGENT
+- **#59.** **THE GRADE IS CLOSENESS FROM THE RECOMMENDATIONS TO THE END STATE, JUDGED BY AN AGENT
   ON RULES IT IS GIVEN** (Roy, 2026-08-29): *"The beginning and ending commit should be a defined
   state and an evaluator measures closeness or something from the recommendations to the result.
   This is an agent job but we give it the rules/expectations to judge the results from. We can
@@ -1806,7 +2030,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   trivially.** A scale that rewards silence measures the wrong thing, and per-characteristic
   grading with a stated aggregation is what lets the rule say so.
 
-- **#55.** **NO ARM JUDGES ANOTHER ARM, AND THE SYSTEM NEVER JUDGES ITSELF** (Roy, 2026-08-29):
+- **#60.** **NO ARM JUDGES ANOTHER ARM, AND THE SYSTEM NEVER JUDGES ITSELF** (Roy, 2026-08-29):
   *"I don't see asking one workflow vs the other workflow asking each to judge the other is a good
   idea or even applicable."*
 
@@ -1828,9 +2052,9 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **MECHANICAL VERIFICATION IS NOT JUDGING**, and is not covered by this. `collator`'s
   `claim_verbatim_problems` and `source_problems` answer *is the quoted text really there*, which
   has no opinion in it -- but it is still the machinery, so it may only be leaned on while the
-  machinery is the CONTROL (`#51`). In a machinery comparison it would share the defect.
+  machinery is the CONTROL (`#56`). In a machinery comparison it would share the defect.
 
-- **#56.** **THE OVERALL GRADE IS THE JUDGE'S, BECAUSE NO AGGREGATION FUNCTION IS KNOWN TO EXIST**
+- **#61.** **THE OVERALL GRADE IS THE JUDGE'S, BECAUSE NO AGGREGATION FUNCTION IS KNOWN TO EXIST**
   (Roy, 2026-08-29, refusing a proposal to compute it in code): *"That would make sense if there
   was a way of turning these ordinals into compossible vectors and be certain that there is a
   mappable relationship across the grades to the final grade. Both of those are false so we are
@@ -1868,7 +2092,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   instrument -- which is what B4's *"mean +/- stddev over the default three runs"* was already
   asking for.
 
-- **#57.** **END IS A POSITIVE KEY ONLY, AND A FINDING OUTSIDE IT IS ADJUDICATED AGAINST THE CODE**
+- **#62.** **END IS A POSITIVE KEY ONLY, AND A FINDING OUTSIDE IT IS ADJUDICATED AGAINST THE CODE**
   (Roy, 2026-08-29): *"The human -- me in a lot of these cases -- certainly missed things. Numpy
   and the other libraries are full of missed things."*
 
@@ -1895,7 +2119,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   on the hard ones is measured would put the most variance into the grade when it can least carry
   it.
 
-- **#58.** **RUNNING THE GRADER IS ROY'S ALONE** (Roy, 2026-08-29): *"Also running this is a Roy
+- **#63.** **RUNNING THE GRADER IS ROY'S ALONE** (Roy, 2026-08-29): *"Also running this is a Roy
   only task."*
 
   ! **THE RULE ITSELF LIVES IN [`conventions.md`](conventions.md)**, *The grader costs money, and
@@ -1913,7 +2137,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   cannot vary cannot disagree** -- `docs/gates.md`'s own case, arriving from inside the tool
   built to measure it.
 
-- **#59.** **THE JUDGE IS HANDED A CASE'S WHOLE FILE SET, NOT ONE FILE** (Roy, 2026-08-30):
+- **#64.** **THE JUDGE IS HANDED A CASE'S WHOLE FILE SET, NOT ONE FILE** (Roy, 2026-08-30):
   *"Unfortunately the grader needs the full set else it can't verify that the marks are
   appropriate especially for a move that crosses."*
 
@@ -1935,17 +2159,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   one-file reading at about $0.68 measured, and the ruling was made knowing it: a cheaper reading
   that cannot verify the mark is not a cheaper measurement.
 
-- **#60.** **THE GRADER'S SYSTEM TEST IS NOT THE GRADER, AND A SESSION MAY RUN IT** (Roy,
+- **#65.** **THE GRADER'S SYSTEM TEST IS NOT THE GRADER, AND A SESSION MAY RUN IT** (Roy,
   2026-08-30): *"The grader system test is not the grader so it is fine to run. The grader is
   still mine to run."*
 
-  !! **THE LINE IS THE MONEY, NOT THE CODE PATH.** `#58` reads *running the grader is Roy's
+  !! **THE LINE IS THE MONEY, NOT THE CODE PATH.** `#63` reads *running the grader is Roy's
   alone*, and a session could take that to cover anything that executes `grade()` -- which would
   forbid the one thing that makes a handed-over command trustworthy. The same shipped code
   against a local stand-in spends nothing, so it is a session's to run and **rehearsing is how a
   session discharges its actual obligation: to hand over a command that works.**
 
-  ! **THE RULE LIVES IN [`conventions.md`](conventions.md)** for `#58`'s reason -- that file is
+  ! **THE RULE LIVES IN [`conventions.md`](conventions.md)** for `#63`'s reason -- that file is
   loaded into every session by `CLAUDE.md`'s `@` lines and this one is not.
 
   ! **WHAT MADE IT ANSWERABLE was `evals/fake_api.py`**, built the same day: `_client()`

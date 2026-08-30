@@ -6,7 +6,7 @@ scheme entered `desk/mark.py` during a port that was never proposed and never
 approved, because nothing could name what the row was allowed to carry.
 
 !! TWO TABLES, TWO TYPES. `Row` answers "The classifiers"; `Mark` answers "The
-fields -- seven". Both are READ out of the spec here, never restated -- adding
+fields -- eight". Both are READ out of the spec here, never restated -- adding
 a row to either table fails this file until the type follows, which is the only
 form of the check that cannot be satisfied by editing the code alone.
 
@@ -23,11 +23,33 @@ from comment_review.desk.mark import INSTRUCTIONS, Mark, Row
 
 SPEC = (ROOT / "docs" / "the-mark.md").read_text(encoding="utf-8")
 
-#: The section stating the mark's own fields -- `## The fields -- seven` up to
-#: the next `##` heading. Scoped the same way `_SECTION` below is, so no other
-#: backtick-first-column table in the file can be picked up.
+#: The number words `docs/the-mark.md` states its own counts in. ! IT IS NOT A
+#: COUNT -- it is the dictionary that turns the spec's word into an integer, so
+#: no number below is a restatement of what the spec says. English has no
+#: stdlib word-to-int, which is the whole reason this exists.
+NUMBER = {
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
+    "eleven": 11,
+    "twelve": 12,
+}
+
+#: The heading's own stated count -- `## The fields -- eight`.
+_FIELDS_HEADING = re.search(r"^## The fields -- (\w+)$", SPEC, re.MULTILINE)
+
+#: The section stating the mark's own fields, up to the next `##` heading.
+#: Scoped the same way `_SECTION` below is, so no other backtick-first-column
+#: table in the file can be picked up.
 _FIELDS_SECTION = re.search(
-    r"^## The fields -- seven.*?(?=^## )", SPEC, re.MULTILINE | re.DOTALL
+    r"^## The fields -- \w+.*?(?=^## )", SPEC, re.MULTILINE | re.DOTALL
 ).group()
 
 
@@ -41,18 +63,22 @@ def _field_names() -> list[str]:
     return re.findall(r"^\| `([a-z_]+)` \|", _FIELDS_SECTION, re.MULTILINE)
 
 
-def test_the_spec_states_SEVEN_fields():
-    """The heading says seven, and the table under it must hold seven -- so a
-    row added or lost is caught here rather than by the comparison below
-    quietly agreeing with a shorter list."""
+def test_the_fields_table_holds_WHAT_ITS_OWN_HEADING_SAYS():
+    """The heading states a number and the table under it must hold that
+    many -- so a row added or lost is caught here rather than by the
+    comparison below quietly agreeing with a shorter list.
+
+    ! THE EXPECTATION IS THE SPEC'S OWN HEADING. Nothing in this file says
+    how many fields a mark has."""
+    stated = NUMBER[_FIELDS_HEADING.group(1)]
     names = _field_names()
-    assert len(names) == 7, names
+    assert len(names) == stated, (stated, names)
 
 
 def test_the_mark_carries_exactly_the_fields_the_spec_NAMES():
     """!! THE EXPECTATION IS THE SPEC'S TABLE, NOT A LIST TYPED HERE. Roy,
     2026-08-29: *"mark.py should define a Mark that follows 'the_mark.md' that
-    is not negotiable."* A test restating the seven could only confirm, and a
+    is not negotiable."* A test restating the eight could only confirm, and a
     restated field name is exactly how `mark` and `instruction` came to name
     one thing in two files."""
     have = [f.name for f in dataclasses.fields(Mark)]
@@ -60,12 +86,13 @@ def test_the_mark_carries_exactly_the_fields_the_spec_NAMES():
 
 
 def test_no_field_is_spelled_two_ways():
-    """T6's verify: the file and the code name the same seven, so a reader
+    """T6's verify: the file and the code name the same eight, so a reader
     grepping either spelling finds the whole set. The retired spelling of the
     ruling field was `mark`, which is also the name of the OBJECT -- the
     self-nesting that made this ambiguous."""
     assert "mark" not in _field_names()
     assert "instruction" in _field_names()
+
 
 #: The section stating the four columns and the seven flags, and nothing
 #: else -- `## The classifiers ...` up to the next `##` heading,
@@ -117,10 +144,28 @@ def _flag_names() -> list[str]:
     return re.findall(r"^ {4}(\S.*?) {2,}\S", _SECTION, re.MULTILINE)
 
 
+#: The classifiers heading's own stated column count, and the flags label's
+#: own stated flag count -- `## The classifiers -- FOUR COLUMNS ...` and
+#: `**The flags, and there are seven:**`.
+_CLASSIFIER_HEADING = re.search(
+    r"^## The classifiers -- (\w+) COLUMNS", SPEC, re.MULTILINE
+)
+_FLAGS_LABEL = re.search(r"\*\*The flags, and there are (\w+):\*\*", SPEC)
+
+
 def allowed_names() -> set[str]:
-    """The classifier and flag names the spec states, as field names."""
+    """The classifier and flag names the spec states, as field names.
+
+    ! THE TOTAL IS READ OFF THE SPEC'S OWN TWO STATEMENTS -- the heading's
+    column count plus the label's flag count -- so neither number is typed
+    here."""
     names = _classifier_names() + _flag_names()
-    assert len(names) == 11, f"expected 11 names in the spec, found: {names}"
+    stated = (
+        NUMBER[_CLASSIFIER_HEADING.group(1).lower()] + NUMBER[_FLAGS_LABEL.group(1)]
+    )
+    assert len(names) == stated, (
+        f"the spec states {stated} names, its tables hold: {names}"
+    )
     return {FIELD_FOR[n] for n in names}
 
 
@@ -156,11 +201,15 @@ def test_no_field_carries_prose():
 
 #: The fenced block under "## What each instruction owes": the header line,
 #: the `---` separator, then one wrapped record per instruction.
-_OWES_LINES = re.search(
-    r"^## What each instruction owes\n.*?```\n(.*?)\n```",
-    SPEC,
-    re.MULTILINE | re.DOTALL,
-).group(1).splitlines()
+_OWES_LINES = (
+    re.search(
+        r"^## What each instruction owes\n.*?```\n(.*?)\n```",
+        SPEC,
+        re.MULTILINE | re.DOTALL,
+    )
+    .group(1)
+    .splitlines()
+)
 _OWES_HEADER, _OWES_ROWS = _OWES_LINES[0], _OWES_LINES[2:]
 
 #: Column start offsets, read from the header itself rather than hand-copied
@@ -216,7 +265,7 @@ def _owes_table() -> dict[str, dict[str, str]]:
 
 
 def _claim_all_from(cell: str) -> tuple[str, ...]:
-    """"--" is no keys; otherwise a comma-joined list, `,`-split and stripped."""
+    """ "--" is no keys; otherwise a comma-joined list, `,`-split and stripped."""
     cell = cell.strip()
     if cell == "--":
         return ()
@@ -224,20 +273,20 @@ def _claim_all_from(cell: str) -> tuple[str, ...]:
 
 
 def _quotes_original_from(cell: str) -> str:
-    """"--" quotes nothing; otherwise the cell names the claim key verbatim."""
+    """ "--" quotes nothing; otherwise the cell names the claim key verbatim."""
     cell = cell.strip()
     return "" if cell == "--" else cell
 
 
 def _owed_from(cell: str) -> bool:
-    """"no"/"NO" is not owed; "yes"/"YES"/"the COMPOSITE" is owed."""
+    """ "no"/"NO" is not owed; "yes"/"YES"/"the COMPOSITE" is owed."""
     return cell.strip().lower() != "no"
 
 
 OWES_TABLE = _owes_table()
 
 
-def test_the_owes_table_names_the_same_seven_rows():
+def test_the_owes_table_names_the_same_rows():
     assert set(OWES_TABLE) == set(INSTRUCTIONS)
 
 
@@ -268,7 +317,7 @@ def test_the_owes_table_sources_agree_with_the_row(name):
 #: The block's own wrapped description text, phrase -> full explanation
 #: (continuation lines, e.g. "may declare scope"'s, joined back on).
 _FLAGS_BLOCK = re.search(
-    r"\*\*The flags, and there are seven:\*\*\n\n(.*?)\n\n!!", SPEC, re.DOTALL
+    r"\*\*The flags, and there are \w+:\*\*\n\n(.*?)\n\n!!", SPEC, re.DOTALL
 ).group(1)
 
 
@@ -320,3 +369,19 @@ def test_the_flags_block_names_agree_with_the_row(phrase):
         got = getattr(INSTRUCTIONS[name], field)
         want = (name not in owners) if field in _INVERTED else (name in owners)
         assert got == want, f"{name}.{field} is {got}, {phrase!r} says {want}"
+
+
+def test_no_count_in_this_file_restates_the_spec():
+    """!! THE GATE MAY NOT CARRY A NUMBER THE SPEC STATES. Roy, 2026-08-30:
+    "Clear the exact hard coded numbers and put in the file that they must
+    match." A count typed here is one a field addition edits, and a gate
+    edited to pass is indistinguishable afterwards from one that always
+    passed."""
+    source = (ROOT / "tests" / "gates" / "test_mark_shape.py").read_text(
+        encoding="utf-8"
+    )
+    body = source.split("NUMBER = {", 1)[1].split("}", 1)[1]
+    assert not re.search(r"==\s*\d+", body), (
+        "a literal count survives outside NUMBER: "
+        + str(re.findall(r".*==\s*\d+.*", body))
+    )

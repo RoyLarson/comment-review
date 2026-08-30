@@ -214,7 +214,7 @@ corrected and others are not. A START and an END name it exactly, and the commit
 stop mattering.
 
 ! **The two keys are `start` and `end`, not `base` and `fixed`** -- `decision-log.md
-Vocabulary: #29`, because `base` already meant a planted hazard's unmodified text in
+Vocabulary: #31`, because `base` already meant a planted hazard's unmodified text in
 `grade_hazards.py` and a merge-base in `prove_unchanged.py`. ! The harness branch cited that
 ruling as `Vocabulary: #10`, which on the current tree is *"Stage 2 is GATHER"*; the numbering
 moved with the purge and the citation was re-derived.
@@ -269,7 +269,7 @@ the grader -- could the check FAIL, not does it pass -- and it is T35.
 
 ## !! ONE VARIABLE PER RELEASE, AND THE BASELINE HAS TO BE RETAKEN
 
-Ruled 2026-08-23 by Roy, recorded as `decision-log.md Process: #51` and `Process: #52`: a version
+Ruled 2026-08-23 by Roy, recorded as `decision-log.md Process: #56` and `Process: #57`: a version
 changes the AGENTS or the MACHINERY, never both, so a test can say whether the python tools got
 better or the agent reviews did. ! **It does NOT hold retroactively** -- the current work changed
 both -- so every score taken before it is uncomparable and the baseline has to be retaken.

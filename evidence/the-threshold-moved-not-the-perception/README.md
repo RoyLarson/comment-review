@@ -58,7 +58,7 @@ sentences.
 called it `A`. Nothing in the transcript suggests one reading saw more or less than another;
 what differs is where the `A`/`B` line falls on an agreed set of facts.
 
-! **WHICH MAKES MORE SAMPLING THE WRONG FIX.** `decision-log.md Process: #56` -- *"a repeat or
+! **WHICH MAKES MORE SAMPLING THE WRONG FIX.** `decision-log.md Process: #61` -- *"a repeat or
 three or four or five off the same result fixes the variance"* -- holds, and n=5 does resolve
 this to a mode. But a boundary nobody has written down will keep producing a coin-flip on every
 future case, and the rubric is one file.

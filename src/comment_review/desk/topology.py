@@ -119,8 +119,7 @@ def read(text: str) -> tuple[list[Stage], str]:
             role_str = raw_dispatch.get("role")
             if role_str not in ROLES:
                 return [], (
-                    f"stage {name!r}: key 'role' is {role_str!r}, "
-                    "not a known role"
+                    f"stage {name!r}: key 'role' is {role_str!r}, not a known role"
                 )
 
             paths = raw_dispatch.get("paths", [])

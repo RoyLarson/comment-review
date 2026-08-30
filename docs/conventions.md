@@ -212,6 +212,128 @@ forever, and a boundary never written down as temporary calcifies by silence.
 
 ---
 
+## What every addition must answer -- necessity, and a purpose named BEFORE the code
+
+Roy, 2026-08-30: *"The constraint on any design is still -- Is this field necessary to
+make the system correct, is this change or addition to code serving an actual previously
+unidentified purpose. That is what the TODOS and PLANS are for as much as anything they
+are identifying the purpose of the pieces before they get implemented."*
+
+**Two questions, asked of every field, flag, function and module before it is written:**
+
+| | |
+| --- | --- |
+| **necessary** | is this needed to make the system CORRECT |
+| **purposeful** | does it serve an actual purpose that is not already served |
+
+!! **AND THE ANSWER IS WRITTEN DOWN BEFORE THE CODE, NOT DEFENDED AFTER IT.** A `T` names
+the work and a `P` names the step, and both exist so a piece's purpose is on the record
+before anyone implements it. **A purpose first stated in a review is a justification, not
+a design** -- it is produced by looking at the code, so it can only ever agree with it.
+
+! **THE MEASURED FAILURE IS A FIELD THAT ANSWERS NEITHER.** `desk/mark.py` declares
+`owes_destination` and **nothing reads it**: measured 2026-08-30,
+`grep -rn "owes_destination" src/` returns three lines and all three are in the file that
+declares it. A flag nobody reads cannot make the system correct and serves no purpose,
+and it survived because no plan ever had to say what it was for.
+
+! **IT IS THE SAME STANDARD THIS REPO APPLIES TO PROSE, ARRIVING FROM THE OTHER SIDE.**
+`CLAUDE.md` refuses a sentence that cannot be falsified by reading the code; this refuses
+a piece of code that cannot be justified by naming what would otherwise be wrong.
+
+---
+
+## What a box may SAY -- the four openings, and why everything else is a trap
+
+Roy, 2026-08-29: *"the box must declare what it is implementing, updating, deleting or for
+Roy explicitly the question that needs to be answered once it becomes part of the critical
+path. everything else is prose and is a trap."*
+
+**A box opens with ONE of four things.** Whatever follows is the `Verify:` -- how a stranger
+checks it -- and that may carry as many clauses as the one deliverable needs.
+
+| the box declares | it reads |
+| --- | --- |
+| **implement** | *"Implement X, where ..."* |
+| **update** | *"Update X so that ..."* |
+| **delete** | *"Delete X ..."* |
+| **a question for Roy** | the question itself, asked |
+
+!! **A STATEMENT OF FACT IS NOT A BOX.** *"The last revise IS the 7a draft"* is already true
+or false, so nothing in it says when the work is done -- and it stays readable as a task
+either way. A bare noun phrase -- *"The composition answer set"* -- names an artifact and no
+work at all.
+
+!! **THE PROOF THAT A BOX WAS MALFORMED IS THAT IT COULD BE SUPERSEDED IN PART.** A box
+naming one deliverable cannot be half-overtaken. `0.2.4`'s **T6.1** named four answers as the
+closed set and **T6.3** named four outcomes; `decision-log.md Process: #49` then added a
+SECOND question to the revise step, and each box was left half-right -- correct for a
+conflict, wrong for a composition. Both were retired whole, which took the conflict half's
+only specification with them and had to be carried back as T6.12-T6.14.
+
+!! **AND A PROSE BOX CAN BE TICKED OVER A HALF THAT WAS NEVER REACHABLE.** `0.2.4`'s **T4.3**
+reads *"A scope-declaring `query` is a boundary report and does not block the other roles"* --
+an assertion, not work -- and carries its own note: *"THE SECOND CLAUSE IS NOT VERIFIED BY
+WHAT LANDED."* It is `[x]`.
+
+! **MEASURED 2026-08-29 on `docs/plans/0.2.4-the-mark-and-the-collator.md`: 38 of 67 boxes are
+prose, 25 name an action, and NONE poses a question** -- so the decisions that plan waits on
+are not visible as boxes anywhere in it.
+
+! **THE RULE IS MECHANICAL, WHICH IS THE WHOLE POINT.** *"Is this a verifiable checkpoint"*
+is a judgement and was already written down; *"does this box open with implement, update,
+delete, or a question"* is a reading, and a stranger can run it down a file. `CLAUDE.md`
+states the symptom -- *"the tell is that it cannot be finished"* -- and this states the
+cause.
+
+---
+
+## Where a finding goes -- a TASK first, a FILE only when nothing holds it
+
+Roy, 2026-08-30: *"Every finding gets a TODO task - only open new files if the todo
+truely doesn't have a good home. For general fixes a new TODO can be made per module.
+When there are multiple dependencies where it is a design objective that needs the todos
+that can be split into a new file"*
+
+**`CLAUDE.md` says every finding gets a TODO, *"an existing one it fits, or its own."*
+This is the test for WHICH -- and the default is the task.**
+
+| the finding | where it goes |
+| --- | --- |
+| fits an open TODO's subject | **a task on that file** |
+| a general fix with no obvious file | **a per-MODULE TODO**, opened once and added to |
+| a design objective whose several dependencies each need their own tasks | **its own file** |
+
+!! **A NEW FILE IS THE EXCEPTION AND HAS TO EARN ITSELF.** MEASURED 2026-08-30: **34 of
+159 open TODOs carry three tasks or fewer**, two of them ONE, against a mean of 7.3 over
+1,155 tasks. Re-derive with `grep -h "^Progress:" TODO/*.md`. ! Each was a defensible
+filing on the day it was made; what they add up to is a board whose index is longer than
+most of the work in it, where a reader scanning `TODO/README.md` cannot tell a SUBJECT
+from a single observation.
+
+!! **AND THE COST IS PAID BY WHOEVER WORKS THE MODULE, NOT BY WHOEVER FILED.** Four
+separate files each holding one `desk/collator.py` defect are four things to find, four
+Objectives saying the same thing about one module, and four closes. That is why
+[`collator-defects`](../TODO/collator-defects.md) exists and carries a standing note that
+the four are superseded into it **in one pass** rather than closed by hand one at a time.
+
+! **THE TELL THAT A FILE IS WARRANTED IS DEPENDENCY, NOT SIZE.** Tasks that must land
+**TOGETHER** -- because they block each other, or because none of them is finished until
+all of them are -- are a design objective and may have their own file. Tasks that merely
+share a module are a module TODO. **A single observation is never a file.**
+
+! **TOGETHER, NOT MERELY IN AN ORDER.** Roy, 2026-08-30, correcting this sentence's first
+wording. Almost any set of tasks has an order somebody would prefer, so *"they must land
+in an order"* is a test nearly everything passes -- and a test nearly everything passes
+is what put 34 single-observation files on this board. **What earns a file is that
+landing one without the others leaves the objective unmet.**
+
+! **AND A FILE OPENED IN ERROR IS SUPERSEDED, NOT DELETED.** `CLAUDE.md`'s rule covers a
+filing mistake as much as work overtaken: move the tasks to their home, then
+`complete --superseded` with an outcome naming where they went.
+
+---
+
 ## The grader costs money, and only Roy runs it
 
 Roy, 2026-08-29: *"Also running this is a Roy only task."*
@@ -278,8 +400,9 @@ judgement is any good, and a rehearsal artifact must never be filed as a measure
 
 - **Name the lane and ask.** A one-line question costs less than a change the owning lane has to
   discover by reading a diff.
-- **A finding gets a TODO, in whatever lane owns the thing found.** The lane that FOUND it files
-  it; the lane that OWNS it works it.
+- **A finding gets a TODO TASK, in whatever lane owns the thing found.** The lane that FOUND it
+  files it; the lane that OWNS it works it. **A new FILE only when nothing holds it** -- see
+  *Where a finding goes*, above.
 - **A gate is not a lane's to relax.** See `systems`, above.
 - **A ruling is recorded by whoever received it** -- `docs/decision-log.md` for what and when,
   `docs/history.md` for why. Neither is owned.

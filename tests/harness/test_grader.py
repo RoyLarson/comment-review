@@ -163,7 +163,7 @@ def test_the_files_are_shown_in_path_order(tmp_path):
 
 
 def test_the_prompt_never_mentions_another_arm(tmp_path):
-    """`decision-log.md Process: #55` -- no arm judges another arm.
+    """`decision-log.md Process: #60` -- no arm judges another arm.
 
     ! CHECKED ON THE ACTUAL STRING, because the isolation is a property of what
     was SENT. A grader told to ignore the other arm has still been told about it.

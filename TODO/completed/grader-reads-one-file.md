@@ -8,7 +8,7 @@ Requires-Roy: false
 Raised:   2026-08-30 (found staging the four keyed cases and probing the grader pre-
           flight on each)
 Ruled:    2026-08-30 — Roy, 2026-08-30: the grader needs the full set, else it cannot
-          verify a move that crosses files. Recorded as decision-log.md Process: #59.
+          verify a move that crosses files. Recorded as decision-log.md Process: #64.
           Implemented the same day: --under-review takes the staged START tree, the
           prompt labels each file by repo-relative path, and all four keyed cases now
           pass reread.inspect with no problems.

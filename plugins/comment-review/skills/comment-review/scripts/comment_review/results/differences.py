@@ -1,9 +1,7 @@
-"""Renders the difference between two texts. Rules on nothing.
+"""Renders the difference between two texts.
 
 One module, two renderings -- `unified` is the first; `diff3` is the second,
-rendering the base paragraph plus every role's edit. Neither decides settle or
-escalate; `decision-log.md Vocabulary: #11` holds the collator to that same
-rule, and this module is held to it too.
+rendering the base paragraph plus every role's edit.
 
 !! NO GIT PROCESS. A revise root is a temp copy `flows.revise.pull` made and
 need not be a repo -- `difflib.unified_diff` reads two strings, not two

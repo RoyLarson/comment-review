@@ -103,3 +103,5 @@ TODO/.*.md.tmp*
 .coverage
 .coverage.*
 htmlcov/
+
+.claude/skills/*

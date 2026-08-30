@@ -5,7 +5,7 @@ three fields it could grade.** That is `TODO/the-harness-cannot-run-the-system-i
 **T50** -- *is the perception stable?* -- getting its first answer, and the answer is **no, not
 at n=2**.
 
-! **THIS IS NOT A VERDICT ON THE INSTRUMENT.** `decision-log.md Process: #56`, Roy 2026-08-29:
+! **THIS IS NOT A VERDICT ON THE INSTRUMENT.** `decision-log.md Process: #61`, Roy 2026-08-29:
 *"just because there is variance in the result doesn't make the measure invalid it makes it
 uncertain. A repeat or three or four or five off the same result fixes the variance."*
 **Variance is reducible by N; validity is not.** What this fixes is the sample size a later
@@ -42,7 +42,7 @@ agreed: False  over 3 of 6 fields, 2 readings
 
 **Two of the three measurable fields moved. The overall held.** Full letters, both judges'
 reasons, the rubric version and the model id are in [`t50.json`](t50.json) -- the reason is the
-data (`Process: #56`), so a letter alone was never enough to keep.
+data (`Process: #61`), so a letter alone was never enough to keep.
 
 !! **THREE FIELDS ARE VACUOUS, AND THE RUN COULD NOT HAVE MEASURED THEM.** `detection`,
 `diagnosis` and `prescription` are all scored against the answer key, and this case supplies

@@ -26,8 +26,8 @@ import pytest
 from conftest import ROOT
 
 from comment_review.commands.mark import main as mark_main
+from comment_review.desk.collator import problems_in, tally, unruled
 from comment_review.desk.mark import parse, untouched
-from comment_review.flows.marks import problems_in, tally, unruled
 
 BRIEF_PATH = (
     ROOT

@@ -1,7 +1,7 @@
 """The rig: lay a variant over a snapshot, run, reset, load the next theory.
 
-`decision-log.md Process: #53` -- the harness is a rig theories are loaded into,
-not a comparison of two tags. `Vocabulary: #30` -- the copied-in set is a
+`decision-log.md Process: #58` -- the harness is a rig theories are loaded into,
+not a comparison of two tags. `Vocabulary: #32` -- the copied-in set is a
 `variant`.
 
 !! WHAT THESE TESTS ARE REALLY ABOUT IS THE PROVENANCE. A variant is a DECLARED

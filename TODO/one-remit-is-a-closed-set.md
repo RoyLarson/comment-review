@@ -6,7 +6,7 @@ Progress: 0 of 4 tasks done
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-29, checking whether `state` was free for the harness to take as a term
-Blocked:  on the machinery release closing. `decision-log.md Process: #51` -- a version
+Blocked:  on the machinery release closing. `decision-log.md Process: #56` -- a version
           changes the AGENTS or the MACHINERY, never both -- and the current work is the
           machinery half. Roy, 2026-08-29: "those unfortunately cannot land now because
           we are in the middle of the program side update still which excludes changes
@@ -66,7 +66,7 @@ sits beside T2 rather than after it. A definition picks one sense; the other thr
 something the vocabulary denies.
 
 ! **THE HARNESS TOOK `variant` INSTEAD**, and that decision stands whatever this file concludes --
-`decision-log.md Vocabulary: #30`. The trade's own word for the thing was `state`, and it was
+`decision-log.md Vocabulary: #32`. The trade's own word for the thing was `state`, and it was
 refused on this collision.
 
 ## Tasks

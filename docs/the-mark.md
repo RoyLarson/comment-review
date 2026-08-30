@@ -27,17 +27,25 @@ superseding ruling applied rather than annotated.
 
 ---
 
-## The fields -- seven
+## The fields -- eight
 
 | field | what it is | who fills it |
 | --- | --- | --- |
 | `address` | `path@cue`. WHICH PLACE | **seeded** -- copied from the row, never built |
 | `anchor` | the line of code the place sits on | seeded |
+| `raw_text` | the paragraph as it stands, verbatim -- what the role's `change` is a rewrite OF | **seeded** -- copied from the row |
 | `instruction` | one of the seven | the role |
 | `claim` | the surgical spec -- structured keys, per instruction | the role |
 | `reason` | WHY. The evidence, in prose. No checker settles it | the role |
 | `sources` | `{cite, verbatim, ran}` | the role |
 | `change` | the RESULT: **the updated paragraph, as RAW TEXT** | the role |
+
+!! **THE NUMBER IN THIS HEADING AND THE ROWS IN THIS TABLE MUST AGREE, AND A GATE READS
+BOTH.** `tests/gates/test_mark_shape.py` takes the count from the heading's own word and
+asserts the table holds that many, then asserts the dataclass carries exactly those names
+in that order. **No count is typed in the test**, so adding a field means editing this
+file and `desk/mark.py` together -- which is the only form of the check that cannot be
+satisfied by editing the code alone.
 
 !! **`claim` IS THE SPEC AND `change` IS THE RESULT.** Roy, 2026-08-17: *"the change is what allows
 the apply section to apply the claim appropriately."* Every check that reads the ORIGINAL sentence
@@ -197,6 +205,10 @@ to THIS FILE first.
     not diffable           add alone. There is no original to diff against
     anchor named in backticks   add alone, and it is a FORM check on `claim.anchor`
     destination addressable     move alone
+
+!! **THE COLUMN COUNT IN THIS HEADING AND THE FLAG COUNT IN THE LABEL ABOVE ARE BOTH READ
+BY THE GATE**, and their sum must equal the names these two tables state. Same rule as the
+fields table: the numbers live here, never in the test.
 
 !! **A ROW CARRIES NO PROSE. THE EXPLANATION LIVES IN THE INSTRUCTION SET AND THE CLI HELP.**
 Roy, 2026-08-28: *"What finishes can be put into the instruction set and the cli help. I forbid

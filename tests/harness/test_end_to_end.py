@@ -127,7 +127,7 @@ def test_a_variant_over_an_arm_survives_the_assembly(tmp_path):
     """The rig's own cycle: load a theory onto one arm, and it stays declared.
 
     A run comparing `v0.2.2` against `v0.2.2 plus one edited role` is the shape
-    `Process: #53` describes, and it must remain distinguishable from tampering
+    `Process: #58` describes, and it must remain distinguishable from tampering
     all the way through.
     """
     base = snapshot_plugin.snapshot(REPO, "v0.2.2", tmp_path / "plugin")

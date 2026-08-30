@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 8 tasks done
+Progress: 4 of 8 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
@@ -24,6 +24,10 @@ Superseded: 2026-08-29 — 2026-08-29, `decision-log.md Process: #49`: a COMPOSI
             REPLACEMENT WORK IS `T6.7`-`T6.11` of `docs/plans/0.2.4-the-mark-and-the-
             collator.md`, and the answer set itself waits on `no-mark-for-let-it-stand`
             T1, an open `agents` ruling -- publishing's `stet` is the candidate.
+Reopened: 2026-08-30 — T8 unticked 2026-08-30: it claimed the two-round cap was enforced
+          and no round or cap logic exists anywhere in src/comment_review. The re-read
+          loop is the design's ONLY cycle, so this box was the sole thing standing
+          between it and being unbounded
 ```
 
 ## Objective
@@ -115,6 +119,6 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
 - [ ] T7 -- A reversal is a row, paired with whoever LAST set the statement. Verify: stage 3
       reversing a paragraph stage 2 set pairs with stage 2 and not with stage 1, read from the
       revise's per-place provenance.
-- [x] T8 -- Enforce the two-round cap `Process: #9` already ruled. Verify: a third round cannot
+- [ ] T8 -- Enforce the two-round cap `Process: #9` already ruled. Verify: a third round cannot
       start, the place reaches the copy chief carrying every round's marks, and the run reports
       the rounds each place took.

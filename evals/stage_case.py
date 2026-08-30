@@ -1,6 +1,6 @@
 r"""B2 -- STAGE: put a case's paths, at its START hash, into the tree to be graded.
 
-A case pins a START and an END (`decision-log.md Vocabulary: #29`). What a role
+A case pins a START and an END (`decision-log.md Vocabulary: #31`). What a role
 reads is START, and it must read the case rather than the repository: everything
 the case did not name stays behind, or a role can resolve a reference the case
 never handed it and the grade stops being about the case.

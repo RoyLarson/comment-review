@@ -266,7 +266,7 @@ def test_every_reading_is_handed_the_same_prompt(case):
 
 
 def test_the_full_grade_is_kept_not_just_the_letters(case):
-    """`Process: #56`: the reason is the data, so a letter alone is not enough."""
+    """`Process: #61`: the reason is the data, so a letter alone is not enough."""
     result = reread.reread(**case, runs=2, client=_Judge(_judged(), _judged()))
 
     first = result["readings"][0]

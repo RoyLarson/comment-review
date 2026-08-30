@@ -24,7 +24,7 @@ letter there would smuggle the invented metric back in through the reporting.
 
 ! THE JUDGE IS NOT A SUBAGENT, ON A MECHANICAL GROUND: the `Agent` tool's model
 parameter takes a FAMILY ALIAS, so a subagent grade cannot name a version and
-inherits a context lineage besides (`decision-log.md Process: #55`).
+inherits a context lineage besides (`decision-log.md Process: #60`).
 """
 
 from __future__ import annotations
@@ -333,7 +333,7 @@ def build_prompt(
     """Everything the judge sees, and nothing else.
 
     ! NO ARM IS NAMED. The judge is not told which version produced this, or that
-    a second one exists -- `Process: #55`. A judge told to ignore the other arm
+    a second one exists -- `Process: #60`. A judge told to ignore the other arm
     has still been told about it.
 
     !! `under_review` IS THE WHOLE FILE SET, AND WAS ONE FILE UNTIL 2026-08-30.

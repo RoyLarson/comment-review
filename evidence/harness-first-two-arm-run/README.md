@@ -27,8 +27,8 @@ back re-derivable.
 | `with_skill` | `v0.2.2` | **`ccb2404cb25036834505844ee3650cdc0337fd6a`** | 22 | **4 of 5** |
 
 ! **ONLY THE PROSE VARIED.** Both arms read the same census from the same machinery, so this is
-`decision-log.md Process: #52`'s baseline shape -- the OLD agent workflow on the NEW machinery --
-rather than a two-variable comparison whose delta could not be attributed (`Process: #51`).
+`decision-log.md Process: #57`'s baseline shape -- the OLD agent workflow on the NEW machinery --
+rather than a two-variable comparison whose delta could not be attributed (`Process: #56`).
 
 ## What each arm did with the paragraph the case is about
 
@@ -80,7 +80,7 @@ lands.**
 | --- | --- |
 | **the staged case has no name corpus** | The staged tree is not a checkout, so the census printed its WALKED_TREE caveat and BOTH arms independently downgraded symbol findings to `query`. A case whose key expects a tombstone scores a miss for the harness's reason. `TODO/staged-case-has-no-name-corpus.md` |
 | **the delta sign** | above; T47/T48 |
-| **old prose, new census** | Both arms reported the census/brief disagreement rather than guessing past it: the census numbers PARAGRAPHS with cue addresses (`@a0`, `@b33`) while the older briefs rule on BLOCKS with an index and no slot for a cue. This is what `Process: #52` looks like from inside. |
+| **old prose, new census** | Both arms reported the census/brief disagreement rather than guessing past it: the census numbers PARAGRAPHS with cue addresses (`@a0`, `@b33`) while the older briefs rule on BLOCKS with an index and no slot for a cue. This is what `Process: #57` looks like from inside. |
 | **212 of 223 paragraphs hold no prose** | `v0.1.6`'s brief demands a record for every numbered block; obeying it would mean ruling on 210 empty places. Measured live -- `the-census-is-mostly-intervals-nobody-rules-on` |
 
 ## What is NOT established
