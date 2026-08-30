@@ -261,9 +261,15 @@ class TestTheStackedCheck:
 
 class TestTheMovesAreADag:
     def test_a_move_resolves_only_if_BOTH_its_ends_resolve(self):
-        """`_join_moves` gives both ends one outcome one layer up; this is the
-        same rule at the resolution layer, so no auto-resolution can apply half
-        a move -- the paragraph read twice, or deleted and never rewritten."""
+        """! PINS `desk.collator._join_moves`, NOT THIS TASK'S CODE. Traced
+        2026-08-30: `resolved` never holds either address here -- b5 carries
+        two owing marks with different `_sentence_key`s (the move's `id(mark)`
+        and the `correct`'s quoted sentence), so `_join_moves` promotes BOTH
+        ends to `rereads` before `_resolve` runs, and `_pair_moves` sees `{}`
+        moves. Deleting `_pair_moves` and its wiring would not change this
+        test's outcome. Kept as regression cover for the property it names --
+        a move does not half-apply -- with the DAG logic itself covered by
+        `TestPairMoves`, below."""
         binder = two_places()
         copies = copies_over(
             binder,
@@ -290,7 +296,19 @@ class TestTheMovesAreADag:
         assert first.order == second.order
 
     def test_a_move_whose_origin_another_move_fills_is_emitted_FIRST(self):
-        """B must VACATE the address before A fills it."""
+        """B must VACATE the address before A fills it.
+
+        ! PINS `desk.collator._join_moves`, NOT THIS TASK'S CODE. Traced
+        2026-08-30: `resolved` is `{}` here -- b5 carries two owing move marks
+        (b1's destination touch and b5's own address), different
+        `id(mark)`-valued `_sentence_key`s, so `_join_moves`'s fixed point
+        promotes all three addresses to `rereads` before `_resolve` runs, and
+        the guarded assertion below never fires. Deleting `_move_order` and its
+        wiring would not change this test's outcome. Kept as regression cover
+        for stable emission of an independent-looking pair, with the
+        vacate-before-fill ordering itself covered by
+        `test_a_chain_orders_rather_than_cycling`'s direct call to
+        `_move_order`."""
         binder = a_binder_over({f"m.py@b{n}": BASE for n in (1, 5, 9)})
         marks = {
             "m.py@b1": a_move("m.py@b1", "m.py@b5"),
@@ -340,3 +358,40 @@ class TestTheMovesAreADag:
         order, cycle = _move_order(resolved)
         assert cycle == []
         assert order.index("m.py@b5") < order.index("m.py@b1")
+
+
+class TestPairMoves:
+    """`_pair_moves` DRIVEN DIRECTLY, for the same reason
+    `test_a_cycle_is_carried_forward_and_NAMED` is: `desk.collator._join_moves`
+    already gives both ends of a move ONE outcome before `_resolve` ever builds
+    a `resolved` dict, so `_pair_moves`'s own withdrawal branch cannot fire
+    through `collate()` today -- see its docstring. These build `resolved` by
+    hand, the one shape a caller bypassing `_join_moves` could still produce."""
+
+    def test_withdraws_a_move_whose_other_end_is_absent(self):
+        from comment_review.desk.mark import parse
+        from comment_review.flows.collate import _pair_moves
+
+        mark, why = parse("m.py@b1", a_move("m.py@b1", "m.py@b5"))
+        assert why == [], why
+        resolved = {"m.py@b1": mark}  # "m.py@b5" is not in `resolved` at all
+
+        assert _pair_moves(resolved) == {"m.py@b1"}
+
+    def test_withdrawal_cascades_through_a_chain(self):
+        """B's destination (b3) is unresolved, so B withdraws first; A's
+        destination is B's address (b2), which only becomes withdrawn on that
+        same pass -- so A is orphaned one pass LATER, and a single un-looped
+        pass over `resolved` (in insertion order: b1 then b2) would check A
+        while b2 still looks resolved and miss it. This is what the fixed
+        point in `_pair_moves`'s docstring is for."""
+        from comment_review.desk.mark import parse
+        from comment_review.flows.collate import _pair_moves
+
+        a_mark, why_a = parse("m.py@b1", a_move("m.py@b1", "m.py@b2"))
+        b_mark, why_b = parse("m.py@b2", a_move("m.py@b2", "m.py@b3"))
+        assert why_a == [], why_a
+        assert why_b == [], why_b
+        resolved = {"m.py@b1": a_mark, "m.py@b2": b_mark}  # "m.py@b3" absent
+
+        assert _pair_moves(resolved) == {"m.py@b1", "m.py@b2"}

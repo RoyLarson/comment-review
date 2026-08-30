@@ -2,7 +2,7 @@
 
     collate(stage, edit_copies, binder) -> Collated
 
-Seven acts, in order:
+Eight acts, in order:
 
     CHECK      every copy's marks, stacked -- `desk.collator.problems_in`
     DRIFT      a returned `raw_text` that is not the seeded one
@@ -11,7 +11,10 @@ Seven acts, in order:
     GATHER     `desk.proof.gather` -- the master_proof
     PLACE      `desk.collator.places` -- marks grouped by the place they touch
     RECONCILE  `desk.collator.reconcile` -- settled, escalated, re-read
-    RESOLVE    the automatic resolutions, then the fold
+    RESOLVE    the automatic resolutions -- `_resolve`
+    ORDER      a `move` at one end only is withdrawn, then the survivors are
+               ordered vacate-before-fill or carried forward as a named cycle
+               -- `_pair_moves`, `_move_order` -- before the fold
 
 !! THE RESOLUTIONS SIT DOWNSTREAM OF `reconcile`, WHICH IS UNTOUCHED.
 `desk.collator.Reconciled` is the INTERMEDIATE -- `decision-log.md
@@ -214,6 +217,19 @@ def _pair_moves(resolved: dict[str, Mark]) -> set[str]:
     ! IT RUNS TO A FIXED POINT, because moves chain: withdrawing one pair can
     orphan the next.
 
+    !! THE WITHDRAWAL BRANCH CANNOT FIRE THROUGH `collate()` TODAY. Per
+    `TODO/collator-defects.md` T15's ruling on `TODO/galley-refusals-cannot-fire.md`
+    -- a guard at the boundary and a guard at the point of use is defensible
+    depth, and the guard stays, but say which one is load-bearing -- the
+    load-bearing guard here is `desk.collator._join_moves`, called inside
+    `reconcile`: it gives both ends of one `move` the SAME outcome (`settled`,
+    `escalations` or `rereads`) before `_resolve` ever builds `resolved`, so a
+    `move` cannot enter `resolved` at one end without its other end beside it.
+    This function is depth -- reachable only if a caller assembled `resolved`
+    some other way, which is exactly what `tests/test_collate.py`'s direct-call
+    tests do, since `TODO/collator-defects.md` T15's template is a guard proved
+    checkable on its own rather than merely asserted.
+
     Returns:
         The addresses whose resolution must be given up.
     """
@@ -250,6 +266,15 @@ def _move_order(resolved: dict[str, Mark]) -> tuple[list[str], list[str]]:
 
     ! A SELF-MOVE CANNOT REACH HERE. `desk.mark.parse` refuses `claim.to ==
     address` (Task 5), so the length-one cycle is gone before resolution.
+
+    !! AND NO CYCLE OR CHAIN OF LENGTH TWO OR MORE REACHES HERE THROUGH
+    `collate()` TODAY EITHER. `desk.collator._sentence_key` returns `id(mark)`
+    for a `move`, so two moves sharing a touched address never compare as the
+    SAME sentence, and `reconcile` sends that place to `rereads` rather than
+    `settled` -- MEASURED 2026-08-30, before this function existed. That is a
+    side effect of a function whose docstring is about two `add`s, not a rule
+    about moves, which is why `tests/test_collate.py` drives this function
+    with a `resolved` dict built directly rather than through `collate`.
 
     Args:
         resolved: address -> the one Mark for it, moves and non-moves alike.
