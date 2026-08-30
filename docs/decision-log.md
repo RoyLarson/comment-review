@@ -1785,3 +1785,26 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `"12 ruled on, 0 left unruled"` (`commands/mark.py:106`) -- a count, naming neither the places
   left nor what to run next. **The whole middle is being built now, so the rule lands before the
   commands rather than after.**
+
+- **#52.** **A REVISE IS ALWAYS PULLED, EVEN WHEN A STAGE SETTLED NOTHING** (Roy, 2026-08-30):
+  *"The plan was to make a copy in a tempdir and run the write step so that they would get
+  reference to the stage N edits and also pull a binder for the update."*
+
+  !! **SO `reads: revise:N` ALWAYS NAMES A REAL TREE.** An empty docket yields a copy with zero
+  overlays -- not a wasted one. **The revise is not only the edits**; it is the tree the next
+  stage reads and the binder it is censused from, whose `read_from` names that revise.
+
+  ! **A PROPOSAL TO REFUSE AN EMPTY DOCKET IS STRUCK.** It read *"nothing to set"* as *"nothing to
+  do"*, which is wrong twice over: a stage settling nothing is an ORDINARY editorial outcome --
+  three roles disagreeing on one page -- and the binder is owed either way.
+
+  !! **AND `pull` BUILDS A BINDER TODAY THAT IT THROWS AWAY.** `flows/revise.py:241` binds the
+  assembled root with `absent=True` for `assert_addresses_held`, then discards it; `Pulled`
+  returns `root`, `revise`, `set_by` and `refusals` and no binder. ! **The gate's binder is not
+  the stage's**: `absent=True` carries every empty place, which is what the address check needs
+  and what a role must not be handed. So emitting one is a second bind rather than a return of
+  what is already there.
+
+  ! **THE COST IS REAL AND FILED.** `TODO/revise-copies-everything.md` measures a full copy at
+  284MB per editorial stage on this repo. **That is an argument about what `pull` copies, not
+  about whether it runs.**
