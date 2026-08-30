@@ -2,11 +2,16 @@
 
 ```
 Status:   open
-Progress: 0 of 2 tasks done
+Progress: 2 of 2 tasks done
 Owner:    testing
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-30 (found staging the four keyed cases and probing the grader pre-
           flight on each)
+Ruled:    2026-08-30 — Roy, 2026-08-30: the grader needs the full set, else it cannot
+          verify a move that crosses files. Recorded as decision-log.md Process: #59.
+          Implemented the same day: --under-review takes the staged START tree, the
+          prompt labels each file by repo-relative path, and all four keyed cases now
+          pass reread.inspect with no problems.
 ```
 
 ## Objective
@@ -52,10 +57,10 @@ reading measured, a six-file case is a different order of spend either way.
 
 ## Tasks
 
-- [ ] Does a multi-file case get ONE reading over its whole file set, or one
+- [x] Does a multi-file case get ONE reading over its whole file set, or one
       reading per file against a split key? The first matches a real run and
       exercises cross-file placement; the second keeps the one-artifact shape and
       stays cheap. Verify: the answer is written into this file.
-- [ ] Implement whichever the answer is, so a multi-file case is gradeable.
+- [x] Implement whichever the answer is, so a multi-file case is gradeable.
       Verify: all four keyed cases pass reread.inspect with no problems, and the
       six-file case runs as a single command.

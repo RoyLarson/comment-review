@@ -1912,3 +1912,25 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   real disagreements and the comparison reported stability it had not observed. **A field that
   cannot vary cannot disagree** -- `docs/gates.md`'s own case, arriving from inside the tool
   built to measure it.
+
+- **#59.** **THE JUDGE IS HANDED A CASE'S WHOLE FILE SET, NOT ONE FILE** (Roy, 2026-08-30):
+  *"Unfortunately the grader needs the full set else it can't verify that the marks are
+  appropriate especially for a move that crosses."*
+
+  !! **THE REASON IS THE `move`, AND IT DECIDES THE SHAPE.** A `move` names where a paragraph
+  should GO, and the destination can be in a different file -- so a judge shown one file cannot
+  tell an appropriate move from a fabricated one. ! `ownership-context` decides placement across
+  files by remit, which makes this the one role a single-file reading cannot exercise at all.
+
+  ! **WHAT IT REPLACED:** `--under-review` took ONE path, while an END diff covers every file its
+  case names. MEASURED 2026-08-30 on the four keyed cases -- three are multi-file, and the
+  six-file case passed the entire pre-flight while handing the judge `desk.py` against a key
+  covering five more. **Nothing disagreed, because nothing compared the two.**
+
+  ! **SO THE FLAG NOW TAKES THE STAGED START TREE**, and the prompt shows each file under its
+  own repo-relative heading -- the label being the half that matters, since an unlabelled
+  concatenation leaves the judge unable to say which file a paragraph sits in.
+
+  ! **THE COST IS REAL AND WAS NOT THE DECIDING FACTOR.** A six-file reading is several times a
+  one-file reading at about $0.68 measured, and the ruling was made knowing it: a cheaper reading
+  that cannot verify the mark is not a cheaper measurement.

@@ -101,12 +101,10 @@ def test_the_prompt_carries_the_rubric_and_the_artifacts(tmp_path):
     """What the judge is handed, and nothing else."""
     findings = tmp_path / "findings.md"
     findings.write_text("RECORD: a made-up finding\n", encoding="utf-8")
-    under_review = tmp_path / "galley.py"
-    under_review.write_text("def f():\n    return 1\n", encoding="utf-8")
 
     prompt = grader.build_prompt(
         findings=findings,
-        under_review=under_review,
+        under_review={"scripts/galley.py": "def f():\n    return 1\n"},
         start="1ad4ba72",
         end="deadbeef",
         end_diff="--- a/galley.py\n+++ b/galley.py\n",
@@ -119,6 +117,51 @@ def test_the_prompt_carries_the_rubric_and_the_artifacts(tmp_path):
     assert "1ad4ba72" in prompt and "deadbeef" in prompt
 
 
+def test_every_file_in_the_set_is_shown_and_named(tmp_path):
+    """Roy, 2026-08-30: the grader needs the full set, for a move that crosses.
+
+    ! THE PATH LABEL IS THE HALF THAT MATTERS. A judge shown two files with no
+    way to tell which is which cannot rule on a move naming a destination in the
+    other one -- so this asserts the bodies AND the headings.
+    """
+    findings = tmp_path / "findings.md"
+    findings.write_text("RECORD\n", encoding="utf-8")
+
+    prompt = grader.build_prompt(
+        findings=findings,
+        under_review={
+            "src/pkg/page.py": "PAGE_MARKER = 1\n",
+            "src/pkg/lexer.py": "LEXER_MARKER = 2\n",
+        },
+        start="a",
+        end="b",
+        end_diff="",
+        mechanical={},
+    )
+
+    assert "PAGE_MARKER" in prompt and "LEXER_MARKER" in prompt
+    assert "`src/pkg/page.py`" in prompt and "`src/pkg/lexer.py`" in prompt
+    assert "2 file(s)" in prompt
+
+
+def test_the_files_are_shown_in_path_order(tmp_path):
+    """Two readings of one case must send the same bytes; dict order is not that."""
+    findings = tmp_path / "findings.md"
+    findings.write_text("RECORD\n", encoding="utf-8")
+
+    shown = {"b.py": "B\n", "a.py": "A\n", "c.py": "C\n"}
+    prompt = grader.build_prompt(
+        findings=findings,
+        under_review=shown,
+        start="a",
+        end="b",
+        end_diff="",
+        mechanical={},
+    )
+
+    assert prompt.index("`a.py`") < prompt.index("`b.py`") < prompt.index("`c.py`")
+
+
 def test_the_prompt_never_mentions_another_arm(tmp_path):
     """`decision-log.md Process: #55` -- no arm judges another arm.
 
@@ -127,12 +170,10 @@ def test_the_prompt_never_mentions_another_arm(tmp_path):
     """
     findings = tmp_path / "findings.md"
     findings.write_text("RECORD\n", encoding="utf-8")
-    under_review = tmp_path / "x.py"
-    under_review.write_text("pass\n", encoding="utf-8")
 
     prompt = grader.build_prompt(
         findings=findings,
-        under_review=under_review,
+        under_review={"x.py": "pass\n"},
         start="a",
         end="b",
         end_diff="",
@@ -221,9 +262,8 @@ class _Broken:
 def _files(tmp_path):
     findings = tmp_path / "findings.md"
     findings.write_text("RECORD\n", encoding="utf-8")
-    under_review = tmp_path / "x.py"
-    under_review.write_text("pass\n", encoding="utf-8")
-    return findings, under_review
+    # ! THE FILE SET IS A MAPPING, not a path, since Roy's 2026-08-30 ruling.
+    return findings, {"x.py": "pass\n"}
 
 
 def test_it_refuses_clearly_when_no_credential_resolves(tmp_path):

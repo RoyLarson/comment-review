@@ -115,7 +115,7 @@ def compare(readings: list[dict]) -> dict:
 def reread(
     *,
     findings: pathlib.Path,
-    under_review: pathlib.Path,
+    under_review: dict[str, str],
     start: str,
     end: str,
     end_diff: str,
@@ -216,14 +216,34 @@ def _readable(flag: str, path: pathlib.Path) -> tuple[str | None, str]:
 DIFF_HEADER = re.compile(r"^diff --git a/(\S+) b/", re.MULTILINE)
 
 
-def _unshown(diff: str, under_review: pathlib.Path) -> list[str]:
+def staged(root: pathlib.Path) -> dict[str, str]:
+    """Every file under a staged START tree, keyed by its repo-relative path.
+
+    !! THE JUDGE IS HANDED THE WHOLE SET. Roy, 2026-08-30: *"the grader needs the
+    full set else it can't verify that the marks are appropriate especially for a
+    move that crosses."* A `move` names where a paragraph should GO, and the
+    destination can be in another file.
+
+    ! THE KEY IS THE PATH RELATIVE TO `root`, which is what makes the staged
+    location invisible: `stage_case.py` writes `<out>/start/<repo-relative>`, so
+    stripping the root recovers exactly the spelling the findings and the answer
+    key use.
+    """
+    return {
+        path.relative_to(root).as_posix(): path.read_text(encoding="utf-8")
+        for path in sorted(root.rglob("*"))
+        if path.is_file()
+    }
+
+
+def _unshown(diff: str, under_review: dict[str, str]) -> list[str]:
     """Files the answer key covers that the judge is not being handed.
 
     !! THE KEY AND THE ARTIFACT MUST DESCRIBE THE SAME THING, and nothing checked
-    that until 2026-08-30. `--under-review` takes ONE path; an END diff covers
-    every file its case names. MEASURED on the four keyed cases: three are
-    multi-file, and the six-file case passed the whole pre-flight while handing
-    the judge `desk.py` and a key covering five more.
+    that until 2026-08-30. MEASURED that day on the four keyed cases: `--under-
+    review` took ONE path, an END diff covers every file its case names, and the
+    six-file case passed the whole pre-flight while handing the judge `desk.py`
+    and a key covering five more.
 
     ! WHICH GRADES THE RUN DOWN FOR FINDINGS IT COULD NOT HAVE MADE. `detection`
     is *what fraction of the key did the run find*, so five files of unfindable
@@ -232,30 +252,30 @@ def _unshown(diff: str, under_review: pathlib.Path) -> list[str]:
     outside the key against the CODE, and the code for those five files is not
     there either.
 
-    ! REFUSED RATHER THAN TRIMMED. Silently cutting the key to the one file
-    shown would grade a DIFFERENT case than the row describes, under the row's
-    name -- and the comparison would be filed as though it had answered the
-    question the case was built to ask.
+    ! THE SET FIXED THE COMMON CASE AND THIS STILL BITES ON THE REST: a staged
+    tree missing a file the key names, or a key taken over a wider path list than
+    the case staged, are both still reachable and both still silent.
+
+    ! REFUSED RATHER THAN TRIMMED. Silently cutting the key to what was shown
+    would grade a DIFFERENT case than the row describes, under the row's name --
+    and the comparison would be filed as though it had answered the question the
+    case was built to ask.
     """
     covered = DIFF_HEADER.findall(diff)
     if not covered:
         return []
-    # ! MATCHED AS A SUFFIX because the two are spelled differently: a key names
-    # a repo-relative path, and `--under-review` names where that file was
-    # STAGED -- `<dest>/start/<path>`.
-    shown = under_review.as_posix()
-    unshown = [path for path in covered if not shown.endswith(path)]
+    unshown = [path for path in covered if path not in under_review]
     if not unshown:
         return []
     return [
-        f"--end-diff covers {len(covered)} file(s) and --under-review is one: "
-        f"{', '.join(sorted(unshown))} would be keyed and never shown, which "
-        f"grades the run down for findings it could not make. Each reading "
-        f"still costs {COST_PER_READING}."
+        f"--end-diff covers {len(covered)} file(s) and the staged tree holds "
+        f"{len(under_review)}: {', '.join(sorted(unshown))} would be keyed and "
+        f"never shown, which grades the run down for findings it could not make. "
+        f"Each reading still costs {COST_PER_READING}."
     ]
 
 
-def inspect(args) -> tuple[list[str], str, dict]:
+def inspect(args) -> tuple[list[str], str, dict, dict[str, str]]:
     """Every fault in the arguments, plus the two files that had to be read.
 
     !! CHECKED BEFORE ANY REQUEST IS MADE, WHICH IS THE WHOLE POINT. Each
@@ -294,9 +314,29 @@ def inspect(args) -> tuple[list[str], str, dict]:
     fault, _ = _readable("--findings", args.findings)
     if fault:
         problems.append(fault)
-    fault, _ = _readable("--under-review", args.under_review)
-    if fault:
-        problems.append(fault)
+
+    # !! A TREE, NOT A FILE, SINCE 2026-08-30. `_readable` is the wrong check
+    # here now -- it refuses a directory in as many words -- so the two failures
+    # worth naming are spelled out: it is not there, and it is there and empty.
+    shown: dict[str, str] = {}
+    if not args.under_review.exists():
+        problems.append(f"--under-review: no such staged tree: {args.under_review}")
+    elif not args.under_review.is_dir():
+        problems.append(
+            f"--under-review: {args.under_review} is a file. It takes the staged "
+            "START tree -- `evals/stage_case.py --out <dir>` writes it at "
+            "<dir>/start."
+        )
+    else:
+        try:
+            shown = staged(args.under_review)
+        except OSError as e:
+            problems.append(f"--under-review: cannot read {args.under_review}: {e}")
+        if not shown:
+            problems.append(
+                f"--under-review: {args.under_review} holds no files, so the judge "
+                "would be shown nothing and every reading would still be billed."
+            )
 
     diff = ""
     if args.end_diff:
@@ -304,7 +344,7 @@ def inspect(args) -> tuple[list[str], str, dict]:
         if fault:
             problems.append(fault)
         else:
-            problems.extend(_unshown(diff, args.under_review))
+            problems.extend(_unshown(diff, shown))
 
     mechanical: dict = {}
     if args.mechanical:
@@ -341,7 +381,7 @@ def inspect(args) -> tuple[list[str], str, dict]:
                 f"--out: cannot create {args.out.parent}: {e.strerror or e}"
             )
 
-    return problems, diff, mechanical
+    return problems, diff, mechanical, shown
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -359,7 +399,7 @@ def main(argv: list[str] | None = None) -> int:
         "--under-review",
         type=pathlib.Path,
         required=True,
-        help="the file as it stood at START",
+        help="the staged START tree -- every file the case named, as it stood",
     )
     parser.add_argument("--start", required=True)
     # ! END IS OPTIONAL BECAUSE A CASE MAY NOT HAVE ONE. T50 only needs the same
@@ -403,7 +443,7 @@ def main(argv: list[str] | None = None) -> int:
         if callable(reconfigure):
             reconfigure(encoding="utf-8", errors="replace")
 
-    problems, diff, mechanical = inspect(args)
+    problems, diff, mechanical, shown = inspect(args)
     if problems:
         # !! EVERY FAULT AT ONCE, NOT THE FIRST. Reporting one per run makes a
         # three-flag mistake three edit-and-retry cycles, and the last two are
@@ -419,7 +459,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         result = reread(
             findings=args.findings,
-            under_review=args.under_review,
+            under_review=shown,
             start=args.start,
             end=args.end,
             end_diff=diff,

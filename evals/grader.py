@@ -306,10 +306,25 @@ def rubric_text() -> str:
     return RUBRIC.read_text(encoding="utf-8")
 
 
+def _shown(under_review: dict[str, str]) -> list[str]:
+    """Every staged file as its own labelled block, in path order.
+
+    !! LABELLED BY PATH, WHICH IS THE WHOLE REASON THE SET IS HERE. A mark can
+    name a destination in a DIFFERENT file, and a judge shown an unlabelled
+    concatenation cannot say which file a paragraph sits in -- so it could not
+    rule on the one kind of mark that made the set necessary.
+    """
+    blocks: list[str] = []
+    for path in sorted(under_review):
+        fence = "python" if path.endswith((".py", ".pyi")) else ""
+        blocks += [f"#### `{path}`", "", f"```{fence}", under_review[path], "```", ""]
+    return blocks
+
+
 def build_prompt(
     *,
     findings: pathlib.Path,
-    under_review: pathlib.Path,
+    under_review: dict[str, str],
     start: str,
     end: str,
     end_diff: str,
@@ -320,6 +335,17 @@ def build_prompt(
     ! NO ARM IS NAMED. The judge is not told which version produced this, or that
     a second one exists -- `Process: #55`. A judge told to ignore the other arm
     has still been told about it.
+
+    !! `under_review` IS THE WHOLE FILE SET, AND WAS ONE FILE UNTIL 2026-08-30.
+    Roy: *"the grader needs the full set else it can't verify that the marks are
+    appropriate especially for a move that crosses."* A `move` names where a
+    paragraph should GO, and the destination can be in another file -- so a judge
+    handed one file cannot tell an appropriate move from a fabricated one, and
+    `ownership-context` decides placement across files by remit.
+
+    ! IT IS KEYED BY REPO-RELATIVE PATH, not by the staged location. The findings
+    and the answer key both name repo-relative paths, so a judge asked to match
+    them against a temp directory would be resolving three spellings of one file.
     """
     return "\n".join(
         [
@@ -335,12 +361,12 @@ def build_prompt(
             end_diff.strip() or "(no diff supplied)",
             "```",
             "",
-            "### The file as it stood at START -- what the run read",
+            f"### The {len(under_review)} file(s) as they stood at START",
             "",
-            "```python",
-            under_review.read_text(encoding="utf-8"),
-            "```",
+            "This is everything the run read. A mark may name a destination in a"
+            " different file of this set.",
             "",
+            *_shown(under_review),
             "### What the run filed",
             "",
             findings.read_text(encoding="utf-8"),
@@ -393,7 +419,7 @@ def to_grading_json(judged: dict, *, mechanical: dict, arm: str, eval_id: str) -
 def grade(
     *,
     findings: pathlib.Path,
-    under_review: pathlib.Path,
+    under_review: dict[str, str],
     start: str,
     end: str,
     end_diff: str,

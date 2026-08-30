@@ -9,6 +9,7 @@ cover the branch this module exists for.
 """
 
 import json
+import pathlib
 
 import grader
 import pytest
@@ -176,13 +177,17 @@ OUR_OWN_BUG = (
 
 @pytest.fixture
 def case(tmp_path):
+    """The kwargs `reread()` takes.
+
+    ! `under_review` IS THE FILE SET, keyed by repo-relative path, since Roy's
+    2026-08-30 ruling that the grader needs all of it. `_argv` writes this same
+    mapping to disk when a test drives the CLI instead.
+    """
     findings = tmp_path / "findings.md"
     findings.write_text("RECORD\n", encoding="utf-8")
-    under_review = tmp_path / "x.py"
-    under_review.write_text("pass\n", encoding="utf-8")
     return {
         "findings": findings,
-        "under_review": under_review,
+        "under_review": {"src/x.py": "pass\n"},
         "start": "aaaa",
         "end": "bbbb",
         "end_diff": "",
@@ -755,6 +760,22 @@ def test_main_refuses_to_overwrite_an_existing_comparison(tmp_path, case):
 # placeholder path into a real invocation on 2026-08-29.
 
 
+def _staged(case, beside):
+    """Write the fixture's file set to disk, in the shape `stage_case.py` writes.
+
+    ! THE CLI TAKES A TREE AND `reread()` TAKES A MAPPING, so a test driving the
+    command line needs the mapping on disk. Deriving it here keeps one source for
+    both -- a second literal would let the two drift and only the CLI tests would
+    notice.
+    """
+    tree = pathlib.Path(beside).parent / "start"
+    for rel, text in case["under_review"].items():
+        written = tree / rel
+        written.parent.mkdir(parents=True, exist_ok=True)
+        written.write_text(text, encoding="utf-8")
+    return tree
+
+
 def _argv(case, out, **over):
     """A valid command line, always carrying `--allow-no-end`.
 
@@ -764,7 +785,7 @@ def _argv(case, out, **over):
     """
     argv = {
         "--findings": str(case["findings"]),
-        "--under-review": str(case["under_review"]),
+        "--under-review": str(_staged(case, out)),
         "--start": "aaaa",
         "--arm": "with_skill",
         "--eval-id": "a-case",
@@ -788,13 +809,45 @@ def test_a_missing_findings_file_names_the_flag(tmp_path, case, capsys):
     assert any("--findings" in r and "no such file" in r for r in _refusals(capsys))
 
 
-def test_a_missing_under_review_file_names_the_flag(tmp_path, case, capsys):
+def test_a_missing_under_review_tree_names_the_flag(tmp_path, case, capsys):
     code = reread.main(
-        _argv(case, tmp_path / "o.json", **{"--under-review": tmp_path / "gone.py"})
+        _argv(case, tmp_path / "o.json", **{"--under-review": tmp_path / "gone"})
     )
 
     assert code == 1
-    assert any("--under-review" in r and "no such file" in r for r in _refusals(capsys))
+    said = _refusals(capsys)
+    assert any("--under-review" in r and "no such staged tree" in r for r in said)
+
+
+def test_a_file_where_the_tree_goes_says_which_one_it_wants(tmp_path, case, capsys):
+    """The likely mistake, since this flag took a single file until 2026-08-30.
+
+    ! IT NAMES THE COMMAND THAT WRITES ONE. "Is a directory" backwards is not a
+    useful message when the caller's last working command passed a file here.
+    """
+    lone = tmp_path / "x.py"
+    lone.write_text("pass\n", encoding="utf-8")
+
+    code = reread.main(
+        _argv(case, tmp_path / "o.json", **{"--under-review": lone})
+    )
+
+    assert code == 1
+    said = _refusals(capsys)
+    assert any("is a file" in r and "stage_case.py" in r for r in said)
+
+
+def test_an_empty_staged_tree_is_refused_before_it_is_billed(tmp_path, case, capsys):
+    """A tree with nothing in it shows the judge nothing and still costs."""
+    empty = tmp_path / "empty"
+    empty.mkdir()
+
+    code = reread.main(
+        _argv(case, tmp_path / "o.json", **{"--under-review": empty})
+    )
+
+    assert code == 1
+    assert any("holds no files" in r for r in _refusals(capsys))
 
 
 def test_a_directory_handed_to_a_file_flag_says_so(tmp_path, case, capsys):
@@ -905,13 +958,18 @@ def _key(*paths):
     return "".join(f"diff --git a/{p} b/{p}\n@@ -1 +1 @@\n-was\n+is\n" for p in paths)
 
 
-def test_a_key_confined_to_the_file_shown_is_accepted(tmp_path):
-    shown = tmp_path / "start" / "src/pkg/repo.py"
-    assert reread._unshown(_key("src/pkg/repo.py"), shown) == []
+def _set(*paths):
+    """A staged file set, which is what `_unshown` compares the key against."""
+    return {path: "pass\n" for path in paths}
 
 
-def test_a_key_covering_a_file_not_shown_is_refused(tmp_path):
-    shown = tmp_path / "start" / "src/pkg/repo.py"
+def test_a_key_confined_to_the_files_shown_is_accepted():
+    shown = _set("src/pkg/repo.py", "src/pkg/desk.py")
+    assert reread._unshown(_key("src/pkg/repo.py", "src/pkg/desk.py"), shown) == []
+
+
+def test_a_key_covering_a_file_not_shown_is_refused():
+    shown = _set("src/pkg/repo.py")
 
     said = reread._unshown(_key("src/pkg/repo.py", "src/pkg/desk.py"), shown)
 
@@ -920,25 +978,32 @@ def test_a_key_covering_a_file_not_shown_is_refused(tmp_path):
     assert "src/pkg/repo.py" not in said[0], "the file that WAS shown is not missing"
 
 
-def test_the_refusal_names_the_price(tmp_path):
-    """The money is the reason this is a refusal and not a warning."""
-    shown = tmp_path / "start" / "a.py"
+def test_a_file_shown_but_not_keyed_is_fine():
+    """END left it alone; the run still read it, and `unkeyed` is what rules on that.
 
-    said = reread._unshown(_key("a.py", "b.py"), shown)
+    ! THE CHECK IS ONE-DIRECTIONAL ON PURPOSE. Requiring the key to cover every
+    staged file would refuse every case whose END touched a subset -- and reading
+    a file END did not change is exactly what a real run does.
+    """
+    shown = _set("a.py", "b.py", "c.py")
+    assert reread._unshown(_key("a.py"), shown) == []
+
+
+def test_the_refusal_names_the_price():
+    """The money is the reason this is a refusal and not a warning."""
+    said = reread._unshown(_key("a.py", "b.py"), _set("a.py"))
 
     assert reread.COST_PER_READING in said[0]
 
 
-def test_a_key_naming_no_file_adds_nothing(tmp_path):
+def test_a_key_naming_no_file_adds_nothing():
     """A keyless run reaches here with an empty diff and must pass through it."""
-    assert reread._unshown("", tmp_path / "a.py") == []
+    assert reread._unshown("", _set("a.py")) == []
 
 
-def test_every_unshown_file_is_named_not_just_the_first(tmp_path):
+def test_every_unshown_file_is_named_not_just_the_first():
     """Reporting one per run makes a six-file case five edit-and-retry cycles."""
-    shown = tmp_path / "start" / "a.py"
-
-    said = reread._unshown(_key("a.py", "b.py", "c.py", "d.py"), shown)
+    said = reread._unshown(_key("a.py", "b.py", "c.py", "d.py"), _set("a.py"))
 
     assert all(name in said[0] for name in ("b.py", "c.py", "d.py"))
 

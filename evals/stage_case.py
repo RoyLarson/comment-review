@@ -198,10 +198,18 @@ def main(argv: list[str] | None = None) -> int:
     for path in staged:
         print(f"         {path}")
     # !! WHAT IS MISSING IS NOT A FLAG, IT IS T18. A grade needs a `findings.md`
-    # that a RUN filed, and what executes a row is unruled -- so this says so
-    # rather than implying the next command is available.
-    print("\n  NEXT   a run over start/ must file a findings.md; T18 is unruled.")
-    print("         then, and only by Roy, evals/reread.py grades it.")
+    # that a RUN filed, and what executes a row is unruled -- so the findings
+    # path is left as a placeholder rather than implying one exists.
+    print(f"\n  NEXT   a run over {start_tree.name}/ must file a findings.md.")
+    print("         What executes a row is T18, and unruled.")
+    print("\n  THEN, AND ONLY BY ROY:")
+    print("    uv run python evals/reread.py \\")
+    print("      --findings <the run's findings.md> \\")
+    print(f"      --under-review {start_tree} \\")
+    print(f"      --start {row['start']} --end {row['end']} \\")
+    print(f"      --end-diff {key} \\")
+    print(f"      --arm with_skill --eval-id {row['id']} \\")
+    print(f"      --out {args.out / 'comparison.json'}")
     return 0
 
 
