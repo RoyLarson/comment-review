@@ -1,0 +1,69 @@
+# A docstring written on its declaration's own line takes no address, and the round trip invents a blank line
+
+```
+Status:   open
+Progress: 0 of 3 tasks done
+Owner:    backend
+Requires-Roy: false
+Raised:   2026-08-29 (found while fixing the docstring-closing-comment double emission,
+          2026-08-29)
+```
+
+## Objective
+
+A docstring written on its declaration's own line takes no address, and the round trip invents a
+blank line.
+
+!! **MEASURED 2026-08-29** on `'def f(): """D."""  # note\n'` -- one line in, TWO out:
+
+```
+in : 'def f(): """D."""  # note\n'
+out: 'def f(): """D."""  # note\n\n'
+lossless: line invented: ''
+identity: 1 lines in, 2 out
+```
+
+and the page carries FIVE paragraphs, of which two claim line 1 and one has no address at all:
+
+| kind | cue | lines | raw_lines |
+| --- | --- | --- | --- |
+| `docstring` | **(none)** | 1-1 | `def f(): """D."""  # note` |
+| `interval` | `b0` | 1-1 | `def f(): """D."""  # note` |
+
+! **THREE INVARIANTS BREAK AT ONCE**, and each is one this repo states elsewhere. `lossless` is
+the one `compositor.py` calls the invariant that must never break. A paragraph carrying neither
+an address nor a symbol is what `tests/test_reading.py`'s
+`test_a_paragraph_carries_an_ADDRESS_or_a_SYMBOL_and_never_both` forbids. Two paragraphs claiming
+one line is what `test_every_line_of_the_file_is_covered_exactly_once` forbids.
+
+!! **AND NO GATE SEES IT, because no source in either suite holds the shape.** The same reason
+the docstring-closing-comment defect survived: `test_reading.SOURCES` and
+`test_compositor.FORMS` are hand-authored, so a shape nobody thought to write cannot be
+expressed. `docs/gates.md`: *"does the check pass" is not the question; "could the check fail"
+is.*
+
+! **THE COMMENT IS NOT THE CAUSE.** `'def f(): """D."""\n'` fails the same way -- the trailing
+comment above is carried only because it is how the shape was found. What decides it is the
+docstring statement sharing a line with the declaration that owns it, so `attach` has a
+declaration place and a code line pointing at the same line and resolves to neither.
+
+! **A BODY-LESS ONE-LINER IS FINE**: `'class C: pass\n'` round trips, because nothing claims the
+line twice.
+
+## Related, and NOT the same defect
+
+[`census-degrades-silently`](census-degrades-silently.md) T6 records a one-line `def f(): pass`
+whose `a1` place writes ABOVE the `def`, turning a proposed docstring into the MODULE's. That is
+about a declaration with NO prose and where an `add` would put some. This is about a declaration
+that ALREADY HAS its docstring on that line: nothing is added, and the page still cannot be set
+back. `systems` owns whether the two are one file.
+
+## Tasks
+
+- [ ] Give the docstring paragraph of a same-line declaration an address, or
+      refuse the page. Verify: page_for over 'def f(): """D."""' emits no
+      paragraph whose address is empty.
+- [ ] Stop the round trip inventing a line on that shape. Verify:
+      compositor.lossless returns None for it.
+- [ ] Add the shape to tests/test_reading.SOURCES and tests/test_compositor.FORMS.
+      Verify: both go red before the two boxes above and green after.

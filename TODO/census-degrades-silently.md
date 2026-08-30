@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 4 of 8 tasks done
+Progress: 5 of 8 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
@@ -20,6 +20,19 @@ TRIAGED:  2026-08-23 — the file carried each of three defects TWICE, once in s
           2026-08-22 and is re-verified below. Four remain, all re-measured today.
 SPLIT:    2026-08-23 -- every box cut to two lines. The measurements and the reasoning
           each carried are in the Objective, where they were already half-stated.
+Measured: 2026-08-29 — 2026-08-29 -- T1 DONE, and the mechanism was one layer lower than
+          page.py:708. paragraphs_stdlib CATCHES the parse failure and returns one
+          unparsed paragraph rather than raising, so commands/census.py's except never
+          fired; page_for then gave that page no addresses and carried() hands over only
+          addressed paragraphs, so even the paragraph reporting the refusal was filtered
+          away. MEASURED, one file per run over one nine-line control: the control
+          censused 11 paragraphs at exit 0, while a UTF-8 BOM, a syntax error, a NUL
+          byte and an unterminated string each censused 0 PARAGRAPHS AT EXIT 0 -- while
+          the same control's DECODE failures (latin-1, UTF-16) correctly exited 1. An
+          unparsed page now joins unreadable, so both failure modes have ONE outcome:
+          the file is named and the run exits 1, on the text path and on --json. ! T7 IS
+          UNTOUCHED -- a BOM'd file is now LOUD, not READ; the readers still open with
+          utf-8 rather than utf-8-sig.
 ```
 
 ## Objective
@@ -82,7 +95,7 @@ own file.
 
 ## Tasks
 
-- [ ] T1 -- Give an unparseable Python file ONE outcome at `page.py:708`, both failure
+- [x] T1 -- Give an unparseable Python file ONE outcome at `page.py:708`, both failure
       modes. Verify: censusing `x = = 1` exits non-zero, or its paragraphs are addressed.
 - [x] T2 -- SUPERSEDED by T7, which is the same defect stated in full with its
       verification date. The BOM is one encoding argument in three readers.

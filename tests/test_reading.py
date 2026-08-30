@@ -27,6 +27,19 @@ SOURCES = {
     "trailing blanks": ("m.py", "x = 1\n\n\n"),
     "shebang": ("m.py", "#!/usr/bin/env python\nx = 1\n"),
     "function": ("m.py", 'def f():\n    """D."""\n    return 1\n'),
+    # !! THE SHAPE NONE OF THE OTHER 22 COULD EXPRESS. A docstring's closing
+    # delimiter carrying a trailing comment is claimed by BOTH readers -- the
+    # tokenizer types it `trailing-comment`, the AST gives the line to the
+    # docstring -- so the partition below is exactly what it breaks. The gate
+    # passed for as long as no source here held one.
+    "docstring closed with a comment": (
+        "m.py",
+        'def f():\n    """D.\n    """  # NOQA\n    return 1\n',
+    ),
+    "one-line docstring with a comment": (
+        "m.py",
+        'def f():\n    """D."""  # type: ignore\n    return 1\n',
+    ),
     "nested": ("m.py", "def f():\n    def g():\n        return 1\n    return g\n"),
     "class": ("m.py", 'class A:\n    """D."""\n\n    x = 1\n'),
     "only comments": ("m.py", "# one\n# two\n"),

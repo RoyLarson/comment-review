@@ -52,6 +52,27 @@ FORMS = {
     "licence then a gap comment": ("m.py", "# (c) me\n\n# note\nx = 1\n"),
     "matter, blank, two comments": ("m.py", "# (c) me\n\n# one\n# two\nx = 1\n"),
     "function": ("m.py", 'def f():\n    """D."""\n    return 1\n'),
+    # !! A DOCSTRING'S CLOSING DELIMITER CARRYING A TRAILING COMMENT. The
+    # tokenizer sees a comment with non-blank characters before it and types it
+    # `trailing-comment`; the AST gives the same line to the docstring. Two
+    # paragraphs then claimed one line, and `page.code_lines` handed it to the
+    # `c` series as well -- the line was set TWICE, `lossless` reported *line
+    # invented*, and the duplicate delimiter reopened a string literal, so
+    # `prove_unchanged.code_fingerprint` fell from `ast` to `unprovable` and the
+    # write chain refused the docket. Reproduced 2026-08-29; the shape was in
+    # none of the sources this file or `test_reading.py` carried.
+    "docstring closed with a comment": (
+        "m.py",
+        'def f():\n    """D.\n    """  # NOQA\n    return 1\n',
+    ),
+    "module docstring closed with a comment": ("m.py", '"""D.\n"""  # NOQA\nx = 1\n'),
+    # ! THE ONE-LINE FORM ANSWERED CORRECTLY BEFORE THE FIX, and only because
+    # both paragraphs share a `start` and the stable sort ran the comment first.
+    # It is kept so the two forms are asserted to agree.
+    "one-line docstring with a comment": (
+        "m.py",
+        'def f():\n    """D."""  # type: ignore\n    return 1\n',
+    ),
     "function no doc": ("m.py", "def f():\n    return 1\n"),
     "two functions": ("m.py", "def f():\n    return 1\n\n\ndef g():\n    return 2\n"),
     "nested def": ("m.py", "def f():\n    def g():\n        return 1\n    return g\n"),

@@ -401,7 +401,8 @@ census; **the stage-5 collator reads the JSON census and parses it as JSON**, so
 only the text one fails at stage 5 with `CANNOT PARSE ... as JSON`.
 
 It emits the numbered tree -- `N  file:start-end  kind  lines  annotations  (anchor)` -- with each
-node's references already resolved, and it prints the tier counts for the run.
+node's references already resolved, under a header of `N files, N paragraphs` and a
+`languages: <name> <count>` line.
 
 !! **Most of that tree is `interval` paragraphs, and nobody owes them a record.** Every gap
 between two lines of code is numbered, empty ones included, because an `add` is a finding about
@@ -409,10 +410,15 @@ prose that is MISSING and the record needs an ADDRESS to carry it. They are ADDR
 not ACCOUNTABLE: the collator computes coverage over the paragraphs that hold prose and says both
 counts on its first line. Re-measured 2026-08-19: `census.py` over itself is 1,607 paragraphs, 118 of them prose.
 
-! Those tier counts are
-AGGREGATED across files, not per file -- on a polyglot run you cannot tell which file reached
-which tier, which is exactly when it matters. Run it; do not
+! That `languages:` count is
+AGGREGATED across files, not per file -- on a polyglot run it says how many files each language
+claimed and never which file is which. Run it; do not
 re-derive its output by hand.
+
+!! **IT PRINTS NO TIER COUNTS, AND THIS FILE SAID IT DID UNTIL 2026-08-29.** Three places here
+told the task agent to report them. `commands/census.py` dropped them on a ruling of 2026-08-24
+and says so at the line that replaced them -- Roy: *"their level gets dropped entirely."* A
+reported number that no command prints is either invented or read as a run failure.
 
 ! **Give both files a path unique to THIS run**, and hand the reviewers the text one. Two
 concurrent reviews sharing one scratch filename overwrite each other between writing and
@@ -538,7 +544,7 @@ which is exactly why the memory-based rule it replaces could not fire there --
 the invocation most likely to be typed by hand was the one with no backlink
 discovery at all.
 
-Report what the tool prints: `N files, N paragraphs`, the per-tier counts, and any paragraph whose
+Report what the tool prints: `N files, N paragraphs`, the `languages:` line, and any paragraph whose
 KIND it could not resolve.
 
 ## Stage 4 -- MARK: ownership first, then the other three

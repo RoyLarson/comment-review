@@ -33,7 +33,7 @@ superseding ruling applied rather than annotated.
 | --- | --- | --- |
 | `address` | `path@cue`. WHICH PLACE | **seeded** -- copied from the row, never built |
 | `anchor` | the line of code the place sits on | seeded |
-| `mark` | one of the seven | the role |
+| `instruction` | one of the seven | the role |
 | `claim` | the surgical spec -- structured keys, per instruction | the role |
 | `reason` | WHY. The evidence, in prose. No checker settles it | the role |
 | `sources` | `{cite, verbatim, ran}` | the role |
@@ -74,6 +74,18 @@ a missing marker or a truncated paragraph directly, where a line array only show
 
 !! **THE ORDER IS A CHAIN OF CUSTODY.** Roy, 2026-08-17: *"Verdict -> Claim -> REASON -> SOURCES ->
 CHANGE ... a clear chain of custody on the reasoning and the required actions."*
+
+!! **THE RULING FIELD IS `instruction`, AND THIS TABLE SPELLED IT `mark` UNTIL 2026-08-29.** Roy,
+2026-08-29: *"the agent emits the 'mark', the 'instruction' was ... the action that turned the mark
+into an actionable thing."* A `Mark.mark` is the self-nesting that made this ambiguous -- the enum
+was already `Instruction` and `reviewer-brief.md` already published `instruction`, so this file and
+`desk/mark.py` are what moved.
+
+! **AND THE COST OF THE DISAGREEMENT WAS MEASURED BEFORE IT WAS FIXED.** `desk/mark.py` read the key
+`mark` while the brief published `instruction`, and `flows/marks.py` skipped any entry whose `mark`
+key was absent -- so **the brief's own worked example passed `mark --check` at exit 0, counted as a
+place nobody looked at.** A reviewer following the brief produced findings that vanished in silence.
+`tests/test_brief_worked_example.py` is what keeps that from returning.
 
 ## What each instruction owes
 

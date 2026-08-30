@@ -86,25 +86,41 @@ pieces that matter."* ! **What is ruled out is RULING on it**, not seeing it.
 
 ## You FILL a record; you do not write one
 
-**You are handed one PAGE per file, and one slot per prose paragraph on it.** The page names the
-file once; each slot already carries the two things the tool knows -- the `place` it is and the
-`anchor` it sits on -- and you set the five that are yours:
+**You are handed one SHEET per file, and one slot per prose paragraph on it.** The sheet names
+the file once, in `path`; each slot already carries the two things the tool knows -- the
+`address` it is and the `anchor` it sits on -- and you set the five that are yours:
 
 ```json
-{ "page": "redacted_pkg/billing/rates.py",
-  "records": [
-    { "place":   "b47",
-      "anchor":  "def compute_rates(plan, period, *, clamp=True):",
-      "instruction": "correct",
-      "claim":   { "false": "twenty call sites want this",
-                   "true":  "31 callers, all in tests/" },
-      "reason":  "31 callers and every one is under tests/, so the count is stale",
-      "sources": [ { "cite": "redacted_pkg/billing/rates.py:355",
-                     "verbatim": "def compute_rates(plan, period, *, clamp=True):" },
-                   { "cite": "redacted_pkg/export/invoice.py:88",
-                     "verbatim": "rates = compute_rates(plan, period)" } ],
-      "change":  "# Kept because 31 callers want this, all of them in tests/.\n# Narrowing it means re-deriving the clamp bounds." } ] }
+{ "role": "block-context",
+  "read_from": { "root": "/checkout/of/the/project", "revise": 0 },
+  "sheets": [
+    { "path": "redacted_pkg/billing/rates.py",
+      "sha":  "9c1f0b7a4e2d6835aa10c4bb37f9e05d2c8471a6",
+      "marks": [
+        { "address": "b47",
+          "anchor":  "def compute_rates(plan, period, *, clamp=True):",
+          "instruction": "correct",
+          "claim":   { "false": "twenty call sites want this",
+                       "true":  "31 callers, all in tests/" },
+          "reason":  "31 callers and every one is under tests/, so the count is stale",
+          "sources": [ { "cite": "redacted_pkg/billing/rates.py:355",
+                         "verbatim": "def compute_rates(plan, period, *, clamp=True):" },
+                       { "cite": "redacted_pkg/export/invoice.py:88",
+                         "verbatim": "rates = compute_rates(plan, period)" } ],
+          "change":  "# Kept because 31 callers want this, all of them in tests/.\n# Narrowing it means re-deriving the clamp bounds." } ] } ] }
 ```
+
+!! **THE THREE OUTER KEYS ARE NOT DECORATION, and the file you are handed already carries
+them.** `role` is the role this copy was seeded for, `read_from` is the tree it was censused
+from -- `revise` 0 is the original -- and `sha` is the bytes of the file your addresses were
+taken from. **Edit in place and leave all four alone**; the checker refuses a copy that comes
+back without `role` or `read_from`, and the `sha` is what proves nobody rewrote the file
+underneath your marks.
+
+!! **THIS EXAMPLE SHOWED A TWO-LEVEL `{"page", "records"}` UNTIL 2026-08-29, AND NOTHING
+ACCEPTED IT.** The container is `sheets`, one per file; the file's own name is `path`, inside
+its sheet; each sheet's entries are `marks`; and a mark names its `address`. `role`, `read_from`
+and `sha` appeared nowhere in this file at all.
 
 ! **THE PLACE IS A CUE, NOT A FULL ADDRESS** -- `b47`, because the page above it already said
 which file. You will still meet the full form `redacted_pkg:billing:rates.py@b47` in one place: a `move`
@@ -118,10 +134,10 @@ and the collator says so -- that error is caught, and the other one is invisible
 
 !! **WHAT YOU OPEN IS THE ORIGINAL** -- the file as it stood when THIS RUN began, not the first
 version ever written. Nothing is written to disk before stage 7b, so the file you read at stage 4
-IS the state your `place` and your `anchor` were taken from, and the state the collator checks your
+IS the state your `address` and your `anchor` were taken from, and the state the collator checks your
 `claim` against.
 
-!! **YOU NEVER TRANSCRIBE THE PARAGRAPH.** `place` and `anchor` are the tool's. Leave them alone;
+!! **YOU NEVER TRANSCRIBE THE PARAGRAPH.** `address` and `anchor` are the tool's. Leave them alone;
 a mismatch there means the file was edited, not that you misquoted. ! The `anchor` is there to
 be GREPPED -- it names the declaration the census resolved, and is empty where none was.
 
@@ -154,7 +170,7 @@ is exactly what your edit does, and it must be the sentence your `claim` names. 
 reasons about one sentence and rewrites another is refused, whichever of the two is right.
 
 !! **ONE record's `change` makes ONE record's edit.** If you rule twice on one paragraph, write
-TWO records with the same `place`, under the same page, each showing that paragraph with ITS OWN
+TWO records with the same `address`, under the same sheet, each showing that paragraph with ITS OWN
 change and no other. Do not
 hand in the paragraph fully fixed twice: composing is the task agent's job, and it cannot compose
 records that have already been merged.

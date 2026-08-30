@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (94)
+### open  (106)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -230,7 +230,6 @@ that changed a published name or rule:
 | [verdicts-is-the-join](verdicts-is-the-join.md) | backend | — | 6/12 | The VERDICTS table lives in record.py; verdicts.py is the collator and 43 sites say so |
 | [census-row-carries-empty-fields](census-row-carries-empty-fields.md) | backend | — | 10/17 | A census row carries 19 fields and an empty place fills 7, with three different spellings of absent |
 | [matter-misses-two-languages](matter-misses-two-languages.md) | backend | — | 2/5 | C and Python type a licence header as matter; Rust loses the run to the `a` series and TypeScript types it a docstring |
-| [backlog-claims-it-cannot-mean](backlog-claims-it-cannot-mean.md) | systems | yes | 0/6 | The backlog claims things it cannot mean, and nothing was checking |
 | [nothing-runs-the-whole-chain](nothing-runs-the-whole-chain.md) | backend | — | 0/7 | Every stage of the backend has its own tests and nothing runs census -> seed -> record -> join -> galley -> compositor -> prove in one pass. So the redesign phase has no measurement to hold constant, and a defect that lives BETWEEN two stages is invisible to every gate this repo has. |
 | [nothing-makes-the-fair-copy](nothing-makes-the-fair-copy.md) | backend | yes | 1/13 | Nothing turns the collated marks into the paragraph the galley writes |
 | [settle-carries-two-meanings](settle-carries-two-meanings.md) | systems | yes | 0/6 | settle carries two meanings in what an agent is handed, and neither is declared to it |
@@ -263,10 +262,10 @@ that changed a published name or rule:
 | [an-alteration-carries-its-own-indentation](an-alteration-carries-its-own-indentation.md) | backend | yes | 0/3 | An alteration carries its own indentation and nothing says so |
 | [prove-refuses-a-doc](prove-refuses-a-doc.md) | backend | — | 0/3 | prove_unchanged refuses a documentation file for having no code |
 | [a-reference-needs-its-own-write-chain](a-reference-needs-its-own-write-chain.md) | backend | yes | 0/3 | A reference needs its own write chain, and it is NOT YET |
-| [collate-buckets-a-move-at-one-end](collate-buckets-a-move-at-one-end.md) | backend | — | 0/3 | `collate` buckets a two-ended mark at one end |
-| [the-fields-do-not-say-a-mark-may-cite-across](the-fields-do-not-say-a-mark-may-cite-across.md) | agents | yes | 4/8 | The mark's fields permit a cross-citation and never say so |
-| [a-conflict-has-no-rendering](a-conflict-has-no-rendering.md) | backend | — | 0/4 | A conflict is detected and nothing renders it |
-| [a-revise-answer-has-no-artifact](a-revise-answer-has-no-artifact.md) | backend | — | 0/8 | A role can be asked to revise and has nothing to answer ON |
+| [collate-buckets-a-move-at-one-end](collate-buckets-a-move-at-one-end.md) | backend | — | 3/3 | `collate` buckets a two-ended mark at one end |
+| [the-fields-do-not-say-a-mark-may-cite-across](the-fields-do-not-say-a-mark-may-cite-across.md) | agents | yes | 5/8 | The mark's fields permit a cross-citation and never say so |
+| [a-conflict-has-no-rendering](a-conflict-has-no-rendering.md) | backend | — | 3/4 | A conflict is detected and nothing renders it |
+| [a-revise-answer-has-no-artifact](a-revise-answer-has-no-artifact.md) | backend | — | 5/8 | A role can be asked to revise and has nothing to answer ON |
 | [the-ported-mark-does-not-fit-the-brief](the-ported-mark-does-not-fit-the-brief.md) | backend | — | 5/5 | The ported mark refuses marks the shipped brief tells a role to write |
 | [the-flow-assumes-every-role-reads-at-once](the-flow-assumes-every-role-reads-at-once.md) | backend | — | 7/7 | The flow assumes every role reads the same page at the same time, once |
 | [move-change-contract-unenforceable](move-change-contract-unenforceable.md) | backend | — | 0/2 | move's change_all loop is never the decisive check -- the general array-of-lines check runs first and either already passed or already refused the mark |
@@ -275,7 +274,20 @@ that changed a published name or rule:
 | [annotate-belongs-in-concordance](annotate-belongs-in-concordance.md) | backend | — | 0/3 | annotate.py is stage 3 -- it resolves every reference a node makes -- which is the concordance's subject, not the binder's |
 | [prototype-move-orphaned-tasks](prototype-move-orphaned-tasks.md) | systems | — | 0/4 | 25 open TODOs carry an unchecked task naming a module that moved to `prototype/` on 2026-08-25, so the task's site is gone and its verification cannot be run |
 | [revise-copies-everything](revise-copies-everything.md) | backend | — | 0/4 | `pull` copies `.git`, `.venv` and `corpora` into every revise root -- 284MB measured on this repo, per editorial stage, to set a docket over ~4MB of source |
-| [vocabulary-sweep-reads-a-moved-path](vocabulary-sweep-reads-a-moved-path.md) | systems | — | 0/3 | The one instrument that finds terms of art with no definition has crashed at startup since the 2026-08-24 package move, and three open TODOs are written against it working |
+| [docket-role-is-per-page-not-per-alteration](docket-role-is-per-page-not-per-alteration.md) | backend | — | 0/3 | role sits on the page in docket.py's schema, so provenance is lost the moment two roles settle places on one page |
+| [sheet-rename-gate-cannot-see-the-source](sheet-rename-gate-cannot-see-the-source.md) | systems | — | 0/2 | the gate's scope excludes the tree the retired sense actually survived in -- docs/gates.md: a check that could not have failed is not evidence |
+| [doc-on-the-declaring-line](doc-on-the-declaring-line.md) | backend | — | 0/3 | A docstring written on its declaration's own line takes no address, and the round trip invents a blank line |
+| [brief-forbids-the-full-address](brief-forbids-the-full-address.md) | agents | yes | 0/3 | reviewer-brief.md:109 instructs the bare cue; the seeder writes the full address and the checker refuses a substantive mark without it |
+| [brief-says-prose-is-withheld](brief-says-prose-is-withheld.md) | agents | yes | 0/3 | reviewer-brief.md:113 says the record withholds the prose so a role cannot rule without reading the code; flows/marks.py:81 puts raw_text on every mark and collator.py makes it load-bearing |
+| [brief-says-three-series](brief-says-three-series.md) | agents | yes | 0/3 | reviewer-brief.md:69 and :221 say three series; reading/series.py ADDRESSED is ('a','b','c','f') and SKILL.md:378 says four, so a role cannot resolve the @f0 place the same brief tells it to cite |
+| [brief-change-is-raw-text](brief-change-is-raw-text.md) | agents | yes | 0/2 | reviewer-brief.md:140 says change is the updated paragraph as RAW TEXT, not lines; desk/mark.py refuses a change that is not an ARRAY of lines, on a measurement of its own |
+| [skill-inverts-the-anchor-line](skill-inverts-the-anchor-line.md) | agents | — | 0/2 | SKILL.md's CANDIDATE paragraph describes the opposite of the line commands/census.py prints, and the reasoning built on it is what the task agent carries into every proposal |
+| [external-address-cites-dead-modules](external-address-cites-dead-modules.md) | backend | — | 0/1 | desk/external_address.py says the address is declared in binder/record.py and resolved in desk/desk.py; record.py left on b50e7a4 and desk.py is in no directory of this tree |
+| [no-command-for-the-middle](no-command-for-the-middle.md) | backend | — | 0/5 | `gather`, `places`, `reconcile` and `docket_from` have no CLI face, so nothing turns checked marks into the docket `proof --docket` requires. Measured 2026-08-29 on a real run: every other step of the chain is a command; this one had to be driven from a hand-written script |
+| [query-names-no-sentence](query-names-no-sentence.md) | backend | — | 0/3 | every other substantive instruction names the sentence it rules on through a `claim` key -- `false` for `correct`, `drop` for `drop`, `from` for `patch` -- and `query` has none, so `_sentence_key` falls back to an identity and two queries at one place read as two different sentences |
+| [brief-example-and-scope](brief-example-and-scope.md) | agents | — | 0/3 | the brief's worked example shows a 40-character `sha` where `bind` writes 16, and the brief says a source resolves against 'the repo' without saying whether that is the scoped tree or the checkout it was cut from |
+| [backlog-claims-it-cannot-mean](backlog-claims-it-cannot-mean.md) | systems | yes | 0/6 | The backlog claims things it cannot mean, and nothing was checking |
+| [vocabulary-sweep-reads-a-moved-path](vocabulary-sweep-reads-a-moved-path.md) | systems | — | 0/3 | vocabulary_sweep reads a path that moved, so nothing looks for undefined terms |
 
 ### in-progress  (20)
 
@@ -289,7 +301,7 @@ that changed a published name or rule:
 | [a-block-does-not-say-where-its-text-starts](a-block-does-not-say-where-its-text-starts.md) | backend | — | 9/10 | A block does not say where its text starts, so two things infer it |
 | [a-block-is-a-paragraph-on-a-page](a-block-is-a-paragraph-on-a-page.md) | backend | — | 3/11 | everything read by a human or an agent says paragraph; 706 internal identifiers remain |
 | [b-addresser-uninitialised](b-addresser-uninitialised.md) | backend | yes | 13/18 | The b addresser is never initialised at the module trigger, and computes its cue from line numbers |
-| [census-degrades-silently](census-degrades-silently.md) | backend | — | 4/8 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
+| [census-degrades-silently](census-degrades-silently.md) | backend | — | 5/8 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
 | [census-owns-addressing](census-owns-addressing.md) | backend | — | 4/8 | The census owns addressing, and four modules share one subject between them |
 | [ownership-is-read-first-but-nothing-makes-it-so](ownership-is-read-first-but-nothing-makes-it-so.md) | agents | — | 3/14 | `ownership-context` is read FIRST, and nothing in the run makes that true |
 | [page-and-addresser-scans](page-and-addresser-scans.md) | backend | — | 2/8 | page.py and addresser.py carry four scans that grow with the file and one CLI that contradicts the gate |
@@ -300,9 +312,9 @@ that changed a published name or rule:
 | [the-read-only-contract-is-enforced-by-nothing](the-read-only-contract-is-enforced-by-nothing.md) | agents | yes | 2/7 | The read-only contract is enforced by nothing, and four reviewers wrote files |
 | [the-shipped-python-does-not-pass-its-own-review](the-shipped-python-does-not-pass-its-own-review.md) | backend | yes | 7/12 | **Our own scripts spend a sixth of their prose on what the code does NOT do.** ! **Roy's reason, 2026-08-16: *"I don't want the system picking up bad cues from the documentation in the code."*** An agent reads these files and then writes in them. Re-measured after that day's rewrites: **136 of 697 (20%)** comment and docstring lines carry `cannot` / `never` / `does not` / `is not` / `nothing` -- UP from 123/714, because the prose written that day carries the same defect -- `census.py` worst at 52/284. Roy: *"census.py creates the pCST and that is it. Comments about 'cannot answer OWNERSHIP' are not helpful."* ! Not every negative is wrong -- an output (*"reports UNPROVABLE rather than passing"*) and a refusal aimed at a future editor both earn their place -- so the first task is writing the test that tells them apart !! **The hand-pass rule is STRUCK, 2026-08-18.** It told itself not to run `/comment-review` on this repo; Roy: *"By definition the code has to go through the review to state that it has passed."* A hand pass produces a rewrite, and this file's title is a claim about what the review RETURNS -- so it now closes on a run graded from the diff. ! The harness does not gate that: running the skill needs the skill |
 | [lexer-and-language-findings](lexer-and-language-findings.md) | backend | — | 3/28 | Ten findings in lexer.py and language.py, from three review rounds |
-| [generator-split-is-dead-at-import](generator-split-is-dead-at-import.md) | testing | — | 3/4 | `import census` resolves to nothing since 2026-08-24, so a command CLAUDE.md documents raises ModuleNotFoundError before it parses an argument -- and the eight symbols it wants are now spread across four areas |
+| [generator-split-is-dead-at-import](generator-split-is-dead-at-import.md) | testing | — | 3/4 | generator_split has been dead at import since the package move |
 
-### decision-needed  (24)
+### decision-needed  (25)
 
 _None -- the remaining rulings sit inside the two files rather than blocking them entirely; the
 other tasks can proceed without them._
@@ -329,22 +341,22 @@ other tasks can proceed without them._
 | [the-two-lists-were-tuned-to-one-diff](the-two-lists-were-tuned-to-one-diff.md) | agents | yes | 3/9 | **Both lists are DELETED from the brief; this holds what was inside them.** The acquittal list matched a prose SHAPE and claimed to be *"the ONLY reasons to pass a block over"* -- but what decides `clean` is stated per role and is a TRUTH assertion at that role's scope, so the two disagreed outright. Its measurement was `evidence/ga/`: ten candidates over SIX `redacted_pkg` files, scored on F1 against what one later commit rewrote -- and the search itself concluded *"the acquittal RATE is the trait; the acquittal LIST is just vocabulary."* The suppression list had no provenance at all. ! Three entries were CHECKS wearing an exemption's name, one CONTRADICTS `function-context`, and `detector` -- a settled term -- lost its only definition |
 | [two-live-runs-proposed-fifteen-changes](two-live-runs-proposed-fifteen-changes.md) | agents | yes | 11/21 | Two live runs proposed fifteen changes |
 | [null-is-not-a-decision](null-is-not-a-decision.md) | backend | yes | 0/2 | `null` is the delete signal, and it is also what a failed serialisation writes |
-| [staged-case-has-no-name-corpus](staged-case-has-no-name-corpus.md) | testing | yes | 0/4 | B2 stages a case into a bare directory, so `tracked_paths` returns None, `code_names` WALKS instead, and the census prints its WALKED_TREE caveat. Both arms read that caveat and correctly downgraded symbol findings from a tombstone `correct` to `query` -- so an answer key expecting a tombstone scores a miss for a reason that is the harness's, not the role's |
+| [strip-and-fill-the-markers](strip-and-fill-the-markers.md) | backend | yes | 0/8 | A role is handed the paragraph with its `#`/`"""` markers and indentation, and must reproduce them exactly in `change`. Measured 2026-08-29: three consecutive attempts by an agent with full context broke the file, and each failure read as a defect in the setter |
+| [staged-case-has-no-name-corpus](staged-case-has-no-name-corpus.md) | testing | yes | 0/4 | A staged case has no git, so every graded run gets a degraded name corpus |
 
 ### in flight  (0)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
 
-### blocked  (5)
+### blocked  (4)
 
 _None._
 
-| [a-closing-quote-with-a-comment](a-closing-quote-with-a-comment.md) | backend | — | 0/2 | the closing quote and the comment beside it are both stored, so the file gains a line |
 | [code-concerns-cannot-carry-a-proposed-change](code-concerns-cannot-carry-a-proposed-change.md) | backend | — | 0/9 | code_concerns is a bare list of strings, so a code problem reaches no gate |
 | [docstrings-that-contradict-themselves](docstrings-that-contradict-themselves.md) | backend | — | 2/12 | each states a rule and then denies it, in the same file |
 | [isolate-the-codes-contribution](isolate-the-codes-contribution.md) | testing | — | 4/10 | Two graded arms, orchestration held constant; the rewording is the confound |
-| [one-remit-is-a-closed-set](one-remit-is-a-closed-set.md) | agents | yes | 0/4 | `block-context` states a counted closed set of three claim-kinds; the other three roles name their remits as section headings. None of block-context's three is in the vocabulary, and `state` carries four senses in what an agent reads |
+| [one-remit-is-a-closed-set](one-remit-is-a-closed-set.md) | agents | yes | 0/4 | Only one role's remit is a closed set, and its three terms are undefined |
 ---
 
 ## Completed
@@ -410,3 +422,8 @@ the reason is inside the file.
 | [the-xfails-never-reach-the-galley](completed/the-xfails-never-reach-the-galley.md) | All three superseded by the compositor split. `_gap` no longer looks a place up by `(original_start, original_end)`, the class docstring no longer claims an unexpected success, and plan box R7 -- *'no expectedFailure survives this plan'* -- is judgeable again because the galley stopped doing two jobs. |
 | [foot-of-file-two-places](completed/foot-of-file-two-places.md) | The closing gap and the back matter both own prose at the foot, separated by a trailing leading -- the head rule in reverse. Roy ruled it 2026-08-26; decision-log.md Addressing: #19. |
 | [notations-collides-with-annotations](completed/notations-collides-with-annotations.md) | The name is alteration; the write side has all three containers -- alteration, schedule, docket -- and the docket is its own area carrying each page's path and sha, so the binder no longer reaches the write chain. decision-log.md Vocabulary: #14. |
+| [a-closing-quote-with-a-comment](completed/a-closing-quote-with-a-comment.md) | Fixed in paragraphs_stdlib -- a comment on a line a docstring owns is no longer a second paragraph. Both re-measurements verified 2026-08-29; the lexical Python reader was not needed. |
+| [mark-is-a-dict-not-a-type](completed/mark-is-a-dict-not-a-type.md) | desk/mark.py now defines Mark and parses one at the boundary -- a dict becomes a Mark or named problems, with no third outcome. The ruling field is 'instruction', typed Instruction. Proved by the defect it ends: the shipped brief's own worked example went from problems_in ([], 0) -- silently discarded and recounted as a coverage gap -- to ([], 1), counted as ruled. |
+| [change-is-raw-text-not-lines](completed/change-is-raw-text-not-lines.md) | desk/mark.parse takes `change` as raw text and refuses a list by name; the brief, docs/the-mark.md and the checker now agree, and the superseded line-array claim in the-fields-do-not-say-a-mark-may-cite-across T2 is corrected in place |
+| [master-proof-and-edit-copy](completed/master-proof-and-edit-copy.md) | desk/proof.gather builds a master_proof of one stage's edit_copies and refuses a mismatched root; seed nests marks under one sheet per page, each carrying path and sha |
+| [topology-is-a-source-edit](completed/topology-is-a-source-edit.md) | a run's stages are read from a TOML topology -- desk/topology.read, with three refusals -- and the STAGES literal and Stage.roles are deleted |

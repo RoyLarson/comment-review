@@ -12,6 +12,13 @@ TRIAGED:  2026-08-23 -- one of three boxes is a task; the other two were a measu
           The defect was RE-MEASURED live today and is unchanged.
 SPLIT:    2026-08-23 -- the one open box held a LEXICAL outcome and a PYTHON outcome,
           which degrade differently, and is now two. Three boxes became four.
+Measured: 2026-08-29 — 2026-08-29 -- NOT FIXED, but no longer SILENT. A BOM'd .py still
+          reaches ast.parse with the BOM in it and still produces no censused paragraph;
+          what changed is that commands/census.py now names the file and exits 1 instead
+          of reporting a complete census at exit 0. MEASURED: before, a BOM'd copy of a
+          nine-line control censused 0 paragraphs at exit 0 while the control censused
+          11. T1 and T2 are unchanged -- the readers still open with utf-8, not
+          utf-8-sig, and reading the BOM correctly is what closes this file.
 ```
 
 ## Objective

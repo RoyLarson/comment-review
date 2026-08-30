@@ -5,8 +5,13 @@
                     pull a revise
     Kind.ENRICHING  hands back facts -- into the next binder. No docket, no
                     revise, and no producer yet
-    Stage           one row: a name, a kind, the roles it dispatches
-    STAGES          the MARK sequence, `SKILL.md:544-583`
+    Role            the four editorial roles, closed, independent of any
+                    run's topology
+    ROLES           the companion to `Role` -- membership is asked of THIS
+    Dispatch        one role dispatched within a stage, and the pages it sees
+    Stage           one row: a name and a kind, plus (once a run's topology
+                    names them) what it reads, what it carries, and its
+                    dispatches -- each dispatch names the role that runs
     pulls_revise    is this stage's output followed by a revise?
 
 !! NO MODULE-LEVEL ALIAS OF A MEMBER, AND THERE WERE TWO UNTIL 2026-08-28:
@@ -43,13 +48,14 @@ which it is part of."*
 ! WHAT IT MEANS: a stage that hands back FACTS rather than marks -- resolutions
 fed into the next stage's binder. It seeds no docket and pulls no revise, which
 is what `pulls_revise` reads it for. `annotate` is stage 3 and resolves exactly
-that kind of fact; it is not in this stage-4 list today, so nothing in `src/`
+that kind of fact; no run's topology names it today, so nothing in `src/`
 constructs an ENRICHING `Stage` yet.
 
 ! WHY THAT IS NOT SPECULATIVE MACHINERY: the candidate is NAMED and the move is
 already filed -- `TODO/annotate-belongs-in-concordance.md`. ! WHAT IS NOT
-CLAIMED is that anything exercises it: no `STAGES` row is ENRICHING, so
-`pulls_revise`'s False branch is unreachable from this module's own data.
+CLAIMED is that anything exercises it: no shipped topology fixture builds an
+ENRICHING stage, so `pulls_revise`'s False branch is unreachable from this
+module's own data.
 
 !! AND THE DROP IS RECORDED BECAUSE OF HOW IT HAPPENED. A session showed Roy a
 bare `ENRICHING` -- which was then ALSO a module-level alias -- while asking
@@ -68,6 +74,21 @@ never hand-typed, following `T1.15` of `docs/plans/0.2.4-the-mark-and-the-
 collator.md`. No site in this module asks membership of `Kind` itself --
 `x in SomeEnum` raises `TypeError` on Python 3.11, measured at `lexer.py:87`
 -- so there is no companion frozenset here; nothing in this file needs one.
+
+!! `STAGE` GAINED THREE DEFAULTED FIELDS -- `reads`, `carries`, `dispatches` --
+for `desk/topology.py` to build. `docs/superpowers/specs/2026-08-29-the-
+master-proof-and-reconciliation-design.md` section 2 specifies a `Stage`
+NamedTuple of its own; it EVOLVES this one in place instead, because a second
+same-named type in this package is the collision `Kind` already had to
+declare once. `topology.py` imports `Stage` and `Dispatch` from here rather
+than defining them.
+
+!! `roles` AND THE `STAGES` LITERAL ARE GONE. `STAGES` answered two questions
+-- which roles exist, and when they run; `Role` took the first, and a run's
+topology file, read by `desk/topology.py`'s `read()`, took the second.
+`roles` was a second, unmaintained answer to the second question and is
+removed -- `decision-log.md Process: #38`, `TODO/topology-is-a-source-edit.md`
+T3. A stage's roles now come from `[d.role for d in stage.dispatches]`.
 """
 
 from enum import StrEnum, auto
@@ -99,34 +120,81 @@ class Kind(StrEnum):
     ENRICHING = auto()
 
 
+class Role(StrEnum):
+    """The four editorial roles -- a closed set, independent of any topology.
+
+    !! A RUN'S TOPOLOGY MUST NOT DECIDE WHICH ROLE NAMES ARE VALID --
+    `TODO/topology-is-a-source-edit.md`. A run's topology file, read by
+    `desk/topology.py`'s `read()`, names which roles run together and in
+    what order; `Role` names which roles EXIST at all, and that question
+    does not move when the schedule does.
+
+    ! No site in this module asks membership of `Role` itself -- `x in
+    SomeEnum` raises `TypeError` on Python 3.11, measured at `lexer.py:87` --
+    `ROLES = tuple(Role)` below is the companion asked instead.
+    """
+
+    @staticmethod
+    def _generate_next_value_(
+        name: str, start: int, count: int, last_values: list[str]
+    ) -> str:
+        return name.lower().replace("_", "-")
+
+    OWNERSHIP_CONTEXT = auto()
+    BLOCK_CONTEXT = auto()
+    FUNCTION_CONTEXT = auto()
+    MODULE_CONTEXT = auto()
+
+
+#: The companion to `Role` -- membership is asked of THIS, never of the
+#: class. `SKILL.md`'s stage-4 table order: `ownership-context` alone at 4a,
+#: then `block-context`, `function-context`, `module-context` at 4c.
+ROLES = tuple(Role)
+
+
+class Dispatch(NamedTuple):
+    """One role dispatched within a stage, and the pages it sees.
+
+    Attributes:
+        role: which of the four editorial roles this dispatch runs.
+        paths: the glob patterns selecting this dispatch's pages. Empty
+            means every page in the binder -- `desk/topology.py` fills this
+            in from a `[[stage.dispatch]]` table with no `paths` key.
+    """
+
+    role: Role
+    paths: tuple[str, ...]
+
+
 class Stage(NamedTuple):
     """One stage of MARK.
 
     Attributes:
         name: the stage's own label, drawn from `SKILL.md`'s stage-4 table
-            (`4a`, `4c`).
+            (`4a`, `4c`) or, for a stage a run's topology file names, that
+            file's own `name` key.
         kind: a `Kind` -- what `pulls_revise` reads. Typed as `Kind` and not
             `str`: annotated `str`, the type gate admitted
             `Stage("x", "banana", ())`, measured 2026-08-28.
-        roles: the role names this stage dispatches, in `SKILL.md`'s order.
+        reads: what this stage reads -- `"original"`, or `"revise:<name>"`
+            naming an earlier stage's pulled revise. Set by `topology.py`;
+            defaults to `"original"`.
+        carries: the names of earlier stages whose `edit_copies` this stage
+            carries forward, unsettled, alongside what it reads. Format
+            only -- `docs/superpowers/specs/2026-08-29-the-master-proof-and-
+            reconciliation-design.md` section 2 -- `topology.py` refuses a
+            non-empty value rather than building it.
+        dispatches: the `Dispatch` rows this stage runs, in the run's
+            topology file order. Set by `topology.py`; defaults to `()`.
+            A stage's roles are `[d.role for d in stage.dispatches]` --
+            there is no separate `roles` field.
     """
 
     name: str
     kind: Kind
-    roles: tuple[str, ...]
-
-
-#: The MARK sequence -- `SKILL.md:544-583`. 4a runs `ownership-context` alone
-#: and first; 4c runs the other three in one message, blind to each other,
-#: against 4a's resolved placement.
-STAGES: tuple[Stage, ...] = (
-    Stage("4a", Kind.EDITORIAL, ("ownership-context",)),
-    Stage(
-        "4c",
-        Kind.EDITORIAL,
-        ("block-context", "function-context", "module-context"),
-    ),
-)
+    reads: str = "original"
+    carries: tuple[str, ...] = ()
+    dispatches: tuple[Dispatch, ...] = ()
 
 
 def pulls_revise(stage: Stage) -> bool:
@@ -136,8 +204,9 @@ def pulls_revise(stage: Stage) -> bool:
     `Kind.ENRICHING` stage hands facts into the next binder; it seeds no docket
     and pulls nothing.
 
-    ! TRUE FOR EVERY ROW IN `STAGES`, because both are EDITORIAL and nothing
-    constructs an ENRICHING `Stage` yet. The False branch is reachable only
-    from a `Stage` a caller builds itself.
+    ! TRUE FOR EVERY STAGE A SHIPPED TOPOLOGY FIXTURE BUILDS
+    (`tests/fixtures/topologies/*.toml`), because every one is EDITORIAL and
+    nothing constructs an ENRICHING `Stage` yet. The False branch is
+    reachable only from a `Stage` a caller builds itself.
     """
     return stage.kind == Kind.EDITORIAL

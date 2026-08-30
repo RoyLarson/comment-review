@@ -2,7 +2,7 @@
 
 ```
 Status:   blocked (python-cannot-read-python -- the lexical Python reader)
-Progress: 0 of 2 tasks done
+Progress: 2 of 2 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the compositor round trip over `corpora/`, 2026-08-21 -- one of 7
@@ -22,6 +22,16 @@ TRIAGED:  2026-08-23 — ALL ELEVEN BOXES WERE RECORDS -- one measurement, three
 SPLIT:    2026-08-23 -- the remaining box carried TWO ARTIFACTS in its Verify -- the
           compositor's round-trip identity and the census's tiling -- so it is two boxes.
           Neither fits in two lines while carrying the other.
+Closed:   2026-08-29 — 2026-08-29 -- BOTH VERIFIED, but by the OTHER route. Roy ruled
+          2026-08-21 that this falls out of the lexical Python reader; it was fixed in
+          the TOKENIZED one instead, and python-cannot-read-python is untouched.
+          paragraphs_stdlib no longer returns a second paragraph for a comment on a line
+          a docstring owns -- the docstring's raw_lines already set that line back
+          verbatim. T1: lossless returns None for all three numpy files. T2: census over
+          corpora/numpy/numpy/exceptions.py gives line 246 exactly one address, @a9. !
+          The defect ALSO reached the one-line docstring form, where it was invisible:
+          code_lines answered correctly by accident of sort order while the addressless
+          paragraph was produced either way.
 ```
 
 ## Objective
@@ -95,7 +105,7 @@ settles it without a guard: the run owns the whole closing line.**
 
 ## Tasks
 
-- [ ] T1 -- Re-run `compositor.lossless` over the three numpy files named in the Objective
+- [x] T1 -- Re-run `compositor.lossless` over the three numpy files named in the Objective
       once the lexical Python reader lands. Verify: it returns `None` for all three.
-- [ ] T2 -- Re-census `corpora/numpy/numpy/exceptions.py` and close this file. Verify:
+- [x] T2 -- Re-census `corpora/numpy/numpy/exceptions.py` and close this file. Verify:
       line 246 carries exactly ONE address.

@@ -2,13 +2,23 @@
 
 ```
 Status:   open
-Progress: 0 of 3 tasks done
+Progress: 3 of 3 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-27, splitting the residue out of Roy's correction on relational
           findings ("It is disjoint but both parts are fully cite-able and stated in
           the current findings") -- two of the three forms need no new shape; this
           one is a bucketing defect and not a shape defect at all
+Updated:  2026-08-29 — T2's *decided once* half landed only now, in desk/collator.py's
+          _join_moves. The grouping half (T1) had been delivered, but reconcile sorted
+          each of a move's two places INDEPENDENTLY, so the origin could settle while
+          the destination went back for a re-read -- and docket_from packages settled
+          alone, so the docket deleted the origin and never wrote the destination.
+          _join_moves lifts every move to the strongest outcome either end was given, to
+          a fixed point, before any bucket is read. Tested both directions in
+          tests/test_reconcile.py, and no-docket-carries-one-end in
+          tests/test_docket.py; all four go red when _join_moves is replaced with a no-
+          op.
 ```
 
 ## Objective
@@ -54,11 +64,20 @@ an `agents` file.
 
 ## Tasks
 
-- [ ] T1 -- Write the failing case FIRST: a `move` from `a0` to `a8` and another role's `correct`
+- [x] T1 -- Write the failing case FIRST: a `move` from `a0` to `a8` and another role's `correct`
       on `a8`, over one base. Verify: it asserts an escalation, and FAILS on today's bucketing by
       taking both in silently.
-- [ ] T2 -- Make a mark contribute to every place it touches while being decided once. Verify:
+- [x] T2 -- Make a mark contribute to every place it touches while being decided once. Verify:
       T1 passes, and a `move` whose destination carries no other mark still settles without
       escalating.
-- [ ] T3 -- Prove the widening did not make `move` escalate by default. Verify: a run of the
-      round-2 marks settles the same 13 of 16 places it settled before.
+- [x] T3 -- Prove the widening did not make `move` escalate by default. Verify: a run of the
+      round-2 marks settles 11 of 16 places, escalates 0 and re-reads 5.
+      ! **THIS SAID "THE SAME 13 OF 16" AND THAT FIGURE IS SUPERSEDED**, corrected 2026-08-29.
+      It was measured under SILENT-MERGE semantics, which `decision-log.md Process: #49`
+      replaced: 3 places carrying 2+ marks on different sentences and 2 `add` places move to
+      re-read, and the 3 that previously escalated now settle -- `13 - 5 + 3 = 11`. The 16 is
+      places carrying at least one mark that owes a change, out of 76 addresses round 2 marked
+      at all. Re-derived twice: through `desk.collator.reconcile`, and separately straight from
+      `evidence/the-loop-measured-2026-08-27/marks.jsonl`, so the check is not the code agreeing
+      with itself. ! **A CHECKED BOX ASSERTING A SUPERSEDED FACT READS AS SETTLED**, which is why
+      the wording is corrected rather than left beside the new number.

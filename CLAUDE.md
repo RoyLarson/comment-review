@@ -128,7 +128,10 @@ uv run python evals/generator_split.py <corpus-dir> [paths...]
 uv run python scripts/find_llm_repos.py --pages 3 --min-hits 2
 
 # Run the test suite. PYTEST, and only pytest.
-uv run pytest -q                    # 873 passed, 1 skipped, 3 xfailed, 451 subtests, ~1.6s
+uv run pytest -q                    # 1260 passed, 1 skipped, 3 xfailed, 537 subtests, ~11s
+                                    # measured 2026-08-29 on `feat/the-mark-and-the-collator`;
+                                    # it read `873 ... 451 subtests, ~1.6s` until then, which is
+                                    # the set BEFORE the mark, the collator and the topology
                                     # the skip needs symlinks; it runs where they exist.
                                     # ! THE SUBTEST COUNT MOVES WITH `TODO/`: three per
                                     # open file, from `tests/gates/test_todo_counts_agree.py`
@@ -257,9 +260,17 @@ uv run python scripts/measure_negative_prose.py <commit> [<commit> ...] [--prefi
 claude plugin validate plugins/comment-review
 ```
 
-Tests are written as stdlib `unittest` cases, with per-language fixtures under
-`tests/fixtures/` -- one short, ordinary file per language row, which is what
-`test_fixture_identity.py` runs the round trip over.
+Tests are written in plain `pytest`, and build their inputs from the code -- pages from
+`page_for` over real source, binders from `bind`. `tests/gates/` is the exception and is still
+`unittest.TestCase`, which is what `unittest discover` finds.
+
+!! **THIS PARAGRAPH SAID THE OPPOSITE UNTIL 2026-08-29**, and had since 2026-08-25: *"Tests are
+written as stdlib `unittest` cases, with per-language fixtures under `tests/fixtures/` -- one
+short, ordinary file per language row, which is what `test_fixture_identity.py` runs the round
+trip over."* Every clause of it is now false, and the note in the command block above -- *"THE
+SUITE WAS REPLACED WHOLESALE ON 2026-08-25"* -- already said so: the
+suite was replaced wholesale, `tests/fixtures/` holds only `topologies/`, and
+`test_fixture_identity.py` is in no directory of this tree.
 
 !! **THE STDLIB-ONLY RULE IS ABOUT `plugins/`, AND THIS SAID OTHERWISE UNTIL
 2026-08-22.** It read *"there are no third-party test dependencies, matching the

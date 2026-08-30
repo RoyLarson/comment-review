@@ -2,12 +2,28 @@
 
 ```
 Status:   open
-Progress: 0 of 8 tasks done
+Progress: 5 of 8 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
           Both were ruled the same day and neither had a backlog entry, so the plan
           steps that build them cited rulings rather than tasks.
+Superseded: 2026-08-29 — 2026-08-29, `decision-log.md Process: #49`: a COMPOSITION of
+            edits must be re-read, so the revise step now asks TWO questions -- *which
+            of these?* on a conflict, and *does this still read?* on a composition --
+            and five tasks here assumed only the first. !! T1 (the four answers) is the
+            sharpest: **a role cannot `hold` or `withdraw` a claim it never made**,
+            which is exactly what a composition re-read asks it to judge. T2 seeds a
+            sheet PER CONFLICT; T3's four outcomes are all conflict outcomes; T6's
+            *party to* was defined by disagreement and is now three routes -- disagreed,
+            co-edited, or holds a page that took an `add`; T8's two-round cap counted
+            rounds of DISAGREEMENT and no longer says what it counts. ! CHECKED AS
+            SUPERSEDED, NOT DONE -- `CLAUDE.md`'s table, so the record of what they said
+            stays legible. ! T4, T5 and T7 STAND: query routing, query counting and the
+            cross-stage reversal are untouched by within-stage composition. ! THE
+            REPLACEMENT WORK IS `T6.7`-`T6.11` of `docs/plans/0.2.4-the-mark-and-the-
+            collator.md`, and the answer set itself waits on `no-mark-for-let-it-stand`
+            T1, an open `agents` ruling -- publishing's `stet` is the candidate.
 ```
 
 ## Objective
@@ -83,22 +99,22 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
 
 ## Tasks
 
-- [ ] T1 -- The four answers as a closed set, derived from `rules_on_text` plus the two that are
+- [x] T1 -- The four answers as a closed set, derived from `rules_on_text` plus the two that are
       not marks. Verify: it cannot drift from `INSTRUCTIONS`, and a fifth answer is refused.
-- [ ] T2 -- A revise sheet, seeded per conflict, carrying the rendered diff. Verify: every row
+- [x] T2 -- A revise sheet, seeded per conflict, carrying the rendered diff. Verify: every row
       names the conflict it answers, and a row left unanswered is neither held nor withdrawn.
-- [ ] T3 -- The four outcomes. Verify: any new mark relitigates; two holds escalate; hold plus
+- [x] T3 -- The four outcomes. Verify: any new mark relitigates; two holds escalate; hold plus
       withdraw takes the held claim in; two withdraws pick one and re-ask.
 - [ ] T4 -- Route a `query` by shape. Verify: `human-review-necessary` never returns to a role,
       and `unable-to-determine` carries the question into the next ask.
 - [ ] T5 -- Count queries first raised at revise. Verify: the run reports the number, and it is
       zero on a set of marks where every query was raised in round one.
-- [ ] T6 -- A revise sheet is addressed to a ROLE, not to a stage, and carries only the rows that
+- [x] T6 -- A revise sheet is addressed to a ROLE, not to a stage, and carries only the rows that
       role is party to. Verify: a role party to one place in a stage it did not otherwise join
       receives a one-row sheet, and no row names a place it is not party to.
 - [ ] T7 -- A reversal is a row, paired with whoever LAST set the statement. Verify: stage 3
       reversing a paragraph stage 2 set pairs with stage 2 and not with stage 1, read from the
       revise's per-place provenance.
-- [ ] T8 -- Enforce the two-round cap `Process: #9` already ruled. Verify: a third round cannot
+- [x] T8 -- Enforce the two-round cap `Process: #9` already ruled. Verify: a third round cannot
       start, the place reaches the copy chief carrying every round's marks, and the run reports
       the rounds each place took.

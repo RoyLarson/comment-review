@@ -1,9 +1,14 @@
-"""The dataclass carries exactly what the spec allows, and no prose.
+"""The dataclasses carry exactly what the spec allows, and no prose.
 
 ! EXPECTATION FROM `docs/the-mark.md`. `decision-log.md Process: #37` records
 what it cost to have no file able to refuse a field: a 22-field classifier
 scheme entered `desk/mark.py` during a port that was never proposed and never
 approved, because nothing could name what the row was allowed to carry.
+
+!! TWO TABLES, TWO TYPES. `Row` answers "The classifiers"; `Mark` answers "The
+fields -- seven". Both are READ out of the spec here, never restated -- adding
+a row to either table fails this file until the type follows, which is the only
+form of the check that cannot be satisfied by editing the code alone.
 
     uv run pytest -q tests/gates/test_mark_shape.py
 """
@@ -14,9 +19,53 @@ import re
 import pytest
 from conftest import ROOT
 
-from comment_review.desk.mark import INSTRUCTIONS, Row
+from comment_review.desk.mark import INSTRUCTIONS, Mark, Row
 
 SPEC = (ROOT / "docs" / "the-mark.md").read_text(encoding="utf-8")
+
+#: The section stating the mark's own fields -- `## The fields -- seven` up to
+#: the next `##` heading. Scoped the same way `_SECTION` below is, so no other
+#: backtick-first-column table in the file can be picked up.
+_FIELDS_SECTION = re.search(
+    r"^## The fields -- seven.*?(?=^## )", SPEC, re.MULTILINE | re.DOTALL
+).group()
+
+
+def _field_names() -> list[str]:
+    """The mark's field names, read out of the spec's own table.
+
+    The table's first column names each in backticks -- `| \\`address\\` | ...`
+    -- and the header and separator rows carry no backticks, so neither
+    matches.
+    """
+    return re.findall(r"^\| `([a-z_]+)` \|", _FIELDS_SECTION, re.MULTILINE)
+
+
+def test_the_spec_states_SEVEN_fields():
+    """The heading says seven, and the table under it must hold seven -- so a
+    row added or lost is caught here rather than by the comparison below
+    quietly agreeing with a shorter list."""
+    names = _field_names()
+    assert len(names) == 7, names
+
+
+def test_the_mark_carries_exactly_the_fields_the_spec_NAMES():
+    """!! THE EXPECTATION IS THE SPEC'S TABLE, NOT A LIST TYPED HERE. Roy,
+    2026-08-29: *"mark.py should define a Mark that follows 'the_mark.md' that
+    is not negotiable."* A test restating the seven could only confirm, and a
+    restated field name is exactly how `mark` and `instruction` came to name
+    one thing in two files."""
+    have = [f.name for f in dataclasses.fields(Mark)]
+    assert have == _field_names()
+
+
+def test_no_field_is_spelled_two_ways():
+    """T6's verify: the file and the code name the same seven, so a reader
+    grepping either spelling finds the whole set. The retired spelling of the
+    ruling field was `mark`, which is also the name of the OBJECT -- the
+    self-nesting that made this ambiguous."""
+    assert "mark" not in _field_names()
+    assert "instruction" in _field_names()
 
 #: The section stating the four columns and the seven flags, and nothing
 #: else -- `## The classifiers ...` up to the next `##` heading,

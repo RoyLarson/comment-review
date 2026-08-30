@@ -3,9 +3,14 @@
 ! THE EXPECTATION IS A LITERAL COPIED FROM `reviewer-brief.md`, never from
 `INSTRUCTIONS` -- `decision-log.md Vocabulary: #23`. A suite that builds its
 cases from the table it is checking can only confirm.
+
+! THE BRIEF'S OWN WORKED EXAMPLE IS RUN IN
+`tests/test_brief_worked_example.py`, read out of the shipped file rather than
+retyped. Every mark below is keyed `instruction`, which is what the brief
+publishes and what the code read as `mark` until 2026-08-29.
 """
 
-from comment_review.desk.mark import allowed, problems
+from comment_review.desk.mark import Instruction, allowed, parse
 
 # The brief's published table, reviewer-brief.md:280-288, copied by hand.
 BRIEF = {
@@ -24,20 +29,22 @@ def test_every_instruction_owes_the_keys_the_brief_publishes():
 
 
 def test_an_add_written_from_the_brief_is_accepted():
-    mark = {
-        "mark": "add",
+    entry = {
+        "instruction": "add",
         "address": "src/m.py@b3",
         "reason": "the guard's direction is undocumented",
         "claim": {"missing": "the guard rejects zero", "anchor": "`compute_rates`"},
-        "change": ["# Rejects zero."],
+        "change": "# Rejects zero.",
         "sources": [{"cite": "src/m.py:12", "verbatim": "if n == 0: raise"}],
     }
-    assert problems("src/m.py@b3", mark) == []
+    mark, why = parse("src/m.py@b3", entry)
+    assert why == []
+    assert mark is not None and mark.instruction is Instruction.ADD
 
 
 def test_a_query_written_from_the_brief_is_accepted():
-    mark = {
-        "mark": "query",
+    entry = {
+        "instruction": "query",
         "address": "src/m.py@b3",
         "reason": "the units are not stated anywhere I can read",
         "claim": {
@@ -47,15 +54,18 @@ def test_a_query_written_from_the_brief_is_accepted():
         },
         "sources": [{"cite": "src/m.py:12", "verbatim": "rate = n / total"}],
     }
-    assert problems("src/m.py@b3", mark) == []
+    mark, why = parse("src/m.py@b3", entry)
+    assert why == []
+    assert mark is not None and mark.instruction is Instruction.QUERY
 
 
 def test_a_query_naming_a_shape_outside_the_three_is_refused():
-    mark = {
-        "mark": "query",
+    entry = {
+        "instruction": "query",
         "address": "src/m.py@b3",
         "reason": "unclear",
         "claim": {"shape": "i-give-up", "attempted": "read it", "settles": "a human"},
         "sources": [{"cite": "src/m.py:12", "verbatim": "rate = n / total"}],
     }
-    assert problems("src/m.py@b3", mark) != []
+    mark, why = parse("src/m.py@b3", entry)
+    assert mark is None and why != []

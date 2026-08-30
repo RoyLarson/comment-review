@@ -36,7 +36,7 @@ from comment_review.binder.binder import bind
 from comment_review.desk.collator import known_addresses
 from comment_review.flows import proof_setter
 from comment_review.flows.page_for import page_of
-from comment_review.machine.repo import walk_files
+from comment_review.machine.repo import remove_tree, walk_files
 from comment_review.reading.addresser import address_for
 from comment_review.reading.lexer import language_for
 
@@ -52,13 +52,11 @@ class Pulled(NamedTuple):
             T2 is what a binder later reads this against.
         set_by: address -> the role that set it, over every alteration the
             docket named. This is the provenance a later phase (P6) routes
-            on, not decoration. ! THE DOCKET CARRIES NO `role` FIELD YET --
-            `docket.py`'s schema has three keys per page (`path`, `sha`,
-            `alterations`) and none per role. A page dict MAY carry one
-            anyway (`read` and `schedules_of` ignore unknown keys), and this
-            reads it when present; a docket with none maps every one of its
-            addresses to `""`. The producer that tags a docket by role is not
-            built yet -- see the TODO above, T1 and T2.
+            on, not decoration. `role` is one per page in `docket.py`'s
+            schema (`path`, `sha`, `role`, `alterations`) and optional --
+            `desk.collator.docket_from` is what writes it, from T4.2's
+            settled places; a docket with none maps every one of its
+            addresses to `""`.
         refusals: every `proof_setter.Refusal`, or `[]` on success. Non-empty
             means `root` was discarded and does not exist.
     """
@@ -127,7 +125,16 @@ def pull(docket: dict, repo: Path, into: Path, revise: int) -> Pulled:
             # here is the copy `pull` made before calling it, and
             # `Process: #20` applies to that copy exactly as it applies to
             # the drafts.
-            shutil.rmtree(into)
+            #
+            # !! `repo.remove_tree`, NOT `shutil.rmtree`, SINCE 2026-08-29 --
+            # the copy above includes `.git`, whose loose objects git writes
+            # READ-ONLY and Windows refuses to unlink. MEASURED on this
+            # machine: `shutil.rmtree` raised `PermissionError: [WinError 5]`
+            # and left 15 entries, so a refused `proof` run on the platform
+            # `CLAUDE.md` names as primary exited with a traceback AND left a
+            # complete-looking revise root holding none of the corrections --
+            # falsifying `Pulled.refusals`' own docstring.
+            remove_tree(into)
             return Pulled(root=into, revise=revise, set_by={}, refusals=refusals)
 
         for made in drafted:
@@ -170,10 +177,16 @@ def pull(docket: dict, repo: Path, into: Path, revise: int) -> Pulled:
         # copy and the gate leaves exactly the same half-set on disk, and the
         # claim being kept here is about what a later stage can find, not about
         # which class of thing went wrong. Re-raised immediately.
-        shutil.rmtree(into, ignore_errors=True)
+        #
+        # ! `ignore_errors` STILL, AND `remove_tree` STILL CLEARS THE WRITE BIT
+        # FIRST. An exception is already in flight here, so a second one raised
+        # while removing would replace the one the caller needs; what
+        # `shutil.rmtree(ignore_errors=True)` did instead was skip every
+        # read-only `.git` object and leave the copy standing at exit.
+        remove_tree(into, ignore_errors=True)
         raise
     finally:
-        shutil.rmtree(scratch, ignore_errors=True)
+        remove_tree(scratch, ignore_errors=True)
 
 
 def assert_addresses_held(original: Path, pulled: Pulled) -> None:
@@ -231,8 +244,9 @@ def _binder_over(root: Path, revise: int) -> dict:
 def _set_by(docket: dict) -> dict[str, str]:
     """Every altered address, mapped to the role that set it.
 
-    ! READS AN OPTIONAL, NOT-YET-PRODUCED FIELD. See `Pulled.set_by`'s own
-    docstring for why `""` is what a docket with no `role` field yields.
+    ! READS AN OPTIONAL FIELD. `role` is per page and `desk.collator.docket_from`
+    is what writes it; see `Pulled.set_by`'s own docstring for why `""` is what
+    a docket with no `role` field yields.
 
     Args:
         docket: as `docket.read` returned it.

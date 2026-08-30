@@ -85,7 +85,7 @@ system has a different problem with each.
 | publishing's word | what it names there | ours |
 | --- | --- | --- |
 | **collating** | transferring every hand's marks onto ONE proof. Where two marks conflict, both go down and the conflict is left visible. It decides nothing | `collator.py`, ruled 2026-08-23 (`decision-log.md Vocabulary: #11`) and still to be built. It rules on nothing by design |
-| **master proof** | the single copy every mark has been collated onto, and the one the house then works from | **unnamed.** It is what `verdicts.py` prints |
+| **master proof** | the single copy every mark has been collated onto, and the one the house then works from | **`master_proof`**, ruled 2026-08-29 (`decision-log.md Vocabulary: #28`). It is what `verdicts.py` printed before that module left for `prototype/` |
 | **editor** | who reads the master proof and decides what stands | **the COPY CHIEF**, ruled 2026-08-23. Stage 5 APPLY, performed by the task agent today and getting an agent file of its own |
 
 ! **THE THREE ARE NOT ONE JOB, WHICH IS WHY ONE WORD WOULD NOT FIT.** Collating is mechanical and
@@ -135,6 +135,39 @@ refuses a term no role uses, and the rule two sections down applies to a term ar
 to one leaving.
 
 ! Tracked in [`TODO/verdicts-is-the-join.md`](../TODO/verdicts-is-the-join.md).
+
+## The middle has four containers -- `master_proof`, `edit_copy`, `sheet`, `mark`
+
+**Ruled 2026-08-29** (`decision-log.md Vocabulary: #28`), naming the level the three-container
+table below (`binder`/`docket`, `page`/`schedule`, row/`alteration`) has no equivalent for:
+
+    master_proof
+      +-- edit_copy        one per role; one per SHARD under fan-out
+            +-- sheet      one per page
+                  +-- mark one per place
+
+| term | what it is |
+| --- | --- |
+| **`master_proof`** | holds every `edit_copy` of one stage. Never holds a `sheet` directly |
+| **`edit_copy`** | one role's own copy of the pages it was handed -- `{role, read_from, sheets}` |
+| **`sheet`** | one page inside an `edit_copy` -- `{path, sha, marks}` |
+| **`mark`** | one role's ruling on one place -- a live term, defined in `vocabulary.toml` |
+
+! **`binder` AND `docket` HAVE NO ROLES LEVEL.** Roy: *"They are separate containers, and
+calling each of them as having a `master_proof` would be incorrect."* One binder goes out to
+every role; in between there are N marked copies, one per role; one docket comes back.
+
+!! **`sheet` CHANGES SENSE, AND THE OLD ONE WAS IN `flows/marks.py`'s OWN PROSE.** It named the
+PER-ROLE container there -- *"Hand a role a sheet to fill"* -- while the same docstring also used
+it correctly for the page-unit one sentence later: *"one sheet per page."* It now names only the
+page-unit; the container is `edit_copy`.
+
+! **`edit_copy` BECAUSE THE REGISTER IS THE COPY DESK, NOT THE BINDERY.** Roy: *"it isn't
+overloaded with the other copy's it is adjacent and explicit."* This file already records that
+the binder is *"a 3-ring binder full of stuff not binder as the person who bounds books"* (see
+`binder`, below), and cut a justification reaching for the bookbinder's `gathering` -- so
+`gathering` and `sheaf` were already out of register. `edit_copy` sits beside `copy` and `copy
+desk`, the trade's own words, and `copy chief`, ruled above.
 
 ## `binder` -- the object, and the one sense it carries
 
