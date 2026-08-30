@@ -76,6 +76,14 @@ Reframed: 2026-08-30 — T18 and T19 are SUPERSEDED by T54 and T55. What execute
           the run's own report -- so the artifact is the run's revise diff against END's
           diff, not a findings file and not the marks, which ARE the self-report that
           rule forbids grading from. Roy approved the framing 2026-08-30.
+Deferred: 2026-08-30 — T55 still waits, and the named event has MOVED rather than
+          cleared. flows/collate.py landed 2026-08-30 with collate(stage, edit_copies,
+          binder) -> Collated, but as of that merge Collated.chief is an edit_copy
+          rather than a docket, no commands/collate.py exposes it, and commands/mark.py
+          still imports desk.collator directly -- the layering violation its own comment
+          names. The gap for T55 is now chief copy to docket to proof, and the lane is
+          mid-landing, so this is a reading of a moving tree rather than a settled
+          dependency.
 ```
 
 ## Objective
