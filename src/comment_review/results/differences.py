@@ -1,7 +1,16 @@
-"""Renders the difference between two texts.
+"""Renders the difference between two texts, and composes them where disjoint.
 
-One module, two renderings -- `unified` is the first; `diff3` is the second,
-rendering the base paragraph plus every role's edit.
+One module, three operations over a base and its sides:
+
+    unified(before, after, path)   the unified diff, one side against another
+    diff3(base, sides)             the base with every edited span wrapped
+    compose(base, sides)           the base with every side's edit applied,
+                                    where no two sides touched one span
+
+!! `diff3` RENDERS AND `compose` ACTS, and the pair is the reason both live
+here. `diff3` wraps every span at least one side edited, even where only one
+side touched it, so a person can read what each side did. `compose` acts on
+the DISJOINTNESS that render only shows, and refuses where two sides met.
 
 !! NO GIT PROCESS. A revise root is a temp copy `flows.revise.pull` made and
 need not be a repo -- `difflib.unified_diff` reads two strings, not two
@@ -108,6 +117,73 @@ def diff3(base: str, sides: dict[str, str]) -> list[str]:
         at = end
     out.extend(base_lines[at:])
     return out
+
+
+class CannotCompose(Exception):
+    """Two or more sides edited one span of the base, so no composition exists.
+
+    !! RAISED, NOT RETURNED AS A SENTINEL, so a caller cannot mistake a refusal
+    for text. A composed paragraph and "no composition" are different kinds of
+    answer, and an empty string is a legal paragraph -- `drop`'s.
+
+    ! IT NAMES THE SPAN AND THE SIDES. A refusal a caller can only report as
+    "it did not work" cannot be sent back to anybody, which is what
+    `decision-log.md Process: #51` asks of every step that leaves work undone.
+    """
+
+
+def compose(base: str, sides: dict[str, str]) -> str:
+    """The base with every side's edit applied, where no two sides met.
+
+    !! THIS IS THE ARITHMETIC HALF OF `diff3`, and the pair is why both live
+    here. `diff3` wraps every span at least one side edited, EVEN WHERE ONLY ONE
+    SIDE TOUCHED IT, because its job is to show a person what each side did.
+    This applies exactly those single-side spans and refuses the rest.
+
+    ! A SIDE THAT CHANGED NOTHING AT A SPAN IS NOT A PARTY TO IT.
+    `_touching_roles` returns only the roles with a non-`equal` opcode there, so
+    three roles of which one edited compose to that one's text.
+
+    Args:
+        base: the paragraph before any of these edits -- the BINDER's
+            `raw_text`, never a returned mark's. `desk.collator.base_texts` is
+            what supplies it; see the SP-1 spec's D10 for why.
+        sides: role name -> that role's proposed `change`, both whole
+            paragraphs as raw text (`decision-log.md Vocabulary: #27`).
+
+    Returns:
+        The composed paragraph. An empty `sides` returns `base` unchanged --
+        nothing was proposed, so nothing is applied.
+
+    Raises:
+        CannotCompose: some span was edited by two or more sides, naming the
+            base lines and every side that touched them.
+    """
+    base_lines = base.splitlines(True)
+    roles = sorted(sides)
+    sides_lines = {role: sides[role].splitlines(True) for role in roles}
+    opcodes: dict[str, list[_Opcode]] = {
+        role: difflib.SequenceMatcher(None, base_lines, sides_lines[role]).get_opcodes()
+        for role in roles
+    }
+
+    out: list[str] = []
+    at = 0
+    for start, end in _conflict_spans(opcodes, roles):
+        touching = _touching_roles(opcodes, roles, start, end)
+        if len(touching) != 1:
+            raise CannotCompose(
+                f"base lines {start + 1}-{end} were edited by "
+                f"{', '.join(touching)} -- no composition"
+            )
+        out.extend(base_lines[at:start])
+        role = touching[0]
+        out.extend(
+            _side_slice(base_lines, sides_lines[role], opcodes[role], start, end)
+        )
+        at = end
+    out.extend(base_lines[at:])
+    return "".join(out)
 
 
 def _conflict_spans(

@@ -1,5 +1,6 @@
-"""`differences.unified` and `differences.diff3`: a per-page diff, and the
-base-plus-every-side merge. Nothing else.
+"""`differences.unified`, `differences.diff3` and `differences.compose`: a
+per-page diff, the base-plus-every-side merge, and the applied composition.
+Nothing else.
 
 ! `apply_unified` BELOW IS TEST-ONLY, not a shipped applier -- `differences.py`
 renders and nothing reverses it. It exists so this suite's own pass criterion
@@ -17,9 +18,10 @@ sides") is a checked literal comparison rather than a read of the marker text.
 import re
 from pathlib import Path
 
+import pytest
 from helpers import a_small_real_tree, binder_of
 
-from comment_review.results.differences import diff3, unified
+from comment_review.results.differences import CannotCompose, compose, diff3, unified
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -301,3 +303,66 @@ def test_diff3_keeps_every_side_when_several_roles_conflict_at_one_place(tmp_pat
         parsed_base, parsed_sides = parse_diff3(rendered, roles)
         assert parsed_base == base
         assert parsed_sides == sides
+
+
+# --------------------------------------------------------------------------
+# `compose`
+
+
+class TestCompose:
+    def test_two_edits_on_different_lines_merge(self):
+        base = "# one\n# two\n# three\n"
+        sides = {
+            "block-context": "# ONE\n# two\n# three\n",
+            "function-context": "# one\n# two\n# THREE\n",
+        }
+        assert compose(base, sides) == "# ONE\n# two\n# THREE\n"
+
+    def test_two_edits_on_one_line_refuse_by_name(self):
+        base = "# one\n# two\n"
+        sides = {
+            "block-context": "# ONE\n# two\n",
+            "function-context": "# uno\n# two\n",
+        }
+        with pytest.raises(CannotCompose) as caught:
+            compose(base, sides)
+        message = str(caught.value)
+        assert "block-context" in message
+        assert "function-context" in message
+
+    def test_one_side_composes_to_that_side(self):
+        base = "# one\n# two\n"
+        sides = {"block-context": "# ONE\n# two\n"}
+        assert compose(base, sides) == "# ONE\n# two\n"
+
+    def test_no_side_composes_to_the_base(self):
+        base = "# one\n# two\n"
+        assert compose(base, {}) == base
+
+    def test_a_side_that_changed_nothing_does_not_claim_a_span(self):
+        """A role that edited nothing is not a party to any span, so another
+        role's lone edit still composes."""
+        base = "# one\n# two\n"
+        sides = {
+            "block-context": "# ONE\n# two\n",
+            "function-context": "# one\n# two\n",
+        }
+        assert compose(base, sides) == "# ONE\n# two\n"
+
+    def test_a_pure_insert_is_carried(self):
+        """!! THE SHAPE THAT WAS MEASURED LOST ONCE. An `insert` opcode has
+        `i1 == i2`, and a half-open overlap test is False for every empty base
+        range -- which dropped every pure insert from `diff3`'s render on
+        2026-08-29. `_side_slice` uses the closed test; this proves `compose`
+        inherits it."""
+        base = "# a\n# b\n"
+        sides = {"block-context": "# a\n# INSERTED\n# b\n"}
+        assert compose(base, sides) == "# a\n# INSERTED\n# b\n"
+
+    def test_an_insert_and_a_distant_edit_compose(self):
+        base = "# a\n# b\n# c\n# d\n"
+        sides = {
+            "block-context": "# a\n# INSERTED\n# b\n# c\n# d\n",
+            "function-context": "# a\n# b\n# c\n# D\n",
+        }
+        assert compose(base, sides) == "# a\n# INSERTED\n# b\n# c\n# D\n"
