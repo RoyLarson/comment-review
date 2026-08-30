@@ -21,6 +21,8 @@ import sys
 from pathlib import Path
 
 from comment_review.binder.binder import read as read_binder
+from comment_review.desk.collator import UnnamedRole
+from comment_review.desk.proof import MismatchedRoot
 from comment_review.flows.collate import collate
 from comment_review.machine import exceptions
 
@@ -33,6 +35,14 @@ BROKEN = 1
 UNREADABLE = 2
 REREADS = 3
 ESCALATIONS = 4
+
+#: The two ways a stage cannot be reconciled at all, as against a mark that
+#: broke a rule: a copy that names no role, and copies censused from different
+#: roots. Both mean the SET cannot be read, so neither is routable back to one
+#: role the way a `Problem` is -- they exit `BROKEN` with the reason on stderr.
+#: ! BOUND TO A NAME because no `except` in a shipped file holds a tuple
+#: literal; see `machine/exceptions.py`.
+RECONCILE_ERRORS = (UnnamedRole, MismatchedRoot)
 
 
 def _load(path: str) -> tuple[dict, str]:
@@ -55,6 +65,10 @@ def main() -> int:
 
     Returns:
         One of `OK`, `BROKEN`, `UNREADABLE`, `REREADS` or `ESCALATIONS`.
+        `BROKEN` covers both a copy that broke a rule (`got.problems`) and a
+        stage `RECONCILE_ERRORS` says could not be reconciled at all -- a
+        raise is not a refusal, so both are caught and named on stderr
+        rather than left to escape as a traceback.
     """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--stage", required=True, help="the stage label, e.g. 4c")
@@ -93,7 +107,11 @@ def main() -> int:
             return UNREADABLE
         copies.append(copy)
 
-    got = collate(args.stage, copies, binder)
+    try:
+        got = collate(args.stage, copies, binder)
+    except RECONCILE_ERRORS as err:
+        print(f"REFUSED: the proof could not be reconciled -- {err}", file=sys.stderr)
+        return BROKEN
 
     for problem in got.problems:
         print(f"{problem.role} {problem.address or '(the copy)'}: {problem.message}")

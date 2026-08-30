@@ -107,6 +107,91 @@ class TestExitCodes:
         )
         assert command.main() == 1
 
+    def test_a_copy_with_no_role_exits_one_naming_the_reason(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """`desk.collator.UnnamedRole`, raised by `places()` inside
+        `flows.collate.collate` itself -- NOT the `problems_in` door.
+
+        !! `problems_in` ALSO reports a missing `role` as a copy-level
+        `Problem`, which alone would exit 1 without ever reaching
+        `collate`'s raise -- exactly the wrong-door failure this test must
+        not repeat. Proof this reaches the raise: `collate()` calls
+        `problems_in` first (accumulating that `Problem`) but does not branch
+        on it before calling `gather` and `reconcile` unconditionally, so a
+        role-less copy still reaches `places()` and raises -- the exception
+        aborts `collate()` before it ever returns a `Collated` for
+        `got.problems` to be checked at all. Confirmed by running this test
+        BEFORE the `RECONCILE_ERRORS` fix: it failed with an uncaught
+        `UnnamedRole`, not an assertion failure -- see the report.
+        """
+        binder = a_binder_over({"m.py@b1": BASE})
+        copies = copies_over(
+            binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
+        )
+        del copies[0]["role"]
+        binder_path = tmp_path / "binder.json"
+        binder_path.write_text(json.dumps(binder), encoding="utf-8")
+        copy_path = tmp_path / "copy.json"
+        copy_path.write_text(json.dumps(copies[0]), encoding="utf-8")
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "collate",
+                "--stage",
+                "4c",
+                "--binder",
+                str(binder_path),
+                "--out",
+                str(tmp_path / "chief.json"),
+                "--edit-copy",
+                str(copy_path),
+            ],
+        )
+        code = command.main()
+        err = capsys.readouterr().err
+        assert code == 1
+        assert "role" in err.lower()
+
+    def test_mismatched_roots_exit_one_naming_the_reason(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """`desk.proof.MismatchedRoot`, raised by `gather()` inside
+        `flows.collate.collate` on the second copy's disagreeing `read_from`.
+        """
+        binder = a_binder_over({"m.py@b1": BASE})
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {"m.py@b1": a_correct("m.py@b1")},
+                "function-context": {"m.py@b1": a_correct("m.py@b1", 2)},
+            },
+        )
+        copies[1]["read_from"] = {"root": "somewhere/else", "revise": 0}
+        binder_path = tmp_path / "binder.json"
+        binder_path.write_text(json.dumps(binder), encoding="utf-8")
+        paths = []
+        for i, copy in enumerate(copies):
+            path = tmp_path / f"copy{i}.json"
+            path.write_text(json.dumps(copy), encoding="utf-8")
+            paths.append(str(path))
+        argv = [
+            "collate",
+            "--stage",
+            "4c",
+            "--binder",
+            str(binder_path),
+            "--out",
+            str(tmp_path / "chief.json"),
+        ]
+        for path in paths:
+            argv += ["--edit-copy", path]
+        monkeypatch.setattr("sys.argv", argv)
+        code = command.main()
+        err = capsys.readouterr().err
+        assert code == 1
+        assert "somewhere/else" in err
+
     def test_an_unreadable_input_exits_two(self, tmp_path, monkeypatch, capsys):
         monkeypatch.setattr(
             "sys.argv",
