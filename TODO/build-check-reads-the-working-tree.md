@@ -2,11 +2,19 @@
 
 ```
 Status:   open
-Progress: 1 of 5 tasks done
+Progress: 1 of 6 tasks done
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-25 (backend, 2026-08-25, chasing a reviewer note on the write-chain
           branch)
+Raised:   2026-08-30 — Roy, 2026-08-30: I hate that test. There was no reason for it. I
+          thought when it was being implemented it would be a test before release gate
+          not a test every change gate. And: it is a systems problem. MEASURED the same
+          day on feat/the-mark-and-the-collator, which is mid-review and red: plugins/
+          holds a materially older program -- commands/mark.py there still imports
+          problems_in, tally and unruled from flows.marks where src imports them from
+          desk.collator, and desk/containers.py and flows/collate.py are absent from
+          plugins entirely.
 ```
 
 ## Objective
@@ -34,3 +42,11 @@ build --check reads the working tree, so committed drift is invisible to it.
       now not later." Done: the repo is formatted once, in its own commit, and ruff
       check then reported one D210 in scripts/render_brief.py that the formatter
       itself created by spacing a docstring which opened on a quoted word.
+- [ ] Update tests/gates/test_build.py so the build-STATE assertion is a release
+      gate rather than a per-change one. The file already holds two questions on a
+      class boundary: TestTheShippedTreeMatchesTheSource asserts the working tree
+      is built right now and is what reddens every suite run, while
+      TestTheCheckItselfFires proves the check can bite over four planted causes
+      and does not depend on build state at all. Verify: a suite run over an
+      unbuilt tree is green, the can-it-fail tests still run in it, and the
+      release gate is red until build_plugin.py has run.
