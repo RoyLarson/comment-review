@@ -73,85 +73,114 @@ INTERMEDIATE, and the intermediate already has a type -- `desk.collator.Reconcil
 `docs/the-mark.md` publishes its shape to a role. **No agent authors a container** -- `seed`,
 `fan` and `gather` build them -- so the type IS the definition, as `desk/mark.py` defines `Mark`.
 
+!! **FOLLOW `docket.Schedule`, NOT A DATACLASS-ON-THE-WIRE.** Both structures at either end of the
+middle already settled this, and they agree:
+
+| | on the wire | validator | typed view |
+| --- | --- | --- | --- |
+| `binder` | `dict` | `read(text) -> (dict, str)` | `rows_of` -- **dicts again, no type** |
+| `docket` | `dict` | `read(text) -> (dict, str)` | `schedules_of -> list[Schedule]` |
+
+! **AN `edit_copy` IS JSON ON DISK** -- `commands/mark.py:90` dumps it, `:32` loads it -- so a
+frozen dataclass on the wire would break `mark --seed` or force `asdict()` at every boundary.
+
+! **AND THE VIEW REFUSES NOTHING.** `docket.py:190`: *"There is nothing here that can fail: `read`
+has already ruled on the shape."* **`read` validates; the view derives.** Keep that division.
+
+!! **THE DELIVERABLE IS THE BOUNDARY BEING PARSED, NOT THE TYPE EXISTING.** MEASURED 2026-08-30:
+**54 sites across 9 modules** index these containers by raw string key. **A type nothing reads is
+decoration, and that is exactly the Mark failure** -- `Instruction` existed as an enum, the wire
+held a bare string, the two never met, and `flows/marks.py` dropped filled entries as coverage
+gaps. **This task is not done when the type compiles; it is done when the readers go through it
+and a gate keeps them there.**
+
 **Files:**
 - Create: `src/comment_review/desk/containers.py`
 - Create: `tests/test_containers.py`
-- Modify: `src/comment_review/flows/marks.py` (`seed` returns the type)
-- Modify: `src/comment_review/desk/proof.py` (`gather` takes and returns it)
+- Create: `tests/gates/test_containers_are_not_read_raw.py`
+- Modify: `src/comment_review/desk/proof.py`, `src/comment_review/desk/collator.py`, `src/comment_review/flows/fan_out.py`, `src/comment_review/flows/marks.py` -- the READING sites
 
 **Interfaces:**
 - Consumes: the shape as built today -- `flows/marks.py:36` (`seed`) and `desk/mark.py:318` (`allowed`).
 - Produces:
 
 ```python
-@dataclass(frozen=True)
-class Sheet:
+class Sheet(NamedTuple):
     path: str
     sha: str
-    marks: list[Mark]
+    marks: list[dict]      # a slot or a filled mark -- desk.mark.untouched tells them apart
 
-@dataclass(frozen=True)
-class EditCopy:
+class EditCopy(NamedTuple):
     role: str
     read_from: dict
     sheets: list[Sheet]
-    rounds: dict[str, dict[str, int]] = field(default_factory=dict)
+    rounds: dict[str, dict[str, int]]
 
-@dataclass(frozen=True)
-class MasterProof:
-    stage: str
-    read_from: dict
-    edit_copies: list[EditCopy]
+def read(text: str) -> tuple[dict, str]: ...          # validates, as binder/docket do
+def sheets_of(edit_copy: dict) -> list[Sheet]: ...    # derives; refuses nothing
+def copies_of(master_proof: dict) -> list[EditCopy]: ...
 ```
+
+! **`marks` IS `list[dict]`, AND THAT IS NOT LAZINESS.** A seeded entry is a SLOT, not a `Mark` --
+`desk/mark.py:471`'s `untouched()` exists because conflating the two is what made the brief's own
+worked example pass as unruled on 2026-08-29. Typing it `list[Mark]` erases the distinction that
+bug cost us.
 
 ! **`rounds` IS ON THE ENVELOPE, NOT ON A MARK.** The chief's copy from round N is the input to
-round N+1, so the tally rides the container -- `{"m.py@b1": {"composition": 1, "conflict": 0}}` --
-and the mark's SEVEN FIELDS STAY SEVEN.
+round N+1, so the tally rides the container and the mark's SEVEN FIELDS STAY SEVEN.
 
-- [ ] **Step 1: Write the failing test -- the type matches what `seed` already builds**
+- [ ] **Step 1: Write the failing test -- the view over what `seed` actually builds**
 
 ```python
-def test_the_edit_copy_type_matches_what_seed_BUILDS(tmp_path):
+def test_sheets_of_derives_a_view_over_what_seed_BUILDS(tmp_path):
     built = seed(binder_of(a_small_real_tree(tmp_path), 0), "block-context")
-    parsed, problems = EditCopy.read("probe", built)
-    assert problems == []
-    assert parsed.role == "block-context"
-    assert parsed.sheets and parsed.sheets[0].path
+    sheets = sheets_of(built)
+    assert sheets and sheets[0].path and sheets[0].sha
+    assert isinstance(sheets[0].marks, list)
 ```
 
-! **THE EXPECTATION COMES FROM `seed` OVER A REAL TREE, NOT FROM A LITERAL.** A hand-written
-`edit_copy` would confirm the type against itself.
+! **THE EXPECTATION COMES FROM `seed` OVER A REAL TREE, NOT A LITERAL.** A hand-written
+`edit_copy` would confirm the view against itself.
 
 - [ ] **Step 2: Run it and watch it fail**
 
-Run: `uv run pytest tests/test_containers.py -q`
-Expected: FAIL -- `desk.containers` does not exist.
+Run: `uv run pytest tests/test_containers.py -q` -- FAIL, `desk.containers` does not exist.
 
-- [ ] **Step 3: Write `desk/containers.py` with the three types and a boundary parse**
+- [ ] **Step 3: Write `desk/containers.py` -- `read` validating, the views deriving**
 
-Follow `desk/mark.py`: `read(where, entry) -> (Type | None, problems)`. **One object or named
-problems, and no third outcome.**
-
-- [ ] **Step 4: Write the failing test for the chief's copy -- same type, no new shape**
+- [ ] **Step 4: Write the failing test for the chief's copy -- same shape, no second type**
 
 ```python
-def test_the_chiefs_copy_is_an_ordinary_edit_copy(tmp_path):
-    chief = EditCopy(role="copy-chief", read_from={...}, sheets=[...],
-                     rounds={"m.py@b1": {"composition": 1, "conflict": 0}})
-    parsed, problems = EditCopy.read("probe", asdict(chief))
-    assert problems == []
+def test_the_chiefs_copy_is_an_ordinary_edit_copy():
+    chief = {"role": "copy-chief", "read_from": {...}, "sheets": [...],
+             "rounds": {"m.py@b1": {"composition": 1, "conflict": 0}}}
+    loaded, err = read(json.dumps(chief))
+    assert err == ""
+    assert copies_of({"edit_copies": [loaded]})[0].role == "copy-chief"
 ```
 
-- [ ] **Step 5: Run to green, then make `seed` and `gather` return the types**
+- [ ] **Step 5: Convert the READING sites to the views**
 
-- [ ] **Step 6: Run every gate**
+`desk/proof.gather`, `desk/collator.places`, `flows/fan_out.fan`, `flows/marks.problems_in`.
+**Leave `binder.py` and `docket.py` alone** -- those keys are their own.
+
+- [ ] **Step 6: Write the gate**
+
+`tests/gates/test_containers_are_not_read_raw.py` -- no module outside `desk/containers.py` reads
+`sheets`, `edit_copies` or `rounds` off a dict by string key. **It must FAIL before Step 5 and
+pass after**; run it at Step 2 to prove it can.
+
+! **WITHOUT THIS THE TASK DECAYS.** The next session adds one raw read and nothing notices, which
+is how 54 of them accumulated.
+
+- [ ] **Step 7: Run every gate**
 
 `uv run pytest -q`, `ruff check .`, `ty check src/comment_review/`, `build_plugin.py --check`,
 `check_shipped_syntax.py`, `check_vocabulary.py`
 
-- [ ] **Step 7: Commit the work**
+- [ ] **Step 8: Commit the work**
 
-- [ ] **Step 8: Close P21, in a separate commit, citing Step 7's sha**
+- [ ] **Step 9: Close P21, in a separate commit, citing Step 8's sha**
 
 ---
 
