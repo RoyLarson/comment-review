@@ -3332,7 +3332,23 @@ uv run python scripts/todo_tool.py check no-command-for-the-middle 2
 uv run python scripts/todo_tool.py check no-command-for-the-middle 3
 ```
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 8: Tick the boxes -- THIS STEP, before the commit**
+
+Tick every `- [ ]` step box of this task in
+`docs/superpowers/plans/2026-08-30-sp1-the-containers-and-the-collate-flow.md`, and tick `P3` in
+`docs/plans/0.2.4-the-commands-for-the-middle.md`, recomputing its `Plan-tasks:`
+line from the boxes
+
+! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** A box is a claim and
+ticking it asserts the claim. Where only part of a box is delivered, leave it open
+and reword it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
+
+! **RECOMPUTE `Plan-tasks:` FROM THE BOXES**, never increment it.
+
+! Do this BEFORE the commit below, so the boxes land in the same commit as the
+work they record.
+
+- [ ] **Step 9: Commit**
 
 ```bash
 git add src/comment_review/commands/ src/comment_review/__main__.py \
@@ -3454,7 +3470,23 @@ uv run ty check src/comment_review/
 
 Expected: PASS.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 8: Tick the boxes -- THIS STEP, before the commit**
+
+Tick every `- [ ]` step box of this task in
+`docs/superpowers/plans/2026-08-30-sp1-the-containers-and-the-collate-flow.md`, and tick `P37` in
+`docs/plans/0.2.4-the-commands-for-the-middle.md`, recomputing its `Plan-tasks:`
+line from the boxes
+
+! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** A box is a claim and
+ticking it asserts the claim. Where only part of a box is delivered, leave it open
+and reword it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
+
+! **RECOMPUTE `Plan-tasks:` FROM THE BOXES**, never increment it.
+
+! Do this BEFORE the commit below, so the boxes land in the same commit as the
+work they record.
+
+- [ ] **Step 9: Commit**
 
 ```bash
 git add -A src/ tests/
@@ -3554,7 +3586,21 @@ uv run python src/comment-review.py proof --docket <docket> --repo . --out /tmp/
 ! Use the scratchpad directory, not `/tmp`. ! The `docket` step is `P5` in SP-4 and is not
 in this plan -- stop at `collate` and record what it printed.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 7: Tick the boxes -- THIS STEP, before the commit**
+
+Tick every `- [ ]` step box of this task in
+`docs/superpowers/plans/2026-08-30-sp1-the-containers-and-the-collate-flow.md`
+
+! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** A box is a claim and
+ticking it asserts the claim. Where only part of a box is delivered, leave it open
+and reword it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
+
+! **RECOMPUTE `Plan-tasks:` FROM THE BOXES**, never increment it.
+
+! Do this BEFORE the commit below, so the boxes land in the same commit as the
+work they record.
+
+- [ ] **Step 8: Commit**
 
 ```bash
 git add -A
