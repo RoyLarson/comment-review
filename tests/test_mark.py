@@ -25,6 +25,7 @@ from comment_review.desk.mark import (
     ANCHOR_EXAMPLE,
     INSTRUCTIONS,
     QUERY_SHAPES,
+    Mark,
     allowed,
     parse,
     untouched,
@@ -430,3 +431,45 @@ def test_a_mark_that_lost_its_raw_text_still_parses():
     assert why == []
     assert mark is not None
     assert mark.raw_text == ""
+
+
+def test_seed_builds_the_slot_from_the_marks_own_names():
+    row = Mark.seed("m.py@b1", "def f(x):", "# as it stands\n")
+    assert row == {
+        "address": "m.py@b1",
+        "anchor": "def f(x):",
+        "raw_text": "# as it stands\n",
+        "instruction": None,
+    }
+
+
+def test_seed_refuses_a_name_the_mark_does_not_declare(monkeypatch):
+    """!! THE POINT OF THE FUNCTION, AND THE ONLY WAY IT CAN FAIL. `P35` asks
+    that a renamed field break AT CONSTRUCTION rather than leave another
+    module writing the old key -- so `SEEDED` is checked against the
+    dataclass's own fields every call, and this proves that check fires."""
+    monkeypatch.setattr(Mark, "SEEDED", ("address", "anchor", "raw_txt"))
+    with pytest.raises(AttributeError) as caught:
+        Mark.seed("m.py@b1", "def f(x):", "# as it stands\n")
+    assert "raw_txt" in str(caught.value)
+
+
+def test_as_entry_round_trips_through_parse():
+    """A mark written back onto a sheet parses as the mark it came from --
+    which is what lets the copy chief's `edit_copy` be an ordinary one."""
+    entry = {
+        "address": "m.py@b1",
+        "anchor": "def f(x):",
+        "raw_text": "# as it stands\n",
+        "instruction": "correct",
+        "claim": {"false": "as it stands", "true": "as it should read"},
+        "reason": "the paragraph names a parameter the signature dropped",
+        "sources": [{"cite": "m.py:1", "verbatim": "def f(x):"}],
+        "change": "# as it should read\n",
+    }
+    mark, why = parse("m.py@b1", entry)
+    assert why == []
+    assert mark is not None
+    again, why_again = parse("m.py@b1", mark.as_entry())
+    assert why_again == []
+    assert again == mark

@@ -75,7 +75,7 @@ self-nesting that made this ambiguous.
 """
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from enum import StrEnum, auto
 
 
@@ -255,9 +255,9 @@ class Mark:
 
     !! THE FIELD ORDER IS THE CHAIN OF CUSTODY, not alphabetical and not
     convenience -- the ruling, then the claim, the reason, the sources and the
-    change it produces, with the two seeded fields that say WHERE in front of
-    them. `docs/the-mark.md`, "The fields -- eight", holds Roy's own sentence
-    for it, in the register that ruling was given in.
+    change it produces, with the three seeded fields (`SEEDED`, below) in
+    front of them. `docs/the-mark.md`, "The fields -- eight", holds Roy's own
+    sentence for it, in the register that ruling was given in.
 
     ! `role` IS NOT A FIELD, and `collator.Placed` is what carries the pair. It
     belongs to the `edit_copy` a mark came back in, not to the mark.
@@ -308,6 +308,69 @@ class Mark:
     reason: str
     sources: tuple[object, ...]
     change: str
+
+    #: The fields SEEDED onto every slot before a role sees it -- written by
+    #: `seed`, copied back unchanged, and read here by `parse`.
+    #:
+    #: ! NOT ANNOTATED, DELIBERATELY. `dataclasses.fields` sees only annotated
+    #: names, so this stays a plain class attribute and
+    #: `tests/gates/test_mark_shape.py` still compares exactly the eight the
+    #: spec states.
+    SEEDED = ("address", "anchor", "raw_text")
+
+    @classmethod
+    def seed(cls, address: str, anchor: str, raw_text: str) -> dict:
+        """One fillable slot, keyed by this class's OWN field names.
+
+        !! THE WRITE HALF OF THE ROUND TRIP LIVES WITH THE READ HALF, and did
+        not until 2026-08-30. `flows/marks.py` wrote four keys as literals, so
+        renaming a field here left that module writing the old key and nothing
+        could notice -- `parse` would simply find the field absent.
+
+        Args:
+            address: `path@cue`, composed by `reading.addresser.address_for`.
+            anchor: the line of code the place sits on, or "".
+            raw_text: the paragraph as it stands.
+
+        Returns:
+            `{address, anchor, raw_text, instruction: None}` -- the slot as a
+            role receives it. `instruction: None` is what `untouched` reads to
+            say nobody has written here.
+
+        Raises:
+            AttributeError: `SEEDED` names something `Mark` does not declare.
+                ! THIS IS THE WHOLE GUARD. A rename breaks HERE, loudly, at the
+                point the row is built, rather than silently one module away.
+        """
+        declared = {f.name for f in fields(cls)}
+        row: dict = {}
+        for name, value in zip(cls.SEEDED, (address, anchor, raw_text), strict=True):
+            if name not in declared:
+                raise AttributeError(
+                    f"Mark.seed writes `{name}`, which Mark does not declare"
+                )
+            row[name] = value
+        row["instruction"] = None
+        return row
+
+    def as_entry(self) -> dict:
+        """This mark as the wire entry a sheet carries -- its OWN field names.
+
+        ! THE COUNTERPART OF `seed`, AND IT EXISTS FOR THE SAME REASON. A
+        caller writing a mark back onto a sheet by hand re-creates the literal
+        `seed` removed, one module further along -- which is what the copy
+        chief's `edit_copy` would otherwise be built from.
+
+        Returns:
+            A dict `parse` accepts and returns an equal `Mark` from.
+            `instruction` is written as its string value, since that is what
+            the wire carries and what `parse` reads.
+        """
+        entry = {f.name: getattr(self, f.name) for f in fields(self)}
+        entry["instruction"] = str(self.instruction)
+        entry["claim"] = dict(self.claim)
+        entry["sources"] = list(self.sources)
+        return entry
 
 
 #: The four fields a ROLE fills that `untouched` looks at. `address` and

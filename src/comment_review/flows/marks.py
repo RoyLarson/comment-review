@@ -29,7 +29,7 @@ own half.
 """
 
 from comment_review.binder.binder import _read_from_problem
-from comment_review.desk.mark import INSTRUCTIONS, Instruction, parse, untouched
+from comment_review.desk.mark import INSTRUCTIONS, Instruction, Mark, parse, untouched
 from comment_review.reading.addresser import address_for
 
 
@@ -46,8 +46,10 @@ def seed(binder: dict, role: str) -> dict:
         edit_copy was censused from. Each entry in `sheets` carries one page's `path`
         and `sha`, plus its `marks` -- one per row on that page, holding the
         `address`, `anchor` and `raw_text` copied from the row, and
-        `instruction: None` for the role to fill. `raw_text` is the paragraph
-        the role's `change` diffs against -- see `docs/the-mark.md`.
+        `instruction: None` for the role to fill. ! THE SLOT IS BUILT BY
+        `desk.mark.Mark.seed`, from the mark's own field names, so a
+        renamed field breaks there rather than leaving this module writing
+        the old key.
 
     Raises:
         KeyError: the binder carries no `read_from`.
@@ -79,14 +81,13 @@ def seed(binder: dict, role: str) -> dict:
                 "path": str(page.get("path", "")),
                 "sha": page.get("sha", ""),
                 "marks": [
-                    {
-                        "address": address_for(
+                    Mark.seed(
+                        address_for(
                             str(page.get("path", "")), str(row.get("cue", ""))
                         ),
-                        "anchor": row.get("anchor", ""),
-                        "raw_text": row.get("raw_text", ""),
-                        "instruction": None,
-                    }
+                        str(row.get("anchor", "")),
+                        str(row.get("raw_text", "")),
+                    )
                     for row in page.get("rows", [])
                 ],
             }
