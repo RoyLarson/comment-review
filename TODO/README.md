@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (106)
+### open  (107)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -288,6 +288,7 @@ that changed a published name or rule:
 | [brief-example-and-scope](brief-example-and-scope.md) | agents | — | 0/3 | the brief's worked example shows a 40-character `sha` where `bind` writes 16, and the brief says a source resolves against 'the repo' without saying whether that is the scoped tree or the checkout it was cut from |
 | [backlog-claims-it-cannot-mean](backlog-claims-it-cannot-mean.md) | systems | yes | 0/6 | The backlog claims things it cannot mean, and nothing was checking |
 | [vocabulary-sweep-reads-a-moved-path](vocabulary-sweep-reads-a-moved-path.md) | systems | — | 0/3 | vocabulary_sweep reads a path that moved, so nothing looks for undefined terms |
+| [board-not-in-tooling-shape](board-not-in-tooling-shape.md) | systems | -- | 0/1 | waits on the tooling; until then a full resync empties the decision queue |
 
 ### in-progress  (20)
 
