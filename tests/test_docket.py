@@ -199,10 +199,12 @@ def test_a_page_two_roles_settled_names_NEITHER_of_them():
     them -- and `set_by` is what a later phase ROUTES a reversal on
     (`flows.revise.Pulled`), which would send it to a role that never touched
     the place. The docket omits the field instead, and `_set_by` says `""`."""
-    proof = a_master_proof({
-        "block-context": {"m.py@b1": a_correct("m.py@b1")},
-        "module-context": {"m.py@b3": a_correct("m.py@b3")},
-    })
+    proof = a_master_proof(
+        {
+            "block-context": {"m.py@b1": a_correct("m.py@b1")},
+            "module-context": {"m.py@b3": a_correct("m.py@b3")},
+        }
+    )
     docket = docket_from(reconcile(proof), proof)
     page = docket["pages"][0]
     assert sorted(one["cue"] for one in page["alterations"]) == ["b1", "b3"]
@@ -267,8 +269,10 @@ def test_NO_DOCKET_CARRIES_ONE_END_OF_A_MOVE():
     WHOLE, so **no docket ever carries one end of one**. Half-applied, it is
     invisible downstream -- both dockets read, both set, and `prove_unchanged`
     passes either way because only prose moved."""
-    proof = a_master_proof({
-        "block-context": {"m.py@a0": a_move("m.py@a0", "m.py@a8")},
-        "module-context": {"m.py@a8": a_correct("m.py@a8", "a different sentence")},
-    })
+    proof = a_master_proof(
+        {
+            "block-context": {"m.py@a0": a_move("m.py@a0", "m.py@a8")},
+            "module-context": {"m.py@a8": a_correct("m.py@a8", "a different sentence")},
+        }
+    )
     assert docket_from(reconcile(proof), proof) == {"pages": []}

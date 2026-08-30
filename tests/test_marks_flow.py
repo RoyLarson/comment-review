@@ -78,8 +78,7 @@ def test_no_module_outside_binder_imports_read_and_mentions_sha_in_one_file():
                     return True
             if isinstance(node, ast.Import):
                 if any(
-                    alias.name == "comment_review.binder.binder"
-                    for alias in node.names
+                    alias.name == "comment_review.binder.binder" for alias in node.names
                 ):
                     return True
         return False

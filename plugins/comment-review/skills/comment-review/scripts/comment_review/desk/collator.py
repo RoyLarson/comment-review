@@ -48,6 +48,7 @@ WITHIN = 3
 #: belongs to one root.
 Cache = dict[str, tuple[str, ...] | None]
 
+
 def known_addresses(binder: dict) -> frozenset[str]:
     """Every address the binder's rows carry, as a set to test membership on.
 
@@ -58,9 +59,8 @@ def known_addresses(binder: dict) -> frozenset[str]:
     Returns:
         The addresses. A row carrying none, or an empty one, is dropped.
     """
-    return frozenset(
-        row["address"] for row in rows_of(binder) if row.get("address")
-    )
+    return frozenset(row["address"] for row in rows_of(binder) if row.get("address"))
+
 
 def address_problems(where: str, mark: Mark, known: frozenset[str]) -> list[str]:
     """Whether this mark's address names a place the binder carries.
@@ -82,6 +82,7 @@ def address_problems(where: str, mark: Mark, known: frozenset[str]) -> list[str]
             f"{where}: `address` {mark.address!r} names no place the binder carries"
         ]
     return []
+
 
 def claim_verbatim_problems(where: str, mark: Mark, raw_text: str) -> list[str]:
     """Whether the sentence this mark's claim quotes is really in the paragraph.
@@ -116,6 +117,7 @@ def claim_verbatim_problems(where: str, mark: Mark, raw_text: str) -> list[str]:
         return [f"{where}: `claim.{key}` is not in the paragraph this row seeded"]
     return []
 
+
 def _cite_at(cite: str) -> tuple[str, int] | None:
     """`path:line` split at the LAST colon, or None where it is not that form.
 
@@ -131,6 +133,7 @@ def _cite_at(cite: str) -> tuple[str, int] | None:
         return None
     lineno = int(line)
     return (path, lineno) if lineno >= 1 else None
+
 
 def _lines(root: Path, path: str, cache: Cache) -> tuple[str, ...] | None:
     """One cited file's lines, read at most once per path.
@@ -159,6 +162,7 @@ def _lines(root: Path, path: str, cache: Cache) -> tuple[str, ...] | None:
         else:
             cache[path] = tuple(constants.text_lines(text))
     return cache[path]
+
 
 def source_problems(where: str, mark: Mark, root: Path, cache: Cache) -> list[str]:
     """Every source on this mark, checked against the file it cites.
@@ -210,17 +214,16 @@ def source_problems(where: str, mark: Mark, root: Path, cache: Cache) -> list[st
             continue
         path, lineno = parsed
         if can_escape(path):
-            out.append(f"{at}: `cite` {cite!r} names a path outside the "
-                        "checkout")
+            out.append(f"{at}: `cite` {cite!r} names a path outside the checkout")
             continue
         lines = _lines(root, path, cache)
         if lines is None:
-            out.append(f"{at}: `cite` {cite!r} does not resolve -- the file "
-                        "cannot be read")
+            out.append(
+                f"{at}: `cite` {cite!r} does not resolve -- the file cannot be read"
+            )
             continue
         if lineno > len(lines):
-            out.append(f"{at}: `cite` {cite!r} names a line past the end of "
-                        "the file")
+            out.append(f"{at}: `cite` {cite!r} names a line past the end of the file")
             continue
         if not isinstance(verbatim, str) or not verbatim.strip():
             continue
@@ -232,10 +235,9 @@ def source_problems(where: str, mark: Mark, root: Path, cache: Cache) -> list[st
         hi = min(len(lines), lineno + WITHIN)
         window = "\n".join(lines[lo:hi])
         if verbatim not in window:
-            out.append(
-                f"{at}: `verbatim` is not within {WITHIN} lines of {cite}"
-            )
+            out.append(f"{at}: `verbatim` is not within {WITHIN} lines of {cite}")
     return out
+
 
 def source_verification(
     where: str,
@@ -266,6 +268,7 @@ def source_verification(
         + claim_verbatim_problems(where, mark, raw_text)
         + source_problems(where, mark, root, cache)
     )
+
 
 def verify_report(report: dict, binder: dict, root: Path) -> list[str]:
     """Source-verification over every ruled mark of ONE role's edit_copy.
@@ -328,6 +331,7 @@ def verify_report(report: dict, binder: dict, root: Path) -> list[str]:
             )
     return out
 
+
 def _touches(mark: Mark) -> list[str]:
     """Every address this one mark lands on.
 
@@ -349,6 +353,7 @@ def _touches(mark: Mark) -> list[str]:
             touched.append(destination)
     return touched
 
+
 class UnnamedRole(Exception):
     """An `edit_copy` carrying no `role`, or a blank one.
 
@@ -360,6 +365,7 @@ class UnnamedRole(Exception):
     reader can route on, and `role` is what an outcome is decided from.
     """
 
+
 class MalformedMark(Exception):
     """An entry `desk.mark.parse` refused, met while grouping.
 
@@ -370,6 +376,7 @@ class MalformedMark(Exception):
     someone to answer; a mark whose shape is unreadable cannot be grouped by
     the place it touches, and a place grouped wrongly is settled wrongly.
     """
+
 
 class Placed(NamedTuple):
     """One mark and the role whose `edit_copy` it came back in.
@@ -385,6 +392,7 @@ class Placed(NamedTuple):
 
     mark: Mark
     role: str
+
 
 def places(proof: dict) -> dict[str, list[Placed]]:
     """Every ruled mark of a master_proof, grouped by the address it TOUCHES.
@@ -437,6 +445,7 @@ def places(proof: dict) -> dict[str, list[Placed]]:
                     out.setdefault(address, []).append(placed)
     return out
 
+
 class Reconciled(NamedTuple):
     """What reconciliation decided about each place, in three lists.
 
@@ -458,8 +467,10 @@ class Reconciled(NamedTuple):
     escalations: list[dict]
     rereads: list[dict]
 
+
 def _owes_change(mark: Mark) -> bool:
     return INSTRUCTIONS[mark.instruction].owes_change
+
 
 def _sentence_key(mark: Mark) -> object:
     """What two marks at one place are compared ON -- the sentence each rules on.
@@ -474,6 +485,7 @@ def _sentence_key(mark: Mark) -> object:
     if key:
         return mark.claim.get(key)
     return id(mark)
+
 
 def _roles_of_stage(proof: dict, path: str) -> set[str]:
     """Every role of this proof whose edit_copy holds a sheet for one page.
@@ -500,10 +512,12 @@ def _roles_of_stage(proof: dict, path: str) -> set[str]:
                 break
     return out
 
+
 #: The three outcomes, WEAKEST FIRST. `_join_moves` takes `max` by this order,
 #: so an escalation beats a re-read and a re-read beats a settlement; `reconcile`
 #: keys its own three lists by these same names.
 OUTCOMES = ("settled", "rereads", "escalations")
+
 
 def _outcome(proof: dict, address: str, owing: list[Placed]) -> tuple[str, dict]:
     """Which outcome one place gets, and the entry that records it.
@@ -543,6 +557,7 @@ def _outcome(proof: dict, address: str, owing: list[Placed]) -> tuple[str, dict]
         kind = "rereads"
     return kind, {"address": address, "roles": sorted(roles), "marks": owing}
 
+
 def _join_moves(outcomes: dict[str, tuple[str, dict]]) -> None:
     """Give both ends of every `move` the same outcome. MUTATES `outcomes`.
 
@@ -579,6 +594,7 @@ def _join_moves(outcomes: dict[str, tuple[str, dict]]) -> None:
                     outcomes[end] = (strongest, entry)
                     changed = True
 
+
 def reconcile(proof: dict) -> Reconciled:
     """Every place a role ruled on, decided -- settled, escalated or re-read.
 
@@ -612,6 +628,7 @@ def reconcile(proof: dict) -> Reconciled:
         into[kind].append(entry)
     return Reconciled(settled, escalations, rereads)
 
+
 def _real_pages(proof: dict) -> tuple[list[str], dict[str, str]]:
     """The repo paths this proof's sheets name, and each page's sha.
 
@@ -631,6 +648,7 @@ def _real_pages(proof: dict) -> tuple[list[str], dict[str, str]]:
                 shas[path] = str(sheet.get("sha", ""))
     return paths, shas
 
+
 def _alteration_text(address: str, mark: Mark) -> str | None:
     """The text to set at ONE end of one settled mark, or None to delete.
 
@@ -645,6 +663,7 @@ def _alteration_text(address: str, mark: Mark) -> str | None:
     if mark.instruction is Instruction.MOVE and address == mark.address:
         return None
     return mark.change or None
+
 
 def docket_from(reconciled: Reconciled, proof: dict) -> dict:
     """The settled places, as a docket -- one page per file, in settled order.

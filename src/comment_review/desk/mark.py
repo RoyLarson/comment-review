@@ -466,8 +466,10 @@ def _claim_problems(where: str, instruction: Instruction, claim: object) -> list
     out = []
     missing = [k for k in spec.claim_all if not filled(claim.get(k))]
     if missing:
-        out.append(f"{where}: {instruction} needs `claim` to carry "
-                    f"{', '.join(spec.claim_all)} (missing {', '.join(missing)})")
+        out.append(
+            f"{where}: {instruction} needs `claim` to carry "
+            f"{', '.join(spec.claim_all)} (missing {', '.join(missing)})"
+        )
     # ! `shape` is a VALUE in a closed set, not merely a key. Checking it
     # structurally is what lets `collator` route on it without reading prose.
     if "shape" in spec.claim_all and claim.get("shape") not in QUERY_SHAPES:

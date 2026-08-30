@@ -88,7 +88,7 @@ def _prose_by_instruction() -> dict[str, str]:
 
 
 def _claim_cell(claim_all: tuple[str, ...]) -> str:
-    """"none" for an empty claim; otherwise each key in backticks, comma-joined."""
+    """The literal `none` for an empty claim, else each key in backticks."""
     if not claim_all:
         return "none"
     return ", ".join(f"`{key}`" for key in claim_all)
@@ -142,9 +142,7 @@ def _write(table: str) -> None:
     before, rest = text.split(BEGIN_MARKER, 1)
     _, after = rest.split(END_MARKER, 1)
     body = table.replace("\n", eol)
-    new_text = (
-        f"{before}{BEGIN_MARKER}{eol}{eol}{body}{eol}{eol}{END_MARKER}{after}"
-    )
+    new_text = f"{before}{BEGIN_MARKER}{eol}{eol}{body}{eol}{eol}{END_MARKER}{after}"
 
     with BRIEF_PATH.open("w", encoding="utf-8", newline="") as f:
         f.write(new_text)
@@ -154,9 +152,7 @@ def main() -> None:
     """CLI entry point: `--print` to stdout, or `--write` in place."""
     parser = argparse.ArgumentParser(description=__doc__)
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument(
-        "--print", action="store_true", help="write the table to stdout"
-    )
+    group.add_argument("--print", action="store_true", help="write the table to stdout")
     group.add_argument(
         "--write",
         action="store_true",

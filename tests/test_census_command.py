@@ -142,6 +142,7 @@ def test_a_parse_failure_is_AS_LOUD_AS_a_decode_failure(tmp_path, as_json):
     ! It compares the two halves to EACH OTHER, so it holds whatever exit code
     the command settles on -- what it forbids is the two disagreeing.
     """
+
     def codes(cases: dict[str, bytes]) -> dict[str, int]:
         return {w: _run(tmp_path, d, as_json=as_json)[0] for w, d in cases.items()}
 

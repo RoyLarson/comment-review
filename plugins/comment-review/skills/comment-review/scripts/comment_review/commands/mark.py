@@ -73,7 +73,7 @@ def main() -> int:
         # whole reason it is seeded rather than described.
         missing = [n for n in ("binder", "role", "out") if not getattr(args, n)]
         if missing:
-            wanted = ', '.join('--' + n for n in missing)
+            wanted = ", ".join("--" + n for n in missing)
             print(f"--seed needs {wanted}", file=sys.stderr)
             return 2
         try:

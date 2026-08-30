@@ -33,7 +33,10 @@ def _stages() -> list[Stage]:
 def test_the_four_roles_are_a_closed_set_independent_of_any_topology():
     # EXPECTATION FROM `SKILL.md`'s stage-4 table, transcribed by hand.
     assert [str(r) for r in ROLES] == [
-        "ownership-context", "block-context", "function-context", "module-context"
+        "ownership-context",
+        "block-context",
+        "function-context",
+        "module-context",
     ]
 
 
@@ -66,7 +69,9 @@ def test_the_other_three_share_one_stage():
     # reconciliation-design.md` section 2), so the roles a stage runs are
     # the DISTINCT roles across its dispatches, in first-seen order.
     assert tuple(dict.fromkeys(d.role for d in later.dispatches)) == (
-        "block-context", "function-context", "module-context"
+        "block-context",
+        "function-context",
+        "module-context",
     )
 
 

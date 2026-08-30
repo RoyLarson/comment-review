@@ -80,9 +80,7 @@ def seed(binder: dict, role: str) -> dict:
                 "sha": page.get("sha", ""),
                 "marks": [
                     Mark.seed(
-                        address_for(
-                            str(page.get("path", "")), str(row.get("cue", ""))
-                        ),
+                        address_for(str(page.get("path", "")), str(row.get("cue", ""))),
                         str(row.get("anchor", "")),
                         str(row.get("raw_text", "")),
                     )

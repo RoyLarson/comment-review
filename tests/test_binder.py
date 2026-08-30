@@ -89,7 +89,7 @@ def test_the_prose_leaves_as_ONE_STRING(binder):
 
 def test_a_row_holds_every_line_its_paragraph_held(binder):
     """Stamping the page onto each row is the only transformation here, so
-        nothing may be lost in it."""
+    nothing may be lost in it."""
     page = build(SAMPLE)
     rows = {r["cue"]: r for r in binder["pages"][0]["rows"]}
     for c, paragraph in by_cue(page).items():

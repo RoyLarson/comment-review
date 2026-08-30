@@ -142,9 +142,7 @@ def pull(docket: dict, repo: Path, into: Path, revise: int) -> Pulled:
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(made.draft, target)
 
-        pulled = Pulled(
-            root=into, revise=revise, set_by=_set_by(docket), refusals=[]
-        )
+        pulled = Pulled(root=into, revise=revise, set_by=_set_by(docket), refusals=[])
         # !! THE GATE RUNS BEFORE THE SUCCESS RETURN, on every pull -- this is
         # `Process: #35`'s check, not an opt-in. `AddressesMoved` propagates
         # uncaught: a mismatch here means the assembled revise cannot be

@@ -46,6 +46,7 @@ ROWS = rows_of(BINDER)
 ROW = next(r for r in ROWS if r["address"].endswith("mark.py@a0"))
 KNOWN = known_addresses(BINDER)
 
+
 def line_of(path: Path, number: int) -> str:
     """Line `number` of `path`, numbered from the file's own line endings.
 
@@ -90,9 +91,7 @@ def _entry() -> dict:
         "instruction": "correct",
         "claim": {"false": false, "true": "the corrected sentence"},
         "reason": "written for the collator test suite",
-        "sources": [
-            {"cite": f"{CITED_FILE}:{CITED_LINE}", "verbatim": CITED_TEXT}
-        ],
+        "sources": [{"cite": f"{CITED_FILE}:{CITED_LINE}", "verbatim": CITED_TEXT}],
         "change": "# corrected",
     }
 
@@ -183,8 +182,7 @@ class TestSourceProblems:
 
     def test_a_cite_into_an_unreadable_file_is_refused(self):
         bad = a_mark(
-            sources=({"cite": "src/comment_review/no_such_file.py:1",
-                      "verbatim": "x"},)
+            sources=({"cite": "src/comment_review/no_such_file.py:1", "verbatim": "x"},)
         )
         problems = source_problems("here", bad, ROOT, {})
         assert problems
@@ -192,8 +190,9 @@ class TestSourceProblems:
 
     def test_a_verbatim_outside_the_window_is_refused(self):
         bad = a_mark(
-            sources=({"cite": f"{CITED_FILE}:{CITED_LINE}",
-                      "verbatim": "not in this file"},)
+            sources=(
+                {"cite": f"{CITED_FILE}:{CITED_LINE}", "verbatim": "not in this file"},
+            )
         )
         problems = source_problems("here", bad, ROOT, {})
         assert problems
@@ -216,8 +215,7 @@ class TestSourceProblems:
         secret.write_text("TOKEN=the-line-outside\n", encoding="utf-8")
 
         mark = a_mark(
-            sources=({"cite": f"{secret}:1",
-                      "verbatim": "TOKEN=the-line-outside"},)
+            sources=({"cite": f"{secret}:1", "verbatim": "TOKEN=the-line-outside"},)
         )
         cache: dict = {}
         problems = source_problems("here", mark, root, cache)
@@ -315,8 +313,7 @@ class TestACitedFileIsNumberedTheWAYTHEBINDERNUMBERSIT:
         lines = re.split(r"\r\n|\r|\n", PAGED)
         at = lines.index("# the cited comment") + 1
         mark = a_mark(
-            sources=({"cite": f"pages.py:{at}",
-                      "verbatim": "# the cited comment"},)
+            sources=({"cite": f"pages.py:{at}", "verbatim": "# the cited comment"},)
         )
         assert source_problems("here", mark, tmp_path, {}) == []
 
@@ -334,9 +331,7 @@ class TestACitedFileIsNumberedTheWAYTHEBINDERNUMBERSIT:
         # ! The file ends with a newline, so its last line is the one before
         # the trailing break -- `re.split` leaves an empty final element.
         real = len([ln for ln in re.split(r"\r\n|\r|\n", PAGED)[:-1]])
-        mark = a_mark(
-            sources=({"cite": f"pages.py:{real + 2}", "verbatim": "x"},)
-        )
+        mark = a_mark(sources=({"cite": f"pages.py:{real + 2}", "verbatim": "x"},))
         problems = source_problems("here", mark, tmp_path, {})
         assert problems
         assert "past the end of the file" in problems[0]
@@ -349,14 +344,14 @@ class TestACitedFileIsNumberedTheWAYTHEBINDERNUMBERSIT:
         sequences universal-newline translation collapses. `collator._lines`
         says so at the change.
         """
-        for name, text in (("lf.py", "a = 1\nb = 2\nc = 3\n"),
-                           ("crlf.py", "a = 1\r\nb = 2\r\nc = 3\r\n")):
+        for name, text in (
+            ("lf.py", "a = 1\nb = 2\nc = 3\n"),
+            ("crlf.py", "a = 1\r\nb = 2\r\nc = 3\r\n"),
+        ):
             p = tmp_path / name
             with open(p, "w", encoding="utf-8", newline="") as f:
                 f.write(text)
-            mark = a_mark(
-                sources=({"cite": f"{name}:2", "verbatim": "b = 2"},)
-            )
+            mark = a_mark(sources=({"cite": f"{name}:2", "verbatim": "b = 2"},))
             assert source_problems("here", mark, tmp_path, {}) == [], name
 
 
@@ -487,8 +482,12 @@ class TestEachCheckCanFire:
 
     def test_t3_2_a_verbatim_never_written_by_the_file_is_refused(self):
         bad = a_mark(
-            sources=({"cite": f"{CITED_FILE}:{CITED_LINE}",
-                      "verbatim": "this text is not in exceptions.py"},)
+            sources=(
+                {
+                    "cite": f"{CITED_FILE}:{CITED_LINE}",
+                    "verbatim": "this text is not in exceptions.py",
+                },
+            )
         )
         problems = source_problems("here", bad, ROOT, {})
         assert problems

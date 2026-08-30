@@ -57,8 +57,11 @@ def test_an_address_that_disappeared_is_listed(tmp_path, capsys):
         )
     # ! A comment REMOVED from the revise -- the shape a `drop` sets.
     target = revise / "mark.py"
-    kept = [ln for ln in target.read_text(encoding="utf-8").splitlines(True)
-            if not ln.lstrip().startswith("# ")]
+    kept = [
+        ln
+        for ln in target.read_text(encoding="utf-8").splitlines(True)
+        if not ln.lstrip().startswith("# ")
+    ]
     target.write_text("".join(kept), encoding="utf-8", newline="")
 
     # ! THE EXPECTATION COMES FROM THE BINDER, NOT FROM `taken_in`. Asserting
@@ -112,9 +115,7 @@ def test_a_page_with_no_language_record_is_named_after_its_diff(tmp_path, capsys
     (repo / "notes.xyzzy").write_text("before\n", encoding="utf-8", newline="")
     (revise / "notes.xyzzy").write_text("after\n", encoding="utf-8", newline="")
 
-    exit_code = main(
-        ["--original", str(repo), "--revise", str(revise), "notes.xyzzy"]
-    )
+    exit_code = main(["--original", str(repo), "--revise", str(revise), "notes.xyzzy"])
     seen = capsys.readouterr()
 
     # ! THE DIFF IS STILL PRINTED -- two texts differ and `differences.unified`

@@ -93,6 +93,7 @@ def test_no_field_is_spelled_two_ways():
     assert "mark" not in _field_names()
     assert "instruction" in _field_names()
 
+
 #: The section stating the four columns and the seven flags, and nothing
 #: else -- `## The classifiers ...` up to the next `##` heading,
 #: `## The three \`query\` shapes`. Scoped so the parse below cannot pick up
@@ -200,11 +201,15 @@ def test_no_field_carries_prose():
 
 #: The fenced block under "## What each instruction owes": the header line,
 #: the `---` separator, then one wrapped record per instruction.
-_OWES_LINES = re.search(
-    r"^## What each instruction owes\n.*?```\n(.*?)\n```",
-    SPEC,
-    re.MULTILINE | re.DOTALL,
-).group(1).splitlines()
+_OWES_LINES = (
+    re.search(
+        r"^## What each instruction owes\n.*?```\n(.*?)\n```",
+        SPEC,
+        re.MULTILINE | re.DOTALL,
+    )
+    .group(1)
+    .splitlines()
+)
 _OWES_HEADER, _OWES_ROWS = _OWES_LINES[0], _OWES_LINES[2:]
 
 #: Column start offsets, read from the header itself rather than hand-copied
@@ -260,7 +265,7 @@ def _owes_table() -> dict[str, dict[str, str]]:
 
 
 def _claim_all_from(cell: str) -> tuple[str, ...]:
-    """"--" is no keys; otherwise a comma-joined list, `,`-split and stripped."""
+    """ "--" is no keys; otherwise a comma-joined list, `,`-split and stripped."""
     cell = cell.strip()
     if cell == "--":
         return ()
@@ -268,13 +273,13 @@ def _claim_all_from(cell: str) -> tuple[str, ...]:
 
 
 def _quotes_original_from(cell: str) -> str:
-    """"--" quotes nothing; otherwise the cell names the claim key verbatim."""
+    """ "--" quotes nothing; otherwise the cell names the claim key verbatim."""
     cell = cell.strip()
     return "" if cell == "--" else cell
 
 
 def _owed_from(cell: str) -> bool:
-    """"no"/"NO" is not owed; "yes"/"YES"/"the COMPOSITE" is owed."""
+    """ "no"/"NO" is not owed; "yes"/"YES"/"the COMPOSITE" is owed."""
     return cell.strip().lower() != "no"
 
 
