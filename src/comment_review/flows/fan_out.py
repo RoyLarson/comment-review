@@ -40,7 +40,7 @@ set `*` already does; there is no recursive-glob semantics to add, because
 from fnmatch import fnmatch
 
 from comment_review.desk.stages import Stage
-from comment_review.flows.marks import seed
+from comment_review.flows.distribute import seed
 
 
 class OverlappingShards(Exception):
@@ -69,7 +69,7 @@ def fan(binder: dict, stage: Stage) -> list[dict]:
             patterns selecting each one's pages.
 
     Returns:
-        A list of edit_copies (`flows.marks.seed`'s shape), one per dispatch,
+        A list of edit_copies (`flows.distribute.seed`'s shape), one per dispatch,
         in `stage.dispatches`' own order.
 
     Raises:
@@ -77,7 +77,7 @@ def fan(binder: dict, stage: Stage) -> list[dict]:
             SAME role -- the address `path@cue` would then be marked twice.
         UncoveredPage: a page in `binder` matches NO dispatch of some role
             that this stage dispatches at all -- that role would never see it.
-        KeyError: the binder carries no `read_from` -- `flows.marks.seed`'s
+        KeyError: the binder carries no `read_from` -- `flows.distribute.seed`'s
             own refusal, reached because the shard below is built with
             `binder["read_from"]` and not with a default.
 
@@ -92,7 +92,7 @@ def fan(binder: dict, stage: Stage) -> list[dict]:
 
     ! AND EVERY SHARD AGREED ON `{}`, so `desk.proof.gather`'s `MismatchedRoot`
     could not fire either -- the ambiguity surfaced four steps later at
-    `mark --check`, blamed on the role, after four agents had read and filled
+    the per-copy check, blamed on the role, after four agents had read and filled
     the shards.
     """
     pages = binder.get("pages", [])

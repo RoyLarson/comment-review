@@ -17,7 +17,7 @@ which is exactly how the two drifted apart.
 
 !! THE END-TO-END CASE MOVED FROM `mark --check` TO `collate`, 2026-08-30.
 `--check` left `mark` entirely and became `collate`'s first act -- see
-`src/comment_review/commands/mark.py`'s own docstring -- so the command a
+`src/comment_review/commands/distribute.py`'s own docstring -- so the command a
 role's output actually meets is now `collate`, not `mark --check`.
 
     uv run pytest -q tests/test_brief_worked_example.py

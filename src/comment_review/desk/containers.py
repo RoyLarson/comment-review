@@ -10,7 +10,7 @@
 !! THE TYPE IS THE DEFINITION AND THERE IS NO MARKDOWN SOURCE, ruled
 `decision-log.md Vocabulary: #30`. `docs/the-mark.md` exists because an agent
 AUTHORS a mark, so a mark's shape must be published to a role. No agent ever
-authors a container -- `flows.marks.seed`, `flows.fan_out.fan` and
+authors a container -- `flows.distribute.seed`, `flows.fan_out.fan` and
 `desk.proof.gather` build them -- so the type is where the shape lives, the way
 `desk/mark.py` defines `Mark`.
 
@@ -119,7 +119,7 @@ def parse_edit_copy(where: str, data: object) -> tuple[EditCopy | None, list[str
 
     Args:
         where: how to name this copy in a message.
-        data: one edit_copy, as `flows.marks.seed` builds one.
+        data: one edit_copy, as `flows.distribute.seed` builds one.
 
     Returns:
         `(EditCopy, [])` or `(None, [messages])`.

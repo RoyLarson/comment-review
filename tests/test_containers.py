@@ -16,7 +16,7 @@ from comment_review.desk.containers import (
     parse_sheet,
 )
 from comment_review.desk.proof import gather
-from comment_review.flows.marks import seed
+from comment_review.flows.distribute import seed
 
 
 def a_real_copy(tmp_path, role="block-context"):

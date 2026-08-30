@@ -191,10 +191,10 @@ def _read_from_problem(loaded: dict) -> str:
     consumes this one.
 
     !! MEASURED 2026-08-28, and it is why the check moved here from `seed`
-    alone: `mark --seed` over a version-"1" binder exited 1 with `KeyError:
+    alone: `distribute --seed` over a version-"1" binder exited 1 with `KeyError:
     'read_from'` and an eight-frame traceback on stderr and nothing on stdout,
     past `main`'s own promise of *"2 when an input could not be read"*.
-    `commands/mark.py:79` calls `seed` immediately after this function returns
+    `commands/distribute.py:79` calls `seed` immediately after this function returns
     no problem, so a field `seed` requires and `read` ignored could only surface
     as a crash. ! RAISING IS NOT REFUSING: a refusal in this module is a NAMED
     REASON and an exit code, which is what a reader can act on.

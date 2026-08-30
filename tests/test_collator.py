@@ -33,12 +33,12 @@ from comment_review.desk.collator import (
     verify_report,
 )
 from comment_review.desk.mark import Instruction, Mark, parse
-from comment_review.flows.marks import seed
+from comment_review.flows.distribute import seed
 
 DESK = ROOT / "src" / "comment_review" / "desk"
 
 #: A real binder over `desk/` -- the same fixture-free input
-#: `tests/test_marks_flow.py` already builds this way.
+#: `tests/test_distribute_flow.py` already builds this way.
 BINDER = binder_of(DESK, 0)
 ROWS = rows_of(BINDER)
 #: `mark.py`'s own `@a0` -- narrowed by suffix, since `desk/` holds several
@@ -412,7 +412,7 @@ class TestVerifyReport:
         """!! IT READ `mark.get("mark") is None` AND SKIPPED UNTIL 2026-08-29,
         which said the same thing about a slot nobody wrote in and a mark whose
         ruling key this code did not recognise -- so the second vanished here
-        as well as in `flows.marks.problems_in`."""
+        as well as in `desk.collator.problems_in`."""
         copy = _filled({"instruction": None})
         problems = verify_report(copy, BINDER, ROOT)
         assert problems
@@ -540,7 +540,7 @@ class TestProblemsAreRoutable:
         assert any(p.address == "" and "`role`" in p.message for p in problems)
 
 
-# ! MOVED FROM `tests/test_marks_flow.py`, `decision-log.md Process: #54` --
+# ! MOVED FROM `tests/test_distribute_flow.py`, `decision-log.md Process: #54` --
 # `problems_in`, `unruled` and `tally` moved to this module with the rest of
 # P24; these tests came with them, changing only the import and (for the one
 # case that read a message as a string) the `Problem` field it now reads.
@@ -560,7 +560,7 @@ def test_problems_in_reads_every_sheet_not_just_the_first():
 def test_a_sheet_whose_read_from_is_the_wrong_SHAPE_is_refused(bad):
     # !! `problems_in` HAND-ROLLED `isinstance(..., dict) and truthy` FOR ONE
     # COMMIT, so `{"junk": 1}` and `{"root": 7, "revise": "x"}` passed
-    # `mark --check` at exit 0 while `bind` REFUSED the identical value -- two
+    # the per-copy check at exit 0 while `bind` REFUSED the identical value -- two
     # spellings of one rule, disagreeing. It reuses `binder`'s checker now.
     sheet = {"role": "block-context", "read_from": bad, "sheets": []}
     messages, _ = problems_in(sheet)

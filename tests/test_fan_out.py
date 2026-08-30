@@ -1,7 +1,7 @@
 """`flows/fan_out.py`: a stage's dispatches split a binder into edit_copies.
 
 ! INPUT FROM REALITY, throughout -- a real binder over `DESK` through
-`binder_of`, matching `tests/test_marks_flow.py`'s own pattern. Nothing here
+`binder_of`, matching `tests/test_distribute_flow.py`'s own pattern. Nothing here
 hand-writes a page or a row.
 """
 
@@ -12,10 +12,10 @@ import pytest
 from helpers import binder_of
 
 from comment_review.desk.stages import Dispatch, Kind, Role, Stage
+from comment_review.flows.distribute import seed
 from comment_review.flows.fan_out import OverlappingShards, UncoveredPage, fan
-from comment_review.flows.marks import seed
 
-# !! ABSOLUTE, matching `tests/test_marks_flow.py`'s own `DESK` -- a relative
+# !! ABSOLUTE, matching `tests/test_distribute_flow.py`'s own `DESK` -- a relative
 # `Path("src/comment_review/desk")` only rglobs correctly when the suite runs
 # from the repo root.
 DESK = Path(__file__).resolve().parents[1] / "src" / "comment_review" / "desk"

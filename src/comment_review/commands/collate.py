@@ -26,7 +26,7 @@ from comment_review.desk.proof import MismatchedRoot
 from comment_review.flows.collate import collate
 from comment_review.machine import exceptions
 
-#: Exit codes, extending `mark`'s own 0/1/2 with the two outcomes a caller
+#: Exit codes, extending `distribute`'s own 0/1/2 with the two outcomes a caller
 #: branches on. `main` CHECKS `got.escalations` BEFORE `got.rereads`, so a
 #: run holding both reports `ESCALATIONS` (4) rather than `REREADS` (3): an
 #: escalation is the stronger claim on a person's attention.

@@ -33,7 +33,7 @@ class MismatchedRoot(Exception):
     Reading `copy.get("read_from", {})` made every copy that carried none agree
     on `{}`, so a set of edit_copies that could not say which tree they were
     censused from compared EQUAL and gathered without complaint. The absence is
-    now `flows.marks.seed`'s own `KeyError`, one level further along.
+    now `flows.distribute.seed`'s own `KeyError`, one level further along.
     """
 
 
@@ -43,7 +43,7 @@ def gather(stage: str, edit_copies: list[dict]) -> dict:
     Args:
         stage: the stage label these edit_copies were dispatched under, e.g.
             `SKILL.md`'s `"4a"` or `"4c"`.
-        edit_copies: as `flows.marks.seed` returns one -- one per role, or
+        edit_copies: as `flows.distribute.seed` returns one -- one per role, or
             one per shard under fan-out. Held in the order given: nothing is
             sorted and nothing is dropped.
 

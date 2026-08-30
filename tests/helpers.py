@@ -29,7 +29,7 @@ from pathlib import Path
 from comment_review.binder.binder import bind
 from comment_review.desk.mark import ANCHOR_EXAMPLE, INSTRUCTIONS, Instruction, Shape
 from comment_review.desk.proof import gather
-from comment_review.flows.marks import seed
+from comment_review.flows.distribute import seed
 from comment_review.flows.page_for import page_of, source_of
 
 #: `src/comment_review/desk/` -- the source `a_small_real_tree` copies from.

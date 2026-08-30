@@ -40,10 +40,10 @@ def test_the_four_roles_are_a_closed_set_independent_of_any_topology():
     ]
 
 
-def test_mark_draws_its_choices_from_the_enum_not_from_a_schedule():
-    import comment_review.commands.mark as mark_cmd
+def test_distribute_draws_its_choices_from_the_enum_not_from_a_schedule():
+    import comment_review.commands.distribute as distribute_cmd
 
-    source = Path(mark_cmd.__file__).read_text(encoding="utf-8")
+    source = Path(distribute_cmd.__file__).read_text(encoding="utf-8")
     assert "STAGES" not in source, "a run's topology must not decide valid role names"
     assert "ROLES" in source or "Role" in source
 

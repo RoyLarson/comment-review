@@ -1,4 +1,4 @@
-"""`flows/marks.py`: the seeded row carries `raw_text`, and the sheet's shape."""
+"""`flows/distribute.py`: the seeded row carries `raw_text`, and the sheet's shape."""
 
 import ast
 import re
@@ -6,7 +6,7 @@ from pathlib import Path
 
 from helpers import binder_of
 
-from comment_review.flows.marks import seed
+from comment_review.flows.distribute import seed
 
 # !! ABSOLUTE, matching `tests/test_binder_records_its_root.py`'s own `DESK` --
 # a relative `Path("src/comment_review/desk")` only rglobs correctly when the

@@ -331,7 +331,7 @@ def verify_report(report: dict, binder: dict, root: Path) -> list[str]:
 
     Args:
         report: one edit_copy -- `{"sheets": [{"path", "sha", "marks": [...]}]}`,
-            as `flows.marks.seed` hands it out and a role hands it back. A
+            as `flows.distribute.seed` hands it out and a role hands it back. A
             `sheets` that is not a list gives an empty result, and so does a
             sheet whose `marks` is not one.
         binder: the binder the edit_copy was seeded from -- what each
@@ -433,7 +433,7 @@ def problems_in(report: dict) -> tuple[list[Problem], int]:
 
     !! IT RETURNS `Problem`s, NOT SENTENCES, since 2026-08-30. See `Problem`.
 
-    !! AND IT MOVED HERE FROM `flows/marks.py`, per `decision-log.md
+    !! AND IT MOVED HERE FROM `flows/distribute.py`, per `decision-log.md
     Process: #54` -- "did every place get ruled on" is a question about the SET,
     which is this module's, while `desk/mark.py` answers for one mark alone.
 
@@ -452,7 +452,7 @@ def problems_in(report: dict) -> tuple[list[Problem], int]:
         out.append(Problem("", "", "the report needs the `role` that wrote it"))
     # !! THE HEADER IS CHECKED ON THE WAY BACK, and was not until 2026-08-28.
     # `seed` refuses a binder that cannot say which root it read, and this side
-    # -- `mark --check` -- ruled only on `marks` and `role`, so an edit_copy whose
+    # -- the per-copy check -- ruled only on `marks` and `role`, so an edit_copy whose
     # `read_from` had been STRIPPED or EMPTIED passed at exit 0. ! That is the
     # same asymmetry as the one fixed at `bind` and `seed` earlier the same
     # day, one step further along the chain.

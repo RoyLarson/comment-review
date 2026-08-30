@@ -41,7 +41,7 @@ class Command(StrEnum):
     CENSUS = auto()
     COLLATE = auto()
     COMPOSITOR = auto()
-    MARK = auto()
+    DISTRIBUTE = auto()
     PROOF = auto()
     PROVE_UNCHANGED = auto()
     REFERRERS = auto()

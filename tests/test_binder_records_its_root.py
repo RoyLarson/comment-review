@@ -11,7 +11,7 @@ import pytest
 from helpers import binder_of, pages_of
 
 from comment_review.binder.binder import bind
-from comment_review.flows.marks import seed
+from comment_review.flows.distribute import seed
 
 # !! ABSOLUTE, AND IT WAS `Path("src/comment_review/desk")` UNTIL 2026-08-28.
 # MEASURED: run from any directory but the repo root, `pages_of` rglobbed a

@@ -61,9 +61,9 @@ refuses a field that is not one of them -- for `Mark`'s seven as well as for
 parsed a mark, so the seven fields existed as prose plus string literals at
 the call sites, and three things were MEASURED off that: ten
 `str`-into-`dict[Instruction, Row]` type errors in `desk/collator.py`; a
-`flows/marks.py` skip that dropped a mark carrying no instruction and recounted
+`flows/distribute.py` skip that dropped a mark carrying no instruction and recounted
 it as a place nobody looked at; and `reviewer-brief.md`'s own worked example
-passing `mark --check` at exit 0 AS UNRULED, because the brief keys the ruling
+passing the per-copy check at exit 0 AS UNRULED, because the brief keys the ruling
 `instruction` and the code read `mark`. **A reviewer following the brief
 produced findings that vanished in silence.**
 
@@ -265,7 +265,7 @@ class Mark:
     !! `raw_text` IS THE THIRD SEEDED FIELD AND WAS EXCLUDED UNTIL 2026-08-30.
     It went out on every slot and `parse` dropped it, so one of the three
     seeded fields could not be written from this class's own names -- which is
-    what left a dict literal in `flows/marks.py` that a rename could not reach.
+    what left a dict literal in `flows/distribute.py` that a rename could not reach.
     ! WHAT COMES BACK IS NOT THE BASE. The binder's row is; a returned
     `raw_text` that differs from it is DRIFT, which `desk.collator.drift_in`
     reports.
@@ -323,7 +323,7 @@ class Mark:
         """One fillable slot, keyed by this class's OWN field names.
 
         !! THE WRITE HALF OF THE ROUND TRIP LIVES WITH THE READ HALF, and did
-        not until 2026-08-30. `flows/marks.py` wrote four keys as literals, so
+        not until 2026-08-30. `flows/distribute.py` wrote four keys as literals, so
         renaming a field here left that module writing the old key and nothing
         could notice -- `parse` would simply find the field absent.
 
@@ -401,7 +401,7 @@ def allowed() -> dict:
     !! IT WAS `sheet_header`, AND BOTH THE NAME AND ITS TWO DESCRIPTIONS WERE
     FALSE. `role` and `read_from` sit on the EDIT_COPY -- `seed` returns
     `{"role", "read_from", "sheets"}` and a sheet carries `{"path", "sha",
-    "marks"}` -- so a role reading `mark --shape` was told to put two keys on
+    "marks"}` -- so a role reading `distribute --shape` was told to put two keys on
     the container that does not hold them. `sheet` names the PAGE-UNIT since
     `decision-log.md Vocabulary: #28`; the per-role container is `edit_copy`.
 
@@ -547,12 +547,12 @@ def untouched(entry: object) -> bool:
     """A seeded slot no role has written in -- the COVERAGE GAP.
 
     !! THIS IS NOT "HAS NO INSTRUCTION", AND THE DIFFERENCE IS THE DEFECT THIS
-    FUNCTION EXISTS FOR. `flows/marks.py` read `mark.get("mark") is None` and
+    FUNCTION EXISTS FOR. `flows/distribute.py` read `mark.get("mark") is None` and
     skipped, so an entry a role HAD filled in but that named no instruction --
     or named it under a key the code did not read -- was dropped before any
     check saw it and recounted as a place nobody looked at. MEASURED
     2026-08-29: `reviewer-brief.md`'s own worked example, which keys the ruling
-    `instruction`, passed `mark --check` at exit 0 as UNRULED.
+    `instruction`, passed the per-copy check at exit 0 as UNRULED.
 
     ! So an untouched slot is BOTH things at once: `instruction` present and
     null -- the key `seed()` writes -- AND none of `ROLE_FIELDS` filled. An

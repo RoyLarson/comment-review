@@ -1,9 +1,9 @@
-"""The `mark` command: its argument parsing and its exit code.
+"""The `distribute` command: its argument parsing and its exit code.
 
-    comment_review mark --shape
-    comment_review mark --seed --binder B.json --role block-context --out F.json
+    comment_review distribute --shape
+    comment_review distribute --seed --binder B.json --role block-context --out F.json
 
-The work is `flows.marks` and `desk.mark`; this is only the console face of it.
+The work is `flows.distribute` and `desk.mark`; this is only the console face of it.
 
 !! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
 A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`.
@@ -23,7 +23,7 @@ from pathlib import Path
 from comment_review.binder.binder import read as read_binder
 from comment_review.desk.mark import allowed
 from comment_review.desk.stages import ROLES
-from comment_review.flows.marks import seed
+from comment_review.flows.distribute import seed
 from comment_review.machine import exceptions
 
 

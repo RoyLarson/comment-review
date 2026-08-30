@@ -20,6 +20,6 @@ LEFT ON `b50e7a4` -- so `from comment_review.binder.record import seed`, written
 by anyone following it, was an ImportError; and `binder.py`, which every other
 module in this package imports, was named nowhere. ! The line *"`record` IS FOUR
 SUBJECTS AND IS NOT YET SPLIT -- P10"* is superseded with the module: what a
-role fills is now `flows/marks.py`'s edit_copy, seeded per role and checked by
+role fills is now `flows/distribute.py`'s edit_copy, seeded per role and checked by
 `desk/mark.py`.
 """

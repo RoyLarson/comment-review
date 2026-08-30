@@ -11,7 +11,7 @@ import pytest
 from helpers import binder_of
 
 from comment_review.desk.proof import MismatchedRoot, gather
-from comment_review.flows.marks import seed
+from comment_review.flows.distribute import seed
 
 DESK = Path(__file__).resolve().parents[1] / "src" / "comment_review" / "desk"
 

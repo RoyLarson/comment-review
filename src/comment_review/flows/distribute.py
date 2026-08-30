@@ -1,6 +1,15 @@
-"""Hand a role an edit_copy to fill.
+"""DISTRIBUTE -- hand each role an edit_copy to fill.
 
     seed(binder, role)     one entry per row, ADDRESS ALREADY WRITTEN
+
+!! NAMED FOR THE ACT, NOT THE ARTIFACT, since 2026-08-30. Roy: *"a flow named
+mark reads like it is doing something that it is probably not doing"* -- and
+*"the broadcasting part seems like distribute, the bringin back together seems
+like collate."* `flows/collate.py` is the other half of the round.
+
+!! AND THE CHECK IS NO LONGER HERE. `unruled`, `problems_in` and `tally` moved
+to `desk/collator.py` -- `decision-log.md Process: #54`: a mark answers for
+itself, and everything about the SET is the collator's.
 
 !! THE EDIT_COPY IS SEEDED BECAUSE THE ADDRESS IS THE PART ROLES GET WRONG.
 MEASURED 2026-08-27: with a one-file binder every fanned-out agent wrote a bare
