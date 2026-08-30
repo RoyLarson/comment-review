@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (107)
+### open  (108)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -289,6 +289,7 @@ that changed a published name or rule:
 | [backlog-claims-it-cannot-mean](backlog-claims-it-cannot-mean.md) | systems | yes | 0/6 | The backlog claims things it cannot mean, and nothing was checking |
 | [vocabulary-sweep-reads-a-moved-path](vocabulary-sweep-reads-a-moved-path.md) | systems | — | 0/3 | vocabulary_sweep reads a path that moved, so nothing looks for undefined terms |
 | [board-not-in-tooling-shape](board-not-in-tooling-shape.md) | systems | -- | 0/1 | waits on the tooling; until then a full resync empties the decision queue |
+| [supersession-defeats-gone-at-end](supersession-defeats-gone-at-end.md) | testing | yes | 0/3 | A superseded ruling keeps its own quotation, and the case gate reads that as unfixed |
 
 ### in-progress  (20)
 
