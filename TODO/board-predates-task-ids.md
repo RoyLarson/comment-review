@@ -2,7 +2,7 @@
 
 ```
 Status:   blocked
-Progress: 0 of 5 tasks done
+Progress: 0 of 6 tasks done
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, trialling the migration so a plan could name its tasks
@@ -14,6 +14,9 @@ Measured: 2026-08-30 — the plan's section B cites a-revise-answer-has-no-artif
           and T7 and NONE resolves -- that file writes ids as 'T4 --' where the tool
           reads 'T4 |'. The rollup still shows 0/8, so the count is right while three
           references are dead; only a write-side verb reports it
+Blocking: 2026-08-30 — this is no longer only a format question -- the board tool
+          refuses every write while the 56 hand-set flags stand, so real work queues
+          behind it
 ```
 
 ## Objective
@@ -45,3 +48,12 @@ The board predates task ids, and migrating it clears the decision queue.
       `pyproject.toml` names it WITHOUT a machine-specific absolute path, or it
       does not name it and the tool is invoked from its own checkout. It was left
       uncommitted on 2026-08-29 for exactly that reason.
+- [ ] Unblock the writes the board tool now refuses. Verify: `job-board todo
+      supersede-remaining` completes on this board. MEASURED 2026-08-30: it
+      refuses with "56 file(s) state what their own boxes cannot, so a write would
+      silently drop it" -- each carrying a hand-set Requires-Roy true with no task
+      marked as owing a decision. The flag is DERIVED in that tool, so any write
+      would recompute it false and erase 56 decisions from Roy's queue. ! THE
+      REFUSAL IS CORRECT and it is the same erasure a trial migration caused and
+      had to revert; what it means is that consolidating four TODOs into one now
+      waits on this file.

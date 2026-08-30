@@ -8,6 +8,10 @@ Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
           deleted whole and written back by an agent with no access to the vocabulary,
           the docs, the prototype, git history or the built copy under plugins)
+Pending:  2026-08-30 — the four single-defect files -- move-onto-itself-deletes, crlf-
+          verbatim-never-matches, cache-keyed-without-root, cite-at-raises-on-a-nondigit
+          -- STAND until the board migration lands, and are superseded into this file in
+          one pass then. Roy, 2026-08-30. Do not close them by hand
 ```
 
 ## Objective
