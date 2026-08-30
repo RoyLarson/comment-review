@@ -10,6 +10,10 @@ Raised:   2026-08-29 (2026-08-29, trialling the migration so a plan could name i
           than in this board, and is tracked where that tool is developed)
 Updated:  2026-08-29 — waiting on the tool's pipe handling, which is fixed where that
           tool is developed
+Measured: 2026-08-30 — the plan's section B cites a-revise-answer-has-no-artifact T4, T5
+          and T7 and NONE resolves -- that file writes ids as 'T4 --' where the tool
+          reads 'T4 |'. The rollup still shows 0/8, so the count is right while three
+          references are dead; only a write-side verb reports it
 ```
 
 ## Objective
