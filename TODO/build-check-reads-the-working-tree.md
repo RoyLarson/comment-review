@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks done
+Progress: 0 of 5 tasks done
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-25 (backend, 2026-08-25, chasing a reviewer note on the write-chain
@@ -23,3 +23,12 @@ build --check reads the working tree, so committed drift is invisible to it.
       red
 - [ ] A test that the check can FAIL on this specific cause, not only on a hand-
       edited file. tests/gates/test_build.py already proves four other causes bite
+- [ ] Update CLAUDE.md's command table, or the repo, so that a bare ruff format .
+      is safe to run. Verify: MEASURED 2026-08-30 on feat/the-mark-and-the-
+      collator, uv run ruff format --check . reports 24 files would be
+      reformatted, 147 already formatted -- the drift spans src/, tests/ and the
+      built plugins/ copies, and ruff check does not see any of it. So the command
+      CLAUDE.md tells a session to run rewrites 24 files it did not touch,
+      including plugins/, which the release rule says is built rather than edited.
+      Either the repo is formatted once and the drift goes, or the table says to
+      scope the formatter to what the change touched.
