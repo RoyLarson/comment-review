@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (104)
+### open  (105)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -286,6 +286,7 @@ that changed a published name or rule:
 | [brief-change-is-raw-text](brief-change-is-raw-text.md) | agents | yes | 0/2 | reviewer-brief.md:140 says change is the updated paragraph as RAW TEXT, not lines; desk/mark.py refuses a change that is not an ARRAY of lines, on a measurement of its own |
 | [skill-inverts-the-anchor-line](skill-inverts-the-anchor-line.md) | agents | — | 0/2 | SKILL.md's CANDIDATE paragraph describes the opposite of the line commands/census.py prints, and the reasoning built on it is what the task agent carries into every proposal |
 | [external-address-cites-dead-modules](external-address-cites-dead-modules.md) | backend | — | 0/1 | desk/external_address.py says the address is declared in binder/record.py and resolved in desk/desk.py; record.py left on b50e7a4 and desk.py is in no directory of this tree |
+| [no-command-for-the-middle](no-command-for-the-middle.md) | backend | — | 0/4 | `gather`, `places`, `reconcile` and `docket_from` have no CLI face, so nothing turns checked marks into the docket `proof --docket` requires. Measured 2026-08-29 on a real run: every other step of the chain is a command; this one had to be driven from a hand-written script |
 
 ### in-progress  (19)
 
