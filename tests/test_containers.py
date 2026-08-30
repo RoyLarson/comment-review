@@ -42,10 +42,8 @@ class TestWhatTheChainBuilds:
         assert {s.path for s in copy.sheets} == carried
 
     def test_a_master_proof_gather_built_parses(self, tmp_path):
-        copies = [
-            a_real_copy(tmp_path, "block-context"),
-            a_real_copy(tmp_path, "function-context"),
-        ]
+        binder = binder_of(a_small_real_tree(tmp_path), 0)
+        copies = [seed(binder, "block-context"), seed(binder, "function-context")]
         proof, why = parse_master_proof("4c", gather("4c", copies))
         assert why == []
         assert isinstance(proof, MasterProof)
