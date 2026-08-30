@@ -15,19 +15,22 @@ import re
 from dataclasses import replace
 from pathlib import Path
 
+import pytest
 from conftest import ROOT
-from helpers import binder_of
+from helpers import a_small_real_tree, binder_of
 
 from comment_review.binder.binder import rows_of
 from comment_review.desk.collator import (
     address_problems,
     claim_verbatim_problems,
     known_addresses,
+    problems_in,
     source_problems,
     source_verification,
+    tally,
     verify_report,
 )
-from comment_review.desk.mark import Mark, parse
+from comment_review.desk.mark import Instruction, Mark, parse
 from comment_review.flows.marks import seed
 
 DESK = ROOT / "src" / "comment_review" / "desk"
@@ -446,3 +449,117 @@ class TestEachCheckCanFire:
         problems = claim_verbatim_problems("here", bad, RAW_TEXT)
         assert problems
         assert "claim.false" in problems[0]
+
+
+class TestProblemsAreRoutable:
+    def test_a_problem_names_the_role_and_the_address(self, tmp_path):
+        """Roy, 2026-08-30: "the errors should be stacked and capable of being
+        read off correctly so that each can be fixed or sent back to the role."
+        A sentence cannot be routed; a role and an address can."""
+        copy = seed(binder_of(a_small_real_tree(tmp_path), 0), "block-context")
+        entry = copy["sheets"][0]["marks"][0]
+        entry.update({"instruction": "correct", "claim": {}})
+        problems, ruled = problems_in(copy)
+        assert ruled == 1
+        assert problems
+        assert all(p.role == "block-context" for p in problems)
+        assert all(p.address == entry["address"] for p in problems)
+        assert all(isinstance(p.message, str) and p.message for p in problems)
+
+    def test_every_broken_mark_is_reported_not_only_the_first(self, tmp_path):
+        # ! NOT NECESSARILY `sheets[0]` -- `a_small_real_tree` copies
+        # `__init__.py` alongside the other three, and its page (sorted first,
+        # alphabetically ahead of the rest) holds exactly one row: a bare
+        # module docstring with no code below it. So the sheet checked here is
+        # whichever one actually carries two places, not the first in order.
+        copy = seed(binder_of(a_small_real_tree(tmp_path), 0), "block-context")
+        marks = next(s["marks"] for s in copy["sheets"] if len(s["marks"]) >= 2)
+        for entry in marks[:2]:
+            entry.update({"instruction": "correct", "claim": {}})
+        problems, ruled = problems_in(copy)
+        assert ruled == 2
+        assert len({p.address for p in problems}) == 2
+
+    def test_a_copy_level_problem_carries_an_empty_address(self, tmp_path):
+        copy = seed(binder_of(a_small_real_tree(tmp_path), 0), "block-context")
+        del copy["role"]
+        problems, _ = problems_in(copy)
+        assert any(p.address == "" and "`role`" in p.message for p in problems)
+
+
+# ! MOVED FROM `tests/test_marks_flow.py`, `decision-log.md Process: #54` --
+# `problems_in`, `unruled` and `tally` moved to this module with the rest of
+# P24; these tests came with them, changing only the import and (for the one
+# case that read a message as a string) the `Problem` field it now reads.
+def test_problems_in_reads_every_sheet_not_just_the_first():
+    copy = seed(binder_of(DESK, 0), "block-context")
+    # A malformed mark on the LAST sheet -- a walker that stops at the first
+    # sheet passes this file and misses it.
+    copy["sheets"][-1]["marks"][0]["instruction"] = "correct"
+    messages, ruled = problems_in(copy)
+    assert ruled == 1
+    assert messages, "a correct with no claim must be refused wherever it sits"
+
+
+@pytest.mark.parametrize(
+    "bad", [{"junk": 1}, {"root": 7, "revise": "x"}, {}, "oops", None, []]
+)
+def test_a_sheet_whose_read_from_is_the_wrong_SHAPE_is_refused(bad):
+    # !! `problems_in` HAND-ROLLED `isinstance(..., dict) and truthy` FOR ONE
+    # COMMIT, so `{"junk": 1}` and `{"root": 7, "revise": "x"}` passed
+    # `mark --check` at exit 0 while `bind` REFUSED the identical value -- two
+    # spellings of one rule, disagreeing. It reuses `binder`'s checker now.
+    sheet = {"role": "block-context", "read_from": bad, "sheets": []}
+    messages, _ = problems_in(sheet)
+    # ! FORCED BY THE MOVE: `messages` holds `Problem`s now, not strings, so
+    # the membership test reads `.message` instead of the `Problem` itself.
+    assert any("read_from" in m.message for m in messages), bad
+
+
+def test_a_sheet_carrying_a_code_concern_validates():
+    """An EXPECTATION test, not an INPUT one -- the sheet is a literal a
+    human checked, per `decision-log.md Vocabulary: #23`. It carries no real
+    mark to check, so nothing here needs a real binder."""
+    sheet = {
+        "role": "block-context",
+        # ! `read_from` IS PART OF A WELL-FORMED SHEET since 2026-08-28 --
+        # `seed` puts it there and `problems_in` now rules on it, so a literal
+        # that omits it is testing a sheet no role can return.
+        "read_from": {"root": "src/comment_review/desk", "revise": 0},
+        "sheets": [],
+        "code_concerns": [
+            {"where": "src/m.py:12", "concern": "the guard admits a negative"}
+        ],
+    }
+    assert problems_in(sheet) == ([], 0)
+
+
+def test_tally_counts_a_ruled_mark_wherever_its_sheet_sits():
+    # INPUT FROM REALITY: a real binder through the real seed(), then filled
+    # exactly as a role legitimately would -- `instruction` holds the
+    # INSTRUCTION NAME as a plain string, matching `desk.mark.parse`'s own
+    # `isinstance(named, str)` check and this file's own `_well_formed()`
+    # fixture. `tally` walked `report["marks"]`, a top-level key `seed()` has
+    # not written since 2026-08-29 -- so on today's nested shape it silently
+    # returned `{}` for every sheet, ruled or not, rather than raising or
+    # reporting.
+    copy = seed(binder_of(DESK, 0), "block-context")
+    copy["sheets"][-1]["marks"][0].update(
+        {
+            "instruction": "correct",
+            "claim": {"false": "x", "true": "y"},
+            "reason": "test",
+            "sources": [],
+            "change": "# x",
+        }
+    )
+    assert tally(copy) == {Instruction.CORRECT: 1}
+
+
+def test_tally_of_a_freshly_seeded_sheet_is_empty():
+    # ! An unruled sheet's `{}` is the CORRECT answer -- every mark is still
+    # `None`, so nothing has an instruction to count. This is what
+    # distinguishes it from the silent `{}` the bug above produced for a
+    # RULED sheet: the same return value, for opposite reasons.
+    copy = seed(binder_of(DESK, 0), "block-context")
+    assert tally(copy) == {}

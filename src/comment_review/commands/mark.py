@@ -16,9 +16,14 @@ import sys
 from pathlib import Path
 
 from comment_review.binder.binder import read as read_binder
+
+# ! IMPORTING `desk/` FROM A COMMAND IS A LAYERING VIOLATION AND IS TEMPORARY.
+# `decision-log.md Process: #12` has a command expose a FLOW; `flows/collate.py`
+# is what these three will reach through, and it does not exist yet.
+from comment_review.desk.collator import problems_in, tally, unruled
 from comment_review.desk.mark import allowed
 from comment_review.desk.stages import ROLES
-from comment_review.flows.marks import problems_in, seed, tally, unruled
+from comment_review.flows.marks import seed
 from comment_review.machine import exceptions
 
 
@@ -99,8 +104,9 @@ def main() -> int:
             print(why, file=sys.stderr)
             return 2
         broken, ruled = problems_in(report)
-        for line in broken:
-            print(line)
+        for problem in broken:
+            where = problem.address or problem.role or "the report"
+            print(f"{where}: {problem.message}")
         left = unruled(report)
         counts = ", ".join(f"{n} {name}" for name, n in sorted(tally(report).items()))
         summary = f"{ruled} ruled on, {len(left)} left unruled"

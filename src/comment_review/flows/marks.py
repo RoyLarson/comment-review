@@ -1,7 +1,6 @@
-"""Hand a role an edit_copy to fill, and check what comes back.
+"""Hand a role an edit_copy to fill.
 
     seed(binder, role)     one entry per row, ADDRESS ALREADY WRITTEN
-    problems_in(report)    every rule `desk.mark` settles, over a whole file
 
 !! THE EDIT_COPY IS SEEDED BECAUSE THE ADDRESS IS THE PART ROLES GET WRONG.
 MEASURED 2026-08-27: with a one-file binder every fanned-out agent wrote a bare
@@ -28,8 +27,7 @@ SOURCE-VERIFICATION in `collator`. `desk.mark.parse` says the same about its
 own half.
 """
 
-from comment_review.binder.binder import _read_from_problem
-from comment_review.desk.mark import INSTRUCTIONS, Instruction, Mark, parse, untouched
+from comment_review.desk.mark import Mark
 from comment_review.reading.addresser import address_for
 
 
@@ -94,113 +92,3 @@ def seed(binder: dict, role: str) -> dict:
             for page in binder.get("pages", [])
         ],
     }
-
-
-def problems_in(report: dict) -> tuple[list[str], int]:
-    """Every rule broken in a filled edit_copy, and how many places were ruled on.
-
-    ! AN UNTOUCHED SLOT IS NOT A PROBLEM -- it is an unruled place, and the
-    count returned is what says how much of the edit_copy was answered. Refusing it
-    here would make an unfinished edit_copy indistinguishable from a malformed one.
-
-    !! BUT A SLOT A ROLE WROTE IN AND LEFT WITHOUT AN INSTRUCTION IS REFUSED BY
-    NAME, and was silently skipped until 2026-08-29 -- `desk.mark.untouched`
-    holds the distinction and the measurement behind it. Such an entry counts
-    towards `ruled`: a role DID rule here, and reporting it as unruled sends a
-    reader looking for a coverage gap that is really a malformed mark.
-
-    !! WALKS `report["sheets"]` THEN EACH SHEET'S `marks`, since 2026-08-29 --
-    `seed()` nests every mark inside its own page's sheet; a walk that read
-    `report["marks"]` would see nothing at all.
-
-    Returns:
-        `(messages, ruled)` -- one message per broken rule, and the number of
-        entries carrying an instruction.
-    """
-    if not isinstance(report.get("sheets"), list):
-        return ["the report needs a `sheets` list"], 0
-
-    out, ruled = [], 0
-    if not isinstance(report.get("role"), str) or not report["role"].strip():
-        out.append("the report needs the `role` that wrote it")
-    # !! THE HEADER IS CHECKED ON THE WAY BACK, and was not until 2026-08-28.
-    # `seed` refuses a binder that cannot say which root it read, and this side
-    # -- `mark --check` -- ruled only on `marks` and `role`, so an edit_copy whose
-    # `read_from` had been STRIPPED or EMPTIED passed at exit 0. ! That is the
-    # same asymmetry as the one fixed at `bind` and `seed` earlier the same
-    # day, one step further along the chain.
-    #
-    # !! IT REUSES `binder`'s OWN CHECKER, and hand-rolled `isinstance(..., dict)
-    # and truthy` for one commit. That weaker form let `{"junk": 1}` and
-    # `{"root": 7, "revise": "x"}` through at exit 0 while `bind` REFUSED the
-    # identical value -- two spellings of one rule, disagreeing.
-    #
-    # ! AND THE COMMENT CLAIMED MORE THAN THE CODE DID: it offered *"rewritten
-    # to a DIFFERENT root"* as motivation, which is not answerable here at all.
-    # `problems_in` holds an edit_copy and no binder, so it can rule on the field's
-    # SHAPE and not on whether the root is the one the edit_copy was seeded from.
-    # That comparison needs the binder, and belongs wherever the two meet.
-    why_header = _read_from_problem(report)
-    if why_header:
-        out.append(f"the report's {why_header}")
-
-    i = 0
-    for sheet in report["sheets"]:
-        marks = sheet.get("marks") if isinstance(sheet, dict) else None
-        if not isinstance(marks, list):
-            continue
-        for mark in marks:
-            i += 1
-            if not isinstance(mark, dict):
-                out.append(f"mark {i} is not an object")
-                continue
-            if untouched(mark):
-                continue
-            ruled += 1
-            where = mark.get("address") or f"mark {i}"
-            _, why = parse(where, mark)
-            out += why
-    return out, ruled
-
-
-def unruled(report: dict) -> list[str]:
-    """The addresses nobody wrote in -- the coverage gap, named not counted.
-
-    !! WALKS `report["sheets"]` THEN EACH SHEET'S `marks`, matching
-    `problems_in`, since 2026-08-29.
-
-    ! READS `desk.mark.untouched`, the same question `problems_in` asks, so a
-    mark refused for naming no instruction can never also be listed here. The
-    two answers were derived separately from `mark is None` and agreed on a
-    place that had been ruled on.
-    """
-    sheets = report.get("sheets")
-    if not isinstance(sheets, list):
-        return []
-    out = []
-    for sheet in sheets:
-        marks = sheet.get("marks") if isinstance(sheet, dict) else None
-        if not isinstance(marks, list):
-            continue
-        out += [str(m.get("address", "")) for m in marks if untouched(m)]
-    return out
-
-
-def tally(report: dict) -> dict[Instruction, int]:
-    """How many of each instruction the edit_copy carries, for a one-line summary.
-
-    !! WALKED `report["marks"]` UNTIL 2026-08-29 -- a top-level key `seed()`
-    no longer writes, since an edit_copy's marks nest one level down inside
-    `sheets`. On the reshaped report that read a KEY THAT NO LONGER EXISTS, so
-    `report.get("marks", [])` silently fell back to `[]` and this returned
-    `{}` for every real edit_copy, ruled or not -- a crash turned silent.
-    """
-    counts = dict.fromkeys(INSTRUCTIONS, 0)
-    for sheet in report.get("sheets", []):
-        marks = sheet.get("marks") if isinstance(sheet, dict) else None
-        if not isinstance(marks, list):
-            continue
-        for mark in marks:
-            if isinstance(mark, dict) and mark.get("instruction") in counts:
-                counts[mark["instruction"]] += 1
-    return {name: n for name, n in counts.items() if n}

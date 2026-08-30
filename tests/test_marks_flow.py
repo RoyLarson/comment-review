@@ -1,19 +1,12 @@
-"""`flows/marks.py`: the seeded row carries `raw_text`, and the sheet's shape.
-
-! `test_a_sheet_carrying_a_code_concern_validates` is an EXPECTATION test, not
-an INPUT one -- the sheet is a literal a human checked, per
-`decision-log.md Vocabulary: #23`.
-"""
+"""`flows/marks.py`: the seeded row carries `raw_text`, and the sheet's shape."""
 
 import ast
 import re
 from pathlib import Path
 
-import pytest
 from helpers import binder_of
 
-from comment_review.desk.mark import Instruction
-from comment_review.flows.marks import problems_in, seed, tally
+from comment_review.flows.marks import seed
 
 # !! ABSOLUTE, matching `tests/test_binder_records_its_root.py`'s own `DESK` --
 # a relative `Path("src/comment_review/desk")` only rglobs correctly when the
@@ -101,72 +94,3 @@ def test_no_module_outside_binder_imports_read_and_mentions_sha_in_one_file():
             offenders.append(str(path.relative_to(SRC)))
 
     assert offenders == []
-
-
-def test_problems_in_reads_every_sheet_not_just_the_first():
-    copy = seed(binder_of(DESK, 0), "block-context")
-    # A malformed mark on the LAST sheet -- a walker that stops at the first
-    # sheet passes this file and misses it.
-    copy["sheets"][-1]["marks"][0]["instruction"] = "correct"
-    messages, ruled = problems_in(copy)
-    assert ruled == 1
-    assert messages, "a correct with no claim must be refused wherever it sits"
-
-
-@pytest.mark.parametrize(
-    "bad", [{"junk": 1}, {"root": 7, "revise": "x"}, {}, "oops", None, []]
-)
-def test_a_sheet_whose_read_from_is_the_wrong_SHAPE_is_refused(bad):
-    # !! `problems_in` HAND-ROLLED `isinstance(..., dict) and truthy` FOR ONE
-    # COMMIT, so `{"junk": 1}` and `{"root": 7, "revise": "x"}` passed
-    # `mark --check` at exit 0 while `bind` REFUSED the identical value -- two
-    # spellings of one rule, disagreeing. It reuses `binder`'s checker now.
-    sheet = {"role": "block-context", "read_from": bad, "sheets": []}
-    messages, _ = problems_in(sheet)
-    assert any("read_from" in m for m in messages), bad
-
-
-def test_a_sheet_carrying_a_code_concern_validates():
-    sheet = {
-        "role": "block-context",
-        # ! `read_from` IS PART OF A WELL-FORMED SHEET since 2026-08-28 --
-        # `seed` puts it there and `problems_in` now rules on it, so a literal
-        # that omits it is testing a sheet no role can return.
-        "read_from": {"root": "src/comment_review/desk", "revise": 0},
-        "sheets": [],
-        "code_concerns": [
-            {"where": "src/m.py:12", "concern": "the guard admits a negative"}
-        ],
-    }
-    assert problems_in(sheet) == ([], 0)
-
-
-def test_tally_counts_a_ruled_mark_wherever_its_sheet_sits():
-    # INPUT FROM REALITY: a real binder through the real seed(), then filled
-    # exactly as a role legitimately would -- `instruction` holds the
-    # INSTRUCTION NAME as a plain string, matching `desk.mark.parse`'s own
-    # `isinstance(named, str)` check and `test_collator.py`'s `_well_formed()`
-    # fixture. `tally` walked `report["marks"]`, a top-level key `seed()` has
-    # not written since 2026-08-29 -- so on today's nested shape it silently
-    # returned `{}` for every sheet, ruled or not, rather than raising or
-    # reporting.
-    copy = seed(binder_of(DESK, 0), "block-context")
-    copy["sheets"][-1]["marks"][0].update(
-        {
-            "instruction": "correct",
-            "claim": {"false": "x", "true": "y"},
-            "reason": "test",
-            "sources": [],
-            "change": "# x",
-        }
-    )
-    assert tally(copy) == {Instruction.CORRECT: 1}
-
-
-def test_tally_of_a_freshly_seeded_sheet_is_empty():
-    # ! An unruled sheet's `{}` is the CORRECT answer -- every mark is still
-    # `None`, so nothing has an instruction to count. This is what
-    # distinguishes it from the silent `{}` the bug above produced for a
-    # RULED sheet: the same return value, for opposite reasons.
-    copy = seed(binder_of(DESK, 0), "block-context")
-    assert tally(copy) == {}

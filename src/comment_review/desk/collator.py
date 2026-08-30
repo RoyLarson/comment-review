@@ -9,6 +9,11 @@
     source_verification()      those three, over one mark
     verify_report()            those three, over every ruled mark of one
                                edit_copy
+    Problem                    one thing wrong with one mark, named to route
+    problems_in()              every rule `desk.mark` settles, over a whole
+                               edit_copy
+    unruled()                  the addresses nobody wrote in
+    tally()                    how many of each instruction the edit_copy carries
     places()                   every ruled mark of a master_proof, grouped by
                                the address it TOUCHES
     reconcile()                each place -> settled, escalation or re-read
@@ -27,10 +32,11 @@ checked in one pass and every problem is read at once. Reconciliation RAISES
 cannot group, and a place grouped wrongly is settled wrongly.
 """
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import NamedTuple
 
-from comment_review.binder.binder import rows_of
+from comment_review.binder.binder import _read_from_problem, rows_of
 from comment_review.desk.mark import INSTRUCTIONS, Instruction, Mark, parse, untouched
 from comment_review.machine import constants
 from comment_review.machine.exceptions import READ_ERRORS
@@ -327,6 +333,148 @@ def verify_report(report: dict, binder: dict, root: Path) -> list[str]:
                 cache=cache,
             )
     return out
+
+@dataclass(frozen=True)
+class Problem:
+    """One thing wrong with one mark, named so a reader can ROUTE it.
+
+    !! STRUCTURED RATHER THAN A SENTENCE, ruled by Roy 2026-08-30: *"the errors
+    should be stacked and capable of being read off correctly so that each can
+    be fixed or sent back to the role."* `desk.mark.parse` returns flat strings
+    each opening with a `where`, and a caller cannot route on a sentence -- so
+    the role and the address ride beside the message.
+
+    ! THERE IS NO `kind` FIELD. The three questions -- is this mark well formed,
+    did its base drift, did anyone rule here -- stay three separate lists. A
+    `kind` would only restate which list a Problem is already in.
+
+    Attributes:
+        role: the `edit_copy` this came back in -- WHO to send it back to.
+        address: the place, or "" for a problem about the copy itself rather
+            than about any one mark.
+        message: the rule broken, worded by whichever check found it.
+    """
+
+    role: str
+    address: str
+    message: str
+
+def problems_in(report: dict) -> tuple[list[Problem], int]:
+    """Every rule broken in a filled edit_copy, and how many places were ruled on.
+
+    ! AN UNTOUCHED SLOT IS NOT A PROBLEM -- it is an unruled place, and the
+    count returned is what says how much of the edit_copy was answered. Refusing it
+    here would make an unfinished edit_copy indistinguishable from a malformed one.
+
+    !! BUT A SLOT A ROLE WROTE IN AND LEFT WITHOUT AN INSTRUCTION IS REFUSED BY
+    NAME, and was silently skipped until 2026-08-29 -- `desk.mark.untouched`
+    holds the distinction and the measurement behind it. Such an entry counts
+    towards `ruled`: a role DID rule here, and reporting it as unruled sends a
+    reader looking for a coverage gap that is really a malformed mark.
+
+    !! WALKS `report["sheets"]` THEN EACH SHEET'S `marks`, since 2026-08-29 --
+    `seed()` nests every mark inside its own page's sheet; a walk that read
+    `report["marks"]` would see nothing at all.
+
+    !! IT RETURNS `Problem`s, NOT SENTENCES, since 2026-08-30. See `Problem`.
+
+    !! AND IT MOVED HERE FROM `flows/marks.py`, per `decision-log.md
+    Process: #54` -- "did every place get ruled on" is a question about the SET,
+    which is this module's, while `desk/mark.py` answers for one mark alone.
+
+    Returns:
+        `(problems, ruled)` -- one `Problem` per broken rule, and the number of
+        entries carrying an instruction.
+    """
+    role = report.get("role")
+    named = role if isinstance(role, str) and role.strip() else ""
+    if not isinstance(report.get("sheets"), list):
+        return [Problem(named, "", "the report needs a `sheets` list")], 0
+
+    out: list[Problem] = []
+    ruled = 0
+    if not named:
+        out.append(Problem("", "", "the report needs the `role` that wrote it"))
+    # !! THE HEADER IS CHECKED ON THE WAY BACK, and was not until 2026-08-28.
+    # `seed` refuses a binder that cannot say which root it read, and this side
+    # -- `mark --check` -- ruled only on `marks` and `role`, so an edit_copy whose
+    # `read_from` had been STRIPPED or EMPTIED passed at exit 0. ! That is the
+    # same asymmetry as the one fixed at `bind` and `seed` earlier the same
+    # day, one step further along the chain.
+    #
+    # !! IT REUSES `binder`'s OWN CHECKER, and hand-rolled `isinstance(..., dict)
+    # and truthy` for one commit. That weaker form let `{"junk": 1}` and
+    # `{"root": 7, "revise": "x"}` through at exit 0 while `bind` REFUSED the
+    # identical value -- two spellings of one rule, disagreeing.
+    #
+    # ! AND THE COMMENT CLAIMED MORE THAN THE CODE DID: it offered *"rewritten
+    # to a DIFFERENT root"* as motivation, which is not answerable here at all.
+    # `problems_in` holds an edit_copy and no binder, so it can rule on the field's
+    # SHAPE and not on whether the root is the one the edit_copy was seeded from.
+    # That comparison needs the binder, and belongs wherever the two meet.
+    why_header = _read_from_problem(report)
+    if why_header:
+        out.append(Problem(named, "", f"the report's {why_header}"))
+
+    i = 0
+    for sheet in report["sheets"]:
+        marks = sheet.get("marks") if isinstance(sheet, dict) else None
+        if not isinstance(marks, list):
+            continue
+        for mark in marks:
+            i += 1
+            if not isinstance(mark, dict):
+                out.append(Problem(named, "", f"mark {i} is not an object"))
+                continue
+            if untouched(mark):
+                continue
+            ruled += 1
+            address = str(mark.get("address") or "")
+            where = address or f"mark {i}"
+            _, why = parse(where, mark)
+            out += [Problem(named, address, message) for message in why]
+    return out, ruled
+
+def unruled(report: dict) -> list[str]:
+    """The addresses nobody wrote in -- the coverage gap, named not counted.
+
+    !! WALKS `report["sheets"]` THEN EACH SHEET'S `marks`, matching
+    `problems_in`, since 2026-08-29.
+
+    ! READS `desk.mark.untouched`, the same question `problems_in` asks, so a
+    mark refused for naming no instruction can never also be listed here. The
+    two answers were derived separately from `mark is None` and agreed on a
+    place that had been ruled on.
+    """
+    sheets = report.get("sheets")
+    if not isinstance(sheets, list):
+        return []
+    out = []
+    for sheet in sheets:
+        marks = sheet.get("marks") if isinstance(sheet, dict) else None
+        if not isinstance(marks, list):
+            continue
+        out += [str(m.get("address", "")) for m in marks if untouched(m)]
+    return out
+
+def tally(report: dict) -> dict[Instruction, int]:
+    """How many of each instruction the edit_copy carries, for a one-line summary.
+
+    !! WALKED `report["marks"]` UNTIL 2026-08-29 -- a top-level key `seed()`
+    no longer writes, since an edit_copy's marks nest one level down inside
+    `sheets`. On the reshaped report that read a KEY THAT NO LONGER EXISTS, so
+    `report.get("marks", [])` silently fell back to `[]` and this returned
+    `{}` for every real edit_copy, ruled or not -- a crash turned silent.
+    """
+    counts = dict.fromkeys(INSTRUCTIONS, 0)
+    for sheet in report.get("sheets", []):
+        marks = sheet.get("marks") if isinstance(sheet, dict) else None
+        if not isinstance(marks, list):
+            continue
+        for mark in marks:
+            if isinstance(mark, dict) and mark.get("instruction") in counts:
+                counts[mark["instruction"]] += 1
+    return {name: n for name, n in counts.items() if n}
 
 def _touches(mark: Mark) -> list[str]:
     """Every address this one mark lands on.
