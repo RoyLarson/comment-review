@@ -245,6 +245,33 @@ missing END twice and still chose that case.
 case is the expensive decision, and it is made before the money is spent** -- which is the
 same rule as *refuse before the calls*, applied to the thing that actually cost something.
 
+### The grader's SYSTEM TEST is not the grader, and a session may run it
+
+Roy, 2026-08-30: *"The grader system test is not the grader so it is fine to run. The grader
+is still mine to run."*
+
+**The line is the money, not the code path.** A run that reaches the real endpoint is Roy's
+alone. A run that exercises the same shipped code against a local stand-in spends nothing, so
+a session runs it freely and should -- **rehearsing is how a session discharges its actual
+obligation, which is to hand over a command that works.**
+
+| | who runs it | why |
+| --- | --- | --- |
+| `evals/reread.py` against `api.anthropic.com` | **Roy only** | real dollars, billed to his account |
+| `evals/reread.py` against `evals/fake_api.py` | **any session** | a socket in its own process; nothing is billed |
+| `tests/harness/**` | **any session** | stubs injected, or pointed at the same local server |
+
+!! **AND THE MECHANICAL GUARD STAYS EXACTLY AS IT IS.** `tests/harness/conftest.py` makes
+`grader._client()` raise, and that is still right: it refuses a test that would reach the API,
+which is a different question from who may run one. `tests/harness/test_fake_api.py` lifts it
+deliberately and is the only file that may -- what it builds is the real SDK talking to
+`127.0.0.1`, and every test there asserts the local server RECEIVED the call, so an escape
+fails rather than bills.
+
+! **THE REHEARSAL IS NOT EVIDENCE ABOUT A GRADE.** It proves the request is accepted, the
+stream assembles, and each costly failure is still told apart. It says nothing about whether a
+judgement is any good, and a rehearsal artifact must never be filed as a measurement.
+
 ---
 
 ## Working agreements

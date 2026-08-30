@@ -1934,3 +1934,26 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **THE COST IS REAL AND WAS NOT THE DECIDING FACTOR.** A six-file reading is several times a
   one-file reading at about $0.68 measured, and the ruling was made knowing it: a cheaper reading
   that cannot verify the mark is not a cheaper measurement.
+
+- **#60.** **THE GRADER'S SYSTEM TEST IS NOT THE GRADER, AND A SESSION MAY RUN IT** (Roy,
+  2026-08-30): *"The grader system test is not the grader so it is fine to run. The grader is
+  still mine to run."*
+
+  !! **THE LINE IS THE MONEY, NOT THE CODE PATH.** `#58` reads *running the grader is Roy's
+  alone*, and a session could take that to cover anything that executes `grade()` -- which would
+  forbid the one thing that makes a handed-over command trustworthy. The same shipped code
+  against a local stand-in spends nothing, so it is a session's to run and **rehearsing is how a
+  session discharges its actual obligation: to hand over a command that works.**
+
+  ! **THE RULE LIVES IN [`conventions.md`](conventions.md)** for `#58`'s reason -- that file is
+  loaded into every session by `CLAUDE.md`'s `@` lines and this one is not.
+
+  ! **WHAT MADE IT ANSWERABLE was `evals/fake_api.py`**, built the same day: `_client()`
+  constructs a bare `anthropic.Anthropic()` and the SDK reads `ANTHROPIC_BASE_URL`, so a
+  rehearsal needs NO change to `grader.py` -- the rehearsed path and the paid path are the same
+  bytes. ! Before it existed the distinction had nothing to attach to, because every way of
+  running `grade()` reached the real endpoint.
+
+  ! **THE MECHANICAL GUARD IS UNCHANGED.** `tests/harness/conftest.py` still makes
+  `grader._client()` raise. **Who MAY run a billed call and whether a TEST may reach the API are
+  different questions**, and this ruling answers only the first.
