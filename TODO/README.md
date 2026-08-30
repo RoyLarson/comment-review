@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (105)
+### open  (110)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -287,6 +287,11 @@ that changed a published name or rule:
 | [query-names-no-sentence](query-names-no-sentence.md) | backend | — | 0/3 | every other substantive instruction names the sentence it rules on through a `claim` key -- `false` for `correct`, `drop` for `drop`, `from` for `patch` -- and `query` has none, so `_sentence_key` falls back to an identity and two queries at one place read as two different sentences |
 | [brief-example-and-scope](brief-example-and-scope.md) | agents | — | 0/3 | the brief's worked example shows a 40-character `sha` where `bind` writes 16, and the brief says a source resolves against 'the repo' without saying whether that is the scoped tree or the checkout it was cut from |
 | [rows-of-derives-no-type](rows-of-derives-no-type.md) | backend | — | 0/4 | `binder.rows_of` returns `list[dict]` where `docket.schedules_of` returns `list[Schedule]`; the codebase holds one example of each pattern, the typed one is the one that catches things, and `rows_of` has 8 callers and no covering tests |
+| [move-onto-itself-deletes](move-onto-itself-deletes.md) | backend | — | 0/3 | a `move` whose `claim.to` equals its own `address` parses clean, touches one end instead of two, and lands in the docket as `text: None` -- the paragraph is removed and never written back |
+| [crlf-verbatim-never-matches](crlf-verbatim-never-matches.md) | backend | — | 0/3 | `collator._lines` preserves CR, LF and CRLF deliberately, then the comparison window is rejoined with `\n` -- so a `verbatim` spanning two lines of a CRLF file is compared against text that no longer holds its line endings |
+| [cache-keyed-without-root](cache-keyed-without-root.md) | backend | — | 0/2 | `collator.Cache` maps a cited path to its lines with no root in the key, so one cache used across two roots -- an original and a revise -- answers from whichever file was read first |
+| [cite-at-raises-on-a-nondigit](cite-at-raises-on-a-nondigit.md) | backend | — | 0/3 | `collator._cite_at` guards the line number with `isdigit()` then calls `int()`, and the two disagree on what a digit is -- a superscript passes the guard and raises |
+| [strip-before-review-experiment](strip-before-review-experiment.md) | agents | — | 0/5 | the `collator.py` prose was deleted whole and rewritten by an agent that could read only the code -- it found three defects the old prose never mentioned and named two things the code cannot say; whether that beats editing in place is untested |
 
 ### in-progress  (19)
 
