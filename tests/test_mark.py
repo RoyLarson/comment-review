@@ -476,10 +476,10 @@ def test_as_entry_round_trips_through_parse():
 
 
 def test_a_move_onto_its_own_address_is_refused_by_name():
-    """MEASURED 2026-08-30: this parsed clean, `_touches` deduped its two ends
-    to one address, `reconcile` settled it, and the docket carried a single
-    alteration deleting the paragraph -- `('m.py', 'b1', None)` -- with no
-    matching write."""
+    """MEASURED 2026-08-30: this parsed with no problems reported, `_touches`
+    deduped its two ends to one address, `reconcile` settled it, and the
+    docket carried a single alteration deleting the paragraph --
+    `('m.py', 'b1', None)` -- with no matching write."""
     entry = {
         "address": "m.py@b1",
         "anchor": "def f(x):",

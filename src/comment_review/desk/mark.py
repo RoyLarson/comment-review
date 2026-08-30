@@ -576,9 +576,9 @@ def _destination_problems(where: str, address: object, claim: object) -> list[st
 
     !! A DESTINATION EQUAL TO THE ORIGIN IS REFUSED, and it is the half of
     `owes_destination` one mark can answer alone. MEASURED 2026-08-30: such a
-    mark parsed clean, `collator._touches` deduped its two ends to one address,
-    and `docket_from` wrote the delete at the origin with no matching write --
-    the paragraph removed and never put back.
+    mark parsed with no problems reported, `collator._touches` deduped its
+    two ends to one address, and `docket_from` wrote the delete at the origin
+    with no matching write -- the paragraph removed and never put back.
 
     ! THE OTHER HALF IS NOT ASKED HERE. Whether the destination is ADDRESSABLE
     (Roy, 2026-08-27) needs an addresser, and this module imports `re`,
