@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 14 tasks done
+Progress: 2 of 15 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -66,3 +66,23 @@ Four defects in collator.py, found by reading only the code.
       under today's grouping, and the DAG rule refuses it anyway -- so the
       protection does not rest on _sentence_key returning id(mark), which is a
       side effect of a function whose docstring is about two adds.
+- [ ] T15 | Update `MalformedMark`'s docstring at `desk/collator.py:621-630`. It
+      reads "a mark whose shape is unreadable cannot be grouped by the place it
+      touches, and a place grouped wrongly is settled wrongly", implying
+      `places`/`reconcile` is where a malformed mark's shape is caught. That
+      stopped being true on the only live path when `flows/collate.py` landed:
+      `reconcile` has exactly one caller in `src/` (`flows.collate.collate`) and
+      `places` only one (inside `reconcile`), and `collate` runs `_reconcilable`
+      first, which drops every entry `desk.collator.problems_in` already reported
+      before `reconcile` ever sees it -- so the raise this docstring describes
+      cannot fire from that path. Per `TODO/galley-refusals-cannot-fire.md`'s
+      ruling -- a guard at the boundary and a guard at the point of use is
+      defensible depth, and the guard stays, but say which one is load-bearing --
+      state in the docstring that `problems_in` (run by every caller of `collate`,
+      before `reconcile`) is what enforces this on the live path, and that
+      `places`'/`reconcile`'s own raise is depth: reachable only by a caller that
+      reaches `places` without going through `collate`'s check first. Verify: the
+      docstring names `problems_in` as load-bearing and its own raise as depth,
+      and `places` called directly (bypassing `collate`) still raises
+      `MalformedMark` on a malformed entry -- so the guard being called depth is
+      itself checkable rather than asserted.

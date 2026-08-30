@@ -19,6 +19,9 @@ were added in Task 9, for `tests/test_reconcile.py` -- Tasks 9 through 12 all
 share them. Every mark is built through `desk.mark.INSTRUCTIONS`, never as a
 hand-typed literal, so a changed row breaks a helper loudly instead of
 letting it drift.
+
+! `a_binder_over`, `copies_over` and `a_correct_setting` were added in Task 10,
+for `tests/test_collate.py`.
 """
 
 from pathlib import Path
@@ -229,6 +232,65 @@ def _synthetic_binder(addresses: list[str]) -> dict:
     }
 
 
+def a_binder_over(paragraphs: dict[str, str]) -> dict:
+    """A binder whose rows carry REAL paragraph text, keyed by address.
+
+    ! WRITTEN IN TASK 10, for `tests/test_collate.py`. `_synthetic_binder`
+    seeds every row with an empty `raw_text`, which is enough for `places()`
+    -- it groups by address and reads no text -- and not enough for a compose,
+    whose whole subject is the base.
+
+    Args:
+        paragraphs: `path@cue` -> the paragraph at that place.
+
+    Returns:
+        A binder in `bind`'s shape, one page per distinct path.
+    """
+    by_path: dict[str, list[tuple[str, str]]] = {}
+    for address, text in paragraphs.items():
+        path, _, cue = address.partition("@")
+        by_path.setdefault(path, []).append((cue, text))
+    return {
+        "read_from": {"root": "tests/helpers.py", "revise": 0},
+        "pages": [
+            {
+                "path": path,
+                "sha": "0" * 40,
+                "rows": [
+                    {"cue": cue, "anchor": "", "raw_text": text} for cue, text in rows
+                ],
+            }
+            for path, rows in by_path.items()
+        ],
+    }
+
+
+def copies_over(binder: dict, by_role: dict) -> list[dict]:
+    """One real seeded `edit_copy` per role, each overlaid with that role's marks.
+
+    ! WRITTEN IN TASK 10. `a_master_proof` builds its own synthetic binder per
+    role; this seeds every role from ONE binder, which is what `collate` is
+    handed and what the drift check measures against.
+
+    Args:
+        binder: the binder every copy is seeded from.
+        by_role: role name -> {address: mark}.
+
+    Returns:
+        One `edit_copy` per role, in `by_role` order.
+    """
+    copies = []
+    for role, marks_by_address in by_role.items():
+        copy = seed(binder, role)
+        for sheet in copy["sheets"]:
+            for entry in sheet["marks"]:
+                mark = marks_by_address.get(entry["address"])
+                if mark is not None:
+                    entry.update(mark)
+        copies.append(copy)
+    return copies
+
+
 def a_master_proof(by_role: dict) -> dict:
     """A `master_proof`, composed through the real `seed()` and `gather()`.
 
@@ -319,6 +381,18 @@ def a_correct(address: str, sentence: object = "the paragraph's own claim") -> d
         address,
         {"false": str(sentence), "true": f"corrected: {sentence}"},
     )
+
+
+def a_correct_setting(address: str, sentence: object, change: str) -> dict:
+    """A `correct` whose `change` is exactly `change`.
+
+    ! WRITTEN IN TASK 10. `a_correct` writes a fixed `change` string, which
+    two roles would then propose identically at every place -- so a compose
+    case cannot be built from it.
+    """
+    mark = a_correct(address, sentence)
+    mark["change"] = change
+    return mark
 
 
 def a_move(origin: str, destination: str) -> dict:
