@@ -1754,3 +1754,34 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   ! **THE VALIDATOR REFUSES A NON-EMPTY `carries` RATHER THAN IGNORING IT.** A key silently dropped
   is indistinguishable from one that worked.
+
+- **#51.** **A COMMAND THAT LEAVES WORK UNDONE NAMES THE WORK AND THE COMMAND THAT CONTINUES IT**
+  (Roy, 2026-08-30): *"There is some amount of the agents are having to do stuff. Just because we
+  can put it in the flow doesn't mean the agents get notified that they should do more work or
+  that there is something for them to do."*
+
+  !! **AN AGENT LEARNS THERE IS WORK FROM THE RUN'S OUTPUT, NOT FROM A RULE IT IS EXPECTED TO
+  REMEMBER.** A stage that settles 4 of 10 places has left six pieces of work; a report saying `4
+  settled` and stopping has told nobody. The run must name what remains AND what to invoke.
+
+  !! **THIS SETTLES THE ROUND CAP, WHICH WAS BEING ARGUED ON THE WRONG AXIS.** The question was
+  read as *enforce it in code* against *state it as guidance*, and it is neither.
+
+  | proposed | why it is not the answer |
+  | --- | --- |
+  | enforce a tally in the flow | **the loop cannot run away.** Nothing advances a round but a command someone invokes -- there is no daemon and no retry -- so carried state prevents an accident that cannot happen |
+  | a sentence in `--help` | an agent reads `--help` when it does not know a command, not when it has just run one |
+  | **the run's own report** | the agent is told, at the moment there is something to do |
+
+  ! Roy, 2026-08-30, on the explicit act: *"It has to be an explicit step to do so instead of a
+  built in part of the flow but it could be something as simple as -- If there are unresolved
+  conflicts you can run this command twice to send the stuff back."*
+
+  ! **AND IT MATCHES `Process: #22`'s ANTI-DECISION DECISION.** Sending a place back is an act
+  someone is on record for. Machinery that silently permits or refuses a third round decides by
+  default and puts nobody's name on it.
+
+  !! **IT IS A RULE FOR EVERY COMMAND, NOT THIS ONE.** MEASURED 2026-08-30: `mark --check` prints
+  `"12 ruled on, 0 left unruled"` (`commands/mark.py:106`) -- a count, naming neither the places
+  left nor what to run next. **The whole middle is being built now, so the rule lands before the
+  commands rather than after.**
