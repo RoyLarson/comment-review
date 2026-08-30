@@ -49,7 +49,11 @@ def test_the_schema_demands_every_axis_and_the_reason():
     axes = schema["properties"]["axes"]["properties"]
 
     assert set(axes) == {
-        "detection", "diagnosis", "prescription", "unkeyed", "evidence"
+        "detection",
+        "diagnosis",
+        "prescription",
+        "unkeyed",
+        "evidence",
     }
     for axis in axes.values():
         assert set(axis["properties"]) == {"grade", "reason"}
@@ -127,8 +131,12 @@ def test_the_prompt_never_mentions_another_arm(tmp_path):
     under_review.write_text("pass\n", encoding="utf-8")
 
     prompt = grader.build_prompt(
-        findings=findings, under_review=under_review,
-        start="a", end="b", end_diff="", mechanical={},
+        findings=findings,
+        under_review=under_review,
+        start="a",
+        end="b",
+        end_diff="",
+        mechanical={},
     )
 
     for leak in ("old_skill", "with_skill", "the other arm", "baseline"):
@@ -194,7 +202,7 @@ class _Keyless:
 
     class messages:  # noqa: N801 - mirrors the SDK's attribute, not a class name
         @staticmethod
-        def create(**_):
+        def stream(**_):
             raise TypeError(
                 "Could not resolve authentication method. Expected one of "
                 "api_key, auth_token, or credentials to be set."
@@ -206,8 +214,8 @@ class _Broken:
 
     class messages:  # noqa: N801
         @staticmethod
-        def create(**_):
-            raise TypeError("create() got an unexpected keyword argument 'moddel'")
+        def stream(**_):
+            raise TypeError("stream() got an unexpected keyword argument 'moddel'")
 
 
 def _files(tmp_path):
@@ -234,9 +242,15 @@ def test_it_refuses_clearly_when_no_credential_resolves(tmp_path):
 
     with pytest.raises(grader.NoCredential) as refused:
         grader.grade(
-            findings=findings, under_review=under_review,
-            start="a", end="b", end_diff="", mechanical={},
-            arm="old_skill", eval_id="c", client=_Keyless(),
+            findings=findings,
+            under_review=under_review,
+            start="a",
+            end="b",
+            end_diff="",
+            mechanical={},
+            arm="old_skill",
+            eval_id="c",
+            client=_Keyless(),
         )
 
     assert "ANTHROPIC_API_KEY" in str(refused.value)
@@ -249,9 +263,15 @@ def test_a_real_TypeError_is_not_mistaken_for_a_missing_credential(tmp_path):
 
     with pytest.raises(TypeError) as raised:
         grader.grade(
-            findings=findings, under_review=under_review,
-            start="a", end="b", end_diff="", mechanical={},
-            arm="old_skill", eval_id="c", client=_Broken(),
+            findings=findings,
+            under_review=under_review,
+            start="a",
+            end="b",
+            end_diff="",
+            mechanical={},
+            arm="old_skill",
+            eval_id="c",
+            client=_Broken(),
         )
 
     assert not isinstance(raised.value, grader.NoCredential)

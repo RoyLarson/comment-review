@@ -29,6 +29,46 @@ def _judged(overall="B", detection="B", **axes):
     }
 
 
+class _Stream:
+    """What `client.messages.stream(...)` returns.
+
+    !! THE STUBS MIRROR `stream`, NOT `create`, because that is what `grade`
+    calls now -- `max_tokens` is the model's 128K ceiling and the SDK requires
+    streaming that large. A stub still offering `create` would pass every test
+    against a shape the code never uses, which is the failure that got the old
+    suite deleted: a fixture agreeing with a contract that had moved.
+    """
+
+    def __init__(self, produce):
+        self._produce = produce
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def get_final_message(self):
+        return self._produce()
+
+
+def _message(body, *, stop_reason="end_turn", stop_details=None, text=True, usage=True):
+    """A response object in the shape `grade` reads back."""
+    blocks = [type("B", (), {"type": "text", "text": body})] if text else []
+    return type(
+        "R",
+        (),
+        {
+            "content": blocks,
+            "stop_reason": stop_reason,
+            "stop_details": stop_details,
+            "usage": type("U", (), {"input_tokens": 1000, "output_tokens": 2500})
+            if usage
+            else None,
+        },
+    )
+
+
 class _Judge:
     """A client returning a scripted answer per call, in order."""
 
@@ -39,19 +79,55 @@ class _Judge:
 
         class messages:  # noqa: N801 - mirrors the SDK's attribute
             @staticmethod
-            def create(**kw):
+            def stream(**kw):
                 outer.prompts.append(kw["messages"][0]["content"])
-                body = json.dumps(outer.answers.pop(0))
-                block = type("B", (), {"type": "text", "text": body})
-                return type("R", (), {"content": [block]})
+                return _Stream(lambda: _message(json.dumps(outer.answers.pop(0))))
 
         self.messages = messages
+
+
+class _Ceiling:
+    """A judge cut off by `max_tokens`, which is what cost Roy a run."""
+
+    class messages:  # noqa: N801
+        @staticmethod
+        def stream(**_):
+            # ! Deliberately VALID-looking but truncated, so the only thing
+            # separating it from a good reading is `stop_reason`.
+            return _Stream(
+                lambda: _message('{"axes": {"detect', stop_reason="max_tokens")
+            )
+
+
+class _Refuses:
+    """A judge that declined, which may carry no text block at all."""
+
+    class messages:  # noqa: N801
+        @staticmethod
+        def stream(**_):
+            return _Stream(
+                lambda: _message(
+                    "",
+                    stop_reason="refusal",
+                    stop_details=type("D", (), {"category": "cyber"}),
+                    text=False,
+                )
+            )
+
+
+class _Garbage:
+    """A judge that finished cleanly and returned prose, not JSON."""
+
+    class messages:  # noqa: N801
+        @staticmethod
+        def stream(**_):
+            return _Stream(lambda: _message("I think it is quite good, overall."))
 
 
 class _Keyless:
     class messages:  # noqa: N801
         @staticmethod
-        def create(**_):
+        def stream(**_):
             raise TypeError(
                 "Could not resolve authentication method. Expected one of "
                 "api_key, auth_token, or credentials to be set."
@@ -64,7 +140,7 @@ def _rejects(message):
     class _Client:
         class messages:  # noqa: N801
             @staticmethod
-            def create(**_):
+            def stream(**_):
                 raise RuntimeError(f"Error code: 400 - {message}")
 
     return _Client()
@@ -325,7 +401,7 @@ def test_an_unnamed_failure_keeps_its_traceback(case, message):
     class _Broken:
         class messages:  # noqa: N801
             @staticmethod
-            def create(**_):
+            def stream(**_):
                 raise RuntimeError(message)
 
     with pytest.raises(RuntimeError) as raised:
@@ -465,6 +541,153 @@ def test_the_conftest_guard_against_a_billed_test_can_itself_fire(case):
     """
     with pytest.raises(AssertionError, match="billed API call"):
         reread.reread(**case, runs=2)
+
+
+# --- What a billed failure must not do -------------------------------------
+#
+# !! EVERY ONE OF THESE COST MONEY WHEN IT HAPPENED. MEASURED 2026-08-29: a
+# `--runs 5` hit the ceiling on a 43KB artifact, surfaced as
+# `JSONDecodeError: Unterminated string ... char 11047`, and wrote NOTHING --
+# so every reading already paid for was discarded with it.
+
+
+def test_hitting_the_ceiling_is_reported_as_truncation_not_a_JSON_error(case):
+    """`stop_reason` is the API saying so, and it is checked BEFORE the parse."""
+    with pytest.raises(grader.Truncated) as lost:
+        reread.reread(**case, runs=2, client=_Ceiling())
+
+    said = str(lost.value)
+    assert "max_tokens" in said
+    assert "billed" in said
+    # ! It must not surface as the parse error the truncation happens to cause.
+    assert not isinstance(lost.value, json.JSONDecodeError)
+
+
+def test_a_refusal_does_not_surface_as_StopIteration(case):
+    """A declined answer may carry NO text block, and `next()` would raise."""
+    with pytest.raises(grader.Malformed) as lost:
+        reread.reread(**case, runs=2, client=_Refuses())
+
+    assert "declined" in str(lost.value)
+    assert "cyber" in str(lost.value)
+
+
+def test_valid_prose_that_is_not_JSON_is_told_apart_from_truncation(case):
+    """The fix differs: one needs a smaller artifact, the other is a shape bug."""
+    with pytest.raises(grader.Malformed) as lost:
+        reread.reread(**case, runs=2, client=_Garbage())
+
+    said = str(lost.value)
+    assert "not valid JSON" in said
+    assert "shape problem, not a length one" in said
+
+
+def test_every_billed_failure_is_a_Spent_so_one_except_catches_it(case):
+    for client in (_Ceiling(), _Refuses(), _Garbage()):
+        with pytest.raises(grader.Spent):
+            reread.reread(**case, runs=2, client=client)
+
+
+def test_a_billed_failure_is_NOT_a_setup_problem(case):
+    """They need different exit codes: one is free to retry, one is not."""
+    with pytest.raises(grader.Spent) as lost:
+        reread.reread(**case, runs=2, client=_Ceiling())
+
+    assert not isinstance(lost.value, grader.SetupProblem)
+
+
+def test_readings_already_paid_for_are_KEPT_when_a_later_one_fails(case, tmp_path):
+    """THE fix for what the ceiling cost: a failure loses one reading, not all.
+
+    ! The judge answers twice and then hits the ceiling, so two readings were
+    bought before the third failed. Both must be on disk afterwards.
+    """
+    keep = tmp_path / "readings"
+
+    class _ThenCeiling:
+        """Two good answers, then a truncation."""
+
+        def __init__(self):
+            self.calls = 0
+            outer = self
+
+            class messages:  # noqa: N801
+                @staticmethod
+                def stream(**_):
+                    outer.calls += 1
+                    if outer.calls <= 2:
+                        return _Stream(lambda: _message(json.dumps(_judged())))
+                    return _Stream(lambda: _message("{trunc", stop_reason="max_tokens"))
+
+            self.messages = messages
+
+    with pytest.raises(grader.Truncated):
+        reread.reread(**case, runs=5, client=_ThenCeiling(), keep=keep)
+
+    kept = sorted(keep.glob("reading-*.json"))
+    assert [p.name for p in kept] == ["reading-1.json", "reading-2.json"]
+    # ! They are whole gradings, not fragments -- a later run can read them.
+    first = json.loads(kept[0].read_text(encoding="utf-8"))
+    assert first["editorial"]["model"] == grader.MODEL
+
+
+def test_nothing_is_kept_when_the_very_first_reading_fails(case, tmp_path):
+    keep = tmp_path / "readings"
+
+    with pytest.raises(grader.Truncated):
+        reread.reread(**case, runs=3, client=_Ceiling(), keep=keep)
+
+    assert not list(keep.glob("reading-*.json")) if keep.exists() else True
+
+
+def test_each_reading_records_what_it_cost(case):
+    """Raising the cap to the ceiling unbounds the spend, so it is OBSERVED.
+
+    ! The cap used to bound the bill as a side effect. At the model's ceiling
+    it no longer does, and the only way to choose the next `--runs` honestly is
+    to know what the last reading actually cost.
+    """
+    result = reread.reread(**case, runs=2, client=_Judge(_judged(), _judged()))
+
+    for reading in result["readings"]:
+        assert reading["usage"]["input_tokens"] == 1000
+        assert reading["usage"]["output_tokens"] == 2500
+
+
+def test_usage_sits_beside_the_grade_not_inside_it(case):
+    """A token count is a fact about the request, never part of the judgement."""
+    result = reread.reread(**case, runs=2, client=_Judge(_judged(), _judged()))
+
+    editorial = result["readings"][0]["editorial"]
+    assert "usage" not in editorial
+    assert "input_tokens" not in json.dumps(editorial)
+
+
+def test_a_response_with_no_usage_does_not_crash_the_run(case):
+    """The field is read defensively -- a missing count must not lose a grade."""
+
+    class _NoUsage:
+        class messages:  # noqa: N801
+            @staticmethod
+            def stream(**_):
+                return _Stream(lambda: _message(json.dumps(_judged()), usage=False))
+
+    result = reread.reread(**case, runs=2, client=_NoUsage())
+
+    assert result["readings"][0]["usage"] == {
+        "input_tokens": None,
+        "output_tokens": None,
+    }
+
+
+def test_the_ceiling_is_the_models_maximum_so_it_is_not_a_guess():
+    """`max_tokens` is REQUIRED by the API; the only choice is which number.
+
+    ! 128,000 is `claude-opus-5`'s documented maximum output. Any smaller
+    default is a bet on the shape of an answer nobody has seen yet, which is
+    the bet that was lost at 16,000.
+    """
+    assert grader.MAX_TOKENS == 128000
 
 
 def test_setup_problem_returns_None_for_anything_it_does_not_name():

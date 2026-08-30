@@ -79,6 +79,44 @@ class NoCredit(SetupProblem):
     """Credential and workspace both resolved; the account cannot pay."""
 
 
+class Spent(Exception):
+    """The call was BILLED and produced nothing usable.
+
+    !! A CLASS OF ITS OWN BECAUSE THE MONEY IS ALREADY GONE, which is the fact
+    a caller most needs and the one a bare `JSONDecodeError` hides. A setup
+    problem costs nothing and is fixed by changing a variable; this costs a
+    reading and is fixed by changing the request or the artifact.
+    """
+
+
+class Truncated(Spent):
+    """The judge hit `max_tokens` and its JSON was cut off mid-string."""
+
+
+class Malformed(Spent):
+    """The judge finished but did not return parseable JSON."""
+
+
+#: The MODEL'S CEILING, not a guess about this artifact.
+#:
+#: !! `max_tokens` IS REQUIRED BY THE API -- there is no way to omit it -- so the
+#: only question is whether the number is chosen or invented. Roy, 2026-08-29:
+#: *"why is there a max tokens at all? That is crazy on something we have no
+#: idea on the shape of the answer."* Exactly: a grader cannot know how long a
+#: judgement of an arbitrary artifact will run, so any value below the ceiling
+#: is a bet against an unknown.
+#:
+#: ! MEASURED, and the bet was lost: at 16,000 a 43KB `findings.md` of 48
+#: records cut the judge off mid-JSON, and the reading was BILLED for nothing.
+#: 128,000 is `claude-opus-5`'s documented maximum output, so it is the largest
+#: number that is not a guess.
+#:
+#: ! IT IS WHY THE REQUEST STREAMS. The SDK requires streaming at values this
+#: large or the call hits an HTTP timeout instead of a ceiling -- so the cap and
+#: the transport are one decision, not two.
+MAX_TOKENS = 128000
+
+
 #: What the SDK says when it has tried every credential path and found none.
 #: MEASURED 2026-08-29 against `anthropic==1.2.0`: a `TypeError` raised BEFORE
 #: any network call, so translating it costs nothing and reaches no API.
@@ -363,6 +401,7 @@ def grade(
     arm: str,
     eval_id: str,
     client=None,
+    max_tokens: int = MAX_TOKENS,
 ) -> dict:
     """Call the judge, and return the artifact to write.
 
@@ -372,25 +411,36 @@ def grade(
     behaviour depends on who runs it.
     """
     client = client or _client()
+    request = dict(
+        model=MODEL,
+        max_tokens=max_tokens,
+        output_config={**GRADING_SCHEMA, "effort": "high"},
+        messages=[
+            {
+                "role": "user",
+                "content": build_prompt(
+                    findings=findings,
+                    under_review=under_review,
+                    start=start,
+                    end=end,
+                    end_diff=end_diff,
+                    mechanical=mechanical,
+                ),
+            }
+        ],
+    )
     try:
-        response = client.messages.create(
-            model=MODEL,
-            max_tokens=16000,
-            output_config={**GRADING_SCHEMA, "effort": "high"},
-            messages=[
-                {
-                    "role": "user",
-                    "content": build_prompt(
-                        findings=findings,
-                        under_review=under_review,
-                        start=start,
-                        end=end,
-                        end_diff=end_diff,
-                        mechanical=mechanical,
-                    ),
-                }
-            ],
-        )
+        # !! IT STREAMS BECAUSE OF THE CEILING, NOT FOR PROGRESS. The SDK
+        # requires streaming at a `max_tokens` this large; a non-streaming call
+        # would hit an HTTP timeout on a long judgement and lose the reading
+        # after paying for it -- the same failure as truncation, wearing a
+        # different exception.
+        #
+        # ! `get_final_message` IS THE SDK'S OWN HELPER. Assembling the message
+        # from `on(...)` events by hand would be a second implementation of
+        # something the SDK already does correctly.
+        with client.messages.stream(**request) as stream:
+            response = stream.get_final_message()
     except TypeError as e:
         # ! MATCHED ON THE MESSAGE, not on the type. `TypeError` is what the SDK
         # happens to raise here, and swallowing every one of them would hide a
@@ -411,7 +461,61 @@ def grade(
         if problem is None:
             raise
         raise problem from e
+    # !! THE CEILING IS CHECKED BEFORE THE PARSE, AND THAT ORDER IS THE WHOLE
+    # POINT. MEASURED 2026-08-29: a 43KB `findings.md` of 48 records drove the
+    # judge past `max_tokens`, the JSON came back cut mid-string, and the only
+    # thing anyone saw was `JSONDecodeError: Unterminated string ... char 11047`
+    # -- which names the symptom and not one word of the cause. The tokens were
+    # already bought by then.
+    #
+    # ! `stop_reason` IS THE API SAYING SO ITSELF, so this needs no heuristic
+    # about lengths and cannot disagree with what actually happened.
+    stop = getattr(response, "stop_reason", None)
+    if stop == "max_tokens":
+        raise Truncated(
+            f"The judge hit max_tokens ({max_tokens:,}) and its answer was cut "
+            "off mid-JSON, so this reading is unusable -- and it was billed. "
+            f"{max_tokens:,} is already the model's ceiling, so the artifact is "
+            "too large to grade in one call: grade a smaller findings file."
+        )
+    if stop == "refusal":
+        # ! ITS OWN CASE BECAUSE THERE MAY BE NO TEXT BLOCK AT ALL, and the
+        # `next(...)` below would then raise `StopIteration` -- which says
+        # nothing about a refusal to anyone reading the traceback.
+        details = getattr(response, "stop_details", None)
+        raise Malformed(
+            "The judge declined to answer "
+            f"(category {getattr(details, 'category', None)!r}), so there is no "
+            "grade to record. The artifact or the rubric tripped a safety "
+            "classifier; the reading was billed."
+        )
+    # !! WHAT THE READING ACTUALLY COST, RECORDED RATHER THAN ESTIMATED. Raising
+    # `max_tokens` to the model's ceiling removes truncation and puts NOTHING in
+    # front of a long answer -- so the spend per reading stopped being bounded by
+    # the cap and has to be observed instead. ! Roy pays for every one of these:
+    # `--runs 5` is five, and a number nobody records is a number nobody can use
+    # to decide the next run count.
+    usage = getattr(response, "usage", None)
+    spent = {
+        field: getattr(usage, field, None)
+        for field in ("input_tokens", "output_tokens")
+    }
+
     text = next(b.text for b in response.content if b.type == "text")
-    return to_grading_json(
-        json.loads(text), mechanical=mechanical, arm=arm, eval_id=eval_id
-    )
+    try:
+        judged = json.loads(text)
+    except json.JSONDecodeError as e:
+        # ! A PARSE FAILURE THAT IS *NOT* TRUNCATION still has to say what it
+        # was, because the response is gone once this raises and nobody can
+        # look at it afterwards.
+        raise Malformed(
+            f"The judge's answer is not valid JSON at char {e.pos} of "
+            f"{len(text):,} ({e.msg}), and `stop_reason` was {stop!r} rather "
+            "than a ceiling -- so this is a shape problem, not a length one."
+        ) from e
+    graded = to_grading_json(judged, mechanical=mechanical, arm=arm, eval_id=eval_id)
+    # ! BESIDE THE GRADE, NOT INSIDE `editorial`. What a call cost is a fact
+    # about the request, not part of the judgement, and pooling grades across
+    # runs must not pool token counts into them.
+    graded["usage"] = spent
+    return graded

@@ -123,6 +123,8 @@ def reread(
     eval_id: str,
     runs: int = 2,
     client=None,
+    max_tokens: int = grader.MAX_TOKENS,
+    keep: pathlib.Path | None = None,
 ) -> dict:
     """Grade one artifact `runs` times and report whether the letters held.
 
@@ -136,13 +138,21 @@ def reread(
     ! A FAILED RUN PROPAGATES rather than shortening the set. Comparing the runs
     that happened to succeed would report agreement over a sample chosen by which
     calls did not raise.
+
+    !! BUT EACH READING IS WRITTEN TO `keep` AS IT LANDS, BECAUSE PROPAGATING
+    MUST NOT ALSO DISCARD. MEASURED 2026-08-29: a `--runs 5` died on a truncated
+    answer and wrote nothing at all, so every reading that had already been paid
+    for went with it. **The refusal is about what may be COMPARED; it was never
+    about throwing away what was bought.** A later run can read these back.
     """
     if runs < 2:
         raise NotAComparison(f"runs={runs}: a comparison needs at least two.")
 
     client = client or grader._client()
-    graded = [
-        grader.grade(
+    graded = []
+    for n in range(1, runs + 1):
+        # ! NOT A COMPREHENSION ANY MORE, so a partial result exists to save.
+        one = grader.grade(
             findings=findings,
             under_review=under_review,
             start=start,
@@ -152,9 +162,14 @@ def reread(
             arm=arm,
             eval_id=eval_id,
             client=client,
+            max_tokens=max_tokens,
         )
-        for _ in range(runs)
-    ]
+        graded.append(one)
+        if keep is not None:
+            keep.mkdir(parents=True, exist_ok=True)
+            (keep / f"reading-{n}.json").write_text(
+                json.dumps(one, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+            )
     fields = compare([g["editorial"] for g in graded])
     return {
         "eval_id": eval_id,
@@ -351,6 +366,10 @@ def main(argv: list[str] | None = None) -> int:
             print(f"REFUSED  {problem}", file=sys.stderr)
         return 1
 
+    # ! BESIDE THE OUTPUT, NAMED AFTER IT. A run that dies partway leaves its
+    # paid readings here, and a reader finds them without being told where.
+    keep = args.out.parent / f"{args.out.stem}-readings"
+
     try:
         result = reread(
             findings=args.findings,
@@ -362,7 +381,25 @@ def main(argv: list[str] | None = None) -> int:
             arm=args.arm,
             eval_id=args.eval_id,
             runs=args.runs,
+            # ! NO `--max-tokens` FLAG, DELIBERATELY. It is the model's ceiling
+            # already, so the only thing a knob could do is lower it -- which is
+            # exactly the bet that lost a run on 2026-08-29.
+            keep=keep,
         )
+    except grader.Spent as lost:
+        # !! THE MONEY IS ALREADY GONE, AND SAYING SO IS THE POINT. This is not
+        # a bad argument and not a setup problem: the request was billed and
+        # returned nothing usable, so the caller needs to know what survived
+        # before deciding whether to run it again.
+        kept = sorted(keep.glob("reading-*.json")) if keep.exists() else []
+        print(f"BILLED   {type(lost).__name__}: {lost}", file=sys.stderr)
+        print(
+            f"         {len(kept)} reading(s) already paid for were KEPT in {keep}"
+            if kept
+            else "         no reading completed, so nothing was kept.",
+            file=sys.stderr,
+        )
+        return 3
     except grader.SetupProblem as refused:
         # ! A SEPARATE EXIT CODE, because it is the one failure that is neither
         # a bad argument nor a bad grade -- the machine is not set up, and a
@@ -395,6 +432,17 @@ def main(argv: list[str] | None = None) -> int:
         print(
             f"! {result['of'] - result['measured']} field(s) were not graded, so "
             "this says nothing about them."
+        )
+    # ! WHAT IT SPENT, PRINTED. A run count is chosen by a human who is paying,
+    # and the only honest input to that choice is what the last run actually
+    # cost -- not an estimate written down once and left to rot.
+    tokens = [r.get("usage") or {} for r in result["readings"]]
+    into = sum(u.get("input_tokens") or 0 for u in tokens)
+    out_of = sum(u.get("output_tokens") or 0 for u in tokens)
+    if into or out_of:
+        print(
+            f"tokens: {into:,} in, {out_of:,} out over {result['runs']} readings"
+            f"  ({out_of // max(result['runs'], 1):,} out per reading)"
         )
     print(f"written: {args.out}")
     return 0
