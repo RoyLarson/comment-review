@@ -286,10 +286,16 @@ Objectives saying the same thing about one module, and four closes. That is why
 [`collator-defects`](../TODO/collator-defects.md) exists and carries a standing note that
 the four are superseded into it **in one pass** rather than closed by hand one at a time.
 
-! **THE TELL THAT A FILE IS WARRANTED IS DEPENDENCY, NOT SIZE.** Tasks that must land in
-an order, or that block each other, are a design objective and may have their own file.
-Tasks that merely share a module are a module TODO. **A single observation is never a
-file.**
+! **THE TELL THAT A FILE IS WARRANTED IS DEPENDENCY, NOT SIZE.** Tasks that must land
+**TOGETHER** -- because they block each other, or because none of them is finished until
+all of them are -- are a design objective and may have their own file. Tasks that merely
+share a module are a module TODO. **A single observation is never a file.**
+
+! **TOGETHER, NOT MERELY IN AN ORDER.** Roy, 2026-08-30, correcting this sentence's first
+wording. Almost any set of tasks has an order somebody would prefer, so *"they must land
+in an order"* is a test nearly everything passes -- and a test nearly everything passes
+is what put 34 single-observation files on this board. **What earns a file is that
+landing one without the others leaves the objective unmet.**
 
 ! **AND A FILE OPENED IN ERROR IS SUPERSEDED, NOT DELETED.** `CLAUDE.md`'s rule covers a
 filing mistake as much as work overtaken: move the tasks to their home, then
