@@ -24,20 +24,24 @@
     reconcile()                each place -> settled, escalation or re-read
     docket_from()              the settled places, as a docket
 
-!! THREE KINDS OF CHECK, AND WHAT EACH NEEDS IS WHAT SEPARATES THEM.
+!! FOUR KINDS OF CHECK, AND WHAT EACH NEEDS IS WHAT SEPARATES THEM.
 `desk/mark.py` answers everything a mark can be judged by on its own. One
-kind needs the PAGE the role read and the FILES it cited (`address_problems`
-through `verify_report`, and `base_texts`, which turns the binder into what
-`claim_verbatim_problems` and `verify_report` measure a returned claim
-against -- never a mark's own `raw_text`, the base a party being checked
-could have altered). One kind needs only the report itself, and nothing
-outside it (`Problem`, `problems_in`, `drift_in`, `unruled`, `tally`) --
-`decision-log.md Process: #54` put the first four here because they ask
+kind needs the PAGE the role read and the FILES it cited (`base_texts`,
+which turns the binder into what `claim_verbatim_problems` and
+`verify_report` measure a returned claim against -- never a mark's own
+`raw_text`, the base a party being checked could have altered -- and
+`address_problems` through `verify_report`). One kind needs only the report
+itself, and nothing outside it (`Problem`, `problems_in`, `unruled`,
+`tally`) -- `decision-log.md Process: #54` put them here because they ask
 whether every place in the copy was ruled on, a question about the SET, and
-one mark cannot answer for the set alone; `drift_in` joined them because it
-too takes only a report and data already derived from the binder --
-`base_texts`'s own output -- rather than the checkout itself. One kind needs
-the marks the OTHER roles handed back (`places` through `docket_from`).
+one mark cannot answer for the set alone. One kind needs the marks the
+OTHER roles handed back (`places` through `docket_from`). A FOURTH kind
+compares what came back against what went out: `drift_in`, which needs both
+the returned report and the base `base_texts` derived from the binder it
+was seeded from -- checking the SAME field of the SAME entry at two
+different times, what it was seeded with against what came back, rather
+than checking a claim against evidence (the first kind) or one role's mark
+against another's (the third).
 Nothing above `places` compares two marks, and nothing below `verify_report`
 opens a file.
 
