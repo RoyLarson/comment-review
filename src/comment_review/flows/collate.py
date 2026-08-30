@@ -62,9 +62,12 @@ class Collated:
     """What one stage came to, and what is left for a person.
 
     Attributes:
-        chief: the copy chief's `edit_copy` -- one mark per RESOLVED place.
-            An ordinary edit_copy; `desk.containers.parse_edit_copy` accepts it
-            with no second shape.
+        chief: the copy chief's `edit_copy` -- one mark per RESOLVED place,
+            except a `move`, whose two resolved places (origin and
+            destination) share the ONE entry `_chief_copy` writes at the
+            origin -- see that function's docstring for why a second entry
+            at the destination cannot parse. An ordinary edit_copy;
+            `desk.containers.parse_edit_copy` accepts it with no second shape.
         problems: every copy's malformed marks, stacked in copy then mark
             order, each naming the role to send it back to.
         drift: a returned `raw_text` that is not the one the place was seeded
@@ -320,6 +323,33 @@ def _chief_copy(read_from: dict, resolved: dict[str, Mark], proof: dict) -> dict
     ! PATHS ARE THE REAL ONES. An address carries the FLATTENED path;
     `unflatten` resolves it against the proof's own sheet paths, exactly as
     `docket_from` does, so the sheets name files that are actually there.
+
+    !! A `move` IS ONE ENTRY, WRITTEN ONCE, AT ITS OWN `address`. `resolved`
+    carries a move's `Mark` under TWO keys -- its origin and its destination,
+    `desk.collator._join_moves`' doing -- but the mark's own `.address` is
+    always the origin (`docs/the-mark.md`), and `desk.mark.parse` REFUSES an
+    entry whose `address` equals its own `claim.to`
+    (`desk.mark._destination_problems`). Writing a second entry at the
+    destination, with `address` rewritten to match, is therefore not an entry
+    `parse` can accept -- it reads as a move to where the paragraph already
+    is. `seen` dedups by `id(mark)` so the SAME `Mark` object, reached under
+    either of its two keys, contributes its one entry once, always placed by
+    `mark.address` rather than by whichever key `resolved` happened to
+    iterate to first.
+
+    !! PROVISIONAL, over a shape Roy has since ruled against, 2026-08-30:
+    *"A move needs to be what it is and that is a composite Mark - Drop Here
+    Add There. They have to go together ... Nothing else acts on two places
+    at once."* A SENTENCE can move without the paragraph moving, so the
+    origin is not always emptied -- both ends can carry their own new text,
+    which today's singular `Mark` (one `address`, one `change`) cannot
+    express. The composite is a separate scope, not this fix. `seen`'s dedup
+    is the SMALLEST stand-in for that shape: once a move is two ordinary
+    marks (a `drop` at the origin, an `add` at the destination), each has its
+    own `address` and its own `id()`, `resolved` never carries one `Mark`
+    under two keys, and `seen` never finds a repeat -- so this dedup becomes
+    dead code, deletable outright, with no entry ever built two different
+    ways.
     """
     # ! DUPLICATES `desk.collator._real_pages`, which builds the identical
     # (paths, shas) pair over the identical proof shape for `docket_from`.
@@ -336,8 +366,12 @@ def _chief_copy(read_from: dict, resolved: dict[str, Mark], proof: dict) -> dict
                 shas[path] = str(sheet.get("sha", ""))
 
     sheets: dict[str, dict] = {}
-    for address, mark in resolved.items():
-        addr = cue_of(address)
+    seen: set[int] = set()
+    for mark in resolved.values():
+        if id(mark) in seen:
+            continue
+        seen.add(id(mark))
+        addr = cue_of(mark.address)
         real = unflatten(addr.path, paths) or addr.path
         sheet = sheets.setdefault(
             real, {"path": real, "sha": shas.get(real, ""), "marks": []}

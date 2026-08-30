@@ -26,23 +26,44 @@ from comment_review.desk.proof import MismatchedRoot
 from comment_review.flows.collate import collate
 from comment_review.machine import exceptions
 
-#: Exit codes, extending `distribute`'s own 0/1/2 with the two outcomes a caller
-#: branches on. `main` CHECKS `got.escalations` BEFORE `got.rereads`, so a
-#: run holding both reports `ESCALATIONS` (4) rather than `REREADS` (3): an
-#: escalation is the stronger claim on a person's attention.
+#: Exit codes, extending `distribute`'s own 0/1/2 with the outcomes a caller
+#: branches on. `main` CHECKS `got.escalations`, THEN `got.rereads`, THEN
+#: `got.drift`, so a run holding more than one reports the FIRST of those it
+#: holds: an escalation is the stronger claim on a person's attention than a
+#: re-read, and a re-read is stronger than drift, which never blocks a place
+#: from settling -- `desk.collator.drift_in`'s own docstring: "REPORTED, NOT
+#: REFUSED".
 OK = 0
 BROKEN = 1
 UNREADABLE = 2
 REREADS = 3
 ESCALATIONS = 4
+#: !! ADDED 2026-08-30. Before this code existed, a run whose every mark
+#: parsed but whose `raw_text` disagreed with the seeded base -- drift -- wrote
+#: the chief copy and exited `OK`: `main`'s own docstring named only
+#: `got.problems` and `RECONCILE_ERRORS` as causes of a non-`OK` outcome, so a
+#: caller branching on the exit code alone -- the documented contract -- got no
+#: signal that a drifted place fed the written output. `drift_in`'s ruling is
+#: that the COPY is never discarded over drift; it says nothing about the exit
+#: code, which this closes.
+DRIFT = 5
 
-#: The two ways a stage cannot be reconciled at all, as against a mark that
-#: broke a rule: a copy that names no role, and copies censused from different
-#: roots. Both mean the SET cannot be read, so neither is routable back to one
-#: role the way a `Problem` is -- they exit `BROKEN` with the reason on stderr.
+#: The three ways a stage cannot be reconciled at all, as against a mark that
+#: broke a rule: a copy that names no role, copies censused from different
+#: roots, and a copy carrying no `read_from` at all. All three mean the SET
+#: cannot be read, so none is routable back to one role the way a `Problem`
+#: is -- they exit `BROKEN` with the reason on stderr.
+#: !! `KeyError` IS THE THIRD, ADDED 2026-08-30. `problems_in` already reports
+#: a missing `read_from` as a `Problem`, but `collate()` calls
+#: `desk.proof.gather` unconditionally afterward, and `gather` raises
+#: `KeyError` on `copy["read_from"]` by design -- its own `Raises:` calls this
+#: intentional. Uncaught, that `KeyError` escaped past this module's own
+#: promise that "a raise is not a refusal" -- `binder/binder.py`'s
+#: `_read_from_problem` docstring records the same defect, fixed once already,
+#: on the same field one step earlier in the chain.
 #: ! BOUND TO A NAME because no `except` in a shipped file holds a tuple
 #: literal; see `machine/exceptions.py`.
-RECONCILE_ERRORS = (UnnamedRole, MismatchedRoot)
+RECONCILE_ERRORS = (UnnamedRole, MismatchedRoot, KeyError)
 
 
 def _load(path: str) -> tuple[dict, str]:
@@ -64,11 +85,13 @@ def main() -> int:
     """Fold one stage's returned copies, report, and say what is left.
 
     Returns:
-        One of `OK`, `BROKEN`, `UNREADABLE`, `REREADS` or `ESCALATIONS`.
-        `BROKEN` covers both a copy that broke a rule (`got.problems`) and a
-        stage `RECONCILE_ERRORS` says could not be reconciled at all -- a
-        raise is not a refusal, so both are caught and named on stderr
-        rather than left to escape as a traceback.
+        One of `OK`, `BROKEN`, `UNREADABLE`, `REREADS`, `ESCALATIONS` or
+        `DRIFT`. `BROKEN` covers both a copy that broke a rule
+        (`got.problems`) and a stage `RECONCILE_ERRORS` says could not be
+        reconciled at all -- a raise is not a refusal, so both are caught and
+        named on stderr rather than left to escape as a traceback. `DRIFT` is
+        weaker than either carried-forward outcome: a drifted place can still
+        settle, so it is checked last, after `ESCALATIONS` and `REREADS`.
     """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--stage", required=True, help="the stage label, e.g. 4c")
@@ -110,7 +133,11 @@ def main() -> int:
     try:
         got = collate(args.stage, copies, binder)
     except RECONCILE_ERRORS as err:
-        print(f"REFUSED: the proof could not be reconciled -- {err}", file=sys.stderr)
+        # ! `KeyError`'s own `str()` is only the missing key, repr'd -- naming
+        # the shape of the refusal rather than its cause, unlike `UnnamedRole`
+        # and `MismatchedRoot`, whose messages already say what went wrong.
+        why = f"a copy carries no {err}" if isinstance(err, KeyError) else str(err)
+        print(f"REFUSED: the proof could not be reconciled -- {why}", file=sys.stderr)
         return BROKEN
 
     for problem in got.problems:
@@ -138,4 +165,6 @@ def main() -> int:
         return ESCALATIONS
     if got.rereads:
         return REREADS
+    if got.drift:
+        return DRIFT
     return OK

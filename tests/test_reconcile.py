@@ -227,6 +227,29 @@ def test_an_edit_copy_with_no_marks_at_all_still_needs_its_role():
         places(proof)
 
 
+def test_a_promoted_entry_names_the_role_and_mark_that_forced_it():
+    """`m.py@a0`'s move, ruled by `block-context` alone, would SETTLE on its
+    own -- `test_a_move_alone_still_settles_at_both_of_its_ends` covers that.
+    Here `module-context` also rules a `correct` at the destination, `a8`,
+    which pulls BOTH ends to `rereads` (`test_a_move_whose_destination_is_
+    marked_again_settles_at_NEITHER_end` covers the address list). This test
+    is the entry CONTENT at the weaker end: before the 2026-08-30 fix, `a0`'s
+    `roles`/`marks` named only `block-context`, with no trace of the
+    `module-context` `correct` that is the actual reason `a0` could not
+    settle.
+    """
+    proof = a_master_proof(
+        {
+            "block-context": {"m.py@a0": a_move("m.py@a0", "m.py@a8")},
+            "module-context": {"m.py@a8": a_correct("m.py@a8", "a different sentence")},
+        }
+    )
+    out = reconcile(proof)
+    origin = next(r for r in out.rereads if r["address"] == "m.py@a0")
+    assert origin["roles"] == ["block-context", "module-context"]
+    assert {p.role for p in origin["marks"]} == {"block-context", "module-context"}
+
+
 def test_undetermined_settles_where_another_role_ruled_substantively():
     proof = a_master_proof(
         {

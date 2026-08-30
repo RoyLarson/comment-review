@@ -817,11 +817,43 @@ def _join_moves(outcomes: dict[str, tuple[str, dict]]) -> None:
     a write at the destination -- so an end settled while the other escalated
     would apply half of it: the paragraph read twice, or deleted and never
     rewritten. Each pair takes the STRONGEST outcome either end reached, by
-    `OUTCOMES` order, and each end keeps its own entry.
+    `OUTCOMES` order.
+
+    !! A PROMOTED END'S ENTRY IS REBUILT FROM BOTH ENDS' `roles` AND `marks`,
+    not only re-labelled with the stronger `kind`. Until 2026-08-30 a promoted
+    end kept its own single-role entry, so a reader of `reconcile()`'s
+    `rereads` or `escalations` -- or of `commands/collate.py`'s printout --
+    saw the WEAKER end named for carry-forward with no trace of the role or
+    mark that forced it there. MEASURED: a `move`'s origin, ruled by one role
+    alone and settled on its own, is pulled to `rereads` because another role
+    also ruled at the destination -- and the origin's entry named only the
+    mover, never the role that collided at the far end. The union is taken
+    over BOTH ends because either can hold information the other lacks: the
+    destination's own entry already carries what touched it, but a mark at
+    the ORIGIN that touches no other place -- another role's `correct` on the
+    same paragraph the move is emptying -- is invisible from the destination
+    unless it is carried across too.
+
+    ! EACH END KEEPS ITS OWN `address`. Only `kind`, `roles` and `marks` are
+    shared; the entry at each end still names that end.
 
     ! IT RUNS TO A FIXED POINT, because moves chain: one move's destination can
     be another move's origin, and promoting the first pair can promote the
     second. The loop stops on the pass that changes nothing.
+
+    !! PROVISIONAL. Roy, 2026-08-30, ruling AGAINST the shape this whole
+    function joins: *"A move needs to be what it is and that is a composite
+    Mark - Drop Here Add There. They have to go together ... Nothing else
+    acts on two places at once."* This function exists because today's `move`
+    is ONE `Mark` touching two addresses, so "settle at one end, escalate at
+    the other" is a state this module has to notice and repair after the
+    fact -- a promotion hack. Once a move is a composite of two ordinary
+    marks (a `drop`, an `add`), each with its own `address`, atomicity is
+    STRUCTURAL: nothing groups two addresses under one mark to begin with, so
+    there is no split outcome to detect or merge, and this function -- the
+    whole of `_join_moves` -- has nothing left to do. The composite is a
+    separate scope; this fix only stops the promoted-entry data loss within
+    today's shape.
 
     Args:
         outcomes: address -> `(kind, entry)`, as `_outcome` built each. Both
@@ -839,12 +871,29 @@ def _join_moves(outcomes: dict[str, tuple[str, dict]]) -> None:
     while changed:
         changed = False
         for ends in ends_of:
-            strongest = max((outcomes[end][0] for end in ends), key=OUTCOMES.index)
+            kinds = [outcomes[end][0] for end in ends]
+            strongest = max(kinds, key=OUTCOMES.index)
+            if len(set(kinds)) == 1:
+                continue
+            roles: set[str] = set()
+            marks: list[Placed] = []
+            seen: set[tuple[str, int]] = set()
             for end in ends:
-                kind, entry = outcomes[end]
-                if kind != strongest:
-                    outcomes[end] = (strongest, entry)
-                    changed = True
+                _, entry = outcomes[end]
+                roles.update(entry["roles"])
+                for placed in entry["marks"]:
+                    key = (placed.role, id(placed.mark))
+                    if key not in seen:
+                        seen.add(key)
+                        marks.append(placed)
+            sorted_roles = sorted(roles)
+            for end in ends:
+                address = outcomes[end][1]["address"]
+                outcomes[end] = (
+                    strongest,
+                    {"address": address, "roles": sorted_roles, "marks": marks},
+                )
+            changed = True
 
 
 def reconcile(proof: dict) -> Reconciled:

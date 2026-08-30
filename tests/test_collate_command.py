@@ -250,6 +250,82 @@ class TestExitCodes:
         assert code == 1
         assert "somewhere/else" in err
 
+    def test_a_copy_missing_read_from_exits_one_not_a_traceback(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """`desk.proof.gather`'s bare `copy["read_from"]` raises `KeyError` by
+        design (its own `Raises:` calls this intentional), and until this fix
+        that `KeyError` was not in `RECONCILE_ERRORS` -- so it escaped `main`
+        uncaught, past this module's own promise that "a raise is not a
+        refusal". Confirmed BEFORE the fix: `command.main()` raised `KeyError`
+        out of this test rather than returning, with an eight-frame traceback
+        -- see the task report for that run's output.
+        """
+        binder = a_binder_over({"m.py@b1": BASE})
+        copies = copies_over(
+            binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
+        )
+        del copies[0]["read_from"]
+        binder_path = tmp_path / "binder.json"
+        binder_path.write_text(json.dumps(binder), encoding="utf-8")
+        copy_path = tmp_path / "copy.json"
+        copy_path.write_text(json.dumps(copies[0]), encoding="utf-8")
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "collate",
+                "--stage",
+                "4c",
+                "--binder",
+                str(binder_path),
+                "--out",
+                str(tmp_path / "chief.json"),
+                "--edit-copy",
+                str(copy_path),
+            ],
+        )
+        code = command.main()
+        err = capsys.readouterr().err
+        assert code == 1
+        assert "read_from" in err
+
+    def test_drift_alone_exits_five_and_still_writes_the_chief(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """`desk.collator.drift_in`'s ruling is that the COPY is never
+        discarded over drift -- the chief is still written -- but before this
+        fix `main` gave no exit-code signal that a drifted place fed the
+        output: it returned 0, indistinguishable from a run with nothing to
+        report at all."""
+        binder = a_binder_over({"m.py@b1": BASE})
+        copies = copies_over(
+            binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
+        )
+        copies[0]["sheets"][0]["marks"][0]["raw_text"] = "# not what was seeded\n"
+        binder_path = tmp_path / "binder.json"
+        binder_path.write_text(json.dumps(binder), encoding="utf-8")
+        copy_path = tmp_path / "copy.json"
+        copy_path.write_text(json.dumps(copies[0]), encoding="utf-8")
+        out_path = tmp_path / "chief.json"
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "collate",
+                "--stage",
+                "4c",
+                "--binder",
+                str(binder_path),
+                "--out",
+                str(out_path),
+                "--edit-copy",
+                str(copy_path),
+            ],
+        )
+        code = command.main()
+        assert code == command.DRIFT
+        assert code == 5
+        assert out_path.exists()
+
     def test_an_unreadable_input_exits_two(self, tmp_path, monkeypatch, capsys):
         monkeypatch.setattr(
             "sys.argv",

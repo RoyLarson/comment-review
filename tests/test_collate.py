@@ -395,3 +395,57 @@ class TestPairMoves:
         resolved = {"m.py@b1": a_mark, "m.py@b2": b_mark}  # "m.py@b3" absent
 
         assert _pair_moves(resolved) == {"m.py@b1", "m.py@b2"}
+
+
+class TestAResolvedMoveIsOneEntry:
+    """`_chief_copy` -- `resolved` carries a settled `move`'s `Mark` under
+    BOTH its addresses (`desk.collator._join_moves` gives both ends one
+    outcome), but the chief's copy must write it ONCE, at its own origin.
+    Regression cover for the double-write / mislabelled-destination defect
+    fixed 2026-08-30."""
+
+    def test_two_independent_moves_write_one_entry_each_at_their_origins(self):
+        binder = a_binder_over({f"m.py@b{n}": BASE for n in (1, 2, 7, 8)})
+        marks = {
+            "m.py@b1": a_move("m.py@b1", "m.py@b2"),
+            "m.py@b7": a_move("m.py@b7", "m.py@b8"),
+        }
+        got = collate("4c", copies_over(binder, {"block-context": marks}), binder)
+        entries = [m for s in got.chief["sheets"] for m in s["marks"]]
+        assert [e["address"] for e in entries] == ["m.py@b1", "m.py@b7"]
+
+    def test_a_cross_file_move_lands_only_in_the_origins_sheet(self):
+        binder = a_binder_over({"a.py@b1": BASE, "b.py@b1": BASE})
+        marks = {"a.py@b1": a_move("a.py@b1", "b.py@b1")}
+        got = collate("4c", copies_over(binder, {"block-context": marks}), binder)
+        sheets = {
+            s["path"]: [m["address"] for m in s["marks"]] for s in got.chief["sheets"]
+        }
+        # ! NO "b.py" SHEET AT ALL -- `_chief_copy` only ever creates a sheet
+        # when it has an entry to put in it, and the destination writes none.
+        assert sheets == {"a.py": ["a.py@b1"]}
+
+    def test_every_entry_on_the_chiefs_copy_still_parses(self):
+        """The other option -- writing a second entry at the destination with
+        `address` rewritten to it -- cannot satisfy this: `claim.to` would
+        then equal that entry's own `address`, which `desk.mark.parse`
+        refuses by name (`desk.mark._destination_problems`) as a move to
+        where the paragraph already is."""
+        binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})
+        marks = {"block-context": {"m.py@b1": a_move("m.py@b1", "m.py@b5")}}
+        got = collate("4c", copies_over(binder, marks), binder)
+        for sheet in got.chief["sheets"]:
+            for entry in sheet["marks"]:
+                mark, why = parse(entry["address"], entry)
+                assert why == [], why
+                assert mark is not None
+
+    def test_the_chiefs_copy_still_parses_as_an_ordinary_edit_copy(self):
+        from comment_review.desk.containers import parse_edit_copy
+
+        binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})
+        marks = {"block-context": {"m.py@b1": a_move("m.py@b1", "m.py@b5")}}
+        got = collate("4c", copies_over(binder, marks), binder)
+        copy, why = parse_edit_copy("the chief's", got.chief)
+        assert why == []
+        assert copy is not None
