@@ -19,17 +19,26 @@
     reconcile()                each place -> settled, escalation or re-read
     docket_from()              the settled places, as a docket
 
-!! TWO STEPS, AND WHAT EACH NEEDS IS WHAT SEPARATES THEM. `desk/mark.py`
-answers everything a mark can be judged by on its own. The first half here
-needs the PAGE the role read and the FILES it cited; the second half needs the
-marks the OTHER roles handed back. Nothing above `places` compares two marks,
-and nothing below it opens a file.
+!! THREE KINDS OF CHECK, AND WHAT EACH NEEDS IS WHAT SEPARATES THEM.
+`desk/mark.py` answers everything a mark can be judged by on its own. One
+kind needs the PAGE the role read and the FILES it cited (`address_problems`
+through `verify_report`). One kind needs only the report itself, and nothing
+outside it (`Problem`, `problems_in`, `unruled`, `tally`) -- `decision-log.md
+Process: #54` put them here because they ask whether every place in the copy
+was ruled on, a question about the SET, and one mark cannot answer for the
+set alone. One kind needs the marks the OTHER roles handed back (`places`
+through `docket_from`). Nothing above `places` compares two marks, and
+nothing below `verify_report` opens a file.
 
-!! AND THE TWO HALVES REFUSE DIFFERENTLY. Verification RETURNS a message per
-broken rule, each opening with the mark it is about, so a whole report is
-checked in one pass and every problem is read at once. Reconciliation RAISES
--- `UnnamedRole`, `MalformedMark` -- because a mark it cannot read is a mark it
-cannot group, and a place grouped wrongly is settled wrongly.
+!! AND THEY REFUSE DIFFERENTLY. Verification RETURNS a message per broken
+rule, each opening with the mark it is about, so a whole report is checked
+in one pass and every problem is read at once. Coverage also RETURNS -- a
+`Problem` per broken rule -- but some of those are about the COPY rather than
+about any one mark: no `sheets` list, no `role`, or an entry that is not an
+object each produce a `Problem` carrying `address=""`, with nothing in the
+message naming a mark at all. Reconciliation RAISES -- `UnnamedRole`,
+`MalformedMark` -- because a mark it cannot read is a mark it cannot group,
+and a place grouped wrongly is settled wrongly.
 """
 
 from dataclasses import dataclass
@@ -334,6 +343,7 @@ def verify_report(report: dict, binder: dict, root: Path) -> list[str]:
             )
     return out
 
+
 @dataclass(frozen=True)
 class Problem:
     """One thing wrong with one mark, named so a reader can ROUTE it.
@@ -358,6 +368,7 @@ class Problem:
     role: str
     address: str
     message: str
+
 
 def problems_in(report: dict) -> tuple[list[Problem], int]:
     """Every rule broken in a filled edit_copy, and how many places were ruled on.
@@ -435,6 +446,7 @@ def problems_in(report: dict) -> tuple[list[Problem], int]:
             out += [Problem(named, address, message) for message in why]
     return out, ruled
 
+
 def unruled(report: dict) -> list[str]:
     """The addresses nobody wrote in -- the coverage gap, named not counted.
 
@@ -457,6 +469,7 @@ def unruled(report: dict) -> list[str]:
         out += [str(m.get("address", "")) for m in marks if untouched(m)]
     return out
 
+
 def tally(report: dict) -> dict[Instruction, int]:
     """How many of each instruction the edit_copy carries, for a one-line summary.
 
@@ -475,6 +488,7 @@ def tally(report: dict) -> dict[Instruction, int]:
             if isinstance(mark, dict) and mark.get("instruction") in counts:
                 counts[mark["instruction"]] += 1
     return {name: n for name, n in counts.items() if n}
+
 
 def _touches(mark: Mark) -> list[str]:
     """Every address this one mark lands on.
