@@ -126,17 +126,18 @@ def parse_edit_copy(where: str, data: object) -> tuple[EditCopy | None, list[str
     """
     if not isinstance(data, dict):
         return None, [f"{where}: an edit_copy must be an object"]
-    # ! REBOUND, ANNOTATED -- `ty` loses the `isinstance` narrowing above by
-    # the time `data["read_from"]` is read past the `for` loop below; this
-    # matches `desk.mark.parse`'s own `data: dict = entry` for the same gate.
-    data: dict = data
-    role = data.get("role")
+    # !! DECLARED, NOT NARROWED, because the read at `checked["read_from"]`
+    # below sits past a loop. An `isinstance` narrow is invalidated at a loop
+    # back-edge, so `ty` loses it before that read; an explicit annotation is
+    # a declaration and survives.
+    checked: dict = data
+    role = checked.get("role")
     if not isinstance(role, str) or not role.strip():
         return None, [f"{where}: an edit_copy needs the `role` that wrote it"]
-    why_header = _read_from_problem(data)
+    why_header = _read_from_problem(checked)
     if why_header:
         return None, [f"{where}: {role}'s {why_header}"]
-    raw_sheets = data.get("sheets")
+    raw_sheets = checked.get("sheets")
     if not isinstance(raw_sheets, list):
         return None, [f"{where}: {role} needs a `sheets` list"]
     sheets: list[Sheet] = []
@@ -155,7 +156,7 @@ def parse_edit_copy(where: str, data: object) -> tuple[EditCopy | None, list[str
             # ! COPIED, NOT ALIASED -- `bind`, `seed` and `gather` all do the
             # same with this field, so a caller mutating its own dict cannot
             # change what a parsed copy already holds.
-            read_from={**data["read_from"]},
+            read_from={**checked["read_from"]},
             sheets=tuple(sheets),
         ),
         [],
