@@ -41,6 +41,10 @@ Measured: 2026-08-29 — First live T50, 2026-08-29: 2 readings, $0.61, claude-o
           unkeyed A->B and evidence B->A both MOVED; overall held at B. agreed=False
           over 3 of 6 fields. T50 stays open until a run on a KEYED case exercises the
           other three axes.
+Filed:    2026-08-29 — The first reading is written up in evidence/the-judge-disagreed-
+          with-itself/ -- t50.json plus what it does and does not settle, per D2. T50
+          stays OPEN: it closes on a run over a KEYED case, and evals/prose_commits.py
+          now finds those (10 candidates whose whole diff is prose).
 ```
 
 ## Objective

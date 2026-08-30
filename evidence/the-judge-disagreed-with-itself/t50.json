@@ -1,0 +1,263 @@
+{
+  "agreed": false,
+  "arm": "with_skill",
+  "eval_id": "a-docstring-never-matches-its-own-file",
+  "fields": {
+    "detection": {
+      "agreed": true,
+      "letters": [
+        "N/A",
+        "N/A"
+      ]
+    },
+    "diagnosis": {
+      "agreed": true,
+      "letters": [
+        "N/A",
+        "N/A"
+      ]
+    },
+    "evidence": {
+      "agreed": false,
+      "letters": [
+        "B",
+        "A"
+      ]
+    },
+    "overall": {
+      "agreed": true,
+      "letters": [
+        "B",
+        "B"
+      ]
+    },
+    "prescription": {
+      "agreed": true,
+      "letters": [
+        "N/A",
+        "N/A"
+      ]
+    },
+    "unkeyed": {
+      "agreed": false,
+      "letters": [
+        "A",
+        "B"
+      ]
+    }
+  },
+  "model": "claude-opus-5",
+  "readings": [
+    {
+      "editorial": {
+        "arm": "with_skill",
+        "axes": {
+          "detection": {
+            "grade": "N/A",
+            "reason": "No END commit and no diff were supplied, so there is no set of changed paragraphs against which to test coverage. Nothing to grade here; the run did file a record on every one of the eleven prose paragraphs the census reported, so whatever END touched in this file would almost certainly carry a record, but that is inference, not measurement."
+          },
+          "diagnosis": {
+            "grade": "N/A",
+            "reason": "No key exists, so no claim can be checked against the mechanism END's change turns on."
+          },
+          "evidence": {
+            "grade": "B",
+            "reason": "The supplied mechanical verification is an empty object -- it records no failures. Independently counting the START file, I confirmed ~23 of the cited line numbers exactly (`:20`, `:31`, `:42`, `:80`, `:81`, `:89`, `:170`, `:183`, `:187`, `:193`, and every table range 46-51, 56-70, 81-85, 94-99, 112, 113, 142-145, 176-177, 198-199), plus all block transcriptions. One cite is off by one: `galley.py:18 | in no census -- so \\`address_problem\\` refuses it and \\`edit_problem\\`` is line 17, with lines 20 and 31 anchoring the count so the error is the run's, not a systematic offset. Not graded F because the harness reported nothing and the miss is a single line-number slip inside a `query` record whose verbatim text is genuine and locatable."
+          },
+          "prescription": {
+            "grade": "N/A",
+            "reason": "DIAGNOSIS is N/A for want of a key, so no proposal can be measured against what END asserts."
+          },
+          "unkeyed": {
+            "grade": "A",
+            "reason": "Every finding falls outside the (absent) key, and I could not rule any of them FALSE of the code. Two are substantive true findings (the `overlaps` summary line really does describe a return of two edits where the code returns two line numbers; the `line_endings`/`splice` mixed-ending normalisation really does defeat the rationale given for not normalising). Two are honest hedges filed as `query` (the docstring's citations of `address_problem`, `edit_problem`, `verdicts.py`, unreachable from a one-file checkout; and the `\"one failure\"` exclusivity reading, which I record as query rather than false because the code does not settle whether the original phrase was ever wrong). The seven `clean` certifications each check out against the code line by line. No confident correction was applied to prose that was never wrong."
+          }
+        },
+        "eval_id": "a-docstring-never-matches-its-own-file",
+        "model": "claude-opus-5",
+        "overall": "B",
+        "overall_reason": "With no END diff supplied, the whole grade rests on the unkeyed list and the citations: the run filed on all eleven prose paragraphs, produced one unambiguous real defect (the `overlaps` summary line promising edits and returning line numbers), two sound code concerns the prose records missed, and two properly hedged queries, with no confident correction to prose that was never wrong. It falls short of A because one finding (134) rewrites defensible emphasis into a brittle count and loses the mechanism, one `clean` (115) sits in tension with the run's own mixed-ending concern, and one SOURCES cite is off by a line.",
+        "reader_value": "The prose in this file already explains why (descending splice order, endings taken from the file, refusal over guessing), and the run's rewrites mostly preserve that -- the `overlaps` fix in particular makes the return contract legible without touching the rationale beneath it. The one place reader value drops is the 134 rewrite, which replaces 'the one failure a galley must not produce quietly' with a bare count of two refusal conditions, trading the reason (silent corruption is the intolerable mode) for an arithmetic that the file may not keep true.",
+        "rubric_version": 2,
+        "unkeyed_claims": [
+          {
+            "cite": "BLOCK 145 (galley.py:112) -- main() summary line asserts 'every file an edit touches'",
+            "reason": "Three paths (`READ_ERRORS` on the source, `clash`, `stale`) each `continue` before `target.write_text`, so a file whose edits were grouped can end with no galley. The population really is 'every file whose edits all pass'. Mild -- the existing clause 'and report what refused' half-covers it -- but the correction is accurate and the rewrite asserts something true.",
+            "verdict": "true"
+          },
+          {
+            "cite": "BLOCK 134 (galley.py:94-99) -- 'the one failure a galley must not produce quietly' called false",
+            "reason": "The original phrase is about QUIET corruption, and the run's rewrite ('one of the two failures this file refuses over rather than splicing') answers a different question -- how many refusal conditions exist -- while dropping the 'quietly' mechanism. There is some ground for the run (an unguarded overlap would also corrupt silently), but the code does not establish that the original sentence is false, and the run's own count is inconsistent with the three refusal paths it enumerated in record 145. Not a false claim about code behaviour; an over-literal reading of emphasis.",
+            "verdict": "query"
+          },
+          {
+            "cite": "BLOCK 127 (galley.py:81-85) -- 'The first pair of edits sharing a line, or None.'",
+            "reason": "The annotation is `-> tuple[int, int] | None` and the body returns `(a_start, b_start)`; an edit is `tuple[int, int, str]`. The summary line promises edits and delivers start lines, and the sole caller prints them as positions. Genuine defect, correctly diagnosed, and the proposed line asserts exactly what the code does.",
+            "verdict": "true"
+          },
+          {
+            "cite": "BLOCK 107 (galley.py:1-33) -- citations of `address_problem`, `edit_problem`, `verdicts.py` unverifiable",
+            "reason": "Filed explicitly as `query` with what was attempted and what would settle it. Correct call: the run was handed one file that imports only argparse/json/sys/Path/READ_ERRORS, and the census's own caveat says its UNRESOLVED notes are the weak direction. Held against nobody.",
+            "verdict": "query"
+          },
+          {
+            "cite": "BLOCK 113 clean -- 'path shim must run first'",
+            "reason": "`sys.path.insert` is at line 40, the excused import at line 42. The comment is true of the code it sits with.",
+            "verdict": "true"
+          },
+          {
+            "cite": "BLOCK 115 clean -- line_endings docstring",
+            "reason": "The certified claims ('taken from the file, not the platform'; the joiner is the one `splice` uses) are true. But the run's own CODE CONCERNS section observes that a mixed-ending file is rejoined entirely in CRLF, which contradicts the same docstring's stated rationale for not normalising -- so `clean` on this paragraph sits awkwardly beside the run's own finding. The certification is not false, but it is under-inclusive.",
+            "verdict": "query"
+          },
+          {
+            "cite": "BLOCK 118 clean -- splice docstring (1-based inclusive, any order, caller refused overlaps)",
+            "reason": "`lines[start - 1 : end]` is 1-based inclusive; `sorted(edits, reverse=True)` makes arrival order irrelevant; main() checks `overlaps` and `continue`s before reaching `splice`. All three claims hold.",
+            "verdict": "true"
+          },
+          {
+            "cite": "BLOCK 146 clean -- cp1252 console comment",
+            "reason": "`getattr(sys.stdout, 'reconfigure', None)` then `reconfigure(encoding='utf-8', errors='replace')` is exactly the guard the comment motivates.",
+            "verdict": "true"
+          },
+          {
+            "cite": "BLOCK 172 clean -- 'the CENSUS BLOCK travels with each edit'",
+            "reason": "The block dict is the fourth tuple slot in `by_path`; `raw_lines` is read only by `block_matches`; the staleness check below compares the file against that stored copy, not against itself.",
+            "verdict": "true"
+          },
+          {
+            "cite": "BLOCK 201 clean -- 'every block is checked BEFORE anything is written'",
+            "reason": "`stale` is a comprehension over all of `file_edits`, and both `clash` and `stale` refusals `continue` before `target.write_text`. No half-splice is reachable.",
+            "verdict": "true"
+          },
+          {
+            "cite": "BLOCK 220 clean -- 'Nonzero when anything refused'",
+            "reason": "`return 1 if refused else 0` is nonzero exactly when refused is nonzero; the earlier `return 2` paths are also nonzero and consistent.",
+            "verdict": "true"
+          },
+          {
+            "cite": "CODE CONCERN -- line_endings returns CRLF on any single CRLF, so splice normalises a mixed-ending file",
+            "reason": "`\"\\r\\n\" if \"\\r\\n\" in text else \"\\n\"` plus `splitlines()`/`join` rewrites every LF line as CRLF, producing exactly the every-line-changed diff the docstring cites as the reason not to normalise. Real defect, and one no prose record in the run covers.",
+            "verdict": "true"
+          },
+          {
+            "cite": "CODE CONCERN -- `stale` computed before `clash` but reported after it",
+            "reason": "`stale` is built at 178-180, `clash` tested at 182; a file that is both is only ever reported as overlapping. Accurate reading of control flow, correctly filed as a code concern rather than a prose verdict.",
+            "verdict": "true"
+          }
+        ]
+      },
+      "mechanical": {},
+      "summary": {
+        "failed": 0,
+        "pass_rate": 0.0,
+        "passed": 0,
+        "total": 0
+      }
+    },
+    {
+      "editorial": {
+        "arm": "with_skill",
+        "axes": {
+          "detection": {
+            "grade": "N/A",
+            "reason": "No END diff was supplied (the END commit is blank and the diff block reads \"no diff supplied\"), so there is no set of changed paragraphs against which to score landing. Nothing here is gradeable; the run's coverage cannot be compared to a key that does not exist. Note for the record: the run did file a record on all eleven prose paragraphs it says the census holds, so no paragraph was silently skipped."
+          },
+          "diagnosis": {
+            "grade": "N/A",
+            "reason": "DETECTION is N/A because no key exists, so there is no END mechanism to compare the run's stated reasons against."
+          },
+          "evidence": {
+            "grade": "A",
+            "reason": "The supplied mechanical verification result is empty (`{}`) \u2014 no discrepancy reported. Spot-checking the cites against the START text by line count confirms them: galley.py:31, 42, 80, 81, 89, 112, 170, 183, 187, 193 and the docstring lines 18/20 all read exactly as transcribed. Nothing cited fails to appear at its cite."
+          },
+          "prescription": {
+            "grade": "N/A",
+            "reason": "DIAGNOSIS is N/A; with no keyed change there is nothing END asserts for the proposed text to be measured against."
+          },
+          "unkeyed": {
+            "grade": "B",
+            "reason": "With no key, all thirteen-odd findings fall here. Most are true of the code and two are genuinely valuable (the `overlaps` summary line describing a return of line numbers as \"the first pair of edits\"; the mixed-line-ending normalisation in `line_endings`/`splice`, which is exactly what that docstring's own rationale warns against). One confident correction is false of the prose: on block 134 the run reads the emphatic \"the one failure a galley must not produce quietly\" as an enumeration and \"refutes\" it by counting two guard clauses, when the original sentence is about a failure MODE (silently writing over moved content) and not a census of refusals \u2014 and its replacement text drops the word that carried the point. One false confident claim among many true ones, with no sweep of invented defects, is a B not lower."
+          }
+        },
+        "eval_id": "a-docstring-never-matches-its-own-file",
+        "model": "claude-opus-5",
+        "overall": "B",
+        "overall_reason": "With no END diff supplied, three axes have no subject and the run stands or falls on its unkeyed work and its citations: cites verify exactly, the one hedge is properly hedged and reasoned, and it surfaces three real things (the `overlaps` return type, the mixed-line-ending normalisation, the stale/clash reporting order) that a reader of the file would want. It is held off A by one confidently-false correction \u2014 reading \"the one failure ... quietly\" as an enumeration and replacing prose that was right with prose that loses the point \u2014 which is precisely the kind of error that costs trust in the rest of the sheet.",
+        "reader_value": "The prose under review is unusually rationale-dense, and the run mostly respects that: its `overlaps` and `main` rewrites tighten a factual summary line without touching the surrounding \"why\". The one exception cuts the other way \u2014 the block 134 replacement swaps a sentence about a failure that must never happen SILENTLY for a bare tally of two guard clauses, so a reader of the result would learn what the file refuses but no longer why quiet mis-splicing is the danger worth a docstring. The two CODE CONCERNS are the most reader-useful thing in the filing and are not proposed as prose at all.",
+        "rubric_version": 2,
+        "unkeyed_claims": [
+          {
+            "cite": "BLOCK 145 | galley.py:112 \u2014 \"Write a galley of every file an edit touches\" is false; should be \"every file whose edits all pass\"",
+            "reason": "Three `continue` paths (unreadable source at 170-172, clash at 182-185, stale at 186-189) skip `target.write_text` at 193 after the file's edits are already grouped under its path, so a touched file can get no galley. As an isolated proposition the summary clause is false of the code; the fix is marginal (the trailing \"and report what refused\" softens it) but not wrong.",
+            "verdict": "true"
+          },
+          {
+            "cite": "BLOCK 134 | galley.py:94-99 \u2014 \"the one failure a galley must not produce quietly\" is false because two conditions refuse a file",
+            "reason": "The original sentence names a failure mode \u2014 splicing a replacement silently over content that has moved \u2014 and \"the one failure ... must not produce QUIETLY\" is a claim about silence, not a count of guard clauses. The overlap case is loud and is a different failure (undefined result), so it does not refute the sentence. The run marks correct prose as false and its rewrite (\"one of the two failures this file refuses over rather than splicing\") deletes the quietness point that was the whole reason for the remark.",
+            "verdict": "false"
+          },
+          {
+            "cite": "BLOCK 127 | galley.py:81 \u2014 \"The first pair of edits sharing a line, or None\" should be \"The start lines of the first two edits ...\"",
+            "reason": "The annotation at line 80 returns `tuple[int, int] | None` and line 89 returns `(a_start, b_start)` \u2014 two 1-based line numbers, not two 3-tuples \u2014 and the sole caller at 183 prints them as positions. The summary line as written would mislead an unpacker. Real, small, correctly diagnosed.",
+            "verdict": "true"
+          },
+          {
+            "cite": "BLOCK 107 | galley.py:1-33 \u2014 `address_problem`, `edit_problem`, `verdicts.py` cannot be resolved from this checkout",
+            "reason": "Explicitly hedged: the run states what it attempted, why absence from a one-file handout is not evidence of absence, and what would settle it. A hedge held against nobody.",
+            "verdict": "query"
+          },
+          {
+            "cite": "CODE CONCERNS \u2014 `line_endings` returns CRLF if the file contains any CRLF, so `splice` rejoins a mixed-ending file entirely in CRLF",
+            "reason": "`splitlines()` discards the original terminators and `end_of_line.join(lines)` re-imposes one ending on every line, so a file with a single CRLF has all its LF lines converted \u2014 the whole-file churn that line 48-50's rationale gives as the reason not to normalise. A real defect the reviewed prose does not mention.",
+            "verdict": "true"
+          },
+          {
+            "cite": "CODE CONCERNS \u2014 `stale` is computed before `clash` but reported after, so a stale-and-overlapping file is only ever reported as overlapping",
+            "reason": "Lines 178-189: the comprehension runs first, but the `if clash` branch `continue`s before `if stale` is reached. Accurate reading of control flow; a minor reporting asymmetry rather than a prose falsehood.",
+            "verdict": "true"
+          },
+          {
+            "cite": "BLOCK 118 (clean) \u2014 `splice`'s claims about 1-based inclusive ranges, arrival order, and the caller having refused overlaps all hold",
+            "reason": "`lines[start - 1 : end]` is 1-based inclusive; `sorted(edits, reverse=True)` makes arrival order irrelevant; the only caller checks `overlaps` at 181 and `continue`s at 185 before reaching `splice` at 193.",
+            "verdict": "true"
+          },
+          {
+            "cite": "BLOCK 201 (clean) \u2014 \"Every block is checked against the file BEFORE anything is written\" is true and no half-splice is reachable",
+            "reason": "`stale` is built over all of `file_edits` at 178-180 and both refusal branches `continue` before the single `write_text` at 193, so the claim as written holds.",
+            "verdict": "true"
+          },
+          {
+            "cite": "BLOCK 220 (clean) \u2014 \"Nonzero when anything refused\" matches `return 1 if refused else 0`",
+            "reason": "Exact, and the run correctly notes the two `return 2` paths do not contradict a claim about being nonzero.",
+            "verdict": "true"
+          },
+          {
+            "cite": "BLOCK 172 (clean) \u2014 `raw_lines` is the only stored record of the file as the reviewers read it",
+            "reason": "`raw_lines` is read only inside `block_matches` (line 103) and is the sole comparison basis for staleness; the comment's rationale about not comparing the file to itself matches the code.",
+            "verdict": "true"
+          },
+          {
+            "cite": "BLOCK 113 / 115 / 146 (clean)",
+            "reason": "Line 42's noqa comment does sit under the `sys.path.insert` at 40; `line_endings` derives its result only from `text`; the cp1252 comment at 113 does explain the defensive `getattr`/`callable` guard at 114-116.",
+            "verdict": "true"
+          },
+          {
+            "cite": "Six numbered notes on census/brief disagreement (block vs paragraph, no transcription in the census, misfiring annotations, contradictory field order)",
+            "reason": "Process observations about the harness rather than claims about the reviewed code; they are stated as unresolved rather than asserted as defects, and they are plausible on their face. Held against nobody.",
+            "verdict": "query"
+          }
+        ]
+      },
+      "mechanical": {},
+      "summary": {
+        "failed": 0,
+        "pass_rate": 0.0,
+        "passed": 0,
+        "total": 0
+      }
+    }
+  ],
+  "rubric_version": 2,
+  "runs": 2
+}
