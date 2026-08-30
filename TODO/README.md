@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (108)
+### open  (109)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -290,6 +290,7 @@ that changed a published name or rule:
 | [vocabulary-sweep-reads-a-moved-path](vocabulary-sweep-reads-a-moved-path.md) | systems | — | 0/3 | vocabulary_sweep reads a path that moved, so nothing looks for undefined terms |
 | [board-not-in-tooling-shape](board-not-in-tooling-shape.md) | systems | -- | 0/1 | waits on the tooling; until then a full resync empties the decision queue |
 | [supersession-defeats-gone-at-end](supersession-defeats-gone-at-end.md) | testing | yes | 0/3 | A superseded ruling keeps its own quotation, and the case gate reads that as unfixed |
+| [grader-reads-one-file](grader-reads-one-file.md) | testing | yes | 0/2 | The grader reads one file, and three of the four keyed cases are multi-file |
 
 ### in-progress  (20)
 

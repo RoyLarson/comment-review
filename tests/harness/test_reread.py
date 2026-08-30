@@ -892,3 +892,76 @@ def test_nothing_is_written_when_an_argument_is_refused(tmp_path, case, capsys):
 
     assert code == 1
     assert not out.exists()
+
+
+# !! THE KEY AND THE ARTIFACT MUST DESCRIBE THE SAME THING. `--under-review` takes
+# ONE path and an END diff covers every file its case names, so a multi-file case
+# grades a judge against files it was never handed. Added 2026-08-30 after three
+# of the four keyed cases passed the whole pre-flight in exactly that state.
+
+
+def _key(*paths):
+    """A diff naming these files, which is all `_unshown` reads of it."""
+    return "".join(f"diff --git a/{p} b/{p}\n@@ -1 +1 @@\n-was\n+is\n" for p in paths)
+
+
+def test_a_key_confined_to_the_file_shown_is_accepted(tmp_path):
+    shown = tmp_path / "start" / "src/pkg/repo.py"
+    assert reread._unshown(_key("src/pkg/repo.py"), shown) == []
+
+
+def test_a_key_covering_a_file_not_shown_is_refused(tmp_path):
+    shown = tmp_path / "start" / "src/pkg/repo.py"
+
+    said = reread._unshown(_key("src/pkg/repo.py", "src/pkg/desk.py"), shown)
+
+    assert len(said) == 1
+    assert "src/pkg/desk.py" in said[0]
+    assert "src/pkg/repo.py" not in said[0], "the file that WAS shown is not missing"
+
+
+def test_the_refusal_names_the_price(tmp_path):
+    """The money is the reason this is a refusal and not a warning."""
+    shown = tmp_path / "start" / "a.py"
+
+    said = reread._unshown(_key("a.py", "b.py"), shown)
+
+    assert reread.COST_PER_READING in said[0]
+
+
+def test_a_key_naming_no_file_adds_nothing(tmp_path):
+    """A keyless run reaches here with an empty diff and must pass through it."""
+    assert reread._unshown("", tmp_path / "a.py") == []
+
+
+def test_every_unshown_file_is_named_not_just_the_first(tmp_path):
+    """Reporting one per run makes a six-file case five edit-and-retry cycles."""
+    shown = tmp_path / "start" / "a.py"
+
+    said = reread._unshown(_key("a.py", "b.py", "c.py", "d.py"), shown)
+
+    assert all(name in said[0] for name in ("b.py", "c.py", "d.py"))
+
+
+def test_the_guard_refuses_through_main(tmp_path, case, capsys):
+    """It reaches the CLI, and it refuses BEFORE any reading is paid for."""
+    key = tmp_path / "end.diff"
+    key.write_text(_key("x.py", "elsewhere.py"), encoding="utf-8")
+    out = tmp_path / "o.json"
+
+    code = reread.main(
+        [
+            "--findings", str(case["findings"]),
+            "--under-review", str(case["under_review"]),
+            "--start", "aaaa",
+            "--end", "bbbb",
+            "--end-diff", str(key),
+            "--arm", "with_skill",
+            "--eval-id", "a-case",
+            "--out", str(out),
+        ]
+    )
+
+    assert code == 1
+    assert any("elsewhere.py" in r for r in _refusals(capsys))
+    assert not out.exists()

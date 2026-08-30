@@ -29,6 +29,7 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
+import re
 import sys
 
 import grader
@@ -211,6 +212,49 @@ def _readable(flag: str, path: pathlib.Path) -> tuple[str | None, str]:
         return f"{flag}: cannot read {path}: {e.strerror or e}", ""
 
 
+#: `diff --git a/<path> b/<path>` -- the one line every file's hunk begins with.
+DIFF_HEADER = re.compile(r"^diff --git a/(\S+) b/", re.MULTILINE)
+
+
+def _unshown(diff: str, under_review: pathlib.Path) -> list[str]:
+    """Files the answer key covers that the judge is not being handed.
+
+    !! THE KEY AND THE ARTIFACT MUST DESCRIBE THE SAME THING, and nothing checked
+    that until 2026-08-30. `--under-review` takes ONE path; an END diff covers
+    every file its case names. MEASURED on the four keyed cases: three are
+    multi-file, and the six-file case passed the whole pre-flight while handing
+    the judge `desk.py` and a key covering five more.
+
+    ! WHICH GRADES THE RUN DOWN FOR FINDINGS IT COULD NOT HAVE MADE. `detection`
+    is *what fraction of the key did the run find*, so five files of unfindable
+    key drag it toward F -- and the output looks like a bad reviewer rather than
+    a bad harness. ! THE OTHER AXES ARE NOT SPARED: `unkeyed` rules a finding
+    outside the key against the CODE, and the code for those five files is not
+    there either.
+
+    ! REFUSED RATHER THAN TRIMMED. Silently cutting the key to the one file
+    shown would grade a DIFFERENT case than the row describes, under the row's
+    name -- and the comparison would be filed as though it had answered the
+    question the case was built to ask.
+    """
+    covered = DIFF_HEADER.findall(diff)
+    if not covered:
+        return []
+    # ! MATCHED AS A SUFFIX because the two are spelled differently: a key names
+    # a repo-relative path, and `--under-review` names where that file was
+    # STAGED -- `<dest>/start/<path>`.
+    shown = under_review.as_posix()
+    unshown = [path for path in covered if not shown.endswith(path)]
+    if not unshown:
+        return []
+    return [
+        f"--end-diff covers {len(covered)} file(s) and --under-review is one: "
+        f"{', '.join(sorted(unshown))} would be keyed and never shown, which "
+        f"grades the run down for findings it could not make. Each reading "
+        f"still costs {COST_PER_READING}."
+    ]
+
+
 def inspect(args) -> tuple[list[str], str, dict]:
     """Every fault in the arguments, plus the two files that had to be read.
 
@@ -259,6 +303,8 @@ def inspect(args) -> tuple[list[str], str, dict]:
         fault, diff = _readable("--end-diff", args.end_diff)
         if fault:
             problems.append(fault)
+        else:
+            problems.extend(_unshown(diff, args.under_review))
 
     mechanical: dict = {}
     if args.mechanical:
