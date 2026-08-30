@@ -57,7 +57,9 @@ job-board plan close 0.2.4-the-commands-for-the-middle P<n> \
 
 ## Task 1: Give the containers a type
 
-**Delivers P21.** Nothing else may start: `P4`, `P7` and `P14` are built on a shape that exists only in code.
+**Delivers P21.**
+
+! **NOTHING ELSE MAY START.** Two later steps are built on a shape that exists only in code -- the `docket_from` change and `recast`.
 
 !! **THE CONTAINERS ARE ONE SHAPE, AND THE CHIEF'S IS NOT SPECIAL** -- `decision-log.md
 Vocabulary: #30`. The chief step is a FOLD: `master_proof` holding N `edit_copies` becomes ONE
@@ -242,9 +244,20 @@ Three cases, and only three: **one** mark owes a change (settles); **every** owi
 
 ---
 
-## Task 4: the `collate` command
+## Task 4: the `collate` command, and the report every middle command owes
 
-**Delivers P3, and closes A-T1, A-T2, A-T3.**
+**Delivers P3 and P22, and closes A-T1, A-T2, A-T3.**
+
+!! **P22 IS A RULE FOR EVERY COMMAND IN THE MIDDLE, AND THIS IS THE FIRST ONE.** `decision-log.md
+Process: #51` -- **a command that leaves work undone names the work AND the command that continues
+it.** Roy, 2026-08-30: *"Just because we can put it in the flow doesn't mean the agents get
+notified that they should do more work or that there is something for them to do."*
+
+! **AN AGENT LEARNS THERE IS WORK FROM THE RUN, not from `--help` and not from a rule it is
+expected to remember.** Establish the shape here; Tasks 5, 6, 9, 10 and 11 follow it.
+
+! **THE COUNTER-EXAMPLE IS ALREADY SHIPPING.** `commands/mark.py:106` prints `"12 ruled on, 0 left
+unruled"` -- a count naming neither the places left nor the next invocation.
 
 **Files:**
 - Create: `src/comment_review/commands/collate.py`
@@ -255,9 +268,23 @@ Three cases, and only three: **one** mark owes a change (settles); **every** owi
 - Consumes: `flows.collate.collate`.
 - Produces: `collate --stage <name> --copies <dir> --repo <root> --out <file>`.
 
-- [ ] **Step 1: Write the failing tests -- the report AND the exit codes**
+- [ ] **Step 1: Write the failing tests -- the report, the continuation, AND the exit codes**
 
-The command must name the escalated and re-read places on stdout (A-T2), and its exit code must separate the three outcomes (A-T3): all settled, something escalated, something owes a re-read.
+Three things, and the middle one is P22:
+
+```python
+def test_a_run_that_settles_some_NAMES_the_rest_and_what_to_run():
+    out = run_collate(a_stage_settling_4_of_10)
+    assert "6" in out and "escalated" in out
+    assert "comment-review" in out          # the invocation that continues it
+
+def test_a_run_that_settles_EVERYTHING_names_nothing_to_continue():
+    out = run_collate(a_stage_settling_all)
+    assert "comment-review" not in out
+```
+
+And the exit code must separate the three outcomes (A-T3): all settled, something escalated,
+something owes a re-read.
 
 - [ ] **Step 2: Run and watch them fail**
 
@@ -315,33 +342,58 @@ def test_docket_from_takes_the_chiefs_copy_alone():
 
 ---
 
-## Task 6: the round tally, and the cap that terminates the only cycle
+## Task 6: `pull` emits the binder the next stage reads
 
-**Delivers P7, and closes `a-revise-answer-has-no-artifact` T8** -- unticked 2026-08-30 because it claimed a cap that no code implemented.
+**Delivers P23.** `decision-log.md Process: #52`.
+
+!! **A REVISE IS ALWAYS PULLED, EVEN WHEN A STAGE SETTLED NOTHING.** Roy, 2026-08-30: *"The plan
+was to make a copy in a tempdir and run the write step so that they would get reference to the
+stage N edits and also pull a binder for the update."* An empty docket yields a copy with zero
+overlays -- **the revise is the tree the next stage reads and the binder it is censused from, not
+only the edits.**
 
 **Files:**
-- Modify: `src/comment_review/flows/collate.py`
-- Modify: `tests/test_collate.py`
+- Modify: `src/comment_review/flows/revise.py`
+- Modify: `tests/test_revise.py`
+
+**Interfaces:**
+- Produces: `Pulled` gains `binder: dict`.
 
 - [ ] **Step 1: Write the failing tests**
 
-A place that took one composition round and one conflict round is AT THE CAP; a third round cannot start; the run reports each place's rounds BY KIND rather than as one number.
+```python
+def test_pull_emits_a_binder_censused_from_the_assembled_root(tmp_path):
+    pulled = pull(a_docket_over(repo, ["m.py"]), repo, tmp_path / "rev-1", 1)
+    assert pulled.binder["read_from"] == {"root": str(pulled.root), "revise": 1}
+
+def test_a_docket_with_NO_alterations_still_produces_both(tmp_path):
+    pulled = pull({"pages": []}, repo, tmp_path / "rev-1", 1)
+    assert Path(pulled.root).exists()
+    assert pulled.binder["pages"]
+```
+
+! **The second test is the ruling.** A stage settling nothing is an ORDINARY editorial outcome --
+three roles disagreeing on one page -- and the binder is owed either way.
 
 - [ ] **Step 2: Run and watch them fail**
 
-- [ ] **Step 3: Implement the tally on the chief's `edit_copy`, and the refusal at the cap**
+- [ ] **Step 3: Emit the binder -- as a SECOND bind, not the gate's**
 
-!! **THIS TERMINATES THE SYSTEM'S ONLY CYCLE.** Drawn as a graph, the re-read loop is the one cycle in the design -- `reconcile -> rereads -> compose -> roles -> diff-marks -> collate -> reconcile`. Everything else is monotonic. `Process: #9` caps it at two rounds, and until this lands the loop is unbounded.
-
-! **A place at the cap goes to the CHIEF**, which is where `recast` becomes reachable.
+!! **`pull` ALREADY BINDS THE ASSEMBLED ROOT AND THROWS IT AWAY**, at `flows/revise.py:241`, for
+`assert_addresses_held`. **Do not return that one.** It binds with `absent=True`, which carries
+every empty place -- what the address check needs and **what a role must never be handed.** The
+stage's binder takes `bind`'s default.
 
 - [ ] **Step 4: Run to green**
 
 - [ ] **Step 5: Commit the work**
 
-- [ ] **Step 6: Close P7, and close `a-revise-answer-has-no-artifact` T8**
+- [ ] **Step 6: Close P23, separately, citing Step 5's sha**
 
-! If the tool refuses T8 with `no task T8 under '## Tasks'`, that is the paused board migration. **Leave it, and say so in your report** -- do not hand-edit the TODO.
+! **`a-revise-answer-has-no-artifact` T8 IS NOT CLOSED BY THIS TASK.** It reads *"Enforce the
+two-round cap"*, and `Process: #51` ruled there is no enforcement -- the loop cannot run away, and
+what was missing was NOTIFICATION. **T8 is superseded, and the tool cannot say so**: it refuses
+that file's ids (`T8 --` where it reads `T8 |`). **Report it; do not hand-edit the TODO.**
 
 ---
 
@@ -435,7 +487,9 @@ No module under `src/comment_review/` defines or imports a parser for the render
 
 ## Task 10: the revise round
 
-**Delivers P8.** ! **BLOCKED until P20 is ruled** -- what `reads: revise:N` means when stage N settled nothing. Ask, do not guess.
+**Delivers P8.**
+
+! **NEEDS TASK 6.** `Process: #52` ruled that a revise is ALWAYS pulled, so `reads: revise:N` names a real tree even when a stage settled nothing -- and the binder Task 6 emits is what this round is censused from.
 
 **Files:**
 - Modify: `src/comment_review/flows/collate.py`
