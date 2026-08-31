@@ -80,6 +80,7 @@ from comment_review.desk.mark import (
     parse,
     untouched,
 )
+from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.machine import constants
 from comment_review.machine.exceptions import READ_ERRORS
 from comment_review.machine.repo import can_escape, read_raw
@@ -1059,7 +1060,7 @@ def _alteration_text(address: str, mark: Mark) -> str | None:
     return mark.change or None
 
 
-def docket_from(reconciled: Reconciled, proof: dict) -> dict:
+def docket_from(reconciled: Reconciled, proof: dict) -> Docket:
     """The settled places, as a docket -- one page per file, in settled order.
 
     !! ESCALATIONS AND RE-READS ARE NOT WRITTEN AT ALL. A place that did not
@@ -1075,16 +1076,23 @@ def docket_from(reconciled: Reconciled, proof: dict) -> dict:
             flattened, with an empty sha.
 
     Returns:
-        `{"pages": [{"path", "sha", "alterations": [{"cue", "text"}], "role"}]}`,
-        one alteration per settled place. `text` is None where the alteration
-        deletes the paragraph.
+        A `Docket` -- one `Schedule` per file, each holding one `Alteration`
+        per settled place. An alteration's `text` is None where it deletes the
+        paragraph.
+
+        !! IT RETURNED THE WIRE DICT UNTIL 2026-08-31 -- `decision-log.md
+        Process: #67`. This is the MIDDLE's output and the write chain's input,
+        so it is the one handoff between the two halves of the system; a raw
+        dict here meant the write flow received the one thing `Process: #65`
+        forbids past either end.
 
     ! `role` IS DROPPED FROM A PAGE TWO ROLES SETTLED ON rather than naming one
     of them. The field is per page and there is one line for it, so a page
     holding two roles' places can only ever name half of what set it.
     """
     paths, shas = _real_pages(proof)
-    pages: dict[str, dict] = {}
+    alterations: dict[str, list[Alteration]] = {}
+    shas_of: dict[str, str] = {}
     roles_of: dict[str, set[str]] = {}
     for entry in reconciled.settled:
         address = entry["address"]
@@ -1092,20 +1100,24 @@ def docket_from(reconciled: Reconciled, proof: dict) -> dict:
         role = entry["roles"][0]
         addr = cue_of(address)
         real_path = unflatten(addr.path, paths) or addr.path
-        page = pages.setdefault(
-            real_path,
-            {
-                "path": real_path,
-                "sha": shas.get(real_path, ""),
-                "role": role,
-                "alterations": [],
-            },
-        )
+        shas_of.setdefault(real_path, shas.get(real_path, ""))
         roles_of.setdefault(real_path, set()).add(role)
-        page["alterations"].append(
-            {"cue": addr.cue, "text": _alteration_text(address, mark)}
+        alterations.setdefault(real_path, []).append(
+            Alteration(cue=addr.cue, text=_alteration_text(address, mark))
         )
-    for real_path, page in pages.items():
-        if len(roles_of[real_path]) != 1:
-            del page["role"]
-    return {"pages": list(pages.values())}
+    return Docket(
+        pages=tuple(
+            Schedule(
+                path=real_path,
+                sha=shas_of[real_path],
+                alterations=tuple(mine),
+                # ! "" IS WHAT A PAGE TWO ROLES SETTLED CARRIES, and
+                # `Schedule.serialize` is what omits the key for it -- so an
+                # absent `role` and an empty one stay one thing rather than two.
+                role=next(iter(roles_of[real_path]))
+                if len(roles_of[real_path]) == 1
+                else "",
+            )
+            for real_path, mine in alterations.items()
+        )
+    )

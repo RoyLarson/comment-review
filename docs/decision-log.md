@@ -2331,3 +2331,26 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **THE CODE-FILE CLAUSE IS THE SAME RULE ON THE OTHER FORMAT, AND IS `P45`.**
   `results/compositor.py` calls `into.write_text(...)` itself, which is the write flow's
   version of a module owning its own I/O. A set page reaches disk through `machine/`.
+
+  !! **AND THE PAYOFF IS THAT THREE FAILURES STOP COLLIDING.** Roy, 2026-08-31, on being
+  shown the binder half: *"This also makes file io errors and malformed json load dump
+  errors an explicit different step in the flow so those can be done without extra
+  collisions."*
+
+  | step | fails on | owned by |
+  | --- | --- | --- |
+  | `read_text` | the file is missing, unreadable, undecodable | the flow |
+  | `object_of` | the text is not JSON, or is JSON that is not an object | the flow |
+  | `deserialize` | it is an object, and it is not a binder / a docket | the container |
+
+  !! **THE MIDDLE TWO WERE ONE CALL, AND THAT IS WHAT THE SPLIT BUYS.** `binder.read` and
+  `docket.read` each took TEXT and called `object_of` themselves, so *"this file is not
+  JSON"* and *"this JSON is not a docket"* came back as ONE reason string from ONE call --
+  and a caller wanting to answer them differently had to match on the message. ! The IO
+  failure was already separate, because neither reader could open a file; so the split was
+  one-of-three and looked like two, which is why it read as a refactor rather than as this.
+
+  ! **IT IS AN ARGUMENT FROM THE CALLER'S SIDE, NOT THE MODULE'S.** The load moving out is
+  usually justified by what it does to the module -- no `json.loads`, no path. What Roy
+  named is what it does to the COMMAND: three questions, asked in order, each answerable on
+  its own terms. `commands/proof.py` carries the table at the site.

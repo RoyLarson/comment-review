@@ -31,6 +31,7 @@ from conftest import ROOT
 from comment_review.binder.binder import VERSION, Binder, bind
 from comment_review.desk.mark import ANCHOR_EXAMPLE, INSTRUCTIONS, Instruction, Shape
 from comment_review.desk.proof import gather
+from comment_review.docket.docket import Docket
 from comment_review.flows.distribute import seed
 from comment_review.flows.page_for import page_of, source_of
 
@@ -98,6 +99,20 @@ def _deserialized(wire: dict) -> Binder:
     return got
 
 
+def _a_docket(wire: dict) -> Docket:
+    """A hand-written docket, through the boundary the write flow reads it at.
+
+    ! SAME RULE AS `_deserialized` ABOVE, on the other format: the wire stays
+    hand-written, and the container is derived. A helper that built a `Docket`
+    directly would skip every rule `Docket.deserialize` enforces, so these
+    fixtures could drift out of the shape a real docket must take without
+    anything noticing.
+    """
+    got, problems = Docket.deserialize("a test docket", wire)
+    assert got is not None, problems
+    return got
+
+
 def _row(cue: str, text: str) -> dict:
     """One hand-written binder row, complete.
 
@@ -130,7 +145,7 @@ def a_small_real_tree(tmp_path: Path) -> Path:
     return repo
 
 
-def a_docket_over(repo: Path, names: list[str]) -> dict:
+def a_docket_over(repo: Path, names: list[str]) -> Docket:
     """A docket that replaces one real, filled `b`-series comment in each
     named file.
 
@@ -143,7 +158,7 @@ def a_docket_over(repo: Path, names: list[str]) -> dict:
         names: file BASENAMES to alter one comment in each of.
 
     Returns:
-        A docket in `docket.read`'s shape.
+        A deserialized `Docket`.
 
     Raises:
         AssertionError: a name has no filled `b` row to alter.
@@ -174,10 +189,10 @@ def a_docket_over(repo: Path, names: list[str]) -> dict:
         remaining.discard(Path(page.path).name)
     if remaining:
         raise AssertionError(f"no filled 'b' row found for {sorted(remaining)}")
-    return {"pages": pages}
+    return _a_docket({"pages": pages})
 
 
-def a_docket_whose_claim_is_not_in_the_page(repo: Path, name: str) -> dict:
+def a_docket_whose_claim_is_not_in_the_page(repo: Path, name: str) -> Docket:
     """A docket naming a cue no paragraph on the page holds -- a chain
     refusal, without asserting which step raises it.
 
@@ -186,7 +201,7 @@ def a_docket_whose_claim_is_not_in_the_page(repo: Path, name: str) -> dict:
         name: the file basename to build the (unreachable) alteration over.
 
     Returns:
-        A docket in `docket.read`'s shape.
+        A deserialized `Docket`.
 
     Raises:
         AssertionError: no page in `repo` has this basename.
@@ -194,21 +209,23 @@ def a_docket_whose_claim_is_not_in_the_page(repo: Path, name: str) -> dict:
     binder = binder_of(repo, 0)
     for page in binder.pages:
         if Path(page.path).name == name:
-            return {
-                "pages": [
-                    {
-                        "path": page.path,
-                        "sha": page.sha,
-                        "alterations": [
-                            {"cue": "zzz9999", "text": "# never reaches the page"}
-                        ],
-                    }
-                ]
-            }
+            return _a_docket(
+                {
+                    "pages": [
+                        {
+                            "path": page.path,
+                            "sha": page.sha,
+                            "alterations": [
+                                {"cue": "zzz9999", "text": "# never reaches the page"}
+                            ],
+                        }
+                    ]
+                }
+            )
     raise AssertionError(f"no page named {name!r} in {repo}")
 
 
-def a_docket_that_rewrites(repo: Path, name: str) -> dict:
+def a_docket_that_rewrites(repo: Path, name: str) -> Docket:
     """A docket in `a_docket_over`'s shape, rewriting exactly one file.
 
     ! DELEGATES TO `a_docket_over`, rather than re-deriving the selection --
@@ -222,7 +239,7 @@ def a_docket_that_rewrites(repo: Path, name: str) -> dict:
         name: the file basename to alter one comment in.
 
     Returns:
-        A docket in `docket.read`'s shape.
+        A deserialized `Docket`.
 
     Raises:
         AssertionError: `name` has no filled `b` row to alter.

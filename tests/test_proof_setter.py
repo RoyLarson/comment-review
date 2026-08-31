@@ -11,6 +11,7 @@ import pytest
 from conftest import PKG, SAMPLE, build, by_cue, docket_from
 
 from comment_review.binder.binder import bind
+from comment_review.docket.docket import Docket
 from comment_review.flows import page_for as page_for_mod
 from comment_review.flows import proof_setter
 from comment_review.machine.repo import undraftable
@@ -59,7 +60,7 @@ def address(binder, path: str, series: str = "b") -> str:
 
     !! EVERY TEST HERE HAND-WROTE `f"{rel}@{cue}"` UNTIL 2026-08-25, and that
     is what hid the CRITICAL defect: an address carries the FLATTENED path --
-    `pkg:a:util.py` -- and a hand-written one carries `/`. `schedules_of` splits
+    `pkg:a:util.py` -- and a hand-written one carries `/`. The flat form split
     whatever it is handed, so the tests fed the chain a form nothing produces
     and only repo-root files, whose flattened form is their path, agreed. The
     fixture could not disagree with the code because the fixture was written to
@@ -106,7 +107,7 @@ def test_a_alteration_reaches_a_drafted_file(tmp_path):
 
 
 def test_a_file_BELOW_THE_REPO_ROOT_drafts(tmp_path):
-    """CRITICAL, measured 2026-08-25: `schedules_of` keys by the FLATTENED path an
+    """CRITICAL, measured 2026-08-25: the flat form keyed by the FLATTENED path an
     address carries, and `run` used that string both as a binder key and as a
     filesystem path -- so `pkg/a/util.py` was looked up as `pkg:a:util.py`,
     missed the binder, and was handed to `page_of` as `repo/pkg:a:util.py`,
@@ -147,15 +148,22 @@ def test_a_page_the_REPO_DOES_NOT_HAVE_refuses_at_read_and_names_it(tmp_path):
     the reason.
     """
     repo, _, _ = _tree(tmp_path)
-    docket = {
-        "pages": [
-            {
-                "path": "pkg/nowhere.py",
-                "sha": "whatever",
-                "alterations": [{"cue": "b0", "text": "# x"}],
-            }
-        ]
-    }
+    # ! HAND-WRITTEN WIRE, THROUGH THE BOUNDARY -- `conftest.docket_from` builds
+    # its dockets from a real binder's pages, and this case needs a page the
+    # checkout does NOT have, which no binder can supply.
+    docket, problems = Docket.deserialize(
+        "d.json",
+        {
+            "pages": [
+                {
+                    "path": "pkg/nowhere.py",
+                    "sha": "whatever",
+                    "alterations": [{"cue": "b0", "text": "# x"}],
+                }
+            ]
+        },
+    )
+    assert docket is not None, problems
     drafted, refused = proof_setter.run(docket, repo, tmp_path / "out")
     assert drafted == []
     assert len(refused) == 1

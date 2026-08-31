@@ -53,7 +53,7 @@ def page_of(
     undone.
 
     ! A REFUSAL IS RETURNED, NOT RAISED, in the shape `binder.read` and
-    `docket.read` already use: `(page, "")` or `(None, reason)`.
+    the docket's reader already use: `(page, "")` or `(None, reason)`.
 
     !! THAT COVERS `exceptions.Refused` TOO, and it did not until 2026-08-25.
     `page_for` raises it at `binder/page.py:521` and `:578` -- a `c` place whose

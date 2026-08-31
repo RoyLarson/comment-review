@@ -43,7 +43,7 @@ from enum import StrEnum, auto
 from pathlib import Path
 from typing import NamedTuple
 
-from comment_review.docket import docket as docket_mod
+from comment_review.docket.docket import Docket
 from comment_review.flows.page_for import page_of, source_of
 from comment_review.machine import constants
 from comment_review.machine.repo import can_escape, undraftable
@@ -113,7 +113,7 @@ class Drafted(NamedTuple):
     sha: str
 
 
-def run(docket: dict, repo: Path, into: Path) -> tuple[list[Drafted], list[Refusal]]:
+def run(docket: Docket, repo: Path, into: Path) -> tuple[list[Drafted], list[Refusal]]:
     """The whole chain, or nothing at all.
 
     !! A REFUSAL ABORTS THE RUN WHOLE, by ruling. Roy, 2026-08-25: *"fails loud
@@ -137,7 +137,7 @@ def run(docket: dict, repo: Path, into: Path) -> tuple[list[Drafted], list[Refus
     far."*
 
     Args:
-        docket: as `docket.read` returned it -- pages, each with its path, the
+        docket: the deserialized docket -- pages, each with its path, the
             sha it was read at, and its alterations.
         repo: the checkout the pages are read from.
         into: the directory drafts are written to. Created if absent, and
@@ -175,7 +175,7 @@ def run(docket: dict, repo: Path, into: Path) -> tuple[list[Drafted], list[Refus
     # change between original read and loading to write and so getting it out
     # of the json blob is important." A sha taken from the file at write time
     # would ask whether the file equals itself, which cannot fail.
-    schedules = docket_mod.schedules_of(docket)
+    schedules = docket.pages
     # !! THE PAGE PATHS ARE RULED ON ONCE, HERE, BECAUSE THIS IS WHERE THEY
     # ENTER. A constraint asked here holds for every root a path is later joined
     # to. It was asked per file instead, against `repo` and against `into`
@@ -208,11 +208,11 @@ def run(docket: dict, repo: Path, into: Path) -> tuple[list[Drafted], list[Refus
     # binder's page paths and called `unflatten` over them to get a real one,
     # and a name that resolved to nothing was its own refusal. A schedule
     # carries the repo's own path, so both went with the shape change.
-    for schedule in sorted(schedules):
+    for schedule in sorted(schedules, key=lambda s: s.path):
         try:
             made, why = _one(
                 schedule.path,
-                schedule.alterations,
+                schedule.edits,
                 schedule.sha,
                 repo,
                 into,

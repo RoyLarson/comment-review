@@ -26,8 +26,25 @@ import pytest
 from helpers import a_correct, a_drop, a_master_proof, a_move
 
 from comment_review.desk.collator import MalformedMark, docket_from, reconcile
-from comment_review.docket.docket import read, schedules_of
+from comment_review.docket.docket import Alteration, Docket
 from comment_review.flows.revise import _set_by
+from comment_review.machine.json_object import object_of
+
+
+def read(text: str):
+    """The load and the deserialize, as `commands/proof.py` performs them.
+
+    ! A TEST HELPER, NOT AN API. `docket.read` was one function and is now
+    two steps in the FLOW -- `decision-log.md Process: #67` -- so a test
+    that wants the pair spells the pair. ! What it must not do is hide the
+    split: the `not JSON` and `not a docket` cases below are the two halves,
+    and they are what used to come back from one call.
+    """
+    loaded, why = object_of(text, "docket")
+    if why:
+        return None, why
+    got, problems = Docket.deserialize("d.json", loaded)
+    return got, "; ".join(problems)
 
 
 def a_docket(pages) -> str:
@@ -49,13 +66,15 @@ def a_docket(pages) -> str:
 def test_a_well_formed_docket_reads():
     got, why = read(a_docket([("m.py", "abc123", [("b1", "# new"), ("c0", None)])]))
     assert why == ""
-    assert got["pages"][0]["path"] == "m.py"
+    assert got is not None
+    assert got.pages[0].path == "m.py"
 
 
 def test_None_is_the_delete():
     got, why = read(a_docket([("m.py", "abc123", [("b1", None)])]))
     assert why == ""
-    assert got["pages"][0]["alterations"][0]["text"] is None
+    assert got is not None
+    assert got.pages[0].alterations[0].text is None
 
 
 @pytest.mark.parametrize(
@@ -67,7 +86,7 @@ def test_None_is_the_delete():
         ("{}", "no `pages` key"),
         (json.dumps({"pages": []}), "non-empty list"),
         (json.dumps({"pages": "oops"}), "non-empty list"),
-        (json.dumps({"pages": [1]}), "must be an object"),
+        (json.dumps({"pages": [1]}), "not a page"),
         (json.dumps({"pages": [{"sha": "a", "alterations": []}]}), "needs a `path`"),
         (json.dumps({"pages": [{"path": "", "sha": "a"}]}), "needs a `path`"),
         (
@@ -92,7 +111,7 @@ def test_None_is_the_delete():
 )
 def test_what_is_refused(text, fragment):
     got, why = read(text)
-    assert got == {}
+    assert got is None
     assert fragment in why
 
 
@@ -105,7 +124,7 @@ def test_an_alteration_with_NO_text_key_is_refused():
             {"pages": [{"path": "m.py", "sha": "a", "alterations": [{"cue": "b1"}]}]}
         )
     )
-    assert got == {}
+    assert got is None
     assert "needs `text`" in why
 
 
@@ -113,7 +132,7 @@ def test_a_refusal_is_never_an_empty_result():
     """!! THE DEFECT THIS EXISTS FOR. A guess that is wrong reads as an EMPTY
     input, which downstream is indistinguishable from a run with nothing to do."""
     got, why = read("[]")
-    assert got == {} and why != ""
+    assert got is None and why != ""
 
 
 def test_an_EMPTY_DOCKET_IS_REFUSED_BY_NAME():
@@ -123,7 +142,7 @@ def test_an_EMPTY_DOCKET_IS_REFUSED_BY_NAME():
     empty-reads-as-success shape this module exists to prevent, and the one
     `binder.read` already refuses on a missing `pages` key."""
     got, why = read("{}")
-    assert got == {}
+    assert got is None
     assert "no `pages` key" in why
 
 
@@ -135,21 +154,23 @@ def test_TWO_SCHEDULES_FOR_ONE_PAGE_are_refused():
     got, why = read(
         a_docket([("m.py", "a", [("b1", "# one")]), ("m.py", "a", [("b2", "# two")])])
     )
-    assert got == {}
+    assert got is None
     assert "two schedules for one page" in why
 
 
 def test_TWO_ALTERATIONS_FOR_ONE_PLACE_are_refused():
     got, why = read(a_docket([("m.py", "a", [("b1", "# one"), ("b1", "# two")])]))
-    assert got == {}
+    assert got is None
     assert "two alterations for one place" in why
 
 
-class TestSchedulesOf:
-    """!! IT REFUSES NOTHING, and that is what the nesting bought. The flat form
-    returned `(grouped, refusals)` because it had to SPLIT an address to find
-    the path, and a malformed one could not be split. `read` rules on the shape
-    now, so this only unwinds."""
+class TestTheDocketsOwnPages:
+    """!! NOTHING UNWINDS A DOCKET ANY MORE, and that is what the containers
+    bought. The flat form returned `(grouped, refusals)` because it had to
+    SPLIT an address to find the path, and a malformed one could not be
+    split; `schedules_of` then unwound the nested dict into `Schedule`s.
+    `Docket.deserialize` builds them, so `docket.pages` IS the answer --
+    `decision-log.md Process: #67`."""
 
     def test_one_schedule_per_page_in_docket_order(self):
         docket, why = read(
@@ -161,7 +182,8 @@ class TestSchedulesOf:
             )
         )
         assert why == ""
-        schedules = schedules_of(docket)
+        assert docket is not None
+        schedules = docket.pages
         assert [s.path for s in schedules] == ["pkg/a/util.py", "top.py"]
         assert [s.sha for s in schedules] == ["sha1", "sha2"]
 
@@ -171,17 +193,30 @@ class TestSchedulesOf:
         one -- and MEASURED 2026-08-25, using the flattened key as a path meant
         every file below the repo root refused. A schedule states the path."""
         docket, _ = read(a_docket([("pkg/a/util.py", "sha", [("b0", "# x")])]))
-        assert schedules_of(docket)[0].path == "pkg/a/util.py"
+        assert docket is not None
+        assert docket.pages[0].path == "pkg/a/util.py"
 
-    def test_the_alterations_are_cue_to_text(self):
+    def test_the_alterations_are_ALTERATIONS_in_docket_order(self):
         docket, _ = read(a_docket([("m.py", "sha", [("b1", "# new"), ("c0", None)])]))
-        assert schedules_of(docket)[0].alterations == {"b1": "# new", "c0": None}
+        assert docket is not None
+        alterations = docket.pages[0].alterations
+        assert [one.cue for one in alterations] == ["b1", "c0"]
+        assert [one.text for one in alterations] == ["# new", None]
+
+    def test_edits_is_the_cue_to_text_map_the_setter_consumes(self):
+        """! `flows.proof_setter._one` sets places by cue and never asks about
+        order, so the mapping is built once on the schedule. It was the
+        `alterations` FIELD until 2026-08-31, which is why the third
+        container level did not exist -- `Process: #67`."""
+        docket, _ = read(a_docket([("m.py", "sha", [("b1", "# new"), ("c0", None)])]))
+        assert docket is not None
+        assert docket.pages[0].edits == {"b1": "# new", "c0": None}
 
 
 def test_the_docket_names_the_role_that_set_each_alteration():
     proof = a_master_proof({"block-context": {"m.py@b1": a_correct("m.py@b1")}})
     docket = docket_from(reconcile(proof), proof)
-    assert docket["pages"][0]["role"] == "block-context"
+    assert docket.pages[0].role == "block-context"
 
 
 def test_a_null_sha_reads_as_ABSENT_not_the_word_None():
@@ -196,7 +231,7 @@ def test_a_null_sha_reads_as_ABSENT_not_the_word_None():
     proof = a_master_proof({"block-context": {"m.py@b1": a_correct("m.py@b1")}})
     proof["edit_copies"][0]["sheets"][0]["sha"] = None
     docket = docket_from(reconcile(proof), proof)
-    assert docket["pages"][0]["sha"] == ""
+    assert docket.pages[0].sha == ""
 
 
 def test_set_by_stops_mapping_everything_to_empty():
@@ -221,11 +256,14 @@ def test_a_page_two_roles_settled_names_NEITHER_of_them():
         }
     )
     docket = docket_from(reconcile(proof), proof)
-    page = docket["pages"][0]
-    assert sorted(one["cue"] for one in page["alterations"]) == ["b1", "b3"]
-    assert "role" not in page
+    page = docket.pages[0]
+    assert sorted(one.cue for one in page.alterations) == ["b1", "b3"]
+    assert page.role == ""
+    # ! AND THE KEY IS OMITTED ON THE WIRE, so an absent `role` and an empty
+    # one stay ONE thing rather than two -- `Schedule.serialize`.
+    assert "role" not in page.serialize()
     assert set(_set_by(docket).values()) == {""}
-    assert read(json.dumps(docket))[1] == ""
+    assert read(json.dumps(docket.serialize()))[1] == ""
 
 
 def test_a_settled_move_DELETES_its_origin_and_writes_its_destination():
@@ -235,7 +273,7 @@ def test_a_settled_move_DELETES_its_origin_and_writes_its_destination():
     instruction exists to prevent."""
     proof = a_master_proof({"block-context": {"m.py@a0": a_move("m.py@a0", "m.py@a8")}})
     docket = docket_from(reconcile(proof), proof)
-    alterations = {one["cue"]: one["text"] for one in docket["pages"][0]["alterations"]}
+    alterations = docket.pages[0].edits
     assert alterations["a0"] is None
     assert isinstance(alterations["a8"], str) and alterations["a8"]
 
@@ -276,7 +314,7 @@ def test_an_EMPTY_change_IS_the_delete_where_the_row_may_empty():
     mark["change"] = ""
     proof = a_master_proof({"block-context": {"m.py@b1": mark}})
     docket = docket_from(reconcile(proof), proof)
-    assert docket["pages"][0]["alterations"] == [{"cue": "b1", "text": None}]
+    assert docket.pages[0].alterations == (Alteration(cue="b1", text=None),)
 
 
 def test_NO_DOCKET_CARRIES_ONE_END_OF_A_MOVE():
@@ -290,4 +328,4 @@ def test_NO_DOCKET_CARRIES_ONE_END_OF_A_MOVE():
             "module-context": {"m.py@a8": a_correct("m.py@a8", "a different sentence")},
         }
     )
-    assert docket_from(reconcile(proof), proof) == {"pages": []}
+    assert docket_from(reconcile(proof), proof) == Docket(pages=())
