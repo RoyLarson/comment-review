@@ -236,10 +236,15 @@ def parse_sheet(where: str, data: object) -> tuple[Sheet | None, list[str]]:
     # None and `str(None)` is the four-character word "None" -- folded into
     # the same absent-sha case above instead.
     #
-    # ! THE SAME FOLD IS IN `Sheet.seed`, AND THE PAIR IS THE ROUND TRIP rather
-    # than two spellings of one rule: `seed` normalizes on the way OUT and this
-    # on the way IN, so a sheet written by hand -- an artifact read off disk,
-    # a role's own edit -- meets the same rule as one this module wrote.
+    # ! `Sheet.seed` FOLDS ON THE WAY OUT AND THIS ON THE WAY IN, so a sheet
+    # written by hand -- an artifact read off disk, a role's own edit -- meets
+    # the same rule as one this module wrote.
+    #
+    # !! AND THE FOLD IS SPELLED AT FOUR SITES, NOT TWO. `desk.collator._real_pages`
+    # and `flows.carry` each carry their own copy, and neither imports this
+    # module; `carry`'s own comment already says it is "matching
+    # `desk.containers.parse_sheet`". This pair is the round trip; those two are
+    # duplicates that a change to the rule would not reach.
     raw_sha = data.get("sha")
     sha = raw_sha if isinstance(raw_sha, str) else ""
     return Sheet(path=path, sha=sha, marks=tuple(marks)), []
@@ -365,12 +370,11 @@ def parse_master_proof(
             return None, [f"{where}: master_proof's {why_header}"]
     # !! THE COMPARISON AGAINST THE FIRST COPY STILL NEEDS ONE. An empty proof
     # has no first copy to disagree with.
-    if copies:
-        if read_from != copies[0].read_from:
-            return None, [
-                f"{where}: `read_from` {read_from!r} disagrees with the "
-                f"first edit_copy's {copies[0].read_from!r}"
-            ]
+    if copies and read_from != copies[0].read_from:
+        return None, [
+            f"{where}: `read_from` {read_from!r} disagrees with the "
+            f"first edit_copy's {copies[0].read_from!r}"
+        ]
     # ! `.get("stage", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT. A `"stage":
     # null` reaching here is a PRESENT key holding None, so `.get` returns
     # None and `str(None)` is the four-character word "None" -- folded into

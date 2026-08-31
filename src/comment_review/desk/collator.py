@@ -370,7 +370,9 @@ class Problem:
     message: str
 
 
-def verify_report(report: dict, binder: dict, root: Path) -> list[Problem]:
+def verify_report(
+    report: dict, binder: dict, root: Path, cache: Cache | None = None
+) -> list[Problem]:
     """Source-verification over every ruled mark of ONE role's edit_copy.
 
     Args:
@@ -382,6 +384,13 @@ def verify_report(report: dict, binder: dict, root: Path) -> list[Problem]:
         binder: the binder the edit_copy was seeded from -- what each
             `address` is measured against.
         root: the checkout every `cite` is resolved against.
+        cache: a `Cache` to read cited files through, or None for a fresh one.
+            ! PASS ONE ACROSS A WHOLE STAGE. `flows.collate.collate` calls this
+            once per copy, and a cache built per call re-reads a file for every
+            citing role -- MEASURED 2026-08-31: four roles citing the same line
+            read it from disk four times. The note below already promised "a
+            file twenty sources cite is read once", which held inside one copy
+            and not across the stage that copy belongs to.
 
     Returns:
         Every problem found, in sheet order and then in mark order.
@@ -427,7 +436,8 @@ def verify_report(report: dict, binder: dict, root: Path) -> list[Problem]:
     named = role if filled(role) else ""
     known = known_addresses(binder)
     base = base_texts(binder)
-    cache: Cache = {}
+    if cache is None:
+        cache = {}
     out: list[Problem] = []
     i = 0
     for sheet in sheets:
@@ -438,14 +448,13 @@ def verify_report(report: dict, binder: dict, root: Path) -> list[Problem]:
             i += 1
             if untouched(entry):
                 continue
-            # ! THE ADDRESS AND THE `where` PART COMPANY WHEN THERE IS NO
-            # ADDRESS. `where` falls back to a POSITION so a message can name
-            # something; `Problem.address` stays empty, because a position is
-            # not an address and writing one there would make a place that does
-            # not exist look citable.
+            # ! `where` FALLS BACK TO A POSITION so a message can name
+            # something. It never reaches `Problem.address`, which is taken
+            # from the parsed `mark` below -- a position is not an address, and
+            # writing one there would make a place that does not exist look
+            # citable.
             raw = entry.get("address") if isinstance(entry, dict) else None
-            address = str(raw) if filled(raw) else ""
-            where = address or f"mark {i}"
+            where = str(raw) if filled(raw) else f"mark {i}"
             # ! `why` IS DELIBERATELY DROPPED -- `problems_in` reports it, and
             # reporting it here too gave the same sentence twice. See above.
             mark, _why = parse(where, entry)

@@ -54,6 +54,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from comment_review.desk.collator import (
+    Cache,
     Placed,
     Problem,
     base_texts,
@@ -546,6 +547,17 @@ def _reconcilable(copy: dict) -> dict:
     return {**copy, "sheets": sheets}
 
 
+def _nothing_settled() -> dict:
+    """The chief's copy for a round that folded nothing.
+
+    ! ONE SPELLING, TWO EXITS. `collate` returns early twice -- a copy that is
+    not a copy, and a proof that is not a proof -- and each said so by writing
+    this literal out again. *A round that settled nothing* is one fact, and two
+    hand-written copies of it are two places for the sentinel to drift apart.
+    """
+    return EditCopy.seed(role="copy-chief", read_from={}, sheets=[])
+
+
 def _coverage_problems(edit_copies: list[dict], binder: dict) -> list[Problem]:
     """One `Problem` per role whose copies do not carry the binder's addresses.
 
@@ -684,8 +696,12 @@ def collate(stage: str, edit_copies: list[dict], binder: dict, root: Path) -> Co
     # ! THE ROLE MAY BE THE MISSING THING. `parse_edit_copy` refuses a copy with
     # no `role` before it can name one, and `Problem` needs a role to route on --
     # so the copy's position stands in, which a reader can act on where "" cannot.
+    # !! `problems_in` RUNS ONLY OVER THE COPIES THAT PARSED. Running it over a
+    # refused one reports the same fact twice in two vocabularies -- measured on
+    # a copy with no `sheets`, which both boundaries answer -- and that is the
+    # duplication `Problem` exists to avoid, stated at `desk.collator.drift_in`.
+    # A document that is not a copy has no contents to rule on.
     envelope: list[Problem] = []
-    intact: list[dict] = []
     for i, copy in enumerate(edit_copies, 1):
         where = f"copy {i}"
         parsed, why = parse_edit_copy(where, copy)
@@ -693,27 +709,24 @@ def collate(stage: str, edit_copies: list[dict], binder: dict, root: Path) -> Co
         who = named if isinstance(named, str) and named.strip() else where
         envelope += [Problem(who, "", message) for message in why]
         if parsed is not None:
-            intact.append(copy)
-    if envelope:
-        # !! `problems_in` RUNS ONLY OVER THE COPIES THAT PARSED. Running it
-        # over a refused one reports the same fact twice in two vocabularies --
-        # measured on a copy with no `sheets`, which both boundaries answer --
-        # and that is the duplication `Problem` exists to avoid, stated at
-        # `desk.collator.drift_in`. A document that is not a copy has no
-        # contents to rule on.
-        for copy in intact:
             found, _ruled = problems_in(copy)
             problems += found
-        return Collated(
-            chief=EditCopy.seed(role="copy-chief", read_from={}, sheets=[]),
-            problems=envelope + problems,
-        )
+    if envelope:
+        return Collated(chief=_nothing_settled(), problems=envelope + problems)
 
     problems += _coverage_problems(edit_copies, binder)
 
+    # ! ONE CACHE FOR THE WHOLE STAGE, not one per copy. Roles cite the same
+    # evidence, and a cache built inside `verify_report` re-read a file once per
+    # citing role -- four reads of one line for four roles, measured 2026-08-31.
+    cache: Cache = {}
+
     for copy in edit_copies:
-        found, _ruled = problems_in(copy)
-        problems += found
+        # ! `problems_in` ALREADY RAN, in the envelope pass above. It is the one
+        # check that must happen for a copy the fold will not reach, so it lives
+        # there rather than here; running it again would report every malformed
+        # mark twice on the happy path.
+        #
         # !! SOURCE VERIFICATION RUNS HERE -- `P25`, `Process: #58`. Roy: *"the
         # source-verification side needs to be wired into the flow - same as 1)
         # the flow coordinates the things in the modules do."* It asks what
@@ -726,7 +739,7 @@ def collate(stage: str, edit_copies: list[dict], binder: dict, root: Path) -> Co
         # written, and the middle must not touch it; a cited evidence file
         # carries none because nothing writes it, and reading it is what
         # settling a citation means. Roy, 2026-08-30, on exactly this call.
-        problems += verify_report(copy, binder, root)
+        problems += verify_report(copy, binder, root, cache)
         drift += drift_in(copy, base)
         role = str(copy.get("role") or "")
         left[role] = unruled(copy)
@@ -753,7 +766,7 @@ def collate(stage: str, edit_copies: list[dict], binder: dict, root: Path) -> Co
     _proof, why_proof = parse_master_proof(stage, proof)
     if why_proof:
         return Collated(
-            chief=EditCopy.seed(role="copy-chief", read_from={}, sheets=[]),
+            chief=_nothing_settled(),
             problems=problems + [Problem("copy-chief", "", m) for m in why_proof],
             drift=drift,
             unruled=left,

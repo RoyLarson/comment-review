@@ -313,7 +313,7 @@ def copies_over(binder: dict, by_role: dict) -> list[dict]:
 
 
 def _quoting_the_real_text(mark: dict, entry: dict) -> dict:
-    """`mark`, with a PLACEHOLDER `claim.false` replaced by the seeded text.
+    """`mark`, with a PLACEHOLDER quoted sentence replaced by the seeded text.
 
     !! MEASURED 2026-08-31, WHEN `P25` GAVE THE CLAIM A READER. `a_correct`'s
     default sentence -- `"the paragraph's own claim"` -- is in no paragraph any
@@ -330,14 +330,27 @@ def _quoting_the_real_text(mark: dict, entry: dict) -> dict:
     `a_correct_setting`, or `a_correct(addr, "a sentence that is not there")` --
     means that sentence and keeps it, which is what lets a verbatim failure
     still be written.
+
+    !! THE KEY COMES FROM `quotes_original`, NOT FROM THE WORD `false`, and was
+    keyed to `false` for one commit. `desk.collator.claim_verbatim_problems`
+    reads `INSTRUCTIONS[mark.instruction].quotes_original` -- `claim.drop` for a
+    `drop`, `claim.false` for a `correct`, `claim.from` for a `patch` -- and
+    `a_drop` defaults to the SAME placeholder. Keyed to one row's field name,
+    the fix covered `correct` and left the next `drop` driven through `collate`
+    to reproduce the defect it was written to close.
     """
     claim = mark.get("claim")
-    if not isinstance(claim, dict) or claim.get("false") != _PLACEHOLDER_SENTENCE:
+    instruction = mark.get("instruction")
+    row = INSTRUCTIONS.get(instruction) if instruction is not None else None
+    key = row.quotes_original if row is not None else None
+    if not key or not isinstance(claim, dict):
+        return mark
+    if claim.get(key) != _PLACEHOLDER_SENTENCE:
         return mark
     base = entry.get("raw_text")
     if not isinstance(base, str) or not base:
         return mark
-    return {**mark, "claim": {**claim, "false": base}}
+    return {**mark, "claim": {**claim, key: base}}
 
 
 def _without_sheet(copy: dict, path: str) -> dict:
