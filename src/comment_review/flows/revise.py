@@ -261,6 +261,6 @@ def _set_by(docket: Docket) -> dict[str, str]:
     """
     return {
         address_for(page.path, one.cue): page.role
-        for page in docket.pages
+        for page in docket.schedules
         for one in page.alterations
     }

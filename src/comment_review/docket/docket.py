@@ -15,7 +15,7 @@ same way."*
     level       READ                    WRITE
     one place   a BinderRow             an ALTERATION -- a cue, and its text
     one file    a BinderPage            a SCHEDULE: path, sha, alterations
-    the whole   a Binder                the DOCKET: pages
+    the whole   a Binder                a DOCKET: its schedules
 
 !! ALL SIX ARE TYPES SINCE 2026-08-31, and this table stated the pairing while
 three of the six were plain dict entries -- `decision-log.md Process: #67`. Each
@@ -282,7 +282,26 @@ class Docket:
     """Every alteration the write chain is asked to make.
 
     Attributes:
-        pages: one `Schedule` per page, in the order the docket lists them.
+        schedules: one `Schedule` per page, in the order the docket lists them.
+
+    !! THE FIELD IS `schedules` AND THE WIRE KEY IS `pages`, AND THAT
+    DISAGREEMENT IS DELIBERATE. `Binder.pages` holds `BinderPage`s -- pages. A
+    docket holds SCHEDULES: what to do to a page, which is not a page. Naming
+    both `pages` would put two attributes of the same name on the two halves of
+    the system returning different kinds of thing, and the write half's would
+    be lying about what it holds.
+
+    ! IT WAS `pages` FOR ONE COMMIT, 2026-08-31, and that repeated an error this
+    module had already made and fixed. `schedules_of` carried the ruling:
+    *"IT IS NAMED FOR WHAT IT PRODUCES. It was `by_page`, which named the
+    mechanism."* Deleting that function took the ruling with it, and the field
+    that replaced it was named for the WIRE KEY -- the same class of mistake one
+    layer down. Roy caught it by asking whether `docket.pages` meant the read
+    half's `Page`. It does not, and it never did.
+
+    ! THE WIRE KEEPS `pages`, because the format is not this module's to change:
+    a docket arrives from outside the system. `serialize` writes `pages`;
+    `deserialize` reads it.
 
     !! THE LOAD IS NOT HERE, ruled `decision-log.md Process: #67`. Roy,
     2026-08-31: *"all flows start with a load step - not the modules code."*
@@ -292,7 +311,7 @@ class Docket:
     moved to `commands/proof.py`, the one command that owns one.
     """
 
-    pages: tuple[Schedule, ...] = field(default_factory=tuple)
+    schedules: tuple[Schedule, ...] = field(default_factory=tuple)
 
     @classmethod
     def deserialize(cls, where: str, data: object) -> "tuple[Docket | None, list[str]]":
@@ -334,7 +353,7 @@ class Docket:
         raw = checked["pages"]
         if not isinstance(raw, list) or not raw:
             return None, [f"{where}: `pages` must be a non-empty list of pages"]
-        pages: list[Schedule] = []
+        schedules: list[Schedule] = []
         problems: list[str] = []
         # ! ONE SCHEDULE PER PAGE. Two would let a later one silently win, and
         # which of them applied would depend on iteration order.
@@ -348,11 +367,13 @@ class Docket:
                 problems.append(f"{got.path}: two schedules for one page")
                 continue
             seen.add(got.path)
-            pages.append(got)
+            schedules.append(got)
         if problems:
             return None, problems
-        return cls(pages=tuple(pages)), []
+        return cls(schedules=tuple(schedules)), []
 
     def serialize(self) -> dict:
         """This docket as the wire dict."""
-        return {"pages": [page.serialize() for page in self.pages]}
+        # ! THE WIRE KEY IS `pages` AND THE FIELD IS `schedules` -- see the
+        # class docstring. The format is not this module's to rename.
+        return {"pages": [one.serialize() for one in self.schedules]}

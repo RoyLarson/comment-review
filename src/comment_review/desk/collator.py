@@ -1106,7 +1106,7 @@ def docket_from(reconciled: Reconciled, proof: dict) -> Docket:
             Alteration(cue=addr.cue, text=_alteration_text(address, mark))
         )
     return Docket(
-        pages=tuple(
+        schedules=tuple(
             Schedule(
                 path=real_path,
                 sha=shas_of[real_path],

@@ -160,7 +160,7 @@ def main() -> int:
     # !! LISTED FROM THE DOCKET'S OWN SCHEDULES, NOT FROM A `Drafted` LIST --
     # `pull` returns the assembled revise, not a per-page record of what it
     # drafted. `sorted` matches the order `proof_setter.run` itself drafts in.
-    schedules = sorted(held.pages, key=lambda s: s.path)
+    schedules = sorted(held.schedules, key=lambda s: s.path)
     for schedule in schedules:
         print(f"{schedule.path} -> {pulled.root / schedule.path}")
     print(f"{len(schedules)} page(s) drafted for review")

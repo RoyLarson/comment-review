@@ -175,7 +175,7 @@ def run(docket: Docket, repo: Path, into: Path) -> tuple[list[Drafted], list[Ref
     # change between original read and loading to write and so getting it out
     # of the json blob is important." A sha taken from the file at write time
     # would ask whether the file equals itself, which cannot fail.
-    schedules = docket.pages
+    schedules = docket.schedules
     # !! THE PAGE PATHS ARE RULED ON ONCE, HERE, BECAUSE THIS IS WHERE THEY
     # ENTER. A constraint asked here holds for every root a path is later joined
     # to. It was asked per file instead, against `repo` and against `into`
