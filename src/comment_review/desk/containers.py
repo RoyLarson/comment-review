@@ -220,8 +220,25 @@ def parse_sheet(where: str, data: object) -> tuple[Sheet | None, list[str]]:
 
     Returns:
         `(Sheet, [])` or `(None, [messages])`. An absent OR a null `sha` is
-        admitted as "" -- a page can be censused from a tree that is not a
-        repo, which is what `flows.revise.pull` produces.
+        admitted as "".
+
+        !! THE REASON GIVEN HERE WAS FALSE UNTIL 2026-08-31. It read *"a page
+        can be censused from a tree that is not a repo"*. `machine.repo.sha_of`
+        digests the TEXT with the standard library and asks nothing of git, so
+        a census over a directory holding no `.git` reports a real sha for every
+        page. Roy, 2026-08-31: *"this is not a valid reason to not sha hash the
+        file ... we are not using the git sha for this we are using the python
+        hashing library."*
+
+        ! THE REAL PRODUCERS ARE TWO SITES INSIDE THE MIDDLE, and both write
+        `""` for a path `unflatten` could not resolve back to a real page:
+        `desk.collator._real_pages` and `flows.collate._chief_copy`. Neither is
+        a census, and neither is about a repo.
+
+        ! SO WHETHER AN ABSENT KEY SHOULD BE ADMITTED AT ALL IS OPEN -- no real
+        producer writes a sheet without one, and `containers-and-verification-
+        are-unwired` T9 holds that question. What is fixed here is the
+        justification, which was not true of this code on any day.
     """
     if not isinstance(data, dict):
         return None, [f"{where}: a sheet must be an object"]

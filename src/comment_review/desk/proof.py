@@ -76,8 +76,13 @@ def gather(stage: str, edit_copies: list[dict]) -> dict:
                 f"{this!r}, disagreeing with the master_proof's {read_from!r}"
             )
     # ! WRITTEN THROUGH THE TYPE since 2026-08-31 -- `decision-log.md Process:
-    # #64`. `MasterProof.seed` is what copies `read_from` rather than aliasing
-    # it, so the `{**this}` above is the FIRST copy and this is not a second.
+    # #64`.
+    #
+    # ! `read_from` IS COPIED TWICE, AND EACH COPY ANSWERS A DIFFERENT CALLER.
+    # The `{**this}` above keeps the LOOP from comparing a value it has aliased
+    # to the first copy's own dict; `MasterProof.seed` copies again so the
+    # proof cannot be changed through whatever the caller still holds. This
+    # comment claimed the second was the only one until 2026-08-31.
     return MasterProof.seed(
         stage=stage, read_from=read_from, edit_copies=list(edit_copies)
     )

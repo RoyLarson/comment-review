@@ -154,6 +154,9 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       `flows/collate.py:391` write an empty sha for a path `unflatten` cannot
       resolve -- and a census over a directory holding no `.git` is shown to
       report a real sha.
+        > 2026-08-31 Roy: sha_of is hashlib over the TEXT, not a git sha
+        > 2026-08-31 a non-repo tree is NOT why an empty sha exists
+        > 2026-08-31 open: admit an absent key at all? no producer writes one
 - [ ] T10 | Update `desk/containers.py` so its stated contract and its behaviour
       agree: either report one message per broken header rule the way
       `desk.mark.parse` does, or amend the module docstring at lines 17-20.

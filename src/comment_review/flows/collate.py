@@ -2,16 +2,16 @@
 
     collate(stage, edit_copies, binder, root) -> Collated
 
-Eleven acts, in order:
+Twelve acts, in the order the body runs them:
 
-    ENVELOPE   is each document the shape a copy must be, and is the proof the
-               shape a proof must be -- `desk.containers.parse_edit_copy`,
-               `parse_master_proof`. Reported, never raised; a failure returns
+    ENVELOPE   is each document the shape a copy must be --
+               `desk.containers.parse_edit_copy`. Reported, never raised
+    CHECK      every copy's marks, stacked -- `desk.collator.problems_in`,
+               over the copies ENVELOPE admitted. A failure in either returns
                early rather than folding a partial set
     COVERAGE   did each role carry back every address the binder holds --
                `_coverage_problems`. `fan_out` refuses an uncovered page at the
                DISPATCH; this is the RETURN
-    CHECK      every copy's marks, stacked -- `desk.collator.problems_in`
     VERIFY     each ruled mark's address, quoted sentence and citations --
                `desk.collator.verify_report`, the three questions
                `desk.mark.parse` cannot ask because it holds no binder, no page
@@ -20,12 +20,19 @@ Eleven acts, in order:
     DROP       every mark `CHECK` already reported, from what `RECONCILE`
                sees -- `_reconcilable`
     GATHER     `desk.proof.gather` -- the master_proof
+    PROOF      is that master_proof the shape a proof must be --
+               `desk.containers.parse_master_proof`, on ENVELOPE's terms
     PLACE      `desk.collator.places` -- marks grouped by the place they touch
     RECONCILE  `desk.collator.reconcile` -- settled, escalated, re-read
     RESOLVE    the automatic resolutions -- `_resolve`
     ORDER      a `move` at one end only is withdrawn, then the survivors are
                ordered vacate-before-fill or carried forward as a named cycle
                -- `_pair_moves`, `_move_order` -- before the fold
+
+!! THIS LIST IS READ AS A MAP AND MUST MATCH THE BODY. Until 2026-08-31 it put
+COVERAGE before CHECK, which is the reverse of what runs, and folded
+`parse_master_proof` into ENVELOPE at position one when it is called after
+GATHER -- so a reader using it to find a stage landed in the wrong place twice.
 
 !! THE RESOLUTIONS SIT DOWNSTREAM OF `reconcile`, WHICH IS UNTOUCHED.
 `desk.collator.Reconciled` is the INTERMEDIATE -- `decision-log.md
@@ -127,6 +134,20 @@ class Collated:
             order, each naming the role to send it back to.
         drift: a returned `raw_text` that is not the one the place was seeded
             with, same shape and same routing.
+        coverage: a role whose copies do not between them carry the binder's
+            address set, same shape and same routing.
+            !! ITS OWN LIST, NOT `problems`, since 2026-08-31 -- `Process: #63`
+            says a missing answer ROUTES and does not VOID the round, and the
+            command returns BROKEN and writes nothing on a non-empty
+            `problems`. Folded in there, a short shard did exactly what the
+            ruling forbids.
+            ! IT RESEMBLES `drift` AND IS NOT MODELLED ON IT. `Process: #62`
+            ruled `drift_in` OUT -- the middle has no stake in whether the tree
+            moved -- and `ac8cbbd` giving drift an exit code is on the record as
+            a fix pointing the wrong way. Coverage stands on `#63` alone: it
+            asks whether a role ANSWERED, which is a fact about the round and
+            not about the tree. The shape they share is temporary, because one
+            of them is going.
         escalations: places carried forward -- two or more owing marks ruling
             on ONE sentence with different answers.
         rereads: places carried forward -- marks on different sentences whose
@@ -142,6 +163,7 @@ class Collated:
     chief: dict
     problems: list[Problem] = field(default_factory=list)
     drift: list[Problem] = field(default_factory=list)
+    coverage: list[Problem] = field(default_factory=list)
     escalations: list[dict] = field(default_factory=list)
     rereads: list[dict] = field(default_factory=list)
     unruled: dict[str, list[str]] = field(default_factory=dict)
@@ -418,16 +440,24 @@ def _chief_copy(read_from: dict, resolved: dict[str, Mark], proof: dict) -> dict
     # `_real_pages` is a private name in a file this module must not edit, so
     # this loop is its own copy rather than an import of an underscore-prefixed
     # function from another module.
-    # !! THE SHAPE GUARDS THAT WERE HERE ARE GONE, 2026-08-31 -- `P21`, T4. Every
-    # copy reaching this function has passed `desk.containers.parse_edit_copy`
-    # at the top of `collate`, which is what now decides that a sheet is a dict
-    # carrying a filled `path` and a `str` `sha` -- `Sheet.seed` normalizes a
-    # null one. Re-deciding it here was the SECOND definition of a well-formed
-    # copy that `Process: #57` is about.
+    # !! THE ENVELOPE GUARANTEES `path` AND `marks`, AND NOT `sha`. `parse_sheet`
+    # REFUSES a sheet whose `path` is not filled and whose `marks` is not a list,
+    # so those are the envelope's to decide and subscripting them here is safe.
+    # It ADMITS a sheet with no `sha` at all and normalizes the absence to `""`
+    # -- but into the `Sheet` DATACLASS, which this flow discards. The raw dict
+    # it goes on walking still has no key.
     #
-    # ! DOWNSTREAM OF THE ENVELOPE IN ONE FLOW IS THE TEST FOR CUTTING. A guard
-    # at a MODULE boundary that other callers reach is depth and stays -- see
-    # `desk.collator.problems_in`, which now says which of its own are which.
+    # !! MEASURED 2026-08-31, AFTER T4 CUT THE GUARD ON EXACTLY THAT CONFUSION.
+    # A seeded copy with `sha` deleted gives `parse_edit_copy` problems `[]`,
+    # then `collate` raised `KeyError: 'sha'` here -- which the CLI catches as a
+    # refusal, printing `REFUSED ... a copy carries no 'sha'` with an EMPTY
+    # stdout. That discards every routable `Problem`, the precise defect
+    # `CannotCollate` was added to end.
+    #
+    # ! SO THE TEST FOR CUTTING A GUARD IS WHAT THE ENVELOPE DECIDES ABOUT THE
+    # VALUE THIS CODE READS, not what it decides about the object it returns.
+    # `Process: #65` is the standing fix -- carry the parsed container instead
+    # of the dict, and the normalization arrives with it.
     paths: list[str] = []
     shas: dict[str, str] = {}
     for copy in proof.get("edit_copies", []):
@@ -435,7 +465,8 @@ def _chief_copy(read_from: dict, resolved: dict[str, Mark], proof: dict) -> dict
             path = sheet["path"]
             if path not in shas:
                 paths.append(path)
-                shas[path] = sheet["sha"]
+                raw_sha = sheet.get("sha")
+                shas[path] = raw_sha if isinstance(raw_sha, str) else ""
 
     sheets: dict[str, dict] = {}
     seen: set[int] = set()
@@ -732,7 +763,7 @@ def collate(stage: str, edit_copies: list[dict], binder: dict, root: Path) -> Co
     if envelope:
         return Collated(chief=_nothing_settled(), problems=envelope + problems)
 
-    problems += _coverage_problems(edit_copies, binder)
+    coverage = _coverage_problems(edit_copies, binder)
 
     # ! ONE CACHE FOR THE WHOLE STAGE, not one per copy. Roles cite the same
     # evidence, and a cache built inside `verify_report` re-read a file once per
@@ -787,6 +818,7 @@ def collate(stage: str, edit_copies: list[dict], binder: dict, root: Path) -> Co
             chief=_nothing_settled(),
             problems=problems + [Problem("copy-chief", "", m) for m in why_proof],
             drift=drift,
+            coverage=coverage,
             unruled=left,
             tally=counts,
         )
@@ -825,6 +857,7 @@ def collate(stage: str, edit_copies: list[dict], binder: dict, root: Path) -> Co
         chief=_chief_copy(proof.get("read_from", {}), resolved, proof),
         problems=problems,
         drift=drift,
+        coverage=coverage,
         escalations=escalations,
         rereads=rereads,
         unruled=left,

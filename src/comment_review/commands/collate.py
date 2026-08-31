@@ -47,6 +47,18 @@ ESCALATIONS = 4
 #: that the COPY is never discarded over drift; it says nothing about the exit
 #: code, which this closes.
 DRIFT = 5
+#: !! ADDED 2026-08-31, and it is `Process: #63` reaching the exit codes. A role
+#: short of its shard is REPORTED, never a refusal that voids the round -- but
+#: `_coverage_problems`' findings rode in `got.problems`, which returns `BROKEN`
+#: above and writes no chief copy. Measured: one role, a two-place binder, one
+#: place answered -- the chief carried the settled mark and the command threw it
+#: away. Its own code lets the caller see a short round WITHOUT losing the work
+#: the round did, which is what the ruling asks for.
+#: ! IT IS NOT `DRIFT`'s SIBLING. `DRIFT` exists over a check `Process: #62`
+#: ruled out, and this one answers whether a ROLE ANSWERED rather than whether
+#: the tree moved. Coverage is a fact about the round; drift was a fact about a
+#: page, which the middle has no stake in.
+COVERAGE = 6
 
 #: The ways a stage cannot be reconciled at all, as against a mark that broke a
 #: rule. They mean the SET cannot be read, so none is routable back to one role
@@ -193,6 +205,13 @@ def main() -> int:
     _report(got.problems)
     for problem in got.drift:
         print(f"{problem.role} {problem.address}: {problem.message}")
+    # !! COVERAGE IS PRINTED BEFORE THE `problems` GATE AND DOES NOT TRIP IT --
+    # `decision-log.md Process: #63`: a missing answer ROUTES back to the role
+    # that owes it, and *the places that did come back still settle*. Carried in
+    # `got.problems` it returned BROKEN here and wrote no chief copy, which is
+    # the one thing that ruling forbids. It has its own list and its own code,
+    # the way `drift` already does.
+    _report(got.coverage)
     if got.problems:
         return BROKEN
 
@@ -214,6 +233,15 @@ def main() -> int:
         return ESCALATIONS
     if got.rereads:
         return REREADS
+    # ! COVERAGE IS OUTRANKED BY BOTH CARRIED-FORWARD OUTCOMES -- a place
+    # nobody answered is weaker than a place a person must now rule on.
+    #
+    # ! IT SITS ABOVE `DRIFT` BY ACCIDENT OF WHAT IS LEFT, NOT BY DESIGN.
+    # `Process: #62` ruled `drift_in` out, and its deletion is the move plan's
+    # task 2; when it goes this branch goes with it and `COVERAGE` becomes the
+    # last check before `OK`. Nothing here should be read as ranking the two.
+    if got.coverage:
+        return COVERAGE
     if got.drift:
         return DRIFT
     return OK

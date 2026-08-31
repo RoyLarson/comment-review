@@ -22,6 +22,7 @@ from helpers import (
     seed,
 )
 
+from comment_review.desk.containers import parse_edit_copy
 from comment_review.desk.mark import parse
 from comment_review.flows.collate import _reconcilable, collate
 
@@ -447,6 +448,44 @@ class TestSourceVerificationRunsInProduction:
         assert got.problems == []
 
 
+class TestWhatTheEnvelopeActuallyGuarantees:
+    """!! IT DECIDES `path` AND `marks`, AND ADMITS A SHEET WITH NO `sha`.
+
+    `parse_sheet` normalizes an absent `sha` to `""` -- into the `Sheet`
+    DATACLASS, which the flow discards. The raw dict it goes on walking keeps
+    the absence, so a downstream subscript raises.
+
+    !! MEASURED 2026-08-31: after T4 cut `_chief_copy`'s guard on the premise
+    that the envelope guaranteed a `str` sha, `collate` raised `KeyError: 'sha'`
+    and the CLI turned it into a refusal with an EMPTY stdout -- discarding
+    every routable `Problem`, which is what `CannotCollate` exists to prevent.
+    The whole suite was green throughout.
+    """
+
+    def test_the_envelope_admits_a_sheet_with_no_sha(self):
+        binder = one_place()
+        copies = copies_over(
+            binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
+        )
+        del copies[0]["sheets"][0]["sha"]
+        parsed, why = parse_edit_copy("copy 1", copies[0])
+        assert why == []
+        assert parsed is not None
+        assert parsed.sheets[0].sha == ""
+        assert "sha" not in copies[0]["sheets"][0]
+
+    def test_and_the_fold_survives_it(self):
+        """The flow must not subscript what the envelope only normalizes."""
+        binder = one_place()
+        copies = copies_over(
+            binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
+        )
+        del copies[0]["sheets"][0]["sha"]
+        got = collate("4c", copies, binder, root=REPO)
+        assert got.problems == []
+        assert [s["sha"] for s in got.chief["sheets"]] == [""]
+
+
 class TestOneDefinitionOfAWellFormedCopy:
     """`P21`, T4, `Process: #57`. The container decides; nothing re-decides.
 
@@ -505,8 +544,9 @@ class TestShardCoverage:
         copies = copies_over(binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}})
         short = [_without_sheet(copies[0], "m.py")]
         got = collate("4c", short, binder, root=REPO)
-        assert [p.role for p in got.problems] == ["block-context"]
-        assert "m.py@b1" in got.problems[0].message
+        assert [p.role for p in got.coverage] == ["block-context"]
+        assert "m.py@b1" in got.coverage[0].message
+        assert got.problems == [], "a shortfall is not a malformed mark"
 
     def test_a_copy_that_kept_one_of_its_four_seeded_slots_is_named(self):
         """T6's own measured case: today all four of its shapes give
@@ -514,9 +554,9 @@ class TestShardCoverage:
         binder = a_binder_over({f"m.py@b{n}": BASE for n in (1, 2, 3, 4)})
         copies = copies_over(binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}})
         got = collate("4c", [_keeping_only(copies[0], ["m.py@b1"])], binder, root=REPO)
-        assert [p.role for p in got.problems] == ["block-context"]
+        assert [p.role for p in got.coverage] == ["block-context"]
         for missing in ("m.py@b2", "m.py@b3", "m.py@b4"):
-            assert missing in got.problems[0].message
+            assert missing in got.coverage[0].message
 
     def test_two_shards_of_one_role_cover_the_binder_between_them(self):
         """!! COMPARED PER COPY THIS REPORTS EVERY FAN-OUT SHARD AS INCOMPLETE.
@@ -538,7 +578,8 @@ class TestShardCoverage:
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
         got = collate("4c", [_keeping_only(copies[0], ["m.py@b1"])], binder, root=REPO)
-        assert got.problems != []
+        assert got.coverage != []
+        assert got.problems == []
         marks = [m for s in got.chief["sheets"] for m in s["marks"]]
         assert [m["address"] for m in marks] == ["m.py@b1"]
 
