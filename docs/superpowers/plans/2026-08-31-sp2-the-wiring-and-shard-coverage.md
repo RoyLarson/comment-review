@@ -483,7 +483,7 @@ wrong.
 flow - same as 1) the flow coordinates the things in the modules do."* MEASURED 2026-08-31:
 `verify_report` has only test callers.
 
-- [ ] **Step 0: RULED -- read this, then proceed**
+- [x] **Step 0: RULED -- read this, then proceed**
 
 `verify_report` READS FILES: `source_problems` calls `_lines(root, path, cache)` to check a
 citation resolves. That looked like a contradiction with `Process: #62`, *"the middle touches
@@ -501,7 +501,7 @@ sha'd because the evidence pages are not modifying data."*
 ! **AND THE ROLES ALREADY GREP EVIDENCE** during their own review, so this adds no kind of
 access the run did not have. `#62` is qualified in the decision log; `#58` stands. Proceed.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_a_citation_that_does_not_resolve_is_reported_by_a_RUN(tmp_path):
@@ -528,9 +528,9 @@ def test_a_claim_quoting_a_sentence_absent_from_its_paragraph_is_reported(tmp_pa
 ! **ADD `a_correct_citing(address, cite)` TO `tests/helpers.py`** -- built on the existing
 `a_correct`, not as a second builder for the same instruction.
 
-- [ ] **Step 2: Run both and watch them fail**
+- [x] **Step 2: Run both and watch them fail**
 
-- [ ] **Step 3: Give `collate` a `root` and call `verify_report`**
+- [x] **Step 3: Give `collate` a `root` and call `verify_report`**
 
 **Read every caller first** -- `grep -rn "collate(" src/ tests/`. `commands/collate.py` must
 supply it; the binder names the tree it was censused from in `read_from`, and the command
@@ -544,10 +544,10 @@ this, not a mistake.
 CODE.** They are strings today and `Collated.problems` holds `Problem(role, address, message)`.
 A source-verification finding names a mark, so it has both a role and an address.
 
-- [ ] **Step 4: Run the tests, then `uv run pytest -q`**
-- [ ] **Step 5: Run the checks** -- only `test_build` may fail
-- [ ] **Step 6: Commit the WORK -- no ticked boxes in this commit**
-- [ ] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
+- [x] **Step 4: Run the tests, then `uv run pytest -q`**
+- [x] **Step 5: Run the checks** -- only `test_build` may fail
+- [x] **Step 6: Commit the WORK -- no ticked boxes in this commit**
+- [x] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
 
 Tick every `- [ ]` step box of this task in
 `docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
@@ -565,7 +565,7 @@ it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
 `Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
 wrong.
 
-- [ ] **Step 8: Commit the ticks, citing the work commit's SHA**
+- [x] **Step 8: Commit the ticks, citing the work commit's SHA**
 
 ---
 

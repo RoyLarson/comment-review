@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 24 tasks closed
+Progress: 5 of 24 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -77,11 +77,12 @@ envelope check; that file's task 9 lands the region a move needs inside it.
       boundary, on the same terms. Verify: a proof whose `edit_copies` is not a
       list is refused by name from the flow, and the test goes red when the call
       is removed.
-- [ ] T3 | Implement the `desk.collator.verify_report` call in the flow, so
-      source verification runs in production. Verify: `grep -rn "verify_report"
-      src/` returns a caller outside `desk/collator.py`; a test asserts a mark
-      whose `sources` cite does not resolve is reported by a RUN OF THE FLOW,
-      not only by calling the function.
+- [x] T3 | collate calls verify_report over every copy; a RUN reports an unresolvable cite | 7bd7dd3 | Implement
+      the `desk.collator.verify_report` call in the flow, so source verification
+      runs in production. Verify: `grep -rn "verify_report" src/` returns a
+      caller outside `desk/collator.py`; a test asserts a mark whose `sources`
+      cite does not resolve is reported by a RUN OF THE FLOW, not only by
+      calling the function.
 - [ ] T4 | Delete the hand-rolled `isinstance` checks the containers now answer
       for, so one definition of a valid copy survives. Verify: no two places in
       `src/` decide what a well-formed edit copy is, and `problems_in` reports
