@@ -422,7 +422,7 @@ an exception carrying them, or splitting `collate` so the per-copy pass returns 
 fold. **Prefer whichever leaves `collate`'s signature alone**; a fourth argument here would
 collide with SP-3's `Stage`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_a_refusal_still_prints_the_problems_the_pass_found(tmp_path, capsys):
@@ -440,12 +440,12 @@ def test_a_refusal_still_prints_the_problems_the_pass_found(tmp_path, capsys):
 from a genuinely different root. Build it with `bind()` over a second `tmp_path` tree -- **not
 by editing a `read_from` dict by hand**, which would test a shape rather than the situation.
 
-- [ ] **Step 2: Run it and watch stdout come back empty**
-- [ ] **Step 3: Make the refusal carry the problems, and print them before the REFUSED line**
-- [ ] **Step 4: Run the tests, then `uv run pytest -q`**
-- [ ] **Step 5: Run the checks** -- only `test_build` may fail
-- [ ] **Step 6: Commit the WORK -- no ticked boxes in this commit**
-- [ ] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
+- [x] **Step 2: Run it and watch stdout come back empty**
+- [x] **Step 3: Make the refusal carry the problems, and print them before the REFUSED line**
+- [x] **Step 4: Run the tests, then `uv run pytest -q`**
+- [x] **Step 5: Run the checks** -- only `test_build` may fail
+- [x] **Step 6: Commit the WORK -- no ticked boxes in this commit**
+- [x] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
 
 Tick every `- [ ]` step box of this task in
 `docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
@@ -461,7 +461,7 @@ it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
 `Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
 wrong.
 
-- [ ] **Step 8: Commit the ticks, citing the work commit's SHA**
+- [x] **Step 8: Commit the ticks, citing the work commit's SHA**
 
 ---
 

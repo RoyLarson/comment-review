@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 17 tasks closed
+Progress: 1 of 17 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `commands/collate.py` driven by
@@ -159,6 +159,7 @@ under `utf8_console()`.
       `--edit-copy` and `collate` over a copy that is not JSON are
       distinguishable by the caller, or the constant's comment states that one
       code covers an unreadable input and a usage error.
-- [ ] T17 | Update the refusal at `commands/collate.py:135` so it prints the
-      problems the fold already computed before it exits
+- [x] T17 | CannotCollate carries the problems out; the CLI prints them before REFUSED | 26538d2 | Update
+      the refusal at `commands/collate.py:135` so it prints the problems the
+      fold already computed before it exits
         > 2026-08-31 measured: one stripped read_from blocked routing for the other role
