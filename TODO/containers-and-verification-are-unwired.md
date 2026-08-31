@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 24 tasks closed
+Progress: 1 of 24 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -182,8 +182,8 @@ envelope check; that file's task 9 lands the region a move needs inside it.
       as what makes it true again.
 - [ ] T23 | Update `parse_master_proof` so `_read_from_problem` runs when
       `edit_copies` is empty, where any value is admitted today
-        > 2026-08-31 'oops', None, 7, [] and {'root': 7} all pass with copies empty
         > 2026-08-31 'oops', None, 7, [] and {'root': 7} all pass when copies is empty
-- [ ] T24 | Implement `Sheet.seed`, `EditCopy.seed` and `MasterProof.seed`, so a
-      container is written through its type as a mark already is
+- [x] T24 | Sheet.seed, EditCopy.seed and MasterProof.seed land, built from fields(cls) | f943d7b | Implement
+      `Sheet.seed`, `EditCopy.seed` and `MasterProof.seed`, so a container is
+      written through its type as a mark already is
         > 2026-08-31 rename Sheet.sha: parse gives sha='' []; Mark.seed raises at build

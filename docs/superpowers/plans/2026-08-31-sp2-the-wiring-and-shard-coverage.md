@@ -135,7 +135,7 @@ the read half until 2026-08-30, so renaming a field left another module writing 
 `:1015-1023` is a DOCKET page, a different artifact, and keeps its own spelling. One angle of
 the 2026-08-30 review cited it as a producer and was wrong.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_a_renamed_field_breaks_the_writer_rather_than_folding_to_a_default():
@@ -157,12 +157,12 @@ def test_every_container_the_flows_write_round_trips_through_its_own_parse():
 rename that reaches `Sheet` and not `Sheet.seed` fails it. A test asserting the four literal
 key names would pass a rename that broke both halves together.
 
-- [ ] **Step 2: Run both and watch the first fail**
+- [x] **Step 2: Run both and watch the first fail**
 
 Run: `uv run pytest tests/test_containers.py -k renamed_field -v`
 Expected: FAIL -- `Sheet.seed` is not defined.
 
-- [ ] **Step 3: Add the three `seed` classmethods**
+- [x] **Step 3: Add the three `seed` classmethods**
 
 Each builds its dict from the dataclass's own field names, the way `Mark.seed` does. Read
 `desk/mark.py`'s `seed` first and follow it; a second pattern for the same job is the thing
@@ -172,14 +172,27 @@ this task exists to remove.
 to `""` with a walrus and a comment explaining why; `parse_sheet:129-130` does the same on the
 way back. Put it in `Sheet.seed` and cite it from the producer, so the rule is stated once.
 
-- [ ] **Step 4: Replace every literal at the fifteen producer sites**
+- [x] **Step 4: Replace every literal at the fifteen producer sites**
 
 `grep -rn '"role":\|"read_from":\|"sheets":\|"marks":\|"edit_copies":\|"stage":' src/comment_review/`
 and go through them one at a time. **A site that writes a DOCKET page is not one of these.**
 
-- [ ] **Step 5: Run the tests, then `uv run pytest -q`**
+!! **CORRECTED IN EXECUTION, 2026-08-31: NOT EVERY ONE OF THE FIFTEEN IS A PRODUCER, AND
+`flows.collate._reconcilable` MUST NOT BE WRITTEN THROUGH THE TYPE.** It FILTERS a copy rather
+than building one. `EditCopy.seed` requires every declared field, so a copy carrying no
+`read_from` came out holding `{}` -- and `desk.proof.gather` subscripts that key precisely so
+an absent one raises. `tests/test_collate_command.py::TestExitCodes::
+test_a_copy_missing_read_from_exits_one_not_a_traceback` failed on it, in the one commit it
+was written that way.
 
-- [ ] **Step 6: Run the checks**
+! **THE TEST IS: DOES THIS SITE BUILD A CONTAINER, OR TRANSFORM ONE?** A field a filter
+fabricates is a field the boundary below it can no longer refuse -- and that is the exact
+defect `desk/proof.py`'s `MismatchedRoot` docstring records being closed there. `{**copy,
+"sheets": sheets}` preserves an absence; a producer cannot.
+
+- [x] **Step 5: Run the tests, then `uv run pytest -q`**
+
+- [x] **Step 6: Run the checks**
 
 ```bash
 uv run pytest -q
@@ -189,9 +202,9 @@ uv run ty check
 
 Only `test_build` may fail.
 
-- [ ] **Step 7: Commit the WORK -- no ticked boxes in this commit**
+- [x] **Step 7: Commit the WORK -- no ticked boxes in this commit**
 
-- [ ] **Step 8: Tick the boxes -- in this file, in `TODO/`, and in the plan**
+- [x] **Step 8: Tick the boxes -- in this file, in `TODO/`, and in the plan**
 
 Tick every `- [ ]` step box of this task in
 `docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
@@ -207,7 +220,7 @@ it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
 `Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
 wrong.
 
-- [ ] **Step 9: Commit the ticks, citing the work commit's SHA**
+- [x] **Step 9: Commit the ticks, citing the work commit's SHA**
 
 ---
 
