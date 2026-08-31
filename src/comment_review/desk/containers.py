@@ -1,4 +1,4 @@
-"""The containers a mark travels in -- the sheet, the edit_copy, the master_proof.
+r"""The containers a mark travels in -- the sheet, the edit_copy, the master_proof.
 
     Sheet              one PAGE's marks, with that page's path and sha
     EditCopy           one ROLE's sheets, with the binder it was seeded from
@@ -21,8 +21,12 @@ ladders.
 
 !! NOT YET WIRED. `grep -rn "containers" src/` finds no production importer
 of this module: `desk/collator.py` still hand-rolls its own `isinstance`
-checks in four functions rather than calling `parse_edit_copy` or
-`parse_master_proof`. Roy has ruled it will be wired --
+checks over the same `sheets`/`marks`/`edit_copies` shapes `parse_edit_copy`
+and `parse_master_proof` exist to check, rather than calling either -- run
+`grep -n '\.get("sheets"\|\.get("marks"\|\.get("edit_copies"'
+src/comment_review/desk/collator.py` to see every site, since a function
+COUNT stated here goes stale the moment anyone adds the next one. Roy has
+ruled it will be wired --
 `TODO/containers-and-verification-are-unwired.md` tracks the work. A
 container guards the ENVELOPE -- is this document the shape a copy must be,
 or does it error out -- while `desk.collator.problems_in` reports on the

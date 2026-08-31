@@ -120,6 +120,20 @@ class TestWhatItRefuses:
         assert added == ""
         assert "re-run the census" in why
 
+    def test_a_NULL_sha_is_shown_as_ABSENT_not_the_word_None(self, tmp_path):
+        """!! A PRESENT `"sha": null` IS A DIFFERENT CASE FROM AN ABSENT KEY.
+        `held.get("sha", "")` only defaults when the key is missing; a present
+        `None` comes back as `None` itself, and `str(None)` is the
+        four-character word "None" -- the same anti-pattern fixed at
+        `desk.containers.parse_sheet`."""
+        repo, binder, page = _tree(tmp_path)
+        binder["pages"][0]["sha"] = None
+        _, added, why = carry(binder, page, "m.py", cue=empty_cues(page)[0])
+        assert added == ""
+        assert "re-run the census" in why
+        assert "None" not in why
+        assert "<nothing>" in why
+
     @pytest.mark.parametrize(
         "lookup,fragment",
         [

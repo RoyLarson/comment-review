@@ -130,12 +130,18 @@ def carry(binder: dict, page, path: str, **lookup) -> tuple[dict, str, str]:
     # moved on, its walk describes prose nobody reviewed and the cues below any
     # edit may have shifted. Refusing is the only safe answer -- the caller
     # re-censuses and asks again.
-    if str(held.get("sha", "")) != page.sha:
+    # !! `.get("sha", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT. A `"sha":
+    # null` reaching here is a PRESENT key holding None, so `.get` returns
+    # None and `str(None)` is the four-character word "None" -- folded into
+    # the same absent-sha case instead, matching `desk.containers.parse_sheet`.
+    raw_held_sha = held.get("sha")
+    held_sha = raw_held_sha if isinstance(raw_held_sha, str) else ""
+    if held_sha != page.sha:
         return (
             {},
             "",
             (
-                f"{path}: the binder records {held.get('sha') or '<nothing>'} and the"
+                f"{path}: the binder records {held_sha or '<nothing>'} and the"
                 f" file reads now as {page.sha} -- re-run the census"
             ),
         )

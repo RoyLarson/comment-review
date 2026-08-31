@@ -51,6 +51,19 @@ def test_every_mark_reaches_the_sheet_for_its_own_page():
             assert mark["address"].startswith(sheet["path"])
 
 
+def test_a_NULL_sha_is_seeded_as_absent_not_the_word_None():
+    """`.get("sha", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT -- a `"sha"` key
+    present and holding `None` (a binder `binder.read()` did not validate the
+    shape of) returns `None` from `.get`, matching `desk.containers.parse_sheet`'s
+    own test for the same class of defect."""
+    binder = {
+        "read_from": {"root": "tests/test_distribute_flow.py", "revise": 0},
+        "pages": [{"path": "m.py", "sha": None, "rows": []}],
+    }
+    copy = seed(binder, "block-context")
+    assert copy["sheets"][0]["sha"] == ""
+
+
 def test_no_module_outside_binder_imports_read_and_mentions_sha_in_one_file():
     """The weaker, checkable claim ruled for Step 5 of the SP task brief.
 

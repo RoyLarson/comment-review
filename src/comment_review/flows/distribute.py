@@ -86,7 +86,16 @@ def seed(binder: dict, role: str) -> dict:
         "sheets": [
             {
                 "path": str(page.get("path", "")),
-                "sha": page.get("sha", ""),
+                # ! `.get("sha", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT. A
+                # `"sha": null` binder page -- `binder.read()` does not check
+                # this field's shape, only what it consumes -- reaches here
+                # with the key PRESENT and holding None, and unlike
+                # `flows.carry` there is no `str()` here to turn it into the
+                # word "None": it would be written straight into the sheet as
+                # a bare `None`, disagreeing with `Sheet.sha`'s own `str`
+                # contract until whichever reader saw it next re-normalized
+                # it. Normalized here instead, matching every sibling site.
+                "sha": raw_sha if isinstance(raw_sha := page.get("sha"), str) else "",
                 "marks": [
                     Mark.seed(
                         address_for(str(page.get("path", "")), str(row.get("cue", ""))),
