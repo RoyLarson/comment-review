@@ -447,6 +447,42 @@ class TestSourceVerificationRunsInProduction:
         assert got.problems == []
 
 
+class TestOneDefinitionOfAWellFormedCopy:
+    """`P21`, T4, `Process: #57`. The container decides; nothing re-decides.
+
+    !! A CUT GUARD CANNOT BE TESTED BY BEHAVIOUR ALONE, because a guard that
+    could not fire changes no output when it goes. What IS testable is the
+    consequence: `flows/collate.py`'s internals now DEPEND on the envelope
+    having run, so the boundary is load-bearing rather than decorative. Both
+    halves below can fail -- the first if a guard creeps back into
+    `_reconcilable`, the second if the envelope stops running first.
+    """
+
+    def a_copy_whose_sheet_is_not_an_object(self):
+        binder = one_place()
+        copies = copies_over(
+            binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
+        )
+        copies[0]["sheets"].insert(0, "nope")
+        return binder, copies
+
+    def test_reconcilable_no_longer_decides_what_a_sheet_is(self):
+        """It passed a malformed sheet through, standing in for the container.
+        Now it assumes the shape, which is what ONE definition means."""
+        _binder, copies = self.a_copy_whose_sheet_is_not_an_object()
+        with pytest.raises(TypeError):
+            _reconcilable(copies[0])
+
+    def test_and_the_flow_never_reaches_it_with_one(self):
+        """The other half: the envelope answers first, so the assumption above
+        is safe in production. A `TypeError` escaping here would mean the
+        boundary had stopped running before the fold."""
+        binder, copies = self.a_copy_whose_sheet_is_not_an_object()
+        got = collate("4c", copies, binder, root=REPO)
+        assert [p.role for p in got.problems] == ["block-context"]
+        assert "sheet" in got.problems[0].message
+
+
 class TestShardCoverage:
     """`P27`, `containers-and-verification-are-unwired` T6, `Process: #63`.
 

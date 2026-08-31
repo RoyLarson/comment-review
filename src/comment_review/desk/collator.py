@@ -481,6 +481,22 @@ def problems_in(report: dict) -> tuple[list[Problem], int]:
         `(problems, ruled)` -- one `Problem` per broken rule, and the number of
         entries carrying an instruction.
     """
+    # !! THE THREE HEADER CHECKS BELOW ARE DEPTH, NOT THE DEFINITION, since
+    # 2026-08-31. `desk.containers.parse_edit_copy` decides what a well-formed
+    # copy is, and `flows.collate.collate` runs it FIRST -- so in production a
+    # report reaching here has already been ruled a copy, and none of these can
+    # fire. `P21`, `Process: #57`.
+    #
+    # ! THEY STAY BECAUSE THIS IS A MODULE BOUNDARY, not a step inside one
+    # flow. `problems_in` is a public name a caller may reach without a
+    # container, and `TODO/galley-refusals-cannot-fire.md`'s rule is that a
+    # guard at the boundary AND at the point of use is defensible depth --
+    # what is not defensible is prose claiming the guard is load-bearing when
+    # the enforcement is upstream. This comment is that prose, corrected.
+    #
+    # ! THE GUARDS THAT WERE CUT INSTEAD are the ones inside `flows/collate.py`,
+    # downstream of the envelope in the same flow, where nothing else can reach
+    # them.
     role = report.get("role")
     named = role if filled(role) else ""
     if not isinstance(report.get("sheets"), list):

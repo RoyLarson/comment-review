@@ -417,21 +417,24 @@ def _chief_copy(read_from: dict, resolved: dict[str, Mark], proof: dict) -> dict
     # `_real_pages` is a private name in a file this module must not edit, so
     # this loop is its own copy rather than an import of an underscore-prefixed
     # function from another module.
+    # !! THE SHAPE GUARDS THAT WERE HERE ARE GONE, 2026-08-31 -- `P21`, T4. Every
+    # copy reaching this function has passed `desk.containers.parse_edit_copy`
+    # at the top of `collate`, which is what now decides that a sheet is a dict
+    # carrying a filled `path` and a `str` `sha` -- `Sheet.seed` normalizes a
+    # null one. Re-deciding it here was the SECOND definition of a well-formed
+    # copy that `Process: #57` is about.
+    #
+    # ! DOWNSTREAM OF THE ENVELOPE IN ONE FLOW IS THE TEST FOR CUTTING. A guard
+    # at a MODULE boundary that other callers reach is depth and stays -- see
+    # `desk.collator.problems_in`, which now says which of its own are which.
     paths: list[str] = []
     shas: dict[str, str] = {}
     for copy in proof.get("edit_copies", []):
         for sheet in copy.get("sheets", []):
-            path = sheet.get("path") if isinstance(sheet, dict) else None
-            if isinstance(path, str) and path and path not in shas:
+            path = sheet["path"]
+            if path not in shas:
                 paths.append(path)
-                # ! `.get("sha", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT. A
-                # sheet carrying `"sha": null` reaches here with the key
-                # PRESENT and holding None, so `.get` returns None and
-                # `str(None)` is the four-character word "None" -- folded
-                # into the same missing-sha case instead, matching
-                # `desk.collator._real_pages`.
-                raw_sha = sheet.get("sha")
-                shas[path] = raw_sha if isinstance(raw_sha, str) else ""
+                shas[path] = sheet["sha"]
 
     sheets: dict[str, dict] = {}
     seen: set[int] = set()
@@ -511,16 +514,24 @@ def _reconcilable(copy: dict) -> dict:
 
     Returns:
         A NEW edit_copy dict -- new `sheets` and `marks` lists -- so the
-        caller's own containers are never mutated. A sheet or a `marks` list
-        that is not the expected shape is passed through unchanged; the check
-        above has already named that as its own problem.
+        caller's own containers are never mutated.
+
+        ! IT NO LONGER PASSES A MALFORMED SHEET THROUGH, because one cannot
+        reach it: `collate` parses every copy at its boundary first, and a copy
+        whose sheets are not the shape a sheet must be never gets this far.
     """
     sheets = []
     for sheet in copy.get("sheets", []):
-        if not isinstance(sheet, dict) or not isinstance(sheet.get("marks"), list):
-            sheets.append(sheet)
-            continue
         marks = []
+        # ! THE SHEET SHAPE IS THE ENVELOPE'S, NOT THIS FUNCTION'S, since
+        # 2026-08-31. `parse_edit_copy` decides that a sheet is a dict with a
+        # `marks` list before `collate` reaches here; the pass-through branch
+        # that used to stand in for it was the second definition `P21` removes.
+        #
+        # ! AN ENTRY IS STILL CHECKED, AND THAT IS NOT THE SAME QUESTION.
+        # `Sheet.marks` is typed `tuple[object, ...]` deliberately -- an entry
+        # that is not an object is CARRIED so `desk.mark.parse` can refuse it by
+        # name, which is exactly what this loop then does.
         for entry in sheet["marks"]:
             if not isinstance(entry, dict):
                 continue
@@ -579,7 +590,10 @@ def _coverage_problems(edit_copies: list[dict], binder: dict) -> list[Problem]:
         role = str(copy.get("role") or "")
         carried = by_role.setdefault(role, set())
         for sheet in copy.get("sheets", []):
-            for entry in sheet.get("marks", []):
+            # ! THE ENTRY IS CHECKED AND THE SHEET IS NOT. The envelope decides
+            # the sheet; `Sheet.marks` deliberately carries an entry that is not
+            # an object, so that one is this function's own question.
+            for entry in sheet["marks"]:
                 if isinstance(entry, dict) and isinstance(entry.get("address"), str):
                     carried.add(entry["address"])
     out: list[Problem] = []
