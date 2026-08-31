@@ -87,13 +87,13 @@ lines.
       verbatim half appears far outside the range it cites is REFUSED.
 - [ ] T2 -- Keep the function-sized range ruled admissible 2026-08-17 passing. Verify: an
       entry citing a whole function, verbatim half inside it, still passes.
-- [ ] T3 -- * Rule how a code RANGE is expressed as an address, when every code line is
+- [?] T3 -- * Rule how a code RANGE is expressed as an address, when every code line is
       its own one-line `c`. Verify: the ruling is recorded in `docs/decision-log.md`.
-- [ ] T4 -- * Rule what a source citing a caller in an uncensused file names: census on
+- [?] T4 -- * Rule what a source citing a caller in an uncensused file names: census on
       demand, or the line form with the fuzz. Verify: recorded in `docs/decision-log.md`.
 - [ ] T5 -- Implement `address:lines` for SOURCES, lines counted WITHIN the block,
       1-based, blanks included. Verify: a line-form source in a censused file is refused.
-- [ ] T6 -- * Rule what bounds a FREEFORM source, so the waiver cannot cover fabricated
+- [?] T6 -- * Rule what bounds a FREEFORM source, so the waiver cannot cover fabricated
       evidence. Verify: the ruling is recorded in `docs/decision-log.md`.
 - [ ] T7 -- Make `reviewer-brief.md:471` ask a `CODE CONCERNS` line for a resolvable
       citation, not *"one line, no verdict"*. Verify: the brief names the citation form.
@@ -101,7 +101,7 @@ lines.
       resolve. Verify: a seeded report with an unresolvable citation exits nonzero.
 - [ ] T9 -- Give stage 8 REVIEW a citation form in `references/review.md`. Verify: a stage
       8 report entry names an address, and the next round can look it up.
-- [ ] T10 -- * Decide what stage 6 COMPACT names a block by, given its narrow input
+- [?] T10 -- * Decide what stage 6 COMPACT names a block by, given its narrow input
       contract. Verify: the decision is recorded in `docs/decision-log.md`.
 - [ ] T11 -- Correct the `move` destination in `comment-review-function-context.md:112`.
       Verify: it names the address form, not *"a different line in this function"*.

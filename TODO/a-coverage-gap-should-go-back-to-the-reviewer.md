@@ -66,9 +66,9 @@ COVERAGE GAP, on every run, for as long as the file has a licence."*
 
 ## Tasks
 
-- [ ] T1 -- * RULE how the return happens: re-dispatch the reviewer with only the missed
+- [?] T1 -- * RULE how the return happens: re-dispatch the reviewer with only the missed
       addresses, or with the whole census. Verify: the choice is recorded here.
-- [ ] T2 -- * RULE what bounds it -- with no bound, *"send it back"* is a loop, and the
+- [?] T2 -- * RULE what bounds it -- with no bound, *"send it back"* is a loop, and the
       second failure IS what the gate handles today. Verify: the bound is written here.
 - [ ] T3 -- Send missed addresses back to the reviewer that skipped them, once T1/T2 rule.
       Touches `verdicts.py:117-134`, `:520-529`. Verify: a skipped paragraph ends RULED.

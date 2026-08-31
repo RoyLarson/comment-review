@@ -123,7 +123,7 @@ do the thing we ruled out"*. It carried a box until 2026-08-23 and is recorded h
       Verify: the fraction of the report they occupy is written into this file.
 - [ ] T2 -- Measure them by RECORD COUNT on the same report. Verify: the count and the
       total record count are written into this file.
-- [ ] T3 -- * RULE whether an `outside my role` query may carry a LIGHTER payload than the
+- [?] T3 -- * RULE whether an `outside my role` query may carry a LIGHTER payload than the
       other two shapes. Verify: the ruling is recorded in `docs/decision-log.md`.
 - [ ] T4 -- If T3 rules it stays, say at `reviewer-brief.md:425` that a small-remit role
       writes mostly scope declarations. Verify: that section names the cost.

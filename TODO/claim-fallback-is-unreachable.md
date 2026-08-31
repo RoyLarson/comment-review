@@ -81,7 +81,7 @@ T4 -- it waits on the same determination.
       lines whose stated purpose is false, restated in the Objective.
 - [x] T3 -- RECORD, not a task. The suite stays green because tests/test_verdicts.py:79
       builds an unproducible shape. Restated in the Objective.
-- [ ] T4 -- * Rule whether a non-object `claim` (i) preserves the reviewer words or (ii)
+- [?] T4 -- * Rule whether a non-object `claim` (i) preserves the reviewer words or (ii)
       is reported MALFORMED. Verify: `docs/decision-log.md` records the ruling.
 - [x] T5 -- RECORD, not a task. ROY LEANS (ii), 2026-08-22. Restated in the Objective.
 - [x] T6 -- RECORD, not a task. The cost of (ii) is one helper plus seven sites, not ~150.

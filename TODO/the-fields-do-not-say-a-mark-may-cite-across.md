@@ -125,7 +125,7 @@ merge-or-fight table never sees the overlap. Filed as
       `agents/comment-review-module-context.md`, and `record.py`/`verdicts.py`/`desk.py` in
       `prototype/`. Verify: `grep -rn "outside the checkout"` returns nothing outside `docs/`
       (history keeps the old set legible) and `corpora/`.
-- [ ] T6 -- * RULE the register for all three names. ! The CATEGORIES are ruled and are not
+- [?] T6 -- * RULE the register for all three names. ! The CATEGORIES are ruled and are not
       reopened by this -- only the words. Candidates, Roy 2026-08-27:
 
           human-review-necessary  ->  author query   only the author holds the intent

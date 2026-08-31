@@ -52,7 +52,7 @@ is prose and is the frequent one. T1 is that ruling.
 
 ## Tasks
 
-- [ ] T1 -- * Rule which sense keeps `settle`, and what the other becomes. Verify: the
+- [?] T1 -- * Rule which sense keeps `settle`, and what the other becomes. Verify: the
       ruling is in `docs/decision-log.md`.
 - [ ] T2 -- Reword the losing sense in `SKILL.md`. Verify: `grep -c settle` counts only
       the kept sense.

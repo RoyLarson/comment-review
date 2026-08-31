@@ -89,7 +89,7 @@ is changed, and not the other way round.**
       thing, a Kind per paragraph.
 - [x] T7 -- NOT THE ADDRESSER, WHICH WAS THE FIRST GUESS; `cue()` never sees prose and a
       test enforces it.
-- [ ] T8 -- * DETERMINE THE NAME, after the Python ruling lands. Verify: the name and its
+- [?] T8 -- * DETERMINE THE NAME, after the Python ruling lands. Verify: the name and its
       reason are written in `docs/vocabulary.md`.
 - [ ] T9 -- Rename the module and every import of it. Verify: `uv run pytest -q` is green
       and no file under `plugins/` imports the old module name.

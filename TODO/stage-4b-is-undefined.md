@@ -54,7 +54,7 @@ fails its own stage-4 gate.
 
 ## Tasks
 
-- [ ] T1 -- * RULING WANTED: what 4b IS -- a real step between 4a and 4c, or a wrong prose
+- [?] T1 -- * RULING WANTED: what 4b IS -- a real step between 4a and 4c, or a wrong prose
       split. Verify: `SKILL.md` defines 4b, or the split reads 4a/4b and `4b` is nowhere.
 - [ ] T2 -- Make 4c's input differ from 4a's, or drop the RESOLVED PLACEMENT claim.
       Verify: 4c gets an artifact 4a produced, or `SKILL.md:555-558` stops claiming it.

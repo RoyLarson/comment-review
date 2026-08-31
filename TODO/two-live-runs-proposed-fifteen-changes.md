@@ -164,15 +164,15 @@ raised in conversation.
 
 ! In the order the evidence argues for.
 
-- [ ] T1 -- * Re-read P6's PLACEHOLDER HANDLING against the shipped galley. Verify: a
+- [?] T1 -- * Re-read P6's PLACEHOLDER HANDLING against the shipped galley. Verify: a
       file:line here, and it is closed or filed to `galley-and-compositor-write-path`.
-- [ ] T2 -- * Re-read P6's DROP SCOPING against the shipped galley. Verify: a file:line
+- [?] T2 -- * Re-read P6's DROP SCOPING against the shipped galley. Verify: a file:line
       here, and it is closed or filed to `galley-and-compositor-write-path`.
-- [ ] T3 -- * Re-read P6's COMMENT PREFIXES against the shipped compositor. Verify: a
+- [?] T3 -- * Re-read P6's COMMENT PREFIXES against the shipped compositor. Verify: a
       file:line here, and it is closed or filed to `galley-and-compositor-write-path`.
-- [ ] T4 -- * Re-read P6's INDENT FRAMING against the shipped compositor. Verify: a
+- [?] T4 -- * Re-read P6's INDENT FRAMING against the shipped compositor. Verify: a
       file:line here, and it is closed or filed to `galley-and-compositor-write-path`.
-- [ ] T5 -- * Rule the two typed SOURCE shapes, `absence` and `count`, before the build.
+- [?] T5 -- * Rule the two typed SOURCE shapes, `absence` and `count`, before the build.
       Verify: `docs/decision-log.md` records both shapes, key by key.
 - [x] T6 -- SUPERSEDED. **P5 -- run the is-it-still-a-proposition check BEFORE the
       write.** It landed on both halves; the citations are in the Objective.

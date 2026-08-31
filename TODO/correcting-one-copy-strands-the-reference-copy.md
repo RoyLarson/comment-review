@@ -120,21 +120,21 @@ is available.
 
 ## Tasks
 
-- [ ] T1 -- * **RULE what the run DOES with a `correct` whose twin is REFERENCE ONLY.**
+- [?] T1 -- * **RULE what the run DOES with a `correct` whose twin is REFERENCE ONLY.**
       Verify: the ruling names (a), (b) or (c) from the Objective and is recorded here.
-- [ ] T2 -- * **RULE whether that applies to `drop`**, where the reference copy becomes
+- [?] T2 -- * **RULE whether that applies to `drop`**, where the reference copy becomes
       the only copy. Verify: the ruling is recorded in this file.
-- [ ] T3 -- * **RULE whether that applies to `move`.** Verify: the ruling is recorded in
+- [?] T3 -- * **RULE whether that applies to `move`.** Verify: the ruling is recorded in
       this file.
-- [ ] T4 -- **Land the `REFERENCE CONCERNS` section in `reviewer-brief.md`.** Verify:
+- [?] T4 -- **Land the `REFERENCE CONCERNS` section in `reviewer-brief.md`.** Verify:
       `grep -n "REFERENCE CONCERNS" reviewer-brief.md` returns the section.
-- [ ] T5 -- **Emit `REFERENCE CONCERNS` from `verdicts.py`.** Verify: `grep -n "REFERENCE
+- [?] T5 -- **Emit `REFERENCE CONCERNS` from `verdicts.py`.** Verify: `grep -n "REFERENCE
       CONCERNS" verdicts.py` returns the emission.
-- [ ] T6 -- **Land the stage-5 stranding check in `SKILL.md`**: grep each `correct`'s
+- [?] T6 -- **Land the stage-5 stranding check in `SKILL.md`**: grep each `correct`'s
       FALSE clause across the REFERENCE ONLY files first. Verify: `SKILL.md` says so.
-- [ ] T7 -- **Prove that check on the measured case.** Verify: a run correcting
+- [?] T7 -- **Prove that check on the measured case.** Verify: a run correcting
       `todo_tool.py:1129` reports the stranded copy at `todo-tool/SKILL.md:253`.
-- [ ] T8 -- **Extend the existing `SKILL.md:800-804` rule** rather than writing a second
+- [?] T8 -- **Extend the existing `SKILL.md:800-804` rule** rather than writing a second
       one. Verify: that paragraph states what happens when the twin is REFERENCE ONLY.
-- [ ] T9 -- **Say in `docs/limitations.md` that a run can strand a copy it may not
+- [?] T9 -- **Say in `docs/limitations.md` that a run can strand a copy it may not
       touch.** Verify: `grep -n "REFERENCE ONLY" docs/limitations.md` is non-empty.

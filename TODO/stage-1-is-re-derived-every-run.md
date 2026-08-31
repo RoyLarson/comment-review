@@ -129,15 +129,15 @@ ways -- a cap published since the last run, a `docs/` tree deleted since.
 
 ## Tasks
 
-- [ ] T1 -- * Collapse 1.7 and 1.8 into ONE substep named for what it does: find what
+- [?] T1 -- * Collapse 1.7 and 1.8 into ONE substep named for what it does: find what
       structure is available. Verify: `SKILL.md` has one substep there, not two.
 - [ ] T2 -- Re-resolve every citation of the old substep numbers once T1 lands. Verify:
       `grep -rn "1\.8" plugins/` is empty or points at the new number.
-- [ ] T3 -- * Rule whether the skill probes for `.codegraph/` alongside the LSP probe.
+- [?] T3 -- * Rule whether the skill probes for `.codegraph/` alongside the LSP probe.
       Verify: the probe is in `SKILL.md`, or this file records the refusal and why.
-- [ ] T4 -- * Rule whether `codegraph_explore` is a sanctioned way to settle a paragraph's
+- [?] T4 -- * Rule whether `codegraph_explore` is a sanctioned way to settle a paragraph's
       ANCHOR. Verify: the answer is recorded in `SKILL.md` or in this file.
-- [ ] T5 -- * Rule whether `codegraph_explore` is a sanctioned way to settle a LIVENESS
+- [?] T5 -- * Rule whether `codegraph_explore` is a sanctioned way to settle a LIVENESS
       claim. Verify: the answer is recorded in `SKILL.md` or in this file.
 - [ ] T6 -- State the three structure states PER SOURCE rather than per run. Verify: every
       row of the `SKILL.md` structure table names the source it is about.

@@ -61,11 +61,11 @@ docstring saying *"the lexical tier cannot answer a comment's owner"* is checkab
 
 ## Tasks
 
-- [ ] T1 -- * Rule on what SELECTS a documentation file, from the candidates in the
+- [?] T1 -- * Rule on what SELECTS a documentation file, from the candidates in the
       Objective. Verify: the rule is written down; T4 is where it lands.
-- [ ] T2 -- * Rule whether 1.4's destination tree is automatically REFERENCE ONLY. Verify:
+- [?] T2 -- * Rule whether 1.4's destination tree is automatically REFERENCE ONLY. Verify:
       the ruling is recorded here and says whether 1.4 gains a second output.
-- [ ] T3 -- * Rule on whether `referrers.py` widens or stays a NAME matcher. Verify: the
+- [?] T3 -- * Rule on whether `referrers.py` widens or stays a NAME matcher. Verify: the
       answer is recorded here, with the reason it was decided that way.
 - [ ] T4 -- State what T1 to T3 decide in ONE file, `SKILL.md:649` being the candidate.
       Verify: `grep -rn` for its phrase returns one path.

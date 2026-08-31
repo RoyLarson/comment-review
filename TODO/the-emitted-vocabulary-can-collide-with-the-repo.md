@@ -68,7 +68,7 @@ term belongs to the repo's sheet. This is settled, it is already ENFORCED, and i
 
 ## Tasks
 
-- [ ] T1 -- * Rule whether stage 1 must LOOK for collisions or only record one a reviewer
+- [?] T1 -- * Rule whether stage 1 must LOOK for collisions or only record one a reviewer
       trips over. Verify: the answer is written into this file.
 - [ ] T2 -- Add a COLLISIONS section to the style sheet at `SKILL.md:257-264`. Verify: a
       run over a repo defining an emitted term as a symbol lists it.

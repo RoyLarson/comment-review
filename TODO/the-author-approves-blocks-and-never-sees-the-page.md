@@ -97,7 +97,7 @@ not delete it without deciding which; this cannot be settled before T2.
 
 - [x] T1 -- FINISHED 2026-08-15. The claim that 7b cuts is deleted; `write.md:16` is now
       "Nothing is judged here".
-- [ ] T2 -- * RULE where the whole-page read goes: stage 8 ahead of 7a on proposed text,
+- [?] T2 -- * RULE where the whole-page read goes: stage 8 ahead of 7a on proposed text,
       or a new pass between 6b and 7a. Verify: `docs/decision-log.md` records the answer.
 - [x] T3 -- FINISHED. Stage 6b exists at `SKILL.md:972-992`, running the residue check
       over the paragraphs stage 6 shortened, with a reader who is not the writer.
@@ -105,7 +105,7 @@ not delete it without deciding which; this cannot be settled before T2.
       paragraph back to the roles that ruled on it, against a galley census.
 - [ ] T5 -- Take the residue check OUT of stage 7b. Verify: neither `residue-check.md`,
       `write.md` nor `SKILL.md:834-836` names 7b as a place it runs.
-- [ ] T6 -- * RULE the delivery mechanism: a temporary branch with the diff, or the
+- [?] T6 -- * RULE the delivery mechanism: a temporary branch with the diff, or the
       stage-7a prose listing. Verify: `docs/decision-log.md` records which.
 - [x] T7 -- FINISHED. Stage 8 is a verification with two named outcomes -- the files are
       done, or the section goes to the human (`review.md:50-59`).

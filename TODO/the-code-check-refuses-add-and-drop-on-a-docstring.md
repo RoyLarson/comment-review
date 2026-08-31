@@ -83,7 +83,7 @@ being ADDED or REMOVED -- only rewritten, which is the case that passes.
 
 ## Tasks
 
-- [ ] T1 -- * Rule whether 7b compares against the approved SET or nothing-changed.
+- [?] T1 -- * Rule whether 7b compares against the approved SET or nothing-changed.
       Verify: `docs/decision-log.md` records the answer and `write.md` states it.
 - [ ] T2 -- Report docstring-presence deltas SEPARATELY from executable ones. Verify:
       `prove_unchanged.py` prints them under their own heading with each declaration.

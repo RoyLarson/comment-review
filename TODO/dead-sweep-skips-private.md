@@ -55,7 +55,7 @@ that mis-read them has not changed.
       sweep skips every `_private` name and `main`.
 - [x] T2 -- FINISHED. `page._SHEBANG` and `page._CODING` are deleted; the grep over
       `plugins/`, `scripts/` and `tests/` returns nothing (2026-08-23).
-- [ ] T3 -- * Rule whether the `_private` skip is right, since such a name is cheaper to
+- [?] T3 -- * Rule whether the `_private` skip is right, since such a name is cheaper to
       check. Verify: `dead_sweep.py:194-196` states the answer.
 - [x] T4 -- FINISHED. The two constants were deleted rather than kept; see T2.
 - [x] T5 -- MEASURED 2026-08-22 and moved to the Objective: the sweep matches a name

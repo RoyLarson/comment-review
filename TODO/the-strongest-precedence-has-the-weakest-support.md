@@ -79,7 +79,7 @@ agreeing on a destination produces no output at all. MEASURED 2026-08-17: `funct
 
 ## Tasks
 
-- [ ] T1 -- * RULE whether a placement verdict needs a second reader -- candidates in the
+- [?] T1 -- * RULE whether a placement verdict needs a second reader -- candidates in the
       Objective. Verify: the ruling is recorded in `docs/decision-log.md`.
 - [x] T2 -- SUPERSEDED. It asked for an anchor the census now emits on every address at
       both tiers -- `census.py:454-458` and `page.py:681`. Detail in the Objective.

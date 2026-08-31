@@ -108,15 +108,15 @@ was looking straight at it.
 
 ## Tasks
 
-- [ ] T1 -- * Rule on WHERE the check goes, from the four candidates in the Objective.
+- [?] T1 -- * Rule on WHERE the check goes, from the four candidates in the Objective.
       Verify: the ruling names the candidate and is written in `docs/decision-log.md`.
 - [ ] T2 -- Make `--reviewers` default to the four editorial roles rather than to `""`.
       Verify: three reports and no `--reviewers` exits nonzero, naming the fourth role.
-- [ ] T3 -- * Rule on whether a DELIBERATE single-role run survives `--reviewers`
+- [?] T3 -- * Rule on whether a DELIBERATE single-role run survives `--reviewers`
       defaulting to four, and how it is declared. Verify: the answer is in `SKILL.md`.
 - [ ] T4 -- In `SKILL.md` stage 4, say the dispatch is COUNTED and four is the number.
       Verify: the sentence sits under `## Stage 4` (SKILL.md:544) and names the count.
-- [ ] T5 -- * Rule on whether a missing role is FATAL at stage 5 or a stated degradation.
+- [?] T5 -- * Rule on whether a missing role is FATAL at stage 5 or a stated degradation.
       Verify: the ruling is written in `docs/decision-log.md`.
 - [x] T6 -- NOT A TASK. RECORD that four WERE dispatched on 2026-08-17 and the display
       lagged; the evidence is in the Objective.

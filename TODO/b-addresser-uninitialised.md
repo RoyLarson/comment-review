@@ -213,7 +213,7 @@ run restamps that run as a licence header -- is the same run's second defect and
       then a -> b -> c. Kept in the Objective.
 - [x] T14 -- DONE, by deletion. `grep -n overlaps galley.py` finds only the `--out`/
       `--repo` path check.
-- [ ] T15 -- * RULE whether the marks in `tests/fixtures/python_edge_cases.md` shift to
+- [?] T15 -- * RULE whether the marks in `tests/fixtures/python_edge_cases.md` shift to
       the current numbering. Verify: the ruling is recorded in `docs/decision-log.md`.
 - [ ] T16 -- Make `test_every_b_the_marks_name_exists` (`tests/test_edge_cases.py:81`)
       assert each mark's ANCHOR. Verify: shift every `b` mark by one and it goes red.

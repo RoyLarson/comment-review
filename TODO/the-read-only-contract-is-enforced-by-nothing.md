@@ -95,13 +95,13 @@ exists, and it bears on how far it can be relaxed -- see
       plugins/comment-review/agents/*.md` returns nothing.
 - [ ] T3 -- Drop `Write`, `Edit` and `NotebookEdit` from the four reviewers' `tools:`.
       Verify: none of the four reviewer files lists any of the three.
-- [ ] T4 -- * Decide what the reviewers still need to EXECUTE, before T3 picks a list.
+- [?] T4 -- * Decide what the reviewers still need to EXECUTE, before T3 picks a list.
       Verify: the decision is recorded and names the tools the four reviewers keep.
 - [ ] T5 -- Hash the files under review after stage 3 and re-check them before the collator.
       Verify: editing one between makes `verdicts.py` refuse, naming the file.
 - [x] T6 -- SUPERSEDED. "Keep the scratch files in the evidence package" cannot be done --
       none exists in the tree or its history. The measurement is in the Objective.
-- [ ] T7 -- * Say whether `prove_unchanged.py`'s scope is a gap or a boundary. Verify: the
+- [?] T7 -- * Say whether `prove_unchanged.py`'s scope is a gap or a boundary. Verify: the
       answer is in `docs/decision-log.md`, and says whether T5 is a gate.
 ## Related
 

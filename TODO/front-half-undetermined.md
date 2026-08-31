@@ -77,19 +77,19 @@ statement is one per boundary, with the fields NAMED, and every named field is e
       than a duplicate. Restated in the Objective.
 - [x] T3 -- NOT A TASK: the record/verdicts findings are filed on
       `record-and-verdicts-disagree` and deferred there. Restated in the Objective.
-- [ ] T4 -- * **RULE WHAT A REVIEWER IS HANDED** -- which of the census row's 19 fields
+- [?] T4 -- * **RULE WHAT A REVIEWER IS HANDED** -- which of the census row's 19 fields
       the four roles need. Verify: the ruling names them and is recorded in this file.
-- [ ] T5 -- * **RULE WHAT A FINDING IS**, `claim` included. Verify: the ruling is recorded
+- [?] T5 -- * **RULE WHAT A FINDING IS**, `claim` included. Verify: the ruling is recorded
       in this file and `claim-fallback-is-unreachable` can move on it.
-- [ ] T6 -- * **RULE WHAT THE COLLATOR CERTIFIES**, and where a coverage gap goes. Verify: the
+- [?] T6 -- * **RULE WHAT THE COLLATOR CERTIFIES**, and where a coverage gap goes. Verify: the
       ruling is recorded in this file.
-- [ ] T7 -- * Rule which of `record.py --check` and `verdicts.py` is right where they
+- [?] T7 -- * Rule which of `record.py --check` and `verdicts.py` is right where they
       disagree. Verify: the ruling is recorded in this file.
-- [ ] T8 -- **State what crosses CENSUS -> REVIEWER, with the fields named.** Verify: each
+- [?] T8 -- **State what crosses CENSUS -> REVIEWER, with the fields named.** Verify: each
       field is a key `census.py --json` emits or one this determination adds.
-- [ ] T9 -- **State what crosses REVIEWER -> RECORD, with the fields named.** Verify:
+- [?] T9 -- **State what crosses REVIEWER -> RECORD, with the fields named.** Verify:
       every field it names is a key a record slot carries or one this determination adds.
-- [ ] T10 -- **State what crosses RECORD -> VERDICT, with the fields named.** Verify:
+- [?] T10 -- **State what crosses RECORD -> VERDICT, with the fields named.** Verify:
       every field it names is one `verdicts.py` reads or one this determination adds.
-- [ ] T11 -- **Reconcile the seven filed TODOs against those three statements.** Verify:
+- [?] T11 -- **Reconcile the seven filed TODOs against those three statements.** Verify:
       each is a task under a statement or ticked as superseded by it.

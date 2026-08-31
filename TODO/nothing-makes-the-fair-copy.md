@@ -176,7 +176,7 @@ copy chief that ruled, so no single role is ever in a position to file it. ! Tha
 
 ## Tasks
 
-- [ ] T1 -- * Name the artifact and the module that makes it. Verify: the name is in
+- [?] T1 -- * Name the artifact and the module that makes it. Verify: the name is in
       `docs/vocabulary.md` and the file is renamed to it.
 - [ ] T2 -- Compose the marks on one address in the synthesis order. Verify: two
       non-conflicting marks on one paragraph produce one text carrying both.

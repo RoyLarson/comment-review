@@ -124,13 +124,13 @@ focus for them gets a lot easier. ! The dependency is discharged: `cue` emits fo
 
 ## Tasks
 
-- [ ] T1 -- * RULE ON THE `block-context` ENTRY -- a constraint false by ARITHMETIC with
+- [?] T1 -- * RULE ON THE `block-context` ENTRY -- a constraint false by ARITHMETIC with
       no enforcing line. Verify: it is in the role file with its currency, or refused.
-- [ ] T2 -- * RULE ON THE `module-context` ENTRY -- the VERDICT a module announcing more
+- [?] T2 -- * RULE ON THE `module-context` ENTRY -- the VERDICT a module announcing more
       than one subject earns. Verify: the role file names it and the eval case passes.
-- [ ] T3 -- * RULE ON THE every-role ENTRY -- what to do with a paragraph marked
+- [?] T3 -- * RULE ON THE every-role ENTRY -- what to do with a paragraph marked
       `doc-kind-unresolved`. Verify: it is in the role files or the brief, currency named.
-- [ ] T4 -- * RULE where `function-context` and `module-context` START now the a-series
+- [?] T4 -- * RULE where `function-context` and `module-context` START now the a-series
       has landed. Verify: each names its starting series, and says ORDER not filter.
 - [ ] T5 -- Record which currency each candidate above pays in -- CATCHES, or the search
       it SAVES. Verify: T1..T4 each carry that line, citing the measured cost table.

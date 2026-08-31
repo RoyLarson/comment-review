@@ -147,7 +147,7 @@ is open, so *"effectiveness unchanged"* has no grader.
 
 ## Tasks
 
-- [ ] T1 -- * RULE what a role may propose when the right fix is a CODE change -- describe
+- [?] T1 -- * RULE what a role may propose when the right fix is a CODE change -- describe
       it, or suggest it. Verify: the ruling is recorded in the Objective here.
 - [ ] T2 -- Record T1's ruling in `code-concerns-cannot-carry-a-proposed-change.md`, the
       backend file it gates. Verify: that file states it.

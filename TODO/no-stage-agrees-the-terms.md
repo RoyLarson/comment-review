@@ -71,9 +71,9 @@ catches is the measurement this file is graded on.
 
 ## Tasks
 
-- [ ] T1 -- * Rule what the stage is called and where it sits among the eight. Verify: the
+- [?] T1 -- * Rule what the stage is called and where it sits among the eight. Verify: the
       ruling is in `docs/decision-log.md`.
-- [ ] T2 -- * Rule whether it runs once or grows as the roles work. Verify: the ruling is
+- [?] T2 -- * Rule whether it runs once or grows as the roles work. Verify: the ruling is
       in `docs/decision-log.md`.
 - [ ] T3 -- Give it an artifact a later stage reads. Verify: a run produces the file and
       stage 4 is handed it.

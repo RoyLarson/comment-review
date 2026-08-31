@@ -137,13 +137,13 @@ defect -- a tool measures it.
 
 ## Tasks
 
-- [ ] T1 -- * RULE what BOUNDS a paragraph in a prose file, from the four candidates in
+- [?] T1 -- * RULE what BOUNDS a paragraph in a prose file, from the four candidates in
       the Objective. Verify: the ruling is recorded in `docs/decision-log.md`.
 - [x] T2 -- RULED 2026-08-20: the four existing desks read a prose file, and no fifth. The
       mapping is in the Objective.
-- [ ] T3 -- * RULE what a claim in a document is checked AGAINST. Verify: the answer names
+- [?] T3 -- * RULE what a claim in a document is checked AGAINST. Verify: the answer names
       the input a `block-context` reviewer is handed for a `.md` page.
-- [ ] T4 -- * RULE what happens to the CAP on a prose page. Verify: `SKILL.md`'s cap rule
+- [?] T4 -- * RULE what happens to the CAP on a prose page. Verify: `SKILL.md`'s cap rule
       states what it means there, including if the answer is "no cap applies".
 - [ ] T5 -- Name the prose-file asymmetry in `docs/limitations.md`: code prose citing a
       document is checkable, the document's drift is not. Verify: the file carries it.

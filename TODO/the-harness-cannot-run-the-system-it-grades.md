@@ -325,7 +325,7 @@ to end, so the dominance claim waits on something that can disagree with it.
       REFERENCE ONLY files. Verify: re-run a case without them, compare verdicts.
 - [ ] T14 -- Survey public histories for a commit whose prose and code disagree, and its
       later fix. Verify: one such pair is a row in `evals/test-cases.jsonl`.
-- [ ] T15 -- * Rule what executes a `test-cases.jsonl` row: a script in this repo or
+- [?] T15 -- * Rule what executes a `test-cases.jsonl` row: a script in this repo or
       `skill-creator`. Verify: the answer is written into this file.
 - [ ] T16 -- Build that runner. Verify: one command runs one row by `id` and exits nonzero
       on a miss.
@@ -339,7 +339,7 @@ to end, so the dominance claim waits on something that can disagree with it.
       `evals/test-cases.jsonl` row `module-context-widens-a-two-subject-docstring`.
 - [ ] T21 -- Make the parent of the 2026-08-16 hand pass a case. Verify: a row in
       `evals/test-cases.jsonl` pins that parent commit and names the files.
-- [ ] T22 -- * Decide whether to ask for `claude plugin eval` early access. Verify: the
+- [?] T22 -- * Decide whether to ask for `claude plugin eval` early access. Verify: the
       decision and its reason are written into this file.
 - [x] T23 -- SUPERSEDED: both `todo-tool` packages were removed 2026-08-23 and the subject
       repo is private, so the DISCOVERY measurement they would have supplied falls to T14.

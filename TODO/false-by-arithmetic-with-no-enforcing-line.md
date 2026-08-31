@@ -89,7 +89,7 @@ say is whether the register entry states it.
 
 ## Tasks
 
-- [ ] T1 -- * Rule whose remit this class is: a second half to `block-context`'s
+- [?] T1 -- * Rule whose remit this class is: a second half to `block-context`'s
       constraint paragraph, or out of scope. Verify: the answer is written into this file.
 - [ ] T2 -- File the candidate in `role-rule-register.md`, with the shape, the example and
       the siblings. Verify: `grep -n "arithmetic"` on that file returns the entry.

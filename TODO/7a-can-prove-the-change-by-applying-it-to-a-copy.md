@@ -119,7 +119,7 @@ filed, and still two.
       and the caller names it. VERIFIED 2026-08-23: `galley.py:345`, `--out` required.
 - [x] T2 -- DONE 2026-08-17. `galley.splice` applies every edit in DESCENDING line order
       and refuses overlapping edits and stale ranges. The reasoning is in the Objective.
-- [ ] T3 -- * Rule whether 7a shows the diff INSTEAD OF or ALONGSIDE the block. Verify:
+- [?] T3 -- * Rule whether 7a shows the diff INSTEAD OF or ALONGSIDE the block. Verify:
       `SKILL.md`'s stage 7a section names which, and `docs/decision-log.md` records it.
 - [x] T4 -- DONE. The splice-failure case is answered in the program and in the prose --
       eight named refusals in `galley.py`, and `SKILL.md:935-944`.

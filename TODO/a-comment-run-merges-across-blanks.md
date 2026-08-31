@@ -72,5 +72,5 @@ the middle-of-file half real work too.
       documentation as one indivisible paragraph at one address. In the Objective.
 - [x] T4 -- DONE. The top-of-file split ships: `matter` 1-2 and `docstring` 4-4, verified
       2026-08-23 through `paragraphs_lexical`. The filed wording is in the Objective.
-- [ ] T5 -- * RULE whether a blank line ends a comment run in the MIDDLE of a file.
+- [?] T5 -- * RULE whether a blank line ends a comment run in the MIDDLE of a file.
       Verify: the ruling is recorded in `docs/decision-log.md`.

@@ -63,7 +63,7 @@ citation resolves nowhere. It is recorded here rather than repeated as a pointer
       modules and none of the nine the address system is built from. In the Objective.
 - [x] T3 -- READ 2026-08-22. CLAUDE.md's release section describes the cache half only,
       and never says a directory-source marketplace resolves live. In the Objective.
-- [ ] T4 -- * RULE whether the fix is to the INSTALL, to the DOCS, or to both --
+- [?] T4 -- * RULE whether the fix is to the INSTALL, to the DOCS, or to both --
       candidates in the Objective. Verify: the ruling is in `docs/decision-log.md`.
 - [ ] T5 -- Give every measurement in `docs/` and `evidence/` that names a VERSION the
       TREE it ran against. Verify: no such measurement cites a `vX.Y.Z` without a SHA.

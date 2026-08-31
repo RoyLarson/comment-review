@@ -86,7 +86,7 @@ the five series; this is the verdict vocabulary. It wants 0.2.4 or its own branc
 
 ## Tasks
 
-- [ ] T1 -- * RULE whether a `stet` persists ACROSS RUNS, and where it lives if it does.
+- [?] T1 -- * RULE whether a `stet` persists ACROSS RUNS, and where it lives if it does.
       Verify: the ruling is recorded in `docs/decision-log.md`.
 - [x] T2 -- NAMED 2026-08-21. Publishing's mark is `stet` ("let it stand"), written in the
       margin with dots under the text. In the Objective.

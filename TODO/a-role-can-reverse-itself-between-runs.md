@@ -141,9 +141,9 @@ list. `grep -n "stability" docs/limitations.md` returns nothing today.
       per block. Verify: a per-block diff recorded, with reversals counted over blocks.
 - [ ] T2 -- Re-run r1's exact skill version against the same census to see whether the
       reversal reproduces. Verify: both `module-context` verdicts recorded side by side.
-- [ ] T3 -- * Rule what a measured reversal rate would OBLIGE: nothing, a bar on a lone
+- [?] T3 -- * Rule what a measured reversal rate would OBLIGE: nothing, a bar on a lone
       `clean`, or agreement across roles. Verify: `docs/decision-log.md` records it.
-- [ ] T4 -- * Rule whether a `correct` reversing to `query` is WORSE than the reverse. The
+- [?] T4 -- * Rule whether a `correct` reversing to `query` is WORSE than the reverse. The
       verdict table treats them as peers. Verify: `docs/decision-log.md` records it.
 - [ ] T5 -- Say in `docs/limitations.md` that verdict stability across runs is UNMEASURED.
       Verify: `grep -n "stability" docs/limitations.md` returns a line.
