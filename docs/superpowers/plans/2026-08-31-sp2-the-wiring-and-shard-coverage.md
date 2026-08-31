@@ -769,7 +769,7 @@ production caller. MEASURED 2026-08-30: `containers.py` claimed consumers had st
 re-deriving keys when nothing imported it, and `collator.py`'s groupings have been wrong three
 times.
 
-- [ ] **Step 1: Fix every claim about a consumer**
+- [x] **Step 1: Fix every claim about a consumer**
 
 `grep -rn "containers" src/` and `grep -rn "verify_report" src/` now return real callers. Every
 sentence in any of the three files describing who calls it must match that output.
@@ -777,21 +777,21 @@ sentence in any of the three files describing who calls it must match that outpu
 ! **THE ENVELOPE/CONTENTS SPLIT IS STATED ONCE, NOT IN THREE FILES.** Pick the file that owns
 it and cite from the others. A rule in three places is a rule that will disagree with itself.
 
-- [ ] **Step 2: Delete the provisional notes this plan made false**
+- [x] **Step 2: Delete the provisional notes this plan made false**
 
 `grep -rn "PROVISIONAL\|provisional" src/comment_review/` -- some were written against the
 unwired state. A provisional note whose condition has passed is a stale claim.
 
-- [ ] **Step 3: Reread every sentence Task 1 made false**
+- [x] **Step 3: Reread every sentence Task 1 made false**
 
 The fifteen producer sites carried comments explaining their literals -- the `sha`
 normalization, COPIED-NOT-ALIASED, `checked: dict = data`. Some now describe code that moved
 into a `seed`.
 
-- [ ] **Step 4: Run the checks** -- `pytest`, `ruff check`, `ruff format --check`, `ruff check`
+- [x] **Step 4: Run the checks** -- `pytest`, `ruff check`, `ruff format --check`, `ruff check`
   again, `ty check`, and `uv run python scripts/check_vocabulary.py`
-- [ ] **Step 5: Commit the WORK -- no ticked boxes in this commit**
-- [ ] **Step 6: Tick the boxes -- in this file, in `TODO/`, and in the plan**
+- [x] **Step 5: Commit the WORK -- no ticked boxes in this commit**
+- [x] **Step 6: Tick the boxes -- in this file, in `TODO/`, and in the plan**
 
 Tick every `- [ ]` step box of this task in
 `docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
@@ -812,7 +812,7 @@ it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
 `Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
 wrong.
 
-- [ ] **Step 7: Commit the ticks, citing the work commit's SHA**
+- [x] **Step 7: Commit the ticks, citing the work commit's SHA**
 
 ---
 

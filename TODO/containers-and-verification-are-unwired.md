@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 7 of 24 tasks closed
+Progress: 8 of 25 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
           collator's source-verification half is wired into the flow rather than split
           out, after a review measured containers with no production importer and
@@ -88,11 +88,12 @@ envelope check; that file's task 9 lands the region a move needs inside it.
       definition of a valid copy survives. Verify: no two places in `src/`
       decide what a well-formed edit copy is, and `problems_in` reports only on
       CONTENTS -- the per-mark problems that route back to a role.
-- [ ] T5 | Update `desk/containers.py` and `desk/collator.py` prose to state
-      what each boundary refuses and what it reports, now that both are reached.
-      Verify: no sentence in either file claims a consumer that `grep -rn` does
-      not show, and the ENVELOPE/CONTENTS split is stated once rather than in
-      both files.
+- [x] T5 | the three files state what each boundary refuses; the split is stated once, in containers | 866a0a4 | Update
+      `desk/containers.py` and `desk/collator.py` prose to state what each
+      boundary refuses and what it reports, now that both are reached. Verify:
+      no sentence in either file claims a consumer that `grep -rn` does not
+      show, and the ENVELOPE/CONTENTS split is stated once rather than in both
+      files.
 - [x] T6 | collate compares each role's returned address set against the binder and reports | 3fc3414 | Implement
       a check at the flow's inbound boundary that a returned edit copy still
       carries the binder's address set, so a copy cannot decide which places
@@ -193,3 +194,7 @@ envelope check; that file's task 9 lands the region a move needs inside it.
       `Sheet.seed`, `EditCopy.seed` and `MasterProof.seed`, so a container is
       written through its type as a mark already is
         > 2026-08-31 rename Sheet.sha: parse gives sha='' []; Mark.seed raises at build
+- [?] T25 | Decide whether the parses should return a value at all, since every
+      production caller discards the object and reads the dict
+        > 2026-08-31 collate.py:691 keeps parsed only to test None; :753 drops it
+        > 2026-08-31 only copies[0].read_from is read off a parsed object
