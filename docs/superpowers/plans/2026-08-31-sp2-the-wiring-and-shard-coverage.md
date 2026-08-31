@@ -191,10 +191,21 @@ Only `test_build` may fail.
 
 - [ ] **Step 7: Commit the WORK -- no ticked boxes in this commit**
 
-- [ ] **Step 8: Tick the boxes this task closes**
+- [ ] **Step 8: Tick the boxes -- in this file, in `TODO/`, and in the plan**
 
-`containers-and-verification-are-unwired` **T24**. Read that task's own verify text before
-ticking -- not its title.
+Tick every `- [ ]` step box of this task in
+`docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
+tick `containers-and-verification-are-unwired` **T24** in `TODO/`;
+and **tick no `P` step.** `Process: #64` is a ruling this plan implements,
+and no step of the release plan names it -- nothing on that side to close.
+
+! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** A box is a claim and ticking
+it asserts the claim. Where only part of a box is delivered, leave it open and reword
+it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
+
+! **RECOMPUTE EVERY DERIVED COUNT FROM THE BOXES**, never increment one -- each TODO's
+`Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
+wrong.
 
 - [ ] **Step 9: Commit the ticks, citing the work commit's SHA**
 
@@ -280,8 +291,21 @@ rather than adding to it.
 - [ ] **Step 5: Run the checks** -- `pytest`, `ruff check`, `ruff format --check`, `ruff check`
   again, `ty check`. Only `test_build` may fail.
 - [ ] **Step 6: Commit the WORK -- no ticked boxes in this commit**
-- [ ] **Step 7: Tick the boxes** -- `containers-and-verification-are-unwired` **T1**, reading
-  its verify text first
+- [ ] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
+
+Tick every `- [ ]` step box of this task in
+`docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
+tick `containers-and-verification-are-unwired` **T1** in `TODO/`;
+and **tick no `P` step**: `P21`'s verify also needs Tasks 3, 7 and 8.
+
+! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** A box is a claim and ticking
+it asserts the claim. Where only part of a box is delivered, leave it open and reword
+it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
+
+! **RECOMPUTE EVERY DERIVED COUNT FROM THE BOXES**, never increment one -- each TODO's
+`Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
+wrong.
+
 - [ ] **Step 8: Commit the ticks, citing the work commit's SHA**
 
 ---
@@ -343,8 +367,21 @@ def test_an_empty_proof_with_an_empty_read_from_is_still_admitted():
 - [ ] **Step 4: Run the tests, then `uv run pytest -q`**
 - [ ] **Step 5: Run the checks** -- only `test_build` may fail
 - [ ] **Step 6: Commit the WORK -- no ticked boxes in this commit**
-- [ ] **Step 7: Tick the boxes** -- `containers-and-verification-are-unwired` **T2** and
-  **T23**, reading each verify text first
+- [ ] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
+
+Tick every `- [ ]` step box of this task in
+`docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
+tick `containers-and-verification-are-unwired` **T2** and **T23** in `TODO/`;
+and **tick no `P` step**: `P21`'s verify also needs Tasks 7 and 8.
+
+! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** A box is a claim and ticking
+it asserts the claim. Where only part of a box is delivered, leave it open and reword
+it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
+
+! **RECOMPUTE EVERY DERIVED COUNT FROM THE BOXES**, never increment one -- each TODO's
+`Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
+wrong.
+
 - [ ] **Step 8: Commit the ticks, citing the work commit's SHA**
 
 ---
@@ -395,7 +432,22 @@ by editing a `read_from` dict by hand**, which would test a shape rather than th
 - [ ] **Step 4: Run the tests, then `uv run pytest -q`**
 - [ ] **Step 5: Run the checks** -- only `test_build` may fail
 - [ ] **Step 6: Commit the WORK -- no ticked boxes in this commit**
-- [ ] **Step 7: Tick the boxes** -- `collate-command-defects` **T17**
+- [ ] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
+
+Tick every `- [ ]` step box of this task in
+`docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
+tick `collate-command-defects` **T17** in `TODO/`;
+and **tick no `P` step.** Finding #6 is a review finding this plan carries,
+not a step of the release plan.
+
+! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** A box is a claim and ticking
+it asserts the claim. Where only part of a box is delivered, leave it open and reword
+it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
+
+! **RECOMPUTE EVERY DERIVED COUNT FROM THE BOXES**, never increment one -- each TODO's
+`Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
+wrong.
+
 - [ ] **Step 8: Commit the ticks, citing the work commit's SHA**
 
 ---
@@ -482,8 +534,24 @@ A source-verification finding names a mark, so it has both a role and an address
 - [ ] **Step 4: Run the tests, then `uv run pytest -q`**
 - [ ] **Step 5: Run the checks** -- only `test_build` may fail
 - [ ] **Step 6: Commit the WORK -- no ticked boxes in this commit**
-- [ ] **Step 7: Tick the boxes** -- `containers-and-verification-are-unwired` **T3**. Verify by
-  running `grep -rn "verify_report" src/`, which must return a caller outside `desk/collator.py`
+- [ ] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
+
+Tick every `- [ ]` step box of this task in
+`docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
+tick `containers-and-verification-are-unwired` **T3** in `TODO/`;
+and tick **`P25`** in `docs/plans/0.2.4-the-commands-for-the-middle.md`.
+**It closes HERE and nowhere else in this plan**: its verify is *"collate
+runs `address_problems`, `claim_verbatim_problems` and `source_problems`
+over every ruled mark"*, which is this task entire.
+
+! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** A box is a claim and ticking
+it asserts the claim. Where only part of a box is delivered, leave it open and reword
+it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
+
+! **RECOMPUTE EVERY DERIVED COUNT FROM THE BOXES**, never increment one -- each TODO's
+`Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
+wrong.
+
 - [ ] **Step 8: Commit the ticks, citing the work commit's SHA**
 
 ---
@@ -595,8 +663,26 @@ test is what proves you did not.
 - [ ] **Step 4: Run the tests, then `uv run pytest -q`**
 - [ ] **Step 5: Run the checks** -- only `test_build` may fail
 - [ ] **Step 6: Commit the WORK -- no ticked boxes in this commit**
-- [ ] **Step 7: Tick the boxes** -- `containers-and-verification-are-unwired` **T6**, reading
-  its verify text first; it is the inbound-boundary coverage task
+- [ ] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
+
+Tick every `- [ ]` step box of this task in
+`docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
+tick `containers-and-verification-are-unwired` **T6** in `TODO/`;
+and tick **`P27`** in `docs/plans/0.2.4-the-commands-for-the-middle.md`.
+**It closes HERE**: its verify is *"a partitioned role that answered for
+three of the four files in its shard is named"*, and this task's address
+check answers it. ! **Read `P27`'s own wording against what shipped** -- it
+says FILES where T6 says the address set, and the address check is the one
+that landed.
+
+! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** A box is a claim and ticking
+it asserts the claim. Where only part of a box is delivered, leave it open and reword
+it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
+
+! **RECOMPUTE EVERY DERIVED COUNT FROM THE BOXES**, never increment one -- each TODO's
+`Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
+wrong.
+
 - [ ] **Step 8: Commit the ticks, citing the work commit's SHA**
 
 ---
@@ -636,7 +722,22 @@ cut can only agree with you -- so write it against the enumeration, and make it 
 - [ ] **Step 4: Run the tests, then `uv run pytest -q`**
 - [ ] **Step 5: Run the checks** -- only `test_build` may fail
 - [ ] **Step 6: Commit the WORK -- no ticked boxes in this commit**
-- [ ] **Step 7: Tick the boxes** -- `containers-and-verification-are-unwired` **T4**
+- [ ] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
+
+Tick every `- [ ]` step box of this task in
+`docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
+tick `containers-and-verification-are-unwired` **T4** in `TODO/`;
+and **tick no `P` step**: `P21`'s third clause -- *"every field declared is
+one the code reads"* -- is Task 8's prose pass.
+
+! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** A box is a claim and ticking
+it asserts the claim. Where only part of a box is delivered, leave it open and reword
+it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
+
+! **RECOMPUTE EVERY DERIVED COUNT FROM THE BOXES**, never increment one -- each TODO's
+`Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
+wrong.
+
 - [ ] **Step 8: Commit the ticks, citing the work commit's SHA**
 
 ---
@@ -677,9 +778,27 @@ into a `seed`.
 - [ ] **Step 4: Run the checks** -- `pytest`, `ruff check`, `ruff format --check`, `ruff check`
   again, `ty check`, and `uv run python scripts/check_vocabulary.py`
 - [ ] **Step 5: Commit the WORK -- no ticked boxes in this commit**
-- [ ] **Step 6: Tick the boxes** -- `containers-and-verification-are-unwired` **T5**, and
-  reread T1-T4's verify text to confirm each still holds after this task's prose changes.
-  **Then tick `P21`, `P25` and `P27` on the plan**, reading each verify text first
+- [ ] **Step 6: Tick the boxes -- in this file, in `TODO/`, and in the plan**
+
+Tick every `- [ ]` step box of this task in
+`docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
+tick `containers-and-verification-are-unwired` **T5** in `TODO/`, rereading
+T1-T4's verify text to confirm each still holds after this task's prose;
+and tick **`P21`** in `docs/plans/0.2.4-the-commands-for-the-middle.md`.
+**It closes HERE, and it is the box this repo has already ticked once
+against a verify it did not meet** -- see the untick note in the step's own
+text. Read all three clauses: the type matches what `seed` builds over a real
+tree, the chief's copy parses as an ordinary `EditCopy` proved by a test that
+CALLS `_chief_copy`, and every field declared is one the code reads.
+
+! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** A box is a claim and ticking
+it asserts the claim. Where only part of a box is delivered, leave it open and reword
+it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
+
+! **RECOMPUTE EVERY DERIVED COUNT FROM THE BOXES**, never increment one -- each TODO's
+`Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
+wrong.
+
 - [ ] **Step 7: Commit the ticks, citing the work commit's SHA**
 
 ---
@@ -693,6 +812,20 @@ into a `seed`.
 !! **THE TICK COMMIT IS SECOND AND SEPARATE.** A box asserts the work is DONE, and the work is
 not done until it is committed -- so a tick in the same commit asserts a completion that has
 not happened yet. Citing the work's SHA is what makes the box re-derivable by a stranger.
+
+!! **AND THE TICK STEP TICKS THREE PLACES, NAMED ONE BY ONE IN EVERY TASK: THIS FILE, `TODO/`,
+AND THE PLAN.** Roy, 2026-08-31, on a draft where only Task 8 reached the plan: *"Please add
+the commit tick commit steps in the middle for both the plan and the SP plan."*
+
+! **A `P` STEP CLOSES IN THE TASK THAT COMPLETES IT, NOT AT THE END.** `P25` closes at Task 5,
+`P27` at Task 6, `P21` at Task 8 -- and the five tasks that close no `P` step **say so, and
+say why**. A tick step that finds nothing to tick is still a step a stranger can check; one
+that is silent about the plan is indistinguishable from one that forgot it.
+
+! **THAT IS WHY A CLOSING SECTION WOULD NOT DO.** `CLAUDE.md`: *"Not a closing section, not a
+final task that ticks everything -- one step per unit, in the unit."* A plan box has no tool
+behind it -- nothing asks for a SHA, nothing refuses -- so the ordering a TODO task gets for
+free is the ordering a plan box only gets from an explicit step.
 
 !! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** Not its title. Measured on this repo
 2026-08-30: three boxes were ticked against verifies they did not meet -- `P21` with two of its
