@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 6 tasks closed
+Progress: 1 of 7 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, the day the query contract landed. `module-context`'s report on a
@@ -49,6 +49,9 @@ Updated:  2026-08-28 — THE BIND ARRIVES FROM A SECOND DIRECTION, AND IT IS THE
 Measured: 2026-08-31 -- dogfood 2026-08-31: ownership 295 clean/3 query, module 28/279
 Measured: 2026-08-31 -- same 317 paragraphs, same run -- so it is wording, not narrow
           scope
+Falsified: 2026-08-31 -- run2 A/B: 28->314 clean, but findings 12->3; 8 flipped to clean
+Falsified: 2026-08-31 -- one of the 8 is a verified false certification, caught by hand
+Falsified: 2026-08-31 -- query kept the role LOOKING; removing it removed the looking
 ```
 
 ## Objective
@@ -140,3 +143,8 @@ do the thing we ruled out"*. It carried a box until 2026-08-23 and is recorded h
 - [ ] T6 | Keep 'I read it and it belongs' distinct from 'I could not settle it'
       in whatever wording replaces the outside-my-role query
         > 2026-08-31 clean CERTIFIES and query ASKS; collapsing them trades down
+        > 2026-08-31 measured NECESSARY BUT NOT SUFFICIENT: it guards the wrong failure
+        > 2026-08-31 the role stopped ATTEMPTING settlement, which T6 does not describe
+- [ ] T7 | Reword clean as an ACTIVE assertion -- I checked the claims at my
+      scope and they hold -- rather than as the absence of a reason to speak
+        > 2026-08-31 placement-only wording made the role stop checking truth at all

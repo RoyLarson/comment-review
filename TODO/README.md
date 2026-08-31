@@ -184,7 +184,7 @@ that changed a published name or rule:
 | --- | --- | :-: | ---: | --- |
 | [a-comment-inside-a-line-makes-the-file-unprovable](a-comment-inside-a-line-makes-the-file-unprovable.md) | backend | -- | 2/7 | A comment INSIDE a line makes the whole file unprovable |
 | [a-role-can-reverse-itself-between-runs](a-role-can-reverse-itself-between-runs.md) | agents | yes | 1/6 | A role can reverse itself between runs, and nothing measures it |
-| [a-scope-declaration-costs-as-much-as-a-finding](a-scope-declaration-costs-as-much-as-a-finding.md) | agents | yes | 1/6 | A scope declaration costs as much as a finding |
+| [a-scope-declaration-costs-as-much-as-a-finding](a-scope-declaration-costs-as-much-as-a-finding.md) | agents | yes | 1/7 | A scope declaration costs as much as a finding |
 | [block-comment-markers-survive-into-the-prose](block-comment-markers-survive-into-the-prose.md) | backend | -- | 0/10 | Block-comment markers survive into the prose the reviewers read |
 | [move-and-correct-compose](move-and-correct-compose.md) | agents | — | 4/6 | `move` and `correct` COMPOSE, and the gate calls them a contradiction |
 | [only-census-got-out-and-the-skill-instructs-a-redirect](only-census-got-out-and-the-skill-instructs-a-redirect.md) | agents | — | 3/5 | Only `census.py` got `--out`, and `SKILL.md` instructs the redirect it forbids |
