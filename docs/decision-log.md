@@ -2354,3 +2354,55 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   usually justified by what it does to the module -- no `json.loads`, no path. What Roy
   named is what it does to the COMMAND: three questions, asked in order, each answerable on
   its own terms. `commands/proof.py` carries the table at the site.
+
+- **#68.** **A BINDER HOLDS PAGES OR REDACTED PAGES, AND BOTH HOLD PARAGRAPHS** (Roy,
+  2026-08-31): *"No Binders have either Pages or RedactedPages, Paragraphs are held by both.
+  no RedactedParagraphs, they are not necessary. And the flow can orchestrate the
+  construction of the edit-copies and the master_proof from that."*
+
+  !! **IT SUPERSEDES `BinderPage` AND `BinderRow`, WHICH WERE INVENTED THE SAME DAY AND
+  NEVER RULED.** `git log -S "class BinderPage"` returns one commit, `1d9314d`, three hours
+  old. `P46` authorised ONE type -- *"the Binder container -- the type, its deserialize and
+  its serialize"* -- and three landed.
+
+  !! **THE ORIGIN IS THE WIRE, AND THAT IS THE WHOLE DEFECT.** The JSON nests
+  `pages -> rows`, so a type was made per level. Roy: *"I think you invented something
+  unnecessary because you could read raw json and now you are post-justifying your
+  actions."* ! **THE WIRE'S SHAPE IS NOT AN ARGUMENT FOR THE OBJECT MODEL** -- `binder.py`
+  says so itself: the nesting exists only because repeating the path per row is the same
+  string N times, and `rows_of` existed to undo it. The in-memory model was already flat.
+
+  !! **AND THE JUSTIFICATION CAME AFTER THE CODE, WHICH `conventions.md` NAMES.** Asked why
+  a second page type was needed, I went and found `flows/carry.py` using it and called that
+  proof. *"A purpose first stated in a review is a justification, not a design -- it is
+  produced by looking at the code, so it can only ever agree with it."* ! The test that was
+  skipped is the one that can fail: **a field becomes necessary when something would
+  otherwise be WRONG**, not when something reads it. MEASURED when finally asked that way:
+  over 55 real pages of this repo, **0 carry zero rows** -- the one property a page level
+  would have protected does not occur in real input.
+
+  !! **`row` WAS NEVER RULED, AND THE RULING IT DISPLACED SAID `paragraph`.**
+  `docs/vocabulary.md:209` quotes Roy, 2026-08-26: *"like the binder we have three levels of
+  containers -- **paragraph**, page, binder."* The table one line below writes **row** in
+  that slot. ! **THE DOCUMENT FLAGS IT ITSELF**: in that header -- `binder`/`docket`,
+  `page`/`schedule`, row/`alteration` -- `row` is the only term not backticked, and the only
+  one of the six with no entry in the glossary beneath it. It is the WIRE KEY, lifted into
+  prose and then hardened by me into a type.
+
+  !! **NO `RedactedParagraph`, AND THE REASON IS THAT A PARAGRAPH REBUILDS HONESTLY.** I had
+  argued a redacted page could not hold real `Paragraph`s, because the wire drops `start`,
+  `end`, `kind` and `lines`. Two of those are recoverable and two were never lost:
+  `kind` is `Series.of(cue).value.present` -- which `page_row`'s own comment already argued
+  is what it must be, *"every row a reviewer receives holds prose, so its kind is its
+  series' present and the letter states it after all"* -- and `start`/`end` are the recorded
+  `original_start`/`original_end`, because nothing has moved between the census and the read
+  back. ! **SO THE OBJECTION WAS AN ARTEFACT OF THE INVENTED TYPE**, not a fact about
+  paragraphs.
+
+  ! **THE REDACTION IS AT THE PAGE, WHERE THE INFORMATION IS ACTUALLY REMOVED.** A
+  `RedactedPage` serializes only the places holding prose -- the 91% cut `bind`'s `absent`
+  flag makes -- and drops the source text. The paragraphs it holds are ordinary paragraphs.
+
+  ! **AND THE FLOW ORCHESTRATES FROM THERE.** The edit_copies and the master_proof are built
+  by the flow out of a binder's pages and their paragraphs, rather than from a parallel row
+  type carried alongside them. Filed as `P47`.
