@@ -304,7 +304,7 @@ that changed a published name or rule:
 | [docket-defects](docket-defects.md) | backend | — | 0/8 | Six defects in docket.py, and one discards an approved page at exit 0 |
 | [collate-command-defects](collate-command-defects.md) | backend | -- | 1/17 | Sixteen defects in `commands/collate.py`, measured by running it |
 | [differences-defects](differences-defects.md) | backend | — | 0/10 | Ten defects in `results/differences.py`, none of them in its arithmetic |
-| [plans-name-no-todo-tasks](plans-name-no-todo-tasks.md) | systems | -- | 0/3 | Six 0.2.4 plans carry no heading naming the TODO tasks they close |
+| [plans-name-no-todo-tasks](plans-name-no-todo-tasks.md) | systems | -- | 0/4 | Six 0.2.4 plans carry no heading naming the TODO tasks they close |
 
 ### in-progress  (19)
 
