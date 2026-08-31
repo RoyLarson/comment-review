@@ -28,6 +28,10 @@ this plan. Rulings: `decision-log.md Process: #56`, `#57`, `#60`, `#61`, `#62`.
 and its own plan. Ruled by Roy, 2026-08-30, on being shown the finding below: *"wire the
 containers first."*
 
+! **THAT PLAN IS `docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`**,
+which is SP-2 of `docs/plans/0.2.4-the-commands-for-the-middle.md`. Its Task 2 is what gives
+`parse_edit_copy` the production importer this plan's Tasks 6-8 need in order to be reachable.
+
 !! **MEASURED: NOTHING WOULD CALL WHAT TASKS 6-8 BUILD.** `parse_move` is reached only
 through `parse_edit_copy`, and `parse_edit_copy` **has no production importer**;
 `move_problems` has no caller at all. So the composite parse, the sentence check, the

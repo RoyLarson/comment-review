@@ -2120,6 +2120,12 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `docs/superpowers/plans/2026-08-30-wire-the-containers.md` Task 3 was held pending this
   answer and proceeds.
 
+  ! **THAT PLAN WAS SUPERSEDED ON 2026-08-31 BY
+  `docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`**, which carries the
+  same held task as its Task 5, `Step 0` and all. **The sentence above is not rewritten**: it
+  records where the question was raised and answered on the day, and a dated record that names
+  a file created later is the defect finding #13 of the 2026-08-30 review measured.
+
 - **#63.** **COVERAGE IS REPORTED, NOT REFUSED, AND ITS EXPECTATION IS THE STAGE** (Roy,
   2026-08-31, ruling on SP-2's scope). `P26` had been written as *"refuses or reports"* and
   `P27` as a bare *"is named"*, which left the behaviour undecided in the plan itself.
