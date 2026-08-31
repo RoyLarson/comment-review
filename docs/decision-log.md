@@ -2162,6 +2162,22 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ruling on SP-2's scope). `Sheet`, `EditCopy` and `MasterProof` get `seed` classmethods built
   from the dataclass's own field names, and the literal spellings at their producer sites go.
 
+  !!! **SUPERSEDED IN PART BY `#65`, THE SAME DAY: A `seed` RETURNS THE CONTAINER, NOT A WIRE
+  DICT.** It was implemented as `seed -> dict`, which satisfied the words above and is
+  overridden by the flow shape `#65` states -- **no raw dictionary past either end**, so a
+  producer inside the middle has no business making one. Roy, on being told the two read as a
+  sequence with a task bridging them: *"My statement actively overrides that the way it is
+  stated to me."*
+
+  ! **THE RULE THIS ENTRY STATES IS UNCHANGED AND STILL BINDS**: the write half lives with the
+  read half, keyed off the dataclass's own fields, so a rename breaks at construction. What is
+  superseded is only WHAT `seed` HANDS BACK. ! Serialization becomes its own act, the way
+  `desk.mark.Mark` already splits `seed` from `as_entry`.
+
+  ! **READ THIS BEFORE IMPLEMENTING ANYTHING FROM THE PARAGRAPHS BELOW.** They describe a
+  `seed` that returns the wire dict, because that is what was built; left unmarked, the next
+  reader builds it again.
+
   !! **IT IS THE DEFECT `Mark.seed` ALREADY CLOSED ONE LAYER DOWN.** `desk/mark.py:329-332`
   records it: the write half of the round trip did not live with the read half until 2026-08-30,
   so renaming a field left another module writing the old key and **nothing could notice** --
@@ -2229,7 +2245,16 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **THIS ENTRY SAID THE FILING WAS THE ERROR AND THAT WAS WRONG.** Filing the question as a
   `[?]` was right and it is how the answer was got; what was wrong was the handling afterwards.
 
-  ! **`seed` RETURNING A DICT IS PART OF THE SAME DEFECT.** `Sheet.seed`, `EditCopy.seed` and
-  `MasterProof.seed` -- `#64`, landed hours earlier -- each return the wire dict. Under this
-  ruling a `seed` produces the CONTAINER and serialization is its own act, the way
-  `desk.mark.Mark` already splits `seed` from `as_entry`.
+  !! **AND IT OVERRIDES `#64`'s IMPLEMENTATION RATHER THAN FOLLOWING IT.** `Sheet.seed`,
+  `EditCopy.seed` and `MasterProof.seed` -- landed hours earlier -- each return the wire dict.
+  Roy, 2026-08-31, on being told the two read as a sequence with `T28` bridging them: *"My
+  statement actively overrides that the way it is stated to me."*
+
+  ! **SO IT IS A SUPERSESSION, NOT A LATER CONCERN.** A `seed` produces the CONTAINER and
+  serialization is its own act. `#64` carries the mark; the paragraphs under it that describe a
+  dict-returning `seed` describe what was built, not what is wanted.
+
+  !! **THE DIFFERENCE IS WHAT A READER DOES TOMORROW.** Read as a sequence, `#64` still says
+  "return the dict" and a task somewhere says "change it later" -- so the next producer written
+  returns a dict and is correct on the day it lands. Read as an override, there is one answer
+  and no window in which the wrong one is sanctioned.
