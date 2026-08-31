@@ -27,7 +27,23 @@ written through its type). **A spec restating five log entries is a second copy 
 recomputes.** Read those five with this plan.
 
 **Plan (`P`):** [`docs/plans/0.2.4-the-commands-for-the-middle.md`](../../plans/0.2.4-the-commands-for-the-middle.md)
--- SP-2 delivers `P21`, `P25` and `P27`.
+-- SP-2 was written to deliver `P21`, `P25` and `P27`.
+
+!!! **IT DID NOT, AND ALL THREE ARE REOPENED AS OF 2026-08-31.** Roy, refusing the merge:
+*"You didn't do this correctly so it can't be closed ... Passing dicts around when containers
+were specified as the design pattern is not correct. It may pass tests but tests don't test
+correctness they test functionality."*
+
+!! **EVERY BOX BELOW IS TICKED AND EVERY ONE OF ITS VERIFY TEXTS IS LITERALLY MET.** The
+boundary parse is called, source verification runs over every ruled mark, a short shard is
+named -- and all of it operates on a raw dict, with the parsed container discarded at the point
+it is produced. **The behaviour landed; the design did not.** `Process: #65` and `#66` state
+the shape, and SP-7 is where these three steps are actually closed.
+
+! **THE TICKED BOXES BELOW ARE LEFT AS THEY ARE.** They record what was done, and the eight
+tasks did happen. What was wrong is the claim the P steps made on the strength of them --
+which is a claim about the PLAN, and is corrected there. ! Reading this file as a record of
+finished work is the error; reading it as a record of what was built is correct.
 
 **Lane:** `backend`. No file under `plugins/comment-review/agents/`, `SKILL.md` or
 `references/*.md` is touched. `plugins/` is BUILT at release, not during development.

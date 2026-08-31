@@ -2162,21 +2162,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ruling on SP-2's scope). `Sheet`, `EditCopy` and `MasterProof` get `seed` classmethods built
   from the dataclass's own field names, and the literal spellings at their producer sites go.
 
-  !!! **SUPERSEDED IN PART BY `#65`, THE SAME DAY: A `seed` RETURNS THE CONTAINER, NOT A WIRE
-  DICT.** It was implemented as `seed -> dict`, which satisfied the words above and is
-  overridden by the flow shape `#65` states -- **no raw dictionary past either end**, so a
-  producer inside the middle has no business making one. Roy, on being told the two read as a
-  sequence with a task bridging them: *"My statement actively overrides that the way it is
-  stated to me."*
+  !! **THIS ENTRY STANDS AS WRITTEN. A `seed` RETURNS A DICT, AND THAT IS CORRECT.** It carried
+  a supersession for about an hour on 2026-08-31, saying `#65` had overridden the return type.
+  **That was an over-correction and it is withdrawn** -- see `#66`, which states why a seed
+  cannot be the container even in principle: a seeded slot is three of `Mark`'s eight fields
+  with `instruction: None`, and typing it as a `Mark` would need five optionals, at which point
+  holding a `Mark` would no longer mean the ruling is complete.
 
-  ! **THE RULE THIS ENTRY STATES IS UNCHANGED AND STILL BINDS**: the write half lives with the
-  read half, keyed off the dataclass's own fields, so a rename breaks at construction. What is
-  superseded is only WHAT `seed` HANDS BACK. ! Serialization becomes its own act, the way
-  `desk.mark.Mark` already splits `seed` from `as_entry`.
-
-  ! **READ THIS BEFORE IMPLEMENTING ANYTHING FROM THE PARAGRAPHS BELOW.** They describe a
-  `seed` that returns the wire dict, because that is what was built; left unmarked, the next
-  reader builds it again.
+  ! **AND THE PRECEDENT THE SUPERSESSION CITED WAS MISREAD.** It said serialization should
+  become its own act *"the way `desk.mark.Mark` already splits `seed` from `as_entry`"*. Both
+  of those return DICTS. Nothing on `Mark` returns a `Mark`; `parse` does. The containers were
+  already following the pattern they were accused of breaking.
 
   !! **IT IS THE DEFECT `Mark.seed` ALREADY CLOSED ONE LAYER DOWN.** `desk/mark.py:329-332`
   records it: the write half of the round trip did not live with the read half until 2026-08-30,
@@ -2245,16 +2241,49 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **THIS ENTRY SAID THE FILING WAS THE ERROR AND THAT WAS WRONG.** Filing the question as a
   `[?]` was right and it is how the answer was got; what was wrong was the handling afterwards.
 
-  !! **AND IT OVERRIDES `#64`'s IMPLEMENTATION RATHER THAN FOLLOWING IT.** `Sheet.seed`,
-  `EditCopy.seed` and `MasterProof.seed` -- landed hours earlier -- each return the wire dict.
-  Roy, 2026-08-31, on being told the two read as a sequence with `T28` bridging them: *"My
-  statement actively overrides that the way it is stated to me."*
+  !! **IT DOES NOT REACH `seed`, AND FOR ABOUT AN HOUR ON 2026-08-31 THIS ENTRY SAID IT DID.**
+  The override was written to cover `Sheet.seed`, `EditCopy.seed` and `MasterProof.seed`,
+  landed hours earlier, each returning the wire dict. **It should not have.** `#66` states the
+  reason and this clause is corrected rather than removed, so the reasoning stays legible.
 
-  ! **SO IT IS A SUPERSESSION, NOT A LATER CONCERN.** A `seed` produces the CONTAINER and
-  serialization is its own act. `#64` carries the mark; the paragraphs under it that describe a
-  dict-returning `seed` describe what was built, not what is wanted.
+  !! **WHAT THIS RULING GOVERNS IS WHAT A FLOW CARRIES, NOT WHAT IT EMITS.** Between the load
+  and the save the value is the container. AT the save it is a dict, by this ruling's own
+  shape -- and a SEED is emitted at a save: `flows.distribute.seed` builds one and the command
+  writes it as the JSON a role is handed. **The dict is where the ruling puts it.**
 
-  !! **THE DIFFERENCE IS WHAT A READER DOES TOMORROW.** Read as a sequence, `#64` still says
-  "return the dict" and a task somewhere says "change it later" -- so the next producer written
-  returns a dict and is correct on the day it lands. Read as an override, there is one answer
-  and no window in which the wrong one is sanctioned.
+- **#66.** **A SEED IS AN EMPTY FORM, NOT AN INSTANCE, SO IT CANNOT BE THE CONTAINER** (Roy,
+  2026-08-31, withdrawing an over-correction he had prompted an hour before): *"the seed from
+  the containers are necessarily dicts because they cannot be validated as the thing without
+  putting in a bunch of None/"" guard checks and that would in many ways defeat the purpose of
+  having a container that validates itself"*
+
+  !! **MEASURED, AND THE REASON IS STRONGER THAN INCONVENIENCE.** `desk.mark.Mark` declares
+  EIGHT non-optional fields -- `address`, `anchor`, `raw_text`, `instruction`, `claim`,
+  `reason`, `sources`, `change`. `Mark.seed` writes THREE of them, plus `instruction: None`
+  where an `Instruction` is declared. Returning a `Mark` would need five of the eight made
+  optional -- and at that point **holding a `Mark` would no longer mean the ruling is
+  complete**, which is the only thing the type is for. The guards would not surround the
+  container; they would dissolve it.
+
+  !! **AND THE PRECEDENT THE OVER-CORRECTION CITED SAYS THE OPPOSITE.** It argued a seed should
+  return the container *"the way `Mark` already splits `seed` from `as_entry`"*. **Both of
+  those return dicts.** Nothing on `Mark` returns a `Mark` -- `parse` does. The containers were
+  already following the pattern they were accused of breaking, and one look at either
+  signature would have said so.
+
+  ! **SO THE SPLIT IS `parse` VERSUS `seed`, NOT CONTAINER VERSUS DICT.** A `parse` answers *is
+  this a filled, well-formed X* and returns the type. A `seed` answers *what does an unfilled
+  X look like on the wire* and returns the wire. They are different questions and neither is
+  the other's serialization.
+
+  ! **`#65` IS NOT WEAKENED BY THIS.** Everything it was written from -- the parsed object
+  discarded, the raw dict walked downstream, the `KeyError` on a `sha` the container had
+  already normalized -- is about the RETURN direction, what a flow carries after it loads.
+  None of it is about what a flow emits.
+
+  !! **THE PROCESS FAILURE IS WORTH MORE THAN THE RULING.** Told his statement overrode `#64`,
+  I widened it to every `seed` without checking whether a seed COULD be a container -- and
+  wrote a `!!!` supersession into this log and into the module docstring a producer reads.
+  Roy caught it himself an hour later. ! **AN OVERRIDE HAS A SCOPE, AND FINDING IT IS THE
+  WORK.** "This overrides that" answers which rule wins, never how far it reaches; taking the
+  widest reading is not obedience, it is a second guess wearing the first one's authority.

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 9 of 28 tasks closed
+Progress: 10 of 28 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -247,6 +247,7 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
         > 2026-08-31 3 lines in the whole middle construct a container object
 - [ ] T27 | Implement the serialize half on each container, so the save step is
       json.dumps over what a container hands out
-- [ ] T28 | Update Sheet.seed, EditCopy.seed and MasterProof.seed to return the
-      container, splitting seed from serialize as Mark already does
+- [x] T28 | SUPERSEDED by Process #66 -- a seed is an empty form, so it cannot be the container | df7e0da | Update
+      Sheet.seed, EditCopy.seed and MasterProof.seed to return the container,
+      splitting seed from serialize as Mark already does
         > 2026-08-31 Mark splits seed from as_entry already; the containers do not

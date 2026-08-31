@@ -23,18 +23,20 @@ container from the class's own field names -- `Process: #64` -- and `parse`
 reads one back. Renaming a field breaks at construction rather than folding to
 a default one module away, which is `desk.mark.Mark.seed`'s guard one level up.
 
-!!! **AND `seed` RETURNS THE WIRE DICT, WHICH `Process: #65` OVERRIDES.** The
-flow shape is `json.loads -> deserialize -> containers -> serialize ->
-json.dumps`, with NO RAW DICTIONARY PAST EITHER END -- so a producer inside the
-middle has no business making one. A `seed` is to return the CONTAINER, and
-serialization becomes its own act, the way `desk.mark.Mark` splits `seed` from
-`as_entry`. **What is below is what was built, not what is wanted**; `P42` and
-`TODO/containers-and-verification-are-unwired.md` T28 carry the change.
+!!! **`seed` RETURNS THE WIRE DICT AND THAT IS CORRECT** -- `Process: #66`. A
+seed is an EMPTY FORM, not an instance: `desk.mark.Mark.seed` writes three of
+`Mark`'s eight fields plus `instruction: None`, and typing that as a `Mark`
+would need five optionals, at which point holding a `Mark` would stop meaning
+the ruling is complete. **The split is `parse` versus `seed`, not container
+versus dict** -- a parse answers *is this a filled, well-formed X* and returns
+the type; a seed answers *what does an unfilled X look like on the wire*.
 
-! **IT IS AN OVERRIDE, NOT A LATER CONCERN.** Read as two rulings in sequence,
-this module still says *return the dict* and a task elsewhere says *change it
-later* -- so the next producer written returns a dict and is correct on the day
-it lands. There is one answer, and this paragraph is where a reader meets it.
+! **THIS PARAGRAPH SAID THE OPPOSITE FOR ABOUT AN HOUR ON 2026-08-31**, claiming
+`Process: #65` overrode the return type and citing `Mark`'s `seed`/`as_entry`
+split as the precedent. **Both of those return dicts.** `#65` governs what a
+flow CARRIES between its load and its save; a seed is emitted AT a save --
+`flows.distribute.seed` builds one and the command writes it as the JSON a role
+is handed -- so the dict is where that ruling puts it.
 
     write   flows.distribute.seed, flows.collate._chief_copy,
             flows.collate._nothing_settled, desk.proof.gather
