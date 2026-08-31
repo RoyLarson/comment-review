@@ -2204,10 +2204,27 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   STAYS DICTS"* is about what crosses the process boundary -- what a role is handed and hands
   back, what `json.dumps` writes. In MEMORY, between load and save, the value is the container.
 
-  !! **IT WAS FILED AS A RULING OWED AND THAT WAS THE ERROR.** `containers-and-verification-
-  are-unwired` T25 was written `[?]`, which sets `Requires-Roy` and puts a decision in Roy's
-  queue. **A defect whose correct shape is stated is not a decision** -- filing it as one asks
-  for an answer that already exists, and the flag is the scheduling aid a real ruling needs.
+  !! **A `[?]` IS CLOSED BY CHECKING IT, AND THE DECISION IS THE WORK.** Roy, 2026-08-31, on
+  finding T25 unchecked and reworded instead: *"You check the box because I decided. You put a
+  note in it on the decision, then you check the box to say that the decision is complete. That
+  will remove the requires Roy tag. Then you add plan tasks or todo tasks that deal with the
+  implications of the decision."*
+
+      note the decision  ->  CHECK the box  ->  file the implications
+
+  ! **UNCHECKING ERASES BOTH THE QUESTION AND THE ANSWER.** `uncheck` returns a task to `[ ]`
+  not started *"leaving no record it was otherwise"*, so a ruling that was asked for, waited on
+  and given reads afterwards as work nobody began. **A ruling is work**, and a checked box is
+  what says it was done -- `Requires-Roy` then goes false because it is DERIVED from `[?]`, not
+  because anything cleared a flag.
+
+  ! **AND THE LABEL STAYS THE QUESTION.** T25 reads *"Decide whether the parses should return a
+  value at all"* and closes with the answer as its statement. Rewording it into the resulting
+  ACT would put the implication where the decision was, and leave the board unable to show that
+  a question had ever been put. The act is T26-T28, filed beside it.
+
+  ! **THIS ENTRY SAID THE FILING WAS THE ERROR AND THAT WAS WRONG.** Filing the question as a
+  `[?]` was right and it is how the answer was got; what was wrong was the handling afterwards.
 
   ! **`seed` RETURNING A DICT IS PART OF THE SAME DEFECT.** `Sheet.seed`, `EditCopy.seed` and
   `MasterProof.seed` -- `#64`, landed hours earlier -- each return the wire dict. Under this

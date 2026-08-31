@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 28 tasks closed
+Progress: 9 of 28 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -52,9 +52,9 @@ the save step works on or with the containers and the containers serialize and
 deserialize themselves or seed themselves and the flow saves the resulting
 object to json through json.dumps"*
 
-LOAD   json.loads -> the decoded item -> `parse_*` -> a container WORK   every
-step from there takes and returns CONTAINERS SAVE   the container serializes
-itself -> json.dumps
+    LOAD   json.loads -> the decoded item -> `parse_*` -> a container
+    WORK   every step from there takes and returns CONTAINERS
+    SAVE   the container serializes itself -> json.dumps
 
 ! **IT IS WHAT THIS MODULE ALREADY SAID IT WAS FOR.** `desk/containers.py`'s own
 docstring: a parse returns `(T, [])` *"so a caller holds a checked object rather
@@ -99,45 +99,6 @@ it to a new file would have left it exactly as unwired.
 ! **`desk/containers.py` CANNOT BE FULLY CORRECT UNTIL A MOVE HAS SOMEWHERE TO
 GO.** An edit copy is one slot per place and a move spans two -- `Process: #60`,
 task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
-
-## What is measured
-
-| | |
-| --- | --- |
-| `desk/containers.py` | **no production importer.** It declares `Sheet`, `EditCopy`, `MasterProof` and their parses while `desk/collator.py` hand-rolls its own `isinstance` checks with its own definition of a valid copy |
-| `desk/collator.py` source verification | **only test callers.** `grep -rn "verify_report" src/ tests/` returns five prose mentions inside `collator.py` itself and six call sites, all in `tests/test_collator.py` |
-
-So `address_problems`, `claim_verbatim_problems`, `source_problems`, `source_verification`
-and `verify_report` are reached by tests and by nothing in production, and the shape a copy
-must be is stated in one place and decided in another.
-
-## The refuse-versus-report tension is resolved BY LEVEL, not by precedence
-
-`parse_edit_copy` REFUSES a bad copy while `flows/collate.py`'s `problems_in` REPORTS one
-and continues, so each problem routes back to the role that wrote it. That reads as two
-contracts competing for one boundary. **It is two boundaries:**
-
-| | rules on | on failure |
-| --- | --- | --- |
-| a container | the **ENVELOPE** -- is this document the shape a copy must be | errors out |
-| `problems_in` | the **CONTENTS** -- what one role wrote in one slot | reports, and routes it back |
-
-Neither answers the other's question, and wiring the first does not weaken the second.
-
-!! **THE ARGUMENT IS ABOUT FUTURE ERRORS, NOT PRESENT ONES** -- Roy: *"It may not error but
-it also is not protected."* A shape nothing states is a shape every consumer re-derives, and
-the re-derivations drift silently because each one is locally correct.
-
-!! **AND THE *"NEEDS AN AND"* TELL POINTED THE WRONG WAY HERE.** `collator.py`'s title reads
-*"SOURCE-VERIFICATION and RECONCILIATION"*, which `module-context` treats as evidence for a
-split. The defect was the opposite: **a module half with no caller READS like a second
-module**, because nothing in the running system ties it to the first. The fix is a caller,
-not a boundary -- and moving it to a new file would have left it exactly as unwired.
-
-! **`desk/containers.py` CANNOT BE FULLY CORRECT UNTIL A MOVE HAS SOMEWHERE TO GO.** An edit
-copy is one slot per place and a move spans two -- `Process: #60`, task 9 of
-[`move-is-a-composite-mark`](move-is-a-composite-mark.md). This file's task 1 lands the
-envelope check; that file's task 9 lands the region a move needs inside it.
 
 ## Tasks
 
@@ -269,12 +230,14 @@ envelope check; that file's task 9 lands the region a move needs inside it.
       `Sheet.seed`, `EditCopy.seed` and `MasterProof.seed`, so a container is
       written through its type as a mark already is
         > 2026-08-31 rename Sheet.sha: parse gives sha='' []; Mark.seed raises at build
-- [ ] T25 | Update the load step so it hands the parsed container downstream,
-      and stop passing the decoded json past it
-        > 2026-08-31 Process #65: raw json at the load and the save, nowhere else
+- [x] T25 | RULED yes, Process #65: the parse hands a container on, and only load and save see json | 78dd7ca | Decide
+      whether the parses should return a value at all, since every production
+      caller discards the object and reads the dict
         > 2026-08-31 collate.py:691 keeps parsed only to test None; :753 drops it
         > 2026-08-31 only copies[0].read_from is read off a parsed object
-        > 2026-08-31 filed [?] in error; a stated shape is not a ruling owed
+        > 2026-08-31 RULED: yes -- the parse hands a container on, Process #65
+        > 2026-08-31 load decodes json into a container; save serializes it back out
+        > 2026-08-31 no step between the two sees raw json; T26-T28 are the work
 - [ ] T26 | Update every step between the load and the save so it takes and
       returns a container rather than a dict
         > 2026-08-31 measured 2026-08-31: 29 signatures in the middle carry a raw dict
