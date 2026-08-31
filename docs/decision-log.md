@@ -2177,3 +2177,39 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **`desk/containers.py` DECLARES *"THE TYPE IS THE DEFINITION AND THERE IS NO MARKDOWN
   SOURCE"* AT `:10`**, and shipped three parsers and nothing that writes. The claim is what this
   ruling makes true rather than aspirational.
+
+- **#65.** **RAW JSON LIVES AT THE LOAD AND THE SAVE, AND NOWHERE BETWEEN** (Roy, 2026-08-31,
+  on being told the discarded parsed object was a design question): *"Defect not a design
+  question ... Unless it is the flow passing the json decoded item into the container on the
+  first step of loading the flow no downstream results should get the raw json. Everything
+  after the load step to the save step works on or with the containers and the containers
+  serialize and deserialize themselves or seed themselves and the flow saves the resulting
+  object to json through json.dumps"*
+
+  !! **SO THE SHAPE IS THREE STEPS, AND ONLY THE ENDS SEE A DICT.**
+
+      LOAD   json.loads -> the decoded item -> `parse_*` -> a container
+      WORK   every step from there takes and returns CONTAINERS
+      SAVE   the container serializes itself -> json.dumps
+
+  !! **AND IT IS WHAT `desk/containers.py` ALREADY SAID IT WAS FOR.** Its own docstring: a
+  parse returns `(T, [])` *"so a caller holds a checked object rather than re-deriving the same
+  keys with `isinstance` ladders."* **No caller holds one.** MEASURED 2026-08-31 after `P21`
+  wired both parses: `flows/collate.py:691` keeps the parsed `EditCopy` only to test it against
+  `None`, `:753` drops the `MasterProof` entirely, and the one field read off a parsed object
+  anywhere in `src/` is `copies[0].read_from`, inside `containers.py` itself. Every step
+  downstream re-derives the same keys off the dict the parse just checked.
+
+  ! **THE WIRE STAYS DICTS AND THAT IS NOT A CONTRADICTION.** The same docstring's *"THE WIRE
+  STAYS DICTS"* is about what crosses the process boundary -- what a role is handed and hands
+  back, what `json.dumps` writes. In MEMORY, between load and save, the value is the container.
+
+  !! **IT WAS FILED AS A RULING OWED AND THAT WAS THE ERROR.** `containers-and-verification-
+  are-unwired` T25 was written `[?]`, which sets `Requires-Roy` and puts a decision in Roy's
+  queue. **A defect whose correct shape is stated is not a decision** -- filing it as one asks
+  for an answer that already exists, and the flag is the scheduling aid a real ruling needs.
+
+  ! **`seed` RETURNING A DICT IS PART OF THE SAME DEFECT.** `Sheet.seed`, `EditCopy.seed` and
+  `MasterProof.seed` -- `#64`, landed hours earlier -- each return the wire dict. Under this
+  ruling a `seed` produces the CONTAINER and serialization is its own act, the way
+  `desk.mark.Mark` already splits `seed` from `as_entry`.

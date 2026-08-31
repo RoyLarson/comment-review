@@ -2,28 +2,103 @@
 
 ```
 Status:   open
-Progress: 8 of 25 tasks closed
+Progress: 8 of 28 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
           collator's source-verification half is wired into the flow rather than split
           out, after a review measured containers with no production importer and
           verify_report with only test callers)
+Retitle:  2026-08-31 -- title now false: they are wired; what is left is nothing HOLDS
+          one
 ```
 
 ## Objective
 
-The containers and the source-verification half are wired to nothing.
+The containers are wired, and nothing downstream holds one.
 
-!! **RULED 2026-08-30 -- `decision-log.md Process: #57` and `#58`.** Two questions were put
-to Roy separately and he answered them the same way.
+!! **THE FIRST HALF LANDED 2026-08-31 IN SP-2** --
+`docs/superpowers/plans/2026-08-31-sp2-the- wiring-and-shard-coverage.md`,
+closing `P21`, `P25` and `P27`. `flows.collate.collate` parses every returned
+copy at its inbound boundary and the proof after `gather`; `verify_report` runs
+over every ruled mark; a role short of its shard is named. **The measurements
+below are what that closed, and are kept because a stranger should be able to
+see what the file was opened for.**
 
-On the containers: *"yes because the system is broken without it. It may not error but it
-also is not protected from future errors which the containers are an explicit statement for
-what is contained and what can be contained or errors out"*
+## What was measured, 2026-08-30, and is now false
 
-On the collator's title needing an *and*: *"Nope the source-verification side needs to be
-wired into the flow - same as 1) the flow coordinates the things in the modules do"*
+| | |
+| --- | --- |
+| `desk/containers.py` | **no production importer.** It declared `Sheet`, `EditCopy`, `MasterProof` and their parses while `desk/collator.py` hand-rolled its own `isinstance` checks with its own definition of a valid copy |
+| `desk/collator.py` source verification | **only test callers.** `grep -rn "verify_report" src/ tests/` returned five prose mentions inside `collator.py` itself and six call sites, all in `tests/test_collator.py` |
+
+Both now return real production callers -- T1, T2 and T3, against `eeb983f`,
+`6bb8f8e` and `7bd7dd3`.
+
+## What is measured NOW, 2026-08-31, and is the rest of this file
+
+**A container is built, checked, and thrown away.** `flows/collate.py:691` keeps
+the parsed `EditCopy` only to test it against `None`; `:753` drops the
+`MasterProof` entirely; and the one field read off a parsed object anywhere in
+`src/` is `copies[0].read_from`, inside `containers.py` itself. **29 signatures
+between the load and the save take or return a raw dict, and 3 lines in the
+whole middle construct a container object.**
+
+!! **RULED `Process: #65`, 2026-08-31.** Roy, on being told this was a design
+question: *"Defect not a design question ... Unless it is the flow passing the
+json decoded item into the container on the first step of loading the flow no
+downstream results should get the raw json. Everything after the load step to
+the save step works on or with the containers and the containers serialize and
+deserialize themselves or seed themselves and the flow saves the resulting
+object to json through json.dumps"*
+
+LOAD   json.loads -> the decoded item -> `parse_*` -> a container WORK   every
+step from there takes and returns CONTAINERS SAVE   the container serializes
+itself -> json.dumps
+
+! **IT IS WHAT THIS MODULE ALREADY SAID IT WAS FOR.** `desk/containers.py`'s own
+docstring: a parse returns `(T, [])` *"so a caller holds a checked object rather
+than re-deriving the same keys with `isinstance` ladders."* No caller holds one,
+and every step downstream re-derives the keys the parse just checked. ! **THE
+WIRE STAYING DICTS IS NOT A CONTRADICTION** -- that is about what crosses the
+process boundary, what a role is handed and what `json.dumps` writes. In memory,
+between load and save, the value is the container.
+
+## The refuse-versus-report tension is resolved BY LEVEL, not by precedence
+
+`parse_edit_copy` REFUSES a bad copy while `desk.collator.problems_in` REPORTS
+one and continues, so each problem routes back to the role that wrote it. That
+reads as two contracts competing for one boundary. **It is two boundaries:**
+
+| | rules on | on failure |
+| --- | --- | --- |
+| a container | the **ENVELOPE** -- is this document the shape a copy must be | the run errors out |
+| `problems_in` | the **CONTENTS** -- what one role wrote in one slot | reports, and routes it back |
+
+Neither answers the other's question, and wiring the first did not weaken the
+second.
+
+! **THE ENVELOPE REPORTS RATHER THAN RAISES, decided in SP-2.** `Process: #57`
+says a container *"errors out"*, and the run does: `commands/collate.py` prints
+every `Problem` and returns `BROKEN` without writing the chief copy. What
+changes is that it says everything it found on the way -- a raise there was
+measured discarding every routable problem already computed.
+
+!! **THE ARGUMENT IS ABOUT FUTURE ERRORS, NOT PRESENT ONES** -- Roy: *"It may
+not error but it also is not protected."* A shape nothing states is a shape
+every consumer re-derives, and the re-derivations drift silently because each
+one is locally correct.
+
+!! **AND THE *"NEEDS AN AND"* TELL POINTED THE WRONG WAY HERE.** `collator.py`'s
+title reads *"SOURCE-VERIFICATION and RECONCILIATION"*, which `module-context`
+treats as evidence for a split. The defect was the opposite: **a module half
+with no caller READS like a second module**, because nothing in the running
+system ties it to the first. The fix was a caller, not a boundary -- and moving
+it to a new file would have left it exactly as unwired.
+
+! **`desk/containers.py` CANNOT BE FULLY CORRECT UNTIL A MOVE HAS SOMEWHERE TO
+GO.** An edit copy is one slot per place and a move spans two -- `Process: #60`,
+task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
 
 ## What is measured
 
@@ -194,7 +269,18 @@ envelope check; that file's task 9 lands the region a move needs inside it.
       `Sheet.seed`, `EditCopy.seed` and `MasterProof.seed`, so a container is
       written through its type as a mark already is
         > 2026-08-31 rename Sheet.sha: parse gives sha='' []; Mark.seed raises at build
-- [?] T25 | Decide whether the parses should return a value at all, since every
-      production caller discards the object and reads the dict
+- [ ] T25 | Update the load step so it hands the parsed container downstream,
+      and stop passing the decoded json past it
+        > 2026-08-31 Process #65: raw json at the load and the save, nowhere else
         > 2026-08-31 collate.py:691 keeps parsed only to test None; :753 drops it
         > 2026-08-31 only copies[0].read_from is read off a parsed object
+        > 2026-08-31 filed [?] in error; a stated shape is not a ruling owed
+- [ ] T26 | Update every step between the load and the save so it takes and
+      returns a container rather than a dict
+        > 2026-08-31 measured 2026-08-31: 29 signatures in the middle carry a raw dict
+        > 2026-08-31 3 lines in the whole middle construct a container object
+- [ ] T27 | Implement the serialize half on each container, so the save step is
+      json.dumps over what a container hands out
+- [ ] T28 | Update Sheet.seed, EditCopy.seed and MasterProof.seed to return the
+      container, splitting seed from serialize as Mark already does
+        > 2026-08-31 Mark splits seed from as_entry already; the containers do not
