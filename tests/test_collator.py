@@ -390,10 +390,10 @@ class TestVerifyReport:
         -- `desk.mark.untouched`, a coverage gap rather than a problem this
         step reports."""
         sheet = seed(BINDER, "block-context")
-        assert verify_report(sheet, BINDER, ROOT) == []
+        assert verify_report(sheet, BINDER, ROOT, {}) == []
 
     def test_one_filled_entry_is_checked_against_the_page(self):
-        assert verify_report(_filled({}), BINDER, ROOT) == []
+        assert verify_report(_filled({}), BINDER, ROOT, {}) == []
 
     def test_a_broken_entry_is_reported_by_its_address(self):
         copy = _filled(
@@ -404,7 +404,7 @@ class TestVerifyReport:
                 }
             }
         )
-        problems = verify_report(copy, BINDER, ROOT)
+        problems = verify_report(copy, BINDER, ROOT, {})
         assert problems
         # !! THE ADDRESS IS A FIELD SINCE 2026-08-31, not a prefix on a
         # sentence -- `P25` gave this a production caller, and `Problem` exists
@@ -431,7 +431,7 @@ class TestVerifyReport:
         `tests/test_collator.py::TestProblemsIn` covers.
         """
         copy = _filled({"instruction": None})
-        assert verify_report(copy, BINDER, ROOT) == []
+        assert verify_report(copy, BINDER, ROOT, {}) == []
         found, _ruled = problems_in(copy)
         assert any("instruction" in p.message for p in found)
 
@@ -484,7 +484,7 @@ class TestTheBaseIsTheBinders:
         entry = copy["sheets"][0]["marks"][0]
         entry.update(a_correct(entry["address"], "a sentence nobody wrote"))
         entry["raw_text"] = "a sentence nobody wrote"
-        problems = verify_report(copy, binder, repo)
+        problems = verify_report(copy, binder, repo, {})
         assert any("is not in the paragraph" in p.message for p in problems)
 
 

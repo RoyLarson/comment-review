@@ -26,6 +26,8 @@ for `tests/test_collate.py`.
 
 from pathlib import Path
 
+from conftest import ROOT
+
 from comment_review.binder.binder import bind
 from comment_review.desk.mark import ANCHOR_EXAMPLE, INSTRUCTIONS, Instruction, Shape
 from comment_review.desk.proof import gather
@@ -53,7 +55,12 @@ _PLACEHOLDER_SENTENCE = "the paragraph's own claim"
 #: `tmp_path` reports EVERY built mark's citation as unresolvable -- and a test
 #: asserting some OTHER finding would then pass on the wrong one. Measured
 #: 2026-08-31 while wiring `P25`.
-REPO = Path(__file__).resolve().parents[1]
+#:
+#: ! IT IS `conftest.ROOT`, NOT A SECOND COMPUTATION OF IT. Both files sit
+#: directly under `tests/`, so a fresh `parents[1]` here would agree by
+#: coincidence and diverge silently if the anchor ever moved.
+#: `tests/gates/test_vocabulary.py` already imports it this way.
+REPO = ROOT
 
 
 def pages_of(root: Path) -> list:

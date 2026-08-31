@@ -72,7 +72,7 @@ from comment_review.desk.containers import (
     parse_edit_copy,
     parse_master_proof,
 )
-from comment_review.desk.mark import Instruction, Mark, parse, untouched
+from comment_review.desk.mark import Instruction, Mark, filled, parse, untouched
 from comment_review.desk.proof import MismatchedRoot, gather
 from comment_review.reading.addresser import cue_of, unflatten
 from comment_review.results.differences import CannotCompose, compose
@@ -696,21 +696,39 @@ def collate(stage: str, edit_copies: list[dict], binder: dict, root: Path) -> Co
     # ! THE ROLE MAY BE THE MISSING THING. `parse_edit_copy` refuses a copy with
     # no `role` before it can name one, and `Problem` needs a role to route on --
     # so the copy's position stands in, which a reader can act on where "" cannot.
-    # !! `problems_in` RUNS ONLY OVER THE COPIES THAT PARSED. Running it over a
-    # refused one reports the same fact twice in two vocabularies -- measured on
-    # a copy with no `sheets`, which both boundaries answer -- and that is the
-    # duplication `Problem` exists to avoid, stated at `desk.collator.drift_in`.
-    # A document that is not a copy has no contents to rule on.
+    # ENVELOPE -- is each document a copy at all.
     envelope: list[Problem] = []
+    are_copies: list[dict] = []
     for i, copy in enumerate(edit_copies, 1):
         where = f"copy {i}"
         parsed, why = parse_edit_copy(where, copy)
-        named = copy.get("role") if isinstance(copy, dict) else None
-        who = named if isinstance(named, str) and named.strip() else where
-        envelope += [Problem(who, "", message) for message in why]
+        if why:
+            named = copy.get("role") if isinstance(copy, dict) else None
+            envelope += [
+                Problem(named if filled(named) else where, "", message)
+                for message in why
+            ]
         if parsed is not None:
-            found, _ruled = problems_in(copy)
-            problems += found
+            are_copies.append(copy)
+
+    # CHECK -- what each role wrote in each slot.
+    #
+    # !! A SEPARATE PASS, AND IT STAYS ONE. The two are named as separate acts in
+    # this module's own header, and folding CHECK into the loop above for one
+    # fewer iteration made the code stop matching that list -- one loop carrying
+    # two acts under one conditional, which is the shape `galley.py` was split
+    # for. The saving was never the pass; it was running `problems_in` ONCE,
+    # which it does either way.
+    #
+    # !! AND IT RUNS ONLY OVER THE COPIES THAT PARSED. Running it over a refused
+    # one reports the same fact twice in two vocabularies -- measured on a copy
+    # with no `sheets`, which both boundaries answer -- and that is the
+    # duplication `Problem` exists to avoid, stated at `desk.collator.drift_in`.
+    # A document that is not a copy has no contents to rule on.
+    for copy in are_copies:
+        found, _ruled = problems_in(copy)
+        problems += found
+
     if envelope:
         return Collated(chief=_nothing_settled(), problems=envelope + problems)
 

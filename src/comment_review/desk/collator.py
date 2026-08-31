@@ -370,8 +370,20 @@ class Problem:
     message: str
 
 
+def _named_role(report: dict) -> str:
+    """The role a `Problem` from this report routes back to, or "".
+
+    ! ONE SPELLING. `verify_report` and `problems_in` each opened with the same
+    two lines, one function apart. A role that is absent, blank or not a string
+    is "" -- there is nobody to send it back to, and `Problem` says so by
+    carrying an empty role rather than by inventing one.
+    """
+    role = report.get("role")
+    return role if filled(role) else ""
+
+
 def verify_report(
-    report: dict, binder: dict, root: Path, cache: Cache | None = None
+    report: dict, binder: dict, root: Path, cache: Cache
 ) -> list[Problem]:
     """Source-verification over every ruled mark of ONE role's edit_copy.
 
@@ -384,13 +396,17 @@ def verify_report(
         binder: the binder the edit_copy was seeded from -- what each
             `address` is measured against.
         root: the checkout every `cite` is resolved against.
-        cache: a `Cache` to read cited files through, or None for a fresh one.
-            ! PASS ONE ACROSS A WHOLE STAGE. `flows.collate.collate` calls this
+        cache: a `Cache` to read cited files through.
+            !! REQUIRED, AND ONE PER STAGE. `flows.collate.collate` calls this
             once per copy, and a cache built per call re-reads a file for every
             citing role -- MEASURED 2026-08-31: four roles citing the same line
             read it from disk four times. The note below already promised "a
             file twenty sources cite is read once", which held inside one copy
             and not across the stage that copy belongs to.
+            ! IT IS NOT OPTIONAL, deliberately. A default would let a caller
+            get the per-call cache back by saying nothing, which is exactly the
+            defect this parameter exists to remove -- and a caller who has no
+            stage to share one across can still pass `{}` and say so.
 
     Returns:
         Every problem found, in sheet order and then in mark order.
@@ -432,12 +448,9 @@ def verify_report(
     sheets = report.get("sheets")
     if not isinstance(sheets, list):
         return []
-    role = report.get("role")
-    named = role if filled(role) else ""
+    named = _named_role(report)
     known = known_addresses(binder)
     base = base_texts(binder)
-    if cache is None:
-        cache = {}
     out: list[Problem] = []
     i = 0
     for sheet in sheets:
@@ -517,8 +530,7 @@ def problems_in(report: dict) -> tuple[list[Problem], int]:
     # ! THE GUARDS THAT WERE CUT INSTEAD are the ones inside `flows/collate.py`,
     # downstream of the envelope in the same flow, where nothing else can reach
     # them.
-    role = report.get("role")
-    named = role if filled(role) else ""
+    named = _named_role(report)
     if not isinstance(report.get("sheets"), list):
         return [Problem(named, "", "the report needs a `sheets` list")], 0
 
