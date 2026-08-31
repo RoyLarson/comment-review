@@ -69,13 +69,17 @@ that scope closing, not work overtaken.
 
 ## Tasks
 
-- [ ] T1 -- * !! DECIDE FIRST what happens to the two held runs in `evidence/`, filed by
-      the OLD stems. Verify: the ruling is recorded in `docs/decision-log.md`.
-- [ ] T2 -- Rename the four agent files under `agents/` and the ids inside them. Verify:
-      `claude plugin validate plugins/comment-review` exits 0 and no old id is left.
-- [ ] T3 -- Move the `[roles]` keys in `references/vocabulary.toml` to the new names.
-      Verify: `uv run python scripts/check_vocabulary.py` exits 0.
-- [ ] T4 -- Rename the role in the shipped prose: `SKILL.md`'s 4a/4c dispatch table and
-      the `--reviewers` examples. Verify: no old role name is left in `plugins/`.
-- [ ] T5 -- Rename the role in `docs/` and `CLAUDE.md`'s command block. Verify: only the
-      held-run paths T1 ruled on keep an old name in `docs/` and `CLAUDE.md`.
+- [ ] T1 | T1 -- * !! DECIDE FIRST what happens to the two held runs in
+      `evidence/`, filed by the OLD stems. Verify: the ruling is recorded in
+      `docs/decision-log.md`.
+- [ ] T2 | T2 -- Rename the four agent files under `agents/` and the ids inside
+      them. Verify: `claude plugin validate plugins/comment-review` exits 0 and
+      no old id is left.
+- [ ] T3 | T3 -- Move the `[roles]` keys in `references/vocabulary.toml` to the
+      new names. Verify: `uv run python scripts/check_vocabulary.py` exits 0.
+- [ ] T4 | T4 -- Rename the role in the shipped prose: `SKILL.md`'s 4a/4c
+      dispatch table and the `--reviewers` examples. Verify: no old role name is
+      left in `plugins/`.
+- [ ] T5 | T5 -- Rename the role in `docs/` and `CLAUDE.md`'s command block.
+      Verify: only the held-run paths T1 ruled on keep an old name in `docs/`
+      and `CLAUDE.md`.

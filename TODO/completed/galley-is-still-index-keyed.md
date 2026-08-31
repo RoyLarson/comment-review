@@ -83,11 +83,12 @@ entry -- but `galley` imports neither. `SKILL.md` still documents the index form
 
 ## Tasks
 
-- [x] **Accept an address key through `record.entry_for`; keep `int` for held
-      runs.** `foliator.resolve` already returns exactly the 1-based indices
-      needed and is called only from inside foliation; galley imports neither
-      foliation nor record.
-- [x] **`SKILL.md` still documents the index form** at the 5b/6b galley step.
-- [x] ! It sits exactly at the round-2 boundary, where `re-review.md` says *"THE
-      ADDRESS DOES CARRY"* -- so the one place the rebuild's property matters most
-      is the one place it is discarded.
+- [x] T1 | FINISHED | unknown | **Accept an address key through
+      `record.entry_for`; keep `int` for held runs.** `foliator.resolve` already
+      returns exactly the 1-based indices needed and is called only from inside
+      foliation; galley imports neither foliation nor record.
+- [x] T2 | FINISHED | unknown | **`SKILL.md` still documents the index form** at
+      the 5b/6b galley step.
+- [x] T3 | FINISHED | unknown | ! It sits exactly at the round-2 boundary, where
+      `re-review.md` says *"THE ADDRESS DOES CARRY"* -- so the one place the
+      rebuild's property matters most is the one place it is discarded.

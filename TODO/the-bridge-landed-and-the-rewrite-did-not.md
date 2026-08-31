@@ -4,7 +4,7 @@
 Status:   in-progress
 Progress: 8 of 11 tasks done
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-17, by /simplify over the 0.2.3 branch
 Updated:  2026-08-18 -- the cycle is gone and the claim is typed at the seam
 Triaged:  2026-08-23 -- the modules moved. `load_report` is now `held.py`, the checks
@@ -83,28 +83,32 @@ PASSED, because the cited line contained it. Fixed 2026-08-18 by putting both ha
 
 ## Tasks
 
-- [x] T1 -- FINISHED `3645aad`, in the reader where the two formats met. Evidence in the
-      Objective.
-- [x] T2 -- FINISHED `3645aad`, verified on the case the task named. Evidence in the
-      Objective.
-- [x] T3 -- * RULED 2026-08-18: the verdict table lives in `record.py`. The inversion
-      holds, verified 2026-08-23.
-- [x] T4 -- FINISHED. The reader left the module that does not own the format; it is
-      `held.py` now. Evidence in the Objective.
-- [x] T5 -- FINISHED `e32c12b`. All five `claim_help` rows name `claim.<key>`, and four
-      tests assert the KEY.
-- [x] T6 -- SUPERSEDED. This box and T10 were the same task filed twice, three lines
-      apart. T10 carries the correction this one got wrong, so T10 is the copy that stays.
-- [x] T7 -- FINISHED `0599091`. `ANCHOR_EXAMPLE` is one string, held equal by two tests
-      and verified by mutation.
-- [ ] T8 -- Move the census dict-unwrap into `census.py`, the module that owns the format.
-      Verify: no module outside `census.py` spells `isinstance(..., dict)` on a census.
-- [ ] T9 -- Make all four census readers agree on a `{"paragraphs": [...]}` census.
-      Verify: all four load it, or all four refuse it with one message.
-- [ ] T10 -- Make `Finding.sources` a typed pair instead of a flattened string. Verify:
-      nothing splits on `|`, and a cite containing `|` round-trips.
-- [x] T11 -- Not a task, and its content is now in the Objective above: "IT IS FIVE
-      READERS, NOT THREE" was a MEASUREMENT, and it was overtaken by the count of four.
+- [x] T1 | FINISHED | unknown | T1 -- FINISHED `3645aad`, in the reader where
+      the two formats met. Evidence in the Objective.
+- [x] T2 | FINISHED | unknown | T2 -- FINISHED `3645aad`, verified on the case
+      the task named. Evidence in the Objective.
+- [x] T3 | FINISHED | unknown | T3 -- * RULED 2026-08-18: the verdict table
+      lives in `record.py`. The inversion holds, verified 2026-08-23.
+- [x] T4 | FINISHED | unknown | T4 -- FINISHED. The reader left the module that
+      does not own the format; it is `held.py` now. Evidence in the Objective.
+- [x] T5 | FINISHED | unknown | T5 -- FINISHED `e32c12b`. All five `claim_help`
+      rows name `claim.<key>`, and four tests assert the KEY.
+- [x] T6 | FINISHED | unknown | T6 -- SUPERSEDED. This box and T10 were the same
+      task filed twice, three lines apart. T10 carries the correction this one
+      got wrong, so T10 is the copy that stays.
+- [x] T7 | FINISHED | unknown | T7 -- FINISHED `0599091`. `ANCHOR_EXAMPLE` is
+      one string, held equal by two tests and verified by mutation.
+- [ ] T8 | T8 -- Move the census dict-unwrap into `census.py`, the module that
+      owns the format. Verify: no module outside `census.py` spells
+      `isinstance(..., dict)` on a census.
+- [ ] T9 | T9 -- Make all four census readers agree on a `{"paragraphs": [...]}`
+      census. Verify: all four load it, or all four refuse it with one message.
+- [ ] T10 | T10 -- Make `Finding.sources` a typed pair instead of a flattened
+      string. Verify: nothing splits on `\|`, and a cite containing `\|`
+      round-trips.
+- [x] T11 | FINISHED | unknown | T11 -- Not a task, and its content is now in
+      the Objective above: "IT IS FIVE READERS, NOT THREE" was a MEASUREMENT,
+      and it was overtaken by the count of four.
 ## Related
 
 - [`the-parser-merges-across-boundaries-it-cannot-read`](the-parser-merges-across-boundaries-it-cannot-read.md)

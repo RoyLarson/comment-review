@@ -14,6 +14,8 @@ A doc comment is cued a and typed b in three languages.
 
 ## Tasks
 
-- [ ] Decide whether the lexer types by MARKER or by the place the walk gave it
-- [ ] Make the kind agree with the cue for go, ruby and lua
-- [ ] Remove the three strict xfails in shadow/test_reading.py once they pass
+- [ ] T1 | Decide whether the lexer types by MARKER or by the place the walk
+      gave it
+- [ ] T2 | Make the kind agree with the cue for go, ruby and lua
+- [ ] T3 | Remove the three strict xfails in shadow/test_reading.py once they
+      pass

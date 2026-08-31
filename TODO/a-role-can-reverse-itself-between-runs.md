@@ -137,15 +137,21 @@ list. `grep -n "stability" docs/limitations.md` returns nothing today.
 
 ## Tasks
 
-- [ ] T1 -- Run one role twice over an unchanged skill and census, and diff the verdicts
-      per block. Verify: a per-block diff recorded, with reversals counted over blocks.
-- [ ] T2 -- Re-run r1's exact skill version against the same census to see whether the
-      reversal reproduces. Verify: both `module-context` verdicts recorded side by side.
-- [?] T3 -- * Rule what a measured reversal rate would OBLIGE: nothing, a bar on a lone
-      `clean`, or agreement across roles. Verify: `docs/decision-log.md` records it.
-- [?] T4 -- * Rule whether a `correct` reversing to `query` is WORSE than the reverse. The
-      verdict table treats them as peers. Verify: `docs/decision-log.md` records it.
-- [ ] T5 -- Say in `docs/limitations.md` that verdict stability across runs is UNMEASURED.
-      Verify: `grep -n "stability" docs/limitations.md` returns a line.
-- [x] T6 -- NOT A TASK. The standing prohibition on adding a `confidence` field is kept in
-      the Objective, under *A "confidence" field is not the answer*.
+- [ ] T1 | T1 -- Run one role twice over an unchanged skill and census, and diff
+      the verdicts per block. Verify: a per-block diff recorded, with reversals
+      counted over blocks.
+- [ ] T2 | T2 -- Re-run r1's exact skill version against the same census to see
+      whether the reversal reproduces. Verify: both `module-context` verdicts
+      recorded side by side.
+- [?] T3 | T3 -- * Rule what a measured reversal rate would OBLIGE: nothing, a
+      bar on a lone `clean`, or agreement across roles. Verify:
+      `docs/decision-log.md` records it.
+- [?] T4 | T4 -- * Rule whether a `correct` reversing to `query` is WORSE than
+      the reverse. The verdict table treats them as peers. Verify:
+      `docs/decision-log.md` records it.
+- [ ] T5 | T5 -- Say in `docs/limitations.md` that verdict stability across runs
+      is UNMEASURED. Verify: `grep -n "stability" docs/limitations.md` returns a
+      line.
+- [x] T6 | FINISHED | unknown | T6 -- NOT A TASK. The standing prohibition on
+      adding a `confidence` field is kept in the Objective, under *A
+      "confidence" field is not the answer*.

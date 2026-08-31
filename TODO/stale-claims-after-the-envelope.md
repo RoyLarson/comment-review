@@ -50,28 +50,35 @@ for the shape this branch changed.
 
 ## Tasks
 
-- [ ] T1 -- Take the second record format out of `record.py`'s prose -- :6-11, :518 and
-      :573-584. Verify: no shipped script describes a record format the code cannot read.
-- [ ] T2 -- Settle what `--seed` writes: `record.py:14` says `paragraph` and `address`,
-      `record.SEEDED` and :699 say the address alone. Verify: the two agree.
-- [x] T3 -- FINISHED. `addresser.py`'s usage line no longer names `--repo`. RE-MEASURED
-      2026-08-23: zero occurrences, and `:3` reads the `--census --anchor --series` form.
-- [ ] T4 -- Re-take the uniqueness cues at `docs/addressing.md:142`; `a0 b1 b2 b3 c1 c2`
-      cannot be what that example yields. Verify: the cues are what a census prints.
-- [ ] T5 -- Name the command that produces those cues beside the sentence at
-      `docs/addressing.md:142`. Verify: running it prints the cues the sentence states.
-- [ ] T6 -- Give the record shape in `reviewer-brief.md:93-107` its envelope. Verify:
-      `record.py --check` accepts a file filled to match the brief's JSON.
-- [ ] T7 -- Update the two false claims in
+- [ ] T1 | T1 -- Take the second record format out of `record.py`'s prose --
+      :6-11, :518 and :573-584. Verify: no shipped script describes a record
+      format the code cannot read.
+- [ ] T2 | T2 -- Settle what `--seed` writes: `record.py:14` says `paragraph`
+      and `address`, `record.SEEDED` and :699 say the address alone. Verify: the
+      two agree.
+- [x] T3 | FINISHED | unknown | T3 -- FINISHED. `addresser.py`'s usage line no
+      longer names `--repo`. RE-MEASURED 2026-08-23: zero occurrences, and `:3`
+      reads the `--census --anchor --series` form.
+- [ ] T4 | T4 -- Re-take the uniqueness cues at `docs/addressing.md:142`; `a0 b1
+      b2 b3 c1 c2` cannot be what that example yields. Verify: the cues are what
+      a census prints.
+- [ ] T5 | T5 -- Name the command that produces those cues beside the sentence
+      at `docs/addressing.md:142`. Verify: running it prints the cues the
+      sentence states.
+- [ ] T6 | T6 -- Give the record shape in `reviewer-brief.md:93-107` its
+      envelope. Verify: `record.py --check` accepts a file filled to match the
+      brief's JSON.
+- [ ] T7 | T7 -- Update the two false claims in
       `src/comment_review/docket/__init__.py`. Verify: `grep -rn
-      "addresser\|address_for\|cue_of" src/comment_review/docket/` matches no
+      "addresser\\|address_for\\|cue_of" src/comment_review/docket/` matches no
       code, so line 14-15 no longer claims the package reads an address with the
       addresser; and line 16 no longer says the desk that fills the docket does
       not exist -- `desk/collator.py:982` `docket_from` fills it and
       `tests/test_docket.py:181-293` exercises it through seven cases.
-- [ ] T8 -- Update the claim at `src/comment_review/commands/taken_in.py:11-12`,
-      printed to the user at line 120, that a docket carries a `role` field and
-      "no docket does yet". Verify: the sentence agrees with
-      `desk/collator.py:1021`, which writes `"role": role`, and with
-      `tests/test_docket.py:184`; the rest of the paragraph -- that this command
-      receives two bare directories and so has no `Pulled` -- is unchanged.
+- [ ] T8 | T8 -- Update the claim at
+      `src/comment_review/commands/taken_in.py:11-12`, printed to the user at
+      line 120, that a docket carries a `role` field and "no docket does yet".
+      Verify: the sentence agrees with `desk/collator.py:1021`, which writes
+      `"role": role`, and with `tests/test_docket.py:184`; the rest of the
+      paragraph -- that this command receives two bare directories and so has no
+      `Pulled` -- is unchanged.

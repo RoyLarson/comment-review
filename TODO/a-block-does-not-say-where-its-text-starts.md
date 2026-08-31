@@ -139,25 +139,33 @@ exists.
 
 ## Tasks
 
-- [x] T1 -- DONE 2026-08-19 -- `original_column` is set by every producer and
-      `whole_lines` is gone; the END column was RULED AWAY rather than built.
-- [x] T2 -- DONE 2026-08-18 -- `code_lines` tests the producer's field instead of the
-      suffix.
-- [x] T3 -- SUPERSEDED 2026-08-23. There is no `_annotated_docs` to rule on: the producer
-      was removed and a PEP 727 `Doc()` literal is not censused as prose.
-- [ ] T4 -- `prove_unchanged._without_comments` reads `original_column`, not the suffix
-      rule. Verify: `tests/test_prove_unchanged.py` passes and no `endswith` cuts a line.
-- [x] T5 -- DONE 2026-08-19 -- ONE ADDRESS NAMED TWO BLOCKS on a mid-line comment;
-      `address()` now reads the producer's field and `SHARES_ITS_LINE` is deleted.
-- [x] T6 -- DONE 2026-08-19 -- ONE RULE, BOTH TIERS: `raw_lines` holds the paragraph's own
-      characters, cut at `original_column` where code comes first.
-- [x] T7 -- DONE 2026-08-19 -- the addresser no longer sweeps for staleness; every
-      question it takes is census-internal, so it reads no file and takes no `--repo`.
-- [x] T8 -- SUPERSEDED 2026-08-19 by T7, which carries the DONE record for the same fix.
-- [x] T9 -- SUPERSEDED 2026-08-19 -- it prescribed storing the whole physical line in both
-      tiers, which is the opposite of the rule that shipped.
-- [x] T10 -- DONE 2026-08-21 -- `Paragraph.widest` was deleted in `fa25924`, which is the
-      answer this box asked for.
+- [x] T1 | FINISHED | unknown | T1 -- DONE 2026-08-19 -- `original_column` is
+      set by every producer and `whole_lines` is gone; the END column was RULED
+      AWAY rather than built.
+- [x] T2 | FINISHED | unknown | T2 -- DONE 2026-08-18 -- `code_lines` tests the
+      producer's field instead of the suffix.
+- [x] T3 | FINISHED | unknown | T3 -- SUPERSEDED 2026-08-23. There is no
+      `_annotated_docs` to rule on: the producer was removed and a PEP 727
+      `Doc()` literal is not censused as prose.
+- [ ] T4 | T4 -- `prove_unchanged._without_comments` reads `original_column`,
+      not the suffix rule. Verify: `tests/test_prove_unchanged.py` passes and no
+      `endswith` cuts a line.
+- [x] T5 | FINISHED | unknown | T5 -- DONE 2026-08-19 -- ONE ADDRESS NAMED TWO
+      BLOCKS on a mid-line comment; `address()` now reads the producer's field
+      and `SHARES_ITS_LINE` is deleted.
+- [x] T6 | FINISHED | unknown | T6 -- DONE 2026-08-19 -- ONE RULE, BOTH TIERS:
+      `raw_lines` holds the paragraph's own characters, cut at `original_column`
+      where code comes first.
+- [x] T7 | FINISHED | unknown | T7 -- DONE 2026-08-19 -- the addresser no longer
+      sweeps for staleness; every question it takes is census-internal, so it
+      reads no file and takes no `--repo`.
+- [x] T8 | FINISHED | unknown | T8 -- SUPERSEDED 2026-08-19 by T7, which carries
+      the DONE record for the same fix.
+- [x] T9 | FINISHED | unknown | T9 -- SUPERSEDED 2026-08-19 -- it prescribed
+      storing the whole physical line in both tiers, which is the opposite of
+      the rule that shipped.
+- [x] T10 | FINISHED | unknown | T10 -- DONE 2026-08-21 -- `Paragraph.widest`
+      was deleted in `fa25924`, which is the answer this box asked for.
 ## Related
 
 - [`the-record-is-a-parsed-template-and-should-be-a-value`](completed/the-record-is-a-parsed-template-and-should-be-a-value.md)

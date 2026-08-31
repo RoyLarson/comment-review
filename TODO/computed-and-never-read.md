@@ -100,23 +100,33 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
 
 ## Tasks
 
-- [ ] T1 -- Drop the insert line from `page.documentable`'s tuple and from both consumers.
-      Verify: a 2-tuple return, both consumers unpacking two, and `uv run ty check` green.
-- [x] T2 -- RECORD, not a task. The `page.documented_by` citation was corrected in round 7
-      to `lexer.document_declarations`; the tuple it exposed is T1. In the Objective.
-- [ ] T3 -- Find out whether anything reaches the `Kind.MATTER` branch, page.py:332-333.
-      Verify: this file records whether a `test_cues.py` fixture is its only caller.
-- [ ] T4 -- If T3 finds no caller, cut the branch. Verify: page.py:332-333 is gone and the
-      suite is green. ! If a test IS the only caller, that is a finding, not a cut.
-- [ ] T5 -- Drop the index from `record.prose_paragraphs`' return type (record.py:645).
-      Verify: the return type carries no index and the suite is green.
-- [ ] T6 -- Compute `code_lines` and `declarations` once per page, not at :419-420 and
-      again at :725-726. Verify: each is computed once and the four test callers pass.
-- [x] T7 -- RECORD, not a task. The 21 ms double `prose_numbers` pass, measured and
-      deliberately not counted. In the Objective.
-- [ ] T8 -- State the rule for which module `language_for` is imported from, at
-      compositor.py:66. Verify: the comment at :66 says what the rule is.
-- [ ] T9 -- Make compositor.py:68 and galley.py:89 both obey T8's rule. Verify: both
-      import `language_for` from the module the rule names.
-- [x] T10 -- FINISHED. Two TODOs describing a function that no longer exists are
-      superseded and their stale citations resolved. In the Objective.
+- [ ] T1 | T1 -- Drop the insert line from `page.documentable`'s tuple and from
+      both consumers. Verify: a 2-tuple return, both consumers unpacking two,
+      and `uv run ty check` green.
+- [x] T2 | FINISHED | unknown | T2 -- RECORD, not a task. The
+      `page.documented_by` citation was corrected in round 7 to
+      `lexer.document_declarations`; the tuple it exposed is T1. In the
+      Objective.
+- [ ] T3 | T3 -- Find out whether anything reaches the `Kind.MATTER` branch,
+      page.py:332-333. Verify: this file records whether a `test_cues.py`
+      fixture is its only caller.
+- [ ] T4 | T4 -- If T3 finds no caller, cut the branch. Verify: page.py:332-333
+      is gone and the suite is green. ! If a test IS the only caller, that is a
+      finding, not a cut.
+- [ ] T5 | T5 -- Drop the index from `record.prose_paragraphs`' return type
+      (record.py:645). Verify: the return type carries no index and the suite is
+      green.
+- [ ] T6 | T6 -- Compute `code_lines` and `declarations` once per page, not at
+      :419-420 and again at :725-726. Verify: each is computed once and the four
+      test callers pass.
+- [x] T7 | FINISHED | unknown | T7 -- RECORD, not a task. The 21 ms double
+      `prose_numbers` pass, measured and deliberately not counted. In the
+      Objective.
+- [ ] T8 | T8 -- State the rule for which module `language_for` is imported
+      from, at compositor.py:66. Verify: the comment at :66 says what the rule
+      is.
+- [ ] T9 | T9 -- Make compositor.py:68 and galley.py:89 both obey T8's rule.
+      Verify: both import `language_for` from the module the rule names.
+- [x] T10 | FINISHED | unknown | T10 -- FINISHED. Two TODOs describing a
+      function that no longer exists are superseded and their stale citations
+      resolved. In the Objective.

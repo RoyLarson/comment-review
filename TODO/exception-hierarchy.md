@@ -86,23 +86,33 @@ either they take it through the path shim two of them already use (`render_brief
 
 ## Tasks
 
-- [ ] T1 -- Define `CommentReviewError` in `exceptions.py` over `Refused`, `Unreadable`,
-      `Undecodable`, `Unparsable` and `GitSilent`. Verify: each subclasses the root.
-- [ ] T2 -- Retire `READ_ERRORS` -- each read site re-raises `Unreadable` with `from e`.
-      Verify: `grep -rn exceptions.READ_ERRORS plugins/` is empty and pytest is green.
-- [ ] T3 -- Retire `TOML_ERRORS` -- each decode site re-raises `Undecodable` from `e`.
-      Verify: `grep -rn exceptions.TOML_ERRORS plugins/` is empty and pytest is green.
-- [ ] T4 -- Retire `TOKENIZE_ERRORS` -- each site re-raises `Unparsable` with `from e`.
-      Verify: `grep -rn exceptions.TOKENIZE_ERRORS plugins/` is empty and pytest is green.
-- [ ] T5 -- Retire `PARSE_ERRORS` -- each parse site re-raises `Unparsable` with `from e`.
-      Verify: `grep -rn exceptions.PARSE_ERRORS plugins/` is empty and pytest is green.
-- [ ] T6 -- Retire `GIT_ERRORS` -- each git site re-raises `GitSilent` with `from e`.
-      Verify: `grep -rn exceptions.GIT_ERRORS plugins/` is empty and pytest is green.
-- [x] T7 -- Reasoning, moved to the Objective: the cost is the boundary -- some 30 sites
-      across 14 modules must catch the stdlib tuple and re-raise with `from e`.
-- [x] T8 -- Reasoning, moved to the Objective: deferring is safe because the named tuples
-      are the seam, and every call site already names a QUESTION rather than a tuple.
-- [ ] T9 -- Audit the 22 bare `raise ValueError` once T1..T6 land: each is a refusal or a
-      bad argument. Verify: every one left carries a comment saying which.
-- [ ] T10 -- Settle the five `scripts/` files holding their own `READ_ERRORS` -- shim or
-      declare. Verify: `grep -rn ^READ_ERRORS scripts/` is empty, or all five say why.
+- [ ] T1 | T1 -- Define `CommentReviewError` in `exceptions.py` over `Refused`,
+      `Unreadable`, `Undecodable`, `Unparsable` and `GitSilent`. Verify: each
+      subclasses the root.
+- [ ] T2 | T2 -- Retire `READ_ERRORS` -- each read site re-raises `Unreadable`
+      with `from e`. Verify: `grep -rn exceptions.READ_ERRORS plugins/` is empty
+      and pytest is green.
+- [ ] T3 | T3 -- Retire `TOML_ERRORS` -- each decode site re-raises
+      `Undecodable` from `e`. Verify: `grep -rn exceptions.TOML_ERRORS plugins/`
+      is empty and pytest is green.
+- [ ] T4 | T4 -- Retire `TOKENIZE_ERRORS` -- each site re-raises `Unparsable`
+      with `from e`. Verify: `grep -rn exceptions.TOKENIZE_ERRORS plugins/` is
+      empty and pytest is green.
+- [ ] T5 | T5 -- Retire `PARSE_ERRORS` -- each parse site re-raises `Unparsable`
+      with `from e`. Verify: `grep -rn exceptions.PARSE_ERRORS plugins/` is
+      empty and pytest is green.
+- [ ] T6 | T6 -- Retire `GIT_ERRORS` -- each git site re-raises `GitSilent` with
+      `from e`. Verify: `grep -rn exceptions.GIT_ERRORS plugins/` is empty and
+      pytest is green.
+- [x] T7 | FINISHED | unknown | T7 -- Reasoning, moved to the Objective: the
+      cost is the boundary -- some 30 sites across 14 modules must catch the
+      stdlib tuple and re-raise with `from e`.
+- [x] T8 | FINISHED | unknown | T8 -- Reasoning, moved to the Objective:
+      deferring is safe because the named tuples are the seam, and every call
+      site already names a QUESTION rather than a tuple.
+- [ ] T9 | T9 -- Audit the 22 bare `raise ValueError` once T1..T6 land: each is
+      a refusal or a bad argument. Verify: every one left carries a comment
+      saying which.
+- [ ] T10 | T10 -- Settle the five `scripts/` files holding their own
+      `READ_ERRORS` -- shim or declare. Verify: `grep -rn ^READ_ERRORS scripts/`
+      is empty, or all five say why.

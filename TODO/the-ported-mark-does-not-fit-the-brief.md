@@ -67,14 +67,19 @@ Only `add` disagreed, and the port is what moved.
 
 ## Tasks
 
-- [x] T1 -- Restore the extras derivation, so one row states every key a `claim` owes. Verify:
-      `allowed()['claim']` matches the brief's published table for all seven, checked against the
-      brief and not against `INSTRUCTIONS`.
-- [x] T2 -- Make the gate read those keys. Verify: the two brief-compliant marks above are
-      accepted, and a `query` naming a shape outside the three is refused.
-- [x] T3 -- Rebuild `tests/test_mark.py` so no case is built from the table it checks. Verify:
-      the suite FAILS before T1 and passes after -- one that passes both ways is testing itself.
-- [x] T4 -- Give the sheet a `code_concerns` list, and say so in the brief. Verify: a sheet
-      carrying one validates, and the brief names the key.
-- [x] T5 -- Rebuild the generator and gate it. Verify: it writes the block from `INSTRUCTIONS`,
-      and a test fails when the committed block and a fresh render disagree.
+- [x] T1 | FINISHED | unknown | T1 -- Restore the extras derivation, so one row
+      states every key a `claim` owes. Verify: `allowed()['claim']` matches the
+      brief's published table for all seven, checked against the brief and not
+      against `INSTRUCTIONS`.
+- [x] T2 | FINISHED | unknown | T2 -- Make the gate read those keys. Verify: the
+      two brief-compliant marks above are accepted, and a `query` naming a shape
+      outside the three is refused.
+- [x] T3 | FINISHED | unknown | T3 -- Rebuild `tests/test_mark.py` so no case is
+      built from the table it checks. Verify: the suite FAILS before T1 and
+      passes after -- one that passes both ways is testing itself.
+- [x] T4 | FINISHED | unknown | T4 -- Give the sheet a `code_concerns` list, and
+      say so in the brief. Verify: a sheet carrying one validates, and the brief
+      names the key.
+- [x] T5 | FINISHED | unknown | T5 -- Rebuild the generator and gate it. Verify:
+      it writes the block from `INSTRUCTIONS`, and a test fails when the
+      committed block and a fresh render disagree.

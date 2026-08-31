@@ -74,15 +74,21 @@ it.
 
 ## Tasks
 
-- [x] T1 -- `locator.at` could never return a zero-width gap or an undocumented
-      declaration; it answered with the `margin` beside the line. Kept as the record.
-- [x] T2 -- An `add` above an ordinary statement inside a function body had NO sanctioned
-      route, and it is the most common `add` site in the system's own remit.
-- [x] T3 -- `--anchor --series b|c` was wrong for a declaration on line 1: every empty
-      place matched `end == at - 1`, giving four answers where one was wanted.
-- [x] T4 -- `--anchor --series b|c` silently answered for the FIRST of two same-named
-      declarations, with no signal that a second existed.
-- [ ] T5 -- Print each place where it belongs, not where its span sorts. Verify: on
-      `sample.py` `@b0` prints above `@a0`'s anchor, and no `0-0` row sorts first.
-- [ ] T6 -- Stop `--filtered` collapsing scattered places into a range naming a place it
-      excludes. Verify: it lists the addresses, or names a range holding only those.
+- [x] T1 | FINISHED | unknown | T1 -- `locator.at` could never return a
+      zero-width gap or an undocumented declaration; it answered with the
+      `margin` beside the line. Kept as the record.
+- [x] T2 | FINISHED | unknown | T2 -- An `add` above an ordinary statement
+      inside a function body had NO sanctioned route, and it is the most common
+      `add` site in the system's own remit.
+- [x] T3 | FINISHED | unknown | T3 -- `--anchor --series b\|c` was wrong for a
+      declaration on line 1: every empty place matched `end == at - 1`, giving
+      four answers where one was wanted.
+- [x] T4 | FINISHED | unknown | T4 -- `--anchor --series b\|c` silently answered
+      for the FIRST of two same-named declarations, with no signal that a second
+      existed.
+- [ ] T5 | T5 -- Print each place where it belongs, not where its span sorts.
+      Verify: on `sample.py` `@b0` prints above `@a0`'s anchor, and no `0-0` row
+      sorts first.
+- [ ] T6 | T6 -- Stop `--filtered` collapsing scattered places into a range
+      naming a place it excludes. Verify: it lists the addresses, or names a
+      range holding only those.

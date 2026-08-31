@@ -15,5 +15,6 @@ external_address.py cites two modules that left the tree.
 
 ## Tasks
 
-- [ ] Rewrite the sentence at desk/external_address.py to name where the external
-      address is declared and resolved today, or say that nothing resolves it yet
+- [ ] T1 | Rewrite the sentence at desk/external_address.py to name where the
+      external address is declared and resolved today, or say that nothing
+      resolves it yet

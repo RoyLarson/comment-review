@@ -86,35 +86,49 @@ the five series; this is the verdict vocabulary. It wants 0.2.4 or its own branc
 
 ## Tasks
 
-- [?] T1 -- * RULE whether a `stet` persists ACROSS RUNS, and where it lives if it does.
-      Verify: the ruling is recorded in `docs/decision-log.md`.
-- [x] T2 -- NAMED 2026-08-21. Publishing's mark is `stet` ("let it stand"), written in the
-      margin with dots under the text. In the Objective.
-- [ ] T3 -- Add `stet` to `record.py`'s `VERDICTS`: `clean` = no mark was proposed here,
-      `stet` = one was and the original stands. Verify: `VERDICTS` holds eight.
-- [ ] T4 -- Make `desk.py` admit a `stet` record. Verify: a record whose verdict is `stet`
-      is admitted rather than refused.
-- [ ] T5 -- Make `verdicts.py` admit a `stet` record. Verify: a report carrying `stet`
-      joins against the census without exiting nonzero.
-- [ ] T6 -- Measure the cost before building. Verify: the same page is run twice and the
-      number of identical proposals returned on the second run is written into this file.
-- [ ] T7 -- Check whether stage 8 REVIEW re-raises what 7a declined. Verify: a run with a
-      mark declined at 7a is read at stage 8, and the answer is written here.
-- [ ] T8 -- Update the three COUNT claims: `record.py:805`, `SKILL.md:53`,
-      `CLAUDE.md:265`. Verify: no file says "seven verdicts" while `VERDICTS` holds eight.
-- [ ] T9 -- Resolve `stet` in `SKILL.md`'s checkable/necessary matrix. Verify: the matrix
-      names an outcome for `stet` as it does for the other verdicts.
-- [ ] T10 -- Define `stet` in `vocabulary.toml` at :43 and add it to the four role lists.
-      Verify: `uv run python scripts/check_vocabulary.py` passes.
-- [ ] T11 -- Add `stet` to the reserved-word rule at `CLAUDE.md:780` and
-      `docs/vocabulary.md:140`. Verify: both name `stet` beside `clean` as reserved.
-- [ ] T12 -- Add `stet` to the shipped field lists in `reviewer-brief.md` and
-      `re-review.md`. Verify: both list `stet` among the verdicts a report may carry.
-- [ ] T13 -- Say what `ownership-context`'s own `stet` asserts, in its agent file. Verify:
-      `agents/comment-review-ownership-context.md` states its own `stet`.
-- [ ] T14 -- Say what `block-context`'s own `stet` asserts, in its agent file. Verify:
-      `agents/comment-review-block-context.md` states its own `stet`.
-- [ ] T15 -- Say what `function-context`'s own `stet` asserts, in its agent file. Verify:
-      `agents/comment-review-function-context.md` states its own `stet`.
-- [ ] T16 -- Say what `module-context`'s own `stet` asserts, in its agent file. Verify:
-      `agents/comment-review-module-context.md` states its own `stet`.
+- [?] T1 | T1 -- * RULE whether a `stet` persists ACROSS RUNS, and where it
+      lives if it does. Verify: the ruling is recorded in
+      `docs/decision-log.md`.
+- [x] T2 | FINISHED | unknown | T2 -- NAMED 2026-08-21. Publishing's mark is
+      `stet` ("let it stand"), written in the margin with dots under the text.
+      In the Objective.
+- [ ] T3 | T3 -- Add `stet` to `record.py`'s `VERDICTS`: `clean` = no mark was
+      proposed here, `stet` = one was and the original stands. Verify:
+      `VERDICTS` holds eight.
+- [ ] T4 | T4 -- Make `desk.py` admit a `stet` record. Verify: a record whose
+      verdict is `stet` is admitted rather than refused.
+- [ ] T5 | T5 -- Make `verdicts.py` admit a `stet` record. Verify: a report
+      carrying `stet` joins against the census without exiting nonzero.
+- [ ] T6 | T6 -- Measure the cost before building. Verify: the same page is run
+      twice and the number of identical proposals returned on the second run is
+      written into this file.
+- [ ] T7 | T7 -- Check whether stage 8 REVIEW re-raises what 7a declined.
+      Verify: a run with a mark declined at 7a is read at stage 8, and the
+      answer is written here.
+- [ ] T8 | T8 -- Update the three COUNT claims: `record.py:805`, `SKILL.md:53`,
+      `CLAUDE.md:265`. Verify: no file says "seven verdicts" while `VERDICTS`
+      holds eight.
+- [ ] T9 | T9 -- Resolve `stet` in `SKILL.md`'s checkable/necessary matrix.
+      Verify: the matrix names an outcome for `stet` as it does for the other
+      verdicts.
+- [ ] T10 | T10 -- Define `stet` in `vocabulary.toml` at :43 and add it to the
+      four role lists. Verify: `uv run python scripts/check_vocabulary.py`
+      passes.
+- [ ] T11 | T11 -- Add `stet` to the reserved-word rule at `CLAUDE.md:780` and
+      `docs/vocabulary.md:140`. Verify: both name `stet` beside `clean` as
+      reserved.
+- [ ] T12 | T12 -- Add `stet` to the shipped field lists in `reviewer-brief.md`
+      and `re-review.md`. Verify: both list `stet` among the verdicts a report
+      may carry.
+- [ ] T13 | T13 -- Say what `ownership-context`'s own `stet` asserts, in its
+      agent file. Verify: `agents/comment-review-ownership-context.md` states
+      its own `stet`.
+- [ ] T14 | T14 -- Say what `block-context`'s own `stet` asserts, in its agent
+      file. Verify: `agents/comment-review-block-context.md` states its own
+      `stet`.
+- [ ] T15 | T15 -- Say what `function-context`'s own `stet` asserts, in its
+      agent file. Verify: `agents/comment-review-function-context.md` states its
+      own `stet`.
+- [ ] T16 | T16 -- Say what `module-context`'s own `stet` asserts, in its agent
+      file. Verify: `agents/comment-review-module-context.md` states its own
+      `stet`.

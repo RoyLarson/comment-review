@@ -72,53 +72,55 @@ containment. Each showed 0 behavioural differences over 104,088 cases.
 
 ## Tasks
 
-- [ ] Implement a correct line span in `CannotCompose`'s message for a zero-width
-      merged span, where `start == end` renders `{start + 1}-{end}` backwards.
-      Verify: two roles both proposing an `add` at one place produce a message
-      naming a real position, and a test asserts the numbers so that shifting them
-      by 7, or replacing them with `?-?`, goes red; both of those mutants survive
-      the suite today.
-- [ ] Implement `span` and `roles` attributes on `CannotCompose`, so a caller
-      recovers the refusal without parsing an English sentence. Verify: a refused
-      `compose` raises an exception whose `.span` and `.roles` match its own
-      message, asserted by a test; the class declares no attributes today.
-- [ ] Update `flows/collate.py`'s `_composition` so a `CannotCompose` is carried
-      into what the run reports instead of becoming `None`. Verify: a re-read
-      caused by a refused composition names the span and the roles in the run's
-      own output, and the test goes red against today's code, where the sole
-      `except CannotCompose:` returns `None`.
-- [ ] Implement attaching the ADDRESS to a refused composition, which the message
-      never names. Verify: a send-back for a refused composition names the place,
-      not only base line numbers inside one paragraph; `flows/collate.py:192`
-      holds `entry["address"]` and cannot attach it today because `_composition`
-      returns `None`.
-- [ ] Update `unified` so its output is not corrupt when joined and the last line
-      has no trailing newline -- emit the missing-newline marker, or stop
-      promising the join in the docstring. Verify: a page whose last line lacks a
-      trailing newline prints two separate diff lines through
+- [ ] T1 | Implement a correct line span in `CannotCompose`'s message for a
+      zero-width merged span, where `start == end` renders `{start + 1}-{end}`
+      backwards. Verify: two roles both proposing an `add` at one place produce
+      a message naming a real position, and a test asserts the numbers so that
+      shifting them by 7, or replacing them with `?-?`, goes red; both of those
+      mutants survive the suite today.
+- [ ] T2 | Implement `span` and `roles` attributes on `CannotCompose`, so a
+      caller recovers the refusal without parsing an English sentence. Verify: a
+      refused `compose` raises an exception whose `.span` and `.roles` match its
+      own message, asserted by a test; the class declares no attributes today.
+- [ ] T3 | Update `flows/collate.py`'s `_composition` so a `CannotCompose` is
+      carried into what the run reports instead of becoming `None`. Verify: a
+      re-read caused by a refused composition names the span and the roles in
+      the run's own output, and the test goes red against today's code, where
+      the sole `except CannotCompose:` returns `None`.
+- [ ] T4 | Implement attaching the ADDRESS to a refused composition, which the
+      message never names. Verify: a send-back for a refused composition names
+      the place, not only base line numbers inside one paragraph;
+      `flows/collate.py:192` holds `entry["address"]` and cannot attach it today
+      because `_composition` returns `None`.
+- [ ] T5 | Update `unified` so its output is not corrupt when joined and the
+      last line has no trailing newline -- emit the missing-newline marker, or
+      stop promising the join in the docstring. Verify: a page whose last line
+      lacks a trailing newline prints two separate diff lines through
       `commands/taken_in.py`, not `-three+THREE` on one line. DO NOT fix by
       appending a newline -- that claims a newline the file does not have.
-- [ ] Update both `difflib.SequenceMatcher` constructions in
-      `results/differences.py` to state a choice about `autojunk`, which reshapes
-      the opcodes every correctness claim in the file is about. Verify: the file
-      either passes `autojunk=False` or carries a sentence saying the heuristic is
-      accepted and why, and a test pins the behaviour at the 199/200-line
-      boundary.
-- [ ] Update the module docstring of `results/differences.py`, whose opening
-      sentence announces three operations over a base and its sides while
-      `unified` has neither. Verify: the header agrees with `unified`'s own `Args`
-      -- the page's text before the revise -- and the word `side` is not spent on
-      something that is not a side in the sense the rest of the file uses it.
-- [ ] Update `compose`'s prose to state that two sides making the BYTE-IDENTICAL
-      edit are refused, which the docstring explains for the abutting case and not
-      for this one. Verify: the sentence exists and a test asserts the identical-
-      edit refusal, so a reader is not left to read *no composition exists* as a
-      claim about disagreement.
-- [ ] Update `diff3`'s `Returns` block so it says the `||||||| base` section is
-      legitimately EMPTY for a pure insert. Verify: the sentence is there and a
-      test renders a pure insert and asserts the empty base section, so a reader
-      or an agent parsing the format can tell an insert from a truncated render.
-- [ ] Update the sentence *`difflib.unified_diff` reads two strings, not two
-      commits*, which reads two SEQUENCES OF LINES that this function splits at
-      lines 48-49. Verify: the sentence is literally true and still makes its
+- [ ] T6 | Update both `difflib.SequenceMatcher` constructions in
+      `results/differences.py` to state a choice about `autojunk`, which
+      reshapes the opcodes every correctness claim in the file is about. Verify:
+      the file either passes `autojunk=False` or carries a sentence saying the
+      heuristic is accepted and why, and a test pins the behaviour at the
+      199/200-line boundary.
+- [ ] T7 | Update the module docstring of `results/differences.py`, whose
+      opening sentence announces three operations over a base and its sides
+      while `unified` has neither. Verify: the header agrees with `unified`'s
+      own `Args` -- the page's text before the revise -- and the word `side` is
+      not spent on something that is not a side in the sense the rest of the
+      file uses it.
+- [ ] T8 | Update `compose`'s prose to state that two sides making the
+      BYTE-IDENTICAL edit are refused, which the docstring explains for the
+      abutting case and not for this one. Verify: the sentence exists and a test
+      asserts the identical- edit refusal, so a reader is not left to read *no
+      composition exists* as a claim about disagreement.
+- [ ] T9 | Update `diff3`'s `Returns` block so it says the `\|\|\|\|\|\|\| base`
+      section is legitimately EMPTY for a pure insert. Verify: the sentence is
+      there and a test renders a pure insert and asserts the empty base section,
+      so a reader or an agent parsing the format can tell an insert from a
+      truncated render.
+- [ ] T10 | Update the sentence *`difflib.unified_diff` reads two strings, not
+      two commits*, which reads two SEQUENCES OF LINES that this function splits
+      at lines 48-49. Verify: the sentence is literally true and still makes its
       point that no git process is involved.

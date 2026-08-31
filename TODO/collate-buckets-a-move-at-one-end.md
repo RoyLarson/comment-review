@@ -64,20 +64,24 @@ an `agents` file.
 
 ## Tasks
 
-- [x] T1 -- Write the failing case FIRST: a `move` from `a0` to `a8` and another role's `correct`
-      on `a8`, over one base. Verify: it asserts an escalation, and FAILS on today's bucketing by
-      taking both in silently.
-- [x] T2 -- Make a mark contribute to every place it touches while being decided once. Verify:
-      T1 passes, and a `move` whose destination carries no other mark still settles without
-      escalating.
-- [x] T3 -- Prove the widening did not make `move` escalate by default. Verify: a run of the
-      round-2 marks settles 11 of 16 places, escalates 0 and re-reads 5.
-      ! **THIS SAID "THE SAME 13 OF 16" AND THAT FIGURE IS SUPERSEDED**, corrected 2026-08-29.
-      It was measured under SILENT-MERGE semantics, which `decision-log.md Process: #49`
-      replaced: 3 places carrying 2+ marks on different sentences and 2 `add` places move to
-      re-read, and the 3 that previously escalated now settle -- `13 - 5 + 3 = 11`. The 16 is
-      places carrying at least one mark that owes a change, out of 76 addresses round 2 marked
-      at all. Re-derived twice: through `desk.collator.reconcile`, and separately straight from
-      `evidence/the-loop-measured-2026-08-27/marks.jsonl`, so the check is not the code agreeing
-      with itself. ! **A CHECKED BOX ASSERTING A SUPERSEDED FACT READS AS SETTLED**, which is why
-      the wording is corrected rather than left beside the new number.
+- [x] T1 | FINISHED | unknown | T1 -- Write the failing case FIRST: a `move`
+      from `a0` to `a8` and another role's `correct` on `a8`, over one base.
+      Verify: it asserts an escalation, and FAILS on today's bucketing by taking
+      both in silently.
+- [x] T2 | FINISHED | unknown | T2 -- Make a mark contribute to every place it
+      touches while being decided once. Verify: T1 passes, and a `move` whose
+      destination carries no other mark still settles without escalating.
+- [x] T3 | FINISHED | unknown | T3 -- Prove the widening did not make `move`
+      escalate by default. Verify: a run of the round-2 marks settles 11 of 16
+      places, escalates 0 and re-reads 5. ! **THIS SAID "THE SAME 13 OF 16" AND
+      THAT FIGURE IS SUPERSEDED**, corrected 2026-08-29. It was measured under
+      SILENT-MERGE semantics, which `decision-log.md Process: #49` replaced: 3
+      places carrying 2+ marks on different sentences and 2 `add` places move to
+      re-read, and the 3 that previously escalated now settle -- `13 - 5 + 3 =
+      11`. The 16 is places carrying at least one mark that owes a change, out
+      of 76 addresses round 2 marked at all. Re-derived twice: through
+      `desk.collator.reconcile`, and separately straight from
+      `evidence/the-loop-measured-2026-08-27/marks.jsonl`, so the check is not
+      the code agreeing with itself. ! **A CHECKED BOX ASSERTING A SUPERSEDED
+      FACT READS AS SETTLED**, which is why the wording is corrected rather than
+      left beside the new number.

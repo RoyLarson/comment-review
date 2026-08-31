@@ -30,64 +30,78 @@ vocabulary and is done; this is the census change that follows from it.
 
 ## Tasks
 
-- [x] !! **MEASURED ON REVIEW YIELD, 2026-08-17, and the effect is larger than the change
-      was argued for.** Two runs of the same skill over the same repo at the same ref, before
-      and after the interval exemption: `function-context` went from **172 records / 11
-      findings** to **1175 records / 68 findings**. The session running it named the cause --
-      *"Removing the interval-coverage pressure is what did it; the role spent its budget
-      reading instead of accounting."* ! This was argued as a correctness change -- `add` needs
-      an index -- and it turns out also to be a yield change, because coverage the role did not
-      owe was consuming the budget it reads with. ! Two runs, one role, one repo: an effect, not
-      a rate.
+- [x] T1 | FINISHED | unknown | !! **MEASURED ON REVIEW YIELD, 2026-08-17, and
+      the effect is larger than the change was argued for.** Two runs of the
+      same skill over the same repo at the same ref, before and after the
+      interval exemption: `function-context` went from **172 records / 11
+      findings** to **1175 records / 68 findings**. The session running it named
+      the cause -- *"Removing the interval-coverage pressure is what did it; the
+      role spent its budget reading instead of accounting."* ! This was argued
+      as a correctness change -- `add` needs an index -- and it turns out also
+      to be a yield change, because coverage the role did not owe was consuming
+      the budget it reads with. ! Two runs, one role, one repo: an effect, not a
+      rate.
 
-- [x] Enumerate every interval between two code lines, including empty ones -- `intervals()`
-      in `census.py`, run from `census_for` after the prose blocks are built. A gap that HOLDS
-      a comment run is that run's block already, so only the empty ones are emitted and the
-      census stays one block per interval either way. ! **Measured 2026-08-17:** `census.py`
-      over itself is 847 lines and **546 blocks**, 48 of them prose -- up from 44.
+- [x] T2 | FINISHED | unknown | Enumerate every interval between two code lines,
+      including empty ones -- `intervals()` in `census.py`, run from
+      `census_for` after the prose blocks are built. A gap that HOLDS a comment
+      run is that run's block already, so only the empty ones are emitted and
+      the census stays one block per interval either way. ! **Measured
+      2026-08-17:** `census.py` over itself is 847 lines and **546 blocks**, 48
+      of them prose -- up from 44.
 
-- [x] Define **"a line of code"** per tier -- `code_lines()` states it: a line is code when it
-      holds something that is not blank and not prose. The tiers differ on the DOCSTRING, which
-      is the whole of the difference: `tokenized` knows a string literal is a declaration's
-      documentation and `lexical` knows only what its comment-syntax record spells. So a
-      block's BOUNDS are tier-dependent while its CONTENT is not, and the docstring says so.
-      ! A `trailing-comment` sits ON a code line, so that line stays code.
+- [x] T3 | FINISHED | unknown | Define **"a line of code"** per tier --
+      `code_lines()` states it: a line is code when it holds something that is
+      not blank and not prose. The tiers differ on the DOCSTRING, which is the
+      whole of the difference: `tokenized` knows a string literal is a
+      declaration's documentation and `lexical` knows only what its
+      comment-syntax record spells. So a block's BOUNDS are tier-dependent while
+      its CONTENT is not, and the docstring says so. ! A `trailing-comment` sits
+      ON a code line, so that line stays code.
 
-- [x] Decide what bounds the FIRST and LAST interval in a file -- ! **the FILE BOUNDARY counts
-      as a bound.** Special-casing them would have left a module docstring and a comment at EOF
-      in no interval at all, which is the hole this whole file is about. A file with no code is
-      therefore one interval. Tested on both ends.
+- [x] T4 | FINISHED | unknown | Decide what bounds the FIRST and LAST interval
+      in a file -- ! **the FILE BOUNDARY counts as a bound.** Special-casing
+      them would have left a module docstring and a comment at EOF in no
+      interval at all, which is the hole this whole file is about. A file with
+      no code is therefore one interval. Tested on both ends.
 
-- [x] Reconcile with the block kinds that are not intervals -- they COEXIST, and `kind` is
-      what tells them apart. A `docstring` and a `comment` occupy their lines entirely, so those
-      lines are not code and the block IS its interval. A `trailing-comment` shares a line with
-      code, so its line stays code and it hangs off that line rather than sitting between two.
-      An `interval` occupies nothing. ! That last one is what makes `code_lines` safe to run
-      over a census that already holds intervals.
+- [x] T5 | FINISHED | unknown | Reconcile with the block kinds that are not
+      intervals -- they COEXIST, and `kind` is what tells them apart. A
+      `docstring` and a `comment` occupy their lines entirely, so those lines
+      are not code and the block IS its interval. A `trailing-comment` shares a
+      line with code, so its line stays code and it hangs off that line rather
+      than sitting between two. An `interval` occupies nothing. ! That last one
+      is what makes `code_lines` safe to run over a census that already holds
+      intervals.
 
-- [x] Update coverage in `references/reviewer-brief.md` -- !! **ADDRESSABLE is not
-      ACCOUNTABLE, and that is the ruling the fabrication question forces.** A reviewer returns
-      a record for every block that HOLDS PROSE; an empty interval is there to be CITED, not
-      accounted for. Owing a record on all 546 would have made `CLEAN 1-N` -- the cheapest
-      fabrication there is -- nine parts in ten true, which is the compensating check this task
-      asked for and the reason coverage did not simply widen. `verdicts.py` computes
-      `all_blocks` from `kind != "interval"`; the range line was already deleted by an earlier
-      ruling, so there was none left to update.
+- [x] T6 | FINISHED | unknown | Update coverage in
+      `references/reviewer-brief.md` -- !! **ADDRESSABLE is not ACCOUNTABLE, and
+      that is the ruling the fabrication question forces.** A reviewer returns a
+      record for every block that HOLDS PROSE; an empty interval is there to be
+      CITED, not accounted for. Owing a record on all 546 would have made `CLEAN
+      1-N` -- the cheapest fabrication there is -- nine parts in ten true, which
+      is the compensating check this task asked for and the reason coverage did
+      not simply widen. `verdicts.py` computes `all_blocks` from `kind !=
+      "interval"`; the range line was already deleted by an earlier ruling, so
+      there was none left to update.
 
-- [x] Check the STANDS arithmetic -- it reads `all_blocks`, which is now the PROSE blocks, so
-      it did not shift at all: an empty interval nobody wrote about is not standing unchanged,
-      it is empty. The join's first line states both denominators rather than one. ! The
-      `acquittal` rate named here no longer exists; `acquittal` was deleted from the vocabulary
-      on 2026-08-16 as a term that arrived from LAW.
+- [x] T7 | FINISHED | unknown | Check the STANDS arithmetic -- it reads
+      `all_blocks`, which is now the PROSE blocks, so it did not shift at all:
+      an empty interval nobody wrote about is not standing unchanged, it is
+      empty. The join's first line states both denominators rather than one. !
+      The `acquittal` rate named here no longer exists; `acquittal` was deleted
+      from the vocabulary on 2026-08-16 as a term that arrived from LAW.
 
-- [x] Give `add` its block -- done, and the * in
-      `the-finding-record-is-eight-fields-and-six-would-do`
-      is closed with it. An `add` cites the empty interval the prose belongs in; it no longer
-      borrows a neighbour's index and no longer reads as being about that neighbour's text.
+- [x] T8 | FINISHED | unknown | Give `add` its block -- done, and the * in
+      `the-finding-record-is-eight-fields-and-six-would-do` is closed with it.
+      An `add` cites the empty interval the prose belongs in; it no longer
+      borrows a neighbour's index and no longer reads as being about that
+      neighbour's text.
 
-- [x] * **RULED 2026-08-17: `pCST` survives, `prose tree` retires.** Roy: *"pCST not prose
-      tree"*. The loser goes to the retired-words table in `docs/vocabulary.md` with its reason,
-      and every shipped use becomes `pCST`. ! Carried out by group A.
+- [x] T9 | FINISHED | unknown | * **RULED 2026-08-17: `pCST` survives, `prose
+      tree` retires.** Roy: *"pCST not prose tree"*. The loser goes to the
+      retired-words table in `docs/vocabulary.md` with its reason, and every
+      shipped use becomes `pCST`. ! Carried out by group A.
 
       Was: **`pCST` and `prose tree` now name ONE thing, and only one should.** Before
       2026-08-17 the two were distinguishable: the pCST was every interval as a node, and the
@@ -97,19 +111,23 @@ vocabulary and is done; this is the census change that follows from it.
       `prose tree` is the one every shipped file says. Whichever goes, the loser belongs in the
       retired-words table with the reason.
 
-- [x] * **RULED 2026-08-17: stage 2 is COLLATE.** Was: relitigate the name **ANNOTATE**. Roy,
-      2026-08-16: *"I think at a future time we might relitigate the word ANNOTATE. It seems
-      close but not quite correct for the stage that is about turning the code into the pCST
-      and finding external references."* The name was to be chosen against what the stage does
-      once it builds intervals rather than prose runs, and on 2026-08-17 it does. ! **The pairing check this
-      task called for came back BETTER, not neutral.** `annotation` was ruled in for two
-      reasons and only one was the stage name -- the other, that an editorial MARK is what an
-      editor writes on a manuscript while the census's are mechanical observations, stands on
-      its own. And the rename ends a real collision: ANNOTATE named stage 2 while `annotate.py`
-      performs stage 3, so one word pointed at two stages.
+- [x] T10 | FINISHED | unknown | * **RULED 2026-08-17: stage 2 is COLLATE.**
+      Was: relitigate the name **ANNOTATE**. Roy, 2026-08-16: *"I think at a
+      future time we might relitigate the word ANNOTATE. It seems close but not
+      quite correct for the stage that is about turning the code into the pCST
+      and finding external references."* The name was to be chosen against what
+      the stage does once it builds intervals rather than prose runs, and on
+      2026-08-17 it does. ! **The pairing check this task called for came back
+      BETTER, not neutral.** `annotation` was ruled in for two reasons and only
+      one was the stage name -- the other, that an editorial MARK is what an
+      editor writes on a manuscript while the census's are mechanical
+      observations, stands on its own. And the rename ends a real collision:
+      ANNOTATE named stage 2 while `annotate.py` performs stage 3, so one word
+      pointed at two stages.
 
-- [x] Re-measure the census afterwards and record it -- ! **measured 2026-08-17:**
-      `census.py --json` over `census.py` is **177,615 bytes for 546 blocks**, against 36,777
-      bytes for 44 before. The estimate here was ~118 KB and it was low. Recorded as a fact, not
-      as a budget question -- `docs/limitations.md` states that rule files are budgeted and run
-      data is not.
+- [x] T11 | FINISHED | unknown | Re-measure the census afterwards and record it
+      -- ! **measured 2026-08-17:** `census.py --json` over `census.py` is
+      **177,615 bytes for 546 blocks**, against 36,777 bytes for 44 before. The
+      estimate here was ~118 KB and it was low. Recorded as a fact, not as a
+      budget question -- `docs/limitations.md` states that rule files are
+      budgeted and run data is not.

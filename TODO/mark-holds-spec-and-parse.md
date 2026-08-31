@@ -65,27 +65,29 @@ change -- `conventions.md`, *The vocabulary is shared*.
 
 ## Tasks
 
-- [ ] Implement the extraction of the instruction SPEC -- `Instruction`, `Shape`,
-      `QUERY_SHAPES`, `Row`, `INSTRUCTIONS`, `allowed()`, `ANCHOR_NAME` and
-      `ANCHOR_EXAMPLE` -- into its own module under `desk/`, leaving `mark.py`
-      holding the `Mark` type and the boundary parse. Verify: `mark.py` imports
-      the spec rather than defining it; `uv run ty check src/comment_review/`
-      passes and `uv run pytest -q` reports the same counts as before the move.
-- [ ] Update `scripts/render_brief.py` to import the classifier table from the
-      spec module. Verify: it no longer imports from the module holding the parse,
-      and the rendered brief is byte-identical to its pre-split output.
-- [ ] Update `tests/gates/test_mark_shape.py` to read the spec at its new home.
-      Verify: the gate passes, and goes red when a row is deleted from the table.
-- [ ] Update `docs/lanes.md` and `docs/the-mark.md` wherever either names the
-      file. Verify: no document names a path that does not exist, checked with `uv
-      run python scripts/dead_sweep.py --links`.
-- [ ] Delete the inline restatements of `filled()` at their call sites so the
-      predicate is called rather than repeated. Verify: the inline form appears
-      nowhere in `desk/`, and the suite stays green.
-- [ ] Update `binder/annotate.py`'s `TICKED` so it states the question it
+- [ ] T1 | Implement the extraction of the instruction SPEC -- `Instruction`,
+      `Shape`, `QUERY_SHAPES`, `Row`, `INSTRUCTIONS`, `allowed()`, `ANCHOR_NAME`
+      and `ANCHOR_EXAMPLE` -- into its own module under `desk/`, leaving
+      `mark.py` holding the `Mark` type and the boundary parse. Verify:
+      `mark.py` imports the spec rather than defining it; `uv run ty check
+      src/comment_review/` passes and `uv run pytest -q` reports the same counts
+      as before the move.
+- [ ] T2 | Update `scripts/render_brief.py` to import the classifier table from
+      the spec module. Verify: it no longer imports from the module holding the
+      parse, and the rendered brief is byte-identical to its pre-split output.
+- [ ] T3 | Update `tests/gates/test_mark_shape.py` to read the spec at its new
+      home. Verify: the gate passes, and goes red when a row is deleted from the
+      table.
+- [ ] T4 | Update `docs/lanes.md` and `docs/the-mark.md` wherever either names
+      the file. Verify: no document names a path that does not exist, checked
+      with `uv run python scripts/dead_sweep.py --links`.
+- [ ] T5 | Delete the inline restatements of `filled()` at their call sites so
+      the predicate is called rather than repeated. Verify: the inline form
+      appears nowhere in `desk/`, and the suite stays green.
+- [ ] T6 | Update `binder/annotate.py`'s `TICKED` so it states the question it
       answers -- the back-of-book index of what documentation REFERS to, loose
-      about spaced words because a docstring may carry them. RULED 2026-08-30.
-      ! `ANCHOR_NAME` IS NOT ITS COUNTERPART AND WAS NEVER RULED ON: it is
+      about spaced words because a docstring may carry them. RULED 2026-08-30. !
+      `ANCHOR_NAME` IS NOT ITS COUNTERPART AND WAS NEVER RULED ON: it is
       prototype residue ported in `67dc82b`, and the move spec deletes it with
       `add`'s claim anchor. Verify: `TICKED` carries the sentence and
       `docs/vocabulary.md` records why it admits what it admits.

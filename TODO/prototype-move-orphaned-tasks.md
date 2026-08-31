@@ -71,22 +71,22 @@ one property this repo refuses in a comment and should refuse in a checkbox.
 
 ## Tasks
 
-- [ ] Measure which of the 25 are SITES and which are CITATIONS. A task saying
-      'make `record.py:453` use `filled()`' names a site that no longer runs; one
-      saying '`verdicts.py` did it this way' is a citation and is fine. Verify:
-      every one of the 25 is labelled site or citation, and the count of each is
-      recorded here.
-- [ ] Re-anchor every SITE onto the live module that inherited its subject, or say
-      plainly that the work no longer has one. Verify: no unchecked task in
-      `TODO/` names a `prototype/` path as the place to change, and each re-
+- [ ] T1 | Measure which of the 25 are SITES and which are CITATIONS. A task
+      saying 'make `record.py:453` use `filled()`' names a site that no longer
+      runs; one saying '`verdicts.py` did it this way' is a citation and is
+      fine. Verify: every one of the 25 is labelled site or citation, and the
+      count of each is recorded here.
+- [ ] T2 | Re-anchor every SITE onto the live module that inherited its subject,
+      or say plainly that the work no longer has one. Verify: no unchecked task
+      in `TODO/` names a `prototype/` path as the place to change, and each re-
       anchored task's verification can be run by a stranger.
-- [ ] Close what the move already settled. Some of these tasks describe defects in
-      code that was REPLACED rather than moved, so the defect is gone with it.
-      Verify: each such file is completed with an outcome naming the work that
-      replaced it, not marked superseded -- a defect fixed by other work is an
-      ordinary completion.
-- [ ] Say how this is prevented. The move was a single commit on 2026-08-25 and
-      nothing swept the backlog after it. Verify: either a gate refuses an
+- [ ] T3 | Close what the move already settled. Some of these tasks describe
+      defects in code that was REPLACED rather than moved, so the defect is gone
+      with it. Verify: each such file is completed with an outcome naming the
+      work that replaced it, not marked superseded -- a defect fixed by other
+      work is an ordinary completion.
+- [ ] T4 | Say how this is prevented. The move was a single commit on 2026-08-25
+      and nothing swept the backlog after it. Verify: either a gate refuses an
       unchecked task naming a `prototype/` path, or `docs/conventions.md` states
       that moving a module means sweeping `TODO/` in the same change -- and
       whichever is chosen is the one that exists.

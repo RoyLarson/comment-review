@@ -27,14 +27,16 @@ Nothing measures which code the suite actually runs.
 
 ## Tasks
 
-- [x] Ask systems to pin a coverage tool in pyproject.toml -- that file is
-      systems-owned, so backend cannot add the dependency itself
-- [ ] Record the baseline: which lines of src/comment_review/ the suite executes
-      today, per module
-- [ ] Read the uncovered set as a DELETION list, not a test-writing list. For
-      each: is this code wanted? Cut what is not, before writing a test for it
-- [ ] For code that is wanted and uncovered, write the test -- and say what
+- [x] T1 | FINISHED | unknown | Ask systems to pin a coverage tool in
+      pyproject.toml -- that file is systems-owned, so backend cannot add the
+      dependency itself
+- [ ] T2 | Record the baseline: which lines of src/comment_review/ the suite
+      executes today, per module
+- [ ] T3 | Read the uncovered set as a DELETION list, not a test-writing list.
+      For each: is this code wanted? Cut what is not, before writing a test for
+      it
+- [ ] T4 | For code that is wanted and uncovered, write the test -- and say what
       behaviour it pins, not that it raises coverage
-- [ ] Decide whether a coverage floor becomes a gate. Verify: if it does, it is
-      systems-owned and it can FAIL -- a floor set at the current number can never
-      fail
+- [ ] T5 | Decide whether a coverage floor becomes a gate. Verify: if it does,
+      it is systems-owned and it can FAIL -- a floor set at the current number
+      can never fail

@@ -52,12 +52,16 @@ the collator to ruling on nothing.
 
 ## Tasks
 
-- [x] T1 -- Render base plus every edit in `diff3` form, from an escalation. Verify: the output
-      parses back into three sides, and the base side is byte-identical to the paragraph.
-- [x] T2 -- Prove the form was chosen for a reason. Verify: a test builds two edits on DIFFERENT
-      lines of one paragraph and asserts the `diff3` render shows them disjoint -- and fails if
-      the renderer is switched to the two-sided form.
-- [ ] T3 -- Keep rendering out of reconciliation. Verify: reconciliation returns escalations
-      carrying no rendered text, and the renderer takes an escalation and returns lines.
-- [x] T4 -- Handle more than two marks at one place. Verify: three conflicting marks render
-      without losing one, or the design says why three cannot arise.
+- [x] T1 | FINISHED | unknown | T1 -- Render base plus every edit in `diff3`
+      form, from an escalation. Verify: the output parses back into three sides,
+      and the base side is byte-identical to the paragraph.
+- [x] T2 | FINISHED | unknown | T2 -- Prove the form was chosen for a reason.
+      Verify: a test builds two edits on DIFFERENT lines of one paragraph and
+      asserts the `diff3` render shows them disjoint -- and fails if the
+      renderer is switched to the two-sided form.
+- [ ] T3 | T3 -- Keep rendering out of reconciliation. Verify: reconciliation
+      returns escalations carrying no rendered text, and the renderer takes an
+      escalation and returns lines.
+- [x] T4 | FINISHED | unknown | T4 -- Handle more than two marks at one place.
+      Verify: three conflicting marks render without losing one, or the design
+      says why three cannot arise.

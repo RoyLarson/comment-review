@@ -30,5 +30,5 @@ consideration rather than riding in on an unrelated pass.
 
 ## Tasks
 
-- [ ] Decide whether to delete block_text or give it a caller, on its own
+- [ ] T1 | Decide whether to delete block_text or give it a caller, on its own
       consideration

@@ -20,13 +20,13 @@ the docket names one role per page, so two roles settling one page names neither
 
 ## Tasks
 
-- [ ] Rule whether an alteration carries its own role. Verify: the ruling is
-      recorded in docs/decision-log.md, naming what docket.read requires and what
-      flows.revise.pull._set_by reads
-- [ ] Carry the role per alteration, if that is the ruling. Verify: a docket built
-      from two roles' settled places on ONE page maps each address to the role
-      that actually settled it, and docket.read refuses an alteration whose role
-      is present and empty
-- [ ] Retire docket_from's omission once the format carries it. Verify: no page a
-      settled place reached is missing a provenance, and the test asserting an
-      absent role is replaced by one asserting the right one
+- [ ] T1 | Rule whether an alteration carries its own role. Verify: the ruling
+      is recorded in docs/decision-log.md, naming what docket.read requires and
+      what flows.revise.pull._set_by reads
+- [ ] T2 | Carry the role per alteration, if that is the ruling. Verify: a
+      docket built from two roles' settled places on ONE page maps each address
+      to the role that actually settled it, and docket.read refuses an
+      alteration whose role is present and empty
+- [ ] T3 | Retire docket_from's omission once the format carries it. Verify: no
+      page a settled place reached is missing a provenance, and the test
+      asserting an absent role is replaced by one asserting the right one

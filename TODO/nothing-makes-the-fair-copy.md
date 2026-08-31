@@ -176,33 +176,38 @@ copy chief that ruled, so no single role is ever in a position to file it. ! Tha
 
 ## Tasks
 
-- [?] T1 -- * Name the artifact and the module that makes it. Verify: the name is in
-      `docs/vocabulary.md` and the file is renamed to it.
-- [ ] T2 -- Compose the marks on one address in the synthesis order. Verify: two
-      non-conflicting marks on one paragraph produce one text carrying both.
-- [ ] T3 -- Send a contradiction to revise instead of composing it. Verify: `correct`
-      against `patch` on one sentence goes back to its filers and composes nothing.
-- [ ] T4 -- Carry the marks each paragraph answers. Verify: a mark that reaches the
-      collator and is named by no paragraph refuses the run.
-- [ ] T5 -- Emit what the galley already takes. Verify: the output is `{address: text}`
-      and the galley consumes it unmodified.
-- [ ] T6 -- Correct `galley.py:173`, which claims `--edits` is machine-written. Verify:
-      the sentence describes what exists.
-- [ ] T7 -- `agents` -- correct `SKILL.md:925`, *nothing between stage 5 and the galley
-      converts*. Verify: it names the piece that does.
-- [x] T8 -- NAMED 2026-08-24: a mark carried into the text is `taken in`. In
-      `docs/vocabulary.md` and `decision-log.md Vocabulary: #12`.
-- [ ] T9 -- Record `taken in` or not, for every mark on the artifact. Verify: a mark that
-      is neither taken in nor covered by a `stet` refuses the run.
-- [ ] T10 -- Carry a `stet` onto the artifact. Verify: a paragraph the copy chief ruled
-      says so and names the marks that ruling settled.
-- [ ] T11 -- Rename `re-review` to `revise` in the 7 shipped files, 23 sites. Verify:
-      `grep -rc re-review plugins/` returns nothing.
-- [ ] The desk takes each page sha FROM THE BINDER the agents read and copies it
-      onto that page schedule -- never from the file at docket-writing time, which
-      would make proof_setter staleness check compare the file against itself
-- [ ] Pin that with a test the desk fails if it recomputes: build a docket, change
-      the file underneath, and assert the run REFUSES at verify
+- [?] T1 | T1 -- * Name the artifact and the module that makes it. Verify: the
+      name is in `docs/vocabulary.md` and the file is renamed to it.
+- [ ] T2 | T2 -- Compose the marks on one address in the synthesis order.
+      Verify: two non-conflicting marks on one paragraph produce one text
+      carrying both.
+- [ ] T3 | T3 -- Send a contradiction to revise instead of composing it. Verify:
+      `correct` against `patch` on one sentence goes back to its filers and
+      composes nothing.
+- [ ] T4 | T4 -- Carry the marks each paragraph answers. Verify: a mark that
+      reaches the collator and is named by no paragraph refuses the run.
+- [ ] T5 | T5 -- Emit what the galley already takes. Verify: the output is
+      `{address: text}` and the galley consumes it unmodified.
+- [ ] T6 | T6 -- Correct `galley.py:173`, which claims `--edits` is
+      machine-written. Verify: the sentence describes what exists.
+- [ ] T7 | T7 -- `agents` -- correct `SKILL.md:925`, *nothing between stage 5
+      and the galley converts*. Verify: it names the piece that does.
+- [x] T8 | FINISHED | unknown | T8 -- NAMED 2026-08-24: a mark carried into the
+      text is `taken in`. In `docs/vocabulary.md` and `decision-log.md
+      Vocabulary: #12`.
+- [ ] T9 | T9 -- Record `taken in` or not, for every mark on the artifact.
+      Verify: a mark that is neither taken in nor covered by a `stet` refuses
+      the run.
+- [ ] T10 | T10 -- Carry a `stet` onto the artifact. Verify: a paragraph the
+      copy chief ruled says so and names the marks that ruling settled.
+- [ ] T11 | T11 -- Rename `re-review` to `revise` in the 7 shipped files, 23
+      sites. Verify: `grep -rc re-review plugins/` returns nothing.
+- [ ] T12 | The desk takes each page sha FROM THE BINDER the agents read and
+      copies it onto that page schedule -- never from the file at docket-writing
+      time, which would make proof_setter staleness check compare the file
+      against itself
+- [ ] T13 | Pin that with a test the desk fails if it recomputes: build a
+      docket, change the file underneath, and assert the run REFUSES at verify
 
 ## Related
 

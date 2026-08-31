@@ -28,41 +28,48 @@ rather than finding them one at a time when someone happens to look.
 
 ## Tasks
 
-- [x] Give the absolute-path rule its real reason. **Done 2026-08-16** -- six sites: the four
-      agent files (line-neutral, all at budget), `SKILL.md:344`, and `census.py:768`, whose
-      *"the review usually runs from a worktree"* was a plain empirical claim true only of our
-      eval runs. ! `reviewer-brief.md:198` is deliberately untouched: *"an archive absent from
-      every worktree"* is a measurement about one repository in git's ordinary sense -- a
-      finding, not a requirement.
+- [x] T1 | FINISHED | unknown | Give the absolute-path rule its real reason.
+      **Done 2026-08-16** -- six sites: the four agent files (line-neutral, all
+      at budget), `SKILL.md:344`, and `census.py:768`, whose *"the review
+      usually runs from a worktree"* was a plain empirical claim true only of
+      our eval runs. ! `reviewer-brief.md:198` is deliberately untouched: *"an
+      archive absent from every worktree"* is a measurement about one repository
+      in git's ordinary sense -- a finding, not a requirement.
 
-- [x] **A SECOND leak, found 2026-08-16 and removed.** `function-context.md:45-50` told
-      reviewers to *"Run the guard with its EXEMPTIONS OFF, and read its EXCLUSION list"*, on
-      two measurements that `evidence/findings.md` files under **"More of my own errors"**
-      (stage 22 at `:613-617`, and the scope-widening no-op at `:670-684`) -- a session mis-invoking
-      ruff on this repo's own config while doing documentation cleanup. Roy: *"It would only be
-      applicable here if there was a method of intentionally bypassing the reviewers and there
-      isn't. If the reviewers fail then they get rerun."* Deleted with its two dependants
-      (`function-context.md:3`, `SKILL.md:430`); function-context 129 -> 122 lines. ! The rule
-      the section exists for is untouched: does the guard exist, and would it FAIL if the claim
-      were false.
+- [x] T2 | FINISHED | unknown | **A SECOND leak, found 2026-08-16 and removed.**
+      `function-context.md:45-50` told reviewers to *"Run the guard with its
+      EXEMPTIONS OFF, and read its EXCLUSION list"*, on two measurements that
+      `evidence/findings.md` files under **"More of my own errors"** (stage 22
+      at `:613-617`, and the scope-widening no-op at `:670-684`) -- a session
+      mis-invoking ruff on this repo's own config while doing documentation
+      cleanup. Roy: *"It would only be applicable here if there was a method of
+      intentionally bypassing the reviewers and there isn't. If the reviewers
+      fail then they get rerun."* Deleted with its two dependants
+      (`function-context.md:3`, `SKILL.md:430`); function-context 129 -> 122
+      lines. ! The rule the section exists for is untouched: does the guard
+      exist, and would it FAIL if the claim were false.
 
-- [x] Sweep the shipped tree for other harness assumptions. **Run 2026-08-16** over the listed
-      candidates. ! **The word list found NOTHING.** Every hit was ordinary English (`degrade`,
-      `grade a run from its DIFF`, `git-decoding hazard`) or a false positive on a substring.
-      `redacted_pkg/billing/rates.py` in `reviewer-brief.md:50` reads like a corpus path and is NOT
-      one -- no `redacted_pkg` in `corpora.toml`; it is an invented example, which is what the brief
-      is required to use. ! **The remaining leaks are not findable by word**, which is the
-      finding: they are QUANTITIES, and the next task holds them.
+- [x] T3 | FINISHED | unknown | Sweep the shipped tree for other harness
+      assumptions. **Run 2026-08-16** over the listed candidates. ! **The word
+      list found NOTHING.** Every hit was ordinary English (`degrade`, `grade a
+      run from its DIFF`, `git-decoding hazard`) or a false positive on a
+      substring. `redacted_pkg/billing/rates.py` in `reviewer-brief.md:50` reads
+      like a corpus path and is NOT one -- no `redacted_pkg` in `corpora.toml`;
+      it is an invented example, which is what the brief is required to use. !
+      **The remaining leaks are not findable by word**, which is the finding:
+      they are QUANTITIES, and the next task holds them.
 
-- [x] Check the direction of every MEASURED claim in `plugins/`. ! **The Python half was done
-      2026-08-16**, under a ruling of Roy's given on `annotate.py`'s *"Measured on a scientific
-      library: 4 hits, 4 false"*: *"Unnecessary and potentially harmful quoting of hits that
-      could no longer be true."* Applied across all eight scripts -- the MECHANISM stays and the
-      quantity goes. Removed: `5 of 8 blocks`, a dated `asanyarray` observation, `5 of 7
-      reviewer reports FABRICATED` (Roy, on that one: *"only needs the first line"*), `3 of 3
-      verification runs`, `14 en-GB spellings`, `80/84, 18/20 and 2/2 false dangling reports`,
-      `6 of 20 dangling reports were gitignored state`, `Measured four times`, `Measured on all
-      three runs`.
+- [x] T4 | FINISHED | unknown | Check the direction of every MEASURED claim in
+      `plugins/`. ! **The Python half was done 2026-08-16**, under a ruling of
+      Roy's given on `annotate.py`'s *"Measured on a scientific library: 4 hits,
+      4 false"*: *"Unnecessary and potentially harmful quoting of hits that
+      could no longer be true."* Applied across all eight scripts -- the
+      MECHANISM stays and the quantity goes. Removed: `5 of 8 blocks`, a dated
+      `asanyarray` observation, `5 of 7 reviewer reports FABRICATED` (Roy, on
+      that one: *"only needs the first line"*), `3 of 3 verification runs`, `14
+      en-GB spellings`, `80/84, 18/20 and 2/2 false dangling reports`, `6 of 20
+      dangling reports were gitignored state`, `Measured four times`, `Measured
+      on all three runs`.
 
       ! **THE MARKDOWN HALF, ruled by Roy 2026-08-16.** The two rules never collided; the
       number question in `docs/limitations.md` was being read as licence to paste run
@@ -90,11 +97,13 @@ rather than finding them one at a time when someone happens to look.
       same file. Restored. ! It read as a quantity to me and would to an agent, so it is now
       bolded as a reference rather than run into the phrase.
 
-- [x] Decide what a shipped rule may assume about its environment, and write it once.
-      **Roy ruled the floor 2026-08-16: a LOCAL REPO.** Written once at the head of stage 1 in
-      `SKILL.md`: `git ls-files` answers and `git show <ref>:<path>` answers for a ref that
-      exists, and **everything else is checked** -- an upstream, a merge base, a clean tree, a
-      cwd at the repo root. `--repo` goes to every script rather than trusting the cwd.
+- [x] T5 | FINISHED | unknown | Decide what a shipped rule may assume about its
+      environment, and write it once. **Roy ruled the floor 2026-08-16: a LOCAL
+      REPO.** Written once at the head of stage 1 in `SKILL.md`: `git ls-files`
+      answers and `git show <ref>:<path>` answers for a ref that exists, and
+      **everything else is checked** -- an upstream, a merge base, a clean tree,
+      a cwd at the repo root. `--repo` goes to every script rather than trusting
+      the cwd.
 
       !! **Taking the task found a live defect, not just a missing sentence.** `write.md` ran
       the stage-7b proof as `--base <merge-base>`, and the merge base is the wrong ref: it
@@ -122,6 +131,7 @@ rather than finding them one at a time when someone happens to look.
       scope from `target`, else from `git diff --name-only HEAD`, and NAME which of the three
       was used, because they cover different files.
 
-- [x] Add the check to `docs/limitations.md`'s three questions. **Done 2026-08-16** -- there are
-      four now, and the fourth is *"is the REASON true in a fresh checkout?"*, with the failure
-      it catches named: a reader who tests the reason, finds it false, and drops the rule.
+- [x] T6 | FINISHED | unknown | Add the check to `docs/limitations.md`'s three
+      questions. **Done 2026-08-16** -- there are four now, and the fourth is
+      *"is the REASON true in a fresh checkout?"*, with the failure it catches
+      named: a reader who tests the reason, finds it false, and drops the rule.

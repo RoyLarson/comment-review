@@ -49,16 +49,19 @@ out of what a reviewer reads, the way front matter is filtered.
 
 ## Tasks
 
-- [x] !! RULING NEEDED: where is the both-sides shape refused? At census time --
-      name the block and stop, the way a language with no record does -- or as an
-      annotation that filters it out of what a reviewer reads, the way front
-      matter is filtered. Today it is neither: it is handed on as prose.
-- [x] The block's `text` is the whole statement and it carries no annotation.
-      Measured 2026-08-19: `f.c@c1  comment  col=-1  text='int x = /* why */ 5;'`.
-- [x] Whatever is ruled, `original_column` stops carrying `-1` -- the field says where
-      the prose STARTS, and this is a fact about where it ENDS.
-      `galley.code_on_both_sides` reads it today and is the only reader.
-- [x] No test covers the both-sides shape reaching a reviewer.
-      `tests/test_census_blocks.py` covers the CUT and
+- [x] T1 | FINISHED | unknown | !! RULING NEEDED: where is the both-sides shape
+      refused? At census time -- name the block and stop, the way a language
+      with no record does -- or as an annotation that filters it out of what a
+      reviewer reads, the way front matter is filtered. Today it is neither: it
+      is handed on as prose.
+- [x] T2 | FINISHED | unknown | The block's `text` is the whole statement and it
+      carries no annotation. Measured 2026-08-19: `f.c@c1 comment col=-1
+      text='int x = /* why */ 5;'`.
+- [x] T3 | FINISHED | unknown | Whatever is ruled, `original_column` stops
+      carrying `-1` -- the field says where the prose STARTS, and this is a fact
+      about where it ENDS. `galley.code_on_both_sides` reads it today and is the
+      only reader.
+- [x] T4 | FINISHED | unknown | No test covers the both-sides shape reaching a
+      reviewer. `tests/test_census_blocks.py` covers the CUT and
       `tests/test_prove_unchanged.py` the refusal; nothing asks what stages 4-7a
       are handed.

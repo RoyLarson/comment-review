@@ -105,21 +105,28 @@ is carried below as a `*` box because it finishes the day it is answered.
 
 ## Tasks
 
-- [ ] T1 -- Define a code-concern SHAPE that carries a located proposal -- where, what and
-      why. Verify: the shape is defined in exactly one file and nothing else redefines it.
-- [ ] T2 -- Make `record.py --check` validate that shape. Verify: a malformed
-      `code_concerns` entry is refused and a well-formed one passes.
-- [ ] T3 -- Publish the same shape in the brief, where `reviewer-brief.md:255` today says
-      *"a list of strings, one line each, no verdict"*. Verify: the brief matches T2.
-- [ ] T4 -- Remove the `str(c)` coercion at `held.py:190`, which flattens an entry to its
-      repr. Verify: a T1-shaped concern leaves `held.parse_report` unflattened.
-- [ ] T5 -- Make `verdicts.py` read `code_concerns` and report every one it was handed.
-      Verify: two concerns in, two reported, and none dropped silently.
-- [ ] T6 -- Prove the stage-5 gate CAN fail on a code concern. Verify: a test refuses a
-      bad concern, and fails when the new check is removed.
-- [ ] T7 -- * RULE whether a code concern gets an ADDRESS from the census the way a
-      finding does. Verify: the answer is here -- addressed, or deliberately not.
-- [ ] T8 -- Write into `references/review.md` what stage 8 does with a code concern.
-      Verify: `review.md` names the handling, and `check_vocabulary.py` still passes.
-- [ ] T9 -- PASS CRITERION: run the graded set before and after this lands, with NO agent
-      file touched. Verify: the findings and verdicts are the same in both runs.
+- [ ] T1 | T1 -- Define a code-concern SHAPE that carries a located proposal --
+      where, what and why. Verify: the shape is defined in exactly one file and
+      nothing else redefines it.
+- [ ] T2 | T2 -- Make `record.py --check` validate that shape. Verify: a
+      malformed `code_concerns` entry is refused and a well-formed one passes.
+- [ ] T3 | T3 -- Publish the same shape in the brief, where
+      `reviewer-brief.md:255` today says *"a list of strings, one line each, no
+      verdict"*. Verify: the brief matches T2.
+- [ ] T4 | T4 -- Remove the `str(c)` coercion at `held.py:190`, which flattens
+      an entry to its repr. Verify: a T1-shaped concern leaves
+      `held.parse_report` unflattened.
+- [ ] T5 | T5 -- Make `verdicts.py` read `code_concerns` and report every one it
+      was handed. Verify: two concerns in, two reported, and none dropped
+      silently.
+- [ ] T6 | T6 -- Prove the stage-5 gate CAN fail on a code concern. Verify: a
+      test refuses a bad concern, and fails when the new check is removed.
+- [ ] T7 | T7 -- * RULE whether a code concern gets an ADDRESS from the census
+      the way a finding does. Verify: the answer is here -- addressed, or
+      deliberately not.
+- [ ] T8 | T8 -- Write into `references/review.md` what stage 8 does with a code
+      concern. Verify: `review.md` names the handling, and `check_vocabulary.py`
+      still passes.
+- [ ] T9 | T9 -- PASS CRITERION: run the graded set before and after this lands,
+      with NO agent file touched. Verify: the findings and verdicts are the same
+      in both runs.

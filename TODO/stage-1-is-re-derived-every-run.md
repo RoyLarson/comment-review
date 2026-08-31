@@ -129,31 +129,43 @@ ways -- a cap published since the last run, a `docs/` tree deleted since.
 
 ## Tasks
 
-- [?] T1 -- * Collapse 1.7 and 1.8 into ONE substep named for what it does: find what
-      structure is available. Verify: `SKILL.md` has one substep there, not two.
-- [ ] T2 -- Re-resolve every citation of the old substep numbers once T1 lands. Verify:
-      `grep -rn "1\.8" plugins/` is empty or points at the new number.
-- [?] T3 -- * Rule whether the skill probes for `.codegraph/` alongside the LSP probe.
-      Verify: the probe is in `SKILL.md`, or this file records the refusal and why.
-- [?] T4 -- * Rule whether `codegraph_explore` is a sanctioned way to settle a paragraph's
-      ANCHOR. Verify: the answer is recorded in `SKILL.md` or in this file.
-- [?] T5 -- * Rule whether `codegraph_explore` is a sanctioned way to settle a LIVENESS
-      claim. Verify: the answer is recorded in `SKILL.md` or in this file.
-- [ ] T6 -- State the three structure states PER SOURCE rather than per run. Verify: every
-      row of the `SKILL.md` structure table names the source it is about.
-- [ ] T7 -- Name `.claude/comment-review/` in `SKILL.md` 1.5 as where a sheet is found and
-      written. Verify: `grep -rn "\.claude/comment-review" plugins/` returns that line.
-- [ ] T8 -- Widen the sheet's own format to carry the REPO-side rows of the table above,
-      marked as repo facts. Verify: the format lists them and says which are repo facts.
-- [ ] T9 -- State in the sheet's format that LSP state is NEVER recorded, with the reason.
-      Verify: the exclusion and its reason are both in the format.
-- [ ] T10 -- State in the sheet's format that agent resolution is NEVER recorded, with the
-      reason. Verify: the exclusion and its reason are both in the format.
-- [ ] T11 -- Decide what stage 1 does when a persisted answer is now WRONG. Verify:
-      `SKILL.md` states what a run does with a stale answer.
-- [ ] T12 -- Record in the sheet the ref it was measured at, so T11's rule is computable.
-      Verify: the sheet format carries the ref.
-- [ ] T13 -- Re-measure the stage-1 tool-call cost after the collapse. Verify: a dated
-      count in this file, taken from a run made after the collapse landed.
-- [x] T14 -- RULED 2026-08-17, in the Objective: `.claude/comment-review/` in the repo
-      under review, Roy's words. The ruling is made; implementing it is T7.
+- [?] T1 | T1 -- * Collapse 1.7 and 1.8 into ONE substep named for what it does:
+      find what structure is available. Verify: `SKILL.md` has one substep
+      there, not two.
+- [ ] T2 | T2 -- Re-resolve every citation of the old substep numbers once T1
+      lands. Verify: `grep -rn "1\.8" plugins/` is empty or points at the new
+      number.
+- [?] T3 | T3 -- * Rule whether the skill probes for `.codegraph/` alongside the
+      LSP probe. Verify: the probe is in `SKILL.md`, or this file records the
+      refusal and why.
+- [?] T4 | T4 -- * Rule whether `codegraph_explore` is a sanctioned way to
+      settle a paragraph's ANCHOR. Verify: the answer is recorded in `SKILL.md`
+      or in this file.
+- [?] T5 | T5 -- * Rule whether `codegraph_explore` is a sanctioned way to
+      settle a LIVENESS claim. Verify: the answer is recorded in `SKILL.md` or
+      in this file.
+- [ ] T6 | T6 -- State the three structure states PER SOURCE rather than per
+      run. Verify: every row of the `SKILL.md` structure table names the source
+      it is about.
+- [ ] T7 | T7 -- Name `.claude/comment-review/` in `SKILL.md` 1.5 as where a
+      sheet is found and written. Verify: `grep -rn "\.claude/comment-review"
+      plugins/` returns that line.
+- [ ] T8 | T8 -- Widen the sheet's own format to carry the REPO-side rows of the
+      table above, marked as repo facts. Verify: the format lists them and says
+      which are repo facts.
+- [ ] T9 | T9 -- State in the sheet's format that LSP state is NEVER recorded,
+      with the reason. Verify: the exclusion and its reason are both in the
+      format.
+- [ ] T10 | T10 -- State in the sheet's format that agent resolution is NEVER
+      recorded, with the reason. Verify: the exclusion and its reason are both
+      in the format.
+- [ ] T11 | T11 -- Decide what stage 1 does when a persisted answer is now
+      WRONG. Verify: `SKILL.md` states what a run does with a stale answer.
+- [ ] T12 | T12 -- Record in the sheet the ref it was measured at, so T11's rule
+      is computable. Verify: the sheet format carries the ref.
+- [ ] T13 | T13 -- Re-measure the stage-1 tool-call cost after the collapse.
+      Verify: a dated count in this file, taken from a run made after the
+      collapse landed.
+- [x] T14 | FINISHED | unknown | T14 -- RULED 2026-08-17, in the Objective:
+      `.claude/comment-review/` in the repo under review, Roy's words. The
+      ruling is made; implementing it is T7.

@@ -100,33 +100,41 @@ merge-or-fight table never sees the overlap. Filed as
 
 ## Tasks
 
-- [x] T1 -- State in `reviewer-brief.md` that a source may cite a place other than the mark's
-      own, with the disagree-and-cite rule and its corollary. Verify: `grep -rn` for the rule
-      returns exactly one path.
-- [x] T2 -- State the same for the fields whose misreading was measured -- `change` is the updated
-      paragraph in RAW TEXT, `sources` are `{cite, verbatim}` pairs, `address` is COPIED and never
-      built. Verify: each appears once, in the brief, not restated in an agent file.
-      ! **THIS SAID `change` IS A LINE ARRAY, AND WAS COMPLETED UNDER THAT RULE.** Roy ruled
-      2026-08-28 that `change` is the updated paragraph as raw text (`docs/the-mark.md`), and the
-      code followed on 2026-08-29 -- `desk/mark.parse` now refuses a list BY NAME. **A checked box
-      asserting a superseded fact reads as settled**, which is why the wording is corrected here
-      rather than left to be re-derived. Tracked in
+- [x] T1 | FINISHED | unknown | T1 -- State in `reviewer-brief.md` that a source
+      may cite a place other than the mark's own, with the disagree-and-cite
+      rule and its corollary. Verify: `grep -rn` for the rule returns exactly
+      one path.
+- [x] T2 | FINISHED | unknown | T2 -- State the same for the fields whose
+      misreading was measured -- `change` is the updated paragraph in RAW TEXT,
+      `sources` are `{cite, verbatim}` pairs, `address` is COPIED and never
+      built. Verify: each appears once, in the brief, not restated in an agent
+      file. ! **THIS SAID `change` IS A LINE ARRAY, AND WAS COMPLETED UNDER THAT
+      RULE.** Roy ruled 2026-08-28 that `change` is the updated paragraph as raw
+      text (`docs/the-mark.md`), and the code followed on 2026-08-29 --
+      `desk/mark.parse` now refuses a list BY NAME. **A checked box asserting a
+      superseded fact reads as settled**, which is why the wording is corrected
+      here rather than left to be re-derived. Tracked in
       [`change-is-raw-text-not-lines`](change-is-raw-text-not-lines.md).
-- [x] T3 -- State what `ran` is for and when it is OWED: a claim settled by RUNNING something
-      carries the command that settled it. ! It is the only field the experiment ADDED, ratified
-      by Roy 2026-08-27, so no role has ever been told it exists -- an undescribed field is an
-      empty one. Verify: the brief names `ran`, and says a claim settled by execution without it
-      is incomplete.
-- [ ] T4 -- Say what a role does when it cannot tell which side of a disagreement is wrong.
-      Verify: the brief names `query` for that case and says which of its three shapes.
-- [x] T5 -- Replace the three `query` shapes with the set RULED in `decision-log.md Process: #33`
-      -- `outside-my-role`, `unable-to-determine`, `human-review-necessary`. ! The old set is at
-      SEVENTEEN sites; the ones that must move are `reviewer-brief.md:411-414`, `SKILL.md`,
-      `agents/comment-review-module-context.md`, and `record.py`/`verdicts.py`/`desk.py` in
-      `prototype/`. Verify: `grep -rn "outside the checkout"` returns nothing outside `docs/`
-      (history keeps the old set legible) and `corpora/`.
-- [?] T6 -- * RULE the register for all three names. ! The CATEGORIES are ruled and are not
-      reopened by this -- only the words. Candidates, Roy 2026-08-27:
+- [x] T3 | FINISHED | unknown | T3 -- State what `ran` is for and when it is
+      OWED: a claim settled by RUNNING something carries the command that
+      settled it. ! It is the only field the experiment ADDED, ratified by Roy
+      2026-08-27, so no role has ever been told it exists -- an undescribed
+      field is an empty one. Verify: the brief names `ran`, and says a claim
+      settled by execution without it is incomplete.
+- [ ] T4 | T4 -- Say what a role does when it cannot tell which side of a
+      disagreement is wrong. Verify: the brief names `query` for that case and
+      says which of its three shapes.
+- [x] T5 | FINISHED | unknown | T5 -- Replace the three `query` shapes with the
+      set RULED in `decision-log.md Process: #33` -- `outside-my-role`,
+      `unable-to-determine`, `human-review-necessary`. ! The old set is at
+      SEVENTEEN sites; the ones that must move are `reviewer-brief.md:411-414`,
+      `SKILL.md`, `agents/comment-review-module-context.md`, and
+      `record.py`/`verdicts.py`/`desk.py` in `prototype/`. Verify: `grep -rn
+      "outside the checkout"` returns nothing outside `docs/` (history keeps the
+      old set legible) and `corpora/`.
+- [?] T6 | T6 -- * RULE the register for all three names. ! The CATEGORIES are
+      ruled and are not reopened by this -- only the words. Candidates, Roy
+      2026-08-27:
 
           human-review-necessary  ->  author query   only the author holds the intent
           unable-to-determine     ->  unverified     the copy desk's word for a claim
@@ -150,11 +158,14 @@ merge-or-fight table never sees the overlap. Filed as
 
       Verify: the ruling is recorded, `vocabulary.toml` agrees, and `grep -rn "outside my role"`
       over `plugins/` returns nothing if `remit` wins.
-- [x] T7 -- Make collate ACT on `unable-to-determine`, which is what the new axis buys. If
-      another role returned a substantive mark at the same place, the flow can see it settled
-      what this role could not. Verify: a test where role A is `unable-to-determine` at a place
-      and role B has a `correct` there, and the place does NOT reach the chief. ! `backend`'s to
-      write; filed here because the shape it depends on lives in the brief.
-- [ ] T8 -- Confirm no agent file restates any of T1-T7. Verify: `grep -rn` over
-      `plugins/comment-review/agents/` returns nothing for the rule's phrase. ! It does TODAY --
-      `comment-review-module-context.md` carries the old shapes.
+- [x] T7 | FINISHED | unknown | T7 -- Make collate ACT on `unable-to-determine`,
+      which is what the new axis buys. If another role returned a substantive
+      mark at the same place, the flow can see it settled what this role could
+      not. Verify: a test where role A is `unable-to-determine` at a place and
+      role B has a `correct` there, and the place does NOT reach the chief. !
+      `backend`'s to write; filed here because the shape it depends on lives in
+      the brief.
+- [ ] T8 | T8 -- Confirm no agent file restates any of T1-T7. Verify: `grep -rn`
+      over `plugins/comment-review/agents/` returns nothing for the rule's
+      phrase. ! It does TODAY -- `comment-review-module-context.md` carries the
+      old shapes.

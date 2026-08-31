@@ -15,10 +15,11 @@ The addresser command answers three questions wrongly at exit 0.
 
 ## Tasks
 
-- [x] Reproduce all three against a real binder and record the output
-- [x] Point the three reads at original_start and original_end. Verify: --resolve
-      prints real line numbers
-- [x] Decide what replaces the declares short-circuit at addresses.py:76 now that
-      rows do not carry it
-- [x] A test per flag, over a real binder. Verify: each fails against the current
-      code
+- [x] T1 | FINISHED | unknown | Reproduce all three against a real binder and
+      record the output
+- [x] T2 | FINISHED | unknown | Point the three reads at original_start and
+      original_end. Verify: --resolve prints real line numbers
+- [x] T3 | FINISHED | unknown | Decide what replaces the declares short-circuit
+      at addresses.py:76 now that rows do not carry it
+- [x] T4 | FINISHED | unknown | A test per flag, over a real binder. Verify:
+      each fails against the current code

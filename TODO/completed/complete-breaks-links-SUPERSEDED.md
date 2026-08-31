@@ -24,17 +24,20 @@ todo_tool complete breaks a file's relative links when it moves it.
 
 ## Tasks
 
-- [x] !! MEASURED 2026-08-21: 13 of 274 relative links under docs/ and TODO/ are
-      broken, and every one is a TODO that moved to `completed/`. A file at
-      `TODO/a.md` linking a sibling as `b.md` still says `b.md` after the move,
-      where the sibling is now a directory up.
-- [x] `complete_todo` moves the file and rewrites the README row. It does not
-      touch the file's own body, so a `[x](sibling.md)` link goes dead at exactly
-      the moment the work is archived -- when nobody is looking at it again.
-- [x] ! Four MORE were in live documents and are fixed: the 0.2.5 plan's R0 (four
-      links, all TODOs this branch completed) and `TODO/move-and-correct-
-      compose.md`. Those mattered because CLAUDE.md's release gate is that anyone
-      can check a box 'including someone who did none of the work'.
-- [x] ! THE SWEEP IS THE OTHER HALF. Nothing checks a relative link, which is why
-      16 accumulated unseen. A checker belongs beside `check_vocabulary.py`; it is
-      the same shape as `dead-names-ungated` and could ship in the same gate.
+- [x] T1 | FINISHED | unknown | !! MEASURED 2026-08-21: 13 of 274 relative links
+      under docs/ and TODO/ are broken, and every one is a TODO that moved to
+      `completed/`. A file at `TODO/a.md` linking a sibling as `b.md` still says
+      `b.md` after the move, where the sibling is now a directory up.
+- [x] T2 | FINISHED | unknown | `complete_todo` moves the file and rewrites the
+      README row. It does not touch the file's own body, so a `[x](sibling.md)`
+      link goes dead at exactly the moment the work is archived -- when nobody
+      is looking at it again.
+- [x] T3 | FINISHED | unknown | ! Four MORE were in live documents and are
+      fixed: the 0.2.5 plan's R0 (four links, all TODOs this branch completed)
+      and `TODO/move-and-correct- compose.md`. Those mattered because
+      CLAUDE.md's release gate is that anyone can check a box 'including someone
+      who did none of the work'.
+- [x] T4 | FINISHED | unknown | ! THE SWEEP IS THE OTHER HALF. Nothing checks a
+      relative link, which is why 16 accumulated unseen. A checker belongs
+      beside `check_vocabulary.py`; it is the same shape as `dead-names-ungated`
+      and could ship in the same gate.

@@ -79,11 +79,15 @@ agreeing on a destination produces no output at all. MEASURED 2026-08-17: `funct
 
 ## Tasks
 
-- [?] T1 -- * RULE whether a placement verdict needs a second reader -- candidates in the
-      Objective. Verify: the ruling is recorded in `docs/decision-log.md`.
-- [x] T2 -- SUPERSEDED. It asked for an anchor the census now emits on every address at
-      both tiers -- `census.py:454-458` and `page.py:681`. Detail in the Objective.
-- [x] T3 -- SUPERSEDED. Its premise -- no anchor at the `lexical` tier -- is false as of
-      2026-08-23. What survives is T1's question, which does not vary by tier.
-- [ ] T4 -- Make the collator report when two roles independently name the SAME destination
-      for one paragraph. Verify: a test hands it two such reports and asserts it appears.
+- [?] T1 | T1 -- * RULE whether a placement verdict needs a second reader --
+      candidates in the Objective. Verify: the ruling is recorded in
+      `docs/decision-log.md`.
+- [x] T2 | FINISHED | unknown | T2 -- SUPERSEDED. It asked for an anchor the
+      census now emits on every address at both tiers -- `census.py:454-458` and
+      `page.py:681`. Detail in the Objective.
+- [x] T3 | FINISHED | unknown | T3 -- SUPERSEDED. Its premise -- no anchor at
+      the `lexical` tier -- is false as of 2026-08-23. What survives is T1's
+      question, which does not vary by tier.
+- [ ] T4 | T4 -- Make the collator report when two roles independently name the
+      SAME destination for one paragraph. Verify: a test hands it two such
+      reports and asserts it appears.

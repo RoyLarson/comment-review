@@ -77,23 +77,28 @@ has done.
 
 ## Tasks
 
-- [ ] T1 -- Run ARM A -- v0.2.3 code with v0.2.3 agents as tagged. Verify: the run's
-      output is under `evidence/`, naming the commit it was produced at.
-- [ ] T2 -- Grade arm A on the twelve planted hazards. Verify: the grade is recorded under
-      `evidence/` beside arm A's run.
-- [ ] T3 -- Run ARM B -- 0.2.4 code with the arm B agents T5 builds. Verify: the run's
-      output is under `evidence/`, naming the commit it was produced at.
-- [ ] T4 -- Grade arm B on the same twelve hazards as arm A. Verify: both grades are
-      recorded so a reader who ran neither can compare them.
-- [ ] T5 -- Build arm B's agents as a mechanical rename to the 0.2.4 dictionary. Verify:
-      `git diff v0.2.3^{} -- agents/` against arm B reads as substitution only.
-- [ ] T6 -- Keep the shipped vocabulary green over arm B's agents. Verify: `uv run python
-      scripts/check_vocabulary.py` exits 0 on arm B's tree.
-- [x] T7 -- NOT A TASK, in the Objective: THERE IS NO BASELINE YET --
-      `evidence/cycle-0.2.3/` is a MECHANICAL run and carries no hazard grade.
-- [x] T8 -- SUPERSEDED AS WRITTEN; the rule it carried is in the Objective, and the three
-      named `evals/` files do not exist.
-- [x] T9 -- NOT A TASK, in the Objective: THE TAGS ARE ANNOTATED -- use `v0.2.3^{}`
-      wherever a commit is wanted.
-- [x] T10 -- NOT A TASK, in the Objective, and one of its numbers was wrong. The scoping
-      statement stands; all ten `corpora/` directories are materialised as of 2026-08-23.
+- [ ] T1 | T1 -- Run ARM A -- v0.2.3 code with v0.2.3 agents as tagged. Verify:
+      the run's output is under `evidence/`, naming the commit it was produced
+      at.
+- [ ] T2 | T2 -- Grade arm A on the twelve planted hazards. Verify: the grade is
+      recorded under `evidence/` beside arm A's run.
+- [ ] T3 | T3 -- Run ARM B -- 0.2.4 code with the arm B agents T5 builds.
+      Verify: the run's output is under `evidence/`, naming the commit it was
+      produced at.
+- [ ] T4 | T4 -- Grade arm B on the same twelve hazards as arm A. Verify: both
+      grades are recorded so a reader who ran neither can compare them.
+- [ ] T5 | T5 -- Build arm B's agents as a mechanical rename to the 0.2.4
+      dictionary. Verify: `git diff v0.2.3^{} -- agents/` against arm B reads as
+      substitution only.
+- [ ] T6 | T6 -- Keep the shipped vocabulary green over arm B's agents. Verify:
+      `uv run python scripts/check_vocabulary.py` exits 0 on arm B's tree.
+- [x] T7 | FINISHED | unknown | T7 -- NOT A TASK, in the Objective: THERE IS NO
+      BASELINE YET -- `evidence/cycle-0.2.3/` is a MECHANICAL run and carries no
+      hazard grade.
+- [x] T8 | FINISHED | unknown | T8 -- SUPERSEDED AS WRITTEN; the rule it carried
+      is in the Objective, and the three named `evals/` files do not exist.
+- [x] T9 | FINISHED | unknown | T9 -- NOT A TASK, in the Objective: THE TAGS ARE
+      ANNOTATED -- use `v0.2.3^{}` wherever a commit is wanted.
+- [x] T10 | FINISHED | unknown | T10 -- NOT A TASK, in the Objective, and one of
+      its numbers was wrong. The scoping statement stands; all ten `corpora/`
+      directories are materialised as of 2026-08-23.

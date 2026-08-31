@@ -37,13 +37,15 @@ compares only within one path, so a cross-file collision is never in scope. `add
 
 ## Tasks
 
-- [x] !! **`_check` compares only WITHIN one path.** It iterates `for path in
-      sorted({paths})`, so a cross-file collision is never seen. Measured: `4 of 4
-      blocks addressed`, rc=0, no SHARED -- then `--resolve a.b.py@a0` answers
-      *"no file in this census dots to ..."*. **The gate certifies what the
-      resolver then refuses.**
-- [x] **`undot` refuses the ambiguity correctly**, so the address is admitted and
-      fails somewhere else later. Decide where the refusal belongs: at census time
-      (name the collision and stop) or at check time (report SHARED across paths).
-- [x] ! `addresser.py` claims *"a complete path cannot collide"* and
-      `docs/addressing.md` repeats it. Correct both with whatever is ruled.
+- [x] T1 | FINISHED | unknown | !! **`_check` compares only WITHIN one path.**
+      It iterates `for path in sorted({paths})`, so a cross-file collision is
+      never seen. Measured: `4 of 4 blocks addressed`, rc=0, no SHARED -- then
+      `--resolve a.b.py@a0` answers *"no file in this census dots to ..."*.
+      **The gate certifies what the resolver then refuses.**
+- [x] T2 | FINISHED | unknown | **`undot` refuses the ambiguity correctly**, so
+      the address is admitted and fails somewhere else later. Decide where the
+      refusal belongs: at census time (name the collision and stop) or at check
+      time (report SHARED across paths).
+- [x] T3 | FINISHED | unknown | ! `addresser.py` claims *"a complete path cannot
+      collide"* and `docs/addressing.md` repeats it. Correct both with whatever
+      is ruled.

@@ -4,7 +4,7 @@
 Status:   deferred
 Progress: 4 of 8 tasks done
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-22 (/code-review high round 3, 2026-08-22, and Roy: the record/verdict
           pieces have got a lot of work to do and need an independent review work
           session)
@@ -82,19 +82,27 @@ never report. By the rule in `docs/gates.md` -- could it fail -- no.
 
 ## Tasks
 
-- [x] T1 -- NOT A TASK. RECORD of the deferral, restated in the Objective, kept so the
-      findings survive the wait for an independent review session.
-- [x] T2 -- NOT A TASK. The FRAMING, restated in the Objective: all six are one class, and
-      the admitting gate is the one that certifies a review.
-- [x] T3 -- Stop `load_report` dropping a bare-string source before `source_problem` runs.
-      Verify: one report carrying a bare-string source, and both tools agreeing on it.
-- [ ] T4 -- Require `claim.shape` instead of a substring test on the claim text. Verify: a
-      `query` with no `shape` and *outside my role* in its prose reaches stage 5.
-- [ ] T5 -- Make `_answered` use `filled()` like every sibling at `record.py:453`. Verify:
-      a record with a JSON null in that slot is refused.
-- [ ] T6 -- Extend the present-and-empty test at `desk.py:170-172` to `_extras`. Verify: a
-      record with a present-and-empty EXTRA is refused by both tools.
-- [ ] T7 -- Make `held.py:118` check the TYPE of `pages`, not just the key. Verify: a
-      report whose `pages` is a dict is refused with the shape diagnostic.
-- [x] T8 -- Replace `address_problem` with a check that can fire. Verify: whatever
-      replaces it can be made to fail on a crafted record.
+- [x] T1 | FINISHED | unknown | T1 -- NOT A TASK. RECORD of the deferral,
+      restated in the Objective, kept so the findings survive the wait for an
+      independent review session.
+- [x] T2 | FINISHED | unknown | T2 -- NOT A TASK. The FRAMING, restated in the
+      Objective: all six are one class, and the admitting gate is the one that
+      certifies a review.
+- [x] T3 | FINISHED | unknown | T3 -- Stop `load_report` dropping a bare-string
+      source before `source_problem` runs. Verify: one report carrying a
+      bare-string source, and both tools agreeing on it.
+- [ ] T4 | T4 -- Require `claim.shape` instead of a substring test on the claim
+      text. Verify: a `query` with no `shape` and *outside my role* in its prose
+      reaches stage 5.
+- [ ] T5 | T5 -- Make `_answered` use `filled()` like every sibling at
+      `record.py:453`. Verify: a record with a JSON null in that slot is
+      refused.
+- [ ] T6 | T6 -- Extend the present-and-empty test at `desk.py:170-172` to
+      `_extras`. Verify: a record with a present-and-empty EXTRA is refused by
+      both tools.
+- [ ] T7 | T7 -- Make `held.py:118` check the TYPE of `pages`, not just the key.
+      Verify: a report whose `pages` is a dict is refused with the shape
+      diagnostic.
+- [x] T8 | FINISHED | unknown | T8 -- Replace `address_problem` with a check
+      that can fire. Verify: whatever replaces it can be made to fail on a
+      crafted record.

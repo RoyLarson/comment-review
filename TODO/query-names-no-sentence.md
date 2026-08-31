@@ -17,12 +17,12 @@ A `query` names no sentence, so two marks on one place cannot be told apart.
 
 ## Tasks
 
-- [ ] Decide whether a `query` owes a key naming its sentence. Verify: `docs/the-
-      mark.md` states the answer for `query` as plainly as it does for `correct`,
-      and `desk/mark.parse` enforces whatever it says.
-- [ ] A reviewer can say WHICH sentence it is querying without using `reason`.
-      Verify: a mark written from the brief puts the queried sentence in a field a
-      checker reads, not in prose.
-- [ ] `_sentence_key` is correct for `query` either way. Verify: two queries at
-      one place resolve the same way the ruling says they should -- today each
-      gets `id(mark)` and can never be found to share a sentence.
+- [ ] T1 | Decide whether a `query` owes a key naming its sentence. Verify:
+      `docs/the- mark.md` states the answer for `query` as plainly as it does
+      for `correct`, and `desk/mark.parse` enforces whatever it says.
+- [ ] T2 | A reviewer can say WHICH sentence it is querying without using
+      `reason`. Verify: a mark written from the brief puts the queried sentence
+      in a field a checker reads, not in prose.
+- [ ] T3 | `_sentence_key` is correct for `query` either way. Verify: two
+      queries at one place resolve the same way the ruling says they should --
+      today each gets `id(mark)` and can never be found to share a sentence.

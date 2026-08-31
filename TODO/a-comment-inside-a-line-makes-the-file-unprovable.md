@@ -4,7 +4,7 @@
 Status:   open
 Progress: 2 of 7 tasks done
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-17 (Roy, on the fixture for the fix that landed the same day:
           "Is this actually possible in code? int x = /* why */ 5; That is crazy
           - I have never seen someone put a comment in the middle of the
@@ -133,20 +133,27 @@ verifications, where it can be checked.
 
 ## Tasks
 
-- [x] T1 -- RULED 2026-08-17: wait for a pull request. The ruling is above, and there is
-      no state in which someone ticks it again.
-- [ ] T2 -- Print a DIFFERENT named cause at each of the eight refusal sites listed in the
-      Objective. Verify: the eight causes are distinct, and none is the empty string.
-- [ ] T3 -- Assert the causes the CLI can reach. Verify: a test asserts the four reachable
-      causes named in the Objective, and fails if any two are the same.
-- [ ] T4 -- DEFERRED. Count the shape across the corpora before building anything. Verify:
-      a per-language rate of a closed `/* */` with code after it, over the corpus.
-- [ ] T5 -- DEFERRED, only if the model moves: give a paragraph a COLUMN SPAN. Verify: a
-      paragraph names a span WITHIN a line, and both pinned test classes pass unweakened.
-- [ ] T6 -- DEFERRED, and in T5's commit: make `code_lines` and `_without_comments` read
-      the span. Verify: `int x = /* why */ 5;` changed to `7` reports NOT PROVEN.
-- [x] T7 -- NOT A TASK. Keeping the four existing shapes pinned is a standing constraint;
-      it now sits inside T5's and T6's verifications. In the Objective.
+- [x] T1 | FINISHED | unknown | T1 -- RULED 2026-08-17: wait for a pull request.
+      The ruling is above, and there is no state in which someone ticks it
+      again.
+- [ ] T2 | T2 -- Print a DIFFERENT named cause at each of the eight refusal
+      sites listed in the Objective. Verify: the eight causes are distinct, and
+      none is the empty string.
+- [ ] T3 | T3 -- Assert the causes the CLI can reach. Verify: a test asserts the
+      four reachable causes named in the Objective, and fails if any two are the
+      same.
+- [ ] T4 | T4 -- DEFERRED. Count the shape across the corpora before building
+      anything. Verify: a per-language rate of a closed `/* */` with code after
+      it, over the corpus.
+- [ ] T5 | T5 -- DEFERRED, only if the model moves: give a paragraph a COLUMN
+      SPAN. Verify: a paragraph names a span WITHIN a line, and both pinned test
+      classes pass unweakened.
+- [ ] T6 | T6 -- DEFERRED, and in T5's commit: make `code_lines` and
+      `_without_comments` read the span. Verify: `int x = /* why */ 5;` changed
+      to `7` reports NOT PROVEN.
+- [x] T7 | FINISHED | unknown | T7 -- NOT A TASK. Keeping the four existing
+      shapes pinned is a standing constraint; it now sits inside T5's and T6's
+      verifications. In the Objective.
 ## Related
 
 - [`block-comment-markers-survive-into-the-prose`](block-comment-markers-survive-into-the-prose.md)

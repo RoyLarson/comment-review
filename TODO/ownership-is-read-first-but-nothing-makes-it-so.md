@@ -295,31 +295,40 @@ true**, and it is the sentence the whole split exists to make good on.
 
 ## Tasks
 
-- [x] T1 -- DONE 2026-08-18: the role file states its remit at full width, frontmatter
-      included. What it says is in the Objective.
-- [x] T2 -- NOT A TASK. RULING, 2026-08-17: stage 4 SERIALISES -- *"4A - ownership runs 4B
-      - marks are applied 4C - the other contexts are run."* Stated in the Objective.
-- [x] T3 -- NOT A TASK. RULING, 2026-08-17, SUPERSEDED the same day: 4b PROPOSES and
-      applies nothing. Both rulings are in the Objective.
-- [ ] T4 -- **Create the module that carries a PROPOSAL on a node.** Verify: the module
-      exists, and `census.py` gains no proposal field.
-- [ ] T5 -- **Write down the fields a PROPOSED tag carries**: verdict, resolved owner,
-      proposing role. Verify: the list is in exactly one file.
-- [ ] T6 -- **Make T4's module implement every field T5 names.** Verify: a 4a report
-      round-trips into the module and back with each named field preserved.
-- [ ] T7 -- **Gate 4b's INDICES: census B may differ from census A only where a 4a record
-      names.** Verify: the gate refuses a census B changed at an unnamed index.
-- [ ] T8 -- **Gate 4b's FIELDS: a changed field must be one the verdict licences.**
-      Verify: the gate refuses a census B changed in an unlicensed field.
-- [ ] T9 -- **Say in `SKILL.md` which fields 4b may change.** Verify: `## Stage 4` names
-      4b and lists them.
-- [ ] T10 -- **Say in `SKILL.md` that *"Nothing is on disk yet"* holds at 4b.** Verify:
-      `## Stage 4` states it, and adds no numbered rule elsewhere.
-- [ ] T11 -- **Give `run_context.py`'s packet a PASS line naming 4a or 4c.** Verify:
-      `--check` refuses a 4c packet that names census A.
-- [ ] T12 -- **Fix the packet's success message at `run_context.py:348`**, which still
-      instructs the parallel dispatch. Verify: the success message names 4a and 4c.
-- [ ] T13 -- **Teach the collator not to read a PROPOSED-drop node as ordinary prose.**
-      Verify: a census carrying a PROPOSED drop owes no verdict on that node.
-- [ ] T14 -- **Teach the collator what an `add`'s filled interval is.** Verify: a census whose
-      interval gained proposed text joins without a manufactured coverage gap.
+- [x] T1 | FINISHED | unknown | T1 -- DONE 2026-08-18: the role file states its
+      remit at full width, frontmatter included. What it says is in the
+      Objective.
+- [x] T2 | FINISHED | unknown | T2 -- NOT A TASK. RULING, 2026-08-17: stage 4
+      SERIALISES -- *"4A - ownership runs 4B - marks are applied 4C - the other
+      contexts are run."* Stated in the Objective.
+- [x] T3 | FINISHED | unknown | T3 -- NOT A TASK. RULING, 2026-08-17, SUPERSEDED
+      the same day: 4b PROPOSES and applies nothing. Both rulings are in the
+      Objective.
+- [ ] T4 | T4 -- **Create the module that carries a PROPOSAL on a node.**
+      Verify: the module exists, and `census.py` gains no proposal field.
+- [ ] T5 | T5 -- **Write down the fields a PROPOSED tag carries**: verdict,
+      resolved owner, proposing role. Verify: the list is in exactly one file.
+- [ ] T6 | T6 -- **Make T4's module implement every field T5 names.** Verify: a
+      4a report round-trips into the module and back with each named field
+      preserved.
+- [ ] T7 | T7 -- **Gate 4b's INDICES: census B may differ from census A only
+      where a 4a record names.** Verify: the gate refuses a census B changed at
+      an unnamed index.
+- [ ] T8 | T8 -- **Gate 4b's FIELDS: a changed field must be one the verdict
+      licences.** Verify: the gate refuses a census B changed in an unlicensed
+      field.
+- [ ] T9 | T9 -- **Say in `SKILL.md` which fields 4b may change.** Verify: `##
+      Stage 4` names 4b and lists them.
+- [ ] T10 | T10 -- **Say in `SKILL.md` that *"Nothing is on disk yet"* holds at
+      4b.** Verify: `## Stage 4` states it, and adds no numbered rule elsewhere.
+- [ ] T11 | T11 -- **Give `run_context.py`'s packet a PASS line naming 4a or
+      4c.** Verify: `--check` refuses a 4c packet that names census A.
+- [ ] T12 | T12 -- **Fix the packet's success message at `run_context.py:348`**,
+      which still instructs the parallel dispatch. Verify: the success message
+      names 4a and 4c.
+- [ ] T13 | T13 -- **Teach the collator not to read a PROPOSED-drop node as
+      ordinary prose.** Verify: a census carrying a PROPOSED drop owes no
+      verdict on that node.
+- [ ] T14 | T14 -- **Teach the collator what an `add`'s filled interval is.**
+      Verify: a census whose interval gained proposed text joins without a
+      manufactured coverage gap.

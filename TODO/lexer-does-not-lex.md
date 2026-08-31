@@ -77,21 +77,27 @@ is changed, and not the other way round.**
 
 ## Tasks
 
-- [x] T1 -- `lexer.py` DOES NOT LEX at the tier that matters; `paragraphs_stdlib` reads
-      CPython's parse. The measurement and Roy's wording are in the Objective.
-- [x] T2 -- THE OTHER TIER REALLY DOES LEX, so one module holds two jobs under one name.
-- [x] T3 -- WHY IT MATTERS BEYOND THE WORD: the `scan` / `iterate` split only means
-      something if `lexer` names the thing that scans.
-- [x] T4 -- WHAT IT MIGHT BE INSTEAD is not decided here, and the register is asked before
-      the computing word is.
-- [x] T5 -- `TYPECODER` IS THE CANDIDATE, AND IT NAMES THE PRODUCT RATHER THAN THE METHOD.
-- [x] T6 -- IT DISSOLVES THE NAMING HALF OF THIS FILE'S OWN TITLE: both tiers produce one
-      thing, a Kind per paragraph.
-- [x] T7 -- NOT THE ADDRESSER, WHICH WAS THE FIRST GUESS; `cue()` never sees prose and a
-      test enforces it.
-- [?] T8 -- * DETERMINE THE NAME, after the Python ruling lands. Verify: the name and its
-      reason are written in `docs/vocabulary.md`.
-- [ ] T9 -- Rename the module and every import of it. Verify: `uv run pytest -q` is green
-      and no file under `plugins/` imports the old module name.
-- [ ] T10 -- Retire the old word in the vocabulary entry and in every prose use. Verify:
-      `check_vocabulary.py` passes with the old word RETIRED and the new one defined.
+- [x] T1 | FINISHED | unknown | T1 -- `lexer.py` DOES NOT LEX at the tier that
+      matters; `paragraphs_stdlib` reads CPython's parse. The measurement and
+      Roy's wording are in the Objective.
+- [x] T2 | FINISHED | unknown | T2 -- THE OTHER TIER REALLY DOES LEX, so one
+      module holds two jobs under one name.
+- [x] T3 | FINISHED | unknown | T3 -- WHY IT MATTERS BEYOND THE WORD: the `scan`
+      / `iterate` split only means something if `lexer` names the thing that
+      scans.
+- [x] T4 | FINISHED | unknown | T4 -- WHAT IT MIGHT BE INSTEAD is not decided
+      here, and the register is asked before the computing word is.
+- [x] T5 | FINISHED | unknown | T5 -- `TYPECODER` IS THE CANDIDATE, AND IT NAMES
+      THE PRODUCT RATHER THAN THE METHOD.
+- [x] T6 | FINISHED | unknown | T6 -- IT DISSOLVES THE NAMING HALF OF THIS
+      FILE'S OWN TITLE: both tiers produce one thing, a Kind per paragraph.
+- [x] T7 | FINISHED | unknown | T7 -- NOT THE ADDRESSER, WHICH WAS THE FIRST
+      GUESS; `cue()` never sees prose and a test enforces it.
+- [?] T8 | T8 -- * DETERMINE THE NAME, after the Python ruling lands. Verify:
+      the name and its reason are written in `docs/vocabulary.md`.
+- [ ] T9 | T9 -- Rename the module and every import of it. Verify: `uv run
+      pytest -q` is green and no file under `plugins/` imports the old module
+      name.
+- [ ] T10 | T10 -- Retire the old word in the vocabulary entry and in every
+      prose use. Verify: `check_vocabulary.py` passes with the old word RETIRED
+      and the new one defined.

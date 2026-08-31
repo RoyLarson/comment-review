@@ -218,35 +218,44 @@ re-parse. A set chosen for size alone would have refused it.
 
 ## Tasks
 
-- [x] T1 -- RECORD, not a task. Seven of nineteen fields carry information. In the
+- [x] T1 | FINISHED | unknown | T1 -- RECORD, not a task. Seven of nineteen
+      fields carry information. In the Objective.
+- [x] T2 | FINISHED | unknown | T2 -- RECORD, not a task. Three spellings of
+      absent in one record. In the Objective.
+- [x] T3 | FINISHED | unknown | T3 -- RECORD, not a task. The same defect as
+      `anchor_line`, one field over, with Roy's 2026-08-23 quotation. In the
       Objective.
-- [x] T2 -- RECORD, not a task. Three spellings of absent in one record. In the Objective.
-- [x] T3 -- RECORD, not a task. The same defect as `anchor_line`, one field over, with
-      Roy's 2026-08-23 quotation. In the Objective.
-- [x] T4 -- FINISHED. `start`/`end` still has readers, so it is a duplicate and not a dead
-      field. The nine call sites are in the Objective.
-- [x] T5 -- RECORD, not a task. `tier` and `path` are file facts repeated per row. In the
+- [x] T4 | FINISHED | unknown | T4 -- FINISHED. `start`/`end` still has readers,
+      so it is a duplicate and not a dead field. The nine call sites are in the
       Objective.
-- [x] T6 -- RULED 2026-08-24: nineteen become six. `decision-log.md Addressing: #12`, and
-      the set is in the Objective.
-- [ ] T7 -- Measure the trim in bytes and in the filtered listing, before and after.
-      Verify: both numbers from named `--json` and `--filtered` runs are written here.
-- [x] T8 -- RECORD, not a task. 73,429 bytes over `repo.py`, roughly half duplication or
-      empty, field by field. In the Objective.
-- [x] T9 -- SUPERSEDED: `lines` is deleted, not defined. Roy 2026-08-24, *"it is
-      ambiguous"*. You do not define a field you are removing.
-- [x] T10 -- SUPERSEDED with T9: there is no definition left for a row to violate.
-- [x] T11 -- Delete `tier` outright: the field, the `Counter` at `census.py:466`, and
-      the preamble line. Verify: no shipped script emits or reads it.
-- [ ] T12 -- Move `path` to a page envelope, stated once. Verify: no census row carries
-      a `path`.
-- [ ] T13 -- Delete the nine other ruled fields. Verify: a `--json` row holds only
-      `cue`, `anchor`, `anchor_num`, `original_start`, `original_end`, `raw_text`.
-- [ ] T14 -- Rename `raw_lines` to `raw_text` and make it ONE STRING. Verify: a CRLF
-      fixture keeps its line endings through a census and back.
-- [ ] T17 -- Assert no shipped emit hands a reviewer a paragraph as fragments. Verify:
-      no field a role reads holds a list of lines.
-- [ ] T15 -- Reduce `address` to the cue. Verify: no row repeats the file the page
-      envelope already names.
-- [ ] T16 -- Move `compositor`'s five `text` readers onto `raw_text`. Verify: no shipped
-      script reads a `text` field.
+- [x] T5 | FINISHED | unknown | T5 -- RECORD, not a task. `tier` and `path` are
+      file facts repeated per row. In the Objective.
+- [x] T6 | FINISHED | unknown | T6 -- RULED 2026-08-24: nineteen become six.
+      `decision-log.md Addressing: #12`, and the set is in the Objective.
+- [ ] T7 | T7 -- Measure the trim in bytes and in the filtered listing, before
+      and after. Verify: both numbers from named `--json` and `--filtered` runs
+      are written here.
+- [x] T8 | FINISHED | unknown | T8 -- RECORD, not a task. 73,429 bytes over
+      `repo.py`, roughly half duplication or empty, field by field. In the
+      Objective.
+- [x] T9 | FINISHED | unknown | T9 -- SUPERSEDED: `lines` is deleted, not
+      defined. Roy 2026-08-24, *"it is ambiguous"*. You do not define a field
+      you are removing.
+- [x] T10 | FINISHED | unknown | T10 -- SUPERSEDED with T9: there is no
+      definition left for a row to violate.
+- [x] T11 | FINISHED | unknown | T11 -- Delete `tier` outright: the field, the
+      `Counter` at `census.py:466`, and the preamble line. Verify: no shipped
+      script emits or reads it.
+- [ ] T12 | T12 -- Move `path` to a page envelope, stated once. Verify: no
+      census row carries a `path`.
+- [ ] T13 | T13 -- Delete the nine other ruled fields. Verify: a `--json` row
+      holds only `cue`, `anchor`, `anchor_num`, `original_start`,
+      `original_end`, `raw_text`.
+- [ ] T14 | T14 -- Rename `raw_lines` to `raw_text` and make it ONE STRING.
+      Verify: a CRLF fixture keeps its line endings through a census and back.
+- [ ] T15 | T17 -- Assert no shipped emit hands a reviewer a paragraph as
+      fragments. Verify: no field a role reads holds a list of lines.
+- [ ] T16 | T15 -- Reduce `address` to the cue. Verify: no row repeats the file
+      the page envelope already names.
+- [ ] T17 | T16 -- Move `compositor`'s five `text` readers onto `raw_text`.
+      Verify: no shipped script reads a `text` field.

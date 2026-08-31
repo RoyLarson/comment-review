@@ -20,11 +20,11 @@ The build gate's raw byte compare is line-ending-fragile on Windows.
 
 ## Tasks
 
-- [ ] Decide the normalisation point: compare src/ and plugins/ after normalising
-      line endings (e.g. read both in universal-newlines text mode) instead of a
-      raw byte compare, or make build_plugin.py's copy step force a specific line
-      ending on both sides so a plain checkout can't diverge from what the build
-      produced.
-- [ ] Add a test: a src/ file written with CRLF and its built plugins/ copy
-      written with LF, identical content otherwise, and confirm the fix's compare
-      treats them as matching.
+- [ ] T1 | Decide the normalisation point: compare src/ and plugins/ after
+      normalising line endings (e.g. read both in universal-newlines text mode)
+      instead of a raw byte compare, or make build_plugin.py's copy step force a
+      specific line ending on both sides so a plain checkout can't diverge from
+      what the build produced.
+- [ ] T2 | Add a test: a src/ file written with CRLF and its built plugins/ copy
+      written with LF, identical content otherwise, and confirm the fix's
+      compare treats them as matching.

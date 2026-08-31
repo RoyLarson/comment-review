@@ -81,13 +81,18 @@ the head of a file is. The Rust fix does not.
 
 ## Tasks
 
-- [x] T1 -- MEASURED 2026-08-23 on four identical licence headers, and re-run the same
-      day. The table and what each probe typed are in the Objective.
-- [ ] T2 -- Stop a Rust file's opening `//` run being claimed as a declaration's doc.
-      Verify: a `.rs` opening `// Copyright` types `f0 matter` and an empty `a1`.
-- [ ] T3 -- Make a TypeScript licence header written in `/** */` protectable, per T5's
-      ruling. Verify: a `.ts` opening `/** ... */` above a declaration types `f0 matter`.
-- [x] T4 -- NOT A TASK. What is already right -- the rule is POSITIONAL, and C proves the
-      mechanism reaches beyond Python -- is recorded in the Objective.
-- [ ] T5 -- * RULE whether a doc-shaped opener is matter when it is FIRST in the file;
-      DEFERRED to a prose classifier. Verify: the ruling is in `docs/decision-log.md`.
+- [x] T1 | FINISHED | unknown | T1 -- MEASURED 2026-08-23 on four identical
+      licence headers, and re-run the same day. The table and what each probe
+      typed are in the Objective.
+- [ ] T2 | T2 -- Stop a Rust file's opening `//` run being claimed as a
+      declaration's doc. Verify: a `.rs` opening `// Copyright` types `f0
+      matter` and an empty `a1`.
+- [ ] T3 | T3 -- Make a TypeScript licence header written in `/** */`
+      protectable, per T5's ruling. Verify: a `.ts` opening `/** ... */` above a
+      declaration types `f0 matter`.
+- [x] T4 | FINISHED | unknown | T4 -- NOT A TASK. What is already right -- the
+      rule is POSITIONAL, and C proves the mechanism reaches beyond Python -- is
+      recorded in the Objective.
+- [ ] T5 | T5 -- * RULE whether a doc-shaped opener is matter when it is FIRST
+      in the file; DEFERRED to a prose classifier. Verify: the ruling is in
+      `docs/decision-log.md`.

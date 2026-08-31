@@ -33,7 +33,7 @@ stage is live until the skill is rewired.
 
 ## Tasks
 
-- [ ] SKILL.md: the stage that calls commands/galley.py SKIPS the call when the
-      edits object would be empty
-- [ ] SKILL.md: say that an empty --edits is an exit-2 refusal, so a reader does
-      not read it as a run with nothing to do
+- [ ] T1 | SKILL.md: the stage that calls commands/galley.py SKIPS the call when
+      the edits object would be empty
+- [ ] T2 | SKILL.md: say that an empty --edits is an exit-2 refusal, so a reader
+      does not read it as a run with nothing to do

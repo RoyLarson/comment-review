@@ -163,37 +163,48 @@ a row is wrong the moment its justification cites another row.
 
 ## Tasks
 
-- [x] T1 -- MEASUREMENT, 2026-08-21, FALSIFIED 2026-08-23. In the Objective, with today's
-      re-measurement beside it.
-- [x] T2 -- MEASUREMENT of the cause. In the Objective, under *the half of the wire that
-      is still not there*.
-- [x] T3 -- ARGUMENT, not work: the consequence of T1 for `function-context` and
-      `ownership-context`. In the Objective.
-- [x] T4 -- MEASUREMENT about `CLAUDE.md`'s eleven-language claim. In the Objective.
-- [x] T5 -- RULING, made 2026-08-21 and quoted in full in the Objective: the acceptance
-      test is a round trip.
-- [x] T6 -- RULING/ARGUMENT: a language opting out is a supported state. In the Objective.
-- [x] T7 -- DONE. The wire, `page.py:726` plus `lexer.py:1617`; the fixture measurement is
-      in the Objective under *What has landed*.
-- [x] T8 -- RULING plus MEASUREMENT: nearest-above, and the 62/38 CPython split. In the
-      Objective.
-- [x] T9 -- RULING SETTLED 2026-08-21 -- the anchor is the keyword's line. In the
-      Objective.
-- [x] T10 -- MEASUREMENT: 81.1% of the false positives are undocumented lines. In the
-      Objective.
-- [x] T11 -- ARGUMENT: a shared address breaks VERIFICATION, not reconstruction. In the
-      Objective, and its operative half is the per-language verifies below.
-- [x] T12 -- DONE 2026-08-23, commit `5cc4645`. In the Objective under *What has landed*.
-- [x] T13 -- THE MATCH RULE, quoted from Roy 2026-08-22. A specification, kept in the
-      Objective.
-- [x] T14 -- HISTORY: tried and reverted on purpose, 2026-08-22. In the Objective.
-- [x] T15 -- THE BODY THAT PASSED. A patch to paste, kept in the Objective.
-- [x] T16 -- THE TEN CASES it was checked against. Evidence, kept in the Objective.
-- [x] T17 -- ARGUMENT: SUPERSEDED by T7 landing -- the wire is in, so the matcher change
-      lands alone.
-- [ ] T18 -- Match a `declares` keyword ANYWHERE in the line, per the Objective's body.
-      Verify: the ten cases in the Objective answer correctly, and `_FIRST_WORD` is gone.
-- [ ] T19 -- Give `c` a `declares` keyword list. Verify: a `.c` file resolves an `a` place
-      for `struct`, `enum`, `union` and a function definition, and gains no SPURIOUS `a`.
-- [ ] T20 -- Give `cpp` a `declares` keyword list, from C++'s own grammar. Verify: a
-      `.cpp` file resolves an `a` for a class and a function, and gains no SPURIOUS `a`.
+- [x] T1 | FINISHED | unknown | T1 -- MEASUREMENT, 2026-08-21, FALSIFIED
+      2026-08-23. In the Objective, with today's re-measurement beside it.
+- [x] T2 | FINISHED | unknown | T2 -- MEASUREMENT of the cause. In the
+      Objective, under *the half of the wire that is still not there*.
+- [x] T3 | FINISHED | unknown | T3 -- ARGUMENT, not work: the consequence of T1
+      for `function-context` and `ownership-context`. In the Objective.
+- [x] T4 | FINISHED | unknown | T4 -- MEASUREMENT about `CLAUDE.md`'s
+      eleven-language claim. In the Objective.
+- [x] T5 | FINISHED | unknown | T5 -- RULING, made 2026-08-21 and quoted in full
+      in the Objective: the acceptance test is a round trip.
+- [x] T6 | FINISHED | unknown | T6 -- RULING/ARGUMENT: a language opting out is
+      a supported state. In the Objective.
+- [x] T7 | FINISHED | unknown | T7 -- DONE. The wire, `page.py:726` plus
+      `lexer.py:1617`; the fixture measurement is in the Objective under *What
+      has landed*.
+- [x] T8 | FINISHED | unknown | T8 -- RULING plus MEASUREMENT: nearest-above,
+      and the 62/38 CPython split. In the Objective.
+- [x] T9 | FINISHED | unknown | T9 -- RULING SETTLED 2026-08-21 -- the anchor is
+      the keyword's line. In the Objective.
+- [x] T10 | FINISHED | unknown | T10 -- MEASUREMENT: 81.1% of the false
+      positives are undocumented lines. In the Objective.
+- [x] T11 | FINISHED | unknown | T11 -- ARGUMENT: a shared address breaks
+      VERIFICATION, not reconstruction. In the Objective, and its operative half
+      is the per-language verifies below.
+- [x] T12 | FINISHED | unknown | T12 -- DONE 2026-08-23, commit `5cc4645`. In
+      the Objective under *What has landed*.
+- [x] T13 | FINISHED | unknown | T13 -- THE MATCH RULE, quoted from Roy
+      2026-08-22. A specification, kept in the Objective.
+- [x] T14 | FINISHED | unknown | T14 -- HISTORY: tried and reverted on purpose,
+      2026-08-22. In the Objective.
+- [x] T15 | FINISHED | unknown | T15 -- THE BODY THAT PASSED. A patch to paste,
+      kept in the Objective.
+- [x] T16 | FINISHED | unknown | T16 -- THE TEN CASES it was checked against.
+      Evidence, kept in the Objective.
+- [x] T17 | FINISHED | unknown | T17 -- ARGUMENT: SUPERSEDED by T7 landing --
+      the wire is in, so the matcher change lands alone.
+- [ ] T18 | T18 -- Match a `declares` keyword ANYWHERE in the line, per the
+      Objective's body. Verify: the ten cases in the Objective answer correctly,
+      and `_FIRST_WORD` is gone.
+- [ ] T19 | T19 -- Give `c` a `declares` keyword list. Verify: a `.c` file
+      resolves an `a` place for `struct`, `enum`, `union` and a function
+      definition, and gains no SPURIOUS `a`.
+- [ ] T20 | T20 -- Give `cpp` a `declares` keyword list, from C++'s own grammar.
+      Verify: a `.cpp` file resolves an `a` for a class and a function, and
+      gains no SPURIOUS `a`.

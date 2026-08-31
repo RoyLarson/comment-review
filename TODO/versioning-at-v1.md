@@ -47,27 +47,34 @@ what an unchecked box already says.
 
 ## Tasks
 
-- [ ] T1 -- **State the one versioning scheme, AFTER v1.0 is tagged and not before.**
-      Verify: the scheme is stated in exactly one file, and no second file restates it.
-- [ ] T2 -- **The census carries a version field written from T1's statement.** Verify:
-      `census.py --json` emits it and its value comes from the single statement.
-- [ ] T3 -- **The record file carries a version field written from T1's statement.**
-      Verify: a written record holds it.
-- [ ] T4 -- **Retire `RECORD_VERSION` as a constant of its own** (`record.py:639`).
-      Verify: nothing in `record.py` carries a hand-moved version number.
-- [ ] T5 -- **The run context carries a version field written from T1's statement.**
-      Verify: `run_context.py --template` emits it and `--check` reads it.
-- [ ] T6 -- **The plugin manifest's version is derived from T1's statement.** Verify:
-      `plugin.json`'s version comes from the single statement.
-- [ ] T7 -- **Keep the three declarations equal under the derived version.** Verify: `uv
-      run pytest -q -k test_release` is green.
-- [ ] T8 -- **Make a reader REFUSE an artifact whose keys sit in the same places but mean
-      something else.** Verify: a test hands it one and it is refused.
-- [ ] T9 -- **Prove T8's refusal can fail.** Verify: the test fails with the version field
-      removed from the artifact.
-- [x] T10 -- SUPERSEDED. Roy's 2026-08-21 ruling is stated in the Objective; a ruling
-      already made carries no box and the record stays.
-- [x] T11 -- SUPERSEDED. The `RECORD_VERSION` measurement is in the Objective with its
-      file:line.
-- [x] T12 -- SUPERSEDED. The reasoning that a loud parse refusal already catches a wrong
-      shape is kept in the Objective.
+- [ ] T1 | T1 -- **State the one versioning scheme, AFTER v1.0 is tagged and not
+      before.** Verify: the scheme is stated in exactly one file, and no second
+      file restates it.
+- [ ] T2 | T2 -- **The census carries a version field written from T1's
+      statement.** Verify: `census.py --json` emits it and its value comes from
+      the single statement.
+- [ ] T3 | T3 -- **The record file carries a version field written from T1's
+      statement.** Verify: a written record holds it.
+- [ ] T4 | T4 -- **Retire `RECORD_VERSION` as a constant of its own**
+      (`record.py:639`). Verify: nothing in `record.py` carries a hand-moved
+      version number.
+- [ ] T5 | T5 -- **The run context carries a version field written from T1's
+      statement.** Verify: `run_context.py --template` emits it and `--check`
+      reads it.
+- [ ] T6 | T6 -- **The plugin manifest's version is derived from T1's
+      statement.** Verify: `plugin.json`'s version comes from the single
+      statement.
+- [ ] T7 | T7 -- **Keep the three declarations equal under the derived
+      version.** Verify: `uv run pytest -q -k test_release` is green.
+- [ ] T8 | T8 -- **Make a reader REFUSE an artifact whose keys sit in the same
+      places but mean something else.** Verify: a test hands it one and it is
+      refused.
+- [ ] T9 | T9 -- **Prove T8's refusal can fail.** Verify: the test fails with
+      the version field removed from the artifact.
+- [x] T10 | FINISHED | unknown | T10 -- SUPERSEDED. Roy's 2026-08-21 ruling is
+      stated in the Objective; a ruling already made carries no box and the
+      record stays.
+- [x] T11 | FINISHED | unknown | T11 -- SUPERSEDED. The `RECORD_VERSION`
+      measurement is in the Objective with its file:line.
+- [x] T12 | FINISHED | unknown | T12 -- SUPERSEDED. The reasoning that a loud
+      parse refusal already catches a wrong shape is kept in the Objective.

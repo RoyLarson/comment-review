@@ -36,39 +36,42 @@ would notice this happening again.
 
 ## Tasks
 
-- [x] !! **SUPERSEDED 2026-08-19 -- THE OBSERVATION WAS WRONG.** Measured on a real
-      held report: `parse_report` leaves `address` EMPTY on every 0.2.x record, so
-      there is no line tail to ignore and `verdicts.py`'s `if not f.address` guard
-      fires exactly as intended -- 173 of 173 findings translated. The proposed fix
-      would have changed nothing. Kept so the error stays legible; the defect is the
-      task below. **The original text:** *"A LINE address lands in `Finding.address`
-      and can never join. The 0.2.x `BLOCK` form is `<index> | <path>:<start>-<end>`
+- [x] T1 | FINISHED | unknown | !! **SUPERSEDED 2026-08-19 -- THE OBSERVATION
+      WAS WRONG.** Measured on a real held report: `parse_report` leaves
+      `address` EMPTY on every 0.2.x record, so there is no line tail to ignore
+      and `verdicts.py`'s `if not f.address` guard fires exactly as intended --
+      173 of 173 findings translated. The proposed fix would have changed
+      nothing. Kept so the error stays legible; the defect is the task below.
+      **The original text:** *"A LINE address lands in `Finding.address` and can
+      never join. The 0.2.x `BLOCK` form is `<index> \| <path>:<start>-<end>`
       and `parse_report` puts that tail into `address`."*
-- [x] !! **SUPERSEDED 2026-08-19 -- THE CONVERSION IS NOT POSSIBLE, AND `convert` REFUSES.**
-      Roy: *"is it possible to convert the old form to the new form at all without the
-      code there next to it? I don't think it is. There is not enough definition in
-      the old form to make the address."* Both routes are closed. **`BLOCK <index>`**
-      is a position in ONE census: that census carries no addresses (0 of 3,333 on a
-      real held run -- the field postdates it) and today's census of the same source
-      is a different LIST, because the held one has no `margin` and no `undocumented`
-      and today's emits one of each per code line and per undocumented declaration.
-      Every index shifts. **`LOCATION path:start-end`** is line numbers, which need
-      the SOURCE to become an ordinal, and `Finding` does not retain the field.
-      ! **The failure it replaces was silent in BOTH directions**: against a fresh
-      census every held finding grouped under `""` and matched nothing (3 of 3
-      dropped, rc=0); against the genuine held census every block keyed on `""` too,
-      so every record matched every finding -- 3,333 blocks and 173 findings produced
-      **29,583 records**, each with a verdict, no error. ! An INDEX-to-address
-      translation was written and then withdrawn as unsafe: it silently maps a held
-      index onto whatever sits at that position in whatever census is passed.
-      `record.address_of` keeps the rule for the JOIN alone, where the census IS the
-      one the record was written against.
-- [x] **DONE 2026-08-19 -- `TestA02xReportCANNOTBeConverted`, six cases.** A held
-      report refused with the reason named, the `LOCATION` line shown to be absent
-      from `Finding`, the real held run in `evidence/` refused against its own
-      census, and an ADDRESSED report still converting -- the bridge carries a run
-      held from 0.2.4 on.
-      ! **The class that existed was named for this property and never called
-      `convert`.** Every case in `TestConvertKeepsAHeldRunReplayable` tests
-      `claim_object`, one field at a time -- which is how a bridge that carried
-      nothing passed a green suite.
+- [x] T2 | FINISHED | unknown | !! **SUPERSEDED 2026-08-19 -- THE CONVERSION IS
+      NOT POSSIBLE, AND `convert` REFUSES.** Roy: *"is it possible to convert
+      the old form to the new form at all without the code there next to it? I
+      don't think it is. There is not enough definition in the old form to make
+      the address."* Both routes are closed. **`BLOCK <index>`** is a position
+      in ONE census: that census carries no addresses (0 of 3,333 on a real held
+      run -- the field postdates it) and today's census of the same source is a
+      different LIST, because the held one has no `margin` and no `undocumented`
+      and today's emits one of each per code line and per undocumented
+      declaration. Every index shifts. **`LOCATION path:start-end`** is line
+      numbers, which need the SOURCE to become an ordinal, and `Finding` does
+      not retain the field. ! **The failure it replaces was silent in BOTH
+      directions**: against a fresh census every held finding grouped under `""`
+      and matched nothing (3 of 3 dropped, rc=0); against the genuine held
+      census every block keyed on `""` too, so every record matched every
+      finding -- 3,333 blocks and 173 findings produced **29,583 records**, each
+      with a verdict, no error. ! An INDEX-to-address translation was written
+      and then withdrawn as unsafe: it silently maps a held index onto whatever
+      sits at that position in whatever census is passed. `record.address_of`
+      keeps the rule for the JOIN alone, where the census IS the one the record
+      was written against.
+- [x] T3 | FINISHED | unknown | **DONE 2026-08-19 --
+      `TestA02xReportCANNOTBeConverted`, six cases.** A held report refused with
+      the reason named, the `LOCATION` line shown to be absent from `Finding`,
+      the real held run in `evidence/` refused against its own census, and an
+      ADDRESSED report still converting -- the bridge carries a run held from
+      0.2.4 on. ! **The class that existed was named for this property and never
+      called `convert`.** Every case in `TestConvertKeepsAHeldRunReplayable`
+      tests `claim_object`, one field at a time -- which is how a bridge that
+      carried nothing passed a green suite.

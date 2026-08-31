@@ -89,13 +89,17 @@ and by how much.
 
 ## Tasks
 
-- [ ] T1 -- Re-run the filtered/unfiltered comparison across the 11 commits `v0.1.6^{}` ->
-      `v0.1.7^{}`. Verify: a new `evidence/` directory holds both arms and their commits.
-- [x] T2 -- RECORD, not a task: the justification for `--filtered`, and why the recorded
-      39% and 61% are the cost rather than the benefit. Restated in the Objective.
-- [ ] T3 -- State the denominator the recall claim needs, as set out in the Objective.
-      Verify: the evidence README names a numerator, a denominator and the file set.
-- [x] T4 -- RECORD, not a task: this is the baseline the PAGE has to beat, at both ends at
-      once. Restated in the Objective.
-- [x] T5 -- * RULING ALREADY MADE, and it is the `Unblocked:` line above: the comparison
-      is re-run from a checkout rather than recovered. Restated in the Objective.
+- [ ] T1 | T1 -- Re-run the filtered/unfiltered comparison across the 11 commits
+      `v0.1.6^{}` -> `v0.1.7^{}`. Verify: a new `evidence/` directory holds both
+      arms and their commits.
+- [x] T2 | FINISHED | unknown | T2 -- RECORD, not a task: the justification for
+      `--filtered`, and why the recorded 39% and 61% are the cost rather than
+      the benefit. Restated in the Objective.
+- [ ] T3 | T3 -- State the denominator the recall claim needs, as set out in the
+      Objective. Verify: the evidence README names a numerator, a denominator
+      and the file set.
+- [x] T4 | FINISHED | unknown | T4 -- RECORD, not a task: this is the baseline
+      the PAGE has to beat, at both ends at once. Restated in the Objective.
+- [x] T5 | FINISHED | unknown | T5 -- * RULING ALREADY MADE, and it is the
+      `Unblocked:` line above: the comparison is re-run from a checkout rather
+      than recovered. Restated in the Objective.

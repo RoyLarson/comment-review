@@ -78,21 +78,28 @@ wait"*. It landed.
 
 ## Tasks
 
-- [x] T1 -- MEASURED, moved to the Objective: `original_column == len(anchor) + 1` for
-      every paragraph carrying one, 12,601 of 12,601 and 107 of 107, 0 disagreeing.
-- [x] T2 -- MEASURED, moved to the Objective: kind answers what the column was for, so all
-      four surviving reads in the shipped scripts are boolean.
-- [x] T3 -- SUPERSEDED. `addresser._series_of` no longer exists, and the stale reasoning
-      it carried has already been corrected in `series_of` (`addresser.py:1069-1071`).
-- [x] T4 -- SUPERSEDED. Both numeric uses were `galley.paragraph_matches` and `splice`;
-      neither exists. No numeric read of the column survives in `plugins/`.
-- [x] T5 -- SUPERSEDED. `galley.unanswerable` does not exist; nothing requires the field
-      to be present.
-- [x] T6 -- SUPERSEDED. The deferral was on the galley rewrite, quoted in the Objective.
-      It landed.
-- [ ] T7 -- Replace the four boolean reads with a kind or series membership test. Verify:
-      `addresser.py --check` reports UNADDRESSED and SHARED counts unchanged.
-- [ ] T8 -- Remove the three writes of `original_column` and its field declaration.
-      Verify: `grep -rn original_column plugins/ scripts/ tests/` comes back empty.
-- [ ] T9 -- Correct `docs/addressing.md:114` and `:178-179`, which still describe
-      `galley.splice` and `original_column`. Verify: neither name occurs in `docs/`.
+- [x] T1 | FINISHED | unknown | T1 -- MEASURED, moved to the Objective:
+      `original_column == len(anchor) + 1` for every paragraph carrying one,
+      12,601 of 12,601 and 107 of 107, 0 disagreeing.
+- [x] T2 | FINISHED | unknown | T2 -- MEASURED, moved to the Objective: kind
+      answers what the column was for, so all four surviving reads in the
+      shipped scripts are boolean.
+- [x] T3 | FINISHED | unknown | T3 -- SUPERSEDED. `addresser._series_of` no
+      longer exists, and the stale reasoning it carried has already been
+      corrected in `series_of` (`addresser.py:1069-1071`).
+- [x] T4 | FINISHED | unknown | T4 -- SUPERSEDED. Both numeric uses were
+      `galley.paragraph_matches` and `splice`; neither exists. No numeric read
+      of the column survives in `plugins/`.
+- [x] T5 | FINISHED | unknown | T5 -- SUPERSEDED. `galley.unanswerable` does not
+      exist; nothing requires the field to be present.
+- [x] T6 | FINISHED | unknown | T6 -- SUPERSEDED. The deferral was on the galley
+      rewrite, quoted in the Objective. It landed.
+- [ ] T7 | T7 -- Replace the four boolean reads with a kind or series membership
+      test. Verify: `addresser.py --check` reports UNADDRESSED and SHARED counts
+      unchanged.
+- [ ] T8 | T8 -- Remove the three writes of `original_column` and its field
+      declaration. Verify: `grep -rn original_column plugins/ scripts/ tests/`
+      comes back empty.
+- [ ] T9 | T9 -- Correct `docs/addressing.md:114` and `:178-179`, which still
+      describe `galley.splice` and `original_column`. Verify: neither name
+      occurs in `docs/`.

@@ -46,13 +46,18 @@ set -- which is what the ruling has to settle.
 
 ## Tasks
 
-- [ ] T1 -- Make `tests/fixtures/sample.ts` open the way a licence header does, or add a
-      `.ts` fixture that does. Verify: it reproduces `matter-misses-two-languages`.
-- [ ] T2 -- Make `tests/fixtures/sample.rs` open the way a licence header does, or add a
-      `.rs` fixture that does. Verify: it reproduces `matter-misses-two-languages`.
-- [ ] T3 -- Audit the other sixteen fixtures -- for each language row, name the shape its
-      open TODOs are about. Verify: a list of language -> shape -> does it exercise it.
-- [ ] T4 -- * RULE what a per-language fixture is FOR -- an ordinary file for the round
-      trip, or a defect probe. Verify: the ruling says whether a second set is needed.
-- [ ] T5 -- Say in `tests/fixtures/` what each file is a fixture OF, so a reader can tell
-      coverage from resemblance. Verify: every `sample.*` names what it exercises.
+- [ ] T1 | T1 -- Make `tests/fixtures/sample.ts` open the way a licence header
+      does, or add a `.ts` fixture that does. Verify: it reproduces
+      `matter-misses-two-languages`.
+- [ ] T2 | T2 -- Make `tests/fixtures/sample.rs` open the way a licence header
+      does, or add a `.rs` fixture that does. Verify: it reproduces
+      `matter-misses-two-languages`.
+- [ ] T3 | T3 -- Audit the other sixteen fixtures -- for each language row, name
+      the shape its open TODOs are about. Verify: a list of language -> shape ->
+      does it exercise it.
+- [ ] T4 | T4 -- * RULE what a per-language fixture is FOR -- an ordinary file
+      for the round trip, or a defect probe. Verify: the ruling says whether a
+      second set is needed.
+- [ ] T5 | T5 -- Say in `tests/fixtures/` what each file is a fixture OF, so a
+      reader can tell coverage from resemblance. Verify: every `sample.*` names
+      what it exercises.

@@ -126,62 +126,65 @@ cites as its measured example of a field answering neither necessary nor purpose
 
 ## Tasks
 
-- [ ] Implement the FORM check on a substantive mark's `address` in
-      `desk.mark.parse`, so an address carrying no `@` is refused by name. Verify:
-      `parse("w", {"instruction": "correct", "address": "a0", ...})` returns a
-      named problem -- today it returns `(mark, [])`, and
+- [ ] T1 | Implement the FORM check on a substantive mark's `address` in
+      `desk.mark.parse`, so an address carrying no `@` is refused by name.
+      Verify: `parse("w", {"instruction": "correct", "address": "a0", ...})`
+      returns a named problem -- today it returns `(mark, [])`, and
       `reading.addresser.cue_of("a0")` answers `Address('', '')`; the test goes
       red when the check is removed.
-- [ ] Update the COPIED, NOT ALIASED comment at `desk/mark.py:719-720` and
+- [ ] T2 | Update the COPIED, NOT ALIASED comment at `desk/mark.py:719-720` and
       `:375-376` to the depth the copy holds, or copy `sources`' entries and
-      `claim`'s values deeply. Verify: mutating `entry["sources"][0]["verbatim"]`
-      after `parse` cannot change `mark.sources`, or the comment bounds the
-      guarantee to the containers and names `as_entry()` as the second route --
-      today both mutations are visible through a frozen `Mark`.
-- [?] Do `can_declare_scope`, `rules_on_text` and `diffable` stay as row flags,
-      and what reads each? MEASURED 2026-08-30: no reader anywhere in `src/`
-      outside `desk/mark.py`; the only other sites are
-      `tests/gates/test_mark_shape.py:135,137,138`, which map the spec's phrase to
-      the field name. Verify: the answer is recorded in `docs/decision-log.md`,
-      and each of the three is either read by a module or gone.
-- [ ] Update `allowed()` so `scope_shape` is published from the row's
+      `claim`'s values deeply. Verify: mutating
+      `entry["sources"][0]["verbatim"]` after `parse` cannot change
+      `mark.sources`, or the comment bounds the guarantee to the containers and
+      names `as_entry()` as the second route -- today both mutations are visible
+      through a frozen `Mark`.
+- [?] T3 | Do `can_declare_scope`, `rules_on_text` and `diffable` stay as row
+      flags, and what reads each? MEASURED 2026-08-30: no reader anywhere in
+      `src/` outside `desk/mark.py`; the only other sites are
+      `tests/gates/test_mark_shape.py:135,137,138`, which map the spec's phrase
+      to the field name. Verify: the answer is recorded in
+      `docs/decision-log.md`, and each of the three is either read by a module
+      or gone.
+- [ ] T4 | Update `allowed()` so `scope_shape` is published from the row's
       `can_declare_scope` rather than the hardcoded `Shape.OUTSIDE_MY_ROLE`
       literal at `desk/mark.py:438`, or delete the flag. Verify: editing that
       row's `can_declare_scope` changes what `allowed()` publishes -- today the
       two are independent and the copy that ships to a role is the literal.
-- [ ] Implement the contradiction `rules_on_text`'s docstring names -- a `drop`
-      against an edit on ONE sentence -- in `desk.collator._outcome`, or delete
-      the flag. Verify: two marks on one sentence, one `drop` and one `correct`,
-      reach a named outcome; today `_outcome` routes on `Instruction.ADD`, the
-      count and `_sentence_key` only, and no module in `src/` detects the pair.
-- [ ] Update the comment on `Shape.UNABLE_TO_DETERMINE` at `desk/mark.py:132`,
-      which calls it "the one a collate step can ACT on". Verify: no sentence in
-      `desk/mark.py` names a collate step that reads `claim.shape`'s value --
-      `grep -rn 'claim\.shape\|"shape"' src/comment_review/` returns four lines,
-      all inside `desk/mark.py`.
-- [ ] Implement the coupling check between a row's flags and its `claim_all`, so
-      `needs_anchor`, `owes_destination` and `quotes_original` cannot be set on a
-      row whose `claim_all` never names the key they read. Verify: a row built as
-      `replace(INSTRUCTIONS[ADD], claim_all=(), needs_anchor=True)` is refused;
-      today an `add` carrying no anchor at all parses with `problems: []` under
-      it.
-- [ ] Update `ROLE_FIELDS`' docstring at `desk/mark.py:380-383`, which enumerates
-      seven of `Mark`'s eight fields and omits `raw_text`. Verify: a test
-      differences `set(ROLE_FIELDS) | {"address", "anchor", "instruction"}`
-      against `dataclasses.fields(Mark)` and asserts it is empty -- today it
-      reports `raw_text` unaccounted for.
-- [ ] Update `allowed()`'s `Returns:` block at `desk/mark.py:404-409`, which names
-      six keys where the function returns seven -- `source_keys` is missing.
-      Verify: a test compares `set(allowed())` against the keys the docstring
-      names and goes red when either is edited alone.
-- [ ] Update `Mark.seed`'s "THIS IS THE WHOLE GUARD" sentence at
+- [ ] T5 | Implement the contradiction `rules_on_text`'s docstring names -- a
+      `drop` against an edit on ONE sentence -- in `desk.collator._outcome`, or
+      delete the flag. Verify: two marks on one sentence, one `drop` and one
+      `correct`, reach a named outcome; today `_outcome` routes on
+      `Instruction.ADD`, the count and `_sentence_key` only, and no module in
+      `src/` detects the pair.
+- [ ] T6 | Update the comment on `Shape.UNABLE_TO_DETERMINE` at
+      `desk/mark.py:132`, which calls it "the one a collate step can ACT on".
+      Verify: no sentence in `desk/mark.py` names a collate step that reads
+      `claim.shape`'s value -- `grep -rn 'claim\.shape\\|"shape"'
+      src/comment_review/` returns four lines, all inside `desk/mark.py`.
+- [ ] T7 | Implement the coupling check between a row's flags and its
+      `claim_all`, so `needs_anchor`, `owes_destination` and `quotes_original`
+      cannot be set on a row whose `claim_all` never names the key they read.
+      Verify: a row built as `replace(INSTRUCTIONS[ADD], claim_all=(),
+      needs_anchor=True)` is refused; today an `add` carrying no anchor at all
+      parses with `problems: []` under it.
+- [ ] T8 | Update `ROLE_FIELDS`' docstring at `desk/mark.py:380-383`, which
+      enumerates seven of `Mark`'s eight fields and omits `raw_text`. Verify: a
+      test differences `set(ROLE_FIELDS) \| {"address", "anchor",
+      "instruction"}` against `dataclasses.fields(Mark)` and asserts it is empty
+      -- today it reports `raw_text` unaccounted for.
+- [ ] T9 | Update `allowed()`'s `Returns:` block at `desk/mark.py:404-409`,
+      which names six keys where the function returns seven -- `source_keys` is
+      missing. Verify: a test compares `set(allowed())` against the keys the
+      docstring names and goes red when either is edited alone.
+- [ ] T10 | Update `Mark.seed`'s "THIS IS THE WHOLE GUARD" sentence at
       `desk/mark.py:344-348`, since `zip(..., strict=True)` raises first and a
       name ADDED to or REMOVED from `SEEDED` meets a bare `ValueError` naming
       neither `Mark` nor `SEEDED`. Verify: the docstring names both failures, or
       `seed` raises one named error for both.
-- [ ] Update `allowed()` at `desk/mark.py:435` so the instruction list is
-      published in the order `docs/the-mark.md` states, as `QUERY_SHAPES` already
-      is, or state at `sorted(INSTRUCTIONS)` why the two closed sets in one file
-      order themselves by opposite rules. Verify: `allowed()["instruction"]` reads
-      `clean, query, drop, correct, patch, add, move`, or the file says why it is
-      alphabetical.
+- [ ] T11 | Update `allowed()` at `desk/mark.py:435` so the instruction list is
+      published in the order `docs/the-mark.md` states, as `QUERY_SHAPES`
+      already is, or state at `sorted(INSTRUCTIONS)` why the two closed sets in
+      one file order themselves by opposite rules. Verify:
+      `allowed()["instruction"]` reads `clean, query, drop, correct, patch, add,
+      move`, or the file says why it is alphabetical.

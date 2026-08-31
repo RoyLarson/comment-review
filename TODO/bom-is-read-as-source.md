@@ -58,11 +58,15 @@ the first statement rather than as a `trailing-comment`, and no anchor is the BO
 
 ## Tasks
 
-- [ ] T1 -- Read with `utf-8-sig` at `repo.py:52` and `census.py:336`, the lexical route.
-      Verify: the BOM'd `.c` shows all three results named just above the task list.
-- [ ] T2 -- Read with `utf-8-sig` at `census.py:177`, which feeds `ast.parse`. Verify: a
-      BOM'd `.py` censuses its module docstring, not one `unparsed` paragraph.
-- [x] T3 -- MEASUREMENT, not a checkpoint. The `@b0 interval` / `@c0 trailing-comment`
-      result, both anchored on the BOM, is in the Objective, re-measured 2026-08-23.
-- [x] T4 -- A statement about the platform, in the Objective: BOM is the Visual Studio and
-      Windows PowerShell default for `.c`, `.cs`, `.cpp` and `.ps1`.
+- [ ] T1 | T1 -- Read with `utf-8-sig` at `repo.py:52` and `census.py:336`, the
+      lexical route. Verify: the BOM'd `.c` shows all three results named just
+      above the task list.
+- [ ] T2 | T2 -- Read with `utf-8-sig` at `census.py:177`, which feeds
+      `ast.parse`. Verify: a BOM'd `.py` censuses its module docstring, not one
+      `unparsed` paragraph.
+- [x] T3 | FINISHED | unknown | T3 -- MEASUREMENT, not a checkpoint. The `@b0
+      interval` / `@c0 trailing-comment` result, both anchored on the BOM, is in
+      the Objective, re-measured 2026-08-23.
+- [x] T4 | FINISHED | unknown | T4 -- A statement about the platform, in the
+      Objective: BOM is the Visual Studio and Windows PowerShell default for
+      `.c`, `.cs`, `.cpp` and `.ps1`.

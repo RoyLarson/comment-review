@@ -46,11 +46,15 @@ tests for the file is misled.
 
 ## Tasks
 
-- [ ] T1 -- Flatten `unaddressed()` to one pass, dropping `_by_path` and the sort. Verify:
-      `uv run pytest -q` green and its census sentences byte-identical before and after.
-- [ ] T2 -- Re-take the `unaddressed()` timing on the current code, before and after T1.
-      Verify: two numbers in this file, each with the command that produced it.
-- [ ] T3 -- Build the census row list ONCE on the text path, reusing what `census.py:434`
-      already builds. Verify: `grep -c "vars(b) | {" census.py` returns 1.
-- [ ] T4 -- Stop `census.py --out` leaving an empty file behind on a refusal. Verify: a
-      test asserting exit 1 and no `<path>` fails today and passes after.
+- [ ] T1 | T1 -- Flatten `unaddressed()` to one pass, dropping `_by_path` and
+      the sort. Verify: `uv run pytest -q` green and its census sentences
+      byte-identical before and after.
+- [ ] T2 | T2 -- Re-take the `unaddressed()` timing on the current code, before
+      and after T1. Verify: two numbers in this file, each with the command that
+      produced it.
+- [ ] T3 | T3 -- Build the census row list ONCE on the text path, reusing what
+      `census.py:434` already builds. Verify: `grep -c "vars(b) \| {" census.py`
+      returns 1.
+- [ ] T4 | T4 -- Stop `census.py --out` leaving an empty file behind on a
+      refusal. Verify: a test asserting exit 1 and no `<path>` fails today and
+      passes after.

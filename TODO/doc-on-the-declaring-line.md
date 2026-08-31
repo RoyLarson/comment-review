@@ -60,10 +60,11 @@ back. `systems` owns whether the two are one file.
 
 ## Tasks
 
-- [ ] Give the docstring paragraph of a same-line declaration an address, or
-      refuse the page. Verify: page_for over 'def f(): """D."""' emits no
+- [ ] T1 | Give the docstring paragraph of a same-line declaration an address,
+      or refuse the page. Verify: page_for over 'def f(): """D."""' emits no
       paragraph whose address is empty.
-- [ ] Stop the round trip inventing a line on that shape. Verify:
+- [ ] T2 | Stop the round trip inventing a line on that shape. Verify:
       compositor.lossless returns None for it.
-- [ ] Add the shape to tests/test_reading.SOURCES and tests/test_compositor.FORMS.
-      Verify: both go red before the two boxes above and green after.
+- [ ] T3 | Add the shape to tests/test_reading.SOURCES and
+      tests/test_compositor.FORMS. Verify: both go red before the two boxes
+      above and green after.

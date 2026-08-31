@@ -79,17 +79,22 @@ shorten.
 
 ## Tasks
 
-- [x] T1 -- FINISHED. Cleared the flag on the five whose own `Owner:` line records the
-      ruling; the five are named in the Objective.
-- [x] T2 -- FINISHED. Cleared the two that went stale during 0.2.4 and did not say so;
-      both now read `Requires-Roy: false`.
-- [ ] T3 -- Clear the flag on each still-flagged file whose ruling has landed, read from
-      the commits. Verify: `list --requires-roy` and the `*` boxes agree.
-- [ ] T4 -- Record the count that clearing leaves. Verify: `grep -l "Requires-Roy: true"
-      TODO/*.md | wc -l` is written into this file with its date.
-- [ ] T5 -- Read the upstream vendor at `redacted_corpus` `todo-requires-roy` for an
-      existing recompute. Verify: this file records the sha and the answer.
-- [ ] T6 -- If upstream has none, give `todo_tool.py` the recompute or the prompt to
-      clear. Verify: a test fails without it and passes with it.
-- [ ] T7 -- Correct `.claude/skills/todo-tool/SKILL.md:309` or make it true. Verify: the
-      line says the list is unfiltered, or a filter exists and it names it.
+- [x] T1 | FINISHED | unknown | T1 -- FINISHED. Cleared the flag on the five
+      whose own `Owner:` line records the ruling; the five are named in the
+      Objective.
+- [x] T2 | FINISHED | unknown | T2 -- FINISHED. Cleared the two that went stale
+      during 0.2.4 and did not say so; both now read `Requires-Roy: false`.
+- [ ] T3 | T3 -- Clear the flag on each still-flagged file whose ruling has
+      landed, read from the commits. Verify: `list --requires-roy` and the `*`
+      boxes agree.
+- [ ] T4 | T4 -- Record the count that clearing leaves. Verify: `grep -l
+      "Requires-Roy: true" TODO/*.md \| wc -l` is written into this file with
+      its date.
+- [ ] T5 | T5 -- Read the upstream vendor at `redacted_corpus`
+      `todo-requires-roy` for an existing recompute. Verify: this file records
+      the sha and the answer.
+- [ ] T6 | T6 -- If upstream has none, give `todo_tool.py` the recompute or the
+      prompt to clear. Verify: a test fails without it and passes with it.
+- [ ] T7 | T7 -- Correct `.claude/skills/todo-tool/SKILL.md:309` or make it
+      true. Verify: the line says the list is unfiltered, or a filter exists and
+      it names it.

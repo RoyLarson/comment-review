@@ -306,46 +306,80 @@ the review, and nothing today protects the review.
 
 ## Tasks
 
-- [x] T1 -- RECORD R1: the floor is a hard constraint and the language keeps moving.
-- [x] T2 -- RECORD R2: an unparsed page sets as an empty file.
-- [x] T3 -- RECORD R3: two readers means every rule is written twice.
-- [x] T4 -- RECORD R4: the matter type, written in `paragraphs_lexical` alone.
-- [x] T5 -- RECORD R5: the delimiter flush, and Python's correctness hiding it.
-- [x] T6 -- RECORD R6: `_is_doc` computed inline in `flush`, re-derived in `carry`.
-- [x] T7 -- RECORD R7: the measured surface -- four structural branch points.
-- [x] T8 -- RECORD R8: what the AST actually buys.
-- [x] T9 -- RECORD R9: the trade, put on the table.
-- [x] T10 -- RECORD R10: the third measure of correctness, `out ~= in`.
-- [x] T11 -- RECORD R11: `prove_unchanged` carries the same dependency, outside the lexer.
-- [x] T12 -- RECORD R12: the suite is 4:1 Python -- the risk and the payoff.
-- [x] T13 -- RECORD R13: no hole in the lexer contract; the oracle now exists.
-- [x] T14 -- RECORD R14: scope, ruled by Roy 2026-08-21.
-- [x] T15 -- RECORD R15: four AST dependencies, three outside the lexer.
-- [x] T16 -- RECORD R16: only the lexer and the compositor may interpret a file.
-- [x] T17 -- RECORD R17: `census.py` names its own gap already.
-- [x] T18 -- RECORD R18: the addresser describes a mechanism it never touches.
-- [x] T19 -- RECORD R19: ruled -- the code check belongs to the compositor.
-- [x] T20 -- RECORD R20: it answers the AST problem rather than moving it.
-- [x] T21 -- RECORD R21: it puts the prose back beside the code it describes.
-- [x] T22 -- RECORD R22: it carries `a-closing-quote-with-a-comment` with it, for free.
-- [x] T23 -- RECORD R23: what this branch owes is the position rule.
-- [x] T24 -- RECORD R24: the anchors may need their depth.
-- [x] T25 -- RECORD R25: make `_strip_strings` stateful, deferred here by transitivity.
-- [x] T26 -- RECORD R26: the cost of not having it -- the 7b gate failing open.
-- [x] T27 -- RECORD R27: four rows fixed the same day and four not.
-- [x] T28 -- RECORD R28: the argument Lisp makes.
-- [x] T29 -- RECORD R29: PEP 701 puts a comment inside an f-string.
-- [x] T30 -- RECORD R30: the write side is worse than the read side.
-- [x] T31 -- RECORD R31: the check for the stateful reader.
-- [ ] T32 -- Read Python on the lexical tier -- no `import ast` in the lexer. Verify:
-      `grep -rn 'import ast' plugins/` misses lexer.py:28 and a `.py` file still censuses.
-- [ ] T33 -- Hold the round-trip identity over the Python corpora with the new reader.
-      Verify: `compositor.identity` reproduces R13's 2,368 byte-identical round trips.
-- [ ] T34 -- A file with syntax NEWER than the floor censuses instead of setting empty.
-      Verify: sentry's `api/paginator.py` yields places and sets back its 884 lines.
-- [ ] T35 -- Drop the `ast` proof; run `stripped` for every language, Python included.
-      Verify: `grep -n 'import ast' prove_unchanged.py` is empty (it reads it at :36).
-- [ ] T36 -- Keep the Python fixtures passing under the `stripped` proof. Verify: `uv run
-      python -m unittest discover -s tests -k prove_unchanged` is green.
-- [ ] T37 -- Say in `prove_unchanged`'s docstring what `stripped` does NOT cover. Verify:
-      the docstring claims same lines in the same order, never semantic equivalence.
+- [x] T1 | FINISHED | unknown | T1 -- RECORD R1: the floor is a hard constraint
+      and the language keeps moving.
+- [x] T2 | FINISHED | unknown | T2 -- RECORD R2: an unparsed page sets as an
+      empty file.
+- [x] T3 | FINISHED | unknown | T3 -- RECORD R3: two readers means every rule is
+      written twice.
+- [x] T4 | FINISHED | unknown | T4 -- RECORD R4: the matter type, written in
+      `paragraphs_lexical` alone.
+- [x] T5 | FINISHED | unknown | T5 -- RECORD R5: the delimiter flush, and
+      Python's correctness hiding it.
+- [x] T6 | FINISHED | unknown | T6 -- RECORD R6: `_is_doc` computed inline in
+      `flush`, re-derived in `carry`.
+- [x] T7 | FINISHED | unknown | T7 -- RECORD R7: the measured surface -- four
+      structural branch points.
+- [x] T8 | FINISHED | unknown | T8 -- RECORD R8: what the AST actually buys.
+- [x] T9 | FINISHED | unknown | T9 -- RECORD R9: the trade, put on the table.
+- [x] T10 | FINISHED | unknown | T10 -- RECORD R10: the third measure of
+      correctness, `out ~= in`.
+- [x] T11 | FINISHED | unknown | T11 -- RECORD R11: `prove_unchanged` carries
+      the same dependency, outside the lexer.
+- [x] T12 | FINISHED | unknown | T12 -- RECORD R12: the suite is 4:1 Python --
+      the risk and the payoff.
+- [x] T13 | FINISHED | unknown | T13 -- RECORD R13: no hole in the lexer
+      contract; the oracle now exists.
+- [x] T14 | FINISHED | unknown | T14 -- RECORD R14: scope, ruled by Roy
+      2026-08-21.
+- [x] T15 | FINISHED | unknown | T15 -- RECORD R15: four AST dependencies, three
+      outside the lexer.
+- [x] T16 | FINISHED | unknown | T16 -- RECORD R16: only the lexer and the
+      compositor may interpret a file.
+- [x] T17 | FINISHED | unknown | T17 -- RECORD R17: `census.py` names its own
+      gap already.
+- [x] T18 | FINISHED | unknown | T18 -- RECORD R18: the addresser describes a
+      mechanism it never touches.
+- [x] T19 | FINISHED | unknown | T19 -- RECORD R19: ruled -- the code check
+      belongs to the compositor.
+- [x] T20 | FINISHED | unknown | T20 -- RECORD R20: it answers the AST problem
+      rather than moving it.
+- [x] T21 | FINISHED | unknown | T21 -- RECORD R21: it puts the prose back
+      beside the code it describes.
+- [x] T22 | FINISHED | unknown | T22 -- RECORD R22: it carries
+      `a-closing-quote-with-a-comment` with it, for free.
+- [x] T23 | FINISHED | unknown | T23 -- RECORD R23: what this branch owes is the
+      position rule.
+- [x] T24 | FINISHED | unknown | T24 -- RECORD R24: the anchors may need their
+      depth.
+- [x] T25 | FINISHED | unknown | T25 -- RECORD R25: make `_strip_strings`
+      stateful, deferred here by transitivity.
+- [x] T26 | FINISHED | unknown | T26 -- RECORD R26: the cost of not having it --
+      the 7b gate failing open.
+- [x] T27 | FINISHED | unknown | T27 -- RECORD R27: four rows fixed the same day
+      and four not.
+- [x] T28 | FINISHED | unknown | T28 -- RECORD R28: the argument Lisp makes.
+- [x] T29 | FINISHED | unknown | T29 -- RECORD R29: PEP 701 puts a comment
+      inside an f-string.
+- [x] T30 | FINISHED | unknown | T30 -- RECORD R30: the write side is worse than
+      the read side.
+- [x] T31 | FINISHED | unknown | T31 -- RECORD R31: the check for the stateful
+      reader.
+- [ ] T32 | T32 -- Read Python on the lexical tier -- no `import ast` in the
+      lexer. Verify: `grep -rn 'import ast' plugins/` misses lexer.py:28 and a
+      `.py` file still censuses.
+- [ ] T33 | T33 -- Hold the round-trip identity over the Python corpora with the
+      new reader. Verify: `compositor.identity` reproduces R13's 2,368
+      byte-identical round trips.
+- [ ] T34 | T34 -- A file with syntax NEWER than the floor censuses instead of
+      setting empty. Verify: sentry's `api/paginator.py` yields places and sets
+      back its 884 lines.
+- [ ] T35 | T35 -- Drop the `ast` proof; run `stripped` for every language,
+      Python included. Verify: `grep -n 'import ast' prove_unchanged.py` is
+      empty (it reads it at :36).
+- [ ] T36 | T36 -- Keep the Python fixtures passing under the `stripped` proof.
+      Verify: `uv run python -m unittest discover -s tests -k prove_unchanged`
+      is green.
+- [ ] T37 | T37 -- Say in `prove_unchanged`'s docstring what `stripped` does NOT
+      cover. Verify: the docstring claims same lines in the same order, never
+      semantic equivalence.

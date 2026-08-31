@@ -111,20 +111,28 @@ still read *"The three series"*, and neither mentions an empty one.
 
 ## Tasks
 
-- [x] T1 -- RULED 2026-08-18 by Roy: the series counts DECLARATIONS, and an empty one is
-      still assigned. A ruling, kept in the Objective.
-- [x] T2 -- FINISHED. The declarations are enumerated in SOURCE order, by `lineno`.
-- [x] T3 -- FINISHED. An `a` entry is emitted for a declaration with NO docstring; the
-      three undocumented ones over the shipped scripts are citable.
-- [x] T4 -- FINISHED. The census STATES which declaration a docstring belongs to, via
-      `declares`, rather than the cues inferring it from position or tier.
-- [x] T5 -- FINISHED. The `a` form is in `addresser.stable`, and `--check` holds it to the
-      same rule as `b` and `c`.
-- [ ] T6 -- ORDER the dispatched census by series -- `a`, then `b`, then `c` -- and do NOT
-      filter it. Verify: a dispatched census reads `a` first, then `b`, then `c`.
-- [ ] T7 -- Hold the ordering to not becoming a filter. Verify: `verdicts.py`'s coverage
-      gate still counts the whole prose population per role after T6 lands.
-- [ ] T8 -- Tell a role when its `a` series is empty, and why. Verify: a run over a `.sh`
-      file hands the role that sentence.
-- [ ] T9 -- Correct the two "The three series" sentences at `SKILL.md:378` and
-      `reviewer-brief.md:69`. Verify: neither states three series unconditionally.
+- [x] T1 | FINISHED | unknown | T1 -- RULED 2026-08-18 by Roy: the series counts
+      DECLARATIONS, and an empty one is still assigned. A ruling, kept in the
+      Objective.
+- [x] T2 | FINISHED | unknown | T2 -- FINISHED. The declarations are enumerated
+      in SOURCE order, by `lineno`.
+- [x] T3 | FINISHED | unknown | T3 -- FINISHED. An `a` entry is emitted for a
+      declaration with NO docstring; the three undocumented ones over the
+      shipped scripts are citable.
+- [x] T4 | FINISHED | unknown | T4 -- FINISHED. The census STATES which
+      declaration a docstring belongs to, via `declares`, rather than the cues
+      inferring it from position or tier.
+- [x] T5 | FINISHED | unknown | T5 -- FINISHED. The `a` form is in
+      `addresser.stable`, and `--check` holds it to the same rule as `b` and
+      `c`.
+- [ ] T6 | T6 -- ORDER the dispatched census by series -- `a`, then `b`, then
+      `c` -- and do NOT filter it. Verify: a dispatched census reads `a` first,
+      then `b`, then `c`.
+- [ ] T7 | T7 -- Hold the ordering to not becoming a filter. Verify:
+      `verdicts.py`'s coverage gate still counts the whole prose population per
+      role after T6 lands.
+- [ ] T8 | T8 -- Tell a role when its `a` series is empty, and why. Verify: a
+      run over a `.sh` file hands the role that sentence.
+- [ ] T9 | T9 -- Correct the two "The three series" sentences at `SKILL.md:378`
+      and `reviewer-brief.md:69`. Verify: neither states three series
+      unconditionally.

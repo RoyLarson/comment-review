@@ -87,13 +87,17 @@ it is a constraint on the work and not a checkpoint of its own.
 
 ## Tasks
 
-- [ ] T1 -- !! RULE STEP 4 FIRST: which PLACE a held `path:start-end` maps to. Verify: the
-      rule is written down, and a run whose answer is known agrees on every record.
-- [ ] T2 -- Migrate `evidence/cycle-0.2.3/` first -- its subject is this repo at
-      `1ad4ba7`. Verify: its four role reports re-emit under a `pages` envelope with cues.
-- [x] T3 -- SUPERSEDED. The raw-text requirement and the `parse_report` claim it rested on
-      are both false; the record of why is in the Objective.
-- [ ] T4 -- Run the shipped shape check, `record.record_problems` (`record.py:1033`), over
-      what T2 emits. Verify: `verdicts.py` joins it at `1ad4ba7`, all citations resolving.
-- [x] T5 -- NOT A TASK. It lives in `scripts/`, not `plugins/` -- a constraint on the
-      work, restated in the Objective.
+- [ ] T1 | T1 -- !! RULE STEP 4 FIRST: which PLACE a held `path:start-end` maps
+      to. Verify: the rule is written down, and a run whose answer is known
+      agrees on every record.
+- [ ] T2 | T2 -- Migrate `evidence/cycle-0.2.3/` first -- its subject is this
+      repo at `1ad4ba7`. Verify: its four role reports re-emit under a `pages`
+      envelope with cues.
+- [x] T3 | FINISHED | unknown | T3 -- SUPERSEDED. The raw-text requirement and
+      the `parse_report` claim it rested on are both false; the record of why is
+      in the Objective.
+- [ ] T4 | T4 -- Run the shipped shape check, `record.record_problems`
+      (`record.py:1033`), over what T2 emits. Verify: `verdicts.py` joins it at
+      `1ad4ba7`, all citations resolving.
+- [x] T5 | FINISHED | unknown | T5 -- NOT A TASK. It lives in `scripts/`, not
+      `plugins/` -- a constraint on the work, restated in the Objective.

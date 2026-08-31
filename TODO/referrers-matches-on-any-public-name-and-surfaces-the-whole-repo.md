@@ -4,7 +4,7 @@
 Status:   open
 Progress: 0 of 6 tasks done
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-17 (referrers.py's FIRST real exercise, the redacted_corpus
           builder run on 0.2.0 -- 24 files under review, ~490 files returned)
 TRIAGED:  2026-08-23 — 2026-08-23. NOTHING TO RECLASSIFY -- all five boxes are already
@@ -100,18 +100,24 @@ was expected to behave.
 
 ## Tasks
 
-- [ ] T1 -- Drop a token by its MEASURED match count, with the threshold derived from the
-      run, not hard-coded. Verify: a token matching several hundred files is dropped.
-- [ ] T2 -- Require a bare NAME token to match as a CITATION -- `` `run` ``, `run()` or
-      `module.run`, not the word in a sentence. Verify: a prose `run` no longer matches.
-- [ ] T3 -- Print what was dropped and why -- one line per dropped token with its count.
-      Verify: the packet records the narrowing; no token is dropped silently.
-- [ ] T4 -- Say in `SKILL.md` what to do when referrers' output is too large to hand over
-      as-is. Verify: `SKILL.md` names a sanctioned response; today it offers none.
-- [ ] T5 -- Require hand-selection of the referrers list to be RECORDED in the stage-4
-      packet. Verify: `SKILL.md` says so, and the packet has a place for it.
-- [ ] T6 -- Re-run referrers against the same 24 files and compare. Verify: the two mirror
-      docs still appear and the returned count is workable, taken from the run.
+- [ ] T1 | T1 -- Drop a token by its MEASURED match count, with the threshold
+      derived from the run, not hard-coded. Verify: a token matching several
+      hundred files is dropped.
+- [ ] T2 | T2 -- Require a bare NAME token to match as a CITATION -- `` `run`
+      ``, `run()` or `module.run`, not the word in a sentence. Verify: a prose
+      `run` no longer matches.
+- [ ] T3 | T3 -- Print what was dropped and why -- one line per dropped token
+      with its count. Verify: the packet records the narrowing; no token is
+      dropped silently.
+- [ ] T4 | T4 -- Say in `SKILL.md` what to do when referrers' output is too
+      large to hand over as-is. Verify: `SKILL.md` names a sanctioned response;
+      today it offers none.
+- [ ] T5 | T5 -- Require hand-selection of the referrers list to be RECORDED in
+      the stage-4 packet. Verify: `SKILL.md` says so, and the packet has a place
+      for it.
+- [ ] T6 | T6 -- Re-run referrers against the same 24 files and compare. Verify:
+      the two mirror docs still appear and the returned count is workable, taken
+      from the run.
 ## Related
 
 - [`ownership-is-read-first`](ownership-is-read-first-but-nothing-makes-it-so.md) -- carries the

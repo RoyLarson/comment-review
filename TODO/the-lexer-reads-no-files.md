@@ -114,50 +114,67 @@ is at `docs/superpowers/specs/2026-08-23-io-and-the-chain-design.md:17`.
 
 ## Tasks
 
-- [x] T1 -- MEASUREMENT, not a task: the lexer reads nothing and nine other places do.
-      Stated in the Objective, with the nine sites re-verified 2026-08-23.
-- [x] T2 -- MEASUREMENT, not a task: all nine read through `Path.read_text`, which
-      translates line endings. Stated in the Objective.
-- [x] T3 -- MEASUREMENT, not a task: `compositor.identity` gives a false pass on every
-      CRLF file, REPRODUCED 2026-08-23. Stated in the Objective.
-- [x] T4 -- MEASUREMENT, not a task: 4,023 of 4,686 text files in this checkout hold CRLF,
-      so it is the normal case. Stated in the Objective.
-- [x] T5 -- MEASUREMENT, not a task: every 2026-08-21 number is narrower than it was
-      stated, being identity after newline translation. Stated in the Objective.
-- [x] T6 -- MEASUREMENT, not a task: `draft()` writes with `newline=""`, so a CRLF
-      checkout would be written back LF. Stated in the Objective.
-- [x] T7 -- ARGUMENT, not a task: the same one decision as `bom-is-read-as-source`, made
-      nine times the same wrong way. Stated in the Objective.
-- [x] T8 -- RULING, 2026-08-23: the lexer reads, the compositor writes and verifies, and
-      `page_for` takes a PATH. Stated in the Objective as *The shape of the fix*.
-- [ ] T9 -- **Create `io.py` and move `read_raw` into it from `repo.py`.** Verify:
-      `io.read_raw` resolves, and `repo.py` defines no reader.
-- [ ] T10 -- **Move `text_lines` out of `constants.py` into `io.py`.** Verify: it resolves
-      from `io.py`, and `constants.py` no longer defines it.
-- [ ] T11 -- **Move `utf8_console` out of `constants.py` into `io.py`.** Verify: it
-      resolves from `io.py`, and `constants.py` exports `LINE_BREAK` and nothing else.
-- [ ] T12 -- **Move the `newline=""` write out of `compositor.py` into `io.py`.** Verify:
-      `grep -n 'newline=' compositor.py` returns nothing.
-- [ ] T13 -- **Write the read/write gate**: a shipped `read_text|write_text|open(` outside
-      `io.py` fails. Verify: it exits nonzero on the tree as it stands, naming each site.
-- [ ] T14 -- **Give `page_for` a PATH instead of text.** Verify: no caller of `page_for`
-      passes text, and the signature takes a path.
-- [ ] T15 -- **Let the lexer open the file, with `io.read_raw` and `utf-8-sig`.** Verify:
-      a CRLF file carrying a BOM reads back with both preserved.
-- [ ] T16 -- **Route the nine bypassing source reads through `io.py`.** Verify: T13's gate
-      exits 0 on the tree, and every source read in the shipped scripts is the lexer's.
-- [ ] T17 -- **Fix `compositor.identity` so the round trip is compared in BYTES.** Verify:
-      it reads through `io.read_raw` and not `read_text`.
-- [ ] T18 -- **Test `identity` on a CRLF file, FAILING FIRST.** Verify: a file written
-      `b'# a note\r\nx = 1\r\n'` reports a difference before the fix and `None` after.
-- [ ] T19 -- **Assert the READ chain as data**: it IS `[language, read_text, lexer,
-      addresser, page]`. Verify: the test fails when a step is removed from the list.
-- [ ] T20 -- **Assert the WRITE chain as data**, the seven steps named in the Objective.
-      Verify: the test fails when a step is removed from the list.
-- [ ] T21 -- **Re-take the losslessness number through the raw reader.** Verify: the
-      re-run reports its population and names the reader that produced it.
-- [ ] T22 -- **Correct the spec's `read_raw` row, cited in the Objective.** Verify: the
-      row names the nine bypassing source reads rather than an absence of callers.
+- [x] T1 | FINISHED | unknown | T1 -- MEASUREMENT, not a task: the lexer reads
+      nothing and nine other places do. Stated in the Objective, with the nine
+      sites re-verified 2026-08-23.
+- [x] T2 | FINISHED | unknown | T2 -- MEASUREMENT, not a task: all nine read
+      through `Path.read_text`, which translates line endings. Stated in the
+      Objective.
+- [x] T3 | FINISHED | unknown | T3 -- MEASUREMENT, not a task:
+      `compositor.identity` gives a false pass on every CRLF file, REPRODUCED
+      2026-08-23. Stated in the Objective.
+- [x] T4 | FINISHED | unknown | T4 -- MEASUREMENT, not a task: 4,023 of 4,686
+      text files in this checkout hold CRLF, so it is the normal case. Stated in
+      the Objective.
+- [x] T5 | FINISHED | unknown | T5 -- MEASUREMENT, not a task: every 2026-08-21
+      number is narrower than it was stated, being identity after newline
+      translation. Stated in the Objective.
+- [x] T6 | FINISHED | unknown | T6 -- MEASUREMENT, not a task: `draft()` writes
+      with `newline=""`, so a CRLF checkout would be written back LF. Stated in
+      the Objective.
+- [x] T7 | FINISHED | unknown | T7 -- ARGUMENT, not a task: the same one
+      decision as `bom-is-read-as-source`, made nine times the same wrong way.
+      Stated in the Objective.
+- [x] T8 | FINISHED | unknown | T8 -- RULING, 2026-08-23: the lexer reads, the
+      compositor writes and verifies, and `page_for` takes a PATH. Stated in the
+      Objective as *The shape of the fix*.
+- [ ] T9 | T9 -- **Create `io.py` and move `read_raw` into it from `repo.py`.**
+      Verify: `io.read_raw` resolves, and `repo.py` defines no reader.
+- [ ] T10 | T10 -- **Move `text_lines` out of `constants.py` into `io.py`.**
+      Verify: it resolves from `io.py`, and `constants.py` no longer defines it.
+- [ ] T11 | T11 -- **Move `utf8_console` out of `constants.py` into `io.py`.**
+      Verify: it resolves from `io.py`, and `constants.py` exports `LINE_BREAK`
+      and nothing else.
+- [ ] T12 | T12 -- **Move the `newline=""` write out of `compositor.py` into
+      `io.py`.** Verify: `grep -n 'newline=' compositor.py` returns nothing.
+- [ ] T13 | T13 -- **Write the read/write gate**: a shipped
+      `read_text\|write_text\|open(` outside `io.py` fails. Verify: it exits
+      nonzero on the tree as it stands, naming each site.
+- [ ] T14 | T14 -- **Give `page_for` a PATH instead of text.** Verify: no caller
+      of `page_for` passes text, and the signature takes a path.
+- [ ] T15 | T15 -- **Let the lexer open the file, with `io.read_raw` and
+      `utf-8-sig`.** Verify: a CRLF file carrying a BOM reads back with both
+      preserved.
+- [ ] T16 | T16 -- **Route the nine bypassing source reads through `io.py`.**
+      Verify: T13's gate exits 0 on the tree, and every source read in the
+      shipped scripts is the lexer's.
+- [ ] T17 | T17 -- **Fix `compositor.identity` so the round trip is compared in
+      BYTES.** Verify: it reads through `io.read_raw` and not `read_text`.
+- [ ] T18 | T18 -- **Test `identity` on a CRLF file, FAILING FIRST.** Verify: a
+      file written `b'# a note\r\nx = 1\r\n'` reports a difference before the
+      fix and `None` after.
+- [ ] T19 | T19 -- **Assert the READ chain as data**: it IS `[language,
+      read_text, lexer, addresser, page]`. Verify: the test fails when a step is
+      removed from the list.
+- [ ] T20 | T20 -- **Assert the WRITE chain as data**, the seven steps named in
+      the Objective. Verify: the test fails when a step is removed from the
+      list.
+- [ ] T21 | T21 -- **Re-take the losslessness number through the raw reader.**
+      Verify: the re-run reports its population and names the reader that
+      produced it.
+- [ ] T22 | T22 -- **Correct the spec's `read_raw` row, cited in the
+      Objective.** Verify: the row names the nine bypassing source reads rather
+      than an absence of callers.
 ## Related
 
 - [`bom-is-read-as-source`](bom-is-read-as-source.md) -- the same nine sites, the same one

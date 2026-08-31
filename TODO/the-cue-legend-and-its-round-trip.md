@@ -51,16 +51,18 @@ duplication that file exists to end. The legend belongs where a role's terms alr
 
 ## Tasks
 
-- [ ] T1 -- Give a role the cue legend from where its terms already come. Verify:
-      `vocabulary.py --reviewer <role>` emits the letters and `check_vocabulary.py` passes.
-- [ ] T2 -- Re-lex a written page and compare its cues against the census's. Verify: an
-      unedited page round-trips with every cue holding the same content.
-- [ ] T3 -- Refuse a page whose cues came back different. Verify: moving one paragraph's
-      text under a neighbouring cue is caught and named.
-- [ ] T4 -- Report the `f` series separately rather than as a disagreement. Verify: a file
-      with front matter round-trips without a false finding.
-- [ ] T5 -- Prove the check can FAIL. Verify: with T3's refusal removed, T3's own case
-      passes and the test goes red.
+- [ ] T1 | T1 -- Give a role the cue legend from where its terms already come.
+      Verify: `vocabulary.py --reviewer <role>` emits the letters and
+      `check_vocabulary.py` passes.
+- [ ] T2 | T2 -- Re-lex a written page and compare its cues against the
+      census's. Verify: an unedited page round-trips with every cue holding the
+      same content.
+- [ ] T3 | T3 -- Refuse a page whose cues came back different. Verify: moving
+      one paragraph's text under a neighbouring cue is caught and named.
+- [ ] T4 | T4 -- Report the `f` series separately rather than as a disagreement.
+      Verify: a file with front matter round-trips without a false finding.
+- [ ] T5 | T5 -- Prove the check can FAIL. Verify: with T3's refusal removed,
+      T3's own case passes and the test goes red.
 
 ## Related
 

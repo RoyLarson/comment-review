@@ -74,50 +74,52 @@ caller.
 
 ## Tasks
 
-- [ ] Implement path normalisation before the `seen` membership test at
-      `docket.py:134-145`, or refuse outright any path not already in normal form.
-      Verify: a docket carrying schedules for `pkg/a.py` and `./pkg/a.py` is
-      refused by name; today `read` answers `''` for both,
-      `flows/proof_setter.py:361` resolves both to one draft file, and one page's
-      approved text is discarded at exit 0 while `commands/proof.py:143` prints `2
-      page(s) drafted for review` and returns 0. `pkg\a.py`, `PKG/A.py` and
-      `pkg/../pkg/a.py` are accepted too.
-- [ ] Implement a "this target was already drafted this run" refusal in
+- [ ] T1 | Implement path normalisation before the `seen` membership test at
+      `docket.py:134-145`, or refuse outright any path not already in normal
+      form. Verify: a docket carrying schedules for `pkg/a.py` and `./pkg/a.py`
+      is refused by name; today `read` answers `''` for both,
+      `flows/proof_setter.py:361` resolves both to one draft file, and one
+      page's approved text is discarded at exit 0 while `commands/proof.py:143`
+      prints `2 page(s) drafted for review` and returns 0. `pkg\a.py`,
+      `PKG/A.py` and `pkg/../pkg/a.py` are accepted too.
+- [ ] T2 | Implement a "this target was already drafted this run" refusal in
       `flows/proof_setter._one`. Verify: two schedules resolving to one `target`
-      refuse by name rather than the second draft -- built from the ORIGINAL file,
-      not from the first draft -- overwriting the first's approved text; the test
-      goes red today.
-- [ ] Update `tests/test_docket.py:130`
+      refuse by name rather than the second draft -- built from the ORIGINAL
+      file, not from the first draft -- overwriting the first's approved text;
+      the test goes red today.
+- [ ] T3 | Update `tests/test_docket.py:130`
       (`test_TWO_SCHEDULES_FOR_ONE_PAGE_are_refused`) so it exercises the shape
-      the guard is written against. Verify: the case feeds two DIFFERENT spellings
-      of one path and fails against `docket.py:134-145` as it reads today; the
-      byte-identical pair it feeds now is the one case the guard already handles.
-- [ ] Implement a refusal in `desk.collator.docket_from` at the point a flattened
-      path fails to resolve, naming the address it could not place. Verify: no
-      docket is written carrying `"sha": ""` from `collator.py:1019`; today one
-      unresolvable page makes the WHOLE docket unreadable at `docket.py:146-147`
-      -- `({}, 'pkg/a.py: every page needs the sha it was read at')` -- discarding
-      every other page's approved alterations, and naming the sha when the cause
-      is a path that resolved against nothing.
-- [ ] Update the two citations of `flows.revise.pull._set_by` at `docket.py:64-65`
-      and `:92-93`. Verify: `grep -rn "pull\._set_by" src/comment_review/` is
-      empty and the sentences name `flows.revise._set_by` (`revise.py:242`), the
-      way `flows/revise.py:55-58` already spells the relationship.
-- [ ] Update both `Schedule` sort sites to `sorted(schedules, key=lambda s:
+      the guard is written against. Verify: the case feeds two DIFFERENT
+      spellings of one path and fails against `docket.py:134-145` as it reads
+      today; the byte-identical pair it feeds now is the one case the guard
+      already handles.
+- [ ] T4 | Implement a refusal in `desk.collator.docket_from` at the point a
+      flattened path fails to resolve, naming the address it could not place.
+      Verify: no docket is written carrying `"sha": ""` from `collator.py:1019`;
+      today one unresolvable page makes the WHOLE docket unreadable at
+      `docket.py:146-147` -- `({}, 'pkg/a.py: every page needs the sha it was
+      read at')` -- discarding every other page's approved alterations, and
+      naming the sha when the cause is a path that resolved against nothing.
+- [ ] T5 | Update the two citations of `flows.revise.pull._set_by` at
+      `docket.py:64-65` and `:92-93`. Verify: `grep -rn "pull\._set_by"
+      src/comment_review/` is empty and the sentences name
+      `flows.revise._set_by` (`revise.py:242`), the way `flows/revise.py:55-58`
+      already spells the relationship.
+- [ ] T6 | Update both `Schedule` sort sites to `sorted(schedules, key=lambda s:
       s.path)`. Verify: `flows/proof_setter.py:211` and `commands/proof.py:140`
       sort by path, and a hand-built docket whose two schedules share `path` and
       `sha` no longer raises `TypeError: '<' not supported between instances of
       'dict' and 'dict'` from the `alterations` field.
-- [ ] Delete `Schedule.role` at `docket.py:100` and its justification at `:91-94`.
-      Verify: `grep -rn "schedule\.role\|s\.role" src/comment_review/ tests/` was
-      already empty before the delete -- no `Schedule` reader exists in
-      `proof_setter.py`, `commands/proof.py`, `tests/test_docket.py` or
-      `tests/test_proof_setter.py` -- the suite is green after, and `schedules_of`
-      no longer runs `str(page.get("role", ""))` at `docket.py:203` on every
-      unwind.
-- [ ] Update `Schedule.path`'s docstring at `docket.py:84-86`, which calls it "the
-      one field a containment guard has to rule on" while no guard in this file
-      rules on it. Verify: the sentence points at `machine.repo.can_escape` as the
-      single guard site (`flows/proof_setter.py:184`), and states that
-      `docket.read` accepts `/etc/passwd`, `../outside.py` and `C:/Windows/x.py`
-      on purpose.
+- [ ] T7 | Delete `Schedule.role` at `docket.py:100` and its justification at
+      `:91-94`. Verify: `grep -rn "schedule\.role\\|s\.role" src/comment_review/
+      tests/` was already empty before the delete -- no `Schedule` reader exists
+      in `proof_setter.py`, `commands/proof.py`, `tests/test_docket.py` or
+      `tests/test_proof_setter.py` -- the suite is green after, and
+      `schedules_of` no longer runs `str(page.get("role", ""))` at
+      `docket.py:203` on every unwind.
+- [ ] T8 | Update `Schedule.path`'s docstring at `docket.py:84-86`, which calls
+      it "the one field a containment guard has to rule on" while no guard in
+      this file rules on it. Verify: the sentence points at
+      `machine.repo.can_escape` as the single guard site
+      (`flows/proof_setter.py:184`), and states that `docket.read` accepts
+      `/etc/passwd`, `../outside.py` and `C:/Windows/x.py` on purpose.

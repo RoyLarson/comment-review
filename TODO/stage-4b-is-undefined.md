@@ -54,13 +54,18 @@ fails its own stage-4 gate.
 
 ## Tasks
 
-- [?] T1 -- * RULING WANTED: what 4b IS -- a real step between 4a and 4c, or a wrong prose
-      split. Verify: `SKILL.md` defines 4b, or the split reads 4a/4b and `4b` is nowhere.
-- [ ] T2 -- Make 4c's input differ from 4a's, or drop the RESOLVED PLACEMENT claim.
-      Verify: 4c gets an artifact 4a produced, or `SKILL.md:555-558` stops claiming it.
-- [ ] T3 -- Make a run's own artifacts name the configuration that produced them. Verify:
-      the artifacts of one run say whether stage 4 was serial or parallel.
-- [ ] T4 -- Reword `SKILL.md:3` so the parallel form reads as the BASELINE, not as current
-      behaviour. Verify: `grep -n "parallel"` finds it named as a configuration.
-- [ ] T5 -- Make `SKILL.md` name every section `run_context.py --check` refuses. Verify:
-      `LOOKUP CENSUS` appears in `SKILL.md` and its count equals `len(PATH_SECTIONS)`.
+- [?] T1 | T1 -- * RULING WANTED: what 4b IS -- a real step between 4a and 4c,
+      or a wrong prose split. Verify: `SKILL.md` defines 4b, or the split reads
+      4a/4b and `4b` is nowhere.
+- [ ] T2 | T2 -- Make 4c's input differ from 4a's, or drop the RESOLVED
+      PLACEMENT claim. Verify: 4c gets an artifact 4a produced, or
+      `SKILL.md:555-558` stops claiming it.
+- [ ] T3 | T3 -- Make a run's own artifacts name the configuration that produced
+      them. Verify: the artifacts of one run say whether stage 4 was serial or
+      parallel.
+- [ ] T4 | T4 -- Reword `SKILL.md:3` so the parallel form reads as the BASELINE,
+      not as current behaviour. Verify: `grep -n "parallel"` finds it named as a
+      configuration.
+- [ ] T5 | T5 -- Make `SKILL.md` name every section `run_context.py --check`
+      refuses. Verify: `LOOKUP CENSUS` appears in `SKILL.md` and its count
+      equals `len(PATH_SECTIONS)`.

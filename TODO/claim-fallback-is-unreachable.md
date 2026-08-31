@@ -75,18 +75,25 @@ T4 -- it waits on the same determination.
 
 ## Tasks
 
-- [x] T1 -- RECORD, not a task. The by-construction measurement, restated in the
-      Objective: the pair `claim_fields` empty with `claim` non-empty CANNOT BE PRODUCED.
-- [x] T2 -- RECORD, not a task. The contradicting comment at record.py:541-544 and the ~60
-      lines whose stated purpose is false, restated in the Objective.
-- [x] T3 -- RECORD, not a task. The suite stays green because tests/test_verdicts.py:79
-      builds an unproducible shape. Restated in the Objective.
-- [?] T4 -- * Rule whether a non-object `claim` (i) preserves the reviewer words or (ii)
-      is reported MALFORMED. Verify: `docs/decision-log.md` records the ruling.
-- [x] T5 -- RECORD, not a task. ROY LEANS (ii), 2026-08-22. Restated in the Objective.
-- [x] T6 -- RECORD, not a task. The cost of (ii) is one helper plus seven sites, not ~150.
-      Restated in the Objective.
-- [x] T7 -- RECORD, not a task. What the deferral waits on -- the determination of the
-      whole census -> findings -> verdicts path. Restated in the Objective.
-- [ ] T8 -- Make code and prose agree in the shape T4 rules. Verify: no shipped comment
-      describes an unreachable branch, and `uv run pytest -q` is green.
+- [x] T1 | FINISHED | unknown | T1 -- RECORD, not a task. The by-construction
+      measurement, restated in the Objective: the pair `claim_fields` empty with
+      `claim` non-empty CANNOT BE PRODUCED.
+- [x] T2 | FINISHED | unknown | T2 -- RECORD, not a task. The contradicting
+      comment at record.py:541-544 and the ~60 lines whose stated purpose is
+      false, restated in the Objective.
+- [x] T3 | FINISHED | unknown | T3 -- RECORD, not a task. The suite stays green
+      because tests/test_verdicts.py:79 builds an unproducible shape. Restated
+      in the Objective.
+- [?] T4 | T4 -- * Rule whether a non-object `claim` (i) preserves the reviewer
+      words or (ii) is reported MALFORMED. Verify: `docs/decision-log.md`
+      records the ruling.
+- [x] T5 | FINISHED | unknown | T5 -- RECORD, not a task. ROY LEANS (ii),
+      2026-08-22. Restated in the Objective.
+- [x] T6 | FINISHED | unknown | T6 -- RECORD, not a task. The cost of (ii) is
+      one helper plus seven sites, not ~150. Restated in the Objective.
+- [x] T7 | FINISHED | unknown | T7 -- RECORD, not a task. What the deferral
+      waits on -- the determination of the whole census -> findings -> verdicts
+      path. Restated in the Objective.
+- [ ] T8 | T8 -- Make code and prose agree in the shape T4 rules. Verify: no
+      shipped comment describes an unreachable branch, and `uv run pytest -q` is
+      green.

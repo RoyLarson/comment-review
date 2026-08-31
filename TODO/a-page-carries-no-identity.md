@@ -57,14 +57,18 @@ than inside it.
 
 ## Tasks
 
-- [x] T1 -- Record the source SHA on the page, beside `path`. Verify: two censuses of an
-      unchanged file carry the same SHA, and one edit changes it.
-- [x] T2 -- Make the galley refuse a changed file on the SHA, before any re-parse. Verify:
-      a one-byte edit is refused and no page is built.
-- [x] T3 -- Make the compositor verify by SHA on the same footing. Verify: it refuses a
-      file whose bytes are not the ones its page was built from.
-- [x] T4 -- Keep the per-paragraph comparison honest about what it now covers. Verify: its
-      comment names the SHA as what answers *did the file shift*.
+- [x] T1 | FINISHED | unknown | T1 -- Record the source SHA on the page, beside
+      `path`. Verify: two censuses of an unchanged file carry the same SHA, and
+      one edit changes it.
+- [x] T2 | FINISHED | unknown | T2 -- Make the galley refuse a changed file on
+      the SHA, before any re-parse. Verify: a one-byte edit is refused and no
+      page is built.
+- [x] T3 | FINISHED | unknown | T3 -- Make the compositor verify by SHA on the
+      same footing. Verify: it refuses a file whose bytes are not the ones its
+      page was built from.
+- [x] T4 | FINISHED | unknown | T4 -- Keep the per-paragraph comparison honest
+      about what it now covers. Verify: its comment names the SHA as what
+      answers *did the file shift*.
 
 ## Related
 

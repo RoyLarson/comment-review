@@ -100,23 +100,32 @@ the removed check has no replacement.
 
 ## Tasks
 
-- [x] T1 -- SUPERSEDED 2026-08-23. The precedence branch is inert, 0 failures without it,
-      and the galley it stood in for is deleted.
-- [x] T2 -- SUPERSEDED 2026-08-23. The named test does not exist and the corrupted
-      paragraph it was about is no longer produced.
-- [ ] T3 -- Assert the EXTENT at `test_census_blocks.py:937` -- `(start, end)` and
-      `raw_lines`, not `b.start`. Verify: ending `matter` at its first line goes red.
-- [x] T4 -- SUPERSEDED 2026-08-23. The test and the text-report parser it exercised were
-      removed in `2a86573`; the malformed cases are covered by `held.load_report`.
-- [ ] T5 -- Gate the COUNT, not the digit, at `test_run_context.py:99`. Verify: the
-      docstring mutation recorded in the Objective turns the test red.
-- [ ] T6 -- Gate the READS, not the spelling of one call, at `test_cues.py:666`. Verify: a
-      second `open()` read of an arbitrary path in `addresser.py` turns the test red.
-- [ ] T7 -- Match the UNIT in `test_todo_counts_agree.py:64-66`, so a non-`tasks` unit
-      cannot skip both checks. Verify: change a `Progress:` unit and a test goes red.
-- [ ] T8 -- Run the keyword scan over real lines in `test_declarations.py:313-319`, not
-      `""`. Verify: `_declares_here` returning False always turns the class red.
-- [ ] T9 -- Make `TestAStaleCensusIsRefused` assert the exit code its docstring claims, or
-      stop the docstring claiming it. Verify: `--check` exits 2, or `2` is not named.
-- [ ] T10 -- Write `TestClaimAgainstTheCensus`, or stop `test_verdicts.py:664-668` naming
-      it. Verify: the class fails on a misattached finding, or the name is gone.
+- [x] T1 | FINISHED | unknown | T1 -- SUPERSEDED 2026-08-23. The precedence
+      branch is inert, 0 failures without it, and the galley it stood in for is
+      deleted.
+- [x] T2 | FINISHED | unknown | T2 -- SUPERSEDED 2026-08-23. The named test does
+      not exist and the corrupted paragraph it was about is no longer produced.
+- [ ] T3 | T3 -- Assert the EXTENT at `test_census_blocks.py:937` -- `(start,
+      end)` and `raw_lines`, not `b.start`. Verify: ending `matter` at its first
+      line goes red.
+- [x] T4 | FINISHED | unknown | T4 -- SUPERSEDED 2026-08-23. The test and the
+      text-report parser it exercised were removed in `2a86573`; the malformed
+      cases are covered by `held.load_report`.
+- [ ] T5 | T5 -- Gate the COUNT, not the digit, at `test_run_context.py:99`.
+      Verify: the docstring mutation recorded in the Objective turns the test
+      red.
+- [ ] T6 | T6 -- Gate the READS, not the spelling of one call, at
+      `test_cues.py:666`. Verify: a second `open()` read of an arbitrary path in
+      `addresser.py` turns the test red.
+- [ ] T7 | T7 -- Match the UNIT in `test_todo_counts_agree.py:64-66`, so a
+      non-`tasks` unit cannot skip both checks. Verify: change a `Progress:`
+      unit and a test goes red.
+- [ ] T8 | T8 -- Run the keyword scan over real lines in
+      `test_declarations.py:313-319`, not `""`. Verify: `_declares_here`
+      returning False always turns the class red.
+- [ ] T9 | T9 -- Make `TestAStaleCensusIsRefused` assert the exit code its
+      docstring claims, or stop the docstring claiming it. Verify: `--check`
+      exits 2, or `2` is not named.
+- [ ] T10 | T10 -- Write `TestClaimAgainstTheCensus`, or stop
+      `test_verdicts.py:664-668` naming it. Verify: the class fails on a
+      misattached finding, or the name is gone.

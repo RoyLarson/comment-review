@@ -15,10 +15,10 @@ A malformed cite aborts the half meant to report rather than raise.
 
 ## Tasks
 
-- [ ] Reproduce it. Verify: `_cite_at('m.py:\u00b2')` raises `ValueError` today,
-      and a test asserts a named problem instead.
-- [ ] Return a problem rather than raising. Verify: `verify_report` over an
-      edit_copy holding one malformed cite reports it and still checks every other
-      mark -- today one bad cite aborts the whole report.
-- [ ] Audit the other guards for the same shape. Verify: no `isdigit()` in `src/`
-      is followed by an `int()` that can still fail.
+- [ ] T1 | Reproduce it. Verify: `_cite_at('m.py:\u00b2')` raises `ValueError`
+      today, and a test asserts a named problem instead.
+- [ ] T2 | Return a problem rather than raising. Verify: `verify_report` over an
+      edit_copy holding one malformed cite reports it and still checks every
+      other mark -- today one bad cite aborts the whole report.
+- [ ] T3 | Audit the other guards for the same shape. Verify: no `isdigit()` in
+      `src/` is followed by an `int()` that can still fail.

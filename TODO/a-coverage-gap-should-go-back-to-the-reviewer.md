@@ -66,17 +66,23 @@ COVERAGE GAP, on every run, for as long as the file has a licence."*
 
 ## Tasks
 
-- [?] T1 -- * RULE how the return happens: re-dispatch the reviewer with only the missed
-      addresses, or with the whole census. Verify: the choice is recorded here.
-- [?] T2 -- * RULE what bounds it -- with no bound, *"send it back"* is a loop, and the
-      second failure IS what the gate handles today. Verify: the bound is written here.
-- [ ] T3 -- Send missed addresses back to the reviewer that skipped them, once T1/T2 rule.
-      Touches `verdicts.py:117-134`, `:520-529`. Verify: a skipped paragraph ends RULED.
-- [ ] T4 -- Make `verdicts.py` exit nonzero only on the bound T2 sets. Verify: a run
-      inside the bound exits 0; a run past it exits nonzero.
-- [ ] T5 -- Correct what the reviewer is TOLD about a gap, at `reviewer-brief.md:137`.
-      Verify: that line describes what follows a gap, and no brief line contradicts it.
-- [ ] T6 -- Re-check `SKILL.md:409`, `:674` and `:761` against the ruled flow, changing
-      only those that do not survive it. Verify: each of the three matches the new flow.
-- [x] T7 -- DONE. Front matter is out of the accountable set, so a licence header no
-      longer reports INCOMPLETE forever. VERIFIED 2026-08-23 at `record.py:667-673`.
+- [?] T1 | T1 -- * RULE how the return happens: re-dispatch the reviewer with
+      only the missed addresses, or with the whole census. Verify: the choice is
+      recorded here.
+- [?] T2 | T2 -- * RULE what bounds it -- with no bound, *"send it back"* is a
+      loop, and the second failure IS what the gate handles today. Verify: the
+      bound is written here.
+- [ ] T3 | T3 -- Send missed addresses back to the reviewer that skipped them,
+      once T1/T2 rule. Touches `verdicts.py:117-134`, `:520-529`. Verify: a
+      skipped paragraph ends RULED.
+- [ ] T4 | T4 -- Make `verdicts.py` exit nonzero only on the bound T2 sets.
+      Verify: a run inside the bound exits 0; a run past it exits nonzero.
+- [ ] T5 | T5 -- Correct what the reviewer is TOLD about a gap, at
+      `reviewer-brief.md:137`. Verify: that line describes what follows a gap,
+      and no brief line contradicts it.
+- [ ] T6 | T6 -- Re-check `SKILL.md:409`, `:674` and `:761` against the ruled
+      flow, changing only those that do not survive it. Verify: each of the
+      three matches the new flow.
+- [x] T7 | FINISHED | unknown | T7 -- DONE. Front matter is out of the
+      accountable set, so a licence header no longer reports INCOMPLETE forever.
+      VERIFIED 2026-08-23 at `record.py:667-673`.

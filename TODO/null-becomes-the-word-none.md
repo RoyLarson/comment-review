@@ -57,29 +57,30 @@ second is a guard.
 
 ## Tasks
 
-- [ ] Implement the null guard at `flows/distribute.py` for `path` and `cue`,
-      beside the `sha` already guarded in `6b2695f`. Verify: a binder page
-      carrying `"path": null` reaches the sheet as `""`, never as the four
+- [ ] T1 | Implement the null guard at `flows/distribute.py` for `path` and
+      `cue`, beside the `sha` already guarded in `6b2695f`. Verify: a binder
+      page carrying `"path": null` reaches the sheet as `""`, never as the four
       characters `None`; the test goes red against today's code.
-- [ ] Update every site that reads a PARSED ARTIFACT -- a binder, a docket, an
-      edit copy -- to the null-safe spelling. Verify: the unsafe form appears zero
-      times in the modules that parse external JSON, counted with `grep -rn
+- [ ] T2 | Update every site that reads a PARSED ARTIFACT -- a binder, a docket,
+      an edit copy -- to the null-safe spelling. Verify: the unsafe form appears
+      zero times in the modules that parse external JSON, counted with `grep -rn
       'str([a-z_]*\.get([^)]*, *"")' src/comment_review/`.
-- [ ] Update each REMAINING unsafe site with a sentence saying why a null cannot
-      arrive there, or convert it. Verify: no site carries the unsafe spelling
-      without either a guard or a stated reason.
-- [ ] Decide which spelling is the repo's form and record it once where a reader
-      finds it. Verify: `docs/conventions.md` or the module that owns the boundary
-      states it, and no second file restates it.
-- [ ] Implement the null guard at `binder.rows_of` for `path`, beside the two
-      sibling sites that already carry one -- `flows/distribute.py:98` for `sha`
-      and `flows/carry.py:137-138`. Verify: a binder page carrying `"path": null`
-      no longer composes the address `None@b1`; today `str(page.get("path", ""))`
-      defaults only on an ABSENT key, so a present null enters `known_addresses`
-      as a syntactically valid address and is compared for equality against marks.
-- [ ] Update `docket.read`'s role check at `docket.py:148-150` to key on `"role"
-      in page`, so a present JSON `null` is ruled on rather than skipped by the
-      `role is not None` first clause, and normalise `role` in
+- [ ] T3 | Update each REMAINING unsafe site with a sentence saying why a null
+      cannot arrive there, or convert it. Verify: no site carries the unsafe
+      spelling without either a guard or a stated reason.
+- [ ] T4 | Decide which spelling is the repo's form and record it once where a
+      reader finds it. Verify: `docs/conventions.md` or the module that owns the
+      boundary states it, and no second file restates it.
+- [ ] T5 | Implement the null guard at `binder.rows_of` for `path`, beside the
+      two sibling sites that already carry one -- `flows/distribute.py:98` for
+      `sha` and `flows/carry.py:137-138`. Verify: a binder page carrying
+      `"path": null` no longer composes the address `None@b1`; today
+      `str(page.get("path", ""))` defaults only on an ABSENT key, so a present
+      null enters `known_addresses` as a syntactically valid address and is
+      compared for equality against marks.
+- [ ] T6 | Update `docket.read`'s role check at `docket.py:148-150` to key on
+      `"role" in page`, so a present JSON `null` is ruled on rather than skipped
+      by the `role is not None` first clause, and normalise `role` in
       `docket.schedules_of` and `flows/revise._set_by` the way `_real_pages`
       already does. Verify: a page carrying `"role": null` is refused or folded
       into the absent case; today `schedules_of` returns `Schedule(...,

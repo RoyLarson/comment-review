@@ -20,11 +20,12 @@ A move onto its own address reaches the docket as a bare delete.
 
 ## Tasks
 
-- [x] Refuse `claim.to == address` on a `move`, by name. Verify: `desk.mark.parse`
-      returns a named problem for it -- today it returns `(mark, [])`, measured.
-- [ ] Prove the docket cannot carry the shape. Verify: a test asserts no
-      alteration is a delete with no matching write, and it FAILS against today's
-      code, which produces `[('m.py', 'b1', None)]`.
-- [ ] Check the neighbouring shapes. Verify: a `move` across files, and one whose
-      `to` names a place the binder does not carry, each reach a named outcome
-      rather than a silent delete.
+- [x] T1 | FINISHED | unknown | Refuse `claim.to == address` on a `move`, by
+      name. Verify: `desk.mark.parse` returns a named problem for it -- today it
+      returns `(mark, [])`, measured.
+- [ ] T2 | Prove the docket cannot carry the shape. Verify: a test asserts no
+      alteration is a delete with no matching write, and it FAILS against
+      today's code, which produces `[('m.py', 'b1', None)]`.
+- [ ] T3 | Check the neighbouring shapes. Verify: a `move` across files, and one
+      whose `to` names a place the binder does not carry, each reach a named
+      outcome rather than a silent delete.

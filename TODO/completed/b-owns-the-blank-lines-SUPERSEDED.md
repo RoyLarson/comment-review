@@ -38,55 +38,59 @@ The original range leaves 105 blank lines owned by nothing, and 25 blanks go to 
 
 ## Tasks
 
-- [x] !! MEASURED over the 16 shipped scripts. On the ADDRESSING range
-      (`start`/`end`) the invariant HOLDS: 0 lines in no paragraph, 0 in two. On
-      the ORIGINAL range it fails on 105 lines in 16 of 16 files, and every one is
-      BLANK -- the blanks at the EDGES of a gap.
-- [x] The divergence is deliberate and its reason is now overridden.
-      `fill_the_gaps`: *'It moves the ADDRESSING range only ... widening those
-      would let a change swallow the blank line that separates a comment run from
-      the code beneath it.'* Roy, 2026-08-20: *'we can write a rule on the galley
-      that strips empty lines at the ends of bs and then puts one back in to make
-      the spacing nice, but the original lines need to be marked as bs because it
-      has this flexibility that the others do not.'*
-- [x] !! WHY `b` AND NOT NOBODY. Roy: *'else a literal two paragraph comment is
-      held by nothing and cannot have its internal paragraphs merged or dropped
-      appropriately in the edit process.'* A comment run's INTERNAL blank is
-      already inside its paragraph -- measured, `b2` spans '# First para.' / '' /
-      '# Second para.'. It is the blanks at the gap's EDGES that are lost.
-- [x] !! AND 25 OF THE 105 GO TO AN `a`, NOT A `b`. `fill_the_gaps` extends
-      whichever paragraph STARTS the gap, so a module docstring takes the blank
-      line beneath it. Under the ruling an `a` must not: it has none of the
-      flexibility that makes the widening safe. 80 of 105 go to a `b` correctly.
-- [x] ! BOTH ARE ONE FIX. `empty_places` collapses a gap to an insert as soon as
-      ANY line in it is filled: `if any(low <= n <= high for n in filled): high =
-      low - 1`. Trimming to the UNFILLED REMAINDER instead puts a `b` on the
-      blank, which then owns it and leaves the `a` alone.
-- [x] Blast radius to check before landing: `raw_lines` must grow with the range
-      or `galley.paragraph_matches` refuses a fresh census; `splice_range` reads
-      the original range; and `docs/addressing.md` states the current rule.
-- [x] * THE GALLEY HALF, which Roy named and which is not this TODO: strip empty
-      lines at the ends of a `b` on write, then put one back for spacing. Deferred
-      with the rest of the galley work.
-- [x] !! MINE, 2026-08-21, AND IT SETS PROSE TWICE. `fill_the_gaps` computes a
-      `b`'s FREE lines -- excluding every line an `a`, `c` or `f` owns exactly --
-      and then `recut` slices `source[start - 1 : end]` over the WHOLE span
-      anyway. A `b` whose free lines are not CONTIGUOUS therefore swallows the
-      paragraph sitting inside it.
-- [x] MEASURED on `corpora/cpython/Include/floatobject.h`, which opens with a
-      BLANK line: `f0` holds line 2 (`/* Float object interface */`) and `b0`
-      holds 1-7, so the comment appears in both and the compositor sets it twice.
-      9 files of 699, all the same shape -- a file whose front matter is not on
-      line 1.
-- [x] ! IT WAS UNREACHABLE BEFORE THE MATTER RULE. Front matter resolved only in
-      Python and only above a module docstring, so an `f` place never sat inside a
-      gap with a blank above it. The rule going positional is what made the shape
-      common.
-- [x] * RULING WANTED: WHO OWNS A BLANK LINE ABOVE FRONT MATTER. Giving it to `f0`
-      keeps the tiling total and reads as the file's own head. Leaving it to the
-      `b` cannot work -- a `b` is contiguous, and the compositor sets places in
-      order, so a `b` owning lines 1 and 3-7 around an `f0` at 2 would set line 1
-      AFTER line 2.
-- [x] ! THE INVARIANT AT STAKE is that the page TILES its file: every line belongs
-      to exactly one place. That is what makes the compositor total, and this is
-      the only measured shape that breaks it.
+- [x] T1 | FINISHED | unknown | !! MEASURED over the 16 shipped scripts. On the
+      ADDRESSING range (`start`/`end`) the invariant HOLDS: 0 lines in no
+      paragraph, 0 in two. On the ORIGINAL range it fails on 105 lines in 16 of
+      16 files, and every one is BLANK -- the blanks at the EDGES of a gap.
+- [x] T2 | FINISHED | unknown | The divergence is deliberate and its reason is
+      now overridden. `fill_the_gaps`: *'It moves the ADDRESSING range only ...
+      widening those would let a change swallow the blank line that separates a
+      comment run from the code beneath it.'* Roy, 2026-08-20: *'we can write a
+      rule on the galley that strips empty lines at the ends of bs and then puts
+      one back in to make the spacing nice, but the original lines need to be
+      marked as bs because it has this flexibility that the others do not.'*
+- [x] T3 | FINISHED | unknown | !! WHY `b` AND NOT NOBODY. Roy: *'else a literal
+      two paragraph comment is held by nothing and cannot have its internal
+      paragraphs merged or dropped appropriately in the edit process.'* A
+      comment run's INTERNAL blank is already inside its paragraph -- measured,
+      `b2` spans '# First para.' / '' / '# Second para.'. It is the blanks at
+      the gap's EDGES that are lost.
+- [x] T4 | FINISHED | unknown | !! AND 25 OF THE 105 GO TO AN `a`, NOT A `b`.
+      `fill_the_gaps` extends whichever paragraph STARTS the gap, so a module
+      docstring takes the blank line beneath it. Under the ruling an `a` must
+      not: it has none of the flexibility that makes the widening safe. 80 of
+      105 go to a `b` correctly.
+- [x] T5 | FINISHED | unknown | ! BOTH ARE ONE FIX. `empty_places` collapses a
+      gap to an insert as soon as ANY line in it is filled: `if any(low <= n <=
+      high for n in filled): high = low - 1`. Trimming to the UNFILLED REMAINDER
+      instead puts a `b` on the blank, which then owns it and leaves the `a`
+      alone.
+- [x] T6 | FINISHED | unknown | Blast radius to check before landing:
+      `raw_lines` must grow with the range or `galley.paragraph_matches` refuses
+      a fresh census; `splice_range` reads the original range; and
+      `docs/addressing.md` states the current rule.
+- [x] T7 | FINISHED | unknown | * THE GALLEY HALF, which Roy named and which is
+      not this TODO: strip empty lines at the ends of a `b` on write, then put
+      one back for spacing. Deferred with the rest of the galley work.
+- [x] T8 | FINISHED | unknown | !! MINE, 2026-08-21, AND IT SETS PROSE TWICE.
+      `fill_the_gaps` computes a `b`'s FREE lines -- excluding every line an
+      `a`, `c` or `f` owns exactly -- and then `recut` slices `source[start - 1
+      : end]` over the WHOLE span anyway. A `b` whose free lines are not
+      CONTIGUOUS therefore swallows the paragraph sitting inside it.
+- [x] T9 | FINISHED | unknown | MEASURED on
+      `corpora/cpython/Include/floatobject.h`, which opens with a BLANK line:
+      `f0` holds line 2 (`/* Float object interface */`) and `b0` holds 1-7, so
+      the comment appears in both and the compositor sets it twice. 9 files of
+      699, all the same shape -- a file whose front matter is not on line 1.
+- [x] T10 | FINISHED | unknown | ! IT WAS UNREACHABLE BEFORE THE MATTER RULE.
+      Front matter resolved only in Python and only above a module docstring, so
+      an `f` place never sat inside a gap with a blank above it. The rule going
+      positional is what made the shape common.
+- [x] T11 | FINISHED | unknown | * RULING WANTED: WHO OWNS A BLANK LINE ABOVE
+      FRONT MATTER. Giving it to `f0` keeps the tiling total and reads as the
+      file's own head. Leaving it to the `b` cannot work -- a `b` is contiguous,
+      and the compositor sets places in order, so a `b` owning lines 1 and 3-7
+      around an `f0` at 2 would set line 1 AFTER line 2.
+- [x] T12 | FINISHED | unknown | ! THE INVARIANT AT STAKE is that the page TILES
+      its file: every line belongs to exactly one place. That is what makes the
+      compositor total, and this is the only measured shape that breaks it.

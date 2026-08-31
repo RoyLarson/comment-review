@@ -85,15 +85,21 @@ is silent.
 
 ## Tasks
 
-- [ ] T1 -- Re-measure on a live `/comment-review` run over blocks holding both `move` and
-      `correct`. Verify: it reports 2 re-reviews where the 2026-08-17 run reported 8.
-- [ ] T2 -- Write T1's count into the re-review TODO linked in the Objective, as the load
-      that procedure carries. Verify: that file names the count and the date it was taken.
-- [x] T3 -- DONE by group A, 2026-08-17, re-verified 2026-08-23. `move` against
-      `correct`/`patch` is not fatal and not a re-review. In the Objective.
-- [x] T4 -- DONE by group A, 2026-08-17, re-verified 2026-08-23. `drop` against
-      `correct`/`patch` kept, narrowed to the same sentence. In the Objective.
-- [x] T5 -- DONE by group A, 2026-08-17, re-verified 2026-08-23. `SKILL.md:825` says a
-      `correct` travelling with a `move` is applied at the destination.
-- [x] T6 -- DONE by group A, 2026-08-17, re-verified 2026-08-23. `SKILL.md:825` states
-      that a vacuous comment is the accepted outcome, and why.
+- [ ] T1 | T1 -- Re-measure on a live `/comment-review` run over blocks holding
+      both `move` and `correct`. Verify: it reports 2 re-reviews where the
+      2026-08-17 run reported 8.
+- [ ] T2 | T2 -- Write T1's count into the re-review TODO linked in the
+      Objective, as the load that procedure carries. Verify: that file names the
+      count and the date it was taken.
+- [x] T3 | FINISHED | unknown | T3 -- DONE by group A, 2026-08-17, re-verified
+      2026-08-23. `move` against `correct`/`patch` is not fatal and not a
+      re-review. In the Objective.
+- [x] T4 | FINISHED | unknown | T4 -- DONE by group A, 2026-08-17, re-verified
+      2026-08-23. `drop` against `correct`/`patch` kept, narrowed to the same
+      sentence. In the Objective.
+- [x] T5 | FINISHED | unknown | T5 -- DONE by group A, 2026-08-17, re-verified
+      2026-08-23. `SKILL.md:825` says a `correct` travelling with a `move` is
+      applied at the destination.
+- [x] T6 | FINISHED | unknown | T6 -- DONE by group A, 2026-08-17, re-verified
+      2026-08-23. `SKILL.md:825` states that a vacuous comment is the accepted
+      outcome, and why.

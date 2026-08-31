@@ -88,35 +88,49 @@ whose measurements are folded in above.
 
 ## Tasks
 
-- [ ] T1 -- Transcribe all 18 language rows into `references/languages.toml`, Python
-      included, with `tier` as a field. Verify: the file holds 18 tables, one per row.
-- [ ] T2 -- Build `Language` from that table at runtime, the way `vocabulary.py` reads
-      `vocabulary.toml`. Verify: `grep -c "Language(" language.py` returns 1.
-- [ ] T3 -- Pin the order-significant fields, since openers match longest-first. Verify: a
-      test fails if `///` follows `//`, or `--[==[` follows `--[[`.
-- [ ] T4 -- Pin that an EMPTY list is not a missing key. Verify: `declares = []` loads as
-      *no `a` series at all*, and a row with no `declares` key is refused as undecided.
-- [ ] T5 -- Move `test_every_row_STATES_its_own_quotes` from parsing the Python AST to
-      asking whether the key is present. Verify: the test reads the table, not the AST.
-- [x] T6 -- NOT A TASK, restated in the Objective: the move makes `language.py`'s own
-      claim -- *adding a language is a row, not code* -- true.
-- [x] T7 -- NOT A TASK, restated in the Objective: WHAT MUST SURVIVE THE MOVE. The
-      checkable halves are T3 and T4.
-- [x] T8 -- NOT A TASK, restated in the Objective: the validation gets STRONGER, because a
-      stated decision becomes *is the key present* rather than a reading of source.
-- [x] T9 -- SUPERSEDED. It said the move does not fix the tier; Roy ruled otherwise
-      2026-08-23, so `tier` is a field on the row in T1 and the dispatch is T12.
-- [x] T10 -- NOT A TASK, restated in the Objective: ask the same question of the verdict
-      table in `record.py`. Where it becomes work, it is its own TODO.
-- [x] T11 -- SUPERSEDED BY T1. It said give Python its definition *alongside the other
-      17*, which assumed they had moved. MEASURED 2026-08-23: none of them has.
-- [ ] T12 -- Make `tier_for` (`language.py:546`) read the row's `tier` field instead of
-      `lang.name == "python"`. Verify: `language.py` holds no comparison of `lang.name`.
-- [ ] T13 -- Dispatch the READER at `page.py:694` on the row, not on `lang.name`. Verify:
-      a file cannot be read at one tier and stamped at the other.
-- [ ] T14 -- Gate the name harvester at `census.py:172` on a row field, not on `lang.name
-      != "python"`. Verify: `census.py` holds no comparison of `lang.name`.
-- [ ] T15 -- Make `prove_unchanged.py:176` take the `(".py", ".pyi")` suffix tuple from
-      `language.py:99`. Verify: the tuple is not re-spelled in `prove_unchanged.py`.
-- [ ] T16 -- Make `referrers.py:53` take the same suffix tuple from `language.py:99`.
-      Verify: the tuple is not re-spelled in `referrers.py`.
+- [ ] T1 | T1 -- Transcribe all 18 language rows into
+      `references/languages.toml`, Python included, with `tier` as a field.
+      Verify: the file holds 18 tables, one per row.
+- [ ] T2 | T2 -- Build `Language` from that table at runtime, the way
+      `vocabulary.py` reads `vocabulary.toml`. Verify: `grep -c "Language("
+      language.py` returns 1.
+- [ ] T3 | T3 -- Pin the order-significant fields, since openers match
+      longest-first. Verify: a test fails if `///` follows `//`, or `--[==[`
+      follows `--[[`.
+- [ ] T4 | T4 -- Pin that an EMPTY list is not a missing key. Verify: `declares
+      = []` loads as *no `a` series at all*, and a row with no `declares` key is
+      refused as undecided.
+- [ ] T5 | T5 -- Move `test_every_row_STATES_its_own_quotes` from parsing the
+      Python AST to asking whether the key is present. Verify: the test reads
+      the table, not the AST.
+- [x] T6 | FINISHED | unknown | T6 -- NOT A TASK, restated in the Objective: the
+      move makes `language.py`'s own claim -- *adding a language is a row, not
+      code* -- true.
+- [x] T7 | FINISHED | unknown | T7 -- NOT A TASK, restated in the Objective:
+      WHAT MUST SURVIVE THE MOVE. The checkable halves are T3 and T4.
+- [x] T8 | FINISHED | unknown | T8 -- NOT A TASK, restated in the Objective: the
+      validation gets STRONGER, because a stated decision becomes *is the key
+      present* rather than a reading of source.
+- [x] T9 | FINISHED | unknown | T9 -- SUPERSEDED. It said the move does not fix
+      the tier; Roy ruled otherwise 2026-08-23, so `tier` is a field on the row
+      in T1 and the dispatch is T12.
+- [x] T10 | FINISHED | unknown | T10 -- NOT A TASK, restated in the Objective:
+      ask the same question of the verdict table in `record.py`. Where it
+      becomes work, it is its own TODO.
+- [x] T11 | FINISHED | unknown | T11 -- SUPERSEDED BY T1. It said give Python
+      its definition *alongside the other 17*, which assumed they had moved.
+      MEASURED 2026-08-23: none of them has.
+- [ ] T12 | T12 -- Make `tier_for` (`language.py:546`) read the row's `tier`
+      field instead of `lang.name == "python"`. Verify: `language.py` holds no
+      comparison of `lang.name`.
+- [ ] T13 | T13 -- Dispatch the READER at `page.py:694` on the row, not on
+      `lang.name`. Verify: a file cannot be read at one tier and stamped at the
+      other.
+- [ ] T14 | T14 -- Gate the name harvester at `census.py:172` on a row field,
+      not on `lang.name != "python"`. Verify: `census.py` holds no comparison of
+      `lang.name`.
+- [ ] T15 | T15 -- Make `prove_unchanged.py:176` take the `(".py", ".pyi")`
+      suffix tuple from `language.py:99`. Verify: the tuple is not re-spelled in
+      `prove_unchanged.py`.
+- [ ] T16 | T16 -- Make `referrers.py:53` take the same suffix tuple from
+      `language.py:99`. Verify: the tuple is not re-spelled in `referrers.py`.

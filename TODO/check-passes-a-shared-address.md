@@ -58,11 +58,14 @@ returns 0, so nothing downstream can act on it.
 
 ## Tasks
 
-- [ ] T1 -- Make `_check`'s docstring and its return state ONE rule about a shared place.
-      Verify: the docstring says one thing and `addresser.py:1465` agrees with it.
-- [ ] T2 -- Add a test that builds a two-paragraph gap and asserts `--check`'s exit code.
-      Verify: the test goes red when the exit rule T1 settled is flipped.
-- [ ] T3 -- Stop the advice at addresser.py:1457-1458 naming a deleted field. Verify: no
-      shipped file tells a reader to cite a census index.
-- [ ] T4 -- Make record.entry_for:754-755 name what actually reports a shared place.
-      Verify: the sentence names the reporter T1 settled, not `--check` alone.
+- [ ] T1 | T1 -- Make `_check`'s docstring and its return state ONE rule about a
+      shared place. Verify: the docstring says one thing and `addresser.py:1465`
+      agrees with it.
+- [ ] T2 | T2 -- Add a test that builds a two-paragraph gap and asserts
+      `--check`'s exit code. Verify: the test goes red when the exit rule T1
+      settled is flipped.
+- [ ] T3 | T3 -- Stop the advice at addresser.py:1457-1458 naming a deleted
+      field. Verify: no shipped file tells a reader to cite a census index.
+- [ ] T4 | T4 -- Make record.entry_for:754-755 name what actually reports a
+      shared place. Verify: the sentence names the reporter T1 settled, not
+      `--check` alone.

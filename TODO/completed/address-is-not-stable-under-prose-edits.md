@@ -67,17 +67,19 @@ The census was never asked the second question, and now four callers ask it.
 
 ## Tasks
 
-- [x] * **RULED 2026-08-18: the `a`/`b`/`c` scheme in `addresser.py` IS the stable
-      address, and `path:start-end` stays as the READER'S CURSOR.** `anchor`+`side`
-      was a partial answer -- it existed only for `add`, named only a declaration,
-      and had nothing to say about a gap or a trailing comment. The addresser
-      covers every place: `a` a declaration, `b` a gap, `c` an on-line position.
-      ! Neither replaces the other. A reviewer reads a file and a line number is
-      what it has in hand; a RECORD should carry the stable form, because only
-      that survives the run's own edits.
+- [x] T1 | FINISHED | unknown | * **RULED 2026-08-18: the `a`/`b`/`c` scheme in
+      `addresser.py` IS the stable address, and `path:start-end` stays as the
+      READER'S CURSOR.** `anchor`+`side` was a partial answer -- it existed only
+      for `add`, named only a declaration, and had nothing to say about a gap or
+      a trailing comment. The addresser covers every place: `a` a declaration,
+      `b` a gap, `c` an on-line position. ! Neither replaces the other. A
+      reviewer reads a file and a line number is what it has in hand; a RECORD
+      should carry the stable form, because only that survives the run's own
+      edits.
 
-- [x] **MEASURED 2026-08-18, and the prediction held.** A prose-only edit -- one
-      docstring grown by three lines, no code touched:
+- [x] T2 | FINISHED | unknown | **MEASURED 2026-08-18, and the prediction
+      held.** A prose-only edit -- one docstring grown by three lines, no code
+      touched:
 
       ```
       kind        line addr before   after     stable
@@ -91,30 +93,30 @@ The census was never asked the second question, and now four callers ask it.
       count is a function of where the EARLIEST edit lands, not of how many edits
       there were.
 
-- [x] **STATED where the address is defined.** `census.address` now says it is
-      true of ONE FILE STATE ONLY, carries the measurement above, and points at
-      the addresser for the other question.
+- [x] T3 | FINISHED | unknown | **STATED where the address is defined.**
+      `census.address` now says it is true of ONE FILE STATE ONLY, carries the
+      measurement above, and points at the addresser for the other question.
 
-- [x] **ALREADY IN PLACE, and now the reasoning is written down.**
-      `references/re-review.md` rules it: *"Cite the galley census, and do not
-      carry a round-1 index into round 2."* A re-review is handed a FRESH census
-      of the galley, so a stale address never reaches it -- the addresses it cites
-      describe the file as 5b and 6b actually find it.
+- [x] T4 | FINISHED | unknown | **ALREADY IN PLACE, and now the reasoning is
+      written down.** `references/re-review.md` rules it: *"Cite the galley
+      census, and do not carry a round-1 index into round 2."* A re-review is
+      handed a FRESH census of the galley, so a stale address never reaches it
+      -- the addresses it cites describe the file as 5b and 6b actually find it.
 
-- [x] **ANSWERED by the addresser.** A harness pairs findings across two versions
-      by their STABLE address: `b1` is the same place in a file with the prose and
-      in the file without it, which is what a REGRESSION case and a KNOWN MISS
-      case both need. ! Line addresses cannot do it -- the fix commit moves them
-      by construction. See
+- [x] T5 | FINISHED | unknown | **ANSWERED by the addresser.** A harness pairs
+      findings across two versions by their STABLE address: `b1` is the same
+      place in a file with the prose and in the file without it, which is what a
+      REGRESSION case and a KNOWN MISS case both need. ! Line addresses cannot
+      do it -- the fix commit moves them by construction. See
       `the-harness-cannot-run-the-system-it-grades`.
 
-- [x] **MOVED, not dropped: the enumeration gap belongs with the series that
-      closes it.** Every gap is enumerated; an ON-LINE position is an entry only
-      where a trailing comment already sits, so an `add` of a trailing comment to
-      a line that has none still cannot be cited. **Measured 2026-08-18 over 13
-      shipped scripts: a full `c` series would add 2,894 entries to 2,987 -- it
-      would nearly DOUBLE the census**, where the whole `b` series costs 2,587
-      for a much commoner verdict. That is a cost decision, not a stability one,
-      and it now sits with
-      `docstrings-need-their-own-address-series`,
-      which settles the same question for declarations.
+- [x] T6 | FINISHED | unknown | **MOVED, not dropped: the enumeration gap
+      belongs with the series that closes it.** Every gap is enumerated; an
+      ON-LINE position is an entry only where a trailing comment already sits,
+      so an `add` of a trailing comment to a line that has none still cannot be
+      cited. **Measured 2026-08-18 over 13 shipped scripts: a full `c` series
+      would add 2,894 entries to 2,987 -- it would nearly DOUBLE the census**,
+      where the whole `b` series costs 2,587 for a much commoner verdict. That
+      is a cost decision, not a stability one, and it now sits with
+      `docstrings-need-their-own-address-series`, which settles the same
+      question for declarations.

@@ -21,9 +21,9 @@ the sheet-rename gate reads four .md files and none of the source it was landed 
 
 ## Tasks
 
-- [ ] Decide what the gate reads. Verify: the decision names each root and says
-      why the shipped Python is in or out, given plugins/ is BUILT from src/ and
-      would report every offender twice
-- [ ] Widen the gate to the roots decided. Verify: it goes RED on a file re-
-      introducing the retired sense under a newly covered root, and green once
-      that file is corrected
+- [ ] T1 | Decide what the gate reads. Verify: the decision names each root and
+      says why the shipped Python is in or out, given plugins/ is BUILT from
+      src/ and would report every offender twice
+- [ ] T2 | Widen the gate to the roots decided. Verify: it goes RED on a file
+      re- introducing the retired sense under a newly covered root, and green
+      once that file is corrected

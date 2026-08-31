@@ -89,20 +89,26 @@ exists, and it bears on how far it can be relaxed -- see
 
 ## Tasks
 
-- [x] T1 -- RULED, and `reviewer-brief.md:6-18` carries it: a reviewer writes the record
-      file it was handed and NOTHING ELSE. The scratch argument is in the Objective.
-- [ ] T2 -- Add a `tools:` key to all six agent files. Verify: `grep -L "^tools:"
-      plugins/comment-review/agents/*.md` returns nothing.
-- [ ] T3 -- Drop `Write`, `Edit` and `NotebookEdit` from the four reviewers' `tools:`.
-      Verify: none of the four reviewer files lists any of the three.
-- [?] T4 -- * Decide what the reviewers still need to EXECUTE, before T3 picks a list.
-      Verify: the decision is recorded and names the tools the four reviewers keep.
-- [ ] T5 -- Hash the files under review after stage 3 and re-check them before the collator.
-      Verify: editing one between makes `verdicts.py` refuse, naming the file.
-- [x] T6 -- SUPERSEDED. "Keep the scratch files in the evidence package" cannot be done --
-      none exists in the tree or its history. The measurement is in the Objective.
-- [?] T7 -- * Say whether `prove_unchanged.py`'s scope is a gap or a boundary. Verify: the
-      answer is in `docs/decision-log.md`, and says whether T5 is a gate.
+- [x] T1 | FINISHED | unknown | T1 -- RULED, and `reviewer-brief.md:6-18`
+      carries it: a reviewer writes the record file it was handed and NOTHING
+      ELSE. The scratch argument is in the Objective.
+- [ ] T2 | T2 -- Add a `tools:` key to all six agent files. Verify: `grep -L
+      "^tools:" plugins/comment-review/agents/*.md` returns nothing.
+- [ ] T3 | T3 -- Drop `Write`, `Edit` and `NotebookEdit` from the four
+      reviewers' `tools:`. Verify: none of the four reviewer files lists any of
+      the three.
+- [?] T4 | T4 -- * Decide what the reviewers still need to EXECUTE, before T3
+      picks a list. Verify: the decision is recorded and names the tools the
+      four reviewers keep.
+- [ ] T5 | T5 -- Hash the files under review after stage 3 and re-check them
+      before the collator. Verify: editing one between makes `verdicts.py`
+      refuse, naming the file.
+- [x] T6 | FINISHED | unknown | T6 -- SUPERSEDED. "Keep the scratch files in the
+      evidence package" cannot be done -- none exists in the tree or its
+      history. The measurement is in the Objective.
+- [?] T7 | T7 -- * Say whether `prove_unchanged.py`'s scope is a gap or a
+      boundary. Verify: the answer is in `docs/decision-log.md`, and says
+      whether T5 is a gate.
 ## Related
 
 - [`stage-5-is-the-only-stage-with-no-independent-reader`](stage-5-is-the-only-stage-with-no-independent-reader.md)

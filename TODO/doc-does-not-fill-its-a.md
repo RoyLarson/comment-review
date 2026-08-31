@@ -89,18 +89,25 @@ rule is that a language takes its definition from its own grammar and never from
 
 ## Tasks
 
-- [x] T1 -- MEASURED 2026-08-20 and re-run 2026-08-23. In the Objective.
-- [x] T2 -- FINISHED. The keyword list made the collator computable and it is built --
-      `declarations()` reports the declaring lines, `document_declarations()` joins them.
-- [x] T3 -- FINISHED. The doc LEAVES the `b` series when it joins -- verified 2026-08-23,
-      the Rust `///` is `a1` and the gap above is `b0`. In the Objective.
-- [x] T4 -- SCOPE, not a task. Python is unaffected; its docstrings carry `declares` from
-      the AST. In the Objective.
-- [ ] T5 -- Make `flag_structural_docs` read `declares` instead of re-deriving it. Verify:
-      on go, a `declares >= 0` run and a `declares == -1` run both stamp nothing.
-- [ ] T6 -- Name in `compact.md:113` whatever remains genuinely unresolved after T5.
-      Verify: the stamp's explanation at :113 names the case that still fires.
-- [ ] T7 -- * RULE go's adjacency: must a doc comment TOUCH its declaration, or is
-      nearest-above enough? Verify: one of the two comments cites the other, for go.
-- [ ] T8 -- * RULE ruby's adjacency, from ruby's own grammar and not from go's. Verify:
-      one of the two comments is corrected to cite the other, for ruby.
+- [x] T1 | FINISHED | unknown | T1 -- MEASURED 2026-08-20 and re-run 2026-08-23.
+      In the Objective.
+- [x] T2 | FINISHED | unknown | T2 -- FINISHED. The keyword list made the
+      collator computable and it is built -- `declarations()` reports the
+      declaring lines, `document_declarations()` joins them.
+- [x] T3 | FINISHED | unknown | T3 -- FINISHED. The doc LEAVES the `b` series
+      when it joins -- verified 2026-08-23, the Rust `///` is `a1` and the gap
+      above is `b0`. In the Objective.
+- [x] T4 | FINISHED | unknown | T4 -- SCOPE, not a task. Python is unaffected;
+      its docstrings carry `declares` from the AST. In the Objective.
+- [ ] T5 | T5 -- Make `flag_structural_docs` read `declares` instead of
+      re-deriving it. Verify: on go, a `declares >= 0` run and a `declares ==
+      -1` run both stamp nothing.
+- [ ] T6 | T6 -- Name in `compact.md:113` whatever remains genuinely unresolved
+      after T5. Verify: the stamp's explanation at :113 names the case that
+      still fires.
+- [ ] T7 | T7 -- * RULE go's adjacency: must a doc comment TOUCH its
+      declaration, or is nearest-above enough? Verify: one of the two comments
+      cites the other, for go.
+- [ ] T8 | T8 -- * RULE ruby's adjacency, from ruby's own grammar and not from
+      go's. Verify: one of the two comments is corrected to cite the other, for
+      ruby.

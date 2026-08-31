@@ -4,7 +4,7 @@
 Status:   open
 Progress: 3 of 4 tasks done
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-25 (the prototype move, 2026-08-25)
 Updated:  2026-08-26 — galley is now a SEVENTH command needing rewiring, and it is the
           one that still runs. commands/galley.py was emptied on 2026-08-26 (Roy:
@@ -24,13 +24,15 @@ SKILL.md names six commands that moved to prototype.
 
 ## Tasks
 
-- [ ] Decide what replaces the record as what a role hands back -- alterations, per
-      decision-log Process #14
-- [x] Rewrite the stages that invoke the four moved commands
-- [x] Say what regenerates the brief verdict table, or that nothing does
-- [x] SKILL.md:741 also still spells the retired subcommand token `verdicts`
-      (check_vocabulary.py RETIRED now includes the plural, added while retiring
-      `verdict` -> `instruction`). Renaming the token needs the same design
-      decision as the rest of this TODO -- what replaces the stage-5 collator
-      invocation -- so it was left as-is rather than inventing a placeholder
-      command name.
+- [ ] T1 | Decide what replaces the record as what a role hands back --
+      alterations, per decision-log Process #14
+- [x] T2 | FINISHED | unknown | Rewrite the stages that invoke the four moved
+      commands
+- [x] T3 | FINISHED | unknown | Say what regenerates the brief verdict table, or
+      that nothing does
+- [x] T4 | FINISHED | unknown | SKILL.md:741 also still spells the retired
+      subcommand token `verdicts` (check_vocabulary.py RETIRED now includes the
+      plural, added while retiring `verdict` -> `instruction`). Renaming the
+      token needs the same design decision as the rest of this TODO -- what
+      replaces the stage-5 collator invocation -- so it was left as-is rather
+      than inventing a placeholder command name.

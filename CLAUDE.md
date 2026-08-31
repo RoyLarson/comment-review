@@ -201,8 +201,38 @@ uv run python src/comment-review.py taken_in \
   --original <root> --revise <root> [paths...]
 
 # The TODO backlog is WRITTEN BY A TOOL, not by hand -- see "The TODO backlog" below.
-# `.claude/skills/todo-tool/SKILL.md` holds every command; these are the two run most.
-uv run python scripts/todo_tool.py list [--owner T] [--status S] [--requires-roy]
+#
+# !!! EVERY `job-board` INVOCATION IN THIS REPO PASSES `--plans-dir docs/plans`.
+# !!! IT IS A TOP-LEVEL FLAG AND COMES BEFORE THE NOUN. NO EXCEPTIONS, INCLUDING
+# !!! A BARE READ.
+#
+#     job-board --plans-dir docs/plans                 # the rollup
+#     job-board --plans-dir docs/plans audit           # what is waiting, and what is broken
+#
+# !!! BECAUSE THE WRONG DIRECTORY IS SILENT, NOT AN ERROR. The tool defaults to
+# `plans/`, this repo's plans are in `docs/plans/`, and a run without the flag
+# reads a directory that does not exist -- then reports success over it.
+#
+# !!! MEASURED 2026-08-30, AND IT COST A FALSE ALL-CLEAR THAT WAS THEN QUOTED.
+# `job-board audit` reported `INTEGRITY ISSUES (0)` and `nothing -- the board
+# holds no state the tools would have refused`. That was read, and relayed, as
+# evidence the whole board was sound. The same command WITH the flag reports
+# `INTEGRITY ISSUES (6)`: six of the seven `0.2.4` plans carry no
+# `## TODO tasks this plan closes` heading. **The zero was the count of problems
+# in a directory it never opened.**
+#
+# ! A CLEAN RESULT FROM A TOOL POINTED NOWHERE IS THE MOST EXPENSIVE OUTPUT IT
+# CAN PRODUCE -- it is `docs/gates.md`'s rule arriving through the CLI: *"does the
+# check pass" is not the question; "could the check fail" is.* An audit that
+# cannot see the plans cannot fail on them.
+#
+# ! `--todo-dir` behaves the same way and needs the same care wherever `TODO/` is
+# not the board's home.
+job-board --plans-dir docs/plans audit          # open, needing migration, integrity
+job-board --plans-dir docs/plans todo list [--owner T] [--requires-roy]
+
+# ! The VENDORED `scripts/todo_tool.py` is the OLDER copy and writes the pre-2026-08-31
+# format. The board was migrated to the five marks on 2026-08-31; use `job-board`.
 uv run python scripts/todo_tool.py resync     # after a merge, before trusting any count
 
 # Lint (ruff config lives in pyproject.toml; corpora/** is excluded from linting)

@@ -105,7 +105,9 @@ settles it without a guard: the run owns the whole closing line.**
 
 ## Tasks
 
-- [x] T1 -- Re-run `compositor.lossless` over the three numpy files named in the Objective
-      once the lexical Python reader lands. Verify: it returns `None` for all three.
-- [x] T2 -- Re-census `corpora/numpy/numpy/exceptions.py` and close this file. Verify:
-      line 246 carries exactly ONE address.
+- [x] T1 | FINISHED | unknown | T1 -- Re-run `compositor.lossless` over the
+      three numpy files named in the Objective once the lexical Python reader
+      lands. Verify: it returns `None` for all three.
+- [x] T2 | FINISHED | unknown | T2 -- Re-census
+      `corpora/numpy/numpy/exceptions.py` and close this file. Verify: line 246
+      carries exactly ONE address.

@@ -52,17 +52,19 @@ is prose and is the frequent one. T1 is that ruling.
 
 ## Tasks
 
-- [?] T1 -- * Rule which sense keeps `settle`, and what the other becomes. Verify: the
-      ruling is in `docs/decision-log.md`.
-- [ ] T2 -- Reword the losing sense in `SKILL.md`. Verify: `grep -c settle` counts only
+- [?] T1 | T1 -- * Rule which sense keeps `settle`, and what the other becomes.
+      Verify: the ruling is in `docs/decision-log.md`.
+- [ ] T2 | T2 -- Reword the losing sense in `SKILL.md`. Verify: `grep -c settle`
+      counts only the kept sense.
+- [ ] T3 | T3 -- Reword it in `reviewer-brief.md`. Verify: the same count, and
+      the brief still generates from its row.
+- [ ] T4 | T4 -- Reword it in the four role files. Verify: each file uses only
       the kept sense.
-- [ ] T3 -- Reword it in `reviewer-brief.md`. Verify: the same count, and the brief still
-      generates from its row.
-- [ ] T4 -- Reword it in the four role files. Verify: each file uses only the kept sense.
-- [ ] T5 -- `backend` -- reword it in the scripts if the claim sense loses. Verify:
-      `needs_settles` and the `settles` key follow the ruling.
-- [ ] T6 -- Declare the outcome in `docs/vocabulary.md` and confine it. Verify: the kept
-      sense is defined and the other appears in no shipped file.
+- [ ] T5 | T5 -- `backend` -- reword it in the scripts if the claim sense loses.
+      Verify: `needs_settles` and the `settles` key follow the ruling.
+- [ ] T6 | T6 -- Declare the outcome in `docs/vocabulary.md` and confine it.
+      Verify: the kept sense is defined and the other appears in no shipped
+      file.
 
 ## Related
 

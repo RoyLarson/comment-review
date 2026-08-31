@@ -32,17 +32,18 @@ The gate demands `change` as a line array and the spec rules it raw text.
 
 ## Tasks
 
-- [x] Make `problems()` accept `change` as RAW TEXT, per `docs/the-mark.md`.
-      Verify: a `correct` whose `change` is the updated paragraph as one string is
-      ACCEPTED, and the message that said it 'needs `change` as an ARRAY of lines'
-      is gone.
-- [x] Decide what happens to a `change` that IS a list -- refused by name, or
-      accepted for one release. Verify: whichever is chosen, a test asserts it,
-      and the brief says the same thing as the gate.
-- [x] Make the brief and `docs/the-mark.md` agree with the gate once it moves.
-      Verify: a mark written from `reviewer-brief.md` verbatim is accepted, which
-      is the check `P1` exists to keep true.
-- [x] Correct `the-fields-do-not-say-a-mark-may-cite-across` T2, which is CHECKED
-      and asserts the superseded line-array fact. Verify: that task states raw
-      text, or says plainly that it was completed under the old rule and names
-      this file.
+- [x] T1 | FINISHED | unknown | Make `problems()` accept `change` as RAW TEXT,
+      per `docs/the-mark.md`. Verify: a `correct` whose `change` is the updated
+      paragraph as one string is ACCEPTED, and the message that said it 'needs
+      `change` as an ARRAY of lines' is gone.
+- [x] T2 | FINISHED | unknown | Decide what happens to a `change` that IS a list
+      -- refused by name, or accepted for one release. Verify: whichever is
+      chosen, a test asserts it, and the brief says the same thing as the gate.
+- [x] T3 | FINISHED | unknown | Make the brief and `docs/the-mark.md` agree with
+      the gate once it moves. Verify: a mark written from `reviewer-brief.md`
+      verbatim is accepted, which is the check `P1` exists to keep true.
+- [x] T4 | FINISHED | unknown | Correct
+      `the-fields-do-not-say-a-mark-may-cite-across` T2, which is CHECKED and
+      asserts the superseded line-array fact. Verify: that task states raw text,
+      or says plainly that it was completed under the old rule and names this
+      file.

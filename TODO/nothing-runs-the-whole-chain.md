@@ -70,19 +70,23 @@ picked a winner would be the defect the vocabulary entry is written against.
 
 ## Tasks
 
-- [ ] T1 -- Build a fixture run: census, seed, record, join, galley, compositor, prove.
-      Verify: one command produces every artifact and exits nonzero on a stage's refusal.
-- [ ] T2 -- Record its artifacts as the baseline a later run is compared against. Verify:
-      a re-run over an unchanged tree produces byte-identical artifacts.
-- [ ] T3 -- Run it over every language fixture, not Python alone. Verify: one row per
-      language in `tests/fixtures/`.
-- [ ] T4 -- Prove it can FAIL. Verify: reverting a known defect in any stage turns it red.
-- [ ] T5 -- Run the chain once per verdict: `clean`, `query`, `drop`, `correct`, `patch`,
-      `add`, `move`. Verify: seven rows, each reaching PROVE.
-- [ ] T6 -- Collate several marks on ONE paragraph from different roles. Verify: every
-      mark reaches the proof and none is dropped.
-- [ ] T7 -- Collate each conflicting PAIR named above. Verify: both marks reach the proof,
-      the disagreement is stated, and nothing is decided.
+- [ ] T1 | T1 -- Build a fixture run: census, seed, record, join, galley,
+      compositor, prove. Verify: one command produces every artifact and exits
+      nonzero on a stage's refusal.
+- [ ] T2 | T2 -- Record its artifacts as the baseline a later run is compared
+      against. Verify: a re-run over an unchanged tree produces byte-identical
+      artifacts.
+- [ ] T3 | T3 -- Run it over every language fixture, not Python alone. Verify:
+      one row per language in `tests/fixtures/`.
+- [ ] T4 | T4 -- Prove it can FAIL. Verify: reverting a known defect in any
+      stage turns it red.
+- [ ] T5 | T5 -- Run the chain once per verdict: `clean`, `query`, `drop`,
+      `correct`, `patch`, `add`, `move`. Verify: seven rows, each reaching
+      PROVE.
+- [ ] T6 | T6 -- Collate several marks on ONE paragraph from different roles.
+      Verify: every mark reaches the proof and none is dropped.
+- [ ] T7 | T7 -- Collate each conflicting PAIR named above. Verify: both marks
+      reach the proof, the disagreement is stated, and nothing is decided.
 
 ## Related
 

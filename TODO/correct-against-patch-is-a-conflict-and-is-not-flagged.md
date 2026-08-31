@@ -60,12 +60,14 @@ finding total matched. It is owed whichever way T1 is ruled.
 
 ## Tasks
 
-- [ ] T1 -- * Rule whether `correct` + `patch` on ONE SENTENCE enters the `RE-REVIEW` set;
-      the three answers are in the Objective. Verify: recorded in `docs/decision-log.md`.
-- [ ] T2 -- Count blocks where `correct` and `patch` overlap, against the 8 the current
-      rule flags. Verify: both numbers written here, naming the run.
-- [ ] T3 -- Make the collator print a discarded edit and the role that lost it. Verify: the
-      report names the dropped edit, with a test that fails without it.
+- [ ] T1 | T1 -- * Rule whether `correct` + `patch` on ONE SENTENCE enters the
+      `RE-REVIEW` set; the three answers are in the Objective. Verify: recorded
+      in `docs/decision-log.md`.
+- [ ] T2 | T2 -- Count blocks where `correct` and `patch` overlap, against the 8
+      the current rule flags. Verify: both numbers written here, naming the run.
+- [ ] T3 | T3 -- Make the collator print a discarded edit and the role that lost
+      it. Verify: the report names the dropped edit, with a test that fails
+      without it.
 
 ## Related
 

@@ -95,19 +95,26 @@ own file.
 
 ## Tasks
 
-- [x] T1 -- Give an unparseable Python file ONE outcome at `page.py:708`, both failure
-      modes. Verify: censusing `x = = 1` exits non-zero, or its paragraphs are addressed.
-- [x] T2 -- SUPERSEDED by T7, which is the same defect stated in full with its
-      verification date. The BOM is one encoding argument in three readers.
-- [x] T3 -- SUPERSEDED by T6, which is the same defect stated in full and says what has to
-      be decided.
-- [x] T4 -- DONE 2026-08-20. An empty file now carries `a0`, `b0` and `b1`, so an empty
-      `__init__.py` is citable. Closed by the lexer/page split.
-- [ ] T5 -- Correct `references/compact.md:100` -- it says an `unparsed` file was not
-      censused, and it was. Verify: the row says the paragraphs carry no address.
-- [ ] T6 -- Refuse an `add` at the `a` place of a one-line declaration instead of writing
-      above the `def`. Verify: `galley.reset` returns a problem for that edit, not `[]`.
-- [ ] T7 -- Open the three readers with `utf-8-sig` -- `repo.py:52`, `census.py:336`,
-      `census.py:177`. Verify: a BOM'd `.py` censuses its module docstring.
-- [x] T8 -- DONE 2026-08-22. `census.py:566-568` flushes `--filtered` at a file boundary;
-      three fixtures print three headings. Measurement in the Objective.
+- [x] T1 | FINISHED | unknown | T1 -- Give an unparseable Python file ONE
+      outcome at `page.py:708`, both failure modes. Verify: censusing `x = = 1`
+      exits non-zero, or its paragraphs are addressed.
+- [x] T2 | FINISHED | unknown | T2 -- SUPERSEDED by T7, which is the same defect
+      stated in full with its verification date. The BOM is one encoding
+      argument in three readers.
+- [x] T3 | FINISHED | unknown | T3 -- SUPERSEDED by T6, which is the same defect
+      stated in full and says what has to be decided.
+- [x] T4 | FINISHED | unknown | T4 -- DONE 2026-08-20. An empty file now carries
+      `a0`, `b0` and `b1`, so an empty `__init__.py` is citable. Closed by the
+      lexer/page split.
+- [ ] T5 | T5 -- Correct `references/compact.md:100` -- it says an `unparsed`
+      file was not censused, and it was. Verify: the row says the paragraphs
+      carry no address.
+- [ ] T6 | T6 -- Refuse an `add` at the `a` place of a one-line declaration
+      instead of writing above the `def`. Verify: `galley.reset` returns a
+      problem for that edit, not `[]`.
+- [ ] T7 | T7 -- Open the three readers with `utf-8-sig` -- `repo.py:52`,
+      `census.py:336`, `census.py:177`. Verify: a BOM'd `.py` censuses its
+      module docstring.
+- [x] T8 | FINISHED | unknown | T8 -- DONE 2026-08-22. `census.py:566-568`
+      flushes `--filtered` at a file boundary; three fixtures print three
+      headings. Measurement in the Objective.

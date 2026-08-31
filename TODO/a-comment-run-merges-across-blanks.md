@@ -64,13 +64,17 @@ the middle-of-file half real work too.
 
 ## Tasks
 
-- [x] T1 -- MEASURED 2026-08-21, and it is the finding: only CODE ends a run, so a Rust
-      licence header, crate doc and item doc censused as one paragraph. In the Objective.
-- [x] T2 -- MEASURED. `compact.md` routes on KIND, so a crate doc merged into a plain
-      comment run is cut to the COMMENT cap. A consequence, recorded in the Objective.
-- [x] T3 -- MEASURED. `ownership-context` gets a licence header plus a function's
-      documentation as one indivisible paragraph at one address. In the Objective.
-- [x] T4 -- DONE. The top-of-file split ships: `matter` 1-2 and `docstring` 4-4, verified
-      2026-08-23 through `paragraphs_lexical`. The filed wording is in the Objective.
-- [?] T5 -- * RULE whether a blank line ends a comment run in the MIDDLE of a file.
-      Verify: the ruling is recorded in `docs/decision-log.md`.
+- [x] T1 | FINISHED | unknown | T1 -- MEASURED 2026-08-21, and it is the
+      finding: only CODE ends a run, so a Rust licence header, crate doc and
+      item doc censused as one paragraph. In the Objective.
+- [x] T2 | FINISHED | unknown | T2 -- MEASURED. `compact.md` routes on KIND, so
+      a crate doc merged into a plain comment run is cut to the COMMENT cap. A
+      consequence, recorded in the Objective.
+- [x] T3 | FINISHED | unknown | T3 -- MEASURED. `ownership-context` gets a
+      licence header plus a function's documentation as one indivisible
+      paragraph at one address. In the Objective.
+- [x] T4 | FINISHED | unknown | T4 -- DONE. The top-of-file split ships:
+      `matter` 1-2 and `docstring` 4-4, verified 2026-08-23 through
+      `paragraphs_lexical`. The filed wording is in the Objective.
+- [?] T5 | T5 -- * RULE whether a blank line ends a comment run in the MIDDLE of
+      a file. Verify: the ruling is recorded in `docs/decision-log.md`.

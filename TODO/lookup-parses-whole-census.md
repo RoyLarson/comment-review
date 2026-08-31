@@ -82,31 +82,40 @@ one, written where `addresser.py` states the hashed-static-table dependency.
 
 ## Tasks
 
-- [ ] T1 -- Batch the lookups: `--anchor` and `--resolve` take one value each. Verify: one
-      invocation answers N addresses, and N=10 costs less than 10 calls.
-- [ ] T2 -- Give the binder a CLI that is not the census builder. Verify: a command
-      returns ONE page without building the other 18 files' pages.
-- [ ] T3 -- Retire address lookup from the census builder once T2 lands. Verify:
-      `census.py --help` no longer advertises address lookup.
-- [ ] T4 -- Stop the chain as soon as the addresser can answer. Verify: resolving one
-      address in a 19-file scope reads fewer than 19 files, reads counted.
-- [ ] T5 -- Substep the LEXER so it stops at the requested spot inside a file. Verify: an
-      address near the top of a 987-line file lexes fewer lines than a late one.
-- [ ] T6 -- Substep the ADDRESSER so it stops walking at the requested place. Verify:
-      resolving an early address builds fewer places than a late one.
-- [ ] T7 -- Return the page's whole address list in ONE call. Verify: one invocation
-      returns every address on a page, and builds no records.
-- [ ] T8 -- Filter the reviewers' records from T7's list, not inside the walk. Verify: a
-      reviewer gets a subset of the one-call list.
-- [ ] T9 -- Write what happens when the early chain disagrees with the census, beside
-      `addresser.py`'s hashed-static-table dependency. Verify: the rule is in that file.
-- [ ] T10 -- Test the rule T9 states. Verify: a test changes a file between census and
-      lookup and asserts the stated behaviour, and fails if the behaviour changes.
-- [x] T11 -- MEASUREMENT, not a checkpoint. The 0.28 s lookup and its split are in the
-      Objective, with the tree they were taken on.
-- [x] T12 -- MEASUREMENT, not a checkpoint. The linear-in-project-size extrapolation at
-      630 bytes/paragraph, out to 500k lines, is in the Objective.
-- [x] T13 -- MEASUREMENT AND FINDING, not a checkpoint. Re-lexing is faster above ~14k
-      lines and is NOT the fix. Both are in the Objective.
-- [x] T14 -- RULED 2026-08-23, and neither way it was asked. In the Objective in full,
-      with both Roy quotations.
+- [ ] T1 | T1 -- Batch the lookups: `--anchor` and `--resolve` take one value
+      each. Verify: one invocation answers N addresses, and N=10 costs less than
+      10 calls.
+- [ ] T2 | T2 -- Give the binder a CLI that is not the census builder. Verify: a
+      command returns ONE page without building the other 18 files' pages.
+- [ ] T3 | T3 -- Retire address lookup from the census builder once T2 lands.
+      Verify: `census.py --help` no longer advertises address lookup.
+- [ ] T4 | T4 -- Stop the chain as soon as the addresser can answer. Verify:
+      resolving one address in a 19-file scope reads fewer than 19 files, reads
+      counted.
+- [ ] T5 | T5 -- Substep the LEXER so it stops at the requested spot inside a
+      file. Verify: an address near the top of a 987-line file lexes fewer lines
+      than a late one.
+- [ ] T6 | T6 -- Substep the ADDRESSER so it stops walking at the requested
+      place. Verify: resolving an early address builds fewer places than a late
+      one.
+- [ ] T7 | T7 -- Return the page's whole address list in ONE call. Verify: one
+      invocation returns every address on a page, and builds no records.
+- [ ] T8 | T8 -- Filter the reviewers' records from T7's list, not inside the
+      walk. Verify: a reviewer gets a subset of the one-call list.
+- [ ] T9 | T9 -- Write what happens when the early chain disagrees with the
+      census, beside `addresser.py`'s hashed-static-table dependency. Verify:
+      the rule is in that file.
+- [ ] T10 | T10 -- Test the rule T9 states. Verify: a test changes a file
+      between census and lookup and asserts the stated behaviour, and fails if
+      the behaviour changes.
+- [x] T11 | FINISHED | unknown | T11 -- MEASUREMENT, not a checkpoint. The 0.28
+      s lookup and its split are in the Objective, with the tree they were taken
+      on.
+- [x] T12 | FINISHED | unknown | T12 -- MEASUREMENT, not a checkpoint. The
+      linear-in-project-size extrapolation at 630 bytes/paragraph, out to 500k
+      lines, is in the Objective.
+- [x] T13 | FINISHED | unknown | T13 -- MEASUREMENT AND FINDING, not a
+      checkpoint. Re-lexing is faster above ~14k lines and is NOT the fix. Both
+      are in the Objective.
+- [x] T14 | FINISHED | unknown | T14 -- RULED 2026-08-23, and neither way it was
+      asked. In the Objective in full, with both Roy quotations.

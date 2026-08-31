@@ -146,27 +146,35 @@ NOT X"* used as a DEFINITION, which is the comparing form the test already remov
 
 ## Tasks
 
-- [x] T1 -- FINISHED. The residue test was established before anything was rewritten. It
-      is stated in the Objective under *THE RESIDUE TEST*.
-- [x] T2 -- FINISHED. `census.py` first, the file Roy named. Its module docstring and its
-      tier-capability statements are now in positive form.
-- [x] T3 -- FINISHED. `census.py`'s two uses of **suppressed** went with the rest; the
-      word and the ruling behind it are in the Objective.
-- [x] T4 -- FINISHED. Then `prove_unchanged.py`, `verdicts.py`, `run_context.py`,
-      `referrers.py`.
-- [x] T5 -- FINISHED. The measurement was re-run and both numbers are in the Objective's
-      tables.
-- [x] T6 -- FINISHED. RULED 2026-08-16: a script's OUTPUT may state only what the script
-      did. The two headers that argued a rule are in the Objective.
-- [x] T7 -- SUPERSEDED. Roy's 2026-08-18 ruling striking the hand-pass rule is stated
-      under *THE RULING THAT SAYS WHAT CLOSES THIS FILE*, and the record stays.
-- [?] T8 -- **Run the nine-token count over `plugins/**/*.md`.** Verify: the number and
-      the command that produced it are both recorded in this file.
-- [?] T9 -- **Rule each shipped-markdown hit against the residue test.** Verify: every
-      survivor is named in this file as an output or as a refusal.
-- [?] T10 -- **Run `/comment-review` over the shipped tree.** Verify: the run's reports
-      are recorded under `evidence/`, naming the commit they were produced at.
-- [?] T11 -- **Grade that run from the DIFF**, never from the run's own report. Verify:
-      the recorded grade cites the diff hunks it was read from.
-- [?] T12 -- **Re-measure the negative-prose count from that run's result** rather than
-      asserting it. Verify: the new number is in this file and names the run it came from.
+- [x] T1 | FINISHED | unknown | T1 -- FINISHED. The residue test was established
+      before anything was rewritten. It is stated in the Objective under *THE
+      RESIDUE TEST*.
+- [x] T2 | FINISHED | unknown | T2 -- FINISHED. `census.py` first, the file Roy
+      named. Its module docstring and its tier-capability statements are now in
+      positive form.
+- [x] T3 | FINISHED | unknown | T3 -- FINISHED. `census.py`'s two uses of
+      **suppressed** went with the rest; the word and the ruling behind it are
+      in the Objective.
+- [x] T4 | FINISHED | unknown | T4 -- FINISHED. Then `prove_unchanged.py`,
+      `verdicts.py`, `run_context.py`, `referrers.py`.
+- [x] T5 | FINISHED | unknown | T5 -- FINISHED. The measurement was re-run and
+      both numbers are in the Objective's tables.
+- [x] T6 | FINISHED | unknown | T6 -- FINISHED. RULED 2026-08-16: a script's
+      OUTPUT may state only what the script did. The two headers that argued a
+      rule are in the Objective.
+- [x] T7 | FINISHED | unknown | T7 -- SUPERSEDED. Roy's 2026-08-18 ruling
+      striking the hand-pass rule is stated under *THE RULING THAT SAYS WHAT
+      CLOSES THIS FILE*, and the record stays.
+- [?] T8 | T8 -- **Run the nine-token count over `plugins/**/*.md`.** Verify:
+      the number and the command that produced it are both recorded in this
+      file.
+- [?] T9 | T9 -- **Rule each shipped-markdown hit against the residue test.**
+      Verify: every survivor is named in this file as an output or as a refusal.
+- [?] T10 | T10 -- **Run `/comment-review` over the shipped tree.** Verify: the
+      run's reports are recorded under `evidence/`, naming the commit they were
+      produced at.
+- [?] T11 | T11 -- **Grade that run from the DIFF**, never from the run's own
+      report. Verify: the recorded grade cites the diff hunks it was read from.
+- [?] T12 | T12 -- **Re-measure the negative-prose count from that run's
+      result** rather than asserting it. Verify: the new number is in this file
+      and names the run it came from.

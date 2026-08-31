@@ -166,25 +166,35 @@ answered. A rail read and not run is a shape problem, and it was measured twice 
 
 ## Tasks
 
-- [x] T1 -- FINISHED. * The ruling on whether stage 5 gains an independent reader arrived
-      2026-08-17 and it is (e): send the patch back to the reviewers that filed.
-- [x] T2 -- FINISHED. * RULED: (e) runs BEFORE and AFTER stage 6, asking a different
-      question each time; the stage-6 case is in the Objective.
-- [x] T3 -- FINISHED. The two questions are written as input contracts at
-      `references/re-review.md:52-53`, with `:56` stating why one prompt answers neither.
-- [x] T4 -- FINISHED. `SKILL.md:905` is stage 5b and `:972` is stage 6b, both deferring to
-      `references/re-review.md` rather than restating it.
-- [ ] T5 -- Decide (d): does a whole-page read run before the write? Verify: `SKILL.md`
-      states whether it runs; there are zero matches for `pre-write` today.
-- [ ] T6 -- If it runs, state that a SELECTIVE approval invalidates it and needs a
-      re-read. Verify: `SKILL.md` says so; there are zero matches for `blanket` today.
-- [ ] T7 -- Count how many of stage 8's twelve findings a pre-write reader could have
-      caught. Verify: the number is in this file with its artifact.
-- [ ] T8 -- Make the `write.md` re-derivation rail a question the writer answers per
-      paragraph, as `residue-check.md:39` does. Verify: the rail is answerable, not prose.
-- [ ] T9 -- Give the stage-7b report somewhere to put that per-paragraph answer. Verify:
-      the report has a field for it and an unanswered paragraph shows.
-- [x] T10 -- A RECORD, not a task: the mechanical stages held; the failure is specific to
-      the stage that had no second reader. Stated in the Objective.
-- [x] T11 -- A RECORD, not a task: the rollback is the system working -- twelve findings,
-      tree returned to `REDACTED_SHA_D`, 0 modified files. Stated in the Objective.
+- [x] T1 | FINISHED | unknown | T1 -- FINISHED. * The ruling on whether stage 5
+      gains an independent reader arrived 2026-08-17 and it is (e): send the
+      patch back to the reviewers that filed.
+- [x] T2 | FINISHED | unknown | T2 -- FINISHED. * RULED: (e) runs BEFORE and
+      AFTER stage 6, asking a different question each time; the stage-6 case is
+      in the Objective.
+- [x] T3 | FINISHED | unknown | T3 -- FINISHED. The two questions are written as
+      input contracts at `references/re-review.md:52-53`, with `:56` stating why
+      one prompt answers neither.
+- [x] T4 | FINISHED | unknown | T4 -- FINISHED. `SKILL.md:905` is stage 5b and
+      `:972` is stage 6b, both deferring to `references/re-review.md` rather
+      than restating it.
+- [ ] T5 | T5 -- Decide (d): does a whole-page read run before the write?
+      Verify: `SKILL.md` states whether it runs; there are zero matches for
+      `pre-write` today.
+- [ ] T6 | T6 -- If it runs, state that a SELECTIVE approval invalidates it and
+      needs a re-read. Verify: `SKILL.md` says so; there are zero matches for
+      `blanket` today.
+- [ ] T7 | T7 -- Count how many of stage 8's twelve findings a pre-write reader
+      could have caught. Verify: the number is in this file with its artifact.
+- [ ] T8 | T8 -- Make the `write.md` re-derivation rail a question the writer
+      answers per paragraph, as `residue-check.md:39` does. Verify: the rail is
+      answerable, not prose.
+- [ ] T9 | T9 -- Give the stage-7b report somewhere to put that per-paragraph
+      answer. Verify: the report has a field for it and an unanswered paragraph
+      shows.
+- [x] T10 | FINISHED | unknown | T10 -- A RECORD, not a task: the mechanical
+      stages held; the failure is specific to the stage that had no second
+      reader. Stated in the Objective.
+- [x] T11 | FINISHED | unknown | T11 -- A RECORD, not a task: the rollback is
+      the system working -- twelve findings, tree returned to `REDACTED_SHA_D`,
+      0 modified files. Stated in the Objective.

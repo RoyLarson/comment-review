@@ -16,12 +16,13 @@ The brief's example and its resolution scope disagree with a real run.
 
 ## Tasks
 
-- [ ] The brief's `sha` matches what `bind` writes. Verify: the example's sha is
-      the length `binder.bind` produces -- 16 hex characters on 2026-08-29, where
-      the example shows 40.
-- [ ] The brief says what a `source` may resolve against. Verify: it states
+- [ ] T1 | The brief's `sha` matches what `bind` writes. Verify: the example's
+      sha is the length `binder.bind` produces -- 16 hex characters on
+      2026-08-29, where the example shows 40.
+- [ ] T2 | The brief says what a `source` may resolve against. Verify: it states
       whether a cite is resolved against the scoped tree or the checkout, and a
       role reviewing two files of a larger repo can tell which without guessing.
-- [ ] A narrow scope is distinguishable from a broken one. Verify: a run whose
-      citations all fall outside the scoped tree says so, rather than returning
-      `query` for every place and reading as a reviewer that could not do its job.
+- [ ] T3 | A narrow scope is distinguishable from a broken one. Verify: a run
+      whose citations all fall outside the scoped tree says so, rather than
+      returning `query` for every place and reading as a reviewer that could not
+      do its job.

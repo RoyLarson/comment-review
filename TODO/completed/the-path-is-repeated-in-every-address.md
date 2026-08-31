@@ -38,14 +38,16 @@ Measured: 2026-08-20 — 2026-08-20, re-measured on the shipped shape over this 
 
 ## Tasks
 
-- [x] !! RULE IT FIRST: does a RECORD carry a bare folio with the page named above
-      it, or does it keep the whole address and only the LISTING group? The first
-      saves the 30KB and makes every consumer page-aware; the second saves nothing
-      in the record file.
-- [x] Every consumer reads the address as one string -- `record.entry_for`,
-      `galley.py`'s `--edits`, `desk.address_problem`, `verdicts.py`'s join.
-      `foliator.folio_of` already splits the halves and is the seam.
-- [x] ! A held report from 0.2.4 carries whole addresses. Whatever is ruled,
-      reading one must keep working -- that is the bridge `held.py` exists for.
-- [x] Re-measure after: the figure above is one repo's 15 files, and the saving
-      scales with how deep the paths are.
+- [x] T1 | FINISHED | unknown | !! RULE IT FIRST: does a RECORD carry a bare
+      folio with the page named above it, or does it keep the whole address and
+      only the LISTING group? The first saves the 30KB and makes every consumer
+      page-aware; the second saves nothing in the record file.
+- [x] T2 | FINISHED | unknown | Every consumer reads the address as one string
+      -- `record.entry_for`, `galley.py`'s `--edits`, `desk.address_problem`,
+      `verdicts.py`'s join. `foliator.folio_of` already splits the halves and is
+      the seam.
+- [x] T3 | FINISHED | unknown | ! A held report from 0.2.4 carries whole
+      addresses. Whatever is ruled, reading one must keep working -- that is the
+      bridge `held.py` exists for.
+- [x] T4 | FINISHED | unknown | Re-measure after: the figure above is one repo's
+      15 files, and the saving scales with how deep the paths are.

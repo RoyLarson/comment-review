@@ -49,11 +49,15 @@ emits, which is why this is worth fixing rather than tolerating.
 
 ## Tasks
 
-- [ ] T1 -- Take *"a comment's anchor"* out of the `tokenized` CANNOT ANSWER column at
-      `SKILL.md:430`. Verify: no row of that table says a comment has no anchor.
-- [ ] T2 -- Drop the false premise at `SKILL.md:433-435`, keeping the CANDIDATE
-      conclusion. Verify: no sentence in `SKILL.md` says a comment carries no anchor.
-- [ ] T3 -- Correct `reviewer-brief.md:126-127` to say a LINE OF CODE, not a declaration.
-      Verify: `grep -rn "names the declaration" plugins/` comes back empty.
-- [ ] T4 -- Drop *"and is empty where none was"* from the same sentence -- a reviewer's
-      slot never is. Verify: `grep -rn "empty where none was" plugins/` comes back empty.
+- [ ] T1 | T1 -- Take *"a comment's anchor"* out of the `tokenized` CANNOT
+      ANSWER column at `SKILL.md:430`. Verify: no row of that table says a
+      comment has no anchor.
+- [ ] T2 | T2 -- Drop the false premise at `SKILL.md:433-435`, keeping the
+      CANDIDATE conclusion. Verify: no sentence in `SKILL.md` says a comment
+      carries no anchor.
+- [ ] T3 | T3 -- Correct `reviewer-brief.md:126-127` to say a LINE OF CODE, not
+      a declaration. Verify: `grep -rn "names the declaration" plugins/` comes
+      back empty.
+- [ ] T4 | T4 -- Drop *"and is empty where none was"* from the same sentence --
+      a reviewer's slot never is. Verify: `grep -rn "empty where none was"
+      plugins/` comes back empty.

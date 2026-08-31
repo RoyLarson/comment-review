@@ -78,17 +78,25 @@ reading code it must search anyway.
 
 ## Tasks
 
-- [x] T1 -- THE ADDRESSER IS THE ONLY OFFICIAL PLACE AN ADDRESS IS MADE; the COLLATOR was the
-      last half outside and `addresser.address_for` holds it.
-- [x] T2 -- The five sites where `census.py` set an anchor are gone.
-- [x] T3 -- `census.py`'s run loop no longer calls `cues.address(...)` per paragraph; the
-      addresser emits the address and the census ties prose to it.
-- [x] T4 -- BOTH DIRECTIONS LIVE IN THE ADDRESSER: cues out, and lookup back.
-- [ ] T5 -- Run `module-context` over `addresser.py`, which names places. Verify: the
-      report returns no more-than-one-subject finding for that module.
-- [ ] T6 -- Run `module-context` over `page.py`, which says what a page and a paragraph
-      are. Verify: the report returns no more-than-one-subject finding for that module.
-- [ ] T7 -- Run `module-context` over `census.py` -- which prose occupies which address.
-      Verify: the report returns no more-than-one-subject finding for that module.
-- [ ] T8 -- Run `module-context` over `galley.py`, which sets the proposed text. Verify:
-      the report returns no more-than-one-subject finding for that module.
+- [x] T1 | FINISHED | unknown | T1 -- THE ADDRESSER IS THE ONLY OFFICIAL PLACE
+      AN ADDRESS IS MADE; the COLLATOR was the last half outside and
+      `addresser.address_for` holds it.
+- [x] T2 | FINISHED | unknown | T2 -- The five sites where `census.py` set an
+      anchor are gone.
+- [x] T3 | FINISHED | unknown | T3 -- `census.py`'s run loop no longer calls
+      `cues.address(...)` per paragraph; the addresser emits the address and the
+      census ties prose to it.
+- [x] T4 | FINISHED | unknown | T4 -- BOTH DIRECTIONS LIVE IN THE ADDRESSER:
+      cues out, and lookup back.
+- [ ] T5 | T5 -- Run `module-context` over `addresser.py`, which names places.
+      Verify: the report returns no more-than-one-subject finding for that
+      module.
+- [ ] T6 | T6 -- Run `module-context` over `page.py`, which says what a page and
+      a paragraph are. Verify: the report returns no more-than-one-subject
+      finding for that module.
+- [ ] T7 | T7 -- Run `module-context` over `census.py` -- which prose occupies
+      which address. Verify: the report returns no more-than-one-subject finding
+      for that module.
+- [ ] T8 | T8 -- Run `module-context` over `galley.py`, which sets the proposed
+      text. Verify: the report returns no more-than-one-subject finding for that
+      module.

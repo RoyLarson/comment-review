@@ -142,31 +142,43 @@ attributable to the edit rather than to the model. ! NOT RE-RUN 2026-08-23.
 
 ## Tasks
 
-- [x] T1 -- `desk.py` -- stop `owes_sources` fatally refusing a `patch` filed with no
-      source. Verify: such a `patch` is admitted.
-- [x] T2 -- `record.py` -- make the generated `patch` row say what `desk.py`'s gate
-      enforces. Verify: the shipped brief's sentence and `owes_sources` agree.
-- [ ] T3 -- `verdicts.py` -- stop `vocabulary.Reviewer` admitting non-reviewer role names.
-      Verify: a report named `review.json` is refused as an unknown reviewer.
-- [x] T4 -- `census.py` -- refuse a run given zero path arguments instead of emitting
-      `[]`. Verify: a zero-path census run exits nonzero.
-- [x] T5 -- `verdicts.py` -- refuse an empty census instead of certifying it COMPLETE.
-      Verify: the collator over an empty census exits nonzero and says what was missing.
-- [ ] T6 -- `desk.py` -- keep a blank line inside the SOURCE window from collapsing to two
-      spaces. Verify: an honest verbatim quote spanning a blank line is admitted.
-- [ ] T7 -- `desk.py` -- stop reading a prose `to:` that names a decorated accessor as an
-      address claim. Verify: such a `move` is admitted.
-- [ ] T8 -- `desk.py` -- accept a real front-matter address in a `move`'s `to:`. Verify:
-      it passes the address check instead of being rejected.
-- [x] T9 -- `record.py` -- validate the verdict's shape before the `not in VERDICTS` test.
-      Verify: `record_problems({"verdict": ["patch"]}, None)` returns a problem.
-- [ ] T10 -- `compositor.draft` -- identity-check the page BEFORE any verdict is applied.
-      Verify: `draft` refuses a page that does not set back identically.
-- [x] T11 -- FIXED 2026-08-23, re-confirmed. `record.py:1074` guards `report.get('pages')`
-      with `isinstance(..., list)`. In the Objective.
-- [x] T12 -- FIXED, found 2026-08-23. `run_context.py` derives both numbers from
-      `PATH_SECTIONS`, which holds four. In the Objective.
-- [x] T13 -- A sourceless `patch` is admitted, and the brief's sentence is pinned to its
-      row. Verify: it fails if `owes_sources` goes back to True on `patch`.
-- [x] T14 -- A list, dict or number verdict returns a shape diagnostic. Verify: it fails
-      if `record_problems`'s isinstance guard is removed.
+- [x] T1 | FINISHED | unknown | T1 -- `desk.py` -- stop `owes_sources` fatally
+      refusing a `patch` filed with no source. Verify: such a `patch` is
+      admitted.
+- [x] T2 | FINISHED | unknown | T2 -- `record.py` -- make the generated `patch`
+      row say what `desk.py`'s gate enforces. Verify: the shipped brief's
+      sentence and `owes_sources` agree.
+- [ ] T3 | T3 -- `verdicts.py` -- stop `vocabulary.Reviewer` admitting
+      non-reviewer role names. Verify: a report named `review.json` is refused
+      as an unknown reviewer.
+- [x] T4 | FINISHED | unknown | T4 -- `census.py` -- refuse a run given zero
+      path arguments instead of emitting `[]`. Verify: a zero-path census run
+      exits nonzero.
+- [x] T5 | FINISHED | unknown | T5 -- `verdicts.py` -- refuse an empty census
+      instead of certifying it COMPLETE. Verify: the collator over an empty
+      census exits nonzero and says what was missing.
+- [ ] T6 | T6 -- `desk.py` -- keep a blank line inside the SOURCE window from
+      collapsing to two spaces. Verify: an honest verbatim quote spanning a
+      blank line is admitted.
+- [ ] T7 | T7 -- `desk.py` -- stop reading a prose `to:` that names a decorated
+      accessor as an address claim. Verify: such a `move` is admitted.
+- [ ] T8 | T8 -- `desk.py` -- accept a real front-matter address in a `move`'s
+      `to:`. Verify: it passes the address check instead of being rejected.
+- [x] T9 | FINISHED | unknown | T9 -- `record.py` -- validate the verdict's
+      shape before the `not in VERDICTS` test. Verify:
+      `record_problems({"verdict": ["patch"]}, None)` returns a problem.
+- [ ] T10 | T10 -- `compositor.draft` -- identity-check the page BEFORE any
+      verdict is applied. Verify: `draft` refuses a page that does not set back
+      identically.
+- [x] T11 | FINISHED | unknown | T11 -- FIXED 2026-08-23, re-confirmed.
+      `record.py:1074` guards `report.get('pages')` with `isinstance(...,
+      list)`. In the Objective.
+- [x] T12 | FINISHED | unknown | T12 -- FIXED, found 2026-08-23.
+      `run_context.py` derives both numbers from `PATH_SECTIONS`, which holds
+      four. In the Objective.
+- [x] T13 | FINISHED | unknown | T13 -- A sourceless `patch` is admitted, and
+      the brief's sentence is pinned to its row. Verify: it fails if
+      `owes_sources` goes back to True on `patch`.
+- [x] T14 | FINISHED | unknown | T14 -- A list, dict or number verdict returns a
+      shape diagnostic. Verify: it fails if `record_problems`'s isinstance guard
+      is removed.

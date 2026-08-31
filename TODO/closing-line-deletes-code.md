@@ -96,19 +96,23 @@ of the two notes stands.
 
 ## Tasks
 
-- [x] T1 -- RECORD, not a task. The deletion, MEASURED 2026-08-21 on the four-line C
-      input. Kept in the Objective.
-- [x] T2 -- RECORD, not a task. The cause is a half-cut -- text trimmed at the closer,
-      `raw_lines` holding the whole physical span. Kept in the Objective.
-- [x] T3 -- RECORD, not a task. `prove_unchanged` catches it (:79, called at :153) only
-      AFTER stage 7b has written. Re-verified 2026-08-23.
-- [ ] T4 -- * RE-RULE the 2026-08-20 acceptance with the DELETED CODE on the table, and
-      say which of the two contradicting notes stands. Verify: the answer is in this file.
-- [x] T5 -- RECORD, not a task. The three options are unchanged and are named in the
-      Objective.
-- [x] T6 -- RECORD, not a task. Close this with the galley, not before -- the sequencing
-      reason, kept in the Objective.
-- [ ] T7 -- When the galley's composition step lands, take whichever option T4 leaves
-      standing. Verify: the Objective's C input refuses, or keeps `int x = 5;`.
-- [ ] T8 -- Pin T7 with a test on that same four-line C input. Verify: the test fails on
-      the pre-change tree and passes after it.
+- [x] T1 | FINISHED | unknown | T1 -- RECORD, not a task. The deletion, MEASURED
+      2026-08-21 on the four-line C input. Kept in the Objective.
+- [x] T2 | FINISHED | unknown | T2 -- RECORD, not a task. The cause is a
+      half-cut -- text trimmed at the closer, `raw_lines` holding the whole
+      physical span. Kept in the Objective.
+- [x] T3 | FINISHED | unknown | T3 -- RECORD, not a task. `prove_unchanged`
+      catches it (:79, called at :153) only AFTER stage 7b has written.
+      Re-verified 2026-08-23.
+- [ ] T4 | T4 -- * RE-RULE the 2026-08-20 acceptance with the DELETED CODE on
+      the table, and say which of the two contradicting notes stands. Verify:
+      the answer is in this file.
+- [x] T5 | FINISHED | unknown | T5 -- RECORD, not a task. The three options are
+      unchanged and are named in the Objective.
+- [x] T6 | FINISHED | unknown | T6 -- RECORD, not a task. Close this with the
+      galley, not before -- the sequencing reason, kept in the Objective.
+- [ ] T7 | T7 -- When the galley's composition step lands, take whichever option
+      T4 leaves standing. Verify: the Objective's C input refuses, or keeps `int
+      x = 5;`.
+- [ ] T8 | T8 -- Pin T7 with a test on that same four-line C input. Verify: the
+      test fails on the pre-change tree and passes after it.

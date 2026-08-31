@@ -16,16 +16,16 @@ Nothing orders the settled moves, and nothing refuses a cycle.
 
 ## Tasks
 
-- [ ] Implement the topological order over the resolved moves, where an edge B to
-      A means B's origin is A's destination so B vacates the address before A
-      fills it. Verify: two independent moves emit in an order that does not
-      depend on which role's copy was read first, and a move whose origin another
-      move fills is emitted first.
-- [ ] Implement the cycle refusal. Verify: a set of moves forming a cycle is
-      carried forward as a re-read naming the cycle, driven with a Reconciled
-      built directly, since no cycle reaches the resolution step through reconcile
-      today.
-- [ ] Implement the test that a chained move does not settle FOR A STATED REASON.
-      Verify: giving move a quotes_original key makes the chain settle under
-      today's grouping, and the DAG rule refuses it anyway -- so the protection
-      does not rest on _sentence_key returning id(mark).
+- [ ] T1 | Implement the topological order over the resolved moves, where an
+      edge B to A means B's origin is A's destination so B vacates the address
+      before A fills it. Verify: two independent moves emit in an order that
+      does not depend on which role's copy was read first, and a move whose
+      origin another move fills is emitted first.
+- [ ] T2 | Implement the cycle refusal. Verify: a set of moves forming a cycle
+      is carried forward as a re-read naming the cycle, driven with a Reconciled
+      built directly, since no cycle reaches the resolution step through
+      reconcile today.
+- [ ] T3 | Implement the test that a chained move does not settle FOR A STATED
+      REASON. Verify: giving move a quotes_original key makes the chain settle
+      under today's grouping, and the DAG rule refuses it anyway -- so the
+      protection does not rest on _sentence_key returning id(mark).

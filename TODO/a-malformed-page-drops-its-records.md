@@ -42,13 +42,18 @@ fixer to the record's `place` field, which is where the fix goes.
 
 ## Tasks
 
-- [ ] T1 -- Report a page entry that is not an object instead of skipping it at
-      `record.py:829`. Verify: `record.py --check` prints a named line and exits nonzero.
-- [ ] T2 -- Make `verdicts.py` name the PAGE for a malformed page entry. Verify: it no
-      longer charges the reviewer a coverage gap for the records under it.
-- [ ] T3 -- Pin both with a test, the treatment `held.py:136` already gives a non-object
-      RECORD. Verify: the test fails against `record.py:829` as it reads today.
-- [ ] T4 -- Make `held.held_records`' docstring account for the PAGE level, not the record
-      level alone. Verify: it states what the function does at both, and matches T1.
-- [x] T5 -- NOT A TASK. A record under a page with no `page` key is already handled
-      correctly; the box ended *"which is fine"*. Moved to the Objective.
+- [ ] T1 | T1 -- Report a page entry that is not an object instead of skipping
+      it at `record.py:829`. Verify: `record.py --check` prints a named line and
+      exits nonzero.
+- [ ] T2 | T2 -- Make `verdicts.py` name the PAGE for a malformed page entry.
+      Verify: it no longer charges the reviewer a coverage gap for the records
+      under it.
+- [ ] T3 | T3 -- Pin both with a test, the treatment `held.py:136` already gives
+      a non-object RECORD. Verify: the test fails against `record.py:829` as it
+      reads today.
+- [ ] T4 | T4 -- Make `held.held_records`' docstring account for the PAGE level,
+      not the record level alone. Verify: it states what the function does at
+      both, and matches T1.
+- [x] T5 | FINISHED | unknown | T5 -- NOT A TASK. A record under a page with no
+      `page` key is already handled correctly; the box ended *"which is fine"*.
+      Moved to the Objective.

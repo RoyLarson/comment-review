@@ -15,7 +15,9 @@ The draft guard trusts an into it never resolves.
 
 ## Tasks
 
-- [ ] Resolve into once, where run receives it, and compare against the resolved
-      value
-- [ ] A test with a relative into. Verify: it fails against the current code
-- [ ] Ask whether any other flow trusts an unresolved directory the same way
+- [ ] T1 | Resolve into once, where run receives it, and compare against the
+      resolved value
+- [ ] T2 | A test with a relative into. Verify: it fails against the current
+      code
+- [ ] T3 | Ask whether any other flow trusts an unresolved directory the same
+      way

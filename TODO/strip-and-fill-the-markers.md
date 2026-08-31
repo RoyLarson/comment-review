@@ -4,7 +4,7 @@
 Status:   decision-needed
 Progress: 0 of 8 tasks done
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, Roy, watching three failed edits in a row: "having the
           whole text comment marks and all is brittle and subject to breakage easily. We
           may need to rethink this and strip/fill in the comment marks ourselves else
@@ -149,33 +149,37 @@ because it rebuilt each file from positions it had just read out of that file.
 
 ## Tasks
 
-- [ ] Measure the brittleness before changing anything. Verify: over a real
+- [ ] T1 | Measure the brittleness before changing anything. Verify: over a real
       corpus, count how many paragraphs a naive edit to `raw_text` can make
       unparseable -- appending past a closing delimiter, moving a closer up a
       line, or missing that a docstring is indented. That number is the case for
       the change and the baseline the fill is measured against.
-- [ ] Strip and fill are EXACT INVERSES for an unchanged paragraph. Verify: over
-      every paragraph of every corpus file, `fill(strip(p)) == p` byte-for-byte. !
-      THIS IS THE WHOLE SAFETY ARGUMENT and it must be able to FAIL -- run it over
-      fetched corpora, not hand-written fixtures, per `docs/gates.md`.
-- [ ] The prose is EVERYTHING after the comment token, and the token is what the language row
-      says it is. Verify: `#: x` strips to `: x` and fills back to `#: x`; `# x` strips to ` x`
-      and fills back to `# x`. ! Stripping an optional space after the token is what breaks this
-      -- `#: x` has none, so a fill that re-adds one writes `# : x`.
-- [ ] A blank line inside a paragraph survives. Verify: a bare `#` line (140 in
-      `src/`) fills back as `#` with no trailing space, and the round trip is
-      byte-exact.
-- [ ] The indentation rules land, per language. Verify: for Python, a `b` fills at
-      its anchor's level, an `a` at the next `b`'s level, an `f` at column 0, a
-      multi-line `c` at its anchor's level; a single-line `c` specifies none.
-- [ ] Relative indentation INSIDE a paragraph is preserved. Verify: a docstring
-      whose body has an indented `Args:` block round-trips with that inner
-      indentation intact -- strip removes only the common leading level, never the
-      structure under it.
-- [ ] What the agent is shown matches what it may write. Verify: the `raw_text` on
-      a seeded row is the STRIPPED prose, and a `change` written in that same form
-      is accepted -- so a role never sees a delimiter it would have to reproduce.
-- [ ] A `change` that would not parse is refused BY NAME before it reaches the
-      setter. Verify: the fill is what places delimiters, so a role cannot produce
-      a broken file; a paragraph that cannot be filled is a named refusal, never a
-      silent skip.
+- [ ] T2 | Strip and fill are EXACT INVERSES for an unchanged paragraph. Verify:
+      over every paragraph of every corpus file, `fill(strip(p)) == p`
+      byte-for-byte. ! THIS IS THE WHOLE SAFETY ARGUMENT and it must be able to
+      FAIL -- run it over fetched corpora, not hand-written fixtures, per
+      `docs/gates.md`.
+- [ ] T3 | The prose is EVERYTHING after the comment token, and the token is
+      what the language row says it is. Verify: `#: x` strips to `: x` and fills
+      back to `#: x`; `# x` strips to ` x` and fills back to `# x`. ! Stripping
+      an optional space after the token is what breaks this -- `#: x` has none,
+      so a fill that re-adds one writes `# : x`.
+- [ ] T4 | A blank line inside a paragraph survives. Verify: a bare `#` line
+      (140 in `src/`) fills back as `#` with no trailing space, and the round
+      trip is byte-exact.
+- [ ] T5 | The indentation rules land, per language. Verify: for Python, a `b`
+      fills at its anchor's level, an `a` at the next `b`'s level, an `f` at
+      column 0, a multi-line `c` at its anchor's level; a single-line `c`
+      specifies none.
+- [ ] T6 | Relative indentation INSIDE a paragraph is preserved. Verify: a
+      docstring whose body has an indented `Args:` block round-trips with that
+      inner indentation intact -- strip removes only the common leading level,
+      never the structure under it.
+- [ ] T7 | What the agent is shown matches what it may write. Verify: the
+      `raw_text` on a seeded row is the STRIPPED prose, and a `change` written
+      in that same form is accepted -- so a role never sees a delimiter it would
+      have to reproduce.
+- [ ] T8 | A `change` that would not parse is refused BY NAME before it reaches
+      the setter. Verify: the fill is what places delimiters, so a role cannot
+      produce a broken file; a paragraph that cannot be filled is a named
+      refusal, never a silent skip.

@@ -147,23 +147,32 @@ is open, so *"effectiveness unchanged"* has no grader.
 
 ## Tasks
 
-- [?] T1 -- * RULE what a role may propose when the right fix is a CODE change -- describe
-      it, or suggest it. Verify: the ruling is recorded in the Objective here.
-- [ ] T2 -- Record T1's ruling in `code-concerns-cannot-carry-a-proposed-change.md`, the
-      backend file it gates. Verify: that file states it.
-- [ ] T3 -- Name `code_concerns` in `comment-review-ownership-context.md`. Verify: `grep
-      -l code_concerns plugins/comment-review/agents/*.md` lists that file.
-- [ ] T4 -- Name `code_concerns` in `comment-review-block-context.md`. Verify: `grep -l
-      code_concerns plugins/comment-review/agents/*.md` lists that file.
-- [ ] T5 -- Name `code_concerns` in `comment-review-module-context.md`. Verify: the same
-      grep lists four files in total; today it lists one.
-- [ ] T6 -- Say what verdict a docstring enumerating unrelated responsibilities earns
-      (`comment-review-module-context.md:27`). Verify: that trigger names its verdict.
-- [ ] T7 -- Say what verdict section banners reading as chapter breaks earn
-      (`comment-review-module-context.md:28`). Verify: that trigger names its verdict.
-- [ ] T8 -- Say what verdict a summary line describing one half of the file earns
-      (`comment-review-module-context.md:29`). Verify: that trigger names its verdict.
-- [ ] T9 -- Re-run the harness case `module-context-widens-a-two-subject-docstring`.
-      Verify: `evals/test-cases.jsonl` records an outcome for it other than `miss`.
-- [x] T10 -- NOT A TASK. The PASS CRITERION -- *"recommendations improved"* -- is a
-      judgement, not an observation a stranger can repeat. Kept in full in the Objective.
+- [?] T1 | T1 -- * RULE what a role may propose when the right fix is a CODE
+      change -- describe it, or suggest it. Verify: the ruling is recorded in
+      the Objective here.
+- [ ] T2 | T2 -- Record T1's ruling in
+      `code-concerns-cannot-carry-a-proposed-change.md`, the backend file it
+      gates. Verify: that file states it.
+- [ ] T3 | T3 -- Name `code_concerns` in `comment-review-ownership-context.md`.
+      Verify: `grep -l code_concerns plugins/comment-review/agents/*.md` lists
+      that file.
+- [ ] T4 | T4 -- Name `code_concerns` in `comment-review-block-context.md`.
+      Verify: `grep -l code_concerns plugins/comment-review/agents/*.md` lists
+      that file.
+- [ ] T5 | T5 -- Name `code_concerns` in `comment-review-module-context.md`.
+      Verify: the same grep lists four files in total; today it lists one.
+- [ ] T6 | T6 -- Say what verdict a docstring enumerating unrelated
+      responsibilities earns (`comment-review-module-context.md:27`). Verify:
+      that trigger names its verdict.
+- [ ] T7 | T7 -- Say what verdict section banners reading as chapter breaks earn
+      (`comment-review-module-context.md:28`). Verify: that trigger names its
+      verdict.
+- [ ] T8 | T8 -- Say what verdict a summary line describing one half of the file
+      earns (`comment-review-module-context.md:29`). Verify: that trigger names
+      its verdict.
+- [ ] T9 | T9 -- Re-run the harness case
+      `module-context-widens-a-two-subject-docstring`. Verify:
+      `evals/test-cases.jsonl` records an outcome for it other than `miss`.
+- [x] T10 | FINISHED | unknown | T10 -- NOT A TASK. The PASS CRITERION --
+      *"recommendations improved"* -- is a judgement, not an observation a
+      stranger can repeat. Kept in full in the Objective.

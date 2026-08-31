@@ -56,23 +56,30 @@ what makes it falsifiable.
 
 ## Tasks
 
-- [x] T1 -- A stage list as DATA, each entry naming its kind -- `editorial` (fills a sheet, its
-      marks are reconciled, a revise is pulled after it) or `enriching` (hands back facts that go
-      into the next binder, no docket, no revise). Verify: an enriching entry pulls no revise, and
-      adding a stage is a row rather than a code change.
-- [x] T2 -- The binder records which revise it was censused from. Verify: a sheet seeded from it
-      names the revise and the original in its header, and a binder built from the original says
-      so rather than leaving the field absent.
-- [x] T3 -- Pull a revise at each editorial boundary: the settled docket through `proof_setter`
-      into a tree copy with the drafts overlaid. Verify: the revise root holds every library file,
-      only the scheduled pages differ, and `prove_unchanged` passes on it.
-- [x] T4 -- Gate the address space. Verify: re-censusing a revise yields the address set the
-      original yielded, over real files -- and the check FAILS on a revise whose code was changed
-      by hand, which is what proves it can bite.
-- [x] T5 -- Every read for a stage resolves against that stage's root. Verify: a `source` citing a
-      page an earlier stage edited returns the REVISE's text, not the repo's.
-- [x] T6 -- `taken_in`: original against the revise in a role's hand, as a unified diff per page,
-      plus which stage took in which addresses. Verify: it prints nothing when no stage has set
-      anything, and its diff applies cleanly to the original.
-- [x] T7 -- The last revise IS the draft the human approves at 7a. Verify: no second draft-building
-      path exists, and the artifact 7a reads is the final revise root.
+- [x] T1 | FINISHED | unknown | T1 -- A stage list as DATA, each entry naming
+      its kind -- `editorial` (fills a sheet, its marks are reconciled, a revise
+      is pulled after it) or `enriching` (hands back facts that go into the next
+      binder, no docket, no revise). Verify: an enriching entry pulls no revise,
+      and adding a stage is a row rather than a code change.
+- [x] T2 | FINISHED | unknown | T2 -- The binder records which revise it was
+      censused from. Verify: a sheet seeded from it names the revise and the
+      original in its header, and a binder built from the original says so
+      rather than leaving the field absent.
+- [x] T3 | FINISHED | unknown | T3 -- Pull a revise at each editorial boundary:
+      the settled docket through `proof_setter` into a tree copy with the drafts
+      overlaid. Verify: the revise root holds every library file, only the
+      scheduled pages differ, and `prove_unchanged` passes on it.
+- [x] T4 | FINISHED | unknown | T4 -- Gate the address space. Verify:
+      re-censusing a revise yields the address set the original yielded, over
+      real files -- and the check FAILS on a revise whose code was changed by
+      hand, which is what proves it can bite.
+- [x] T5 | FINISHED | unknown | T5 -- Every read for a stage resolves against
+      that stage's root. Verify: a `source` citing a page an earlier stage
+      edited returns the REVISE's text, not the repo's.
+- [x] T6 | FINISHED | unknown | T6 -- `taken_in`: original against the revise in
+      a role's hand, as a unified diff per page, plus which stage took in which
+      addresses. Verify: it prints nothing when no stage has set anything, and
+      its diff applies cleanly to the original.
+- [x] T7 | FINISHED | unknown | T7 -- The last revise IS the draft the human
+      approves at 7a. Verify: no second draft-building path exists, and the
+      artifact 7a reads is the final revise root.
