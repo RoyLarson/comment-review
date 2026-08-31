@@ -310,6 +310,12 @@ def parse_master_proof(
         or that disagrees with the first edit_copy's, which is the
         disagreement `desk.proof.gather` itself refuses with
         `MismatchedRoot` before a master_proof is ever built.
+
+        ! THE SHAPE CHECK RUNS WHETHER OR NOT THERE ARE COPIES, since
+        2026-08-31; the COMPARISON needs a first copy and still only runs
+        where there is one. The single exemption is an empty proof whose
+        `read_from` is `{}` or absent, which is what `gather` writes when it
+        had no first copy to take one from.
     """
     if not isinstance(data, dict):
         return None, [f"{where}: a master_proof must be an object"]
@@ -327,14 +333,35 @@ def parse_master_proof(
     if problems:
         return None, problems
     read_from = data.get("read_from")
-    # !! `read_from` IS CHECKED ONLY WHERE THERE IS A FIRST COPY TO CHECK IT
-    # AGAINST. `desk.proof.gather` writes `{}` for an empty `edit_copies` --
-    # there is no first copy to take it from -- so refusing `{}` here for a
-    # proof carrying none would refuse a shape `gather` itself produces.
-    if copies:
+    # !! THE HEADER IS HELD TO A SHAPE WHETHER OR NOT THERE ARE COPIES, and was
+    # not until 2026-08-31. `_read_from_problem` ran inside the `if copies:`
+    # below, so a proof carrying none admitted ANY value: MEASURED with
+    # `edit_copies: []`, all of `'oops'`, None, 7, [], {'root': 7} and
+    # {'junk': 1} returned `problems == []`, and the two dict-shaped ones were
+    # carried into `MasterProof.read_from` VERBATIM. Those are exactly the two
+    # `desk/collator.py:467-470` records as the reason this helper was reused
+    # instead of a hand-rolled `isinstance(..., dict) and truthy` -- so the
+    # validator had re-acquired the defect its own comment exists to explain.
+    #
+    # ! `{}` IS STILL ADMITTED, AND ONLY FOR AN EMPTY PROOF. `desk.proof.gather`
+    # writes it when there is no first copy to take a `read_from` from, so
+    # refusing it would refuse a shape the producer itself makes. That is the
+    # one exemption; it is not a licence for every other value.
+    #
+    # !! THE DEFAULT IS WHAT SEPARATES AN ABSENT KEY FROM A NULL ONE, and the
+    # two must not be folded together here. `.get("read_from", {})` returns `{}`
+    # for an absent key -- exempt, the shape two of this module's own tests hand
+    # in -- and `None` for a key PRESENT and holding null, which is checked and
+    # refused. Reading `data.get("read_from")` would give `None` for both and
+    # admit the null, which is the four-characters-of-"None" class of defect
+    # `parse_sheet` and `parse_master_proof` each already guard.
+    if copies or data.get("read_from", {}) != {}:
         why_header = _read_from_problem(data)
         if why_header:
             return None, [f"{where}: master_proof's {why_header}"]
+    # !! THE COMPARISON AGAINST THE FIRST COPY STILL NEEDS ONE. An empty proof
+    # has no first copy to disagree with.
+    if copies:
         if read_from != copies[0].read_from:
             return None, [
                 f"{where}: `read_from` {read_from!r} disagrees with the "

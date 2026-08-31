@@ -330,6 +330,27 @@ class TestTheEnvelope:
         got = collate("4c", bad + good, binder)
         assert {p.role for p in got.problems} == {"block-context", "function-context"}
 
+    def test_the_master_proof_is_parsed_at_its_own_boundary(self, monkeypatch):
+        """`P21`, `Process: #57` one level up. `gather` builds the proof and
+        nothing states what a proof IS before `reconcile` walks it.
+
+        ! THE PROOF IS BUILT INSIDE `collate`, so the only way to hand it a
+        malformed one is to make `gather` return it. That is a seam, not a
+        shape the chain can otherwise produce -- which is the point: the parse
+        exists for what a FUTURE change could put there.
+        """
+        binder = one_place()
+        copies = copies_over(
+            binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
+        )
+        monkeypatch.setattr(
+            "comment_review.flows.collate.gather",
+            lambda stage, edit_copies: {"stage": stage, "edit_copies": "nope"},
+        )
+        got = collate("4c", copies, binder)
+        assert any("edit_copies" in p.message for p in got.problems)
+        assert got.chief["sheets"] == []
+
     def test_a_copy_missing_its_sheets_is_still_reported(self):
         """`problems_in` already answers this one; the envelope must not make
         its report vanish by refusing first and returning a different message."""

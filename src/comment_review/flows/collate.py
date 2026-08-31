@@ -51,7 +51,12 @@ from comment_review.desk.collator import (
     tally,
     unruled,
 )
-from comment_review.desk.containers import EditCopy, Sheet, parse_edit_copy
+from comment_review.desk.containers import (
+    EditCopy,
+    Sheet,
+    parse_edit_copy,
+    parse_master_proof,
+)
 from comment_review.desk.mark import Instruction, Mark, parse, untouched
 from comment_review.desk.proof import gather
 from comment_review.reading.addresser import cue_of, unflatten
@@ -580,6 +585,25 @@ def collate(stage: str, edit_copies: list[dict], binder: dict) -> Collated:
         counts[role] = tally(copy)
 
     proof = gather(stage, [_reconcilable(copy) for copy in edit_copies])
+    # !! THE PROOF IS PARSED AT ITS OWN BOUNDARY, the same rule one level up --
+    # `P21`, `Process: #57`. `gather` builds it and nothing stated what a proof
+    # IS before `reconcile` walked it. ! IT REPORTS AND RETURNS EARLY, exactly
+    # as the copy boundary above does; the two differ only in what they hold.
+    #
+    # ! WHAT REACHES HERE IS NOT WHAT A ROLE HANDED BACK. Every copy has already
+    # parsed, so this cannot fire on a role's mistake -- it answers for what
+    # `gather` and `_reconcilable` between them produced. That makes it a guard
+    # on THIS code rather than on its input, which is why the test that proves
+    # it can fail has to replace `gather` to reach it.
+    _proof, why_proof = parse_master_proof(stage, proof)
+    if why_proof:
+        return Collated(
+            chief=EditCopy.seed(role="copy-chief", read_from={}, sheets=[]),
+            problems=problems + [Problem("copy-chief", "", m) for m in why_proof],
+            drift=drift,
+            unruled=left,
+            tally=counts,
+        )
     reconciled = reconcile(proof)
     resolved, escalations, rereads = _resolve(reconciled, base)
 

@@ -7,6 +7,7 @@ is the input, which is what the refusals are about.
 
 from dataclasses import fields
 
+import pytest
 from helpers import a_small_real_tree, binder_of
 
 from comment_review.desk.containers import (
@@ -104,6 +105,43 @@ class TestWhatTheChainBuilds:
         assert why == []
         assert got is not None
         assert got.role == "copy-chief"
+
+
+class TestAnEmptyProofStillHoldsItsHeader:
+    """`_read_from_problem` ran only `if copies:`, so a proof carrying no copies
+    admitted any `read_from` at all.
+
+    !! MEASURED 2026-08-30: all six values below returned `problems == []`, and
+    the two dict-shaped ones were carried into `MasterProof.read_from`
+    VERBATIM -- which are precisely the two `desk/collator.py:467-470` records
+    as the reason this helper was reused instead of a hand-rolled
+    `isinstance(..., dict) and truthy`. The validator had re-acquired the defect
+    its own comment exists to explain.
+    """
+
+    @pytest.mark.parametrize("junk", ["oops", None, 7, [], {"root": 7}, {"junk": 1}])
+    def test_an_empty_proof_still_holds_its_read_from_to_a_shape(self, junk):
+        _, problems = parse_master_proof(
+            "p", {"stage": "4c", "edit_copies": [], "read_from": junk}
+        )
+        assert problems != []
+
+    def test_an_empty_proof_with_an_empty_read_from_is_still_admitted(self):
+        """`gather` itself produces this shape -- the docstring's reasoning for
+        admitting `{}` was sound, and only the other five values were not."""
+        parsed, problems = parse_master_proof(
+            "p", {"stage": "4c", "edit_copies": [], "read_from": {}}
+        )
+        assert problems == []
+        assert parsed is not None
+        assert parsed.read_from == {}
+
+    def test_what_gather_writes_for_no_copies_still_parses(self):
+        """The round trip, so the admission above is measured against the real
+        producer rather than against a literal that agrees with it."""
+        parsed, problems = parse_master_proof("4c", gather("4c", []))
+        assert problems == []
+        assert parsed is not None
 
 
 class TestWhatItRefuses:
