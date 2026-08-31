@@ -2119,3 +2119,55 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **SO `verify_report` BELONGS IN THE FLOW** and `Process: #58` stands unchanged.
   `docs/superpowers/plans/2026-08-30-wire-the-containers.md` Task 3 was held pending this
   answer and proceeds.
+
+- **#63.** **COVERAGE IS REPORTED, NOT REFUSED, AND ITS EXPECTATION IS THE STAGE** (Roy,
+  2026-08-31, ruling on SP-2's scope). `P26` had been written as *"refuses or reports"* and
+  `P27` as a bare *"is named"*, which left the behaviour undecided in the plan itself.
+
+  !! **A MISSING ANSWER IS A PROBLEM THAT ROUTES, NOT A REFUSAL THAT VOIDS THE ROUND.** A role
+  that returned nothing, or that answered for three of the four pages in its shard, is named
+  and the places that DID come back still settle. ! It follows the standing rule that errors
+  stack and each be read off and sent back to the role that owes it -- **and finding #6 of the
+  2026-08-30 review is what makes refusing here expensive**: `commands/collate.py:135` catches
+  around the whole `collate()` call, so any raise discards every `Problem` the fold already
+  computed. Adding a third refusal to that boundary would have widened a measured defect.
+
+  !! **SHARD COVERAGE NEEDS NO NEW INPUT, WHICH IS WHAT SHRANK THIS STEP.** `collate` already
+  takes the binder, and it must be the WHOLE binder -- `base_texts(binder)` needs every address,
+  so it cannot be a shard. `P27` is therefore `flows.fan_out.fan`'s own `UncoveredPage` check run
+  over the RETURN instead of the DISPATCH: per role, the union of its copies' sheet paths against
+  the binder's pages.
+
+  !! **STAGE COVERAGE CANNOT BE ANSWERED THE SAME WAY, BECAUSE AN ABSENT COPY LEAVES NOTHING
+  BEHIND.** `flows/distribute.py:80-86` stamps a copy with `role`, `read_from` and `sheets` and no
+  dispatch identity, so a role that returned nothing is indistinguishable from a role that was
+  never asked. **`collate` takes the `Stage`**, and the topology is the right authority because it
+  IS what `fan` partitioned -- `P32` makes it verified against the tree before a page is read.
+
+  ! **THE COST IS NAMED RATHER THAN DISCOVERED: A REVISE ROUND RE-SENDS ONLY THE ROLES WITH
+  UNRESOLVED PLACES**, which is a shorter list than the topology's. SP-5 narrows the expectation
+  when it builds that round; until then there is no second round to over-expect for.
+
+  ! **STAMPING THE SHARD ONTO THE COPY WAS CONSIDERED AND DOES NOT ANSWER THIS.** It would answer
+  `P27` and would fix the `unruled`/`tally` clobber under fan-out (finding #9), but it cannot
+  answer `P26` at all, for the reason above. It stays available as the fix for #9.
+
+- **#64.** **A CONTAINER IS WRITTEN THROUGH ITS TYPE, THE WAY A MARK IS** (Roy, 2026-08-31,
+  ruling on SP-2's scope). `Sheet`, `EditCopy` and `MasterProof` get `seed` classmethods built
+  from the dataclass's own field names, and the literal spellings at their producer sites go.
+
+  !! **IT IS THE DEFECT `Mark.seed` ALREADY CLOSED ONE LAYER DOWN.** `desk/mark.py:329-332`
+  records it: the write half of the round trip did not live with the read half until 2026-08-30,
+  so renaming a field left another module writing the old key and **nothing could notice** --
+  `parse` would simply find the field absent. MEASURED 2026-08-30 in the review: renaming
+  `Sheet.sha` leaves `parse_sheet("s", {"path": "m.py", "marks": []})` returning
+  `Sheet(path='m.py', sha='', marks=())` with `problems=[]`, where `Mark.seed` raises
+  `AttributeError` at the point the row is built.
+
+  ! **THE PRODUCER SITES ARE `flows/distribute.py`, `flows/collate.py` AND `desk/proof.py`.**
+  `desk/collator.py` writes no container -- its `path`/`sha`/`role`/`alterations` page is a
+  DOCKET page, which is a different artifact and keeps its own spelling.
+
+  ! **`desk/containers.py` DECLARES *"THE TYPE IS THE DEFINITION AND THERE IS NO MARKDOWN
+  SOURCE"* AT `:10`**, and shipped three parsers and nothing that writes. The claim is what this
+  ruling makes true rather than aspirational.
