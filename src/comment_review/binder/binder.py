@@ -25,22 +25,31 @@ and one module both sides import is the fix rather than the compromise. Roy:
 *"we should have a module that does the serialization/deserialization work not
 just let each parse its own."*
 
-!! IT IS NOT A METHOD ON `Page`, AND THAT IS DELIBERATE. `vars(b)` WAS the wire
-format once -- the internals as protocol, unable to diverge without breaking
-silently -- and a `.to_dict()` puts that decision back inside the object in a
-politer form. What an agent sees is an EDITORIAL ruling (`decision-log.md
-Addressing: #12`), not a fact about what a `Paragraph` is. ! And one page serves
-two audiences that disagree: an agent gets SIX fields, no fences and no empty
-places, while the compositor needs every one of them or the file cannot be set
-back.
+!!! **IT IS A METHOD ON `Page` SINCE 2026-08-31, AND THIS SAID THE OPPOSITE.**
+Roy: *"the path and the sha can be put in the Page container and the
+serialization of the page container can deal with it."* `decision-log.md
+Process: #68`. What stands here is the ENVELOPE -- the version, the header, the
+list of pages -- and each page writes itself.
+
+!! **THE CONCERN THAT SENTENCE WAS DEFENDING IS REAL AND IS MET A DIFFERENT
+WAY.** It read *"`vars(b)` WAS the wire format once -- the internals as
+protocol, unable to diverge without breaking silently -- and a `.to_dict()`
+puts that decision back inside the object in a politer form."* ! The defect was
+never that the object serialized itself; it was that `vars()` made EVERY field
+the format. `page._place` names five, and a field added to `Paragraph`
+tomorrow reaches no agent. What an agent sees stays an EDITORIAL ruling
+(`Addressing: #12`), not a fact about what a `Paragraph` is.
+
+! **AND ONE PAGE SERVES TWO AUDIENCES THAT DISAGREE**, which is what the two
+page types are: an agent gets five fields, no fences and no empty places, while
+the compositor needs every one of them or the file cannot be set back -- so the
+compositor reads the file from disk and never a binder.
 """
 
 from dataclasses import dataclass
 
-from comment_review.binder.page import Page
-from comment_review.reading.addresser import address_for
+from comment_review.binder.page import Page, RedactedPage
 from comment_review.reading.lexer import Paragraph
-from comment_review.reading.series import Kind
 
 # ! The shape's own version, so a reader can say WHICH format it refused rather
 # than only that it could not read one.
@@ -61,67 +70,6 @@ from comment_review.reading.series import Kind
 # #67`. ! `seed` no longer raises; it cannot be handed a binder without the
 # field.
 VERSION = "2"
-
-
-def page_row(paragraph: Paragraph, path: str = "") -> "BinderRow":
-    """One paragraph as an agent receives it.
-
-    !! FIVE FIELDS, RULED ONE BY ONE -- `decision-log.md Addressing: #12`. The
-    row carried nineteen until 2026-08-24; eleven went, and `path` moved to the
-    page that holds the row rather than being repeated on every one of them.
-
-    ! THE PROSE LEAVES AS ONE STRING. Roy: *"LLMs and the token parsers read
-    this as a complete and coherent statement. They do not read this as the same
-    thing: ['LLMs and the token', 'parsers read this as a', ...]."* The four
-    reviewers ARE token parsers and prose is what they judge, so fragments make
-    each role reassemble the sentence before it can ask whether it is true.
-
-    Args:
-        paragraph: the place being carried.
-        path: the page that holds it, so the row can carry its own address.
-            Defaults to `""` for a caller building one row out of context;
-            `bind` always states it.
-
-    Returns:
-        A `BinderRow`. ! IT RETURNED THE WIRE DICT UNTIL 2026-08-31 and now
-        returns the container -- `decision-log.md Process: #67`. The five
-        fields above are what `BinderRow.serialize` writes back out, so the
-        format this docstring describes is unchanged.
-    """
-    values = {
-        "cue": paragraph.address.split("@")[-1],
-        # !! `kind` IS GONE AGAIN, AND THE ORIGINAL RULING WAS RIGHT. It read
-        # *"they are stating something that the cue letter states"*; I put it
-        # back on 2026-08-25 arguing the letter gives the SERIES while the kind
-        # gives which half of the pair. Both are true, and the second stopped
-        # mattering the moment ABSENT PLACES STOPPED BEING SENT: every row a
-        # reviewer receives holds prose, so its kind is its series' `present`
-        # and the letter states it after all.
-        #
-        # ! MEASURED before the cut, over 14,139 rows: `kind` equalled
-        # `derive(cue, raw_text)` in 14,136 of them. The three exceptions are
-        # `go`, `ruby` and `lua`, where the kind DISAGREES with the cue -- a
-        # defect, filed, and not information.
-        "anchor": paragraph.anchor,
-        # !! `anchor_num` LEFT ON 2026-08-25, and it is the one cut made on the
-        # expectation that it MIGHT come back. Roy: *"lets drop it and add it
-        # back if it actually becomes necessary. That is safe now."* It was kept
-        # in 2026-08-21 because the galley and compositor were thought to need
-        # an order the cues could not be trusted to carry -- and the chain ruled
-        # since (`Process: #14`) has the write path RELOAD the page from disk,
-        # so it takes the anchor order from the page and never from a row.
-        #
-        # ! MEASURED before removing it: NOTHING read it from a row. `page`
-        # stamps it and `addresser` computes it, both on the page side.
-        "original_start": paragraph.original_start,
-        "original_end": paragraph.original_end,
-        "raw_text": "\n".join(paragraph.raw_lines),
-    }
-    return BinderRow(
-        path=path,
-        address=address_for(path, values["cue"]),
-        **values,
-    )
 
 
 def bind(pages: list[Page], read_from: dict, absent: bool = False) -> "Binder":
@@ -185,21 +133,14 @@ def bind(pages: list[Page], read_from: dict, absent: bool = False) -> "Binder":
     why = _read_from_problem({"read_from": read_from})
     if why:
         raise ValueError(why)
+    # !! `absent` CHOOSES THE PAGE TYPE, IT DOES NOT FILTER A ROW LIST --
+    # `decision-log.md Process: #68`. A `Page` serializes every addressed place;
+    # a `RedactedPage` serializes the ones holding prose. The cut is the page's
+    # own, at the one moment it knows what it is being asked for.
     return Binder(
         version=VERSION,
         read_from={**read_from},
-        pages=tuple(
-            BinderPage(
-                path=page.path,
-                sha=page.sha,
-                rows=tuple(
-                    page_row(b, page.path)
-                    for b in page.paragraphs
-                    if b.address and (absent or not Kind.holds_no_prose(b.kind))
-                ),
-            )
-            for page in pages
-        ),
+        pages=tuple(page if absent else RedactedPage.of(page) for page in pages),
     )
 
 
@@ -249,196 +190,6 @@ def _not_a(where: str, noun: str, value: object) -> str:
 
 
 @dataclass(frozen=True)
-class BinderRow:
-    """One paragraph, as an agent receives it and as a consumer holds it.
-
-    Attributes:
-        cue: the place's own cue -- `b1`, `a0`.
-        anchor: the line of code the prose answers to.
-        original_start: the paragraph's first line on the page, 1-based.
-        original_end: its last.
-        raw_text: the prose, as ONE string -- see `page_row` for why it is not
-            split into lines.
-        path: the page holding this row, put back by `BinderPage.deserialize`.
-        address: `path@cue`, composed by `address_for`.
-
-    !! `path` AND `address` ARE DERIVED AND ARE NOT ON THE WIRE, which is what
-    `rows_of` did for every consumer until 2026-08-31. The file is stored once
-    per page because repeating it per row is the same string as many times as
-    the file has paragraphs; every consumer still wants both per row, so the
-    page rejoins them at DESERIALIZE rather than four callers each remembering
-    to. ! `serialize` emits the five wire fields alone, which is what keeps the
-    round trip an identity.
-
-    ! `address_for` COMPOSES THE ADDRESS, not an f-string here. It is the only
-    place the two halves are joined and it flattens the path itself -- the
-    compositor was MEASURED disagreeing with itself on 2026-08-22 for
-    re-deriving exactly this.
-    """
-
-    cue: str
-    anchor: str
-    original_start: int | None
-    original_end: int | None
-    raw_text: str
-    path: str
-    address: str
-    # !! THE LINE NUMBERS ARE `int | None` HERE AND `int` OFF THE WIRE, AND THAT
-    # IS NOT A CONTRADICTION -- the two constructors have different sources.
-    # `page_row` builds from a `Paragraph`, whose own fields are `int | None`:
-    # its `__post_init__` fills them from `start`/`end` only when BOTH are None,
-    # so one can survive unset. `deserialize` reads a WRITTEN binder, where a
-    # line number that is not an integer is a malformed artifact and is refused
-    # by name. ! The field admits what a page can produce; the boundary admits
-    # only what a valid file holds, which is the stricter of the two.
-
-    @classmethod
-    def deserialize(
-        cls, where: str, data: object, path: str
-    ) -> "tuple[BinderRow | None, list[str]]":
-        """One row, checked, and stamped with the page that holds it.
-
-        Args:
-            where: how to name this row in a message.
-            data: one entry of a page's `rows`, as the load produced it.
-            path: the owning page's real repo path. Context the row cannot
-                know, the way `where` is -- it is stored once per page.
-
-        Returns:
-            `(BinderRow, [])` or `(None, [messages])`.
-
-        !! THE `cue` IS WHAT MAKES A ROW ADDRESSABLE, so a row without one is
-        refused rather than folded to `""`. `rows_of` did fold it, and
-        `address_for(path, "")` answers a real-looking address that names no
-        place -- which `tests/test_binder.py` pinned as expected behaviour.
-        """
-        if not isinstance(data, dict):
-            return None, [_not_a(where, "a row", data)]
-        cue = data.get("cue")
-        if not isinstance(cue, str) or not cue.strip():
-            return None, [f"{where}: a row needs the `cue` of the place it holds"]
-        problems: list[str] = []
-        # !! EACH VALUE IS BOUND AS IT IS CHECKED, not re-read at construction.
-        # Re-reading `data["anchor"]` below the loop hands back `object`,
-        # because a loop back-edge invalidates the `isinstance` narrow -- the
-        # same fact `desk.containers.parse_edit_copy` records and answers with a
-        # declaration. ! HERE THE ANSWER IS TO KEEP WHAT WAS CHECKED, which is
-        # stronger than re-declaring the type: there is no second read that
-        # could see a different value.
-        text: dict[str, str] = {}
-        for name in ("anchor", "raw_text"):
-            value = data.get(name)
-            if isinstance(value, str):
-                text[name] = value
-            else:
-                problems.append(f"{where}: {cue} needs a `{name}` string")
-        lines: dict[str, int] = {}
-        for name in ("original_start", "original_end"):
-            # ! `bool` IS AN `int` IN PYTHON and is refused here on purpose: a
-            # JSON `true` in a line number is a malformed artifact, not a line.
-            value = data.get(name)
-            if isinstance(value, int) and not isinstance(value, bool):
-                lines[name] = value
-            else:
-                problems.append(f"{where}: {cue} needs an `{name}` line number")
-        if problems:
-            return None, problems
-        return (
-            cls(
-                cue=cue,
-                anchor=text["anchor"],
-                original_start=lines["original_start"],
-                original_end=lines["original_end"],
-                raw_text=text["raw_text"],
-                path=path,
-                address=address_for(path, cue),
-            ),
-            [],
-        )
-
-    def serialize(self) -> dict:
-        """This row as the wire dict, the five fields `page_row` writes."""
-        return {
-            "cue": self.cue,
-            "anchor": self.anchor,
-            "original_start": self.original_start,
-            "original_end": self.original_end,
-            "raw_text": self.raw_text,
-        }
-
-
-@dataclass(frozen=True)
-class BinderPage:
-    """One file in the binder, and the places on it an agent rules on.
-
-    Attributes:
-        path: the file's real repo path.
-        sha: its digest when it was censused, from `machine.repo.sha_of`.
-        rows: one per place carried. An EMPTY tuple is ordinary -- a page whose
-            every place is absent carries no rows, and `bind`'s `absent`
-            argument is what decides that.
-    """
-
-    path: str
-    sha: str
-    rows: tuple[BinderRow, ...]
-
-    @classmethod
-    def deserialize(
-        cls, where: str, data: object
-    ) -> "tuple[BinderPage | None, list[str]]":
-        """One page and every row on it, checked.
-
-        ! EVERY BAD ROW IS REPORTED, not the first, matching
-        `desk.containers.parse_edit_copy`: a page handed back with two
-        malformed rows is two things to fix.
-
-        Returns:
-            `(BinderPage, [])` or `(None, [messages])`.
-        """
-        if not isinstance(data, dict):
-            return None, [_not_a(where, "a page", data)]
-        path = data.get("path")
-        if not isinstance(path, str) or not path.strip():
-            return None, [f"{where}: a page needs the `path` of the file it holds"]
-        raw_rows = data.get("rows", [])
-        if not isinstance(raw_rows, list):
-            where_rows = f"{where}: {path}: `rows`"
-            return None, [_not_a(where_rows, "a list of rows", raw_rows)]
-        rows: list[BinderRow] = []
-        problems: list[str] = []
-        for n, raw in enumerate(raw_rows):
-            row, why = BinderRow.deserialize(f"{where}: {path} row {n}", raw, path)
-            if row is None:
-                problems += why
-            else:
-                rows.append(row)
-        if problems:
-            return None, problems
-        # ! AN ABSENT OR NULL `sha` IS ADMITTED AS "", the fold
-        # `desk.containers.parse_sheet` carries and for the same reason -- and
-        # `desk.containers-and-verification-are-unwired` T9 holds the open
-        # question of whether it should be.
-        raw_sha = data.get("sha")
-        return (
-            cls(
-                path=path,
-                sha=raw_sha if isinstance(raw_sha, str) else "",
-                rows=tuple(rows),
-            ),
-            [],
-        )
-
-    def serialize(self) -> dict:
-        """This page as the wire dict `bind` writes."""
-        return {
-            "path": self.path,
-            "sha": self.sha,
-            "rows": [row.serialize() for row in self.rows],
-        }
-
-
-@dataclass(frozen=True)
 class Binder:
     """Every page in scope, as the artifact the gatherer hands over.
 
@@ -459,7 +210,7 @@ class Binder:
 
     version: str
     read_from: dict
-    pages: tuple[BinderPage, ...]
+    pages: tuple[Page | RedactedPage, ...]
 
     @classmethod
     def deserialize(cls, where: str, data: object) -> "tuple[Binder | None, list[str]]":
@@ -485,8 +236,13 @@ class Binder:
         field, so nothing there ruled on one -- the checks stopped at `pages`
         being a list of dicts of dicts. **That rule does not survive a
         container**: a `Binder` promises its fields to everything downstream,
-        so a page with no `path` and a row with no `cue` are refused BY NAME
+        so a page with no `path` and a place with no `cue` are refused BY NAME
         here rather than folded to `""` by whichever consumer met them first.
+
+        !! EVERYTHING READ BACK IS A `RedactedPage`, whichever kind was written --
+        `decision-log.md Process: #68`. Neither page type serializes its source
+        text, so a binder off disk cannot rebuild a `Page`, and claiming it
+        could is the lie a redaction exists to prevent.
         """
         if not isinstance(data, dict):
             return None, [_not_a(where, "a binder", data)]
@@ -503,10 +259,10 @@ class Binder:
         raw_pages = checked["pages"]
         if not isinstance(raw_pages, list):
             return None, [_not_a(f"{where}: `pages`", "a list of pages", raw_pages)]
-        pages: list[BinderPage] = []
+        pages: list[Page | RedactedPage] = []
         problems: list[str] = []
         for n, raw in enumerate(raw_pages):
-            page, why = BinderPage.deserialize(f"{where}: page {n}", raw)
+            page, why = RedactedPage.deserialize(f"{where}: page {n}", raw)
             if page is None:
                 problems += why
             else:
@@ -542,10 +298,19 @@ class Binder:
         }
 
     @property
-    def rows(self) -> list[BinderRow]:
-        """Every row on every page, each already knowing its path and address.
+    def paragraphs(self) -> list[Paragraph]:
+        """Every ADDRESSED paragraph on every page, in the binder's own order.
 
-        ! THIS IS WHAT `rows_of` ANSWERED, and the rejoining moved to
-        `BinderRow.deserialize` -- see there. What is left here is the walk.
+        !! A FENCE IS NEVER CARRIED, ASKED FOR OR NOT -- `bind`'s own rule, and
+        this is where it now holds. It names no place, so there is nothing to
+        cite and nothing to rule on. ! `bind` used to apply it while building a
+        row list; a `Page` holds every paragraph it read, fences included, so
+        the rule moved to the two places that hand places out: here, and
+        `Page.serialize`. **They filter alike, so what a binder carries in
+        memory and what it writes are the same set.**
+
+        ! THIS IS WHAT `rows_of` ANSWERED, and it was `.rows` of an invented row
+        type for three hours on 2026-08-31 -- `decision-log.md Process: #68`. A
+        page holds paragraphs, so what is left here is the walk.
         """
-        return [row for page in self.pages for row in page.rows]
+        return [b for page in self.pages for b in page.paragraphs if b.address]

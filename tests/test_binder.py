@@ -7,9 +7,10 @@ The first of the two chains. Nothing here goes near the galley -- Roy,
 import json
 
 import pytest
-from conftest import PKG, READ_FROM, SAMPLE, build, by_cue
+from conftest import PKG, READ_FROM, SAMPLE, build, by_cue, cue
 
-from comment_review.binder.binder import VERSION, Binder, bind, page_row
+from comment_review.binder.binder import VERSION, Binder, bind
+from comment_review.binder.page import _place
 from comment_review.flows.census import carried
 from comment_review.machine.json_object import object_of
 
@@ -100,22 +101,22 @@ def test_no_fence_is_carried(binder):
     ! ASKED OF THE CUE, because the row no longer carries a kind -- and `d` is
     the one series a cue can never name, asked for or not.
     """
-    for row in binder.rows:
-        assert row.cue[:1] != "d"
+    for row in binder.paragraphs:
+        assert cue(row)[:1] != "d"
 
 
 def test_every_row_names_a_place(binder):
     """A row with no cue could not be cited, and would reach a reviewer as a
     question about nowhere."""
-    for row in binder.rows:
-        assert row.cue
+    for row in binder.paragraphs:
+        assert cue(row)
 
 
 def test_the_prose_leaves_as_ONE_STRING(binder):
     """Roy: *"LLMs and the token parsers read this as a complete and coherent
     statement. They do not read this as the same thing: ['LLMs and the token',
     'parsers read this as a', ...]"*. The four reviewers ARE token parsers."""
-    for row in binder.rows:
+    for row in binder.paragraphs:
         assert isinstance(row.raw_text, str)
 
 
@@ -123,7 +124,7 @@ def test_a_row_holds_every_line_its_paragraph_held(binder):
     """Stamping the page onto each row is the only transformation here, so
     nothing may be lost in it."""
     page = build(SAMPLE)
-    rows = {r.cue: r for r in binder.rows}
+    rows = {cue(b): b for b in binder.paragraphs}
     for c, paragraph in by_cue(page).items():
         if c in rows:
             assert rows[c].raw_text == "\n".join(paragraph.raw_lines)
@@ -141,22 +142,22 @@ def test_the_binder_carries_ONLY_the_places_holding_prose(binder):
     holding = {
         c for c, b in by_cue(page).items() if any(x.strip() for x in b.raw_lines)
     }
-    assert {r.cue for r in binder.rows} == holding
+    assert {cue(b) for b in binder.paragraphs} == holding
 
 
 def test_an_absent_place_is_carried_WHEN_ASKED_FOR():
     """It is dropped by default, not made unreachable."""
     page = build(SAMPLE)
-    asked = {r.cue for r in bind([page], read_from=READ_FROM, absent=True).rows}
+    asked = {cue(b) for b in bind([page], read_from=READ_FROM, absent=True).paragraphs}
     assert asked == set(by_cue(page))
-    assert len(asked) > len(bind([page], read_from=READ_FROM).rows)
+    assert len(asked) > len(bind([page], read_from=READ_FROM).paragraphs)
 
 
 def test_a_file_with_no_prose_at_all_carries_NO_ROWS():
     """Nothing to rule on is an empty page, not an error -- and not a page of
     empty places either."""
     binder = bind([build("x = 1\ny = 2\n")], read_from=READ_FROM)
-    assert binder.pages[0].rows == ()
+    assert binder.pages[0].paragraphs == []
     assert binder.pages[0].path
 
 
@@ -177,23 +178,24 @@ def test_carried_drops_fences_and_keeps_everything_else():
     assert len(kept) == len([b for b in page.paragraphs if b.address])
 
 
-class TestARowKnowsThePageThatHoldsIt:
-    """The page stores its path ONCE and each row carries it back.
+class TestAPlaceKnowsThePageThatHoldsIt:
+    """The page stores its path ONCE and each paragraph carries it.
 
-    ! IT WAS `rows_of` THAT REJOINED THEM until 2026-08-31 and is now
-    `BinderRow`, which holds both as fields -- `Process: #67`. The question is
-    unchanged: a consumer wants the path and the address per row, and the wire
-    stores the path per page.
+    ! IT WAS `rows_of` THAT REJOINED THEM, then an invented `BinderRow` for
+    three hours on 2026-08-31, and is now the `Paragraph` -- which had both
+    fields all along. `decision-log.md Process: #68`. The question is unchanged:
+    a consumer wants the path and the address per place, and the wire stores the
+    path per page.
     """
 
     def test_the_path_comes_back_on_every_row(self, binder):
-        assert all(r.path == "m.py" for r in binder.rows)
+        assert all(b.path == "m.py" for b in binder.paragraphs)
 
     def test_the_address_is_composed_not_stored(self, binder, wire):
         """`address_for` joins the halves and flattens the path -- the
         compositor was measured disagreeing with itself for re-deriving it."""
         page = build(SAMPLE)
-        got = {r.address for r in binder.rows}
+        got = {b.address for b in binder.paragraphs}
         holding = {
             b.address
             for b in page.paragraphs
@@ -232,24 +234,34 @@ class TestARowKnowsThePageThatHoldsIt:
             [build("# one\nx = 1\n", "a.py"), build("# two\ny = 2\n", "b/c.py")],
             read_from=READ_FROM,
         )
-        assert {r.path for r in binder.rows} == {"a.py", "b/c.py"}
+        assert {b.path for b in binder.paragraphs} == {"a.py", "b/c.py"}
 
 
 class TestAReaderRefusesRatherThanCoping:
     """A guess that is wrong reads as an EMPTY binder, and downstream that is
     indistinguishable from a run with nothing to do."""
 
-    def test_the_ROUND_TRIP_is_an_identity(self, binder, wire):
-        """serialize -> dumps -> loads -> deserialize gives the same binder.
+    def test_the_ROUND_TRIP_IS_AN_IDENTITY_ON_WHAT_THE_WIRE_CARRIES(self, wire):
+        """serialize -> dumps -> loads -> deserialize -> serialize is the same.
 
-        ! IT COMPARED THE TWO DICTS UNTIL 2026-08-31 (`got == binder`, both
-        wire). Comparing the CONTAINERS is the stronger claim: two dicts agree
-        when both are wrong in the same way, and `Binder.__eq__` reaches every
-        field of every page and every row.
+        !! IT IS NOT AN IDENTITY ON THE CONTAINERS, AND THAT IS WHAT REDACTED
+        MEANS. For one commit this asserted `got == binder`, comparing the
+        objects on the argument that two dicts can agree while both are wrong.
+        **It fails, correctly**: a `Paragraph` carries `start`, `end`, `kind`,
+        `lines`, `declares`, `symbol`, `annotations`, `notes` and
+        `original_column`, and the wire carries five fields. `original_column`
+        is the one that shows it -- 17 on the page, 0 on the way back.
+
+        ! SO THE HONEST CLAIM IS THE ONE THE FORMAT MAKES: what survives is
+        exactly what was written. A test asserting object equality would have
+        forced the wire to grow fields nothing reads, which is the pressure
+        `Addressing: #12` cut nineteen fields down to five to relieve.
+        `decision-log.md Process: #68`.
         """
         got, why = read(json.dumps(wire))
         assert why == ""
-        assert got == binder
+        assert got is not None
+        assert got.serialize() == wire
 
     @pytest.mark.parametrize(
         ("text", "expected"),
@@ -273,7 +285,7 @@ class TestAReaderRefusesRatherThanCoping:
             ('{"pages": "oops"}', "`pages`: a JSON str"),
             ('{"pages": {"a": 1}}', "`pages`: a JSON dict"),
             ('{"pages": [1, 2]}', "page 0: a JSON int"),
-            ('{"pages": [{"path": "m.py", "rows": "oops"}]}', "`rows`: a JSON str"),
+            ('{"pages": [{"path": "m.py", "rows": "oops"}]}', "`rows` is a JSON str"),
             ('{"pages": [{"path": "m.py", "rows": [7]}]}', "row 0: a JSON int"),
         ],
     )
@@ -310,9 +322,17 @@ class TestAReaderRefusesRatherThanCoping:
             (
                 {
                     "path": "m.py",
-                    "rows": [{"cue": "b1", "anchor": "x", "raw_text": "y"}],
+                    "rows": [
+                        {
+                            "cue": "b1",
+                            "anchor": "x",
+                            "raw_text": "y",
+                            "original_start": "seven",
+                            "original_end": 7,
+                        }
+                    ],
                 },
-                "b1 needs an `original_start` line number",
+                "b1 needs an `original_start` line number or null",
             ),
         ],
     )
@@ -332,6 +352,45 @@ class TestAReaderRefusesRatherThanCoping:
         assert got is None
         assert expected in why
 
+    def test_a_place_standing_on_NO_LINES_is_admitted(self):
+        """!! NULL LINE NUMBERS ARE A REAL PLACE, NOT A PARTIAL ONE. An EMPTY
+        place stands on nothing -- `Paragraph.__post_init__` spells that `None`
+        -- and a `Page` written with `absent=True` carries exactly it. Refusing
+        would refuse a shape `bind` itself produces.
+
+        ! SO THE PAIR IS OPTIONAL AND THE `cue` IS NOT, which is the split
+        `Process: #68` measured: the cue is what makes a place ADDRESSABLE, and
+        the line numbers are read by one diagnostic message.
+        """
+        got, why = read(
+            json.dumps(
+                {
+                    "version": VERSION,
+                    "read_from": READ_FROM,
+                    "pages": [
+                        {
+                            "path": "m.py",
+                            "sha": "abc",
+                            "rows": [
+                                {
+                                    "cue": "b1",
+                                    "anchor": "x",
+                                    "raw_text": "",
+                                    "original_start": None,
+                                    "original_end": None,
+                                }
+                            ],
+                        }
+                    ],
+                }
+            )
+        )
+        assert why == ""
+        assert got is not None
+        (place,) = got.paragraphs
+        assert place.original_start is None
+        assert place.address == "m.py@b1"
+
     def test_a_binder_with_no_read_from_is_refused(self):
         """The version "1" artifact. It is refused for `read_from` only AFTER
         the pages read, so a malformed-`pages` file is not blamed on a header
@@ -344,7 +403,7 @@ class TestAReaderRefusesRatherThanCoping:
         """The shape the census emitted before the envelope. Three commands each
         guessed at it a different way and a fourth did not guess at all."""
         page = build(SAMPLE)
-        old = json.dumps([page_row(b, "m.py").serialize() for b in carried(page)])
+        old = json.dumps([_place(b) for b in carried(page)])
         got, why = read(old)
         assert got is None
         assert why

@@ -86,10 +86,9 @@ def seed(binder: Binder, role: str) -> dict:
     #
     # !! THE ADDRESS IS THE ROW'S OWN, AND WAS RECOMPOSED HERE UNTIL 2026-08-31.
     # This read `address_for(page["path"], row["cue"])` -- the identical
-    # composition `BinderRow` now performs once, at deserialize. A second site
-    # computing an address is the defect `binder.rows_of`'s own comment records
-    # the compositor being MEASURED on for 2026-08-22, and the container is what
-    # leaves only one.
+    # composition a `Paragraph` already carries. A second site computing an
+    # address is the defect the binder's own prose records the compositor being
+    # MEASURED on for 2026-08-22, and the container is what leaves only one.
     return EditCopy.seed(
         role=role,
         read_from=binder.read_from,
@@ -98,8 +97,7 @@ def seed(binder: Binder, role: str) -> dict:
                 path=page.path,
                 sha=page.sha,
                 marks=[
-                    Mark.seed(row.address, row.anchor, row.raw_text)
-                    for row in page.rows
+                    Mark.seed(b.address, b.anchor, b.raw_text) for b in page.paragraphs
                 ],
             )
             for page in binder.pages

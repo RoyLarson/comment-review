@@ -203,6 +203,29 @@ class Paragraph:
     # claim the prose makes. The lexical tier's own comment says that defect was
     # fixed; it was fixed on one tier.
     raw_lines: list[str] = field(default_factory=list)
+
+    @property
+    def raw_text(self) -> str:
+        """This paragraph's own characters, as ONE string.
+
+        !! THE PROSE LEAVES AS ONE STRING. Roy: *"LLMs and the token parsers
+        read this as a complete and coherent statement. They do not read this as
+        the same thing: ['LLMs and the token', 'parsers read this as a', ...]."*
+        The four reviewers ARE token parsers and prose is what they judge, so
+        fragments make each role reassemble the sentence before it can ask
+        whether it is true.
+
+        ! IT IS DERIVED, NOT STORED, and that is what keeps it honest: it is
+        `raw_lines` joined, so it cannot drift from the characters the file
+        holds. `binder.page._place` writes exactly this as the wire's
+        `raw_text`, and `_paragraph` reads it back into `raw_lines`.
+
+        ! NOT `text`. That is the run joined for MATCHING -- what a claim is
+        checked against -- and the two differ wherever the lexer trimmed. A
+        consumer that means the characters means this one.
+        """
+        return "\n".join(self.raw_lines)
+
     # !! THE LINES THIS PARAGRAPH COVERS IN THE FILE AS IT READS NOW. That is
     # the whole definition, and it is NOT always the range that ADDRESSES the
     # paragraph. A prose paragraph is replaced, so the two coincide. An empty

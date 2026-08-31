@@ -103,12 +103,12 @@ def known_addresses(binder: Binder) -> frozenset[str]:
 
     Args:
         binder: the deserialized binder. Each row already knows its own path
-            and address -- `BinderRow` rejoins them at deserialize.
+            and address -- a page rejoins them when it is read back.
 
     Returns:
         The addresses. A row carrying an empty one is dropped.
     """
-    return frozenset(row.address for row in binder.rows if row.address)
+    return frozenset(b.address for b in binder.paragraphs if b.address)
 
 
 def base_texts(binder: Binder) -> dict[str, str]:
@@ -128,7 +128,7 @@ def base_texts(binder: Binder) -> dict[str, str]:
         address -> that place's `raw_text`. A row carrying no address is
         dropped, matching `known_addresses`.
     """
-    return {row.address: row.raw_text for row in binder.rows if row.address}
+    return {b.address: b.raw_text for b in binder.paragraphs if b.address}
 
 
 def address_problems(where: str, mark: Mark, known: frozenset[str]) -> list[str]:

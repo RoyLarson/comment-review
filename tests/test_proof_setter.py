@@ -8,7 +8,7 @@ sequence cannot show you.
 from pathlib import Path
 
 import pytest
-from conftest import PKG, SAMPLE, build, by_cue, docket_from
+from conftest import PKG, SAMPLE, build, by_cue, cue, docket_from
 
 from comment_review.binder.binder import bind
 from comment_review.docket.docket import Docket
@@ -66,10 +66,10 @@ def address(binder, path: str, series: str = "b") -> str:
     fixture could not disagree with the code because the fixture was written to
     match it.
 
-    ! IT ASKS `Binder.rows`, which is what a caller of this chain has.
+    ! IT ASKS `Binder.paragraphs`, which is what a caller of this chain has.
     """
-    for row in binder.rows:
-        if row.path == path and row.cue.startswith(series) and row.raw_text.strip():
+    for row in binder.paragraphs:
+        if row.path == path and cue(row).startswith(series) and row.raw_text.strip():
             return row.address
     raise AssertionError(f"no filled {series} row for {path}")
 

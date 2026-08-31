@@ -68,8 +68,8 @@ def test_an_address_that_disappeared_is_listed(tmp_path, capsys):
     # removing comment lines renumbers the places below them, so other
     # addresses change anyway. What only the union can answer is the set that
     # DISAPPEARED, so that set is what is named.
-    before = {r.address for r in binder_of(repo, 0).rows}
-    after = {r.address for r in binder_of(revise, 1).rows}
+    before = {r.address for r in binder_of(repo, 0).paragraphs}
+    after = {r.address for r in binder_of(revise, 1).paragraphs}
     gone = before - after
     assert gone, "the fixture removed no address -- the test would be vacuous"
 

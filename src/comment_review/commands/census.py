@@ -292,13 +292,13 @@ def _report(args: argparse.Namespace) -> int:
         # to print -- which is two full dict copies and a re-sort of every
         # annotation set over a census that runs to thousands of paragraphs.
         # !! THE GATE READS THE BINDER BACK, rather than checking the list that
-        # was about to be written. `Binder.rows` is what every consumer walks,
+        # was about to be written. `Binder.paragraphs` is what every consumer
         # so a shape it cannot read is caught HERE -- at the one moment the
         # writer and the reader are both present -- instead of at whichever
         # command opens the file next.
-        # ! IT NAMED `rows_of` UNTIL 2026-08-31, which was the same claim about
-        # the function that stamped each row's path and address; `BinderRow`
-        # holds both as fields now -- `decision-log.md Process: #67`.
+        # ! IT NAMED `rows_of` UNTIL 2026-08-31, the function that stamped each
+        # row's path and address. A `Paragraph` carries both -- `Process: #67`,
+        # `#68`.
         # !! RELATIVE TO `Path.cwd()`, RULED BY ROY 2026-08-28. This wrote
         # `str(repo)` on a RESOLVED path, so on Windows it emitted
         # `C:\\Users\\<name>\\projects\\...` into an artifact that is handed to
@@ -334,7 +334,7 @@ def _report(args: argparse.Namespace) -> int:
             read_from={"root": root, "revise": args.revise},
             absent=args.include_absent,
         )
-        missing = unaddressed(binder.rows)
+        missing = unaddressed(binder.paragraphs)
         if missing:
             print(_unaddressed(missing), file=sys.stderr)
             return 1
@@ -553,8 +553,7 @@ def _report(args: argparse.Namespace) -> int:
     # !! THE LAST OF THAT DETOUR WENT ON 2026-08-31 -- `Process: #67`. It read
     # `unaddressed([vars(b) for b in census])`: the row was gone and the
     # DICT-IFICATION remained, for no reason but a `list[dict]` signature.
-    # `unaddressed` now takes `binder.addresses.Addressed`, which a `Paragraph`
-    # already satisfies, so the paragraphs go in as themselves.
+    # `unaddressed` now takes a `Paragraph`, so they go in as themselves.
     missing = unaddressed(census)
     if missing:
         print("\n" + _unaddressed(missing))

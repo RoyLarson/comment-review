@@ -26,7 +26,7 @@ for `tests/test_collate.py`.
 
 from pathlib import Path
 
-from conftest import ROOT
+from conftest import ROOT, cue
 
 from comment_review.binder.binder import VERSION, Binder, bind
 from comment_review.desk.mark import ANCHOR_EXAMPLE, INSTRUCTIONS, Instruction, Shape
@@ -118,8 +118,8 @@ def _row(cue: str, text: str) -> dict:
 
     ! THE LINE NUMBERS ARE PRESENT AND ARBITRARY. Nothing these fixtures feed
     reads them -- the write path reloads the page from disk (`Process: #14`)
-    -- but `BinderRow.deserialize` requires them, so a fixture that left them
-    out would be asserting a binder shape no census produces.
+    -- but a page's own reader requires them, so a fixture that left them out
+    would be asserting a binder shape no census produces.
     """
     return {
         "cue": cue,
@@ -169,21 +169,21 @@ def a_docket_over(repo: Path, names: list[str]) -> Docket:
     for page in binder.pages:
         if Path(page.path).name not in remaining:
             continue
-        cue = next(
+        found = next(
             (
-                row.cue
-                for row in page.rows
-                if row.cue.startswith("b") and row.raw_text.strip()
+                cue(row)
+                for row in page.paragraphs
+                if cue(row).startswith("b") and row.raw_text.strip()
             ),
             None,
         )
-        if cue is None:
+        if found is None:
             continue
         pages.append(
             {
                 "path": page.path,
                 "sha": page.sha,
-                "alterations": [{"cue": cue, "text": "# revised by a_docket_over"}],
+                "alterations": [{"cue": found, "text": "# revised by a_docket_over"}],
             }
         )
         remaining.discard(Path(page.path).name)
@@ -263,7 +263,7 @@ def the_row_for(binder: Binder, name: str):
         name: the file basename to find the row on.
 
     Returns:
-        The row dict, as `binder.page_row` shapes one.
+        The paragraph, as the binder carries it.
 
     Raises:
         AssertionError: no page named `name`, or no filled `b` row on it.
@@ -271,8 +271,8 @@ def the_row_for(binder: Binder, name: str):
     for page in binder.pages:
         if Path(page.path).name != name:
             continue
-        for row in page.rows:
-            if row.cue.startswith("b") and row.raw_text.strip():
+        for row in page.paragraphs:
+            if cue(row).startswith("b") and row.raw_text.strip():
                 return row
         raise AssertionError(f"no filled 'b' row on {name!r}")
     raise AssertionError(f"no page named {name!r} in binder")

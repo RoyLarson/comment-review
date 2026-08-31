@@ -11,7 +11,7 @@ import json
 from dataclasses import replace
 
 import pytest
-from conftest import SAMPLE, build, by_cue
+from conftest import SAMPLE, build, by_cue, cue
 
 from comment_review.binder.binder import Binder, bind
 from comment_review.flows.carry import carry
@@ -42,7 +42,7 @@ def test_the_sample_HAS_places_the_binder_drops(tmp_path):
     measured -- so a reviewer never sees them and an `add` has nothing to
     cite."""
     _, binder, page = _tree(tmp_path)
-    carried = {r.cue for r in binder.pages[0].rows}
+    carried = {cue(b) for b in binder.pages[0].paragraphs}
     assert empty_cues(page)
     assert not (set(empty_cues(page)) & carried)
 
@@ -55,7 +55,7 @@ class TestTheThreeLookups:
         assert why == ""
         assert added == want
         assert updated is not None
-        assert want in {r.cue for r in updated.pages[0].rows}
+        assert want in {cue(b) for b in updated.pages[0].paragraphs}
 
     def test_by_line(self, tmp_path):
         """A `b` is the gap a line falls into -- `Cues.above`."""
@@ -180,7 +180,7 @@ def test_the_row_is_inserted_IN_READING_ORDER(tmp_path):
     assert why == ""
     assert updated is not None
     order = list(page.cues.reading)
-    cues = [r.cue for r in updated.pages[0].rows]
+    cues = [cue(b) for b in updated.pages[0].paragraphs]
     assert cues == sorted(cues, key=order.index)
 
 
@@ -190,8 +190,8 @@ def test_the_carried_row_is_EMPTY_and_shaped_like_every_other(tmp_path):
     repo, binder, page = _tree(tmp_path)
     updated, added, _ = carry(binder, page, "m.py", cue=empty_cues(page)[0])
     assert updated is not None
-    rows = updated.pages[0].rows
-    got = next(r for r in rows if r.cue == added)
+    rows = updated.pages[0].paragraphs
+    got = next(b for b in rows if cue(b) == added)
     assert got.raw_text == ""
     assert got.original_start is None and got.original_end is None
     assert got.anchor

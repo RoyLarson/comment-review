@@ -10,7 +10,7 @@ shape the code expects can only confirm.
 
 from dataclasses import replace
 
-from conftest import READ_FROM, SAMPLE, build
+from conftest import READ_FROM, SAMPLE, build, cue
 
 from comment_review.binder.addresses import for_anchor, unaddressed
 from comment_review.binder.binder import bind
@@ -19,7 +19,7 @@ from comment_review.reading.addresser import GAP, ON
 
 def _rows(absent: bool = False):
     page = build(SAMPLE)
-    return bind([page], read_from=READ_FROM, absent=absent).rows
+    return bind([page], read_from=READ_FROM, absent=absent).paragraphs
 
 
 class TestUnaddressedReadsTheSurvivingFields:
@@ -29,7 +29,7 @@ class TestUnaddressedReadsTheSurvivingFields:
 
     def test_reports_the_real_span_not_none_none(self):
         rows = _rows()
-        target = next(r for r in rows if r.cue == "a1")
+        target = next(r for r in rows if cue(r) == "a1")
         # ! No row `bind()` produces is ever missing its address -- `unaddressed`
         # exists to catch a binder that reached this some OTHER way, e.g. hand
         # edited. Strip one row's address to reproduce that shape.
@@ -64,4 +64,4 @@ class TestForAnchorNoLongerFallsThroughADeadBranch:
         # to show the deletion left the real answer untouched.
         rows = _rows()
         found = for_anchor("<module>", "a", rows)
-        assert [r.cue for r in found] == ["a0"]
+        assert [cue(r) for r in found] == ["a0"]

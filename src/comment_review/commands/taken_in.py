@@ -95,8 +95,8 @@ def main(argv: list[str] | None = None) -> int:
             [before_page], read_from={"root": str(original), "revise": 0}
         )
         after_binder = bind([after_page], read_from={"root": str(revise), "revise": 0})
-        before_rows = {r.address: r.raw_text for r in before_binder.rows}
-        after_rows = {r.address: r.raw_text for r in after_binder.rows}
+        before_rows = {b.address: b.raw_text for b in before_binder.paragraphs}
+        after_rows = {b.address: b.raw_text for b in after_binder.paragraphs}
         # !! THE UNION, AND IT WALKED `after_rows` ALONE UNTIL 2026-08-28. An
         # address present in the ORIGINAL and GONE from the revise was never
         # listed -- and `bind` here carries no `absent=True`, so a `drop`

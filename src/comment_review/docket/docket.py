@@ -13,8 +13,8 @@ page, binder. We have to be able to unwind the alterations pretty close to the
 same way."*
 
     level       READ                    WRITE
-    one place   a BinderRow             an ALTERATION -- a cue, and its text
-    one file    a BinderPage            a SCHEDULE: path, sha, alterations
+    one place   a Paragraph             an ALTERATION -- a cue, and its text
+    one file    a Page / RedactedPage   a SCHEDULE: path, sha, alterations
     the whole   a Binder                a DOCKET: its schedules
 
 !! ALL SIX ARE TYPES SINCE 2026-08-31, and this table stated the pairing while
@@ -198,7 +198,8 @@ class Schedule:
         """One page's schedule and every alteration on it, checked.
 
         ! EVERY BAD ALTERATION IS REPORTED, not the first -- matching
-        `binder.BinderPage.deserialize` and `desk.containers.parse_edit_copy`.
+        `binder.page.RedactedPage.deserialize` and
+        `desk.containers.parse_edit_copy`.
         A schedule with two malformed alterations is two things to fix.
 
         Returns:
@@ -285,7 +286,7 @@ class Docket:
         schedules: one `Schedule` per page, in the order the docket lists them.
 
     !! THE FIELD IS `schedules` AND THE WIRE KEY IS `pages`, AND THAT
-    DISAGREEMENT IS DELIBERATE. `Binder.pages` holds `BinderPage`s -- pages. A
+    DISAGREEMENT IS DELIBERATE. `Binder.pages` holds pages. A
     docket holds SCHEDULES: what to do to a page, which is not a page. Naming
     both `pages` would put two attributes of the same name on the two halves of
     the system returning different kinds of thing, and the write half's would

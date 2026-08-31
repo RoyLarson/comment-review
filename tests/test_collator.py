@@ -39,7 +39,7 @@ DESK = ROOT / "src" / "comment_review" / "desk"
 #: A real binder over `desk/` -- the same fixture-free input
 #: `tests/test_distribute_flow.py` already builds this way.
 BINDER = binder_of(DESK, 0)
-ROWS = BINDER.rows
+ROWS = BINDER.paragraphs
 #: `mark.py`'s own `@a0` -- narrowed by suffix, since `desk/` holds several
 #: files that each carry their own `@a0`.
 ROW = next(r for r in ROWS if r.address.endswith("mark.py@a0"))
@@ -442,7 +442,7 @@ class TestTheBaseIsTheBinders:
     def test_base_texts_keys_every_address_the_binder_carries(self, tmp_path):
         binder = binder_of(a_small_real_tree(tmp_path), 0)
         base = base_texts(binder)
-        carried = {r.address for r in binder.rows if r.address}
+        carried = {b.address for b in binder.paragraphs if b.address}
         assert set(base) == carried
 
     def test_a_returned_raw_text_that_changed_is_REPORTED(self, tmp_path):

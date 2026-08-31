@@ -78,7 +78,13 @@ from comment_review.reading.lexer import (
     paragraphs_lexical,
     paragraphs_stdlib,
 )
-from comment_review.reading.series import Kind
+from comment_review.reading.series import Kind, Series
+
+#: The five fields a place is carried by, in the order `Page.serialize` writes
+#: them. ! `path` IS NOT AMONG THEM: the page states it once, because repeating
+#: it per place is the same string as many times as the file has paragraphs.
+#: `Addressing: #12` cut eleven of nineteen fields to reach this set.
+WIRE_FIELDS = ("cue", "anchor", "original_start", "original_end", "raw_text")
 
 # !! EVERY LINE HAS AN ADDRESS, AND SO DOES EVERY POTENTIAL LINE. Roy,
 # 2026-08-19: without an empty `c` "you can't specify that the comment belongs
@@ -157,6 +163,9 @@ class Page:
     sha: str
     paragraphs: list[Paragraph]
     cues: Cues
+    # !! `serialize` IS BELOW, AFTER `leading`. It writes what a binder carries
+    # for this page -- see `_place` for the five fields and `RedactedPage` for
+    # the variant that emits only the places holding prose.
     # !! IT IS THE PAGE'S, NOT `cue`'S, and it sat on `Cues` for one
     # evening. Roy, 2026-08-21, reading the field list: *"I kind of expected that
     # to be the pages job."* MEASURED: `cue` never filled it and never read it
@@ -225,6 +234,234 @@ class Page:
             # imports, and the answer is identical.
             and cue_of(b.address).series != COVERS
         ]
+
+    def serialize(self) -> dict:
+        """This page as a binder carries it: its path, its sha, its places.
+
+        !! EVERY ADDRESSED PLACE, FILLED OR NOT. That is what separates a `Page`
+        from a `RedactedPage` -- `bind`'s `absent=True`. A place with no address
+        names nowhere, so it is carried by neither: leading is the only such
+        place and a reviewer handed one would be asked to rule on blank lines.
+
+        ! THE TEXT IS NOT WRITTEN. A binder is what an AGENT reads, and an agent
+        gets the places; the compositor reads the file from disk. That is what
+        makes everything read back a `RedactedPage` -- see there.
+        """
+        return {
+            "path": self.path,
+            "sha": self.sha,
+            "rows": [_place(b) for b in self.paragraphs if b.address],
+        }
+
+
+def _place(paragraph: Paragraph) -> dict:
+    """One place as an agent receives it -- the five fields of `WIRE_FIELDS`.
+
+    !! FIVE FIELDS, RULED ONE BY ONE -- `decision-log.md Addressing: #12`. A
+    place carried nineteen until 2026-08-24; eleven went, and `path` moved to
+    the page that holds it rather than being repeated on every one of them.
+
+    !! `kind` IS NOT AMONG THEM AND IS NOT COMING BACK. Roy, 2026-08-31: *"the
+    address tells you everything, `kind` is not necessary ... that was a hold
+    out from prior to addresses being robust"*, and *"particularly cue tells
+    everything. They are defined by kind."* ! `Series` IS THAT DEFINITION --
+    `DECLARED = Definition("a", DOCSTRING, UNDOCUMENTED)` -- so a cue and a kind
+    are ONE fact spelled twice, and `_paragraph` reads the kind back off the
+    cue rather than off a field. ! MEASURED before the cut, over 14,139 places:
+    `kind` agreed with what the cue implies in 14,136. The three that disagreed
+    are a defect, filed, and not information.
+
+    ! THE PROSE LEAVES AS ONE STRING. Roy: *"LLMs and the token parsers read
+    this as a complete and coherent statement. They do not read this as the same
+    thing: ['LLMs and the token', 'parsers read this as a', ...]."* The four
+    reviewers ARE token parsers and prose is what they judge, so fragments make
+    each role reassemble the sentence before it can ask whether it is true.
+    """
+    return {
+        "cue": cue_of(paragraph.address).cue,
+        "anchor": paragraph.anchor,
+        "original_start": paragraph.original_start,
+        "original_end": paragraph.original_end,
+        "raw_text": "\n".join(paragraph.raw_lines),
+    }
+
+
+def _paragraph(place: dict, path: str) -> Paragraph:
+    """One place read back into the `Paragraph` it was written from.
+
+    !! A PARAGRAPH, NOT A REDACTED ONE. Roy, 2026-08-31: *"Paragraphs are held
+    by both. no RedactedParagraphs, they are not necessary."* `decision-log.md
+    Process: #68`. What a redaction removes is at the PAGE -- the source text,
+    and the places holding no prose -- and neither is a field of a paragraph.
+
+    ! THE FOUR FIELDS THE WIRE DOES NOT CARRY ARE DERIVED, NOT INVENTED:
+
+        kind     `Series.of(cue).present`, because a cue IS a kind (see `_place`)
+        start    the recorded `original_start` -- nothing moves between the
+        end      census and the read back, so the two are the same lines
+        lines    the count of `raw_lines`
+
+    ! `start`/`end` FALL BACK TO 0, which is this type's own spelling for
+    *occupies nothing* -- see `Paragraph.__post_init__`. An EMPTY place carries
+    null line numbers, and that is what it means.
+    """
+    cue_text = str(place["cue"])
+    raw_text = str(place["raw_text"])
+    raw_lines = raw_text.split("\n") if raw_text else []
+    series = Series.of(cue_text)
+    start = place.get("original_start")
+    end = place.get("original_end")
+    return Paragraph(
+        path=path,
+        start=start if isinstance(start, int) else 0,
+        end=end if isinstance(end, int) else 0,
+        kind=series.value.present if series else "",
+        lines=len(raw_lines),
+        text=raw_text,
+        anchor=str(place.get("anchor", "")),
+        address=address_for(path, cue_text),
+        raw_lines=raw_lines,
+        original_start=start if isinstance(start, int) else None,
+        original_end=end if isinstance(end, int) else None,
+    )
+
+
+@dataclass(frozen=True)
+class RedactedPage:
+    """A page with its source struck out: what a binder carries and hands back.
+
+    !! A REDACTION, NOT A PARALLEL DOCUMENT -- `decision-log.md Process: #68`.
+    Roy, 2026-08-31: *"Binders have either Pages or RedactedPages, Paragraphs
+    are held by both."* Two things are removed and both are the PAGE's:
+
+        the source text     an agent reads places, not the file; the compositor
+                            reads the file from disk and never the binder
+        the empty places    a place where prose COULD go but does not. MEASURED
+                            over this repo before the cut: 5,201 of 5,685 --
+                            91% -- held no prose, at 850KB, read by four roles
+
+    !! AND AN EMPTY PLACE IS STILL ADDRESSED, WHICH IS WHAT MAKES THE CUT SAFE.
+    The walk emits every place, so a reviewer that wants to `add` ASKS the
+    addresser for the one it means -- `addresser --anchor "<line>" --series b`
+    answers `m.py@b1`. The place is citable without being carried.
+
+    !! EVERYTHING READ BACK IS ONE OF THESE, WHATEVER WAS WRITTEN. A `Page`
+    serializes its text nowhere, so a binder off disk cannot rebuild one --
+    and saying it could is the lie a redaction exists to prevent. What differs
+    between the two on the way OUT is which places are emitted; on the way IN,
+    both are redacted, because the text is gone either way.
+
+    Attributes:
+        path: as the REPO sees it, the same field a `Page` carries.
+        sha: of the page's text when it was censused. The write chain compares
+            it against the file it is about to set, which is the only
+            comparison that can fail.
+        paragraphs: the places carried, in order down the page. ORDINARY
+            paragraphs -- see `_paragraph`.
+    """
+
+    path: str
+    sha: str
+    paragraphs: list[Paragraph]
+
+    @classmethod
+    def of(cls, page: Page) -> "RedactedPage":
+        """This page with its text and its empty places struck out."""
+        return cls(
+            path=page.path,
+            sha=page.sha,
+            paragraphs=[
+                b
+                for b in page.paragraphs
+                if b.address and not Kind.holds_no_prose(b.kind)
+            ],
+        )
+
+    def serialize(self) -> dict:
+        """This page as a binder carries it -- only the places it kept."""
+        return {
+            "path": self.path,
+            "sha": self.sha,
+            "rows": [_place(b) for b in self.paragraphs],
+        }
+
+    @classmethod
+    def deserialize(
+        cls, where: str, data: object
+    ) -> "tuple[RedactedPage | None, list[str]]":
+        """One page of a binder, checked, with its paragraphs rebuilt.
+
+        ! EVERY BAD PLACE IS REPORTED, not the first: a page handed back with
+        two malformed places is two things to fix.
+
+        Returns:
+            `(RedactedPage, [])` or `(None, [messages])`.
+        """
+        if not isinstance(data, dict):
+            return None, [f"{where}: a JSON {type(data).__name__}, not a page"]
+        checked: dict = data
+        path = checked.get("path")
+        if not isinstance(path, str) or not path.strip():
+            return None, [f"{where}: a page needs the `path` of the file it holds"]
+        raw = checked.get("rows", [])
+        if not isinstance(raw, list):
+            kind = type(raw).__name__
+            return None, [f"{where}: {path}: `rows` is a JSON {kind}, not a list"]
+        paragraphs: list[Paragraph] = []
+        problems: list[str] = []
+        for n, one in enumerate(raw):
+            place, why = _checked_place(f"{where}: {path} row {n}", one)
+            if place is None:
+                problems += why
+            else:
+                paragraphs.append(_paragraph(place, path))
+        if problems:
+            return None, problems
+        # ! AN ABSENT OR NULL `sha` IS ADMITTED AS "". `.get("sha", "")` defaults
+        # only when the key is ABSENT, so a `"sha": null` arrives PRESENT and
+        # holding None, and `str(None)` is the four-character word "None".
+        raw_sha = checked.get("sha")
+        return (
+            cls(
+                path=path,
+                sha=raw_sha if isinstance(raw_sha, str) else "",
+                paragraphs=paragraphs,
+            ),
+            [],
+        )
+
+
+def _checked_place(where: str, data: object) -> tuple[dict | None, list[str]]:
+    """One place off the wire, or every rule it breaks.
+
+    !! THE `cue` IS WHAT MAKES A PLACE ADDRESSABLE, so one without it is refused
+    rather than folded to `""`. `address_for(path, "")` answers `""`, which is a
+    place that names nowhere reaching a reviewer as a question about nothing.
+    """
+    if not isinstance(data, dict):
+        return None, [f"{where}: a JSON {type(data).__name__}, not a row"]
+    checked: dict = data
+    cue_text = checked.get("cue")
+    if not isinstance(cue_text, str) or not cue_text.strip():
+        return None, [f"{where}: a row needs the `cue` of the place it holds"]
+    problems: list[str] = []
+    for name in ("anchor", "raw_text"):
+        if not isinstance(checked.get(name), str):
+            problems.append(f"{where}: {cue_text} needs a `{name}` string")
+    for name in ("original_start", "original_end"):
+        # ! `bool` IS AN `int` IN PYTHON and is refused on purpose: a JSON
+        # `true` in a line number is a malformed artifact, not a line.
+        # ! `None` IS ADMITTED -- an EMPTY place stands on no lines, and a
+        # `Page` written with `absent=True` carries exactly that.
+        value = checked.get(name)
+        wrong = not isinstance(value, int) or isinstance(value, bool)
+        if value is not None and wrong:
+            problems.append(
+                f"{where}: {cue_text} needs an `{name}` line number or null"
+            )
+    if problems:
+        return None, problems
+    return checked, []
 
 
 def code_lines(text: str, prose: list[dict]) -> dict[int, str]:

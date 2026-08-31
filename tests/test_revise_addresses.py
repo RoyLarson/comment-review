@@ -15,9 +15,9 @@ from comment_review.flows.revise import AddressesMoved, assert_addresses_held, p
 
 def test_a_revise_yields_the_address_set_the_original_yielded(tmp_path):
     repo = a_small_real_tree(tmp_path)
-    before = {r.address for r in binder_of(repo, 0).rows}
+    before = {r.address for r in binder_of(repo, 0).paragraphs}
     pulled = pull(a_docket_over(repo, ["mark.py"]), repo, tmp_path / "r1", revise=1)
-    after = {r.address for r in binder_of(pulled.root, 1).rows}
+    after = {r.address for r in binder_of(pulled.root, 1).paragraphs}
     assert after == before
 
 

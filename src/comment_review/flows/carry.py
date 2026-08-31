@@ -31,7 +31,7 @@ prose, and every prose edit moves the line numbers below it.
 
 from dataclasses import replace
 
-from comment_review.binder.binder import Binder, page_row
+from comment_review.binder.binder import Binder
 from comment_review.reading.addresser import SERIES, cue_of
 
 
@@ -134,7 +134,7 @@ def carry(binder: Binder, page, path: str, **lookup) -> tuple[Binder | None, str
     ! THE `sha` FOLD IS GONE FROM HERE, AND THAT IS THE POINT OF THE BOUNDARY.
     This carried its own `isinstance(raw, str)` normalization -- the fifth of
     the five sites `desk.containers.parse_sheet` counts -- because `.get("sha")`
-    could return None. `BinderPage.deserialize` normalizes once, so `held.sha`
+    could return None. `RedactedPage.deserialize` normalizes once, so `held.sha`
     is a `str` and there is nothing left to fold.
     """
     held = next((p for p in binder.pages if p.path == path), None)
@@ -156,7 +156,7 @@ def carry(binder: Binder, page, path: str, **lookup) -> tuple[Binder | None, str
     got, why = cue_for(page.cues, **lookup)
     if why:
         return None, "", f"{path}: {why}"
-    if any(row.cue == got for row in held.rows):
+    if any(cue_of(b.address).cue == got for b in held.paragraphs):
         return None, "", f"{path}@{got}: the binder already carries this place"
     for paragraph in page.paragraphs:
         if paragraph.address and cue_of(paragraph.address).cue == got:
@@ -172,19 +172,34 @@ def carry(binder: Binder, page, path: str, **lookup) -> tuple[Binder | None, str
                 " A filled place is already in the binder"
             ),
         )
-    # !! INSERTED IN READING ORDER, not appended. A binder's rows are the page
-    # top to bottom -- that is what a reviewer reads -- and a row on the end
-    # would put the file's first gap after its last comment.
+    # !! INSERTED IN READING ORDER, not appended. A binder's places are the page
+    # top to bottom -- that is what a reviewer reads -- and one on the end would
+    # put the file's first gap after its last comment.
+    #
+    # ! THE PARAGRAPH GOES IN AS ITSELF, since 2026-08-31. It was converted to a
+    # second row type first; a page holds paragraphs, and this one came off the
+    # page read a few lines above -- `decision-log.md Process: #68`.
     order = list(page.cues.reading)
-    rows = [*held.rows, page_row(paragraph, path)]
-    rows.sort(key=lambda row: order.index(row.cue) if row.cue in order else len(order))
+    kept = [*held.paragraphs, paragraph]
+    kept.sort(key=lambda b: _at(cue_of(b.address).cue, order))
     return (
         replace(
             binder,
             pages=tuple(
-                replace(p, rows=tuple(rows)) if p is held else p for p in binder.pages
+                replace(p, paragraphs=kept) if p is held else p for p in binder.pages
             ),
         ),
         got,
         "",
     )
+
+
+def _at(cue: str, order: list[str]) -> int:
+    """Where this cue sits in the page's reading order, or after everything.
+
+    ! A CUE THE ORDER DOES NOT NAME SORTS LAST rather than raising. The page's
+    `cues.reading` is built from the same walk the binder was, so a miss means
+    the binder is describing a page it no longer matches -- which the sha check
+    above has already refused.
+    """
+    return order.index(cue) if cue in order else len(order)

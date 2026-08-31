@@ -17,10 +17,11 @@ from comment_review.binder.addresses import (
     stable,
     unaddressed,
 )
-from comment_review.binder.binder import Binder, BinderRow
+from comment_review.binder.binder import Binder
 from comment_review.machine import exceptions
 from comment_review.machine.json_object import object_of
 from comment_review.reading.addresser import SERIES, cue_of, unflatten
+from comment_review.reading.lexer import Paragraph
 
 
 def main() -> int:
@@ -81,15 +82,16 @@ def main() -> int:
         for line in problems:
             print(line)
         return 2
-    paragraphs = binder.rows
+    paragraphs = binder.paragraphs
     if not paragraphs:
         print(f"{args.census} carries no paragraphs")
         return 2
     # !! THE PER-ENTRY MAPPING CHECK IS GONE, AND THE CONTAINER IS WHY. It read
     # `[b for b in raw if isinstance(b, dict)]` and refused a census whose rows
-    # were not mappings -- a check every reader below needed because `rows_of`
+    # were not mappings -- a check every reader below needed because the flat
+    # row walk
     # handed back whatever it found. `Binder.deserialize` refuses that artifact
-    # at the boundary and by name, so what reaches here is `BinderRow`s or
+    # at the boundary and by name, so what reaches here is `Paragraph`s or
     # nothing. ! **A CONTAINER EARNS ITS KEEP BY DELETING THE RE-CHECKS**, not
     # by sitting beside them: this is the second reader that stopped asking.
 
@@ -141,7 +143,7 @@ def main() -> int:
         # no address; leading is the only such paragraph and `bind()` emits no
         # row for one, so the fallback could not fire.
         where = stable(paragraph) or "UNPLACED"
-        print(f"{i:4d}  {where:<34} {paragraph.cue}")
+        print(f"{i:4d}  {where:<34} {cue_of(paragraph.address).cue}")
     if missing:
         print(f"\n{len(missing)} entries could not be addressed:")
         for line in missing:
@@ -149,7 +151,7 @@ def main() -> int:
     return 1 if missing else 0
 
 
-def _resolve_one(address: str, paragraphs: Sequence[BinderRow]) -> int:
+def _resolve_one(address: str, paragraphs: Sequence[Paragraph]) -> int:
     """An address in, the LINES that now cover it out.
 
     !! THIS IS THE DIRECTION STAGE 8 NEEDS, and it needs it because 7b has
@@ -186,11 +188,11 @@ def _resolve_one(address: str, paragraphs: Sequence[BinderRow]) -> int:
     for i in hits:
         paragraph = mine[i - 1]
         span = f"{paragraph.original_start}-{paragraph.original_end}"
-        print(f"{real}:{span}\t{paragraph.cue}")
+        print(f"{real}:{span}\t{cue_of(paragraph.address).cue}")
     return 0
 
 
-def _for_anchor(anchor: str, series: str, paragraphs: Sequence[BinderRow]) -> int:
+def _for_anchor(anchor: str, series: str, paragraphs: Sequence[Paragraph]) -> int:
     """Print the address of one anchor's place in one series.
 
     Returns:
@@ -208,7 +210,7 @@ def _for_anchor(anchor: str, series: str, paragraphs: Sequence[BinderRow]) -> in
     for b in found:
         where = stable(b)
         span = f"{b.original_start}-{b.original_end}"
-        print(f"{where}	{span}	{b.cue}	{b.anchor}")
+        print(f"{where}	{span}	{cue_of(b.address).cue}	{b.anchor}")
     # !! AN ANCHOR HAS MANY ADDRESSES, so this direction is not a lookup that
     # returns one. Roy, 2026-08-19, on two identical statements in one file:
     # *"for the addresses this is still exact -- for looking up the anchors to
@@ -226,7 +228,7 @@ def _for_anchor(anchor: str, series: str, paragraphs: Sequence[BinderRow]) -> in
     return 0
 
 
-def _check(paragraphs: Sequence[BinderRow]) -> int:
+def _check(paragraphs: Sequence[Paragraph]) -> int:
     """Does every address resolve back to the one paragraph that carries it?
 
     !! THE REFERENCE HAS TO MATCH THE ANCHOR, and that is the whole worth of an
@@ -270,7 +272,7 @@ def _check(paragraphs: Sequence[BinderRow]) -> int:
             if where and len(resolve(where, mine)) > 1:
                 shared.setdefault(where, []).append(
                     f"{paragraph.original_start}-{paragraph.original_end}"
-                    f" {paragraph.cue}"
+                    f" {cue_of(paragraph.address).cue}"
                 )
     for line in missing:
         print(f"UNADDRESSED  {line}")
