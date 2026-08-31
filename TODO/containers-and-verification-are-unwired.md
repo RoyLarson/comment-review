@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 24 tasks closed
+Progress: 6 of 24 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -92,10 +92,11 @@ envelope check; that file's task 9 lands the region a move needs inside it.
       Verify: no sentence in either file claims a consumer that `grep -rn` does
       not show, and the ENVELOPE/CONTENTS split is stated once rather than in
       both files.
-- [ ] T6 | Implement a check at the flow's inbound boundary that a returned edit
-      copy still carries the binder's address set, so a copy cannot decide which
-      places exist. Verify: a copy whose `sheets` is `[]`, one whose sheets are
-      not objects, one whose `marks` is a string, and one that kept 1 of its 4
+- [x] T6 | collate compares each role's returned address set against the binder and reports | 3fc3414 | Implement
+      a check at the flow's inbound boundary that a returned edit copy still
+      carries the binder's address set, so a copy cannot decide which places
+      exist. Verify: a copy whose `sheets` is `[]`, one whose sheets are not
+      objects, one whose `marks` is a string, and one that kept 1 of its 4
       seeded slots are each reported by name; today all four give `problems ==
       []` against a binder carrying `m.py@b1..b4`.
 - [ ] T7 | Implement the comparison of EVERY edit copy's `read_from` in

@@ -614,7 +614,7 @@ it, and the places that came back still settle. **This is the one place in the p
 run does NOT return early** -- an incomplete shard is a fact about one role's coverage, not a
 statement that the documents are malformed.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 !! **`collate` TAKES A `root` BY THE TIME THIS TASK RUNS.** Task 5 changed the signature to
 `(stage, edit_copies, binder, root)`. Every call below passes it; a three-argument call written
@@ -671,12 +671,12 @@ addresses)` to `tests/helpers.py` as removals over a seeded copy.
 and clobber under fan-out today (finding #9) -- **do not copy that pattern here**, and this
 test is what proves you did not.
 
-- [ ] **Step 2: Run both and watch the first fail**
-- [ ] **Step 3: Add the per-role coverage comparison**
-- [ ] **Step 4: Run the tests, then `uv run pytest -q`**
-- [ ] **Step 5: Run the checks** -- only `test_build` may fail
-- [ ] **Step 6: Commit the WORK -- no ticked boxes in this commit**
-- [ ] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
+- [x] **Step 2: Run both and watch the first fail**
+- [x] **Step 3: Add the per-role coverage comparison**
+- [x] **Step 4: Run the tests, then `uv run pytest -q`**
+- [x] **Step 5: Run the checks** -- only `test_build` may fail
+- [x] **Step 6: Commit the WORK -- no ticked boxes in this commit**
+- [x] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
 
 Tick every `- [ ]` step box of this task in
 `docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
@@ -696,7 +696,7 @@ it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
 `Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
 wrong.
 
-- [ ] **Step 8: Commit the ticks, citing the work commit's SHA**
+- [x] **Step 8: Commit the ticks, citing the work commit's SHA**
 
 ---
 
