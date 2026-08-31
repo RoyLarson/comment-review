@@ -2287,3 +2287,42 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   Roy caught it himself an hour later. ! **AN OVERRIDE HAS A SCOPE, AND FINDING IT IS THE
   WORK.** "This overrides that" answers which rule wins, never how far it reaches; taking the
   widest reading is not obedience, it is a second guess wearing the first one's authority.
+
+- **#67.** **THE LOAD STEP BELONGS TO THE FLOW, AND EVERY CONTAINER IS WIRED ALIKE** (Roy,
+  2026-08-31, restating `#65` with the ends named): *"The specification is all flows start
+  with a load step - not the modules code. If json.loads is appropriate it does that. The text
+  is flowed to the next step if it is text or the loaded dict is. Then the pieces start their
+  processing and only module components are passed to each step until the output which either
+  the component serializes itself and then the flow dumps it if the change is a code file it
+  outputs the file through machine/ code."* And, in the same breath: *"Every container needs
+  to be wired to do this."*
+
+  !! **`#65` SAID WHAT THE MIDDLE CARRIES; THIS SAYS WHO DOES THE LOADING.** They are not the
+  same sentence and the difference is where a `json.loads` may sit. A flow owns its load and
+  its dump; a container owns neither. **`deserialize` takes what the load produced** -- an
+  already-decoded dict, or text where the format is text -- **never a path, and never the
+  decode itself.**
+
+  !! **SO A READER THAT DECODES ITS OWN TEXT IS THE DEFECT, WHICH MAKES `binder.read` AND
+  `docket.read` BOTH WRONG BY THIS RULE.** Each takes TEXT and calls
+  `machine.json_object.object_of`, which holds the `json.loads`. ! `object_of` is not deleted
+  by this -- it IS the load, and it moves to the end that owns one.
+
+  ! **AND THAT IS A CORRECTION TO A PLAN STEP RATHER THAN A NEW ONE.** `P38` was written as
+  *"binder.read returns a Binder"*, which keeps the decode inside the module; it now says
+  `Binder.deserialize` takes the already-loaded dict.
+
+  !! **THE SECOND HALF IS A CONTRACT, NOT A SHAPE FOR ONE CONTAINER.** Four exist and no two
+  are spelled alike: `Sheet`, `EditCopy` and `MasterProof` are read by free-standing
+  `parse_sheet`/`parse_edit_copy`/`parse_master_proof`, `Mark` by a module-level `parse` and
+  written by `as_entry`. **One pair on every container** -- `deserialize` as a classmethod
+  over an already-loaded dict, `serialize` as an instance method returning one. Filed as
+  `P44`.
+
+  ! **A `seed` IS UNTOUCHED AND STILL RETURNS THE WIRE DICT** -- `#66`, and this is the second
+  ruling in two days that has had to say so. A seed is emitted AT a save; it is not a step
+  between the two ends.
+
+  ! **THE CODE-FILE CLAUSE IS THE SAME RULE ON THE OTHER FORMAT, AND IS `P45`.**
+  `results/compositor.py` calls `into.write_text(...)` itself, which is the write flow's
+  version of a module owning its own I/O. A set page reaches disk through `machine/`.
