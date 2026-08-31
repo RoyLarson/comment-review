@@ -10,8 +10,7 @@ r"""The containers a mark travels in -- the sheet, the edit_copy, the master_pro
 !! THE TYPE IS THE DEFINITION AND THERE IS NO MARKDOWN SOURCE, ruled
 `decision-log.md Vocabulary: #30`. `docs/the-mark.md` exists because an agent
 AUTHORS a mark, so a mark's shape must be published to a role. No agent ever
-authors a container -- `flows.distribute.seed`, `flows.fan_out.fan` and
-`desk.proof.gather` build them -- so the type is where the shape lives, the way
+authors a container, so the type is where the shape lives, the way
 `desk/mark.py` defines `Mark`.
 
 !! THE WIRE STAYS DICTS. Each parse has `desk.mark.parse`'s own contract --
@@ -19,26 +18,26 @@ authors a container -- `flows.distribute.seed`, `flows.fan_out.fan` and
 checked object rather than re-deriving the same keys with `isinstance`
 ladders.
 
-!! THE WRITE HALF IS WIRED AND THE READ HALF IS NOT, as of 2026-08-31. The
-`seed` classmethods have production callers -- `flows.distribute.seed`,
-`flows.collate._chief_copy` and `desk.proof.gather` build every container
-through them, per `decision-log.md Process: #64`. **The parses still have
-none**: `desk/collator.py` hand-rolls its own `isinstance` checks over the
-same `sheets`/`marks`/`edit_copies` shapes `parse_edit_copy` and
-`parse_master_proof` exist to check, rather than calling either -- run
-`grep -n '\.get("sheets"\|\.get("marks"\|\.get("edit_copies"'
-src/comment_review/desk/collator.py` to see every site, since a function
-COUNT stated here goes stale the moment anyone adds the next one.
+!! BOTH HALVES OF THE ROUND TRIP LIVE HERE, as of 2026-08-31. `seed` writes a
+container from the class's own field names -- `Process: #64` -- and `parse`
+reads one back. Renaming a field breaks at construction rather than folding to
+a default one module away, which is `desk.mark.Mark.seed`'s guard one level up.
 
-! SO A `grep -rn "containers" src/` NO LONGER ANSWERS "IS THIS MODULE WIRED".
-It answers only that something imports it. What is still owed is a caller of
-`parse_edit_copy` and `parse_master_proof`, tracked in
-`TODO/containers-and-verification-are-unwired.md` T1 and T2.
+    write   flows.distribute.seed, flows.collate._chief_copy, desk.proof.gather
+    read    flows.collate.collate, at its inbound boundary and after `gather`
 
-! A container guards the ENVELOPE -- is this document the shape a copy must
-be, or does it error out -- while `desk.collator.problems_in` reports on the
-CONTENTS, so each per-mark problem still routes back to the role that wrote
-it; the two are not competing contracts.
+! THE PARSES HAD NO PRODUCTION CALLER UNTIL 2026-08-31, and this file said so
+for as long as that was true. `P21` closed it: `collate` runs `parse_edit_copy`
+over every returned copy and `parse_master_proof` over what `gather` builds,
+so **every refusal declared below can now fire.**
+
+!! THIS FILE STATES WHAT THE TWO BOUNDARIES ARE, AND NOTHING ELSE RESTATES IT.
+A container guards the **ENVELOPE** -- is this document the shape a copy must
+be -- while `desk.collator.problems_in` rules on the **CONTENTS**, so each
+per-mark problem routes back to the role that wrote it. They are not competing
+contracts, and both run. ! `flows/collate.py` owns the ORDER and the RESPONSE
+(envelope first; reported, not raised) and cites this paragraph rather than
+repeating it -- a rule in two places is a rule that will disagree with itself.
 
 ! THE CHIEF'S COPY IS AN ORDINARY `EditCopy`. `Vocabulary: #30`: after the fold
 every place has exactly one answer, and one mark per place is an ordinary copy.
@@ -236,6 +235,11 @@ def parse_sheet(where: str, data: object) -> tuple[Sheet | None, list[str]]:
     # null` reaching here is a PRESENT key holding None, so `.get` returns
     # None and `str(None)` is the four-character word "None" -- folded into
     # the same absent-sha case above instead.
+    #
+    # ! THE SAME FOLD IS IN `Sheet.seed`, AND THE PAIR IS THE ROUND TRIP rather
+    # than two spellings of one rule: `seed` normalizes on the way OUT and this
+    # on the way IN, so a sheet written by hand -- an artifact read off disk,
+    # a role's own edit -- meets the same rule as one this module wrote.
     raw_sha = data.get("sha")
     sha = raw_sha if isinstance(raw_sha, str) else ""
     return Sheet(path=path, sha=sha, marks=tuple(marks)), []

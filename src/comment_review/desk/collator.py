@@ -45,15 +45,26 @@ with against what came back, rather than checking a claim against evidence
 Nothing above `places` compares two marks, and nothing below `verify_report`
 opens a file.
 
-!! AND THEY REFUSE DIFFERENTLY. Verification RETURNS a message per broken
-rule, each opening with the mark it is about, so a whole report is checked
-in one pass and every problem is read at once. Coverage also RETURNS -- a
-`Problem` per broken rule -- but some of those are about the COPY rather than
-about any one mark: no `sheets` list, no `role`, or an entry that is not an
-object each produce a `Problem` carrying `address=""`, with nothing in the
-message naming a mark at all. Reconciliation RAISES -- `UnnamedRole`,
-`MalformedMark` -- because a mark it cannot read is a mark it cannot group,
-and a place grouped wrongly is settled wrongly.
+!! AND THEY REFUSE DIFFERENTLY. Verification and coverage both RETURN a
+`Problem` per broken rule, so a whole report is checked in one pass and every
+problem is read at once. ! VERIFICATION RETURNED SENTENCES UNTIL 2026-08-31,
+each opening with the mark it was about; `P25` gave it a production caller and
+`Problem` is what a caller can ROUTE -- see that type, and `verify_report`.
+Some of coverage's are about the COPY rather than about any one mark: no
+`sheets` list, no `role`, or an entry that is not an object each produce a
+`Problem` carrying `address=""`, with nothing in the message naming a mark at
+all. Reconciliation RAISES -- `UnnamedRole`, `MalformedMark` -- because a mark
+it cannot read is a mark it cannot group, and a place grouped wrongly is
+settled wrongly.
+
+!! AND THE THREE VERIFICATION QUESTIONS ARE NOW ASKED IN PRODUCTION, which
+this file's prose assumed the opposite of until 2026-08-31.
+`flows.collate.collate` calls `verify_report` per copy; `grep -rn
+"verify_report" src/` returns a caller outside this module, where before it
+returned only sentences inside it. `decision-log.md Process: #58`, `P25`.
+
+! WHAT IS STILL OWED IS T7: `parse_master_proof` compares `read_from` against
+`copies[0]` only, never 2..N.
 """
 
 from dataclasses import dataclass

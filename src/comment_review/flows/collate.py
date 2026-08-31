@@ -649,10 +649,12 @@ def collate(stage: str, edit_copies: list[dict], binder: dict, root: Path) -> Co
     a copy with no `role` as a `Problem` and returns before `places` is called.
 
     !! THE ENVELOPE IS PARSED FIRST, AND A FAILURE IS REPORTED RATHER THAN
-    RAISED -- `P21`, `decision-log.md Process: #57`. A container answers *is
-    this document a copy at all*; `problems_in` answers *what did this role
-    write in this slot*. Both run, envelope first, because a document that is
-    not a copy has no contents to rule on.
+    RAISED -- `P21`, `decision-log.md Process: #57`. **What the two boundaries
+    are is stated once, in `desk/containers.py`'s module docstring**, and not
+    restated here: a rule in two places is a rule that will disagree with
+    itself. What is this function's own is the ORDER and the response --
+    envelope first, because a document that is not a copy has no contents to
+    rule on, and reported rather than raised.
 
     !! REPORTED, BECAUSE RAISING HERE EMPTIES THE REPORT FOR EVERY OTHER ROLE.
     `commands/collate.py` catches around this whole call, so a raise discards
