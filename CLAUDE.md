@@ -128,13 +128,22 @@ uv run python evals/generator_split.py <corpus-dir> [paths...]
 uv run python scripts/find_llm_repos.py --pages 3 --min-hits 2
 
 # Run the test suite. PYTEST, and only pytest.
-uv run pytest -q                    # 1260 passed, 1 skipped, 3 xfailed, 537 subtests, ~11s
-                                    # measured 2026-08-29 on `feat/the-mark-and-the-collator`;
-                                    # it read `873 ... 451 subtests, ~1.6s` until then, which is
-                                    # the set BEFORE the mark, the collator and the topology
+uv run pytest -q                    # 1381 passed, 1 skipped, 3 xfailed, 90 subtests, ~15s
+                                    # measured 2026-08-30 on `feat/the-mark-and-the-collator`.
+                                    # ! ONE FAILURE IS EXPECTED ON A BRANCH -- `test_build.py`;
+                                    # `plugins/` is built at RELEASE, not during development.
                                     # the skip needs symlinks; it runs where they exist.
-                                    # ! THE SUBTEST COUNT MOVES WITH `TODO/`: three per
-                                    # open file, from `tests/gates/test_todo_counts_agree.py`
+                                    #
+                                    # !! THE SUBTEST COUNT NO LONGER MOVES WITH `TODO/`, and it
+                                    # did until 2026-08-30: `tests/gates/test_todo_counts_agree.py`
+                                    # ran three per open file -- 507 of the 600 -- and was DELETED
+                                    # when the board moved to the five marks. It counted `[x]` and
+                                    # `[ ]` only, so a `[?]` would have made every file carrying
+                                    # one disagree with its own `Progress`. Roy: *"resync
+                                    # guarantees it unless you hand monkey with the file instead
+                                    # of using the tool."* ! The check did not vanish, it MOVED:
+                                    # every mutating command recomputes `Progress` from the boxes
+                                    # it wrote, and `job-board audit` reports the same class.
 uv run pytest -q -k galley          # one file, one class or one test
 
 # !! THE SUITE WAS REPLACED WHOLESALE ON 2026-08-25, and the rule above it --
