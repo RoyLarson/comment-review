@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 9 tasks done
+Progress: 3 of 9 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -64,12 +64,11 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       reported by name, and one seeded from that binder passes --
       flows/marks.py:136-141 names this gap itself and says the comparison belongs
       wherever the two meet, which is the middle command once one exists.
-- [ ] Implement a drift signal that survives an escalation or a re-read in the
-      same run, since the three carried states are not mutually exclusive and one
-      scalar exit code cannot hold them. Verify: a run holding both a drifted
-      place and an escalation reports the drift by ADDRESS on a stream or a chief
-      field the caller is told to read; today it exits 4, writes the drifted mark
-      into the chief, and says nothing.
+- [x] Implement a drift signal that survives an escalation or a re-read in the
+      same run. SUPERSEDED 2026-08-30 by `decision-log.md Process: #62` -- there
+      is no drift signal to carry, because the middle touches no files. Roy: *"the
+      middle doesn't care if the pages have changed - it is not reading or writing
+      to the pages at all."* The deletion is a task on `collator-defects.md`.
 - [ ] Implement the reporting of `Collated.unruled` and `Collated.tally` in
       `commands/collate.py`, so a run names every place carried forward rather
       than counting only the settled ones. Verify: a one-role stage over three

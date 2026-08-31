@@ -346,6 +346,25 @@ read it before touching the skill. The pipeline:
 7. **APPROVAL** -- present the final text and stop (7a); on approval, apply verbatim (7b).
 8. **REVIEW** (task agent) -- read the finished page against itself.
 
+!! **THE MIDDLE TOUCHES NO FILES. STAGES 4-6 READ AND WRITE JSON AND MEMORY, NOTHING ELSE.** Roy,
+2026-08-30: *"the middle doesn't care if the pages have changed - it is not reading or writing to
+the pages at all. The edit process moves data in json files or memory nothing in the actual
+files."* Its inputs are a binder and the returned `edit_copy`s; its output is the copy chief's
+`edit_copy` and, downstream, a docket. **Pages are opened at the ENDS of the chain only** --
+`census` at one, the write chain at the other.
+
+! **SO NOTHING IN THE MIDDLE ASKS WHETHER A PAGE CHANGED.** No drift check, at any granularity: a
+`raw_text` comparison and a `sha` comparison are the same question, and the middle has no stake in
+the answer because it is not editing the tree. ! **The idea is inherited from a prototype that
+edited as it went** -- it could not address or compose a page, so it had to care. Nothing in the
+current design does. `decision-log.md Process: #62`.
+
+!! **IT KEEPS BEING RE-DERIVED, WHICH IS WHY IT IS HERE AND NOT ONLY IN THE LOG.** Roy, the same
+day: *"I don't know how many times i have to say this because you forget to write it down."*
+MEASURED: a review correctly found that `drift` never affected an exit code, and the fix round it
+prompted GAVE it one (`ac8cbbd`) -- entrenching a check that should not exist. **The finding was
+real and the repair pointed the wrong way**, because nothing in the tree said this.
+
 The seven instructions (`clean`, `query`, `drop`, `correct`, `patch`, `add`,
 `move`) and the checkable/necessary matrix that resolves them are defined in SKILL.md -- read it
 rather than re-deriving the rules here, since it is the single source and this file must not

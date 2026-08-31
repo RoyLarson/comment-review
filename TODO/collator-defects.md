@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 26 tasks done
+Progress: 5 of 27 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -148,3 +148,10 @@ Four defects in collator.py, found by reading only the code.
       `parse` accepting `change='   '` on a `drop` yields an alteration whose text
       is null, and the docstring at 972-975 covers the whitespace case as well as
       the empty string.
+- [ ] Delete drift detection from the middle, per `decision-log.md Process: #62`
+      -- `desk.collator.drift_in`, the `drift` field on `flows.collate.Collated`,
+      and the `DRIFT` exit code and its reporting in `commands/collate.py`. The
+      middle touches no files, so whether a page moved is a question it has no
+      stake in. Verify: `grep -rn "drift" src/comment_review/` returns nothing,
+      the exit codes are a closed set with no gap where DRIFT was, and the suite
+      stays green.

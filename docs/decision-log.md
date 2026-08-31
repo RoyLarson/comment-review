@@ -2045,3 +2045,32 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   ! **IT IS A COUNTER-CASE TO `Vocabulary: #11`'s DIRECTION**, and worth keeping beside it: one
   name per thing is about NAMES, not about every pattern that happens to match similar text.
+
+- **#62.** **THE MIDDLE TOUCHES NO FILES, SO NOTHING IN IT ASKS WHETHER A PAGE CHANGED** (Roy,
+  2026-08-30, on a proposal to answer drift with the page's `sha`): *"That is also a completely
+  unnecessary check at this stage. I don't know how many times i have to say this because you
+  forget to write it down -- but the middle doesn't care if the pages have changed - it is not
+  reading or writing to the pages at all. The edit process moves data in json files or memory
+  nothing in the actual files. That check and the idea came from when the prototype didn't know
+  how to write to and address or compose a page and so it tried to edit while it was going and it
+  was Broken."*
+
+  !! **THE MIDDLE'S WORLD IS JSON AND MEMORY.** Its inputs are a binder and the returned
+  `edit_copy`s; its output is the copy chief's `edit_copy` and, downstream, a docket. **No page is
+  opened, and none is written.** Reading and writing pages belongs to the ends of the chain --
+  `census` at one, the write chain at the other.
+
+  !! **SO DRIFT DETECTION IS UNNECESSARY AT ANY GRANULARITY, AND `drift_in` GOES.** Comparing a
+  returned `raw_text` against the base asks whether the tree moved under a role, and the middle
+  has no stake in that answer: it is not editing the tree. ! A `sha` comparison is the same
+  question asked more cheaply and is refused for the same reason.
+
+  ! **THE IDEA IS INHERITED FROM A BROKEN PROTOTYPE.** It edited as it went, because it could not
+  address or compose a page -- so it had to care whether the file under it had moved. Nothing in
+  the current design does.
+
+  !! **MEASURED THE SAME DAY, AND IT COST A FIX IN THE WRONG DIRECTION.** A review found `drift`
+  never affected the exit code, and a fix round was dispatched to give it one -- `ac8cbbd`. **The
+  finding was real and the fix was wrong at the root**: the check should not exist, so making its
+  outcome louder entrenched it. ! The reviewer could not have known; nothing in the tree said the
+  middle touches no files, which is why this entry exists rather than a note on that commit.
