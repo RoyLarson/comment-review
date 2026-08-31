@@ -8,6 +8,8 @@ where MALFORMED is the input.
 import pytest
 from helpers import (
     REPO,
+    _keeping_only,
+    _without_sheet,
     a_binder_over,
     a_clean,
     a_copy_missing_its_sheets,
@@ -17,6 +19,7 @@ from helpers import (
     a_move,
     an_add,
     copies_over,
+    seed,
 )
 
 from comment_review.desk.mark import parse
@@ -442,6 +445,66 @@ class TestSourceVerificationRunsInProduction:
         copies = copies_over(binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}})
         got = collate("4c", copies, binder, root=tmp_path)
         assert got.problems == []
+
+
+class TestShardCoverage:
+    """`P27`, `containers-and-verification-are-unwired` T6, `Process: #63`.
+
+    !! `flows.fan_out.fan` REFUSES AN UNCOVERED PAGE AT THE DISPATCH; NOTHING
+    READ THE RETURN. A partitioned role that answered for three of four files
+    in its shard was invisible.
+
+    !! THE UNIT IS THE ADDRESS, NOT THE PAGE. `P27` says files; T6 says the
+    address set and carries the harder case -- a copy that kept 1 of its 4
+    seeded slots. A dropped page is a dropped address set, so the address check
+    answers both; a page check answers only `P27`.
+
+    ! REPORTED, NOT REFUSED -- `Process: #63`. An incomplete shard is a fact
+    about one role's coverage, not a statement that the documents are
+    malformed, so the places that DID come back still settle.
+    """
+
+    def test_a_role_that_answered_for_part_of_its_shard_is_named(self):
+        binder = two_places()
+        copies = copies_over(binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}})
+        short = [_without_sheet(copies[0], "m.py")]
+        got = collate("4c", short, binder, root=REPO)
+        assert [p.role for p in got.problems] == ["block-context"]
+        assert "m.py@b1" in got.problems[0].message
+
+    def test_a_copy_that_kept_one_of_its_four_seeded_slots_is_named(self):
+        """T6's own measured case: today all four of its shapes give
+        `problems == []` against a binder carrying `m.py@b1..b4`."""
+        binder = a_binder_over({f"m.py@b{n}": BASE for n in (1, 2, 3, 4)})
+        copies = copies_over(binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}})
+        got = collate("4c", [_keeping_only(copies[0], ["m.py@b1"])], binder, root=REPO)
+        assert [p.role for p in got.problems] == ["block-context"]
+        for missing in ("m.py@b2", "m.py@b3", "m.py@b4"):
+            assert missing in got.problems[0].message
+
+    def test_two_shards_of_one_role_cover_the_binder_between_them(self):
+        """!! COMPARED PER COPY THIS REPORTS EVERY FAN-OUT SHARD AS INCOMPLETE.
+        `unruled` and `tally` are keyed by role and clobber under fan-out; this
+        is what proves the coverage check did not copy that pattern."""
+        binder = a_binder_over({"one.py@b1": BASE, "two.py@b1": BASE})
+        halves = [
+            {**seed(binder, "block-context"), "sheets": [sheet]}
+            for sheet in seed(binder, "block-context")["sheets"]
+        ]
+        assert len(halves) == 2
+        got = collate("4c", halves, binder, root=REPO)
+        assert got.problems == []
+
+    def test_the_places_that_did_come_back_still_settle(self):
+        """`Process: #63` -- coverage reports; it does not void the round."""
+        binder = two_places()
+        copies = copies_over(
+            binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
+        )
+        got = collate("4c", [_keeping_only(copies[0], ["m.py@b1"])], binder, root=REPO)
+        assert got.problems != []
+        marks = [m for s in got.chief["sheets"] for m in s["marks"]]
+        assert [m["address"] for m in marks] == ["m.py@b1"]
 
 
 class TestTheStackedCheck:

@@ -340,6 +340,34 @@ def _quoting_the_real_text(mark: dict, entry: dict) -> dict:
     return {**mark, "claim": {**claim, "false": base}}
 
 
+def _without_sheet(copy: dict, path: str) -> dict:
+    """`copy` with the sheet for `path` removed -- a role that skipped a page.
+
+    ! A REMOVAL OVER A REAL SEEDED COPY, not a copy written with one sheet. The
+    two are the same document, and only the removal proves it came from a
+    binder that held both pages.
+    """
+    kept = [sheet for sheet in copy["sheets"] if sheet.get("path") != path]
+    assert len(kept) < len(copy["sheets"]), f"{path} was not a sheet on this copy"
+    return {**copy, "sheets": kept}
+
+
+def _keeping_only(copy: dict, addresses: list[str]) -> dict:
+    """`copy` with every mark outside `addresses` removed -- a role that
+    answered for some of the slots it was handed and dropped the rest."""
+    wanted = set(addresses)
+    return {
+        **copy,
+        "sheets": [
+            {
+                **sheet,
+                "marks": [m for m in sheet["marks"] if m.get("address") in wanted],
+            }
+            for sheet in copy["sheets"]
+        ],
+    }
+
+
 def a_copy_missing_its_sheets(binder: dict, role: str = "block-context") -> dict:
     """A real seeded copy with its `sheets` key REMOVED.
 

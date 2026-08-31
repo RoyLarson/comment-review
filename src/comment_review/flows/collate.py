@@ -2,12 +2,15 @@
 
     collate(stage, edit_copies, binder, root) -> Collated
 
-Ten acts, in order:
+Eleven acts, in order:
 
     ENVELOPE   is each document the shape a copy must be, and is the proof the
                shape a proof must be -- `desk.containers.parse_edit_copy`,
                `parse_master_proof`. Reported, never raised; a failure returns
                early rather than folding a partial set
+    COVERAGE   did each role carry back every address the binder holds --
+               `_coverage_problems`. `fan_out` refuses an uncovered page at the
+               DISPATCH; this is the RETURN
     CHECK      every copy's marks, stacked -- `desk.collator.problems_in`
     VERIFY     each ruled mark's address, quoted sentence and citations --
                `desk.collator.verify_report`, the three questions
@@ -55,6 +58,7 @@ from comment_review.desk.collator import (
     Problem,
     base_texts,
     drift_in,
+    known_addresses,
     problems_in,
     reconcile,
     tally,
@@ -531,6 +535,68 @@ def _reconcilable(copy: dict) -> dict:
     return {**copy, "sheets": sheets}
 
 
+def _coverage_problems(edit_copies: list[dict], binder: dict) -> list[Problem]:
+    """One `Problem` per role whose copies do not carry the binder's addresses.
+
+    !! `flows.fan_out.fan` REFUSES AT THE DISPATCH AND NOTHING READ THE RETURN.
+    It raises `OverlappingShards` and `UncoveredPage` over the pages it is about
+    to hand out; a role that then answered for three of the four files in its
+    shard was invisible. `P27`, and
+    `TODO/containers-and-verification-are-unwired.md` T6.
+
+    !! THE UNION ACROSS A ROLE'S COPIES, NEVER ONE COPY AGAINST THE BINDER.
+    Under fan-out each copy carries only its own shard, so comparing per copy
+    would report every shard of a correctly partitioned role as incomplete.
+    That is the shape `unruled` and `tally` already have -- both keyed by role,
+    both clobbering under fan-out -- and it is deliberately not copied here.
+
+    !! IT NEEDS NO NEW INPUT, which is why `P27` is in SP-2 and `P26` is not.
+    `collate` already holds the WHOLE binder: `base_texts` needs every address,
+    so what it is handed cannot be a shard. **Stage coverage is a different
+    question and cannot be answered from here** -- a role that returned nothing
+    leaves nothing behind to be missing from, since `flows.distribute.seed`
+    stamps a copy with `role`, `read_from` and `sheets` and no dispatch
+    identity. That one takes the `Stage`, in SP-3.
+
+    Args:
+        edit_copies: the copies as they came back, already parsed.
+        binder: the binder they were seeded from.
+
+    Returns:
+        One `Problem` per short role, naming every address that role did not
+        carry, sorted so a reader can re-derive the list. Empty where every
+        role is complete. ! REPORTED, NOT RAISED -- `Process: #63`: the places
+        that did come back still settle.
+
+    ! AN EMPTY BINDER YIELDS NOTHING. There is no address to be missing, and a
+    run over one is what `tests/test_brief_worked_example.py` drives.
+    """
+    known = known_addresses(binder)
+    if not known:
+        return []
+    by_role: dict[str, set[str]] = {}
+    for copy in edit_copies:
+        role = str(copy.get("role") or "")
+        carried = by_role.setdefault(role, set())
+        for sheet in copy.get("sheets", []):
+            for entry in sheet.get("marks", []):
+                if isinstance(entry, dict) and isinstance(entry.get("address"), str):
+                    carried.add(entry["address"])
+    out: list[Problem] = []
+    for role, carried in by_role.items():
+        missing = sorted(known - carried)
+        if missing:
+            out.append(
+                Problem(
+                    role,
+                    "",
+                    f"answered for {len(carried)} of {len(known)} places -- "
+                    f"missing {', '.join(missing)}",
+                )
+            )
+    return out
+
+
 def collate(stage: str, edit_copies: list[dict], binder: dict, root: Path) -> Collated:
     """One stage's returned copies, checked, reconciled and folded.
 
@@ -626,6 +692,8 @@ def collate(stage: str, edit_copies: list[dict], binder: dict, root: Path) -> Co
             chief=EditCopy.seed(role="copy-chief", read_from={}, sheets=[]),
             problems=envelope + problems,
         )
+
+    problems += _coverage_problems(edit_copies, binder)
 
     for copy in edit_copies:
         found, _ruled = problems_in(copy)
