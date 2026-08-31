@@ -19,9 +19,21 @@ import re
 import pytest
 from conftest import ROOT
 
-from comment_review.desk.mark import INSTRUCTIONS, Mark, Row
+from comment_review.desk.mark import INSTRUCTIONS, Instruction, Mark, Row
 
 SPEC = (ROOT / "docs" / "the-mark.md").read_text(encoding="utf-8")
+
+
+def _found(match: re.Match[str] | None, name: str) -> re.Match[str]:
+    """A required regex match against `docs/the-mark.md`, or a failure that
+    NAMES the scan that came back empty.
+
+    !! ASSERTS RATHER THAN SUPPRESSES: `'NoneType' object has no attribute
+    'group'` names nothing; `name` says which scan of the spec failed.
+    """
+    assert match is not None, f"{name} did not match docs/the-mark.md"
+    return match
+
 
 #: The number words `docs/the-mark.md` states its own counts in. ! IT IS NOT A
 #: COUNT -- it is the dictionary that turns the spec's word into an integer, so
@@ -43,13 +55,17 @@ NUMBER = {
 }
 
 #: The heading's own stated count -- `## The fields -- eight`.
-_FIELDS_HEADING = re.search(r"^## The fields -- (\w+)$", SPEC, re.MULTILINE)
+_FIELDS_HEADING = _found(
+    re.search(r"^## The fields -- (\w+)$", SPEC, re.MULTILINE),
+    "the fields heading (## The fields -- N)",
+)
 
 #: The section stating the mark's own fields, up to the next `##` heading.
 #: Scoped the same way `_SECTION` below is, so no other backtick-first-column
 #: table in the file can be picked up.
-_FIELDS_SECTION = re.search(
-    r"^## The fields -- \w+.*?(?=^## )", SPEC, re.MULTILINE | re.DOTALL
+_FIELDS_SECTION = _found(
+    re.search(r"^## The fields -- \w+.*?(?=^## )", SPEC, re.MULTILINE | re.DOTALL),
+    "the fields section (## The fields -- ... up to the next ##)",
 ).group()
 
 
@@ -99,8 +115,9 @@ def test_no_field_is_spelled_two_ways():
 #: `## The three \`query\` shapes`. Scoped so the parse below cannot pick up
 #: an unrelated bold-first-column table or fixed-width block elsewhere in the
 #: file (`## \`move\`'s destination`, further down, has both).
-_SECTION = re.search(
-    r"^## The classifiers.*?(?=^## )", SPEC, re.MULTILINE | re.DOTALL
+_SECTION = _found(
+    re.search(r"^## The classifiers.*?(?=^## )", SPEC, re.MULTILINE | re.DOTALL),
+    "the classifiers section (## The classifiers ... up to the next ##)",
 ).group()
 
 #: The four classifier columns and the seven row flags, each stated once in
@@ -147,10 +164,14 @@ def _flag_names() -> list[str]:
 #: The classifiers heading's own stated column count, and the flags label's
 #: own stated flag count -- `## The classifiers -- FOUR COLUMNS ...` and
 #: `**The flags, and there are seven:**`.
-_CLASSIFIER_HEADING = re.search(
-    r"^## The classifiers -- (\w+) COLUMNS", SPEC, re.MULTILINE
+_CLASSIFIER_HEADING = _found(
+    re.search(r"^## The classifiers -- (\w+) COLUMNS", SPEC, re.MULTILINE),
+    "the classifiers heading (## The classifiers -- N COLUMNS)",
 )
-_FLAGS_LABEL = re.search(r"\*\*The flags, and there are (\w+):\*\*", SPEC)
+_FLAGS_LABEL = _found(
+    re.search(r"\*\*The flags, and there are (\w+):\*\*", SPEC),
+    "the flags label (**The flags, and there are N:**)",
+)
 
 
 def allowed_names() -> set[str]:
@@ -202,10 +223,13 @@ def test_no_field_carries_prose():
 #: The fenced block under "## What each instruction owes": the header line,
 #: the `---` separator, then one wrapped record per instruction.
 _OWES_LINES = (
-    re.search(
-        r"^## What each instruction owes\n.*?```\n(.*?)\n```",
-        SPEC,
-        re.MULTILINE | re.DOTALL,
+    _found(
+        re.search(
+            r"^## What each instruction owes\n.*?```\n(.*?)\n```",
+            SPEC,
+            re.MULTILINE | re.DOTALL,
+        ),
+        "the 'What each instruction owes' fenced block",
     )
     .group(1)
     .splitlines()
@@ -316,8 +340,9 @@ def test_the_owes_table_sources_agree_with_the_row(name):
 
 #: The block's own wrapped description text, phrase -> full explanation
 #: (continuation lines, e.g. "may declare scope"'s, joined back on).
-_FLAGS_BLOCK = re.search(
-    r"\*\*The flags, and there are \w+:\*\*\n\n(.*?)\n\n!!", SPEC, re.DOTALL
+_FLAGS_BLOCK = _found(
+    re.search(r"\*\*The flags, and there are \w+:\*\*\n\n(.*?)\n\n!!", SPEC, re.DOTALL),
+    "the flags block (**The flags, and there are N:** ... up to !!)",
 ).group(1)
 
 
@@ -342,7 +367,7 @@ _WORD = re.compile(r"[A-Za-z]+")
 _INVERTED = {"substantive", "diffable"}
 
 
-def _flag_owners(description: str, names: set[str]) -> set[str]:
+def _flag_owners(description: str, names: set[Instruction]) -> set[str]:
     """The instruction name(s) a flag's description names it for -- "clean
     alone", "correct and patch" -- by walking its leading words and
     stopping at the first word that names neither an instruction nor the

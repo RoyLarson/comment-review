@@ -245,7 +245,14 @@ uv run ruff format .
 # parameter its own body unpacks as a 3-tuple, so anyone honouring the signature
 # crashed; and a `SyntaxError` put the string `<unknown>` into `Paragraph.start`,
 # because two exception types were read as though `args[1]` meant one thing.
-uv run ty check src/comment_review/
+#
+# !! BARE, COVERING BOTH TREES -- `[tool.ty]` in `pyproject.toml` sets the
+# scope, not a path typed on the command line. Roy, 2026-08-30: "Yes ty should
+# pick up the tests as well." Before this, `tests/` sat outside every ty run;
+# four real `invalid-argument-type` errors in `tests/test_collate.py` passed a
+# green suite, `ruff check`, `ty check` and the floor gate because nothing was
+# ever pointed at `tests/`. GREEN REPO-WIDE, ZERO DIAGNOSTICS, AS OF 2026-08-30.
+uv run ty check
 
 # !! `plugins/` IS BUILT FROM `src/`, NOT EDITED, since 2026-08-24. The Python
 # lives in `src/comment_review/` and is copied WHOLESALE into the skill; edit

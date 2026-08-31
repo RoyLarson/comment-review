@@ -65,7 +65,7 @@ sys.path.insert(0, str(SRC))
 from comment_review.binder.page import page_for  # noqa: E402
 from comment_review.machine.repo import sha_of  # noqa: E402
 from comment_review.reading.addresser import cue_of, unflatten  # noqa: E402
-from comment_review.reading.lexer import language_for  # noqa: E402
+from comment_review.reading.lexer import Paragraph, language_for  # noqa: E402
 
 
 def build(text: str, name: str = "m.py"):
@@ -79,7 +79,9 @@ def build(text: str, name: str = "m.py"):
     a disk. `read_source` is what supplies it in the running system.
     """
     path = Path(name)
-    return page_for(path, text, language_for(path), rel=name, sha=sha_of(text))
+    lang = language_for(path)
+    assert lang is not None, f"no language record for suffix {path.suffix!r}"
+    return page_for(path, text, lang, rel=name, sha=sha_of(text))
 
 
 def cue(paragraph) -> str:
@@ -87,7 +89,7 @@ def cue(paragraph) -> str:
     return (paragraph.address or "").split("@")[-1]
 
 
-def by_cue(page) -> dict[str, object]:
+def by_cue(page) -> dict[str, Paragraph]:
     """Every addressed place on the page, keyed by its cue."""
     return {cue(b): b for b in page.paragraphs if b.address}
 

@@ -295,7 +295,7 @@ class TestWhatTheGalleyRefuses:
 
 class TestSeveralEditsAtOnce:
     def test_every_FILLED_place_can_be_edited_in_one_pass(self, sample):
-        edits = {c: REPLACEMENT[s] for s, c in FILLED_PLACES}
+        edits: dict[str, str | None] = {c: REPLACEMENT[s] for s, c in FILLED_PLACES}
         assert reset(sample, edits) == []
         for _, c in FILLED_PLACES:
             assert by_cue(sample)[c].raw_lines == [REPLACEMENT[c[0]]]
@@ -303,7 +303,7 @@ class TestSeveralEditsAtOnce:
     def test_editing_EVERY_place_leaves_the_page_still_composable(self, sample):
         """Every one of the sample's places, filled and absent alike, set in a
         single pass -- the widest thing the galley is asked to do."""
-        edits = {c: REPLACEMENT[s] for s, c in FILLED_PLACES}
+        edits: dict[str, str | None] = {c: REPLACEMENT[s] for s, c in FILLED_PLACES}
         edits |= {c: REPLACEMENT[s] for s, c in ABSENT_PLACES}
         assert reset(sample, edits) == []
         out = set_page(sample)

@@ -18,6 +18,7 @@ import pytest
 from helpers import a_clean, a_correct, a_master_proof, a_move, a_query, an_add
 
 from comment_review.desk.collator import UnnamedRole, places, reconcile
+from comment_review.desk.mark import Shape
 
 
 def test_a_move_lands_in_both_the_origin_and_the_destination():
@@ -179,7 +180,7 @@ def test_a_scope_declaring_query_does_not_block_the_other_roles():
             "function-context": {"m.py@b1": a_clean("m.py@b1")},
             "module-context": {"m.py@b1": a_clean("m.py@b1")},
             "ownership-context": {
-                "m.py@b1": a_query("m.py@b1", shape="outside-my-role")
+                "m.py@b1": a_query("m.py@b1", shape=Shape.OUTSIDE_MY_ROLE)
             },
         }
     )
@@ -254,7 +255,7 @@ def test_undetermined_settles_where_another_role_ruled_substantively():
     proof = a_master_proof(
         {
             "block-context": {
-                "m.py@b1": a_query("m.py@b1", shape="unable-to-determine")
+                "m.py@b1": a_query("m.py@b1", shape=Shape.UNABLE_TO_DETERMINE)
             },
             "module-context": {"m.py@b1": a_correct("m.py@b1")},
         }

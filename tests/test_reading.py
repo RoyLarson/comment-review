@@ -245,10 +245,17 @@ class TestAPageCarriesTheShaItWasGiven:
         # A page built with a sha that does not describe its text keeps the sha
         # it was HANDED. If page.py hashed anything, this would disagree.
         path = Path("m.py")
-        page = page_for(path, SAMPLE, language_for(path), rel="m.py", sha="deadbeef")
+        lang = language_for(path)
+        assert lang is not None, f"no language record for suffix {path.suffix!r}"
+        page = page_for(path, SAMPLE, lang, rel="m.py", sha="deadbeef")
         assert page.sha == "deadbeef"
 
     def test_the_sha_is_required(self):
         path = Path("m.py")
+        lang = language_for(path)
+        assert lang is not None, f"no language record for suffix {path.suffix!r}"
         with pytest.raises(TypeError):
-            page_for(path, SAMPLE, language_for(path), rel="m.py")
+            # !! DELIBERATELY OMITS `sha` -- proves the keyword-only parameter
+            # is enforced at runtime. ty: ignore[missing-argument] because the
+            # call is invalid ON PURPOSE; that is what this test asserts.
+            page_for(path, SAMPLE, lang, rel="m.py")  # ty: ignore[missing-argument]

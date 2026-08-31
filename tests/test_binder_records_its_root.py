@@ -37,7 +37,10 @@ def test_a_binder_built_from_the_original_says_so():
 
 def test_a_binder_that_cannot_say_which_root_it_read_is_refused():
     with pytest.raises(TypeError):
-        bind(pages_of(DESK))
+        # !! DELIBERATELY OMITS `read_from` -- proves the required parameter is
+        # enforced at runtime. ty: ignore[missing-argument] because the call is
+        # invalid ON PURPOSE; that is what this test asserts.
+        bind(pages_of(DESK))  # ty: ignore[missing-argument]
 
 
 def test_the_binder_does_not_alias_the_caller_s_read_from():

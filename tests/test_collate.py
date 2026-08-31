@@ -383,6 +383,7 @@ class TestTheMovesAreADag:
         def a_resolved_move(origin, destination):
             mark, why = parse(origin, a_move(origin, destination))
             assert why == [], why
+            assert mark is not None, "parse returned no mark despite why == []"
             return mark
 
         resolved = {
@@ -400,6 +401,7 @@ class TestTheMovesAreADag:
         def a_resolved_move(origin, destination):
             mark, why = parse(origin, a_move(origin, destination))
             assert why == [], why
+            assert mark is not None, "parse returned no mark despite why == []"
             return mark
 
         resolved = {
@@ -425,6 +427,7 @@ class TestPairMoves:
 
         mark, why = parse("m.py@b1", a_move("m.py@b1", "m.py@b5"))
         assert why == [], why
+        assert mark is not None, "parse returned no mark despite why == []"
         resolved = {"m.py@b1": mark}  # "m.py@b5" is not in `resolved` at all
 
         assert _pair_moves(resolved) == {"m.py@b1"}
@@ -443,6 +446,8 @@ class TestPairMoves:
         b_mark, why_b = parse("m.py@b2", a_move("m.py@b2", "m.py@b3"))
         assert why_a == [], why_a
         assert why_b == [], why_b
+        assert a_mark is not None, "parse returned no mark despite why_a == []"
+        assert b_mark is not None, "parse returned no mark despite why_b == []"
         resolved = {"m.py@b1": a_mark, "m.py@b2": b_mark}  # "m.py@b3" absent
 
         assert _pair_moves(resolved) == {"m.py@b1", "m.py@b2"}

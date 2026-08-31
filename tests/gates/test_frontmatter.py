@@ -39,7 +39,12 @@ class TestShippedFrontmatterParses(unittest.TestCase):
 
     def test_no_value_carries_an_unquoted_colon_space(self):
         for path in frontmatter_files():
-            body = FENCE.match(path.read_text("utf-8")).group(1)
+            match = FENCE.match(path.read_text("utf-8"))
+            assert match is not None, (
+                f"FENCE did not match {path} on a second read, though "
+                "frontmatter_files() matched it on the first"
+            )
+            body = match.group(1)
             for line in body.splitlines():
                 key, sep, value = line.partition(": ")
                 if not sep:
