@@ -93,9 +93,11 @@ RECONCILE_ERRORS = (UnnamedRole, MismatchedRoot, KeyError)
 def _report(problems: list) -> None:
     """Every routable `Problem` on stdout, one per line.
 
-    ! ONE SPELLING, TWO CALLERS. The refusal path and the ordinary path print
-    the same thing, and a second copy of the format string is a place for the
-    two to disagree about what a reader is shown.
+    ! ONE SPELLING, FOUR CALLERS -- the refusal path, `problems`, `drift` and
+    `coverage`. A second copy of the format string is a place for them to
+    disagree about what a reader is shown. ! IT SAID TWO UNTIL 2026-08-31, and
+    `drift` kept its own hand-written loop three lines below this function for
+    the whole of that day, which is the duplication this exists to prevent.
 
     ! `(the copy)` STANDS IN FOR AN EMPTY ADDRESS, which is what a problem about
     the whole document carries -- a missing `role`, a bad `read_from`, a sheet
@@ -217,8 +219,7 @@ def main() -> int:
         return BROKEN
 
     _report(got.problems)
-    for problem in got.drift:
-        print(f"{problem.role} {problem.address}: {problem.message}")
+    _report(got.drift)
     # !! COVERAGE IS PRINTED BEFORE THE `problems` GATE AND DOES NOT TRIP IT --
     # `decision-log.md Process: #63`: a missing answer ROUTES back to the role
     # that owes it, and *the places that did come back still settle*. Carried in

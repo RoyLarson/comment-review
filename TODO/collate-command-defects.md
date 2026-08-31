@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 17 tasks closed
+Progress: 1 of 18 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `commands/collate.py` driven by
@@ -163,3 +163,6 @@ under `utf8_console()`.
       the refusal at `commands/collate.py:135` so it prints the problems the
       fold already computed before it exits
         > 2026-08-31 measured: one stripped read_from blocked routing for the other role
+- [ ] T18 | Extend the run() helper in tests/test_collate_command.py so the
+      seven tests that hand-roll its plumbing can use it
+        > 2026-08-31 needs a pre-built copy list, extra argv, and the out path returned

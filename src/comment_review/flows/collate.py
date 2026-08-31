@@ -77,6 +77,7 @@ from comment_review.desk.collator import (
 )
 from comment_review.desk.containers import (
     EditCopy,
+    MasterProof,
     Sheet,
     parse_edit_copy,
     parse_master_proof,
@@ -398,7 +399,7 @@ def _move_order(resolved: dict[str, Mark]) -> tuple[list[str], list[str]]:
     return out, []
 
 
-def _chief_copy(read_from: dict, resolved: dict[str, Mark], proof: dict) -> dict:
+def _chief_copy(read_from: dict, resolved: dict[str, Mark], proof: MasterProof) -> dict:
     """The copy chief's `edit_copy` -- one mark per resolved place.
 
     !! ONLY RESOLVED PLACES GET AN ENTRY. `desk.mark.untouched` means NOBODY
@@ -442,33 +443,31 @@ def _chief_copy(read_from: dict, resolved: dict[str, Mark], proof: dict) -> dict
     # `_real_pages` is a private name in a file this module must not edit, so
     # this loop is its own copy rather than an import of an underscore-prefixed
     # function from another module.
-    # !! THE ENVELOPE GUARANTEES `path` AND `marks`, AND NOT `sha`. `parse_sheet`
-    # REFUSES a sheet whose `path` is not filled and whose `marks` is not a list,
-    # so those are the envelope's to decide and subscripting them here is safe.
-    # It ADMITS a sheet with no `sha` at all and normalizes the absence to `""`
-    # -- but into the `Sheet` DATACLASS, which this flow discards. The raw dict
-    # it goes on walking still has no key.
+    # !! IT WALKS THE PARSED `MasterProof`, NOT THE DICT, since 2026-08-31 --
+    # `Process: #65` in the small. `Sheet.sha` is a `str` because `parse_sheet`
+    # made it one; there is nothing left to fold here, and no sixth site
+    # tracking that rule by hand.
     #
-    # !! MEASURED 2026-08-31, AFTER T4 CUT THE GUARD ON EXACTLY THAT CONFUSION.
-    # A seeded copy with `sha` deleted gives `parse_edit_copy` problems `[]`,
-    # then `collate` raised `KeyError: 'sha'` here -- which the CLI catches as a
-    # refusal, printing `REFUSED ... a copy carries no 'sha'` with an EMPTY
-    # stdout. That discards every routable `Problem`, the precise defect
-    # `CannotCollate` was added to end.
+    # !! IT TOOK A DICT AND HAND-FOLDED THE SHA FOR ONE COMMIT, AND THAT IS THE
+    # MEASUREMENT WORTH KEEPING. T4 cut the guard believing the envelope
+    # guaranteed a `str` sha; it guarantees `path` and `marks`, and ADMITS a
+    # sheet with no `sha`, normalizing the absence into the `Sheet` -- an
+    # object the flow then discarded. A seeded copy with `sha` deleted gave
+    # `parse_edit_copy` problems `[]` and then `KeyError: 'sha'` here, which
+    # the CLI turned into a refusal with an EMPTY stdout, discarding every
+    # routable `Problem`.
     #
-    # ! SO THE TEST FOR CUTTING A GUARD IS WHAT THE ENVELOPE DECIDES ABOUT THE
-    # VALUE THIS CODE READS, not what it decides about the object it returns.
-    # `Process: #65` is the standing fix -- carry the parsed container instead
-    # of the dict, and the normalization arrives with it.
+    # ! THE FIX FIRST TRIED WAS TO RESTORE THE FOLD, and the parsed proof was
+    # sitting unused in `collate`'s own scope one statement above it. Reading
+    # what the container already decided is both smaller and the direction the
+    # ruling points.
     paths: list[str] = []
     shas: dict[str, str] = {}
-    for copy in proof.get("edit_copies", []):
-        for sheet in copy.get("sheets", []):
-            path = sheet["path"]
-            if path not in shas:
-                paths.append(path)
-                raw_sha = sheet.get("sha")
-                shas[path] = raw_sha if isinstance(raw_sha, str) else ""
+    for copy in proof.edit_copies:
+        for sheet in copy.sheets:
+            if sheet.path not in shas:
+                paths.append(sheet.path)
+                shas[sheet.path] = sheet.sha
 
     sheets: dict[str, dict] = {}
     seen: set[int] = set()
@@ -825,8 +824,8 @@ def collate(stage: str, edit_copies: list[dict], binder: dict, root: Path) -> Co
     # `gather` and `_reconcilable` between them produced. That makes it a guard
     # on THIS code rather than on its input, which is why the test that proves
     # it can fail has to replace `gather` to reach it.
-    _proof, why_proof = parse_master_proof(stage, proof)
-    if why_proof:
+    checked, why_proof = parse_master_proof(stage, proof)
+    if why_proof or checked is None:
         return Collated(
             chief=_nothing_settled(),
             problems=problems + [Problem("copy-chief", "", m) for m in why_proof],
@@ -867,7 +866,7 @@ def collate(stage: str, edit_copies: list[dict], binder: dict, root: Path) -> Co
         order, _again = _move_order(resolved)
 
     return Collated(
-        chief=_chief_copy(proof.get("read_from", {}), resolved, proof),
+        chief=_chief_copy(checked.read_from, resolved, checked),
         problems=problems,
         drift=drift,
         coverage=coverage,

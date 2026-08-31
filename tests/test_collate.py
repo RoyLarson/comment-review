@@ -161,8 +161,6 @@ class TestTheChiefsCopy:
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
         got = collate("4c", copies, binder, root=REPO)
-        from comment_review.desk.containers import parse_edit_copy
-
         copy, why = parse_edit_copy("the chief's", got.chief)
         assert why == []
         assert copy is not None
@@ -871,8 +869,6 @@ class TestAResolvedMoveIsOneEntry:
                 assert mark is not None
 
     def test_the_chiefs_copy_still_parses_as_an_ordinary_edit_copy(self):
-        from comment_review.desk.containers import parse_edit_copy
-
         binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})
         marks = {"block-context": {"m.py@b1": a_move("m.py@b1", "m.py@b5")}}
         got = collate("4c", copies_over(binder, marks), binder, root=REPO)
