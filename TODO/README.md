@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (114)
+### open  (116)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -296,6 +296,8 @@ that changed a published name or rule:
 | [containers-and-verification-are-unwired](containers-and-verification-are-unwired.md) | backend | — | 0/5 | The containers and the source-verification half are wired to nothing |
 | [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | — | 0/9 | A move is a composite mark and the code cannot express one |
 | [mark-holds-spec-and-parse](mark-holds-spec-and-parse.md) | backend | — | 0/6 | mark.py holds the instruction spec and the boundary parse at one scope |
+| [ty-cannot-see-the-tests](ty-cannot-see-the-tests.md) | systems | — | 0/5 | The type gate is scoped to src and cannot see the tests |
+| [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | — | 0/4 | A present-but-null key becomes the four characters None |
 
 ### in-progress  (19)
 
