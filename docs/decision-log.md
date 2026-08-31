@@ -2308,9 +2308,14 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `machine.json_object.object_of`, which holds the `json.loads`. ! `object_of` is not deleted
   by this -- it IS the load, and it moves to the end that owns one.
 
-  ! **AND THAT IS A CORRECTION TO A PLAN STEP RATHER THAN A NEW ONE.** `P38` was written as
-  *"binder.read returns a Binder"*, which keeps the decode inside the module; it now says
-  `Binder.deserialize` takes the already-loaded dict.
+  !! **AND `P38` IS SUPERSEDED BY `P46` RATHER THAN REWORDED.** It was written as *"binder.read
+  returns a Binder"*, which keeps the decode inside the module -- so the step as written could
+  be delivered in full and still leave the flow wrong. ! **THE FIRST ATTEMPT WAS A HAND EDIT OF
+  ITS LABEL.** Roy, 2026-08-31: *"No reword for a reason - superseded is the term and add it the
+  fix."* **A reworded box reads afterward as though it had always said the new thing**, so the
+  error and the reason it was corrected are both gone -- which is why the board has five marks
+  and `[-]` is one of them. ! The tool has no reword verb deliberately; reaching past it with
+  `Edit` is the same bypass as widening a verb list to make a label pass.
 
   !! **THE SECOND HALF IS A CONTRACT, NOT A SHAPE FOR ONE CONTAINER.** Four exist and no two
   are spelled alike: `Sheet`, `EditCopy` and `MasterProof` are read by free-standing
