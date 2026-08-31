@@ -46,6 +46,7 @@ instead of being flagged.
 from dataclasses import dataclass
 
 from comment_review.binder.binder import _read_from_problem
+from comment_review.desk.mark import filled
 
 
 @dataclass(frozen=True)
@@ -116,7 +117,7 @@ def parse_sheet(where: str, data: object) -> tuple[Sheet | None, list[str]]:
     if not isinstance(data, dict):
         return None, [f"{where}: a sheet must be an object"]
     path = data.get("path")
-    if not isinstance(path, str) or not path.strip():
+    if not filled(path):
         return None, [f"{where}: a sheet needs the `path` of the page it holds"]
     marks = data.get("marks")
     if not isinstance(marks, list):
@@ -152,7 +153,7 @@ def parse_edit_copy(where: str, data: object) -> tuple[EditCopy | None, list[str
     # a declaration and survives.
     checked: dict = data
     role = checked.get("role")
-    if not isinstance(role, str) or not role.strip():
+    if not filled(role):
         return None, [f"{where}: an edit_copy needs the `role` that wrote it"]
     why_header = _read_from_problem(checked)
     if why_header:

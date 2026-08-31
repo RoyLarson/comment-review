@@ -5,7 +5,7 @@
     INSTRUCTIONS     Instruction -> Row, the seven, closed
     Shape            the three a `query` must name, closed -- a StrEnum
     QUERY_SHAPES     tuple(Shape), in the order `docs/the-mark.md` states them
-    Mark             one role's ruling on one place -- the seven fields
+    Mark             one role's ruling on one place -- the eight fields
                      `docs/the-mark.md` names, and no others
     allowed()        the shape a role is handed, generated from the rows
     parse()          THE BOUNDARY: a role's entry -> a `Mark`, or named
@@ -30,10 +30,13 @@ word for what one entry of that table holds. `decision-log.md Process: #46`.
 
 !! EVERY CLOSED SET IN THIS FILE IS A `StrEnum`, following `reading.series.Kind`
 -- `T1.15`. Each member's value is DERIVED from its name via
-`_generate_next_value_`, never hand-typed, and no site asks membership of an
-enum class directly (`x in SomeEnum` raises `TypeError` on Python 3.11,
-measured at `lexer.py:87`) -- `INSTRUCTIONS`' own keys serve as the membership
-check for `Instruction`, and `QUERY_SHAPES` is `Shape`'s companion tuple.
+`_generate_next_value_`, never hand-typed. ! `reading.series.Kind` IS NOT ITSELF
+AN EXAMPLE OF THAT DERIVATION -- it set the StrEnum precedent T1.15 names, but
+its own member values are hand-typed (`TRAILING = "trailing-comment"` is not
+`name.lower()`). No site here asks membership of an enum class directly
+(`x in SomeEnum` raises `TypeError` on Python 3.11, measured at `lexer.py:87`)
+-- `INSTRUCTIONS`' own keys serve as the membership check for `Instruction`,
+and `QUERY_SHAPES` is `Shape`'s companion tuple.
 
 !! THE RULES SPLIT ON WHAT THEY NEED, AND THIS FILE IS THE HALF THAT NEEDS
 NOTHING. Whether `claim.false` is a key is answerable from the mark; whether it
@@ -54,7 +57,7 @@ FIELDS, NO PROSE. A 22-field scheme entered this file on 2026-08-27 during a
 port that was never proposed and never approved -- `decision-log.md Process:
 #37`. `docs/the-mark.md` is the spec; this file implements it and defines
 nothing. `tests/gates/test_mark_shape.py` reads the spec's own tables and
-refuses a field that is not one of them -- for `Mark`'s seven as well as for
+refuses a field that is not one of them -- for `Mark`'s eight as well as for
 `Row`'s eleven.
 
 !! AND `Mark` REPLACED `problems(where, mark: dict)` ON 2026-08-29. Nothing
@@ -77,6 +80,7 @@ self-nesting that made this ambiguous.
 import re
 from dataclasses import dataclass, fields
 from enum import StrEnum, auto
+from typing import TypeGuard
 
 
 class Instruction(StrEnum):
@@ -379,11 +383,17 @@ class Mark:
 ROLE_FIELDS = ("claim", "reason", "sources", "change")
 
 
-def filled(value: object) -> bool:
+def filled(value: object) -> TypeGuard[str]:
     """A string with something in it. ! An empty string is NOT an answer.
 
     Measured: a claim key present and empty passed every check that would have
     caught it missing, and each of those checks then skipped.
+
+    ! RETURNS `TypeGuard[str]`, NOT A BARE `bool`, so a caller writing
+    `if filled(x): use(x)` gets the same narrowing an inline
+    `isinstance(x, str) and x.strip()` would have given it. `TypeGuard` is
+    `typing`'s own, in the standard library since Python 3.10 -- this module's
+    floor is 3.11 -- so this is not a third-party import.
     """
     return isinstance(value, str) and bool(value.strip())
 
@@ -453,9 +463,23 @@ def _claim_problems(where: str, instruction: Instruction, claim: object) -> list
         instruction: already resolved to a member by `parse()`, its only
             caller.
         claim: the entry's `claim`, unvalidated.
+
+    !! `clean` (`spec.claim_all == ()`) STILL GETS ITS SHAPE CHECKED, and did
+    not until 2026-08-30. `clean` proposes no text and its row names no key, so
+    an ABSENT or empty `claim` is correctly nothing to report on -- but a
+    `claim` present and holding a string, a list or a number is not an empty
+    answer, it is a MALFORMED one, and the early return let it through
+    unexamined to be silently coerced to `{}` two frames up in `parse`. This is
+    deliberately not looking at KEYS for `clean` -- there are none to look
+    for -- and not the same as not looking at SHAPE at all.
     """
     spec = INSTRUCTIONS[instruction]
     if not spec.claim_all:
+        if claim is not None and not isinstance(claim, dict):
+            return [
+                f"{where}: {instruction} needs `claim` to be an object or "
+                f"absent, not a {type(claim).__name__}"
+            ]
         return []
     if not isinstance(claim, dict):
         return [
@@ -532,13 +556,19 @@ def _change_problems(
 
     ! AN EMPTY STRING IS THE EDIT on `drop`, the one row `may_empty` is True
     for, where the claim names the whole paragraph.
+
+    ! `filled()`, NOT A BARE TRUTHINESS TEST -- `may_empty` decides whether NO
+    content is acceptable; it says nothing about whether WHITESPACE counts as
+    content, and it should not. `not change` alone let a role return `"   "`
+    for a `correct` or a `patch` and pass unchallenged, the same gap `filled`
+    exists to close for a `claim` key.
     """
     if not isinstance(change, str):
         return [
             f"{where}: {instruction} needs `change` as the updated paragraph in "
             f"RAW TEXT, not a {type(change).__name__}"
         ]
-    if not change and not spec.may_empty:
+    if not filled(change) and not spec.may_empty:
         return [f"{where}: {instruction} needs `change` to hold the new text"]
     return []
 
@@ -584,7 +614,7 @@ def _destination_problems(where: str, address: object, claim: object) -> list[st
 
     ! THE OTHER HALF IS NOT ASKED HERE. Whether the destination is ADDRESSABLE
     (Roy, 2026-08-27) needs an addresser, and this module imports `re`,
-    `dataclasses` and `enum` and nothing else.
+    `dataclasses`, `enum` and `typing` and nothing else.
 
     Args:
         where: how to name this mark in a message.

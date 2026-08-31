@@ -246,7 +246,16 @@ def test_diff3_shows_disjoint_edits_the_two_sided_form_does_not(tmp_path):
 def test_diff3_renders_a_pure_INSERT_a_role_proposed(tmp_path):
     """A role that ADDS a line rendered as having proposed nothing: the added
     line appeared nowhere under its own `======= <role>` header, in the
-    artifact a human rules on."""
+    artifact a human rules on.
+
+    ! NOT THE SAME QUESTION AS `TestCompose.test_a_pure_insert_is_carried`,
+    despite both exercising `_side_slice`'s `i1 == i2` case. This one proves
+    the fix reaches the artifact a HUMAN reads (`diff3`, N roles, every
+    touching side rendered); that one proves it reaches the text an
+    ALREADY-SETTLED mark is applied AS (`compose`, exactly one touching role
+    or a refusal). A regression confined to either function's own assembly,
+    rather than to the shared helper, is caught by only one of the two.
+    """
     repo = a_small_real_tree(tmp_path)
     base = _three_line_row(repo)
     side = _insert_line(base, 1, "# ADDED BY block-context")
@@ -354,7 +363,13 @@ class TestCompose:
         `i1 == i2`, and a half-open overlap test is False for every empty base
         range -- which dropped every pure insert from `diff3`'s render on
         2026-08-29. `_side_slice` uses the closed test; this proves `compose`
-        inherits it."""
+        inherits it.
+
+        ! NOT A DUPLICATE OF `test_diff3_renders_a_pure_INSERT_a_role_proposed`
+        -- see that test's own note. `compose` reaches `_side_slice` through
+        `len(touching) != 1` refusing everything but exactly one touching
+        role, a branch `diff3` never takes, so this is the only test that
+        exercises the fix along `compose`'s own path."""
         base = "# a\n# b\n"
         sides = {"block-context": "# a\n# INSERTED\n# b\n"}
         assert compose(base, sides) == "# a\n# INSERTED\n# b\n"

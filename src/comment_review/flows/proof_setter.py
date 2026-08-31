@@ -55,9 +55,11 @@ from comment_review.results.prove_unchanged import code_fingerprint
 class Step(StrEnum):
     """One step of the chain, closed.
 
-    `T1.15` of `docs/plans/0.2.4-the-mark-and-the-collator.md`, following
-    `reading.series.Kind`: value DERIVED from the member name, never
-    hand-typed.
+    `T1.15` of `docs/plans/0.2.4-the-mark-and-the-collator.md`: value DERIVED
+    from the member name via `_generate_next_value_`, never hand-typed.
+    `reading.series.Kind` set the StrEnum precedent but hand-types its own
+    member values (`TRAILING = "trailing-comment"` is not `name.lower()`), so
+    it is not itself an example of this derivation.
     """
 
     @staticmethod

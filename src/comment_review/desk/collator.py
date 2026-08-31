@@ -61,7 +61,14 @@ from pathlib import Path
 from typing import NamedTuple
 
 from comment_review.binder.binder import _read_from_problem, rows_of
-from comment_review.desk.mark import INSTRUCTIONS, Instruction, Mark, parse, untouched
+from comment_review.desk.mark import (
+    INSTRUCTIONS,
+    Instruction,
+    Mark,
+    filled,
+    parse,
+    untouched,
+)
 from comment_review.machine import constants
 from comment_review.machine.exceptions import READ_ERRORS
 from comment_review.machine.repo import can_escape, read_raw
@@ -166,7 +173,7 @@ def claim_verbatim_problems(where: str, mark: Mark, base: str) -> list[str]:
     if not key:
         return []
     value = mark.claim.get(key)
-    if not isinstance(value, str) or not value.strip():
+    if not filled(value):
         return []
     if value not in base:
         return [f"{where}: `claim.{key}` is not in the paragraph this row seeded"]
@@ -261,7 +268,7 @@ def source_problems(where: str, mark: Mark, root: Path, cache: Cache) -> list[st
             continue
         cite = source.get("cite")
         verbatim = source.get("verbatim")
-        if not isinstance(cite, str) or not cite.strip():
+        if not filled(cite):
             continue
         parsed = _cite_at(cite)
         if parsed is None:
@@ -280,7 +287,7 @@ def source_problems(where: str, mark: Mark, root: Path, cache: Cache) -> list[st
         if lineno > len(lines):
             out.append(f"{at}: `cite` {cite!r} names a line past the end of the file")
             continue
-        if not isinstance(verbatim, str) or not verbatim.strip():
+        if not filled(verbatim):
             continue
         # ! The cited line plus `WITHIN` on each side, clamped at both ends of
         # the file, and rejoined with `\n` whatever the file's own endings are
@@ -442,7 +449,7 @@ def problems_in(report: dict) -> tuple[list[Problem], int]:
         entries carrying an instruction.
     """
     role = report.get("role")
-    named = role if isinstance(role, str) and role.strip() else ""
+    named = role if filled(role) else ""
     if not isinstance(report.get("sheets"), list):
         return [Problem(named, "", "the report needs a `sheets` list")], 0
 
@@ -673,7 +680,7 @@ def places(proof: dict) -> dict[str, list[Placed]]:
     out: dict[str, list[Placed]] = {}
     for i, copy in enumerate(proof.get("edit_copies", [])):
         role = copy.get("role")
-        if not isinstance(role, str) or not role.strip():
+        if not filled(role):
             raise UnnamedRole(
                 f"edit_copy {i} carries no `role` -- every mark it holds would "
                 "be grouped under a name no reader can route on"

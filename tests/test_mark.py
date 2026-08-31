@@ -307,6 +307,22 @@ class TestTheRulesBite:
         """A role returns `clean` over most of the binder."""
         assert problems("here", {"instruction": "clean"}) == []
 
+    def test_clean_still_accepts_a_MISSING_claim(self):
+        """! `clean`'s row names no key, so absent is not malformed -- this
+        pins the case `test_a_MALFORMED_clean_claim_is_refused` below must not
+        break."""
+        assert problems("here", {"instruction": "clean"}) == []
+
+    def test_a_MALFORMED_clean_claim_is_refused(self):
+        """!! `clean` PROPOSES NO KEYS, WHICH IS NOT THE SAME AS NO SHAPE.
+        Before this, `_claim_problems` returned early on `clean` (its row
+        names no `claim_all`) without checking `claim`'s type at all, so a
+        `claim` holding a bare string was silently coerced to `{}` two frames
+        up in `parse` rather than refused."""
+        bad = well_formed("clean")
+        bad["claim"] = "not an object at all"
+        assert any("claim" in p for p in problems("here", bad))
+
     def test_an_empty_claim_key_is_not_an_answer(self):
         bad = well_formed("correct")
         bad["claim"]["false"] = "   "
@@ -337,6 +353,16 @@ class TestTheRulesBite:
         bad = well_formed("correct")
         bad["change"] = ""
         assert problems("here", bad)
+
+    def test_a_WHITESPACE_ONLY_change_is_not_an_answer(self):
+        """!! THE SAME GAP `filled` CLOSES FOR A `claim` KEY -- see
+        `test_an_empty_claim_key_is_not_an_answer`, above. `may_empty` decides
+        whether NO content is acceptable; it says nothing about whether
+        whitespace counts as content, and a bare `not change` let it through
+        for a row that does not allow an empty change at all."""
+        bad = well_formed("correct")
+        bad["change"] = "   "
+        assert any("change" in p for p in problems("here", bad))
 
     def test_a_mark_owing_sources_that_cites_nothing_is_refused(self):
         """! ADDED after a mutation survived: both source cases below pass a
