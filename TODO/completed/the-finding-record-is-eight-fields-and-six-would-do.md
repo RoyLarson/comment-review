@@ -94,7 +94,7 @@ loads the census and takes only `len(blocks)` from it.
       intended and no anchor field was added. The census now enumerates every gap between two
       lines of code, so the finding is about a real numbered block that holds nothing, which is
       what an `add` was always claiming. Closed by
-      [`an-empty-interval-has-no-census-index`](an-empty-interval-has-no-census-index.md).
+      `an-empty-interval-has-no-census-index`.
       ! The `add` PAYLOAD gained its own rule the same day -- a side, and the anchor named in
       backticks -- under `the-gate-and-the-brief-disagree`.
 

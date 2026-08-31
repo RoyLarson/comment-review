@@ -140,7 +140,7 @@ answer alone.
       contradictions**; six were composition or a sentence-level false positive. It is in the
       file as the reason `SAME SENTENCE` is answered FIRST -- see
       [`move-and-correct-compose`](../move-and-correct-compose.md) and
-      [`the-unit-of-review-is-the-statement-not-the-block`](the-unit-of-review-is-the-statement-not-the-block.md).
+      `the-unit-of-review-is-the-statement-not-the-block`.
 
 - [x] * **RULED 2026-08-17: every block carrying a CONFLICTING mark, and `query` conflicts with
       none.** Roy: *"for now all blocks that have a conflicting mark - query conflicts with

@@ -89,7 +89,7 @@ knew it existed, and no fresh agent is one. The line now states the fact alone.
       all written against a level. Grep `fact-check` before declaring this done.
 
 - [x] ! Fix the dangling recommendation in
-      [`the-task-agent-emits-the-vocabulary`](completed/the-task-agent-emits-the-vocabulary.md), which
+      `the-task-agent-emits-the-vocabulary`, which
       offered `LEVELS = (...)` as the idiom to copy for a `--reviewer` selector. If `LEVELS` is
       deleted, that model goes with it -- and since the floor moved to 3.11 on 2026-08-16,
       `StrEnum` is available and is what that selector should use.

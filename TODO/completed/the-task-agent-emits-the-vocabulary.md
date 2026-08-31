@@ -96,7 +96,7 @@ and a vocabulary is per-agent, so the two answer different questions. `--reviewe
       ! **UNBLOCKED 2026-08-16**: `StrEnum` is 3.11+ and the floor was raised to 3.11 for this
       reason, so it is available. ! Do NOT copy `LEVELS = ("fact-check", ...)` as the model: that
       tuple is itself slated for removal --
-      [`the-level-ladder-was-invented-during-the-port`](the-level-ladder-was-invented-during-the-port.md).
+      `the-level-ladder-was-invented-during-the-port`.
 
 - [x] Decide the vehicle. The dispatch PACKET is written once per run and handed to four agents,
       so a per-agent block belongs in the dispatch PROMPT instead. `run_context.py` has to say

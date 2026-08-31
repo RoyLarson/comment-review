@@ -103,6 +103,11 @@ def test_a_well_formed_copy_still_reaches_the_per_mark_checks():
 per-mark reporting unreachable, which is the defect this plan exists to remove, arriving from
 the other side.
 
+! **ADD `a_mark_missing_its_reason()` TO `tests/helpers.py`** -- one filled mark whose
+`reason` is absent, so `problems_in` has something to report. Build it from `seed()` over a
+real binder and then fill it, never from a literal: a fixture written in the shape the code
+expects can only CONFIRM, which is why this repo replaced its whole suite on 2026-08-25.
+
 - [ ] **Step 2: Run both and watch the first fail**
 
 Run: `uv run pytest tests/test_collate.py -k shape_of_a_copy -v`
@@ -226,6 +231,10 @@ access the run did not have. `#62` is qualified in the decision log; `#58` stand
 
 - [ ] **Step 1: Write the failing test**
 
+! **ADD `a_correct_citing(cite: str)` TO `tests/helpers.py`** -- a `correct` mark whose
+`sources` holds one citation with that `cite` string. `a_correct` already exists; build on it
+rather than writing a second builder for the same instruction.
+
 ```python
 def test_a_citation_that_does_not_resolve_is_reported_by_a_RUN(tmp_path):
     """Not by calling verify_report -- by running the flow, which is the gap."""
@@ -293,6 +302,9 @@ def test_one_definition_decides_what_a_copy_is():
     got = collate("4c", [a_copy_missing_its_sheets()], binder)  # must refuse identically
     ...
 ```
+
+! **ADD `a_copy_missing_its_sheets()` TO `tests/helpers.py`** -- one edit copy with a
+`role` and a `read_from` and no `sheets` key at all.
 
 ! This test is the one place this plan cannot give you exact code, because what it asserts
 depends on which duplicates you find in Step 2. **Write it after the grep, and make it fail

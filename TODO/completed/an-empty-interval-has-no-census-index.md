@@ -81,7 +81,7 @@ vocabulary and is done; this is the census change that follows from it.
       on 2026-08-16 as a term that arrived from LAW.
 
 - [x] Give `add` its block -- done, and the * in
-      [`the-finding-record-is-eight-fields-and-six-would-do`](the-finding-record-is-eight-fields-and-six-would-do.md)
+      `the-finding-record-is-eight-fields-and-six-would-do`
       is closed with it. An `add` cites the empty interval the prose belongs in; it no longer
       borrows a neighbour's index and no longer reads as being about that neighbour's text.
 

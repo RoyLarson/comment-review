@@ -101,7 +101,7 @@ See the standing rule in [`README.md`](README.md).
       sites, including the published `"marks"` JSON key. Unblocks the edit-mark work.
       **Done 2026-08-16:** `worktree` -- Roy ruled it needs no definition, it is git's and
       depends on the project running the review; it is now gone from the shipped tree entirely
-      (see [`the-harness-leaks-into-the-shipped-rules`](the-harness-leaks-into-the-shipped-rules.md)).
+      (see `the-harness-leaks-into-the-shipped-rules`).
       `target` and `author` -- reviewed, no defect: `target` is stated at `SKILL.md:182` and its
       other uses are the ordinary verb; `author` is always the approving human, and *authored*
       is the agent's writing, never called "the author". `load-bearing` -- already clear at
@@ -131,7 +131,7 @@ See the standing rule in [`README.md`](README.md).
       negatives in three lines (*"did not notice"*, *"is not evidence"*, *"cannot tell"*), and
       `SKILL.md` carries *"does not resolve is not a finding"* plus the self-certified
       `CONFIRMED` measurement Roy had already cut from the brief.
-      -> [`the-shipped-python-does-not-pass-its-own-review`](the-shipped-python-does-not-pass-its-own-review.md)
+      -> `the-shipped-python-does-not-pass-its-own-review`
       ! **The rule survives without the count**: *"a report is not evidence that a file was
       read"* needs no number, and neither did it ever get one anybody could re-derive -- every
       other site fixes the reviewer population at four.

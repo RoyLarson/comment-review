@@ -106,7 +106,7 @@ The census was never asked the second question, and now four callers ask it.
       in the file without it, which is what a REGRESSION case and a KNOWN MISS
       case both need. ! Line addresses cannot do it -- the fix commit moves them
       by construction. See
-      [`the-harness-cannot-run-the-system-it-grades`](the-harness-cannot-run-the-system-it-grades.md).
+      `the-harness-cannot-run-the-system-it-grades`.
 
 - [x] **MOVED, not dropped: the enumeration gap belongs with the series that
       closes it.** Every gap is enumerated; an ON-LINE position is an entry only
@@ -116,5 +116,5 @@ The census was never asked the second question, and now four callers ask it.
       would nearly DOUBLE the census**, where the whole `b` series costs 2,587
       for a much commoner verdict. That is a cost decision, not a stability one,
       and it now sits with
-      [`docstrings-need-their-own-address-series`](docstrings-need-their-own-address-series.md),
+      `docstrings-need-their-own-address-series`,
       which settles the same question for declarations.

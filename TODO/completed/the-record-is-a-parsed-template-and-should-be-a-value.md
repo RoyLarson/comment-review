@@ -289,8 +289,6 @@ sentence IS the finding. *"Three places"* is still wrong on disk.
 a finding hiding there is invisible today. With `claim` as structured fields, comparing
 `REASON`'s quoted spans against `claim`'s is mechanical.
 
-## Build order, each step independently verifiable
-
 - [x] **1. DONE 2026-08-17 -- the schema and `record.py --seed`.** One slot per prose block,
       pre-filled with `block`, `address` and `original`, every reviewer field empty.
       SUPERSEDED -- `original` is not seeded; see the ruling below. Verified
@@ -421,7 +419,7 @@ a finding hiding there is invisible today. With `claim` as structured fields, co
       one, and only a block count 10 higher than the reviewers' gave it away.
 
       ! Two findings raised, neither acted on here:
-      [`correct-against-patch-is-a-conflict-and-is-not-flagged`](../correct-against-patch-is-a-conflict-and-is-not-flagged.md),
+      `correct-against-patch-is-a-conflict-and-is-not-flagged`,
       and a second width measurement on
       [`compact-can-buy-lines-with-width`](../compact-can-buy-lines-with-width.md) -- supplying
       the PUBLISHED width bounds the free move without stopping it.
@@ -429,6 +427,14 @@ a finding hiding there is invisible today. With `claim` as structured fields, co
 ! **Keep `verdicts.py`'s SEMANTIC checks throughout.** Address against census, citation
 resolution, verbatim-half lookup, CLAIM-covers-CHANGE, contradictions. Deleting one because the
 new shape made it awkward is how the synthesised block ends up unchecked.
+
+## Build order -- the eight steps are T3-T10 in `## Tasks`
+
+! **MOVED 2026-08-30.** They were eight `[x]` build steps under this heading while two
+rulings sat under `## Tasks`, so the two tools read this file as `10/10` and `2/2`. They are
+one sequence and now sit in one place. ! The step numbering they carried (`1`, `1b`, `2`..`7`)
+is kept in their labels, because the prose above and `docs/history.md` cite it.
+
 
 ## Related
 

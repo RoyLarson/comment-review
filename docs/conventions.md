@@ -301,6 +301,33 @@ cause.
 
 ---
 
+## A TASK LIST IS NOT SPLIT BY A HEADING. EVER.
+
+Roy, 2026-08-30: *"This very thing made an earlier session completely jump a bunch of
+steps in a plan ... The task headers made it easy to skip past a set of tasks and start
+working on the next section of tasks."*
+
+**Every task in a file lives under ONE `## Tasks`.** A second heading holding more tasks
+is not a formatting choice; it is a way to lose them.
+
+!! **AND IT COSTS TWICE, WITH THE EXPENSIVE HALF FIRST.** A reader -- a session, an agent
+-- treats a heading as a boundary and starts at the one it can see, **so the group above
+is never worked.** That has happened. The cheap half is arithmetic: a counter that scopes
+to `## Tasks` reports fewer tasks than a counter that reads the document, and the
+finished work in the other section is exactly what falls in the gap.
+
+! **MEASURED 2026-08-30 on two files.** `two-live-runs-proposed-fifteen-changes.md` held
+T1-T16 under `## Tasks` and T17-T21 under `## Resolved -- do not redo` -- one sequence,
+two headings -- and the two tools read it as `11/21` and `6/16`. `completed/the-record-is-
+a-parsed-template-and-should-be-a-value.md` held two rulings under `## Tasks` and eight
+build steps under `## Build order`, read as `10/10` and `2/2`. Both were merged.
+
+! **THE FIX IS NEVER A BETTER COUNTER.** A heading that groups tasks is legible to a
+human and invisible to everything else. If a group needs explaining, the explanation is
+PROSE ABOVE the list or a dated note -- **the tasks stay in one block, in one order**.
+
+---
+
 ## Where a finding goes -- a TASK first, a FILE only when nothing holds it
 
 Roy, 2026-08-30: *"Every finding gets a TODO task - only open new files if the todo

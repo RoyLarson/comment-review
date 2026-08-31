@@ -196,12 +196,6 @@ raised in conversation.
       Verify: name what stands in for a parse at the `lexical` tier, or close this.
 - [x] T16 -- SUPERSEDED HERE, tracked in its own file. **RELEASE REQUIREMENT -- STAGE 4
       SERIALISES**, at `ownership-is-read-first-but-nothing-makes-it-so.md`.
-## Resolved -- do not redo
-
-!! **These carry CHECKED boxes because an unchecked one is a claim that work remains.** Roy,
-2026-08-18: *"a check box not-marked is left as something todo, even if it was superseded and no
-longer necessary."* Held as prose in a table, these five were invisible to any recount -- the
-README row read `0/9` while five were done.
 
 - [x] T17 -- FINISHED. **P2, both reports -- the work list is withheld on a refusal.**
       Printed on a refusal now, labelled PROVISIONAL, exit unchanged.
@@ -213,6 +207,26 @@ README row read `0/9` while five were done.
       `verdicts.py:293`; the stage-5 gate had been unrunnable.
 - [x] T21 -- FINISHED. **P3, a prose file has no blocks.** Filed separately; **190 of 196
       files** in one diff were `TODO/*.md`.
+## Why T17-T21 are CHECKED, and why they now sit in `## Tasks`
+
+!! **AN UNCHECKED BOX IS A CLAIM THAT WORK REMAINS.** Roy, 2026-08-18: *"a check box
+not-marked is left as something todo, even if it was superseded and no longer necessary."*
+Held as prose in a table, those five were invisible to any recount -- the README row read
+`0/9` while five were done. Boxing them is what made them countable.
+
+!! **AND THEY MOVED INTO `## Tasks` ON 2026-08-30, FOR THE SAME REASON ONE LEVEL UP.** They
+are T17-T21 of ONE sequence and sat under a second heading, and the heading split the count:
+the vendored tool read 21 boxes in this file and `job-board` read 16, because one counts every
+box in the document and the other counts the `## Tasks` block. **The five finished tasks were
+exactly what fell in the gap.**
+
+!! **AND THE COUNT IS THE CHEAP HALF.** Roy, 2026-08-30: *"This very thing made an earlier
+session completely jump a bunch of steps in a plan ... The task headers made it easy to skip
+past a set of tasks and start working on the next section of tasks."* **A reader treats a
+heading as a boundary and starts at the one it can see**, so the group above goes unworked --
+which is a lost group of work, not a wrong number. The rule is in `docs/conventions.md`: a
+task list is not split by a heading, ever.
+
 ## Related
 
 !! **LINKAGE AUDITED 2026-08-19, and it was ABSENT.** None of the fifteen tasks named the TODO it
