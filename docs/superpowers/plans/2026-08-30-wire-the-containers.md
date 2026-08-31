@@ -206,23 +206,25 @@ and `seed()` over a real binder rather than a literal.
 same as 1) the flow coordinates the things in the modules do."* MEASURED 2026-08-30:
 `verify_report` has ONLY test callers -- six call sites, all in `tests/test_collator.py`.
 
-- [ ] **Step 0: A RULING IS OWED BEFORE THIS TASK RUNS. DO NOT GUESS IT.**
+- [ ] **Step 0: RULED -- read this, then proceed**
 
-`verify_report` READS FILES. `source_problems` calls `_lines(root, path, cache)`, which opens
-each cited file to check the citation resolves. **`Process: #62` says the middle touches no
-files** -- Roy: *"it is not reading or writing to the pages at all."*
+`verify_report` READS FILES: `source_problems` calls `_lines(root, path, cache)` to check a
+citation resolves. That looked like a contradiction with `Process: #62`, *"the middle touches
+no files"*, and this task was held until Roy answered it on 2026-08-30.
 
-The distinction that would resolve it: **`#62` is about the PAGES UNDER REVIEW; a `sources`
-citation points at EVIDENCE, which may be any file, and reading evidence is not editing a
-page.** If that holds, this task proceeds as written.
+**IT IS NOT A CONTRADICTION, AND THE TEST IS THE `sha`.** Roy: *"a sources citation points at
+evidence, which may be any file. Reading evidence isn't editing a page ... They are also not
+sha'd because the evidence pages are not modifying data."*
 
-If it does NOT hold, source verification does not belong in `collate` at all and this task
-becomes *where does it belong* -- which is a different task and probably a different plan.
+| | carries a `sha` | the middle may |
+| --- | --- | --- |
+| a page under review | **yes** -- it will be written | never touch it |
+| a cited evidence file | **no** -- nothing writes it | read it |
 
-!! **ASK. DO NOT PICK.** Two rulings from the same day are in tension here, and choosing
-silently would put nobody's name on the answer.
+! **AND THE ROLES ALREADY GREP EVIDENCE** during their own review, so this adds no kind of
+access the run did not have. `#62` is qualified in the decision log; `#58` stands. Proceed.
 
-- [ ] **Step 1: Write the failing test** (only after Step 0 is answered)
+- [ ] **Step 1: Write the failing test**
 
 ```python
 def test_a_citation_that_does_not_resolve_is_reported_by_a_RUN(tmp_path):

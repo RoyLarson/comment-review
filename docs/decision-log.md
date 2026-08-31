@@ -2098,3 +2098,24 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   finding was real and the fix was wrong at the root**: the check should not exist, so making its
   outcome louder entrenched it. ! The reviewer could not have known; nothing in the tree said the
   middle touches no files, which is why this entry exists rather than a note on that commit.
+
+  !! **QUALIFIED THE SAME DAY: "NO FILES" MEANS NO PAGES UNDER REVIEW. EVIDENCE IS READ.** A
+  `sources` citation points at a file to show a claim is settled somewhere, and checking it
+  means opening that file. Roy, 2026-08-30, asked whether that contradicts this entry: *"a
+  sources citation points at evidence, which may be any file. Reading evidence isn't editing
+  a page ... Yep forgot this but then I bet the agents grep this stuff anyways. They are also
+  not sha'd because the evidence pages are not modifying data."*
+
+  !! **AND THE TEST IS MECHANICAL, NOT A JUDGEMENT: THE `sha`.** A page under review carries
+  one in the binder BECAUSE IT WILL BE WRITTEN. An evidence file carries none, because nothing
+  writes it. **So the scope of this rule is readable off the binder** rather than argued case
+  by case: what has a `sha` is what the middle must not touch.
+
+  ! **THE ROLES ALREADY READ EVIDENCE**, which is why this is a qualification rather than a
+  new permission -- a reviewer greps a cited file to settle a claim during its own review, and
+  `desk.collator.source_problems` doing the same in the flow adds no kind of access the run
+  did not already have.
+
+  ! **SO `verify_report` BELONGS IN THE FLOW** and `Process: #58` stands unchanged.
+  `docs/superpowers/plans/2026-08-30-wire-the-containers.md` Task 3 was held pending this
+  answer and proceeds.
