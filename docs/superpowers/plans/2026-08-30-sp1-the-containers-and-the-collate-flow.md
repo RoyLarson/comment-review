@@ -3544,7 +3544,16 @@ for exactly this sense: *"stage 2 was `COLLATE` and is GATHER since 2026-08-23 .
 `collate` is available for its trade meaning, transferring every hand's marks onto one
 proof."*
 
-- [ ] **Step 1: Add `distribute` to `docs/vocabulary.md`**
+- [x] **Step 1: Add `distribute` to `docs/vocabulary.md`**
+
+! LANDED IN TWO PLACES, NOT THE ONE THIS STEP NAMED. The retired table
+records `mark` (the COMMAND) -> `distribute`, keeping the NOUN live; and the
+live term is defined beside `collate` as the broadcast half of one round.
+! IT IS NOT IN THE *publishing's word* TABLE THIS STEP POINTED AT: in
+letterpress, **distribution** is returning type to the case after printing --
+breaking the setting down -- so a row there would assert a trade provenance
+this term does not have. The plain sense was chosen because it pairs with
+`collate`'s trade sense, and that is now said where a reader will look.
 
 In the settled-terms table, beside `collate`:
 
@@ -3552,13 +3561,20 @@ In the settled-terms table, beside `collate`:
 | **distribute** | handing each role its own `edit_copy` of the binder -- the broadcast half of one round | **`flows/distribute.py`**, ruled 2026-08-30. Roy: *"the broadcasting part seems like distribute, the bringin back together seems like collate."* It was `flows/marks.py`, named for the artifact it carried rather than the act it performs |
 ```
 
-- [ ] **Step 2: Add it to the shipped vocabulary**
+- [-] **Step 2: Add it to the shipped vocabulary** -- SUPERSEDED, and it
+cannot be done as written. `references/vocabulary.toml` is keyed by the four
+EDITORIAL ROLES plus `all`, and `distribute` is a command the TASK AGENT runs,
+which no role's text uses. `scripts/check_vocabulary.py` refuses a definition
+written for nobody, so adding it would trip the gate this step ends with.
+! THE GAP IS REAL AND IS NOW FILED: `TODO/task-agent-vocabulary-home.md` --
+the task agent is not a role in that table, so no term only it uses has
+anywhere to live, and it is never told the command set either.
 
 Add the matching entry to `src/comment_review/references/vocabulary.toml`, in the same
 form as its neighbours. Read two existing entries first and match them exactly rather than
 inventing a field.
 
-- [ ] **Step 3: Run the vocabulary checks**
+- [x] **Step 3: Run the vocabulary checks**
 
 ```bash
 uv run python scripts/check_vocabulary.py
@@ -3569,7 +3585,13 @@ uv run python scripts/vocabulary_sweep.py
 its rows, and for any term it names that this plan introduced (`compose`, `drift`,
 `Problem`), decide whether it is a term of art and add it if so.
 
-- [ ] **Step 4: Build `plugins/` and prove it took**
+- [-] **Step 4: Build `plugins/` and prove it took** -- SUPERSEDED BY A RULING
+TAKEN AFTER THIS PLAN WAS WRITTEN. Roy, 2026-08-30, on building the shipped
+tree: *"At release time. Not on development time."* So `test_build.py` stays
+red on the branch by design, and the build runs when a version is cut.
+! AND THERE IS NOW A SECOND REASON NOT TO RUN IT: the eight-file review found
+two CRITICALs in the move path, so copying today's `src/` into `plugins/`
+would ship them under a version number.
 
 ```bash
 uv run python scripts/build_plugin.py
@@ -3578,7 +3600,12 @@ uv run python scripts/build_plugin.py --check
 
 Expected: the second exits 0.
 
-- [ ] **Step 5: Run every gate**
+- [x] **Step 5: Run every gate** -- `ruff check` passed, `ruff format --check`
+reported 175 files already formatted, `ty check` (bare, both trees) passed,
+`check_shipped_syntax.py` parsed 56 shipped files on 3.11, and
+`check_vocabulary.py` checked 6 roles with 0 drifted and 11 retired words with
+0 uses. `pytest`: 1384 passed, 600 subtests, one failure -- `test_build`, per
+step 4.
 
 ```bash
 uv run pytest -q
@@ -3598,6 +3625,12 @@ uv run python scripts/todo_tool.py resync
 this commit.
 
 - [ ] **Step 6: Confirm the chain runs end to end with no hand-written Python**
+-- BLOCKED, and the blocker is known and filed. `collate` writes the copy
+chief's `edit_copy` (`{role, read_from, sheets}`); `proof --docket` reads
+`{pages: [{path, sha, alterations}]}`. `commands/proof.py` would refuse the one
+given the other, so the chain does not reach `proof`. The bridge is
+`TODO/no-command-for-the-middle.md` T1, which was UNTICKED on 2026-08-30 for
+exactly this reason.
 
 `A-T1`'s own verify. Over a scratch tree:
 

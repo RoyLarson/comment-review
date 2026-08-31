@@ -51,6 +51,7 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 | `foliator.py`, `foliate()`, `Foliation` | -> **`addresser.py`**, **`cue()`**, **`Cues`**. The module supplies both halves of an address and the whole take-apart; `Cues` holds cues, not addresses. See `docs/decision-log.md` Addressing: #6 |
 | `leaf`, `leaves` (of a page or a place) | **deleted** in that sense. One sheet carries TWO pages, so it was neither the page nor the cue, and a file has no verso. ! Two shipped definitions disagreed -- one said paragraphs run DOWN a leaf, one said a leaf IS a place. ! The IMPORT-GRAPH sense is a different word and is live -- see the polysemy rule below |
 | `verdict` | -> **instruction**. Judicial on an editorial system, the same register error `jurisdiction` made before it became `remit`; and it named the same thing twice -- the object a role returns is a **mark**, its type is an **instruction**. See `decision-log.md Vocabulary: #17` |
+| `mark` (the COMMAND, `flows/marks.py`, `Command.MARK`) | -> **`distribute`**, in `6187f71`. The command hands each role an EMPTY `edit_copy` and takes the filled one back; it produces no mark and rules on nothing. One stem named both a role's RULING and the machinery that circulates the forms, so `mark --seed` read as *make a mark* when it means *give out the blanks*. ! The NOUN IS LIVE and is defined in the shipped vocabulary -- this retires the command sense only, which is the shape `owner` (the census field) and `marks` (the census's) took before it |
 
 ## Held in reserve -- publishing's word for something we already have
 
@@ -114,6 +115,20 @@ names coverage gaps, and hands every conflict up -- so whatever it is called, it
   sheets into sequence"*, which is the BOOKBINDER's word -- two senses one clause apart, in the
   file that exists to keep senses apart. The justification is cut rather than repaired: what
   stage 2 does is put a page for each file in the binder, and that reads the same either way.
+- **`distribute` is the BROADCAST half, and it pairs with `collate`.** Ruled 2026-08-30. Roy:
+  *"the broadcasting part seems like distribute, the bringin back together seems like
+  collate."* One round is two acts: `flows/distribute.py` hands each role its own `edit_copy`
+  of the binder, `flows/collate.py` folds the filled copies back into one. It was
+  `flows/marks.py`, named for the artifact it carried rather than the act it performs -- see
+  the retired table, which keeps `mark` the NOUN live and retires only the command sense.
+
+  !! **AND IT IS NOT TAKEN FROM PUBLISHING, WHICH IS THE POINT OF SAYING SO.** In letterpress,
+  **distribution** is returning type to the case after a forme is printed -- breaking the
+  setting DOWN, close to the opposite of handing copies out. So this is the plain English
+  sense, chosen because it pairs with `collate`'s trade sense, and it is recorded here rather
+  than in the table above precisely so nobody later reads a compositor's meaning into it.
+  ! That table is *publishing's word for something we already have*; a row there would assert
+  a provenance this term does not have.
 - **`editorial role` is one of the four reviewers.** Calling the joiner `editor` puts two
   different jobs one syllable apart. In the trade the four are the hands that MARK -- a copy
   editor, a proofreader -- and only one hand rules.

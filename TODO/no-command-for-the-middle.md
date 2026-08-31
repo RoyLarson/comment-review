@@ -8,6 +8,15 @@ Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
           REAL reviewer agent -- census, mark --seed, the block-context agent, mark
           --check and taken_in are all commands; the middle is not)
+Narrowed: 2026-08-30 — T2 and T3 narrowed to what shipped. T2 claimed a run says what
+          became of ALL the unsettled places; measured 2026-08-30, Collated.unruled and
+          Collated.tally are discarded by the command, so a place nobody ruled on is
+          still dropped silently. T3 claimed the outcomes are distinguishable by exit
+          code ALONE; measured the same day, an unguarded write_text leaves main as a
+          traceback so CPython exits 1 and the agent reads a filesystem failure as
+          BROKEN, and the DRIFT code is masked by any escalation or re-read. Both boxes
+          stay closed on their narrowed claims; the remainders are the three tasks added
+          below and the write_text guard on collate-command-defects.
 ```
 
 ## Objective
@@ -35,13 +44,14 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       ! WHAT IS OWED HERE IS THE BRIDGE -- transcribing that copy into a docket,
       which is a known piece of work with its own scope elsewhere. This box stays
       open until the chain runs through to `proof`.
-- [x] It reports what reconciliation decided, not just what settled. Verify: the
-      command names the escalated and re-read places on stdout -- `docket_from`
-      packages only the settled ones, so a run that settles 4 of 10 must say what
-      became of the other 6 rather than dropping them silently.
-- [x] Its exit code separates the three outcomes. Verify: a stage that settles
-      everything, one that escalates, and one that owes a re-read are
-      distinguishable by exit code alone, since the task agent branches on it.
+- [x] It names the ESCALATED and RE-READ places, not just what settled. Verify:
+      both appear on stdout -- `docket_from` packages only the settled ones, so a
+      run that settles 4 of 10 says which of the other 6 escalated and which owe a
+      re-read. ! Narrowed 2026-08-30; the unruled remainder is a task below.
+- [x] Its exit code reaches three different values for the three outcomes.
+      Verify: a stage that settles everything, one that escalates and one that
+      owes a re-read do not share a code. ! Narrowed 2026-08-30 from
+      "distinguishable by exit code alone"; see the note.
 - [ ] `tests/gates/test_skill_commands.py` sees it. Verify: the command appears in
       `COMMANDS`, `--help` names it, and the gate that checks SKILL.md's commands
       resolve covers this one.
