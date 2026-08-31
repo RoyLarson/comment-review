@@ -20,6 +20,47 @@ not derivable. Every comparison runs on stripped prose, which the binder now car
 **Spec:** `docs/superpowers/specs/2026-08-30-the-move-composite-design.md` -- read it with
 this plan. Rulings: `decision-log.md Process: #56`, `#57`, `#60`, `#61`, `#62`.
 
+---
+
+## !! BLOCKED. DO NOT EXECUTE THIS PLAN YET.
+
+**It waits on the containers being wired** -- `TODO/containers-and-verification-are-unwired.md`
+and its own plan. Ruled by Roy, 2026-08-30, on being shown the finding below: *"wire the
+containers first."*
+
+!! **MEASURED: NOTHING WOULD CALL WHAT TASKS 6-8 BUILD.** `parse_move` is reached only
+through `parse_edit_copy`, and `parse_edit_copy` **has no production importer**;
+`move_problems` has no caller at all. So the composite parse, the sentence check, the
+destination check and every refusal in them would ship **unreachable** -- `docs/gates.md`'s
+exact failure, and this repo's standing rule that *a thing whose dependencies are broken is
+not worked on, it is refused.*
+
+! **THE SPEC SAYS THE OPPOSITE AND IS WRONG.** Its section 8 reads *"This spec assumes
+neither is wired yet and does not depend on it."* The move's validation runs THROUGH the
+container boundary, so the wiring is a PREREQUISITE rather than an adjacent concern.
+
+### Four defects in this plan, found by the same mapping -- fix before executing
+
+| where | what |
+| --- | --- |
+| **Task 9 Step 4** | `_sentence_key`'s `id(mark)` fallback **also serves `add`**. Deleting it as move-only breaks `add` |
+| **Task 1** | adds a SIXTH binder-row key while `page_row`'s docstring reads *"FIVE FIELDS"*. `binder-defects T10` owns that sentence and no task here touches it |
+| **Task 10** | moving moves out of sheet `marks` makes `commands/collate.py:153` print `0 places resolved` for a move-only stage -- it makes `collate-command-defects T5` WORSE |
+| **Tasks 9-10** | `_join_moves` and `_pair_moves` have no stated fate, and **four supersessions turn on that answer** |
+
+### And the tick steps name too little
+
+Every task below says "tick the boxes" and names only `move-is-a-composite-mark.md` and this
+plan. The work closes tasks across eight other files. **The mapping is
+`.superpowers/sdd/2026-08-30-sp1-the-containers-and-the-collate-flow/tick-map.md`** -- 10
+CLOSED, 5 PARTIAL, 14 SUPERSEDED -- and each tick step must name its own, per
+`conventions.md`: *"A `P` NAMES THE `T` TASKS IT WORKS, NOT JUST THE FILE."*
+
+! `P21` of `docs/plans/0.2.4-the-commands-for-the-middle.md` moves under this work and is NOT
+delivered by it. It stays open.
+
+---
+
 ## Global Constraints
 
 - Run everything through `uv run`. Python **3.11** floor; annotations are EAGER, so a name in
@@ -138,11 +179,34 @@ In the row dict returned around `binder.py:75-103`, beside `"raw_text"`:
 Run: `uv run pytest tests/test_binder_records_its_root.py -k stripped_prose -v` -- PASS.
 Then `uv run pytest -q` -- only the expected `test_build` failure.
 
-- [ ] **Step 5: Tick this task's box here and in the parent plan, then commit**
+- [ ] **Step 5: Run the checks**
 
-Commit the work first, then tick `TODO/move-is-a-composite-mark.md` and this plan in a
-SECOND commit that cites the first commit's SHA. A box asserts work is done, and the work is
-not done until it is committed.
+```bash
+uv run pytest -q
+uv run ruff check . && uv run ruff format --check . && uv run ruff check .
+uv run ty check
+```
+
+Only `test_build` may fail. Anything else is this task's, not an inheritance.
+
+- [ ] **Step 6: Commit the WORK -- no ticked boxes in this commit**
+
+- [ ] **Step 7: Tick every box this task closes, and reword the partials**
+
+Read `.superpowers/sdd/2026-08-30-sp1-the-containers-and-the-collate-flow/tick-map.md`
+for this task's row. Tick this plan's box, the tasks it CLOSES on each TODO named
+there, and check the SUPERSEDED ones with their reason. **A PARTIAL stays OPEN and
+is reworded to the remainder.**
+
+!! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** Not its title. Measured on
+this repo 2026-08-30: `P21` was ticked with two of three clauses unmet.
+
+- [ ] **Step 8: Commit the ticks, citing the work commit's SHA**
+
+The tick commit is SEPARATE and comes SECOND. A box asserts the work is done, and
+the work is not done until it is committed -- so a tick in the same commit asserts a
+completion that has not happened yet. Citing the SHA is what makes the box
+re-derivable by a stranger.
 
 ---
 
@@ -195,7 +259,34 @@ remaining codes are contiguous, and say in the module docstring what each means.
 `uv run pytest -q`, `uv run ruff check .`, `uv run ty check`. Delete the tests that only
 exercised drift; a test left asserting a deleted behaviour is a finding, not a pass.
 
-- [ ] **Step 5: Tick the boxes, then commit** (work first, tick second, citing the SHA)
+- [ ] **Step 5: Run the checks**
+
+```bash
+uv run pytest -q
+uv run ruff check . && uv run ruff format --check . && uv run ruff check .
+uv run ty check
+```
+
+Only `test_build` may fail. Anything else is this task's, not an inheritance.
+
+- [ ] **Step 6: Commit the WORK -- no ticked boxes in this commit**
+
+- [ ] **Step 7: Tick every box this task closes, and reword the partials**
+
+Read `.superpowers/sdd/2026-08-30-sp1-the-containers-and-the-collate-flow/tick-map.md`
+for this task's row. Tick this plan's box, the tasks it CLOSES on each TODO named
+there, and check the SUPERSEDED ones with their reason. **A PARTIAL stays OPEN and
+is reworded to the remainder.**
+
+!! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** Not its title. Measured on
+this repo 2026-08-30: `P21` was ticked with two of three clauses unmet.
+
+- [ ] **Step 8: Commit the ticks, citing the work commit's SHA**
+
+The tick commit is SEPARATE and comes SECOND. A box asserts the work is done, and
+the work is not done until it is committed -- so a tick in the same commit asserts a
+completion that has not happened yet. Citing the SHA is what makes the box
+re-derivable by a stranger.
 
 ---
 
@@ -252,7 +343,34 @@ would otherwise read as filled. Read `untouched`'s docstring before changing it.
 `uv run pytest -q`. Every failure is a consumer that read `change`; fix each to read
 `raw_text`. `uv run ty check` will name the rest.
 
-- [ ] **Step 5: Tick the boxes, then commit**
+- [ ] **Step 5: Run the checks**
+
+```bash
+uv run pytest -q
+uv run ruff check . && uv run ruff format --check . && uv run ruff check .
+uv run ty check
+```
+
+Only `test_build` may fail. Anything else is this task's, not an inheritance.
+
+- [ ] **Step 6: Commit the WORK -- no ticked boxes in this commit**
+
+- [ ] **Step 7: Tick every box this task closes, and reword the partials**
+
+Read `.superpowers/sdd/2026-08-30-sp1-the-containers-and-the-collate-flow/tick-map.md`
+for this task's row. Tick this plan's box, the tasks it CLOSES on each TODO named
+there, and check the SUPERSEDED ones with their reason. **A PARTIAL stays OPEN and
+is reworded to the remainder.**
+
+!! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** Not its title. Measured on
+this repo 2026-08-30: `P21` was ticked with two of three clauses unmet.
+
+- [ ] **Step 8: Commit the ticks, citing the work commit's SHA**
+
+The tick commit is SEPARATE and comes SECOND. A box asserts the work is done, and
+the work is not done until it is committed -- so a tick in the same commit asserts a
+completion that has not happened yet. Citing the SHA is what makes the box
+re-derivable by a stranger.
 
 ---
 
@@ -317,7 +435,34 @@ gate follows the document. **Recount from the table; do not decrement.**
 
 `uv run pytest tests/gates/test_mark_shape.py -v` -- PASS. Then the full suite.
 
-- [ ] **Step 6: Tick the boxes, then commit**
+- [ ] **Step 6: Run the checks**
+
+```bash
+uv run pytest -q
+uv run ruff check . && uv run ruff format --check . && uv run ruff check .
+uv run ty check
+```
+
+Only `test_build` may fail. Anything else is this task's, not an inheritance.
+
+- [ ] **Step 7: Commit the WORK -- no ticked boxes in this commit**
+
+- [ ] **Step 8: Tick every box this task closes, and reword the partials**
+
+Read `.superpowers/sdd/2026-08-30-sp1-the-containers-and-the-collate-flow/tick-map.md`
+for this task's row. Tick this plan's box, the tasks it CLOSES on each TODO named
+there, and check the SUPERSEDED ones with their reason. **A PARTIAL stays OPEN and
+is reworded to the remainder.**
+
+!! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** Not its title. Measured on
+this repo 2026-08-30: `P21` was ticked with two of three clauses unmet.
+
+- [ ] **Step 9: Commit the ticks, citing the work commit's SHA**
+
+The tick commit is SEPARATE and comes SECOND. A box asserts the work is done, and
+the work is not done until it is committed -- so a tick in the same commit asserts a
+completion that has not happened yet. Citing the SHA is what makes the box
+re-derivable by a stranger.
 
 ---
 
@@ -362,7 +507,34 @@ def test_may_empty_is_gone():
 - [ ] **Step 3: Delete `may_empty` from `Row` and from `drop`'s row**
 - [ ] **Step 4: Update `docs/the-mark.md` and RECOUNT the classifier headings**
 - [ ] **Step 5: Run the gate and the suite**
-- [ ] **Step 6: Tick the boxes, then commit**
+- [ ] **Step 6: Run the checks**
+
+```bash
+uv run pytest -q
+uv run ruff check . && uv run ruff format --check . && uv run ruff check .
+uv run ty check
+```
+
+Only `test_build` may fail. Anything else is this task's, not an inheritance.
+
+- [ ] **Step 7: Commit the WORK -- no ticked boxes in this commit**
+
+- [ ] **Step 8: Tick every box this task closes, and reword the partials**
+
+Read `.superpowers/sdd/2026-08-30-sp1-the-containers-and-the-collate-flow/tick-map.md`
+for this task's row. Tick this plan's box, the tasks it CLOSES on each TODO named
+there, and check the SUPERSEDED ones with their reason. **A PARTIAL stays OPEN and
+is reworded to the remainder.**
+
+!! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** Not its title. Measured on
+this repo 2026-08-30: `P21` was ticked with two of three clauses unmet.
+
+- [ ] **Step 9: Commit the ticks, citing the work commit's SHA**
+
+The tick commit is SEPARATE and comes SECOND. A box asserts the work is done, and
+the work is not done until it is committed -- so a tick in the same commit asserts a
+completion that has not happened yet. Citing the SHA is what makes the box
+re-derivable by a stranger.
 
 ---
 
@@ -442,7 +614,34 @@ marks. Refuse: a missing or blank `sentence`, `from`, `to`, `to_text` or `reason
 and narrows, which is why `desk/collator.py` was able to stop restating it inline.
 
 - [ ] **Step 4: Run the tests** -- PASS. Then the suite.
-- [ ] **Step 5: Tick the boxes, then commit**
+- [ ] **Step 5: Run the checks**
+
+```bash
+uv run pytest -q
+uv run ruff check . && uv run ruff format --check . && uv run ruff check .
+uv run ty check
+```
+
+Only `test_build` may fail. Anything else is this task's, not an inheritance.
+
+- [ ] **Step 6: Commit the WORK -- no ticked boxes in this commit**
+
+- [ ] **Step 7: Tick every box this task closes, and reword the partials**
+
+Read `.superpowers/sdd/2026-08-30-sp1-the-containers-and-the-collate-flow/tick-map.md`
+for this task's row. Tick this plan's box, the tasks it CLOSES on each TODO named
+there, and check the SUPERSEDED ones with their reason. **A PARTIAL stays OPEN and
+is reworded to the remainder.**
+
+!! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** Not its title. Measured on
+this repo 2026-08-30: `P21` was ticked with two of three clauses unmet.
+
+- [ ] **Step 8: Commit the ticks, citing the work commit's SHA**
+
+The tick commit is SEPARATE and comes SECOND. A box asserts the work is done, and
+the work is not done until it is committed -- so a tick in the same commit asserts a
+completion that has not happened yet. Citing the SHA is what makes the box
+re-derivable by a stranger.
 
 ---
 
@@ -560,7 +759,34 @@ LITERALS.** A builder that constructs the shape the code expects can only agree 
 A builder writes wire keys because that is what a role sends.
 
 - [ ] **Step 7: Run the suite**
-- [ ] **Step 8: Tick the boxes, then commit**
+- [ ] **Step 8: Run the checks**
+
+```bash
+uv run pytest -q
+uv run ruff check . && uv run ruff format --check . && uv run ruff check .
+uv run ty check
+```
+
+Only `test_build` may fail. Anything else is this task's, not an inheritance.
+
+- [ ] **Step 9: Commit the WORK -- no ticked boxes in this commit**
+
+- [ ] **Step 10: Tick every box this task closes, and reword the partials**
+
+Read `.superpowers/sdd/2026-08-30-sp1-the-containers-and-the-collate-flow/tick-map.md`
+for this task's row. Tick this plan's box, the tasks it CLOSES on each TODO named
+there, and check the SUPERSEDED ones with their reason. **A PARTIAL stays OPEN and
+is reworded to the remainder.**
+
+!! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** Not its title. Measured on
+this repo 2026-08-30: `P21` was ticked with two of three clauses unmet.
+
+- [ ] **Step 11: Commit the ticks, citing the work commit's SHA**
+
+The tick commit is SEPARATE and comes SECOND. A box asserts the work is done, and
+the work is not done until it is committed -- so a tick in the same commit asserts a
+completion that has not happened yet. Citing the SHA is what makes the box
+re-derivable by a stranger.
 
 ---
 
@@ -656,7 +882,34 @@ whitespace run to one space and strip -- then:
 what was already there is unchanged. It says nothing about WHERE, which is the point.
 
 - [ ] **Step 4: Run the tests** -- all six PASS. Then the suite.
-- [ ] **Step 5: Tick the boxes, then commit**
+- [ ] **Step 5: Run the checks**
+
+```bash
+uv run pytest -q
+uv run ruff check . && uv run ruff format --check . && uv run ruff check .
+uv run ty check
+```
+
+Only `test_build` may fail. Anything else is this task's, not an inheritance.
+
+- [ ] **Step 6: Commit the WORK -- no ticked boxes in this commit**
+
+- [ ] **Step 7: Tick every box this task closes, and reword the partials**
+
+Read `.superpowers/sdd/2026-08-30-sp1-the-containers-and-the-collate-flow/tick-map.md`
+for this task's row. Tick this plan's box, the tasks it CLOSES on each TODO named
+there, and check the SUPERSEDED ones with their reason. **A PARTIAL stays OPEN and
+is reworded to the remainder.**
+
+!! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** Not its title. Measured on
+this repo 2026-08-30: `P21` was ticked with two of three clauses unmet.
+
+- [ ] **Step 8: Commit the ticks, citing the work commit's SHA**
+
+The tick commit is SEPARATE and comes SECOND. A box asserts the work is done, and
+the work is not done until it is committed -- so a tick in the same commit asserts a
+completion that has not happened yet. Citing the SHA is what makes the box
+re-derivable by a stranger.
 
 ---
 
@@ -699,7 +952,34 @@ def test_two_moves_sharing_a_destination_do_not_fabricate_an_edit():
   move had no stable key. Read it first: an `id()` key made every multi-mark move place a
   re-read, which is the upstream cause of Task 10's CRITICAL.
 - [ ] **Step 5: Run the suite**
-- [ ] **Step 6: Tick the boxes, then commit**
+- [ ] **Step 6: Run the checks**
+
+```bash
+uv run pytest -q
+uv run ruff check . && uv run ruff format --check . && uv run ruff check .
+uv run ty check
+```
+
+Only `test_build` may fail. Anything else is this task's, not an inheritance.
+
+- [ ] **Step 7: Commit the WORK -- no ticked boxes in this commit**
+
+- [ ] **Step 8: Tick every box this task closes, and reword the partials**
+
+Read `.superpowers/sdd/2026-08-30-sp1-the-containers-and-the-collate-flow/tick-map.md`
+for this task's row. Tick this plan's box, the tasks it CLOSES on each TODO named
+there, and check the SUPERSEDED ones with their reason. **A PARTIAL stays OPEN and
+is reworded to the remainder.**
+
+!! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** Not its title. Measured on
+this repo 2026-08-30: `P21` was ticked with two of three clauses unmet.
+
+- [ ] **Step 9: Commit the ticks, citing the work commit's SHA**
+
+The tick commit is SEPARATE and comes SECOND. A box asserts the work is done, and
+the work is not done until it is committed -- so a tick in the same commit asserts a
+completion that has not happened yet. Citing the SHA is what makes the box
+re-derivable by a stranger.
 
 ---
 
@@ -753,7 +1033,34 @@ def test_one_move_reaches_the_chief_copy_once():
   stood in for, and confirm nothing else depended on it.
 - [ ] **Step 5: Run the suite.** `tests/test_collate.py` has tests written against the
   provisional behaviour; a test asserting a deleted behaviour is a finding, not a pass.
-- [ ] **Step 6: Tick the boxes, then commit**
+- [ ] **Step 6: Run the checks**
+
+```bash
+uv run pytest -q
+uv run ruff check . && uv run ruff format --check . && uv run ruff check .
+uv run ty check
+```
+
+Only `test_build` may fail. Anything else is this task's, not an inheritance.
+
+- [ ] **Step 7: Commit the WORK -- no ticked boxes in this commit**
+
+- [ ] **Step 8: Tick every box this task closes, and reword the partials**
+
+Read `.superpowers/sdd/2026-08-30-sp1-the-containers-and-the-collate-flow/tick-map.md`
+for this task's row. Tick this plan's box, the tasks it CLOSES on each TODO named
+there, and check the SUPERSEDED ones with their reason. **A PARTIAL stays OPEN and
+is reworded to the remainder.**
+
+!! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** Not its title. Measured on
+this repo 2026-08-30: `P21` was ticked with two of three clauses unmet.
+
+- [ ] **Step 9: Commit the ticks, citing the work commit's SHA**
+
+The tick commit is SEPARATE and comes SECOND. A box asserts the work is done, and
+the work is not done until it is committed -- so a tick in the same commit asserts a
+completion that has not happened yet. Citing the SHA is what makes the box
+re-derivable by a stranger.
 
 ---
 
@@ -792,7 +1099,34 @@ uv run python scripts/check_shipped_syntax.py
 uv run python scripts/check_vocabulary.py
 ```
 
-- [ ] **Step 6: Tick the boxes, then commit**
+- [ ] **Step 6: Run the checks**
+
+```bash
+uv run pytest -q
+uv run ruff check . && uv run ruff format --check . && uv run ruff check .
+uv run ty check
+```
+
+Only `test_build` may fail. Anything else is this task's, not an inheritance.
+
+- [ ] **Step 7: Commit the WORK -- no ticked boxes in this commit**
+
+- [ ] **Step 8: Tick every box this task closes, and reword the partials**
+
+Read `.superpowers/sdd/2026-08-30-sp1-the-containers-and-the-collate-flow/tick-map.md`
+for this task's row. Tick this plan's box, the tasks it CLOSES on each TODO named
+there, and check the SUPERSEDED ones with their reason. **A PARTIAL stays OPEN and
+is reworded to the remainder.**
+
+!! **READ EACH BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** Not its title. Measured on
+this repo 2026-08-30: `P21` was ticked with two of three clauses unmet.
+
+- [ ] **Step 9: Commit the ticks, citing the work commit's SHA**
+
+The tick commit is SEPARATE and comes SECOND. A box asserts the work is done, and
+the work is not done until it is committed -- so a tick in the same commit asserts a
+completion that has not happened yet. Citing the SHA is what makes the box
+re-derivable by a stranger.
 
 ---
 
@@ -803,9 +1137,22 @@ the plan and superpowers plan. Explicit steps always."* And: *"It lands in the c
 the work it records as finished is finished."*
 
 **A box asserts the work is DONE, and the work is not done until it is committed** -- so a
-tick in the same commit asserts a completion that has not happened yet. Each task therefore
-ends: run the checks, commit the work, THEN tick this plan and
-`TODO/move-is-a-composite-mark.md`, citing that commit, and commit the tick.
+tick in the same commit asserts a completion that has not happened yet.
+
+**Every task ends in FOUR BOXES, and they are boxes rather than a paragraph on purpose:**
+
+    check  ->  commit the WORK  ->  tick  ->  commit the TICKS
+
+!! **THIS SECTION IS NOT WHERE THE SEQUENCE LIVES.** It is written into each of the eleven
+tasks as four checkable steps, because *a rule you have to remember is not a step, and is
+what gets dropped*. An earlier draft of this plan spelled the sequence out in Task 1, gave
+the other ten a one-line "tick the boxes, then commit", and left this section to carry the
+rest -- which is the failure it was quoting.
+
+!! **AND EACH TICK STEP NAMES ITS OWN BOXES**, from
+`.superpowers/sdd/2026-08-30-sp1-the-containers-and-the-collate-flow/tick-map.md`. This work
+closes tasks across NINE files, not one. `conventions.md`: *"A `P` NAMES THE `T` TASKS IT
+WORKS, NOT JUST THE FILE."*
 
 !! **READ THE BOX'S OWN VERIFY TEXT BEFORE TICKING IT.** Measured on this repo the same day:
 `P21` was ticked with two of its three verify clauses unmet, and `no-command-for-the-middle`'s
