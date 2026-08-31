@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 24 tasks closed
+Progress: 7 of 24 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -83,10 +83,11 @@ envelope check; that file's task 9 lands the region a move needs inside it.
       caller outside `desk/collator.py`; a test asserts a mark whose `sources`
       cite does not resolve is reported by a RUN OF THE FLOW, not only by
       calling the function.
-- [ ] T4 | Delete the hand-rolled `isinstance` checks the containers now answer
-      for, so one definition of a valid copy survives. Verify: no two places in
-      `src/` decide what a well-formed edit copy is, and `problems_in` reports
-      only on CONTENTS -- the per-mark problems that route back to a role.
+- [x] T4 | the flow's downstream shape guards are cut; the module boundary keeps its own as depth | 1c6e13e | Delete
+      the hand-rolled `isinstance` checks the containers now answer for, so one
+      definition of a valid copy survives. Verify: no two places in `src/`
+      decide what a well-formed edit copy is, and `problems_in` reports only on
+      CONTENTS -- the per-mark problems that route back to a role.
 - [ ] T5 | Update `desk/containers.py` and `desk/collator.py` prose to state
       what each boundary refuses and what it reports, now that both are reached.
       Verify: no sentence in either file claims a consumer that `grep -rn` does

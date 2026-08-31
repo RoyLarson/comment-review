@@ -724,18 +724,18 @@ through them one at a time.
 is defensible depth. **What is not defensible is prose claiming a guard is load-bearing when
 the enforcement is upstream.** Where you keep one, say which it is.
 
-- [ ] **Step 1: Enumerate the duplicates and record them in the report**
+- [x] **Step 1: Enumerate the duplicates and record them in the report**
 
 This step comes first, and the test comes after it. **This plan cannot give you the test**,
 because what it asserts depends on which duplicates the grep finds. A test written after the
 cut can only agree with you -- so write it against the enumeration, and make it fail.
 
-- [ ] **Step 2: Write the failing test over one duplicate you found, and run it**
-- [ ] **Step 3: Delete only those the container now answers for**
-- [ ] **Step 4: Run the tests, then `uv run pytest -q`**
-- [ ] **Step 5: Run the checks** -- only `test_build` may fail
-- [ ] **Step 6: Commit the WORK -- no ticked boxes in this commit**
-- [ ] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
+- [x] **Step 2: Write the failing test over one duplicate you found, and run it**
+- [x] **Step 3: Delete only those the container now answers for**
+- [x] **Step 4: Run the tests, then `uv run pytest -q`**
+- [x] **Step 5: Run the checks** -- only `test_build` may fail
+- [x] **Step 6: Commit the WORK -- no ticked boxes in this commit**
+- [x] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
 
 Tick every `- [ ]` step box of this task in
 `docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
@@ -751,7 +751,7 @@ it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
 `Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
 wrong.
 
-- [ ] **Step 8: Commit the ticks, citing the work commit's SHA**
+- [x] **Step 8: Commit the ticks, citing the work commit's SHA**
 
 ---
 
