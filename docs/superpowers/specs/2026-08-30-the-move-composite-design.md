@@ -20,6 +20,7 @@ Ruled 2026-08-30 while designing this.
 | **the claim** | states what the diff cannot show. See section 2 |
 | **`diff3` / `compose`** | base is the binder, sides are the several marks' `raw_text` |
 | **drift** | **DELETED** -- `Process: #62`, the middle touches no files |
+| **the comparison unit** | **STRIPPED PROSE** -- markers off, newlines gone, every whitespace run collapsed, one string per paragraph. Sections 3 and 5 |
 
 !! **THE CHECK IS `diff(binder[address], raw_text)` AGAINST THE CLAIM.** Roy, 2026-08-30:
 *"the diff is between the binder at the address and the raw_text left in the mark after it
@@ -102,9 +103,16 @@ end: *"it could need to be inserted mid-paragraph."*
 answer. Inserting one has as many answers as there are positions in the paragraph, so the
 role must say which.
 
-! **THE ORIGIN CANNOT EXPRESS A REWRAP.** A role may not remove a sentence AND re-flow the
-remainder its own way. Wrapping to the cap is stage 6 `compact`, and this is the boundary
-that keeps a move's origin checkable.
+!! **A REWRAP IS INVISIBLE, SO NOTHING HAS TO FORBID ONE.** An earlier draft ruled that a
+role may not re-flow the remainder, to keep the origin checkable. **That constraint is
+RETIRED.** Roy, 2026-08-30: *"while it was a good thought it is brittle in so many ways
+it is probably a good idea to retire that idea and get just the prose from the paragraphs
+stripped of the white spacing and the comment markers. This makes the diff easy regardless
+of if the agent flows the text around."*
+
+! **AND A PURE REWRAP IS THEN NOT AN EDIT AT ALL** -- it produces an EMPTY diff, which is
+the correct answer. A constraint that had to be policed becomes a property that holds by
+itself.
 
 ### Why the equality check disappears
 
@@ -162,11 +170,17 @@ key holding an existing sentence -- `claim.drop`, `claim.false`, `claim.from` --
 `claim_verbatim_problems` substring-tests it against the base. `move`'s row is `""` today
 because *"`move`'s from/to are PLACES"*. Setting it to `"sentence"` needs no new mechanism.
 
-! **THE DESTINATION CHECK IS PROSE-LEVEL, NOT BYTE-LEVEL.** A sentence inserted mid-paragraph
-re-flows the lines after it, so a line diff reports `replace`, not `insert`. Compare with
-comment markers stripped and whitespace collapsed. `results/differences.py` reports a
-sentence-level move as `replace` today -- measured 2026-08-30 -- which is why this is stated
-rather than assumed.
+!! **EVERY COMPARISON ABOVE IS ON STRIPPED PROSE.** ! Measured 2026-08-30: `differences.py`
+reports a sentence-level move as `replace` rather than `insert`, because the insertion
+re-flows the lines after it -- a LINE diff cannot answer these questions at all. Stripped
+prose is the representation that makes them arithmetic.
+
+! **THE MIDDLE REASONS IN PROSE; THE COMPOSITOR SETS IT.** Wrapping, markers and the cap are
+downstream of everything here -- the same boundary `Process: #62` draws.
+
+! **SO THE ROLE NEED NOT WRAP WHAT IT RETURNS.** `to_text` is prose; one long line is a
+legitimate answer. Placement is expressed by where the sentence sits in that prose, not by
+how it is broken across lines.
 
 ---
 
@@ -189,6 +203,29 @@ rather than assumed.
 - `may_empty` exists so a `drop` may return `""` when the whole paragraph goes. **Its fate
   follows section 9's open question**: if `drop` derives its result like the move's origin,
   there is no returned text to be empty and the flag goes too.
+
+### `binder/binder.py`
+
+**The row gains the STRIPPED PROSE beside `raw_text`.** Ruled 2026-08-30 -- Roy, asked
+whether the middle should recompute it or the binder should carry it: *"we can put it
+in."*
+
+! **THE CENSUS ALREADY COMPUTES IT AND THE BINDER DROPS IT.** `Paragraph.text` is
+`_join(raw, openers)` -- markers stripped per line, joined, whitespace runs collapsed --
+and `binder/binder.py` stores only `"raw_text": "\n".join(paragraph.raw_lines)`. The
+work is done; the field is not kept.
+
+!! **AND IT IS WHAT KEEPS THE LANGUAGE OUT OF THE MIDDLE.** Stripping needs a language's
+comment markers. Recomputing in the desk would pull `reading.language` across the
+boundary and re-derive per comparison; carrying it means the middle compares two strings
+the binder handed it and needs to know nothing about either file. That is the same
+separation as `Process: #62`.
+
+! **THE ROW'S OWN DOCSTRING ALREADY ARGUES HALF OF THIS.** *"THE PROSE LEAVES AS ONE
+STRING"* -- Roy: *"LLMs and the token parsers read this as a complete and coherent
+statement. They do not read this as the same thing: ['LLMs and the token', 'parsers read
+this as a', ...]"*. That ruling settled one string rather than a list of lines; this
+settles prose rather than marked-up lines.
 
 ### `desk/containers.py`
 
