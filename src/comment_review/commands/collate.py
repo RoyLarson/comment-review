@@ -129,6 +129,16 @@ def main() -> int:
         help="one role's returned edit_copy; repeat for each",
     )
     ap.add_argument("--out", required=True, help="where to write the chief's edit_copy")
+    # !! THE ROOT SOURCE VERIFICATION RESOLVES A `cite` AGAINST -- `P25`. It
+    # defaults to the binder's own `read_from.root`, which is the tree the
+    # copies were censused from and therefore the one their citations were
+    # written against. ! WHY OPENING A CITED FILE IS NOT A PAGE READ is stated
+    # once, at the call in `flows.collate.collate`, and not restated here.
+    ap.add_argument(
+        "--repo",
+        help="the checkout a `sources` cite resolves against "
+        "(default: the binder's own read_from.root)",
+    )
     args = ap.parse_args()
 
     if not args.edit_copy:
@@ -153,8 +163,14 @@ def main() -> int:
             return UNREADABLE
         copies.append(copy)
 
+    # ! THE BINDER NAMES ITS OWN TREE, so a caller that already passed one does
+    # not pass it twice. `read_from` is refused as absent or malformed further
+    # up the chain, and `.` is what a binder read from the working directory
+    # says, so it is a fallback rather than a guess.
+    root = Path(args.repo or binder.get("read_from", {}).get("root") or ".")
+
     try:
-        got = collate(args.stage, copies, binder)
+        got = collate(args.stage, copies, binder, root)
     except CannotCollate as refusal:
         # !! THE ROUTABLE PROBLEMS GO OUT FIRST, THEN THE REFUSAL. A refusal
         # says the SET cannot be folded; it says nothing about the marks the

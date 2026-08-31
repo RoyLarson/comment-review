@@ -1,10 +1,18 @@
 """COLLATE -- one stage's returned edit_copies, folded into the chief's own.
 
-    collate(stage, edit_copies, binder) -> Collated
+    collate(stage, edit_copies, binder, root) -> Collated
 
-Eight acts, in order:
+Ten acts, in order:
 
+    ENVELOPE   is each document the shape a copy must be, and is the proof the
+               shape a proof must be -- `desk.containers.parse_edit_copy`,
+               `parse_master_proof`. Reported, never raised; a failure returns
+               early rather than folding a partial set
     CHECK      every copy's marks, stacked -- `desk.collator.problems_in`
+    VERIFY     each ruled mark's address, quoted sentence and citations --
+               `desk.collator.verify_report`, the three questions
+               `desk.mark.parse` cannot ask because it holds no binder, no page
+               and no filesystem
     DRIFT      a returned `raw_text` that is not the seeded one
     DROP       every mark `CHECK` already reported, from what `RECONCILE`
                sees -- `_reconcilable`
@@ -40,6 +48,7 @@ this is a drop and not a stand-down to `desk.mark.untouched`.
 """
 
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from comment_review.desk.collator import (
     Placed,
@@ -50,6 +59,7 @@ from comment_review.desk.collator import (
     reconcile,
     tally,
     unruled,
+    verify_report,
 )
 from comment_review.desk.containers import (
     EditCopy,
@@ -521,16 +531,21 @@ def _reconcilable(copy: dict) -> dict:
     return {**copy, "sheets": sheets}
 
 
-def collate(stage: str, edit_copies: list[dict], binder: dict) -> Collated:
+def collate(stage: str, edit_copies: list[dict], binder: dict, root: Path) -> Collated:
     """One stage's returned copies, checked, reconciled and folded.
 
     Args:
         stage: the label these copies were dispatched under -- "4a", "4c".
         edit_copies: one per role, or one per SHARD under fan-out, as each came
             back.
-        binder: the binder they were seeded from. ! IT SUPPLIES THE BASE AND
-            THE OTHER SIDE OF THE DRIFT CHECK, and nothing else -- address
-            integrity over the docket is `P28`'s.
+        binder: the binder they were seeded from. ! IT SUPPLIES THE BASE, THE
+            OTHER SIDE OF THE DRIFT CHECK, AND THE KNOWN ADDRESSES SOURCE
+            VERIFICATION MEASURES AGAINST -- address integrity over the DOCKET
+            is a different question and is `P28`'s.
+        root: the checkout every `sources` citation is resolved against. ! IT
+            IS NOT A PAGE ROOT. `Process: #62` bars the middle from a page
+            under review; what this reads is evidence, which carries no `sha`
+            because nothing writes it.
 
     Returns:
         A `Collated`.
@@ -615,6 +630,19 @@ def collate(stage: str, edit_copies: list[dict], binder: dict) -> Collated:
     for copy in edit_copies:
         found, _ruled = problems_in(copy)
         problems += found
+        # !! SOURCE VERIFICATION RUNS HERE -- `P25`, `Process: #58`. Roy: *"the
+        # source-verification side needs to be wired into the flow - same as 1)
+        # the flow coordinates the things in the modules do."* It asks what
+        # `desk.mark.parse` cannot: parse imports no binder, no page and no
+        # filesystem, so a claim quoting a sentence that is not in its paragraph
+        # and a `cite` naming a file that does not exist both reach it clean.
+        #
+        # ! IT READS FILES, AND THAT IS NOT `Process: #62`'s "no files". The
+        # test is the `sha`: a page under review carries one because it will be
+        # written, and the middle must not touch it; a cited evidence file
+        # carries none because nothing writes it, and reading it is what
+        # settling a citation means. Roy, 2026-08-30, on exactly this call.
+        problems += verify_report(copy, binder, root)
         drift += drift_in(copy, base)
         role = str(copy.get("role") or "")
         left[role] = unruled(copy)

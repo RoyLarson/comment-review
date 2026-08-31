@@ -96,12 +96,33 @@ def test_tally_names_the_instruction_the_brief_wrote():
     assert tally(EXAMPLE) == {ENTRY["instruction"]: 1}
 
 
-def test_collate_accepts_it_as_a_ruled_mark(tmp_path, capsys, monkeypatch):
+def test_collate_reads_it_as_a_ruled_mark_and_reports_only_what_it_cannot_resolve(
+    tmp_path, capsys, monkeypatch
+):
     """The command a role's output actually meets, end to end.
 
     ! `--binder` carries no page for `b47`, so `drift_in`'s `address not in
     base` skip fires and nothing is compared -- the drift check is not what
     this test is about.
+
+    !! IT ASSERTED `code == 0` UNTIL 2026-08-31, AND THAT ONLY HELD WHILE
+    SOURCE VERIFICATION WAS UNWIRED. `P25` put `desk.collator.verify_report`
+    into the flow, and it reports three true things about this input:
+
+        `address` 'b47' names no place the binder carries   -- the binder is EMPTY
+        `claim.false` is not in the paragraph this row seeded -- there is no paragraph
+        two `cite`s do not resolve                          -- see below
+
+    !! THE CITATIONS CAN NEVER RESOLVE IN THIS TREE, BY DESIGN. The brief's
+    worked example cites `redacted_pkg/...`, a package this repo does not ship
+    and will not -- so the example is not verifiable HERE, and that is a fact
+    about the example rather than a defect in the flow.
+
+    ! SO WHAT THIS TEST NOW ASSERTS IS THE PART THAT IS ABOUT THE BRIEF: the
+    example is a WELL-FORMED ruled mark -- `problems_in` returns `([], 1)`, in
+    the test above -- and every finding the command reports is a
+    source-verification one, not a shape one. A `code == 0` here would now mean
+    verification had stopped running.
     """
     copy_path = tmp_path / "edit_copy.json"
     copy_path.write_text(json.dumps(EXAMPLE), encoding="utf-8")
@@ -124,8 +145,21 @@ def test_collate_accepts_it_as_a_ruled_mark(tmp_path, capsys, monkeypatch):
     )
     code = collate_main()
     printed = capsys.readouterr().out
-    assert code == 0, printed
-    assert "1 places resolved" in printed
+    assert code == 1, printed
+    # ! EVERY LINE IS A SOURCE-VERIFICATION FINDING. If a SHAPE problem ever
+    # appears here, the brief's worked example has stopped being a well-formed
+    # mark, which is the thing this file exists to notice.
+    lines = [line for line in printed.splitlines() if line.strip()]
+    assert lines
+    for line in lines:
+        assert any(
+            claim in line
+            for claim in (
+                "names no place",
+                "is not in the paragraph",
+                "does not resolve",
+            )
+        ), line
 
 
 @pytest.mark.parametrize("key", ["claim", "reason", "sources", "change"])

@@ -406,17 +406,34 @@ class TestVerifyReport:
         )
         problems = verify_report(copy, BINDER, ROOT)
         assert problems
-        assert all(p.startswith(ROW["address"]) for p in problems)
+        # !! THE ADDRESS IS A FIELD SINCE 2026-08-31, not a prefix on a
+        # sentence -- `P25` gave this a production caller, and `Problem` exists
+        # so a finding can be ROUTED. This asserts the same claim more strictly
+        # than the `startswith` it replaces: the address is the whole value now,
+        # not the opening of one.
+        assert all(p.address == ROW["address"] for p in problems)
+        assert all(p.role == copy["role"] for p in problems)
 
-    def test_an_entry_THAT_DOES_NOT_PARSE_is_reported_not_skipped(self):
-        """!! IT READ `mark.get("mark") is None` AND SKIPPED UNTIL 2026-08-29,
-        which said the same thing about a slot nobody wrote in and a mark whose
-        ruling key this code did not recognise -- so the second vanished here
-        as well as in `desk.collator.problems_in`."""
+    def test_an_entry_THAT_DOES_NOT_PARSE_is_left_to_problems_in(self):
+        """!! SUPERSEDED 2026-08-31, AND THE DISTINCTION IT NAMED STILL HOLDS.
+
+        It read `test_..._is_reported_not_skipped` and asserted `verify_report`
+        contributed `desk.mark.parse`'s messages -- right while this function
+        had no production caller. `P25` put it in the flow beside
+        `problems_in`, which parses every entry already, so a malformed mark
+        came back TWICE with a byte-identical message.
+
+        ! WHAT 2026-08-29 FIXED IS NOT UNDONE. That defect was reading
+        `mark.get("mark") is None`, which said the same thing about a slot
+        nobody wrote in and a mark whose ruling key the code did not
+        recognise -- and the second is still not silently folded into the
+        first. It is reported once, by `problems_in`, which
+        `tests/test_collator.py::TestProblemsIn` covers.
+        """
         copy = _filled({"instruction": None})
-        problems = verify_report(copy, BINDER, ROOT)
-        assert problems
-        assert any("instruction" in p for p in problems)
+        assert verify_report(copy, BINDER, ROOT) == []
+        found, _ruled = problems_in(copy)
+        assert any("instruction" in p.message for p in found)
 
 
 class TestTheBaseIsTheBinders:
@@ -468,7 +485,7 @@ class TestTheBaseIsTheBinders:
         entry.update(a_correct(entry["address"], "a sentence nobody wrote"))
         entry["raw_text"] = "a sentence nobody wrote"
         problems = verify_report(copy, binder, repo)
-        assert any("is not in the paragraph" in p for p in problems)
+        assert any("is not in the paragraph" in p.message for p in problems)
 
 
 class TestEachCheckCanFire:

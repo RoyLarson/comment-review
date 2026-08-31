@@ -42,6 +42,19 @@ _DESK = Path(__file__).resolve().parents[1] / "src" / "comment_review" / "desk"
 _MARK_PY_CITE = "src/comment_review/desk/mark.py:1"
 _MARK_PY_LINE_1 = (_DESK / "mark.py").read_text(encoding="utf-8").splitlines()[0]
 
+#: The sentence `a_drop` and `a_correct` quote when a caller names none. It is
+#: a PLACEHOLDER and belongs to no paragraph, which `_quoting_the_real_text`
+#: substitutes away wherever a real base is in hand -- see its docstring for
+#: what that measured.
+_PLACEHOLDER_SENTENCE = "the paragraph's own claim"
+
+#: !! THE ROOT `_MARK_PY_CITE` RESOLVES AGAINST, and the one a `collate` test
+#: must pass. Source verification opens what a `cite` names, so a test handed
+#: `tmp_path` reports EVERY built mark's citation as unresolvable -- and a test
+#: asserting some OTHER finding would then pass on the wrong one. Measured
+#: 2026-08-31 while wiring `P25`.
+REPO = Path(__file__).resolve().parents[1]
+
 
 def pages_of(root: Path) -> list:
     """Every `.py` page under `root`, through the real reader."""
@@ -213,14 +226,22 @@ def _synthetic_binder(addresses: list[str]) -> dict:
 
     ! `places()`, what this feeds, groups by whatever `address` a mark
     already carries and never resolves one against a binder or reads a page,
-    so this needs no real file on disk -- only the shape `seed()` requires.
+    so this needs no real page on disk -- only the shape `seed()` requires.
+
+    !! BUT `read_from.root` MUST NAME A REAL DIRECTORY, and held the string
+    `"tests/helpers.py"` until 2026-08-31 -- a FILE, chosen as a placeholder
+    when nothing read it. `P25` gave it a reader: `flows.collate.collate`
+    resolves every `sources` cite against this root, and `commands/collate.py`
+    defaults to it. Against a file, every citation these helpers build fails to
+    resolve, and five exit-code tests came back BROKEN for a reason that had
+    nothing to do with what they assert. Nothing asserts on the old value.
     """
     by_path: dict[str, list[str]] = {}
     for address in addresses:
         path, _, cue = address.partition("@")
         by_path.setdefault(path, []).append(cue)
     return {
-        "read_from": {"root": "tests/helpers.py", "revise": 0},
+        "read_from": {"root": str(REPO), "revise": 0},
         "pages": [
             {
                 "path": path,
@@ -251,7 +272,7 @@ def a_binder_over(paragraphs: dict[str, str]) -> dict:
         path, _, cue = address.partition("@")
         by_path.setdefault(path, []).append((cue, text))
     return {
-        "read_from": {"root": "tests/helpers.py", "revise": 0},
+        "read_from": {"root": str(REPO), "revise": 0},
         "pages": [
             {
                 "path": path,
@@ -286,9 +307,37 @@ def copies_over(binder: dict, by_role: dict) -> list[dict]:
             for entry in sheet["marks"]:
                 mark = marks_by_address.get(entry["address"])
                 if mark is not None:
-                    entry.update(mark)
+                    entry.update(_quoting_the_real_text(mark, entry))
         copies.append(copy)
     return copies
+
+
+def _quoting_the_real_text(mark: dict, entry: dict) -> dict:
+    """`mark`, with a PLACEHOLDER `claim.false` replaced by the seeded text.
+
+    !! MEASURED 2026-08-31, WHEN `P25` GAVE THE CLAIM A READER. `a_correct`'s
+    default sentence -- `"the paragraph's own claim"` -- is in no paragraph any
+    helper builds, so **every mark built from that default carried a claim that
+    was never true of its own base**. Nothing could see it: `desk.mark.parse`
+    imports no binder and no page, so the sentence was unfalsifiable until
+    `desk.collator.claim_verbatim_problems` ran in the flow.
+
+    ! THE WHOLE PARAGRAPH IS A LEGITIMATE `claim.false`, not a dodge --
+    `flows.collate._composition` sets exactly that when it synthesizes a
+    `correct` over a base two roles both edited.
+
+    ! ONLY THE PLACEHOLDER IS TOUCHED. A test that passes its own sentence --
+    `a_correct_setting`, or `a_correct(addr, "a sentence that is not there")` --
+    means that sentence and keeps it, which is what lets a verbatim failure
+    still be written.
+    """
+    claim = mark.get("claim")
+    if not isinstance(claim, dict) or claim.get("false") != _PLACEHOLDER_SENTENCE:
+        return mark
+    base = entry.get("raw_text")
+    if not isinstance(base, str) or not base:
+        return mark
+    return {**mark, "claim": {**claim, "false": base}}
 
 
 def a_copy_missing_its_sheets(binder: dict, role: str = "block-context") -> dict:
@@ -368,19 +417,31 @@ def _mark(instruction: Instruction, address: str, claim: dict) -> dict:
     return mark
 
 
+def a_correct_citing(address: str, cite: str) -> dict:
+    """A `correct` whose one source cites `cite`.
+
+    ! BUILT ON `a_correct`, not as a second builder for the same instruction --
+    what varies is the citation, and everything else must stay whatever the
+    row's own spec says it owes.
+    """
+    mark = a_correct(address)
+    mark["sources"] = [{"cite": cite, "verbatim": _MARK_PY_LINE_1}]
+    return mark
+
+
 def a_clean(address: str) -> dict:
     """A `clean` mark -- the null mark. `INSTRUCTIONS[Instruction.CLEAN]` owes
     no `claim`, no `sources`, no `change`."""
     return _mark(Instruction.CLEAN, address, {})
 
 
-def a_drop(address: str, sentence: str = "the paragraph's own claim") -> dict:
+def a_drop(address: str, sentence: str = _PLACEHOLDER_SENTENCE) -> dict:
     """A `drop` mark -- the one row `INSTRUCTIONS[...].may_empty` is True for,
     so an empty `change` on it is the edit rather than a missing one."""
     return _mark(Instruction.DROP, address, {"drop": sentence})
 
 
-def a_correct(address: str, sentence: object = "the paragraph's own claim") -> dict:
+def a_correct(address: str, sentence: object = _PLACEHOLDER_SENTENCE) -> dict:
     """A `correct` mark -- `claim.false` is `sentence`, `claim.true` the fix,
     the two keys `INSTRUCTIONS[Instruction.CORRECT]` demands.
 

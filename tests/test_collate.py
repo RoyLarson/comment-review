@@ -7,10 +7,12 @@ where MALFORMED is the input.
 
 import pytest
 from helpers import (
+    REPO,
     a_binder_over,
     a_clean,
     a_copy_missing_its_sheets,
     a_correct,
+    a_correct_citing,
     a_correct_setting,
     a_move,
     an_add,
@@ -37,7 +39,7 @@ class TestTheResolutions:
         copies = copies_over(
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
-        got = collate("4c", copies, binder)
+        got = collate("4c", copies, binder, root=REPO)
         assert got.escalations == []
         assert got.rereads == []
         marks = [m for s in got.chief["sheets"] for m in s["marks"]]
@@ -55,7 +57,7 @@ class TestTheResolutions:
                 },
             },
         )
-        got = collate("4c", copies, binder)
+        got = collate("4c", copies, binder, root=REPO)
         assert got.escalations == []
         marks = [m for s in got.chief["sheets"] for m in s["marks"]]
         assert [m["change"] for m in marks] == [same]
@@ -77,7 +79,7 @@ class TestTheResolutions:
                 },
             },
         )
-        got = collate("4c", copies, binder)
+        got = collate("4c", copies, binder, root=REPO)
         assert [e["address"] for e in got.escalations] == ["m.py@b1"]
         assert [m for s in got.chief["sheets"] for m in s["marks"]] == []
 
@@ -98,7 +100,7 @@ class TestTheResolutions:
                 },
             },
         )
-        got = collate("4c", copies, binder)
+        got = collate("4c", copies, binder, root=REPO)
         assert got.escalations == []
         assert got.rereads == []
         marks = [m for s in got.chief["sheets"] for m in s["marks"]]
@@ -121,7 +123,7 @@ class TestTheResolutions:
                 },
             },
         )
-        got = collate("4c", copies, binder)
+        got = collate("4c", copies, binder, root=REPO)
         assert [e["address"] for e in got.rereads] == ["m.py@b1"]
         assert [m for s in got.chief["sheets"] for m in s["marks"]] == []
 
@@ -134,7 +136,7 @@ class TestTheResolutions:
                 "function-context": {"m.py@b1": a_clean("m.py@b1")},
             },
         )
-        got = collate("4c", copies, binder)
+        got = collate("4c", copies, binder, root=REPO)
         assert got.escalations == []
         assert got.rereads == []
         assert [m for s in got.chief["sheets"] for m in s["marks"]] == []
@@ -144,7 +146,7 @@ class TestTheResolutions:
         adds at two addresses never meet under per-place grouping."""
         binder = one_place()
         copies = copies_over(binder, {"block-context": {"m.py@b1": an_add("m.py@b1")}})
-        got = collate("4c", copies, binder)
+        got = collate("4c", copies, binder, root=REPO)
         assert [e["address"] for e in got.rereads] == ["m.py@b1"]
 
 
@@ -154,7 +156,7 @@ class TestTheChiefsCopy:
         copies = copies_over(
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
-        got = collate("4c", copies, binder)
+        got = collate("4c", copies, binder, root=REPO)
         from comment_review.desk.containers import parse_edit_copy
 
         copy, why = parse_edit_copy("the chief's", got.chief)
@@ -167,7 +169,7 @@ class TestTheChiefsCopy:
         copies = copies_over(
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
-        got = collate("4c", copies, binder)
+        got = collate("4c", copies, binder, root=REPO)
         for sheet in got.chief["sheets"]:
             for entry in sheet["marks"]:
                 mark, why = parse(entry["address"], entry)
@@ -191,7 +193,7 @@ class TestTheChiefsCopy:
                 },
             },
         )
-        got = collate("4c", copies, binder)
+        got = collate("4c", copies, binder, root=REPO)
         entry = [m for s in got.chief["sheets"] for m in s["marks"]][0]
         assert len(entry["sources"]) == 2
         assert "block-context" in entry["reason"]
@@ -226,7 +228,7 @@ class TestTheChiefsCopy:
             "apple-context",
             "mango-context",
         ]
-        got = collate("4c", copies, binder)
+        got = collate("4c", copies, binder, root=REPO)
         entry = [m for s in got.chief["sheets"] for m in s["marks"]][0]
         roles_in_reason = entry["reason"].split(" by ")[1].split(" -- ")[0].split(", ")
         roles_in_sources = [s["cite"].split(".py:")[0] for s in entry["sources"]]
@@ -245,7 +247,7 @@ class TestTheChiefsCopy:
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
         copies[0]["sheets"][0]["sha"] = None
-        got = collate("4c", copies, binder)
+        got = collate("4c", copies, binder, root=REPO)
         assert got.chief["sheets"][0]["sha"] == ""
 
     def test_an_unresolved_place_is_ABSENT_not_untouched(self):
@@ -266,7 +268,7 @@ class TestTheChiefsCopy:
                 },
             },
         )
-        got = collate("4c", copies, binder)
+        got = collate("4c", copies, binder, root=REPO)
         entries = [m for s in got.chief["sheets"] for m in s["marks"]]
         assert entries == []
         assert not any(untouched(e) for e in entries)
@@ -309,7 +311,9 @@ class TestTheEnvelope:
     @pytest.mark.parametrize("name", sorted(UNSEEN))
     def test_a_copy_that_is_not_the_shape_of_a_copy_is_named_on_its_role(self, name):
         binder = one_place()
-        got = collate("4c", self.a_copy_shaped(binder, self.UNSEEN[name]), binder)
+        got = collate(
+            "4c", self.a_copy_shaped(binder, self.UNSEEN[name]), binder, root=REPO
+        )
         assert [p.role for p in got.problems] == ["block-context"], name
 
     @pytest.mark.parametrize("name", sorted(UNSEEN))
@@ -317,7 +321,9 @@ class TestTheEnvelope:
         """A silently partial chief -- one role's rulings missing, nothing
         saying so -- is what both mechanisms exist to prevent."""
         binder = one_place()
-        got = collate("4c", self.a_copy_shaped(binder, self.UNSEEN[name]), binder)
+        got = collate(
+            "4c", self.a_copy_shaped(binder, self.UNSEEN[name]), binder, root=REPO
+        )
         assert got.chief["sheets"] == [], name
 
     def test_one_malformed_copy_does_not_silence_another_role(self):
@@ -327,7 +333,7 @@ class TestTheEnvelope:
             binder, {"function-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
         good[0]["sheets"][0]["marks"][0]["claim"] = {}
-        got = collate("4c", bad + good, binder)
+        got = collate("4c", bad + good, binder, root=REPO)
         assert {p.role for p in got.problems} == {"block-context", "function-context"}
 
     def test_the_master_proof_is_parsed_at_its_own_boundary(self, monkeypatch):
@@ -347,7 +353,7 @@ class TestTheEnvelope:
             "comment_review.flows.collate.gather",
             lambda stage, edit_copies: {"stage": stage, "edit_copies": "nope"},
         )
-        got = collate("4c", copies, binder)
+        got = collate("4c", copies, binder, root=REPO)
         assert any("edit_copies" in p.message for p in got.problems)
         assert got.chief["sheets"] == []
 
@@ -355,7 +361,7 @@ class TestTheEnvelope:
         """`problems_in` already answers this one; the envelope must not make
         its report vanish by refusing first and returning a different message."""
         binder = one_place()
-        got = collate("4c", [a_copy_missing_its_sheets(binder)], binder)
+        got = collate("4c", [a_copy_missing_its_sheets(binder)], binder, root=REPO)
         assert [p.role for p in got.problems] == ["block-context"]
         assert "sheets" in got.problems[0].message
 
@@ -367,8 +373,75 @@ class TestTheEnvelope:
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
         copies[0]["sheets"][0]["marks"][0]["claim"] = {}
-        got = collate("4c", copies, binder)
+        got = collate("4c", copies, binder, root=REPO)
         assert [p.address for p in got.problems] == ["m.py@b1"]
+
+
+class TestSourceVerificationRunsInProduction:
+    """`P25`, `Process: #58`. Roy: *"the source-verification side needs to be
+    wired into the flow - same as 1) the flow coordinates the things in the
+    modules do."*
+
+    !! REPORTED BY A RUN OF THE FLOW, not by calling the function. MEASURED
+    2026-08-31 before this landed: `verify_report`, `address_problems`,
+    `claim_verbatim_problems` and `source_problems` had test callers only.
+
+    ! NEITHER OF THESE IS REFUSABLE BY `desk.mark.parse`, which imports no
+    binder, no page and no filesystem. That is what makes them the flow's to
+    ask rather than the mark's.
+    """
+
+    def test_a_citation_that_does_not_resolve_is_reported_by_a_RUN(self, tmp_path):
+        binder = one_place()
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {
+                    "m.py@b1": a_correct_citing("m.py@b1", "nowhere.py:99")
+                }
+            },
+        )
+        got = collate("4c", copies, binder, root=tmp_path)
+        assert any("nowhere.py" in p.message for p in got.problems)
+
+    def test_a_source_finding_names_the_role_and_the_address(self, tmp_path):
+        """`Problem` exists so a finding can be ROUTED. A source-verification
+        finding names a mark, so it carries both -- an empty address would make
+        it unroutable, which is the defect the type was introduced to end."""
+        binder = one_place()
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {
+                    "m.py@b1": a_correct_citing("m.py@b1", "nowhere.py:99")
+                }
+            },
+        )
+        got = collate("4c", copies, binder, root=tmp_path)
+        found = [p for p in got.problems if "nowhere.py" in p.message]
+        assert [(p.role, p.address) for p in found] == [("block-context", "m.py@b1")]
+
+    def test_a_claim_quoting_a_sentence_absent_from_its_paragraph_is_reported(
+        self, tmp_path
+    ):
+        binder = one_place()
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {
+                    "m.py@b1": a_correct("m.py@b1", "a sentence that is not there")
+                }
+            },
+        )
+        got = collate("4c", copies, binder, root=tmp_path)
+        assert got.problems != []
+
+    def test_a_clean_run_still_reports_nothing(self, tmp_path):
+        """The other side of it: verification must not invent a finding."""
+        binder = one_place()
+        copies = copies_over(binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}})
+        got = collate("4c", copies, binder, root=tmp_path)
+        assert got.problems == []
 
 
 class TestTheStackedCheck:
@@ -378,7 +451,7 @@ class TestTheStackedCheck:
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
         copies[0]["sheets"][0]["marks"][0]["claim"] = {}
-        got = collate("4c", copies, binder)
+        got = collate("4c", copies, binder, root=REPO)
         assert got.problems
         assert got.problems[0].role == "block-context"
         assert got.problems[0].address == "m.py@b1"
@@ -397,7 +470,7 @@ class TestTheStackedCheck:
         )
         for copy in copies:
             copy["sheets"][0]["marks"][0]["claim"] = {}
-        got = collate("4c", copies, binder)
+        got = collate("4c", copies, binder, root=REPO)
         assert {p.role for p in got.problems} == {"block-context", "function-context"}
 
     def test_a_copy_carrying_no_read_from_is_named_and_folds_nothing(self):
@@ -417,7 +490,7 @@ class TestTheStackedCheck:
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
         del copies[0]["read_from"]
-        got = collate("4c", copies, binder)
+        got = collate("4c", copies, binder, root=REPO)
         assert [p.role for p in got.problems] == ["block-context"]
         assert "read_from" in got.problems[0].message
         assert got.chief["sheets"] == []
@@ -442,7 +515,7 @@ class TestTheStackedCheck:
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
         copies[0]["sheets"][0]["marks"][0]["raw_text"] = "# not what was seeded\n"
-        got = collate("4c", copies, binder)
+        got = collate("4c", copies, binder, root=REPO)
         assert [p.address for p in got.drift] == ["m.py@b1"]
         assert [m for s in got.chief["sheets"] for m in s["marks"]] != []
 
@@ -468,7 +541,7 @@ class TestTheMovesAreADag:
                 },
             },
         )
-        got = collate("4c", copies, binder)
+        got = collate("4c", copies, binder, root=REPO)
         assert [m for s in got.chief["sheets"] for m in s["marks"]] == []
         assert {e["address"] for e in got.rereads} >= {"m.py@b1", "m.py@b5"}
 
@@ -478,9 +551,13 @@ class TestTheMovesAreADag:
             "m.py@b1": a_move("m.py@b1", "m.py@b2"),
             "m.py@b7": a_move("m.py@b7", "m.py@b8"),
         }
-        first = collate("4c", copies_over(binder, {"block-context": marks}), binder)
+        first = collate(
+            "4c", copies_over(binder, {"block-context": marks}), binder, root=REPO
+        )
         flipped = dict(reversed(list(marks.items())))
-        second = collate("4c", copies_over(binder, {"block-context": flipped}), binder)
+        second = collate(
+            "4c", copies_over(binder, {"block-context": flipped}), binder, root=REPO
+        )
         assert first.order == second.order
 
     def test_a_move_whose_origin_another_move_fills_is_emitted_FIRST(self):
@@ -503,7 +580,7 @@ class TestTheMovesAreADag:
             "m.py@b5": a_move("m.py@b5", "m.py@b9"),
         }
         copies = copies_over(binder, {"block-context": marks})
-        got = collate("4c", copies, binder)
+        got = collate("4c", copies, binder, root=REPO)
         resolved = {e["address"]: e for s in got.chief["sheets"] for e in s["marks"]}
         if "m.py@b1" in resolved and "m.py@b5" in resolved:
             assert got.order.index("m.py@b5") < got.order.index("m.py@b1")
@@ -603,14 +680,18 @@ class TestAResolvedMoveIsOneEntry:
             "m.py@b1": a_move("m.py@b1", "m.py@b2"),
             "m.py@b7": a_move("m.py@b7", "m.py@b8"),
         }
-        got = collate("4c", copies_over(binder, {"block-context": marks}), binder)
+        got = collate(
+            "4c", copies_over(binder, {"block-context": marks}), binder, root=REPO
+        )
         entries = [m for s in got.chief["sheets"] for m in s["marks"]]
         assert [e["address"] for e in entries] == ["m.py@b1", "m.py@b7"]
 
     def test_a_cross_file_move_lands_only_in_the_origins_sheet(self):
         binder = a_binder_over({"a.py@b1": BASE, "b.py@b1": BASE})
         marks = {"a.py@b1": a_move("a.py@b1", "b.py@b1")}
-        got = collate("4c", copies_over(binder, {"block-context": marks}), binder)
+        got = collate(
+            "4c", copies_over(binder, {"block-context": marks}), binder, root=REPO
+        )
         sheets = {
             s["path"]: [m["address"] for m in s["marks"]] for s in got.chief["sheets"]
         }
@@ -626,7 +707,7 @@ class TestAResolvedMoveIsOneEntry:
         where the paragraph already is."""
         binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})
         marks = {"block-context": {"m.py@b1": a_move("m.py@b1", "m.py@b5")}}
-        got = collate("4c", copies_over(binder, marks), binder)
+        got = collate("4c", copies_over(binder, marks), binder, root=REPO)
         for sheet in got.chief["sheets"]:
             for entry in sheet["marks"]:
                 mark, why = parse(entry["address"], entry)
@@ -638,7 +719,7 @@ class TestAResolvedMoveIsOneEntry:
 
         binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})
         marks = {"block-context": {"m.py@b1": a_move("m.py@b1", "m.py@b5")}}
-        got = collate("4c", copies_over(binder, marks), binder)
+        got = collate("4c", copies_over(binder, marks), binder, root=REPO)
         copy, why = parse_edit_copy("the chief's", got.chief)
         assert why == []
         assert copy is not None

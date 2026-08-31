@@ -333,68 +333,6 @@ def source_verification(
     )
 
 
-def verify_report(report: dict, binder: dict, root: Path) -> list[str]:
-    """Source-verification over every ruled mark of ONE role's edit_copy.
-
-    Args:
-        report: one edit_copy -- `{"sheets": [{"path", "sha", "marks": [...]}]}`,
-            as `flows.distribute.seed` hands it out and a role hands it back. A
-            `sheets` that is not a list gives an empty result, and so does a
-            sheet whose `marks` is not one.
-        binder: the binder the edit_copy was seeded from -- what each
-            `address` is measured against.
-        root: the checkout every `cite` is resolved against.
-
-    Returns:
-        Every problem found, in sheet order and then in mark order.
-
-    !! AN UNTOUCHED SLOT IS SKIPPED AND AN UNPARSEABLE ENTRY IS NOT. The first
-    is `desk.mark.untouched` -- a coverage gap, a place no role wrote in. The
-    second contributes `desk.mark.parse`'s own messages and is then checked no
-    further, since there is no `Mark` to check.
-
-    ! A MARK IS NAMED BY ITS OWN `address`, falling back to `mark {n}` where it
-    carries none. ! `n` COUNTS EVERY ENTRY WALKED, untouched slots included, so
-    it is a position in the report rather than a count of rulings.
-
-    ! ONE CACHE PER REPORT, built here and threaded through every mark, so a
-    file twenty sources cite is read once.
-    """
-    sheets = report.get("sheets")
-    if not isinstance(sheets, list):
-        return []
-    known = known_addresses(binder)
-    base = base_texts(binder)
-    cache: Cache = {}
-    out: list[str] = []
-    i = 0
-    for sheet in sheets:
-        marks = sheet.get("marks") if isinstance(sheet, dict) else None
-        if not isinstance(marks, list):
-            continue
-        for entry in marks:
-            i += 1
-            if untouched(entry):
-                continue
-            where = str(
-                (entry.get("address") if isinstance(entry, dict) else None)
-                or f"mark {i}"
-            )
-            mark, why = parse(where, entry)
-            if mark is None:
-                out += why
-                continue
-            out += source_verification(
-                where,
-                mark,
-                base=base.get(mark.address, ""),
-                known=known,
-                root=root,
-                cache=cache,
-            )
-    return out
-
-
 @dataclass(frozen=True)
 class Problem:
     """One thing wrong with one mark, named so a reader can ROUTE it.
@@ -419,6 +357,101 @@ class Problem:
     role: str
     address: str
     message: str
+
+
+def verify_report(report: dict, binder: dict, root: Path) -> list[Problem]:
+    """Source-verification over every ruled mark of ONE role's edit_copy.
+
+    Args:
+        report: one edit_copy -- `{"sheets": [{"path", "sha", "marks": [...]}]}`,
+            as `flows.distribute.seed` hands it out and a role hands it back. A
+            `sheets` that is not a list gives an empty result, and so does a
+            sheet whose `marks` is not one. The `role` is read from it, so a
+            finding names who to send it back to.
+        binder: the binder the edit_copy was seeded from -- what each
+            `address` is measured against.
+        root: the checkout every `cite` is resolved against.
+
+    Returns:
+        Every problem found, in sheet order and then in mark order.
+
+        !! `Problem`s RATHER THAN SENTENCES, since 2026-08-31, when this got a
+        production caller. It is the same decision `problems_in` made on
+        2026-08-30 and for the same reason -- see `Problem`: a caller cannot
+        route on a sentence, and every one of these findings names a mark, so
+        it has both a role and an address to route on. ! THE THREE LEAF
+        FUNCTIONS STILL RETURN STRINGS. They answer about one mark and are
+        handed a `where`; assembling the routing is this function's job,
+        because it is the one that holds the copy and therefore the role.
+
+    !! AN UNTOUCHED SLOT IS SKIPPED, and so is AN UNPARSEABLE ENTRY -- the
+    second only since 2026-08-31. The first is `desk.mark.untouched`: a
+    coverage gap, a place no role wrote in. The second has no `Mark` to check,
+    and its parse messages belong to `problems_in`.
+
+    !! IT USED TO REPORT THEM, AND THAT WAS RIGHT WHILE THIS HAD NO PRODUCTION
+    CALLER. `P25` put it in `flows.collate.collate` beside `problems_in`, which
+    parses every entry already -- so a malformed mark came back **twice with a
+    BYTE-IDENTICAL message**, measured on an emptied `claim`:
+    `m.py@b1: correct needs `claim` to carry false, true (missing false, true)`,
+    reported once by each. That is not two vocabularies for one fact, which
+    `drift_in` already forbids; it is the same sentence twice.
+
+    ! SO THE THREE QUESTIONS THIS FUNCTION OWNS ARE THE ONLY ONES IT ANSWERS --
+    is the address one the binder carries, is the quoted sentence really in the
+    paragraph, does every `cite` resolve. Whether the mark is well formed at
+    all is asked once, one function over.
+
+    ! A MARK IS NAMED BY ITS OWN `address`, falling back to `mark {n}` where it
+    carries none. ! `n` COUNTS EVERY ENTRY WALKED, untouched slots included, so
+    it is a position in the report rather than a count of rulings.
+
+    ! ONE CACHE PER REPORT, built here and threaded through every mark, so a
+    file twenty sources cite is read once.
+    """
+    sheets = report.get("sheets")
+    if not isinstance(sheets, list):
+        return []
+    role = report.get("role")
+    named = role if filled(role) else ""
+    known = known_addresses(binder)
+    base = base_texts(binder)
+    cache: Cache = {}
+    out: list[Problem] = []
+    i = 0
+    for sheet in sheets:
+        marks = sheet.get("marks") if isinstance(sheet, dict) else None
+        if not isinstance(marks, list):
+            continue
+        for entry in marks:
+            i += 1
+            if untouched(entry):
+                continue
+            # ! THE ADDRESS AND THE `where` PART COMPANY WHEN THERE IS NO
+            # ADDRESS. `where` falls back to a POSITION so a message can name
+            # something; `Problem.address` stays empty, because a position is
+            # not an address and writing one there would make a place that does
+            # not exist look citable.
+            raw = entry.get("address") if isinstance(entry, dict) else None
+            address = str(raw) if filled(raw) else ""
+            where = address or f"mark {i}"
+            # ! `why` IS DELIBERATELY DROPPED -- `problems_in` reports it, and
+            # reporting it here too gave the same sentence twice. See above.
+            mark, _why = parse(where, entry)
+            if mark is None:
+                continue
+            out += [
+                Problem(named, mark.address, message)
+                for message in source_verification(
+                    where,
+                    mark,
+                    base=base.get(mark.address, ""),
+                    known=known,
+                    root=root,
+                    cache=cache,
+                )
+            ]
+    return out
 
 
 def problems_in(report: dict) -> tuple[list[Problem], int]:
