@@ -23,7 +23,7 @@ from pathlib import Path
 from comment_review.binder.binder import read as read_binder
 from comment_review.desk.collator import UnnamedRole
 from comment_review.desk.proof import MismatchedRoot
-from comment_review.flows.collate import collate
+from comment_review.flows.collate import CannotCollate, collate
 from comment_review.machine import exceptions
 
 #: Exit codes, extending `distribute`'s own 0/1/2 with the outcomes a caller
@@ -48,22 +48,45 @@ ESCALATIONS = 4
 #: code, which this closes.
 DRIFT = 5
 
-#: The three ways a stage cannot be reconciled at all, as against a mark that
-#: broke a rule: a copy that names no role, copies censused from different
-#: roots, and a copy carrying no `read_from` at all. All three mean the SET
-#: cannot be read, so none is routable back to one role the way a `Problem`
-#: is -- they exit `BROKEN` with the reason on stderr.
-#: !! `KeyError` IS THE THIRD, ADDED 2026-08-30. `problems_in` already reports
-#: a missing `read_from` as a `Problem`, but `collate()` calls
-#: `desk.proof.gather` unconditionally afterward, and `gather` raises
-#: `KeyError` on `copy["read_from"]` by design -- its own `Raises:` calls this
-#: intentional. Uncaught, that `KeyError` escaped past this module's own
-#: promise that "a raise is not a refusal" -- `binder/binder.py`'s
-#: `_read_from_problem` docstring records the same defect, fixed once already,
-#: on the same field one step earlier in the chain.
+#: The ways a stage cannot be reconciled at all, as against a mark that broke a
+#: rule. They mean the SET cannot be read, so none is routable back to one role
+#: the way a `Problem` is -- they exit `BROKEN` with the reason on stderr.
+#: !! `KeyError` WAS ADDED 2026-08-30. `problems_in` already reports a missing
+#: `read_from` as a `Problem`, but `collate()` called `desk.proof.gather`
+#: unconditionally afterward, and `gather` raises `KeyError` on
+#: `copy["read_from"]` by design -- its own `Raises:` calls this intentional.
+#: Uncaught, that `KeyError` escaped past this module's own promise that "a
+#: raise is not a refusal" -- `binder/binder.py`'s `_read_from_problem`
+#: docstring records the same defect, fixed once already, on the same field one
+#: step earlier in the chain.
+#: !! AND TWO OF THE THREE CAN NO LONGER FIRE, as of 2026-08-31. The envelope
+#: parse inside `collate` reports a copy with no `role` and a copy with no
+#: `read_from` as `Problem`s before either raise is reached -- `P21`,
+#: `decision-log.md Process: #57`. They stay in the tuple because nothing else
+#: guarantees a future caller cannot reach `places` or `gather` another way,
+#: and a catch that cannot fire is cheaper than the traceback if one does.
+#: ! `CannotCollate` CARRIES ITS OWN `problems` and is handled separately below,
+#: which is the whole point of it; it is deliberately NOT in this tuple.
 #: ! BOUND TO A NAME because no `except` in a shipped file holds a tuple
 #: literal; see `machine/exceptions.py`.
 RECONCILE_ERRORS = (UnnamedRole, MismatchedRoot, KeyError)
+
+
+def _report(problems: list) -> None:
+    """Every routable `Problem` on stdout, one per line.
+
+    ! ONE SPELLING, TWO CALLERS. The refusal path and the ordinary path print
+    the same thing, and a second copy of the format string is a place for the
+    two to disagree about what a reader is shown.
+
+    ! `(the copy)` STANDS IN FOR AN EMPTY ADDRESS, which is what a problem about
+    the whole document carries -- a missing `role`, a bad `read_from`, a sheet
+    the envelope refused. There is no place to name, and a blank column reads as
+    a missing value rather than as a fact about the copy.
+    """
+    for problem in problems:
+        where = problem.address or "(the copy)"
+        print(f"{problem.role} {where}: {problem.message}")
 
 
 def _load(path: str) -> tuple[dict, str]:
@@ -132,6 +155,17 @@ def main() -> int:
 
     try:
         got = collate(args.stage, copies, binder)
+    except CannotCollate as refusal:
+        # !! THE ROUTABLE PROBLEMS GO OUT FIRST, THEN THE REFUSAL. A refusal
+        # says the SET cannot be folded; it says nothing about the marks the
+        # pass already ruled on, and discarding those made one copy's
+        # incompatible header block routing for every other role. MEASURED
+        # 2026-08-30: exit 1, stdout EMPTY. See `flows.collate.CannotCollate`.
+        _report(refusal.problems)
+        print(
+            f"REFUSED: the proof could not be reconciled -- {refusal}", file=sys.stderr
+        )
+        return BROKEN
     except RECONCILE_ERRORS as err:
         # ! `KeyError`'s own `str()` is only the missing key, repr'd -- naming
         # the shape of the refusal rather than its cause, unlike `UnnamedRole`
@@ -140,8 +174,7 @@ def main() -> int:
         print(f"REFUSED: the proof could not be reconciled -- {why}", file=sys.stderr)
         return BROKEN
 
-    for problem in got.problems:
-        print(f"{problem.role} {problem.address or '(the copy)'}: {problem.message}")
+    _report(got.problems)
     for problem in got.drift:
         print(f"{problem.role} {problem.address}: {problem.message}")
     if got.problems:

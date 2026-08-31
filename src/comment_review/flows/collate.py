@@ -58,9 +58,43 @@ from comment_review.desk.containers import (
     parse_master_proof,
 )
 from comment_review.desk.mark import Instruction, Mark, parse, untouched
-from comment_review.desk.proof import gather
+from comment_review.desk.proof import MismatchedRoot, gather
 from comment_review.reading.addresser import cue_of, unflatten
 from comment_review.results.differences import CannotCompose, compose
+
+
+class CannotCollate(Exception):
+    """The set cannot be folded, WITH everything the pass found on the way.
+
+    !! IT EXISTS SO A REFUSAL DOES NOT EMPTY THE REPORT. MEASURED 2026-08-30 by
+    running the real CLI: `commands/collate.py` catches around the whole
+    `collate()` call, and `collate` accumulates its `Problem`s into a local list
+    that only reaches a caller through `return Collated(...)` -- so a raise past
+    that point gave exit 1 with an EMPTY stdout, and one copy's incompatible
+    header blocked routing for every other role.
+
+    ! THE REFUSAL ITSELF IS RIGHT AND STAYS. `desk.proof.MismatchedRoot` means
+    two copies answer to different address spaces, so there is no fold between
+    them -- an `a0` in one tells nothing about the `a0` in the other. What was
+    wrong was throwing away the routable problems alongside it.
+
+    Attributes:
+        problems: every `Problem` the per-copy pass had already computed, in
+            copy then mark order -- the same list `Collated.problems` would
+            have carried had the fold completed.
+    """
+
+    def __init__(self, message: str, problems: list[Problem]) -> None:
+        """Hold the refusal's own message and the problems found before it.
+
+        Args:
+            message: why the set cannot be folded, as the underlying refusal
+                stated it -- it already names both disagreeing values.
+            problems: what the per-copy pass had computed by then. May be
+                empty, which says the set was incompatible and otherwise clean.
+        """
+        super().__init__(message)
+        self.problems = problems
 
 
 @dataclass(frozen=True)
@@ -502,11 +536,13 @@ def collate(stage: str, edit_copies: list[dict], binder: dict) -> Collated:
         A `Collated`.
 
     Raises:
-        desk.proof.MismatchedRoot: two copies were censused from different
-            roots. ! THE ONLY RAISE LEFT, and it cannot become a `Problem`:
-            copies answering to different address spaces have no reconciliation
-            between them, so there is no `Collated` to hand back. An `a0` in one
-            tells nothing about the `a0` in the other.
+        CannotCollate: two copies were censused from different roots --
+            `desk.proof.MismatchedRoot`, re-raised carrying every `Problem` the
+            per-copy pass had already found. ! THE ONLY RAISE LEFT, and it
+            cannot become a `Problem` itself: copies answering to different
+            address spaces have no reconciliation between them, so there is no
+            `Collated` to hand back. An `a0` in one tells nothing about the
+            `a0` in the other.
 
     ! `desk.collator.MalformedMark` NEVER REACHES A CALLER OF `collate`.
     `_reconcilable` drops every entry `places` would otherwise refuse before
@@ -584,7 +620,14 @@ def collate(stage: str, edit_copies: list[dict], binder: dict) -> Collated:
         left[role] = unruled(copy)
         counts[role] = tally(copy)
 
-    proof = gather(stage, [_reconcilable(copy) for copy in edit_copies])
+    # !! THE REFUSAL CARRIES WHAT THE PASS ALREADY FOUND. Everything above this
+    # line accumulated `Problem`s into a local list; a bare raise from here
+    # discards all of them, which `commands/collate.py` was measured doing on
+    # 2026-08-30 -- exit 1 with an EMPTY stdout. See `CannotCollate`.
+    try:
+        proof = gather(stage, [_reconcilable(copy) for copy in edit_copies])
+    except MismatchedRoot as err:
+        raise CannotCollate(str(err), problems) from err
     # !! THE PROOF IS PARSED AT ITS OWN BOUNDARY, the same rule one level up --
     # `P21`, `Process: #57`. `gather` builds it and nothing stated what a proof
     # IS before `reconcile` walked it. ! IT REPORTS AND RETURNS EARLY, exactly

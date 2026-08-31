@@ -256,6 +256,54 @@ class TestExitCodes:
         assert code == 1
         assert "somewhere/else" in err
 
+    def test_a_refusal_still_prints_the_problems_the_pass_found(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """Finding #6 of the 2026-08-30 review, by RUNNING the real CLI.
+
+        !! MEASURED BEFORE THE FIX: exit 1, **stdout EMPTY**, and only the
+        REFUSED line on stderr. `collate` accumulates its `Problem`s into a
+        local list and only reaches `return Collated(...)` past `gather`, so a
+        refusal there made every one of them unrecoverable -- **one role's
+        incompatible header blocking routing for every other role**, which is
+        the opposite of Roy's rule that the errors stack so each can be fixed or
+        sent back to the role that owes it.
+        """
+        binder = a_binder_over({"m.py@b1": BASE})
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {"m.py@b1": a_correct("m.py@b1")},
+                "function-context": {"m.py@b1": a_correct("m.py@b1", 2)},
+            },
+        )
+        # one ROUTABLE problem, and one copy that cannot be reconciled with it
+        copies[0]["sheets"][0]["marks"][0]["claim"] = {}
+        copies[1]["read_from"] = {"root": "somewhere/else", "revise": 0}
+        binder_path = tmp_path / "binder.json"
+        binder_path.write_text(json.dumps(binder), encoding="utf-8")
+        argv = [
+            "collate",
+            "--stage",
+            "4c",
+            "--binder",
+            str(binder_path),
+            "--out",
+            str(tmp_path / "chief.json"),
+        ]
+        for i, copy in enumerate(copies):
+            path = tmp_path / f"copy{i}.json"
+            path.write_text(json.dumps(copy), encoding="utf-8")
+            argv += ["--edit-copy", str(path)]
+        monkeypatch.setattr("sys.argv", argv)
+        code = command.main()
+        out = capsys.readouterr()
+        assert code == 1
+        assert "block-context" in out.out
+        assert "m.py@b1" in out.out
+        assert "somewhere/else" in out.err
+        assert not (tmp_path / "chief.json").exists()
+
     def test_a_copy_missing_read_from_exits_one_not_a_traceback(
         self, tmp_path, monkeypatch, capsys
     ):
