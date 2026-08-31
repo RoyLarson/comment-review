@@ -471,6 +471,10 @@ def test_a_claim_quoting_a_sentence_absent_from_its_paragraph_is_reported(tmp_pa
 supply it; the binder names the tree it was censused from in `read_from`, and the command
 already resolves a repo.
 
+! **THE TESTS TASKS 2, 3 AND 4 WROTE ARE CALLERS TOO**, and this step is what updates them. A
+run of `uv run pytest -q` after Step 3 that reports collection errors rather than failures is
+this, not a mistake.
+
 ! **WHERE `verify_report`'s FINDINGS LAND IS THIS TASK'S DECISION AND MUST BE STATED IN THE
 CODE.** They are strings today and `Collated.problems` holds `Problem(role, address, message)`.
 A source-verification finding names a mark, so it has both a role and an address.
@@ -531,37 +535,51 @@ statement that the documents are malformed.
 
 - [ ] **Step 1: Write the failing test**
 
+!! **`collate` TAKES A `root` BY THE TIME THIS TASK RUNS.** Task 5 changed the signature to
+`(stage, edit_copies, binder, root)`. Every call below passes it; a three-argument call written
+from this plan's earlier tasks is a `TypeError` here.
+
 ```python
-def test_a_role_that_answered_for_part_of_its_shard_is_named():
+def test_a_role_that_answered_for_part_of_its_shard_is_named(tmp_path):
     """fan refuses an uncovered page at DISPATCH; nothing reads the RETURN."""
     binder = a_binder_over({"one.py@b1": "# one\n", "two.py@b1": "# two\n"})
     copies = copies_over(binder, {"block-context": {"one.py@b1": a_clean("one.py@b1")}})
     short = [_without_sheet(copies[0], "two.py")]
-    got = collate("4c", short, binder)
+    got = collate("4c", short, binder, root=tmp_path)
     assert any("two.py" in p.message and p.role == "block-context" for p in got.problems)
 
 
-def test_a_copy_that_kept_one_of_its_four_seeded_slots_is_named():
+def test_a_copy_that_kept_one_of_its_four_seeded_slots_is_named(tmp_path):
     """T6's own measured case: today all four of its shapes give problems == []
     against a binder carrying m.py@b1..b4."""
     binder = a_binder_over({f"m.py@b{i}": f"# {i}\n" for i in range(1, 5)})
     copies = copies_over(binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}})
-    got = collate("4c", [_keeping_only(copies[0], ["m.py@b1"])], binder)
+    got = collate("4c", [_keeping_only(copies[0], ["m.py@b1"])], binder, root=tmp_path)
     assert [p.role for p in got.problems] == ["block-context"]
 
 
-def test_two_shards_of_one_role_cover_the_binder_between_them():
+def test_two_shards_of_one_role_cover_the_binder_between_them(tmp_path):
     """Compared per COPY this reports every fan-out shard as incomplete."""
     binder = a_binder_over({"one.py@b1": "# one\n", "two.py@b1": "# two\n"})
-    got = collate("4c", list(fan(binder, a_two_shard_stage())), binder)
+    got = collate("4c", list(fan(binder, a_two_shard_stage())), binder, root=tmp_path)
     assert got.problems == []
 
 
-def test_the_places_that_did_come_back_still_settle():
-    """Process: #63 -- coverage reports; it does not void the round."""
-    ...
-    assert got.chief["sheets"] != []
+def test_the_places_that_did_come_back_still_settle(tmp_path):
+    """Process: #63 -- coverage reports; it does not void the round.
+
+    One page answered, one not: the answered place reaches the chief's copy and
+    the missing one is a problem, in the SAME run.
+    """
+    binder = a_binder_over({"one.py@b1": "# one\n", "two.py@b1": "# two\n"})
+    copies = copies_over(binder, {"block-context": {"one.py@b1": a_correct("one.py@b1")}})
+    got = collate("4c", [_without_sheet(copies[0], "two.py")], binder, root=tmp_path)
+    assert got.problems != [] and got.chief["sheets"] != []
 ```
+
+! **`a_two_shard_stage()` GOES IN `tests/helpers.py`** -- a `Stage` with two `Dispatch` rows for
+one role, their `paths` globs splitting the two pages. `tests/test_fan_out.py` already builds
+stages; take its pattern rather than a second one.
 
 ! **BUILD THE SHORT COPY BY REMOVING FROM A REAL `seed()` OUTPUT**, not by writing one with a
 single sheet. The two are the same document, and only one of them proves the copy came from a
