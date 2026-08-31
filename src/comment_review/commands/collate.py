@@ -71,12 +71,18 @@ COVERAGE = 6
 #: raise is not a refusal" -- `binder/binder.py`'s `_read_from_problem`
 #: docstring records the same defect, fixed once already, on the same field one
 #: step earlier in the chain.
-#: !! AND TWO OF THE THREE CAN NO LONGER FIRE, as of 2026-08-31. The envelope
-#: parse inside `collate` reports a copy with no `role` and a copy with no
-#: `read_from` as `Problem`s before either raise is reached -- `P21`,
-#: `decision-log.md Process: #57`. They stay in the tuple because nothing else
-#: guarantees a future caller cannot reach `places` or `gather` another way,
-#: and a catch that cannot fire is cheaper than the traceback if one does.
+#: !! AND ALL THREE ARE UNREACHABLE FROM `collate` AS OF 2026-08-31 -- this said
+#: TWO of the three until a review counted them. The envelope parse reports a
+#: copy with no `role` and a copy with no `read_from` as `Problem`s before
+#: either raise is reached (`P21`, `decision-log.md Process: #57`); and
+#: `MismatchedRoot`, the implied survivor, cannot escape either, because
+#: `flows.collate.collate` wraps its only `gather` call and re-raises it as
+#: `CannotCollate`. Both mismatched-root tests go through THAT handler.
+#: ! SO A READER DEBUGGING A MISMATCHED ROOT WAS SENT HERE, to a clause that
+#: cannot run. They stay in the tuple because nothing guarantees a future caller
+#: cannot reach `places` or `gather` another way, and a catch that cannot fire
+#: is cheaper than the traceback if one does -- but the comment must not imply
+#: this is where such a run lands today.
 #: ! `CannotCollate` CARRIES ITS OWN `problems` and is handled separately below,
 #: which is the whole point of it; it is deliberately NOT in this tuple.
 #: ! BOUND TO A NAME because no `except` in a shipped file holds a tuple
@@ -120,13 +126,21 @@ def main() -> int:
     """Fold one stage's returned copies, report, and say what is left.
 
     Returns:
-        One of `OK`, `BROKEN`, `UNREADABLE`, `REREADS`, `ESCALATIONS` or
-        `DRIFT`. `BROKEN` covers both a copy that broke a rule
-        (`got.problems`) and a stage `RECONCILE_ERRORS` says could not be
-        reconciled at all -- a raise is not a refusal, so both are caught and
-        named on stderr rather than left to escape as a traceback. `DRIFT` is
-        weaker than either carried-forward outcome: a drifted place can still
-        settle, so it is checked last, after `ESCALATIONS` and `REREADS`.
+        One of `OK`, `BROKEN`, `UNREADABLE`, `REREADS`, `ESCALATIONS`,
+        `DRIFT` or `COVERAGE`. `BROKEN` covers both a copy that broke a rule
+        (`got.problems`) and a stage that could not be reconciled at all -- a
+        raise is not a refusal, so both are caught and named on stderr rather
+        than left to escape as a traceback.
+
+        ! NEITHER `COVERAGE` NOR `DRIFT` VOIDS THE ROUND -- both write the
+        chief copy first, and both are weaker than either carried-forward
+        outcome, so they are checked after `ESCALATIONS` and `REREADS`. A
+        drifted place can still settle, and so can the places a short shard
+        did answer (`decision-log.md Process: #63`).
+
+        ! `COVERAGE` WAS MISSING FROM THIS LIST UNTIL 2026-08-31, one commit
+        after it became reachable. A caller branching on the exit code -- the
+        contract `DRIFT` was added to serve -- had no way to learn 6 exists.
     """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--stage", required=True, help="the stage label, e.g. 4c")

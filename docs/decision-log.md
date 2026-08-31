@@ -2195,8 +2195,11 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   !! **AND IT IS WHAT `desk/containers.py` ALREADY SAID IT WAS FOR.** Its own docstring: a
   parse returns `(T, [])` *"so a caller holds a checked object rather than re-deriving the same
   keys with `isinstance` ladders."* **No caller holds one.** MEASURED 2026-08-31 after `P21`
-  wired both parses: `flows/collate.py:691` keeps the parsed `EditCopy` only to test it against
-  `None`, `:753` drops the `MasterProof` entirely, and the one field read off a parsed object
+  wired both parses: `flows.collate.collate`'s envelope loop keeps the parsed `EditCopy` only to
+  test it against `None`, its `parse_master_proof` call drops the `MasterProof` entirely (both
+  named by SYMBOL rather than by line -- the numbers this entry first cited, `:691` and `:753`,
+  were moved by `823834f` the same day and no longer point at either), and the one field read
+  off a parsed object
   anywhere in `src/` is `copies[0].read_from`, inside `containers.py` itself. Every step
   downstream re-derives the same keys off the dict the parse just checked.
 

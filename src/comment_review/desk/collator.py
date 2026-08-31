@@ -442,8 +442,11 @@ def verify_report(
     carries none. ! `n` COUNTS EVERY ENTRY WALKED, untouched slots included, so
     it is a position in the report rather than a count of rulings.
 
-    ! ONE CACHE PER REPORT, built here and threaded through every mark, so a
-    file twenty sources cite is read once.
+    ! ONE CACHE PER STAGE, threaded in by the caller and through every mark, so
+    a file twenty sources cite is read once no matter how many roles cite it.
+    ! IT READ *"one cache per report, BUILT HERE"* until 2026-08-31, which was
+    this function's own contradiction: `Args: cache` said one per stage and
+    this said one per report, and the second is what the code did.
     """
     sheets = report.get("sheets")
     if not isinstance(sheets, list):

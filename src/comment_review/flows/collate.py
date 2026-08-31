@@ -7,8 +7,10 @@ Twelve acts, in the order the body runs them:
     ENVELOPE   is each document the shape a copy must be --
                `desk.containers.parse_edit_copy`. Reported, never raised
     CHECK      every copy's marks, stacked -- `desk.collator.problems_in`,
-               over the copies ENVELOPE admitted. A failure in either returns
-               early rather than folding a partial set
+               over the copies ENVELOPE admitted. ! ONLY AN *ENVELOPE* FAILURE
+               RETURNS EARLY. A malformed MARK is reported and the round goes
+               on without it -- `_reconcilable` drops it, and its docstring
+               says why refusing here would block three roles over one
     COVERAGE   did each role carry back every address the binder holds --
                `_coverage_problems`. `fan_out` refuses an uncovered page at the
                DISPATCH; this is the RETURN
@@ -643,12 +645,23 @@ def _coverage_problems(edit_copies: list[dict], binder: dict) -> list[Problem]:
     for role, carried in by_role.items():
         missing = sorted(known - carried)
         if missing:
+            # !! COUNTED OVER THE INTERSECTION, NOT OVER EVERYTHING RETURNED.
+            # `carried` holds every address the role sent back, including any
+            # the binder never held, so `len(carried)` can equal `len(known)`
+            # while something is still missing. MEASURED 2026-08-31: a role
+            # that dropped `m.py@b5` and invented `m.py@b9` against a two-place
+            # binder reported *"answered for 2 of 2 places -- missing
+            # m.py@b5"*, which contradicts itself on its own line.
+            #
+            # ! AN INVENTED ADDRESS IS NOT THIS FUNCTION'S TO REPORT.
+            # `desk.collator.address_problems` answers that one, per mark, and
+            # naming it here too would be the same fact in two vocabularies.
             out.append(
                 Problem(
                     role,
                     "",
-                    f"answered for {len(carried)} of {len(known)} places -- "
-                    f"missing {', '.join(missing)}",
+                    f"answered for {len(carried & known)} of {len(known)} "
+                    f"places -- missing {', '.join(missing)}",
                 )
             )
     return out

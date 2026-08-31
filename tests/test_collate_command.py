@@ -7,6 +7,8 @@ way the rest of this suite asks a question it can ask directly.
 import json
 
 from helpers import (
+    REPO,
+    _keeping_only,
     a_binder_over,
     a_clean,
     a_correct,
@@ -384,6 +386,59 @@ class TestExitCodes:
         assert code == command.DRIFT
         assert code == 5
         assert out_path.exists()
+
+    def test_a_short_shard_exits_six_and_still_writes_the_chief(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """`Process: #63` AT THE BOUNDARY WHERE THE FIX WAS MADE.
+
+        !! MEASURED 2026-08-31, BEFORE IT: coverage findings rode in
+        `got.problems`, `main` returned BROKEN on a non-empty `problems` before
+        writing, and a round that settled `m.py@b1` threw that settled mark
+        away. The ruling says a missing answer ROUTES and does not VOID the
+        round -- *the places that did come back still settle*.
+
+        ! IT WAS VERIFIED ONLY AT FLOW LEVEL UNTIL NOW. `TestShardCoverage`
+        asserts `Collated.coverage`, which cannot see the command's exit code
+        or whether the file was written -- and those two ARE the fix.
+        """
+        binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})
+        copies = copies_over(
+            binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
+        )
+        short = _keeping_only(copies[0], ["m.py@b1"])
+        binder_path = tmp_path / "binder.json"
+        binder_path.write_text(json.dumps(binder), encoding="utf-8")
+        copy_path = tmp_path / "copy.json"
+        copy_path.write_text(json.dumps(short), encoding="utf-8")
+        out_path = tmp_path / "chief.json"
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "collate",
+                "--stage",
+                "4c",
+                "--binder",
+                str(binder_path),
+                "--out",
+                str(out_path),
+                "--edit-copy",
+                str(copy_path),
+                "--repo",
+                str(REPO),
+            ],
+        )
+        code = command.main()
+        out = capsys.readouterr().out
+        assert code == command.COVERAGE
+        assert code == 6
+        assert code != command.BROKEN
+        assert "missing m.py@b5" in out
+        # !! THE HALF THE FLOW-LEVEL TEST CANNOT SEE: the round still settled.
+        assert out_path.exists()
+        chief = json.loads(out_path.read_text(encoding="utf-8"))
+        settled = [m["address"] for s in chief["sheets"] for m in s["marks"]]
+        assert settled == ["m.py@b1"]
 
     def test_an_unreadable_input_exits_two(self, tmp_path, monkeypatch, capsys):
         monkeypatch.setattr(

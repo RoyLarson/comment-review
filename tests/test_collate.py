@@ -558,6 +558,22 @@ class TestShardCoverage:
         for missing in ("m.py@b2", "m.py@b3", "m.py@b4"):
             assert missing in got.coverage[0].message
 
+    def test_the_count_does_not_include_an_address_the_binder_never_held(self):
+        """!! MEASURED 2026-08-31: a role that dropped one place and invented
+        another reported *"answered for 2 of 2 places -- missing m.py@b5"* --
+        a sentence contradicting itself. `carried` holds everything returned;
+        the number the sentence means is the intersection with `known`."""
+        binder = two_places()
+        copies = copies_over(binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}})
+        short = _keeping_only(copies[0], ["m.py@b1"])
+        short["sheets"][0]["marks"].append(
+            {**a_clean("m.py@b9"), "address": "m.py@b9", "raw_text": BASE}
+        )
+        got = collate("4c", [short], binder, root=REPO)
+        assert [p.role for p in got.coverage] == ["block-context"]
+        assert "answered for 1 of 2 places" in got.coverage[0].message
+        assert "missing m.py@b5" in got.coverage[0].message
+
     def test_two_shards_of_one_role_cover_the_binder_between_them(self):
         """!! COMPARED PER COPY THIS REPORTS EVERY FAN-OUT SHARD AS INCOMPLETE.
         `unruled` and `tally` are keyed by role and clobber under fan-out; this

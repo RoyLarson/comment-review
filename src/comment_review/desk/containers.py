@@ -23,7 +23,8 @@ container from the class's own field names -- `Process: #64` -- and `parse`
 reads one back. Renaming a field breaks at construction rather than folding to
 a default one module away, which is `desk.mark.Mark.seed`'s guard one level up.
 
-    write   flows.distribute.seed, flows.collate._chief_copy, desk.proof.gather
+    write   flows.distribute.seed, flows.collate._chief_copy,
+            flows.collate._nothing_settled, desk.proof.gather
     read    flows.collate.collate, at its inbound boundary and after `gather`
 
 ! THE PARSES HAD NO PRODUCTION CALLER UNTIL 2026-08-31, and this file said so
@@ -257,11 +258,19 @@ def parse_sheet(where: str, data: object) -> tuple[Sheet | None, list[str]]:
     # written by hand -- an artifact read off disk, a role's own edit -- meets
     # the same rule as one this module wrote.
     #
-    # !! AND THE FOLD IS SPELLED AT FOUR SITES, NOT TWO. `desk.collator._real_pages`
-    # and `flows.carry` each carry their own copy, and neither imports this
-    # module; `carry`'s own comment already says it is "matching
-    # `desk.containers.parse_sheet`". This pair is the round trip; those two are
-    # duplicates that a change to the rule would not reach.
+    # !! AND THE FOLD IS SPELLED AT FIVE SITES. `desk.collator._real_pages`,
+    # `flows.carry` and `flows.collate._chief_copy` each carry their own copy,
+    # and none of the three imports this module; `carry`'s own comment already
+    # says it is "matching `desk.containers.parse_sheet`". This pair is the
+    # round trip; those three are duplicates a change to the rule would not
+    # reach.
+    #
+    # ! THE COUNT WAS FOUR UNTIL 2026-08-31 AND THE FIFTH WAS ADDED KNOWINGLY.
+    # `_chief_copy` subscripted `sheet["sha"]` on the belief that the envelope
+    # guaranteed it; it does not, and `823834f` restored the fold there rather
+    # than carry the parsed `Sheet` that already holds the answer. That is a
+    # stopgap standing until `Process: #65`, and counting it here is what keeps
+    # it from reading as the settled shape.
     raw_sha = data.get("sha")
     sha = raw_sha if isinstance(raw_sha, str) else ""
     return Sheet(path=path, sha=sha, marks=tuple(marks)), []
@@ -365,7 +374,7 @@ def parse_master_proof(
     # `edit_copies: []`, all of `'oops'`, None, 7, [], {'root': 7} and
     # {'junk': 1} returned `problems == []`, and the two dict-shaped ones were
     # carried into `MasterProof.read_from` VERBATIM. Those are exactly the two
-    # `desk/collator.py:467-470` records as the reason this helper was reused
+    # `desk.collator.problems_in`'s own comment records as the reason it reused
     # instead of a hand-rolled `isinstance(..., dict) and truthy` -- so the
     # validator had re-acquired the defect its own comment exists to explain.
     #
