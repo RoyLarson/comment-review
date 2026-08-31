@@ -19,17 +19,24 @@ authors a container -- `flows.distribute.seed`, `flows.fan_out.fan` and
 checked object rather than re-deriving the same keys with `isinstance`
 ladders.
 
-!! NOT YET WIRED. `grep -rn "containers" src/` finds no production importer
-of this module: `desk/collator.py` still hand-rolls its own `isinstance`
-checks over the same `sheets`/`marks`/`edit_copies` shapes `parse_edit_copy`
-and `parse_master_proof` exist to check, rather than calling either -- run
+!! THE WRITE HALF IS WIRED AND THE READ HALF IS NOT, as of 2026-08-31. The
+`seed` classmethods have production callers -- `flows.distribute.seed`,
+`flows.collate._chief_copy` and `desk.proof.gather` build every container
+through them, per `decision-log.md Process: #64`. **The parses still have
+none**: `desk/collator.py` hand-rolls its own `isinstance` checks over the
+same `sheets`/`marks`/`edit_copies` shapes `parse_edit_copy` and
+`parse_master_proof` exist to check, rather than calling either -- run
 `grep -n '\.get("sheets"\|\.get("marks"\|\.get("edit_copies"'
 src/comment_review/desk/collator.py` to see every site, since a function
-COUNT stated here goes stale the moment anyone adds the next one. Roy has
-ruled it will be wired --
-`TODO/containers-and-verification-are-unwired.md` tracks the work. A
-container guards the ENVELOPE -- is this document the shape a copy must be,
-or does it error out -- while `desk.collator.problems_in` reports on the
+COUNT stated here goes stale the moment anyone adds the next one.
+
+! SO A `grep -rn "containers" src/` NO LONGER ANSWERS "IS THIS MODULE WIRED".
+It answers only that something imports it. What is still owed is a caller of
+`parse_edit_copy` and `parse_master_proof`, tracked in
+`TODO/containers-and-verification-are-unwired.md` T1 and T2.
+
+! A container guards the ENVELOPE -- is this document the shape a copy must
+be, or does it error out -- while `desk.collator.problems_in` reports on the
 CONTENTS, so each per-mark problem still routes back to the role that wrote
 it; the two are not competing contracts.
 
@@ -43,10 +50,41 @@ refuse it by name. Filtering to dicts here would make a bare string vanish
 instead of being flagged.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 
 from comment_review.binder.binder import _read_from_problem
 from comment_review.desk.mark import filled
+
+
+def _written(cls, values: dict) -> dict:
+    """One container as the wire dict, keyed by `cls`'s OWN field names.
+
+    !! THE WRITE HALF OF THE ROUND TRIP LIVES WITH THE READ HALF, ruled
+    `decision-log.md Process: #64`. It is `desk.mark.Mark.seed`'s guard one
+    level up: every producer spelled these keys as literals, so renaming a
+    field left another module writing the old key and NOTHING could notice --
+    `parse_sheet` folds an absent `sha` to `""` and reports no problem, where
+    `Mark.seed` raises at the point the row is built.
+
+    Args:
+        cls: the container dataclass being written.
+        values: one entry per declared field, by name.
+
+    Returns:
+        `values`, in the class's own field order.
+
+    Raises:
+        AttributeError: `values` names a field the class does not declare, or
+            omits one it does. ! THIS IS THE WHOLE GUARD, and it fires at the
+            point the row is built rather than silently one module away.
+    """
+    declared = [f.name for f in fields(cls)]
+    if set(values) != set(declared):
+        raise AttributeError(
+            f"{cls.__name__}.seed writes {sorted(values)}, "
+            f"which is not {cls.__name__}'s {sorted(declared)}"
+        )
+    return {name: values[name] for name in declared}
 
 
 @dataclass(frozen=True)
@@ -64,6 +102,35 @@ class Sheet:
     path: str
     sha: str
     marks: tuple[object, ...]
+
+    @classmethod
+    def seed(cls, path: str, sha: object, marks: list) -> dict:
+        """One sheet as the wire dict every producer writes.
+
+        !! `sha` IS NORMALIZED HERE, AND THIS IS THE ONE PLACE THAT DOES IT.
+        `.get("sha", "")` defaults only when the key is ABSENT, so a `"sha":
+        null` binder page arrives with the key PRESENT and holding None, and
+        `str(None)` is the four-character word "None". `flows.distribute.seed`
+        and `parse_sheet` each carried this fold; a rule stated twice is a rule
+        that will disagree with itself.
+
+        Args:
+            path: the page's real repo path, as the binder stated it.
+            sha: that page's sha, or anything that is not a `str` -- an absent
+                or null sha becomes "".
+            marks: the entries for this page, carried as given.
+
+        Returns:
+            `{path, sha, marks}` -- what `parse_sheet` reads back.
+        """
+        return _written(
+            cls,
+            {
+                "path": path,
+                "sha": sha if isinstance(sha, str) else "",
+                "marks": list(marks),
+            },
+        )
 
 
 @dataclass(frozen=True)
@@ -84,6 +151,25 @@ class EditCopy:
     read_from: dict
     sheets: tuple[Sheet, ...]
 
+    @classmethod
+    def seed(cls, role: str, read_from: dict, sheets: list) -> dict:
+        """One edit_copy as the wire dict `flows.distribute.seed` hands out.
+
+        Args:
+            role: the editorial role this copy is for.
+            read_from: `{root, revise}` -- which tree it was censused from.
+            sheets: one `Sheet.seed` dict per page.
+
+        Returns:
+            `{role, read_from, sheets}`. ! `read_from` IS COPIED, NOT ALIASED,
+            as `bind`, `seed` and `gather` all do with this field: a caller
+            mutating its own dict afterward cannot change what this copy holds.
+        """
+        return _written(
+            cls,
+            {"role": role, "read_from": {**read_from}, "sheets": list(sheets)},
+        )
+
 
 @dataclass(frozen=True)
 class MasterProof:
@@ -100,6 +186,30 @@ class MasterProof:
     stage: str
     read_from: dict
     edit_copies: tuple[EditCopy, ...]
+
+    @classmethod
+    def seed(cls, stage: str, read_from: dict, edit_copies: list) -> dict:
+        """One master_proof as the wire dict `desk.proof.gather` returns.
+
+        Args:
+            stage: the label these copies were dispatched under.
+            read_from: taken from the first copy by `gather`, which refuses a
+                set that disagrees.
+            edit_copies: one `EditCopy.seed` dict per role, or per SHARD under
+                fan-out. Held in the order given: nothing is sorted, nothing is
+                dropped.
+
+        Returns:
+            `{stage, read_from, edit_copies}`, `read_from` copied not aliased.
+        """
+        return _written(
+            cls,
+            {
+                "stage": stage,
+                "read_from": {**read_from},
+                "edit_copies": list(edit_copies),
+            },
+        )
 
 
 def parse_sheet(where: str, data: object) -> tuple[Sheet | None, list[str]]:

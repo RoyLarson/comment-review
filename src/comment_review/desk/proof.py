@@ -20,6 +20,8 @@ container. This module is that container.
 to the `edit_copy` that seeded it, one level down.
 """
 
+from comment_review.desk.containers import MasterProof
+
 
 class MismatchedRoot(Exception):
     """Two `edit_copies` handed to `gather` were censused from different roots.
@@ -73,8 +75,9 @@ def gather(stage: str, edit_copies: list[dict]) -> dict:
                 f"edit_copy {i} ({copy.get('role', '?')!r}) was censused from "
                 f"{this!r}, disagreeing with the master_proof's {read_from!r}"
             )
-    return {
-        "stage": stage,
-        "read_from": read_from,
-        "edit_copies": list(edit_copies),
-    }
+    # ! WRITTEN THROUGH THE TYPE since 2026-08-31 -- `decision-log.md Process:
+    # #64`. `MasterProof.seed` is what copies `read_from` rather than aliasing
+    # it, so the `{**this}` above is the FIRST copy and this is not a second.
+    return MasterProof.seed(
+        stage=stage, read_from=read_from, edit_copies=list(edit_copies)
+    )

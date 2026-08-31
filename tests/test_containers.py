@@ -5,6 +5,8 @@
 is the input, which is what the refusals are about.
 """
 
+from dataclasses import fields
+
 from helpers import a_small_real_tree, binder_of
 
 from comment_review.desk.containers import (
@@ -21,6 +23,46 @@ from comment_review.flows.distribute import seed
 
 def a_real_copy(tmp_path, role="block-context"):
     return seed(binder_of(a_small_real_tree(tmp_path), 0), role)
+
+
+class TestTheWriteHalfLivesWithTheRead:
+    """`Process: #64`. The keys come from the dataclass, not from a literal.
+
+    ! THESE READ THE FIELD NAMES OFF THE CLASS. Asserting the literal key names
+    would pass a rename that broke `seed` and the dataclass together, which is
+    the pair this exists to keep from drifting apart.
+    """
+
+    def test_a_sheet_is_written_with_every_field_the_class_declares(self):
+        row = Sheet.seed(path="m.py", sha="abc", marks=[])
+        assert set(row) == {f.name for f in fields(Sheet)}
+
+    def test_an_edit_copy_is_written_with_every_field_the_class_declares(self):
+        row = EditCopy.seed(role="block-context", read_from={"root": "."}, sheets=[])
+        assert set(row) == {f.name for f in fields(EditCopy)}
+
+    def test_a_master_proof_is_written_with_every_field_the_class_declares(self):
+        row = MasterProof.seed(stage="4c", read_from={}, edit_copies=[])
+        assert set(row) == {f.name for f in fields(MasterProof)}
+
+    def test_what_seed_writes_is_what_parse_reads_back(self, tmp_path):
+        """The round trip, over the real tree rather than over a literal."""
+        copy, why = parse_edit_copy("copy 1", a_real_copy(tmp_path))
+        assert why == []
+        assert copy is not None
+        again, why = parse_edit_copy(
+            "copy 1",
+            EditCopy.seed(
+                role=copy.role,
+                read_from=copy.read_from,
+                sheets=[
+                    Sheet.seed(path=s.path, sha=s.sha, marks=list(s.marks))
+                    for s in copy.sheets
+                ],
+            ),
+        )
+        assert why == []
+        assert again == copy
 
 
 class TestWhatTheChainBuilds:

@@ -51,6 +51,7 @@ from comment_review.desk.collator import (
     tally,
     unruled,
 )
+from comment_review.desk.containers import EditCopy, Sheet
 from comment_review.desk.mark import Instruction, Mark, parse, untouched
 from comment_review.desk.proof import gather
 from comment_review.reading.addresser import cue_of, unflatten
@@ -388,14 +389,16 @@ def _chief_copy(read_from: dict, resolved: dict[str, Mark], proof: dict) -> dict
         addr = cue_of(mark.address)
         real = unflatten(addr.path, paths) or addr.path
         sheet = sheets.setdefault(
-            real, {"path": real, "sha": shas.get(real, ""), "marks": []}
+            real, Sheet.seed(path=real, sha=shas.get(real, ""), marks=[])
         )
         sheet["marks"].append(mark.as_entry())
-    return {
-        "role": "copy-chief",
-        "read_from": {**read_from},
-        "sheets": list(sheets.values()),
-    }
+    # ! WRITTEN THROUGH THE TYPES since 2026-08-31 -- `decision-log.md Process:
+    # #64`, and it matters most here: the chief's copy is an ordinary
+    # `EditCopy`, so the one place that BUILDS a copy from scratch rather than
+    # from a binder is the one a rename would leave writing the old key.
+    return EditCopy.seed(
+        role="copy-chief", read_from=read_from, sheets=list(sheets.values())
+    )
 
 
 def _reconcilable(copy: dict) -> dict:
@@ -430,6 +433,22 @@ def _reconcilable(copy: dict) -> dict:
     ORIGINAL copy, before this function touches it, so the role and the
     address are already captured in `Collated.problems` by the time this
     drops the entry from what `reconcile` sees.
+
+    !! AND IT IS NOT WRITTEN THROUGH `EditCopy.seed`, WHICH THE REST OF THIS
+    MODULE IS. `Process: #64` puts the write half with the read half at every
+    site that BUILDS a container; this one FILTERS an existing one, and the
+    difference is load-bearing. MEASURED 2026-08-31, when it was written that
+    way for one commit: `EditCopy.seed` requires every declared field, so a
+    copy carrying no `read_from` came out holding `{}` -- and `desk.proof.gather`
+    subscripts that key precisely so an absent one raises. Its own docstring
+    records the same defect being closed there: *"Reading `copy.get("read_from",
+    {})` made every copy that carried none agree on `{}`."*
+    `tests/test_collate_command.py::TestExitCodes::
+    test_a_copy_missing_read_from_exits_one_not_a_traceback` is what failed.
+
+    ! SO THE UPDATE FORM PRESERVES AN ABSENCE, and a producer cannot. A field
+    this function fabricates is a field the boundary below it can no longer
+    refuse.
 
     Returns:
         A NEW edit_copy dict -- new `sheets` and `marks` lists -- so the

@@ -5,6 +5,7 @@
 where MALFORMED is the input.
 """
 
+import pytest
 from helpers import (
     a_binder_over,
     a_clean,
@@ -298,6 +299,23 @@ class TestTheStackedCheck:
             copy["sheets"][0]["marks"][0]["claim"] = {}
         got = collate("4c", copies, binder)
         assert {p.role for p in got.problems} == {"block-context", "function-context"}
+
+    def test_a_copy_carrying_no_read_from_still_reaches_gathers_refusal(self):
+        """`_reconcilable` FILTERS a copy; it must not PRODUCE one.
+
+        MEASURED 2026-08-31: written through `EditCopy.seed`, which requires
+        every declared field, it handed `gather` a copy holding `read_from:
+        {}` -- and `gather` subscripts that key precisely so an absent one
+        raises. A field the filter fabricates is a field the boundary below it
+        can no longer refuse.
+        """
+        binder = one_place()
+        copies = copies_over(
+            binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
+        )
+        del copies[0]["read_from"]
+        with pytest.raises(KeyError):
+            collate("4c", copies, binder)
 
     def test_drift_is_reported_and_does_not_stop_the_fold(self):
         binder = one_place()

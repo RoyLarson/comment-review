@@ -36,6 +36,7 @@ SOURCE-VERIFICATION in `collator`. `desk.mark.parse` says the same about its
 own half.
 """
 
+from comment_review.desk.containers import EditCopy, Sheet
 from comment_review.desk.mark import Mark
 from comment_review.reading.addresser import address_for
 
@@ -77,26 +78,19 @@ def seed(binder: dict, role: str) -> dict:
     carrying that page's `sha`. The per-row `address` is unchanged -- still
     `address_for(path, cue)`, the same composition `rows_of` used.
     """
-    return {
-        "role": role,
-        # ! COPIED, NOT ALIASED -- see `bind`, which does the same at the other
-        # end. Aliasing made the binder, every edit_copy seeded from it and the
-        # caller's own dict one object.
-        "read_from": {**binder["read_from"]},
-        "sheets": [
-            {
-                "path": str(page.get("path", "")),
-                # ! `.get("sha", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT. A
-                # `"sha": null` binder page -- `binder.read()` does not check
-                # this field's shape, only what it consumes -- reaches here
-                # with the key PRESENT and holding None, and unlike
-                # `flows.carry` there is no `str()` here to turn it into the
-                # word "None": it would be written straight into the sheet as
-                # a bare `None`, disagreeing with `Sheet.sha`'s own `str`
-                # contract until whichever reader saw it next re-normalized
-                # it. Normalized here instead, matching every sibling site.
-                "sha": raw_sha if isinstance(raw_sha := page.get("sha"), str) else "",
-                "marks": [
+    # ! WRITTEN THROUGH THE TYPES, NOT AS LITERALS, since 2026-08-31 --
+    # `decision-log.md Process: #64`. `EditCopy.seed` copies `read_from` rather
+    # than aliasing it, and `Sheet.seed` normalizes a null `sha`; both rules
+    # used to be stated here as well as at the parse, and a rule in two places
+    # is a rule that will disagree with itself.
+    return EditCopy.seed(
+        role=role,
+        read_from=binder["read_from"],
+        sheets=[
+            Sheet.seed(
+                path=str(page.get("path", "")),
+                sha=page.get("sha"),
+                marks=[
                     Mark.seed(
                         address_for(str(page.get("path", "")), str(row.get("cue", ""))),
                         str(row.get("anchor", "")),
@@ -104,7 +98,7 @@ def seed(binder: dict, role: str) -> dict:
                     )
                     for row in page.get("rows", [])
                 ],
-            }
+            )
             for page in binder.get("pages", [])
         ],
-    }
+    )
