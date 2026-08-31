@@ -39,7 +39,7 @@ well, which is `agents` lane work.
 
 ## Tasks
 
-- [ ] Rule whether an approved drop keeps a distinguishable spelling from a JSON
+- [?] Rule whether an approved drop keeps a distinguishable spelling from a JSON
       null
 - [ ] If it does, change docket.read to that spelling and pin both the
       accept and the refuse

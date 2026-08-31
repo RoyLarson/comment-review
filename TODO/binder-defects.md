@@ -153,7 +153,7 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
       sentence matches `row | {"path": path, "address": ...}`, whose dict-union
       order turns a row carrying `{"path": "other.py", "address": "other.py@b9"}`
       into `{'path': 'm.py', 'address': 'm.py@b1'}`.
-- [ ] Does `--include-absent` describe the binder ARTIFACT, or only the invocation
+- [?] Does `--include-absent` describe the binder ARTIFACT, or only the invocation
       that produced it? Verify: the answer is recorded in `docs/decision-log.md`;
       if it describes the artifact, `read_from` carries `absent` and a copy seeded
       from an include-absent binder then collated against a default one is refused

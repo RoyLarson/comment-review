@@ -138,7 +138,7 @@ cites as its measured example of a field answering neither necessary nor purpose
       after `parse` cannot change `mark.sources`, or the comment bounds the
       guarantee to the containers and names `as_entry()` as the second route --
       today both mutations are visible through a frozen `Mark`.
-- [ ] Do `can_declare_scope`, `rules_on_text` and `diffable` stay as row flags,
+- [?] Do `can_declare_scope`, `rules_on_text` and `diffable` stay as row flags,
       and what reads each? MEASURED 2026-08-30: no reader anywhere in `src/`
       outside `desk/mark.py`; the only other sites are
       `tests/gates/test_mark_shape.py:135,137,138`, which map the spec's phrase to

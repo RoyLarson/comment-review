@@ -153,7 +153,7 @@ and now there is one object that cannot be half-held.
       identical lists; today `a0` gets `['block-context', 'module-context']` while
       `a8` and `a16` get the reverse, and `_composition` reads
       `owing[0].mark.anchor`.
-- [ ] Should the far end's roles reach a reader of one end of a move through a
+- [?] Should the far end's roles reach a reader of one end of a move through a
       separate reader-facing field, leaving `marks` as the marks at THIS place?
       `_join_moves:883` skips the union whenever both ends' kinds agree, so a move
       with a collider at each end shows `a.py@b1 roles=['alpha','bravo']` and
