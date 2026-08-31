@@ -82,9 +82,10 @@ change -- `conventions.md`, *The vocabulary is shared*.
 - [ ] Delete the inline restatements of `filled()` at their call sites so the
       predicate is called rather than repeated. Verify: the inline form appears
       nowhere in `desk/`, and the suite stays green.
-- [ ] Update `ANCHOR_NAME` and `binder/annotate.py`'s `TICKED` so each states
-      the question it answers -- the anchor a role NAMED, against the
-      back-of-book index of what documentation REFERS to. RULED 2026-08-30:
-      two definitions, not one; the whitespace difference is deliberate.
-      Verify: neither pattern changes, both carry the sentence, and
-      `docs/vocabulary.md` records that two backtick forms exist on purpose.
+- [ ] Update `binder/annotate.py`'s `TICKED` so it states the question it
+      answers -- the back-of-book index of what documentation REFERS to, loose
+      about spaced words because a docstring may carry them. RULED 2026-08-30.
+      ! `ANCHOR_NAME` IS NOT ITS COUNTERPART AND WAS NEVER RULED ON: it is
+      prototype residue ported in `67dc82b`, and the move spec deletes it with
+      `add`'s claim anchor. Verify: `TICKED` carries the sentence and
+      `docs/vocabulary.md` records why it admits what it admits.

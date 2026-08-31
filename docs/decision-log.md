@@ -2046,6 +2046,30 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **IT IS A COUNTER-CASE TO `Vocabulary: #11`'s DIRECTION**, and worth keeping beside it: one
   name per thing is about NAMES, not about every pattern that happens to match similar text.
 
+  !! **CORRECTED 2026-08-30, THE SAME DAY: THIS ENTRY RECORDED A RULING WIDER THAN THE ONE
+  GIVEN.** Roy ruled on `TICKED` -- what `annotate.py` is for and why it had to be loose. He
+  did not rule that `ANCHOR_NAME` is its deliberate counterpart. Roy: *"The ANCHOR_NAME had
+  no anchor to what is was talking about. I gave you the reason it was the way it was not
+  because I knew what where it was in the code or what it was doing. If I had known that
+  something like that had slipped from the v0.2.2 prototype into here I would have had you
+  drop it."*
+
+  !! **MEASURED: `ANCHOR_NAME` IS PROTOTYPE RESIDUE.** The pattern is byte-identical to
+  `prototype/original/record.py:296` and entered `src/` in `67dc82b`, *"the mark comes back
+  into `desk/`"* -- carried across during the port rather than designed for this system.
+  `TODO/the-ported-mark-does-not-fit-the-brief.md` is the file for that class.
+
+  ! **SO THE TABLE ABOVE STANDS FOR `TICKED` AND NOT FOR `ANCHOR_NAME`.** The two patterns do
+  answer different questions; what was never ruled is that BOTH should exist.
+  `docs/superpowers/specs/2026-08-30-the-move-composite-design.md` deletes `ANCHOR_NAME` with
+  `add`'s claim anchor, which is a second anchor on a mark that already carries a seeded one.
+
+  !! **THE ERROR SHAPE IS `Vocabulary: #11`'s, ARRIVING WHILE THAT ENTRY WAS BEING CITED.** A
+  ruling was given about one thing, recorded as settling two, and would have been quoted as
+  authority for keeping a field nobody had examined. ! The question that produced it asked
+  *"one definition, or two with declared different jobs?"* -- a form that offers no answer
+  meaning *neither; look at where this came from*.
+
 - **#62.** **THE MIDDLE TOUCHES NO FILES, SO NOTHING IN IT ASKS WHETHER A PAGE CHANGED** (Roy,
   2026-08-30, on a proposal to answer drift with the page's `sha`): *"That is also a completely
   unnecessary check at this stage. I don't know how many times i have to say this because you

@@ -196,9 +196,12 @@ how it is broken across lines.
   `diff(binder[address], raw_text)`.** `correct` keeps `owes_sources`, which is evidence
   rather than text.
 - **DELETE** `needs_anchor`, `ANCHOR_NAME` and `ANCHOR_EXAMPLE` with `add`'s claim anchor --
-  nothing else reads them. ! This makes half of `mark-holds-spec-and-parse` T6 moot: that
-  task documents `ANCHOR_NAME` against `binder/annotate.py`'s `TICKED` per `Process: #61`.
-  `TICKED` and its half stand; the `ANCHOR_NAME` half goes with the field.
+  nothing else reads them. !! **AND `ANCHOR_NAME` IS PROTOTYPE RESIDUE, WHICH IS A STRONGER
+  REASON THAN REDUNDANCY.** The pattern is byte-identical to `prototype/original/record.py`
+  and entered `src/` during the mark's port (`67dc82b`). Roy, 2026-08-30: *"If I had known
+  that something like that had slipped from the v0.2.2 prototype into here I would have had
+  you drop it."* ! `Process: #61` was CORRECTED the same day: it had recorded a ruling about
+  `TICKED` as though it also ratified `ANCHOR_NAME`. `TICKED` stands; this goes.
 - **SET** `move`'s `quotes_original = "sentence"`.
 - `may_empty` exists so a `drop` may return `""` when the whole paragraph goes. **Its fate
   follows section 9's open question**: if `drop` derives its result like the move's origin,
