@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 24 tasks closed
+Progress: 2 of 24 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -66,11 +66,12 @@ envelope check; that file's task 9 lands the region a move needs inside it.
 
 ## Tasks
 
-- [ ] T1 | Implement the `desk.containers.parse_edit_copy` call at the flow's
-      inbound boundary, so a document that is not the shape an edit copy must be
-      ERRORS OUT rather than being re-derived downstream. Verify: a copy missing
-      `sheets` is refused by name from the flow, and the test goes red when the
-      call is removed.
+- [x] T1 | collate parses every copy at the boundary and reports; 9 tests red without it | eeb983f | Implement
+      the `desk.containers.parse_edit_copy` call at the flow's inbound boundary,
+      so a document that is not the shape an edit copy must be ERRORS OUT rather
+      than being re-derived downstream. Verify: a copy missing `sheets` is
+      refused by name from the flow, and the test goes red when the call is
+      removed.
 - [ ] T2 | Implement the `desk.containers.parse_master_proof` call at the master
       proof's boundary, on the same terms. Verify: a proof whose `edit_copies`
       is not a list is refused by name from the flow, and the test goes red when

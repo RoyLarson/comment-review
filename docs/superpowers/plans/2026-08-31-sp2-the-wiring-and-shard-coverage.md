@@ -244,7 +244,7 @@ importer and `collate` re-derives the shape as it goes.
 this document a copy at all*; `problems_in` answers *what did this role write in this slot*.
 Read this plan's own decision section above before writing the refusal.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_a_copy_that_is_not_the_shape_of_a_copy_is_named_on_its_role():
@@ -281,12 +281,12 @@ would also be asserting the shape of a well-formed copy, which is what `seed` is
 ! `a_correct(address, sentence=None)` is the existing helper's malformed case -- check what
 `problems_in` reports over it before relying on it, and use whatever the current builder gives.
 
-- [ ] **Step 2: Run all three and watch the first two fail**
+- [x] **Step 2: Run all three and watch the first two fail**
 
 Run: `uv run pytest tests/test_collate.py -k "shape_of_a_copy or does_not_silence" -v`
 Expected: FAIL -- `a_copy_missing_its_sheets` is not defined.
 
-- [ ] **Step 3: Parse every copy before the per-copy loop**
+- [x] **Step 3: Parse every copy before the per-copy loop**
 
 Collect `(role, problems)` for each copy that does not parse. Run the existing per-copy loop
 over the copies that DID parse, so their problems are reported too. If any envelope problem
@@ -300,11 +300,11 @@ string, and `"copy 2"` is routable where `""` is not. **Say in the code which it
 task removes one reason `UnnamedRole` can fire; **read the block against what still raises**
 rather than adding to it.
 
-- [ ] **Step 4: Run the tests, then `uv run pytest -q`**
-- [ ] **Step 5: Run the checks** -- `pytest`, `ruff check`, `ruff format --check`, `ruff check`
+- [x] **Step 4: Run the tests, then `uv run pytest -q`**
+- [x] **Step 5: Run the checks** -- `pytest`, `ruff check`, `ruff format --check`, `ruff check`
   again, `ty check`. Only `test_build` may fail.
-- [ ] **Step 6: Commit the WORK -- no ticked boxes in this commit**
-- [ ] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
+- [x] **Step 6: Commit the WORK -- no ticked boxes in this commit**
+- [x] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
 
 Tick every `- [ ]` step box of this task in
 `docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
@@ -319,7 +319,7 @@ it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
 `Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
 wrong.
 
-- [ ] **Step 8: Commit the ticks, citing the work commit's SHA**
+- [x] **Step 8: Commit the ticks, citing the work commit's SHA**
 
 ---
 
