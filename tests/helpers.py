@@ -291,6 +291,19 @@ def copies_over(binder: dict, by_role: dict) -> list[dict]:
     return copies
 
 
+def a_copy_missing_its_sheets(binder: dict, role: str = "block-context") -> dict:
+    """A real seeded copy with its `sheets` key REMOVED.
+
+    ! A REMOVAL OVER `seed`, NOT A LITERAL. A hand-written `{"role": ...,
+    "read_from": ...}` would also be asserting the shape of a well-formed copy,
+    which is `seed`'s to state -- so the fixture and the code could drift apart
+    and the test would go on passing.
+    """
+    copy = seed(binder, role)
+    del copy["sheets"]
+    return copy
+
+
 def a_master_proof(by_role: dict) -> dict:
     """A `master_proof`, composed through the real `seed()` and `gather()`.
 

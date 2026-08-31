@@ -51,7 +51,7 @@ from comment_review.desk.collator import (
     tally,
     unruled,
 )
-from comment_review.desk.containers import EditCopy, Sheet
+from comment_review.desk.containers import EditCopy, Sheet, parse_edit_copy
 from comment_review.desk.mark import Instruction, Mark, parse, untouched
 from comment_review.desk.proof import gather
 from comment_review.reading.addresser import cue_of, unflatten
@@ -446,6 +446,12 @@ def _reconcilable(copy: dict) -> dict:
     `tests/test_collate_command.py::TestExitCodes::
     test_a_copy_missing_read_from_exits_one_not_a_traceback` is what failed.
 
+    ! `collate` CAN NO LONGER REACH THIS FUNCTION WITH THE FIELD MISSING, since
+    the envelope parse landed the same day and reports it one step earlier. The
+    rule still binds the function, so it is asserted on the function itself --
+    `tests/test_collate.py::TestTheStackedCheck::
+    test_reconcilable_preserves_an_absent_read_from`.
+
     ! SO THE UPDATE FORM PRESERVES AN ABSENCE, and a producer cannot. A field
     this function fabricates is a field the boundary below it can no longer
     refuse.
@@ -491,23 +497,80 @@ def collate(stage: str, edit_copies: list[dict], binder: dict) -> Collated:
         A `Collated`.
 
     Raises:
-        desk.collator.UnnamedRole: a copy carries no `role`. ! `_reconcilable`
-            works entry by entry and cannot repair this -- a missing `role` is
-            a fact about the whole copy, not about any one mark -- so it is
-            the one way `places` still refuses here.
         desk.proof.MismatchedRoot: two copies were censused from different
-            roots.
+            roots. ! THE ONLY RAISE LEFT, and it cannot become a `Problem`:
+            copies answering to different address spaces have no reconciliation
+            between them, so there is no `Collated` to hand back. An `a0` in one
+            tells nothing about the `a0` in the other.
 
     ! `desk.collator.MalformedMark` NEVER REACHES A CALLER OF `collate`.
     `_reconcilable` drops every entry `places` would otherwise refuse before
     `reconcile` runs, so the raise `places` itself still documents cannot fire
     from here.
+
+    ! NEITHER DOES `desk.collator.UnnamedRole`, since 2026-08-31. It was listed
+    here as *"the one way `places` still refuses"*; the envelope parse now names
+    a copy with no `role` as a `Problem` and returns before `places` is called.
+
+    !! THE ENVELOPE IS PARSED FIRST, AND A FAILURE IS REPORTED RATHER THAN
+    RAISED -- `P21`, `decision-log.md Process: #57`. A container answers *is
+    this document a copy at all*; `problems_in` answers *what did this role
+    write in this slot*. Both run, envelope first, because a document that is
+    not a copy has no contents to rule on.
+
+    !! REPORTED, BECAUSE RAISING HERE EMPTIES THE REPORT FOR EVERY OTHER ROLE.
+    `commands/collate.py` catches around this whole call, so a raise discards
+    the `Problem`s already accumulated -- measured 2026-08-30 as exit 1 with an
+    EMPTY stdout. Reporting keeps Roy's rule that the errors stack so each can
+    be sent back to the role that owes it, and the run still errors out: the
+    command returns BROKEN on a non-empty `problems` and writes no chief copy.
+
+    !! AND IT RETURNS EARLY, SO NO CHIEF COPY IS EVER FOLDED FROM A PARTIAL SET.
+    A copy that does not parse cannot be reconciled, and folding the rest would
+    write a chief silently missing one role's rulings -- the outcome both the
+    refusal and the report exist to prevent.
+
+    ! WHAT IT CATCHES THAT `problems_in` CANNOT. That function's sheet walk
+    reads `if not isinstance(marks, list): continue`, so a sheet that is not an
+    object and a sheet whose `marks` is not a list are SKIPPED, and `path` is
+    never its question. MEASURED 2026-08-31, before this landed: all three gave
+    `problems == []` at exit 0, with a chief copy written without that page's
+    marks.
     """
     base = base_texts(binder)
     problems: list[Problem] = []
     drift: list[Problem] = []
     left: dict[str, list[str]] = {}
     counts: dict[str, dict] = {}
+
+    # ! THE ROLE MAY BE THE MISSING THING. `parse_edit_copy` refuses a copy with
+    # no `role` before it can name one, and `Problem` needs a role to route on --
+    # so the copy's position stands in, which a reader can act on where "" cannot.
+    envelope: list[Problem] = []
+    intact: list[dict] = []
+    for i, copy in enumerate(edit_copies, 1):
+        where = f"copy {i}"
+        parsed, why = parse_edit_copy(where, copy)
+        named = copy.get("role") if isinstance(copy, dict) else None
+        who = named if isinstance(named, str) and named.strip() else where
+        envelope += [Problem(who, "", message) for message in why]
+        if parsed is not None:
+            intact.append(copy)
+    if envelope:
+        # !! `problems_in` RUNS ONLY OVER THE COPIES THAT PARSED. Running it
+        # over a refused one reports the same fact twice in two vocabularies --
+        # measured on a copy with no `sheets`, which both boundaries answer --
+        # and that is the duplication `Problem` exists to avoid, stated at
+        # `desk.collator.drift_in`. A document that is not a copy has no
+        # contents to rule on.
+        for copy in intact:
+            found, _ruled = problems_in(copy)
+            problems += found
+        return Collated(
+            chief=EditCopy.seed(role="copy-chief", read_from={}, sheets=[]),
+            problems=envelope + problems,
+        )
+
     for copy in edit_copies:
         found, _ruled = problems_in(copy)
         problems += found

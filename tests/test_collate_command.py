@@ -207,9 +207,15 @@ class TestExitCodes:
             ],
         )
         code = command.main()
-        err = capsys.readouterr().err
+        out = capsys.readouterr()
         assert code == 1
-        assert "role" in err.lower()
+        # !! IT MOVED FROM stderr TO stdout ON 2026-08-31, and the exit code did
+        # not. The envelope parse reports a copy with no `role` as a `Problem`
+        # rather than letting `places` raise `UnnamedRole` -- `P21`,
+        # `decision-log.md Process: #57`. A refusal that raises empties the
+        # report for every OTHER role, which is what the report path fixes.
+        assert "role" in out.out.lower()
+        assert not (tmp_path / "chief.json").exists()
 
     def test_mismatched_roots_exit_one_naming_the_reason(
         self, tmp_path, monkeypatch, capsys
@@ -285,9 +291,14 @@ class TestExitCodes:
             ],
         )
         code = command.main()
-        err = capsys.readouterr().err
+        out = capsys.readouterr()
         assert code == 1
-        assert "read_from" in err
+        # !! ALSO MOVED TO stdout ON 2026-08-31, and the history above still
+        # holds -- the `KeyError` was real and escaping. The envelope parse now
+        # names an absent `read_from` before `gather` is reached, so the
+        # `RECONCILE_ERRORS` catch is no longer what answers this input.
+        assert "read_from" in out.out
+        assert not (tmp_path / "chief.json").exists()
 
     def test_drift_alone_exits_five_and_still_writes_the_chief(
         self, tmp_path, monkeypatch, capsys

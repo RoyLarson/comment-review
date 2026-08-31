@@ -9,6 +9,7 @@ import pytest
 from helpers import (
     a_binder_over,
     a_clean,
+    a_copy_missing_its_sheets,
     a_correct,
     a_correct_setting,
     a_move,
@@ -17,7 +18,7 @@ from helpers import (
 )
 
 from comment_review.desk.mark import parse
-from comment_review.flows.collate import collate
+from comment_review.flows.collate import _reconcilable, collate
 
 BASE = "# one\n# two\n# three\n"
 
@@ -271,6 +272,84 @@ class TestTheChiefsCopy:
         assert not any(untouched(e) for e in entries)
 
 
+class TestTheEnvelope:
+    """`P21`, `Process: #57`. Is this document a copy at all?
+
+    !! REPORTED, NOT RAISED, AND THE RUN STILL ERRORS OUT. `commands/collate.py`
+    prints every `Problem` and returns BROKEN without writing the chief copy, so
+    the refusal is preserved while the report survives it. A raise here is
+    finding #6 of the 2026-08-30 review: one role's bad envelope emptying stdout
+    for every other role.
+    """
+
+    #: The three shapes `desk.collator.problems_in` cannot see. Its sheet walk
+    #: reads `if not isinstance(marks, list): continue` (`collator.py:483-485`),
+    #: so a sheet that is not an object and a sheet whose `marks` is not a list
+    #: are SKIPPED, and `path` is never its question at all.
+    #:
+    #: !! MEASURED 2026-08-31 BEFORE THE ENVELOPE LANDED: all three gave
+    #: `problems == []`, exit 0, and a chief copy written without that page's
+    #: marks. A `sheets` key that is not a list is NOT among them -- that one
+    #: `problems_in` already reports, which is why it is not the test here.
+    UNSEEN = {
+        "a sheet that is not an object": lambda c: c["sheets"].insert(0, "nope"),
+        "a sheet whose marks is not a list": lambda c: c["sheets"][0].update(
+            marks="nope"
+        ),
+        "a sheet with no path": lambda c: c["sheets"][0].pop("path"),
+    }
+
+    def a_copy_shaped(self, binder, mangle):
+        copies = copies_over(
+            binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
+        )
+        mangle(copies[0])
+        return copies
+
+    @pytest.mark.parametrize("name", sorted(UNSEEN))
+    def test_a_copy_that_is_not_the_shape_of_a_copy_is_named_on_its_role(self, name):
+        binder = one_place()
+        got = collate("4c", self.a_copy_shaped(binder, self.UNSEEN[name]), binder)
+        assert [p.role for p in got.problems] == ["block-context"], name
+
+    @pytest.mark.parametrize("name", sorted(UNSEEN))
+    def test_no_chief_copy_is_folded_from_a_partial_set(self, name):
+        """A silently partial chief -- one role's rulings missing, nothing
+        saying so -- is what both mechanisms exist to prevent."""
+        binder = one_place()
+        got = collate("4c", self.a_copy_shaped(binder, self.UNSEEN[name]), binder)
+        assert got.chief["sheets"] == [], name
+
+    def test_one_malformed_copy_does_not_silence_another_role(self):
+        binder = one_place()
+        bad = self.a_copy_shaped(binder, self.UNSEEN["a sheet with no path"])
+        good = copies_over(
+            binder, {"function-context": {"m.py@b1": a_correct("m.py@b1")}}
+        )
+        good[0]["sheets"][0]["marks"][0]["claim"] = {}
+        got = collate("4c", bad + good, binder)
+        assert {p.role for p in got.problems} == {"block-context", "function-context"}
+
+    def test_a_copy_missing_its_sheets_is_still_reported(self):
+        """`problems_in` already answers this one; the envelope must not make
+        its report vanish by refusing first and returning a different message."""
+        binder = one_place()
+        got = collate("4c", [a_copy_missing_its_sheets(binder)], binder)
+        assert [p.role for p in got.problems] == ["block-context"]
+        assert "sheets" in got.problems[0].message
+
+    def test_a_well_formed_copy_still_reaches_the_per_mark_checks(self):
+        """A container that refuses too much makes per-mark reporting
+        unreachable, which is this plan's own defect from the other side."""
+        binder = one_place()
+        copies = copies_over(
+            binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
+        )
+        copies[0]["sheets"][0]["marks"][0]["claim"] = {}
+        got = collate("4c", copies, binder)
+        assert [p.address for p in got.problems] == ["m.py@b1"]
+
+
 class TestTheStackedCheck:
     def test_a_malformed_copy_is_reported_with_its_role_and_address(self):
         binder = one_place()
@@ -300,22 +379,41 @@ class TestTheStackedCheck:
         got = collate("4c", copies, binder)
         assert {p.role for p in got.problems} == {"block-context", "function-context"}
 
-    def test_a_copy_carrying_no_read_from_still_reaches_gathers_refusal(self):
-        """`_reconcilable` FILTERS a copy; it must not PRODUCE one.
+    def test_a_copy_carrying_no_read_from_is_named_and_folds_nothing(self):
+        """A field a stage FABRICATES is a field the boundary can no longer
+        refuse -- which is why `_reconcilable` filters rather than produces.
 
-        MEASURED 2026-08-31: written through `EditCopy.seed`, which requires
-        every declared field, it handed `gather` a copy holding `read_from:
-        {}` -- and `gather` subscripts that key precisely so an absent one
-        raises. A field the filter fabricates is a field the boundary below it
-        can no longer refuse.
+        !! THE MECHANISM MOVED ON 2026-08-31 AND THE PROPERTY DID NOT. Written
+        first against `desk.proof.gather`'s `KeyError`, because `_reconcilable`
+        through `EditCopy.seed` handed it `read_from: {}` and the raise could
+        not fire. The envelope parse now answers one step earlier and REPORTS,
+        so there is no `KeyError` left to catch -- see
+        `TestTheEnvelope`. What is still asserted is that an absent
+        `read_from` is never silently filled in on the way past.
         """
         binder = one_place()
         copies = copies_over(
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
         del copies[0]["read_from"]
-        with pytest.raises(KeyError):
-            collate("4c", copies, binder)
+        got = collate("4c", copies, binder)
+        assert [p.role for p in got.problems] == ["block-context"]
+        assert "read_from" in got.problems[0].message
+        assert got.chief["sheets"] == []
+
+    def test_reconcilable_preserves_an_absent_read_from(self):
+        """The property directly, since the envelope now guards the flow path.
+
+        `_reconcilable` runs only after the parse has passed, so `collate` can
+        no longer reach it with the field missing. The rule still binds the
+        function: a filter that fabricates a field defeats whatever checks it.
+        """
+        binder = one_place()
+        copies = copies_over(
+            binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
+        )
+        del copies[0]["read_from"]
+        assert "read_from" not in _reconcilable(copies[0])
 
     def test_drift_is_reported_and_does_not_stop_the_fold(self):
         binder = one_place()
