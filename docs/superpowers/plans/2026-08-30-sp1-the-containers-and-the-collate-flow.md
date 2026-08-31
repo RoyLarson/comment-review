@@ -19,7 +19,14 @@ for tests, `ruff` and `ty` as pinned dev dependencies. Everything is run through
 **Spec:** [`docs/superpowers/specs/2026-08-30-sp1-the-containers-and-the-collate-flow-design.md`](../specs/2026-08-30-sp1-the-containers-and-the-collate-flow-design.md)
 
 **Plan (`P`):** [`docs/plans/0.2.4-the-commands-for-the-middle.md`](../../plans/0.2.4-the-commands-for-the-middle.md)
--- SP-1 delivers `P36`, `P34`, `P35`, `P21`, `P13`, `P1`, `P2`, `P24`, `P3`, `P37`, plus `D9`.
+-- SP-1 delivers `P36`, `P34`, `P35`, `P13`, `P1`, `P2`, `P24`, `P3`, `P37`, plus `D9`.
+
+!! **`P21` WAS THE TENTH AND DID NOT LAND. IT MOVED TO SP-2 ON 2026-08-31.** Task 6 below built
+the dataclasses and the boundary parse, which is `P21`'s first verify clause; the second and third
+need a production importer, and `desk/containers.py` still has none -- MEASURED 2026-08-31,
+`grep -rn "containers" src/ --include=*.py` returns five lines and every one is prose inside a
+docstring. **Task 6 is done and the step it was written against is not**, which is what *superseded
+in part* looks like from the SP's side: read the box's own verify text, not its title.
 
 **Lane:** `backend`. No file under `plugins/comment-review/agents/`, `SKILL.md` or
 `references/*.md` is touched -- verified 2026-08-30: no agent-facing file names
