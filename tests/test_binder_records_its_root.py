@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 from helpers import binder_of, pages_of
 
-from comment_review.binder.binder import bind
+from comment_review.binder.binder import Binder, bind
 from comment_review.flows.distribute import seed
 
 # !! ABSOLUTE, AND IT WAS `Path("src/comment_review/desk")` UNTIL 2026-08-28.
@@ -30,9 +30,9 @@ def test_a_binder_built_from_the_original_says_so():
     # ! THE PAGE COUNT IS ASSERTED FIRST, and that is what stops the whole
     # module passing over an empty read: every assertion below holds trivially
     # when nothing was censused.
-    assert binder["pages"], "censused no page -- the rest of this test is vacuous"
-    assert Path(binder["read_from"]["root"]) == DESK
-    assert binder["read_from"]["revise"] == 0
+    assert binder.pages, "censused no page -- the rest of this test is vacuous"
+    assert Path(binder.read_from["root"]) == DESK
+    assert binder.read_from["revise"] == 0
 
 
 def test_a_binder_that_cannot_say_which_root_it_read_is_refused():
@@ -50,7 +50,7 @@ def test_the_binder_does_not_alias_the_caller_s_read_from():
     # changed what every later test in the session saw.
     mine = {"root": str(DESK), "revise": 0}
     binder = bind(pages_of(DESK), read_from=mine)
-    binder["read_from"]["revise"] = 99
+    binder.read_from["revise"] = 99
     assert mine["revise"] == 0
     assert seed(binder, "block-context")["read_from"]["revise"] == 99
 
@@ -60,12 +60,19 @@ def test_the_sheet_header_names_the_revise():
     assert sheet["read_from"]["revise"] == 0
 
 
-def test_a_sheet_cannot_be_seeded_from_a_binder_that_names_no_root():
-    # ! `bind` refuses this, so the binder here is built WITHOUT it -- the shape
-    # an artifact read from disk or a hand-built dict can still take. `seed`
-    # defaulted it to `{}` until 2026-08-28, which put the ambiguity back one
-    # function downstream of the refusal that removes it.
-    binder = binder_of(DESK, 0)
-    del binder["read_from"]
-    with pytest.raises(KeyError):
-        seed(binder, "block-context")
+def test_a_binder_that_names_no_root_is_REFUSED_AT_THE_BOUNDARY():
+    # !! THIS ASKED `seed` TO RAISE UNTIL 2026-08-31 -- `Process: #67`.
+    # `bind` refused the shape, so the test built one WITHOUT it (the shape an
+    # artifact read from disk could still take) and expected `seed`'s
+    # `KeyError`. A `Binder` cannot hold that shape at all now: `deserialize`
+    # refuses it by name, so `seed` is never handed one and its own refusal
+    # became unreachable rather than being removed.
+    #
+    # ! THE REFUSAL IS THE SAME ONE, ONE STEP EARLIER, and it gained a message
+    # a reader can act on -- `seed` raised an eight-frame traceback past
+    # `main`'s own promise of "2 when an input could not be read".
+    wire = binder_of(DESK, 0).serialize()
+    del wire["read_from"]
+    got, problems = Binder.deserialize("b.json", wire)
+    assert got is None
+    assert any("carries no `read_from`" in p for p in problems)

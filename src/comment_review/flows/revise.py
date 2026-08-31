@@ -32,7 +32,7 @@ import tempfile
 from pathlib import Path
 from typing import NamedTuple
 
-from comment_review.binder.binder import bind
+from comment_review.binder.binder import Binder, bind
 from comment_review.desk.collator import known_addresses
 from comment_review.flows import proof_setter
 from comment_review.flows.page_for import page_of
@@ -211,7 +211,7 @@ def assert_addresses_held(original: Path, pulled: Pulled) -> None:
         )
 
 
-def _binder_over(root: Path, revise: int) -> dict:
+def _binder_over(root: Path, revise: int) -> Binder:
     """Every page under `root`, censused at `revise` -- what the gate compares.
 
     ! ADDRESSES ONLY. `annotate` and `code_names` resolve CITATIONS, a

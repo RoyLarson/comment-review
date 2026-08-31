@@ -28,7 +28,7 @@ from pathlib import Path
 
 from conftest import ROOT
 
-from comment_review.binder.binder import bind
+from comment_review.binder.binder import VERSION, Binder, bind
 from comment_review.desk.mark import ANCHOR_EXAMPLE, INSTRUCTIONS, Instruction, Shape
 from comment_review.desk.proof import gather
 from comment_review.flows.distribute import seed
@@ -77,8 +77,42 @@ def pages_of(root: Path) -> list:
     return pages
 
 
-def binder_of(root: Path, revise: int) -> dict:
+def binder_of(root: Path, revise: int) -> Binder:
     return bind(pages_of(root), read_from={"root": str(root), "revise": revise})
+
+
+def _deserialized(wire: dict) -> Binder:
+    """A hand-written binder, through the boundary that reads a real one.
+
+    !! THE WIRE STAYS HAND-WRITTEN AND THE CONTAINER IS DERIVED, since
+    2026-08-31. This module's own rule is that a fixture built by the code
+    it feeds can only agree with it -- so these helpers keep spelling the
+    JSON, and `Binder.deserialize` is what turns it into what the middle
+    carries. ! It also means a fixture omitting a required field FAILS
+    HERE, where before `binder.read` admitted it: every row these helpers
+    write gained `original_start` and `original_end` for exactly that
+    reason.
+    """
+    got, problems = Binder.deserialize("a test binder", wire)
+    assert got is not None, problems
+    return got
+
+
+def _row(cue: str, text: str) -> dict:
+    """One hand-written binder row, complete.
+
+    ! THE LINE NUMBERS ARE PRESENT AND ARBITRARY. Nothing these fixtures feed
+    reads them -- the write path reloads the page from disk (`Process: #14`)
+    -- but `BinderRow.deserialize` requires them, so a fixture that left them
+    out would be asserting a binder shape no census produces.
+    """
+    return {
+        "cue": cue,
+        "anchor": "",
+        "original_start": 1,
+        "original_end": 1,
+        "raw_text": text,
+    }
 
 
 def a_small_real_tree(tmp_path: Path) -> Path:
@@ -117,14 +151,14 @@ def a_docket_over(repo: Path, names: list[str]) -> dict:
     binder = binder_of(repo, 0)
     remaining = set(names)
     pages = []
-    for page in binder.get("pages", []):
-        if Path(page["path"]).name not in remaining:
+    for page in binder.pages:
+        if Path(page.path).name not in remaining:
             continue
         cue = next(
             (
-                row["cue"]
-                for row in page.get("rows", [])
-                if row["cue"].startswith("b") and row["raw_text"].strip()
+                row.cue
+                for row in page.rows
+                if row.cue.startswith("b") and row.raw_text.strip()
             ),
             None,
         )
@@ -132,12 +166,12 @@ def a_docket_over(repo: Path, names: list[str]) -> dict:
             continue
         pages.append(
             {
-                "path": page["path"],
-                "sha": page["sha"],
+                "path": page.path,
+                "sha": page.sha,
                 "alterations": [{"cue": cue, "text": "# revised by a_docket_over"}],
             }
         )
-        remaining.discard(Path(page["path"]).name)
+        remaining.discard(Path(page.path).name)
     if remaining:
         raise AssertionError(f"no filled 'b' row found for {sorted(remaining)}")
     return {"pages": pages}
@@ -158,13 +192,13 @@ def a_docket_whose_claim_is_not_in_the_page(repo: Path, name: str) -> dict:
         AssertionError: no page in `repo` has this basename.
     """
     binder = binder_of(repo, 0)
-    for page in binder.get("pages", []):
-        if Path(page["path"]).name == name:
+    for page in binder.pages:
+        if Path(page.path).name == name:
             return {
                 "pages": [
                     {
-                        "path": page["path"],
-                        "sha": page["sha"],
+                        "path": page.path,
+                        "sha": page.sha,
                         "alterations": [
                             {"cue": "zzz9999", "text": "# never reaches the page"}
                         ],
@@ -196,7 +230,7 @@ def a_docket_that_rewrites(repo: Path, name: str) -> dict:
     return a_docket_over(repo, [name])
 
 
-def the_row_for(binder: dict, name: str) -> dict:
+def the_row_for(binder: Binder, name: str):
     """The row `a_docket_over` (or `a_docket_that_rewrites`) altered on
     `name`'s page -- found by replaying its own selection.
 
@@ -217,17 +251,17 @@ def the_row_for(binder: dict, name: str) -> dict:
     Raises:
         AssertionError: no page named `name`, or no filled `b` row on it.
     """
-    for page in binder.get("pages", []):
-        if Path(page["path"]).name != name:
+    for page in binder.pages:
+        if Path(page.path).name != name:
             continue
-        for row in page.get("rows", []):
-            if row["cue"].startswith("b") and row["raw_text"].strip():
+        for row in page.rows:
+            if row.cue.startswith("b") and row.raw_text.strip():
                 return row
         raise AssertionError(f"no filled 'b' row on {name!r}")
     raise AssertionError(f"no page named {name!r} in binder")
 
 
-def _synthetic_binder(addresses: list[str]) -> dict:
+def _synthetic_binder(addresses: list[str]) -> Binder:
     """A binder shaped only well enough for the real `seed()` to produce real
     sheets from -- one page per address's file half, one row per its cue half.
 
@@ -247,20 +281,23 @@ def _synthetic_binder(addresses: list[str]) -> dict:
     for address in addresses:
         path, _, cue = address.partition("@")
         by_path.setdefault(path, []).append(cue)
-    return {
-        "read_from": {"root": str(REPO), "revise": 0},
-        "pages": [
-            {
-                "path": path,
-                "sha": "0" * 40,
-                "rows": [{"cue": cue, "anchor": "", "raw_text": ""} for cue in cues],
-            }
-            for path, cues in by_path.items()
-        ],
-    }
+    return _deserialized(
+        {
+            "version": VERSION,
+            "read_from": {"root": str(REPO), "revise": 0},
+            "pages": [
+                {
+                    "path": path,
+                    "sha": "0" * 40,
+                    "rows": [_row(cue, "") for cue in cues],
+                }
+                for path, cues in by_path.items()
+            ],
+        }
+    )
 
 
-def a_binder_over(paragraphs: dict[str, str]) -> dict:
+def a_binder_over(paragraphs: dict[str, str]) -> Binder:
     """A binder whose rows carry REAL paragraph text, keyed by address.
 
     ! WRITTEN IN TASK 10, for `tests/test_collate.py`. `_synthetic_binder`
@@ -278,22 +315,23 @@ def a_binder_over(paragraphs: dict[str, str]) -> dict:
     for address, text in paragraphs.items():
         path, _, cue = address.partition("@")
         by_path.setdefault(path, []).append((cue, text))
-    return {
-        "read_from": {"root": str(REPO), "revise": 0},
-        "pages": [
-            {
-                "path": path,
-                "sha": "0" * 40,
-                "rows": [
-                    {"cue": cue, "anchor": "", "raw_text": text} for cue, text in rows
-                ],
-            }
-            for path, rows in by_path.items()
-        ],
-    }
+    return _deserialized(
+        {
+            "version": VERSION,
+            "read_from": {"root": str(REPO), "revise": 0},
+            "pages": [
+                {
+                    "path": path,
+                    "sha": "0" * 40,
+                    "rows": [_row(cue, text) for cue, text in rows],
+                }
+                for path, rows in by_path.items()
+            ],
+        }
+    )
 
 
-def copies_over(binder: dict, by_role: dict) -> list[dict]:
+def copies_over(binder: Binder, by_role: dict) -> list[dict]:
     """One real seeded `edit_copy` per role, each overlaid with that role's marks.
 
     ! WRITTEN IN TASK 10. `a_master_proof` builds its own synthetic binder per
@@ -388,7 +426,7 @@ def _keeping_only(copy: dict, addresses: list[str]) -> dict:
     }
 
 
-def a_copy_missing_its_sheets(binder: dict, role: str = "block-context") -> dict:
+def a_copy_missing_its_sheets(binder: Binder, role: str = "block-context") -> dict:
     """A real seeded copy with its `sheets` key REMOVED.
 
     ! A REMOVAL OVER `seed`, NOT A LITERAL. A hand-written `{"role": ...,

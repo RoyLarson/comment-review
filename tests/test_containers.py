@@ -81,7 +81,7 @@ class TestWhatTheChainBuilds:
         copy, why = parse_edit_copy("copy 1", seed(binder, "block-context"))
         assert why == []
         assert copy is not None
-        carried = {p["path"] for p in binder["pages"]}
+        carried = {p.path for p in binder.pages}
         assert {s.path for s in copy.sheets} == carried
 
     def test_a_master_proof_gather_built_parses(self, tmp_path):

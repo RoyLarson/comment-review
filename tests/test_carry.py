@@ -8,11 +8,12 @@ hardcoded cue asserts what the walk emitted last time someone looked.
 """
 
 import json
+from dataclasses import replace
 
 import pytest
 from conftest import SAMPLE, build, by_cue
 
-from comment_review.binder.binder import bind
+from comment_review.binder.binder import Binder, bind
 from comment_review.flows.carry import carry
 
 
@@ -41,7 +42,7 @@ def test_the_sample_HAS_places_the_binder_drops(tmp_path):
     measured -- so a reviewer never sees them and an `add` has nothing to
     cite."""
     _, binder, page = _tree(tmp_path)
-    carried = {str(r["cue"]) for r in binder["pages"][0]["rows"]}
+    carried = {r.cue for r in binder.pages[0].rows}
     assert empty_cues(page)
     assert not (set(empty_cues(page)) & carried)
 
@@ -53,7 +54,8 @@ class TestTheThreeLookups:
         updated, added, why = carry(binder, page, "m.py", cue=want)
         assert why == ""
         assert added == want
-        assert want in {str(r["cue"]) for r in updated["pages"][0]["rows"]}
+        assert updated is not None
+        assert want in {r.cue for r in updated.pages[0].rows}
 
     def test_by_line(self, tmp_path):
         """A `b` is the gap a line falls into -- `Cues.above`."""
@@ -115,20 +117,38 @@ class TestWhatItRefuses:
         may have shifted -- so the row would name a place in a file the binder
         does not describe."""
         repo, binder, page = _tree(tmp_path)
-        binder["pages"][0]["sha"] = "something else entirely"
-        _, added, why = carry(binder, page, "m.py", cue=empty_cues(page)[0])
+        stale = replace(
+            binder,
+            pages=(replace(binder.pages[0], sha="something else entirely"),),
+        )
+        _, added, why = carry(stale, page, "m.py", cue=empty_cues(page)[0])
         assert added == ""
         assert "re-run the census" in why
 
-    def test_a_NULL_sha_is_shown_as_ABSENT_not_the_word_None(self, tmp_path):
+    def test_a_NULL_sha_ARRIVES_AS_ABSENT_and_reads_as_nothing(self, tmp_path):
         """!! A PRESENT `"sha": null` IS A DIFFERENT CASE FROM AN ABSENT KEY.
-        `held.get("sha", "")` only defaults when the key is missing; a present
+        `.get("sha", "")` only defaults when the key is missing; a present
         `None` comes back as `None` itself, and `str(None)` is the
-        four-character word "None" -- the same anti-pattern fixed at
-        `desk.containers.parse_sheet`."""
+        four-character word "None".
+
+        !! THE FOLD MOVED TO THE BOUNDARY ON 2026-08-31 -- `Process: #67`.
+        `flows.carry` carried its own `isinstance(raw, str)` normalization,
+        the fifth of the five sites `desk.containers.parse_sheet` counts;
+        `BinderPage.deserialize` does it once, so `held.sha` is a `str` and
+        there is nothing left for `carry` to fold.
+
+        ! SO THE NULL IS PUT ON THE WIRE, not onto a built binder. That is the
+        only way one can now reach `carry`, and it is the path a real artifact
+        takes -- which is what makes this a test of the shipped behaviour
+        rather than of a state nothing produces.
+        """
         repo, binder, page = _tree(tmp_path)
-        binder["pages"][0]["sha"] = None
-        _, added, why = carry(binder, page, "m.py", cue=empty_cues(page)[0])
+        wire = binder.serialize()
+        wire["pages"][0]["sha"] = None
+        held, problems = Binder.deserialize("b.json", wire)
+        assert held is not None, problems
+        assert held.pages[0].sha == ""
+        _, added, why = carry(held, page, "m.py", cue=empty_cues(page)[0])
         assert added == ""
         assert "re-run the census" in why
         assert "None" not in why
@@ -158,8 +178,9 @@ def test_the_row_is_inserted_IN_READING_ORDER(tmp_path):
     want = next(c for c in empty_cues(page) if c.startswith("b"))
     updated, _, why = carry(binder, page, "m.py", cue=want)
     assert why == ""
+    assert updated is not None
     order = list(page.cues.reading)
-    cues = [str(r["cue"]) for r in updated["pages"][0]["rows"]]
+    cues = [r.cue for r in updated.pages[0].rows]
     assert cues == sorted(cues, key=order.index)
 
 
@@ -168,12 +189,12 @@ def test_the_carried_row_is_EMPTY_and_shaped_like_every_other(tmp_path):
     `page_row` gives a filled one."""
     repo, binder, page = _tree(tmp_path)
     updated, added, _ = carry(binder, page, "m.py", cue=empty_cues(page)[0])
-    rows = updated["pages"][0]["rows"]
-    got = next(r for r in rows if str(r["cue"]) == added)
-    assert set(got) == set(rows[0])
-    assert got["raw_text"] == ""
-    assert got["original_start"] is None and got["original_end"] is None
-    assert got["anchor"]
+    assert updated is not None
+    rows = updated.pages[0].rows
+    got = next(r for r in rows if r.cue == added)
+    assert got.raw_text == ""
+    assert got.original_start is None and got.original_end is None
+    assert got.anchor
 
 
 class TestTheCommand:
@@ -182,7 +203,9 @@ class TestTheCommand:
 
         repo, binder, page = _tree(tmp_path)
         want = empty_cues(page)[0]
-        (tmp_path / "b.json").write_text(json.dumps(binder), encoding="utf-8")
+        (tmp_path / "b.json").write_text(
+            json.dumps(binder.serialize()), encoding="utf-8"
+        )
         monkeypatch.setattr(
             "sys.argv",
             [
@@ -206,7 +229,7 @@ class TestTheCommand:
         from comment_review.commands import carry as cmd
 
         repo, binder, page = _tree(tmp_path)
-        before = json.dumps(binder)
+        before = json.dumps(binder.serialize())
         (tmp_path / "b.json").write_text(before, encoding="utf-8")
         monkeypatch.setattr(
             "sys.argv",

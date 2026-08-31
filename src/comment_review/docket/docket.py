@@ -115,7 +115,13 @@ def read(text: str) -> tuple[dict, str]:
 
     ! THE SHAPE IS CHECKED HERE SO NOTHING DOWNSTREAM HAS TO. `schedules_of`
     unwinds what this returned and asks nothing about it, exactly as
-    `binder.rows_of` trusts `binder.read`.
+    `Binder.rows` trusts `Binder.deserialize`.
+
+    !! AND THIS READER IS THE ONE STILL DOING ITS OWN LOAD, which
+    `decision-log.md Process: #67` rules against: a flow owns its load, and
+    `deserialize` takes what the load produced. The binder half landed
+    2026-08-31; this half is `P40` and `P41`, and until they land the docket
+    is the remaining `json.loads` inside a module.
 
     Args:
         text: the docket file's contents.
@@ -183,9 +189,10 @@ def read(text: str) -> tuple[dict, str]:
 def schedules_of(docket: dict) -> list[Schedule]:
     """One `Schedule` per page, in the order the docket lists them.
 
-    !! IT IS NAMED FOR WHAT IT PRODUCES, mirroring `binder.rows_of`. It was
-    `by_page`, which named the mechanism -- and the mechanism is what changed
-    when the docket started carrying its schedules instead of deriving them.
+    !! IT IS NAMED FOR WHAT IT PRODUCES. It was `by_page`, which named the
+    mechanism -- and the mechanism is what changed when the docket started
+    carrying its schedules instead of deriving them. ! It mirrored
+    `binder.rows_of`, which became `Binder.rows` on 2026-08-31.
 
     ! IT REFUSES NOTHING, and that is the point of the nesting. The flat form
     returned refusals because it had to split an address to find the path, and

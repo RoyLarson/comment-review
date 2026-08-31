@@ -6,6 +6,7 @@ from pathlib import Path
 
 from helpers import binder_of
 
+from comment_review.binder.binder import VERSION, Binder
 from comment_review.flows.distribute import seed
 
 # !! ABSOLUTE, matching `tests/test_binder_records_its_root.py`'s own `DESK` --
@@ -38,9 +39,9 @@ def test_an_edit_copy_holds_a_sheet_per_page_with_its_sha():
 
     by_path = {sheet["path"]: sheet for sheet in copy["sheets"]}
     # EXPECTATION FROM THE BINDER, not from `seed`: the pages it was given.
-    assert set(by_path) == {page["path"] for page in binder["pages"]}
-    for page in binder["pages"]:
-        assert by_path[page["path"]]["sha"] == page["sha"]
+    assert set(by_path) == {page.path for page in binder.pages}
+    for page in binder.pages:
+        assert by_path[page.path]["sha"] == page.sha
 
 
 def test_every_mark_reaches_the_sheet_for_its_own_page():
@@ -53,15 +54,25 @@ def test_every_mark_reaches_the_sheet_for_its_own_page():
 
 def test_a_NULL_sha_is_seeded_as_absent_not_the_word_None():
     """`.get("sha", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT -- a `"sha"` key
-    present and holding `None` (a binder `binder.read()` did not validate the
-    shape of) returns `None` from `.get`, matching `desk.containers.parse_sheet`'s
-    own test for the same class of defect."""
-    binder = {
+    present and holding `None` returns `None` from `.get`, and `str(None)` is
+    the four-character word "None".
+
+    !! THE BINDER IS PUT ON THE WIRE AND DESERIALIZED, since 2026-08-31. It
+    was a hand-built dict handed straight to `seed`, which the docstring
+    described as *"a binder `binder.read()` did not validate the shape of"* --
+    true then, and the shape a `Binder` cannot be. `Process: #67` puts the
+    fold at the boundary, so this asserts BOTH halves: `deserialize` folds the
+    null, and `seed` carries the "" through.
+    """
+    wire = {
+        "version": VERSION,
         "read_from": {"root": "tests/test_distribute_flow.py", "revise": 0},
         "pages": [{"path": "m.py", "sha": None, "rows": []}],
     }
-    copy = seed(binder, "block-context")
-    assert copy["sheets"][0]["sha"] == ""
+    binder, problems = Binder.deserialize("b.json", wire)
+    assert binder is not None, problems
+    assert binder.pages[0].sha == ""
+    assert seed(binder, "block-context")["sheets"][0]["sha"] == ""
 
 
 def test_no_module_outside_binder_imports_read_and_mentions_sha_in_one_file():

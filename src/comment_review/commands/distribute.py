@@ -20,11 +20,12 @@ import json
 import sys
 from pathlib import Path
 
-from comment_review.binder.binder import read as read_binder
+from comment_review.binder.binder import Binder
 from comment_review.desk.mark import allowed
 from comment_review.desk.stages import ROLES
 from comment_review.flows.distribute import seed
 from comment_review.machine import exceptions
+from comment_review.machine.json_object import object_of
 
 
 def main() -> int:
@@ -70,9 +71,16 @@ def main() -> int:
         except exceptions.READ_ERRORS as err:
             print(f"cannot read {args.binder}: {err}", file=sys.stderr)
             return 2
-        binder, problem = read_binder(text)
+        # !! THE LOAD IS THE FLOW'S, THE DESERIALIZE THE CONTAINER'S --
+        # `decision-log.md Process: #67`.
+        loaded, problem = object_of(text, "binder")
         if problem:
             print(problem, file=sys.stderr)
+            return 2
+        binder, problems = Binder.deserialize(args.binder, loaded)
+        if binder is None:
+            for line in problems:
+                print(line, file=sys.stderr)
             return 2
         edit_copy = seed(binder, args.role)
         Path(args.out).write_text(

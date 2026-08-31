@@ -3,9 +3,15 @@
 !! A LEAF, LIKE `constants` AND `exceptions`. It imports nothing from this
 package, so a reader of one format may take it without acquiring the other's
 subject -- which is the whole reason it is here rather than in either reader.
-`binder.read` and `docket.read` are in different areas and neither may
-import the other: `rows_of` reaching into `docket/docket.py` was measured on
-2026-08-25 and had to be undone.
+The binder's reader and `docket.read` are in different areas and neither may
+import the other: a binder helper reaching into `docket/docket.py` was
+measured on 2026-08-25 and had to be undone.
+
+!! ITS TWO CALLERS NOW DIFFER, since 2026-08-31. `docket.read` still calls
+this ITSELF, taking text; the binder's `deserialize` does not, because a
+flow owns its load -- so the four binder COMMANDS call this and then
+`Binder.deserialize`. `decision-log.md Process: #67`, and `P40`/`P41` are
+where the docket follows.
 
 !! IT EXISTS BECAUSE THE TWO READERS HELD ONE PREAMBLE TWICE. The parse and the
 dict guard were byte-identical in both, differing only in the trailing noun,

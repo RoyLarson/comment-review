@@ -37,8 +37,10 @@ set `*` already does; there is no recursive-glob semantics to add, because
 `fnmatch` never withheld `/` from a plain `*` to begin with.
 """
 
+from dataclasses import replace
 from fnmatch import fnmatch
 
+from comment_review.binder.binder import Binder
 from comment_review.desk.stages import Stage
 from comment_review.flows.distribute import seed
 
@@ -60,11 +62,12 @@ def _matches(path: str, patterns: tuple[str, ...]) -> bool:
     return not patterns or any(fnmatch(path, pattern) for pattern in patterns)
 
 
-def fan(binder: dict, stage: Stage) -> list[dict]:
+def fan(binder: Binder, stage: Stage) -> list[dict]:
     """One `edit_copy` per dispatch in `stage`, each seeded from its own pages.
 
     Args:
-        binder: as `binder.read` (or `binder.bind`) returns it.
+        binder: the deserialized binder, as `bind` or `Binder.deserialize`
+            returns it.
         stage: the `Stage` whose `dispatches` name the roles and the glob
             patterns selecting each one's pages.
 
@@ -77,35 +80,35 @@ def fan(binder: dict, stage: Stage) -> list[dict]:
             SAME role -- the address `path@cue` would then be marked twice.
         UncoveredPage: a page in `binder` matches NO dispatch of some role
             that this stage dispatches at all -- that role would never see it.
-        KeyError: the binder carries no `read_from` -- `flows.distribute.seed`'s
-            own refusal, reached because the shard below is built with
-            `binder["read_from"]` and not with a default.
 
-    !! THE SHARD TAKES `read_from` BY SUBSCRIPT, AND TOOK IT WITH A `{}`
-    DEFAULT UNTIL 2026-08-29. `seed` refuses a binder that cannot say which
-    tree it read -- the refusal `bind` added on 2026-08-28 and `seed` carried
-    one step further the same day -- and this function rebuilt the argument
-    with the fallback that refusal exists to remove, so `seed`'s `KeyError`
-    could never fire through fan-out. MEASURED: `fan` over a binder with no
-    `read_from` returned shards carrying `read_from={}` and raised nothing,
-    while `seed(binder, role)` on the same binder raised `KeyError`.
+    !! THE SHARD CARRIES THE BINDER'S OWN `read_from`, AND REBUILT IT WITH A
+    `{}` DEFAULT UNTIL 2026-08-29. `seed` refuses a binder that cannot say
+    which tree it read -- the refusal `bind` added on 2026-08-28 and `seed`
+    carried one step further the same day -- and this function rebuilt the
+    argument with the fallback that refusal exists to remove, so `seed`'s
+    refusal could never fire through fan-out. MEASURED: `fan` over a binder
+    with no `read_from` returned shards carrying `read_from={}` and raised
+    nothing, while `seed(binder, role)` on the same binder raised `KeyError`.
 
     ! AND EVERY SHARD AGREED ON `{}`, so `desk.proof.gather`'s `MismatchedRoot`
     could not fire either -- the ambiguity surfaced four steps later at
     the per-copy check, blamed on the role, after four agents had read and filled
     the shards.
+
+    !! `replace` IS WHAT MAKES THAT UNAVAILABLE NOW, rather than a rule to
+    remember. A shard is THIS binder over fewer pages, so it is built by
+    replacing the pages and nothing else -- `read_from` and `version` come
+    along because they were never restated. ! The hand-built
+    `{"read_from": ..., "pages": ...}` was a THIRD spelling of the binder
+    shape, and it silently dropped `version`.
     """
-    pages = binder.get("pages", [])
-    all_paths = [str(page.get("path", "")) for page in pages]
+    all_paths = [page.path for page in binder.pages]
 
     # ! MATCHED ONCE PER DISPATCH, kept alongside it, so the guard pass below
     # and the seeding pass after it read the same computation rather than
     # matching twice and risking the two disagree.
     shards = [
-        (
-            dispatch,
-            [p for p in pages if _matches(str(p.get("path", "")), dispatch.paths)],
-        )
+        (dispatch, [p for p in binder.pages if _matches(p.path, dispatch.paths)])
         for dispatch in stage.dispatches
     ]
 
@@ -117,8 +120,7 @@ def fan(binder: dict, stage: Stage) -> list[dict]:
         counts: dict[str, int] = {}
         for group in groups:
             for page in group:
-                path = str(page.get("path", ""))
-                counts[path] = counts.get(path, 0) + 1
+                counts[page.path] = counts.get(page.path, 0) + 1
         overlapping = sorted(path for path, n in counts.items() if n > 1)
         if overlapping:
             raise OverlappingShards(
@@ -129,9 +131,6 @@ def fan(binder: dict, stage: Stage) -> list[dict]:
             raise UncoveredPage(f"{role}: no dispatch covers -- {missing}")
 
     return [
-        seed(
-            {"read_from": binder["read_from"], "pages": matched},
-            dispatch.role,
-        )
+        seed(replace(binder, pages=tuple(matched)), dispatch.role)
         for dispatch, matched in shards
     ]

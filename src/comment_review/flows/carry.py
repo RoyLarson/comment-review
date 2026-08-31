@@ -29,7 +29,9 @@ anchor_num and you know it is all trash after rereading."* This tool edits
 prose, and every prose edit moves the line numbers below it.
 """
 
-from comment_review.binder.binder import page_row
+from dataclasses import replace
+
+from comment_review.binder.binder import Binder, page_row
 from comment_review.reading.addresser import SERIES, cue_of
 
 
@@ -100,8 +102,8 @@ def cue_for(
     return "", "give one of --cue, --line or --anchor-num"
 
 
-def carry(binder: dict, page, path: str, **lookup) -> tuple[dict, str, str]:
-    """The binder, the cue added, and the reason it was not.
+def carry(binder: Binder, page, path: str, **lookup) -> tuple[Binder | None, str, str]:
+    """A NEW binder carrying one more place, the cue added, and the reason not.
 
     !! IT REFUSES A PLACE THAT ALREADY HOLDS PROSE. Such a place is not an
     absence to be cited; the binder is already carrying it, and adding a second
@@ -109,55 +111,61 @@ def carry(binder: dict, page, path: str, **lookup) -> tuple[dict, str, str]:
     name, 157 of them measured in one tree.
 
     Args:
-        binder: as `binder.read` returned it.
+        binder: the deserialized binder.
         page: the page, read fresh from the checkout.
         path: the page's path, as the binder names it.
         **lookup: passed to `cue_for`.
 
     Returns:
-        `(binder, cue, "")` -- the same binder, mutated -- or `({}, "", reason)`.
+        `(a new Binder, cue, "")` or `(None, "", reason)`.
+
         ! THE CUE IS RETURNED because the caller may not have supplied one: a
         `--line` or `--anchor-num` lookup resolves it here, and a caller that
         went looking for it in the rows afterwards would be re-deriving what
         this function already knew.
+
+    !! IT MUTATED ITS ARGUMENT UNTIL 2026-08-31 and returned the same object --
+    `rows = held.setdefault("rows", []); rows.append(...)`. The caller's binder
+    changed underneath it whether or not it used the return value, and the
+    failure return was `{}`, so a refusal and a successful empty read were the
+    same value. **A frozen container makes the first unavailable and the second
+    unambiguous**: `replace` builds a new binder, and a refusal is `None`.
+
+    ! THE `sha` FOLD IS GONE FROM HERE, AND THAT IS THE POINT OF THE BOUNDARY.
+    This carried its own `isinstance(raw, str)` normalization -- the fifth of
+    the five sites `desk.containers.parse_sheet` counts -- because `.get("sha")`
+    could return None. `BinderPage.deserialize` normalizes once, so `held.sha`
+    is a `str` and there is nothing left to fold.
     """
-    for held in binder.get("pages", []):
-        if str(held.get("path", "")) == path:
-            break
-    else:
-        return {}, "", f"{path}: the binder carries no such page"
+    held = next((p for p in binder.pages if p.path == path), None)
+    if held is None:
+        return None, "", f"{path}: the binder carries no such page"
     # !! THE SHA FIRST. The row is built from a page read NOW; if the file has
     # moved on, its walk describes prose nobody reviewed and the cues below any
     # edit may have shifted. Refusing is the only safe answer -- the caller
     # re-censuses and asks again.
-    # !! `.get("sha", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT. A `"sha":
-    # null` reaching here is a PRESENT key holding None, so `.get` returns
-    # None and `str(None)` is the four-character word "None" -- folded into
-    # the same absent-sha case instead, matching `desk.containers.parse_sheet`.
-    raw_held_sha = held.get("sha")
-    held_sha = raw_held_sha if isinstance(raw_held_sha, str) else ""
-    if held_sha != page.sha:
+    if held.sha != page.sha:
         return (
-            {},
+            None,
             "",
             (
-                f"{path}: the binder records {held_sha or '<nothing>'} and the"
+                f"{path}: the binder records {held.sha or '<nothing>'} and the"
                 f" file reads now as {page.sha} -- re-run the census"
             ),
         )
     got, why = cue_for(page.cues, **lookup)
     if why:
-        return {}, "", f"{path}: {why}"
-    if any(str(row.get("cue", "")) == got for row in held.get("rows", [])):
-        return {}, "", f"{path}@{got}: the binder already carries this place"
+        return None, "", f"{path}: {why}"
+    if any(row.cue == got for row in held.rows):
+        return None, "", f"{path}@{got}: the binder already carries this place"
     for paragraph in page.paragraphs:
         if paragraph.address and cue_of(paragraph.address).cue == got:
             break
     else:
-        return {}, "", f"{path}@{got}: the page has no paragraph at this place"
+        return None, "", f"{path}@{got}: the page has no paragraph at this place"
     if any(line.strip() for line in paragraph.raw_lines):
         return (
-            {},
+            None,
             "",
             (
                 f"{path}@{got}: this place holds prose, so it is not an absence."
@@ -168,13 +176,15 @@ def carry(binder: dict, page, path: str, **lookup) -> tuple[dict, str, str]:
     # top to bottom -- that is what a reviewer reads -- and a row on the end
     # would put the file's first gap after its last comment.
     order = list(page.cues.reading)
-    rows = held.setdefault("rows", [])
-    rows.append(page_row(paragraph))
-    rows.sort(
-        key=lambda row: (
-            order.index(str(row.get("cue", "")))
-            if str(row.get("cue", "")) in order
-            else len(order)
-        )
+    rows = [*held.rows, page_row(paragraph, path)]
+    rows.sort(key=lambda row: order.index(row.cue) if row.cue in order else len(order))
+    return (
+        replace(
+            binder,
+            pages=tuple(
+                replace(p, rows=tuple(rows)) if p is held else p for p in binder.pages
+            ),
+        ),
+        got,
+        "",
     )
-    return binder, got, ""

@@ -9,7 +9,7 @@ from pathlib import Path
 
 from conftest import PKG, SAMPLE, build, docket_from
 
-from comment_review.binder.binder import bind, rows_of
+from comment_review.binder.binder import bind
 from comment_review.flows import page_for as page_for_mod
 from comment_review.flows import proof_setter
 from comment_review.machine import exceptions
@@ -26,15 +26,11 @@ def address(binder, path: str, series: str = "b") -> str:
     fixture could not disagree with the code because the fixture was written to
     match it.
 
-    ! IT ASKS `rows_of`, which is what a caller of this chain has.
+    ! IT ASKS `Binder.rows`, which is what a caller of this chain has.
     """
-    for row in rows_of(binder):
-        if (
-            row["path"] == path
-            and row["cue"].startswith(series)
-            and row["raw_text"].strip()
-        ):
-            return str(row["address"])
+    for row in binder.rows:
+        if row.path == path and row.cue.startswith(series) and row.raw_text.strip():
+            return row.address
     raise AssertionError(f"no filled {series} row for {path}")
 
 

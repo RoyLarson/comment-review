@@ -115,11 +115,10 @@ def _three_line_row(repo: Path) -> str:
     the fixture is real source and not a literal `CLAUDE.md` forbids.
     """
     binder = binder_of(repo, 0)
-    for page in binder.get("pages", []):
-        for row in page.get("rows", []):
-            lines = row["raw_text"].splitlines()
-            if len(lines) == 3 and all(line.strip() for line in lines):
-                return row["raw_text"]
+    for row in binder.rows:
+        lines = row.raw_text.splitlines()
+        if len(lines) == 3 and all(line.strip() for line in lines):
+            return row.raw_text
     raise AssertionError("no three-line row found in a_small_real_tree")
 
 

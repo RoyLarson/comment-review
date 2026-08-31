@@ -62,6 +62,7 @@ PKG = SRC / "comment_review"
 
 sys.path.insert(0, str(SRC))
 
+from comment_review.binder.binder import Binder  # noqa: E402
 from comment_review.binder.page import page_for  # noqa: E402
 from comment_review.machine.repo import sha_of  # noqa: E402
 from comment_review.reading.addresser import cue_of, unflatten  # noqa: E402
@@ -147,7 +148,7 @@ REPLACEMENT = {
 READ_FROM = {"root": "<synthetic>", "revise": 0}
 
 
-def docket_from(flat: dict, binder: dict) -> dict:
+def docket_from(flat: dict, binder: Binder) -> dict:
     """A nested docket from `{address: text}` plus the binder those addresses cite.
 
     !! A TEST-ONLY ADAPTER, and it exists so the chain's cases keep testing the
@@ -162,8 +163,8 @@ def docket_from(flat: dict, binder: dict) -> dict:
     through this function -- which is the point, since a fixture built by the
     same code it feeds can only agree with it.
     """
-    paths = [str(p.get("path", "")) for p in binder.get("pages", [])]
-    shas = {str(p.get("path", "")): str(p.get("sha", "")) for p in binder["pages"]}
+    paths = [p.path for p in binder.pages]
+    shas = {p.path: p.sha for p in binder.pages}
     pages: dict[str, list[dict]] = {}
     for address, text in flat.items():
         addr = cue_of(address)

@@ -7,6 +7,7 @@ A COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `decision-log.md Process: #12`.
 """
 
 import argparse
+from collections.abc import Sequence
 from pathlib import Path
 
 from comment_review.binder.addresses import (
@@ -16,9 +17,9 @@ from comment_review.binder.addresses import (
     stable,
     unaddressed,
 )
-from comment_review.binder.binder import read as read_binder
-from comment_review.binder.binder import rows_of
+from comment_review.binder.binder import Binder, BinderRow
 from comment_review.machine import exceptions
+from comment_review.machine.json_object import object_of
 from comment_review.reading.addresser import SERIES, cue_of, unflatten
 
 
@@ -64,28 +65,33 @@ def main() -> int:
     except exceptions.READ_ERRORS as e:
         print(f"CANNOT READ {args.census} ({type(e).__name__})")
         return 2
-    # ! REFUSED BY NAME, not read as empty. `rows_of` alone answers `[]` for a
-    # file it cannot understand, and an empty binder is indistinguishable
+    # !! THE LOAD IS THE FLOW'S AND THE DESERIALIZE IS THE CONTAINER'S --
+    # `decision-log.md Process: #67`. `object_of` turns the text into an object
+    # or names why it is not one; `Binder.deserialize` says whether that object
+    # is a binder. Neither half is inside `binder.py` any more.
+    #
+    # ! REFUSED BY NAME, not read as empty. An empty binder is indistinguishable
     # downstream from a run with nothing in scope.
-    binder, why = read_binder(text)
+    loaded, why = object_of(text, "binder")
     if why:
         print(f"{args.census}: {why}")
         return 2
-    raw = rows_of(binder)
-    if not raw:
+    binder, problems = Binder.deserialize(args.census, loaded)
+    if binder is None:
+        for line in problems:
+            print(line)
+        return 2
+    paragraphs = binder.rows
+    if not paragraphs:
         print(f"{args.census} carries no paragraphs")
         return 2
-    # !! EVERY ENTRY IS CHECKED, not just the list around them. A census row that
-    # is not a mapping cannot carry an address, a kind or a symbol, and every
-    # reader below calls `.get` on it -- so a hand-edited or truncated census
-    # arrived as an `AttributeError` naming neither the file nor the row.
-    # ! It is also what lets the type checker see this list as paragraphs. Before
-    # the check, each entry was `object` and three call sites here were reading
-    # attributes off it that the annotation said were not there.
-    paragraphs: list[dict] = [b for b in raw if isinstance(b, dict)]
-    if len(paragraphs) != len(raw):
-        print(f"{args.census}: {len(raw) - len(paragraphs)} entries are not paragraphs")
-        return 2
+    # !! THE PER-ENTRY MAPPING CHECK IS GONE, AND THE CONTAINER IS WHY. It read
+    # `[b for b in raw if isinstance(b, dict)]` and refused a census whose rows
+    # were not mappings -- a check every reader below needed because `rows_of`
+    # handed back whatever it found. `Binder.deserialize` refuses that artifact
+    # at the boundary and by name, so what reaches here is `BinderRow`s or
+    # nothing. ! **A CONTAINER EARNS ITS KEEP BY DELETING THE RE-CHECKS**, not
+    # by sitting beside them: this is the second reader that stopped asking.
 
     # !! NO STALENESS SWEEP. This module answers about the CENSUS IT WAS GIVEN,
     # and every question it takes is census-internal: does each address resolve
@@ -135,7 +141,7 @@ def main() -> int:
         # no address; leading is the only such paragraph and `bind()` emits no
         # row for one, so the fallback could not fire.
         where = stable(paragraph) or "UNPLACED"
-        print(f"{i:4d}  {where:<34} {paragraph.get('cue', '')}")
+        print(f"{i:4d}  {where:<34} {paragraph.cue}")
     if missing:
         print(f"\n{len(missing)} entries could not be addressed:")
         for line in missing:
@@ -143,7 +149,7 @@ def main() -> int:
     return 1 if missing else 0
 
 
-def _resolve_one(address: str, paragraphs: list[dict]) -> int:
+def _resolve_one(address: str, paragraphs: Sequence[BinderRow]) -> int:
     """An address in, the LINES that now cover it out.
 
     !! THIS IS THE DIRECTION STAGE 8 NEEDS, and it needs it because 7b has
@@ -168,23 +174,23 @@ def _resolve_one(address: str, paragraphs: list[dict]) -> int:
     if not where:
         print(f"{address!r} is not an address -- it needs a `@place`")
         return 2
-    real = unflatten(path, sorted({str(b.get("path", "")) for b in paragraphs}))
+    real = unflatten(path, sorted({b.path for b in paragraphs}))
     if not real:
         print(f"no file in this census flattens to {path!r}")
         return 1
-    mine = [b for b in paragraphs if str(b.get("path", "")) == real]
+    mine = [b for b in paragraphs if b.path == real]
     hits = resolve(address, mine)
     if not hits:
         print(f"{address} names no entry in this census")
         return 1
     for i in hits:
         paragraph = mine[i - 1]
-        span = f"{paragraph.get('original_start')}-{paragraph.get('original_end')}"
-        print(f"{real}:{span}\t{paragraph.get('cue', '')}")
+        span = f"{paragraph.original_start}-{paragraph.original_end}"
+        print(f"{real}:{span}\t{paragraph.cue}")
     return 0
 
 
-def _for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> int:
+def _for_anchor(anchor: str, series: str, paragraphs: Sequence[BinderRow]) -> int:
     """Print the address of one anchor's place in one series.
 
     Returns:
@@ -194,15 +200,15 @@ def _for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> int:
     """
     found = for_anchor(anchor, series, paragraphs)
     if not found:
-        known = sorted({str(b.get("anchor")) for b in paragraphs if b.get("anchor")})
+        known = sorted({b.anchor for b in paragraphs if b.anchor})
         print(f"no `{series}` place for anchor {anchor!r}")
         if known:
             print(f"  anchors this census carries: {', '.join(known[:12])}")
         return 1
     for b in found:
         where = stable(b)
-        span = f"{b.get('original_start')}-{b.get('original_end')}"
-        print(f"{where}	{span}	{b.get('cue', '')}	{b.get('anchor', '')}")
+        span = f"{b.original_start}-{b.original_end}"
+        print(f"{where}	{span}	{b.cue}	{b.anchor}")
     # !! AN ANCHOR HAS MANY ADDRESSES, so this direction is not a lookup that
     # returns one. Roy, 2026-08-19, on two identical statements in one file:
     # *"for the addresses this is still exact -- for looking up the anchors to
@@ -220,7 +226,7 @@ def _for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> int:
     return 0
 
 
-def _check(paragraphs: list[dict]) -> int:
+def _check(paragraphs: Sequence[BinderRow]) -> int:
     """Does every address resolve back to the one paragraph that carries it?
 
     !! THE REFERENCE HAS TO MATCH THE ANCHOR, and that is the whole worth of an
@@ -263,8 +269,8 @@ def _check(paragraphs: list[dict]) -> int:
             where = stable(paragraph)
             if where and len(resolve(where, mine)) > 1:
                 shared.setdefault(where, []).append(
-                    f"{paragraph.get('original_start')}-{paragraph.get('original_end')}"
-                    f" {paragraph.get('cue', '')}"
+                    f"{paragraph.original_start}-{paragraph.original_end}"
+                    f" {paragraph.cue}"
                 )
     for line in missing:
         print(f"UNADDRESSED  {line}")

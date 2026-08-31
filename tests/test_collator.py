@@ -19,7 +19,6 @@ import pytest
 from conftest import ROOT
 from helpers import a_clean, a_correct, a_small_real_tree, binder_of
 
-from comment_review.binder.binder import rows_of
 from comment_review.desk.collator import (
     address_problems,
     base_texts,
@@ -40,10 +39,10 @@ DESK = ROOT / "src" / "comment_review" / "desk"
 #: A real binder over `desk/` -- the same fixture-free input
 #: `tests/test_distribute_flow.py` already builds this way.
 BINDER = binder_of(DESK, 0)
-ROWS = rows_of(BINDER)
+ROWS = BINDER.rows
 #: `mark.py`'s own `@a0` -- narrowed by suffix, since `desk/` holds several
 #: files that each carry their own `@a0`.
-ROW = next(r for r in ROWS if r["address"].endswith("mark.py@a0"))
+ROW = next(r for r in ROWS if r.address.endswith("mark.py@a0"))
 KNOWN = known_addresses(BINDER)
 
 
@@ -74,7 +73,7 @@ CITED_TEXT = line_of(ROOT / CITED_FILE, CITED_LINE)
 #: ! IT IS THE ROW'S, NOT THE MARK'S: `docs/the-mark.md` puts `raw_text` on the
 #: seeded row and `change` on the mark, so the two can be diffed, and
 #: `claim_verbatim_problems` takes it as its own argument for that reason.
-RAW_TEXT = ROW["raw_text"]
+RAW_TEXT = ROW.raw_text
 
 
 def _entry() -> dict:
@@ -85,8 +84,8 @@ def _entry() -> dict:
     """
     false = RAW_TEXT.splitlines()[0]
     return {
-        "address": ROW["address"],
-        "anchor": ROW["anchor"],
+        "address": ROW.address,
+        "anchor": ROW.anchor,
         "raw_text": RAW_TEXT,
         "instruction": "correct",
         "claim": {"false": false, "true": "the corrected sentence"},
@@ -122,7 +121,7 @@ def a_mark(**overrides) -> Mark:
 
 
 def test_known_addresses_carries_the_real_row():
-    assert ROW["address"] in KNOWN
+    assert ROW.address in KNOWN
 
 
 class TestAddressProblems:
@@ -378,10 +377,10 @@ def _filled(overrides: dict) -> dict:
     copy = seed(BINDER, "block-context")
     for page in copy["sheets"]:
         for entry in page["marks"]:
-            if entry["address"] == ROW["address"]:
+            if entry["address"] == ROW.address:
                 entry.update({**_entry(), **overrides})
                 return copy
-    raise AssertionError(f"no seeded slot for {ROW['address']}")
+    raise AssertionError(f"no seeded slot for {ROW.address}")
 
 
 class TestVerifyReport:
@@ -411,7 +410,7 @@ class TestVerifyReport:
         # so a finding can be ROUTED. This asserts the same claim more strictly
         # than the `startswith` it replaces: the address is the whole value now,
         # not the opening of one.
-        assert all(p.address == ROW["address"] for p in problems)
+        assert all(p.address == ROW.address for p in problems)
         assert all(p.role == copy["role"] for p in problems)
 
     def test_an_entry_THAT_DOES_NOT_PARSE_is_left_to_problems_in(self):
@@ -443,7 +442,7 @@ class TestTheBaseIsTheBinders:
     def test_base_texts_keys_every_address_the_binder_carries(self, tmp_path):
         binder = binder_of(a_small_real_tree(tmp_path), 0)
         base = base_texts(binder)
-        carried = {r["address"] for r in rows_of(binder) if r.get("address")}
+        carried = {r.address for r in binder.rows if r.address}
         assert set(base) == carried
 
     def test_a_returned_raw_text_that_changed_is_REPORTED(self, tmp_path):

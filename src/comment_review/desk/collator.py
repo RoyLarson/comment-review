@@ -71,7 +71,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import NamedTuple
 
-from comment_review.binder.binder import _read_from_problem, rows_of
+from comment_review.binder.binder import Binder, _read_from_problem
 from comment_review.desk.mark import (
     INSTRUCTIONS,
     Instruction,
@@ -97,20 +97,20 @@ WITHIN = 3
 Cache = dict[str, tuple[str, ...] | None]
 
 
-def known_addresses(binder: dict) -> frozenset[str]:
+def known_addresses(binder: Binder) -> frozenset[str]:
     """Every address the binder's rows carry, as a set to test membership on.
 
     Args:
-        binder: as `rows_of` reads one -- `{"pages": [{"path", "rows": [...]}]}`,
-            with the address rejoined onto each row there rather than here.
+        binder: the deserialized binder. Each row already knows its own path
+            and address -- `BinderRow` rejoins them at deserialize.
 
     Returns:
-        The addresses. A row carrying none, or an empty one, is dropped.
+        The addresses. A row carrying an empty one is dropped.
     """
-    return frozenset(row["address"] for row in rows_of(binder) if row.get("address"))
+    return frozenset(row.address for row in binder.rows if row.address)
 
 
-def base_texts(binder: dict) -> dict[str, str]:
+def base_texts(binder: Binder) -> dict[str, str]:
     """Every address the binder carries -> the paragraph it SEEDED there.
 
     !! THE BASE IS THE BINDER'S, NEVER A RETURNED MARK'S. `raw_text` is seeded
@@ -121,17 +121,13 @@ def base_texts(binder: dict) -> dict[str, str]:
     positions it had just read out of that file.
 
     Args:
-        binder: as `binder.read` returns one.
+        binder: the deserialized binder.
 
     Returns:
         address -> that place's `raw_text`. A row carrying no address is
         dropped, matching `known_addresses`.
     """
-    return {
-        row["address"]: str(row.get("raw_text", ""))
-        for row in rows_of(binder)
-        if row.get("address")
-    }
+    return {row.address: row.raw_text for row in binder.rows if row.address}
 
 
 def address_problems(where: str, mark: Mark, known: frozenset[str]) -> list[str]:
@@ -383,7 +379,7 @@ def _named_role(report: dict) -> str:
 
 
 def verify_report(
-    report: dict, binder: dict, root: Path, cache: Cache
+    report: dict, binder: Binder, root: Path, cache: Cache
 ) -> list[Problem]:
     """Source-verification over every ruled mark of ONE role's edit_copy.
 

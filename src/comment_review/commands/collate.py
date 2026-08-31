@@ -20,11 +20,12 @@ import json
 import sys
 from pathlib import Path
 
-from comment_review.binder.binder import read as read_binder
+from comment_review.binder.binder import Binder
 from comment_review.desk.collator import UnnamedRole
 from comment_review.desk.proof import MismatchedRoot
 from comment_review.flows.collate import CannotCollate, collate
 from comment_review.machine import exceptions
+from comment_review.machine.json_object import object_of
 
 #: Exit codes, extending `distribute`'s own 0/1/2 with the outcomes a caller
 #: branches on. `main` CHECKS `got.escalations`, THEN `got.rereads`, THEN
@@ -178,9 +179,17 @@ def main() -> int:
     except exceptions.READ_ERRORS as err:
         print(f"cannot read {args.binder}: {err}", file=sys.stderr)
         return UNREADABLE
-    binder, why = read_binder(binder_text)
+    # !! THE LOAD IS THE FLOW'S, THE DESERIALIZE THE CONTAINER'S --
+    # `decision-log.md Process: #67`. `object_of` turns the text into an
+    # object; `Binder.deserialize` says whether that object is a binder.
+    loaded, why = object_of(binder_text, "binder")
     if why:
         print(why, file=sys.stderr)
+        return UNREADABLE
+    binder, problems = Binder.deserialize(args.binder, loaded)
+    if binder is None:
+        for line in problems:
+            print(line, file=sys.stderr)
         return UNREADABLE
 
     copies = []
@@ -195,7 +204,7 @@ def main() -> int:
     # not pass it twice. `read_from` is refused as absent or malformed further
     # up the chain, and `.` is what a binder read from the working directory
     # says, so it is a fallback rather than a guess.
-    root = Path(args.repo or binder.get("read_from", {}).get("root") or ".")
+    root = Path(args.repo or binder.read_from.get("root") or ".")
 
     try:
         got = collate(args.stage, copies, binder, root)

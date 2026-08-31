@@ -15,7 +15,7 @@ from pathlib import Path
 
 from comment_review.binder.addresses import series_of, unaddressed
 from comment_review.binder.annotate import annotate, prose_numbers
-from comment_review.binder.binder import bind, rows_of
+from comment_review.binder.binder import bind
 from comment_review.binder.page import Page, page_for
 from comment_review.concordance.code_names import code_names
 from comment_review.flows.census import (
@@ -292,10 +292,13 @@ def _report(args: argparse.Namespace) -> int:
         # to print -- which is two full dict copies and a re-sort of every
         # annotation set over a census that runs to thousands of paragraphs.
         # !! THE GATE READS THE BINDER BACK, rather than checking the list that
-        # was about to be written. `rows_of` is what every consumer will call,
+        # was about to be written. `Binder.rows` is what every consumer walks,
         # so a shape it cannot read is caught HERE -- at the one moment the
         # writer and the reader are both present -- instead of at whichever
         # command opens the file next.
+        # ! IT NAMED `rows_of` UNTIL 2026-08-31, which was the same claim about
+        # the function that stamped each row's path and address; `BinderRow`
+        # holds both as fields now -- `decision-log.md Process: #67`.
         # !! RELATIVE TO `Path.cwd()`, RULED BY ROY 2026-08-28. This wrote
         # `str(repo)` on a RESOLVED path, so on Windows it emitted
         # `C:\\Users\\<name>\\projects\\...` into an artifact that is handed to
@@ -331,11 +334,14 @@ def _report(args: argparse.Namespace) -> int:
             read_from={"root": root, "revise": args.revise},
             absent=args.include_absent,
         )
-        missing = unaddressed(rows_of(binder))
+        missing = unaddressed(binder.rows)
         if missing:
             print(_unaddressed(missing), file=sys.stderr)
             return 1
-        print(json.dumps(binder, indent=1, default=str))
+        # !! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE FLOW'S --
+        # `decision-log.md Process: #67`. This is the read flow's save end, and
+        # the only place a binder becomes text.
+        print(json.dumps(binder.serialize(), indent=1, default=str))
         return 0
 
     # !! NO TIER COUNTS, AND NO `tier` ON A ROW. Ruled 2026-08-24 -- Roy: *"their
@@ -469,7 +475,7 @@ def _report(args: argparse.Namespace) -> int:
         # compare. It fell through this test to the `holds_no_prose` branch
         # below, which is where it always belonged.
         if args.filtered and not args.include_matter and b.address:
-            if series_of(vars(b)) == COVERS:
+            if series_of(b) == COVERS:
                 # ! FLUSHED, NOT SKIPPED. Front matter is PROSE that this
                 # listing drops; a run that continued across it would claim no
                 # prose over a stretch that has some.
@@ -543,7 +549,13 @@ def _report(args: argparse.Namespace) -> int:
     # a row is, kept in `flows.census` beside the real one in `binder`. The
     # question is page-side (which paragraph OWES an address and lacks one) and
     # the paragraphs are already here, so the detour bought nothing.
-    missing = unaddressed([vars(b) for b in census])
+    #
+    # !! THE LAST OF THAT DETOUR WENT ON 2026-08-31 -- `Process: #67`. It read
+    # `unaddressed([vars(b) for b in census])`: the row was gone and the
+    # DICT-IFICATION remained, for no reason but a `list[dict]` signature.
+    # `unaddressed` now takes `binder.addresses.Addressed`, which a `Paragraph`
+    # already satisfies, so the paragraphs go in as themselves.
+    missing = unaddressed(census)
     if missing:
         print("\n" + _unaddressed(missing))
         return 1

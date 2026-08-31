@@ -15,10 +15,11 @@ import argparse
 import json
 from pathlib import Path
 
-from comment_review.binder.binder import read as read_binder
+from comment_review.binder.binder import Binder
 from comment_review.flows.carry import carry
 from comment_review.flows.page_for import page_of
 from comment_review.machine import exceptions
+from comment_review.machine.json_object import object_of
 from comment_review.reading.addresser import SERIES
 
 
@@ -56,9 +57,15 @@ def main() -> int:
     except exceptions.READ_ERRORS as e:
         print(f"CANNOT READ ({type(e).__name__}) -- nothing written")
         return 2
-    held, why = read_binder(binder_text)
+    # !! THE LOAD IS THE FLOW'S, THE DESERIALIZE THE CONTAINER'S -- `Process:
+    # #67`. One `json.loads` in, one `json.dumps` out, both at this end.
+    loaded, why = object_of(binder_text, "binder")
     if why:
         print(f"CANNOT READ THE BINDER: {why} -- nothing written")
+        return 2
+    held, problems = Binder.deserialize(args.binder, loaded)
+    if held is None:
+        print(f"CANNOT READ THE BINDER: {'; '.join(problems)} -- nothing written")
         return 2
 
     page, why = page_of(repo / args.path, rel=args.path)
@@ -75,12 +82,13 @@ def main() -> int:
         anchor_num=args.anchor_num,
         series=args.series,
     )
-    if why:
+    if updated is None:
         print(f"REFUSED: {why} -- nothing written")
         return 1
 
+    # ! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE FLOW'S.
     Path(args.binder).write_text(
-        json.dumps(updated, indent=1), encoding="utf-8", newline=""
+        json.dumps(updated.serialize(), indent=1), encoding="utf-8", newline=""
     )
     print(f"{args.path}@{added} carried")
     return 0

@@ -6,7 +6,6 @@
 
 from helpers import a_docket_over, a_small_real_tree, binder_of
 
-from comment_review.binder.binder import rows_of
 from comment_review.commands.taken_in import main
 from comment_review.flows.revise import pull
 
@@ -69,8 +68,8 @@ def test_an_address_that_disappeared_is_listed(tmp_path, capsys):
     # removing comment lines renumbers the places below them, so other
     # addresses change anyway. What only the union can answer is the set that
     # DISAPPEARED, so that set is what is named.
-    before = {r["address"] for r in rows_of(binder_of(repo, 0))}
-    after = {r["address"] for r in rows_of(binder_of(revise, 1))}
+    before = {r.address for r in binder_of(repo, 0).rows}
+    after = {r.address for r in binder_of(revise, 1).rows}
     gone = before - after
     assert gone, "the fixture removed no address -- the test would be vacuous"
 

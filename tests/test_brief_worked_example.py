@@ -127,7 +127,7 @@ def test_collate_reads_it_as_a_ruled_mark_and_reports_only_what_it_cannot_resolv
     copy_path = tmp_path / "edit_copy.json"
     copy_path.write_text(json.dumps(EXAMPLE), encoding="utf-8")
     binder_path = tmp_path / "binder.json"
-    binder_path.write_text(json.dumps(a_binder_over({})), encoding="utf-8")
+    binder_path.write_text(json.dumps(a_binder_over({}).serialize()), encoding="utf-8")
     monkeypatch.setattr(
         sys,
         "argv",

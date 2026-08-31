@@ -62,6 +62,7 @@ this is a drop and not a stand-down to `desk.mark.untouched`.
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from comment_review.binder.binder import Binder
 from comment_review.desk.collator import (
     Cache,
     Placed,
@@ -590,7 +591,7 @@ def _nothing_settled() -> dict:
     return EditCopy.seed(role="copy-chief", read_from={}, sheets=[])
 
 
-def _coverage_problems(edit_copies: list[dict], binder: dict) -> list[Problem]:
+def _coverage_problems(edit_copies: list[dict], binder: Binder) -> list[Problem]:
     """One `Problem` per role whose copies do not carry the binder's addresses.
 
     !! `flows.fan_out.fan` REFUSES AT THE DISPATCH AND NOTHING READ THE RETURN.
@@ -666,7 +667,9 @@ def _coverage_problems(edit_copies: list[dict], binder: dict) -> list[Problem]:
     return out
 
 
-def collate(stage: str, edit_copies: list[dict], binder: dict, root: Path) -> Collated:
+def collate(
+    stage: str, edit_copies: list[dict], binder: Binder, root: Path
+) -> Collated:
     """One stage's returned copies, checked, reconciled and folded.
 
     Args:

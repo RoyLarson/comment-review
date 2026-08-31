@@ -27,7 +27,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from comment_review.binder.binder import bind, rows_of
+from comment_review.binder.binder import bind
 from comment_review.flows.page_for import page_of, source_of
 from comment_review.machine.repo import walk_files
 from comment_review.reading.lexer import language_for
@@ -95,8 +95,8 @@ def main(argv: list[str] | None = None) -> int:
             [before_page], read_from={"root": str(original), "revise": 0}
         )
         after_binder = bind([after_page], read_from={"root": str(revise), "revise": 0})
-        before_rows = {r["address"]: r["raw_text"] for r in rows_of(before_binder)}
-        after_rows = {r["address"]: r["raw_text"] for r in rows_of(after_binder)}
+        before_rows = {r.address: r.raw_text for r in before_binder.rows}
+        after_rows = {r.address: r.raw_text for r in after_binder.rows}
         # !! THE UNION, AND IT WALKED `after_rows` ALONE UNTIL 2026-08-28. An
         # address present in the ORIGINAL and GONE from the revise was never
         # listed -- and `bind` here carries no `absent=True`, so a `drop`

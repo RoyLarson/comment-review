@@ -1,9 +1,22 @@
 """Questions asked of a census BY ADDRESS: which paragraph sits at which place.
 
 !! IT IS HERE BECAUSE IT READS PARAGRAPHS. `addresser.py` calls itself the leaf
-that *"knows nothing about a paragraph"* and these six functions each take
-`paragraphs: list[dict]` -- census rows, which are the binder's material. The
+that *"knows nothing about a paragraph"* and these six functions each take a
+list of addressed things -- census rows, which are the binder's material. The
 claim and the code disagreed until 2026-08-24, and the code was what moved.
+
+!! THEY TAKE OBJECTS, NOT DICTS, SINCE 2026-08-31 -- `decision-log.md Process:
+#67`. The signature was `list[dict]` and the two callers passed two different
+dict shapes: `binder.rows_of`'s rejoined rows, and `vars(paragraph)` at the
+page side. ! **`vars()` WAS THE TELL.** `commands/census.py` carried a comment
+calling that call *"a second statement of what a row is"* -- a `Paragraph`
+turned into a dict for no reason but this signature.
+
+! WHAT THEY ACTUALLY NEED IS `Addressed`, BELOW: five attributes that
+`reading.lexer.Paragraph` and `binder.binder.BinderRow` both already have. So
+both callers pass what they are holding, the dict-ification is gone, and a
+misspelled field is an `AttributeError` here rather than a `.get` default that
+reads as an answer.
 
 ! THE ADDRESSER STILL OWNS THE ADDRESS. Emitting a place, spelling it and
 parsing it back are one subject and stay there; asking WHICH PARAGRAPH sits at
@@ -13,10 +26,68 @@ one is a different question, and it needs a census to answer.
 addresses, over a census -- and no trade word has been proposed for it.
 """
 
+from collections.abc import Sequence
+from typing import Protocol, TypeVar
+
 from comment_review.reading.addresser import cue_of
 
 
-def resolve(address: str, paragraphs: list[dict]) -> list[int]:
+class Addressed(Protocol):
+    """Anything these questions can be asked of -- a paragraph or a binder row.
+
+    !! A PROTOCOL RATHER THAN AN IMPORT, and that is what keeps the cycle open.
+    `binder.binder` imports `binder.page`, which would import this module for
+    its own `series_of` -- so naming `BinderRow` here would close the ring.
+    Structural typing states the requirement without acquiring the class.
+
+    !! DECLARED AS PROPERTIES, WHICH IS WHAT ADMITS A FROZEN DATACLASS. A bare
+    `path: str` on a Protocol requires a MUTABLE attribute, so `BinderRow` --
+    `@dataclass(frozen=True)` -- did not satisfy it and `ty` said so by name:
+    *"`path` is not read-only in protocol"*. A property is the read-only
+    declaration, and a plain attribute still satisfies it, which is how
+    `reading.lexer.Paragraph` continues to match.
+
+    ! EACH IS DOCUMENTED AT ITS OWN DECLARATION rather than in an `Attributes:`
+    block, because these are methods to the linter and `D102` asks for one
+    apiece. Saying it in both places is the duplication this repo's own rules
+    forbid.
+    """
+
+    @property
+    def path(self) -> str:
+        """The file this thing sits in."""
+        ...
+
+    @property
+    def address(self) -> str:
+        """`path@cue`, or "" where the census stamped none."""
+        ...
+
+    @property
+    def anchor(self) -> str:
+        """The line of code it answers to, or ""."""
+        ...
+
+    @property
+    def original_start(self) -> int | None:
+        """Its first line on the page, 1-based, or None."""
+        ...
+
+    @property
+    def original_end(self) -> int | None:
+        """Its last line on the page, or None."""
+        ...
+
+
+#: One `Addressed`, so a caller gets back the type it handed in.
+#: !! WITHOUT IT `for_anchor` RETURNS `Addressed` AND ITS CALLER LOSES THE
+#: ROW. `commands/addresser.py` prints `row.cue`, which is on `BinderRow`
+#: and not on this protocol -- so the widened return type is a real error
+#: at the call site, not a nicety.
+A = TypeVar("A", bound=Addressed)
+
+
+def resolve(address: str, paragraphs: Sequence[Addressed]) -> list[int]:
     """Which census entries carry this address, as 1-based census indices.
 
     !! THE INVERSE IS A LOOKUP, NOT ARITHMETIC. `bN` is "the gap after code line
@@ -40,7 +111,7 @@ def resolve(address: str, paragraphs: list[dict]) -> list[int]:
     return [i for i, b in enumerate(paragraphs, 1) if stable(b) == address]
 
 
-def for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> list[dict]:
+def for_anchor(anchor: str, series: str, paragraphs: Sequence[A]) -> list[A]:
     """The paragraphs of one SERIES belonging to one anchor -- `go`'s `c`, say.
 
     !! AN ANCHOR OWNS A PLACE IN EVERY SERIES, and asking for one by POSITION
@@ -74,7 +145,7 @@ def for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> list[dict]:
     Returns:
         The matching entries, in census order.
     """
-    mine = [b for b in paragraphs if str(b.get("anchor", "")) == anchor]
+    mine = [b for b in paragraphs if b.anchor == anchor]
     # !! EVERY SERIES CARRIES THE SAME SPELLING: THE LINE OF CODE. An `a`, the
     # `b` above it and the `c` beside it all answer to `def f():`, never to `f`
     # -- the name is not carried at all. It was two spellings until 2026-08-19,
@@ -104,7 +175,7 @@ def for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> list[dict]:
     return direct
 
 
-def series_of(paragraph: dict) -> str:
+def series_of(paragraph: Addressed) -> str:
     """Which series this paragraph's own address is in -- `a`, `b` or `c`.
 
     !! READ OFF THE ADDRESS, which is the one place the series is STATED. It was
@@ -133,10 +204,10 @@ def series_of(paragraph: dict) -> str:
         IndexError: when the row carries no address -- it is not a cue, and
             has no series to report.
     """
-    return cue_of(str(paragraph["address"])).series
+    return cue_of(paragraph.address).series
 
 
-def stable(paragraph: dict) -> str:
+def stable(paragraph: Addressed) -> str:
     """The place the census STAMPED on this paragraph, or "" if it carries none.
 
     !! IT READS; `place` COMPUTES. One implementation, one caller that runs it
@@ -148,10 +219,10 @@ def stable(paragraph: dict) -> str:
     ! "" means the census predates the field. A caller REPORTS that rather than
     deriving a place from a census that never had one.
     """
-    return str(paragraph.get("address", ""))
+    return paragraph.address
 
 
-def _by_path(paragraphs: list[dict]) -> dict[str, list[dict]]:
+def _by_path(paragraphs: Sequence[A]) -> dict[str, list[A]]:
     """Every paragraph grouped by the file it belongs to, in census order.
 
     !! ONE PASS, NOT ONE PER FILE. Four sites built the set of paths and then
@@ -163,13 +234,13 @@ def _by_path(paragraphs: list[dict]) -> dict[str, list[dict]]:
     `.keys()` and the census order inside a file is preserved, which is what
     `entry N` in a report counts.
     """
-    out: dict[str, list[dict]] = {}
+    out: dict[str, list[A]] = {}
     for b in paragraphs:
-        out.setdefault(str(b.get("path", "")), []).append(b)
+        out.setdefault(b.path, []).append(b)
     return out
 
 
-def unaddressed(paragraphs: list[dict]) -> list[str]:
+def unaddressed(paragraphs: Sequence[Addressed]) -> list[str]:
     """Which paragraphs carry NO address, described one per line.
 
     !! ONE SOURCE OF TRUTH, and the reason is the failure it prevents. Roy,
@@ -205,7 +276,7 @@ def unaddressed(paragraphs: list[dict]) -> list[str]:
     for path, mine in sorted(_by_path(paragraphs).items()):
         for i, paragraph in enumerate(mine, 1):
             if not stable(paragraph):
-                start = paragraph.get("original_start")
-                end = paragraph.get("original_end")
+                start = paragraph.original_start
+                end = paragraph.original_end
                 out.append(f"{path} entry {i}: lines {start}-{end}")
     return out

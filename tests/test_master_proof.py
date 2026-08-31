@@ -24,7 +24,7 @@ def test_a_master_proof_holds_every_edit_copy_of_one_stage():
         "block-context",
         "module-context",
     ]
-    assert proof["read_from"] == binder["read_from"]
+    assert proof["read_from"] == binder.read_from
 
 
 def test_one_role_and_seven_shards_both_assemble():

@@ -26,7 +26,7 @@ def run(tmp_path, marks_by_role, monkeypatch, capsys):
     binder = a_binder_over({"m.py@b1": BASE})
     copies = copies_over(binder, marks_by_role)
     binder_path = tmp_path / "binder.json"
-    binder_path.write_text(json.dumps(binder), encoding="utf-8")
+    binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
     paths = []
     for i, copy in enumerate(copies):
         path = tmp_path / f"copy{i}.json"
@@ -115,7 +115,7 @@ class TestExitCodes:
             },
         )
         binder_path = tmp_path / "binder.json"
-        binder_path.write_text(json.dumps(binder), encoding="utf-8")
+        binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
         paths = []
         for i, copy in enumerate(copies):
             path = tmp_path / f"copy{i}.json"
@@ -148,7 +148,7 @@ class TestExitCodes:
         )
         copies[0]["sheets"][0]["marks"][0]["claim"] = {}
         binder_path = tmp_path / "binder.json"
-        binder_path.write_text(json.dumps(binder), encoding="utf-8")
+        binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
         copy_path = tmp_path / "copy.json"
         copy_path.write_text(json.dumps(copies[0]), encoding="utf-8")
         monkeypatch.setattr(
@@ -191,7 +191,7 @@ class TestExitCodes:
         )
         del copies[0]["role"]
         binder_path = tmp_path / "binder.json"
-        binder_path.write_text(json.dumps(binder), encoding="utf-8")
+        binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
         copy_path = tmp_path / "copy.json"
         copy_path.write_text(json.dumps(copies[0]), encoding="utf-8")
         monkeypatch.setattr(
@@ -235,7 +235,7 @@ class TestExitCodes:
         )
         copies[1]["read_from"] = {"root": "somewhere/else", "revise": 0}
         binder_path = tmp_path / "binder.json"
-        binder_path.write_text(json.dumps(binder), encoding="utf-8")
+        binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
         paths = []
         for i, copy in enumerate(copies):
             path = tmp_path / f"copy{i}.json"
@@ -283,7 +283,7 @@ class TestExitCodes:
         copies[0]["sheets"][0]["marks"][0]["claim"] = {}
         copies[1]["read_from"] = {"root": "somewhere/else", "revise": 0}
         binder_path = tmp_path / "binder.json"
-        binder_path.write_text(json.dumps(binder), encoding="utf-8")
+        binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
         argv = [
             "collate",
             "--stage",
@@ -323,7 +323,7 @@ class TestExitCodes:
         )
         del copies[0]["read_from"]
         binder_path = tmp_path / "binder.json"
-        binder_path.write_text(json.dumps(binder), encoding="utf-8")
+        binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
         copy_path = tmp_path / "copy.json"
         copy_path.write_text(json.dumps(copies[0]), encoding="utf-8")
         monkeypatch.setattr(
@@ -364,7 +364,7 @@ class TestExitCodes:
         )
         copies[0]["sheets"][0]["marks"][0]["raw_text"] = "# not what was seeded\n"
         binder_path = tmp_path / "binder.json"
-        binder_path.write_text(json.dumps(binder), encoding="utf-8")
+        binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
         copy_path = tmp_path / "copy.json"
         copy_path.write_text(json.dumps(copies[0]), encoding="utf-8")
         out_path = tmp_path / "chief.json"
@@ -408,7 +408,7 @@ class TestExitCodes:
         )
         short = _keeping_only(copies[0], ["m.py@b1"])
         binder_path = tmp_path / "binder.json"
-        binder_path.write_text(json.dumps(binder), encoding="utf-8")
+        binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
         copy_path = tmp_path / "copy.json"
         copy_path.write_text(json.dumps(short), encoding="utf-8")
         out_path = tmp_path / "chief.json"
