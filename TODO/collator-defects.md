@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 15 tasks done
+Progress: 5 of 26 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -86,3 +86,65 @@ Four defects in collator.py, found by reading only the code.
       and `places` called directly (bypassing `collate`) still raises
       `MalformedMark` on a malformed entry -- so the guard being called depth is
       itself checkable rather than asserted.
+- [ ] T16 | Implement a `Problem` in `desk.collator.problems_in` for a sheet that
+      is not an object and for a `marks` that is not a list, which
+      `collator.py:483-485` skips silently. Verify: `problems_in` over a copy
+      whose `sheets` holds two strings returns a routable problem naming the role;
+      today it returns `[]`, so the module header's claim at lines 27-31 does not
+      hold at the sheet level.
+- [ ] T17 | Implement the `isinstance(sheets, list)` guard in
+      `desk.collator.tally`, the only sheet-walker without one, and stop its
+      membership test raising on an unhashable `instruction`. Verify:
+      `tally({'sheets': 7})`, `tally({'sheets': None})` and `tally` over a mark
+      whose `instruction` is `['clean']` each return counts; all three raise
+      `TypeError` today.
+- [ ] T18 | Implement a test that drives `collate()` from `reconcile` through
+      `_move_order` and can go red, covering the path the two critical move
+      defects live on. Verify: `tests/test_collate.py:349`'s only assertion is no
+      longer wrapped in a guard its own docstring records as never firing, and
+      `test_a_move_resolves_only_if_BOTH_its_ends_resolve` goes red when
+      `_pair_moves` is deleted -- its docstring states today that it would not.
+- [ ] T19 | Implement a refusal for an address that is not `path@cue`, so a bare
+      cue cannot settle and reach the docket. Verify: two roles returning `b1` and
+      `b5` give a named problem instead of one docket page `{'path': '', 'sha':
+      '', 'alterations': [{'cue': ''}, {'cue': ''}]}`; today `collate` returns
+      `problems == []` and `drift == []`, and the chief sheet is `{'path': '',
+      'sha': '', 'marks': [...]}`.
+- [ ] T20 | Update `desk.collator.problems_in`'s `Returns:` at lines 447-450,
+      which calls `ruled` the number of entries carrying an instruction while
+      lines 491-493 count every entry that is not `untouched`. Verify: the
+      `Returns:` agrees with the `!!` paragraph at 431-435, and a marks list of
+      three entries, none carrying an instruction, still reports `ruled = 2`.
+- [ ] T21 | Update the module docstring's copy-level list at
+      `desk/collator.py:50-54`, which says an entry that is not an object produces
+      a `Problem` with nothing naming a mark, and omits the `read_from` problem at
+      477-479. Verify: the list holds four cases, and it says the address is `""`
+      because the entry has none to read; `problems_in` over `{"marks": ["not an
+      object"]}` returns `('', 'mark 1 is not an object')`, which names the mark.
+- [ ] T22 | Update `desk.collator._cite_at`'s digit test so it accepts ASCII
+      digits only. Verify: a cite whose line number is written in Arabic-Indic
+      digits no longer returns `('a.py', 12)` -- a line number no page ever
+      emitted.
+- [ ] T23 | Update `desk.collator._touches`' sentence at lines 605-606, which says
+      a `move` whose destination is its own origin gives one address, as though
+      such a mark still reaches it. Verify: the sentence names
+      `desk.mark._destination_problems` as what refuses that mark now -- T1 of
+      this file landed it -- and marks its own branch as depth, which is the
+      template T15 applies to `MalformedMark`.
+- [ ] T24 | Update `desk/collator.py:63` and `flows/collate.py:361-365` so one
+      rule about importing a private name across modules is stated once and both
+      files obey it. Verify: either `collator.py` stops importing
+      `_read_from_problem` from `binder.binder`, or `_chief_copy`'s ~15 duplicated
+      lines cite the import as allowed; no sentence in either file contradicts the
+      other.
+- [ ] T25 | Update the module docstring's member roll at `desk/collator.py:3-25`
+      to account for `WITHIN`, `Cache`, `UnnamedRole`, `MalformedMark`, `Placed`,
+      `Reconciled` and `OUTCOMES`, and restate lines 45-46 by member rather than
+      by file-order range. Verify: every public name the module defines appears in
+      the roll or in the four-kind paragraph, and no sentence says `nothing above`
+      or `nothing below` a file position.
+- [ ] T26 | Update `desk.collator._alteration_text:979` so a whitespace-only
+      `change` on a `drop` is a delete rather than three spaces of text. Verify:
+      `parse` accepting `change='   '` on a `drop` yields an alteration whose text
+      is null, and the docstring at 972-975 covers the whitespace case as well as
+      the empty string.

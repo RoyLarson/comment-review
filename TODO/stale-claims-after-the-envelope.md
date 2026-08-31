@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 6 tasks done
+Progress: 1 of 8 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -62,3 +62,16 @@ for the shape this branch changed.
       `docs/addressing.md:142`. Verify: running it prints the cues the sentence states.
 - [ ] T6 -- Give the record shape in `reviewer-brief.md:93-107` its envelope. Verify:
       `record.py --check` accepts a file filled to match the brief's JSON.
+- [ ] T7 -- Update the two false claims in
+      `src/comment_review/docket/__init__.py`. Verify: `grep -rn
+      "addresser\|address_for\|cue_of" src/comment_review/docket/` matches no
+      code, so line 14-15 no longer claims the package reads an address with the
+      addresser; and line 16 no longer says the desk that fills the docket does
+      not exist -- `desk/collator.py:982` `docket_from` fills it and
+      `tests/test_docket.py:181-293` exercises it through seven cases.
+- [ ] T8 -- Update the claim at `src/comment_review/commands/taken_in.py:11-12`,
+      printed to the user at line 120, that a docket carries a `role` field and
+      "no docket does yet". Verify: the sentence agrees with
+      `desk/collator.py:1021`, which writes `"role": role`, and with
+      `tests/test_docket.py:184`; the rest of the paragraph -- that this command
+      receives two bare directories and so has no `Pulled` -- is unchanged.

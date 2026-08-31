@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (116)
+### open  (122)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -210,7 +210,7 @@ that changed a published name or rule:
 | [bom-is-read-as-source](bom-is-read-as-source.md) | backend | — | 2/4 | A UTF-8 BOM is censused as a line of code |
 | [a-malformed-page-drops-its-records](a-malformed-page-drops-its-records.md) | backend | — | 1/5 | A page entry that is not an object loses every record under it, silently |
 | [unaddressed-is-quadratic](unaddressed-is-quadratic.md) | backend | — | 0/4 | unaddressed() groups by path for a question that needs one flat pass |
-| [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | — | 1/6 | Shipped prose still describes formats and flags this branch deleted |
+| [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | — | 1/8 | Shipped prose still describes formats and flags this branch deleted |
 | [one-stem-four-jobs](one-stem-four-jobs.md) | backend | — | 6/15 | one stem, four jobs -- and the vocabulary sweep cannot see it |
 | [python-cannot-read-python](python-cannot-read-python.md) | backend | — | 31/37 | the AST cannot read syntax newer than the floor, and two readers hide each other's bugs |
 | [claim-fallback-is-unreachable](claim-fallback-is-unreachable.md) | backend | yes | 6/8 | A non-object claim is silently emptied, and 60 lines of fallback say the opposite |
@@ -269,7 +269,7 @@ that changed a published name or rule:
 | [the-ported-mark-does-not-fit-the-brief](the-ported-mark-does-not-fit-the-brief.md) | backend | — | 5/5 | The ported mark refuses marks the shipped brief tells a role to write |
 | [the-flow-assumes-every-role-reads-at-once](the-flow-assumes-every-role-reads-at-once.md) | backend | — | 7/7 | The flow assumes every role reads the same page at the same time, once |
 | [build-gate-crlf-fragile](build-gate-crlf-fragile.md) | systems | — | 0/2 | build_plugin.py's raw byte compare fails on a line-ending-only difference introduced by a Windows git checkout |
-| [shape-is-three-words](shape-is-three-words.md) | backend | yes | 0/5 | `shape` carries three senses, only one reaches an agent as a field name; and the axis it names is on `query` alone while `clean` has a recorded, unfilled need for the same thing |
+| [shape-is-three-words](shape-is-three-words.md) | backend | yes | 0/6 | `shape` carries three senses, only one reaches an agent as a field name; and the axis it names is on `query` alone while `clean` has a recorded, unfilled need for the same thing |
 | [annotate-belongs-in-concordance](annotate-belongs-in-concordance.md) | backend | — | 0/3 | annotate.py is stage 3 -- it resolves every reference a node makes -- which is the concordance's subject, not the binder's |
 | [prototype-move-orphaned-tasks](prototype-move-orphaned-tasks.md) | systems | — | 0/4 | 25 open TODOs carry an unchecked task naming a module that moved to `prototype/` on 2026-08-25, so the task's site is gone and its verification cannot be run |
 | [revise-copies-everything](revise-copies-everything.md) | backend | — | 0/4 | `pull` copies `.git`, `.venv` and `corpora` into every revise root -- 284MB measured on this repo, per editorial stage, to set a docket over ~4MB of source |
@@ -282,7 +282,7 @@ that changed a published name or rule:
 | [brief-change-is-raw-text](brief-change-is-raw-text.md) | agents | yes | 0/2 | reviewer-brief.md:140 says change is the updated paragraph as RAW TEXT, not lines; desk/mark.py refuses a change that is not an ARRAY of lines, on a measurement of its own |
 | [skill-inverts-the-anchor-line](skill-inverts-the-anchor-line.md) | agents | — | 0/2 | SKILL.md's CANDIDATE paragraph describes the opposite of the line commands/census.py prints, and the reasoning built on it is what the task agent carries into every proposal |
 | [external-address-cites-dead-modules](external-address-cites-dead-modules.md) | backend | — | 0/1 | desk/external_address.py says the address is declared in binder/record.py and resolved in desk/desk.py; record.py left on b50e7a4 and desk.py is in no directory of this tree |
-| [no-command-for-the-middle](no-command-for-the-middle.md) | backend | — | 2/6 | `gather`, `places`, `reconcile` and `docket_from` have no CLI face, so nothing turns checked marks into the docket `proof --docket` requires. Measured 2026-08-29 on a real run: every other step of the chain is a command; this one had to be driven from a hand-written script |
+| [no-command-for-the-middle](no-command-for-the-middle.md) | backend | — | 2/9 | `gather`, `places`, `reconcile` and `docket_from` have no CLI face, so nothing turns checked marks into the docket `proof --docket` requires. Measured 2026-08-29 on a real run: every other step of the chain is a command; this one had to be driven from a hand-written script |
 | [query-names-no-sentence](query-names-no-sentence.md) | backend | — | 0/3 | every other substantive instruction names the sentence it rules on through a `claim` key -- `false` for `correct`, `drop` for `drop`, `from` for `patch` -- and `query` has none, so `_sentence_key` falls back to an identity and two queries at one place read as two different sentences |
 | [brief-example-and-scope](brief-example-and-scope.md) | agents | — | 0/3 | the brief's worked example shows a 40-character `sha` where `bind` writes 16, and the brief says a source resolves against 'the repo' without saying whether that is the scoped tree or the checkout it was cut from |
 | [rows-of-derives-no-type](rows-of-derives-no-type.md) | backend | — | 0/4 | `binder.rows_of` returns `list[dict]` where `docket.schedules_of` returns `list[Schedule]`; the codebase holds one example of each pattern, the typed one is the one that catches things, and `rows_of` has 8 callers and no covering tests |
@@ -291,13 +291,19 @@ that changed a published name or rule:
 | [cache-keyed-without-root](cache-keyed-without-root.md) | backend | — | 0/2 | `collator.Cache` maps a cited path to its lines with no root in the key, so one cache used across two roots -- an original and a revise -- answers from whichever file was read first |
 | [cite-at-raises-on-a-nondigit](cite-at-raises-on-a-nondigit.md) | backend | — | 0/3 | `collator._cite_at` guards the line number with `isdigit()` then calls `int()`, and the two disagree on what a digit is -- a superscript passes the guard and raises |
 | [strip-before-review-experiment](strip-before-review-experiment.md) | agents | — | 0/5 | the `collator.py` prose was deleted whole and rewritten by an agent that could read only the code -- it found three defects the old prose never mentioned and named two things the code cannot say; whether that beats editing in place is untested |
-| [collator-defects](collator-defects.md) | backend | -- | 5/15 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
+| [collator-defects](collator-defects.md) | backend | -- | 5/26 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
 | [staged-chain-untested](staged-chain-untested.md) | backend | — | 0/3 | the four-stage chain runs and the edits accumulate, proven 2026-08-30 -- but no test in the suite drives it, and the only committed fan-out topology refuses any tree but this repo's |
-| [containers-and-verification-are-unwired](containers-and-verification-are-unwired.md) | backend | — | 0/5 | The containers and the source-verification half are wired to nothing |
-| [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | — | 0/9 | A move is a composite mark and the code cannot express one |
+| [containers-and-verification-are-unwired](containers-and-verification-are-unwired.md) | backend | — | 0/22 | The containers and the source-verification half are wired to nothing |
+| [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | yes | 0/21 | A move is a composite mark and the code cannot express one |
 | [mark-holds-spec-and-parse](mark-holds-spec-and-parse.md) | backend | — | 0/6 | mark.py holds the instruction spec and the boundary parse at one scope |
 | [ty-cannot-see-the-tests](ty-cannot-see-the-tests.md) | systems | — | 0/5 | The type gate is scoped to src and cannot see the tests |
-| [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | — | 0/4 | A present-but-null key becomes the four characters None |
+| [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | — | 0/6 | A present-but-null key becomes the four characters None |
+| [collate-flow-defects](collate-flow-defects.md) | backend | — | 0/12 | Twelve defects in `flows/collate.py`, from a review of one file |
+| [mark-defects](mark-defects.md) | backend | yes | 0/11 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
+| [binder-defects](binder-defects.md) | backend | yes | 0/18 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
+| [docket-defects](docket-defects.md) | backend | — | 0/8 | Six defects in docket.py, and one discards an approved page at exit 0 |
+| [collate-command-defects](collate-command-defects.md) | backend | — | 0/16 | Sixteen defects in `commands/collate.py`, measured by running it |
+| [differences-defects](differences-defects.md) | backend | — | 0/10 | Ten defects in `results/differences.py`, none of them in its arithmetic |
 
 ### in-progress  (19)
 

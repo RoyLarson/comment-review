@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 0 of 6 tasks done
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-28 (2026-08-28, Roy asking what `claim.shape` is: 'because it is
@@ -93,3 +93,8 @@ by who answers it.
       published in `reviewer-brief.md` and instructed at `comment-review-module-
       context.md:108`. Verify: `grep -rn` finds no shipped file using a retired
       sense, and `check_vocabulary.py` passes.
+- [ ] Does `claim.shape` earn a field when nothing in `src/` reads its VALUE?
+      MEASURED 2026-08-30: the four occurrences are `desk/mark.py`'s row, its
+      published value list and its membership check; no collate step reads it.
+      Verify: the answer is recorded in `docs/decision-log.md` beside the ruling
+      on the word, and the field is either read by a module or gone.

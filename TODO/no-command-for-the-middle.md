@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 6 tasks done
+Progress: 2 of 9 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -54,3 +54,21 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       reported by name, and one seeded from that binder passes --
       flows/marks.py:136-141 names this gap itself and says the comparison belongs
       wherever the two meet, which is the middle command once one exists.
+- [ ] Implement a drift signal that survives an escalation or a re-read in the
+      same run, since the three carried states are not mutually exclusive and one
+      scalar exit code cannot hold them. Verify: a run holding both a drifted
+      place and an escalation reports the drift by ADDRESS on a stream or a chief
+      field the caller is told to read; today it exits 4, writes the drifted mark
+      into the chief, and says nothing.
+- [ ] Implement the reporting of `Collated.unruled` and `Collated.tally` in
+      `commands/collate.py`, so a run names every place carried forward rather
+      than counting only the settled ones. Verify: a one-role stage over three
+      places where nothing was ruled names all three addresses and does not exit
+      0, since exit 0 means every place resolved and nothing carried forward;
+      today it prints `0 places resolved` and exits 0.
+- [ ] Implement carrying `Collated.order` out of `commands/collate.py`, so
+      whatever applies the chief vacates every `move` origin before it is filled
+      instead of re-deriving the order or applying moves unsafely. Verify: `grep
+      -rn "\.order\b" src/` returns a consumer outside `flows/collate.py`, and a
+      two-move stage's written artifact names the order; today the only readers
+      are in `tests/test_collate.py`.

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks done
+Progress: 0 of 6 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a fix round on flows/carry.py surfaced the same
@@ -71,3 +71,18 @@ second is a guard.
 - [ ] Decide which spelling is the repo's form and record it once where a reader
       finds it. Verify: `docs/conventions.md` or the module that owns the boundary
       states it, and no second file restates it.
+- [ ] Implement the null guard at `binder.rows_of` for `path`, beside the two
+      sibling sites that already carry one -- `flows/distribute.py:98` for `sha`
+      and `flows/carry.py:137-138`. Verify: a binder page carrying `"path": null`
+      no longer composes the address `None@b1`; today `str(page.get("path", ""))`
+      defaults only on an ABSENT key, so a present null enters `known_addresses`
+      as a syntactically valid address and is compared for equality against marks.
+- [ ] Update `docket.read`'s role check at `docket.py:148-150` to key on `"role"
+      in page`, so a present JSON `null` is ruled on rather than skipped by the
+      `role is not None` first clause, and normalise `role` in
+      `docket.schedules_of` and `flows/revise._set_by` the way `_real_pages`
+      already does. Verify: a page carrying `"role": null` is refused or folded
+      into the absent case; today `schedules_of` returns `Schedule(...,
+      role='None')` and `_set_by` maps `pkg:a.py@b1` to `'None'`. Carry
+      `desk/collator.py:956-962`'s comment and the `tests/test_docket.py:187`
+      treatment across to `role`, which has the weaker guard of the two.

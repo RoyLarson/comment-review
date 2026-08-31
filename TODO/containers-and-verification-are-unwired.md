@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 0 of 22 tasks done
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -88,3 +88,92 @@ envelope check; that file's task 9 lands the region a move needs inside it.
       boundary refuses and what it reports, now that both are reached. Verify: no
       sentence in either file claims a consumer that `grep -rn` does not show, and
       the ENVELOPE/CONTENTS split is stated once rather than in both files.
+- [ ] Implement a check at the flow's inbound boundary that a returned edit copy
+      still carries the binder's address set, so a copy cannot decide which places
+      exist. Verify: a copy whose `sheets` is `[]`, one whose sheets are not
+      objects, one whose `marks` is a string, and one that kept 1 of its 4 seeded
+      slots are each reported by name; today all four give `problems == []`
+      against a binder carrying `m.py@b1..b4`.
+- [ ] Implement the comparison of EVERY edit copy's `read_from` in
+      `parse_master_proof`, as `desk.proof.gather` does. Verify: a proof whose
+      second copy was censused from revise 1 while the first names revise 0 is
+      refused by name -- today it returns zero problems, while `gather` raises
+      `MismatchedRoot` on the identical two copies.
+- [ ] Update the two sentences in `desk/containers.py` that describe
+      `desk.proof.gather`'s check as this parse's -- the prose at lines 197-202
+      and the `MasterProof.read_from` declaration at 94-96. Verify: no sentence in
+      the file says the parse takes `read_from` from the first copy or refuses the
+      disagreement `gather` refuses, and the no-copies case (where there is no
+      first copy) is stated.
+- [ ] Update `parse_sheet`'s stated reason for admitting an absent or null `sha`
+      at lines 113-115, which says a tree that is not a repo has none. Verify: the
+      sentence names the real producer -- `desk/collator.py:992` and
+      `flows/collate.py:391` write an empty sha for a path `unflatten` cannot
+      resolve -- and a census over a directory holding no `.git` is shown to
+      report a real sha.
+- [ ] Update `desk/containers.py` so its stated contract and its behaviour agree:
+      either report one message per broken header rule the way `desk.mark.parse`
+      does, or amend the module docstring at lines 17-20. Verify:
+      `parse_sheet("s", {"path": None, "marks": "nope"})` returns two messages, or
+      no sentence in the file claims `desk.mark.parse`'s accumulating contract --
+      today it returns one message under a docstring claiming the other.
+- [ ] Update `parse_edit_copy` and `flows.collate._chief_copy` so an empty
+      `read_from` is decided in one place. Verify: the chief that `collate(stage,
+      [], binder)` builds round-trips through `parse_edit_copy` with no problems,
+      and the proof `desk.proof.gather("4c", [])` writes still parses -- today the
+      first is refused by name and the second accepted, one stage apart.
+- [ ] Update `tests/test_containers.py:167` so it derives the field-earns-itself
+      property instead of asserting `"rounds" not in names`. Verify: adding
+      `Sheet.round_count: int = 0` that nothing reads turns the test red -- today
+      it passes.
+- [ ] Implement the test that hands a real `flows.collate._chief_copy` output to
+      `desk.containers.parse_edit_copy`. Verify: the test exists and goes red
+      today on the empty-`read_from` refusal; `tests/test_containers.py:56` builds
+      its chief by relabelling a seed copy, so nothing in the suite parses a chief
+      the flow actually built.
+- [ ] Update `parse_master_proof` so `MasterProof.stage` is held to the same rule
+      as `Sheet.path` and `EditCopy.role`, or delete the field where the `where`
+      argument already carries the label. Verify: `parse_master_proof("4c",
+      {"edit_copies": []})` is refused by name, or the field is gone -- today it
+      returns `MasterProof(stage="")` with no problems, and so do `None`, `4` and
+      `""`.
+- [ ] Update `_read_from_problem`'s absent-`read_from` message so it composes at
+      both call sites, which each prefix a possessive. Verify: a test asserts all
+      four messages at both sites read as sentences -- today the absent case
+      renders `4c: edit_copy 1: block-context's carries no read_from -- ...` and
+      `4c: master_proof's carries no read_from -- ...`.
+- [ ] Update `parse_sheet` and `parse_master_proof` so a `sha` or a `stage`
+      holding a non-string that is not null is refused rather than folded to `""`.
+      Verify: `parse_sheet("s", {"path": "p.py", "marks": [], "sha": 12345})` is
+      refused by name -- today it returns `Sheet(sha="")` with no problems, and so
+      do a list, a dict and `True`.
+- [ ] Update `parse_master_proof` to check its own header before walking
+      `edit_copies`, as `parse_edit_copy` already does. Verify:
+      `parse_master_proof("4c", {"stage": "4c", "read_from": "oops",
+      "edit_copies": [{"role": "r"}]})` reports the proof's `read_from` as well as
+      the copy -- today it reports the copy alone and returns at line 218.
+- [ ] Update the COPIED, NOT ALIASED comment at lines 177-179 and 242 to the depth
+      the copy holds. Verify: the sentence bounds the guarantee to the two fields
+      `_read_from_problem` checks, or a nested key mutated after the parse cannot
+      reach `EditCopy.read_from` -- today `nested["meta"]["n"] = 99` is visible
+      through it.
+- [ ] Update the `checked: dict = data` comment at lines 150-153, which blames a
+      loop back-edge for a narrowing the annotation fixes. Verify: the sentence
+      states the real cause -- `isinstance(x, dict)` narrows `object` to a
+      `__getitem__` taking `Never` -- and a function with no loop at all shows the
+      same `invalid-argument-type` diagnostic without the annotation.
+- [ ] Update the proof-versus-copy `read_from` comparison at line 228 so it
+      compares the fields `_read_from_problem` checks and names them in its
+      message. Verify: a proof whose `read_from` carries an extra key but the same
+      `root` and `revise` is accepted, and the refusal names what has to match --
+      today `!=` refuses it and says only "disagrees".
+- [ ] Update the module docstring's builder list at lines 13-14 to name
+      `flows.collate._chief_copy`. Verify: every builder of an `EditCopy` in
+      `src/` appears in that closed enumeration, checked with `grep -rn '"sheets"'
+      src/comment_review/`.
+- [ ] Update `Sheet.marks`' declaration, which reads "one entry per place on the
+      page, as they came back". Verify: the sentence says what a move does to that
+      count today -- `desk.collator._join_moves` carries one `Mark` under two keys
+      and `_chief_copy` dedups on `id(mark)`, so the sheet holds `n` entries for
+      `n+1` ruled places -- and names `move-is-a-composite-mark` as what makes it
+      true again.
