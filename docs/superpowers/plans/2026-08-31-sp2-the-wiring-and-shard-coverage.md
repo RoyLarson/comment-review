@@ -353,7 +353,7 @@ produces `{}` for an empty `edit_copies` list. It is the other five values this 
 only against `copies[0]`, never 2..N. Wire the parse and close the empty-copies branch here;
 leave T7.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 @pytest.mark.parametrize("junk", ["oops", None, 7, [], {"root": 7}, {"junk": 1}])
@@ -374,13 +374,13 @@ def test_an_empty_proof_with_an_empty_read_from_is_still_admitted():
     assert problems == [] and parsed is not None
 ```
 
-- [ ] **Step 2: Run them and watch the first fail on all six values**
-- [ ] **Step 3: Drop the `if copies:` guard from `_read_from_problem`'s call site**, keeping
+- [x] **Step 2: Run them and watch the first fail on all six values**
+- [x] **Step 3: Drop the `if copies:` guard from `_read_from_problem`'s call site**, keeping
   the `{}` admission. Then parse the proof after `gather` and report as Task 2 does.
-- [ ] **Step 4: Run the tests, then `uv run pytest -q`**
-- [ ] **Step 5: Run the checks** -- only `test_build` may fail
-- [ ] **Step 6: Commit the WORK -- no ticked boxes in this commit**
-- [ ] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
+- [x] **Step 4: Run the tests, then `uv run pytest -q`**
+- [x] **Step 5: Run the checks** -- only `test_build` may fail
+- [x] **Step 6: Commit the WORK -- no ticked boxes in this commit**
+- [x] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
 
 Tick every `- [ ]` step box of this task in
 `docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
@@ -395,7 +395,7 @@ it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
 `Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
 wrong.
 
-- [ ] **Step 8: Commit the ticks, citing the work commit's SHA**
+- [x] **Step 8: Commit the ticks, citing the work commit's SHA**
 
 ---
 

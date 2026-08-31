@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 24 tasks closed
+Progress: 4 of 24 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -72,10 +72,11 @@ envelope check; that file's task 9 lands the region a move needs inside it.
       than being re-derived downstream. Verify: a copy missing `sheets` is
       refused by name from the flow, and the test goes red when the call is
       removed.
-- [ ] T2 | Implement the `desk.containers.parse_master_proof` call at the master
-      proof's boundary, on the same terms. Verify: a proof whose `edit_copies`
-      is not a list is refused by name from the flow, and the test goes red when
-      the call is removed.
+- [x] T2 | collate parses the proof after gather and reports; the test goes red without it | 6bb8f8e | Implement
+      the `desk.containers.parse_master_proof` call at the master proof's
+      boundary, on the same terms. Verify: a proof whose `edit_copies` is not a
+      list is refused by name from the flow, and the test goes red when the call
+      is removed.
 - [ ] T3 | Implement the `desk.collator.verify_report` call in the flow, so
       source verification runs in production. Verify: `grep -rn "verify_report"
       src/` returns a caller outside `desk/collator.py`; a test asserts a mark
@@ -181,8 +182,9 @@ envelope check; that file's task 9 lands the region a move needs inside it.
       under two keys and `_chief_copy` dedups on `id(mark)`, so the sheet holds
       `n` entries for `n+1` ruled places -- and names `move-is-a-composite-mark`
       as what makes it true again.
-- [ ] T23 | Update `parse_master_proof` so `_read_from_problem` runs when
-      `edit_copies` is empty, where any value is admitted today
+- [x] T23 | the read_from shape check no longer hides inside if copies; six junk values refused | 6bb8f8e | Update
+      `parse_master_proof` so `_read_from_problem` runs when `edit_copies` is
+      empty, where any value is admitted today
         > 2026-08-31 'oops', None, 7, [] and {'root': 7} all pass when copies is empty
 - [x] T24 | Sheet.seed, EditCopy.seed and MasterProof.seed land, built from fields(cls) | f943d7b | Implement
       `Sheet.seed`, `EditCopy.seed` and `MasterProof.seed`, so a container is
