@@ -25,11 +25,28 @@ import json
 import pytest
 from helpers import a_correct, a_drop, a_master_proof, a_move
 
-from comment_review.desk.collator import MalformedMark, docket_from, reconcile
+from comment_review.desk.collator import docket_from, reconcile
 from comment_review.desk.containers import MasterProof
 from comment_review.docket.docket import Alteration, Docket
 from comment_review.flows.revise import _set_by
 from comment_review.machine.json_object import object_of
+
+
+def _refused_reasons(proof) -> list[str]:
+    """Every reason the parse gave for an entry it would not read as a mark.
+
+    ! IT IS WHAT A RAISE USED TO BE. `places` raised `MalformedMark` on the
+    first unreadable entry; `Sheet.refused` carries every one of them with the
+    address that owns it, so a test asks what was refused rather than that
+    something was.
+    """
+    return [
+        reason
+        for copy in proof.edit_copies
+        for sheet in copy.sheets
+        for one in sheet.refused
+        for reason in one.reasons
+    ]
 
 
 def read(text: str):
@@ -298,24 +315,27 @@ def test_a_change_in_the_RETIRED_ARRAY_FORM_never_reaches_the_docket():
     list) else []`, so a raw-text `change` produced `None`, `docket.read`
     accepted it, and the paragraph was EMPTIED.
 
-    ! IT IS THE PARSE THAT REFUSES IT NOW, at `places`, not a check inside the
-    docket step -- `desk.mark.parse` rules `change` raw text
-    (`TODO/change-is-raw-text-not-lines.md`), so `MalformedMark` is raised
-    before any alteration is built. The `UnusableChange` exception this case
-    used to assert is gone with the shape that could reach it."""
+    !! THE MECHANISM MOVED TWICE AND THE CLAIM HAS NOT. It was
+    `UnusableChange`, raised inside the docket step; then `MalformedMark`, from
+    `places`; and since `P51` the entry never becomes a `Mark` at all --
+    `Sheet.deserialize` sorts it into `refused`, so nothing downstream can build
+    an alteration from it. **What this asserts is the outcome rather than
+    whichever exception is current**: the bad `change` reaches no docket, and
+    the reason is routable back to the role that wrote it.
+    """
     mark = a_correct("m.py@b1")
     mark["change"] = [mark["change"]]
     proof = a_master_proof({"block-context": {"m.py@b1": mark}})
-    with pytest.raises(MalformedMark):
-        docket_from(reconcile(proof), proof)
+    assert _refused_reasons(proof), "the array form must not read as a mark"
+    assert docket_from(reconcile(proof), proof).schedules == ()
 
 
 def test_an_EMPTY_change_refuses_where_the_instruction_may_not_empty():
     mark = a_correct("m.py@b1")
     mark["change"] = ""
     proof = a_master_proof({"block-context": {"m.py@b1": mark}})
-    with pytest.raises(MalformedMark):
-        docket_from(reconcile(proof), proof)
+    assert _refused_reasons(proof)
+    assert docket_from(reconcile(proof), proof).schedules == ()
 
 
 def test_an_EMPTY_change_IS_the_delete_where_the_row_may_empty():

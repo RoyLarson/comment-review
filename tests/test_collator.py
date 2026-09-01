@@ -566,14 +566,18 @@ class TestProblemsAreRoutable:
         test_an_edit_copy_with_no_role`; what it asserted about the empty
         `address` field is asserted here, over the case that survives.
 
-        ! A BARE STRING IN `marks` IS DELIBERATELY ADMITTED BY THE PARSE.
-        `Sheet.marks` is `tuple[object, ...]` so an entry that is not an object
-        is CARRIED to be refused by name rather than vanishing.
+        ! A BARE STRING IN `marks` IS DELIBERATELY NOT DROPPED. `Sheet.marks`
+        was typed `tuple[object, ...]` so such an entry could be carried and
+        refused by name rather than vanishing; since `P51` it is sorted into
+        `Sheet.refused` at the parse, which serves the same end -- the role
+        that wrote it is told, and the address is "" because there is none.
         """
         wire = seed(binder_of(a_small_real_tree(tmp_path), 0), "block-context")
         wire["sheets"][0]["marks"][0] = "not an object"
         problems, _ = problems_in(returned(wire))
-        assert any(p.address == "" and "not an object" in p.message for p in problems)
+        assert any(
+            p.address == "" and "must be an object" in p.message for p in problems
+        )
 
 
 # ! MOVED FROM `tests/test_distribute_flow.py`, `decision-log.md Process: #54` --
@@ -619,23 +623,21 @@ def test_a_copy_carrying_a_code_concern_validates():
 
 def test_tally_counts_a_ruled_mark_wherever_its_sheet_sits():
     # INPUT FROM REALITY: a real binder through the real seed(), then filled
-    # exactly as a role legitimately would -- `instruction` holds the
-    # INSTRUCTION NAME as a plain string, matching `desk.mark.parse`'s own
-    # `isinstance(named, str)` check and this file's own `_well_formed()`
-    # fixture. `tally` walked `report["marks"]`, a top-level key `seed()` has
-    # not written since 2026-08-29 -- so on today's nested shape it silently
-    # returned `{}` for every sheet, ruled or not, rather than raising or
-    # reporting.
+    # exactly as a role legitimately would. `tally` walked `report["marks"]`, a
+    # top-level key `seed()` has not written since 2026-08-29 -- so on today's
+    # nested shape it silently returned `{}` for every sheet, ruled or not,
+    # rather than raising or reporting.
+    #
+    # !! THE MARK IS BUILT BY `a_correct` SINCE `P51`, AND THAT IS A FINDING
+    # RATHER THAN A FIXTURE REPAIR. It was a hand-written dict carrying
+    # `"sources": []`, which `desk.mark.parse` REFUSES -- *"needs at least one
+    # source"*. The old `tally` counted it anyway, because it read the
+    # `instruction` string off the entry and never parsed it: **it was counting
+    # marks that are not marks**. Counting `Sheet.marks` cannot, so the fixture
+    # had to become a mark that really parses.
     wire = seed(binder_of(DESK, 0), "block-context")
-    wire["sheets"][-1]["marks"][0].update(
-        {
-            "instruction": "correct",
-            "claim": {"false": "x", "true": "y"},
-            "reason": "test",
-            "sources": [],
-            "change": "# x",
-        }
-    )
+    entry = wire["sheets"][-1]["marks"][0]
+    entry.update(a_correct(entry["address"]))
     assert tally(returned(wire)) == {Instruction.CORRECT: 1}
 
 

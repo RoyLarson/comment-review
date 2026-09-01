@@ -49,7 +49,7 @@ class TestTheResolutions:
         assert got.escalations == []
         assert got.rereads == []
         marks = entries_of(got.chief)
-        assert [m["address"] for m in marks] == ["m.py@b1"]
+        assert [m.address for m in marks] == ["m.py@b1"]
 
     def test_byte_identical_changes_are_not_a_contest(self):
         binder = one_place()
@@ -66,7 +66,7 @@ class TestTheResolutions:
         got = collate("4c", copies, binder, root=REPO)
         assert got.escalations == []
         marks = entries_of(got.chief)
-        assert [m["change"] for m in marks] == [same]
+        assert [m.change for m in marks] == [same]
 
     def test_two_answers_to_one_sentence_escalate_and_reach_no_copy(self):
         binder = one_place()
@@ -110,7 +110,7 @@ class TestTheResolutions:
         assert got.escalations == []
         assert got.rereads == []
         marks = entries_of(got.chief)
-        assert [m["change"] for m in marks] == ["# ONE\n# two\n# THREE\n"]
+        assert [m.change for m in marks] == ["# ONE\n# two\n# THREE\n"]
 
     def test_a_refused_compose_stays_a_reread(self):
         binder = one_place()
@@ -174,10 +174,14 @@ class TestTheChiefsCopy:
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
         got = collate("4c", copies, binder, root=REPO)
-        for entry in entries_of(got.chief):
-            mark, why = Mark.deserialize(entry["address"], entry)
+        # ! A ROUND TRIP SINCE `P51`, and it asserts more than the parse did.
+        # The chief's sheets hold `Mark`s, so "does it parse" is answered by
+        # the type; what still can fail is whether the mark SURVIVES being
+        # written and read back, which is what the command does at the save.
+        for mark in entries_of(got.chief):
+            again, why = Mark.deserialize(mark.address, mark.serialize())
             assert why == [], why
-            assert mark is not None
+            assert again == mark
 
     def test_a_composed_mark_carries_both_sides_sources(self):
         binder = one_place()
@@ -198,9 +202,9 @@ class TestTheChiefsCopy:
         )
         got = collate("4c", copies, binder, root=REPO)
         entry = entries_of(got.chief)[0]
-        assert len(entry["sources"]) == 2
-        assert "block-context" in entry["reason"]
-        assert "function-context" in entry["reason"]
+        assert len(entry.sources) == 2
+        assert "block-context" in entry.reason
+        assert "function-context" in entry.reason
 
     def test_sources_and_reason_AGREE_on_the_roles_ORDER(self):
         """!! `reason` NAMES THE ROLES ALPHABETICALLY (`roles = sorted(sides)`
@@ -233,8 +237,18 @@ class TestTheChiefsCopy:
         ]
         got = collate("4c", copies, binder, root=REPO)
         entry = entries_of(got.chief)[0]
-        roles_in_reason = entry["reason"].split(" by ")[1].split(" -- ")[0].split(", ")
-        roles_in_sources = [s["cite"].split(".py:")[0] for s in entry["sources"]]
+        roles_in_reason = entry.reason.split(" by ")[1].split(" -- ")[0].split(", ")
+        # ! `Mark.sources` IS `tuple[object, ...]` DELIBERATELY -- a source that
+        # is not an object is carried so `source_problems` can refuse it by
+        # name. A test reading `cite` off one is asserting about a well-formed
+        # source, so it says so rather than subscripting an `object`.
+        cites = []
+        for source in entry.sources:
+            assert isinstance(source, dict), source
+            cite = source.get("cite")
+            assert isinstance(cite, str), source
+            cites.append(cite)
+        roles_in_sources = [cite.split(".py:")[0] for cite in cites]
         assert roles_in_reason == sorted(roles_in_reason)
         assert roles_in_sources == roles_in_reason
 
@@ -594,7 +608,7 @@ class TestShardCoverage:
         assert got.coverage != []
         assert got.problems == []
         marks = entries_of(got.chief)
-        assert [m["address"] for m in marks] == ["m.py@b1"]
+        assert [m.address for m in marks] == ["m.py@b1"]
 
 
 class TestTheStackedCheck:
@@ -730,7 +744,7 @@ class TestTheMovesAreADag:
         }
         copies = copies_over(binder, {"block-context": marks})
         got = collate("4c", copies, binder, root=REPO)
-        resolved = {e["address"]: e for e in entries_of(got.chief)}
+        resolved = {e.address: e for e in entries_of(got.chief)}
         if "m.py@b1" in resolved and "m.py@b5" in resolved:
             assert got.order.index("m.py@b5") < got.order.index("m.py@b1")
 
@@ -829,7 +843,7 @@ class TestAResolvedMoveIsOneEntry:
             "4c", copies_over(binder, {"block-context": marks}), binder, root=REPO
         )
         entries = entries_of(got.chief)
-        assert [e["address"] for e in entries] == ["m.py@b1", "m.py@b7"]
+        assert [e.address for e in entries] == ["m.py@b1", "m.py@b7"]
 
     def test_a_cross_file_move_lands_only_in_the_origins_sheet(self):
         binder = a_binder_over({"a.py@b1": BASE, "b.py@b1": BASE})
@@ -837,7 +851,7 @@ class TestAResolvedMoveIsOneEntry:
         got = collate(
             "4c", copies_over(binder, {"block-context": marks}), binder, root=REPO
         )
-        sheets = {s.path: [m["address"] for m in marks_of(s)] for s in got.chief.sheets}
+        sheets = {s.path: [m.address for m in marks_of(s)] for s in got.chief.sheets}
         # ! NO "b.py" SHEET AT ALL -- `_chief_copy` only ever creates a sheet
         # when it has an entry to put in it, and the destination writes none.
         assert sheets == {"a.py": ["a.py@b1"]}
@@ -851,10 +865,14 @@ class TestAResolvedMoveIsOneEntry:
         binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})
         marks = {"block-context": {"m.py@b1": a_move("m.py@b1", "m.py@b5")}}
         got = collate("4c", copies_over(binder, marks), binder, root=REPO)
-        for entry in entries_of(got.chief):
-            mark, why = Mark.deserialize(entry["address"], entry)
+        # ! A ROUND TRIP SINCE `P51`, and it asserts more than the parse did.
+        # The chief's sheets hold `Mark`s, so "does it parse" is answered by
+        # the type; what still can fail is whether the mark SURVIVES being
+        # written and read back, which is what the command does at the save.
+        for mark in entries_of(got.chief):
+            again, why = Mark.deserialize(mark.address, mark.serialize())
             assert why == [], why
-            assert mark is not None
+            assert again == mark
 
     def test_the_chiefs_copy_still_parses_as_an_ordinary_edit_copy(self):
         binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})

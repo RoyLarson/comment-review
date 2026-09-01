@@ -30,7 +30,13 @@ from conftest import ROOT, cue
 
 from comment_review.binder.binder import VERSION, Binder, bind
 from comment_review.desk.containers import EditCopy, MasterProof, Sheet
-from comment_review.desk.mark import ANCHOR_EXAMPLE, INSTRUCTIONS, Instruction, Shape
+from comment_review.desk.mark import (
+    ANCHOR_EXAMPLE,
+    INSTRUCTIONS,
+    Instruction,
+    Mark,
+    Shape,
+)
 from comment_review.desk.proof import gather
 from comment_review.docket.docket import Docket
 from comment_review.flows.distribute import seed
@@ -457,26 +463,24 @@ def a_copy_missing_its_sheets(binder: Binder, role: str = "block-context") -> di
     return copy
 
 
-def marks_of(sheet: Sheet) -> list[dict]:
-    """One sheet's entries, each asserted to be an object.
+def marks_of(sheet: Sheet) -> list[Mark]:
+    """One sheet's marks, as the `Mark`s it holds.
 
-    ! `Sheet.marks` IS `tuple[object, ...]` DELIBERATELY -- an entry that is not
-    an object is CARRIED so `desk.mark.parse` can refuse it by name. A test
-    reading a FIELD off an entry is asserting about a well-formed one, so this
-    asserts that first and fails HERE rather than at the subscript.
+    !! IT ASSERTED EACH ENTRY WAS A DICT UNTIL `P51`, because `Sheet.marks` was
+    `tuple[object, ...]` and an entry that would not parse was carried so it
+    could be refused by name. The parse sorts those into `Sheet.refused` now, so
+    what is here is marks and the assertion has nothing left to catch.
     """
-    for entry in sheet.marks:
-        assert isinstance(entry, dict), entry
-    return [entry for entry in sheet.marks if isinstance(entry, dict)]
+    return list(sheet.marks)
 
 
-def entries_of(copy: EditCopy) -> list[dict]:
-    """Every mark entry on a copy, flattened, in sheet then mark order.
+def entries_of(copy: EditCopy) -> list[Mark]:
+    """Every mark on a copy, flattened, in sheet then mark order.
 
     ! IT REPLACES `[m for s in got.chief.sheets for m in s.marks]`, which stood
     at thirteen sites in `tests/test_collate.py` alone.
     """
-    return [entry for sheet in copy.sheets for entry in marks_of(sheet)]
+    return [mark for sheet in copy.sheets for mark in marks_of(sheet)]
 
 
 def returned(wire: dict, where: str = "copy") -> EditCopy:

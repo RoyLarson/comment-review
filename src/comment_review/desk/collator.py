@@ -86,7 +86,6 @@ from comment_review.desk.mark import (
     Instruction,
     Mark,
     filled,
-    untouched,
 )
 from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.machine import constants
@@ -443,28 +442,17 @@ def verify_report(
     known = known_addresses(binder)
     base = base_texts(binder)
     out: list[Problem] = []
-    i = 0
     for sheet in copy.sheets:
-        for entry in sheet.marks:
-            i += 1
-            if untouched(entry):
-                continue
-            # ! `where` FALLS BACK TO A POSITION so a message can name
-            # something. It never reaches `Problem.address`, which is taken
-            # from the parsed `mark` below -- a position is not an address, and
-            # writing one there would make a place that does not exist look
-            # citable.
-            raw = entry.get("address") if isinstance(entry, dict) else None
-            where = str(raw) if filled(raw) else f"mark {i}"
-            # ! `why` IS DELIBERATELY DROPPED -- `problems_in` reports it, and
-            # reporting it here too gave the same sentence twice. See above.
-            mark, _why = Mark.deserialize(where, entry)
-            if mark is None:
-                continue
+        # !! IT WALKS PARSED MARKS AND PARSES NOTHING, since `P51`. This held
+        # its own untouched test, its own `mark {n}` fallback and its own
+        # `Mark.deserialize` -- one of the four sites that each parsed every
+        # ruled entry. `Sheet.marks` holds only what ruled, so an untouched
+        # slot and an unparseable entry are both already elsewhere.
+        for mark in sheet.marks:
             out += [
                 Problem(copy.role, mark.address, message)
                 for message in source_verification(
-                    where,
+                    mark.address,
                     mark,
                     base=base.get(mark.address, ""),
                     known=known,
@@ -515,26 +503,21 @@ def problems_in(copy: EditCopy) -> tuple[list[Problem], int]:
     # parameter and does not survive the signature: there is no longer a caller
     # who can reach this without one. `TODO/galley-refusals-cannot-fire.md`'s
     # rule bites the other way now -- a check no input can trip is not depth.
-    out: list[Problem] = []
-    ruled = 0
-    i = 0
-    for sheet in copy.sheets:
-        for mark in sheet.marks:
-            i += 1
-            # ! THE ENTRY IS STILL CHECKED, AND THAT IS NOT THE ENVELOPE'S
-            # QUESTION. `Sheet.marks` is typed `tuple[object, ...]` deliberately
-            # -- an entry that is not an object is CARRIED so it can be refused
-            # by name here rather than vanishing at the parse.
-            if not isinstance(mark, dict):
-                out.append(Problem(copy.role, "", f"mark {i} is not an object"))
-                continue
-            if untouched(mark):
-                continue
-            ruled += 1
-            address = str(mark.get("address") or "")
-            where = address or f"mark {i}"
-            _, why = Mark.deserialize(where, mark)
-            out += [Problem(copy.role, address, message) for message in why]
+    # !! IT READS WHAT THE PARSE ALREADY DECIDED, since `P51`. This walked every
+    # entry, tested `isinstance(..., dict)`, tested `untouched`, and called
+    # `Mark.deserialize` -- the second of four sites parsing every ruled entry.
+    # `Sheet.refused` holds each entry that would not read and the reasons it
+    # gave, so what is left here is attaching the role that owes them.
+    out = [
+        Problem(copy.role, refused.address, message)
+        for sheet in copy.sheets
+        for refused in sheet.refused
+        for message in refused.reasons
+    ]
+    # ! `ruled` COUNTS WHAT RULED, and counted every entry a role wrote in --
+    # including a malformed one, deliberately, because a role DID rule there.
+    # `Sheet.refused` keeps that true: a refused entry is one a role wrote in.
+    ruled = sum(len(sheet.marks) + len(sheet.refused) for sheet in copy.sheets)
     return out, ruled
 
 
@@ -559,43 +542,31 @@ def drift_in(copy: EditCopy, base: dict[str, str]) -> list[Problem]:
     Returns:
         One `Problem` per drifted place, in sheet then mark order.
     """
-    out: list[Problem] = []
-    for sheet in copy.sheets:
-        for entry in sheet.marks:
-            if not isinstance(entry, dict) or untouched(entry):
-                continue
-            address = str(entry.get("address") or "")
-            if address not in base:
-                continue
-            got = str(entry.get("raw_text") or "")
-            if got != base[address]:
-                out.append(
-                    Problem(
-                        copy.role,
-                        address,
-                        "`raw_text` is not the paragraph this place was seeded "
-                        "with -- the copy came back with a different base",
-                    )
-                )
-    return out
+    # ! AN UNTOUCHED SLOT AND AN UNREADABLE ENTRY ARE BOTH ALREADY ELSEWHERE,
+    # so this walks rulings and tests neither -- `P51`.
+    return [
+        Problem(
+            copy.role,
+            mark.address,
+            "`raw_text` is not the paragraph this place was seeded "
+            "with -- the copy came back with a different base",
+        )
+        for sheet in copy.sheets
+        for mark in sheet.marks
+        if mark.address in base and mark.raw_text != base[mark.address]
+    ]
 
 
 def unruled(copy: EditCopy) -> list[str]:
     """The addresses nobody wrote in -- the coverage gap, named not counted.
 
-    ! READS `desk.mark.untouched`, the same question `problems_in` asks, so a
-    mark refused for naming no instruction can never also be listed here. The
-    two answers were derived separately from `mark is None` and agreed on a
-    place that had been ruled on.
+    !! IT READS `Sheet.unruled` SINCE `P51` and asked `desk.mark.untouched`
+    itself before that. The predicate has not changed and its site has: the
+    parse sorts each entry once, so this and `problems_in` can no longer
+    disagree about whether a place was written in. ! They were derived
+    separately once and DID disagree, on a place that had been ruled on.
     """
-    out = []
-    for sheet in copy.sheets:
-        out += [
-            str(m.get("address", ""))
-            for m in sheet.marks
-            if isinstance(m, dict) and untouched(m)
-        ]
-    return out
+    return [address for sheet in copy.sheets for address in sheet.unruled]
 
 
 def tally(copy: EditCopy) -> dict[Instruction, int]:
@@ -608,18 +579,14 @@ def tally(copy: EditCopy) -> dict[Instruction, int]:
     edit_copy, ruled or not -- a crash turned silent. ! THAT IS UNREACHABLE
     NOW rather than merely fixed: an `EditCopy` has no such key to read.
     """
+    # ! IT COUNTS `Mark.instruction`, WHICH IS THE MEMBER, since `P51`. It read
+    # the wire string and matched it against the members -- `Instruction` is a
+    # `StrEnum`, so `"clean"` found its counter -- and a parsed mark carries the
+    # member itself, so the string round trip has nothing left to do.
     counts = dict.fromkeys(INSTRUCTIONS, 0)
     for sheet in copy.sheets:
         for mark in sheet.marks:
-            if not isinstance(mark, dict):
-                continue
-            named = mark.get("instruction")
-            # ! MATCHED AS A STRING, WHICH IS WHAT THE WIRE CARRIES.
-            # `Instruction` is a `StrEnum`, so `Instruction.CLEAN == "clean"`
-            # and a returned entry's `"clean"` finds its counter without the
-            # value having to BE the member.
-            if isinstance(named, str) and named in counts:
-                counts[Instruction(named)] += 1
+            counts[mark.instruction] += 1
     return {name: n for name, n in counts.items() if n}
 
 
@@ -645,16 +612,14 @@ def _touches(mark: Mark) -> list[str]:
     return touched
 
 
-class MalformedMark(Exception):
-    """An entry `desk.mark.parse` refused, met while grouping.
-
-    Raised by `places`, carrying `parse`'s own messages joined with `"; "`.
-
-    !! RECONCILIATION REFUSES WHERE VERIFICATION REPORTS, and the difference is
-    what can be done afterwards. A list of problems can be handed back for
-    someone to answer; a mark whose shape is unreadable cannot be grouped by
-    the place it touches, and a place grouped wrongly is settled wrongly.
-    """
+#: !! `MalformedMark` IS DELETED, `P51`. It said *"reconciliation REFUSES where
+#: verification REPORTS"*, on the reasoning that a mark whose shape is
+#: unreadable cannot be grouped by the place it touches, and a place grouped
+#: wrongly is settled wrongly. ! THAT REASONING STILL HOLDS AND IS NOW
+#: STRUCTURAL: an unreadable entry never becomes a `Mark`, so `places` has
+#: nothing to group wrongly and no raise to make. Where it goes instead is
+#: `Sheet.refused` -- an address and its reasons, routed to the role that wrote
+#: it, `decision-log.md Process: #72`.
 
 
 class Placed(NamedTuple):
@@ -688,25 +653,17 @@ def places(proof: MasterProof) -> dict[str, list[Placed]]:
         sheets and their marks were walked. An address nobody ruled on is
         absent rather than empty.
 
-    Raises:
-        MalformedMark: an entry that is neither untouched nor parseable.
-
-    ! AN UNTOUCHED SLOT IS SKIPPED, the same coverage gap `verify_report`
-    skips: nobody wrote there, so there is nothing to group.
+    !! IT RAISED `MalformedMark` UNTIL `P51`, AND CANNOT NOW. `Sheet.marks`
+    holds marks that parsed, so there is no unreadable entry left to meet here
+    -- and `flows.collate._reconcilable`, whose whole job was dropping them
+    before this ran, went with the raise. ! THE REFUSAL DID NOT WEAKEN: an
+    entry that will not parse is `Sheet.refused`, which routes to the role that
+    wrote it instead of stopping the stage.
     """
     out: dict[str, list[Placed]] = {}
     for copy in proof.edit_copies:
         for sheet in copy.sheets:
-            for entry in sheet.marks:
-                if untouched(entry):
-                    continue
-                where = str(
-                    (entry.get("address") if isinstance(entry, dict) else None)
-                    or f"a mark of {copy.role}"
-                )
-                mark, why = Mark.deserialize(where, entry)
-                if mark is None:
-                    raise MalformedMark("; ".join(why))
+            for mark in sheet.marks:
                 placed = Placed(mark, copy.role)
                 for address in _touches(mark):
                     out.setdefault(address, []).append(placed)

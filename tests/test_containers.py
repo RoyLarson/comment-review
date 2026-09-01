@@ -8,7 +8,7 @@ is the input, which is what the refusals are about.
 from dataclasses import fields
 
 import pytest
-from helpers import a_small_real_tree, binder_of, returned
+from helpers import a_clean, a_small_real_tree, binder_of, returned
 
 from comment_review.desk.containers import (
     EditCopy,
@@ -31,9 +31,21 @@ class TestTheWriteHalfLivesWithTheRead:
     the pair this exists to keep from drifting apart.
     """
 
-    def test_a_sheet_is_written_with_every_field_the_class_declares(self):
+    def test_a_sheet_is_written_with_every_WIRE_field_the_class_declares(self):
+        """!! IT ASKED FOR EVERY DECLARED FIELD UNTIL `P51`, and two of
+        `Sheet`'s are now off the wire. `unruled` and `refused` are what the
+        parse MADE of entries that are not marks, so no producer writes them --
+        the pair this guards is `seed` against the WIRE shape, and demanding
+        them would make `Sheet.seed` impossible to write.
+
+        ! THE METADATA IS READ HERE RATHER THAN A LIST OF NAMES, for the same
+        reason the class's fields were: a literal would pass a rename that
+        broke `seed` and the declaration together.
+        """
         row = Sheet.seed(path="m.py", sha="abc", marks=[])
-        assert set(row) == {f.name for f in fields(Sheet)}
+        wire = {f.name for f in fields(Sheet) if f.metadata.get("wire", True)}
+        assert set(row) == wire
+        assert wire < {f.name for f in fields(Sheet)}, "some field must be off the wire"
 
     def test_an_edit_copy_is_written_with_every_field_the_class_declares(self):
         row = EditCopy.seed(role="block-context", read_from={"root": "."}, sheets=[])
@@ -43,24 +55,48 @@ class TestTheWriteHalfLivesWithTheRead:
         row = MasterProof.seed(stage="4c", read_from={}, edit_copies=[])
         assert set(row) == {f.name for f in fields(MasterProof)}
 
-    def test_what_seed_writes_is_what_parse_reads_back(self, tmp_path):
-        """The round trip, over the real tree rather than over a literal."""
+    def test_what_seed_writes_is_what_parse_reads_back_for_a_FILLED_copy(
+        self, tmp_path
+    ):
+        """The round trip, over the real tree rather than over a literal.
+
+        !! IT RAN OVER A SEEDED COPY UNTIL `P51` AND CANNOT NOW, which is the
+        asymmetry the class docstring states. A seeded copy's entries are all
+        UNTOUCHED, so the parse sorts every one into `unruled` and `marks` comes
+        back empty -- re-seeding from that writes no entries at all. The inverse
+        holds for a copy whose entries RULED, which is what this drives, and the
+        case it stopped covering is the test below.
+        """
+        wire = a_real_copy(tmp_path)
+        for sheet in wire["sheets"]:
+            for entry in sheet["marks"]:
+                entry.update(a_clean(entry["address"]))
+        copy, why = EditCopy.deserialize("copy 1", wire)
+        assert why == []
+        assert copy is not None
+        assert any(sheet.marks for sheet in copy.sheets), "nothing ruled to trip on"
+        again, why = EditCopy.deserialize("copy 1", copy.serialize())
+        assert why == []
+        assert again == copy
+
+    def test_a_SEEDED_copy_comes_back_as_unruled_addresses_and_no_marks(self, tmp_path):
+        """The asymmetry, asserted rather than left for someone to trip on.
+
+        ! A SEEDED COPY IS THE ONE A ROLE IS HANDED, so this is not an edge
+        case -- it is every copy before anyone writes in it. `Process: #66`
+        makes a seeded mark an empty FORM, and an empty form is not a `Mark`;
+        the parse says so by putting its address in `unruled`.
+        """
         copy, why = EditCopy.deserialize("copy 1", a_real_copy(tmp_path))
         assert why == []
         assert copy is not None
-        again, why = EditCopy.deserialize(
-            "copy 1",
-            EditCopy.seed(
-                role=copy.role,
-                read_from=copy.read_from,
-                sheets=[
-                    Sheet.seed(path=s.path, sha=s.sha, marks=list(s.marks))
-                    for s in copy.sheets
-                ],
-            ),
-        )
-        assert why == []
-        assert again == copy
+        assert not any(sheet.marks for sheet in copy.sheets)
+        assert not any(sheet.refused for sheet in copy.sheets)
+        seeded = {a for sheet in copy.sheets for a in sheet.unruled}
+        assert seeded, "a seeded copy carries the places it was seeded with"
+        # ! AND THE WIRE IT WRITES BACK IS EMPTY OF ENTRIES, which is what makes
+        # this lossy: the addresses left through `unruled`, not through `marks`.
+        assert all(not s["marks"] for s in copy.serialize()["sheets"])
 
 
 class TestWhatTheChainBuilds:

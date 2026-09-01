@@ -2,18 +2,18 @@
 
     collate(stage, edit_copies, binder, root) -> Collated
 
-Eleven acts, in the order the body runs them:
+Ten acts, in the order the body runs them:
 
     ENVELOPE   is each document the shape a copy must be --
                `desk.containers.EditCopy.deserialize`. Reported, never raised.
                !! IT IS THE ONLY PARSE IN THE FLOW, and what it returns is what
-               every act below reads -- `P42`. No step re-derives a walk over
-               the raw documents, and nothing past this line holds one
+               every act below reads -- `P42`, and since `P51` that includes
+               every MARK: a copy arrives sorted into what ruled, what was left
+               unruled, and what would not read at all
     CHECK      every copy's marks, stacked -- `desk.collator.problems_in`,
                over the copies ENVELOPE admitted. ! ONLY AN *ENVELOPE* FAILURE
                RETURNS EARLY. A malformed MARK is reported and the round goes
-               on without it -- `_reconcilable` drops it, and its docstring
-               says why refusing here would block three roles over one
+               on without it, because it never became a mark to begin with
     COVERAGE   did each role carry back every address the binder holds --
                `_coverage_problems`. `fan_out` refuses an uncovered page at the
                DISPATCH; this is the RETURN
@@ -22,8 +22,6 @@ Eleven acts, in the order the body runs them:
                `desk.mark.parse` cannot ask because it holds no binder, no page
                and no filesystem
     DRIFT      a returned `raw_text` that is not the seeded one
-    DROP       every mark `CHECK` already reported, from what `RECONCILE`
-               sees -- `_reconcilable`
     GATHER     `desk.proof.gather` -- the master_proof
     PLACE      `desk.collator.places` -- marks grouped by the place they touch
     RECONCILE  `desk.collator.reconcile` -- settled, escalated, re-read
@@ -52,14 +50,13 @@ should be stacked and capable of being read off correctly so that each can be
 fixed or sent back to the role."* That is verification's discipline, which
 `desk/collator.py`'s own header already states against reconciliation's raise.
 
-!! AND THE DROP IS WHAT LETS THE CHECK'S DISCIPLINE SURVIVE PAST IT.
-`desk.collator.places` -- what `reconcile` calls first -- RAISES
-`MalformedMark` on the first entry it cannot parse, so handing it a copy
-`CHECK` already found broken would abort the whole fold on ONE bad mark
-rather than routing it back to its role while the rest of the stage settles.
-`_reconcilable` removes every such entry, over a COPY of the edit_copy -- the
-caller's own is never mutated. See `_reconcilable`'s own docstring for why
-this is a drop and not a stand-down to `desk.mark.untouched`.
+!! AND THAT DISCIPLINE IS STRUCTURAL SINCE `P51`, WHERE IT USED TO BE A STEP.
+`desk.collator.places` RAISED `MalformedMark` on the first entry it could not
+parse, so an eleventh act -- DROP, `_reconcilable` -- ran between CHECK and
+GATHER to remove every such entry before the fold could abort on one role's bad
+mark. `Sheet.marks` holds only marks that parsed, so there is nothing to drop:
+an entry that will not read is `Sheet.refused`, and it routes to the role that
+wrote it while the rest of the stage settles.
 """
 
 from dataclasses import dataclass, field
@@ -84,7 +81,7 @@ from comment_review.desk.containers import (
     MasterProof,
     Sheet,
 )
-from comment_review.desk.mark import Instruction, Mark, filled, untouched
+from comment_review.desk.mark import Instruction, Mark, filled
 from comment_review.desk.proof import MismatchedRoot, gather
 from comment_review.reading.addresser import cue_of, unflatten
 from comment_review.results.differences import CannotCompose, compose
@@ -473,7 +470,11 @@ def _chief_copy(
                 paths.append(sheet.path)
                 shas[sheet.path] = sheet.sha
 
-    marks_of: dict[str, list[object]] = {}
+    # ! THE MARKS ARE CARRIED AS MARKS since `P51`, and were serialized here
+    # into wire dicts. `Sheet.marks` holds `Mark`s now, and the one place the
+    # chief's copy becomes a document is `commands/collate.py`'s save -- which
+    # is where `Process: #65` puts it.
+    marks_of: dict[str, list[Mark]] = {}
     shas_of: dict[str, str] = {}
     seen: set[int] = set()
     for mark in resolved.values():
@@ -483,7 +484,7 @@ def _chief_copy(
         addr = cue_of(mark.address)
         real = unflatten(addr.path, paths) or addr.path
         shas_of.setdefault(real, shas.get(real, ""))
-        marks_of.setdefault(real, []).append(mark.serialize())
+        marks_of.setdefault(real, []).append(mark)
     # ! BUILT AS THE CONTAINER, NOT AS THE WIRE DICT, since `P42`. It is the one
     # place that BUILDS a copy from scratch rather than from a binder, so it is
     # the one a rename would otherwise leave writing the old key -- which is
@@ -498,84 +499,19 @@ def _chief_copy(
     )
 
 
-def _reconcilable(copy: EditCopy) -> EditCopy:
-    """This role's edit_copy with every malformed mark dropped.
-
-    !! FORCED BY THE TESTS, NOT IN THE ORIGINAL BRIEF. `desk.collator.places`
-    -- what `reconcile` calls first -- RAISES `MalformedMark` on the first
-    entry `desk.mark.parse` refuses, and `problems_in` parses every entry the
-    same way, so anything this function drops was already reported in
-    `Collated.problems` before `collate` ever reaches `reconcile`.
-
-    !! NECESSARY BECAUSE THE ALTERNATIVE BLOCKS THREE ROLES OVER ONE. A
-    simpler fix -- refuse the whole run where `problems` is non-empty -- was
-    considered and rejected, ruled by Roy 2026-08-30: `Problem(role, address,
-    message)` exists precisely so "the errors should be stacked and capable
-    of being read off correctly so that each can be fixed or sent back to the
-    role." Per-role routing means one role's bad mark must not stop the other
-    roles' work from settling; a refusal here would do exactly that, over the
-    whole stage, for a defect that names one role and one place.
-
-    ! A MALFORMED ENTRY IS DROPPED, NOT STOOD DOWN TO `desk.mark.untouched`.
-    `places` already skips a `marks` entry two ways -- when `untouched(entry)`
-    is True, and when the entry is simply absent from the list -- and dropping
-    takes the second path. Standing one down to `Mark.seed`'s shape would
-    write `instruction: None`, which is what `untouched` reads as *nobody
-    wrote here*; a malformed mark means a role DID write here and got the
-    shape wrong. Giving those two facts one representation is the same
-    conflation `untouched`'s own docstring exists to forbid, in the other
-    direction. Dropping keeps them apart, and needs no `Mark.seed` call.
-
-    ! THE INFORMATION IS NOT LOST EITHER WAY. `problems_in` runs on the
-    ORIGINAL copy, before this function touches it, so the role and the
-    address are already captured in `Collated.problems` by the time this
-    drops the entry from what `reconcile` sees.
-
-    !! IT REBUILDS THE CONTAINER RATHER THAN WRITING THE WIRE DICT, and the
-    difference stopped mattering with `P42`. While this took a dict it could
-    not go through `EditCopy.seed`: that producer requires every declared
-    field, so a copy carrying no `read_from` came out holding `{}` -- the
-    absence fabricated into a value, which is what `desk.proof.gather`
-    subscripted the key to refuse. A parsed `EditCopy` has no such state to
-    preserve: `EditCopy.deserialize` refuses a copy whose `read_from` is
-    missing or malformed, so there is no absence left for a producer here to
-    erase.
-
-    Returns:
-        A NEW `EditCopy` -- new `Sheet`s and new `marks` tuples -- so the
-        caller's own containers are never mutated.
-    """
-    return EditCopy(
-        role=copy.role,
-        read_from={**copy.read_from},
-        sheets=tuple(
-            # ! AN ENTRY IS CHECKED AND THE SHEET IS NOT. `Sheet.marks` is
-            # typed `tuple[object, ...]` deliberately -- an entry that is not
-            # an object is CARRIED so `desk.mark.parse` can refuse it by name,
-            # which is exactly what `_keeps` then does.
-            Sheet(path=sheet.path, sha=sheet.sha, marks=tuple(_keeps(sheet)))
-            for sheet in copy.sheets
-        ),
-    )
-
-
-def _keeps(sheet: Sheet) -> list[object]:
-    """This sheet's entries, minus every one `desk.mark.parse` refuses.
-
-    An untouched slot is kept: nobody wrote there, which `places` skips on its
-    own terms rather than as a malformed mark.
-    """
-    out: list[object] = []
-    for entry in sheet.marks:
-        if not isinstance(entry, dict):
-            continue
-        if untouched(entry):
-            out.append(entry)
-            continue
-        mark, _why = Mark.deserialize(str(entry.get("address") or "a mark"), entry)
-        if mark is not None:
-            out.append(entry)
-    return out
+#: !! `_reconcilable` AND `_keeps` ARE DELETED, `P51`. Their whole job was
+#: dropping every entry `desk.mark.parse` refuses, so `desk.collator.places`
+#: would not raise `MalformedMark` on the first one and abort a stage over one
+#: role's bad mark. `Sheet.marks` holds only marks that parsed, so there is
+#: nothing left to drop and no raise left to avoid.
+#: ! WHAT THEY PROTECTED IS UNCHANGED AND IS NOW STRUCTURAL -- Roy, 2026-08-30:
+#: *"the errors should be stacked and capable of being read off correctly so
+#: that each can be fixed or sent back to the role."* A refused entry is
+#: `Sheet.refused`, an address and its reasons, routed to the role that wrote
+#: it -- `decision-log.md Process: #72`.
+#: ! AND THE DISTINCTION `_reconcilable` KEPT IS KEPT BY THE PARSE: a malformed
+#: mark means a role DID write here and got the shape wrong, which is not the
+#: same fact as `untouched`. They are two fields now, not one dropped entry.
 
 
 def _nothing_settled() -> EditCopy:
@@ -628,19 +564,20 @@ def _coverage_problems(edit_copies: list[EditCopy], binder: Binder) -> list[Prob
     known = known_addresses(binder)
     if not known:
         return []
+    # !! ALL THREE KINDS COUNT AS CARRIED, and that is the whole point of this
+    # check. It asks whether the copy came BACK with the binder's addresses, not
+    # whether the role ruled on them -- an untouched slot and an entry that
+    # would not parse are both places the role still HAS. Whether it answered
+    # is `unruled`'s question, and `commands/collate.py` reports that
+    # separately. ! A REFUSED ENTRY WITH NO ADDRESS contributes nothing, since
+    # there is no place to say it carried.
     by_role: dict[str, set[str]] = {}
     for copy in edit_copies:
         carried = by_role.setdefault(copy.role, set())
         for sheet in copy.sheets:
-            # ! THE ENTRY IS CHECKED AND THE SHEET IS NOT. The envelope decides
-            # the sheet; `Sheet.marks` deliberately carries an entry that is not
-            # an object, so that one is this function's own question.
-            for entry in sheet.marks:
-                if not isinstance(entry, dict):
-                    continue
-                address = entry.get("address")
-                if isinstance(address, str):
-                    carried.add(address)
+            carried.update(mark.address for mark in sheet.marks)
+            carried.update(sheet.unruled)
+            carried.update(one.address for one in sheet.refused if one.address)
     out: list[Problem] = []
     for role, carried in by_role.items():
         missing = sorted(known - carried)
@@ -818,7 +755,7 @@ def collate(
     # discards all of them, which `commands/collate.py` was measured doing on
     # 2026-08-30 -- exit 1 with an EMPTY stdout. See `CannotCollate`.
     try:
-        proof = gather(stage, [_reconcilable(copy) for copy in copies])
+        proof = gather(stage, copies)
     except MismatchedRoot as err:
         raise CannotCollate(str(err), problems) from err
     # !! THE PROOF BOUNDARY IS GONE, AND `P42` IS WHY. `MasterProof.deserialize`

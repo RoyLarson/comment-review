@@ -59,16 +59,32 @@ repeating it -- a rule in two places is a rule that will disagree with itself.
 every place has exactly one answer, and one mark per place is an ordinary copy.
 There is no second shape and no second parse.
 
-! `marks` IS TYPED `tuple[object, ...]`, matching `Mark.sources` and for the
-same reason: an entry that is not an object is CARRIED so `desk.mark.parse` can
-refuse it by name. Filtering to dicts here would make a bare string vanish
-instead of being flagged.
+!! `Sheet.marks` HOLDS `Mark`s SINCE `P51`, and was `tuple[object, ...]` --
+an entry that is not an object was CARRIED so `desk.mark.parse` could refuse it
+by name rather than have it vanish. `_sorted_entries` refuses it at the parse
+instead, into `Sheet.refused`, so nothing vanishes and nothing downstream has to
+re-read a raw entry. ! `Mark.sources` IS STILL `object` for the original
+reason; the two are no longer the same case.
 """
 
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, field, fields
+from typing import NamedTuple
 
 from comment_review.binder.binder import _read_from_problem
-from comment_review.desk.mark import filled
+from comment_review.desk.mark import Mark, filled, untouched
+
+
+def _wire_fields(cls) -> list[str]:
+    """The field names that are on the WIRE, in the class's own order.
+
+    !! NOT EVERY FIELD IS A WIRE FIELD, since `P51`. `Sheet.unruled` and
+    `Sheet.refused` are DERIVED by the parse -- they are what the entries that
+    are not a `Mark` came to -- so a producer must not be asked to write them
+    and `_written` must not demand them. A field is off the wire when its
+    metadata says `wire: False`; everything else is on it, which keeps the
+    default the safe one.
+    """
+    return [f.name for f in fields(cls) if f.metadata.get("wire", True)]
 
 
 def _written(cls, values: dict) -> dict:
@@ -93,30 +109,133 @@ def _written(cls, values: dict) -> dict:
             omits one it does. ! THIS IS THE WHOLE GUARD, and it fires at the
             point the row is built rather than silently one module away.
     """
-    declared = [f.name for f in fields(cls)]
+    declared = _wire_fields(cls)
     if set(values) != set(declared):
         raise AttributeError(
             f"{cls.__name__}.seed writes {sorted(values)}, "
-            f"which is not {cls.__name__}'s {sorted(declared)}"
+            f"which is not {cls.__name__}'s wire fields {sorted(declared)}"
         )
     return {name: values[name] for name in declared}
 
 
+class Refused(NamedTuple):
+    """One entry the parse could not read as a mark, and why.
+
+    ! ADDRESS AND REASONS, NEVER THE ENTRY -- `decision-log.md Process: #72`.
+    Roy, 2026-09-01: *"The agents can find the marks in their remit and fix in
+    their stuff directly. No reason to try to duplicate or fill in the problems
+    for them and have disjointed what needs fixed."* The role still holds the
+    copy this came out of; what it needs is where and what, not the place back.
+
+    Attributes:
+        address: the entry's own `address`, or "" where it carried none -- an
+            entry that is not an object, or one whose `address` is not a string.
+            ! "" IS NOT A PLACE, and a reader must not print it as one;
+            `commands/collate.py` renders it `(the copy)`.
+        reasons: every rule the entry broke, as `Mark.deserialize` worded them.
+            ! ALL OF THEM, not the first -- one malformed `correct` breaks four,
+            and a role fixing one at a time is three more round trips.
+    """
+
+    address: str
+    reasons: tuple[str, ...]
+
+
+def _sorted_entries(
+    marks: list,
+) -> "tuple[list[Mark], list[str], list[Refused]]":
+    """One sheet's entries, split into the three kinds a returned sheet holds.
+
+    !! THE ONLY PLACE A MARK IS PARSED, since `P51`. It was parsed at FOUR --
+    `problems_in`, `verify_report`, `places` and `flows.collate._keeps` -- so
+    every ruled entry went through `Mark.deserialize` four times per run,
+    measured 2026-09-01. Each of those four also spelled its own `where`
+    fallback and its own untouched test, which is four chances to disagree
+    about what an unruled place is.
+
+    Args:
+        marks: the sheet's `marks` list, as it came back. Entries are whatever
+            JSON held -- an object, a string, a number.
+
+    Returns:
+        `(ruled, unruled, refused)`.
+
+        ruled: one `Mark` per entry that parsed.
+        unruled: the address of every UNTOUCHED entry -- `desk.mark.untouched`,
+            a place nobody wrote in. ! IT IS ASKED FIRST, because an untouched
+            entry does not parse either: `Mark.deserialize` refuses its
+            `instruction: None` with *"must be one of add, clean, ..."*, which
+            would report a coverage gap as a malformed mark.
+        refused: one `Refused` per entry that is neither.
+
+    ! AN ENTRY THAT IS NOT AN OBJECT IS REFUSED, NOT DROPPED. `Sheet.marks` was
+    typed `object` precisely so a bare string could be named rather than vanish;
+    that reason survives the retyping, here, where the entry is read.
+
+    ! THE POSITION IS NOT KEPT. A refused entry is named by its own `address`
+    and by "" where it has none -- `mark {n}` was the old fallback, and a
+    position is not something a role can act on, which is what `Process: #72`
+    asks the return to be.
+    """
+    ruled: list[Mark] = []
+    unruled: list[str] = []
+    refused: list[Refused] = []
+    for entry in marks:
+        if isinstance(entry, dict) and untouched(entry):
+            unruled.append(str(entry.get("address") or ""))
+            continue
+        address = entry.get("address") if isinstance(entry, dict) else None
+        where = str(address) if filled(address) else ""
+        mark, why = Mark.deserialize(where or "this mark", entry)
+        if mark is None:
+            refused.append(Refused(where, tuple(why)))
+        else:
+            ruled.append(mark)
+    return ruled, unruled, refused
+
+
 @dataclass(frozen=True)
 class Sheet:
-    """One page's marks, inside the `edit_copy` that seeded them.
+    """One page's RULINGS, inside the `edit_copy` that seeded them.
+
+    !! IT HOLDS WHAT PARSED, AND WAS `tuple[object, ...]` UNTIL `P51`. Roy,
+    2026-09-01: *"we clearly need sheet to take Marks not Objects."* A returned
+    sheet's entries come back in three kinds and only one is a mark -- the other
+    two leave as `unruled` and `refused`, which is `Process: #72`'s shape.
+
+    !! SO `deserialize` IS NOT `serialize`'s INVERSE FOR A SHEET THAT HOLDS
+    EITHER, and that is deliberate rather than a gap. What a role hands back has
+    an entry per place; what this holds is the rulings. The two other kinds are
+    not thrown away -- they are the whole subject of `flows/mark_errors.py`, and
+    they are addresses and reasons rather than places, so nothing can put them
+    back. ! The inverse DOES hold for a sheet whose every entry ruled, which is
+    what `tests/test_containers.py` round-trips.
 
     Attributes:
         path: the page's real repo path, as the binder stated it.
         sha: that page's sha when it was censused. Read by `docket_from`, which
             writes it onto the docket page so the setter can refuse a page that
             moved underneath the run.
-        marks: one entry per place on the page, as they came back.
+        marks: one `Mark` per place a role RULED on, in the order they came
+            back.
+        unruled: the address of every place handed to the role and left
+            untouched -- `desk.mark.untouched`. A coverage gap, not an error.
+        refused: one `Refused` per entry that is neither untouched nor
+            parseable. ! IT IS NOT FATAL TO THE SHEET, and that is what keeps
+            one role's bad mark from blocking the stage: `flows.collate.collate`
+            returns early on an envelope failure, so refusing here would stop
+            three roles over one. Roy, 2026-08-30: *"the errors should be
+            stacked and capable of being read off correctly so that each can be
+            fixed or sent back to the role."*
     """
 
     path: str
     sha: str
-    marks: tuple[object, ...]
+    marks: tuple[Mark, ...]
+    #: ! OFF THE WIRE. Both are what the parse MADE of entries that are not
+    #: marks, so no producer writes them and `_written` must not demand them.
+    unruled: tuple[str, ...] = field(default=(), metadata={"wire": False})
+    refused: tuple[Refused, ...] = field(default=(), metadata={"wire": False})
 
     @classmethod
     def seed(cls, path: str, sha: object, marks: list) -> dict:
@@ -209,16 +328,34 @@ class Sheet:
         # it from reading as the settled shape.
         raw_sha = data.get("sha")
         sha = raw_sha if isinstance(raw_sha, str) else ""
-        return Sheet(path=path, sha=sha, marks=tuple(marks)), []
+        ruled, unruled, refused = _sorted_entries(marks)
+        return (
+            Sheet(
+                path=path,
+                sha=sha,
+                marks=tuple(ruled),
+                unruled=tuple(unruled),
+                refused=tuple(refused),
+            ),
+            [],
+        )
 
     def serialize(self) -> dict:
         """This sheet as the wire dict, the shape `seed` writes.
 
-        ! IT WRITES A FILLED SHEET AND `seed` WRITES AN EMPTY ONE -- the same
-        three keys either way. `marks` are carried as they are held, which is
-        `object` for the reason the class docstring gives.
+        !! IT WRITES THE RULINGS, AND IS NOT `deserialize`'s INVERSE FOR A SHEET
+        HOLDING `unruled` OR `refused` -- see the class docstring. Those two are
+        addresses and reasons rather than places, so there is nothing to write
+        back; `flows/mark_errors.py` is where they go instead.
+
+        ! THE THREE WIRE KEYS ARE THE THREE `seed` WRITES. `unruled` and
+        `refused` are off the wire, which `_wire_fields` states once.
         """
-        return {"path": self.path, "sha": self.sha, "marks": list(self.marks)}
+        return {
+            "path": self.path,
+            "sha": self.sha,
+            "marks": [mark.serialize() for mark in self.marks],
+        }
 
 
 @dataclass(frozen=True)
