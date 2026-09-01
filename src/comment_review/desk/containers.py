@@ -71,7 +71,7 @@ from dataclasses import dataclass, field, fields
 from typing import NamedTuple
 
 from comment_review.binder.binder import _read_from_problem
-from comment_review.desk.mark import Mark, filled, untouched
+from comment_review.desk.mark import Mark, filled, untouched, without_location
 
 
 def _wire_fields(cls) -> list[str]:
@@ -225,7 +225,13 @@ def _sorted_entries(
             continue
         mark, why = Mark.deserialize(where, entry)
         if mark is None:
-            refused.append(Refused(named, where, tuple(why)))
+            # ! THE LOCATOR IS A FIELD, SO IT IS NOT ALSO A PREFIX -- T3 of
+            # `collate-command-defects`. `where` went IN to name the mark in
+            # each message; `Refused.where` carries it now, so the sentence
+            # does not repeat it.
+            refused.append(
+                Refused(named, where, tuple(without_location(where, m) for m in why))
+            )
         else:
             ruled.append(mark)
     return ruled, unruled, refused

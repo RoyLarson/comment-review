@@ -21,6 +21,7 @@ from pathlib import Path
 import pytest
 from test_mark_brief import BRIEF
 
+from comment_review.desk.containers import Sheet
 from comment_review.desk.mark import (
     ANCHOR_EXAMPLE,
     INSTRUCTIONS,
@@ -28,6 +29,7 @@ from comment_review.desk.mark import (
     Mark,
     allowed,
     untouched,
+    without_location,
 )
 
 
@@ -540,3 +542,53 @@ def test_a_move_to_a_different_address_still_parses():
     mark, why = Mark.deserialize("m.py@b1", entry)
     assert why == []
     assert mark is not None
+
+
+class TestAStoredReasonDoesNotRepeatItsLocator:
+    """A container that carries the place must not carry it twice.
+
+    !! MEASURED 2026-09-01 ON EVERY LINE OF THE REPORT: `block-context
+    m.py@b1: m.py@b1: correct needs a reason`. Fifteen message sites in
+    `desk/mark.py` open `f"{where}: "` -- right for a caller holding nothing
+    else to say which mark it is -- and the two callers that record the place as
+    a FIELD printed both. `collate-command-defects` T3.
+
+    !! THIS IS THE GATE ON `without_location`, AND IT ASKS THE QUESTION THAT
+    MATTERS RATHER THAN THE FIX. Either half can rot in silence: a sixteenth
+    message site spelling the prefix by hand, or the un-prefixer drifting from
+    the format it undoes. Neither shows up as a broken build -- both show up as
+    a doubled address in a report nothing asserts on.
+    """
+
+    def test_a_refused_entrys_reasons_do_not_open_with_its_own_where(self):
+        """Over a REAL sheet parse, so it is the stored value being asked."""
+        sheet, why = Sheet.deserialize(
+            "s",
+            {
+                "path": "m.py",
+                "sha": "a",
+                "marks": [
+                    {"address": "m.py@b1", "instruction": "correct", "claim": {}},
+                    "not an object",
+                ],
+            },
+        )
+        assert why == []
+        assert sheet is not None
+        assert sheet.refused, "the fixture must actually be refused"
+        for one in sheet.refused:
+            for reason in one.reasons:
+                assert not reason.startswith(f"{one.where}:"), reason
+                assert not reason.startswith(f"{one.address}:"), reason
+
+    def test_it_leaves_a_message_that_does_not_carry_the_prefix(self):
+        """! IT REMOVES WHAT WAS ADDED, so anything else is returned whole --
+        which is what keeps it from eating a message that happens to begin with
+        a colon-bearing word."""
+        assert without_location("m.py@b1", "m.py@b1: needs a reason") == (
+            "needs a reason"
+        )
+        assert without_location("m.py@b1", "needs a reason") == "needs a reason"
+        assert without_location("", "m.py@b1: needs a reason") == (
+            "m.py@b1: needs a reason"
+        )

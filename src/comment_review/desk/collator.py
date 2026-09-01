@@ -86,6 +86,7 @@ from comment_review.desk.mark import (
     Instruction,
     Mark,
     filled,
+    without_location,
 )
 from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.machine import constants
@@ -449,8 +450,14 @@ def verify_report(
         # ruled entry. `Sheet.marks` holds only what ruled, so an untouched
         # slot and an unparseable entry are both already elsewhere.
         for mark in sheet.marks:
+            # ! THE ADDRESS IS `Problem.address`, SO IT IS NOT ALSO THE OPENING
+            # OF EVERY MESSAGE -- T3 of `collate-command-defects`. The three
+            # leaf checks are handed a `where` and prefix it, which is right for
+            # a caller holding nothing else; this one records it as a field.
             out += [
-                Problem(copy.role, mark.address, message)
+                Problem(
+                    copy.role, mark.address, without_location(mark.address, message)
+                )
                 for message in source_verification(
                     mark.address,
                     mark,

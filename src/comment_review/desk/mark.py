@@ -491,6 +491,39 @@ def filled(value: object) -> TypeGuard[str]:
     return isinstance(value, str) and bool(value.strip())
 
 
+def without_location(where: str, message: str) -> str:
+    """One refusal with the `where` prefix this module put on it removed.
+
+    !! EVERY MESSAGE HERE OPENS `f"{where}: "` -- fifteen sites -- so a caller
+    with nowhere else to say which mark it is reads a self-describing sentence.
+    A caller that records the location as its OWN FIELD does not, and printing
+    both gave `block-context m.py@b1: m.py@b1: correct needs a reason`.
+    `collate-command-defects` T3, measured on every line of the report the task
+    agent reads.
+
+    !! IT REMOVES WHAT THIS MODULE ADDED, which is what makes it a fact rather
+    than a guess: the caller passes `where` in and hands the same `where` back,
+    so the prefix is known rather than sniffed. A message that does not carry it
+    is returned untouched.
+
+    ! AND `tests/test_mark.py::TestAStoredReasonDoesNotRepeatItsLocator` is what
+    keeps it true. Either half can rot silently -- a sixteenth message site
+    spelling the prefix by hand, or this function drifting from the format --
+    and the gate asks the only question that matters: does a reason a container
+    stored begin with the locator that container already carries.
+
+    Args:
+        where: exactly what was handed to `Mark.deserialize` or
+            `desk.collator.source_verification`.
+        message: one refusal from that call.
+
+    Returns:
+        The message without its leading `f"{where}: "`, or unchanged.
+    """
+    prefix = f"{where}: "
+    return message[len(prefix) :] if where and message.startswith(prefix) else message
+
+
 def allowed() -> dict:
     """The shape a role is handed -- generated from the rows, never hand-written.
 
