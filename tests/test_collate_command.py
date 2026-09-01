@@ -439,6 +439,65 @@ class TestExitCodes:
         settled = [m["address"] for s in chief["sheets"] for m in s["marks"]]
         assert settled == ["m.py@b1"]
 
+    def test_a_place_HANDED_TO_A_ROLE_AND_NOT_RULED_ON_is_named_and_exits_six(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """!! MEASURED 2026-09-01, AND IT EXITED `OK`. A role that keeps every
+        slot and fills ONE is complete by every check the command ran:
+        `_coverage_problems` asks whether the copy came BACK with the binder's
+        addresses, and an untouched slot still carries its address. So over a
+        three-place binder with `module-context` ruling one, `got.problems` and
+        `got.coverage` were both EMPTY, the chief copy was written, and stdout
+        said `0 places resolved` -- **which is also what an all-`clean` round
+        prints**. Nothing separated *everyone read it and had nothing to say*
+        from *a role skipped two thirds of its work*.
+
+        ! `Collated.unruled` HELD THE ANSWER THE WHOLE TIME: the flow computed
+        `{'module-context': ['m.py@b5', 'm.py@b7']}` and this command threw it
+        away. That is why the fix is a report and a code, not a new check.
+
+        ! IT TAKES `COVERAGE` DELIBERATELY -- see the constant. Both mean this
+        role owes an answer at this address, and a code exists so a caller can
+        branch on something it would act on differently.
+        """
+        binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})
+        # ! ONE ROLE, ONE RULING, EVERY SLOT KEPT -- the shape `_keeping_only`
+        # cannot make, since that helper REMOVES the entry and this case needs
+        # it present and unfilled.
+        copies = copies_over(binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}})
+        binder_path = tmp_path / "binder.json"
+        binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
+        copy_path = tmp_path / "copy.json"
+        copy_path.write_text(json.dumps(copies[0]), encoding="utf-8")
+        out_path = tmp_path / "chief.json"
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "collate",
+                "--stage",
+                "4c",
+                "--binder",
+                str(binder_path),
+                "--out",
+                str(out_path),
+                "--edit-copy",
+                str(copy_path),
+                "--repo",
+                str(REPO),
+            ],
+        )
+        code = command.main()
+        out = capsys.readouterr().out
+        assert code == command.COVERAGE
+        assert code != command.OK, "a silently short round used to exit 0"
+        # ! THE ADDRESS AND THE ROLE, so the task agent can send it back.
+        assert "block-context m.py@b5: handed to this role and not ruled on" in out
+        # ! AND THE PLACE THAT *WAS* RULED ON IS NOT NAMED -- a report that
+        # listed every address would be a list nobody reads.
+        assert "m.py@b1: handed to this role" not in out
+        # ! THE ROUND STILL SETTLES, `Process: #63`.
+        assert out_path.exists()
+
     def test_an_unreadable_input_exits_two(self, tmp_path, monkeypatch, capsys):
         monkeypatch.setattr(
             "sys.argv",

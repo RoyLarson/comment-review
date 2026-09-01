@@ -21,6 +21,7 @@ import sys
 from pathlib import Path
 
 from comment_review.binder.binder import Binder
+from comment_review.desk.collator import Problem
 from comment_review.desk.proof import MismatchedRoot
 from comment_review.flows.collate import CannotCollate, collate
 from comment_review.machine import exceptions
@@ -58,6 +59,11 @@ DRIFT = 5
 #: ruled out, and this one answers whether a ROLE ANSWERED rather than whether
 #: the tree moved. Coverage is a fact about the round; drift was a fact about a
 #: page, which the middle has no stake in.
+#: !! IT CARRIES THE UNRULED PLACES TOO, since 2026-09-01. `Collated.unruled`
+#: was computed by the flow and DISCARDED here, so a role that kept every slot
+#: and filled one exited `OK` with the chief copy written -- see
+#: `_unruled_problems` for the measurement. Both mean *this role owes an answer
+#: at this address*, and a code exists so a caller can branch.
 COVERAGE = 6
 
 #: The ways a stage cannot be reconciled at all, as against a mark that broke a
@@ -101,6 +107,43 @@ def _report(problems: list) -> None:
     for problem in problems:
         where = problem.address or "(the copy)"
         print(f"{problem.role} {where}: {problem.message}")
+
+
+def _unruled_problems(unruled: dict[str, list[str]]) -> list[Problem]:
+    """A place a role was handed and did not rule on, as a routable `Problem`.
+
+    !! `flows.collate.collate` COMPUTED THIS AND THIS COMMAND THREW IT AWAY.
+    MEASURED 2026-09-01, over a three-place binder where `block-context` ruled
+    all three and `module-context` ruled ONE: `got.unruled` held
+    `{'module-context': ['m.py@b5', 'm.py@b7']}` and the run printed
+    `0 places resolved` and **exited OK, having written the chief copy**. That
+    line is also what a legitimately all-`clean` round prints, so a reader could
+    not tell *everyone read it and had nothing to say* from *one role skipped
+    two thirds of its work*.
+
+    ! IT IS NOT WHAT `_coverage_problems` ANSWERS, which is why both are needed.
+    Coverage asks whether the copy came BACK carrying the binder's addresses; a
+    role that kept every slot and filled none is complete by that measure. This
+    asks whether the role RULED there. In the run above coverage was empty.
+
+    Args:
+        unruled: `Collated.unruled` -- role -> the addresses nobody wrote in.
+            A role with an empty list contributes nothing.
+
+    Returns:
+        One `Problem` per unruled place, role then address order, so `_report`
+        prints it in the one format every other finding uses and a task agent
+        reads one list rather than three.
+
+    ! ONE PER PLACE, NOT ONE PER ROLE. `Problem.address` is what a reader acts
+    on, and a single `Problem` naming five addresses in its message would put
+    them where nothing can route them -- the defect `Problem` exists to end.
+    """
+    return [
+        Problem(role, address, "handed to this role and not ruled on")
+        for role in sorted(unruled)
+        for address in sorted(unruled[role])
+    ]
 
 
 def _load(path: str) -> tuple[dict, str]:
@@ -262,6 +305,7 @@ def main() -> int:
         print(f"escalated {entry['address']}: {', '.join(entry['roles'])}")
     for entry in got.rereads:
         print(f"re-read {entry['address']}: {', '.join(entry['roles'])}")
+    _report(_unruled_problems(got.unruled))
 
     if got.escalations:
         return ESCALATIONS
@@ -274,7 +318,14 @@ def main() -> int:
     # `Process: #62` ruled `drift_in` out, and its deletion is the move plan's
     # task 2; when it goes this branch goes with it and `COVERAGE` becomes the
     # last check before `OK`. Nothing here should be read as ranking the two.
-    if got.coverage:
+    #
+    # !! AN UNRULED PLACE TAKES `COVERAGE` RATHER THAN A SEVENTH CODE, because
+    # the caller's ACT is the same: send this place back to that role. The two
+    # differ in how the role fell short -- the copy came back without the
+    # address, or with the address and no ruling -- and that difference is on
+    # the line `_report` prints, where a reader needs it. A code exists so a
+    # caller can BRANCH, and nothing branches differently on these two.
+    if got.coverage or any(got.unruled.values()):
         return COVERAGE
     if got.drift:
         return DRIFT
