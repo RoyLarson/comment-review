@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 33 tasks closed
+Progress: 10 of 34 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -272,3 +272,7 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
 - [?] T33 | Is binder/page.py a LEAF both ends may reach down to, or the read
       end, given that Paragraph is already a leaf and both ends handle a Page?
         > 2026-08-31 Page used by results, flows, commands, binder -- both ends
+- [ ] T34 | Move SYMBOLISH off reading/lexer.py to a real leaf, since it has no
+      reader inside the lexer and was parked there to be one
+        > 2026-08-31 Read by binder/annotate.py and concordance/code_names.py only
+        > 2026-08-31 Same misplacement Paragraph was in; the comment states the motive
