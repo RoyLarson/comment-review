@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 37 tasks closed
+Progress: 10 of 39 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -292,3 +292,13 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
         > 2026-08-31 and serialize with no production caller -- collate's PROOF boundary
         > 2026-08-31 was the last one, and gather returns the container now. stage is
         > 2026-08-31 read only by serialize, so it fails P21's third clause.
+- [ ] T38 | Update flows.distribute.seed and flows.fan_out.fan to return
+      EditCopy, so the command serializes what the flow hands back
+        > 2026-08-31 MEASURED 2026-08-31: seed returns a dict and commands/distribute.py
+        > 2026-08-31 dumps it directly -- the one command of five whose output is not a
+        > 2026-08-31 container that serialized itself. fan has the same shape, unwired.
+- [?] T39 | Decide what Sheet.marks holds on the way back, when a filled mark
+      could be a Mark and a seeded one cannot
+        > 2026-08-31 MEASURED 2026-08-31: it is the ONLY object in any container's field
+        > 2026-08-31 The tension is real: Process 66 makes a SEEDED mark a wire dict, so
+        > 2026-08-31 one type serves two states and only one can hold Marks.
