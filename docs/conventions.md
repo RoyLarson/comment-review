@@ -280,12 +280,47 @@ PROBLEM.**
 T6 asks the question and holds the measurement. Roy: *"that thread probably needs pulled a
 little more carefully and it isn't hurting yet to leave it in."*
 
-!! **SO THE TEST IS NOT "IS IT DEAD" BUT "AM I REASONING FROM IT".** A field nothing reads
-is a cleanup. **A field a current design is being shaped around is a defect right now**,
-whatever its reader count says -- and it will be defended, because the design that grew on
-it is evidence for it. ! That is the same trap as *a purpose first stated in a review*, one
-level up: there, the code produces the justification; here, the leftover field produces the
-design that then justifies it.
+! **A field a current design is being shaped around is a defect right now**, whatever its
+reader count says -- and it will be defended, because the design that grew on it is evidence
+for it. ! That is the same trap as *a purpose first stated in a review*, one level up: there,
+the code produces the justification; here, the leftover field produces the design that then
+justifies it.
+
+### !! FOLLOW THE FIELD TO WHAT FINALLY CONSUMES IT. COUNTING READERS IS NOT THAT
+
+**The test is mechanical and a stranger can run it: take each read, and ask what the LAST
+thing in the chain does with the value.** If every terminus reconstructs something the
+system already holds, the field is a copy.
+
+    lexer     held.declares = ordinal
+    attach    cues.documents(declares)
+    Cues      self.addressers[DECLARED].at(ordinal)
+    at        got = cue_for(self.series, step)
+    cue_for   return f"{series}{step}"          <-- the terminus: it rebuilds `a3`
+
+!! **ROY RAN THAT CHAIN AND HAD THE ANSWER BEFORE ANY MEASUREMENT WAS TAKEN.** 2026-08-31,
+after two sessions of my evidence pointing the other way: *"you tried very hard to convince
+me that those were necessary even though I had already followed the full chain on logic
+determining they were dead."*
+
+!! **AND EVERY TEST I SUBSTITUTED FOR IT WAS LOCAL, WHICH IS WHY EACH ONE PASSED.**
+
+| what I asked | why it answered nothing |
+| --- | --- |
+| *is it read* | always yes for a field with a reader. One hop, no terminus |
+| *does it agree with the address* | the address is computed FROM it -- 11,702 agreements that could not have come out otherwise |
+| *does my replacement work* | it did not, and that is a fact about my replacement. Anchor TEXT was never the key; the ordinal already was the cue |
+
+! **ONE HOP IS THE COMMON FAULT IN ALL THREE.** Each stops at the first thing that touches
+the field and reads the result as an answer about the field.
+
+!! **DO NOT WRITE THIS RULE AS A SELF-CHECK.** An earlier wording of it said *"the test is
+not is it dead but AM I REASONING FROM IT"* -- which asks for introspection in the moment,
+and Roy named that plainly the same day: *"you are not very good at introspection or seeing
+the global shape of the code."* ! It is the fault `CLAUDE.md` already records for boxes --
+*"is this a verifiable checkpoint" is a judgement; "does this box open with implement,
+update, delete, or a question" is a reading* -- arriving on a field instead of on a task.
+**Trace the chain, which is a reading. Do not ask yourself how you feel about it.**
 
 ---
 
