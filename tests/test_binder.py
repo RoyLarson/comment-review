@@ -13,6 +13,7 @@ from comment_review.binder.binder import VERSION, Binder, bind
 from comment_review.binder.page import _place
 from comment_review.flows.census import carried
 from comment_review.machine.json_object import object_of
+from comment_review.reading.series import Kind
 
 #: The fields ruled onto a row -- FIVE, after three rulings.
 #: `Addressing: #12` cut eleven of nineteen. `#14` put `kind` back, and `#15`
@@ -390,6 +391,41 @@ class TestAReaderRefusesRatherThanCoping:
         (place,) = got.paragraphs
         assert place.original_start is None
         assert place.address == "m.py@b1"
+
+    def test_an_EMPTY_place_comes_back_EMPTY(self):
+        """!! A KIND IS THE CUE **AND** WHETHER THE PLACE HOLDS PROSE, and the
+        read back used the cue alone until 2026-08-31.
+
+        MEASURED on a binder of this repo's own `docket.py` written with
+        `absent=True`: 127 `interval`, 130 `margin` and 2 `dark-matter` went
+        out, and **every one came back as its series' PRESENT kind** -- 131
+        `comment`, 130 `trailing-comment`, 2 `matter`. 259 empty places read as
+        prose.
+
+        ! WHAT THAT COSTS: `Kind.holds_no_prose` is what `Page.prose` and the
+        census filter ask, so a role handed a re-read binder would be given 259
+        places to rule on that hold nothing. Roy, 2026-08-25: *"The absent kinds
+        are not supposed to be sent to the agents."*
+
+        ! NOTHING COVERED IT because nothing round-tripped a binder holding
+        `Page`s -- `absent=True` is the only path that produces one, and the
+        suite exercised it for its CUES and never for its kinds.
+        """
+        page = build(SAMPLE)
+        full = bind([page], read_from=READ_FROM, absent=True)
+        got, why = read(json.dumps(full.serialize()))
+        assert why == ""
+        assert got is not None
+
+        # ! ASSERTED AS THE WHOLE MAPPING, not a sample: every place keeps the
+        # kind it was written with.
+        before = {b.address: b.kind for b in full.paragraphs}
+        after = {b.address: b.kind for b in got.paragraphs}
+        assert after == before
+
+        empty = [b for b in got.paragraphs if not b.raw_text.strip()]
+        assert empty, "the sample must carry empty places or this is vacuous"
+        assert all(Kind.holds_no_prose(b.kind) for b in empty)
 
     def test_a_binder_with_no_read_from_is_refused(self):
         """The version "1" artifact. It is refused for `read_from` only AFTER

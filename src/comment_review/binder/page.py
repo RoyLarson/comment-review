@@ -286,6 +286,42 @@ def _place(paragraph: Paragraph) -> dict:
     }
 
 
+def _kind_of(series: "Series | None", raw_text: str) -> str:
+    """This place's kind: its series, and whether prose fills it.
+
+    !! BOTH HALVES, AND IT WAS THE SERIES ALONE FOR ONE COMMIT. A `Definition`
+    holds a PAIR -- `GAP = Definition("b", COMMENT, INTERVAL)` -- and taking
+    `.present` unconditionally types every empty place as prose.
+
+    !! MEASURED 2026-08-31 on a binder of `docket.py` written with
+    `absent=True`: 127 `interval`, 130 `margin` and 2 `dark-matter` went out and
+    **all 259 came back as their series' present kind**. `Kind.holds_no_prose`
+    is what `Page.prose` and the census filter ask, so a role handed that binder
+    would be given 259 places to rule on that hold nothing -- against Roy's own
+    ruling, 2026-08-25: *"The absent kinds are not supposed to be sent to the
+    agents."*
+
+    ! WHAT MADE IT INVISIBLE: nothing round-tripped a binder holding `Page`s.
+    `absent=True` is the only path that produces one, and the suite exercised it
+    for its CUES and never for its kinds.
+
+    Args:
+        series: the cue's series, or None for a cue no series names.
+        raw_text: the place's prose, as the wire carries it.
+
+    Returns:
+        The `present` kind when prose fills the place, the `absent` kind when
+        nothing does. ! `d` HAS NO ABSENCE and falls back to its present -- a
+        fence is never carried, so this cannot be reached through a binder, and
+        answering "" would be a kind no series names.
+    """
+    if series is None:
+        return ""
+    if raw_text.strip():
+        return series.value.present
+    return series.value.absent or series.value.present
+
+
 def _paragraph(place: dict, path: str) -> Paragraph:
     """One place read back into the `Paragraph` it was written from.
 
@@ -315,8 +351,11 @@ def _paragraph(place: dict, path: str) -> Paragraph:
         path=path,
         start=start if isinstance(start, int) else 0,
         end=end if isinstance(end, int) else 0,
-        kind=series.value.present if series else "",
-        lines=len(raw_lines),
+        kind=_kind_of(series, raw_text),
+        # ! ZERO WHERE THE PLACE HOLDS NOTHING, which is what an EMPTY place
+        # means -- `Kind.occupies_no_lines`. `raw_lines` still holds one entry
+        # for it, so `len(raw_lines)` would say 1.
+        lines=0 if not raw_text.strip() else len(raw_lines),
         text=raw_text,
         anchor=str(place.get("anchor", "")),
         address=address_for(path, cue_text),
