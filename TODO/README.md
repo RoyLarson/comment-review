@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (124)
+### open  (125)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -306,6 +306,7 @@ that changed a published name or rule:
 | [differences-defects](differences-defects.md) | backend | — | 0/10 | Ten defects in `results/differences.py`, none of them in its arithmetic |
 | [plans-name-no-todo-tasks](plans-name-no-todo-tasks.md) | systems | -- | 0/4 | Six 0.2.4 plans carry no heading naming the TODO tasks they close |
 | [index-and-glossary-for-roles](index-and-glossary-for-roles.md) | agents | -- | 0/1 | Hand a reviewer the name index and the glossary rather than leaving it to grep |
+| [local-annotation-false-positive](local-annotation-false-positive.md) | systems | -- | 0/1 | check_shipped_syntax reads a local variable annotation as a forward reference |
 
 ### in-progress  (19)
 
