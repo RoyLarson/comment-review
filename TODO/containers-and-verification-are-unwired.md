@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 36 tasks closed
+Progress: 10 of 37 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -286,3 +286,9 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
         > 2026-08-31 P42 left it deliberately: a new type needs its purpose
         > 2026-08-31 named before the code -- conventions.md. _outcome builds it;
         > 2026-08-31 _composition, _resolve and commands/collate.py read it by key.
+- [?] T37 | Decide whether a master_proof is ever written to disk, or delete its
+      serialize, deserialize and stage
+        > 2026-08-31 MEASURED after P42: grep -rn MasterProof src/ shows deserialize
+        > 2026-08-31 and serialize with no production caller -- collate's PROOF boundary
+        > 2026-08-31 was the last one, and gather returns the container now. stage is
+        > 2026-08-31 read only by serialize, so it fails P21's third clause.
