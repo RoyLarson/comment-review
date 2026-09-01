@@ -49,7 +49,7 @@ compositor reads the file from disk and never a binder.
 from dataclasses import dataclass
 
 from comment_review.binder.page import Page, RedactedPage
-from comment_review.reading.lexer import Paragraph
+from comment_review.reading.paragraph import Paragraph
 
 # ! The shape's own version, so a reader can say WHICH format it refused rather
 # than only that it could not read one.

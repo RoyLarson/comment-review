@@ -70,7 +70,6 @@ from comment_review.reading.addresser import (
 )
 from comment_review.reading.lexer import (
     Language,
-    Paragraph,
     declarations,
     document_declarations,
     flag_structural_docs,
@@ -78,6 +77,7 @@ from comment_review.reading.lexer import (
     paragraphs_lexical,
     paragraphs_stdlib,
 )
+from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.series import Kind, Series
 
 #: The five fields a place is carried by, in the order `Page.serialize` writes

@@ -29,7 +29,7 @@ addresses, over a census -- and no trade word has been proposed for it.
 from collections.abc import Sequence
 
 from comment_review.reading.addresser import cue_of
-from comment_review.reading.lexer import Paragraph
+from comment_review.reading.paragraph import Paragraph
 
 
 def resolve(address: str, paragraphs: Sequence[Paragraph]) -> list[int]:

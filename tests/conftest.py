@@ -67,7 +67,8 @@ from comment_review.binder.page import page_for  # noqa: E402
 from comment_review.docket.docket import Docket  # noqa: E402
 from comment_review.machine.repo import sha_of  # noqa: E402
 from comment_review.reading.addresser import cue_of, unflatten  # noqa: E402
-from comment_review.reading.lexer import Paragraph, language_for  # noqa: E402
+from comment_review.reading.lexer import language_for  # noqa: E402
+from comment_review.reading.paragraph import Paragraph  # noqa: E402
 
 
 def build(text: str, name: str = "m.py"):

@@ -21,7 +21,7 @@ from comment_review.binder.binder import Binder
 from comment_review.machine import exceptions
 from comment_review.machine.json_object import object_of
 from comment_review.reading.addresser import SERIES, cue_of, unflatten
-from comment_review.reading.lexer import Paragraph
+from comment_review.reading.paragraph import Paragraph
 
 
 def main() -> int:

@@ -33,7 +33,8 @@ from comment_review.machine.repo import (
     walk_files,
 )
 from comment_review.reading.addresser import COVERS, SEPARATOR
-from comment_review.reading.lexer import LANGUAGES, Paragraph, language_for, tier_for
+from comment_review.reading.lexer import LANGUAGES, language_for, tier_for
+from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.series import Kind
 
 

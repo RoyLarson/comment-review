@@ -38,7 +38,7 @@ about a place, and is where to look when a file's reader could not answer.
 from collections.abc import Iterable
 from pathlib import Path
 
-from comment_review.reading.lexer import Paragraph
+from comment_review.reading.paragraph import Paragraph
 
 
 def carried(page: Iterable[Paragraph]) -> list[Paragraph]:
