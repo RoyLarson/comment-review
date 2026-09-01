@@ -21,7 +21,6 @@ import sys
 from pathlib import Path
 
 from comment_review.binder.binder import Binder
-from comment_review.desk.collator import Problem
 from comment_review.desk.proof import MismatchedRoot
 from comment_review.flows.collate import CannotCollate, collate
 from comment_review.machine import exceptions
@@ -109,41 +108,15 @@ def _report(problems: list) -> None:
         print(f"{problem.role} {where}: {problem.message}")
 
 
-def _unruled_problems(unruled: dict[str, list[str]]) -> list[Problem]:
-    """A place a role was handed and did not rule on, as a routable `Problem`.
-
-    !! `flows.collate.collate` COMPUTED THIS AND THIS COMMAND THREW IT AWAY.
-    MEASURED 2026-09-01, over a three-place binder where `block-context` ruled
-    all three and `module-context` ruled ONE: `got.unruled` held
-    `{'module-context': ['m.py@b5', 'm.py@b7']}` and the run printed
-    `0 places resolved` and **exited OK, having written the chief copy**. That
-    line is also what a legitimately all-`clean` round prints, so a reader could
-    not tell *everyone read it and had nothing to say* from *one role skipped
-    two thirds of its work*.
-
-    ! IT IS NOT WHAT `_coverage_problems` ANSWERS, which is why both are needed.
-    Coverage asks whether the copy came BACK carrying the binder's addresses; a
-    role that kept every slot and filled none is complete by that measure. This
-    asks whether the role RULED there. In the run above coverage was empty.
-
-    Args:
-        unruled: `Collated.unruled` -- role -> the addresses nobody wrote in.
-            A role with an empty list contributes nothing.
-
-    Returns:
-        One `Problem` per unruled place, role then address order, so `_report`
-        prints it in the one format every other finding uses and a task agent
-        reads one list rather than three.
-
-    ! ONE PER PLACE, NOT ONE PER ROLE. `Problem.address` is what a reader acts
-    on, and a single `Problem` naming five addresses in its message would put
-    them where nothing can route them -- the defect `Problem` exists to end.
-    """
-    return [
-        Problem(role, address, "handed to this role and not ruled on")
-        for role in sorted(unruled)
-        for address in sorted(unruled[role])
-    ]
+#: !! `_unruled_problems` MOVED INTO `flows/mark_errors.py`, `P52`. It turned
+#: `Collated.unruled` into routable `Problem`s HERE, in the console face, while
+#: `flows.collate` turned `Sheet.refused` into others -- so *what a role still
+#: owes* was assembled in two modules and printed as two lists. Roy, 2026-09-01,
+#: asking for the flow: it "collects the errors and makes something that helps
+#: the task agent point to the correct ones for the role agents."
+#: ! WHAT IT MEASURED IS KEPT AT THE FLOW: a role that kept every slot and filled
+#: ONE exited OK with the chief written, because `Collated.unruled` was computed
+#: and read by nothing.
 
 
 def _load(path: str) -> tuple[dict, str]:
@@ -264,6 +237,13 @@ def main() -> int:
         # incompatible header block routing for every other role. MEASURED
         # 2026-08-30: exit 1, stdout EMPTY. See `flows.collate.CannotCollate`.
         _report(refusal.problems)
+        # ! AND THE REVISIT LIST, since `P52` moved every malformed mark into
+        # it. A refusal that printed only `problems` would drop exactly what
+        # `CannotCollate` exists to preserve.
+        for one in refusal.revisit:
+            where = one.address or "(the copy)"
+            for reason in one.reasons:
+                print(f"{one.role} {where}: {reason}")
         print(
             f"REFUSED: the proof could not be reconciled -- {refusal}", file=sys.stderr
         )
@@ -286,7 +266,20 @@ def main() -> int:
     # the one thing that ruling forbids. It has its own list and its own code,
     # the way `drift` already does.
     _report(got.coverage)
-    if got.problems:
+    # !! EVERY PLACE A ROLE MUST GO BACK TO, IN ONE LIST -- `P52`. It is printed
+    # beside the findings because a task agent reads one screen and dispatches
+    # from it; what separates the two halves is the sentence on each line.
+    for one in got.revisit:
+        where = one.address or "(the copy)"
+        for reason in one.reasons:
+            print(f"{one.role} {where}: {reason}")
+    # !! AN UNREADABLE MARK IS `BROKEN` AND AN UNRULED PLACE IS NOT, which is
+    # the whole reason `Revisit.unreadable` exists. `Process: #63` says a
+    # missing ANSWER routes without voiding the round; a mark that will not
+    # read is a different fact, and it gated `BROKEN` through `got.problems`
+    # until `P52` moved it into `revisit`. ! THE CODES DID NOT CHANGE, only
+    # where the command reads them from.
+    if got.problems or any(one.unreadable for one in got.revisit):
         return BROKEN
 
     # !! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE FLOW'S --
@@ -305,7 +298,6 @@ def main() -> int:
         print(f"escalated {entry['address']}: {', '.join(entry['roles'])}")
     for entry in got.rereads:
         print(f"re-read {entry['address']}: {', '.join(entry['roles'])}")
-    _report(_unruled_problems(got.unruled))
 
     if got.escalations:
         return ESCALATIONS
@@ -325,7 +317,7 @@ def main() -> int:
     # address, or with the address and no ruling -- and that difference is on
     # the line `_report` prints, where a reader needs it. A code exists so a
     # caller can BRANCH, and nothing branches differently on these two.
-    if got.coverage or any(got.unruled.values()):
+    if got.coverage or got.revisit:
         return COVERAGE
     if got.drift:
         return DRIFT

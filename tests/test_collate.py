@@ -351,7 +351,11 @@ class TestTheEnvelope:
         )
         good[0]["sheets"][0]["marks"][0]["claim"] = {}
         got = collate("4c", bad + good, binder, root=REPO)
-        assert {p.role for p in got.problems} == {"block-context", "function-context"}
+        # ! THE TWO ARRIVE IN DIFFERENT LISTS AND BOTH ARE REPORTED: the
+        # envelope refusal is a `Problem`, the malformed mark a
+        # `Revisit`. What must not happen is either silencing the other.
+        named = {p.role for p in got.problems} | {one.role for one in got.revisit}
+        assert named == {"block-context", "function-context"}
 
     #: !! `test_the_master_proof_is_parsed_at_its_own_boundary` WENT WITH THAT
     #: BOUNDARY, `P42`. It monkeypatched `gather` to return `{"stage": ...,
@@ -384,7 +388,7 @@ class TestTheEnvelope:
         )
         copies[0]["sheets"][0]["marks"][0]["claim"] = {}
         got = collate("4c", copies, binder, root=REPO)
-        assert [p.address for p in got.problems] == ["m.py@b1"]
+        assert [one.address for one in got.revisit] == ["m.py@b1"]
 
 
 class TestSourceVerificationRunsInProduction:
@@ -619,9 +623,13 @@ class TestTheStackedCheck:
         )
         copies[0]["sheets"][0]["marks"][0]["claim"] = {}
         got = collate("4c", copies, binder, root=REPO)
-        assert got.problems
-        assert got.problems[0].role == "block-context"
-        assert got.problems[0].address == "m.py@b1"
+        # ! IT IS `revisit`, NOT `problems`, SINCE `P52` -- a mark that
+        # will not read is a place its role must go back to, which is
+        # what `flows.mark_errors` assembles. The claim is unchanged.
+        assert got.revisit
+        assert got.revisit[0].role == "block-context"
+        assert got.revisit[0].address == "m.py@b1"
+        assert got.revisit[0].unreadable
 
     def test_TWO_malformed_copies_are_BOTH_reported(self):
         """!! IT DOES NOT STOP AT THE FIRST BAD COPY. Roy, 2026-08-30: the
@@ -638,7 +646,10 @@ class TestTheStackedCheck:
         for copy in copies:
             copy["sheets"][0]["marks"][0]["claim"] = {}
         got = collate("4c", copies, binder, root=REPO)
-        assert {p.role for p in got.problems} == {"block-context", "function-context"}
+        assert {one.role for one in got.revisit} == {
+            "block-context",
+            "function-context",
+        }
 
     def test_a_copy_carrying_no_read_from_is_named_and_folds_nothing(self):
         """A field a stage FABRICATES is a field the boundary can no longer

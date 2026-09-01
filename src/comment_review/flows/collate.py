@@ -10,10 +10,11 @@ Ten acts, in the order the body runs them:
                every act below reads -- `P42`, and since `P51` that includes
                every MARK: a copy arrives sorted into what ruled, what was left
                unruled, and what would not read at all
-    CHECK      every copy's marks, stacked -- `desk.collator.problems_in`,
-               over the copies ENVELOPE admitted. ! ONLY AN *ENVELOPE* FAILURE
-               RETURNS EARLY. A malformed MARK is reported and the round goes
-               on without it, because it never became a mark to begin with
+    CHECK      every place a role must go back to -- one left unruled, one
+               whose entry would not read -- `flows.mark_errors`, over the
+               copies ENVELOPE admitted. ! ONLY AN *ENVELOPE* FAILURE RETURNS
+               EARLY. A malformed MARK is carried in `revisit` and the round
+               goes on without it, because it never became a mark to begin with
     COVERAGE   did each role carry back every address the binder holds --
                `_coverage_problems`. `fan_out` refuses an uncovered page at the
                DISPATCH; this is the RETURN
@@ -70,10 +71,8 @@ from comment_review.desk.collator import (
     base_texts,
     drift_in,
     known_addresses,
-    problems_in,
     reconcile,
     tally,
-    unruled,
     verify_report,
 )
 from comment_review.desk.containers import (
@@ -83,6 +82,7 @@ from comment_review.desk.containers import (
 )
 from comment_review.desk.mark import Instruction, Mark, filled
 from comment_review.desk.proof import MismatchedRoot, gather
+from comment_review.flows.mark_errors import Revisit, mark_errors
 from comment_review.reading.addresser import cue_of, unflatten
 from comment_review.results.differences import CannotCompose, compose
 
@@ -106,19 +106,35 @@ class CannotCollate(Exception):
         problems: every `Problem` the per-copy pass had already computed, in
             copy then mark order -- the same list `Collated.problems` would
             have carried had the fold completed.
+        revisit: the same for `Collated.revisit`.
+            !! IT WAS ADDED WITH `P52` AND HAD TO BE. That step moved every
+            malformed mark out of `problems` and into `revisit`, so a refusal
+            carrying only `problems` would have dropped exactly the findings
+            this exception exists to preserve -- the defect it was written for,
+            reintroduced by the list it was written against moving.
+            MEASURED by `tests/test_collate_command.py::TestExitCodes::
+            test_a_refusal_still_prints_the_problems_the_pass_found`, which
+            went red on the change and is why this field is here.
     """
 
-    def __init__(self, message: str, problems: list[Problem]) -> None:
-        """Hold the refusal's own message and the problems found before it.
+    def __init__(
+        self,
+        message: str,
+        problems: list[Problem],
+        revisit: list[Revisit] | None = None,
+    ) -> None:
+        """Hold the refusal's own message and everything found before it.
 
         Args:
             message: why the set cannot be folded, as the underlying refusal
                 stated it -- it already names both disagreeing values.
             problems: what the per-copy pass had computed by then. May be
                 empty, which says the set was incompatible and otherwise clean.
+            revisit: the places a role must go back to, same terms.
         """
         super().__init__(message)
         self.problems = problems
+        self.revisit = revisit or []
 
 
 @dataclass(frozen=True)
@@ -132,8 +148,15 @@ class Collated:
             origin -- see that function's docstring for why a second entry
             at the destination cannot parse. An ordinary edit_copy;
             `desk.containers.EditCopy.deserialize` accepts it with no second shape.
-        problems: every copy's malformed marks, stacked in copy then mark
-            order, each naming the role to send it back to.
+        problems: what SOURCE VERIFICATION found -- an address the binder does
+            not carry, a claim quoting a sentence that is not in its paragraph,
+            a `cite` that does not resolve -- plus any copy-level refusal from
+            the envelope, each naming the role to send it back to.
+            !! IT CARRIED THE MALFORMED MARKS TOO UNTIL `P52`, and they are
+            `revisit` now. Both lists said *this role must go back to this
+            place*, in two vocabularies, assembled in two modules; the reason
+            they split rather than merged is that a mark that will not read and
+            a claim that does not hold are answered by different work.
         drift: a returned `raw_text` that is not the one the place was seeded
             with, same shape and same routing.
         coverage: a role whose copies do not between them carry the binder's
@@ -155,7 +178,14 @@ class Collated:
         rereads: places carried forward -- marks on different sentences whose
             compose refused, plus every place an `add` touches, plus every end
             of a `move` in a cycle.
-        unruled: role -> the addresses nobody wrote in.
+        revisit: every place a role must go back to -- one it was handed and
+            left alone, or one it wrote in whose entry would not read. Role
+            then address order, from `flows.mark_errors`.
+            !! IT REPLACES `unruled`, WHICH WAS `role -> addresses` AND HALF THE
+            ANSWER. The other half sat in `problems`, and the command assembled
+            the unruled side into `Problem`s itself -- so *what a role still
+            owes* was computed in two modules and printed as two lists. This is
+            the one artifact, and `Process: #72` is the shape it takes.
         tally: role -> how many of each instruction that copy carried.
         order: the resolved `move` origins, in an order that vacates every
             address before it is filled. Ties broken by address, so a stranger
@@ -168,7 +198,7 @@ class Collated:
     coverage: list[Problem] = field(default_factory=list)
     escalations: list[dict] = field(default_factory=list)
     rereads: list[dict] = field(default_factory=list)
-    unruled: dict[str, list[str]] = field(default_factory=dict)
+    revisit: list[Revisit] = field(default_factory=list)
     tally: dict[str, dict] = field(default_factory=dict)
     order: list[str] = field(default_factory=list)
 
@@ -674,7 +704,6 @@ def collate(
     base = base_texts(binder)
     problems: list[Problem] = []
     drift: list[Problem] = []
-    left: dict[str, list[str]] = {}
     counts: dict[str, dict] = {}
 
     # ! THE ROLE MAY BE THE MISSING THING. `EditCopy.deserialize` refuses a copy with
@@ -699,26 +728,28 @@ def collate(
         if parsed is not None:
             copies.append(parsed)
 
-    # CHECK -- what each role wrote in each slot.
+    # CHECK -- what each role wrote in each slot, and what it left alone.
     #
-    # !! A SEPARATE PASS, AND IT STAYS ONE. The two are named as separate acts in
-    # this module's own header, and folding CHECK into the loop above for one
-    # fewer iteration made the code stop matching that list -- one loop carrying
-    # two acts under one conditional, which is the shape `galley.py` was split
-    # for. The saving was never the pass; it was running `problems_in` ONCE,
-    # which it does either way.
+    # !! ONE ASSEMBLER SINCE `P52`, WHERE THERE WERE TWO. `problems_in` turned
+    # `Sheet.refused` into `Problem`s here and `commands/collate.py` turned
+    # `Sheet.unruled` into its own -- so the same stage's unfinished work was
+    # assembled in two places, in two vocabularies, one of them inside a console
+    # face. `flows.mark_errors` is the single place both now come from, which is
+    # what Roy asked the flow for: something the task agent can point at.
     #
     # !! AND IT RUNS ONLY OVER THE COPIES THAT PARSED. Running it over a refused
-    # one reports the same fact twice in two vocabularies -- measured on a copy
-    # with no `sheets`, which both boundaries answer -- and that is the
-    # duplication `Problem` exists to avoid, stated at `desk.collator.drift_in`.
-    # A document that is not a copy has no contents to rule on.
-    for copy in copies:
-        found, _ruled = problems_in(copy)
-        problems += found
+    # one reports the same fact twice -- measured on a copy with no `sheets`,
+    # which both boundaries answer -- and that is the duplication `Problem`
+    # exists to avoid, stated at `desk.collator.drift_in`. A document that is
+    # not a copy has no contents to rule on.
+    revisit = mark_errors(copies)
 
     if envelope:
-        return Collated(chief=_nothing_settled(), problems=envelope + problems)
+        return Collated(
+            chief=_nothing_settled(),
+            problems=envelope + problems,
+            revisit=revisit,
+        )
 
     coverage = _coverage_problems(copies, binder)
 
@@ -728,10 +759,9 @@ def collate(
     cache: Cache = {}
 
     for copy in copies:
-        # ! `problems_in` ALREADY RAN, in the envelope pass above. It is the one
-        # check that must happen for a copy the fold will not reach, so it lives
-        # there rather than here; running it again would report every malformed
-        # mark twice on the happy path.
+        # ! `mark_errors` ALREADY RAN, in the pass above. It is the one thing
+        # that must happen for a copy the fold will not reach, so it lives
+        # there rather than here.
         #
         # !! SOURCE VERIFICATION RUNS HERE -- `P25`, `Process: #58`. Roy: *"the
         # source-verification side needs to be wired into the flow - same as 1)
@@ -747,7 +777,6 @@ def collate(
         # settling a citation means. Roy, 2026-08-30, on exactly this call.
         problems += verify_report(copy, binder, root, cache)
         drift += drift_in(copy, base)
-        left[copy.role] = unruled(copy)
         counts[copy.role] = tally(copy)
 
     # !! THE REFUSAL CARRIES WHAT THE PASS ALREADY FOUND. Everything above this
@@ -757,7 +786,7 @@ def collate(
     try:
         proof = gather(stage, copies)
     except MismatchedRoot as err:
-        raise CannotCollate(str(err), problems) from err
+        raise CannotCollate(str(err), problems, revisit) from err
     # !! THE PROOF BOUNDARY IS GONE, AND `P42` IS WHY. `MasterProof.deserialize`
     # ran here, over the dict `gather` returned, and reported a proof that was
     # not one. `gather` now RETURNS a `MasterProof`, so reaching that parse
@@ -809,7 +838,7 @@ def collate(
         coverage=coverage,
         escalations=escalations,
         rereads=rereads,
-        unruled=left,
+        revisit=revisit,
         tally=counts,
         order=order,
     )
