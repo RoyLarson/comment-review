@@ -5,7 +5,7 @@
 Twelve acts, in the order the body runs them:
 
     ENVELOPE   is each document the shape a copy must be --
-               `desk.containers.parse_edit_copy`. Reported, never raised
+               `desk.containers.EditCopy.deserialize`. Reported, never raised
     CHECK      every copy's marks, stacked -- `desk.collator.problems_in`,
                over the copies ENVELOPE admitted. ! ONLY AN *ENVELOPE* FAILURE
                RETURNS EARLY. A malformed MARK is reported and the round goes
@@ -23,7 +23,7 @@ Twelve acts, in the order the body runs them:
                sees -- `_reconcilable`
     GATHER     `desk.proof.gather` -- the master_proof
     PROOF      is that master_proof the shape a proof must be --
-               `desk.containers.parse_master_proof`, on ENVELOPE's terms
+               `desk.containers.MasterProof.deserialize`, on ENVELOPE's terms
     PLACE      `desk.collator.places` -- marks grouped by the place they touch
     RECONCILE  `desk.collator.reconcile` -- settled, escalated, re-read
     RESOLVE    the automatic resolutions -- `_resolve`
@@ -33,7 +33,7 @@ Twelve acts, in the order the body runs them:
 
 !! THIS LIST IS READ AS A MAP AND MUST MATCH THE BODY. Until 2026-08-31 it put
 COVERAGE before CHECK, which is the reverse of what runs, and folded
-`parse_master_proof` into ENVELOPE at position one when it is called after
+`MasterProof.deserialize` into ENVELOPE at position one when it is called after
 GATHER -- so a reader using it to find a stage landed in the wrong place twice.
 
 !! THE RESOLUTIONS SIT DOWNSTREAM OF `reconcile`, WHICH IS UNTOUCHED.
@@ -80,10 +80,8 @@ from comment_review.desk.containers import (
     EditCopy,
     MasterProof,
     Sheet,
-    parse_edit_copy,
-    parse_master_proof,
 )
-from comment_review.desk.mark import Instruction, Mark, filled, parse, untouched
+from comment_review.desk.mark import Instruction, Mark, filled, untouched
 from comment_review.desk.proof import MismatchedRoot, gather
 from comment_review.reading.addresser import cue_of, unflatten
 from comment_review.results.differences import CannotCompose, compose
@@ -133,7 +131,7 @@ class Collated:
             destination) share the ONE entry `_chief_copy` writes at the
             origin -- see that function's docstring for why a second entry
             at the destination cannot parse. An ordinary edit_copy;
-            `desk.containers.parse_edit_copy` accepts it with no second shape.
+            `desk.containers.EditCopy.deserialize` accepts it with no second shape.
         problems: every copy's malformed marks, stacked in copy then mark
             order, each naming the role to send it back to.
         drift: a returned `raw_text` that is not the one the place was seeded
@@ -445,7 +443,7 @@ def _chief_copy(read_from: dict, resolved: dict[str, Mark], proof: MasterProof) 
     # this loop is its own copy rather than an import of an underscore-prefixed
     # function from another module.
     # !! IT WALKS THE PARSED `MasterProof`, NOT THE DICT, since 2026-08-31 --
-    # `Process: #65` in the small. `Sheet.sha` is a `str` because `parse_sheet`
+    # `Process: #65` in the small. `Sheet.sha` is a `str` because `Sheet.deserialize`
     # made it one; there is nothing left to fold here, and no sixth site
     # tracking that rule by hand.
     #
@@ -454,7 +452,7 @@ def _chief_copy(read_from: dict, resolved: dict[str, Mark], proof: MasterProof) 
     # guaranteed a `str` sha; it guarantees `path` and `marks`, and ADMITS a
     # sheet with no `sha`, normalizing the absence into the `Sheet` -- an
     # object the flow then discarded. A seeded copy with `sha` deleted gave
-    # `parse_edit_copy` problems `[]` and then `KeyError: 'sha'` here, which
+    # `EditCopy.deserialize` problems `[]` and then `KeyError: 'sha'` here, which
     # the CLI turned into a refusal with an EMPTY stdout, discarding every
     # routable `Problem`.
     #
@@ -481,7 +479,7 @@ def _chief_copy(read_from: dict, resolved: dict[str, Mark], proof: MasterProof) 
         sheet = sheets.setdefault(
             real, Sheet.seed(path=real, sha=shas.get(real, ""), marks=[])
         )
-        sheet["marks"].append(mark.as_entry())
+        sheet["marks"].append(mark.serialize())
     # ! WRITTEN THROUGH THE TYPES since 2026-08-31 -- `decision-log.md Process:
     # #64`, and it matters most here: the chief's copy is an ordinary
     # `EditCopy`, so the one place that BUILDS a copy from scratch rather than
@@ -558,7 +556,7 @@ def _reconcilable(copy: dict) -> dict:
     for sheet in copy.get("sheets", []):
         marks = []
         # ! THE SHEET SHAPE IS THE ENVELOPE'S, NOT THIS FUNCTION'S, since
-        # 2026-08-31. `parse_edit_copy` decides that a sheet is a dict with a
+        # 2026-08-31. `EditCopy.deserialize` decides that a sheet is a dict with a
         # `marks` list before `collate` reaches here; the pass-through branch
         # that used to stand in for it was the second definition `P21` removes.
         #
@@ -573,7 +571,7 @@ def _reconcilable(copy: dict) -> dict:
                 marks.append(entry)
                 continue
             where = str(entry.get("address") or "a mark")
-            mark, _why = parse(where, entry)
+            mark, _why = Mark.deserialize(where, entry)
             if mark is not None:
                 marks.append(entry)
         sheets.append({**sheet, "marks": marks})
@@ -739,7 +737,7 @@ def collate(
     left: dict[str, list[str]] = {}
     counts: dict[str, dict] = {}
 
-    # ! THE ROLE MAY BE THE MISSING THING. `parse_edit_copy` refuses a copy with
+    # ! THE ROLE MAY BE THE MISSING THING. `EditCopy.deserialize` refuses a copy with
     # no `role` before it can name one, and `Problem` needs a role to route on --
     # so the copy's position stands in, which a reader can act on where "" cannot.
     # ENVELOPE -- is each document a copy at all.
@@ -747,7 +745,7 @@ def collate(
     are_copies: list[dict] = []
     for i, copy in enumerate(edit_copies, 1):
         where = f"copy {i}"
-        parsed, why = parse_edit_copy(where, copy)
+        parsed, why = EditCopy.deserialize(where, copy)
         if why:
             named = copy.get("role") if isinstance(copy, dict) else None
             envelope += [
@@ -827,7 +825,7 @@ def collate(
     # `gather` and `_reconcilable` between them produced. That makes it a guard
     # on THIS code rather than on its input, which is why the test that proves
     # it can fail has to replace `gather` to reach it.
-    checked, why_proof = parse_master_proof(stage, proof)
+    checked, why_proof = MasterProof.deserialize(stage, proof)
     if why_proof or checked is None:
         return Collated(
             chief=_nothing_settled(),

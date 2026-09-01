@@ -31,7 +31,7 @@ from comment_review.desk.collator import (
     tally,
     verify_report,
 )
-from comment_review.desk.mark import Instruction, Mark, parse
+from comment_review.desk.mark import Instruction, Mark
 from comment_review.flows.distribute import seed
 
 DESK = ROOT / "src" / "comment_review" / "desk"
@@ -102,7 +102,7 @@ def _well_formed() -> Mark:
     read the entry by key until then, which is what let `INSTRUCTIONS.get(...)`
     be handed a `str` at ten sites.
     """
-    mark, why = parse("the collator fixture", _entry())
+    mark, why = Mark.deserialize("the collator fixture", _entry())
     assert why == [], why
     assert mark is not None
     return mark
@@ -133,7 +133,7 @@ class TestAddressProblems:
     def test_clean_needs_no_address(self):
         """A role returns `clean` over most of the binder -- no address at
         all, which is `desk.mark.parse`'s question, not this one's."""
-        clean, why = parse("here", {"instruction": "clean"})
+        clean, why = Mark.deserialize("here", {"instruction": "clean"})
         assert why == [] and clean is not None
         assert address_problems("here", clean, KNOWN) == []
 

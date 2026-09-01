@@ -133,7 +133,7 @@ def carry(binder: Binder, page, path: str, **lookup) -> tuple[Binder | None, str
 
     ! THE `sha` FOLD IS GONE FROM HERE, AND THAT IS THE POINT OF THE BOUNDARY.
     This carried its own `isinstance(raw, str)` normalization -- the fifth of
-    the five sites `desk.containers.parse_sheet` counts -- because `.get("sha")`
+    the five sites `desk.containers.Sheet.deserialize` counts -- because `.get("sha")`
     could return None. `RedactedPage.deserialize` normalizes once, so `held.sha`
     is a `str` and there is nothing left to fold.
     """

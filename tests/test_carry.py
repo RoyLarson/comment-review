@@ -133,7 +133,7 @@ class TestWhatItRefuses:
 
         !! THE FOLD MOVED TO THE BOUNDARY ON 2026-08-31 -- `Process: #67`.
         `flows.carry` carried its own `isinstance(raw, str)` normalization,
-        the fifth of the five sites `desk.containers.parse_sheet` counts;
+        the fifth of the five sites `desk.containers.Sheet.deserialize` counts;
         `BinderPage.deserialize` does it once, so `held.sha` is a `str` and
         there is nothing left for `carry` to fold.
 

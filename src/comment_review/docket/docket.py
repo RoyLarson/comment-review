@@ -140,7 +140,7 @@ class Alteration:
         if not isinstance(data, dict):
             return None, [f"{where}: an alteration must be an object"]
         # ! DECLARED, NOT NARROWED -- an isinstance narrow does not survive the
-        # reads below, the same reason desk.containers.parse_edit_copy gives.
+        # reads below, the same reason desk.containers.EditCopy.deserialize gives.
         checked: dict = data
         cue = checked.get("cue")
         if not isinstance(cue, str) or not cue:
@@ -199,7 +199,7 @@ class Schedule:
 
         ! EVERY BAD ALTERATION IS REPORTED, not the first -- matching
         `binder.page.RedactedPage.deserialize` and
-        `desk.containers.parse_edit_copy`.
+        `desk.containers.EditCopy.deserialize`.
         A schedule with two malformed alterations is two things to fix.
 
         Returns:

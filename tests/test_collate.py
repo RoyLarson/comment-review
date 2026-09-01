@@ -22,8 +22,8 @@ from helpers import (
     seed,
 )
 
-from comment_review.desk.containers import parse_edit_copy
-from comment_review.desk.mark import parse
+from comment_review.desk.containers import EditCopy
+from comment_review.desk.mark import Mark
 from comment_review.flows.collate import _reconcilable, collate
 
 BASE = "# one\n# two\n# three\n"
@@ -161,7 +161,7 @@ class TestTheChiefsCopy:
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
         got = collate("4c", copies, binder, root=REPO)
-        copy, why = parse_edit_copy("the chief's", got.chief)
+        copy, why = EditCopy.deserialize("the chief's", got.chief)
         assert why == []
         assert copy is not None
         assert copy.role == "copy-chief"
@@ -174,7 +174,7 @@ class TestTheChiefsCopy:
         got = collate("4c", copies, binder, root=REPO)
         for sheet in got.chief["sheets"]:
             for entry in sheet["marks"]:
-                mark, why = parse(entry["address"], entry)
+                mark, why = Mark.deserialize(entry["address"], entry)
                 assert why == [], why
                 assert mark is not None
 
@@ -449,7 +449,7 @@ class TestSourceVerificationRunsInProduction:
 class TestWhatTheEnvelopeActuallyGuarantees:
     """!! IT DECIDES `path` AND `marks`, AND ADMITS A SHEET WITH NO `sha`.
 
-    `parse_sheet` normalizes an absent `sha` to `""` -- into the `Sheet`
+    `Sheet.deserialize` normalizes an absent `sha` to `""` -- into the `Sheet`
     DATACLASS, which the flow discards. The raw dict it goes on walking keeps
     the absence, so a downstream subscript raises.
 
@@ -466,7 +466,7 @@ class TestWhatTheEnvelopeActuallyGuarantees:
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
         del copies[0]["sheets"][0]["sha"]
-        parsed, why = parse_edit_copy("copy 1", copies[0])
+        parsed, why = EditCopy.deserialize("copy 1", copies[0])
         assert why == []
         assert parsed is not None
         assert parsed.sheets[0].sha == ""
@@ -745,11 +745,10 @@ class TestTheMovesAreADag:
         address is a two-mark place. That is exactly why the rule is written:
         the protection upstream is a side effect, and a side effect is not a
         rule."""
-        from comment_review.desk.mark import parse
         from comment_review.flows.collate import _move_order
 
         def a_resolved_move(origin, destination):
-            mark, why = parse(origin, a_move(origin, destination))
+            mark, why = Mark.deserialize(origin, a_move(origin, destination))
             assert why == [], why
             assert mark is not None, "parse returned no mark despite why == []"
             return mark
@@ -763,11 +762,10 @@ class TestTheMovesAreADag:
         assert set(cycle) == {"m.py@b1", "m.py@b2"}
 
     def test_a_chain_orders_rather_than_cycling(self):
-        from comment_review.desk.mark import parse
         from comment_review.flows.collate import _move_order
 
         def a_resolved_move(origin, destination):
-            mark, why = parse(origin, a_move(origin, destination))
+            mark, why = Mark.deserialize(origin, a_move(origin, destination))
             assert why == [], why
             assert mark is not None, "parse returned no mark despite why == []"
             return mark
@@ -790,10 +788,9 @@ class TestPairMoves:
     hand, the one shape a caller bypassing `_join_moves` could still produce."""
 
     def test_withdraws_a_move_whose_other_end_is_absent(self):
-        from comment_review.desk.mark import parse
         from comment_review.flows.collate import _pair_moves
 
-        mark, why = parse("m.py@b1", a_move("m.py@b1", "m.py@b5"))
+        mark, why = Mark.deserialize("m.py@b1", a_move("m.py@b1", "m.py@b5"))
         assert why == [], why
         assert mark is not None, "parse returned no mark despite why == []"
         resolved = {"m.py@b1": mark}  # "m.py@b5" is not in `resolved` at all
@@ -807,11 +804,10 @@ class TestPairMoves:
         pass over `resolved` (in insertion order: b1 then b2) would check A
         while b2 still looks resolved and miss it. This is what the fixed
         point in `_pair_moves`'s docstring is for."""
-        from comment_review.desk.mark import parse
         from comment_review.flows.collate import _pair_moves
 
-        a_mark, why_a = parse("m.py@b1", a_move("m.py@b1", "m.py@b2"))
-        b_mark, why_b = parse("m.py@b2", a_move("m.py@b2", "m.py@b3"))
+        a_mark, why_a = Mark.deserialize("m.py@b1", a_move("m.py@b1", "m.py@b2"))
+        b_mark, why_b = Mark.deserialize("m.py@b2", a_move("m.py@b2", "m.py@b3"))
         assert why_a == [], why_a
         assert why_b == [], why_b
         assert a_mark is not None, "parse returned no mark despite why_a == []"
@@ -864,7 +860,7 @@ class TestAResolvedMoveIsOneEntry:
         got = collate("4c", copies_over(binder, marks), binder, root=REPO)
         for sheet in got.chief["sheets"]:
             for entry in sheet["marks"]:
-                mark, why = parse(entry["address"], entry)
+                mark, why = Mark.deserialize(entry["address"], entry)
                 assert why == [], why
                 assert mark is not None
 
@@ -872,6 +868,6 @@ class TestAResolvedMoveIsOneEntry:
         binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})
         marks = {"block-context": {"m.py@b1": a_move("m.py@b1", "m.py@b5")}}
         got = collate("4c", copies_over(binder, marks), binder, root=REPO)
-        copy, why = parse_edit_copy("the chief's", got.chief)
+        copy, why = EditCopy.deserialize("the chief's", got.chief)
         assert why == []
         assert copy is not None

@@ -250,7 +250,7 @@ class Binder:
         # below sits past a loop. An `isinstance` narrow is invalidated at a
         # loop back-edge, so `ty` loses it before that read; an explicit
         # annotation is a declaration and survives. Same reason, same spelling
-        # as `desk.containers.parse_edit_copy`.
+        # as `desk.containers.EditCopy.deserialize`.
         checked: dict = data
         if "pages" not in checked:
             return None, [

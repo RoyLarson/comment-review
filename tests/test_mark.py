@@ -27,7 +27,6 @@ from comment_review.desk.mark import (
     QUERY_SHAPES,
     Mark,
     allowed,
-    parse,
     untouched,
 )
 
@@ -40,7 +39,7 @@ def problems(where: str, entry: object) -> list[str]:
     two are checked together in `TestTheParseHasNoThirdOutcome` below rather
     than at every call site.
     """
-    return parse(where, entry)[1]
+    return Mark.deserialize(where, entry)[1]
 
 
 MARKS_PATH = (
@@ -204,7 +203,7 @@ class TestTheParseHasNoThirdOutcome:
 
     @pytest.mark.parametrize("instruction", sorted(BRIEF))
     def test_an_accepted_entry_yields_a_mark_and_no_problems(self, instruction):
-        mark, why = parse("here", well_formed(instruction))
+        mark, why = Mark.deserialize("here", well_formed(instruction))
         assert why == []
         assert mark is not None
         assert mark.instruction == instruction
@@ -213,12 +212,12 @@ class TestTheParseHasNoThirdOutcome:
     def test_a_refused_entry_yields_problems_and_NO_mark(self, instruction):
         broken = well_formed(instruction)
         del broken["instruction"]
-        mark, why = parse("here", broken)
+        mark, why = Mark.deserialize("here", broken)
         assert mark is None
         assert why != []
 
     def test_the_mark_carries_the_claim_the_entry_wrote(self):
-        mark, _ = parse("here", well_formed("correct"))
+        mark, _ = Mark.deserialize("here", well_formed("correct"))
         assert mark is not None
         assert mark.claim == CLAIM["correct"]
         assert mark.change == CHANGE["correct"]
@@ -227,7 +226,7 @@ class TestTheParseHasNoThirdOutcome:
         self,
     ):
         entry = well_formed("correct")
-        mark, _ = parse("here", entry)
+        mark, _ = Mark.deserialize("here", entry)
         assert mark is not None
         entry["claim"]["false"] = "changed after the parse"
         assert mark.claim["false"] == CLAIM["correct"]["false"]
@@ -237,7 +236,7 @@ class TestTheParseHasNoThirdOutcome:
         every consumer handed it a `str` -- ten `str`-into-`dict[Instruction,
         Row]` errors in `desk/collator.py` alone. A parsed mark's
         `instruction` IS the member."""
-        mark, _ = parse("here", well_formed("correct"))
+        mark, _ = Mark.deserialize("here", well_formed("correct"))
         assert mark is not None
         assert INSTRUCTIONS[mark.instruction].quotes_original == "false"
 
@@ -269,7 +268,7 @@ class TestUntouchedIsNotTheSameAsUnruled:
     def test_what_is_not_untouched_is_refused_by_NAME(self):
         entry = well_formed("correct")
         entry["instruction"] = None
-        mark, why = parse("here", entry)
+        mark, why = Mark.deserialize("here", entry)
         assert mark is None
         assert any("instruction" in message for message in why)
 
@@ -441,7 +440,7 @@ def test_the_mark_carries_the_raw_text_the_row_seeded():
         "raw_text": "# the paragraph as it stands\n",
         "instruction": "clean",
     }
-    mark, why = parse("m.py@b1", entry)
+    mark, why = Mark.deserialize("m.py@b1", entry)
     assert why == []
     assert mark is not None
     assert mark.raw_text == "# the paragraph as it stands\n"
@@ -454,7 +453,9 @@ def test_a_mark_that_lost_its_raw_text_still_parses():
     collator, never refused at the boundary. Refusing an absent field here
     while a CHANGED field is only reported would be two treatments of one
     problem."""
-    mark, why = parse("m.py@b1", {"address": "m.py@b1", "instruction": "clean"})
+    mark, why = Mark.deserialize(
+        "m.py@b1", {"address": "m.py@b1", "instruction": "clean"}
+    )
     assert why == []
     assert mark is not None
     assert mark.raw_text == ""
@@ -481,7 +482,7 @@ def test_seed_refuses_a_name_the_mark_does_not_declare(monkeypatch):
     assert "raw_txt" in str(caught.value)
 
 
-def test_as_entry_round_trips_through_parse():
+def test_serialize_round_trips_through_deserialize():
     """A mark written back onto a sheet parses as the mark it came from --
     which is what lets the copy chief's `edit_copy` be an ordinary one."""
     entry = {
@@ -494,10 +495,10 @@ def test_as_entry_round_trips_through_parse():
         "sources": [{"cite": "m.py:1", "verbatim": "def f(x):"}],
         "change": "# as it should read\n",
     }
-    mark, why = parse("m.py@b1", entry)
+    mark, why = Mark.deserialize("m.py@b1", entry)
     assert why == []
     assert mark is not None
-    again, why_again = parse("m.py@b1", mark.as_entry())
+    again, why_again = Mark.deserialize("m.py@b1", mark.serialize())
     assert why_again == []
     assert again == mark
 
@@ -517,7 +518,7 @@ def test_a_move_onto_its_own_address_is_refused_by_name():
         "sources": [{"cite": "m.py:1", "verbatim": "def f(x):"}],
         "change": "# a paragraph\n",
     }
-    mark, why = parse("m.py@b1", entry)
+    mark, why = Mark.deserialize("m.py@b1", entry)
     assert mark is None
     assert len(why) == 1
     assert "`claim.to` is this mark's own `address`" in why[0]
@@ -536,6 +537,6 @@ def test_a_move_to_a_different_address_still_parses():
         "sources": [{"cite": "m.py:1", "verbatim": "def f(x):"}],
         "change": "# a paragraph\n",
     }
-    mark, why = parse("m.py@b1", entry)
+    mark, why = Mark.deserialize("m.py@b1", entry)
     assert why == []
     assert mark is not None

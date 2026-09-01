@@ -63,7 +63,7 @@ this file's prose assumed the opposite of until 2026-08-31.
 "verify_report" src/` returns a caller outside this module, where before it
 returned only sentences inside it. `decision-log.md Process: #58`, `P25`.
 
-! WHAT IS STILL OWED IS T7: `parse_master_proof` compares `read_from` against
+! WHAT IS STILL OWED IS T7: `MasterProof.deserialize` compares `read_from` against
 `copies[0]` only, never 2..N.
 """
 
@@ -77,7 +77,6 @@ from comment_review.desk.mark import (
     Instruction,
     Mark,
     filled,
-    parse,
     untouched,
 )
 from comment_review.docket.docket import Alteration, Docket, Schedule
@@ -470,7 +469,7 @@ def verify_report(
             where = str(raw) if filled(raw) else f"mark {i}"
             # ! `why` IS DELIBERATELY DROPPED -- `problems_in` reports it, and
             # reporting it here too gave the same sentence twice. See above.
-            mark, _why = parse(where, entry)
+            mark, _why = Mark.deserialize(where, entry)
             if mark is None:
                 continue
             out += [
@@ -515,7 +514,7 @@ def problems_in(report: dict) -> tuple[list[Problem], int]:
         entries carrying an instruction.
     """
     # !! THE THREE HEADER CHECKS BELOW ARE DEPTH, NOT THE DEFINITION, since
-    # 2026-08-31. `desk.containers.parse_edit_copy` decides what a well-formed
+    # 2026-08-31. `desk.containers.EditCopy.deserialize` decides what a well-formed
     # copy is, and `flows.collate.collate` runs it FIRST -- so in production a
     # report reaching here has already been ruled a copy, and none of these can
     # fire. `P21`, `Process: #57`.
@@ -574,7 +573,7 @@ def problems_in(report: dict) -> tuple[list[Problem], int]:
             ruled += 1
             address = str(mark.get("address") or "")
             where = address or f"mark {i}"
-            _, why = parse(where, mark)
+            _, why = Mark.deserialize(where, mark)
             out += [Problem(named, address, message) for message in why]
     return out, ruled
 
@@ -777,7 +776,7 @@ def places(proof: dict) -> dict[str, list[Placed]]:
                     (entry.get("address") if isinstance(entry, dict) else None)
                     or f"a mark of {role}"
                 )
-                mark, why = parse(where, entry)
+                mark, why = Mark.deserialize(where, entry)
                 if mark is None:
                     raise MalformedMark("; ".join(why))
                 placed = Placed(mark, role)

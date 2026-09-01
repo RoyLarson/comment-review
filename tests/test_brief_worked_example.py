@@ -33,7 +33,7 @@ from helpers import a_binder_over
 
 from comment_review.commands.collate import main as collate_main
 from comment_review.desk.collator import problems_in, tally, unruled
-from comment_review.desk.mark import parse, untouched
+from comment_review.desk.mark import Mark, untouched
 
 BRIEF_PATH = (
     ROOT
@@ -76,7 +76,7 @@ def test_the_example_is_not_read_as_an_untouched_slot():
 
 
 def test_the_examples_mark_parses():
-    mark, why = parse("the brief's example", ENTRY)
+    mark, why = Mark.deserialize("the brief's example", ENTRY)
     assert why == []
     assert mark is not None
     assert mark.instruction == ENTRY["instruction"]
@@ -169,7 +169,7 @@ def test_dropping_a_field_the_example_fills_is_refused(key):
     in turn and the mark must be refused."""
     broken = dict(ENTRY)
     del broken[key]
-    mark, why = parse("the brief's example", broken)
+    mark, why = Mark.deserialize("the brief's example", broken)
     assert mark is None and why != []
 
 
@@ -179,6 +179,6 @@ def test_the_retired_key_name_is_refused_by_name():
     old = {k: v for k, v in ENTRY.items() if k != "instruction"}
     old["mark"] = ENTRY["instruction"]
     assert not untouched(old)
-    mark, why = parse("the brief's example", old)
+    mark, why = Mark.deserialize("the brief's example", old)
     assert mark is None
     assert any("instruction" in message for message in why)

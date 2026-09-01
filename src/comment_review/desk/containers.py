@@ -3,9 +3,9 @@ r"""The containers a mark travels in -- the sheet, the edit_copy, the master_pro
     Sheet              one PAGE's marks, with that page's path and sha
     EditCopy           one ROLE's sheets, with the binder it was seeded from
     MasterProof        one STAGE's edit_copies
-    parse_sheet()      the boundary parse for one sheet
-    parse_edit_copy()  for one edit_copy, and every sheet under it
-    parse_master_proof()  for one master_proof, and every copy under it
+    Sheet.deserialize()      the boundary parse for one sheet
+    EditCopy.deserialize()  for one edit_copy, and every sheet under it
+    MasterProof.deserialize()  for one master_proof, and every copy under it
 
 !! THE TYPE IS THE DEFINITION AND THERE IS NO MARKDOWN SOURCE, ruled
 `decision-log.md Vocabulary: #30`. `docs/the-mark.md` exists because an agent
@@ -32,7 +32,7 @@ versus dict** -- a parse answers *is this a filled, well-formed X* and returns
 the type; a seed answers *what does an unfilled X look like on the wire*.
 
 ! **THIS PARAGRAPH SAID THE OPPOSITE FOR ABOUT AN HOUR ON 2026-08-31**, claiming
-`Process: #65` overrode the return type and citing `Mark`'s `seed`/`as_entry`
+`Process: #65` overrode the return type and citing `Mark`'s `seed`/`serialize`
 split as the precedent. **Both of those return dicts.** `#65` governs what a
 flow CARRIES between its load and its save; a seed is emitted AT a save --
 `flows.distribute.seed` builds one and the command writes it as the JSON a role
@@ -43,8 +43,8 @@ is handed -- so the dict is where that ruling puts it.
     read    flows.collate.collate, at its inbound boundary and after `gather`
 
 ! THE PARSES HAD NO PRODUCTION CALLER UNTIL 2026-08-31, and this file said so
-for as long as that was true. `P21` closed it: `collate` runs `parse_edit_copy`
-over every returned copy and `parse_master_proof` over what `gather` builds,
+for as long as that was true. `P21` closed it: `collate` runs `EditCopy.deserialize`
+over every returned copy and `MasterProof.deserialize` over what `gather` builds,
 so **every refusal declared below can now fire.**
 
 !! THIS FILE STATES WHAT THE TWO BOUNDARIES ARE, AND NOTHING ELSE RESTATES IT.
@@ -78,7 +78,7 @@ def _written(cls, values: dict) -> dict:
     `decision-log.md Process: #64`. It is `desk.mark.Mark.seed`'s guard one
     level up: every producer spelled these keys as literals, so renaming a
     field left another module writing the old key and NOTHING could notice --
-    `parse_sheet` folds an absent `sha` to `""` and reports no problem, where
+    `Sheet.deserialize` folds an absent `sha` to `""` and reports no problem, where
     `Mark.seed` raises at the point the row is built.
 
     Args:
@@ -126,7 +126,7 @@ class Sheet:
         `.get("sha", "")` defaults only when the key is ABSENT, so a `"sha":
         null` binder page arrives with the key PRESENT and holding None, and
         `str(None)` is the four-character word "None". `flows.distribute.seed`
-        and `parse_sheet` each carried this fold; a rule stated twice is a rule
+        and `Sheet.deserialize` each carried this fold; a rule stated twice is a rule
         that will disagree with itself.
 
         Args:
@@ -136,7 +136,7 @@ class Sheet:
             marks: the entries for this page, carried as given.
 
         Returns:
-            `{path, sha, marks}` -- what `parse_sheet` reads back.
+            `{path, sha, marks}` -- what `Sheet.deserialize` reads back.
         """
         return _written(
             cls,
@@ -146,6 +146,79 @@ class Sheet:
                 "marks": list(marks),
             },
         )
+
+    @classmethod
+    def deserialize(cls, where: str, data: object) -> "tuple[Sheet | None, list[str]]":
+        """One sheet, checked.
+
+        Args:
+            where: how to name this sheet in a message.
+            data: one entry of an edit_copy's `sheets`, as it came back.
+
+        Returns:
+            `(Sheet, [])` or `(None, [messages])`. An absent OR a null `sha` is
+            admitted as "".
+
+            !! THE REASON GIVEN HERE WAS FALSE UNTIL 2026-08-31. It read *"a page
+            can be censused from a tree that is not a repo"*. `machine.repo.sha_of`
+            digests the TEXT with the standard library and asks nothing of git, so
+            a census over a directory holding no `.git` reports a real sha for every
+            page. Roy, 2026-08-31: *"this is not a valid reason to not sha hash the
+            file ... we are not using the git sha for this we are using the python
+            hashing library."*
+
+            ! THE REAL PRODUCERS ARE TWO SITES INSIDE THE MIDDLE, and both write
+            `""` for a path `unflatten` could not resolve back to a real page:
+            `desk.collator._real_pages` and `flows.collate._chief_copy`. Neither is
+            a census, and neither is about a repo.
+
+            ! SO WHETHER AN ABSENT KEY SHOULD BE ADMITTED AT ALL IS OPEN -- no real
+            producer writes a sheet without one, and `containers-and-verification-
+            are-unwired` T9 holds that question. What is fixed here is the
+            justification, which was not true of this code on any day.
+        """
+        if not isinstance(data, dict):
+            return None, [f"{where}: a sheet must be an object"]
+        path = data.get("path")
+        if not filled(path):
+            return None, [f"{where}: a sheet needs the `path` of the page it holds"]
+        marks = data.get("marks")
+        if not isinstance(marks, list):
+            return None, [f"{where}: {path} needs a `marks` list"]
+        # ! `.get("sha", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT. A `"sha":
+        # null` reaching here is a PRESENT key holding None, so `.get` returns
+        # None and `str(None)` is the four-character word "None" -- folded into
+        # the same absent-sha case above instead.
+        #
+        # ! `Sheet.seed` FOLDS ON THE WAY OUT AND THIS ON THE WAY IN, so a sheet
+        # written by hand -- an artifact read off disk, a role's own edit -- meets
+        # the same rule as one this module wrote.
+        #
+        # !! AND THE FOLD IS SPELLED AT FIVE SITES. `desk.collator._real_pages`,
+        # `flows.carry` and `flows.collate._chief_copy` each carry their own copy,
+        # and none of the three imports this module; `carry`'s own comment already
+        # says it is "matching `desk.containers.Sheet.deserialize`". This pair is the
+        # round trip; those three are duplicates a change to the rule would not
+        # reach.
+        #
+        # ! THE COUNT WAS FOUR UNTIL 2026-08-31 AND THE FIFTH WAS ADDED KNOWINGLY.
+        # `_chief_copy` subscripted `sheet["sha"]` on the belief that the envelope
+        # guaranteed it; it does not, and `823834f` restored the fold there rather
+        # than carry the parsed `Sheet` that already holds the answer. That is a
+        # stopgap standing until `Process: #65`, and counting it here is what keeps
+        # it from reading as the settled shape.
+        raw_sha = data.get("sha")
+        sha = raw_sha if isinstance(raw_sha, str) else ""
+        return Sheet(path=path, sha=sha, marks=tuple(marks)), []
+
+    def serialize(self) -> dict:
+        """This sheet as the wire dict, the shape `seed` writes.
+
+        ! IT WRITES A FILLED SHEET AND `seed` WRITES AN EMPTY ONE -- the same
+        three keys either way. `marks` are carried as they are held, which is
+        `object` for the reason the class docstring gives.
+        """
+        return {"path": self.path, "sha": self.sha, "marks": list(self.marks)}
 
 
 @dataclass(frozen=True)
@@ -184,6 +257,73 @@ class EditCopy:
             cls,
             {"role": role, "read_from": {**read_from}, "sheets": list(sheets)},
         )
+
+    @classmethod
+    def deserialize(
+        cls, where: str, data: object
+    ) -> "tuple[EditCopy | None, list[str]]":
+        """One edit_copy and every sheet under it, checked.
+
+        ! EVERY BAD SHEET IS REPORTED, not the first. A copy handed back with two
+        malformed sheets is two things to fix, and a parse that stopped at the
+        first would make the second invisible until the next run.
+
+        Args:
+            where: how to name this copy in a message.
+            data: one edit_copy, as `flows.distribute.seed` builds one.
+
+        Returns:
+            `(EditCopy, [])` or `(None, [messages])`.
+        """
+        if not isinstance(data, dict):
+            return None, [f"{where}: an edit_copy must be an object"]
+        # !! DECLARED, NOT NARROWED, because the read at `checked["read_from"]`
+        # below sits past a loop. An `isinstance` narrow is invalidated at a loop
+        # back-edge, so `ty` loses it before that read; an explicit annotation is
+        # a declaration and survives.
+        checked: dict = data
+        role = checked.get("role")
+        if not filled(role):
+            return None, [f"{where}: an edit_copy needs the `role` that wrote it"]
+        why_header = _read_from_problem(checked)
+        if why_header:
+            return None, [f"{where}: {role}'s {why_header}"]
+        raw_sheets = checked.get("sheets")
+        if not isinstance(raw_sheets, list):
+            return None, [f"{where}: {role} needs a `sheets` list"]
+        sheets: list[Sheet] = []
+        problems: list[str] = []
+        for i, raw in enumerate(raw_sheets, 1):
+            sheet, why = Sheet.deserialize(f"{where}: {role} sheet {i}", raw)
+            if sheet is None:
+                problems += why
+            else:
+                sheets.append(sheet)
+        if problems:
+            return None, problems
+        return (
+            EditCopy(
+                role=role,
+                # ! COPIED, NOT ALIASED -- `bind`, `seed` and `gather` all do the
+                # same with this field, so a caller mutating its own dict cannot
+                # change what a parsed copy already holds.
+                read_from={**checked["read_from"]},
+                sheets=tuple(sheets),
+            ),
+            [],
+        )
+
+    def serialize(self) -> dict:
+        """This edit_copy as the wire dict, the shape `seed` writes.
+
+        ! `read_from` IS COPIED, NOT ALIASED, matching `seed` and every other
+        producer of this field.
+        """
+        return {
+            "role": self.role,
+            "read_from": {**self.read_from},
+            "sheets": [sheet.serialize() for sheet in self.sheets],
+        }
 
 
 @dataclass(frozen=True)
@@ -226,207 +366,98 @@ class MasterProof:
             },
         )
 
+    @classmethod
+    def deserialize(
+        cls, where: str, data: object
+    ) -> "tuple[MasterProof | None, list[str]]":
+        """One master_proof and every copy under it, checked.
 
-def parse_sheet(where: str, data: object) -> tuple[Sheet | None, list[str]]:
-    """One sheet, checked.
+        Args:
+            where: how to name this proof in a message -- its stage label.
+            data: a master_proof, as `desk.proof.gather` returns one.
 
-    Args:
-        where: how to name this sheet in a message.
-        data: one entry of an edit_copy's `sheets`, as it came back.
+        Returns:
+            `(MasterProof, [])` or `(None, [messages])`. Every bad copy is
+            reported, and so is a `read_from` that fails `_read_from_problem` --
+            the same check `EditCopy.deserialize` runs on an edit_copy's own field --
+            or that disagrees with the first edit_copy's, which is the
+            disagreement `desk.proof.gather` itself refuses with
+            `MismatchedRoot` before a master_proof is ever built.
 
-    Returns:
-        `(Sheet, [])` or `(None, [messages])`. An absent OR a null `sha` is
-        admitted as "".
+            ! THE SHAPE CHECK RUNS WHETHER OR NOT THERE ARE COPIES, since
+            2026-08-31; the COMPARISON needs a first copy and still only runs
+            where there is one. The single exemption is an empty proof whose
+            `read_from` is `{}` or absent, which is what `gather` writes when it
+            had no first copy to take one from.
+        """
+        if not isinstance(data, dict):
+            return None, [f"{where}: a master_proof must be an object"]
+        raw_copies = data.get("edit_copies")
+        if not isinstance(raw_copies, list):
+            return None, [f"{where}: a master_proof needs an `edit_copies` list"]
+        copies: list[EditCopy] = []
+        problems: list[str] = []
+        for i, raw in enumerate(raw_copies, 1):
+            copy, why = EditCopy.deserialize(f"{where}: edit_copy {i}", raw)
+            if copy is None:
+                problems += why
+            else:
+                copies.append(copy)
+        if problems:
+            return None, problems
+        read_from = data.get("read_from")
+        # !! THE HEADER IS HELD TO A SHAPE WHETHER OR NOT THERE ARE COPIES, and was
+        # not until 2026-08-31. `_read_from_problem` ran inside the `if copies:`
+        # below, so a proof carrying none admitted ANY value: MEASURED with
+        # `edit_copies: []`, all of `'oops'`, None, 7, [], {'root': 7} and
+        # {'junk': 1} returned `problems == []`, and the two dict-shaped ones were
+        # carried into `MasterProof.read_from` VERBATIM. Those are exactly the two
+        # `desk.collator.problems_in`'s own comment records as the reason it reused
+        # instead of a hand-rolled `isinstance(..., dict) and truthy` -- so the
+        # validator had re-acquired the defect its own comment exists to explain.
+        #
+        # ! `{}` IS STILL ADMITTED, AND ONLY FOR AN EMPTY PROOF. `desk.proof.gather`
+        # writes it when there is no first copy to take a `read_from` from, so
+        # refusing it would refuse a shape the producer itself makes. That is the
+        # one exemption; it is not a licence for every other value.
+        #
+        # !! THE DEFAULT IS WHAT SEPARATES AN ABSENT KEY FROM A NULL ONE, and the
+        # two must not be folded together here. `.get("read_from", {})` returns `{}`
+        # for an absent key -- exempt, the shape two of this module's own tests hand
+        # in -- and `None` for a key PRESENT and holding null, which is checked and
+        # refused. Reading `data.get("read_from")` would give `None` for both and
+        # admit the null, which is the four-characters-of-"None" class of defect
+        # `Sheet.deserialize` and `MasterProof.deserialize` each already guard.
+        if copies or data.get("read_from", {}) != {}:
+            why_header = _read_from_problem(data)
+            if why_header:
+                return None, [f"{where}: master_proof's {why_header}"]
+        # !! THE COMPARISON AGAINST THE FIRST COPY STILL NEEDS ONE. An empty proof
+        # has no first copy to disagree with.
+        if copies and read_from != copies[0].read_from:
+            return None, [
+                f"{where}: `read_from` {read_from!r} disagrees with the "
+                f"first edit_copy's {copies[0].read_from!r}"
+            ]
+        # ! `.get("stage", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT. A `"stage":
+        # null` reaching here is a PRESENT key holding None, so `.get` returns
+        # None and `str(None)` is the four-character word "None" -- folded into
+        # the same absent-stage case instead.
+        raw_stage = data.get("stage")
+        stage = raw_stage if isinstance(raw_stage, str) else ""
+        return (
+            MasterProof(
+                stage=stage,
+                read_from={**read_from} if isinstance(read_from, dict) else {},
+                edit_copies=tuple(copies),
+            ),
+            [],
+        )
 
-        !! THE REASON GIVEN HERE WAS FALSE UNTIL 2026-08-31. It read *"a page
-        can be censused from a tree that is not a repo"*. `machine.repo.sha_of`
-        digests the TEXT with the standard library and asks nothing of git, so
-        a census over a directory holding no `.git` reports a real sha for every
-        page. Roy, 2026-08-31: *"this is not a valid reason to not sha hash the
-        file ... we are not using the git sha for this we are using the python
-        hashing library."*
-
-        ! THE REAL PRODUCERS ARE TWO SITES INSIDE THE MIDDLE, and both write
-        `""` for a path `unflatten` could not resolve back to a real page:
-        `desk.collator._real_pages` and `flows.collate._chief_copy`. Neither is
-        a census, and neither is about a repo.
-
-        ! SO WHETHER AN ABSENT KEY SHOULD BE ADMITTED AT ALL IS OPEN -- no real
-        producer writes a sheet without one, and `containers-and-verification-
-        are-unwired` T9 holds that question. What is fixed here is the
-        justification, which was not true of this code on any day.
-    """
-    if not isinstance(data, dict):
-        return None, [f"{where}: a sheet must be an object"]
-    path = data.get("path")
-    if not filled(path):
-        return None, [f"{where}: a sheet needs the `path` of the page it holds"]
-    marks = data.get("marks")
-    if not isinstance(marks, list):
-        return None, [f"{where}: {path} needs a `marks` list"]
-    # ! `.get("sha", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT. A `"sha":
-    # null` reaching here is a PRESENT key holding None, so `.get` returns
-    # None and `str(None)` is the four-character word "None" -- folded into
-    # the same absent-sha case above instead.
-    #
-    # ! `Sheet.seed` FOLDS ON THE WAY OUT AND THIS ON THE WAY IN, so a sheet
-    # written by hand -- an artifact read off disk, a role's own edit -- meets
-    # the same rule as one this module wrote.
-    #
-    # !! AND THE FOLD IS SPELLED AT FIVE SITES. `desk.collator._real_pages`,
-    # `flows.carry` and `flows.collate._chief_copy` each carry their own copy,
-    # and none of the three imports this module; `carry`'s own comment already
-    # says it is "matching `desk.containers.parse_sheet`". This pair is the
-    # round trip; those three are duplicates a change to the rule would not
-    # reach.
-    #
-    # ! THE COUNT WAS FOUR UNTIL 2026-08-31 AND THE FIFTH WAS ADDED KNOWINGLY.
-    # `_chief_copy` subscripted `sheet["sha"]` on the belief that the envelope
-    # guaranteed it; it does not, and `823834f` restored the fold there rather
-    # than carry the parsed `Sheet` that already holds the answer. That is a
-    # stopgap standing until `Process: #65`, and counting it here is what keeps
-    # it from reading as the settled shape.
-    raw_sha = data.get("sha")
-    sha = raw_sha if isinstance(raw_sha, str) else ""
-    return Sheet(path=path, sha=sha, marks=tuple(marks)), []
-
-
-def parse_edit_copy(where: str, data: object) -> tuple[EditCopy | None, list[str]]:
-    """One edit_copy and every sheet under it, checked.
-
-    ! EVERY BAD SHEET IS REPORTED, not the first. A copy handed back with two
-    malformed sheets is two things to fix, and a parse that stopped at the
-    first would make the second invisible until the next run.
-
-    Args:
-        where: how to name this copy in a message.
-        data: one edit_copy, as `flows.distribute.seed` builds one.
-
-    Returns:
-        `(EditCopy, [])` or `(None, [messages])`.
-    """
-    if not isinstance(data, dict):
-        return None, [f"{where}: an edit_copy must be an object"]
-    # !! DECLARED, NOT NARROWED, because the read at `checked["read_from"]`
-    # below sits past a loop. An `isinstance` narrow is invalidated at a loop
-    # back-edge, so `ty` loses it before that read; an explicit annotation is
-    # a declaration and survives.
-    checked: dict = data
-    role = checked.get("role")
-    if not filled(role):
-        return None, [f"{where}: an edit_copy needs the `role` that wrote it"]
-    why_header = _read_from_problem(checked)
-    if why_header:
-        return None, [f"{where}: {role}'s {why_header}"]
-    raw_sheets = checked.get("sheets")
-    if not isinstance(raw_sheets, list):
-        return None, [f"{where}: {role} needs a `sheets` list"]
-    sheets: list[Sheet] = []
-    problems: list[str] = []
-    for i, raw in enumerate(raw_sheets, 1):
-        sheet, why = parse_sheet(f"{where}: {role} sheet {i}", raw)
-        if sheet is None:
-            problems += why
-        else:
-            sheets.append(sheet)
-    if problems:
-        return None, problems
-    return (
-        EditCopy(
-            role=role,
-            # ! COPIED, NOT ALIASED -- `bind`, `seed` and `gather` all do the
-            # same with this field, so a caller mutating its own dict cannot
-            # change what a parsed copy already holds.
-            read_from={**checked["read_from"]},
-            sheets=tuple(sheets),
-        ),
-        [],
-    )
-
-
-def parse_master_proof(
-    where: str, data: object
-) -> tuple[MasterProof | None, list[str]]:
-    """One master_proof and every copy under it, checked.
-
-    Args:
-        where: how to name this proof in a message -- its stage label.
-        data: a master_proof, as `desk.proof.gather` returns one.
-
-    Returns:
-        `(MasterProof, [])` or `(None, [messages])`. Every bad copy is
-        reported, and so is a `read_from` that fails `_read_from_problem` --
-        the same check `parse_edit_copy` runs on an edit_copy's own field --
-        or that disagrees with the first edit_copy's, which is the
-        disagreement `desk.proof.gather` itself refuses with
-        `MismatchedRoot` before a master_proof is ever built.
-
-        ! THE SHAPE CHECK RUNS WHETHER OR NOT THERE ARE COPIES, since
-        2026-08-31; the COMPARISON needs a first copy and still only runs
-        where there is one. The single exemption is an empty proof whose
-        `read_from` is `{}` or absent, which is what `gather` writes when it
-        had no first copy to take one from.
-    """
-    if not isinstance(data, dict):
-        return None, [f"{where}: a master_proof must be an object"]
-    raw_copies = data.get("edit_copies")
-    if not isinstance(raw_copies, list):
-        return None, [f"{where}: a master_proof needs an `edit_copies` list"]
-    copies: list[EditCopy] = []
-    problems: list[str] = []
-    for i, raw in enumerate(raw_copies, 1):
-        copy, why = parse_edit_copy(f"{where}: edit_copy {i}", raw)
-        if copy is None:
-            problems += why
-        else:
-            copies.append(copy)
-    if problems:
-        return None, problems
-    read_from = data.get("read_from")
-    # !! THE HEADER IS HELD TO A SHAPE WHETHER OR NOT THERE ARE COPIES, and was
-    # not until 2026-08-31. `_read_from_problem` ran inside the `if copies:`
-    # below, so a proof carrying none admitted ANY value: MEASURED with
-    # `edit_copies: []`, all of `'oops'`, None, 7, [], {'root': 7} and
-    # {'junk': 1} returned `problems == []`, and the two dict-shaped ones were
-    # carried into `MasterProof.read_from` VERBATIM. Those are exactly the two
-    # `desk.collator.problems_in`'s own comment records as the reason it reused
-    # instead of a hand-rolled `isinstance(..., dict) and truthy` -- so the
-    # validator had re-acquired the defect its own comment exists to explain.
-    #
-    # ! `{}` IS STILL ADMITTED, AND ONLY FOR AN EMPTY PROOF. `desk.proof.gather`
-    # writes it when there is no first copy to take a `read_from` from, so
-    # refusing it would refuse a shape the producer itself makes. That is the
-    # one exemption; it is not a licence for every other value.
-    #
-    # !! THE DEFAULT IS WHAT SEPARATES AN ABSENT KEY FROM A NULL ONE, and the
-    # two must not be folded together here. `.get("read_from", {})` returns `{}`
-    # for an absent key -- exempt, the shape two of this module's own tests hand
-    # in -- and `None` for a key PRESENT and holding null, which is checked and
-    # refused. Reading `data.get("read_from")` would give `None` for both and
-    # admit the null, which is the four-characters-of-"None" class of defect
-    # `parse_sheet` and `parse_master_proof` each already guard.
-    if copies or data.get("read_from", {}) != {}:
-        why_header = _read_from_problem(data)
-        if why_header:
-            return None, [f"{where}: master_proof's {why_header}"]
-    # !! THE COMPARISON AGAINST THE FIRST COPY STILL NEEDS ONE. An empty proof
-    # has no first copy to disagree with.
-    if copies and read_from != copies[0].read_from:
-        return None, [
-            f"{where}: `read_from` {read_from!r} disagrees with the "
-            f"first edit_copy's {copies[0].read_from!r}"
-        ]
-    # ! `.get("stage", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT. A `"stage":
-    # null` reaching here is a PRESENT key holding None, so `.get` returns
-    # None and `str(None)` is the four-character word "None" -- folded into
-    # the same absent-stage case instead.
-    raw_stage = data.get("stage")
-    stage = raw_stage if isinstance(raw_stage, str) else ""
-    return (
-        MasterProof(
-            stage=stage,
-            read_from={**read_from} if isinstance(read_from, dict) else {},
-            edit_copies=tuple(copies),
-        ),
-        [],
-    )
+    def serialize(self) -> dict:
+        """This master_proof as the wire dict, the shape `gather` returns."""
+        return {
+            "stage": self.stage,
+            "read_from": {**self.read_from},
+            "edit_copies": [copy.serialize() for copy in self.edit_copies],
+        }
