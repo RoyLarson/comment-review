@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 34 tasks closed
+Progress: 10 of 35 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -276,3 +276,6 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       reader inside the lexer and was parked there to be one
         > 2026-08-31 Read by binder/annotate.py and concordance/code_names.py only
         > 2026-08-31 Same misplacement Paragraph was in; the comment states the motive
+- [ ] T35 | Move the one filesystem call out of binder/annotate.py, where a path
+      existence check is IO outside machine
+        > 2026-08-31 line 156 -- the only IO in binder/; picks UNVERIFIABLE or UNRESOLVE
