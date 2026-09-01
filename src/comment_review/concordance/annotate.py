@@ -15,19 +15,15 @@ holds the namespaces it was handed.
 import re
 from collections.abc import Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING
 
-from comment_review.reading.lexer import SYMBOLISH
+from comment_review.concordance.names import SYMBOLISH
+from comment_review.reading.paragraph import Paragraph
 
-# !! `Paragraph` exists for TYPING ONLY -- `census.py` imports this module, so a
-# real import would be circular -- and it is therefore NOT BOUND AT RUNTIME.
-# Every annotation naming it is QUOTED for that reason. Measured 2026-08-17:
-# unquoted and without `from __future__ import annotations`, this module and
-# the three that import it raised `NameError: name 'Paragraph' is not defined`
-# at import on Python 3.13 and on the 3.11 floor, while passing on the 3.14
-# dev machine where PEP 649 makes annotations lazy.
-if TYPE_CHECKING:
-    from comment_review.reading.paragraph import Paragraph
+# !! `Paragraph` WAS A TYPE-ONLY IMPORT UNTIL 2026-08-31, quoted at every use,
+# because *`census.py` imports this module, so a real import would be
+# circular*. ! That reason went when `Paragraph` left the lexer for its own
+# leaf the same day: nothing under `reading/` imports this package, so the
+# import is ordinary now. `decision-log.md Process: #70`.
 
 PATH_CITE = re.compile(r"`?([\w./-]+\.(?:py|md|toml|txt|json|ya?ml))(?:::(\w+))?`?")
 TICKED = re.compile(r"`([^`\s]+)`")
@@ -133,7 +129,7 @@ COMMAND_LINE = re.compile(r"^\s*(\$ |uv run |python |pytest |npm |cargo |go )")
 
 
 def annotate(
-    paragraph: "Paragraph", known: set[str], paths: set[str], repo: Path
+    paragraph: Paragraph, known: set[str], paths: set[str], repo: Path
 ) -> None:
     """Attach every annotation this paragraph carries, and resolve it where possible."""
     t = paragraph.text

@@ -93,12 +93,6 @@ LAYOUT = frozenset(Layout)
 
 
 NAMED_DEFS = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
-# ! DOES THIS STRING LOOK LIKE AN IDENTIFIER -- a purely lexical question, and
-# the reason it sits here rather than beside either of its callers. It lived in
-# `annotate.py` while that was its only reader; `concordance.code_names` became
-# a second one in a different package on 2026-08-24, and a leaf both may take
-# is what stops one of them importing the other for a regex.
-SYMBOLISH = re.compile(r"^[A-Za-z_][\w.]*$")
 DOC_ANCHORS = (ast.Module,) + NAMED_DEFS
 
 
