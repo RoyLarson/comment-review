@@ -40,6 +40,13 @@ named -- and all of it operates on a raw dict, with the parsed container discard
 it is produced. **The behaviour landed; the design did not.** `Process: #65` and `#66` state
 the shape, and SP-7 is where these three steps are actually closed.
 
+!! **SP-7 CLOSED TWO OF THE THREE, ON 2026-08-31, AGAINST `f1db0e5`.** `P25` and `P27` now run
+on `EditCopy`s: `verify_report` and `_coverage_problems` take the container, not the dict the
+parse produced and this plan discarded. **`P21` STAYS OPEN** on its third clause -- *"every
+field declared is one the code reads"* -- because `MasterProof.stage` is read only by
+`MasterProof.serialize`, and that pair lost its last production caller when `P42` removed the
+proof boundary. Filed as `containers-and-verification-are-unwired` T37, `needs-ruling`.
+
 ! **THE TICKED BOXES BELOW ARE LEFT AS THEY ARE.** They record what was done, and the eight
 tasks did happen. What was wrong is the claim the P steps made on the strength of them --
 which is a claim about the PLAN, and is corrected there. ! Reading this file as a record of
