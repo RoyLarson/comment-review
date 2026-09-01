@@ -187,9 +187,14 @@ class Paragraph:
     notes: list[str] = field(default_factory=list)
 
     # !! THE PARAGRAPH'S OWN CHARACTERS, EXACTLY AS THE FILE HOLDS THEM -- its
-    # lines whole where it owns them, and from `original_column` onward on the first
-    # line where code comes first. With `anchor` holding the code, the two
-    # RECONSTRUCT that line: `anchor + raw_lines[0]` is what is on disk.
+    # lines whole where it owns them, and from the end of the code onward on
+    # the first line where code comes first. With `anchor` holding that code,
+    # the two RECONSTRUCT the line: `anchor + raw_lines[0]` is what is on disk.
+    #
+    # !! SO THE CUT IS RECORDED IN THE LINES THEMSELVES, NOT IN A FIELD. A
+    # `Paragraph.original_column` held it until 2026-08-31 and every reader
+    # tested it for TRUTHINESS -- *is this beside code* -- which the series
+    # answers. `decision-log.md Process: #69`.
     #
     # !! THE TWO TIERS DISAGREED, AND FOUR OF SIX SHAPES COULD NOT BE WRITTEN.
     # `paragraphs_lexical` cut at the comment opener and `paragraphs_stdlib` kept the
@@ -281,7 +286,7 @@ class Paragraph:
     #           the room beside the code starts. A `trailing-comment`, a
     #           `margin`, a paragraph comment opened after a statement. It is what
     #           lets the galley write one without deleting the code: the splice
-    #           keeps `line[: original_column - 1]`.
+    #           keeps `line[: column - 1]`.
     #
     # !! IT IS THE END OF THE CODE, NOT THE START OF THE PROSE, and Roy ruled
     # it 2026-08-19: *"c addresses start at the end of the code on the line."*
@@ -303,7 +308,6 @@ class Paragraph:
     # came first. That was enough to REFUSE the write and not enough to make it,
     # and the `c` series exists to be written. Roy, 2026-08-19: *"c needs to be
     # writeable. It is the reason c is not an extension of b."*
-    original_column: int = 0
 
     def __post_init__(self) -> None:
         """Default the covered lines to the addressing range, or to None.
@@ -690,7 +694,8 @@ def _own_characters(span: list[str], column: int) -> list[str]:
 
     Args:
         span: the paragraph's physical lines, without endings.
-        column: the paragraph's `original_column`; 0 when it owns its lines whole.
+        column: where the prose begins on the first line; 0 when the
+            paragraph owns its lines whole.
 
     Returns:
         The same lines, with the first cut at `column`.
@@ -726,7 +731,7 @@ def _anchor_of(lines: list[str], line_no: int, column: int) -> str:
     Args:
         lines: the file's lines, without endings.
         line_no: 1-based line the paragraph opens on.
-        column: that paragraph's `original_column`.
+        column: where the prose begins on that paragraph's first line.
 
     Returns:
         The code preceding the paragraph on its first line, right-stripped.
@@ -883,9 +888,9 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
     # same stamp. A list because `flush` is a closure and rebinds nothing.
     trailing_end = [_NO_TRAILING]
 
-    # !! WHERE THE RUN'S FIRST LINE STOPS BEING CODE -- the `original_column` this
-    # tier states, one past the last character of code, or 0 when the run owns
-    # its lines whole.
+    # !! WHERE THE RUN'S FIRST LINE STOPS BEING CODE -- one past the last
+    # character of code, or 0 when the run owns its lines whole. It cuts
+    # `raw_lines[0]` and is not carried on the paragraph.
     #
     # ! `trailing` does not answer it: a MULTI-LINE paragraph comment opened after a
     # statement flushes with `trailing=False`, because by then the run spans
@@ -1014,7 +1019,6 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             lines=counted_lines(raw),
             text=_join(raw, openers),
             raw_lines=span,
-            original_column=partial_first[0],
             # !! THE LEXER ALREADY HAS THIS STRING. It found the opener in
             # order to cut there, so the characters before it were known one
             # step earlier and were thrown away. Roy, 2026-08-19: *"the lexer
@@ -1449,7 +1453,11 @@ def document_declarations(
     ends = {
         b.original_end: b
         for b in paragraphs
-        if b.original_end and not b.original_column and b.kind != Kind.LEADING
+        # ! ASKED OF THE KIND. This read `not b.original_column`, which was
+        # the same question one field away -- a paragraph beside code is a
+        # trailing comment. `decision-log.md Process: #69`. No margin
+        # exists yet here: the walk has not synthesised the empty places.
+        if b.original_end and b.kind not in (Kind.TRAILING, Kind.LEADING)
     }
     if not ends:
         return
@@ -1609,7 +1617,6 @@ def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
                     # between a statement and its comment belongs to the `c`
                     # place, so a `margin` and the trailing comment that would
                     # replace it carry the same column.
-                    original_column=run[0][3],
                     lines=counted_lines(prose),
                     text=_join(prose),
                     # !! THE LINES THE PARAGRAPH SPANS, not the lines that carry a

@@ -154,6 +154,32 @@ class Series(Enum):
         """
         return BY_LETTER.get(cue[:1])
 
+    @classmethod
+    def of_kind(cls, kind: str) -> "Series | None":
+        """The series a KIND belongs to, or None for a kind no series names.
+
+        `margin` and `trailing-comment` are both `ON`.
+
+        !! IT IS WHAT REPLACED `Paragraph.original_column`, 2026-08-31 --
+        `decision-log.md Process: #69`. That field was a single `int` read for
+        its TRUTHINESS at four sites, each asking *is this paragraph beside
+        code*. Roy: *"the Series cue system does it better, more precisely, and
+        is more flexible."*
+
+        !! AND THE KIND ALONE IS NOT THE SAME QUESTION, which is the trap this
+        exists to close. MEASURED 2026-08-31 over 11,702 paragraphs of this
+        repo: `original_column` is truthy for 5,286 places that are NOT
+        `trailing-comment` -- every one a `margin`, the EMPTY `c`, which records
+        where a comment would go. A `kind == TRAILING` test would have dropped
+        all of them. **Both kinds belong to one series, and the series is the
+        question.**
+
+        ! DERIVED FROM THE DEFINITIONS, never listed -- the same rule as
+        `BY_LETTER` and `ABSENT` above it, so a series added tomorrow answers
+        here without anyone remembering to add it.
+        """
+        return BY_KIND.get(kind)
+
 
 #: Every series a place can be CITED in -- `d` excluded, because a fence names
 #: no place. It is what the walk emits addresses for.
@@ -167,3 +193,15 @@ ABSENT = frozenset(s.value.absent for s in Series if s.value.absent is not None)
 
 #: The series each letter names.
 BY_LETTER = {s.value.letter: s for s in Series}
+
+#: The series each KIND belongs to -- both of them, present and absent. `d` has
+#: no absent kind and contributes one entry; every other series contributes two.
+#:
+#: ! DERIVED, NEVER LISTED, matching `BY_LETTER` and `ABSENT`. A hand-kept map
+#: is what `ADDRESSED`'s own comment records going stale.
+BY_KIND = {
+    kind: s
+    for s in Series
+    for kind in (s.value.present, s.value.absent)
+    if kind is not None
+}

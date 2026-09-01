@@ -499,7 +499,10 @@ def code_lines(text: str, prose: list[dict]) -> dict[int, str]:
     dropped the statement from the code set, moving every interval boundary
     below it.
 
-    !! THE PARAGRAPH SAYS SO, via `original_column`. This tested whether the stored
+    !! THE PARAGRAPH SAYS SO, BY ITS SERIES -- a `c` place is the room beside
+    code, filled or not. ! IT WAS A `original_column` FIELD until 2026-08-31
+    (`decision-log.md Process: #69`), read here for its truthiness alone.
+    Before THAT it tested whether the stored
     text was a proper SUFFIX of the physical line, which is an inference and
     was wrong in both directions: `paragraphs_stdlib` stores the WHOLE line for a
     trailing comment, so the test never fired for one -- and a paragraph comment
@@ -522,7 +525,9 @@ def code_lines(text: str, prose: list[dict]) -> dict[int, str]:
         start, end = b.get("start"), b.get("end")
         # ! The `c` is read BEFORE the occupancy test, because the paragraph
         # standing in for one is a `margin`, which occupies nothing.
-        if b.get("original_column") and isinstance(start, int):
+        if Series.of_kind(str(b.get("kind", ""))) is Series.ON and isinstance(
+            start, int
+        ):
             beside[start] = b.get("anchor", "")
         # ! AN EMPTY PLACE OCCUPIES NOTHING, which is what its kind means. At
         # this point an `interval` still spans the gap between two code lines --
@@ -533,7 +538,7 @@ def code_lines(text: str, prose: list[dict]) -> dict[int, str]:
         if not isinstance(start, int) or not isinstance(end, int):
             continue
         occupied.update(range(start, end + 1))
-        if b.get("original_column", 0):
+        if Series.of_kind(str(b.get("kind", ""))) is Series.ON:
             occupied.discard(start)
     return {
         n: beside.get(n) or line.rstrip()
@@ -580,7 +585,7 @@ def attach(paragraph: dict, cues: "Cues") -> str:
     # that the question is not `above()`'s to answer.
     if paragraph.get("kind") == Kind.MATTER:
         return ""
-    if paragraph.get("original_column", 0):
+    if Series.of_kind(str(paragraph.get("kind", ""))) is Series.ON:
         start = paragraph.get("start")
         return cues.beside(start) if isinstance(start, int) else ""
     at = paragraph.get("original_start")
@@ -770,7 +775,6 @@ def empty_places(text: str, cues: Cues, occupied: set[str]) -> list[Paragraph]:
                     raw_lines=[lines[n - 1][len(code) :]],
                     original_start=n,
                     original_end=n,
-                    original_column=len(code) + 1,
                     anchor=anchor,
                     address=cue_name,
                 )
