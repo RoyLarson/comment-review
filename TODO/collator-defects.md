@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 28 tasks closed
+Progress: 6 of 28 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -158,8 +158,9 @@ Four defects in collator.py, found by reading only the code.
       moved is a question it has no stake in. Verify: `grep -rn "drift"
       src/comment_review/` returns nothing, the exit codes are a closed set with
       no gap where DRIFT was, and the suite stays green.
-- [ ] T28 | Delete problems_in and unruled, which flows.mark_errors replaced,
-      and the tests that assert their shape
+- [x] T28 | Both are deleted; flows.mark_errors answers what they did. The seven test functions that called them are repointed rather than dropped, the ruled count is derived in the tests that assert it, and ten present-tense prose mentions are corrected while eight historical ones stay. | 0edefdc | Delete
+      problems_in and unruled, which flows.mark_errors replaced, and the tests
+      that assert their shape
         > 2026-09-01 MEASURED 2026-09-01 after P52: neither has a production caller.
         > 2026-09-01 mark_errors answers both -- the unruled half and the refused half
         > 2026-09-01 -- and problems_in's ruled count is read by nothing. 29 test refs.
