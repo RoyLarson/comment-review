@@ -254,6 +254,39 @@ an instance of the rot it exists to forbid.
 `CLAUDE.md` refuses a sentence that cannot be falsified by reading the code; this refuses
 a piece of code that cannot be justified by naming what would otherwise be wrong.
 
+### !! A CARRYOVER STARTS COSTING WHEN NEW DESIGN IS BUILT ONTO IT, NOT WHEN IT EXISTS
+
+Roy, 2026-08-31, on why two vestigial fields had to go that day while a third could wait:
+*"The others were hurting because you were actively designing them into the system instead
+of letting them drop because they were not necessary."*
+
+**Three fields, one shape, two answers** -- all of them left over from a design the address
+system replaced:
+
+| | what it was | what happened |
+| --- | --- | --- |
+| `original_column` | where a trailing comment began on a line that starts with code | I read it in a NEW page type, and reasoned about whether a redacted paragraph could carry it |
+| `declares` | which declaration a docstring documents, as an ordinal | I proposed a REPLACEMENT MECHANISM for it, measured that mechanism failing, and filed a ruling request on the strength of it |
+| `lines` | how many lines a paragraph stands on | nothing. It sits there, 11 writes and 1 read |
+
+!! **THE FIRST TWO WERE URGENT BECAUSE I WAS SPENDING DESIGN ON THEM.** Not because they
+cost anything at rest -- a dead field costs nothing at rest. What they cost was every
+decision taken while assuming they were load-bearing: a `RedactedParagraph` argued for, an
+anchor-matching scheme invented and measured, a plan step filed as needing a ruling that no
+ruling was owed on. ! **EACH OF THOSE WAS WORK PRODUCED BY THE FIELD RATHER THAN BY THE
+PROBLEM.**
+
+! **AND THE THIRD IS LEFT IN, DELIBERATELY.** `TODO/a-comment-run-merges-across-blanks.md`
+T6 asks the question and holds the measurement. Roy: *"that thread probably needs pulled a
+little more carefully and it isn't hurting yet to leave it in."*
+
+!! **SO THE TEST IS NOT "IS IT DEAD" BUT "AM I REASONING FROM IT".** A field nothing reads
+is a cleanup. **A field a current design is being shaped around is a defect right now**,
+whatever its reader count says -- and it will be defended, because the design that grew on
+it is evidence for it. ! That is the same trap as *a purpose first stated in a review*, one
+level up: there, the code produces the justification; here, the leftover field produces the
+design that then justifies it.
+
 ---
 
 ## What a box may SAY -- the four openings, and why everything else is a trap
