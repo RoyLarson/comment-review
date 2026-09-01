@@ -221,7 +221,7 @@ def run(docket: Docket, repo: Path, into: Path) -> tuple[list[Drafted], list[Ref
         except Exception:
             # !! THE CLEANUP COVERS AN EXCEPTION, NOT ONLY A REFUSAL. Measured
             # 2026-08-25: with a later page's draft path pre-occupied, a
-            # `PermissionError` from `write_text` escaped as a raw traceback
+            # `PermissionError` from the draft write escaped as a raw traceback
             # and an earlier page's draft was left on disk -- only the
             # `refusals` branch below unlinked what had been written. The
             # exception still propagates; this removes what the run had
@@ -369,9 +369,9 @@ def _one(
             "draft", rel, "would be written outside the draft directory"
         )
     # !! WHAT THE WRITE IS ABOUT TO MAKE, RECORDED BEFORE IT MAKES IT.
-    # `compositor.draft` mkdirs with `parents=True`, so this is the last moment
-    # at which "did this directory exist already" can be asked. `_discard`
-    # removes only what is in this set.
+    # `machine.repo.write_raw` mkdirs with `parents=True`, so this is the last
+    # moment at which "did this directory exist already" can be asked.
+    # `_discard` removes only what is in this set.
     created.update(
         p
         for p in target.parents
@@ -386,17 +386,20 @@ def _one(
     # and hash it; any of them can raise where none has a `Refusal` for it.
     #
     # !! `compositor.draft` IS INSIDE THE `try`, AND WAS OUTSIDE IT UNTIL
-    # 2026-08-25. Its mkdir runs before its write, so a write that raised left
+    # 2026-08-25. The mkdir runs before the write, so a write that raised left
     # `<into>/pkg/` behind with no handler that could remove it -- MEASURED
     # with `rel = "pkg/d.py"`: `into.iterdir()` answered `['pkg']`.
     #
-    # ! ONE WRITER. `compositor.draft` IS `set_page` plus the mkdir and the
-    # `newline=""` write -- load-bearing, since `read_source`'s untranslated
-    # read is what `_prove`'s byte-identity comparison depends on. `_one` used
-    # to spell those three lines itself, which is two spellings of the only
-    # writer: one gets updated and the other does not. The containment refusal
-    # above still runs FIRST, so this never writes a target that was not
-    # already cleared.
+    # ! ONE WRITER. `compositor.draft` IS `set_page` plus a call to
+    # `machine.repo.write_raw`, which carries the mkdir and the `newline=""` --
+    # load-bearing, since `read_source`'s untranslated read is what `_prove`'s
+    # byte-identity comparison depends on. `_one` used to spell those three
+    # lines itself, which is two spellings of the only writer: one gets updated
+    # and the other does not. The containment refusal above still runs FIRST,
+    # so this never writes a target that was not already cleared.
+    # ! THE `mkdir` MOVED INTO `machine` WITH THE WRITE (`P45`) and the comment
+    # above still holds: it runs before the bytes land either way, which is why
+    # `created` is recorded first and why this call is inside the `try`.
     try:
         compositor.draft(page, target)
         # ! THE DRAFT IS READ ONCE. `_reread` hands back the text it read, and
