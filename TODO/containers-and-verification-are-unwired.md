@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 11 of 39 tasks closed
+Progress: 12 of 41 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -298,8 +298,13 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
         > 2026-08-31 MEASURED 2026-08-31: seed returns a dict and commands/distribute.py
         > 2026-08-31 dumps it directly -- the one command of five whose output is not a
         > 2026-08-31 container that serialized itself. fan has the same shape, unwired.
-- [?] T39 | Decide what Sheet.marks holds on the way back, when a filled mark
-      could be a Mark and a seeded one cannot
+- [x] T39 | RULED: Sheet.marks holds Marks. The two non-Mark kinds go OUT as addresses and reasons rather than onto the entry -- decision-log Process 72, and Roy 2026-09-01: we clearly need sheet to take Marks not Objects. Implementation is T40. | 7ffc71b | Decide
+      what Sheet.marks holds on the way back, when a filled mark could be a Mark
+      and a seeded one cannot
         > 2026-08-31 MEASURED 2026-08-31: it is the ONLY object in any container's field
         > 2026-08-31 The tension is real: Process 66 makes a SEEDED mark a wire dict, so
         > 2026-08-31 one type serves two states and only one can hold Marks.
+- [ ] T40 | Update Sheet so marks holds Mark, with unruled and refused beside
+      it, and every reader stops re-parsing
+- [ ] T41 | Implement flows/mark_errors.py, which collects every place a role
+      must revisit as addresses and reasons
