@@ -49,8 +49,8 @@ so **every refusal declared below can now fire.**
 
 !! THIS FILE STATES WHAT THE TWO BOUNDARIES ARE, AND NOTHING ELSE RESTATES IT.
 A container guards the **ENVELOPE** -- is this document the shape a copy must
-be -- while `desk.collator.problems_in` rules on the **CONTENTS**, so each
-per-mark problem routes back to the role that wrote it. They are not competing
+be -- while `flows.mark_errors` rules on the **CONTENTS**, so each per-mark
+problem routes back to the role that wrote it. They are not competing
 contracts, and both run. ! `flows/collate.py` owns the ORDER and the RESPONSE
 (envelope first; reported, not raised) and cites this paragraph rather than
 repeating it -- a rule in two places is a rule that will disagree with itself.
@@ -591,10 +591,18 @@ class MasterProof:
         # below, so a proof carrying none admitted ANY value: MEASURED with
         # `edit_copies: []`, all of `'oops'`, None, 7, [], {'root': 7} and
         # {'junk': 1} returned `problems == []`, and the two dict-shaped ones were
-        # carried into `MasterProof.read_from` VERBATIM. Those are exactly the two
-        # `desk.collator.problems_in`'s own comment records as the reason it reused
-        # instead of a hand-rolled `isinstance(..., dict) and truthy` -- so the
-        # validator had re-acquired the defect its own comment exists to explain.
+        # carried into `MasterProof.read_from` VERBATIM.
+        #
+        # ! AND THOSE TWO VALUES ARE THE REASON `_read_from_problem` IS REUSED
+        # RATHER THAN HAND-ROLLED. A weaker `isinstance(..., dict) and truthy`
+        # let `{"junk": 1}` and `{"root": 7, "revise": "x"}` through at exit 0
+        # while `bind` REFUSED the identical value -- two spellings of one rule,
+        # disagreeing. So the validator here had re-acquired the very defect
+        # reuse exists to prevent.
+        # ! THIS CITED `desk.collator.problems_in`'s OWN COMMENT for that
+        # measurement until 2026-09-01, and `P42` had deleted the comment with
+        # the header checks it explained. The measurement is stated here now,
+        # where the code it justifies is.
         #
         # ! `{}` IS STILL ADMITTED, AND ONLY FOR AN EMPTY PROOF. `desk.proof.gather`
         # writes it when there is no first copy to take a `read_from` from, so

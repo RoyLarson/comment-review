@@ -24,7 +24,6 @@ from comment_review.desk.collator import (
     claim_verbatim_problems,
     drift_in,
     known_addresses,
-    problems_in,
     source_problems,
     source_verification,
     tally,
@@ -33,6 +32,7 @@ from comment_review.desk.collator import (
 from comment_review.desk.containers import EditCopy
 from comment_review.desk.mark import Instruction, Mark
 from comment_review.flows.distribute import seed
+from comment_review.flows.mark_errors import mark_errors
 
 DESK = ROOT / "src" / "comment_review" / "desk"
 
@@ -118,6 +118,22 @@ def a_mark(**overrides) -> Mark:
     able to ask its own.
     """
     return replace(_well_formed(), **overrides)
+
+
+def _ruled_places(copy) -> int:
+    """How many places a role WROTE IN -- ruled marks and refused entries both.
+
+    !! A MARK A ROLE GOT WRONG STILL COUNTS, and that is the claim, not the
+    arithmetic. `desk.mark.untouched`'s own docstring forbids conflating *nobody
+    wrote here* with *someone wrote here and got the shape wrong*; counting only
+    `marks` would report the second as a coverage gap and send a reader looking
+    for a place nobody answered.
+
+    ! IT WAS `problems_in`'s SECOND RETURN VALUE until `P52` deleted it. Nothing
+    in production ever read that count -- `flows.collate` discarded it -- so it
+    is derived here, from the container, where the tests that assert it live.
+    """
+    return sum(len(sheet.marks) + len(sheet.refused) for sheet in copy.sheets)
 
 
 def test_known_addresses_carries_the_real_row():
@@ -419,26 +435,25 @@ class TestVerifyReport:
         assert all(p.address == ROW.address for p in problems)
         assert all(p.role == copy.role for p in problems)
 
-    def test_an_entry_THAT_DOES_NOT_PARSE_is_left_to_problems_in(self):
-        """!! SUPERSEDED 2026-08-31, AND THE DISTINCTION IT NAMED STILL HOLDS.
+    def test_an_entry_THAT_DOES_NOT_PARSE_is_left_to_the_error_flow(self):
+        """!! SUPERSEDED TWICE, AND THE DISTINCTION IT NAMED STILL HOLDS.
 
         It read `test_..._is_reported_not_skipped` and asserted `verify_report`
         contributed `desk.mark.parse`'s messages -- right while this function
-        had no production caller. `P25` put it in the flow beside
-        `problems_in`, which parses every entry already, so a malformed mark
-        came back TWICE with a byte-identical message.
+        had no production caller. `P25` put it in the flow beside the per-mark
+        check, so a malformed mark came back TWICE with a byte-identical
+        message. Then `P52` made `flows.mark_errors` the one assembler.
 
         ! WHAT 2026-08-29 FIXED IS NOT UNDONE. That defect was reading
         `mark.get("mark") is None`, which said the same thing about a slot
         nobody wrote in and a mark whose ruling key the code did not
         recognise -- and the second is still not silently folded into the
-        first. It is reported once, by `problems_in`, which
-        `tests/test_collator.py::TestProblemsIn` covers.
+        first. It is reported once, and this asserts which of the two says it.
         """
         copy = _filled({"instruction": None})
         assert verify_report(copy, BINDER, ROOT, {}) == []
-        found, _ruled = problems_in(copy)
-        assert any("instruction" in p.message for p in found)
+        found = mark_errors([copy])
+        assert any("instruction" in reason for one in found for reason in one.reasons)
 
 
 class TestTheBaseIsTheBinders:
@@ -534,12 +549,20 @@ class TestProblemsAreRoutable:
         wire = seed(binder_of(a_small_real_tree(tmp_path), 0), "block-context")
         entry = wire["sheets"][0]["marks"][0]
         entry.update({"instruction": "correct", "claim": {}})
-        problems, ruled = problems_in(returned(wire))
-        assert ruled == 1
-        assert problems
-        assert all(p.role == "block-context" for p in problems)
-        assert all(p.address == entry["address"] for p in problems)
-        assert all(isinstance(p.message, str) and p.message for p in problems)
+        copy = returned(wire)
+        # ! FILTERED TO THE UNREADABLE HALF. `mark_errors` answers for every
+        # place a role must revisit, and a freshly seeded copy carries a slot
+        # per place -- so the untouched ones are in the list too, correctly.
+        # What this case is about is the mark the role got wrong.
+        found = [one for one in mark_errors([copy]) if one.unreadable]
+        # ! A MARK A ROLE WROTE IN AND GOT WRONG STILL COUNTS AS RULED -- it is
+        # not a coverage gap, and reporting it as one sends a reader looking for
+        # a place nobody answered. `Sheet.refused` is what keeps the two apart.
+        assert _ruled_places(copy) == 1
+        assert found
+        assert all(one.role == "block-context" for one in found)
+        assert all(one.address == entry["address"] for one in found)
+        assert all(one.reasons and all(r for r in one.reasons) for one in found)
 
     def test_every_broken_mark_is_reported_not_only_the_first(self, tmp_path):
         # ! NOT NECESSARILY `sheets[0]` -- `a_small_real_tree` copies
@@ -551,9 +574,10 @@ class TestProblemsAreRoutable:
         marks = next(s["marks"] for s in wire["sheets"] if len(s["marks"]) >= 2)
         for entry in marks[:2]:
             entry.update({"instruction": "correct", "claim": {}})
-        problems, ruled = problems_in(returned(wire))
-        assert ruled == 2
-        assert len({p.address for p in problems}) == 2
+        copy = returned(wire)
+        found = [one for one in mark_errors([copy]) if one.unreadable]
+        assert _ruled_places(copy) == 2
+        assert len({one.address for one in found}) == 2
 
     def test_an_entry_THAT_IS_NOT_AN_OBJECT_carries_an_empty_address(self, tmp_path):
         """The one copy-level `Problem` `problems_in` still raises on its own.
@@ -578,24 +602,27 @@ class TestProblemsAreRoutable:
         """
         wire = seed(binder_of(a_small_real_tree(tmp_path), 0), "block-context")
         wire["sheets"][0]["marks"][0] = "not an object"
-        problems, _ = problems_in(returned(wire))
+        found = mark_errors([returned(wire)])
         assert any(
-            p.address == "" and "must be an object" in p.message for p in problems
+            one.address == "" and "must be an object" in reason
+            for one in found
+            for reason in one.reasons
         )
 
 
 # ! MOVED FROM `tests/test_distribute_flow.py`, `decision-log.md Process: #54` --
-# `problems_in`, `unruled` and `tally` moved to this module with the rest of
-# P24; these tests came with them, changing only the import and (for the one
-# case that read a message as a string) the `Problem` field it now reads.
-def test_problems_in_reads_every_sheet_not_just_the_first():
+# the set-level checks moved to this module with the rest of P24; these tests
+# came with them. ! AND THEY MOVED AGAIN IN SPIRIT WITH `P52`: what they drove
+# through `problems_in` they drive through `flows.mark_errors`, which is the one
+# assembler now. The claims are unchanged.
+def test_the_error_flow_reads_every_sheet_not_just_the_first():
     wire = seed(binder_of(DESK, 0), "block-context")
     # A malformed mark on the LAST sheet -- a walker that stops at the first
     # sheet passes this file and misses it.
     wire["sheets"][-1]["marks"][0]["instruction"] = "correct"
-    messages, ruled = problems_in(returned(wire))
-    assert ruled == 1
-    assert messages, "a correct with no claim must be refused wherever it sits"
+    copy = returned(wire)
+    assert _ruled_places(copy) == 1
+    assert mark_errors([copy]), "a correct with no claim is refused wherever it sits"
 
 
 #: !! `test_a_sheet_whose_read_from_is_the_wrong_SHAPE_is_refused` MOVED, and
@@ -622,7 +649,9 @@ def test_a_copy_carrying_a_code_concern_validates():
             {"where": "src/m.py:12", "concern": "the guard admits a negative"}
         ],
     }
-    assert problems_in(returned(wire)) == ([], 0)
+    copy = returned(wire)
+    assert mark_errors([copy]) == []
+    assert _ruled_places(copy) == 0
 
 
 def test_tally_counts_a_ruled_mark_wherever_its_sheet_sits():

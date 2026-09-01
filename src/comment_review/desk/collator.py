@@ -12,12 +12,9 @@
     verify_report()            those three, over every ruled mark of one
                                edit_copy
     Problem                    one thing wrong with one mark, named to route
-    problems_in()              every rule `desk.mark` settles, over a whole
-                               edit_copy
     drift_in()                 every ruled mark whose returned `raw_text`
                                is not the one `base_texts` named for its
                                address
-    unruled()                  the addresses nobody wrote in
     tally()                    how many of each instruction the edit_copy carries
     places()                   every ruled mark of a master_proof, grouped by
                                the address it TOUCHES
@@ -32,9 +29,9 @@ FILES it cited: `known_addresses` and `base_texts` turn the binder into what
 `source_verification` and `verify_report` measure a mark against -- never a
 mark's own `raw_text`, the base a party being checked could have altered.
 One kind needs only the report itself, and nothing outside it (`Problem`,
-`problems_in`, `unruled`, `tally`) -- `decision-log.md Process: #54` put
-them here because they ask whether every place in the copy was ruled on, a
-question about the SET, and one mark cannot answer for the set alone. One
+`tally`) -- `decision-log.md Process: #54` put them here because they ask
+about the SET, and one mark cannot answer for the set alone. ! TWO MORE
+STOOD IN THAT GROUP UNTIL `P52`; `flows.mark_errors` answers what they did. One
 kind needs the marks the OTHER roles handed back (`places`, `reconcile`,
 `docket_from`). A FOURTH kind compares what came back against what went
 out: `drift_in`, which needs both the returned report and the base
@@ -57,8 +54,8 @@ in the message naming a mark at all. Reconciliation RAISES -- `MalformedMark`
 wrongly is settled wrongly.
 
 !! EVERY FUNCTION HERE TAKES A CONTAINER, NEVER A WIRE DICT, since 2026-08-31
--- `P42`, `decision-log.md Process: #65`. `verify_report`, `problems_in`,
-`drift_in`, `unruled` and `tally` take an `EditCopy`; `places`, `reconcile`,
+-- `P42`, `decision-log.md Process: #65`. `verify_report`, `drift_in` and
+`tally` take an `EditCopy`; `places`, `reconcile`,
 `_roles_of_stage`, `_real_pages` and `docket_from` take a `MasterProof`.
 ! WHAT WENT WITH THE SIGNATURES is every re-derivation of the same walk --
 `report.get("sheets")`, `isinstance(sheets, list)`, `sheet.get("marks") if
@@ -404,8 +401,8 @@ def verify_report(
         Every problem found, in sheet order and then in mark order.
 
         !! `Problem`s RATHER THAN SENTENCES, since 2026-08-31, when this got a
-        production caller. It is the same decision `problems_in` made on
-        2026-08-30 and for the same reason -- see `Problem`: a caller cannot
+        production caller. It is the same decision the per-copy check made
+        on 2026-08-30 and for the same reason -- see `Problem`: a caller cannot
         route on a sentence, and every one of these findings names a mark, so
         it has both a role and an address to route on. ! THE THREE LEAF
         FUNCTIONS STILL RETURN STRINGS. They answer about one mark and are
@@ -415,12 +412,12 @@ def verify_report(
     !! AN UNTOUCHED SLOT IS SKIPPED, and so is AN UNPARSEABLE ENTRY -- the
     second only since 2026-08-31. The first is `desk.mark.untouched`: a
     coverage gap, a place no role wrote in. The second has no `Mark` to check,
-    and its parse messages belong to `problems_in`.
+    and its parse messages belong to `flows.mark_errors`.
 
     !! IT USED TO REPORT THEM, AND THAT WAS RIGHT WHILE THIS HAD NO PRODUCTION
-    CALLER. `P25` put it in `flows.collate.collate` beside `problems_in`, which
-    parses every entry already -- so a malformed mark came back **twice with a
-    BYTE-IDENTICAL message**, measured on an emptied `claim`:
+    CALLER. `P25` put it in `flows.collate.collate` beside the per-copy check,
+    which parsed every entry already -- so a malformed mark came back **twice
+    with a BYTE-IDENTICAL message**, measured on an emptied `claim`:
     `m.py@b1: correct needs `claim` to carry false, true (missing false, true)`,
     reported once by each. That is not two vocabularies for one fact, which
     `drift_in` already forbids; it is the same sentence twice.
@@ -470,62 +467,15 @@ def verify_report(
     return out
 
 
-def problems_in(copy: EditCopy) -> tuple[list[Problem], int]:
-    """Every rule broken in a filled edit_copy, and how many places were ruled on.
-
-    ! AN UNTOUCHED SLOT IS NOT A PROBLEM -- it is an unruled place, and the
-    count returned is what says how much of the edit_copy was answered. Refusing it
-    here would make an unfinished edit_copy indistinguishable from a malformed one.
-
-    !! BUT A SLOT A ROLE WROTE IN AND LEFT WITHOUT AN INSTRUCTION IS REFUSED BY
-    NAME, and was silently skipped until 2026-08-29 -- `desk.mark.untouched`
-    holds the distinction and the measurement behind it. Such an entry counts
-    towards `ruled`: a role DID rule here, and reporting it as unruled sends a
-    reader looking for a coverage gap that is really a malformed mark.
-
-    !! IT RETURNS `Problem`s, NOT SENTENCES, since 2026-08-30. See `Problem`.
-
-    !! AND IT MOVED HERE FROM `flows/distribute.py`, per `decision-log.md
-    Process: #54` -- "did every place get ruled on" is a question about the SET,
-    which is this module's, while `desk/mark.py` answers for one mark alone.
-
-    Args:
-        copy: one parsed edit_copy. The ENTRY is this function's question and
-            the ENVELOPE is not -- see below.
-
-    Returns:
-        `(problems, ruled)` -- one `Problem` per broken rule, and the number of
-        entries carrying an instruction.
-    """
-    # !! THE THREE HEADER CHECKS THIS HELD ARE GONE, AND THE TYPE IS WHY --
-    # `P42`, `decision-log.md Process: #65`. A `role` that is absent or blank, a
-    # `read_from` that fails `_read_from_problem`, and a `sheets` that is not a
-    # list were each reported here; `EditCopy.deserialize` refuses all three, so
-    # taking the container instead of the wire dict means no value carrying any
-    # of them can be constructed to hand in.
-    #
-    # ! THE COMMENT THAT STOOD HERE ARGUED THEY WERE DEFENSIBLE DEPTH -- a
-    # guard at the boundary AND at the point of use, over a public name a caller
-    # may reach without a container. That reasoning was sound for a `dict`
-    # parameter and does not survive the signature: there is no longer a caller
-    # who can reach this without one. `TODO/galley-refusals-cannot-fire.md`'s
-    # rule bites the other way now -- a check no input can trip is not depth.
-    # !! IT READS WHAT THE PARSE ALREADY DECIDED, since `P51`. This walked every
-    # entry, tested `isinstance(..., dict)`, tested `untouched`, and called
-    # `Mark.deserialize` -- the second of four sites parsing every ruled entry.
-    # `Sheet.refused` holds each entry that would not read and the reasons it
-    # gave, so what is left here is attaching the role that owes them.
-    out = [
-        Problem(copy.role, refused.address, message)
-        for sheet in copy.sheets
-        for refused in sheet.refused
-        for message in refused.reasons
-    ]
-    # ! `ruled` COUNTS WHAT RULED, and counted every entry a role wrote in --
-    # including a malformed one, deliberately, because a role DID rule there.
-    # `Sheet.refused` keeps that true: a refused entry is one a role wrote in.
-    ruled = sum(len(sheet.marks) + len(sheet.refused) for sheet in copy.sheets)
-    return out, ruled
+#: !! `problems_in` AND `unruled` ARE DELETED, `P52`. Both walked a copy and
+#: reported what a role still owed -- `problems_in` turning `Sheet.refused` into
+#: `Problem`s, `unruled` listing `Sheet.unruled` -- and `flows.mark_errors`
+#: answers both, as addresses and reasons, per `decision-log.md Process: #72`.
+#: ! `problems_in` ALSO RETURNED A `ruled` COUNT that nothing in production ever
+#: read: `flows.collate` discarded it at the call. The claim it carried -- a mark
+#: a role wrote in and got WRONG still counts as ruled, and is not a coverage gap
+#: -- survives in `tests/test_collator.py::_ruled_places`, derived from the
+#: container where the cases that assert it live.
 
 
 def drift_in(copy: EditCopy, base: dict[str, str]) -> list[Problem]:
@@ -562,18 +512,6 @@ def drift_in(copy: EditCopy, base: dict[str, str]) -> list[Problem]:
         for mark in sheet.marks
         if mark.address in base and mark.raw_text != base[mark.address]
     ]
-
-
-def unruled(copy: EditCopy) -> list[str]:
-    """The addresses nobody wrote in -- the coverage gap, named not counted.
-
-    !! IT READS `Sheet.unruled` SINCE `P51` and asked `desk.mark.untouched`
-    itself before that. The predicate has not changed and its site has: the
-    parse sorts each entry once, so this and `problems_in` can no longer
-    disagree about whether a place was written in. ! They were derived
-    separately once and DID disagree, on a place that had been ruled on.
-    """
-    return [address for sheet in copy.sheets for address in sheet.unruled]
 
 
 def tally(copy: EditCopy) -> dict[Instruction, int]:

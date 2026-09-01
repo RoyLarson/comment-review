@@ -703,7 +703,7 @@ def collate(
     write a chief silently missing one role's rulings -- the outcome both the
     refusal and the report exist to prevent.
 
-    ! WHAT IT CATCHES THAT `problems_in` CANNOT. That function's sheet walk
+    ! WHAT IT CATCHES THAT THE PER-MARK PASS CANNOT. That walk
     reads `if not isinstance(marks, list): continue`, so a sheet that is not an
     object and a sheet whose `marks` is not a list are SKIPPED, and `path` is
     never its question. MEASURED 2026-08-31, before this landed: all three gave

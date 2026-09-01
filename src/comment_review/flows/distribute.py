@@ -7,7 +7,7 @@ mark reads like it is doing something that it is probably not doing"* -- and
 *"the broadcasting part seems like distribute, the bringin back together seems
 like collate."* `flows/collate.py` is the other half of the round.
 
-!! AND THE CHECK IS NO LONGER HERE. `unruled`, `problems_in` and `tally` moved
+!! AND THE CHECK IS NO LONGER HERE. The set-level checks moved
 to `desk/collator.py` -- `decision-log.md Process: #54`: a mark answers for
 itself, and everything about the SET is the collator's.
 

@@ -32,8 +32,9 @@ from conftest import ROOT
 from helpers import a_binder_over, returned
 
 from comment_review.commands.collate import main as collate_main
-from comment_review.desk.collator import problems_in, tally, unruled
+from comment_review.desk.collator import tally
 from comment_review.desk.mark import Mark, untouched
+from comment_review.flows.mark_errors import mark_errors
 
 BRIEF_PATH = (
     ROOT
@@ -89,13 +90,17 @@ def test_the_examples_mark_parses():
     assert mark.change == ENTRY["change"]
 
 
-def test_problems_in_counts_it_as_ONE_RULED_MARK():
-    """!! THE ASSERTION THAT WOULD HAVE CAUGHT IT. `problems_in` returned
-    `([], 0)` on this input -- no problems AND nothing ruled on."""
-    broken, ruled = problems_in(PARSED)
-    assert broken == []
-    assert ruled == 1
-    assert unruled(PARSED) == []
+def test_the_example_is_ONE_RULED_MARK_and_owes_nothing():
+    """!! THE ASSERTION THAT WOULD HAVE CAUGHT IT. The per-copy check returned
+    `([], 0)` on this input -- no problems AND nothing ruled on.
+
+    ! ASKED OF `flows.mark_errors` SINCE `P52`, which is the one assembler now.
+    Its EMPTY return is both halves of the old claim at once: nothing refused,
+    and nothing left unruled."""
+    assert mark_errors([PARSED]) == []
+    assert [mark.address for sheet in PARSED.sheets for mark in sheet.marks] == [
+        ENTRY["address"]
+    ]
 
 
 def test_tally_names_the_instruction_the_brief_wrote():
