@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 39 tasks closed
+Progress: 11 of 39 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -292,8 +292,9 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
         > 2026-08-31 and serialize with no production caller -- collate's PROOF boundary
         > 2026-08-31 was the last one, and gather returns the container now. stage is
         > 2026-08-31 read only by serialize, so it fails P21's third clause.
-- [ ] T38 | Update flows.distribute.seed and flows.fan_out.fan to return
-      EditCopy, so the command serializes what the flow hands back
+- [-] T38 | SUPERSEDED -- Roy ruled 2026-09-01 that a seed is an intentional empty whose container writes the dict out, and fan is N seeds over N shards, so both are already right | 02a4af9 | Update
+      flows.distribute.seed and flows.fan_out.fan to return EditCopy, so the
+      command serializes what the flow hands back
         > 2026-08-31 MEASURED 2026-08-31: seed returns a dict and commands/distribute.py
         > 2026-08-31 dumps it directly -- the one command of five whose output is not a
         > 2026-08-31 container that serialized itself. fan has the same shape, unwired.

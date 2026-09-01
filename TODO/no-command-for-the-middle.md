@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 3 of 9 tasks done
+Progress: 3 of 10 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
           REAL reviewer agent -- census, mark --seed, the block-context agent, mark
           --check and taken_in are all commands; the middle is not)
@@ -83,3 +83,10 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       -rn "\.order\b" src/` returns a consumer outside `flows/collate.py`, and a
       two-move stage's written artifact names the order; today the only readers
       are in `tests/test_collate.py`.
+- [?] T10 | Implement the command a reviewer runs to write one mark into its
+      edit_copy, so a role does not hand-write JSON
+        > 2026-09-01 MEASURED 2026-09-01: no such command has ever existed. The ten in
+        > 2026-09-01 COMMANDS hand a copy OUT (distribute --seed) and fold it back
+        > 2026-09-01 (collate); none writes a mark. reviewer-brief.md names no command
+        > 2026-09-01 at all -- Process 41 emptied that section -- and tells a role to
+        > 2026-09-01 FILL a record, which today means hand-writing the JSON.
