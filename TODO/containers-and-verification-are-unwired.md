@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 28 tasks closed
+Progress: 10 of 29 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -251,3 +251,8 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       Sheet.seed, EditCopy.seed and MasterProof.seed to return the container,
       splitting seed from serialize as Mark already does
         > 2026-08-31 Mark splits seed from as_entry already; the containers do not
+- [ ] T29 | Update the desk so it does not produce a docket its own reader
+      refuses -- an empty one when nothing settles, and a page whose sha it
+      folded to empty
+        > 2026-08-31 Latent -- nothing writes a docket until P42/P43 wire the middle
+        > 2026-08-31 Both shapes have tests pinning the producer; the reader is right
