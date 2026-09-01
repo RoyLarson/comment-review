@@ -130,18 +130,38 @@ class Refused(NamedTuple):
     Attributes:
         address: the entry's own `address`, or "" where it carried none -- an
             entry that is not an object, or one whose `address` is not a string.
-            ! "" IS NOT A PLACE, and a reader must not print it as one;
-            `commands/collate.py` renders it `(the copy)`.
+            ! IT IS WHAT ROUTES, and "" means there is nothing to route on.
+            Nothing may print it; `where` is for that.
+        where: how to POINT AT the entry, never empty -- the address where there
+            is one, else the page and the entry's position on it, as
+            `m.py mark 3`.
+
+            !! IT EXISTS BECAUSE `P51` REMOVED THE ONLY HANDLE ON AN
+            ADDRESS-LESS ENTRY. `problems_in` fell back to `mark {n}` and that
+            was dropped on the reasoning that *a position is not something a
+            role can act on* -- which is true everywhere EXCEPT here, where the
+            position is the one locator left. MEASURED 2026-09-01: a bare string
+            in `marks` reported `block-context (the copy): this mark: a mark
+            must be an object`, naming neither the page nor the entry, so a role
+            could not find what to fix.
         reasons: every rule the entry broke, as `Mark.deserialize` worded them.
             ! ALL OF THEM, not the first -- one malformed `correct` breaks four,
             and a role fixing one at a time is three more round trips.
     """
 
     address: str
+    where: str
     reasons: tuple[str, ...]
 
 
+#: What a refusal says about an untouched entry naming no place. It is the one
+#: sentence for that case, and it is a REFUSAL rather than a coverage gap for
+#: the reason `_sorted_entries` gives.
+NO_PLACE = "an untouched slot must carry the `address` it was seeded with"
+
+
 def _sorted_entries(
+    path: str,
     marks: list,
 ) -> "tuple[list[Mark], list[str], list[Refused]]":
     """One sheet's entries, split into the three kinds a returned sheet holds.
@@ -154,6 +174,9 @@ def _sorted_entries(
     about what an unruled place is.
 
     Args:
+        path: the page this sheet holds, for the locator below. ! IT IS TAKEN
+            RATHER THAN DERIVED because an address-less entry has no other way
+            to say which page it sits on.
         marks: the sheet's `marks` list, as it came back. Entries are whatever
             JSON held -- an object, a string, a number.
 
@@ -161,34 +184,48 @@ def _sorted_entries(
         `(ruled, unruled, refused)`.
 
         ruled: one `Mark` per entry that parsed.
-        unruled: the address of every UNTOUCHED entry -- `desk.mark.untouched`,
+        unruled: the ADDRESS of every untouched entry -- `desk.mark.untouched`,
             a place nobody wrote in. ! IT IS ASKED FIRST, because an untouched
             entry does not parse either: `Mark.deserialize` refuses its
             `instruction: None` with *"must be one of add, clean, ..."*, which
             would report a coverage gap as a malformed mark.
         refused: one `Refused` per entry that is neither.
 
+    !! AN UNTOUCHED ENTRY NAMING NO PLACE IS REFUSED, NOT UNRULED, and that is
+    a ruling rather than a convenience. *"Handed to this role and not ruled on"*
+    is a claim about a PLACE, so an entry that names none cannot be it -- and
+    `_coverage_problems` reads `unruled` as addresses, so an "" among them would
+    count a place the binder never held. `seed` writes the address on every slot
+    it hands out, so an entry reaching here without one was edited after it was
+    seeded, which is a role's mistake and routes back as one.
+
     ! AN ENTRY THAT IS NOT AN OBJECT IS REFUSED, NOT DROPPED. `Sheet.marks` was
     typed `object` precisely so a bare string could be named rather than vanish;
     that reason survives the retyping, here, where the entry is read.
 
-    ! THE POSITION IS NOT KEPT. A refused entry is named by its own `address`
-    and by "" where it has none -- `mark {n}` was the old fallback, and a
-    position is not something a role can act on, which is what `Process: #72`
-    asks the return to be.
+    ! AND THE POSITION IS KEPT FOR EXACTLY THE ENTRY THAT NEEDS IT. `P51` cut
+    the old `mark {n}` fallback as *not something a role can act on*, which is
+    true wherever an address exists and false where none does -- there it is the
+    only handle there is. `Refused.where` carries it.
     """
     ruled: list[Mark] = []
     unruled: list[str] = []
     refused: list[Refused] = []
-    for entry in marks:
-        if isinstance(entry, dict) and untouched(entry):
-            unruled.append(str(entry.get("address") or ""))
-            continue
+    for n, entry in enumerate(marks, 1):
         address = entry.get("address") if isinstance(entry, dict) else None
-        where = str(address) if filled(address) else ""
-        mark, why = Mark.deserialize(where or "this mark", entry)
+        named = str(address) if filled(address) else ""
+        # ! NEVER EMPTY, which is what lets `commands/collate.py` keep
+        # `(the copy)` for findings that really are about the whole document.
+        where = named or f"{path} mark {n}"
+        if isinstance(entry, dict) and untouched(entry):
+            if named:
+                unruled.append(named)
+            else:
+                refused.append(Refused("", where, (NO_PLACE,)))
+            continue
+        mark, why = Mark.deserialize(where, entry)
         if mark is None:
-            refused.append(Refused(where, tuple(why)))
+            refused.append(Refused(named, where, tuple(why)))
         else:
             ruled.append(mark)
     return ruled, unruled, refused
@@ -328,7 +365,7 @@ class Sheet:
         # it from reading as the settled shape.
         raw_sha = data.get("sha")
         sha = raw_sha if isinstance(raw_sha, str) else ""
-        ruled, unruled, refused = _sorted_entries(marks)
+        ruled, unruled, refused = _sorted_entries(path, marks)
         return (
             Sheet(
                 path=path,

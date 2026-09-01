@@ -47,9 +47,13 @@ class Revisit(NamedTuple):
     Attributes:
         role: who owes it -- what makes this dispatchable rather than a list a
             task agent has to attribute by hand.
-        address: the place. ! "" WHERE THERE IS NONE, which happens only for an
-            entry carrying no readable `address` at all; a reader must not print
-            it as a place. `commands/collate.py` renders it `(the copy)`.
+        address: the place, and "" where the entry named none. ! IT IS WHAT
+            ROUTES, and nothing prints it.
+        where: how to POINT AT it, never empty -- the address where there is
+            one, else the page and the entry's position, as `m.py mark 3`.
+            ! THE TWO ARE SEPARATE BECAUSE ONE CAN BE EMPTY AND THE OTHER MUST
+            NOT BE. A reader needs somewhere to look even for an entry the
+            system cannot route; a router needs to know when there is nowhere.
         reasons: every rule the entry broke, as `desk.mark.parse` worded them,
             or the one sentence `NOT_RULED` for a place nobody wrote in.
             ! ALL OF THEM TOGETHER, which is the half `Process: #72` asks for
@@ -71,6 +75,7 @@ class Revisit(NamedTuple):
 
     role: str
     address: str
+    where: str
     reasons: tuple[str, ...]
     unreadable: bool
 
@@ -97,17 +102,22 @@ def mark_errors(edit_copies: list[EditCopy]) -> list[Revisit]:
         this returns `Revisit` and not a container.
     """
     out = [
-        Revisit(copy.role, one.address, one.reasons, unreadable=True)
+        Revisit(copy.role, one.address, one.where, one.reasons, unreadable=True)
         for copy in edit_copies
         for sheet in copy.sheets
         for one in sheet.refused
     ] + [
-        Revisit(copy.role, address, (NOT_RULED,), unreadable=False)
+        # ! AN UNRULED PLACE ALWAYS HAS AN ADDRESS, so `where` is that address.
+        # `Sheet.deserialize` refuses an untouched entry that names none rather
+        # than counting it a coverage gap -- see `_sorted_entries`.
+        Revisit(copy.role, address, address, (NOT_RULED,), unreadable=False)
         for copy in edit_copies
         for sheet in copy.sheets
         for address in sheet.unruled
     ]
     # ! SORTED SO A STRANGER RE-DERIVES THE ORDER. The walk above is copy then
     # sheet then entry, which is an accident of how the stage was assembled;
-    # what a reader acts on is a role's places together.
-    return sorted(out, key=lambda one: (one.role, one.address))
+    # what a reader acts on is a role's places together. ! ON `where` RATHER
+    # THAN `address`, so an entry with no address sorts beside the page it sits
+    # on instead of ahead of everything.
+    return sorted(out, key=lambda one: (one.role, one.where))

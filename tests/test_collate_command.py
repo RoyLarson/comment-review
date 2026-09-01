@@ -439,6 +439,49 @@ class TestExitCodes:
         settled = [m["address"] for s in chief["sheets"] for m in s["marks"]]
         assert settled == ["m.py@b1"]
 
+    def test_AN_ADDRESS_LESS_ENTRY_NAMES_ITS_PAGE_rather_than_the_whole_copy(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """`(the copy)` MEANS ONE THING, and meant two until 2026-09-01.
+
+        !! MEASURED: a bare string in `marks` printed `block-context (the copy):
+        this mark: a mark must be an object`. That rendering means *this finding
+        is about the whole document* -- a missing `role`, a bad `read_from`, a
+        short shard -- and here it meant *we cannot tell you where*. Two facts,
+        one label, and the one that needed a locator had none.
+
+        ! THE COVERAGE LINE IS THE OTHER MEANING and stays, which is what makes
+        this a distinction rather than a rename: both appear in this run.
+        """
+        binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})
+        copies = copies_over(binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}})
+        copies[0]["sheets"][0]["marks"][0] = "not an object"
+        binder_path = tmp_path / "binder.json"
+        binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
+        copy_path = tmp_path / "copy.json"
+        copy_path.write_text(json.dumps(copies[0]), encoding="utf-8")
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "collate",
+                "--stage",
+                "4c",
+                "--binder",
+                str(binder_path),
+                "--out",
+                str(tmp_path / "chief.json"),
+                "--edit-copy",
+                str(copy_path),
+                "--repo",
+                str(REPO),
+            ],
+        )
+        command.main()
+        out = capsys.readouterr().out
+        assert "m.py mark 1: " in out, "the entry names the page it sits on"
+        assert "(the copy): this mark" not in out
+        assert "(the copy): a mark must be an object" not in out
+
     def test_a_place_HANDED_TO_A_ROLE_AND_NOT_RULED_ON_is_named_and_exits_six(
         self, tmp_path, monkeypatch, capsys
     ):

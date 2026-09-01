@@ -100,8 +100,17 @@ def _report(problems: list) -> None:
 
     ! `(the copy)` STANDS IN FOR AN EMPTY ADDRESS, which is what a problem about
     the whole document carries -- a missing `role`, a bad `read_from`, a sheet
-    the envelope refused. There is no place to name, and a blank column reads as
-    a missing value rather than as a fact about the copy.
+    the envelope refused, a role short of its shard. There is no place to name,
+    and a blank column reads as a missing value rather than as a fact about the
+    copy.
+
+    !! IT MEANT TWO THINGS UNTIL 2026-09-01 AND NOW MEANS ONE. A `Revisit` for
+    an entry carrying no `address` printed the same words, where it did not mean
+    *this is about the whole copy* but *we cannot tell you where* -- so
+    `block-context (the copy): this mark: a mark must be an object` read as a
+    document-level finding and named neither the page nor the entry. A `Revisit`
+    carries `where`, which is never empty, and is printed through that instead;
+    this rendering is the copy-level one again, and only that.
     """
     for problem in problems:
         where = problem.address or "(the copy)"
@@ -241,9 +250,8 @@ def main() -> int:
         # it. A refusal that printed only `problems` would drop exactly what
         # `CannotCollate` exists to preserve.
         for one in refusal.revisit:
-            where = one.address or "(the copy)"
             for reason in one.reasons:
-                print(f"{one.role} {where}: {reason}")
+                print(f"{one.role} {one.where}: {reason}")
         print(
             f"REFUSED: the proof could not be reconciled -- {refusal}", file=sys.stderr
         )
@@ -270,9 +278,8 @@ def main() -> int:
     # beside the findings because a task agent reads one screen and dispatches
     # from it; what separates the two halves is the sentence on each line.
     for one in got.revisit:
-        where = one.address or "(the copy)"
         for reason in one.reasons:
-            print(f"{one.role} {where}: {reason}")
+            print(f"{one.role} {one.where}: {reason}")
     # !! AN UNREADABLE MARK IS `BROKEN` AND AN UNRULED PLACE IS NOT, which is
     # the whole reason `Revisit.unreadable` exists. `Process: #63` says a
     # missing ANSWER routes without voiding the round; a mark that will not

@@ -311,3 +311,57 @@ class TestTheShape:
         for kind in (Sheet, EditCopy, MasterProof):
             names = {f.name for f in dataclasses.fields(kind)}
             assert "rounds" not in names, kind.__name__
+
+
+class TestAnAddressLessEntryIsStillFindable:
+    """A place a role must fix that the system cannot ROUTE, it must still NAME.
+
+    !! MEASURED 2026-09-01, AFTER `P51` REMOVED THE ONLY HANDLE. A bare string
+    in `marks` reported `block-context (the copy): this mark: a mark must be an
+    object` -- naming neither the page nor the entry, and borrowing the
+    rendering that means *this finding is about the whole copy*. `problems_in`
+    had fallen back to `mark {n}` and `P51` cut it as *not something a role can
+    act on*, which is true wherever an address exists and false where none does.
+    """
+
+    def test_a_bare_string_is_located_by_page_and_position(self):
+        sheet, why = Sheet.deserialize(
+            "s", {"path": "m.py", "sha": "a", "marks": [{}, {}, "not an object"]}
+        )
+        assert why == []
+        assert sheet is not None
+        last = sheet.refused[-1]
+        assert last.address == "", "there is nothing to route on"
+        assert last.where == "m.py mark 3", "and still somewhere to look"
+
+    def test_an_untouched_entry_naming_no_place_is_REFUSED_not_unruled(self):
+        """*"Handed to this role and not ruled on"* is a claim about a PLACE.
+
+        ! AND `_coverage_problems` READS `unruled` AS ADDRESSES, so an "" among
+        them would count a place the binder never held toward what the role
+        carried back.
+        """
+        sheet, why = Sheet.deserialize(
+            "s", {"path": "m.py", "sha": "a", "marks": [{"instruction": None}]}
+        )
+        assert why == []
+        assert sheet is not None
+        assert sheet.unruled == (), "it names no place, so it is not a gap"
+        assert sheet.refused[0].where == "m.py mark 1"
+        assert "`address`" in sheet.refused[0].reasons[0]
+
+    def test_an_untouched_entry_WITH_a_place_is_still_unruled(self):
+        """The other half, so the case above is a distinction and not a change
+        of behaviour for every seeded slot."""
+        sheet, why = Sheet.deserialize(
+            "s",
+            {
+                "path": "m.py",
+                "sha": "a",
+                "marks": [{"address": "m.py@b1", "instruction": None}],
+            },
+        )
+        assert why == []
+        assert sheet is not None
+        assert sheet.unruled == ("m.py@b1",)
+        assert sheet.refused == ()

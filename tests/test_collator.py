@@ -571,6 +571,10 @@ class TestProblemsAreRoutable:
         refused by name rather than vanishing; since `P51` it is sorted into
         `Sheet.refused` at the parse, which serves the same end -- the role
         that wrote it is told, and the address is "" because there is none.
+        !! AND IT MUST STILL BE FINDABLE, which the empty address alone does not
+        make it. The parse carries `Refused.where` -- the page and the entry's
+        position -- so a role has somewhere to look; see
+        `tests/test_containers.py::TestAnAddressLessEntryIsStillFindable`.
         """
         wire = seed(binder_of(a_small_real_tree(tmp_path), 0), "block-context")
         wire["sheets"][0]["marks"][0] = "not an object"
