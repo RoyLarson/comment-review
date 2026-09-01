@@ -12,12 +12,9 @@
     verify_report()            those three, over every ruled mark of one
                                edit_copy
     Problem                    one thing wrong with one mark, named to route
-    problems_in()              every rule `desk.mark` settles, over a whole
-                               edit_copy
     drift_in()                 every ruled mark whose returned `raw_text`
                                is not the one `base_texts` named for its
                                address
-    unruled()                  the addresses nobody wrote in
     tally()                    how many of each instruction the edit_copy carries
     places()                   every ruled mark of a master_proof, grouped by
                                the address it TOUCHES
@@ -32,9 +29,9 @@ FILES it cited: `known_addresses` and `base_texts` turn the binder into what
 `source_verification` and `verify_report` measure a mark against -- never a
 mark's own `raw_text`, the base a party being checked could have altered.
 One kind needs only the report itself, and nothing outside it (`Problem`,
-`problems_in`, `unruled`, `tally`) -- `decision-log.md Process: #54` put
-them here because they ask whether every place in the copy was ruled on, a
-question about the SET, and one mark cannot answer for the set alone. One
+`tally`) -- `decision-log.md Process: #54` put them here because they ask
+about the SET, and one mark cannot answer for the set alone. ! TWO MORE
+STOOD IN THAT GROUP UNTIL `P52`; `flows.mark_errors` answers what they did. One
 kind needs the marks the OTHER roles handed back (`places`, `reconcile`,
 `docket_from`). A FOURTH kind compares what came back against what went
 out: `drift_in`, which needs both the returned report and the base
@@ -45,30 +42,50 @@ with against what came back, rather than checking a claim against evidence
 Nothing above `places` compares two marks, and nothing below `verify_report`
 opens a file.
 
-!! AND THEY REFUSE DIFFERENTLY. Verification RETURNS a message per broken
-rule, each opening with the mark it is about, so a whole report is checked
-in one pass and every problem is read at once. Coverage also RETURNS -- a
-`Problem` per broken rule -- but some of those are about the COPY rather than
-about any one mark: no `sheets` list, no `role`, or an entry that is not an
-object each produce a `Problem` carrying `address=""`, with nothing in the
-message naming a mark at all. Reconciliation RAISES -- `UnnamedRole`,
-`MalformedMark` -- because a mark it cannot read is a mark it cannot group,
-and a place grouped wrongly is settled wrongly.
+!! AND THEY REFUSE DIFFERENTLY. Verification and coverage both RETURN a
+`Problem` per broken rule, so a whole report is checked in one pass and every
+problem is read at once. ! VERIFICATION RETURNED SENTENCES UNTIL 2026-08-31,
+each opening with the mark it was about; `P25` gave it a production caller and
+`Problem` is what a caller can ROUTE -- see that type, and `verify_report`.
+One of coverage's is about the COPY rather than about any one mark: an entry
+that is not an object produces a `Problem` carrying `address=""`, with nothing
+in the message naming a mark at all. Reconciliation RAISES -- `MalformedMark`
+-- because a mark it cannot read is a mark it cannot group, and a place grouped
+wrongly is settled wrongly.
+
+!! EVERY FUNCTION HERE TAKES A CONTAINER, NEVER A WIRE DICT, since 2026-08-31
+-- `P42`, `decision-log.md Process: #65`. `verify_report`, `drift_in` and
+`tally` take an `EditCopy`; `places`, `reconcile`,
+`_roles_of_stage`, `_real_pages` and `docket_from` take a `MasterProof`.
+! WHAT WENT WITH THE SIGNATURES is every re-derivation of the same walk --
+`report.get("sheets")`, `isinstance(sheets, list)`, `sheet.get("marks") if
+isinstance(sheet, dict)` -- which stood at five sites in this file, and
+`UnnamedRole`, which `EditCopy.deserialize` makes unconstructable.
+
+!! AND THE THREE VERIFICATION QUESTIONS ARE NOW ASKED IN PRODUCTION, which
+this file's prose assumed the opposite of until 2026-08-31.
+`flows.collate.collate` calls `verify_report` per copy; `grep -rn
+"verify_report" src/` returns a caller outside this module, where before it
+returned only sentences inside it. `decision-log.md Process: #58`, `P25`.
+
+! WHAT IS STILL OWED IS T7: `MasterProof.deserialize` compares `read_from` against
+`copies[0]` only, never 2..N.
 """
 
 from dataclasses import dataclass
 from pathlib import Path
 from typing import NamedTuple
 
-from comment_review.binder.binder import _read_from_problem, rows_of
+from comment_review.binder.binder import Binder
+from comment_review.desk.containers import EditCopy, MasterProof
 from comment_review.desk.mark import (
     INSTRUCTIONS,
     Instruction,
     Mark,
     filled,
-    parse,
-    untouched,
+    without_location,
 )
+from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.machine import constants
 from comment_review.machine.exceptions import READ_ERRORS
 from comment_review.machine.repo import can_escape, read_raw
@@ -86,20 +103,20 @@ WITHIN = 3
 Cache = dict[str, tuple[str, ...] | None]
 
 
-def known_addresses(binder: dict) -> frozenset[str]:
+def known_addresses(binder: Binder) -> frozenset[str]:
     """Every address the binder's rows carry, as a set to test membership on.
 
     Args:
-        binder: as `rows_of` reads one -- `{"pages": [{"path", "rows": [...]}]}`,
-            with the address rejoined onto each row there rather than here.
+        binder: the deserialized binder. Each row already knows its own path
+            and address -- a page rejoins them when it is read back.
 
     Returns:
-        The addresses. A row carrying none, or an empty one, is dropped.
+        The addresses. A row carrying an empty one is dropped.
     """
-    return frozenset(row["address"] for row in rows_of(binder) if row.get("address"))
+    return frozenset(b.address for b in binder.paragraphs if b.address)
 
 
-def base_texts(binder: dict) -> dict[str, str]:
+def base_texts(binder: Binder) -> dict[str, str]:
     """Every address the binder carries -> the paragraph it SEEDED there.
 
     !! THE BASE IS THE BINDER'S, NEVER A RETURNED MARK'S. `raw_text` is seeded
@@ -110,17 +127,13 @@ def base_texts(binder: dict) -> dict[str, str]:
     positions it had just read out of that file.
 
     Args:
-        binder: as `binder.read` returns one.
+        binder: the deserialized binder.
 
     Returns:
         address -> that place's `raw_text`. A row carrying no address is
         dropped, matching `known_addresses`.
     """
-    return {
-        row["address"]: str(row.get("raw_text", ""))
-        for row in rows_of(binder)
-        if row.get("address")
-    }
+    return {b.address: b.raw_text for b in binder.paragraphs if b.address}
 
 
 def address_problems(where: str, mark: Mark, known: frozenset[str]) -> list[str]:
@@ -333,68 +346,6 @@ def source_verification(
     )
 
 
-def verify_report(report: dict, binder: dict, root: Path) -> list[str]:
-    """Source-verification over every ruled mark of ONE role's edit_copy.
-
-    Args:
-        report: one edit_copy -- `{"sheets": [{"path", "sha", "marks": [...]}]}`,
-            as `flows.distribute.seed` hands it out and a role hands it back. A
-            `sheets` that is not a list gives an empty result, and so does a
-            sheet whose `marks` is not one.
-        binder: the binder the edit_copy was seeded from -- what each
-            `address` is measured against.
-        root: the checkout every `cite` is resolved against.
-
-    Returns:
-        Every problem found, in sheet order and then in mark order.
-
-    !! AN UNTOUCHED SLOT IS SKIPPED AND AN UNPARSEABLE ENTRY IS NOT. The first
-    is `desk.mark.untouched` -- a coverage gap, a place no role wrote in. The
-    second contributes `desk.mark.parse`'s own messages and is then checked no
-    further, since there is no `Mark` to check.
-
-    ! A MARK IS NAMED BY ITS OWN `address`, falling back to `mark {n}` where it
-    carries none. ! `n` COUNTS EVERY ENTRY WALKED, untouched slots included, so
-    it is a position in the report rather than a count of rulings.
-
-    ! ONE CACHE PER REPORT, built here and threaded through every mark, so a
-    file twenty sources cite is read once.
-    """
-    sheets = report.get("sheets")
-    if not isinstance(sheets, list):
-        return []
-    known = known_addresses(binder)
-    base = base_texts(binder)
-    cache: Cache = {}
-    out: list[str] = []
-    i = 0
-    for sheet in sheets:
-        marks = sheet.get("marks") if isinstance(sheet, dict) else None
-        if not isinstance(marks, list):
-            continue
-        for entry in marks:
-            i += 1
-            if untouched(entry):
-                continue
-            where = str(
-                (entry.get("address") if isinstance(entry, dict) else None)
-                or f"mark {i}"
-            )
-            mark, why = parse(where, entry)
-            if mark is None:
-                out += why
-                continue
-            out += source_verification(
-                where,
-                mark,
-                base=base.get(mark.address, ""),
-                known=known,
-                root=root,
-                cache=cache,
-            )
-    return out
-
-
 @dataclass(frozen=True)
 class Problem:
     """One thing wrong with one mark, named so a reader can ROUTE it.
@@ -421,84 +372,113 @@ class Problem:
     message: str
 
 
-def problems_in(report: dict) -> tuple[list[Problem], int]:
-    """Every rule broken in a filled edit_copy, and how many places were ruled on.
+def verify_report(
+    copy: EditCopy, binder: Binder, root: Path, cache: Cache
+) -> list[Problem]:
+    """Source-verification over every ruled mark of ONE role's edit_copy.
 
-    ! AN UNTOUCHED SLOT IS NOT A PROBLEM -- it is an unruled place, and the
-    count returned is what says how much of the edit_copy was answered. Refusing it
-    here would make an unfinished edit_copy indistinguishable from a malformed one.
-
-    !! BUT A SLOT A ROLE WROTE IN AND LEFT WITHOUT AN INSTRUCTION IS REFUSED BY
-    NAME, and was silently skipped until 2026-08-29 -- `desk.mark.untouched`
-    holds the distinction and the measurement behind it. Such an entry counts
-    towards `ruled`: a role DID rule here, and reporting it as unruled sends a
-    reader looking for a coverage gap that is really a malformed mark.
-
-    !! WALKS `report["sheets"]` THEN EACH SHEET'S `marks`, since 2026-08-29 --
-    `seed()` nests every mark inside its own page's sheet; a walk that read
-    `report["marks"]` would see nothing at all.
-
-    !! IT RETURNS `Problem`s, NOT SENTENCES, since 2026-08-30. See `Problem`.
-
-    !! AND IT MOVED HERE FROM `flows/distribute.py`, per `decision-log.md
-    Process: #54` -- "did every place get ruled on" is a question about the SET,
-    which is this module's, while `desk/mark.py` answers for one mark alone.
+    Args:
+        copy: one parsed edit_copy, as `flows.distribute.seed` hands it out and
+            a role hands it back. Its `role` names who to send a finding back
+            to, and `EditCopy.deserialize` has already refused a copy that
+            carries none.
+        binder: the binder the edit_copy was seeded from -- what each
+            `address` is measured against.
+        root: the checkout every `cite` is resolved against.
+        cache: a `Cache` to read cited files through.
+            !! REQUIRED, AND ONE PER STAGE. `flows.collate.collate` calls this
+            once per copy, and a cache built per call re-reads a file for every
+            citing role -- MEASURED 2026-08-31: four roles citing the same line
+            read it from disk four times. The note below already promised "a
+            file twenty sources cite is read once", which held inside one copy
+            and not across the stage that copy belongs to.
+            ! IT IS NOT OPTIONAL, deliberately. A default would let a caller
+            get the per-call cache back by saying nothing, which is exactly the
+            defect this parameter exists to remove -- and a caller who has no
+            stage to share one across can still pass `{}` and say so.
 
     Returns:
-        `(problems, ruled)` -- one `Problem` per broken rule, and the number of
-        entries carrying an instruction.
+        Every problem found, in sheet order and then in mark order.
+
+        !! `Problem`s RATHER THAN SENTENCES, since 2026-08-31, when this got a
+        production caller. It is the same decision the per-copy check made
+        on 2026-08-30 and for the same reason -- see `Problem`: a caller cannot
+        route on a sentence, and every one of these findings names a mark, so
+        it has both a role and an address to route on. ! THE THREE LEAF
+        FUNCTIONS STILL RETURN STRINGS. They answer about one mark and are
+        handed a `where`; assembling the routing is this function's job,
+        because it is the one that holds the copy and therefore the role.
+
+    !! AN UNTOUCHED SLOT IS SKIPPED, and so is AN UNPARSEABLE ENTRY -- the
+    second only since 2026-08-31. The first is `desk.mark.untouched`: a
+    coverage gap, a place no role wrote in. The second has no `Mark` to check,
+    and its parse messages belong to `flows.mark_errors`.
+
+    !! IT USED TO REPORT THEM, AND THAT WAS RIGHT WHILE THIS HAD NO PRODUCTION
+    CALLER. `P25` put it in `flows.collate.collate` beside the per-copy check,
+    which parsed every entry already -- so a malformed mark came back **twice
+    with a BYTE-IDENTICAL message**, measured on an emptied `claim`:
+    `m.py@b1: correct needs `claim` to carry false, true (missing false, true)`,
+    reported once by each. That is not two vocabularies for one fact, which
+    `drift_in` already forbids; it is the same sentence twice.
+
+    ! SO THE THREE QUESTIONS THIS FUNCTION OWNS ARE THE ONLY ONES IT ANSWERS --
+    is the address one the binder carries, is the quoted sentence really in the
+    paragraph, does every `cite` resolve. Whether the mark is well formed at
+    all is asked once, one function over.
+
+    ! A MARK IS NAMED BY ITS OWN `address`, falling back to `mark {n}` where it
+    carries none. ! `n` COUNTS EVERY ENTRY WALKED, untouched slots included, so
+    it is a position in the report rather than a count of rulings.
+
+    ! ONE CACHE PER STAGE, threaded in by the caller and through every mark, so
+    a file twenty sources cite is read once no matter how many roles cite it.
+    ! IT READ *"one cache per report, BUILT HERE"* until 2026-08-31, which was
+    this function's own contradiction: `Args: cache` said one per stage and
+    this said one per report, and the second is what the code did.
     """
-    role = report.get("role")
-    named = role if filled(role) else ""
-    if not isinstance(report.get("sheets"), list):
-        return [Problem(named, "", "the report needs a `sheets` list")], 0
-
+    known = known_addresses(binder)
+    base = base_texts(binder)
     out: list[Problem] = []
-    ruled = 0
-    if not named:
-        out.append(Problem("", "", "the report needs the `role` that wrote it"))
-    # !! THE HEADER IS CHECKED ON THE WAY BACK, and was not until 2026-08-28.
-    # `seed` refuses a binder that cannot say which root it read, and this side
-    # -- the per-copy check -- ruled only on `marks` and `role`, so an edit_copy whose
-    # `read_from` had been STRIPPED or EMPTIED passed at exit 0. ! That is the
-    # same asymmetry as the one fixed at `bind` and `seed` earlier the same
-    # day, one step further along the chain.
-    #
-    # !! IT REUSES `binder`'s OWN CHECKER, and hand-rolled `isinstance(..., dict)
-    # and truthy` for one commit. That weaker form let `{"junk": 1}` and
-    # `{"root": 7, "revise": "x"}` through at exit 0 while `bind` REFUSED the
-    # identical value -- two spellings of one rule, disagreeing.
-    #
-    # ! AND THE COMMENT CLAIMED MORE THAN THE CODE DID: it offered *"rewritten
-    # to a DIFFERENT root"* as motivation, which is not answerable here at all.
-    # `problems_in` holds an edit_copy and no binder, so it can rule on the field's
-    # SHAPE and not on whether the root is the one the edit_copy was seeded from.
-    # That comparison needs the binder, and belongs wherever the two meet.
-    why_header = _read_from_problem(report)
-    if why_header:
-        out.append(Problem(named, "", f"the report's {why_header}"))
-
-    i = 0
-    for sheet in report["sheets"]:
-        marks = sheet.get("marks") if isinstance(sheet, dict) else None
-        if not isinstance(marks, list):
-            continue
-        for mark in marks:
-            i += 1
-            if not isinstance(mark, dict):
-                out.append(Problem(named, "", f"mark {i} is not an object"))
-                continue
-            if untouched(mark):
-                continue
-            ruled += 1
-            address = str(mark.get("address") or "")
-            where = address or f"mark {i}"
-            _, why = parse(where, mark)
-            out += [Problem(named, address, message) for message in why]
-    return out, ruled
+    for sheet in copy.sheets:
+        # !! IT WALKS PARSED MARKS AND PARSES NOTHING, since `P51`. This held
+        # its own untouched test, its own `mark {n}` fallback and its own
+        # `Mark.deserialize` -- one of the four sites that each parsed every
+        # ruled entry. `Sheet.marks` holds only what ruled, so an untouched
+        # slot and an unparseable entry are both already elsewhere.
+        for mark in sheet.marks:
+            # ! THE ADDRESS IS `Problem.address`, SO IT IS NOT ALSO THE OPENING
+            # OF EVERY MESSAGE -- T3 of `collate-command-defects`. The three
+            # leaf checks are handed a `where` and prefix it, which is right for
+            # a caller holding nothing else; this one records it as a field.
+            out += [
+                Problem(
+                    copy.role, mark.address, without_location(mark.address, message)
+                )
+                for message in source_verification(
+                    mark.address,
+                    mark,
+                    base=base.get(mark.address, ""),
+                    known=known,
+                    root=root,
+                    cache=cache,
+                )
+            ]
+    return out
 
 
-def drift_in(report: dict, base: dict[str, str]) -> list[Problem]:
+#: !! `problems_in` AND `unruled` ARE DELETED, `P52`. Both walked a copy and
+#: reported what a role still owed -- `problems_in` turning `Sheet.refused` into
+#: `Problem`s, `unruled` listing `Sheet.unruled` -- and `flows.mark_errors`
+#: answers both, as addresses and reasons, per `decision-log.md Process: #72`.
+#: ! `problems_in` ALSO RETURNED A `ruled` COUNT that nothing in production ever
+#: read: `flows.collate` discarded it at the call. The claim it carried -- a mark
+#: a role wrote in and got WRONG still counts as ruled, and is not a coverage gap
+#: -- survives in `tests/test_collator.py::_ruled_places`, derived from the
+#: container where the cases that assert it live.
+
+
+def drift_in(copy: EditCopy, base: dict[str, str]) -> list[Problem]:
     """Every ruled mark whose returned `raw_text` is not the one it was handed.
 
     ! REPORTED, NOT REFUSED. The tree can move between `seed` and the return,
@@ -513,81 +493,45 @@ def drift_in(report: dict, base: dict[str, str]) -> list[Problem]:
     the duplication `Problem` exists to avoid.
 
     Args:
-        report: one edit_copy, as it came back.
+        copy: one parsed edit_copy, as it came back.
         base: `base_texts` of the binder it was seeded from.
 
     Returns:
         One `Problem` per drifted place, in sheet then mark order.
     """
-    role = report.get("role")
-    named = role if isinstance(role, str) else ""
-    sheets = report.get("sheets")
-    if not isinstance(sheets, list):
-        return []
-    out: list[Problem] = []
-    for sheet in sheets:
-        marks = sheet.get("marks") if isinstance(sheet, dict) else None
-        if not isinstance(marks, list):
-            continue
-        for entry in marks:
-            if not isinstance(entry, dict) or untouched(entry):
-                continue
-            address = str(entry.get("address") or "")
-            if address not in base:
-                continue
-            got = str(entry.get("raw_text") or "")
-            if got != base[address]:
-                out.append(
-                    Problem(
-                        named,
-                        address,
-                        "`raw_text` is not the paragraph this place was seeded "
-                        "with -- the copy came back with a different base",
-                    )
-                )
-    return out
+    # ! AN UNTOUCHED SLOT AND AN UNREADABLE ENTRY ARE BOTH ALREADY ELSEWHERE,
+    # so this walks rulings and tests neither -- `P51`.
+    return [
+        Problem(
+            copy.role,
+            mark.address,
+            "`raw_text` is not the paragraph this place was seeded "
+            "with -- the copy came back with a different base",
+        )
+        for sheet in copy.sheets
+        for mark in sheet.marks
+        if mark.address in base and mark.raw_text != base[mark.address]
+    ]
 
 
-def unruled(report: dict) -> list[str]:
-    """The addresses nobody wrote in -- the coverage gap, named not counted.
-
-    !! WALKS `report["sheets"]` THEN EACH SHEET'S `marks`, matching
-    `problems_in`, since 2026-08-29.
-
-    ! READS `desk.mark.untouched`, the same question `problems_in` asks, so a
-    mark refused for naming no instruction can never also be listed here. The
-    two answers were derived separately from `mark is None` and agreed on a
-    place that had been ruled on.
-    """
-    sheets = report.get("sheets")
-    if not isinstance(sheets, list):
-        return []
-    out = []
-    for sheet in sheets:
-        marks = sheet.get("marks") if isinstance(sheet, dict) else None
-        if not isinstance(marks, list):
-            continue
-        out += [str(m.get("address", "")) for m in marks if untouched(m)]
-    return out
-
-
-def tally(report: dict) -> dict[Instruction, int]:
+def tally(copy: EditCopy) -> dict[Instruction, int]:
     """How many of each instruction the edit_copy carries, for a one-line summary.
 
-    !! WALKED `report["marks"]` UNTIL 2026-08-29 -- a top-level key `seed()`
-    no longer writes, since an edit_copy's marks nest one level down inside
+    !! WALKED A TOP-LEVEL `marks` KEY UNTIL 2026-08-29 -- one `seed()` no
+    longer writes, since an edit_copy's marks nest one level down inside
     `sheets`. On the reshaped report that read a KEY THAT NO LONGER EXISTS, so
-    `report.get("marks", [])` silently fell back to `[]` and this returned
-    `{}` for every real edit_copy, ruled or not -- a crash turned silent.
+    the walk silently fell back to `[]` and this returned `{}` for every real
+    edit_copy, ruled or not -- a crash turned silent. ! THAT IS UNREACHABLE
+    NOW rather than merely fixed: an `EditCopy` has no such key to read.
     """
+    # ! IT COUNTS `Mark.instruction`, WHICH IS THE MEMBER, since `P51`. It read
+    # the wire string and matched it against the members -- `Instruction` is a
+    # `StrEnum`, so `"clean"` found its counter -- and a parsed mark carries the
+    # member itself, so the string round trip has nothing left to do.
     counts = dict.fromkeys(INSTRUCTIONS, 0)
-    for sheet in report.get("sheets", []):
-        marks = sheet.get("marks") if isinstance(sheet, dict) else None
-        if not isinstance(marks, list):
-            continue
-        for mark in marks:
-            if isinstance(mark, dict) and mark.get("instruction") in counts:
-                counts[mark["instruction"]] += 1
+    for sheet in copy.sheets:
+        for mark in sheet.marks:
+            counts[mark.instruction] += 1
     return {name: n for name, n in counts.items() if n}
 
 
@@ -613,28 +557,14 @@ def _touches(mark: Mark) -> list[str]:
     return touched
 
 
-class UnnamedRole(Exception):
-    """An `edit_copy` carrying no `role`, or a blank one.
-
-    Raised by `places` for every copy, BEFORE its sheets are read -- so a copy
-    that holds no ruled mark refuses on the same terms as one that holds ten,
-    and the refusal does not depend on where a role happened to leave a mark.
-
-    ! Every mark that copy holds would otherwise be grouped under a name no
-    reader can route on, and `role` is what an outcome is decided from.
-    """
-
-
-class MalformedMark(Exception):
-    """An entry `desk.mark.parse` refused, met while grouping.
-
-    Raised by `places`, carrying `parse`'s own messages joined with `"; "`.
-
-    !! RECONCILIATION REFUSES WHERE VERIFICATION REPORTS, and the difference is
-    what can be done afterwards. A list of problems can be handed back for
-    someone to answer; a mark whose shape is unreadable cannot be grouped by
-    the place it touches, and a place grouped wrongly is settled wrongly.
-    """
+#: !! `MalformedMark` IS DELETED, `P51`. It said *"reconciliation REFUSES where
+#: verification REPORTS"*, on the reasoning that a mark whose shape is
+#: unreadable cannot be grouped by the place it touches, and a place grouped
+#: wrongly is settled wrongly. ! THAT REASONING STILL HOLDS AND IS NOW
+#: STRUCTURAL: an unreadable entry never becomes a `Mark`, so `places` has
+#: nothing to group wrongly and no raise to make. Where it goes instead is
+#: `Sheet.refused` -- an address and its reasons, routed to the role that wrote
+#: it, `decision-log.md Process: #72`.
 
 
 class Placed(NamedTuple):
@@ -653,7 +583,7 @@ class Placed(NamedTuple):
     role: str
 
 
-def places(proof: dict) -> dict[str, list[Placed]]:
+def places(proof: MasterProof) -> dict[str, list[Placed]]:
     """Every ruled mark of a master_proof, grouped by the address it TOUCHES.
 
     A mark lands under its own `address`; a `move` lands under its destination
@@ -661,45 +591,25 @@ def places(proof: dict) -> dict[str, list[Placed]]:
     another role marked there.
 
     Args:
-        proof: a master_proof -- `{"edit_copies": [{"role", "sheets": [...]}]}`,
-            as `desk.proof.gather` returns it. A sheet whose `marks` is not a
-            list contributes nothing.
+        proof: a parsed master_proof, as `desk.proof.gather` returns one.
 
     Returns:
         address -> the `Placed`s touching it, in the order the copies, their
         sheets and their marks were walked. An address nobody ruled on is
         absent rather than empty.
 
-    Raises:
-        UnnamedRole: an edit_copy carries no `role`.
-        MalformedMark: an entry that is neither untouched nor parseable.
-
-    ! AN UNTOUCHED SLOT IS SKIPPED, the same coverage gap `verify_report`
-    skips: nobody wrote there, so there is nothing to group.
+    !! IT RAISED `MalformedMark` UNTIL `P51`, AND CANNOT NOW. `Sheet.marks`
+    holds marks that parsed, so there is no unreadable entry left to meet here
+    -- and `flows.collate._reconcilable`, whose whole job was dropping them
+    before this ran, went with the raise. ! THE REFUSAL DID NOT WEAKEN: an
+    entry that will not parse is `Sheet.refused`, which routes to the role that
+    wrote it instead of stopping the stage.
     """
     out: dict[str, list[Placed]] = {}
-    for i, copy in enumerate(proof.get("edit_copies", [])):
-        role = copy.get("role")
-        if not filled(role):
-            raise UnnamedRole(
-                f"edit_copy {i} carries no `role` -- every mark it holds would "
-                "be grouped under a name no reader can route on"
-            )
-        for sheet in copy.get("sheets", []):
-            marks = sheet.get("marks") if isinstance(sheet, dict) else None
-            if not isinstance(marks, list):
-                continue
-            for entry in marks:
-                if untouched(entry):
-                    continue
-                where = str(
-                    (entry.get("address") if isinstance(entry, dict) else None)
-                    or f"a mark of {role}"
-                )
-                mark, why = parse(where, entry)
-                if mark is None:
-                    raise MalformedMark("; ".join(why))
-                placed = Placed(mark, role)
+    for copy in proof.edit_copies:
+        for sheet in copy.sheets:
+            for mark in sheet.marks:
+                placed = Placed(mark, copy.role)
                 for address in _touches(mark):
                     out.setdefault(address, []).append(placed)
     return out
@@ -746,11 +656,11 @@ def _sentence_key(mark: Mark) -> object:
     return id(mark)
 
 
-def _roles_of_stage(proof: dict, path: str) -> set[str]:
+def _roles_of_stage(proof: MasterProof, path: str) -> set[str]:
     """Every role of this proof whose edit_copy holds a sheet for one page.
 
     Args:
-        proof: a master_proof, as `places` reads one.
+        proof: a parsed master_proof, as `places` reads one.
         path: the FLATTENED path, as an address carries it. Each sheet states a
             real repo path, so it is `flatten`ed to compare.
 
@@ -759,17 +669,11 @@ def _roles_of_stage(proof: dict, path: str) -> set[str]:
         so widening a place to "the roles of the stage" reaches only the roles
         that actually read this file.
     """
-    out: set[str] = set()
-    for copy in proof.get("edit_copies", []):
-        role = copy.get("role")
-        if not isinstance(role, str):
-            continue
-        for sheet in copy.get("sheets", []):
-            sheet_path = sheet.get("path") if isinstance(sheet, dict) else None
-            if isinstance(sheet_path, str) and flatten(sheet_path) == path:
-                out.add(role)
-                break
-    return out
+    return {
+        copy.role
+        for copy in proof.edit_copies
+        if any(flatten(sheet.path) == path for sheet in copy.sheets)
+    }
 
 
 #: The three outcomes, WEAKEST FIRST. `_join_moves` takes `max` by this order,
@@ -778,7 +682,7 @@ def _roles_of_stage(proof: dict, path: str) -> set[str]:
 OUTCOMES = ("settled", "rereads", "escalations")
 
 
-def _outcome(proof: dict, address: str, owing: list[Placed]) -> tuple[str, dict]:
+def _outcome(proof: MasterProof, address: str, owing: list[Placed]) -> tuple[str, dict]:
     """Which outcome one place gets, and the entry that records it.
 
     Asked in this order, first match winning:
@@ -795,7 +699,7 @@ def _outcome(proof: dict, address: str, owing: list[Placed]) -> tuple[str, dict]
                               step cannot say which
 
     Args:
-        proof: the master_proof, read only to widen an `add`'s roles.
+        proof: the parsed master_proof, read only to widen an `add`'s roles.
         address: the place being decided. Its path is what an `add` widens over.
         owing: the marks at this place that owe a change. Never empty --
             `reconcile` does not call this for a place with none.
@@ -903,7 +807,7 @@ def _join_moves(outcomes: dict[str, tuple[str, dict]]) -> None:
             changed = True
 
 
-def reconcile(proof: dict) -> Reconciled:
+def reconcile(proof: MasterProof) -> Reconciled:
     """Every place a role ruled on, decided -- settled, escalated or re-read.
 
     !! ONLY THE MARKS THAT OWE A CHANGE TAKE PART.
@@ -912,14 +816,13 @@ def reconcile(proof: dict) -> Reconciled:
     holding nothing else produces no entry in any of the three lists.
 
     Args:
-        proof: a master_proof, as `places` reads one.
+        proof: a parsed master_proof, as `places` reads one.
 
     Returns:
         A `Reconciled`. Entries keep the order `places` grouped the addresses
         in, split across the three lists.
 
     Raises:
-        UnnamedRole: from `places`.
         MalformedMark: from `places`.
     """
     outcomes: dict[str, tuple[str, dict]] = {}
@@ -937,29 +840,26 @@ def reconcile(proof: dict) -> Reconciled:
     return Reconciled(settled, escalations, rereads)
 
 
-def _real_pages(proof: dict) -> tuple[list[str], dict[str, str]]:
+def _real_pages(proof: MasterProof) -> tuple[list[str], dict[str, str]]:
     """The repo paths this proof's sheets name, and each page's sha.
 
     Returns:
         `(paths in first-seen order, path -> sha)`. A page several edit_copies
         carry keeps the FIRST sha seen. The paths are what `unflatten` resolves
         an address's flattened path against, which is why the list is kept
-        beside the mapping. A missing OR a null `sha` reads as "".
+        beside the mapping.
+
+    ! IT HAND-FOLDED A NULL `sha` TO "" UNTIL 2026-08-31, one of the five sites
+    `Sheet.deserialize`'s own comment counted. `Sheet.sha` is a `str` because
+    that parse made it one, so there is nothing left here to fold.
     """
     paths: list[str] = []
     shas: dict[str, str] = {}
-    for copy in proof.get("edit_copies", []):
-        for sheet in copy.get("sheets", []):
-            path = sheet.get("path") if isinstance(sheet, dict) else None
-            if isinstance(path, str) and path and path not in shas:
-                paths.append(path)
-                # ! `.get("sha", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT. A
-                # sheet carrying `"sha": null` reaches here with the key
-                # PRESENT and holding None, so `.get` returns None and
-                # `str(None)` is the four-character word "None" -- folded
-                # into the same missing-sha case instead.
-                raw_sha = sheet.get("sha")
-                shas[path] = raw_sha if isinstance(raw_sha, str) else ""
+    for copy in proof.edit_copies:
+        for sheet in copy.sheets:
+            if sheet.path not in shas:
+                paths.append(sheet.path)
+                shas[sheet.path] = sheet.sha
     return paths, shas
 
 
@@ -979,7 +879,7 @@ def _alteration_text(address: str, mark: Mark) -> str | None:
     return mark.change or None
 
 
-def docket_from(reconciled: Reconciled, proof: dict) -> dict:
+def docket_from(reconciled: Reconciled, proof: MasterProof) -> Docket:
     """The settled places, as a docket -- one page per file, in settled order.
 
     !! ESCALATIONS AND RE-READS ARE NOT WRITTEN AT ALL. A place that did not
@@ -989,22 +889,29 @@ def docket_from(reconciled: Reconciled, proof: dict) -> dict:
 
     Args:
         reconciled: as `reconcile` returns it. Only `settled` is read.
-        proof: the same master_proof, for the real page paths and shas. An
+        proof: the same parsed master_proof, for the real page paths and shas. An
             address carries the FLATTENED path; `unflatten` resolves it against
             the sheets' own paths, and one it cannot resolve is written through
             flattened, with an empty sha.
 
     Returns:
-        `{"pages": [{"path", "sha", "alterations": [{"cue", "text"}], "role"}]}`,
-        one alteration per settled place. `text` is None where the alteration
-        deletes the paragraph.
+        A `Docket` -- one `Schedule` per file, each holding one `Alteration`
+        per settled place. An alteration's `text` is None where it deletes the
+        paragraph.
+
+        !! IT RETURNED THE WIRE DICT UNTIL 2026-08-31 -- `decision-log.md
+        Process: #67`. This is the MIDDLE's output and the write chain's input,
+        so it is the one handoff between the two halves of the system; a raw
+        dict here meant the write flow received the one thing `Process: #65`
+        forbids past either end.
 
     ! `role` IS DROPPED FROM A PAGE TWO ROLES SETTLED ON rather than naming one
     of them. The field is per page and there is one line for it, so a page
     holding two roles' places can only ever name half of what set it.
     """
     paths, shas = _real_pages(proof)
-    pages: dict[str, dict] = {}
+    alterations: dict[str, list[Alteration]] = {}
+    shas_of: dict[str, str] = {}
     roles_of: dict[str, set[str]] = {}
     for entry in reconciled.settled:
         address = entry["address"]
@@ -1012,20 +919,24 @@ def docket_from(reconciled: Reconciled, proof: dict) -> dict:
         role = entry["roles"][0]
         addr = cue_of(address)
         real_path = unflatten(addr.path, paths) or addr.path
-        page = pages.setdefault(
-            real_path,
-            {
-                "path": real_path,
-                "sha": shas.get(real_path, ""),
-                "role": role,
-                "alterations": [],
-            },
-        )
+        shas_of.setdefault(real_path, shas.get(real_path, ""))
         roles_of.setdefault(real_path, set()).add(role)
-        page["alterations"].append(
-            {"cue": addr.cue, "text": _alteration_text(address, mark)}
+        alterations.setdefault(real_path, []).append(
+            Alteration(cue=addr.cue, text=_alteration_text(address, mark))
         )
-    for real_path, page in pages.items():
-        if len(roles_of[real_path]) != 1:
-            del page["role"]
-    return {"pages": list(pages.values())}
+    return Docket(
+        schedules=tuple(
+            Schedule(
+                path=real_path,
+                sha=shas_of[real_path],
+                alterations=tuple(mine),
+                # ! "" IS WHAT A PAGE TWO ROLES SETTLED CARRIES, and
+                # `Schedule.serialize` is what omits the key for it -- so an
+                # absent `role` and an empty one stay one thing rather than two.
+                role=next(iter(roles_of[real_path]))
+                if len(roles_of[real_path]) == 1
+                else "",
+            )
+            for real_path, mine in alterations.items()
+        )
+    )

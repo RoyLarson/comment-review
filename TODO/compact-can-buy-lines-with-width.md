@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 2 of 7 tasks done
+Progress: 2 of 8 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-17, on the FIRST exercise of stage 6 -- it returned two blocks at
@@ -153,3 +153,8 @@ for this case.
 - [x] T7 | FINISHED | unknown | T7 -- RECORD, not a task. What the 2026-08-17
       run got RIGHT, kept in the Objective so a later pass does not rewrite the
       good part.
+- [ ] T8 | Update compact so it reads the paragraph KIND off the cue letter
+      rather than being told it. Verify: no reference file or agent prose hands
+      compact a kind field, and the docstring refusal resolves from the a series
+      alone
+        > 2026-08-31 Roy 2026-08-31: cue tells everything, defined by kind

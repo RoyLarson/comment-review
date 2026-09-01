@@ -206,7 +206,7 @@ handed it.** That is what the field cut of 2026-08-24 was answering.
 ! **NOTHING SHIPPED CARRIES THE WORD.** It appears in package docstrings and in this file, and in
 no agent's prose -- so the sense was declared before an agent could learn the wrong one.
 
-## The three containers, on both sides -- `binder`/`docket`, `page`/`schedule`, row/`alteration`
+## The three containers, on both sides -- `binder`/`docket`, `page`/`schedule`, `paragraph`/`alteration`
 
 **Ruled 2026-08-26.** Roy, naming the write side against the read side already built: *"like the
 binder we have three levels of containers -- paragraph, page, binder. We have to be able to unwind
@@ -214,9 +214,24 @@ the alterations pretty close to the same way."*
 
 | level | READ side | WRITE side |
 | --- | --- | --- |
-| one place | a **row** -- the cue and what is there | an **alteration** -- the cue and what it becomes |
+| one place | a **paragraph** -- the cue and what is there | an **alteration** -- the cue and what it becomes |
 | one file | a **page** | a **schedule** |
 | the whole | the **binder** | the **docket** |
+
+!! **THIS TABLE SAID `row` IN THE READ SIDE'S TOP SLOT UNTIL 2026-08-31, ONE LINE BELOW THE
+RULING THAT SAYS `paragraph`.** `decision-log.md Process: #68`. The quote above is unchanged
+and always said paragraph; the table substituted the WIRE KEY -- a binder's JSON nests
+`pages -> rows` -- and the header carried it too.
+
+! **THE DOCUMENT WAS ALREADY FLAGGING IT.** `row` was the only term in that header not
+backticked, and the only one of the six with no entry in the glossary below: it had never been
+ruled, so nothing defined it. ! **`row` IS NOT RETIRED, because it was never a term** -- it is
+the name of a key in a JSON file, and it stays that.
+
+!! **AND IT HARDENED INTO A TYPE BEFORE IT WAS CAUGHT.** `BinderRow` and `BinderPage` were
+added 2026-08-31 (`1d9314d`) and deleted the same day, after Roy: *"So you invented a term
+'row' for something that is a Paragraph."* A `Binder` holds `Page`s or `RedactedPage`s, and
+both hold `Paragraph`s.
 
 | term | what it is |
 | --- | --- |

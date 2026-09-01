@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 1 of 7 tasks done
+Progress: 2 of 7 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-16 (Roy, on the re-sweep's `gap`: "looks like a different form of the
@@ -66,9 +66,10 @@ COVERAGE GAP, on every run, for as long as the file has a licence."*
 
 ## Tasks
 
-- [?] T1 | T1 -- * RULE how the return happens: re-dispatch the reviewer with
-      only the missed addresses, or with the whole census. Verify: the choice is
-      recorded here.
+- [x] T1 | RULED: only the missed addresses, as a LIST of addresses and the reasons for each -- never a re-dispatched copy. A role holds its own edit_copy and needs telling WHERE and WHAT; handing the places back would put what-needs-fixing in two documents. decision-log Process 72. | 7ffc71b | T1
+      -- * RULE how the return happens: re-dispatch the reviewer with only the
+      missed addresses, or with the whole census. Verify: the choice is recorded
+      here.
 - [?] T2 | T2 -- * RULE what bounds it -- with no bound, *"send it back"* is a
       loop, and the second failure IS what the gate handles today. Verify: the
       bound is written here.

@@ -20,11 +20,25 @@ import json
 import sys
 from pathlib import Path
 
-from comment_review.binder.binder import read as read_binder
+from comment_review.binder.binder import Binder
 from comment_review.desk.mark import allowed
 from comment_review.desk.stages import ROLES
 from comment_review.flows.distribute import seed
 from comment_review.machine import exceptions
+from comment_review.machine.json_object import object_of
+
+
+def _as_json(payload: dict) -> str:
+    """This command's ONE `json.dumps` -- `P43`, `decision-log.md Process: #65`.
+
+    !! TWO BRANCHES, TWO DESTINATIONS, ONE SPELLING. `--shape` prints and
+    `--seed` writes a file, and each carried its own `json.dumps(..., indent=2)`
+    until `P43`. They are both at the SAVE end, which is where the rule allows
+    raw json -- what the rule does not allow is one command holding two answers
+    to *how does this command write JSON*, because that is where an indent or an
+    encoding drifts apart between two outputs nobody compares.
+    """
+    return json.dumps(payload, indent=2)
 
 
 def main() -> int:
@@ -53,7 +67,7 @@ def main() -> int:
     args = ap.parse_args()
 
     if args.shape:
-        print(json.dumps(allowed(), indent=2))
+        print(_as_json(allowed()))
         return 0
 
     if args.seed:
@@ -70,14 +84,19 @@ def main() -> int:
         except exceptions.READ_ERRORS as err:
             print(f"cannot read {args.binder}: {err}", file=sys.stderr)
             return 2
-        binder, problem = read_binder(text)
+        # !! THE LOAD IS THE FLOW'S, THE DESERIALIZE THE CONTAINER'S --
+        # `decision-log.md Process: #67`.
+        loaded, problem = object_of(text, "binder")
         if problem:
             print(problem, file=sys.stderr)
             return 2
+        binder, problems = Binder.deserialize(args.binder, loaded)
+        if binder is None:
+            for line in problems:
+                print(line, file=sys.stderr)
+            return 2
         edit_copy = seed(binder, args.role)
-        Path(args.out).write_text(
-            json.dumps(edit_copy, indent=2), encoding="utf-8", newline=""
-        )
+        Path(args.out).write_text(_as_json(edit_copy), encoding="utf-8", newline="")
         places = sum(len(sheet["marks"]) for sheet in edit_copy["sheets"])
         print(f"{args.out}: {places} places for {args.role} to rule on")
         return 0

@@ -32,9 +32,10 @@ off the original.
 import argparse
 from pathlib import Path
 
-from comment_review.docket import docket as docket_mod
+from comment_review.docket.docket import Docket
 from comment_review.flows import revise
 from comment_review.machine import exceptions
+from comment_review.machine.json_object import object_of
 from comment_review.machine.repo import undraftable
 
 
@@ -95,15 +96,37 @@ def main() -> int:
             " a directory that does not exist yet -- nothing written"
         )
         return 2
+    # !! THE LOAD IS THREE STEPS AND EACH FAILS FOR ITS OWN REASON -- Roy,
+    # 2026-08-31: moving the load out of the module *"makes file io errors and
+    # malformed json load dump errors an explicit different step in the flow so
+    # those can be done without extra collisions."* `decision-log.md Process:
+    # #67`.
+    #
+    #     read_text     the file is missing, unreadable, undecodable
+    #     object_of     the text is not JSON, or is JSON that is not an object
+    #     deserialize   it is an object, and it is not a docket
+    #
+    # ! THE MIDDLE TWO WERE ONE CALL UNTIL 2026-08-31. `docket.read` took TEXT
+    # and did its own decode, so "not JSON" and "not a docket" came back as one
+    # reason string from one call, and a caller wanting to answer them
+    # differently had to match on the message.
     try:
         docket_text = Path(args.docket).read_text(encoding="utf-8")
     except exceptions.READ_ERRORS as e:
         print(f"CANNOT READ ({type(e).__name__}) -- nothing written")
         return 2
 
-    held, why = docket_mod.read(docket_text)
+    loaded, why = object_of(docket_text, "docket")
     if why:
         print(f"CANNOT READ THE DOCKET: {why} -- nothing written")
+        return 2
+
+    held, problems = Docket.deserialize(args.docket, loaded)
+    if held is None:
+        # ! EVERY BROKEN RULE, NOT THE FIRST. `docket.read` stopped at one, so a
+        # docket with three bad pages took three runs to fix.
+        for line in problems:
+            print(f"CANNOT READ THE DOCKET: {line} -- nothing written")
         return 2
 
     # !! ROUTED THROUGH `revise.pull` SINCE 2026-08-28, NOT `proof_setter.run`
@@ -137,7 +160,7 @@ def main() -> int:
     # !! LISTED FROM THE DOCKET'S OWN SCHEDULES, NOT FROM A `Drafted` LIST --
     # `pull` returns the assembled revise, not a per-page record of what it
     # drafted. `sorted` matches the order `proof_setter.run` itself drafts in.
-    schedules = sorted(docket_mod.schedules_of(held))
+    schedules = sorted(held.schedules, key=lambda s: s.path)
     for schedule in schedules:
         print(f"{schedule.path} -> {pulled.root / schedule.path}")
     print(f"{len(schedules)} page(s) drafted for review")

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 3 tasks closed
+Progress: 0 of 4 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-31 (2026-08-31, job-board audit run WITH --plans-dir for the first
@@ -26,3 +26,7 @@ Six 0.2.4 plans carry no heading naming the TODO tasks they close.
 - [ ] T3 | Decide whether a tick map belongs in a plan's own heading rather than
       in gitignored scratch
         > 2026-08-31 Two maps under .superpowers/ would be lost; it is gitignored
+- [ ] T4 | Reconcile the 0.2.4 plan with the work that has landed, or supersede
+      it if it cannot be
+        > 2026-08-31 Roy: fixing 0.2.4 is its own task, may not be reconcilable
+        > 2026-08-31 the container conversion, T26-T28, has no P step in 0.2.4

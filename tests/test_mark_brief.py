@@ -10,7 +10,7 @@ retyped. Every mark below is keyed `instruction`, which is what the brief
 publishes and what the code read as `mark` until 2026-08-29.
 """
 
-from comment_review.desk.mark import Instruction, allowed, parse
+from comment_review.desk.mark import Instruction, Mark, allowed
 
 # The brief's published table, reviewer-brief.md:280-288, copied by hand.
 BRIEF = {
@@ -37,7 +37,7 @@ def test_an_add_written_from_the_brief_is_accepted():
         "change": "# Rejects zero.",
         "sources": [{"cite": "src/m.py:12", "verbatim": "if n == 0: raise"}],
     }
-    mark, why = parse("src/m.py@b3", entry)
+    mark, why = Mark.deserialize("src/m.py@b3", entry)
     assert why == []
     assert mark is not None and mark.instruction is Instruction.ADD
 
@@ -54,7 +54,7 @@ def test_a_query_written_from_the_brief_is_accepted():
         },
         "sources": [{"cite": "src/m.py:12", "verbatim": "rate = n / total"}],
     }
-    mark, why = parse("src/m.py@b3", entry)
+    mark, why = Mark.deserialize("src/m.py@b3", entry)
     assert why == []
     assert mark is not None and mark.instruction is Instruction.QUERY
 
@@ -67,5 +67,5 @@ def test_a_query_naming_a_shape_outside_the_three_is_refused():
         "claim": {"shape": "i-give-up", "attempted": "read it", "settles": "a human"},
         "sources": [{"cite": "src/m.py:12", "verbatim": "rate = n / total"}],
     }
-    mark, why = parse("src/m.py@b3", entry)
+    mark, why = Mark.deserialize("src/m.py@b3", entry)
     assert mark is None and why != []

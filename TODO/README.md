@@ -178,13 +178,13 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (123)
+### open  (125)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
 | [a-comment-inside-a-line-makes-the-file-unprovable](a-comment-inside-a-line-makes-the-file-unprovable.md) | backend | -- | 2/7 | A comment INSIDE a line makes the whole file unprovable |
 | [a-role-can-reverse-itself-between-runs](a-role-can-reverse-itself-between-runs.md) | agents | yes | 1/6 | A role can reverse itself between runs, and nothing measures it |
-| [a-scope-declaration-costs-as-much-as-a-finding](a-scope-declaration-costs-as-much-as-a-finding.md) | agents | yes | 1/5 | A scope declaration costs as much as a finding |
+| [a-scope-declaration-costs-as-much-as-a-finding](a-scope-declaration-costs-as-much-as-a-finding.md) | agents | yes | 1/7 | A scope declaration costs as much as a finding |
 | [block-comment-markers-survive-into-the-prose](block-comment-markers-survive-into-the-prose.md) | backend | -- | 0/10 | Block-comment markers survive into the prose the reviewers read |
 | [move-and-correct-compose](move-and-correct-compose.md) | agents | — | 4/6 | `move` and `correct` COMPOSE, and the gate calls them a contradiction |
 | [only-census-got-out-and-the-skill-instructs-a-redirect](only-census-got-out-and-the-skill-instructs-a-redirect.md) | agents | — | 3/5 | Only `census.py` got `--out`, and `SKILL.md` instructs the redirect it forbids |
@@ -215,7 +215,7 @@ that changed a published name or rule:
 | [python-cannot-read-python](python-cannot-read-python.md) | backend | — | 31/37 | the AST cannot read syntax newer than the floor, and two readers hide each other's bugs |
 | [claim-fallback-is-unreachable](claim-fallback-is-unreachable.md) | backend | yes | 6/8 | A non-object claim is silently emptied, and 60 lines of fallback say the opposite |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | — | 3/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
-| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | — | 4/10 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
+| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 4/11 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | backend | -- | 4/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
 | [exception-hierarchy](exception-hierarchy.md) | backend | — | 2/10 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | — | 6/16 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
@@ -282,7 +282,7 @@ that changed a published name or rule:
 | [brief-change-is-raw-text](brief-change-is-raw-text.md) | agents | -- | 0/2 | reviewer-brief.md:140 says change is the updated paragraph as RAW TEXT, not lines; desk/mark.py refuses a change that is not an ARRAY of lines, on a measurement of its own |
 | [skill-inverts-the-anchor-line](skill-inverts-the-anchor-line.md) | agents | — | 0/2 | SKILL.md's CANDIDATE paragraph describes the opposite of the line commands/census.py prints, and the reasoning built on it is what the task agent carries into every proposal |
 | [external-address-cites-dead-modules](external-address-cites-dead-modules.md) | backend | — | 0/1 | desk/external_address.py says the address is declared in binder/record.py and resolved in desk/desk.py; record.py left on b50e7a4 and desk.py is in no directory of this tree |
-| [no-command-for-the-middle](no-command-for-the-middle.md) | backend | — | 3/9 | `gather`, `places`, `reconcile` and `docket_from` have no CLI face, so nothing turns checked marks into the docket `proof --docket` requires. Measured 2026-08-29 on a real run: every other step of the chain is a command; this one had to be driven from a hand-written script |
+| [no-command-for-the-middle](no-command-for-the-middle.md) | backend | yes | 4/11 | `gather`, `places`, `reconcile` and `docket_from` have no CLI face, so nothing turns checked marks into the docket `proof --docket` requires. Measured 2026-08-29 on a real run: every other step of the chain is a command; this one had to be driven from a hand-written script |
 | [query-names-no-sentence](query-names-no-sentence.md) | backend | — | 0/3 | every other substantive instruction names the sentence it rules on through a `claim` key -- `false` for `correct`, `drop` for `drop`, `from` for `patch` -- and `query` has none, so `_sentence_key` falls back to an identity and two queries at one place read as two different sentences |
 | [brief-example-and-scope](brief-example-and-scope.md) | agents | — | 0/3 | the brief's worked example shows a 40-character `sha` where `bind` writes 16, and the brief says a source resolves against 'the repo' without saying whether that is the scoped tree or the checkout it was cut from |
 | [rows-of-derives-no-type](rows-of-derives-no-type.md) | backend | — | 0/4 | `binder.rows_of` returns `list[dict]` where `docket.schedules_of` returns `list[Schedule]`; the codebase holds one example of each pattern, the typed one is the one that catches things, and `rows_of` has 8 callers and no covering tests |
@@ -291,9 +291,9 @@ that changed a published name or rule:
 | [cache-keyed-without-root](cache-keyed-without-root.md) | backend | — | 0/2 | `collator.Cache` maps a cited path to its lines with no root in the key, so one cache used across two roots -- an original and a revise -- answers from whichever file was read first |
 | [cite-at-raises-on-a-nondigit](cite-at-raises-on-a-nondigit.md) | backend | — | 0/3 | `collator._cite_at` guards the line number with `isdigit()` then calls `int()`, and the two disagree on what a digit is -- a superscript passes the guard and raises |
 | [strip-before-review-experiment](strip-before-review-experiment.md) | agents | — | 0/5 | the `collator.py` prose was deleted whole and rewritten by an agent that could read only the code -- it found three defects the old prose never mentioned and named two things the code cannot say; whether that beats editing in place is untested |
-| [collator-defects](collator-defects.md) | backend | -- | 5/27 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
+| [collator-defects](collator-defects.md) | backend | -- | 6/28 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
 | [staged-chain-untested](staged-chain-untested.md) | backend | -- | 0/4 | the four-stage chain runs and the edits accumulate, proven 2026-08-30 -- but no test in the suite drives it, and the only committed fan-out topology refuses any tree but this repo's |
-| [containers-and-verification-are-unwired](containers-and-verification-are-unwired.md) | backend | -- | 0/24 | The containers and the source-verification half are wired to nothing |
+| [containers-and-verification-are-unwired](containers-and-verification-are-unwired.md) | backend | yes | 14/42 | The containers and the source-verification half are wired to nothing |
 | [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | yes | 0/21 | A move is a composite mark and the code cannot express one |
 | [mark-holds-spec-and-parse](mark-holds-spec-and-parse.md) | backend | — | 0/6 | mark.py holds the instruction spec and the boundary parse at one scope |
 | [ty-cannot-see-the-tests](ty-cannot-see-the-tests.md) | systems | — | 0/5 | The type gate is scoped to src and cannot see the tests |
@@ -302,15 +302,17 @@ that changed a published name or rule:
 | [mark-defects](mark-defects.md) | backend | yes | 0/11 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
 | [binder-defects](binder-defects.md) | backend | yes | 0/18 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
 | [docket-defects](docket-defects.md) | backend | — | 0/8 | Six defects in docket.py, and one discards an approved page at exit 0 |
-| [collate-command-defects](collate-command-defects.md) | backend | -- | 0/17 | Sixteen defects in `commands/collate.py`, measured by running it |
+| [collate-command-defects](collate-command-defects.md) | backend | -- | 3/19 | Sixteen defects in `commands/collate.py`, measured by running it |
 | [differences-defects](differences-defects.md) | backend | — | 0/10 | Ten defects in `results/differences.py`, none of them in its arithmetic |
-| [plans-name-no-todo-tasks](plans-name-no-todo-tasks.md) | systems | -- | 0/3 | Six 0.2.4 plans carry no heading naming the TODO tasks they close |
+| [plans-name-no-todo-tasks](plans-name-no-todo-tasks.md) | systems | -- | 0/4 | Six 0.2.4 plans carry no heading naming the TODO tasks they close |
+| [index-and-glossary-for-roles](index-and-glossary-for-roles.md) | agents | -- | 0/1 | Hand a reviewer the name index and the glossary rather than leaving it to grep |
+| [local-annotation-false-positive](local-annotation-false-positive.md) | systems | -- | 0/1 | check_shipped_syntax reads a local variable annotation as a forward reference |
 
 ### in-progress  (19)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
-| [compact-can-buy-lines-with-width](compact-can-buy-lines-with-width.md) | agents | — | 2/7 | COMPACT can buy lines with width, and nothing stops it |
+| [compact-can-buy-lines-with-width](compact-can-buy-lines-with-width.md) | agents | -- | 2/8 | COMPACT can buy lines with width, and nothing stops it |
 | [stage-1-is-re-derived-every-run](stage-1-is-re-derived-every-run.md) | agents | yes | 1/14 | Stage 1 is re-derived every run, asks one question twice, and knows one structure source |
 | [the-bridge-landed-and-the-rewrite-did-not](the-bridge-landed-and-the-rewrite-did-not.md) | backend | -- | 8/11 | The bridge landed and the rewrite did not |
 | [corpora-are-all-python](corpora-are-all-python.md) | testing | — | 3/10 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
@@ -342,8 +344,8 @@ other tasks can proceed without them._
 | [a-role-with-no-code-out-damages-the-prose](a-role-with-no-code-out-damages-the-prose.md) | agents | yes | 1/10 | `code_concerns` is defined in the shared brief that every role reads, but named in only ONE of the four reviewer files -- `function-context`. It is absent from `module-context`, whose whole remit is whether a module announces ONE subject, which is the finding that most needs a code out. MEASURED in the harness: `module-context-widens-a-two-subject-docstring` detected that `verdicts.py` holds four subjects, had no verdict for 'split this module', and emitted a prose `patch` widening the docstring to announce TWO -- the exact defect its own trigger is named for. `code_concerns` came back empty. |
 | [dead-sweep-skips-private](dead-sweep-skips-private.md) | systems | yes | 4/5 | dead_sweep skips every _private name, so a dead module constant is invisible to it and to ruff |
 | [lexer-does-not-lex](lexer-does-not-lex.md) | backend | yes | 7/10 | One module, two jobs: one tier reads characters, the other reads CPython's parse |
-| [a-comment-run-merges-across-blanks](a-comment-run-merges-across-blanks.md) | backend | yes | 4/5 | A licence header and a doc comment become one paragraph with one address |
-| [a-coverage-gap-should-go-back-to-the-reviewer](a-coverage-gap-should-go-back-to-the-reviewer.md) | agents | yes | 1/7 | **A block a reviewer never accounted for is unfinished work, not a finding about the run.** Today `verdicts.py` prints a COVERAGE GAP against the role by name and exits nonzero. Roy, 2026-08-16: *"if comment blocks are missed by a reviewer then they are returned to the reviewer to rule on."* ! Same shape as the two deleted lists one level up -- the reviewer stopped early, and the system files the stopping rather than fixing it. * Unruled: re-dispatch with only the missed indices or the whole census, and what bounds the retry |
+| [a-comment-run-merges-across-blanks](a-comment-run-merges-across-blanks.md) | backend | yes | 4/6 | A licence header and a doc comment become one paragraph with one address |
+| [a-coverage-gap-should-go-back-to-the-reviewer](a-coverage-gap-should-go-back-to-the-reviewer.md) | agents | yes | 2/7 | **A block a reviewer never accounted for is unfinished work, not a finding about the run.** Today `verdicts.py` prints a COVERAGE GAP against the role by name and exits nonzero. Roy, 2026-08-16: *"if comment blocks are missed by a reviewer then they are returned to the reviewer to rule on."* ! Same shape as the two deleted lists one level up -- the reviewer stopped early, and the system files the stopping rather than fixing it. * Unruled: re-dispatch with only the missed indices or the whole census, and what bounds the retry |
 | [a-prose-file-has-no-blocks](a-prose-file-has-no-blocks.md) | backend | yes | 4/9 | A prose file has no blocks, so the system cannot review documentation |
 | [correcting-one-copy-strands-the-reference-copy](correcting-one-copy-strands-the-reference-copy.md) | agents | yes | 0/9 | Correcting one copy strands the copy in a REFERENCE ONLY file |
 | [false-by-arithmetic-with-no-enforcing-line](false-by-arithmetic-with-no-enforcing-line.md) | agents | yes | 1/4 | A claim can be false by arithmetic with no enforcing line to check it against |

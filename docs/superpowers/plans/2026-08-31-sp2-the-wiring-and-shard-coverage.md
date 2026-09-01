@@ -27,7 +27,30 @@ written through its type). **A spec restating five log entries is a second copy 
 recomputes.** Read those five with this plan.
 
 **Plan (`P`):** [`docs/plans/0.2.4-the-commands-for-the-middle.md`](../../plans/0.2.4-the-commands-for-the-middle.md)
--- SP-2 delivers `P21`, `P25` and `P27`.
+-- SP-2 was written to deliver `P21`, `P25` and `P27`.
+
+!!! **IT DID NOT, AND ALL THREE ARE REOPENED AS OF 2026-08-31.** Roy, refusing the merge:
+*"You didn't do this correctly so it can't be closed ... Passing dicts around when containers
+were specified as the design pattern is not correct. It may pass tests but tests don't test
+correctness they test functionality."*
+
+!! **EVERY BOX BELOW IS TICKED AND EVERY ONE OF ITS VERIFY TEXTS IS LITERALLY MET.** The
+boundary parse is called, source verification runs over every ruled mark, a short shard is
+named -- and all of it operates on a raw dict, with the parsed container discarded at the point
+it is produced. **The behaviour landed; the design did not.** `Process: #65` and `#66` state
+the shape, and SP-7 is where these three steps are actually closed.
+
+!! **SP-7 CLOSED TWO OF THE THREE, ON 2026-08-31, AGAINST `f1db0e5`.** `P25` and `P27` now run
+on `EditCopy`s: `verify_report` and `_coverage_problems` take the container, not the dict the
+parse produced and this plan discarded. **`P21` STAYS OPEN** on its third clause -- *"every
+field declared is one the code reads"* -- because `MasterProof.stage` is read only by
+`MasterProof.serialize`, and that pair lost its last production caller when `P42` removed the
+proof boundary. Filed as `containers-and-verification-are-unwired` T37, `needs-ruling`.
+
+! **THE TICKED BOXES BELOW ARE LEFT AS THEY ARE.** They record what was done, and the eight
+tasks did happen. What was wrong is the claim the P steps made on the strength of them --
+which is a claim about the PLAN, and is corrected there. ! Reading this file as a record of
+finished work is the error; reading it as a record of what was built is correct.
 
 **Lane:** `backend`. No file under `plugins/comment-review/agents/`, `SKILL.md` or
 `references/*.md` is touched. `plugins/` is BUILT at release, not during development.
@@ -135,7 +158,7 @@ the read half until 2026-08-30, so renaming a field left another module writing 
 `:1015-1023` is a DOCKET page, a different artifact, and keeps its own spelling. One angle of
 the 2026-08-30 review cited it as a producer and was wrong.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_a_renamed_field_breaks_the_writer_rather_than_folding_to_a_default():
@@ -157,12 +180,12 @@ def test_every_container_the_flows_write_round_trips_through_its_own_parse():
 rename that reaches `Sheet` and not `Sheet.seed` fails it. A test asserting the four literal
 key names would pass a rename that broke both halves together.
 
-- [ ] **Step 2: Run both and watch the first fail**
+- [x] **Step 2: Run both and watch the first fail**
 
 Run: `uv run pytest tests/test_containers.py -k renamed_field -v`
 Expected: FAIL -- `Sheet.seed` is not defined.
 
-- [ ] **Step 3: Add the three `seed` classmethods**
+- [x] **Step 3: Add the three `seed` classmethods**
 
 Each builds its dict from the dataclass's own field names, the way `Mark.seed` does. Read
 `desk/mark.py`'s `seed` first and follow it; a second pattern for the same job is the thing
@@ -172,14 +195,27 @@ this task exists to remove.
 to `""` with a walrus and a comment explaining why; `parse_sheet:129-130` does the same on the
 way back. Put it in `Sheet.seed` and cite it from the producer, so the rule is stated once.
 
-- [ ] **Step 4: Replace every literal at the fifteen producer sites**
+- [x] **Step 4: Replace every literal at the fifteen producer sites**
 
 `grep -rn '"role":\|"read_from":\|"sheets":\|"marks":\|"edit_copies":\|"stage":' src/comment_review/`
 and go through them one at a time. **A site that writes a DOCKET page is not one of these.**
 
-- [ ] **Step 5: Run the tests, then `uv run pytest -q`**
+!! **CORRECTED IN EXECUTION, 2026-08-31: NOT EVERY ONE OF THE FIFTEEN IS A PRODUCER, AND
+`flows.collate._reconcilable` MUST NOT BE WRITTEN THROUGH THE TYPE.** It FILTERS a copy rather
+than building one. `EditCopy.seed` requires every declared field, so a copy carrying no
+`read_from` came out holding `{}` -- and `desk.proof.gather` subscripts that key precisely so
+an absent one raises. `tests/test_collate_command.py::TestExitCodes::
+test_a_copy_missing_read_from_exits_one_not_a_traceback` failed on it, in the one commit it
+was written that way.
 
-- [ ] **Step 6: Run the checks**
+! **THE TEST IS: DOES THIS SITE BUILD A CONTAINER, OR TRANSFORM ONE?** A field a filter
+fabricates is a field the boundary below it can no longer refuse -- and that is the exact
+defect `desk/proof.py`'s `MismatchedRoot` docstring records being closed there. `{**copy,
+"sheets": sheets}` preserves an absence; a producer cannot.
+
+- [x] **Step 5: Run the tests, then `uv run pytest -q`**
+
+- [x] **Step 6: Run the checks**
 
 ```bash
 uv run pytest -q
@@ -189,9 +225,9 @@ uv run ty check
 
 Only `test_build` may fail.
 
-- [ ] **Step 7: Commit the WORK -- no ticked boxes in this commit**
+- [x] **Step 7: Commit the WORK -- no ticked boxes in this commit**
 
-- [ ] **Step 8: Tick the boxes -- in this file, in `TODO/`, and in the plan**
+- [x] **Step 8: Tick the boxes -- in this file, in `TODO/`, and in the plan**
 
 Tick every `- [ ]` step box of this task in
 `docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
@@ -207,7 +243,7 @@ it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
 `Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
 wrong.
 
-- [ ] **Step 9: Commit the ticks, citing the work commit's SHA**
+- [x] **Step 9: Commit the ticks, citing the work commit's SHA**
 
 ---
 
@@ -231,7 +267,7 @@ importer and `collate` re-derives the shape as it goes.
 this document a copy at all*; `problems_in` answers *what did this role write in this slot*.
 Read this plan's own decision section above before writing the refusal.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_a_copy_that_is_not_the_shape_of_a_copy_is_named_on_its_role():
@@ -268,12 +304,12 @@ would also be asserting the shape of a well-formed copy, which is what `seed` is
 ! `a_correct(address, sentence=None)` is the existing helper's malformed case -- check what
 `problems_in` reports over it before relying on it, and use whatever the current builder gives.
 
-- [ ] **Step 2: Run all three and watch the first two fail**
+- [x] **Step 2: Run all three and watch the first two fail**
 
 Run: `uv run pytest tests/test_collate.py -k "shape_of_a_copy or does_not_silence" -v`
 Expected: FAIL -- `a_copy_missing_its_sheets` is not defined.
 
-- [ ] **Step 3: Parse every copy before the per-copy loop**
+- [x] **Step 3: Parse every copy before the per-copy loop**
 
 Collect `(role, problems)` for each copy that does not parse. Run the existing per-copy loop
 over the copies that DID parse, so their problems are reported too. If any envelope problem
@@ -287,11 +323,11 @@ string, and `"copy 2"` is routable where `""` is not. **Say in the code which it
 task removes one reason `UnnamedRole` can fire; **read the block against what still raises**
 rather than adding to it.
 
-- [ ] **Step 4: Run the tests, then `uv run pytest -q`**
-- [ ] **Step 5: Run the checks** -- `pytest`, `ruff check`, `ruff format --check`, `ruff check`
+- [x] **Step 4: Run the tests, then `uv run pytest -q`**
+- [x] **Step 5: Run the checks** -- `pytest`, `ruff check`, `ruff format --check`, `ruff check`
   again, `ty check`. Only `test_build` may fail.
-- [ ] **Step 6: Commit the WORK -- no ticked boxes in this commit**
-- [ ] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
+- [x] **Step 6: Commit the WORK -- no ticked boxes in this commit**
+- [x] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
 
 Tick every `- [ ]` step box of this task in
 `docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
@@ -306,7 +342,7 @@ it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
 `Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
 wrong.
 
-- [ ] **Step 8: Commit the ticks, citing the work commit's SHA**
+- [x] **Step 8: Commit the ticks, citing the work commit's SHA**
 
 ---
 
@@ -340,7 +376,7 @@ produces `{}` for an empty `edit_copies` list. It is the other five values this 
 only against `copies[0]`, never 2..N. Wire the parse and close the empty-copies branch here;
 leave T7.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 @pytest.mark.parametrize("junk", ["oops", None, 7, [], {"root": 7}, {"junk": 1}])
@@ -361,13 +397,13 @@ def test_an_empty_proof_with_an_empty_read_from_is_still_admitted():
     assert problems == [] and parsed is not None
 ```
 
-- [ ] **Step 2: Run them and watch the first fail on all six values**
-- [ ] **Step 3: Drop the `if copies:` guard from `_read_from_problem`'s call site**, keeping
+- [x] **Step 2: Run them and watch the first fail on all six values**
+- [x] **Step 3: Drop the `if copies:` guard from `_read_from_problem`'s call site**, keeping
   the `{}` admission. Then parse the proof after `gather` and report as Task 2 does.
-- [ ] **Step 4: Run the tests, then `uv run pytest -q`**
-- [ ] **Step 5: Run the checks** -- only `test_build` may fail
-- [ ] **Step 6: Commit the WORK -- no ticked boxes in this commit**
-- [ ] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
+- [x] **Step 4: Run the tests, then `uv run pytest -q`**
+- [x] **Step 5: Run the checks** -- only `test_build` may fail
+- [x] **Step 6: Commit the WORK -- no ticked boxes in this commit**
+- [x] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
 
 Tick every `- [ ]` step box of this task in
 `docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
@@ -382,7 +418,7 @@ it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
 `Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
 wrong.
 
-- [ ] **Step 8: Commit the ticks, citing the work commit's SHA**
+- [x] **Step 8: Commit the ticks, citing the work commit's SHA**
 
 ---
 
@@ -409,7 +445,7 @@ an exception carrying them, or splitting `collate` so the per-copy pass returns 
 fold. **Prefer whichever leaves `collate`'s signature alone**; a fourth argument here would
 collide with SP-3's `Stage`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_a_refusal_still_prints_the_problems_the_pass_found(tmp_path, capsys):
@@ -427,12 +463,12 @@ def test_a_refusal_still_prints_the_problems_the_pass_found(tmp_path, capsys):
 from a genuinely different root. Build it with `bind()` over a second `tmp_path` tree -- **not
 by editing a `read_from` dict by hand**, which would test a shape rather than the situation.
 
-- [ ] **Step 2: Run it and watch stdout come back empty**
-- [ ] **Step 3: Make the refusal carry the problems, and print them before the REFUSED line**
-- [ ] **Step 4: Run the tests, then `uv run pytest -q`**
-- [ ] **Step 5: Run the checks** -- only `test_build` may fail
-- [ ] **Step 6: Commit the WORK -- no ticked boxes in this commit**
-- [ ] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
+- [x] **Step 2: Run it and watch stdout come back empty**
+- [x] **Step 3: Make the refusal carry the problems, and print them before the REFUSED line**
+- [x] **Step 4: Run the tests, then `uv run pytest -q`**
+- [x] **Step 5: Run the checks** -- only `test_build` may fail
+- [x] **Step 6: Commit the WORK -- no ticked boxes in this commit**
+- [x] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
 
 Tick every `- [ ]` step box of this task in
 `docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
@@ -448,7 +484,7 @@ it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
 `Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
 wrong.
 
-- [ ] **Step 8: Commit the ticks, citing the work commit's SHA**
+- [x] **Step 8: Commit the ticks, citing the work commit's SHA**
 
 ---
 
@@ -470,7 +506,7 @@ wrong.
 flow - same as 1) the flow coordinates the things in the modules do."* MEASURED 2026-08-31:
 `verify_report` has only test callers.
 
-- [ ] **Step 0: RULED -- read this, then proceed**
+- [x] **Step 0: RULED -- read this, then proceed**
 
 `verify_report` READS FILES: `source_problems` calls `_lines(root, path, cache)` to check a
 citation resolves. That looked like a contradiction with `Process: #62`, *"the middle touches
@@ -488,7 +524,7 @@ sha'd because the evidence pages are not modifying data."*
 ! **AND THE ROLES ALREADY GREP EVIDENCE** during their own review, so this adds no kind of
 access the run did not have. `#62` is qualified in the decision log; `#58` stands. Proceed.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_a_citation_that_does_not_resolve_is_reported_by_a_RUN(tmp_path):
@@ -515,9 +551,9 @@ def test_a_claim_quoting_a_sentence_absent_from_its_paragraph_is_reported(tmp_pa
 ! **ADD `a_correct_citing(address, cite)` TO `tests/helpers.py`** -- built on the existing
 `a_correct`, not as a second builder for the same instruction.
 
-- [ ] **Step 2: Run both and watch them fail**
+- [x] **Step 2: Run both and watch them fail**
 
-- [ ] **Step 3: Give `collate` a `root` and call `verify_report`**
+- [x] **Step 3: Give `collate` a `root` and call `verify_report`**
 
 **Read every caller first** -- `grep -rn "collate(" src/ tests/`. `commands/collate.py` must
 supply it; the binder names the tree it was censused from in `read_from`, and the command
@@ -531,10 +567,10 @@ this, not a mistake.
 CODE.** They are strings today and `Collated.problems` holds `Problem(role, address, message)`.
 A source-verification finding names a mark, so it has both a role and an address.
 
-- [ ] **Step 4: Run the tests, then `uv run pytest -q`**
-- [ ] **Step 5: Run the checks** -- only `test_build` may fail
-- [ ] **Step 6: Commit the WORK -- no ticked boxes in this commit**
-- [ ] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
+- [x] **Step 4: Run the tests, then `uv run pytest -q`**
+- [x] **Step 5: Run the checks** -- only `test_build` may fail
+- [x] **Step 6: Commit the WORK -- no ticked boxes in this commit**
+- [x] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
 
 Tick every `- [ ]` step box of this task in
 `docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
@@ -552,7 +588,7 @@ it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
 `Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
 wrong.
 
-- [ ] **Step 8: Commit the ticks, citing the work commit's SHA**
+- [x] **Step 8: Commit the ticks, citing the work commit's SHA**
 
 ---
 
@@ -601,7 +637,7 @@ it, and the places that came back still settle. **This is the one place in the p
 run does NOT return early** -- an incomplete shard is a fact about one role's coverage, not a
 statement that the documents are malformed.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 !! **`collate` TAKES A `root` BY THE TIME THIS TASK RUNS.** Task 5 changed the signature to
 `(stage, edit_copies, binder, root)`. Every call below passes it; a three-argument call written
@@ -658,12 +694,12 @@ addresses)` to `tests/helpers.py` as removals over a seeded copy.
 and clobber under fan-out today (finding #9) -- **do not copy that pattern here**, and this
 test is what proves you did not.
 
-- [ ] **Step 2: Run both and watch the first fail**
-- [ ] **Step 3: Add the per-role coverage comparison**
-- [ ] **Step 4: Run the tests, then `uv run pytest -q`**
-- [ ] **Step 5: Run the checks** -- only `test_build` may fail
-- [ ] **Step 6: Commit the WORK -- no ticked boxes in this commit**
-- [ ] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
+- [x] **Step 2: Run both and watch the first fail**
+- [x] **Step 3: Add the per-role coverage comparison**
+- [x] **Step 4: Run the tests, then `uv run pytest -q`**
+- [x] **Step 5: Run the checks** -- only `test_build` may fail
+- [x] **Step 6: Commit the WORK -- no ticked boxes in this commit**
+- [x] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
 
 Tick every `- [ ]` step box of this task in
 `docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
@@ -683,7 +719,7 @@ it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
 `Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
 wrong.
 
-- [ ] **Step 8: Commit the ticks, citing the work commit's SHA**
+- [x] **Step 8: Commit the ticks, citing the work commit's SHA**
 
 ---
 
@@ -711,18 +747,18 @@ through them one at a time.
 is defensible depth. **What is not defensible is prose claiming a guard is load-bearing when
 the enforcement is upstream.** Where you keep one, say which it is.
 
-- [ ] **Step 1: Enumerate the duplicates and record them in the report**
+- [x] **Step 1: Enumerate the duplicates and record them in the report**
 
 This step comes first, and the test comes after it. **This plan cannot give you the test**,
 because what it asserts depends on which duplicates the grep finds. A test written after the
 cut can only agree with you -- so write it against the enumeration, and make it fail.
 
-- [ ] **Step 2: Write the failing test over one duplicate you found, and run it**
-- [ ] **Step 3: Delete only those the container now answers for**
-- [ ] **Step 4: Run the tests, then `uv run pytest -q`**
-- [ ] **Step 5: Run the checks** -- only `test_build` may fail
-- [ ] **Step 6: Commit the WORK -- no ticked boxes in this commit**
-- [ ] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
+- [x] **Step 2: Write the failing test over one duplicate you found, and run it**
+- [x] **Step 3: Delete only those the container now answers for**
+- [x] **Step 4: Run the tests, then `uv run pytest -q`**
+- [x] **Step 5: Run the checks** -- only `test_build` may fail
+- [x] **Step 6: Commit the WORK -- no ticked boxes in this commit**
+- [x] **Step 7: Tick the boxes -- in this file, in `TODO/`, and in the plan**
 
 Tick every `- [ ]` step box of this task in
 `docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
@@ -738,7 +774,7 @@ it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
 `Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
 wrong.
 
-- [ ] **Step 8: Commit the ticks, citing the work commit's SHA**
+- [x] **Step 8: Commit the ticks, citing the work commit's SHA**
 
 ---
 
@@ -756,7 +792,7 @@ production caller. MEASURED 2026-08-30: `containers.py` claimed consumers had st
 re-deriving keys when nothing imported it, and `collator.py`'s groupings have been wrong three
 times.
 
-- [ ] **Step 1: Fix every claim about a consumer**
+- [x] **Step 1: Fix every claim about a consumer**
 
 `grep -rn "containers" src/` and `grep -rn "verify_report" src/` now return real callers. Every
 sentence in any of the three files describing who calls it must match that output.
@@ -764,21 +800,21 @@ sentence in any of the three files describing who calls it must match that outpu
 ! **THE ENVELOPE/CONTENTS SPLIT IS STATED ONCE, NOT IN THREE FILES.** Pick the file that owns
 it and cite from the others. A rule in three places is a rule that will disagree with itself.
 
-- [ ] **Step 2: Delete the provisional notes this plan made false**
+- [x] **Step 2: Delete the provisional notes this plan made false**
 
 `grep -rn "PROVISIONAL\|provisional" src/comment_review/` -- some were written against the
 unwired state. A provisional note whose condition has passed is a stale claim.
 
-- [ ] **Step 3: Reread every sentence Task 1 made false**
+- [x] **Step 3: Reread every sentence Task 1 made false**
 
 The fifteen producer sites carried comments explaining their literals -- the `sha`
 normalization, COPIED-NOT-ALIASED, `checked: dict = data`. Some now describe code that moved
 into a `seed`.
 
-- [ ] **Step 4: Run the checks** -- `pytest`, `ruff check`, `ruff format --check`, `ruff check`
+- [x] **Step 4: Run the checks** -- `pytest`, `ruff check`, `ruff format --check`, `ruff check`
   again, `ty check`, and `uv run python scripts/check_vocabulary.py`
-- [ ] **Step 5: Commit the WORK -- no ticked boxes in this commit**
-- [ ] **Step 6: Tick the boxes -- in this file, in `TODO/`, and in the plan**
+- [x] **Step 5: Commit the WORK -- no ticked boxes in this commit**
+- [x] **Step 6: Tick the boxes -- in this file, in `TODO/`, and in the plan**
 
 Tick every `- [ ]` step box of this task in
 `docs/superpowers/plans/2026-08-31-sp2-the-wiring-and-shard-coverage.md`;
@@ -799,7 +835,7 @@ it to track the remainder -- `CLAUDE.md`'s *superseded in part*.
 `Progress:` and the plan's `Plan-tasks:`. That arithmetic is what a hand edit gets
 wrong.
 
-- [ ] **Step 7: Commit the ticks, citing the work commit's SHA**
+- [x] **Step 7: Commit the ticks, citing the work commit's SHA**
 
 ---
 

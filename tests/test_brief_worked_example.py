@@ -29,11 +29,12 @@ import sys
 
 import pytest
 from conftest import ROOT
-from helpers import a_binder_over
+from helpers import a_binder_over, returned
 
 from comment_review.commands.collate import main as collate_main
-from comment_review.desk.collator import problems_in, tally, unruled
-from comment_review.desk.mark import parse, untouched
+from comment_review.desk.collator import tally
+from comment_review.desk.mark import Mark, untouched
+from comment_review.flows.mark_errors import mark_errors
 
 BRIEF_PATH = (
     ROOT
@@ -61,6 +62,12 @@ def the_briefs_worked_example() -> dict:
 EXAMPLE = the_briefs_worked_example()
 #: The one mark that example carries.
 ENTRY = EXAMPLE["sheets"][0]["marks"][0]
+#: The same example through the boundary the flow runs it through -- what
+#: `problems_in`, `unruled` and `tally` take since `P42`. ! IT IS ALSO A CLAIM
+#: ABOUT THE BRIEF: the block a role is shown must parse as an `EditCopy`, and
+#: `returned` asserts that here rather than letting a malformed example reach
+#: the functions below as a surprising result.
+PARSED = returned(EXAMPLE, "the brief's example")
 
 
 def test_the_example_is_one_filled_mark():
@@ -76,37 +83,62 @@ def test_the_example_is_not_read_as_an_untouched_slot():
 
 
 def test_the_examples_mark_parses():
-    mark, why = parse("the brief's example", ENTRY)
+    mark, why = Mark.deserialize("the brief's example", ENTRY)
     assert why == []
     assert mark is not None
     assert mark.instruction == ENTRY["instruction"]
     assert mark.change == ENTRY["change"]
 
 
-def test_problems_in_counts_it_as_ONE_RULED_MARK():
-    """!! THE ASSERTION THAT WOULD HAVE CAUGHT IT. `problems_in` returned
-    `([], 0)` on this input -- no problems AND nothing ruled on."""
-    broken, ruled = problems_in(EXAMPLE)
-    assert broken == []
-    assert ruled == 1
-    assert unruled(EXAMPLE) == []
+def test_the_example_is_ONE_RULED_MARK_and_owes_nothing():
+    """!! THE ASSERTION THAT WOULD HAVE CAUGHT IT. The per-copy check returned
+    `([], 0)` on this input -- no problems AND nothing ruled on.
+
+    ! ASKED OF `flows.mark_errors` SINCE `P52`, which is the one assembler now.
+    Its EMPTY return is both halves of the old claim at once: nothing refused,
+    and nothing left unruled."""
+    assert mark_errors([PARSED]) == []
+    assert [mark.address for sheet in PARSED.sheets for mark in sheet.marks] == [
+        ENTRY["address"]
+    ]
 
 
 def test_tally_names_the_instruction_the_brief_wrote():
-    assert tally(EXAMPLE) == {ENTRY["instruction"]: 1}
+    assert tally(PARSED) == {ENTRY["instruction"]: 1}
 
 
-def test_collate_accepts_it_as_a_ruled_mark(tmp_path, capsys, monkeypatch):
+def test_collate_reads_it_as_a_ruled_mark_and_reports_only_what_it_cannot_resolve(
+    tmp_path, capsys, monkeypatch
+):
     """The command a role's output actually meets, end to end.
 
     ! `--binder` carries no page for `b47`, so `drift_in`'s `address not in
     base` skip fires and nothing is compared -- the drift check is not what
     this test is about.
+
+    !! IT ASSERTED `code == 0` UNTIL 2026-08-31, AND THAT ONLY HELD WHILE
+    SOURCE VERIFICATION WAS UNWIRED. `P25` put `desk.collator.verify_report`
+    into the flow, and it reports three true things about this input:
+
+        `address` 'b47' names no place the binder carries   -- the binder is EMPTY
+        `claim.false` is not in the paragraph this row seeded -- there is no paragraph
+        two `cite`s do not resolve                          -- see below
+
+    !! THE CITATIONS CAN NEVER RESOLVE IN THIS TREE, BY DESIGN. The brief's
+    worked example cites `redacted_pkg/...`, a package this repo does not ship
+    and will not -- so the example is not verifiable HERE, and that is a fact
+    about the example rather than a defect in the flow.
+
+    ! SO WHAT THIS TEST NOW ASSERTS IS THE PART THAT IS ABOUT THE BRIEF: the
+    example is a WELL-FORMED ruled mark -- `problems_in` returns `([], 1)`, in
+    the test above -- and every finding the command reports is a
+    source-verification one, not a shape one. A `code == 0` here would now mean
+    verification had stopped running.
     """
     copy_path = tmp_path / "edit_copy.json"
     copy_path.write_text(json.dumps(EXAMPLE), encoding="utf-8")
     binder_path = tmp_path / "binder.json"
-    binder_path.write_text(json.dumps(a_binder_over({})), encoding="utf-8")
+    binder_path.write_text(json.dumps(a_binder_over({}).serialize()), encoding="utf-8")
     monkeypatch.setattr(
         sys,
         "argv",
@@ -124,8 +156,21 @@ def test_collate_accepts_it_as_a_ruled_mark(tmp_path, capsys, monkeypatch):
     )
     code = collate_main()
     printed = capsys.readouterr().out
-    assert code == 0, printed
-    assert "1 places resolved" in printed
+    assert code == 1, printed
+    # ! EVERY LINE IS A SOURCE-VERIFICATION FINDING. If a SHAPE problem ever
+    # appears here, the brief's worked example has stopped being a well-formed
+    # mark, which is the thing this file exists to notice.
+    lines = [line for line in printed.splitlines() if line.strip()]
+    assert lines
+    for line in lines:
+        assert any(
+            claim in line
+            for claim in (
+                "names no place",
+                "is not in the paragraph",
+                "does not resolve",
+            )
+        ), line
 
 
 @pytest.mark.parametrize("key", ["claim", "reason", "sources", "change"])
@@ -135,7 +180,7 @@ def test_dropping_a_field_the_example_fills_is_refused(key):
     in turn and the mark must be refused."""
     broken = dict(ENTRY)
     del broken[key]
-    mark, why = parse("the brief's example", broken)
+    mark, why = Mark.deserialize("the brief's example", broken)
     assert mark is None and why != []
 
 
@@ -145,6 +190,6 @@ def test_the_retired_key_name_is_refused_by_name():
     old = {k: v for k, v in ENTRY.items() if k != "instruction"}
     old["mark"] = ENTRY["instruction"]
     assert not untouched(old)
-    mark, why = parse("the brief's example", old)
+    mark, why = Mark.deserialize("the brief's example", old)
     assert mark is None
     assert any("instruction" in message for message in why)

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 10 tasks done
+Progress: 4 of 11 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -104,3 +104,8 @@ files in `corpora/` are in that state today.
       carries that fact.
 - [ ] T10 | T10 -- **Make `compositor.py:231` refuse on that fact, not on an
       empty list.** Verify: an empty file with no text still sets back as empty.
+- [ ] T11 | Delete results.compositor.approve, or name the caller that will use
+      it
+        > 2026-08-31 MEASURED 2026-08-31 while landing P45: grep over src/ and tests/
+        > 2026-08-31 finds no caller. It is the only remaining write over a REAL file,
+        > 2026-08-31 so what it does is a ruling, not a cleanup.

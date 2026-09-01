@@ -8,9 +8,10 @@ sequence cannot show you.
 from pathlib import Path
 
 import pytest
-from conftest import PKG, SAMPLE, build, by_cue, docket_from
+from conftest import PKG, SAMPLE, build, by_cue, cue, docket_from
 
-from comment_review.binder.binder import bind, rows_of
+from comment_review.binder.binder import bind
+from comment_review.docket.docket import Docket
 from comment_review.flows import page_for as page_for_mod
 from comment_review.flows import proof_setter
 from comment_review.machine.repo import undraftable
@@ -59,21 +60,17 @@ def address(binder, path: str, series: str = "b") -> str:
 
     !! EVERY TEST HERE HAND-WROTE `f"{rel}@{cue}"` UNTIL 2026-08-25, and that
     is what hid the CRITICAL defect: an address carries the FLATTENED path --
-    `pkg:a:util.py` -- and a hand-written one carries `/`. `schedules_of` splits
+    `pkg:a:util.py` -- and a hand-written one carries `/`. The flat form split
     whatever it is handed, so the tests fed the chain a form nothing produces
     and only repo-root files, whose flattened form is their path, agreed. The
     fixture could not disagree with the code because the fixture was written to
     match it.
 
-    ! IT ASKS `rows_of`, which is what a caller of this chain has.
+    ! IT ASKS `Binder.paragraphs`, which is what a caller of this chain has.
     """
-    for row in rows_of(binder):
-        if (
-            row["path"] == path
-            and row["cue"].startswith(series)
-            and row["raw_text"].strip()
-        ):
-            return str(row["address"])
+    for row in binder.paragraphs:
+        if row.path == path and cue(row).startswith(series) and row.raw_text.strip():
+            return row.address
     raise AssertionError(f"no filled {series} row for {path}")
 
 
@@ -110,7 +107,7 @@ def test_a_alteration_reaches_a_drafted_file(tmp_path):
 
 
 def test_a_file_BELOW_THE_REPO_ROOT_drafts(tmp_path):
-    """CRITICAL, measured 2026-08-25: `schedules_of` keys by the FLATTENED path an
+    """CRITICAL, measured 2026-08-25: the flat form keyed by the FLATTENED path an
     address carries, and `run` used that string both as a binder key and as a
     filesystem path -- so `pkg/a/util.py` was looked up as `pkg:a:util.py`,
     missed the binder, and was handed to `page_of` as `repo/pkg:a:util.py`,
@@ -151,15 +148,22 @@ def test_a_page_the_REPO_DOES_NOT_HAVE_refuses_at_read_and_names_it(tmp_path):
     the reason.
     """
     repo, _, _ = _tree(tmp_path)
-    docket = {
-        "pages": [
-            {
-                "path": "pkg/nowhere.py",
-                "sha": "whatever",
-                "alterations": [{"cue": "b0", "text": "# x"}],
-            }
-        ]
-    }
+    # ! HAND-WRITTEN WIRE, THROUGH THE BOUNDARY -- `conftest.docket_from` builds
+    # its dockets from a real binder's pages, and this case needs a page the
+    # checkout does NOT have, which no binder can supply.
+    docket, problems = Docket.deserialize(
+        "d.json",
+        {
+            "pages": [
+                {
+                    "path": "pkg/nowhere.py",
+                    "sha": "whatever",
+                    "alterations": [{"cue": "b0", "text": "# x"}],
+                }
+            ]
+        },
+    )
+    assert docket is not None, problems
     drafted, refused = proof_setter.run(docket, repo, tmp_path / "out")
     assert drafted == []
     assert len(refused) == 1
@@ -311,6 +315,35 @@ def test_ONE_FILES_REFUSAL_DRAFTS_NOTHING_FOR_ANY_FILE(tmp_path):
     assert list(into.iterdir()) == []
 
 
+def _fail_the_draft_of(monkeypatch, name: str, why: str) -> None:
+    """Make ONE page's draft write raise, leaving every other page's alone.
+
+    !! IT PATCHES `results.compositor.write_raw`, AND PATCHED `Path.write_text`
+    UNTIL `P45`. The draft reaches disk through `machine.repo.write_raw` now, so
+    the old patch stopped biting -- and when it did, TWO of the three tests
+    below went green WITHOUT RAISING. `docs/gates.md`: not *"does the check
+    pass"* but *"could the check fail"*.
+
+    ! ONE SPELLING, THREE CALLERS. The three sites each carried the same
+    seven-line closure over `Path.write_text`, differing only in the filename
+    and the message -- which is why the move had to be made three times and why
+    one of them could have been missed.
+
+    Args:
+        monkeypatch: the test's own fixture.
+        name: the basename whose write raises. Every other write is real.
+        why: the `PermissionError`'s message.
+    """
+    real = compositor.write_raw
+
+    def failing(path, text):
+        if path.name == name:
+            raise PermissionError(why)
+        return real(path, text)
+
+    monkeypatch.setattr(compositor, "write_raw", failing)
+
+
 def _two_pages(tmp_path):
     """A two-file repo whose FIRST page in sort order is already stale."""
     repo = tmp_path / "repo"
@@ -390,14 +423,7 @@ def test_A_REFUSAL_IS_NOT_LOST_to_a_later_page_that_raises(tmp_path, monkeypatch
     `(drafted, []) or ([], refusals)`."""
     repo, binder, alterations = _two_pages(tmp_path)
     into = tmp_path / "out"
-    real_write_text = Path.write_text
-
-    def failing_write_text(self, *args, **kwargs):
-        if self.name == "z.py":
-            raise PermissionError("simulated: a later page's write fails")
-        return real_write_text(self, *args, **kwargs)
-
-    monkeypatch.setattr(Path, "write_text", failing_write_text)
+    _fail_the_draft_of(monkeypatch, "z.py", "simulated: a later page's write fails")
 
     drafted, refused = proof_setter.run(docket_from(alterations, binder), repo, into)
 
@@ -520,7 +546,7 @@ def test_an_EXCEPTION_removes_earlier_drafts_and_still_propagates(
     tmp_path, monkeypatch
 ):
     """CRITICAL, measured 2026-08-25: with `out/beta.py` pre-occupied, a
-    `PermissionError` from `write_text` escaped `run()` as a raw traceback
+    `PermissionError` from the draft write escaped `run()` as a raw traceback
     and `out/alpha.py` was left behind -- the cleanup below only ran on the
     `refusals` branch, never on an exception. The docstring's claim ("Every
     draft this run wrote is removed") must hold for either kind of stop."""
@@ -534,14 +560,7 @@ def test_an_EXCEPTION_removes_earlier_drafts_and_still_propagates(
     )
     into = tmp_path / "out"
 
-    real_write_text = Path.write_text
-
-    def failing_write_text(self, *args, **kwargs):
-        if self.name == "n.py":
-            raise PermissionError("simulated: target pre-occupied")
-        return real_write_text(self, *args, **kwargs)
-
-    monkeypatch.setattr(Path, "write_text", failing_write_text)
+    _fail_the_draft_of(monkeypatch, "n.py", "simulated: target pre-occupied")
 
     # "m.py" sorts before "n.py", so it drafts first and succeeds before the
     # second page's write raises.
@@ -562,7 +581,7 @@ def test_an_EXCEPTION_AFTER_THE_WRITE_removes_the_draft_that_raised(
     `drafted`, and the page being written is not in it yet. `_one` writes the
     target and THEN calls `_reread` and `_prove`; a raise from either left
     `<into>/<rel>` on disk while `run`'s docstring said every draft this run
-    wrote is removed. The existing regression test exercises only `write_text`
+    wrote is removed. The existing regression test exercises only the WRITE
     itself failing -- the one case where nothing was written."""
     repo, binder, _ = _tree(tmp_path)
     into = tmp_path / "out"
@@ -985,14 +1004,7 @@ def test_a_WRITE_THAT_RAISES_leaves_no_directory_behind(tmp_path, monkeypatch):
     )
     into = tmp_path / "out"
 
-    real_write_text = Path.write_text
-
-    def failing_write_text(self, *args, **kwargs):
-        if self.name == "d.py":
-            raise PermissionError("simulated: the draft could not be written")
-        return real_write_text(self, *args, **kwargs)
-
-    monkeypatch.setattr(Path, "write_text", failing_write_text)
+    _fail_the_draft_of(monkeypatch, "d.py", "simulated: the draft could not be written")
 
     with pytest.raises(PermissionError):
         proof_setter.run(

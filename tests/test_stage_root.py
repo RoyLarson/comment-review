@@ -9,6 +9,7 @@ import json
 
 from helpers import a_docket_that_rewrites, a_small_real_tree, binder_of, the_row_for
 
+from comment_review.binder.binder import Binder
 from comment_review.commands import census as census_command
 from comment_review.flows.revise import pull
 
@@ -21,8 +22,8 @@ def test_a_source_citing_an_edited_page_reads_the_revise(tmp_path):
         a_docket_that_rewrites(repo, "mark.py"), repo, tmp_path / "r1", revise=1
     )
     row = the_row_for(binder_of(pulled.root, 1), "mark.py")
-    assert row["raw_text"] in (pulled.root / "mark.py").read_text(encoding="utf-8")
-    assert row["raw_text"] not in (repo / "mark.py").read_text(encoding="utf-8")
+    assert row.raw_text in (pulled.root / "mark.py").read_text(encoding="utf-8")
+    assert row.raw_text not in (repo / "mark.py").read_text(encoding="utf-8")
 
 
 def _census_args(repo, revise: int, paths: list[str]) -> argparse.Namespace:
@@ -65,15 +66,18 @@ def test_the_census_command_states_the_revise_it_read(tmp_path, capsys, monkeypa
         _census_args(pulled.root, revise=1, paths=[str(pulled.root / "mark.py")])
     )
     assert exit_code == 0
-    binder = json.loads(capsys.readouterr().out)
-    assert binder["read_from"]["revise"] == 1
+    # ! DESERIALIZED, NOT READ AS A DICT -- so this also asserts the command
+    # emits a binder the boundary accepts, which a raw `json.loads` never did.
+    binder, problems = Binder.deserialize("stdout", json.loads(capsys.readouterr().out))
+    assert binder is not None, problems
+    assert binder.read_from["revise"] == 1
     # ! THE RECORDED ROOT IS ASSERTED, and nothing asserted it until the same
     # day: a fixed string in place of the computed root passed every check here.
     # Resolved on both sides, because the field is now written RELATIVE to the
     # cwd (`Process`, Roy 2026-08-28) and a string compare would be asserting
     # the spelling rather than the place.
-    recorded = (tmp_path / binder["read_from"]["root"]).resolve()
+    recorded = (tmp_path / binder.read_from["root"]).resolve()
     assert recorded == pulled.root.resolve()
     row = the_row_for(binder, "mark.py")
-    assert row["raw_text"] in (pulled.root / "mark.py").read_text(encoding="utf-8")
-    assert row["raw_text"] not in (repo / "mark.py").read_text(encoding="utf-8")
+    assert row.raw_text in (pulled.root / "mark.py").read_text(encoding="utf-8")
+    assert row.raw_text not in (repo / "mark.py").read_text(encoding="utf-8")

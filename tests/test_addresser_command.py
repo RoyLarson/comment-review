@@ -13,25 +13,26 @@ confirm.
 
 import io
 from contextlib import redirect_stdout
+from dataclasses import replace
 
-from conftest import READ_FROM, SAMPLE, build
+from conftest import READ_FROM, SAMPLE, build, cue
 
-from comment_review.binder.binder import bind, rows_of
+from comment_review.binder.binder import bind
 from comment_review.commands.addresser import _check, _for_anchor, _resolve_one
 from comment_review.reading.addresser import DECLARED
 
 
 def _rows():
     page = build(SAMPLE)
-    return rows_of(bind([page], read_from=READ_FROM))
+    return bind([page], read_from=READ_FROM).paragraphs
 
 
 def test_resolve_prints_the_real_lines_not_none_none():
     """`_resolve_one` used to read `start`/`end`, fields no row carries since
     `e56bea9` -- printing `alpha.py:None-None` at exit 0 for every address."""
     rows = _rows()
-    target = next(r for r in rows if r["anchor"] == "def f(x):" and r["cue"] == "a1")
-    address = target["address"]
+    target = next(r for r in rows if r.anchor == "def f(x):" and cue(r) == "a1")
+    address = target.address
 
     out = io.StringIO()
     with redirect_stdout(out):
@@ -40,7 +41,7 @@ def test_resolve_prints_the_real_lines_not_none_none():
     assert code == 0
     printed = out.getvalue()
     assert "None-None" not in printed
-    assert f"{target['original_start']}-{target['original_end']}" in printed
+    assert f"{target.original_start}-{target.original_end}" in printed
 
 
 def test_for_anchor_finds_the_a_place_a_declared_docstring_owns():
@@ -48,7 +49,7 @@ def test_for_anchor_finds_the_a_place_a_declared_docstring_owns():
     no row carries since `e56bea9` -- so it always returned `[]` and reported
     "no `a` place" for an anchor whose `a` row the census plainly holds."""
     rows = _rows()
-    target = next(r for r in rows if r["anchor"] == "def f(x):" and r["cue"] == "a1")
+    target = next(r for r in rows if r.anchor == "def f(x):" and cue(r) == "a1")
 
     out = io.StringIO()
     with redirect_stdout(out):
@@ -57,7 +58,7 @@ def test_for_anchor_finds_the_a_place_a_declared_docstring_owns():
     assert code == 0
     printed = out.getvalue()
     assert "no `a` place" not in printed
-    assert f"{target['original_start']}-{target['original_end']}" in printed
+    assert f"{target.original_start}-{target.original_end}" in printed
 
 
 def test_check_reports_the_real_span_for_a_shared_address():
@@ -70,8 +71,8 @@ def test_check_reports_the_real_span_for_a_shared_address():
     census would actually carry for a comment run and the interval it fills.
     """
     rows = _rows()
-    target = next(r for r in rows if r["anchor"] == "def f(x):" and r["cue"] == "a1")
-    mine = rows + [dict(target)]
+    target = next(r for r in rows if r.anchor == "def f(x):" and cue(r) == "a1")
+    mine = [*rows, replace(target)]
 
     out = io.StringIO()
     with redirect_stdout(out):
@@ -80,4 +81,4 @@ def test_check_reports_the_real_span_for_a_shared_address():
     printed = out.getvalue()
     assert "SHARED" in printed
     assert "None-None" not in printed
-    assert f"{target['original_start']}-{target['original_end']}" in printed
+    assert f"{target.original_start}-{target.original_end}" in printed

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 17 tasks closed
+Progress: 3 of 19 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `commands/collate.py` driven by
@@ -84,11 +84,14 @@ under `utf8_console()`.
       by name. Verify: a stage where one role's mark is malformed and three
       roles settle 30 places writes the chief and names the bad mark; the test
       goes red today, where the run exits 1 and writes nothing.
-- [ ] T3 | Update the problem line `commands/collate.py` prints so the address
-      appears once: `Problem.message` already carries the `where` prefix
-      `desk.mark.parse` put on it, and line 144 prefixes it again. Verify: a
-      malformed mark at `m.py@b1` prints the address once, not `block-context
-      m.py@b1: m.py@b1: correct needs ...`.
+- [x] T3 | desk.mark.without_location removes the where prefix at the two assemblers that record the place as a field, so a malformed mark at m.py@b1 prints the address once. Gated by TestAStoredReasonDoesNotRepeatItsLocator over a real sheet parse, which fails with the change removed. | 760f2a3 | Update
+      the problem line `commands/collate.py` prints so the address appears once:
+      `Problem.message` already carries the `where` prefix `desk.mark.parse` put
+      on it, and line 144 prefixes it again. Verify: a malformed mark at
+      `m.py@b1` prints the address once, not `block-context m.py@b1: m.py@b1:
+      correct needs ...`.
+        > 2026-09-01 RE-MEASURED 2026-09-01 through the CLI, still true: 'block-context
+        > 2026-09-01 m.py@b1: m.py@b1: correct needs a reason'.
 - [ ] T4 | Update `commands/collate.py` so every `BROKEN` cause lands on the
       stream its own docstring names, or update the docstring to say which cause
       uses which. Verify: with stdout and stderr captured separately, a run
@@ -159,6 +162,15 @@ under `utf8_console()`.
       `--edit-copy` and `collate` over a copy that is not JSON are
       distinguishable by the caller, or the constant's comment states that one
       code covers an unreadable input and a usage error.
-- [ ] T17 | Update the refusal at `commands/collate.py:135` so it prints the
-      problems the fold already computed before it exits
+- [x] T17 | CannotCollate carries the problems out; the CLI prints them before REFUSED | 26538d2 | Update
+      the refusal at `commands/collate.py:135` so it prints the problems the
+      fold already computed before it exits
         > 2026-08-31 measured: one stripped read_from blocked routing for the other role
+- [ ] T18 | Extend the run() helper in tests/test_collate_command.py so the
+      seven tests that hand-roll its plumbing can use it
+        > 2026-08-31 needs a pre-built copy list, extra argv, and the out path returned
+- [-] T19 | SUPERSEDED by T3, which already names the same defect -- filed without reading the file's own task list first | 08a1f6c | Update
+      _report or the Problem builders so an address is printed once, not twice
+        > 2026-09-01 MEASURED 2026-09-01 through the CLI: 'block-context m.py@b1:
+        > 2026-09-01 m.py@b1: correct needs a reason'. _report prints Problem.address,
+        > 2026-09-01 and the message opens with it because the assembler passed where.

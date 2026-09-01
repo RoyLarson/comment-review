@@ -25,6 +25,13 @@ into a file of its own so a reviewer or the author can compare it against the
 original; `approve()` copies that over the real file wholesale, once. Roy: *"No
 editing on the 'real' file until the draft is fully approved."*
 
+! AND NO BYTES REACH DISK FROM THIS MODULE'S OWN CODE SINCE `P45`. `draft()`
+hands its text to `machine.repo.write_raw`; what this module owns is SETTING a
+page, and where a page lands is the checkout's business.
+! `approve()` HAS NO CALLER, in `src/` or in `tests/` -- measured 2026-08-31.
+It is named here because that is a fact about this module and not a licence to
+delete it; filed as `TODO/galley-and-compositor-write-path.md`.
+
 !! AND THE ROUND TRIP IS A TEST BECAUSE THIS IS THE ONLY WRITER.
 `set_page(page_for(path, text, lang, sha=read_source(path).sha)) == text`,
 byte for byte, in any language.
@@ -53,7 +60,7 @@ from pathlib import Path
 
 from comment_review.binder.page import Page, page_for
 from comment_review.machine import constants, exceptions
-from comment_review.machine.repo import read_source
+from comment_review.machine.repo import read_source, write_raw
 from comment_review.reading.addresser import GAP, ON, cue_of
 
 # !! THE OTHER DIRECT IMPORTER OF THE ROWS -- see `language.py`. The lexer reads
@@ -339,10 +346,19 @@ def draft(page: Page, into: Path) -> Path:
     approved."* So a run that is abandoned, refused or wrong leaves the tree
     exactly as it found it, and `git diff --no-index` against the original is the
     whole review.
+
+    !! IT REACHES DISK THROUGH `machine.repo.write_raw` SINCE `P45`, and held its
+    own `mkdir` and `write_text(..., newline="")` before that. This module SETS a
+    page; where the bytes land and how they are written is the checkout's
+    business, which is `machine`'s -- the same rule the read end has always
+    obeyed, and Roy's own wording of the flow spec: *"if the change is a code
+    file it outputs the file through machine/ code."*
+
+    ! WHAT DID NOT CHANGE IS THE ONE-WRITER PROPERTY `flows.proof_setter._one`
+    depends on, or the untranslated write `results/prove_unchanged.py`'s byte
+    comparison depends on. `write_raw` carries both, and says so.
     """
-    into.parent.mkdir(parents=True, exist_ok=True)
-    into.write_text(set_page(page), encoding="utf-8", newline="")
-    return into
+    return write_raw(into, set_page(page))
 
 
 def approve(drafted: Path, real: Path) -> Path:

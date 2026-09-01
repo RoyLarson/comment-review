@@ -2162,6 +2162,18 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ruling on SP-2's scope). `Sheet`, `EditCopy` and `MasterProof` get `seed` classmethods built
   from the dataclass's own field names, and the literal spellings at their producer sites go.
 
+  !! **THIS ENTRY STANDS AS WRITTEN. A `seed` RETURNS A DICT, AND THAT IS CORRECT.** It carried
+  a supersession for about an hour on 2026-08-31, saying `#65` had overridden the return type.
+  **That was an over-correction and it is withdrawn** -- see `#66`, which states why a seed
+  cannot be the container even in principle: a seeded slot is three of `Mark`'s eight fields
+  with `instruction: None`, and typing it as a `Mark` would need five optionals, at which point
+  holding a `Mark` would no longer mean the ruling is complete.
+
+  ! **AND THE PRECEDENT THE SUPERSESSION CITED WAS MISREAD.** It said serialization should
+  become its own act *"the way `desk.mark.Mark` already splits `seed` from `as_entry`"*. Both
+  of those return DICTS. Nothing on `Mark` returns a `Mark`; `parse` does. The containers were
+  already following the pattern they were accused of breaking.
+
   !! **IT IS THE DEFECT `Mark.seed` ALREADY CLOSED ONE LAYER DOWN.** `desk/mark.py:329-332`
   records it: the write half of the round trip did not live with the read half until 2026-08-30,
   so renaming a field left another module writing the old key and **nothing could notice** --
@@ -2177,3 +2189,352 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **`desk/containers.py` DECLARES *"THE TYPE IS THE DEFINITION AND THERE IS NO MARKDOWN
   SOURCE"* AT `:10`**, and shipped three parsers and nothing that writes. The claim is what this
   ruling makes true rather than aspirational.
+
+- **#65.** **RAW JSON LIVES AT THE LOAD AND THE SAVE, AND NOWHERE BETWEEN** (Roy, 2026-08-31,
+  on being told the discarded parsed object was a design question): *"Defect not a design
+  question ... Unless it is the flow passing the json decoded item into the container on the
+  first step of loading the flow no downstream results should get the raw json. Everything
+  after the load step to the save step works on or with the containers and the containers
+  serialize and deserialize themselves or seed themselves and the flow saves the resulting
+  object to json through json.dumps"*
+
+  !! **SO THE SHAPE IS THREE STEPS, AND ONLY THE ENDS SEE A DICT.**
+
+      LOAD   json.loads -> the decoded item -> `parse_*` -> a container
+      WORK   every step from there takes and returns CONTAINERS
+      SAVE   the container serializes itself -> json.dumps
+
+  !! **AND IT IS WHAT `desk/containers.py` ALREADY SAID IT WAS FOR.** Its own docstring: a
+  parse returns `(T, [])` *"so a caller holds a checked object rather than re-deriving the same
+  keys with `isinstance` ladders."* **No caller holds one.** MEASURED 2026-08-31 after `P21`
+  wired both parses: `flows.collate.collate`'s envelope loop keeps the parsed `EditCopy` only to
+  test it against `None`, its `parse_master_proof` call drops the `MasterProof` entirely (both
+  named by SYMBOL rather than by line -- the numbers this entry first cited, `:691` and `:753`,
+  were moved by `823834f` the same day and no longer point at either), and the one field read
+  off a parsed object
+  anywhere in `src/` is `copies[0].read_from`, inside `containers.py` itself. Every step
+  downstream re-derives the same keys off the dict the parse just checked.
+
+  ! **THE WIRE STAYS DICTS AND THAT IS NOT A CONTRADICTION.** The same docstring's *"THE WIRE
+  STAYS DICTS"* is about what crosses the process boundary -- what a role is handed and hands
+  back, what `json.dumps` writes. In MEMORY, between load and save, the value is the container.
+
+  !! **A `[?]` IS CLOSED BY CHECKING IT, AND THE DECISION IS THE WORK.** Roy, 2026-08-31, on
+  finding T25 unchecked and reworded instead: *"You check the box because I decided. You put a
+  note in it on the decision, then you check the box to say that the decision is complete. That
+  will remove the requires Roy tag. Then you add plan tasks or todo tasks that deal with the
+  implications of the decision."*
+
+      note the decision  ->  CHECK the box  ->  file the implications
+
+  ! **UNCHECKING ERASES BOTH THE QUESTION AND THE ANSWER.** `uncheck` returns a task to `[ ]`
+  not started *"leaving no record it was otherwise"*, so a ruling that was asked for, waited on
+  and given reads afterwards as work nobody began. **A ruling is work**, and a checked box is
+  what says it was done -- `Requires-Roy` then goes false because it is DERIVED from `[?]`, not
+  because anything cleared a flag.
+
+  ! **AND THE LABEL STAYS THE QUESTION.** T25 reads *"Decide whether the parses should return a
+  value at all"* and closes with the answer as its statement. Rewording it into the resulting
+  ACT would put the implication where the decision was, and leave the board unable to show that
+  a question had ever been put. The act is T26-T28, filed beside it.
+
+  ! **THIS ENTRY SAID THE FILING WAS THE ERROR AND THAT WAS WRONG.** Filing the question as a
+  `[?]` was right and it is how the answer was got; what was wrong was the handling afterwards.
+
+  !! **IT DOES NOT REACH `seed`, AND FOR ABOUT AN HOUR ON 2026-08-31 THIS ENTRY SAID IT DID.**
+  The override was written to cover `Sheet.seed`, `EditCopy.seed` and `MasterProof.seed`,
+  landed hours earlier, each returning the wire dict. **It should not have.** `#66` states the
+  reason and this clause is corrected rather than removed, so the reasoning stays legible.
+
+  !! **WHAT THIS RULING GOVERNS IS WHAT A FLOW CARRIES, NOT WHAT IT EMITS.** Between the load
+  and the save the value is the container. AT the save it is a dict, by this ruling's own
+  shape -- and a SEED is emitted at a save: `flows.distribute.seed` builds one and the command
+  writes it as the JSON a role is handed. **The dict is where the ruling puts it.**
+
+- **#66.** **A SEED IS AN EMPTY FORM, NOT AN INSTANCE, SO IT CANNOT BE THE CONTAINER** (Roy,
+  2026-08-31, withdrawing an over-correction he had prompted an hour before): *"the seed from
+  the containers are necessarily dicts because they cannot be validated as the thing without
+  putting in a bunch of None/"" guard checks and that would in many ways defeat the purpose of
+  having a container that validates itself"*
+
+  !! **MEASURED, AND THE REASON IS STRONGER THAN INCONVENIENCE.** `desk.mark.Mark` declares
+  EIGHT non-optional fields -- `address`, `anchor`, `raw_text`, `instruction`, `claim`,
+  `reason`, `sources`, `change`. `Mark.seed` writes THREE of them, plus `instruction: None`
+  where an `Instruction` is declared. Returning a `Mark` would need five of the eight made
+  optional -- and at that point **holding a `Mark` would no longer mean the ruling is
+  complete**, which is the only thing the type is for. The guards would not surround the
+  container; they would dissolve it.
+
+  !! **AND THE PRECEDENT THE OVER-CORRECTION CITED SAYS THE OPPOSITE.** It argued a seed should
+  return the container *"the way `Mark` already splits `seed` from `as_entry`"*. **Both of
+  those return dicts.** Nothing on `Mark` returns a `Mark` -- `parse` does. The containers were
+  already following the pattern they were accused of breaking, and one look at either
+  signature would have said so.
+
+  ! **SO THE SPLIT IS `parse` VERSUS `seed`, NOT CONTAINER VERSUS DICT.** A `parse` answers *is
+  this a filled, well-formed X* and returns the type. A `seed` answers *what does an unfilled
+  X look like on the wire* and returns the wire. They are different questions and neither is
+  the other's serialization.
+
+  ! **`#65` IS NOT WEAKENED BY THIS.** Everything it was written from -- the parsed object
+  discarded, the raw dict walked downstream, the `KeyError` on a `sha` the container had
+  already normalized -- is about the RETURN direction, what a flow carries after it loads.
+  None of it is about what a flow emits.
+
+  !! **THE PROCESS FAILURE IS WORTH MORE THAN THE RULING.** Told his statement overrode `#64`,
+  I widened it to every `seed` without checking whether a seed COULD be a container -- and
+  wrote a `!!!` supersession into this log and into the module docstring a producer reads.
+  Roy caught it himself an hour later. ! **AN OVERRIDE HAS A SCOPE, AND FINDING IT IS THE
+  WORK.** "This overrides that" answers which rule wins, never how far it reaches; taking the
+  widest reading is not obedience, it is a second guess wearing the first one's authority.
+
+- **#67.** **THE LOAD STEP BELONGS TO THE FLOW, AND EVERY CONTAINER IS WIRED ALIKE** (Roy,
+  2026-08-31, restating `#65` with the ends named): *"The specification is all flows start
+  with a load step - not the modules code. If json.loads is appropriate it does that. The text
+  is flowed to the next step if it is text or the loaded dict is. Then the pieces start their
+  processing and only module components are passed to each step until the output which either
+  the component serializes itself and then the flow dumps it if the change is a code file it
+  outputs the file through machine/ code."* And, in the same breath: *"Every container needs
+  to be wired to do this."*
+
+  !! **`#65` SAID WHAT THE MIDDLE CARRIES; THIS SAYS WHO DOES THE LOADING.** They are not the
+  same sentence and the difference is where a `json.loads` may sit. A flow owns its load and
+  its dump; a container owns neither. **`deserialize` takes what the load produced** -- an
+  already-decoded dict, or text where the format is text -- **never a path, and never the
+  decode itself.**
+
+  !! **SO A READER THAT DECODES ITS OWN TEXT IS THE DEFECT, WHICH MAKES `binder.read` AND
+  `docket.read` BOTH WRONG BY THIS RULE.** Each takes TEXT and calls
+  `machine.json_object.object_of`, which holds the `json.loads`. ! `object_of` is not deleted
+  by this -- it IS the load, and it moves to the end that owns one.
+
+  !! **AND `P38` IS SUPERSEDED BY `P46` RATHER THAN REWORDED.** It was written as *"binder.read
+  returns a Binder"*, which keeps the decode inside the module -- so the step as written could
+  be delivered in full and still leave the flow wrong. ! **THE FIRST ATTEMPT WAS A HAND EDIT OF
+  ITS LABEL.** Roy, 2026-08-31: *"No reword for a reason - superseded is the term and add it the
+  fix."* **A reworded box reads afterward as though it had always said the new thing**, so the
+  error and the reason it was corrected are both gone -- which is why the board has five marks
+  and `[-]` is one of them. ! The tool has no reword verb deliberately; reaching past it with
+  `Edit` is the same bypass as widening a verb list to make a label pass.
+
+  !! **THE SECOND HALF IS A CONTRACT, NOT A SHAPE FOR ONE CONTAINER.** Four exist and no two
+  are spelled alike: `Sheet`, `EditCopy` and `MasterProof` are read by free-standing
+  `parse_sheet`/`parse_edit_copy`/`parse_master_proof`, `Mark` by a module-level `parse` and
+  written by `as_entry`. **One pair on every container** -- `deserialize` as a classmethod
+  over an already-loaded dict, `serialize` as an instance method returning one. Filed as
+  `P44`.
+
+  ! **A `seed` IS UNTOUCHED AND STILL RETURNS THE WIRE DICT** -- `#66`, and this is the second
+  ruling in two days that has had to say so. A seed is emitted AT a save; it is not a step
+  between the two ends.
+
+  ! **THE CODE-FILE CLAUSE IS THE SAME RULE ON THE OTHER FORMAT, AND IS `P45`.**
+  `results/compositor.py` calls `into.write_text(...)` itself, which is the write flow's
+  version of a module owning its own I/O. A set page reaches disk through `machine/`.
+
+  !! **AND THE PAYOFF IS THAT THREE FAILURES STOP COLLIDING.** Roy, 2026-08-31, on being
+  shown the binder half: *"This also makes file io errors and malformed json load dump
+  errors an explicit different step in the flow so those can be done without extra
+  collisions."*
+
+  | step | fails on | owned by |
+  | --- | --- | --- |
+  | `read_text` | the file is missing, unreadable, undecodable | the flow |
+  | `object_of` | the text is not JSON, or is JSON that is not an object | the flow |
+  | `deserialize` | it is an object, and it is not a binder / a docket | the container |
+
+  !! **THE MIDDLE TWO WERE ONE CALL, AND THAT IS WHAT THE SPLIT BUYS.** `binder.read` and
+  `docket.read` each took TEXT and called `object_of` themselves, so *"this file is not
+  JSON"* and *"this JSON is not a docket"* came back as ONE reason string from ONE call --
+  and a caller wanting to answer them differently had to match on the message. ! The IO
+  failure was already separate, because neither reader could open a file; so the split was
+  one-of-three and looked like two, which is why it read as a refactor rather than as this.
+
+  ! **IT IS AN ARGUMENT FROM THE CALLER'S SIDE, NOT THE MODULE'S.** The load moving out is
+  usually justified by what it does to the module -- no `json.loads`, no path. What Roy
+  named is what it does to the COMMAND: three questions, asked in order, each answerable on
+  its own terms. `commands/proof.py` carries the table at the site.
+
+- **#68.** **A BINDER HOLDS PAGES OR REDACTED PAGES, AND BOTH HOLD PARAGRAPHS** (Roy,
+  2026-08-31): *"No Binders have either Pages or RedactedPages, Paragraphs are held by both.
+  no RedactedParagraphs, they are not necessary. And the flow can orchestrate the
+  construction of the edit-copies and the master_proof from that."*
+
+  !! **IT SUPERSEDES `BinderPage` AND `BinderRow`, WHICH WERE INVENTED THE SAME DAY AND
+  NEVER RULED.** `git log -S "class BinderPage"` returns one commit, `1d9314d`, three hours
+  old. `P46` authorised ONE type -- *"the Binder container -- the type, its deserialize and
+  its serialize"* -- and three landed.
+
+  !! **THE ORIGIN IS THE WIRE, AND THAT IS THE WHOLE DEFECT.** The JSON nests
+  `pages -> rows`, so a type was made per level. Roy: *"I think you invented something
+  unnecessary because you could read raw json and now you are post-justifying your
+  actions."* ! **THE WIRE'S SHAPE IS NOT AN ARGUMENT FOR THE OBJECT MODEL** -- `binder.py`
+  says so itself: the nesting exists only because repeating the path per row is the same
+  string N times, and `rows_of` existed to undo it. The in-memory model was already flat.
+
+  !! **AND THE JUSTIFICATION CAME AFTER THE CODE, WHICH `conventions.md` NAMES.** Asked why
+  a second page type was needed, I went and found `flows/carry.py` using it and called that
+  proof. *"A purpose first stated in a review is a justification, not a design -- it is
+  produced by looking at the code, so it can only ever agree with it."* ! The test that was
+  skipped is the one that can fail: **a field becomes necessary when something would
+  otherwise be WRONG**, not when something reads it. MEASURED when finally asked that way:
+  over 55 real pages of this repo, **0 carry zero rows** -- the one property a page level
+  would have protected does not occur in real input.
+
+  !! **`row` WAS NEVER RULED, AND THE RULING IT DISPLACED SAID `paragraph`.**
+  `docs/vocabulary.md:209` quotes Roy, 2026-08-26: *"like the binder we have three levels of
+  containers -- **paragraph**, page, binder."* The table one line below writes **row** in
+  that slot. ! **THE DOCUMENT FLAGS IT ITSELF**: in that header -- `binder`/`docket`,
+  `page`/`schedule`, row/`alteration` -- `row` is the only term not backticked, and the only
+  one of the six with no entry in the glossary beneath it. It is the WIRE KEY, lifted into
+  prose and then hardened by me into a type.
+
+  !! **NO `RedactedParagraph`, AND THE REASON IS THAT A PARAGRAPH REBUILDS HONESTLY.** I had
+  argued a redacted page could not hold real `Paragraph`s, because the wire drops `start`,
+  `end`, `kind` and `lines`. Two of those are recoverable and two were never lost:
+  `kind` is `Series.of(cue).value.present` -- which `page_row`'s own comment already argued
+  is what it must be, *"every row a reviewer receives holds prose, so its kind is its
+  series' present and the letter states it after all"* -- and `start`/`end` are the recorded
+  `original_start`/`original_end`, because nothing has moved between the census and the read
+  back. ! **SO THE OBJECTION WAS AN ARTEFACT OF THE INVENTED TYPE**, not a fact about
+  paragraphs.
+
+  ! **THE REDACTION IS AT THE PAGE, WHERE THE INFORMATION IS ACTUALLY REMOVED.** A
+  `RedactedPage` serializes only the places holding prose -- the 91% cut `bind`'s `absent`
+  flag makes -- and drops the source text. The paragraphs it holds are ordinary paragraphs.
+
+  ! **AND THE FLOW ORCHESTRATES FROM THERE.** The edit_copies and the master_proof are built
+  by the flow out of a binder's pages and their paragraphs, rather than from a parallel row
+  type carried alongside them. Filed as `P47`.
+
+- **#69.** **`original_column` AND `declares` GO; THE SERIES/CUE SYSTEM SAYS IT BETTER** (Roy,
+  2026-08-31): *"We should drop them and rebuild them if they ever become necessary again.
+  Because while they might have done something, the Series cue system does it better, more
+  precisely, and is more flexible. This argument is what really puts the nail in the coffin,
+  those two things don't have a way to identify how to build or use a wrapped trailing
+  comment. The Series/Cue system handles that case piece-of-cake."*
+
+  !! **THE WRAPPED TRAILING COMMENT IS THE FALSIFIER, AND IT IS MEASURED.** A block comment
+  opening after code and running on:
+
+        int x = 1; /* this comment
+                      wraps onto a second line
+                      and a third */
+
+  MEASURED 2026-08-31 by running the reader over real files in four languages -- C, Rust,
+  Java, TypeScript -- each gives **one `c0` place, `original_column=11`, and 2-3 raw lines**.
+  ! **THE FIELD DESCRIBES THE FIRST LINE ONLY.** It is a single `int`; lines 2..N own
+  themselves whole and it has no slot for them. **The cue names the whole place whatever it
+  spans**, and `raw_lines` holds every line verbatim.
+
+  ! **AND THE ROUND TRIP IS BYTE-IDENTICAL WITHOUT THE FIELD BEING READ.**
+  `results/compositor.py` contains ZERO occurrences of either name, so the setter already
+  reconstructs the shape from the place and its lines. Roy: *"The way galley, and compositor
+  work doesn't need the information in that way anymore. What was potentially true then is
+  not true now."*
+
+  !! **WHAT MADE THEM LOOK NECESSARY WAS A CIRCULAR MEASUREMENT, AND IT IS WORTH RECORDING.**
+  Asked whether they were derivable, I compared each field against the ADDRESS and got 11,702
+  agreements with zero disagreements over this repo's own source -- and reported that as
+  evidence. **The address is computed FROM them**: `places_on` calls `code_lines`, which builds
+  its `beside` map out of `original_column`, and that map is what `cue()` emits every `c` from;
+  `attach` reads `declares` to pick which `a` a docstring documents. `b.address` is not
+  assigned until 400 lines later. ! **SO THE PROBE COMPARED EACH FIELD WITH SOMETHING DERIVED
+  FROM IT** -- `docs/gates.md`'s own case, arriving again: *"it rebuilt each file from the line
+  positions it had just read out of that file, so it could not disagree."*
+
+  ! **THE TEST THAT SHOWS NECESSITY IS NOT "IS IT READ", AND NOT "IS IT DERIVABLE".** It is
+  *what would be WRONG without it* -- and for a field that feeds construction, that means
+  asking whether the alternative exists AT THE MOMENT THE READER RUNS, then removing it and
+  checking an identity that has been shown able to FAIL.
+
+  ! **REBUILT IF EVER NECESSARY AGAIN.** Roy's own framing, and the reason this is a deletion
+  rather than a deprecation: a field kept against a future need is a field nothing can
+  justify today, and `conventions.md` asks every field to answer for itself now.
+
+- **#70.** **`annotate` BELONGS TO `concordance`, AND `SYMBOLISH` GOES WITH IT** (Roy,
+  2026-08-31): *"That also makes me want to move it to concordance because it is part of that
+  system, I think I said it probably ought to move and now I am certain it should move. It
+  does something necessary but in a Broken way."*
+
+  !! **IT IS ONE MOVE AND NOT TWO, BECAUSE THE TWO ENDS MATCH ON ONE PREDICATE.** `annotate`
+  builds the KEY -- is this backticked token from prose a name worth looking up -- and
+  `code_names` builds the INDEX. `SYMBOLISH` is what both match on, so if they disagreed about
+  what a name looks like a key could never hit. While its two readers sat in two areas it had
+  nowhere to live and was parked in `reading/lexer.py`, which had **no reader of it at all**.
+
+  ! **AND THE BROKEN HALF IS FILED, NOT PAPERED OVER.** `concordance/__init__.py` said of its
+  two members *"NEITHER is an IO operation and NEITHER knows what a page is"*; `annotate` is
+  both -- it mutates a `Paragraph` and calls `(repo / cited).exists()`. The package header now
+  says so, and `TODO/containers-and-verification-are-unwired.md` T35 holds the IO half.
+
+- **#71.** **THE MIDDLE CARRIES CONTAINERS BETWEEN THE LOAD AND THE SAVE** (Roy, 2026-08-31,
+  the standing spec of `#65` and `#67` applied to `desk` and `flows`): *"All flows in the
+  middle start with json.loads, the next step the container doing deserialize, then the
+  processing happens, then the output container does a serialize, and finally flow then writes
+  the output file through json.dumps. No raw dictionaries make it past either end."*
+
+  Landed as `P42`. `verify_report`, `problems_in`, `drift_in`, `unruled` and `tally` take an
+  `EditCopy`; `places`, `reconcile`, `_roles_of_stage`, `_real_pages` and `docket_from` take a
+  `MasterProof`; `desk.proof.gather` takes `EditCopy`s and RETURNS a `MasterProof`; and
+  `Collated.chief` is an `EditCopy` the command serializes at the write.
+
+  !! **WHAT A TYPE RETIRES IS NOT A GUARD BUT A WHOLE CLASS OF THEM.** Five spellings of one
+  walk -- `report.get("sheets")`, `isinstance(sheets, list)`, `sheet.get("marks") if
+  isinstance(sheet, dict)` -- went from `desk/collator.py` alone; so did `problems_in`'s three
+  header checks, `_real_pages`' hand-rolled sha fold (one of the five sites `Sheet.deserialize`
+  counted), `desk.collator.UnnamedRole`, `gather`'s `KeyError` on a missing `read_from`, and
+  the `MasterProof.deserialize` call `collate` made over `gather`'s own output.
+
+  ! **EACH OF THOSE WAS DEFENSIBLE DEPTH WHILE THE PARAMETER WAS A `dict`, and stops being so
+  when it is a container.** `TODO/galley-refusals-cannot-fire.md`'s rule is that a guard at the
+  boundary AND at the point of use is depth; what is not depth is a check no input can trip.
+  A `dict` parameter left a caller who could reach the function without the boundary. A typed
+  one does not.
+
+  !! **AND THE TESTS THAT WENT WITH THEM ARE NAMED WHERE THEY STOOD.** Eight cases asserted
+  states that can no longer be assembled -- three `UnnamedRole` refusals, `gather`'s `KeyError`,
+  the proof boundary reached by monkeypatching `gather`, `_reconcilable`'s `TypeError` and its
+  absent-`read_from` property, and `problems_in`'s copy-level missing `role`. **Each deletion
+  leaves a comment at the site saying what it measured and where the rule lives now**, and the
+  six-value `read_from` parametrize MOVED to `tests/test_containers.py` rather than going.
+
+  ! **WHAT IS STILL A RAW DICT IN THE MIDDLE IS THE `Reconciled` ENTRY** -- `{"address",
+  "roles", "marks"}`, built by `_outcome` and read by `_composition`, `_resolve` and
+  `commands/collate.py`. It is an internal record rather than a wire shape, and giving it a
+  container is a NEW type, which `conventions.md` says needs its purpose named before the code.
+  Filed rather than invented.
+
+- **#72.** **WHAT GOES BACK IS ADDRESSES AND REASONS, NEVER A REBUILT COPY** (Roy,
+  2026-09-01): *"I think the return is a list of addresses and a statement of what the parse
+  errors are for each address. The agents can find the marks in their remit and fix in their
+  stuff directly. No reason to try to duplicate or fill in the problems for them and have
+  disjointed what needs fixed."*
+
+  !! **IT ANSWERS `a-coverage-gap-should-go-back-to-the-reviewer` T1**, open since 2026-08-16:
+  *"RULE how the return happens: re-dispatch the reviewer with only the missed addresses, or
+  with the whole census."* Neither, exactly -- **only the missed addresses, and as a LIST
+  rather than as anything a role fills in**.
+
+  !! **THE REASON IS THE HALF I HAD WRONG, AND IT IS ABOUT WHERE THE WORK LIVES.** I proposed
+  emitting one `EditCopy` per role holding only the places needing work -- no new artifact
+  type, the role fills it the way it already knows. That is a SECOND copy of those marks. The
+  role's own edit_copy still holds the originals, so *what needs fixing* would then live in two
+  documents, and a role would be filling one while the other went stale. **A role has its
+  copy; it needs to be told WHERE and WHAT, not handed the places again.**
+
+  ! **SO THE ARTIFACT IS ALREADY ALMOST BUILT.** `desk.collator.Problem` is
+  `(role, address, message)` -- what goes back is those, grouped by address, with each
+  address's reasons together. Nothing about a mark is copied.
+
+  !! **AND IT SETTLES THE `Sheet.marks` QUESTION THAT WAS BLOCKED ON IT.** `#69`'s successor
+  question -- whether `Sheet.marks` can be `tuple[Mark, ...]` when a returned sheet holds ruled
+  marks, untouched slots and malformed entries -- turns on where the two non-`Mark` kinds go.
+  They go OUT, as addresses and reasons, rather than onto the sheet: so the sheet holds what
+  parsed, and the parse hands its refusals up with the address that owns each.
+
+  ! **WHAT IS STILL OPEN IS THE BOUND** -- T2 of the same file, *"with no bound, send it back
+  is a loop."* Roy, 2026-08-30, has half-answered it: *"we can tell the edit chief it can send
+  stuff back twice and trust that the agent gets it correct. It has to be an explicit step to
+  do so instead of a built in part of the flow."* The bound does not gate the artifact's
+  shape; it gates the send-back round.

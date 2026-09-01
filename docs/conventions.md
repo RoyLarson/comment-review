@@ -254,6 +254,124 @@ an instance of the rot it exists to forbid.
 `CLAUDE.md` refuses a sentence that cannot be falsified by reading the code; this refuses
 a piece of code that cannot be justified by naming what would otherwise be wrong.
 
+### !! A CARRYOVER STARTS COSTING WHEN NEW DESIGN IS BUILT ONTO IT, NOT WHEN IT EXISTS
+
+Roy, 2026-08-31, on why two vestigial fields had to go that day while a third could wait:
+*"The others were hurting because you were actively designing them into the system instead
+of letting them drop because they were not necessary."*
+
+**Three fields, one shape, two answers** -- all of them left over from a design the address
+system replaced:
+
+| | what it was | what happened |
+| --- | --- | --- |
+| `original_column` | where a trailing comment began on a line that starts with code | I read it in a NEW page type, and reasoned about whether a redacted paragraph could carry it |
+| `declares` | which declaration a docstring documents, as an ordinal | I proposed a REPLACEMENT MECHANISM for it, measured that mechanism failing, and filed a ruling request on the strength of it |
+| `lines` | how many lines a paragraph stands on | nothing. It sits there, 11 writes and 1 read |
+
+!! **THE FIRST TWO WERE URGENT BECAUSE I WAS SPENDING DESIGN ON THEM.** Not because they
+cost anything at rest -- a dead field costs nothing at rest. What they cost was every
+decision taken while assuming they were load-bearing: a `RedactedParagraph` argued for, an
+anchor-matching scheme invented and measured, a plan step filed as needing a ruling that no
+ruling was owed on. ! **EACH OF THOSE WAS WORK PRODUCED BY THE FIELD RATHER THAN BY THE
+PROBLEM.**
+
+! **AND THE THIRD IS LEFT IN, DELIBERATELY.** `TODO/a-comment-run-merges-across-blanks.md`
+T6 asks the question and holds the measurement. Roy: *"that thread probably needs pulled a
+little more carefully and it isn't hurting yet to leave it in."*
+
+! **A field a current design is being shaped around is a defect right now**, whatever its
+reader count says -- and it will be defended, because the design that grew on it is evidence
+for it. ! That is the same trap as *a purpose first stated in a review*, one level up: there,
+the code produces the justification; here, the leftover field produces the design that then
+justifies it.
+
+### !! NO DIRECT COUPLING BETWEEN THE ENDS AND THE MIDDLE. A FLOW IS NEITHER
+
+Roy, 2026-08-31, in two sentences one after the other: *"The flows can reach into the other
+containers to either create them or have them create themselves. This keeps things from
+having import circles and keeps a single definition for what a thing is."* And then the
+rule those serve: *"No direct coupling inside of ends and middle, flows are neither they run
+the steps."*
+
+| | area | may import |
+| --- | --- | --- |
+| **READ END** | `binder` | a leaf |
+| **MIDDLE** | `desk` | a leaf |
+| **WRITE END** | `docket`, `results` | a leaf |
+| **NEITHER** | `flows`, `commands` | anything -- **they run the steps** |
+| **LEAF** | `machine`, `reading`, `concordance` | nothing above them |
+
+!! **AN END OR THE MIDDLE REACHES DOWN, NEVER ACROSS.** Down to a leaf is one definition
+reached by two owners -- `binder` and `desk` both read `reading.series`, which is what
+`series.py`'s header describes: the addresser and the lexer take their halves from one leaf
+*"instead of from each other"*. Across is two areas that must then agree.
+
+!! **AND `HAVE THEM CREATE THEMSELVES` IS THE OTHER HALF.** A flow may build a container
+from parts, or hand a container what it needs and let it construct itself. What it may not
+do is let a THIRD module do either -- that is what keeps `deserialize` and the constructor
+answerable to one file.
+
+!! **THE TWO HALVES OF THE REASON ARE SEPARATE AND BOTH BITE.** A cycle is the loud one, and
+this tree has NONE today -- measured 2026-08-31 by walking every `ImportFrom` under
+`src/comment_review/`. The quiet one is the DEFINITION: a module that reaches across has to
+know the other area's rules, so the rules end up stated twice and one copy goes stale.
+
+! **MEASURED THE SAME DAY -- FOUR COUPLINGS**, filed rather than fixed in passing:
+
+    MIDDLE -> READ END    desk/collator.py      Binder, _read_from_problem
+    MIDDLE -> READ END    desk/containers.py    _read_from_problem
+    MIDDLE -> WRITE END   desk/collator.py      Alteration, Schedule, Docket
+    WRITE END -> READ END results/compositor.py Page, page_for
+
+!! **A TYPE IS COUPLING, NOT ONLY A CONSTRUCTOR.** `desk/collator.py` takes a `Binder` as a
+PARAMETER -- it never builds one -- and that is still the middle knowing what the read end's
+artifact is. What it actually needs is a set of addresses and a map of base texts, which the
+FLOW can derive and hand over. ! An earlier wording of this section called the fault
+*"sideways construction"* and so did not name this one at all.
+
+! **THE SECOND IS THE `SINGLE DEFINITION` HALF FAILING IN THE OTHER DIRECTION.** `read_from`
+is `{root, revise}` and it sits on a binder, on every `edit_copy` and on a `master_proof` --
+one at each end and one in the middle -- while the function that rules on its shape is
+PRIVATE to `binder`. The definition IS single; it lives where only one of its three owners
+can reach it without crossing.
+
+### !! FOLLOW THE FIELD TO WHAT FINALLY CONSUMES IT. COUNTING READERS IS NOT THAT
+
+**The test is mechanical and a stranger can run it: take each read, and ask what the LAST
+thing in the chain does with the value.** If every terminus reconstructs something the
+system already holds, the field is a copy.
+
+    lexer     held.declares = ordinal
+    attach    cues.documents(declares)
+    Cues      self.addressers[DECLARED].at(ordinal)
+    at        got = cue_for(self.series, step)
+    cue_for   return f"{series}{step}"          <-- the terminus: it rebuilds `a3`
+
+!! **ROY RAN THAT CHAIN AND HAD THE ANSWER BEFORE ANY MEASUREMENT WAS TAKEN.** 2026-08-31,
+after two sessions of my evidence pointing the other way: *"you tried very hard to convince
+me that those were necessary even though I had already followed the full chain on logic
+determining they were dead."*
+
+!! **AND EVERY TEST I SUBSTITUTED FOR IT WAS LOCAL, WHICH IS WHY EACH ONE PASSED.**
+
+| what I asked | why it answered nothing |
+| --- | --- |
+| *is it read* | always yes for a field with a reader. One hop, no terminus |
+| *does it agree with the address* | the address is computed FROM it -- 11,702 agreements that could not have come out otherwise |
+| *does my replacement work* | it did not, and that is a fact about my replacement. Anchor TEXT was never the key; the ordinal already was the cue |
+
+! **ONE HOP IS THE COMMON FAULT IN ALL THREE.** Each stops at the first thing that touches
+the field and reads the result as an answer about the field.
+
+!! **DO NOT WRITE THIS RULE AS A SELF-CHECK.** An earlier wording of it said *"the test is
+not is it dead but AM I REASONING FROM IT"* -- which asks for introspection in the moment,
+and Roy named that plainly the same day: *"you are not very good at introspection or seeing
+the global shape of the code."* ! It is the fault `CLAUDE.md` already records for boxes --
+*"is this a verifiable checkpoint" is a judgement; "does this box open with implement,
+update, delete, or a question" is a reading* -- arriving on a field instead of on a task.
+**Trace the chain, which is a reading. Do not ask yourself how you feel about it.**
+
 ---
 
 ## What a box may SAY -- the four openings, and why everything else is a trap

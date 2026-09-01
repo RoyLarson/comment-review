@@ -32,8 +32,9 @@ import tempfile
 from pathlib import Path
 from typing import NamedTuple
 
-from comment_review.binder.binder import bind
+from comment_review.binder.binder import Binder, bind
 from comment_review.desk.collator import known_addresses
+from comment_review.docket.docket import Docket
 from comment_review.flows import proof_setter
 from comment_review.flows.page_for import page_of
 from comment_review.machine.repo import remove_tree, walk_files
@@ -79,11 +80,11 @@ class AddressesMoved(Exception):
     """
 
 
-def pull(docket: dict, repo: Path, into: Path, revise: int) -> Pulled:
+def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
     """The whole tree, with `docket`'s corrections set -- or nothing at all.
 
     Args:
-        docket: as `docket.read` returned it -- the settled alterations for
+        docket: the deserialized docket -- the settled alterations for
             one editorial boundary.
         repo: the checkout the docket's pages are read from.
         into: where the revise lands. Must not exist yet -- `shutil.copytree`
@@ -211,7 +212,7 @@ def assert_addresses_held(original: Path, pulled: Pulled) -> None:
         )
 
 
-def _binder_over(root: Path, revise: int) -> dict:
+def _binder_over(root: Path, revise: int) -> Binder:
     """Every page under `root`, censused at `revise` -- what the gate compares.
 
     ! ADDRESSES ONLY. `annotate` and `code_names` resolve CITATIONS, a
@@ -239,24 +240,27 @@ def _binder_over(root: Path, revise: int) -> dict:
     return bind(pages, read_from={"root": str(root), "revise": revise}, absent=True)
 
 
-def _set_by(docket: dict) -> dict[str, str]:
+def _set_by(docket: Docket) -> dict[str, str]:
     """Every altered address, mapped to the role that set it.
 
     ! READS AN OPTIONAL FIELD. `role` is per page and `desk.collator.docket_from`
     is what writes it; see `Pulled.set_by`'s own docstring for why `""` is what
     a docket with no `role` field yields.
 
+    !! IT READ THE RAW DOCKET DICT UNTIL 2026-08-31, and said so: *"straight off
+    the raw docket dict"* was in `Schedule`'s own docstring, naming this
+    function. `P41`, `decision-log.md Process: #67`. Four `.get` defaults did
+    the work of the shape check the boundary now owns -- and each of them would
+    have answered `""` for a malformed page rather than refusing it.
+
     Args:
-        docket: as `docket.read` returned it.
+        docket: the deserialized docket.
 
     Returns:
         address -> role, one entry per alteration across every page.
     """
-    out: dict[str, str] = {}
-    for page in docket.get("pages", []):
-        path = str(page.get("path", ""))
-        role = str(page.get("role", ""))
-        for alteration in page.get("alterations", []):
-            cue = str(alteration.get("cue", ""))
-            out[address_for(path, cue)] = role
-    return out
+    return {
+        address_for(page.path, one.cue): page.role
+        for page in docket.schedules
+        for one in page.alterations
+    }

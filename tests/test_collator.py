@@ -15,35 +15,34 @@ import re
 from dataclasses import replace
 from pathlib import Path
 
-import pytest
 from conftest import ROOT
-from helpers import a_clean, a_correct, a_small_real_tree, binder_of
+from helpers import a_clean, a_correct, a_small_real_tree, binder_of, returned
 
-from comment_review.binder.binder import rows_of
 from comment_review.desk.collator import (
     address_problems,
     base_texts,
     claim_verbatim_problems,
     drift_in,
     known_addresses,
-    problems_in,
     source_problems,
     source_verification,
     tally,
     verify_report,
 )
-from comment_review.desk.mark import Instruction, Mark, parse
+from comment_review.desk.containers import EditCopy
+from comment_review.desk.mark import Instruction, Mark
 from comment_review.flows.distribute import seed
+from comment_review.flows.mark_errors import mark_errors
 
 DESK = ROOT / "src" / "comment_review" / "desk"
 
 #: A real binder over `desk/` -- the same fixture-free input
 #: `tests/test_distribute_flow.py` already builds this way.
 BINDER = binder_of(DESK, 0)
-ROWS = rows_of(BINDER)
+ROWS = BINDER.paragraphs
 #: `mark.py`'s own `@a0` -- narrowed by suffix, since `desk/` holds several
 #: files that each carry their own `@a0`.
-ROW = next(r for r in ROWS if r["address"].endswith("mark.py@a0"))
+ROW = next(r for r in ROWS if r.address.endswith("mark.py@a0"))
 KNOWN = known_addresses(BINDER)
 
 
@@ -74,7 +73,7 @@ CITED_TEXT = line_of(ROOT / CITED_FILE, CITED_LINE)
 #: ! IT IS THE ROW'S, NOT THE MARK'S: `docs/the-mark.md` puts `raw_text` on the
 #: seeded row and `change` on the mark, so the two can be diffed, and
 #: `claim_verbatim_problems` takes it as its own argument for that reason.
-RAW_TEXT = ROW["raw_text"]
+RAW_TEXT = ROW.raw_text
 
 
 def _entry() -> dict:
@@ -85,8 +84,8 @@ def _entry() -> dict:
     """
     false = RAW_TEXT.splitlines()[0]
     return {
-        "address": ROW["address"],
-        "anchor": ROW["anchor"],
+        "address": ROW.address,
+        "anchor": ROW.anchor,
         "raw_text": RAW_TEXT,
         "instruction": "correct",
         "claim": {"false": false, "true": "the corrected sentence"},
@@ -103,7 +102,7 @@ def _well_formed() -> Mark:
     read the entry by key until then, which is what let `INSTRUCTIONS.get(...)`
     be handed a `str` at ten sites.
     """
-    mark, why = parse("the collator fixture", _entry())
+    mark, why = Mark.deserialize("the collator fixture", _entry())
     assert why == [], why
     assert mark is not None
     return mark
@@ -121,8 +120,24 @@ def a_mark(**overrides) -> Mark:
     return replace(_well_formed(), **overrides)
 
 
+def _ruled_places(copy) -> int:
+    """How many places a role WROTE IN -- ruled marks and refused entries both.
+
+    !! A MARK A ROLE GOT WRONG STILL COUNTS, and that is the claim, not the
+    arithmetic. `desk.mark.untouched`'s own docstring forbids conflating *nobody
+    wrote here* with *someone wrote here and got the shape wrong*; counting only
+    `marks` would report the second as a coverage gap and send a reader looking
+    for a place nobody answered.
+
+    ! IT WAS `problems_in`'s SECOND RETURN VALUE until `P52` deleted it. Nothing
+    in production ever read that count -- `flows.collate` discarded it -- so it
+    is derived here, from the container, where the tests that assert it live.
+    """
+    return sum(len(sheet.marks) + len(sheet.refused) for sheet in copy.sheets)
+
+
 def test_known_addresses_carries_the_real_row():
-    assert ROW["address"] in KNOWN
+    assert ROW.address in KNOWN
 
 
 class TestAddressProblems:
@@ -134,7 +149,7 @@ class TestAddressProblems:
     def test_clean_needs_no_address(self):
         """A role returns `clean` over most of the binder -- no address at
         all, which is `desk.mark.parse`'s question, not this one's."""
-        clean, why = parse("here", {"instruction": "clean"})
+        clean, why = Mark.deserialize("here", {"instruction": "clean"})
         assert why == [] and clean is not None
         assert address_problems("here", clean, KNOWN) == []
 
@@ -368,20 +383,26 @@ class TestSourceVerification:
         assert problems == []
 
 
-def _filled(overrides: dict) -> dict:
-    """A seeded edit_copy with `ROW`'s own slot filled in by `_entry()`.
+def _filled(overrides: dict) -> EditCopy:
+    """A seeded edit_copy with `ROW`'s own slot filled in by `_entry()`, PARSED.
 
     Args:
         overrides: applied to the entry after `_entry()`, before it is written
             into the slot.
+
+    ! THE PARSE IS PART OF THE FIXTURE SINCE `P42`, because it is part of the
+    flow: `seed` writes the wire dict a role is handed, and every function in
+    the middle takes the `EditCopy` `flows.collate.collate` deserializes on the
+    way back. A fixture stopping at the dict would be handing these functions a
+    value production never gives them.
     """
-    copy = seed(BINDER, "block-context")
-    for page in copy["sheets"]:
+    wire = seed(BINDER, "block-context")
+    for page in wire["sheets"]:
         for entry in page["marks"]:
-            if entry["address"] == ROW["address"]:
+            if entry["address"] == ROW.address:
                 entry.update({**_entry(), **overrides})
-                return copy
-    raise AssertionError(f"no seeded slot for {ROW['address']}")
+                return returned(wire)
+    raise AssertionError(f"no seeded slot for {ROW.address}")
 
 
 class TestVerifyReport:
@@ -389,11 +410,11 @@ class TestVerifyReport:
         """Every entry is still `instruction: None` and nothing else written
         -- `desk.mark.untouched`, a coverage gap rather than a problem this
         step reports."""
-        sheet = seed(BINDER, "block-context")
-        assert verify_report(sheet, BINDER, ROOT) == []
+        copy = returned(seed(BINDER, "block-context"))
+        assert verify_report(copy, BINDER, ROOT, {}) == []
 
     def test_one_filled_entry_is_checked_against_the_page(self):
-        assert verify_report(_filled({}), BINDER, ROOT) == []
+        assert verify_report(_filled({}), BINDER, ROOT, {}) == []
 
     def test_a_broken_entry_is_reported_by_its_address(self):
         copy = _filled(
@@ -404,19 +425,35 @@ class TestVerifyReport:
                 }
             }
         )
-        problems = verify_report(copy, BINDER, ROOT)
+        problems = verify_report(copy, BINDER, ROOT, {})
         assert problems
-        assert all(p.startswith(ROW["address"]) for p in problems)
+        # !! THE ADDRESS IS A FIELD SINCE 2026-08-31, not a prefix on a
+        # sentence -- `P25` gave this a production caller, and `Problem` exists
+        # so a finding can be ROUTED. This asserts the same claim more strictly
+        # than the `startswith` it replaces: the address is the whole value now,
+        # not the opening of one.
+        assert all(p.address == ROW.address for p in problems)
+        assert all(p.role == copy.role for p in problems)
 
-    def test_an_entry_THAT_DOES_NOT_PARSE_is_reported_not_skipped(self):
-        """!! IT READ `mark.get("mark") is None` AND SKIPPED UNTIL 2026-08-29,
-        which said the same thing about a slot nobody wrote in and a mark whose
-        ruling key this code did not recognise -- so the second vanished here
-        as well as in `desk.collator.problems_in`."""
+    def test_an_entry_THAT_DOES_NOT_PARSE_is_left_to_the_error_flow(self):
+        """!! SUPERSEDED TWICE, AND THE DISTINCTION IT NAMED STILL HOLDS.
+
+        It read `test_..._is_reported_not_skipped` and asserted `verify_report`
+        contributed `desk.mark.parse`'s messages -- right while this function
+        had no production caller. `P25` put it in the flow beside the per-mark
+        check, so a malformed mark came back TWICE with a byte-identical
+        message. Then `P52` made `flows.mark_errors` the one assembler.
+
+        ! WHAT 2026-08-29 FIXED IS NOT UNDONE. That defect was reading
+        `mark.get("mark") is None`, which said the same thing about a slot
+        nobody wrote in and a mark whose ruling key the code did not
+        recognise -- and the second is still not silently folded into the
+        first. It is reported once, and this asserts which of the two says it.
+        """
         copy = _filled({"instruction": None})
-        problems = verify_report(copy, BINDER, ROOT)
-        assert problems
-        assert any("instruction" in p for p in problems)
+        assert verify_report(copy, BINDER, ROOT, {}) == []
+        found = mark_errors([copy])
+        assert any("instruction" in reason for one in found for reason in one.reasons)
 
 
 class TestTheBaseIsTheBinders:
@@ -426,7 +463,7 @@ class TestTheBaseIsTheBinders:
     def test_base_texts_keys_every_address_the_binder_carries(self, tmp_path):
         binder = binder_of(a_small_real_tree(tmp_path), 0)
         base = base_texts(binder)
-        carried = {r["address"] for r in rows_of(binder) if r.get("address")}
+        carried = {b.address for b in binder.paragraphs if b.address}
         assert set(base) == carried
 
     def test_a_returned_raw_text_that_changed_is_REPORTED(self, tmp_path):
@@ -434,11 +471,11 @@ class TestTheBaseIsTheBinders:
         entry it is checking cannot disagree with it -- `docs/gates.md`."""
         repo = a_small_real_tree(tmp_path)
         binder = binder_of(repo, 0)
-        copy = seed(binder, "block-context")
-        entry = copy["sheets"][0]["marks"][0]
+        wire = seed(binder, "block-context")
+        entry = wire["sheets"][0]["marks"][0]
         entry.update(a_clean(entry["address"]))
         entry["raw_text"] = "# not what was seeded\n"
-        drift = drift_in(copy, base_texts(binder))
+        drift = drift_in(returned(wire), base_texts(binder))
         assert [p.address for p in drift] == [entry["address"]]
         assert drift[0].role == "block-context"
 
@@ -446,16 +483,16 @@ class TestTheBaseIsTheBinders:
         """Nobody wrote here, so there is nothing to have drifted."""
         repo = a_small_real_tree(tmp_path)
         binder = binder_of(repo, 0)
-        copy = seed(binder, "block-context")
+        copy = returned(seed(binder, "block-context"))
         assert drift_in(copy, base_texts(binder)) == []
 
     def test_a_faithful_copy_reports_no_drift(self, tmp_path):
         repo = a_small_real_tree(tmp_path)
         binder = binder_of(repo, 0)
-        copy = seed(binder, "block-context")
-        entry = copy["sheets"][0]["marks"][0]
+        wire = seed(binder, "block-context")
+        entry = wire["sheets"][0]["marks"][0]
         entry.update(a_clean(entry["address"]))
-        assert drift_in(copy, base_texts(binder)) == []
+        assert drift_in(returned(wire), base_texts(binder)) == []
 
     def test_verify_report_measures_the_claim_against_the_BINDER(self, tmp_path):
         """A mark whose `claim.false` is absent from the seeded paragraph is
@@ -463,12 +500,12 @@ class TestTheBaseIsTheBinders:
         it -- which is the whole point of taking the base from the binder."""
         repo = a_small_real_tree(tmp_path)
         binder = binder_of(repo, 0)
-        copy = seed(binder, "block-context")
-        entry = copy["sheets"][0]["marks"][0]
+        wire = seed(binder, "block-context")
+        entry = wire["sheets"][0]["marks"][0]
         entry.update(a_correct(entry["address"], "a sentence nobody wrote"))
         entry["raw_text"] = "a sentence nobody wrote"
-        problems = verify_report(copy, binder, repo)
-        assert any("is not in the paragraph" in p for p in problems)
+        problems = verify_report(returned(wire), binder, repo, {})
+        assert any("is not in the paragraph" in p.message for p in problems)
 
 
 class TestEachCheckCanFire:
@@ -509,15 +546,23 @@ class TestProblemsAreRoutable:
         """Roy, 2026-08-30: "the errors should be stacked and capable of being
         read off correctly so that each can be fixed or sent back to the role."
         A sentence cannot be routed; a role and an address can."""
-        copy = seed(binder_of(a_small_real_tree(tmp_path), 0), "block-context")
-        entry = copy["sheets"][0]["marks"][0]
+        wire = seed(binder_of(a_small_real_tree(tmp_path), 0), "block-context")
+        entry = wire["sheets"][0]["marks"][0]
         entry.update({"instruction": "correct", "claim": {}})
-        problems, ruled = problems_in(copy)
-        assert ruled == 1
-        assert problems
-        assert all(p.role == "block-context" for p in problems)
-        assert all(p.address == entry["address"] for p in problems)
-        assert all(isinstance(p.message, str) and p.message for p in problems)
+        copy = returned(wire)
+        # ! FILTERED TO THE UNREADABLE HALF. `mark_errors` answers for every
+        # place a role must revisit, and a freshly seeded copy carries a slot
+        # per place -- so the untouched ones are in the list too, correctly.
+        # What this case is about is the mark the role got wrong.
+        found = [one for one in mark_errors([copy]) if one.unreadable]
+        # ! A MARK A ROLE WROTE IN AND GOT WRONG STILL COUNTS AS RULED -- it is
+        # not a coverage gap, and reporting it as one sends a reader looking for
+        # a place nobody answered. `Sheet.refused` is what keeps the two apart.
+        assert _ruled_places(copy) == 1
+        assert found
+        assert all(one.role == "block-context" for one in found)
+        assert all(one.address == entry["address"] for one in found)
+        assert all(one.reasons and all(r for r in one.reasons) for one in found)
 
     def test_every_broken_mark_is_reported_not_only_the_first(self, tmp_path):
         # ! NOT NECESSARILY `sheets[0]` -- `a_small_real_tree` copies
@@ -525,88 +570,108 @@ class TestProblemsAreRoutable:
         # alphabetically ahead of the rest) holds exactly one row: a bare
         # module docstring with no code below it. So the sheet checked here is
         # whichever one actually carries two places, not the first in order.
-        copy = seed(binder_of(a_small_real_tree(tmp_path), 0), "block-context")
-        marks = next(s["marks"] for s in copy["sheets"] if len(s["marks"]) >= 2)
+        wire = seed(binder_of(a_small_real_tree(tmp_path), 0), "block-context")
+        marks = next(s["marks"] for s in wire["sheets"] if len(s["marks"]) >= 2)
         for entry in marks[:2]:
             entry.update({"instruction": "correct", "claim": {}})
-        problems, ruled = problems_in(copy)
-        assert ruled == 2
-        assert len({p.address for p in problems}) == 2
+        copy = returned(wire)
+        found = [one for one in mark_errors([copy]) if one.unreadable]
+        assert _ruled_places(copy) == 2
+        assert len({one.address for one in found}) == 2
 
-    def test_a_copy_level_problem_carries_an_empty_address(self, tmp_path):
-        copy = seed(binder_of(a_small_real_tree(tmp_path), 0), "block-context")
-        del copy["role"]
-        problems, _ = problems_in(copy)
-        assert any(p.address == "" and "`role`" in p.message for p in problems)
+    def test_an_entry_THAT_IS_NOT_AN_OBJECT_carries_an_empty_address(self, tmp_path):
+        """The one copy-level `Problem` `problems_in` still raises on its own.
+
+        !! IT REPLACES `test_a_copy_level_problem_carries_an_empty_address`,
+        which deleted the copy's `role` -- a shape `EditCopy.deserialize` now
+        refuses before this function can be called at all (`P42`). What that
+        test asserted about a MISSING ROLE is
+        `tests/test_containers.py::TestAnEditCopyThatIsNotOne::
+        test_an_edit_copy_with_no_role`; what it asserted about the empty
+        `address` field is asserted here, over the case that survives.
+
+        ! A BARE STRING IN `marks` IS DELIBERATELY NOT DROPPED. `Sheet.marks`
+        was typed `tuple[object, ...]` so such an entry could be carried and
+        refused by name rather than vanishing; since `P51` it is sorted into
+        `Sheet.refused` at the parse, which serves the same end -- the role
+        that wrote it is told, and the address is "" because there is none.
+        !! AND IT MUST STILL BE FINDABLE, which the empty address alone does not
+        make it. The parse carries `Refused.where` -- the page and the entry's
+        position -- so a role has somewhere to look; see
+        `tests/test_containers.py::TestAnAddressLessEntryIsStillFindable`.
+        """
+        wire = seed(binder_of(a_small_real_tree(tmp_path), 0), "block-context")
+        wire["sheets"][0]["marks"][0] = "not an object"
+        found = mark_errors([returned(wire)])
+        assert any(
+            one.address == "" and "must be an object" in reason
+            for one in found
+            for reason in one.reasons
+        )
 
 
 # ! MOVED FROM `tests/test_distribute_flow.py`, `decision-log.md Process: #54` --
-# `problems_in`, `unruled` and `tally` moved to this module with the rest of
-# P24; these tests came with them, changing only the import and (for the one
-# case that read a message as a string) the `Problem` field it now reads.
-def test_problems_in_reads_every_sheet_not_just_the_first():
-    copy = seed(binder_of(DESK, 0), "block-context")
+# the set-level checks moved to this module with the rest of P24; these tests
+# came with them. ! AND THEY MOVED AGAIN IN SPIRIT WITH `P52`: what they drove
+# through `problems_in` they drive through `flows.mark_errors`, which is the one
+# assembler now. The claims are unchanged.
+def test_the_error_flow_reads_every_sheet_not_just_the_first():
+    wire = seed(binder_of(DESK, 0), "block-context")
     # A malformed mark on the LAST sheet -- a walker that stops at the first
     # sheet passes this file and misses it.
-    copy["sheets"][-1]["marks"][0]["instruction"] = "correct"
-    messages, ruled = problems_in(copy)
-    assert ruled == 1
-    assert messages, "a correct with no claim must be refused wherever it sits"
+    wire["sheets"][-1]["marks"][0]["instruction"] = "correct"
+    copy = returned(wire)
+    assert _ruled_places(copy) == 1
+    assert mark_errors([copy]), "a correct with no claim is refused wherever it sits"
 
 
-@pytest.mark.parametrize(
-    "bad", [{"junk": 1}, {"root": 7, "revise": "x"}, {}, "oops", None, []]
-)
-def test_a_sheet_whose_read_from_is_the_wrong_SHAPE_is_refused(bad):
-    # !! `problems_in` HAND-ROLLED `isinstance(..., dict) and truthy` FOR ONE
-    # COMMIT, so `{"junk": 1}` and `{"root": 7, "revise": "x"}` passed
-    # the per-copy check at exit 0 while `bind` REFUSED the identical value -- two
-    # spellings of one rule, disagreeing. It reuses `binder`'s checker now.
-    sheet = {"role": "block-context", "read_from": bad, "sheets": []}
-    messages, _ = problems_in(sheet)
-    # ! FORCED BY THE MOVE: `messages` holds `Problem`s now, not strings, so
-    # the membership test reads `.message` instead of the `Problem` itself.
-    assert any("read_from" in m.message for m in messages), bad
+#: !! `test_a_sheet_whose_read_from_is_the_wrong_SHAPE_is_refused` MOVED, and
+#: did not go: `problems_in` no longer rules on the header, because
+#: `EditCopy.deserialize` decides it and `P42` made that the only door. The six
+#: values it drove -- `{"junk": 1}`, `{"root": 7, "revise": "x"}`, `{}`,
+#: `"oops"`, `None`, `[]` -- are asserted against the parse in
+#: `tests/test_containers.py::TestAnEditCopyThatIsNotOne`, which is where the
+#: rule now lives.
 
 
-def test_a_sheet_carrying_a_code_concern_validates():
-    """An EXPECTATION test, not an INPUT one -- the sheet is a literal a
+def test_a_copy_carrying_a_code_concern_validates():
+    """An EXPECTATION test, not an INPUT one -- the copy is a literal a
     human checked, per `decision-log.md Vocabulary: #23`. It carries no real
     mark to check, so nothing here needs a real binder."""
-    sheet = {
+    wire = {
         "role": "block-context",
-        # ! `read_from` IS PART OF A WELL-FORMED SHEET since 2026-08-28 --
-        # `seed` puts it there and `problems_in` now rules on it, so a literal
-        # that omits it is testing a sheet no role can return.
+        # ! `read_from` IS PART OF A WELL-FORMED COPY since 2026-08-28 --
+        # `seed` puts it there and `EditCopy.deserialize` rules on it, so a
+        # literal that omits it is testing a copy no role can return.
         "read_from": {"root": "src/comment_review/desk", "revise": 0},
         "sheets": [],
         "code_concerns": [
             {"where": "src/m.py:12", "concern": "the guard admits a negative"}
         ],
     }
-    assert problems_in(sheet) == ([], 0)
+    copy = returned(wire)
+    assert mark_errors([copy]) == []
+    assert _ruled_places(copy) == 0
 
 
 def test_tally_counts_a_ruled_mark_wherever_its_sheet_sits():
     # INPUT FROM REALITY: a real binder through the real seed(), then filled
-    # exactly as a role legitimately would -- `instruction` holds the
-    # INSTRUCTION NAME as a plain string, matching `desk.mark.parse`'s own
-    # `isinstance(named, str)` check and this file's own `_well_formed()`
-    # fixture. `tally` walked `report["marks"]`, a top-level key `seed()` has
-    # not written since 2026-08-29 -- so on today's nested shape it silently
-    # returned `{}` for every sheet, ruled or not, rather than raising or
-    # reporting.
-    copy = seed(binder_of(DESK, 0), "block-context")
-    copy["sheets"][-1]["marks"][0].update(
-        {
-            "instruction": "correct",
-            "claim": {"false": "x", "true": "y"},
-            "reason": "test",
-            "sources": [],
-            "change": "# x",
-        }
-    )
-    assert tally(copy) == {Instruction.CORRECT: 1}
+    # exactly as a role legitimately would. `tally` walked `report["marks"]`, a
+    # top-level key `seed()` has not written since 2026-08-29 -- so on today's
+    # nested shape it silently returned `{}` for every sheet, ruled or not,
+    # rather than raising or reporting.
+    #
+    # !! THE MARK IS BUILT BY `a_correct` SINCE `P51`, AND THAT IS A FINDING
+    # RATHER THAN A FIXTURE REPAIR. It was a hand-written dict carrying
+    # `"sources": []`, which `desk.mark.parse` REFUSES -- *"needs at least one
+    # source"*. The old `tally` counted it anyway, because it read the
+    # `instruction` string off the entry and never parsed it: **it was counting
+    # marks that are not marks**. Counting `Sheet.marks` cannot, so the fixture
+    # had to become a mark that really parses.
+    wire = seed(binder_of(DESK, 0), "block-context")
+    entry = wire["sheets"][-1]["marks"][0]
+    entry.update(a_correct(entry["address"]))
+    assert tally(returned(wire)) == {Instruction.CORRECT: 1}
 
 
 def test_tally_of_a_freshly_seeded_sheet_is_empty():
@@ -614,5 +679,5 @@ def test_tally_of_a_freshly_seeded_sheet_is_empty():
     # `None`, so nothing has an instruction to count. This is what
     # distinguishes it from the silent `{}` the bug above produced for a
     # RULED sheet: the same return value, for opposite reasons.
-    copy = seed(binder_of(DESK, 0), "block-context")
+    copy = returned(seed(binder_of(DESK, 0), "block-context"))
     assert tally(copy) == {}

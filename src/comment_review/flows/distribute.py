@@ -7,7 +7,7 @@ mark reads like it is doing something that it is probably not doing"* -- and
 *"the broadcasting part seems like distribute, the bringin back together seems
 like collate."* `flows/collate.py` is the other half of the round.
 
-!! AND THE CHECK IS NO LONGER HERE. `unruled`, `problems_in` and `tally` moved
+!! AND THE CHECK IS NO LONGER HERE. The set-level checks moved
 to `desk/collator.py` -- `decision-log.md Process: #54`: a mark answers for
 itself, and everything about the SET is the collator's.
 
@@ -36,15 +36,16 @@ SOURCE-VERIFICATION in `collator`. `desk.mark.parse` says the same about its
 own half.
 """
 
+from comment_review.binder.binder import Binder
+from comment_review.desk.containers import EditCopy, Sheet
 from comment_review.desk.mark import Mark
-from comment_review.reading.addresser import address_for
 
 
-def seed(binder: dict, role: str) -> dict:
+def seed(binder: Binder, role: str) -> dict:
     """A fillable edit_copy for one role, one sheet per page in the binder.
 
     Args:
-        binder: as `binder.read` returns it.
+        binder: the deserialized binder, as the command's load produced it.
         role: the editorial role this edit_copy is for.
 
     Returns:
@@ -58,53 +59,47 @@ def seed(binder: dict, role: str) -> dict:
         renamed field breaks there rather than leaving this module writing
         the old key.
 
-    Raises:
-        KeyError: the binder carries no `read_from`.
+    !! ABSENT IS REFUSED AT THE BOUNDARY, AND WAS DEFAULTED TO `{}` UNTIL
+    2026-08-28. `bind` refuses a binder that cannot say which root it read; this
+    function read the same key with a `{}` fallback, so a binder that reached it
+    by any other path -- an artifact read from disk, a hand-built dict --
+    produced an edit_copy whose `read_from` was empty. ! THAT IS THE AMBIGUITY
+    THE FIELD WAS ADDED TO REMOVE: a role holding an empty `read_from` cannot
+    tell a revise from the original, which is the whole question
+    `decision-log.md Process: #34` turns on.
 
-    !! ABSENT IS REFUSED HERE TOO, AND WAS DEFAULTED TO `{}` UNTIL 2026-08-28.
-    `bind` refuses a binder that cannot say which root it read; this function
-    read the same key with a `{}` fallback, so a binder that reached it by any
-    other path -- an artifact read from disk, a hand-built dict -- produced an
-    edit_copy whose `read_from` was empty. ! THAT IS THE AMBIGUITY THE FIELD WAS
-    ADDED TO REMOVE, one function downstream of the refusal: a role holding an
-    empty `read_from` cannot tell a revise from the original, which is the
-    whole question `decision-log.md Process: #34` turns on.
+    ! IT RAISED `KeyError` UNTIL 2026-08-31 AND NOW CANNOT. `Binder.deserialize`
+    will not build a binder whose `read_from` is absent or misshapen, so by the
+    time one is in hand the field is there -- which is what a container is FOR.
+    The refusal did not weaken; it moved to the boundary and gained a name.
 
-    !! NESTED BY PAGE SINCE 2026-08-29, AND `rows_of` NO LONGER CALLED HERE.
-    `rows_of` stamps each row with the flattened `path` and `address`, which is
-    what let a fanned-out edit_copy lose which page a mark belonged to; this walks
-    `binder["pages"]` directly so each mark rides inside its own page's sheet,
-    carrying that page's `sha`. The per-row `address` is unchanged -- still
-    `address_for(path, cue)`, the same composition `rows_of` used.
+    !! NESTED BY PAGE SINCE 2026-08-29. A flat row list is what let a fanned-out
+    edit_copy lose which page a mark belonged to; this walks the binder's own
+    pages so each mark rides inside its own page's sheet, carrying that page's
+    `sha`.
     """
-    return {
-        "role": role,
-        # ! COPIED, NOT ALIASED -- see `bind`, which does the same at the other
-        # end. Aliasing made the binder, every edit_copy seeded from it and the
-        # caller's own dict one object.
-        "read_from": {**binder["read_from"]},
-        "sheets": [
-            {
-                "path": str(page.get("path", "")),
-                # ! `.get("sha", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT. A
-                # `"sha": null` binder page -- `binder.read()` does not check
-                # this field's shape, only what it consumes -- reaches here
-                # with the key PRESENT and holding None, and unlike
-                # `flows.carry` there is no `str()` here to turn it into the
-                # word "None": it would be written straight into the sheet as
-                # a bare `None`, disagreeing with `Sheet.sha`'s own `str`
-                # contract until whichever reader saw it next re-normalized
-                # it. Normalized here instead, matching every sibling site.
-                "sha": raw_sha if isinstance(raw_sha := page.get("sha"), str) else "",
-                "marks": [
-                    Mark.seed(
-                        address_for(str(page.get("path", "")), str(row.get("cue", ""))),
-                        str(row.get("anchor", "")),
-                        str(row.get("raw_text", "")),
-                    )
-                    for row in page.get("rows", [])
+    # ! WRITTEN THROUGH THE TYPES, NOT AS LITERALS, since 2026-08-31 --
+    # `decision-log.md Process: #64`. `EditCopy.seed` copies `read_from` rather
+    # than aliasing it, and `Sheet.seed` normalizes a null `sha`; both rules
+    # used to be stated here as well as at the parse, and a rule in two places
+    # is a rule that will disagree with itself.
+    #
+    # !! THE ADDRESS IS THE ROW'S OWN, AND WAS RECOMPOSED HERE UNTIL 2026-08-31.
+    # This read `address_for(page["path"], row["cue"])` -- the identical
+    # composition a `Paragraph` already carries. A second site computing an
+    # address is the defect the binder's own prose records the compositor being
+    # MEASURED on for 2026-08-22, and the container is what leaves only one.
+    return EditCopy.seed(
+        role=role,
+        read_from=binder.read_from,
+        sheets=[
+            Sheet.seed(
+                path=page.path,
+                sha=page.sha,
+                marks=[
+                    Mark.seed(b.address, b.anchor, b.raw_text) for b in page.paragraphs
                 ],
-            }
-            for page in binder.get("pages", [])
+            )
+            for page in binder.pages
         ],
-    }
+    )

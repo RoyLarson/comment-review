@@ -9,6 +9,12 @@ an empty answer produces the failure this whole skill exists to catch.
 checkout contains, but what was actually read -- and belong here rather than
 downstream because a sha taken by a caller depends on which of this module's
 two readers that caller happened to use.
+
+!! AND `write_raw` IS `read_raw`'s PAIR, HERE SINCE `P45` FOR THE SAME REASON.
+Roy, 2026-08-31, on the flow spec: *"if the change is a code file it outputs
+the file through machine/ code."* The two halves of the byte-identity this
+system rests on -- the untranslated read and the untranslated write -- are one
+rule, and a rule stated in two areas is a rule that will disagree with itself.
 """
 
 import hashlib
@@ -51,6 +57,10 @@ def read_raw(path: Path) -> str:
     CRLF source was written out with 223 bare LF and every line of the diff was
     an ending change. That command is gone -- see `docs/history.md` -- and the
     write chain reaches `read_raw` only through `read_source`.
+    ! THE WRITE PATH IS `write_raw`, BELOW, SINCE `P45`. The sentence above
+    said no write path calls this directly and that is still true; what changed
+    is that there is now a named pair rather than a `write_text` in
+    `results/compositor.py` keeping the `newline=""` rule by hand.
 
     ! THREE MODULES REACH IT THROUGH `read_source`: `commands/census.py`,
     `flows/page_for.py` (in `source_of`, which `page_of` and the whole write
@@ -71,6 +81,44 @@ def read_raw(path: Path) -> str:
     """
     with open(path, encoding="utf-8", newline="") as f:
         return f.read()
+
+
+def write_raw(path: Path, text: str) -> Path:
+    r"""Write text with its own line endings, untranslated. The pair to `read_raw`.
+
+    !! IT IS HERE BECAUSE THE WRITE END OBEYS THE SAME RULE AS THE READ END --
+    `P45`, and Roy's own wording of the flow spec, 2026-08-31: *"if the change
+    is a code file it outputs the file through machine/ code."* Every read of a
+    page in this system already comes through this module; the one write did
+    not, and lived in `results/compositor.py`.
+
+    !! AND `newline=""` IS WHAT MAKES THE ROUND TRIP AN IDENTITY. Without it,
+    `write_text` applies universal-newline translation on the way OUT, turning
+    every `\n` into the platform's ending -- so a page set from a CRLF file
+    lands as LF on Linux, and `results/prove_unchanged.py`'s byte comparison
+    against the source `read_raw` gave it would fail on every line. ! THE SAME
+    DEFECT WAS MEASURED IN THE OTHER DIRECTION, 2026-08-17: a galley command
+    that read with `Path.read_text` wrote a 245-line CRLF source back with 223
+    bare LF, and every line of the diff was an ending change.
+
+    ! THE MKDIR IS PART OF THE WRITE, not the caller's. A draft lands under a
+    tree built from the repo's own paths, so the parent may not exist yet; a
+    caller that had to remember the mkdir is a caller that will forget it. !
+    `flows.proof_setter._one` RECORDS WHICH PARENTS IT CREATED before calling,
+    so a refused draft can remove them -- that bookkeeping stays with the flow,
+    because only the flow knows what a failed page should leave behind.
+
+    Args:
+        path: the file to write. Its parents are created if they do not exist.
+        text: written exactly as given.
+
+    Returns:
+        `path`, so a caller can chain.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8", newline="") as f:
+        f.write(text)
+    return path
 
 
 class Source(NamedTuple):

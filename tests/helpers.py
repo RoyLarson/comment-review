@@ -26,9 +26,19 @@ for `tests/test_collate.py`.
 
 from pathlib import Path
 
-from comment_review.binder.binder import bind
-from comment_review.desk.mark import ANCHOR_EXAMPLE, INSTRUCTIONS, Instruction, Shape
+from conftest import ROOT, cue
+
+from comment_review.binder.binder import VERSION, Binder, bind
+from comment_review.desk.containers import EditCopy, MasterProof, Sheet
+from comment_review.desk.mark import (
+    ANCHOR_EXAMPLE,
+    INSTRUCTIONS,
+    Instruction,
+    Mark,
+    Shape,
+)
 from comment_review.desk.proof import gather
+from comment_review.docket.docket import Docket
 from comment_review.flows.distribute import seed
 from comment_review.flows.page_for import page_of, source_of
 
@@ -41,6 +51,24 @@ _DESK = Path(__file__).resolve().parents[1] / "src" / "comment_review" / "desk"
 #: `sources` -- `mark.py`'s own first line, read once at import time.
 _MARK_PY_CITE = "src/comment_review/desk/mark.py:1"
 _MARK_PY_LINE_1 = (_DESK / "mark.py").read_text(encoding="utf-8").splitlines()[0]
+
+#: The sentence `a_drop` and `a_correct` quote when a caller names none. It is
+#: a PLACEHOLDER and belongs to no paragraph, which `_quoting_the_real_text`
+#: substitutes away wherever a real base is in hand -- see its docstring for
+#: what that measured.
+_PLACEHOLDER_SENTENCE = "the paragraph's own claim"
+
+#: !! THE ROOT `_MARK_PY_CITE` RESOLVES AGAINST, and the one a `collate` test
+#: must pass. Source verification opens what a `cite` names, so a test handed
+#: `tmp_path` reports EVERY built mark's citation as unresolvable -- and a test
+#: asserting some OTHER finding would then pass on the wrong one. Measured
+#: 2026-08-31 while wiring `P25`.
+#:
+#: ! IT IS `conftest.ROOT`, NOT A SECOND COMPUTATION OF IT. Both files sit
+#: directly under `tests/`, so a fresh `parents[1]` here would agree by
+#: coincidence and diverge silently if the anchor ever moved.
+#: `tests/gates/test_vocabulary.py` already imports it this way.
+REPO = ROOT
 
 
 def pages_of(root: Path) -> list:
@@ -57,8 +85,56 @@ def pages_of(root: Path) -> list:
     return pages
 
 
-def binder_of(root: Path, revise: int) -> dict:
+def binder_of(root: Path, revise: int) -> Binder:
     return bind(pages_of(root), read_from={"root": str(root), "revise": revise})
+
+
+def _deserialized(wire: dict) -> Binder:
+    """A hand-written binder, through the boundary that reads a real one.
+
+    !! THE WIRE STAYS HAND-WRITTEN AND THE CONTAINER IS DERIVED, since
+    2026-08-31. This module's own rule is that a fixture built by the code
+    it feeds can only agree with it -- so these helpers keep spelling the
+    JSON, and `Binder.deserialize` is what turns it into what the middle
+    carries. ! It also means a fixture omitting a required field FAILS
+    HERE, where before `binder.read` admitted it: every row these helpers
+    write gained `original_start` and `original_end` for exactly that
+    reason.
+    """
+    got, problems = Binder.deserialize("a test binder", wire)
+    assert got is not None, problems
+    return got
+
+
+def _a_docket(wire: dict) -> Docket:
+    """A hand-written docket, through the boundary the write flow reads it at.
+
+    ! SAME RULE AS `_deserialized` ABOVE, on the other format: the wire stays
+    hand-written, and the container is derived. A helper that built a `Docket`
+    directly would skip every rule `Docket.deserialize` enforces, so these
+    fixtures could drift out of the shape a real docket must take without
+    anything noticing.
+    """
+    got, problems = Docket.deserialize("a test docket", wire)
+    assert got is not None, problems
+    return got
+
+
+def _row(cue: str, text: str) -> dict:
+    """One hand-written binder row, complete.
+
+    ! THE LINE NUMBERS ARE PRESENT AND ARBITRARY. Nothing these fixtures feed
+    reads them -- the write path reloads the page from disk (`Process: #14`)
+    -- but a page's own reader requires them, so a fixture that left them out
+    would be asserting a binder shape no census produces.
+    """
+    return {
+        "cue": cue,
+        "anchor": "",
+        "original_start": 1,
+        "original_end": 1,
+        "raw_text": text,
+    }
 
 
 def a_small_real_tree(tmp_path: Path) -> Path:
@@ -76,7 +152,7 @@ def a_small_real_tree(tmp_path: Path) -> Path:
     return repo
 
 
-def a_docket_over(repo: Path, names: list[str]) -> dict:
+def a_docket_over(repo: Path, names: list[str]) -> Docket:
     """A docket that replaces one real, filled `b`-series comment in each
     named file.
 
@@ -89,7 +165,7 @@ def a_docket_over(repo: Path, names: list[str]) -> dict:
         names: file BASENAMES to alter one comment in each of.
 
     Returns:
-        A docket in `docket.read`'s shape.
+        A deserialized `Docket`.
 
     Raises:
         AssertionError: a name has no filled `b` row to alter.
@@ -97,33 +173,33 @@ def a_docket_over(repo: Path, names: list[str]) -> dict:
     binder = binder_of(repo, 0)
     remaining = set(names)
     pages = []
-    for page in binder.get("pages", []):
-        if Path(page["path"]).name not in remaining:
+    for page in binder.pages:
+        if Path(page.path).name not in remaining:
             continue
-        cue = next(
+        found = next(
             (
-                row["cue"]
-                for row in page.get("rows", [])
-                if row["cue"].startswith("b") and row["raw_text"].strip()
+                cue(row)
+                for row in page.paragraphs
+                if cue(row).startswith("b") and row.raw_text.strip()
             ),
             None,
         )
-        if cue is None:
+        if found is None:
             continue
         pages.append(
             {
-                "path": page["path"],
-                "sha": page["sha"],
-                "alterations": [{"cue": cue, "text": "# revised by a_docket_over"}],
+                "path": page.path,
+                "sha": page.sha,
+                "alterations": [{"cue": found, "text": "# revised by a_docket_over"}],
             }
         )
-        remaining.discard(Path(page["path"]).name)
+        remaining.discard(Path(page.path).name)
     if remaining:
         raise AssertionError(f"no filled 'b' row found for {sorted(remaining)}")
-    return {"pages": pages}
+    return _a_docket({"pages": pages})
 
 
-def a_docket_whose_claim_is_not_in_the_page(repo: Path, name: str) -> dict:
+def a_docket_whose_claim_is_not_in_the_page(repo: Path, name: str) -> Docket:
     """A docket naming a cue no paragraph on the page holds -- a chain
     refusal, without asserting which step raises it.
 
@@ -132,29 +208,31 @@ def a_docket_whose_claim_is_not_in_the_page(repo: Path, name: str) -> dict:
         name: the file basename to build the (unreachable) alteration over.
 
     Returns:
-        A docket in `docket.read`'s shape.
+        A deserialized `Docket`.
 
     Raises:
         AssertionError: no page in `repo` has this basename.
     """
     binder = binder_of(repo, 0)
-    for page in binder.get("pages", []):
-        if Path(page["path"]).name == name:
-            return {
-                "pages": [
-                    {
-                        "path": page["path"],
-                        "sha": page["sha"],
-                        "alterations": [
-                            {"cue": "zzz9999", "text": "# never reaches the page"}
-                        ],
-                    }
-                ]
-            }
+    for page in binder.pages:
+        if Path(page.path).name == name:
+            return _a_docket(
+                {
+                    "pages": [
+                        {
+                            "path": page.path,
+                            "sha": page.sha,
+                            "alterations": [
+                                {"cue": "zzz9999", "text": "# never reaches the page"}
+                            ],
+                        }
+                    ]
+                }
+            )
     raise AssertionError(f"no page named {name!r} in {repo}")
 
 
-def a_docket_that_rewrites(repo: Path, name: str) -> dict:
+def a_docket_that_rewrites(repo: Path, name: str) -> Docket:
     """A docket in `a_docket_over`'s shape, rewriting exactly one file.
 
     ! DELEGATES TO `a_docket_over`, rather than re-deriving the selection --
@@ -168,7 +246,7 @@ def a_docket_that_rewrites(repo: Path, name: str) -> dict:
         name: the file basename to alter one comment in.
 
     Returns:
-        A docket in `docket.read`'s shape.
+        A deserialized `Docket`.
 
     Raises:
         AssertionError: `name` has no filled `b` row to alter.
@@ -176,7 +254,7 @@ def a_docket_that_rewrites(repo: Path, name: str) -> dict:
     return a_docket_over(repo, [name])
 
 
-def the_row_for(binder: dict, name: str) -> dict:
+def the_row_for(binder: Binder, name: str):
     """The row `a_docket_over` (or `a_docket_that_rewrites`) altered on
     `name`'s page -- found by replaying its own selection.
 
@@ -192,47 +270,58 @@ def the_row_for(binder: dict, name: str) -> dict:
         name: the file basename to find the row on.
 
     Returns:
-        The row dict, as `binder.page_row` shapes one.
+        The paragraph, as the binder carries it.
 
     Raises:
         AssertionError: no page named `name`, or no filled `b` row on it.
     """
-    for page in binder.get("pages", []):
-        if Path(page["path"]).name != name:
+    for page in binder.pages:
+        if Path(page.path).name != name:
             continue
-        for row in page.get("rows", []):
-            if row["cue"].startswith("b") and row["raw_text"].strip():
+        for row in page.paragraphs:
+            if cue(row).startswith("b") and row.raw_text.strip():
                 return row
         raise AssertionError(f"no filled 'b' row on {name!r}")
     raise AssertionError(f"no page named {name!r} in binder")
 
 
-def _synthetic_binder(addresses: list[str]) -> dict:
+def _synthetic_binder(addresses: list[str]) -> Binder:
     """A binder shaped only well enough for the real `seed()` to produce real
     sheets from -- one page per address's file half, one row per its cue half.
 
     ! `places()`, what this feeds, groups by whatever `address` a mark
     already carries and never resolves one against a binder or reads a page,
-    so this needs no real file on disk -- only the shape `seed()` requires.
+    so this needs no real page on disk -- only the shape `seed()` requires.
+
+    !! BUT `read_from.root` MUST NAME A REAL DIRECTORY, and held the string
+    `"tests/helpers.py"` until 2026-08-31 -- a FILE, chosen as a placeholder
+    when nothing read it. `P25` gave it a reader: `flows.collate.collate`
+    resolves every `sources` cite against this root, and `commands/collate.py`
+    defaults to it. Against a file, every citation these helpers build fails to
+    resolve, and five exit-code tests came back BROKEN for a reason that had
+    nothing to do with what they assert. Nothing asserts on the old value.
     """
     by_path: dict[str, list[str]] = {}
     for address in addresses:
         path, _, cue = address.partition("@")
         by_path.setdefault(path, []).append(cue)
-    return {
-        "read_from": {"root": "tests/helpers.py", "revise": 0},
-        "pages": [
-            {
-                "path": path,
-                "sha": "0" * 40,
-                "rows": [{"cue": cue, "anchor": "", "raw_text": ""} for cue in cues],
-            }
-            for path, cues in by_path.items()
-        ],
-    }
+    return _deserialized(
+        {
+            "version": VERSION,
+            "read_from": {"root": str(REPO), "revise": 0},
+            "pages": [
+                {
+                    "path": path,
+                    "sha": "0" * 40,
+                    "rows": [_row(cue, "") for cue in cues],
+                }
+                for path, cues in by_path.items()
+            ],
+        }
+    )
 
 
-def a_binder_over(paragraphs: dict[str, str]) -> dict:
+def a_binder_over(paragraphs: dict[str, str]) -> Binder:
     """A binder whose rows carry REAL paragraph text, keyed by address.
 
     ! WRITTEN IN TASK 10, for `tests/test_collate.py`. `_synthetic_binder`
@@ -250,22 +339,23 @@ def a_binder_over(paragraphs: dict[str, str]) -> dict:
     for address, text in paragraphs.items():
         path, _, cue = address.partition("@")
         by_path.setdefault(path, []).append((cue, text))
-    return {
-        "read_from": {"root": "tests/helpers.py", "revise": 0},
-        "pages": [
-            {
-                "path": path,
-                "sha": "0" * 40,
-                "rows": [
-                    {"cue": cue, "anchor": "", "raw_text": text} for cue, text in rows
-                ],
-            }
-            for path, rows in by_path.items()
-        ],
-    }
+    return _deserialized(
+        {
+            "version": VERSION,
+            "read_from": {"root": str(REPO), "revise": 0},
+            "pages": [
+                {
+                    "path": path,
+                    "sha": "0" * 40,
+                    "rows": [_row(cue, text) for cue, text in rows],
+                }
+                for path, rows in by_path.items()
+            ],
+        }
+    )
 
 
-def copies_over(binder: dict, by_role: dict) -> list[dict]:
+def copies_over(binder: Binder, by_role: dict) -> list[dict]:
     """One real seeded `edit_copy` per role, each overlaid with that role's marks.
 
     ! WRITTEN IN TASK 10. `a_master_proof` builds its own synthetic binder per
@@ -286,12 +376,131 @@ def copies_over(binder: dict, by_role: dict) -> list[dict]:
             for entry in sheet["marks"]:
                 mark = marks_by_address.get(entry["address"])
                 if mark is not None:
-                    entry.update(mark)
+                    entry.update(_quoting_the_real_text(mark, entry))
         copies.append(copy)
     return copies
 
 
-def a_master_proof(by_role: dict) -> dict:
+def _quoting_the_real_text(mark: dict, entry: dict) -> dict:
+    """`mark`, with a PLACEHOLDER quoted sentence replaced by the seeded text.
+
+    !! MEASURED 2026-08-31, WHEN `P25` GAVE THE CLAIM A READER. `a_correct`'s
+    default sentence -- `"the paragraph's own claim"` -- is in no paragraph any
+    helper builds, so **every mark built from that default carried a claim that
+    was never true of its own base**. Nothing could see it: `desk.mark.parse`
+    imports no binder and no page, so the sentence was unfalsifiable until
+    `desk.collator.claim_verbatim_problems` ran in the flow.
+
+    ! THE WHOLE PARAGRAPH IS A LEGITIMATE `claim.false`, not a dodge --
+    `flows.collate._composition` sets exactly that when it synthesizes a
+    `correct` over a base two roles both edited.
+
+    ! ONLY THE PLACEHOLDER IS TOUCHED. A test that passes its own sentence --
+    `a_correct_setting`, or `a_correct(addr, "a sentence that is not there")` --
+    means that sentence and keeps it, which is what lets a verbatim failure
+    still be written.
+
+    !! THE KEY COMES FROM `quotes_original`, NOT FROM THE WORD `false`, and was
+    keyed to `false` for one commit. `desk.collator.claim_verbatim_problems`
+    reads `INSTRUCTIONS[mark.instruction].quotes_original` -- `claim.drop` for a
+    `drop`, `claim.false` for a `correct`, `claim.from` for a `patch` -- and
+    `a_drop` defaults to the SAME placeholder. Keyed to one row's field name,
+    the fix covered `correct` and left the next `drop` driven through `collate`
+    to reproduce the defect it was written to close.
+    """
+    claim = mark.get("claim")
+    instruction = mark.get("instruction")
+    row = INSTRUCTIONS.get(instruction) if instruction is not None else None
+    key = row.quotes_original if row is not None else None
+    if not key or not isinstance(claim, dict):
+        return mark
+    if claim.get(key) != _PLACEHOLDER_SENTENCE:
+        return mark
+    base = entry.get("raw_text")
+    if not isinstance(base, str) or not base:
+        return mark
+    return {**mark, "claim": {**claim, key: base}}
+
+
+def _without_sheet(copy: dict, path: str) -> dict:
+    """`copy` with the sheet for `path` removed -- a role that skipped a page.
+
+    ! A REMOVAL OVER A REAL SEEDED COPY, not a copy written with one sheet. The
+    two are the same document, and only the removal proves it came from a
+    binder that held both pages.
+    """
+    kept = [sheet for sheet in copy["sheets"] if sheet.get("path") != path]
+    assert len(kept) < len(copy["sheets"]), f"{path} was not a sheet on this copy"
+    return {**copy, "sheets": kept}
+
+
+def _keeping_only(copy: dict, addresses: list[str]) -> dict:
+    """`copy` with every mark outside `addresses` removed -- a role that
+    answered for some of the slots it was handed and dropped the rest."""
+    wanted = set(addresses)
+    return {
+        **copy,
+        "sheets": [
+            {
+                **sheet,
+                "marks": [m for m in sheet["marks"] if m.get("address") in wanted],
+            }
+            for sheet in copy["sheets"]
+        ],
+    }
+
+
+def a_copy_missing_its_sheets(binder: Binder, role: str = "block-context") -> dict:
+    """A real seeded copy with its `sheets` key REMOVED.
+
+    ! A REMOVAL OVER `seed`, NOT A LITERAL. A hand-written `{"role": ...,
+    "read_from": ...}` would also be asserting the shape of a well-formed copy,
+    which is `seed`'s to state -- so the fixture and the code could drift apart
+    and the test would go on passing.
+    """
+    copy = seed(binder, role)
+    del copy["sheets"]
+    return copy
+
+
+def marks_of(sheet: Sheet) -> list[Mark]:
+    """One sheet's marks, as the `Mark`s it holds.
+
+    !! IT ASSERTED EACH ENTRY WAS A DICT UNTIL `P51`, because `Sheet.marks` was
+    `tuple[object, ...]` and an entry that would not parse was carried so it
+    could be refused by name. The parse sorts those into `Sheet.refused` now, so
+    what is here is marks and the assertion has nothing left to catch.
+    """
+    return list(sheet.marks)
+
+
+def entries_of(copy: EditCopy) -> list[Mark]:
+    """Every mark on a copy, flattened, in sheet then mark order.
+
+    ! IT REPLACES `[m for s in got.chief.sheets for m in s.marks]`, which stood
+    at thirteen sites in `tests/test_collate.py` alone.
+    """
+    return [mark for sheet in copy.sheets for mark in marks_of(sheet)]
+
+
+def returned(wire: dict, where: str = "copy") -> EditCopy:
+    """One returned edit_copy, PARSED -- what the middle takes since `P42`.
+
+    A test builds the wire dict a role hands back -- `flows.distribute.seed`,
+    then whatever the case writes into a slot -- and this is the boundary
+    `flows.collate.collate` runs it through before `problems_in`,
+    `verify_report`, `drift_in`, `unruled` or `tally` sees it.
+
+    ! IT ASSERTS THE PARSE SUCCEEDED, so a fixture that has quietly stopped
+    being a well-formed copy fails HERE, naming the field, rather than as a
+    surprising result from the function under test.
+    """
+    copy, why = EditCopy.deserialize(where, wire)
+    assert copy is not None, why
+    return copy
+
+
+def a_master_proof(by_role: dict) -> MasterProof:
     """A `master_proof`, composed through the real `seed()` and `gather()`.
 
     Args:
@@ -300,21 +509,27 @@ def a_master_proof(by_role: dict) -> dict:
             `an_add`.
 
     Returns:
-        `{"stage": ..., "read_from": ..., "edit_copies": [...]}`, as
-        `desk.proof.gather` returns it. One `edit_copy` per role, seeded for
-        real over a synthetic binder sized to that role's own addresses, then
-        each seeded entry overlaid with the caller's mark -- the same
-        `entry.update(...)` pattern `tests/test_collator.py` uses over a real
-        one.
+        The `MasterProof` `desk.proof.gather` returns. One `edit_copy` per
+        role, seeded for real over a synthetic binder sized to that role's own
+        addresses, then each seeded entry overlaid with the caller's mark --
+        the same `entry.update(...)` pattern `tests/test_collator.py` uses over
+        a real one.
+
+    ! IT RUNS THE REAL PARSE BETWEEN THE TWO, exactly as `flows.collate.collate`
+    does since `P42`: `seed` writes the wire dict a role is handed, and `gather`
+    takes the parsed `EditCopy`. A fixture that skipped the parse would hand
+    `gather` a shape production cannot produce.
     """
     copies = []
     for role, marks_by_address in by_role.items():
-        copy = seed(_synthetic_binder(list(marks_by_address)), role)
-        for sheet in copy["sheets"]:
+        wire = seed(_synthetic_binder(list(marks_by_address)), role)
+        for sheet in wire["sheets"]:
             for entry in sheet["marks"]:
                 mark = marks_by_address.get(entry["address"])
                 if mark is not None:
                     entry.update(mark)
+        copy, why = EditCopy.deserialize(role, wire)
+        assert copy is not None, why
         copies.append(copy)
     return gather("4c", copies)
 
@@ -355,19 +570,31 @@ def _mark(instruction: Instruction, address: str, claim: dict) -> dict:
     return mark
 
 
+def a_correct_citing(address: str, cite: str) -> dict:
+    """A `correct` whose one source cites `cite`.
+
+    ! BUILT ON `a_correct`, not as a second builder for the same instruction --
+    what varies is the citation, and everything else must stay whatever the
+    row's own spec says it owes.
+    """
+    mark = a_correct(address)
+    mark["sources"] = [{"cite": cite, "verbatim": _MARK_PY_LINE_1}]
+    return mark
+
+
 def a_clean(address: str) -> dict:
     """A `clean` mark -- the null mark. `INSTRUCTIONS[Instruction.CLEAN]` owes
     no `claim`, no `sources`, no `change`."""
     return _mark(Instruction.CLEAN, address, {})
 
 
-def a_drop(address: str, sentence: str = "the paragraph's own claim") -> dict:
+def a_drop(address: str, sentence: str = _PLACEHOLDER_SENTENCE) -> dict:
     """A `drop` mark -- the one row `INSTRUCTIONS[...].may_empty` is True for,
     so an empty `change` on it is the edit rather than a missing one."""
     return _mark(Instruction.DROP, address, {"drop": sentence})
 
 
-def a_correct(address: str, sentence: object = "the paragraph's own claim") -> dict:
+def a_correct(address: str, sentence: object = _PLACEHOLDER_SENTENCE) -> dict:
     """A `correct` mark -- `claim.false` is `sentence`, `claim.true` the fix,
     the two keys `INSTRUCTIONS[Instruction.CORRECT]` demands.
 

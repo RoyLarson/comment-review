@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 5 tasks done
+Progress: 1 of 7 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, the day the query contract landed. `module-context`'s report on a
@@ -46,6 +46,12 @@ Updated:  2026-08-28 — THE BIND ARRIVES FROM A SECOND DIRECTION, AND IT IS THE
           BINDS -- which is evidence for the shape rather than a workaround. See the
           double-bind note on `a-role-with-no-code-out-damages-the-prose`, dated the
           same day.
+Measured: 2026-08-31 -- dogfood 2026-08-31: ownership 295 clean/3 query, module 28/279
+Measured: 2026-08-31 -- same 317 paragraphs, same run -- so it is wording, not narrow
+          scope
+Falsified: 2026-08-31 -- run2 A/B: 28->314 clean, but findings 12->3; 8 flipped to clean
+Falsified: 2026-08-31 -- one of the 8 is a verified false certification, caught by hand
+Falsified: 2026-08-31 -- query kept the role LOOKING; removing it removed the looking
 ```
 
 ## Objective
@@ -127,9 +133,18 @@ do the thing we ruled out"*. It carried a box until 2026-08-23 and is recorded h
 - [?] T3 | T3 -- * RULE whether an `outside my role` query may carry a LIGHTER
       payload than the other two shapes. Verify: the ruling is recorded in
       `docs/decision-log.md`.
+        > 2026-08-31 a ruling was reported from the dogfood session; unconfirmed here
 - [ ] T4 | T4 -- If T3 rules it stays, say at `reviewer-brief.md:425` that a
       small-remit role writes mostly scope declarations. Verify: that section
       names the cost.
 - [x] T5 | FINISHED | unknown | T5 -- NOT A TASK. *"Do not solve this by
       exempting a role from blocks outside its remit"* is a standing
       prohibition. Kept in full in the Objective.
+- [ ] T6 | Keep 'I read it and it belongs' distinct from 'I could not settle it'
+      in whatever wording replaces the outside-my-role query
+        > 2026-08-31 clean CERTIFIES and query ASKS; collapsing them trades down
+        > 2026-08-31 measured NECESSARY BUT NOT SUFFICIENT: it guards the wrong failure
+        > 2026-08-31 the role stopped ATTEMPTING settlement, which T6 does not describe
+- [ ] T7 | Reword clean as an ACTIVE assertion -- I checked the claims at my
+      scope and they hold -- rather than as the absence of a reason to speak
+        > 2026-08-31 placement-only wording made the role stop checking truth at all
