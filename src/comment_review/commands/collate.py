@@ -104,18 +104,31 @@ def _report(problems: list) -> None:
 
 
 def _load(path: str) -> tuple[dict, str]:
-    """Read one JSON object, or say why it could not be read."""
+    """Read one edit_copy off disk as a JSON object, or say why it is not one.
+
+    !! THE TWO FAILURES ARE SEPARATE STEPS, `decision-log.md Process: #67`.
+    Roy, 2026-08-31: moving the load out *"makes file io errors and malformed
+    json load dump errors an explicit different step in the flow so those can
+    be done without extra collisions."* The read is this function's; the decode
+    is `machine.json_object.object_of`'s; whether the object is an edit_copy is
+    `EditCopy.deserialize`'s, one step further along inside `collate`.
+
+    !! IT HELD ITS OWN `json.loads` AND ITS OWN DICT GUARD UNTIL `P43` -- the
+    second decode path in this file, beside the `object_of` call the binder
+    already went through. That is the duplication `object_of`'s own header
+    records being removed from the two readers, re-acquired one module over:
+    two spellings of *is this text an object*, in one command, disagreeing on
+    the wording of the refusal.
+
+    Returns:
+        `(the object, "")`, or `({}, reason)` naming the path.
+    """
     try:
         text = Path(path).read_text(encoding="utf-8")
     except exceptions.READ_ERRORS as err:
         return {}, f"cannot read {path}: {err}"
-    try:
-        got = json.loads(text)
-    except ValueError as err:
-        return {}, f"{path} is not JSON: {err}"
-    if not isinstance(got, dict):
-        return {}, f"{path} is a JSON {type(got).__name__}, not an object"
-    return got, ""
+    loaded, why = object_of(text, "edit_copy")
+    return ({}, f"{path} is {why}") if why else (loaded, "")
 
 
 def main() -> int:

@@ -58,7 +58,11 @@ def main() -> int:
         print(f"CANNOT READ ({type(e).__name__}) -- nothing written")
         return 2
     # !! THE LOAD IS THE FLOW'S, THE DESERIALIZE THE CONTAINER'S -- `Process:
-    # #67`. One `json.loads` in, one `json.dumps` out, both at this end.
+    # #67`. One decode in and one `json.dumps` out, both at this end.
+    # ! IT SAID "one `json.loads` in" UNTIL `P43`, and this file holds none:
+    # `machine.json_object.object_of` is the one decode, so that the read error
+    # above, the malformed-JSON refusal here and `Binder.deserialize`'s
+    # not-a-binder refusal below are three steps rather than one message.
     loaded, why = object_of(binder_text, "binder")
     if why:
         print(f"CANNOT READ THE BINDER: {why} -- nothing written")
