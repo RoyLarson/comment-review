@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 10 of 32 tasks closed
+Progress: 10 of 33 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
           collator's source-verification half is wired into the flow rather than split
           out, after a review measured containers with no production importer and
@@ -267,3 +267,8 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
         > 2026-08-31 read_from sits on a binder, an edit_copy and a master_proof
 - [ ] T32 | Update the compositor so a flow hands it the page, not
       results/compositor.py importing Page and page_for from the read end
+        > 2026-08-31 lossless and identity are flow-shaped -- path in, page built
+        > 2026-08-31 proof_setter already reaches flows.page_for; only these two do not
+- [?] T33 | Is binder/page.py a LEAF both ends may reach down to, or the read
+      end, given that Paragraph is already a leaf and both ends handle a Page?
+        > 2026-08-31 Page used by results, flows, commands, binder -- both ends
