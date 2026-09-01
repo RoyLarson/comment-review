@@ -286,6 +286,42 @@ for it. ! That is the same trap as *a purpose first stated in a review*, one lev
 the code produces the justification; here, the leftover field produces the design that then
 justifies it.
 
+### !! A FLOW REACHES INTO CONTAINERS. A CONTAINER DOES NOT REACH SIDEWAYS
+
+Roy, 2026-08-31: *"The flows can reach into the other containers to either create them or
+have them create themselves. This keeps things from having import circles and keeps a
+single definition for what a thing is."*
+
+| direction | example | allowed |
+| --- | --- | --- |
+| a FLOW into any container | `flows/distribute.py` builds an `EditCopy` from a `Binder` | **yes** -- this is what a flow is |
+| a container DOWN to a leaf | `binder` and `desk` both read `reading.series` | **yes** -- one definition, reached by both |
+| a container SIDEWAYS into another area's | `desk/collator.py` builds a `Docket` | **no** |
+
+!! **THE TWO HALVES OF THE REASON ARE SEPARATE AND BOTH BITE.** A cycle is the loud one and
+this tree has none today, measured 2026-08-31 by walking every `ImportFrom` in
+`src/comment_review/`. The quiet one is the DEFINITION: a module that builds another area's
+container has to know that container's rules, so the rules end up stated in two places and
+one of them goes stale. ! `series.py`'s header already argues this from the other side --
+the addresser and the lexer take their halves from one leaf *"instead of from each other"*.
+
+!! **AND `HAVE THEM CREATE THEMSELVES` IS THE OTHER HALF OF THE SENTENCE.** A flow may build
+a container from parts, or hand a container what it needs and let it construct itself. What
+it may not do is let a THIRD module do either. That is what keeps `deserialize` and the
+constructor answerable to one file.
+
+! **MEASURED 2026-08-31, three sideways reaches**, filed rather than fixed in passing:
+
+    desk/collator.py     builds Alteration, Schedule and Docket        `docket_from`
+    desk/containers.py   imports binder's PRIVATE `_read_from_problem`
+    results/compositor   imports `Page` and `page_for` from binder
+
+! **THE SECOND IS THE `SINGLE DEFINITION` HALF FAILING IN THE OTHER DIRECTION.** `read_from`
+is `{root, revise}` and it sits on a binder, on every `edit_copy` and on a `master_proof` --
+three areas -- while the one function that rules on its shape is private to `binder`. The
+definition IS single; it lives where only one of its three owners can reach it without
+crossing.
+
 ### !! FOLLOW THE FIELD TO WHAT FINALLY CONSUMES IT. COUNTING READERS IS NOT THAT
 
 **The test is mechanical and a stranger can run it: take each read, and ask what the LAST

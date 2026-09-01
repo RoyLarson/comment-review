@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 29 tasks closed
+Progress: 10 of 31 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -256,3 +256,11 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       folded to empty
         > 2026-08-31 Latent -- nothing writes a docket until P42/P43 wire the middle
         > 2026-08-31 Both shapes have tests pinning the producer; the reader is right
+- [ ] T30 | Update the docket so a flow assembles it, not
+      desk.collator.docket_from, which reaches sideways into another area to
+      construct Alteration, Schedule and Docket
+        > 2026-08-31 Roy 2026-08-31: flows reach into containers, containers do not
+- [ ] T31 | Move the read_from shape check off binder.binder, where it is
+      private, so the desk containers stop importing another area's underscore
+      name for a rule three areas own
+        > 2026-08-31 read_from sits on a binder, an edit_copy and a master_proof
