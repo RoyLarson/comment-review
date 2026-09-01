@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 13 of 41 tasks closed
+Progress: 14 of 41 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -307,5 +307,6 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
 - [x] T40 | Sheet holds Marks; the two other kinds are unruled and refused, both off the wire and both what the parse made of an entry rather than a copy of it. | b9ac7f8 | Update
       Sheet so marks holds Mark, with unruled and refused beside it, and every
       reader stops re-parsing
-- [ ] T41 | Implement flows/mark_errors.py, which collects every place a role
-      must revisit as addresses and reasons
+- [x] T41 | flows/mark_errors.py collects Sheet.unruled and Sheet.refused across a stage into addresses and reasons, grouped by the role that owes each place. | 0a0d856 | Implement
+      flows/mark_errors.py, which collects every place a role must revisit as
+      addresses and reasons
