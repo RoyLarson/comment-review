@@ -2504,3 +2504,37 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `commands/collate.py`. It is an internal record rather than a wire shape, and giving it a
   container is a NEW type, which `conventions.md` says needs its purpose named before the code.
   Filed rather than invented.
+
+- **#72.** **WHAT GOES BACK IS ADDRESSES AND REASONS, NEVER A REBUILT COPY** (Roy,
+  2026-09-01): *"I think the return is a list of addresses and a statement of what the parse
+  errors are for each address. The agents can find the marks in their remit and fix in their
+  stuff directly. No reason to try to duplicate or fill in the problems for them and have
+  disjointed what needs fixed."*
+
+  !! **IT ANSWERS `a-coverage-gap-should-go-back-to-the-reviewer` T1**, open since 2026-08-16:
+  *"RULE how the return happens: re-dispatch the reviewer with only the missed addresses, or
+  with the whole census."* Neither, exactly -- **only the missed addresses, and as a LIST
+  rather than as anything a role fills in**.
+
+  !! **THE REASON IS THE HALF I HAD WRONG, AND IT IS ABOUT WHERE THE WORK LIVES.** I proposed
+  emitting one `EditCopy` per role holding only the places needing work -- no new artifact
+  type, the role fills it the way it already knows. That is a SECOND copy of those marks. The
+  role's own edit_copy still holds the originals, so *what needs fixing* would then live in two
+  documents, and a role would be filling one while the other went stale. **A role has its
+  copy; it needs to be told WHERE and WHAT, not handed the places again.**
+
+  ! **SO THE ARTIFACT IS ALREADY ALMOST BUILT.** `desk.collator.Problem` is
+  `(role, address, message)` -- what goes back is those, grouped by address, with each
+  address's reasons together. Nothing about a mark is copied.
+
+  !! **AND IT SETTLES THE `Sheet.marks` QUESTION THAT WAS BLOCKED ON IT.** `#69`'s successor
+  question -- whether `Sheet.marks` can be `tuple[Mark, ...]` when a returned sheet holds ruled
+  marks, untouched slots and malformed entries -- turns on where the two non-`Mark` kinds go.
+  They go OUT, as addresses and reasons, rather than onto the sheet: so the sheet holds what
+  parsed, and the parse hands its refusals up with the address that owns each.
+
+  ! **WHAT IS STILL OPEN IS THE BOUND** -- T2 of the same file, *"with no bound, send it back
+  is a loop."* Roy, 2026-08-30, has half-answered it: *"we can tell the edit chief it can send
+  stuff back twice and trust that the agent gets it correct. It has to be an explicit step to
+  do so instead of a built in part of the flow."* The bound does not gate the artifact's
+  shape; it gates the send-back round.
