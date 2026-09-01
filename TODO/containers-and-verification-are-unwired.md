@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 14 of 41 tasks closed
+Progress: 14 of 42 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -292,6 +292,10 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
         > 2026-08-31 and serialize with no production caller -- collate's PROOF boundary
         > 2026-08-31 was the last one, and gather returns the container now. stage is
         > 2026-08-31 read only by serialize, so it fails P21's third clause.
+        > 2026-09-01 PROVISIONAL, not ruled -- Roy 2026-09-01: I think it does. The lean
+        > 2026-09-01 is that a master_proof IS written, and the reason it is only a lean
+        > 2026-09-01 is his own: we have not fully specified the intermediate stage
+        > 2026-09-01 artifacts and how that is resolved. This box stays open.
 - [-] T38 | SUPERSEDED -- Roy ruled 2026-09-01 that a seed is an intentional empty whose container writes the dict out, and fan is N seeds over N shards, so both are already right | 02a4af9 | Update
       flows.distribute.seed and flows.fan_out.fan to return EditCopy, so the
       command serializes what the flow hands back
@@ -310,3 +314,8 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
 - [x] T41 | flows/mark_errors.py collects Sheet.unruled and Sheet.refused across a stage into addresses and reasons, grouped by the role that owes each place. | 0a0d856 | Implement
       flows/mark_errors.py, which collects every place a role must revisit as
       addresses and reasons
+- [?] T42 | Decide what artifacts exist between the stages, and how each is
+      resolved
+        > 2026-09-01 Roy 2026-09-01, on why the master_proof question cannot be settled
+        > 2026-09-01 yet: we have not fully specified the intermediate stage artifacts
+        > 2026-09-01 and how that is resolved. T37 waits on this, not the other way.
