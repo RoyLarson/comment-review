@@ -589,6 +589,23 @@ class TestShardCoverage:
         assert "answered for 1 of 2 places" in got.coverage[0].message
         assert "missing m.py@b5" in got.coverage[0].message
 
+    def test_the_coverage_line_OPENS_with_the_missing_addresses(self):
+        """Roy, 2026-09-01: *"That way the potential address comes as soon as
+        possible."*
+
+        !! THE ORDER WAS UNPINNED, WHICH IS WHY THIS EXISTS. Both assertions
+        above use `in`, so reversing the sentence changed no test -- and this is
+        the one line in the report whose `address` field is empty, so the places
+        it names live only in the message. A reader scanning for somewhere to
+        look had to read past a count to reach them.
+        """
+        binder = two_places()
+        copies = copies_over(binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}})
+        got = collate("4c", [_keeping_only(copies[0], ["m.py@b1"])], binder, root=REPO)
+        message = got.coverage[0].message
+        assert message.startswith("missing m.py@b5"), message
+        assert message.index("missing") < message.index("answered for"), message
+
     def test_two_shards_of_one_role_cover_the_binder_between_them(self):
         """!! COMPARED PER COPY THIS REPORTS EVERY FAN-OUT SHARD AS INCOMPLETE.
         `unruled` and `tally` are keyed by role and clobber under fan-out; this

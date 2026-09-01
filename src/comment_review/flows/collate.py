@@ -612,13 +612,22 @@ def _coverage_problems(edit_copies: list[EditCopy], binder: Binder) -> list[Prob
     for role, carried in by_role.items():
         missing = sorted(known - carried)
         if missing:
+            # !! THE ADDRESSES LEAD, AND THE COUNT FOLLOWS. Roy, 2026-09-01:
+            # *"That way the potential address comes as soon as possible."* This
+            # is the ONE line in the report whose `address` field is empty --
+            # the finding is about the copy, so the places it names can only be
+            # in the message -- and a reader scanning for somewhere to look had
+            # to read past a count to reach them. Every other line opens with
+            # its place; this one now does too.
+            #
             # !! COUNTED OVER THE INTERSECTION, NOT OVER EVERYTHING RETURNED.
             # `carried` holds every address the role sent back, including any
             # the binder never held, so `len(carried)` can equal `len(known)`
-            # while something is still missing. MEASURED 2026-08-31: a role
-            # that dropped `m.py@b5` and invented `m.py@b9` against a two-place
-            # binder reported *"answered for 2 of 2 places -- missing
-            # m.py@b5"*, which contradicts itself on its own line.
+            # while something is still missing. MEASURED 2026-08-31, and quoted
+            # in the order it printed then: a role that dropped `m.py@b5` and
+            # invented `m.py@b9` against a two-place binder reported
+            # *"answered for 2 of 2 places -- missing m.py@b5"*, which
+            # contradicts itself on its own line.
             #
             # ! AN INVENTED ADDRESS IS NOT THIS FUNCTION'S TO REPORT.
             # `desk.collator.address_problems` answers that one, per mark, and
@@ -627,8 +636,8 @@ def _coverage_problems(edit_copies: list[EditCopy], binder: Binder) -> list[Prob
                 Problem(
                     role,
                     "",
-                    f"answered for {len(carried & known)} of {len(known)} "
-                    f"places -- missing {', '.join(missing)}",
+                    f"missing {', '.join(missing)} -- answered for "
+                    f"{len(carried & known)} of {len(known)} places",
                 )
             )
     return out
