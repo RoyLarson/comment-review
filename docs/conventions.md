@@ -286,41 +286,55 @@ for it. ! That is the same trap as *a purpose first stated in a review*, one lev
 the code produces the justification; here, the leftover field produces the design that then
 justifies it.
 
-### !! A FLOW REACHES INTO CONTAINERS. A CONTAINER DOES NOT REACH SIDEWAYS
+### !! NO DIRECT COUPLING BETWEEN THE ENDS AND THE MIDDLE. A FLOW IS NEITHER
 
-Roy, 2026-08-31: *"The flows can reach into the other containers to either create them or
-have them create themselves. This keeps things from having import circles and keeps a
-single definition for what a thing is."*
+Roy, 2026-08-31, in two sentences one after the other: *"The flows can reach into the other
+containers to either create them or have them create themselves. This keeps things from
+having import circles and keeps a single definition for what a thing is."* And then the
+rule those serve: *"No direct coupling inside of ends and middle, flows are neither they run
+the steps."*
 
-| direction | example | allowed |
+| | area | may import |
 | --- | --- | --- |
-| a FLOW into any container | `flows/distribute.py` builds an `EditCopy` from a `Binder` | **yes** -- this is what a flow is |
-| a container DOWN to a leaf | `binder` and `desk` both read `reading.series` | **yes** -- one definition, reached by both |
-| a container SIDEWAYS into another area's | `desk/collator.py` builds a `Docket` | **no** |
+| **READ END** | `binder` | a leaf |
+| **MIDDLE** | `desk` | a leaf |
+| **WRITE END** | `docket`, `results` | a leaf |
+| **NEITHER** | `flows`, `commands` | anything -- **they run the steps** |
+| **LEAF** | `machine`, `reading`, `concordance` | nothing above them |
 
-!! **THE TWO HALVES OF THE REASON ARE SEPARATE AND BOTH BITE.** A cycle is the loud one and
-this tree has none today, measured 2026-08-31 by walking every `ImportFrom` in
-`src/comment_review/`. The quiet one is the DEFINITION: a module that builds another area's
-container has to know that container's rules, so the rules end up stated in two places and
-one of them goes stale. ! `series.py`'s header already argues this from the other side --
-the addresser and the lexer take their halves from one leaf *"instead of from each other"*.
+!! **AN END OR THE MIDDLE REACHES DOWN, NEVER ACROSS.** Down to a leaf is one definition
+reached by two owners -- `binder` and `desk` both read `reading.series`, which is what
+`series.py`'s header describes: the addresser and the lexer take their halves from one leaf
+*"instead of from each other"*. Across is two areas that must then agree.
 
-!! **AND `HAVE THEM CREATE THEMSELVES` IS THE OTHER HALF OF THE SENTENCE.** A flow may build
-a container from parts, or hand a container what it needs and let it construct itself. What
-it may not do is let a THIRD module do either. That is what keeps `deserialize` and the
-constructor answerable to one file.
+!! **AND `HAVE THEM CREATE THEMSELVES` IS THE OTHER HALF.** A flow may build a container
+from parts, or hand a container what it needs and let it construct itself. What it may not
+do is let a THIRD module do either -- that is what keeps `deserialize` and the constructor
+answerable to one file.
 
-! **MEASURED 2026-08-31, three sideways reaches**, filed rather than fixed in passing:
+!! **THE TWO HALVES OF THE REASON ARE SEPARATE AND BOTH BITE.** A cycle is the loud one, and
+this tree has NONE today -- measured 2026-08-31 by walking every `ImportFrom` under
+`src/comment_review/`. The quiet one is the DEFINITION: a module that reaches across has to
+know the other area's rules, so the rules end up stated twice and one copy goes stale.
 
-    desk/collator.py     builds Alteration, Schedule and Docket        `docket_from`
-    desk/containers.py   imports binder's PRIVATE `_read_from_problem`
-    results/compositor   imports `Page` and `page_for` from binder
+! **MEASURED THE SAME DAY -- FOUR COUPLINGS**, filed rather than fixed in passing:
+
+    MIDDLE -> READ END    desk/collator.py      Binder, _read_from_problem
+    MIDDLE -> READ END    desk/containers.py    _read_from_problem
+    MIDDLE -> WRITE END   desk/collator.py      Alteration, Schedule, Docket
+    WRITE END -> READ END results/compositor.py Page, page_for
+
+!! **A TYPE IS COUPLING, NOT ONLY A CONSTRUCTOR.** `desk/collator.py` takes a `Binder` as a
+PARAMETER -- it never builds one -- and that is still the middle knowing what the read end's
+artifact is. What it actually needs is a set of addresses and a map of base texts, which the
+FLOW can derive and hand over. ! An earlier wording of this section called the fault
+*"sideways construction"* and so did not name this one at all.
 
 ! **THE SECOND IS THE `SINGLE DEFINITION` HALF FAILING IN THE OTHER DIRECTION.** `read_from`
 is `{root, revise}` and it sits on a binder, on every `edit_copy` and on a `master_proof` --
-three areas -- while the one function that rules on its shape is private to `binder`. The
-definition IS single; it lives where only one of its three owners can reach it without
-crossing.
+one at each end and one in the middle -- while the function that rules on its shape is
+PRIVATE to `binder`. The definition IS single; it lives where only one of its three owners
+can reach it without crossing.
 
 ### !! FOLLOW THE FIELD TO WHAT FINALLY CONSUMES IT. COUNTING READERS IS NOT THAT
 

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 31 tasks closed
+Progress: 10 of 32 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -260,7 +260,10 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       desk.collator.docket_from, which reaches sideways into another area to
       construct Alteration, Schedule and Docket
         > 2026-08-31 Roy 2026-08-31: flows reach into containers, containers do not
+        > 2026-08-31 Includes the Binder TYPE on collator, not only the construction
 - [ ] T31 | Move the read_from shape check off binder.binder, where it is
       private, so the desk containers stop importing another area's underscore
       name for a rule three areas own
         > 2026-08-31 read_from sits on a binder, an edit_copy and a master_proof
+- [ ] T32 | Update the compositor so a flow hands it the page, not
+      results/compositor.py importing Page and page_for from the read end
