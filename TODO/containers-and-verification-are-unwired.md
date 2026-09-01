@@ -276,6 +276,8 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       reader inside the lexer and was parked there to be one
         > 2026-08-31 Read by binder/annotate.py and concordance/code_names.py only
         > 2026-08-31 Same misplacement Paragraph was in; the comment states the motive
+        > 2026-08-31 annotate builds the KEY, code_names the index -- one predicate both
+        > 2026-08-31 code_names matches it on string constants only, not arg/alias/def
 - [ ] T35 | Move the one filesystem call out of binder/annotate.py, where a path
       existence check is IO outside machine
         > 2026-08-31 line 156 -- the only IO in binder/; picks UNVERIFIABLE or UNRESOLVE
