@@ -12,7 +12,7 @@ sacrifice rather than the property.
 """
 
 import pytest
-from conftest import REPLACEMENT, SAMPLE, build, by_cue
+from conftest import REPLACEMENT, SAMPLE, build, by_cue, cue
 
 from comment_review.machine import exceptions
 from comment_review.results.compositor import line_endings, set_page
@@ -97,7 +97,35 @@ FORMS = {
     "C block": ("m.c", "/* head */\nint a;\n"),
     "C line comment": ("m.c", "// note\nint a;\n"),
     "C both": ("m.c", "/* one */\n// two\nint a;\n"),
+    # !! A TRAILING BLOCK COMMENT THAT WRAPS -- code first, then an opener that
+    # runs on. Every block-comment case above puts the comment on its OWN line,
+    # so this shape was in no test in the suite until 2026-08-31, and it is the
+    # one `original_column` existed for: a single int can say where line 1's
+    # prose begins and has no slot for lines 2..N, which own themselves whole.
+    # `decision-log.md Process: #69`.
+    "C trailing block wrapped": (
+        "m.c",
+        "int x = 1; /* this comment\n"
+        "              wraps onto a second line\n"
+        "              and a third */\n"
+        "int y = 2;\n",
+    ),
+    "C trailing block one line": ("m.c", "int x = 1; /* note */\nint y = 2;\n"),
     "cpp": ("m.cpp", "// note\nint a = 1;\n"),
+    "rust trailing block wrapped": (
+        "m.rs",
+        "let x = 1; /* this comment\n"
+        "              wraps onto a second line */\n"
+        "let y = 2;\n",
+    ),
+    "java trailing block wrapped": (
+        "m.java",
+        "int x = 1; /* wraps\n              here */\nint y = 2;\n",
+    ),
+    "ts trailing block wrapped": (
+        "m.ts",
+        "const x = 1; /* wraps\n                here */\nconst y = 2;\n",
+    ),
     "rust doc": ("m.rs", "/// Doc.\npub fn f() {}\n"),
     "rust inner doc": ("m.rs", "//! Module doc.\npub fn f() {}\n"),
     "go": ("m.go", "// Doc.\nfunc f() {}\n"),
@@ -238,3 +266,64 @@ class TestAnEditedPageStillComposes:
 
     def test_the_sample_itself_round_trips_before_any_edit(self):
         assert set_page(build(SAMPLE)) == SAMPLE
+
+
+class TestAWrappedTrailingCommentIsONEPlace:
+    """!! THE SHAPE THAT SETTLED `original_column` -- `decision-log.md Process:
+    #69`. Roy, 2026-08-31: those fields *"don't have a way to identify how to
+    build or use a wrapped trailing comment. The Series/Cue system handles that
+    case piece-of-cake."*
+
+        int x = 1; /* this comment
+                      wraps onto a second line
+                      and a third */
+
+    ! IT WAS IN NO TEST IN THIS SUITE UNTIL 2026-08-31. Every block-comment case
+    above puts the comment on its OWN line, and the one fixture holding code
+    before an opener (`tests/test_proof_setter.py`) never reaches `page_for` --
+    it is a fingerprint input for an UNPROVABLE file. So the field's own
+    justifying case was untested, which is why nothing could notice it had
+    stopped being needed.
+    """
+
+    WRAPPED = (
+        "m.c",
+        "int x = 1; /* this comment\n"
+        "              wraps onto a second line\n"
+        "              and a third */\n"
+        "int y = 2;\n",
+    )
+
+    def test_the_whole_run_is_ONE_c_place(self):
+        """The cue names the place; how many lines it spans is the place's own
+        business. A per-line field would have to say something about each."""
+        name, text = self.WRAPPED
+        page = build(text, name)
+        trailing = [b for b in page if b.kind == "trailing-comment"]
+        assert len(trailing) == 1
+        (place,) = trailing
+        assert by_cue(page)[cue(place)] is place
+        assert cue(place).startswith("c")
+        assert len(place.raw_lines) == 3
+
+    def test_the_lines_after_the_first_own_themselves_WHOLE(self):
+        """What a single column cannot express: line 1 begins after code, and
+        lines 2..N are entire lines of the file."""
+        name, text = self.WRAPPED
+        (place,) = [b for b in build(text, name) if b.kind == "trailing-comment"]
+        lines = text.split("\n")
+        assert place.raw_lines[0] != lines[0]
+        assert place.raw_lines[0] in lines[0]
+        assert place.raw_lines[1:] == lines[1:3]
+
+    def test_the_SETTER_reconstructs_it_from_the_place_alone(self):
+        """! THE NECESSITY TEST, and it can fail: break the place's own lines
+        and the identity goes. What it proves is that the setter needs the
+        place and its lines, and nothing about where the first one started."""
+        name, text = self.WRAPPED
+        assert set_page(build(text, name)) == text
+
+        broken = build(text, name)
+        (place,) = [b for b in broken if b.kind == "trailing-comment"]
+        place.raw_lines = place.raw_lines[:1]
+        assert set_page(broken) != text

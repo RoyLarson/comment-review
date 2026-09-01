@@ -2406,3 +2406,48 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **AND THE FLOW ORCHESTRATES FROM THERE.** The edit_copies and the master_proof are built
   by the flow out of a binder's pages and their paragraphs, rather than from a parallel row
   type carried alongside them. Filed as `P47`.
+
+- **#69.** **`original_column` AND `declares` GO; THE SERIES/CUE SYSTEM SAYS IT BETTER** (Roy,
+  2026-08-31): *"We should drop them and rebuild them if they ever become necessary again.
+  Because while they might have done something, the Series cue system does it better, more
+  precisely, and is more flexible. This argument is what really puts the nail in the coffin,
+  those two things don't have a way to identify how to build or use a wrapped trailing
+  comment. The Series/Cue system handles that case piece-of-cake."*
+
+  !! **THE WRAPPED TRAILING COMMENT IS THE FALSIFIER, AND IT IS MEASURED.** A block comment
+  opening after code and running on:
+
+        int x = 1; /* this comment
+                      wraps onto a second line
+                      and a third */
+
+  MEASURED 2026-08-31 by running the reader over real files in four languages -- C, Rust,
+  Java, TypeScript -- each gives **one `c0` place, `original_column=11`, and 2-3 raw lines**.
+  ! **THE FIELD DESCRIBES THE FIRST LINE ONLY.** It is a single `int`; lines 2..N own
+  themselves whole and it has no slot for them. **The cue names the whole place whatever it
+  spans**, and `raw_lines` holds every line verbatim.
+
+  ! **AND THE ROUND TRIP IS BYTE-IDENTICAL WITHOUT THE FIELD BEING READ.**
+  `results/compositor.py` contains ZERO occurrences of either name, so the setter already
+  reconstructs the shape from the place and its lines. Roy: *"The way galley, and compositor
+  work doesn't need the information in that way anymore. What was potentially true then is
+  not true now."*
+
+  !! **WHAT MADE THEM LOOK NECESSARY WAS A CIRCULAR MEASUREMENT, AND IT IS WORTH RECORDING.**
+  Asked whether they were derivable, I compared each field against the ADDRESS and got 11,702
+  agreements with zero disagreements over this repo's own source -- and reported that as
+  evidence. **The address is computed FROM them**: `places_on` calls `code_lines`, which builds
+  its `beside` map out of `original_column`, and that map is what `cue()` emits every `c` from;
+  `attach` reads `declares` to pick which `a` a docstring documents. `b.address` is not
+  assigned until 400 lines later. ! **SO THE PROBE COMPARED EACH FIELD WITH SOMETHING DERIVED
+  FROM IT** -- `docs/gates.md`'s own case, arriving again: *"it rebuilt each file from the line
+  positions it had just read out of that file, so it could not disagree."*
+
+  ! **THE TEST THAT SHOWS NECESSITY IS NOT "IS IT READ", AND NOT "IS IT DERIVABLE".** It is
+  *what would be WRONG without it* -- and for a field that feeds construction, that means
+  asking whether the alternative exists AT THE MOMENT THE READER RUNS, then removing it and
+  checking an identity that has been shown able to FAIL.
+
+  ! **REBUILT IF EVER NECESSARY AGAIN.** Roy's own framing, and the reason this is a deletion
+  rather than a deprecation: a field kept against a future need is a field nothing can
+  justify today, and `conventions.md` asks every field to answer for itself now.
