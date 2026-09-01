@@ -45,7 +45,7 @@ from comment_review.reading.language import (
 # !! THE ROWS ARE A LEAF AND THIS IS ONE OF ITS TWO IMPORTERS -- see
 # `language.py`. Everything a language says about where its documentation sits is
 # stated there and read here; no module above this one asks a language anything.
-from comment_review.reading.series import Kind
+from comment_review.reading.series import Kind, Series, cue_for
 
 __all__ = [
     "BY_EXT",
@@ -126,7 +126,6 @@ class Paragraph:
     # AFTER its `def` and Rust's `///` sits BEFORE its `fn`, so position cannot
     # answer which declaration a doc belongs to and the addresser must not
     # guess. It reads this and names it `@aN`.
-    declares: int = -1
     # !! THE LINE THIS PLACE'S ANCHOR SITS ON, so an anchor's OTHER places can
     # be found: the `c` beside its `def`, the `b` above it, its own `a`.
     # Without it a consumer has to infer the line from the prose's position,
@@ -1491,7 +1490,11 @@ def document_declarations(
         previous = [n for n in above_code if n < held.original_start]
         over = held.original_start - previous[-1] - 1 if previous else below + 1
         if below <= over:
-            held.declares = ordinal
+            # ! THE CUE, NOT AN ORDINAL. This stamped `held.declares = ordinal`
+            # and `page.attach` turned it back into `a{n}` three calls later --
+            # `decision-log.md Process: #69`. The lexer knows WHICH declaration
+            # at this moment; the series is what says how to spell it.
+            held.address = cue_for(Series.DECLARED.value.letter, ordinal)
 
 
 def declarations(
@@ -1792,7 +1795,8 @@ def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
                 lines=len(raw),
                 text=re.sub(r"\s+", " ", doc).strip(),
                 anchor=getattr(node, "name", "<module>"),
-                declares=ordinal.get(id(node), 0),
+                # ! THE CUE, NOT AN ORDINAL -- see `flag_structural_docs`.
+                address=cue_for(Series.DECLARED.value.letter, ordinal.get(id(node), 0)),
                 anchor_line=getattr(node, "lineno", 0),
                 raw_lines=raw,
             )

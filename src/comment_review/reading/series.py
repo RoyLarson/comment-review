@@ -205,3 +205,33 @@ BY_KIND = {
     for kind in (s.value.present, s.value.absent)
     if kind is not None
 }
+
+
+def cue_for(series: str, step: int) -> str:
+    """The cue at one step of a series -- ONE expression, all four series.
+
+    ! NAMED FOR ITS DIRECTION, so it cannot collide with `cue()` again: this
+    BUILDS a cue from its parts, and `addresser.cue_of` takes one apart.
+
+    !! IT LIVES HERE, NOT IN `addresser`, SINCE 2026-08-31 -- `decision-log.md
+    Process: #69`. A cue is `f"{letter}{step}"`, which is what a SERIES is
+    lettered for and holds no notion of a place -- so the LEXER can build one
+    without importing the addresser, which this module's own header forbids:
+    *the addresser knows nothing of prose, the lexer knows nothing of places*.
+    ! That is what let `Paragraph.declares` go: the lexer stamps `a3` where it
+    used to stamp the bare ordinal `3` for something else to convert back.
+
+    !! A SKIPPED TRIGGER TAKES NO NUMBER, so every series starts at 0. Each
+    series owns its rule about what it skips and records and increments
+    independently: `c` does not emit for the MODULE and does not step past it
+    either, so its first line of code is `c0`. ! Reading it the other way --
+    that a series takes a number at every trigger it is offered -- burns `b0`
+    and starts `c` at 1.
+
+    !! NOTHING READS ONE CUE TO COMPUTE ANOTHER, and no cue follows from a
+    line's ordinal. Whether two series happen to line up on a given file is not
+    stated anywhere, deliberately: the edge cases where it breaks are not known,
+    and a reader told the numbers coincide will rely on it whatever the sentence
+    around it says.
+    """
+    return f"{series}{step}"

@@ -555,10 +555,16 @@ def attach(paragraph: dict, cues: "Cues") -> str:
     of them this prose is sitting in. Reversed -- a paragraph computing its own
     cue -- is how a place could exist only when prose happened to fill it.
 
-    ! Three facts decide it, each stated by a producer and none inferred from
-    the kind: a paragraph that DOCUMENTS a declaration takes that declaration's
-    `a`, one with a COLUMN sits beside code and takes that line's `c`, and
-    everything else holds a gap and takes the `b` for it.
+    ! TWO FACTS DECIDE IT, and neither is inferred from the kind alone: a
+    paragraph in the `c` SERIES sits beside code and takes that line's place,
+    and everything else holds a gap and takes the `b` for it.
+
+    !! IT WAS THREE UNTIL 2026-08-31, and the first was *a paragraph that
+    DOCUMENTS a declaration takes that declaration's `a`* -- read off a
+    `Paragraph.declares` ordinal and turned back into `a{n}` by
+    `Cues.documents` -> `Addresser.at` -> `cue_for`. **The lexer knows which
+    declaration at the moment it tags**, so it stamps the cue and this never
+    sees the paragraph. `decision-log.md Process: #69`.
 
     Args:
         paragraph: one census entry, as a dict.
@@ -567,9 +573,6 @@ def attach(paragraph: dict, cues: "Cues") -> str:
     Returns:
         The cue, or "" when the paragraph states no position to tie it to.
     """
-    declares = paragraph.get("declares", -1)
-    if isinstance(declares, int) and declares >= 0:
-        return cues.documents(declares)
     # ! FRONT MATTER IS THE FILE'S, so it takes `f0` wherever it sits. Asking
     # `above()` would give it the gap it happens to occupy, which is the gap
     # that introduces the first statement and belongs to that statement.
@@ -738,7 +741,6 @@ def empty_places(text: str, cues: Cues, occupied: set[str]) -> list[Paragraph]:
                     lines=0,
                     text="",
                     anchor=anchor,
-                    declares=int(cue_name[1:]),
                     original_start=None,
                     original_end=None,
                     address=cue_name,
@@ -1034,11 +1036,9 @@ def page_for(
             # run that is not at the top of a file is `comment` at an `a` place;
             # this makes the top-of-file one the same thing, rather than leaving
             # `matter` sitting on an `a`.
-            if (
-                b.kind == Kind.MATTER
-                and isinstance(b.declares, int)
-                and b.declares >= 0
-            ):
+            # ! ASKED OF THE CUE THE LEXER STAMPED. This read `b.declares >= 0`,
+            # which was the same question one field away -- `Process: #69`.
+            if b.kind == Kind.MATTER and b.address.startswith(DECLARED):
                 b.kind = Kind.COMMENT
             if b.kind == Kind.MATTER:
                 # ! HEAD OR FOOT, which is the whole of the mapping. The lexer
@@ -1047,7 +1047,20 @@ def page_for(
                 # it is the only comparison either side needs.
                 place = files[0] if b.original_start == 1 else files[-1]
             else:
-                place = attach(vars(b), cues)
+                # !! IT ALREADY KNOWS ITS PLACE, when the lexer could say so.
+                # A documenting run is stamped with its `a` cue at the moment
+                # the declaration it belongs to is identified -- the same
+                # reason an EMPTY place carries its own cue thirty lines
+                # below. `decision-log.md Process: #69`. ! `attach` answers
+                # for everything the lexer cannot place: a gap, and the room
+                # beside a line of code.
+                #
+                # ! THE PLACE MUST EXIST. `Addresser.at` refused a cue the
+                # walk never emitted -- a language whose record names no
+                # declaring keyword has no `a` series at all -- and that
+                # check is kept here rather than dropped with the lookup.
+                stamped = b.address if b.address in cues.places else ""
+                place = stamped or attach(vars(b), cues)
             b.address = address_for(here, place)
             b.anchor = cues.anchor_of(place, b.anchor)
         # !! EVERY PLACE PROSE DOES NOT FILL GETS A PARAGRAPH, in one loop over
