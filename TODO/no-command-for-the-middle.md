@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 10 tasks closed
+Progress: 4 of 11 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -71,7 +71,8 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       because the middle touches no files. Roy: *"the middle doesn't care if the
       pages have changed - it is not reading or writing to the pages at all."*
       The deletion is a task on `collator-defects.md`.
-- [ ] T8 | Implement the reporting of `Collated.unruled` and `Collated.tally` in
+- [x] T8 | commands/collate.py reports Collated.unruled as one routable Problem per place and returns COVERAGE for it, so a role that kept every slot and filled one no longer exits OK with the chief written. tally is still unreported and is its own task. | 3ffe334 | Implement
+      the reporting of `Collated.unruled` and `Collated.tally` in
       `commands/collate.py`, so a run names every place carried forward rather
       than counting only the settled ones. Verify: a one-role stage over three
       places where nothing was ruled names all three addresses and does not exit
@@ -90,3 +91,5 @@ Reconciliation has no command, so the chain cannot be driven end to end.
         > 2026-09-01 (collate); none writes a mark. reviewer-brief.md names no command
         > 2026-09-01 at all -- Process 41 emptied that section -- and tells a role to
         > 2026-09-01 FILL a record, which today means hand-writing the JSON.
+- [ ] T11 | Implement the one-line round summary from Collated.tally, or delete
+      tally if the report does not want it

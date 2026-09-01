@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 18 tasks closed
+Progress: 1 of 19 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `commands/collate.py` driven by
@@ -111,6 +111,9 @@ under `utf8_console()`.
       scope at that handler. Verify: a four-copy run whose third copy has no
       `read_from` prints that copy's path and its `role` field; today the
       message names no copy and a caller can only open all four.
+        > 2026-09-01 MEASURED 2026-09-01 through the CLI: 'block-context m.py@b1:
+        > 2026-09-01 m.py@b1: correct needs a reason'. _report prints Problem.address,
+        > 2026-09-01 and the message opens with it because the assembler passed where.
 - [ ] T8 | Implement a duplicate guard on `--edit-copy`, so the same path twice
       or two copies naming the same role is refused rather than folded twice.
       Verify: handing one copy holding a settled `move` twice is refused by
@@ -166,3 +169,5 @@ under `utf8_console()`.
 - [ ] T18 | Extend the run() helper in tests/test_collate_command.py so the
       seven tests that hand-roll its plumbing can use it
         > 2026-08-31 needs a pre-built copy list, extra argv, and the out path returned
+- [ ] T19 | Update _report or the Problem builders so an address is printed
+      once, not twice
