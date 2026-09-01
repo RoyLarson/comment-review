@@ -78,3 +78,4 @@ the middle-of-file half real work too.
       `paragraphs_lexical`. The filed wording is in the Objective.
 - [?] T5 | T5 -- * RULE whether a blank line ends a comment run in the MIDDLE of
       a file. Verify: the ruling is recorded in `docs/decision-log.md`.
+        > 2026-08-31 3 in this repo's own Python -- page.py b28, mark.py b27
