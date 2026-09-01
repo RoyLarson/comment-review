@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (123)
+### open  (124)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -305,6 +305,7 @@ that changed a published name or rule:
 | [collate-command-defects](collate-command-defects.md) | backend | -- | 1/18 | Sixteen defects in `commands/collate.py`, measured by running it |
 | [differences-defects](differences-defects.md) | backend | — | 0/10 | Ten defects in `results/differences.py`, none of them in its arithmetic |
 | [plans-name-no-todo-tasks](plans-name-no-todo-tasks.md) | systems | -- | 0/4 | Six 0.2.4 plans carry no heading naming the TODO tasks they close |
+| [index-and-glossary-for-roles](index-and-glossary-for-roles.md) | agents | -- | 0/1 | Hand a reviewer the name index and the glossary rather than leaving it to grep |
 
 ### in-progress  (19)
 
