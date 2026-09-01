@@ -26,6 +26,7 @@ import pytest
 from helpers import a_correct, a_drop, a_master_proof, a_move
 
 from comment_review.desk.collator import MalformedMark, docket_from, reconcile
+from comment_review.desk.containers import MasterProof
 from comment_review.docket.docket import Alteration, Docket
 from comment_review.flows.revise import _set_by
 from comment_review.machine.json_object import object_of
@@ -221,15 +222,26 @@ def test_the_docket_names_the_role_that_set_each_alteration():
 
 def test_a_null_sha_reads_as_ABSENT_not_the_word_None():
     """!! `.get("sha", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT. A sheet
-    carrying `"sha": null` reaches `desk.collator._real_pages` with the key
-    PRESENT and holding None, so `.get` returns None and `str(None)` is the
-    four-character word "None" -- the same class of defect `results/verdicts.py`
-    had over a null `verbatim`, which happened to render as text a cited line
-    really held. Here nothing would catch it: `docket.read`'s own `sha` check
-    only refuses an EMPTY string (line 77 above), so "None" would have passed
-    through as a plausible-looking sha."""
-    proof = a_master_proof({"block-context": {"m.py@b1": a_correct("m.py@b1")}})
-    proof["edit_copies"][0]["sheets"][0]["sha"] = None
+    carrying `"sha": null` arrives with the key PRESENT and holding None, so
+    `.get` returns None and `str(None)` is the four-character word "None" --
+    the same class of defect `results/verdicts.py` had over a null `verbatim`,
+    which happened to render as text a cited line really held. Nothing
+    downstream would catch it: the docket's own `sha` check refuses an EMPTY
+    string, so "None" would pass through as a plausible-looking sha.
+
+    !! THE FOLD MOVED AND THE END-TO-END CLAIM DID NOT, `P42`.
+    `desk.collator._real_pages` carried its own copy of it and now reads
+    `Sheet.sha`, which `Sheet.deserialize` already folded -- so the null goes
+    into the WIRE here and the assertion still lands on the docket. That is the
+    whole route a role's `"sha": null` travels, with one spelling of the rule in
+    it instead of two.
+    """
+    wire = a_master_proof(
+        {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
+    ).serialize()
+    wire["edit_copies"][0]["sheets"][0]["sha"] = None
+    proof, why = MasterProof.deserialize("4c", wire)
+    assert proof is not None, why
     docket = docket_from(reconcile(proof), proof)
     assert docket.schedules[0].sha == ""
 

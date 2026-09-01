@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 35 tasks closed
+Progress: 10 of 36 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -281,3 +281,8 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
 - [ ] T35 | Move the one filesystem call out of binder/annotate.py, where a path
       existence check is IO outside machine
         > 2026-08-31 line 156 -- the only IO in binder/; picks UNVERIFIABLE or UNRESOLVE
+- [ ] T36 | Implement a container for the Reconciled entry, or rule that it
+      stays a dict
+        > 2026-08-31 P42 left it deliberately: a new type needs its purpose
+        > 2026-08-31 named before the code -- conventions.md. _outcome builds it;
+        > 2026-08-31 _composition, _resolve and commands/collate.py read it by key.

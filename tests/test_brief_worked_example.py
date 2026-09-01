@@ -29,7 +29,7 @@ import sys
 
 import pytest
 from conftest import ROOT
-from helpers import a_binder_over
+from helpers import a_binder_over, returned
 
 from comment_review.commands.collate import main as collate_main
 from comment_review.desk.collator import problems_in, tally, unruled
@@ -61,6 +61,12 @@ def the_briefs_worked_example() -> dict:
 EXAMPLE = the_briefs_worked_example()
 #: The one mark that example carries.
 ENTRY = EXAMPLE["sheets"][0]["marks"][0]
+#: The same example through the boundary the flow runs it through -- what
+#: `problems_in`, `unruled` and `tally` take since `P42`. ! IT IS ALSO A CLAIM
+#: ABOUT THE BRIEF: the block a role is shown must parse as an `EditCopy`, and
+#: `returned` asserts that here rather than letting a malformed example reach
+#: the functions below as a surprising result.
+PARSED = returned(EXAMPLE, "the brief's example")
 
 
 def test_the_example_is_one_filled_mark():
@@ -86,14 +92,14 @@ def test_the_examples_mark_parses():
 def test_problems_in_counts_it_as_ONE_RULED_MARK():
     """!! THE ASSERTION THAT WOULD HAVE CAUGHT IT. `problems_in` returned
     `([], 0)` on this input -- no problems AND nothing ruled on."""
-    broken, ruled = problems_in(EXAMPLE)
+    broken, ruled = problems_in(PARSED)
     assert broken == []
     assert ruled == 1
-    assert unruled(EXAMPLE) == []
+    assert unruled(PARSED) == []
 
 
 def test_tally_names_the_instruction_the_brief_wrote():
-    assert tally(EXAMPLE) == {ENTRY["instruction"]: 1}
+    assert tally(PARSED) == {ENTRY["instruction"]: 1}
 
 
 def test_collate_reads_it_as_a_ruled_mark_and_reports_only_what_it_cannot_resolve(

@@ -2451,3 +2451,56 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **REBUILT IF EVER NECESSARY AGAIN.** Roy's own framing, and the reason this is a deletion
   rather than a deprecation: a field kept against a future need is a field nothing can
   justify today, and `conventions.md` asks every field to answer for itself now.
+
+- **#70.** **`annotate` BELONGS TO `concordance`, AND `SYMBOLISH` GOES WITH IT** (Roy,
+  2026-08-31): *"That also makes me want to move it to concordance because it is part of that
+  system, I think I said it probably ought to move and now I am certain it should move. It
+  does something necessary but in a Broken way."*
+
+  !! **IT IS ONE MOVE AND NOT TWO, BECAUSE THE TWO ENDS MATCH ON ONE PREDICATE.** `annotate`
+  builds the KEY -- is this backticked token from prose a name worth looking up -- and
+  `code_names` builds the INDEX. `SYMBOLISH` is what both match on, so if they disagreed about
+  what a name looks like a key could never hit. While its two readers sat in two areas it had
+  nowhere to live and was parked in `reading/lexer.py`, which had **no reader of it at all**.
+
+  ! **AND THE BROKEN HALF IS FILED, NOT PAPERED OVER.** `concordance/__init__.py` said of its
+  two members *"NEITHER is an IO operation and NEITHER knows what a page is"*; `annotate` is
+  both -- it mutates a `Paragraph` and calls `(repo / cited).exists()`. The package header now
+  says so, and `TODO/containers-and-verification-are-unwired.md` T35 holds the IO half.
+
+- **#71.** **THE MIDDLE CARRIES CONTAINERS BETWEEN THE LOAD AND THE SAVE** (Roy, 2026-08-31,
+  the standing spec of `#65` and `#67` applied to `desk` and `flows`): *"All flows in the
+  middle start with json.loads, the next step the container doing deserialize, then the
+  processing happens, then the output container does a serialize, and finally flow then writes
+  the output file through json.dumps. No raw dictionaries make it past either end."*
+
+  Landed as `P42`. `verify_report`, `problems_in`, `drift_in`, `unruled` and `tally` take an
+  `EditCopy`; `places`, `reconcile`, `_roles_of_stage`, `_real_pages` and `docket_from` take a
+  `MasterProof`; `desk.proof.gather` takes `EditCopy`s and RETURNS a `MasterProof`; and
+  `Collated.chief` is an `EditCopy` the command serializes at the write.
+
+  !! **WHAT A TYPE RETIRES IS NOT A GUARD BUT A WHOLE CLASS OF THEM.** Five spellings of one
+  walk -- `report.get("sheets")`, `isinstance(sheets, list)`, `sheet.get("marks") if
+  isinstance(sheet, dict)` -- went from `desk/collator.py` alone; so did `problems_in`'s three
+  header checks, `_real_pages`' hand-rolled sha fold (one of the five sites `Sheet.deserialize`
+  counted), `desk.collator.UnnamedRole`, `gather`'s `KeyError` on a missing `read_from`, and
+  the `MasterProof.deserialize` call `collate` made over `gather`'s own output.
+
+  ! **EACH OF THOSE WAS DEFENSIBLE DEPTH WHILE THE PARAMETER WAS A `dict`, and stops being so
+  when it is a container.** `TODO/galley-refusals-cannot-fire.md`'s rule is that a guard at the
+  boundary AND at the point of use is depth; what is not depth is a check no input can trip.
+  A `dict` parameter left a caller who could reach the function without the boundary. A typed
+  one does not.
+
+  !! **AND THE TESTS THAT WENT WITH THEM ARE NAMED WHERE THEY STOOD.** Eight cases asserted
+  states that can no longer be assembled -- three `UnnamedRole` refusals, `gather`'s `KeyError`,
+  the proof boundary reached by monkeypatching `gather`, `_reconcilable`'s `TypeError` and its
+  absent-`read_from` property, and `problems_in`'s copy-level missing `role`. **Each deletion
+  leaves a comment at the site saying what it measured and where the rule lives now**, and the
+  six-value `read_from` parametrize MOVED to `tests/test_containers.py` rather than going.
+
+  ! **WHAT IS STILL A RAW DICT IN THE MIDDLE IS THE `Reconciled` ENTRY** -- `{"address",
+  "roles", "marks"}`, built by `_outcome` and read by `_composition`, `_resolve` and
+  `commands/collate.py`. It is an internal record rather than a wire shape, and giving it a
+  container is a NEW type, which `conventions.md` says needs its purpose named before the code.
+  Filed rather than invented.

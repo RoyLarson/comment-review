@@ -14,10 +14,9 @@ test. Settle/escalate/reread come from Roy's own ruling, quoted on
 names, not whatever the function happens to return.
 """
 
-import pytest
 from helpers import a_clean, a_correct, a_master_proof, a_move, a_query, an_add
 
-from comment_review.desk.collator import UnnamedRole, places, reconcile
+from comment_review.desk.collator import places, reconcile
 from comment_review.desk.mark import Shape
 
 
@@ -188,44 +187,19 @@ def test_a_scope_declaring_query_does_not_block_the_other_roles():
     assert out.escalations == []
 
 
-def test_an_edit_copy_with_no_role_is_a_NAMED_refusal_when_two_marks_meet():
-    """Two marks at one place put two role names into one `sorted()`, so an
-    absent one aborted the whole stage with a bare `TypeError` -- an
-    interpreter message about `str` and `NoneType`, blaming nothing."""
-    proof = a_master_proof(
-        {
-            "block-context": {"m.py@b1": a_correct("m.py@b1", sentence=0)},
-            "module-context": {"m.py@b1": a_correct("m.py@b1", sentence=2)},
-        }
-    )
-    del proof["edit_copies"][1]["role"]
-    with pytest.raises(UnnamedRole):
-        reconcile(proof)
-
-
-def test_a_SINGLE_unnamed_role_refuses_rather_than_passing_silently():
-    """The other shape: with one role at the place nothing is ever compared,
-    so the run PASSED and carried `None` where every later reader expects the
-    role that set the text."""
-    proof = a_master_proof({"block-context": {"m.py@b1": a_correct("m.py@b1")}})
-    del proof["edit_copies"][0]["role"]
-    with pytest.raises(UnnamedRole):
-        reconcile(proof)
-
-
-def test_an_edit_copy_with_no_marks_at_all_still_needs_its_role():
-    """Asked of every copy before its sheets are read -- a copy holding no
-    ruled mark reaches the same refusal, so the check does not depend on where
-    a role happened to leave one."""
-    proof = a_master_proof(
-        {
-            "block-context": {"m.py@b1": a_correct("m.py@b1")},
-            "module-context": {},
-        }
-    )
-    del proof["edit_copies"][1]["role"]
-    with pytest.raises(UnnamedRole):
-        places(proof)
+#: !! THREE `UnnamedRole` CASES WERE DELETED HERE BY `P42`, and the deletion is
+#: the point rather than a gap. They each built a real proof and then did `del
+#: proof["edit_copies"][i]["role"]` -- reaching INTO the document to make a
+#: shape the parse would have refused. `places` and `reconcile` now take a
+#: `MasterProof`, whose every `EditCopy` carried a `role` before it could be
+#: constructed, so there is no value left to hand in and `UnnamedRole` is gone
+#: with them. The refusal itself did not move house: it is
+#: `tests/test_containers.py::TestAnEditCopyThatIsNotOne::
+#: test_an_edit_copy_with_no_role`, one boundary earlier.
+#: ! WHAT THEY MEASURED IS ON THE RECORD and is not being re-asserted here: a
+#: `sorted()` over two role names aborted the stage with a bare `TypeError`
+#: naming `str` and `NoneType`, and a SINGLE unnamed role passed silently
+#: carrying `None` to every later reader.
 
 
 def test_a_promoted_entry_names_the_role_and_mark_that_forced_it():

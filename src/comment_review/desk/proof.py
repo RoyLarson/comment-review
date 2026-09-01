@@ -1,6 +1,6 @@
 """The roles level: every `edit_copy` of one stage, gathered into one `master_proof`.
 
-    gather(stage, edit_copies)   {"stage": ..., "read_from": ..., "edit_copies": [...]}
+    gather(stage, edit_copies)   the `MasterProof` holding them
 
 !! THE LEVEL `binder` AND `docket` LACK, RULED 2026-08-29 (`decision-log.md
 Vocabulary: #28`):
@@ -20,7 +20,7 @@ container. This module is that container.
 to the `edit_copy` that seeded it, one level down.
 """
 
-from comment_review.desk.containers import MasterProof
+from comment_review.desk.containers import EditCopy, MasterProof
 
 
 class MismatchedRoot(Exception):
@@ -31,58 +31,50 @@ class MismatchedRoot(Exception):
     reconciled, because their addresses answer to different trees -- an `a0`
     from one tells nothing about the `a0` in the other.
 
-    ! IT COULD NOT FIRE FOR AN ABSENT FIELD, WHICH IS WHY `gather` SUBSCRIPTS.
-    Reading `copy.get("read_from", {})` made every copy that carried none agree
-    on `{}`, so a set of edit_copies that could not say which tree they were
-    censused from compared EQUAL and gathered without complaint. The absence is
-    now `flows.distribute.seed`'s own `KeyError`, one level further along.
+    ! AN ABSENT `read_from` IS NO LONGER THIS MODULE'S CASE AT ALL, since
+    2026-08-31. `gather` subscripted the key so an absence raised `KeyError`
+    rather than comparing every copy that carried none EQUAL on `{}`; taking an
+    `EditCopy` retires the question, because `EditCopy.deserialize` refuses a
+    copy whose `read_from` fails `_read_from_problem` before one can be built.
     """
 
 
-def gather(stage: str, edit_copies: list[dict]) -> dict:
+def gather(stage: str, edit_copies: list[EditCopy]) -> MasterProof:
     """Every `edit_copy` of one stage, as the master_proof that holds them.
 
     Args:
         stage: the stage label these edit_copies were dispatched under, e.g.
             `SKILL.md`'s `"4a"` or `"4c"`.
-        edit_copies: as `flows.distribute.seed` returns one -- one per role, or
-            one per shard under fan-out. Held in the order given: nothing is
-            sorted and nothing is dropped.
+        edit_copies: one per role, or one per shard under fan-out. Held in the
+            order given: nothing is sorted and nothing is dropped.
 
     Returns:
-        `{"stage": stage, "read_from": ..., "edit_copies": [...]}`.
-        `read_from` is taken from the first edit_copy, copied rather than
-        aliased -- matching `binder.bind`'s own rule for the same field, so a
-        caller mutating its own dict afterward cannot change what the
-        master_proof already holds. An empty `edit_copies` gathers to `{}`,
-        since there is no first copy to take it from.
+        The `MasterProof`. `read_from` is taken from the first edit_copy,
+        copied rather than aliased -- matching `binder.bind`'s own rule for the
+        same field, so a caller mutating its own dict afterward cannot change
+        what the master_proof already holds. An empty `edit_copies` gathers to
+        `{}`, since there is no first copy to take it from.
 
     Raises:
         MismatchedRoot: a later edit_copy's `read_from` disagrees with the
             first's -- naming both values.
-        KeyError: an edit_copy carries no `read_from` at all. `seed` writes the
-            field onto every copy it hands out and refuses a binder without
-            one, so a copy reaching here without it was not seeded or was
-            stripped after it was.
     """
     read_from: dict = {}
     for i, copy in enumerate(edit_copies):
-        this = copy["read_from"]
         if i == 0:
-            read_from = {**this}
-        elif this != read_from:
+            read_from = {**copy.read_from}
+        elif copy.read_from != read_from:
             raise MismatchedRoot(
-                f"edit_copy {i} ({copy.get('role', '?')!r}) was censused from "
-                f"{this!r}, disagreeing with the master_proof's {read_from!r}"
+                f"edit_copy {i} ({copy.role!r}) was censused from "
+                f"{copy.read_from!r}, disagreeing with the master_proof's "
+                f"{read_from!r}"
             )
-    # ! WRITTEN THROUGH THE TYPE since 2026-08-31 -- `decision-log.md Process:
-    # #64`.
-    #
-    # ! `read_from` IS COPIED TWICE, AND EACH COPY ANSWERS A DIFFERENT CALLER.
-    # The `{**this}` above keeps the LOOP from comparing a value it has aliased
-    # to the first copy's own dict; `MasterProof.seed` copies again so the
-    # proof cannot be changed through whatever the caller still holds. This
-    # comment claimed the second was the only one until 2026-08-31.
-    return MasterProof.seed(
-        stage=stage, read_from=read_from, edit_copies=list(edit_copies)
+    return MasterProof(
+        stage=stage,
+        # ! COPIED TWICE, AND EACH COPY ANSWERS A DIFFERENT CALLER. The
+        # `{**copy.read_from}` above keeps the LOOP from comparing a value it
+        # has aliased to the first copy's own dict; this one keeps the proof
+        # from being changed through whatever the caller still holds.
+        read_from={**read_from},
+        edit_copies=tuple(edit_copies),
     )

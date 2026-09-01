@@ -21,7 +21,6 @@ import sys
 from pathlib import Path
 
 from comment_review.binder.binder import Binder
-from comment_review.desk.collator import UnnamedRole
 from comment_review.desk.proof import MismatchedRoot
 from comment_review.flows.collate import CannotCollate, collate
 from comment_review.machine import exceptions
@@ -64,31 +63,25 @@ COVERAGE = 6
 #: The ways a stage cannot be reconciled at all, as against a mark that broke a
 #: rule. They mean the SET cannot be read, so none is routable back to one role
 #: the way a `Problem` is -- they exit `BROKEN` with the reason on stderr.
-#: !! `KeyError` WAS ADDED 2026-08-30. `problems_in` already reports a missing
-#: `read_from` as a `Problem`, but `collate()` called `desk.proof.gather`
-#: unconditionally afterward, and `gather` raises `KeyError` on
-#: `copy["read_from"]` by design -- its own `Raises:` calls this intentional.
-#: Uncaught, that `KeyError` escaped past this module's own promise that "a
-#: raise is not a refusal" -- `binder/binder.py`'s `_read_from_problem`
-#: docstring records the same defect, fixed once already, on the same field one
-#: step earlier in the chain.
-#: !! AND ALL THREE ARE UNREACHABLE FROM `collate` AS OF 2026-08-31 -- this said
-#: TWO of the three until a review counted them. The envelope parse reports a
-#: copy with no `role` and a copy with no `read_from` as `Problem`s before
-#: either raise is reached (`P21`, `decision-log.md Process: #57`); and
-#: `MismatchedRoot`, the implied survivor, cannot escape either, because
-#: `flows.collate.collate` wraps its only `gather` call and re-raises it as
-#: `CannotCollate`. Both mismatched-root tests go through THAT handler.
-#: ! SO A READER DEBUGGING A MISMATCHED ROOT WAS SENT HERE, to a clause that
-#: cannot run. They stay in the tuple because nothing guarantees a future caller
-#: cannot reach `places` or `gather` another way, and a catch that cannot fire
-#: is cheaper than the traceback if one does -- but the comment must not imply
-#: this is where such a run lands today.
+#: !! IT HELD THREE UNTIL `P42` AND NOW HOLDS ONE, because two of the three
+#: became unconstructable rather than merely unreached. `desk.collator
+#: .UnnamedRole` is DELETED -- `places` takes a `MasterProof`, whose copies each
+#: carry a `role` `EditCopy.deserialize` already required -- and `gather` no
+#: longer subscripts `read_from`, so the `KeyError` added 2026-08-30 has no
+#: raiser left. ! THAT `KeyError` WAS REAL WHEN IT WAS ADDED: `gather` raised it
+#: by design and, uncaught, it escaped past this module's own promise that "a
+#: raise is not a refusal".
+#: !! AND `MismatchedRoot` IS STILL UNREACHABLE FROM `collate`, which is a
+#: different fact and is why it stays: `flows.collate.collate` wraps its only
+#: `gather` call and re-raises it as `CannotCollate`, so both mismatched-root
+#: tests go through THAT handler. It remains catchable here because nothing
+#: guarantees a future caller cannot reach `gather` another way, and a catch
+#: that cannot fire is cheaper than the traceback if one does.
 #: ! `CannotCollate` CARRIES ITS OWN `problems` and is handled separately below,
 #: which is the whole point of it; it is deliberately NOT in this tuple.
 #: ! BOUND TO A NAME because no `except` in a shipped file holds a tuple
 #: literal; see `machine/exceptions.py`.
-RECONCILE_ERRORS = (UnnamedRole, MismatchedRoot, KeyError)
+RECONCILE_ERRORS = (MismatchedRoot,)
 
 
 def _report(problems: list) -> None:
@@ -220,11 +213,12 @@ def main() -> int:
         )
         return BROKEN
     except RECONCILE_ERRORS as err:
-        # ! `KeyError`'s own `str()` is only the missing key, repr'd -- naming
-        # the shape of the refusal rather than its cause, unlike `UnnamedRole`
-        # and `MismatchedRoot`, whose messages already say what went wrong.
-        why = f"a copy carries no {err}" if isinstance(err, KeyError) else str(err)
-        print(f"REFUSED: the proof could not be reconciled -- {why}", file=sys.stderr)
+        # ! THE REFUSAL'S OWN MESSAGE IS PRINTED AS IT STANDS. A `KeyError`
+        # branch stood here reading `f"a copy carries no {err}"`, because that
+        # exception's `str()` is only the missing key, repr'd -- naming the
+        # shape of a refusal rather than its cause. `gather` no longer raises
+        # one (`P42`), and `MismatchedRoot` already says what went wrong.
+        print(f"REFUSED: the proof could not be reconciled -- {err}", file=sys.stderr)
         return BROKEN
 
     _report(got.problems)
@@ -239,10 +233,13 @@ def main() -> int:
     if got.problems:
         return BROKEN
 
+    # !! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE FLOW'S --
+    # `decision-log.md Process: #65`, `#67`. `collate` returns an `EditCopy`
+    # since `P42`; the wire dict is made here, at the save, and nowhere between.
     Path(args.out).write_text(
-        json.dumps(got.chief, indent=2), encoding="utf-8", newline=""
+        json.dumps(got.chief.serialize(), indent=2), encoding="utf-8", newline=""
     )
-    resolved = sum(len(sheet["marks"]) for sheet in got.chief["sheets"])
+    resolved = sum(len(sheet.marks) for sheet in got.chief.sheets)
     print(f"{args.out}: {resolved} places resolved")
 
     # !! NAMED, NEVER COUNTED. Each carried-forward place prints its address

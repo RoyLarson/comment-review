@@ -29,6 +29,7 @@ from pathlib import Path
 from conftest import ROOT, cue
 
 from comment_review.binder.binder import VERSION, Binder, bind
+from comment_review.desk.containers import EditCopy, MasterProof, Sheet
 from comment_review.desk.mark import ANCHOR_EXAMPLE, INSTRUCTIONS, Instruction, Shape
 from comment_review.desk.proof import gather
 from comment_review.docket.docket import Docket
@@ -456,7 +457,46 @@ def a_copy_missing_its_sheets(binder: Binder, role: str = "block-context") -> di
     return copy
 
 
-def a_master_proof(by_role: dict) -> dict:
+def marks_of(sheet: Sheet) -> list[dict]:
+    """One sheet's entries, each asserted to be an object.
+
+    ! `Sheet.marks` IS `tuple[object, ...]` DELIBERATELY -- an entry that is not
+    an object is CARRIED so `desk.mark.parse` can refuse it by name. A test
+    reading a FIELD off an entry is asserting about a well-formed one, so this
+    asserts that first and fails HERE rather than at the subscript.
+    """
+    for entry in sheet.marks:
+        assert isinstance(entry, dict), entry
+    return [entry for entry in sheet.marks if isinstance(entry, dict)]
+
+
+def entries_of(copy: EditCopy) -> list[dict]:
+    """Every mark entry on a copy, flattened, in sheet then mark order.
+
+    ! IT REPLACES `[m for s in got.chief.sheets for m in s.marks]`, which stood
+    at thirteen sites in `tests/test_collate.py` alone.
+    """
+    return [entry for sheet in copy.sheets for entry in marks_of(sheet)]
+
+
+def returned(wire: dict, where: str = "copy") -> EditCopy:
+    """One returned edit_copy, PARSED -- what the middle takes since `P42`.
+
+    A test builds the wire dict a role hands back -- `flows.distribute.seed`,
+    then whatever the case writes into a slot -- and this is the boundary
+    `flows.collate.collate` runs it through before `problems_in`,
+    `verify_report`, `drift_in`, `unruled` or `tally` sees it.
+
+    ! IT ASSERTS THE PARSE SUCCEEDED, so a fixture that has quietly stopped
+    being a well-formed copy fails HERE, naming the field, rather than as a
+    surprising result from the function under test.
+    """
+    copy, why = EditCopy.deserialize(where, wire)
+    assert copy is not None, why
+    return copy
+
+
+def a_master_proof(by_role: dict) -> MasterProof:
     """A `master_proof`, composed through the real `seed()` and `gather()`.
 
     Args:
@@ -465,21 +505,27 @@ def a_master_proof(by_role: dict) -> dict:
             `an_add`.
 
     Returns:
-        `{"stage": ..., "read_from": ..., "edit_copies": [...]}`, as
-        `desk.proof.gather` returns it. One `edit_copy` per role, seeded for
-        real over a synthetic binder sized to that role's own addresses, then
-        each seeded entry overlaid with the caller's mark -- the same
-        `entry.update(...)` pattern `tests/test_collator.py` uses over a real
-        one.
+        The `MasterProof` `desk.proof.gather` returns. One `edit_copy` per
+        role, seeded for real over a synthetic binder sized to that role's own
+        addresses, then each seeded entry overlaid with the caller's mark --
+        the same `entry.update(...)` pattern `tests/test_collator.py` uses over
+        a real one.
+
+    ! IT RUNS THE REAL PARSE BETWEEN THE TWO, exactly as `flows.collate.collate`
+    does since `P42`: `seed` writes the wire dict a role is handed, and `gather`
+    takes the parsed `EditCopy`. A fixture that skipped the parse would hand
+    `gather` a shape production cannot produce.
     """
     copies = []
     for role, marks_by_address in by_role.items():
-        copy = seed(_synthetic_binder(list(marks_by_address)), role)
-        for sheet in copy["sheets"]:
+        wire = seed(_synthetic_binder(list(marks_by_address)), role)
+        for sheet in wire["sheets"]:
             for entry in sheet["marks"]:
                 mark = marks_by_address.get(entry["address"])
                 if mark is not None:
                     entry.update(mark)
+        copy, why = EditCopy.deserialize(role, wire)
+        assert copy is not None, why
         copies.append(copy)
     return gather("4c", copies)
 

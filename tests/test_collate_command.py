@@ -170,20 +170,19 @@ class TestExitCodes:
     def test_a_copy_with_no_role_exits_one_naming_the_reason(
         self, tmp_path, monkeypatch, capsys
     ):
-        """`desk.collator.UnnamedRole`, raised by `places()` inside
-        `flows.collate.collate` itself -- NOT the `problems_in` door.
+        """The CLI's answer to a copy that names no role: exit 1, say so,
+        write nothing.
 
-        !! `problems_in` ALSO reports a missing `role` as a copy-level
-        `Problem`, which alone would exit 1 without ever reaching
-        `collate`'s raise -- exactly the wrong-door failure this test must
-        not repeat. Proof this reaches the raise: `collate()` calls
-        `problems_in` first (accumulating that `Problem`) but does not branch
-        on it before calling `gather` and `reconcile` unconditionally, so a
-        role-less copy still reaches `places()` and raises -- the exception
-        aborts `collate()` before it ever returns a `Collated` for
-        `got.problems` to be checked at all. Confirmed by running this test
-        BEFORE the `RECONCILE_ERRORS` fix: it failed with an uncaught
-        `UnnamedRole`, not an assertion failure -- see the report.
+        !! THE DOOR MOVED TWICE AND THIS TEST DID NOT. It was written against
+        `desk.collator.UnnamedRole`, raised by `places()` inside `collate` --
+        `problems_in` also reported a missing `role`, but nothing branched on
+        that before `gather` and `reconcile` ran, so a role-less copy reached
+        `places()` and the raise aborted `collate` before it could return a
+        `Collated` at all. Then `P21` made the envelope parse report it as a
+        `Problem` first, and `P42` deleted `UnnamedRole` outright. ! WHAT THE
+        TEST ASSERTS -- the exit code, the reason on the reader's screen, and
+        no chief copy on disk -- is the same claim through all three, which is
+        why it is a CLI test and not a test of whichever door is current.
         """
         binder = a_binder_over({"m.py@b1": BASE})
         copies = copies_over(
@@ -213,9 +212,9 @@ class TestExitCodes:
         assert code == 1
         # !! IT MOVED FROM stderr TO stdout ON 2026-08-31, and the exit code did
         # not. The envelope parse reports a copy with no `role` as a `Problem`
-        # rather than letting `places` raise `UnnamedRole` -- `P21`,
-        # `decision-log.md Process: #57`. A refusal that raises empties the
-        # report for every OTHER role, which is what the report path fixes.
+        # rather than letting a raise carry it -- `P21`, `decision-log.md
+        # Process: #57`. A refusal that raises empties the report for every
+        # OTHER role, which is what the report path fixes.
         assert "role" in out.out.lower()
         assert not (tmp_path / "chief.json").exists()
 

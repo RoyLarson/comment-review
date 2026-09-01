@@ -2,10 +2,13 @@
 
     collate(stage, edit_copies, binder, root) -> Collated
 
-Twelve acts, in the order the body runs them:
+Eleven acts, in the order the body runs them:
 
     ENVELOPE   is each document the shape a copy must be --
-               `desk.containers.EditCopy.deserialize`. Reported, never raised
+               `desk.containers.EditCopy.deserialize`. Reported, never raised.
+               !! IT IS THE ONLY PARSE IN THE FLOW, and what it returns is what
+               every act below reads -- `P42`. No step re-derives a walk over
+               the raw documents, and nothing past this line holds one
     CHECK      every copy's marks, stacked -- `desk.collator.problems_in`,
                over the copies ENVELOPE admitted. ! ONLY AN *ENVELOPE* FAILURE
                RETURNS EARLY. A malformed MARK is reported and the round goes
@@ -22,8 +25,6 @@ Twelve acts, in the order the body runs them:
     DROP       every mark `CHECK` already reported, from what `RECONCILE`
                sees -- `_reconcilable`
     GATHER     `desk.proof.gather` -- the master_proof
-    PROOF      is that master_proof the shape a proof must be --
-               `desk.containers.MasterProof.deserialize`, on ENVELOPE's terms
     PLACE      `desk.collator.places` -- marks grouped by the place they touch
     RECONCILE  `desk.collator.reconcile` -- settled, escalated, re-read
     RESOLVE    the automatic resolutions -- `_resolve`
@@ -35,6 +36,8 @@ Twelve acts, in the order the body runs them:
 COVERAGE before CHECK, which is the reverse of what runs, and folded
 `MasterProof.deserialize` into ENVELOPE at position one when it is called after
 GATHER -- so a reader using it to find a stage landed in the wrong place twice.
+! IT HELD A TWELFTH ACT, `PROOF`, UNTIL `P42` retired it: `gather` returns a
+`MasterProof` rather than a dict, so there is no document left to rule on.
 
 !! THE RESOLUTIONS SIT DOWNSTREAM OF `reconcile`, WHICH IS UNTOUCHED.
 `desk.collator.Reconciled` is the INTERMEDIATE -- `decision-log.md
@@ -162,7 +165,7 @@ class Collated:
             re-derives it. Empty where no move resolved.
     """
 
-    chief: dict
+    chief: EditCopy
     problems: list[Problem] = field(default_factory=list)
     drift: list[Problem] = field(default_factory=list)
     coverage: list[Problem] = field(default_factory=list)
@@ -398,7 +401,9 @@ def _move_order(resolved: dict[str, Mark]) -> tuple[list[str], list[str]]:
     return out, []
 
 
-def _chief_copy(read_from: dict, resolved: dict[str, Mark], proof: MasterProof) -> dict:
+def _chief_copy(
+    read_from: dict, resolved: dict[str, Mark], proof: MasterProof
+) -> EditCopy:
     """The copy chief's `edit_copy` -- one mark per resolved place.
 
     !! ONLY RESOLVED PLACES GET AN ENTRY. `desk.mark.untouched` means NOBODY
@@ -468,7 +473,8 @@ def _chief_copy(read_from: dict, resolved: dict[str, Mark], proof: MasterProof) 
                 paths.append(sheet.path)
                 shas[sheet.path] = sheet.sha
 
-    sheets: dict[str, dict] = {}
+    marks_of: dict[str, list[object]] = {}
+    shas_of: dict[str, str] = {}
     seen: set[int] = set()
     for mark in resolved.values():
         if id(mark) in seen:
@@ -476,20 +482,23 @@ def _chief_copy(read_from: dict, resolved: dict[str, Mark], proof: MasterProof) 
         seen.add(id(mark))
         addr = cue_of(mark.address)
         real = unflatten(addr.path, paths) or addr.path
-        sheet = sheets.setdefault(
-            real, Sheet.seed(path=real, sha=shas.get(real, ""), marks=[])
-        )
-        sheet["marks"].append(mark.serialize())
-    # ! WRITTEN THROUGH THE TYPES since 2026-08-31 -- `decision-log.md Process:
-    # #64`, and it matters most here: the chief's copy is an ordinary
-    # `EditCopy`, so the one place that BUILDS a copy from scratch rather than
-    # from a binder is the one a rename would leave writing the old key.
-    return EditCopy.seed(
-        role="copy-chief", read_from=read_from, sheets=list(sheets.values())
+        shas_of.setdefault(real, shas.get(real, ""))
+        marks_of.setdefault(real, []).append(mark.serialize())
+    # ! BUILT AS THE CONTAINER, NOT AS THE WIRE DICT, since `P42`. It is the one
+    # place that BUILDS a copy from scratch rather than from a binder, so it is
+    # the one a rename would otherwise leave writing the old key -- which is
+    # what `EditCopy.seed` answered while this returned a dict.
+    return EditCopy(
+        role="copy-chief",
+        read_from={**read_from},
+        sheets=tuple(
+            Sheet(path=real, sha=shas_of[real], marks=tuple(mine))
+            for real, mine in marks_of.items()
+        ),
     )
 
 
-def _reconcilable(copy: dict) -> dict:
+def _reconcilable(copy: EditCopy) -> EditCopy:
     """This role's edit_copy with every malformed mark dropped.
 
     !! FORCED BY THE TESTS, NOT IN THE ORIGINAL BRIEF. `desk.collator.places`
@@ -522,63 +531,54 @@ def _reconcilable(copy: dict) -> dict:
     address are already captured in `Collated.problems` by the time this
     drops the entry from what `reconcile` sees.
 
-    !! AND IT IS NOT WRITTEN THROUGH `EditCopy.seed`, WHICH THE REST OF THIS
-    MODULE IS. `Process: #64` puts the write half with the read half at every
-    site that BUILDS a container; this one FILTERS an existing one, and the
-    difference is load-bearing. MEASURED 2026-08-31, when it was written that
-    way for one commit: `EditCopy.seed` requires every declared field, so a
-    copy carrying no `read_from` came out holding `{}` -- and `desk.proof.gather`
-    subscripts that key precisely so an absent one raises. Its own docstring
-    records the same defect being closed there: *"Reading `copy.get("read_from",
-    {})` made every copy that carried none agree on `{}`."*
-    `tests/test_collate_command.py::TestExitCodes::
-    test_a_copy_missing_read_from_exits_one_not_a_traceback` is what failed.
-
-    ! `collate` CAN NO LONGER REACH THIS FUNCTION WITH THE FIELD MISSING, since
-    the envelope parse landed the same day and reports it one step earlier. The
-    rule still binds the function, so it is asserted on the function itself --
-    `tests/test_collate.py::TestTheStackedCheck::
-    test_reconcilable_preserves_an_absent_read_from`.
-
-    ! SO THE UPDATE FORM PRESERVES AN ABSENCE, and a producer cannot. A field
-    this function fabricates is a field the boundary below it can no longer
-    refuse.
+    !! IT REBUILDS THE CONTAINER RATHER THAN WRITING THE WIRE DICT, and the
+    difference stopped mattering with `P42`. While this took a dict it could
+    not go through `EditCopy.seed`: that producer requires every declared
+    field, so a copy carrying no `read_from` came out holding `{}` -- the
+    absence fabricated into a value, which is what `desk.proof.gather`
+    subscripted the key to refuse. A parsed `EditCopy` has no such state to
+    preserve: `EditCopy.deserialize` refuses a copy whose `read_from` is
+    missing or malformed, so there is no absence left for a producer here to
+    erase.
 
     Returns:
-        A NEW edit_copy dict -- new `sheets` and `marks` lists -- so the
+        A NEW `EditCopy` -- new `Sheet`s and new `marks` tuples -- so the
         caller's own containers are never mutated.
-
-        ! IT NO LONGER PASSES A MALFORMED SHEET THROUGH, because one cannot
-        reach it: `collate` parses every copy at its boundary first, and a copy
-        whose sheets are not the shape a sheet must be never gets this far.
     """
-    sheets = []
-    for sheet in copy.get("sheets", []):
-        marks = []
-        # ! THE SHEET SHAPE IS THE ENVELOPE'S, NOT THIS FUNCTION'S, since
-        # 2026-08-31. `EditCopy.deserialize` decides that a sheet is a dict with a
-        # `marks` list before `collate` reaches here; the pass-through branch
-        # that used to stand in for it was the second definition `P21` removes.
-        #
-        # ! AN ENTRY IS STILL CHECKED, AND THAT IS NOT THE SAME QUESTION.
-        # `Sheet.marks` is typed `tuple[object, ...]` deliberately -- an entry
-        # that is not an object is CARRIED so `desk.mark.parse` can refuse it by
-        # name, which is exactly what this loop then does.
-        for entry in sheet["marks"]:
-            if not isinstance(entry, dict):
-                continue
-            if untouched(entry):
-                marks.append(entry)
-                continue
-            where = str(entry.get("address") or "a mark")
-            mark, _why = Mark.deserialize(where, entry)
-            if mark is not None:
-                marks.append(entry)
-        sheets.append({**sheet, "marks": marks})
-    return {**copy, "sheets": sheets}
+    return EditCopy(
+        role=copy.role,
+        read_from={**copy.read_from},
+        sheets=tuple(
+            # ! AN ENTRY IS CHECKED AND THE SHEET IS NOT. `Sheet.marks` is
+            # typed `tuple[object, ...]` deliberately -- an entry that is not
+            # an object is CARRIED so `desk.mark.parse` can refuse it by name,
+            # which is exactly what `_keeps` then does.
+            Sheet(path=sheet.path, sha=sheet.sha, marks=tuple(_keeps(sheet)))
+            for sheet in copy.sheets
+        ),
+    )
 
 
-def _nothing_settled() -> dict:
+def _keeps(sheet: Sheet) -> list[object]:
+    """This sheet's entries, minus every one `desk.mark.parse` refuses.
+
+    An untouched slot is kept: nobody wrote there, which `places` skips on its
+    own terms rather than as a malformed mark.
+    """
+    out: list[object] = []
+    for entry in sheet.marks:
+        if not isinstance(entry, dict):
+            continue
+        if untouched(entry):
+            out.append(entry)
+            continue
+        mark, _why = Mark.deserialize(str(entry.get("address") or "a mark"), entry)
+        if mark is not None:
+            out.append(entry)
+    return out
+
+
+def _nothing_settled() -> EditCopy:
     """The chief's copy for a round that folded nothing.
 
     ! ONE SPELLING, TWO EXITS. `collate` returns early twice -- a copy that is
@@ -586,10 +586,10 @@ def _nothing_settled() -> dict:
     this literal out again. *A round that settled nothing* is one fact, and two
     hand-written copies of it are two places for the sentinel to drift apart.
     """
-    return EditCopy.seed(role="copy-chief", read_from={}, sheets=[])
+    return EditCopy(role="copy-chief", read_from={}, sheets=())
 
 
-def _coverage_problems(edit_copies: list[dict], binder: Binder) -> list[Problem]:
+def _coverage_problems(edit_copies: list[EditCopy], binder: Binder) -> list[Problem]:
     """One `Problem` per role whose copies do not carry the binder's addresses.
 
     !! `flows.fan_out.fan` REFUSES AT THE DISPATCH AND NOTHING READ THE RETURN.
@@ -630,15 +630,17 @@ def _coverage_problems(edit_copies: list[dict], binder: Binder) -> list[Problem]
         return []
     by_role: dict[str, set[str]] = {}
     for copy in edit_copies:
-        role = str(copy.get("role") or "")
-        carried = by_role.setdefault(role, set())
-        for sheet in copy.get("sheets", []):
+        carried = by_role.setdefault(copy.role, set())
+        for sheet in copy.sheets:
             # ! THE ENTRY IS CHECKED AND THE SHEET IS NOT. The envelope decides
             # the sheet; `Sheet.marks` deliberately carries an entry that is not
             # an object, so that one is this function's own question.
-            for entry in sheet["marks"]:
-                if isinstance(entry, dict) and isinstance(entry.get("address"), str):
-                    carried.add(entry["address"])
+            for entry in sheet.marks:
+                if not isinstance(entry, dict):
+                    continue
+                address = entry.get("address")
+                if isinstance(address, str):
+                    carried.add(address)
     out: list[Problem] = []
     for role, carried in by_role.items():
         missing = sorted(known - carried)
@@ -700,9 +702,10 @@ def collate(
     `reconcile` runs, so the raise `places` itself still documents cannot fire
     from here.
 
-    ! NEITHER DOES `desk.collator.UnnamedRole`, since 2026-08-31. It was listed
-    here as *"the one way `places` still refuses"*; the envelope parse now names
-    a copy with no `role` as a `Problem` and returns before `places` is called.
+    ! `desk.collator.UnnamedRole` IS GONE ENTIRELY, `P42`. It was listed here as
+    *"the one way `places` still refuses"*, then as unreachable once the
+    envelope parse named a copy with no `role` as a `Problem`; `places` takes a
+    `MasterProof` now, so the state it refused cannot be assembled at all.
 
     !! THE ENVELOPE IS PARSED FIRST, AND A FAILURE IS REPORTED RATHER THAN
     RAISED -- `P21`, `decision-log.md Process: #57`. **What the two boundaries
@@ -741,19 +744,23 @@ def collate(
     # no `role` before it can name one, and `Problem` needs a role to route on --
     # so the copy's position stands in, which a reader can act on where "" cannot.
     # ENVELOPE -- is each document a copy at all.
+    #
+    # !! AND WHAT IT PRODUCES IS WHAT EVERY LATER STEP READS, since `P42`. The
+    # raw documents are not carried past this loop: `copies` is the parsed list,
+    # and nothing below re-derives `.get("sheets")` or folds a sha by hand.
     envelope: list[Problem] = []
-    are_copies: list[dict] = []
-    for i, copy in enumerate(edit_copies, 1):
+    copies: list[EditCopy] = []
+    for i, document in enumerate(edit_copies, 1):
         where = f"copy {i}"
-        parsed, why = EditCopy.deserialize(where, copy)
+        parsed, why = EditCopy.deserialize(where, document)
         if why:
-            named = copy.get("role") if isinstance(copy, dict) else None
+            named = document.get("role") if isinstance(document, dict) else None
             envelope += [
                 Problem(named if filled(named) else where, "", message)
                 for message in why
             ]
         if parsed is not None:
-            are_copies.append(copy)
+            copies.append(parsed)
 
     # CHECK -- what each role wrote in each slot.
     #
@@ -769,21 +776,21 @@ def collate(
     # with no `sheets`, which both boundaries answer -- and that is the
     # duplication `Problem` exists to avoid, stated at `desk.collator.drift_in`.
     # A document that is not a copy has no contents to rule on.
-    for copy in are_copies:
+    for copy in copies:
         found, _ruled = problems_in(copy)
         problems += found
 
     if envelope:
         return Collated(chief=_nothing_settled(), problems=envelope + problems)
 
-    coverage = _coverage_problems(edit_copies, binder)
+    coverage = _coverage_problems(copies, binder)
 
     # ! ONE CACHE FOR THE WHOLE STAGE, not one per copy. Roles cite the same
     # evidence, and a cache built inside `verify_report` re-read a file once per
     # citing role -- four reads of one line for four roles, measured 2026-08-31.
     cache: Cache = {}
 
-    for copy in edit_copies:
+    for copy in copies:
         # ! `problems_in` ALREADY RAN, in the envelope pass above. It is the one
         # check that must happen for a copy the fold will not reach, so it lives
         # there rather than here; running it again would report every malformed
@@ -803,38 +810,30 @@ def collate(
         # settling a citation means. Roy, 2026-08-30, on exactly this call.
         problems += verify_report(copy, binder, root, cache)
         drift += drift_in(copy, base)
-        role = str(copy.get("role") or "")
-        left[role] = unruled(copy)
-        counts[role] = tally(copy)
+        left[copy.role] = unruled(copy)
+        counts[copy.role] = tally(copy)
 
     # !! THE REFUSAL CARRIES WHAT THE PASS ALREADY FOUND. Everything above this
     # line accumulated `Problem`s into a local list; a bare raise from here
     # discards all of them, which `commands/collate.py` was measured doing on
     # 2026-08-30 -- exit 1 with an EMPTY stdout. See `CannotCollate`.
     try:
-        proof = gather(stage, [_reconcilable(copy) for copy in edit_copies])
+        proof = gather(stage, [_reconcilable(copy) for copy in copies])
     except MismatchedRoot as err:
         raise CannotCollate(str(err), problems) from err
-    # !! THE PROOF IS PARSED AT ITS OWN BOUNDARY, the same rule one level up --
-    # `P21`, `Process: #57`. `gather` builds it and nothing stated what a proof
-    # IS before `reconcile` walked it. ! IT REPORTS AND RETURNS EARLY, exactly
-    # as the copy boundary above does; the two differ only in what they hold.
+    # !! THE PROOF BOUNDARY IS GONE, AND `P42` IS WHY. `MasterProof.deserialize`
+    # ran here, over the dict `gather` returned, and reported a proof that was
+    # not one. `gather` now RETURNS a `MasterProof`, so reaching that parse
+    # would mean serializing a container in order to read it back -- and every
+    # rule it enforced is already settled upstream: each copy's `read_from`
+    # by `EditCopy.deserialize`, the agreement between them by `MismatchedRoot`
+    # two lines above, and the `edit_copies` list by the type.
     #
-    # ! WHAT REACHES HERE IS NOT WHAT A ROLE HANDED BACK. Every copy has already
-    # parsed, so this cannot fire on a role's mistake -- it answers for what
-    # `gather` and `_reconcilable` between them produced. That makes it a guard
-    # on THIS code rather than on its input, which is why the test that proves
-    # it can fail has to replace `gather` to reach it.
-    checked, why_proof = MasterProof.deserialize(stage, proof)
-    if why_proof or checked is None:
-        return Collated(
-            chief=_nothing_settled(),
-            problems=problems + [Problem("copy-chief", "", m) for m in why_proof],
-            drift=drift,
-            coverage=coverage,
-            unruled=left,
-            tally=counts,
-        )
+    # ! IT WAS ALREADY A GUARD ON THIS CODE RATHER THAN ON ITS INPUT -- its own
+    # comment said so, and said the test that proved it could fail had to
+    # REPLACE `gather` to reach it. That is the shape `docs/gates.md` names: a
+    # check reachable only by breaking the producer is answering a question the
+    # types now answer.
     reconciled = reconcile(proof)
     resolved, escalations, rereads = _resolve(reconciled, base)
 
@@ -867,7 +866,7 @@ def collate(
         order, _again = _move_order(resolved)
 
     return Collated(
-        chief=_chief_copy(checked.read_from, resolved, checked),
+        chief=_chief_copy(proof.read_from, resolved, proof),
         problems=problems,
         drift=drift,
         coverage=coverage,

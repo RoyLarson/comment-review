@@ -8,7 +8,7 @@ is the input, which is what the refusals are about.
 from dataclasses import fields
 
 import pytest
-from helpers import a_small_real_tree, binder_of
+from helpers import a_small_real_tree, binder_of, returned
 
 from comment_review.desk.containers import (
     EditCopy,
@@ -82,9 +82,16 @@ class TestWhatTheChainBuilds:
         assert {s.path for s in copy.sheets} == carried
 
     def test_a_master_proof_gather_built_parses(self, tmp_path):
+        """! THE ROUND TRIP, NOT A PARSE OF A DICT, since `P42`. `gather`
+        RETURNS a `MasterProof`, so what is read back here is that container's
+        own `serialize` -- which is the stronger claim: the write half and the
+        read half agree over the real producer."""
         binder = binder_of(a_small_real_tree(tmp_path), 0)
-        copies = [seed(binder, "block-context"), seed(binder, "function-context")]
-        proof, why = MasterProof.deserialize("4c", gather("4c", copies))
+        copies = [
+            returned(seed(binder, "block-context")),
+            returned(seed(binder, "function-context")),
+        ]
+        proof, why = MasterProof.deserialize("4c", gather("4c", copies).serialize())
         assert why == []
         assert isinstance(proof, MasterProof)
         assert proof.stage == "4c"
@@ -136,7 +143,7 @@ class TestAnEmptyProofStillHoldsItsHeader:
     def test_what_gather_writes_for_no_copies_still_parses(self):
         """The round trip, so the admission above is measured against the real
         producer rather than against a literal that agrees with it."""
-        parsed, problems = MasterProof.deserialize("4c", gather("4c", []))
+        parsed, problems = MasterProof.deserialize("4c", gather("4c", []).serialize())
         assert problems == []
         assert parsed is not None
 
@@ -164,15 +171,29 @@ class TestWhatItRefuses:
         assert got is None
         assert "`role`" in why[0]
 
-    def test_an_edit_copy_with_an_emptied_read_from(self, tmp_path):
+    @pytest.mark.parametrize(
+        "bad", [{"junk": 1}, {"root": 7, "revise": "x"}, {}, "oops", None, []]
+    )
+    def test_an_edit_copy_whose_read_from_is_the_wrong_SHAPE(self, tmp_path, bad):
         """`decision-log.md Process: #34`: the field exists so a later role can
-        know it holds a REVISE. An empty one is the ambiguity it was added to
-        remove."""
+        know it holds a REVISE. Each of these is a way of not saying so.
+
+        !! MOVED FROM `tests/test_collator.py` BY `P42`, where it drove
+        `problems_in`. That function takes an `EditCopy` now, so the header is
+        no longer its question -- this parse is the only door, and the six
+        values come across unchanged.
+
+        ! WHAT THEY MEASURED, on `problems_in`'s own comment: a hand-rolled
+        `isinstance(..., dict) and truthy` let `{"junk": 1}` and `{"root": 7,
+        "revise": "x"}` through at exit 0 while `bind` REFUSED the identical
+        value -- two spellings of one rule, disagreeing. `_read_from_problem`
+        is the one spelling, and this is what holds it to it.
+        """
         copy = a_real_copy(tmp_path)
-        copy["read_from"] = {}
+        copy["read_from"] = bad
         got, why = EditCopy.deserialize("copy 1", copy)
-        assert got is None
-        assert "read_from" in why[0]
+        assert got is None, bad
+        assert "read_from" in why[0], bad
 
     def test_an_edit_copy_reports_EVERY_bad_sheet_not_just_the_first(self, tmp_path):
         copy = a_real_copy(tmp_path)
@@ -194,7 +215,7 @@ class TestWhatItRefuses:
         reaching `MasterProof.deserialize` with one is malformed, not merely
         unusual."""
         binder = binder_of(a_small_real_tree(tmp_path), 0)
-        proof = gather("4c", [seed(binder, "block-context")])
+        proof = gather("4c", [returned(seed(binder, "block-context"))]).serialize()
         proof["read_from"] = {"root": "somewhere else", "revise": 99}
         got, why = MasterProof.deserialize("4c", proof)
         assert got is None
@@ -204,7 +225,7 @@ class TestWhatItRefuses:
         """The same shape check `_read_from_problem` runs for an edit_copy,
         reused here for the master_proof's own `read_from` field."""
         binder = binder_of(a_small_real_tree(tmp_path), 0)
-        proof = gather("4c", [seed(binder, "block-context")])
+        proof = gather("4c", [returned(seed(binder, "block-context"))]).serialize()
         proof["read_from"] = {"root": proof["read_from"]["root"]}
         got, why = MasterProof.deserialize("4c", proof)
         assert got is None

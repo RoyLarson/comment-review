@@ -143,6 +143,9 @@ Four defects in collator.py, found by reading only the code.
       by file-order range. Verify: every public name the module defines appears in
       the roll or in the four-kind paragraph, and no sentence says `nothing above`
       or `nothing below` a file position.
+        > 2026-08-31 P42 deleted UnnamedRole -- places takes a MasterProof, whose
+        > 2026-08-31 copies each carry a role. The roll this box asks for should not
+        > 2026-08-31 list it; the other six names stand.
 - [ ] T26 | Update `desk.collator._alteration_text:979` so a whitespace-only
       `change` on a `drop` is a delete rather than three spaces of text. Verify:
       `parse` accepting `change='   '` on a `drop` yields an alteration whose text

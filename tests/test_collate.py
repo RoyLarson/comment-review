@@ -19,12 +19,14 @@ from helpers import (
     a_move,
     an_add,
     copies_over,
+    entries_of,
+    marks_of,
     seed,
 )
 
 from comment_review.desk.containers import EditCopy
 from comment_review.desk.mark import Mark
-from comment_review.flows.collate import _reconcilable, collate
+from comment_review.flows.collate import collate
 
 BASE = "# one\n# two\n# three\n"
 
@@ -46,7 +48,7 @@ class TestTheResolutions:
         got = collate("4c", copies, binder, root=REPO)
         assert got.escalations == []
         assert got.rereads == []
-        marks = [m for s in got.chief["sheets"] for m in s["marks"]]
+        marks = entries_of(got.chief)
         assert [m["address"] for m in marks] == ["m.py@b1"]
 
     def test_byte_identical_changes_are_not_a_contest(self):
@@ -63,7 +65,7 @@ class TestTheResolutions:
         )
         got = collate("4c", copies, binder, root=REPO)
         assert got.escalations == []
-        marks = [m for s in got.chief["sheets"] for m in s["marks"]]
+        marks = entries_of(got.chief)
         assert [m["change"] for m in marks] == [same]
 
     def test_two_answers_to_one_sentence_escalate_and_reach_no_copy(self):
@@ -85,7 +87,7 @@ class TestTheResolutions:
         )
         got = collate("4c", copies, binder, root=REPO)
         assert [e["address"] for e in got.escalations] == ["m.py@b1"]
-        assert [m for s in got.chief["sheets"] for m in s["marks"]] == []
+        assert entries_of(got.chief) == []
 
     def test_disjoint_edits_compose_onto_the_chiefs_copy(self):
         binder = one_place()
@@ -107,7 +109,7 @@ class TestTheResolutions:
         got = collate("4c", copies, binder, root=REPO)
         assert got.escalations == []
         assert got.rereads == []
-        marks = [m for s in got.chief["sheets"] for m in s["marks"]]
+        marks = entries_of(got.chief)
         assert [m["change"] for m in marks] == ["# ONE\n# two\n# THREE\n"]
 
     def test_a_refused_compose_stays_a_reread(self):
@@ -129,7 +131,7 @@ class TestTheResolutions:
         )
         got = collate("4c", copies, binder, root=REPO)
         assert [e["address"] for e in got.rereads] == ["m.py@b1"]
-        assert [m for s in got.chief["sheets"] for m in s["marks"]] == []
+        assert entries_of(got.chief) == []
 
     def test_every_role_clean_produces_an_empty_copy_and_no_carry_forward(self):
         binder = one_place()
@@ -143,7 +145,7 @@ class TestTheResolutions:
         got = collate("4c", copies, binder, root=REPO)
         assert got.escalations == []
         assert got.rereads == []
-        assert [m for s in got.chief["sheets"] for m in s["marks"]] == []
+        assert entries_of(got.chief) == []
 
     def test_an_add_is_carried_forward(self):
         """`_outcome` widens an `add` to every role of the stage, because two
@@ -161,7 +163,7 @@ class TestTheChiefsCopy:
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
         got = collate("4c", copies, binder, root=REPO)
-        copy, why = EditCopy.deserialize("the chief's", got.chief)
+        copy, why = EditCopy.deserialize("the chief's", got.chief.serialize())
         assert why == []
         assert copy is not None
         assert copy.role == "copy-chief"
@@ -172,11 +174,10 @@ class TestTheChiefsCopy:
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
         got = collate("4c", copies, binder, root=REPO)
-        for sheet in got.chief["sheets"]:
-            for entry in sheet["marks"]:
-                mark, why = Mark.deserialize(entry["address"], entry)
-                assert why == [], why
-                assert mark is not None
+        for entry in entries_of(got.chief):
+            mark, why = Mark.deserialize(entry["address"], entry)
+            assert why == [], why
+            assert mark is not None
 
     def test_a_composed_mark_carries_both_sides_sources(self):
         binder = one_place()
@@ -196,7 +197,7 @@ class TestTheChiefsCopy:
             },
         )
         got = collate("4c", copies, binder, root=REPO)
-        entry = [m for s in got.chief["sheets"] for m in s["marks"]][0]
+        entry = entries_of(got.chief)[0]
         assert len(entry["sources"]) == 2
         assert "block-context" in entry["reason"]
         assert "function-context" in entry["reason"]
@@ -231,7 +232,7 @@ class TestTheChiefsCopy:
             "mango-context",
         ]
         got = collate("4c", copies, binder, root=REPO)
-        entry = [m for s in got.chief["sheets"] for m in s["marks"]][0]
+        entry = entries_of(got.chief)[0]
         roles_in_reason = entry["reason"].split(" by ")[1].split(" -- ")[0].split(", ")
         roles_in_sources = [s["cite"].split(".py:")[0] for s in entry["sources"]]
         assert roles_in_reason == sorted(roles_in_reason)
@@ -250,7 +251,7 @@ class TestTheChiefsCopy:
         )
         copies[0]["sheets"][0]["sha"] = None
         got = collate("4c", copies, binder, root=REPO)
-        assert got.chief["sheets"][0]["sha"] == ""
+        assert got.chief.sheets[0].sha == ""
 
     def test_an_unresolved_place_is_ABSENT_not_untouched(self):
         """!! `untouched` MEANS NOBODY WROTE HERE. A place two roles wrote on
@@ -271,7 +272,7 @@ class TestTheChiefsCopy:
             },
         )
         got = collate("4c", copies, binder, root=REPO)
-        entries = [m for s in got.chief["sheets"] for m in s["marks"]]
+        entries = entries_of(got.chief)
         assert entries == []
         assert not any(untouched(e) for e in entries)
 
@@ -326,7 +327,7 @@ class TestTheEnvelope:
         got = collate(
             "4c", self.a_copy_shaped(binder, self.UNSEEN[name]), binder, root=REPO
         )
-        assert got.chief["sheets"] == [], name
+        assert got.chief.sheets == (), name
 
     def test_one_malformed_copy_does_not_silence_another_role(self):
         binder = one_place()
@@ -338,26 +339,19 @@ class TestTheEnvelope:
         got = collate("4c", bad + good, binder, root=REPO)
         assert {p.role for p in got.problems} == {"block-context", "function-context"}
 
-    def test_the_master_proof_is_parsed_at_its_own_boundary(self, monkeypatch):
-        """`P21`, `Process: #57` one level up. `gather` builds the proof and
-        nothing states what a proof IS before `reconcile` walks it.
-
-        ! THE PROOF IS BUILT INSIDE `collate`, so the only way to hand it a
-        malformed one is to make `gather` return it. That is a seam, not a
-        shape the chain can otherwise produce -- which is the point: the parse
-        exists for what a FUTURE change could put there.
-        """
-        binder = one_place()
-        copies = copies_over(
-            binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
-        )
-        monkeypatch.setattr(
-            "comment_review.flows.collate.gather",
-            lambda stage, edit_copies: {"stage": stage, "edit_copies": "nope"},
-        )
-        got = collate("4c", copies, binder, root=REPO)
-        assert any("edit_copies" in p.message for p in got.problems)
-        assert got.chief["sheets"] == []
+    #: !! `test_the_master_proof_is_parsed_at_its_own_boundary` WENT WITH THAT
+    #: BOUNDARY, `P42`. It monkeypatched `gather` to return `{"stage": ...,
+    #: "edit_copies": "nope"}` and asserted `collate` reported it -- and its own
+    #: docstring said why that was the only route: *"the proof is built INSIDE
+    #: `collate`, so the only way to hand it a malformed one is to make `gather`
+    #: return it. That is a seam, not a shape the chain can otherwise produce."*
+    #: `gather` returns a `MasterProof` now, so the seam is a type error rather
+    #: than an input, and every rule the parse enforced is settled upstream --
+    #: each copy's `read_from` at `EditCopy.deserialize`, their agreement at
+    #: `MismatchedRoot`, the `edit_copies` list by the type.
+    #: ! `MasterProof.deserialize` ITSELF IS STILL TESTED, in
+    #: `tests/test_containers.py`, where it is reached the way production
+    #: reaches it: over a document read off disk.
 
     def test_a_copy_missing_its_sheets_is_still_reported(self):
         """`problems_in` already answers this one; the envelope must not make
@@ -481,7 +475,7 @@ class TestWhatTheEnvelopeActuallyGuarantees:
         del copies[0]["sheets"][0]["sha"]
         got = collate("4c", copies, binder, root=REPO)
         assert got.problems == []
-        assert [s["sha"] for s in got.chief["sheets"]] == [""]
+        assert [s.sha for s in got.chief.sheets] == [""]
 
 
 class TestOneDefinitionOfAWellFormedCopy:
@@ -503,12 +497,17 @@ class TestOneDefinitionOfAWellFormedCopy:
         copies[0]["sheets"].insert(0, "nope")
         return binder, copies
 
-    def test_reconcilable_no_longer_decides_what_a_sheet_is(self):
-        """It passed a malformed sheet through, standing in for the container.
-        Now it assumes the shape, which is what ONE definition means."""
-        _binder, copies = self.a_copy_whose_sheet_is_not_an_object()
-        with pytest.raises(TypeError):
-            _reconcilable(copies[0])
+    #: !! `test_reconcilable_no_longer_decides_what_a_sheet_is` ASSERTED A
+    #: `TypeError` AND `P42` REPLACED IT WITH A SIGNATURE. It handed
+    #: `_reconcilable` a copy holding the string `"nope"` where a sheet belongs
+    #: and required a raise -- the observable trace of *this function assumes
+    #: the container decided*. The function takes an `EditCopy` now, whose
+    #: `sheets` are `Sheet`s, so the assumption is stated in the type and the
+    #: raise is a fact about passing the wrong kind of object rather than about
+    #: this module's contract.
+    #: ! THE OTHER HALF BELOW IS UNCHANGED and is the one that can still fail:
+    #: the envelope answers first, so production never reaches the filter with a
+    #: malformed sheet.
 
     def test_and_the_flow_never_reaches_it_with_one(self):
         """The other half: the envelope answers first, so the assumption above
@@ -594,7 +593,7 @@ class TestShardCoverage:
         got = collate("4c", [_keeping_only(copies[0], ["m.py@b1"])], binder, root=REPO)
         assert got.coverage != []
         assert got.problems == []
-        marks = [m for s in got.chief["sheets"] for m in s["marks"]]
+        marks = entries_of(got.chief)
         assert [m["address"] for m in marks] == ["m.py@b1"]
 
 
@@ -647,21 +646,17 @@ class TestTheStackedCheck:
         got = collate("4c", copies, binder, root=REPO)
         assert [p.role for p in got.problems] == ["block-context"]
         assert "read_from" in got.problems[0].message
-        assert got.chief["sheets"] == []
+        assert got.chief.sheets == ()
 
-    def test_reconcilable_preserves_an_absent_read_from(self):
-        """The property directly, since the envelope now guards the flow path.
-
-        `_reconcilable` runs only after the parse has passed, so `collate` can
-        no longer reach it with the field missing. The rule still binds the
-        function: a filter that fabricates a field defeats whatever checks it.
-        """
-        binder = one_place()
-        copies = copies_over(
-            binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
-        )
-        del copies[0]["read_from"]
-        assert "read_from" not in _reconcilable(copies[0])
+    #: !! `test_reconcilable_preserves_an_absent_read_from` HAS NO STATE LEFT
+    #: TO ASSERT, `P42`. It deleted `read_from` from a seeded copy and checked
+    #: `_reconcilable` did not put it back -- the rule being that a filter which
+    #: fabricates a field defeats whatever checks that field downstream. That
+    #: filter takes an `EditCopy` now, and `EditCopy.deserialize` refuses a copy
+    #: with no `read_from`, so there is no absence for it to preserve or erase.
+    #: ! THE FLOW-PATH HALF IS THE TEST ABOVE THIS ONE, which is unchanged and
+    #: still the claim that matters: a copy carrying no `read_from` is named and
+    #: folds nothing.
 
     def test_drift_is_reported_and_does_not_stop_the_fold(self):
         binder = one_place()
@@ -671,7 +666,7 @@ class TestTheStackedCheck:
         copies[0]["sheets"][0]["marks"][0]["raw_text"] = "# not what was seeded\n"
         got = collate("4c", copies, binder, root=REPO)
         assert [p.address for p in got.drift] == ["m.py@b1"]
-        assert [m for s in got.chief["sheets"] for m in s["marks"]] != []
+        assert entries_of(got.chief) != []
 
 
 class TestTheMovesAreADag:
@@ -696,7 +691,7 @@ class TestTheMovesAreADag:
             },
         )
         got = collate("4c", copies, binder, root=REPO)
-        assert [m for s in got.chief["sheets"] for m in s["marks"]] == []
+        assert entries_of(got.chief) == []
         assert {e["address"] for e in got.rereads} >= {"m.py@b1", "m.py@b5"}
 
     def test_independent_moves_emit_in_a_stable_order(self):
@@ -735,7 +730,7 @@ class TestTheMovesAreADag:
         }
         copies = copies_over(binder, {"block-context": marks})
         got = collate("4c", copies, binder, root=REPO)
-        resolved = {e["address"]: e for s in got.chief["sheets"] for e in s["marks"]}
+        resolved = {e["address"]: e for e in entries_of(got.chief)}
         if "m.py@b1" in resolved and "m.py@b5" in resolved:
             assert got.order.index("m.py@b5") < got.order.index("m.py@b1")
 
@@ -833,7 +828,7 @@ class TestAResolvedMoveIsOneEntry:
         got = collate(
             "4c", copies_over(binder, {"block-context": marks}), binder, root=REPO
         )
-        entries = [m for s in got.chief["sheets"] for m in s["marks"]]
+        entries = entries_of(got.chief)
         assert [e["address"] for e in entries] == ["m.py@b1", "m.py@b7"]
 
     def test_a_cross_file_move_lands_only_in_the_origins_sheet(self):
@@ -842,9 +837,7 @@ class TestAResolvedMoveIsOneEntry:
         got = collate(
             "4c", copies_over(binder, {"block-context": marks}), binder, root=REPO
         )
-        sheets = {
-            s["path"]: [m["address"] for m in s["marks"]] for s in got.chief["sheets"]
-        }
+        sheets = {s.path: [m["address"] for m in marks_of(s)] for s in got.chief.sheets}
         # ! NO "b.py" SHEET AT ALL -- `_chief_copy` only ever creates a sheet
         # when it has an entry to put in it, and the destination writes none.
         assert sheets == {"a.py": ["a.py@b1"]}
@@ -858,16 +851,15 @@ class TestAResolvedMoveIsOneEntry:
         binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})
         marks = {"block-context": {"m.py@b1": a_move("m.py@b1", "m.py@b5")}}
         got = collate("4c", copies_over(binder, marks), binder, root=REPO)
-        for sheet in got.chief["sheets"]:
-            for entry in sheet["marks"]:
-                mark, why = Mark.deserialize(entry["address"], entry)
-                assert why == [], why
-                assert mark is not None
+        for entry in entries_of(got.chief):
+            mark, why = Mark.deserialize(entry["address"], entry)
+            assert why == [], why
+            assert mark is not None
 
     def test_the_chiefs_copy_still_parses_as_an_ordinary_edit_copy(self):
         binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})
         marks = {"block-context": {"m.py@b1": a_move("m.py@b1", "m.py@b5")}}
         got = collate("4c", copies_over(binder, marks), binder, root=REPO)
-        copy, why = EditCopy.deserialize("the chief's", got.chief)
+        copy, why = EditCopy.deserialize("the chief's", got.chief.serialize())
         assert why == []
         assert copy is not None
