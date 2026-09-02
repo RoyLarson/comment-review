@@ -30,13 +30,14 @@ off the original.
 """
 
 import argparse
+import json
 from pathlib import Path
 
 from comment_review.desk.containers import EditCopy
 from comment_review.flows import revise
 from comment_review.machine import exceptions
 from comment_review.machine.json_object import object_of
-from comment_review.machine.repo import undraftable
+from comment_review.machine.repo import undraftable, write_raw
 
 
 def main() -> int:
@@ -63,15 +64,31 @@ def main() -> int:
         required=True,
         help='JSON: an edit_copy -- {"role", "read_from", "sheets"}',
     )
+    # !! `--to-docket` STOPS THE RUN AT THE TRANSCRIBE -- `P58`, Roy 2026-09-02:
+    # *"we add a --from-docket, --to-docket flags that allow the flow to
+    # start/stop in the middle of the flow."* It is also what gives
+    # `Docket.serialize` a production reader, so the format is exercised rather
+    # than merely kept.
+    ap.add_argument(
+        "--to-docket",
+        help="write the transcribed docket here and stop -- no revise is pulled",
+    )
+    # ! NOT `required=True` ANY MORE. `--out` is the revise root, and a run that
+    # stops at the docket pulls none; requiring it would make the caller name a
+    # directory nothing writes to. Asked for below, where it is needed.
     ap.add_argument(
         "--out",
-        required=True,
         help="the revise root the pulled drafts are written to (must not exist yet)",
     )
     args = ap.parse_args()
 
     repo = Path(args.repo).resolve()
-    out = Path(args.out).resolve()
+    if not args.to_docket and not args.out:
+        print("REFUSED: --out is required unless --to-docket stops the run")
+        return 2
+    # ! A PLACEHOLDER WHERE THE RUN STOPS EARLY, so the guards below can be
+    # skipped rather than answered. Nothing reads it on that path.
+    out = Path(args.out).resolve() if args.out else repo
     # !! `--out` MUST BE DISJOINT FROM `--repo`, and the per-file guard cannot
     # ask this. On an OVERLAP a target lands inside `--out` by way of being the
     # source file itself -- MEASURED 2026-08-22 on the galley command, which
@@ -89,17 +106,22 @@ def main() -> int:
     # console as a `FileExistsError` traceback out of `run`'s
     # `into.mkdir(exist_ok=True)` -- `exist_ok` covers an existing DIRECTORY
     # only, and every other bad input here prints a reason and returns 2.
-    why = undraftable(out, repo)
-    if why:
-        print(f"REFUSED: --out {why} -- nothing written")
-        return 2
+    #
+    # ! BOTH `--out` GUARDS ARE SKIPPED WHERE THE RUN STOPS AT THE DOCKET. They
+    # are about the revise root, and `--to-docket` pulls no revise -- asking
+    # them anyway would refuse a run for a directory it never touches.
+    if not args.to_docket:
+        why = undraftable(out, repo)
+        if why:
+            print(f"REFUSED: --out {why} -- nothing written")
+            return 2
     # !! `--out` MUST NOT EXIST YET, since 2026-08-28. `revise.pull` copies
     # `--repo` into it with `shutil.copytree`, which raises `FileExistsError`
     # on a directory that is already there -- even an empty one. `undraftable`
     # above does not ask this: it refuses a non-directory or an overlap, and a
     # pre-existing, disjoint `--out` passes it. Asked here so this stays an
     # INPUT error at exit 2, the same as every other bad `--out` above.
-    if out.exists():
+    if not args.to_docket and out.exists():
         print(
             f"REFUSED: --out {out} already exists, and a revise is pulled into"
             " a directory that does not exist yet -- nothing written"
@@ -141,6 +163,20 @@ def main() -> int:
     # ! THE TRANSCRIBE IS THE FLOW'S FIRST STEP and cannot fail: every rule it
     # would have checked is settled by the parse above -- `Process: #76`.
     held = revise.docket_of(copy)
+
+    # !! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE COMMAND'S --
+    # `decision-log.md Process: #65`, `#67`, and the same shape
+    # `commands/collate.py` writes its chief copy with. Raw JSON at the save and
+    # nowhere between.
+    if args.to_docket:
+        try:
+            write_raw(Path(args.to_docket), json.dumps(held.serialize(), indent=2))
+        except exceptions.READ_ERRORS as e:
+            print(f"CANNOT WRITE ({type(e).__name__}) -- nothing written")
+            return 2
+        pages = len(held.schedules)
+        print(f"{args.to_docket}: {pages} page(s) scheduled -- no revise pulled")
+        return 0
 
     # !! ROUTED THROUGH `revise.pull` SINCE 2026-08-28, NOT `proof_setter.run`
     # DIRECTLY. `pull` is the one mechanism left that builds a draft tree --

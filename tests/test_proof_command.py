@@ -12,10 +12,20 @@ from helpers import a_correct, copies_over
 
 from comment_review.binder.binder import bind
 from comment_review.commands import proof as proof_command
+from comment_review.docket.docket import Docket
 
 
-def a_copy_on_disk(tmp_path, binder, address):
-    """A role's filled `edit_copy`, written to disk for the command to read.
+def a_copy_on_disk(tmp_path, binder):
+    """A role's filled `edit_copy`, written to disk, and the address it rules on.
+
+    !! THE ADDRESS COMES FROM THE BINDER, NOT THE PAGE, and that is the whole
+    reason this helper picks it. MEASURED 2026-09-02: a page of `SAMPLE` carries
+    14 addresses and `bind` keeps the 5 that hold prose, so an address taken off
+    the page -- `m.py@a2` -- matches no seeded slot, `copies_over` attaches
+    nothing, and the copy goes out EMPTY. A test then asserting that the revise
+    holds `m.py` passes anyway, because `pull` copies the whole tree before it
+    sets a single page. **The binder is what a role is handed; it is the only
+    honest source for an address a mark can rule on.**
 
     !! SEEDED FROM THE REAL BINDER, not a synthetic one. The docket carries each
     page's sha straight off the sheet, and `proof_setter` refuses a page whose
@@ -28,10 +38,13 @@ def a_copy_on_disk(tmp_path, binder, address):
     placeholder sentence with the page's real one, which is what makes the
     claim verifiable.
     """
+    address = next(b.address for b in binder.paragraphs if b.address)
     copy = copies_over(binder, {"block-context": {address: a_correct(address)}})[0]
+    ruled = [m for s in copy["sheets"] for m in s["marks"] if m.get("instruction")]
+    assert len(ruled) == 1, "the mark did not attach -- the copy would go out empty"
     where = tmp_path / "copy.json"
     where.write_text(json.dumps(copy), encoding="utf-8", newline="")
-    return where
+    return where, address
 
 
 def run(monkeypatch, capsys, *argv):
@@ -49,9 +62,8 @@ class TestProofTakesAnEditCopy:
     """
 
     def test_a_filled_copy_pulls_a_revise(self, tmp_path, monkeypatch, capsys):
-        repo, binder, page = _tree(tmp_path)
-        address = next(b.address for b in page.paragraphs if b.address)
-        copy = a_copy_on_disk(tmp_path, binder, address)
+        repo, binder, _page = _tree(tmp_path)
+        copy, _address = a_copy_on_disk(tmp_path, binder)
 
         code, out = run(
             monkeypatch,
@@ -64,13 +76,78 @@ class TestProofTakesAnEditCopy:
             str(tmp_path / "r1"),
         )
         assert code == 0, out
-        assert (tmp_path / "r1" / "m.py").exists()
+        # !! THE PAGE MUST HAVE CHANGED, not merely exist. `pull` copies the whole
+        # tree before it sets anything, so `m.py` is present under a revise even
+        # when the docket is empty -- which is exactly what this assertion said
+        # until 2026-09-02, over a copy that carried no mark at all.
+        drafted = (tmp_path / "r1" / "m.py").read_text(encoding="utf-8")
+        assert drafted != SAMPLE
 
     def test_the_docket_flag_is_gone(self, monkeypatch, capsys):
         """! ASSERTED, NOT ASSUMED. A flag that still parses would let an old
         invocation run and produce a confusing refusal deep in the load."""
         with pytest.raises(SystemExit):
             run(monkeypatch, capsys, "--docket", "d.json", "--repo", ".", "--out", "o")
+
+    def test_to_docket_writes_a_docket_and_stops(self, tmp_path, monkeypatch, capsys):
+        """`P58`. The run stops at the transcribe: a docket on disk, no revise.
+
+        !! IT IS WHAT KEEPS `Docket.serialize` HONEST. Roy, 2026-09-02, wanted
+        the serialization kept *"for some logging or troubleshooting ... since it
+        is there it is worth not reinventing"* -- and a method kept on stated
+        intent is what `scripts/dead_sweep.py` reports and a later session
+        deletes. This flag is its production reader.
+        """
+        repo, binder, _page = _tree(tmp_path)
+        copy, _address = a_copy_on_disk(tmp_path, binder)
+        out = tmp_path / "d.json"
+
+        code, _out = run(
+            monkeypatch,
+            capsys,
+            "--copy",
+            str(copy),
+            "--repo",
+            str(repo),
+            "--to-docket",
+            str(out),
+        )
+        assert code == 0
+        # ! READ BACK THROUGH THE BOUNDARY, so what it wrote is a docket rather
+        # than merely a file -- `Docket.deserialize` is the same parse
+        # `--from-docket` will use at `P59`.
+        docket, why = Docket.deserialize(str(out), json.loads(out.read_text()))
+        assert docket is not None, why
+        assert docket.schedules[0].path == "m.py"
+
+    def test_to_docket_does_not_need_an_out(self, tmp_path, monkeypatch, capsys):
+        """! `--out` IS THE REVISE ROOT, and this run pulls no revise. Requiring
+        it would make the caller name a directory nothing writes to."""
+        repo, binder, _page = _tree(tmp_path)
+        copy, _address = a_copy_on_disk(tmp_path, binder)
+        code, _out = run(
+            monkeypatch,
+            capsys,
+            "--copy",
+            str(copy),
+            "--repo",
+            str(repo),
+            "--to-docket",
+            str(tmp_path / "d.json"),
+        )
+        assert code == 0
+        assert not (tmp_path / "r1").exists()
+
+    def test_without_to_docket_an_out_is_still_required(self, monkeypatch, capsys):
+        """! A NAMED REFUSAL AT EXIT 2, NOT AN ARGPARSE ERROR. `--out` cannot be
+        `required=True` any more, because `--to-docket` runs without one -- so
+        the requirement is conditional, and argparse has no way to state it. The
+        message says which flag would have made the run legal, which
+        `error: the following arguments are required: --out` could not.
+        """
+        code, out = run(monkeypatch, capsys, "--copy", "c.json", "--repo", ".")
+        assert code == 2
+        assert "--to-docket" in out
 
     def test_a_copy_that_will_not_read_reports_and_writes_nothing(
         self, tmp_path, monkeypatch, capsys
@@ -154,15 +231,10 @@ class TestTheCommand:
         transcribed from it inside the flow. The hand-written docket is the
         `--from-docket` case at `P59`, where it is an input again.
         """
-        repo, binder, page = _tree(tmp_path)
-        # ! DISCOVERED FROM THE PAGE, never hardcoded -- a literal cue is a
-        # fixture asserting what the walk emitted last time someone looked.
-        address = next(
-            b.address
-            for b in page.paragraphs
-            if b.address and any(x.strip() for x in b.raw_lines)
-        )
-        copy = a_copy_on_disk(tmp_path, binder, address)
+        repo, binder, _page = _tree(tmp_path)
+        # ! THE ADDRESS IS DISCOVERED FROM THE BINDER, never hardcoded -- see
+        # `a_copy_on_disk`, which is where the choice and its measurement live.
+        copy, _address = a_copy_on_disk(tmp_path, binder)
         code, out = run(
             monkeypatch,
             capsys,
