@@ -189,7 +189,7 @@ that changed a published name or rule:
 | [move-and-correct-compose](move-and-correct-compose.md) | agents | -- | 4/6 | `move` and `correct` COMPOSE, and the gate calls them a contradiction |
 | [only-census-got-out-and-the-skill-instructs-a-redirect](only-census-got-out-and-the-skill-instructs-a-redirect.md) | agents | -- | 3/5 | Only `census.py` got `--out`, and `SKILL.md` instructs the redirect it forbids |
 | [referrers-matches-on-any-public-name-and-surfaces-the-whole-repo](referrers-matches-on-any-public-name-and-surfaces-the-whole-repo.md) | backend | -- | 0/6 | `referrers.py` matches on any public name, and surfaced the whole repo |
-| [stage-5-is-the-only-stage-with-no-independent-reader](stage-5-is-the-only-stage-with-no-independent-reader.md) | agents | -- | 6/11 | Stage 5 is the only stage whose writer is also its checker |
+| [stage-5-is-the-only-stage-with-no-independent-reader](stage-5-is-the-only-stage-with-no-independent-reader.md) | agents | yes | 6/12 | Stage 5 is the only stage whose writer is also its checker |
 | [the-code-check-refuses-add-and-drop-on-a-docstring](the-code-check-refuses-add-and-drop-on-a-docstring.md) | backend | yes | 1/5 | The CODE CHECK refuses `add` and `drop` when the prose is a docstring |
 | [the-emitted-vocabulary-can-collide-with-the-repo](the-emitted-vocabulary-can-collide-with-the-repo.md) | agents | yes | 1/6 | The emitted vocabulary can collide with the reviewed repo's own terms |
 | [doc-is-structural-means-two-things](doc-is-structural-means-two-things.md) | backend | -- | 0/3 | doc_is_structural means two things and its docstring names one |

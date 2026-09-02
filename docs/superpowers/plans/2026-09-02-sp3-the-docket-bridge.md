@@ -478,6 +478,8 @@ def test_the_middle_does_not_import_the_write_end():
 
 ### Task 8: SKILL.md (`agents` LANE -- NAME THE LANE AND ASK)
 
+**Landed:** `f1db1b3` -- `P60`. The skill gate is green; one expected failure again.
+
 **Delivers:** P60
 
 !! **THIS TASK IS NOT `backend`'s AND IS NOT A ONE-FOR-ONE SUBSTITUTION.**
@@ -491,22 +493,22 @@ lane's call.
 - Modify: `plugins/comment-review/skills/comment-review/SKILL.md` (~line 896-917)
 - Modify: `tests/gates/test_skill_commands.py` (~line 47)
 
-- [ ] **Step 1: Ask.** Name the lane and hand over what changed: `--docket` becomes `--copy`,
+- [x] **Step 1: Ask.** Name the lane and hand over what changed: `--docket` becomes `--copy`,
       and `--from-docket`/`--to-docket` are new. SKILL.md:902 documents the docket's shape --
       `{"pages": [...]}` -- and that is now an internal artifact reachable only through
       `--to-docket`.
 
-- [ ] **Step 2: Update the gate with the command.** `tests/gates/test_skill_commands.py:47`
+- [x] **Step 2: Update the gate with the command.** `tests/gates/test_skill_commands.py:47`
       asserts the two-line invocation `proof --repo . --docket D.json \\`. It must assert what
       the command now takes. ! **THIS IS UPDATING A GATE TO MATCH A REAL CHANGE, NOT RELAXING
       ONE** -- the gate still bites, on the new surface. If the change makes the gate weaker,
       that is a defect in the change.
 
-- [ ] **Step 3: Run the checks.** Full suite plus lint/format/lint/ty.
+- [x] **Step 3: Run the checks.** Full suite plus lint/format/lint/ty.
 
-- [ ] **Step 4: Commit.**
+- [x] **Step 4: Commit.**
 
-- [ ] **Step 5: TICK.** Tick Task 8's boxes in THIS file and close P60, both citing the
+- [x] **Step 5: TICK.** Tick Task 8's boxes in THIS file and close P60, both citing the
       Step 4 commit. Its own commit.
 
 ---
