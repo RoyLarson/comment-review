@@ -2580,7 +2580,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   are prose describing a format nothing parses.
 
   ! **THE SECOND WAS ANSWERED THE SAME DAY AND TOOK THE FIRST BRANCH -- `#74`.** The
-  letter is still open.
+  letter went the same way, by READING rather than by ruling -- `#75`.
 
 - **#74.** **THE TOPOLOGY FILE KEEPS A READER, AND THE READER IS THE DISTRIBUTION** (Roy,
   2026-09-01, answering `#73`'s open half in one word): *"Yes"*.
@@ -2609,3 +2609,37 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   is the sequencer `#73` rules out**, and it is superseded here. `P29` (VERIFY), `P30` (BUILD),
   `P31` (the command exposing both) and `P33` (the fixture) all keep their subject, because a
   format with a reader is a format worth verifying and building.
+
+- **#75.** **THE HAND-OFF IS `4b`, AND SKILL.md ALREADY SAID SO BY LEAVING THE LETTER OUT**
+  (read from the file, 2026-09-01, after Roy declined to rule it: *"I am pretty certain you can
+  read the skill.md for yourself to verify that"*).
+
+  !! **THE DECIDING FACT IS A GAP, AND IT IS THE ONLY ONE IN THE FILE.** The complete set of
+  lettered stages in `SKILL.md` is `4a 4c 5b 6b 7a 7b`. Every other lettered run is contiguous
+  -- 5 to 5b, 6 to 6b, 7a to 7b. **Stage 4 is the one place a letter is skipped**, so the `b`
+  is a slot somebody left open rather than an absence. That is what
+  `TODO/stage-4b-is-undefined.md` has been reporting since 2026-08-20 as *"referenced everywhere
+  and defined nowhere"* -- the reference IS the gap.
+
+  !! **AND THE FILE CARRIES TWO CONVENTIONS FOR A LETTER, NOT ONE. THE HAND-OFF TAKES THE
+  SECOND.**
+
+  | | what a letter means there | who |
+  | --- | --- | --- |
+  | `5b`, `6b` | **re-review** -- the same mechanism asking a different question | the roles that ruled |
+  | `7a`, `7b` | **one stage, two acts** -- present and stop, then write | task agent, then author |
+
+  ! **`4b` is the `7a`/`7b` shape.** 4a is a role, 4b is the task agent running `proof` and
+  `census --revise 1`, 4c is three roles -- sequential acts of one stage by different actors.
+  It is NOT the `5b`/`6b` shape: no role re-reads its own output at 4b, and nothing about it
+  belongs in `references/re-review.md`, which `SKILL.md:39-41` names as the only file defining
+  either of those.
+
+  ! **SO IT IS WRITTEN INLINE, LIKE THE REST OF STAGE 4.** References load at stages 5, 6, 7b
+  and 8; stage 4's `reviewer-brief.md` is read by the REVIEWERS, not by the task agent. A
+  task-agent step has no reference file to go in, and stages 1-4 are inline already.
+
+  ! **THIS ENTRY IS A READING, NOT A RULING, AND THE LOG SHOULD SHOW WHICH.** `#73` and `#74`
+  are Roy's; this is what the file says once someone looks. It is recorded because `#73`
+  explicitly left the letter open, and an entry that stays open after its answer arrives is
+  worse than no entry.
