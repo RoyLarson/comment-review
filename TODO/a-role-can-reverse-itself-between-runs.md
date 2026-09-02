@@ -148,6 +148,7 @@ list. `grep -n "stability" docs/limitations.md` returns nothing today.
       `docs/decision-log.md` records it.
         > 2026-09-02 A candidate obligation: a reversal is a row naming who last set it
         > 2026-09-02 It came from a-revise-answer-has-no-artifact T7, filed as backend
+        > 2026-09-02 No revise step existed when it was observed; the stages are runs
 - [?] T4 | T4 -- * Rule whether a `correct` reversing to `query` is WORSE than
       the reverse. The verdict table treats them as peers. Verify:
       `docs/decision-log.md` records it.
