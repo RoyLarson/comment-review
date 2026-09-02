@@ -144,8 +144,41 @@ Roy, 2026-08-23. Three kinds of checkbox exist and they are not interchangeable.
 | | lives in | is | references |
 | --- | --- | --- | --- |
 | **T** | `TODO/*.md` | **the goal.** One verifiable checkpoint of work that is wanted | nothing |
-| **P** | `docs/plans/*.md` | **a step along the way** to accomplishing one or more Ts | the T tasks it works |
+| **P** | `docs/plans/*.md` | **a task that makes one or more Ts accomplishable.** NOT an ordered step -- see below | the T tasks it works |
 | **SP** | `docs/superpowers/plans/*.md` | **a subplan of a P** -- exact files, TDD steps, a commit per task | the P steps it accomplishes |
+
+!! **A `P` IS NOT AN ORDERED STEP, AND ONLY AN `SP` IS.** Roy, 2026-09-02: *"at this level plan
+tasks are not ordered steps in the plan. They the specific tasks that make the todos
+accomplishable. Similar to a superpowers spec. The exact ordered list is either a subplan or a
+superpowers plan. That is where and when the tasks are know to the degree to be ordered off
+of."*
+
+| | what it is | is it ordered |
+| --- | --- | --- |
+| **P** | the SET of tasks that make the `T`s accomplishable -- a spec | **no** |
+| **SP** | the exact list, in the order it is done | **yes** |
+
+! **SO A `P` FILE NEEDS NO READING ORDER AND MUST NOT CLAIM ONE.** MEASURED 2026-09-02: a
+session added six `P`s to `0.2.4-the-mark-and-the-collator`, found their ids did not run in
+the order the mechanism runs, and wrote a table calling itself *"the order to read the steps
+in"* plus a note explaining why the numbers were out of sequence. **It was solving a problem
+that does not exist at this level**, and the fix imported an ordering assumption into a file
+whose whole point is that it has none.
+
+! **THE WORD `step` IS WHAT CARRIED THE ASSUMPTION.** This table read *"a step along the way"*
+until the same day. A `P` is a task; the sequence is the `SP`'s.
+
+!! **AND ONLY WHAT CAN BE KNOWN AND ORDERED GOES INTO AN `SP`.** Roy, the same message: *"only
+for the pieces that can be known and ordered should be included in a SP plan. Stopping and
+regrouping is important. Forcing through a plan when the inputs have changed causes
+problems."*
+
+! **SO AN `SP` COVERING A `P` THAT IS STILL BEING FIGURED OUT IS THE ERROR**, not a short `SP`.
+A plan that ends where the knowledge ends, and is followed by a regroup, is the intended
+shape. ! MEASURED on `SP-3`, 2026-09-02: its task order put SKILL.md last, and a gate coupled
+that task to the fourth -- so the suite would have sat at two failures for four tasks. The
+order was CHANGED mid-flight and recorded, rather than forced through. That is this rule
+working; the failure it names is the other choice.
 
 !! **THE ARROWS GO ONE WAY: `SP -> P -> T`.** A plan cites the TODOs it works; a superpowers
 plan cites the plan steps it delivers. **A TODO takes no DEPENDENCY on a plan** -- nothing in
