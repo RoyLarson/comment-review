@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 10 tasks closed
+Progress: 5 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (simplify round 7, 2026-08-22 -- found by Pyright and by reading,
@@ -122,11 +122,12 @@ page.py:793-794 for `_SHEBANG`/`_CODING`, which round 7 deleted; those citations
 - [x] T7 | FINISHED | unknown | T7 -- RECORD, not a task. The 21 ms double
       `prose_numbers` pass, measured and deliberately not counted. In the
       Objective.
-- [ ] T8 | T8 -- State the rule for which module `language_for` is imported
-      from, at compositor.py:66. Verify: the comment at :66 says what the rule
-      is.
-- [ ] T9 | T9 -- Make compositor.py:68 and galley.py:89 both obey T8's rule.
-      Verify: both import `language_for` from the module the rule names.
+- [x] T8 | FINISHED -- compositor.py:65-69 states the rule: this file and the lexer are where a grammar is applied to text, so it takes language_for from language; everywhere else uses the lexer re-export, a lookup | 935e45a | T8
+      -- State the rule for which module `language_for` is imported from, at
+      compositor.py:66. Verify: the comment at :66 says what the rule is.
+- [-] T9 | SUPERSEDED -- galley.py lost language_for at a31cb83 and imports it nowhere, so there is no second site to make obey; compositor is the one direct importer and five modules take the lexer re-export | a31cb83 | T9
+      -- Make compositor.py:68 and galley.py:89 both obey T8's rule. Verify:
+      both import `language_for` from the module the rule names.
 - [x] T10 | FINISHED | unknown | T10 -- FINISHED. Two TODOs describing a
       function that no longer exists are superseded and their stale citations
       resolved. In the Objective.

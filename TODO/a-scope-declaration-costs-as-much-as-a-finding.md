@@ -146,5 +146,8 @@ do the thing we ruled out"*. It carried a box until 2026-08-23 and is recorded h
         > 2026-08-31 measured NECESSARY BUT NOT SUFFICIENT: it guards the wrong failure
         > 2026-08-31 the role stopped ATTEMPTING settlement, which T6 does not describe
 - [ ] T7 | Reword clean as an ACTIVE assertion -- I checked the claims at my
-      scope and they hold -- rather than as the absence of a reason to speak
+      scope and they hold -- distinct from silence and from I could not settle it
         > 2026-08-31 placement-only wording made the role stop checking truth at all
+        > 2026-09-02 T6's distinction is folded in here: clean must not read as
+        > 2026-09-02 silence, and must not read as I could not settle it either
+        > 2026-09-02 clean CERTIFIES and query ASKS -- collapsing them trades down
