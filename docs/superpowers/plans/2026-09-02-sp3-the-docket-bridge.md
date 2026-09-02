@@ -383,29 +383,31 @@ def test_the_middle_does_not_import_the_write_end():
 
 ### Task 5: `--to-docket` stops the run at the docket
 
+**Landed:** `3c49b05` -- `P58`. Three cases, plus the Task 4 test that could not fail.
+
 **Delivers:** P58
 
 **Files:**
 - Modify: `src/comment_review/commands/proof.py`
 - Test: the same file as Task 4
 
-- [ ] **Step 1: Write the failing test.** `--copy C.json --to-docket D.json` writes a docket
+- [x] **Step 1: Write the failing test.** `--copy C.json --to-docket D.json` writes a docket
       that `Docket.deserialize` accepts, and **nothing is created at `--out`**.
 
-- [ ] **Step 2: Run it and watch it fail.**
+- [x] **Step 2: Run it and watch it fail.**
 
-- [ ] **Step 3: Implement.** With `--to-docket`, transcribe, write
+- [x] **Step 3: Implement.** With `--to-docket`, transcribe, write
       `json.dumps(docket.serialize(), indent=2)`, and RETURN -- no `pull`, no copytree.
       `--out` is not required when `--to-docket` is given.
 
       ! **THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE COMMAND'S**, matching
       `commands/collate.py`'s existing write -- `decision-log.md Process: #65`, `#67`.
 
-- [ ] **Step 4: Run the checks.** Full suite plus lint/format/lint/ty.
+- [x] **Step 4: Run the checks.** Full suite plus lint/format/lint/ty.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
-- [ ] **Step 6: TICK.** Tick Task 5's boxes in THIS file and close P58, both citing the
+- [x] **Step 6: TICK.** Tick Task 5's boxes in THIS file and close P58, both citing the
       Step 5 commit. Its own commit.
 
 ---
