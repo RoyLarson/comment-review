@@ -82,17 +82,23 @@ landed, and a key whose value failed to serialise arrives looking exactly like
 a deliberate deletion. Two spellings for one act is how a bug upstream becomes
 a deletion downstream at exit 0.
 
-! `role` IS OPTIONAL AND, WHEN PRESENT, ONE PER PAGE -- the role whose mark
-settled every alteration this schedule carries. `desk.collator.docket_from`
-is what writes it, from T4.2's settled places; `flows.revise.pull._set_by`
-reads it back into `address -> role`, the provenance P6's reversal pairs
-against. A docket with no `role` field maps every one of its addresses to
-`""`, unchanged from before this field existed.
+! `role` IS OPTIONAL AND, WHEN PRESENT, ONE PER PAGE -- since `P55`, the role
+of the `edit_copy` this docket was transcribed from.
+`flows.revise.docket_of` is what writes it; `flows.revise.pull._set_by` reads
+it back into `address -> role`, the provenance a reversal pairs against. A
+docket with no `role` field maps every one of its addresses to `""`.
 
-! SO A PAGE WHOSE PLACES TWO ROLES SETTLED CARRIES NO `role` AT ALL --
-`docket_from` omits it rather than naming one of the two, because the field
-cannot say more and a reversal routed to a role that never touched the place
-is worse than one routed nowhere.
+!! SO WHICH ROLE SET A PLACE IS ANSWERED BY WHICH COPY WAS PULLED FROM. A
+role's own copy names that role on every schedule; the copy chief's names
+`copy-chief`, which is true -- the fold is what set those places. Roy,
+2026-09-02: *"by the time the copy-chiefs edit-copy becomes the sole
+edit-copy in the master proof the per role piece is lost. If we are pulling
+from the individual roles already then we know the answer."*
+
+! IT USED TO BE DERIVED PER PLACE, and a page two roles had settled carried
+no `role` at all rather than naming one of them. That input was
+`Reconciled`, which never travelled through an `edit_copy` -- so the rule
+went with the function that could read it.
 """
 
 from dataclasses import dataclass, field
@@ -250,10 +256,11 @@ class Schedule:
     def serialize(self) -> dict:
         """This schedule as the wire dict.
 
-        ! `role` IS OMITTED WHEN EMPTY, which is what `desk.collator.docket_from`
-        writes: a page whose places two roles settled carries no `role` at all,
-        because the field cannot say more and a reversal routed to a role that
-        never touched the place is worse than one routed nowhere. Emitting
+        ! `role` IS OMITTED WHEN EMPTY, so an absent field and an empty one
+        stay ONE thing rather than two. `flows.revise.docket_of` writes the
+        source copy's own role and an `edit_copy` always carries one, so an
+        empty `role` reaches here only from a `Schedule` built directly.
+        Emitting
         `"role": ""` would make an absent field and an empty one look alike on
         the wire.
         """

@@ -10,11 +10,27 @@ trip scoring 699 of 699 on.
 ! `conftest.docket_from` exists for the CHAIN's cases, which assert things about
 drafting rather than about the format. Most of this file does not use it.
 
-!! `desk.collator.docket_from` IS DIFFERENT: it is the desk's own production
-code, T4.5's answer to "the desk is not built" -- so the two `role` tests
-below assert what THAT function produces, the one case in this file where
-building a docket and reading it back is the actual thing under test rather
-than the format's own witness.
+!! `desk.collator.docket_from` IS GONE, since `P55`. It was the desk's own
+production code and it built the WRITE END's artifact from inside the MIDDLE --
+the only such import in the tree. What replaces it is
+`flows/revise.py::docket_of`, which takes an `EditCopy`, and its cases live in
+`tests/test_revise.py::TestDocketOf` beside it.
+
+! SO THE CASES THAT USED IT SPLIT IN TWO, and neither claim was dropped. What
+each was really asking is either RECONCILIATION -- what survives to be settled
+at all, which now asks `reconcile()` directly instead of routing through a
+transcription step to observe it -- or TRANSCRIPTION, which `TestDocketOf`
+asserts over the copy the production path actually carries.
+
+!! ONE CLAIM IS SUPERSEDED RATHER THAN MOVED, and it is the `role` of a page two
+roles settled. `docket_from` read a per-place `roles` off `Reconciled`; an
+`edit_copy` has one role for the whole copy, so `docket_of` writes that.
+**The per-role fact is lost at the FOLD, not at the docket** -- Roy, 2026-09-02:
+*"by the time the copy-chiefs edit-copy becomes the sole edit-copy in the master
+proof the per role piece is lost. If we are pulling from the individual roles
+already then we know the answer."* Pull a role's own copy and every schedule
+names that role; pull the chief's and `copy-chief` is the true answer, because
+the fold is what set it.
 
 ! THE NAME IS SETTLED, 2026-08-26 -- `decision-log.md Vocabulary: #14`. It was
 `notations`, one letter from the `annotations` that `binder/annotate.py` owns.
@@ -25,11 +41,15 @@ import json
 import pytest
 from helpers import a_correct, a_drop, a_master_proof, a_move
 
-from comment_review.desk.collator import docket_from, reconcile
+from comment_review.desk.collator import reconcile
 from comment_review.desk.containers import MasterProof
-from comment_review.docket.docket import Alteration, Docket
+from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.flows.revise import _set_by
 from comment_review.machine.json_object import object_of
+
+#: One ordinary alteration, for the cases whose subject is a SCHEDULE's own
+#: fields rather than what any particular mark transcribes to.
+A_ROW = Alteration(cue="b1", text="# new")
 
 
 def _refused_reasons(proof) -> list[str]:
@@ -231,10 +251,9 @@ class TestTheDocketsOwnPages:
         assert docket.schedules[0].edits == {"b1": "# new", "c0": None}
 
 
-def test_the_docket_names_the_role_that_set_each_alteration():
-    proof = a_master_proof({"block-context": {"m.py@b1": a_correct("m.py@b1")}})
-    docket = docket_from(reconcile(proof), proof)
-    assert docket.schedules[0].role == "block-context"
+#: TRANSCRIPTION, moved: `test_the_docket_names_the_role_that_set_each_alteration`
+#: is `TestDocketOf::test_the_schedule_carries_the_copys_own_role`, which runs an
+#: `ownership-context` copy through and asserts the role that comes out.
 
 
 def test_a_null_sha_reads_as_ABSENT_not_the_word_None():
@@ -259,38 +278,39 @@ def test_a_null_sha_reads_as_ABSENT_not_the_word_None():
     wire["edit_copies"][0]["sheets"][0]["sha"] = None
     proof, why = MasterProof.deserialize("4c", wire)
     assert proof is not None, why
-    docket = docket_from(reconcile(proof), proof)
-    assert docket.schedules[0].sha == ""
+    #: ! ASSERTED ON THE SHEET, NOT ON A DOCKET, since `P55`. The fold is
+    #: `Sheet.deserialize`'s and always was -- `_real_pages` merely read the
+    #: folded value back out. Asking the parse directly removes a transcription
+    #: step from a claim that was never about transcription.
+    assert proof.edit_copies[0].sheets[0].sha == ""
 
 
-def test_set_by_stops_mapping_everything_to_empty():
-    # `revise.pull._set_by` reads an optional `role` per page and used to map
-    # every address to "" because nothing wrote it -- see `_set_by`'s own
-    # docstring. `docket_from` is what writes it now.
-    proof = a_master_proof({"block-context": {"m.py@b1": a_correct("m.py@b1")}})
-    docket = docket_from(reconcile(proof), proof)
-    assert set(_set_by(docket).values()) == {"block-context"}
+#: TRANSCRIPTION, moved: `test_set_by_stops_mapping_everything_to_empty` is
+#: `TestDocketOf::test_set_by_names_the_role_whose_copy_was_pulled`, where the
+#: copy that produces the docket is the thing being varied.
 
 
-def test_a_page_two_roles_settled_names_NEITHER_of_them():
-    """!! A FALSE ATTRIBUTION IS WORSE THAN AN ABSENT ONE. `role` is one per
-    page, so a page holding two roles' settled places can only name one of
-    them -- and `set_by` is what a later phase ROUTES a reversal on
-    (`flows.revise.Pulled`), which would send it to a role that never touched
-    the place. The docket omits the field instead, and `_set_by` says `""`."""
-    proof = a_master_proof(
-        {
-            "block-context": {"m.py@b1": a_correct("m.py@b1")},
-            "module-context": {"m.py@b3": a_correct("m.py@b3")},
-        }
-    )
-    docket = docket_from(reconcile(proof), proof)
-    page = docket.schedules[0]
-    assert sorted(one.cue for one in page.alterations) == ["b1", "b3"]
-    assert page.role == ""
-    # ! AND THE KEY IS OMITTED ON THE WIRE, so an absent `role` and an empty
-    # one stay ONE thing rather than two -- `Schedule.serialize`.
+def test_an_EMPTY_role_is_OMITTED_from_the_wire_and_reads_back_as_empty():
+    """An absent `role` and an empty one stay ONE thing rather than two.
+
+    !! IT IS A FORMAT FACT AND IS ASSERTED AS ONE, since `P55`. It used to ride
+    on `test_a_page_two_roles_settled_names_NEITHER_of_them`, which built a page
+    two roles had settled and checked that `docket_from` named neither. That
+    SCENARIO is gone -- an `edit_copy` carries one role for the whole copy, so
+    `docket_of` writes that role and never has two to choose between. The
+    omission rule survives it, because a `Schedule` can still be built with an
+    empty `role` and the wire must not grow a key for it.
+
+    ! WHY THE SCENARIO WENT RATHER THAN BEING PRESERVED. Roy, 2026-09-02: *"by
+    the time the copy-chiefs edit-copy becomes the sole edit-copy in the master
+    proof the per role piece is lost. If we are pulling from the individual roles
+    already then we know the answer."* The fold is where per-role attribution
+    ends, not the docket -- so `copy-chief` on a folded page is the true answer
+    and not the false one the old test guarded against.
+    """
+    page = Schedule(path="m.py", sha="0" * 40, alterations=(A_ROW,), role="")
     assert "role" not in page.serialize()
+    docket = Docket(schedules=(page,))
     assert set(_set_by(docket).values()) == {""}
     assert read(json.dumps(docket.serialize()))[1] == ""
 
@@ -299,12 +319,24 @@ def test_a_settled_move_DELETES_its_origin_and_writes_its_destination():
     """!! A `move` IS A DELETE AT ONE END AND AN ADD AT THE OTHER
     (`docs/the-mark.md`): *"a move = a delete at the origin + an add at the
     destination"*. Writing `change` at both ends is the duplication the one
-    instruction exists to prevent."""
+    instruction exists to prevent.
+
+    !! ASSERTED ON RECONCILIATION HERE, AND ON TRANSCRIPTION IN
+    `TestDocketOf::test_one_move_mark_yields_two_alterations`. What this file
+    says is the shape the other test depends on: `settled` carries the move at
+    BOTH addresses, and both entries hold the SAME `Mark` -- `_join_moves`
+    keying one mark twice so neither end can settle without the other.
+
+    ! WHICH IS WHY ONE COPY ENTRY IS ENOUGH DOWNSTREAM. The mark carries
+    `claim.to`, so a transcription reading a single entry can still write both
+    ends; it does not need reconciliation's two keys.
+    """
     proof = a_master_proof({"block-context": {"m.py@a0": a_move("m.py@a0", "m.py@a8")}})
-    docket = docket_from(reconcile(proof), proof)
-    alterations = docket.schedules[0].edits
-    assert alterations["a0"] is None
-    assert isinstance(alterations["a8"], str) and alterations["a8"]
+    settled = reconcile(proof).settled
+    assert sorted(one["address"] for one in settled) == ["m.py@a0", "m.py@a8"]
+    marks = {id(one["marks"][0].mark) for one in settled}
+    assert len(marks) == 1, "both ends must hold one mark, not two"
+    assert settled[0]["marks"][0].mark.claim["to"] == "m.py@a8"
 
 
 def test_a_change_in_the_RETIRED_ARRAY_FORM_never_reaches_the_docket():
@@ -327,7 +359,11 @@ def test_a_change_in_the_RETIRED_ARRAY_FORM_never_reaches_the_docket():
     mark["change"] = [mark["change"]]
     proof = a_master_proof({"block-context": {"m.py@b1": mark}})
     assert _refused_reasons(proof), "the array form must not read as a mark"
-    assert docket_from(reconcile(proof), proof).schedules == ()
+    #: ! ASKED OF RECONCILIATION SINCE `P55`. A refused entry never becomes a
+    #: `Mark`, so nothing settles and no copy can carry it forward -- which is
+    #: the same claim the docket assertion made, one step earlier and with no
+    #: transcription in between.
+    assert reconcile(proof).settled == []
 
 
 def test_an_EMPTY_change_refuses_where_the_instruction_may_not_empty():
@@ -335,18 +371,24 @@ def test_an_EMPTY_change_refuses_where_the_instruction_may_not_empty():
     mark["change"] = ""
     proof = a_master_proof({"block-context": {"m.py@b1": mark}})
     assert _refused_reasons(proof)
-    assert docket_from(reconcile(proof), proof).schedules == ()
+    assert reconcile(proof).settled == []
 
 
 def test_an_EMPTY_change_IS_the_delete_where_the_row_may_empty():
     """`drop` is the one row `INSTRUCTIONS[...].may_empty` is True for, which
     is what the refusal above is read from rather than from a named
-    instruction."""
+    instruction.
+
+    !! THE OTHER HALF IS `TestDocketOf::test_a_drop_is_written_as_a_delete`,
+    which asserts the `Alteration(cue, text=None)` this used to. What stays here
+    is that the empty change SETTLES rather than being refused -- the pair the
+    test above it makes sense against.
+    """
     mark = a_drop("m.py@b1")
     mark["change"] = ""
     proof = a_master_proof({"block-context": {"m.py@b1": mark}})
-    docket = docket_from(reconcile(proof), proof)
-    assert docket.schedules[0].alterations == (Alteration(cue="b1", text=None),)
+    assert not _refused_reasons(proof)
+    assert [one["address"] for one in reconcile(proof).settled] == ["m.py@b1"]
 
 
 def test_NO_DOCKET_CARRIES_ONE_END_OF_A_MOVE():
@@ -360,4 +402,9 @@ def test_NO_DOCKET_CARRIES_ONE_END_OF_A_MOVE():
             "module-context": {"m.py@a8": a_correct("m.py@a8", "a different sentence")},
         }
     )
-    assert docket_from(reconcile(proof), proof) == Docket(schedules=())
+    #: ! ASKED OF RECONCILIATION SINCE `P55`. `_join_moves` gives both ends the
+    #: STRONGEST outcome either reached, so a collision at the destination pulls
+    #: the origin out of `settled` with it. Nothing settles, so no copy carries
+    #: the move and no docket can be built holding one end -- the claim is the
+    #: same, asked of the step that decides it.
+    assert reconcile(proof).settled == []

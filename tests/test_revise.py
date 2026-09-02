@@ -21,7 +21,7 @@ from helpers import (
 )
 
 from comment_review.desk.containers import EditCopy
-from comment_review.flows.revise import docket_of, pull
+from comment_review.flows.revise import _set_by, docket_of, pull
 
 
 def a_copy(role: str, paragraphs: dict[str, str], marks: dict) -> EditCopy:
@@ -104,6 +104,25 @@ class TestDocketOf:
         )
         schedule = docket_of(copy).schedules[0]
         assert [(one.cue, one.text) for one in schedule.alterations] == [("b1", None)]
+
+    def test_set_by_names_the_role_whose_copy_was_pulled(self):
+        """!! WHICH ROLE SET A PLACE IS ANSWERED BY WHICH COPY YOU PULLED FROM.
+        Roy, 2026-09-02: *"If we are pulling from the individual roles already
+        then we know the answer."* `_set_by` maps every altered address to the
+        schedule's role, so a role's own copy attributes every place to that
+        role -- and the copy chief's attributes them to the fold, which is what
+        set them.
+
+        ! IT WAS `tests/test_docket.py::test_set_by_stops_mapping_everything_to_
+        empty`, which built a `MasterProof` and went through `docket_from`. The
+        subject is the same and the input is now the one production carries.
+        """
+        copy = a_copy(
+            "module-context",
+            {"m.py@b1": "# one\n"},
+            {"m.py@b1": a_correct("m.py@b1", sentence="one")},
+        )
+        assert set(_set_by(docket_of(copy)).values()) == {"module-context"}
 
     def test_a_page_nobody_ruled_on_gets_no_schedule(self):
         """!! AN UNTOUCHED SLOT IS NOT AN ALTERATION. A seeded copy carries a

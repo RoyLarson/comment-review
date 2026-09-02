@@ -19,7 +19,6 @@
     places()                   every ruled mark of a master_proof, grouped by
                                the address it TOUCHES
     reconcile()                each place -> settled, escalation or re-read
-    docket_from()              the settled places, as a docket
 
 !! FOUR KINDS OF CHECK, AND WHAT EACH NEEDS IS WHAT SEPARATES THEM. NAMED BY
 MEMBER, NOT BY FILE-ORDER RANGE -- `desk/mark.py` answers everything a mark
@@ -32,8 +31,8 @@ One kind needs only the report itself, and nothing outside it (`Problem`,
 `tally`) -- `decision-log.md Process: #54` put them here because they ask
 about the SET, and one mark cannot answer for the set alone. ! TWO MORE
 STOOD IN THAT GROUP UNTIL `P52`; `flows.mark_errors` answers what they did. One
-kind needs the marks the OTHER roles handed back (`places`, `reconcile`,
-`docket_from`). A FOURTH kind compares what came back against what went
+kind needs the marks the OTHER roles handed back (`places`, `reconcile`).
+A FOURTH kind compares what came back against what went
 out: `drift_in`, which needs both the returned report and the base
 `base_texts` derived from the binder it was seeded from -- checking the
 SAME field of the SAME entry at two different times, what it was seeded
@@ -55,8 +54,15 @@ wrongly is settled wrongly.
 
 !! EVERY FUNCTION HERE TAKES A CONTAINER, NEVER A WIRE DICT, since 2026-08-31
 -- `P42`, `decision-log.md Process: #65`. `verify_report`, `drift_in` and
-`tally` take an `EditCopy`; `places`, `reconcile`,
-`_roles_of_stage`, `_real_pages` and `docket_from` take a `MasterProof`.
+`tally` take an `EditCopy`; `places`, `reconcile` and `_roles_of_stage`
+take a `MasterProof`.
+
+!! AND THE DOCKET IS NOT BUILT HERE ANY MORE, since `P55`. `docket_from` and
+`_real_pages` lived in this file and imported `Alteration`, `Schedule` and
+`Docket` -- the only MIDDLE-to-WRITE-END import in the tree. The transcription
+is `flows/revise.py::docket_of`, which takes an `EditCopy` rather than a
+`(Reconciled, MasterProof)` pair, because a FLOW may reach both ends and neither
+end may reach the other. `decision-log.md Process: #76`.
 ! WHAT WENT WITH THE SIGNATURES is every re-derivation of the same walk --
 `report.get("sheets")`, `isinstance(sheets, list)`, `sheet.get("marks") if
 isinstance(sheet, dict)` -- which stood at five sites in this file, and
@@ -83,14 +89,12 @@ from comment_review.desk.mark import (
     Instruction,
     Mark,
     filled,
-    text_at,
     without_location,
 )
-from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.machine import constants
 from comment_review.machine.exceptions import READ_ERRORS
 from comment_review.machine.repo import can_escape, read_raw
-from comment_review.reading.addresser import cue_of, flatten, unflatten
+from comment_review.reading.addresser import cue_of, flatten
 
 #: How far from the line a `source` cites its `verbatim` may sit, in lines, on
 #: either side. A role reads a paragraph and cites the line it was looking at,
@@ -626,7 +630,8 @@ class Reconciled(NamedTuple):
 
     Attributes:
         settled: one owing mark, nothing composed with it. ONE role, one
-            change, and the only list `docket_from` writes from.
+            change, and the only list a transcription reads --
+            `flows.revise.docket_of` since `P55`.
         escalations: two or more owing marks that all rule on the SAME
             sentence -- two answers to one question.
         rereads: every other place with more than one owing mark, plus every
@@ -839,89 +844,3 @@ def reconcile(proof: MasterProof) -> Reconciled:
     for kind, entry in outcomes.values():
         into[kind].append(entry)
     return Reconciled(settled, escalations, rereads)
-
-
-def _real_pages(proof: MasterProof) -> tuple[list[str], dict[str, str]]:
-    """The repo paths this proof's sheets name, and each page's sha.
-
-    Returns:
-        `(paths in first-seen order, path -> sha)`. A page several edit_copies
-        carry keeps the FIRST sha seen. The paths are what `unflatten` resolves
-        an address's flattened path against, which is why the list is kept
-        beside the mapping.
-
-    ! IT HAND-FOLDED A NULL `sha` TO "" UNTIL 2026-08-31, one of the five sites
-    `Sheet.deserialize`'s own comment counted. `Sheet.sha` is a `str` because
-    that parse made it one, so there is nothing left here to fold.
-    """
-    paths: list[str] = []
-    shas: dict[str, str] = {}
-    for copy in proof.edit_copies:
-        for sheet in copy.sheets:
-            if sheet.path not in shas:
-                paths.append(sheet.path)
-                shas[sheet.path] = sheet.sha
-    return paths, shas
-
-
-def docket_from(reconciled: Reconciled, proof: MasterProof) -> Docket:
-    """The settled places, as a docket -- one page per file, in settled order.
-
-    !! ESCALATIONS AND RE-READS ARE NOT WRITTEN AT ALL. A place that did not
-    settle appears nowhere, which is what keeps a `move` whole: `_join_moves`
-    has already given its two ends one outcome, so either both are here or
-    neither is, and no docket carries one end of one.
-
-    Args:
-        reconciled: as `reconcile` returns it. Only `settled` is read.
-        proof: the same parsed master_proof, for the real page paths and shas. An
-            address carries the FLATTENED path; `unflatten` resolves it against
-            the sheets' own paths, and one it cannot resolve is written through
-            flattened, with an empty sha.
-
-    Returns:
-        A `Docket` -- one `Schedule` per file, each holding one `Alteration`
-        per settled place. An alteration's `text` is None where it deletes the
-        paragraph.
-
-        !! IT RETURNED THE WIRE DICT UNTIL 2026-08-31 -- `decision-log.md
-        Process: #67`. This is the MIDDLE's output and the write chain's input,
-        so it is the one handoff between the two halves of the system; a raw
-        dict here meant the write flow received the one thing `Process: #65`
-        forbids past either end.
-
-    ! `role` IS DROPPED FROM A PAGE TWO ROLES SETTLED ON rather than naming one
-    of them. The field is per page and there is one line for it, so a page
-    holding two roles' places can only ever name half of what set it.
-    """
-    paths, shas = _real_pages(proof)
-    alterations: dict[str, list[Alteration]] = {}
-    shas_of: dict[str, str] = {}
-    roles_of: dict[str, set[str]] = {}
-    for entry in reconciled.settled:
-        address = entry["address"]
-        mark = entry["marks"][0].mark
-        role = entry["roles"][0]
-        addr = cue_of(address)
-        real_path = unflatten(addr.path, paths) or addr.path
-        shas_of.setdefault(real_path, shas.get(real_path, ""))
-        roles_of.setdefault(real_path, set()).add(role)
-        alterations.setdefault(real_path, []).append(
-            Alteration(cue=addr.cue, text=text_at(address, mark))
-        )
-    return Docket(
-        schedules=tuple(
-            Schedule(
-                path=real_path,
-                sha=shas_of[real_path],
-                alterations=tuple(mine),
-                # ! "" IS WHAT A PAGE TWO ROLES SETTLED CARRIES, and
-                # `Schedule.serialize` is what omits the key for it -- so an
-                # absent `role` and an empty one stay one thing rather than two.
-                role=next(iter(roles_of[real_path]))
-                if len(roles_of[real_path]) == 1
-                else "",
-            )
-            for real_path, mine in alterations.items()
-        )
-    )

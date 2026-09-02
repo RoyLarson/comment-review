@@ -57,9 +57,8 @@ class Pulled(NamedTuple):
             docket named. This is the provenance a later phase (P6) routes
             on, not decoration. `role` is one per page in `docket.py`'s
             schema (`path`, `sha`, `role`, `alterations`) and optional --
-            `desk.collator.docket_from` is what writes it, from T4.2's
-            settled places; a docket with none maps every one of its
-            addresses to `""`.
+            `docket_of` writes it from the source copy's own role; a docket
+            with none maps every one of its addresses to `""`.
         refusals: every `proof_setter.Refusal`, or `[]` on success. Non-empty
             means `root` was discarded and does not exist.
     """
@@ -311,9 +310,9 @@ def _binder_over(root: Path, revise: int) -> Binder:
 def _set_by(docket: Docket) -> dict[str, str]:
     """Every altered address, mapped to the role that set it.
 
-    ! READS AN OPTIONAL FIELD. `role` is per page and `desk.collator.docket_from`
-    is what writes it; see `Pulled.set_by`'s own docstring for why `""` is what
-    a docket with no `role` field yields.
+    ! READS AN OPTIONAL FIELD. `role` is per page and `docket_of` above is what
+    writes it; see `Pulled.set_by`'s own docstring for why `""` is what a
+    docket with no `role` field yields.
 
     !! IT READ THE RAW DOCKET DICT UNTIL 2026-08-31, and said so: *"straight off
     the raw docket dict"* was in `Schedule`'s own docstring, naming this

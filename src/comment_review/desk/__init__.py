@@ -23,8 +23,11 @@ solidifying wrong."*
 !! TWO SENTENCES ABOVE ARE SUPERSEDED, 2026-08-29. The first line read
 *"RECONCILIATION IS NOT BUILT"* and `collator`'s row read *"RECONCILIATION --
 per place, across the marks of one stage -- is not built"*. It is built:
-`collator.places`, `collator.reconcile` and `collator.docket_from` are what
-this branch added, and `tests/test_reconcile.py` runs them. ! The `stages` row
+`collator.places` and `collator.reconcile` are what this branch added, and
+`tests/test_reconcile.py` runs them. ! A third, `collator.docket_from`, was
+added with them and left at `P55` -- the docket is transcribed by
+`flows.revise.docket_of`, because building the WRITE END's artifact was never
+the middle's to do. ! The `stages` row
 credited that module with *"the roles it dispatches"* -- a `roles` FIELD this
 branch deleted, so a reader following the row reached for `Stage.roles` and got
 `AttributeError`. A stage's roles are `[d.role for d in stage.dispatches]`,
