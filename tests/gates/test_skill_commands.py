@@ -44,7 +44,7 @@ def _invocations() -> list[tuple[str, list[str], str, int]]:
     every invocation in the agent-facing files.
 
     ! A CONTINUATION LINE (ending `\\`) IS JOINED IN, so a flag on the second
-    line of a two-line invocation -- `proof --repo . --docket D.json \\` then
+    line of a two-line invocation -- `proof --repo . --from-docket D.json \\` then
     `  --out DIR` -- is not missed.
     """
     found: list[tuple[str, list[str], str, int]] = []
