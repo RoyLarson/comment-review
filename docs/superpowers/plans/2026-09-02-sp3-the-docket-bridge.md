@@ -141,6 +141,8 @@ obligation with no place in the sequence is what gets dropped.
 
 ### Task 1: `text_at` moves to `desk/mark.py`
 
+**Landed:** `586c13a` -- `P53`. The move's two ends are asserted by `TestTextAtOneEndOfAMark`.
+
 **Delivers:** P53
 
 **Files:**
@@ -151,7 +153,7 @@ obligation with no place in the sequence is what gets dropped.
 **Interfaces:**
 - Produces: `text_at(address: str, mark: Mark) -> str | None`
 
-- [ ] **Step 1: Write the failing test** in `tests/test_mark.py`:
+- [x] **Step 1: Write the failing test** in `tests/test_mark.py`:
 
 ```python
 def test_a_move_at_its_origin_is_a_delete():
@@ -171,24 +173,24 @@ def test_an_empty_change_is_a_delete():
     assert text_at("m.py@b1", mark) is None
 ```
 
-- [ ] **Step 2: Run it and watch it fail.** `uv run pytest -q tests/test_mark.py -k text_at`
+- [x] **Step 2: Run it and watch it fail.** `uv run pytest -q tests/test_mark.py -k text_at`
       Expected: `NameError` / import error -- `text_at` does not exist.
 
-- [ ] **Step 3: Implement.** Move the body of `desk/collator.py::_alteration_text` into
+- [x] **Step 3: Implement.** Move the body of `desk/collator.py::_alteration_text` into
       `desk/mark.py` as `text_at`, public. It is a fact about a `Mark` -- which end of a move
       an address is, and whether the change is empty -- so it belongs where `Mark` is defined
       and not in the collator. Keep its docstring, which already states both rules.
 
-- [ ] **Step 4: Point the old caller at it.** `desk/collator.py::docket_from` calls `text_at`;
+- [x] **Step 4: Point the old caller at it.** `desk/collator.py::docket_from` calls `text_at`;
       delete `_alteration_text`. **`docket_from` still exists at this task** -- Task 3 deletes
       it, and doing both here would leave a commit whose tests do not run.
 
-- [ ] **Step 5: Run the checks.** `uv run pytest -q`, then `uv run ruff check .`,
+- [x] **Step 5: Run the checks.** `uv run pytest -q`, then `uv run ruff check .`,
       `uv run ruff format .`, `uv run ruff check .` again, `uv run ty check`.
 
-- [ ] **Step 6: Commit.**
+- [x] **Step 6: Commit.**
 
-- [ ] **Step 7: TICK.** Tick Task 1's boxes in THIS file, then `job-board --plans-dir
+- [x] **Step 7: TICK.** Tick Task 1's boxes in THIS file, then `job-board --plans-dir
       docs/plans plan close 0.2.4-the-commands-for-the-middle P53 --commit <sha> --statement
       "..."` -- reading P53's own verify text before ticking. Both cite the Step 6 commit.
       Commit the tick separately.
