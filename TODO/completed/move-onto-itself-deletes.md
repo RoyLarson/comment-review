@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 3 tasks closed
+Progress: 3 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, by an agent writing collator.py's prose from the code
@@ -23,9 +23,11 @@ A move onto its own address reaches the docket as a bare delete.
 - [x] T1 | FINISHED | unknown | Refuse `claim.to == address` on a `move`, by
       name. Verify: `desk.mark.parse` returns a named problem for it -- today it
       returns `(mark, [])`, measured.
-- [ ] T2 | Prove the docket cannot carry the shape. Verify: a test asserts no
-      alteration is a delete with no matching write, and it FAILS against
-      today's code, which produces `[('m.py', 'b1', None)]`.
-- [ ] T3 | Check the neighbouring shapes. Verify: a `move` across files, and one
-      whose `to` names a place the binder does not carry, each reach a named
-      outcome rather than a silent delete.
+- [-] T2 | SUPERSEDED into collator-defects T2, which carries this task verbatim since 9fc9272 | 9fc9272 | Prove
+      the docket cannot carry the shape. Verify: a test asserts no alteration is
+      a delete with no matching write, and it FAILS against today's code, which
+      produces `[('m.py', 'b1', None)]`.
+- [-] T3 | SUPERSEDED into collator-defects T3, which carries this task verbatim since 9fc9272 | 9fc9272 | Check
+      the neighbouring shapes. Verify: a `move` across files, and one whose `to`
+      names a place the binder does not carry, each reach a named outcome rather
+      than a silent delete.
