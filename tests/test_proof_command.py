@@ -4,9 +4,97 @@ Moved from `tests/test_proof_setter.py` 2026-08-26 -- `tests/test_addresser_comm
 is the standing precedent for a command's own file.
 """
 
-from conftest import SAMPLE, SRC, build, by_cue
+import json
+
+import pytest
+from conftest import SAMPLE, SRC, build
+from helpers import a_correct, copies_over
 
 from comment_review.binder.binder import bind
+from comment_review.commands import proof as proof_command
+
+
+def a_copy_on_disk(tmp_path, binder, address):
+    """A role's filled `edit_copy`, written to disk for the command to read.
+
+    !! SEEDED FROM THE REAL BINDER, not a synthetic one. The docket carries each
+    page's sha straight off the sheet, and `proof_setter` refuses a page whose
+    sha does not match the file it is about to set -- so a copy seeded from
+    `a_binder_over`'s `"0" * 40` would refuse for a reason that has nothing to do
+    with what this test asks.
+
+    ! AND THROUGH `copies_over`, so the copy is the shape `distribute` produces
+    rather than the shape this test expects; it also replaces the mark's
+    placeholder sentence with the page's real one, which is what makes the
+    claim verifiable.
+    """
+    copy = copies_over(binder, {"block-context": {address: a_correct(address)}})[0]
+    where = tmp_path / "copy.json"
+    where.write_text(json.dumps(copy), encoding="utf-8", newline="")
+    return where
+
+
+def run(monkeypatch, capsys, *argv):
+    monkeypatch.setattr("sys.argv", ["proof", *argv])
+    code = proof_command.main()
+    return code, capsys.readouterr().out
+
+
+class TestProofTakesAnEditCopy:
+    """`P57`. The command's input is an `edit_copy`; the docket is transcribed
+    on the flow's first step -- `decision-log.md Process: #76`.
+
+    ! `--docket` IS GONE, not aliased. It named the artifact rather than the
+    boundary, and `P58`/`P59` give the two boundaries their own flags.
+    """
+
+    def test_a_filled_copy_pulls_a_revise(self, tmp_path, monkeypatch, capsys):
+        repo, binder, page = _tree(tmp_path)
+        address = next(b.address for b in page.paragraphs if b.address)
+        copy = a_copy_on_disk(tmp_path, binder, address)
+
+        code, out = run(
+            monkeypatch,
+            capsys,
+            "--copy",
+            str(copy),
+            "--repo",
+            str(repo),
+            "--out",
+            str(tmp_path / "r1"),
+        )
+        assert code == 0, out
+        assert (tmp_path / "r1" / "m.py").exists()
+
+    def test_the_docket_flag_is_gone(self, monkeypatch, capsys):
+        """! ASSERTED, NOT ASSUMED. A flag that still parses would let an old
+        invocation run and produce a confusing refusal deep in the load."""
+        with pytest.raises(SystemExit):
+            run(monkeypatch, capsys, "--docket", "d.json", "--repo", ".", "--out", "o")
+
+    def test_a_copy_that_will_not_read_reports_and_writes_nothing(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """! THE REFUSAL PATH KEEPS ITS SHAPE. `CANNOT READ` is what SKILL.md
+        tells the agent to look for, and the three load steps still fail for
+        their own reasons -- `Process: #67`."""
+        bad = tmp_path / "copy.json"
+        bad.write_text('{"role": "block-context"}', encoding="utf-8", newline="")
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        code, out = run(
+            monkeypatch,
+            capsys,
+            "--copy",
+            str(bad),
+            "--repo",
+            str(repo),
+            "--out",
+            str(tmp_path / "r1"),
+        )
+        assert code == 2
+        assert "CANNOT READ" in out
+        assert not (tmp_path / "r1").exists()
 
 
 def _tree(tmp_path):
@@ -58,52 +146,35 @@ class TestTheCommand:
         past 946 green tests, ruff, ty, the build gate and the floor check. It
         was found by running the command, which is the only thing that could.
 
-        ! THE DOCKET IS HAND-WRITTEN, like every one in `test_docket.py`: it
+        !! THE INPUT IS AN `edit_copy` SINCE `P57`, and the note this docstring
+        used to carry moved with it. It read *"THE DOCKET IS HAND-WRITTEN ... it
         arrives from outside the system, so a helper building it would only
-        agree with the reader.
+        agree with the reader"* -- true while `--docket` was the input, and not
+        true now: what arrives from outside is a role's copy, and the docket is
+        transcribed from it inside the flow. The hand-written docket is the
+        `--from-docket` case at `P59`, where it is an input again.
         """
-        import json
-
-        from comment_review.commands import proof as cmd
-
-        repo, _, page = _tree(tmp_path)
+        repo, binder, page = _tree(tmp_path)
         # ! DISCOVERED FROM THE PAGE, never hardcoded -- a literal cue is a
         # fixture asserting what the walk emitted last time someone looked.
-        cue = next(
-            c
-            for c, b in by_cue(page).items()
-            if c.startswith("b") and any(x.strip() for x in b.raw_lines)
+        address = next(
+            b.address
+            for b in page.paragraphs
+            if b.address and any(x.strip() for x in b.raw_lines)
         )
-        (tmp_path / "d.json").write_text(
-            json.dumps(
-                {
-                    "pages": [
-                        {
-                            "path": "m.py",
-                            "sha": page.sha,
-                            "alterations": [{"cue": cue, "text": "# REWRITTEN"}],
-                        }
-                    ]
-                }
-            ),
-            encoding="utf-8",
+        copy = a_copy_on_disk(tmp_path, binder, address)
+        code, out = run(
+            monkeypatch,
+            capsys,
+            "--repo",
+            str(repo),
+            "--copy",
+            str(copy),
+            "--out",
+            str(tmp_path / "out"),
         )
-        monkeypatch.setattr(
-            "sys.argv",
-            [
-                "proof",
-                "--repo",
-                str(repo),
-                "--docket",
-                str(tmp_path / "d.json"),
-                "--out",
-                str(tmp_path / "out"),
-            ],
-        )
-        assert cmd.main() == 0
-        assert "drafted for review" in capsys.readouterr().out
-        drafted = (tmp_path / "out" / "m.py").read_text(encoding="utf-8")
-        assert "# REWRITTEN" in drafted
+        assert code == 0, out
+        assert "drafted for review" in out
         # ! AND THE SOURCE IS UNTOUCHED, which is the whole promise of a draft.
         assert (repo / "m.py").read_text(encoding="utf-8") == SAMPLE
 
@@ -122,7 +193,7 @@ class TestTheCommand:
                 "proof",
                 "--repo",
                 str(repo),
-                "--docket",
+                "--copy",
                 "n.json",
                 "--out",
                 str(repo / "inside"),
@@ -150,7 +221,7 @@ class TestTheCommand:
                 "proof",
                 "--repo",
                 str(repo),
-                "--docket",
+                "--copy",
                 "n.json",
                 "--out",
                 str(not_a_dir),
@@ -177,7 +248,7 @@ class TestTheCommand:
                 "proof",
                 "--repo",
                 str(repo),
-                "--docket",
+                "--copy",
                 "n.json",
                 "--out",
                 str(already_there),

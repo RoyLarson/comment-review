@@ -77,7 +77,22 @@ simpler; nothing here has to be undone.
 - `uv run ruff check .`, `uv run ruff format .`, then `uv run ruff check .` AGAIN, then
   `uv run ty check` (bare, both trees). All green.
 - `tests/gates/test_build.py` is EXPECTED to fail throughout -- `plugins/` is built at RELEASE.
-  **Exactly one failure is correct.**
+  **Exactly one failure is correct** -- except across Tasks 4-6, below.
+
+!! **THE TASK ORDER WAS WRONG AND IS CORRECTED HERE, 2026-09-02.** Task 8 puts SKILL.md last,
+and `tests/gates/test_skill_commands.py` couples it to Task 4: that gate reads every flag
+SKILL.md names and asks the command's own parser to accept it, so the moment `--docket` becomes
+`--copy` it reports `('--docket', 'proof', 'SKILL.md', 896)`. **Left in the written order the
+suite would sit at TWO failures for four tasks**, which is how a real new failure becomes
+invisible.
+
+! **THE ORDER IS NOW 4, 5, 6, 8, 7.** SKILL.md is written once, against the finished surface --
+doing it at Task 4 would have named `--to-docket` and `--from-docket` before they parsed, which
+is the same gate failing from the other side. Task 7's chain test is last either way.
+
+! **SO A SECOND FAILURE IS EXPECTED, AND ONLY ACROSS TASKS 4, 5 AND 6.** Each of those commits
+says so and names this gate. At Task 8 it goes green and **exactly one failure is correct
+again** for Task 7.
 
 ## !! EVERY TASK ENDS WITH ITS OWN TICK STEP, AS ITS OWN COMMIT
 

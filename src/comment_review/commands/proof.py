@@ -32,7 +32,7 @@ off the original.
 import argparse
 from pathlib import Path
 
-from comment_review.docket.docket import Docket
+from comment_review.desk.containers import EditCopy
 from comment_review.flows import revise
 from comment_review.machine import exceptions
 from comment_review.machine.json_object import object_of
@@ -49,10 +49,19 @@ def main() -> int:
     # exactly two facts -- each page's sha, and the paths `unflatten` needed to
     # recover a real path from an address's flattened one. A schedule carries
     # both, so the binder no longer reaches the write chain at all.
+    # !! `--docket` BECAME `--copy` AT `P57`. The flow's first step transcribes
+    # an `edit_copy` into a docket -- `flows.revise.docket_of`,
+    # `decision-log.md Process: #76` -- so the input is the artifact the middle
+    # actually produces, and the docket is an internal value.
+    #
+    # !! IT TAKES ANY COPY, NOT ONLY THE COPY CHIEF'S. Roy, 2026-09-02: *"it
+    # could also be ownership contexts edit-copy or any intermediate edit-copy
+    # which allows the stage outputs to run."* That is what lets one stage's
+    # output become the revise the next stage reads.
     ap.add_argument(
-        "--docket",
+        "--copy",
         required=True,
-        help='JSON: {"pages": [{"path", "sha", "alterations": [{"cue", "text"}]}]}',
+        help='JSON: an edit_copy -- {"role", "read_from", "sheets"}',
     )
     ap.add_argument(
         "--out",
@@ -111,23 +120,27 @@ def main() -> int:
     # reason string from one call, and a caller wanting to answer them
     # differently had to match on the message.
     try:
-        docket_text = Path(args.docket).read_text(encoding="utf-8")
+        copy_text = Path(args.copy).read_text(encoding="utf-8")
     except exceptions.READ_ERRORS as e:
         print(f"CANNOT READ ({type(e).__name__}) -- nothing written")
         return 2
 
-    loaded, why = object_of(docket_text, "docket")
+    loaded, why = object_of(copy_text, "edit_copy")
     if why:
-        print(f"CANNOT READ THE DOCKET: {why} -- nothing written")
+        print(f"CANNOT READ THE COPY: {why} -- nothing written")
         return 2
 
-    held, problems = Docket.deserialize(args.docket, loaded)
-    if held is None:
+    copy, problems = EditCopy.deserialize(args.copy, loaded)
+    if copy is None:
         # ! EVERY BROKEN RULE, NOT THE FIRST. `docket.read` stopped at one, so a
-        # docket with three bad pages took three runs to fix.
+        # copy with three bad pages took three runs to fix.
         for line in problems:
-            print(f"CANNOT READ THE DOCKET: {line} -- nothing written")
+            print(f"CANNOT READ THE COPY: {line} -- nothing written")
         return 2
+
+    # ! THE TRANSCRIBE IS THE FLOW'S FIRST STEP and cannot fail: every rule it
+    # would have checked is settled by the parse above -- `Process: #76`.
+    held = revise.docket_of(copy)
 
     # !! ROUTED THROUGH `revise.pull` SINCE 2026-08-28, NOT `proof_setter.run`
     # DIRECTLY. `pull` is the one mechanism left that builds a draft tree --
