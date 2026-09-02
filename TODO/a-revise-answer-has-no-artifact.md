@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 9 tasks closed
+Progress: 5 of 9 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
@@ -122,9 +122,10 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       to a stage, and carries only the rows that role is party to. Verify: a
       role party to one place in a stage it did not otherwise join receives a
       one-row sheet, and no row names a place it is not party to.
-- [ ] T7 | T7 -- A reversal is a row, paired with whoever LAST set the
-      statement. Verify: stage 3 reversing a paragraph stage 2 set pairs with
-      stage 2 and not with stage 1, read from the revise's per-place provenance.
+- [-] T7 | SUPERSEDED into a-role-can-reverse-itself-between-runs T3 -- it is agent-output variance across two runs, not a claim about the process, so it is agents' and not a code gate | f196ef9 | T7
+      -- A reversal is a row, paired with whoever LAST set the statement.
+      Verify: stage 3 reversing a paragraph stage 2 set pairs with stage 2 and
+      not with stage 1, read from the revise's per-place provenance.
 - [ ] T8 | T8 -- Enforce the two-round cap `Process: #9` already ruled. Verify:
       a third round cannot start, the place reaches the copy chief carrying
       every round's marks, and the run reports the rounds each place took.
