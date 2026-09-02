@@ -2643,3 +2643,61 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   are Roy's; this is what the file says once someone looks. It is recorded because `#73`
   explicitly left the letter open, and an entry that stays open after its answer arrives is
   worse than no entry.
+
+- **#76.** **THE PROOF FLOW TAKES ANY EDIT_COPY AND TRANSCRIBES IT ON ITS FIRST STEP** (Roy,
+  2026-09-02): *"flows/proof takes any edit-copy and does the transform of edit-copy -> docket
+  on its first step."* And what makes it ANY copy rather than the chief's: *"By the time the
+  information is done on the 'middle' we should have a resolved single edit-copy, the
+  copy-chiefs edit-copy. But it could also be ownership contexts edit-copy or any intermediate
+  edit-copy which allows the stage outputs to run."*
+
+  !! **IT CLOSES THE ONE GAP IN THE CHAIN.** `collate` writes an `edit_copy` --
+  `{role, read_from, sheets}` -- and `proof --docket` reads `{pages: [{path, sha, alterations}]}`;
+  `commands/proof.py` refuses the one given the other, so the chain
+  `census -> distribute -> collate -> ??? -> proof` had no fourth step.
+  `TODO/no-command-for-the-middle.md` T1 has been open on exactly this since 2026-08-29.
+
+  !! **AND THE SECOND SENTENCE IS THE LARGER HALF.** *"Any intermediate edit-copy"* means a
+  stage's own output becomes a revise -- which is the mechanism two filed things need and
+  neither has: `reads = "revise:N"` in a topology, and `4b`, where 4a's ownership-context copy
+  becomes a revise that `census --revise 1` reads back so 4c sees the resolved placement.
+  `TODO/stage-4b-is-undefined.md` T6. **The piece is one function; the two uses are `agents`
+  work in SKILL.md and are not this.**
+
+  !! **`Docket.from(edit_copy)` WAS OFFERED AND IS NOT TAKEN.** Roy: *"Docket.from(edit_copy)
+  is probably the easiest way to implement this but it does break the import rules meant to
+  isolate the two pieces. So provisionally okay but the future this transcribing probably
+  should be a function in the flow itself."*
+
+  ! **THE FUTURE FORM IS FREE TODAY, WHICH IS WHY THE PROVISIONAL IS DECLINED.**
+  `flows/revise.py` already imports `binder.binder` (35), `desk.collator` (36) and
+  `docket.docket` (37) -- all three areas -- because a FLOW may, and `docket/docket.py` itself
+  imports NOTHING. So the transcribe in the flow costs one import from an area that file
+  already reaches, while `Docket.from` would cost a marker in the code, an entry here, and a
+  later migration. **The easier-looking option was the more expensive one.**
+
+  ! **AND IT DELETES A COUPLING RATHER THAN ADDING ONE.** `desk/collator.py:88` --
+  `from comment_review.docket.docket import Alteration, Docket, Schedule` -- is the only
+  MIDDLE-to-WRITE-END import in the tree, one of the four measured 2026-08-31. `docket_from`
+  leaving `desk/` takes it with it.
+
+- **#77.** **`--from-docket` AND `--to-docket` ARE WHERE THE RUN MAY START AND STOP** (Roy,
+  2026-09-02): *"we add a --from-docket, --to-docket flags that allow the flow to start/stop in
+  the middle of the flow."*
+
+  !! **THEY ARE WHAT KEEPS THE SERIALIZATION HONEST, AND THAT IS NOT WHY THEY WERE ASKED FOR.**
+  Roy's answer on whether the docket stays a written artifact was: *"Drop it, don't drop the
+  serialization because we probably will need it for some logging or troubleshooting so since
+  it is there it is worth not reinventing."* **A method kept on stated intent is exactly what
+  `scripts/dead_sweep.py` reports and a later session deletes** -- `docs/conventions.md`'s
+  *follow the field to what finally consumes it*, arriving on a method. The flags give both
+  `Docket.serialize` and `Docket.deserialize` a production reader, so the intent does not have
+  to be remembered.
+
+  ! `--to-docket` STOPS the run: transcribe, write, return -- no revise. `--from-docket` STARTS
+  at one: skip the transcribe, call `pull`. `--copy` and `--from-docket` are exclusive and one
+  is required; `--from-docket` with `--to-docket` reads a docket in order to write it back and
+  is refused by name.
+
+  ! **THE PAIR IS WHY `--docket` GOES.** It was one flag doing the job of the two, and it named
+  the artifact rather than the boundary.

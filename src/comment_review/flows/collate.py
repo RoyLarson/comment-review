@@ -439,8 +439,9 @@ def _chief_copy(
     as an empty slot.
 
     ! PATHS ARE THE REAL ONES. An address carries the FLATTENED path;
-    `unflatten` resolves it against the proof's own sheet paths, exactly as
-    `docket_from` does, so the sheets name files that are actually there.
+    `unflatten` resolves it against the proof's own sheet paths, so the sheets
+    name files that are actually there -- and `flows.revise.docket_of` then
+    reads those paths straight off the sheets, resolving nothing again.
 
     !! A `move` IS ONE ENTRY, WRITTEN ONCE, AT ITS OWN `address`. `resolved`
     carries a move's `Mark` under TWO keys -- its origin and its destination,
@@ -469,11 +470,13 @@ def _chief_copy(
     dead code, deletable outright, with no entry ever built two different
     ways.
     """
-    # ! DUPLICATES `desk.collator._real_pages`, which builds the identical
-    # (paths, shas) pair over the identical proof shape for `docket_from`.
-    # `_real_pages` is a private name in a file this module must not edit, so
-    # this loop is its own copy rather than an import of an underscore-prefixed
-    # function from another module.
+    # !! IT IS THE ONLY (paths, shas) WALK IN THE TREE, since `P55`. It
+    # DUPLICATED `desk.collator._real_pages` -- the identical pair over the
+    # identical shape, kept as its own copy because `_real_pages` was a private
+    # name in a file this module must not edit. That function had exactly one
+    # caller, `docket_from`, and both left `desk/` together when the docket
+    # transcription moved to `flows/revise.py::docket_of`. The duplication ended
+    # by the other copy going, not by either module reaching across.
     # !! IT WALKS THE PARSED `MasterProof`, NOT THE DICT, since 2026-08-31 --
     # `Process: #65` in the small. `Sheet.sha` is a `str` because `Sheet.deserialize`
     # made it one; there is nothing left to fold here, and no sixth site

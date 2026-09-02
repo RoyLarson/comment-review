@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 6 of 11 tasks closed
+Progress: 6 of 12 tasks closed
 Owner:    agents
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-17, by the session that ran all eight stages and rolled its own work back.
           Its words: "the synthesis -- where four verdicts become one sentence -- is written
           by the same agent that then decides it's correct."
@@ -198,3 +198,6 @@ answered. A rail read and not run is a shape problem, and it was measured twice 
 - [x] T11 | FINISHED | unknown | T11 -- A RECORD, not a task: the rollback is
       the system working -- twelve findings, tree returned to `REDACTED_SHA_D`,
       0 modified files. Stated in the Objective.
+- [?] T12 | Decide whether stage 5b hands proof a copy instead of a hand-written
+      docket. Verify: SKILL.md names one and says why
+        > 2026-09-02 Raised by P60; the flag swap kept behaviour and left this open

@@ -190,3 +190,27 @@ def docket_from(flat: dict, binder: Binder) -> Docket:
 def sample():
     """A fresh page over `SAMPLE`. Fresh, because the galley MUTATES a page."""
     return build(SAMPLE)
+
+
+def run_command(monkeypatch, capsys, command, *argv):
+    """One command, through its own `main()` and its own argument parsing.
+
+    !! THROUGH `main()` AND `sys.argv`, NOT BY CALLING THE FLOW. That is the
+    only thing that catches an argparse flag whose body reads it under a
+    different name. MEASURED 2026-08-26: renaming `--notations` to `--docket`
+    left the body reading `args.alterations` and raised `AttributeError` past
+    946 green tests, ruff, ty, the build gate and the floor check.
+
+    ! `argv[0]` IS DERIVED FROM THE MODULE, not passed in -- a hand-typed
+    program name is a second place for the command's own name to drift from
+    `__main__.COMMANDS`.
+
+    Args:
+        command: the `comment_review.commands.*` module to run.
+        argv: the flags, without the program name.
+
+    Returns:
+        `(exit code, everything it printed to stdout)`.
+    """
+    monkeypatch.setattr("sys.argv", [command.__name__.rsplit(".", 1)[-1], *argv])
+    return command.main(), capsys.readouterr().out

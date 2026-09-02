@@ -893,13 +893,26 @@ nothing can address it -- `address_problem` refuses a record whose ADDRESS match
 entry, which is every round-2 record until this runs:
 
 ```bash
-python <skill>/scripts/comment-review.py proof --repo . --docket <run-dir>/docket.json \
+python <skill>/scripts/comment-review.py proof --repo . --from-docket <run-dir>/docket.json \
   --out <run-dir>/galley
 python <skill>/scripts/comment-review.py census --json --repo <run-dir>/galley \
   --out <run-dir>/galley-census.json <the same paths, under the galley>
 ```
 
-`--docket` is `{"pages": [{"path", "sha", "alterations": [{"cue", "text"}]}]}` -- one entry per
+!! **`proof` HAS THREE ENTRY POINTS AND THIS SECTION USES ONE.** The command takes either an
+`edit_copy` or a docket, and may stop at the docket rather than pulling a revise:
+
+| | |
+| --- | --- |
+| `--copy C.json` | an `edit_copy` -- ANY role's, or the copy chief's. `proof` transcribes it into a docket as its first step |
+| `--from-docket D.json` | a docket you wrote yourself, as this section does. Skips the transcribe |
+| `--to-docket D.json` | stop after the transcribe and write the docket. Pulls no revise, and needs no `--out` |
+
+**`--copy` and `--from-docket` are exclusive and one is required.** `--copy` is what a stage's
+own output goes through -- the copy chief's `edit_copy` from `collate`, or a single role's --
+and it is how one stage's result becomes the tree the next stage reads.
+
+`--from-docket` is `{"pages": [{"path", "sha", "alterations": [{"cue", "text"}]}]}` -- one entry per
 page under review, `sha` the page's text hash when it was read, and each alteration's `cue` the
 address's series-and-number, since the page's own PATH is already carried once by the page entry
 rather than repeated per alteration. **`--out` must not already exist**, and it holds a full copy
@@ -914,9 +927,12 @@ every paragraph below it, so the same prose holds different indices in the two c
 by PATH and CONTENT, and you are the only participant holding both.
 
 ! **`proof` REFUSES rather than guesses.** It exits nonzero and NAMES what refused -- **read
-that, rather than a list you remember**: a `--docket` that fails to read prints `CANNOT READ`,
-one that does not match the shape above prints `CANNOT READ THE DOCKET: <reason>`, and a bad
-`--out` prints `REFUSED: --out <reason>` -- each at exit **2**. A refusal further into the chain
+that, rather than a list you remember**: an input that fails to read prints `CANNOT READ`, one
+that does not match its shape prints `CANNOT READ THE DOCKET: <reason>` or `CANNOT READ THE
+COPY: <reason>` -- **the noun is the flag you passed** -- and a bad `--out` prints
+`REFUSED: --out <reason>` -- each at exit **2**. ! Naming `--from-docket` and `--to-docket`
+together is refused the same way: they are the two ends of the transcribe, so both leaves
+nothing to run. A refusal further into the chain
 -- the address space having moved, or a page's own draft/set/reread step -- prints `REFUSED:
 <reason>` or `REFUSED at <step>: <where> -- <reason>` and exits **1**.
 

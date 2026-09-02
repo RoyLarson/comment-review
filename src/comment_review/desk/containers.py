@@ -256,9 +256,9 @@ class Sheet:
 
     Attributes:
         path: the page's real repo path, as the binder stated it.
-        sha: that page's sha when it was censused. Read by `docket_from`, which
-            writes it onto the docket page so the setter can refuse a page that
-            moved underneath the run.
+        sha: that page's sha when it was censused. Read by
+            `flows.revise.docket_of`, which writes it onto the docket page so
+            the setter can refuse a page that moved underneath the run.
         marks: one `Mark` per place a role RULED on, in the order they came
             back.
         unruled: the address of every place handed to the role and left
@@ -331,8 +331,9 @@ class Sheet:
 
             ! THE REAL PRODUCERS ARE TWO SITES INSIDE THE MIDDLE, and both write
             `""` for a path `unflatten` could not resolve back to a real page:
-            `desk.collator._real_pages` and `flows.collate._chief_copy`. Neither is
-            a census, and neither is about a repo.
+            `flows.collate._chief_copy` and, until `P55`,
+            `desk.collator._real_pages`. Neither is a census, and neither is
+            about a repo.
 
             ! SO WHETHER AN ABSENT KEY SHOULD BE ADMITTED AT ALL IS OPEN -- no real
             producer writes a sheet without one, and `containers-and-verification-
@@ -356,9 +357,10 @@ class Sheet:
         # written by hand -- an artifact read off disk, a role's own edit -- meets
         # the same rule as one this module wrote.
         #
-        # !! AND THE FOLD IS SPELLED AT FIVE SITES. `desk.collator._real_pages`,
-        # `flows.carry` and `flows.collate._chief_copy` each carry their own copy,
-        # and none of the three imports this module; `carry`'s own comment already
+        # !! AND THE FOLD WAS SPELLED AT FIVE SITES. `flows.carry` and
+        # `flows.collate._chief_copy` each carry their own copy, and neither
+        # imports this module; a third, `desk.collator._real_pages`, went with
+        # `docket_from` at `P55`. `carry`'s own comment already
         # says it is "matching `desk.containers.Sheet.deserialize`". This pair is the
         # round trip; those three are duplicates a change to the rule would not
         # reach.
