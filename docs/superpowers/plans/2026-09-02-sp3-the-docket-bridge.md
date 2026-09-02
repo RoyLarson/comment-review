@@ -85,6 +85,18 @@ simpler; nothing here has to be undone.
 asserts the work is done, and the work is not done until it is committed -- so the tick names
 the commit that did the work. **Not a closing section. One step per unit, in the unit.**
 
+!! **AND IT TICKS TWO PLACES: THIS FILE'S OWN BOXES, AND THE PARENT `P`.** Ticking only the
+`P` is the failure `CLAUDE.md` names against this very skill -- *"Superpowers authors plans
+full of checkboxes and then tracks execution in a gitignored ledger; nothing in it ever says
+to tick the plan, so the boxes it wrote stay open while every task lands."* **This file has
+58 step boxes.** They are the state a stranger reads; a ledger under `.superpowers/` is
+gitignored scratch and is not a substitute.
+
+! **THE FIRST DRAFT OF THIS PLAN GOT IT WRONG**, on 2026-09-02, in the nine tick steps below
+-- every one closed its `P` and none mentioned these boxes. Roy caught it by asking. It is
+recorded here rather than quietly corrected, because the rule's own point is that an
+obligation with no place in the sequence is what gets dropped.
+
 ---
 
 ## Tasks
@@ -118,8 +130,9 @@ the commit that did the work. **Not a closing section. One step per unit, in the
 
 - [ ] **Step 4:** Commit. `git add docs/decision-log.md && git commit -F <msgfile>`
 
-- [ ] **Step 5: TICK.** Nothing to tick -- this task delivers no `P`. Note the two entry
-      numbers in the commit message so later tasks can cite them.
+- [ ] **Step 5: TICK.** Tick Task 0's boxes in THIS file. There is no `P` to close --
+      this task delivers none. Note the two entry numbers in the commit message so later
+      tasks can cite them. Commit the tick separately.
 
 ---
 
@@ -172,9 +185,10 @@ def test_an_empty_change_is_a_delete():
 
 - [ ] **Step 6: Commit.**
 
-- [ ] **Step 7: TICK.** `job-board --plans-dir docs/plans plan close
-      0.2.4-the-commands-for-the-middle P53 --commit <sha> --statement "..."`, reading P53's
-      own verify text before ticking. Commit the tick separately.
+- [ ] **Step 7: TICK.** Tick Task 1's boxes in THIS file, then `job-board --plans-dir
+      docs/plans plan close 0.2.4-the-commands-for-the-middle P53 --commit <sha> --statement
+      "..."` -- reading P53's own verify text before ticking. Both cite the Step 6 commit.
+      Commit the tick separately.
 
 ---
 
@@ -242,7 +256,8 @@ def test_an_ordinary_mark_yields_one_alteration():
 
 - [ ] **Step 6: Commit.**
 
-- [ ] **Step 7: TICK.** Close P54 against that commit, in its own commit.
+- [ ] **Step 7: TICK.** Tick Task 2's boxes in THIS file and close P54, both citing the
+      Step 6 commit. Its own commit.
 
 ---
 
@@ -299,7 +314,8 @@ def test_the_middle_does_not_import_the_write_end():
 
 - [ ] **Step 7: Commit.**
 
-- [ ] **Step 8: TICK.** Close P55 and P56 against that commit, in its own commit.
+- [ ] **Step 8: TICK.** Tick Task 3's boxes in THIS file and close P55 and P56, all
+      citing the Step 7 commit. Its own commit.
 
 ---
 
@@ -334,7 +350,8 @@ def test_the_middle_does_not_import_the_write_end():
 
 - [ ] **Step 6: Commit.**
 
-- [ ] **Step 7: TICK.** Close P57 against that commit, in its own commit.
+- [ ] **Step 7: TICK.** Tick Task 4's boxes in THIS file and close P57, both citing the
+      Step 6 commit. Its own commit.
 
 ---
 
@@ -362,7 +379,8 @@ def test_the_middle_does_not_import_the_write_end():
 
 - [ ] **Step 5: Commit.**
 
-- [ ] **Step 6: TICK.** Close P58 against that commit, in its own commit.
+- [ ] **Step 6: TICK.** Tick Task 5's boxes in THIS file and close P58, both citing the
+      Step 5 commit. Its own commit.
 
 ---
 
@@ -391,7 +409,8 @@ def test_the_middle_does_not_import_the_write_end():
 
 - [ ] **Step 6: Commit.**
 
-- [ ] **Step 7: TICK.** Close P59 against that commit, in its own commit.
+- [ ] **Step 7: TICK.** Tick Task 6's boxes in THIS file and close P59, both citing the
+      Step 6 commit. Its own commit.
 
 ---
 
@@ -418,7 +437,8 @@ def test_the_middle_does_not_import_the_write_end():
 
 - [ ] **Step 5: Commit.**
 
-- [ ] **Step 6: TICK.** Close P61 against that commit. Then close
+- [ ] **Step 6: TICK.** Tick Task 7's boxes in THIS file and close P61, both citing the
+      Step 5 commit. Then close
       `no-command-for-the-middle` T1 with `job-board --plans-dir docs/plans todo close-task
       no-command-for-the-middle T1 --commit <sha> --statement "..."`, **reading T1's own verify
       text first** -- it is explicit that the box stays open *"until the chain runs through to
@@ -456,7 +476,8 @@ lane's call.
 
 - [ ] **Step 4: Commit.**
 
-- [ ] **Step 5: TICK.** Close P60 against that commit, in its own commit.
+- [ ] **Step 5: TICK.** Tick Task 8's boxes in THIS file and close P60, both citing the
+      Step 4 commit. Its own commit.
 
 ---
 
