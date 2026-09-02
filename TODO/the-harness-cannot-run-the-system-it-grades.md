@@ -477,15 +477,33 @@ finds them. ! The pass is a RUN of four commits, not one, which is why a single 
 search kept landing on a fragment of it -- and the hashes recorded for it are pre-rewrite and no
 longer resolve, so T24 has to re-locate them.
 
-!! **AND THREE OF THAT FILE'S OWN HASHES NO LONGER RESOLVE.** MEASURED 2026-08-24 over every
-hash in `evidence/self-test-commits.md`: `4286833`, `9293806` and **`7026646`** are gone, while
-`d96b10d`, `4cb63f5`, `64ed7a4`, `7cbfa96`, `afeba7b` and `d09b0c1` still answer. `7026646` is
-the END of the range below, so **the range as written cannot be checked out** and every Verify
-resting on it is unrunnable until the end is re-located. ! They died in the 2026-08-23 history
-rewrite, not in any edit to the file -- which is why nothing flagged them: a stale hash reads
-exactly like a good one until someone runs it. T42 tracks the repair.
+!! **THREE OF THAT FILE'S OWN HASHES NO LONGER RESOLVED, AND WERE RE-LOCATED 2026-09-02.**
+MEASURED 2026-08-24 over every hash in `evidence/self-test-commits.md`: `4286833`, `9293806`
+and **`7026646`** were gone, while `d96b10d`, `4cb63f5`, `64ed7a4`, `7cbfa96`, `afeba7b` and
+`d09b0c1` still answered. `7026646` was the END of the range below, so **the range as written
+could not be checked out** and every Verify resting on it was unrunnable. ! They died in the
+2026-08-23 history rewrite, not in any edit to the file -- which is why nothing flagged them:
+a stale hash reads exactly like a good one until someone runs it.
 
-! **WHAT THE SELF-TEST RANGE HOLDS.** `evidence/self-test-commits.md` pins `d96b10d..7026646` on
+!! **WHAT RE-LOCATED THEM WAS `.git/filter-repo/commit-map`**, which the rewrite wrote and
+which maps each of the 745 renamed commits to its replacement. `9293806` is `f2aab94` and
+`7026646` is `f3d33a6`, so the range is `d96b10d..f3d33a6` -- 22 commits, the twenty-one the
+evidence file describes plus its own evidence commit.
+
+!! **`4286833` WAS NOT A REWRITE CASUALTY, and that is the part worth keeping.** It is in no
+map, and it is not among the 7 commits the rewrite dropped -- **it was never a commit here.**
+`git log -S 4286833 -- docs/plans/` returns `f11374d` alone, *"fix: every commit citation in
+this tree resolves again"*: the sweep repairing this class wrote an unresolvable hash, and the
+second sweep `484823d` did not catch it. Its target is `f636dae`, agreed two ways -- the map
+sends the boxes' ORIGINAL citation `b342cd1` there, and `f636dae`'s message carries their
+verbatim text.
+
+! **THE MAP IS NOT PUSHED AND NOT SHARED.** It lives in one clone's `.git`, so a pre-rewrite
+hash that was not repaired while it existed is unrecoverable anywhere else. Four such hashes
+remain and cannot be swapped, because nothing says what they named --
+`TODO/citations-resolve-to-no-object.md`.
+
+! **WHAT THE SELF-TEST RANGE HOLDS.** `evidence/self-test-commits.md` pins `d96b10d..f3d33a6` on
 the branch `fix/folio-placement-is-not-where-the-anchor-is`, with cases written up for ALL FOUR
 roles -- five `module-context`, plus `function-context`, `block-context` and `ownership-context`
 sections. Each is a PROSE defect a person found by reading, with the fix commit as its answer
@@ -621,7 +639,7 @@ earlier reading of T20 conflated them.
       repo is private, so the DISCOVERY measurement falls to T17. Verify: `ls evidence/`.
 - [x] T27 -- MOOT 2026-08-18: both subject commits were already on `origin`. Verify: the
       rule it leaves -- ask the remote, not the clone -- is in the Objective.
-- [ ] T28 -- Run `/comment-review` over the self-test range `d96b10d..7026646`. Verify:
+- [ ] T28 -- Run `/comment-review` over the self-test range `d96b10d..f3d33a6`. Verify:
       one row has a run, with its verdicts beside the answer-key diff.
 - [ ] T29 -- Write the Part IV case, on the branch named in the Objective, from its START
       hash to its END hash. Verify: the case pins two hashes `git rev-parse` resolves.

@@ -47,7 +47,7 @@ judgement this whole system exists to replace.
 
 ### A -- Settle what a case IS, before writing one
 
-- [x] **A1 -- ANSWERED 2026-08-23 by `e31b438`: no second suite. `evals/evals.json` grew the
+- [x] **A1 -- ANSWERED 2026-08-23 by `4ae9208`: no second suite. `evals/evals.json` grew the
       fields.** Works `the-harness-cannot-run-the-system-it-grades`. The 2026-08-23 ruling chose
       A SECOND SUITE because `(address, hash, files)` had nowhere to put the hash. **Case 3 put
       it there** -- `start` and `end` beside `prompt`, `hazards` and `evidence` -- so the premise
@@ -90,9 +90,9 @@ judgement this whole system exists to replace.
       survey re-confirms **T15**: every one of the six pins a single `commit`, so no row carries
       the `start`/`end` pair A3 settled.
 
-- [x] **A3 -- DONE 2026-08-23 by `e31b438`, and the shape is `start`/`end`.** Works
+- [x] **A3 -- DONE 2026-08-23 by `4ae9208`, and the shape is `start`/`end`.** Works
       `the-harness-cannot-run-the-system-it-grades`. Case 3 `rename-left-history-in-the-comments`
-      carries `start: ff1cab5`, `end: ba5eb32` -- **a nine-commit range**, which is the ruling
+      carries `start: 3f661d6`, `end: 8141b7a` -- **a nine-commit range**, which is the ruling
       demonstrating itself: one review takes several commits, so a single fix hash could not name
       it. `evals.json`'s own `notes` states the rule.
 
@@ -362,7 +362,7 @@ stated it rather than back-filled.
 already runs this shape end to end in `evals/evals.json` -- a `start`, an `end`, four paths, three
 hazards and an `evidence` package. D1 is not inventing a form; it is filling in one that exists.
 
-- [ ] **D1 -- The 2026-08-16 hand pass: START `3ce610c`, END `8c0cef6`.** Works
+- [ ] **D1 -- The 2026-08-16 hand pass: START `e3a582d`, END `d895d4c`.** Works
       `the-harness-cannot-run-the-system-it-grades` and
       `the-shipped-python-does-not-pass-its-own-review`. Six factual defects verified present at
       START with line numbers, the strongest created BY the START commit -- it moved `READ_ERRORS`

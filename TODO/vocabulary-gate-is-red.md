@@ -57,7 +57,7 @@ nothing about `check_drift`, which `check_vocabulary.py:382` runs. `CLAUDE.md` r
 after any edit to an agent file or a reference.
 
 !! **AND IT IS TWO UNASSERTED CHECKS, NOT ONE.** MEASURED 2026-08-23 on the
-`test-harness-builder` branch, after `e31b438` rewrote 82 lines of `tests/test_vocabulary.py`:
+`test-harness-builder` branch, after `4ae9208` rewrote 82 lines of `tests/test_vocabulary.py`:
 the gate exposes `check_complete`, `check_drift`, `check_duplicate` and `check_retired`, and the
 suite asserts **only the last two**. So `check_complete` -- the *"0 holes"* line -- is unasserted
 as well. ! **The commit that made this gate STRICT is the one that rewrote the test file**, which

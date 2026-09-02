@@ -21,7 +21,7 @@ corrected on this."* Both were checked and both hold, and asking the same of `ow
 ! Every one is readable from the file alone, with no knowledge of this session. That is the bar:
 a reviewer that needs the transcript cannot be graded.
 
-! **They are all from `d96b10d..7026646`**, branch `fix/folio-placement-is-not-where-the-anchor-is`,
+! **They are all from `d96b10d..f3d33a6`**, branch `fix/folio-placement-is-not-where-the-anchor-is`,
 2026-08-19 to 2026-08-20.
 
 ## How to run one
@@ -40,7 +40,7 @@ discriminate real findings from fabricated ones.
 
 | # | the file, before | what its docstring said | what the module actually held | fixed by |
 | --- | --- | --- | --- | --- |
-| 1 | `census.py`, **1,759 lines** | *"Stage 2, COLLATE: the pCST -- every line of these files classified"* | one file's paragraphs, AND their addressing, AND the aggregation across files. **Three subjects** | `4286833`, `afeba7b` |
+| 1 | `census.py`, **1,759 lines** | *"Stage 2, COLLATE: the pCST -- every line of these files classified"* | one file's paragraphs, AND their addressing, AND the aggregation across files. **Three subjects** | `f636dae`, `afeba7b` |
 | 2 | `page.py`, 220 lines | *"What a pCST NODE is"* | a node, and no PAGE at all -- the module was named for a thing it did not implement | `d09b0c1` |
 | 3 | `page.py`, **1,543 lines** | *"A PAGE: one file, its paragraphs in order"* | that, plus 709 lines of language-specific LEXING -- the `Language` record, both tier readers, the text helpers | `4cb63f5` |
 | 4 | `lexer.py` at its split | -- | the reader BUILDS a `Paragraph` and states its anchor, so the type belongs with it. The kinds split on the same line: a reader emits prose it FOUND, a page adds where prose is MISSING | `4cb63f5` |
@@ -81,7 +81,7 @@ file answers each on its own.
 | --- | --- | --- | --- |
 | `census_for(path, text, lang)` | a CENSUS -- *"the census for one file"* | built one PAGE. The census is every page in scope; this was one of them | `afeba7b` |
 | `gap_step(paragraph, code)` | *"which TRIGGER a `b` paragraph belongs to"*, and *"THIS IS THE LOOK-AHEAD"* | `sum(1 for n in code if n < at) + 1` -- line arithmetic. **It described a walk it was not part of** | `64ed7a4` |
-| `anchor_every_address(text, paragraphs)` | *"give every `a` and `b` place the line of code it is attached to"* | a SECOND pass restating what the walk had already emitted, from a `beside` map keyed on lines | `4286833` |
+| `anchor_every_address(text, paragraphs)` | *"give every `a` and `b` place the line of code it is attached to"* | a SECOND pass restating what the walk had already emitted, from a `beside` map keyed on lines | `f636dae` |
 | `address(paragraph, code)` | one thing | composed a folio AND flattened a path AND joined them. The docstring needed an "and" to be accurate | `64ed7a4` |
 
 ! **`gap_step` is the sharpest of these.** Its own docstring uses the walk's vocabulary --
@@ -208,7 +208,7 @@ which module defines that symbol. A run that misses these is missing something a
 
 ## More `block-context` -- a consolidation that miscounts what it consolidated
 
-`page.py:341`, in `empty_places`'s own docstring, written at `9293806`:
+`page.py:341`, in `empty_places`'s own docstring, written at `f2aab94`:
 
 > *"ONE LOOP, WHERE THERE WERE THREE GENERATORS. `intervals`, `margins` and `_undocumented` each
 > walked the file again to decide which places of their own series deserved a paragraph -- 206
@@ -216,7 +216,7 @@ which module defines that symbol. A run that misses these is missing something a
 
 **Three checkable claims, three answers, none of them 206:**
 
-| the claim | measured at `9293806^` |
+| the claim | measured at `f2aab94^` |
 | --- | --- |
 | `_undocumented` was one of the three | it was **still alive in `lexer.py`**, still emitting, for two more commits. The third consolidated there was `paragraphs_in` |
 | 206 lines | the three NAMED held **181** (76 + 50 + 55). The three actually consolidated held **143** |
@@ -225,7 +225,7 @@ which module defines that symbol. A run that misses these is missing something a
 !! **THE PROSE DESCRIBED THE CHANGE THE AUTHOR MEANT TO MAKE, not the one on disk.** The
 `_undocumented` half was real work, correctly reasoned, and landed two commits later -- the
 sentence simply ran ahead of it. That is the failure mode a green gate cannot see: every test
-passed at `9293806` precisely because the function the docstring buried was still there doing
+passed at `f2aab94` precisely because the function the docstring buried was still there doing
 its job.
 
 ! **`block-context` owns this twice over** -- a state claim (a named function that was not in
