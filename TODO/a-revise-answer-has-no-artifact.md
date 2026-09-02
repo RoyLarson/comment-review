@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 9 tasks closed
+Progress: 7 of 9 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
@@ -115,9 +115,10 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
 - [ ] T4 | T4 -- Route a `query` by shape. Verify: `human-review-necessary`
       never returns to a role, and `unable-to-determine` carries the question
       into the next ask.
-- [ ] T5 | T5 -- Count queries first raised at revise. Verify: the run reports
-      the number, and it is zero on a set of marks where every query was raised
-      in round one.
+- [-] T5 | SUPERSEDED as filed in error -- Process #78. Roy: a random requirement a session added and was never asked for | eb49e56 | T5
+      -- Count queries first raised at revise. Verify: the run reports the
+      number, and it is zero on a set of marks where every query was raised in
+      round one.
 - [x] T6 | FINISHED | unknown | T6 -- A revise sheet is addressed to a ROLE, not
       to a stage, and carries only the rows that role is party to. Verify: a
       role party to one place in a stage it did not otherwise join receives a
@@ -126,9 +127,10 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       -- A reversal is a row, paired with whoever LAST set the statement.
       Verify: stage 3 reversing a paragraph stage 2 set pairs with stage 2 and
       not with stage 1, read from the revise's per-place provenance.
-- [ ] T8 | T8 -- Enforce the two-round cap `Process: #9` already ruled. Verify:
-      a third round cannot start, the place reaches the copy chief carrying
-      every round's marks, and the run reports the rounds each place took.
+- [-] T8 | SUPERSEDED by Process #78 -- the round bound is what the task agent is told, not what the code enforces, and the Process 9 citation resolved nowhere | eb49e56 | T8
+      -- Enforce the two-round cap `Process: #9` already ruled. Verify: a third
+      round cannot start, the place reaches the copy chief carrying every
+      round's marks, and the run reports the rounds each place took.
 - [?] T9 | Decide what records HOW the copy chief ruled, since an edit_copy
       cannot. Verify: the artifact exists, or the question is answered in the
       log
