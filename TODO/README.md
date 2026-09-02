@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (127)
+### open  (128)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -309,6 +309,7 @@ that changed a published name or rule:
 | [local-annotation-false-positive](local-annotation-false-positive.md) | systems | -- | 0/1 | check_shipped_syntax reads a local variable annotation as a forward reference |
 | [plans-unreadable-to-the-tool](plans-unreadable-to-the-tool.md) | systems | -- | 1/1 | Five 0.2.4 plans carry checkbox lines the tool cannot read |
 | [stage-4b-is-undefined](stage-4b-is-undefined.md) | agents | -- | 1/6 | the 4a/4c split promises a resolved placement that nothing produces |
+| [citations-resolve-to-no-object](citations-resolve-to-no-object.md) | systems | -- | 0/1 | Find the four commit citations that resolve to no object |
 
 ### in-progress  (19)
 
