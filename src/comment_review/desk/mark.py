@@ -524,6 +524,36 @@ def without_location(where: str, message: str) -> str:
     return message[len(prefix) :] if where and message.startswith(prefix) else message
 
 
+def text_at(address: str, mark: Mark) -> str | None:
+    """The text to set at ONE end of one settled mark, or None to delete.
+
+    A `move` at its ORIGIN is the delete, which is why the address is passed
+    in: the same mark writes its `change` at the other end, and writing it at
+    both is the duplication the one instruction exists to prevent.
+
+    ! AN EMPTY `change` IS ALSO A DELETE. `parse` admits one only where the
+    row's `may_empty` is True -- `drop`, whose claim can name the whole
+    paragraph -- so the empty string reaching here is the edit.
+
+    !! IT WAS `desk/collator.py::_alteration_text` UNTIL `P53`. It reads
+    `mark.instruction` and `mark.change` and nothing else, so it is a fact about
+    a `Mark` rather than about reconciliation -- and leaving it in the collator
+    is what would have kept the docket transcription there too. `flows/revise.py`
+    is the caller now; see `decision-log.md Process: #76`.
+
+    Args:
+        address: which end is being asked. For every instruction but `move`
+            this is the mark's own address and the distinction does not arise.
+        mark: the settled mark.
+
+    Returns:
+        The paragraph to write, or None where this end is emptied.
+    """
+    if mark.instruction is Instruction.MOVE and address == mark.address:
+        return None
+    return mark.change or None
+
+
 def allowed() -> dict:
     """The shape a role is handed -- generated from the rows, never hand-written.
 

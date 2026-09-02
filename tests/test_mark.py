@@ -28,6 +28,7 @@ from comment_review.desk.mark import (
     QUERY_SHAPES,
     Mark,
     allowed,
+    text_at,
     untouched,
     without_location,
 )
@@ -592,3 +593,77 @@ class TestAStoredReasonDoesNotRepeatItsLocator:
         assert without_location("", "m.py@b1: needs a reason") == (
             "m.py@b1: needs a reason"
         )
+
+
+class TestTextAtOneEndOfAMark:
+    """What a settled mark writes at ONE address -- the text, or None to delete.
+
+    !! IT TAKES AN ADDRESS BECAUSE A `move` HAS TWO. The same `Mark` is asked
+    twice, once per end, and answers differently: nothing at the origin it is
+    emptying, its `change` at the destination it is filling. Every other
+    instruction touches one place and ignores the distinction.
+
+    ! IT LIVED IN `desk/collator.py` AS `_alteration_text` UNTIL `P53`. It reads
+    `mark.instruction` and `mark.change` and nothing else, so it is a fact about
+    a `Mark` and belongs where `Mark` is defined -- which is what let the docket
+    transcription leave `desk/` entirely.
+    """
+
+    def a_move(self, to: str) -> Mark:
+        mark, why = Mark.deserialize(
+            "m.py@b1",
+            {
+                "address": "m.py@b1",
+                "anchor": "def f(x):",
+                "raw_text": "# a paragraph\n",
+                "instruction": "move",
+                "claim": {"from": "a paragraph", "to": to},
+                "reason": "it reads better beside the function it describes",
+                "sources": [{"cite": "m.py:1", "verbatim": "def f(x):"}],
+                "change": "# a paragraph\n",
+            },
+        )
+        assert why == [] and mark is not None
+        return mark
+
+    def test_a_move_at_its_origin_is_a_delete(self):
+        assert text_at("m.py@b1", self.a_move(to="m.py@b8")) is None
+
+    def test_a_move_at_its_destination_carries_the_change(self):
+        assert text_at("m.py@b8", self.a_move(to="m.py@b8")) == "# a paragraph\n"
+
+    def test_an_ordinary_instruction_carries_its_change_at_its_own_address(self):
+        mark, why = Mark.deserialize(
+            "m.py@b1",
+            {
+                "address": "m.py@b1",
+                "anchor": "def f(x):",
+                "raw_text": "# old\n",
+                "instruction": "correct",
+                "claim": {"false": "old", "true": "new"},
+                "reason": "the count moved",
+                "sources": [{"cite": "m.py:1", "verbatim": "def f(x):"}],
+                "change": "# new\n",
+            },
+        )
+        assert why == [] and mark is not None
+        assert text_at("m.py@b1", mark) == "# new\n"
+
+    def test_an_empty_change_is_a_delete(self):
+        """! `drop` IS THE ONE ROW WHOSE `may_empty` IS TRUE, so an empty
+        `change` reaching here is the edit and not an omission."""
+        mark, why = Mark.deserialize(
+            "m.py@b1",
+            {
+                "address": "m.py@b1",
+                "anchor": "def f(x):",
+                "raw_text": "# a paragraph\n",
+                "instruction": "drop",
+                "claim": {"drop": "# a paragraph\n"},
+                "reason": "it says nothing the code does not",
+                "sources": [{"cite": "m.py:1", "verbatim": "def f(x):"}],
+                "change": "",
+            },
+        )
+        assert why == [] and mark is not None
+        assert text_at("m.py@b1", mark) is None

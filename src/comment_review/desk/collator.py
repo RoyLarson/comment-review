@@ -83,6 +83,7 @@ from comment_review.desk.mark import (
     Instruction,
     Mark,
     filled,
+    text_at,
     without_location,
 )
 from comment_review.docket.docket import Alteration, Docket, Schedule
@@ -863,22 +864,6 @@ def _real_pages(proof: MasterProof) -> tuple[list[str], dict[str, str]]:
     return paths, shas
 
 
-def _alteration_text(address: str, mark: Mark) -> str | None:
-    """The text to set at ONE end of one settled mark, or None to delete.
-
-    A `move` at its ORIGIN is the delete, which is why the address is passed
-    in: the same mark writes its `change` at the other end, and writing it at
-    both is the duplication the one instruction exists to prevent.
-
-    ! AN EMPTY `change` IS ALSO A DELETE. `desk.mark.parse` admits one only
-    where the row's `may_empty` is True -- `drop`, whose claim can name the
-    whole paragraph -- so the empty string reaching here is the edit.
-    """
-    if mark.instruction is Instruction.MOVE and address == mark.address:
-        return None
-    return mark.change or None
-
-
 def docket_from(reconciled: Reconciled, proof: MasterProof) -> Docket:
     """The settled places, as a docket -- one page per file, in settled order.
 
@@ -922,7 +907,7 @@ def docket_from(reconciled: Reconciled, proof: MasterProof) -> Docket:
         shas_of.setdefault(real_path, shas.get(real_path, ""))
         roles_of.setdefault(real_path, set()).add(role)
         alterations.setdefault(real_path, []).append(
-            Alteration(cue=addr.cue, text=_alteration_text(address, mark))
+            Alteration(cue=addr.cue, text=text_at(address, mark))
         )
     return Docket(
         schedules=tuple(
