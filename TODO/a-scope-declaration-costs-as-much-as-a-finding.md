@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 7 tasks closed
+Progress: 2 of 7 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, the day the query contract landed. `module-context`'s report on a
@@ -140,8 +140,9 @@ do the thing we ruled out"*. It carried a box until 2026-08-23 and is recorded h
 - [x] T5 | FINISHED | unknown | T5 -- NOT A TASK. *"Do not solve this by
       exempting a role from blocks outside its remit"* is a standing
       prohibition. Kept in full in the Objective.
-- [ ] T6 | Keep 'I read it and it belongs' distinct from 'I could not settle it'
-      in whatever wording replaces the outside-my-role query
+- [-] T6 | SUPERSEDED into T7, which now reads distinct from silence and from I could not settle it. T6 opened on Keep, a bare preservation verb, and its own note said the role stopped attempting settlement so it no longer described the failure | e651eff | Keep
+      'I read it and it belongs' distinct from 'I could not settle it' in
+      whatever wording replaces the outside-my-role query
         > 2026-08-31 clean CERTIFIES and query ASKS; collapsing them trades down
         > 2026-08-31 measured NECESSARY BUT NOT SUFFICIENT: it guards the wrong failure
         > 2026-08-31 the role stopped ATTEMPTING settlement, which T6 does not describe
