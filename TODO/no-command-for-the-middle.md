@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 11 tasks closed
+Progress: 5 of 12 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -94,3 +94,7 @@ Reconciliation has no command, so the chain cannot be driven end to end.
         > 2026-09-01 FILL a record, which today means hand-writing the JSON.
 - [ ] T11 | Implement the one-line round summary from Collated.tally, or delete
       tally if the report does not want it
+- [ ] T12 | Implement distribute taking a stage, so one call seeds one edit_copy
+      per dispatch. Verify: fan and topology.read each gain a caller in src/
+        > 2026-09-01 Process #74. Both had zero callers in src/ when this was filed
+        > 2026-09-01 Fan-out was the one topology shape no command could reach
