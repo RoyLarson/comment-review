@@ -225,8 +225,22 @@ and always said paragraph; the table substituted the WIRE KEY -- a binder's JSON
 
 ! **THE DOCUMENT WAS ALREADY FLAGGING IT.** `row` was the only term in that header not
 backticked, and the only one of the six with no entry in the glossary below: it had never been
-ruled, so nothing defined it. ! **`row` IS NOT RETIRED, because it was never a term** -- it is
-the name of a key in a JSON file, and it stays that.
+ruled, so nothing defined it.
+
+!! **AND THE SENTENCE THAT STOOD HERE WAS NEVER AUTHORISED.** It read *"`row` IS NOT RETIRED,
+because it was never a term -- it is the name of a key in a JSON file, and it stays that."*
+Nobody ruled that, and it sat one paragraph above the record of Roy catching the same invention.
+Roy, 2026-09-02: *"That was strictly not authorized and was supposed to be retired at the same
+time as the paragraph name. There was no authorization to keep anything as a row."*
+
+!! **`row` IS RETIRED, EVERYWHERE -- AS A TYPE, AS A JSON KEY, AND IN PROSE.**
+`decision-log.md Vocabulary: #31`. The word for one place is **paragraph**.
+
+! **NOTHING COULD HAVE CAUGHT IT.** `scripts/check_vocabulary.py`'s `RETIRED` dict is
+hand-maintained and has no `row` entry, so no shipped file was ever tested for the word -- and
+the struck sentence supplied a reason for the gap, which is what made the absence read as a
+decision. The entry lands with the rename rather than before it, or the gate goes red across 24
+files with no rename behind it: `TODO/row-was-never-retired.md`.
 
 !! **AND IT HARDENED INTO A TYPE BEFORE IT WAS CAUGHT.** `BinderRow` and `BinderPage` were
 added 2026-08-31 (`1d9314d`) and deleted the same day, after Roy: *"So you invented a term
