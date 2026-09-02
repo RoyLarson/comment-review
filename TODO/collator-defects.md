@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 28 tasks closed
+Progress: 6 of 29 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -164,3 +164,7 @@ Four defects in collator.py, found by reading only the code.
         > 2026-09-01 MEASURED 2026-09-01 after P52: neither has a production caller.
         > 2026-09-01 mark_errors answers both -- the unruled half and the refused half
         > 2026-09-01 -- and problems_in's ruled count is read by nothing. 29 test refs.
+- [ ] T29 | Delete the three remaining cross-area imports named in
+      tests/test_areas.py KNOWN. Verify: that set is empty and the test still
+      bites
+        > 2026-09-02 conventions.md called these filed on 2026-08-31; no task did

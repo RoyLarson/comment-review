@@ -270,6 +270,8 @@ def test_an_ordinary_mark_yields_one_alteration():
 
 ### Task 3: `desk/collator.py` loses the write end
 
+**Landed:** `7ae43d4` -- `P55`, `P56`. `tests/test_areas.py` is the gate, red before the cut.
+
 **Delivers:** P55, P56
 
 **Files:**
@@ -279,7 +281,7 @@ def test_an_ordinary_mark_yields_one_alteration():
   `tests/test_proof_setter.py` -- 53 references to `docket_from`
 - Test: `tests/gates/` -- a new one asserting the boundary holds
 
-- [ ] **Step 1: Write the failing gate test.** This is the point of the task, so it gets a
+- [x] **Step 1: Write the failing gate test.** This is the point of the task, so it gets a
       test that can fail:
 
 ```python
@@ -297,31 +299,31 @@ def test_the_middle_does_not_import_the_write_end():
     assert offenders == []
 ```
 
-- [ ] **Step 2: Run it and watch it fail.** Expected: one offender,
+- [x] **Step 2: Run it and watch it fail.** Expected: one offender,
       `collator.py: from comment_review.docket.docket import Alteration, Docket, Schedule`.
 
-- [ ] **Step 3: Delete `docket_from` and `_real_pages`** from `desk/collator.py`, and the
+- [x] **Step 3: Delete `docket_from` and `_real_pages`** from `desk/collator.py`, and the
       `docket.docket` import line with them. `_real_pages` has exactly one caller
       (`docket_from`), and `unflatten` is used in that file only inside `docket_from` -- check
       whether the `reading.addresser` import still needs it.
 
-- [ ] **Step 4: Move the 53 test references.** They test the transcription, which now lives in
+- [x] **Step 4: Move the 53 test references.** They test the transcription, which now lives in
       `flows/revise.py` -- so they move to `tests/test_revise.py` and call `docket_of` over an
       `EditCopy` rather than `docket_from` over `(reconciled, proof)`. **A test that cannot be
       re-expressed against `docket_of` is testing reconciliation, not transcription** -- leave
       it where it is and say so in the commit.
 
-- [ ] **Step 5: Fix the stale comment (P56).** `flows/collate.py::_chief_copy` carries a
+- [x] **Step 5: Fix the stale comment (P56).** `flows/collate.py::_chief_copy` carries a
       comment justifying its own path/sha loop: *"`_real_pages` is a private name in a file
       this module must not edit."* `_real_pages` no longer exists, so the sentence names a
       symbol that is gone -- which this plan's own Global Constraints forbid. Delete or rewrite
       it to say what is true: the loop is the only one now.
 
-- [ ] **Step 6: Run the checks.** Full suite plus lint/format/lint/ty.
+- [x] **Step 6: Run the checks.** Full suite plus lint/format/lint/ty.
 
-- [ ] **Step 7: Commit.**
+- [x] **Step 7: Commit.**
 
-- [ ] **Step 8: TICK.** Tick Task 3's boxes in THIS file and close P55 and P56, all
+- [x] **Step 8: TICK.** Tick Task 3's boxes in THIS file and close P55 and P56, all
       citing the Step 7 commit. Its own commit.
 
 ---

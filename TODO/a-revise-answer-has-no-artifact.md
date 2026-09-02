@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 4 of 8 tasks closed
+Progress: 4 of 9 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
           Both were ruled the same day and neither had a backlog entry, so the plan
           steps that build them cited rulings rather than tasks.
@@ -128,3 +128,7 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
 - [ ] T8 | T8 -- Enforce the two-round cap `Process: #9` already ruled. Verify:
       a third round cannot start, the place reaches the copy chief carrying
       every round's marks, and the run reports the rounds each place took.
+- [?] T9 | Decide what records HOW the copy chief ruled, since an edit_copy
+      cannot. Verify: the artifact exists, or the question is answered in the
+      log
+        > 2026-09-02 Roy 2026-09-02: that needs something besides the edit-copy
