@@ -21,7 +21,8 @@ from helpers import (
 )
 
 from comment_review.desk.containers import EditCopy
-from comment_review.flows.revise import _set_by, docket_of, pull
+from comment_review.flows.revise import _set_by, pull
+from comment_review.flows.transcribe import docket_of
 
 
 def a_copy(role: str, paragraphs: dict[str, str], marks: dict) -> EditCopy:

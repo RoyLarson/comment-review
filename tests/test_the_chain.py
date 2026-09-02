@@ -13,9 +13,8 @@ with no step between them.
 !! WHAT THIS FILE MAY AND MAY NOT DO. Every stage runs through that command's
 own `main()` over `sys.argv` -- the console face, argument parsing included --
 because that is the only thing that catches an argparse flag the body reads
-under a different name. MEASURED 2026-08-26: renaming a flag left the body
-reading `args.alterations` and raised `AttributeError` past 946 green tests,
-ruff, ty, the build gate and the floor check.
+under a different name. `conftest.run_command` is what does it, and its own
+docstring carries the measurement.
 
 ! THE ONE THING WRITTEN BY HAND IS A ROLE'S RULING, and it has to be: no command
 fills a mark, because a REVIEWER does. `TODO/no-command-for-the-middle.md` T10
@@ -27,9 +26,8 @@ behaves, which is `agents`', nor how well a run scores, which is `testing`'s.
 """
 
 import json
-from pathlib import Path
 
-from conftest import SAMPLE
+from conftest import SAMPLE, run_command
 from helpers import a_clean, a_correct
 
 from comment_review.commands import census as census_command
@@ -49,13 +47,6 @@ ROLES = (
 )
 
 
-def run(monkeypatch, capsys, command, *argv):
-    """One command, through its own `main()` and its own argument parsing."""
-    monkeypatch.setattr("sys.argv", [command.__name__.rsplit(".", 1)[-1], *argv])
-    code = command.main()
-    return code, capsys.readouterr().out
-
-
 class TestTheChainRunsOnCommandsAlone:
     def test_census_to_distribute_to_collate_to_proof(
         self, tmp_path, monkeypatch, capsys
@@ -69,7 +60,7 @@ class TestTheChainRunsOnCommandsAlone:
         # ! THE PATH IS ABSOLUTE. `census` resolves its positional paths against
         # the CWD and not against `--repo`, so a bare `m.py` matches no file and
         # the run errors -- "1 of 0 files handed in were not censused".
-        code, out = run(
+        code, out = run_command(
             monkeypatch,
             capsys,
             census_command,
@@ -93,7 +84,7 @@ class TestTheChainRunsOnCommandsAlone:
         copies = []
         for role in ROLES:
             where = tmp_path / f"{role}.json"
-            code, out = run(
+            code, out = run_command(
                 monkeypatch,
                 capsys,
                 distribute_command,
@@ -113,23 +104,30 @@ class TestTheChainRunsOnCommandsAlone:
         # to this role and not ruled on" -- which is the check that stops a role
         # answering one place of three and the run reporting OK. `clean` is the
         # ruling for a place with nothing to report; it is one of the seven.
+        # ! THE READ AND THE WRITE ARE THE CALLER'S, so the two rulings compose
+        # in memory. Each used to do its own read-modify-write, which made the
+        # ORDER a silent dependency: running the correction alone, or before the
+        # cleans, failed only at runtime inside a slot search.
         for one in copies:
-            _rule_every_place(one)
-        _correct_one_place(copies[0], addresses[0])
+            document = json.loads(one.read_text(encoding="utf-8"))
+            _rule_every_place(document)
+            if one is copies[0]:
+                _correct_one_place(document, addresses[0])
+            one.write_text(json.dumps(document), encoding="utf-8", newline="")
 
         # 3 COLLATE -- the four returned copies folded into the chief's.
         chief = tmp_path / "chief.json"
         argv = ["--stage", "4c", "--binder", str(binder_path)]
         for one in copies:
             argv += ["--edit-copy", str(one)]
-        code, out = run(
+        code, out = run_command(
             monkeypatch, capsys, collate_command, *argv, "--out", str(chief)
         )
         assert code == 0, out
         assert chief.exists()
 
         # 4 PROOF -- the chief's copy, transcribed and set into a revise.
-        code, out = run(
+        code, out = run_command(
             monkeypatch,
             capsys,
             proof_command,
@@ -152,7 +150,7 @@ class TestTheChainRunsOnCommandsAlone:
         assert (repo / "m.py").read_text(encoding="utf-8") == SAMPLE
 
 
-def _rule_every_place(copy: Path) -> None:
+def _rule_every_place(document: dict) -> None:
     """`clean` in every seeded slot -- this role read the page and reports nothing.
 
     !! THIS AND `_correct_one_place` ARE THE HAND-WRITTEN STEP, AND IT IS THE
@@ -161,14 +159,12 @@ def _rule_every_place(copy: Path) -> None:
     must not do is BUILD the copy: the slots come from `distribute --seed`, and
     these fill them.
     """
-    document = json.loads(copy.read_text(encoding="utf-8"))
     for sheet in document["sheets"]:
         for slot in sheet["marks"]:
             slot.update(a_clean(slot["address"]))
-    copy.write_text(json.dumps(document), encoding="utf-8", newline="")
 
 
-def _correct_one_place(copy: Path, address: str) -> None:
+def _correct_one_place(document: dict, address: str) -> None:
     """Turn one of that copy's `clean` slots into the `correct` the revise sets.
 
     ! THE QUOTED SENTENCE IS THE PAGE'S OWN. `a_correct` seeds a placeholder,
@@ -176,7 +172,6 @@ def _correct_one_place(copy: Path, address: str) -> None:
     `verify_report` refuses -- so `claim.false` is read off the slot the seed
     already carried.
     """
-    document = json.loads(copy.read_text(encoding="utf-8"))
     for sheet in document["sheets"]:
         for slot in sheet["marks"]:
             if slot["address"] != address:
@@ -196,6 +191,5 @@ def _correct_one_place(copy: Path, address: str) -> None:
             mark["sources"] = [{"cite": "m.py:1", "verbatim": SAMPLE.splitlines()[0]}]
             mark["change"] = "# set by the chain test\n"
             slot.update(mark)
-            copy.write_text(json.dumps(document), encoding="utf-8", newline="")
             return
-    raise AssertionError(f"{address} is not a slot in {copy.name}")
+    raise AssertionError(f"{address} is not a slot in this copy")

@@ -34,13 +34,11 @@ from typing import NamedTuple
 
 from comment_review.binder.binder import Binder, bind
 from comment_review.desk.collator import known_addresses
-from comment_review.desk.containers import EditCopy
-from comment_review.desk.mark import Instruction, text_at
-from comment_review.docket.docket import Alteration, Docket, Schedule
+from comment_review.docket.docket import Docket
 from comment_review.flows import proof_setter
 from comment_review.flows.page_for import page_of
 from comment_review.machine.repo import remove_tree, walk_files
-from comment_review.reading.addresser import address_for, cue_of
+from comment_review.reading.addresser import address_for
 from comment_review.reading.lexer import language_for
 
 
@@ -79,72 +77,6 @@ class AddressesMoved(Exception):
     way that stops holding: a revise whose code moved, so a place below the
     change renumbers under it.
     """
-
-
-def docket_of(copy: EditCopy) -> Docket:
-    """One edit_copy, transcribed into the docket the write chain reads.
-
-    !! ANY COPY, NOT ONLY THE COPY CHIEF'S. Roy, 2026-09-02: *"it could also be
-    ownership contexts edit-copy or any intermediate edit-copy which allows the
-    stage outputs to run."* A stage's own output therefore becomes a revise,
-    which is the mechanism `reads = "revise:N"` and stage `4b` both need.
-    `decision-log.md Process: #76`.
-
-    !! A `move` IS ONE MARK AND TWO ALTERATIONS. `INSTRUCTIONS[MOVE].claim_all`
-    is `("from", "to")`, so the single entry a copy carries names both places:
-    the delete at its own `address`, the text at `claim.to`. **The copy does not
-    have to carry a move twice** -- `flows.collate._chief_copy` writes it once,
-    and once is sufficient because the mark holds both ends.
-
-    ! WHEN `move-is-a-composite-mark` LANDS this collapses to one alteration per
-    mark: a `drop` at the origin and an `add` at the destination are two marks
-    with two addresses, and the branch below has nothing left to do.
-
-    !! IT LIVES IN THE FLOW BECAUSE A FLOW MAY REACH BOTH ENDS AND NEITHER END
-    MAY REACH THE OTHER. Roy, 2026-08-31: *"No direct coupling inside of ends and
-    middle, flows are neither they run the steps."* `Docket.of(edit_copy)` was
-    offered and declined -- it would put a middle type in `docket/docket.py`,
-    which imports nothing at all today.
-
-    Args:
-        copy: a returned edit_copy, already through `EditCopy.deserialize`.
-
-    Returns:
-        A `Docket` -- one `Schedule` per sheet that carries at least one mark,
-        each naming that sheet's own path and sha and the COPY's role.
-
-    ! A SHEET WITH NO MARKS GETS NO SCHEDULE. A seeded copy holds a slot for
-    every place; only the ones a role filled are edits, and an empty schedule
-    would tell the write end to set a page from nothing.
-    """
-    schedules = []
-    for sheet in copy.sheets:
-        alterations = []
-        for mark in sheet.marks:
-            alterations.append(
-                Alteration(
-                    cue=cue_of(mark.address).cue,
-                    text=text_at(mark.address, mark),
-                )
-            )
-            if mark.instruction is Instruction.MOVE:
-                destination = mark.claim["to"]
-                alterations.append(
-                    Alteration(
-                        cue=cue_of(destination).cue,
-                        text=text_at(destination, mark),
-                    )
-                )
-        if alterations:
-            schedules.append(
-                Schedule(
-                    path=sheet.path,
-                    sha=sheet.sha,
-                    alterations=tuple(alterations),
-                    role=copy.role,
-                )
-            )
-    return Docket(schedules=tuple(schedules))
 
 
 def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:

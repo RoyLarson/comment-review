@@ -87,16 +87,28 @@ def crossings(forbidden: dict | None = None) -> set[str]:
     return found
 
 
-def test_no_area_reaches_across_except_the_three_still_open():
-    assert crossings() == KNOWN
+@pytest.fixture(scope="module")
+def found() -> set[str]:
+    """`crossings()` over the real `FORBIDDEN`, computed once for this file.
+
+    ! IT PARSES 19 FILES, and two tests ask the same question of them. The walk
+    is pure -- same tree, same map, same answer -- so running it per test was an
+    exact duplication of a pure function's input rather than two measurements.
+    The witness below cannot share it: it passes a different map, which is the
+    whole point of it.
+    """
+    return crossings()
 
 
-def test_the_middle_no_longer_builds_the_write_ends_artifact():
+def test_no_area_reaches_across_except_the_three_still_open(found):
+    assert found == KNOWN
+
+
+def test_the_middle_no_longer_builds_the_write_ends_artifact(found):
     """`P55`. The one crossing this branch removed, asserted by name so a
     re-introduction fails here rather than only widening the set above."""
     assert not any(
-        one.startswith("desk/") and "comment_review.docket" in one
-        for one in crossings()
+        one.startswith("desk/") and "comment_review.docket" in one for one in found
     )
 
 

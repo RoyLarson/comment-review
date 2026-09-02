@@ -1,6 +1,6 @@
 """The `proof` command: its argument parsing and its exit code.
 
-    comment_review proof --docket D.json --repo . --out DIR
+    comment_review proof --copy C.json --repo . --out DIR
 
 The work is `flows.revise.pull`; this is only the console face of it.
 
@@ -35,7 +35,7 @@ from pathlib import Path
 
 from comment_review.desk.containers import EditCopy
 from comment_review.docket.docket import Docket
-from comment_review.flows import revise
+from comment_review.flows import revise, transcribe
 from comment_review.machine import exceptions
 from comment_review.machine.json_object import object_of
 from comment_review.machine.repo import undraftable, write_raw
@@ -52,7 +52,7 @@ def main() -> int:
     # recover a real path from an address's flattened one. A schedule carries
     # both, so the binder no longer reaches the write chain at all.
     # !! `--docket` BECAME `--copy` AT `P57`. The flow's first step transcribes
-    # an `edit_copy` into a docket -- `flows.revise.docket_of`,
+    # an `edit_copy` into a docket -- `flows.transcribe.docket_of`,
     # `decision-log.md Process: #76` -- so the input is the artifact the middle
     # actually produces, and the docket is an internal value.
     #
@@ -65,12 +65,12 @@ def main() -> int:
     # BELOW the transcribe, at the docket a `--to-docket` run stopped on. Both
     # together would name two inputs for one run, and argparse states that
     # itself rather than leaving it to a hand-written check.
-    where = ap.add_mutually_exclusive_group(required=True)
-    where.add_argument(
+    source = ap.add_mutually_exclusive_group(required=True)
+    source.add_argument(
         "--copy",
         help='JSON: an edit_copy -- {"role", "read_from", "sheets"}',
     )
-    where.add_argument(
+    source.add_argument(
         "--from-docket",
         help="JSON: a docket a --to-docket run wrote -- skips the transcribe",
     )
@@ -102,12 +102,12 @@ def main() -> int:
             " transcribe, and naming both leaves nothing to run"
         )
         return 2
-    if not args.to_docket and not args.out:
-        print("REFUSED: --out is required unless --to-docket stops the run")
-        return 2
-    # ! A PLACEHOLDER WHERE THE RUN STOPS EARLY, so the guards below can be
-    # skipped rather than answered. Nothing reads it on that path.
-    out = Path(args.out).resolve() if args.out else repo
+    # !! ONE FORK, ASKED ONCE: is a revise being pulled, or does the run stop at
+    # the docket? Every `--out` rule below belongs to the pulling path alone,
+    # and `--to-docket` touches no revise root -- so they are answered inside
+    # this block rather than each re-testing the same flag. `out` stays None on
+    # the stop path, which is what makes "nothing reads it" a fact the code
+    # states rather than a comment a reader has to trust.
     # !! `--out` MUST BE DISJOINT FROM `--repo`, and the per-file guard cannot
     # ask this. On an OVERLAP a target lands inside `--out` by way of being the
     # source file itself -- MEASURED 2026-08-22 on the galley command, which
@@ -126,26 +126,27 @@ def main() -> int:
     # `into.mkdir(exist_ok=True)` -- `exist_ok` covers an existing DIRECTORY
     # only, and every other bad input here prints a reason and returns 2.
     #
-    # ! BOTH `--out` GUARDS ARE SKIPPED WHERE THE RUN STOPS AT THE DOCKET. They
-    # are about the revise root, and `--to-docket` pulls no revise -- asking
-    # them anyway would refuse a run for a directory it never touches.
+    # ! AND `--out` MUST NOT EXIST YET, since 2026-08-28. `revise.pull` copies
+    # `--repo` into it with `shutil.copytree`, which raises `FileExistsError`
+    # on a directory that is already there -- even an empty one. `undraftable`
+    # does not ask this: it refuses a non-directory or an overlap, and a
+    # pre-existing, disjoint `--out` passes it.
+    out = None
     if not args.to_docket:
+        if not args.out:
+            print("REFUSED: --out is required unless --to-docket stops the run")
+            return 2
+        out = Path(args.out).resolve()
         why = undraftable(out, repo)
         if why:
             print(f"REFUSED: --out {why} -- nothing written")
             return 2
-    # !! `--out` MUST NOT EXIST YET, since 2026-08-28. `revise.pull` copies
-    # `--repo` into it with `shutil.copytree`, which raises `FileExistsError`
-    # on a directory that is already there -- even an empty one. `undraftable`
-    # above does not ask this: it refuses a non-directory or an overlap, and a
-    # pre-existing, disjoint `--out` passes it. Asked here so this stays an
-    # INPUT error at exit 2, the same as every other bad `--out` above.
-    if not args.to_docket and out.exists():
-        print(
-            f"REFUSED: --out {out} already exists, and a revise is pulled into"
-            " a directory that does not exist yet -- nothing written"
-        )
-        return 2
+        if out.exists():
+            print(
+                f"REFUSED: --out {out} already exists, and a revise is pulled"
+                " into a directory that does not exist yet -- nothing written"
+            )
+            return 2
     # !! THE LOAD IS THREE STEPS AND EACH FAILS FOR ITS OWN REASON -- Roy,
     # 2026-08-31: moving the load out of the module *"makes file io errors and
     # malformed json load dump errors an explicit different step in the flow so
@@ -185,7 +186,7 @@ def main() -> int:
         copy, problems = EditCopy.deserialize(source, loaded)
         # ! THE TRANSCRIBE IS THE FLOW'S FIRST STEP and cannot fail: every rule
         # it would have checked is settled by the parse -- `Process: #76`.
-        held = revise.docket_of(copy) if copy is not None else None
+        held = transcribe.docket_of(copy) if copy is not None else None
     if held is None:
         for line in problems:
             print(f"CANNOT READ THE {noun}: {line} -- nothing written")
@@ -195,7 +196,12 @@ def main() -> int:
     # `decision-log.md Process: #65`, `#67`, and the same shape
     # `commands/collate.py` writes its chief copy with. Raw JSON at the save and
     # nowhere between.
-    if args.to_docket:
+    #
+    # ! THE SAME FORK AS THE `--out` BLOCK ABOVE, AND ITS OTHER SIDE. `out` is
+    # None exactly when this branch is taken, so the pull below reaches it only
+    # where it is a real path -- which is why the two are written as one
+    # question asked twice rather than four independent flag tests.
+    if out is None:
         try:
             write_raw(Path(args.to_docket), json.dumps(held.serialize(), indent=2))
         except exceptions.READ_ERRORS as e:

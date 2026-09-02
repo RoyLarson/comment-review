@@ -7,7 +7,7 @@ is the standing precedent for a command's own file.
 import json
 
 import pytest
-from conftest import SAMPLE, SRC, build
+from conftest import SAMPLE, SRC, build, run_command
 from helpers import a_correct, copies_over
 
 from comment_review.binder.binder import bind
@@ -47,12 +47,6 @@ def a_copy_on_disk(tmp_path, binder):
     return where, address
 
 
-def run(monkeypatch, capsys, *argv):
-    monkeypatch.setattr("sys.argv", ["proof", *argv])
-    code = proof_command.main()
-    return code, capsys.readouterr().out
-
-
 class TestProofTakesAnEditCopy:
     """`P57`. The command's input is an `edit_copy`; the docket is transcribed
     on the flow's first step -- `decision-log.md Process: #76`.
@@ -65,9 +59,10 @@ class TestProofTakesAnEditCopy:
         repo, binder, _page = _tree(tmp_path)
         copy, _address = a_copy_on_disk(tmp_path, binder)
 
-        code, out = run(
+        code, out = run_command(
             monkeypatch,
             capsys,
+            proof_command,
             "--copy",
             str(copy),
             "--repo",
@@ -87,7 +82,17 @@ class TestProofTakesAnEditCopy:
         """! ASSERTED, NOT ASSUMED. A flag that still parses would let an old
         invocation run and produce a confusing refusal deep in the load."""
         with pytest.raises(SystemExit):
-            run(monkeypatch, capsys, "--docket", "d.json", "--repo", ".", "--out", "o")
+            run_command(
+                monkeypatch,
+                capsys,
+                proof_command,
+                "--docket",
+                "d.json",
+                "--repo",
+                ".",
+                "--out",
+                "o",
+            )
 
     def test_to_docket_writes_a_docket_and_stops(self, tmp_path, monkeypatch, capsys):
         """`P58`. The run stops at the transcribe: a docket on disk, no revise.
@@ -102,9 +107,10 @@ class TestProofTakesAnEditCopy:
         copy, _address = a_copy_on_disk(tmp_path, binder)
         out = tmp_path / "d.json"
 
-        code, _out = run(
+        code, _out = run_command(
             monkeypatch,
             capsys,
+            proof_command,
             "--copy",
             str(copy),
             "--repo",
@@ -125,9 +131,10 @@ class TestProofTakesAnEditCopy:
         it would make the caller name a directory nothing writes to."""
         repo, binder, _page = _tree(tmp_path)
         copy, _address = a_copy_on_disk(tmp_path, binder)
-        code, _out = run(
+        code, _out = run_command(
             monkeypatch,
             capsys,
+            proof_command,
             "--copy",
             str(copy),
             "--repo",
@@ -145,7 +152,9 @@ class TestProofTakesAnEditCopy:
         message says which flag would have made the run legal, which
         `error: the following arguments are required: --out` could not.
         """
-        code, out = run(monkeypatch, capsys, "--copy", "c.json", "--repo", ".")
+        code, out = run_command(
+            monkeypatch, capsys, proof_command, "--copy", "c.json", "--repo", "."
+        )
         assert code == 2
         assert "--to-docket" in out
 
@@ -161,9 +170,10 @@ class TestProofTakesAnEditCopy:
         repo, binder, _page = _tree(tmp_path)
         copy, _address = a_copy_on_disk(tmp_path, binder)
 
-        whole, out = run(
+        whole, out = run_command(
             monkeypatch,
             capsys,
+            proof_command,
             "--copy",
             str(copy),
             "--repo",
@@ -173,9 +183,10 @@ class TestProofTakesAnEditCopy:
         )
         assert whole == 0, out
 
-        stopped, out = run(
+        stopped, out = run_command(
             monkeypatch,
             capsys,
+            proof_command,
             "--copy",
             str(copy),
             "--repo",
@@ -185,9 +196,10 @@ class TestProofTakesAnEditCopy:
         )
         assert stopped == 0, out
 
-        resumed, out = run(
+        resumed, out = run_command(
             monkeypatch,
             capsys,
+            proof_command,
             "--from-docket",
             str(tmp_path / "d.json"),
             "--repo",
@@ -206,9 +218,10 @@ class TestProofTakesAnEditCopy:
         """! ONE OF THEM IS REQUIRED, and both together name two inputs for one
         run. argparse states this itself, so the exit is its own."""
         with pytest.raises(SystemExit):
-            run(
+            run_command(
                 monkeypatch,
                 capsys,
+                proof_command,
                 "--copy",
                 "c.json",
                 "--from-docket",
@@ -221,7 +234,7 @@ class TestProofTakesAnEditCopy:
 
     def test_neither_input_is_refused(self, monkeypatch, capsys):
         with pytest.raises(SystemExit):
-            run(monkeypatch, capsys, "--repo", ".", "--out", "o")
+            run_command(monkeypatch, capsys, proof_command, "--repo", ".", "--out", "o")
 
     def test_from_docket_with_to_docket_is_refused_by_name(
         self, tmp_path, monkeypatch, capsys
@@ -229,9 +242,10 @@ class TestProofTakesAnEditCopy:
         """! IT WOULD READ A DOCKET IN ORDER TO WRITE IT BACK OUT. Refused with a
         reason rather than performed, because a run that copies its own input is
         never what the caller meant."""
-        code, out = run(
+        code, out = run_command(
             monkeypatch,
             capsys,
+            proof_command,
             "--from-docket",
             "d.json",
             "--to-docket",
@@ -252,9 +266,10 @@ class TestProofTakesAnEditCopy:
         bad.write_text('{"role": "block-context"}', encoding="utf-8", newline="")
         repo = tmp_path / "repo"
         repo.mkdir()
-        code, out = run(
+        code, out = run_command(
             monkeypatch,
             capsys,
+            proof_command,
             "--copy",
             str(bad),
             "--repo",
@@ -328,9 +343,10 @@ class TestTheCommand:
         # ! THE ADDRESS IS DISCOVERED FROM THE BINDER, never hardcoded -- see
         # `a_copy_on_disk`, which is where the choice and its measurement live.
         copy, _address = a_copy_on_disk(tmp_path, binder)
-        code, out = run(
+        code, out = run_command(
             monkeypatch,
             capsys,
+            proof_command,
             "--repo",
             str(repo),
             "--copy",
