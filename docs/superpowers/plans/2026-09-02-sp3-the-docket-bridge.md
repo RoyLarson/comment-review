@@ -199,6 +199,8 @@ def test_an_empty_change_is_a_delete():
 
 ### Task 2: `docket_of` -- the transcribe
 
+**Landed:** `e8fe5d8` -- `P54`. Six cases in `TestDocketOf`; the move's two ends are the first.
+
 **Delivers:** P54
 
 **Files:**
@@ -209,7 +211,7 @@ def test_an_empty_change_is_a_delete():
 - Consumes: `text_at` from Task 1.
 - Produces: `docket_of(copy: EditCopy) -> Docket`
 
-- [ ] **Step 1: Write the failing tests.** Build the `EditCopy` with `EditCopy.deserialize`
+- [x] **Step 1: Write the failing tests.** Build the `EditCopy` with `EditCopy.deserialize`
       over a wire dict, or the existing `tests/helpers.py` builder -- **not a hand-written
       object**, per `tests/README.md`.
 
@@ -241,10 +243,10 @@ def test_an_ordinary_mark_yields_one_alteration():
     ...
 ```
 
-- [ ] **Step 2: Run them and watch them fail.**
+- [x] **Step 2: Run them and watch them fail.**
       `uv run pytest -q tests/test_revise.py -k docket_of`
 
-- [ ] **Step 3: Implement `docket_of`** in `flows/revise.py`. One `Sheet` becomes one
+- [x] **Step 3: Implement `docket_of`** in `flows/revise.py`. One `Sheet` becomes one
       `Schedule` carrying that sheet's own `path` and `sha` and the COPY's `role`. Each `Mark`
       becomes one `Alteration` at `cue_of(mark.address).cue` with `text_at(mark.address, mark)`
       -- except a `move`, which additionally emits one at `cue_of(mark.claim["to"]).cue` with
@@ -253,15 +255,15 @@ def test_an_ordinary_mark_yields_one_alteration():
       Add `EditCopy` to the imports beside the existing `desk.collator` import, and extend the
       `docket.docket` import to `Alteration, Docket, Schedule`.
 
-- [ ] **Step 4: Prove it takes an ordinary role's copy, not only the chief's.** The test at
+- [x] **Step 4: Prove it takes an ordinary role's copy, not only the chief's.** The test at
       Step 1 uses `role="ownership-context"`; that is the assertion, and it is what the two
       downstream uses named at the top of this plan depend on.
 
-- [ ] **Step 5: Run the checks.** Full suite plus lint/format/lint/ty.
+- [x] **Step 5: Run the checks.** Full suite plus lint/format/lint/ty.
 
-- [ ] **Step 6: Commit.**
+- [x] **Step 6: Commit.**
 
-- [ ] **Step 7: TICK.** Tick Task 2's boxes in THIS file and close P54, both citing the
+- [x] **Step 7: TICK.** Tick Task 2's boxes in THIS file and close P54, both citing the
       Step 6 commit. Its own commit.
 
 ---
