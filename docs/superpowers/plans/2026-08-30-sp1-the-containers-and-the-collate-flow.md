@@ -3775,11 +3775,11 @@ and used in Task 10. `Mark.seed`/`Mark.as_entry` are defined in Task 4 and used 
 and 10. `base_texts`/`drift_in` are defined in Task 9 and used in Task 10.
 
 **No placeholders.** Every step carries the code or the exact command it needs.
-- [ ] **Step 8: Tick the boxes -- THIS STEP, in its own commit AFTER the one above**
-! **LEFT OPEN 2026-09-02.** The 2026-09-02 audit wrote Steps 6 and 7's ticks and
-every task's `**Landed:**` line into this file, but did not commit them. A tick
-step asserts the tick is COMMITTED, so this box closes on the commit that lands
-that edit and cites `b80836e` for Step 6.
+- [x] **Step 8: Tick the boxes -- THIS STEP, in its own commit AFTER the one above**
+! **CLOSED 2026-09-02 against `dadfae8`**, which landed Steps 6 and 7's ticks and
+every task's `**Landed:**` line. A tick step asserts the tick is COMMITTED, so it
+could not close in the same commit as the edit it records -- this box is closed in
+the commit after, which is the ordering the step's own title asks for.
 
 Tick every `- [ ]` step box of this task in
 `docs/superpowers/plans/2026-08-30-sp1-the-containers-and-the-collate-flow.md`
