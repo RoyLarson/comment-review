@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 11 tasks closed
+Progress: 5 of 11 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -55,10 +55,11 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [ ] T4 | `tests/gates/test_skill_commands.py` sees it. Verify: the command
       appears in `COMMANDS`, `--help` names it, and the gate that checks
       SKILL.md's commands resolve covers this one.
-- [ ] T5 | A command SEQUENCES the stages a topology names. Verify: one
-      invocation runs stage 1, pulls revise-1, runs stage 2 against that revise,
-      and stops -- the topology already expresses the order and `fan_out`
-      already partitions, but nothing drives them.
+- [-] T5 | SUPERSEDED by Process #73 -- the task agent sequences the stages from SKILL.md; no command dispatches an agent, so none can drive the horizontal | 7ef790d | A
+      command SEQUENCES the stages a topology names. Verify: one invocation runs
+      stage 1, pulls revise-1, runs stage 2 against that revise, and stops --
+      the topology already expresses the order and `fan_out` already partitions,
+      but nothing drives them.
 - [ ] T6 | The command compares each returned edit_copy's read_from against the
       binder it was seeded from. Verify: a copy naming a different root or
       revise is reported by name, and one seeded from that binder passes --
