@@ -2538,3 +2538,43 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   stuff back twice and trust that the agent gets it correct. It has to be an explicit step to
   do so instead of a built in part of the flow."* The bound does not gate the artifact's
   shape; it gates the send-back round.
+
+- **#73.** **THE TOPOLOGY IS A BRIEF, NOT A SEQUENCER -- THE TASK AGENT DRIVES THE STAGES**
+  (Roy, 2026-09-01, answering the measurement that nothing reads the topology TOML, nothing
+  sequences stages and nothing carries a revise forward): *"I don't think it gets a caller
+  specifically except as something to write into the SKILL.md to tell the agent how the system
+  is expected to flow. The reason it probably is going to be done this way is because the task
+  agent has to know how to handle the reviewers and when to tell the reviewers where the data
+  is and how to handle the stuff coming back."*
+
+  !! **THE HORIZONTAL WAS NEVER A COMMAND'S WORK.** A sequencer would have to dispatch the
+  reviewers, and no command in this system dispatches an agent. The task agent already does --
+  so it is the only party that can know where a stage's data is, and it is already standing at
+  every hand-off. **What was missing is not machinery; it is the instruction.**
+
+  ! **SO `no-command-for-the-middle` T5 IS SUPERSEDED** -- *"A command SEQUENCES the stages a
+  topology names"*. There is no such command and there is not going to be one. The per-stage
+  commands stay exactly as they are; what changes is that SKILL.md says in what order to run
+  them and what to feed each one.
+
+  !! **AUTOMATING THE DISTRIBUTION DOES NOT REMOVE THE BRIEF.** Roy, the same message: *"I think
+  we could automate some of the distribution but still would need to write it into the task
+  agents brief else they would not know and not be able to follow through so do it once and let
+  it go."* **A command the agent is not told about is a command the agent cannot use** -- which
+  is the same fact `TODO/the-skill-names-commands-that-moved-to-prototype.md` records from the
+  other side, where SKILL.md names commands that no longer exist.
+
+  ! **AND IT ANSWERS THE SUBSTANCE OF `stage-4b-is-undefined` T1**, open as a ruling request
+  since 2026-08-20. That file measures the real defect -- *"NOTHING PRODUCES A RESOLVED
+  PLACEMENT"*, all four roles seeded from the same `census.json` before dispatch -- and **4b is
+  exactly this hand-off**: censusing 4a's revise so 4c reads the placement 4a settled. The
+  commands for it already exist (`proof` writes the revise, `census --repo <revise> --revise 1`
+  reads it back); nothing told the agent to run them in that order.
+
+  !! **WHAT IS SETTLED IS THE DIRECTION, AND TWO THINGS ARE NOT.** *"do it once and let it go"*
+  is unhedged and is what closes this as a design question. **The LETTER is not ruled** -- T1's
+  verify asks that `SKILL.md` either define `4b` or that the split read `4a`/`4b` with `4b`
+  nowhere, and this ruling makes the step real without naming it. **Nor is whether a topology
+  TOML keeps a reader**: if the automated distribution takes a stage rather than a `--role`, it
+  is that reader and `desk/topology.py::read()` lives; if not, the three fixtures and the parser
+  are prose describing a format nothing parses.
