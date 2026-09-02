@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 31 of 37 tasks done
+Progress: 31 of 37 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot

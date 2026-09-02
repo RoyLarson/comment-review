@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 3 of 14 tasks done
+Progress: 3 of 14 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-16 (Roy: "Does this require a 4a, b, c -- 4a the ownership run,

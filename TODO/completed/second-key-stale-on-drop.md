@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks done
+Progress: 0 of 6 tasks closed
 Owner:    comment-review
 Requires-Roy: false
 Raised:   2026-08-22 (Roy asked 2026-08-22 whether the pair key still holds for every

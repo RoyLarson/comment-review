@@ -2,7 +2,7 @@
 
 ```
 Status:   CLOSED 2026-08-18
-Progress: 6 of 6 tasks done
+Progress: 6 of 6 tasks closed
 Owner:    session (the ruling was made 2026-08-18; the addresser is the answer)
 Requires-Roy: false
 Raised:   2026-08-18 (Roy, 2026-08-18, from two files differing only in comments)

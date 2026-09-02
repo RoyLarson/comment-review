@@ -2,7 +2,7 @@
 
 ```
 Status:   done
-Progress: 18 of 18 tasks done
+Progress: 18 of 18 tasks closed
 Owner:    session
 Raised:   2026-08-15 (a twelve-agent usage collection over the whole live tree)
 ```

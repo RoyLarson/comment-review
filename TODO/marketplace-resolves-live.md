@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 3 of 5 tasks done
+Progress: 3 of 5 tasks closed
 Owner:    systems
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22: the installed plugin traced itself back up to the

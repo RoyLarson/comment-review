@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 3 tasks done
+Progress: 0 of 3 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-29 (found sweeping reviewer-brief.md against its consumers on

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 10 tasks done
+Progress: 3 of 10 tasks closed
 Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-20 (the branch review of 2026-08-20)

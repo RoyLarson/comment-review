@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 10 tasks done
+Progress: 2 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, on the exceptions.py layer: a human would have

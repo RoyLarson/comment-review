@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 8 tasks done
+Progress: 8 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-23 (Roy, 2026-08-23: "Every line is a place" -- measured false by 595

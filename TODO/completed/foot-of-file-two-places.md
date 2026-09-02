@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 3 of 3 tasks done
+Progress: 3 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-25 (xhigh wave C on feat/the-write-chain-of-command, finding 5)

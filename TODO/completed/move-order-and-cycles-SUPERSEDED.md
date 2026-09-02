@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 3 tasks done
+Progress: 0 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (measured 2026-08-30 while specifying SP-1's resolution step; Roy:

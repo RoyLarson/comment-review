@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 3 of 7 tasks done
+Progress: 3 of 7 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, while ruling on what CLAIM and CHANGE each carry

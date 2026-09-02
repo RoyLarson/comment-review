@@ -2,7 +2,7 @@
 
 ```
 Status:   blocked (on the first v0.2.4 dogfood run -- these pairs are its graded finding)
-Progress: 2 of 12 tasks done
+Progress: 2 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-20 (the branch review of 2026-08-20)

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 4 tasks done
+Progress: 4 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-25 (the final whole-branch review of the write-chain branch,

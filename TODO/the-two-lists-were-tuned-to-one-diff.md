@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 3 of 9 tasks done
+Progress: 3 of 9 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-16 (Roy: "yes drop both lists / and lets create a todo to clean up

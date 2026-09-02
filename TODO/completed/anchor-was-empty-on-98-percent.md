@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 4 tasks done
+Progress: 3 of 4 tasks closed
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (Roy's anchor ruling, 2026-08-19)

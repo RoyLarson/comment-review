@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 5 of 9 tasks done
+Progress: 5 of 9 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-15 (Roy, after the 7b cutting paragraph was found and deleted)

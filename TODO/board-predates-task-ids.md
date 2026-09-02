@@ -2,7 +2,7 @@
 
 ```
 Status:   blocked
-Progress: 0 of 6 tasks done
+Progress: 0 of 6 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, trialling the migration so a plan could name its tasks

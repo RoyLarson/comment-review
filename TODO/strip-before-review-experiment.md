@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 0 of 5 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy, after the collator experiment: run tests on

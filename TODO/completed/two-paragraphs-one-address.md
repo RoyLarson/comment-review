@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 8 tasks done
+Progress: 8 of 8 tasks closed
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-

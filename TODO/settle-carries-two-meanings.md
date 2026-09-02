@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks done
+Progress: 0 of 6 tasks closed
 Owner:    systems
 Requires-Roy: true
 Raised:   2026-08-24 (the moment `taken in` was ruled -- Roy: 'now we have a polysemy of

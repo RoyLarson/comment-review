@@ -2,7 +2,7 @@
 
 ```
 Status:   in-flight
-Progress: 18 of 18 tasks done
+Progress: 18 of 18 tasks closed
 Owner:    comment-review
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21: 'why does the foliation know about lines? I think

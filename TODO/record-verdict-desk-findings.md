@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 9 of 14 tasks done
+Progress: 9 of 14 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/code-review high round 4, 2026-08-22 -- the findings OUTSIDE the

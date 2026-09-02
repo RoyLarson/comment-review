@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 2 of 4 tasks done
+Progress: 2 of 4 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, by the session that ran all eight stages -- "the weakest-verified input

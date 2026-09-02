@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 5 tasks done
+Progress: 1 of 5 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-17, on the FIRST run ever to reach stage 7b. A docstring `add` failed the

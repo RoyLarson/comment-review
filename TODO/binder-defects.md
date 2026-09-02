@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 18 tasks done
+Progress: 0 of 18 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, a code review of `binder/binder.py` run against its

@@ -2,7 +2,7 @@
 
 ```
 Status:   done
-Progress: 13 of 13 tasks done
+Progress: 13 of 13 tasks closed
 Owner:    session
 Raised:   2026-08-15 (Roy, while reviewing the placement precedence before merge)
 ```

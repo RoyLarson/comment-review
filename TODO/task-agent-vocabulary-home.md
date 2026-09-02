@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 4 tasks done
+Progress: 0 of 4 tasks closed
 Owner:    agents (the instructions) - backend (the enum they derive from)
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, filing the distribute vocabulary entry for Task 14:

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 12 tasks done
+Progress: 0 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `flows/collate.py` on the collate-

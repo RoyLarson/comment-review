@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 7 of 10 tasks done
+Progress: 7 of 10 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22, on adding a token-type enum: the lexer is not

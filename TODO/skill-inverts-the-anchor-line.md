@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 2 tasks done
+Progress: 0 of 2 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-29 (found while correcting SKILL.md's tier-count claims, 2026-08-29)

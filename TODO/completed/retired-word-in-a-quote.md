@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 5 tasks done
+Progress: 5 of 5 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-23 (2026-08-23, restoring six quotations a mechanical rename had

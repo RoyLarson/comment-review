@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 4 of 8 tasks done
+Progress: 4 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-19 (Roy, 2026-08-19: 'this is because the census is doing the

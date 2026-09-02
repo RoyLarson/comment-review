@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 9 tasks done
+Progress: 6 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-20 (Roy, 2026-08-20: 'the edit_column is an idea that can be dropped

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 9 tasks done
+Progress: 5 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-18 (Roy, 2026-08-18, on splitting the census by editorial role)

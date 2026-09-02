@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 3 of 11 tasks done
+Progress: 3 of 11 tasks closed
 Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22: that whole system of from census to findings to

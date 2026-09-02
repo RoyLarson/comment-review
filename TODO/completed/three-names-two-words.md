@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 5 tasks done
+Progress: 5 of 5 tasks closed
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-20 (Roy, 2026-08-20: every rename is a function-context finding)

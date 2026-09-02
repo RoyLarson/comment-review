@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 7 tasks done
+Progress: 0 of 7 tasks closed
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (Roy, 2026-08-19: 'I don't think there is any pagish like things

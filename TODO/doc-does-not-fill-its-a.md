@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 8 tasks done
+Progress: 4 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-20 (found while adding the per-language declares keyword list,

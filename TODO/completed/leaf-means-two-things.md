@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 19 of 19 tasks done
+Progress: 19 of 19 tasks closed
 Owner:    comment-review
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, describing stage 2 as stacking pages into leaves

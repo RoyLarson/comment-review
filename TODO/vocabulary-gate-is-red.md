@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 7 tasks done
+Progress: 2 of 7 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-20 (both reviews of 2026-08-20; verified in-session)

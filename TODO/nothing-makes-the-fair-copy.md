@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 13 tasks done
+Progress: 1 of 13 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-24 (Roy: the galley only really needs this address gets this paragraph,

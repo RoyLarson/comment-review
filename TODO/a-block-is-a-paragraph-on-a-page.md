@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 3 of 11 tasks done
+Progress: 3 of 11 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-19 (Roy's ruling while shipping the address vocabulary, 2026-08-19)

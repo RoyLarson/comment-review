@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 3 tasks done
+Progress: 3 of 3 tasks closed
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-20 (the /code-review high of 2026-08-20)

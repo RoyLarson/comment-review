@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 7 of 12 tasks done
+Progress: 7 of 12 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-16 (Roy, on `census.py`: "this creates the pCST and that is it.

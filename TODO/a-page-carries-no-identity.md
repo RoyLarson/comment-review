@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 4 tasks done
+Progress: 4 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (Roy: the page should record its sha, so the galley and the compositor

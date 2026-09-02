@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks done
+Progress: 0 of 4 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-20 (the branch review of 2026-08-20)

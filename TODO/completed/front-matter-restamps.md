@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 7 tasks done
+Progress: 0 of 7 tasks closed
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (the python_edge_cases.md run, 2026-08-19)

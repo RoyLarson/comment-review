@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks done
+Progress: 0 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (P7 of refactor/the-boundaries-are-not-real, 2026-08-24)

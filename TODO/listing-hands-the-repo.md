@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 4 tasks done
+Progress: 1 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (measuring what a reviewer is actually charged for, while scoping

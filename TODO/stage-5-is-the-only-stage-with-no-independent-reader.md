@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 11 tasks done
+Progress: 6 of 11 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-17, by the session that ran all eight stages and rolled its own work back.

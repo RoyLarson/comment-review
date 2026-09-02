@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 4 of 4 tasks done
+Progress: 4 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-25 (backend, 2026-08-25, naming what the agent workflow hands the

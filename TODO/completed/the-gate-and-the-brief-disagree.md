@@ -2,7 +2,7 @@
 
 ```
 Status:   CLOSED 2026-08-17
-Progress: 8 of 8 tasks done
+Progress: 8 of 8 tasks closed
 Owner:    session * Roy (3 rulings made, 0 left)
 Raised:   2026-08-15 (the vocabulary survey, which collected these while reading for terms)
 Re-filed: 2026-08-16 (Roy, on `query` needing EVIDENCE and QUOTE: "this is a TODO on

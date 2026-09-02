@@ -2,7 +2,7 @@
 
 ```
 Status:   COMPLETE 2026-08-16
-Progress: 7 of 7 tasks done
+Progress: 7 of 7 tasks closed
 Owner:    session * Roy (ruled 2026-08-16)
 Raised:   2026-08-15 (Roy: "Where did the 'levels' come from? Those weren't in the
           original format, and I didn't ask for them.")

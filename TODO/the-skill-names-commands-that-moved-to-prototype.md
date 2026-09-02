@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 4 tasks done
+Progress: 3 of 4 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-25 (the prototype move, 2026-08-25)

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 7 tasks done
+Progress: 0 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (scoping the 0.2.4 round trip: every stage has tests and no test

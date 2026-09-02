@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 13 of 25 tasks done
+Progress: 13 of 25 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-18, from measuring what a reviewer is handed before it works

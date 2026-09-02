@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 5 tasks done
+Progress: 4 of 5 tasks closed
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-20 (the ownership-context sweep, 2026-08-20)

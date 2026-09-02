@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 4 tasks done
+Progress: 4 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, task 9 of the master-proof plan -- an implementer

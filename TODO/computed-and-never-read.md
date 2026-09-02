@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 10 tasks done
+Progress: 3 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (simplify round 7, 2026-08-22 -- found by Pyright and by reading,

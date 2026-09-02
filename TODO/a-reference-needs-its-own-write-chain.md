@@ -3,7 +3,7 @@
 ```
 Status:   deferred -- waits on the middle piece working end to end (Roy, 2026-08-27:
           "is a todo for the future Not Yet - i want the middle piece to work first")
-Progress: 0 of 3 tasks done
+Progress: 0 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-27 (Roy, answering whether a `references` page is settable: "Yes - needs a

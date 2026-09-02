@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 12 of 12 tasks done
+Progress: 12 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-20 (Roy, 2026-08-20: 'on the original every line belongs to 1

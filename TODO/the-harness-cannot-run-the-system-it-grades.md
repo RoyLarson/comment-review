@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 10 of 31 tasks done
+Progress: 10 of 31 tasks closed
 Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-18, after a run whose only question needed one role and cost four

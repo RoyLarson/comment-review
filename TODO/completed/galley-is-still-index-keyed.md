@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 3 tasks done
+Progress: 3 of 3 tasks closed
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)

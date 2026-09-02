@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks done
+Progress: 0 of 6 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28 (2026-08-28, Roy asking what `claim.shape` is: 'because it is

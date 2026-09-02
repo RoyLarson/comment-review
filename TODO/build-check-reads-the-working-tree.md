@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 6 tasks done
+Progress: 1 of 6 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-25 (backend, 2026-08-25, chasing a reviewer note on the write-chain

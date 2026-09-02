@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 2 tasks done
+Progress: 0 of 2 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-25 (shadow-suite mutation run, 2026-08-25)

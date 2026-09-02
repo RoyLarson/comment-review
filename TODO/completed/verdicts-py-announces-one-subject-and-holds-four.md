@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 8 of 8 tasks done
+Progress: 8 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-18, from the dev review of the file by its own editorial board

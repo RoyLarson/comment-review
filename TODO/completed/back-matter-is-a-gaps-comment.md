@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 7 tasks done
+Progress: 1 of 7 tasks closed
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-20 (Roy, 2026-08-20: 'the problem with head is what happens if there

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 3 tasks done
+Progress: 0 of 3 tasks closed
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-20 (found while collapsing three code-line functions into one ordered

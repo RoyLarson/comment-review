@@ -2,7 +2,7 @@
 
 ```
 Status:   deferred
-Progress: 5 of 8 tasks done
+Progress: 5 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21; measured in-session)

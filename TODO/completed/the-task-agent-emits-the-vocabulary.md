@@ -2,7 +2,7 @@
 
 ```
 Status:   COMPLETE 2026-08-16
-Progress: 8 of 8 tasks done
+Progress: 8 of 8 tasks closed
 Owner:    session * Roy (design ruled 2026-08-16)
 Raised:   2026-08-16 (Roy: "the task agent runs a command and puts the correct
           vocabulary verbatim into the agents prompt. No summarizing no duplication.

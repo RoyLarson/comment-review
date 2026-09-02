@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 5 of 8 tasks done
+Progress: 5 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)

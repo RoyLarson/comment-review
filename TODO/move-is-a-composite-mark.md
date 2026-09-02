@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 21 tasks done
+Progress: 0 of 21 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than

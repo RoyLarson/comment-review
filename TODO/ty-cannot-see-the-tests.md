@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 0 of 5 tasks closed
 Owner:    systems (the gate) - backend (the test fixes)
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that ty should pick up the tests as well,

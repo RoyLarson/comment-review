@@ -3,7 +3,7 @@
 ```
 Status:   open (T5's ruling deferred to a prose classifier; T2, the Rust half, does not
           wait on it)
-Progress: 2 of 5 tasks done
+Progress: 2 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-23 (2026-08-23, re-measuring `front-matter-protection-is-python-only`

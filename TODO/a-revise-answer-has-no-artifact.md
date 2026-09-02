@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 8 tasks done
+Progress: 4 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.

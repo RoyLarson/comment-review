@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 3 tasks done
+Progress: 0 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-25 (the narrow guard fix on the write-chain branch, 2026-08-25 --

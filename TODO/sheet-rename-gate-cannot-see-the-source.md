@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 2 tasks done
+Progress: 0 of 2 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-29 (the final review of feat/the-mark-and-the-collator, 2026-08-29

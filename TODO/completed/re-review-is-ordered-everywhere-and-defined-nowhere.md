@@ -2,7 +2,7 @@
 
 ```
 Status:   done
-Progress: 10 of 10 tasks done
+Progress: 10 of 10 tasks closed
 Owner:    session * Roy (* 4 rulings, all made)
 Raised:   2026-08-17 (the first full run of 0.1.7 hit eight contradicted blocks and had to
           invent a procedure to clear them)

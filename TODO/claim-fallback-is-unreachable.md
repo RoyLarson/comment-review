@@ -2,7 +2,7 @@
 
 ```
 Status:   deferred
-Progress: 6 of 8 tasks done
+Progress: 6 of 8 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-22 (/simplify round 2, 2026-08-22, and Roy: probably (ii) but deferred

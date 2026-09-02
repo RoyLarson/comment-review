@@ -2,7 +2,7 @@
 
 ```
 Status:   deferred (waits on someone needing a held run replayed -- nothing depends on it)
-Progress: 2 of 5 tasks done
+Progress: 2 of 5 tasks closed
 Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-19 (B4, after `convert` was made to refuse a 0.2.x report, 2026-08-19)

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 2 tasks done
+Progress: 0 of 2 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-26 (xhigh wave-D review of feat/the-write-chain-of-command,

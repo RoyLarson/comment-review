@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 4 tasks done
+Progress: 2 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-

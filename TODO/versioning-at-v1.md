@@ -2,7 +2,7 @@
 
 ```
 Status:   deferred
-Progress: 3 of 12 tasks done
+Progress: 3 of 12 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, ruling out any versioning investment before v1)

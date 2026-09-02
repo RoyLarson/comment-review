@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks done
+Progress: 0 of 4 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-28 (2026-08-28, after a third separate task was found pointing at a

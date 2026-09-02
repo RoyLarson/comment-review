@@ -2,7 +2,7 @@
 
 ```
 Status:   blocked (python-cannot-read-python -- the lexical Python reader)
-Progress: 2 of 2 tasks done
+Progress: 2 of 2 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the compositor round trip over `corpora/`, 2026-08-21 -- one of 7

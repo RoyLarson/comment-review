@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 4 of 5 tasks done
+Progress: 4 of 5 tasks closed
 Owner:    systems
 Requires-Roy: true
 Raised:   2026-08-22 (found while collapsing the Cues fields 2026-08-22:

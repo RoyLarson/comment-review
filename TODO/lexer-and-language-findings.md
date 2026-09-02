@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 3 of 28 tasks done
+Progress: 3 of 28 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,

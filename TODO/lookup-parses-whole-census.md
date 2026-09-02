@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 14 tasks done
+Progress: 4 of 14 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-23 (Roy, 2026-08-23: if we pulled on a BIG project and had to do this

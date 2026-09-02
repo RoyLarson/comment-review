@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 2 of 7 tasks done
+Progress: 2 of 7 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (the 0.2.0 builder run: the operating session noticed scratch

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 7 tasks done
+Progress: 7 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, reviewing the draft plan for the mark and the collator. Roy:

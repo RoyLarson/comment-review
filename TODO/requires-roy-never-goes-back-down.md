@@ -2,7 +2,7 @@
 
 ```
 Status:   deferred
-Progress: 2 of 7 tasks done
+Progress: 2 of 7 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-19 (asking what was waiting on Roy for 0.2.4, 2026-08-19)

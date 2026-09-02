@@ -2,7 +2,7 @@
 
 ```
 Status:   done
-Progress: 10 of 10 tasks done (6 design rulings made; 8 build steps, all shipped)
+Progress: 10 of 10 tasks closed
 Owner:    session (Roy made all 6 rulings 2026-08-17; the rest is build)
 Raised:   2026-08-17, by Roy, after three parser defects of one shape in one day
 ```

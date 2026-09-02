@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 13 of 18 tasks done
+Progress: 13 of 18 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-19 (the python_edge_cases.md run, 2026-08-19 -- b1 unresolvable on the

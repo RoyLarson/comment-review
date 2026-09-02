@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 11 of 11 tasks done
+Progress: 11 of 11 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, ruling on a `b` whose lines straddle an `a`: 'I

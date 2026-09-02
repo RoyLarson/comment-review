@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks done
+Progress: 0 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-25 (Roy, 2026-08-25, during the write-chain branch)

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 6 tasks done
+Progress: 6 of 6 tasks closed
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-20 (the /code-review high of 2026-08-20; the Rust case verified in-

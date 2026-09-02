@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 3 tasks done
+Progress: 1 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, by an agent writing collator.py's prose from the code

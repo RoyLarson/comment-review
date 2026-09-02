@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 0 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (Roy, 2026-08-24: 'If python could parse python code names would be

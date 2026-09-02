@@ -5,7 +5,7 @@ Status:   blocked (on the * ruling in a-role-with-no-code-out-damages-the-prose,
           decides the shape this must carry; and on a working grader -- 'effectiveness
           unchanged' is a comparison and the-harness-cannot-run-the-system-it-grades is
           open)
-Progress: 0 of 9 tasks done
+Progress: 0 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-23 (2026-08-23, splitting a-role-with-no-code-out-damages-the-prose:

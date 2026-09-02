@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 7 tasks done
+Progress: 7 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, Roy, on the max-effort sweep: "mark.py should define a

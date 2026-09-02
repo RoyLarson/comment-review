@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 8 of 22 tasks done
+Progress: 8 of 22 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21: 'The lexer reads zero files - this is also a

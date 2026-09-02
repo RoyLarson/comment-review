@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 5 tasks done
+Progress: 3 of 5 tasks closed
 Owner:    agents
 Raised:   2026-08-17 (the 0.2.0 builder run, at the collator: "verdicts.py has no --out
           (the census scripts do) -- and this session refuses shell redirects")

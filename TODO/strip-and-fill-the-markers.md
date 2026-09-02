@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 8 tasks done
+Progress: 0 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, Roy, watching three failed edits in a row: "having the

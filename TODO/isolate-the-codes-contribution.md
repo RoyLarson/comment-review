@@ -3,7 +3,7 @@
 ```
 Status:   blocked (on the-harness-cannot-run-the-system-it-grades -- neither the twelve
           hazards nor their grader is in this tree, so neither arm can be scored)
-Progress: 4 of 10 tasks done
+Progress: 4 of 10 tasks closed
 Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, after ruling out a history split: the

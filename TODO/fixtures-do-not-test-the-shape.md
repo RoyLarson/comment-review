@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 0 of 5 tasks closed
 Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-23 (2026-08-23, triaging matter-misses-two-languages: censusing the

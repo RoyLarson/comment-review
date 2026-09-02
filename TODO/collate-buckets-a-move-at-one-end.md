@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 3 tasks done
+Progress: 3 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-27, splitting the residue out of Roy's correction on relational

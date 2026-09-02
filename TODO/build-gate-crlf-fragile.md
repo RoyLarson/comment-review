@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 2 tasks done
+Progress: 0 of 2 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-28 (found by the Task 1 reviewer during fix round 1, 2026-08-28, and

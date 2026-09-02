@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 4 tasks done
+Progress: 4 of 4 tasks closed
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-20 (Roy, 2026-08-20: 'a is correct for python and incorrect for rust

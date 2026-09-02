@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 10 tasks done
+Progress: 0 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-17 (Roy: "use the github api to find a heavily documented file

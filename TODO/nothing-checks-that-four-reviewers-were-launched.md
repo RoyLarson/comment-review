@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 1 of 6 tasks done
+Progress: 1 of 6 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, on a MISREADING that turned out to sharpen the task -- see below

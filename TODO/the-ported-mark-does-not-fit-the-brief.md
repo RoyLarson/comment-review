@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 5 tasks done
+Progress: 5 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, reviewing `desk/mark.py` against the role's needs before building

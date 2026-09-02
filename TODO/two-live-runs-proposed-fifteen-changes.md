@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 11 of 21 tasks done
+Progress: 11 of 21 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, from `evidence/todo-tool-full-v0_2/proposals.md` (5) and

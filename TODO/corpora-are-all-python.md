@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 3 of 10 tasks done
+Progress: 3 of 10 tasks closed
 Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on the boundary table: 'Was this language

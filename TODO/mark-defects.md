@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 11 tasks done
+Progress: 0 of 11 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`

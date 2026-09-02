@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 7 tasks done
+Progress: 0 of 7 tasks closed
 Owner:    systems
 Requires-Roy: true
 Raised:   2026-08-24 (Roy: most of our back and forth is making certain we and the system

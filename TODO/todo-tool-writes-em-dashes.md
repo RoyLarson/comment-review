@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 3 tasks done
+Progress: 0 of 3 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-25 (backend, 2026-08-25, from a Task 9 review finding on the write-

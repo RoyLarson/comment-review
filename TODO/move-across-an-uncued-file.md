@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 6 tasks done
+Progress: 5 of 6 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-20 (Roy, 2026-08-20: 'we have an addresser back, but that is because

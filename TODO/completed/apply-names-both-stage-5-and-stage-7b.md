@@ -2,7 +2,7 @@
 
 ```
 Status:   COMPLETE 2026-08-16
-Progress: 6 of 6 tasks done
+Progress: 6 of 6 tasks closed
 Owner:    session
 Raised:   2026-08-15 (Roy, stating the workflow as "Apply, Compact, Approval")
 ```

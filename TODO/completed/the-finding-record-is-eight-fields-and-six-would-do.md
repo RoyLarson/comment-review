@@ -2,7 +2,7 @@
 
 ```
 Status:   done
-Progress: 8 of 8 tasks done
+Progress: 8 of 8 tasks closed
 Owner:    session * Roy (* 1 ruling)
 Raised:   2026-08-15 (Roy: "It looks like another session got convinced by other
           sessions that they didn't have everything they needed to state what

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 12 tasks done
+Progress: 6 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22: the term the agent keeps saying is the collator but

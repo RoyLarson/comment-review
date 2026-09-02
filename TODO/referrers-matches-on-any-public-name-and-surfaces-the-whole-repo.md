@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks done
+Progress: 0 of 6 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-17 (referrers.py's FIRST real exercise, the redacted_corpus

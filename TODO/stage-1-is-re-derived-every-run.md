@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 1 of 14 tasks done
+Progress: 1 of 14 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (two full runs in one session, on two repos; stage 1 was established

@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 4 of 9 tasks done
+Progress: 4 of 9 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-17 (Roy: "both todo-tool and another project ended up in / six rules are

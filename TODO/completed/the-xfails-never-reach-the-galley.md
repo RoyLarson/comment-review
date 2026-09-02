@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 3 of 3 tasks done
+Progress: 3 of 3 tasks closed
 Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-20 (the branch review of 2026-08-20; threatens plan box R7)

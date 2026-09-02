@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 5 tasks done
+Progress: 3 of 5 tasks closed
 Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-20 (Roy, 2026-08-20, correcting a claim that only size had been

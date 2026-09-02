@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 1 of 4 tasks done
+Progress: 1 of 4 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-18 (Roy, 2026-08-18, finding 'the number to beat is zero blocks

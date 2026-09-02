@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 4 of 4 tasks done
+Progress: 4 of 4 tasks closed
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (the c-series writability ruling, 2026-08-19)

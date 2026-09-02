@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 2 of 4 tasks done
+Progress: 2 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-17, after three defects of one shape landed in a single day

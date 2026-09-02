@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 4 of 4 tasks done
+Progress: 4 of 4 tasks closed
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (Roy relaying an earlier session's finding while closing 0.2.4,

@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 14 tasks done
+Progress: 0 of 14 tasks closed
 Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)

@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 1 of 16 tasks done
+Progress: 1 of 16 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-21 (Roy, 2026-08-21, on leading and matter both being categories

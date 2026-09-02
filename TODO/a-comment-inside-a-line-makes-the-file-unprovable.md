@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 7 tasks done
+Progress: 2 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-17 (Roy, on the fixture for the fix that landed the same day:

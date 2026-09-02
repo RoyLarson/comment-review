@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 4 tasks done
+Progress: 0 of 4 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (Roy, during the first full run of 0.1.7: "At some point the

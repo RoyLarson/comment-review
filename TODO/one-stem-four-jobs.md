@@ -2,7 +2,7 @@
 
 ```
 Status:   deferred
-Progress: 6 of 15 tasks done
+Progress: 6 of 15 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, reading a census entry: 'in a system that is a

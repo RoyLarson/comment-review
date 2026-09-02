@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 9 tasks done
+Progress: 0 of 9 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (Roy: "This shouldn't happen - As much as FOR REFERENCE only might make

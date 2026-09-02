@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 5 tasks done
+Progress: 0 of 5 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-18 (Roy, 2026-08-18: keep track of these and have a place to decide on

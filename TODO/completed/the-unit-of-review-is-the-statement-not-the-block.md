@@ -2,7 +2,7 @@
 
 ```
 Status:   CLOSED 2026-08-17 by group A
-Progress: 5 of 5 tasks done
+Progress: 5 of 5 tasks closed
 Owner:    session * Roy (1 ruling)
 Raised:   2026-08-16 (Roy, on a proposed sentence saying "why the BLOCK belongs there":
           "A) each sentence/statement is under review not the 'block'. B) some of the

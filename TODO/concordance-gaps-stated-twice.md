@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks done
+Progress: 0 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (Roy, 2026-08-24: are referrers and code_names one workflow?)

@@ -2,7 +2,7 @@
 
 ```
 Status:   CLOSED 2026-08-17 by group A
-Progress: 5 of 5 tasks done
+Progress: 5 of 5 tasks closed
 Owner:    session * Roy (* 1 ruling)
 Raised:   2026-08-17 (ownership-context diagnosed the mechanism during a live run and named
           its consequence: "three Rx fields now end mid-clause")

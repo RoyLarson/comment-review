@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 5 tasks done
+Progress: 5 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, designing P4 with Roy -- `binder` goes out and

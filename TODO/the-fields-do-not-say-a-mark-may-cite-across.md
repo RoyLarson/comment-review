@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 8 tasks done
+Progress: 5 of 8 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-27 (Roy, on a finding whose subject is the relation between two

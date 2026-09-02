@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 6 tasks done
+Progress: 1 of 6 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (a run declared the collision in its style sheet without being asked:

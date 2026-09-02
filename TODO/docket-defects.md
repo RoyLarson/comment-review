@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 8 tasks done
+Progress: 0 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `docket/docket.py` run end to end

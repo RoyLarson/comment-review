@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 4 tasks done
+Progress: 4 of 4 tasks closed
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-20 (found while rendering a page for the P3 ruling, 2026-08-20)

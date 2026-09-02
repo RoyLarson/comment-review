@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 13 of 13 tasks done
+Progress: 13 of 13 tasks closed
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on why every galley update to date has been

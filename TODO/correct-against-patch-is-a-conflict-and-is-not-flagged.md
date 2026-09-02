@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 3 tasks done
+Progress: 0 of 3 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-17 (the first end-to-end cycle run; block 1 of galley.py)

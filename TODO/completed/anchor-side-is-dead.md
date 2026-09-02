@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 2 tasks done
+Progress: 2 of 2 tasks closed
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-20 (the branch review of 2026-08-20; an AST sweep found only this)

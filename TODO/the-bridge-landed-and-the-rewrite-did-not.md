@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 8 of 11 tasks done
+Progress: 8 of 11 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-17, by /simplify over the 0.2.3 branch
