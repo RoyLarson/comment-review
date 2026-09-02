@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 17 tasks done
+Progress: 11 of 17 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, reading a census JSON: there are a lot of extra
@@ -246,8 +246,9 @@ re-parse. A set chosen for size alone would have refused it.
 - [x] T11 | FINISHED | unknown | T11 -- Delete `tier` outright: the field, the
       `Counter` at `census.py:466`, and the preamble line. Verify: no shipped
       script emits or reads it.
-- [ ] T12 | T12 -- Move `path` to a page envelope, stated once. Verify: no
-      census row carries a `path`.
+- [x] T12 | MEASURED 2026-09-01: page.serialize gives keys path, rows, sha and a row gives anchor, cue, original_start, original_end, raw_text -- the path is on the envelope, stated once, and no row carries one. | cc23732 | T12
+      -- Move `path` to a page envelope, stated once. Verify: no census row
+      carries a `path`.
 - [ ] T13 | T13 -- Delete the nine other ruled fields. Verify: a `--json` row
       holds only `cue`, `anchor`, `anchor_num`, `original_start`,
       `original_end`, `raw_text`.
