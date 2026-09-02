@@ -2578,3 +2578,34 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   TOML keeps a reader**: if the automated distribution takes a stage rather than a `--role`, it
   is that reader and `desk/topology.py::read()` lives; if not, the three fixtures and the parser
   are prose describing a format nothing parses.
+
+  ! **THE SECOND WAS ANSWERED THE SAME DAY AND TOOK THE FIRST BRANCH -- `#74`.** The
+  letter is still open.
+
+- **#74.** **THE TOPOLOGY FILE KEEPS A READER, AND THE READER IS THE DISTRIBUTION** (Roy,
+  2026-09-01, answering `#73`'s open half in one word): *"Yes"*.
+
+  !! **SO `desk/topology.py::read()` IS LIVE CODE, AND `flows/fan_out.py::fan()` GETS THE
+  CALLER IT HAS NEVER HAD.** The shape is a `distribute` that takes a STAGE where it now takes
+  a `--role`: one invocation reads that stage's dispatches out of the topology and writes one
+  seeded `edit_copy` per dispatch, in dispatch order. Measured 2026-09-01, before this: `read()`
+  had zero callers in `src/` and `fan()` had zero callers in `src/` -- both reachable only from
+  tests.
+
+  !! **AND IT IS THE DISTRIBUTION RATHER THAN THE SEQUENCING, WHICH IS WHY IT DOES NOT REOPEN
+  `#73`.** A sequencer would have to dispatch the reviewers, and no command dispatches an agent.
+  **A stage's dispatches are not agent dispatch** -- they are a PARTITION of a binder over paths,
+  which is arithmetic, and `fan` already does it. So the two halves divide cleanly: the task
+  agent reads the ORDER from SKILL.md and runs one command per stage; the command reads that
+  stage's DISPATCHES from the topology.
+
+  !! **IT MAKES FAN-OUT DRIVABLE, WHICH NOTHING ELSE DID.** `paths` sits on the dispatch and not
+  on the stage precisely so two dispatches may name one role -- and that was the one topology
+  shape no command could reach at all, rather than reaching it awkwardly.
+
+  ! **AND IT CORRECTS WHAT I REPORTED WHEN `#73` LANDED.** I said the ruling left the commands
+  plan's steps intact because none of `P29`-`P33` sequences. That is true and it was the wrong
+  set: **`P9` -- *"Implement the sequencing command that runs the stages a topology names"* --
+  is the sequencer `#73` rules out**, and it is superseded here. `P29` (VERIFY), `P30` (BUILD),
+  `P31` (the command exposing both) and `P33` (the fixture) all keep their subject, because a
+  format with a reader is a format worth verifying and building.
