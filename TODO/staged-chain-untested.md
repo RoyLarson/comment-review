@@ -23,9 +23,8 @@ The staged chain runs but nothing tests it, and the fan-out topology fits one tr
       `src/comment_review/binder/*.py` -- this repo's own layout. ! THE REFUSAL
       IS CORRECT; fan-out must cover every page. What is wrong is that the only
       committed fan-out topology can be exercised on exactly one tree.
-- [?] T2 | Decide whether `topology --verify` refuses a glob that matches no
-      page, or only a page no dispatch covers. Verify: the answer is in
-      `docs/decision-log.md`, and `topology --verify` implements it.
+- [?] T2 | Decide whether `topology --verify` refuses a glob matching no page,
+      or only a page no dispatch covers. Verify: the answer is in the log.
         > 2026-09-02 REWORDED: the old Verify named two branches that Process 55
         > 2026-09-02 rules out -- topology.read has no tree so it cannot know, and fan
         > 2026-09-02 blaming the tree is the symptom 55 diagnoses, not the fix

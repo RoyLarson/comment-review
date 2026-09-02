@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 14 of 42 tasks closed
+Progress: 14 of 44 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -281,11 +281,14 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
 - [ ] T35 | Move the one filesystem call out of binder/annotate.py, where a path
       existence check is IO outside machine
         > 2026-08-31 line 156 -- the only IO in binder/; picks UNVERIFIABLE or UNRESOLVE
-- [ ] T36 | Implement a container for the Reconciled entry, or rule that it
-      stays a dict
+- [?] T36 | Decide whether the Reconciled entry becomes a container or stays a
+      dict. Verify: the answer is in `docs/decision-log.md`.
         > 2026-08-31 P42 left it deliberately: a new type needs its purpose
         > 2026-08-31 named before the code -- conventions.md. _outcome builds it;
         > 2026-08-31 _composition, _resolve and commands/collate.py read it by key.
+        > 2026-09-02 SPLIT 2026-09-02: this box read Implement a container ... or rule
+        > 2026-09-02 that it stays a dict -- a question wearing an implement opening
+        > 2026-09-02 Roy: LLMs are slippery in getting around the rules. The act is T43
 - [?] T37 | Decide whether a master_proof is ever written to disk, or delete its
       serialize, deserialize and stage
         > 2026-08-31 MEASURED after P42: grep -rn MasterProof src/ shows deserialize
@@ -319,3 +322,10 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
         > 2026-09-01 Roy 2026-09-01, on why the master_proof question cannot be settled
         > 2026-09-01 yet: we have not fully specified the intermediate stage artifacts
         > 2026-09-01 and how that is resolved. T37 waits on this, not the other way.
+- [ ] T43 | Implement the Reconciled entry the way T36 rules it -- a container,
+      or a dict whose staying is recorded
+        > 2026-09-02 Follows T36's ruling; it cannot start before the answer exists
+        > 2026-09-02 Process 71 filed the type as needing its purpose named before code
+- [ ] T44 | Name what a Reconciled container would make correct that a dict does
+      not, so T36 can be ruled
+        > 2026-09-02 Process 71: a new type needs its purpose named BEFORE the code
