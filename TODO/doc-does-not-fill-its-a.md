@@ -4,7 +4,7 @@
 Status:   open
 Progress: 4 of 8 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-20 (found while adding the per-language declares keyword list,
           2026-08-20)
 Measured: 2026-08-20 — 2026-08-20 -- WHAT THE LEXER ALREADY SETTLES, per language. Roy
@@ -105,9 +105,9 @@ rule is that a language takes its definition from its own grammar and never from
 - [ ] T6 | T6 -- Name in `compact.md:113` whatever remains genuinely unresolved
       after T5. Verify: the stamp's explanation at :113 names the case that
       still fires.
-- [ ] T7 | T7 -- * RULE go's adjacency: must a doc comment TOUCH its
+- [?] T7 | T7 -- * RULE go's adjacency: must a doc comment TOUCH its
       declaration, or is nearest-above enough? Verify: one of the two comments
       cites the other, for go.
-- [ ] T8 | T8 -- * RULE ruby's adjacency, from ruby's own grammar and not from
+- [?] T8 | T8 -- * RULE ruby's adjacency, from ruby's own grammar and not from
       go's. Verify: one of the two comments is corrected to cite the other, for
       ruby.

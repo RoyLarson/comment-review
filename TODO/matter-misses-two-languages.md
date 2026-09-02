@@ -5,7 +5,7 @@ Status:   open (T5's ruling deferred to a prose classifier; T2, the Rust half, d
           wait on it)
 Progress: 2 of 5 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-23 (2026-08-23, re-measuring `front-matter-protection-is-python-only`
           during a backlog audit -- its title was false and the surviving defect is a
           different one)
@@ -93,6 +93,6 @@ the head of a file is. The Rust fix does not.
 - [x] T4 | FINISHED | unknown | T4 -- NOT A TASK. What is already right -- the
       rule is POSITIONAL, and C proves the mechanism reaches beyond Python -- is
       recorded in the Objective.
-- [ ] T5 | T5 -- * RULE whether a doc-shaped opener is matter when it is FIRST
+- [?] T5 | T5 -- * RULE whether a doc-shaped opener is matter when it is FIRST
       in the file; DEFERRED to a prose classifier. Verify: the ruling is in
       `docs/decision-log.md`.

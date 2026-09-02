@@ -4,7 +4,7 @@
 Status:   open
 Progress: 0 of 4 tasks closed
 Owner:    systems
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-31 (2026-08-31, job-board audit run WITH --plans-dir for the first
           time: it reported 6 integrity issues where the same command without the flag
           reported 0, because the tool defaults to plans/ and this repo keeps them in
@@ -23,7 +23,7 @@ Six 0.2.4 plans carry no heading naming the TODO tasks they close.
 - [ ] T2 | Add `--plans-dir docs/plans` to every `job-board` invocation in a
       tracked file
         > 2026-08-31 Verify: no tracked job-board invocation omits the flag
-- [ ] T3 | Decide whether a tick map belongs in a plan's own heading rather than
+- [?] T3 | Decide whether a tick map belongs in a plan's own heading rather than
       in gitignored scratch
         > 2026-08-31 Two maps under .superpowers/ would be lost; it is gitignored
 - [ ] T4 | Reconcile the 0.2.4 plan with the work that has landed, or supersede

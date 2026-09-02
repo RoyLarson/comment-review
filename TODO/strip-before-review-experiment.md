@@ -4,7 +4,7 @@
 Status:   open
 Progress: 0 of 5 tasks closed
 Owner:    agents
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy, after the collator experiment: run tests on
           whether showing a stripped version of the code leads to better comments about
           the current state)
@@ -35,6 +35,6 @@ Does stripping a file's prose produce better comments than editing them.
       On `collator.py` it was two items -- why `escalations` outranks `rereads`,
       and why `verify_report` takes one edit_copy -- and that list is what prose
       is for.
-- [ ] T5 | Rule whether this becomes a step in the review flow. Verify: either a
+- [?] T5 | Rule whether this becomes a step in the review flow. Verify: either a
       stage names it with the conditions it runs under, or this file records why
       it stays a one-off.

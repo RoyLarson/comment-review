@@ -7,7 +7,7 @@ Status:   blocked (on the * ruling in a-role-with-no-code-out-damages-the-prose,
           open)
 Progress: 0 of 9 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-23 (2026-08-23, splitting a-role-with-no-code-out-damages-the-prose:
           Roy, 'there is giving the machinery to surface them properly, that is the
           backend lane')
@@ -121,7 +121,7 @@ is carried below as a `*` box because it finishes the day it is answered.
       silently.
 - [ ] T6 | T6 -- Prove the stage-5 gate CAN fail on a code concern. Verify: a
       test refuses a bad concern, and fails when the new check is removed.
-- [ ] T7 | T7 -- * RULE whether a code concern gets an ADDRESS from the census
+- [?] T7 | T7 -- * RULE whether a code concern gets an ADDRESS from the census
       the way a finding does. Verify: the answer is here -- addressed, or
       deliberately not.
 - [ ] T8 | T8 -- Write into `references/review.md` what stage 8 does with a code

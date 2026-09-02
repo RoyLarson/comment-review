@@ -4,7 +4,7 @@
 Status:   open
 Progress: 1 of 4 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-25 (backend, 2026-08-25, while cleaning up after the write-chain
           branch)
 Updated:  2026-08-25 — DIRECTION FROM ROY, 2026-08-25, and it corrects how this file
@@ -97,7 +97,7 @@ An empty place is not citable, and the row cut's safety argument says it is.
 
 ## Tasks
 
-- [ ] T1 | Decide how an absent place is resolved now that anchor_line is gone
+- [?] T1 | Decide how an absent place is resolved now that anchor_line is gone
       -- from neighbouring rows original_start and original_end, or by
       re-reading the page. Requires-Roy: it decides whether the addresser needs
       the repo as well as the census

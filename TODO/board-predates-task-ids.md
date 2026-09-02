@@ -4,7 +4,7 @@
 Status:   in-progress
 Progress: 2 of 6 tasks closed
 Owner:    systems
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-29 (2026-08-29, trialling the migration so a plan could name its tasks
           -- reverted the same session. The pipe handling is a fix in the tool rather
           than in this board, and is tracked where that tool is developed)
@@ -48,7 +48,7 @@ The board predates task ids, and migrating it clears the decision queue.
       at `0.2.4-rework-the-binder-hands-the-repo`, which has no `## TODO tasks
       this plan closes` heading. ! `0.2.4-the-commands-for-the-middle` already
       validates, so the format is proven against this repo.
-- [ ] T5 | Decide whether the board tool is a committed dependency here. Verify:
+- [?] T5 | Decide whether the board tool is a committed dependency here. Verify:
       either `pyproject.toml` names it WITHOUT a machine-specific absolute path,
       or it does not name it and the tool is invoked from its own checkout. It
       was left uncommitted on 2026-08-29 for exactly that reason.

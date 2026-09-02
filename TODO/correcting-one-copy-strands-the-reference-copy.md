@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 9 tasks closed
+Progress: 1 of 9 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (Roy: "This shouldn't happen - As much as FOR REFERENCE only might make
@@ -127,20 +127,21 @@ is available.
       copy becomes the only copy. Verify: the ruling is recorded in this file.
 - [?] T3 | T3 -- * **RULE whether that applies to `move`.** Verify: the ruling
       is recorded in this file.
-- [?] T4 | T4 -- **Land the `REFERENCE CONCERNS` section in
+- [ ] T4 | T4 -- **Land the `REFERENCE CONCERNS` section in
       `reviewer-brief.md`.** Verify: `grep -n "REFERENCE CONCERNS"
       reviewer-brief.md` returns the section.
-- [?] T5 | T5 -- **Emit `REFERENCE CONCERNS` from `verdicts.py`.** Verify: `grep
-      -n "REFERENCE CONCERNS" verdicts.py` returns the emission.
-- [?] T6 | T6 -- **Land the stage-5 stranding check in `SKILL.md`**: grep each
+- [-] T5 | SUPERSEDED -- verdicts.py left src/ for prototype/original/ and does not run, so nothing can emit from it | b50e7a4 | T5
+      -- **Emit `REFERENCE CONCERNS` from `verdicts.py`.** Verify: `grep -n
+      "REFERENCE CONCERNS" verdicts.py` returns the emission.
+- [ ] T6 | T6 -- **Land the stage-5 stranding check in `SKILL.md`**: grep each
       `correct`'s FALSE clause across the REFERENCE ONLY files first. Verify:
       `SKILL.md` says so.
-- [?] T7 | T7 -- **Prove that check on the measured case.** Verify: a run
+- [ ] T7 | T7 -- **Prove that check on the measured case.** Verify: a run
       correcting `todo_tool.py:1129` reports the stranded copy at
       `todo-tool/SKILL.md:253`.
 - [?] T8 | T8 -- **Extend the existing `SKILL.md:800-804` rule** rather than
       writing a second one. Verify: that paragraph states what happens when the
       twin is REFERENCE ONLY.
-- [?] T9 | T9 -- **Say in `docs/limitations.md` that a run can strand a copy it
+- [ ] T9 | T9 -- **Say in `docs/limitations.md` that a run can strand a copy it
       may not touch.** Verify: `grep -n "REFERENCE ONLY" docs/limitations.md` is
       non-empty.

@@ -4,7 +4,7 @@
 Status:   open
 Progress: 0 of 3 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-29 (the final review of feat/the-mark-and-the-collator, 2026-08-29
           (F3): docket_from wrote one role per page, last-wins, so a page block-context
           and module-context each settled a place on mapped BOTH to module-context -- a
@@ -20,7 +20,7 @@ the docket names one role per page, so two roles settling one page names neither
 
 ## Tasks
 
-- [ ] T1 | Rule whether an alteration carries its own role. Verify: the ruling
+- [?] T1 | Rule whether an alteration carries its own role. Verify: the ruling
       is recorded in docs/decision-log.md, naming what docket.read requires and
       what flows.revise.pull._set_by reads
 - [ ] T2 | Carry the role per alteration, if that is the ruling. Verify: a

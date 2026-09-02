@@ -165,16 +165,16 @@ NOT X"* used as a DEFINITION, which is the comparing form the test already remov
 - [x] T7 | FINISHED | unknown | T7 -- SUPERSEDED. Roy's 2026-08-18 ruling
       striking the hand-pass rule is stated under *THE RULING THAT SAYS WHAT
       CLOSES THIS FILE*, and the record stays.
-- [?] T8 | T8 -- **Run the nine-token count over `plugins/**/*.md`.** Verify:
+- [ ] T8 | T8 -- **Run the nine-token count over `plugins/**/*.md`.** Verify:
       the number and the command that produced it are both recorded in this
       file.
 - [?] T9 | T9 -- **Rule each shipped-markdown hit against the residue test.**
       Verify: every survivor is named in this file as an output or as a refusal.
-- [?] T10 | T10 -- **Run `/comment-review` over the shipped tree.** Verify: the
+- [ ] T10 | T10 -- **Run `/comment-review` over the shipped tree.** Verify: the
       run's reports are recorded under `evidence/`, naming the commit they were
       produced at.
-- [?] T11 | T11 -- **Grade that run from the DIFF**, never from the run's own
+- [ ] T11 | T11 -- **Grade that run from the DIFF**, never from the run's own
       report. Verify: the recorded grade cites the diff hunks it was read from.
-- [?] T12 | T12 -- **Re-measure the negative-prose count from that run's
+- [ ] T12 | T12 -- **Re-measure the negative-prose count from that run's
       result** rather than asserting it. Verify: the new number is in this file
       and names the run it came from.

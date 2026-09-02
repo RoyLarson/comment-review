@@ -4,7 +4,7 @@
 Status:   open
 Progress: 0 of 3 tasks closed
 Owner:    agents
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-29 (found sweeping reviewer-brief.md against its consumers on
           feat/the-mark-and-the-collator, 2026-08-29)
 ```
@@ -15,7 +15,7 @@ The brief promises a safeguard that no longer exists: the seeded mark carries th
 
 ## Tasks
 
-- [ ] T1 | Decide what reviewer-brief.md:113 tells a role now that raw_text is
+- [?] T1 | Decide what reviewer-brief.md:113 tells a role now that raw_text is
       on the mark it is handed
 - [ ] T2 | Say what still forces the read, or say that nothing does -- the
       paragraph's whole argument was that being handed the text lets a role

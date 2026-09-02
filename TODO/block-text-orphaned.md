@@ -30,5 +30,4 @@ consideration rather than riding in on an unrelated pass.
 
 ## Tasks
 
-- [ ] T1 | Decide whether to delete block_text or give it a caller, on its own
-      consideration
+- [ ] T1 | Delete block_text, or give it a caller and say what reads it

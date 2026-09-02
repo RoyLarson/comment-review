@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks closed
+Progress: 1 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (P2 of refactor/the-boundaries-are-not-real, 2026-08-24)
@@ -24,4 +24,5 @@ The flow lives in the command, not in flows/.
       building
 - [ ] T4 | tests/binder/test_page.py reads source_of('census') again, not
       command_source
-- [ ] T5 | Ask the same question of verdicts, galley and record
+- [-] T5 | SUPERSEDED -- verdicts, galley and record all left src/ for prototype/original/ and none of them runs | b50e7a4 | Ask
+      the same question of verdicts, galley and record

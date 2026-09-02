@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 3 of 11 tasks closed
+Progress: 5 of 11 tasks closed
 Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22: that whole system of from census to findings to
@@ -90,15 +90,17 @@ statement is one per boundary, with the fields NAMED, and every named field is e
       gap goes. Verify: the ruling is recorded in this file.
 - [?] T7 | T7 -- * Rule which of `record.py --check` and `verdicts.py` is right
       where they disagree. Verify: the ruling is recorded in this file.
-- [?] T8 | T8 -- **State what crosses CENSUS -> REVIEWER, with the fields
+- [ ] T8 | T8 -- **State what crosses CENSUS -> REVIEWER, with the fields
       named.** Verify: each field is a key `census.py --json` emits or one this
       determination adds.
-- [?] T9 | T9 -- **State what crosses REVIEWER -> RECORD, with the fields
-      named.** Verify: every field it names is a key a record slot carries or
-      one this determination adds.
-- [?] T10 | T10 -- **State what crosses RECORD -> VERDICT, with the fields
-      named.** Verify: every field it names is one `verdicts.py` reads or one
-      this determination adds.
-- [?] T11 | T11 -- **Reconcile the seven filed TODOs against those three
+- [-] T9 | SUPERSEDED -- the RECORD end left src/ for prototype/original/; decision-log 14 replaced reviewer-record-verdict with the alteration chain | b50e7a4 | T9
+      -- **State what crosses REVIEWER -> RECORD, with the fields named.**
+      Verify: every field it names is a key a record slot carries or one this
+      determination adds.
+- [-] T10 | SUPERSEDED -- both ends left src/ for prototype/original/; neither verdicts.py nor record.py runs | b50e7a4 | T10
+      -- **State what crosses RECORD -> VERDICT, with the fields named.**
+      Verify: every field it names is one `verdicts.py` reads or one this
+      determination adds.
+- [ ] T11 | T11 -- **Reconcile the seven filed TODOs against those three
       statements.** Verify: each is a task under a statement or ticked as
       superseded by it.

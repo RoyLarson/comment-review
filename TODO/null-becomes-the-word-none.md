@@ -68,9 +68,9 @@ second is a guard.
 - [ ] T3 | Update each REMAINING unsafe site with a sentence saying why a null
       cannot arrive there, or convert it. Verify: no site carries the unsafe
       spelling without either a guard or a stated reason.
-- [ ] T4 | Decide which spelling is the repo's form and record it once where a
-      reader finds it. Verify: `docs/conventions.md` or the module that owns the
-      boundary states it, and no second file restates it.
+- [ ] T4 | Record the repo's null-guard spelling once, where a reader finds it.
+      Verify: `docs/conventions.md` or the module that owns the boundary states
+      it, and no second file restates it.
 - [ ] T5 | Implement the null guard at `binder.rows_of` for `path`, beside the
       two sibling sites that already carry one -- `flows/distribute.py:98` for
       `sha` and `flows/carry.py:137-138`. Verify: a binder page carrying

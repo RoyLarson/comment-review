@@ -4,7 +4,7 @@
 Status:   open
 Progress: 0 of 4 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-28 (2026-08-28, verifying task 8 of the mark-and-the-revise SP --
           `pull` calls `shutil.copytree(repo, into)` with no filter, and `proof` routes
           through it at task 12)
@@ -30,7 +30,7 @@ A revise copies the whole tree, so one pull moves 284MB to change 4MB of source.
 
 ## Tasks
 
-- [ ] T1 | Decide what a revise root holds, and write the decision where `pull`
+- [?] T1 | Decide what a revise root holds, and write the decision where `pull`
       can be read against it. The candidates are: every tracked file (`git
       ls-files`), everything not ignored, or everything. Verify:
       `flows/revise.py` states the rule and cites where it was decided.

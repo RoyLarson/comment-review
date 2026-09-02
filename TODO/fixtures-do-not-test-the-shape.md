@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks closed
+Progress: 1 of 5 tasks closed
 Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-23 (2026-08-23, triaging matter-misses-two-languages: censusing the
@@ -55,9 +55,10 @@ set -- which is what the ruling has to settle.
 - [ ] T3 | T3 -- Audit the other sixteen fixtures -- for each language row, name
       the shape its open TODOs are about. Verify: a list of language -> shape ->
       does it exercise it.
-- [ ] T4 | T4 -- * RULE what a per-language fixture is FOR -- an ordinary file
-      for the round trip, or a defect probe. Verify: the ruling says whether a
-      second set is needed.
+- [-] T4 | SUPERSEDED -- the per-language fixtures and test_fixture_identity.py went with the 2026-08-25 suite replacement; tests/fixtures holds only topologies | b50e7a4 | T4
+      -- * RULE what a per-language fixture is FOR -- an ordinary file for the
+      round trip, or a defect probe. Verify: the ruling says whether a second
+      set is needed.
 - [ ] T5 | T5 -- Say in `tests/fixtures/` what each file is a fixture OF, so a
       reader can tell coverage from resemblance. Verify: every `sample.*` names
       what it exercises.

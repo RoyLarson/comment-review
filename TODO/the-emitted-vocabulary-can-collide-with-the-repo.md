@@ -76,7 +76,7 @@ term belongs to the repo's sheet. This is settled, it is already ENFORCED, and i
 - [ ] T3 | T3 -- State in that section that a collision is DECLARED rather than
       resolved. Verify: the section says neither vocabulary may be renamed to
       suit the other.
-- [ ] T4 | T4 -- Decide whether a declared collision reaches the REVIEWERS; the
+- [?] T4 | T4 -- Decide whether a declared collision reaches the REVIEWERS; the
       sheet is in the stage-4 packet, so today it would. Verify: the answer is
       written into this file.
 - [ ] T5 | T5 -- Fix `vocabulary.py:73`, whose *"it is ordinary English"* is

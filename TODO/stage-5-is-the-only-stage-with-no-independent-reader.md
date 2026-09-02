@@ -178,7 +178,7 @@ answered. A rail read and not run is a shape problem, and it was measured twice 
 - [x] T4 | FINISHED | unknown | T4 -- FINISHED. `SKILL.md:905` is stage 5b and
       `:972` is stage 6b, both deferring to `references/re-review.md` rather
       than restating it.
-- [ ] T5 | T5 -- Decide (d): does a whole-page read run before the write?
+- [?] T5 | T5 -- Decide (d): does a whole-page read run before the write?
       Verify: `SKILL.md` states whether it runs; there are zero matches for
       `pre-write` today.
 - [ ] T6 | T6 -- If it runs, state that a SELECTIVE approval invalidates it and

@@ -4,7 +4,7 @@
 Status:   open
 Progress: 0 of 6 tasks closed
 Owner:    systems
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-23 (2026-08-23, from scripts/dead_sweep.py --links after the history
           purge; Roy: 'not important right now')
 GROWING:  2026-08-23 — 2026-08-23: 31 at filing, 40 after two closures, 41 re-measured the
@@ -80,10 +80,10 @@ archival pattern the stance already covers, and it is what produced the third li
 - [ ] T2 | T2 -- Fix `the-census-is-mostly-intervals-nobody-rules-on.md`'s link
       to a sibling now in `completed/`. Verify: `--links` names no path under a
       live `TODO/*.md`.
-- [ ] T3 | T3 -- * Rule whether `dead_sweep.py:288-289`'s stance still holds for
+- [?] T3 | T3 -- * Rule whether `dead_sweep.py:288-289`'s stance still holds for
       the 38 links, or narrows. Verify: the answer is written into
       `dead_sweep.py` beside that sentence.
-- [ ] T4 | T4 -- * If archived links are to be repaired, rule HOW; only if T3
+- [?] T4 | T4 -- * If archived links are to be repaired, rule HOW; only if T3
       narrows the stance. Verify: the rule is written into `dead_sweep.py`
       beside what it revises.
 - [ ] T5 | T5 -- Make `complete_todo` (todo_tool.py:1021) rewrite the moved

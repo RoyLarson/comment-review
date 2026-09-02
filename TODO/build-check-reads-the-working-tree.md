@@ -17,8 +17,8 @@ build --check reads the working tree, so committed drift is invisible to it.
 
 - [ ] T1 | Reproduce it: make src/ and plugins/ agree on disk while their
       committed blobs differ, and confirm --check still exits 0
-- [ ] T2 | Decide what the check should compare -- the working tree, the index,
-      or HEAD -- and say why in the script
+- [ ] T2 | Point the check at the index or at HEAD, and say in the script why
+      the working tree is not what it compares
 - [ ] T3 | Make it able to see committed drift. Verify: the reproduction above
       turns it red
 - [ ] T4 | A test that the check can FAIL on this specific cause, not only on a

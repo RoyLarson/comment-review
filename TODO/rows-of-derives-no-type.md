@@ -26,9 +26,9 @@ The binder derives dicts where the docket derives a type.
       a type and the binder did not, or that it did and nobody noticed --
       `docket.py:190` says the view REFUSES NOTHING because `read` already ruled
       on the shape, and `bind()` has no equivalent guarantee stated.
-- [ ] T3 | Decide whether `rows_of` derives a type. Verify: either it returns a
-      NamedTuple following `Schedule`, or this file records why a dict is right
-      here and the reason survives someone asking the same question again.
+- [ ] T3 | Give `rows_of` a derived type, or record why it keeps a dict. Verify:
+      either it returns a NamedTuple following `Schedule`, or this file records
+      why a dict is right here and the reason survives someone asking again.
 - [ ] T4 | Cover the call sites. Verify: `rows_of` has a test -- it has NONE
       today across 8 callers in `commands/taken_in.py`, `commands/addresser.py`,
       `commands/census.py` and `desk/collator.py`.

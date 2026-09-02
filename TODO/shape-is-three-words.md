@@ -4,7 +4,7 @@
 Status:   open
 Progress: 0 of 6 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-28 (2026-08-28, Roy asking what `claim.shape` is: 'because it is
           ambiguous. Also why is it specific to query mark? Why isn't part of the other
           enum candidates? Why "shape" why not a better word?')
@@ -65,13 +65,13 @@ by who answers it.
 
 ## Tasks
 
-- [ ] T1 | RULE the word. `shape` means THREE things in this tree, none
+- [?] T1 | RULE the word. `shape` means THREE things in this tree, none
       declared: the STRUCTURE of a mark (`docs/the-mark.md:1`, `mark --shape`,
       `tests/gates/test_mark_shape.py`); a QUERY'S KIND (`claim.shape`,
       `QUERY_SHAPES`, instructed at `comment-review-module-context.md:108`); and
       THE FORM A CLASSIFIER TAKES (`the-mark.md:171`). Verify: the ruling names
       which sense keeps the word and `docs/vocabulary.md` declares the others.
-- [ ] T2 | RULE whether the axis is `query`'s alone. MEASURED 2026-08-28:
+- [?] T2 | RULE whether the axis is `query`'s alone. MEASURED 2026-08-28:
       `clean` and `query` are EXACTLY the two instructions with
       `owes_change=False` -- the two that propose no text -- and only `query`
       carries a sub-category. `docs/the- mark.md` already records the unfilled

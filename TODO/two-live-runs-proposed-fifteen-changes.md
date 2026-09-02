@@ -164,16 +164,16 @@ raised in conversation.
 
 ! In the order the evidence argues for.
 
-- [?] T1 | T1 -- * Re-read P6's PLACEHOLDER HANDLING against the shipped galley.
+- [ ] T1 | T1 -- * Re-read P6's PLACEHOLDER HANDLING against the shipped galley.
       Verify: a file:line here, and it is closed or filed to
       `galley-and-compositor-write-path`.
-- [?] T2 | T2 -- * Re-read P6's DROP SCOPING against the shipped galley. Verify:
+- [ ] T2 | T2 -- * Re-read P6's DROP SCOPING against the shipped galley. Verify:
       a file:line here, and it is closed or filed to
       `galley-and-compositor-write-path`.
-- [?] T3 | T3 -- * Re-read P6's COMMENT PREFIXES against the shipped compositor.
+- [ ] T3 | T3 -- * Re-read P6's COMMENT PREFIXES against the shipped compositor.
       Verify: a file:line here, and it is closed or filed to
       `galley-and-compositor-write-path`.
-- [?] T4 | T4 -- * Re-read P6's INDENT FRAMING against the shipped compositor.
+- [ ] T4 | T4 -- * Re-read P6's INDENT FRAMING against the shipped compositor.
       Verify: a file:line here, and it is closed or filed to
       `galley-and-compositor-write-path`.
 - [?] T5 | T5 -- * Rule the two typed SOURCE shapes, `absence` and `count`,

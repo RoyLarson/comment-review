@@ -4,7 +4,7 @@
 Status:   open
 Progress: 0 of 3 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-29 (2026-08-29, the first end-to-end run with a real block-context
           agent: it returned two marks on each of two places and reported that nothing
           linked its query to the sentence it queried, so it put the sentence in
@@ -17,7 +17,7 @@ A `query` names no sentence, so two marks on one place cannot be told apart.
 
 ## Tasks
 
-- [ ] T1 | Decide whether a `query` owes a key naming its sentence. Verify:
+- [?] T1 | Decide whether a `query` owes a key naming its sentence. Verify:
       `docs/the- mark.md` states the answer for `query` as plainly as it does
       for `correct`, and `desk/mark.parse` enforces whatever it says.
 - [ ] T2 | A reviewer can say WHICH sentence it is querying without using

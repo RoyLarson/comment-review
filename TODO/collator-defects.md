@@ -4,7 +4,7 @@
 Status:   open
 Progress: 6 of 29 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
           deleted whole and written back by an agent with no access to the vocabulary,
           the docs, the prototype, git history or the built copy under plugins)
@@ -33,9 +33,9 @@ Four defects in collator.py, found by reading only the code.
       Verify: a two-line `verbatim` taken verbatim from that file is reported as
       not found. MEASURED: the window is rejoined with a newline while `_lines`
       preserved the carriage returns.
-- [ ] T5 | Decide which side normalises -- the window, the `verbatim`, or both at
-      the boundary. Verify: a single-line `verbatim` still matches, and the choice
-      is stated where `_lines` says it preserves the endings.
+- [?] T5 | Decide which side normalises -- the window, the `verbatim`, or both
+      at the boundary. Verify: a single-line `verbatim` still matches, and the
+      choice is stated where `_lines` says it preserves the endings.
 - [ ] T6 | Check the same rejoin elsewhere. Verify: no other comparison in `src/`
       splits on real line endings and rejoins with one spelling.
 - [ ] T7 | Reproduce the cache collision: one cache, two roots holding the same
