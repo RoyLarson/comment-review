@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (126)
+### open  (127)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -308,6 +308,7 @@ that changed a published name or rule:
 | [index-and-glossary-for-roles](index-and-glossary-for-roles.md) | agents | -- | 0/1 | Hand a reviewer the name index and the glossary rather than leaving it to grep |
 | [local-annotation-false-positive](local-annotation-false-positive.md) | systems | -- | 0/1 | check_shipped_syntax reads a local variable annotation as a forward reference |
 | [plans-unreadable-to-the-tool](plans-unreadable-to-the-tool.md) | systems | -- | 1/1 | Five 0.2.4 plans carry checkbox lines the tool cannot read |
+| [stage-4b-is-undefined](stage-4b-is-undefined.md) | agents | -- | 1/6 | the 4a/4c split promises a resolved placement that nothing produces |
 
 ### in-progress  (19)
 
@@ -333,7 +334,7 @@ that changed a published name or rule:
 | [the-shipped-python-does-not-pass-its-own-review](the-shipped-python-does-not-pass-its-own-review.md) | backend | yes | 7/12 | **Our own scripts spend a sixth of their prose on what the code does NOT do.** ! **Roy's reason, 2026-08-16: *"I don't want the system picking up bad cues from the documentation in the code."*** An agent reads these files and then writes in them. Re-measured after that day's rewrites: **136 of 697 (20%)** comment and docstring lines carry `cannot` / `never` / `does not` / `is not` / `nothing` -- UP from 123/714, because the prose written that day carries the same defect -- `census.py` worst at 52/284. Roy: *"census.py creates the pCST and that is it. Comments about 'cannot answer OWNERSHIP' are not helpful."* ! Not every negative is wrong -- an output (*"reports UNPROVABLE rather than passing"*) and a refusal aimed at a future editor both earn their place -- so the first task is writing the test that tells them apart !! **The hand-pass rule is STRUCK, 2026-08-18.** It told itself not to run `/comment-review` on this repo; Roy: *"By definition the code has to go through the review to state that it has passed."* A hand pass produces a rewrite, and this file's title is a claim about what the review RETURNS -- so it now closes on a run graded from the diff. ! The harness does not gate that: running the skill needs the skill |
 | [lexer-and-language-findings](lexer-and-language-findings.md) | backend | — | 3/28 | Ten findings in lexer.py and language.py, from three review rounds |
 
-### decision-needed  (25)
+### decision-needed  (0)
 
 _None -- the remaining rulings sit inside the two files rather than blocking them entirely; the
 other tasks can proceed without them._
@@ -353,7 +354,6 @@ other tasks can proceed without them._
 | [marketplace-resolves-live](marketplace-resolves-live.md) | systems | yes | 3/5 | A directory marketplace resolves the plugin LIVE, so a version-pinned measurement was never pinned |
 | [nothing-checks-that-four-reviewers-were-launched](nothing-checks-that-four-reviewers-were-launched.md) | agents | yes | 1/6 | Nothing checks that four reviewers were LAUNCHED |
 | [reference-only-misses-the-documentation](reference-only-misses-the-documentation.md) | agents | yes | 0/4 | REFERENCE ONLY misses the project's own documentation |
-| [stage-4b-is-undefined](stage-4b-is-undefined.md) | agents | yes | 0/6 | the 4a/4c split promises a resolved placement that nothing produces |
 | [the-author-approves-blocks-and-never-sees-the-page](the-author-approves-blocks-and-never-sees-the-page.md) | agents | yes | 5/9 | * **Pipeline, not vocabulary.** 7a shows the author a per-block LIST; stage 8 is the only pass that reads the PAGE, and it runs AFTER 7b has written to disk. So every defect `review.md` exists to catch -- a block that is no longer a proposition, two runs merged across a blank line, the same sentence in two places -- is found after approval and after the write. Roy wants a whole-document read BEFORE the person sees it, and floated a temporary branch with the diff so they can accept it in git's own tools. Stage 8 then becomes a verification with two outcomes: good, or raise to human as a new review. ! Already done: the 7b paragraph claiming *"this pass cuts, and it can cut a lot"* is deleted -- self-contradicting since the import |
 | [the-harness-cannot-run-the-system-it-grades](the-harness-cannot-run-the-system-it-grades.md) | testing | yes | 10/31 | **Nothing in this repo runs the documented eval format, and no measurement exists that a human did not perform.** `grade_hazards.py` scores worktrees a person built by hand against twelve planted defects, from a base hardcoded to another repository. Ruled 2026-08-18: a reduced role set is supported with `ownership-context` never dropped, and a fixture is a CHECKOUT AT A HASH -- this repo's own history included, since a fix commit is an answer key. ! NOT a release candidate: nothing here is under `plugins/`. * Unruled: the suite layout, which the fixture model narrows to one option |
 | [the-strongest-precedence-has-the-weakest-support](the-strongest-precedence-has-the-weakest-support.md) | agents | yes | 2/4 | The role with verdict precedence has the least mechanical support |

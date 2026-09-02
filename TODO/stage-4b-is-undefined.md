@@ -1,10 +1,10 @@
 # Stage 4b is referenced everywhere and defined nowhere
 
 ```
-Status:   decision-needed
-Progress: 0 of 6 tasks closed
+Status:   open
+Progress: 1 of 6 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-20 (the /code-review high of 2026-08-20)
 Re-measured: 2026-08-23 -- `4b` appears NOWHERE under `plugins/`; in `docs/plans/` it
           appears twice, one of them a link to this file. `SKILL.md` now defines 4a at
@@ -13,6 +13,7 @@ Re-measured: 2026-08-23 -- `4b` appears NOWHERE under `plugins/`; in `docs/plans
 Split:    2026-08-23 -- the box about the two configuration sentences held two separate
           artifacts: a run's own artifacts naming their configuration, and `SKILL.md:3`
           framing the parallel form as the BASELINE. They are now two boxes.
+Updated:  2026-09-01 -- no decision owed -- T1 closed by reading, see Process #75
 ```
 
 ## Objective
@@ -54,9 +55,10 @@ fails its own stage-4 gate.
 
 ## Tasks
 
-- [?] T1 | T1 -- * RULING WANTED: what 4b IS -- a real step between 4a and 4c,
-      or a wrong prose split. Verify: `SKILL.md` defines 4b, or the split reads
-      4a/4b and `4b` is nowhere.
+- [-] T1 | SUPERSEDED by T6 -- Process #75 reads the answer out of SKILL.md: 4b is the hand-off, the only skipped letter in the file. T6 is the work | 9cb28a0 | T1
+      -- * RULING WANTED: what 4b IS -- a real step between 4a and 4c, or a
+      wrong prose split. Verify: `SKILL.md` defines 4b, or the split reads 4a/4b
+      and `4b` is nowhere.
         > 2026-09-01 Process #73 answers the substance; the letter 4b stays unruled
 - [ ] T2 | T2 -- Make 4c's input differ from 4a's, or drop the RESOLVED
       PLACEMENT claim. Verify: 4c gets an artifact 4a produced, or
@@ -74,3 +76,4 @@ fails its own stage-4 gate.
 - [ ] T6 | Update SKILL.md so stage 4 names the 4a-to-4c hand-off. Verify: it
       names proof then census --revise 1, and 4c is seeded from 4a's revise
         > 2026-09-01 Raised by Process #73; the commands exist, the instruction did not
+        > 2026-09-01 Named 4b per Process #75 -- the only skipped letter in SKILL.md
