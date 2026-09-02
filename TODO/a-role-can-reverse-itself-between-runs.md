@@ -146,6 +146,8 @@ list. `grep -n "stability" docs/limitations.md` returns nothing today.
 - [?] T3 | T3 -- * Rule what a measured reversal rate would OBLIGE: nothing, a
       bar on a lone `clean`, or agreement across roles. Verify:
       `docs/decision-log.md` records it.
+        > 2026-09-02 A candidate obligation: a reversal is a row naming who last set it
+        > 2026-09-02 It came from a-revise-answer-has-no-artifact T7, filed as backend
 - [?] T4 | T4 -- * Rule whether a `correct` reversing to `query` is WORSE than
       the reverse. The verdict table treats them as peers. Verify:
       `docs/decision-log.md` records it.
