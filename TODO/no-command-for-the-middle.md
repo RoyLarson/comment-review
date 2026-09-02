@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 12 tasks closed
+Progress: 6 of 12 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -25,15 +25,16 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 
 ## Tasks
 
-- [ ] T1 | Implement the step that turns the copy chief's edit_copy into the
-      docket `proof --docket` reads. Verify: with the filled edit_copies of a
-      stage on disk, the chain census -> seed -> collate -> <this> -> proof runs
-      with no Python written by hand. !! SUPERSEDED IN PART 2026-08-30, AND THIS
-      IS THE REMAINDER. It read "A command turns one stage's checked edit_copies
-      into a docket ... ONE command writes the docket `proof --docket` reads",
-      and it was TICKED against that wording when `collate` landed. A review
-      read the verify against what shipped and it is false: `collate` writes the
-      copy chief's `edit_copy`, which is an ordinary edit_copy -- `{"role",
+- [x] T1 | the bridge is flows/revise.docket_of, the proof flow's first step; the chain runs through to proof as four commands, asserted by tests/test_the_chain.py | b80836e | Implement
+      the step that turns the copy chief's edit_copy into the docket `proof
+      --docket` reads. Verify: with the filled edit_copies of a stage on disk,
+      the chain census -> seed -> collate -> <this> -> proof runs with no Python
+      written by hand. !! SUPERSEDED IN PART 2026-08-30, AND THIS IS THE
+      REMAINDER. It read "A command turns one stage's checked edit_copies into a
+      docket ... ONE command writes the docket `proof --docket` reads", and it
+      was TICKED against that wording when `collate` landed. A review read the
+      verify against what shipped and it is false: `collate` writes the copy
+      chief's `edit_copy`, which is an ordinary edit_copy -- `{"role",
       "read_from", "sheets"}` -- and `proof --docket` reads `{"pages": [{"path",
       "sha", "alterations": [{"cue", "text"}]}]}`. `commands/proof.py` would
       refuse the one given the other. ! WHAT DID LAND IS THE FOLD, and it is

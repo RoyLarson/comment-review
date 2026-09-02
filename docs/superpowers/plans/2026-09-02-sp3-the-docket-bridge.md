@@ -446,28 +446,30 @@ def test_the_middle_does_not_import_the_write_end():
 
 ### Task 7: the chain runs end to end
 
+**Landed:** `b80836e` -- `P61`, and `no-command-for-the-middle` T1.
+
 **Delivers:** P61, and closes `TODO/no-command-for-the-middle.md` T1
 
 **Files:**
 - Test: `tests/test_the_chain.py` (new)
 
-- [ ] **Step 1: Write the failing test.** Over a scratch tree of two or three small files:
+- [x] **Step 1: Write the failing test.** Over a scratch tree of two or three small files:
       `census` -> `distribute --seed` once per role -> fill each copy -> `collate` ->
       `proof --copy` -> a revise on disk. **Every step invoked as the command**, through
       `subprocess` or the command's own `main()`, with **no Python written by hand between
       them.** That wording is T1's verify and the test exists to make it checkable.
 
-- [ ] **Step 2: Run it and watch it fail** at the `collate` -> `proof` hand-off if any earlier
+- [x] **Step 2: Run it and watch it fail** at the `collate` -> `proof` hand-off if any earlier
       task is incomplete.
 
-- [ ] **Step 3: Make it pass.** No new source is expected here; if something is missing, it is
+- [x] **Step 3: Make it pass.** No new source is expected here; if something is missing, it is
       a defect in Tasks 1-6 and belongs in the task that owns it.
 
-- [ ] **Step 4: Run the checks.** Full suite plus lint/format/lint/ty.
+- [x] **Step 4: Run the checks.** Full suite plus lint/format/lint/ty.
 
-- [ ] **Step 5: Commit.**
+- [x] **Step 5: Commit.**
 
-- [ ] **Step 6: TICK.** Tick Task 7's boxes in THIS file and close P61, both citing the
+- [x] **Step 6: TICK.** Tick Task 7's boxes in THIS file and close P61, both citing the
       Step 5 commit. Then close
       `no-command-for-the-middle` T1 with `job-board --plans-dir docs/plans todo close-task
       no-command-for-the-middle T1 --commit <sha> --statement "..."`, **reading T1's own verify
