@@ -345,18 +345,20 @@ def test_the_middle_does_not_import_the_write_end():
 
 ### Task 4: `proof` takes `--copy`
 
+**Landed:** `414f0b0` -- `P57`. `TestProofTakesAnEditCopy`, three cases.
+
 **Delivers:** P57
 
 **Files:**
 - Modify: `src/comment_review/commands/proof.py`
 - Test: `tests/test_proof_command.py` (or the existing home for that command's tests)
 
-- [ ] **Step 1: Write the failing test.** A chief `edit_copy` on disk, `--copy` pointing at
+- [x] **Step 1: Write the failing test.** A chief `edit_copy` on disk, `--copy` pointing at
       it, and a revise at `--out` holding the altered pages.
 
-- [ ] **Step 2: Run it and watch it fail.** Expected: `unrecognized arguments: --copy`.
+- [x] **Step 2: Run it and watch it fail.** Expected: `unrecognized arguments: --copy`.
 
-- [ ] **Step 3: Implement.** Replace `--docket` with `--copy`. The command reads the file with
+- [x] **Step 3: Implement.** Replace `--docket` with `--copy`. The command reads the file with
       `object_of`, builds an `EditCopy` with `EditCopy.deserialize`, calls `docket_of`, then
       `revise.pull` exactly as it does now.
 
@@ -366,15 +368,15 @@ def test_the_middle_does_not_import_the_write_end():
       `EditCopy` would make `--from-docket` (Task 6) need a second entry point into the same
       work.
 
-- [ ] **Step 4: Check the refusal path still reports.** A `--copy` that will not deserialize
+- [x] **Step 4: Check the refusal path still reports.** A `--copy` that will not deserialize
       must print what was wrong and exit nonzero, the way a bad `--docket` did -- `CANNOT READ`
       is what SKILL.md tells the agent to look for.
 
-- [ ] **Step 5: Run the checks.** Full suite plus lint/format/lint/ty.
+- [x] **Step 5: Run the checks.** Full suite plus lint/format/lint/ty.
 
-- [ ] **Step 6: Commit.**
+- [x] **Step 6: Commit.**
 
-- [ ] **Step 7: TICK.** Tick Task 4's boxes in THIS file and close P57, both citing the
+- [x] **Step 7: TICK.** Tick Task 4's boxes in THIS file and close P57, both citing the
       Step 6 commit. Its own commit.
 
 ---
