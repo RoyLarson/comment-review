@@ -34,6 +34,7 @@ import json
 from pathlib import Path
 
 from comment_review.desk.containers import EditCopy
+from comment_review.docket.docket import Docket
 from comment_review.flows import revise
 from comment_review.machine import exceptions
 from comment_review.machine.json_object import object_of
@@ -59,10 +60,19 @@ def main() -> int:
     # could also be ownership contexts edit-copy or any intermediate edit-copy
     # which allows the stage outputs to run."* That is what lets one stage's
     # output become the revise the next stage reads.
-    ap.add_argument(
+    # !! THE TWO INPUTS ARE EXCLUSIVE AND ONE IS REQUIRED -- `P59`. `--copy`
+    # enters at the top of the flow and transcribes; `--from-docket` enters
+    # BELOW the transcribe, at the docket a `--to-docket` run stopped on. Both
+    # together would name two inputs for one run, and argparse states that
+    # itself rather than leaving it to a hand-written check.
+    where = ap.add_mutually_exclusive_group(required=True)
+    where.add_argument(
         "--copy",
-        required=True,
         help='JSON: an edit_copy -- {"role", "read_from", "sheets"}',
+    )
+    where.add_argument(
+        "--from-docket",
+        help="JSON: a docket a --to-docket run wrote -- skips the transcribe",
     )
     # !! `--to-docket` STOPS THE RUN AT THE TRANSCRIBE -- `P58`, Roy 2026-09-02:
     # *"we add a --from-docket, --to-docket flags that allow the flow to
@@ -83,6 +93,15 @@ def main() -> int:
     args = ap.parse_args()
 
     repo = Path(args.repo).resolve()
+    # ! READING A DOCKET IN ORDER TO WRITE IT BACK OUT IS NEVER THE INTENT.
+    # The two flags are the two BOUNDARIES of one flow, so naming both leaves
+    # no flow between them.
+    if args.from_docket and args.to_docket:
+        print(
+            "REFUSED: --from-docket and --to-docket are the two ends of the"
+            " transcribe, and naming both leaves nothing to run"
+        )
+        return 2
     if not args.to_docket and not args.out:
         print("REFUSED: --out is required unless --to-docket stops the run")
         return 2
@@ -141,28 +160,36 @@ def main() -> int:
     # and did its own decode, so "not JSON" and "not a docket" came back as one
     # reason string from one call, and a caller wanting to answer them
     # differently had to match on the message.
+    #
+    # ! BOTH INPUTS TAKE THE SAME THREE STEPS; only the container differs. The
+    # noun in each message is the flag the caller passed, so a reason names the
+    # thing they handed over rather than an internal type.
+    source = args.from_docket or args.copy
+    noun = "DOCKET" if args.from_docket else "COPY"
     try:
-        copy_text = Path(args.copy).read_text(encoding="utf-8")
+        text = Path(source).read_text(encoding="utf-8")
     except exceptions.READ_ERRORS as e:
         print(f"CANNOT READ ({type(e).__name__}) -- nothing written")
         return 2
 
-    loaded, why = object_of(copy_text, "edit_copy")
+    loaded, why = object_of(text, noun.lower())
     if why:
-        print(f"CANNOT READ THE COPY: {why} -- nothing written")
+        print(f"CANNOT READ THE {noun}: {why} -- nothing written")
         return 2
 
-    copy, problems = EditCopy.deserialize(args.copy, loaded)
-    if copy is None:
-        # ! EVERY BROKEN RULE, NOT THE FIRST. `docket.read` stopped at one, so a
-        # copy with three bad pages took three runs to fix.
+    # ! EVERY BROKEN RULE, NOT THE FIRST. `docket.read` stopped at one, so a
+    # document with three bad pages took three runs to fix.
+    if args.from_docket:
+        held, problems = Docket.deserialize(source, loaded)
+    else:
+        copy, problems = EditCopy.deserialize(source, loaded)
+        # ! THE TRANSCRIBE IS THE FLOW'S FIRST STEP and cannot fail: every rule
+        # it would have checked is settled by the parse -- `Process: #76`.
+        held = revise.docket_of(copy) if copy is not None else None
+    if held is None:
         for line in problems:
-            print(f"CANNOT READ THE COPY: {line} -- nothing written")
+            print(f"CANNOT READ THE {noun}: {line} -- nothing written")
         return 2
-
-    # ! THE TRANSCRIBE IS THE FLOW'S FIRST STEP and cannot fail: every rule it
-    # would have checked is settled by the parse above -- `Process: #76`.
-    held = revise.docket_of(copy)
 
     # !! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE COMMAND'S --
     # `decision-log.md Process: #65`, `#67`, and the same shape

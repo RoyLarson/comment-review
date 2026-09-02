@@ -149,6 +149,99 @@ class TestProofTakesAnEditCopy:
         assert code == 2
         assert "--to-docket" in out
 
+    def test_the_two_halves_compose(self, tmp_path, monkeypatch, capsys):
+        """`P59`. Stop at the docket, start again from it, and the revise is the
+        same one a single run produces.
+
+        !! THAT ROUND TRIP IS THE ASSERTION, not that each half runs. Either
+        half could work while the pair disagreed -- a docket that serialises
+        something `Docket.deserialize` reads back differently would pass two
+        separate tests and still break the boundary the flags exist to create.
+        """
+        repo, binder, _page = _tree(tmp_path)
+        copy, _address = a_copy_on_disk(tmp_path, binder)
+
+        whole, out = run(
+            monkeypatch,
+            capsys,
+            "--copy",
+            str(copy),
+            "--repo",
+            str(repo),
+            "--out",
+            str(tmp_path / "one-run"),
+        )
+        assert whole == 0, out
+
+        stopped, out = run(
+            monkeypatch,
+            capsys,
+            "--copy",
+            str(copy),
+            "--repo",
+            str(repo),
+            "--to-docket",
+            str(tmp_path / "d.json"),
+        )
+        assert stopped == 0, out
+
+        resumed, out = run(
+            monkeypatch,
+            capsys,
+            "--from-docket",
+            str(tmp_path / "d.json"),
+            "--repo",
+            str(repo),
+            "--out",
+            str(tmp_path / "two-runs"),
+        )
+        assert resumed == 0, out
+
+        one = (tmp_path / "one-run" / "m.py").read_text(encoding="utf-8")
+        two = (tmp_path / "two-runs" / "m.py").read_text(encoding="utf-8")
+        assert one == two
+        assert one != SAMPLE, "neither run set anything -- the claim is vacuous"
+
+    def test_from_docket_and_copy_are_exclusive(self, tmp_path, monkeypatch, capsys):
+        """! ONE OF THEM IS REQUIRED, and both together name two inputs for one
+        run. argparse states this itself, so the exit is its own."""
+        with pytest.raises(SystemExit):
+            run(
+                monkeypatch,
+                capsys,
+                "--copy",
+                "c.json",
+                "--from-docket",
+                "d.json",
+                "--repo",
+                ".",
+                "--out",
+                str(tmp_path / "r1"),
+            )
+
+    def test_neither_input_is_refused(self, monkeypatch, capsys):
+        with pytest.raises(SystemExit):
+            run(monkeypatch, capsys, "--repo", ".", "--out", "o")
+
+    def test_from_docket_with_to_docket_is_refused_by_name(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """! IT WOULD READ A DOCKET IN ORDER TO WRITE IT BACK OUT. Refused with a
+        reason rather than performed, because a run that copies its own input is
+        never what the caller meant."""
+        code, out = run(
+            monkeypatch,
+            capsys,
+            "--from-docket",
+            "d.json",
+            "--to-docket",
+            "e.json",
+            "--repo",
+            ".",
+        )
+        assert code == 2
+        assert "--from-docket" in out and "--to-docket" in out
+
     def test_a_copy_that_will_not_read_reports_and_writes_nothing(
         self, tmp_path, monkeypatch, capsys
     ):
