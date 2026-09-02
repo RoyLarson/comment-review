@@ -216,6 +216,12 @@ def test_an_empty_change_is_a_delete():
 
 **Landed:** `e8fe5d8` -- `P54`. Six cases in `TestDocketOf`; the move's two ends are the first.
 
+! **IT LEFT `flows/revise.py` AT `3607abd`**, the cleanup pass after this plan closed, and now
+lives in `flows/transcribe.py` -- `revise.py` was importing `EditCopy`, `Instruction`,
+`text_at`, `Alteration` and `Schedule` for a function `pull` does not call. The box stands: it
+records what `e8fe5d8` did. **Recorded 2026-09-02 by the board audit**, because this file and
+the sentences that cite it still send a reader to `revise.py`.
+
 **Delivers:** P54
 
 **Files:**

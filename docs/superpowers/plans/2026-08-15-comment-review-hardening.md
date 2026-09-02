@@ -2,6 +2,33 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+!! **AUDITED 2026-09-02 -- ALL 68 TASK STEPS HAD LANDED AND NONE WERE TICKED.**
+The work shipped on 2026-08-15 across nine commits, `681bcfb` through
+`5798a12`, and merged to main at `3e09207` (*"add 167 tests"*). Every one is
+reachable from HEAD. This file read **0 of 71** for eighteen days while its
+work sat in the tree -- the failure `CLAUDE.md` names: superpowers authors the
+boxes and then tracks execution in a gitignored ledger, so nothing ever says to
+tick the plan.
+
+! **The ticks were derived, not assumed.** The branch tip `4a3e06f` was
+extracted and its suite run: **167 tests, OK** -- which is what closes every
+*"run the tests to verify they pass"* step. Two CLI expectations were
+reproduced verbatim, at Task 3 Step 8 and Task 7 Step 5; both are recorded on
+their tasks.
+
+! **The three boxes under *After the plan: re-measure* are the only open work
+in this file**, and they are DEFERRED rather than unstarted -- see the note
+there.
+
+! **TWO SHIPPED ARTIFACTS HAVE SINCE MOVED, WHICH DOES NOT REOPEN A BOX.**
+`verdicts.py` and `run_context.py` sit in `prototype/original/` since
+2026-08-25 and do not run; `prove_unchanged` and `referrers` are
+`src/comment_review/` commands. A step is closed by what LANDED, not by what
+survives -- and the 2026-08-25 suite replacement deleted the `unittest` files
+these tasks wrote.
+
+---
+
 **Goal:** Close two confirmed silent-failure bugs in `census.py`, ship the three
 checks the skill currently asks an agent to perform freehand, and convert the
 task agent's most error-prone prose obligations into gates that exit nonzero.
@@ -59,6 +86,11 @@ Every task's requirements implicitly include this section.
 
 ## Task 1: Test harness and per-language fixtures
 
+**Landed:** `681bcfb` -- `tests/_paths.py`, the four per-language fixtures and
+`tests/test_census_blocks.py`, plus the `"tests/**" = ["D"]` ruff ignore in
+`pyproject.toml`. Verified 2026-09-02: the era's three census test files run
+**20/20 green** against `census.py` at `22a434d`.
+
 **Why:** `census.py` is 858 lines, ships to strangers, and has no tests. Every
 regression in it has so far been caught by a manual evidence sweep after the
 fact. `docs/parsing.md` already commits to this: *"a per-language fixture test
@@ -79,7 +111,7 @@ must not land without a net.
   directory) and `FIXTURES` (Path to `tests/fixtures`). Every later test file
   imports these two names.
 
-- [ ] **Step 1: Create the path helper**
+- [x] **Step 1: Create the path helper**
 
 `tests/_paths.py`:
 
@@ -103,7 +135,7 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 ```
 
-- [ ] **Step 2: Create the four fixtures**
+- [x] **Step 2: Create the four fixtures**
 
 `tests/fixtures/sample.go`:
 
@@ -171,7 +203,7 @@ def add(a, b):
     return a + b
 ```
 
-- [ ] **Step 3: Write the failing tests**
+- [x] **Step 3: Write the failing tests**
 
 `tests/test_census_blocks.py`:
 
@@ -244,7 +276,7 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 4: Run the tests and record which fail**
+- [x] **Step 4: Run the tests and record which fail**
 
 Run: `python -m unittest discover -s tests -v`
 
@@ -257,7 +289,7 @@ means the script and its own documentation disagree, which is a finding. Report
 it in your report file with the actual output and stop; the controller rules on
 whether the code or the fixture is wrong.
 
-- [ ] **Step 5: Allow test files to skip docstring lint**
+- [x] **Step 5: Allow test files to skip docstring lint**
 
 In `pyproject.toml`, add to `[tool.ruff.lint.per-file-ignores]` below the
 existing `corpora` entry:
@@ -268,7 +300,7 @@ existing `corpora` entry:
 "tests/**" = ["D"]
 ```
 
-- [ ] **Step 6: Verify lint and syntax floor are clean**
+- [x] **Step 6: Verify lint and syntax floor are clean**
 
 Run:
 ```bash
@@ -276,7 +308,7 @@ ruff check . && ruff format --check . && python scripts/check_shipped_syntax.py
 ```
 Expected: no errors.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add tests pyproject.toml
@@ -292,6 +324,11 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ---
 
 ## Task 2: Build the name corpus from TRACKED files only
+
+**Landed:** `7b32004` -- `git_ls_files` and `tracked_paths` in `census.py`,
+`code_names(roots, tracked)` filtering to the tracked set, `path_index` on the
+same helper, `main` passing it, and `tests/test_census_names.py`.
+`test_an_untracked_name_does_not_mask_an_obituary` is the defect's own check.
 
 **Why -- confirmed by measurement, 2026-08-15.** `code_names()` walks the
 filesystem while `path_index()` uses `git ls-files`. In this very repository the
@@ -324,7 +361,7 @@ that tracked-files-only is the more correct rule; this makes the two agree.
   `census.code_names(roots: list[Path], tracked: set[Path] | None = None)` keeps
   its `(names, unread)` return shape.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `tests/test_census_names.py`:
 
@@ -387,14 +424,14 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `python -m unittest tests.test_census_names -v` (or
 `python -m unittest discover -s tests -k names -v`)
 
 Expected: FAIL with `AttributeError: module 'census' has no attribute 'tracked_paths'`.
 
-- [ ] **Step 3: Add the shared git helper and use it in `path_index`**
+- [x] **Step 3: Add the shared git helper and use it in `path_index`**
 
 In `census.py`, insert immediately above `path_index` (around line 586):
 
@@ -455,7 +492,7 @@ Then replace the body of `path_index` between its docstring and the final loop
 
 Leave the trailing suffix-indexing loop unchanged.
 
-- [ ] **Step 4: Scope `code_names` to the tracked set**
+- [x] **Step 4: Scope `code_names` to the tracked set**
 
 Change the signature and add the filter. Replace line 523's `def` line and the
 loop head (lines 531-536) with:
@@ -503,7 +540,7 @@ def code_names(
 
 The remainder of the loop body is unchanged.
 
-- [ ] **Step 5: Pass the tracked set from `main`**
+- [x] **Step 5: Pass the tracked set from `main`**
 
 In `main`, replace line 741 (`known, unread = code_names([repo])`) with:
 
@@ -511,12 +548,12 @@ In `main`, replace line 741 (`known, unread = code_names([repo])`) with:
     known, unread = code_names([repo], tracked_paths(repo))
 ```
 
-- [ ] **Step 6: Run the tests to verify they pass**
+- [x] **Step 6: Run the tests to verify they pass**
 
 Run: `python -m unittest discover -s tests -v`
 Expected: PASS, all tests including Task 1's.
 
-- [ ] **Step 7: Confirm the original defect is gone**
+- [x] **Step 7: Confirm the original defect is gone**
 
 Run:
 ```bash
@@ -526,7 +563,7 @@ python plugins/comment-review/skills/comment-review/scripts/census.py --repo . /
 Expected: **both** `asanyarray` and `zzz_not_real` now report UNRESOLVED.
 Before this change only `zzz_not_real` did.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 ruff check . && ruff format . && python scripts/check_shipped_syntax.py
@@ -545,6 +582,12 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ---
 
 ## Task 3: Make `doc_is_structural` load-bearing -- declare the kind gap
+
+**Landed:** `22a434d` -- `flag_structural_docs`, `flush(trailing=True)` at the
+lexical tier, the `doc-kind-unresolved` mark excluded from the cap tally and
+reported separately, and `compact.md`'s third kind row. Step 8 reproduced
+verbatim 2026-09-02: `over cap (2): 0` and `kind unresolved, NOT counted
+against the cap: 2`.
 
 **Why -- confirmed by measurement, 2026-08-15.** `doc_is_structural` is set on
 `python`, `go` and `ruby` and is **read nowhere in the file**. Go and Ruby also
@@ -576,7 +619,7 @@ the original plan text has already shifted by the time this task runs.
   `census.flag_structural_docs(blocks: list[Block], text: str, lang: Language) -> None`
   which mutates blocks in place.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `tests/test_census_doc_kind.py`:
 
@@ -634,12 +677,12 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `python -m unittest discover -s tests -k doc_kind -v`
 Expected: FAIL -- `'doc-kind-unresolved' not found in set()`.
 
-- [ ] **Step 3: Stamp `trailing-comment` at the lexical tier**
+- [x] **Step 3: Stamp `trailing-comment` at the lexical tier**
 
 `compact.md` says *"The census stamps every block `comment`, `trailing-comment`
 or `docstring`"*, but only `blocks_stdlib` ever stamps the middle one --
@@ -689,7 +732,7 @@ comment is its own block, owned by this line"*:
             flush(trailing=True)  # its own block, owned by the line it sits on
 ```
 
-- [ ] **Step 4: Add the post-pass**
+- [x] **Step 4: Add the post-pass**
 
 In `census.py`, insert immediately after `blocks_lexical`:
 
@@ -739,7 +782,7 @@ def flag_structural_docs(blocks: list[Block], text: str, lang: Language) -> None
         )
 ```
 
-- [ ] **Step 5: Call it from `census_for`**
+- [x] **Step 5: Call it from `census_for`**
 
 Replace `census_for`'s body with:
 
@@ -754,7 +797,7 @@ Replace `census_for`'s body with:
     return got
 ```
 
-- [ ] **Step 6: Exclude the unresolved blocks from the cap tally and report them**
+- [x] **Step 6: Exclude the unresolved blocks from the cap tally and report them**
 
 In `main`, replace the `over` comprehension with:
 
@@ -780,12 +823,12 @@ And immediately after the existing `if args.cap:` report line, add:
             )
 ```
 
-- [ ] **Step 7: Run the tests to verify they pass**
+- [x] **Step 7: Run the tests to verify they pass**
 
 Run: `python -m unittest discover -s tests -v`
 Expected: PASS.
 
-- [ ] **Step 8: Confirm the original defect is gone**
+- [x] **Step 8: Confirm the original defect is gone**
 
 Run:
 ```bash
@@ -795,7 +838,7 @@ python plugins/comment-review/skills/comment-review/scripts/census.py \
 Expected: `over cap (2): 0` and `kind unresolved, NOT counted against the cap: 2`.
 Before this change it read `over cap (2): 1`.
 
-- [ ] **Step 9: Teach `compact.md` the new mark, and delete nothing else**
+- [x] **Step 9: Teach `compact.md` the new mark, and delete nothing else**
 
 In `references/compact.md`, in the kind table, add a third row:
 
@@ -814,7 +857,7 @@ one. Do not infer it from the text, and do not cut it: carry it at length and
 say why. Measured: a three-line Go export doc counted as over a cap of two.
 ```
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 ruff check . && ruff format . && python scripts/check_shipped_syntax.py
@@ -839,6 +882,11 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ---
 
 ## Task 4: Ship the code-identity proof as a script
+
+**Landed:** `767fd22` -- `prove_unchanged.py` (`code_signature`,
+`dominant_ending`, the untouched-sibling line-ending check) and `apply.md`
+losing the hand procedure. Hardened the same day by `c3609c5` (UTF-8 decode)
+and `ae33321` (exact residue on shared lines, no empty proof).
 
 **Why:** `apply.md` asks the task agent to *"Parse both versions, blank every
 docstring `Constant`, compare `ast.dump`"*, to re-run it after the formatter,
@@ -867,7 +915,7 @@ exists.
   - CLI: `python prove_unchanged.py --base <ref> --repo <dir> <path>...`,
     exit 0 only when every path is PROVEN.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `tests/test_prove_unchanged.py`:
 
@@ -975,12 +1023,12 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `python -m unittest discover -s tests -k prove -v`
 Expected: FAIL with `ModuleNotFoundError: No module named 'prove_unchanged'`.
 
-- [ ] **Step 3: Write the script**
+- [x] **Step 3: Write the script**
 
 `plugins/comment-review/skills/comment-review/scripts/prove_unchanged.py`:
 
@@ -1195,12 +1243,12 @@ if __name__ == "__main__":
     sys.exit(main())
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `python -m unittest discover -s tests -v`
 Expected: PASS.
 
-- [ ] **Step 5: Replace the hand-execution prose in `apply.md`**
+- [x] **Step 5: Replace the hand-execution prose in `apply.md`**
 
 In `references/apply.md`, replace the block from *"**Prove code identity; do not
 assert it.**"* through the end of the `! **The stored blob is the wrong baseline...**`
@@ -1224,7 +1272,7 @@ what this skill promises the people who run it; report the line verbatim and
 restore the file.
 ```
 
-- [ ] **Step 6: Verify the script runs against a real edit**
+- [x] **Step 6: Verify the script runs against a real edit**
 
 Run:
 ```bash
@@ -1235,7 +1283,7 @@ python plugins/comment-review/skills/comment-review/scripts/prove_unchanged.py \
 Expected: with a clean tree, `PROVEN` and exit 0. (If census.py has uncommitted
 prose edits from Tasks 2-3, it should still read PROVEN -- that is the point.)
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 ruff check . && ruff format . && python scripts/check_shipped_syntax.py
@@ -1257,6 +1305,10 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ---
 
 ## Task 5: `referrers.py` -- the missing inbound half of stage 3
+
+**Landed:** `fb9b2d1` -- `referrers.py` (`tokens_for`, the `NOISE_FLOOR`
+suppression) and `SKILL.md` stage 3's inbound half, which now runs in `target`
+mode too. Hardened by `efd9724`, `4c79558`, `576a656` and `404029c`.
 
 **Why:** Stage 3 is called FIND REFERENCES and finds only *outbound* ones --
 what a comment cites. The inbound direction (who cites the code under review) is
@@ -1282,7 +1334,7 @@ a `.py` file.
   - CLI: `python referrers.py --repo <dir> <target>...` printing a
     REFERENCE-ONLY candidate list. Always exits 0 -- it is an input to a review.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `tests/test_referrers.py`:
 
@@ -1341,12 +1393,12 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `python -m unittest discover -s tests -k referrers -v`
 Expected: FAIL with `ModuleNotFoundError: No module named 'referrers'`.
 
-- [ ] **Step 3: Write the script**
+- [x] **Step 3: Write the script**
 
 `plugins/comment-review/skills/comment-review/scripts/referrers.py`:
 
@@ -1498,12 +1550,12 @@ if __name__ == "__main__":
     sys.exit(main())
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `python -m unittest discover -s tests -v`
 Expected: PASS.
 
-- [ ] **Step 5: Verify against this repository**
+- [x] **Step 5: Verify against this repository**
 
 Run:
 ```bash
@@ -1513,7 +1565,7 @@ python plugins/comment-review/skills/comment-review/scripts/referrers.py \
 Expected: names `SKILL.md`, `docs/parsing.md`, `README.md` and the reference
 files among the candidates -- the documents that actually discuss census.py.
 
-- [ ] **Step 6: Wire it into `SKILL.md` stage 3, replacing the prose rule**
+- [x] **Step 6: Wire it into `SKILL.md` stage 3, replacing the prose rule**
 
 In `SKILL.md`, replace the paragraph at lines 426-432 (*"! **Scope by SUBJECT,
 not by file extension.**..."* through *"...this widening does not apply."*) with:
@@ -1540,7 +1592,7 @@ the invocation most likely to be typed by hand was the one with no backlink
 discovery at all.
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 ruff check . && ruff format . && python scripts/check_shipped_syntax.py
@@ -1563,6 +1615,11 @@ Phase B changes what reviewers emit and how stages are dispatched. Land Phase A
 first and re-measure the corpora, so a change in finding rate is attributable.
 
 ## Task 6: A parseable finding record, and `verdicts.py` to join it
+
+**Landed:** `5f14da7` -- `verdicts.py` carrying all six checks (coverage,
+evidence, payload, level, contradiction, the clean-arithmetic), the RECORD
+format in `reviewer-brief.md`, and the gate in `SKILL.md`. Hardened by
+`aa5adfe` and `ffcf695`, which closed four ways past the gate.
 
 **Why -- this is the highest-value item in the plan.** `SKILL.md:485-490`
 instructs the task agent to *"Open each finding's `SUMMARY` right half and
@@ -1599,7 +1656,7 @@ full records, and *that* is why coverage walking degrades in practice.
     exiting nonzero on any coverage gap, unverifiable evidence, missing payload
     or illegal-at-level verdict.
 
-- [ ] **Step 1: Define the record format in the brief**
+- [x] **Step 1: Define the record format in the brief**
 
 In `references/reviewer-brief.md`, replace the "Every finding has five parts"
 fenced block and the paragraph under it (lines 39-52) with:
@@ -1651,7 +1708,7 @@ reports any index you did not account for as a COVERAGE GAP against your angle
 by name.
 ```
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 `tests/test_verdicts.py`:
 
@@ -1795,12 +1852,12 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 3: Run it to verify it fails**
+- [x] **Step 3: Run it to verify it fails**
 
 Run: `python -m unittest discover -s tests -k verdicts -v`
 Expected: FAIL with `ModuleNotFoundError: No module named 'verdicts'`.
 
-- [ ] **Step 4: Write the script**
+- [x] **Step 4: Write the script**
 
 `plugins/comment-review/skills/comment-review/scripts/verdicts.py`:
 
@@ -2102,12 +2159,12 @@ if __name__ == "__main__":
     sys.exit(main())
 ```
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `python -m unittest discover -s tests -v`
 Expected: PASS.
 
-- [ ] **Step 6: Replace the hand-check prose in `SKILL.md`**
+- [x] **Step 6: Replace the hand-check prose in `SKILL.md`**
 
 In `SKILL.md`, replace the two paragraphs at lines 485-499 (from *"!! **Resolve
 the reviewers' evidence yourself.**"* through *"...never a tie-break."*) with:
@@ -2136,7 +2193,7 @@ findings**. **Never grade a review by reading its report.**
 verdict from an incorrect one. Synthesis, and the order below, remain yours.
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 ruff check . && ruff format . && python scripts/check_shipped_syntax.py
@@ -2158,6 +2215,11 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ---
 
 ## Task 7: A validated run-context packet for stage-4 dispatch
+
+**Landed:** `b99181b` -- `run_context.py` (`REQUIRED`, `template`,
+`missing_sections`), `SKILL.md` stage 4's packet and 1.6's fallback pointed at
+`ANGLE FILES`. Hardened by `96c12f9`, `47a73f1` and `dd09671`. Step 5
+reproduced verbatim 2026-09-02: `INCOMPLETE -- 11 section(s)`, `exit=1`.
 
 **Why:** Stage 4 requires the task agent to hand each reviewer seven things --
 census path, stage-1 resolutions, docstring template, style sheet, level, which
@@ -2184,7 +2246,7 @@ general-purpose fallback a one-line substitution.
   - CLI: `--template` prints the skeleton; `--check <file>` exits nonzero naming
     every empty or absent section.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `tests/test_run_context.py`:
 
@@ -2259,12 +2321,12 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `python -m unittest discover -s tests -k run_context -v`
 Expected: FAIL with `ModuleNotFoundError: No module named 'run_context'`.
 
-- [ ] **Step 3: Write the script**
+- [x] **Step 3: Write the script**
 
 `plugins/comment-review/skills/comment-review/scripts/run_context.py`:
 
@@ -2408,12 +2470,12 @@ if __name__ == "__main__":
     sys.exit(main())
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `python -m unittest discover -s tests -v`
 Expected: PASS.
 
-- [ ] **Step 5: Verify the CLI both ways**
+- [x] **Step 5: Verify the CLI both ways**
 
 Run:
 ```bash
@@ -2422,7 +2484,7 @@ python plugins/comment-review/skills/comment-review/scripts/run_context.py --che
 ```
 Expected: `INCOMPLETE -- 11 section(s)...` and `exit=1`.
 
-- [ ] **Step 6: Wire it into `SKILL.md` stage 4**
+- [x] **Step 6: Wire it into `SKILL.md` stage 4**
 
 In `SKILL.md`, replace the paragraph beginning *"Each already carries its own
 angle and reads the shared brief itself. **You supply the run context, and only
@@ -2447,7 +2509,7 @@ style sheet introduced **14 en-GB spellings** into a codebase whose identifiers
 are en-US, and every angle was satisfied because nothing owned consistency.
 ```
 
-- [ ] **Step 7: Point stage 1.6's fallback at the packet**
+- [x] **Step 7: Point stage 1.6's fallback at the packet**
 
 In `SKILL.md`, replace the final sentence of 1.6 (lines 280-283, *"The sanctioned
 fallback is...which is what this file forbids for a different reason (a copy goes
@@ -2460,7 +2522,7 @@ stale the moment an angle is edited. Because the packet already carries those
 absolute paths, the fallback is a substitution rather than an improvisation.
 ```
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 ruff check . && ruff format . && python scripts/check_shipped_syntax.py
@@ -2481,6 +2543,11 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ---
 
 ## Task 8: COMPACT and REVIEW become mandatory separate subagents
+
+**Landed:** `dc27abb` -- `comment-review-compact.md` and
+`comment-review-review.md`, stages 6 and 8 dispatching them, `compact.md`'s
+note, and the packet's `ANGLE FILES` hint. Both agents' frontmatter parses and
+both still ship today. `516eae5` cut the rules they restated.
 
 **Why:** Stage 4 gets independence because four agents are dispatched
 separately. Stages 6 and 8 do not: by default they run in the same task-agent
@@ -2505,7 +2572,7 @@ the plan"* -- a claim that is weaker when the reader is the author.
   `comment-review:comment-review-compact` and
   `comment-review:comment-review-review`.
 
-- [ ] **Step 1: Write the COMPACT agent**
+- [x] **Step 1: Write the COMPACT agent**
 
 `plugins/comment-review/agents/comment-review-compact.md`:
 
@@ -2552,7 +2619,7 @@ Then the final longest block. **A block you could not condense is a finding, not
 a silence.**
 ```
 
-- [ ] **Step 2: Write the REVIEW agent**
+- [x] **Step 2: Write the REVIEW agent**
 
 `plugins/comment-review/agents/comment-review-review.md`:
 
@@ -2587,7 +2654,7 @@ Files read end to end; damage found and repaired; and -- separately -- every
 defect that predates this run.
 ```
 
-- [ ] **Step 3: Make stage 6 dispatch it**
+- [x] **Step 3: Make stage 6 dispatch it**
 
 In `SKILL.md`, replace the paragraph at lines 599-601 (*"If there is a cap, and
 only once **every** block from stage 5 is CORRECT, load
@@ -2607,7 +2674,7 @@ general-purpose agent given the path -- and **say in the report that you ran it
 yourself** if you had to.
 ```
 
-- [ ] **Step 4: Make stage 8 dispatch it**
+- [x] **Step 4: Make stage 8 dispatch it**
 
 In `SKILL.md`, replace lines 640-641 (*"On completion of 7b, load
 [`references/review.md`](references/review.md) and follow it."*) with:
@@ -2622,7 +2689,7 @@ who remembers intending each edit reads the page they meant to write. If the
 agent does not resolve, fall back as at 1.6 and say so.
 ```
 
-- [ ] **Step 5: Update `compact.md`'s input-contract note**
+- [x] **Step 5: Update `compact.md`'s input-contract note**
 
 In `references/compact.md`, replace the sentence *"...which is what makes this
 pass safe to hand to a separate subagent."* (line 92) with:
@@ -2633,7 +2700,7 @@ pass safe to hand to a separate subagent."* (line 92) with:
 contract only buys anything if the reader is not the writer.
 ```
 
-- [ ] **Step 6: Add the two agents to the packet's ANGLE FILES hint**
+- [x] **Step 6: Add the two agents to the packet's ANGLE FILES hint**
 
 In `run_context.py`, change the `ANGLE FILES` hint to:
 
@@ -2641,7 +2708,7 @@ In `run_context.py`, change the `ANGLE FILES` hint to:
     "ANGLE FILES": "absolute path per angle, the brief, and the compact + review agents",
 ```
 
-- [ ] **Step 7: Verify the agents are well-formed and the tests still pass**
+- [x] **Step 7: Verify the agents are well-formed and the tests still pass**
 
 Run:
 ```bash
@@ -2652,7 +2719,7 @@ head -4 plugins/comment-review/agents/comment-review-review.md
 Expected: tests PASS; both files start with `---` and a `name:` matching the
 filename stem.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add plugins
@@ -2670,6 +2737,10 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 ## Task 9: Sync the documentation to what now exists
 
+**Landed:** `5798a12` -- README's known-gaps note and the two layout rows,
+CLAUDE.md's command block for the four new scripts, and `docs/parsing.md`'s
+second instance of the never-improvise-a-parse refusal.
+
 **Why:** `README.md`'s "Known gaps" and `CLAUDE.md`'s architecture section
 describe the pre-Phase-A/B system. A stale README in a repository whose entire
 subject is stale prose is the obituary this project exists to find.
@@ -2680,7 +2751,7 @@ subject is stale prose is the obituary this project exists to find.
 - Modify: `CLAUDE.md`
 - Modify: `docs/parsing.md:133-141`
 
-- [ ] **Step 1: Correct the README's known-gaps section**
+- [x] **Step 1: Correct the README's known-gaps section**
 
 In `README.md`, in the *"What is still compiled in rather than detected per
 project"* table (lines 213-218), delete the `Doc()` row if present and add a
@@ -2695,7 +2766,7 @@ vendored or gitignored tree can no longer donate its namespace and mask an
 obituary.
 ```
 
-- [ ] **Step 2: Add the new scripts to the README layout table**
+- [x] **Step 2: Add the new scripts to the README layout table**
 
 In the `Layout` table, change the `plugins/comment-review/` row's description to:
 
@@ -2709,7 +2780,7 @@ And add a row:
 | `tests/`                  | a stdlib fixture harness for the census, one file per language tier -- `python -m unittest discover -s tests`                                            |
 ```
 
-- [ ] **Step 3: Update CLAUDE.md**
+- [x] **Step 3: Update CLAUDE.md**
 
 In `CLAUDE.md`, under Commands, add:
 
@@ -2743,7 +2814,7 @@ stdlib-only rule. `evals/grade_hazards.py` remains the end-to-end grade, and
 `scripts/check_shipped_syntax.py` the shipped-syntax floor.
 ```
 
-- [ ] **Step 4: Record in `docs/parsing.md` that the kind gap is now declared**
+- [x] **Step 4: Record in `docs/parsing.md` that the kind gap is now declared**
 
 In `docs/parsing.md`, at the end of the *"The refusal: never improvise a parse"*
 section (after line 79), add:
@@ -2758,7 +2829,7 @@ it, a three-line `// Add returns...` run above `func Add` reported `over cap (2)
 and `compact.md` routes on KIND, so the cap would have cut an export doc.
 ```
 
-- [ ] **Step 5: Verify everything still passes together**
+- [x] **Step 5: Verify everything still passes together**
 
 Run:
 ```bash
@@ -2769,7 +2840,7 @@ python -m unittest discover -s tests -v \
 ```
 Expected: all green.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add README.md CLAUDE.md docs
@@ -2788,6 +2859,15 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 Phase A changes what the census reports; Phase B changes what reviewers emit.
 Both invalidate the README's headline numbers (339 blocks, 97 findings, 27
 worth acting on, 0.40 per 100 lines), which were taken with the old detectors.
+
+!! **THESE THREE ARE DEFERRED, NOT DONE. Audited 2026-09-02.** Each says what
+it waits on:
+
+| box | waits on |
+| --- | --- |
+| re-run the corpora | a runnable end-to-end pass. `scripts/fetch_corpora.py` still works; nothing grades what it fetches |
+| re-run `grade_hazards.py` | **the file it names is not in this tree and never was tracked** -- `git log --all --oneline -- evals/grade_hazards.py` returns nothing. Rebuilding it is `TODO/the-harness-cannot-run-the-system-it-grades.md` |
+| publish the new numbers | **superseded in part.** The *note that the instrument changed* DID land, in `5798a12` -- `README.md` carries it. The NUMBERS did not, and that same README still reads *"no corpus has been re-run since"* |
 
 - [ ] Re-run the corpora: `python scripts/fetch_corpora.py`, then a full pass
       over the same one-file-per-project slice.

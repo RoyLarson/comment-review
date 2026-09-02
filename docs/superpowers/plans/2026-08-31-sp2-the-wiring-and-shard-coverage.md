@@ -158,6 +158,11 @@ the read half until 2026-08-30, so renaming a field left another module writing 
 `:1015-1023` is a DOCKET page, a different artifact, and keeps its own spelling. One angle of
 the 2026-08-30 review cited it as a producer and was wrong.
 
+**Landed:** `f943d7b` -- the three `seed` classmethods, and `flows.collate._reconcilable` left
+as a filter. Ticked in `4776853`. ! **AUDITED 2026-09-02:** `Sheet.seed` and `EditCopy.seed`
+still have their production caller at `flows/distribute.py:92,96`; `MasterProof.seed` has none
+in `src/`.
+
 - [x] **Step 1: Write the failing test**
 
 ```python
@@ -266,6 +271,10 @@ importer and `collate` re-derives the shape as it goes.
 !! **THE ENVELOPE AND THE CONTENTS BOTH RUN, IN THAT ORDER.** `parse_edit_copy` answers *is
 this document a copy at all*; `problems_in` answers *what did this role write in this slot*.
 Read this plan's own decision section above before writing the refusal.
+
+**Landed:** `eeb983f` -- the ENVELOPE loop, reported and returning early. Ticked in `4b48a1b`.
+! **AUDITED 2026-09-02:** the parse is spelled `EditCopy.deserialize` since `dee2ad1` and is
+called at `flows/collate.py:733`, still naming a role-less copy by its index (`:735-739`).
 
 - [x] **Step 1: Write the failing test**
 
@@ -376,6 +385,15 @@ produces `{}` for an empty `edit_copies` list. It is the other five values this 
 only against `copies[0]`, never 2..N. Wire the parse and close the empty-copies branch here;
 leave T7.
 
+**Landed:** `6bb8f8e` -- the empty-copies hole closed and the proof parsed after `gather`.
+Ticked in `2b3e4ae`. !! **AUDITED 2026-09-02, AND THE TASK'S TWO HALVES NOW ANSWER
+DIFFERENTLY.** The hole STAYS closed: `desk/containers.py:621` reads `if copies or
+data.get("read_from", {}) != {}`, with the six measured values and the `{}` exemption stated at
+the guard. **The proof boundary is GONE, retired by `P42`** -- `desk.proof.gather` returns a
+`MasterProof` rather than a dict (`desk/proof.py:42,72`), so there is no document left to rule
+on, and `flows/collate.py:802` says so. `MasterProof.deserialize` has no caller in `src/`
+today. The box is left ticked under the note above: it records what was built.
+
 - [x] **Step 1: Write the failing tests**
 
 ```python
@@ -445,6 +463,11 @@ an exception carrying them, or splitting `collate` so the per-copy pass returns 
 fold. **Prefer whichever leaves `collate`'s signature alone**; a fourth argument here would
 collide with SP-3's `Stage`.
 
+**Landed:** `26538d2` -- `CannotCollate` carries the problems and the command prints them
+before the refusal, leaving `collate`'s signature alone. Ticked in `1a12019`. ! **AUDITED
+2026-09-02:** `commands/collate.py:242-258` runs `_report(refusal.problems)` ahead of the
+`REFUSED` line; `CannotCollate` is declared at `flows/collate.py:90`.
+
 - [x] **Step 1: Write the failing test**
 
 ```python
@@ -505,6 +528,13 @@ wrong.
 **Why:** `P25`, `Process: #58`. Roy: *"the source-verification side needs to be wired into the
 flow - same as 1) the flow coordinates the things in the modules do."* MEASURED 2026-08-31:
 `verify_report` has only test callers.
+
+**Landed:** `7bd7dd3` -- `collate` takes a `root` and calls `verify_report`, whose findings
+become `Problem`s. Ticked in `9aa06ff`. !! **THE CARRIER WAS CORRECTED BY SP-7 AT `f1db0e5`,
+AND THIS AUDIT CONFIRMS IT RATHER THAN TAKING IT ON TRUST:** `verify_report(copy: EditCopy,
+binder: Binder, root: Path, cache: Cache)` at `desk/collator.py:380-382`, called from
+`flows/collate.py:790` with one `Cache` per stage. `P25` is `[x]` against `f1db0e5` on the
+release plan.
 
 - [x] **Step 0: RULED -- read this, then proceed**
 
@@ -637,6 +667,12 @@ it, and the places that came back still settle. **This is the one place in the p
 run does NOT return early** -- an incomplete shard is a fact about one role's coverage, not a
 statement that the documents are malformed.
 
+**Landed:** `3fc3414` -- the per-role union compared against `known_addresses(binder)`,
+reported and not refused. Ticked in `26bd438`. !! **THE CARRIER WAS CORRECTED BY SP-7 AT
+`f1db0e5`, CONFIRMED HERE:** `_coverage_problems(edit_copies: list[EditCopy], binder: Binder)`
+at `flows/collate.py:561`, called at `:766`, unioning `sheet.marks`, `sheet.unruled` and
+`sheet.refused` per role (`:607-613`). `P27` is `[x]` against `f1db0e5` on the release plan.
+
 - [x] **Step 1: Write the failing test**
 
 !! **`collate` TAKES A `root` BY THE TIME THIS TASK RUNS.** Task 5 changed the signature to
@@ -747,6 +783,13 @@ through them one at a time.
 is defensible depth. **What is not defensible is prose claiming a guard is load-bearing when
 the enforcement is upstream.** Where you keep one, say which it is.
 
+**Landed:** `1c6e13e` -- the hand-rolled copy-shape checks cut where the container answers for
+them, with the line for where to cut stated. Ticked in `5dd766d`. ! **AUDITED 2026-09-02:**
+`grep -n isinstance` over the two files returns four lines and **none decides what a
+well-formed copy is** -- `flows/collate.py:322,735` are a move destination and the envelope's
+own role lookup, `desk/collator.py:284,560` a source dict and a move destination. `:67-68`
+records the five sites that went.
+
 - [x] **Step 1: Enumerate the duplicates and record them in the report**
 
 This step comes first, and the test comes after it. **This plan cannot give you the test**,
@@ -791,6 +834,15 @@ wrong.
 production caller. MEASURED 2026-08-30: `containers.py` claimed consumers had stopped
 re-deriving keys when nothing imported it, and `collator.py`'s groupings have been wrong three
 times.
+
+**Landed:** `866a0a4` -- every consumer claim in the three files rewritten against real
+callers, the stale provisional notes cut, and the envelope/contents split stated once in
+`desk/containers.py`. Ticked in `21a9aa7`. ! **AUDITED 2026-09-02:** `desk/collator.py:73-74`
+claims `grep -rn "verify_report" src/` returns a caller outside that module, and it does --
+`flows/collate.py:76,790`. !! **`P21` WAS TICKED HERE AND IS OPEN AGAIN**, on the third clause
+only: `MasterProof.stage` is written by `desk/proof.py:72` and read only by
+`MasterProof.serialize` (`desk/containers.py:650`), which itself has no caller in `src/`. See
+the header note, and `containers-and-verification-are-unwired` T37.
 
 - [x] **Step 1: Fix every claim about a consumer**
 

@@ -21,13 +21,21 @@ has delivered**, which is the defect `CLAUDE.md` names when it rules that the bo
 
 ! **WHAT THE ONE PASS TICKED AGAINST, so a stranger can re-derive it:** a task's steps were ticked
 only where **every `T` it delivers is already `- [x]` in the `P` plan** AND a commit for it exists
-on `feat/the-mark-and-the-collator` -- Task 1 `67dc82b`, 2 `3e47286`, 2c `09623a4`, 3 `eaf3d09`,
-4 `69c819f`, 5 `e065886`, 5b `d6ae622`, 6 `76acaae`, 7 `641af15`, 8 `5d78c55`, 9 `8df1281`,
-10 `88748d5`. Tasks 5c, 11, 12 and 13 have neither and stay open.
+on `feat/the-mark-and-the-collator`. **Each task now carries its own `**Landed:**` line naming that
+commit**, which is where to read the attribution -- this paragraph is the method, not the table.
 
-! **ONE STEP INSIDE A LANDED TASK STAYS OPEN: Task 3's step 5**, whose instruction is to leave
-`T1.6` undone and say why. Ticking it would claim `code_concerns` reached the sheet. *Deferred is
-not done.*
+! **THE ONE-PASS LIST IS SUPERSEDED IN TWO PLACES, 2026-09-02 audit.** It said *"Tasks 5c, 11, 12
+and 13 have neither and stay open"*: **5c, 11 and 12 landed after it was written** -- `ccd182a`,
+`ee59b6d`, `5ad6d47`, each ticking its own steps in its own commit -- and Task 13 is superseded, not
+open. It also gave Task 1 as `67dc82b`, which is the PORT this task was written to repair; Task 1
+landed at `fcba2a6` + `d33cd97`, as Task 1's own heading said at the time.
+
+! **ONE STEP INSIDE A LANDED TASK IS NOT TICKED: Task 3's step 5**, whose instruction is to leave
+`T1.6` undone and say why. It is `[-]`, not `[ ]`: `Process: #43` retired `T1.6` from the plan
+altogether on 2026-08-28, so there is no box left to leave unticked. See the step.
+
+! **AND ONE STAYS GENUINELY OPEN: Task 11's step 2**, a red-green order that was not run. It records
+a fact about how that task was executed, so nothing later can make it true.
 
 **Spec:** [`docs/plans/0.2.4-the-mark-and-the-collator.md`](../../plans/0.2.4-the-mark-and-the-collator.md)
 -- the `P` plan. This `SP` delivers **P1**, **P2**, and **T5.2**.
@@ -231,6 +239,9 @@ the chain cannot refuse it for a reason the test did not intend.
 ---
 
 ## Task 1: The claim keys, and the gate that reads them
+
+**Landed:** `fcba2a6` + `d33cd97` -- `claim_keys` derives the extras again, `_claim_problems` reads
+one list, and `tests/test_mark_brief.py` takes its expectation from the brief.
 
 !! **DONE at `fcba2a6` + `d33cd97`, AND ITS SHAPE IS SUPERSEDED BY TASK 2c.** The behaviour it
 delivered stands -- the gate accepts what the brief publishes, and the suite is non-circular. **The
@@ -461,6 +472,9 @@ git add -A && git commit -F <message-file>
 
 ## Task 2: `verdict` -> `instruction`
 
+**Landed:** `3e47286` -- the word is struck from `src/`, `plugins/` and `vocabulary.toml`;
+`tests/gates/test_vocabulary.py:41` refuses it in any shipped file.
+
 **Delivers:** T1.4. A one-for-one substitution under `conventions.md` -- the spelling changes and
 no reader's behaviour does.
 
@@ -521,6 +535,9 @@ uv run pytest -q && uv run python scripts/check_vocabulary.py
 ---
 
 ## Task 2c: `Instruction` becomes the approved shape
+
+**Landed:** `09623a4` -- the eleven surplus fields are gone and
+`tests/gates/test_mark_shape.py` reads the allowed set out of `docs/the-mark.md`.
 
 **Delivers:** T1.13, T1.14. **Implements** `decision-log.md Process: #37`.
 
@@ -650,6 +667,9 @@ with `-F`.
 
 ## Task 3: `raw_text` on the row, `code_concerns` on the sheet
 
+**Landed:** `eaf3d09` -- `seed()` carries `raw_text` and `tests/helpers.py` exists.
+! The `code_concerns` half never landed and no longer can; see Step 5.
+
 **Delivers:** T1.5, T1.6. **Works** `the-ported-mark-does-not-fit-the-brief` T4.
 
 **Files:**
@@ -723,7 +743,7 @@ error `Process: #37` records.
 uv run pytest -q tests/test_marks_flow.py
 ```
 
-- [ ] **Step 5: BLOCKED -- `code_concerns` waits on the sheet's shape**
+- [-] **Step 5: BLOCKED -- `code_concerns` waits on the sheet's shape**
 
 The key is instructed in `reviewer-brief.md` and in `function-context`, and every role produced one
 in every round of the 2026-08-27 experiment -- so it is real. **What is missing is a file that says
@@ -731,6 +751,15 @@ what the sheet carries**, the same absence that let eleven fields onto the mark.
 
 Leave **T1.6 unticked** and say so in the report. Do not add the key, and do not name it in the
 brief, until the sheet's shape is stated and approved.
+
+! **SUPERSEDED 2026-09-02, audit.** `decision-log.md Process: #43` (Roy, 2026-08-28) rules
+`code_concerns` *"indefinitely deferred"* and **T1.6 LEFT THE PLAN'S TASK LIST** rather than sitting
+in it unticked -- a plan closes, a TODO's lifetime does not. The retirement is recorded at
+`docs/plans/completed/0.2.4-the-mark-and-the-collator-SUPERSEDED.md:96` (*"Was `T1.6`; the number is
+retired, not reused"*) and the work lives on in
+[`TODO/code-concerns-cannot-carry-a-proposed-change.md`](../../../TODO/code-concerns-cannot-carry-a-proposed-change.md).
+**This step's instruction -- leave T1.6 unticked -- names a box that no longer exists**, so it can
+never be finished and is not open work.
 
 - [x] **Step 6: Build, gate, tick, commit**
 
@@ -745,6 +774,9 @@ unticked.** Commit with `-F`.
 ---
 
 ## Task 4: Rebuild the generator the brief claims to have
+
+**Landed:** `69c819f` -- `scripts/render_brief.py` joins the keys from `INSTRUCTIONS` to the prose
+from `docs/the-mark.md`, and `tests/gates/test_brief_table.py` holds the committed block to it.
 
 **Delivers:** T1.7. **Works** `the-ported-mark-does-not-fit-the-brief` T5. **Requires Task 2c.**
 
@@ -828,6 +860,9 @@ uv run python scripts/todo_tool.py check the-ported-mark-does-not-fit-the-brief 
 
 ## Task 5: What the brief says about `ran`, and about the library
 
+**Landed:** `e065886` -- both passages are in `reviewer-brief.md` and
+`tests/gates/test_brief_states_the_rules.py` holds the library rule to one file.
+
 **Delivers:** T1.8, T1.9. **Works** `the-fields-do-not-say-a-mark-may-cite-across` T1, T2, T3, T4,
 T5.
 
@@ -876,6 +911,9 @@ uv run python scripts/todo_tool.py check the-fields-do-not-say-a-mark-may-cite-a
 ---
 
 ## Task 5b: Drop the four dead command invocations
+
+**Landed:** `d6ae622` -- 51 lines out of `SKILL.md`; `vocabulary`, `run_context` and `verdicts` are
+gone from the prose an agent reads.
 
 **Delivers:** T1.10. **Works** `the-skill-names-commands-that-moved-to-prototype` T4.
 
@@ -940,6 +978,9 @@ uv run python scripts/todo_tool.py check the-skill-names-commands-that-moved-to-
 ---
 
 ## Task 5c: The command reference, accurate and complete
+
+**Landed:** `5ad6d47` -- `tests/gates/test_skill_commands.py` gates both halves, `record` is dropped
+and the `galley` alias is deleted rather than re-flagged.
 
 **Delivers:** T1.11, T1.12. **Works** `the-skill-names-commands-that-moved-to-prototype` T2 and T3.
 
@@ -1036,6 +1077,8 @@ uv run python scripts/todo_tool.py check the-skill-names-commands-that-moved-to-
 
 ## Task 6: The stage list, as data
 
+**Landed:** `76acaae` -- `src/comment_review/desk/stages.py` and `tests/test_stages.py`.
+
 **Delivers:** T2.1. **Works** `the-flow-assumes-every-role-reads-at-once` T1.
 
 **Files:**
@@ -1098,6 +1141,9 @@ uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-on
 
 ## Task 7: The binder records the root it was censused from
 
+**Landed:** `641af15` -- `bind()` requires `read_from`, the shape version is bumped to `"2"`, and
+`seed()` copies it onto the sheet.
+
 **Delivers:** T2.2. **Works** `the-flow-assumes-every-role-reads-at-once` T2.
 
 **Files:**
@@ -1152,6 +1198,9 @@ uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-on
 ---
 
 ## Task 8: Pull a revise
+
+**Landed:** `5d78c55` -- `src/comment_review/flows/revise.py` `pull()`, with `Pulled.set_by`, and
+`tests/test_revise.py`.
 
 **Delivers:** T2.3. **Works** `the-flow-assumes-every-role-reads-at-once` T3.
 
@@ -1219,6 +1268,9 @@ uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-on
 
 ## Task 9: The address-invariance gate
 
+**Landed:** `8df1281` -- `AddressesMoved` and `assert_addresses_held` at `flows/revise.py:70,190`,
+called from `pull` before it returns; `tests/test_revise_addresses.py`.
+
 **Delivers:** T2.4. **Works** `the-flow-assumes-every-role-reads-at-once` T4.
 
 **This is the whole safety argument of the design**, recorded as a claim to gate rather than a fact
@@ -1282,6 +1334,9 @@ uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-on
 
 ## Task 10: Every read for a stage resolves against that stage's root
 
+**Landed:** `88748d5` -- `--revise` threads through to `read_from` instead of a hardcoded `0`;
+`tests/test_stage_root.py`.
+
 **Delivers:** T2.5. **Works** `the-flow-assumes-every-role-reads-at-once` T5.
 
 **Files:**
@@ -1321,6 +1376,10 @@ uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-on
 ---
 
 ## Task 11: `differences.py`, and the `taken_in` command
+
+**Landed:** `ccd182a` -- `results/differences.py`, `commands/taken_in.py`, registered in
+`__main__.COMMANDS`, with `tests/test_differences.py` and `tests/test_taken_in.py`.
+! Step 2 stays open by its own account; it records a red-green order that was not run.
 
 **Delivers:** T5.2 and T2.6. **Works** `the-flow-assumes-every-role-reads-at-once` T6.
 
@@ -1389,6 +1448,9 @@ uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-on
 
 ## Task 12: The last revise is the 7a draft
 
+**Landed:** `ee59b6d` -- `commands/proof.py` routes through `revise.pull`; `revise.py` is the only
+caller of `proof_setter.run` in `src/`, which `tests/test_no_second_draft_path.py` gates.
+
 **Delivers:** T2.7. **Works** `the-flow-assumes-every-role-reads-at-once` T7.
 
 **Files:**
@@ -1427,7 +1489,27 @@ uv run python scripts/todo_tool.py check the-flow-assumes-every-role-reads-at-on
 **Delivers:** G1, G2 and G4 **for the P1/P2 scope only**. G3, G5 and G6 stay open -- they are
 release gates over the whole `P` plan, and P3-P6 have not been written.
 
-- [ ] **Step 1: Every gate**
+!! **SUPERSEDED WHOLE, 2026-09-02 audit: THE BOXES THIS TASK TICKS NO LONGER EXIST.** On 2026-09-01
+(`360b14a`) Roy ruled that two plans held the revise step -- *"we supersede them in both locations
+and recreate them here as owned here"* -- and `docs/plans/0.2.4-the-mark-and-the-collator.md` was
+rewritten through the tool. Its 67 old boxes, `T1.1`-`T1.14`, `T2.1`-`T2.7`, `T5.2` and `G1`-`G6`,
+moved to [`docs/plans/completed/0.2.4-the-mark-and-the-collator-SUPERSEDED.md`](../../plans/completed/0.2.4-the-mark-and-the-collator-SUPERSEDED.md),
+whose own header states **"Nothing here is being tracked any more"**. The live plan's steps are
+`P1`-`P21` and no `G` box is among them.
+
+! **SO EVERY STEP BELOW NAMES A TARGET THAT IS GONE**, not work that is pending: Step 2 greps a file
+whose `T1`/`T2` boxes were retired, Step 3 reads a checkbox map against a plan that renumbered, and
+Step 4 ticks `G1`, `G2` and `G4`, which are `[ ]` in an untracked record on purpose. **An unticked
+box asserts work remains; these four assert work that cannot be done and would not be wanted.**
+
+! **WHAT WAS ACTUALLY VERIFIED, so the supersession is not a way of skipping a gate:** every ticked
+task's own gate was re-run on 2026-09-02 -- `tests/test_mark_brief.py`, `tests/gates/test_mark_shape.py`,
+`test_brief_table.py`, `test_brief_states_the_rules.py`, `test_skill_commands.py`, `test_vocabulary.py`,
+`tests/test_stages.py`, `test_binder_records_its_root.py`, `test_revise.py`, `test_revise_addresses.py`,
+`test_stage_root.py`, `test_differences.py`, `test_taken_in.py`, `test_no_second_draft_path.py` --
+**106 passed**. What is superseded is the bookkeeping, not the evidence.
+
+- [-] **Step 1: Every gate**
 
 ```
 uv run ruff check .
@@ -1443,7 +1525,7 @@ claude plugin validate plugins/comment-review
 **Order matters:** `check_shipped_syntax.py` runs AFTER `ruff format`, because the formatter is
 what rewrites source.
 
-- [ ] **Step 2: Prove no box in scope is left unticked**
+- [-] **Step 2: Prove no box in scope is left unticked**
 
 ```
 uv run python scripts/todo_tool.py resync
@@ -1453,15 +1535,15 @@ uv run python scripts/todo_tool.py list --owner backend
 Then `Grep` `docs/plans/0.2.4-the-mark-and-the-collator.md` for `- [ ] **P1` and `- [ ] **P2` --
 both must return nothing. An unticked box asserts the work remains.
 
-- [ ] **Step 3: Prove the SP and the P plan agree**
+- [-] **Step 3: Prove the SP and the P plan agree**
 
 Read the checkbox map at the top of this file. For each row, confirm the `P` box is `[x]` and the
 named `T` tasks are `[x]`. A row whose `P` is ticked and whose `T` is not means a plan closed over
 a backlog entry that still claims the work is open.
 
-- [ ] **Step 4: Tick G1, G2 and G4**, and add a dated note to
+- [-] **Step 4: Tick G1, G2 and G4**, and add a dated note to
 `docs/plans/0.2.4-the-mark-and-the-collator.md` saying G3, G5 and G6 wait on the P3-P6 SP.
 
-- [ ] **Step 5: Commit**
+- [-] **Step 5: Commit**
 
 Write the message to a file; `git add -A && git commit -F <file>`.

@@ -2,6 +2,17 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+!! **THIS PLAN IS FINISHED. Audited 2026-09-02; every box was open and 41 of 43 had
+landed.** It shipped as release **0.1.2** on 2026-08-15 -- branch
+`feat/angle-scope-rename`, merged at `a3c200a`, recorded in `CHANGELOG.md` at
+`c76f238`. Each task below carries the commit that delivered it. Nothing was ticked at the time, which is the failure
+`CLAUDE.md` names: superpowers authors the boxes and never closes them.
+
+! **Its VOCABULARY has since been overtaken and its boxes are not re-openable by that.**
+`angle` is retired (`e09c53d`), `verdict` is struck for `instruction` (`3e47286`), the
+level ladder Task 7 edited was removed entirely (`f1b20d7`), and `reanchor` and `split`
+collapsed into `move` (`94983c8`, `8dacb0a`). The work landed; the artifacts moved on.
+
 **Goal:** Rename the four reviewer angles to name the scope each one checks, and close the
 gaps between what `README.md` says each angle checks and what its agent file actually does.
 
@@ -57,6 +68,14 @@ the reason for tasks 3-6.
 
 ## Task 1: Rename the four angles
 
+**Landed:** `753d0bc` -- the four agent files renamed with `git mv` (rename detection
+confirms history followed), each frontmatter `name:` and body opener changed, 16 files
+updated including `verdicts.py`, `census.py`, `run_context.py`, `plugin.json`,
+`docs/parsing.md` and the two test files. `git grep -i` for the four old names at that
+commit returns nothing outside `corpora/`, `evidence/` and `docs/superpowers/plans/`.
+`3e68b44` carried the pre-flight defects. ! `evals/discriminators.md` is named in the
+file list and exists at no commit in this repo's history.
+
 **Why:** The names describe the classification's origin rather than what each angle checks.
 The new names state the scope, which makes the series and its ordering visible.
 
@@ -81,7 +100,7 @@ top-level docs that names an angle, and it names it in caps mid-sentence.
 - Produces: agent IDs `comment-review:comment-review-{ownership,block,function,module}-context`.
   Task 7 wires the level table to these; Task 8 documents them.
 
-- [ ] **Step 1: Rename the files with git so history follows**
+- [x] **Step 1: Rename the files with git so history follows**
 
 ```bash
 cd plugins/comment-review/agents
@@ -91,7 +110,7 @@ git mv comment-review-functionality.md comment-review-function-context.md
 git mv comment-review-module-coherence.md comment-review-module-context.md
 ```
 
-- [ ] **Step 2: Update each agent's frontmatter `name:` to match its filename stem**
+- [x] **Step 2: Update each agent's frontmatter `name:` to match its filename stem**
 
 The `name:` must equal the filename stem or the agent will not resolve. In each file set:
 
@@ -102,7 +121,7 @@ name: comment-review-function-context
 name: comment-review-module-context
 ```
 
-- [ ] **Step 3: Update the first line of each agent body**
+- [x] **Step 3: Update the first line of each agent body**
 
 Each begins `You are the LOCALITY reviewer for a comment review.` and so on. Change to:
 
@@ -113,7 +132,7 @@ You are the FUNCTION-CONTEXT reviewer for a comment review. You are READ-ONLY.
 You are the MODULE-CONTEXT reviewer for a comment review. You are READ-ONLY.
 ```
 
-- [ ] **Step 4: Replace every remaining reference across the repo**
+- [x] **Step 4: Replace every remaining reference across the repo**
 
 Locate by content, not line number. The old words appear ~101 times across 13 files. Work
 file by file and read each hit in context -- several are English rather than the angle name
@@ -134,7 +153,7 @@ would rewrite the reasoning to match its own outcome. Measured now, before the r
 occurrences repo-wide, 127 once the plans are excluded** -- so 66 of them are plan text you
 must not touch. Work only on the 127.
 
-- [ ] **Step 5: Verify no survivors**
+- [x] **Step 5: Verify no survivors**
 
 ```bash
 grep -rn -i "currency\|functionality\|module-coherence\|modularity\|locality" \
@@ -144,7 +163,7 @@ grep -rn -i "currency\|functionality\|module-coherence\|modularity\|locality" \
 Expected: **no output.** (`docs/superpowers/plans/` holds this plan and the previous one and
 is excluded -- those are historical records, not live rules.)
 
-- [ ] **Step 6: Verify the suite and gate**
+- [x] **Step 6: Verify the suite and gate**
 
 ```bash
 python -m unittest discover -s tests -v
@@ -153,7 +172,7 @@ ruff check . && ruff format . && python scripts/check_shipped_syntax.py
 Expected: 167 passing, gate clean. `tests/test_verdicts.py` asserts on angle names, so a
 missed rename fails here.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add -A
@@ -174,6 +193,9 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 ## Task 2: Define `truthy`, and split the duplication rule
 
+**Landed:** `9dc1874` -- 23 lines added to `reviewer-brief.md`: the `truthy` definition
+and the `One claim, several sites -- who owns it` table.
+
 **Why:** Two vocabulary problems block tasks 3-6. `truthy` is about to carry weight in two
 angles and appears **zero times** in the plugin today -- measured. And "the same rule stated in
 several places" is currently owned entirely by module-coherence, while Ownership-context is
@@ -182,7 +204,7 @@ gaining a duplicates-across-the-codebase check. Both angles would own it and dri
 **Files:**
 - Modify: `plugins/comment-review/skills/comment-review/references/reviewer-brief.md`
 
-- [ ] **Step 1: Define `truthy` once, in the brief**
+- [x] **Step 1: Define `truthy` once, in the brief**
 
 The brief already holds the shared vocabulary (the nine verdicts, the acquittal list). Add
 `truthy` beside them:
@@ -198,7 +220,7 @@ attached to -- a subject, a referent, and a claim that some line, symbol or run 
 there is nothing to correct it against -- it is `drop` or `query`.
 ```
 
-- [ ] **Step 2: Write the duplication split, in the brief, where both angles read it**
+- [x] **Step 2: Write the duplication split, in the brief, where both angles read it**
 
 ```markdown
 ### One claim, several sites -- who owns it
@@ -216,7 +238,7 @@ they draw different conclusions. The split is fixed:
 emit the other's verdict.
 ```
 
-- [ ] **Step 3: Verify and commit**
+- [x] **Step 3: Verify and commit**
 
 ```bash
 python -m unittest discover -s tests && ruff check .
@@ -238,6 +260,12 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 ## Task 3: Ownership-context -- the checks that make it the dispatcher
 
+**Landed:** `0cac2b9` -- the assessability handoff, the claim-home check and
+`Is it load-bearing where it sits`, 38 insertions against 23 deletions (the
+`prose about something ELSE` section was folded into the new material, which is the
+budget payment step 4 asked for). `785dd56` then cut the argument-for-the-rule clause
+in `Formatting`.
+
 **Why:** `README.md` gives this angle three sub-bullets, and the agent implements placement
 only. It is also gaining the two checks that make it prior to the other three: whether a claim
 is stated in several places, and whether the claim is even assessable where it sits.
@@ -245,7 +273,7 @@ is stated in several places, and whether the claim is even assessable where it s
 **Files:**
 - Modify: `plugins/comment-review/agents/comment-review-ownership-context.md` (81 lines; at budget)
 
-- [ ] **Step 1: Add the assessability handoff, directly after "Your question"**
+- [x] **Step 1: Add the assessability handoff, directly after "Your question"**
 
 ```markdown
 ## !! You run BEFORE the other three, and this is why
@@ -267,7 +295,7 @@ So for every block ask, in this order:
 scope. You rule on whether truth is assessable here at all.
 ```
 
-- [ ] **Step 2: Add the duplication check**
+- [x] **Step 2: Add the duplication check**
 
 ```markdown
 ## A claim stated at several sites has ONE home
@@ -281,7 +309,7 @@ You decide where a claim lives; that angle decides whether the CODE is missing a
 hold it. If the copies exist because no function owns the rule, it is theirs, not yours.
 ```
 
-- [ ] **Step 3: Add load-bearing, replacing nothing -- it belongs here**
+- [x] **Step 3: Add load-bearing, replacing nothing -- it belongs here**
 
 ```markdown
 ## Is it load-bearing where it sits
@@ -291,7 +319,7 @@ without it. A block that would be equally useful anywhere in the file is not anc
 anything, and its home is the declaration it actually constrains.
 ```
 
-- [ ] **Step 4: Pay the budget**
+- [x] **Step 4: Pay the budget**
 
 The file is at budget. Read it whole and apply `docs/limitations.md`'s rule: if two rules are
 instances of one generalization, write the generalization and delete both. Candidate: the five
@@ -299,7 +327,7 @@ instances of one generalization, write the generalization and delete both. Candi
 narrates what came before is a block whose claim is not truthy where it sits. Report what you
 merged or replaced, and why, in your report.
 
-- [ ] **Step 5: Verify and commit**
+- [x] **Step 5: Verify and commit**
 
 ```bash
 python -m unittest discover -s tests && ruff check .
@@ -317,6 +345,11 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 ## Task 4: Block-context -- constraints and worked examples
 
+**Landed:** `b64f920` -- the widened question, the constraint section and the
+worked-example section; four argument-for-the-rule paragraphs deleted for them
+(79 -> 98 lines). `d144c41` cut two more (-> 94). ! The budget was paid in prose but
+not in size: the file is 15 lines larger than before the task.
+
 **Why:** `README.md` asks only "does it state what the code is doing now", but the angle's real
 job is every claim checkable at block scope. Today it owns tense, obituaries and counts;
 constraint accuracy is owned by nobody, and worked examples get one line.
@@ -324,7 +357,7 @@ constraint accuracy is owned by nobody, and worked examples get one line.
 **Files:**
 - Modify: `plugins/comment-review/agents/comment-review-block-context.md` (79 lines)
 
-- [ ] **Step 1: Widen the angle's question**
+- [x] **Step 1: Widen the angle's question**
 
 Replace `**Your question: does this describe the program as it is NOW?**` with:
 
@@ -340,7 +373,7 @@ Three kinds of claim, and all three are yours:
 - **Worked example** -- does the example still produce what it claims. Run it.
 ```
 
-- [ ] **Step 2: Add the constraint check**
+- [x] **Step 2: Add the constraint check**
 
 ```markdown
 ## A constraint is checked against the code that enforces it
@@ -353,7 +386,7 @@ Find the line that enforces the bound and compare four things: the VALUE, the DI
 a stated bound against the comparison that implements it, so a wrong `>=` survives every pass.
 ```
 
-- [ ] **Step 3: Promote the worked-example rule to a section**
+- [x] **Step 3: Promote the worked-example rule to a section**
 
 The current single line is `A worked example is current or it is a lie. Run it.` Replace with:
 
@@ -368,7 +401,7 @@ state from another machine -- it is `query`, not `clean`.** An example nobody ca
 indistinguishable from one that works.
 ```
 
-- [ ] **Step 4: Pay the budget, verify, commit**
+- [x] **Step 4: Pay the budget, verify, commit**
 
 Apply `docs/limitations.md`'s budget rule as in Task 3, and report what you replaced.
 
@@ -388,6 +421,11 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 ## Task 5: Function-context -- one function, and comment order
 
+**Landed:** `72aefcc` -- the one-function and comment-order checks, and the whole
+`abs()` treatment (the bullet, both ! paragraphs and the 11-calls/1-finding sweep)
+deleted and replaced by the seven-line generalization step 3 specifies.
+114 -> 120 lines.
+
 **Why:** Two `README.md` sub-bullets are unimplemented, confirmed by grep: *"Is this one
 function with an appropriate name or is it more than one function"* and *"Are the comments in
 the function in the correct order."*
@@ -395,7 +433,7 @@ the function in the correct order."*
 **Files:**
 - Modify: `plugins/comment-review/agents/comment-review-function-context.md` (114 lines -- the largest, firmly at budget)
 
-- [ ] **Step 1: Add the one-function check**
+- [x] **Step 1: Add the one-function check**
 
 ```markdown
 ## Does the documentation describe ONE function
@@ -408,7 +446,7 @@ summarise; the code finding is that the function should split.
 behaviour change and is not yours.
 ```
 
-- [ ] **Step 2: Add the comment-order check**
+- [x] **Step 2: Add the comment-order check**
 
 ```markdown
 ## Comments in the body are read IN ORDER
@@ -418,7 +456,7 @@ still describes a step an edit moved above it, is `reanchor` -- the claim is tru
 to a different line in this function.
 ```
 
-- [ ] **Step 3: Pay the budget -- replace the `abs()` material with its generalization**
+- [x] **Step 3: Pay the budget -- replace the `abs()` material with its generalization**
 
 At 114 lines this is the largest agent and the budget rule bites hardest here. The `abs()`
 material runs to roughly twenty lines and most of it is one repository's story: a sweep of 11
@@ -448,7 +486,7 @@ decided nowhere, that is.
 Seven lines replacing about twenty, and nothing in it is about one language or one repo.
 Report the exact line count before and after in your report.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 ```bash
 python -m unittest discover -s tests && ruff check .
@@ -471,6 +509,12 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 ## Task 6: Module-context -- cover the exposed surface
 
+**Landed:** `e77fe99` -- `The module's own surface is a CHECKLIST`,
+`Module-level state is documented or it is a trap`, and the cross-reference ceding the
+placement half (the `establish the owner BEFORE trimming` paragraph went for it).
+! 24 insertions against 4 deletions: 96 -> 116 lines, so the budget was paid only in
+part.
+
 **Why:** The biggest measured gap. `README.md` requires *"Does it cover all of the functions
 and constants that the module exposes"* and *"Does the documentation support what the module's
 state uses are"*; grep confirms the agent checks neither.
@@ -478,7 +522,7 @@ state uses are"*; grep confirms the agent checks neither.
 **Files:**
 - Modify: `plugins/comment-review/agents/comment-review-module-context.md` (96 lines)
 
-- [ ] **Step 1: Add the coverage checklist**
+- [x] **Step 1: Add the coverage checklist**
 
 The agent already holds the rule that a universal is a checklist. This applies it to the
 module's own surface:
@@ -500,7 +544,7 @@ finding.
 tell why it exists -- a paragraph naming the module's one job can cover several names at once.
 ```
 
-- [ ] **Step 2: Add the module-state check**
+- [x] **Step 2: Add the module-state check**
 
 ```markdown
 ## Module-level state is documented or it is a trap
@@ -510,7 +554,7 @@ what depends on it having been written. Import-order dependencies and caches are
 that break silently -- an undocumented one is `add`, not `clean`.
 ```
 
-- [ ] **Step 3: Cede the ownership half of the restatement rule**
+- [x] **Step 3: Cede the ownership half of the restatement rule**
 
 The existing "rule stated in several places" section keeps its conclusion (the rule has no
 owning function; name that function) and gives up the placement half. Add the cross-reference:
@@ -520,7 +564,7 @@ owning function; name that function) and gives up the placement half. Add the cr
 function owns the rule, it is `ownership-context`'s** -- the split is in `reviewer-brief.md`.
 ```
 
-- [ ] **Step 4: Pay the budget, verify, commit**
+- [x] **Step 4: Pay the budget, verify, commit**
 
 ```bash
 python -m unittest discover -s tests && ruff check .
@@ -538,6 +582,18 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 ## Task 7: Put Ownership-context in `fact-check`
 
+**Landed:** `3518be3` -- `ownership-context` added to the `fact-check` row, the
+`line` row reduced to verdicts, the two rationale paragraphs beneath the table, and
+the `--angles` list at `fact-check` widened to three. `67d49b3` followed on
+`reanchor`'s level dependency.
+
+!! **DELIVERED, THEN REMOVED WHOLESALE at `f1b20d7` (2026-08-16), one day later.**
+Roy: *"I am 100% certain there are not 'levels' allowed anymore."* The level ladder,
+`proof` row included, has no provenance and was invented during the 2026-08-14 port;
+all four roles now run every time and every instruction is admissible on every run.
+The boxes stay `[x]` because the work landed and was committed -- what is gone is the
+artifact, not the act.
+
 **Why:** The level ladder runs `block-context` and `function-context` at `fact-check` without
 `ownership-context`. Those two check a claim against its scope; without the angle that decides
 whether the claim is attached to the right scope, a misplaced comment is measured against the
@@ -548,7 +604,7 @@ the claim may not belong here, which is what `query` is for.
 **Files:**
 - Modify: `plugins/comment-review/skills/comment-review/SKILL.md` (the level table and the paragraph beneath it)
 
-- [ ] **Step 1: Change the level table**
+- [x] **Step 1: Change the level table**
 
 ```markdown
 | level | angles | verdicts available |
@@ -565,7 +621,7 @@ holding its placement findings as `query`. Reaching `line` is what lets those be
 `reanchor` and `split`. Keep the `proof` row exactly as it stands today -- copy it across
 unchanged.
 
-- [ ] **Step 2: State why, immediately beneath the table**
+- [x] **Step 2: State why, immediately beneath the table**
 
 ```markdown
 !! **`ownership-context` runs at every level, including `fact-check`.** The other three check
@@ -575,13 +631,13 @@ against the wrong code and `correct`ed into a falsehood. At `fact-check` it cann
 sits.
 ```
 
-- [ ] **Step 3: Update the `--angles` invocation**
+- [x] **Step 3: Update the `--angles` invocation**
 
 `SKILL.md` and `CLAUDE.md` both carry `--angles locality,currency,functionality,module-coherence`.
 Both become the four new names. Confirm the `fact-check` guidance names three angles, not two,
 wherever the level is described.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 ```bash
 python -m unittest discover -s tests && ruff check .
@@ -600,6 +656,13 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 ## Task 8: Sync the spec and the vocabulary
 
+**Landed:** `e38343e` -- README's four criteria rewritten (76 lines) with the
+placement dependency stated in the opening sentence, `CLAUDE.md`'s `clean` reservation
+carrying the four new per-angle meanings, and all four agents' frontmatter
+`description:` fields. `git grep -i` for the old names at that commit returns nothing
+live. `ff15bf2` and `2a5c91c` closed the fix-round Minors. The plan shipped as **0.1.2**
+(`c76f238`), merged at `a3c200a`.
+
 **Why:** `README.md`'s "## What" section is the specification tasks 3-6 implement, and it still
 lists the old names and the old sub-bullets. `CLAUDE.md`'s `clean` reservation names all four
 angles' per-angle meanings and every one is now wrong.
@@ -610,14 +673,14 @@ angles' per-angle meanings and every one is now wrong.
 - Modify: `plugins/comment-review/.claude-plugin/plugin.json` (description names the angles)
 - Modify: `evals/discriminators.md` (references angles)
 
-- [ ] **Step 1: Rewrite `README.md`'s four criteria to match what the agents now check**
+- [x] **Step 1: Rewrite `README.md`'s four criteria to match what the agents now check**
 
 Each criterion's sub-bullets must be a check some agent performs. Where tasks 3-6 added a
 check, the bullet stays; where a bullet was dropped as out of budget, remove it rather than
 leave the README claiming it. **State the dependency**: ownership-context resolves placement
 first because the other three measure a claim against the code at their scope.
 
-- [ ] **Step 2: Rewrite `CLAUDE.md`'s `clean` reservation**
+- [x] **Step 2: Rewrite `CLAUDE.md`'s `clean` reservation**
 
 The four per-angle meanings become:
 
@@ -632,7 +695,7 @@ module-context: the module documentation accounts for what the module exposes an
 set of ideas.
 ```
 
-- [ ] **Step 3: Verify no stale angle name survives anywhere live**
+- [x] **Step 3: Verify no stale angle name survives anywhere live**
 
 ```bash
 grep -rn -i "currency\|functionality\|module-coherence\|modularity\|locality" \
@@ -641,7 +704,7 @@ grep -rn -i "currency\|functionality\|module-coherence\|modularity\|locality" \
 ```
 Expected: no output.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 ```bash
 python -m unittest discover -s tests -v
@@ -659,6 +722,11 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ---
 
 ## Task 9: Define what each angle's `clean` asserts
+
+**Landed:** `08e0212` -- the `clean`-is-reachable-by-not-deciding note and the reframed
+`query` paragraph in `reviewer-brief.md`, plus a "What your `clean` asserts" section
+in each of the four agents. `2d72eaa` then dropped function-context's stale query
+clause.
 
 **Why:** `clean` is the only verdict reachable by **not deciding**. The other eight are actions
 (`drop`, `correct`, `patch`, `add`, `move`, `reanchor`, `split`) or an explicit statement that
@@ -686,7 +754,7 @@ something -- it certifies the block.
 - Modify: `plugins/comment-review/skills/comment-review/references/reviewer-brief.md`
 - Modify: all four `plugins/comment-review/agents/comment-review-*-context.md`
 
-- [ ] **Step 1: Fix the two verdicts that change no text -- in the brief, where shared facts belong**
+- [x] **Step 1: Fix the two verdicts that change no text -- in the brief, where shared facts belong**
 
 `clean` and `query` are the pair that leave the prose untouched. One certifies the block, the
 other escalates it. Getting `query` wrong pushes reviewers into `clean`, so both are fixed here.
@@ -735,7 +803,7 @@ Three shapes reach it, and all three are findings rather than admissions:
 and no `QUOTE` by construction, and must not be downgraded to `clean` to escape the gate. It is
 already correct and it is what the gate enforces.
 
-- [ ] **Step 2: `ownership-context` -- state its assertion**
+- [x] **Step 2: `ownership-context` -- state its assertion**
 
 ```markdown
 ## What your `clean` asserts
@@ -746,7 +814,7 @@ decide worse without it. A block whose sentences belong to different code is `sp
 `clean`.
 ```
 
-- [ ] **Step 3: `block-context` -- state its assertion**
+- [x] **Step 3: `block-context` -- state its assertion**
 
 ```markdown
 ## What your `clean` asserts
@@ -757,7 +825,7 @@ example, run. A block holding one true sentence and one false one is not `clean`
 sentence is `correct`, the true one is `clean`. Two sentences, two verdicts.
 ```
 
-- [ ] **Step 4: `function-context` -- state its assertion**
+- [x] **Step 4: `function-context` -- state its assertion**
 
 This file mentions the verdict nowhere; it gains the section outright.
 
@@ -769,7 +837,7 @@ that nothing the signature cannot express is missing from the prose.** A docstri
 but did not check against the body is `query`.
 ```
 
-- [ ] **Step 5: `module-context` -- add the positive assertion to what it already has**
+- [x] **Step 5: `module-context` -- add the positive assertion to what it already has**
 
 This file already tells a reviewer to return `clean` naming "outside my angle" rather than
 invent a word. That is the *scope* case. It is missing the *checked* case:
@@ -783,7 +851,7 @@ is outside your angle is a different statement, and must name that reason.
 Place it inside the existing acquittal-rate section so the two readings of `clean` sit
 together, rather than adding a competing section.
 
-- [ ] **Step 6: Verify and commit**
+- [x] **Step 6: Verify and commit**
 
 ```bash
 python -m unittest discover -s tests -v
@@ -815,11 +883,22 @@ The angles changed what they check, so any finding rate taken before this is not
 the same discipline the corpus manifest applies to refs, and the same marking `README.md`
 already carries for the pre-hardening instrument.
 
-- [ ] Re-run `python evals/grade_hazards.py <worktree>` against the twelve planted hazards.
+!! **BOTH BOXES ARE SUPERSEDED, not done.** `evals/grade_hazards.py` and the twelve
+planted hazards exist at NO commit in this repository -- `git log --all --
+evals/grade_hazards.py` is empty, and `b196f88`, the commit whose message announces
+*"planted hazards, a grader, and the authorship split"*, added `generator_split.py`
+alone. They were tied to a corpus this repo cannot ship. There is therefore no
+end-to-end grade to re-run and no results file to annotate; rebuilding one is
+[`TODO/the-harness-cannot-run-the-system-it-grades.md`](../../../TODO/the-harness-cannot-run-the-system-it-grades.md).
+! The instrument these two boxes would measure has also moved: `angle` is retired,
+the level ladder is gone (`f1b20d7`), and `verdict` is struck for `instruction`
+(`3e47286`).
+
+- [-] Re-run `python evals/grade_hazards.py <worktree>` against the twelve planted hazards.
       **Expect D7 and D12 to move**: D7 is a module single-source overclaim (module-context's
       new surface walk should reach it) and D12 is an orphaned block (ownership-context's
       assessability check should now name it rather than leaving it to a reviewer's reading).
-- [ ] Note in the results that the instrument changed between measurements.
+- [-] Note in the results that the instrument changed between measurements.
 
 ---
 

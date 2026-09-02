@@ -27,6 +27,24 @@ into a run-scoped topology file.
 **Not in this plan:** T5.3 and P6. Both read reconciliation's output, which does not exist until
 Task 12 lands. They get their own plan.
 
+## !! AUDITED 2026-09-02 -- THIS PLAN IS FINISHED
+
+**67 boxes: 66 `[x]`, 1 `[-]`.** Every task's work commit is named in a `**Landed:**` line under
+its heading, and every one of those is reachable from `HEAD` (`git merge-base --is-ancestor`).
+The 13 tick commits run `1796e16` .. `0735dc6` and each follows its work commit, which is the
+two-commit rule below holding for the whole plan.
+
+! **THE `**Landed:**` LINES WERE ADDED BY THE AUDIT, NOT BY THE IMPLEMENTERS.** Every box was
+ticked in its own commit as the rule requires, but no task NAMED the commit that finished it --
+so a reader had to reconstruct the mapping from `git log` to check any tick. That is the half of
+the rule this plan dropped: a tick is re-derivable by a stranger only if it cites its sha.
+
+!! **THREE DELIVERABLES LANDED AND WERE LATER REMOVED, AND THEIR BOXES STAY `[x]`.**
+`problems_in` and `unruled` (Task 2) were deleted at `P52`; `desk.collator.docket_from` (Task 12)
+left the desk at `P55`; `flows/marks.py` (Tasks 1-3) is `flows/distribute.py` since `6187f71`.
+**A box asserts the work was DONE, not that today's tree still holds it** -- each is noted at its
+own task, so nobody reads a tick as a claim about the current tree.
+
 ## Global Constraints
 
 - **Everything through `uv run`.** Python 3.11 is the floor `plugins/` ships against.
@@ -115,6 +133,15 @@ collator's two steps, and this is the second.
 - Produces: `seed(binder: dict, role: str) -> dict` returning
   `{"role": str, "read_from": dict, "sheets": [{"path": str, "sha": str, "marks": [...]}]}`.
   Each mark keeps today's keys -- `address`, `anchor`, `raw_text`, `mark`.
+
+**Landed:** `6d5392a` -- `seed()` stops calling `rows_of` and nests marks under one sheet per page,
+each carrying that page's `sha`. Step 5 landed as the WEAKER checkable claim the box permits, and
+`test_no_module_outside_binder_imports_read_and_mentions_sha_in_one_file` states which claim it
+makes. Ticked in `1796e16`.
+
+! **AUDIT 2026-09-02: `flows/marks.py` and `tests/test_marks_flow.py` NO LONGER EXIST.** `seed`
+is `flows/distribute.py:44` since the `mark` command was renamed `distribute` (`6187f71`,
+`docs/vocabulary.md:54`). Landed, then MOVED -- the box stays `[x]`.
 
 - [x] **Step 1: Write the failing test**
 
@@ -207,6 +234,13 @@ Commit with `-F`.
 only the shape they walk. If a test needs its ASSERTION edited rather than its FIXTURE, stop: that
 means behaviour changed and this task did not intend it.
 
+**Landed:** `d25203f` -- `problems_in`, `unruled` and `verify_report` walk `report["sheets"]`;
+`1fd83d4` took the same walk to `tally`. Ticked in `43e1a59`.
+
+! **AUDIT 2026-09-02: `problems_in` AND `unruled` WERE DELETED AT `P52`** -- `desk/collator.py:475`
+says so, and `flows/mark_errors.py` answers what a role still owes. Landed, then REMOVED; the box
+stays `[x]`. `verify_report` is live at `desk/collator.py:380`.
+
 - [x] **Step 1: Write the failing test**
 
 ```python
@@ -274,6 +308,11 @@ Commit with `-F`.
 ! **A ONE-FOR-ONE SUBSTITUTION IN ANOTHER LANE'S FILE IS ALLOWED** when the change forces it --
 `docs/conventions.md`. What may NOT change is what the instruction MEANS. If a sentence would make an
 agent do something different, stop and say so.
+
+**Landed:** `eccdbdc` -- `docs/vocabulary.md` gains the four-container table (line 154) and the
+`master proof` row stops reading *"unnamed"* (line 89). `ab79100` corrected this task's premise:
+`SKILL.md`'s 11 uses of `sheet` are all the STYLE SHEET, so **no agent-facing file needed
+renaming** and neither `SKILL.md` nor `reviewer-brief.md` was touched. Ticked in `0e48196`.
 
 - [x] **Step 1: Write the failing test**
 
@@ -343,6 +382,10 @@ Commit with `-F`.
 - Produces: `gather(stage: str, edit_copies: list[dict]) -> dict` returning
   `{"stage": str, "read_from": dict, "edit_copies": [...]}`, and
   `MismatchedRoot(Exception)`.
+
+**Landed:** `85254e0` -- `src/comment_review/desk/proof.py` with `gather` and `MismatchedRoot`,
+plus `tests/test_master_proof.py`. Both still stand: `desk/proof.py:26` and `:42`. Ticked in
+`981e29d`.
 
 - [x] **Step 1: Write the failing test**
 
@@ -432,6 +475,10 @@ Commit with `-F`.
 ! **THE THREE FIXTURES ARE THE SPEC'S OWN TOPOLOGIES**, copied from its section 2. They are INPUTS,
 and the expectation is the spec's prose.
 
+**Landed:** `8c06787` -- `src/comment_review/desk/topology.py`, `tests/test_topology.py`, and the
+three spec fixtures under `tests/fixtures/topologies/`. All four files still stand. Ticked in
+`8eb4761`.
+
 - [x] **Step 1: Write the failing test**
 
 ```python
@@ -507,6 +554,10 @@ Commit with `-F`.
 
 **Interfaces:**
 - Consumes: Task 5's `read`.
+
+**Landed:** `4c6ec86` -- the three refusals (forward reference, an enriching stage named in
+`reads`, a non-empty `carries`) with 31 lines of new cases in `tests/test_topology.py`. Ticked in
+`454727f`.
 
 - [x] **Step 1: Write the failing test**
 
@@ -593,6 +644,15 @@ Commit with `-F`.
 !! **A RUN'S TOPOLOGY MUST NOT DECIDE WHICH ROLE NAMES ARE VALID.** `commands/mark.py` draws
 `--role`'s `choices=` from `STAGES` today (T1.16, 2026-08-28). It moves to `Role`.
 
+**Landed in TWO halves.** `68d8d30` (7a) added `Role(StrEnum)` and `ROLES` and repointed the CLI;
+`4a04bcb` (7b) deleted the `STAGES` literal and `Stage.roles`. Ticked in `07a97da` (Steps 1, 4, 5)
+and `38ed78b` (Steps 3, 6).
+
+! **AUDIT 2026-09-02: THE CLI FILE WAS RENAMED.** `commands/mark.py` is `commands/distribute.py`,
+and its `choices=` reads `[str(role) for role in ROLES]` at line 63 -- the box's verify text is
+met at the new path. `Kind`, `Role`, `ROLES`, `Stage` and `pulls_revise` all still stand in
+`desk/stages.py`, whose line 86 records that `STAGES` and `roles` are gone.
+
 - [x] **Step 1: Write the failing test**
 
 ```python
@@ -611,9 +671,17 @@ def test_mark_draws_its_choices_from_the_enum_not_from_a_schedule():
     assert "ROLES" in source or "Role" in source
 ```
 
-- [ ] **Step 2: Run and confirm both fail**
+- [-] **Step 2: Run and confirm both fail**
 
 Run: `uv run pytest -q tests/test_stages.py -k closed_set`
+
+! **SUPERSEDED 2026-09-02 BY THE 7a/7b SPLIT, AND IT CAN NEVER BE TICKED.** 7a (`68d8d30`) added
+the tests AFTER the implementation, so the red this step exists to observe was already gone when
+the step was reached. `38ed78b`'s own message says so: *"Step 2 stays unticked: its command now
+passes rather than fails, since 7a already delivered the Role/mark.py half this step meant to
+confirm as failing pre-implementation."* ! It is marked `[-]` rather than left `[ ]` because an
+open box asserts work REMAINS, and none does -- the deliverable was overtaken, not deferred. The
+plan's own rule *"ONLY TICK WHAT YOU RAN"* is why it was never ticked, and that was correct.
 
 - [x] **Step 3: Add `Role`, delete the `STAGES` literal, repoint `mark.py`**
 
@@ -663,6 +731,11 @@ Commit with `-F`.
 - Consumes: Task 5's `Stage` and `Dispatch`; Task 1's `seed`.
 - Produces: `fan(binder: dict, stage: Stage) -> list[dict]` -- one `edit_copy` per dispatch, in the
   stage's own dispatch order. `OverlappingShards(Exception)` and `UncoveredPage(Exception)`.
+
+**Landed:** `7bc0d04` -- `src/comment_review/flows/fan_out.py` with `fan`, `OverlappingShards` and
+`UncoveredPage`, plus `tests/test_fan_out.py`; `12f3a13` replaced a doctored quotation in it with
+a citation. All three symbols still stand (`flows/fan_out.py:48`, `:52`, `:65`). Ticked in
+`4737014`.
 
 - [x] **Step 1: Write the failing test**
 
@@ -744,6 +817,10 @@ Commit with `-F`.
 - Produces: `places(proof: dict) -> dict[str, list[dict]]` -- address -> the marks touching it, each
   carrying the role that made it under the key `role`.
 
+**Landed:** `4b91452` -- `places()` in `desk/collator.py`, with `tests/helpers.py` (151 lines of
+mark builders) and `tests/test_reconcile.py`. `places` stands at `desk/collator.py:591` and
+`_touches` at `:543`. Ticked in `1c2e28b`.
+
 - [x] **Step 1: Write the failing test**
 
 ```python
@@ -813,6 +890,11 @@ Commit with `-F`.
 
 !! **THE PASS LIST IS ALREADY A COLUMN.** `owes_change` is False for exactly `clean` and `query`.
 Read it from `INSTRUCTIONS`; do not retype the two names.
+
+**Landed:** `4674811` -- `reconcile()` and `Reconciled`, plus `_owes_change` and `_sentence_key`.
+`733cf98` recorded afterwards that T4.2's own text still said MERGE while `Process: #49` had
+replaced it. All four symbols stand (`desk/collator.py:816`, `:623`, `:646`, `:650`). Ticked in
+`c0b7e01`.
 
 - [x] **Step 1: Write the failing test**
 
@@ -898,6 +980,10 @@ Commit with `-F`.
 
 **Interfaces:**
 - Consumes: Task 10's `reconcile`.
+
+**Landed:** `182839d` -- an `add` names every role of the stage in its re-read; `_roles_of_stage`
+stands at `desk/collator.py:665`. Ticked in `f8f923c`. ! Step 2's note below records that only
+one of the three tests actually went red, and that is the honest report the plan asked for.
 
 - [x] **Step 1: Write the failing test**
 
@@ -992,6 +1078,16 @@ Commit with `-F`.
 !! **T4.5's "settle 13 of 16" WAS MEASURED UNDER SILENT-MERGE SEMANTICS** and `Process: #49`
 invalidates it. This task RE-DERIVES the number; whatever it comes to is the new baseline. Carrying
 the old one forward beside a rule that contradicts it is the failure.
+
+**Landed:** `3232549` -- `docket_from(reconciled, proof)` in `desk/collator.py`, an optional
+`role` on `docket.py`'s schema and `Schedule`, and the re-derived measurement written beside T4.5
+in `docs/plans/0.2.4-the-mark-and-the-collator.md`: **11 settle, 0 escalate, 5 re-read of 16**,
+replacing the silent-merge-era *"13 of 16"*. Ticked in `0735dc6`.
+
+! **AUDIT 2026-09-02: `desk.collator.docket_from` IS GONE, SINCE `P55`** -- `desk/collator.py:60`
+and `tests/test_docket.py:13` both say so; the middle stopped building the write end's artifact
+in `7ae43d4`. `tests/conftest.py:153` keeps a `docket_from` for the chain's cases. Landed, then
+REMOVED; the box stays `[x]`, and the T4.5 measurement it produced is still in the release plan.
 
 - [x] **Step 1: Write the failing test**
 

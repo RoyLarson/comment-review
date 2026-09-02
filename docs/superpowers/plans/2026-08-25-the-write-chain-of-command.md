@@ -119,7 +119,7 @@ P2's boxes therefore land at Task 3, where the binder finally gives up its hash.
 `the-flow-lives-in-the-command` are each answered in PART, and a partial answer takes a note. Over-ticking
 is the failure that makes a backlog lie towards LESS work, which no gate can see.
 
-- [ ] **Final check, Task 13:** `grep -c '^- \[ \]' docs/plans/0.2.4-the-write-chain-of-command.md`
+- [x] **Final check, Task 13:** `grep -c '^- \[ \]' docs/plans/0.2.4-the-write-chain-of-command.md`
       returns **0**, and `uv run python scripts/todo_tool.py resync` reports no drift. Any box
       still open names work that was not done -- **file it in `TODO/` before this plan closes,
       or it is lost.**
@@ -160,7 +160,11 @@ is the failure that makes a backlog lie towards LESS work, which no gate can see
 - Consumes: `repo.read_raw(path) -> str`, which already exists.
 - Produces: `repo.Source(text: str, sha: str)`, `repo.sha_of(text: str) -> str`, `repo.read_source(path: Path) -> Source`.
 
-- [ ] **Step 1: Write the failing test**
+**Landed:** `ff4a706` -- `Source`, `sha_of` and `read_source` in
+`machine/repo.py`, plus `tests/test_machine.py`, which gave `machine/` its first
+test. The measured CRLF pair is in the docstring.
+
+- [x] **Step 1: Write the failing test**
 
 Create `tests/test_machine.py`:
 
@@ -214,12 +218,12 @@ def test_one_changed_byte_changes_the_sha(tmp_path):
     assert read_source(p).sha != before
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `uv run pytest tests/test_machine.py -q`
 Expected: FAIL -- `ImportError: cannot import name 'Source'`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `src/comment_review/machine/repo.py`, change the imports at the top:
 
@@ -294,17 +298,17 @@ def read_source(path: Path) -> Source:
     return Source(text, sha_of(text))
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `uv run pytest tests/test_machine.py -q`
 Expected: 5 passed.
 
-- [ ] **Step 5: Full gate**
+- [x] **Step 5: Full gate**
 
 Run: `uv run pytest -q && uv run ruff check . && uv run ty check src/comment_review/`
 Expected: 787 passed, 3 xfailed. Both checkers clean.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Write the message to a file first -- the shell eats backticks in `-m`.
 
@@ -334,7 +338,11 @@ Message body: *"machine: the read supplies the sha, because two readers disagree
 - Consumes: `repo.read_source`, `repo.sha_of` from Task 1.
 - Produces: `Page.sha: str`; `page_for(path, text, lang, rel=None, *, sha: str) -> Page`. **`sha` is keyword-only and REQUIRED** -- a default would let a caller build a page whose identity is a lie, and the chain's comparison would pass vacuously.
 
-- [ ] **Step 1: Write the failing test**
+**Landed:** `9640da9` -- `Page.sha`, `page_for(..., *, sha)` keyword-only and
+required, and five call sites repointed. `grep -c read_text` over
+`results/compositor.py` returns **0** at that commit, which is Step 8's clause.
+
+- [x] **Step 1: Write the failing test**
 
 Append to `tests/test_reading.py`:
 
@@ -362,12 +370,12 @@ class TestAPageCarriesTheShaItWasGiven:
 
 Add `from comment_review.machine.repo import sha_of` and `page_for`, `language_for`, `Path`, `pytest` to that file's imports if absent.
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `uv run pytest tests/test_reading.py -q -k Sha`
 Expected: FAIL -- `AttributeError: 'Page' object has no attribute 'sha'`.
 
-- [ ] **Step 3: Give `Page` the field**
+- [x] **Step 3: Give `Page` the field**
 
 In `src/comment_review/binder/page.py`, add to the `Attributes:` block of `Page`'s docstring, after the `text:` line:
 
@@ -391,7 +399,7 @@ And add the field between `text` and `paragraphs`:
     cues: Cues
 ```
 
-- [ ] **Step 4: Give `page_for` the parameter**
+- [x] **Step 4: Give `page_for` the parameter**
 
 Change the signature at `page.py:678`:
 
@@ -423,7 +431,7 @@ And pass it through at the `Page(` construction (`:855`):
     )
 ```
 
-- [ ] **Step 5: Update `tests/conftest.py`**
+- [x] **Step 5: Update `tests/conftest.py`**
 
 ```python
 def build(text: str, name: str = "m.py"):
@@ -442,7 +450,7 @@ def build(text: str, name: str = "m.py"):
 
 Add `from comment_review.machine.repo import sha_of` beside the existing imports.
 
-- [ ] **Step 6: Update the four production call sites**
+- [x] **Step 6: Update the four production call sites**
 
 `commands/census.py` -- replace the `read_text` at `:148` and pass the sha at `:196`:
 
@@ -480,17 +488,17 @@ Add `from comment_review.machine.repo import read_source` to each module's impor
     pg = page_mod.page_for(path, src.text, lang, rel=path.as_posix(), sha=src.sha)
 ```
 
-- [ ] **Step 7: Run the suite**
+- [x] **Step 7: Run the suite**
 
 Run: `uv run pytest -q`
 Expected: green. If any test fails with `TypeError: page_for() missing 1 required keyword-only argument`, a call site was missed -- the error names the file.
 
-- [ ] **Step 8: Prove the compositor no longer translates**
+- [x] **Step 8: Prove the compositor no longer translates**
 
 Run: `uv run pytest -q && grep -n "read_text" src/comment_review/results/compositor.py`
 Expected: tests green, and the grep returns NOTHING. That is `galley-and-compositor-write-path` T4's stated verification.
 
-- [ ] **Step 9: Full gate and commit**
+- [x] **Step 9: Full gate and commit**
 
 ```bash
 uv run ruff check . && uv run ty check src/comment_review/ && uv run python scripts/check_shipped_syntax.py
@@ -514,7 +522,11 @@ Message: *"page: a page receives its sha, and the compositor stops translating"*
 - Consumes: `Page.sha` from Task 2.
 - Produces: no signature change. `bind(pages, absent=False) -> dict` still emits `{"version", "pages": [{"path", "sha", "rows"}]}`.
 
-- [ ] **Step 1: Write the failing test**
+**Landed:** `90a5228` -- `bind` reports `page.sha`; `import hashlib` and `sha_of`
+deleted from `binder.py`. ! The orphaned `TestTheIdentityOfAPage` went separately,
+at `1cc8c4a`, which is the Global Constraint about a cut taking its tests.
+
+- [x] **Step 1: Write the failing test**
 
 Append to `tests/test_binder.py`:
 
@@ -536,12 +548,12 @@ def test_only_machine_imports_hashlib():
     assert offenders == []
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `uv run pytest tests/test_binder.py -q -k "sha or hashlib"`
 Expected: BOTH fail -- `bind` hashes `page.text`, and `binder.py` imports `hashlib`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Delete `import hashlib` from `binder.py`. Delete the whole `sha_of` function. In `bind`, change the one line:
 
@@ -558,12 +570,12 @@ Add to `bind`'s docstring, above `Args:`:
     page/binder."*
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `uv run pytest tests/test_binder.py -q`
 Expected: green.
 
-- [ ] **Step 5: Full gate and commit**
+- [x] **Step 5: Full gate and commit**
 
 Message: *"binder: the sha is reported, not taken"*.
 
@@ -582,7 +594,10 @@ Message: *"binder: the sha is reported, not taken"*.
 **Interfaces:**
 - Produces: `notations.read(text: str) -> tuple[dict[str, str | None], str]` -- `(notations, "")` when it reads, `({}, reason)` when it does not. Mirrors `binder.read`'s contract exactly, deliberately.
 
-- [ ] **Step 1: Write the failing test**
+**Landed:** `a0238d4` -- `src/comment_review/desk/notations.py` with `read()` and
+its four refusals, and 47 lines of `tests/test_notations.py`.
+
+- [x] **Step 1: Write the failing test**
 
 Create `tests/test_notations.py`:
 
@@ -636,12 +651,12 @@ def test_a_refusal_is_never_an_empty_result():
     assert got == {} and why != ""
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `uv run pytest tests/test_notations.py -q`
 Expected: FAIL -- `ModuleNotFoundError: comment_review.desk.notations`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `src/comment_review/desk/notations.py`:
 
@@ -713,12 +728,12 @@ def read(text: str) -> tuple[dict[str, str | None], str]:
 
 ! **MEASURED before this plan was written:** `machine/exceptions.py` defines `READ_ERRORS`, `TOML_ERRORS`, `TOKENIZE_ERRORS`, `PARSE_ERRORS` and `GIT_ERRORS` -- there is no `JSON_ERRORS`, and `binder.read` catches `json.JSONDecodeError` directly. **Do not add one.** The rule in Global Constraints forbids a tuple LITERAL in an `except`; a single exception class is not a tuple.
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `uv run pytest tests/test_notations.py -q`
 Expected: 9 passed.
 
-- [ ] **Step 5: Full gate and commit**
+- [x] **Step 5: Full gate and commit**
 
 Message: *"desk: the notations shape, refusing rather than coping"* -- saying in the body that it is a stand-in, quoting the ruling.
 
@@ -736,7 +751,14 @@ Message: *"desk: the notations shape, refusing rather than coping"* -- saying in
 - Consumes: `binder.rows_of(binder) -> list[dict]`, which stamps each row with `path` and `address`.
 - Produces: `notations.by_page(notations, binder) -> tuple[dict[str, dict[str, str | None]], list[str]]` -- `({path: {cue: text_or_None}}, refusals)`.
 
-- [ ] **Step 1: Write the failing test**
+**Landed:** `d53c2bd` -- `notations.by_page`, resolving an address against the
+saved binder and refusing the whole set on one miss.
+
+! **ITS BINDER VALIDATION WAS REPLACED AT `406878e`** -- *"by_page splits
+addresses without validating against the binder"* -- because only the sha and the
+path/name cross. **The box closes on what LANDED, not on what stands today.**
+
+- [x] **Step 1: Write the failing test**
 
 Append to `tests/test_notations.py`:
 
@@ -782,12 +804,12 @@ def test_ONE_bad_address_refuses_the_WHOLE_set():
     assert len(refused) == 1
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `uv run pytest tests/test_notations.py -q -k by_page`
 Expected: FAIL -- `ImportError: cannot import name 'by_page'`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Add to `notations.py`:
 
@@ -827,12 +849,12 @@ def by_page(
     return grouped, []
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `uv run pytest tests/test_notations.py -q`
 Expected: 13 passed.
 
-- [ ] **Step 5: Full gate and commit**
+- [x] **Step 5: Full gate and commit**
 
 Message: *"desk: an address resolves against the saved binder, or the set refuses"*.
 
@@ -851,7 +873,11 @@ Message: *"desk: an address resolves against the saved binder, or the set refuse
 **Interfaces:**
 - Produces: `galley.reset(page, edits: dict[str, str | None]) -> list[str]`. Keys are CUES (`"b1"`), not addresses. `None` vacates; `""` is refused.
 
-- [ ] **Step 1: Change the existing tests to the new spelling**
+**Landed:** `1b5ebb4` -- `reset(page, edits: dict[str, str | None])`; 27
+address-keyed sites in `tests/test_galley.py` and `tests/test_compositor.py`
+updated in place, none added. `838418c` recorded the P3 box 1 tick.
+
+- [x] **Step 1: Change the existing tests to the new spelling**
 
 In `tests/test_galley.py` and `tests/test_compositor.py`, replace every `f"m.py@{cue}"` key with `cue`, and every drop's `""` value with `None`. Do this with a `.py` script, not `sed`:
 
@@ -872,12 +898,12 @@ for name in ("tests/test_galley.py", "tests/test_compositor.py"):
 
 Then update the two refusal tests by hand: `TestWhatTheGalleyRefuses::test_a_replacement_that_is_not_TEXT` must now treat `None` as VALID and `""` as refused.
 
-- [ ] **Step 2: Run and watch them fail**
+- [x] **Step 2: Run and watch them fail**
 
 Run: `uv run pytest tests/test_galley.py -q`
 Expected: FAIL -- `reset` still splits its keys with `cue_of`, so a bare cue finds no place.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `galley.py`, change `reset`'s signature and its `Args:`:
 
@@ -942,17 +968,17 @@ Replace the body's key handling. `cue_of` is no longer needed for the edits, onl
     return refused
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `uv run pytest tests/test_galley.py tests/test_compositor.py -q`
 Expected: green, with the SAME number of galley tests as before -- none added.
 
-- [ ] **Step 5: Prove no address reaches the galley**
+- [x] **Step 5: Prove no address reaches the galley**
 
 Run: `grep -n "@" src/comment_review/results/galley.py | grep -v "^.*#"`
 Expected: no `cue_of(address)` on an edit key remains.
 
-- [ ] **Step 6: Full gate and commit**
+- [x] **Step 6: Full gate and commit**
 
 Message: *"galley: handed a page and cues, and None is the delete"*.
 
@@ -972,12 +998,21 @@ Message: *"galley: handed a page and cues, and None is the delete"*.
 
 ! **NOTHING IS ADDED TO PROVE IT IS GONE.** Roy: *"You just can't put more tests back to prove something cut is gone ... There are an infinite number of 'not' things."*
 
-- [ ] **Step 1: Find every caller**
+**Landed:** `0f99805` -- `drifted` deleted (-116 lines from `results/galley.py`),
+`commands/galley.py` rekeyed to bare cues, and `docs/history.md` records the
+removal; its sha was cited a commit later at `8b8699f`.
+
+! **STEP 3's GREP CANNOT COME BACK EMPTY, AND WAS CORRECTED AT `5e149ef`** --
+`results/` legitimately imports `Page` from `binder.page`. The box closes on the
+corrected clause (`rows_of`, `["cue"]`, `.get("address"`), not the one printed
+below it. ! `212ce89` records the refused instruction to narrow `by_path`.
+
+- [x] **Step 1: Find every caller**
 
 Run: `grep -rn "drifted" src/ tests/ scripts/`
 Record what you find before deleting anything.
 
-- [ ] **Step 2: Delete the function and its callers**
+- [x] **Step 2: Delete the function and its callers**
 
 Remove `drifted` from `galley.py`. Remove its invocation from `commands/galley.py`, and any now-unused imports YOUR change orphaned (ruff will name them).
 
@@ -1014,16 +1049,16 @@ not because a gate objected.
 would go GREEN if someone restored it, so the suite would argue for the structure this branch
 decided against. **Add nothing in its place.**
 
-- [ ] **Step 3: Prove no binder or census row is read on the write side**
+- [x] **Step 3: Prove no binder or census row is read on the write side**
 
 Run: `grep -rn "census\|rows_of\|binder" src/comment_review/results/`
 Expected: NOTHING. That is the spec's stated verification for this box.
 
-- [ ] **Step 4: Record the removal**
+- [x] **Step 4: Record the removal**
 
 Add an entry to `docs/history.md` naming `drifted`, what it compared (`raw_lines` per paragraph, after a full re-parse), why it went (the sha answers it in one comparison, before anything is parsed), and this commit.
 
-- [ ] **Step 5: Full gate and commit**
+- [x] **Step 5: Full gate and commit**
 
 Run the full gate. Expected: green, with FEWER tests than before -- the `drifted` tests leave with it.
 
@@ -1086,7 +1121,10 @@ CLI and both compositor gates. File it rather than widen here.
   - `proof_setter.Drafted(path: str, draft: Path, sha: str)`
   - `proof_setter.run(notations, binder, repo, into) -> tuple[list[Drafted], list[Refusal]]`
 
-- [ ] **Step 1: Write the failing test**
+**Landed:** `4290bfe` -- `flows/page_for.py` (`page_of`) and
+`flows/proof_setter.py` with `STEPS` as data, plus `tests/test_proof_setter.py`.
+
+- [x] **Step 1: Write the failing test**
 
 Create `tests/test_proof_setter.py`:
 
@@ -1144,12 +1182,12 @@ def test_a_refusal_NAMES_ITS_STEP(tmp_path):
     assert refused and refused[0].step in proof_setter.STEPS
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `uv run pytest tests/test_proof_setter.py -q`
 Expected: FAIL -- `ModuleNotFoundError: comment_review.flows.proof_setter`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `src/comment_review/flows/proof_setter.py`:
 
@@ -1290,12 +1328,12 @@ def _one(
     return Drafted(rel, target, source.sha), None
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `uv run pytest tests/test_proof_setter.py -q`
 Expected: 4 passed.
 
-- [ ] **Step 5: Full gate and commit**
+- [x] **Step 5: Full gate and commit**
 
 Message: *"flows: the write chain owns the order, and the order is data"*.
 
@@ -1312,7 +1350,11 @@ Message: *"flows: the write chain owns the order, and the order is data"*.
 
 **Interfaces:** no new symbols. Task 8 left `recorded` empty and the `verify` step unwritten so that this task's test can fail first.
 
-- [ ] **Step 1: Write the failing test**
+**Landed:** `26161ac` -- the `verify` step, `recorded` read OUT of the saved
+binder, and the galley comment corrected. `TODO/a-page-carries-no-identity.md`
+reads **4 of 4**, which is Step 6's stated outcome.
+
+- [x] **Step 1: Write the failing test**
 
 Append to `tests/test_proof_setter.py`:
 
@@ -1352,12 +1394,12 @@ class TestTheFileMustBeTheONEThatWasReviewed:
 
 ! **The third test is what makes the first two mean something.** A gate that refuses everything passes both refusal cases.
 
-- [ ] **Step 2: Run them and watch two fail**
+- [x] **Step 2: Run them and watch two fail**
 
 Run: `uv run pytest tests/test_proof_setter.py -q -k Reviewed`
 Expected: the first two FAIL -- Task 8 left `recorded` empty and wrote no `verify` step, so a shifted file drafts happily. The third PASSES already, which is what makes it a control rather than a second assertion of the same thing.
 
-- [ ] **Step 3: Add the `verify` step**
+- [x] **Step 3: Add the `verify` step**
 
 In `flows/proof_setter.py`, fill `recorded` in `run` -- **this is where the sha is read OUT of the saved binder** rather than recomputed from a file:
 
@@ -1382,16 +1424,16 @@ Pass it into `_one` (add a `recorded: str` parameter, supplied at the call site 
 
 !! **AN ABSENT RECORDED SHA REFUSES; IT DOES NOT PASS.** `not recorded` is the first clause on purpose -- a binder page carrying no sha would otherwise compare `""` against a real hash, and a future shape that dropped the field would turn this gate off silently rather than loudly.
 
-- [ ] **Step 4: Run them again**
+- [x] **Step 4: Run them again**
 
 Run: `uv run pytest tests/test_proof_setter.py -q`
 Expected: all green, including the control.
 
-- [ ] **Step 5: Make the comment honest**
+- [x] **Step 5: Make the comment honest**
 
 In `galley.py`, the surviving per-paragraph comparison comment must name the sha as what answers *did the file shift*. Find any prose still claiming the per-paragraph compare is the staleness check and correct it to say the sha answers it in one comparison, before anything is parsed.
 
-- [ ] **Step 6: Mark off what this task delivered**
+- [x] **Step 6: Mark off what this task delivered**
 
 ```bash
 uv run python scripts/todo_tool.py check a-page-carries-no-identity.md 2
@@ -1401,7 +1443,7 @@ uv run python scripts/todo_tool.py check a-page-carries-no-identity.md 4
 
 Then tick P2 boxes 4, 5 and 6 in `docs/plans/0.2.4-the-write-chain-of-command.md`. `a-page-carries-no-identity` should now read **4 of 4**.
 
-- [ ] **Step 7: Full gate and commit**
+- [x] **Step 7: Full gate and commit**
 
 Message: *"flows: a file that shifted since review refuses, and no draft is written"*.
 
@@ -1421,7 +1463,11 @@ Message: *"flows: a file that shifted since review refuses, and no draft is writ
 **Interfaces:**
 - Produces: `proof_setter._reread(rel, target, edits) -> Refusal | None`, called by `_one` after the draft is written.
 
-- [ ] **Step 1: Strengthen the weak test**
+**Landed:** `143355c` -- `_reread` reads the DRAFT back from disk, and
+`test_the_composed_file_re_reads_with_the_text_AT_ITS_CUE` replaced the `any(...)`
+assertion that could not fail on a wrong cue.
+
+- [x] **Step 1: Strengthen the weak test**
 
 Replace `test_the_composed_file_re_reads_to_the_same_prose` in `tests/test_compositor.py`:
 
@@ -1441,12 +1487,12 @@ Replace `test_the_composed_file_re_reads_to_the_same_prose` in `tests/test_compo
         assert by_cue(again)[cue].raw_lines == ["# REPLACED"]
 ```
 
-- [ ] **Step 2: Run it and watch it fail if you break it**
+- [x] **Step 2: Run it and watch it fail if you break it**
 
 Run: `uv run pytest tests/test_compositor.py -q -k AT_ITS_CUE`
 Expected: PASS. **Then prove it can fail:** temporarily change the assertion's `cue` to a different existing cue and confirm it goes RED. Revert.
 
-- [ ] **Step 3: Write the failing chain test**
+- [x] **Step 3: Write the failing chain test**
 
 Append to `tests/test_proof_setter.py`:
 
@@ -1462,7 +1508,7 @@ def test_the_drafted_FILE_holds_each_notation_at_its_cue(tmp_path):
     assert by_cue(again)[cue].raw_lines == ["# REPLACED"]
 ```
 
-- [ ] **Step 4: Add the `reread` step**
+- [x] **Step 4: Add the `reread` step**
 
 In `flows/proof_setter.py`, after the draft is written in `_one`:
 
@@ -1506,12 +1552,12 @@ def _reread(rel: str, target: Path, edits: dict[str, str | None]) -> Refusal | N
 
 Add `from comment_review.machine import constants` and `from comment_review.reading.addresser import cue_of` to the module's imports.
 
-- [ ] **Step 5: Run the tests**
+- [x] **Step 5: Run the tests**
 
 Run: `uv run pytest tests/test_proof_setter.py tests/test_compositor.py -q`
 Expected: green.
 
-- [ ] **Step 6: Full gate and commit**
+- [x] **Step 6: Full gate and commit**
 
 Message: *"flows: the draft is read back from disk, at the cue it was given"* -- recording in the body that the existing re-read assertion could not fail on a wrong cue.
 
@@ -1529,7 +1575,10 @@ Message: *"flows: the draft is read back from disk, at the cue it was given"* --
 - Consumes: `prove_unchanged.code_fingerprint(text, path) -> tuple[str, str]` -- `kind` is `"ast"`, `"stripped"` or `"unprovable"`; **an unprovable file carries an empty fingerprint and must never be reported as proven.**
 - Produces: `proof_setter._prove(rel, source_text, drafted_text, path) -> Refusal | None`.
 
-- [ ] **Step 1: Write the failing test**
+**Landed:** `8585958` -- `_prove` over `code_fingerprint`, refusing an unprovable
+file rather than passing it, and three cases including the control.
+
+- [x] **Step 1: Write the failing test**
 
 Append to `tests/test_proof_setter.py`:
 
@@ -1564,12 +1613,12 @@ class TestOnlyCommentsChange:
         assert refused == [] and len(drafted) == 1
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `uv run pytest tests/test_proof_setter.py -q -k OnlyComments`
 Expected: the first two FAIL -- nothing proves anything yet, so a code-altering notation drafts happily.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `flows/proof_setter.py`, call it after `_reread` succeeds:
 
@@ -1604,12 +1653,12 @@ def _prove(rel: str, before: str, after: str, path: Path) -> Refusal | None:
 
 Add `from comment_review.results.prove_unchanged import code_fingerprint`.
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `uv run pytest tests/test_proof_setter.py -q`
 Expected: green.
 
-- [ ] **Step 5: Full gate and commit**
+- [x] **Step 5: Full gate and commit**
 
 Message: *"flows: the draft is proven to change only comments"*.
 
@@ -1638,7 +1687,11 @@ is how a reader learns the wrong shape.
 **Interfaces:**
 - Produces: `commands/proof.py::main(argv) -> int`. **It parses arguments and calls `flows.proof_setter.run`. It holds no orchestration** -- that is the whole point of the task.
 
-- [ ] **Step 1: Write the failing test**
+**Landed:** `803f39c` -- `commands/proof.py`, `"proof"` added to `COMMANDS`, and
+the deprecation note on `commands/galley.py`. `TODO/the-flow-lives-in-the-command.md`
+took its note and its count is unchanged, as the plan required.
+
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_the_command_holds_no_orchestration():
@@ -1674,12 +1727,12 @@ def test_an_out_that_overlaps_the_repo_is_REFUSED(tmp_path, capsys, monkeypatch)
     assert "REFUSED" in capsys.readouterr().out
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `uv run pytest tests/test_proof_setter.py -q -k command`
 Expected: FAIL -- the file does not exist.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `src/comment_review/commands/proof.py`:
 
@@ -1760,14 +1813,14 @@ def main() -> int:
 
 **If you find yourself importing `page_for`, stop -- that belongs in the flow, and the test in Step 1 will fail.**
 
-- [ ] **Step 4: Run the tests and the command**
+- [x] **Step 4: Run the tests and the command**
 
 ```bash
 uv run pytest tests/test_proof_setter.py -q
 uv run python src/comment-review.py proof --help
 ```
 
-- [ ] **Step 5: Full gate and commit**
+- [x] **Step 5: Full gate and commit**
 
 Message: *"commands: proof exposes the chain and orchestrates nothing"*.
 
@@ -1782,7 +1835,12 @@ Message: *"commands: proof exposes the chain and orchestrates nothing"*.
 - Modify: `docs/plans/0.2.4-the-write-chain-of-command.md` -- tick every box
 - Modify: `plugins/` -- via the build
 
-- [ ] **Step 1: Sweep for tests this branch's cuts left behind**
+**Landed:** `bbdc432` -- the ten dated rulings in `docs/decision-log.md`.
+
+!! **STEPS 2 AND 6 ARE NOT CLOSED BY IT AND STAY OPEN** -- see the notes on those
+two boxes. Everything else this task names is evidenced.
+
+- [x] **Step 1: Sweep for tests this branch's cuts left behind**
 
 Roy, 2026-08-25, reaffirming: *"If the test doesn't test the behavior we want from the system,
 it locks in behavior we don't want in the system. Every place we cut gets to take its useless
@@ -1814,6 +1872,12 @@ the notations cases would cut the tests for the very resolution step this branch
 
 - [ ] **Step 2: Run coverage per SLICE, not as one number**
 
+!! **LEFT OPEN, 2026-09-02 AUDIT: NOTHING IN HISTORY RECORDS A PER-SLICE RUN.**
+`58b6494` pinned coverage and `7e5216d` pointed it at `src`, and the AGGREGATE
+baseline is on `TODO/coverage-is-not-measured.md` (43.0% of 1864 statements). The
+off-diagonal matrix this step asks for is nowhere in the tree, and that file's **T2
+-- record the baseline per module -- is still open.** The residue is filed already.
+
 Roy, 2026-08-25: *"run the clip on different parts and see what actually sticks."*
 
 !! **ONE AGGREGATE NUMBER CANNOT SHOW WHERE A TEST LIVES, WHICH IS PART OF WHAT IT ASSERTS.**
@@ -1840,18 +1904,18 @@ nobody wants is how a suite grows around dead weight.
 ! **The baseline to compare against** is on `TODO/coverage-is-not-measured.md`: 43.0% of 1864
 statements, taken 2026-08-25 over 789 tests.
 
-- [ ] **Step 3: Record the rulings**
+- [x] **Step 3: Record the rulings**
 
 Add the ten dated 2026-08-24 / 2026-08-25 rulings from the spec's table to `docs/decision-log.md`, each findable by date and subject. Cite as `decision-log.md TOPIC: #N`.
 
-- [ ] **Step 4: Build the plugin**
+- [x] **Step 4: Build the plugin**
 
 ```bash
 uv run python scripts/build_plugin.py
 uv run python scripts/build_plugin.py --check
 ```
 
-- [ ] **Step 5: Prove every box was ticked as it was earned**
+- [x] **Step 5: Prove every box was ticked as it was earned**
 
 Each task ticked its own -- see *Marking off `P` and `T`*. This step VERIFIES that, it does not
 do it in bulk:
@@ -1872,6 +1936,13 @@ answered in part.
 
 - [ ] **Step 6: Full gate, including the ones only a release runs**
 
+!! **LEFT OPEN, 2026-09-02 AUDIT: NO ARTIFACT EVIDENCES THE RELEASE-ONLY GATES.**
+Every other task's gate is bundled with its own commit and closes on it; this one
+is not. `ruff format --check`, `check_vocabulary.py` and `claude plugin validate`
+leave nothing behind when they pass, so there is nothing to cite. ! `--check` IS
+answerable: `src/` and `plugins/` are byte-identical at `bbdc432` over all seven
+files this branch touched, which is Step 4's clause and not this one's.
+
 ```bash
 uv run pytest -q
 uv run ruff check . && uv run ruff format --check .
@@ -1883,7 +1954,7 @@ uv run python scripts/todo_tool.py resync
 claude plugin validate plugins/comment-review
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Message: *"docs: the write chain's rulings, recorded"*.
 

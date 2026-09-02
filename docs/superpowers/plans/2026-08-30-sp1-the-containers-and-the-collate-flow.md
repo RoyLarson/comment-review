@@ -28,6 +28,14 @@ need a production importer, and `desk/containers.py` still has none -- MEASURED 
 docstring. **Task 6 is done and the step it was written against is not**, which is what *superseded
 in part* looks like from the SP's side: read the box's own verify text, not its title.
 
+!! **AUDIT 2026-09-02 -- EVERY TICK ON THIS PLAN IS REAL, AND NONE OF THEM CITED A
+COMMIT.** Tasks 1-11's 68 boxes were ticked in ONE batch commit, `3dba401`, which names
+no per-task sha; Tasks 12-14 were ticked in `236b589`, `128c387` and `8fbd301`, whose
+messages name a commit but whose boxes do not. Every task now carries a `**Landed:**`
+line naming the commit that did its work, verified reachable from `HEAD`. **No box was
+found ticked over work that had not landed** -- each deliverable was located in the tree
+by symbol and line, or its supersession named.
+
 **Lane:** `backend`. No file under `plugins/comment-review/agents/`, `SKILL.md` or
 `references/*.md` is touched -- verified 2026-08-30: no agent-facing file names
 `mark --shape`, `--seed` or `--check`. `references/vocabulary.toml` and
@@ -94,6 +102,10 @@ uv run ty check src/comment_review/
 ---
 
 ## Task 1: `P36` -- the false constraint, where it actually is
+
+**Landed:** `ac2436e` -- `results/differences.py`'s header drops the `Vocabulary: #11`
+citation and announces `compose`; `grep -rn "Vocabulary: #11" src/comment_review/`
+returns nothing.
 
 **Files:**
 - Modify: `src/comment_review/results/differences.py:1-17`
@@ -196,6 +208,11 @@ to `differences.py:5`, and why it must precede Task 7.
 ---
 
 ## Task 2: The mark-shape gate reads its own counts
+
+**Landed:** `924c206` -- `NUMBER` at `tests/gates/test_mark_shape.py:42`,
+`test_the_fields_table_holds_WHAT_ITS_OWN_HEADING_SAYS`,
+`test_no_count_in_this_file_restates_the_spec`, and the two must-match statements at
+`docs/the-mark.md:43` and `:209`.
 
 **Files:**
 - Modify: `tests/gates/test_mark_shape.py`
@@ -401,6 +418,10 @@ git commit -F <message file>
 
 ## Task 3: `P34` -- `raw_text` is the mark's eighth field
 
+**Landed:** `3baa0cf` -- `raw_text` is `Mark`'s third field (`desk/mark.py:309`),
+carried through `parse` (`:460`), and `docs/the-mark.md:30` reads
+`## The fields -- eight`.
+
 **Files:**
 - Modify: `docs/the-mark.md:30-40`
 - Modify: `src/comment_review/desk/mark.py:252-300` (the `Mark` dataclass), `:501-580` (`parse`)
@@ -584,6 +605,11 @@ git commit -F <message file>
 ---
 
 ## Task 4: `P35` -- `Mark.seed` builds the row from the mark's own names
+
+**Landed:** `f642a96` -- `Mark.SEEDED` (`desk/mark.py:323`) and `Mark.seed` (`:326`);
+the flow builds the row from them (`flows/distribute.py:100`). ! `as_entry` was RENAMED
+to `Mark.serialize` in `dee2ad1` (SP-2), which gave every container the same
+serialize/deserialize pair.
 
 **Files:**
 - Modify: `src/comment_review/desk/mark.py` (add `SEEDED` and `Mark.seed`, `Mark.as_entry`)
@@ -785,6 +811,10 @@ git commit -F <message file>
 
 ## Task 5: `D9` -- `parse` refuses a `move` onto its own address
 
+**Landed:** `f17b712` -- `_destination_problems` at `desk/mark.py:762`, called under
+`spec.owes_destination` at `:442`; `TODO/collator-defects.md` T1 and T2 closed in the
+same commit.
+
 **Files:**
 - Modify: `src/comment_review/desk/mark.py` (add `_destination_problems`, call it in `parse`)
 - Test: `tests/test_mark.py`
@@ -963,6 +993,12 @@ git commit -F <message file>
 ---
 
 ## Task 6: `P21` -- `desk/containers.py`
+
+**Landed:** `02dab30` -- `desk/containers.py` with `Sheet`, `EditCopy`, `MasterProof`
+and the three boundary parses, plus `tests/test_containers.py`; `4ee7f82` and `47d0f13`
+are its fix rounds and `d708750` a later review fix. ! The three `parse_*` functions
+became `Sheet/EditCopy/MasterProof.deserialize` in `dee2ad1` (SP-2). ! `P21` itself did
+NOT close here -- see the note at the head of this file.
 
 **Files:**
 - Create: `src/comment_review/desk/containers.py`
@@ -1358,6 +1394,9 @@ git commit -F <message file>
 
 ## Task 7: `P13` -- the COMPOSE
 
+**Landed:** `3c48779` -- `CannotCompose` (`results/differences.py:122`) and `compose`
+(`:135`), with `TestCompose` in `tests/test_differences.py`; `3b927e6` is its fix round.
+
 **Files:**
 - Modify: `src/comment_review/results/differences.py`
 - Test: `tests/test_differences.py`
@@ -1564,6 +1603,11 @@ git commit -F <message file>
 ---
 
 ## Task 8: `P24` and `D5` -- the shape verbs move, and the problems stack
+
+**Landed:** `7f0290f` -- `Problem` at `desk/collator.py:355`, with `problems_in`,
+`unruled` and `tally` moved out of `flows/marks.py`; `4a41053` is its fix round. !
+`problems_in` and `unruled` were later DELETED under `P52` in `0edefdc`, replaced by
+`flows/mark_errors.py`; `Problem` and `tally` stand.
 
 **Files:**
 - Modify: `src/comment_review/desk/collator.py` (add `Problem`; receive `unruled`,
@@ -1776,6 +1820,10 @@ git commit -F <message file>
 ---
 
 ## Task 9: `D10` -- the base comes from the binder, and drift is reported
+
+**Landed:** `4742586` -- `base_texts` (`desk/collator.py:124`) and `drift_in` (`:486`),
+with `claim_verbatim_problems` taking `base` (`:166`); `c89a539` and `c0c6390` are its
+follow-up and fix round.
 
 **Files:**
 - Modify: `src/comment_review/desk/collator.py`
@@ -2005,6 +2053,11 @@ git commit -F <message file>
 ---
 
 ## Task 10: `P1` and `P2` -- `flows/collate.py`, the resolutions and the fold
+
+**Landed:** `09cf466` -- `flows/collate.py` with `Collated`, `_identical`,
+`_composition`, `_resolve`, `_chief_copy` and `collate`, plus `tests/test_collate.py`
+and three helpers; `813a6fa` is its fix round. ! `Collated.chief` is an `EditCopy` and
+`Collated.unruled` became `coverage: list[Problem]` in later plans.
 
 **Files:**
 - Create: `src/comment_review/flows/collate.py`
@@ -2642,6 +2695,10 @@ git commit -F <message file>
 
 ## Task 11: `D8` -- the resolved moves are a DAG
 
+**Landed:** `3218177` -- `_touched_by`, `_pair_moves` and `_move_order` in
+`flows/collate.py` (`:310`, `:327`, `:371`) with `Collated.order` (`:203`); `5dd14eb`
+added direct coverage. `TODO/collator-defects.md` T12, T13 and T14 closed in `3218177`.
+
 **Files:**
 - Modify: `src/comment_review/flows/collate.py`
 - Test: `tests/test_collate.py`
@@ -2943,6 +3000,11 @@ git commit -F <message file>
 ---
 
 ## Task 12: `P3` -- the `collate` command
+
+**Landed:** `aa0e08b` -- `src/comment_review/commands/collate.py`, `Command.COLLATE` in
+`__main__.py`, `--check` dropped from `mark`, and `tests/test_collate_command.py`;
+`9971a0b` and `0da4055` are its two fix rounds, and `7bc5887` unticked the TODO task
+this step closed too early.
 
 **Files:**
 - Create: `src/comment_review/commands/collate.py`
@@ -3382,6 +3444,10 @@ reader can get from a ticked box to the work that closed it.
 
 ## Task 13: `P37` -- `marks` becomes `distribute`
 
+**Landed:** `6187f71` -- `flows/marks.py` -> `flows/distribute.py`, `commands/mark.py`
+-> `commands/distribute.py`, `tests/test_marks_flow.py` ->
+`tests/test_distribute_flow.py`, and `Command.MARK` -> `Command.DISTRIBUTE`.
+
 **Files:**
 - Rename: `src/comment_review/flows/marks.py` -> `src/comment_review/flows/distribute.py`
 - Rename: `src/comment_review/commands/mark.py` -> `src/comment_review/commands/distribute.py`
@@ -3530,6 +3596,10 @@ reader can get from a ticked box to the work that closed it.
 
 ## Task 14: The vocabulary, the build, and the whole-tree gates
 
+**Landed:** `8fbd301` -- `distribute` in `docs/vocabulary.md` (the retired table at
+`:54` and the live term at `:118`), `TODO/task-agent-vocabulary-home.md` filed, and
+Steps 2 and 4 reworded to what shipped. Step 6's blocker cleared later, in `b80836e`.
+
 **Files:**
 - Modify: `src/comment_review/references/vocabulary.toml`
 - Modify: `docs/vocabulary.md`
@@ -3631,13 +3701,18 @@ uv run python scripts/todo_tool.py resync
 `mark --check`, so anything that only that branch reached is now dead and should go in
 this commit.
 
-- [ ] **Step 6: Confirm the chain runs end to end with no hand-written Python**
--- BLOCKED, and the blocker is known and filed. `collate` writes the copy
-chief's `edit_copy` (`{role, read_from, sheets}`); `proof --docket` reads
-`{pages: [{path, sha, alterations}]}`. `commands/proof.py` would refuse the one
-given the other, so the chain does not reach `proof`. The bridge is
-`TODO/no-command-for-the-middle.md` T1, which was UNTICKED on 2026-08-30 for
-exactly this reason.
+- [x] **Step 6: Confirm the chain runs end to end with no hand-written Python**
+-- WAS BLOCKED, and the blocker cleared in SP-3. `collate` wrote the copy
+chief's `edit_copy` (`{role, read_from, sheets}`) and `proof --docket` read
+`{pages: [{path, sha, alterations}]}`; `commands/proof.py` refused the one given
+the other, so the chain did not reach `proof`. The bridge is
+`flows/revise.docket_of`, the proof flow's first step since `P57`.
+! **CLOSED 2026-09-02 BY AUDIT, AGAINST `b80836e`** -- `tests/test_the_chain.py`
+drives census -> distribute -> collate -> proof through each command's own
+`main()` over `sys.argv` and nothing else, and passes
+(`uv run pytest -q tests/test_the_chain.py`, 1 passed). It exceeds this step's
+own verify, which stopped at `collate`. `TODO/no-command-for-the-middle.md` T1
+is closed against the same commit.
 
 `A-T1`'s own verify. Over a scratch tree:
 
@@ -3652,7 +3727,8 @@ uv run python src/comment-review.py proof --docket <docket> --repo . --out /tmp/
 ! Use the scratchpad directory, not `/tmp`. ! The `docket` step is `P5` in SP-4 and is not
 in this plan -- stop at `collate` and record what it printed.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit** -- `8fbd301`, which carried Steps 1, 3 and 5's work
+together with the wording of Steps 2 and 4. Step 6's own commit is `b80836e`.
 
 ```bash
 git add -A
@@ -3700,6 +3776,10 @@ and 10. `base_texts`/`drift_in` are defined in Task 9 and used in Task 10.
 
 **No placeholders.** Every step carries the code or the exact command it needs.
 - [ ] **Step 8: Tick the boxes -- THIS STEP, in its own commit AFTER the one above**
+! **LEFT OPEN 2026-09-02.** The 2026-09-02 audit wrote Steps 6 and 7's ticks and
+every task's `**Landed:**` line into this file, but did not commit them. A tick
+step asserts the tick is COMMITTED, so this box closes on the commit that lands
+that edit and cites `b80836e` for Step 6.
 
 Tick every `- [ ]` step box of this task in
 `docs/superpowers/plans/2026-08-30-sp1-the-containers-and-the-collate-flow.md`
