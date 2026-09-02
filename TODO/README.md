@@ -200,7 +200,7 @@ that changed a published name or rule:
 | [vocabulary-gate-is-red](vocabulary-gate-is-red.md) | systems | -- | 2/7 | check_vocabulary exits 1 on this branch and no test asserts check_drift |
 | [six-mutations-survive-the-suite](six-mutations-survive-the-suite.md) | testing | -- | 1/8 | 720 tests green against six deliberate defects in shipped code |
 | [the-anchor-claims-are-inverted](the-anchor-claims-are-inverted.md) | agents | -- | 0/4 | shipped prose says an anchor is often empty; it is never empty |
-| [stale-measurements-in-shipped-prose](stale-measurements-in-shipped-prose.md) | backend | -- | 1/6 | every one re-derivable by a command, and every one wrong |
+| [stale-measurements-in-shipped-prose](stale-measurements-in-shipped-prose.md) | testing | yes | 1/6 | every one re-derivable by a command, and every one wrong |
 | [assertions-that-gate-a-substring](assertions-that-gate-a-substring.md) | testing | -- | 3/10 | each passes in the buggy state its own comment forbids |
 | [move-across-an-uncued-file](move-across-an-uncued-file.md) | backend | -- | 5/6 | the address form spans files; the census does not |
 | [closing-line-deletes-code](closing-line-deletes-code.md) | backend | -- | 5/8 | An edit to a comment whose run closes mid-line DELETES the code after the closer |

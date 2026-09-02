@@ -3,8 +3,8 @@
 ```
 Status:   open
 Progress: 1 of 6 tasks closed
-Owner:    backend
-Requires-Roy: false
+Owner:    testing
+Requires-Roy: true
 Raised:   2026-08-20 (the branch review of 2026-08-20)
 DOGFOOD:  2026-08-23 -- Same cluster as docstrings-that-contradict-themselves. A stale
           COUNT in shipped prose is block-context's state case by name -- a claim about
@@ -82,6 +82,6 @@ loses the reason the sentence exists.
 - [ ] T5 | T5 -- Apply what the run proposes and the human approves, through the
       normal stages. Verify: each key site matches its command's output, and `uv
       run pytest -q` is green.
-- [ ] T6 | T6 -- Decide whether the dogfood run covers `tests/`, holding two of
+- [?] T6 | T6 -- Decide whether the dogfood run covers `tests/`, holding two of
       the ten sites. Verify: `tests/` is under review, or `grep -rn
       census.address tests/` is empty.
