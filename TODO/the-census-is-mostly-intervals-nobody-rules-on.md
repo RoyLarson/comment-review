@@ -4,7 +4,7 @@
 Status:   in-progress
 Progress: 13 of 25 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-18, from measuring what a reviewer is handed before it works
 Triaged:  2026-08-23 -- the filter SHIPPED and is what stage 4 hands a reviewer. Eleven
           of the twenty boxes were rulings, measurements or reasoning, or had landed;
@@ -259,9 +259,11 @@ mock-up and matches nothing in the tree.
 - [ ] T18 | T18 -- Ship a column legend with the census listing itself. Verify:
       a filtered listing handed to a reviewer carries a legend, without reading
       `SKILL.md`.
-- [ ] T19 | T19 -- * Rule the page rendering, deferred by Roy 2026-08-21; the
+- [?] T19 | T19 -- * Rule the page rendering, deferred by Roy 2026-08-21; the
       open questions are in the Objective. Verify: the ruling is in
       `docs/decision-log.md`.
+        > 2026-09-02 Deferred by Roy 2026-08-21; decision-log ends at 78 with no entry
+        > 2026-09-02 audit: a ruling made invisible by the marks migration
 - [x] T20 | FINISHED | unknown | T20 -- Not a task. The single-file rendering
       number was a MEASUREMENT and is superseded by the 26-file run. Both are in
       the Objective.
