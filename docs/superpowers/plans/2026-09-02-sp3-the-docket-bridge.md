@@ -414,30 +414,32 @@ def test_the_middle_does_not_import_the_write_end():
 
 ### Task 6: `--from-docket` starts the run at the docket
 
+**Landed:** `27d5005` -- `P59`. `test_the_two_halves_compose` is the round trip.
+
 **Delivers:** P59
 
 **Files:**
 - Modify: `src/comment_review/commands/proof.py`
 - Test: the same file as Task 4
 
-- [ ] **Step 1: Write the failing test.** Round-trip: `--copy C.json --to-docket D.json`, then
+- [x] **Step 1: Write the failing test.** Round-trip: `--copy C.json --to-docket D.json`, then
       `--from-docket D.json --out DIR`, gives **the same revise** as `--copy C.json --out DIR`
       in one run. That is the assertion that the two halves compose.
 
-- [ ] **Step 2: Run it and watch it fail.**
+- [x] **Step 2: Run it and watch it fail.**
 
-- [ ] **Step 3: Implement.** `--copy` and `--from-docket` are a mutually exclusive group, and
+- [x] **Step 3: Implement.** `--copy` and `--from-docket` are a mutually exclusive group, and
       one of them is required. `--from-docket` reads with `object_of` and
       `Docket.deserialize`, skips `docket_of`, and calls `pull`.
 
-- [ ] **Step 4: Refuse the nonsense combination.** `--from-docket` with `--to-docket` reads a
+- [x] **Step 4: Refuse the nonsense combination.** `--from-docket` with `--to-docket` reads a
       docket in order to write it back out; refuse it by name rather than doing it.
 
-- [ ] **Step 5: Run the checks.** Full suite plus lint/format/lint/ty.
+- [x] **Step 5: Run the checks.** Full suite plus lint/format/lint/ty.
 
-- [ ] **Step 6: Commit.**
+- [x] **Step 6: Commit.**
 
-- [ ] **Step 7: TICK.** Tick Task 6's boxes in THIS file and close P59, both citing the
+- [x] **Step 7: TICK.** Tick Task 6's boxes in THIS file and close P59, both citing the
       Step 6 commit. Its own commit.
 
 ---
