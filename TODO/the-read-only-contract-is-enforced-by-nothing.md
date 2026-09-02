@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 2 of 7 tasks closed
+Progress: 2 of 8 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (the 0.2.0 builder run: the operating session noticed scratch
@@ -109,6 +109,8 @@ exists, and it bears on how far it can be relaxed -- see
 - [?] T7 | T7 -- * Say whether `prove_unchanged.py`'s scope is a gap or a
       boundary. Verify: the answer is in `docs/decision-log.md`, and says
       whether T5 is a gate.
+- [ ] T8 | Implement a gate that fails when a shipped agent file grants a write
+      tool. Verify: adding Edit to one role turns it red
 ## Related
 
 - [`stage-5-is-the-only-stage-with-no-independent-reader`](stage-5-is-the-only-stage-with-no-independent-reader.md)
