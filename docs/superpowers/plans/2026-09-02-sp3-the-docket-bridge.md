@@ -105,13 +105,16 @@ obligation with no place in the sequence is what gets dropped.
 
 **Files:** Modify: `docs/decision-log.md`
 
-- [ ] **Step 1:** Append `Process: #76` -- the proof flow takes any edit_copy and transcribes
+**Landed:** `e8a773e` -- `Process: #76` (the proof flow transcribes any edit_copy) and
+`#77` (`--from-docket` / `--to-docket`). Later tasks cite these two numbers.
+
+- [x] **Step 1:** Append `Process: #76` -- the proof flow takes any edit_copy and transcribes
       it on its first step. Quote Roy, 2026-09-02, verbatim: *"flows/proof takes any edit-copy
       and does the transform of edit-copy -> docket on its first step"*, and *"it could also be
       ownership contexts edit-copy or any intermediate edit-copy which allows the stage outputs
       to run."*
 
-- [ ] **Step 2:** In the same entry, record that `Docket.from(edit_copy)` was considered and
+- [x] **Step 2:** In the same entry, record that `Docket.from(edit_copy)` was considered and
       NOT taken. Roy called it *"provisionally okay"* while noting it *"does break the import
       rules meant to isolate the two pieces."* **It is not needed:** `flows/revise.py` already
       imports `binder.binder` (35), `desk.collator` (36) and `docket.docket` (37), so a
@@ -119,7 +122,7 @@ obligation with no place in the sequence is what gets dropped.
       provisional form was the harder one** -- it would have needed a marker in the code, an
       entry here, and a later migration.
 
-- [ ] **Step 3:** Append `Process: #77` -- `--from-docket` and `--to-docket`. Roy, 2026-09-02:
+- [x] **Step 3:** Append `Process: #77` -- `--from-docket` and `--to-docket`. Roy, 2026-09-02:
       *"we add a --from-docket, --to-docket flags that allow the flow to start/stop in the
       middle of the flow."* Record that this is what keeps `Docket.serialize` and
       `Docket.deserialize` alive with **production readers** rather than on a stated intent:
@@ -128,9 +131,9 @@ obligation with no place in the sequence is what gets dropped.
       `scripts/dead_sweep.py` reports and a later session deletes. **The flags are the
       readers.**
 
-- [ ] **Step 4:** Commit. `git add docs/decision-log.md && git commit -F <msgfile>`
+- [x] **Step 4:** Commit. `git add docs/decision-log.md && git commit -F <msgfile>`
 
-- [ ] **Step 5: TICK.** Tick Task 0's boxes in THIS file. There is no `P` to close --
+- [x] **Step 5: TICK.** Tick Task 0's boxes in THIS file. There is no `P` to close --
       this task delivers none. Note the two entry numbers in the commit message so later
       tasks can cite them. Commit the tick separately.
 
