@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 9 of 10 tasks closed
+Progress: 10 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-17, by /simplify over the 0.2.3 branch
@@ -147,8 +147,9 @@ exists.
 - [x] T3 | FINISHED | unknown | T3 -- SUPERSEDED 2026-08-23. There is no
       `_annotated_docs` to rule on: the producer was removed and a PEP 727
       `Doc()` literal is not censused as prose.
-- [ ] T4 | T4 -- `prove_unchanged._without_comments` reads `original_column`,
-      not the suffix rule. Verify: `tests/test_prove_unchanged.py` passes and no
+- [-] T4 | SUPERSEDED -- Process 69 deleted Paragraph.original_column at d894894, so there is no field for _without_comments to read; the suffix rule is what remains. Its named test file also went with the 2026-08-25 suite replacement | d894894 | T4
+      -- `prove_unchanged._without_comments` reads `original_column`, not the
+      suffix rule. Verify: `tests/test_prove_unchanged.py` passes and no
       `endswith` cuts a line.
 - [x] T5 | FINISHED | unknown | T5 -- DONE 2026-08-19 -- ONE ADDRESS NAMED TWO
       BLOCKS on a mid-line comment; `address()` now reads the producer's field

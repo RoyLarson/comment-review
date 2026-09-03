@@ -2,7 +2,7 @@
 
 ```
 Status:   deferred
-Progress: 6 of 15 tasks closed
+Progress: 7 of 15 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, reading a census entry: 'in a system that is a
@@ -120,9 +120,10 @@ ruling is why this file is `deferred` and what it waits on:
 
 ## Tasks
 
-- [ ] T1 | T1 -- Rename `Paragraph.declares` to `documents` at the sites above.
-      Verify: `grep -rn declares plugins/` shows no paragraph-field use; the
-      round trip holds.
+- [-] T1 | SUPERSEDED -- Process 69 deleted Paragraph.declares at 22af63a, so there is no paragraph field to rename. T2 stands: Language.declares is a different object and is live | 22af63a | T1
+      -- Rename `Paragraph.declares` to `documents` at the sites above. Verify:
+      `grep -rn declares plugins/` shows no paragraph-field use; the round trip
+      holds.
 - [ ] T2 | T2 -- Rename `Language.declares` to `introduces`, on the field and on
       every row. Verify: `grep -n declares` over `language.py` returns nothing.
 - [ ] T3 | T3 -- Rename `lexer._declares_here` to match `introduces`. Verify:

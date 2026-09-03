@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 8 tasks closed
+Progress: 5 of 8 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-20 (found while adding the per-language declares keyword list,
@@ -99,9 +99,10 @@ rule is that a language takes its definition from its own grammar and never from
       above is `b0`. In the Objective.
 - [x] T4 | FINISHED | unknown | T4 -- SCOPE, not a task. Python is unaffected;
       its docstrings carry `declares` from the AST. In the Objective.
-- [ ] T5 | T5 -- Make `flag_structural_docs` read `declares` instead of
-      re-deriving it. Verify: on go, a `declares >= 0` run and a `declares ==
-      -1` run both stamp nothing.
+- [-] T5 | SUPERSEDED -- Paragraph.declares went at 22af63a, so flag_structural_docs has nothing to read instead of re-deriving | 22af63a | T5
+      -- Make `flag_structural_docs` read `declares` instead of re-deriving it.
+      Verify: on go, a `declares >= 0` run and a `declares == -1` run both stamp
+      nothing.
 - [ ] T6 | T6 -- Name in `compact.md:113` whatever remains genuinely unresolved
       after T5. Verify: the stamp's explanation at :113 names the case that
       still fires.
