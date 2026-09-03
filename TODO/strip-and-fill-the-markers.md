@@ -2,9 +2,9 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 8 tasks closed
+Progress: 0 of 9 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-29 (2026-08-29, Roy, watching three failed edits in a row: "having the
           whole text comment marks and all is brittle and subject to breakage easily. We
           may need to rethink this and strip/fill in the comment marks ourselves else
@@ -172,6 +172,15 @@ need to rethink this and strip/fill in the comment marks ourselves."* It reads a
 a reversal of `#27`, but no `decision-log.md` entry records it -- so the ruling it
 would overturn still stands.
 
+!! **T9 IS THE BOX THAT HOLDS IT, ADDED 2026-09-02.** This file was created
+`decision-needed` with `Requires-Roy: true`, and the five-marks migration derived
+that flag from a `[?]` it did not have -- so the entry went false and the audit
+could not see the gap from either direction. **23 of the other 24
+`decision-needed` files carry a `[?]`; this was the only one that did not.** ! And
+every one of T1-T8 implements the design: the file's own *"Open -- these are
+RULINGS"* section tracked two sub-questions and settled both, while WHETHER to
+adopt strip/fill was never written as anything.
+
 !! **WHEN IT IS RULED, CLOSE THE LOSING SIDE IN THE OTHER FILE.** If strip/fill
 wins, `Vocabulary: #27` is superseded and that file's T1 and T3 go with it. If
 `#27` stands, this file is superseded whole. **Neither may be worked until then**:
@@ -212,3 +221,5 @@ one thing safe to take first -- it is evidence FOR the ruling, not work under it
       the setter. Verify: the fill is what places delimiters, so a role cannot
       produce a broken file; a paragraph that cannot be filled is a named
       refusal, never a silent skip.
+- [?] T9 | Decide whether the system strips and fills the markers, reversing
+      Vocabulary 27

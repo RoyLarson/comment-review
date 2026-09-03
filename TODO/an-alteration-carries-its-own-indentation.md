@@ -32,6 +32,10 @@ need to rethink this and strip/fill in the comment marks ourselves."* No
 `decision-log.md` entry records it, so `Vocabulary: #27` stands unretracted while
 a whole TODO is written against it.
 
+! **THE BOX THAT HOLDS THE RULING IS `strip-and-fill-the-markers` T9**, added
+2026-09-02. That file was created `Requires-Roy: true` and lost the flag to the
+five-marks migration, so the decision had no box anywhere until then.
+
 !! **WHEN IT IS RULED, CLOSE THE LOSING SIDE IN THE OTHER FILE.** If `#27`
 stands, `strip-and-fill-the-markers` is superseded whole. If the strip/fill
 design wins, `#27` is superseded and T1 and T3 here go with it -- T3's test
