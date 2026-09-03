@@ -30,6 +30,6 @@ The task agent has no vocabulary home and is never told the command set.
       direction. Verify: `test_every_command_named_in_agent_facing_prose_exists`
       checks named-then-exists; add exists-then-named over the agent-facing
       subset, and confirm it goes red when a command is added and left unnamed.
-- [?] T4 | Which commands are agent-facing? Not every member of `COMMANDS`
-      belongs in an agent's instructions -- the dev tools and the gates do not
-      -- so the second direction needs a stated subset before it can be checked.
+- [?] T4 | Decide which commands are agent-facing. Not every member of `COMMANDS`
+      belongs in an agent's instructions -- the dev tools and the gates do not -- so the
+      second direction needs a stated subset before it can be checked.

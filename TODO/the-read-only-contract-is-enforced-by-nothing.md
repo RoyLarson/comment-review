@@ -106,9 +106,8 @@ exists, and it bears on how far it can be relaxed -- see
 - [x] T6 | FINISHED | unknown | T6 -- SUPERSEDED. "Keep the scratch files in the
       evidence package" cannot be done -- none exists in the tree or its
       history. The measurement is in the Objective.
-- [?] T7 | T7 -- * Say whether `prove_unchanged.py`'s scope is a gap or a
-      boundary. Verify: the answer is in `docs/decision-log.md`, and says
-      whether T5 is a gate.
+- [?] T7 | T7 -- * Decide whether `prove_unchanged.py`'s scope is a gap or a boundary.
+      Verify: the answer is in `docs/decision-log.md`, and says whether T5 is a gate.
 - [ ] T8 | Implement a gate that fails when a shipped agent file grants a write
       tool. Verify: adding Edit to one role turns it red
 ## Related

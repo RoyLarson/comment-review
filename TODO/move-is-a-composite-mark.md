@@ -154,14 +154,13 @@ and now there is one object that cannot be half-held.
       move report identical lists; today `a0` gets `['block-context',
       'module-context']` while `a8` and `a16` get the reverse, and
       `_composition` reads `owing[0].mark.anchor`.
-- [?] T15 | Should the far end's roles reach a reader of one end of a move
-      through a separate reader-facing field, leaving `marks` as the marks at
-      THIS place? `_join_moves:883` skips the union whenever both ends' kinds
-      agree, so a move with a collider at each end shows `a.py@b1
-      roles=['alpha','bravo']` and `a.py@b2 roles=['alpha','chi']` -- the loss
-      its own `!!` at 838-842 exists to prevent -- while widening the union
-      widens the measured corruption above, an entry carrying a mark whose
-      `change` belongs to another address.
+- [?] T15 | Decide whether the far end's roles should reach a reader of one end of a
+      move through a separate reader-facing field, leaving `marks` as the marks at THIS
+      place? `_join_moves:883` skips the union whenever both ends' kinds agree, so a
+      move with a collider at each end shows `a.py@b1 roles=['alpha','bravo']` and
+      `a.py@b2 roles=['alpha','chi']` -- the loss its own `!!` at 838-842 exists to
+      prevent -- while widening the union widens the measured corruption above, an entry
+      carrying a mark whose `change` belongs to another address.
 - [ ] T16 | Update `desk.collator._join_moves`'s opening illustration at lines
       823-826, which names an end settled while the other escalated -- a state
       no run reaches, because `_sentence_key` returns `id(mark)` for a `move`.

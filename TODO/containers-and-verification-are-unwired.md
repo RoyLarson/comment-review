@@ -269,8 +269,8 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       results/compositor.py importing Page and page_for from the read end
         > 2026-08-31 lossless and identity are flow-shaped -- path in, page built
         > 2026-08-31 proof_setter already reaches flows.page_for; only these two do not
-- [?] T33 | Is binder/page.py a LEAF both ends may reach down to, or the read
-      end, given that Paragraph is already a leaf and both ends handle a Page?
+- [?] T33 | Decide whether binder/page.py is a LEAF both ends may reach down to, or the
+      read end, given that Paragraph is already a leaf and both ends handle a Page?
         > 2026-08-31 Page used by results, flows, commands, binder -- both ends
 - [ ] T34 | Move SYMBOLISH off reading/lexer.py to a real leaf, since it has no
       reader inside the lexer and was parked there to be one

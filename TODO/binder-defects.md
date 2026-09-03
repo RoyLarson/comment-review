@@ -154,12 +154,12 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
       Verify: the sentence matches `row \| {"path": path, "address": ...}`,
       whose dict-union order turns a row carrying `{"path": "other.py",
       "address": "other.py@b9"}` into `{'path': 'm.py', 'address': 'm.py@b1'}`.
-- [?] T16 | Does `--include-absent` describe the binder ARTIFACT, or only the
-      invocation that produced it? Verify: the answer is recorded in
-      `docs/decision-log.md`; if it describes the artifact, `read_from` carries
-      `absent` and a copy seeded from an include-absent binder then collated
-      against a default one is refused rather than reporting every `interval`
-      and `margin` mark as naming a place the binder does not carry.
+- [?] T16 | Decide whether `--include-absent` describes the binder ARTIFACT, or only the
+      invocation that produced it? Verify: the answer is recorded in `docs/decision-
+      log.md`; if it describes the artifact, `read_from` carries `absent` and a copy
+      seeded from an include-absent binder then collated against a default one is
+      refused rather than reporting every `interval` and `margin` mark as naming a place
+      the binder does not carry.
 - [ ] T17 | Update `bind`'s `ValueError` docstring at `binder.py:152-156` to
       state that no shipped caller can reach the guard. Verify: it names the
       four internal callers -- `commands/census.py:331`, `flows/revise.py:239`,

@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 1 of 14 tasks closed
+Progress: 1 of 15 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17 (two full runs in one session, on two repos; stage 1 was established
@@ -129,9 +129,8 @@ ways -- a cap published since the last run, a `docs/` tree deleted since.
 
 ## Tasks
 
-- [?] T1 | T1 -- * Collapse 1.7 and 1.8 into ONE substep named for what it does:
-      find what structure is available. Verify: `SKILL.md` has one substep
-      there, not two.
+- [?] T1 | T1 -- * Decide whether 1.7 and 1.8 collapse into ONE substep, which renumbers
+      every substep below them. Verify: the answer is in `docs/decision-log.md`.
 - [ ] T2 | T2 -- Re-resolve every citation of the old substep numbers once T1
       lands. Verify: `grep -rn "1\.8" plugins/` is empty or points at the new
       number.
@@ -169,3 +168,5 @@ ways -- a cap published since the last run, a `docs/` tree deleted since.
 - [x] T14 | FINISHED | unknown | T14 -- RULED 2026-08-17, in the Objective:
       `.claude/comment-review/` in the repo under review, Roy's words. The
       ruling is made; implementing it is T7.
+- [ ] T15 | Collapse 1.7 and 1.8 into one substep named for what it does, once
+      T1 rules it

@@ -312,7 +312,7 @@ that changed a published name or rule:
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
 | [compact-can-buy-lines-with-width](compact-can-buy-lines-with-width.md) | agents | -- | 2/8 | COMPACT can buy lines with width, and nothing stops it |
-| [stage-1-is-re-derived-every-run](stage-1-is-re-derived-every-run.md) | agents | yes | 1/14 | Stage 1 is re-derived every run, asks one question twice, and knows one structure source |
+| [stage-1-is-re-derived-every-run](stage-1-is-re-derived-every-run.md) | agents | yes | 1/15 | Stage 1 is re-derived every run, asks one question twice, and knows one structure source |
 | [the-bridge-landed-and-the-rewrite-did-not](the-bridge-landed-and-the-rewrite-did-not.md) | backend | -- | 8/11 | The bridge landed and the rewrite did not |
 | [corpora-are-all-python](corpora-are-all-python.md) | testing | -- | 3/10 | The corpora are nine Python projects, so every per-language rule is measured on Python and C alone |
 | [7a-can-prove-the-change-by-applying-it-to-a-copy](7a-can-prove-the-change-by-applying-it-to-a-copy.md) | agents | yes | 3/7 | 7a can PROVE the change by applying it to a copy and diffing |

@@ -139,13 +139,12 @@ cites as its measured example of a field answering neither necessary nor purpose
       `mark.sources`, or the comment bounds the guarantee to the containers and
       names `as_entry()` as the second route -- today both mutations are visible
       through a frozen `Mark`.
-- [?] T3 | Do `can_declare_scope`, `rules_on_text` and `diffable` stay as row
-      flags, and what reads each? MEASURED 2026-08-30: no reader anywhere in
-      `src/` outside `desk/mark.py`; the only other sites are
-      `tests/gates/test_mark_shape.py:135,137,138`, which map the spec's phrase
-      to the field name. Verify: the answer is recorded in
-      `docs/decision-log.md`, and each of the three is either read by a module
-      or gone.
+- [?] T3 | Decide whether `can_declare_scope`, `rules_on_text` and `diffable` stay as
+      row flags, and what reads each? MEASURED 2026-08-30: no reader anywhere in `src/`
+      outside `desk/mark.py`; the only other sites are
+      `tests/gates/test_mark_shape.py:135,137,138`, which map the spec's phrase to the
+      field name. Verify: the answer is recorded in `docs/decision-log.md`, and each of
+      the three is either read by a module or gone.
 - [ ] T4 | Update `allowed()` so `scope_shape` is published from the row's
       `can_declare_scope` rather than the hardcoded `Shape.OUTSIDE_MY_ROLE`
       literal at `desk/mark.py:438`, or delete the flag. Verify: editing that
