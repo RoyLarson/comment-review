@@ -3024,3 +3024,32 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What T33 asked for was a decision, not code**, so closing it records the ruling; T32 and T29
   do the work it authorizes.
+
+- **#84.** **AN UNRULED PROHIBITION WRITTEN INTO A PROJECT FILE IS ITSELF A DEFECT** (Roy,
+  2026-09-03, on `the-cue-legend-and-its-round-trip`'s "WHAT A LEGEND MUST NOT BECOME"
+  foreclosing the three candidates `the-cue-legend-was-never-written` T2 posed): *"this is
+  up to me and the agents role to determine and the backend's role or whoever wrote the
+  absolute in there was wrong to put an absolute in anything ever. Every current condition
+  and consideration is open for discussion and change if deemed appropriate ... I make
+  decisions and then new stuff comes up and I change my mind. Absolutes are a desease."*
+
+  **THIS DOES NOT SETTLE CONTRADICTION #5 BY CHOOSING AN ANSWER.** It settles it by naming
+  why one side read as though it already had one. `the-cue-legend-and-its-round-trip`'s
+  Objective asserted a permanent constraint -- *"a second list of letters written somewhere
+  else is the duplication that file exists to end. The legend belongs where a role's terms
+  already come from"* -- with no Roy attribution and no citation. That is the exact shape
+  `CLAUDE.md` already warns against, *"an absolute gets asked about before it is written
+  down"*, except here it was WRITTEN rather than asked.
+
+  ! **CORRECTED IN THE FILE ITSELF, NOT CLOSED.** The paragraph now reads as a
+  consideration, and `vocabulary.toml` stands beside `the-cue-legend-was-never-written`
+  T2's three candidates -- the brief, a reference of its own, each role file -- as one more
+  option, not the forbidding answer. Neither that T2 nor this file's T1 is closed or
+  superseded; the decision stays open, with Roy and the `agents` lane, for whenever it is
+  made.
+
+  !! **THE PRACTICE GENERALISES BEYOND THIS ONE PARAGRAPH.** A prohibition, a "must", a
+  "the only way", written into a TODO, a decision-log entry or a docstring without a dated
+  ruling behind it is asserting a permanence nobody granted -- and Roy changing his mind
+  later is not a defect in the record, it is the record doing its job. Finding another
+  instance is a finding to correct where it sits, not licence for an unprompted sweep.
