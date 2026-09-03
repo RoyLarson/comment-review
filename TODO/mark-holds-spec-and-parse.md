@@ -91,3 +91,4 @@ change -- `conventions.md`, *The vocabulary is shared*.
       prototype residue ported in `67dc82b`, and the move spec deletes it with
       `add`'s claim anchor. Verify: `TICKED` carries the sentence and
       `docs/vocabulary.md` records why it admits what it admits.
+        > 2026-09-03 new location: concordance/annotate.py, not binder/
