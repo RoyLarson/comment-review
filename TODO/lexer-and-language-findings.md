@@ -233,6 +233,9 @@ would.
       docstring today.
 - [ ] T23 | T23 -- Set a same-line docstring on its own line below the
       declaration. Verify: `def g(): """d."""` round-trips to the two-line form.
+        > 2026-09-03 MEASURED 2026-09-03: the one-line form round-trips byte-exact today
+        > 2026-09-03 lossless returns None; this would make it return a message
+        > 2026-09-03 and it moves a CODE line, which is why T24 exists beside it
 - [ ] T24 | T24 -- Make `prove_unchanged` admit that one move. Verify: PROVEN on
       the two-line form, and still FAILS when any other token on that line
       moves.

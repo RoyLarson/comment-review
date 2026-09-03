@@ -63,8 +63,15 @@ back. `systems` owns whether the two are one file.
 - [ ] T1 | Give the docstring paragraph of a same-line declaration an address,
       or refuse the page. Verify: page_for over 'def f(): """D."""' emits no
       paragraph whose address is empty.
+        > 2026-09-03 MEASURED 2026-09-03: it IS addressed -- g.py@b0, kind docstring
+        > 2026-09-03 so no paragraph has an empty address; this verify passes today
 - [ ] T2 | Stop the round trip inventing a line on that shape. Verify:
       compositor.lossless returns None for it.
+        > 2026-09-03 MEASURED: lossless None, set_page byte-exact
+        > 2026-09-03 on all three shapes -- one line, one line plus trailing, two line
+        > 2026-09-03 NOT closed: lexer T23 would turn this green verify red
 - [ ] T3 | Add the shape to tests/test_reading.SOURCES and
       tests/test_compositor.FORMS. Verify: both go red before the two boxes
       above and green after.
+        > 2026-09-03 the live one -- the shape is in neither SOURCES nor FORMS
+        > 2026-09-03 so the tripwire never sees b0 holding a docstring kind
