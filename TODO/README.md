@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (117)
+### open  (116)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -267,7 +267,6 @@ that changed a published name or rule:
 | [annotate-belongs-in-concordance](annotate-belongs-in-concordance.md) | backend | -- | 0/3 | annotate.py is stage 3 -- it resolves every reference a node makes -- which is the concordance's subject, not the binder's |
 | [prototype-move-orphaned-tasks](prototype-move-orphaned-tasks.md) | systems | -- | 0/4 | 25 open TODOs carry an unchecked task naming a module that moved to `prototype/` on 2026-08-25, so the task's site is gone and its verification cannot be run |
 | [revise-copies-everything](revise-copies-everything.md) | backend | yes | 0/4 | `pull` copies `.git`, `.venv` and `corpora` into every revise root -- 284MB measured on this repo, per editorial stage, to set a docket over ~4MB of source |
-| [docket-role-is-per-page-not-per-alteration](docket-role-is-per-page-not-per-alteration.md) | backend | yes | 0/3 | role sits on the page in docket.py's schema, so provenance is lost the moment two roles settle places on one page |
 | [sheet-rename-gate-cannot-see-the-source](sheet-rename-gate-cannot-see-the-source.md) | systems | -- | 0/2 | the gate's scope excludes the tree the retired sense actually survived in -- docs/gates.md: a check that could not have failed is not evidence |
 | [doc-on-the-declaring-line](doc-on-the-declaring-line.md) | backend | -- | 0/3 | A docstring written on its declaration's own line takes no address, and the round trip invents a blank line |
 | [brief-forbids-the-full-address](brief-forbids-the-full-address.md) | agents | -- | 0/3 | reviewer-brief.md:109 instructs the bare cue; the seeder writes the full address and the checker refuses a substantive mark without it |
@@ -289,7 +288,7 @@ that changed a published name or rule:
 | [collate-flow-defects](collate-flow-defects.md) | backend | -- | 0/12 | Twelve defects in `flows/collate.py`, from a review of one file |
 | [mark-defects](mark-defects.md) | backend | yes | 0/11 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
 | [binder-defects](binder-defects.md) | backend | yes | 0/18 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
-| [docket-defects](docket-defects.md) | backend | -- | 1/8 | Six defects in docket.py, and one discards an approved page at exit 0 |
+| [docket-defects](docket-defects.md) | backend | -- | 2/8 | Six defects in docket.py, and one discards an approved page at exit 0 |
 | [collate-command-defects](collate-command-defects.md) | backend | -- | 3/19 | Sixteen defects in `commands/collate.py`, measured by running it |
 | [differences-defects](differences-defects.md) | backend | -- | 0/10 | Ten defects in `results/differences.py`, none of them in its arithmetic |
 | [plans-name-no-todo-tasks](plans-name-no-todo-tasks.md) | systems | yes | 0/4 | Six 0.2.4 plans carry no heading naming the TODO tasks they close |
@@ -452,3 +451,4 @@ the reason is inside the file.
 | [the-flow-assumes-every-role-reads-at-once](completed/the-flow-assumes-every-role-reads-at-once.md) | FINISHED -- the flow no longer assumes one simultaneous read; a stage reads what the stage before it left |
 | [the-ported-mark-does-not-fit-the-brief](completed/the-ported-mark-does-not-fit-the-brief.md) | FINISHED -- the mark accepts what the shipped brief tells a role to write |
 | [ownership-is-read-first-but-nothing-makes-it-so](completed/ownership-is-read-first-but-nothing-makes-it-so.md) | SUPERSEDED into stage-4b-is-undefined T6 -- Process 75 supplies the mechanism this file proposed a PROPOSED-tag census for: 4b is the task agent running proof and census --revise 1, so 4c is seeded from 4a's revise. The serialisation ruling is kept in the Objective |
+| [docket-role-is-per-page-not-per-alteration](completed/docket-role-is-per-page-not-per-alteration.md) | RULED -- role is ONE PER PAGE, answered by which copy was pulled from. Process 81; the per-alteration alternative and the omission-retirement are superseded with it |

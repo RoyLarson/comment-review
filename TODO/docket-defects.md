@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 8 tasks closed
+Progress: 2 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `docket/docket.py` run end to end
@@ -111,10 +111,11 @@ caller.
       sort by path, and a hand-built docket whose two schedules share `path` and
       `sha` no longer raises `TypeError: '<' not supported between instances of
       'dict' and 'dict'` from the `alterations` field.
-- [ ] T7 | Delete `Schedule.role` at `docket.py:100` and its justification at
-      `:91-94`. Verify: `grep -rn "schedule\.role\\|s\.role" src/comment_review/
-      tests/` was already empty before the delete -- no `Schedule` reader exists
-      in `proof_setter.py`, `commands/proof.py`, `tests/test_docket.py` or
+- [-] T7 | SUPERSEDED -- Process 81 makes Schedule.role correct and load-bearing. Its verify grep returns empty because the reader is page.role, where page iterates docket.schedules -- flows/revise.py:262 | 8ed4688 | Delete
+      `Schedule.role` at `docket.py:100` and its justification at `:91-94`.
+      Verify: `grep -rn "schedule\.role\\|s\.role" src/comment_review/ tests/`
+      was already empty before the delete -- no `Schedule` reader exists in
+      `proof_setter.py`, `commands/proof.py`, `tests/test_docket.py` or
       `tests/test_proof_setter.py` -- the suite is green after, and
       `schedules_of` no longer runs `str(page.get("role", ""))` at
       `docket.py:203` on every unwind.
