@@ -322,6 +322,40 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! `f0` and `f1` take no leading: both round trip flush, because the matter series is defined by
   the file's edges rather than by what sits beside it.
 
+- **#20.** **A DOCSTRING ON THE DECLARING LINE MOVES TO PYTHON'S APPROVED `a` SPOT, BELOW THE
+  DECLARATION** (Roy, 2026-09-03): *"It moves because making a special case when someone does
+  something silly like have a very short function declaration on one line and the doc string on
+  it and no code following is silly ... just because it is legal doesn't mean we have to exactly
+  support it or that it is used often enough for me to care about."*
+
+  !! **SO THE ROUND TRIP IS NOT BYTE-IDENTICAL ON THIS SHAPE, DELIBERATELY.** `def g(): """d."""`
+  is set back as two lines. That is the one place the write chain is allowed to relay a line, and
+  it is why [`lexer-and-language-findings`](../TODO/lexer-and-language-findings.md) `T24` sits
+  beside `T23`: `prove_unchanged` has to admit that one move and still fail when any other token
+  on the line moves.
+
+  ! **THE COST IS NAMED AND ACCEPTED.** A special case for the shape would have to be carried by
+  the lexer, the addresser, the compositor and the proof; supporting it exactly buys a pattern
+  with no code after the declaration.
+
+  !! **WHAT IS UNKNOWN IS STATED, AND IT IS THE TIER.** Roy, the same message: *"It moves
+  currently in Python while Python tries to use the parser. It is unknown what happens when
+  Python goes to the lexar."* So this rules the BEHAVIOUR on the tokenized tier and leaves the
+  lexical one open -- [`python-cannot-read-python`](../TODO/python-cannot-read-python.md) is
+  where that lands, and it must re-answer this rather than inherit it.
+
+  ! **MEASURED 2026-09-03, AND THE CURRENT ADDRESS IS NOT `c`.** Roy's message says the docstring
+  *"is currently sitting in the c spot"*; built through `tests/conftest.build`, the same-line form
+  yields `a0 undocumented`, `f0`/`f1 dark-matter` and the docstring at **`b0`**, kind `docstring`.
+  The RULING is unaffected -- it moves to `a` from wherever it sits -- but the starting address is
+  `b0`, and that is its own defect: `b` is the GAP series, whose pair is `comment`/`interval`, so
+  `b0` is holding the `a` series' kind while `a0` reports `undocumented`.
+
+  ! **THAT IS `a-doc-comment-is-cued-a-and-typed-b` INVERTED**, and the strict-xfail tripwire in
+  `tests/test_reading.py` cannot see it, because this shape is in neither `SOURCES` nor `FORMS`.
+  Fixing the address may fix the kind with it; pinning the shape is `doc-on-the-declaring-line`
+  `T3`.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is
