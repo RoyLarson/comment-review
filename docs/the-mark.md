@@ -158,11 +158,23 @@ can move and it can't complete the move because 1/2 is rejected"* is a rule abou
 TRAVELS -- refused whole, escalated whole, answered whole, set whole. **One `Mark` satisfies that
 more directly than two**, because there is no pair to keep together. The table below still binds.
 
-! **IT IS PROVISIONAL, AND WHAT WOULD REOPEN IT IS A MOVE WHOSE ORIGIN OUTCOME IS NOT
-DERIVABLE** -- an origin that must read differently after the prose leaves, rather than simply
-losing it. Nothing has shown one; if one appears, the origin needs carrying and the composite
-returns. ! [`move-is-a-composite-mark`](../TODO/move-is-a-composite-mark.md) is written against
-the two-`Mark` composite and is 0 of 21, so it is the file this determination reaches first.
+! **IT IS PROVISIONAL, AND IT RESTS ON TWO PREMISES.** Those are what to check it against, and
+they are stated instead of a list of failure modes because **nobody knows the ways this breaks
+yet** -- an enumerated set of them would be a guess wearing the shape of a specification:
+
+| the premise | what falsifies it |
+| --- | --- |
+| a move's origin has ONE outcome, so the delete needs no carrying | any origin that must READ differently after the prose leaves |
+| `raw_text` carries the agent's edited text, so the destination is known | any destination the edited text does not locate |
+
+! **ANYTHING THAT FALSIFIES EITHER REOPENS IT, AND SO DOES ANYTHING NEITHER PREMISE ANTICIPATED.**
+A single `Mark` has not been run against a real corpus of moves, and the composite is what it
+returns to if it does not hold. ! Roy, 2026-09-02, on an earlier wording here that named one
+failure as though it were the only one: *"it could fail any number of ways and acting like it
+you can come up with a closed set of failure modes is silly."*
+
+! [`move-is-a-composite-mark`](../TODO/move-is-a-composite-mark.md) is written against the
+two-`Mark` composite and is 0 of 21, so it is the file this determination reaches first.
 
 !! **AND THE REASON IT IS ONE INSTRUCTION IS ATOMICITY, NOT TIDINESS.** Filed as a `drop` and an
 `add`, the two halves can be judged separately -- and **half a move is a defect neither half
