@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks closed
+Progress: 1 of 5 tasks closed
 Owner:    systems (the gate) - backend (the test fixes)
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that ty should pick up the tests as well,
@@ -17,7 +17,8 @@ The type gate is scoped to src and cannot see the tests.
 
 ## Tasks
 
-- [ ] T1 | Implement a `[tool.ty]` section in `pyproject.toml` naming both
+- [x] T1 | FINISHED -- pyproject.toml [tool.ty.src] include is [src, tests] | c0261e5 | Implement
+      a `[tool.ty]` section in `pyproject.toml` naming both
       `src/comment_review/` and `tests/`, so the gate's SCOPE lives in config
       rather than on a command line where the next reader cannot see it. Verify:
       a bare `uv run ty check` covers both trees, and no invocation in

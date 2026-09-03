@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 12 tasks closed
+Progress: 8 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22: the term the agent keeps saying is the collator but
@@ -88,12 +88,12 @@ the boxes below track that it is owed.
 
 - [x] T1 | FINISHED | unknown | T1 -- RULED 2026-08-23: the one who rules is the
       `copy chief`, not the collator; Roy's ruling is quoted in the Objective.
-- [ ] T2 | T2 -- Rename `verdicts.py` to `collator.py` and fix its importers.
-      Verify: `uv run pytest -q` green and `uv run ty check` on the scripts
-      clean.
-- [ ] T3 | T3 -- Rename `tests/test_verdicts.py` to match. Verify: discovery
-      collects it under the new name and no file named `test_verdicts.py`
-      remains.
+- [x] T2 | FINISHED -- desk/collator.py exists, desk/verdicts.py does not; zero remaining desk.verdicts references | a3876c6 | T2
+      -- Rename `verdicts.py` to `collator.py` and fix its importers. Verify:
+      `uv run pytest -q` green and `uv run ty check` on the scripts clean.
+- [x] T3 | FINISHED -- tests/test_collator.py exists, tests/test_verdicts.py does not | a3876c6 | T3
+      -- Rename `tests/test_verdicts.py` to match. Verify: discovery collects it
+      under the new name and no file named `test_verdicts.py` remains.
 - [ ] T4 | T4 -- Update the command lines and citations in `SKILL.md`,
       `CLAUDE.md` and `docs/`. Verify: `grep -rn "verdicts.py" plugins/ docs/
       CLAUDE.md` returns nothing.
