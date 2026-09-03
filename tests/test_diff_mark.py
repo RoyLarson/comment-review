@@ -5,7 +5,27 @@ Mirrors `test_mark.py`'s shape tests for `Mark`, over the smaller `DiffMark`.
 
 import pytest
 
-from comment_review.desk.diff_mark import DiffInstruction, DiffMark
+from comment_review.desk.collator import Placed
+from comment_review.desk.diff_mark import DiffInstruction, DiffMark, batch_of
+from comment_review.desk.mark import Instruction, Mark
+
+
+def _placed(role: str, address: str, anchor: str = "def f(x):") -> Placed:
+    """One role's owing `correct`, at one place -- the shape `Reconciled`'s
+    `marks` lists hold. Only what `batch_of` reads is filled in."""
+    return Placed(
+        Mark(
+            address=address,
+            anchor=anchor,
+            raw_text="# as it stands\n",
+            instruction=Instruction.CORRECT,
+            claim={"false": "as it stands", "true": "as it should read"},
+            reason="the paragraph is stale",
+            sources=(),
+            change="# as it should read\n",
+        ),
+        role,
+    )
 
 
 def test_seed_builds_the_slot_from_the_diff_marks_own_names():
@@ -109,3 +129,77 @@ def test_the_closed_set_is_exactly_four():
         "correct",
         "patch",
     }
+
+
+# === batch_of -- P21
+
+
+def test_one_send_per_role_whatever_the_place_count():
+    """P21's own verify. A role owing two places gets ONE list, not two
+    separate sends -- the batch is keyed by role, not by place."""
+    escalations = [
+        {
+            "address": "m.py@b1",
+            "roles": ["block-context", "function-context"],
+            "marks": [
+                _placed("block-context", "m.py@b1"),
+                _placed("function-context", "m.py@b1"),
+            ],
+        },
+    ]
+    rereads = [
+        {
+            "address": "m.py@b3",
+            "roles": ["block-context"],
+            "marks": [
+                _placed("block-context", "m.py@b3"),
+            ],
+        },
+    ]
+    batch = batch_of(escalations, rereads)
+    assert set(batch) == {"block-context", "function-context"}
+    assert len(batch["block-context"]) == 2
+    assert len(batch["function-context"]) == 1
+
+
+def test_each_slot_is_a_seeded_diff_mark_naming_its_place():
+    escalations = [
+        {
+            "address": "m.py@b1",
+            "roles": ["block-context", "function-context"],
+            "marks": [
+                _placed("block-context", "m.py@b1"),
+                _placed("function-context", "m.py@b1"),
+            ],
+        },
+    ]
+    batch = batch_of(escalations, [])
+    slot = batch["block-context"][0]
+    assert slot["address"] == "m.py@b1"
+    assert slot["anchor"] == "def f(x):"
+    assert slot["instruction"] is None
+
+
+def test_the_diff_carries_every_mark_at_the_place_including_the_readers_own():
+    """`Mark` has no `role` field, so the diff must ride it beside each
+    entry -- the same pairing `Placed` carries -- or a reader cannot tell
+    whose finding is whose."""
+    escalations = [
+        {
+            "address": "m.py@b1",
+            "roles": ["block-context", "function-context"],
+            "marks": [
+                _placed("block-context", "m.py@b1"),
+                _placed("function-context", "m.py@b1"),
+            ],
+        },
+    ]
+    batch = batch_of(escalations, [])
+    roles_seen = {mark["role"] for mark in batch["block-context"][0]["marks"]}
+    assert roles_seen == {"block-context", "function-context"}
+    assert len(batch["block-context"][0]["marks"]) == 2
+    assert len(batch["function-context"][0]["marks"]) == 2
+
+
+def test_no_disagreements_gives_an_empty_batch():
+    assert batch_of([], []) == {}

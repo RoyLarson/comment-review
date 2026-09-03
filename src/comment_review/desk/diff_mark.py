@@ -2,11 +2,11 @@
 
 !! NOTHING WIRES THIS IN YET. Roy, 2026-09-03: *"That looks like a good prototype
 to test out the workflow. Keep it a prototype until we get all of the pieces
-together."* `docs/plans/0.2.4-the-mark-and-the-collator.md` P20 is this file;
-P21 (the batch send), P16 (the return and parse), P17 (the recollate) and P18/
-P19 (the round counter and the chief's cap ruling) are what would make a
-`DiffMark` reach a role or come back from one. Until they land this module has
-no caller.
+together."* `docs/plans/0.2.4-the-mark-and-the-collator.md` P20 (`DiffMark`
+itself) and P21 (`batch_of`) are this file; P16 (the return and parse), P17
+(the recollate) and P18/P19 (the round counter and the chief's cap ruling)
+are what would make a `DiffMark` reach a role or come back from one. Until
+they land this module has no caller.
 
 === WHY IT IS NOT A `Mark`
 
@@ -196,3 +196,41 @@ class DiffMark:
             ),
             [],
         )
+
+
+def batch_of(escalations: list[dict], rereads: list[dict]) -> dict[str, list[dict]]:
+    """Every disagreement, grouped into one payload per role -- P21.
+
+    `docs/the-revise.md`: *"all of the disagreements are sent out as one
+    batch with the diffs to the agents."* One entry per role in the result,
+    holding every place that role owes -- ONE SEND PER ROLE WHATEVER THE
+    PLACE COUNT, which is P21's own verify.
+
+    Args:
+        escalations: `desk.collator.Reconciled.escalations`, or the same
+            shape narrowed by a round -- `flows.collate.Collated.escalations`
+            after the places that resolved on their own are gone. Each entry
+            is `{"address", "roles", "marks": list[Placed]}`.
+        rereads: the same shape, for places whose composition did not
+            resolve.
+
+    Returns:
+        role -> the `DiffMark` slots that role owes, each seeded via
+        `DiffMark.seed` and carrying `marks` -- `{"role", **mark.serialize()}`
+        for every mark already at that place, INCLUDING the role's own.
+        `role` rides beside the mark rather than inside it because `Mark`
+        carries no such field -- `desk.collator.Placed` is the pair, the same
+        reason it exists there. That list is THE DIFF: a role answering "does
+        your finding still stand" is comparing its own entry against
+        whoever it disagrees with, and needs to see whose is whose.
+    """
+    batch: dict[str, list[dict]] = {}
+    for entry in (*escalations, *rereads):
+        marks = entry["marks"]
+        anchor = marks[0].mark.anchor if marks else ""
+        context = [{"role": placed.role, **placed.mark.serialize()} for placed in marks]
+        for role in entry["roles"]:
+            slot = DiffMark.seed(entry["address"], anchor)
+            slot["marks"] = context
+            batch.setdefault(role, []).append(slot)
+    return batch
