@@ -157,6 +157,11 @@ under `utf8_console()`.
       sentence claims an ordering the numbers do not carry -- `DRIFT=5` is the
       weakest outcome and holds the largest number, so `if code > 3` or any
       ordered comparison on the code is wrong.
+        > 2026-09-03 it is in the SP-1 spec:167 and plan:3027, records of what was built
+        > 2026-09-03 the inversion this names is DRIFT=5 above ESCALATIONS=4
+        > 2026-09-03 MEASURED 2026-09-03: collate.py makes no strongest first claim
+        > 2026-09-03 T27 deletes DRIFT and closes the gap, which settles this
+        > 2026-09-03 land T27 first; work this only if the codes still miss the order
 - [ ] T16 | Update `UNREADABLE=2` so it stops doubling as the usage-error code,
       or so its prose says it covers both. Verify: `collate` with no
       `--edit-copy` and `collate` over a copy that is not JSON are

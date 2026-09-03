@@ -158,6 +158,8 @@ Four defects in collator.py, found by reading only the code.
       moved is a question it has no stake in. Verify: `grep -rn "drift"
       src/comment_review/` returns nothing, the exit codes are a closed set with
       no gap where DRIFT was, and the suite stays green.
+        > 2026-09-03 Closing the DRIFT gap also settles collate-command-defects T15
+        > 2026-09-03 T15 names DRIFT=5 above ESCALATIONS=4 as the ordering inversion
 - [x] T28 | Both are deleted; flows.mark_errors answers what they did. The seven test functions that called them are repointed rather than dropped, the ruled count is derived in the tests that assert it, and ten present-tense prose mentions are corrected while eight historical ones stay. | 0edefdc | Delete
       problems_in and unruled, which flows.mark_errors replaced, and the tests
       that assert their shape
