@@ -33,7 +33,7 @@ names that role; pull the chief's and `copy-chief` is the true answer, because
 the fold is what set it.
 
 ! THE NAME IS SETTLED, 2026-08-26 -- `decision-log.md Vocabulary: #14`. It was
-`notations`, one letter from the `annotations` that `binder/annotate.py` owns.
+`notations`, one letter from the `annotations` that `concordance/annotate.py` owns.
 """
 
 import json

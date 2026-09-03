@@ -69,7 +69,7 @@ getting it out of the json blob is important."* A sha taken from the file at
 write time would ask whether the file equals itself, which cannot fail.
 
 !! IT WAS `desk/notations.py`, A STAND-IN, AND THE NAME COLLIDED. `notations`
-sat one letter from the `annotations` that `binder/annotate.py` owns. ! The
+sat one letter from the `annotations` that `concordance/annotate.py` owns. ! The
 instinct was right and that is why it collided -- Roy, 2026-08-26: *"if I was
 writing between the lines with marks in red pen I think of those red marks as
 notations."* The trade calls those PROOF CORRECTION MARKS, and `mark` is already
