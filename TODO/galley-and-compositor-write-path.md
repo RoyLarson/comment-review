@@ -109,3 +109,6 @@ files in `corpora/` are in that state today.
         > 2026-08-31 MEASURED 2026-08-31 while landing P45: grep over src/ and tests/
         > 2026-08-31 finds no caller. It is the only remaining write over a REAL file,
         > 2026-08-31 so what it does is a ruling, not a cleanup.
+        > 2026-09-03 RULED DELETE by Roy 2026-09-03 -- Process 80
+        > 2026-09-03 the or name the caller branch is gone: no piece may write
+        > 2026-09-03 the work is only-a-flow-reaches-the-machine T1, and four more

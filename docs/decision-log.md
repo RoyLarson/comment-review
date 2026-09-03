@@ -2810,3 +2810,44 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   already says an unchecked box asserts work is still to do; `#9` knew the boxes were wrong,
   wrote so, and left sixteen of them claiming otherwise. The log is not a place to put a
   correction INSTEAD of making it.
+
+- **#80.** **ONLY A FLOW REACHES THE MACHINE. THE ENDS AND THE MIDDLE NEVER TOUCH A FILE** (Roy,
+  2026-09-03, ruling `results.compositor.approve` deleted): *"Delete it. that is not the way it
+  is acceptable to happen anymore. The flows get a string from things that need to write and
+  sends it to the machine to be written. Nothing in the beginning, middle, end pieces gets to do
+  that. It is all flow and only flow can go to the machine and get text or send text to be
+  written."*
+
+  !! **A PIECE THAT NEEDS TEXT WRITTEN RETURNS A STRING; THE FLOW CARRIES IT.** That is the whole
+  shape, and it extends `#65`'s load/work/save rule from CONTAINERS to BYTES:
+
+      READ    a flow calls the machine, and hands the text down
+      WORK    binder, desk, docket, results take and return VALUES
+      WRITE   a piece returns a string; the FLOW gives it to the machine
+
+  ! **IT IS THE SAME RULE `conventions.md` ALREADY STATES ONE LEVEL UP** -- *"No direct coupling
+  inside of ends and middle, flows are neither they run the steps."* I/O is a coupling to the
+  checkout, and the ends were reaching it directly.
+
+  !! **THE RULING IS WIDER THAN THE FUNCTION IT WAS GIVEN ON. MEASURED 2026-09-03**, every call
+  into `machine.repo` from outside `machine/` and outside `flows/`:
+
+  | site | what it does | why it is a violation |
+  | --- | --- | --- |
+  | `results/compositor.py:364 approve` | `write_raw` over the real file | WRITE END, and **no caller in `src/` or `tests/`** -- this is the one Roy ruled on |
+  | `results/compositor.py:361 draft` | `write_raw` into a scratch path | WRITE END, and **live** -- so this half is a refactor, not a delete |
+  | `results/compositor.py:404, :436` | `read_source` in `lossless` and the identity check | WRITE END reading a file |
+  | `results/prove_unchanged.py:245` | `read_raw` over a sibling | WRITE END reading a file |
+  | `desk/collator.py:239` | `read_raw` for a cited source | MIDDLE reading a file |
+
+  ! **`desk/collator.py` IS THE INTERESTING ONE**, because `#62`'s 2026-08-30 qualification
+  permits it -- *the middle touches no PAGES; a cited evidence file carries no `sha` and may be
+  read.* That permission was about WHAT may be read, not about WHO reads it. Under `#80` the read
+  still happens; the flow performs it and hands the text to `verify_report`.
+
+  !! **WHAT `commands/` MAY DO IS NOT SETTLED BY THIS ENTRY.** Roy's sentence says *only flow*,
+  and `conventions.md` puts `flows` and `commands` together as neither end nor middle. Four
+  command sites do I/O today -- `census.py:163`, `proof.py:206`, `prove_unchanged.py:84-85`.
+  **Recorded as open rather than inferred**, because reading it either way changes real code.
+
+  ! Filed as `TODO/only-a-flow-reaches-the-machine.md`.
