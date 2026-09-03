@@ -2851,3 +2851,33 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **Recorded as open rather than inferred**, because reading it either way changes real code.
 
   ! Filed as `TODO/only-a-flow-reaches-the-machine.md`.
+
+- **#81.** **WHICH ROLE SET A PLACE IS ANSWERED BY WHICH COPY WAS PULLED FROM, SO `role` IS ONE
+  PER PAGE** (Roy, 2026-09-02): *"by the time the copy-chiefs edit-copy becomes the sole
+  edit-copy in the master proof the per role piece is lost. If we are pulling from the individual
+  roles already then we know the answer."*
+
+  !! **THIS ENTRY IS LATE, AND THAT IS THE POINT OF WRITING IT.** The ruling has been load-bearing
+  in code since 2026-09-02 and existed in `src/comment_review/docket/docket.py:91-96` and
+  **nowhere else** -- no markdown file in the repo carried it. `CLAUDE.md` says a ruling is
+  recorded by whoever received it; that step did not happen, so the board could not see it.
+
+  **What it binds, both halves named because
+  [`docket-role-is-per-page-not-per-alteration`](../TODO/docket-role-is-per-page-not-per-alteration.md)
+  T1 asks for them:**
+
+  | | |
+  | --- | --- |
+  | what the docket REQUIRES | `role` is OPTIONAL; when present it must be a non-empty string (`docket.py:223-225`), and it is omitted when empty rather than written as `""` (`:259-273`) |
+  | what `flows.revise.pull._set_by` READS | `page.role` off each `Schedule`, into `address -> role` -- the provenance a reversal pairs against. A docket with no `role` maps every address to `""` |
+
+  ! **IT USED TO BE DERIVED PER PLACE**, and a page two roles had settled carried no `role` at all
+  rather than naming one of them. That input was `Reconciled`, which never travelled through an
+  `edit_copy` -- so the rule went with the function that could read it, at `P55`.
+
+  !! **THE COST OF THE DELAY IS MEASURED, AND IT IS TWO BOXES POINTING THE WRONG WAY.**
+  `docket-role-is-per-page-not-per-alteration` T1 sat `[?]` in Roy's own queue asking the question
+  this answers, and `docket-defects` T7 would have DELETED `Schedule.role` -- on a verify reading
+  *"`grep -rn "schedule\.role\|s\.role"` was already empty"*, which returns empty because the
+  reader is spelled `page.role`, where `page` iterates `docket.schedules`. **A box that could be
+  ticked honestly while removing live provenance.**
