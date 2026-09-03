@@ -3053,3 +3053,41 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ruling behind it is asserting a permanence nobody granted -- and Roy changing his mind
   later is not a defect in the record, it is the record doing its job. Finding another
   instance is a finding to correct where it sits, not licence for an unprompted sweep.
+
+- **#85.** **A TEMPORARY GIT BRANCH IS THE LEANING FOR 7a'S DELIVERY -- PROVISIONAL, NOT A
+  RULING** (Roy, 2026-09-03): *"This is PROVISIONAL because until I see it work it is hard
+  to know but I am leaning towards option 3 still. It is the tool that the humans know how
+  to use and are used to using to review and resolve diffs."* And, the same message: *"It
+  would be the full page/file or set of files that get changed so it is not disjointed."*
+
+  **IT DOES NOT CLOSE ANY OF THE FOUR OPEN TASKS** --
+  [`7a-can-prove-the-change-by-applying-it-to-a-copy`](../TODO/7a-can-prove-the-change-by-applying-it-to-a-copy.md)
+  T3, and
+  [`the-author-approves-blocks-and-never-sees-the-page`](../TODO/the-author-approves-blocks-and-never-sees-the-page.md)
+  T2, T6 and T9 all stay `[?]`. A leaning stated as provisional is not a decision a task can
+  close against -- `#84`, three commits earlier in this same log, is the rule this entry is
+  itself careful not to break.
+
+  ! **TWO REASONS ARE GIVEN, AND ONLY ONE IS ABOUT THE TOOL BEING FAMILIAR.** The first is
+  the author's existing fluency with git. The second is a property of the mechanism itself:
+  a branch diff is the FULL page, or the full set of pages, changed together -- not the
+  per-paragraph list `SKILL.md:987-1005` presents today, which is what "disjointed" names.
+
+  ! **THAT SECOND REASON IS WHY ONE LEANING ANSWERS THREE TASKS AT ONCE, NOT JUST ONE.** The
+  four open tasks framed this as three separate choices; a branch whose diff is always the
+  whole changed file answers them together:
+
+  | task | its question | what a git branch would mean |
+  | --- | --- | --- |
+  | `7a-can-prove` T3 | diff instead of, or alongside, the block | a branch's diff replaces the block; there is nothing else to show |
+  | `the-author-approves` T2 | when does a whole-PAGE read happen | answered as a side effect -- a branch diff is whole-file by construction, so nothing separate has to be built |
+  | `the-author-approves` T6 | the delivery mechanism itself | this IS the candidate it names -- *"a temporary branch with the diff... so they can use git's tools to accept it"* |
+  | `the-author-approves` T9 | keep or cut the five-part listing | not answered here -- T9 is explicitly blocked on T2, and a leaning is not the ruling T9's Verify asks for |
+
+  !! **NEITHER REASON IS A CLAIM THAT THIS REPO'S OTHER CHECKS WORK BETTER AGAINST A
+  BRANCH.** `7a-can-prove`'s Objective already notes the interaction: `prove_unchanged`
+  compares against a base ref, and a temporary branch gives it an unambiguous one -- worth
+  re-checking once there is something to run, not assumed now.
+
+  ! **NOTED ON ALL FOUR TASKS, DATED, NOT WRITTEN AS THE ANSWER.** Whoever next works one of
+  them reads this leaning; none of them may be closed on the strength of it alone.

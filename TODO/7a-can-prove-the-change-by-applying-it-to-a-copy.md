@@ -124,6 +124,7 @@ filed, and still two.
 - [?] T3 | T3 -- * Rule whether 7a shows the diff INSTEAD OF or ALONGSIDE the
       block. Verify: `SKILL.md`'s stage 7a section names which, and
       `docs/decision-log.md` records it.
+        > 2026-09-03 PROVISIONAL leaning: a git branch. Process 85. Not a ruling
 - [x] T4 | FINISHED | unknown | T4 -- DONE. The splice-failure case is answered
       in the program and in the prose -- eight named refusals in `galley.py`,
       and `SKILL.md:935-944`.

@@ -100,6 +100,7 @@ not delete it without deciding which; this cannot be settled before T2.
 - [?] T2 | T2 -- * RULE where the whole-page read goes: stage 8 ahead of 7a on
       proposed text, or a new pass between 6b and 7a. Verify:
       `docs/decision-log.md` records the answer.
+        > 2026-09-03 PROVISIONAL leaning: a git branch. Process 85. Not a ruling
 - [x] T3 | FINISHED | unknown | T3 -- FINISHED. Stage 6b exists at
       `SKILL.md:972-992`, running the residue check over the paragraphs stage 6
       shortened, with a reader who is not the writer.
@@ -112,6 +113,7 @@ not delete it without deciding which; this cannot be settled before T2.
 - [?] T6 | T6 -- * RULE the delivery mechanism: a temporary branch with the
       diff, or the stage-7a prose listing. Verify: `docs/decision-log.md`
       records which.
+        > 2026-09-03 PROVISIONAL leaning: a git branch. Process 85. Not a ruling
 - [x] T7 | FINISHED | unknown | T7 -- FINISHED. Stage 8 is a verification with
       two named outcomes -- the files are done, or the section goes to the human
       (`review.md:50-59`).
@@ -121,3 +123,4 @@ not delete it without deciding which; this cannot be settled before T2.
 - [ ] T9 | T9 -- Re-check what stage 7a presents once the page is visible;
       blocked on T2. Verify: the five-part listing at `SKILL.md:996-999` is kept
       or cut, with a reason.
+        > 2026-09-03 PROVISIONAL leaning noted on T2/T6 -- Process 85, not a ruling
