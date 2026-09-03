@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 3 tasks closed
+Progress: 3 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28 (2026-08-28, Roy: 'File a todo to put this as part of concordance -
@@ -57,14 +57,17 @@ where it does will put the next file on the wrong side.
 
 ## Tasks
 
-- [ ] T1 | Move `src/comment_review/binder/annotate.py` to
+- [x] T1 | FINISHED, already done -- annotate.py moved to concordance/ 3c66c56, 2026-08-31 | 3c66c56 | Move
+      `src/comment_review/binder/annotate.py` to
       `src/comment_review/concordance/`. Verify: nothing imports it from
       `binder`, the suite passes, and `build_plugin.py --check` is green.
-- [ ] T2 | Say why each area holds what it holds, where the move makes the
-      boundary arguable. `CLAUDE.md` calls `binder/` the pages and their places;
+- [x] T2 | FINISHED -- concordance/__init__.py already said why; binder/__init__.py corrected | f9b2ba2 | Say
+      why each area holds what it holds, where the move makes the boundary
+      arguable. `CLAUDE.md` calls `binder/` the pages and their places;
       `concordance/` already holds `referrers.py`, and a concordance is an index
       of where things appear. Verify: the areas' `__init__` docstrings agree
       with where the file now is, and neither claims the other's subject.
-- [ ] T3 | Update every reference to the old path. Verify: `grep -rn
+- [x] T3 | FINISHED -- remaining binder/annotate.py mentions in src/tests are historical past tense | f9b2ba2 | Update
+      every reference to the old path. Verify: `grep -rn
       'binder/annotate\\|binder.annotate'` returns nothing outside `prototype/`,
       `docs/history.md` and a quoted ruling.
