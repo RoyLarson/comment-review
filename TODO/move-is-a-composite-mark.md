@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 21 tasks closed
+Progress: 1 of 22 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -173,13 +173,13 @@ and now there is one object that cannot be half-held.
       no run reaches, because `_sentence_key` returns `id(mark)` for a `move`.
       Verify: the illustration is the settled/reread case its own MEASURED
       example at 834-838 uses, and any unreachable state is marked as such.
-- [ ] T17 | Implement the FORM check on a `move`'s destination in
-      `_destination_problems`, so a `claim.to` that is not `path@cue` is refused
-      by name rather than falling through. Verify: a move whose `to` is the
-      prose `out of the code entirely` -- the destination `reviewer-brief.md`
-      offers a role -- is refused; today it parses with zero problems and the
-      docket carries the origin's delete plus a page naming no file and no
-      place.
+- [-] T17 | SUPERSEDED, reworded -- path@cue is not the only addressable destination. Addressing 21 | 0c40fa5 | Implement
+      the FORM check on a `move`'s destination in `_destination_problems`, so a
+      `claim.to` that is not `path@cue` is refused by name rather than falling
+      through. Verify: a move whose `to` is the prose `out of the code entirely`
+      -- the destination `reviewer-brief.md` offers a role -- is refused; today
+      it parses with zero problems and the docket carries the origin's delete
+      plus a page naming no file and no place.
 - [ ] T18 | Delete `claim.from` from the `move` row, or hold it equal to the
       mark's own `address`. Verify: `grep -rn '"from"' src/comment_review/`
       shows the key gone, or a move whose `claim.from` names a place other than
@@ -203,3 +203,6 @@ and now there is one object that cannot be half-held.
       deletion at the origin and the removed text is recoverable, where today's
       line opcodes report a single `replace` and the removed text appears in no
       opcode.
+- [ ] T22 | Refuse a move's `claim.to` that names no recognized address. Verify:
+      a bare prose destination is refused; `path@cue` passes
+        > 2026-09-03 blocked -- ExternalAddress waits on the sketch's 4 open questions
