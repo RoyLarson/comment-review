@@ -382,6 +382,21 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **T17 IS SUPERSEDED, NOT EDITED**, per `conventions.md`'s rule that a task needing
   rewording is replaced rather than rewritten in place -- the reworded task is the new one.
 
+  !! **"THE REMAINING PIECES" NAMED, 2026-09-03**: *"the parallel flows and parts
+  required for reading, reviewing, editing, writing these files that the current code
+  specific system does. It is a whole editorial resolving system that has to be added to
+  the current code to make it possible."* Two of the four are already filed:
+  [`a-reference-needs-its-own-write-chain`](../TODO/a-reference-needs-its-own-write-chain.md)
+  (the WRITE half, deferred pending the code chain working end to end) and
+  [`reference-only-misses-the-documentation`](../TODO/reference-only-misses-the-documentation.md)
+  (the SELECTION half, three rulings owed). **READING a reference into anything a role can
+  see structurally, and MARK/APPLY producing something the docket can carry for one, have
+  no TODO yet** -- MEASURED: `Binder` carries only `pages`; the `pulled`/`references` split
+  the write-chain file's Objective describes as existing does not.
+
+  ! **T22 IS NOT BLOCKED ON THIS.** The destination-form check is a small, self-contained
+  piece; the editorial system is what makes accepting the form worth something once built.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is
