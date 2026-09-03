@@ -2777,3 +2777,36 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **WHAT SURVIVES ON THAT FILE IS T4** -- routing a `query` by shape, which is a real rule a
   function enforces: `Shape` is a closed enum and *"human-review-necessary never returns to a
   role"* is checkable. Roy: *"T4 - agree code."*
+
+- **#79.** **RECORDING A CORRECTION AND LEAVING THE BOXES IS NOT ENOUGH; `#9`'s DEFERRAL WAS
+  WRONG** (Roy, 2026-09-02, on `#9`'s closing sentence): *"It was wrong to make that statement.
+  supersede them."*
+
+  `#9` ruled that `stet` is the copy chief's and that **a role cannot emit one**, named the
+  contradiction with `TODO/no-mark-for-let-it-stand.md` by task id, and then closed with *"this
+  entry records the correction rather than rewriting its boxes."* The boxes stayed open for nine
+  days, and a cross-TODO sweep on 2026-09-02 found them still specifying the emitter three
+  rulings forbid.
+
+  !! **THE TWO SETS ARE CLOSED AND THEY ARE NOT THE SAME SET.** Roy, restating them: *"stet and
+  taken_in are copy-chiefs marks alone. hold, withdraw, patch, correct ... are the other roles'
+  options for conflict resolution."*
+
+      the chief  taken_in | stet | recast          `Vocabulary: #29`, three
+      a role     hold | withdraw | correct | patch  `Process: #22`, four
+
+  ! **HE NAMED TWO OF THE CHIEF'S THREE AND FLAGGED HIS OWN UNCERTAINTY** -- *"I think but it may
+  have been just the first 4"* -- and the record settled both halves: `docs/the-revise.md:85`
+  gives the role's four verbatim, and `Vocabulary: #29` adds `recast`, which he ratified in two
+  words on 2026-08-30. **`drop` and `add` are not in either set.**
+
+  !! **SO ELEVEN OF SIXTEEN BOXES ARE SUPERSEDED** -- T3, T4, T5, T8, T9, T10, T12 and T13-T16 --
+  every one resting on `stet` as an eighth ROLE instruction. **FOUR SURVIVE**, because they are
+  the file's ORIGINAL finding and `#9` does not reach it: a declined correction is not recorded,
+  so the next run proposes it again. T1 (does a `stet` persist across runs), T6 (measure the
+  re-proposal cost), T7 (does stage 8 re-raise what 7a declined) and T11 (reserve the word).
+
+  ! **A CORRECTION THAT DOES NOT MOVE A BOX LEAVES THE BOARD ADVERTISING THE ERROR.** `CLAUDE.md`
+  already says an unchecked box asserts work is still to do; `#9` knew the boxes were wrong,
+  wrote so, and left sixteen of them claiming otherwise. The log is not a place to put a
+  correction INSTEAD of making it.
