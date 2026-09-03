@@ -305,7 +305,7 @@ that changed a published name or rule:
 | [plans-unreadable-to-the-tool](plans-unreadable-to-the-tool.md) | systems | -- | 1/1 | Five 0.2.4 plans carry checkbox lines the tool cannot read |
 | [stage-4b-is-undefined](stage-4b-is-undefined.md) | agents | -- | 1/6 | the 4a/4c split promises a resolved placement that nothing produces |
 | [citations-resolve-to-no-object](citations-resolve-to-no-object.md) | systems | -- | 0/1 | Find the four commit citations that resolve to no object |
-| [row-was-never-retired](row-was-never-retired.md) | backend | -- | 0/4 | Retire row everywhere -- the type, the wire key and the prose |
+| [row-was-never-retired](row-was-never-retired.md) | backend | yes | 0/5 | Retire row everywhere -- the type, the wire key and the prose |
 
 ### in-progress  (20)
 

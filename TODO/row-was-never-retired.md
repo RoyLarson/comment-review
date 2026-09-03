@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks closed
+Progress: 0 of 5 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-09-02 (systems)
 ```
 
@@ -52,6 +52,24 @@ turns it red across 24 files with no rename behind it. Roy, 2026-09-02: the
 record, the correction and this filing are *"the correct thing until we can get
 through the outstanding todo contradictions"*.
 
+!! **AND T4 WAS UNSCOPED WHEN THIS FILE WAS WRITTEN, WHICH IS WHY T5 EXISTS.**
+`row` has a SECOND live sense with its own unretracted ruling --
+`reading/language.py:20`: *"ADDING A LANGUAGE IS A ROW, NOT CODE. That is the
+whole design"*, on Roy, 2026-08-20. **13 uses in that module alone** are that
+sense. A `RETIRED` entry cannot tell two senses apart: `check_retired` matches
+the bare word with a letter boundary and prints one remedy, so it would report
+`language.py`'s own design claim and tell a reader to *say `paragraph`* -- which
+is false for a language row.
+
+!! **THE REPO HAS ALREADY MEASURED THIS EXACT FAILURE, WITH `block`.**
+[`vocabulary-gate-is-red`](vocabulary-gate-is-red.md): the rename that followed
+*"replaced the LIVE senses instead of the dead one"* -- five sites, one of them
+*"a Java text PARAGRAPH"*. **The cheapest way to satisfy an unscoped gate is to
+rewrite correct prose into wrong prose**, so scoping it is what stops the fix
+from becoming the defect.
+
+! T3 was already scoped -- *"prose that calls a paragraph a row"*. T4 was not.
+
 ! **T1 MAY OWE A RULING.** What `Row` becomes is a naming decision, and this
 repo checks a candidate against the editorial register before proposing it. If
 the answer is not obvious from what the thing does, it is Roy's.
@@ -65,5 +83,7 @@ Those are the record of what was decided and are not rewritten.
 - [ ] T1 | Rename desk/mark.py's Row for what it is: one instruction's spec
 - [ ] T2 | Rename the rows wire key binder/page.py serialises and reads back
 - [ ] T3 | Update src/ prose that calls a paragraph a row
-- [ ] T4 | Add row and rows to check_vocabulary.py's RETIRED, once the rename
-      lands
+- [ ] T4 | Add row and rows to check_vocabulary.py's RETIRED, once T5 rules the
+      language-row sense and the rename lands
+- [?] T5 | Decide whether the LANGUAGE-ROW sense is retired too, or is declared
+      polysemy. Verify: the answer is in `docs/vocabulary.md`
