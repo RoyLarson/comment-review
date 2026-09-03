@@ -23,11 +23,12 @@ def test_a_seeded_row_carries_the_paragraph_bytes():
     # INPUT FROM REALITY: a real page of this repo through the real binder.
     binder = binder_of(DESK, 0)
     sheet = seed(binder, "block-context")
-    # ! `desk/` holds three files, each with its own `@a0` -- narrowed to
-    # `mark.py`'s so the match is not the first file the walk happens to
-    # visit.
-    marks_page = next(s for s in sheet["sheets"] if s["path"].endswith("mark.py"))
-    row = next(r for r in marks_page["marks"] if r["address"].endswith("mark.py@a0"))
+    # !! EXACT, NOT `endswith`. `desk/` holds several files whose own `@a0` is
+    # its module docstring -- `endswith("mark.py")` matched `mark.py` until a
+    # sibling named `diff_mark.py` arrived, whose name also ends in that
+    # substring, and `next()` returned whichever the walk visited first.
+    marks_page = next(s for s in sheet["sheets"] if s["path"] == "mark.py")
+    row = next(r for r in marks_page["marks"] if r["address"] == "mark.py@a0")
     source = (DESK / "mark.py").read_text(encoding="utf-8")
     assert row["raw_text"] in source
 
