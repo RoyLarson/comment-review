@@ -149,6 +149,35 @@ because it rebuilt each file from positions it had just read out of that file.
 
 ## Tasks
 
+!! **THIS FILE AND
+[`an-alteration-carries-its-own-indentation`](an-alteration-carries-its-own-indentation.md)
+SPECIFY OPPOSITE CONTRACTS, AND ONE RULING CLOSES BOTH.** Found 2026-09-02 by a
+cross-TODO sweep; neither file cited the other.
+
+| | says |
+| --- | --- |
+| **here** | the SYSTEM strips markers and indentation before a role sees a paragraph, and fills them back |
+| **there** | the AGENT supplies both -- `Vocabulary: #27`, its T2 `[x]` at `f087cd1` |
+
+!! **THE OTHER SIDE IS THE RULED ONE AND IS WHAT THE CODE DOES.** Roy,
+2026-08-28: *"I don't want to have to figure out indentation again or comment
+style. All of the agents can read the page again on their own"* -- a row carries
+`raw_text` that *"round-trips to the root's exact bytes, indentation and comment
+markers included."* **This file's T7 negates that sentence directly**: it wants
+the seeded `raw_text` to be the STRIPPED prose.
+
+! **WHAT THIS FILE RESTS ON IS ROY, ONE DAY LATER, AND IT WAS NEVER LOGGED.**
+2026-08-29: *"having the whole text comment marks and all is brittle ... We may
+need to rethink this and strip/fill in the comment marks ourselves."* It reads as
+a reversal of `#27`, but no `decision-log.md` entry records it -- so the ruling it
+would overturn still stands.
+
+!! **WHEN IT IS RULED, CLOSE THE LOSING SIDE IN THE OTHER FILE.** If strip/fill
+wins, `Vocabulary: #27` is superseded and that file's T1 and T3 go with it. If
+`#27` stands, this file is superseded whole. **Neither may be worked until then**:
+T5 and T7 here and T1 and T3 there revert each other. ! T1's measurement is the
+one thing safe to take first -- it is evidence FOR the ruling, not work under it.
+
 - [ ] T1 | Measure the brittleness before changing anything. Verify: over a real
       corpus, count how many paragraphs a naive edit to `raw_text` can make
       unparseable -- appending past a closing delimiter, moving a closer up a
