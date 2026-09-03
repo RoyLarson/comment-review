@@ -2915,3 +2915,42 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   *"`grep -rn "schedule\.role\|s\.role"` was already empty"*, which returns empty because the
   reader is spelled `page.role`, where `page` iterates `docket.schedules`. **A box that could be
   ticked honestly while removing live provenance.**
+
+- **#82.** **`prove_unchanged` IS REBUILT TO BE THE PROOF IT CLAIMS TO BE, NOT SWAPPED FROM ONE
+  BRANCH TO THE OTHER** (Roy, 2026-09-03): *"We will modify prove_unchanged to be what it needs to
+  be instead of just does the ast parse the same."*
+
+  **It settles a cross-TODO contradiction**, and it settles it against BOTH sides rather than for
+  one of them. [`python-cannot-read-python`](../TODO/python-cannot-read-python.md) **T35** deletes
+  the `ast` branch and runs `stripped` everywhere;
+  [`lexer-and-language-findings`](../TODO/lexer-and-language-findings.md) **T24** asks the gate to
+  admit the one docstring move `Addressing: #20` rules in *"and still FAIL when any other token on
+  that line moves"*. Each was written as though the other branch could carry it.
+
+  !! **MEASURED 2026-09-03, AND NEITHER BRANCH CAN DO WHAT ITS OWN TASK ASKS.** Three facts, each
+  from running the shipped function over `'def g(): """d."""'` and its two-line form:
+
+  | | measured | what it costs |
+  | --- | --- | --- |
+  | `ast.dump` carries **no** `lineno` and no `col_offset` | the ruled move and an UNRULED move (`def g(\n): """d."""`) fingerprint **identically** | **T24's second clause is already false under `ast`.** The branch it was written for cannot fail on a moved token, so `ast` was never the thing that could satisfy it |
+  | `_without_comments` refuses on `spanning_quotes` **presence** (`:130`) | all four Python sources return `unprovable` | **T35's verify passes while the gate stops proving.** `import ast` goes; every Python file holding `"""` or `'''` becomes a counted failure |
+  | `paragraphs_lexical` emits **zero paragraphs** for a Python docstring in any of the three forms | with the refusal lifted, the stripped text keeps `"""d."""` verbatim | **the gate would refuse the edit the tool exists to make.** Docstring CONTENT enters the fingerprint, so every rewrite fails |
+
+  **The third is the one that makes this a rebuild rather than a swap.** `stripped` deletes what
+  the lexer calls a comment, and Python's row does not call `"""` a comment -- correctly, since it
+  is a string. So *"run `stripped` for every language, Python included"* is not a smaller proof of
+  the same claim; **it is a different claim, and a false one** -- `prove_unchanged`'s own docstring
+  at `:7-9` promises *"prose changed and the rest reads the same"*.
+
+  ! **T35 IS THEREFORE BROKEN AS WRITTEN**, in this repo's sense: its verify is
+  `grep -n 'import ast' prove_unchanged.py` coming back empty, and that goes green on a gate that
+  has stopped answering. `docs/gates.md`'s rule, arriving on the gate that most needs it --
+  *"does the check pass" is not the question; "could the check fail" is.*
+
+  **What the rebuild waits on is named, not scheduled here.** The stripped proof cannot read
+  Python until the lexer types a Python docstring as prose and stores a same-line one as the
+  SUFFIX of its declaration's line -- which is
+  [`doc-on-the-declaring-line`](../TODO/doc-on-the-declaring-line.md) T4 -- and until
+  `_strip_strings` is stateful, which is this file's own R25. **Until both land, deleting the
+  `ast` branch removes the only proof that runs.** A thing whose dependencies are broken is
+  refused, not worked.
