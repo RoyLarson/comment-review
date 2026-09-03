@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 31 of 37 tasks closed
+Progress: 32 of 39 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on four sentry files the floor interpreter cannot
@@ -371,15 +371,26 @@ the review, and nothing today protects the review.
 - [ ] T33 | T33 -- Hold the round-trip identity over the Python corpora with the
       new reader. Verify: `compositor.identity` reproduces R13's 2,368
       byte-identical round trips.
+        > 2026-09-03 would go green: an unseen docstring is never taken apart
 - [ ] T34 | T34 -- A file with syntax NEWER than the floor censuses instead of
       setting empty. Verify: sentry's `api/paginator.py` yields places and sets
       back its 884 lines.
-- [ ] T35 | T35 -- Drop the `ast` proof; run `stripped` for every language,
-      Python included. Verify: `grep -n 'import ast' prove_unchanged.py` is
-      empty (it reads it at :36).
+- [-] T35 | SUPERSEDED by T38 -- its verify is a grep going empty, which passes on a gate that has stopped proving; Process 82 rules the rebuild | cf61be2 | T35
+      -- Drop the `ast` proof; run `stripped` for every language, Python
+      included. Verify: `grep -n 'import ast' prove_unchanged.py` is empty (it
+      reads it at :36).
 - [ ] T36 | T36 -- Keep the Python fixtures passing under the `stripped` proof.
       Verify: `uv run python -m unittest discover -s tests -k prove_unchanged`
       is green.
 - [ ] T37 | T37 -- Say in `prove_unchanged`'s docstring what `stripped` does NOT
       cover. Verify: the docstring claims same lines in the same order, never
       semantic equivalence.
+        > 2026-09-03 same lines in same order goes false once the move is admitted
+- [ ] T38 | Rebuild `prove_unchanged` to prove code unchanged with no `ast`
+      branch. Verify: an edited docstring proves, a moved token does not
+        > 2026-09-03 waits on doc-on-the-declaring-line T4 and R25
+        > 2026-09-03 until both land the ast branch is the only proof that runs
+- [ ] T39 | Emit a paragraph for a Python docstring on the lexical tier. Verify:
+      `paragraphs_lexical` over a documented def returns one
+        > 2026-09-03 MEASURED 2026-09-03: the lexical tier finds Python comments
+        > 2026-09-03 and emits NOTHING for a docstring -- a string is not a comment

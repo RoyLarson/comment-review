@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 3 of 28 tasks closed
+Progress: 3 of 29 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -246,6 +246,8 @@ would.
       the two-line form, and still FAILS when any other token on that line
       moves.
         > 2026-09-03 needed with T23: admit that one move, fail on any other token
+        > 2026-09-03 ast.dump has no lineno, so it already admits every move
+        > 2026-09-03 second clause already false under ast; Process 82 rules the rebuild
 - [ ] T25 | T25 -- Make `_is_doc` consult placement, not only the opener string.
       Verify: a Lua `---` run above `local function f()` types `docstring`,
       above nothing `comment`.
@@ -258,3 +260,5 @@ would.
 - [ ] T28 | T28 -- Add `---` to Lua's `doc_line`, which T20's ruling authorises.
       Verify: `--- x` above `local function f()` types `docstring` anchored to
       it.
+- [ ] T29 | Correct `doc_is_structural`'s docstring so it matches what Python
+      yields on the lexical tier. Verify: the prose names the empty result
