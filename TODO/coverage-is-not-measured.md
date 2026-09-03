@@ -19,6 +19,9 @@ Updated:  2026-08-25 — BASELINE, 2026-08-25, coverage 7.15.4 over 789 passed /
           Covered well: series.py, exceptions.py and binder.py at 100, page.py 94.7,
           addresser.py 93.4, language.py 95.7. machine/repo.py is 40.7 because its git
           half has no tests, not because read_source lacks them.
+Corrected: 2026-09-03 -- annotate.py is NOT a deletion candidate -- live, wired,
+           imported by commands/census.py; moved to concordance/ 3c66c56. See
+           annotate-belongs-in-concordance.md
 ```
 
 ## Objective
