@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (116)
+### open  (117)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -298,6 +298,7 @@ that changed a published name or rule:
 | [citations-resolve-to-no-object](citations-resolve-to-no-object.md) | systems | -- | 0/1 | Find the four commit citations that resolve to no object |
 | [row-was-never-retired](row-was-never-retired.md) | backend | yes | 0/5 | Retire row everywhere -- the type, the wire key and the prose |
 | [only-a-flow-reaches-the-machine](only-a-flow-reaches-the-machine.md) | backend | yes | 0/6 | Route every machine read and write through a flow |
+| [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
 
 ### in-progress  (18)
 
