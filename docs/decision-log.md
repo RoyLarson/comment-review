@@ -2954,3 +2954,32 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `_strip_strings` is stateful, which is this file's own R25. **Until both land, deleting the
   `ast` branch removes the only proof that runs.** A thing whose dependencies are broken is
   refused, not worked.
+
+- **#83.** **`binder/page.py` IS THE READ END, NOT A LEAF -- ONLY A FLOW MAY REACH IT FROM
+  ANOTHER AREA** (Roy, 2026-09-03): *"I think this one is decided by flows are the orchestrators
+  and are allowed to reach across, the sections read/middle/write/machine/probably another one
+  or two as well are meant not allowed to reach across subpackages."*
+
+  **It closes `containers-and-verification-are-unwired` T33**, and it is the SAME rule as `#80`
+  and `conventions.md`'s own -- *"No direct coupling inside of ends and middle, flows are neither
+  they run the steps"* -- applied to the one case that file left `[?]`: T33 asked whether `Page`
+  is a shared LEAF like `Paragraph`, or the read end's own artifact. **It is the second.** A leaf
+  sits outside every area's own subpackage -- `machine`, `reading`, `concordance` -- so any end
+  may import it without crossing anything. `page.py` sits INSIDE `binder`, which IS the read
+  end's own package, so it is what the read end produces, not a shared building block. Nothing
+  new was needed to decide it; the general rule already answers the specific case.
+
+  !! **SO `results/compositor.py` IMPORTING `Page` AND `page_for` IS A CROSSING, CONFIRMED
+  RATHER THAN DISCOVERED.** `conventions.md`'s own coupling table already measured it,
+  2026-08-31: `WRITE END -> READ END results/compositor.py Page, page_for`. This ruling settles
+  the open question the table's neighbour left standing; it does not add a new finding.
+
+  **What this confirms rather than changes:**
+
+  | task | what it already said | status after `#83` |
+  | --- | --- | --- |
+  | `containers` T32 | route the compositor's page through a flow, not a direct import from the read end | **correct as written** -- the flow-mediation half of `#80`'s READ/WORK/WRITE shape, applied to a container instead of a byte |
+  | `collator-defects` T29 | delete the three remaining cross-area imports named in `tests/test_areas.py` `KNOWN`, including `results/compositor.py: comment_review.binder.page` (`:70`) | **correct as written** -- that entry is a crossing to close, not a legitimate leaf-import to remove from `KNOWN` |
+
+  **What T33 asked for was a decision, not code**, so closing it records the ruling; T32 and T29
+  do the work it authorizes.
