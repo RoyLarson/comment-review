@@ -238,6 +238,10 @@ would.
         > 2026-09-03 and it moves a CODE line, which is why T24 exists beside it
         > 2026-09-03 RULED IN by Roy 2026-09-03 -- Addressing 20. It moves to the a spot
         > 2026-09-03 tokenized tier only; lexical is python-cannot-read-python
+        > 2026-09-03 the walk emits NO a place for a same-line decl
+        > 2026-09-03 so this must create one first -- nothing to move into
+        > 2026-09-03 MEASURED: the ast reader is right; the page assembly loses it
+        > 2026-09-03 MEASURED: the ast reader is right, the page loses it
 - [ ] T24 | T24 -- Make `prove_unchanged` admit that one move. Verify: PROVEN on
       the two-line form, and still FAILS when any other token on that line
       moves.

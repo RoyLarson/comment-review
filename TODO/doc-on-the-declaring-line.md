@@ -35,6 +35,27 @@ series, whose pair is `comment`/`interval`, and it is holding `docstring` -- the
 strict-xfail tripwire cannot see it for the same reason the original defect survived: the shape
 is in neither `SOURCES` nor `FORMS`. **T3 is the live box.**
 
+!! **AND IT IS NOT THE `ast` MODULE.** Roy, 2026-09-03, offering the likely cause: *"Probably
+because we are using the ast module to get the Python stuff instead of the lexer."* MEASURED the
+same day by calling `lexer.paragraphs_stdlib` directly and comparing it to the assembled page:
+
+| | the AST reader emits | the assembled page holds |
+| --- | --- | --- |
+| two-line form | `a1` `docstring` anchor `g` | `a1` `docstring` anchor `def g():` |
+| **same-line form** | `a1` `docstring` anchor `g` | **`b0` `docstring` anchor `<eof>`** |
+
+**The AST reader is RIGHT in both cases** -- same cue, same anchor. What loses it is the PAGE
+ASSEMBLY, and it loses the anchor as well as the cue: `g` becomes `<eof>`, which is the fallback
+for a paragraph with nowhere to land.
+
+! **THE REASON IS VISIBLE IN THE LISTING.** The same-line page carries no `a1` place and no `c0`
+-- **the walk emitted no `a` place for `def g():` at all** -- so the AST's correctly-addressed
+paragraph had nothing to attach to. The two-line page carries both.
+
+!! **SO `Addressing: #20` NEEDS AN `a` PLACE TO MOVE THE DOCSTRING INTO, AND THERE IS NONE.**
+That is work T23 must do and its own text does not name: the walk has to emit the place before
+the compositor can set anything below the declaration.
+
 !! **MEASURED 2026-08-29** on `'def f(): """D."""  # note\n'` -- one line in, TWO out:
 
 ```
