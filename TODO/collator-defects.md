@@ -170,3 +170,4 @@ Four defects in collator.py, found by reading only the code.
       tests/test_areas.py KNOWN. Verify: that set is empty and the test still
       bites
         > 2026-09-02 conventions.md called these filed on 2026-08-31; no task did
+        > 2026-09-03 confirmed, not superseded, by Process 83 -- correct as written
