@@ -127,11 +127,42 @@ Roy, 2026-08-28: *"The move needs the composite of the delete/add paragraphs. It
 operations wrapped in one label and justification. Which is right -- you don't want to say it can
 move and it can't complete the move because 1/2 is rejected."*
 
-**`change` carries the COMPOSITE**: the origin as it reads once the prose has left, and the
-destination as it reads once the prose arrives. Both raw text, in one `change`.
-
     a move  =  a delete at the origin  +  an add at the destination
                one label, one reason, one `sources`
+
+!! **PROVISIONALLY, ONE `Mark` CARRIES IT -- THE OPERATION IS TWO, THE REPRESENTATION IS ONE.**
+Roy, 2026-09-02, recording a determination made a day or two earlier and not written down at the
+time: *"This was PROVISIONALLY settled we determined it might be possible to represent as one
+Mark because the drop is determinable from the sentence that had to be supplied. Because the
+`raw_text` now holds the edited text from the agent that means that we also know where to add
+the text."*
+
+! **THIS SECTION USED TO SAY `change` CARRIED BOTH TEXTS** -- *"the origin as it reads once the
+prose has left, and the destination as it reads once the prose arrives. Both raw text, in one
+`change`."* That is the half that moved. `change` carries the DESTINATION's text; **the origin's
+delete is DERIVED, not carried**, because a move's origin has exactly one outcome and the
+sentence that had to be supplied is what determines it.
+
+| | |
+| --- | --- |
+| **the origin** | derived -- the prose leaves, and nothing has to say so |
+| **the destination** | `change`, the text as it arrives |
+| **where it lands** | known, because `raw_text` carries what the agent edited |
+
+! **WHAT SHIPPED IS THIS SHAPE.** `desk/mark.py::text_at` returns `None` at a move's origin and
+the `change` at its destination -- one `Mark`, both ends -- landed `586c13a`, with
+`TestTextAtOneEndOfAMark` asserting each end.
+
+!! **ATOMICITY IS UNCHANGED AND IS WHAT `Process: #56` WAS ABOUT.** *"You don't want to say it
+can move and it can't complete the move because 1/2 is rejected"* is a rule about how the mark
+TRAVELS -- refused whole, escalated whole, answered whole, set whole. **One `Mark` satisfies that
+more directly than two**, because there is no pair to keep together. The table below still binds.
+
+! **IT IS PROVISIONAL, AND WHAT WOULD REOPEN IT IS A MOVE WHOSE ORIGIN OUTCOME IS NOT
+DERIVABLE** -- an origin that must read differently after the prose leaves, rather than simply
+losing it. Nothing has shown one; if one appears, the origin needs carrying and the composite
+returns. ! [`move-is-a-composite-mark`](../TODO/move-is-a-composite-mark.md) is written against
+the two-`Mark` composite and is 0 of 21, so it is the file this determination reaches first.
 
 !! **AND THE REASON IT IS ONE INSTRUCTION IS ATOMICITY, NOT TIDINESS.** Filed as a `drop` and an
 `add`, the two halves can be judged separately -- and **half a move is a defect neither half

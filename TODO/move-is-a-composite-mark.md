@@ -1,7 +1,7 @@
 # A move is a composite mark and the code cannot express one
 
 ```
-Status:   open
+Status:   decision-needed
 Progress: 0 of 21 tasks closed
 Owner:    backend
 Requires-Roy: true
@@ -93,6 +93,13 @@ and now there is one object that cannot be half-held.
       the arrival text -- each with a plain `str` `change`. Verify: a
       spec-following move parses; a test asserts each half is an ordinary Mark
       that `_change_problems` accepts with no second shape added to it.
+        > 2026-09-02 PROVISIONALLY SETTLED the other way -- see docs/the-mark.md
+        > 2026-09-02 one Mark carries a move: the origin delete is DERIVED, not carried
+        > 2026-09-02 the drop is determinable from the sentence that had to be supplied
+        > 2026-09-02 Roy 2026-09-02, recording a determination made a day or two earlier
+        > 2026-09-02 atomicity is unchanged; one Mark satisfies it with no pair to keep
+        > 2026-09-02 raw_text holds the edited text, so the destination is known
+        > 2026-09-02 shipped as text_at at 586c13a -- do not work this file yet
 - [ ] T2 | Implement the facade so a consumer iterating entries needs no move-
       awareness. Verify: `flows.collate._chief_copy` writes TWO entries for one
       move, at two distinct addresses, and a test asserts the destination

@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (124)
+### open  (123)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -289,7 +289,6 @@ that changed a published name or rule:
 | [collator-defects](collator-defects.md) | backend | yes | 6/29 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
 | [staged-chain-untested](staged-chain-untested.md) | backend | yes | 0/4 | the four-stage chain runs and the edits accumulate, proven 2026-08-30 -- but no test in the suite drives it, and the only committed fan-out topology refuses any tree but this repo's |
 | [containers-and-verification-are-unwired](containers-and-verification-are-unwired.md) | backend | yes | 14/44 | The containers and the source-verification half are wired to nothing |
-| [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | yes | 0/21 | A move is a composite mark and the code cannot express one |
 | [mark-holds-spec-and-parse](mark-holds-spec-and-parse.md) | backend | -- | 0/6 | mark.py holds the instruction spec and the boundary parse at one scope |
 | [ty-cannot-see-the-tests](ty-cannot-see-the-tests.md) | systems (the gate) - backend (the test fixes) | -- | 0/5 | The type gate is scoped to src and cannot see the tests |
 | [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | -- | 0/6 | A present-but-null key becomes the four characters None |
@@ -332,10 +331,10 @@ that changed a published name or rule:
 | [lexer-and-language-findings](lexer-and-language-findings.md) | backend | -- | 3/28 | Ten findings in lexer.py and language.py, from three review rounds |
 | [board-predates-task-ids](board-predates-task-ids.md) | systems | yes | 2/6 | task lines carry no ids, so a plan cannot name one; a trial migration was reverted because it silently cleared 57 `Requires-Roy` flags and refused nine files whose task labels carry a literal pipe |
 
-### decision-needed  (0)
+### decision-needed  (25)
 
-_None -- the remaining rulings sit inside the two files rather than blocking them entirely; the
-other tasks can proceed without them._
+| file | owner | roy? | done | what |
+| --- | --- | :-: | ---: | --- |
 | [correct-against-patch-is-a-conflict-and-is-not-flagged](correct-against-patch-is-a-conflict-and-is-not-flagged.md) | agents | yes | 0/3 | `correct` against `patch` is a conflict, and the gate does not flag it |
 | [role-rule-register](role-rule-register.md) | agents | yes | 0/5 | The register of proposed additions and amendments to the four editorial role files. ! Role prose is BUDGET-FIXED, so a candidate is not judged alone -- it is judged against what it would replace, which is why they collect here instead of landing one at a time. |
 | [evidence-still-names-places-by-line](evidence-still-names-places-by-line.md) | testing | yes | 0/14 | **The address reached the record key and a `move`'s destination and stopped.** `SOURCES` -- the field the evidentiary contract rests on -- is 100% line-form, and Roy's `address:lines` ruling is unimplemented. Four other artifacts name a place by nothing at all. |
@@ -360,6 +359,7 @@ other tasks can proceed without them._
 | [null-is-not-a-decision](null-is-not-a-decision.md) | backend | yes | 0/2 | `null` is the delete signal, and it is also what a failed serialisation writes |
 | [strip-and-fill-the-markers](strip-and-fill-the-markers.md) | backend | yes | 0/9 | A role is handed the paragraph with its `#`/`"""` markers and indentation, and must reproduce them exactly in `change`. Measured 2026-08-29: three consecutive attempts by an agent with full context broke the file, and each failure read as a defect in the setter |
 | [task-agent-vocabulary-home](task-agent-vocabulary-home.md) | agents (the instructions) - backend (the enum they derive from) | yes | 0/4 | The task agent has no vocabulary home and is never told the command set |
+| [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | yes | 0/21 | A move is a composite mark and the code cannot express one |
 
 ### in flight  (0)
 
