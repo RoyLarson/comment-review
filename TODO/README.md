@@ -222,7 +222,7 @@ that changed a published name or rule:
 | [computed-and-never-read](computed-and-never-read.md) | backend | -- | 5/10 | The insert line, the matter branch, the paragraph index and two repeated full-file scans -- each needs more than a comment fix |
 | [dangling-links-resolve-nowhere](dangling-links-resolve-nowhere.md) | systems | yes | 0/6 | 31 relative links resolve nowhere, and two of them are in a live TODO |
 | [fixtures-do-not-test-the-shape](fixtures-do-not-test-the-shape.md) | testing | -- | 1/5 | A per-language fixture can pass without exercising the shape its language is measured on |
-| [drop-the-column](drop-the-column.md) | backend | -- | 6/9 | the column is len(anchor)+1 everywhere; the address system answers what it was added for |
+| [drop-the-column](drop-the-column.md) | backend | -- | 7/9 | the column is len(anchor)+1 everywhere; the address system answers what it was added for |
 | [held-runs-need-a-one-off-migration](held-runs-need-a-one-off-migration.md) | testing | -- | 2/5 | the report cannot name a place, but the recorded hash can -- a script, not a feature |
 | [requires-roy-never-goes-back-down](requires-roy-never-goes-back-down.md) | systems | -- | 2/7 | nothing recomputes it or prompts the clearing; 6 cleared, 26 left to read |
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | agents | -- | 0/5 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |

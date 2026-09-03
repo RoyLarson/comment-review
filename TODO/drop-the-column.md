@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 9 tasks closed
+Progress: 7 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-20 (Roy, 2026-08-20: 'the edit_column is an idea that can be dropped
@@ -97,9 +97,11 @@ wait"*. It landed.
 - [ ] T7 | T7 -- Replace the four boolean reads with a kind or series membership
       test. Verify: `addresser.py --check` reports UNADDRESSED and SHARED counts
       unchanged.
-- [ ] T8 | T8 -- Remove the three writes of `original_column` and its field
-      declaration. Verify: `grep -rn original_column plugins/ scripts/ tests/`
-      comes back empty.
+- [-] T8 | SUPERSEDED -- already done, d894894. Verify demanded deleting legitimate history of the removal too | d894894 | T8
+      -- Remove the three writes of `original_column` and its field declaration.
+      Verify: `grep -rn original_column plugins/ scripts/ tests/` comes back
+      empty.
 - [ ] T9 | T9 -- Correct `docs/addressing.md:114` and `:178-179`, which still
       describe `galley.splice` and `original_column`. Verify: neither name
       occurs in `docs/`.
+        > 2026-09-03 the live remainder T8 covered -- addressing.md still present-tense
