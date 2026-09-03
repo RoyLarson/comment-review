@@ -356,6 +356,32 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   Fixing the address may fix the kind with it; pinning the shape is `doc-on-the-declaring-line`
   `T3`.
 
+- **#21.** **A MOVE'S DESTINATION MAY BE ANY ADDRESSABLE ITEM, NOT ONLY `path@cue`** (Roy,
+  2026-09-03): *"a move can place any to any addressable item. We still need to build the
+  external_address system and the remaining pieces."*
+
+  **It closes the contradiction between `move-is-a-composite-mark` T17 and this file's own
+  `external_address.py` sketch.** T17 read *"Implement the FORM check on a `move`'s
+  destination in `_destination_problems`, so a `claim.to` that is not `path@cue` is refused
+  by name."* Read as a permanent rule, that refuses the exact shape `external_address.py`'s
+  module docstring was written to eventually supply -- Roy, 2026-08-24, in that file: *"We
+  probably need an external address to allow modification of reference docs."* Two files
+  each committed to a different answer for what a destination may be, and neither cited the
+  other.
+
+  !! **THE RULING SETTLES THE SHAPE, NOT THE SCHEDULE.** `external_address.py`'s own header
+  says *"NOTHING IMPORTS THIS YET... a SKETCH... not a module in service"* and carries four
+  unruled OPEN questions -- is `chars` a column or a span, which end it counts from and in
+  what unit, whether it subsumes `record.CITE`, one-based or zero-based. None of those are
+  answered here. **`_destination_problems` cannot accept an `ExternalAddress` before they
+  are**, so T17's worked example -- refusing the prose destination `out of the code
+  entirely`, which is neither an internal nor an external address -- still stands. What T17
+  got wrong was writing that as *"must be `path@cue`"* rather than *"must be a recognized
+  address, and `path@cue` is the only one built today."*
+
+  ! **T17 IS SUPERSEDED, NOT EDITED**, per `conventions.md`'s rule that a task needing
+  rewording is replaced rather than rewritten in place -- the reworded task is the new one.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is
