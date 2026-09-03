@@ -236,9 +236,12 @@ would.
         > 2026-09-03 MEASURED 2026-09-03: the one-line form round-trips byte-exact today
         > 2026-09-03 lossless returns None; this would make it return a message
         > 2026-09-03 and it moves a CODE line, which is why T24 exists beside it
+        > 2026-09-03 RULED IN by Roy 2026-09-03 -- Addressing 20. It moves to the a spot
+        > 2026-09-03 tokenized tier only; lexical is python-cannot-read-python
 - [ ] T24 | T24 -- Make `prove_unchanged` admit that one move. Verify: PROVEN on
       the two-line form, and still FAILS when any other token on that line
       moves.
+        > 2026-09-03 needed with T23: admit that one move, fail on any other token
 - [ ] T25 | T25 -- Make `_is_doc` consult placement, not only the opener string.
       Verify: a Lua `---` run above `local function f()` types `docstring`,
       above nothing `comment`.
