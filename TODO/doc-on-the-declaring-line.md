@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 3 tasks closed
+Progress: 2 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (found while fixing the docstring-closing-comment double emission,
@@ -55,6 +55,34 @@ paragraph had nothing to attach to. The two-line page carries both.
 !! **SO `Addressing: #20` NEEDS AN `a` PLACE TO MOVE THE DOCSTRING INTO, AND THERE IS NONE.**
 That is work T23 must do and its own text does not name: the walk has to emit the place before
 the compositor can set anything below the declaration.
+
+## The root cause, and it is a `Process: #69` regression -- T4
+
+**`binder/page.py:561-576`, `code_lines`.** A line stays code only when the paragraph on it is
+the `ON` series:
+
+| kind | series | kept as code | occupies its lines |
+| --- | --- | --- | --- |
+| `trailing-comment` | `ON` | **yes** | no |
+| `docstring` | `DECLARED` | **no** | **yes** |
+
+A same-line docstring is stamped `a` by `paragraphs_stdlib`, so it is not `ON`, so it falls to
+*occupies its lines* and **line 1 leaves the code set**. `triggers()` walks `[MODULE, *code,
+EOF]`, so with no trigger at line 1 neither the `DECLARED` nor the `ON` addresser emits there --
+no `a1`, no `c0` -- and the AST's correctly-addressed paragraph has nothing to attach to.
+
+!! **AND `code_lines`' OWN DOCSTRING STATES THE INVARIANT THIS BREAKS**, at `:536`: *"A
+PARAGRAPH'S FIRST LINE IS STILL CODE WHEN CODE PRECEDES ITS TEXT"*, with the worked example
+`int b = 2; /* opens` -- the same shape, in another language.
+
+!! **THAT TEST USED TO BE `original_column`, AND `Process: #69` CUT IT.** `:541-543`: *"THE
+PARAGRAPH SAYS SO, BY ITS SERIES -- a `c` place is the room beside code ... IT WAS a
+`original_column` FIELD until 2026-08-31, read here for its truthiness alone."* **The
+replacement only rescues a `c`.** A docstring that shares a line with code is an `a`, so the
+series test cannot see what the column could: that code precedes the prose on that line.
+
+! **#69 IS NOT WRONG; ITS REPLACEMENT IS INCOMPLETE HERE.** The field is genuinely redundant
+wherever the series answers the question, and this is the one shape where it does not.
 
 !! **MEASURED 2026-08-29** on `'def f(): """D."""  # note\n'` -- one line in, TWO out:
 
@@ -121,3 +149,7 @@ back. `systems` owns whether the two are one file.
         > 2026-09-03 so the tripwire never sees b0 holding a docstring kind
         > 2026-09-03 Addressing 20 makes this the live box -- the behaviour CHANGES
         > 2026-09-03 so it needs pinning, and nothing sees b0 until the shape is added
+- [ ] T4 | Update code_lines so a line keeps its code when code precedes a
+      paragraph text
+        > 2026-09-03 ROOT CAUSE: page.py:567 keeps a line only for the ON series
+        > 2026-09-03 the full reading is in the Objective, under The root cause
