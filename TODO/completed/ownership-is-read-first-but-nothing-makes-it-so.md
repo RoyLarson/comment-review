@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 3 of 14 tasks closed
+Progress: 14 of 14 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-16 (Roy: "Does this require a 4a, b, c -- 4a the ownership run,
@@ -304,31 +304,41 @@ true**, and it is the sentence the whole split exists to make good on.
 - [x] T3 | FINISHED | unknown | T3 -- NOT A TASK. RULING, 2026-08-17, SUPERSEDED
       the same day: 4b PROPOSES and applies nothing. Both rulings are in the
       Objective.
-- [ ] T4 | T4 -- **Create the module that carries a PROPOSAL on a node.**
-      Verify: the module exists, and `census.py` gains no proposal field.
-- [ ] T5 | T5 -- **Write down the fields a PROPOSED tag carries**: verdict,
-      resolved owner, proposing role. Verify: the list is in exactly one file.
-- [ ] T6 | T6 -- **Make T4's module implement every field T5 names.** Verify: a
-      4a report round-trips into the module and back with each named field
+- [-] T4 | SUPERSEDED -- Process 75: 4b is the task agent running proof and census --revise 1, so 4a's marks are written into a revise tree and re-read. There is no proposal-tagged census B to carry this | 9cb28a0 | T4
+      -- **Create the module that carries a PROPOSAL on a node.** Verify: the
+      module exists, and `census.py` gains no proposal field.
+- [-] T5 | SUPERSEDED -- Process 75: 4b is the task agent running proof and census --revise 1, so 4a's marks are written into a revise tree and re-read. There is no proposal-tagged census B to carry this | 9cb28a0 | T5
+      -- **Write down the fields a PROPOSED tag carries**: verdict, resolved
+      owner, proposing role. Verify: the list is in exactly one file.
+- [-] T6 | SUPERSEDED -- Process 75: 4b is the task agent running proof and census --revise 1, so 4a's marks are written into a revise tree and re-read. There is no proposal-tagged census B to carry this | 9cb28a0 | T6
+      -- **Make T4's module implement every field T5 names.** Verify: a 4a
+      report round-trips into the module and back with each named field
       preserved.
-- [ ] T7 | T7 -- **Gate 4b's INDICES: census B may differ from census A only
-      where a 4a record names.** Verify: the gate refuses a census B changed at
-      an unnamed index.
-- [ ] T8 | T8 -- **Gate 4b's FIELDS: a changed field must be one the verdict
-      licences.** Verify: the gate refuses a census B changed in an unlicensed
-      field.
-- [ ] T9 | T9 -- **Say in `SKILL.md` which fields 4b may change.** Verify: `##
-      Stage 4` names 4b and lists them.
-- [ ] T10 | T10 -- **Say in `SKILL.md` that *"Nothing is on disk yet"* holds at
-      4b.** Verify: `## Stage 4` states it, and adds no numbered rule elsewhere.
-- [ ] T11 | T11 -- **Give `run_context.py`'s packet a PASS line naming 4a or
-      4c.** Verify: `--check` refuses a 4c packet that names census A.
-- [ ] T12 | T12 -- **Fix the packet's success message at `run_context.py:348`**,
-      which still instructs the parallel dispatch. Verify: the success message
-      names 4a and 4c.
-- [ ] T13 | T13 -- **Teach the collator not to read a PROPOSED-drop node as
-      ordinary prose.** Verify: a census carrying a PROPOSED drop owes no
-      verdict on that node.
-- [ ] T14 | T14 -- **Teach the collator what an `add`'s filled interval is.**
-      Verify: a census whose interval gained proposed text joins without a
-      manufactured coverage gap.
+- [-] T7 | SUPERSEDED -- Process 75: 4b is the task agent running proof and census --revise 1, so 4a's marks are written into a revise tree and re-read. There is no proposal-tagged census B to carry this | 9cb28a0 | T7
+      -- **Gate 4b's INDICES: census B may differ from census A only where a 4a
+      record names.** Verify: the gate refuses a census B changed at an unnamed
+      index.
+- [-] T8 | SUPERSEDED -- Process 75: 4b is the task agent running proof and census --revise 1, so 4a's marks are written into a revise tree and re-read. There is no proposal-tagged census B to carry this | 9cb28a0 | T8
+      -- **Gate 4b's FIELDS: a changed field must be one the verdict licences.**
+      Verify: the gate refuses a census B changed in an unlicensed field.
+- [-] T9 | SUPERSEDED -- Process 75: 4b is the task agent running proof and census --revise 1, so 4a's marks are written into a revise tree and re-read. There is no proposal-tagged census B to carry this | 9cb28a0 | T9
+      -- **Say in `SKILL.md` which fields 4b may change.** Verify: `## Stage 4`
+      names 4b and lists them.
+- [-] T10 | SUPERSEDED -- Process 75 makes this FALSE: proof WRITES the revise tree, so something is on disk at 4b. What SKILL.md owes there is stage-4b-is-undefined T6 | 9cb28a0 | T10
+      -- **Say in `SKILL.md` that *"Nothing is on disk yet"* holds at 4b.**
+      Verify: `## Stage 4` states it, and adds no numbered rule elsewhere.
+- [-] T11 | SUPERSEDED -- run_context.py left src/ for prototype/original/ at b50e7a4 and does not run, so there is no packet to give a PASS line | b50e7a4 | T11
+      -- **Give `run_context.py`'s packet a PASS line naming 4a or 4c.** Verify:
+      `--check` refuses a 4c packet that names census A.
+- [-] T12 | SUPERSEDED -- run_context.py left src/ for prototype/original/ at b50e7a4 and does not run, so there is no packet to give a PASS line | b50e7a4 | T12
+      -- **Fix the packet's success message at `run_context.py:348`**, which
+      still instructs the parallel dispatch. Verify: the success message names
+      4a and 4c.
+- [-] T13 | SUPERSEDED -- Process 75: 4b is the task agent running proof and census --revise 1, so 4a's marks are written into a revise tree and re-read. There is no proposal-tagged census B to carry this | 9cb28a0 | T13
+      -- **Teach the collator not to read a PROPOSED-drop node as ordinary
+      prose.** Verify: a census carrying a PROPOSED drop owes no verdict on that
+      node.
+- [-] T14 | SUPERSEDED -- Process 75: 4b is the task agent running proof and census --revise 1, so 4a's marks are written into a revise tree and re-read. There is no proposal-tagged census B to carry this | 9cb28a0 | T14
+      -- **Teach the collator what an `add`'s filled interval is.** Verify: a
+      census whose interval gained proposed text joins without a manufactured
+      coverage gap.

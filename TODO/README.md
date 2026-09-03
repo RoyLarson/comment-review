@@ -299,7 +299,7 @@ that changed a published name or rule:
 | [citations-resolve-to-no-object](citations-resolve-to-no-object.md) | systems | -- | 0/1 | Find the four commit citations that resolve to no object |
 | [row-was-never-retired](row-was-never-retired.md) | backend | yes | 0/5 | Retire row everywhere -- the type, the wire key and the prose |
 
-### in-progress  (19)
+### in-progress  (18)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -312,7 +312,6 @@ that changed a published name or rule:
 | [b-addresser-uninitialised](b-addresser-uninitialised.md) | backend | yes | 13/18 | The b addresser is never initialised at the module trigger, and computes its cue from line numbers |
 | [census-degrades-silently](census-degrades-silently.md) | backend | -- | 5/8 | **Four inputs produce a census that is wrong rather than refused, each exiting 0.** The run reads as complete and the addresses are nonsense. |
 | [census-owns-addressing](census-owns-addressing.md) | backend | -- | 4/8 | The census owns addressing, and four modules share one subject between them |
-| [ownership-is-read-first-but-nothing-makes-it-so](ownership-is-read-first-but-nothing-makes-it-so.md) | agents | -- | 3/14 | `ownership-context` is read FIRST, and nothing in the run makes that true |
 | [page-and-addresser-scans](page-and-addresser-scans.md) | backend | -- | 2/8 | page.py and addresser.py carry four scans that grow with the file and one CLI that contradicts the gate |
 | [record-verdict-desk-findings](record-verdict-desk-findings.md) | backend | -- | 9/14 | Round-4 findings in record/verdict/desk, including two that certify a run at exit 0 |
 | [the-census-is-mostly-intervals-nobody-rules-on](the-census-is-mostly-intervals-nobody-rules-on.md) | backend | yes | 13/25 | **The census is 67% of what it costs to start a reviewer, and 966 of its 1,120 blocks are intervals nobody rules on.** 131,353 bytes of 195,243, paid four times. Roy ruled the design 2026-08-18: the census stays fully enumerated ON DISK, the agents get a FILTERED view, and a destination outside their set comes from a TOOL answering one question -- what is the ADDRESS of this line of code. ! It does not reverse the 2026-08-17 enumeration; it is a projection of it, and `add` was not expressible before it. ! Rule 4 buys a check as well as bytes: `move`'s `to` is free text nothing resolves, and an index is resolvable exactly as an address already is |
@@ -451,3 +450,4 @@ the reason is inside the file.
 | [plans-unreadable-to-the-tool](completed/plans-unreadable-to-the-tool.md) | FINISHED -- the board reads docs/plans; INTEGRITY ISSUES and EXCLUDED FROM THE BOARD are both 0 |
 | [the-flow-assumes-every-role-reads-at-once](completed/the-flow-assumes-every-role-reads-at-once.md) | FINISHED -- the flow no longer assumes one simultaneous read; a stage reads what the stage before it left |
 | [the-ported-mark-does-not-fit-the-brief](completed/the-ported-mark-does-not-fit-the-brief.md) | FINISHED -- the mark accepts what the shipped brief tells a role to write |
+| [ownership-is-read-first-but-nothing-makes-it-so](completed/ownership-is-read-first-but-nothing-makes-it-so.md) | SUPERSEDED into stage-4b-is-undefined T6 -- Process 75 supplies the mechanism this file proposed a PROPOSED-tag census for: 4b is the task agent running proof and census --revise 1, so 4c is seeded from 4a's revise. The serialisation ruling is kept in the Objective |
