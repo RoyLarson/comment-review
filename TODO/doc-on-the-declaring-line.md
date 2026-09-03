@@ -56,7 +56,7 @@ paragraph had nothing to attach to. The two-line page carries both.
 That is work T23 must do and its own text does not name: the walk has to emit the place before
 the compositor can set anything below the declaration.
 
-## The root cause, and it is a `Process: #69` regression -- T4
+## The root cause: the lexer does not say the docstring shares a line -- T4
 
 **`binder/page.py:561-576`, `code_lines`.** A line stays code only when the paragraph on it is
 the `ON` series:
@@ -75,14 +75,25 @@ no `a1`, no `c0` -- and the AST's correctly-addressed paragraph has nothing to a
 PARAGRAPH'S FIRST LINE IS STILL CODE WHEN CODE PRECEDES ITS TEXT"*, with the worked example
 `int b = 2; /* opens` -- the same shape, in another language.
 
-!! **THAT TEST USED TO BE `original_column`, AND `Process: #69` CUT IT.** `:541-543`: *"THE
-PARAGRAPH SAYS SO, BY ITS SERIES -- a `c` place is the room beside code ... IT WAS a
-`original_column` FIELD until 2026-08-31, read here for its truthiness alone."* **The
-replacement only rescues a `c`.** A docstring that shares a line with code is an `a`, so the
-series test cannot see what the column could: that code precedes the prose on that line.
+! **THAT TEST USED TO BE `original_column`**, per `:541-543`: *"THE PARAGRAPH SAYS SO, BY ITS
+SERIES -- a `c` place is the room beside code ... IT WAS a `original_column` FIELD until
+2026-08-31, read here for its truthiness alone."*
 
-! **#69 IS NOT WRONG; ITS REPLACEMENT IS INCOMPLETE HERE.** The field is genuinely redundant
-wherever the series answers the question, and this is the one shape where it does not.
+!! **AND THE FIX IS NOT TO BRING IT BACK. `Process: #69` STANDS.** Roy, 2026-09-03: *"Its still
+safe, we just need to figure out how to make the parser part of the lexer properly attach to
+docstring to the correct line of code."*
+
+! **THIS SECTION FIRST READ *"#69's replacement is incomplete here"***, which put the fix in
+`code_lines` -- restoring a per-paragraph column so the page could re-derive what the lexer
+already knew. **That is the wrong end.** The lexer holds the declaration, the docstring and both
+line numbers at the moment it tags; it is the only place that knows the docstring shares its
+line with the code that owns it, and it currently emits a paragraph indistinguishable from one
+that owns its lines outright.
+
+!! **SO THE WORK IS IN THE LEXER: ATTACH THE DOCSTRING TO THE LINE OF CODE IT SHARES.** Then
+`code_lines` needs no new test -- the line is code because the paragraph beside it says so, which
+is what `:541`'s *"THE PARAGRAPH SAYS SO, BY ITS SERIES"* already asserts -- and the walk emits
+the `a` place `Addressing: #20` moves the docstring into.
 
 !! **MEASURED 2026-08-29** on `'def f(): """D."""  # note\n'` -- one line in, TWO out:
 
@@ -149,7 +160,8 @@ back. `systems` owns whether the two are one file.
         > 2026-09-03 so the tripwire never sees b0 holding a docstring kind
         > 2026-09-03 Addressing 20 makes this the live box -- the behaviour CHANGES
         > 2026-09-03 so it needs pinning, and nothing sees b0 until the shape is added
-- [ ] T4 | Update code_lines so a line keeps its code when code precedes a
-      paragraph text
+- [ ] T4 | Update the lexer so a docstring attaches to the line of code it
+      shares, and the walk emits that line's places
         > 2026-09-03 ROOT CAUSE: page.py:567 keeps a line only for the ON series
         > 2026-09-03 the full reading is in the Objective, under The root cause
+        > 2026-09-03 Roy: the 69 removal is still safe -- fix it in the lexer
