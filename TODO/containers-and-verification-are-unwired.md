@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 14 of 44 tasks closed
+Progress: 15 of 44 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -256,9 +256,10 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       folded to empty
         > 2026-08-31 Latent -- nothing writes a docket until P42/P43 wire the middle
         > 2026-08-31 Both shapes have tests pinning the producer; the reader is right
-- [ ] T30 | Update the docket so a flow assembles it, not
-      desk.collator.docket_from, which reaches sideways into another area to
-      construct Alteration, Schedule and Docket
+- [-] T30 | SUPERSEDED IN PART -- a flow assembles the docket now: flows.transcribe.docket_of takes an EditCopy. The Binder TYPE half is live and is carried by collator-defects T29, which deletes the crossings tests/test_areas.py KNOWN names | 7ae43d4 | Update
+      the docket so a flow assembles it, not desk.collator.docket_from, which
+      reaches sideways into another area to construct Alteration, Schedule and
+      Docket
         > 2026-08-31 Roy 2026-08-31: flows reach into containers, containers do not
         > 2026-08-31 Includes the Binder TYPE on collator, not only the construction
 - [ ] T31 | Move the read_from shape check off binder.binder, where it is

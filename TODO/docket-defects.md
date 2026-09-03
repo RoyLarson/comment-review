@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 8 tasks closed
+Progress: 1 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `docket/docket.py` run end to end
@@ -93,13 +93,14 @@ caller.
       spellings of one path and fails against `docket.py:134-145` as it reads
       today; the byte-identical pair it feeds now is the one case the guard
       already handles.
-- [ ] T4 | Implement a refusal in `desk.collator.docket_from` at the point a
-      flattened path fails to resolve, naming the address it could not place.
-      Verify: no docket is written carrying `"sha": ""` from `collator.py:1019`;
-      today one unresolvable page makes the WHOLE docket unreadable at
-      `docket.py:146-147` -- `({}, 'pkg/a.py: every page needs the sha it was
-      read at')` -- discarding every other page's approved alterations, and
-      naming the sha when the cause is a path that resolved against nothing.
+- [-] T4 | SUPERSEDED -- desk.collator.docket_from left desk/ at P55 and collator.py:1019 with it. flows.transcribe.docket_of resolves no flattened path, reading sheet.path and sheet.sha off the copy, and Schedule.deserialize reports every bad alteration rather than the first | 7ae43d4 | Implement
+      a refusal in `desk.collator.docket_from` at the point a flattened path
+      fails to resolve, naming the address it could not place. Verify: no docket
+      is written carrying `"sha": ""` from `collator.py:1019`; today one
+      unresolvable page makes the WHOLE docket unreadable at `docket.py:146-147`
+      -- `({}, 'pkg/a.py: every page needs the sha it was read at')` --
+      discarding every other page's approved alterations, and naming the sha
+      when the cause is a path that resolved against nothing.
 - [ ] T5 | Update the two citations of `flows.revise.pull._set_by` at
       `docket.py:64-65` and `:92-93`. Verify: `grep -rn "pull\._set_by"
       src/comment_review/` is empty and the sentences name

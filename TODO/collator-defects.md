@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 29 tasks closed
+Progress: 7 of 29 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -131,12 +131,12 @@ Four defects in collator.py, found by reading only the code.
       `desk.mark._destination_problems` as what refuses that mark now -- T1 of
       this file landed it -- and marks its own branch as depth, which is the
       template T15 applies to `MalformedMark`.
-- [ ] T24 | Update `desk/collator.py:63` and `flows/collate.py:361-365` so one
-      rule about importing a private name across modules is stated once and both
-      files obey it. Verify: either `collator.py` stops importing
-      `_read_from_problem` from `binder.binder`, or `_chief_copy`'s ~15 duplicated
-      lines cite the import as allowed; no sentence in either file contradicts the
-      other.
+- [-] T24 | SUPERSEDED -- its first branch is already true: desk/collator.py no longer imports _read_from_problem. The one importer left is desk/containers.py:73, which is containers-and-verification-are-unwired T31 | 7ae43d4 | Update
+      `desk/collator.py:63` and `flows/collate.py:361-365` so one rule about
+      importing a private name across modules is stated once and both files obey
+      it. Verify: either `collator.py` stops importing `_read_from_problem` from
+      `binder.binder`, or `_chief_copy`'s ~15 duplicated lines cite the import
+      as allowed; no sentence in either file contradicts the other.
 - [ ] T25 | Update the module docstring's member roll at `desk/collator.py:3-25`
       to account for `WITHIN`, `Cache`, `UnnamedRole`, `MalformedMark`, `Placed`,
       `Reconciled` and `OUTCOMES`, and restate lines 45-46 by member rather than
