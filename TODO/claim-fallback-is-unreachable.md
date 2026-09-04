@@ -2,9 +2,9 @@
 
 ```
 Status:   deferred
-Progress: 6 of 8 tasks closed
+Progress: 8 of 8 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-22 (/simplify round 2, 2026-08-22, and Roy: probably (ii) but deferred
           because that whole system from census to findings to verdicts is something
           that needs to be determined now that the backend part of the system works)
@@ -84,9 +84,10 @@ T4 -- it waits on the same determination.
 - [x] T3 | FINISHED | unknown | T3 -- RECORD, not a task. The suite stays green
       because tests/test_verdicts.py:79 builds an unproducible shape. Restated
       in the Objective.
-- [?] T4 | T4 -- * Rule whether a non-object `claim` (i) preserves the reviewer
-      words or (ii) is reported MALFORMED. Verify: `docs/decision-log.md`
-      records the ruling.
+- [x] T4 | RULED Process 92: (ii) -- refused by name at desk/mark.py:640, stacked as a Revisit, rerouted by the task agent | 70450a91 | T4
+      -- * Rule whether a non-object `claim` (i) preserves the reviewer words or
+      (ii) is reported MALFORMED. Verify: `docs/decision-log.md` records the
+      ruling.
 - [x] T5 | FINISHED | unknown | T5 -- RECORD, not a task. ROY LEANS (ii),
       2026-08-22. Restated in the Objective.
 - [x] T6 | FINISHED | unknown | T6 -- RECORD, not a task. The cost of (ii) is
@@ -94,6 +95,6 @@ T4 -- it waits on the same determination.
 - [x] T7 | FINISHED | unknown | T7 -- RECORD, not a task. What the deferral
       waits on -- the determination of the whole census -> findings -> verdicts
       path. Restated in the Objective.
-- [ ] T8 | T8 -- Make code and prose agree in the shape T4 rules. Verify: no
-      shipped comment describes an unreachable branch, and `uv run pytest -q` is
-      green.
+- [x] T8 | FINISHED -- no shipped comment describes the branch: claim_fields and claim_text are in prototype/ only; the suite is green | 70450a91 | T8
+      -- Make code and prose agree in the shape T4 rules. Verify: no shipped
+      comment describes an unreachable branch, and `uv run pytest -q` is green.
