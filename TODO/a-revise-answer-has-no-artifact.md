@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 29 of 35 tasks closed
+Progress: 30 of 35 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
@@ -172,8 +172,9 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       the round counter, rounds named by kind, no maximum enforced. Verify: a
       run reports each place's rounds
         > 2026-09-03 P18. Process 78: the cap is the agent's, never the code's
-- [ ] T17 | Implement the copy chief's ruling at the cap on whatever is still
-      unresolved. Verify: no place survives the last round unruled
+- [x] T17 | FINISHED -- determined_chief refuses while a carried place is unruled, naming it and its roles; unsettlable excepted; test_turn.py | d1ddbd8 | Implement
+      the copy chief's ruling at the cap on whatever is still unresolved.
+      Verify: no place survives the last round unruled
         > 2026-09-03 P19. the-turn.md: the chief's ruling is the terminator
         > 2026-09-04 bc62ea5: rule_at_cap exists; nothing enforces every place ruled
 - [ ] T18 | Implement routing of a refused or unanswered DiffMark to its role as
