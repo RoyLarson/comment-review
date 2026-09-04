@@ -53,3 +53,4 @@ removes, and T1's docstring sentence becomes a false claim about the code.
 - [ ] T3 | A test that pins the measured behaviour -- an unindented replacement
       lands at column 0, an indented one does not. Verify: it fails if the
       galley starts adding whitespace
+        > 2026-09-03 strip/fill T9 also decides compose granularity -- Open 5 there

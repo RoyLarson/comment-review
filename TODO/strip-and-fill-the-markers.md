@@ -146,6 +146,24 @@ because it rebuilt each file from positions it had just read out of that file.
 4. **Does this replace `change` as raw text, or layer under it?** `docs/the-mark.md` rules
    `change` is the updated paragraph AS RAW TEXT. Stripped prose is still raw text, but it is not
    the same bytes -- so that sentence needs to say which.
+5. **What granularity does `compose` diff at, and who reflows?** MEASURED 2026-09-03:
+   `results.differences.compose` diffs `raw_text` LINE by line and merges spans that touch,
+   so two roles editing ADJACENT lines of one paragraph refuse together, and two sentences
+   on one physical line are one span. **That strictness is an ARTIFACT of `raw_text`
+   carrying the whitespace, the markers and the newlines. It is not a ruling.** Roy,
+   2026-09-03: *"I have not made an explicit ruling on this. It is an artifact of keeping
+   raw lines which contains the white space and comment characters. We had been debating
+   options on making it just the text and stripping out the new line chars then everything
+   could be diffed off of that removing the problem but then we would have to understand
+   how to reflow the text correctly. That can be very challenging to automate
+   appropriately. Especially for things like multiline trailing comments and doc
+   strings."*
+
+   So T9 decides two things at once, not one: what a role SEES -- this file's original
+   subject -- and what `compose` can MERGE. Stripping to prose buys text-level diffing and
+   loses the newlines the fill would have to put back, and re-wrapping to width is the
+   part nobody has a rule for yet -- hardest exactly where the paragraph is a multi-line
+   trailing comment or a docstring. ! Neither answer is assumed here.
 
 ## Tasks
 
@@ -223,3 +241,4 @@ one thing safe to take first -- it is evidence FOR the ruling, not work under it
       refusal, never a silent skip.
 - [?] T9 | Decide whether the system strips and fills the markers, reversing
       Vocabulary 27
+        > 2026-09-03 also decides compose granularity -- Open 5; reflow is the cost
