@@ -24,7 +24,7 @@ produces and the only thing it produces.
 
 ## Two lists
 
-**FILES UNDER REVIEW** -- the only files a verdict may target.
+**FILES UNDER REVIEW** -- the only files an instruction may target.
 
 **REFERENCE ONLY** -- everything else in the repo. **Read them to settle a claim.**
 Stick to reading the references only - if a reference is wrong it needs to be stated
@@ -35,7 +35,7 @@ symbol** -- `goToDefinition`, `findReferences`, `workspaceSymbol`, `hover`. It i
 more exact than grep, it works in languages no parser here reads, and `findReferences` is the
 only quick way to test a claim like *"the only caller"* or *"nothing reads this"*.
 
-!! **A server settles a FACT, never a VERDICT.** "This name exists" and "three files call it"
+!! **A server settles a FACT, never an INSTRUCTION.** "This name exists" and "three files call it"
 are inputs to your judgement, not a substitute for it. And a server that is ABSENT proves
 nothing: if the context does not say one answered, do not assume it -- report what you could
 not check rather than reporting it clean.
@@ -76,7 +76,7 @@ other end an index, a glossary or a run of footnotes -- and not the gap above th
 code. It is filtered out of your census, and any edit proposed on it becomes a `query`.
 
 !! **YOUR CENSUS CARRIES `a`, `b` AND `c`. THAT IS THE WHOLE SET YOU RULE ON.** The `f` series
-is not a place you were asked about, so there is no verdict to reach on one.
+is not a place you were asked about, so there is no instruction to reach on one.
 
 ! **YOU WILL STILL READ IT, AND THAT IS FINE.** Opening the file puts a licence header in front
 of you, and you should use it the way you use any other context -- to understand what the file
@@ -86,26 +86,41 @@ pieces that matter."* ! **What is ruled out is RULING on it**, not seeing it.
 
 ## You FILL a record; you do not write one
 
-**You are handed one PAGE per file, and one slot per prose paragraph on it.** The page names the
-file once; each slot already carries the two things the tool knows -- the `place` it is and the
-`anchor` it sits on -- and you set the five that are yours:
+**You are handed one SHEET per file, and one slot per prose paragraph on it.** The sheet names
+the file once, in `path`; each slot already carries the two things the tool knows -- the
+`address` it is and the `anchor` it sits on -- and you set the five that are yours:
 
 ```json
-{ "page": "redacted_pkg/billing/rates.py",
-  "records": [
-    { "place":   "b47",
-      "anchor":  "def compute_rates(plan, period, *, clamp=True):",
-      "verdict": "correct",
-      "claim":   { "false": "twenty call sites want this",
-                   "true":  "31 callers, all in tests/" },
-      "reason":  "31 callers and every one is under tests/, so the count is stale",
-      "sources": [ { "cite": "redacted_pkg/billing/rates.py:355",
-                     "verbatim": "def compute_rates(plan, period, *, clamp=True):" },
-                   { "cite": "redacted_pkg/export/invoice.py:88",
-                     "verbatim": "rates = compute_rates(plan, period)" } ],
-      "change":  [ "# Kept because 31 callers want this, all of them in tests/.",
-                   "# Narrowing it means re-deriving the clamp bounds." ] } ] }
+{ "role": "block-context",
+  "read_from": { "root": "/checkout/of/the/project", "revise": 0 },
+  "sheets": [
+    { "path": "redacted_pkg/billing/rates.py",
+      "sha":  "9c1f0b7a4e2d6835aa10c4bb37f9e05d2c8471a6",
+      "marks": [
+        { "address": "b47",
+          "anchor":  "def compute_rates(plan, period, *, clamp=True):",
+          "instruction": "correct",
+          "claim":   { "false": "twenty call sites want this",
+                       "true":  "31 callers, all in tests/" },
+          "reason":  "31 callers and every one is under tests/, so the count is stale",
+          "sources": [ { "cite": "redacted_pkg/billing/rates.py:355",
+                         "verbatim": "def compute_rates(plan, period, *, clamp=True):" },
+                       { "cite": "redacted_pkg/export/invoice.py:88",
+                         "verbatim": "rates = compute_rates(plan, period)" } ],
+          "change":  "# Kept because 31 callers want this, all of them in tests/.\n# Narrowing it means re-deriving the clamp bounds." } ] } ] }
 ```
+
+!! **THE THREE OUTER KEYS ARE NOT DECORATION, and the file you are handed already carries
+them.** `role` is the role this copy was seeded for, `read_from` is the tree it was censused
+from -- `revise` 0 is the original -- and `sha` is the bytes of the file your addresses were
+taken from. **Edit in place and leave all four alone**; the checker refuses a copy that comes
+back without `role` or `read_from`, and the `sha` is what proves nobody rewrote the file
+underneath your marks.
+
+!! **THIS EXAMPLE SHOWED A TWO-LEVEL `{"page", "records"}` UNTIL 2026-08-29, AND NOTHING
+ACCEPTED IT.** The container is `sheets`, one per file; the file's own name is `path`, inside
+its sheet; each sheet's entries are `marks`; and a mark names its `address`. `role`, `read_from`
+and `sha` appeared nowhere in this file at all.
 
 ! **THE PLACE IS A CUE, NOT A FULL ADDRESS** -- `b47`, because the page above it already said
 which file. You will still meet the full form `redacted_pkg:billing:rates.py@b47` in one place: a `move`
@@ -119,14 +134,14 @@ and the collator says so -- that error is caught, and the other one is invisible
 
 !! **WHAT YOU OPEN IS THE ORIGINAL** -- the file as it stood when THIS RUN began, not the first
 version ever written. Nothing is written to disk before stage 7b, so the file you read at stage 4
-IS the state your `place` and your `anchor` were taken from, and the state the collator checks your
+IS the state your `address` and your `anchor` were taken from, and the state the collator checks your
 `claim` against.
 
-!! **YOU NEVER TRANSCRIBE THE PARAGRAPH.** `place` and `anchor` are the tool's. Leave them alone;
+!! **YOU NEVER TRANSCRIBE THE PARAGRAPH.** `address` and `anchor` are the tool's. Leave them alone;
 a mismatch there means the file was edited, not that you misquoted. ! The `anchor` is there to
 be GREPPED -- it names the declaration the census resolved, and is empty where none was.
 
-! **The file states what each constrained field allows** -- the seven verdicts, the `claim` keys
+! **The file states what each constrained field allows** -- the seven instructions, the `claim` keys
 each one owes, `query`'s three shapes, `add`'s two sides. Read `allowed` at the top of your file
 rather than remembering them.
 
@@ -134,11 +149,16 @@ rather than remembering them.
 
 | field | what it carries |
 | --- | --- |
-| `verdict` | one of the seven. ! `null` means you have not ruled yet, and a paragraph left `null` is a coverage gap |
-| `claim` | an OBJECT whose keys are set by your verdict -- see the table below. It is the SPEC: what must change, and from what to what. ! **The key naming the EXISTING sentence is CHECKED against the census text for your paragraph** -- if it is not in the paragraph you are filling, the finding is on the wrong paragraph |
+| `instruction` | one of the seven. ! `null` means you have not ruled yet, and a paragraph left `null` is a coverage gap |
+| `claim` | an OBJECT whose keys are set by your instruction -- see the table below. It is the SPEC: what must change, and from what to what. ! **The key naming the EXISTING sentence is CHECKED against the census text for your paragraph** -- if it is not in the paragraph you are filling, the finding is on the wrong paragraph |
 | `reason` | what you DERIVED from the source, and why the claim is wrong -- one statement |
-| `sources` | a list of `{ "cite": "file:line", "verbatim": "the text AT it" }`, **one entry per place examined.** Every one is resolved and every `verbatim` must really be there |
-| `change` | the RESULT: an array of **file-ready lines**, the whole paragraph as it reads once your edit is made. Indentation and comment markers exactly as they will sit on disk |
+| `sources` | a list of `{ "cite": "file:line", "verbatim": "the text AT it", "ran": "the command" }`, **one entry per place examined.** Every one is resolved and every `verbatim` must really be there. `ran` is owed only where the entry was settled by RUNNING something |
+| `change` | the RESULT: **the updated paragraph, as RAW TEXT** -- not lines, not sentences. Indentation and comment markers exactly as they will sit on disk |
+
+!! **`ran` -- A CLAIM SETTLED BY RUNNING SOMETHING MUST CARRY THE COMMAND.** `sources` records
+WHAT you saw; `ran` records HOW you saw it. Add it to the `sources` entry it belongs to whenever
+a `grep`, a test, or any other command is what settled that entry -- a claim settled by execution
+and missing `ran` is incomplete.
 
 !! **`claim` and `change` say the same edit twice, and that is deliberate.** `claim` is surgical,
 so a checker can find the sentence you rule on and two roles ruling on one paragraph can be told
@@ -150,7 +170,7 @@ is exactly what your edit does, and it must be the sentence your `claim` names. 
 reasons about one sentence and rewrites another is refused, whichever of the two is right.
 
 !! **ONE record's `change` makes ONE record's edit.** If you rule twice on one paragraph, write
-TWO records with the same `place`, under the same page, each showing that paragraph with ITS OWN
+TWO records with the same `address`, under the same sheet, each showing that paragraph with ITS OWN
 change and no other. Do not
 hand in the paragraph fully fixed twice: composing is the task agent's job, and it cannot compose
 records that have already been merged.
@@ -168,6 +188,13 @@ out of the file and your text must appear within three lines of it.
 its callers -- and citing one means dropping the other, which is the cut-the-provenance failure
 this system exists to catch. ! Each entry carries a LINE. A bare filename says you opened a file
 and not what you read in it.
+
+!! **A `source` MAY CITE ANY PLACE IN THE LIBRARY** -- every file in the project under review,
+never this program's own tree. A citation is not limited to the paragraph's own file: where your
+claim is that two places disagree, mark the one that is WRONG and cite the other as the evidence
+that it is. A library citation is checked exactly like any other -- resolved, and its `verbatim`
+confirmed. ! **The corollary is what keeps it honest**: if you cannot tell which side is wrong,
+that is a `query`, not two `correct`s.
 
 ! **`reason` is DERIVED and is not checked verbatim** -- that is why it is a field of its own. A
 count is not a line any file contains, so checking it against the code made every counted claim
@@ -231,37 +258,37 @@ anchor.
 !! **YOUR `change` REPLACES THE GAP, INCLUDING ITS BLANK LINES.** An interval is bounded by two
 lines of CODE and the gap between them is whatever sits there -- nothing, or blank lines. The
 edit is applied to the GAP, so a two-blank-line separation you do not write out is a separation
-the file loses. **Write the blank lines you want kept**, as empty strings in the array, the
+the file loses. **Write the blank lines you want kept**, as blank lines in the raw text, the
 same way you would write them in the file.
 
 !! **A `c` PLACE STARTS AT THE END OF THE CODE, so your `change` carries its own separator.**
-A trailing comment is one array entry and it is written from the point the statement stops --
-`"  # why"`, with the two spaces you want between them. Write `"# why"` and it lands hard against
-the code. This is the same rule an interval follows: the text is file-ready, and whatever
-whitespace you want is whitespace you write.
+A trailing comment is written from the point the statement stops -- `"  # why"`, with the two
+spaces you want between them. Write `"# why"` and it lands hard against the code. This is the
+same rule an interval follows: the text is file-ready, and whatever whitespace you want is
+whitespace you write.
 
 ! **It is why a `margin` and the trailing comment that would replace it are ONE place.** Roy,
 2026-08-19: *"c addresses start at the end of the code on the line."* Adding a comment where
-there is none and rewording one that is there write to the same column, so the two verdicts do
+there is none and rewording one that is there write to the same column, so the two instructions do
 not need different rules.
 
 !! **AN INTERMEDIATE COMMENT IS NOT IN THE CENSUS AT ALL** -- one with code on BOTH sides, as in
 `int x = /* why */ 5;`. It is ignored for the same reason a Python type annotation is: it cannot
 be verified the same way across codebases, and a line-length rule moves it. It is not a paragraph, it
-has no address, and no verdict reaches it. **If one is wrong, it is a `code_concerns` line.**
+has no address, and no instruction reaches it. **If one is wrong, it is a `code_concerns` line.**
 
 ### Code problems
 
-`code_concerns` at the end of your file is a list of strings, one line each, no verdict. See
+`code_concerns` at the end of your file is a list of strings, one line each, no instruction. See
 "The subject is the prose, not the program" below for what belongs there.
 
-### The verdicts, and what each one MUST carry
+### The instructions, and what each one MUST carry
 
-**A verdict rules on a SENTENCE, not on a paragraph.** A paragraph of six sentences can carry six
-verdicts, and one `clean` sentence must not launder the five around it.
+**An instruction rules on a SENTENCE, not on a paragraph.** A paragraph of six sentences can carry six
+instructions, and one `clean` sentence must not launder the five around it.
 
-A verdict is a recommendation the task agent will combine with the other roles' and synthesise
-into one comment. It is only usable if it carries its payload, so **a verdict without its payload is
+An instruction is a recommendation the task agent will combine with the other roles' and synthesise
+into one comment. It is only usable if it carries its payload, so **an instruction without its payload is
 not a finding** -- *"correct the count"* hands the judgement back; *"replace X with Y"* is the
 finding.
 
@@ -269,36 +296,40 @@ finding.
 its surrounding paragraph, and it is required for all of these but `clean` and `query` -- those two
 propose no text, so there is nothing for the task agent to apply.
 
-!! **THE TABLE BELOW IS GENERATED FROM `VERDICTS` IN `verdicts.py`** -- the keys from
-`claim_keys`, the prose from each row's `payload`. Edit the row, not this file; a test
-refuses a brief that has drifted from it. ! It had drifted: the hand-written table taught
-an older marker form under a JSON worked example, and ten of the eleven keys a reviewer
-must type appeared nowhere here as keys.
+!! **THE TABLE BELOW IS GENERATED, FROM TWO SOURCES** -- the `claim` keys from `INSTRUCTIONS`
+in `desk/mark.py` (`claim_all`, stated once per row), and the "what they carry" prose from
+`docs/the-mark.md`'s "What each instruction owes" table, written by a human. Edit the row or
+the spec, never this table; `uv run python scripts/render_brief.py --write` regenerates it, and
+a test refuses a brief whose table disagrees with a fresh render, or where the two sources name
+different instructions. ! It had drifted once already: the hand-written table taught an older
+marker form under a JSON worked example, and ten of the eleven keys a reviewer must type
+appeared nowhere here as keys -- which is what let `add`'s row go stale while the caption still
+claimed the table was generated, when no such script existed anywhere in the tree.
 
-<!-- BEGIN GENERATED: verdict table -- prototype/render_brief.py -->
+<!-- BEGIN GENERATED: instruction table -- scripts/render_brief.py -->
 
-| verdict | `claim` keys | what they carry |
+| instruction | `claim` keys | what they carry |
 | --- | --- | --- |
-| `clean` | none | nothing. Name your role and stop -- `clean` proposes no text, so there is nothing for the task agent to apply |
-| `query` | `shape`, `attempted`, `settles` | the SHAPE in the brief's own words, the check you ATTEMPTED, and what WOULD settle it. All three are checked as SHAPE and none as truth; the claim itself is checked by nothing, so the other three are all that stands behind the ruling |
-| `drop` | `drop` | the sentence, verbatim, as it stands in the paragraph. ! It is CHECKED against the census text, so a paraphrase is refused |
+| `clean` | none | nothing. Name your role and stop -- `clean` proposes no text, so there is nothing for the apply step to apply |
+| `query` | `shape`, `attempted`, `settles` | the SHAPE in these exact words, the check you ATTEMPTED, and what WOULD settle it. All three are checked as SHAPE and none as truth; the claim itself is checked by nothing, so the other three are all that stands behind the ruling |
+| `drop` | `drop` | the sentence, verbatim, as it stands in the paragraph. ! It is CHECKED against the page, so a paraphrase is refused |
 | `correct` | `false`, `true` | the false clause and the true one, and a `sources` entry carrying the line that settles it. ! The FALSE half is checked against the paragraph -- if it is not there, the finding is on the wrong one |
 | `patch` | `from`, `to` | the sentence as it stands and the rewrite. ! `from` is checked against the paragraph. A `patch` needs no source: the claim is already true, and only its wording is at issue |
-| `add` | `missing`, `anchor` | the text that is missing and the anchor NAMED IN BACKTICKS. ! The word "anchor" is not an anchor -- name the declaration. Which SIDE is the address's to say, never the payload's |
+| `add` | `missing`, `anchor` | the text that is missing and the anchor NAMED IN BACKTICKS. ! The word "anchor" is not an anchor -- name the declaration. Which SIDE is the address's to say, never the claim's |
 | `move` | `from`, `to` | where the prose sits now and where it belongs -- another line, another file, or out of the code entirely. ! These are PLACES, not text: the same two key names in `change` mean the resulting PARAGRAPHS |
 
 <!-- END GENERATED -->
 
 !! **`correct` keeps `false:`/`true:` where `patch` and `move` take `from:`/`to:`, and the pair
 is not interchangeable.** `false:`/`true:` ASSERTS the sentence is wrong, and that assertion is
-the whole difference between the two verdicts: a `patch` sentence is TRUE and merely reads
-badly. A neutral from/to on a `correct` would erase the distinction the synthesis order rests
-on, and it is refused.
+the whole difference between the
+two instructions: a `patch` sentence is TRUE and merely reads badly. A neutral from/to on a
+`correct` would erase the distinction the synthesis order rests on, and it is refused.
 
 ! **A `move`'s halves are PLACES, not text** -- from where it sits, to where it belongs. It is
 the one edit whose `CLAIM` names no sentence, because the `PARAGRAPH` is what identifies the prose.
 
-!! **A `move` changes TWO paragraphs, so its `CHANGE` carries BOTH -- and this is the only verdict
+!! **A `move` changes TWO paragraphs, so its `CHANGE` carries BOTH -- and this is the only instruction
 where `CHANGE` is not a single paragraph.** Write them labelled:
 
 ```text
@@ -364,7 +395,7 @@ unbounded as "robust"**, so the sentence refusing the claim fails the same test.
 
 #### `move` specific rules
 
-! **One relocation verdict, and the DESTINATION is what varies.** A declaration ten lines
+! **One relocation instruction, and the DESTINATION is what varies.** A declaration ten lines
 down, another file, or out of the code entirely -- all `move`, and which one goes in the
 payload. Say what is wrong in `REASON`. **Only a destination outside the code can be
 unavailable**, and your run context says whether it is; a relocation into tracked code is
@@ -400,18 +431,19 @@ constraint -- and none of those is your role's question unless your role file sa
 #### `query` specific rules
 
 ! **`query` is for a claim you could not settle -- not one you did not try to settle.** You are
-still required to open the code that would settle it; on every other verdict your `SOURCES` proves
+still required to open the code that would settle it; on every other instruction your `SOURCES` proves
 you did. `query` is what you emit when you did and it was still not enough.
 
-!! **Three shapes reach it, and your `CLAIM` must NAME which one -- in these exact words.**
-The three are findings rather than admissions, and they route differently: the first says which
-scope owns the paragraph, the other two are work that reaches the author. Nothing downstream can
-tell them apart if you do not say which:
+!! **Three shapes reach it, and your `CLAIM` must NAME which one -- in these exact words.** They
+are keyed on WHO RESOLVES IT, not on where the missing evidence lives. The three are findings
+rather than admissions, and they route differently: the first says which scope owns the
+paragraph, the other two are work that reaches the author. Nothing downstream can tell them apart
+if you do not say which:
 
-- **outside my role** -- what settles it belongs to another scope.
-- **outside the checkout** -- generated, gitignored, remote, or on one machine. No reviewer in a
-  fresh checkout can settle it.
-- **outside the code** -- settling it needs someone who knows the system or how it is operated.
+- **outside-my-role** -- deferred to another agent's problem.
+- **unable-to-determine** -- *"don't know why but maybe another agent figured it out."*
+- **human-review-necessary** -- *"genuinely contradictory statements and/or code and only system
+  level intent might disambiguate it."*
 
 ! **A claim you could not settle and marked `clean` is worse than the same claim marked
 `query`.** `clean` certifies; `query` asks.
@@ -419,10 +451,10 @@ tell them apart if you do not say which:
 ! **A `query` requires `SOURCES`, by construction** -- this is where you
 looked to try to find the answer. These are the statements in the code that make it
 ambiguous or the location not yours to determine. **All three shapes carry them**, including
-`outside my role`: the paragraph is real and in the checkout on every one of them, so there is
+`outside-my-role`: the paragraph is real and in the checkout on every one of them, so there is
 always a line to quote.
 
-!! **`outside my role` is a FINDING, so you have to show it is not yours.** It is the shape a
+!! **`outside-my-role` is a FINDING, so you have to show it is not yours.** It is the shape a
 reviewer reaches for when it has nothing to say, and it is the one that costs the most when
 it is wrong -- the paragraph leaves your report certified by nobody. So quote the line that fixes
 the paragraph's SUBJECT, and say in `REASON` what about that subject your remit does not reach,
@@ -434,13 +466,13 @@ and my remit is what the module as a whole announces"* is a finding.
 
 Resolving a path or a symbol is quick and *feels* like verification. Resolving a claim **is**
 the verification. A resolved citation is not a verified one -- open the target and read it, or
-the verdict is `query`.
+the instruction is `query`.
 
 ! **Cite by SYMBOL or PATH in the text you write -- never by line number.** A symbol survives a
 refactor; a line number rots with no visible symptom. Measured: three rotted line-number
 citations in one pass, one of which had drifted onto a blank line.
 
-! **An unparseable citation is a finding even when it resolves**, and its verdict is `correct`,
+! **An unparseable citation is a finding even when it resolves**, and its instruction is `correct`,
 never `drop`. A brace expansion, a bare filename, a wrong-case prefix: rewrite it into the
 checkable form. Unverifiable and verified-correct look identical, and the unverifiable form is
 the one that persists -- a wrong citation gets fixed next run, an illegible one accumulates and
@@ -449,8 +481,8 @@ enforcing test was DELETED on the strength of a false dangling report.
 
 ## The subject is the prose, not the program
 
-Every verdict is a verdict on a comment. Code problems get **one line each** in a separate
-`CODE CONCERNS` section at the end, with no verdict. The findings this line exists for *look*
+Every instruction is an instruction on a comment. Code problems get **one line each** in a separate
+`CODE CONCERNS` section at the end, with no instruction. The findings this line exists for *look*
 like code findings and are not:
 
 | COMMENT finding                                     | CODE finding                          |
@@ -468,10 +500,10 @@ sites. Out of scope is ruling on what the code **should be**.
 
 ! **Ruling on the code spends this review on what the code's own tests settle**, and four
 agreeing reviewers once reported a file "cannot compile" over valid syntax. A code problem has
-a place: `CODE CONCERNS`, one line, no verdict.
+a place: `CODE CONCERNS`, one line, no instruction.
 
 ### One paragraph, two placements -- report yours
 
 REMITS OVERLAP BY DESIGN: the roles read the same code bottom-up and top-down, so two roles
 can reach the same or different decisions per sentence. Report what your role sees and say in
-`REASON` what is wrong. Which verdict wins is the task agent's ruling later.
+`REASON` what is wrong. Which instruction wins is the task agent's ruling later.

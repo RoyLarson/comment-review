@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks done
+Progress: 0 of 6 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-25 (backend, 2026-08-25, while giving Page a sha during the write-
@@ -30,16 +30,16 @@ render_page.py imports flat module names the 2026-08-24 reorg removed.
 
 ## Tasks
 
-- [ ] Reproduce: uv run python scripts/render_page.py <any path> and record the
-      failing import
-- [ ] Point its imports at comment_review.reading.lexer,
+- [ ] T1 | Reproduce: uv run python scripts/render_page.py <any path> and record
+      the failing import
+- [ ] T2 | Point its imports at comment_review.reading.lexer,
       comment_review.binder.page and comment_review.reading.addresser
-- [ ] Verify the three --show modes named in CLAUDE.md still render: margin,
-      prose, rows
-- [ ] A gate that runs every script under scripts/ far enough to prove it imports.
-      Verify: breaking one import turns it red
-- [ ] rows() checks the census subprocess return code and reports the measurement
-      as MISSING rather than printing 0 bytes. Verify: pointing it at a bad path
-      prints a failure, not a number
-- [ ] Point rows() at how the census is invoked now. Verify: all three renderings
-      report non-zero bytes over a real file
+- [ ] T3 | Verify the three --show modes named in CLAUDE.md still render:
+      margin, prose, rows
+- [ ] T4 | A gate that runs every script under scripts/ far enough to prove it
+      imports. Verify: breaking one import turns it red
+- [ ] T5 | rows() checks the census subprocess return code and reports the
+      measurement as MISSING rather than printing 0 bytes. Verify: pointing it
+      at a bad path prints a failure, not a number
+- [ ] T6 | Point rows() at how the census is invoked now. Verify: all three
+      renderings report non-zero bytes over a real file

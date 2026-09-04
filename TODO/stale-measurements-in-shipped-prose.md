@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 1 of 6 tasks done
-Owner:    backend
-Requires-Roy: false
+Progress: 1 of 6 tasks closed
+Owner:    testing
+Requires-Roy: true
 Raised:   2026-08-20 (the branch review of 2026-08-20)
 DOGFOOD:  2026-08-23 -- Same cluster as docstrings-that-contradict-themselves. A stale
           COUNT in shipped prose is block-context's state case by name -- a claim about
@@ -67,15 +67,21 @@ loses the reason the sentence exists.
 
 ## Tasks
 
-- [x] T1 -- FINISHED. The language count is corrected everywhere it shipped --
-      `vocabulary.toml:34`, `desk.py:384`, the tests. Kept in the Objective.
-- [ ] T2 -- Freeze the inventory above as the SCORING KEY before the run. Verify: each row
-      names its file:line, the claim verbatim, and a command runnable from the repo root.
-- [ ] T3 -- Once v0.2.4 ships, run the shipped review over the five shipped files holding
-      the inventory's sites. Verify: a run dir holds a record per role, naming those five.
-- [ ] T4 -- Score that run against T2's key -- sites flagged, sites missed, and flags not
-      in the key. Verify: the three numbers are written in this file, with the run named.
-- [ ] T5 -- Apply what the run proposes and the human approves, through the normal stages.
-      Verify: each key site matches its command's output, and `uv run pytest -q` is green.
-- [ ] T6 -- Decide whether the dogfood run covers `tests/`, holding two of the ten sites.
-      Verify: `tests/` is under review, or `grep -rn census.address tests/` is empty.
+- [x] T1 | FINISHED | unknown | T1 -- FINISHED. The language count is corrected
+      everywhere it shipped -- `vocabulary.toml:34`, `desk.py:384`, the tests.
+      Kept in the Objective.
+- [ ] T2 | T2 -- Freeze the inventory above as the SCORING KEY before the run.
+      Verify: each row names its file:line, the claim verbatim, and a command
+      runnable from the repo root.
+- [ ] T3 | T3 -- Once v0.2.4 ships, run the shipped review over the five shipped
+      files holding the inventory's sites. Verify: a run dir holds a record per
+      role, naming those five.
+- [ ] T4 | T4 -- Score that run against T2's key -- sites flagged, sites missed,
+      and flags not in the key. Verify: the three numbers are written in this
+      file, with the run named.
+- [ ] T5 | T5 -- Apply what the run proposes and the human approves, through the
+      normal stages. Verify: each key site matches its command's output, and `uv
+      run pytest -q` is green.
+- [?] T6 | T6 -- Decide whether the dogfood run covers `tests/`, holding two of
+      the ten sites. Verify: `tests/` is under review, or `grep -rn
+      census.address tests/` is empty.

@@ -50,6 +50,9 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 | `folio` | -> **cue**. A folio numbers a LEAF or a PAGE; the `@` half of an address names a position WITHIN a page, so `b3` was never any folio. ! The error shipped as a DEFINITION -- *"a leaf's number in publishing, which is what it is here"* -- and reviewers were given it |
 | `foliator.py`, `foliate()`, `Foliation` | -> **`addresser.py`**, **`cue()`**, **`Cues`**. The module supplies both halves of an address and the whole take-apart; `Cues` holds cues, not addresses. See `docs/decision-log.md` Addressing: #6 |
 | `leaf`, `leaves` (of a page or a place) | **deleted** in that sense. One sheet carries TWO pages, so it was neither the page nor the cue, and a file has no verso. ! Two shipped definitions disagreed -- one said paragraphs run DOWN a leaf, one said a leaf IS a place. ! The IMPORT-GRAPH sense is a different word and is live -- see the polysemy rule below |
+| `verdict` | -> **instruction**. Judicial on an editorial system, the same register error `jurisdiction` made before it became `remit`; and it named the same thing twice -- the object a role returns is a **mark**, its type is an **instruction**. See `decision-log.md Vocabulary: #17` |
+| `mark` (the COMMAND, `flows/marks.py`, `Command.MARK`) | -> **`distribute`**, in `6187f71`. The command hands each role an EMPTY `edit_copy` and takes the filled one back; it produces no mark and rules on nothing. One stem named both a role's RULING and the machinery that circulates the forms, so `mark --seed` read as *make a mark* when it means *give out the blanks*. ! The NOUN IS LIVE and is defined in the shipped vocabulary -- this retires the command sense only, which is the shape `owner` (the census field) and `marks` (the census's) took before it |
+| `re-review` (stages 5b and 6b, `references/re-review.md`) | -> **revise**. The printer's word, and the code had already adopted it -- `flows/revise.pull`, `read_from.revise` -- for the second proof pulled after the marked corrections are set. 5b and 6b set a galley of the edited text and send it back to be read: that IS a revise. Roy, 2026-09-04; `decision-log.md Vocabulary: #32`. ! The rename lands as one objective, gate entry last -- `TODO/re-review-is-retired-for-revise.md` |
 
 ## Held in reserve -- publishing's word for something we already have
 
@@ -61,7 +64,6 @@ name. **None is adopted, and none is a defect today.**
 | publishing's word | what it names there | ours, and why it stands |
 | --- | --- | --- |
 | **cast off**, **copyfitting** | estimating how much space copy will take, and cutting it to fit the measure | **compact** (stage 6), a computing word. The stage does ONE job and nothing strains, so the swap buys register and no structure |
-| **revise** | the second proof, pulled after the marked corrections have been set | a **re-review round** (`references/re-review.md`). One word, no missing part |
 | **dead copy** | the original manuscript kept beside the proof, so the setting can be checked against it | **unnamed.** It is `page.text`, which `compositor.identity` compares its output against -- we have the object and use it; only the name is absent |
 
 !! **THE TEST FOR TAKING ONE IS A CATEGORY DOING TWO JOBS -- NOT REGISTER.** That is what
@@ -84,7 +86,7 @@ system has a different problem with each.
 | publishing's word | what it names there | ours |
 | --- | --- | --- |
 | **collating** | transferring every hand's marks onto ONE proof. Where two marks conflict, both go down and the conflict is left visible. It decides nothing | `collator.py`, ruled 2026-08-23 (`decision-log.md Vocabulary: #11`) and still to be built. It rules on nothing by design |
-| **master proof** | the single copy every mark has been collated onto, and the one the house then works from | **unnamed.** It is what `verdicts.py` prints |
+| **master proof** | the single copy every mark has been collated onto, and the one the house then works from | **`master_proof`**, ruled 2026-08-29 (`decision-log.md Vocabulary: #28`). It is what `verdicts.py` printed before that module left for `prototype/` |
 | **editor** | who reads the master proof and decides what stands | **the COPY CHIEF**, ruled 2026-08-23. Stage 5 APPLY, performed by the task agent today and getting an agent file of its own |
 
 ! **THE THREE ARE NOT ONE JOB, WHICH IS WHY ONE WORD WOULD NOT FIT.** Collating is mechanical and
@@ -97,6 +99,14 @@ names coverage gaps, and hands every conflict up -- so whatever it is called, it
   it does is find every file in scope and put a page for each in the binder. ! So `collate` is
   available for its trade meaning, transferring every hand's marks onto one proof.
 
+  !! **AND IT HAS A SECOND TRADE MEANING THIS SYSTEM DOES NOT USE.** In bibliography, **collation**
+  is comparing two states of one text to find where they differ -- the Hinman collator. That is
+  exactly what `taken_in` does (original against the revise a role is holding), so the obvious word
+  is the wrong one: `collator.py` keeps the copy-desk sense above, and the comparison sense is
+  declared here rather than left to be rediscovered. **The undeclared meaning is the defect**, not
+  the ambiguity, which is a fact about English older than this repo.
+  `decision-log.md Vocabulary: #24`.
+
   !! **A BINDER HERE IS THE OBJECT, NOT THE TRADE.** Roy, 2026-08-24: *"The gatherer/census hands
   over the binder as in a 3-ring binder full of stuff not binder as the person who bounds
   books."* ! **He has used it that way throughout** -- *"a binder with sticky notes"*, and the
@@ -105,6 +115,20 @@ names coverage gaps, and hands every conflict up -- so whatever it is called, it
   sheets into sequence"*, which is the BOOKBINDER's word -- two senses one clause apart, in the
   file that exists to keep senses apart. The justification is cut rather than repaired: what
   stage 2 does is put a page for each file in the binder, and that reads the same either way.
+- **`distribute` is the BROADCAST half, and it pairs with `collate`.** Ruled 2026-08-30. Roy:
+  *"the broadcasting part seems like distribute, the bringin back together seems like
+  collate."* One round is two acts: `flows/distribute.py` hands each role its own `edit_copy`
+  of the binder, `flows/collate.py` folds the filled copies back into one. It was
+  `flows/marks.py`, named for the artifact it carried rather than the act it performs -- see
+  the retired table, which keeps `mark` the NOUN live and retires only the command sense.
+
+  !! **AND IT IS NOT TAKEN FROM PUBLISHING, WHICH IS THE POINT OF SAYING SO.** In letterpress,
+  **distribution** is returning type to the case after a forme is printed -- breaking the
+  setting DOWN, close to the opposite of handing copies out. So this is the plain English
+  sense, chosen because it pairs with `collate`'s trade sense, and it is recorded here rather
+  than in the table above precisely so nobody later reads a compositor's meaning into it.
+  ! That table is *publishing's word for something we already have*; a row there would assert
+  a provenance this term does not have.
 - **`editorial role` is one of the four reviewers.** Calling the joiner `editor` puts two
   different jobs one syllable apart. In the trade the four are the hands that MARK -- a copy
   editor, a proofreader -- and only one hand rules.
@@ -126,6 +150,39 @@ refuses a term no role uses, and the rule two sections down applies to a term ar
 to one leaving.
 
 ! Tracked in [`TODO/verdicts-is-the-join.md`](../TODO/verdicts-is-the-join.md).
+
+## The middle has four containers -- `master_proof`, `edit_copy`, `sheet`, `mark`
+
+**Ruled 2026-08-29** (`decision-log.md Vocabulary: #28`), naming the level the three-container
+table below (`binder`/`docket`, `page`/`schedule`, row/`alteration`) has no equivalent for:
+
+    master_proof
+      +-- edit_copy        one per role; one per SHARD under fan-out
+            +-- sheet      one per page
+                  +-- mark one per place
+
+| term | what it is |
+| --- | --- |
+| **`master_proof`** | holds every `edit_copy` of one stage. Never holds a `sheet` directly |
+| **`edit_copy`** | one role's own copy of the pages it was handed -- `{role, read_from, sheets}` |
+| **`sheet`** | one page inside an `edit_copy` -- `{path, sha, marks}` |
+| **`mark`** | one role's ruling on one place -- a live term, defined in `vocabulary.toml` |
+
+! **`binder` AND `docket` HAVE NO ROLES LEVEL.** Roy: *"They are separate containers, and
+calling each of them as having a `master_proof` would be incorrect."* One binder goes out to
+every role; in between there are N marked copies, one per role; one docket comes back.
+
+!! **`sheet` CHANGES SENSE, AND THE OLD ONE WAS IN `flows/marks.py`'s OWN PROSE.** It named the
+PER-ROLE container there -- *"Hand a role a sheet to fill"* -- while the same docstring also used
+it correctly for the page-unit one sentence later: *"one sheet per page."* It now names only the
+page-unit; the container is `edit_copy`.
+
+! **`edit_copy` BECAUSE THE REGISTER IS THE COPY DESK, NOT THE BINDERY.** Roy: *"it isn't
+overloaded with the other copy's it is adjacent and explicit."* This file already records that
+the binder is *"a 3-ring binder full of stuff not binder as the person who bounds books"* (see
+`binder`, below), and cut a justification reaching for the bookbinder's `gathering` -- so
+`gathering` and `sheaf` were already out of register. `edit_copy` sits beside `copy` and `copy
+desk`, the trade's own words, and `copy chief`, ruled above.
 
 ## `binder` -- the object, and the one sense it carries
 
@@ -149,7 +206,7 @@ handed it.** That is what the field cut of 2026-08-24 was answering.
 ! **NOTHING SHIPPED CARRIES THE WORD.** It appears in package docstrings and in this file, and in
 no agent's prose -- so the sense was declared before an agent could learn the wrong one.
 
-## The three containers, on both sides -- `binder`/`docket`, `page`/`schedule`, row/`alteration`
+## The three containers, on both sides -- `binder`/`docket`, `page`/`schedule`, `paragraph`/`alteration`
 
 **Ruled 2026-08-26.** Roy, naming the write side against the read side already built: *"like the
 binder we have three levels of containers -- paragraph, page, binder. We have to be able to unwind
@@ -157,9 +214,38 @@ the alterations pretty close to the same way."*
 
 | level | READ side | WRITE side |
 | --- | --- | --- |
-| one place | a **row** -- the cue and what is there | an **alteration** -- the cue and what it becomes |
+| one place | a **paragraph** -- the cue and what is there | an **alteration** -- the cue and what it becomes |
 | one file | a **page** | a **schedule** |
 | the whole | the **binder** | the **docket** |
+
+!! **THIS TABLE SAID `row` IN THE READ SIDE'S TOP SLOT UNTIL 2026-08-31, ONE LINE BELOW THE
+RULING THAT SAYS `paragraph`.** `decision-log.md Process: #68`. The quote above is unchanged
+and always said paragraph; the table substituted the WIRE KEY -- a binder's JSON nests
+`pages -> rows` -- and the header carried it too.
+
+! **THE DOCUMENT WAS ALREADY FLAGGING IT.** `row` was the only term in that header not
+backticked, and the only one of the six with no entry in the glossary below: it had never been
+ruled, so nothing defined it.
+
+!! **AND THE SENTENCE THAT STOOD HERE WAS NEVER AUTHORISED.** It read *"`row` IS NOT RETIRED,
+because it was never a term -- it is the name of a key in a JSON file, and it stays that."*
+Nobody ruled that, and it sat one paragraph above the record of Roy catching the same invention.
+Roy, 2026-09-02: *"That was strictly not authorized and was supposed to be retired at the same
+time as the paragraph name. There was no authorization to keep anything as a row."*
+
+!! **`row` IS RETIRED, EVERYWHERE -- AS A TYPE, AS A JSON KEY, AND IN PROSE.**
+`decision-log.md Vocabulary: #31`. The word for one place is **paragraph**.
+
+! **NOTHING COULD HAVE CAUGHT IT.** `scripts/check_vocabulary.py`'s `RETIRED` dict is
+hand-maintained and has no `row` entry, so no shipped file was ever tested for the word -- and
+the struck sentence supplied a reason for the gap, which is what made the absence read as a
+decision. The entry lands with the rename rather than before it, or the gate goes red across 24
+files with no rename behind it: `TODO/row-was-never-retired.md`.
+
+!! **AND IT HARDENED INTO A TYPE BEFORE IT WAS CAUGHT.** `BinderRow` and `BinderPage` were
+added 2026-08-31 (`1d9314d`) and deleted the same day, after Roy: *"So you invented a term
+'row' for something that is a Paragraph."* A `Binder` holds `Page`s or `RedactedPage`s, and
+both hold `Paragraph`s.
 
 | term | what it is |
 | --- | --- |
@@ -274,15 +360,25 @@ entry cited a real quotation, carried a real measurement, and was cross-referenc
 plan. He said *"I don't remember making this rule."* **The decision log is the one file where a
 false attribution is most expensive, and it is the file with no reader but him.**
 
-## What becomes of a mark -- `taken in`, and `stet`
+## What becomes of a mark -- `stet`, `taken in`, and `recast`
 
-**Two words, and they answer different questions.** Ruled 2026-08-24, and both are ADOPTED rather
-than held in reserve.
+**Three words, the copy chief's, and they split by whether the roles ever agreed.** `stet` and
+`taken in` were ruled 2026-08-24 and `recast` on 2026-08-30 (`Vocabulary: #29`); what each names
+was re-ruled 2026-09-04 (`Process: #87`), and the 2026-08-24 glosses below are kept as
+SUPERSEDED. All three are ADOPTED rather than held in reserve. They are the answers of one
+chief-only object, `Determined`, one per resolved place on the master proof -- not `Mark`
+instructions, since no role may give any of them.
 
 | the word | what it names | who says it |
 | --- | --- | --- |
-| **`taken in`** | the mark was carried into the text. *Taking in corrections* is the compositor's own phrase for making the marked changes on a proof | the piece that composes, mechanically, about every mark |
-| **`stet`** | *let this stand.* Emitted where two roles could not agree, and it points at what stands -- the mark it chose, or neither | the **copy chief**, and no one else |
+| **`stet`** | *let this stand.* The roles agreed, on a turn or at once, and the chief lets what they agreed on stand. The program sets this one on the chief's behalf | the **copy chief**, and no one else |
+| **`taken in`** | they never agreed; at the cap the chief takes one side's text into the page. The original author is a side, so the original is a `taken in` too. *Taking in corrections* is the compositor's own phrase for making the marked changes on a proof | the **copy chief** at the cap; the compositor, mechanically, about every mark that reaches the text |
+| **`recast`** | they never agreed; the chief writes its own prose over every side. The trade's word for rewriting a passage in a different form | the **copy chief**, and no one else |
+
+!! **SUPERSEDED 2026-09-04, `Process: #87`, and kept so the change is legible.** The 2026-08-24
+row read `stet` as *"emitted where two roles could not agree, and it points at what stands --
+the mark it chose, or neither"*, and `Vocabulary: #29` read it as *the original stands; the
+correction is declined*. Both are now the cases `taken in` holds; `stet` is the agreed case.
 
 !! **A ROLE CANNOT EMIT A `stet`.** It presupposes two roles that disagreed and a copy chief that
 ruled, so no single hand is ever in a position to file one. Roy, 2026-08-24: *"it is the
@@ -309,6 +405,30 @@ the way `set` did.
 ! Tracked in [`TODO/nothing-makes-the-fair-copy.md`](../TODO/nothing-makes-the-fair-copy.md), and
 `stet`'s own build is [`TODO/no-mark-for-let-it-stand.md`](../TODO/no-mark-for-let-it-stand.md) --
 which is written on the reading this ruling corrects.
+
+## `turn` -- one cycle inside a stage's collate
+
+**Three cycles nest, and each has its own word.** Ruled 2026-09-04, `decision-log.md
+Vocabulary: #32` and `#33`; `turn` is ADOPTED rather than held in reserve.
+
+| the word | what it names | where it runs |
+| --- | --- | --- |
+| **`revise`** | the corrected proof, pulled after the marked corrections are set -- and the reading of it. Stages 5b and 6b are revises | at a stage boundary; `flows/revise.pull`, `read_from.revise` |
+| **`round`** | one distribute-then-collate: each role is handed its `edit_copy`, the filled copies are folded back | a stage's own cycle |
+| **`turn`** | one batch-rule-recollate: the disagreements go out to the roles, come back as DiffMarks, and what resolved joins the chief's copy | INSIDE one collate, before any pull. A round may hold several turns |
+
+!! **THE COUNTER IS `turn`, AND THE CAP IS NOT IN THE CODE.** Turn one, turn two; how many are
+allowed is what the task agent is told -- `decision-log.md Process: #78`. `read_from.revise`
+numbers pulled trees and is a different count; the two never share a field.
+
+! **Checked against the register before it was proposed.** Editing workflows say it -- *the
+author turn*. `query round` was the trade's exact phrase for the copy desk's back-and-forth and
+collided twice; `pass` is loose across this repo; `hearing` is the register `jurisdiction` ->
+`remit` refused. Roy, 2026-09-04: *"turn seems to be the best considering the alternatives."*
+
+! **Not yet in `vocabulary.toml`.** That file holds what a role is GIVEN, and no role is handed
+a turn until the DiffMark brief exists -- `a-revise-answer-has-no-artifact` T19. It goes in
+with that, not before.
 
 ## ownership -- settled, and deliberately not emitted
 
@@ -361,5 +481,5 @@ check refuses a term no role uses. Adding it to tidy the numbers is writing to t
     ! **AND A THIRD USE IS ALREADY RETIRED BY `stet`**: `re-review.md:139` writes *"a paragraph
     stage 5 settled"*, which is the copy chief's ruling and now has its own word.
 
-- **`clean` is reserved.** It is one of the seven verdicts and is never a loose adjective for
+- **`clean` is reserved.** It is one of the seven instructions and is never a loose adjective for
   code, prose, a grep result or a run.

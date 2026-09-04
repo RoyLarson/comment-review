@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 3 tasks done
+Progress: 3 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-20 (the /code-review high of 2026-08-20)
@@ -49,18 +49,21 @@ the checkable work for each.
 
 ## Tasks
 
-- [x] **T1 -- DONE. Every line of a code-less file is owned.** Filed against `addresser.py:426` on
-      `"""Doc."""\n\n` and on a whitespace-only file. VERIFIED 2026-08-23 by running
-      `page.page_for` over three code-less shapes: 0 unowned lines in each, the blanks carried by
+- [x] T1 | FINISHED | unknown | **T1 -- DONE. Every line of a code-less file is
+      owned.** Filed against `addresser.py:426` on `"""Doc."""\n\n` and on a
+      whitespace-only file. VERIFIED 2026-08-23 by running `page.page_for` over
+      three code-less shapes: 0 unowned lines in each, the blanks carried by
       `leading` -- table in the objective.
 
-- [x] **T2 -- DONE. `splitlines` is out of the reading path.** Filed against `lexer.py:1160`,
-      where it split on form feed and yielded empty, uncitable addresses. `constants.text_lines`
-      is now the one split (`constants.py:31`), on CRLF/CR/LF only. VERIFIED 2026-08-23:
-      `grep -n splitlines` over `scripts/` returns no hit in `lexer.py` and none in any file that
-      reads source.
+- [x] T2 | FINISHED | unknown | **T2 -- DONE. `splitlines` is out of the reading
+      path.** Filed against `lexer.py:1160`, where it split on form feed and
+      yielded empty, uncitable addresses. `constants.text_lines` is now the one
+      split (`constants.py:31`), on CRLF/CR/LF only. VERIFIED 2026-08-23: `grep
+      -n splitlines` over `scripts/` returns no hit in `lexer.py` and none in
+      any file that reads source.
 
-- [x] **T3 -- NOT A TASK, and the box said so: *"Not a defect alone."*** `census.py:385` catching
-      bare `Exception` is a diagnosis of why other defects stay quiet, with no state in which
-      anyone ticks it. Moved to the objective above; the checkable work lives in
+- [x] T3 | FINISHED | unknown | **T3 -- NOT A TASK, and the box said so: *"Not a
+      defect alone."*** `census.py:385` catching bare `Exception` is a diagnosis
+      of why other defects stay quiet, with no state in which anyone ticks it.
+      Moved to the objective above; the checkable work lives in
       `census-degrades-silently`.

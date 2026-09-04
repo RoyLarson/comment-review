@@ -1,0 +1,29 @@
+# Taplo -- the formatter behind the Even Better TOML extension AND the `taplo`
+# CLI. Both read this file, so the format stops depending on whose editor saved
+# last.
+#
+# !! AN ALLOW-LIST, NOT A DENY-LIST. Measured 2026-08-30: a bare
+# `taplo fmt --check` collected 58 files and reported 57 unformatted --
+# another session's worktree under `.claude/worktrees/`, ~40 vendored corpora,
+# the built `plugins/` tree, `prototype/`, and the topology fixtures. `taplo
+# fmt` would have rewritten all of them. ! Same shape as the 2026-08-17 `ruff
+# format .` that rewrote another session's artifacts. A deny-list would default
+# the NEXT toml file added here to being rewritten; this defaults to leaving it
+# alone.
+include = ["pyproject.toml"]
+
+# ! Reproduces what the editor already writes -- three of these are NOT taplo
+# defaults, so without them the CLI and the editor disagree on every save.
+# `column_width` matches `[tool.ruff] line-length`; taplo defaults to 80.
+[formatting]
+    align_entries       = true
+    array_auto_collapse = true
+    column_width        = 88
+    # ! The WORKING TREE is CRLF here (git checks out with `autocrlf`) and taplo
+    # writes LF unless told. LOAD-BEARING, isolated 2026-08-30: this config with
+    # the line removed and nothing else changed exits 1 on `taplo fmt --check`.
+    crlf                = true
+    indent_entries      = true
+    indent_string       = "    "
+    indent_tables       = true
+    reorder_keys        = true

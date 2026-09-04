@@ -11,7 +11,7 @@ for themselves what a census file is --
     addresser   loaded.get("paragraphs", []) if isinstance(loaded, dict) else loaded
     galley      census["paragraphs"] if isinstance(census, dict) else census
     record      loaded["paragraphs"] if isinstance(loaded, dict) else loaded
-    verdicts    json.loads(census_text)          -- no envelope handling at all
+    collator    json.loads(census_text)          -- no envelope handling at all
 
 Three spellings of one guess and one absence. They already disagreed: the first
 tolerates a missing key, the next two raise `KeyError`, and the last would
@@ -25,73 +25,62 @@ and one module both sides import is the fix rather than the compromise. Roy:
 *"we should have a module that does the serialization/deserialization work not
 just let each parse its own."*
 
-!! IT IS NOT A METHOD ON `Page`, AND THAT IS DELIBERATE. `vars(b)` WAS the wire
-format once -- the internals as protocol, unable to diverge without breaking
-silently -- and a `.to_dict()` puts that decision back inside the object in a
-politer form. What an agent sees is an EDITORIAL ruling (`decision-log.md
-Addressing: #12`), not a fact about what a `Paragraph` is. ! And one page serves
-two audiences that disagree: an agent gets SIX fields, no fences and no empty
-places, while the compositor needs every one of them or the file cannot be set
-back.
+!!! **IT IS A METHOD ON `Page` SINCE 2026-08-31, AND THIS SAID THE OPPOSITE.**
+Roy: *"the path and the sha can be put in the Page container and the
+serialization of the page container can deal with it."* `decision-log.md
+Process: #68`. What stands here is the ENVELOPE -- the version, the header, the
+list of pages -- and each page writes itself.
+
+!! **THE CONCERN THAT SENTENCE WAS DEFENDING IS REAL AND IS MET A DIFFERENT
+WAY.** It read *"`vars(b)` WAS the wire format once -- the internals as
+protocol, unable to diverge without breaking silently -- and a `.to_dict()`
+puts that decision back inside the object in a politer form."* ! The defect was
+never that the object serialized itself; it was that `vars()` made EVERY field
+the format. `page._place` names five, and a field added to `Paragraph`
+tomorrow reaches no agent. What an agent sees stays an EDITORIAL ruling
+(`Addressing: #12`), not a fact about what a `Paragraph` is.
+
+! **AND ONE PAGE SERVES TWO AUDIENCES THAT DISAGREE**, which is what the two
+page types are: an agent gets five fields, no fences and no empty places, while
+the compositor needs every one of them or the file cannot be set back -- so the
+compositor reads the file from disk and never a binder.
 """
 
-from comment_review.binder.page import Page
-from comment_review.machine.json_object import object_of
-from comment_review.reading.addresser import address_for
-from comment_review.reading.lexer import Paragraph
-from comment_review.reading.series import Kind
+from dataclasses import dataclass
+
+from comment_review.binder.page import Page, RedactedPage
+from comment_review.reading.paragraph import Paragraph
 
 # ! The shape's own version, so a reader can say WHICH format it refused rather
 # than only that it could not read one.
-VERSION = "1"
+#
+# !! BUMPED TO "2" WHEN `read_from` BECAME REQUIRED, 2026-08-28.
+#
+# ! AND NOTHING REFUSES ON IT. This comment claimed for one commit that an older
+# artifact was "refused by name (a version mismatch)"; nothing reads `version`
+# to decide anything, so no such refusal exists and the sentence asserted an
+# enforcement the file does not carry. What the field does is LABEL an artifact,
+# so a reader holding one can say which format it is.
+#
+# !! REFUSING A MISSING `read_from` IS `Binder.deserialize`'s SINCE 2026-08-31,
+# and this said it was `seed`'s. The rule it cited -- `read`'s own *"WHAT IS
+# CHECKED IS WHAT IS CONSUMED and no more"* -- went with `read`: a CONTAINER
+# promises its fields to everything downstream, so it checks what it DECLARES
+# rather than what any one caller happens to consume. `decision-log.md Process:
+# #67`. ! `seed` no longer raises; it cannot be handed a binder without the
+# field.
+VERSION = "2"
 
 
-def page_row(paragraph: Paragraph) -> dict:
-    """One paragraph as an agent receives it.
-
-    !! FIVE FIELDS, RULED ONE BY ONE -- `decision-log.md Addressing: #12`. The
-    row carried nineteen until 2026-08-24; eleven went, and `path` moved to the
-    page that holds the row rather than being repeated on every one of them.
-
-    ! THE PROSE LEAVES AS ONE STRING. Roy: *"LLMs and the token parsers read
-    this as a complete and coherent statement. They do not read this as the same
-    thing: ['LLMs and the token', 'parsers read this as a', ...]."* The four
-    reviewers ARE token parsers and prose is what they judge, so fragments make
-    each role reassemble the sentence before it can ask whether it is true.
-    """
-    return {
-        "cue": paragraph.address.split("@")[-1],
-        # !! `kind` IS GONE AGAIN, AND THE ORIGINAL RULING WAS RIGHT. It read
-        # *"they are stating something that the cue letter states"*; I put it
-        # back on 2026-08-25 arguing the letter gives the SERIES while the kind
-        # gives which half of the pair. Both are true, and the second stopped
-        # mattering the moment ABSENT PLACES STOPPED BEING SENT: every row a
-        # reviewer receives holds prose, so its kind is its series' `present`
-        # and the letter states it after all.
-        #
-        # ! MEASURED before the cut, over 14,139 rows: `kind` equalled
-        # `derive(cue, raw_text)` in 14,136 of them. The three exceptions are
-        # `go`, `ruby` and `lua`, where the kind DISAGREES with the cue -- a
-        # defect, filed, and not information.
-        "anchor": paragraph.anchor,
-        # !! `anchor_num` LEFT ON 2026-08-25, and it is the one cut made on the
-        # expectation that it MIGHT come back. Roy: *"lets drop it and add it
-        # back if it actually becomes necessary. That is safe now."* It was kept
-        # in 2026-08-21 because the galley and compositor were thought to need
-        # an order the cues could not be trusted to carry -- and the chain ruled
-        # since (`Process: #14`) has the write path RELOAD the page from disk,
-        # so it takes the anchor order from the page and never from a row.
-        #
-        # ! MEASURED before removing it: NOTHING read it from a row. `page`
-        # stamps it and `addresser` computes it, both on the page side.
-        "original_start": paragraph.original_start,
-        "original_end": paragraph.original_end,
-        "raw_text": "\n".join(paragraph.raw_lines),
-    }
-
-
-def bind(pages: list[Page], absent: bool = False) -> dict:
+def bind(pages: list[Page], read_from: dict, absent: bool = False) -> "Binder":
     """Every page in scope, as the binder that is handed over.
+
+    !! `read_from` IS REQUIRED, NOT DEFAULTED. A binder that cannot say which
+    root it was censused from is exactly the ambiguity a later stage needs
+    resolved: a revise re-binds from a tree copy, and a role holding that
+    binder cannot tell it apart from the original unless the binder says so.
+    A caller with no root to name has nothing it was censused FROM, so there
+    is no default that would not be a fabrication.
 
     ! THE SHA IS REPORTED, NOT TAKEN. It arrives on the page from
     `repo.read_source`; this module hashes nothing. Roy, 2026-08-25: *"It is
@@ -119,91 +108,209 @@ def bind(pages: list[Page], absent: bool = False) -> dict:
 
     Args:
         pages: the pages in scope.
+        read_from: `{"root": "<path>", "revise": <int>}` -- the root this
+            binder was censused from, and `0` for the original or the
+            revise's own number otherwise.
         absent: carry the empty places too. For the caller that specifically
             asks -- a reviewer surveying where prose COULD go rather than
             ruling on prose that is there.
+
+    Raises:
+        ValueError: `read_from` is not `{"root": str, "revise": int}`.
+
+    !! THE SHAPE IS CHECKED HERE AND ON THE WAY BACK IN, and only the arity was
+    checked until 2026-08-28. MEASURED: `read_from="oops"`, `None`, `[]` and
+    `{"root": 7}` each built a binder and each passed `ty`, because `dict` says
+    nothing about what is IN one. `seed` then copied the value verbatim onto the
+    `edit_copy` an editorial role fills.
+
+    ! AND IT IS COPIED, NOT ALIASED. The stored dict was the caller's own until
+    the same day, so a binder, every `edit_copy` seeded from it, and whatever the
+    caller kept were ONE object -- a test writing `binder["read_from"]["revise"]
+    = 1`, which is how a revise test is naturally written, would have changed
+    what every later test in the session saw, with no gate able to attribute it.
     """
-    return {
-        "version": VERSION,
-        "pages": [
-            {
-                "path": page.path,
-                "sha": page.sha,
-                "rows": [
-                    page_row(b)
-                    for b in page.paragraphs
-                    if b.address and (absent or not Kind.holds_no_prose(b.kind))
-                ],
-            }
-            for page in pages
-        ],
-    }
-
-
-def read(text: str) -> tuple[dict, str]:
-    """A binder read back, or the reason it could not be.
-
-    !! IT REFUSES RATHER THAN COPING. Every one of the four readers this
-    replaces guessed at the shape, and a guess that is wrong reads as an EMPTY
-    binder -- which downstream is indistinguishable from a run with nothing to
-    do. `verdicts.py` was measured certifying exactly that on 2026-08-20.
-
-    !! THE KEY WAS TESTED FOR PRESENCE AND NOT FOR SHAPE UNTIL 2026-08-25, so
-    it coped after all. MEASURED: `{"pages": "oops"}` read CLEAN, and the
-    `str(page.get(...))` two callers do over it then raised `AttributeError:
-    'str' object has no attribute 'get'` out of `commands/proof.py` as a
-    traceback -- past that command's own promise to print `CANNOT READ THE
-    BINDER: {why}`. Same for `{"pages": {"a": 1}}` and `{"pages": [1, 2]}`.
-    ! WHAT IS CHECKED IS WHAT IS CONSUMED and no more: `rows_of` walks `pages`
-    and then each page's `rows`, calling `.get` on both; `proof_setter.run`
-    walks `pages` alone, for `path` and `sha`. Nothing here reads a FIELD, so
-    nothing here rules on one.
-
-    Returns:
-        `(binder, "")` when it reads, or `({}, reason)` when it does not.
-    """
-    # ! THE PARSE AND THE OBJECT GUARD ARE `json_object.object_of`'s -- see
-    # there for why one preamble in two readers was the defect this module's own
-    # header describes. What stays here is what a BINDER is.
-    loaded, why = object_of(text, "binder")
+    why = _read_from_problem({"read_from": read_from})
     if why:
-        return {}, why
-    if "pages" not in loaded:
-        return {}, "carries no `pages` -- is this the output of `census --json`?"
-    pages = loaded["pages"]
-    if not isinstance(pages, list):
-        return {}, f"`pages` is a JSON {type(pages).__name__}, not a list of pages"
-    for n, page in enumerate(pages):
-        if not isinstance(page, dict):
-            return {}, f"page {n} is a JSON {type(page).__name__}, not a page"
-        rows = page.get("rows", [])
-        if not isinstance(rows, list):
-            return {}, f"page {n}: `rows` is a JSON {type(rows).__name__}, not a list"
-        for m, row in enumerate(rows):
-            if not isinstance(row, dict):
-                kind = type(row).__name__
-                return {}, f"page {n}, row {m} is a JSON {kind}, not a row"
-    return loaded, ""
+        raise ValueError(why)
+    # !! `absent` CHOOSES THE PAGE TYPE, IT DOES NOT FILTER A ROW LIST --
+    # `decision-log.md Process: #68`. A `Page` serializes every addressed place;
+    # a `RedactedPage` serializes the ones holding prose. The cut is the page's
+    # own, at the one moment it knows what it is being asked for.
+    return Binder(
+        version=VERSION,
+        read_from={**read_from},
+        pages=tuple(page if absent else RedactedPage.of(page) for page in pages),
+    )
 
 
-def rows_of(binder: dict) -> list[dict]:
-    """Every row in the binder, each stamped with the page that holds it.
+def _read_from_problem(loaded: dict) -> str:
+    """Why this binder's `read_from` cannot be used, or `""`.
 
-    !! THE PATH AND THE ADDRESS ARE PUT BACK HERE, and that is what makes the
-    envelope a change to the WIRE alone. The file is stored once per page
-    because repeating it per row is the same string as many times as the file
-    has paragraphs; every consumer still wants both per row, so the one module
-    that knows the shape rejoins them rather than four callers each
-    remembering to.
+    !! THIS IS `read` RULING ON A FIELD, WHICH THE DOCSTRING BELOW SAYS IT DOES
+    NOT DO -- and the rule is unchanged, because the rule is WHAT IS CHECKED IS
+    WHAT IS CONSUMED. Nothing consumed a field when that was written. `seed`
+    consumes this one.
 
-    ! `address_for` COMPOSES IT, not an f-string here. It is the only place the
-    two halves are joined and it flattens the path itself -- the compositor was
-    MEASURED disagreeing with itself on 2026-08-22 for re-deriving exactly this.
+    !! MEASURED 2026-08-28, and it is why the check moved here from `seed`
+    alone: `distribute --seed` over a version-"1" binder exited 1 with `KeyError:
+    'read_from'` and an eight-frame traceback on stderr and nothing on stdout,
+    past `main`'s own promise of *"2 when an input could not be read"*.
+    `commands/distribute.py:79` calls `seed` immediately after this function returns
+    no problem, so a field `seed` requires and `read` ignored could only surface
+    as a crash. ! RAISING IS NOT REFUSING: a refusal in this module is a NAMED
+    REASON and an exit code, which is what a reader can act on.
+
+    ! AND THE SHAPE IS CHECKED, NOT ONLY THE PRESENCE. MEASURED the same day:
+    `read_from="oops"`, `None`, `[]` and `{"root": 7}` each built a binder, each
+    passed `ty`, and `seed` copied the value verbatim onto the `edit_copy`
+    handed to an editorial role. That is the defect this module's own header
+    records being fixed on 2026-08-25 -- *"THE KEY WAS TESTED FOR PRESENCE AND
+    NOT FOR SHAPE ... so it coped after all"* -- arriving on a new field.
     """
-    out = []
-    for page in binder.get("pages", []):
-        path = str(page.get("path", ""))
-        for row in page.get("rows", []):
-            cue = str(row.get("cue", ""))
-            out.append(row | {"path": path, "address": address_for(path, cue)})
-    return out
+    if "read_from" not in loaded:
+        return (
+            "carries no `read_from` -- a binder written before 2026-08-28 "
+            f'(version "1"); re-run `census --json` to get a version "{VERSION}" one'
+        )
+    read_from = loaded["read_from"]
+    if not isinstance(read_from, dict):
+        kind = type(read_from).__name__
+        return f"`read_from` is a JSON {kind}, not a mapping of `root` and `revise`"
+    if not isinstance(read_from.get("root"), str):
+        return "`read_from` carries no `root` string -- which tree was censused?"
+    if not isinstance(read_from.get("revise"), int):
+        return "`read_from` carries no `revise` number -- 0 is the original"
+    return ""
+
+
+def _not_a(where: str, noun: str, value: object) -> str:
+    """One refusal, naming the JSON type that arrived instead of `noun`."""
+    return f"{where}: a JSON {type(value).__name__}, not {noun}"
+
+
+@dataclass(frozen=True)
+class Binder:
+    """Every page in scope, as the artifact the gatherer hands over.
+
+    Attributes:
+        version: the format's own number -- `VERSION` for one this tree wrote.
+        read_from: `{"root": str, "revise": int}` -- which tree was censused.
+        pages: one per file in scope, in the order they were bound.
+
+    !! THE LOAD IS NOT HERE, ruled `decision-log.md Process: #67`. Roy,
+    2026-08-31: *"all flows start with a load step - not the modules code."*
+    `deserialize` takes what the load PRODUCED -- an already-decoded dict --
+    so this module holds no `json.loads` and reaches no path. What a binder IS
+    stays here; turning bytes into an object belongs to the end that owns one.
+
+    ! `machine.json_object.object_of` IS THAT LOAD and did not go anywhere: it
+    moved to the four commands, which each call it and then this.
+    """
+
+    version: str
+    read_from: dict
+    pages: tuple[Page | RedactedPage, ...]
+
+    @classmethod
+    def deserialize(cls, where: str, data: object) -> "tuple[Binder | None, list[str]]":
+        """A binder read back, or every rule it breaks.
+
+        Args:
+            where: how to name this binder in a message.
+            data: the decoded object, as `machine.json_object.object_of`
+                returns one. NEVER text and never a path.
+
+        Returns:
+            `(Binder, [])` or `(None, [messages])`.
+
+        !! IT REFUSES RATHER THAN COPING. Every one of the four readers this
+        replaced guessed at the shape, and a guess that is wrong reads as an
+        EMPTY binder -- which downstream is indistinguishable from a run with
+        nothing to do. The collator was measured certifying exactly that on
+        2026-08-20.
+
+        !! AND IT NOW RULES ON EVERY FIELD IT CARRIES, which `read` did not.
+        `read`'s own docstring stated the rule it was built to: *"WHAT IS
+        CHECKED IS WHAT IS CONSUMED and no more"*, and nothing there read a
+        field, so nothing there ruled on one -- the checks stopped at `pages`
+        being a list of dicts of dicts. **That rule does not survive a
+        container**: a `Binder` promises its fields to everything downstream,
+        so a page with no `path` and a place with no `cue` are refused BY NAME
+        here rather than folded to `""` by whichever consumer met them first.
+
+        !! EVERYTHING READ BACK IS A `RedactedPage`, whichever kind was written --
+        `decision-log.md Process: #68`. Neither page type serializes its source
+        text, so a binder off disk cannot rebuild a `Page`, and claiming it
+        could is the lie a redaction exists to prevent.
+        """
+        if not isinstance(data, dict):
+            return None, [_not_a(where, "a binder", data)]
+        # !! DECLARED, NOT NARROWED, because the read at `checked["read_from"]`
+        # below sits past a loop. An `isinstance` narrow is invalidated at a
+        # loop back-edge, so `ty` loses it before that read; an explicit
+        # annotation is a declaration and survives. Same reason, same spelling
+        # as `desk.containers.EditCopy.deserialize`.
+        checked: dict = data
+        if "pages" not in checked:
+            return None, [
+                f"{where}: carries no `pages` -- is this the output of `census --json`?"
+            ]
+        raw_pages = checked["pages"]
+        if not isinstance(raw_pages, list):
+            return None, [_not_a(f"{where}: `pages`", "a list of pages", raw_pages)]
+        pages: list[Page | RedactedPage] = []
+        problems: list[str] = []
+        for n, raw in enumerate(raw_pages):
+            page, why = RedactedPage.deserialize(f"{where}: page {n}", raw)
+            if page is None:
+                problems += why
+            else:
+                pages.append(page)
+        if problems:
+            return None, problems
+        # ! LAST, BEHIND THE `pages` CHECKS, AND THAT ORDER IS LOAD-BEARING.
+        # Put first, it answered every malformed-`pages` artifact with "carries
+        # no `read_from`" -- true, and not the reason the file is unreadable.
+        # `pages` is what a binder IS; the header says which tree it came from.
+        why_header = _read_from_problem(checked)
+        if why_header:
+            return None, [f"{where}: {why_header}"]
+        raw_version = checked.get("version")
+        return (
+            cls(
+                version=raw_version if isinstance(raw_version, str) else "",
+                # ! COPIED, NOT ALIASED -- `bind` and `seed` both do the same
+                # with this field, so a caller mutating its own dict cannot
+                # change what a deserialized binder already holds.
+                read_from={**checked["read_from"]},
+                pages=tuple(pages),
+            ),
+            [],
+        )
+
+    def serialize(self) -> dict:
+        """This binder as the wire dict, which `bind` writes today."""
+        return {
+            "version": self.version,
+            "read_from": {**self.read_from},
+            "pages": [page.serialize() for page in self.pages],
+        }
+
+    @property
+    def paragraphs(self) -> list[Paragraph]:
+        """Every ADDRESSED paragraph on every page, in the binder's own order.
+
+        !! A FENCE IS NEVER CARRIED, ASKED FOR OR NOT -- `bind`'s own rule, and
+        this is where it now holds. It names no place, so there is nothing to
+        cite and nothing to rule on. ! `bind` used to apply it while building a
+        row list; a `Page` holds every paragraph it read, fences included, so
+        the rule moved to the two places that hand places out: here, and
+        `Page.serialize`. **They filter alike, so what a binder carries in
+        memory and what it writes are the same set.**
+
+        ! THIS IS WHAT `rows_of` ANSWERED, and it was `.rows` of an invented row
+        type for three hours on 2026-08-31 -- `decision-log.md Process: #68`. A
+        page holds paragraphs, so what is left here is the walk.
+        """
+        return [b for page in self.pages for b in page.paragraphs if b.address]

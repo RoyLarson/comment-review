@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 8 tasks done
+Progress: 8 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-23 (Roy, 2026-08-23: "Every line is a place" -- measured false by 595
@@ -88,47 +88,52 @@ was the live question when this file was written.
 
 ## Tasks
 
-- [x] T1 -- MEASURED 2026-08-23 ON THE 19 SHIPPED SCRIPTS: 8,746 paragraphs over
-      11,009 lines; 401 carry NO address, and 595 REAL LINES sit under them. Every one
-      is `leading`. ! So `addresser.py:28` -- *"EVERY LINE HAS EXACTLY ONE ADDRESS,
-      AND A PARAGRAPH IS JUST THE LINES THAT SHARE ONE"* -- was false by 595 lines
-      in its own directory.
-- [x] T2 -- ! THE SECOND CLAUSE IS STILL TRUE AND IS THE ONE DOING THE WORK. *"A
-      paragraph is just the lines that share one"* refuses the range reading,
-      which is what the paragraph exists to refuse -- three sessions in one day
-      reached for a range after it was settled. ! Only the UNIVERSAL was wrong, so
-      this was a `correct`, not a `drop`.
-- [x] T3 -- ! IT WAS TRUE WHEN WRITTEN AND A LATER RULING BROKE IT. Roy, 2026-08-22:
-      *"LEADING TAKES A SYMBOL AND NOT A PLACE"* -- `emit` is what MAKES a place
-      and a blank run is not one. ! Nothing re-read the addressing docstring
-      afterward, which is the shape this whole repo exists to catch: a ruling
-      lands in one module and the sentence stating the invariant sits in another.
-- [x] T4 -- ! `owes_address` ALREADY EXISTS BECAUSE OF THIS EXACT GAP, and its
-      docstring carries the measurement: two callers disagreed, and a census printed
-      *"8542 of 8542 paragraphs addressed"* while 392 carried none. ! So the CODE was
-      reconciled 2026-08-22 and the PROSE forty lines up was not.
-- [x] T5 -- * AND THE OPPOSITE FIX WAS ON THE TABLE, so the sentence was not corrected
-      before the ruling. Roy, 2026-08-23: *"Every line is a place."* ! If leading took
-      a place, the universal would become true rather than needing narrowing -- and
-      `path@cue` would become PAGE AND LINE, which is how a proof is cited in the
-      trade (*"p. 12, l. 7"*), the only difference being that the second half is a
-      stable name instead of a counted position. ! ANSWERED by T7: it does not.
-- [x] T6 -- ! WHAT IT COSTS EITHER WAY. Narrow the sentence and leading stays a
-      symbol, the 2026-08-22 ruling stands, and `cue` still needs a word. Give leading
-      a place and the ruling reverses, `emit` has to make something for a blank run,
-      and `Kind.holds_no_prose` / `Kind.occupies_no_lines` -- which part on exactly
-      leading -- stop differing.
-- [x] T7 -- RULED 2026-08-23, AND IT CLOSES THE STARRED TASK ABOVE: leading does not
-      get a place, so the sentence is NARROWED rather than made true. Roy: *"We tried
-      leading getting a place. We tried several different ways. The constraints of
-      coding AND editing do not allow it."* ! It was ATTEMPTED, which the git
-      history shows in three commits -- `875b0d4` a fifth series, `b998a60` the
-      edge repair, `c27ea1d` the retreat to a symbol. Recorded so a fourth attempt
-      is not made.
-- [x] T8 -- DONE 2026-08-23. Roy's two reasons are in `addresser.py` beside the
-      narrowed sentence: `addresser.py:18-19` carries *"NO LINE HAS MORE THAN ONE"*,
-      `addresser.py:30` points from it to `owes_address`, and that docstring at
-      :1361-1377 states both -- WHERE everything below an edit shifted to, and HOW
-      MUCH blank belongs where afterwards, *"the second being a typographic judgement
-      no rule computes"* -- followed by why the edge shape holds: *"this system never
-      chooses an amount of blank, it replays what it read."*
+- [x] T1 | FINISHED | unknown | T1 -- MEASURED 2026-08-23 ON THE 19 SHIPPED
+      SCRIPTS: 8,746 paragraphs over 11,009 lines; 401 carry NO address, and 595
+      REAL LINES sit under them. Every one is `leading`. ! So `addresser.py:28`
+      -- *"EVERY LINE HAS EXACTLY ONE ADDRESS, AND A PARAGRAPH IS JUST THE LINES
+      THAT SHARE ONE"* -- was false by 595 lines in its own directory.
+- [x] T2 | FINISHED | unknown | T2 -- ! THE SECOND CLAUSE IS STILL TRUE AND IS
+      THE ONE DOING THE WORK. *"A paragraph is just the lines that share one"*
+      refuses the range reading, which is what the paragraph exists to refuse --
+      three sessions in one day reached for a range after it was settled. ! Only
+      the UNIVERSAL was wrong, so this was a `correct`, not a `drop`.
+- [x] T3 | FINISHED | unknown | T3 -- ! IT WAS TRUE WHEN WRITTEN AND A LATER
+      RULING BROKE IT. Roy, 2026-08-22: *"LEADING TAKES A SYMBOL AND NOT A
+      PLACE"* -- `emit` is what MAKES a place and a blank run is not one. !
+      Nothing re-read the addressing docstring afterward, which is the shape
+      this whole repo exists to catch: a ruling lands in one module and the
+      sentence stating the invariant sits in another.
+- [x] T4 | FINISHED | unknown | T4 -- ! `owes_address` ALREADY EXISTS BECAUSE OF
+      THIS EXACT GAP, and its docstring carries the measurement: two callers
+      disagreed, and a census printed *"8542 of 8542 paragraphs addressed"*
+      while 392 carried none. ! So the CODE was reconciled 2026-08-22 and the
+      PROSE forty lines up was not.
+- [x] T5 | FINISHED | unknown | T5 -- * AND THE OPPOSITE FIX WAS ON THE TABLE,
+      so the sentence was not corrected before the ruling. Roy, 2026-08-23:
+      *"Every line is a place."* ! If leading took a place, the universal would
+      become true rather than needing narrowing -- and `path@cue` would become
+      PAGE AND LINE, which is how a proof is cited in the trade (*"p. 12, l.
+      7"*), the only difference being that the second half is a stable name
+      instead of a counted position. ! ANSWERED by T7: it does not.
+- [x] T6 | FINISHED | unknown | T6 -- ! WHAT IT COSTS EITHER WAY. Narrow the
+      sentence and leading stays a symbol, the 2026-08-22 ruling stands, and
+      `cue` still needs a word. Give leading a place and the ruling reverses,
+      `emit` has to make something for a blank run, and `Kind.holds_no_prose` /
+      `Kind.occupies_no_lines` -- which part on exactly leading -- stop
+      differing.
+- [x] T7 | FINISHED | unknown | T7 -- RULED 2026-08-23, AND IT CLOSES THE
+      STARRED TASK ABOVE: leading does not get a place, so the sentence is
+      NARROWED rather than made true. Roy: *"We tried leading getting a place.
+      We tried several different ways. The constraints of coding AND editing do
+      not allow it."* ! It was ATTEMPTED, which the git history shows in three
+      commits -- `875b0d4` a fifth series, `b998a60` the edge repair, `c27ea1d`
+      the retreat to a symbol. Recorded so a fourth attempt is not made.
+- [x] T8 | FINISHED | unknown | T8 -- DONE 2026-08-23. Roy's two reasons are in
+      `addresser.py` beside the narrowed sentence: `addresser.py:18-19` carries
+      *"NO LINE HAS MORE THAN ONE"*, `addresser.py:30` points from it to
+      `owes_address`, and that docstring at :1361-1377 states both -- WHERE
+      everything below an edit shifted to, and HOW MUCH blank belongs where
+      afterwards, *"the second being a typographic judgement no rule computes"*
+      -- followed by why the edge shape holds: *"this system never chooses an
+      amount of blank, it replays what it read."*

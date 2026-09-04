@@ -2,7 +2,7 @@
 
 ```
 Status:   CLOSED 2026-08-17
-Progress: 8 of 8 tasks done
+Progress: 8 of 8 tasks closed
 Owner:    session * Roy (3 rulings made, 0 left)
 Raised:   2026-08-15 (the vocabulary survey, which collected these while reading for terms)
 Re-filed: 2026-08-16 (Roy, on `query` needing EVIDENCE and QUOTE: "this is a TODO on
@@ -24,13 +24,15 @@ actively contradicted rather than merely differed. The three left differ; none c
 
 ## Tasks
 
-- [x] * **`query` -- the brief now REQUIRES `EVIDENCE` and `QUOTE`; the gate exempts both.**
-      Roy rewrote `ref/reviewer-brief.md` on 2026-08-16: *"A `query` requires `EVIDENCE` and
-      `QUOTE`(s), by construction -- this is where you looked to try to find the answer. These
-      are the statements in the code that make it ambiguous."* `sk-scripts/verdicts.py:380`
-      returns early on `("clean", "query")`, so a reviewer supplies both and nothing checks
-      them. ! The code states a reason at `:375-378` -- demanding evidence left two exits,
-      inventing a citation or downgrading to `clean` -- and Roy's version answers it, because the
+- [x] T1 | FINISHED | unknown | * **`query` -- the brief now REQUIRES `EVIDENCE`
+      and `QUOTE`; the gate exempts both.** Roy rewrote `ref/reviewer-brief.md`
+      on 2026-08-16: *"A `query` requires `EVIDENCE` and `QUOTE`(s), by
+      construction -- this is where you looked to try to find the answer. These
+      are the statements in the code that make it ambiguous."*
+      `sk-scripts/verdicts.py:380` returns early on `("clean", "query")`, so a
+      reviewer supplies both and nothing checks them. ! The code states a reason
+      at `:375-378` -- demanding evidence left two exits, inventing a citation
+      or downgrading to `clean` -- and Roy's version answers it, because the
       evidence is WHERE YOU LOOKED rather than a line that settles it.
 
       ! **HALF-RULED 2026-08-16.** Roy: *"query is definitely supposed to have evidence per that
@@ -53,55 +55,66 @@ actively contradicted rather than merely differed. The three left differ; none c
       satisfy the check it is supposed to accompany. `declares_scope` reads the declaration rather
       than sniffing free text. The brief and SKILL.md both lost their DISPUTED notes.
 
-- [x] **`QUOTE`'s row lost two rules the gate still enforces.** ! **HALF RULED 2026-08-16.**
-      Roy: *"that is why I dropped the 12 character limit in the other files"* -- the brief moved
-      first and the gate follows. `MIN_NEEDLE` is now **1**: a zero-length quote is not a quote,
-      and nothing longer is refused for length. ! The 12-line floor had inverted on short code
-      lines -- `x = 1`, `pass`, `return` -- where its only route through was to quote MORE than
-      was read. ! The `query` exemption at the same line is the OTHER half and is still open,
-      under task 1.
+- [x] T2 | FINISHED | unknown | **`QUOTE`'s row lost two rules the gate still
+      enforces.** ! **HALF RULED 2026-08-16.** Roy: *"that is why I dropped the
+      12 character limit in the other files"* -- the brief moved first and the
+      gate follows. `MIN_NEEDLE` is now **1**: a zero-length quote is not a
+      quote, and nothing longer is refused for length. ! The 12-line floor had
+      inverted on short code lines -- `x = 1`, `pass`, `return` -- where its
+      only route through was to quote MORE than was read. ! The `query`
+      exemption at the same line is the OTHER half and is still open, under task
+      1.
 
-- [x] **[superseded rule text, kept for the record -- both halves resolved]** The brief's field table said
-      *"VERBATIM and at least 12 characters. Required for every verdict except `clean` and
-      `query`"* and now says only *"VERBATIM."* Both survive in code: `MIN_NEEDLE` at
-      `sk-scripts/verdicts.py:387`, the exemption at `:380`. **Both sides moved:** `MIN_NEEDLE`
-      is 1 (task 2) and the exemption is gone (task 1).
+- [x] T3 | FINISHED | unknown | **[superseded rule text, kept for the record --
+      both halves resolved]** The brief's field table said *"VERBATIM and at
+      least 12 characters. Required for every verdict except `clean` and
+      `query`"* and now says only *"VERBATIM."* Both survive in code:
+      `MIN_NEEDLE` at `sk-scripts/verdicts.py:387`, the exemption at `:380`.
+      **Both sides moved:** `MIN_NEEDLE` is 1 (task 2) and the exemption is gone
+      (task 1).
 
-- [x] **The `add` payload check passes on the bare word "anchor"** -- ! **FIXED 2026-08-17.**
-      Two conditions now, and the word "anchor" satisfies neither: `ANCHOR_SIDE` wants a side
-      (above, below, before, after) and `ANCHOR_NAME` wants the anchor NAMED IN BACKTICKS.
-      Backticks are the repo's own citation form -- the brief already says cite by symbol or path,
-      never by line number -- so "named" is checkable without guessing which token is an
-      identifier. `CHANGE  add an anchor comment` used to pass and now does not; ``above
-      `retry_budget` `` used to fail for not saying "anchor" and now passes. The brief's `add`
-      row states both. Five tests.
+- [x] T4 | FINISHED | unknown | **The `add` payload check passes on the bare
+      word "anchor"** -- ! **FIXED 2026-08-17.** Two conditions now, and the
+      word "anchor" satisfies neither: `ANCHOR_SIDE` wants a side (above, below,
+      before, after) and `ANCHOR_NAME` wants the anchor NAMED IN BACKTICKS.
+      Backticks are the repo's own citation form -- the brief already says cite
+      by symbol or path, never by line number -- so "named" is checkable without
+      guessing which token is an identifier. `CHANGE add an anchor comment` used
+      to pass and now does not; ``above `retry_budget` `` used to fail for not
+      saying "anchor" and now passes. The brief's `add` row states both. Five
+      tests.
 
-- [x] **`--reviewers` is compared to report file STEMS, never to the published role names**
-      -- ! **FIXED 2026-08-17.** `verdicts.py` imports `Reviewer` from its sibling
-      `vocabulary.py` and refuses any stem, and any `--reviewers` name, that is not one of the
-      six published roles. A stem is still what keys a reviewer; it just has to be a real role
-      name now. Three tests, including one that walks the published names to catch the enum and
-      the gate drifting apart.
+- [x] T5 | FINISHED | unknown | **`--reviewers` is compared to report file
+      STEMS, never to the published role names** -- ! **FIXED 2026-08-17.**
+      `verdicts.py` imports `Reviewer` from its sibling `vocabulary.py` and
+      refuses any stem, and any `--reviewers` name, that is not one of the six
+      published roles. A stem is still what keys a reviewer; it just has to be a
+      real role name now. Three tests, including one that walks the published
+      names to catch the enum and the gate drifting apart.
 
-- [x] **`FINDING` is never checked, and `Finding.finding` holds two different things** --
-      ! **FIXED 2026-08-17, and the two halves were one defect.** `parse_report` returns
-      `(findings, malformed)`, so a record that names no block never becomes a `Finding` and the
-      `block=-1` sentinel is gone from the file. With `FINDING` holding one thing,
-      `payload_problem` can require it: every verdict but `clean` states why it was made.
-      ! Three consumers each carried their own sentinel filter (`by_block`, `contradictions`,
-      `main`) and all three lost it.
+- [x] T6 | FINISHED | unknown | **`FINDING` is never checked, and
+      `Finding.finding` holds two different things** -- ! **FIXED 2026-08-17,
+      and the two halves were one defect.** `parse_report` returns `(findings,
+      malformed)`, so a record that names no block never becomes a `Finding` and
+      the `block=-1` sentinel is gone from the file. With `FINDING` holding one
+      thing, `payload_problem` can require it: every verdict but `clean` states
+      why it was made. ! Three consumers each carried their own sentinel filter
+      (`by_block`, `contradictions`, `main`) and all three lost it.
 
-- [x] **`CODE CONCERNS` is not parsed or gated at all** -- ! **CARRIED, 2026-08-16.** Roy:
-      *"told you you can't stop coding agents from trying coding."* The first real run proved
-      it: block-context REPRODUCED a code defect (`complete --outcome "a | b"` writes a
-      malformed row) while opening the code to settle a comment. `verdicts.py` now parses the
-      section and echoes every line, attributed, **ungated** -- they are not verdicts, so they
-      are neither admissible nor inadmissible, and they print whether or not the gate refuses.
-      ! A run that stops at stage 5 must still carry them or the defect dies with the refusal.
-      Three tests, including one that they never enter the record parser: a code concern
-      counted as a finding would enter coverage arithmetic.
+- [x] T7 | FINISHED | unknown | **`CODE CONCERNS` is not parsed or gated at
+      all** -- ! **CARRIED, 2026-08-16.** Roy: *"told you you can't stop coding
+      agents from trying coding."* The first real run proved it: block-context
+      REPRODUCED a code defect (`complete --outcome "a \| b"` writes a malformed
+      row) while opening the code to settle a comment. `verdicts.py` now parses
+      the section and echoes every line, attributed, **ungated** -- they are not
+      verdicts, so they are neither admissible nor inadmissible, and they print
+      whether or not the gate refuses. ! A run that stops at stage 5 must still
+      carry them or the defect dies with the refusal. Three tests, including one
+      that they never enter the record parser: a code concern counted as a
+      finding would enter coverage arithmetic.
 
-- [x] **[was: CODE CONCERNS is not parsed -- carried, see above]** -- zero occurrences in
-      `sk-scripts/verdicts.py`. `ref/reviewer-brief.md` defines the section and tells reviewers
-      what belongs in it; nothing reads it, so a reviewer that puts a comment finding there has
-      hidden it from the join.
+- [x] T8 | FINISHED | unknown | **[was: CODE CONCERNS is not parsed -- carried,
+      see above]** -- zero occurrences in `sk-scripts/verdicts.py`.
+      `ref/reviewer-brief.md` defines the section and tells reviewers what
+      belongs in it; nothing reads it, so a reviewer that puts a comment finding
+      there has hidden it from the join.

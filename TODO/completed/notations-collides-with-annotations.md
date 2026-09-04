@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 4 of 4 tasks done
+Progress: 4 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-25 (backend, 2026-08-25, naming what the agent workflow hands the
@@ -44,16 +44,17 @@ WHAT REMAINS is the code rename and the nested shape -- tasks 3 and 4. Measured 
 
 ## Tasks
 
-- [x] Relitigate the pair when the middle piece is rewritten -- declare both with
-      distinct definitions, or rename one
-- [x] Whatever is decided reaches references/vocabulary.toml and
-      docs/vocabulary.md in the same change
-- [x] Rename notations -> alterations in the code: desk/notations.py, the two
-      importers (commands/proof.py and flows/proof_setter.py), the --notations
-      flag, and the filename TODO/an-alteration-carries-its-own-indentation.md. The
-      four quoted-Roy lines in decision-log.md and nothing-makes-the-fair-copy.md
-      stay exactly as written
-- [x] Give the docket the nested shape the ruling names -- pages, each with path,
-      sha and its schedule of alterations -- so by_page stops re-deriving the
-      grouping from the address, and the write chain stops reading the binder to
-      get a sha
+- [x] T1 | FINISHED | unknown | Relitigate the pair when the middle piece is
+      rewritten -- declare both with distinct definitions, or rename one
+- [x] T2 | FINISHED | unknown | Whatever is decided reaches
+      references/vocabulary.toml and docs/vocabulary.md in the same change
+- [x] T3 | FINISHED | unknown | Rename notations -> alterations in the code:
+      desk/notations.py, the two importers (commands/proof.py and
+      flows/proof_setter.py), the --notations flag, and the filename
+      TODO/an-alteration-carries-its-own-indentation.md. The four quoted-Roy
+      lines in decision-log.md and nothing-makes-the-fair-copy.md stay exactly
+      as written
+- [x] T4 | FINISHED | unknown | Give the docket the nested shape the ruling
+      names -- pages, each with path, sha and its schedule of alterations -- so
+      by_page stops re-deriving the grouping from the address, and the write
+      chain stops reading the binder to get a sha

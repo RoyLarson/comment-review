@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 5 tasks done
+Progress: 5 of 5 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-23 (2026-08-23, restoring six quotations a mechanical rename had
@@ -61,21 +61,23 @@ asked -- whether a quoted span is exempt, given the repo already marks quotes on
 
 ## Tasks
 
-- [x] T1 -- The two rules that collide, both Roy's. A RULING already made, kept as
-      the record of why the question was hard; it is not work anyone can finish.
-      Moved into the Objective.
-- [x] T2 -- SUPERSEDED. `folio` DID join `RETIRED` -- `check_vocabulary.py:63-67`
-      -- and the five modules named here were NOT exempted whole. The premise that
-      it could not join as things stood was overtaken the same day by `0d53a8a`
-      and then `8141b7a`.
-- [x] T3 -- FINISHED. The ruling owed arrived: `8141b7a`, Roy, 2026-08-23 -- a
-      quotation is NOT an exemption, because history is not needed to understand
-      the code and quotation marks do not stop a dead term reaching an LLM's
-      attention. The gate carries no quote rule and
-      `tests/test_vocabulary.py:278-281` asserts it never grows one.
-- [x] T4 -- SUPERSEDED. This recorded that `RETIRED` was left UNCHANGED so nothing
-      was weakened, at the cost of `folio` being unpoliced. Both halves are gone:
-      the family is retired and the gate reports 0 uses across the shipped tree.
-- [x] T5 -- A MEASUREMENT, not a task -- six quotations rewritten across five files
-      with every gate green. Kept in the Objective, because it is the evidence that
-      a mechanical rename can pass every check and still change what someone said.
+- [x] T1 | FINISHED | unknown | T1 -- The two rules that collide, both Roy's. A
+      RULING already made, kept as the record of why the question was hard; it
+      is not work anyone can finish. Moved into the Objective.
+- [x] T2 | FINISHED | unknown | T2 -- SUPERSEDED. `folio` DID join `RETIRED` --
+      `check_vocabulary.py:63-67` -- and the five modules named here were NOT
+      exempted whole. The premise that it could not join as things stood was
+      overtaken the same day by `0d53a8a` and then `8141b7a`.
+- [x] T3 | FINISHED | unknown | T3 -- FINISHED. The ruling owed arrived:
+      `8141b7a`, Roy, 2026-08-23 -- a quotation is NOT an exemption, because
+      history is not needed to understand the code and quotation marks do not
+      stop a dead term reaching an LLM's attention. The gate carries no quote
+      rule and `tests/test_vocabulary.py:278-281` asserts it never grows one.
+- [x] T4 | FINISHED | unknown | T4 -- SUPERSEDED. This recorded that `RETIRED`
+      was left UNCHANGED so nothing was weakened, at the cost of `folio` being
+      unpoliced. Both halves are gone: the family is retired and the gate
+      reports 0 uses across the shipped tree.
+- [x] T5 | FINISHED | unknown | T5 -- A MEASUREMENT, not a task -- six
+      quotations rewritten across five files with every gate green. Kept in the
+      Objective, because it is the evidence that a mechanical rename can pass
+      every check and still change what someone said.

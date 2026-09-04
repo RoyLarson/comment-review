@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 3 of 11 tasks done
+Progress: 3 of 11 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-19 (Roy's ruling while shipping the address vocabulary, 2026-08-19)
@@ -94,25 +94,35 @@ prose file"* -- with `pCST` beside it at `:23`.
 
 ## Tasks
 
-- [x] T1 -- DONE 2026-08-19: shipped PROSE, 285 renames across 13 files, plus the three
-      stale references to the retired index. What went with it is in the Objective.
-- [x] T2 -- DONE: shipped CODE -- `Block` -> `Paragraph`, `pcst.py` -> the page module,
-      both readers renamed. VERIFIED 2026-08-23: the 68 hits are the four live senses.
-- [ ] T3 -- **`tests/test_verdicts.py` -- 117 uses.** Verify: `grep -oi block` over it
-      returns only the declared live senses, and `uv run pytest -q` is green.
-- [ ] T4 -- **`tests/test_census_blocks.py` -- 34 uses.** Verify: `grep -oi block` over it
-      returns only the declared live senses, and `uv run pytest -q` is green.
-- [ ] T5 -- **Rename the file `tests/test_census_blocks.py`.** Verify: `uv run python -m
-      unittest discover -s tests` collects the same case count as before.
-- [ ] T6 -- Sweep the retired noun out of every path under `tests/`. Verify: `git ls-files
-      tests/ | grep -i block` returns nothing.
-- [ ] T7 -- **The remaining nine test files -- 54 uses.** Verify: `grep -oil block tests/`
-      returns nothing but the declared live senses, and `uv run pytest -q` is green.
-- [ ] T8 -- **`docs/addressing.md` -- 16 uses.** Verify: the file holds no use of the
-      retired NOUN, and `uv run python scripts/check_vocabulary.py` exits 0.
-- [ ] T9 -- **`docs/parsing.md` -- 15 uses.** Verify: the file holds no use of the retired
-      NOUN, and `uv run python scripts/check_vocabulary.py` exits 0.
-- [ ] T10 -- **`docs/limitations.md` -- 3 uses.** Verify: the file holds no use of the
-      retired NOUN, and `uv run python scripts/check_vocabulary.py` exits 0.
-- [x] T11 -- DONE: `block` is retired. VERIFIED 2026-08-23 -- `vocabulary.toml` defines
-      `paragraph` and the role name only; `docs/vocabulary.md:20` carries the retired row.
+- [x] T1 | FINISHED | unknown | T1 -- DONE 2026-08-19: shipped PROSE, 285
+      renames across 13 files, plus the three stale references to the retired
+      index. What went with it is in the Objective.
+- [x] T2 | FINISHED | unknown | T2 -- DONE: shipped CODE -- `Block` ->
+      `Paragraph`, `pcst.py` -> the page module, both readers renamed. VERIFIED
+      2026-08-23: the 68 hits are the four live senses.
+- [ ] T3 | T3 -- **`tests/test_verdicts.py` -- 117 uses.** Verify: `grep -oi
+      block` over it returns only the declared live senses, and `uv run pytest
+      -q` is green.
+- [ ] T4 | T4 -- **`tests/test_census_blocks.py` -- 34 uses.** Verify: `grep -oi
+      block` over it returns only the declared live senses, and `uv run pytest
+      -q` is green.
+- [ ] T5 | T5 -- **Rename the file `tests/test_census_blocks.py`.** Verify: `uv
+      run python -m unittest discover -s tests` collects the same case count as
+      before.
+- [ ] T6 | T6 -- Sweep the retired noun out of every path under `tests/`.
+      Verify: `git ls-files tests/ \| grep -i block` returns nothing.
+- [ ] T7 | T7 -- **The remaining nine test files -- 54 uses.** Verify: `grep
+      -oil block tests/` returns nothing but the declared live senses, and `uv
+      run pytest -q` is green.
+- [ ] T8 | T8 -- **`docs/addressing.md` -- 16 uses.** Verify: the file holds no
+      use of the retired NOUN, and `uv run python scripts/check_vocabulary.py`
+      exits 0.
+- [ ] T9 | T9 -- **`docs/parsing.md` -- 15 uses.** Verify: the file holds no use
+      of the retired NOUN, and `uv run python scripts/check_vocabulary.py` exits
+      0.
+- [ ] T10 | T10 -- **`docs/limitations.md` -- 3 uses.** Verify: the file holds
+      no use of the retired NOUN, and `uv run python
+      scripts/check_vocabulary.py` exits 0.
+- [x] T11 | FINISHED | unknown | T11 -- DONE: `block` is retired. VERIFIED
+      2026-08-23 -- `vocabulary.toml` defines `paragraph` and the role name
+      only; `docs/vocabulary.md:20` carries the retired row.

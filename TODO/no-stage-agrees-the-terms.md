@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 7 tasks done
+Progress: 0 of 7 tasks closed
 Owner:    systems
 Requires-Roy: true
 Raised:   2026-08-24 (Roy: most of our back and forth is making certain we and the system
@@ -71,20 +71,22 @@ catches is the measurement this file is graded on.
 
 ## Tasks
 
-- [ ] T1 -- * Rule what the stage is called and where it sits among the eight. Verify: the
-      ruling is in `docs/decision-log.md`.
-- [ ] T2 -- * Rule whether it runs once or grows as the roles work. Verify: the ruling is
-      in `docs/decision-log.md`.
-- [ ] T3 -- Give it an artifact a later stage reads. Verify: a run produces the file and
-      stage 4 is handed it.
-- [ ] T4 -- Feed it from `vocabulary_sweep.py`, which already finds unlisted terms.
-      Verify: a sweep row reaches the artifact without being retyped.
-- [ ] T5 -- Let a role RAISE a term as reading two ways. Verify: a report can name a term
-      it could not read one way, and the collator carries it.
-- [ ] T6 -- Refuse a run that leaves a raised term unanswered. Verify: it exits nonzero
-      and names the term and the role.
-- [ ] T7 -- Score the stage against the nine cases in the Objective. Verify: how many it
-      would have caught is written into this file with its date.
+- [?] T1 | T1 -- * Rule what the stage is called and where it sits among the
+      eight. Verify: the ruling is in `docs/decision-log.md`.
+- [?] T2 | T2 -- * Rule whether it runs once or grows as the roles work. Verify:
+      the ruling is in `docs/decision-log.md`.
+- [ ] T3 | T3 -- Give it an artifact a later stage reads. Verify: a run produces
+      the file and stage 4 is handed it.
+- [ ] T4 | T4 -- Feed it from `vocabulary_sweep.py`, which already finds
+      unlisted terms. Verify: a sweep row reaches the artifact without being
+      retyped.
+- [ ] T5 | T5 -- Let a role RAISE a term as reading two ways. Verify: a report
+      can name a term it could not read one way, and the collator carries it.
+- [ ] T6 | T6 -- Refuse a run that leaves a raised term unanswered. Verify: it
+      exits nonzero and names the term and the role.
+- [ ] T7 | T7 -- Score the stage against the nine cases in the Objective.
+      Verify: how many it would have caught is written into this file with its
+      date.
 
 ## Related
 

@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 1 of 4 tasks done
+Progress: 1 of 4 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-18 (Roy, 2026-08-18, finding 'the number to beat is zero blocks
@@ -89,11 +89,14 @@ say is whether the register entry states it.
 
 ## Tasks
 
-- [ ] T1 -- * Rule whose remit this class is: a second half to `block-context`'s
-      constraint paragraph, or out of scope. Verify: the answer is written into this file.
-- [ ] T2 -- File the candidate in `role-rule-register.md`, with the shape, the example and
-      the siblings. Verify: `grep -n "arithmetic"` on that file returns the entry.
-- [ ] T3 -- Make that entry name currency 2 and a check a reviewer runs without opening
-      another file. Verify: the entry states both.
-- [x] T4 -- NOT A TASK, restated under *What this is NOT*: the currency is settled at 2,
-      and the checkable half of the old box is now T2's and T3's Verify clauses.
+- [?] T1 | T1 -- * Rule whose remit this class is: a second half to
+      `block-context`'s constraint paragraph, or out of scope. Verify: the
+      answer is written into this file.
+- [ ] T2 | T2 -- File the candidate in `role-rule-register.md`, with the shape,
+      the example and the siblings. Verify: `grep -n "arithmetic"` on that file
+      returns the entry.
+- [ ] T3 | T3 -- Make that entry name currency 2 and a check a reviewer runs
+      without opening another file. Verify: the entry states both.
+- [x] T4 | FINISHED | unknown | T4 -- NOT A TASK, restated under *What this is
+      NOT*: the currency is settled at 2, and the checkable half of the old box
+      is now T2's and T3's Verify clauses.

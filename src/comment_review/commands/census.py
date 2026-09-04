@@ -14,9 +14,9 @@ from contextlib import redirect_stdout
 from pathlib import Path
 
 from comment_review.binder.addresses import series_of, unaddressed
-from comment_review.binder.annotate import annotate, prose_numbers
-from comment_review.binder.binder import bind, rows_of
+from comment_review.binder.binder import bind
 from comment_review.binder.page import Page, page_for
+from comment_review.concordance.annotate import annotate, prose_numbers
 from comment_review.concordance.code_names import code_names
 from comment_review.flows.census import (
     _not_censused,
@@ -28,11 +28,13 @@ from comment_review.machine import exceptions
 from comment_review.machine.repo import (
     path_index,
     read_source,
+    relative_to,
     tracked_paths,
     walk_files,
 )
 from comment_review.reading.addresser import COVERS, SEPARATOR
-from comment_review.reading.lexer import LANGUAGES, Paragraph, language_for, tier_for
+from comment_review.reading.lexer import LANGUAGES, language_for, tier_for
+from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.series import Kind
 
 
@@ -41,6 +43,14 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("paths", nargs="*")
     ap.add_argument("--repo", default=".", help="repo root for citation resolution")
+    ap.add_argument(
+        "--revise",
+        type=int,
+        default=0,
+        help="the revise `--repo` is -- 0 for the original, a later stage's"
+        " number for a revise root pulled after it. Stamped into `read_from`"
+        " so a role can tell which tree a `--json` census was censused from",
+    )
     ap.add_argument("--census-only", action="store_true")
     ap.add_argument("--json", action="store_true")
     ap.add_argument(
@@ -76,13 +86,13 @@ def main() -> int:
     # `--languages` can run without one, and everything else with none produced
     # `[]` at exit 0 -- which the collator then reads as a complete census and
     # certifies. Measured 2026-08-24: `census.py --repo . --json` printed `[]`
-    # and returned 0, and `verdicts.py` over it printed "Every finding is
+    # and returned 0, and the collator over it printed "Every finding is
     # admissible. Stage 5 may rule."
     #
     # ! REACHABLE WITHOUT ANYONE TYPING IT: stage 1 takes its paths from a
     # merge-base diff, and a diff that touches no reviewable file hands this
     # nothing. The run then reads as complete BECAUSE there was nothing to be
-    # incomplete about -- the failure `verdicts.py` states the rule against, one
+    # incomplete about -- the failure the collator states the rule against, one
     # stage earlier. ! Refused BEFORE `--out` opens anything, so a usage error
     # leaves no empty census behind for the next stage to read as an answered one.
     if not args.languages and not args.paths:
@@ -175,8 +185,9 @@ def _report(args: argparse.Namespace) -> int:
         #
         # ! A file outside the repo keeps the path AS IT WAS PASSED -- see
         # `_repo_relative`, which says what that means. `flows/proof_setter.py`
-        # refuses such a page rather than guessing where it belongs: its
-        # `_can_escape` reads the binder's page paths before any file is opened.
+        # refuses such a page rather than guessing where it belongs:
+        # `repo.can_escape` reads the binder's page paths before any file is
+        # opened.
         # ! HOISTED. `_repo_relative` calls `Path.resolve()`, a filesystem
         # call, and both arguments are the same for every paragraph of a file.
         # Measured 2026-08-18: 120 us a call, so one 793-paragraph file spent
@@ -204,6 +215,35 @@ def _report(args: argparse.Namespace) -> int:
             got = page_for(path, text, lang, rel, sha=source.sha)
         except Exception as e:  # a parse failure is REPORTED, as a gap
             unreadable.append(f"{path.as_posix()} ({type(e).__name__}: {e})")
+            continue
+        # !! AN UNPARSED PAGE IS NOT A CENSUSED FILE, AND IT ARRIVED AS ONE.
+        # The `except` above cannot see this: `paragraphs_stdlib` CATCHES the
+        # parse failure and returns a single `unparsed` paragraph rather than
+        # raising, `page_for` then gives that page no cues and no addresses,
+        # and `carried` hands over only paragraphs that HAVE one -- so even the
+        # paragraph reporting the refusal is filtered away. The file was read,
+        # produced nothing, and the run said success.
+        #
+        # !! MEASURED 2026-08-29, one file per run over one nine-line control:
+        # the control censused 11 paragraphs at exit 0, while a UTF-8 BOM, a
+        # syntax error, a NUL byte and an unterminated string each censused
+        # **0 paragraphs AT EXIT 0**. The same control's DECODE failures --
+        # latin-1 bytes, a UTF-16 BOM -- correctly exited 1, caught upstream.
+        #
+        # !! SO THE CENSUS REFUSED WHAT IT COULD NOT DECODE AND SILENTLY
+        # SKIPPED WHAT IT COULD NOT PARSE. `CLAUDE.md` states the contract the
+        # asymmetry breaks -- *every file handed in is censused or the run
+        # stops* -- and a file mid-refactor with a real syntax error is the
+        # common case, not an exotic one: its prose reached no reviewer while
+        # stdout reported a complete census.
+        #
+        # ! IT JOINS `unreadable`, which is what makes it as loud as the decode
+        # failure: named on both the `--json` path and the text one, and exit
+        # 1 from either. The reader's own message is the reason, so the file
+        # says WHY it could not be read rather than merely that it was skipped.
+        refused = next((b for b in got.paragraphs if b.kind == "unparsed"), None)
+        if refused is not None:
+            unreadable.append(f"{path.as_posix()} ({refused.text})")
             continue
         pages.append(got)
         census.extend(carried(got))
@@ -238,14 +278,14 @@ def _report(args: argparse.Namespace) -> int:
             print(_not_censused(files, unreadable), file=sys.stderr)
             return 1
         # !! AN UNADDRESSED PARAGRAPH IS UNCITABLE, so a census holding one is a
-        # census nobody can rule on -- and it fails SILENTLY: `verdicts.py` builds
+        # census nobody can rule on -- and it fails SILENTLY: the collator builds
         # its accountability set from the addresses, so paragraphs with none are
         # simply not accountable and the run reads as complete. Measured 2026-08-20:
         # a 5-paragraph census with its addresses stripped certified "Every finding
         # is admissible. Stage 5 may rule." at exit 0.
         #
         # ! ASKED AT BOTH ENDS. This is the EMIT side, catching the census where it
-        # is built; `verdicts.py` asks the same function on READ, for a file that
+        # is built; the collator asks the same function on READ, for a file that
         # reached it some other way. ONE implementation, in `addresser` -- Roy,
         # 2026-08-20: *"one source of truth, else something will parse that
         # something else will fail."*
@@ -253,16 +293,56 @@ def _report(args: argparse.Namespace) -> int:
         # to print -- which is two full dict copies and a re-sort of every
         # annotation set over a census that runs to thousands of paragraphs.
         # !! THE GATE READS THE BINDER BACK, rather than checking the list that
-        # was about to be written. `rows_of` is what every consumer will call,
+        # was about to be written. `Binder.paragraphs` is what every consumer
         # so a shape it cannot read is caught HERE -- at the one moment the
         # writer and the reader are both present -- instead of at whichever
         # command opens the file next.
-        binder = bind(pages, absent=args.include_absent)
-        missing = unaddressed(rows_of(binder))
+        # ! IT NAMED `rows_of` UNTIL 2026-08-31, the function that stamped each
+        # row's path and address. A `Paragraph` carries both -- `Process: #67`,
+        # `#68`.
+        # !! RELATIVE TO `Path.cwd()`, RULED BY ROY 2026-08-28. This wrote
+        # `str(repo)` on a RESOLVED path, so on Windows it emitted
+        # `C:\\Users\\<name>\\projects\\...` into an artifact that is handed to
+        # agents and kept as evidence -- beside `pages[].path` values that are
+        # repo-relative posix, written by `_repo_relative` five lines away.
+        #
+        # ! TWO CALLERS ALREADY DISAGREED before this: the census wrote a native
+        # absolute path and `tests/helpers.py` wrote a relative one, for a field
+        # whose whole purpose is a later stage COMPARING a revise root against
+        # the original.
+        #
+        # ! `relpath` RATHER THAN `Path.relative_to`, because a revise root is a
+        # temporary directory OUTSIDE the checkout -- `relative_to` raises there
+        # and `relpath` walks up with `..`. The reader resolves this against its
+        # own cwd, which is the same cwd the run was started from.
+        #
+        # !! `args.revise` REPLACED A HARDCODED `0`, TASK 10 OF
+        # `.superpowers/sdd/2026-08-28-the-mark-and-the-revise/`. `--repo` could
+        # already be pointed at a revise root -- `TODO/the-flow-assumes-every-
+        # role-reads-at-once.md`'s own note that every read command already
+        # takes a root -- but the NUMBER stamped into `read_from` was fixed at
+        # 0 regardless, so a census over a revise still reported the ORIGINAL's
+        # number: indistinguishable from having read the original. There is no
+        # default revise beyond the original's own 0; a caller states it, same
+        # as `--repo`.
+        # ! `repo.relative_to` IS WHAT `machine.repo.relative_to` WRAPS, and it
+        # owns the two cases this line must not carry: the `..` walk to a revise
+        # root outside the checkout, and two different drives, where no relative
+        # path exists at all. Both are measured there.
+        root = relative_to(repo, Path.cwd()).as_posix()
+        binder = bind(
+            pages,
+            read_from={"root": root, "revise": args.revise},
+            absent=args.include_absent,
+        )
+        missing = unaddressed(binder.paragraphs)
         if missing:
             print(_unaddressed(missing), file=sys.stderr)
             return 1
-        print(json.dumps(binder, indent=1, default=str))
+        # !! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE FLOW'S --
+        # `decision-log.md Process: #67`. This is the read flow's save end, and
+        # the only place a binder becomes text.
+        print(json.dumps(binder.serialize(), indent=1, default=str))
         return 0
 
     # !! NO TIER COUNTS, AND NO `tier` ON A ROW. Ruled 2026-08-24 -- Roy: *"their
@@ -396,7 +476,7 @@ def _report(args: argparse.Namespace) -> int:
         # compare. It fell through this test to the `holds_no_prose` branch
         # below, which is where it always belonged.
         if args.filtered and not args.include_matter and b.address:
-            if series_of(vars(b)) == COVERS:
+            if series_of(b) == COVERS:
                 # ! FLUSHED, NOT SKIPPED. Front matter is PROSE that this
                 # listing drops; a run that continued across it would claim no
                 # prose over a stretch that has some.
@@ -470,7 +550,12 @@ def _report(args: argparse.Namespace) -> int:
     # a row is, kept in `flows.census` beside the real one in `binder`. The
     # question is page-side (which paragraph OWES an address and lacks one) and
     # the paragraphs are already here, so the detour bought nothing.
-    missing = unaddressed([vars(b) for b in census])
+    #
+    # !! THE LAST OF THAT DETOUR WENT ON 2026-08-31 -- `Process: #67`. It read
+    # `unaddressed([vars(b) for b in census])`: the row was gone and the
+    # DICT-IFICATION remained, for no reason but a `list[dict]` signature.
+    # `unaddressed` now takes a `Paragraph`, so they go in as themselves.
+    missing = unaddressed(census)
     if missing:
         print("\n" + _unaddressed(missing))
         return 1

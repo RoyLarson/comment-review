@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 7 tasks done
+Progress: 0 of 7 tasks closed
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (the python_edge_cases.md run, 2026-08-19)
@@ -40,34 +40,37 @@ filtered view.
 
 ## Tasks
 
-- [ ] !! `mark_front_matter` asks ONE POSITIONAL QUESTION -- is this a comment run
-      ending before the module docstring starts -- and never asks whether the
-      prose is ABOUT THE FILE. So prose a reviewer placed to introduce the first
-      statement becomes a licence header the moment an `add` fills `a0`.
-- [ ] Measured end to end: the run's own `a0` edit turned its own `b1` edit into
-      front matter. On the finished file that prose is dropped from `--filtered`,
-      so no role sees it again, and any edit on it is auto-converted to a `query`
-      by `verdicts.py`.
-- [ ] ! The positional rule was MEASURED on real corpora where the only prose
-      above a module docstring WAS a licence -- 10 of 12 across five corpora. It
-      was never true that this tool could CREATE that arrangement itself. It can.
-- [ ] Narrow fix: decide front matter from the PROSE -- shebang, coding line,
-      licence-shaped -- which `_SHEBANG` and `_CODING` already half do, rather
-      than from position relative to a docstring.
-- [ ] !! BROAD QUESTION, and the reason this is not just a bug: ANNOTATIONS ARE
-      NOT STABLE UNDER THIS TOOL'S OWN EDITS. Addresses are -- `a` cannot renumber
-      because only a code change adds a declaration, and 7b proves none. Nothing
-      makes the equivalent promise for `front-matter`, `continues-a-trailing-
-      comment` or `doc-kind-unresolved`, and all three are computed from prose
-      positions this tool moves. Same run also flipped `continues-a-trailing-
-      comment` onto a run because its own `c` edit landed above it.
-- [ ] ! Round 2 re-censuses the galley, so a role re-reviews prose whose KIND and
-      ANNOTATIONS changed under it, and stage 8 reads a page whose first comment
-      run is invisible in the filtered view.
-- [ ] !! AND THE SHEBANG/CODING BRANCH HAS NO POSITION GUARD AT ALL. `page.py:589`
-      promises a rule that is *"POSITIONAL and deliberately narrow"*, but the
-      `_SHEBANG`/`_CODING` test runs over EVERY comment in the file. Reported
-      2026-08-20: `# the wire format is coding: utf-8 here` on line 5 is stamped
-      FRONT_MATTER, addressed `@b0`, and dropped from `Page.prose` -- so no
-      reviewer ever sees it. With a real coding line present too, two paragraphs
-      answer to `b0`. Same for a trailing comment.
+- [ ] T1 | !! `mark_front_matter` asks ONE POSITIONAL QUESTION -- is this a
+      comment run ending before the module docstring starts -- and never asks
+      whether the prose is ABOUT THE FILE. So prose a reviewer placed to
+      introduce the first statement becomes a licence header the moment an `add`
+      fills `a0`.
+- [ ] T2 | Measured end to end: the run's own `a0` edit turned its own `b1` edit
+      into front matter. On the finished file that prose is dropped from
+      `--filtered`, so no role sees it again, and any edit on it is
+      auto-converted to a `query` by `verdicts.py`.
+- [ ] T3 | ! The positional rule was MEASURED on real corpora where the only
+      prose above a module docstring WAS a licence -- 10 of 12 across five
+      corpora. It was never true that this tool could CREATE that arrangement
+      itself. It can.
+- [ ] T4 | Narrow fix: decide front matter from the PROSE -- shebang, coding
+      line, licence-shaped -- which `_SHEBANG` and `_CODING` already half do,
+      rather than from position relative to a docstring.
+- [ ] T5 | !! BROAD QUESTION, and the reason this is not just a bug: ANNOTATIONS
+      ARE NOT STABLE UNDER THIS TOOL'S OWN EDITS. Addresses are -- `a` cannot
+      renumber because only a code change adds a declaration, and 7b proves
+      none. Nothing makes the equivalent promise for `front-matter`,
+      `continues-a-trailing- comment` or `doc-kind-unresolved`, and all three
+      are computed from prose positions this tool moves. Same run also flipped
+      `continues-a-trailing- comment` onto a run because its own `c` edit landed
+      above it.
+- [ ] T6 | ! Round 2 re-censuses the galley, so a role re-reviews prose whose
+      KIND and ANNOTATIONS changed under it, and stage 8 reads a page whose
+      first comment run is invisible in the filtered view.
+- [ ] T7 | !! AND THE SHEBANG/CODING BRANCH HAS NO POSITION GUARD AT ALL.
+      `page.py:589` promises a rule that is *"POSITIONAL and deliberately
+      narrow"*, but the `_SHEBANG`/`_CODING` test runs over EVERY comment in the
+      file. Reported 2026-08-20: `# the wire format is coding: utf-8 here` on
+      line 5 is stamped FRONT_MATTER, addressed `@b0`, and dropped from
+      `Page.prose` -- so no reviewer ever sees it. With a real coding line
+      present too, two paragraphs answer to `b0`. Same for a trailing comment.

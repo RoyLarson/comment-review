@@ -27,6 +27,19 @@ SOURCES = {
     "trailing blanks": ("m.py", "x = 1\n\n\n"),
     "shebang": ("m.py", "#!/usr/bin/env python\nx = 1\n"),
     "function": ("m.py", 'def f():\n    """D."""\n    return 1\n'),
+    # !! THE SHAPE NONE OF THE OTHER 22 COULD EXPRESS. A docstring's closing
+    # delimiter carrying a trailing comment is claimed by BOTH readers -- the
+    # tokenizer types it `trailing-comment`, the AST gives the line to the
+    # docstring -- so the partition below is exactly what it breaks. The gate
+    # passed for as long as no source here held one.
+    "docstring closed with a comment": (
+        "m.py",
+        'def f():\n    """D.\n    """  # NOQA\n    return 1\n',
+    ),
+    "one-line docstring with a comment": (
+        "m.py",
+        'def f():\n    """D."""  # type: ignore\n    return 1\n',
+    ),
     "nested": ("m.py", "def f():\n    def g():\n        return 1\n    return g\n"),
     "class": ("m.py", 'class A:\n    """D."""\n\n    x = 1\n'),
     "only comments": ("m.py", "# one\n# two\n"),
@@ -232,10 +245,17 @@ class TestAPageCarriesTheShaItWasGiven:
         # A page built with a sha that does not describe its text keeps the sha
         # it was HANDED. If page.py hashed anything, this would disagree.
         path = Path("m.py")
-        page = page_for(path, SAMPLE, language_for(path), rel="m.py", sha="deadbeef")
+        lang = language_for(path)
+        assert lang is not None, f"no language record for suffix {path.suffix!r}"
+        page = page_for(path, SAMPLE, lang, rel="m.py", sha="deadbeef")
         assert page.sha == "deadbeef"
 
     def test_the_sha_is_required(self):
         path = Path("m.py")
+        lang = language_for(path)
+        assert lang is not None, f"no language record for suffix {path.suffix!r}"
         with pytest.raises(TypeError):
-            page_for(path, SAMPLE, language_for(path), rel="m.py")
+            # !! DELIBERATELY OMITS `sha` -- proves the keyword-only parameter
+            # is enforced at runtime. ty: ignore[missing-argument] because the
+            # call is invalid ON PURPOSE; that is what this test asserts.
+            page_for(path, SAMPLE, lang, rel="m.py")  # ty: ignore[missing-argument]

@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 3 of 3 tasks done
+Progress: 3 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-25 (xhigh wave C on feat/the-write-chain-of-command, finding 5)
@@ -73,9 +73,11 @@ and neither is demoting `f1`.
 
 ## Tasks
 
-- [x] Rule which of the closing gap and the back matter owns prose at the foot of
-      a file, and record it in docs/decision-log.md
-- [x] Make the losing place either unemitted or refusable at the EDIT step, so an
-      add there does not reach reread
-- [x] Pin the ruling with a test: an add at the foot reaches a draft, and the
-      address it must be cited at is the one the ruling names
+- [x] T1 | FINISHED | unknown | Rule which of the closing gap and the back
+      matter owns prose at the foot of a file, and record it in
+      docs/decision-log.md
+- [x] T2 | FINISHED | unknown | Make the losing place either unemitted or
+      refusable at the EDIT step, so an add there does not reach reread
+- [x] T3 | FINISHED | unknown | Pin the ruling with a test: an add at the foot
+      reaches a draft, and the address it must be cited at is the one the ruling
+      names

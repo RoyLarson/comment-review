@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 3 of 5 tasks done
+Progress: 3 of 5 tasks closed
 Owner:    systems
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22: the installed plugin traced itself back up to the
@@ -57,13 +57,18 @@ citation resolves nowhere. It is recorded here rather than repeated as a pointer
 
 ## Tasks
 
-- [x] T1 -- MEASURED 2026-08-22, re-measured 2026-08-23: `known_marketplaces.json` has
-      `roy-local` as `source=directory` on the working tree. Recorded in the Objective.
-- [x] T2 -- MEASURED 2026-08-22, re-measured 2026-08-23: the cached 0.2.3 holds ten
-      modules and none of the nine the address system is built from. In the Objective.
-- [x] T3 -- READ 2026-08-22. CLAUDE.md's release section describes the cache half only,
-      and never says a directory-source marketplace resolves live. In the Objective.
-- [ ] T4 -- * RULE whether the fix is to the INSTALL, to the DOCS, or to both --
-      candidates in the Objective. Verify: the ruling is in `docs/decision-log.md`.
-- [ ] T5 -- Give every measurement in `docs/` and `evidence/` that names a VERSION the
-      TREE it ran against. Verify: no such measurement cites a `vX.Y.Z` without a SHA.
+- [x] T1 | FINISHED | unknown | T1 -- MEASURED 2026-08-22, re-measured
+      2026-08-23: `known_marketplaces.json` has `roy-local` as
+      `source=directory` on the working tree. Recorded in the Objective.
+- [x] T2 | FINISHED | unknown | T2 -- MEASURED 2026-08-22, re-measured
+      2026-08-23: the cached 0.2.3 holds ten modules and none of the nine the
+      address system is built from. In the Objective.
+- [x] T3 | FINISHED | unknown | T3 -- READ 2026-08-22. CLAUDE.md's release
+      section describes the cache half only, and never says a directory-source
+      marketplace resolves live. In the Objective.
+- [?] T4 | T4 -- * RULE whether the fix is to the INSTALL, to the DOCS, or to
+      both -- candidates in the Objective. Verify: the ruling is in
+      `docs/decision-log.md`.
+- [ ] T5 | T5 -- Give every measurement in `docs/` and `evidence/` that names a
+      VERSION the TREE it ran against. Verify: no such measurement cites a
+      `vX.Y.Z` without a SHA.

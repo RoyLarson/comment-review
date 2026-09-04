@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 4 of 8 tasks done
+Progress: 5 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
@@ -20,6 +20,19 @@ TRIAGED:  2026-08-23 — the file carried each of three defects TWICE, once in s
           2026-08-22 and is re-verified below. Four remain, all re-measured today.
 SPLIT:    2026-08-23 -- every box cut to two lines. The measurements and the reasoning
           each carried are in the Objective, where they were already half-stated.
+Measured: 2026-08-29 — 2026-08-29 -- T1 DONE, and the mechanism was one layer lower than
+          page.py:708. paragraphs_stdlib CATCHES the parse failure and returns one
+          unparsed paragraph rather than raising, so commands/census.py's except never
+          fired; page_for then gave that page no addresses and carried() hands over only
+          addressed paragraphs, so even the paragraph reporting the refusal was filtered
+          away. MEASURED, one file per run over one nine-line control: the control
+          censused 11 paragraphs at exit 0, while a UTF-8 BOM, a syntax error, a NUL
+          byte and an unterminated string each censused 0 PARAGRAPHS AT EXIT 0 -- while
+          the same control's DECODE failures (latin-1, UTF-16) correctly exited 1. An
+          unparsed page now joins unreadable, so both failure modes have ONE outcome:
+          the file is named and the run exits 1, on the text path and on --json. ! T7 IS
+          UNTOUCHED -- a BOM'd file is now LOUD, not READ; the readers still open with
+          utf-8 rather than utf-8-sig.
 ```
 
 ## Objective
@@ -82,19 +95,26 @@ own file.
 
 ## Tasks
 
-- [ ] T1 -- Give an unparseable Python file ONE outcome at `page.py:708`, both failure
-      modes. Verify: censusing `x = = 1` exits non-zero, or its paragraphs are addressed.
-- [x] T2 -- SUPERSEDED by T7, which is the same defect stated in full with its
-      verification date. The BOM is one encoding argument in three readers.
-- [x] T3 -- SUPERSEDED by T6, which is the same defect stated in full and says what has to
-      be decided.
-- [x] T4 -- DONE 2026-08-20. An empty file now carries `a0`, `b0` and `b1`, so an empty
-      `__init__.py` is citable. Closed by the lexer/page split.
-- [ ] T5 -- Correct `references/compact.md:100` -- it says an `unparsed` file was not
-      censused, and it was. Verify: the row says the paragraphs carry no address.
-- [ ] T6 -- Refuse an `add` at the `a` place of a one-line declaration instead of writing
-      above the `def`. Verify: `galley.reset` returns a problem for that edit, not `[]`.
-- [ ] T7 -- Open the three readers with `utf-8-sig` -- `repo.py:52`, `census.py:336`,
-      `census.py:177`. Verify: a BOM'd `.py` censuses its module docstring.
-- [x] T8 -- DONE 2026-08-22. `census.py:566-568` flushes `--filtered` at a file boundary;
-      three fixtures print three headings. Measurement in the Objective.
+- [x] T1 | FINISHED | unknown | T1 -- Give an unparseable Python file ONE
+      outcome at `page.py:708`, both failure modes. Verify: censusing `x = = 1`
+      exits non-zero, or its paragraphs are addressed.
+- [x] T2 | FINISHED | unknown | T2 -- SUPERSEDED by T7, which is the same defect
+      stated in full with its verification date. The BOM is one encoding
+      argument in three readers.
+- [x] T3 | FINISHED | unknown | T3 -- SUPERSEDED by T6, which is the same defect
+      stated in full and says what has to be decided.
+- [x] T4 | FINISHED | unknown | T4 -- DONE 2026-08-20. An empty file now carries
+      `a0`, `b0` and `b1`, so an empty `__init__.py` is citable. Closed by the
+      lexer/page split.
+- [ ] T5 | T5 -- Correct `references/compact.md:100` -- it says an `unparsed`
+      file was not censused, and it was. Verify: the row says the paragraphs
+      carry no address.
+- [ ] T6 | T6 -- Refuse an `add` at the `a` place of a one-line declaration
+      instead of writing above the `def`. Verify: `galley.reset` returns a
+      problem for that edit, not `[]`.
+- [ ] T7 | T7 -- Open the three readers with `utf-8-sig` -- `repo.py:52`,
+      `census.py:336`, `census.py:177`. Verify: a BOM'd `.py` censuses its
+      module docstring.
+- [x] T8 | FINISHED | unknown | T8 -- DONE 2026-08-22. `census.py:566-568`
+      flushes `--filtered` at a file boundary; three fixtures print three
+      headings. Measurement in the Objective.

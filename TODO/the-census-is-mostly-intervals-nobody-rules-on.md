@@ -2,9 +2,9 @@
 
 ```
 Status:   in-progress
-Progress: 13 of 25 tasks done
+Progress: 13 of 25 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-18, from measuring what a reviewer is handed before it works
 Triaged:  2026-08-23 -- the filter SHIPPED and is what stage 4 hands a reviewer. Eleven
           of the twenty boxes were rulings, measurements or reasoning, or had landed;
@@ -208,56 +208,80 @@ mock-up and matches nothing in the tree.
 
 ## Tasks
 
-- [x] T1 -- RULED 2026-08-18: the filter ships and the reviewer is handed the TOOL, not
-      the whole census. The ruling and what follows from it are in the Objective.
-- [x] T2 -- FINISHED. The lookup is `scripts/addresser.py --census <CENSUS> --anchor LINE
-      --series a|b|c`. Why it stayed that narrow is in the Objective.
-- [x] T3 -- FINISHED. A `move` destination that is not an address is refused, which is
-      rule 4. The two refusal messages are quoted in the Objective.
-- [ ] T4 -- Grow the filtered table between rounds so rule 5 holds at 5b. Verify: a place
-      cited in round 1 appears in the round-2 handout.
-- [ ] T5 -- Grow it for EVERY role, not only the role that cited. Verify: all four round-2
-      handouts carry that place.
-- [ ] T6 -- Test that a filtered census carries every prose paragraph's ADDRESS unchanged
-      from the full one. Verify: a multi-file census test fails if any address differs.
-- [x] T7 -- FINISHED, and neither "drop them" nor "keep them": a run of prose-less places
-      collapses to ONE row that names its ends. Example in the Objective.
-- [x] T8 -- FINISHED for the byte half, re-measured 2026-08-19 (`SKILL.md:346-348`). ! The
-      other half of the claim -- *without a verdict changing* -- is T11's.
-- [ ] T9 -- Record which of `verdicts.py`, `galley.py`, `record.py` and `addresser.py`
-      read the census in full. Verify: each of the four is named here as full or filtered.
-- [ ] T10 -- Check that survey against T8 of `the-bridge-landed-and-the-rewrite-did-not`.
-      Verify: both name the same set of full-census readers.
-- [ ] T11 -- Re-run `evidence/cycle-0.2.3/` filtered and full and diff the verdicts.
-      Verify: the mix differs only in which places were cited, or the filter is wrong.
-- [x] T12 -- FINISHED, and the OPPOSITE of what the box proposed: the record carries no
-      `side`, because the address carries it. `record.py:327-332`, in the Objective.
-- [x] T13 -- FINISHED. `--filtered` collapses on `Kind.holds_no_prose` (`census.py:576`),
-      not on one kind. Verified 2026-08-23: 0 bare `margin` rows over two shipped scripts.
-- [ ] T14 -- Resolve `<skill>` in `reviewer-brief.md:210` to a path a reviewer is given.
-      Verify: it comes from a packet section not in `TASK_AGENT_ONLY`.
-- [ ] T15 -- Resolve `<FULL CENSUS>` in `reviewer-brief.md:210`; the packet field is
-      `LOOKUP CENSUS`. Verify: the file names that field instead.
-- [ ] T16 -- Check every other placeholder in `reviewer-brief.md`. Verify: each names a
-      packet section a reviewer is given.
-- [ ] T17 -- Define every `kind` the census listing can print where a reviewer reads it.
-      Verify: each of the nine kinds measured 2026-08-23 is in `reviewer-brief.md`.
-- [ ] T18 -- Ship a column legend with the census listing itself. Verify: a filtered
-      listing handed to a reviewer carries a legend, without reading `SKILL.md`.
-- [ ] T19 -- * Rule the page rendering, deferred by Roy 2026-08-21; the open questions are
-      in the Objective. Verify: the ruling is in `docs/decision-log.md`.
-- [x] T20 -- Not a task. The single-file rendering number was a MEASUREMENT and is
-      superseded by the 26-file run. Both are in the Objective.
-- [x] T21 -- FINISHED. "Re-measure across languages" was done 2026-08-21: the 26-file run
-      includes a `.c` and a `.ts`, and those are where the margin wins hardest.
-- [x] T22 -- Not a task. "THE RECORDS BELONG ON THE PAGE" is a requirement ON the deferred
-      proposal and is in the Objective. It becomes work the day T19 is ruled.
-- [x] T23 -- Not a task. "IT IS A DISPLAY THEY CALL UP" is the argument that the rendering
-      composes with the filtered handout rather than replacing it. Kept in the Objective.
-- [x] T24 -- Not a task. "WHAT IS STILL OPEN in the proposal" enumerates three unruled
-      questions; they are what T19 rules on, and they are listed in the Objective.
-- [x] T25 -- Not a task. The 26-file measurement is a MEASUREMENT, and
-      `scripts/render_page.py` is in the tree so it can be re-taken. In the Objective.
+- [x] T1 | FINISHED | unknown | T1 -- RULED 2026-08-18: the filter ships and the
+      reviewer is handed the TOOL, not the whole census. The ruling and what
+      follows from it are in the Objective.
+- [x] T2 | FINISHED | unknown | T2 -- FINISHED. The lookup is
+      `scripts/addresser.py --census <CENSUS> --anchor LINE --series a\|b\|c`.
+      Why it stayed that narrow is in the Objective.
+- [x] T3 | FINISHED | unknown | T3 -- FINISHED. A `move` destination that is not
+      an address is refused, which is rule 4. The two refusal messages are
+      quoted in the Objective.
+- [ ] T4 | T4 -- Grow the filtered table between rounds so rule 5 holds at 5b.
+      Verify: a place cited in round 1 appears in the round-2 handout.
+- [ ] T5 | T5 -- Grow it for EVERY role, not only the role that cited. Verify:
+      all four round-2 handouts carry that place.
+- [ ] T6 | T6 -- Test that a filtered census carries every prose paragraph's
+      ADDRESS unchanged from the full one. Verify: a multi-file census test
+      fails if any address differs.
+- [x] T7 | FINISHED | unknown | T7 -- FINISHED, and neither "drop them" nor
+      "keep them": a run of prose-less places collapses to ONE row that names
+      its ends. Example in the Objective.
+- [x] T8 | FINISHED | unknown | T8 -- FINISHED for the byte half, re-measured
+      2026-08-19 (`SKILL.md:346-348`). ! The other half of the claim -- *without
+      a verdict changing* -- is T11's.
+- [ ] T9 | T9 -- Record which of `verdicts.py`, `galley.py`, `record.py` and
+      `addresser.py` read the census in full. Verify: each of the four is named
+      here as full or filtered.
+- [ ] T10 | T10 -- Check that survey against T8 of
+      `the-bridge-landed-and-the-rewrite-did-not`. Verify: both name the same
+      set of full-census readers.
+- [ ] T11 | T11 -- Re-run `evidence/cycle-0.2.3/` filtered and full and diff the
+      verdicts. Verify: the mix differs only in which places were cited, or the
+      filter is wrong.
+- [x] T12 | FINISHED | unknown | T12 -- FINISHED, and the OPPOSITE of what the
+      box proposed: the record carries no `side`, because the address carries
+      it. `record.py:327-332`, in the Objective.
+- [x] T13 | FINISHED | unknown | T13 -- FINISHED. `--filtered` collapses on
+      `Kind.holds_no_prose` (`census.py:576`), not on one kind. Verified
+      2026-08-23: 0 bare `margin` rows over two shipped scripts.
+- [ ] T14 | T14 -- Resolve `<skill>` in `reviewer-brief.md:210` to a path a
+      reviewer is given. Verify: it comes from a packet section not in
+      `TASK_AGENT_ONLY`.
+- [ ] T15 | T15 -- Resolve `<FULL CENSUS>` in `reviewer-brief.md:210`; the
+      packet field is `LOOKUP CENSUS`. Verify: the file names that field
+      instead.
+- [ ] T16 | T16 -- Check every other placeholder in `reviewer-brief.md`. Verify:
+      each names a packet section a reviewer is given.
+- [ ] T17 | T17 -- Define every `kind` the census listing can print where a
+      reviewer reads it. Verify: each of the nine kinds measured 2026-08-23 is
+      in `reviewer-brief.md`.
+- [ ] T18 | T18 -- Ship a column legend with the census listing itself. Verify:
+      a filtered listing handed to a reviewer carries a legend, without reading
+      `SKILL.md`.
+- [?] T19 | T19 -- * Rule the page rendering, deferred by Roy 2026-08-21; the
+      open questions are in the Objective. Verify: the ruling is in
+      `docs/decision-log.md`.
+        > 2026-09-02 Deferred by Roy 2026-08-21; decision-log ends at 78 with no entry
+        > 2026-09-02 audit: a ruling made invisible by the marks migration
+- [x] T20 | FINISHED | unknown | T20 -- Not a task. The single-file rendering
+      number was a MEASUREMENT and is superseded by the 26-file run. Both are in
+      the Objective.
+- [x] T21 | FINISHED | unknown | T21 -- FINISHED. "Re-measure across languages"
+      was done 2026-08-21: the 26-file run includes a `.c` and a `.ts`, and
+      those are where the margin wins hardest.
+- [x] T22 | FINISHED | unknown | T22 -- Not a task. "THE RECORDS BELONG ON THE
+      PAGE" is a requirement ON the deferred proposal and is in the Objective.
+      It becomes work the day T19 is ruled.
+- [x] T23 | FINISHED | unknown | T23 -- Not a task. "IT IS A DISPLAY THEY CALL
+      UP" is the argument that the rendering composes with the filtered handout
+      rather than replacing it. Kept in the Objective.
+- [x] T24 | FINISHED | unknown | T24 -- Not a task. "WHAT IS STILL OPEN in the
+      proposal" enumerates three unruled questions; they are what T19 rules on,
+      and they are listed in the Objective.
+- [x] T25 | FINISHED | unknown | T25 -- Not a task. The 26-file measurement is a
+      MEASUREMENT, and `scripts/render_page.py` is in the tree so it can be
+      re-taken. In the Objective.
 ## Related
 
 - [`verdicts-py-announces-one-subject-and-holds-four`](completed/verdicts-py-announces-one-subject-and-holds-four.md)

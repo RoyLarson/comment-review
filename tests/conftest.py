@@ -19,7 +19,7 @@ the new one."* The old suite is gone; `gates/` beside this is the part that
 survived, because it asks a different question -- whether a GATE still bites,
 over `scripts/` and the release rather than over the code under redesign.
 
-    uv run pytest            779 passed, 3 xfailed, ~1.5s
+    uv run pytest            1032 passed, 1 skipped, 3 xfailed, 480 subtests, ~2s
 
 ! IT RUNS IN A TENTH OF THE TIME the old suite took, which is a consequence
 rather than a goal: nothing here starts a subprocess to ask a question that can
@@ -35,8 +35,13 @@ FULL page -- fences included -- and none of what a binder carries.
     reading -> binder     what an agent is handed
     page -> galley -> compositor    the write path, from a freshly read page
 
-!! NOTHING TOUCHES THE DESK, THE VERDICTS OR THE RECORD. Roy: *"There is code
-there none of it is correct so testing it is solidifying wrong."*
+!! NEITHER THE VERDICTS NOR THE RECORD IS TOUCHED -- neither exists in `src/`,
+only in `prototype/`, which does not run. Roy: *"There is code there none of it
+is correct so testing it is solidifying wrong."* ! `desk/mark.py` is the
+EXCEPTION, since 2026-08-28: `tests/test_mark.py` and `tests/test_mark_brief.py`
+test it directly, once the port's own defect
+(`TODO/the-ported-mark-does-not-fit-the-brief.md`) made it worth testing.
+`desk/external_address.py` remains untouched here.
 
 ! AND THE FRONT-MATTER/`b` COLLISION IS OFF LIMITS -- a file whose front matter
 is not on line 1. It is a known normalisation, ruled a sacrifice rather than a
@@ -57,10 +62,13 @@ PKG = SRC / "comment_review"
 
 sys.path.insert(0, str(SRC))
 
+from comment_review.binder.binder import Binder  # noqa: E402
 from comment_review.binder.page import page_for  # noqa: E402
+from comment_review.docket.docket import Docket  # noqa: E402
 from comment_review.machine.repo import sha_of  # noqa: E402
 from comment_review.reading.addresser import cue_of, unflatten  # noqa: E402
 from comment_review.reading.lexer import language_for  # noqa: E402
+from comment_review.reading.paragraph import Paragraph  # noqa: E402
 
 
 def build(text: str, name: str = "m.py"):
@@ -74,7 +82,9 @@ def build(text: str, name: str = "m.py"):
     a disk. `read_source` is what supplies it in the running system.
     """
     path = Path(name)
-    return page_for(path, text, language_for(path), rel=name, sha=sha_of(text))
+    lang = language_for(path)
+    assert lang is not None, f"no language record for suffix {path.suffix!r}"
+    return page_for(path, text, lang, rel=name, sha=sha_of(text))
 
 
 def cue(paragraph) -> str:
@@ -82,7 +92,7 @@ def cue(paragraph) -> str:
     return (paragraph.address or "").split("@")[-1]
 
 
-def by_cue(page) -> dict[str, object]:
+def by_cue(page) -> dict[str, Paragraph]:
     """Every addressed place on the page, keyed by its cue."""
     return {cue(b): b for b in page.paragraphs if b.address}
 
@@ -132,7 +142,15 @@ REPLACEMENT = {
 }
 
 
-def docket_from(flat: dict, binder: dict) -> dict:
+#: `bind()` has required `read_from` since `the-flow-assumes-every-role-reads-at-once`
+#: T2. A page built by `build()` above is text handed straight to `page_for`, never
+#: read off a census root, so there is no real root to name for it -- this stands in
+#: for the tests below that exercise `bind()` in isolation and assert nothing about
+#: `read_from` itself.
+READ_FROM = {"root": "<synthetic>", "revise": 0}
+
+
+def docket_from(flat: dict, binder: Binder) -> Docket:
     """A nested docket from `{address: text}` plus the binder those addresses cite.
 
     !! A TEST-ONLY ADAPTER, and it exists so the chain's cases keep testing the
@@ -147,22 +165,52 @@ def docket_from(flat: dict, binder: dict) -> dict:
     through this function -- which is the point, since a fixture built by the
     same code it feeds can only agree with it.
     """
-    paths = [str(p.get("path", "")) for p in binder.get("pages", [])]
-    shas = {str(p.get("path", "")): str(p.get("sha", "")) for p in binder["pages"]}
+    paths = [p.path for p in binder.pages]
+    shas = {p.path: p.sha for p in binder.pages}
     pages: dict[str, list[dict]] = {}
     for address, text in flat.items():
         addr = cue_of(address)
         rel = unflatten(str(addr.path), paths) or str(addr.path)
         pages.setdefault(rel, []).append({"cue": str(addr.cue), "text": text})
-    return {
+    wire = {
         "pages": [
             {"path": rel, "sha": shas.get(rel, ""), "alterations": alterations}
             for rel, alterations in sorted(pages.items())
         ]
     }
+    # !! THROUGH THE BOUNDARY, since 2026-08-31. The wire stays hand-written --
+    # this docstring already says a fixture built by the code it feeds can only
+    # agree with it -- and `Docket.deserialize` is what the write flow receives.
+    got, problems = Docket.deserialize("a test docket", wire)
+    assert got is not None, problems
+    return got
 
 
 @pytest.fixture
 def sample():
     """A fresh page over `SAMPLE`. Fresh, because the galley MUTATES a page."""
     return build(SAMPLE)
+
+
+def run_command(monkeypatch, capsys, command, *argv):
+    """One command, through its own `main()` and its own argument parsing.
+
+    !! THROUGH `main()` AND `sys.argv`, NOT BY CALLING THE FLOW. That is the
+    only thing that catches an argparse flag whose body reads it under a
+    different name. MEASURED 2026-08-26: renaming `--notations` to `--docket`
+    left the body reading `args.alterations` and raised `AttributeError` past
+    946 green tests, ruff, ty, the build gate and the floor check.
+
+    ! `argv[0]` IS DERIVED FROM THE MODULE, not passed in -- a hand-typed
+    program name is a second place for the command's own name to drift from
+    `__main__.COMMANDS`.
+
+    Args:
+        command: the `comment_review.commands.*` module to run.
+        argv: the flags, without the program name.
+
+    Returns:
+        `(exit code, everything it printed to stdout)`.
+    """
+    monkeypatch.setattr("sys.argv", [command.__name__.rsplit(".", 1)[-1], *argv])
+    return command.main(), capsys.readouterr().out

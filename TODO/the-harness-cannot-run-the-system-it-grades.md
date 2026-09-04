@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 10 of 31 tasks done
+Progress: 10 of 31 tasks closed
 Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-18, after a run whose only question needed one role and cost four
@@ -297,68 +297,91 @@ to end, so the dominance claim waits on something that can disagree with it.
 
 ## Tasks
 
-- [x] T1 -- RULED 2026-08-18 by Roy: a reduced set is SUPPORTED and `ownership-context` is
-      NON-NEGOTIABLE; the legal sets are in the Objective.
-- [x] T2 -- FINISHED 2026-08-18, `d3aa065`: the ANCHORING-against-ASSERTION sentence ships
-      in `agents/comment-review-ownership-context.md`, verified 2026-08-23.
-- [x] T3 -- RULED 2026-08-18 by Roy: the scope is the PROJECT, and it shipped in
-      `d3aa065`.
-- [ ] T4 -- State the residual cost of a reduced run -- every truth finding
+- [x] T1 | FINISHED | unknown | T1 -- RULED 2026-08-18 by Roy: a reduced set is
+      SUPPORTED and `ownership-context` is NON-NEGOTIABLE; the legal sets are in
+      the Objective.
+- [x] T2 | FINISHED | unknown | T2 -- FINISHED 2026-08-18, `d3aa065`: the
+      ANCHORING-against-ASSERTION sentence ships in
+      `agents/comment-review-ownership-context.md`, verified 2026-08-23.
+- [x] T3 | FINISHED | unknown | T3 -- RULED 2026-08-18 by Roy: the scope is the
+      PROJECT, and it shipped in `d3aa065`.
+- [ ] T4 | T4 -- State the residual cost of a reduced run -- every truth finding
       uncorroborated. Verify: the collator's report says so, not only this file.
-- [ ] T5 -- Rewrite stage 5's synthesis so it states no population count; `SKILL.md:813`,
-      `:847` and `:843-844` each assume four. Verify: the section names no count.
-- [ ] T6 -- Say in stage 5 that the synthesis ORDER is about verdict kinds, not roles.
-      Verify: it reads correctly for one role filing three marks.
-- [ ] T7 -- Make every stage-5 rule that names a role say what happens when that role did
-      not run. Verify: no rule naming a role is silent on its absence.
-- [x] T8 -- RULED 2026-08-18: `ownership-context` is never optional, so "who governs
-      instead" does not arise and the placement precedence stays as written.
-- [ ] T9 -- Make the collator name the reporting set even with no `--reviewers`. Verify: a run
-      without it prints which roles reported.
-- [ ] T10 -- Where the set is short of four, make the collator name whose corroboration is
-      absent. Verify: a three-role report names it.
-- [ ] T11 -- Give a MARK-level case its terminus in writing: stage 4's record file.
-      Verify: a case asserts on one and `git status --short` is empty.
-- [x] T12 -- RULED 2026-08-18 by Roy: a fixture is a CHECKOUT AT A HASH and this repo's
-      own history is a source; the mechanism ships.
-- [ ] T13 -- Answer how much context an extracted case copies, given the packet's
-      REFERENCE ONLY files. Verify: re-run a case without them, compare verdicts.
-- [ ] T14 -- Survey public histories for a commit whose prose and code disagree, and its
-      later fix. Verify: one such pair is a row in `evals/test-cases.jsonl`.
-- [ ] T15 -- * Rule what executes a `test-cases.jsonl` row: a script in this repo or
-      `skill-creator`. Verify: the answer is written into this file.
-- [ ] T16 -- Build that runner. Verify: one command runs one row by `id` and exits nonzero
-      on a miss.
-- [x] T17 -- SUPERSEDED: `evals/evals.json` is gone and the `assertions` field it wanted
-      exists as `expected`, `observed` and `outcome` on every `test-cases.jsonl` row.
-- [ ] T18 -- Run the six `evals/test-cases.jsonl` cases through `skill-creator`. Verify: a
-      `benchmark.json` exists and reports a delta; today none does.
-- [x] T19 -- SUPERSEDED: `grade_hazards.py` is not in this tree and is not returning in
-      that form; the guidance it carried is in the Objective and belongs to T26 to T29.
-- [x] T20 -- FINISHED: the first role case and its answer key are written, at
-      `evals/test-cases.jsonl` row `module-context-widens-a-two-subject-docstring`.
-- [ ] T21 -- Make the parent of the 2026-08-16 hand pass a case. Verify: a row in
-      `evals/test-cases.jsonl` pins that parent commit and names the files.
-- [ ] T22 -- * Decide whether to ask for `claude plugin eval` early access. Verify: the
-      decision and its reason are written into this file.
-- [x] T23 -- SUPERSEDED: both `todo-tool` packages were removed 2026-08-23 and the subject
-      repo is private, so the DISCOVERY measurement they would have supplied falls to T14.
-- [x] T24 -- MOOT 2026-08-18: both subject commits were already on `origin`; the rule it
-      leaves -- ask the remote, not the clone -- is in the Objective.
-- [ ] T25 -- Run `/comment-review` over the self-test range `d96b10d..7026646`. Verify:
-      one row has a run, with its verdicts beside the answer-key diff.
-- [ ] T26 -- Restate the twelve hazards, each named precisely enough to score without the
-      code it was found in. Verify: twelve restatements, none quoting.
-- [ ] T27 -- Plant the restated set on a corpus `corpora/corpora.toml` materialises.
-      Verify: the base is a manifest row rather than a hardcoded path.
-- [ ] T28 -- Write the scorer for the restated set. Verify: one script scores a worktree
-      against the twelve and exits nonzero on a miss.
-- [ ] T29 -- Make the two hazards no text probe separates report NEEDS-EYES rather than a
-      pass. Verify: scoring a worktree that ignored either returns NEEDS-EYES.
-- [ ] T30 -- Recover the v0.1.0-vs-v0.2.0 recall figure into `evidence/`, or record it
-      lost. Verify: a reader finds it without reading a run transcript.
-- [ ] T31 -- Score the page against BOTH prior formats, on the dominance criterion.
-      Verify: more info than filtered, fewer tokens than unfiltered, recall >= filtered.
+- [ ] T5 | T5 -- Rewrite stage 5's synthesis so it states no population count;
+      `SKILL.md:813`, `:847` and `:843-844` each assume four. Verify: the
+      section names no count.
+- [ ] T6 | T6 -- Say in stage 5 that the synthesis ORDER is about verdict kinds,
+      not roles. Verify: it reads correctly for one role filing three marks.
+- [ ] T7 | T7 -- Make every stage-5 rule that names a role say what happens when
+      that role did not run. Verify: no rule naming a role is silent on its
+      absence.
+- [x] T8 | FINISHED | unknown | T8 -- RULED 2026-08-18: `ownership-context` is
+      never optional, so "who governs instead" does not arise and the placement
+      precedence stays as written.
+- [ ] T9 | T9 -- Make the collator name the reporting set even with no
+      `--reviewers`. Verify: a run without it prints which roles reported.
+- [ ] T10 | T10 -- Where the set is short of four, make the collator name whose
+      corroboration is absent. Verify: a three-role report names it.
+- [ ] T11 | T11 -- Give a MARK-level case its terminus in writing: stage 4's
+      record file. Verify: a case asserts on one and `git status --short` is
+      empty.
+- [x] T12 | FINISHED | unknown | T12 -- RULED 2026-08-18 by Roy: a fixture is a
+      CHECKOUT AT A HASH and this repo's own history is a source; the mechanism
+      ships.
+- [ ] T13 | T13 -- Answer how much context an extracted case copies, given the
+      packet's REFERENCE ONLY files. Verify: re-run a case without them, compare
+      verdicts.
+- [ ] T14 | T14 -- Survey public histories for a commit whose prose and code
+      disagree, and its later fix. Verify: one such pair is a row in
+      `evals/test-cases.jsonl`.
+- [?] T15 | T15 -- * Rule what executes a `test-cases.jsonl` row: a script in
+      this repo or `skill-creator`. Verify: the answer is written into this
+      file.
+- [ ] T16 | T16 -- Build that runner. Verify: one command runs one row by `id`
+      and exits nonzero on a miss.
+- [x] T17 | FINISHED | unknown | T17 -- SUPERSEDED: `evals/evals.json` is gone
+      and the `assertions` field it wanted exists as `expected`, `observed` and
+      `outcome` on every `test-cases.jsonl` row.
+- [ ] T18 | T18 -- Run the six `evals/test-cases.jsonl` cases through
+      `skill-creator`. Verify: a `benchmark.json` exists and reports a delta;
+      today none does.
+- [x] T19 | FINISHED | unknown | T19 -- SUPERSEDED: `grade_hazards.py` is not in
+      this tree and is not returning in that form; the guidance it carried is in
+      the Objective and belongs to T26 to T29.
+- [x] T20 | FINISHED | unknown | T20 -- FINISHED: the first role case and its
+      answer key are written, at `evals/test-cases.jsonl` row
+      `module-context-widens-a-two-subject-docstring`.
+- [ ] T21 | T21 -- Make the parent of the 2026-08-16 hand pass a case. Verify: a
+      row in `evals/test-cases.jsonl` pins that parent commit and names the
+      files.
+- [?] T22 | T22 -- * Decide whether to ask for `claude plugin eval` early
+      access. Verify: the decision and its reason are written into this file.
+- [x] T23 | FINISHED | unknown | T23 -- SUPERSEDED: both `todo-tool` packages
+      were removed 2026-08-23 and the subject repo is private, so the DISCOVERY
+      measurement they would have supplied falls to T14.
+- [x] T24 | FINISHED | unknown | T24 -- MOOT 2026-08-18: both subject commits
+      were already on `origin`; the rule it leaves -- ask the remote, not the
+      clone -- is in the Objective.
+- [ ] T25 | T25 -- Run `/comment-review` over the self-test range
+      `d96b10d..7026646`. Verify: one row has a run, with its verdicts beside
+      the answer-key diff.
+- [ ] T26 | T26 -- Restate the twelve hazards, each named precisely enough to
+      score without the code it was found in. Verify: twelve restatements, none
+      quoting.
+- [ ] T27 | T27 -- Plant the restated set on a corpus `corpora/corpora.toml`
+      materialises. Verify: the base is a manifest row rather than a hardcoded
+      path.
+- [ ] T28 | T28 -- Write the scorer for the restated set. Verify: one script
+      scores a worktree against the twelve and exits nonzero on a miss.
+- [ ] T29 | T29 -- Make the two hazards no text probe separates report
+      NEEDS-EYES rather than a pass. Verify: scoring a worktree that ignored
+      either returns NEEDS-EYES.
+- [ ] T30 | T30 -- Recover the v0.1.0-vs-v0.2.0 recall figure into `evidence/`,
+      or record it lost. Verify: a reader finds it without reading a run
+      transcript.
+- [ ] T31 | T31 -- Score the page against BOTH prior formats, on the dominance
+      criterion. Verify: more info than filtered, fewer tokens than unfiltered,
+      recall >= filtered.
 
 ## What this costs today
 

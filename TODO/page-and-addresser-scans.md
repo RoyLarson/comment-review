@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 2 of 8 tasks done
+Progress: 2 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (C:/Program Files/Git/simplify rounds 1 and 2 and /code-review high
@@ -66,19 +66,24 @@ a run.
 
 ## Tasks
 
-- [x] T1 -- FIXED 2026-08-23. Both call sites ask `unaddressed(paragraphs)`. The
-      two-answers measurement is in the Objective.
-- [ ] T2 -- Make `addresser.unaddressed` and `_check` group by path ONCE, not rescan.
-      Verify: the iteration count falls and `--check` reports the same addresses.
-- [ ] T3 -- Stop `page.fill_the_gaps` being O(code x paragraphs). Verify: the steps are
-      not the product and the fixture census is byte-identical.
-- [ ] T4 -- Stop `page.tie_leading` being O(code x paragraphs). Verify: the steps are not
-      the product and the fixture census is byte-identical.
-- [ ] T5 -- Stop `page.declarations()` running TWICE per file (`page.py:420`, `:726`).
-      Verify: `grep -n 'declarations(' page.py` returns ONE call site, census unchanged.
-- [ ] T6 -- Stop `addresser.for_anchor` reading census-entry fields its own rule does not
-      name. Verify: it reads only what `series_of(address)` names.
-- [x] T7 -- FIXED 2026-08-23. `documentable` is annotated as the three-tuple the walk
-      unpacks, and the Args block says so. The contradiction as filed is in the Objective.
-- [ ] T8 -- Put a before and an after number in this file, from a 200-file run. Verify:
-      this file carries both a wall-clock and an iteration count, not a prediction.
+- [x] T1 | FINISHED | unknown | T1 -- FIXED 2026-08-23. Both call sites ask
+      `unaddressed(paragraphs)`. The two-answers measurement is in the
+      Objective.
+- [ ] T2 | T2 -- Make `addresser.unaddressed` and `_check` group by path ONCE,
+      not rescan. Verify: the iteration count falls and `--check` reports the
+      same addresses.
+- [ ] T3 | T3 -- Stop `page.fill_the_gaps` being O(code x paragraphs). Verify:
+      the steps are not the product and the fixture census is byte-identical.
+- [ ] T4 | T4 -- Stop `page.tie_leading` being O(code x paragraphs). Verify: the
+      steps are not the product and the fixture census is byte-identical.
+- [ ] T5 | T5 -- Stop `page.declarations()` running TWICE per file
+      (`page.py:420`, `:726`). Verify: `grep -n 'declarations(' page.py` returns
+      ONE call site, census unchanged.
+- [ ] T6 | T6 -- Stop `addresser.for_anchor` reading census-entry fields its own
+      rule does not name. Verify: it reads only what `series_of(address)` names.
+- [x] T7 | FINISHED | unknown | T7 -- FIXED 2026-08-23. `documentable` is
+      annotated as the three-tuple the walk unpacks, and the Args block says so.
+      The contradiction as filed is in the Objective.
+- [ ] T8 | T8 -- Put a before and an after number in this file, from a 200-file
+      run. Verify: this file carries both a wall-clock and an iteration count,
+      not a prediction.

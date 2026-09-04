@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 3 of 11 tasks done
+Progress: 5 of 11 tasks closed
 Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-22 (Roy, 2026-08-22: that whole system of from census to findings to
@@ -71,25 +71,36 @@ statement is one per boundary, with the fields NAMED, and every named field is e
 
 ## Tasks
 
-- [x] T1 -- NOT A TASK, restated in the Objective: THE BACKEND NOW WORKS, measured
-      2026-08-22, which is what makes this askable. A measurement is not a checkpoint.
-- [x] T2 -- NOT A TASK: the seven related TODOs are already filed, so this is a hub rather
-      than a duplicate. Restated in the Objective.
-- [x] T3 -- NOT A TASK: the record/verdicts findings are filed on
-      `record-and-verdicts-disagree` and deferred there. Restated in the Objective.
-- [ ] T4 -- * **RULE WHAT A REVIEWER IS HANDED** -- which of the census row's 19 fields
-      the four roles need. Verify: the ruling names them and is recorded in this file.
-- [ ] T5 -- * **RULE WHAT A FINDING IS**, `claim` included. Verify: the ruling is recorded
-      in this file and `claim-fallback-is-unreachable` can move on it.
-- [ ] T6 -- * **RULE WHAT THE COLLATOR CERTIFIES**, and where a coverage gap goes. Verify: the
-      ruling is recorded in this file.
-- [ ] T7 -- * Rule which of `record.py --check` and `verdicts.py` is right where they
-      disagree. Verify: the ruling is recorded in this file.
-- [ ] T8 -- **State what crosses CENSUS -> REVIEWER, with the fields named.** Verify: each
-      field is a key `census.py --json` emits or one this determination adds.
-- [ ] T9 -- **State what crosses REVIEWER -> RECORD, with the fields named.** Verify:
-      every field it names is a key a record slot carries or one this determination adds.
-- [ ] T10 -- **State what crosses RECORD -> VERDICT, with the fields named.** Verify:
-      every field it names is one `verdicts.py` reads or one this determination adds.
-- [ ] T11 -- **Reconcile the seven filed TODOs against those three statements.** Verify:
-      each is a task under a statement or ticked as superseded by it.
+- [x] T1 | FINISHED | unknown | T1 -- NOT A TASK, restated in the Objective: THE
+      BACKEND NOW WORKS, measured 2026-08-22, which is what makes this askable.
+      A measurement is not a checkpoint.
+- [x] T2 | FINISHED | unknown | T2 -- NOT A TASK: the seven related TODOs are
+      already filed, so this is a hub rather than a duplicate. Restated in the
+      Objective.
+- [x] T3 | FINISHED | unknown | T3 -- NOT A TASK: the record/verdicts findings
+      are filed on `record-and-verdicts-disagree` and deferred there. Restated
+      in the Objective.
+- [?] T4 | T4 -- * **RULE WHAT A REVIEWER IS HANDED** -- which of the census
+      row's 19 fields the four roles need. Verify: the ruling names them and is
+      recorded in this file.
+- [?] T5 | T5 -- * **RULE WHAT A FINDING IS**, `claim` included. Verify: the
+      ruling is recorded in this file and `claim-fallback-is-unreachable` can
+      move on it.
+- [?] T6 | T6 -- * **RULE WHAT THE COLLATOR CERTIFIES**, and where a coverage
+      gap goes. Verify: the ruling is recorded in this file.
+- [?] T7 | T7 -- * Rule which of `record.py --check` and `verdicts.py` is right
+      where they disagree. Verify: the ruling is recorded in this file.
+- [ ] T8 | T8 -- **State what crosses CENSUS -> REVIEWER, with the fields
+      named.** Verify: each field is a key `census.py --json` emits or one this
+      determination adds.
+- [-] T9 | SUPERSEDED -- the RECORD end left src/ for prototype/original/; decision-log 14 replaced reviewer-record-verdict with the alteration chain | b50e7a4 | T9
+      -- **State what crosses REVIEWER -> RECORD, with the fields named.**
+      Verify: every field it names is a key a record slot carries or one this
+      determination adds.
+- [-] T10 | SUPERSEDED -- both ends left src/ for prototype/original/; neither verdicts.py nor record.py runs | b50e7a4 | T10
+      -- **State what crosses RECORD -> VERDICT, with the fields named.**
+      Verify: every field it names is one `verdicts.py` reads or one this
+      determination adds.
+- [ ] T11 | T11 -- **Reconcile the seven filed TODOs against those three
+      statements.** Verify: each is a task under a statement or ticked as
+      superseded by it.

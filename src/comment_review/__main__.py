@@ -16,42 +16,46 @@ the `SKILL.md` rewrite a one-for-one substitution rather than a new instruction.
 
 import importlib
 import sys
+from enum import StrEnum, auto
 
 from comment_review.machine import constants
 
-# The command modules, by the name typed on the console.
-COMMANDS = (
-    "addresser",
-    "carry",
-    "census",
-    "compositor",
-    "mark",
-    "proof",
-    "prove_unchanged",
-    "referrers",
-)
 
-# An older name that still resolves to a real command's module. `galley` ->
-# `proof`: `SKILL.md` still invokes `galley` at stage 7a, and that file is
-# `agents` lane -- rewiring the stage name is
-# `TODO/the-skill-names-commands-that-moved-to-prototype.md`. Roy, 2026-08-26:
-# "Create the galley entry_point function that points to proof_setter and
-# delete the unused command," and on the shape: "there is no reason to go to
-# the galley for something that proof-setter is supposed to do." See
-# `docs/history.md`.
-#
-# ! THE NAME CARRIES OVER; THE FLAGS DO NOT. `galley` used to take `--census`
-# and `--edits`; `proof` takes `--binder` and `--docket`, so a skill run
-# typed under the old flags reaches `proof`'s parser and is refused as an
-# unrecognised argument -- an alias resolves the NAME, nothing more.
-#
-# ! NOT IN THE HELP LISTING OR THE UNKNOWN-NAME ERROR: both exist to tell a
-# reader what to type, and this name is deprecated -- nobody should be
-# choosing it fresh. It still has to RESOLVE for the one caller (`SKILL.md`)
-# that already types it.
-ALIASES = {
-    "galley": "proof",
-}
+class Command(StrEnum):
+    """A command name typed on the console, closed.
+
+    `T1.15` of `docs/plans/0.2.4-the-mark-and-the-collator.md`: value DERIVED
+    from the member name via `_generate_next_value_`, never hand-typed.
+    `reading.series.Kind` set the StrEnum precedent but hand-types its own
+    member values (`TRAILING = "trailing-comment"` is not `name.lower()`), so
+    it is not itself an example of this derivation. A value carries an
+    underscore where the module it names does (`prove_unchanged`, `taken_in`),
+    so `.lower()` alone is what derives it.
+    """
+
+    @staticmethod
+    def _generate_next_value_(
+        name: str, start: int, count: int, last_values: list[str]
+    ) -> str:
+        return name.lower()
+
+    ADDRESSER = auto()
+    CARRY = auto()
+    CENSUS = auto()
+    CHECK = auto()
+    COLLATE = auto()
+    COMPOSITOR = auto()
+    DISTRIBUTE = auto()
+    PROOF = auto()
+    PROVE_UNCHANGED = auto()
+    REFERRERS = auto()
+    TAKEN_IN = auto()
+
+
+#: The command modules, by the name typed on the console -- `Command`'s
+#: companion tuple, in definition order. Membership is asked of this, never
+#: of the `Command` class itself.
+COMMANDS = tuple(Command)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -79,19 +83,14 @@ def main(argv: list[str] | None = None) -> int:
         # no command has done nothing, and a zero would tell a caller it worked.
         return 0 if args else 2
     name, rest = args[0], args[1:]
-    # A name is valid when it is a command OR resolves through ALIASES to
-    # one; `target` is what gets imported either way.
-    target = ALIASES.get(name, name)
-    if target not in COMMANDS:
+    if name not in COMMANDS:
         print(f"error: no command named {name!r}", file=sys.stderr)
         print(f"commands: {', '.join(COMMANDS)}", file=sys.stderr)
         return 2
-    module = importlib.import_module(f".commands.{target}", __package__)
+    module = importlib.import_module(f".commands.{name}", __package__)
     # !! `argv` IS REBUILT SO EACH COMMAND PARSES WHAT IT ALWAYS PARSED. Its
     # own `argparse` reads `sys.argv[1:]`, and its usage line names `prog`,
-    # which is why the command's name is put back at position 0 -- the name
-    # TYPED, not `target`, so an alias still names itself in its own usage
-    # line even though another module's parser is what answers it.
+    # which is why the command's name is put back at position 0.
     sys.argv = [f"comment_review {name}", *rest]
     return module.main()
 

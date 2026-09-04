@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 4 tasks done
+Progress: 4 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -44,16 +44,18 @@ does not protect the reviewers upstream of it.
 
 ## Tasks
 
-- [x] T1 -- SUPERSEDED. The ordering defect is fixed: `_strip_strings` still runs
-      first and still finds the OPENER, but `lexer.py:1311-1312` feeds `run_ends`
-      the RAW tail, so the closer is no longer blanked.
-- [x] T2 -- A MEASUREMENT, and it has been re-taken. The one-paragraph result is
-      gone: as of 2026-08-23 the same input censuses as two paragraphs with
-      `int a = 1;` still in the code.
-- [x] T3 -- A RECORD of what the annotation caught and what it did not. Kept in the
-      Objective: `unterminated-paragraph-comment` fired and `prove_unchanged`
-      refused, while stages 2 through 5 had already handed out the wrong census.
-- [x] T4 -- A RECORD, not a task: `/* don't */` is ordinary English, so this was
-      never an exotic input. That is why the fix carries the language list --
-      javascript, typescript, sql, lua and ruby, every language with `'` in
-      `quotes` and no `char_quotes`.
+- [x] T1 | FINISHED | unknown | T1 -- SUPERSEDED. The ordering defect is fixed:
+      `_strip_strings` still runs first and still finds the OPENER, but
+      `lexer.py:1311-1312` feeds `run_ends` the RAW tail, so the closer is no
+      longer blanked.
+- [x] T2 | FINISHED | unknown | T2 -- A MEASUREMENT, and it has been re-taken.
+      The one-paragraph result is gone: as of 2026-08-23 the same input censuses
+      as two paragraphs with `int a = 1;` still in the code.
+- [x] T3 | FINISHED | unknown | T3 -- A RECORD of what the annotation caught and
+      what it did not. Kept in the Objective: `unterminated-paragraph-comment`
+      fired and `prove_unchanged` refused, while stages 2 through 5 had already
+      handed out the wrong census.
+- [x] T4 | FINISHED | unknown | T4 -- A RECORD, not a task: `/* don't */` is
+      ordinary English, so this was never an exotic input. That is why the fix
+      carries the language list -- javascript, typescript, sql, lua and ruby,
+      every language with `'` in `quotes` and no `char_quotes`.

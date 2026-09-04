@@ -42,9 +42,9 @@ Two things needed it:
             and in no census -- so `address_problem` refused it and
             `edit_problem` measured one claim against one edit where the
             paragraph held several. Censusing the galley gave that text a real
-            address and a real transcription, so every check in `verdicts.py`
+            address and a real transcription, so every check the collator ran
             worked on it UNCHANGED. ! `address_problem`, `edit_problem` and
-            `verdicts.py` moved to `prototype/` on 2026-08-25 and do not run
+            the collator moved to `prototype/` on 2026-08-25 and do not run
             from this tree -- see `prototype/README.md`.
   stage 7a  What lands at 7b is a paragraph set into a page, and the galley is
             the first time anyone sees the two together. `git diff --no-index`
@@ -53,10 +53,10 @@ Two things needed it:
             carries only its own surrounding context.
 
 !! IT DOES TWO THINGS AND THEY ARE SEPARATE ACTS. Roy, 2026-08-21: *"galley gets
-the old page - updates the old page with the verdict/record/marks and then a
+the old page - updates the old page with the [instruction]/record/marks and then a
 page-setter sets the page to rewrite the output text."*
 
-    RESET   the verdicts are put on the page, by CUE
+    RESET   the instructions are put on the page, by CUE
     SET     `compositor.set_page` turns the page back into text
 
 ! THIS MODULE OWNS ONLY THE FIRST. Setting belongs to the compositor, which is

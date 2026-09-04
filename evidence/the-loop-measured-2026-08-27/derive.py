@@ -54,9 +54,7 @@ def main() -> None:
     print("\nCONSISTENCY -- the two full rounds, keyed on (role, address)")
     print("  ! NOT on the proposed text: two roles fixing one defect write")
     print("    different prose, so that key escalates what agrees best.")
-    sets = {
-        n: {(m["role"], m["address"]) for m in findings(rounds[n])} for n in FULL
-    }
+    sets = {n: {(m["role"], m["address"]) for m in findings(rounds[n])} for n in FULL}
     a, b = (sets[n] for n in FULL)
     print(
         f"  round2 {len(a)}   round3 {len(b)}"

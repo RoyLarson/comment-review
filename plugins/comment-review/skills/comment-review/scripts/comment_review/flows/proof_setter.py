@@ -39,16 +39,41 @@ second literal, so a step dropped from the tuple shows up as a diff against
 that pin, not as a call somebody forgot to make.
 """
 
+from enum import StrEnum, auto
 from pathlib import Path
 from typing import NamedTuple
 
 from comment_review.docket import docket as docket_mod
 from comment_review.flows.page_for import page_of, source_of
 from comment_review.machine import constants
-from comment_review.machine.repo import undraftable
+from comment_review.machine.repo import can_escape, undraftable
 from comment_review.reading.addresser import cue_of
 from comment_review.results import compositor, galley
 from comment_review.results.prove_unchanged import code_fingerprint
+
+
+class Step(StrEnum):
+    """One step of the chain, closed.
+
+    `T1.15` of `docs/plans/0.2.4-the-mark-and-the-collator.md`, following
+    `reading.series.Kind`: value DERIVED from the member name, never
+    hand-typed.
+    """
+
+    @staticmethod
+    def _generate_next_value_(
+        name: str, start: int, count: int, last_values: list[str]
+    ) -> str:
+        return name.lower()
+
+    READ = auto()
+    VERIFY = auto()
+    EDIT = auto()
+    SET = auto()
+    DRAFT = auto()
+    REREAD = auto()
+    PROVE = auto()
+
 
 #: The chain, as data -- read only by `test_the_chain_IS_this_list`, which
 #: pins it against a second literal; `run()` itself never consults `STEPS`.
@@ -59,7 +84,9 @@ from comment_review.results.prove_unchanged import code_fingerprint
 #: assert against. ! `_one`'s target guard builds one too, and NO TEST REACHES
 #: IT since the page paths are ruled on in `run`: what is left to it is a
 #: symlink, and see that guard for why it is not verified here.
-STEPS = ("read", "verify", "edit", "set", "draft", "reread", "prove")
+#: ! `Step`'s companion tuple, in definition order -- membership is asked of
+#: this, never of the `Step` class itself.
+STEPS = tuple(Step)
 
 
 class Refusal(NamedTuple):
@@ -152,7 +179,7 @@ def run(docket: dict, repo: Path, into: Path) -> tuple[list[Drafted], list[Refus
     # to. It was asked per file instead, against `repo` and against `into`
     # separately, and each refusal then named where the path landed rather
     # than the page path that could not be placed anywhere.
-    outside = sorted(s.path for s in schedules if _can_escape(s.path))
+    outside = sorted(s.path for s in schedules if can_escape(s.path))
     if outside:
         return [], [
             Refusal(
@@ -215,29 +242,6 @@ def run(docket: dict, repo: Path, into: Path) -> tuple[list[Drafted], list[Refus
     return drafted, []
 
 
-def _can_escape(rel: str) -> bool:
-    """Would joining this page path to a root land somewhere other than under it?
-
-    !! A QUESTION ABOUT THE STRING, AND ONLY ABOUT THE STRING. It answers for
-    every root at once, which is what lets the two roots below stop asking
-    separately -- but it cannot answer for the filesystem, so `_one` still
-    compares the RESOLVED target. See the guard there for what is left to it.
-
-    ! THE DRIVE AND THE ROOT ARE ASKED BESIDE `is_absolute`, because Windows has
-    a third form neither covers: `Path("C:util.py").is_absolute()` is `False`
-    and it carries a drive, so joining it to a root on any other drive
-    DISCARDS the root.
-
-    Args:
-        rel: a page path as the SCHEDULE records it -- the repo's own form.
-
-    Returns:
-        `True` when it is absolute, drive-relative, rooted, or walks up.
-    """
-    p = Path(rel)
-    return bool(p.is_absolute() or p.drive or p.root) or ".." in p.parts
-
-
 def _discard_all(drafted: list[Drafted], created: set[Path]) -> None:
     """Remove every draft this run wrote, on the way out.
 
@@ -295,7 +299,7 @@ def _one(
     created: set[Path],
 ) -> tuple[Drafted | None, Refusal | None]:
     """One page through every step, or the first step that refused."""
-    # !! LEXICAL CONTAINMENT IS `run`'s, ONE STEP UP: `_can_escape` has already
+    # !! LEXICAL CONTAINMENT IS `run`'s, ONE STEP UP: `can_escape` has already
     # refused an absolute, drive-relative, rooted or `..`-walking page path for
     # the whole run. What is left to the two comparisons in this function is the
     # half no check on a STRING can answer -- what the filesystem RESOLVES the
@@ -549,7 +553,7 @@ def _prove(rel: str, before: str, after: str, path: Path) -> Refusal | None:
 
     !! AN UNPROVABLE FILE IS REFUSED, NOT PASSED. `code_fingerprint` returns an
     EMPTY fingerprint for a file it cannot strip, and two empty strings compare
-    equal -- so reading its verdict without reading its KIND proves every
+    equal -- so reading its instruction without reading its KIND proves every
     unprovable file identical to every other.
 
     ! WHAT THIS CATCHES THAT `_reread` CANNOT. `_reread` checks only the cues a
@@ -564,7 +568,7 @@ def _prove(rel: str, before: str, after: str, path: Path) -> Refusal | None:
     `{'m.py@a0': None}`, `{'m.py@a1': None}` and an `add` at `a2` each trip
     exactly this branch, with `Refusal('prove', ..., 'the executable code is
     not what it was')`. ! SO `add` AND `drop` -- two of SKILL.md's seven
-    verdicts -- CANNOT BE WRITTEN ON A DOCSTRING, and the `undocumented` place
+    instructions -- CANNOT BE WRITTEN ON A DOCSTRING, and the `undocumented` place
     exists precisely so an `add` can cite one.
 
     !! IT IS NOT FIXED HERE AND THE FINGERPRINT IS NOT WEAKENED, because a
@@ -575,9 +579,8 @@ def _prove(rel: str, before: str, after: str, path: Path) -> Refusal | None:
     APPROVED set is a ruling Roy holds --
     `TODO/the-code-check-refuses-add-and-drop-on-a-docstring.md`, task T1, a
     `*` box. `test_a_docstring_DROP_is_STILL_REFUSED_at_prove` and
-    `test_a_docstring_ADD_is_STILL_REFUSED_at_prove`, in
-    `TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain`, pin what happens
-    today.
+    `test_a_docstring_ADD_is_STILL_REFUSED_at_prove`, in the every-instruction
+    test class in `tests/test_proof_setter.py`, pin what happens today.
 
     The residual hazard this branch is for is an alteration that breaks its
     comment's RUN and swallows code BEYOND the edited cue -- an edit whose

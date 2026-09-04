@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 4 of 9 tasks done
+Progress: 4 of 9 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-17 (Roy: "both todo-tool and another project ended up in / six rules are
@@ -137,21 +137,29 @@ defect -- a tool measures it.
 
 ## Tasks
 
-- [ ] T1 -- * RULE what BOUNDS a paragraph in a prose file, from the four candidates in
-      the Objective. Verify: the ruling is recorded in `docs/decision-log.md`.
-- [x] T2 -- RULED 2026-08-20: the four existing desks read a prose file, and no fifth. The
-      mapping is in the Objective.
-- [ ] T3 -- * RULE what a claim in a document is checked AGAINST. Verify: the answer names
-      the input a `block-context` reviewer is handed for a `.md` page.
-- [ ] T4 -- * RULE what happens to the CAP on a prose page. Verify: `SKILL.md`'s cap rule
-      states what it means there, including if the answer is "no cap applies".
-- [ ] T5 -- Name the prose-file asymmetry in `docs/limitations.md`: code prose citing a
-      document is checkable, the document's drift is not. Verify: the file carries it.
-- [x] T6 -- SUPERSEDED 2026-08-23. The eight dangling `CLAUDE.md stage N` pointers are not
-      in this tree. Measurement in the Objective.
-- [ ] T7 -- Move `README.md:348`'s gap row when T1's answer lands, including if the answer
-      is (d). Verify: the row states the ruled position and cites where it was ruled.
-- [x] T8 -- RULING, MADE 2026-08-20: the four desks already ask the markdown questions.
-      Kept in the Objective as the record of Roy's words.
-- [x] T9 -- REASONING, kept in the Objective: a header is a documentable declaration, so
-      `a` works and `c` never emits -- and markdown is the first tier to reach two series.
+- [?] T1 | T1 -- * RULE what BOUNDS a paragraph in a prose file, from the four
+      candidates in the Objective. Verify: the ruling is recorded in
+      `docs/decision-log.md`.
+- [x] T2 | FINISHED | unknown | T2 -- RULED 2026-08-20: the four existing desks
+      read a prose file, and no fifth. The mapping is in the Objective.
+- [?] T3 | T3 -- * RULE what a claim in a document is checked AGAINST. Verify:
+      the answer names the input a `block-context` reviewer is handed for a
+      `.md` page.
+- [?] T4 | T4 -- * RULE what happens to the CAP on a prose page. Verify:
+      `SKILL.md`'s cap rule states what it means there, including if the answer
+      is "no cap applies".
+- [ ] T5 | T5 -- Name the prose-file asymmetry in `docs/limitations.md`: code
+      prose citing a document is checkable, the document's drift is not. Verify:
+      the file carries it.
+- [x] T6 | FINISHED | unknown | T6 -- SUPERSEDED 2026-08-23. The eight dangling
+      `CLAUDE.md stage N` pointers are not in this tree. Measurement in the
+      Objective.
+- [ ] T7 | T7 -- Move `README.md:348`'s gap row when T1's answer lands,
+      including if the answer is (d). Verify: the row states the ruled position
+      and cites where it was ruled.
+- [x] T8 | FINISHED | unknown | T8 -- RULING, MADE 2026-08-20: the four desks
+      already ask the markdown questions. Kept in the Objective as the record of
+      Roy's words.
+- [x] T9 | FINISHED | unknown | T9 -- REASONING, kept in the Objective: a header
+      is a documentable declaration, so `a` works and `c` never emits -- and
+      markdown is the first tier to reach two series.

@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 0 of 10 tasks done
+Progress: 0 of 10 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-17 (Roy: "use the github api to find a heavily documented file
           for each of the languages so we can verify that the lexers work for the
           11 languages we claim")
@@ -153,26 +153,33 @@ grammar and never from a neighbour's, so the two are decided one at a time.
 
 ## Tasks
 
-- [ ] T1 -- Strip the `block_comment` and `doc_block` opener and closer in `_join`.
-      Verify: a `.java` docstring's census `text` holds no `/**` and no `*/`.
-- [ ] T2 -- Strip the interior continuation marker as well. Verify: a multi-line Javadoc's
-      census `text` carries no leading `*` on any line after the first.
-- [ ] T3 -- Change `block_text` (`lexer.py:609`) in the SAME commit as each `_join`
-      change. Verify: the round trip is green on that commit.
-- [ ] T4 -- Add the eleven pinned files above to `corpora/corpora.toml` as a `public`
-      corpus. Verify: `fetch_corpora.py` materialises all eleven.
-- [ ] T5 -- Make the round trip a test over that corpus, one case per language record.
-      Verify: it fails while a marker survives into `text` and passes once T1 to T3 land.
-- [ ] T6 -- Make that test SKIP when the corpus has not been fetched. Verify: with the
-      corpus directory absent, `uv run pytest -q` reports a skip and no failure.
-- [ ] T7 -- Write the unit fixtures for the fix from INVENTED text, not from the corpus.
-      Verify: no assertion under `tests/` quotes a line from any file in the table above.
-- [ ] T8 -- Add a multi-line Javadoc to `tests/fixtures/sample.java`. Verify: the fixture
-      carries a continuation `*` on three or more lines.
-- [ ] T9 -- Decide whether a Ruby `=begin`/`=end` block gets the same stripping. Verify:
-      the answer and its measurement are written into this file.
-- [ ] T10 -- Decide the same for a Lua `--[[ ]]` block, from Lua's own grammar and not
-      Ruby's. Verify: the answer and its measurement are written into this file.
+- [ ] T1 | T1 -- Strip the `block_comment` and `doc_block` opener and closer in
+      `_join`. Verify: a `.java` docstring's census `text` holds no `/**` and no
+      `*/`.
+- [ ] T2 | T2 -- Strip the interior continuation marker as well. Verify: a
+      multi-line Javadoc's census `text` carries no leading `*` on any line
+      after the first.
+- [ ] T3 | T3 -- Change `block_text` (`lexer.py:609`) in the SAME commit as each
+      `_join` change. Verify: the round trip is green on that commit.
+- [ ] T4 | T4 -- Add the eleven pinned files above to `corpora/corpora.toml` as
+      a `public` corpus. Verify: `fetch_corpora.py` materialises all eleven.
+- [ ] T5 | T5 -- Make the round trip a test over that corpus, one case per
+      language record. Verify: it fails while a marker survives into `text` and
+      passes once T1 to T3 land.
+- [ ] T6 | T6 -- Make that test SKIP when the corpus has not been fetched.
+      Verify: with the corpus directory absent, `uv run pytest -q` reports a
+      skip and no failure.
+- [ ] T7 | T7 -- Write the unit fixtures for the fix from INVENTED text, not
+      from the corpus. Verify: no assertion under `tests/` quotes a line from
+      any file in the table above.
+- [ ] T8 | T8 -- Add a multi-line Javadoc to `tests/fixtures/sample.java`.
+      Verify: the fixture carries a continuation `*` on three or more lines.
+- [ ] T9 | T9 -- Decide whether a Ruby `=begin`/`=end` block gets the same
+      stripping. Verify: the answer and its measurement are written into this
+      file.
+- [ ] T10 | T10 -- Decide the same for a Lua `--[[ ]]` block, from Lua's own
+      grammar and not Ruby's. Verify: the answer and its measurement are written
+      into this file.
 ## Related
 
 - [`a-prose-file-has-no-blocks`](a-prose-file-has-no-blocks.md) -- the other half of "what this

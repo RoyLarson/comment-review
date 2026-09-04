@@ -2,7 +2,7 @@
 
 ```
 Status:   blocked (on the first v0.2.4 dogfood run -- these pairs are its graded finding)
-Progress: 2 of 12 tasks done
+Progress: 2 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-20 (the branch review of 2026-08-20)
@@ -85,27 +85,37 @@ Both module constants are gone; the two questions are now `Kind.holds_no_prose` 
 
 ## Tasks
 
-- [ ] T1 -- `addresser._check`: the docstring says a shared place IS a fault and also is
-      not, while `:1465` returns 0. Verify: the dogfood run reports the pair.
-- [ ] T2 -- `addresser._check` PRINTS the census-index advice its own docstring calls
-      retired (`:1409-1411` against `:1455-1459`). Verify: the dogfood run reports it.
-- [x] T3 -- SUPERSEDED. The galley pair's two halves are both gone; the module was
-      rewritten. What it said, and what replaced it, are in the Objective.
-- [ ] T4 -- `lexer.Paragraph`: one comment block gives two spellings for an empty
-      interval, and the census emits neither. Verify: the dogfood run reports the pair.
-- [x] T5 -- FINISHED. `page.py`'s *"a DIFFERENT set"* claim is gone with both constants;
-      the two questions are now `holds_no_prose` and `occupies_no_lines`.
-- [ ] T6 -- `record.entry_for` asserts that `--check` HOLDS one paragraph per address and
-      also that it merely reports. Verify: the dogfood run reports the pair.
-- [ ] T7 -- `record.py:37-42` tells a reviewer filing an `add` to write *"that interval's
-      index and address"*. Verify: the dogfood run reports it.
-- [ ] T8 -- `desk.py:557` asks whether the address names the paragraph the census has at
-      that INDEX, over a body resolving by address. Verify: the run reports it.
-- [ ] T9 -- `desk.py:246` calls `_resolve_lines` *"Shared by SOURCES and LOCATION"* after
-      `LOCATION` was dropped, which `:567` says. Verify: the dogfood run reports the pair.
-- [ ] T10 -- `verdicts.py:120` says *"Indices each reviewer left unaccounted for"* over a
-      body that keys `f.address`. Verify: the dogfood run reports it.
-- [ ] T11 -- `verdicts.py:194` documents an argument as *"findings by census paragraph
-      index"* when `by_paragraph` is keyed by address. Verify: the run reports it.
-- [ ] T12 -- `verdicts.py:634` names its loop variable `index` while iterating addresses.
-      Verify: the dogfood run reports it.
+- [ ] T1 | T1 -- `addresser._check`: the docstring says a shared place IS a
+      fault and also is not, while `:1465` returns 0. Verify: the dogfood run
+      reports the pair.
+- [ ] T2 | T2 -- `addresser._check` PRINTS the census-index advice its own
+      docstring calls retired (`:1409-1411` against `:1455-1459`). Verify: the
+      dogfood run reports it.
+- [x] T3 | FINISHED | unknown | T3 -- SUPERSEDED. The galley pair's two halves
+      are both gone; the module was rewritten. What it said, and what replaced
+      it, are in the Objective.
+- [ ] T4 | T4 -- `lexer.Paragraph`: one comment block gives two spellings for an
+      empty interval, and the census emits neither. Verify: the dogfood run
+      reports the pair.
+- [x] T5 | FINISHED | unknown | T5 -- FINISHED. `page.py`'s *"a DIFFERENT set"*
+      claim is gone with both constants; the two questions are now
+      `holds_no_prose` and `occupies_no_lines`.
+- [ ] T6 | T6 -- `record.entry_for` asserts that `--check` HOLDS one paragraph
+      per address and also that it merely reports. Verify: the dogfood run
+      reports the pair.
+- [ ] T7 | T7 -- `record.py:37-42` tells a reviewer filing an `add` to write
+      *"that interval's index and address"*. Verify: the dogfood run reports it.
+- [ ] T8 | T8 -- `desk.py:557` asks whether the address names the paragraph the
+      census has at that INDEX, over a body resolving by address. Verify: the
+      run reports it.
+- [ ] T9 | T9 -- `desk.py:246` calls `_resolve_lines` *"Shared by SOURCES and
+      LOCATION"* after `LOCATION` was dropped, which `:567` says. Verify: the
+      dogfood run reports the pair.
+- [ ] T10 | T10 -- `verdicts.py:120` says *"Indices each reviewer left
+      unaccounted for"* over a body that keys `f.address`. Verify: the dogfood
+      run reports it.
+- [ ] T11 | T11 -- `verdicts.py:194` documents an argument as *"findings by
+      census paragraph index"* when `by_paragraph` is keyed by address. Verify:
+      the run reports it.
+- [ ] T12 | T12 -- `verdicts.py:634` names its loop variable `index` while
+      iterating addresses. Verify: the dogfood run reports it.

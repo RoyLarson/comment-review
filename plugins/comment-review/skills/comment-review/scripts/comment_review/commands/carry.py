@@ -19,6 +19,7 @@ from comment_review.binder.binder import read as read_binder
 from comment_review.flows.carry import carry
 from comment_review.flows.page_for import page_of
 from comment_review.machine import exceptions
+from comment_review.reading.addresser import SERIES
 
 
 def main() -> int:
@@ -42,7 +43,10 @@ def main() -> int:
         help="the ORDINAL of an anchor -- survives a prose edit where a line does not",
     )
     ap.add_argument(
-        "--series", default="", help="which place OF that line or anchor: a, b, c or f"
+        "--series",
+        default="",
+        choices=SERIES,
+        help="which place OF that line or anchor",
     )
     args = ap.parse_args()
 

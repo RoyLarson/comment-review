@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 12 tasks done
+Progress: 8 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22: the term the agent keeps saying is the collator but
@@ -86,27 +86,37 @@ the boxes below track that it is owed.
 
 ## Tasks
 
-- [x] T1 -- RULED 2026-08-23: the one who rules is the `copy chief`, not the collator;
-      Roy's ruling is quoted in the Objective.
-- [ ] T2 -- Rename `verdicts.py` to `collator.py` and fix its importers. Verify: `uv run
-      pytest -q` green and `uv run ty check` on the scripts clean.
-- [ ] T3 -- Rename `tests/test_verdicts.py` to match. Verify: discovery collects it under
-      the new name and no file named `test_verdicts.py` remains.
-- [ ] T4 -- Update the command lines and citations in `SKILL.md`, `CLAUDE.md` and `docs/`.
-      Verify: `grep -rn "verdicts.py" plugins/ docs/ CLAUDE.md` returns nothing.
-- [x] T5 -- FINISHED 2026-08-22. The register was asked first, per `CLAUDE.md`'s rule that
-      a new term comes from publishing before anywhere else; `join` is a database word.
-- [x] T6 -- SUPERSEDED. The collating / master proof / editor finding is a MEASUREMENT of
-      what the trade says, not a checkpoint; it is stated in the Objective.
-- [x] T7 -- SUPERSEDED. The `COLLATE`-is-stage-2 collision is gone: stage 2 is GATHER,
-      verified 2026-08-23 at `SKILL.md:16`, so there is nothing to declare.
-- [x] T8 -- FINISHED. Recorded in `docs/vocabulary.md` under *Bringing the marks
-      together*, with what each word would name and both collisions.
-- [x] T9 -- SUPERSEDED. The `VERDICTS`-in-`record.py` measurement, the site count, the
-      `desk.py:18` sentence and the `lexer.py` pairing are in the Objective.
-- [ ] T10 -- Give the copy chief its own agent file, separate from the task agent. Verify:
-      `plugins/comment-review/agents/` holds a copy-chief agent.
-- [ ] T11 -- Define `copy chief` in the shipped vocabulary. Verify: `uv run python
-      scripts/check_vocabulary.py` passes with the term defined and used.
-- [ ] T12 -- Name the copy chief at stage 5 in `SKILL.md`. Verify: stage 5 names it as the
-      role that rules on what the collator hands up.
+- [x] T1 | FINISHED | unknown | T1 -- RULED 2026-08-23: the one who rules is the
+      `copy chief`, not the collator; Roy's ruling is quoted in the Objective.
+- [x] T2 | FINISHED -- desk/collator.py exists, desk/verdicts.py does not; zero remaining desk.verdicts references | a3876c6 | T2
+      -- Rename `verdicts.py` to `collator.py` and fix its importers. Verify:
+      `uv run pytest -q` green and `uv run ty check` on the scripts clean.
+- [x] T3 | FINISHED -- tests/test_collator.py exists, tests/test_verdicts.py does not | a3876c6 | T3
+      -- Rename `tests/test_verdicts.py` to match. Verify: discovery collects it
+      under the new name and no file named `test_verdicts.py` remains.
+- [ ] T4 | T4 -- Update the command lines and citations in `SKILL.md`,
+      `CLAUDE.md` and `docs/`. Verify: `grep -rn "verdicts.py" plugins/ docs/
+      CLAUDE.md` returns nothing.
+- [x] T5 | FINISHED | unknown | T5 -- FINISHED 2026-08-22. The register was
+      asked first, per `CLAUDE.md`'s rule that a new term comes from publishing
+      before anywhere else; `join` is a database word.
+- [x] T6 | FINISHED | unknown | T6 -- SUPERSEDED. The collating / master proof /
+      editor finding is a MEASUREMENT of what the trade says, not a checkpoint;
+      it is stated in the Objective.
+- [x] T7 | FINISHED | unknown | T7 -- SUPERSEDED. The `COLLATE`-is-stage-2
+      collision is gone: stage 2 is GATHER, verified 2026-08-23 at
+      `SKILL.md:16`, so there is nothing to declare.
+- [x] T8 | FINISHED | unknown | T8 -- FINISHED. Recorded in `docs/vocabulary.md`
+      under *Bringing the marks together*, with what each word would name and
+      both collisions.
+- [x] T9 | FINISHED | unknown | T9 -- SUPERSEDED. The `VERDICTS`-in-`record.py`
+      measurement, the site count, the `desk.py:18` sentence and the `lexer.py`
+      pairing are in the Objective.
+- [ ] T10 | T10 -- Give the copy chief its own agent file, separate from the
+      task agent. Verify: `plugins/comment-review/agents/` holds a copy-chief
+      agent.
+- [ ] T11 | T11 -- Define `copy chief` in the shipped vocabulary. Verify: `uv
+      run python scripts/check_vocabulary.py` passes with the term defined and
+      used.
+- [ ] T12 | T12 -- Name the copy chief at stage 5 in `SKILL.md`. Verify: stage 5
+      names it as the role that rules on what the collator hands up.

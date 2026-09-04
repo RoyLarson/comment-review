@@ -11,6 +11,6 @@ form, which is a `SyntaxError` on the floor interpreter -- and the author of thi
 repo never sees it, because the rewrite happens in someone else's `.claude/`.
 
 ! THE NAME IS PROVISIONAL. `io` was the obvious word and collides: `lexer` and
-`verdicts` both `import io` for `StringIO`, so an `io` package would shadow the
+the collator both `import io` for `StringIO`, so an `io` package would shadow the
 stdlib name ambiguously for any reader. Roy approved `machine` 2026-08-24.
 """

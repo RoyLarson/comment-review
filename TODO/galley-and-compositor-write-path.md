@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 10 tasks done
+Progress: 4 of 11 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -79,23 +79,36 @@ files in `corpora/` are in that state today.
 
 ## Tasks
 
-- [x] T1 -- FIXED 2026-08-23. `galley.py` was destructive and exited 0; both directions of
-      the overlap are now tested and the run is REFUSED WHOLE. Stated in the Objective.
-- [x] T2 -- FIXED 2026-08-23. `reset` vacated leading unconditionally and a `c` sits
-      BESIDE code; `owns_leading` now withholds it. Stated in the Objective.
-- [x] T3 -- **Make `compositor.lossless` read through `repo.read_raw`**
-      (`compositor.py:304`). Verify: the `lossless` site calls no `read_text`.
-- [x] T4 -- **Make `compositor.identity` read through `repo.read_raw`**
-      (`compositor.py:335`). Verify: `grep -n "read_text" compositor.py` returns nothing.
-- [ ] T5 -- **Test the newline axis the gates never saw.** Verify: a CRLF fixture makes
-      `line_endings()` answer CRLF, and the test fails on HEAD.
-- [ ] T6 -- **Extract the prologue the two gates share** -- read, resolve the language,
-      build the page, set it. Verify: one function does all four.
-- [ ] T7 -- **Make `lossless` and `identity` call that one function.** Verify: neither
-      repeats the four steps.
-- [ ] T8 -- **Make `main` read each file once** rather than running the pair twice per
-      file. Verify: a run over one file performs one read of it.
-- [ ] T9 -- **Make `page_for` RECORD whether the source was read**, rather than throwing
-      the fact away. Verify: a page built from an unread source carries that fact.
-- [ ] T10 -- **Make `compositor.py:231` refuse on that fact, not on an empty list.**
-      Verify: an empty file with no text still sets back as empty.
+- [x] T1 | FINISHED | unknown | T1 -- FIXED 2026-08-23. `galley.py` was
+      destructive and exited 0; both directions of the overlap are now tested
+      and the run is REFUSED WHOLE. Stated in the Objective.
+- [x] T2 | FINISHED | unknown | T2 -- FIXED 2026-08-23. `reset` vacated leading
+      unconditionally and a `c` sits BESIDE code; `owns_leading` now withholds
+      it. Stated in the Objective.
+- [x] T3 | FINISHED | unknown | T3 -- **Make `compositor.lossless` read through
+      `repo.read_raw`** (`compositor.py:304`). Verify: the `lossless` site calls
+      no `read_text`.
+- [x] T4 | FINISHED | unknown | T4 -- **Make `compositor.identity` read through
+      `repo.read_raw`** (`compositor.py:335`). Verify: `grep -n "read_text"
+      compositor.py` returns nothing.
+- [ ] T5 | T5 -- **Test the newline axis the gates never saw.** Verify: a CRLF
+      fixture makes `line_endings()` answer CRLF, and the test fails on HEAD.
+- [ ] T6 | T6 -- **Extract the prologue the two gates share** -- read, resolve
+      the language, build the page, set it. Verify: one function does all four.
+- [ ] T7 | T7 -- **Make `lossless` and `identity` call that one function.**
+      Verify: neither repeats the four steps.
+- [ ] T8 | T8 -- **Make `main` read each file once** rather than running the
+      pair twice per file. Verify: a run over one file performs one read of it.
+- [ ] T9 | T9 -- **Make `page_for` RECORD whether the source was read**, rather
+      than throwing the fact away. Verify: a page built from an unread source
+      carries that fact.
+- [ ] T10 | T10 -- **Make `compositor.py:231` refuse on that fact, not on an
+      empty list.** Verify: an empty file with no text still sets back as empty.
+- [ ] T11 | Delete results.compositor.approve, or name the caller that will use
+      it
+        > 2026-08-31 MEASURED 2026-08-31 while landing P45: grep over src/ and tests/
+        > 2026-08-31 finds no caller. It is the only remaining write over a REAL file,
+        > 2026-08-31 so what it does is a ruling, not a cleanup.
+        > 2026-09-03 RULED DELETE by Roy 2026-09-03 -- Process 80
+        > 2026-09-03 the or name the caller branch is gone: no piece may write
+        > 2026-09-03 the work is only-a-flow-reaches-the-machine T1, and four more

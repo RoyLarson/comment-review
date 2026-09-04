@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 3 of 3 tasks done
+Progress: 3 of 3 tasks closed
 Owner:    testing
 Requires-Roy: false
 Raised:   2026-08-20 (the branch review of 2026-08-20; threatens plan box R7)
@@ -40,14 +40,18 @@ red on purpose, while neither of them touches the code they name.
 
 ## Tasks
 
-- [x] T1 -- SUPERSEDED. `_gap` no longer looks a place up by `(original_start, original_end)`.
-      Verified 2026-08-23: `tests/test_galley.py:190-194` resolves a cue against `b.address`, and
+- [x] T1 | FINISHED | unknown | T1 -- SUPERSEDED. `_gap` no longer looks a place
+      up by `(original_start, original_end)`. Verified 2026-08-23:
+      `tests/test_galley.py:190-194` resolves a cue against `b.address`, and
       `original_start` appears nowhere in the file.
 
-- [x] T2 -- SUPERSEDED. The class docstring no longer claims *"each reports an UNEXPECTED SUCCESS
-      the moment the galley works from addresses"*. `test_galley.py:175-186` states what the eight
-      were and why the splice could not do them.
+- [x] T2 | FINISHED | unknown | T2 -- SUPERSEDED. The class docstring no longer
+      claims *"each reports an UNEXPECTED SUCCESS the moment the galley works
+      from addresses"*. `test_galley.py:175-186` states what the eight were and
+      why the splice could not do them.
 
-- [x] T3 -- SUPERSEDED. Plan box R7 -- *"no expectedFailure survives this plan"* -- is judgeable
-      and judged. `docs/plans/0.2.4-rework-the-foliator-owns-the-address.md:461` ticks it DONE
-      2026-08-21, verifiable by `grep -rn "@unittest.expectedFailure" tests/ --include=*.py`.
+- [x] T3 | FINISHED | unknown | T3 -- SUPERSEDED. Plan box R7 -- *"no
+      expectedFailure survives this plan"* -- is judgeable and judged.
+      `docs/plans/0.2.4-rework-the-foliator-owns-the-address.md:461` ticks it
+      DONE 2026-08-21, verifiable by `grep -rn "@unittest.expectedFailure"
+      tests/ --include=*.py`.

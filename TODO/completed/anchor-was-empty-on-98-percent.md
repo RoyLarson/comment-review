@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 4 tasks done
+Progress: 3 of 4 tasks closed
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-19 (Roy's anchor ruling, 2026-08-19)
@@ -58,18 +58,21 @@ DOCUMENTS the hole as intended behaviour. Everything below is what remains.
 
 ## Tasks
 
-- [x] DONE 2026-08-19. `census._anchor_of` states a `c`'s anchor at both
-      tiers, `anchor_the_gaps` states a `b`'s by COPYING that line's `c`, and the
-      gap at EOF takes the line above. 0 empty anchors over 6,531 blocks.
-- [x] DONE 2026-08-19. `record.seeded_problems` refuses a record with no
-      anchor, and one whose anchor is not the census's -- with the same 'the tool
-      wrote this, so the FILE was edited' message `address` uses.
-- [x] ! An `a`'s anchor is still a NAME (`f`, `<module>`) where a `b`'s and a
-      `c`'s are the LINE OF CODE. Both are declared in `page.Paragraph`. RULING
-      WANTED: does an `a` become its declaration LINE too? It would make the field
-      one meaning, and it would change what `--anchor NAME --series a|b|c` is
-      asked with -- the brief teaches asking by name.
-- [ ] The lesson, not the fix: a field threaded end to end, a test asserting the
-      KEY rather than the value, and a producer DOCUMENTING the hole as intended
-      behaviour. Look for the same shape in the other SEEDED fields and in every
-      '! NO x carries a y' line in the shipped scripts.
+- [x] T1 | FINISHED | unknown | DONE 2026-08-19. `census._anchor_of` states a
+      `c`'s anchor at both tiers, `anchor_the_gaps` states a `b`'s by COPYING
+      that line's `c`, and the gap at EOF takes the line above. 0 empty anchors
+      over 6,531 blocks.
+- [x] T2 | FINISHED | unknown | DONE 2026-08-19. `record.seeded_problems`
+      refuses a record with no anchor, and one whose anchor is not the census's
+      -- with the same 'the tool wrote this, so the FILE was edited' message
+      `address` uses.
+- [x] T3 | FINISHED | unknown | ! An `a`'s anchor is still a NAME (`f`,
+      `<module>`) where a `b`'s and a `c`'s are the LINE OF CODE. Both are
+      declared in `page.Paragraph`. RULING WANTED: does an `a` become its
+      declaration LINE too? It would make the field one meaning, and it would
+      change what `--anchor NAME --series a\|b\|c` is asked with -- the brief
+      teaches asking by name.
+- [ ] T4 | The lesson, not the fix: a field threaded end to end, a test
+      asserting the KEY rather than the value, and a producer DOCUMENTING the
+      hole as intended behaviour. Look for the same shape in the other SEEDED
+      fields and in every '! NO x carries a y' line in the shipped scripts.

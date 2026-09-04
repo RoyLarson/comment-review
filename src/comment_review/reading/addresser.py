@@ -149,7 +149,7 @@ drift from.
 from dataclasses import dataclass, field
 from typing import NamedTuple
 
-from comment_review.reading.series import ADDRESSED, Series
+from comment_review.reading.series import ADDRESSED, Series, cue_for
 
 # !! THE LETTERS COME FROM THE SERIES DEFINITION, since 2026-08-25. Roy: *"The
 # present absent pairings is effectively what defines the series and the
@@ -203,7 +203,7 @@ COVERS = Series.COVERS.value.letter
 # on. It is just there for document preservation."* So a `d` is kept out of
 # `Page.prose` and out of record seeding, and NO EMPTY `d` IS EMITTED -- the
 # other four series exist wherever prose COULD go, because an `add` cites them;
-# a place no verdict can name has no reason to exist unfilled.
+# a place no instruction can name has no reason to exist unfilled.
 #
 # !! IT IS A FENCE, AND FENCES HAVE NO ADDRESS. Roy, 2026-08-23: *"the `d`
 # series doesn't get an address for the same reasons fences in the real world
@@ -716,7 +716,7 @@ def cue(
     # !! NO `a` SERIES AT ALL WHEN THE LANGUAGE HAS NO DOCUMENTABLE
     # DECLARATION. A language with no docstring practice -- YAML, TOML -- would
     # otherwise be given an `a0`, a place for a module docstring it cannot have,
-    # and no verdict could ever fill it. `None` says the series does not exist;
+    # and no instruction could ever fill it. `None` says the series does not exist;
     # `1` says it does and the module's own doc would open the file.
     # !! `cue` READS `triggers()`, WHICH IS THE WHOLE POINT OF THERE BEING ONE.
     # A loop written out by hand beside it makes the list that claims *"ONE LIST,
@@ -836,28 +836,6 @@ def cue(
     # flat dict -- and every accessor had to be given its own table because the
     # emitter was gone. `Cues.places` reads the walkers instead.
     return out
-
-
-def cue_for(series: str, step: int) -> str:
-    """The cue at one step of a series -- ONE expression, all four series.
-
-    ! NAMED FOR ITS DIRECTION, so it cannot collide with `cue()` again: this
-    BUILDS a cue from its parts, and `cue_of` takes one apart.
-
-    !! A SKIPPED TRIGGER TAKES NO NUMBER, so every series starts at 0. Each
-    series owns its rule about what it skips and records and increments
-    independently: `c` does not emit for the MODULE and does not step past it
-    either, so its first line of code is `c0`. ! Reading it the other way --
-    that a series takes a number at every trigger it is offered -- burns `b0`
-    and starts `c` at 1.
-
-    !! NOTHING READS ONE CUE TO COMPUTE ANOTHER, and no cue follows from a
-    line's ordinal. Whether two series happen to line up on a given file is not
-    stated anywhere, deliberately: the edge cases where it breaks are not known,
-    and a reader told the numbers coincide will rely on it whatever the sentence
-    around it says.
-    """
-    return f"{series}{step}"
 
 
 #: The character that joins path segments in an address. A path may not hold it

@@ -17,6 +17,7 @@ from pathlib import Path
 
 from comment_review.binder.binder import read as read_binder
 from comment_review.desk.mark import allowed
+from comment_review.desk.stages import ROLES
 from comment_review.flows.marks import problems_in, seed, tally, unruled
 from comment_review.machine import exceptions
 
@@ -37,20 +38,28 @@ def _load(path: str) -> tuple[dict, str]:
 
 
 def main() -> int:
-    """Publish the shape, seed a sheet, or check a filled one.
+    """Publish the shape, seed an `edit_copy`, or check a filled one.
 
     Returns:
-        0 when the shape printed, the sheet was written, or the file is sound;
+        0 when the shape printed, the edit_copy was written, or it is sound;
         1 when a filled file breaks a rule; 2 when an input could not be read.
     """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument(
         "--shape", action="store_true", help="print what a mark may carry, as JSON"
     )
-    ap.add_argument("--seed", action="store_true", help="write a fillable sheet")
-    ap.add_argument("--check", metavar="PATH", help="check a filled sheet")
+    ap.add_argument("--seed", action="store_true", help="write a fillable edit_copy")
+    ap.add_argument("--check", metavar="PATH", help="check a filled edit_copy")
     ap.add_argument("--binder", help="the binder to seed from (--seed only)")
-    ap.add_argument("--role", help="the editorial role (--seed only)")
+    # `choices=` takes the string values, not the `Role` members themselves:
+    # argparse's "invalid choice" message reprs each choice, and a `StrEnum`
+    # member's repr is `<Role.OWNERSHIP_CONTEXT: 'ownership-context'>` rather
+    # than the plain name a user typed.
+    ap.add_argument(
+        "--role",
+        choices=[str(role) for role in ROLES],
+        help="the editorial role (--seed only)",
+    )
     ap.add_argument("--out", help="the file to write (--seed only)")
     args = ap.parse_args()
 
@@ -59,12 +68,12 @@ def main() -> int:
         return 0
 
     if args.seed:
-        # ! Every one is required together: a sheet with no role cannot be
+        # ! Every one is required together: an edit_copy with no role cannot be
         # collated, and one with no address cannot be filled -- which is the
         # whole reason it is seeded rather than described.
         missing = [n for n in ("binder", "role", "out") if not getattr(args, n)]
         if missing:
-            wanted = ', '.join('--' + n for n in missing)
+            wanted = ", ".join("--" + n for n in missing)
             print(f"--seed needs {wanted}", file=sys.stderr)
             return 2
         try:
@@ -76,11 +85,12 @@ def main() -> int:
         if problem:
             print(problem, file=sys.stderr)
             return 2
-        sheet = seed(binder, args.role)
+        edit_copy = seed(binder, args.role)
         Path(args.out).write_text(
-            json.dumps(sheet, indent=2), encoding="utf-8", newline=""
+            json.dumps(edit_copy, indent=2), encoding="utf-8", newline=""
         )
-        print(f"{args.out}: {len(sheet['marks'])} places for {args.role} to rule on")
+        places = sum(len(sheet["marks"]) for sheet in edit_copy["sheets"])
+        print(f"{args.out}: {places} places for {args.role} to rule on")
         return 0
 
     if args.check:

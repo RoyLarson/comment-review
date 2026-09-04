@@ -1,0 +1,40 @@
+# Pure sequential: one role per stage, four stages, one edit_copy per
+# master_proof, four revises. docs/superpowers/specs/2026-08-29-the-master-
+# proof-and-reconciliation-design.md section 2, table row "pure sequential".
+# Each stage reads the revise the one before it pulled.
+
+[[stage]]
+name    = "1"
+kind    = "editorial"
+reads   = "original"
+carries = []
+
+  [[stage.dispatch]]
+  role = "ownership-context"
+
+[[stage]]
+name    = "2"
+kind    = "editorial"
+reads   = "revise:1"
+carries = []
+
+  [[stage.dispatch]]
+  role = "block-context"
+
+[[stage]]
+name    = "3"
+kind    = "editorial"
+reads   = "revise:2"
+carries = []
+
+  [[stage.dispatch]]
+  role = "function-context"
+
+[[stage]]
+name    = "4"
+kind    = "editorial"
+reads   = "revise:3"
+carries = []
+
+  [[stage.dispatch]]
+  role = "module-context"

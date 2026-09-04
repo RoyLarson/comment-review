@@ -2,7 +2,7 @@
 
 ```
 Status:   done
-Progress: 8 of 8 tasks done
+Progress: 8 of 8 tasks closed
 Owner:    session * Roy (* 1 ruling)
 Raised:   2026-08-15 (Roy: "It looks like another session got convinced by other
           sessions that they didn't have everything they needed to state what
@@ -33,83 +33,95 @@ loads the census and takes only `len(blocks)` from it.
 
 ## Tasks
 
-- [x] Implement the six-field record in `references/reviewer-brief.md` and
-      `scripts/verdicts.py`: `LOCATION` goes (derivable from `BLOCK`, which the census resolves
-      to path/start/end); `EVIDENCE` + `QUOTE` merge into `SOURCE` as `file:line | verbatim`,
-      split on `|` and each half checked exactly as now; `SUMMARY` splits, its left half
-      becoming `CLAIM` and its derived right half folding into `REASON`; `FINDING` becomes
-      `REASON`. ! **The opener is ALREADY `--- RECORD`, done 2026-08-16** -- Roy found the
-      ambiguity in the brief's own example (*"is it the emitted full table or is it the row
-      in the table?"*) and it was split out because it is independent of the field cut.
-      ! **DONE 2026-08-17, group A tasks 4-6.** `BLOCK VERDICT SOURCE CLAIM REASON CHANGE`.
-      LOCATION retired, EVIDENCE+QUOTE merged as `file:line | verbatim`, SUMMARY split with its
-      derived half folding into REASON. ! A SOURCE line REPEATS rather than comma-separating,
-      because verbatim text can contain a comma.
+- [x] T1 | FINISHED | unknown | Implement the six-field record in
+      `references/reviewer-brief.md` and `scripts/verdicts.py`: `LOCATION` goes
+      (derivable from `BLOCK`, which the census resolves to path/start/end);
+      `EVIDENCE` + `QUOTE` merge into `SOURCE` as `file:line \| verbatim`, split
+      on `\|` and each half checked exactly as now; `SUMMARY` splits, its left
+      half becoming `CLAIM` and its derived right half folding into `REASON`;
+      `FINDING` becomes `REASON`. ! **The opener is ALREADY `--- RECORD`, done
+      2026-08-16** -- Roy found the ambiguity in the brief's own example (*"is
+      it the emitted full table or is it the row in the table?"*) and it was
+      split out because it is independent of the field cut. ! **DONE 2026-08-17,
+      group A tasks 4-6.** `BLOCK VERDICT SOURCE CLAIM REASON CHANGE`. LOCATION
+      retired, EVIDENCE+QUOTE merged as `file:line \| verbatim`, SUMMARY split
+      with its derived half folding into REASON. ! A SOURCE line REPEATS rather
+      than comma-separating, because verbatim text can contain a comma.
 
-- [x] Keep `SOURCE` merged, not re-split. `EVIDENCE` and `QUOTE` were ONE field until
-      `cb7e361` split them, because the old `SUMMARY` mixed verbatim with derived text and a
-      checker cannot verify both in one field. `SOURCE`'s two halves are both verbatim, so the
-      merge does not recreate that. ! Do not merge anything DERIVED into it.
-      ! **HELD.** One field, and both halves verbatim -- which is why the merge does not
-      recreate the defect that split them. Nothing DERIVED went into it: the derived side is
-      REASON, and it is checked by nothing.
+- [x] T2 | FINISHED | unknown | Keep `SOURCE` merged, not re-split. `EVIDENCE`
+      and `QUOTE` were ONE field until `cb7e361` split them, because the old
+      `SUMMARY` mixed verbatim with derived text and a checker cannot verify
+      both in one field. `SOURCE`'s two halves are both verbatim, so the merge
+      does not recreate that. ! Do not merge anything DERIVED into it. !
+      **HELD.** One field, and both halves verbatim -- which is why the merge
+      does not recreate the defect that split them. Nothing DERIVED went into
+      it: the derived side is REASON, and it is checked by nothing.
 
-- [x] Add the cross-check the record never had: **does `CLAIM` appear in the census text for
-      `BLOCK`?** The census carries each block's joined text and the gate already loads it. This
-      catches a finding attached to the wrong block, which nothing catches today, and it is
-      strictly stronger than the `LOCATION` check being removed.
-      ! **DONE, task 6.** `claim_problem` matches CLAIM against the census text for its BLOCK. !
-      Exempt: `clean` cites no claim, and `add` is a finding about prose that is MISSING, so its
-      block is an empty interval with no sentence to quote.
+- [x] T3 | FINISHED | unknown | Add the cross-check the record never had: **does
+      `CLAIM` appear in the census text for `BLOCK`?** The census carries each
+      block's joined text and the gate already loads it. This catches a finding
+      attached to the wrong block, which nothing catches today, and it is
+      strictly stronger than the `LOCATION` check being removed. ! **DONE, task
+      6.** `claim_problem` matches CLAIM against the census text for its BLOCK.
+      ! Exempt: `clean` cites no claim, and `add` is a finding about prose that
+      is MISSING, so its block is an empty interval with no sentence to quote.
 
-- [x] Check `REASON`. Minimum: non-empty, and not merely a restatement of `CLAIM`. Today
-      `Finding.finding` is read at exactly one site (`verdicts.py:539`) and only to print the
-      reason a record was MALFORMED -- so for a real finding the field is decoration.
-      ! `Finding.finding` is overloaded: reviewer clause, or diagnostic string when
-      `block == -1`. One attribute, two meanings -- fix with it.
-      ! **DONE, tasks 4 and 7.** Required non-empty, and refused when it merely restates CLAIM
-      -- equality only, because a REASON that quotes the claim and then explains it is doing its
-      job. ! The overload is gone too: `parse_report` returns malformed records separately, so
-      the field holds one thing.
+- [x] T4 | FINISHED | unknown | Check `REASON`. Minimum: non-empty, and not
+      merely a restatement of `CLAIM`. Today `Finding.finding` is read at
+      exactly one site (`verdicts.py:539`) and only to print the reason a record
+      was MALFORMED -- so for a real finding the field is decoration. !
+      `Finding.finding` is overloaded: reviewer clause, or diagnostic string
+      when `block == -1`. One attribute, two meanings -- fix with it. ! **DONE,
+      tasks 4 and 7.** Required non-empty, and refused when it merely restates
+      CLAIM -- equality only, because a REASON that quotes the claim and then
+      explains it is doing its job. ! The overload is gone too: `parse_report`
+      returns malformed records separately, so the field holds one thing.
 
-- [x] `query` DOES carry `SOURCE`. **Roy, 2026-08-15:** *"EVIDENCE + QUOTE for query means I
-      looked here, and here, and here and I couldn't determine what this means."* The exemption
-      rests on a conflation -- "no line SETTLES it" is not "no line to CITE" -- and
-      `reviewer-brief.md` contradicts itself on it fifteen lines apart: *"You are still required
-      to open the code that would settle it; on every other verdict your QUOTE proves you did"*,
-      then *"A query carries no EVIDENCE and no QUOTE, by construction."* The one verdict that
-      most needs proof the reviewer looked is the only one exempted from giving it. So:
-      `SOURCE` goes PLURAL for a query, one entry per place examined; `evidence_problem()` stops
-      exempting it and checks each the same way as every other verdict; what stays unenforceable
-      is whether those were the right places, which is judgment and always was.
-      ! Residual, small: `QUERY_ATTEMPTED` exists to refuse "a query naming no attempted check",
-      but the attempted check IS the `SOURCE` list once it is carried -- so that regex becomes
-      redundant. Decide whether `QUERY_SETTLES` stays as a shape check on `REASON` or "what
-      would settle it" becomes prose the gate does not police.
-      ! **DONE 2026-08-16 and 08-17.** `source_problem` exempts `clean` alone, and SOURCE goes
-      plural by repeating the line.
+- [x] T5 | FINISHED | unknown | `query` DOES carry `SOURCE`. **Roy,
+      2026-08-15:** *"EVIDENCE + QUOTE for query means I looked here, and here,
+      and here and I couldn't determine what this means."* The exemption rests
+      on a conflation -- "no line SETTLES it" is not "no line to CITE" -- and
+      `reviewer-brief.md` contradicts itself on it fifteen lines apart: *"You
+      are still required to open the code that would settle it; on every other
+      verdict your QUOTE proves you did"*, then *"A query carries no EVIDENCE
+      and no QUOTE, by construction."* The one verdict that most needs proof the
+      reviewer looked is the only one exempted from giving it. So: `SOURCE` goes
+      PLURAL for a query, one entry per place examined; `evidence_problem()`
+      stops exempting it and checks each the same way as every other verdict;
+      what stays unenforceable is whether those were the right places, which is
+      judgment and always was. ! Residual, small: `QUERY_ATTEMPTED` exists to
+      refuse "a query naming no attempted check", but the attempted check IS the
+      `SOURCE` list once it is carried -- so that regex becomes redundant.
+      Decide whether `QUERY_SETTLES` stays as a shape check on `REASON` or "what
+      would settle it" becomes prose the gate does not police. ! **DONE
+      2026-08-16 and 08-17.** `source_problem` exempts `clean` alone, and SOURCE
+      goes plural by repeating the line.
 
-- [x] * Rule on `add` -- ! **RULED 2026-08-17: it carries a BLOCK, and the block is the empty
-      INTERVAL.** Neither of the two options this task named: the borrowing was not stated as
-      intended and no anchor field was added. The census now enumerates every gap between two
-      lines of code, so the finding is about a real numbered block that holds nothing, which is
-      what an `add` was always claiming. Closed by
-      [`an-empty-interval-has-no-census-index`](an-empty-interval-has-no-census-index.md).
-      ! The `add` PAYLOAD gained its own rule the same day -- a side, and the anchor named in
-      backticks -- under `the-gate-and-the-brief-disagree`.
+- [x] T6 | FINISHED | unknown | * Rule on `add` -- ! **RULED 2026-08-17: it
+      carries a BLOCK, and the block is the empty INTERVAL.** Neither of the two
+      options this task named: the borrowing was not stated as intended and no
+      anchor field was added. The census now enumerates every gap between two
+      lines of code, so the finding is about a real numbered block that holds
+      nothing, which is what an `add` was always claiming. Closed by
+      `an-empty-interval-has-no-census-index`. ! The `add` PAYLOAD gained its
+      own rule the same day -- a side, and the anchor named in backticks --
+      under `the-gate-and-the-brief-disagree`.
 
-- [x] **Reversed by a later ruling, 2026-08-16.** Was: *"say once that `clean` produces NO
-      record -- it is the `CLEAN` range line."* Roy ruled the opposite the same day: *"every block
-      gets a FINDING including CLEAN, that was a stated mechanism and needs to be consistent."*
-      Every block is now a record, `clean` included, and the range line, `CLEAN_LINE` and
-      `_expand` are deleted from `verdicts.py`. ! That closed the fabrication this file's own
-      objective describes: a range covered N blocks in one line and cited nothing.
+- [x] T7 | FINISHED | unknown | **Reversed by a later ruling, 2026-08-16.** Was:
+      *"say once that `clean` produces NO record -- it is the `CLEAN` range
+      line."* Roy ruled the opposite the same day: *"every block gets a FINDING
+      including CLEAN, that was a stated mechanism and needs to be consistent."*
+      Every block is now a record, `clean` included, and the range line,
+      `CLEAN_LINE` and `_expand` are deleted from `verdicts.py`. ! That closed
+      the fabrication this file's own objective describes: a range covered N
+      blocks in one line and cited nothing.
 
-- [x] **RULED 2026-08-18 by Roy: the payload prose SHIPS, all seven, and it is generated.**
-      The budget objection is answered by the branch that raised it. Roy: *"The total number of
-      tokens necessary to get the agents to start their work is significantly down ... what we
-      cut out of the records, the raw block content, is probably going to more than pay off the
-      extra tokens written into the brief."*
+- [x] T8 | FINISHED | unknown | **RULED 2026-08-18 by Roy: the payload prose
+      SHIPS, all seven, and it is generated.** The budget objection is answered
+      by the branch that raised it. Roy: *"The total number of tokens necessary
+      to get the agents to start their work is significantly down ... what we
+      cut out of the records, the raw block content, is probably going to more
+      than pay off the extra tokens written into the brief."*
 
       !! **MEASURED, and the two costs scale differently.** The brief is FIXED per reviewer; the
       record is PER BLOCK. Dropping the block text from records saves 332,828 bytes per run at

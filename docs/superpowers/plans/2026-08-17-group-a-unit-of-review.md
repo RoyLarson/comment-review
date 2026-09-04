@@ -15,6 +15,19 @@ alone. The record cut (Tasks 4-7) is last because it renames fields the earlier 
 ! **A5 was excluded when this plan was written and is now RULED** -- Roy, 2026-08-17: *"pCST not
 prose tree"*. It is Task 9.
 
+!! **AUDITED 2026-09-02 -- ALL NINE TASKS LANDED ON 2026-08-17 AND NO BOX WAS EVER TICKED.**
+Each task was committed under the exact message this plan wrote for it, and every sha below is
+reachable from `feat/the-mark-and-the-collator`. 45 of 46 boxes are ticked; Task 8 Step 1 stays
+open on the half of it that was deliberately declined, and says so there.
+
+! **THE PLAN IS FINISHED. ITS SUBJECT MATTER WAS SUPERSEDED LATER AND SEPARATELY, AND A TICK
+RECORDS WHAT WAS DONE RATHER THAN WHAT STILL STANDS.** What has replaced it since:
+`plugins/comment-review/skills/comment-review/scripts/verdicts.py` -- Tasks 2 and 4-7 -- is now
+`prototype/original/verdicts.py`, moved at `b50e7a4` (2026-08-25) when the middle was rebuilt;
+`block` was retired for `paragraph` at `713f8af` (2026-08-19); `verdict` was struck for
+`instruction` at `3e47286` (2026-08-28); and Task 9's own destination, `pCST`, retired for
+`page` at `e6b0d1f` (2026-08-20). **None of that unmakes the work these boxes claim.**
+
 ## Global Constraints
 
 - **Shipped-code floor is py3.11.** No `except` clause in `plugins/**` holds a tuple literal --
@@ -45,6 +58,10 @@ prose tree"*. It is Task 9.
 
 ### Task 1: `SKILL.md` stops contradicting the brief
 
+**Landed:** `8f139f4` -- SKILL.md reads *one or more per role per block* and carries
+the read-the-code-around-the-replacement clause; four cases in
+`TestSkillAndBriefAgreeOnTheUnit`.
+
 **Files:**
 - Modify: `plugins/comment-review/skills/comment-review/SKILL.md:43-44`
 - Test: `tests/test_verdicts.py`
@@ -53,7 +70,7 @@ prose tree"*. It is Task 9.
 - Consumes: nothing.
 - Produces: nothing code-level. Later tasks do not depend on it.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `tests/test_verdicts.py`, after `class TestTheBriefsOwnRecordPasses`:
 
@@ -89,7 +106,7 @@ class TestSkillAndBriefAgreeOnTheUnit(unittest.TestCase):
         self.assertIn("read the code around where that replacement lands", text)
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 ```
 python -m unittest tests.test_verdicts.TestSkillAndBriefAgreeOnTheUnit -v
@@ -101,7 +118,7 @@ Expected: `test_the_skill_does_not_say_one_per_role_per_block`,
 
 ! If the brief test fails, STOP -- the brief changed and this plan's premise is stale.
 
-- [ ] **Step 3: Make the change**
+- [x] **Step 3: Make the change**
 
 In `SKILL.md`, replace exactly:
 
@@ -124,7 +141,7 @@ how a run replaces an unfalsifiable claim with a checkably false one -- measured
 pass that stage 8 rolled back.
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 ```
 python -m unittest tests.test_verdicts.TestSkillAndBriefAgreeOnTheUnit -v
@@ -132,7 +149,7 @@ python -m unittest tests.test_verdicts.TestSkillAndBriefAgreeOnTheUnit -v
 
 Expected: 4 passed.
 
-- [ ] **Step 5: Full gate and commit**
+- [x] **Step 5: Full gate and commit**
 
 ```bash
 python -m unittest discover -s tests && ruff format . && ruff check . \
@@ -153,6 +170,9 @@ pass die there."
 
 ### Task 2: `contradictions()` keys on the TEXT, and `move` leaves the set
 
+**Landed:** `de0dbd4` -- `RELOCATES` becomes `REMOVES`, `ruled_text` keys the check on
+the sentence, and the four `TestContradiction` cases land with it.
+
 **Files:**
 - Modify: `plugins/comment-review/skills/comment-review/scripts/verdicts.py` -- `RELOCATES`, `contradictions`
 - Test: `tests/test_verdicts.py` -- `class TestContradiction`
@@ -163,7 +183,7 @@ pass die there."
   signature. `ruled_text(f: Finding) -> str` -- the verbatim sentence a finding rules on,
   normalised; empty string when it rules on none.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Add to `tests/test_verdicts.py` inside `class TestContradiction`:
 
@@ -214,7 +234,7 @@ Add to `tests/test_verdicts.py` inside `class TestContradiction`:
         self.assertEqual(verdicts.contradictions(verdicts.by_block(found)), [1])
 ```
 
-- [ ] **Step 2: Run them and watch them fail**
+- [x] **Step 2: Run them and watch them fail**
 
 ```
 python -m unittest tests.test_verdicts.TestContradiction -v
@@ -224,7 +244,7 @@ Expected: `test_drop_and_correct_on_DIFFERENT_sentences_do_not_collide` and
 `test_move_against_correct_COMPOSES_and_is_not_flagged` FAIL -- both currently
 report `[1]`. The other two PASS already.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `verdicts.py`, replace the `RELOCATES` definition:
 
@@ -303,7 +323,7 @@ def contradictions(grouped: dict[int, list[Finding]]) -> list[int]:
     return sorted(out)
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 ```
 python -m unittest tests.test_verdicts -v
@@ -312,7 +332,7 @@ python -m unittest tests.test_verdicts -v
 Expected: all pass. ! If `test_a_malformed_block_is_never_reported_as_a_contradiction` or a
 `RELOCATES` reference fails, grep for `RELOCATES` -- every use must become `REMOVES`.
 
-- [ ] **Step 5: Update the docstring checklist in `verdicts.py`**
+- [x] **Step 5: Update the docstring checklist in `verdicts.py`**
 
 Replace the `CONTRADICTION` line of the module docstring:
 
@@ -327,7 +347,7 @@ with:
                 re-review. `move` composes with both and is not flagged
 ```
 
-- [ ] **Step 6: Full gate and commit**
+- [x] **Step 6: Full gate and commit**
 
 ```bash
 python -m unittest discover -s tests && ruff format . && ruff check . \
@@ -352,6 +372,10 @@ is the synthesis order at steps 2 and 3."
 
 ### Task 3: STAMP a comment run split off a trailing comment
 
+**Landed:** `d6c5fb0` -- `continues-a-trailing-comment` stamped in `blocks_stdlib`, with
+the brief paragraph and the SKILL.md annotation row. ! It stamped the TOKENIZED tier
+only; the LEXICAL tier split identically and was fixed at `0b2c6eb`.
+
 **Files:**
 - Modify: `plugins/comment-review/skills/comment-review/scripts/census.py` -- `blocks_stdlib`
 - Test: `tests/test_census_blocks.py`
@@ -360,7 +384,7 @@ is the synthesis order at steps 2 and 3."
 - Consumes: `Block` (has `annotations: set[str]` and `notes: list[str]`).
 - Produces: the annotation string `"continues-a-trailing-comment"` on the FOLLOWING block.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `tests/test_census_blocks.py`, in `class TestEveryIntervalIsABlock`:
 
@@ -390,7 +414,7 @@ Add to `tests/test_census_blocks.py`, in `class TestEveryIntervalIsABlock`:
         self.assertNotIn("continues-a-trailing-comment", prose[0].annotations)
 ```
 
-- [ ] **Step 2: Run and watch it fail**
+- [x] **Step 2: Run and watch it fail**
 
 ```
 python -m unittest discover -s tests -p "test_census_blocks.py" -v
@@ -399,7 +423,7 @@ python -m unittest discover -s tests -p "test_census_blocks.py" -v
 Expected: `test_a_wrapped_trailing_comment_stamps_its_continuation` FAILS on the missing
 annotation. The other two PASS.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `census.py`'s `blocks_stdlib`, the `flush` closure currently ends by appending a `Block` and
 calling `run.clear()`. Replace the whole `flush` definition with:
@@ -446,7 +470,7 @@ calling `run.clear()`. Replace the whole `flush` definition with:
             run.clear()
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 ```
 python -m unittest discover -s tests -p "test_census_blocks.py" -v
@@ -455,7 +479,7 @@ python -m unittest discover -s tests
 
 Expected: all pass.
 
-- [ ] **Step 5: Tell the reviewers what the stamp means**
+- [x] **Step 5: Tell the reviewers what the stamp means**
 
 In `reviewer-brief.md`, in the annotations context -- add after the `narrative-in-docstring`
 row of the annotation table if one exists there, otherwise directly after the
@@ -474,7 +498,7 @@ Also add the row to `SKILL.md`'s annotation table, which lists what resolving ea
 | `continues-a-trailing-comment` | read it WITH the trailing comment above; the split is the census's |
 ```
 
-- [ ] **Step 6: Full gate and commit**
+- [x] **Step 6: Full gate and commit**
 
 ```bash
 python -m unittest discover -s tests && ruff format . && ruff check . \
@@ -502,6 +526,9 @@ and the annotation removes exactly that."
 
 ### Task 4: `SUMMARY` -> `CLAIM`, `FINDING` -> `REASON`
 
+**Landed:** `be1485b` -- `Finding.claim` and `.reason` replace `.summary` and
+`.finding`, and `evidence_problem`'s `||` right-half check goes with them.
+
 **Files:**
 - Modify: `verdicts.py` (`Finding`, `parse_report`, `payload_problem`, `evidence_problem`, `main`)
 - Modify: `references/reviewer-brief.md`, `SKILL.md`
@@ -516,7 +543,7 @@ and the annotation removes exactly that."
 half folds into `REASON`. So `REASON` carries what `FINDING` carried **and** what was derived
 from the evidence, and the `||` separator disappears.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Replace the module-level `REPORT` constant in `tests/test_verdicts.py` with:
 
@@ -587,7 +614,7 @@ Update `_finding`'s defaults:
     }
 ```
 
-- [ ] **Step 2: Run and watch it fail**
+- [x] **Step 2: Run and watch it fail**
 
 ```
 python -m unittest discover -s tests 2>&1 | tail -5
@@ -595,7 +622,7 @@ python -m unittest discover -s tests 2>&1 | tail -5
 
 Expected: many failures -- `Finding` has no `claim`/`reason`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `verdicts.py`:
 
@@ -647,7 +674,7 @@ In `SKILL.md`, replace `FINDING` with `REASON` at its 4 sites and `SUMMARY` with
 site -- including the stage-7a five-part list, which must read
 `VERDICT / LOCATION / CLAIM / REASON / CHANGE`.
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 ```
 python -m unittest discover -s tests
@@ -655,7 +682,7 @@ python -m unittest discover -s tests
 
 Expected: all pass.
 
-- [ ] **Step 5: Full gate and commit**
+- [x] **Step 5: Full gate and commit**
 
 ```bash
 python -m unittest discover -s tests && ruff format . && ruff check . \
@@ -676,6 +703,9 @@ already enforces. REASON is ONE statement and must not grow a || of its own."
 
 ### Task 5: `EVIDENCE` + `QUOTE` -> `SOURCE`
 
+**Landed:** `ce94bbe` -- `Finding.sources` and `source_problem` replace `.evidence`,
+`.quote` and `evidence_problem`; both agent files and the brief updated.
+
 **Files:**
 - Modify: `verdicts.py` (`Finding`, `parse_report`, `evidence_problem`, `payload_problem`)
 - Modify: `references/reviewer-brief.md`, `agents/comment-review-block-context.md`,
@@ -691,7 +721,7 @@ already enforces. REASON is ONE statement and must not grow a || of its own."
 for a query" means. Repeating the line avoids a delimiter that verbatim text could contain.
 Split each on the FIRST `|` only.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 class TestSource(unittest.TestCase):
@@ -757,11 +787,11 @@ class TestSource(unittest.TestCase):
 Update `_finding`: drop `evidence` and `quote`, add
 `"sources": ["a.py:5 | the settling line"]`.
 
-- [ ] **Step 2: Run and watch it fail**
+- [x] **Step 2: Run and watch it fail**
 
 Expected: `Finding` has no `sources`; `source_problem` is not defined.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `verdicts.py`:
 
@@ -815,13 +845,13 @@ In `reviewer-brief.md`: one `SOURCE` row replacing the `EVIDENCE` and `QUOTE` ro
 updated, and the `QUOTE is the forcing function` paragraph retitled to `SOURCE`'s verbatim half.
 Update the two agent files where they name `EVIDENCE` or `QUOTE`.
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 ```
 python -m unittest discover -s tests
 ```
 
-- [ ] **Step 5: Full gate and commit**
+- [x] **Step 5: Full gate and commit**
 
 ```bash
 python -m unittest discover -s tests && ruff format . && ruff check . \
@@ -842,6 +872,9 @@ a SOURCE are one statement about one place."
 
 ### Task 6: `LOCATION` retires, and `CLAIM` is checked against the census
 
+**Landed:** `7bcfc70` -- `location` and `location_problem` deleted, `claim_problem`
+checks the CLAIM against the census text for its BLOCK.
+
 **Files:**
 - Modify: `verdicts.py` (`Finding`, `parse_report`, `main`, delete `location_problem`)
 - Modify: `references/reviewer-brief.md`, `SKILL.md`
@@ -856,7 +889,7 @@ resolvability, never against the block it claimed to describe. `CLAIM` is checke
 census text for `BLOCK`, which catches a finding attached to the wrong block -- something nothing
 catches today.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 class TestClaimAgainstTheCensus(unittest.TestCase):
@@ -891,9 +924,9 @@ class TestClaimAgainstTheCensus(unittest.TestCase):
         self.assertNotIn("location_problem", src)
 ```
 
-- [ ] **Step 2: Run and watch it fail**
+- [x] **Step 2: Run and watch it fail**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 1. Delete `location: str` from `Finding`, its `parse_report` line, `location_problem` entirely,
    and its call and printed message in `main()`.
@@ -931,9 +964,9 @@ class TestClaimAgainstTheCensus(unittest.TestCase):
      CLAIM         the sentence a finding rules on is really in the block it cites
    ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
-- [ ] **Step 5: Full gate and commit**
+- [x] **Step 5: Full gate and commit**
 
 ```bash
 python -m unittest discover -s tests && ruff format . && ruff check . \
@@ -955,6 +988,9 @@ that no sentence is there."
 
 ### Task 7: `REASON` must not merely restate `CLAIM`
 
+**Landed:** `31cdf29` -- the normalised equality check in `payload_problem`, with the
+three `TestReasonSaysSomething` cases.
+
 **Files:**
 - Modify: `verdicts.py` -- `payload_problem`
 - Test: `tests/test_verdicts.py`
@@ -963,7 +999,7 @@ that no sentence is there."
 - Consumes: `Finding.claim`, `Finding.reason`.
 - Produces: nothing new.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```python
 class TestReasonSaysSomething(unittest.TestCase):
@@ -985,9 +1021,9 @@ class TestReasonSaysSomething(unittest.TestCase):
         self.assertIn("restates", verdicts.payload_problem(f))
 ```
 
-- [ ] **Step 2: Run and watch it fail**
+- [x] **Step 2: Run and watch it fail**
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 In `payload_problem`, directly after the REASON-non-empty check:
 
@@ -1004,9 +1040,9 @@ In `payload_problem`, directly after the REASON-non-empty check:
 ! Equality only, not containment. A `REASON` that quotes the claim and then explains it is
 doing its job, and a containment test would refuse it.
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
-- [ ] **Step 5: Full gate and commit**
+- [x] **Step 5: Full gate and commit**
 
 ```bash
 python -m unittest discover -s tests && ruff format . && ruff check . \
@@ -1023,6 +1059,13 @@ quoting: a REASON that quotes the claim and then explains it is doing its job."
 
 ### Task 8: close the TODOs group A absorbed
 
+**Landed:** `0b2c6eb` -- THREE of the four files moved to `TODO/completed/`, the
+CHANGELOG `[Unreleased]` section written, and `an-empty-interval-has-no-census-index`
+closed at 11 of 11. ! `move-and-correct-compose` was HELD with its reason written in
+and is still open today (4 of 6), waiting on a live re-measure -- so Step 1's `git mv`
+half did not land and its box stays open. `the-finding-record` moved later, at
+`2421c5e`.
+
 **Files:**
 - Move: `TODO/the-unit-of-review-is-the-statement-not-the-block.md`,
   `TODO/move-and-correct-compose.md`,
@@ -1034,13 +1077,13 @@ quoting: a REASON that quotes the claim and then explains it is doing its job."
 - [ ] **Step 1: Tick every task in the four files** with what was done and the commit that did
   it, then `git mv` each into `TODO/completed/`.
 
-- [ ] **Step 2: Close `an-empty-interval-has-no-census-index.md` too**, once Task 9 lands. All
+- [x] **Step 2: Close `an-empty-interval-has-no-census-index.md` too**, once Task 9 lands. All
   eleven of its tasks are then done and it moves to `TODO/completed/` with the rest.
 
-- [ ] **Step 3: Add a CHANGELOG `[Unreleased]` section** naming the four record fields, the
+- [x] **Step 3: Add a CHANGELOG `[Unreleased]` section** naming the four record fields, the
   contradiction change with its 8->2 measurement, and the census stamp.
 
-- [ ] **Step 4: Full gate and commit**
+- [x] **Step 4: Full gate and commit**
 
 ```bash
 python -m unittest discover -s tests && ruff format . && ruff check . \
@@ -1080,6 +1123,10 @@ not exist.
 
 ### Task 9: `prose tree` retires; `pCST` survives
 
+**Landed:** `d4caafc` -- `prose tree` replaced by `pCST` in CLAUDE.md, README.md,
+SKILL.md and both vocabulary tables, with `TestProseTreeRetired`. ! `pCST` itself
+retired for `page` three days later at `e6b0d1f`.
+
 **Files:**
 - Modify: `docs/vocabulary.md` -- the term table and the retired-words table
 - Modify: every shipped file that says `prose tree`
@@ -1091,13 +1138,13 @@ not exist.
 pCST was an aspiration and the prose tree was what the census actually built. The census
 enumerates intervals now, so they name one thing and the precise word wins.
 
-- [ ] **Step 1: Find every site**
+- [x] **Step 1: Find every site**
 
 ```bash
 grep -rn -i "prose tree\|prose-tree" --include=*.md --include=*.py . | grep -v corpora
 ```
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 Add to `tests/test_vocabulary.py`:
 
@@ -1122,7 +1169,7 @@ class TestProseTreeRetired(unittest.TestCase):
         self.assertIn("pCST", text)
 ```
 
-- [ ] **Step 3: Run it and watch it fail**
+- [x] **Step 3: Run it and watch it fail**
 
 ```
 python -m unittest discover -s tests -p "test_vocabulary.py" -v
@@ -1130,7 +1177,7 @@ python -m unittest discover -s tests -p "test_vocabulary.py" -v
 
 Expected: `test_no_shipped_file_says_prose_tree` FAILS, naming the files.
 
-- [ ] **Step 4: Replace every shipped use with `pCST`.**
+- [x] **Step 4: Replace every shipped use with `pCST`.**
 
 In `docs/vocabulary.md`, delete the `prose tree` row from the term table and drop the
 now-resolved clause from `pCST`'s row (`! BUILT 2026-08-17, so this and prose tree now name one
@@ -1140,7 +1187,7 @@ thing...`), leaving `pCST` as the single definition. Add to the retired table:
 | `prose tree` | -> **pCST**. Both named one thing once the census enumerated intervals; the precise word won. Roy, 2026-08-17: *"pCST not prose tree"* |
 ```
 
-- [ ] **Step 5: Run the tests, full gate, commit**
+- [x] **Step 5: Run the tests, full gate, commit**
 
 ```bash
 python -m unittest discover -s tests && ruff format . && ruff check . \

@@ -3,9 +3,9 @@
 ```
 Status:   deferred -- waits on the middle piece working end to end (Roy, 2026-08-27:
           "is a todo for the future Not Yet - i want the middle piece to work first")
-Progress: 0 of 3 tasks done
+Progress: 0 of 3 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-27 (Roy, answering whether a `references` page is settable: "Yes - needs a
           separate flow with separate galley-compositor chain")
 ```
@@ -56,11 +56,13 @@ directly *"there was no reason to try to fix the galley as it was."*
 
 ## Tasks
 
-- [ ] T1 -- Lay out the candidate signals for which chain a schedule takes -- the docket split
-      Roy named, and at least one alternative -- with what each costs. Verify: written in this
-      file, and Roy has ruled on it.
-- [ ] T2 -- Build the reference galley and compositor, whatever T1's signal decides. Verify: a
-      reference schedule produces a draft, and a code schedule is untouched by it.
-- [ ] T3 -- Prove the reference chain skips `prove_unchanged` for the right reason -- because the
-      page is DECLARED not-code, not because a suffix was matched. Verify: a test that fails when
-      the discriminator is a suffix test. ! Blocked on `prove-refuses-a-doc.md` T2.
+- [ ] T1 | T1 -- Lay out the candidate signals for which chain a schedule takes
+      -- the docket split Roy named, and at least one alternative -- with what
+      each costs. Verify: written in this file, and Roy has ruled on it.
+- [ ] T2 | T2 -- Build the reference galley and compositor, whatever T1's signal
+      decides. Verify: a reference schedule produces a draft, and a code
+      schedule is untouched by it.
+- [ ] T3 | T3 -- Prove the reference chain skips `prove_unchanged` for the right
+      reason -- because the page is DECLARED not-code, not because a suffix was
+      matched. Verify: a test that fails when the discriminator is a suffix
+      test. ! Blocked on `prove-refuses-a-doc.md` T2.

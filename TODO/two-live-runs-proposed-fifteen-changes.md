@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 11 of 21 tasks done
+Progress: 11 of 21 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, from `evidence/todo-tool-full-v0_2/proposals.md` (5) and
@@ -164,55 +164,87 @@ raised in conversation.
 
 ! In the order the evidence argues for.
 
-- [ ] T1 -- * Re-read P6's PLACEHOLDER HANDLING against the shipped galley. Verify: a
-      file:line here, and it is closed or filed to `galley-and-compositor-write-path`.
-- [ ] T2 -- * Re-read P6's DROP SCOPING against the shipped galley. Verify: a file:line
-      here, and it is closed or filed to `galley-and-compositor-write-path`.
-- [ ] T3 -- * Re-read P6's COMMENT PREFIXES against the shipped compositor. Verify: a
-      file:line here, and it is closed or filed to `galley-and-compositor-write-path`.
-- [ ] T4 -- * Re-read P6's INDENT FRAMING against the shipped compositor. Verify: a
-      file:line here, and it is closed or filed to `galley-and-compositor-write-path`.
-- [ ] T5 -- * Rule the two typed SOURCE shapes, `absence` and `count`, before the build.
-      Verify: `docs/decision-log.md` records both shapes, key by key.
-- [x] T6 -- SUPERSEDED. **P5 -- run the is-it-still-a-proposition check BEFORE the
-      write.** It landed on both halves; the citations are in the Objective.
-- [ ] T7 -- Add a `scope` key to a `drop` record. Verify: `record.SHAPES` declares it and
-      a `drop` carries `"scope": "block"` or `"scope": "sentence"`.
-- [ ] T8 -- Make the desk refuse a `drop` carrying no `scope`. Verify: a test asserts the
-      refusal and fails on today's code first.
-- [x] T9 -- SUPERSEDED. **P7 -- an `add` on an empty interval is an INSERTION.** The
-      ruling and the measurement are in the Objective.
-- [x] T10 -- SUPERSEDED HERE, tracked in its own file. **P3 -- the indent contract**, at
+- [ ] T1 | T1 -- * Re-read P6's PLACEHOLDER HANDLING against the shipped galley.
+      Verify: a file:line here, and it is closed or filed to
+      `galley-and-compositor-write-path`.
+- [ ] T2 | T2 -- * Re-read P6's DROP SCOPING against the shipped galley. Verify:
+      a file:line here, and it is closed or filed to
+      `galley-and-compositor-write-path`.
+- [ ] T3 | T3 -- * Re-read P6's COMMENT PREFIXES against the shipped compositor.
+      Verify: a file:line here, and it is closed or filed to
+      `galley-and-compositor-write-path`.
+- [ ] T4 | T4 -- * Re-read P6's INDENT FRAMING against the shipped compositor.
+      Verify: a file:line here, and it is closed or filed to
+      `galley-and-compositor-write-path`.
+- [?] T5 | T5 -- * Rule the two typed SOURCE shapes, `absence` and `count`,
+      before the build. Verify: `docs/decision-log.md` records both shapes, key
+      by key.
+- [x] T6 | FINISHED | unknown | T6 -- SUPERSEDED. **P5 -- run the
+      is-it-still-a-proposition check BEFORE the write.** It landed on both
+      halves; the citations are in the Objective.
+- [ ] T7 | T7 -- Add a `scope` key to a `drop` record. Verify: `record.SHAPES`
+      declares it and a `drop` carries `"scope": "block"` or `"scope":
+      "sentence"`.
+- [ ] T8 | T8 -- Make the desk refuse a `drop` carrying no `scope`. Verify: a
+      test asserts the refusal and fails on today's code first.
+- [x] T9 | FINISHED | unknown | T9 -- SUPERSEDED. **P7 -- an `add` on an empty
+      interval is an INSERTION.** The ruling and the measurement are in the
+      Objective.
+- [x] T10 | FINISHED | unknown | T10 -- SUPERSEDED HERE, tracked in its own
+      file. **P3 -- the indent contract**, at
       `a-block-does-not-say-where-its-text-starts.md`.
-- [x] T11 -- SUPERSEDED HERE, tracked in its own file. **P2 -- give the WIDTH a stage**,
-      at [`compact-can-buy-lines-with-width`](compact-can-buy-lines-with-width.md).
-- [x] T12 -- FINISHED. **P1 (todo-tool) -- a `REASON` naming a sentence no `CLAIM`
-      names.** The checker ships at `verdicts.py:170-191`.
-- [ ] T13 -- Give the collator's output a section for a tension with no address. Verify:
-      `verdicts.py` prints that section.
-- [ ] T14 -- Test that a record with no address reaches that section. Verify: the test
-      fails on today's code first.
-- [ ] T15 -- P1 (redacted-corpus) -- parse after every write, for the NON-PYTHON cases.
-      Verify: name what stands in for a parse at the `lexical` tier, or close this.
-- [x] T16 -- SUPERSEDED HERE, tracked in its own file. **RELEASE REQUIREMENT -- STAGE 4
-      SERIALISES**, at `ownership-is-read-first-but-nothing-makes-it-so.md`.
-## Resolved -- do not redo
+- [x] T11 | FINISHED | unknown | T11 -- SUPERSEDED HERE, tracked in its own
+      file. **P2 -- give the WIDTH a stage**, at
+      [`compact-can-buy-lines-with-width`](compact-can-buy-lines-with-width.md).
+- [x] T12 | FINISHED | unknown | T12 -- FINISHED. **P1 (todo-tool) -- a `REASON`
+      naming a sentence no `CLAIM` names.** The checker ships at
+      `verdicts.py:170-191`.
+- [ ] T13 | T13 -- Give the collator's output a section for a tension with no
+      address. Verify: `verdicts.py` prints that section.
+- [ ] T14 | T14 -- Test that a record with no address reaches that section.
+      Verify: the test fails on today's code first.
+- [ ] T15 | T15 -- P1 (redacted-corpus) -- parse after every write, for the
+      NON-PYTHON cases. Verify: name what stands in for a parse at the `lexical`
+      tier, or close this.
+- [x] T16 | FINISHED | unknown | T16 -- SUPERSEDED HERE, tracked in its own
+      file. **RELEASE REQUIREMENT -- STAGE 4 SERIALISES**, at
+      `ownership-is-read-first-but-nothing-makes-it-so.md`.
 
-!! **These carry CHECKED boxes because an unchecked one is a claim that work remains.** Roy,
-2026-08-18: *"a check box not-marked is left as something todo, even if it was superseded and no
-longer necessary."* Held as prose in a table, these five were invisible to any recount -- the
-README row read `0/9` while five were done.
+- [x] T17 | FINISHED | unknown | T17 -- FINISHED. **P2, both reports -- the work
+      list is withheld on a refusal.** Printed on a refusal now, labelled
+      PROVISIONAL, exit unchanged.
+- [x] T18 | FINISHED | unknown | T18 -- FINISHED. **P2, todo-tool -- N
+      coordinated edits.** `reviewer-brief.md` says N records each read oddly
+      alone, and that this is the format working, not failing.
+- [x] T19 | FINISHED | unknown | T19 -- FINISHED. **P1, todo-tool -- altitude.**
+      A third brief question after checkable/necessary; `compact.md` returns the
+      paragraph uncut.
+- [x] T20 | FINISHED | unknown | T20 -- FINISHED. **P9, redacted-corpus --
+      `verdicts.py --out`.** Verified at `verdicts.py:293`; the stage-5 gate had
+      been unrunnable.
+- [x] T21 | FINISHED | unknown | T21 -- FINISHED. **P3, a prose file has no
+      blocks.** Filed separately; **190 of 196 files** in one diff were
+      `TODO/*.md`.
+## Why T17-T21 are CHECKED, and why they now sit in `## Tasks`
 
-- [x] T17 -- FINISHED. **P2, both reports -- the work list is withheld on a refusal.**
-      Printed on a refusal now, labelled PROVISIONAL, exit unchanged.
-- [x] T18 -- FINISHED. **P2, todo-tool -- N coordinated edits.** `reviewer-brief.md` says
-      N records each read oddly alone, and that this is the format working, not failing.
-- [x] T19 -- FINISHED. **P1, todo-tool -- altitude.** A third brief question after
-      checkable/necessary; `compact.md` returns the paragraph uncut.
-- [x] T20 -- FINISHED. **P9, redacted-corpus -- `verdicts.py --out`.** Verified at
-      `verdicts.py:293`; the stage-5 gate had been unrunnable.
-- [x] T21 -- FINISHED. **P3, a prose file has no blocks.** Filed separately; **190 of 196
-      files** in one diff were `TODO/*.md`.
+!! **AN UNCHECKED BOX IS A CLAIM THAT WORK REMAINS.** Roy, 2026-08-18: *"a check box
+not-marked is left as something todo, even if it was superseded and no longer necessary."*
+Held as prose in a table, those five were invisible to any recount -- the README row read
+`0/9` while five were done. Boxing them is what made them countable.
+
+!! **AND THEY MOVED INTO `## Tasks` ON 2026-08-30, FOR THE SAME REASON ONE LEVEL UP.** They
+are T17-T21 of ONE sequence and sat under a second heading, and the heading split the count:
+the vendored tool read 21 boxes in this file and `job-board` read 16, because one counts every
+box in the document and the other counts the `## Tasks` block. **The five finished tasks were
+exactly what fell in the gap.**
+
+!! **AND THE COUNT IS THE CHEAP HALF.** Roy, 2026-08-30: *"This very thing made an earlier
+session completely jump a bunch of steps in a plan ... The task headers made it easy to skip
+past a set of tasks and start working on the next section of tasks."* **A reader treats a
+heading as a boundary and starts at the one it can see**, so the group above goes unworked --
+which is a lost group of work, not a wrong number. The rule is in `docs/conventions.md`: a
+task list is not split by a heading, ever.
+
 ## Related
 
 !! **LINKAGE AUDITED 2026-08-19, and it was ABSENT.** None of the fifteen tasks named the TODO it

@@ -12,6 +12,8 @@ two readers that caller happened to use.
 """
 
 import hashlib
+import shutil
+import stat
 import subprocess
 from pathlib import Path
 from typing import NamedTuple
@@ -36,12 +38,15 @@ def read_raw(path: Path) -> str:
     indistinguishable to anything that then asks which ending the text uses.
     `newline=""` disables that translation.
 
-    !! THREE SITES CALL IT DIRECTLY, AND NO WRITE PATH IS ONE OF THEM. MEASURED
-    over `src/comment_review/`: `read_source` below (which every other reader
-    goes through), `commands/prove_unchanged.py` and
+    !! FOUR SITES CALL IT DIRECTLY, AND NO WRITE PATH IS ONE OF THEM. MEASURED
+    over `src/comment_review/` on 2026-08-29: `read_source` below (which every
+    other reader goes through), `commands/prove_unchanged.py` and
     `results/prove_unchanged.py` -- both about comparing a file to itself
     byte-identically, which is why they read raw rather than through the sha
-    pairing `read_source` gives everyone else. Measured 2026-08-17, when the
+    pairing `read_source` gives everyone else -- and `desk/collator.py`, which
+    reads a CITED file to find the line a role numbered and needs the endings
+    the role saw. ! It was THREE until `collator._lines` stopped reading through
+    `Path.read_text`. Measured 2026-08-17, when the
     galley command read the source itself: it used `read_text`, so a 245-line
     CRLF source was written out with 223 bare LF and every line of the diff was
     an ending change. That command is gone -- see `docs/history.md` -- and the
@@ -258,6 +263,82 @@ def undraftable(into: Path, repo: Path) -> str:
     return ""
 
 
+def can_escape(rel: str) -> bool:
+    """Would joining this path to a root land somewhere other than under it?
+
+    !! A QUESTION ABOUT THE STRING, AND ONLY ABOUT THE STRING. It answers for
+    every root at once, which is what lets a caller stop asking per root -- but
+    it cannot answer for the filesystem, so a caller that has a root in hand
+    still compares the RESOLVED target.
+
+    ! THE DRIVE AND THE ROOT ARE ASKED BESIDE `is_absolute`, because Windows has
+    a third form neither covers: `Path("C:util.py").is_absolute()` is `False`
+    and it carries a drive, so joining it to a root on any other drive
+    DISCARDS the root.
+
+    !! IT LIVES HERE BECAUSE TWO CALLERS ASK IT, and one of them did not until
+    2026-08-29. `flows/proof_setter.py` asks it of a page path the schedule
+    records; `desk/collator.py` asks it of the `path` half of a `source`'s
+    `cite`, which a ROLE wrote. MEASURED: `Path(root) / "C:/outside/secrets.txt"`
+    is `C:/outside/secrets.txt` -- `pathlib` discards the left operand when the
+    right is absolute -- so `source_problems` read a file outside the checkout,
+    found the `verbatim` in it, and reported the citation VERIFIED.
+
+    Args:
+        rel: a path that is about to be joined to a root -- a page path in the
+            repo's own form, or the `path` half of a `path:line` citation.
+
+    Returns:
+        `True` when it is absolute, drive-relative, rooted, or walks up.
+    """
+    p = Path(rel)
+    return bool(p.is_absolute() or p.drive or p.root) or ".." in p.parts
+
+
+def remove_tree(root: Path, *, ignore_errors: bool = False) -> None:
+    r"""`shutil.rmtree`, clearing the read-only bit Windows refuses to unlink.
+
+    !! `shutil.rmtree` ALONE CANNOT DELETE A COPIED `.git` ON WINDOWS. Git
+    writes loose objects and `.git/objects/pack/*.pack` read-only, and Windows
+    refuses to unlink a read-only file. MEASURED 2026-08-29: `git init` plus one
+    commit leaves 3 read-only files under `.git/objects`; `shutil.copytree`
+    preserves the mode, and `shutil.rmtree` over the copy raised
+    `PermissionError: [WinError 5]` leaving 15 entries behind.
+
+    ! `ignore_errors=True` IS NOT A FIX FOR IT, IT IS THE SILENT SHAPE OF IT.
+    The same measurement left `into.exists()` `True` at exit 0 -- a complete,
+    ordinary-looking directory that the caller's own contract says is gone.
+
+    ! `onerror`, NOT `onexc`. `onexc` arrives in 3.12 and the floor here is
+    3.11, where it is an unexpected keyword argument.
+
+    ! THE HOOK RE-RAISES rather than reporting, because `shutil.rmtree` calls it
+    OUTSIDE its own `try`, so an exception from it leaves `rmtree` and reaches
+    the caller -- which is what makes a tree that could not be removed a
+    failure rather than a message.
+
+    Args:
+        root: the directory tree to remove.
+        ignore_errors: swallow what remains unremovable after the retry.
+            `False` -- the default -- lets it raise, which is what a caller
+            whose contract says the tree is gone needs.
+
+    Raises:
+        OSError: a path could not be removed even with the write bit set, and
+            `ignore_errors` is `False`.
+    """
+
+    def clear_and_retry(func, path, _exc) -> None:
+        try:
+            Path(path).chmod(stat.S_IWRITE | stat.S_IREAD)
+            func(path)
+        except OSError:
+            if not ignore_errors:
+                raise
+
+    shutil.rmtree(root, onerror=clear_and_retry)
+
+
 def tracked_paths(repo: Path) -> set[Path] | None:
     """`git_ls_files` as resolved absolute paths, for membership tests."""
     rels = git_ls_files(repo)
@@ -346,3 +427,52 @@ def walk_files(root: Path):
             # as settled fact.
             if not EXCLUDED_DIRS.intersection(p.relative_to(root).parts):
                 yield p
+
+
+def relative_to(target: Path, start: Path) -> Path:
+    """`target` expressed from `start`, walking up with `..` where it must.
+
+    !! `pathlib` ALONE. Roy, 2026-08-28: *"No os.path. Only Pathlib. Fix this
+    everywhere."* `census.py` reached for `os.path.relpath` on 2026-08-28
+    because `Path.relative_to` RAISES when the target is not under the start,
+    and a revise root is a temporary directory outside the checkout -- so the
+    `..` walk this function does is the part `pathlib` does not ship.
+
+    Args:
+        target: the path to express.
+        start: the path to express it from -- `Path.cwd()` for the census.
+
+    Returns:
+        A relative path when both share an anchor, `Path(".")` when they are
+        the same place, and the RESOLVED ABSOLUTE `target` when they do not
+        share one.
+
+    !! THE ABSOLUTE FALLBACK IS THE WINDOWS CASE, AND IT IS THE ONE THAT
+    CRASHED. MEASURED 2026-08-28: asking `os.path.relpath` for a path on drive
+    `D:` from a start on drive `C:` raises `ValueError: path is on mount 'D:',
+    start on mount 'C:'`, so a census of a repo on one drive from a cwd on
+    another was an uncaught traceback. ! There is no relative path between two
+    anchors, so returning one is impossible and raising is unhelpful; the
+    resolved target is the only honest answer. This repo names Windows as its
+    primary platform and fetches corpora to arbitrary roots, which is what
+    makes two drives ordinary rather than exotic.
+    """
+    here = target.resolve()
+    there = start.resolve()
+    if here.anchor != there.anchor:
+        return here
+    shared = 0
+    # ! `strict=False` IS THE ANSWER HERE, not the lenient one: the two paths
+    # are EXPECTED to differ in length -- that difference is exactly what the
+    # `..` count below is measured from -- so stopping at the shorter one is
+    # the intent rather than a tolerated mismatch.
+    for mine, yours in zip(here.parts, there.parts, strict=False):
+        if mine != yours:
+            break
+        shared += 1
+    up = [".."] * (len(there.parts) - shared)
+    rest = here.parts[shared:]
+    # ! `Path(".")` FOR THE SAME PLACE, which is what a census of the checkout
+    # it is standing in reports. `Path()` with no arguments is `Path(".")`
+    # already, but saying it is the difference between a value and an accident.
+    return Path(*up, *rest) if (up or rest) else Path(".")

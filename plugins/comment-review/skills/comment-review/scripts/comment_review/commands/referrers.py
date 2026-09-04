@@ -76,7 +76,8 @@ def _report(args: argparse.Namespace) -> int:
 
     print(f"REFERENCE ONLY candidates for {len(under_review)} file(s) under review")
     print(
-        "Every line is a file to READ. None of them may be the target of a verdict.\n"
+        "Every line is a file to READ. None of them may be the target of "
+        "an instruction.\n"
     )
     if not hits:
         if unsearched:

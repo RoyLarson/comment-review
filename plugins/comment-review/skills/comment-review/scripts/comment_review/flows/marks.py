@@ -1,9 +1,9 @@
-"""Hand a role a sheet to fill, and check what comes back.
+"""Hand a role an edit_copy to fill, and check what comes back.
 
     seed(binder, role)     one entry per row, ADDRESS ALREADY WRITTEN
     problems_in(report)    every rule `desk.mark` settles, over a whole file
 
-!! THE SHEET IS SEEDED BECAUSE THE ADDRESS IS THE PART ROLES GET WRONG.
+!! THE EDIT_COPY IS SEEDED BECAUSE THE ADDRESS IS THE PART ROLES GET WRONG.
 MEASURED 2026-08-27: with a one-file binder every fanned-out agent wrote a bare
 cue -- 62 of 78 marks -- despite the row carrying the full address and the packet
 saying to copy it. With one file in play the path READS as redundant. **A bare
@@ -11,91 +11,195 @@ cue collides on merge: `a0` then means four different places**, and the fan-out
 results showed zero overlap with the full rounds until the differing form was
 noticed. ! Seeding removes the transcription rather than instructing against it.
 
-! A seeded entry's `mark` is `None` -- not ruled yet. A place left `None` when
-the sheet comes back is a COVERAGE GAP, which is a different thing from `clean`:
-`clean` says a role read this and had nothing to report.
+! A seeded entry's `instruction` is `None` -- not ruled yet. A place left `None`
+when the edit_copy comes back is a COVERAGE GAP, which is a different thing from
+`clean`: `clean` says a role read this and had nothing to report.
+
+!! AND A COVERAGE GAP IS NOT THE SAME AS A MARK THAT NAMES NO INSTRUCTION.
+`desk.mark.untouched` is what tells them apart, and this flow read
+`mark.get("mark") is None` until 2026-08-29 -- which said YES to both, so a
+filled-in mark whose ruling key the code did not recognise was dropped before
+`parse` saw it and recounted as a place nobody looked at.
 
 !! WHAT THIS FLOW DOES NOT DO IS CHECK A CLAIM AGAINST THE PAGE. Whether
 `claim.false` appears VERBATIM in the paragraph, whether a `move`'s destination
 is addressable -- both need the page the role read, and both belong to
-SOURCE-VERIFICATION in `collator`, which is not built. `desk.mark.problems`
-says the same about its own half.
+SOURCE-VERIFICATION in `collator`. `desk.mark.parse` says the same about its
+own half.
 """
 
-from comment_review.binder.binder import rows_of
-from comment_review.desk.mark import INSTRUCTIONS, problems
+from comment_review.binder.binder import _read_from_problem
+from comment_review.desk.mark import INSTRUCTIONS, Instruction, parse, untouched
+from comment_review.reading.addresser import address_for
 
 
 def seed(binder: dict, role: str) -> dict:
-    """A fillable sheet for one role, one entry per row in the binder.
+    """A fillable edit_copy for one role, one sheet per page in the binder.
 
     Args:
         binder: as `binder.read` returns it.
-        role: the editorial role this sheet is for.
+        role: the editorial role this edit_copy is for.
 
     Returns:
-        `{"role": ..., "marks": [...]}` -- each entry carrying the `address` and
-        `anchor` copied from its row, and `mark: None` for the role to fill.
+        `{"role": ..., "read_from": ..., "sheets": [...]}` -- `read_from` is
+        copied from the binder as-is, naming the root and revise this
+        edit_copy was censused from. Each entry in `sheets` carries one page's `path`
+        and `sha`, plus its `marks` -- one per row on that page, holding the
+        `address`, `anchor` and `raw_text` copied from the row, and
+        `instruction: None` for the role to fill. `raw_text` is the paragraph
+        the role's `change` diffs against -- see `docs/the-mark.md`.
+
+    Raises:
+        KeyError: the binder carries no `read_from`.
+
+    !! ABSENT IS REFUSED HERE TOO, AND WAS DEFAULTED TO `{}` UNTIL 2026-08-28.
+    `bind` refuses a binder that cannot say which root it read; this function
+    read the same key with a `{}` fallback, so a binder that reached it by any
+    other path -- an artifact read from disk, a hand-built dict -- produced an
+    edit_copy whose `read_from` was empty. ! THAT IS THE AMBIGUITY THE FIELD WAS
+    ADDED TO REMOVE, one function downstream of the refusal: a role holding an
+    empty `read_from` cannot tell a revise from the original, which is the
+    whole question `decision-log.md Process: #34` turns on.
+
+    !! NESTED BY PAGE SINCE 2026-08-29, AND `rows_of` NO LONGER CALLED HERE.
+    `rows_of` stamps each row with the flattened `path` and `address`, which is
+    what let a fanned-out edit_copy lose which page a mark belonged to; this walks
+    `binder["pages"]` directly so each mark rides inside its own page's sheet,
+    carrying that page's `sha`. The per-row `address` is unchanged -- still
+    `address_for(path, cue)`, the same composition `rows_of` used.
     """
     return {
         "role": role,
-        "marks": [
+        # ! COPIED, NOT ALIASED -- see `bind`, which does the same at the other
+        # end. Aliasing made the binder, every edit_copy seeded from it and the
+        # caller's own dict one object.
+        "read_from": {**binder["read_from"]},
+        "sheets": [
             {
-                "address": row.get("address", ""),
-                "anchor": row.get("anchor", ""),
-                "mark": None,
+                "path": str(page.get("path", "")),
+                "sha": page.get("sha", ""),
+                "marks": [
+                    {
+                        "address": address_for(
+                            str(page.get("path", "")), str(row.get("cue", ""))
+                        ),
+                        "anchor": row.get("anchor", ""),
+                        "raw_text": row.get("raw_text", ""),
+                        "instruction": None,
+                    }
+                    for row in page.get("rows", [])
+                ],
             }
-            for row in rows_of(binder)
+            for page in binder.get("pages", [])
         ],
     }
 
 
 def problems_in(report: dict) -> tuple[list[str], int]:
-    """Every rule broken in a filled sheet, and how many places were ruled on.
+    """Every rule broken in a filled edit_copy, and how many places were ruled on.
 
-    ! A `mark` of `None` is NOT a problem -- it is an unruled place, and the
-    count returned is what says how much of the sheet was answered. Refusing it
-    here would make an unfinished sheet indistinguishable from a malformed one.
+    ! AN UNTOUCHED SLOT IS NOT A PROBLEM -- it is an unruled place, and the
+    count returned is what says how much of the edit_copy was answered. Refusing it
+    here would make an unfinished edit_copy indistinguishable from a malformed one.
+
+    !! BUT A SLOT A ROLE WROTE IN AND LEFT WITHOUT AN INSTRUCTION IS REFUSED BY
+    NAME, and was silently skipped until 2026-08-29 -- `desk.mark.untouched`
+    holds the distinction and the measurement behind it. Such an entry counts
+    towards `ruled`: a role DID rule here, and reporting it as unruled sends a
+    reader looking for a coverage gap that is really a malformed mark.
+
+    !! WALKS `report["sheets"]` THEN EACH SHEET'S `marks`, since 2026-08-29 --
+    `seed()` nests every mark inside its own page's sheet; a walk that read
+    `report["marks"]` would see nothing at all.
 
     Returns:
         `(messages, ruled)` -- one message per broken rule, and the number of
         entries carrying an instruction.
     """
-    if not isinstance(report.get("marks"), list):
-        return ["the report needs a `marks` list"], 0
+    if not isinstance(report.get("sheets"), list):
+        return ["the report needs a `sheets` list"], 0
 
     out, ruled = [], 0
     if not isinstance(report.get("role"), str) or not report["role"].strip():
         out.append("the report needs the `role` that wrote it")
+    # !! THE HEADER IS CHECKED ON THE WAY BACK, and was not until 2026-08-28.
+    # `seed` refuses a binder that cannot say which root it read, and this side
+    # -- `mark --check` -- ruled only on `marks` and `role`, so an edit_copy whose
+    # `read_from` had been STRIPPED or EMPTIED passed at exit 0. ! That is the
+    # same asymmetry as the one fixed at `bind` and `seed` earlier the same
+    # day, one step further along the chain.
+    #
+    # !! IT REUSES `binder`'s OWN CHECKER, and hand-rolled `isinstance(..., dict)
+    # and truthy` for one commit. That weaker form let `{"junk": 1}` and
+    # `{"root": 7, "revise": "x"}` through at exit 0 while `bind` REFUSED the
+    # identical value -- two spellings of one rule, disagreeing.
+    #
+    # ! AND THE COMMENT CLAIMED MORE THAN THE CODE DID: it offered *"rewritten
+    # to a DIFFERENT root"* as motivation, which is not answerable here at all.
+    # `problems_in` holds an edit_copy and no binder, so it can rule on the field's
+    # SHAPE and not on whether the root is the one the edit_copy was seeded from.
+    # That comparison needs the binder, and belongs wherever the two meet.
+    why_header = _read_from_problem(report)
+    if why_header:
+        out.append(f"the report's {why_header}")
 
-    for i, mark in enumerate(report["marks"], 1):
-        if not isinstance(mark, dict):
-            out.append(f"mark {i} is not an object")
+    i = 0
+    for sheet in report["sheets"]:
+        marks = sheet.get("marks") if isinstance(sheet, dict) else None
+        if not isinstance(marks, list):
             continue
-        if mark.get("mark") is None:
-            continue
-        ruled += 1
-        where = mark.get("address") or f"mark {i}"
-        out += problems(where, mark)
+        for mark in marks:
+            i += 1
+            if not isinstance(mark, dict):
+                out.append(f"mark {i} is not an object")
+                continue
+            if untouched(mark):
+                continue
+            ruled += 1
+            where = mark.get("address") or f"mark {i}"
+            _, why = parse(where, mark)
+            out += why
     return out, ruled
 
 
 def unruled(report: dict) -> list[str]:
-    """The addresses left `None` -- the coverage gap, named rather than counted."""
-    marks = report.get("marks")
-    if not isinstance(marks, list):
+    """The addresses nobody wrote in -- the coverage gap, named not counted.
+
+    !! WALKS `report["sheets"]` THEN EACH SHEET'S `marks`, matching
+    `problems_in`, since 2026-08-29.
+
+    ! READS `desk.mark.untouched`, the same question `problems_in` asks, so a
+    mark refused for naming no instruction can never also be listed here. The
+    two answers were derived separately from `mark is None` and agreed on a
+    place that had been ruled on.
+    """
+    sheets = report.get("sheets")
+    if not isinstance(sheets, list):
         return []
-    return [
-        str(m.get("address", ""))
-        for m in marks
-        if isinstance(m, dict) and m.get("mark") is None
-    ]
+    out = []
+    for sheet in sheets:
+        marks = sheet.get("marks") if isinstance(sheet, dict) else None
+        if not isinstance(marks, list):
+            continue
+        out += [str(m.get("address", "")) for m in marks if untouched(m)]
+    return out
 
 
-def tally(report: dict) -> dict[str, int]:
-    """How many of each instruction the sheet carries, for a one-line summary."""
+def tally(report: dict) -> dict[Instruction, int]:
+    """How many of each instruction the edit_copy carries, for a one-line summary.
+
+    !! WALKED `report["marks"]` UNTIL 2026-08-29 -- a top-level key `seed()`
+    no longer writes, since an edit_copy's marks nest one level down inside
+    `sheets`. On the reshaped report that read a KEY THAT NO LONGER EXISTS, so
+    `report.get("marks", [])` silently fell back to `[]` and this returned
+    `{}` for every real edit_copy, ruled or not -- a crash turned silent.
+    """
     counts = dict.fromkeys(INSTRUCTIONS, 0)
-    for mark in report.get("marks", []):
-        if isinstance(mark, dict) and mark.get("mark") in counts:
-            counts[mark["mark"]] += 1
+    for sheet in report.get("sheets", []):
+        marks = sheet.get("marks") if isinstance(sheet, dict) else None
+        if not isinstance(marks, list):
+            continue
+        for mark in marks:
+            if isinstance(mark, dict) and mark.get("instruction") in counts:
+                counts[mark["instruction"]] += 1
     return {name: n for name, n in counts.items() if n}

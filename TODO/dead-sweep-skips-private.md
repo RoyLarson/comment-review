@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 4 of 5 tasks done
+Progress: 4 of 5 tasks closed
 Owner:    systems
 Requires-Roy: true
 Raised:   2026-08-22 (found while collapsing the Cues fields 2026-08-22:
@@ -51,12 +51,16 @@ that mis-read them has not changed.
 
 ## Tasks
 
-- [x] T1 -- MEASURED 2026-08-22, re-checked 2026-08-23 and moved to the Objective: the
-      sweep skips every `_private` name and `main`.
-- [x] T2 -- FINISHED. `page._SHEBANG` and `page._CODING` are deleted; the grep over
-      `plugins/`, `scripts/` and `tests/` returns nothing (2026-08-23).
-- [ ] T3 -- * Rule whether the `_private` skip is right, since such a name is cheaper to
-      check. Verify: `dead_sweep.py:194-196` states the answer.
-- [x] T4 -- FINISHED. The two constants were deleted rather than kept; see T2.
-- [x] T5 -- MEASURED 2026-08-22 and moved to the Objective: the sweep matches a name
-      TEXTUALLY, so a test METHOD NAME holds it.
+- [x] T1 | FINISHED | unknown | T1 -- MEASURED 2026-08-22, re-checked 2026-08-23
+      and moved to the Objective: the sweep skips every `_private` name and
+      `main`.
+- [x] T2 | FINISHED | unknown | T2 -- FINISHED. `page._SHEBANG` and
+      `page._CODING` are deleted; the grep over `plugins/`, `scripts/` and
+      `tests/` returns nothing (2026-08-23).
+- [?] T3 | T3 -- * Rule whether the `_private` skip is right, since such a name
+      is cheaper to check. Verify: `dead_sweep.py:194-196` states the answer.
+- [x] T4 | FINISHED | unknown | T4 -- FINISHED. The two constants were deleted
+      rather than kept; see T2.
+- [x] T5 | FINISHED | unknown | T5 -- MEASURED 2026-08-22 and moved to the
+      Objective: the sweep matches a name TEXTUALLY, so a test METHOD NAME holds
+      it.

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 7 tasks done
+Progress: 2 of 7 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-20 (both reviews of 2026-08-20; verified in-session)
@@ -72,17 +72,22 @@ see it, because `ruff` reads an unused import and an unused local, not a string 
 
 ## Tasks
 
-- [x] T1 -- FINISHED 2026-08-20. The gate exited 1 on `original` drift across four roles
-      and the fix landed the same day. In the Objective.
-- [ ] T2 -- **Assert `check_drift() == 0` in `tests/test_vocabulary.py`.** Verify: it
-      fails on a `vocabulary.toml` that hands a role an unused term, and passes on HEAD.
-- [x] T3 -- SUPERSEDED. The record of the gate being reported as passing three times while
-      it was red is in the Objective.
-- [ ] T4 -- **Write the test that the checker COUNTS a retired word inside an
-      identifier.** Verify: it fails on HEAD's regex at `check_vocabulary.py:355`.
-- [ ] T5 -- **Make the retired-word regex see inside an identifier**
+- [x] T1 | FINISHED | unknown | T1 -- FINISHED 2026-08-20. The gate exited 1 on
+      `original` drift across four roles and the fix landed the same day. In the
+      Objective.
+- [ ] T2 | T2 -- **Assert `check_drift() == 0` in `tests/test_vocabulary.py`.**
+      Verify: it fails on a `vocabulary.toml` that hands a role an unused term,
+      and passes on HEAD.
+- [x] T3 | FINISHED | unknown | T3 -- SUPERSEDED. The record of the gate being
+      reported as passing three times while it was red is in the Objective.
+- [ ] T4 | T4 -- **Write the test that the checker COUNTS a retired word inside
+      an identifier.** Verify: it fails on HEAD's regex at
+      `check_vocabulary.py:355`.
+- [ ] T5 | T5 -- **Make the retired-word regex see inside an identifier**
       (`check_vocabulary.py:355`). Verify: the T4 test passes.
-- [ ] T6 -- **Declare `block_problem`, `block_text` and `as_block` in `NOT_THE_TERM`.**
-      Verify: `uv run python scripts/check_vocabulary.py` exits 0 with the new regex.
-- [ ] T7 -- **Drop the dead `block_matches` exemption from `NOT_THE_TERM`.** Verify: the
-      tuple no longer holds it and the gate still exits 0.
+- [ ] T6 | T6 -- **Declare `block_problem`, `block_text` and `as_block` in
+      `NOT_THE_TERM`.** Verify: `uv run python scripts/check_vocabulary.py`
+      exits 0 with the new regex.
+- [ ] T7 | T7 -- **Drop the dead `block_matches` exemption from
+      `NOT_THE_TERM`.** Verify: the tuple no longer holds it and the gate still
+      exits 0.

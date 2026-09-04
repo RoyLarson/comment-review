@@ -3,7 +3,7 @@
     python compositor.py <paths...>               # prove the identity, file by file
 
 !! A COMPOSITOR SETS TYPE; IT DOES NOT EDIT IT. Roy, 2026-08-21: *"galley gets
-the old page - updates the old page with the verdict/record/marks and then a
+the old page - updates the old page with the [instruction]/record/marks and then a
 page-setter sets the page to rewrite the output text."* Two roles, two sets of
 rules: the galley rules on what a paragraph should say, and this puts the page
 together. A module that did both is what `galley.py` was, and its own vocabulary
@@ -24,6 +24,13 @@ this step may trust.
 into a file of its own so a reviewer or the author can compare it against the
 original; `approve()` copies that over the real file wholesale, once. Roy: *"No
 editing on the 'real' file until the draft is fully approved."*
+
+! AND NO BYTES REACH DISK FROM THIS MODULE'S OWN CODE SINCE `P45`. `draft()`
+hands its text to `machine.repo.write_raw`; what this module owns is SETTING a
+page, and where a page lands is the checkout's business.
+! `approve()` HAS NO CALLER, in `src/` or in `tests/` -- measured 2026-08-31.
+It is named here because that is a fact about this module and not a licence to
+delete it; filed as `TODO/galley-and-compositor-write-path.md`.
 
 !! AND THE ROUND TRIP IS A TEST BECAUSE THIS IS THE ONLY WRITER.
 `set_page(page_for(path, text, lang, sha=read_source(path).sha)) == text`,
@@ -53,7 +60,7 @@ from pathlib import Path
 
 from comment_review.binder.page import Page, page_for
 from comment_review.machine import constants, exceptions
-from comment_review.machine.repo import read_source
+from comment_review.machine.repo import read_source, write_raw
 from comment_review.reading.addresser import GAP, ON, cue_of
 
 # !! THE OTHER DIRECT IMPORTER OF THE ROWS -- see `language.py`. The lexer reads
@@ -216,7 +223,7 @@ def set_page(page: Page, newline: str | None = None) -> str:
         beside_code = cue.startswith(ON)
         # !! EVERY PLACE ADVANCES `previous`, INCLUDING ONE THAT SETS NOTHING,
         # and that is what makes this walk exact. An empty place is still a
-        # place -- it is a position a verdict can cite -- so skipping it here
+        # place -- it is a position an instruction can cite -- so skipping it here
         # made this list disagree with the one `tie_leading` walked.
         #
         # ! IT SKIPPED THEM UNTIL 2026-08-22, and `tie_leading` skipped them
@@ -339,10 +346,19 @@ def draft(page: Page, into: Path) -> Path:
     approved."* So a run that is abandoned, refused or wrong leaves the tree
     exactly as it found it, and `git diff --no-index` against the original is the
     whole review.
+
+    !! IT REACHES DISK THROUGH `machine.repo.write_raw` SINCE `P45`, and held its
+    own `mkdir` and `write_text(..., newline="")` before that. This module SETS a
+    page; where the bytes land and how they are written is the checkout's
+    business, which is `machine`'s -- the same rule the read end has always
+    obeyed, and Roy's own wording of the flow spec: *"if the change is a code
+    file it outputs the file through machine/ code."*
+
+    ! WHAT DID NOT CHANGE IS THE ONE-WRITER PROPERTY `flows.proof_setter._one`
+    depends on, or the untranslated write `results/prove_unchanged.py`'s byte
+    comparison depends on. `write_raw` carries both, and says so.
     """
-    into.parent.mkdir(parents=True, exist_ok=True)
-    into.write_text(set_page(page), encoding="utf-8", newline="")
-    return into
+    return write_raw(into, set_page(page))
 
 
 def approve(drafted: Path, real: Path) -> Path:
@@ -364,10 +380,25 @@ def lossless(path: Path) -> str | None:
     and none invented. They differ on exactly one shape, and it is RULED rather
     than a defect -- see `set_page` on the series order.
 
-    ! IT IS WHAT SEPARATES A NORMALISATION FROM A BUG. MEASURED 2026-08-21 over
-    699 files: 12 fail `identity` and 0 fail this one. A gate that could not tell
-    them apart would carry 12 known-acceptable failures, and the thirteenth --
-    a real one -- would land among them unnoticed.
+    ! IT IS WHAT SEPARATES A NORMALISATION FROM A BUG. A gate that could not
+    tell them apart would carry the known-acceptable failures, and the next one
+    -- a real one -- would land among them unnoticed.
+
+    !! MEASURED 2026-08-29 over the ten corpora `corpora/corpora.toml` pins,
+    3,155 files carrying a language record: **3 fail `identity` and 0 lose or
+    invent a line**. The three are the `f`-before-`b` ordering above, all in
+    `corpora/pymc`. A further 4, all in `corpora/sentry`, are REFUSED by both
+    checks before either can measure anything -- the unparsed page, whose
+    source the reader never established.
+
+    !! THE 2026-08-21 FIGURE THIS PARAGRAPH CARRIED IS SUPERSEDED -- *"over 699
+    files: 12 fail `identity` and 0 fail this one"*. Its second half was FALSE
+    when written: `TODO/a-closing-quote-with-a-comment.md` records the same
+    corpus run finding 7 files that lose or invent a line, three of them
+    docstrings whose closing delimiter carried a trailing comment, and a review
+    reproduced that shape on 2026-08-29. ! The file set behind the old number
+    was never named, so it cannot be re-derived; the number above names its set
+    so the next reader can disagree with it.
     """
     try:
         source = read_source(path)

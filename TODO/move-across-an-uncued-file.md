@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 6 tasks done
+Progress: 5 of 6 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-20 (Roy, 2026-08-20: 'we have an addresser back, but that is because
@@ -84,15 +84,20 @@ line-numbered destination, or the same message `_in_scope` gives a `move` -- nev
 
 ## Tasks
 
-- [x] T1 -- NOT A TASK. The address form survives because a `move` may name another file;
-      the argument is in the Objective.
-- [x] T2 -- NOT A TASK. The run cues only what is in scope, so a correct address for an
-      uncensused file is unresolvable. The argument is in the Objective.
-- [x] T3 -- FINISHED 2026-08-20. `desk.py:547-552` splits the two causes; the uncued case
-      says *"never cued -- it has no places. Cite the line instead"*.
-- [x] T4 -- RULED. A `move` to an uncued file is refused, but with a message saying WHY,
-      so the reviewer knows the citation was right and the scope was short.
-- [x] T5 -- SUPERSEDED. The caution that held the address form back is spent, verified
-      2026-08-23 at `galley.py:5` and `galley.py:341-344`. Evidence in the Objective.
-- [ ] T6 -- Do the `add` half; `address_problem` refuses an `add` naming an uncued file.
-      Verify: a test pins it accepted with a line destination, or refused as `move` is.
+- [x] T1 | FINISHED | unknown | T1 -- NOT A TASK. The address form survives
+      because a `move` may name another file; the argument is in the Objective.
+- [x] T2 | FINISHED | unknown | T2 -- NOT A TASK. The run cues only what is in
+      scope, so a correct address for an uncensused file is unresolvable. The
+      argument is in the Objective.
+- [x] T3 | FINISHED | unknown | T3 -- FINISHED 2026-08-20. `desk.py:547-552`
+      splits the two causes; the uncued case says *"never cued -- it has no
+      places. Cite the line instead"*.
+- [x] T4 | FINISHED | unknown | T4 -- RULED. A `move` to an uncued file is
+      refused, but with a message saying WHY, so the reviewer knows the citation
+      was right and the scope was short.
+- [x] T5 | FINISHED | unknown | T5 -- SUPERSEDED. The caution that held the
+      address form back is spent, verified 2026-08-23 at `galley.py:5` and
+      `galley.py:341-344`. Evidence in the Objective.
+- [ ] T6 | T6 -- Do the `add` half; `address_problem` refuses an `add` naming an
+      uncued file. Verify: a test pins it accepted with a line destination, or
+      refused as `move` is.

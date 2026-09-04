@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 5 tasks done
+Progress: 1 of 5 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-17, on the FIRST run ever to reach stage 7b. A docstring `add` failed the
@@ -83,13 +83,18 @@ being ADDED or REMOVED -- only rewritten, which is the case that passes.
 
 ## Tasks
 
-- [ ] T1 -- * Rule whether 7b compares against the approved SET or nothing-changed.
-      Verify: `docs/decision-log.md` records the answer and `write.md` states it.
-- [ ] T2 -- Report docstring-presence deltas SEPARATELY from executable ones. Verify:
-      `prove_unchanged.py` prints them under their own heading with each declaration.
-- [ ] T3 -- Say in `write.md` what a docstring `add` does today, until T1 is settled.
-      Verify: `write.md` states that it fails the CODE CHECK and that the rail restores.
-- [ ] T4 -- Measure the LEXICAL side: a `///` or `/**` doc comment ADDED and REMOVED,
-      against the `stripped` comparison. Verify: this file records which way each goes.
-- [x] T5 -- Add a docstring-ADDED case and a docstring-REMOVED case to
-      `tests/test_prove_unchanged.py`. Verify: both cases run and the suite is green.
+- [?] T1 | T1 -- * Rule whether 7b compares against the approved SET or
+      nothing-changed. Verify: `docs/decision-log.md` records the answer and
+      `write.md` states it.
+- [ ] T2 | T2 -- Report docstring-presence deltas SEPARATELY from executable
+      ones. Verify: `prove_unchanged.py` prints them under their own heading
+      with each declaration.
+- [ ] T3 | T3 -- Say in `write.md` what a docstring `add` does today, until T1
+      is settled. Verify: `write.md` states that it fails the CODE CHECK and
+      that the rail restores.
+- [ ] T4 | T4 -- Measure the LEXICAL side: a `///` or `/**` doc comment ADDED
+      and REMOVED, against the `stripped` comparison. Verify: this file records
+      which way each goes.
+- [x] T5 | FINISHED | unknown | T5 -- Add a docstring-ADDED case and a
+      docstring-REMOVED case to `tests/test_prove_unchanged.py`. Verify: both
+      cases run and the suite is green.

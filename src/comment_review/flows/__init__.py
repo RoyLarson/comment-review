@@ -3,9 +3,21 @@
     census         stages 2-3 -- every page in scope, formatted for the agents
     page_for       the read-and-build step a flow needs a page from; decides
                     no order itself -- see below for why it sits here anyway
+    carry          makes the binder carry an empty place it dropped, so an
+                    `add` has an address to cite
+    fan_out        splits a binder by a stage's dispatches -- one seeded
+                    edit_copy per dispatch, refusing an overlap or a gap
+    marks          hands a role an edit_copy to fill, and checks what comes
+                    back against every rule `desk/mark.py` settles
     proof_setter   the results-side flow -- calls the galley, the compositor
                     and `prove_unchanged` in order, from a role's alterations to
                     a drafted file a human can read
+    revise         pulls one revise -- copies the repo, calls `proof_setter`,
+                    overlays the drafts -- for `TODO/the-flow-assumes-every-
+                    role-reads-at-once.md` T3
+
+! `carry`, `fan_out` AND `marks` WERE ABSENT FROM THIS INVENTORY UNTIL
+2026-08-29, having landed with the mark and the collator.
 
 !! A FLOW IS WHERE A SEQUENCE LIVES so that no module has to know it is
 part of one. Ruled 2026-08-24 -- `docs/decision-log.md Process: #12`.

@@ -105,6 +105,29 @@ Measured by mutating the source and running both suites while both existed.
 Three defects only this suite catches, and they are exactly the class that broke
 on 2026-08-24.
 
+## The turn's checks, each caught by one mutation
+
+Measured 2026-09-04 on `feat/the-mark-and-the-collator` after SP-4, P9: one
+exact-string mutation per check, the module's own test file run, the source
+restored from memory. A MISSED row is a finding; the one found is now a test.
+
+| module | the check mutated | caught by |
+| --- | --- | --- |
+| `desk/determined.py` | a role's answer is refused by name | `test_determined.py` |
+| `desk/determined.py` | a null mark stands only for the original | `test_determined.py` |
+| `desk/diff_mark.py` | correct and patch owe a change | `test_diff_mark.py` |
+| `desk/diff_mark.py` | an unanswered slot is refused, not read as a withdraw | `test_diff_mark.py` |
+| `flows/turn.py` | an unanswered sent slot is refused | `test_turn.py` |
+| `flows/turn.py` | an address never sent is refused | `test_turn.py` |
+| `flows/turn.py` | an earlier Determined is kept over this fold's | `test_turn.py` |
+| `flows/turn.py` | the cap refuses an unruled place | `test_turn.py` |
+| `flows/collate.py` | agreement needs byte-identical text | `test_collate.py` |
+| `flows/collate.py` | a lone mark goes back when another role marked | `test_turn.py` |
+| `flows/collate.py` | a human-review query holds a place that would have resolved | `test_collate.py`, MISSED on the first run and the test written for it |
+| `desk/collator.py` | a deferring query's role is out of the place | `test_collate.py` |
+| `commands/check.py` | check exits BROKEN on a refused answer | `test_check_command.py` |
+| `commands/check.py` | check exits BROKEN on a place left alone | `test_check_command.py` |
+
 ## The three xfails are a tripwire
 
 `go`, `ruby` and `lua` place a declaration's documentation at an `a` cue and type

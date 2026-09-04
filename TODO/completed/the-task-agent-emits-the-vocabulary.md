@@ -2,7 +2,7 @@
 
 ```
 Status:   COMPLETE 2026-08-16
-Progress: 8 of 8 tasks done
+Progress: 8 of 8 tasks closed
 Owner:    session * Roy (design ruled 2026-08-16)
 Raised:   2026-08-16 (Roy: "the task agent runs a command and puts the correct
           vocabulary verbatim into the agents prompt. No summarizing no duplication.
@@ -56,11 +56,12 @@ and a vocabulary is per-agent, so the two answer different questions. `--reviewe
 
 ## Tasks
 
-- [x] Move the vocabulary into `plugins/` as **`references/vocabulary.toml`**, shaped so a
-      definition is written once and the roles list only keys -- Roy, 2026-08-16: *"words are
-      going to be common between each role without being used by all roles, so we should instead
-      have all of the definitions at the top of the file ... and that is now a toml file and that
-      makes it a load and a simple intersection."*
+- [x] T1 | FINISHED | unknown | Move the vocabulary into `plugins/` as
+      **`references/vocabulary.toml`**, shaped so a definition is written once
+      and the roles list only keys -- Roy, 2026-08-16: *"words are going to be
+      common between each role without being used by all roles, so we should
+      instead have all of the definitions at the top of the file ... and that is
+      now a toml file and that makes it a load and a simple intersection."*
 
       ```toml
       [definitions]     # term -> the definition, written ONCE
@@ -73,47 +74,57 @@ and a vocabulary is per-agent, so the two answer different questions. `--reviewe
       ! It then falls under `scripts/check_vocabulary.py`, whose two checks should extend to it --
       a term with no definition, and a role listing a key that `[definitions]` does not hold.
 
-- [x] Measure which terms each agent needs, rather than judging it. Roy: *"judge by current terms
-      used in both the agent definition files and the `references/*.md` files."* A term used only
-      in one agent's readable text goes to that agent; one used across several is emitted to each
-      of them. `scripts/vocabulary_sweep.py` already has the machinery to answer this.
+- [x] T2 | FINISHED | unknown | Measure which terms each agent needs, rather
+      than judging it. Roy: *"judge by current terms used in both the agent
+      definition files and the `references/*.md` files."* A term used only in
+      one agent's readable text goes to that agent; one used across several is
+      emitted to each of them. `scripts/vocabulary_sweep.py` already has the
+      machinery to answer this.
 
-- [x] ! **Remove the in-place statements the emitted block replaces.** Roy: *"those statements in
-      the agent files or references get removed ... then all of the statements get removed where
-      redundant and shortened where the word is used and explained again to just the 'word'."*
-      This is the pass's real work and the reason it was deferred: some definitions are a CLAUSE
-      inside a working sentence -- `ref/reviewer-brief.md:71` reads *"quantified claims are
-      block-context's REMIT, the categories of claim a role rules on"* -- and the sentence has to
-      survive losing it. The prose keeps USING terms and stops DEFINING them.
+- [x] T3 | FINISHED | unknown | ! **Remove the in-place statements the emitted
+      block replaces.** Roy: *"those statements in the agent files or references
+      get removed ... then all of the statements get removed where redundant and
+      shortened where the word is used and explained again to just the 'word'."*
+      This is the pass's real work and the reason it was deferred: some
+      definitions are a CLAUSE inside a working sentence --
+      `ref/reviewer-brief.md:71` reads *"quantified claims are block-context's
+      REMIT, the categories of claim a role rules on"* -- and the sentence has
+      to survive losing it. The prose keeps USING terms and stops DEFINING them.
 
-- [x] Give each agent the one-line pointer that replaces those statements. Roy's shape: *"at the
-      start of the agent it says you are given the vocabulary; if you are uncertain about the
-      meaning of a word, refer to it."*
+- [x] T4 | FINISHED | unknown | Give each agent the one-line pointer that
+      replaces those statements. Roy's shape: *"at the start of the agent it
+      says you are given the vocabulary; if you are uncertain about the meaning
+      of a word, refer to it."*
 
-- [x] Add the selector to `sk-scripts/run_context.py` -- Roy: *"`--editorial-role` or `--reviewer`
-      with a StrEnum defining them."*
+- [x] T5 | FINISHED | unknown | Add the selector to `sk-scripts/run_context.py`
+      -- Roy: *"`--editorial-role` or `--reviewer` with a StrEnum defining
+      them."*
 
       ! **UNBLOCKED 2026-08-16**: `StrEnum` is 3.11+ and the floor was raised to 3.11 for this
       reason, so it is available. ! Do NOT copy `LEVELS = ("fact-check", ...)` as the model: that
       tuple is itself slated for removal --
-      [`the-level-ladder-was-invented-during-the-port`](the-level-ladder-was-invented-during-the-port.md).
+      `the-level-ladder-was-invented-during-the-port`.
 
-- [x] Decide the vehicle. The dispatch PACKET is written once per run and handed to four agents,
-      so a per-agent block belongs in the dispatch PROMPT instead. `run_context.py` has to say
-      which, and `SKILL.md`'s stage-4 dispatch has to run the command.
+- [x] T6 | FINISHED | unknown | Decide the vehicle. The dispatch PACKET is
+      written once per run and handed to four agents, so a per-agent block
+      belongs in the dispatch PROMPT instead. `run_context.py` has to say which,
+      and `SKILL.md`'s stage-4 dispatch has to run the command.
 
-- [x] ! **The emitted block is charged to the AGENT'S budget.** Roy, 2026-08-16: *"it is part of
-      the agents budget - and I think this pays for itself in tokens removed from the references
-      and agent definition files, and the quality of the emitted comment marks."* So the pass is
-      measured, not asserted: record lines removed from the agent files and references against
-      lines emitted. ! The quality half is a REASON, not a measurement -- `evals/grade_hazards.py`
-      is the only thing that could put a number on it.
+- [x] T7 | FINISHED | unknown | ! **The emitted block is charged to the AGENT'S
+      budget.** Roy, 2026-08-16: *"it is part of the agents budget - and I think
+      this pays for itself in tokens removed from the references and agent
+      definition files, and the quality of the emitted comment marks."* So the
+      pass is measured, not asserted: record lines removed from the agent files
+      and references against lines emitted. ! The quality half is a REASON, not
+      a measurement -- `evals/grade_hazards.py` is the only thing that could put
+      a number on it.
 
-- [x] ! **It must reach `comment-review-review` and `comment-review-compact`, not only the four
-      editorial roles.** `ref/reviewer-brief.md` goes to the four and nowhere else, so "put it in
-      the brief" does not solve stages 6 and 8. Found 2026-08-16 when stage 8 needed `truthy`,
-      whose definition is at `ref/reviewer-brief.md:174-181`, a file it never loads; it is
-      written in plain words there for now.
+- [x] T8 | FINISHED | unknown | ! **It must reach `comment-review-review` and
+      `comment-review-compact`, not only the four editorial roles.**
+      `ref/reviewer-brief.md` goes to the four and nowhere else, so "put it in
+      the brief" does not solve stages 6 and 8. Found 2026-08-16 when stage 8
+      needed `truthy`, whose definition is at `ref/reviewer-brief.md:174-181`, a
+      file it never loads; it is written in plain words there for now.
 
 ! **A constraint on HOW, ruled the same day.** A stage's file describes that stage's inputs and
 its job, and must not name the surrounding machinery. Roy: *"I am pretty certain it is going to

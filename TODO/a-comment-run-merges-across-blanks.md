@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 4 of 5 tasks done
+Progress: 4 of 6 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-21 (the /code-review xhigh of 2026-08-21, focused on the file-to-
@@ -64,13 +64,22 @@ the middle-of-file half real work too.
 
 ## Tasks
 
-- [x] T1 -- MEASURED 2026-08-21, and it is the finding: only CODE ends a run, so a Rust
-      licence header, crate doc and item doc censused as one paragraph. In the Objective.
-- [x] T2 -- MEASURED. `compact.md` routes on KIND, so a crate doc merged into a plain
-      comment run is cut to the COMMENT cap. A consequence, recorded in the Objective.
-- [x] T3 -- MEASURED. `ownership-context` gets a licence header plus a function's
-      documentation as one indivisible paragraph at one address. In the Objective.
-- [x] T4 -- DONE. The top-of-file split ships: `matter` 1-2 and `docstring` 4-4, verified
-      2026-08-23 through `paragraphs_lexical`. The filed wording is in the Objective.
-- [ ] T5 -- * RULE whether a blank line ends a comment run in the MIDDLE of a file.
-      Verify: the ruling is recorded in `docs/decision-log.md`.
+- [x] T1 | FINISHED | unknown | T1 -- MEASURED 2026-08-21, and it is the
+      finding: only CODE ends a run, so a Rust licence header, crate doc and
+      item doc censused as one paragraph. In the Objective.
+- [x] T2 | FINISHED | unknown | T2 -- MEASURED. `compact.md` routes on KIND, so
+      a crate doc merged into a plain comment run is cut to the COMMENT cap. A
+      consequence, recorded in the Objective.
+- [x] T3 | FINISHED | unknown | T3 -- MEASURED. `ownership-context` gets a
+      licence header plus a function's documentation as one indivisible
+      paragraph at one address. In the Objective.
+- [x] T4 | FINISHED | unknown | T4 -- DONE. The top-of-file split ships:
+      `matter` 1-2 and `docstring` 4-4, verified 2026-08-23 through
+      `paragraphs_lexical`. The filed wording is in the Objective.
+- [?] T5 | T5 -- * RULE whether a blank line ends a comment run in the MIDDLE of
+      a file. Verify: the ruling is recorded in `docs/decision-log.md`.
+        > 2026-08-31 3 in this repo's own Python -- page.py b28, mark.py b27
+- [?] T6 | Decide whether Paragraph.lines still has a place, given the mark changes and
+      the address system carrying the text properly?
+        > 2026-08-31 11 writes, 1 read -- a debug print in commands/census.py
+        > 2026-08-31 == len(raw_lines) filled, 0 empty, wrong on the 3 merged runs

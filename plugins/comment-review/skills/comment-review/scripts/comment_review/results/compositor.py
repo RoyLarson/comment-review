@@ -3,7 +3,7 @@
     python compositor.py <paths...>               # prove the identity, file by file
 
 !! A COMPOSITOR SETS TYPE; IT DOES NOT EDIT IT. Roy, 2026-08-21: *"galley gets
-the old page - updates the old page with the verdict/record/marks and then a
+the old page - updates the old page with the [instruction]/record/marks and then a
 page-setter sets the page to rewrite the output text."* Two roles, two sets of
 rules: the galley rules on what a paragraph should say, and this puts the page
 together. A module that did both is what `galley.py` was, and its own vocabulary
@@ -216,7 +216,7 @@ def set_page(page: Page, newline: str | None = None) -> str:
         beside_code = cue.startswith(ON)
         # !! EVERY PLACE ADVANCES `previous`, INCLUDING ONE THAT SETS NOTHING,
         # and that is what makes this walk exact. An empty place is still a
-        # place -- it is a position a verdict can cite -- so skipping it here
+        # place -- it is a position an instruction can cite -- so skipping it here
         # made this list disagree with the one `tie_leading` walked.
         #
         # ! IT SKIPPED THEM UNTIL 2026-08-22, and `tie_leading` skipped them
@@ -364,10 +364,25 @@ def lossless(path: Path) -> str | None:
     and none invented. They differ on exactly one shape, and it is RULED rather
     than a defect -- see `set_page` on the series order.
 
-    ! IT IS WHAT SEPARATES A NORMALISATION FROM A BUG. MEASURED 2026-08-21 over
-    699 files: 12 fail `identity` and 0 fail this one. A gate that could not tell
-    them apart would carry 12 known-acceptable failures, and the thirteenth --
-    a real one -- would land among them unnoticed.
+    ! IT IS WHAT SEPARATES A NORMALISATION FROM A BUG. A gate that could not
+    tell them apart would carry the known-acceptable failures, and the next one
+    -- a real one -- would land among them unnoticed.
+
+    !! MEASURED 2026-08-29 over the ten corpora `corpora/corpora.toml` pins,
+    3,155 files carrying a language record: **3 fail `identity` and 0 lose or
+    invent a line**. The three are the `f`-before-`b` ordering above, all in
+    `corpora/pymc`. A further 4, all in `corpora/sentry`, are REFUSED by both
+    checks before either can measure anything -- the unparsed page, whose
+    source the reader never established.
+
+    !! THE 2026-08-21 FIGURE THIS PARAGRAPH CARRIED IS SUPERSEDED -- *"over 699
+    files: 12 fail `identity` and 0 fail this one"*. Its second half was FALSE
+    when written: `TODO/a-closing-quote-with-a-comment.md` records the same
+    corpus run finding 7 files that lose or invent a line, three of them
+    docstrings whose closing delimiter carried a trailing comment, and a review
+    reproduced that shape on 2026-08-29. ! The file set behind the old number
+    was never named, so it cannot be re-derived; the number above names its set
+    so the next reader can disagree with it.
     """
     try:
         source = read_source(path)

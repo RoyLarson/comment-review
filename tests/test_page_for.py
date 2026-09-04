@@ -7,9 +7,9 @@ chain's own file credited `proof_setter` with a contract that is `page_for`'s.
 
 from pathlib import Path
 
-from conftest import PKG, SAMPLE, build, docket_from
+from conftest import PKG, SAMPLE, build, cue, docket_from
 
-from comment_review.binder.binder import bind, rows_of
+from comment_review.binder.binder import bind
 from comment_review.flows import page_for as page_for_mod
 from comment_review.flows import proof_setter
 from comment_review.machine import exceptions
@@ -26,15 +26,11 @@ def address(binder, path: str, series: str = "b") -> str:
     fixture could not disagree with the code because the fixture was written to
     match it.
 
-    ! IT ASKS `rows_of`, which is what a caller of this chain has.
+    ! IT ASKS `Binder.paragraphs`, which is what a caller of this chain has.
     """
-    for row in rows_of(binder):
-        if (
-            row["path"] == path
-            and row["cue"].startswith(series)
-            and row["raw_text"].strip()
-        ):
-            return str(row["address"])
+    for row in binder.paragraphs:
+        if row.path == path and cue(row).startswith(series) and row.raw_text.strip():
+            return row.address
     raise AssertionError(f"no filled {series} row for {path}")
 
 
@@ -44,7 +40,7 @@ def _tree(tmp_path):
     repo.mkdir()
     (repo / "m.py").write_text(SAMPLE, encoding="utf-8", newline="")
     page = build(SAMPLE)
-    return repo, bind([page]), page
+    return repo, bind([page], read_from={"root": str(repo), "revise": 0}), page
 
 
 class TestPageOfReturnsEveryRefusalItPromises:

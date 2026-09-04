@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks done
+Progress: 0 of 6 tasks closed
 Owner:    systems
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-23 (2026-08-23, from scripts/dead_sweep.py --links after the history
           purge; Roy: 'not important right now')
 GROWING:  2026-08-23 — 2026-08-23: 31 at filing, 40 after two closures, 41 re-measured the
@@ -74,13 +74,30 @@ archival pattern the stance already covers, and it is what produced the third li
 
 ## Tasks
 
-- [ ] T1 -- Say what replaces the two removed evidence packages, or say they are gone.
-      Verify: `uv run python scripts/dead_sweep.py --links` names no path in that TODO.
-- [ ] T2 -- Fix `the-census-is-mostly-intervals-nobody-rules-on.md`'s link to a sibling
-      now in `completed/`. Verify: `--links` names no path under a live `TODO/*.md`.
-- [ ] T3 -- * Rule whether `dead_sweep.py:288-289`'s stance still holds for the 38 links,
-      or narrows. Verify: the answer is written into `dead_sweep.py` beside that sentence.
-- [ ] T4 -- * If archived links are to be repaired, rule HOW; only if T3 narrows the
-      stance. Verify: the rule is written into `dead_sweep.py` beside what it revises.
-- [ ] T5 -- Make `complete_todo` (todo_tool.py:1021) rewrite the moved file's own links.
-      Verify: close a TODO citing a live sibling; `--links` reports no new path from it.
+- [ ] T1 | T1 -- Say what replaces the two removed evidence packages, or say
+      they are gone. Verify: `uv run python scripts/dead_sweep.py --links` names
+      no path in that TODO.
+- [ ] T2 | T2 -- Fix `the-census-is-mostly-intervals-nobody-rules-on.md`'s link
+      to a sibling now in `completed/`. Verify: `--links` names no path under a
+      live `TODO/*.md`.
+- [?] T3 | T3 -- * Rule whether `dead_sweep.py:288-289`'s stance still holds for
+      the 38 links, or narrows. Verify: the answer is written into
+      `dead_sweep.py` beside that sentence.
+- [?] T4 | T4 -- * If archived links are to be repaired, rule HOW; only if T3
+      narrows the stance. Verify: the rule is written into `dead_sweep.py`
+      beside what it revises.
+- [ ] T5 | T5 -- Make `complete_todo` (todo_tool.py:1021) rewrite the moved
+      file's own links. Verify: close a TODO citing a live sibling; `--links`
+      reports no new path from it.
+- [ ] T6 | Implement a check that every decision-log citation resolves to an
+      entry that exists, in the section it names. Verify: it reports a citation
+      whose number is past its section's highest entry, and it FAILS against the
+      state measured 2026-08-30 -- Vocabulary: #53 cited four times across
+      docs/plans/0.2.4-the- commands-for-the-middle.md and the two SP-1 files,
+      where the Vocabulary section's highest entry is #30 and the ruling
+      actually lives at Process #53. Nothing saw it: the citation is not a link,
+      so dead_sweep --links cannot reach it, and the section name plus a number
+      is well-formed prose to every other gate. NOTE the failure mode that
+      produced it -- the entry's own TEXT is about Vocabulary #11, so a reader
+      who labels an entry by its subject rather than by the heading it sits
+      under gets the section wrong and the number right.

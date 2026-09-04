@@ -16,24 +16,24 @@
 # floor to evaluate the code."
 
 [project]
-name = "comment-review"
-requires-python = ">=3.11"
-# !! A SECOND COPY OF THE VERSION, and it is CHECKED. `CHANGELOG.md` says a
-# version number lives only there, and it still should -- but `uv` requires
-# either this or `dynamic`, and a dynamic version can only be learned by
-# BUILDING, which `package = false` otherwise avoids entirely.
-#
-# So the copy is unavoidable and `tests/test_release.py` makes it safe: it must
-# equal the newest `## [x.y.z]` heading in `CHANGELOG.md`. ! Two copies of a
-# number with nothing comparing them is the defect this repo spends its days
-# catching -- it shipped a stale verdict name and a stale stage diagram from
-# exactly that shape on 2026-08-17. Two copies WITH a check is a release gate:
-# it also catches cutting a release and forgetting to bump.
-version = "0.2.4-alpha"
+    name            = "comment-review"
+    requires-python = ">=3.11"
+    # !! A SECOND COPY OF THE VERSION, and it is CHECKED. `CHANGELOG.md` says a
+    # version number lives only there, and it still should -- but `uv` requires
+    # either this or `dynamic`, and a dynamic version can only be learned by
+    # BUILDING, which `package = false` otherwise avoids entirely.
+    #
+    # So the copy is unavoidable and `tests/test_release.py` makes it safe: it must
+    # equal the newest `## [x.y.z]` heading in `CHANGELOG.md`. ! Two copies of a
+    # number with nothing comparing them is the defect this repo spends its days
+    # catching -- it shipped a stale verdict name and a stale stage diagram from
+    # exactly that shape on 2026-08-17. Two copies WITH a check is a release gate:
+    # it also catches cutting a release and forgetting to bump.
+    version = "0.2.4-alpha"
 
 # ! NOT A PACKAGE, said where a tool reads it rather than only in a comment.
 [tool.uv]
-package = false
+    package = false
 
 # !! THE GATES ARE PINNED, FOR THE REASON THE HEADER ABOVE PINS THE INTERPRETER.
 # Roy, 2026-08-22: *"we can't have my personal computer's `ty` happens to work."*
@@ -77,83 +77,98 @@ package = false
 # as live -- the instrument lies in the direction of keeping everything. See
 # `TODO/coverage-is-not-measured.md`.
 [dependency-groups]
-dev = [
-  # ! PINNED EXACTLY, like its neighbours: which lines count as covered changes
-  # between releases, so an unpinned coverage tool moves the number under a run
-  # that did not change.
-  "coverage==7.15.4",
-  "pytest==9.0.1",
-  "ruff==0.16.1",
-  "ty==0.0.68",
-]
+    dev = [
+        # ! PINNED EXACTLY, like its neighbours: which lines count as covered changes
+        # between releases, so an unpinned coverage tool moves the number under a run
+        # that did not change.
+        "coverage==7.15.4",
+        "pytest==9.0.1",
+        "ruff==0.16.1",
+        "ty==0.0.68",
+    ]
 
 # ! Bounded to `tests/`. `corpora/` holds other people's trees, several of which
 # carry their own `test_*.py`, and collecting those would run someone else's
 # suite as though it were this repo's gate.
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+    testpaths = ["tests"]
 
 [tool.ruff]
-target-version = "py311"
-line-length = 88
-# !! A CAPTURED RUN IS EVIDENCE, NOT SOURCE. `evidence/<name>-full-*/` holds
-# what a run actually produced -- reports, censuses, and the scratch scripts the
-# reviewers wrote to settle their own claims. Reformatting one edits the record
-# of what happened, which is the same argument the format exclude below makes
-# about specifications.
-#
-# Measured 2026-08-17: a `ruff format .` in one session's gate rewrote another
-# session's in-flight run artifacts, and `ruff check .` then failed on a scratch
-# script that was never repo code -- a red gate belonging to nobody.
-#
-# ! `evidence/ga/` is NOT excluded: it is tracked, maintained code that scores
-# the corpora, and it is linted like anything else.
-#
-# !! VENDORED CODE IS SOMEBODY ELSE'S SOURCE. `scripts/todo_tool.py` is copied
-# verbatim from `redacted_corpus` at `todo-requires-roy` REDACTED_SHA_D, and is
-# re-grabbed rather than maintained here. Formatting it to THIS repo's config
-# forks it, so the next grab arrives as a conflict in every file -- the same
-# argument the evidence exclude makes, one repository over. ! A local patch to a
-# vendored file says so at the patch.
-#
-# !! `prototype/` IS A RECORD OF HOW IT WORKED, NOT SOURCE. Roy, 2026-08-25:
-# *"all of the old code in the agent section are prototypes ... moving it into a
-# prototype/folder cleans the old code out once immediately but leaves us
-# appropriate references for how the system could work."* Nothing imports it,
-# nothing ships it, and it does not run -- its imports name modules that moved
-# out from under it. Linting it to this repo's config would ask a reference to
-# keep up with a codebase it is no longer part of.
-extend-exclude = [
-    "evidence/*-full-*",
-    "scripts/todo_tool.py",
-    "prototype",
-]
+    line-length    = 88
+    target-version = "py311"
+    # !! A CAPTURED RUN IS EVIDENCE, NOT SOURCE. `evidence/<name>-full-*/` holds
+    # what a run actually produced -- reports, censuses, and the scratch scripts the
+    # reviewers wrote to settle their own claims. Reformatting one edits the record
+    # of what happened, which is the same argument the format exclude below makes
+    # about specifications.
+    #
+    # Measured 2026-08-17: a `ruff format .` in one session's gate rewrote another
+    # session's in-flight run artifacts, and `ruff check .` then failed on a scratch
+    # script that was never repo code -- a red gate belonging to nobody.
+    #
+    # ! `evidence/ga/` is NOT excluded: it is tracked, maintained code that scores
+    # the corpora, and it is linted like anything else.
+    #
+    # !! VENDORED CODE IS SOMEBODY ELSE'S SOURCE. `scripts/todo_tool.py` is copied
+    # verbatim from `redacted_corpus` at `todo-requires-roy` REDACTED_SHA_D, and is
+    # re-grabbed rather than maintained here. Formatting it to THIS repo's config
+    # forks it, so the next grab arrives as a conflict in every file -- the same
+    # argument the evidence exclude makes, one repository over. ! A local patch to a
+    # vendored file says so at the patch.
+    #
+    # !! `prototype/` IS A RECORD OF HOW IT WORKED, NOT SOURCE. Roy, 2026-08-25:
+    # *"all of the old code in the agent section are prototypes ... moving it into a
+    # prototype/folder cleans the old code out once immediately but leaves us
+    # appropriate references for how the system could work."* Nothing imports it,
+    # nothing ships it, and it does not run -- its imports name modules that moved
+    # out from under it. Linting it to this repo's config would ask a reference to
+    # keep up with a codebase it is no longer part of.
+    extend-exclude = ["evidence/*-full-*", "scripts/todo_tool.py", "prototype"]
 
-[tool.ruff.lint]
-select = ["E", "F", "W", "I", "UP", "B", "D"]
-ignore = [
-  "D203",  # incompatible with D211
-  "D213",  # incompatible with D212
-]
+    [tool.ruff.lint]
+        ignore = [
+            "D203", # incompatible with D211
+            "D213", # incompatible with D212
+        ]
+        select = ["E", "F", "W", "I", "UP", "B", "D"]
 
-[tool.ruff.lint.pydocstyle]
-convention = "google"
+        [tool.ruff.lint.pydocstyle]
+            convention = "google"
 
-[tool.ruff.format]
-# ! Prose is not source. Ruff formats fenced Python inside Markdown, and
-# `docs/` holds implementation plans whose code blocks ARE the specification an
-# implementer transcribes. Reformatting them edits the spec after it was
-# reviewed, and leaves the tree dirty behind the `ruff format .` in every
-# task's gate -- which the next task then reads as its own uncommitted work.
-exclude = ["**/*.md"]
+    [tool.ruff.format]
+        # ! Prose is not source. Ruff formats fenced Python inside Markdown, and
+        # `docs/` holds implementation plans whose code blocks ARE the specification an
+        # implementer transcribes. Reformatting them edits the spec after it was
+        # reviewed, and leaves the tree dirty behind the `ruff format .` in every
+        # task's gate -- which the next task then reads as its own uncommitted work.
+        exclude = ["**/*.md"]
 
-[tool.ruff.lint.per-file-ignores]
-# The corpora are other people's code, vendored at pinned refs. Linting them
-# would report their style as our defects.
-"corpora/**" = ["ALL"]
-# Test names are the documentation here; a docstring per case restates the
-# name and rots separately from it.
-"tests/**" = ["D"]
+        [tool.ruff.lint.per-file-ignores]
+            # The corpora are other people's code, vendored at pinned refs. Linting them
+            # would report their style as our defects.
+            "corpora/**" = ["ALL"]
+            # Test names are the documentation here; a docstring per case restates the
+            # name and rots separately from it.
+            "tests/**" = ["D"]
+
+# !! THE SCOPE IS CONFIGURED, NOT PASSED ON THE COMMAND LINE. Roy, 2026-08-30:
+# *"Yes ty should pick up the tests as well."* It read
+# `uv run ty check src/comment_review/` until then, and a path typed at the
+# prompt is invisible to the next person to run it -- the same argument
+# `CLAUDE.md` makes about a linter exception belonging in config rather than in
+# a flag. ! MEASURED that day: four `invalid-argument-type` errors sat in
+# `tests/test_collate.py` through a green suite, `ruff check`, `ty check`, the
+# floor gate and the vocabulary gate, because nothing was pointed at `tests/`.
+#
+# ! `extra-paths` is what `tests/gates/test_build.py` and
+# `tests/gates/test_dead_sweep.py` already do at runtime with `sys.path`, said
+# where the checker can read it.
+[tool.ty.environment]
+    extra-paths    = ["scripts"]
+    python-version = "3.11"
+
+[tool.ty.src]
+    include = ["src", "tests"]
 
 # !! IT MEASURES `src/`, AND MEASURING ANYTHING ELSE PRODUCES A NUMBER THAT
 # CANNOT BE LOW. A default `coverage run -m pytest` counts the TEST files too --
@@ -174,8 +189,8 @@ exclude = ["**/*.md"]
 # what an ordinary `uv run coverage run -m pytest` reports and nobody has to
 # remember a flag to avoid the flattering one.
 [tool.coverage.run]
-source = ["src/comment_review"]
+    source = ["src/comment_review"]
 
-# ! `plugins/` IS A BUILT COPY of `src/` -- counting both would double every
-# statement and report the same code twice.
-omit = ["plugins/*"]
+    # ! `plugins/` IS A BUILT COPY of `src/` -- counting both would double every
+    # statement and report the same code twice.
+    omit = ["plugins/*"]

@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 3 of 7 tasks done
+Progress: 3 of 7 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, while ruling on what CLAIM and CHANGE each carry
@@ -115,20 +115,27 @@ filed, and still two.
 
 ## Tasks
 
-- [x] T1 -- DONE 2026-08-17. `scripts/galley.py --out DIR` decides where the copy lives,
-      and the caller names it. VERIFIED 2026-08-23: `galley.py:345`, `--out` required.
-- [x] T2 -- DONE 2026-08-17. `galley.splice` applies every edit in DESCENDING line order
-      and refuses overlapping edits and stale ranges. The reasoning is in the Objective.
-- [ ] T3 -- * Rule whether 7a shows the diff INSTEAD OF or ALONGSIDE the block. Verify:
-      `SKILL.md`'s stage 7a section names which, and `docs/decision-log.md` records it.
-- [x] T4 -- DONE. The splice-failure case is answered in the program and in the prose --
-      eight named refusals in `galley.py`, and `SKILL.md:935-944`.
-- [ ] T5 -- Derive the galley census from the splice's line deltas instead of re-running
-      `census.py`. Verify: derived and re-run agree on every range-replacement paragraph.
-- [ ] T6 -- Carry the `add` insertion out of the splice so an empty interval derives too.
-      Verify: a derived census gives `(9, 9)` not `(9, 11)`, with kind `comment`.
-- [ ] T7 -- Cut the cycle to ONE census on disk. Verify: `SKILL.md` names one census
-      artifact, not both `census.json` and `galley-census.json`.
+- [x] T1 | FINISHED | unknown | T1 -- DONE 2026-08-17. `scripts/galley.py --out
+      DIR` decides where the copy lives, and the caller names it. VERIFIED
+      2026-08-23: `galley.py:345`, `--out` required.
+- [x] T2 | FINISHED | unknown | T2 -- DONE 2026-08-17. `galley.splice` applies
+      every edit in DESCENDING line order and refuses overlapping edits and
+      stale ranges. The reasoning is in the Objective.
+- [?] T3 | T3 -- * Rule whether 7a shows the diff INSTEAD OF or ALONGSIDE the
+      block. Verify: `SKILL.md`'s stage 7a section names which, and
+      `docs/decision-log.md` records it.
+        > 2026-09-03 PROVISIONAL leaning: a git branch. Process 85. Not a ruling
+- [x] T4 | FINISHED | unknown | T4 -- DONE. The splice-failure case is answered
+      in the program and in the prose -- eight named refusals in `galley.py`,
+      and `SKILL.md:935-944`.
+- [ ] T5 | T5 -- Derive the galley census from the splice's line deltas instead
+      of re-running `census.py`. Verify: derived and re-run agree on every
+      range-replacement paragraph.
+- [ ] T6 | T6 -- Carry the `add` insertion out of the splice so an empty
+      interval derives too. Verify: a derived census gives `(9, 9)` not `(9,
+      11)`, with kind `comment`.
+- [ ] T7 | T7 -- Cut the cycle to ONE census on disk. Verify: `SKILL.md` names
+      one census artifact, not both `census.json` and `galley-census.json`.
 ## Related
 
 - [`the-author-approves-blocks-and-never-sees-the-page`](the-author-approves-blocks-and-never-sees-the-page.md)

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 5 tasks done
+Progress: 2 of 7 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, the day the query contract landed. `module-context`'s report on a
@@ -13,6 +13,45 @@ TRIAGED:  2026-08-23 — three of four boxes are tasks; the fourth was a standin
           `QUOTE`, it asks for `SOURCES` -- `reviewer-brief.md:419-423`, *"A `query`
           requires `SOURCES`, by construction ... All three shapes carry them, including
           `outside my role`"*.
+Updated:  2026-08-28 — THE BIND ARRIVES FROM A SECOND DIRECTION, AND IT IS THE SAME ONE.
+          Roy, 2026-08-28: "They all need to say something about every paragraph -
+          giving them instructions in such a way that they make it useful is also
+          important. module-context ruling on a local block-context thing could and
+          probably should in the 'right' circumstance be `move a.py@b3 to b.py@b10` this
+          whole block indicates that this piece of functionality should be in a
+          different module because that is where it fits. The problem comes down to that
+          also requires moving code which we don't do because it is unsafe." ! THE MARK
+          IS EXPRESSIBLE TODAY. `docs/the-mark.md` gives a `move`'s destination as
+          "another line, another file, or out of the code entirely", and a cross-file
+          destination is legal. So `move a.py@b3 -> b.py@b10` parses, resolves, and
+          reaches a docket. !! WHAT BREAKS IS THE AFTERMATH. The prose lands in `b.py`
+          describing functionality still in `a.py`. The mark was TRUE as a judgment
+          about where the thing belongs, and executing only its prose half MAKES IT
+          FALSE AT ITS NEW HOME -- a comment in `b.py` about code `b.py` does not have.
+          The system would faithfully perform a relocation that manufactures the defect
+          `block-context` exists to catch. ! AND THIS IS A SHARPER STATEMENT OF THE COST
+          THAN THIS FILE CARRIES. The Objective argues the PAYLOAD is heavy. What Roy
+          names is worse: the role has a REAL FINDING available -- "this functionality
+          is in the wrong module", squarely `module-context`'s remit -- and no way to
+          express it that survives execution, so it files `outside-my-role` instead. THE
+          COST IS NOT A HEAVY NON-FINDING; IT IS A REAL FINDING DOWNGRADED TO A NON-
+          FINDING. ! Same shape as `a-role-with-no-code-out-damages-the-prose`, one
+          level up: not bending a sentence to fit wrong code, but abandoning a correct
+          STRUCTURAL observation because acting on it is unsafe. ! THE CANDIDATE ANSWER
+          UNDER CONSIDERATION REACHES THIS TOO -- a TODO written into the interval or
+          margin prose, accepted by a human at 7a. `module-context` cannot move the
+          code, but it can `add` at `a.py@b3` a line saying the subject belongs in
+          `b.py`. Addressable, human-gated, and self-healing: once the code moves the
+          TODO is a false claim about `a.py`, which is an obituary. ONE MECHANISM, TWO
+          BINDS -- which is evidence for the shape rather than a workaround. See the
+          double-bind note on `a-role-with-no-code-out-damages-the-prose`, dated the
+          same day.
+Measured: 2026-08-31 -- dogfood 2026-08-31: ownership 295 clean/3 query, module 28/279
+Measured: 2026-08-31 -- same 317 paragraphs, same run -- so it is wording, not narrow
+          scope
+Falsified: 2026-08-31 -- run2 A/B: 28->314 clean, but findings 12->3; 8 flipped to clean
+Falsified: 2026-08-31 -- one of the 8 is a verified false certification, caught by hand
+Falsified: 2026-08-31 -- query kept the role LOOKING; removing it removed the looking
 ```
 
 ## Objective
@@ -86,13 +125,30 @@ do the thing we ruled out"*. It carried a box until 2026-08-23 and is recorded h
 
 ## Tasks
 
-- [ ] T1 -- Measure `module-context`'s out-of-role queries by BYTES, before any change.
-      Verify: the fraction of the report they occupy is written into this file.
-- [ ] T2 -- Measure them by RECORD COUNT on the same report. Verify: the count and the
-      total record count are written into this file.
-- [ ] T3 -- * RULE whether an `outside my role` query may carry a LIGHTER payload than the
-      other two shapes. Verify: the ruling is recorded in `docs/decision-log.md`.
-- [ ] T4 -- If T3 rules it stays, say at `reviewer-brief.md:425` that a small-remit role
-      writes mostly scope declarations. Verify: that section names the cost.
-- [x] T5 -- NOT A TASK. *"Do not solve this by exempting a role from blocks outside its
-      remit"* is a standing prohibition. Kept in full in the Objective.
+- [ ] T1 | T1 -- Measure `module-context`'s out-of-role queries by BYTES, before
+      any change. Verify: the fraction of the report they occupy is written into
+      this file.
+- [ ] T2 | T2 -- Measure them by RECORD COUNT on the same report. Verify: the
+      count and the total record count are written into this file.
+- [?] T3 | T3 -- * RULE whether an `outside my role` query may carry a LIGHTER
+      payload than the other two shapes. Verify: the ruling is recorded in
+      `docs/decision-log.md`.
+        > 2026-08-31 a ruling was reported from the dogfood session; unconfirmed here
+- [ ] T4 | T4 -- If T3 rules it stays, say at `reviewer-brief.md:425` that a
+      small-remit role writes mostly scope declarations. Verify: that section
+      names the cost.
+- [x] T5 | FINISHED | unknown | T5 -- NOT A TASK. *"Do not solve this by
+      exempting a role from blocks outside its remit"* is a standing
+      prohibition. Kept in full in the Objective.
+- [-] T6 | SUPERSEDED into T7, which now reads distinct from silence and from I could not settle it. T6 opened on Keep, a bare preservation verb, and its own note said the role stopped attempting settlement so it no longer described the failure | e651eff | Keep
+      'I read it and it belongs' distinct from 'I could not settle it' in
+      whatever wording replaces the outside-my-role query
+        > 2026-08-31 clean CERTIFIES and query ASKS; collapsing them trades down
+        > 2026-08-31 measured NECESSARY BUT NOT SUFFICIENT: it guards the wrong failure
+        > 2026-08-31 the role stopped ATTEMPTING settlement, which T6 does not describe
+- [ ] T7 | Reword clean as an ACTIVE assertion -- I checked the claims at my
+      scope and they hold -- distinct from silence and from I could not settle it
+        > 2026-08-31 placement-only wording made the role stop checking truth at all
+        > 2026-09-02 T6's distinction is folded in here: clean must not read as
+        > 2026-09-02 silence, and must not read as I could not settle it either
+        > 2026-09-02 clean CERTIFIES and query ASKS -- collapsing them trades down

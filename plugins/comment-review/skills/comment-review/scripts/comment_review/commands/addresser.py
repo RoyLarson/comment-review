@@ -109,7 +109,12 @@ def main() -> int:
 
     if args.anchor:
         if not args.series:
-            print("--anchor needs --series: a, b, c or f")
+            # ! THE SET IS DERIVED, and this line hand-wrote "a, b, c or f"
+            # until 2026-08-28 -- the defect `T1.16` names, surviving in a
+            # RUNTIME message after it was removed from every help string.
+            # `SERIES` comes from the `Series` enum, so adding a series carries
+            # this sentence with it.
+            print(f"--anchor needs --series: {', '.join(SERIES)}")
             return 2
         return _for_anchor(args.anchor, args.series, paragraphs)
     if args.resolve:
@@ -248,7 +253,7 @@ def _check(paragraphs: list[dict]) -> int:
         refuse every docstring with a comment beneath it.
     """
     # ! ASKED, NOT RE-DERIVED. `unaddressed` is the one implementation, and
-    # `census.py` and `verdicts.py` ask the same one.
+    # `census.py` and the collator ask the same one.
     missing = unaddressed(paragraphs)
     shared: dict[str, list[str]] = {}
     # ! The path is not read here -- an address already names its own file, and

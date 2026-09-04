@@ -11,7 +11,7 @@ for themselves what a census file is --
     addresser   loaded.get("paragraphs", []) if isinstance(loaded, dict) else loaded
     galley      census["paragraphs"] if isinstance(census, dict) else census
     record      loaded["paragraphs"] if isinstance(loaded, dict) else loaded
-    verdicts    json.loads(census_text)          -- no envelope handling at all
+    collator    json.loads(census_text)          -- no envelope handling at all
 
 Three spellings of one guess and one absence. They already disagreed: the first
 tolerates a missing key, the next two raise `KeyError`, and the last would
@@ -43,7 +43,20 @@ from comment_review.reading.series import Kind
 
 # ! The shape's own version, so a reader can say WHICH format it refused rather
 # than only that it could not read one.
-VERSION = "1"
+#
+# !! BUMPED TO "2" WHEN `read_from` BECAME REQUIRED, 2026-08-28.
+#
+# ! AND NOTHING REFUSES ON IT. This comment claimed for one commit that an older
+# artifact was "refused by name (a version mismatch)"; `read` never looks at
+# `version`, so no such refusal exists and the sentence asserted an enforcement
+# the file does not carry. What the field does is LABEL an artifact, so a reader
+# holding one can say which format it is.
+#
+# ! REFUSING IS `seed`'s, AT THE POINT OF CONSUMPTION, and that is this module's
+# own rule rather than an exception to it: `read`'s docstring states that WHAT IS
+# CHECKED IS WHAT IS CONSUMED and no more, and `read` consumes no field. `seed`
+# is what reads `read_from`, so `seed` is what raises when it is missing.
+VERSION = "2"
 
 
 def page_row(paragraph: Paragraph) -> dict:
@@ -90,8 +103,15 @@ def page_row(paragraph: Paragraph) -> dict:
     }
 
 
-def bind(pages: list[Page], absent: bool = False) -> dict:
+def bind(pages: list[Page], read_from: dict, absent: bool = False) -> dict:
     """Every page in scope, as the binder that is handed over.
+
+    !! `read_from` IS REQUIRED, NOT DEFAULTED. A binder that cannot say which
+    root it was censused from is exactly the ambiguity a later stage needs
+    resolved: a revise re-binds from a tree copy, and a role holding that
+    binder cannot tell it apart from the original unless the binder says so.
+    A caller with no root to name has nothing it was censused FROM, so there
+    is no default that would not be a fabrication.
 
     ! THE SHA IS REPORTED, NOT TAKEN. It arrives on the page from
     `repo.read_source`; this module hashes nothing. Roy, 2026-08-25: *"It is
@@ -119,12 +139,34 @@ def bind(pages: list[Page], absent: bool = False) -> dict:
 
     Args:
         pages: the pages in scope.
+        read_from: `{"root": "<path>", "revise": <int>}` -- the root this
+            binder was censused from, and `0` for the original or the
+            revise's own number otherwise.
         absent: carry the empty places too. For the caller that specifically
             asks -- a reviewer surveying where prose COULD go rather than
             ruling on prose that is there.
+
+    Raises:
+        ValueError: `read_from` is not `{"root": str, "revise": int}`.
+
+    !! THE SHAPE IS CHECKED HERE AND ON THE WAY BACK IN, and only the arity was
+    checked until 2026-08-28. MEASURED: `read_from="oops"`, `None`, `[]` and
+    `{"root": 7}` each built a binder and each passed `ty`, because `dict` says
+    nothing about what is IN one. `seed` then copied the value verbatim onto the
+    `edit_copy` an editorial role fills.
+
+    ! AND IT IS COPIED, NOT ALIASED. The stored dict was the caller's own until
+    the same day, so a binder, every `edit_copy` seeded from it, and whatever the
+    caller kept were ONE object -- a test writing `binder["read_from"]["revise"]
+    = 1`, which is how a revise test is naturally written, would have changed
+    what every later test in the session saw, with no gate able to attribute it.
     """
+    why = _read_from_problem({"read_from": read_from})
+    if why:
+        raise ValueError(why)
     return {
         "version": VERSION,
+        "read_from": {**read_from},
         "pages": [
             {
                 "path": page.path,
@@ -140,13 +182,53 @@ def bind(pages: list[Page], absent: bool = False) -> dict:
     }
 
 
+def _read_from_problem(loaded: dict) -> str:
+    """Why this binder's `read_from` cannot be used, or `""`.
+
+    !! THIS IS `read` RULING ON A FIELD, WHICH THE DOCSTRING BELOW SAYS IT DOES
+    NOT DO -- and the rule is unchanged, because the rule is WHAT IS CHECKED IS
+    WHAT IS CONSUMED. Nothing consumed a field when that was written. `seed`
+    consumes this one.
+
+    !! MEASURED 2026-08-28, and it is why the check moved here from `seed`
+    alone: `mark --seed` over a version-"1" binder exited 1 with `KeyError:
+    'read_from'` and an eight-frame traceback on stderr and nothing on stdout,
+    past `main`'s own promise of *"2 when an input could not be read"*.
+    `commands/mark.py:79` calls `seed` immediately after this function returns
+    no problem, so a field `seed` requires and `read` ignored could only surface
+    as a crash. ! RAISING IS NOT REFUSING: a refusal in this module is a NAMED
+    REASON and an exit code, which is what a reader can act on.
+
+    ! AND THE SHAPE IS CHECKED, NOT ONLY THE PRESENCE. MEASURED the same day:
+    `read_from="oops"`, `None`, `[]` and `{"root": 7}` each built a binder, each
+    passed `ty`, and `seed` copied the value verbatim onto the `edit_copy`
+    handed to an editorial role. That is the defect this module's own header
+    records being fixed on 2026-08-25 -- *"THE KEY WAS TESTED FOR PRESENCE AND
+    NOT FOR SHAPE ... so it coped after all"* -- arriving on a new field.
+    """
+    if "read_from" not in loaded:
+        return (
+            "carries no `read_from` -- a binder written before 2026-08-28 "
+            f'(version "1"); re-run `census --json` to get a version "{VERSION}" one'
+        )
+    read_from = loaded["read_from"]
+    if not isinstance(read_from, dict):
+        kind = type(read_from).__name__
+        return f"`read_from` is a JSON {kind}, not a mapping of `root` and `revise`"
+    if not isinstance(read_from.get("root"), str):
+        return "`read_from` carries no `root` string -- which tree was censused?"
+    if not isinstance(read_from.get("revise"), int):
+        return "`read_from` carries no `revise` number -- 0 is the original"
+    return ""
+
+
 def read(text: str) -> tuple[dict, str]:
     """A binder read back, or the reason it could not be.
 
     !! IT REFUSES RATHER THAN COPING. Every one of the four readers this
     replaces guessed at the shape, and a guess that is wrong reads as an EMPTY
     binder -- which downstream is indistinguishable from a run with nothing to
-    do. `verdicts.py` was measured certifying exactly that on 2026-08-20.
+    do. The collator was measured certifying exactly that on 2026-08-20.
 
     !! THE KEY WAS TESTED FOR PRESENCE AND NOT FOR SHAPE UNTIL 2026-08-25, so
     it coped after all. MEASURED: `{"pages": "oops"}` read CLEAN, and the
@@ -183,6 +265,13 @@ def read(text: str) -> tuple[dict, str]:
             if not isinstance(row, dict):
                 kind = type(row).__name__
                 return {}, f"page {n}, row {m} is a JSON {kind}, not a row"
+    # ! LAST, BEHIND THE `pages` CHECKS, AND THAT ORDER IS LOAD-BEARING. Put
+    # first, it answered every malformed-`pages` artifact with "carries no
+    # `read_from`" -- true, and not the reason the file is unreadable. `pages`
+    # is what a binder IS; the header says which tree it came from.
+    why = _read_from_problem(loaded)
+    if why:
+        return {}, why
     return loaded, ""
 
 

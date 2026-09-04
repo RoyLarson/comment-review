@@ -1,0 +1,167 @@
+# A docstring written on its declaration's own line takes no address, and the round trip invents a blank line
+
+```
+Status:   open
+Progress: 2 of 4 tasks closed
+Owner:    backend
+Requires-Roy: false
+Raised:   2026-08-29 (found while fixing the docstring-closing-comment double emission,
+          2026-08-29)
+```
+
+## Objective
+
+A docstring written on its declaration's own line takes no address, and the round trip invents a
+blank line.
+
+!! **THE TITLE AND THE 2026-08-29 MEASUREMENT BELOW ARE BOTH SUPERSEDED, AND ARE KEPT AS THE
+RECORD OF WHY THIS WAS FILED.** RE-MEASURED 2026-09-03 through `tests/conftest.build`:
+
+| | 2026-08-29 | 2026-09-03 |
+| --- | --- | --- |
+| the docstring's address | **(none)** | **`b0`**, kind `docstring` |
+| paragraphs on the page | five, two claiming line 1 | four, each its own place |
+| `lossless` | *line invented: ''* | **`None`** |
+| `set_page` | 1 line in, 2 out | **byte-exact** |
+
+! **SO THE THREE BROKEN INVARIANTS BELOW ARE NO LONGER BROKEN**, and the addressing rebuild is
+what fixed them; no box on this file was worked. T1 and T2 are superseded because their verifies
+PASS and because `Addressing: #20` then answered the question underneath them.
+
+!! **WHAT SURVIVES IS A DIFFERENT DEFECT THE OLD MEASUREMENT COULD NOT SEE.** `b0` is the GAP
+series, whose pair is `comment`/`interval`, and it is holding `docstring` -- the `a` series' kind
+-- while `a0` reports `undocumented`. That is
+[`a-doc-comment-is-cued-a-and-typed-b`](a-doc-comment-is-cued-a-and-typed-b.md) inverted, and the
+strict-xfail tripwire cannot see it for the same reason the original defect survived: the shape
+is in neither `SOURCES` nor `FORMS`. **T3 is the live box.**
+
+!! **AND IT IS NOT THE `ast` MODULE.** Roy, 2026-09-03, offering the likely cause: *"Probably
+because we are using the ast module to get the Python stuff instead of the lexer."* MEASURED the
+same day by calling `lexer.paragraphs_stdlib` directly and comparing it to the assembled page:
+
+| | the AST reader emits | the assembled page holds |
+| --- | --- | --- |
+| two-line form | `a1` `docstring` anchor `g` | `a1` `docstring` anchor `def g():` |
+| **same-line form** | `a1` `docstring` anchor `g` | **`b0` `docstring` anchor `<eof>`** |
+
+**The AST reader is RIGHT in both cases** -- same cue, same anchor. What loses it is the PAGE
+ASSEMBLY, and it loses the anchor as well as the cue: `g` becomes `<eof>`, which is the fallback
+for a paragraph with nowhere to land.
+
+! **THE REASON IS VISIBLE IN THE LISTING.** The same-line page carries no `a1` place and no `c0`
+-- **the walk emitted no `a` place for `def g():` at all** -- so the AST's correctly-addressed
+paragraph had nothing to attach to. The two-line page carries both.
+
+!! **SO `Addressing: #20` NEEDS AN `a` PLACE TO MOVE THE DOCSTRING INTO, AND THERE IS NONE.**
+That is work T23 must do and its own text does not name: the walk has to emit the place before
+the compositor can set anything below the declaration.
+
+## The root cause: the lexer does not say the docstring shares a line -- T4
+
+**`binder/page.py:561-576`, `code_lines`.** A line stays code only when the paragraph on it is
+the `ON` series:
+
+| kind | series | kept as code | occupies its lines |
+| --- | --- | --- | --- |
+| `trailing-comment` | `ON` | **yes** | no |
+| `docstring` | `DECLARED` | **no** | **yes** |
+
+A same-line docstring is stamped `a` by `paragraphs_stdlib`, so it is not `ON`, so it falls to
+*occupies its lines* and **line 1 leaves the code set**. `triggers()` walks `[MODULE, *code,
+EOF]`, so with no trigger at line 1 neither the `DECLARED` nor the `ON` addresser emits there --
+no `a1`, no `c0` -- and the AST's correctly-addressed paragraph has nothing to attach to.
+
+!! **AND `code_lines`' OWN DOCSTRING STATES THE INVARIANT THIS BREAKS**, at `:536`: *"A
+PARAGRAPH'S FIRST LINE IS STILL CODE WHEN CODE PRECEDES ITS TEXT"*, with the worked example
+`int b = 2; /* opens` -- the same shape, in another language.
+
+! **THAT TEST USED TO BE `original_column`**, per `:541-543`: *"THE PARAGRAPH SAYS SO, BY ITS
+SERIES -- a `c` place is the room beside code ... IT WAS a `original_column` FIELD until
+2026-08-31, read here for its truthiness alone."*
+
+!! **AND THE FIX IS NOT TO BRING IT BACK. `Process: #69` STANDS.** Roy, 2026-09-03: *"Its still
+safe, we just need to figure out how to make the parser part of the lexer properly attach to
+docstring to the correct line of code."*
+
+! **THIS SECTION FIRST READ *"#69's replacement is incomplete here"***, which put the fix in
+`code_lines` -- restoring a per-paragraph column so the page could re-derive what the lexer
+already knew. **That is the wrong end.** The lexer holds the declaration, the docstring and both
+line numbers at the moment it tags; it is the only place that knows the docstring shares its
+line with the code that owns it, and it currently emits a paragraph indistinguishable from one
+that owns its lines outright.
+
+!! **SO THE WORK IS IN THE LEXER: ATTACH THE DOCSTRING TO THE LINE OF CODE IT SHARES.** Then
+`code_lines` needs no new test -- the line is code because the paragraph beside it says so, which
+is what `:541`'s *"THE PARAGRAPH SAYS SO, BY ITS SERIES"* already asserts -- and the walk emits
+the `a` place `Addressing: #20` moves the docstring into.
+
+!! **MEASURED 2026-08-29** on `'def f(): """D."""  # note\n'` -- one line in, TWO out:
+
+```
+in : 'def f(): """D."""  # note\n'
+out: 'def f(): """D."""  # note\n\n'
+lossless: line invented: ''
+identity: 1 lines in, 2 out
+```
+
+and the page carries FIVE paragraphs, of which two claim line 1 and one has no address at all:
+
+| kind | cue | lines | raw_lines |
+| --- | --- | --- | --- |
+| `docstring` | **(none)** | 1-1 | `def f(): """D."""  # note` |
+| `interval` | `b0` | 1-1 | `def f(): """D."""  # note` |
+
+! **THREE INVARIANTS BREAK AT ONCE**, and each is one this repo states elsewhere. `lossless` is
+the one `compositor.py` calls the invariant that must never break. A paragraph carrying neither
+an address nor a symbol is what `tests/test_reading.py`'s
+`test_a_paragraph_carries_an_ADDRESS_or_a_SYMBOL_and_never_both` forbids. Two paragraphs claiming
+one line is what `test_every_line_of_the_file_is_covered_exactly_once` forbids.
+
+!! **AND NO GATE SEES IT, because no source in either suite holds the shape.** The same reason
+the docstring-closing-comment defect survived: `test_reading.SOURCES` and
+`test_compositor.FORMS` are hand-authored, so a shape nobody thought to write cannot be
+expressed. `docs/gates.md`: *"does the check pass" is not the question; "could the check fail"
+is.*
+
+! **THE COMMENT IS NOT THE CAUSE.** `'def f(): """D."""\n'` fails the same way -- the trailing
+comment above is carried only because it is how the shape was found. What decides it is the
+docstring statement sharing a line with the declaration that owns it, so `attach` has a
+declaration place and a code line pointing at the same line and resolves to neither.
+
+! **A BODY-LESS ONE-LINER IS FINE**: `'class C: pass\n'` round trips, because nothing claims the
+line twice.
+
+## Related, and NOT the same defect
+
+[`census-degrades-silently`](census-degrades-silently.md) T6 records a one-line `def f(): pass`
+whose `a1` place writes ABOVE the `def`, turning a proposed docstring into the MODULE's. That is
+about a declaration with NO prose and where an `add` would put some. This is about a declaration
+that ALREADY HAS its docstring on that line: nothing is added, and the page still cannot be set
+back. `systems` owns whether the two are one file.
+
+## Tasks
+
+- [-] T1 | SUPERSEDED -- Addressing 20 answers where it goes: the approved a spot below the declaration. It is addressed today at b0, so the verify passed, but b0 was never the right place | a791148 | Give
+      the docstring paragraph of a same-line declaration an address, or refuse
+      the page. Verify: page_for over 'def f(): """D."""' emits no paragraph
+      whose address is empty.
+        > 2026-09-03 MEASURED: it IS addressed -- g.py@b0, kind docstring
+        > 2026-09-03 so no paragraph has an empty address; this verify passes today
+- [-] T2 | SUPERSEDED -- the line is invented DELIBERATELY. Addressing 20 rules the docstring moves below the declaration, so lossless is expected to report on this shape rather than return None | a791148 | Stop
+      the round trip inventing a line on that shape. Verify: compositor.lossless
+      returns None for it.
+        > 2026-09-03 MEASURED: lossless None, set_page byte-exact
+        > 2026-09-03 on all three shapes -- one line, one line plus trailing, two line
+        > 2026-09-03 held open pending the ruling; Addressing 20 then closed it
+- [ ] T3 | Add the shape to tests/test_reading.SOURCES and
+      tests/test_compositor.FORMS. Verify: both go red before the two boxes
+      above and green after.
+        > 2026-09-03 the live one -- the shape is in neither SOURCES nor FORMS
+        > 2026-09-03 so the tripwire never sees b0 holding a docstring kind
+        > 2026-09-03 Addressing 20 makes this the live box -- the behaviour CHANGES
+        > 2026-09-03 so it needs pinning, and nothing sees b0 until the shape is added
+- [ ] T4 | Update the lexer so a docstring attaches to the line of code it
+      shares, and the walk emits that line's places
+        > 2026-09-03 ROOT CAUSE: page.py:567 keeps a line only for the ON series
+        > 2026-09-03 the full reading is in the Objective, under The root cause
+        > 2026-09-03 Roy: the 69 removal is still safe -- fix it in the lexer

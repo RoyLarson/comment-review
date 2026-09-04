@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 1 tasks done
+Progress: 0 of 1 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-26 (the final simplify pass on feat/the-write-chain-of-command,
@@ -30,5 +30,4 @@ consideration rather than riding in on an unrelated pass.
 
 ## Tasks
 
-- [ ] Decide whether to delete block_text or give it a caller, on its own
-      consideration
+- [ ] T1 | Delete block_text, or give it a caller and say what reads it

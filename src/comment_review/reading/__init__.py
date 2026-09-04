@@ -2,7 +2,12 @@
 
     language    one row per language -- its comment syntax and its keywords
     lexer       the prose in a file, and where each paragraph starts and ends
+    series      what a SERIES is -- its cue letter, and the two kinds a place
+                 in it can be
     addresser   the places a file HAS, filled or not
+
+! `series` WAS ABSENT FROM THIS INVENTORY UNTIL 2026-08-29. It was cut out of
+`addresser` and `lexer` on Roy's 2026-08-25 retraction, quoted at its own head.
 
 !! THE TWO LEAVES DO NOT KNOW EACH OTHER: the addresser knows nothing about
 prose, the lexer nothing about places. That is what lets a page be one subject --

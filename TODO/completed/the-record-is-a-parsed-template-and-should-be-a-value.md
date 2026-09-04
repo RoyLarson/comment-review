@@ -2,7 +2,7 @@
 
 ```
 Status:   done
-Progress: 10 of 10 tasks done (6 design rulings made; 8 build steps, all shipped)
+Progress: 10 of 10 tasks closed
 Owner:    session (Roy made all 6 rulings 2026-08-17; the rest is build)
 Raised:   2026-08-17, by Roy, after three parser defects of one shape in one day
 ```
@@ -151,15 +151,17 @@ contract, which changed once already today.
 
 ## Tasks
 
-- [x] * **RULED 2026-08-17: the record becomes a value, and the format is JSON.** See above.
+- [x] T1 | FINISHED | unknown | * **RULED 2026-08-17: the record becomes a
+      value, and the format is JSON.** See above.
 
-- [x] * **RULED 2026-08-17: a SEEDED TEMPLATE the reviewer edits in place with its FILE-WRITE
-      tool.** Not a CLI it calls per record. !! The deciding constraint was that **no multi-line
-      value passes through a SHELL** -- the same escaping problem one layer out, and the layer
-      that actually failed in the session that raised this file. `change` is a line array and
-      `sources` carries verbatim source text, so both would have had to cross that boundary.
-      The task agent runs `record.py --seed` once per role before dispatch; the reviewer runs
-      nothing.
+- [x] T2 | FINISHED | unknown | * **RULED 2026-08-17: a SEEDED TEMPLATE the
+      reviewer edits in place with its FILE-WRITE tool.** Not a CLI it calls per
+      record. !! The deciding constraint was that **no multi-line value passes
+      through a SHELL** -- the same escaping problem one layer out, and the
+      layer that actually failed in the session that raised this file. `change`
+      is a line array and `sources` carries verbatim source text, so both would
+      have had to cross that boundary. The task agent runs `record.py --seed`
+      once per role before dispatch; the reviewer runs nothing.
 
 ### * The five design rulings, all made 2026-08-17
 
@@ -289,24 +291,26 @@ sentence IS the finding. *"Three places"* is still wrong on disk.
 a finding hiding there is invisible today. With `claim` as structured fields, comparing
 `REASON`'s quoted spans against `claim`'s is mechanical.
 
-## Build order, each step independently verifiable
+- [x] T3 | FINISHED | unknown | **1. DONE 2026-08-17 -- the schema and
+      `record.py --seed`.** One slot per prose block, pre-filled with `block`,
+      `address` and `original`, every reviewer field empty. SUPERSEDED --
+      `original` is not seeded; see the ruling below. Verified against this
+      repo's own smoke-test census: **224 records seeded from 1954 blocks**,
+      which is exactly the prose count, and the file round-trips as JSON. !
+      `original` and `change` are LINE ARRAYS, so a blank line inside a
+      docstring survives as an empty element -- the 0.2.0 defect is not fixed
+      here, it is unrepresentable.
 
-- [x] **1. DONE 2026-08-17 -- the schema and `record.py --seed`.** One slot per prose block,
-      pre-filled with `block`, `address` and `original`, every reviewer field empty.
-      SUPERSEDED -- `original` is not seeded; see the ruling below. Verified
-      against this repo's own smoke-test census: **224 records seeded from 1954 blocks**, which
-      is exactly the prose count, and the file round-trips as JSON. ! `original` and `change`
-      are LINE ARRAYS, so a blank line inside a docstring survives as an empty element -- the
-      0.2.0 defect is not fixed here, it is unrepresentable.
+- [x] T4 | FINISHED | unknown | **1b. DONE 2026-08-17 -- `record.py` checks the
+      pre-filled fields still match the census.** ! It is an INTEGRITY check,
+      not the old transcription check: it can only fail if a filled record was
+      corrupted, so its message must say so rather than accusing the reviewer of
+      misquoting.
 
-- [x] **1b. DONE 2026-08-17 -- `record.py` checks the pre-filled fields still match the
-      census.** ! It is an
-      INTEGRITY check, not the old transcription check: it can only fail if a filled record was
-      corrupted, so its message must say so rather than accusing the reviewer of misquoting.
-
-- [x] **2. DONE 2026-08-17 -- `record.py --check`.** Shape only: fields present and of the right
-      type, the verdict one of the seven, `claim`'s keys the ones its row requires, constrained
-      values among those the template offered, and `sources` a list of `{cite, verbatim}`.
+- [x] T5 | FINISHED | unknown | **2. DONE 2026-08-17 -- `record.py --check`.**
+      Shape only: fields present and of the right type, the verdict one of the
+      seven, `claim`'s keys the ones its row requires, constrained values among
+      those the template offered, and `sources` a list of `{cite, verbatim}`.
 
       !! **THREE EXITS, because incomplete is not malformed.** `2` the file does not parse,
       `1` a filled record is malformed, `0` every filled record is well formed -- and an
@@ -322,11 +326,12 @@ a finding hiding there is invisible today. With `claim` as structured fields, co
       own position**, `line N column M`. That is the failure this format ADDS, and it is
       acceptable precisely because a merged field never could -- it blamed the neighbour.
 
-- [x] **3. DONE 2026-08-17 -- `verdicts.py` reads records**, and `parse_report` stays behind a
-      deprecation notice. !! **The regression is BYTE-IDENTICAL.** The four held
-      reports, converted, join to output `diff` cannot separate from the join over
-      the originals -- 903 findings, 35 STANDS, 46 NEEDS A RULING, 145 not certified,
-      14 CODE CONCERNS, exit 0 -- against a worktree pinned at the reports' own commit.
+- [x] T6 | FINISHED | unknown | **3. DONE 2026-08-17 -- `verdicts.py` reads
+      records**, and `parse_report` stays behind a deprecation notice. !! **The
+      regression is BYTE-IDENTICAL.** The four held reports, converted, join to
+      output `diff` cannot separate from the join over the originals -- 903
+      findings, 35 STANDS, 46 NEEDS A RULING, 145 not certified, 14 CODE
+      CONCERNS, exit 0 -- against a worktree pinned at the reports' own commit.
 
       ! `claim_text` renders the object back into the marker form the checks read, so
       every existing check works UNCHANGED. **The string is now generated rather than
@@ -339,9 +344,10 @@ a finding hiding there is invisible today. With `claim` as structured fields, co
       ! CODE CONCERNS carry no verdict and are gated by nothing, so a conversion
       dropped all 14 with no count moving. Caught only by diffing the two joins.
 
-- [x] **4. DONE 2026-08-17 -- the `REASON`-carries-the-finding check.**
-      `unrecorded_findings` reports a phrase a `REASON` QUOTES from its own block that no
-      `CLAIM` in the run names. Reported, never fatal: `REASON` is entitled to discuss context.
+- [x] T7 | FINISHED | unknown | **4. DONE 2026-08-17 -- the
+      `REASON`-carries-the-finding check.** `unrecorded_findings` reports a
+      phrase a `REASON` QUOTES from its own block that no `CLAIM` in the run
+      names. Reported, never fatal: `REASON` is entitled to discuss context.
 
       !! **The signal is DOUBLE QUOTES, not backticks.** In this system a backtick means
       CITATION -- the brief instructs citing by symbol or path in them. Measured over 903 real
@@ -353,16 +359,18 @@ a finding hiding there is invisible today. With `claim` as structured fields, co
       PLACES, never text, so a phrase its `REASON` calls wrong can be named by NO claim at all.
       The block gets relocated and nothing records that the phrase still needs correcting.
 
-- [x] **5. DONE 2026-08-17 -- `reviewer-brief.md`'s record contract.** One JSON record,
-      the five fields the reviewer sets, and the address-not-text argument in the text a
-      reviewer reads. `TestTheBriefsOwnRecordPasses` now extracts the ```json fence and
-      runs it through `record.record_problems`, so the worked example is checked by the
-      code that ships. ! `original` left the four editorial roles' term lists; the
-      definition stays for `compact` and `review`, which still use the word.
+- [x] T8 | FINISHED | unknown | **5. DONE 2026-08-17 -- `reviewer-brief.md`'s
+      record contract.** One JSON record, the five fields the reviewer sets, and
+      the address-not-text argument in the text a reviewer reads.
+      `TestTheBriefsOwnRecordPasses` now extracts the ```json fence and runs it
+      through `record.record_problems`, so the worked example is checked by the
+      code that ships. ! `original` left the four editorial roles' term lists;
+      the definition stays for `compact` and `review`, which still use the word.
 
-- [x] **6. DONE 2026-08-17 -- the four role files, and the two places that outranked
-      them.** The roles themselves held three field names (`SOURCES` -> `sources`,
-      `CODE CONCERNS` -> `code_concerns`) and a pointer at the brief.
+- [x] T9 | FINISHED | unknown | **6. DONE 2026-08-17 -- the four role files, and
+      the two places that outranked them.** The roles themselves held three
+      field names (`SOURCES` -> `sources`, `CODE CONCERNS` -> `code_concerns`)
+      and a pointer at the brief.
 
       !! **The gap was not in the roles.** Stage 4 dispatched four agents and never said
       where a record goes, and stage 5 named the reports `.md` -- so a reviewer
@@ -375,10 +383,11 @@ a finding hiding there is invisible today. With `claim` as structured fields, co
       with the one exception named: a reviewer that believes it may write nothing
       reports in prose instead, which is the parser this shape replaced.
 
-- [x] **7. DONE 2026-08-17 -- the cycle ran, 4 -> 5 -> 5b -> 6 -> 6b.** On
-      `plugins/comment-review/skills/comment-review/scripts/galley.py`, 110 census blocks, 11
-      of them prose. Four roles filled seeded JSON records; **47 findings, and the stage-5 gate
-      exited 0**.
+- [x] T10 | FINISHED | unknown | **7. DONE 2026-08-17 -- the cycle ran, 4 -> 5
+      -> 5b -> 6 -> 6b.** On
+      `plugins/comment-review/skills/comment-review/scripts/galley.py`, 110
+      census blocks, 11 of them prose. Four roles filled seeded JSON records;
+      **47 findings, and the stage-5 gate exited 0**.
 
       !! **TWO DEFECTS BLOCKED 5b ENTIRELY, and either alone was enough.** Both were in the
       tree under review and both were found by the roles reading it.
@@ -421,7 +430,7 @@ a finding hiding there is invisible today. With `claim` as structured fields, co
       one, and only a block count 10 higher than the reviewers' gave it away.
 
       ! Two findings raised, neither acted on here:
-      [`correct-against-patch-is-a-conflict-and-is-not-flagged`](../correct-against-patch-is-a-conflict-and-is-not-flagged.md),
+      `correct-against-patch-is-a-conflict-and-is-not-flagged`,
       and a second width measurement on
       [`compact-can-buy-lines-with-width`](../compact-can-buy-lines-with-width.md) -- supplying
       the PUBLISHED width bounds the free move without stopping it.
@@ -429,6 +438,14 @@ a finding hiding there is invisible today. With `claim` as structured fields, co
 ! **Keep `verdicts.py`'s SEMANTIC checks throughout.** Address against census, citation
 resolution, verbatim-half lookup, CLAIM-covers-CHANGE, contradictions. Deleting one because the
 new shape made it awkward is how the synthesised block ends up unchecked.
+
+## Build order -- the eight steps are T3-T10 in `## Tasks`
+
+! **MOVED 2026-08-30.** They were eight `[x]` build steps under this heading while two
+rulings sat under `## Tasks`, so the two tools read this file as `10/10` and `2/2`. They are
+one sequence and now sit in one place. ! The step numbering they carried (`1`, `1b`, `2`..`7`)
+is kept in their labels, because the prose above and `docs/history.md` cite it.
+
 
 ## Related
 

@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 2 of 7 tasks done
+Progress: 2 of 8 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-17, on the FIRST exercise of stage 6 -- it returned two blocks at
@@ -132,17 +132,29 @@ for this case.
 
 ## Tasks
 
-- [x] T1 -- RULING, MADE 2026-08-17: WHICHEVER IS LESS. Both the published width and the
-      observed wrap bind stage 6, and the tighter wins. Kept in full in the Objective.
-- [ ] T2 -- Say in `compact.md` that a block may not change KIND to escape the cap.
-      Verify: the words are there and `scripts/check_vocabulary.py` still passes.
-- [ ] T3 -- State in `compact.md` the test that separates a legitimate `move` into a
-      docstring from cap-dodging. Verify: the file names both sides of that line.
-- [ ] T4 -- Say in `compact.md` that lines may not be widened to buy a line, under T1.
-      Verify: `width` occurs in the file and the sentence states WHICHEVER IS LESS.
-- [ ] T5 -- Add the observed comment wrap to the measured section of the STYLE SHEET.
-      Verify: the style sheet carries the number and says it was measured, not published.
-- [ ] T6 -- Write the rule for what stage 6 reports when in-cap and at-habit conflict.
-      Verify: `compact.md` names the case and says what stage 6 emits.
-- [x] T7 -- RECORD, not a task. What the 2026-08-17 run got RIGHT, kept in the Objective
-      so a later pass does not rewrite the good part.
+- [x] T1 | FINISHED | unknown | T1 -- RULING, MADE 2026-08-17: WHICHEVER IS
+      LESS. Both the published width and the observed wrap bind stage 6, and the
+      tighter wins. Kept in full in the Objective.
+- [ ] T2 | T2 -- Say in `compact.md` that a block may not change KIND to escape
+      the cap. Verify: the words are there and `scripts/check_vocabulary.py`
+      still passes.
+- [ ] T3 | T3 -- State in `compact.md` the test that separates a legitimate
+      `move` into a docstring from cap-dodging. Verify: the file names both
+      sides of that line.
+- [ ] T4 | T4 -- Say in `compact.md` that lines may not be widened to buy a
+      line, under T1. Verify: `width` occurs in the file and the sentence states
+      WHICHEVER IS LESS.
+- [ ] T5 | T5 -- Add the observed comment wrap to the measured section of the
+      STYLE SHEET. Verify: the style sheet carries the number and says it was
+      measured, not published.
+- [ ] T6 | T6 -- Write the rule for what stage 6 reports when in-cap and
+      at-habit conflict. Verify: `compact.md` names the case and says what stage
+      6 emits.
+- [x] T7 | FINISHED | unknown | T7 -- RECORD, not a task. What the 2026-08-17
+      run got RIGHT, kept in the Objective so a later pass does not rewrite the
+      good part.
+- [ ] T8 | Update compact so it reads the paragraph KIND off the cue letter
+      rather than being told it. Verify: no reference file or agent prose hands
+      compact a kind field, and the docstring refusal resolves from the a series
+      alone
+        > 2026-08-31 Roy 2026-08-31: cue tells everything, defined by kind

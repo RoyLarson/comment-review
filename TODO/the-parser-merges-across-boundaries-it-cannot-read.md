@@ -2,9 +2,9 @@
 
 ```
 Status:   in-progress
-Progress: 2 of 4 tasks done
+Progress: 2 of 4 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-17, after three defects of one shape landed in a single day
 Triaged:  2026-08-23 -- the text reader is retired, so D7 and D8's entry point no longer
           exists; D9's does. The corroboration rule is in the shipped tree
@@ -91,14 +91,17 @@ from sloppiness, and a reviewer disagreeing with the gate ALONE is not it.
 
 ## Tasks
 
-- [x] T1 -- SUPERSEDED, not a task. The continuation branch it named was retired with the
-      text record format. Kept in the Objective.
-- [ ] T2 -- Say what `removed_spans` does with a token it cannot align; today
-      `desk.py:831-837` absorbs it. Verify: the message names the alignment, not a word.
-- [ ] T3 -- Add a test asserting the ERROR NAMES THE RIGHT THING, not merely that one
-      occurred. Verify: a test in `tests/test_verdicts.py` fails if a neighbour is named.
-- [x] T4 -- FINISHED. The corroboration rule ships at `verdicts.py:62-65`. Kept in the
+- [x] T1 | FINISHED | unknown | T1 -- SUPERSEDED, not a task. The continuation
+      branch it named was retired with the text record format. Kept in the
       Objective.
+- [ ] T2 | T2 -- Say what `removed_spans` does with a token it cannot align;
+      today `desk.py:831-837` absorbs it. Verify: the message names the
+      alignment, not a word.
+- [ ] T3 | T3 -- Add a test asserting the ERROR NAMES THE RIGHT THING, not
+      merely that one occurred. Verify: a test in `tests/test_verdicts.py` fails
+      if a neighbour is named.
+- [x] T4 | FINISHED | unknown | T4 -- FINISHED. The corroboration rule ships at
+      `verdicts.py:62-65`. Kept in the Objective.
 ## Related
 
 - [`re-review-is-ordered-everywhere-and-defined-nowhere`](completed/re-review-is-ordered-everywhere-and-defined-nowhere.md)

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 4 tasks done
+Progress: 4 of 4 tasks closed
 Owner:    session
 Requires-Roy: false
 Raised:   2026-08-20 (found while rendering a page for the P3 ruling, 2026-08-20)
@@ -25,19 +25,22 @@ An empty b whose gap opens on front matter inserts ABOVE the shebang.
 
 ## Tasks
 
-- [x] !! MEASURED on a file with a shebang, a licence line, and a module
-      docstring: `b1` is an empty interval with `original_start=1, original_end=0`, so
-      writing it INSERTS AT LINE 1 -- above `#!/usr/bin/env python3`, which stops
-      being a shebang the moment anything precedes it. `b0` is the front matter
-      itself, occupying lines 1-2.
-- [x] The cause is in `page.empty_places`, the GAP branch: `low = previous + 1` is
-      1, and 'A DOCSTRING IN THIS GAP MAKES THE EDIT AN INSERTION ABOVE IT' then
-      sets `high = low - 1`. That rule is right for a docstring -- a comment above
-      a module docstring is ordinary -- and wrong for front matter, which is
-      pinned to line 1.
-- [x] The wanted insert is line 3: BELOW the front matter, ABOVE the docstring. So
-      `low` must first advance past any FRONT_MATTER lines at the top of the gap,
-      and the insert-above-the-occupant rule applies from there.
-- [x] It is only reachable when the gap's top is front matter, which needs a
-      shebang or licence header AND a module docstring AND no code between them.
-      Nothing in `tests/` had that shape -- add the fixture with the fix.
+- [x] T1 | FINISHED | unknown | !! MEASURED on a file with a shebang, a licence
+      line, and a module docstring: `b1` is an empty interval with
+      `original_start=1, original_end=0`, so writing it INSERTS AT LINE 1 --
+      above `#!/usr/bin/env python3`, which stops being a shebang the moment
+      anything precedes it. `b0` is the front matter itself, occupying lines
+      1-2.
+- [x] T2 | FINISHED | unknown | The cause is in `page.empty_places`, the GAP
+      branch: `low = previous + 1` is 1, and 'A DOCSTRING IN THIS GAP MAKES THE
+      EDIT AN INSERTION ABOVE IT' then sets `high = low - 1`. That rule is right
+      for a docstring -- a comment above a module docstring is ordinary -- and
+      wrong for front matter, which is pinned to line 1.
+- [x] T3 | FINISHED | unknown | The wanted insert is line 3: BELOW the front
+      matter, ABOVE the docstring. So `low` must first advance past any
+      FRONT_MATTER lines at the top of the gap, and the
+      insert-above-the-occupant rule applies from there.
+- [x] T4 | FINISHED | unknown | It is only reachable when the gap's top is front
+      matter, which needs a shebang or licence header AND a module docstring AND
+      no code between them. Nothing in `tests/` had that shape -- add the
+      fixture with the fix.

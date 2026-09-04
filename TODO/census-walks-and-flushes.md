@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 7 tasks done
+Progress: 3 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (/simplify rounds 1 and 2 and /code-review high round 3,
@@ -80,17 +80,22 @@ part of the front half that will shift.
 
 ## Tasks
 
-- [x] T1 -- FINISHED. `code_names` no longer walks the tree: census.py:125-127 takes
-      `tracked` and census.py:323 passes `tracked_paths(repo)`. The walk is a fallback.
-- [x] T2 -- FINISHED. `git ls-files` was spawned twice per run; it is one site now,
-      repo.py:117.
-- [x] T3 -- FINISHED. `flush_run()` never fired on a `b.path` change; it is now called at
-      census.py:567, :574, :579 and :592, so both continues reach it.
-- [ ] T4 -- Give census loading ONE loader, in `addresser.py`. Verify: one loader, four
-      callers, and a test that fails without it.
-- [ ] T5 -- Split `_report` (census.py:296-649, 354 lines) so it only dispatches. Verify:
-      `--languages`, `--json`, `--filtered` and the default listing are each a function.
-- [ ] T6 -- Stop re-spelling the `(".py", ".pyi")` suffix tuple language.py:99 owns.
-      Verify: `grep -n "\.pyi"` over the shipped scripts returns only language.py.
-- [ ] T7 -- Batch referrers.py's git grep -- the loop at :126-127 calls `_grep` once per
-      token. Verify: one `git grep` runs for the whole token set, with repeated `-e`.
+- [x] T1 | FINISHED | unknown | T1 -- FINISHED. `code_names` no longer walks the
+      tree: census.py:125-127 takes `tracked` and census.py:323 passes
+      `tracked_paths(repo)`. The walk is a fallback.
+- [x] T2 | FINISHED | unknown | T2 -- FINISHED. `git ls-files` was spawned twice
+      per run; it is one site now, repo.py:117.
+- [x] T3 | FINISHED | unknown | T3 -- FINISHED. `flush_run()` never fired on a
+      `b.path` change; it is now called at census.py:567, :574, :579 and :592,
+      so both continues reach it.
+- [ ] T4 | T4 -- Give census loading ONE loader, in `addresser.py`. Verify: one
+      loader, four callers, and a test that fails without it.
+- [ ] T5 | T5 -- Split `_report` (census.py:296-649, 354 lines) so it only
+      dispatches. Verify: `--languages`, `--json`, `--filtered` and the default
+      listing are each a function.
+- [ ] T6 | T6 -- Stop re-spelling the `(".py", ".pyi")` suffix tuple
+      language.py:99 owns. Verify: `grep -n "\.pyi"` over the shipped scripts
+      returns only language.py.
+- [ ] T7 | T7 -- Batch referrers.py's git grep -- the loop at :126-127 calls
+      `_grep` once per token. Verify: one `git grep` runs for the whole token
+      set, with repeated `-e`.

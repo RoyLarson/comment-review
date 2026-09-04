@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 2 tasks done
+Progress: 0 of 2 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-25 (the final whole-branch review of the write-chain branch,
@@ -15,7 +15,7 @@ The galley refuses two shapes the docket reader already rejected.
 
 ## Tasks
 
-- [ ] State in reset's docstring that docket.read is the enforcing check on the
-      proof path, and that these guards cover other callers
-- [ ] Decide whether the galley keeps them once commands/galley.py is removed.
-      Requires-Roy
+- [ ] T1 | State in reset's docstring that docket.read is the enforcing check on
+      the proof path, and that these guards cover other callers
+- [?] T2 | Decide whether the galley keeps them once commands/galley.py is
+      removed. Requires-Roy

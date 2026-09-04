@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 13 of 18 tasks done
+Progress: 13 of 18 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-19 (the python_edge_cases.md run, 2026-08-19 -- b1 unresolvable on the
@@ -185,39 +185,50 @@ run restamps that run as a licence header -- is the same run's second defect and
 
 ## Tasks
 
-- [x] T1 -- DONE. `Addresser.emit` takes the anchor and records `places[cue] = anchor`, so
-      one step states both facts and they cannot disagree.
-- [x] T2 -- SUPERSEDED 2026-08-20 -- front matter got its own series, so the file's own
-      matter is `f0` and `b` skips the module trigger. Roy's words are in the Objective.
-- [x] T3 -- SUPERSEDED 2026-08-20 by the NAME, not the property: the gap above the first
-      line of code is `b0`.
-- [x] T4 -- DONE 2026-08-20. `gap_step`, `on_step` and `address` are deleted; every cue
-      comes from `Addresser.emit`.
-- [x] T5 -- DONE. `anchor_every_address` is deleted from `census.py`; the cue and the
-      anchor are recorded in the one step.
-- [x] T6 -- DONE. `page.attach` says which place a paragraph sits in, and `record.seed`
-      lays one slot per accountable address.
-- [x] T7 -- RULED 2026-08-21: the closing trigger is EOF, and `triggers()` is the walk
-      every series reads. The measurement is in the Objective.
-- [ ] T8 -- State in `evidence/README.md` which `b` numbering the held runs use, and
-      whether they are migrated or pinned. Verify: `evidence/README.md` says which.
-- [x] T9 -- DONE. One list, one walker per name -- `SERIES` is spelled once, at
-      `addresser.py:230`. Roy's words are in the Objective.
-- [x] T10 -- DONE. `test_a_cue_is_never_DERIVED_from_another` reads `addresser.py`'s CODE
+- [x] T1 | FINISHED | unknown | T1 -- DONE. `Addresser.emit` takes the anchor
+      and records `places[cue] = anchor`, so one step states both facts and they
+      cannot disagree.
+- [x] T2 | FINISHED | unknown | T2 -- SUPERSEDED 2026-08-20 -- front matter got
+      its own series, so the file's own matter is `f0` and `b` skips the module
+      trigger. Roy's words are in the Objective.
+- [x] T3 | FINISHED | unknown | T3 -- SUPERSEDED 2026-08-20 by the NAME, not the
+      property: the gap above the first line of code is `b0`.
+- [x] T4 | FINISHED | unknown | T4 -- DONE 2026-08-20. `gap_step`, `on_step` and
+      `address` are deleted; every cue comes from `Addresser.emit`.
+- [x] T5 | FINISHED | unknown | T5 -- DONE. `anchor_every_address` is deleted
+      from `census.py`; the cue and the anchor are recorded in the one step.
+- [x] T6 | FINISHED | unknown | T6 -- DONE. `page.attach` says which place a
+      paragraph sits in, and `record.seed` lays one slot per accountable
+      address.
+- [x] T7 | FINISHED | unknown | T7 -- RULED 2026-08-21: the closing trigger is
+      EOF, and `triggers()` is the walk every series reads. The measurement is
+      in the Objective.
+- [ ] T8 | T8 -- State in `evidence/README.md` which `b` numbering the held runs
+      use, and whether they are migrated or pinned. Verify: `evidence/README.md`
+      says which.
+- [x] T9 | FINISHED | unknown | T9 -- DONE. One list, one walker per name --
+      `SERIES` is spelled once, at `addresser.py:230`. Roy's words are in the
+      Objective.
+- [x] T10 | FINISHED | unknown | T10 -- DONE.
+      `test_a_cue_is_never_DERIVED_from_another` reads `addresser.py`'s CODE
       lines, so the retired expressions cannot pass it from a docstring.
-- [x] T11 -- RULING, MADE 2026-08-19 and renamed 2026-08-20: the top-of-file order is f0,
-      a0, b0. Kept in the Objective.
-- [x] T12 -- RULING, MADE 2026-08-19 and IMPLEMENTED: write by series, never by line
-      number. Kept in the Objective.
-- [x] T13 -- RULING, MADE 2026-08-19 and IMPLEMENTED: the application order is f0, a0,
-      then a -> b -> c. Kept in the Objective.
-- [x] T14 -- DONE, by deletion. `grep -n overlaps galley.py` finds only the `--out`/
-      `--repo` path check.
-- [ ] T15 -- * RULE whether the marks in `tests/fixtures/python_edge_cases.md` shift to
-      the current numbering. Verify: the ruling is recorded in `docs/decision-log.md`.
-- [ ] T16 -- Make `test_every_b_the_marks_name_exists` (`tests/test_edge_cases.py:81`)
-      assert each mark's ANCHOR. Verify: shift every `b` mark by one and it goes red.
-- [ ] T17 -- Make `test_every_a_and_c_the_marks_name_exists`
-      (`tests/test_edge_cases.py:106`) assert the ANCHOR. Verify: shift a `c` mark, red.
-- [ ] T18 -- Make `test_b1_is_the_gap_above_the_first_line_of_code` assert the ANCHOR of
-      the cue it names. Verify: it goes red today -- `b1` anchors the SECOND line of code.
+- [x] T11 | FINISHED | unknown | T11 -- RULING, MADE 2026-08-19 and renamed
+      2026-08-20: the top-of-file order is f0, a0, b0. Kept in the Objective.
+- [x] T12 | FINISHED | unknown | T12 -- RULING, MADE 2026-08-19 and IMPLEMENTED:
+      write by series, never by line number. Kept in the Objective.
+- [x] T13 | FINISHED | unknown | T13 -- RULING, MADE 2026-08-19 and IMPLEMENTED:
+      the application order is f0, a0, then a -> b -> c. Kept in the Objective.
+- [x] T14 | FINISHED | unknown | T14 -- DONE, by deletion. `grep -n overlaps
+      galley.py` finds only the `--out`/ `--repo` path check.
+- [?] T15 | T15 -- * RULE whether the marks in
+      `tests/fixtures/python_edge_cases.md` shift to the current numbering.
+      Verify: the ruling is recorded in `docs/decision-log.md`.
+- [ ] T16 | T16 -- Make `test_every_b_the_marks_name_exists`
+      (`tests/test_edge_cases.py:81`) assert each mark's ANCHOR. Verify: shift
+      every `b` mark by one and it goes red.
+- [ ] T17 | T17 -- Make `test_every_a_and_c_the_marks_name_exists`
+      (`tests/test_edge_cases.py:106`) assert the ANCHOR. Verify: shift a `c`
+      mark, red.
+- [ ] T18 | T18 -- Make `test_b1_is_the_gap_above_the_first_line_of_code` assert
+      the ANCHOR of the cue it names. Verify: it goes red today -- `b1` anchors
+      the SECOND line of code.

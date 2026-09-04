@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 0 of 14 tasks done
+Progress: 0 of 14 tasks closed
 Owner:    testing
 Requires-Roy: true
 Raised:   2026-08-19 (the seven-agent address review, 2026-08-19)
@@ -83,31 +83,44 @@ lines.
 
 ## Tasks
 
-- [ ] T1 -- Bound the SOURCES verbatim check to the cited lines. Verify: an entry whose
-      verbatim half appears far outside the range it cites is REFUSED.
-- [ ] T2 -- Keep the function-sized range ruled admissible 2026-08-17 passing. Verify: an
-      entry citing a whole function, verbatim half inside it, still passes.
-- [ ] T3 -- * Rule how a code RANGE is expressed as an address, when every code line is
-      its own one-line `c`. Verify: the ruling is recorded in `docs/decision-log.md`.
-- [ ] T4 -- * Rule what a source citing a caller in an uncensused file names: census on
-      demand, or the line form with the fuzz. Verify: recorded in `docs/decision-log.md`.
-- [ ] T5 -- Implement `address:lines` for SOURCES, lines counted WITHIN the block,
-      1-based, blanks included. Verify: a line-form source in a censused file is refused.
-- [ ] T6 -- * Rule what bounds a FREEFORM source, so the waiver cannot cover fabricated
-      evidence. Verify: the ruling is recorded in `docs/decision-log.md`.
-- [ ] T7 -- Make `reviewer-brief.md:471` ask a `CODE CONCERNS` line for a resolvable
-      citation, not *"one line, no verdict"*. Verify: the brief names the citation form.
-- [ ] T8 -- Make `verdicts.py` refuse a `CODE CONCERNS` line whose citation does not
-      resolve. Verify: a seeded report with an unresolvable citation exits nonzero.
-- [ ] T9 -- Give stage 8 REVIEW a citation form in `references/review.md`. Verify: a stage
-      8 report entry names an address, and the next round can look it up.
-- [ ] T10 -- * Decide what stage 6 COMPACT names a block by, given its narrow input
-      contract. Verify: the decision is recorded in `docs/decision-log.md`.
-- [ ] T11 -- Correct the `move` destination in `comment-review-function-context.md:112`.
-      Verify: it names the address form, not *"a different line in this function"*.
-- [ ] T12 -- Correct the `move` destination in `comment-review-ownership-context.md:100`.
-      Verify: it names the address form, not *"the destination is the line above"*.
-- [ ] T13 -- Build the `repeated-literal` note from `b.address`, not `b.start`. Verify: no
-      citation in the census listing is built from a line number.
-- [ ] T14 -- Key the residue check's scratch copy by address, not `file:start-end`.
-      Verify: 7b's own edits cannot invalidate the key.
+- [ ] T1 | T1 -- Bound the SOURCES verbatim check to the cited lines. Verify: an
+      entry whose verbatim half appears far outside the range it cites is
+      REFUSED.
+- [ ] T2 | T2 -- Keep the function-sized range ruled admissible 2026-08-17
+      passing. Verify: an entry citing a whole function, verbatim half inside
+      it, still passes.
+- [?] T3 | T3 -- * Rule how a code RANGE is expressed as an address, when every
+      code line is its own one-line `c`. Verify: the ruling is recorded in
+      `docs/decision-log.md`.
+- [?] T4 | T4 -- * Rule what a source citing a caller in an uncensused file
+      names: census on demand, or the line form with the fuzz. Verify: recorded
+      in `docs/decision-log.md`.
+- [ ] T5 | T5 -- Implement `address:lines` for SOURCES, lines counted WITHIN the
+      block, 1-based, blanks included. Verify: a line-form source in a censused
+      file is refused.
+- [?] T6 | T6 -- * Rule what bounds a FREEFORM source, so the waiver cannot
+      cover fabricated evidence. Verify: the ruling is recorded in
+      `docs/decision-log.md`.
+- [ ] T7 | T7 -- Make `reviewer-brief.md:471` ask a `CODE CONCERNS` line for a
+      resolvable citation, not *"one line, no verdict"*. Verify: the brief names
+      the citation form.
+- [ ] T8 | T8 -- Make `verdicts.py` refuse a `CODE CONCERNS` line whose citation
+      does not resolve. Verify: a seeded report with an unresolvable citation
+      exits nonzero.
+- [ ] T9 | T9 -- Give stage 8 REVIEW a citation form in `references/review.md`.
+      Verify: a stage 8 report entry names an address, and the next round can
+      look it up.
+- [?] T10 | T10 -- * Decide what stage 6 COMPACT names a block by, given its
+      narrow input contract. Verify: the decision is recorded in
+      `docs/decision-log.md`.
+- [ ] T11 | T11 -- Correct the `move` destination in
+      `comment-review-function-context.md:112`. Verify: it names the address
+      form, not *"a different line in this function"*.
+- [ ] T12 | T12 -- Correct the `move` destination in
+      `comment-review-ownership-context.md:100`. Verify: it names the address
+      form, not *"the destination is the line above"*.
+- [ ] T13 | T13 -- Build the `repeated-literal` note from `b.address`, not
+      `b.start`. Verify: no citation in the census listing is built from a line
+      number.
+- [ ] T14 | T14 -- Key the residue check's scratch copy by address, not
+      `file:start-end`. Verify: 7b's own edits cannot invalidate the key.
