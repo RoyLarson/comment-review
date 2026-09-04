@@ -2,7 +2,8 @@
 
     parse_answers(role, sent, returned) -> (answers, problems)
     apply(copies, role, answers) -> problems
-    run_turn(stage, copies, binder, root, sent, answers, turn) -> (Collated, problems)
+    run_turn(stage, copies, binder, root, sent, answers, turn, earlier)
+        -> (Collated, problems)
     rule_at_cap(collated, address, answer, side, reason, turn, prose) -> Determined
     determined_chief(collated, rulings) -> (every Determined, the chief's edit_copy)
 
@@ -48,12 +49,19 @@ did not agree is the next turn's batch, until the task agent's cap
 (`Process: #78`), where `rule_at_cap` records the chief's `taken_in` or
 `recast` and `determined_chief` derives the chief's copy from the whole set.
 
+!! ONCE STET, ALWAYS STET -- `Process: #91`. A place determined on an earlier
+turn keeps that Determined, turn included, whatever the copies say now, and
+leaves every later batch. `run_turn` takes the last fold's `determined` as
+`earlier` for exactly that; MEASURED in the game, hands 1 and 4, without it
+a stet at turn 1 read turn 2 after the next fold.
+
 ! THE COPIES ARE MUTATED IN PLACE. They are the wire dicts `collate` was
 handed, and the next fold reads them as they now stand -- which is what a
 turn IS. The master proof's record of what each turn sent and got back is the
 caller's to keep (`MasterProof.turns`); this module returns what it needs.
 """
 
+from dataclasses import replace
 from pathlib import Path
 
 from comment_review.binder.binder import Binder
@@ -316,6 +324,7 @@ def run_turn(
     sent: dict[str, list],
     answers: dict[str, list],
     turn: int,
+    earlier: dict[str, Determined] | None = None,
 ) -> tuple[Collated, list[str]]:
     """One turn: every role's answers applied, then the fold again.
 
@@ -330,6 +339,9 @@ def run_turn(
         answers: role -> what came back, in any shape `slots_of` reads.
         turn: this turn's number, from 1. Every `stet` the fold records
             carries it.
+        earlier: the last fold's `determined`. Every place in it is kept as
+            it was -- `Process: #91` -- over whatever this fold makes of it,
+            and is dropped from this turn's escalations and re-reads.
 
     Returns:
         `(Collated, problems)` -- the fold over the copies as they now stand,
@@ -344,7 +356,26 @@ def run_turn(
         parsed, why = parse_answers(role, slots, slots_of(answers.get(role, []), role))
         problems += why
         problems += apply(copies, role, parsed)
-    return collate(stage, copies, binder, root, turn=turn), problems
+    got = collate(stage, copies, binder, root, turn=turn)
+    return _keeping(got, earlier or {}), problems
+
+
+def _keeping(got: Collated, earlier: dict[str, Determined]) -> Collated:
+    """The fold with every earlier Determined kept over this turn's -- `#91`.
+
+    The chief's copy is derived again from the kept set, so a place stet on
+    turn 1 carries turn 1's mark whatever a role wrote there since.
+    """
+    if not earlier or got.proof is None:
+        return got
+    determined = {**got.determined, **earlier}
+    return replace(
+        got,
+        determined=determined,
+        escalations=[e for e in got.escalations if e["address"] not in earlier],
+        rereads=[e for e in got.rereads if e["address"] not in earlier],
+        chief=_chief_copy(got.proof.read_from, determined, got.proof),
+    )
 
 
 def rule_at_cap(

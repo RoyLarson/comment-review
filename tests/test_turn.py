@@ -345,6 +345,111 @@ class TestALoneOwingMark:
         assert "m.py@b1" in again.determined
 
 
+def _two_places():
+    """b1 will converge on turn 1; b5 stays contested -- so turn 2 has a batch."""
+    binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})
+    copies = copies_over(
+        binder,
+        {
+            "block-context": {
+                "m.py@b1": a_correct_setting("m.py@b1", "two", TWO),
+                "m.py@b5": a_correct_setting("m.py@b5", "two", TWO),
+            },
+            "function-context": {
+                "m.py@b1": a_correct_setting("m.py@b1", "two", DOS),
+                "m.py@b5": a_correct_setting("m.py@b5", "two", DOS),
+            },
+        },
+    )
+    got = collate("4c", copies, binder, root=REPO)
+    assert sorted(e["address"] for e in got.escalations) == ["m.py@b1", "m.py@b5"]
+    return binder, copies, got
+
+
+def _slot(batch: dict, role: str, address: str) -> dict:
+    return next(s for s in batch[role] if s["address"] == address)
+
+
+class TestOnceStetAlwaysStet:
+    """`Process: #91`. MEASURED in the game, hands 1 and 4: the fold re-recorded
+    every place at the current turn, so a stet at turn 1 read turn 2 after
+    the next fold; and nothing kept a determined place out of later batches."""
+
+    def _turn_one(self):
+        binder, copies, got = _two_places()
+        batch = batch_of(got.escalations, got.rereads)
+        answers = {
+            "block-context": [
+                {
+                    **_slot(batch, "block-context", "m.py@b1"),
+                    "instruction": "correct",
+                    "reason": "met",
+                    "change": DOS,
+                },
+                {
+                    **_slot(batch, "block-context", "m.py@b5"),
+                    "instruction": "hold",
+                    "reason": "mine",
+                },
+            ],
+            "function-context": [
+                {
+                    **_slot(batch, "function-context", "m.py@b1"),
+                    "instruction": "hold",
+                    "reason": "stands",
+                },
+                {
+                    **_slot(batch, "function-context", "m.py@b5"),
+                    "instruction": "hold",
+                    "reason": "mine",
+                },
+            ],
+        }
+        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        assert problems == []
+        assert again.determined["m.py@b1"].turn == 1
+        assert [e["address"] for e in again.escalations] == ["m.py@b5"]
+        return binder, copies, again
+
+    def test_a_stet_place_keeps_its_turn_and_leaves_every_later_batch(self):
+        binder, copies, one = self._turn_one()
+        batch2 = batch_of(one.escalations, one.rereads)
+        assert all(s["address"] == "m.py@b5" for r in batch2 for s in batch2[r])
+        answers2 = {
+            r: [{**batch2[r][0], "instruction": "hold", "reason": "still"}]
+            for r in batch2
+        }
+        two, problems = run_turn(
+            "4c", copies, binder, REPO, batch2, answers2, turn=2, earlier=one.determined
+        )
+        assert problems == []
+        assert two.determined["m.py@b1"].turn == 1
+        assert [e["address"] for e in two.escalations] == ["m.py@b5"]
+
+    def test_a_role_changing_its_entry_at_a_stet_place_changes_nothing(self):
+        binder, copies, one = self._turn_one()
+        # block-context rewrites its b1 entry behind the fold's back.
+        for copy in copies:
+            if copy["role"] == "block-context":
+                for sheet in copy["sheets"]:
+                    for entry in sheet["marks"]:
+                        if entry["address"] == "m.py@b1":
+                            entry["change"] = "# one\n# something else\n# three\n"
+        batch2 = batch_of(one.escalations, one.rereads)
+        answers2 = {
+            r: [{**batch2[r][0], "instruction": "hold", "reason": "still"}]
+            for r in batch2
+        }
+        two, _ = run_turn(
+            "4c", copies, binder, REPO, batch2, answers2, turn=2, earlier=one.determined
+        )
+        assert two.determined["m.py@b1"].turn == 1
+        assert two.determined["m.py@b1"].mark is not None
+        assert two.determined["m.py@b1"].mark.change == DOS
+        assert [e["address"] for e in two.escalations] == ["m.py@b5"]
+        assert [m.change for m in entries_of(two.chief)] == [DOS]
+
+
 class TestTheCap:
     def test_taken_in_of_the_original_leaves_no_entry_on_the_chief(self):
         _, _, got = _escalated()
