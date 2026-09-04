@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 19 tasks closed
+Progress: 8 of 20 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
@@ -161,8 +161,9 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
 - [ ] T15 | Implement the conflict outcomes: hold/hold next round, hold/withdraw
       takes the held in, withdraw/withdraw re-asks. Verify: each lands
         > 2026-09-03 P5; replaces T3's conflict half -- the Objective's outcomes table
-- [ ] T16 | Implement the round counter, rounds named by kind, no maximum
-      enforced. Verify: a run reports each place's rounds
+- [-] T16 | SUPERSEDED, reworded -- the word is turn, Vocabulary 33; re-filed as the turn counter | efd9221 | Implement
+      the round counter, rounds named by kind, no maximum enforced. Verify: a
+      run reports each place's rounds
         > 2026-09-03 P18. Process 78: the cap is the agent's, never the code's
 - [ ] T17 | Implement the copy chief's ruling at the cap on whatever is still
       unresolved. Verify: no place survives the last round unruled
@@ -174,3 +175,6 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       allowed() does for Mark. Verify: no agent file hand-types its fields
         > 2026-09-03 the game's brief hand-typed the contract and got query wrong
         > 2026-09-03 publishing it in the brief is agents lane; the generator is backend
+- [ ] T20 | Implement the turn counter, turns named by kind, no maximum
+      enforced. Verify: a run reports each place's turns
+        > 2026-09-04 P18. Process 78: the cap is the agent's, never the code's
