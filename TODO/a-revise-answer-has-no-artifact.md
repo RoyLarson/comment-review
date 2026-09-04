@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 9 of 21 tasks closed
+Progress: 10 of 24 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
           Both were ruled the same day and neither had a backlog entry, so the plan
           steps that build them cited rulings rather than tasks.
@@ -135,9 +135,9 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       -- Enforce the two-round cap `Process: #9` already ruled. Verify: a third
       round cannot start, the place reaches the copy chief carrying every
       round's marks, and the run reports the rounds each place took.
-- [?] T9 | Decide what records HOW the copy chief ruled, since an edit_copy
-      cannot. Verify: the artifact exists, or the question is answered in the
-      log
+- [x] T9 | RULED Process 87: a chief-only Determined per resolved place, on the master proof with the turn record | 77fccea | Decide
+      what records HOW the copy chief ruled, since an edit_copy cannot. Verify:
+      the artifact exists, or the question is answered in the log
         > 2026-09-02 Roy 2026-09-02: that needs something besides the edit-copy
 - [ ] T10 | Implement the DiffMark a role answers a disagreement on, four
       answers closed. Verify: a fifth, or any of Mark's seven, is refused by
@@ -184,3 +184,12 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
 - [ ] T21 | Update batch_of so a reread seeds a Mark slot over the composed
       text, an escalation a DiffMark. Verify: no DiffMark field on a reread
         > 2026-09-04 Process 86; a lone add must compose without a re-read -- T13
+- [ ] T22 | Implement Determined, the chief's per-place record: stet, taken_in,
+      recast. Verify: Mark's seven and DiffMark's four are refused
+        > 2026-09-04 Process 87; Roy's name, taken until a trade word turns up
+- [ ] T23 | Update MasterProof to carry the turn record and one Determined per
+      resolved place. Verify: a serialized proof round-trips both
+        > 2026-09-04 Process 87: the master proof is the state between turns
+- [ ] T24 | Update _chief_copy so the chief's edit copy is derived from the
+      Determineds. Verify: every place in it names its Determined
+        > 2026-09-04 Process 87: Process 30's shape holds, one mark per place
