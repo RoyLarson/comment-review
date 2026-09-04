@@ -1116,6 +1116,26 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   said round, and Roy's quoted sentences stay as spoken. The task labels that said *round
   counter* are superseded and re-filed, never reworded.
 
+- **#34.** **`census` IS RETIRED; THE COMMAND AND THE ACT ARE `gather`, WITH NO ALIAS** (Roy,
+  2026-09-04: *"lets rename 'census' to gather or drop the 'census' alias entirely"*). Closes
+  [`census-should-be-a-chain-of-producers`](../TODO/census-should-be-a-chain-of-producers.md)
+  T4, which asked whether the command keeps the name once the flow is `gather`.
+
+  **What the word carried.** MEASURED 2026-09-04: 72 files under `src/` say it, most in prose,
+  in two senses -- the ACT of stage 2, which `vocabulary.md` has called GATHER since
+  2026-08-23, and the ARTIFACT, which is the binder. Each sentence takes the word for the
+  sense it meant; neither keeps `census`. `commands/census.py` becomes `commands/gather.py`
+  and `flows/census.py` becomes `flows/gather.py`, the chain of producers that TODO's T1-T3
+  describe, since the command today orchestrates `page_for`, `annotate` and `bind` itself.
+
+  **One collision to resolve in the same change.** `desk.proof.gather` already names the act
+  of holding one stage's edit copies in a master proof. Two acts, one verb; the second is
+  renamed for what it makes -- proposed `master_proof_of`, the plan that does the work
+  carries the decision.
+
+  **The gate.** `census` joins `scripts/check_vocabulary.py`'s RETIRED list, replacement
+  `gather`, so a shipped file cannot carry it back; the log's own history keeps the word.
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**
