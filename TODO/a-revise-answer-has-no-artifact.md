@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 20 tasks closed
+Progress: 9 of 21 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
@@ -154,13 +154,16 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
 - [ ] T13 | Implement the recollate so a round's resolutions join the chief's
       copy. Verify: a lone surviving add, all others holding, lands
         > 2026-09-03 P17. Measured hand 3: a lone add re-reads forever today
-- [?] T14 | Decide whether a composition re-read is answered with a DiffMark or
-      a fresh Mark, given clean and query are its only passes
+        > 2026-09-04 Process 86: composed text goes into every copy, then recollate
+- [x] T14 | RULED Process 86: an escalation answers with a DiffMark, a composition re-read with a fresh Mark | 38bc37b | Decide
+      whether a composition re-read is answered with a DiffMark or a fresh Mark,
+      given clean and query are its only passes
         > 2026-09-03 P1/P6. the-turn.md: clean and query are a composition's passes
         > 2026-09-03 the prototype takes no side -- desk/diff_mark.py docstring
 - [ ] T15 | Implement the conflict outcomes: hold/hold next round, hold/withdraw
       takes the held in, withdraw/withdraw re-asks. Verify: each lands
         > 2026-09-03 P5; replaces T3's conflict half -- the Objective's outcomes table
+        > 2026-09-04 Process 86: withdraw reverts to base; correct/patch write change
 - [-] T16 | SUPERSEDED, reworded -- the word is turn, Vocabulary 33; re-filed as the turn counter | efd9221 | Implement
       the round counter, rounds named by kind, no maximum enforced. Verify: a
       run reports each place's rounds
@@ -178,3 +181,6 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
 - [ ] T20 | Implement the turn counter, turns named by kind, no maximum
       enforced. Verify: a run reports each place's turns
         > 2026-09-04 P18. Process 78: the cap is the agent's, never the code's
+- [ ] T21 | Update batch_of so a reread seeds a Mark slot over the composed
+      text, an escalation a DiffMark. Verify: no DiffMark field on a reread
+        > 2026-09-04 Process 86; a lone add must compose without a re-read -- T13
