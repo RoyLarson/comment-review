@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 32 of 35 tasks closed
+Progress: 33 of 35 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
@@ -115,9 +115,10 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       -- The four outcomes. Verify: any new mark relitigates; two holds
       escalate; hold plus withdraw takes the held claim in; two withdraws pick
       one and re-ask.
-- [ ] T4 | T4 -- Route a `query` by shape. Verify: `human-review-necessary`
-      never returns to a role, and `unable-to-determine` carries the question
-      into the next ask.
+- [-] T4 | SUPERSEDED in part: human-review-necessary never returns to a role (99c7620); unable-to-determine ABSTAINS under Process 90 rather than carrying the question on | 99c7620 | T4
+      -- Route a `query` by shape. Verify: `human-review-necessary` never
+      returns to a role, and `unable-to-determine` carries the question into the
+      next ask.
 - [-] T5 | SUPERSEDED as filed in error -- Process #78. Roy: a random requirement a session added and was never asked for | eb49e56 | T5
       -- Count queries first raised at revise. Verify: the run reports the
       number, and it is zero on a set of marks where every query was raised in
