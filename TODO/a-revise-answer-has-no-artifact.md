@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 31 of 35 tasks closed
+Progress: 32 of 35 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
@@ -234,8 +234,9 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       whether a place agrees when every owing mark is byte-identical or when a
       majority is, the rest holding. Verify: ruling on the log
         > 2026-09-04 hand 3: two of three held one text; the third held; no stet
-- [ ] T31 | Update Determined.deserialize to refuse a null mark unless side is
-      ORIGINAL, and an unknown side. Verify: both refused by name
+- [x] T31 | FINISHED -- a null mark only for ORIGINAL, a recast's side is CHIEF, a side outside known roles refused; test_determined.py | 6ef4db8 | Update
+      Determined.deserialize to refuse a null mark unless side is ORIGINAL, and
+      an unknown side. Verify: both refused by name
         > 2026-09-04 game hand 4: function-context's query on the class docstring
 - [x] T32 | FINISHED -- _identical compares change alone; _outcome escalates one text before the sentence test; test_collate.py | 388952c | Update
       the fold so byte-identical change texts agree whatever the instruction or
