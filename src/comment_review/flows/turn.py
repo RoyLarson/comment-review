@@ -499,9 +499,24 @@ def determined_chief(
         `(address -> Determined, the chief's edit_copy)`.
 
     Raises:
-        ValueError: the fold returned early and holds no proof.
+        ValueError: the fold returned early and holds no proof; or a place
+            still carried forward -- an escalation or a re-read -- has no
+            ruling among `rulings`. !! NOTHING SURVIVES THE CAP UNRULED, T17:
+            the refusal names every such place and its roles. An unsettlable
+            place is not among them; it is the human's (`Process: #90`).
     """
     if collated.proof is None:
         raise ValueError("the fold returned early -- no proof to derive a copy from")
+    ruled = {d.address for d in rulings}
+    unruled = [
+        entry
+        for entry in (*collated.escalations, *collated.rereads)
+        if entry["address"] not in ruled
+    ]
+    if unruled:
+        named = "; ".join(
+            f"{entry['address']} ({', '.join(entry['roles'])})" for entry in unruled
+        )
+        raise ValueError(f"unruled at the cap: {named}")
     every = {**collated.determined, **{d.address: d for d in rulings}}
     return every, _chief_copy(collated.proof.read_from, every, collated.proof)

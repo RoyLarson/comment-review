@@ -561,6 +561,42 @@ class TestTheCap:
             rule_at_cap(got, "m.py@b1", Answer.TAKEN_IN, "block-context", "x", turn=2)
         assert "unsettlable" in str(caught.value)
 
+    def test_the_cap_refuses_to_close_with_a_place_unruled(self):
+        """T17. MEASURED in the game's hand 3: the chief recast one place and
+        nothing would have noticed a second left unruled."""
+        _, _, got = _escalated()
+        with pytest.raises(ValueError) as caught:
+            determined_chief(got, [])
+        assert "m.py@b1" in str(caught.value)
+        assert "block-context, function-context" in str(caught.value)
+
+    def test_the_cap_closes_once_every_carried_place_is_ruled(self):
+        _, _, got = _escalated()
+        ruled = rule_at_cap(
+            got, "m.py@b1", Answer.TAKEN_IN, ORIGINAL, "neither", turn=2
+        )
+        every, chief = determined_chief(got, [ruled])
+        assert set(every) == {"m.py@b1"}
+        assert entries_of(chief) == []
+
+    def test_an_unsettlable_place_is_not_counted_as_unruled(self):
+        binder = a_binder_over({"m.py@b1": BASE})
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {"m.py@b1": a_correct_setting("m.py@b1", "two", TWO)},
+                "function-context": {
+                    "m.py@b1": a_correct_setting("m.py@b1", "two", DOS)
+                },
+                "module-context": {
+                    "m.py@b1": a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY)
+                },
+            },
+        )
+        got = collate("4c", copies, binder, root=REPO)
+        every, _ = determined_chief(got, [])
+        assert every == {}
+
     def test_stet_is_not_the_chiefs_to_rule(self):
         _, _, got = _escalated()
         with pytest.raises(ValueError):
