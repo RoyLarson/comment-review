@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 9 of 17 tasks closed
+Progress: 9 of 28 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -118,3 +118,27 @@ Reconciliation has no command, so the chain cannot be driven end to end.
         > 2026-09-04 the scratchpad game.py (deal, turn, cap) is the specification
 - [ ] T17 | Implement one loader for the middle's commands; turn and cap import
       check's private _load and collate keeps its own. Verify: one definition
+        > 2026-09-04 widen to proof_io: load_binder/copy/batch/value, save_copy
+- [ ] T18 | Update run_turn and refold to take the MasterProof, and derive the
+      turn number on the container. Verify: no len(proof.turns) in commands/
+- [ ] T19 | Update run_turn to fold its Revisits into Collated.revisit and
+      return the Collated alone. Verify: turn.py merges no lists
+- [ ] T20 | Implement a Turn record container with seed, serialize and
+      deserialize, written by the flow. Verify: turn.py composes no record dict
+- [ ] T21 | Implement a typed Unsettlable record held by Collated and
+      MasterProof. Verify: proof_after strips nothing
+- [ ] T22 | Implement a Ruling container and a rulings_at_cap flow that stacks
+      refusals. Verify: cap.py parses no ruling by hand; check --rulings
+- [ ] T23 | Update determined_chief or a close flow to return the closed
+      MasterProof. Verify: cap.py calls replace nowhere
+- [ ] T24 | Implement Binder.root and drop the args.repo-or-root-or-dot fallback
+      at four commands. Verify: one resolution of the root
+- [ ] T25 | Update turn and cap to fold without re-serializing the proof's
+      copies, and cap without a refold. Verify: each mark parses once per
+      command
+- [ ] T26 | Update test_turn_command, test_cap_command and test_gather_command
+      to drive main() through run_command, with the hand driver in helpers.py
+- [ ] T27 | Update the command tests to deal each distinct hand once per module
+      and gather each case once. Verify: 9 collate runs become 2
+- [ ] T28 | Implement the outcome once: exit codes, _report, the Revisit
+      printer, the refused handler and the batch write, shared by three commands

@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 4 of 6 tasks closed
+Progress: 4 of 12 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-24 (P2 of refactor/the-boundaries-are-not-real, 2026-08-24)
 Narrowed: 2026-08-25 — commands/proof.py exposes flows/proof_setter.py, the galley half
           of task 5: the command parses arguments, reads two files and calls the flow
@@ -31,3 +31,15 @@ The flow lives in the command, not in flows/.
       the same question of verdicts, galley and record
 - [ ] T6 | Update flows/__init__.py's inventory so collate, distribute and
       mark_errors have rows. Verify: every module under flows/ is listed
+- [ ] T7 | Update Gathering so the binder is the one population: bind before
+      annotate, drop paragraphs, both gates ask the binder. Verify: one list
+- [ ] T8 | Update page_of to return (None, reason) for an unparsed page so
+      _pages drops its bare except and kind scan. Verify: one call in _pages
+- [ ] T9 | Implement flows.gather.refusal(got) deciding the refusal order once;
+      the command prints it. Verify: gather.py decides no order
+- [ ] T10 | Update _annotations to call git ls-files once and code_names to walk
+      the tracked list, not an rglob. Verify: one subprocess per gather
+- [?] T11 | Decide whether a gather that will refuse still runs stage 3 for the
+      text listing. Verify: the flow matches the ruling
+- [ ] T12 | Update _repeated_literals to run prose_numbers once per paragraph.
+      Verify: one pass keeps the pairs
