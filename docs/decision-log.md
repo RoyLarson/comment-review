@@ -1065,6 +1065,32 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   carries SIX fields"*, *"`anchor_num` LEAVES THE ROW"*. They are the record of what was decided
   and are not rewritten; the rename covers live prose.
 
+- **#32.** **`re-review` IS RETIRED FOR `revise`** (Roy, 2026-09-04: *"Yes the
+  're-review' should be retired for revise"*), on this file's own row for the word.
+
+  **The row was stale and pointed the trade's word at the wrong thing.** `vocabulary.md`
+  listed `revise` under *"none is adopted"* and glossed ours as *"a re-review round"* --
+  while `flows/revise.pull`, `Pulled.revise` and `read_from.revise` had already adopted it,
+  in exactly the printer's sense: the second proof, pulled after the marked corrections
+  have been set. Stages 5b and 6b set a galley of the edited text, census it, and send it
+  back to the roles that ruled -- that IS pulling a revise and reading it. One word, one
+  thing: **a revise is the corrected state pulled for re-reading, and 5b and 6b are
+  revises.**
+
+  ! **THE DiffMark CYCLE IS NOT A REVISE.** It runs inside one stage's collate, before any
+  pull, and `round` is already taken by `distribute`-then-`collate` (this file's `#`
+  entry at `vocabulary.md:120`). It needs its own word; `turn` is the candidate on the
+  table and is NOT ruled. `docs/the-revise.md` is named for the wrong word and follows
+  whichever one is chosen.
+
+  **MEASURED 2026-09-04: 216 occurrences in 58 files, most of them history that stays.**
+  Live and owned: `SKILL.md` (19) and `references/re-review.md` (6, plus the filename)
+  and `write.md` (1) are `agents`; `results/galley.py` and `docs/addressing.md` are
+  `backend`; the `RETIRED` entry in `check_vocabulary.py` is `systems` and lands LAST,
+  so the gate does not go red on another lane's files. Filed as one objective, because
+  the pieces must land together --
+  [`re-review-is-retired-for-revise`](../TODO/re-review-is-retired-for-revise.md).
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**

@@ -52,6 +52,7 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 | `leaf`, `leaves` (of a page or a place) | **deleted** in that sense. One sheet carries TWO pages, so it was neither the page nor the cue, and a file has no verso. ! Two shipped definitions disagreed -- one said paragraphs run DOWN a leaf, one said a leaf IS a place. ! The IMPORT-GRAPH sense is a different word and is live -- see the polysemy rule below |
 | `verdict` | -> **instruction**. Judicial on an editorial system, the same register error `jurisdiction` made before it became `remit`; and it named the same thing twice -- the object a role returns is a **mark**, its type is an **instruction**. See `decision-log.md Vocabulary: #17` |
 | `mark` (the COMMAND, `flows/marks.py`, `Command.MARK`) | -> **`distribute`**, in `6187f71`. The command hands each role an EMPTY `edit_copy` and takes the filled one back; it produces no mark and rules on nothing. One stem named both a role's RULING and the machinery that circulates the forms, so `mark --seed` read as *make a mark* when it means *give out the blanks*. ! The NOUN IS LIVE and is defined in the shipped vocabulary -- this retires the command sense only, which is the shape `owner` (the census field) and `marks` (the census's) took before it |
+| `re-review` (stages 5b and 6b, `references/re-review.md`) | -> **revise**. The printer's word, and the code had already adopted it -- `flows/revise.pull`, `read_from.revise` -- for the second proof pulled after the marked corrections are set. 5b and 6b set a galley of the edited text and send it back to be read: that IS a revise. Roy, 2026-09-04; `decision-log.md Vocabulary: #32`. ! The rename lands as one objective, gate entry last -- `TODO/re-review-is-retired-for-revise.md` |
 
 ## Held in reserve -- publishing's word for something we already have
 
@@ -63,7 +64,6 @@ name. **None is adopted, and none is a defect today.**
 | publishing's word | what it names there | ours, and why it stands |
 | --- | --- | --- |
 | **cast off**, **copyfitting** | estimating how much space copy will take, and cutting it to fit the measure | **compact** (stage 6), a computing word. The stage does ONE job and nothing strains, so the swap buys register and no structure |
-| **revise** | the second proof, pulled after the marked corrections have been set | a **re-review round** (`references/re-review.md`). One word, no missing part |
 | **dead copy** | the original manuscript kept beside the proof, so the setting can be checked against it | **unnamed.** It is `page.text`, which `compositor.identity` compares its output against -- we have the object and use it; only the name is absent |
 
 !! **THE TEST FOR TAKING ONE IS A CATEGORY DOING TWO JOBS -- NOT REGISTER.** That is what
