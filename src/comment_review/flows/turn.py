@@ -34,7 +34,9 @@ A COMPOSITION re-read is answered with a fresh `Mark` over the composed text
                 `change` is the role's. `claim.false` quotes the base because
                 source verification measures a claim against the binder, not
                 against the text the question was asked over
-    patch       the same
+    patch       the entry becomes a `patch` over the base -- NOT a correct,
+                which owes sources a patch never carried. `claim.from` is
+                the role's where the base holds it, else the whole base
 
 Then `flows.collate.collate` runs again over the copies, and every place that
 agreed comes back as a `stet` Determined at this turn (`Process: #87`). What
@@ -165,6 +167,20 @@ def _a_correct_over_base(entry: dict, change: str, reason: str, sources: list) -
     }
 
 
+def _a_patch_over_base(entry: dict, answer: Mark) -> dict:
+    base = entry.get("raw_text", "")
+    quoted = answer.claim.get("from") if isinstance(answer.claim, dict) else None
+    sentence = quoted if isinstance(quoted, str) and quoted in base else base
+    to = answer.claim.get("to") if isinstance(answer.claim, dict) else None
+    return {
+        **Mark.seed(entry["address"], entry.get("anchor", ""), base),
+        "instruction": str(Instruction.PATCH),
+        "claim": {"from": sentence, "to": to if filled(to) else answer.change},
+        "reason": answer.reason,
+        "change": answer.change,
+    }
+
+
 def _owes_change(entry: dict) -> bool:
     named = entry.get("instruction")
     if not isinstance(named, str) or named not in INSTRUCTIONS:
@@ -224,6 +240,8 @@ def apply(
             _becomes(
                 entry, {**answer.serialize(), "raw_text": entry.get("raw_text", "")}
             )
+        elif answer.instruction is Instruction.PATCH:
+            _becomes(entry, _a_patch_over_base(entry, answer))
         else:
             _becomes(
                 entry,

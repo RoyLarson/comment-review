@@ -176,6 +176,31 @@ class TestAComposition:
             fixed,
         }
 
+    def test_a_patch_over_it_stays_a_patch_and_the_role_stays_in_the_fold(self):
+        """MEASURED in the game's hand 2: a patch answer was rewritten as a
+        `correct`, which owes sources a patch never carried, and the role's
+        entry was refused at the fold -- the role vanished from the escalation."""
+        binder, copies, got = _composed()
+        batch = batch_of(got.escalations, got.rereads)
+        worded = "# ONE\n# two\n# three!\n"
+        answers = {
+            **_answered(batch, "block-context", instruction="clean"),
+            **_answered(
+                batch,
+                "function-context",
+                instruction="patch",
+                reason="wording only",
+                claim={"from": "# THREE", "to": "# three!"},
+                change=worded,
+            ),
+        }
+        again, problems = run_turn("4c", copies, binder, REPO, answers, turn=1)
+        assert problems == []
+        assert again.revisit == []
+        assert [e["address"] for e in again.escalations] == ["m.py@b1"]
+        roles = {p.role for p in again.escalations[0]["marks"]}
+        assert roles == {"block-context", "function-context"}
+
     def test_a_drop_is_not_a_composition_answer(self):
         binder, copies, got = _composed()
         batch = batch_of(got.escalations, got.rereads)
