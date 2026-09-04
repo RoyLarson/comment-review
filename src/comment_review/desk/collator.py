@@ -698,6 +698,10 @@ def _outcome(proof: MasterProof, address: str, owing: list[Placed]) -> tuple[str
                               addresses never meet under per-place grouping, so
                               nothing narrower can see a comment added twice
         one owing mark        SETTLED
+        one text              ESCALATION -- every mark carries the same
+                              `change`, so the fold settles it as agreed
+                              (`decision-log.md Process: #88`), whatever
+                              instruction or sentence each carried
         one sentence key      ESCALATION -- every mark rules on the same
                               sentence, so they answer each other
         anything else         RE-READ -- marks on different sentences of one
@@ -720,6 +724,15 @@ def _outcome(proof: MasterProof, address: str, owing: list[Placed]) -> tuple[str
         kind = "rereads"
     elif len(owing) == 1:
         kind = "settled"
+    elif (
+        all(INSTRUCTIONS[placed.mark.instruction].quotes_original for placed in owing)
+        and len({placed.mark.change for placed in owing}) == 1
+    ):
+        # ! ONLY MARKS THAT QUOTE AN ORIGINAL. An `add` or a `move` carries no
+        # sentence, and two moves into one place from two origins carrying one
+        # text are two edits, not one agreement -- the same reason
+        # `_sentence_key` gives them `id(mark)`.
+        kind = "escalations"
     elif len({_sentence_key(placed.mark) for placed in owing}) == 1:
         kind = "escalations"
     else:

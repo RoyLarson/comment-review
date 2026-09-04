@@ -68,6 +68,60 @@ class TestTheResolutions:
         marks = entries_of(got.chief)
         assert [m.change for m in marks] == [same]
 
+    def test_a_patch_and_a_correct_carrying_one_text_agree(self):
+        """`Process: #88`: agreement is the text alone. MEASURED in the game's
+        hand 2: three roles held one byte-identical text for two turns as
+        patch / correct / patch, quoting different sentences, and never
+        agreed -- `_identical` asked for the same instruction and `reconcile`
+        grouped by the sentence."""
+        binder = one_place()
+        same = "# one\n# TWO\n# three\n"
+        patch = {
+            "address": "m.py@b1",
+            "instruction": "patch",
+            "reason": "wording",
+            "claim": {"from": "# three", "to": "# three"},
+            "change": same,
+        }
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {"m.py@b1": a_correct_setting("m.py@b1", "two", same)},
+                "function-context": {"m.py@b1": patch},
+            },
+        )
+        got = collate("4c", copies, binder, root=REPO)
+        assert got.escalations == []
+        assert got.rereads == []
+        ruled = got.determined["m.py@b1"]
+        assert ruled.how == "identical"
+        assert [m.change for m in entries_of(got.chief)] == [same]
+
+    def test_three_identical_and_one_different_still_escalate(self):
+        """`#88` keeps unanimity: a role still holding has not agreed."""
+        binder = one_place()
+        same = "# one\n# TWO\n# three\n"
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {"m.py@b1": a_correct_setting("m.py@b1", "two", same)},
+                "function-context": {
+                    "m.py@b1": a_correct_setting("m.py@b1", "two", same)
+                },
+                "module-context": {
+                    "m.py@b1": a_correct_setting("m.py@b1", "two", same)
+                },
+                "ownership-context": {
+                    "m.py@b1": a_correct_setting(
+                        "m.py@b1", "two", "# one\n# dos\n# three\n"
+                    )
+                },
+            },
+        )
+        got = collate("4c", copies, binder, root=REPO)
+        assert [e["address"] for e in got.escalations] == ["m.py@b1"]
+        assert got.determined == {}
+
     def test_two_answers_to_one_sentence_escalate_and_reach_no_copy(self):
         binder = one_place()
         copies = copies_over(

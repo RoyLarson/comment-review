@@ -213,23 +213,22 @@ class Collated:
 
 
 def _identical(owing: list[Placed]) -> Placed | None:
-    """The one mark to take where every owing mark says the same thing.
+    """The one mark to take where every owing mark carries the same text.
 
-    !! SAME INSTRUCTION AND BYTE-IDENTICAL `change`. Two roles that reached one
-    answer are not a contest, whatever `reconcile` had to call them -- it
-    groups by the sentence ruled on and cannot see that the answers agree.
+    !! BYTE-IDENTICAL `change`, AND NOTHING ELSE -- `decision-log.md Process:
+    #88`: agreement is the text alone. Two roles that reached one text are not
+    a contest whatever instruction each used or sentence each quoted. MEASURED
+    in the game's hand 2: one text held as patch / correct / patch for two
+    turns while this asked for the same instruction too.
 
-    ! A DIFFERING INSTRUCTION REFUSES even where the text matches, so no mark
-    on the chief's copy ever carries an instruction chosen between two that
-    disagreed.
+    ! EVERY OWING MARK, so a role still holding another text has not agreed --
+    unanimity is the other half of `#88`.
 
     Returns:
         The role-sorted first `Placed`, or None where they do not all agree.
     """
     first = owing[0].mark
     for placed in owing[1:]:
-        if placed.mark.instruction is not first.instruction:
-            return None
         if placed.mark.change != first.change:
             return None
     return min(owing, key=lambda placed: placed.role)
