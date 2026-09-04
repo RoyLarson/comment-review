@@ -12,6 +12,10 @@
                     edit_copy per dispatch, refusing an overlap or a gap
     marks          hands a role an edit_copy to fill, and checks what comes
                     back against every rule `desk/mark.py` settles
+    turn           a batch answered, applied to the copies, folded again --
+                    and the master proof as the state between turns
+    proof_io       that proof on disk: the load and the save, raw JSON at
+                    those two ends only (`Process: #65`, `#67`)
     proof_setter   the results-side flow -- calls the galley, the compositor
                     and `prove_unchanged` in order, from a role's alterations to
                     a drafted file a human can read

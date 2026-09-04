@@ -13,16 +13,22 @@ from helpers import (
     a_clean,
     a_correct,
     a_correct_setting,
+    a_query,
     an_add,
     copies_over,
+    entries_of,
 )
 
 from comment_review.commands import collate as command
+from comment_review.desk.determined import Answer
+from comment_review.desk.diff_mark import DIFF, ESCALATION, QUESTION
+from comment_review.desk.mark import Shape
+from comment_review.flows.proof_io import load_proof
 
 BASE = "# one\n# two\n# three\n"
 
 
-def run(tmp_path, marks_by_role, monkeypatch, capsys):
+def run(tmp_path, marks_by_role, monkeypatch, capsys, *extra):
     binder = a_binder_over({"m.py@b1": BASE})
     copies = copies_over(binder, marks_by_role)
     binder_path = tmp_path / "binder.json"
@@ -40,6 +46,7 @@ def run(tmp_path, marks_by_role, monkeypatch, capsys):
         str(binder_path),
         "--out",
         str(tmp_path / "chief.json"),
+        *extra,
     ]
     for path in paths:
         argv += ["--edit-copy", path]
@@ -599,3 +606,104 @@ class TestTheGateSeesIt:
         from comment_review.__main__ import COMMANDS
 
         assert "collate" in COMMANDS
+
+
+class TestTheStateBetweenTurnsOnDisk:
+    """`P3` of `docs/plans/0.2.4-the-turn-as-commands.md`: `--proof-out` writes
+    the master proof as `Process: #87`'s state between turns, `--batch-out` the
+    first turn's batch -- and only when a place is carried forward."""
+
+    ONE = {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
+    CONTESTED = {
+        "block-context": {"m.py@b1": a_correct_setting("m.py@b1", "two", "# a\n")},
+        "function-context": {"m.py@b1": a_correct_setting("m.py@b1", "two", "# b\n")},
+    }
+
+    def test_proof_out_writes_a_proof_the_container_reads_back(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        proof_path = tmp_path / "proof.json"
+        code, out = run(
+            tmp_path, self.ONE, monkeypatch, capsys, "--proof-out", str(proof_path)
+        )
+        assert code == command.OK, out
+        proof, why = load_proof(proof_path)
+        assert why == []
+        assert proof is not None
+        assert proof.turns == ()
+        assert [d.address for d in proof.determined] == ["m.py@b1"]
+        assert proof.determined[0].answer is Answer.STET
+        assert proof.determined[0].turn == 0
+        assert proof.unsettlable == ()
+
+    def test_the_proof_carries_the_copies_as_they_stand(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """So `turn` can mutate and re-fold them: the role's own mark is on the
+        proof's copy, not a derived summary of it."""
+        proof_path = tmp_path / "proof.json"
+        run(
+            tmp_path,
+            self.CONTESTED,
+            monkeypatch,
+            capsys,
+            "--proof-out",
+            str(proof_path),
+        )
+        proof, why = load_proof(proof_path)
+        assert proof is not None, why
+        assert [c.role for c in proof.edit_copies] == list(self.CONTESTED)
+        changes = {c.role: [m.change for m in entries_of(c)] for c in proof.edit_copies}
+        assert changes == {"block-context": ["# a\n"], "function-context": ["# b\n"]}
+
+    def test_batch_out_is_written_when_a_place_is_carried_forward(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        batch_path = tmp_path / "batch1.json"
+        code, out = run(
+            tmp_path,
+            self.CONTESTED,
+            monkeypatch,
+            capsys,
+            "--batch-out",
+            str(batch_path),
+        )
+        assert code == command.ESCALATIONS, out
+        batch = json.loads(batch_path.read_text(encoding="utf-8"))
+        assert sorted(batch) == ["block-context", "function-context"]
+        for slots in batch.values():
+            (slot,) = slots
+            assert slot["address"] == "m.py@b1"
+            assert slot[QUESTION] == ESCALATION
+            assert slot[DIFF]
+
+    def test_batch_out_writes_nothing_when_nothing_is_carried_forward(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        batch_path = tmp_path / "batch1.json"
+        code, out = run(
+            tmp_path, self.ONE, monkeypatch, capsys, "--batch-out", str(batch_path)
+        )
+        assert code == command.OK, out
+        assert not batch_path.exists()
+
+    def test_an_unsettlable_place_rides_on_the_proof_without_its_marks(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """`Process: #90`: the human's query rides with the set. On the wire it
+        is `{address, roles, query}` -- the `Placed` marks are the fold's."""
+        proof_path = tmp_path / "proof.json"
+        asked = {
+            "block-context": {
+                "m.py@b1": a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY)
+            }
+        }
+        run(tmp_path, asked, monkeypatch, capsys, "--proof-out", str(proof_path))
+        proof, why = load_proof(proof_path)
+        assert proof is not None, why
+        (place,) = proof.unsettlable
+        assert place["address"] == "m.py@b1"
+        assert place["roles"] == ["block-context"]
+        assert place["query"]["role"] == "block-context"
+        assert "marks" not in place
+        assert proof.determined == ()

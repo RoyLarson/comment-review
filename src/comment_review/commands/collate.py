@@ -1,7 +1,8 @@
 r"""The `collate` command: its argument parsing, its report and its exit code.
 
     comment_review collate --stage 4c --binder B.json --out chief.json \\
-        --edit-copy a.json --edit-copy b.json
+        --edit-copy a.json --edit-copy b.json \\
+        [--proof-out proof.json] [--batch-out batch1.json]
 
 The work is `flows.collate`; this is only the console face of it.
 
@@ -10,9 +11,9 @@ A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`.
 
 !! EVERY CARRIED-FORWARD PLACE IS NAMED, NEVER COUNTED. `A-T2` of
 `TODO/no-command-for-the-middle.md`: a run that settles 4 of 10 must say what
-became of the other 6. ! WHAT IT DOES NOT YET DO is name the command that
-CONTINUES them -- `Process: #51`'s other half, which is a later plan's, by
-this plan's own scoping.
+became of the other 6. ! `--proof-out` AND `--batch-out` WRITE WHAT CONTINUES
+THEM -- the state between turns and the first turn's batch (`Process: #87`);
+the verb that runs the turn is `TODO/no-command-for-the-middle.md` T16.
 """
 
 import argparse
@@ -23,6 +24,8 @@ from pathlib import Path
 from comment_review.binder.binder import Binder
 from comment_review.desk.proof import MismatchedRoot
 from comment_review.flows.collate import CannotCollate, collate
+from comment_review.flows.proof_io import save_proof
+from comment_review.flows.turn import batch_for, proof_after
 from comment_review.machine import exceptions
 from comment_review.machine.json_object import object_of
 
@@ -199,6 +202,19 @@ def main() -> int:
         help="the checkout a `sources` cite resolves against "
         "(default: the binder's own read_from.root)",
     )
+    ap.add_argument(
+        "--proof-out",
+        metavar="PATH",
+        help="where to write the master proof -- the state between turns: the"
+        " copies as they stand, every ruling, the unsettlable places. Written"
+        " beside the chief's copy, so not on BROKEN",
+    )
+    ap.add_argument(
+        "--batch-out",
+        metavar="PATH",
+        help="where to write the first turn's batch, one slot per carried-forward"
+        " place per role; nothing is written when nothing is carried forward",
+    )
     args = ap.parse_args()
 
     if not args.edit_copy:
@@ -305,6 +321,28 @@ def main() -> int:
         print(f"escalated {entry['address']}: {', '.join(entry['roles'])}")
     for entry in got.rereads:
         print(f"re-read {entry['address']}: {', '.join(entry['roles'])}")
+
+    # !! THE STATE BETWEEN TURNS IS WRITTEN WITH THE CHIEF, NOT INSTEAD OF IT.
+    # `Process: #87`: the master proof carries the copies as they stand, so the
+    # turn verb can mutate and fold them again; the chief's copy is what the
+    # write end reads today. `turns` is empty here -- this is the first fold.
+    if args.proof_out and got.proof is not None:
+        save_proof(Path(args.proof_out), proof_after(got))
+        print(
+            f"{args.proof_out}: the master proof -- {len(got.determined)} determined,"
+            f" {len(got.unsettlable)} unsettlable"
+        )
+    # ! NOTHING CARRIED FORWARD IS NO BATCH, NOT AN EMPTY ONE. A file holding
+    # `{}` would be handed to roles as a turn with nothing in it.
+    if args.batch_out and (got.escalations or got.rereads):
+        batch = batch_for(got)
+        Path(args.batch_out).write_text(
+            json.dumps(batch, indent=2), encoding="utf-8", newline=""
+        )
+        sizes = ", ".join(
+            f"{role} {len(slots)}" for role, slots in sorted(batch.items())
+        )
+        print(f"{args.batch_out}: turn 1's batch -- {sizes}")
 
     if got.escalations:
         return ESCALATIONS

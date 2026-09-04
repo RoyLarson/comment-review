@@ -7,12 +7,15 @@
     rule_at_cap(collated, address, answer, side, reason, turn, prose) -> Determined
     determined_chief(collated, rulings) -> (every Determined, the chief's edit_copy)
     batch_for(collated) -> the batch that goes out, every slot carrying its diff
+    proof_after(collated, turns) -> the master proof as the state between turns
     contracts() -> the three shapes a role is handed, generated from the code
 
-!! NOTHING WIRES THIS INTO A COMMAND YET, which is what keeps it a prototype
-by name. `docs/the-turn.md` is the source for what a turn is, and its *What
-is BUILT* table is the map from that file to this one. The loop has run twice
-as a game from a session scratchpad; `commands/` has no verb for it.
+! `commands/collate.py` writes the first batch through `batch_for` and the
+proof through `proof_after`; the verbs that advance a turn and close it at
+the cap are `TODO/no-command-for-the-middle.md` T16. `docs/the-turn.md` is
+the source for what a turn is, and its *What is BUILT* table is the map from
+that file to this one. The loop has run twice as a game from a session
+scratchpad.
 
 === A DiffMark DOES NOT BECOME A Mark -- `Process: #86`
 
@@ -69,7 +72,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from comment_review.binder.binder import Binder
-from comment_review.desk.containers import EditCopy
+from comment_review.desk.containers import EditCopy, MasterProof
 from comment_review.desk.determined import CHIEF, ORIGINAL, Answer, Determined
 from comment_review.desk.diff_mark import (
     COMPOSITION,
@@ -592,6 +595,34 @@ def batch_for(collated: Collated) -> dict[str, list[dict]]:
                 if slot["address"] == entry["address"]:
                     slot[DIFF] = rendered
     return batch
+
+
+def proof_after(got: Collated, turns: tuple[dict, ...] = ()) -> MasterProof:
+    """The master proof as the state between turns, from a fold -- `Process: #87`.
+
+    Args:
+        got: the fold. Its `proof` is the copies AS THEY STAND, which is what
+            the next turn mutates and folds again.
+        turns: the record so far. The caller keeps it; a fold does not know it.
+
+    Returns:
+        `got.proof` carrying `turns`, every Determined in address order, and
+        each unsettlable place without its `Placed` marks -- `{address, roles,
+        query}`, the shape the wire holds and the human is asked.
+
+    Raises:
+        ValueError: the fold returned early and holds no proof.
+    """
+    if got.proof is None:
+        raise ValueError("the fold returned early -- no proof to carry forward")
+    return replace(
+        got.proof,
+        turns=tuple(turns),
+        determined=tuple(got.determined[a] for a in sorted(got.determined)),
+        unsettlable=tuple(
+            {k: v for k, v in u.items() if k != "marks"} for u in got.unsettlable
+        ),
+    )
 
 
 def contracts() -> dict:
