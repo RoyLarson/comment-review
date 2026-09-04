@@ -75,7 +75,7 @@ class TestAnEscalation:
             ),
             **_answered(batch, "function-context", instruction="hold", reason="stands"),
         }
-        again, problems = run_turn("4c", copies, binder, REPO, answers, turn=1)
+        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
         assert problems == []
         assert again.escalations == []
         ruled = again.determined["m.py@b1"]
@@ -94,7 +94,7 @@ class TestAnEscalation:
             ),
             **_answered(batch, "function-context", instruction="hold", reason="stands"),
         }
-        again, problems = run_turn("4c", copies, binder, REPO, answers, turn=1)
+        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
         assert problems == []
         ruled = again.determined["m.py@b1"]
         assert ruled.answer is Answer.STET
@@ -108,7 +108,7 @@ class TestAnEscalation:
             **_answered(batch, "block-context", instruction="hold", reason="mine"),
             **_answered(batch, "function-context", instruction="hold", reason="mine"),
         }
-        again, problems = run_turn("4c", copies, binder, REPO, answers, turn=1)
+        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
         assert problems == []
         assert [e["address"] for e in again.escalations] == ["m.py@b1"]
         assert again.determined == {}
@@ -120,9 +120,48 @@ class TestAnEscalation:
             "block-context": [batch["block-context"][0]],
             **_answered(batch, "function-context", instruction="hold", reason="mine"),
         }
-        again, problems = run_turn("4c", copies, binder, REPO, answers, turn=1)
+        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
         assert any("unanswered" in p for p in problems)
         assert [e["address"] for e in again.escalations] == ["m.py@b1"]
+
+
+class TestTheSentBatchPairsTheAnswer:
+    """T27, MEASURED in the game's hand 1: a role rewrote its slot without the
+    `question` key and the fold refused it. The flow SENT the slot; the answer
+    pairs to it by address, and nothing on the returned slot is trusted."""
+
+    def test_a_stripped_slot_still_parses_against_what_was_sent(self):
+        binder, copies, got = _escalated()
+        batch = batch_of(got.escalations, got.rereads)
+        bare = {"address": "m.py@b1", "instruction": "withdraw", "reason": "theirs"}
+        answers = {
+            "block-context": [bare],
+            **_answered(batch, "function-context", instruction="hold", reason="stands"),
+        }
+        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        assert problems == []
+        assert again.determined["m.py@b1"].side == "function-context"
+
+    def test_an_answer_at_an_address_never_sent_is_refused_by_name(self):
+        binder, copies, got = _escalated()
+        batch = batch_of(got.escalations, got.rereads)
+        stray = {"address": "m.py@b9", "instruction": "hold", "reason": "?"}
+        answers = {
+            "block-context": [stray],
+            **_answered(batch, "function-context", instruction="hold", reason="stands"),
+        }
+        _, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        assert any("m.py@b9" in p and "never sent" in p for p in problems)
+
+    def test_a_sent_slot_left_out_of_the_answer_is_unanswered(self):
+        binder, copies, got = _escalated()
+        batch = batch_of(got.escalations, got.rereads)
+        answers = {
+            "block-context": [],
+            **_answered(batch, "function-context", instruction="hold", reason="stands"),
+        }
+        _, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        assert any("m.py@b1" in p and "unanswered" in p for p in problems)
 
 
 class TestAComposition:
@@ -143,7 +182,7 @@ class TestAComposition:
             **_answered(batch, "block-context", instruction="clean"),
             **_answered(batch, "function-context", instruction="clean"),
         }
-        again, problems = run_turn("4c", copies, binder, REPO, answers, turn=1)
+        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
         assert problems == []
         assert again.rereads == []
         ruled = again.determined["m.py@b1"]
@@ -167,7 +206,7 @@ class TestAComposition:
                 change=fixed,
             ),
         }
-        again, problems = run_turn("4c", copies, binder, REPO, answers, turn=1)
+        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
         assert problems == []
         assert [e["address"] for e in again.escalations] == ["m.py@b1"]
         assert again.determined == {}
@@ -194,7 +233,7 @@ class TestAComposition:
                 change=worded,
             ),
         }
-        again, problems = run_turn("4c", copies, binder, REPO, answers, turn=1)
+        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
         assert problems == []
         assert again.revisit == []
         assert [e["address"] for e in again.escalations] == ["m.py@b1"]
@@ -216,7 +255,7 @@ class TestAComposition:
             ),
             **_answered(batch, "function-context", instruction="clean"),
         }
-        _, problems = run_turn("4c", copies, binder, REPO, answers, turn=1)
+        _, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
         assert any("not a composition answer" in p for p in problems)
 
 

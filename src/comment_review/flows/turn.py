@@ -1,6 +1,8 @@
 """A PROTOTYPE. The turn: a batch answered, applied to the copies, folded again.
 
-    run_turn(stage, copies, binder, root, answers, turn) -> (Collated, problems)
+    parse_answers(role, sent, returned) -> (answers, problems)
+    apply(copies, role, answers) -> problems
+    run_turn(stage, copies, binder, root, sent, answers, turn) -> (Collated, problems)
     rule_at_cap(collated, address, answer, side, reason, turn, prose) -> Determined
     determined_chief(collated, rulings) -> (every Determined, the chief's edit_copy)
 
@@ -75,39 +77,84 @@ COMPOSITION_ANSWERS = (
 )
 
 
+def slots_of(loaded: object, role: str) -> list:
+    """A role's slots, from any of the shapes a role has handed back.
+
+    ! MEASURED 2026-09-04: three of four roles returned `{role: [slots]}`,
+    the batch's own shape, on the first turn they were asked. It is that
+    role's slots, and the fold reads it as such rather than refusing the
+    envelope; so does `commands/check.py`, which is why this lives here.
+    """
+    if isinstance(loaded, dict):
+        # ! DECLARED, NOT NARROWED -- the same reason `EditCopy.deserialize`
+        # gives: `ty` loses an isinstance narrow at the subscript.
+        data: dict = loaded
+        if role in data:
+            slots = data[role]
+            return list(slots) if isinstance(slots, list) else []
+        if "address" in data:
+            return [data]
+    return list(loaded) if isinstance(loaded, list) else []
+
+
 def parse_answers(
-    role: str, slots: list[object]
+    role: str, sent: list, returned: list
 ) -> tuple[list[tuple[str, DiffMark | Mark]], list[str]]:
-    """One role's answered batch, each slot parsed by the question it named.
+    """One role's answered batch, each answer paired to the slot the flow SENT.
+
+    !! THE SENT SLOT IS THE AUTHORITY -- T27. MEASURED in the game's hand 1: a
+    role rewrote its slot without the `question` key and the fold refused it.
+    The flow handed the slot out, so it knows the question at every address;
+    a returned slot contributes its answer fields and nothing else -- the
+    answer is the sent slot with the returned fields laid over it.
 
     Args:
         role: whose batch this is.
-        slots: the slots as they came back, in the shape `batch_of` handed out.
+        sent: the slots `batch_of` handed this role.
+        returned: the slots as they came back, already through `slots_of`.
 
     Returns:
-        `(answers, problems)`. Every slot contributes to exactly one: an
+        `(answers, problems)`. Every SENT slot contributes to exactly one: an
         `(address, DiffMark | Mark)` pair, or one or more named problems. An
-        unanswered slot is refused by name, never read as a withdrawal or a
-        clean.
+        unanswered slot -- never returned, or returned untouched -- is refused
+        by name, never read as a withdrawal or a clean. A returned slot at an
+        address this role was never sent is a problem of its own.
     """
-    answers: list[tuple[str, DiffMark | Mark]] = []
+    by_address = {
+        slot["address"]: slot
+        for slot in sent
+        if isinstance(slot, dict) and filled(slot.get("address"))
+    }
+    answered: dict[str, dict] = {}
     problems: list[str] = []
-    for i, slot in enumerate(slots, 1):
+    for i, slot in enumerate(returned, 1):
         if not isinstance(slot, dict):
             problems.append(f"{role} slot {i}: a slot must be an object")
             continue
         address = slot.get("address")
-        loc = f"{role} {address}" if filled(address) else f"{role} slot {i}"
+        if not filled(address):
+            problems.append(f"{role} slot {i}: names no address")
+            continue
+        if address not in by_address:
+            problems.append(f"{role} {address}: never sent to this role -- refused")
+            continue
+        answered[address] = slot
+
+    answers: list[tuple[str, DiffMark | Mark]] = []
+    for address, slot in by_address.items():
+        loc = f"{role} {address}"
+        got = answered.get(address)
+        entry = {**slot, **(got or {})}
+        if got is None or untouched(entry):
+            problems.append(f"{loc}: unanswered -- refused, not read as a withdrawal")
+            continue
         question = slot.get(QUESTION)
         if question == ESCALATION:
-            marks, why = parse_batch(role, [slot])
+            marks, why = parse_batch(role, [entry])
             problems += why
             answers += [(mark.address, mark) for mark in marks]
         elif question == COMPOSITION:
-            if untouched(slot):
-                problems.append(f"{loc}: unanswered -- refused, not read as a clean")
-                continue
-            mark, why = Mark.deserialize(loc, slot)
+            mark, why = Mark.deserialize(loc, entry)
             if mark is None:
                 problems += why
                 continue
@@ -119,10 +166,7 @@ def parse_answers(
                 continue
             answers.append((mark.address, mark))
         else:
-            problems.append(
-                f"{loc}: names no question -- `{QUESTION}` must be "
-                f"{ESCALATION} or {COMPOSITION}"
-            )
+            problems.append(f"{loc}: the sent slot names no question")
     return answers, problems
 
 
@@ -260,6 +304,7 @@ def run_turn(
     copies: list[dict],
     binder: Binder,
     root: Path,
+    sent: dict[str, list],
     answers: dict[str, list],
     turn: int,
 ) -> tuple[Collated, list[str]]:
@@ -270,17 +315,24 @@ def run_turn(
         copies: the wire copies as they stand. MUTATED.
         binder: the binder they were seeded from.
         root: the checkout citations resolve against.
-        answers: role -> its answered slots.
+        sent: the batch that went out -- role -> its slots, as `batch_of`
+            built it. !! THE SENT BATCH DRIVES THE TURN: every role in it owes
+            every slot in it, and a role's answers are read against it.
+        answers: role -> what came back, in any shape `slots_of` reads.
         turn: this turn's number, from 1. Every `stet` the fold records
             carries it.
 
     Returns:
         `(Collated, problems)` -- the fold over the copies as they now stand,
-        and every slot that was refused, unanswered, or had no home.
+        and every slot that was refused, unanswered, never sent, or had no
+        home.
     """
     problems: list[str] = []
-    for role, slots in answers.items():
-        parsed, why = parse_answers(role, slots)
+    for role in answers:
+        if role not in sent:
+            problems.append(f"{role}: no slots were sent to this role -- refused")
+    for role, slots in sent.items():
+        parsed, why = parse_answers(role, slots, slots_of(answers.get(role, []), role))
         problems += why
         problems += apply(copies, role, parsed)
     return collate(stage, copies, binder, root, turn=turn), problems
