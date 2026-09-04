@@ -184,6 +184,6 @@ in `case.json`. `--sent` is read as `batch_for` wrote it, role -> slots.
       returns prose only, no command; the gate `tests/gates/test_skill_commands.py` is green.
 - [x] Commit `-F`; tick P7; commit.
 
-## Task 9: close -- P8
+## Task 9: close -- P8 -- 53f7ed2a
 
-- [ ] File what this plan does not finish; `plan show` names no open reason; commit.
+- [x] File what this plan does not finish; `plan show` names no open reason; commit.
