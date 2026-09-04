@@ -516,9 +516,9 @@ def a_master_proof(by_role: dict) -> MasterProof:
         a real one.
 
     ! IT RUNS THE REAL PARSE BETWEEN THE TWO, exactly as `flows.collate.collate`
-    does since `P42`: `seed` writes the wire dict a role is handed, and `master_proof_of`
-    takes the parsed `EditCopy`. A fixture that skipped the parse would hand
-    `master_proof_of` a shape production cannot produce.
+    does since `P42`: `seed` writes the wire dict a role is handed, and
+    `master_proof_of` takes the parsed `EditCopy`. A fixture that skipped the parse
+    would hand `master_proof_of` a shape production cannot produce.
     """
     copies = []
     for role, marks_by_address in by_role.items():

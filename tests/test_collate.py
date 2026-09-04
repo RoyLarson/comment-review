@@ -546,12 +546,13 @@ class TestTheEnvelope:
     #: BOUNDARY, `P42`. It monkeypatched `master_proof_of` to return `{"stage": ...,
     #: "edit_copies": "nope"}` and asserted `collate` reported it -- and its own
     #: docstring said why that was the only route: *"the proof is built INSIDE
-    #: `collate`, so the only way to hand it a malformed one is to make `master_proof_of`
-    #: return it. That is a seam, not a shape the chain can otherwise produce."*
-    #: `master_proof_of` returns a `MasterProof` now, so the seam is a type error rather
-    #: than an input, and every rule the parse enforced is settled upstream --
-    #: each copy's `read_from` at `EditCopy.deserialize`, their agreement at
-    #: `MismatchedRoot`, the `edit_copies` list by the type.
+    #: `collate`, so the only way to hand it a malformed one is to make
+    #: `master_proof_of` return it. That is a seam, not a shape the chain can
+    #: otherwise produce."* `master_proof_of` returns a `MasterProof` now, so the
+    #: seam is a type error rather than an input, and every rule the parse
+    #: enforced is settled upstream -- each copy's `read_from` at
+    #: `EditCopy.deserialize`, their agreement at `MismatchedRoot`, the
+    #: `edit_copies` list by the type.
     #: ! `MasterProof.deserialize` ITSELF IS STILL TESTED, in
     #: `tests/test_containers.py`, where it is reached the way production
     #: reaches it: over a document read off disk.

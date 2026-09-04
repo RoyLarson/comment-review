@@ -17,7 +17,9 @@ out, one comes back, and in between there are N marked copies with no
 container. This module is that container.
 
 ! `gather` IS STAGE 2's WORD (`decision-log.md Vocabulary: #34`), so this act is
-named for what it makes. ! `master_proof` HOLDS `edit_copies`, NOT SHEETS DIRECTLY -- a sheet belongs
+named for what it makes.
+
+! `master_proof` HOLDS `edit_copies`, NOT SHEETS DIRECTLY -- a sheet belongs
 to the `edit_copy` that seeded it, one level down.
 """
 

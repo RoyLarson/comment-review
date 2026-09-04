@@ -48,8 +48,8 @@ def test_an_edit_copy_from_another_root_is_refused():
 #: WITH `P42`, and what it measured is now unreachable rather than untested. It
 #: deleted `read_from` from two seeded copies and asserted `master_proof_of` raised
 #: `KeyError` -- the subscript that existed because a `{}` default had made two
-#: copies which could not say which tree they read compare EQUAL. `master_proof_of` takes
-#: `EditCopy`s now, and `EditCopy.deserialize` refuses a copy with no
+#: copies which could not say which tree they read compare EQUAL. `master_proof_of`
+#: takes `EditCopy`s now, and `EditCopy.deserialize` refuses a copy with no
 #: `read_from` before one can be built, so the stripped shape cannot be
 #: assembled to hand in. The refusal is
 #: `tests/test_containers.py::TestWhatItRefuses::

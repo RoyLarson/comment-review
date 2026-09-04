@@ -44,8 +44,8 @@ is handed -- so the dict is where that ruling puts it.
 
 ! THE PARSES HAD NO PRODUCTION CALLER UNTIL 2026-08-31, and this file said so
 for as long as that was true. `P21` closed it: `collate` runs `EditCopy.deserialize`
-over every returned copy and `MasterProof.deserialize` over what `master_proof_of` builds,
-so **every refusal declared below can now fire.**
+over every returned copy and `MasterProof.deserialize` over what `master_proof_of`
+builds, so **every refusal declared below can now fire.**
 
 !! THIS FILE STATES WHAT THE TWO BOUNDARIES ARE, AND NOTHING ELSE RESTATES IT.
 A container guards the **ENVELOPE** -- is this document the shape a copy must
@@ -487,8 +487,8 @@ class EditCopy:
         return (
             EditCopy(
                 role=role,
-                # ! COPIED, NOT ALIASED -- `bind`, `seed` and `master_proof_of` all do the
-                # same with this field, so a caller mutating its own dict cannot
+                # ! COPIED, NOT ALIASED -- `bind`, `seed` and `master_proof_of` all
+                # do the same with this field, so a caller mutating its own dict cannot
                 # change what a parsed copy already holds.
                 read_from={**checked["read_from"]},
                 sheets=tuple(sheets),
@@ -587,8 +587,8 @@ class MasterProof:
             ! THE SHAPE CHECK RUNS WHETHER OR NOT THERE ARE COPIES, since
             2026-08-31; the COMPARISON needs a first copy and still only runs
             where there is one. The single exemption is an empty proof whose
-            `read_from` is `{}` or absent, which is what `master_proof_of` writes when it
-            had no first copy to take one from.
+            `read_from` is `{}` or absent, which is what `master_proof_of` writes
+            when it had no first copy to take one from.
         """
         if not isinstance(data, dict):
             return None, [f"{where}: a master_proof must be an object"]
@@ -624,7 +624,7 @@ class MasterProof:
         # the header checks it explained. The measurement is stated here now,
         # where the code it justifies is.
         #
-        # ! `{}` IS STILL ADMITTED, AND ONLY FOR AN EMPTY PROOF. `desk.proof.master_proof_of`
+        # ! `{}` IS STILL ADMITTED, AND ONLY FOR AN EMPTY PROOF. `master_proof_of`
         # writes it when there is no first copy to take a `read_from` from, so
         # refusing it would refuse a shape the producer itself makes. That is the
         # one exemption; it is not a licence for every other value.

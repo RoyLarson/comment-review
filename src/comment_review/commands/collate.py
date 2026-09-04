@@ -72,8 +72,8 @@ COVERAGE = 6
 #: became unconstructable rather than merely unreached. `desk.collator
 #: .UnnamedRole` is DELETED -- `places` takes a `MasterProof`, whose copies each
 #: carry a `role` `EditCopy.deserialize` already required -- and `master_proof_of` no
-#: longer subscripts `read_from`, so the `KeyError` added 2026-08-30 has no
-#: raiser left. ! THAT `KeyError` WAS REAL WHEN IT WAS ADDED: `master_proof_of` raised it
+#: longer subscripts `read_from`, so the `KeyError` added 2026-08-30 has no raiser left.
+#: ! THAT `KeyError` WAS REAL WHEN IT WAS ADDED: `master_proof_of` raised it
 #: by design and, uncaught, it escaped past this module's own promise that "a
 #: raise is not a refusal".
 #: !! AND `MismatchedRoot` IS STILL UNREACHABLE FROM `collate`, which is a
