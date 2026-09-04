@@ -172,17 +172,17 @@ in `case.json`. `--sent` is read as `batch_for` wrote it, role -> slots.
       SKILL.md row stays.
 - [x] Commit `-F`; tick P6; commit.
 
-## Task 8: the shipped prose, one for one -- P7
+## Task 8: the shipped prose, one for one -- P7 -- b9952743
 
 **Files:** `plugins/comment-review/skills/comment-review/SKILL.md`, `references/*.md`,
 `agents/*.md` -- ONLY where a command is spelled.
 
-- [ ] `census` -> `gather` in every command line and flag; no sentence reworded. The
+- [x] `census` -> `gather` in every command line and flag; no sentence reworded. The
       prose sense of *the census* in the briefs is the agents lane's and is filed on
       `re-review-is-retired-for-revise` or its successor, with the counts.
-- [ ] Verify: `grep -rn "census" plugins/**/SKILL.md plugins/**/references plugins/**/agents`
+- [x] Verify: `grep -rn "census" plugins/**/SKILL.md plugins/**/references plugins/**/agents`
       returns prose only, no command; the gate `tests/gates/test_skill_commands.py` is green.
-- [ ] Commit `-F`; tick P7; commit.
+- [x] Commit `-F`; tick P7; commit.
 
 ## Task 9: close -- P8
 
