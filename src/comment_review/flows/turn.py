@@ -1,9 +1,9 @@
 """A PROTOTYPE. The turn: a batch answered, applied to the copies, folded again.
 
-    parse_answers(role, sent, returned) -> (answers, problems)
-    apply(copies, role, answers) -> problems
+    parse_answers(role, sent, returned) -> (answers, revisit)
+    apply(copies, role, answers) -> revisit
     run_turn(stage, copies, binder, root, sent, answers, turn, earlier)
-        -> (Collated, problems)
+        -> (Collated, revisit)
     rule_at_cap(collated, address, answer, side, reason, turn, prose) -> Determined
     determined_chief(collated, rulings) -> (every Determined, the chief's edit_copy)
 
@@ -55,6 +55,11 @@ leaves every later batch. `run_turn` takes the last fold's `determined` as
 `earlier` for exactly that; MEASURED in the game, hands 1 and 4, without it
 a stet at turn 1 read turn 2 after the next fold.
 
+!! A REFUSED ANSWER IS A `Revisit` -- T18, `flows.mark_errors`, the shape the
+fold already routes. MEASURED in the game's hand 4: a refused answer was a
+problem string, which named nobody a task agent could send it to. Unanswered
+is `unreadable=False`; malformed, never sent, or without a home is True.
+
 ! THE COPIES ARE MUTATED IN PLACE. They are the wire dicts `collate` was
 handed, and the next fold reads them as they now stand -- which is what a
 turn IS. The master proof's record of what each turn sent and got back is the
@@ -77,6 +82,7 @@ from comment_review.desk.diff_mark import (
 )
 from comment_review.desk.mark import Instruction, Mark, filled, untouched
 from comment_review.flows.collate import Collated, _chief_copy, collate
+from comment_review.flows.mark_errors import Revisit
 
 #: What a role may answer a composition re-read with -- `Process: #86`.
 COMPOSITION_ANSWERS = (
@@ -107,9 +113,15 @@ def slots_of(loaded: object, role: str) -> list:
     return list(loaded) if isinstance(loaded, list) else []
 
 
+def _refused(
+    role: str, address: str, where: str, reasons: list[str], unreadable: bool = True
+) -> Revisit:
+    return Revisit(role, address, where, tuple(reasons), unreadable)
+
+
 def parse_answers(
     role: str, sent: list, returned: list
-) -> tuple[list[tuple[str, DiffMark | Mark]], list[str]]:
+) -> tuple[list[tuple[str, DiffMark | Mark]], list[Revisit]]:
     """One role's answered batch, each answer paired to the slot the flow SENT.
 
     !! THE SENT SLOT IS THE AUTHORITY -- T27. MEASURED in the game's hand 1: a
@@ -124,11 +136,12 @@ def parse_answers(
         returned: the slots as they came back, already through `slots_of`.
 
     Returns:
-        `(answers, problems)`. Every SENT slot contributes to exactly one: an
-        `(address, DiffMark | Mark)` pair, or one or more named problems. An
-        unanswered slot -- never returned, or returned untouched -- is refused
-        by name, never read as a withdrawal or a clean. A returned slot at an
-        address this role was never sent is a problem of its own.
+        `(answers, revisit)`. Every SENT slot contributes to exactly one: an
+        `(address, DiffMark | Mark)` pair, or one `Revisit` carrying every
+        reason. An unanswered slot -- never returned, or returned untouched --
+        is refused by name, never read as a withdrawal or a clean, and is the
+        one Revisit that is not `unreadable`. A returned slot at an address
+        this role was never sent is a Revisit of its own.
     """
     by_address = {
         slot["address"]: slot
@@ -136,17 +149,21 @@ def parse_answers(
         if isinstance(slot, dict) and filled(slot.get("address"))
     }
     answered: dict[str, dict] = {}
-    problems: list[str] = []
+    revisit: list[Revisit] = []
     for i, slot in enumerate(returned, 1):
         if not isinstance(slot, dict):
-            problems.append(f"{role} slot {i}: a slot must be an object")
+            revisit.append(
+                _refused(role, "", f"{role} slot {i}", ["a slot must be an object"])
+            )
             continue
         address = slot.get("address")
         if not filled(address):
-            problems.append(f"{role} slot {i}: names no address")
+            revisit.append(_refused(role, "", f"{role} slot {i}", ["names no address"]))
             continue
         if address not in by_address:
-            problems.append(f"{role} {address}: never sent to this role -- refused")
+            revisit.append(
+                _refused(role, address, address, ["never sent to this role -- refused"])
+            )
             continue
         answered[address] = slot
 
@@ -156,12 +173,21 @@ def parse_answers(
         got = answered.get(address)
         entry = {**slot, **(got or {})}
         if got is None or untouched(entry):
-            problems.append(f"{loc}: unanswered -- refused, not read as a withdrawal")
+            revisit.append(
+                _refused(
+                    role,
+                    address,
+                    address,
+                    ["unanswered -- refused, not read as a withdrawal"],
+                    unreadable=False,
+                )
+            )
             continue
         question = slot.get(QUESTION)
         if question == ESCALATION:
             marks, why = parse_batch(role, [entry])
-            problems += why
+            if why:
+                revisit.append(_refused(role, address, address, why))
             answers += [(mark.address, mark) for mark in marks]
         elif question == COMPOSITION:
             if entry.get("instruction") == str(Instruction.CLEAN) and not entry.get(
@@ -170,18 +196,27 @@ def parse_answers(
                 entry["sources"] = _sources_of_the_composition(slot)
             mark, why = Mark.deserialize(loc, entry)
             if mark is None:
-                problems += why
+                revisit.append(_refused(role, address, address, why))
                 continue
             if mark.instruction not in COMPOSITION_ANSWERS:
-                problems.append(
-                    f"{loc}: `{mark.instruction}` is not a composition answer -- "
-                    f"one of {', '.join(COMPOSITION_ANSWERS)} (Process 86)"
+                revisit.append(
+                    _refused(
+                        role,
+                        address,
+                        address,
+                        [
+                            f"`{mark.instruction}` is not a composition answer -- "
+                            f"one of {', '.join(COMPOSITION_ANSWERS)} (Process 86)"
+                        ],
+                    )
                 )
                 continue
             answers.append((mark.address, mark))
         else:
-            problems.append(f"{loc}: the sent slot names no question")
-    return answers, problems
+            revisit.append(
+                _refused(role, address, address, ["the sent slot names no question"])
+            )
+    return answers, revisit
 
 
 def _sources_of_the_composition(slot: dict) -> list:
@@ -255,7 +290,7 @@ def _a_patch_over_base(entry: dict, answer: Mark) -> dict:
 
 def apply(
     copies: list[dict], role: str, answers: list[tuple[str, DiffMark | Mark]]
-) -> list[str]:
+) -> list[Revisit]:
     """Write one role's answers into its own copy, per the tables above.
 
     Args:
@@ -264,13 +299,15 @@ def apply(
         answers: `parse_answers`' pairs.
 
     Returns:
-        Problems -- an address this role's copy carries no slot for.
+        A `Revisit` per address this role's copy carries no slot for.
     """
-    problems: list[str] = []
+    revisit: list[Revisit] = []
     for address, answer in answers:
         entry = _entry_at(copies, role, address)
         if entry is None:
-            problems.append(f"{role} {address}: no slot on this role's copy")
+            revisit.append(
+                _refused(role, address, address, ["no slot on this role's copy"])
+            )
             continue
         if isinstance(answer, DiffMark):
             if answer.instruction is DiffInstruction.HOLD:
@@ -313,7 +350,7 @@ def apply(
                     list(answer.sources) or sources,
                 ),
             )
-    return problems
+    return revisit
 
 
 def run_turn(
@@ -325,7 +362,7 @@ def run_turn(
     answers: dict[str, list],
     turn: int,
     earlier: dict[str, Determined] | None = None,
-) -> tuple[Collated, list[str]]:
+) -> tuple[Collated, list[Revisit]]:
     """One turn: every role's answers applied, then the fold again.
 
     Args:
@@ -344,22 +381,26 @@ def run_turn(
             and is dropped from this turn's escalations and re-reads.
 
     Returns:
-        `(Collated, problems)` -- the fold over the copies as they now stand,
-        and every slot that was refused, unanswered, never sent, or had no
-        home.
+        `(Collated, revisit)` -- the fold over the copies as they now stand,
+        and a `Revisit` for every slot that was refused, unanswered, never
+        sent, or had no home.
     """
-    problems: list[str] = []
+    revisit: list[Revisit] = []
     for role in answers:
         if role not in sent:
-            problems.append(f"{role}: no slots were sent to this role -- refused")
+            revisit.append(
+                _refused(
+                    role, "", f"{role} (the batch)", ["no slots were sent to this role"]
+                )
+            )
     for role, slots in sent.items():
         parsed, why = parse_answers(role, slots, slots_of(answers.get(role, []), role))
-        problems += why
-        problems += apply(copies, role, parsed)
+        revisit += why
+        revisit += apply(copies, role, parsed)
     got = collate(stage, copies, binder, root, turn=turn)
     got = _keeping(got, earlier or {})
     contested = {slot["address"] for slots in sent.values() for slot in slots}
-    return _withdrawn(got, contested, turn), problems
+    return _withdrawn(got, contested, turn), revisit
 
 
 def _withdrawn(got: Collated, contested: set[str], turn: int) -> Collated:

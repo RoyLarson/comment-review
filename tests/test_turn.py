@@ -25,6 +25,7 @@ from comment_review.desk.determined import CHIEF, ORIGINAL, Answer
 from comment_review.desk.diff_mark import COMPOSITION, QUESTION, batch_of
 from comment_review.desk.mark import Mark, Shape
 from comment_review.flows.collate import collate
+from comment_review.flows.mark_errors import Revisit
 from comment_review.flows.turn import determined_chief, rule_at_cap, run_turn
 
 BASE = "# one\n# two\n# three\n"
@@ -133,7 +134,7 @@ class TestAnEscalation:
             **_answered(batch, "function-context", instruction="hold", reason="mine"),
         }
         again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
-        assert any("unanswered" in p for p in problems)
+        assert any("unanswered" in r for p in problems for r in p.reasons)
         assert [e["address"] for e in again.escalations] == ["m.py@b1"]
 
 
@@ -165,7 +166,11 @@ class TestTheSentBatchPairsTheAnswer:
             **_answered(batch, "function-context", instruction="hold", reason="stands"),
         }
         _, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
-        assert any("m.py@b9" in p and "never sent" in p for p in problems)
+        assert any(
+            p.address == "m.py@b9" and "never sent" in r
+            for p in problems
+            for r in p.reasons
+        )
 
     def test_a_sent_slot_left_out_of_the_answer_is_unanswered(self):
         binder, copies, got = _escalated()
@@ -175,7 +180,11 @@ class TestTheSentBatchPairsTheAnswer:
             **_answered(batch, "function-context", instruction="hold", reason="stands"),
         }
         _, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
-        assert any("m.py@b1" in p and "unanswered" in p for p in problems)
+        assert any(
+            p.address == "m.py@b1" and "unanswered" in r
+            for p in problems
+            for r in p.reasons
+        )
 
 
 class TestAComposition:
@@ -270,7 +279,7 @@ class TestAComposition:
             **_answered(batch, "function-context", instruction="clean"),
         }
         _, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
-        assert any("not a composition answer" in p for p in problems)
+        assert any("not a composition answer" in r for p in problems for r in p.reasons)
 
 
 def _lone(mark: dict):
@@ -502,6 +511,40 @@ class TestTheConflictOutcomes:
         assert ruled.mark is None
         assert ruled.turn == 1
         assert entries_of(again.chief) == []
+
+
+class TestARefusedAnswerIsARevisit:
+    """T18. MEASURED in the game's hand 4: a refused answer was a problem
+    string, which nothing could route; `flows.mark_errors.Revisit` is what
+    the fold already routes, so a turn's refusals take that shape."""
+
+    def test_a_malformed_answer_names_role_address_and_every_reason(self):
+        binder, copies, got = _escalated()
+        batch = batch_of(got.escalations, got.rereads)
+        answers = {
+            **_answered(batch, "block-context", instruction="correct", reason="x"),
+            **_answered(batch, "function-context", instruction="hold", reason="stands"),
+        }
+        _, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        assert len(problems) == 1
+        one = problems[0]
+        assert isinstance(one, Revisit)
+        assert one.role == "block-context"
+        assert one.address == "m.py@b1"
+        assert one.unreadable is True
+        assert any("change" in r for r in one.reasons)
+
+    def test_an_unanswered_slot_is_a_revisit_that_is_not_unreadable(self):
+        binder, copies, got = _escalated()
+        batch = batch_of(got.escalations, got.rereads)
+        answers = {
+            "block-context": [],
+            **_answered(batch, "function-context", instruction="hold", reason="stands"),
+        }
+        _, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        assert [(p.role, p.address, p.unreadable) for p in problems] == [
+            ("block-context", "m.py@b1", False)
+        ]
 
 
 class TestTheCap:

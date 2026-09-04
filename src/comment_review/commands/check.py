@@ -136,11 +136,12 @@ def _check_answers(path: str, sent_path: str, role: str) -> int:
     if not sent:
         print(f"{sent_path}: no slots were sent to {role}")
         return BROKEN
-    answers, problems = parse_answers(role, sent, slots_of(loaded, role))
-    for line in problems:
-        print(line)
-    print(f"{path}: {len(answers)} answered, {len(problems)} the fold would refuse")
-    return BROKEN if problems else OK
+    answers, revisit = parse_answers(role, sent, slots_of(loaded, role))
+    for one in revisit:
+        for reason in one.reasons:
+            print(f"{one.role} {one.where}: {reason}")
+    print(f"{path}: {len(answers)} answered, {len(revisit)} the fold would refuse")
+    return BROKEN if revisit else OK
 
 
 def main() -> int:
