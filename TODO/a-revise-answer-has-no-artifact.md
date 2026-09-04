@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 24 of 35 tasks closed
+Progress: 26 of 35 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
@@ -151,8 +151,9 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       the return: a role's answered batch parses at the boundary. Verify: an
       unanswered slot is refused by name, never read as withdraw
         > 2026-09-03 prototype parse_batch 37fbbb8 -- P16
-- [ ] T13 | Implement the recollate so a round's resolutions join the chief's
-      copy. Verify: a lone surviving add, all others holding, lands
+- [x] T13 | FINISHED -- a lone add is its own composition; every role's clean lands it; test_turn.py TestALoneOwingMark | 45d3e61 | Implement
+      the recollate so a round's resolutions join the chief's copy. Verify: a
+      lone surviving add, all others holding, lands
         > 2026-09-03 P17. Measured hand 3: a lone add re-reads forever today
         > 2026-09-04 Process 86: composed text goes into every copy, then recollate
         > 2026-09-04 bc62ea5: a clean from the adder withdraws the add -- open
@@ -237,8 +238,9 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       the fold so byte-identical change texts agree whatever the instruction or
       sentence quoted. Verify: patch + correct, one text -> stet
         > 2026-09-04 Process 88; hand 2: one text as patch/correct/patch, never agreed
-- [ ] T33 | Update the fold so a lone owing mark is a re-read to every role that
-      marked the place but a query. Verify: one mark, three cleans -> re-read
+- [x] T33 | FINISHED -- a lone mark is a re-read to every role that marked but a query, carrying its text; stands when the author is alone | 45d3e61 | Update
+      the fold so a lone owing mark is a re-read to every role that marked the
+      place but a query. Verify: one mark, three cleans -> re-read
         > 2026-09-04 Process 89; hand 3: b93 landed at t0 with three cleans unread
 - [ ] T34 | Implement the human-review query riding on the master proof,
       unsettlable and asked last; other shapes abstain. Verify: it is on the
