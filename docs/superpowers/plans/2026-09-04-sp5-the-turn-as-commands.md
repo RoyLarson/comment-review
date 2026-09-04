@@ -114,19 +114,19 @@ Retired table.
 - [x] Gates green; commit `-F`.
 - [x] Tick: P1; commit.
 
-## Task 4: the master proof on disk, and collate writing it -- P3
+## Task 4: the master proof on disk, and collate writing it -- P3 -- a40ae775
 
 **Files:** `src/comment_review/desk/containers.py` or a `flows/proof_io.py` (the load and
 the save, `#65`/`#67`: raw JSON at the load and the save only), `src/comment_review/commands/collate.py`,
 `tests/test_collate_command.py`, `tests/test_containers.py`.
 
-- [ ] Test: `collate --proof-out P.json` writes a master proof that `MasterProof.deserialize`
+- [x] Test: `collate --proof-out P.json` writes a master proof that `MasterProof.deserialize`
       reads back with `turns == ()`, `determined` as the fold made them, `unsettlable` as
       the fold found them; `--batch-out B.json` writes `batch_for`'s batch when a place is
       carried forward and nothing otherwise.
-- [ ] Test: the proof carries the copies AS THEY STAND, so `turn` can mutate and re-fold them.
-- [ ] Gates green; commit `-F`.
-- [ ] Tick: P3; commit.
+- [x] Test: the proof carries the copies AS THEY STAND, so `turn` can mutate and re-fold them.
+- [x] Gates green; commit `-F`.
+- [x] Tick: P3; commit.
 
 ## Task 5: the `turn` command -- P4, T16 (half)
 
