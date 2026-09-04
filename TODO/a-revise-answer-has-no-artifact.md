@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 24 tasks closed
+Progress: 17 of 24 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
@@ -139,22 +139,23 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       what records HOW the copy chief ruled, since an edit_copy cannot. Verify:
       the artifact exists, or the question is answered in the log
         > 2026-09-02 Roy 2026-09-02: that needs something besides the edit-copy
-- [ ] T10 | Implement the DiffMark a role answers a disagreement on, four
-      answers closed. Verify: a fifth, or any of Mark's seven, is refused by
-      name
+- [x] T10 | FINISHED as a prototype -- desk/diff_mark.py; a fifth and Mark's seven refused by name, test_diff_mark.py | bc62ea5 | Implement
+      the DiffMark a role answers a disagreement on, four answers closed.
+      Verify: a fifth, or any of Mark's seven, is refused by name
         > 2026-09-03 prototype at desk/diff_mark.py, 5574f0a -- P20; replaces T1
 - [ ] T11 | Implement the batch: one payload per role per round, each slot
       carrying its diff3. Verify: one send per role whatever the place count
         > 2026-09-03 prototype batch_of 9406b3b -- P21; the FLOW attaches diff3
         > 2026-09-03 replaces T2 and T6
-- [ ] T12 | Implement the return: a role's answered batch parses at the
-      boundary. Verify: an unanswered slot is refused by name, never read as
-      withdraw
+- [x] T12 | FINISHED as a prototype -- parse_batch and flows/turn.parse_answers; unanswered refused by name, test_turn.py | bc62ea5 | Implement
+      the return: a role's answered batch parses at the boundary. Verify: an
+      unanswered slot is refused by name, never read as withdraw
         > 2026-09-03 prototype parse_batch 37fbbb8 -- P16
 - [ ] T13 | Implement the recollate so a round's resolutions join the chief's
       copy. Verify: a lone surviving add, all others holding, lands
         > 2026-09-03 P17. Measured hand 3: a lone add re-reads forever today
         > 2026-09-04 Process 86: composed text goes into every copy, then recollate
+        > 2026-09-04 bc62ea5: a clean from the adder withdraws the add -- open
 - [x] T14 | RULED Process 86: an escalation answers with a DiffMark, a composition re-read with a fresh Mark | 38bc37b | Decide
       whether a composition re-read is answered with a DiffMark or a fresh Mark,
       given clean and query are its only passes
@@ -164,6 +165,7 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       takes the held in, withdraw/withdraw re-asks. Verify: each lands
         > 2026-09-03 P5; replaces T3's conflict half -- the Objective's outcomes table
         > 2026-09-04 Process 86: withdraw reverts to base; correct/patch write change
+        > 2026-09-04 bc62ea5: withdraw/withdraw drops the place with no Determined
 - [-] T16 | SUPERSEDED, reworded -- the word is turn, Vocabulary 33; re-filed as the turn counter | efd9221 | Implement
       the round counter, rounds named by kind, no maximum enforced. Verify: a
       run reports each place's rounds
@@ -171,25 +173,32 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
 - [ ] T17 | Implement the copy chief's ruling at the cap on whatever is still
       unresolved. Verify: no place survives the last round unruled
         > 2026-09-03 P19. the-turn.md: the chief's ruling is the terminator
+        > 2026-09-04 bc62ea5: rule_at_cap exists; nothing enforces every place ruled
 - [ ] T18 | Implement routing of a refused or unanswered DiffMark to its role as
       a revisit. Verify: it appears in revisit naming role and address
         > 2026-09-03 Roy 2026-09-03: unanswered or malformed is refused, not a withdraw
+        > 2026-09-04 bc62ea5: a refused answer is a problem string, not a Revisit
 - [ ] T19 | Generate the DiffMark contract a role is handed from the code, as
       allowed() does for Mark. Verify: no agent file hand-types its fields
         > 2026-09-03 the game's brief hand-typed the contract and got query wrong
         > 2026-09-03 publishing it in the brief is agents lane; the generator is backend
-- [ ] T20 | Implement the turn counter, turns named by kind, no maximum
-      enforced. Verify: a run reports each place's turns
+- [x] T20 | FINISHED as a prototype -- Determined.turn on every place, MasterProof.turns; no maximum in code | bc62ea5 | Implement
+      the turn counter, turns named by kind, no maximum enforced. Verify: a run
+      reports each place's turns
         > 2026-09-04 P18. Process 78: the cap is the agent's, never the code's
-- [ ] T21 | Update batch_of so a reread seeds a Mark slot over the composed
-      text, an escalation a DiffMark. Verify: no DiffMark field on a reread
+- [x] T21 | FINISHED as a prototype -- batch_of seeds a Mark slot for a reread, a DiffMark slot for an escalation | bc62ea5 | Update
+      batch_of so a reread seeds a Mark slot over the composed text, an
+      escalation a DiffMark. Verify: no DiffMark field on a reread
         > 2026-09-04 Process 86; a lone add must compose without a re-read -- T13
-- [ ] T22 | Implement Determined, the chief's per-place record: stet, taken_in,
-      recast. Verify: Mark's seven and DiffMark's four are refused
+- [x] T22 | FINISHED as a prototype -- desk/determined.py; Mark's seven and DiffMark's four refused by name | bc62ea5 | Implement
+      Determined, the chief's per-place record: stet, taken_in, recast. Verify:
+      Mark's seven and DiffMark's four are refused
         > 2026-09-04 Process 87; Roy's name, taken until a trade word turns up
-- [ ] T23 | Update MasterProof to carry the turn record and one Determined per
-      resolved place. Verify: a serialized proof round-trips both
+- [x] T23 | FINISHED as a prototype -- MasterProof.turns and .determined round-trip, test_determined.py | bc62ea5 | Update
+      MasterProof to carry the turn record and one Determined per resolved
+      place. Verify: a serialized proof round-trips both
         > 2026-09-04 Process 87: the master proof is the state between turns
-- [ ] T24 | Update _chief_copy so the chief's edit copy is derived from the
-      Determineds. Verify: every place in it names its Determined
+- [x] T24 | FINISHED as a prototype -- _chief_copy derives from the Determineds; original taken in writes no entry | bc62ea5 | Update
+      _chief_copy so the chief's edit copy is derived from the Determineds.
+      Verify: every place in it names its Determined
         > 2026-09-04 Process 87: Process 30's shape holds, one mark per place
