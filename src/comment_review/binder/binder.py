@@ -47,6 +47,7 @@ compositor reads the file from disk and never a binder.
 """
 
 from dataclasses import dataclass
+from pathlib import Path
 
 from comment_review.binder.page import Page, RedactedPage
 from comment_review.reading.paragraph import Paragraph
@@ -211,6 +212,17 @@ class Binder:
     version: str
     read_from: dict
     pages: tuple[Page | RedactedPage, ...]
+
+    @property
+    def root(self) -> Path:
+        """The tree this binder was gathered from, as a path.
+
+        `read_from["root"]` is what `_read_from_problem` requires of every
+        binder, so a `Binder` always has one -- which is why the commands ask
+        the container rather than re-deriving a fallback for a case `bind` and
+        `deserialize` already refuse.
+        """
+        return Path(self.read_from["root"])
 
     @classmethod
     def deserialize(cls, where: str, data: object) -> "tuple[Binder | None, list[str]]":

@@ -70,6 +70,15 @@ def test_the_binder_names_its_own_version(binder):
     assert binder.version == VERSION
 
 
+def test_the_binder_names_its_root_as_a_path(binder):
+    """The commands resolve a cite against `binder.root`; there is no fallback
+    to `"."`, because a binder with no root is refused before it is one."""
+    from pathlib import Path
+
+    assert binder.root == Path(READ_FROM["root"])
+    assert isinstance(binder.root, Path)
+
+
 def test_a_page_carries_its_path_and_its_identity(binder, wire):
     """The file is named ONCE per page, and the sha is what lets a later step
     ask whether the file moved under it."""

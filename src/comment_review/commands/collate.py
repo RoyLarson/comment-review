@@ -251,7 +251,7 @@ def main() -> int:
     # not pass it twice. `read_from` is refused as absent or malformed further
     # up the chain, and `.` is what a binder read from the working directory
     # says, so it is a fallback rather than a guess.
-    root = Path(args.repo or binder.read_from.get("root") or ".")
+    root = Path(args.repo) if args.repo else binder.root
 
     try:
         got = collate(args.stage, copies, binder, root)

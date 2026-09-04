@@ -94,7 +94,7 @@ def _check_copy(path: str, binder_path: str | None, repo: str | None) -> int:
             for line in problems:
                 print(line, file=sys.stderr)
             return UNREADABLE
-        root = Path(repo or binder.read_from.get("root") or ".")
+        root = Path(repo) if repo else binder.root
         cache: Cache = {}
         for problem in (
             *verify_report(copy, binder, root, cache),

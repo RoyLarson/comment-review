@@ -105,7 +105,7 @@ def main() -> int:
         print(f"{args.rulings}: the rulings are a list of objects", file=sys.stderr)
         return UNREADABLE
 
-    root = Path(args.repo or binder.read_from.get("root") or ".")
+    root = Path(args.repo) if args.repo else binder.root
     turn = len(proof.turns)
     try:
         got = refold(proof, binder, root)

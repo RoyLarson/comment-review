@@ -130,7 +130,7 @@ def main() -> int:
             return UNREADABLE
         answers[role] = value
 
-    root = Path(args.repo or binder.read_from.get("root") or ".")
+    root = Path(args.repo) if args.repo else binder.root
     turn = len(proof.turns) + 1
     # ! THE WIRE DICTS, BECAUSE THE FLOW MUTATES THEM IN PLACE and folds what
     # they then hold -- `flows.turn`'s own header. The proof's copies are the
