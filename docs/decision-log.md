@@ -1130,8 +1130,10 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **One collision to resolve in the same change.** `desk.proof.gather` already names the act
   of holding one stage's edit copies in a master proof. Two acts, one verb; the second is
-  renamed for what it makes -- proposed `master_proof_of`, the plan that does the work
-  carries the decision.
+  renamed for what it makes: `master_proof_of`. Roy, 2026-09-04, approving it: *"The term
+  gather was determined a while ago to be the stage that creates the binder and should
+  not have been repurposed because it seemed available."* A word the register has ruled
+  is not free because no code uses it yet.
 
   **The gate.** `census` joins `scripts/check_vocabulary.py`'s RETIRED list, replacement
   `gather`, so a shipped file cannot carry it back; the log's own history keeps the word.
