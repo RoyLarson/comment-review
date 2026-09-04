@@ -50,6 +50,7 @@ class Command(StrEnum):
     PROVE_UNCHANGED = auto()
     REFERRERS = auto()
     TAKEN_IN = auto()
+    TURN = auto()
 
 
 #: The command modules, by the name typed on the console -- `Command`'s

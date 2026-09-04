@@ -133,6 +133,10 @@ the save, `#65`/`#67`: raw JSON at the load and the save only), `src/comment_rev
 **Files:** `src/comment_review/commands/turn.py` (NEW), `src/comment_review/__main__.py`,
 `tests/test_turn_command.py` (NEW).
 
+The command also takes `--binder`: `run_turn` folds against the binder's base texts and
+resolves citations against its root, and the proof does not carry it. The game hid that
+in `case.json`. `--sent` is read as `batch_for` wrote it, role -> slots.
+
 - [ ] Test, the shape of `game.py turn`: `turn --proof P.json --sent B1.json --answers
       ROLE=PATH ... --proof-out P2.json --batch-out B2.json`; the turn number is the proof's
       `turns` length plus one; every Revisit printed as `collate` prints one; exit codes as

@@ -68,6 +68,7 @@ turn IS. The master proof's record of what each turn sent and got back is the
 caller's to keep (`MasterProof.turns`); this module returns what it needs.
 """
 
+from collections.abc import Mapping
 from dataclasses import replace
 from pathlib import Path
 
@@ -365,7 +366,7 @@ def run_turn(
     binder: Binder,
     root: Path,
     sent: dict[str, list],
-    answers: dict[str, list],
+    answers: Mapping[str, object],
     turn: int,
     earlier: dict[str, Determined] | None = None,
 ) -> tuple[Collated, list[Revisit]]:

@@ -24,7 +24,7 @@ from pathlib import Path
 from comment_review.binder.binder import Binder
 from comment_review.desk.proof import MismatchedRoot
 from comment_review.flows.collate import CannotCollate, collate
-from comment_review.flows.proof_io import save_proof
+from comment_review.flows.proof_io import save_batch, save_proof
 from comment_review.flows.turn import batch_for, proof_after
 from comment_review.machine import exceptions
 from comment_review.machine.json_object import object_of
@@ -336,9 +336,7 @@ def main() -> int:
     # `{}` would be handed to roles as a turn with nothing in it.
     if args.batch_out and (got.escalations or got.rereads):
         batch = batch_for(got)
-        Path(args.batch_out).write_text(
-            json.dumps(batch, indent=2), encoding="utf-8", newline=""
-        )
+        save_batch(Path(args.batch_out), batch)
         sizes = ", ".join(
             f"{role} {len(slots)}" for role, slots in sorted(batch.items())
         )

@@ -2,6 +2,7 @@
 
     load_proof(path) -> (MasterProof | None, problems)
     save_proof(path, proof) -> None
+    save_batch(path, batch) -> None      the batch that goes out, beside it
 
 `decision-log.md Process: #65`, `#67`: raw JSON exists at the load and the
 save only. The read is this module's, the decode is `machine.json_object`'s,
@@ -43,3 +44,11 @@ def save_proof(path: Path, proof: MasterProof) -> None:
     path.write_text(
         json.dumps(proof.serialize(), indent=2), encoding="utf-8", newline=""
     )
+
+
+def save_batch(path: Path, batch: dict[str, list[dict]]) -> None:
+    """A turn's batch as JSON at `path` -- role -> slots, as `batch_for` shaped it.
+
+    The one dump, so `collate` and `turn` write the same file.
+    """
+    path.write_text(json.dumps(batch, indent=2), encoding="utf-8", newline="")
