@@ -27,10 +27,12 @@ ESCALATION is an edit to that role's copy at the address:
 A COMPOSITION re-read is answered with a fresh `Mark` over the composed text
 (`#86`), and the answer set is `clean`, `query`, `correct`, `patch`:
 
-    clean       the role ADOPTS the composition -- its entry becomes a
-                `correct` whose `change` is the composed text. A role that
-                owed no change here stays clean; a `clean` over the BASE, where
-                the sides did not compose, is a withdrawal
+    clean       the role ADOPTS the slot's text -- its entry becomes a
+                `correct` whose `change` is that text, whoever owed the change
+                (`Process: #89`: a lone mark goes back to the roles that were
+                clean, and their clean over it is agreement). The sources are
+                the composed side's, from the sent slot. A `clean` over the
+                BASE, where nothing composed, is a withdrawal
     query       the entry becomes the query
     correct     the entry becomes a `correct` over the ORIGINAL base whose
                 `change` is the role's. `claim.false` quotes the base because
@@ -65,7 +67,7 @@ from comment_review.desk.diff_mark import (
     DiffMark,
     parse_batch,
 )
-from comment_review.desk.mark import INSTRUCTIONS, Instruction, Mark, filled, untouched
+from comment_review.desk.mark import Instruction, Mark, filled, untouched
 from comment_review.flows.collate import Collated, _chief_copy, collate
 
 #: What a role may answer a composition re-read with -- `Process: #86`.
@@ -154,6 +156,10 @@ def parse_answers(
             problems += why
             answers += [(mark.address, mark) for mark in marks]
         elif question == COMPOSITION:
+            if entry.get("instruction") == str(Instruction.CLEAN) and not entry.get(
+                "sources"
+            ):
+                entry["sources"] = _sources_of_the_composition(slot)
             mark, why = Mark.deserialize(loc, entry)
             if mark is None:
                 problems += why
@@ -168,6 +174,20 @@ def parse_answers(
         else:
             problems.append(f"{loc}: the sent slot names no question")
     return answers, problems
+
+
+def _sources_of_the_composition(slot: dict) -> list:
+    """The sources of the mark whose text the slot carries.
+
+    The composed side's, or the lone mark's, so a role adopting it by `clean`
+    can hold a `correct` that parses. Empty where no mark on the slot carries
+    that text.
+    """
+    text = slot.get("raw_text")
+    for mark in slot.get("marks", []):
+        if isinstance(mark, dict) and mark.get("change") == text:
+            return list(mark.get("sources") or [])
+    return []
 
 
 def _entry_at(copies: list[dict], role: str, address: str) -> dict | None:
@@ -225,13 +245,6 @@ def _a_patch_over_base(entry: dict, answer: Mark) -> dict:
     }
 
 
-def _owes_change(entry: dict) -> bool:
-    named = entry.get("instruction")
-    if not isinstance(named, str) or named not in INSTRUCTIONS:
-        return False
-    return INSTRUCTIONS[Instruction(named)].owes_change
-
-
 def apply(
     copies: list[dict], role: str, answers: list[tuple[str, DiffMark | Mark]]
 ) -> list[str]:
@@ -264,13 +277,9 @@ def apply(
                     if key in claim:
                         claim[key] = answer.change
             continue
-        sources = entry.get("sources") or []
+        sources = entry.get("sources") or list(answer.sources)
         if answer.instruction is Instruction.CLEAN:
-            adopts = (
-                _owes_change(entry)
-                and bool(sources)
-                and answer.raw_text != entry.get("raw_text", "")
-            )
+            adopts = bool(sources) and answer.raw_text != entry.get("raw_text", "")
             if adopts:
                 _becomes(
                     entry,

@@ -17,6 +17,7 @@ from helpers import (
     a_correct_citing,
     a_correct_setting,
     a_move,
+    a_query,
     an_add,
     copies_over,
     entries_of,
@@ -96,6 +97,21 @@ class TestTheResolutions:
         ruled = got.determined["m.py@b1"]
         assert ruled.how == "identical"
         assert [m.change for m in entries_of(got.chief)] == [same]
+
+    def test_a_query_is_not_among_the_roles_a_lone_mark_goes_back_to(self):
+        """`Process: #89`: back to every role that marked anything but a query."""
+        binder = one_place()
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {"m.py@b1": a_correct("m.py@b1")},
+                "function-context": {"m.py@b1": a_clean("m.py@b1")},
+                "module-context": {"m.py@b1": a_query("m.py@b1")},
+            },
+        )
+        got = collate("4c", copies, binder, root=REPO)
+        assert [e["address"] for e in got.rereads] == ["m.py@b1"]
+        assert got.rereads[0]["roles"] == ["block-context", "function-context"]
 
     def test_three_identical_and_one_different_still_escalate(self):
         """`#88` keeps unanimity: a role still holding has not agreed."""

@@ -629,9 +629,11 @@ class Reconciled(NamedTuple):
     all, in any of the three.
 
     Attributes:
-        settled: one owing mark, nothing composed with it. ONE role, one
-            change, and the only list a transcription reads --
-            `flows.revise.docket_of` since `P55`.
+        settled: one owing mark, nothing composed with it -- a composition of
+            ONE side. Its `roles` are every role that marked the place with
+            anything but a `query`, because the fold sends it back to them
+            before it stands (`decision-log.md Process: #89`); it is no longer
+            the list a transcription reads at turn 0.
         escalations: two or more owing marks that all rule on the SAME
             sentence -- two answers to one question.
         rereads: every other place with more than one owing mark, plus every
@@ -688,7 +690,9 @@ def _roles_of_stage(proof: MasterProof, path: str) -> set[str]:
 OUTCOMES = ("settled", "rereads", "escalations")
 
 
-def _outcome(proof: MasterProof, address: str, owing: list[Placed]) -> tuple[str, dict]:
+def _outcome(
+    proof: MasterProof, address: str, owing: list[Placed], marks: list[Placed]
+) -> tuple[str, dict]:
     """Which outcome one place gets, and the entry that records it.
 
     Asked in this order, first match winning:
@@ -697,7 +701,10 @@ def _outcome(proof: MasterProof, address: str, owing: list[Placed]) -> tuple[str
                               the stage that read this page -- two adds at two
                               addresses never meet under per-place grouping, so
                               nothing narrower can see a comment added twice
-        one owing mark        SETTLED
+        one owing mark        SETTLED -- and its roles are every role that
+                              marked the place with anything but a `query`,
+                              since the fold sends a lone mark back to them
+                              (`decision-log.md Process: #89`)
         one text              ESCALATION -- every mark carries the same
                               `change`, so the fold settles it as agreed
                               (`decision-log.md Process: #88`), whatever
@@ -713,6 +720,8 @@ def _outcome(proof: MasterProof, address: str, owing: list[Placed]) -> tuple[str
         address: the place being decided. Its path is what an `add` widens over.
         owing: the marks at this place that owe a change. Never empty --
             `reconcile` does not call this for a place with none.
+        marks: every mark at this place, `owing` included -- what a settled
+            entry's roles are read from.
 
     Returns:
         `(one of OUTCOMES, {"address", "roles", "marks"})`, `roles` sorted and
@@ -724,6 +733,11 @@ def _outcome(proof: MasterProof, address: str, owing: list[Placed]) -> tuple[str
         kind = "rereads"
     elif len(owing) == 1:
         kind = "settled"
+        roles = {
+            placed.role
+            for placed in marks
+            if placed.mark.instruction is not Instruction.QUERY
+        }
     elif (
         all(INSTRUCTIONS[placed.mark.instruction].quotes_original for placed in owing)
         and len({placed.mark.change for placed in owing}) == 1
@@ -848,7 +862,7 @@ def reconcile(proof: MasterProof) -> Reconciled:
     for address, marks in places(proof).items():
         owing = [placed for placed in marks if _owes_change(placed.mark)]
         if owing:
-            outcomes[address] = _outcome(proof, address, owing)
+            outcomes[address] = _outcome(proof, address, owing, marks)
     _join_moves(outcomes)
     settled: list[dict] = []
     escalations: list[dict] = []

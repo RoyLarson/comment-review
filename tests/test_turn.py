@@ -13,7 +13,9 @@ from helpers import (
     _MARK_PY_LINE_1,
     REPO,
     a_binder_over,
+    a_clean,
     a_correct_setting,
+    an_add,
     copies_over,
     entries_of,
 )
@@ -78,12 +80,21 @@ class TestAnEscalation:
         again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
         assert problems == []
         assert again.escalations == []
-        ruled = again.determined["m.py@b1"]
+        # ! NOT A STET YET, since `Process: #89`: the surviving mark is a lone
+        # one and block-context, now clean, marked the place -- so it goes back
+        # to block-context carrying function-context's text.
+        assert [e["address"] for e in again.rereads] == ["m.py@b1"]
+        assert again.rereads[0]["roles"] == ["block-context", "function-context"]
+        assert again.rereads[0]["composed"].change == DOS
+        batch2 = batch_of(again.escalations, again.rereads)
+        answers2 = {r: [{**batch2[r][0], "instruction": "clean"}] for r in batch2}
+        final, problems = run_turn("4c", copies, binder, REPO, batch2, answers2, turn=2)
+        assert problems == []
+        ruled = final.determined["m.py@b1"]
         assert ruled.answer is Answer.STET
-        assert ruled.turn == 1
-        assert ruled.side == "function-context"
-        assert ruled.how == "one"
-        assert [m.change for m in entries_of(again.chief)] == [DOS]
+        assert ruled.turn == 2
+        assert ruled.how == "identical"
+        assert [m.change for m in entries_of(final.chief)] == [DOS]
 
     def test_two_corrects_that_converge_are_a_stet(self):
         binder, copies, got = _escalated()
@@ -140,7 +151,9 @@ class TestTheSentBatchPairsTheAnswer:
         }
         again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
         assert problems == []
-        assert again.determined["m.py@b1"].side == "function-context"
+        # The withdrawal applied: function-context's mark is the lone one, and
+        # it goes back to block-context (`#89`).
+        assert again.rereads[0]["composed"].change == DOS
 
     def test_an_answer_at_an_address_never_sent_is_refused_by_name(self):
         binder, copies, got = _escalated()
@@ -257,6 +270,79 @@ class TestAComposition:
         }
         _, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
         assert any("not a composition answer" in p for p in problems)
+
+
+def _lone(mark: dict):
+    """One owing mark from block-context, three cleans -- `#89`'s case."""
+    binder = a_binder_over({"m.py@b1": BASE})
+    copies = copies_over(
+        binder,
+        {
+            "block-context": {"m.py@b1": mark},
+            "function-context": {"m.py@b1": a_clean("m.py@b1")},
+            "module-context": {"m.py@b1": a_clean("m.py@b1")},
+            "ownership-context": {"m.py@b1": a_clean("m.py@b1")},
+        },
+    )
+    got = collate("4c", copies, binder, root=REPO)
+    return binder, copies, got
+
+
+class TestALoneOwingMark:
+    """`Process: #89`, MEASURED in the game's hand 3: a lone patch against three
+    cleans landed as a stet at turn 0, and the cleans had never seen the text.
+    A lone mark is a composition of one side: it goes back to every role that
+    marked the place but a query, carrying its own text."""
+
+    def test_it_goes_back_to_every_role_that_marked_carrying_its_text(self):
+        _, _, got = _lone(a_correct_setting("m.py@b1", "two", TWO))
+        assert got.determined == {}
+        assert entries_of(got.chief) == []
+        assert [e["address"] for e in got.rereads] == ["m.py@b1"]
+        assert got.rereads[0]["roles"] == [
+            "block-context",
+            "function-context",
+            "module-context",
+            "ownership-context",
+        ]
+        batch = batch_of(got.escalations, got.rereads)
+        assert all(batch[r][0]["raw_text"] == TWO for r in batch)
+        assert all(batch[r][0]["composed"] is True for r in batch)
+
+    def test_every_clean_over_its_text_is_a_stet_carrying_it(self):
+        binder, copies, got = _lone(a_correct_setting("m.py@b1", "two", TWO))
+        batch = batch_of(got.escalations, got.rereads)
+        answers = {r: [{**batch[r][0], "instruction": "clean"}] for r in batch}
+        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        assert problems == []
+        assert again.rereads == [] and again.escalations == []
+        ruled = again.determined["m.py@b1"]
+        assert ruled.answer is Answer.STET
+        assert ruled.how == "identical"
+        assert [m.change for m in entries_of(again.chief)] == [TWO]
+
+    def test_a_lone_add_lands_the_same_way(self):
+        """T13's own verify: a lone surviving add, all others holding, lands."""
+        added = an_add("m.py@b1")
+        added["change"] = BASE + "# and the sentence that was missing\n"
+        binder, copies, got = _lone(added)
+        batch = batch_of(got.escalations, got.rereads)
+        assert all(batch[r][0]["raw_text"] == added["change"] for r in batch)
+        answers = {r: [{**batch[r][0], "instruction": "clean"}] for r in batch}
+        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        assert problems == []
+        assert [m.change for m in entries_of(again.chief)] == [added["change"]]
+
+    def test_a_clean_over_the_base_from_the_author_withdraws_it(self):
+        """A `clean` adopts the slot's text; where a role owed the only change
+        and the slot carries its own text, clean is agreement, not withdrawal.
+        Withdrawal is a `correct` back to the base, or a DiffMark withdraw on an
+        escalation."""
+        binder, copies, got = _lone(a_correct_setting("m.py@b1", "two", TWO))
+        batch = batch_of(got.escalations, got.rereads)
+        answers = {r: [{**batch[r][0], "instruction": "clean"}] for r in batch}
+        again, _ = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        assert "m.py@b1" in again.determined
 
 
 class TestTheCap:

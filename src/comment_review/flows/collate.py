@@ -301,18 +301,32 @@ def _resolve(
 
     Returns:
         `(address -> the Determined for it, escalations left, rereads left)`.
-        Every Determined is a `stet` at `turn`: `one` for a single owing mark,
-        `identical` where two or more agreed byte for byte.
+        Every Determined is a `stet` at `turn`: `identical` where two or more
+        marks agreed byte for byte, `one` for a lone mark no other role
+        marked against -- a lone mark other roles marked against goes back
+        as a re-read instead.
     """
     resolved: dict[str, Determined] = {}
     escalations: list[dict] = []
     rereads: list[dict] = []
 
     for entry in reconciled.settled:
+        # !! A LONE MARK IS A COMPOSITION OF ONE SIDE, `Process: #89`: it goes
+        # back to every role that marked the place, carrying its own text,
+        # and stands only when they agree. MEASURED in the game's hand 3: a
+        # lone patch against three cleans landed here at turn 0, unread.
+        # ! WHEN THE AUTHOR IS THE ONLY ROLE THAT MARKED, there is nobody to
+        # send it to, and it stands -- a single-role stage, 4a, is this case
+        # at every place.
         placed = entry["marks"][0]
-        resolved[entry["address"]] = Determined(
-            entry["address"], Answer.STET, turn, placed.role, "one", "", placed.mark
-        )
+        others = [role for role in entry["roles"] if role != placed.role]
+        if others:
+            entry["composed"] = placed.mark
+            rereads.append(entry)
+        else:
+            resolved[entry["address"]] = Determined(
+                entry["address"], Answer.STET, turn, placed.role, "one", "", placed.mark
+            )
 
     for entry in reconciled.escalations:
         agreed = _identical(entry["marks"])
@@ -331,6 +345,11 @@ def _resolve(
 
     for entry in reconciled.rereads:
         composed = _composition(entry, base.get(entry["address"], ""))
+        if composed is None and len(entry["marks"]) == 1:
+            # ! A LONE `add` IS ITS OWN COMPOSITION: `_outcome` widened it to
+            # the stage before the one-mark test, so it reaches here with one
+            # side and carries that side's text back -- T13.
+            composed = entry["marks"][0].mark
         if composed is not None:
             # ! MUTATES `reconcile`'s own entry, which this flow owns from here
             # on. The SAME dict object stays in `rereads`, which the
