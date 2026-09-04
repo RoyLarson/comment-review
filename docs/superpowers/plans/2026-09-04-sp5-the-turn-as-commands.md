@@ -147,18 +147,18 @@ in `case.json`. `--sent` is read as `batch_for` wrote it, role -> slots.
 - [x] Gates green; commit `-F`.
 - [x] Tick: P4; commit.
 
-## Task 6: the `cap` command -- P5, T16 (the other half)
+## Task 6: the `cap` command -- P5, T16 (the other half) -- 54bde260
 
 **Files:** `src/comment_review/commands/cap.py` (NEW), `src/comment_review/__main__.py`,
 `tests/test_cap_command.py` (NEW).
 
-- [ ] Test, the shape of `game.py cap`: `cap --proof P.json --rulings R.json --out chief.json
+- [x] Test, the shape of `game.py cap`: `cap --proof P.json --rulings R.json --out chief.json
       --proof-out final.json`; refuses an unruled place naming it and its roles (`BROKEN`,
       nothing written); prints every unsettlable place for the human; the chief's copy parses
       as an ordinary edit copy.
-- [ ] Test: a `recast` needs `prose`; a `taken_in` of `original` writes no entry.
-- [ ] Gates green; commit `-F`.
-- [ ] Tick: P5, T16; commit.
+- [x] Test: a `recast` needs `prose`; a `taken_in` of `original` writes no entry.
+- [x] Gates green; commit `-F`.
+- [x] Tick: P5, T16; commit.
 
 ## Task 7: one hand on commands alone -- P6
 
