@@ -6,7 +6,12 @@ Mirrors `test_mark.py`'s shape tests for `Mark`, over the smaller `DiffMark`.
 import pytest
 
 from comment_review.desk.collator import Placed
-from comment_review.desk.diff_mark import DiffInstruction, DiffMark, batch_of
+from comment_review.desk.diff_mark import (
+    DiffInstruction,
+    DiffMark,
+    batch_of,
+    parse_batch,
+)
 from comment_review.desk.mark import Instruction, Mark
 
 
@@ -203,3 +208,44 @@ def test_the_diff_carries_every_mark_at_the_place_including_the_readers_own():
 
 def test_no_disagreements_gives_an_empty_batch():
     assert batch_of([], []) == {}
+
+
+# === parse_batch -- P16
+
+
+def test_an_unanswered_place_is_refused_never_read_as_a_withdraw():
+    """P16's own verify. Left exactly as `batch_of` handed it out."""
+    slot = DiffMark.seed("m.py@b1", "def f(x):")
+    marks, problems = parse_batch("block-context", [slot])
+    assert marks == []
+    assert any("unanswered" in p for p in problems)
+    assert not any("withdraw" in p and "unanswered" not in p for p in problems)
+
+
+def test_an_answered_place_parses():
+    slot = DiffMark.seed("m.py@b1", "def f(x):")
+    slot["instruction"] = "hold"
+    slot["reason"] = "the finding still stands"
+    marks, problems = parse_batch("block-context", [slot])
+    assert problems == []
+    assert len(marks) == 1
+    assert marks[0].instruction is DiffInstruction.HOLD
+
+
+def test_a_malformed_answer_is_refused_by_name_not_dropped():
+    slot = DiffMark.seed("m.py@b1", "def f(x):")
+    slot["instruction"] = "clean"
+    marks, problems = parse_batch("block-context", [slot])
+    assert marks == []
+    assert any("not one of" in p for p in problems)
+
+
+def test_a_mixed_batch_reports_both_the_parsed_and_the_refused():
+    answered = DiffMark.seed("m.py@b1", "def f(x):")
+    answered["instruction"] = "withdraw"
+    answered["reason"] = "the other role's reading is right"
+    unanswered = DiffMark.seed("m.py@b5", "def g():")
+    marks, problems = parse_batch("block-context", [answered, unanswered])
+    assert len(marks) == 1
+    assert len(problems) == 1
+    assert "m.py@b5" in problems[0]

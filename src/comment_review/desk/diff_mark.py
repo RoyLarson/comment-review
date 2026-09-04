@@ -2,11 +2,10 @@
 
 !! NOTHING WIRES THIS IN YET. Roy, 2026-09-03: *"That looks like a good prototype
 to test out the workflow. Keep it a prototype until we get all of the pieces
-together."* `docs/plans/0.2.4-the-mark-and-the-collator.md` P20 (`DiffMark`
-itself) and P21 (`batch_of`) are this file; P16 (the return and parse), P17
-(the recollate) and P18/P19 (the round counter and the chief's cap ruling)
-are what would make a `DiffMark` reach a role or come back from one. Until
-they land this module has no caller.
+together."* `docs/plans/0.2.4-the-mark-and-the-collator.md` P20 (`DiffMark` itself), P21
+(`batch_of`) and P16 (`parse_batch`) are this file; P17 (the recollate) and
+P18/P19 (the round counter and the chief's cap ruling) are what would close
+the loop. Until they land this module has no caller.
 
 === WHY IT IS NOT A `Mark`
 
@@ -234,3 +233,66 @@ def batch_of(escalations: list[dict], rereads: list[dict]) -> dict[str, list[dic
             slot["marks"] = context
             batch.setdefault(role, []).append(slot)
     return batch
+
+
+#: The two fields a ROLE fills on a diff mark, following `mark.ROLE_FIELDS`'
+#: own convention -- `address`, `anchor` and `instruction` are seeded or
+#: being ruled on, and say nothing about whether anyone wrote here.
+DIFF_ROLE_FIELDS = ("reason", "change")
+
+
+def diff_untouched(entry: object) -> bool:
+    """A seeded diff-mark slot no role has written in -- the coverage gap.
+
+    Mirrors `desk.mark.untouched` exactly, over `DiffMark`'s smaller field
+    set: BOTH `instruction` present and null -- the key `seed()` writes --
+    AND neither of `DIFF_ROLE_FIELDS` filled. An entry that fails either half
+    is a ruling, and goes to `DiffMark.deserialize`, which refuses it by name.
+
+    Args:
+        entry: one entry of a role's answered batch, as it came back.
+
+    Returns:
+        True only for a slot that is still exactly as `batch_of` handed it
+        out.
+    """
+    if not isinstance(entry, dict):
+        return False
+    data: dict = entry
+    if "instruction" not in data or data["instruction"] is not None:
+        return False
+    return not any(data.get(key) for key in DIFF_ROLE_FIELDS)
+
+
+def parse_batch(where: str, batch: list[object]) -> tuple[list[DiffMark], list[str]]:
+    """Every entry of a role's answered batch, parsed or refused by name -- P16.
+
+    !! AN UNANSWERED PLACE IS REFUSED, NEVER READ AS A WITHDRAW. `diff_untouched`
+    is asked FIRST, so a coverage gap is named as one -- *"unanswered"* -- rather
+    than falling into `deserialize`'s generic *"instruction must be one of"*,
+    which would be true of an unanswered slot only by accident. This is P16's
+    own verify, and the same defect `desk.mark.untouched` exists to keep out of
+    `Mark`'s own boundary.
+
+    Args:
+        where: how to name this batch's entries -- a role name, typically.
+        batch: one role's returned slots, in the shape `batch_of` handed out.
+
+    Returns:
+        `(marks, problems)`. Every entry contributes to exactly one: a parsed
+        `DiffMark`, or one or more named problems.
+    """
+    marks: list[DiffMark] = []
+    problems: list[str] = []
+    for i, entry in enumerate(batch, 1):
+        address = entry.get("address") if isinstance(entry, dict) else None
+        loc = f"{where} {address}" if address else f"{where} diff mark {i}"
+        if diff_untouched(entry):
+            problems.append(f"{loc}: unanswered -- refused, not read as a withdraw")
+            continue
+        mark, why = DiffMark.deserialize(loc, entry)
+        if mark is None:
+            problems += why
+            continue
+        marks.append(mark)
+    return marks, problems
