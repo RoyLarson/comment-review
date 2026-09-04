@@ -123,22 +123,30 @@ read like**, so the chief is choosing between texts rather than composing one.
 
 ## What is BUILT and what is NOT
 
-MEASURED 2026-09-02, on `feat/the-mark-and-the-collator`:
+MEASURED 2026-09-04, on `feat/the-turn`, after SP-4
+(`docs/superpowers/plans/2026-09-04-sp4-the-turn.md`):
 
 | | |
 | --- | --- |
 | disagreements collected at collate | **built** -- `Collated.escalations`, `Collated.rereads` |
-| the chief's edit_copy | **built** -- `flows.collate._chief_copy` |
+| the chief's edit_copy | **built** -- `flows.collate._chief_copy`, DERIVED from the Determineds since `bc62ea5` |
 | a role states the paragraph it wants | **built** -- `Mark.change`, raw text |
-| **the DiffMark** | **NOT built.** `grep -rn "DiffMark" src/` returns nothing |
-| **the batch send-out** | **NOT built.** Escalations are carried forward; nothing sends them |
-| **the ruling coming back, and the recollate** | **NOT built** |
-| **the turn counter** | **NOT built** -- `P3` |
-| **the chief's own final ruling** | **NOT built** |
+| the DiffMark | **built** -- `desk/diff_mark.py`, `5574f0a`; the four, closed |
+| the batch send-out | **built** -- `desk.diff_mark.batch_of`, seeded by question (`#86`), `bc62ea5` |
+| the ruling coming back, and the recollate | **built** -- `flows.turn.parse_answers`, paired to the sent slot (`2c04181`); `apply`; `run_turn` |
+| the turn counter | **built** -- `Determined.turn`, and `MasterProof.turns`; a stet keeps its turn (`aefefdd`) |
+| the chief's own final ruling | **built** -- `flows.turn.rule_at_cap` (`taken_in`, `recast`), `determined_chief` refusing an unruled place (`d1ddbd8`) |
+| the record of how each place was ruled | **built** -- `desk/determined.py`, one `Determined` per resolved place on the master proof (`#87`) |
+| the human's query riding with the set | **built** -- `Collated.unsettlable`, `MasterProof.unsettlable` (`99c7620`) |
+| **a console command that runs a turn** | **NOT built.** The session's game harness drives `run_turn`; nothing in `commands/` does |
+| **what SKILL.md tells the task agent about a turn** | **NOT built** -- `agents` lane |
 
-! **SO THE LOOP DESCRIBED HERE RUNS NOWHERE YET.** What exists is the collect and the fold at
-either end of it. This file is the specification, not a description of behaviour -- and it says
-so rather than letting a reader assume the machinery matches the prose.
+! **THE LOOP RUNS, AND IT IS STILL A PROTOTYPE BY NAME.** It has been played twice as a
+game -- five hands on `bc62ea5`, which produced `Process: #88`-`#91`, and once more on the
+build above -- and every finding either landed here or is a task on
+`TODO/a-revise-answer-has-no-artifact.md`. What keeps the PROTOTYPE banners on
+`desk/determined.py`, `desk/diff_mark.py` and `flows/turn.py` is the two rows still NOT
+built: nothing outside a scratchpad can run it.
 
 ---
 
@@ -151,3 +159,9 @@ so rather than letting a reader assume the machinery matches the prose.
 | the DiffMark is its own artifact, and its closed set | `Process: #22` |
 | the composition re-read, and its passes | `Process: #49` |
 | `change` is the wanted paragraph as raw text | Roy, 2026-08-28; `docs/the-mark.md` |
+| an escalation answers with a DiffMark, a composition with a fresh Mark | `Process: #86` |
+| the chief's ruling is a `Determined`, one per resolved place, on the master proof | `Process: #87` |
+| agreement is the text alone, and it takes every owing mark | `Process: #88` |
+| a lone owing mark goes back to every role that marked but a query | `Process: #89` |
+| a human-review query rides and is asked last; the other shapes abstain | `Process: #90` |
+| once stet, always stet, for the review; nothing persists across runs | `Process: #91` |
