@@ -128,7 +128,7 @@ the save, `#65`/`#67`: raw JSON at the load and the save only), `src/comment_rev
 - [x] Gates green; commit `-F`.
 - [x] Tick: P3; commit.
 
-## Task 5: the `turn` command -- P4, T16 (half)
+## Task 5: the `turn` command -- P4, T16 (half) -- 4040acea
 
 **Files:** `src/comment_review/commands/turn.py` (NEW), `src/comment_review/__main__.py`,
 `tests/test_turn_command.py` (NEW).
@@ -137,15 +137,15 @@ The command also takes `--binder`: `run_turn` folds against the binder's base te
 resolves citations against its root, and the proof does not carry it. The game hid that
 in `case.json`. `--sent` is read as `batch_for` wrote it, role -> slots.
 
-- [ ] Test, the shape of `game.py turn`: `turn --proof P.json --sent B1.json --answers
+- [x] Test, the shape of `game.py turn`: `turn --proof P.json --sent B1.json --answers
       ROLE=PATH ... --proof-out P2.json --batch-out B2.json`; the turn number is the proof's
       `turns` length plus one; every Revisit printed as `collate` prints one; exit codes as
       `collate`'s (`OK` nothing carried, `REREADS`, `ESCALATIONS`, `BROKEN` on an unreadable
       Revisit, `UNREADABLE` on a file that is not what it says).
-- [ ] Test: `earlier` is the proof's own `determined`, so a stet keeps its turn across the
+- [x] Test: `earlier` is the proof's own `determined`, so a stet keeps its turn across the
       command boundary; the turn record lands on the proof.
-- [ ] Gates green; commit `-F`.
-- [ ] Tick: P4; commit.
+- [x] Gates green; commit `-F`.
+- [x] Tick: P4; commit.
 
 ## Task 6: the `cap` command -- P5, T16 (the other half)
 
