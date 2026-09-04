@@ -103,15 +103,18 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
 
 ## Tasks
 
-- [x] T1 | FINISHED | unknown | T1 -- The four answers as a closed set, derived
-      from `rules_on_text` plus the two that are not marks. Verify: it cannot
-      drift from `INSTRUCTIONS`, and a fifth answer is refused.
-- [x] T2 | FINISHED | unknown | T2 -- A revise sheet, seeded per conflict,
-      carrying the rendered diff. Verify: every row names the conflict it
-      answers, and a row left unanswered is neither held nor withdrawn.
-- [x] T3 | FINISHED | unknown | T3 -- The four outcomes. Verify: any new mark
-      relitigates; two holds escalate; hold plus withdraw takes the held claim
-      in; two withdraws pick one and re-ask.
+- [-] T1 | SUPERSEDED 2026-08-29, Process 49 -- assumed only the conflict question; re-filed as T10 | 1a900d1 | T1
+      -- The four answers as a closed set, derived from `rules_on_text` plus the
+      two that are not marks. Verify: it cannot drift from `INSTRUCTIONS`, and a
+      fifth answer is refused.
+- [-] T2 | SUPERSEDED 2026-08-29, Process 49 -- seeded a sheet per conflict only; re-filed as T11 | 1a900d1 | T2
+      -- A revise sheet, seeded per conflict, carrying the rendered diff.
+      Verify: every row names the conflict it answers, and a row left unanswered
+      is neither held nor withdrawn.
+- [-] T3 | SUPERSEDED 2026-08-29, Process 49 -- four conflict outcomes only; re-filed as T15 | 1a900d1 | T3
+      -- The four outcomes. Verify: any new mark relitigates; two holds
+      escalate; hold plus withdraw takes the held claim in; two withdraws pick
+      one and re-ask.
 - [ ] T4 | T4 -- Route a `query` by shape. Verify: `human-review-necessary`
       never returns to a role, and `unable-to-determine` carries the question
       into the next ask.
@@ -119,10 +122,11 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       -- Count queries first raised at revise. Verify: the run reports the
       number, and it is zero on a set of marks where every query was raised in
       round one.
-- [x] T6 | FINISHED | unknown | T6 -- A revise sheet is addressed to a ROLE, not
-      to a stage, and carries only the rows that role is party to. Verify: a
-      role party to one place in a stage it did not otherwise join receives a
-      one-row sheet, and no row names a place it is not party to.
+- [-] T6 | SUPERSEDED 2026-08-29, Process 49 -- party-to was disagreement alone; re-filed as T11 | 1a900d1 | T6
+      -- A revise sheet is addressed to a ROLE, not to a stage, and carries only
+      the rows that role is party to. Verify: a role party to one place in a
+      stage it did not otherwise join receives a one-row sheet, and no row names
+      a place it is not party to.
 - [-] T7 | SUPERSEDED into a-role-can-reverse-itself-between-runs T3 -- it is agent-output variance across two runs, not a claim about the process, so it is agents' and not a code gate | f196ef9 | T7
       -- A reversal is a row, paired with whoever LAST set the statement.
       Verify: stage 3 reversing a paragraph stage 2 set pairs with stage 2 and
