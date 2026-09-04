@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 26 of 35 tasks closed
+Progress: 27 of 35 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
@@ -246,6 +246,7 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       unsettlable and asked last; other shapes abstain. Verify: it is on the
       proof
         > 2026-09-04 Process 90; hands 1 and 4: queries vanished from the record
-- [ ] T35 | Update the recollate so a place once stet leaves every later batch
-      and keeps its turn. Verify: stet at turn 1 reads turn 1 after turn 2
+- [x] T35 | FINISHED -- run_turn keeps every earlier Determined, turn included; a stet place leaves later batches; test_turn.py TestOnceStetAlwaysStet | aefefdd | Update
+      the recollate so a place once stet leaves every later batch and keeps its
+      turn. Verify: stet at turn 1 reads turn 1 after turn 2
         > 2026-09-04 Process 91; T25's turn stamp folded in
