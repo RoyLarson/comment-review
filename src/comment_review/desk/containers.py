@@ -39,12 +39,12 @@ flow CARRIES between its load and its save; a seed is emitted AT a save --
 is handed -- so the dict is where that ruling puts it.
 
     write   flows.distribute.seed, flows.collate._chief_copy,
-            flows.collate._nothing_settled, desk.proof.gather
-    read    flows.collate.collate, at its inbound boundary and after `gather`
+            flows.collate._nothing_settled, desk.proof.master_proof_of
+    read    flows.collate.collate, at its inbound boundary and after `master_proof_of`
 
 ! THE PARSES HAD NO PRODUCTION CALLER UNTIL 2026-08-31, and this file said so
 for as long as that was true. `P21` closed it: `collate` runs `EditCopy.deserialize`
-over every returned copy and `MasterProof.deserialize` over what `gather` builds,
+over every returned copy and `MasterProof.deserialize` over what `master_proof_of` builds,
 so **every refusal declared below can now fire.**
 
 !! THIS FILE STATES WHAT THE TWO BOUNDARIES ARE, AND NOTHING ELSE RESTATES IT.
@@ -433,7 +433,7 @@ class EditCopy:
 
         Returns:
             `{role, read_from, sheets}`. ! `read_from` IS COPIED, NOT ALIASED,
-            as `bind`, `seed` and `gather` all do with this field: a caller
+            as `bind`, `seed` and `master_proof_of` all do with this field: a caller
             mutating its own dict afterward cannot change what this copy holds.
         """
         return _written(
@@ -487,7 +487,7 @@ class EditCopy:
         return (
             EditCopy(
                 role=role,
-                # ! COPIED, NOT ALIASED -- `bind`, `seed` and `gather` all do the
+                # ! COPIED, NOT ALIASED -- `bind`, `seed` and `master_proof_of` all do the
                 # same with this field, so a caller mutating its own dict cannot
                 # change what a parsed copy already holds.
                 read_from={**checked["read_from"]},
@@ -511,12 +511,12 @@ class EditCopy:
 
 @dataclass(frozen=True)
 class MasterProof:
-    """Every `edit_copy` of one stage, gathered.
+    """Every `edit_copy` of one stage, held in one place.
 
     Attributes:
         stage: the label the copies were dispatched under -- `SKILL.md`'s "4a",
             "4c".
-        read_from: taken from the first copy; `desk.proof.gather` refuses a set
+        read_from: taken from the first copy; `desk.proof.master_proof_of` refuses a set
             that disagrees.
         edit_copies: one per role, or one per SHARD under fan-out.
         turns: the record of each turn of this stage's collate, in order --
@@ -526,7 +526,7 @@ class MasterProof:
         determined: the copy chief's ruling at every resolved place --
             `desk.determined.Determined`, `Process: #87`. Empty until a fold
             has recorded them.
-            ! BOTH ARE `wire: False`: `seed` writes the three fields `gather`
+            ! BOTH ARE `wire: False`: `seed` writes the three fields `master_proof_of`
             takes from a copy, and these two are written by a fold, later.
             `serialize` carries them; `deserialize` reads them where present.
         unsettlable: every place a human-review query holds, riding to the
@@ -544,11 +544,11 @@ class MasterProof:
 
     @classmethod
     def seed(cls, stage: str, read_from: dict, edit_copies: list) -> dict:
-        """One master_proof as the wire dict `desk.proof.gather` returns.
+        """One master_proof as the wire dict `desk.proof.master_proof_of` returns.
 
         Args:
             stage: the label these copies were dispatched under.
-            read_from: taken from the first copy by `gather`, which refuses a
+            read_from: taken from the first copy by `master_proof_of`, which refuses a
                 set that disagrees.
             edit_copies: one `EditCopy.seed` dict per role, or per SHARD under
                 fan-out. Held in the order given: nothing is sorted, nothing is
@@ -574,20 +574,20 @@ class MasterProof:
 
         Args:
             where: how to name this proof in a message -- its stage label.
-            data: a master_proof, as `desk.proof.gather` returns one.
+            data: a master_proof, as `desk.proof.master_proof_of` returns one.
 
         Returns:
             `(MasterProof, [])` or `(None, [messages])`. Every bad copy is
             reported, and so is a `read_from` that fails `_read_from_problem` --
             the same check `EditCopy.deserialize` runs on an edit_copy's own field --
             or that disagrees with the first edit_copy's, which is the
-            disagreement `desk.proof.gather` itself refuses with
+            disagreement `desk.proof.master_proof_of` itself refuses with
             `MismatchedRoot` before a master_proof is ever built.
 
             ! THE SHAPE CHECK RUNS WHETHER OR NOT THERE ARE COPIES, since
             2026-08-31; the COMPARISON needs a first copy and still only runs
             where there is one. The single exemption is an empty proof whose
-            `read_from` is `{}` or absent, which is what `gather` writes when it
+            `read_from` is `{}` or absent, which is what `master_proof_of` writes when it
             had no first copy to take one from.
         """
         if not isinstance(data, dict):
@@ -624,7 +624,7 @@ class MasterProof:
         # the header checks it explained. The measurement is stated here now,
         # where the code it justifies is.
         #
-        # ! `{}` IS STILL ADMITTED, AND ONLY FOR AN EMPTY PROOF. `desk.proof.gather`
+        # ! `{}` IS STILL ADMITTED, AND ONLY FOR AN EMPTY PROOF. `desk.proof.master_proof_of`
         # writes it when there is no first copy to take a `read_from` from, so
         # refusing it would refuse a shape the producer itself makes. That is the
         # one exemption; it is not a licence for every other value.
@@ -692,7 +692,7 @@ class MasterProof:
         )
 
     def serialize(self) -> dict:
-        """This master_proof as the wire dict, the shape `gather` returns."""
+        """This master_proof as the wire dict, the shape `master_proof_of` returns."""
         return {
             "stage": self.stage,
             "read_from": {**self.read_from},

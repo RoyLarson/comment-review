@@ -37,7 +37,7 @@ from comment_review.desk.mark import (
     Mark,
     Shape,
 )
-from comment_review.desk.proof import gather
+from comment_review.desk.proof import master_proof_of
 from comment_review.docket.docket import Docket
 from comment_review.flows.distribute import seed
 from comment_review.flows.page_for import page_of, source_of
@@ -501,7 +501,7 @@ def returned(wire: dict, where: str = "copy") -> EditCopy:
 
 
 def a_master_proof(by_role: dict) -> MasterProof:
-    """A `master_proof`, composed through the real `seed()` and `gather()`.
+    """A `master_proof`, composed through the real `seed()` and `master_proof_of()`.
 
     Args:
         by_role: role name -> {address: mark}, one mark per place that role
@@ -509,16 +509,16 @@ def a_master_proof(by_role: dict) -> MasterProof:
             `an_add`.
 
     Returns:
-        The `MasterProof` `desk.proof.gather` returns. One `edit_copy` per
+        The `MasterProof` `desk.proof.master_proof_of` returns. One `edit_copy` per
         role, seeded for real over a synthetic binder sized to that role's own
         addresses, then each seeded entry overlaid with the caller's mark --
         the same `entry.update(...)` pattern `tests/test_collator.py` uses over
         a real one.
 
     ! IT RUNS THE REAL PARSE BETWEEN THE TWO, exactly as `flows.collate.collate`
-    does since `P42`: `seed` writes the wire dict a role is handed, and `gather`
+    does since `P42`: `seed` writes the wire dict a role is handed, and `master_proof_of`
     takes the parsed `EditCopy`. A fixture that skipped the parse would hand
-    `gather` a shape production cannot produce.
+    `master_proof_of` a shape production cannot produce.
     """
     copies = []
     for role, marks_by_address in by_role.items():
@@ -531,7 +531,7 @@ def a_master_proof(by_role: dict) -> MasterProof:
         copy, why = EditCopy.deserialize(role, wire)
         assert copy is not None, why
         copies.append(copy)
-    return gather("4c", copies)
+    return master_proof_of("4c", copies)
 
 
 def _mark(instruction: Instruction, address: str, claim: dict) -> dict:

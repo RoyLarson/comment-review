@@ -7,7 +7,7 @@
                          rules on; and RECONCILIATION -- per address, across
                          the marks of one stage -- ending in a DOCKET
     proof               the roles level: every `edit_copy` of one stage
-                         gathered into one `master_proof`
+                         held in one `master_proof`
     topology            a run's schedule, read from a TOML file -- which
                          stages run, in what order, and what each dispatches
     external_address    a SKETCH, not in service -- a coordinate into a file

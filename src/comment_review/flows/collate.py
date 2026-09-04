@@ -23,7 +23,7 @@ Ten acts, in the order the body runs them:
                `desk.mark.parse` cannot ask because it holds no binder, no page
                and no filesystem
     DRIFT      a returned `raw_text` that is not the seeded one
-    GATHER     `desk.proof.gather` -- the master_proof
+    ASSEMBLE   `desk.proof.master_proof_of` -- the master_proof
     PLACE      `desk.collator.places` -- marks grouped by the place they touch
     RECONCILE  `desk.collator.reconcile` -- settled, escalated, re-read
     RESOLVE    the automatic resolutions -- `_resolve`, a `stet` Determined per
@@ -36,7 +36,7 @@ Ten acts, in the order the body runs them:
 COVERAGE before CHECK, which is the reverse of what runs, and folded
 `MasterProof.deserialize` into ENVELOPE at position one when it is called after
 GATHER -- so a reader using it to find a stage landed in the wrong place twice.
-! IT HELD A TWELFTH ACT, `PROOF`, UNTIL `P42` retired it: `gather` returns a
+! IT HELD A TWELFTH ACT, `PROOF`, UNTIL `P42` retired it: `master_proof_of` returns a
 `MasterProof` rather than a dict, so there is no document left to rule on.
 
 !! THE RESOLUTIONS SIT DOWNSTREAM OF `reconcile`, WHICH IS UNTOUCHED.
@@ -84,7 +84,7 @@ from comment_review.desk.containers import (
 )
 from comment_review.desk.determined import Answer, Determined
 from comment_review.desk.mark import Instruction, Mark, Shape, filled
-from comment_review.desk.proof import MismatchedRoot, gather
+from comment_review.desk.proof import MismatchedRoot, master_proof_of
 from comment_review.flows.mark_errors import Revisit, mark_errors
 from comment_review.reading.addresser import cue_of, unflatten
 from comment_review.results.differences import CannotCompose, compose
@@ -911,12 +911,12 @@ def collate(
     # discards all of them, which `commands/collate.py` was measured doing on
     # 2026-08-30 -- exit 1 with an EMPTY stdout. See `CannotCollate`.
     try:
-        proof = gather(stage, copies)
+        proof = master_proof_of(stage, copies)
     except MismatchedRoot as err:
         raise CannotCollate(str(err), problems, revisit) from err
     # !! THE PROOF BOUNDARY IS GONE, AND `P42` IS WHY. `MasterProof.deserialize`
-    # ran here, over the dict `gather` returned, and reported a proof that was
-    # not one. `gather` now RETURNS a `MasterProof`, so reaching that parse
+    # ran here, over the dict `master_proof_of` returned, and reported a proof that was
+    # not one. `master_proof_of` now RETURNS a `MasterProof`, so reaching that parse
     # would mean serializing a container in order to read it back -- and every
     # rule it enforced is already settled upstream: each copy's `read_from`
     # by `EditCopy.deserialize`, the agreement between them by `MismatchedRoot`
@@ -924,7 +924,7 @@ def collate(
     #
     # ! IT WAS ALREADY A GUARD ON THIS CODE RATHER THAN ON ITS INPUT -- its own
     # comment said so, and said the test that proved it could fail had to
-    # REPLACE `gather` to reach it. That is the shape `docs/gates.md` names: a
+    # REPLACE `master_proof_of` to reach it. That is the shape `docs/gates.md` names: a
     # check reachable only by breaking the producer is answering a question the
     # types now answer.
     reconciled = reconcile(proof)

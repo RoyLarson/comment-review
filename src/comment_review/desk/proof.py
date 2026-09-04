@@ -1,6 +1,6 @@
-"""The roles level: every `edit_copy` of one stage, gathered into one `master_proof`.
+"""The roles level: every `edit_copy` of one stage, held in one `master_proof`.
 
-    gather(stage, edit_copies)   the `MasterProof` holding them
+    master_proof_of(stage, edit_copies)   the `MasterProof` holding them
 
 !! THE LEVEL `binder` AND `docket` LACK, RULED 2026-08-29 (`decision-log.md
 Vocabulary: #28`):
@@ -16,7 +16,8 @@ holds the edit_copies."* `binder` and `docket` have no roles level -- one goes
 out, one comes back, and in between there are N marked copies with no
 container. This module is that container.
 
-! `master_proof` HOLDS `edit_copies`, NOT SHEETS DIRECTLY -- a sheet belongs
+! `gather` IS STAGE 2's WORD (`decision-log.md Vocabulary: #34`), so this act is
+named for what it makes. ! `master_proof` HOLDS `edit_copies`, NOT SHEETS DIRECTLY -- a sheet belongs
 to the `edit_copy` that seeded it, one level down.
 """
 
@@ -24,7 +25,7 @@ from comment_review.desk.containers import EditCopy, MasterProof
 
 
 class MismatchedRoot(Exception):
-    """Two `edit_copies` handed to `gather` were censused from different roots.
+    """Two `edit_copies` handed to `master_proof_of` were censused from different roots.
 
     !! THE ONLY RULE WITH A NAMED EXCEPTION HERE, and it has to be one that can
     fail: two edit_copies censused from different revises cannot be
@@ -32,14 +33,14 @@ class MismatchedRoot(Exception):
     from one tells nothing about the `a0` in the other.
 
     ! AN ABSENT `read_from` IS NO LONGER THIS MODULE'S CASE AT ALL, since
-    2026-08-31. `gather` subscripted the key so an absence raised `KeyError`
+    2026-08-31. `master_proof_of` subscripted the key so an absence raised `KeyError`
     rather than comparing every copy that carried none EQUAL on `{}`; taking an
     `EditCopy` retires the question, because `EditCopy.deserialize` refuses a
     copy whose `read_from` fails `_read_from_problem` before one can be built.
     """
 
 
-def gather(stage: str, edit_copies: list[EditCopy]) -> MasterProof:
+def master_proof_of(stage: str, edit_copies: list[EditCopy]) -> MasterProof:
     """Every `edit_copy` of one stage, as the master_proof that holds them.
 
     Args:
@@ -52,7 +53,7 @@ def gather(stage: str, edit_copies: list[EditCopy]) -> MasterProof:
         The `MasterProof`. `read_from` is taken from the first edit_copy,
         copied rather than aliased -- matching `binder.bind`'s own rule for the
         same field, so a caller mutating its own dict afterward cannot change
-        what the master_proof already holds. An empty `edit_copies` gathers to
+        what the master_proof already holds. An empty `edit_copies` assembles to
         `{}`, since there is no first copy to take it from.
 
     Raises:

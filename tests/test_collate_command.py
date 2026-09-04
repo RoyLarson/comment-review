@@ -176,7 +176,7 @@ class TestExitCodes:
         !! THE DOOR MOVED TWICE AND THIS TEST DID NOT. It was written against
         `desk.collator.UnnamedRole`, raised by `places()` inside `collate` --
         `problems_in` also reported a missing `role`, but nothing branched on
-        that before `gather` and `reconcile` ran, so a role-less copy reached
+        that before `master_proof_of` and `reconcile` ran, so a role-less copy reached
         `places()` and the raise aborted `collate` before it could return a
         `Collated` at all. Then `P21` made the envelope parse report it as a
         `Problem` first, and `P42` deleted `UnnamedRole` outright. ! WHAT THE
@@ -221,7 +221,7 @@ class TestExitCodes:
     def test_mismatched_roots_exit_one_naming_the_reason(
         self, tmp_path, monkeypatch, capsys
     ):
-        """`desk.proof.MismatchedRoot`, raised by `gather()` inside
+        """`desk.proof.MismatchedRoot`, raised by `master_proof_of()` inside
         `flows.collate.collate` on the second copy's disagreeing `read_from`.
         """
         binder = a_binder_over({"m.py@b1": BASE})
@@ -264,7 +264,7 @@ class TestExitCodes:
 
         !! MEASURED BEFORE THE FIX: exit 1, **stdout EMPTY**, and only the
         REFUSED line on stderr. `collate` accumulates its `Problem`s into a
-        local list and only reaches `return Collated(...)` past `gather`, so a
+        local list and only reaches `return Collated(...)` past `master_proof_of`, so a
         refusal there made every one of them unrecoverable -- **one role's
         incompatible header blocking routing for every other role**, which is
         the opposite of Roy's rule that the errors stack so each can be fixed or
@@ -308,7 +308,7 @@ class TestExitCodes:
     def test_a_copy_missing_read_from_exits_one_not_a_traceback(
         self, tmp_path, monkeypatch, capsys
     ):
-        """`desk.proof.gather`'s bare `copy["read_from"]` raises `KeyError` by
+        """`desk.proof.master_proof_of`'s bare `copy["read_from"]` raises `KeyError` by
         design (its own `Raises:` calls this intentional), and until this fix
         that `KeyError` was not in `RECONCILE_ERRORS` -- so it escaped `main`
         uncaught, past this module's own promise that "a raise is not a
@@ -344,7 +344,7 @@ class TestExitCodes:
         assert code == 1
         # !! ALSO MOVED TO stdout ON 2026-08-31, and the history above still
         # holds -- the `KeyError` was real and escaping. The envelope parse now
-        # names an absent `read_from` before `gather` is reached, so the
+        # names an absent `read_from` before `master_proof_of` is reached, so the
         # `RECONCILE_ERRORS` catch is no longer what answers this input.
         assert "read_from" in out.out
         assert not (tmp_path / "chief.json").exists()
