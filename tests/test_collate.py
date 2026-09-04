@@ -266,6 +266,29 @@ class TestAQuery:
             "module-context",
         ]
 
+    def test_a_human_review_query_holds_a_place_that_would_have_resolved(self):
+        """Found by a mutation (P9): with two roles agreeing byte for byte the
+        place would `stet`, and the query still holds it out of `determined`
+        and off the chief's copy."""
+        binder = one_place()
+        same = "# one\n# TWO\n# three\n"
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {"m.py@b1": a_correct_setting("m.py@b1", "two", same)},
+                "function-context": {
+                    "m.py@b1": a_correct_setting("m.py@b1", "two", same)
+                },
+                "module-context": {
+                    "m.py@b1": a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY)
+                },
+            },
+        )
+        got = collate("4c", copies, binder, root=REPO)
+        assert got.determined == {}
+        assert entries_of(got.chief) == []
+        assert [u["address"] for u in got.unsettlable] == ["m.py@b1"]
+
     def test_a_human_review_query_alone_is_still_carried(self):
         """Hand 4's b72: one query, three cleans, nothing owing -- and nothing
         anywhere. Now it rides."""
