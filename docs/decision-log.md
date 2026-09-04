@@ -3227,3 +3227,68 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   copy is the fold's WHAT. Roy's worry -- *"that messes up the copy-chief edit copy a little
   because it would be the composition of the role edit copy and the final edit copy"* -- is
   the two jobs one artifact was doing, and the split is what ends it.
+
+- **#88.** **AGREEMENT IS THE TEXT ALONE, AND IT TAKES EVERY OWING MARK** (Roy, 2026-09-04,
+  *"yes"* to the question as put: does the text alone decide it, and does it take everyone).
+  Closes [`a-revise-answer-has-no-artifact`](../TODO/a-revise-answer-has-no-artifact.md) T28
+  and T30.
+
+  **What it changes.** `flows.collate._identical` refused two marks whose `change` matched
+  byte for byte when their instructions differed, and `desk.collator.reconcile` groups by the
+  quoted sentence, so a `patch` and a `correct` carrying one text never reached the test.
+  MEASURED in the game, hand 2: three roles held one text for two turns as patch / correct /
+  patch and the place stayed a re-read. Under this, marks whose `change` is byte-identical
+  agree, whatever instruction or sentence each quoted.
+
+  **What it keeps.** Unanimity. Hands 3 and 5: two-to-one and three-to-one held until the
+  last role came round or the cap fell. A role still holding has not agreed, and the cap is
+  what exists for that.
+
+- **#89.** **A LONE OWING MARK GOES BACK TO EVERY ROLE THAT MARKED ANYTHING BUT A QUERY** (Roy,
+  2026-09-04: *"i think it needs to be sent back to all who marked anything other than
+  query."*). Closes `a-revise-answer-has-no-artifact` T29.
+
+  MEASURED in the game, hand 3: module-context's patch against three cleans landed as a
+  `stet` at turn 0, and the three cleans had never seen the text. `#87`'s composition rule --
+  *"any change has to be sent back to the reviewers"* -- applies to every change: a single
+  owing mark is a re-read to the roles that marked the place, `clean` included, and a `query`
+  excluded. `desk.collator.Reconciled.settled` -- *"one owing mark, nothing composed with
+  it"* -- is no longer a resolution at turn 0; it becomes a `stet` when those roles agree.
+
+- **#90.** **A QUERY FOR THE HUMAN RIDES WITH THE SET AND IS ASKED LAST; THE OTHER SHAPES
+  ABSTAIN** (Roy, 2026-09-04: *"If any lanes marks query for the human. It needs to ride along
+  with the set and asked later after everything has been else has been settled. The slot with
+  the human query mark is unsettlable. The other query type is effectively defer to another
+  role and so am abstaining from future discussions"*). Closes `a-revise-answer-has-no-artifact`
+  T26. *Lanes* there means the roles.
+
+  **By shape** (`desk.mark.Shape`):
+
+      human-review-necessary   rides with the master proof to the end of the review;
+                               the place is UNSETTLABLE by the roles or the chief, and
+                               is asked of the human after everything else has settled
+      outside-my-role          the role abstains from that place for the rest of the
+      unable-to-determine      review -- it defers to whichever role can decide it, and
+                               is not sent the place again
+
+  MEASURED in the game: a query owed no change, took no part in the fold, was in no batch and
+  on no master proof -- module-context's at hand 1's b74 and function-context's at hand 4's
+  b72 both vanished from the record. Under this, a human-review query is carried and a
+  deferring query is a fact about who is asked again.
+
+- **#91.** **ONCE STET, ALWAYS STET, FOR THE WHOLE REVIEW -- AND NOTHING PERSISTS ACROSS RUNS
+  BUT WHAT THE HUMAN ACCEPTED** (Roy, 2026-09-04: *"once stet always stet on the whole
+  review"*, and, on the next run: *"No nothing persists across runs besides the changes
+  accepted by the human."*). Closes
+  [`no-mark-for-let-it-stand`](../TODO/no-mark-for-let-it-stand.md) T1.
+
+  **Within a run**, a place the chief let stand is not re-raised on a later turn or at a later
+  stage; its `Determined` is final and it leaves every later batch. MEASURED, T25: the fold
+  today re-records every place at the current turn, so a stet at turn 1 read turn 2 after the
+  next fold -- the same defect from the other side.
+
+  **Across runs**, the tree is the only record. A later review reads the page as it stands,
+  which is what 7b wrote, and may raise again what an earlier chief declined. No sidecar, no
+  prior master proof handed in. The question this closes was filed on `clean` recording a
+  declined proposal as *nothing found*; the answer is that the declined proposal leaves no
+  trace by design, because the human's acceptance is the only thing that outlives the run.
