@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 12 tasks closed
+Progress: 8 of 14 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -86,8 +86,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       -rn "\.order\b" src/` returns a consumer outside `flows/collate.py`, and a
       two-move stage's written artifact names the order; today the only readers
       are in `tests/test_collate.py`.
-- [ ] T10 | Implement the command a reviewer runs to write one mark into its
-      edit_copy, so a role does not hand-write JSON
+- [-] T10 | SUPERSEDED against the 2026-08-17 ruling (the-record-is-a-parsed-template T2): no CLI writes a mark; re-filed as T13, the check | 6b673f0 | Implement
+      the command a reviewer runs to write one mark into its edit_copy, so a
+      role does not hand-write JSON
         > 2026-09-01 MEASURED 2026-09-01: no such command has ever existed. The ten in
         > 2026-09-01 COMMANDS hand a copy OUT (distribute --seed) and fold it back
         > 2026-09-01 (collate); none writes a mark. reviewer-brief.md names no command
@@ -101,3 +102,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       per dispatch. Verify: fan and topology.read each gain a caller in src/
         > 2026-09-01 Process #74. Both had zero callers in src/ when this was filed
         > 2026-09-01 Fan-out was the one topology shape no command could reach
+- [x] T13 | FINISHED -- commands/check.py over EditCopy.deserialize, mark_errors, verify_report, drift_in and parse_answers; tests/test_check_command.py | 6b673f0 | Implement
+      the check a role runs over its copy or batch before returning it, on the
+      fold's own boundaries. Verify: refusals named
+- [ ] T14 | Update reviewer-brief.md so a role runs check over its copy and its
+      batch before returning either. Verify: the brief names the command
+        > 2026-09-04 agents lane: the brief's wording is theirs; check is 6b673f0
