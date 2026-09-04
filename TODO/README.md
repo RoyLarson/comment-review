@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (117)
+### open  (115)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -213,7 +213,6 @@ that changed a published name or rule:
 | [stale-claims-after-the-envelope](stale-claims-after-the-envelope.md) | backend | -- | 2/8 | Shipped prose still describes formats and flags this branch deleted |
 | [one-stem-four-jobs](one-stem-four-jobs.md) | backend | -- | 7/15 | one stem, four jobs -- and the vocabulary sweep cannot see it |
 | [python-cannot-read-python](python-cannot-read-python.md) | backend | -- | 32/39 | the AST cannot read syntax newer than the floor, and two readers hide each other's bugs |
-| [claim-fallback-is-unreachable](claim-fallback-is-unreachable.md) | backend | -- | 8/8 | A non-object claim is silently emptied, and 60 lines of fallback say the opposite |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | -- | 3/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
 | [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 4/11 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | backend | -- | 4/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
@@ -261,7 +260,6 @@ that changed a published name or rule:
 | [a-reference-needs-its-own-write-chain](a-reference-needs-its-own-write-chain.md) | backend | -- | 0/3 | A reference needs its own write chain, and it is NOT YET |
 | [the-fields-do-not-say-a-mark-may-cite-across](the-fields-do-not-say-a-mark-may-cite-across.md) | agents | yes | 5/8 | The mark's fields permit a cross-citation and never say so |
 | [a-conflict-has-no-rendering](a-conflict-has-no-rendering.md) | backend | -- | 3/4 | A conflict is detected and nothing renders it |
-| [a-revise-answer-has-no-artifact](a-revise-answer-has-no-artifact.md) | backend | -- | 35/35 | A role can be asked to revise and has nothing to answer ON |
 | [build-gate-crlf-fragile](build-gate-crlf-fragile.md) | systems | -- | 0/2 | build_plugin.py's raw byte compare fails on a line-ending-only difference introduced by a Windows git checkout |
 | [shape-is-three-words](shape-is-three-words.md) | backend | yes | 0/6 | `shape` carries three senses, only one reaches an agent as a field name; and the axis it names is on `query` alone while `clean` has a recorded, unfilled need for the same thing |
 | [prototype-move-orphaned-tasks](prototype-move-orphaned-tasks.md) | systems | -- | 0/4 | 25 open TODOs carry an unchecked task naming a module that moved to `prototype/` on 2026-08-25, so the task's site is gone and its verification cannot be run |
@@ -454,3 +452,5 @@ the reason is inside the file.
 | [ownership-is-read-first-but-nothing-makes-it-so](completed/ownership-is-read-first-but-nothing-makes-it-so.md) | SUPERSEDED into stage-4b-is-undefined T6 -- Process 75 supplies the mechanism this file proposed a PROPOSED-tag census for: 4b is the task agent running proof and census --revise 1, so 4c is seeded from 4a's revise. The serialisation ruling is kept in the Objective |
 | [docket-role-is-per-page-not-per-alteration](completed/docket-role-is-per-page-not-per-alteration.md) | RULED -- role is ONE PER PAGE, answered by which copy was pulled from. Process 81; the per-alteration alternative and the omission-retirement are superseded with it |
 | [annotate-belongs-in-concordance](completed/annotate-belongs-in-concordance.md) | moved to concordance/ 3c66c56; stale references corrected f9b2ba2 |
+| [claim-fallback-is-unreachable](completed/claim-fallback-is-unreachable.md) | Ruled (ii) as Process 92: a non-object claim is refused by name at desk/mark.py:640 and rerouted as a Revisit; the fallback left with prototype/ on 2026-08-25 |
+| [a-revise-answer-has-no-artifact](completed/a-revise-answer-has-no-artifact.md) | The turn is built as a prototype on feat/the-turn (SP-4, merged b1ccce3a): DiffMark, Determined, the master proof's record, batch by question, the fold by text, the cap; 35 of 35 closed |
