@@ -27,10 +27,10 @@ from comment_review.desk.containers import EditCopy, MasterProof
 
 
 class MismatchedRoot(Exception):
-    """Two `edit_copies` handed to `master_proof_of` were censused from different roots.
+    """Two `edit_copies` handed to `master_proof_of` were gathered from different roots.
 
     !! THE ONLY RULE WITH A NAMED EXCEPTION HERE, and it has to be one that can
-    fail: two edit_copies censused from different revises cannot be
+    fail: two edit_copies gathered from different revises cannot be
     reconciled, because their addresses answer to different trees -- an `a0`
     from one tells nothing about the `a0` in the other.
 
@@ -68,7 +68,7 @@ def master_proof_of(stage: str, edit_copies: list[EditCopy]) -> MasterProof:
             read_from = {**copy.read_from}
         elif copy.read_from != read_from:
             raise MismatchedRoot(
-                f"edit_copy {i} ({copy.role!r}) was censused from "
+                f"edit_copy {i} ({copy.role!r}) was gathered from "
                 f"{copy.read_from!r}, disagreeing with the master_proof's "
                 f"{read_from!r}"
             )

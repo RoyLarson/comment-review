@@ -35,7 +35,7 @@ def test_one_role_and_seven_shards_both_assemble():
 
 
 def test_an_edit_copy_from_another_root_is_refused():
-    # ! THE CHECK THAT CAN FAIL: two copies censused from different revises
+    # ! THE CHECK THAT CAN FAIL: two copies gathered from different revises
     # cannot be reconciled -- their addresses answer to different trees.
     a = returned(seed(binder_of(DESK, 0), "block-context"))
     wire = seed(binder_of(DESK, 0), "module-context")

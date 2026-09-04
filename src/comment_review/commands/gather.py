@@ -40,7 +40,7 @@ def main() -> int:
         " number for a revise root pulled after it. Stamped into `read_from`"
         " so a role can tell which tree a `--json` binder was gathered from",
     )
-    ap.add_argument("--census-only", action="store_true")
+    ap.add_argument("--no-notes", action="store_true")
     ap.add_argument("--json", action="store_true")
     ap.add_argument(
         "--filtered",
@@ -74,7 +74,7 @@ def main() -> int:
     # !! NO PATHS IS A REFUSAL, NOT AN EMPTY BINDER. `paths` is `nargs="*"` so
     # `--languages` can run without one, and everything else with none produced
     # `[]` at exit 0 -- which the collator then reads as a complete binder and
-    # certifies. Measured 2026-08-24: `census.py --repo . --json` printed `[]`
+    # certifies. Measured 2026-08-24: `gather --repo . --json` printed `[]`
     # and returned 0, and the collator over it printed "Every finding is
     # admissible. Stage 5 may rule."
     #
@@ -212,9 +212,9 @@ def _listing(args: argparse.Namespace, got: Gathering) -> None:
         # has in the full listing, because that index is what the collator resolves
         # and what a record cites -- renumber and every citation from a filtered
         # reviewer resolves to the wrong paragraph, with nothing able to tell.
-        print("CENSUS - the paragraphs holding prose, numbered as in the full census.")
+        print("BINDER - the paragraphs holding prose, numbered as in the full binder.")
     else:
-        print("CENSUS - every paragraph, numbered.")
+        print("BINDER - every paragraph, numbered.")
     # !! THE FILE IS STATED ONCE, not on every row. Measured 2026-08-18 over
     # the 13 shipped scripts: 778 rows repeated their path 1,556 times, 80,912
     # of the listing's 205,753 bytes -- 39% -- and every reviewer gets an
@@ -334,7 +334,7 @@ def _listing(args: argparse.Namespace, got: Gathering) -> None:
         at = b.address.split("@")[-1]
         span = f"{b.start}-{b.end}"
         print(f"{i:4d}  @{at}  {span}  {b.kind}  {b.lines}L  {notes}{anchor}")
-        if not args.census_only:
+        if not args.no_notes:
             for note in b.notes:
                 print(f"        -> {note}")
     flush_run()

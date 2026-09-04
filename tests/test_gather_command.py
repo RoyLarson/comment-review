@@ -2,17 +2,17 @@
 that the command builds no page of its own.
 
 !! THE CONTRACT IS `CLAUDE.md`'S, AND IT IS ONE SENTENCE -- *"every file handed
-in is censused or the run stops."* So the only question here is whether a file
+in is gathered or the run stops."* So the only question here is whether a file
 that produced no paragraphs makes the run stop, and it is asked the same way of
 every kind of failure a file can have.
 
 !! THE DEFECT THIS FILE WAS WRITTEN FOR IS AN ASYMMETRY, not a single case.
 MEASURED 2026-08-29: a file the reader could not DECODE (latin-1 bytes, a
 UTF-16 BOM) exited 1, while a file it could not PARSE (a syntax error, a NUL
-byte, an unterminated string, a UTF-8 BOM) censused **0 paragraphs at exit 0**.
+byte, an unterminated string, a UTF-8 BOM) gathered **0 paragraphs at exit 0**.
 Both produce nothing; only one stopped. A file mid-refactor with a real syntax
 error is the common case, and its prose reached no reviewer while stdout
-reported a complete census.
+reported a complete gather.
 
 ! SO THE ASSERTIONS BELOW COMPARE THE TWO HALVES AGAINST EACH OTHER rather than
 against a number this module produced. What "correct" means is that the two
@@ -74,7 +74,7 @@ CANNOT_PARSE = {
 
 
 def _run(tmp_path, data: bytes, *, as_json: bool) -> tuple[int, str]:
-    """One census over one file, and what it exited with.
+    """One gather over one file, and what it exited with.
 
     ! BOTH STREAMS, because the two paths refuse on different ones: the text
     path prints its refusal to stdout beside the listing a person reads, and
@@ -88,7 +88,7 @@ def _run(tmp_path, data: bytes, *, as_json: bool) -> tuple[int, str]:
         paths=[str(target)],
         repo=str(tmp_path),
         revise=0,
-        census_only=False,
+        no_notes=False,
         json=as_json,
         filtered=False,
         include_matter=False,
@@ -110,9 +110,9 @@ UNREADABLE = pytest.mark.parametrize(
 
 
 @AS_JSON
-def test_the_control_is_censused_and_the_run_succeeds(tmp_path, as_json):
+def test_the_control_is_gathered_and_the_run_succeeds(tmp_path, as_json):
     """The case has to be able to pass, or every refusal below proves nothing:
-    this same file, uncorrupted, must census and exit 0."""
+    this same file, uncorrupted, must gather and exit 0."""
     code, printed = _run(tmp_path, CONTROL.encode("utf-8"), as_json=as_json)
     assert code == 0, printed
     assert "0 paragraphs" not in printed
@@ -121,14 +121,14 @@ def test_the_control_is_censused_and_the_run_succeeds(tmp_path, as_json):
 @AS_JSON
 @UNREADABLE
 def test_a_file_that_produced_no_paragraphs_stops_the_run(tmp_path, why, data, as_json):
-    """`CLAUDE.md`: *every file handed in is censused or the run stops.*
+    """`CLAUDE.md`: *every file handed in is gathered or the run stops.*
 
     ! Neither half of this may pass on its own. A run that exits 1 without
     naming the file leaves the caller unable to act, and a run that names it at
     exit 0 is read as a success by everything downstream.
     """
     code, printed = _run(tmp_path, data, as_json=as_json)
-    assert code != 0, f"{why}: censused nothing and reported success\n{printed}"
+    assert code != 0, f"{why}: gathered nothing and reported success\n{printed}"
 
 
 @AS_JSON
@@ -158,9 +158,9 @@ def test_a_parse_failure_is_AS_LOUD_AS_a_decode_failure(tmp_path, as_json):
 
 
 def test_the_command_builds_no_page_and_resolves_no_annotation():
-    """`TODO/census-should-be-a-chain-of-producers.md` T3, verify text word for
-    word: *it calls page_for nowhere*. And `annotate` nowhere, for the same
-    reason -- both are the flow's steps, and a command exposes a flow.
+    """`TODO/completed/census-should-be-a-chain-of-producers.md` T3, verify text
+    word for word: *it calls page_for nowhere*. And `annotate` nowhere, for the
+    same reason -- both are the flow's steps, and a command exposes a flow.
 
     ! READ OFF THE MODULE'S SOURCE, so a name reached through a different
     import spelling is caught the same as a direct one."""

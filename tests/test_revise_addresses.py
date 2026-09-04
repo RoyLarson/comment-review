@@ -1,4 +1,4 @@
-"""The address-invariance gate: a revise re-censused yields the same address
+"""The address-invariance gate: a revise re-gathered yields the same address
 set the original did, or the pull is refused with `AddressesMoved` naming what
 changed.
 

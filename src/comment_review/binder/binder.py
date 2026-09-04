@@ -1,17 +1,17 @@
 """What a BINDER is on disk, and how one is read back.
 
 A binder is the artifact the gatherer hands over -- a folder of pages, each
-naming its file, with the rows an agent rules on. Roy, 2026-08-24: *"The
-gatherer/census hands over the binder as in a 3-ring binder full of stuff."*
+naming its file, with the rows an agent rules on -- a 3-ring binder full of
+stuff, the object and not the trade; `docs/vocabulary.md`, *binder*.
 
 !! ONE MODULE OWNS BOTH DIRECTIONS, and the reason is what happened without it.
-MEASURED 2026-08-24: the census wrote a bare list and FOUR commands each decided
-for themselves what a census file is --
+MEASURED 2026-08-24: the gather wrote a bare list and FOUR commands each decided
+for themselves what a binder file is --
 
     addresser   loaded.get("paragraphs", []) if isinstance(loaded, dict) else loaded
-    galley      census["paragraphs"] if isinstance(census, dict) else census
+    galley      binder["paragraphs"] if isinstance(binder, dict) else binder
     record      loaded["paragraphs"] if isinstance(loaded, dict) else loaded
-    collator    json.loads(census_text)          -- no envelope handling at all
+    collator    json.loads(binder_text)          -- no envelope handling at all
 
 Three spellings of one guess and one absence. They already disagreed: the first
 tolerates a missing key, the next two raise `KeyError`, and the last would
@@ -76,10 +76,10 @@ def bind(pages: list[Page], read_from: dict, absent: bool = False) -> "Binder":
     """Every page in scope, as the binder that is handed over.
 
     !! `read_from` IS REQUIRED, NOT DEFAULTED. A binder that cannot say which
-    root it was censused from is exactly the ambiguity a later stage needs
+    root it was gathered from is exactly the ambiguity a later stage needs
     resolved: a revise re-binds from a tree copy, and a role holding that
     binder cannot tell it apart from the original unless the binder says so.
-    A caller with no root to name has nothing it was censused FROM, so there
+    A caller with no root to name has nothing it was gathered FROM, so there
     is no default that would not be a fabrication.
 
     ! THE SHA IS REPORTED, NOT TAKEN. It arrives on the page from
@@ -98,7 +98,7 @@ def bind(pages: list[Page], read_from: dict, absent: bool = False) -> "Binder":
     walk emits every place, filled or not, so a reviewer that wants to `add`
     ASKS for the one it means:
 
-        comment_review addresser --census C --anchor "<line of code>" --series b
+        comment_review addresser --binder C --anchor "<line of code>" --series b
 
     -- which answers `m.py@b1`. The place is citable without being carried, so
     `add` stays expressible and nothing pays for the other 5,201.
@@ -109,7 +109,7 @@ def bind(pages: list[Page], read_from: dict, absent: bool = False) -> "Binder":
     Args:
         pages: the pages in scope.
         read_from: `{"root": "<path>", "revise": <int>}` -- the root this
-            binder was censused from, and `0` for the original or the
+            binder was gathered from, and `0` for the original or the
             revise's own number otherwise.
         absent: carry the empty places too. For the caller that specifically
             asks -- a reviewer surveying where prose COULD go rather than
@@ -171,14 +171,14 @@ def _read_from_problem(loaded: dict) -> str:
     if "read_from" not in loaded:
         return (
             "carries no `read_from` -- a binder written before 2026-08-28 "
-            f'(version "1"); re-run `census --json` to get a version "{VERSION}" one'
+            f'(version "1"); re-run `gather --json` to get a version "{VERSION}" one'
         )
     read_from = loaded["read_from"]
     if not isinstance(read_from, dict):
         kind = type(read_from).__name__
         return f"`read_from` is a JSON {kind}, not a mapping of `root` and `revise`"
     if not isinstance(read_from.get("root"), str):
-        return "`read_from` carries no `root` string -- which tree was censused?"
+        return "`read_from` carries no `root` string -- which tree was gathered?"
     if not isinstance(read_from.get("revise"), int):
         return "`read_from` carries no `revise` number -- 0 is the original"
     return ""
@@ -195,7 +195,7 @@ class Binder:
 
     Attributes:
         version: the format's own number -- `VERSION` for one this tree wrote.
-        read_from: `{"root": str, "revise": int}` -- which tree was censused.
+        read_from: `{"root": str, "revise": int}` -- which tree was gathered.
         pages: one per file in scope, in the order they were bound.
 
     !! THE LOAD IS NOT HERE, ruled `decision-log.md Process: #67`. Roy,
@@ -254,7 +254,7 @@ class Binder:
         checked: dict = data
         if "pages" not in checked:
             return None, [
-                f"{where}: carries no `pages` -- is this the output of `census --json`?"
+                f"{where}: carries no `pages` -- is this the output of `gather --json`?"
             ]
         raw_pages = checked["pages"]
         if not isinstance(raw_pages, list):

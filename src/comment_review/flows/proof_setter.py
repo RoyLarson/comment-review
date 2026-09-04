@@ -94,10 +94,10 @@ STEPS = tuple(Step)
 class Refusal(NamedTuple):
     """One reason the run stopped, and where.
 
-    ! A REFUSAL NAMES ITS STEP. `census.py:204` catches a bare `Exception`
+    ! A REFUSAL NAMES ITS STEP. `flows/gather.py` catches a bare `Exception`
     too, and prints the path, the exception type and its message -- but
     nothing that says which of several steps failed. `step` is what a caller
-    of this chain gets that a caller of `census.py` does not.
+    of this chain gets that a caller of `gather` does not.
     """
 
     step: str

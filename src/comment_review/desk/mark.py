@@ -279,7 +279,7 @@ class Mark:
             built. Empty only for `clean`, the one row `substantive` is False
             for.
         anchor: the line of code the place sits on -- seeded, and empty where
-            the census resolved none.
+            the gather resolved none.
         raw_text: the paragraph as it stands -- seeded, and what a role's
             `change` is a rewrite of. ! CARRIED, NEVER TRUSTED AS THE BASE:
             every check that measures a claim against the paragraph reads the
@@ -600,7 +600,7 @@ def allowed() -> dict:
         "edit_copy_header": {
             "role": "the role this edit_copy was seeded for",
             "read_from": (
-                "the tree this edit_copy was censused from -- "
+                "the tree this edit_copy was gathered from -- "
                 '`{"root": "<path>", "revise": <number>}`, '
                 "where revise 0 is the original"
             ),

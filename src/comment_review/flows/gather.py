@@ -13,13 +13,12 @@ half of stage 3 -- is one more element. `TODO/census-should-be-a-chain-of-
 producers.md` T2. ! It was the body of the command until this landed, which
 is what `TODO/the-flow-lives-in-the-command.md` T2 named.
 
-!! THAT IS THE WHOLE SUBJECT. Roy, 2026-08-20: *"the census's job should be to
-take the output of all of the pages and reformat it into the (most) usable
-format for the agents."* It built one file's paragraphs AND addressed them AND
-aggregated them until then, which is three subjects and why it ran to 1,759
-lines. ! *most* is subjective and MEASURABLE -- formats can be compared -- and
-until one is measured against hazard recall the word does not ship. See
-`TODO/census-emits-no-page.md`.
+!! THAT IS THE WHOLE SUBJECT: take the output of every page and put it in the
+form the agents read. It built one file's paragraphs AND addressed them AND
+aggregated them until 2026-08-20, which is three subjects and why it ran to
+1,759 lines. ! Which form reads BEST is measurable -- formats can be compared
+against hazard recall -- and until one is measured no claim about it ships.
+See `TODO/census-emits-no-page.md`.
 
 ! Most of a page holds no prose -- an empty `interval`, an `undocumented`
 declaration, a bare `margin`. Those are ADDRESSABLE, so an `add` can cite the
@@ -297,7 +296,7 @@ def carried(page: Iterable[Paragraph]) -> list[Paragraph]:
     arrived as a row whose `address` was `""`, and every consumer downstream had
     to test for that blank to discover the row was never a place.
 
-    ! MEASURED, before this: `census --json` over a ten-line file emitted THREE
+    ! MEASURED, before this: `gather --json` over a ten-line file emitted THREE
     such rows, and the listing printed them as `@` with no cue after it. Over
     this repo's own `src/`, 422 of 9,459 paragraphs -- every one leading.
 

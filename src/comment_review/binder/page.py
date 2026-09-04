@@ -13,10 +13,9 @@ which one a given paragraph sits in. A paragraph does not compute its own cue
 file's own matter and the gap above the first line of code were mutually
 exclusive.
 
-! The CENSUS is every page in scope, formatted for the agents. One page is one
-file, so building one was never its work -- Roy, 2026-08-20: *"the census's job
-should be to take the output of all of the pages and reformat it into the (most)
-usable format for the agents."*
+! The GATHER is every page in scope, put in the form the agents read. One page
+is one file, so building one was never its work: its job is to take the output
+of every page, and this module is where a page comes from.
 
 !! IT IS A FLAT LIST, AND THAT IS THE SHAPE OF THE THING. Paragraphs run down a
 page and do not nest. An address is an ORDINAL over a linear sequence and cannot
@@ -45,7 +44,7 @@ PARAGRAPH: `code_lines` and `attach` were the only two functions of it that did,
 and both are page questions wearing an addressing name.
 
 ! Letting the import graph choose a module's subject is what this keeps undoing.
-`Paragraph` first lived in `census.py`, at the top of the graph, so the modules
+`Paragraph` first lived in `gather.py`, at the top of the graph, so the modules
 that READ paragraphs could not import the definition of one -- 21 untyped
 `paragraph.get(...)` reads, and two kind sets that ended up in `galley` because
 it was the deepest module all three could reach.
@@ -114,7 +113,7 @@ WIRE_FIELDS = ("cue", "anchor", "original_start", "original_end", "raw_text")
 # matter."* Which end a run sits at is the ORDER the `f` addresser emitted its
 # places, counted by `page_for` -- not a second fact that could disagree.
 #
-# ! EVERY CONSUMER DOWNSTREAM ASKS THE SERIES, not this: the census filter, the
+# ! EVERY CONSUMER DOWNSTREAM ASKS THE SERIES, not this: the gather's filter, the
 # accountability set, the `query` guard, the record seeding and `Page.prose`.
 # Asking the type would miss the EMPTY place, which has no prose to type -- an
 # `add` proposing a licence header on a file that has none was never turned into
@@ -206,7 +205,7 @@ class Page:
 
         ! ASKED BY SERIES, not by the kind. Since 2026-08-20 the file's own
         matter is the `f` series, and every consumer that has to know reads that
-        -- `census.py`'s filter, the collator's accountability set and its
+        -- `gather`'s filter, the collator's accountability set and its
         `query` guard, `record.py`'s seeding, and this.
 
         !! `d` IS OUT BECAUSE IT NAMES NO PLACE, and that is now the whole test.
@@ -229,7 +228,7 @@ class Page:
             # ! ASKED OF THE ADDRESS DIRECTLY. This read `series_of(vars(b))`,
             # which is a dict accessor over `cue_of` -- so a Paragraph was
             # flattened into a dict to read ONE field the object already has,
-            # and the page took a dependency on the module that reads census
+            # and the page took a dependency on the module that reads binder
             # rows. `cue_of` is the addresser's, which this module already
             # imports, and the answer is identical.
             and cue_of(b.address).series != COVERS
@@ -296,7 +295,7 @@ def _kind_of(series: "Series | None", raw_text: str) -> str:
     !! MEASURED 2026-08-31 on a binder of `docket.py` written with
     `absent=True`: 127 `interval`, 130 `margin` and 2 `dark-matter` went out and
     **all 259 came back as their series' present kind**. `Kind.holds_no_prose`
-    is what `Page.prose` and the census filter ask, so a role handed that binder
+    is what `Page.prose` and the gather's filter ask, so a role handed that binder
     would be given 259 places to rule on that hold nothing -- against Roy's own
     ruling, 2026-08-25: *"The absent kinds are not supposed to be sent to the
     agents."*
@@ -334,7 +333,7 @@ def _paragraph(place: dict, path: str) -> Paragraph:
 
         kind     `Series.of(cue).present`, because a cue IS a kind (see `_place`)
         start    the recorded `original_start` -- nothing moves between the
-        end      census and the read back, so the two are the same lines
+        end      gather and the read back, so the two are the same lines
         lines    the count of `raw_lines`
 
     ! `start`/`end` FALL BACK TO 0, which is this type's own spelling for
@@ -392,7 +391,7 @@ class RedactedPage:
 
     Attributes:
         path: as the REPO sees it, the same field a `Page` carries.
-        sha: of the page's text when it was censused. The write chain compares
+        sha: of the page's text when it was gathered. The write chain compares
             it against the file it is about to set, which is the only
             comparison that can fail.
         paragraphs: the places carried, in order down the page. ORDINARY
@@ -531,7 +530,7 @@ def code_lines(text: str, prose: list[dict]) -> dict[int, str]:
     ! A `trailing-comment` sits ON a code line, so that line stays code. A
     `comment` or `docstring` paragraph occupies its lines entirely, so those lines
     are not. An `interval` occupies nothing, which is what makes this safe to
-    run over a census that already holds intervals.
+    run over a binder that already holds intervals.
 
     !! A PARAGRAPH'S FIRST LINE IS STILL CODE WHEN CODE PRECEDES ITS TEXT.
     `int b = 2; /* opens` spans from that line, and taking the whole span
@@ -554,9 +553,9 @@ def code_lines(text: str, prose: list[dict]) -> dict[int, str]:
     again answers `'    return os  # why'` where the `c` for the same line
     answers `'    return os'`: two computations of one fact.
 
-    ! It takes DICTS, so it reads a census off disk and a census still being
+    ! It takes DICTS, so it reads a binder off disk and a binder still being
     built alike. An address counts code lines, so the count has to be the same
-    one the census used or the two disagree about what `@b3` means.
+    one the gather used or the two disagree about what `@b3` means.
     """
     occupied: set[int] = set()
     beside: dict[int, str] = {}
@@ -606,7 +605,7 @@ def attach(paragraph: dict, cues: "Cues") -> str:
     sees the paragraph. `decision-log.md Process: #69`.
 
     Args:
-        paragraph: one census entry, as a dict.
+        paragraph: one binder entry, as a dict.
         cues: `cue` over that paragraph's file.
 
     Returns:
@@ -854,7 +853,7 @@ def empty_places(text: str, cues: Cues, occupied: set[str]) -> list[Paragraph]:
             # Every place `cue` emitted must get a paragraph; one that
             # falls off the end of these branches gets none, and a place with
             # no paragraph is uncitable and invisible. That is exactly how
-            # `f0` behaved for its first hour. ! `census.py` turns a raise
+            # `f0` behaved for its first hour. ! `gather` turns a raise
             # here into a REPORTED per-file gap, which is loud; falling
             # through is silent.
             raise exceptions.Refused(
@@ -968,16 +967,16 @@ def tie_leading(paragraphs: list[Paragraph], cues: Cues) -> dict[str, str]:
 def page_for(
     path: Path, text: str, lang: Language, rel: str | None = None, *, sha: str
 ) -> Page:
-    """The census for one file, at the highest tier available for its language.
+    """The page for one file, at the highest tier available for its language.
 
     The ladder is by QUESTION ANSWERED. Python reaches TOKENIZED through the
     stdlib, which buys docstring anchors; every other language has the LEXICAL
     floor.
 
-    !! IT RETURNS A COMPLETE CENSUS -- addressed and anchored. Both used to be
+    !! IT RETURNS A COMPLETE PAGE -- addressed and anchored. Both used to be
     stamped in two different places: anchors here, addresses in the run loop,
-    so a caller that used this function directly got half a census and no
-    error. Every test of the census does exactly that.
+    so a caller that used this function directly got half a page and no
+    error. Every test of the page does exactly that.
 
     Args:
         path: the file, used for its suffix and as the address's path.
@@ -1247,7 +1246,7 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
             b.original_start, b.original_end = b.start, b.end
             # ! `raw_lines` is what `compositor.set_page` SETS, over exactly
             # this range. Leaving it as the prose alone
-            # made a FRESH census read as stale on every widened paragraph.
+            # made a FRESH binder read as stale on every widened paragraph.
             own = [n for n in range(b.start, b.end + 1) if mine is None or n in mine]
             b.raw_lines = [source[n - 1] for n in own]
         else:

@@ -126,7 +126,7 @@ def _row(cue: str, text: str) -> dict:
     ! THE LINE NUMBERS ARE PRESENT AND ARBITRARY. Nothing these fixtures feed
     reads them -- the write path reloads the page from disk (`Process: #14`)
     -- but a page's own reader requires them, so a fixture that left them out
-    would be asserting a binder shape no census produces.
+    would be asserting a binder shape no gather produces.
     """
     return {
         "cue": cue,

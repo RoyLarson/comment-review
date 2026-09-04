@@ -380,8 +380,8 @@ separate addressers, and no number in one tells you a number in another -- nor d
 position tell you either.
 
 ```bash
-python <skill>/scripts/comment-review.py addresser --census <FULL CENSUS> --anchor LINE --series a|b|c|f
-python <skill>/scripts/comment-review.py addresser --census <CENSUS> --resolve <ADDRESS>
+python <skill>/scripts/comment-review.py addresser --binder <FULL BINDER> --anchor LINE --series a|b|c|f
+python <skill>/scripts/comment-review.py addresser --binder <BINDER> --resolve <ADDRESS>
 ```
 
 ! **An anchor answers with SEVERAL places and that is not an error** -- an anchor has many

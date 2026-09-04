@@ -29,7 +29,7 @@ from comment_review.machine import exceptions
 # A virtualenv in the tree POISONS the name corpus: every installed package's
 # methods become "known", so a real obituary is HIDDEN because some library
 # happens to define that name. It also makes the count depend on what is
-# installed, so the same file censuses differently on two machines.
+# installed, so the same file gathers differently on two machines.
 EXCLUDED_DIRS = frozenset(
     {"__pycache__", ".venv", "venv", "site-packages", "node_modules", ".git"}
 )
@@ -62,7 +62,7 @@ def read_raw(path: Path) -> str:
     is that there is now a named pair rather than a `write_text` in
     `results/compositor.py` keeping the `newline=""` rule by hand.
 
-    ! THREE MODULES REACH IT THROUGH `read_source`: `commands/census.py`,
+    ! THREE MODULES REACH IT THROUGH `read_source`: `flows/gather.py`,
     `flows/page_for.py` (in `source_of`, which `page_of` and the whole write
     chain go through) and `results/compositor.py` (twice) -- MEASURED by
     import, 2026-08-26.
@@ -168,7 +168,7 @@ def read_source(path: Path) -> Source:
     reader a consumer happened to use answers *which reader ran*, not *did the
     file change* -- so a byte-identical CRLF checkout refuses.
 
-    ! AND THE DEFECT WAS LIVE WHEN THIS LANDED: `census.py` read through
+    ! AND THE DEFECT WAS LIVE WHEN THIS LANDED: the gather read through
     `Path.read_text` and the binder hashed that, so the recorded sha described
     the TRANSLATED text and not the file.
 
@@ -445,17 +445,17 @@ def walk_files(root: Path):
     that file -- so the same question was answered in two places with two
     different consequences, and the silent one won for a directory. MEASURED
     2026-08-22 on a two-file directory: an unsupported file NAMED exits 1, the
-    same file WALKED vanished at exit 0. `every file handed in is censused or
+    same file WALKED vanished at exit 0. `every file handed in is gathered or
     this errors` was true of explicit paths and false of directories.
 
     ! SO THE WALK STOPPED DECIDING. Whether a file with no language record is a
-    refusal or a note is the CENSUS's call, and it turns on something only the
-    census knows: whether the path was NAMED or merely FOUND. A directory holds
+    refusal or a note is the GATHER's call, and it turns on something only the
+    gather knows: whether the path was NAMED or merely FOUND. A directory holds
     READMEs, images and lockfiles; refusing on those makes the form unusable,
     and skipping them in silence is the false completeness this warns about.
 
     ! `EXCLUDED_DIRS` IS THIS MODULE'S, which is why the walk sits here rather
-    than in the census that used to hold it. It is not the same question. It is about
+    than in the gather that used to hold it. It is not the same question. It is about
     where the walk may GO -- a vendored tree is not this repo's code at all --
     rather than about what a file is once found.
     """
@@ -481,14 +481,14 @@ def relative_to(target: Path, start: Path) -> Path:
     """`target` expressed from `start`, walking up with `..` where it must.
 
     !! `pathlib` ALONE. Roy, 2026-08-28: *"No os.path. Only Pathlib. Fix this
-    everywhere."* `census.py` reached for `os.path.relpath` on 2026-08-28
+    everywhere."* the gather reached for `os.path.relpath` on 2026-08-28
     because `Path.relative_to` RAISES when the target is not under the start,
     and a revise root is a temporary directory outside the checkout -- so the
     `..` walk this function does is the part `pathlib` does not ship.
 
     Args:
         target: the path to express.
-        start: the path to express it from -- `Path.cwd()` for the census.
+        start: the path to express it from -- `Path.cwd()` for the gather.
 
     Returns:
         A relative path when both share an anchor, `Path(".")` when they are
@@ -498,7 +498,7 @@ def relative_to(target: Path, start: Path) -> Path:
     !! THE ABSOLUTE FALLBACK IS THE WINDOWS CASE, AND IT IS THE ONE THAT
     CRASHED. MEASURED 2026-08-28: asking `os.path.relpath` for a path on drive
     `D:` from a start on drive `C:` raises `ValueError: path is on mount 'D:',
-    start on mount 'C:'`, so a census of a repo on one drive from a cwd on
+    start on mount 'C:'`, so a gather of a repo on one drive from a cwd on
     another was an uncaught traceback. ! There is no relative path between two
     anchors, so returning one is impossible and raising is unhelpful; the
     resolved target is the only honest answer. This repo names Windows as its
@@ -520,7 +520,7 @@ def relative_to(target: Path, start: Path) -> Path:
         shared += 1
     up = [".."] * (len(there.parts) - shared)
     rest = here.parts[shared:]
-    # ! `Path(".")` FOR THE SAME PLACE, which is what a census of the checkout
+    # ! `Path(".")` FOR THE SAME PLACE, which is what a gather of the checkout
     # it is standing in reports. `Path()` with no arguments is `Path(".")`
     # already, but saying it is the difference between a value and an accident.
     return Path(*up, *rest) if (up or rest) else Path(".")

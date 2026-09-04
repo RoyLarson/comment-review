@@ -1,6 +1,6 @@
 """`flows.gather`, the chain of producers, and `flows.annotations_for`, stage 3.
 
-`TODO/census-should-be-a-chain-of-producers.md` T1 and T2, and their verify
+`TODO/completed/census-should-be-a-chain-of-producers.md` T1 and T2, and their verify
 texts word for word: *it takes a page and returns annotations, and nothing else
 calls annotate.py directly*; *the chain is DATA, so adding references_for later
 is a list element*.

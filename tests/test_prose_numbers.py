@@ -40,7 +40,7 @@ class TestAListOrdinalIsNotAValue:
     !! THE JOINED RUN CANNOT TELL THE TWO APART. `1.` opening a list and `3.`
     ending a sentence are the same characters once the paragraph is joined, and
     only the LINE START separates them -- so the raw lines are what settle it,
-    and `census` passes them at both call sites.
+    and `annotations_for` passes them at both call sites.
     """
 
     def test_the_ordinal_is_dropped_when_the_raw_lines_are_given(self):

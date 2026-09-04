@@ -21,7 +21,7 @@ from comment_review.concordance.names import SYMBOLISH
 from comment_review.reading.paragraph import Paragraph
 
 # !! `Paragraph` WAS A TYPE-ONLY IMPORT UNTIL 2026-08-31, quoted at every use,
-# because *`census.py` imports this module, so a real import would be
+# because *`gather.py` imports this module, so a real import would be
 # circular*. ! That reason went when `Paragraph` left the lexer for its own
 # leaf the same day: nothing under `reading/` imports this package, so the
 # import is ordinary now. `decision-log.md Process: #70`.

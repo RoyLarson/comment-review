@@ -191,9 +191,9 @@ def assert_addresses_held(original: Path, pulled: Pulled) -> None:
     """Raise `AddressesMoved` unless `pulled` addresses the same places `original` did.
 
     Args:
-        original: the checkout the revise was pulled from -- censused at
+        original: the checkout the revise was pulled from -- gathered at
             revise 0, the original's own number.
-        pulled: the revise. `pulled.root` is censused at `pulled.revise`.
+        pulled: the revise. `pulled.root` is gathered at `pulled.revise`.
 
     Raises:
         AddressesMoved: naming the addresses that appeared in the revise and
@@ -212,12 +212,12 @@ def assert_addresses_held(original: Path, pulled: Pulled) -> None:
 
 
 def _binder_over(root: Path, revise: int) -> Binder:
-    """Every page under `root`, censused at `revise` -- what the gate compares.
+    """Every page under `root`, gathered at `revise` -- what the gate compares.
 
     ! ADDRESSES ONLY. `annotate` and `code_names` resolve CITATIONS, a
     question this gate never asks, so building a page is as far as this goes.
 
-    ! EVERY LANGUAGE THE CENSUS KNOWS, not only Python -- `Process: #35` is a
+    ! EVERY LANGUAGE THE GATHER KNOWS, not only Python -- `Process: #35` is a
     claim about code in general, and a Python-only walk would pass a revise
     that renumbered a Rust or Go file clean.
 

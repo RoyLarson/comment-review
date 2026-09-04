@@ -102,7 +102,7 @@ class Kind(StrEnum):
     SECOND `Kind` in this package: `reading.series.Kind` has nine members
     (DOCSTRING, INTERVAL, MARGIN, MATTER, LEADING, ...) and answers *what kind
     of PLACE is this*, and it is imported by `binder/binder.py`, `binder/page.py`,
-    `commands/census.py` and `reading/lexer.py`. This one answers
+    `commands/gather.py` and `reading/lexer.py`. This one answers
     *what does a STAGE hand back*. ! A reader meeting `stage.kind` after
     `paragraph.kind` has nothing telling them the word changed subject, and a
     module needing both must alias one -- `docs/vocabulary.md` is where this

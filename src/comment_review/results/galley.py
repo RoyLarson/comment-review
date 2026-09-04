@@ -1,4 +1,4 @@
-"""The proposed text, SET AS FILES, so it can be read and censused like any tree.
+"""The proposed text, SET AS FILES, so it can be read and gathered like any tree.
 
 ! THIS MODULE HAS NO CLI OF ITS OWN. Ruled 2026-08-24 -- `decision-log.md
 Process: #12`: *"A module does one job and has no CLI; a flow calls
@@ -27,7 +27,7 @@ text onto a page does not stop it being galley copy.
 
 ! AND THE STACK IS ORDER-FREE, which is the second half of what makes the word
 hold. Every address carries its own path, so nothing downstream depends on which
-page precedes which. MEASURED 2026-08-22: three files censused forward and
+page precedes which. MEASURED 2026-08-22: three files gathered forward and
 reversed gave 179 paragraphs whose address, kind, text and anchor were identical
 in both orders. ! Order is load-bearing WITHIN a page -- that is what an
 address's cue counts -- and free between them.
@@ -39,9 +39,9 @@ pipeline exists to keep.
 Two things needed it:
 
   round 2   A re-review ruled on the SYNTHESISED paragraph -- text on no disk
-            and in no census -- so `address_problem` refused it and
+            and in no binder -- so `address_problem` refused it and
             `edit_problem` measured one claim against one edit where the
-            paragraph held several. Censusing the galley gave that text a real
+            paragraph held several. Gathering the galley gave that text a real
             address and a real transcription, so every check the collator ran
             worked on it UNCHANGED. ! `address_problem`, `edit_problem` and
             the collator moved to `prototype/` on 2026-08-25 and do not run
@@ -80,7 +80,7 @@ before the file is parsed and before anything reaches `reset`. See
 
 ! IT IS ONE SITE AGAIN BECAUSE THERE IS ONE CHAIN AGAIN. A second command ran
 its own and made the comparison itself; measured 2026-08-25, before it did, it
-placed edits from a census taken before `def f():` was renamed and printed
+placed edits from a binder built before `def f():` was renamed and printed
 `1 page(s) set, 0 edit(s) refused` at exit 0. That command was emptied on
 2026-08-26 -- `docs/history.md`.
 

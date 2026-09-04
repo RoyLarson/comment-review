@@ -783,7 +783,7 @@ def collate(
         A `Collated`.
 
     Raises:
-        CannotCollate: two copies were censused from different roots --
+        CannotCollate: two copies were gathered from different roots --
             `desk.proof.MismatchedRoot`, re-raised carrying every `Problem` the
             per-copy pass had already found. ! THE ONLY RAISE LEFT, and it
             cannot become a `Problem` itself: copies answering to different

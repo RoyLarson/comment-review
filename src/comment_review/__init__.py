@@ -14,10 +14,10 @@ The packages beneath this one are the stages in that order:
 !! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES; A
 COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `docs/decision-log.md Process: #12`.
 
-! IT IS NOT YET TRUE OF `flows`. Lifting the entry points out showed the
-census's orchestration was inside `main` all along, so `commands/census.py`
-still builds pages that a flow should build -- see
-`TODO/the-flow-lives-in-the-command.md`.
+! IT IS TRUE OF `flows` SINCE THE GATHER LANDED THERE. Lifting the entry
+points out showed stage 2's orchestration was inside `main` all along;
+`flows/gather.py` holds it now, as `STEPS`, and `commands/gather.py` builds
+no page -- `TODO/the-flow-lives-in-the-command.md`.
 
 ! NOTHING SITS AT THIS ROOT ANY MORE. `referrers` did, meaning UNPLACED rather
 than top-level, until `concordance` was ruled on 2026-08-24.

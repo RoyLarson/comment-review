@@ -71,7 +71,7 @@ about the CENSUS, never the tree -- so census the file first and the two agree b
 
 ```bash
 python <skill>/scripts/comment-review.py gather --json --repo . --out <run-dir>/after.json <paths...>
-python <skill>/scripts/comment-review.py addresser --census <run-dir>/after.json --resolve <ADDRESS>
+python <skill>/scripts/comment-review.py addresser --binder <run-dir>/after.json --resolve <ADDRESS>
 ```
 
 ! More than one range can come back -- a docstring and the comment run beneath

@@ -14,7 +14,7 @@ deleted the same day (`decision-log.md Process: #69`), and `kind` is a plain
 addresser.
 
 ! **AND IT IS THE SECOND TIME THIS CORRECTION HAS BEEN MADE.** `binder/page.py`
-records the first: *"`Paragraph` first lived in `census.py`, at the top of the
+records the first: *"`Paragraph` first lived in `gather.py`, at the top of the
 graph, so the modules that READ paragraphs could not import the definition of
 one -- 21 untyped `paragraph.get(...)` reads."* It moved down into the lexer and
 stopped being at the top; what it did not stop being is a definition living
@@ -140,7 +140,7 @@ class Paragraph:
     #
     # !! THE TWO TIERS DISAGREED, AND FOUR OF SIX SHAPES COULD NOT BE WRITTEN.
     # `paragraphs_lexical` cut at the comment opener and `paragraphs_stdlib` kept the
-    # whole physical line, so the retired `paragraph_matches` refused a FRESH census on
+    # whole physical line, so the retired `paragraph_matches` refused a FRESH binder on
     # every lexical trailing comment (`'// note'` against `int b = 2; // note`)
     # and on every paragraph comment not at column 0 (`'/* why */'` against
     # `'    /* why */'` -- the indentation was the cut). Measured 2026-08-19.
@@ -218,7 +218,7 @@ class Paragraph:
     original_start: int | None = None
     original_end: int | None = None
     # !! WHERE THE `c` PLACE BEGINS ON `original_start`, 1-based like every other
-    # position this census states -- `start`, `end`, `original_start`, `original_end`.
+    # position this binder states -- `start`, `end`, `original_start`, `original_end`.
     # Two values:
     #
     #    0      the paragraph owns its lines WHOLE. Not a column: 0 is not one, and
@@ -242,7 +242,7 @@ class Paragraph:
     # both by testing whether the stored text is a proper SUFFIX of the physical
     # line, and the test cannot work: `paragraphs_stdlib` stores the WHOLE line for
     # a trailing comment, so the suffix test answers False. Measured 2026-08-18:
-    # censusing `z = 3  # trailing` and editing that paragraph produced a galley
+    # gathering `z = 3  # trailing` and editing that paragraph produced a galley
     # reading `# reworded trailing` where the statement had been -- a deleted
     # statement, in the one artefact a human is asked to approve.
     #

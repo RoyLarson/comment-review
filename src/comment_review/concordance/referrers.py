@@ -2,7 +2,7 @@
 
     python -m comment_review referrers --repo D [--out PATH] <targets...>
 
-The census resolves what a comment CITES. This resolves the other direction --
+The gather resolves what a comment CITES. This resolves the other direction --
 who cites the code being edited -- and it is the half that decides the
 REFERENCE ONLY list. Without it that list is assembled from memory, and a
 `target` run has no diff to widen from at all.

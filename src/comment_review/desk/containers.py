@@ -257,7 +257,7 @@ class Sheet:
 
     Attributes:
         path: the page's real repo path, as the binder stated it.
-        sha: that page's sha when it was censused. Read by
+        sha: that page's sha when it was gathered. Read by
             `flows.revise.docket_of`, which writes it onto the docket page so
             the setter can refuse a page that moved underneath the run.
         marks: one `Mark` per place a role RULED on, in the order they came
@@ -323,9 +323,9 @@ class Sheet:
             admitted as "".
 
             !! THE REASON GIVEN HERE WAS FALSE UNTIL 2026-08-31. It read *"a page
-            can be censused from a tree that is not a repo"*. `machine.repo.sha_of`
+            can be gathered from a tree that is not a repo"*. `machine.repo.sha_of`
             digests the TEXT with the standard library and asks nothing of git, so
-            a census over a directory holding no `.git` reports a real sha for every
+            a gather over a directory holding no `.git` reports a real sha for every
             page. Roy, 2026-08-31: *"this is not a valid reason to not sha hash the
             file ... we are not using the git sha for this we are using the python
             hashing library."*
@@ -333,7 +333,7 @@ class Sheet:
             ! THE REAL PRODUCERS ARE TWO SITES INSIDE THE MIDDLE, and both write
             `""` for a path `unflatten` could not resolve back to a real page:
             `flows.collate._chief_copy` and, until `P55`,
-            `desk.collator._real_pages`. Neither is a census, and neither is
+            `desk.collator._real_pages`. Neither is a gather, and neither is
             about a repo.
 
             ! SO WHETHER AN ABSENT KEY SHOULD BE ADMITTED AT ALL IS OPEN -- no real
@@ -412,7 +412,7 @@ class EditCopy:
         role: the editorial role that filled it, or `copy-chief` for the fold's
             result. It is what an outcome is decided from and what a place is
             sent back to.
-        read_from: `{root, revise}` -- which tree this copy was censused from.
+        read_from: `{root, revise}` -- which tree this copy was gathered from.
             `decision-log.md Process: #34`: the field exists so a later role can
             know it holds a REVISE and not the original.
         sheets: one per page.
@@ -428,7 +428,7 @@ class EditCopy:
 
         Args:
             role: the editorial role this copy is for.
-            read_from: `{root, revise}` -- which tree it was censused from.
+            read_from: `{root, revise}` -- which tree it was gathered from.
             sheets: one `Sheet.seed` dict per page.
 
         Returns:

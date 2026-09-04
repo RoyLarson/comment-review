@@ -191,7 +191,7 @@ def main() -> int:
     ap.add_argument("--out", required=True, help="where to write the chief's edit_copy")
     # !! THE ROOT SOURCE VERIFICATION RESOLVES A `cite` AGAINST -- `P25`. It
     # defaults to the binder's own `read_from.root`, which is the tree the
-    # copies were censused from and therefore the one their citations were
+    # copies were gathered from and therefore the one their citations were
     # written against. ! WHY OPENING A CITED FILE IS NOT A PAGE READ is stated
     # once, at the call in `flows.collate.collate`, and not restated here.
     ap.add_argument(

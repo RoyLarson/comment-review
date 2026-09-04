@@ -73,7 +73,7 @@ TOKENIZE_ERRORS = (tokenize.TokenError, SyntaxError)
 #: ! `ValueError` IS THE ONE NOBODY EXPECTS: `ast.parse` raises it, not
 #: `SyntaxError`, on a source string holding a NUL byte -- a file that decoded
 #: as valid UTF-8 and passed `READ_ERRORS` cleanly. `code_names` walks a whole
-#: repository, so one such file aborted the entire census rather than degrading
+#: repository, so one such file aborted the entire gather rather than degrading
 #: one file's harvest.
 #: ! And `TokenError` arrives through `TOKENIZE_ERRORS` above: an unterminated
 #: triple-quote or bracket anywhere in a corpus ended a run with a traceback.
