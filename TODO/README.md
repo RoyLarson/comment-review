@@ -295,7 +295,7 @@ that changed a published name or rule:
 | [row-was-never-retired](row-was-never-retired.md) | backend | yes | 0/5 | Retire row everywhere -- the type, the wire key and the prose |
 | [only-a-flow-reaches-the-machine](only-a-flow-reaches-the-machine.md) | backend | yes | 0/6 | Route every machine read and write through a flow |
 | [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
-| [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 0/5 | re-review is retired for revise |
+| [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 0/6 | re-review is retired for revise |
 
 ### in-progress  (18)
 

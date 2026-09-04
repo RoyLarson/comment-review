@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks closed
+Progress: 0 of 6 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Vocabulary 32, 2026-09-04 -- Roy: the re-review should be retired
@@ -27,3 +27,7 @@ re-review is retired for revise.
 - [ ] T5 | Add re-review to check_vocabulary.py RETIRED, mapped to revise, LAST.
       Verify: the gate is green the commit it lands in
         > 2026-09-04 lands last -- the gate must not go red on another lane's files
+- [ ] T6 | Update the shipped prose so every census takes its sense, gather or
+      binder. Verify: check_vocabulary RETIRED counts 0 after a build
+        > 2026-09-04 Vocabulary 34; commands spell gather since 68bfc548, 24b73424
+        > 2026-09-04 78 uses in 10 files: SKILL.md 43, reviewer-brief 14, re-review 7
