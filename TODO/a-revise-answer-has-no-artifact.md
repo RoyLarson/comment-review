@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 22 of 35 tasks closed
+Progress: 23 of 35 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
@@ -214,8 +214,9 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
         > 2026-09-04 game hand 1: b19 read turn 1 after t1 and turn 2 after t2
         > 2026-09-04 the note above is T25's, misfiled; module's query at b74 vanished
         > 2026-09-04 hand 4: a lone query against cleans is in no output at all
-- [ ] T27 | Update run_turn to pair an answer with the sent slot by address, not
-      by an echoed question key. Verify: a slot returned without it parses
+- [x] T27 | FINISHED -- parse_answers pairs to the sent slot by address; a stripped slot parses, a stray address is refused; test_turn.py | 2c04181 | Update
+      run_turn to pair an answer with the sent slot by address, not by an echoed
+      question key. Verify: a slot returned without it parses
         > 2026-09-04 game hand 1: function's t2 answer refused for a dropped key
 - [x] T28 | RULED Process 88: agreement is the text alone | 7e2c6b4 | Decide
       whether byte-identical change texts agree when the instructions or quoted
