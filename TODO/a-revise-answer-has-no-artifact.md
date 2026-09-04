@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 33 of 35 tasks closed
+Progress: 35 of 35 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
@@ -144,8 +144,9 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       the DiffMark a role answers a disagreement on, four answers closed.
       Verify: a fifth, or any of Mark's seven, is refused by name
         > 2026-09-03 prototype at desk/diff_mark.py, 5574f0a -- P20; replaces T1
-- [ ] T11 | Implement the batch: one payload per role per round, each slot
-      carrying its diff3. Verify: one send per role whatever the place count
+- [x] T11 | FINISHED -- flows.turn.batch_for attaches every slot's diff3 at the flow; one send per role | 28981c8d | Implement
+      the batch: one payload per role per round, each slot carrying its diff3.
+      Verify: one send per role whatever the place count
         > 2026-09-03 prototype batch_of 9406b3b -- P21; the FLOW attaches diff3
         > 2026-09-03 replaces T2 and T6
 - [x] T12 | FINISHED as a prototype -- parse_batch and flows/turn.parse_answers; unanswered refused by name, test_turn.py | bc62ea5 | Implement
@@ -183,8 +184,9 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       Verify: it appears in revisit naming role and address
         > 2026-09-03 Roy 2026-09-03: unanswered or malformed is refused, not a withdraw
         > 2026-09-04 bc62ea5: a refused answer is a problem string, not a Revisit
-- [ ] T19 | Generate the DiffMark contract a role is handed from the code, as
-      allowed() does for Mark. Verify: no agent file hand-types its fields
+- [x] T19 | FINISHED -- diff_mark.allowed and turn.contracts generate the three shapes; check --contract prints them; the brief's publishing is T14 (agents) | 28981c8d | Generate
+      the DiffMark contract a role is handed from the code, as allowed() does
+      for Mark. Verify: no agent file hand-types its fields
         > 2026-09-03 the game's brief hand-typed the contract and got query wrong
         > 2026-09-03 publishing it in the brief is agents lane; the generator is backend
         > 2026-09-04 hand 4: a role answered a DiffMark patch meaning keep my patch

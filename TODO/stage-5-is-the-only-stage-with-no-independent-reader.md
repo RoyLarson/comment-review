@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 12 tasks closed
+Progress: 6 of 13 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, by the session that ran all eight stages and rolled its own work back.
@@ -201,3 +201,5 @@ answered. A rail read and not run is a shape problem, and it was measured twice 
 - [?] T12 | Decide whether stage 5b hands proof a copy instead of a hand-written
       docket. Verify: SKILL.md names one and says why
         > 2026-09-02 Raised by P60; the flag swap kept behaviour and left this open
+- [ ] T13 | Update SKILL.md so the task agent runs the turns and the cap between
+      collate and proof. Verify: stage 5 names the commands and the cap

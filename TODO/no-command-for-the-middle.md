@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 15 tasks closed
+Progress: 8 of 16 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -112,3 +112,6 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [ ] T15 | Update check.py's header: drop MEASURED, condition the guarantee on
       --binder, name _load_value. Verify: it says so
         > 2026-09-04 hand 6's four-way stet is the text; hands/h6/chief.json
+- [ ] T16 | Implement the turn and cap commands over flows.turn, the master
+      proof as the state between them. Verify: game.py's verbs run as commands
+        > 2026-09-04 the scratchpad game.py (deal, turn, cap) is the specification
