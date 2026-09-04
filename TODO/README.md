@@ -261,7 +261,7 @@ that changed a published name or rule:
 | [a-reference-needs-its-own-write-chain](a-reference-needs-its-own-write-chain.md) | backend | -- | 0/3 | A reference needs its own write chain, and it is NOT YET |
 | [the-fields-do-not-say-a-mark-may-cite-across](the-fields-do-not-say-a-mark-may-cite-across.md) | agents | yes | 5/8 | The mark's fields permit a cross-citation and never say so |
 | [a-conflict-has-no-rendering](a-conflict-has-no-rendering.md) | backend | -- | 3/4 | A conflict is detected and nothing renders it |
-| [a-revise-answer-has-no-artifact](a-revise-answer-has-no-artifact.md) | backend | -- | 27/35 | A role can be asked to revise and has nothing to answer ON |
+| [a-revise-answer-has-no-artifact](a-revise-answer-has-no-artifact.md) | backend | -- | 28/35 | A role can be asked to revise and has nothing to answer ON |
 | [build-gate-crlf-fragile](build-gate-crlf-fragile.md) | systems | -- | 0/2 | build_plugin.py's raw byte compare fails on a line-ending-only difference introduced by a Windows git checkout |
 | [shape-is-three-words](shape-is-three-words.md) | backend | yes | 0/6 | `shape` carries three senses, only one reaches an agent as a field name; and the axis it names is on `query` alone while `clean` has a recorded, unfilled need for the same thing |
 | [prototype-move-orphaned-tasks](prototype-move-orphaned-tasks.md) | systems | -- | 0/4 | 25 open TODOs carry an unchecked task naming a module that moved to `prototype/` on 2026-08-25, so the task's site is gone and its verification cannot be run |

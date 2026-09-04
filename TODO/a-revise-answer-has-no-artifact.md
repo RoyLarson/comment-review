@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 27 of 35 tasks closed
+Progress: 28 of 35 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
@@ -242,9 +242,9 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       the fold so a lone owing mark is a re-read to every role that marked the
       place but a query. Verify: one mark, three cleans -> re-read
         > 2026-09-04 Process 89; hand 3: b93 landed at t0 with three cleans unread
-- [ ] T34 | Implement the human-review query riding on the master proof,
-      unsettlable and asked last; other shapes abstain. Verify: it is on the
-      proof
+- [x] T34 | FINISHED -- a human-review query holds its place as Collated.unsettlable, on the master proof, refused at the cap; the other shapes take the role out of the place | 99c7620 | Implement
+      the human-review query riding on the master proof, unsettlable and asked
+      last; other shapes abstain. Verify: it is on the proof
         > 2026-09-04 Process 90; hands 1 and 4: queries vanished from the record
 - [x] T35 | FINISHED -- run_turn keeps every earlier Determined, turn included; a stet place leaves later batches; test_turn.py TestOnceStetAlwaysStet | aefefdd | Update
       the recollate so a place once stet leaves every later batch and keeps its
