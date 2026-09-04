@@ -1,4 +1,4 @@
-"""A PROTOTYPE. The turn: a batch answered, applied to the copies, folded again.
+"""The turn: a batch answered, applied to the copies, folded again.
 
     parse_answers(role, sent, returned) -> (answers, revisit)
     apply(copies, role, answers) -> revisit
@@ -12,11 +12,9 @@
     contracts() -> the three shapes a role is handed, generated from the code
 
 ! `commands/collate.py` writes the first batch through `batch_for` and the
-proof through `proof_after`; the verbs that advance a turn and close it at
-the cap are `TODO/no-command-for-the-middle.md` T16. `docs/the-turn.md` is
-the source for what a turn is, and its *What is BUILT* table is the map from
-that file to this one. The loop has run twice as a game from a session
-scratchpad.
+proof through `proof_after`; `commands/turn.py` runs a turn and
+`commands/cap.py` closes one. `docs/the-turn.md` is the source for what a
+turn is, and its *What is BUILT* table is the map from that file to this one.
 
 === A DiffMark DOES NOT BECOME A Mark -- `Process: #86`
 

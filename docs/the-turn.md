@@ -138,15 +138,21 @@ MEASURED 2026-09-04, on `feat/the-turn`, after SP-4
 | the chief's own final ruling | **built** -- `flows.turn.rule_at_cap` (`taken_in`, `recast`), `determined_chief` refusing an unruled place (`d1ddbd8`) |
 | the record of how each place was ruled | **built** -- `desk/determined.py`, one `Determined` per resolved place on the master proof (`#87`) |
 | the human's query riding with the set | **built** -- `Collated.unsettlable`, `MasterProof.unsettlable` (`99c7620`) |
-| **a console command that runs a turn** | **NOT built.** The session's game harness drives `run_turn`; nothing in `commands/` does |
+| a console command that runs a turn | **built** -- `collate --proof-out --batch-out` (`a40ae775`), `turn` (`4040acea`), `cap` (`54bde260`); the master proof on disk is `flows/proof_io.py` |
 | **what SKILL.md tells the task agent about a turn** | **NOT built** -- `agents` lane |
 
-! **THE LOOP RUNS, AND IT IS STILL A PROTOTYPE BY NAME.** It has been played twice as a
-game -- five hands on `bc62ea5`, which produced `Process: #88`-`#91`, and once more on the
-build above -- and every finding either landed here or is a task on
-`TODO/a-revise-answer-has-no-artifact.md`. What keeps the PROTOTYPE banners on
-`desk/determined.py`, `desk/diff_mark.py` and `flows/turn.py` is the two rows still NOT
-built: nothing outside a scratchpad can run it.
+! **THE LOOP RUNS FROM THE CONSOLE.** It has been played three times as a game -- five hands
+on `bc62ea5`, which produced `Process: #88`-`#91`; once more on the build above; and once on
+the commands alone, 2026-09-04, over `desk/determined.py`: `gather`, `distribute`, four roles
+filling seeded copies and running `check`, `collate --proof-out --batch-out`, two turns
+through `turn`, and `cap` with nothing left to rule. Eight places: four settled by the roles
+(one at turn 2, after an escalation), two every role read clean, two unsettlable and printed
+for the human. Every finding of the three games either landed here or is a task on
+`TODO/a-revise-answer-has-no-artifact.md` or `TODO/collator-defects.md`.
+The PROTOTYPE banners on `desk/determined.py`, `desk/diff_mark.py` and `flows/turn.py`
+came off with the three commands, because their stated reason -- nothing outside a
+scratchpad could run it -- went with them. The one row still NOT built is SKILL.md's,
+which is the `agents` lane's.
 
 ---
 

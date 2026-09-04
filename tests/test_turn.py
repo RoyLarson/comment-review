@@ -1,4 +1,4 @@
-"""`flows.turn` -- a PROTOTYPE. The loop `docs/the-turn.md` describes, run over
+"""`flows.turn`. The loop `docs/the-turn.md` describes, run over
 the real `collate()`: a batch answered, applied, folded again; the chief at
 the cap.
 

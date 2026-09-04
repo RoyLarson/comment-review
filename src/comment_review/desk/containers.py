@@ -521,8 +521,9 @@ class MasterProof:
         edit_copies: one per role, or one per SHARD under fan-out.
         turns: the record of each turn of this stage's collate, in order --
             what went out and what came back. `Process: #87`: the master
-            proof is the state between turns. A PROTOTYPE shape, one dict per
-            turn as `flows.turn`'s caller keeps it; empty until a turn runs.
+            proof is the state between turns. One dict per turn, `{turn,
+            sent, returned, revisit}` as `commands/turn.py` writes it; empty
+            until a turn runs, and carried as it came.
         determined: the copy chief's ruling at every resolved place --
             `desk.determined.Determined`, `Process: #87`. Empty until a fold
             has recorded them.
@@ -655,7 +656,7 @@ class MasterProof:
         stage = raw_stage if isinstance(raw_stage, str) else ""
         # ! BOTH ABSENT AND EMPTY READ AS EMPTY. A proof written before
         # `Process: #87` carries neither key, and one written after carries
-        # both; `turns` is a PROTOTYPE shape and is carried as it came.
+        # both; `turns` is carried as it came.
         raw_turns = data.get("turns")
         turns = (
             tuple(t for t in raw_turns if isinstance(t, dict))

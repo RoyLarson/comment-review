@@ -1,12 +1,10 @@
-"""A PROTOTYPE. `DiffMark`: a role's answer to "does your finding still stand".
+"""`DiffMark`: a role's answer to "does your finding still stand".
 
-!! A PROTOTYPE BY NAME. Roy, 2026-09-03: *"That looks like a good prototype
-to test out the workflow. Keep it a prototype until we get all of the pieces
-together."* The pieces are together since SP-4
-(`docs/superpowers/plans/2026-09-04-sp4-the-turn.md`): `flows/turn.py` runs
-the loop over this file, and it has been played as a game twice. What keeps
-the banner is that no console command runs a turn -- `docs/the-turn.md`,
-*What is BUILT and what is NOT*.
+! IT WAS A PROTOTYPE BY NAME until the console verbs landed. Roy, 2026-09-03:
+*"Keep it a prototype until we get all of the pieces together."* The pieces
+are together: `flows/turn.py` runs the loop over this file, `commands/turn.py`
+and `commands/cap.py` run it from the console -- `docs/the-turn.md`, *What is
+BUILT and what is NOT*.
 
 === WHY IT IS NOT A `Mark`
 

@@ -1,4 +1,4 @@
-"""`desk.diff_mark` -- a PROTOTYPE. See the module's own docstring.
+"""`desk.diff_mark`. See the module's own docstring.
 
 Mirrors `test_mark.py`'s shape tests for `Mark`, over the smaller `DiffMark`.
 """

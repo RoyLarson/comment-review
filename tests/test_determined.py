@@ -1,4 +1,4 @@
-"""`desk.determined` -- a PROTOTYPE. `decision-log.md Process: #87`.
+"""`desk.determined`. `decision-log.md Process: #87`.
 
 Mirrors `test_diff_mark.py`'s shape tests, over the chief's own object, and
 proves the master proof carries the turn record and the rulings across a

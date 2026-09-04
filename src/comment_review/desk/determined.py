@@ -1,7 +1,7 @@
-"""A PROTOTYPE. `Determined`: the copy chief's ruling at one resolved place.
+"""`Determined`: the copy chief's ruling at one resolved place.
 
-!! NOTHING SHIPS THIS YET. `decision-log.md Process: #87` (Roy, 2026-09-04) is
-the source: the chief's ruling is its own object, one per resolved place, on
+`decision-log.md Process: #87` (Roy, 2026-09-04) is the source: the chief's
+ruling is its own object, one per resolved place, on
 the master proof beside the roles' copies and the turn record. Its three
 answers are the chief's and no role's -- `Vocabulary: #29` named them, `#87`
 says when each applies -- so this is not a `Mark` (`#22`, `#86`: a different
