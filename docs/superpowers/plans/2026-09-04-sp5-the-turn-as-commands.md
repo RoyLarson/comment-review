@@ -97,22 +97,22 @@ caller `grep -rn "gather(" src tests` finds.
 - [x] Gates green; commit `-F`.
 - [x] Tick: P9, T1, T2, T3; commit.
 
-## Task 3: every `census` takes its sense -- P1
+## Task 3: every `census` takes its sense -- P1 -- 24b73424
 
 **Files:** every file `grep -rli census src tests` names; `scripts/check_vocabulary.py`
 (RETIRED gains `census: gather`); `CLAUDE.md`'s command block; `docs/vocabulary.md`'s
 Retired table.
 
-- [ ] Codemod, sentence by sentence and not word by word: the ACT and the COMMAND become
+- [x] Codemod, sentence by sentence and not word by word: the ACT and the COMMAND become
       `gather`, the ARTIFACT becomes `binder`; a quoted ruling keeps its words. The diff is
       read before it is written.
-- [ ] `check_vocabulary.py` retires the word; the gate is green over `plugins/**/scripts`
+- [x] `check_vocabulary.py` retires the word; the gate is green over `plugins/**/scripts`
       after the build is NOT run (plugins/ is built at release; the gate reads the shipped
       tree, so this is verified over `src/` by grep and over `plugins/` at release).
-- [ ] Verify: `grep -rn census src tests` returns nothing; `docs/vocabulary.md`'s Retired
+- [x] Verify: `grep -rn census src tests` returns nothing; `docs/vocabulary.md`'s Retired
       table carries the row; `CLAUDE.md`'s commands spell `gather`.
-- [ ] Gates green; commit `-F`.
-- [ ] Tick: P1; commit.
+- [x] Gates green; commit `-F`.
+- [x] Tick: P1; commit.
 
 ## Task 4: the master proof on disk, and collate writing it -- P3
 
