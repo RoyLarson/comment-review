@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 17 of 24 tasks closed
+Progress: 17 of 27 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
           Both were ruled the same day and neither had a backlog entry, so the plan
           steps that build them cited rulings rather than tasks.
@@ -202,3 +202,14 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       _chief_copy so the chief's edit copy is derived from the Determineds.
       Verify: every place in it names its Determined
         > 2026-09-04 Process 87: Process 30's shape holds, one mark per place
+- [ ] T25 | Update run_turn so a Determined keeps the turn the place first
+      agreed on. Verify: agreed on turn 1, it reads turn 1 after turn 2's fold
+        > 2026-09-04 game hand 1: function's t2 answer refused for a dropped key
+        > 2026-09-04 the note above is T27's, misfiled; T25's: b19 read t1 then t2
+- [?] T26 | Decide what a query at a place other roles are contesting records,
+      since it takes no part in the fold. Verify: it is on the master proof
+        > 2026-09-04 game hand 1: b19 read turn 1 after t1 and turn 2 after t2
+        > 2026-09-04 the note above is T25's, misfiled; module's query at b74 vanished
+- [ ] T27 | Update run_turn to pair an answer with the sent slot by address, not
+      by an echoed question key. Verify: a slot returned without it parses
+        > 2026-09-04 game hand 1: function's t2 answer refused for a dropped key
