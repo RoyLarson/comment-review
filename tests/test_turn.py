@@ -15,6 +15,7 @@ from helpers import (
     a_binder_over,
     a_clean,
     a_correct_setting,
+    a_query,
     an_add,
     copies_over,
     entries_of,
@@ -22,7 +23,7 @@ from helpers import (
 
 from comment_review.desk.determined import CHIEF, ORIGINAL, Answer
 from comment_review.desk.diff_mark import COMPOSITION, QUESTION, batch_of
-from comment_review.desk.mark import Mark
+from comment_review.desk.mark import Mark, Shape
 from comment_review.flows.collate import collate
 from comment_review.flows.turn import determined_chief, rule_at_cap, run_turn
 
@@ -484,6 +485,28 @@ class TestTheCap:
         again, why = Mark.deserialize(entry.address, entry.serialize())
         assert why == []
         assert again == entry
+
+    def test_an_unsettlable_place_is_not_the_chiefs_to_rule(self):
+        """`Process: #90`: the place with the human's query is asked of the
+        human after everything else, not ruled at the cap."""
+        binder = a_binder_over({"m.py@b1": BASE})
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {"m.py@b1": a_correct_setting("m.py@b1", "two", TWO)},
+                "function-context": {
+                    "m.py@b1": a_correct_setting("m.py@b1", "two", DOS)
+                },
+                "module-context": {
+                    "m.py@b1": a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY)
+                },
+            },
+        )
+        got = collate("4c", copies, binder, root=REPO)
+        assert [u["address"] for u in got.unsettlable] == ["m.py@b1"]
+        with pytest.raises(ValueError) as caught:
+            rule_at_cap(got, "m.py@b1", Answer.TAKEN_IN, "block-context", "x", turn=2)
+        assert "unsettlable" in str(caught.value)
 
     def test_stet_is_not_the_chiefs_to_rule(self):
         _, _, got = _escalated()

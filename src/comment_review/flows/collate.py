@@ -72,6 +72,7 @@ from comment_review.desk.collator import (
     base_texts,
     drift_in,
     known_addresses,
+    places,
     reconcile,
     tally,
     verify_report,
@@ -82,7 +83,7 @@ from comment_review.desk.containers import (
     Sheet,
 )
 from comment_review.desk.determined import Answer, Determined
-from comment_review.desk.mark import Instruction, Mark, filled
+from comment_review.desk.mark import Instruction, Mark, Shape, filled
 from comment_review.desk.proof import MismatchedRoot, gather
 from comment_review.flows.mark_errors import Revisit, mark_errors
 from comment_review.reading.addresser import cue_of, unflatten
@@ -197,6 +198,11 @@ class Collated:
             `flows.turn.rule_at_cap`'s. `Process: #87`.
         proof: the master proof the fold read, so a turn can carry the
             record forward. None on an early return.
+        unsettlable: every place a `human-review-necessary` query holds --
+            `Process: #90`. Out of every other list and off the chief's copy;
+            it rides with the set and is asked of the human after everything
+            else has settled. Each entry is `{"address", "roles", "marks",
+            "query"}`, `query` the serialized mark with its role beside it.
     """
 
     chief: EditCopy
@@ -210,6 +216,7 @@ class Collated:
     order: list[str] = field(default_factory=list)
     determined: dict[str, Determined] = field(default_factory=dict)
     proof: MasterProof | None = None
+    unsettlable: list[dict] = field(default_factory=list)
 
 
 def _identical(owing: list[Placed]) -> Placed | None:
@@ -358,6 +365,43 @@ def _resolve(
         rereads.append(entry)
 
     return resolved, escalations, rereads
+
+
+def _unsettlable(proof: MasterProof) -> list[dict]:
+    """Every place a `human-review-necessary` query holds -- `Process: #90`.
+
+    Read off `places`, not off `reconcile`: a query owes no change, so a
+    place holding only a query and cleans reaches no list of the three, and
+    MEASURED in the game's hand 4 it reached no output at all.
+
+    Returns:
+        One entry per such place -- `{"address", "roles", "marks", "query"}`,
+        `roles` every role that marked it, `marks` every `Placed` there, and
+        `query` the first human-review query's serialized mark with its
+        `role` beside it.
+    """
+    out: list[dict] = []
+    for address, marks in places(proof).items():
+        asked = next(
+            (
+                placed
+                for placed in marks
+                if placed.mark.instruction is Instruction.QUERY
+                and placed.mark.claim.get("shape") == Shape.HUMAN_REVIEW_NECESSARY
+            ),
+            None,
+        )
+        if asked is None:
+            continue
+        out.append(
+            {
+                "address": address,
+                "roles": sorted({placed.role for placed in marks}),
+                "marks": marks,
+                "query": {"role": asked.role, **asked.mark.serialize()},
+            }
+        )
+    return out
 
 
 def _touched_by(mark: Mark) -> list[str]:
@@ -886,6 +930,16 @@ def collate(
     reconciled = reconcile(proof)
     resolved, escalations, rereads = _resolve(reconciled, base, turn)
 
+    # !! THE HUMAN'S QUERY HOLDS ITS PLACE, `Process: #90`. Wherever a role
+    # asked for the human, the place is UNSETTLABLE by roles or chief: out
+    # of every list below, off the chief's copy, carried to the end.
+    unsettlable = _unsettlable(proof)
+    held = {entry["address"] for entry in unsettlable}
+    for address in held:
+        resolved.pop(address, None)
+    escalations = [e for e in escalations if e["address"] not in held]
+    rereads = [e for e in rereads if e["address"] not in held]
+
     # !! BOTH ENDS OR NEITHER, THEN AN ORDER. D8 of the SP-1 spec: a set of
     # moves is a graph over addresses, and half a move is worse than none.
     by_address = {
@@ -927,4 +981,5 @@ def collate(
         order=order,
         determined=resolved,
         proof=proof,
+        unsettlable=unsettlable,
     )

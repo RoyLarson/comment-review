@@ -88,6 +88,7 @@ from comment_review.desk.mark import (
     INSTRUCTIONS,
     Instruction,
     Mark,
+    Shape,
     filled,
     without_location,
 )
@@ -715,6 +716,12 @@ def _outcome(
                               paragraph, which compose or do not, and this
                               step cannot say which
 
+    And whatever the outcome, a role whose mark here is a DEFERRING query --
+    `outside-my-role`, `unable-to-determine` -- is out of `roles`: it has
+    abstained from this place for the review (`decision-log.md Process:
+    #90`). A `human-review-necessary` query is the flow's to set aside,
+    place and all; this step does not see the difference.
+
     Args:
         proof: the parsed master_proof, read only to widen an `add`'s roles.
         address: the place being decided. Its path is what an `add` widens over.
@@ -751,6 +758,13 @@ def _outcome(
         kind = "escalations"
     else:
         kind = "rereads"
+    deferring = {
+        placed.role
+        for placed in marks
+        if placed.mark.instruction is Instruction.QUERY
+        and placed.mark.claim.get("shape") != Shape.HUMAN_REVIEW_NECESSARY
+    }
+    roles -= deferring
     return kind, {"address": address, "roles": sorted(roles), "marks": owing}
 
 

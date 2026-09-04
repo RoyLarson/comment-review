@@ -529,6 +529,10 @@ class MasterProof:
             ! BOTH ARE `wire: False`: `seed` writes the three fields `gather`
             takes from a copy, and these two are written by a fold, later.
             `serialize` carries them; `deserialize` reads them where present.
+        unsettlable: every place a human-review query holds, riding to the
+            end of the review to be asked of the human -- `Process: #90`.
+            One dict per place, `{address, roles, query}`, carried as it
+            came, like `turns`; `wire: False` for the same reason.
     """
 
     stage: str
@@ -536,6 +540,7 @@ class MasterProof:
     edit_copies: tuple[EditCopy, ...]
     turns: tuple[dict, ...] = field(default=(), metadata={"wire": False})
     determined: tuple[Determined, ...] = field(default=(), metadata={"wire": False})
+    unsettlable: tuple[dict, ...] = field(default=(), metadata={"wire": False})
 
     @classmethod
     def seed(cls, stage: str, read_from: dict, edit_copies: list) -> dict:
@@ -657,6 +662,12 @@ class MasterProof:
             if isinstance(raw_turns, list)
             else ()
         )
+        raw_unsettlable = data.get("unsettlable")
+        unsettlable = (
+            tuple(u for u in raw_unsettlable if isinstance(u, dict))
+            if isinstance(raw_unsettlable, list)
+            else ()
+        )
         raw_determined = data.get("determined")
         determined: list[Determined] = []
         if isinstance(raw_determined, list):
@@ -675,6 +686,7 @@ class MasterProof:
                 edit_copies=tuple(copies),
                 turns=turns,
                 determined=tuple(determined),
+                unsettlable=unsettlable,
             ),
             [],
         )
@@ -687,4 +699,5 @@ class MasterProof:
             "edit_copies": [copy.serialize() for copy in self.edit_copies],
             "turns": [dict(t) for t in self.turns],
             "determined": [d.serialize() for d in self.determined],
+            "unsettlable": [dict(u) for u in self.unsettlable],
         }

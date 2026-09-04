@@ -419,6 +419,11 @@ def rule_at_cap(
         ),
         None,
     )
+    if any(u["address"] == address for u in collated.unsettlable):
+        raise ValueError(
+            f"{address} is unsettlable -- the human's query rides with the set and "
+            "is asked last (Process 90)"
+        )
     if entry is None:
         raise ValueError(f"{address} is not carried forward -- nothing to rule on")
     if answer is Answer.STET:

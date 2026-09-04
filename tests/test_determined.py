@@ -145,3 +145,18 @@ def test_a_master_proof_without_them_still_parses():
     assert again is not None
     assert again.turns == ()
     assert again.determined == ()
+
+
+def test_a_master_proof_round_trips_the_unsettlable_places():
+    """`Process: #90`: the human's query rides on the proof to the end."""
+    proof = a_master_proof({"block-context": {"m.py@b1": a_correct("m.py@b1")}})
+    riding = {
+        "address": "m.py@b1",
+        "roles": ["block-context", "module-context"],
+        "query": {"role": "module-context", "reason": "needs a human"},
+    }
+    proof = replace(proof, unsettlable=(riding,))
+    again, why = MasterProof.deserialize("p", proof.serialize())
+    assert why == []
+    assert again is not None
+    assert again.unsettlable == (riding,)
