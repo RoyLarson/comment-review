@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 9 tasks closed
+Progress: 7 of 19 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
@@ -135,3 +135,38 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       cannot. Verify: the artifact exists, or the question is answered in the
       log
         > 2026-09-02 Roy 2026-09-02: that needs something besides the edit-copy
+- [ ] T10 | Implement the DiffMark a role answers a disagreement on, four
+      answers closed. Verify: a fifth, or any of Mark's seven, is refused by
+      name
+        > 2026-09-03 prototype at desk/diff_mark.py, 5574f0a -- P20; replaces T1
+- [ ] T11 | Implement the batch: one payload per role per round, each slot
+      carrying its diff3. Verify: one send per role whatever the place count
+        > 2026-09-03 prototype batch_of 9406b3b -- P21; the FLOW attaches diff3
+        > 2026-09-03 replaces T2 and T6
+- [ ] T12 | Implement the return: a role's answered batch parses at the
+      boundary. Verify: an unanswered slot is refused by name, never read as
+      withdraw
+        > 2026-09-03 prototype parse_batch 37fbbb8 -- P16
+- [ ] T13 | Implement the recollate so a round's resolutions join the chief's
+      copy. Verify: a lone surviving add, all others holding, lands
+        > 2026-09-03 P17. Measured hand 3: a lone add re-reads forever today
+- [?] T14 | Decide whether a composition re-read is answered with a DiffMark or
+      a fresh Mark, given clean and query are its only passes
+        > 2026-09-03 P1/P6. the-revise.md: clean and query are a composition's passes
+        > 2026-09-03 the prototype takes no side -- desk/diff_mark.py docstring
+- [ ] T15 | Implement the conflict outcomes: hold/hold next round, hold/withdraw
+      takes the held in, withdraw/withdraw re-asks. Verify: each lands
+        > 2026-09-03 P5; replaces T3's conflict half -- the Objective's outcomes table
+- [ ] T16 | Implement the round counter, rounds named by kind, no maximum
+      enforced. Verify: a run reports each place's rounds
+        > 2026-09-03 P18. Process 78: the cap is the agent's, never the code's
+- [ ] T17 | Implement the copy chief's ruling at the cap on whatever is still
+      unresolved. Verify: no place survives the last round unruled
+        > 2026-09-03 P19. the-revise.md: the chief's ruling is the terminator
+- [ ] T18 | Implement routing of a refused or unanswered DiffMark to its role as
+      a revisit. Verify: it appears in revisit naming role and address
+        > 2026-09-03 Roy 2026-09-03: unanswered or malformed is refused, not a withdraw
+- [ ] T19 | Generate the DiffMark contract a role is handed from the code, as
+      allowed() does for Mark. Verify: no agent file hand-types its fields
+        > 2026-09-03 the game's brief hand-typed the contract and got query wrong
+        > 2026-09-03 publishing it in the brief is agents lane; the generator is backend
