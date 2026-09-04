@@ -42,6 +42,7 @@ class Command(StrEnum):
     ADDRESSER = auto()
     CARRY = auto()
     CENSUS = auto()
+    CHECK = auto()
     COLLATE = auto()
     COMPOSITOR = auto()
     DISTRIBUTE = auto()
