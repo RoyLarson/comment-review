@@ -3298,3 +3298,24 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   was true last time may not be true this time."* A declined proposal was declined against
   the code as it stood; the next run reads code that has moved, and the finding is owed a
   fresh reading rather than last time's answer.
+
+- **#92.** **A NON-OBJECT `claim` IS MALFORMED: REFUSED BY NAME, STACKED, AND REROUTED BY THE
+  TASK AGENT** (Roy, 2026-09-04: *"We have something that checks the Marks correct? Can we
+  just stack the errors and have the task agent reroute to the specific agents?"*). Closes
+  [`claim-fallback-is-unreachable`](../TODO/claim-fallback-is-unreachable.md) T4 as (ii),
+  the lean recorded there on 2026-08-22.
+
+  **The case.** A role hands back `claim` as a string or a list where the contract owes an
+  object -- hand-written JSON, an old example, prose where a field was expected. The
+  prototype's `held.py` emptied it silently while sixty lines of fallback said the reviewer's
+  words were preserved; they were discarded before that code ran.
+
+  **What the tree does, measured.** `desk/mark.py:640` refuses a claim that is not an object
+  by name -- *needs a `claim` object carrying false, true* -- alongside every other rule the
+  mark broke; `flows.mark_errors` makes each refusal a `Revisit` naming the role, the place
+  and all the reasons, sorted by role (`#72`); `collate` prints them, `check` prints them
+  before the send, and `flows.turn` returns them for a turn. `claim_fields` and `claim_text`
+  exist nowhere in `src/`, `plugins/` or `tests/`; the fallback left with the prototype on
+  2026-08-25, and `prototype/` is kept as reference by its own README. So the ruling names
+  what is built rather than choosing between two shapes, and the 0.2.4 plan's P12 -- delete
+  the fallback -- has nothing running to delete.
