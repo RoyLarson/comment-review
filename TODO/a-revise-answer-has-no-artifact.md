@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 23 of 35 tasks closed
+Progress: 24 of 35 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
@@ -233,8 +233,9 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
 - [ ] T31 | Update Determined.deserialize to refuse a null mark unless side is
       ORIGINAL, and an unknown side. Verify: both refused by name
         > 2026-09-04 game hand 4: function-context's query on the class docstring
-- [ ] T32 | Update the fold so byte-identical change texts agree whatever the
-      instruction or sentence quoted. Verify: patch + correct, one text -> stet
+- [x] T32 | FINISHED -- _identical compares change alone; _outcome escalates one text before the sentence test; test_collate.py | 388952c | Update
+      the fold so byte-identical change texts agree whatever the instruction or
+      sentence quoted. Verify: patch + correct, one text -> stet
         > 2026-09-04 Process 88; hand 2: one text as patch/correct/patch, never agreed
 - [ ] T33 | Update the fold so a lone owing mark is a re-read to every role that
       marked the place but a query. Verify: one mark, three cleans -> re-read
