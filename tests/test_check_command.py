@@ -3,6 +3,13 @@
 ! IT RUNS `main()` IN-PROCESS with a built argv. Inputs are real -- a binder
 from `a_binder_over`, copies from the real `seed`, batches from the real
 `batch_of` over the real `collate`.
+
+! WHERE THE EXPECTATIONS COME FROM: the 2026-08-17 ruling that a role edits
+the seeded template and a CLI validates it
+(`TODO/completed/the-record-is-a-parsed-template-and-should-be-a-value.md` T2),
+and the game of 2026-09-04 that measured what roles hand back -- an
+unanswered slot, a `patch` meant as *keep my patch*, a batch keyed by role
+(`decision-log.md Process: #86`-`#91`).
 """
 
 import json
@@ -227,3 +234,12 @@ class TestABatch:
         code, _, err = _run(monkeypatch, capsys, "--answers", paths["block-context"])
         assert code == 2
         assert "--role" in err and "--sent" in err
+
+
+class TestTheContract:
+    def test_the_contract_prints_as_json_and_exits_zero(self, monkeypatch, capsys):
+        code, out, _ = _run(monkeypatch, capsys, "--contract")
+        assert code == 0
+        got = json.loads(out)
+        assert set(got) == {"stage_4c_mark", "escalation", "composition"}
+        assert "hold" in got["escalation"]["instruction"]

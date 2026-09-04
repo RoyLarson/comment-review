@@ -2,6 +2,7 @@
 
     comment_review check --edit-copy copy.json [--binder B.json] [--repo R]
     comment_review check --answers answers.json --sent batch.json --role block-context
+    comment_review check --contract
 
 A role writes its copy or its batch answers with its file-write tool and runs
 this over the file. It is the same boundaries the fold runs -- nothing here
@@ -42,7 +43,7 @@ from comment_review.binder.binder import Binder
 from comment_review.desk.collator import Cache, base_texts, drift_in, verify_report
 from comment_review.desk.containers import EditCopy
 from comment_review.flows.mark_errors import mark_errors
-from comment_review.flows.turn import parse_answers, slots_of
+from comment_review.flows.turn import contracts, parse_answers, slots_of
 from comment_review.machine import exceptions
 from comment_review.machine.json_object import object_of
 
@@ -156,6 +157,11 @@ def main() -> int:
     what = ap.add_mutually_exclusive_group(required=True)
     what.add_argument("--edit-copy", metavar="PATH", help="a role's copy, as it stands")
     what.add_argument(
+        "--contract",
+        action="store_true",
+        help="print the three shapes a role is handed, generated from the code",
+    )
+    what.add_argument(
         "--answers", metavar="PATH", help="a role's answered batch slots, as a list"
     )
     ap.add_argument("--role", help="whose answers these are (with --answers)")
@@ -173,6 +179,11 @@ def main() -> int:
     )
     args = ap.parse_args()
 
+    if args.contract:
+        # ! GENERATED, NEVER HAND-WRITTEN -- T19. The game's first brief typed
+        # the contract by hand and got `query` wrong.
+        print(json.dumps(contracts(), indent=2))
+        return OK
     if args.answers:
         if not args.role or not args.sent:
             print("check --answers needs --role and --sent", file=sys.stderr)

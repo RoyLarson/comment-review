@@ -26,7 +26,13 @@ from comment_review.desk.diff_mark import COMPOSITION, QUESTION, batch_of
 from comment_review.desk.mark import Mark, Shape
 from comment_review.flows.collate import collate
 from comment_review.flows.mark_errors import Revisit
-from comment_review.flows.turn import determined_chief, rule_at_cap, run_turn
+from comment_review.flows.turn import (
+    batch_for,
+    contracts,
+    determined_chief,
+    rule_at_cap,
+    run_turn,
+)
 
 BASE = "# one\n# two\n# three\n"
 TWO = "# one\n# TWO\n# three\n"
@@ -545,6 +551,52 @@ class TestARefusedAnswerIsARevisit:
         assert [(p.role, p.address, p.unreadable) for p in problems] == [
             ("block-context", "m.py@b1", False)
         ]
+
+
+class TestTheBatchThatGoesOut:
+    """T11 / P13: the renderer lives at the flow. T19 / P2: the contracts are
+    generated from the code."""
+
+    def test_every_slot_carries_the_diff3_of_its_place(self):
+        _, _, got = _escalated()
+        batch = batch_for(got)
+        for role in ("block-context", "function-context"):
+            diff = batch[role][0]["diff"]
+            assert "<<<<<<< conflict" in diff and ">>>>>>> end" in diff
+            assert "======= block-context" in diff
+            assert "======= function-context" in diff
+        assert batch["block-context"][0]["diff"] == batch["function-context"][0]["diff"]
+
+    def test_a_reread_slot_carries_the_diff_too(self):
+        _, _, got = _composed()
+        batch = batch_for(got)
+        assert "<<<<<<< conflict" in batch["block-context"][0]["diff"]
+
+    def test_the_contracts_are_the_codes_own_sets(self):
+        got = contracts()
+        assert set(got) == {"stage_4c_mark", "escalation", "composition"}
+        assert got["escalation"]["instruction"] == [
+            "correct",
+            "hold",
+            "patch",
+            "withdraw",
+        ]
+        assert got["escalation"]["owes_change"] == ["correct", "patch"]
+        assert got["composition"]["instruction"] == [
+            "clean",
+            "correct",
+            "patch",
+            "query",
+        ]
+        assert set(got["composition"]["claim"]) == {
+            "clean",
+            "correct",
+            "patch",
+            "query",
+        }
+        assert got["stage_4c_mark"]["instruction"] == sorted(
+            ["add", "clean", "correct", "drop", "move", "patch", "query"]
+        )
 
 
 class TestTheCap:

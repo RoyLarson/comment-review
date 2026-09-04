@@ -1,11 +1,12 @@
 """A PROTOTYPE. `DiffMark`: a role's answer to "does your finding still stand".
 
-!! NOTHING WIRES THIS IN YET. Roy, 2026-09-03: *"That looks like a good prototype
+!! A PROTOTYPE BY NAME. Roy, 2026-09-03: *"That looks like a good prototype
 to test out the workflow. Keep it a prototype until we get all of the pieces
-together."* `docs/plans/0.2.4-the-mark-and-the-collator.md` P20 (`DiffMark` itself), P21
-(`batch_of`) and P16 (`parse_batch`) are this file; P17 (the recollate) and
-P18/P19 (the turn counter and the chief's cap ruling) are what would close
-the loop. Until they land this module has no caller.
+together."* The pieces are together since SP-4
+(`docs/superpowers/plans/2026-09-04-sp4-the-turn.md`): `flows/turn.py` runs
+the loop over this file, and it has been played as a game twice. What keeps
+the banner is that no console command runs a turn -- `docs/the-turn.md`,
+*What is BUILT and what is NOT*.
 
 === WHY IT IS NOT A `Mark`
 
@@ -34,8 +35,8 @@ An ESCALATION's: *does your finding still stand*. A COMPOSITION re-read
 asks the other artifact's question -- *is this composed text right* -- and
 is answered with `Mark`'s own `clean`/`query`/`correct`/`patch`, not with
 this. `batch_of` below seeds each slot by that question, and `flows/turn.py`
-applies the answer. Which answers a CONFLICT row rules in or out by name is
-still `docs/plans/0.2.4-the-mark-and-the-collator.md` P4/P5/P6.
+applies the answer. Which answers a CONFLICT row admits is `DiffInstruction`,
+by name; which a COMPOSITION admits is `flows.turn.COMPOSITION_ANSWERS`.
 """
 
 from dataclasses import dataclass, fields
@@ -49,6 +50,9 @@ from comment_review.desk.mark import INSTRUCTIONS, Mark, filled
 QUESTION = "question"
 ESCALATION = "escalation"
 COMPOSITION = "composition"
+#: The key a slot carries its diff3 rendering under. `batch_of` writes none --
+#: the renderer is the write end's -- and `flows.turn.batch_for` fills it.
+DIFF = "diff"
 
 
 class DiffInstruction(StrEnum):
@@ -324,3 +328,27 @@ def parse_batch(where: str, batch: list[object]) -> tuple[list[DiffMark], list[s
             continue
         marks.append(mark)
     return marks, problems
+
+
+def allowed() -> dict:
+    """The shape a role is handed for an ESCALATION slot, generated from the code.
+
+    Never hand-written -- T19: the game's first brief hand-typed this and got a
+    field wrong.
+
+    Returns:
+        `instruction` -> the four; `owes_change` -> which of them owe `change`;
+        `fields` -> what each field is, in the words `deserialize` checks by.
+    """
+    return {
+        "instruction": sorted(DiffInstruction),
+        "owes_change": [str(DiffInstruction.CORRECT), str(DiffInstruction.PATCH)],
+        "fields": {
+            "address": "copied from the slot",
+            "anchor": "copied from the slot",
+            "instruction": "one of the four",
+            "reason": "owed, prose",
+            "change": "the WHOLE updated paragraph as raw text; owed for correct and "
+            "patch, absent for hold and withdraw",
+        },
+    }

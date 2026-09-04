@@ -6,14 +6,13 @@
         -> (Collated, revisit)
     rule_at_cap(collated, address, answer, side, reason, turn, prose) -> Determined
     determined_chief(collated, rulings) -> (every Determined, the chief's edit_copy)
+    batch_for(collated) -> the batch that goes out, every slot carrying its diff
+    contracts() -> the three shapes a role is handed, generated from the code
 
-!! NOTHING WIRES THIS INTO A COMMAND YET. `docs/the-turn.md` is the source for
-what a turn is. This is P17 (the recollate), T20 (the counter -- every
-`Determined` carries the turn it landed on, and the caller keeps one record
-per turn), T21 (the batch seeded by question, `desk.diff_mark.batch_of`) and
-T24 (the chief's copy derived from the Determineds,
-`flows.collate._chief_copy`) of `TODO/a-revise-answer-has-no-artifact.md`,
-built together so the loop can be run end to end.
+!! NOTHING WIRES THIS INTO A COMMAND YET, which is what keeps it a prototype
+by name. `docs/the-turn.md` is the source for what a turn is, and its *What
+is BUILT* table is the map from that file to this one. The loop has run twice
+as a game from a session scratchpad; `commands/` has no verb for it.
 
 === A DiffMark DOES NOT BECOME A Mark -- `Process: #86`
 
@@ -74,15 +73,19 @@ from comment_review.desk.containers import EditCopy
 from comment_review.desk.determined import CHIEF, ORIGINAL, Answer, Determined
 from comment_review.desk.diff_mark import (
     COMPOSITION,
+    DIFF,
     ESCALATION,
     QUESTION,
     DiffInstruction,
     DiffMark,
+    batch_of,
     parse_batch,
 )
-from comment_review.desk.mark import Instruction, Mark, filled, untouched
+from comment_review.desk.diff_mark import allowed as diff_allowed
+from comment_review.desk.mark import Instruction, Mark, allowed, filled, untouched
 from comment_review.flows.collate import Collated, _chief_copy, collate
 from comment_review.flows.mark_errors import Revisit
+from comment_review.results.differences import diff3
 
 #: What a role may answer a composition re-read with -- `Process: #86`.
 COMPOSITION_ANSWERS = (
@@ -561,3 +564,56 @@ def determined_chief(
         raise ValueError(f"unruled at the cap: {named}")
     every = {**collated.determined, **{d.address: d for d in rulings}}
     return every, _chief_copy(collated.proof.read_from, every, collated.proof)
+
+
+def batch_for(collated: Collated) -> dict[str, list[dict]]:
+    """The batch that goes out -- `batch_of`, with every slot's diff attached.
+
+    !! THE RENDERER LIVES AT THE FLOW -- T11, P13. `results.differences.diff3`
+    is the write end, which `desk/` may not reach, so `desk.diff_mark.batch_of`
+    sends a slot with no rendered text and this fills `DIFF` on each: the base
+    against every side at the place, in diff3 form, the same string for every
+    role that owes the place.
+
+    Args:
+        collated: the last fold.
+
+    Returns:
+        role -> its slots, as `batch_of` shapes them, each carrying `DIFF`.
+    """
+    batch = batch_of(collated.escalations, collated.rereads)
+    for entry in (*collated.escalations, *collated.rereads):
+        marks = entry["marks"]
+        base = marks[0].mark.raw_text if marks else ""
+        sides = {placed.role: placed.mark.change for placed in marks}
+        rendered = "".join(diff3(base, sides))
+        for role in entry["roles"]:
+            for slot in batch.get(role, []):
+                if slot["address"] == entry["address"]:
+                    slot[DIFF] = rendered
+    return batch
+
+
+def contracts() -> dict:
+    """The three shapes a role is handed, generated from the code -- T19, P2.
+
+    A stage-4c `Mark` (`desk.mark.allowed`), an ESCALATION answer
+    (`desk.diff_mark.allowed`), and a COMPOSITION answer: the `Mark` shape
+    narrowed to `COMPOSITION_ANSWERS`, over the slot's `raw_text` -- the
+    composed text, or the lone mark's -- rather than the base. Publishing them
+    in the brief is the agents lane's; `commands/check.py --contract` prints
+    them so nobody hand-types one.
+    """
+    mark = allowed()
+    composition = {
+        **mark,
+        "instruction": sorted(str(one) for one in COMPOSITION_ANSWERS),
+        "claim": {str(one): mark["claim"][str(one)] for one in COMPOSITION_ANSWERS},
+        "over": "the slot's `raw_text` -- the composed text, or the one mark's; "
+        "a `clean` accepts it, a `correct`'s `claim.false` quotes a sentence of it",
+    }
+    return {
+        "stage_4c_mark": mark,
+        "escalation": diff_allowed(),
+        "composition": composition,
+    }
