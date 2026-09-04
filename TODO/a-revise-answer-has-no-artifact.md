@@ -182,6 +182,7 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       allowed() does for Mark. Verify: no agent file hand-types its fields
         > 2026-09-03 the game's brief hand-typed the contract and got query wrong
         > 2026-09-03 publishing it in the brief is agents lane; the generator is backend
+        > 2026-09-04 hand 4: a role answered a DiffMark patch meaning keep my patch
 - [x] T20 | FINISHED as a prototype -- Determined.turn on every place, MasterProof.turns; no maximum in code | bc62ea5 | Implement
       the turn counter, turns named by kind, no maximum enforced. Verify: a run
       reports each place's turns
