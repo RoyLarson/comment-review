@@ -204,8 +204,9 @@ In the order the dependencies run: T24 first (every loader then resolves one roo
 proof, returning one `Collated`), T23 (the close flow over that), T26 last (the tests
 drive what is left through `run_command`).
 
-- [ ] T24: `Binder.root` is a `Path` on the container; the four `args.repo or root or "."`
+- [x] T24: `Binder.root` is a `Path` on the container; the four `args.repo or root or "."`
       sites resolve once. Verify: `grep -rn 'or "."' src/comment_review/commands` is empty.
+      -- 231d5cf9
 - [ ] T17: `flows/proof_io.py` holds `load_binder`, `load_copy`, `load_batch`, `load_value`,
       `save_copy`, one `_dump` over `machine.repo.write_raw`; `check._load`, `_load_value`
       and `collate._load` are deleted. Verify: `grep -rn "def _load" src/comment_review/commands`
