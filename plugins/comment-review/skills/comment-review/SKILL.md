@@ -336,9 +336,9 @@ were given. A relative one resolves against whatever directory you are in, which
 guaranteed to be the skill's.
 
 ```bash
-python <skill>/scripts/comment-review.py census --repo . --out <run-dir>/census.txt <paths...>
-python <skill>/scripts/comment-review.py census --json --repo . --out <run-dir>/census.json <paths...>
-python <skill>/scripts/comment-review.py census --repo . --filtered --out <run-dir>/dispatch.txt <paths...>
+python <skill>/scripts/comment-review.py gather --repo . --out <run-dir>/census.txt <paths...>
+python <skill>/scripts/comment-review.py gather --json --repo . --out <run-dir>/census.json <paths...>
+python <skill>/scripts/comment-review.py gather --repo . --filtered --out <run-dir>/dispatch.txt <paths...>
 ```
 
 !! **THREE FILES, AND THE THIRD IS THE ONE A REVIEWER IS HANDED.** `--filtered` prints the
@@ -426,7 +426,7 @@ reading, and nothing downstream can tell.
 
 **A suffix the census has no record for is named, and the census EXITS NONZERO** -- every file
 handed in is censused or the run stops, so a file that reaches a reviewer is reviewed like any
-other whatever its tier. `python <skill>/scripts/comment-review.py census --languages` lists what it knows.
+other whatever its tier. `python <skill>/scripts/comment-review.py gather --languages` lists what it knows.
 
 ! **It builds the tree at the TIER available for each file's language.** Both tiers find the
 same paragraphs and differ only in what else they can say:
@@ -895,7 +895,7 @@ entry, which is every round-2 record until this runs:
 ```bash
 python <skill>/scripts/comment-review.py proof --repo . --from-docket <run-dir>/docket.json \
   --out <run-dir>/galley
-python <skill>/scripts/comment-review.py census --json --repo <run-dir>/galley \
+python <skill>/scripts/comment-review.py gather --json --repo <run-dir>/galley \
   --out <run-dir>/galley-census.json <the same paths, under the galley>
 ```
 

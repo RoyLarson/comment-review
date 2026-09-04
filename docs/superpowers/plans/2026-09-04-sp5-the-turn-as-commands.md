@@ -37,6 +37,14 @@ The prose sweep (Task 3) follows the code so every sentence it corrects names a 
 exists. The commands (Tasks 4-6) come after, so they are named beside `gather` and not
 beside `census`. The game (Task 7) runs on commands alone, and files before it fixes.
 
+**Changed in flight, 2026-09-04, at Task 2.** `tests/gates/test_skill_commands.py` holds
+every command spelled in agent-facing prose to `COMMANDS`, so `census` leaving the enum
+turns the gate red until `SKILL.md` and `references/review.md` spell `gather` -- the
+coupling `SP-3` met. The six command lines are a one-for-one substitution `backend`'s
+change forces (`conventions.md`, *A one-for-one substitution is not a crossing*), so
+they land in Task 2's commit. Task 8 keeps what is left: the `--census` flag's spelling
+once Task 3 renames it, and the filing of the prose sense to the agents lane.
+
 ## Global Constraints
 
 - Run everything through `uv run`. Python **3.11** floor; annotations are EAGER.

@@ -1,4 +1,5 @@
-"""`commands/census.py`: what the census DOES with a file it cannot read.
+"""`commands/gather.py`: what the gather DOES with a file it cannot read, and
+that the command builds no page of its own.
 
 !! THE CONTRACT IS `CLAUDE.md`'S, AND IT IS ONE SENTENCE -- *"every file handed
 in is censused or the run stops."* So the only question here is whether a file
@@ -23,12 +24,15 @@ chokes on.
 """
 
 import argparse
+import inspect
 import io
+import re
 from contextlib import redirect_stderr, redirect_stdout
 
 import pytest
 
-from comment_review.commands.census import _report
+from comment_review.commands import gather as gather_command
+from comment_review.commands.gather import _report
 
 #: An ordinary nine-line Python page, and the CONTROL every case below is a
 #: corruption of. It carries a module docstring, a comment, a declaration with
@@ -151,3 +155,16 @@ def test_a_parse_failure_is_AS_LOUD_AS_a_decode_failure(tmp_path, as_json):
         "a file the reader cannot DECODE and a file it cannot PARSE both produce"
         f" no paragraphs, so both must land the same way: {decode} vs {parse}"
     )
+
+
+def test_the_command_builds_no_page_and_resolves_no_annotation():
+    """`TODO/census-should-be-a-chain-of-producers.md` T3, verify text word for
+    word: *it calls page_for nowhere*. And `annotate` nowhere, for the same
+    reason -- both are the flow's steps, and a command exposes a flow.
+
+    ! READ OFF THE MODULE'S SOURCE, so a name reached through a different
+    import spelling is caught the same as a direct one."""
+    source = inspect.getsource(gather_command)
+    assert not re.search(r"\bpage_for\b", source)
+    assert not re.search(r"\bannotate\b", source)
+    assert "gather(" in source, "the command has to call the flow it exposes"

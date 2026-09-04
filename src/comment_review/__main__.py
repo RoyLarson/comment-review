@@ -41,11 +41,11 @@ class Command(StrEnum):
 
     ADDRESSER = auto()
     CARRY = auto()
-    CENSUS = auto()
     CHECK = auto()
     COLLATE = auto()
     COMPOSITOR = auto()
     DISTRIBUTE = auto()
+    GATHER = auto()
     PROOF = auto()
     PROVE_UNCHANGED = auto()
     REFERRERS = auto()

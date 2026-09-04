@@ -9,7 +9,8 @@ reviewer spends its reading on the claim instead of on the lookup.
 token can name a config key, a record field or an API payload, and the resolver
 holds the namespaces it was handed.
 
-`census.py` builds the paragraphs and calls `annotate()` on each one.
+`flows/annotations_for.py` is the one caller, over every paragraph a gather
+carried; the repeated-literal pass, which needs the whole set, lives there.
 """
 
 import re

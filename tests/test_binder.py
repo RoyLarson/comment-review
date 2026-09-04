@@ -11,7 +11,7 @@ from conftest import PKG, READ_FROM, SAMPLE, build, by_cue, cue
 
 from comment_review.binder.binder import VERSION, Binder, bind
 from comment_review.binder.page import _place
-from comment_review.flows.census import carried
+from comment_review.flows.gather import carried
 from comment_review.machine.json_object import object_of
 from comment_review.reading.series import Kind
 

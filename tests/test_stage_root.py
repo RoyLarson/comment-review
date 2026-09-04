@@ -10,7 +10,7 @@ import json
 from helpers import a_docket_that_rewrites, a_small_real_tree, binder_of, the_row_for
 
 from comment_review.binder.binder import Binder
-from comment_review.commands import census as census_command
+from comment_review.commands import gather as gather_command
 from comment_review.flows.revise import pull
 
 
@@ -27,7 +27,7 @@ def test_a_source_citing_an_edited_page_reads_the_revise(tmp_path):
 
 
 def _census_args(repo, revise: int, paths: list[str]) -> argparse.Namespace:
-    """The `argparse.Namespace` `commands.census._report` reads -- built
+    """The `argparse.Namespace` `commands.gather._report` reads -- built
     directly rather than through `sys.argv`, since `_report` is the call
     site itself and the point is to force ITS `revise` handling, not
     argparse's.
@@ -44,7 +44,7 @@ def _census_args(repo, revise: int, paths: list[str]) -> argparse.Namespace:
     )
 
 
-def test_the_census_command_states_the_revise_it_read(tmp_path, capsys, monkeypatch):
+def test_the_gather_command_states_the_revise_it_read(tmp_path, capsys, monkeypatch):
     """`commands/census.py --json` wrote `"revise": 0` into `read_from`
     unconditionally -- MEASURED, no `--revise` argument existed at all, so a
     stage censusing a revise still reported the ORIGINAL's number, which is
@@ -62,7 +62,7 @@ def test_the_census_command_states_the_revise_it_read(tmp_path, capsys, monkeypa
     # question T2.5 exists to answer. ! Standing one directory up is what makes
     # the two distinguishable; `--repo` is then a real choice.
     monkeypatch.chdir(tmp_path)
-    exit_code = census_command._report(
+    exit_code = gather_command._report(
         _census_args(pulled.root, revise=1, paths=[str(pulled.root / "mark.py")])
     )
     assert exit_code == 0
