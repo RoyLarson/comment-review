@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks closed
+Progress: 1 of 4 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-25 (Roy, 2026-08-25, ruling on flows during the write-chain branch)
 ```
 
@@ -22,5 +22,6 @@ The census is one step that should be a chain of producers.
       list element
 - [ ] T3 | commands/census.py exposes gather and holds no orchestration. Verify:
       it calls page_for nowhere
-- [?] T4 | Decide whether the command keeps the name census once the flow is
-      gather. Requires-Roy
+- [x] T4 | RULED Vocabulary 34: the command and the act are gather, no alias; census retired | 0001a855 | Decide
+      whether the command keeps the name census once the flow is gather.
+      Requires-Roy
