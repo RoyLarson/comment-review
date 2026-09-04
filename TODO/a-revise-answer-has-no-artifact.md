@@ -210,6 +210,7 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       since it takes no part in the fold. Verify: it is on the master proof
         > 2026-09-04 game hand 1: b19 read turn 1 after t1 and turn 2 after t2
         > 2026-09-04 the note above is T25's, misfiled; module's query at b74 vanished
+        > 2026-09-04 hand 4: a lone query against cleans is in no output at all
 - [ ] T27 | Update run_turn to pair an answer with the sent slot by address, not
       by an echoed question key. Verify: a slot returned without it parses
         > 2026-09-04 game hand 1: function's t2 answer refused for a dropped key
