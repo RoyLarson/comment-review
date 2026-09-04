@@ -75,8 +75,8 @@ def test_the_binder_names_its_root_as_a_path(binder):
     to `"."`, because a binder with no root is refused before it is one."""
     from pathlib import Path
 
-    assert binder.root == Path(READ_FROM["root"])
     assert isinstance(binder.root, Path)
+    assert str(binder.root) == READ_FROM["root"]
 
 
 def test_a_page_carries_its_path_and_its_identity(binder, wire):
