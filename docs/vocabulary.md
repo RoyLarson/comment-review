@@ -360,15 +360,25 @@ entry cited a real quotation, carried a real measurement, and was cross-referenc
 plan. He said *"I don't remember making this rule."* **The decision log is the one file where a
 false attribution is most expensive, and it is the file with no reader but him.**
 
-## What becomes of a mark -- `taken in`, and `stet`
+## What becomes of a mark -- `stet`, `taken in`, and `recast`
 
-**Two words, and they answer different questions.** Ruled 2026-08-24, and both are ADOPTED rather
-than held in reserve.
+**Three words, the copy chief's, and they split by whether the roles ever agreed.** `stet` and
+`taken in` were ruled 2026-08-24 and `recast` on 2026-08-30 (`Vocabulary: #29`); what each names
+was re-ruled 2026-09-04 (`Process: #87`), and the 2026-08-24 glosses below are kept as
+SUPERSEDED. All three are ADOPTED rather than held in reserve. They are the answers of one
+chief-only object, `Determined`, one per resolved place on the master proof -- not `Mark`
+instructions, since no role may give any of them.
 
 | the word | what it names | who says it |
 | --- | --- | --- |
-| **`taken in`** | the mark was carried into the text. *Taking in corrections* is the compositor's own phrase for making the marked changes on a proof | the piece that composes, mechanically, about every mark |
-| **`stet`** | *let this stand.* Emitted where two roles could not agree, and it points at what stands -- the mark it chose, or neither | the **copy chief**, and no one else |
+| **`stet`** | *let this stand.* The roles agreed, on a turn or at once, and the chief lets what they agreed on stand. The program sets this one on the chief's behalf | the **copy chief**, and no one else |
+| **`taken in`** | they never agreed; at the cap the chief takes one side's text into the page. The original author is a side, so the original is a `taken in` too. *Taking in corrections* is the compositor's own phrase for making the marked changes on a proof | the **copy chief** at the cap; the compositor, mechanically, about every mark that reaches the text |
+| **`recast`** | they never agreed; the chief writes its own prose over every side. The trade's word for rewriting a passage in a different form | the **copy chief**, and no one else |
+
+!! **SUPERSEDED 2026-09-04, `Process: #87`, and kept so the change is legible.** The 2026-08-24
+row read `stet` as *"emitted where two roles could not agree, and it points at what stands --
+the mark it chose, or neither"*, and `Vocabulary: #29` read it as *the original stands; the
+correction is declined*. Both are now the cases `taken in` holds; `stet` is the agreed case.
 
 !! **A ROLE CANNOT EMIT A `stet`.** It presupposes two roles that disagreed and a copy chief that
 ruled, so no single hand is ever in a position to file one. Roy, 2026-08-24: *"it is the

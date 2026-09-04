@@ -3171,3 +3171,59 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   seed a Mark slot over the composed text instead -- T21. A lone add on the Mark path re-reads
   forever unless it composes without a re-read, which is T13's case. P2 and P6 on the 0.2.4
   plan now have their answer sets named and are still to build.
+
+- **#87.** **THE COPY CHIEF'S RULING IS ITS OWN OBJECT, ONE PER RESOLVED PLACE, ON THE MASTER
+  PROOF** (Roy, 2026-09-04, in five messages). Closes
+  [`a-revise-answer-has-no-artifact`](../TODO/a-revise-answer-has-no-artifact.md) T9, which asked
+  what records HOW the chief ruled, since an edit copy cannot.
+
+  **Where it lives.** On the master proof, beside the roles' copies, together with a record of
+  each turn: *"2nd option as part of the master-proof."* Publishing keeps it on one sheet the
+  same way -- the chief collates the editors' marks onto the master proof and writes their own
+  rulings on it, and the compositor sets from that. So the master proof is also the state
+  between turns: a turn takes it, appends its record, and rewrites the rulings.
+
+  **What it is.** A chief-only object, not a `Mark`. Roy: *"stet, taken_in, and the third one
+  are not rulings that fit the other roles and so should not be added to the Mark class. That
+  makes it a different object."* The same reasoning kept `DiffMark` out of `desk/mark.py`
+  (`#22`, `#86`): a different question gets a different artifact, and the seven stay seven.
+  Its name is `Determined`, Roy's proposal -- *"Determined probably works"* -- taken until a
+  trade word turns up. `pass` and `passed` are off limits as keywords; `settled` was measured
+  out on 2026-08-24.
+
+  **Every resolved place carries one.** Roy: *"each spot gets this resolution even if it was
+  automatically set by the program instead of the copy-chief directly acting."* Stage 8 and a
+  re-run cannot otherwise tell a place nobody disputed from one the chief overrode.
+
+  **The three answers, split by whether the roles ever agreed** -- `Vocabulary: #29` named
+  them; this says when each applies:
+
+      stet        the roles agreed, on a turn or at once, and the chief lets it stand.
+                  The program sets this one on the chief's behalf.
+      taken_in    they never agreed; at the cap the chief takes one side's text in.
+                  THE ORIGINAL AUTHOR IS A SIDE: *"the original is a taken_in option
+                  because it is a disagreement between the roles and the original
+                  author and the copy-chief should have the option to pick that."*
+      recast      they never agreed; the chief writes its own prose over every side.
+
+  Roy: *"if the resolution agrees then it is stet, if the resolution never agrees the
+  copy-chief gets to do taken_in or the rewording itself."*
+
+  **Composition is not a fourth.** Roy: *"any change has to, even if it is composed, be sent
+  back to the reviewers because they could have changed sentences fixing one mis-statement in
+  contradictory ways creating something that is still wrong."* A composed text goes back as
+  `#86`'s fresh-Mark re-read, so it reaches the chief only as a `stet`, once the roles agree
+  on it.
+
+  **What this supersedes.** `#29`'s gloss of `stet` -- *the original stands; the correction is
+  declined* -- and `vocabulary.md`'s 2026-08-24 gloss -- *emitted where two roles could not
+  agree, pointing at the mark it chose, or neither*. Both are the cases `taken_in` now holds.
+  And `#30`'s *"a settled place keeps its mark"* with no chief act: it is a `stet` now, set by
+  the program. `#30`'s shape otherwise holds -- the chief's edit copy is still one mark per
+  place and an ordinary edit copy, DERIVED from the `Determined`s rather than folded directly
+  from the roles' marks, so the write end reads what it reads today.
+
+  **What it answers from earlier in the same day.** The record is the fold's HOW; the chief's
+  copy is the fold's WHAT. Roy's worry -- *"that messes up the copy-chief edit copy a little
+  because it would be the composition of the role edit copy and the final edit copy"* -- is
+  the two jobs one artifact was doing, and the split is what ends it.
