@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 9 of 16 tasks closed
+Progress: 9 of 17 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -116,3 +116,5 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       the turn and cap commands over flows.turn, the master proof as the state
       between them. Verify: game.py's verbs run as commands
         > 2026-09-04 the scratchpad game.py (deal, turn, cap) is the specification
+- [ ] T17 | Implement one loader for the middle's commands; turn and cap import
+      check's private _load and collate keeps its own. Verify: one definition

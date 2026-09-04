@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 13 of 25 tasks closed
+Progress: 13 of 27 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-18, from measuring what a reviewer is handed before it works
@@ -282,6 +282,10 @@ mock-up and matches nothing in the tree.
 - [x] T25 | FINISHED | unknown | T25 -- Not a task. The 26-file measurement is a
       MEASUREMENT, and `scripts/render_page.py` is in the tree so it can be
       re-taken. In the Objective.
+- [ ] T26 | Update scripts/render_page.py rows() to run the gather command; it
+      names a scripts/census.py that does not exist. Verify: it runs
+- [ ] T27 | Update scripts/measure_binder.py so its prose and its census() name
+      the gather, Vocabulary 34. Verify: grep census returns nothing
 ## Related
 
 - [`verdicts-py-announces-one-subject-and-holds-four`](completed/verdicts-py-announces-one-subject-and-holds-four.md)
