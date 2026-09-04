@@ -76,7 +76,7 @@ caller `grep -rn "gather(" src tests` finds.
 - [x] Gates green; commit `-F`.
 - [x] Tick: P2; commit.
 
-## Task 2: the chain of producers, and the command that exposes it -- P9, T1, T2, T3
+## Task 2: the chain of producers, and the command that exposes it -- P9, T1, T2, T3 -- 68bfc548
 
 **Files:** `src/comment_review/flows/annotations_for.py` (NEW), `src/comment_review/flows/gather.py`
 (RENAMED from `flows/census.py`, and grown), `src/comment_review/commands/gather.py`
@@ -84,18 +84,18 @@ caller `grep -rn "gather(" src tests` finds.
 `tests/test_gather_command.py` (RENAMED from `test_census_command.py`), `tests/test_the_chain.py`,
 `tests/test_stage_root.py`, `src/comment-review.py`'s usage text.
 
-- [ ] Test: `flows.annotations_for.annotations_for(paragraphs, known, paths, repo)` sets
+- [x] Test: `flows.annotations_for.annotations_for(paragraphs, known, paths, repo)` sets
       the same annotations `annotate` plus the repeated-literal pass set today, over a real
       page; nothing else calls `annotate` directly (T1's verify).
-- [ ] Test: `flows.gather.gather(repo, targets, revise)` returns the binder, the pages, and
+- [x] Test: `flows.gather.gather(repo, targets, revise)` returns the binder, the pages, and
       the gaps (`unreadable`, `no_record`, `files`) the command computes today; the chain is
       a tuple of steps, so adding one is a list element (T2's verify).
-- [ ] Test: `commands/gather.py` imports neither `page_for` nor `annotate` (T3's verify), and
+- [x] Test: `commands/gather.py` imports neither `page_for` nor `annotate` (T3's verify), and
       `test_gather_command.py` is `test_census_command.py` with the verb renamed and every
       exit code unchanged.
-- [ ] `Command.CENSUS` becomes `Command.GATHER`; no alias.
-- [ ] Gates green; commit `-F`.
-- [ ] Tick: P9, T1, T2, T3; commit.
+- [x] `Command.CENSUS` becomes `Command.GATHER`; no alias.
+- [x] Gates green; commit `-F`.
+- [x] Tick: P9, T1, T2, T3; commit.
 
 ## Task 3: every `census` takes its sense -- P1
 
