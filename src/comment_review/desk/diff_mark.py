@@ -4,12 +4,12 @@
 to test out the workflow. Keep it a prototype until we get all of the pieces
 together."* `docs/plans/0.2.4-the-mark-and-the-collator.md` P20 (`DiffMark` itself), P21
 (`batch_of`) and P16 (`parse_batch`) are this file; P17 (the recollate) and
-P18/P19 (the round counter and the chief's cap ruling) are what would close
+P18/P19 (the turn counter and the chief's cap ruling) are what would close
 the loop. Until they land this module has no caller.
 
 === WHY IT IS NOT A `Mark`
 
-`docs/the-revise.md`, `decision-log.md Process: #22`: a `DiffMark` is *"a
+`docs/the-turn.md`, `decision-log.md Process: #22`: a `DiffMark` is *"a
 DIFFERENT ARTIFACT answering a different question -- does your finding still
 stand rather than what is wrong with this page -- so it carries its own closed
 set. The seven stay seven."* Its closed set is `hold`, `withdraw`, `correct`,
@@ -17,7 +17,7 @@ set. The seven stay seven."* Its closed set is `hold`, `withdraw`, `correct`,
 
 === WHY IT CARRIES FEWER FIELDS THAN `Mark`
 
-`docs/the-revise.md` never asks a `DiffMark` for a structured `claim` or for
+`docs/the-turn.md` never asks a `DiffMark` for a structured `claim` or for
 `sources`: a `Mark` builds an evidentiary case from nothing, a `DiffMark`
 revisits one that already went through that. `desk.mark.Mark`'s spec is
 `docs/the-mark.md`, which this shape is deliberately NOT added to -- that file
@@ -32,7 +32,7 @@ already; this stays a separate module for the same reason
 
 Which of the four answers is legal for a COMPOSITION re-read versus a
 CONFLICT is `docs/plans/0.2.4-the-mark-and-the-collator.md` P1/P4/P5/P6, and
-is not decided here. `docs/the-revise.md` reads as though a composition
+is not decided here. `docs/the-turn.md` reads as though a composition
 re-read goes back through `Mark`'s own `clean`/`query` rather than through a
 `DiffMark` at all -- NOT RULED, and this module takes no side on it.
 """
@@ -44,7 +44,7 @@ from comment_review.desk.mark import INSTRUCTIONS, filled
 
 
 class DiffInstruction(StrEnum):
-    """The four, closed. `docs/the-revise.md` is the source; this only names them.
+    """The four, closed. `docs/the-turn.md` is the source; this only names them.
 
     ! Value derived from the member name via `_generate_next_value_`, following
     `desk.mark.Instruction`'s own precedent -- `DiffInstruction.HOLD == "hold"`
@@ -200,14 +200,14 @@ class DiffMark:
 def batch_of(escalations: list[dict], rereads: list[dict]) -> dict[str, list[dict]]:
     """Every disagreement, grouped into one payload per role -- P21.
 
-    `docs/the-revise.md`: *"all of the disagreements are sent out as one
+    `docs/the-turn.md`: *"all of the disagreements are sent out as one
     batch with the diffs to the agents."* One entry per role in the result,
     holding every place that role owes -- ONE SEND PER ROLE WHATEVER THE
     PLACE COUNT, which is P21's own verify.
 
     Args:
         escalations: `desk.collator.Reconciled.escalations`, or the same
-            shape narrowed by a round -- `flows.collate.Collated.escalations`
+            shape narrowed by a turn -- `flows.collate.Collated.escalations`
             after the places that resolved on their own are gone. Each entry
             is `{"address", "roles", "marks": list[Placed]}`.
         rereads: the same shape, for places whose composition did not

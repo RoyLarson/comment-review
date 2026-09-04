@@ -156,7 +156,7 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
         > 2026-09-03 P17. Measured hand 3: a lone add re-reads forever today
 - [?] T14 | Decide whether a composition re-read is answered with a DiffMark or
       a fresh Mark, given clean and query are its only passes
-        > 2026-09-03 P1/P6. the-revise.md: clean and query are a composition's passes
+        > 2026-09-03 P1/P6. the-turn.md: clean and query are a composition's passes
         > 2026-09-03 the prototype takes no side -- desk/diff_mark.py docstring
 - [ ] T15 | Implement the conflict outcomes: hold/hold next round, hold/withdraw
       takes the held in, withdraw/withdraw re-asks. Verify: each lands
@@ -166,7 +166,7 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
         > 2026-09-03 P18. Process 78: the cap is the agent's, never the code's
 - [ ] T17 | Implement the copy chief's ruling at the cap on whatever is still
       unresolved. Verify: no place survives the last round unruled
-        > 2026-09-03 P19. the-revise.md: the chief's ruling is the terminator
+        > 2026-09-03 P19. the-turn.md: the chief's ruling is the terminator
 - [ ] T18 | Implement routing of a refused or unanswered DiffMark to its role as
       a revisit. Verify: it appears in revisit naming role and address
         > 2026-09-03 Roy 2026-09-03: unanswered or malformed is refused, not a withdraw

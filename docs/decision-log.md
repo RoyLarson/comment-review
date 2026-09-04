@@ -1080,7 +1080,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **THE DiffMark CYCLE IS NOT A REVISE.** It runs inside one stage's collate, before any
   pull, and `round` is already taken by `distribute`-then-`collate` (this file's `#`
   entry at `vocabulary.md:120`). It needs its own word; `turn` is the candidate on the
-  table and is NOT ruled. `docs/the-revise.md` is named for the wrong word and follows
+  table and is NOT ruled. `docs/the-turn.md` is named for the wrong word and follows
   whichever one is chosen.
 
   **MEASURED 2026-09-04: 216 occurrences in 58 files, most of them history that stays.**
@@ -1090,6 +1090,31 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   so the gate does not go red on another lane's files. Filed as one objective, because
   the pieces must land together --
   [`re-review-is-retired-for-revise`](../TODO/re-review-is-retired-for-revise.md).
+
+- **#33.** **THE DiffMark CYCLE IS A `turn`** (Roy, 2026-09-04: *"turn seems to be the
+  best considering the alternatives"*), closing the question `#32` left open.
+
+  **What it names:** one batch-rule-recollate cycle inside a single stage's collate -- the
+  disagreements go out to the roles, come back as DiffMarks, and what resolved joins the
+  chief's copy. Turn one, turn two; the counter is `turn`; the cap on how many is the task
+  agent's instruction and never the code's (`Process: #78`).
+
+  **What it is not, and why the word was needed:** it is not a `revise` -- that is the
+  corrected proof pulled at a stage boundary (`#32`), and a turn runs before any pull. It
+  is not a `round` -- `vocabulary.md:120` already gives that to distribute-then-collate,
+  the stage's own cycle, and a turn runs inside one. Two cycles nest: a round may hold
+  several turns.
+
+  **Checked against the register before it was proposed.** Editing workflows say it --
+  *the author turn*, *two turns of review*. `query round` was the trade's exact phrase for
+  the copy desk's back-and-forth and collided twice (`query` is an instruction, `round` is
+  taken); `pass` is used loosely across this repo; `hearing` is the judicial register the
+  `jurisdiction` -> `remit` ruling refused.
+
+  **What follows, all one-for-one:** `docs/the-revise.md` was named for the wrong word and
+  is `docs/the-turn.md`; its 13 citations move with it; its own prose says turn where it
+  said round, and Roy's quoted sentences stay as spoken. The task labels that said *round
+  counter* are superseded and re-filed, never reworded.
 
 ## Metaphor and its limits
 
@@ -2897,7 +2922,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
       a role     hold | withdraw | correct | patch  `Process: #22`, four
 
   ! **HE NAMED TWO OF THE CHIEF'S THREE AND FLAGGED HIS OWN UNCERTAINTY** -- *"I think but it may
-  have been just the first 4"* -- and the record settled both halves: `docs/the-revise.md:85`
+  have been just the first 4"* -- and the record settled both halves: `docs/the-turn.md:85`
   gives the role's four verbatim, and `Vocabulary: #29` adds `recast`, which he ratified in two
   words on 2026-08-30. **`drop` and `add` are not in either set.**
 

@@ -22,7 +22,7 @@ the crossing rules are in [`conventions.md`](conventions.md).
 | `plugins/**/scripts/**` -- BUILT OUTPUT, edit `src/` instead | `backend` |
 | `docs/addressing.md`, `docs/parsing.md` | `backend` |
 | `docs/the-mark.md` -- the SOURCE for the mark's fields and classifiers | `backend` |
-| `docs/the-revise.md` -- the SOURCE for what a ROUND is and what closes the editorial roles | `backend` |
+| `docs/the-turn.md` -- the SOURCE for what a TURN is and what closes the editorial roles | `backend` |
 | `evals/**`, `evidence/**`, `corpora/**` | `testing` |
 | `scripts/**` | `systems` |
 | `docs/gates.md` | `systems` |

@@ -100,7 +100,7 @@ Three files already do this job and prove the pattern:
 | file | is the SOURCE for | would live at |
 | --- | --- | --- |
 | [`the-mark.md`](../the-mark.md) | the mark's fields and classifiers | `desk/` |
-| [`the-revise.md`](../the-revise.md) | what a ROUND is, what closes the roles | `flows/` |
+| [`the-turn.md`](../the-turn.md) | what a TURN is, what closes the roles | `flows/` |
 | [`addressing.md`](../addressing.md) | how a place is NAMED | `reading/` |
 
 !! **MOVING THEM BREAKS CITATIONS, AND THAT IS THE DECISION.** `docs/lanes.md`

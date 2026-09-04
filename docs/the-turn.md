@@ -1,17 +1,17 @@
-# The revise round -- what a round IS, and what closes the editorial roles
+# The turn -- what a turn IS, and what closes the editorial roles
 
-!! **THIS FILE IS THE SOURCE.** What a round is, what goes out in one, what comes back, and
+!! **THIS FILE IS THE SOURCE.** What a turn is, what goes out in one, what comes back, and
 what ends the editorial part of a run are stated HERE. `flows/collate.py` and the desk
 implement this file; `SKILL.md` tells the task agent to drive it. **Neither of them defines
 it.**
 
 !! **IT EXISTS BECAUSE THE MECHANISM LIVED ONLY IN ROY'S HEAD AND IN CHAT.** Roy, 2026-09-02,
 after typing it out for the second time: *"This time give that story line a more permanent
-home because it is a lot to remember and type back in."* ! Before this file, the round was
+home because it is a lot to remember and type back in."* ! Before this file, the turn was
 reconstructed from a decision-log quote each time it came up -- and reconstructed WRONG twice:
 once as a code-enforced cap (`a-revise-answer-has-no-artifact` T8, ticked, unticked, then
 superseded), and once as dissolved entirely, by a session reading `Process: #78` to mean that
-rounds were not structural. **A decision log records WHEN something was ruled. It is not where
+turns were not structural. **A decision log records WHEN something was ruled. It is not where
 someone goes to learn how the thing works.**
 
 ---
@@ -39,25 +39,25 @@ Roy, 2026-09-02, verbatim and unelided:
     BATCH       ALL of them go out at once, each carrying its diff
     RULE        each role answers with a DiffMark
     RECOLLATE   what resolved joins the copy chief's edit_copy
-                                                            <- that is ROUND ONE
+                                                            <- that is TURN ONE
     REMAINDER   what did not resolve goes out again, is ruled, is recollated,
                 and joins the non-disagreements in the chief's edit_copy
-                                                            <- that is ROUND TWO
-    CAP         the number of rounds is what the TASK AGENT was told
+                                                            <- that is TURN TWO
+    CAP         the number of turns is what the TASK AGENT was told
     CHIEF RULES on whatever is still unresolved when the cap is reached
     CLOSE       the editorial roles are done
 
 !! **ONE BATCH, NOT ONE MESSAGE PER DISAGREEMENT.** *"all of the disagreements are sent out as
-one batch"* -- so a round is one send and one return per role, whatever the count of places.
+one batch"* -- so a turn is one send and one return per role, whatever the count of places.
 
-!! **A ROUND IS A STRUCTURAL UNIT AND THE CAP IS NOT.** The round is one
+!! **A TURN IS A STRUCTURAL UNIT AND THE CAP IS NOT.** The turn is one
 BATCH-RULE-RECOLLATE cycle: countable, observable, the same shape every time. **How many are
 allowed is an instruction to the task agent** -- `decision-log.md Process: #78`, and Roy on the
 same day: *"If I come back and say it can be 1000 revises or 0 revises to the task agent then
 that is what I expect the task agent to do not what the code enforces."*
 
-! **SO A CODE-ENFORCED CAP IS WRONG AND A ROUND COUNTER IS NOT.** The two were conflated in
-both directions before this file existed. Counting rounds, and saying which kind each was, is
+! **SO A CODE-ENFORCED CAP IS WRONG AND A TURN COUNTER IS NOT.** The two were conflated in
+both directions before this file existed. Counting turns, and saying which kind each was, is
 `docs/plans/0.2.4-the-mark-and-the-collator.md` **P3**; enforcing a maximum was T8, and T8 is
 superseded.
 
@@ -72,7 +72,7 @@ dispatch -- which is already how `flows.collate._chief_copy` writes `role="copy-
 
 !! **THIS IS WHAT MAKES THE LOOP TERMINATE WITHOUT A CODE CAP.** `a-revise-answer-has-no-
 artifact` T2 asked it as *"with no bound, send it back is a loop."* The bound is the
-instruction; the TERMINATOR is the chief's ruling. A run cannot spin, because the last round
+instruction; the TERMINATOR is the chief's ruling. A run cannot spin, because the last turn
 always ends in somebody deciding.
 
 ## What a DiffMark is
@@ -87,12 +87,12 @@ the explicit hold/withdrawn/patch/correct marks"*, and the pair is present-tense
 `hold`/`withdraw` (`Process: #22`).
 
 !! **AN UNANSWERED PLACE IS NOT AN INFERRED `withdraw`.** The null answer must be written by a
-hand. That is `#22`'s whole point, and it is why a round can end with places still unresolved
+hand. That is `#22`'s whole point, and it is why a turn can end with places still unresolved
 rather than with silence counted as agreement.
 
-## The two questions a revise row can ask
+## The two questions a turn row can ask
 
-`decision-log.md Process: #49` split the revise into two, and they take different answer sets:
+`decision-log.md Process: #49` split the turn into two, and they take different answer sets:
 
 | the question | when it is asked |
 | --- | --- |
@@ -133,7 +133,7 @@ MEASURED 2026-09-02, on `feat/the-mark-and-the-collator`:
 | **the DiffMark** | **NOT built.** `grep -rn "DiffMark" src/` returns nothing |
 | **the batch send-out** | **NOT built.** Escalations are carried forward; nothing sends them |
 | **the ruling coming back, and the recollate** | **NOT built** |
-| **the round counter** | **NOT built** -- `P3` |
+| **the turn counter** | **NOT built** -- `P3` |
 | **the chief's own final ruling** | **NOT built** |
 
 ! **SO THE LOOP DESCRIBED HERE RUNS NOWHERE YET.** What exists is the collect and the fold at
@@ -147,7 +147,7 @@ so rather than letting a reader assume the machinery matches the prose.
 | | |
 | --- | --- |
 | the loop, the batch, the chief's terminator | Roy, 2026-09-02, quoted in full above |
-| the round is structural, the cap is the agent's | `decision-log.md Process: #78` |
+| the turn is structural, the cap is the agent's | `decision-log.md Process: #78` |
 | the DiffMark is its own artifact, and its closed set | `Process: #22` |
 | the composition re-read, and its passes | `Process: #49` |
 | `change` is the wanted paragraph as raw text | Roy, 2026-08-28; `docs/the-mark.md` |

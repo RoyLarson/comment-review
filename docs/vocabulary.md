@@ -396,6 +396,30 @@ the way `set` did.
 `stet`'s own build is [`TODO/no-mark-for-let-it-stand.md`](../TODO/no-mark-for-let-it-stand.md) --
 which is written on the reading this ruling corrects.
 
+## `turn` -- one cycle inside a stage's collate
+
+**Three cycles nest, and each has its own word.** Ruled 2026-09-04, `decision-log.md
+Vocabulary: #32` and `#33`; `turn` is ADOPTED rather than held in reserve.
+
+| the word | what it names | where it runs |
+| --- | --- | --- |
+| **`revise`** | the corrected proof, pulled after the marked corrections are set -- and the reading of it. Stages 5b and 6b are revises | at a stage boundary; `flows/revise.pull`, `read_from.revise` |
+| **`round`** | one distribute-then-collate: each role is handed its `edit_copy`, the filled copies are folded back | a stage's own cycle |
+| **`turn`** | one batch-rule-recollate: the disagreements go out to the roles, come back as DiffMarks, and what resolved joins the chief's copy | INSIDE one collate, before any pull. A round may hold several turns |
+
+!! **THE COUNTER IS `turn`, AND THE CAP IS NOT IN THE CODE.** Turn one, turn two; how many are
+allowed is what the task agent is told -- `decision-log.md Process: #78`. `read_from.revise`
+numbers pulled trees and is a different count; the two never share a field.
+
+! **Checked against the register before it was proposed.** Editing workflows say it -- *the
+author turn*. `query round` was the trade's exact phrase for the copy desk's back-and-forth and
+collided twice; `pass` is loose across this repo; `hearing` is the register `jurisdiction` ->
+`remit` refused. Roy, 2026-09-04: *"turn seems to be the best considering the alternatives."*
+
+! **Not yet in `vocabulary.toml`.** That file holds what a role is GIVEN, and no role is handed
+a turn until the DiffMark brief exists -- `a-revise-answer-has-no-artifact` T19. It goes in
+with that, not before.
+
 ## ownership -- settled, and deliberately not emitted
 
 **The relation: which anchor best justifies holding a comment.** `anchor` is the code position,
