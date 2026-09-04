@@ -357,7 +357,34 @@ def run_turn(
         problems += why
         problems += apply(copies, role, parsed)
     got = collate(stage, copies, binder, root, turn=turn)
-    return _keeping(got, earlier or {}), problems
+    got = _keeping(got, earlier or {})
+    contested = {slot["address"] for slots in sent.values() for slot in slots}
+    return _withdrawn(got, contested, turn), problems
+
+
+def _withdrawn(got: Collated, contested: set[str], turn: int) -> Collated:
+    """A contested place no mark is left at is a `stet` of the original.
+
+    Every mark there was withdrawn this turn, so nothing owes a change and
+    the fold has no entry for it in any list -- `Process: #87` says every
+    resolved place carries a Determined, so this writes one: `side`
+    ORIGINAL, `mark` None, `how` "withdrawn". T15's withdraw / withdraw.
+    """
+    carried = (
+        {e["address"] for e in got.escalations}
+        | {e["address"] for e in got.rereads}
+        | {u["address"] for u in got.unsettlable}
+        | set(got.determined)
+    )
+    gone = sorted(contested - carried)
+    if not gone:
+        return got
+    determined = dict(got.determined)
+    for address in gone:
+        determined[address] = Determined(
+            address, Answer.STET, turn, ORIGINAL, "withdrawn", "", None
+        )
+    return replace(got, determined=determined)
 
 
 def _keeping(got: Collated, earlier: dict[str, Determined]) -> Collated:

@@ -53,7 +53,7 @@ def _a_ruling(**over) -> dict:
 
 def test_the_closed_set_is_exactly_three():
     assert set(Answer) == {"stet", "taken_in", "recast"}
-    assert HOW == ("one", "identical", "cap")
+    assert HOW == ("one", "identical", "withdrawn", "cap")
 
 
 @pytest.mark.parametrize("named", sorted(INSTRUCTIONS))

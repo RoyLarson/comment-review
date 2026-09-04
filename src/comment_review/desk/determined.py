@@ -20,6 +20,8 @@ should not be added to the Mark class. That makes it a different object."*
 
     one         a single owing mark, nothing to agree with
     identical   two or more owing marks, byte-identical
+    withdrawn   every mark at a contested place was withdrawn, so the
+                original stands -- `side` is ORIGINAL and `mark` None
     cap         no agreement; the chief ruled
 
 The chief's `edit_copy` is DERIVED from these -- `flows.collate._chief_copy`
@@ -64,7 +66,7 @@ ORIGINAL = "original"
 #: The side on a `recast` -- the chief wrote the prose.
 CHIEF = "copy-chief"
 #: How the place came to its answer, closed.
-HOW = ("one", "identical", "cap")
+HOW = ("one", "identical", "withdrawn", "cap")
 
 
 @dataclass(frozen=True)

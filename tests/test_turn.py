@@ -451,6 +451,59 @@ class TestOnceStetAlwaysStet:
         assert [m.change for m in entries_of(two.chief)] == [DOS]
 
 
+class TestTheConflictOutcomes:
+    """T15: the three outcomes of an escalation, driven through the real loop."""
+
+    def test_hold_and_hold_go_another_turn(self):
+        binder, copies, got = _escalated()
+        batch = batch_of(got.escalations, got.rereads)
+        answers = {
+            r: [{**batch[r][0], "instruction": "hold", "reason": "mine"}] for r in batch
+        }
+        again, _ = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        assert [e["address"] for e in again.escalations] == ["m.py@b1"]
+        assert again.determined == {}
+
+    def test_hold_and_withdraw_take_the_held_in_after_the_withdrawers_read(self):
+        binder, copies, got = _escalated()
+        batch = batch_of(got.escalations, got.rereads)
+        answers = {
+            **_answered(
+                batch, "block-context", instruction="withdraw", reason="theirs"
+            ),
+            **_answered(batch, "function-context", instruction="hold", reason="stands"),
+        }
+        one, _ = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        assert one.rereads[0]["composed"].change == DOS
+        batch2 = batch_of(one.escalations, one.rereads)
+        answers2 = {r: [{**batch2[r][0], "instruction": "clean"}] for r in batch2}
+        two, problems = run_turn(
+            "4c", copies, binder, REPO, batch2, answers2, turn=2, earlier=one.determined
+        )
+        assert problems == []
+        ruled = two.determined["m.py@b1"]
+        assert ruled.answer is Answer.STET and ruled.turn == 2
+        assert [m.change for m in entries_of(two.chief)] == [DOS]
+
+    def test_withdraw_and_withdraw_leave_the_original_standing(self):
+        binder, copies, got = _escalated()
+        batch = batch_of(got.escalations, got.rereads)
+        answers = {
+            r: [{**batch[r][0], "instruction": "withdraw", "reason": "neither"}]
+            for r in batch
+        }
+        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        assert problems == []
+        assert again.escalations == [] and again.rereads == []
+        ruled = again.determined["m.py@b1"]
+        assert ruled.answer is Answer.STET
+        assert ruled.side == ORIGINAL
+        assert ruled.how == "withdrawn"
+        assert ruled.mark is None
+        assert ruled.turn == 1
+        assert entries_of(again.chief) == []
+
+
 class TestTheCap:
     def test_taken_in_of_the_original_leaves_no_entry_on_the_chief(self):
         _, _, got = _escalated()
