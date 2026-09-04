@@ -160,17 +160,17 @@ in `case.json`. `--sent` is read as `batch_for` wrote it, role -> slots.
 - [x] Gates green; commit `-F`.
 - [x] Tick: P5, T16; commit.
 
-## Task 7: one hand on commands alone -- P6
+## Task 7: one hand on commands alone -- P6 -- f18c4ba5
 
 **Files:** the session's `game.py` (rewritten to call the commands), `docs/the-turn.md`.
 
-- [ ] `game.py` shells to `gather`, `distribute`, `collate`, `turn`, `cap` and `check`; no
+- [x] `game.py` shells to `gather`, `distribute`, `collate`, `turn`, `cap` and `check`; no
       import from `comment_review`.
-- [ ] One hand, four fresh roles, over a real file, to a stet or the cap. Every finding is a
+- [x] One hand, four fresh roles, over a real file, to a stet or the cap. Every finding is a
       task before any fix.
-- [ ] `docs/the-turn.md`'s NOT built rows: the command row becomes built with the shas; the
+- [x] `docs/the-turn.md`'s NOT built rows: the command row becomes built with the shas; the
       SKILL.md row stays.
-- [ ] Commit `-F`; tick P6; commit.
+- [x] Commit `-F`; tick P6; commit.
 
 ## Task 8: the shipped prose, one for one -- P7
 
