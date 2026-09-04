@@ -113,6 +113,35 @@ def test_a_recast_needs_the_chiefs_mark():
     assert any("mark" in w for w in why)
 
 
+def test_a_null_mark_stands_only_for_the_original():
+    """T31, found by function-context in the game's hand 4: the docstring
+    promised `mark` is None where the original stands, and nothing held it."""
+    got, why = Determined.deserialize("x", _a_ruling(side="block-context", mark=None))
+    assert got is None
+    assert any("original" in w for w in why)
+
+
+def test_a_recasts_side_is_the_chief():
+    got, why = Determined.deserialize(
+        "x", _a_ruling(answer="recast", side="block-context")
+    )
+    assert got is None
+    assert any(CHIEF in w for w in why)
+
+
+def test_a_side_outside_the_roles_is_refused_when_the_roles_are_known():
+    roles = frozenset({"block-context", "function-context"})
+    got, why = Determined.deserialize("x", _a_ruling(side="nobody"), roles=roles)
+    assert got is None
+    assert any("side" in w for w in why)
+    got, _ = Determined.deserialize("x", _a_ruling(side="block-context"), roles=roles)
+    assert got is not None
+    got, _ = Determined.deserialize(
+        "x", _a_ruling(side=ORIGINAL, mark=None), roles=roles
+    )
+    assert got is not None
+
+
 def test_how_is_closed():
     got, why = Determined.deserialize("x", _a_ruling(how="composed"))
     assert got is None
