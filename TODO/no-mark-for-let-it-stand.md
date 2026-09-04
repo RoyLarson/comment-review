@@ -2,9 +2,9 @@
 
 ```
 Status:   decision-needed
-Progress: 12 of 16 tasks closed
+Progress: 13 of 16 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-21 (Roy, 2026-08-21, on leading and matter both being categories
           publishing already had: 'this is twice now that we have realized we were
           categorically wrong about something that the publishing industry already knew
@@ -116,9 +116,9 @@ the five series; this is the verdict vocabulary. It wants 0.2.4 or its own branc
 
 ## Tasks
 
-- [?] T1 | T1 -- * RULE whether a `stet` persists ACROSS RUNS, and where it
-      lives if it does. Verify: the ruling is recorded in
-      `docs/decision-log.md`.
+- [x] T1 | RULED Process 91: once stet always stet within a review; nothing persists across runs but the human's accepted changes | 7e2c6b4 | T1
+      -- * RULE whether a `stet` persists ACROSS RUNS, and where it lives if it
+      does. Verify: the ruling is recorded in `docs/decision-log.md`.
         > 2026-09-04 Process 87: stet is the agreed case; the original is a taken_in
 - [x] T2 | FINISHED | unknown | T2 -- NAMED 2026-08-21. Publishing's mark is
       `stet` ("let it stand"), written in the margin with dots under the text.

@@ -3292,3 +3292,9 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   prior master proof handed in. The question this closes was filed on `clean` recording a
   declined proposal as *nothing found*; the answer is that the declined proposal leaves no
   trace by design, because the human's acceptance is the only thing that outlives the run.
+
+  **The reason is the tree, not the record.** Roy, the same day: *"The reason it doesn't
+  stay is because all changes have a semipermanent change to semantics that means that what
+  was true last time may not be true this time."* A declined proposal was declined against
+  the code as it stood; the next run reads code that has moved, and the finding is owed a
+  fresh reading rather than last time's answer.

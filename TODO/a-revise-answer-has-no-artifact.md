@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 17 of 31 tasks closed
+Progress: 22 of 35 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
           Both were ruled the same day and neither had a backlog entry, so the plan
           steps that build them cited rulings rather than tasks.
@@ -203,28 +203,45 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       _chief_copy so the chief's edit copy is derived from the Determineds.
       Verify: every place in it names its Determined
         > 2026-09-04 Process 87: Process 30's shape holds, one mark per place
-- [ ] T25 | Update run_turn so a Determined keeps the turn the place first
-      agreed on. Verify: agreed on turn 1, it reads turn 1 after turn 2's fold
+- [-] T25 | SUPERSEDED by T35 under Process 91: once stet, a place leaves every later batch and keeps its turn | 7e2c6b4 | Update
+      run_turn so a Determined keeps the turn the place first agreed on. Verify:
+      agreed on turn 1, it reads turn 1 after turn 2's fold
         > 2026-09-04 game hand 1: function's t2 answer refused for a dropped key
         > 2026-09-04 the note above is T27's, misfiled; T25's: b19 read t1 then t2
-- [?] T26 | Decide what a query at a place other roles are contesting records,
-      since it takes no part in the fold. Verify: it is on the master proof
+- [x] T26 | RULED Process 90: a human-review query rides with the set and is asked last; the other shapes abstain | 7e2c6b4 | Decide
+      what a query at a place other roles are contesting records, since it takes
+      no part in the fold. Verify: it is on the master proof
         > 2026-09-04 game hand 1: b19 read turn 1 after t1 and turn 2 after t2
         > 2026-09-04 the note above is T25's, misfiled; module's query at b74 vanished
         > 2026-09-04 hand 4: a lone query against cleans is in no output at all
 - [ ] T27 | Update run_turn to pair an answer with the sent slot by address, not
       by an echoed question key. Verify: a slot returned without it parses
         > 2026-09-04 game hand 1: function's t2 answer refused for a dropped key
-- [?] T28 | Decide whether byte-identical change texts agree when the
-      instructions or quoted sentences differ. Verify: the ruling is on the log
+- [x] T28 | RULED Process 88: agreement is the text alone | 7e2c6b4 | Decide
+      whether byte-identical change texts agree when the instructions or quoted
+      sentences differ. Verify: the ruling is on the log
         > 2026-09-04 game hand 2: 3 roles, one text, patch/correct/patch -- never agreed
-- [?] T29 | Decide whether a lone owing mark against cleans is a stet at turn 0
-      or goes back to the other roles as a re-read. Verify: ruling on the log
+- [x] T29 | RULED Process 89: a lone owing mark goes back to every role that marked anything but a query | 7e2c6b4 | Decide
+      whether a lone owing mark against cleans is a stet at turn 0 or goes back
+      to the other roles as a re-read. Verify: ruling on the log
         > 2026-09-04 hand 3: module's patch at b93 landed at t0, cleans unread
-- [?] T30 | Decide whether a place agrees when every owing mark is
-      byte-identical or when a majority is, the rest holding. Verify: ruling on
-      the log
+- [x] T30 | RULED Process 88: it takes every owing mark; unanimity stays | 7e2c6b4 | Decide
+      whether a place agrees when every owing mark is byte-identical or when a
+      majority is, the rest holding. Verify: ruling on the log
         > 2026-09-04 hand 3: two of three held one text; the third held; no stet
 - [ ] T31 | Update Determined.deserialize to refuse a null mark unless side is
       ORIGINAL, and an unknown side. Verify: both refused by name
         > 2026-09-04 game hand 4: function-context's query on the class docstring
+- [ ] T32 | Update the fold so byte-identical change texts agree whatever the
+      instruction or sentence quoted. Verify: patch + correct, one text -> stet
+        > 2026-09-04 Process 88; hand 2: one text as patch/correct/patch, never agreed
+- [ ] T33 | Update the fold so a lone owing mark is a re-read to every role that
+      marked the place but a query. Verify: one mark, three cleans -> re-read
+        > 2026-09-04 Process 89; hand 3: b93 landed at t0 with three cleans unread
+- [ ] T34 | Implement the human-review query riding on the master proof,
+      unsettlable and asked last; other shapes abstain. Verify: it is on the
+      proof
+        > 2026-09-04 Process 90; hands 1 and 4: queries vanished from the record
+- [ ] T35 | Update the recollate so a place once stet leaves every later batch
+      and keeps its turn. Verify: stet at turn 1 reads turn 1 after turn 2
+        > 2026-09-04 Process 91; T25's turn stamp folded in
