@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 28 of 35 tasks closed
+Progress: 29 of 35 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
@@ -162,8 +162,9 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       given clean and query are its only passes
         > 2026-09-03 P1/P6. the-turn.md: clean and query are a composition's passes
         > 2026-09-03 the prototype takes no side -- desk/diff_mark.py docstring
-- [ ] T15 | Implement the conflict outcomes: hold/hold next round, hold/withdraw
-      takes the held in, withdraw/withdraw re-asks. Verify: each lands
+- [x] T15 | FINISHED -- hold/hold another turn, hold/withdraw takes the held in after the read, withdraw/withdraw a stet of the original, how withdrawn; test_turn.py | d4d7cd8 | Implement
+      the conflict outcomes: hold/hold next round, hold/withdraw takes the held
+      in, withdraw/withdraw re-asks. Verify: each lands
         > 2026-09-03 P5; replaces T3's conflict half -- the Objective's outcomes table
         > 2026-09-04 Process 86: withdraw reverts to base; correct/patch write change
         > 2026-09-04 bc62ea5: withdraw/withdraw drops the place with no Determined
