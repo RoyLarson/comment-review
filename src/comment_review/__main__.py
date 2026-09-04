@@ -40,6 +40,7 @@ class Command(StrEnum):
         return name.lower()
 
     ADDRESSER = auto()
+    CAP = auto()
     CARRY = auto()
     CHECK = auto()
     COLLATE = auto()

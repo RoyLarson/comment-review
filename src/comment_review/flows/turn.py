@@ -8,6 +8,7 @@
     determined_chief(collated, rulings) -> (every Determined, the chief's edit_copy)
     batch_for(collated) -> the batch that goes out, every slot carrying its diff
     proof_after(collated, turns) -> the master proof as the state between turns
+    refold(proof, binder, root) -> the fold over a proof read back, for the cap
     contracts() -> the three shapes a role is handed, generated from the code
 
 ! `commands/collate.py` writes the first batch through `batch_for` and the
@@ -451,6 +452,27 @@ def _keeping(got: Collated, earlier: dict[str, Determined]) -> Collated:
         rereads=[e for e in got.rereads if e["address"] not in earlier],
         chief=_chief_copy(got.proof.read_from, determined, got.proof),
     )
+
+
+def refold(proof: MasterProof, binder: Binder, root: Path) -> Collated:
+    """The fold over the proof's copies as they stand, every Determined kept.
+
+    What the cap reads: `rule_at_cap` needs the places still carried forward
+    and `determined_chief` the program's stets, and neither is on the wire --
+    the proof carries the copies and the rulings, and the fold is re-derived
+    from them at the turn the proof stands at, `len(proof.turns)`.
+
+    Args:
+        proof: the master proof as the last turn wrote it.
+        binder: the binder the copies were seeded from.
+        root: the checkout citations resolve against.
+
+    Returns:
+        The `Collated`, with `proof.determined` kept over this fold's (`#91`).
+    """
+    copies = [copy.serialize() for copy in proof.edit_copies]
+    got = collate(proof.stage, copies, binder, root, turn=len(proof.turns))
+    return _keeping(got, {one.address: one for one in proof.determined})
 
 
 def rule_at_cap(
