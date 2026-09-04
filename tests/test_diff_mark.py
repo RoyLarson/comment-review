@@ -4,8 +4,9 @@ Mirrors `test_mark.py`'s shape tests for `Mark`, over the smaller `DiffMark`.
 """
 
 import pytest
+from helpers import a_correct_setting, a_master_proof, an_add
 
-from comment_review.desk.collator import Placed
+from comment_review.desk.collator import Placed, reconcile
 from comment_review.desk.diff_mark import (
     DiffInstruction,
     DiffMark,
@@ -249,3 +250,50 @@ def test_a_mixed_batch_reports_both_the_parsed_and_the_refused():
     assert len(marks) == 1
     assert len(problems) == 1
     assert "m.py@b5" in problems[0]
+
+
+# === Integration: batch_of against the REAL reconcile(), not a hand-built dict
+
+
+def test_batch_of_over_a_real_four_way_escalation_and_add_widening():
+    """A four-role game found this shape worth pinning: a four-way escalation
+    at one place, plus an `add` only one role wrote that `reconcile`'s own
+    `_roles_of_stage` widens to the whole stage at another -- both through
+    `desk.collator.reconcile`, unmodified, then `batch_of` on top."""
+    sentence = "rounding to the nearest cent"
+    proof = a_master_proof(
+        {
+            "block-context": {
+                "game.py@b1": a_correct_setting("game.py@b1", sentence, "half-to-even"),
+            },
+            "function-context": {
+                "game.py@b1": a_correct_setting(
+                    "game.py@b1", sentence, "two decimal places"
+                ),
+            },
+            "module-context": {
+                "game.py@b1": a_correct_setting(
+                    "game.py@b1", sentence, "a module-level note instead"
+                ),
+            },
+            "ownership-context": {
+                "game.py@b1": a_correct_setting(
+                    "game.py@b1", sentence, "a caller-facing contract, not a self-claim"
+                ),
+                "game.py@b5": an_add("game.py@b5"),
+            },
+        }
+    )
+    out = reconcile(proof)
+
+    assert len(out.escalations) == 1
+    assert out.escalations[0]["roles"] == sorted(
+        ["block-context", "function-context", "module-context", "ownership-context"]
+    )
+    assert len(out.rereads) == 1
+    assert out.rereads[0]["roles"] == out.escalations[0]["roles"]
+
+    batch = batch_of(out.escalations, out.rereads)
+    assert set(batch) == set(out.escalations[0]["roles"])
+    # ! ONE SEND PER ROLE, TWO PLACES EACH -- P21's verify, over real data.
+    assert all(len(slots) == 2 for slots in batch.values())
