@@ -56,17 +56,17 @@ beside `census`. The game (Task 7) runs on commands alone, and files before it f
 
 ---
 
-## Task 1: one verb, one act -- `desk.proof.gather` becomes `master_proof_of` -- P2
+## Task 1: one verb, one act -- `desk.proof.gather` becomes `master_proof_of` -- P2 -- 848b71a4
 
 **Files:** `src/comment_review/desk/proof.py`, `src/comment_review/flows/collate.py`,
 `tests/helpers.py`, `tests/test_containers.py`, `tests/test_master_proof.py`, any other
 caller `grep -rn "gather(" src tests` finds.
 
-- [ ] Test: the existing master-proof tests call `master_proof_of`; `grep -rn "def gather"
+- [x] Test: the existing master-proof tests call `master_proof_of`; `grep -rn "def gather"
       src/` returns nothing (until Task 2 adds the one in `flows/gather.py`).
-- [ ] Rename by codemod; `proof.py`'s header names the act by what it makes.
-- [ ] Gates green; commit `-F`.
-- [ ] Tick: P2; commit.
+- [x] Rename by codemod; `proof.py`'s header names the act by what it makes.
+- [x] Gates green; commit `-F`.
+- [x] Tick: P2; commit.
 
 ## Task 2: the chain of producers, and the command that exposes it -- P9, T1, T2, T3
 
