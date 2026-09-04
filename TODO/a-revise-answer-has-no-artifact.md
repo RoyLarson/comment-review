@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 30 of 35 tasks closed
+Progress: 31 of 35 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
@@ -177,8 +177,9 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       Verify: no place survives the last round unruled
         > 2026-09-03 P19. the-turn.md: the chief's ruling is the terminator
         > 2026-09-04 bc62ea5: rule_at_cap exists; nothing enforces every place ruled
-- [ ] T18 | Implement routing of a refused or unanswered DiffMark to its role as
-      a revisit. Verify: it appears in revisit naming role and address
+- [x] T18 | FINISHED -- parse_answers, apply and run_turn return Revisits; check prints them as collate does; test_turn.py | f4e746b | Implement
+      routing of a refused or unanswered DiffMark to its role as a revisit.
+      Verify: it appears in revisit naming role and address
         > 2026-09-03 Roy 2026-09-03: unanswered or malformed is refused, not a withdraw
         > 2026-09-04 bc62ea5: a refused answer is a problem string, not a Revisit
 - [ ] T19 | Generate the DiffMark contract a role is handed from the code, as
