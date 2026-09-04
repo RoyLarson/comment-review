@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 17 of 28 tasks closed
+Progress: 17 of 29 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
@@ -216,3 +216,5 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
 - [?] T28 | Decide whether byte-identical change texts agree when the
       instructions or quoted sentences differ. Verify: the ruling is on the log
         > 2026-09-04 game hand 2: 3 roles, one text, patch/correct/patch -- never agreed
+- [?] T29 | Decide whether a lone owing mark against cleans is a stet at turn 0
+      or goes back to the other roles as a re-read. Verify: ruling on the log
