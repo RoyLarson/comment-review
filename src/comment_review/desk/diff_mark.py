@@ -28,13 +28,15 @@ contract is to implement that spec and *"define nothing"* of its own.
 already; this stays a separate module for the same reason
 `desk/external_address.py` does.
 
-=== WHAT IS OPEN, AND NOT GUESSED
+=== WHICH QUESTION THIS ANSWERS -- `decision-log.md Process: #86`
 
-Which of the four answers is legal for a COMPOSITION re-read versus a
-CONFLICT is `docs/plans/0.2.4-the-mark-and-the-collator.md` P1/P4/P5/P6, and
-is not decided here. `docs/the-turn.md` reads as though a composition
-re-read goes back through `Mark`'s own `clean`/`query` rather than through a
-`DiffMark` at all -- NOT RULED, and this module takes no side on it.
+An ESCALATION's: *does your finding still stand*. A COMPOSITION re-read
+asks the other artifact's question -- *is this composed text right* -- and
+is answered with `Mark`'s own `clean`/`query`/`correct`/`patch`, not with
+this. `batch_of` below still seeds a reread as a `DiffMark` slot, which
+`#86` rules against; `TODO/a-revise-answer-has-no-artifact.md` T21 is the
+fix. Which answers a CONFLICT row rules in or out by name is still
+`docs/plans/0.2.4-the-mark-and-the-collator.md` P4/P5/P6.
 """
 
 from dataclasses import dataclass, fields
@@ -211,7 +213,9 @@ def batch_of(escalations: list[dict], rereads: list[dict]) -> dict[str, list[dic
             after the places that resolved on their own are gone. Each entry
             is `{"address", "roles", "marks": list[Placed]}`.
         rereads: the same shape, for places whose composition did not
-            resolve.
+            resolve. Seeded as `DiffMark` slots here, which `Process: #86`
+            rules against -- a reread is a `Mark`'s question, and T21 on
+            `a-revise-answer-has-no-artifact.md` moves it there.
 
     Returns:
         role -> the `DiffMark` slots that role owes, each seeded via

@@ -3142,3 +3142,32 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   ! **NOTED ON ALL FOUR TASKS, DATED, NOT WRITTEN AS THE ANSWER.** Whoever next works one of
   them reads this leaning; none of them may be closed on the strength of it alone.
+
+- **#86.** **AN ESCALATION IS ANSWERED WITH A DiffMark; A COMPOSITION RE-READ WITH A FRESH
+  Mark** (Roy, 2026-09-04, *"That seems reasonable"*, to the recommendation below). Closes
+  [`a-revise-answer-has-no-artifact`](../TODO/a-revise-answer-has-no-artifact.md) T14.
+
+  **What a slot seeds follows the question the place poses, not which turn it is.** An
+  escalation asks a role *does your finding still stand*, and the four DiffMark answers are
+  that question's: hold, withdraw, correct, patch. A composition re-read -- two roles editing
+  different sentences of one paragraph, or an add -- has no finding in dispute. It asks *is
+  this composed text right*, and that is a Mark's question: `clean` accepts it, `query`
+  refuses it with a reason, `correct` or `patch` fixes it. `docs/the-turn.md` already read
+  that way; `desk/diff_mark.py`'s header took no side until this.
+
+  **A DiffMark does not become a Mark.** The collator compares copies, not marks, so applying
+  a DiffMark is an edit to its role's copy at the address: `hold` leaves it, `withdraw`
+  reverts the paragraph to the base text, `correct` and `patch` write `change`. Then collate
+  runs again. A composition applies the same way -- the composed text is written into every
+  role's copy at the address, each role's Mark edits its own copy, recollate.
+
+  **Refused: a fifth DiffMark answer, `accept`**, so a role could take a composition without
+  retyping it. Measured on the game's hand 3: two adds were resolved as one `withdraw` and
+  one `correct` carrying the merged text -- it worked, and it cost a role restating a
+  paragraph nobody disputed. A fifth answer reopens a closed set to cover a question the
+  other artifact already answers.
+
+  **What it costs.** `batch_of` (`9406b3b`) seeds every reread as a DiffMark slot and has to
+  seed a Mark slot over the composed text instead -- T21. A lone add on the Mark path re-reads
+  forever unless it composes without a re-read, which is T13's case. P2 and P6 on the 0.2.4
+  plan now have their answer sets named and are still to build.
