@@ -51,9 +51,16 @@ class TestTheWriteHalfLivesWithTheRead:
         row = EditCopy.seed(role="block-context", read_from={"root": "."}, sheets=[])
         assert set(row) == {f.name for f in fields(EditCopy)}
 
-    def test_a_master_proof_is_written_with_every_field_the_class_declares(self):
+    def test_a_master_proof_is_written_with_every_WIRE_field_the_class_declares(self):
+        """`turns` and `determined` are off the wire since `Process: #87`: a fold
+        writes them later, so `seed` -- which writes what `gather` takes from a
+        copy -- cannot. Same rule as the sheet's `unruled` and `refused`."""
         row = MasterProof.seed(stage="4c", read_from={}, edit_copies=[])
-        assert set(row) == {f.name for f in fields(MasterProof)}
+        wire = {f.name for f in fields(MasterProof) if f.metadata.get("wire", True)}
+        assert set(row) == wire
+        assert wire < {f.name for f in fields(MasterProof)}, (
+            "some field must be off the wire"
+        )
 
     def test_what_seed_writes_is_what_parse_reads_back_for_a_FILLED_copy(
         self, tmp_path

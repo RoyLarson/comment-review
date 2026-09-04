@@ -26,7 +26,8 @@ Ten acts, in the order the body runs them:
     GATHER     `desk.proof.gather` -- the master_proof
     PLACE      `desk.collator.places` -- marks grouped by the place they touch
     RECONCILE  `desk.collator.reconcile` -- settled, escalated, re-read
-    RESOLVE    the automatic resolutions -- `_resolve`
+    RESOLVE    the automatic resolutions -- `_resolve`, a `stet` Determined per
+               place that agreed; a composition is a re-read, not a resolution
     ORDER      a `move` at one end only is withdrawn, then the survivors are
                ordered vacate-before-fill or carried forward as a named cycle
                -- `_pair_moves`, `_move_order` -- before the fold
@@ -80,6 +81,7 @@ from comment_review.desk.containers import (
     MasterProof,
     Sheet,
 )
+from comment_review.desk.determined import Answer, Determined
 from comment_review.desk.mark import Instruction, Mark, filled
 from comment_review.desk.proof import MismatchedRoot, gather
 from comment_review.flows.mark_errors import Revisit, mark_errors
@@ -190,6 +192,11 @@ class Collated:
         order: the resolved `move` origins, in an order that vacates every
             address before it is filled. Ties broken by address, so a stranger
             re-derives it. Empty where no move resolved.
+        determined: address -> the `Determined` this fold recorded -- every
+            one a `stet`, since the chief's own `taken_in` and `recast` are
+            `flows.turn.rule_at_cap`'s. `Process: #87`.
+        proof: the master proof the fold read, so a turn can carry the
+            record forward. None on an early return.
     """
 
     chief: EditCopy
@@ -201,9 +208,11 @@ class Collated:
     revisit: list[Revisit] = field(default_factory=list)
     tally: dict[str, dict] = field(default_factory=dict)
     order: list[str] = field(default_factory=list)
+    determined: dict[str, Determined] = field(default_factory=dict)
+    proof: MasterProof | None = None
 
 
-def _identical(owing: list[Placed]) -> Mark | None:
+def _identical(owing: list[Placed]) -> Placed | None:
     """The one mark to take where every owing mark says the same thing.
 
     !! SAME INSTRUCTION AND BYTE-IDENTICAL `change`. Two roles that reached one
@@ -215,7 +224,7 @@ def _identical(owing: list[Placed]) -> Mark | None:
     disagreed.
 
     Returns:
-        The role-sorted first mark, or None where they do not all agree.
+        The role-sorted first `Placed`, or None where they do not all agree.
     """
     first = owing[0].mark
     for placed in owing[1:]:
@@ -223,7 +232,7 @@ def _identical(owing: list[Placed]) -> Mark | None:
             return None
         if placed.mark.change != first.change:
             return None
-    return min(owing, key=lambda placed: placed.role).mark
+    return min(owing, key=lambda placed: placed.role)
 
 
 def _composition(entry: dict, base: str) -> Mark | None:
@@ -277,32 +286,58 @@ def _composition(entry: dict, base: str) -> Mark | None:
     )
 
 
-def _resolve(reconciled, base: dict[str, str]) -> tuple[dict, list[dict], list[dict]]:
-    """The automatic resolutions over `reconcile`'s three lists.
+def _resolve(
+    reconciled, base: dict[str, str], turn: int
+) -> tuple[dict[str, Determined], list[dict], list[dict]]:
+    """The automatic resolutions over `reconcile`'s three lists -- each a `stet`.
+
+    !! A COMPOSITION IS NOT A RESOLUTION, since `Process: #87`. Roy: *"any
+    change has to, even if it is composed, be sent back to the reviewers
+    because they could have changed sentences fixing one mis-statement in
+    contradictory ways creating something that is still wrong."* A place whose
+    sides compose stays a re-read, carrying the composed `Mark` under
+    `composed` so the batch can seed the question over that text
+    (`desk.diff_mark.batch_of`); it reaches the chief only as a `stet`, once
+    the roles agree on it (`flows/turn.py`).
 
     Returns:
-        `(address -> the one Mark for it, escalations left, rereads left)`.
+        `(address -> the Determined for it, escalations left, rereads left)`.
+        Every Determined is a `stet` at `turn`: `one` for a single owing mark,
+        `identical` where two or more agreed byte for byte.
     """
-    resolved: dict[str, Mark] = {}
+    resolved: dict[str, Determined] = {}
     escalations: list[dict] = []
     rereads: list[dict] = []
 
     for entry in reconciled.settled:
-        resolved[entry["address"]] = entry["marks"][0].mark
+        placed = entry["marks"][0]
+        resolved[entry["address"]] = Determined(
+            entry["address"], Answer.STET, turn, placed.role, "one", "", placed.mark
+        )
 
     for entry in reconciled.escalations:
         agreed = _identical(entry["marks"])
         if agreed is None:
             escalations.append(entry)
         else:
-            resolved[entry["address"]] = agreed
+            resolved[entry["address"]] = Determined(
+                entry["address"],
+                Answer.STET,
+                turn,
+                agreed.role,
+                "identical",
+                "",
+                agreed.mark,
+            )
 
     for entry in reconciled.rereads:
         composed = _composition(entry, base.get(entry["address"], ""))
-        if composed is None:
-            rereads.append(entry)
-        else:
-            resolved[entry["address"]] = composed
+        if composed is not None:
+            # ! MUTATES `reconcile`'s own entry, which this flow owns from here
+            # on. The SAME dict object stays in `rereads`, which the
+            # `entry not in rereads` tests below rely on.
+            entry["composed"] = composed
+        rereads.append(entry)
 
     return resolved, escalations, rereads
 
@@ -322,6 +357,11 @@ def _touched_by(mark: Mark) -> list[str]:
         if isinstance(destination, str) and destination and destination not in touched:
             touched.append(destination)
     return touched
+
+
+def _marks_of(determined: dict[str, Determined]) -> dict[str, Mark]:
+    """The marks that stand, for the move rules below, which read marks."""
+    return {a: d.mark for a, d in determined.items() if d.mark is not None}
 
 
 def _pair_moves(resolved: dict[str, Mark]) -> set[str]:
@@ -429,9 +469,14 @@ def _move_order(resolved: dict[str, Mark]) -> tuple[list[str], list[str]]:
 
 
 def _chief_copy(
-    read_from: dict, resolved: dict[str, Mark], proof: MasterProof
+    read_from: dict, determined: dict[str, Determined], proof: MasterProof
 ) -> EditCopy:
-    """The copy chief's `edit_copy` -- one mark per resolved place.
+    """The copy chief's `edit_copy`, DERIVED from the Determineds -- one mark per place.
+
+    `Process: #87`, keeping `#30`'s shape.
+
+    ! A `taken_in` OF THE ORIGINAL WRITES NO ENTRY. Its `mark` is None: the
+    original stands, so there is nothing for the write end to alter.
 
     !! ONLY RESOLVED PLACES GET AN ENTRY. `desk.mark.untouched` means NOBODY
     WROTE HERE; a place two roles wrote on that nothing resolved is a different
@@ -510,8 +555,9 @@ def _chief_copy(
     marks_of: dict[str, list[Mark]] = {}
     shas_of: dict[str, str] = {}
     seen: set[int] = set()
-    for mark in resolved.values():
-        if id(mark) in seen:
+    for det in determined.values():
+        mark = det.mark
+        if mark is None or id(mark) in seen:
             continue
         seen.add(id(mark))
         addr = cue_of(mark.address)
@@ -647,7 +693,11 @@ def _coverage_problems(edit_copies: list[EditCopy], binder: Binder) -> list[Prob
 
 
 def collate(
-    stage: str, edit_copies: list[dict], binder: Binder, root: Path
+    stage: str,
+    edit_copies: list[dict],
+    binder: Binder,
+    root: Path,
+    turn: int = 0,
 ) -> Collated:
     """One stage's returned copies, checked, reconciled and folded.
 
@@ -663,6 +713,9 @@ def collate(
             IS NOT A PAGE ROOT. `Process: #62` bars the middle from a page
             under review; what this reads is evidence, which carries no `sha`
             because nothing writes it.
+        turn: which turn of the stage's collate this is -- 0 for the first
+            fold, `flows.turn.run_turn`'s count after. Every `stet` this fold
+            records carries it (`Process: #87`).
 
     Returns:
         A `Collated`.
@@ -813,7 +866,7 @@ def collate(
     # check reachable only by breaking the producer is answering a question the
     # types now answer.
     reconciled = reconcile(proof)
-    resolved, escalations, rereads = _resolve(reconciled, base)
+    resolved, escalations, rereads = _resolve(reconciled, base, turn)
 
     # !! BOTH ENDS OR NEITHER, THEN AN ORDER. D8 of the SP-1 spec: a set of
     # moves is a graph over addresses, and half a move is worse than none.
@@ -821,27 +874,28 @@ def collate(
         entry["address"]: entry
         for entry in reconciled.settled + reconciled.escalations + reconciled.rereads
     }
-    for address in _pair_moves(resolved):
+    for address in _pair_moves(_marks_of(resolved)):
         del resolved[address]
         entry = by_address.get(address)
         if entry is not None and entry not in rereads:
             rereads.append(entry)
 
-    order, cycle = _move_order(resolved)
+    order, cycle = _move_order(_marks_of(resolved))
     if cycle:
         # ! SNAPSHOT BEFORE POPPING. `cycle` names every address caught, and a
         # two-cycle's ends touch each other -- popping the first end's touched
         # addresses can remove the second end from `resolved` before its own
         # turn reads it, which is a KeyError over the exact input this rule
         # exists to handle.
-        caught = {address: resolved[address] for address in cycle}
+        marks = _marks_of(resolved)
+        caught = {address: marks[address] for address in cycle}
         for mark in caught.values():
             for end in _touched_by(mark):
                 resolved.pop(end, None)
                 entry = by_address.get(end)
                 if entry is not None and entry not in rereads:
                     rereads.append(entry)
-        order, _again = _move_order(resolved)
+        order, _again = _move_order(_marks_of(resolved))
 
     return Collated(
         chief=_chief_copy(proof.read_from, resolved, proof),
@@ -853,4 +907,6 @@ def collate(
         revisit=revisit,
         tally=counts,
         order=order,
+        determined=resolved,
+        proof=proof,
     )

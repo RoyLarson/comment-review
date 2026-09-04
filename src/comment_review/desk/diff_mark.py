@@ -33,16 +33,22 @@ already; this stays a separate module for the same reason
 An ESCALATION's: *does your finding still stand*. A COMPOSITION re-read
 asks the other artifact's question -- *is this composed text right* -- and
 is answered with `Mark`'s own `clean`/`query`/`correct`/`patch`, not with
-this. `batch_of` below still seeds a reread as a `DiffMark` slot, which
-`#86` rules against; `TODO/a-revise-answer-has-no-artifact.md` T21 is the
-fix. Which answers a CONFLICT row rules in or out by name is still
-`docs/plans/0.2.4-the-mark-and-the-collator.md` P4/P5/P6.
+this. `batch_of` below seeds each slot by that question, and `flows/turn.py`
+applies the answer. Which answers a CONFLICT row rules in or out by name is
+still `docs/plans/0.2.4-the-mark-and-the-collator.md` P4/P5/P6.
 """
 
 from dataclasses import dataclass, fields
 from enum import StrEnum, auto
 
-from comment_review.desk.mark import INSTRUCTIONS, filled
+from comment_review.desk.mark import INSTRUCTIONS, Mark, filled
+
+#: The key every batch slot carries naming the QUESTION it asks -- `Process:
+#: #86`: an escalation is answered with a `DiffMark`, a composition re-read
+#: with a fresh `Mark`. `flows.turn.parse_answers` reads it.
+QUESTION = "question"
+ESCALATION = "escalation"
+COMPOSITION = "composition"
 
 
 class DiffInstruction(StrEnum):
@@ -200,42 +206,60 @@ class DiffMark:
 
 
 def batch_of(escalations: list[dict], rereads: list[dict]) -> dict[str, list[dict]]:
-    """Every disagreement, grouped into one payload per role -- P21.
+    """Every disagreement, one payload per role -- P21 -- seeded BY QUESTION -- T21.
 
     `docs/the-turn.md`: *"all of the disagreements are sent out as one
     batch with the diffs to the agents."* One entry per role in the result,
     holding every place that role owes -- ONE SEND PER ROLE WHATEVER THE
     PLACE COUNT, which is P21's own verify.
 
+    !! THE SLOT IS SEEDED BY THE QUESTION THE PLACE POSES, `Process: #86`.
+    An escalation asks *does your finding still stand* and seeds a
+    `DiffMark` slot. A re-read asks *is this composed text right* and seeds
+    a `Mark` slot -- `Mark.seed` over the composed text where the sides
+    composed (`flows.collate._resolve` leaves that `Mark` on the entry as
+    `composed`), over the base where they did not. Each slot names its
+    question under `QUESTION`, which is what `flows.turn.parse_answers`
+    reads, and a re-read slot says under `composed` whether the text it
+    carries is a composition or the base.
+
     Args:
         escalations: `desk.collator.Reconciled.escalations`, or the same
             shape narrowed by a turn -- `flows.collate.Collated.escalations`
             after the places that resolved on their own are gone. Each entry
             is `{"address", "roles", "marks": list[Placed]}`.
-        rereads: the same shape, for places whose composition did not
-            resolve. Seeded as `DiffMark` slots here, which `Process: #86`
-            rules against -- a reread is a `Mark`'s question, and T21 on
-            `a-revise-answer-has-no-artifact.md` moves it there.
+        rereads: the same shape, plus `composed` -- a `Mark` -- where the
+            sides composed.
 
     Returns:
-        role -> the `DiffMark` slots that role owes, each seeded via
-        `DiffMark.seed` and carrying `marks` -- `{"role", **mark.serialize()}`
-        for every mark already at that place, INCLUDING the role's own.
-        `role` rides beside the mark rather than inside it because `Mark`
-        carries no such field -- `desk.collator.Placed` is the pair, the same
-        reason it exists there. That list is THE DIFF: a role answering "does
-        your finding still stand" is comparing its own entry against
-        whoever it disagrees with, and needs to see whose is whose.
+        role -> the slots that role owes, each carrying `marks` --
+        `{"role", **mark.serialize()}` for every mark already at that place,
+        INCLUDING the role's own. `role` rides beside the mark rather than
+        inside it because `Mark` carries no such field --
+        `desk.collator.Placed` is the pair, the same reason it exists there.
+        That list is THE DIFF: a role answering is comparing its own entry
+        against whoever it disagrees with, and needs to see whose is whose.
     """
     batch: dict[str, list[dict]] = {}
-    for entry in (*escalations, *rereads):
-        marks = entry["marks"]
-        anchor = marks[0].mark.anchor if marks else ""
-        context = [{"role": placed.role, **placed.mark.serialize()} for placed in marks]
-        for role in entry["roles"]:
-            slot = DiffMark.seed(entry["address"], anchor)
-            slot["marks"] = context
-            batch.setdefault(role, []).append(slot)
+    for question, entries in ((ESCALATION, escalations), (COMPOSITION, rereads)):
+        for entry in entries:
+            marks = entry["marks"]
+            anchor = marks[0].mark.anchor if marks else ""
+            context = [{"role": p.role, **p.mark.serialize()} for p in marks]
+            for role in entry["roles"]:
+                if question == ESCALATION:
+                    slot = DiffMark.seed(entry["address"], anchor)
+                else:
+                    composed = entry.get("composed")
+                    if composed is not None:
+                        text = composed.change
+                    else:
+                        text = marks[0].mark.raw_text if marks else ""
+                    slot = Mark.seed(entry["address"], anchor, text)
+                    slot["composed"] = composed is not None
+                slot[QUESTION] = question
+                slot["marks"] = context
+                batch.setdefault(role, []).append(slot)
     return batch
 
 

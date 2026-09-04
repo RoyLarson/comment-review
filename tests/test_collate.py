@@ -89,7 +89,10 @@ class TestTheResolutions:
         assert [e["address"] for e in got.escalations] == ["m.py@b1"]
         assert entries_of(got.chief) == []
 
-    def test_disjoint_edits_compose_onto_the_chiefs_copy(self):
+    def test_disjoint_edits_compose_and_still_go_back_as_a_reread(self):
+        """`Process: #87`: a composition is not a resolution. The composed
+        `Mark` rides on the reread entry so the batch can ask the roles
+        whether it is right; the chief carries nothing until they agree."""
         binder = one_place()
         copies = copies_over(
             binder,
@@ -108,9 +111,9 @@ class TestTheResolutions:
         )
         got = collate("4c", copies, binder, root=REPO)
         assert got.escalations == []
-        assert got.rereads == []
-        marks = entries_of(got.chief)
-        assert [m.change for m in marks] == ["# ONE\n# two\n# THREE\n"]
+        assert [e["address"] for e in got.rereads] == ["m.py@b1"]
+        assert got.rereads[0]["composed"].change == "# ONE\n# two\n# THREE\n"
+        assert entries_of(got.chief) == []
 
     def test_a_refused_compose_stays_a_reread(self):
         binder = one_place()
@@ -201,7 +204,7 @@ class TestTheChiefsCopy:
             },
         )
         got = collate("4c", copies, binder, root=REPO)
-        entry = entries_of(got.chief)[0]
+        entry = got.rereads[0]["composed"]
         assert len(entry.sources) == 2
         assert "block-context" in entry.reason
         assert "function-context" in entry.reason
@@ -236,7 +239,7 @@ class TestTheChiefsCopy:
             "mango-context",
         ]
         got = collate("4c", copies, binder, root=REPO)
-        entry = entries_of(got.chief)[0]
+        entry = got.rereads[0]["composed"]
         roles_in_reason = entry.reason.split(" by ")[1].split(" -- ")[0].split(", ")
         # ! `Mark.sources` IS `tuple[object, ...]` DELIBERATELY -- a source that
         # is not an object is carried so `source_problems` can refuse it by

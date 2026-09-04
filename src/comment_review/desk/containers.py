@@ -71,6 +71,7 @@ from dataclasses import dataclass, field, fields
 from typing import NamedTuple
 
 from comment_review.binder.binder import _read_from_problem
+from comment_review.desk.determined import Determined
 from comment_review.desk.mark import Mark, filled, untouched, without_location
 
 
@@ -518,11 +519,23 @@ class MasterProof:
         read_from: taken from the first copy; `desk.proof.gather` refuses a set
             that disagrees.
         edit_copies: one per role, or one per SHARD under fan-out.
+        turns: the record of each turn of this stage's collate, in order --
+            what went out and what came back. `Process: #87`: the master
+            proof is the state between turns. A PROTOTYPE shape, one dict per
+            turn as `flows.turn`'s caller keeps it; empty until a turn runs.
+        determined: the copy chief's ruling at every resolved place --
+            `desk.determined.Determined`, `Process: #87`. Empty until a fold
+            has recorded them.
+            ! BOTH ARE `wire: False`: `seed` writes the three fields `gather`
+            takes from a copy, and these two are written by a fold, later.
+            `serialize` carries them; `deserialize` reads them where present.
     """
 
     stage: str
     read_from: dict
     edit_copies: tuple[EditCopy, ...]
+    turns: tuple[dict, ...] = field(default=(), metadata={"wire": False})
+    determined: tuple[Determined, ...] = field(default=(), metadata={"wire": False})
 
     @classmethod
     def seed(cls, stage: str, read_from: dict, edit_copies: list) -> dict:
@@ -635,11 +648,33 @@ class MasterProof:
         # the same absent-stage case instead.
         raw_stage = data.get("stage")
         stage = raw_stage if isinstance(raw_stage, str) else ""
+        # ! BOTH ABSENT AND EMPTY READ AS EMPTY. A proof written before
+        # `Process: #87` carries neither key, and one written after carries
+        # both; `turns` is a PROTOTYPE shape and is carried as it came.
+        raw_turns = data.get("turns")
+        turns = (
+            tuple(t for t in raw_turns if isinstance(t, dict))
+            if isinstance(raw_turns, list)
+            else ()
+        )
+        raw_determined = data.get("determined")
+        determined: list[Determined] = []
+        if isinstance(raw_determined, list):
+            for i, raw in enumerate(raw_determined, 1):
+                one, why = Determined.deserialize(f"{where}: determined {i}", raw)
+                if one is None:
+                    problems += why
+                else:
+                    determined.append(one)
+        if problems:
+            return None, problems
         return (
             MasterProof(
                 stage=stage,
                 read_from={**read_from} if isinstance(read_from, dict) else {},
                 edit_copies=tuple(copies),
+                turns=turns,
+                determined=tuple(determined),
             ),
             [],
         )
@@ -650,4 +685,6 @@ class MasterProof:
             "stage": self.stage,
             "read_from": {**self.read_from},
             "edit_copies": [copy.serialize() for copy in self.edit_copies],
+            "turns": [dict(t) for t in self.turns],
+            "determined": [d.serialize() for d in self.determined],
         }
