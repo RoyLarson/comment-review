@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 17 of 30 tasks closed
+Progress: 17 of 31 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
@@ -224,3 +224,6 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       byte-identical or when a majority is, the rest holding. Verify: ruling on
       the log
         > 2026-09-04 hand 3: two of three held one text; the third held; no stet
+- [ ] T31 | Update Determined.deserialize to refuse a null mark unless side is
+      ORIGINAL, and an unknown side. Verify: both refused by name
+        > 2026-09-04 game hand 4: function-context's query on the class docstring
