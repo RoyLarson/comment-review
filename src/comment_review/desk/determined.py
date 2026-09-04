@@ -20,6 +20,8 @@ should not be added to the Mark class. That makes it a different object."*
 
     one         a single owing mark, nothing to agree with
     identical   two or more owing marks, byte-identical
+    withdrawn   every mark at a contested place was withdrawn, so the
+                original stands -- `side` is ORIGINAL and `mark` None
     cap         no agreement; the chief ruled
 
 The chief's `edit_copy` is DERIVED from these -- `flows.collate._chief_copy`
@@ -64,7 +66,7 @@ ORIGINAL = "original"
 #: The side on a `recast` -- the chief wrote the prose.
 CHIEF = "copy-chief"
 #: How the place came to its answer, closed.
-HOW = ("one", "identical", "cap")
+HOW = ("one", "identical", "withdrawn", "cap")
 
 
 @dataclass(frozen=True)
@@ -105,7 +107,7 @@ class Determined:
 
     @classmethod
     def deserialize(
-        cls, where: str, entry: object
+        cls, where: str, entry: object, roles: frozenset[str] | None = None
     ) -> "tuple[Determined | None, list[str]]":
         """THE BOUNDARY -- one entry becomes a `Determined`, or becomes named problems.
 
@@ -114,9 +116,17 @@ class Determined:
         the chief's record, and this says so rather than reading it as
         malformed.
 
+        !! `side` AND `mark` ARE HELD TO THE ATTRIBUTES ABOVE -- T31, found by a
+        role reviewing this file in the game: a null `mark` stands only for
+        `ORIGINAL`, a `recast`'s side is `CHIEF`, and a side is a role where
+        the roles are known.
+
         Args:
             where: how to name this ruling in a message.
             entry: one ruling, as it came off the wire.
+            roles: the stage's roles, where the caller knows them; a `side`
+                outside them, `ORIGINAL` and `CHIEF` is refused. None admits
+                any non-empty name, for a boundary read without a stage.
 
         Returns:
             `(Determined, [])` or `(None, [one message per broken rule])`.
@@ -143,8 +153,16 @@ class Determined:
         turn = data.get("turn")
         if not isinstance(turn, int) or isinstance(turn, bool) or turn < 0:
             out.append(f"{where}: {answer} needs `turn` as a count from 0")
-        if not filled(data.get("side")):
+        side = data.get("side")
+        if not filled(side):
             out.append(f"{where}: {answer} needs `side` -- whose text stands")
+        elif roles is not None and side not in roles | {ORIGINAL, CHIEF}:
+            out.append(
+                f"{where}: `side` {side!r} is none of the roles, {ORIGINAL!r} or "
+                f"{CHIEF!r}"
+            )
+        if answer is Answer.RECAST and filled(side) and side != CHIEF:
+            out.append(f"{where}: a recast's `side` is {CHIEF!r} -- the chief wrote it")
         if data.get("how") not in HOW:
             out.append(f"{where}: {answer} needs `how` as one of {', '.join(HOW)}")
         if answer is not Answer.STET and not filled(data.get("reason")):
@@ -156,6 +174,11 @@ class Determined:
             out += why
         elif answer is Answer.RECAST:
             out.append(f"{where}: recast needs the chief's own `mark`")
+        elif side != ORIGINAL:
+            out.append(
+                f"{where}: a null `mark` stands only for the original -- `side` is "
+                f"{side!r}"
+            )
         if out:
             return None, out
         return (

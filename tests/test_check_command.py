@@ -120,7 +120,8 @@ def _batch_file(tmp_path, answered_by_role: dict):
     )
     got = collate("4c", copies, binder, root=REPO)
     batch = batch_of(got.escalations, got.rereads)
-    paths = {}
+    (tmp_path / "batch.json").write_text(json.dumps(batch), encoding="utf-8")
+    paths = {"sent": str(tmp_path / "batch.json")}
     for role, how in answered_by_role.items():
         slots = batch[role]
         if how == "role-keyed":
@@ -143,6 +144,8 @@ class TestABatch:
             capsys,
             "--answers",
             paths["block-context"],
+            "--sent",
+            paths["sent"],
             "--role",
             "block-context",
         )
@@ -156,6 +159,8 @@ class TestABatch:
             capsys,
             "--answers",
             paths["block-context"],
+            "--sent",
+            paths["sent"],
             "--role",
             "block-context",
         )
@@ -173,6 +178,8 @@ class TestABatch:
             capsys,
             "--answers",
             paths["block-context"],
+            "--sent",
+            paths["sent"],
             "--role",
             "block-context",
         )
@@ -188,6 +195,8 @@ class TestABatch:
             capsys,
             "--answers",
             paths["block-context"],
+            "--sent",
+            paths["sent"],
             "--role",
             "block-context",
         )
@@ -203,11 +212,13 @@ class TestABatch:
             capsys,
             "--answers",
             paths["block-context"],
+            "--sent",
+            paths["sent"],
             "--role",
             "module-context",
         )
         assert code == 1
-        assert "no slots for module-context" in out
+        assert "no slots were sent to module-context" in out
 
     def test_answers_without_a_role_exits_two(self, tmp_path, monkeypatch, capsys):
         paths = _batch_file(
@@ -215,4 +226,4 @@ class TestABatch:
         )
         code, _, err = _run(monkeypatch, capsys, "--answers", paths["block-context"])
         assert code == 2
-        assert "--role" in err
+        assert "--role" in err and "--sent" in err

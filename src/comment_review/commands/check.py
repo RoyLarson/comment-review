@@ -1,7 +1,7 @@
 """The `check` command: what the fold would refuse, named before a role returns it.
 
     comment_review check --edit-copy copy.json [--binder B.json] [--repo R]
-    comment_review check --answers answers.json --role block-context
+    comment_review check --answers answers.json --sent batch.json --role block-context
 
 A role writes its copy or its batch answers with its file-write tool and runs
 this over the file. It is the same boundaries the fold runs -- nothing here
@@ -27,10 +27,10 @@ was flattened. Each cost a turn. All are named here, before the send.
 For a COPY: the envelope (`EditCopy.deserialize`), every place the role left
 alone or wrote unreadably (`flows.mark_errors`), and, with `--binder`, source
 verification and drift (`desk.collator.verify_report`, `drift_in`). For a
-BATCH: every slot parsed by the question it names (`flows.turn.parse_answers`).
-The batch shape a role hands back is normalised the way `flows.turn` expects
-it -- a list of slots; `{role: [slots]}` and a lone slot are taken as that
-role's slots.
+BATCH: every answer paired to the slot the flow SENT, by address
+(`flows.turn.parse_answers`, T27), so `--sent` is the batch that went out.
+The shape a role hands back is read the way the flow reads it
+(`flows.turn.slots_of`): a list of slots, `{role: [slots]}`, or a lone slot.
 """
 
 import argparse
@@ -42,7 +42,7 @@ from comment_review.binder.binder import Binder
 from comment_review.desk.collator import Cache, base_texts, drift_in, verify_report
 from comment_review.desk.containers import EditCopy
 from comment_review.flows.mark_errors import mark_errors
-from comment_review.flows.turn import parse_answers
+from comment_review.flows.turn import parse_answers, slots_of
 from comment_review.machine import exceptions
 from comment_review.machine.json_object import object_of
 
@@ -66,26 +66,6 @@ def _load(path: str, kind: str) -> tuple[object, str]:
         return None, f"cannot read {path}: {err}"
     loaded, why = object_of(text, kind)
     return (None, f"{path} is {why}") if why else (loaded, "")
-
-
-def _slots_of(loaded: object, role: str) -> list:
-    """A role's slots, from any of the shapes a role has handed back.
-
-    ! MEASURED 2026-09-04: three of four roles returned `{role: [slots]}`,
-    the batch's own shape, on the first turn they were asked. It is that
-    role's slots, and the fold reads it as such rather than refusing the
-    envelope; so does this.
-    """
-    if isinstance(loaded, dict):
-        # ! DECLARED, NOT NARROWED -- the same reason `EditCopy.deserialize`
-        # gives: `ty` loses an isinstance narrow at the subscript.
-        data: dict = loaded
-        if role in data:
-            slots = data[role]
-            return list(slots) if isinstance(slots, list) else []
-        if "address" in data:
-            return [data]
-    return list(loaded) if isinstance(loaded, list) else []
 
 
 def _check_copy(path: str, binder_path: str | None, repo: str | None) -> int:
@@ -143,20 +123,25 @@ def _load_value(path: str) -> tuple[object, str]:
         return None, f"{path} is not JSON: {err}"
 
 
-def _check_answers(path: str, role: str) -> int:
+def _check_answers(path: str, sent_path: str, role: str) -> int:
     loaded, why = _load_value(path)
     if why:
         print(why, file=sys.stderr)
         return UNREADABLE
-    slots = _slots_of(loaded, role)
-    if not slots:
-        print(f"{path}: no slots for {role} -- a list of slots, or {{{role!r}: [...]}}")
+    batch, why = _load(sent_path, "batch")
+    if why:
+        print(why, file=sys.stderr)
+        return UNREADABLE
+    sent = slots_of(batch, role)
+    if not sent:
+        print(f"{sent_path}: no slots were sent to {role}")
         return BROKEN
-    answers, problems = parse_answers(role, slots)
-    for line in problems:
-        print(line)
-    print(f"{path}: {len(answers)} answered, {len(problems)} the fold would refuse")
-    return BROKEN if problems else OK
+    answers, revisit = parse_answers(role, sent, slots_of(loaded, role))
+    for one in revisit:
+        for reason in one.reasons:
+            print(f"{one.role} {one.where}: {reason}")
+    print(f"{path}: {len(answers)} answered, {len(revisit)} the fold would refuse")
+    return BROKEN if revisit else OK
 
 
 def main() -> int:
@@ -175,6 +160,9 @@ def main() -> int:
     )
     ap.add_argument("--role", help="whose answers these are (with --answers)")
     ap.add_argument(
+        "--sent", metavar="PATH", help="the batch that went out (with --answers)"
+    )
+    ap.add_argument(
         "--binder",
         help="the binder the copy was seeded from; adds source verification and drift",
     )
@@ -186,10 +174,10 @@ def main() -> int:
     args = ap.parse_args()
 
     if args.answers:
-        if not args.role:
-            print("check --answers needs --role", file=sys.stderr)
+        if not args.role or not args.sent:
+            print("check --answers needs --role and --sent", file=sys.stderr)
             return UNREADABLE
-        return _check_answers(args.answers, args.role)
+        return _check_answers(args.answers, args.sent, args.role)
     return _check_copy(args.edit_copy, args.binder, args.repo)
 
 

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 22 of 35 tasks closed
+Progress: 33 of 35 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-28, filing the work `decision-log.md Process: #21` and `#22` created.
@@ -115,9 +115,10 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       -- The four outcomes. Verify: any new mark relitigates; two holds
       escalate; hold plus withdraw takes the held claim in; two withdraws pick
       one and re-ask.
-- [ ] T4 | T4 -- Route a `query` by shape. Verify: `human-review-necessary`
-      never returns to a role, and `unable-to-determine` carries the question
-      into the next ask.
+- [-] T4 | SUPERSEDED in part: human-review-necessary never returns to a role (99c7620); unable-to-determine ABSTAINS under Process 90 rather than carrying the question on | 99c7620 | T4
+      -- Route a `query` by shape. Verify: `human-review-necessary` never
+      returns to a role, and `unable-to-determine` carries the question into the
+      next ask.
 - [-] T5 | SUPERSEDED as filed in error -- Process #78. Roy: a random requirement a session added and was never asked for | eb49e56 | T5
       -- Count queries first raised at revise. Verify: the run reports the
       number, and it is zero on a set of marks where every query was raised in
@@ -151,8 +152,9 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       the return: a role's answered batch parses at the boundary. Verify: an
       unanswered slot is refused by name, never read as withdraw
         > 2026-09-03 prototype parse_batch 37fbbb8 -- P16
-- [ ] T13 | Implement the recollate so a round's resolutions join the chief's
-      copy. Verify: a lone surviving add, all others holding, lands
+- [x] T13 | FINISHED -- a lone add is its own composition; every role's clean lands it; test_turn.py TestALoneOwingMark | 45d3e61 | Implement
+      the recollate so a round's resolutions join the chief's copy. Verify: a
+      lone surviving add, all others holding, lands
         > 2026-09-03 P17. Measured hand 3: a lone add re-reads forever today
         > 2026-09-04 Process 86: composed text goes into every copy, then recollate
         > 2026-09-04 bc62ea5: a clean from the adder withdraws the add -- open
@@ -161,8 +163,9 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       given clean and query are its only passes
         > 2026-09-03 P1/P6. the-turn.md: clean and query are a composition's passes
         > 2026-09-03 the prototype takes no side -- desk/diff_mark.py docstring
-- [ ] T15 | Implement the conflict outcomes: hold/hold next round, hold/withdraw
-      takes the held in, withdraw/withdraw re-asks. Verify: each lands
+- [x] T15 | FINISHED -- hold/hold another turn, hold/withdraw takes the held in after the read, withdraw/withdraw a stet of the original, how withdrawn; test_turn.py | d4d7cd8 | Implement
+      the conflict outcomes: hold/hold next round, hold/withdraw takes the held
+      in, withdraw/withdraw re-asks. Verify: each lands
         > 2026-09-03 P5; replaces T3's conflict half -- the Objective's outcomes table
         > 2026-09-04 Process 86: withdraw reverts to base; correct/patch write change
         > 2026-09-04 bc62ea5: withdraw/withdraw drops the place with no Determined
@@ -170,12 +173,14 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       the round counter, rounds named by kind, no maximum enforced. Verify: a
       run reports each place's rounds
         > 2026-09-03 P18. Process 78: the cap is the agent's, never the code's
-- [ ] T17 | Implement the copy chief's ruling at the cap on whatever is still
-      unresolved. Verify: no place survives the last round unruled
+- [x] T17 | FINISHED -- determined_chief refuses while a carried place is unruled, naming it and its roles; unsettlable excepted; test_turn.py | d1ddbd8 | Implement
+      the copy chief's ruling at the cap on whatever is still unresolved.
+      Verify: no place survives the last round unruled
         > 2026-09-03 P19. the-turn.md: the chief's ruling is the terminator
         > 2026-09-04 bc62ea5: rule_at_cap exists; nothing enforces every place ruled
-- [ ] T18 | Implement routing of a refused or unanswered DiffMark to its role as
-      a revisit. Verify: it appears in revisit naming role and address
+- [x] T18 | FINISHED -- parse_answers, apply and run_turn return Revisits; check prints them as collate does; test_turn.py | f4e746b | Implement
+      routing of a refused or unanswered DiffMark to its role as a revisit.
+      Verify: it appears in revisit naming role and address
         > 2026-09-03 Roy 2026-09-03: unanswered or malformed is refused, not a withdraw
         > 2026-09-04 bc62ea5: a refused answer is a problem string, not a Revisit
 - [ ] T19 | Generate the DiffMark contract a role is handed from the code, as
@@ -214,8 +219,9 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
         > 2026-09-04 game hand 1: b19 read turn 1 after t1 and turn 2 after t2
         > 2026-09-04 the note above is T25's, misfiled; module's query at b74 vanished
         > 2026-09-04 hand 4: a lone query against cleans is in no output at all
-- [ ] T27 | Update run_turn to pair an answer with the sent slot by address, not
-      by an echoed question key. Verify: a slot returned without it parses
+- [x] T27 | FINISHED -- parse_answers pairs to the sent slot by address; a stripped slot parses, a stray address is refused; test_turn.py | 2c04181 | Update
+      run_turn to pair an answer with the sent slot by address, not by an echoed
+      question key. Verify: a slot returned without it parses
         > 2026-09-04 game hand 1: function's t2 answer refused for a dropped key
 - [x] T28 | RULED Process 88: agreement is the text alone | 7e2c6b4 | Decide
       whether byte-identical change texts agree when the instructions or quoted
@@ -229,19 +235,23 @@ re-review rounds."* What terminates the second round is the copy chief's `stet`.
       whether a place agrees when every owing mark is byte-identical or when a
       majority is, the rest holding. Verify: ruling on the log
         > 2026-09-04 hand 3: two of three held one text; the third held; no stet
-- [ ] T31 | Update Determined.deserialize to refuse a null mark unless side is
-      ORIGINAL, and an unknown side. Verify: both refused by name
+- [x] T31 | FINISHED -- a null mark only for ORIGINAL, a recast's side is CHIEF, a side outside known roles refused; test_determined.py | 6ef4db8 | Update
+      Determined.deserialize to refuse a null mark unless side is ORIGINAL, and
+      an unknown side. Verify: both refused by name
         > 2026-09-04 game hand 4: function-context's query on the class docstring
-- [ ] T32 | Update the fold so byte-identical change texts agree whatever the
-      instruction or sentence quoted. Verify: patch + correct, one text -> stet
+- [x] T32 | FINISHED -- _identical compares change alone; _outcome escalates one text before the sentence test; test_collate.py | 388952c | Update
+      the fold so byte-identical change texts agree whatever the instruction or
+      sentence quoted. Verify: patch + correct, one text -> stet
         > 2026-09-04 Process 88; hand 2: one text as patch/correct/patch, never agreed
-- [ ] T33 | Update the fold so a lone owing mark is a re-read to every role that
-      marked the place but a query. Verify: one mark, three cleans -> re-read
+- [x] T33 | FINISHED -- a lone mark is a re-read to every role that marked but a query, carrying its text; stands when the author is alone | 45d3e61 | Update
+      the fold so a lone owing mark is a re-read to every role that marked the
+      place but a query. Verify: one mark, three cleans -> re-read
         > 2026-09-04 Process 89; hand 3: b93 landed at t0 with three cleans unread
-- [ ] T34 | Implement the human-review query riding on the master proof,
-      unsettlable and asked last; other shapes abstain. Verify: it is on the
-      proof
+- [x] T34 | FINISHED -- a human-review query holds its place as Collated.unsettlable, on the master proof, refused at the cap; the other shapes take the role out of the place | 99c7620 | Implement
+      the human-review query riding on the master proof, unsettlable and asked
+      last; other shapes abstain. Verify: it is on the proof
         > 2026-09-04 Process 90; hands 1 and 4: queries vanished from the record
-- [ ] T35 | Update the recollate so a place once stet leaves every later batch
-      and keeps its turn. Verify: stet at turn 1 reads turn 1 after turn 2
+- [x] T35 | FINISHED -- run_turn keeps every earlier Determined, turn included; a stet place leaves later batches; test_turn.py TestOnceStetAlwaysStet | aefefdd | Update
+      the recollate so a place once stet leaves every later batch and keeps its
+      turn. Verify: stet at turn 1 reads turn 1 after turn 2
         > 2026-09-04 Process 91; T25's turn stamp folded in

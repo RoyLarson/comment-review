@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 14 tasks closed
+Progress: 8 of 15 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -108,3 +108,7 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [ ] T14 | Update reviewer-brief.md so a role runs check over its copy and its
       batch before returning either. Verify: the brief names the command
         > 2026-09-04 agents lane: the brief's wording is theirs; check is 6b673f0
+        > 2026-09-04 hand 6: python -m fails at the root; src/comment-review.py runs
+- [ ] T15 | Update check.py's header: drop MEASURED, condition the guarantee on
+      --binder, name _load_value. Verify: it says so
+        > 2026-09-04 hand 6's four-way stet is the text; hands/h6/chief.json

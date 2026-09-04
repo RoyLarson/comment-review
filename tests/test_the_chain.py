@@ -108,11 +108,15 @@ class TestTheChainRunsOnCommandsAlone:
         # in memory. Each used to do its own read-modify-write, which made the
         # ORDER a silent dependency: running the correction alone, or before the
         # cleans, failed only at runtime inside a slot search.
+        # !! EVERY ROLE RETURNS THE SAME CORRECTION, since `Process: #89`. One
+        # role correcting while three stay clean is a lone mark, and the fold
+        # sends it back to the three for a read -- a turn no console command
+        # runs yet. Four roles carrying one text agree at the first fold
+        # (`#88`), which is what lets this chain finish on commands alone.
         for one in copies:
             document = json.loads(one.read_text(encoding="utf-8"))
             _rule_every_place(document)
-            if one is copies[0]:
-                _correct_one_place(document, addresses[0])
+            _correct_one_place(document, addresses[0])
             one.write_text(json.dumps(document), encoding="utf-8", newline="")
 
         # 3 COLLATE -- the four returned copies folded into the chief's.

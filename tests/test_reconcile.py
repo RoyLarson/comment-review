@@ -46,10 +46,18 @@ def test_one_change_settles_because_nobody_composed_anything():
 
 
 def test_two_changes_on_different_sentences_are_RE_READ_not_merged():
+    """! THE TWO TEXTS DIFFER HERE, since `Process: #88`. `a_correct` writes one
+    fixed `change` for every mark, and two marks carrying one text agree
+    whatever sentence each quoted -- so the case this asks about, different
+    sentences and different texts, has to say so."""
+    first = a_correct("m.py@b1", sentence=0)
+    first["change"] = "# the first sentence, reworded\n"
+    second = a_correct("m.py@b1", sentence=2)
+    second["change"] = "# the third sentence, reworded\n"
     proof = a_master_proof(
         {
-            "block-context": {"m.py@b1": a_correct("m.py@b1", sentence=0)},
-            "module-context": {"m.py@b1": a_correct("m.py@b1", sentence=2)},
+            "block-context": {"m.py@b1": first},
+            "module-context": {"m.py@b1": second},
         }
     )
     out = reconcile(proof)

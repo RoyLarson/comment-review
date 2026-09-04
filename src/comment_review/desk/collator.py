@@ -88,6 +88,7 @@ from comment_review.desk.mark import (
     INSTRUCTIONS,
     Instruction,
     Mark,
+    Shape,
     filled,
     without_location,
 )
@@ -629,9 +630,11 @@ class Reconciled(NamedTuple):
     all, in any of the three.
 
     Attributes:
-        settled: one owing mark, nothing composed with it. ONE role, one
-            change, and the only list a transcription reads --
-            `flows.revise.docket_of` since `P55`.
+        settled: one owing mark, nothing composed with it -- a composition of
+            ONE side. Its `roles` are every role that marked the place with
+            anything but a `query`, because the fold sends it back to them
+            before it stands (`decision-log.md Process: #89`); it is no longer
+            the list a transcription reads at turn 0.
         escalations: two or more owing marks that all rule on the SAME
             sentence -- two answers to one question.
         rereads: every other place with more than one owing mark, plus every
@@ -688,7 +691,9 @@ def _roles_of_stage(proof: MasterProof, path: str) -> set[str]:
 OUTCOMES = ("settled", "rereads", "escalations")
 
 
-def _outcome(proof: MasterProof, address: str, owing: list[Placed]) -> tuple[str, dict]:
+def _outcome(
+    proof: MasterProof, address: str, owing: list[Placed], marks: list[Placed]
+) -> tuple[str, dict]:
     """Which outcome one place gets, and the entry that records it.
 
     Asked in this order, first match winning:
@@ -697,18 +702,33 @@ def _outcome(proof: MasterProof, address: str, owing: list[Placed]) -> tuple[str
                               the stage that read this page -- two adds at two
                               addresses never meet under per-place grouping, so
                               nothing narrower can see a comment added twice
-        one owing mark        SETTLED
+        one owing mark        SETTLED -- and its roles are every role that
+                              marked the place with anything but a `query`,
+                              since the fold sends a lone mark back to them
+                              (`decision-log.md Process: #89`)
+        one text              ESCALATION -- every mark carries the same
+                              `change`, so the fold settles it as agreed
+                              (`decision-log.md Process: #88`), whatever
+                              instruction or sentence each carried
         one sentence key      ESCALATION -- every mark rules on the same
                               sentence, so they answer each other
         anything else         RE-READ -- marks on different sentences of one
                               paragraph, which compose or do not, and this
                               step cannot say which
 
+    And whatever the outcome, a role whose mark here is a DEFERRING query --
+    `outside-my-role`, `unable-to-determine` -- is out of `roles`: it has
+    abstained from this place for the review (`decision-log.md Process:
+    #90`). A `human-review-necessary` query is the flow's to set aside,
+    place and all; this step does not see the difference.
+
     Args:
         proof: the parsed master_proof, read only to widen an `add`'s roles.
         address: the place being decided. Its path is what an `add` widens over.
         owing: the marks at this place that owe a change. Never empty --
             `reconcile` does not call this for a place with none.
+        marks: every mark at this place, `owing` included -- what a settled
+            entry's roles are read from.
 
     Returns:
         `(one of OUTCOMES, {"address", "roles", "marks"})`, `roles` sorted and
@@ -720,10 +740,31 @@ def _outcome(proof: MasterProof, address: str, owing: list[Placed]) -> tuple[str
         kind = "rereads"
     elif len(owing) == 1:
         kind = "settled"
+        roles = {
+            placed.role
+            for placed in marks
+            if placed.mark.instruction is not Instruction.QUERY
+        }
+    elif (
+        all(INSTRUCTIONS[placed.mark.instruction].quotes_original for placed in owing)
+        and len({placed.mark.change for placed in owing}) == 1
+    ):
+        # ! ONLY MARKS THAT QUOTE AN ORIGINAL. An `add` or a `move` carries no
+        # sentence, and two moves into one place from two origins carrying one
+        # text are two edits, not one agreement -- the same reason
+        # `_sentence_key` gives them `id(mark)`.
+        kind = "escalations"
     elif len({_sentence_key(placed.mark) for placed in owing}) == 1:
         kind = "escalations"
     else:
         kind = "rereads"
+    deferring = {
+        placed.role
+        for placed in marks
+        if placed.mark.instruction is Instruction.QUERY
+        and placed.mark.claim.get("shape") != Shape.HUMAN_REVIEW_NECESSARY
+    }
+    roles -= deferring
     return kind, {"address": address, "roles": sorted(roles), "marks": owing}
 
 
@@ -835,7 +876,7 @@ def reconcile(proof: MasterProof) -> Reconciled:
     for address, marks in places(proof).items():
         owing = [placed for placed in marks if _owes_change(placed.mark)]
         if owing:
-            outcomes[address] = _outcome(proof, address, owing)
+            outcomes[address] = _outcome(proof, address, owing, marks)
     _join_moves(outcomes)
     settled: list[dict] = []
     escalations: list[dict] = []

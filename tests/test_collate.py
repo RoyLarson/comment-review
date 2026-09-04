@@ -17,6 +17,7 @@ from helpers import (
     a_correct_citing,
     a_correct_setting,
     a_move,
+    a_query,
     an_add,
     copies_over,
     entries_of,
@@ -25,7 +26,7 @@ from helpers import (
 )
 
 from comment_review.desk.containers import EditCopy
-from comment_review.desk.mark import Mark
+from comment_review.desk.mark import Mark, Shape
 from comment_review.flows.collate import collate
 
 BASE = "# one\n# two\n# three\n"
@@ -67,6 +68,75 @@ class TestTheResolutions:
         assert got.escalations == []
         marks = entries_of(got.chief)
         assert [m.change for m in marks] == [same]
+
+    def test_a_patch_and_a_correct_carrying_one_text_agree(self):
+        """`Process: #88`: agreement is the text alone. MEASURED in the game's
+        hand 2: three roles held one byte-identical text for two turns as
+        patch / correct / patch, quoting different sentences, and never
+        agreed -- `_identical` asked for the same instruction and `reconcile`
+        grouped by the sentence."""
+        binder = one_place()
+        same = "# one\n# TWO\n# three\n"
+        patch = {
+            "address": "m.py@b1",
+            "instruction": "patch",
+            "reason": "wording",
+            "claim": {"from": "# three", "to": "# three"},
+            "change": same,
+        }
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {"m.py@b1": a_correct_setting("m.py@b1", "two", same)},
+                "function-context": {"m.py@b1": patch},
+            },
+        )
+        got = collate("4c", copies, binder, root=REPO)
+        assert got.escalations == []
+        assert got.rereads == []
+        ruled = got.determined["m.py@b1"]
+        assert ruled.how == "identical"
+        assert [m.change for m in entries_of(got.chief)] == [same]
+
+    def test_a_query_is_not_among_the_roles_a_lone_mark_goes_back_to(self):
+        """`Process: #89`: back to every role that marked anything but a query."""
+        binder = one_place()
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {"m.py@b1": a_correct("m.py@b1")},
+                "function-context": {"m.py@b1": a_clean("m.py@b1")},
+                "module-context": {"m.py@b1": a_query("m.py@b1")},
+            },
+        )
+        got = collate("4c", copies, binder, root=REPO)
+        assert [e["address"] for e in got.rereads] == ["m.py@b1"]
+        assert got.rereads[0]["roles"] == ["block-context", "function-context"]
+
+    def test_three_identical_and_one_different_still_escalate(self):
+        """`#88` keeps unanimity: a role still holding has not agreed."""
+        binder = one_place()
+        same = "# one\n# TWO\n# three\n"
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {"m.py@b1": a_correct_setting("m.py@b1", "two", same)},
+                "function-context": {
+                    "m.py@b1": a_correct_setting("m.py@b1", "two", same)
+                },
+                "module-context": {
+                    "m.py@b1": a_correct_setting("m.py@b1", "two", same)
+                },
+                "ownership-context": {
+                    "m.py@b1": a_correct_setting(
+                        "m.py@b1", "two", "# one\n# dos\n# three\n"
+                    )
+                },
+            },
+        )
+        got = collate("4c", copies, binder, root=REPO)
+        assert [e["address"] for e in got.escalations] == ["m.py@b1"]
+        assert got.determined == {}
 
     def test_two_answers_to_one_sentence_escalate_and_reach_no_copy(self):
         binder = one_place()
@@ -157,6 +227,95 @@ class TestTheResolutions:
         copies = copies_over(binder, {"block-context": {"m.py@b1": an_add("m.py@b1")}})
         got = collate("4c", copies, binder, root=REPO)
         assert [e["address"] for e in got.rereads] == ["m.py@b1"]
+
+
+class TestAQuery:
+    """`Process: #90`. MEASURED in the game, hands 1, 3 and 4: a query owed no
+    change, took no part in the fold, was in no batch and on no master proof."""
+
+    def test_a_human_review_query_makes_the_place_unsettlable(self):
+        binder = one_place()
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {
+                    "m.py@b1": a_correct_setting(
+                        "m.py@b1", "two", "# one\n# TWO\n# three\n"
+                    )
+                },
+                "function-context": {
+                    "m.py@b1": a_correct_setting(
+                        "m.py@b1", "two", "# one\n# dos\n# three\n"
+                    )
+                },
+                "module-context": {
+                    "m.py@b1": a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY)
+                },
+            },
+        )
+        got = collate("4c", copies, binder, root=REPO)
+        assert got.escalations == []
+        assert got.rereads == []
+        assert got.determined == {}
+        assert entries_of(got.chief) == []
+        assert [u["address"] for u in got.unsettlable] == ["m.py@b1"]
+        assert got.unsettlable[0]["query"]["role"] == "module-context"
+        assert got.unsettlable[0]["roles"] == [
+            "block-context",
+            "function-context",
+            "module-context",
+        ]
+
+    def test_a_human_review_query_alone_is_still_carried(self):
+        """Hand 4's b72: one query, three cleans, nothing owing -- and nothing
+        anywhere. Now it rides."""
+        binder = one_place()
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {"m.py@b1": a_clean("m.py@b1")},
+                "function-context": {
+                    "m.py@b1": a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY)
+                },
+            },
+        )
+        got = collate("4c", copies, binder, root=REPO)
+        assert [u["address"] for u in got.unsettlable] == ["m.py@b1"]
+
+    def test_a_deferring_query_takes_its_role_out_of_the_places_batches(self):
+        binder = one_place()
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {"m.py@b1": a_correct("m.py@b1")},
+                "function-context": {"m.py@b1": a_clean("m.py@b1")},
+                "module-context": {
+                    "m.py@b1": a_query("m.py@b1", Shape.OUTSIDE_MY_ROLE)
+                },
+                "ownership-context": {
+                    "m.py@b1": a_query("m.py@b1", Shape.UNABLE_TO_DETERMINE)
+                },
+            },
+        )
+        got = collate("4c", copies, binder, root=REPO)
+        assert got.unsettlable == []
+        assert [e["address"] for e in got.rereads] == ["m.py@b1"]
+        assert got.rereads[0]["roles"] == ["block-context", "function-context"]
+
+    def test_a_deferring_query_is_out_of_an_adds_widening_too(self):
+        binder = one_place()
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {"m.py@b1": an_add("m.py@b1")},
+                "function-context": {"m.py@b1": a_clean("m.py@b1")},
+                "module-context": {
+                    "m.py@b1": a_query("m.py@b1", Shape.OUTSIDE_MY_ROLE)
+                },
+            },
+        )
+        got = collate("4c", copies, binder, root=REPO)
+        assert got.rereads[0]["roles"] == ["block-context", "function-context"]
 
 
 class TestTheChiefsCopy:
