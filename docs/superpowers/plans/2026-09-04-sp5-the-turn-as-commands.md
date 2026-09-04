@@ -187,3 +187,36 @@ in `case.json`. `--sent` is read as `batch_for` wrote it, role -> slots.
 ## Task 9: close -- P8 -- 53f7ed2a
 
 - [x] File what this plan does not finish; `plan show` names no open reason; commit.
+
+## Task 10: the cleanup the simplify pass filed -- P10, T17, T18, T19, T23, T24, T26
+
+**Ruled 2026-09-04, Roy:** the simplify pass over this branch filed 19 mechanisms; six
+join this plan as the cleanup a merge should carry, and the other thirteen -- the three
+containers, the gather population, the double parse, the carried-over census costs --
+are on `0.2.4-what-a-reviewer-is-handed`, before the release.
+
+**Files:** `src/comment_review/binder/binder.py`, `flows/proof_io.py`, `flows/turn.py`,
+`commands/{check,collate,turn,cap,addresser,carry,distribute}.py`, `tests/helpers.py`,
+`tests/test_{turn,cap,gather}_command.py`, `tests/test_collate_command.py`.
+
+In the order the dependencies run: T24 first (every loader then resolves one root), T17
+(the io layer every command reads through), T18 and T19 together (one `run_turn` over the
+proof, returning one `Collated`), T23 (the close flow over that), T26 last (the tests
+drive what is left through `run_command`).
+
+- [ ] T24: `Binder.root` is a `Path` on the container; the four `args.repo or root or "."`
+      sites resolve once. Verify: `grep -rn 'or "."' src/comment_review/commands` is empty.
+- [ ] T17: `flows/proof_io.py` holds `load_binder`, `load_copy`, `load_batch`, `load_value`,
+      `save_copy`, one `_dump` over `machine.repo.write_raw`; `check._load`, `_load_value`
+      and `collate._load` are deleted. Verify: `grep -rn "def _load" src/comment_review/commands`
+      is empty and every command's refusal wording is the loader's.
+- [ ] T18, T19: `run_turn(proof, binder, root, sent, answers)` derives copies, `earlier` and
+      the turn number from the proof and returns one `Collated` whose `revisit` holds the
+      turn's refusals; `refold` shares the unpack; `MasterProof.turn` is the number. Verify:
+      `grep -rn "len(proof.turns)" src` returns the container alone.
+- [ ] T23: `flows.turn.close(got, rulings, turns)` returns the closed proof and the chief's
+      copy; `cap.py` calls `replace` nowhere.
+- [ ] T26: the three command tests drive `main()` through `conftest.run_command`; the hand
+      driver (`deal`, `answer`, `turn`, `held_open`) and `BASE` live in `tests/helpers.py`.
+- [ ] Gates green after each; one commit `-F` per task; tick the T on the TODO and the
+      boxes here against its sha; refresh; commit the tick. P10 closes with the last.
