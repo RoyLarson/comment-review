@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 4 of 12 tasks closed
+Progress: 5 of 13 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-24 (P2 of refactor/the-boundaries-are-not-real, 2026-08-24)
 Narrowed: 2026-08-25 — commands/proof.py exposes flows/proof_setter.py, the galley half
           of task 5: the command parses arguments, reads two files and calls the flow
@@ -39,7 +39,10 @@ The flow lives in the command, not in flows/.
       the command prints it. Verify: gather.py decides no order
 - [ ] T10 | Update _annotations to call git ls-files once and code_names to walk
       the tracked list, not an rglob. Verify: one subprocess per gather
-- [?] T11 | Decide whether a gather that will refuse still runs stage 3 for the
-      text listing. Verify: the flow matches the ruling
+- [x] T11 | RULED Process 93 -- a step that fails stops the chain there; nothing downstream runs over it | 4545531e | Decide
+      whether a gather that will refuse still runs stage 3 for the text listing.
+      Verify: the flow matches the ruling
 - [ ] T12 | Update _repeated_literals to run prose_numbers once per paragraph.
       Verify: one pass keeps the pairs
+- [ ] T13 | Update flows.gather so a step that found a gap ends the chain,
+      Process 93. Verify: a refused gather runs no stage 3 in either mode
