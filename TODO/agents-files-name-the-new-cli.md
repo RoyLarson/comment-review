@@ -56,3 +56,4 @@ The agents files name the new CLI and say how to use it.
 - [ ] T14 | Update SKILL.md and the brief to say absent places are filtered out
       of the binder and are looked up with addresser. Verify: both say so
         > 2026-09-05 waits on binder-defects T22; the text would promise what fails now
+        > 2026-09-05 the default filter stays; absent places are noise for a role
