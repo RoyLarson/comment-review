@@ -207,10 +207,10 @@ drive what is left through `run_command`).
 - [x] T24: `Binder.root` is a `Path` on the container; the four `args.repo or root or "."`
       sites resolve once. Verify: `grep -rn 'or "."' src/comment_review/commands` is empty.
       -- 231d5cf9
-- [ ] T17: `flows/proof_io.py` holds `load_binder`, `load_copy`, `load_batch`, `load_value`,
+- [x] T17: `flows/proof_io.py` holds `load_binder`, `load_copy`, `load_batch`, `load_value`,
       `save_copy`, one `_dump` over `machine.repo.write_raw`; `check._load`, `_load_value`
       and `collate._load` are deleted. Verify: `grep -rn "def _load" src/comment_review/commands`
-      is empty and every command's refusal wording is the loader's.
+      is empty and every command's refusal wording is the loader's. -- 6cc6e742
 - [ ] T18, T19: `run_turn(proof, binder, root, sent, answers)` derives copies, `earlier` and
       the turn number from the proof and returns one `Collated` whose `revisit` holds the
       turn's refusals; `refold` shares the unpack; `MasterProof.turn` is the number. Verify:
