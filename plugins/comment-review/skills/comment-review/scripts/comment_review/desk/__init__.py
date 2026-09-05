@@ -7,7 +7,7 @@
                          rules on; and RECONCILIATION -- per address, across
                          the marks of one stage -- ending in a DOCKET
     proof               the roles level: every `edit_copy` of one stage
-                         gathered into one `master_proof`
+                         held in one `master_proof`
     topology            a run's schedule, read from a TOML file -- which
                          stages run, in what order, and what each dispatches
     external_address    a SKETCH, not in service -- a coordinate into a file
@@ -23,8 +23,11 @@ solidifying wrong."*
 !! TWO SENTENCES ABOVE ARE SUPERSEDED, 2026-08-29. The first line read
 *"RECONCILIATION IS NOT BUILT"* and `collator`'s row read *"RECONCILIATION --
 per place, across the marks of one stage -- is not built"*. It is built:
-`collator.places`, `collator.reconcile` and `collator.docket_from` are what
-this branch added, and `tests/test_reconcile.py` runs them. ! The `stages` row
+`collator.places` and `collator.reconcile` are what this branch added, and
+`tests/test_reconcile.py` runs them. ! A third, `collator.docket_from`, was
+added with them and left at `P55` -- the docket is transcribed by
+`flows.revise.docket_of`, because building the WRITE END's artifact was never
+the middle's to do. ! The `stages` row
 credited that module with *"the roles it dispatches"* -- a `roles` FIELD this
 branch deleted, so a reader following the row reached for `Stage.roles` and got
 `AttributeError`. A stage's roles are `[d.role for d in stage.dispatches]`,

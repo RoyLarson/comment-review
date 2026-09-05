@@ -5,7 +5,7 @@
     INSTRUCTIONS     Instruction -> Row, the seven, closed
     Shape            the three a `query` must name, closed -- a StrEnum
     QUERY_SHAPES     tuple(Shape), in the order `docs/the-mark.md` states them
-    Mark             one role's ruling on one place -- the seven fields
+    Mark             one role's ruling on one place -- the eight fields
                      `docs/the-mark.md` names, and no others
     allowed()        the shape a role is handed, generated from the rows
     parse()          THE BOUNDARY: a role's entry -> a `Mark`, or named
@@ -30,10 +30,13 @@ word for what one entry of that table holds. `decision-log.md Process: #46`.
 
 !! EVERY CLOSED SET IN THIS FILE IS A `StrEnum`, following `reading.series.Kind`
 -- `T1.15`. Each member's value is DERIVED from its name via
-`_generate_next_value_`, never hand-typed, and no site asks membership of an
-enum class directly (`x in SomeEnum` raises `TypeError` on Python 3.11,
-measured at `lexer.py:87`) -- `INSTRUCTIONS`' own keys serve as the membership
-check for `Instruction`, and `QUERY_SHAPES` is `Shape`'s companion tuple.
+`_generate_next_value_`, never hand-typed. ! `reading.series.Kind` IS NOT ITSELF
+AN EXAMPLE OF THAT DERIVATION -- it set the StrEnum precedent T1.15 names, but
+its own member values are hand-typed (`TRAILING = "trailing-comment"` is not
+`name.lower()`). No site here asks membership of an enum class directly
+(`x in SomeEnum` raises `TypeError` on Python 3.11, measured at `lexer.py:87`)
+-- `INSTRUCTIONS`' own keys serve as the membership check for `Instruction`,
+and `QUERY_SHAPES` is `Shape`'s companion tuple.
 
 !! THE RULES SPLIT ON WHAT THEY NEED, AND THIS FILE IS THE HALF THAT NEEDS
 NOTHING. Whether `claim.false` is a key is answerable from the mark; whether it
@@ -54,16 +57,16 @@ FIELDS, NO PROSE. A 22-field scheme entered this file on 2026-08-27 during a
 port that was never proposed and never approved -- `decision-log.md Process:
 #37`. `docs/the-mark.md` is the spec; this file implements it and defines
 nothing. `tests/gates/test_mark_shape.py` reads the spec's own tables and
-refuses a field that is not one of them -- for `Mark`'s seven as well as for
+refuses a field that is not one of them -- for `Mark`'s eight as well as for
 `Row`'s eleven.
 
 !! AND `Mark` REPLACED `problems(where, mark: dict)` ON 2026-08-29. Nothing
 parsed a mark, so the seven fields existed as prose plus string literals at
 the call sites, and three things were MEASURED off that: ten
 `str`-into-`dict[Instruction, Row]` type errors in `desk/collator.py`; a
-`flows/marks.py` skip that dropped a mark carrying no instruction and recounted
+`flows/distribute.py` skip that dropped a mark carrying no instruction and recounted
 it as a place nobody looked at; and `reviewer-brief.md`'s own worked example
-passing `mark --check` at exit 0 AS UNRULED, because the brief keys the ruling
+passing the per-copy check at exit 0 AS UNRULED, because the brief keys the ruling
 `instruction` and the code read `mark`. **A reviewer following the brief
 produced findings that vanished in silence.**
 
@@ -75,8 +78,9 @@ self-nesting that made this ambiguous.
 """
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from enum import StrEnum, auto
+from typing import TypeGuard
 
 
 class Instruction(StrEnum):
@@ -251,26 +255,35 @@ INSTRUCTIONS: dict[Instruction, Row] = {
 
 @dataclass(frozen=True)
 class Mark:
-    """One role's ruling on one place -- `docs/the-mark.md`'s seven fields.
+    """One role's ruling on one place -- `docs/the-mark.md`'s eight fields.
 
     !! THE FIELD ORDER IS THE CHAIN OF CUSTODY, not alphabetical and not
     convenience -- the ruling, then the claim, the reason, the sources and the
-    change it produces, with the two seeded fields that say WHERE in front of
-    them. `docs/the-mark.md`, "The fields -- seven", holds Roy's own sentence
-    for it, in the register that ruling was given in.
+    change it produces, with the three seeded fields (`SEEDED`, below) in
+    front of them. `docs/the-mark.md`, "The fields -- eight", holds Roy's own
+    sentence for it, in the register that ruling was given in.
 
-    ! NOTHING IS ADDED HERE THAT THE SPEC DOES NOT NAME. `raw_text` is the
-    SEEDED ROW's, not the mark's -- `docs/the-mark.md` puts it on the row a
-    role is handed, and `collator.claim_verbatim_problems` takes it as its own
-    argument for that reason. `role` belongs to the `edit_copy` the mark came
-    back in, and `collator.Placed` is what carries the pair.
+    ! `role` IS NOT A FIELD, and `collator.Placed` is what carries the pair. It
+    belongs to the `edit_copy` a mark came back in, not to the mark.
+
+    !! `raw_text` IS THE THIRD SEEDED FIELD AND WAS EXCLUDED UNTIL 2026-08-30.
+    It went out on every slot and `parse` dropped it, so one of the three
+    seeded fields could not be written from this class's own names -- which is
+    what left a dict literal in `flows/distribute.py` that a rename could not reach.
+    ! WHAT COMES BACK IS NOT THE BASE. The binder's row is; a returned
+    `raw_text` that differs from it is DRIFT, which `desk.collator.drift_in`
+    reports.
 
     Attributes:
         address: `path@cue`. WHICH PLACE -- seeded, copied from the row, never
             built. Empty only for `clean`, the one row `substantive` is False
             for.
         anchor: the line of code the place sits on -- seeded, and empty where
-            the census resolved none.
+            the gather resolved none.
+        raw_text: the paragraph as it stands -- seeded, and what a role's
+            `change` is a rewrite of. ! CARRIED, NEVER TRUSTED AS THE BASE:
+            every check that measures a claim against the paragraph reads the
+            BINDER's text, through `collator.base_texts`.
         instruction: one of the seven, as an `Instruction` member, so
             `INSTRUCTIONS[mark.instruction]` resolves with no cast.
         claim: the surgical spec -- structured keys, per instruction. Which
@@ -293,11 +306,168 @@ class Mark:
 
     address: str
     anchor: str
+    raw_text: str
     instruction: Instruction
     claim: dict
     reason: str
     sources: tuple[object, ...]
     change: str
+
+    #: The fields SEEDED onto every slot before a role sees it -- written by
+    #: `seed`, copied back unchanged, and read here by `parse`.
+    #:
+    #: ! NOT ANNOTATED, DELIBERATELY. `dataclasses.fields` sees only annotated
+    #: names, so this stays a plain class attribute and
+    #: `tests/gates/test_mark_shape.py` still compares exactly the eight the
+    #: spec states.
+    SEEDED = ("address", "anchor", "raw_text")
+
+    @classmethod
+    def seed(cls, address: str, anchor: str, raw_text: str) -> dict:
+        """One fillable slot, keyed by this class's OWN field names.
+
+        !! THE WRITE HALF OF THE ROUND TRIP LIVES WITH THE READ HALF, and did
+        not until 2026-08-30. `flows/distribute.py` wrote four keys as literals, so
+        renaming a field here left that module writing the old key and nothing
+        could notice -- `parse` would simply find the field absent.
+
+        Args:
+            address: `path@cue`, composed by `reading.addresser.address_for`.
+            anchor: the line of code the place sits on, or "".
+            raw_text: the paragraph as it stands.
+
+        Returns:
+            `{address, anchor, raw_text, instruction: None}` -- the slot as a
+            role receives it. `instruction: None` is what `untouched` reads to
+            say nobody has written here.
+
+        Raises:
+            AttributeError: `SEEDED` names something `Mark` does not declare.
+                ! THIS IS THE WHOLE GUARD. A rename breaks HERE, loudly, at the
+                point the row is built, rather than silently one module away.
+        """
+        declared = {f.name for f in fields(cls)}
+        row: dict = {}
+        for name, value in zip(cls.SEEDED, (address, anchor, raw_text), strict=True):
+            if name not in declared:
+                raise AttributeError(
+                    f"Mark.seed writes `{name}`, which Mark does not declare"
+                )
+            row[name] = value
+        row["instruction"] = None
+        return row
+
+    def serialize(self) -> dict:
+        """This mark as the wire entry a sheet carries -- its OWN field names.
+
+        ! THE COUNTERPART OF `seed`, AND IT EXISTS FOR THE SAME REASON. A
+        caller writing a mark back onto a sheet by hand re-creates the literal
+        `seed` removed, one module further along -- which is what the copy
+        chief's `edit_copy` would otherwise be built from.
+
+        Returns:
+            A dict `parse` accepts and returns an equal `Mark` from.
+            `instruction` is written as its string value, since that is what
+            the wire carries and what `parse` reads.
+        """
+        entry = {f.name: getattr(self, f.name) for f in fields(self)}
+        entry["instruction"] = str(self.instruction)
+        entry["claim"] = dict(self.claim)
+        entry["sources"] = list(self.sources)
+        return entry
+
+    @classmethod
+    def deserialize(cls, where: str, entry: object) -> "tuple[Mark | None, list[str]]":
+        """THE BOUNDARY -- one entry becomes a `Mark`, or becomes named problems.
+
+        !! THERE IS NO THIRD OUTCOME, and that is the whole point of the function.
+        `problems(where, mark: dict)` returned messages and left the dict for the
+        caller to use anyway, so a half-valid mark reached every consumer and each
+        one re-derived the same fields by key.
+
+        ! What is NOT checked here, because it needs the page the role read: whether
+        the address resolves, and whether a quoted sentence is really in the
+        paragraph. Those belong to SOURCE-VERIFICATION, in `collator`. ! A `move`'s
+        destination is HALF here: that it is not the origin is answerable from the
+        entry alone; that it is ADDRESSABLE is not.
+
+        ! CALL `untouched` FIRST where a coverage gap is legal. This function has
+        no reading of a slot nobody ruled on other than a refusal, which is correct
+        for a mark and wrong for a seeded row.
+
+        Args:
+            where: how to name this mark in a message -- an address, or a position.
+            entry: one role's ruling on one place, as it came back. ! AN ABSENT
+                `raw_text` IS NOT REFUSED -- it is seeded, so its absence is drift
+                rather than a malformed shape, and `desk.collator.drift_in` is
+                what rules on it. Refusing an absent field here while a CHANGED one
+                is only reported would be two treatments of one problem.
+
+        Returns:
+            `(Mark, [])` or `(None, [one message per broken rule])`, in the order a
+            reader would meet them. A `Mark` says the SHAPE is sound and says
+            nothing about whether the claim is true.
+        """
+        if not isinstance(entry, dict):
+            return None, [f"{where}: a mark must be an object"]
+        data: dict = entry
+        if "instruction" not in data:
+            return None, [
+                f"{where}: carries no `instruction` -- the field naming which of "
+                f"{', '.join(sorted(INSTRUCTIONS))} this mark is"
+            ]
+        named = data["instruction"]
+        if not isinstance(named, str) or named not in INSTRUCTIONS:
+            return None, [
+                f"{where}: `instruction` must be one of "
+                f"{', '.join(sorted(INSTRUCTIONS))}"
+            ]
+
+        instruction = Instruction(named)
+        spec = INSTRUCTIONS[instruction]
+        out = []
+        # !! `reason` AND `address` ARE OWED BY DEFAULT; ONLY `clean` DEVIATES, and
+        # `clean` is the one row `substantive` is False for -- so that flag is what
+        # both this function and `_claim_problems` above key off of.
+        if spec.substantive and not filled(entry.get("address")):
+            # !! COPIED FROM THE ROW, NEVER BUILT. Measured 2026-08-27: with a
+            # one-file binder every fanned-out agent wrote a bare cue, and 62 of 78
+            # marks came back unqualified -- `a0` then means four different places.
+            out.append(
+                f"{where}: {instruction} needs the `address`, copied from the row"
+            )
+        if spec.substantive and not filled(entry.get("reason")):
+            out.append(f"{where}: {instruction} needs a `reason`")
+        out += _claim_problems(where, instruction, entry.get("claim"))
+        if spec.owes_destination:
+            out += _destination_problems(
+                where, entry.get("address"), entry.get("claim")
+            )
+        if spec.owes_sources:
+            out += _source_problems(where, entry.get("sources"))
+        if spec.owes_change:
+            out += _change_problems(where, instruction, spec, entry.get("change"))
+        if out:
+            return None, out
+
+        claim = entry.get("claim")
+        sources = entry.get("sources")
+        change = entry.get("change")
+        return (
+            Mark(
+                address=str(entry.get("address") or ""),
+                anchor=str(entry.get("anchor") or ""),
+                raw_text=str(entry.get("raw_text") or ""),
+                instruction=instruction,
+                # ! COPIED, NOT ALIASED -- a `Mark` is frozen, and sharing the
+                # caller's own containers would leave it mutable through them.
+                claim=dict(claim) if isinstance(claim, dict) else {},
+                reason=str(entry.get("reason") or ""),
+                sources=tuple(sources) if isinstance(sources, list) else (),
+                change=change if isinstance(change, str) else "",
+            ),
+            [],
+        )
 
 
 #: The four fields a ROLE fills that `untouched` looks at. `address` and
@@ -306,13 +476,82 @@ class Mark:
 ROLE_FIELDS = ("claim", "reason", "sources", "change")
 
 
-def filled(value: object) -> bool:
+def filled(value: object) -> TypeGuard[str]:
     """A string with something in it. ! An empty string is NOT an answer.
 
     Measured: a claim key present and empty passed every check that would have
     caught it missing, and each of those checks then skipped.
+
+    ! RETURNS `TypeGuard[str]`, NOT A BARE `bool`, so a caller writing
+    `if filled(x): use(x)` gets the same narrowing an inline
+    `isinstance(x, str) and x.strip()` would have given it. `TypeGuard` is
+    `typing`'s own, in the standard library since Python 3.10 -- this module's
+    floor is 3.11 -- so this is not a third-party import.
     """
     return isinstance(value, str) and bool(value.strip())
+
+
+def without_location(where: str, message: str) -> str:
+    """One refusal with the `where` prefix this module put on it removed.
+
+    !! EVERY MESSAGE HERE OPENS `f"{where}: "` -- fifteen sites -- so a caller
+    with nowhere else to say which mark it is reads a self-describing sentence.
+    A caller that records the location as its OWN FIELD does not, and printing
+    both gave `block-context m.py@b1: m.py@b1: correct needs a reason`.
+    `collate-command-defects` T3, measured on every line of the report the task
+    agent reads.
+
+    !! IT REMOVES WHAT THIS MODULE ADDED, which is what makes it a fact rather
+    than a guess: the caller passes `where` in and hands the same `where` back,
+    so the prefix is known rather than sniffed. A message that does not carry it
+    is returned untouched.
+
+    ! AND `tests/test_mark.py::TestAStoredReasonDoesNotRepeatItsLocator` is what
+    keeps it true. Either half can rot silently -- a sixteenth message site
+    spelling the prefix by hand, or this function drifting from the format --
+    and the gate asks the only question that matters: does a reason a container
+    stored begin with the locator that container already carries.
+
+    Args:
+        where: exactly what was handed to `Mark.deserialize` or
+            `desk.collator.source_verification`.
+        message: one refusal from that call.
+
+    Returns:
+        The message without its leading `f"{where}: "`, or unchanged.
+    """
+    prefix = f"{where}: "
+    return message[len(prefix) :] if where and message.startswith(prefix) else message
+
+
+def text_at(address: str, mark: Mark) -> str | None:
+    """The text to set at ONE end of one settled mark, or None to delete.
+
+    A `move` at its ORIGIN is the delete, which is why the address is passed
+    in: the same mark writes its `change` at the other end, and writing it at
+    both is the duplication the one instruction exists to prevent.
+
+    ! AN EMPTY `change` IS ALSO A DELETE. `parse` admits one only where the
+    row's `may_empty` is True -- `drop`, whose claim can name the whole
+    paragraph -- so the empty string reaching here is the edit.
+
+    !! IT WAS `desk/collator.py::_alteration_text` UNTIL `P53`. It reads
+    `mark.instruction` and `mark.change` and nothing else, so it is a fact about
+    a `Mark` rather than about reconciliation -- and leaving it in the collator
+    is what would have kept the docket transcription there too. `flows/revise.py`
+    is the caller now; see `decision-log.md Process: #76`.
+
+    Args:
+        address: which end is being asked. For every instruction but `move`
+            this is the mark's own address and the distinction does not arise.
+        mark: the settled mark.
+
+    Returns:
+        The paragraph to write, or None where this end is emptied.
+    """
+    if mark.instruction is Instruction.MOVE and address == mark.address:
+        return None
+    return mark.change or None
 
 
 def allowed() -> dict:
@@ -328,7 +567,7 @@ def allowed() -> dict:
     !! IT WAS `sheet_header`, AND BOTH THE NAME AND ITS TWO DESCRIPTIONS WERE
     FALSE. `role` and `read_from` sit on the EDIT_COPY -- `seed` returns
     `{"role", "read_from", "sheets"}` and a sheet carries `{"path", "sha",
-    "marks"}` -- so a role reading `mark --shape` was told to put two keys on
+    "marks"}` -- so a role reading `distribute --shape` was told to put two keys on
     the container that does not hold them. `sheet` names the PAGE-UNIT since
     `decision-log.md Vocabulary: #28`; the per-role container is `edit_copy`.
 
@@ -361,7 +600,7 @@ def allowed() -> dict:
         "edit_copy_header": {
             "role": "the role this edit_copy was seeded for",
             "read_from": (
-                "the tree this edit_copy was censused from -- "
+                "the tree this edit_copy was gathered from -- "
                 '`{"root": "<path>", "revise": <number>}`, '
                 "where revise 0 is the original"
             ),
@@ -380,9 +619,23 @@ def _claim_problems(where: str, instruction: Instruction, claim: object) -> list
         instruction: already resolved to a member by `parse()`, its only
             caller.
         claim: the entry's `claim`, unvalidated.
+
+    !! `clean` (`spec.claim_all == ()`) STILL GETS ITS SHAPE CHECKED, and did
+    not until 2026-08-30. `clean` proposes no text and its row names no key, so
+    an ABSENT or empty `claim` is correctly nothing to report on -- but a
+    `claim` present and holding a string, a list or a number is not an empty
+    answer, it is a MALFORMED one, and the early return let it through
+    unexamined to be silently coerced to `{}` two frames up in `parse`. This is
+    deliberately not looking at KEYS for `clean` -- there are none to look
+    for -- and not the same as not looking at SHAPE at all.
     """
     spec = INSTRUCTIONS[instruction]
     if not spec.claim_all:
+        if claim is not None and not isinstance(claim, dict):
+            return [
+                f"{where}: {instruction} needs `claim` to be an object or "
+                f"absent, not a {type(claim).__name__}"
+            ]
         return []
     if not isinstance(claim, dict):
         return [
@@ -459,13 +712,19 @@ def _change_problems(
 
     ! AN EMPTY STRING IS THE EDIT on `drop`, the one row `may_empty` is True
     for, where the claim names the whole paragraph.
+
+    ! `filled()`, NOT A BARE TRUTHINESS TEST -- `may_empty` decides whether NO
+    content is acceptable; it says nothing about whether WHITESPACE counts as
+    content, and it should not. `not change` alone let a role return `"   "`
+    for a `correct` or a `patch` and pass unchallenged, the same gap `filled`
+    exists to close for a `claim` key.
     """
     if not isinstance(change, str):
         return [
             f"{where}: {instruction} needs `change` as the updated paragraph in "
             f"RAW TEXT, not a {type(change).__name__}"
         ]
-    if not change and not spec.may_empty:
+    if not filled(change) and not spec.may_empty:
         return [f"{where}: {instruction} needs `change` to hold the new text"]
     return []
 
@@ -474,12 +733,12 @@ def untouched(entry: object) -> bool:
     """A seeded slot no role has written in -- the COVERAGE GAP.
 
     !! THIS IS NOT "HAS NO INSTRUCTION", AND THE DIFFERENCE IS THE DEFECT THIS
-    FUNCTION EXISTS FOR. `flows/marks.py` read `mark.get("mark") is None` and
+    FUNCTION EXISTS FOR. `flows/distribute.py` read `mark.get("mark") is None` and
     skipped, so an entry a role HAD filled in but that named no instruction --
     or named it under a key the code did not read -- was dropped before any
     check saw it and recounted as a place nobody looked at. MEASURED
     2026-08-29: `reviewer-brief.md`'s own worked example, which keys the ruling
-    `instruction`, passed `mark --check` at exit 0 as UNRULED.
+    `instruction`, passed the per-copy check at exit 0 as UNRULED.
 
     ! So an untouched slot is BOTH things at once: `instruction` present and
     null -- the key `seed()` writes -- AND none of `ROLE_FIELDS` filled. An
@@ -500,83 +759,37 @@ def untouched(entry: object) -> bool:
     return not any(data.get(key) for key in ROLE_FIELDS)
 
 
-def parse(where: str, entry: object) -> tuple[Mark | None, list[str]]:
-    """THE BOUNDARY -- one entry becomes a `Mark`, or becomes named problems.
+def _destination_problems(where: str, address: object, claim: object) -> list[str]:
+    """WHERE a `move` sends the paragraph, checked against where it already IS.
 
-    !! THERE IS NO THIRD OUTCOME, and that is the whole point of the function.
-    `problems(where, mark: dict)` returned messages and left the dict for the
-    caller to use anyway, so a half-valid mark reached every consumer and each
-    one re-derived the same fields by key.
+    !! A DESTINATION EQUAL TO THE ORIGIN IS REFUSED, and it is the half of
+    `owes_destination` one mark can answer alone. MEASURED 2026-08-30: such a
+    mark parsed with no problems reported, `collator._touches` deduped its
+    two ends to one address, and the docket step wrote the delete at the origin
+    with no matching write -- the paragraph removed and never put back.
 
-    ! What is NOT checked here, because it needs the page the role read: whether
-    the address resolves, whether a quoted sentence is really in the paragraph,
-    and whether a `move`'s destination is addressable. Those belong to
-    SOURCE-VERIFICATION, in `collator`.
-
-    ! CALL `untouched` FIRST where a coverage gap is legal. This function has
-    no reading of a slot nobody ruled on other than a refusal, which is correct
-    for a mark and wrong for a seeded row.
+    ! THE OTHER HALF IS NOT ASKED HERE. Whether the destination is ADDRESSABLE
+    (Roy, 2026-08-27) needs an addresser, and this module imports `re`,
+    `dataclasses`, `enum` and `typing` and nothing else.
 
     Args:
-        where: how to name this mark in a message -- an address, or a position.
-        entry: one role's ruling on one place, as it came back. Keys the spec
-            does not name (`raw_text`, seeded onto the row) are carried by the
-            entry and are not part of the `Mark`.
+        where: how to name this mark in a message.
+        address: the mark's own `address`, as the entry carried it.
+        claim: the mark's `claim`, as the entry carried it.
 
     Returns:
-        `(Mark, [])` or `(None, [one message per broken rule])`, in the order a
-        reader would meet them. A `Mark` says the SHAPE is sound and says
-        nothing about whether the claim is true.
+        One message, or an empty list. A claim that is not an object, or a
+        `to` that is not a filled string, says nothing here -- `_claim_problems`
+        is what refuses those, and this step has nothing to compare.
     """
-    if not isinstance(entry, dict):
-        return None, [f"{where}: a mark must be an object"]
-    data: dict = entry
-    if "instruction" not in data:
-        return None, [
-            f"{where}: carries no `instruction` -- the field naming which of "
-            f"{', '.join(sorted(INSTRUCTIONS))} this mark is"
+    if not isinstance(claim, dict) or not isinstance(address, str):
+        return []
+    destination = claim.get("to")
+    if not isinstance(destination, str):
+        return []
+    if destination.strip() and destination.strip() == address.strip():
+        return [
+            f"{where}: `claim.to` is this mark's own `address` -- a move to "
+            "where the paragraph already is deletes it and writes nothing back"
         ]
-    named = data["instruction"]
-    if not isinstance(named, str) or named not in INSTRUCTIONS:
-        return None, [
-            f"{where}: `instruction` must be one of {', '.join(sorted(INSTRUCTIONS))}"
-        ]
-
-    instruction = Instruction(named)
-    spec = INSTRUCTIONS[instruction]
-    out = []
-    # !! `reason` AND `address` ARE OWED BY DEFAULT; ONLY `clean` DEVIATES, and
-    # `clean` is the one row `substantive` is False for -- so that flag is what
-    # both this function and `_claim_problems` above key off of.
-    if spec.substantive and not filled(entry.get("address")):
-        # !! COPIED FROM THE ROW, NEVER BUILT. Measured 2026-08-27: with a
-        # one-file binder every fanned-out agent wrote a bare cue, and 62 of 78
-        # marks came back unqualified -- `a0` then means four different places.
-        out.append(f"{where}: {instruction} needs the `address`, copied from the row")
-    if spec.substantive and not filled(entry.get("reason")):
-        out.append(f"{where}: {instruction} needs a `reason`")
-    out += _claim_problems(where, instruction, entry.get("claim"))
-    if spec.owes_sources:
-        out += _source_problems(where, entry.get("sources"))
-    if spec.owes_change:
-        out += _change_problems(where, instruction, spec, entry.get("change"))
-    if out:
-        return None, out
-
-    claim = entry.get("claim")
-    sources = entry.get("sources")
-    change = entry.get("change")
-    return (
-        Mark(
-            address=str(entry.get("address") or ""),
-            anchor=str(entry.get("anchor") or ""),
-            instruction=instruction,
-            # ! COPIED, NOT ALIASED -- a `Mark` is frozen, and sharing the
-            # caller's own containers would leave it mutable through them.
-            claim=dict(claim) if isinstance(claim, dict) else {},
-            reason=str(entry.get("reason") or ""),
-            sources=tuple(sources) if isinstance(sources, list) else (),
-            change=change if isinstance(change, str) else "",
-        ),
-        [],
-    )
+    return []

@@ -99,6 +99,27 @@ and rust (`startraders`, 2026-08-17).
   own. An address is now joined in ONE place, which is what its docstring had claimed while two
   modules did it.
 
+## [0.2.4-beta] -- 2026-09-05
+
+!! **A LIVE BUILD FOR A BASELINE, NOT THE RELEASE.** Roy, 2026-09-04: *"We are going to put the
+current code in the plugins directory and the updates to the agents files. This will make it
+live and I will test it out on workout_organizer and job_board."* The number keeps this tree
+from sharing a cache directory with the alpha, which held a materially older program.
+
+### Changed
+
+- **The workflow is the naive one, for a baseline** (`decision-log.md Process: #94`): all four
+  roles dispatched at once, no revise between stages, zero turns -- one fold, then the task agent
+  rules at the cap. `references/re-review.md` is deleted; stages 5b and 6b are gone from
+  `SKILL.md`.
+- **The task agent runs the middle from the console**: `gather` (was `census`), `distribute
+  --seed`, `check`, `collate --proof-out --batch-out`, `cap`, `proof --copy`. `turn` ships and is
+  not used by the baseline. The brief tells a role to run `check --edit-copy` before it returns.
+- **The vocabulary the roles are handed**: `gather`, `binder`, `listing`, `edit copy`, `sheet`
+  and `copy chief` defined; `census` and `record` retired (for `gather`/`binder` and `mark`).
+- **The shipped Python is the `src/` tree as of this build** -- the gather as a chain of
+  producers, the master proof on disk, `turn` and `cap`, `flows/proof_io.py`.
+
 ## [0.2.4-alpha] -- 2026-08-21
 
 !! **A PRE-RELEASE, AND THE NUMBER IS THE POINT.** Roy, 2026-08-21: *"I do not plan to run the

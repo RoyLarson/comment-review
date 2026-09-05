@@ -2,8 +2,7 @@
 
     page       ONE FILE -- its paragraphs tied to the places on it
     binder     what a BINDER is on disk, and how one is read back
-    annotate   the resolution a reviewer would otherwise do by hand
-    addresses  which paragraph of a census sits at which address
+    addresses  which paragraph of a binder sits at which address
 
 !! A PAGE AND A RECORD ARE IMMUTABLE ARTIFACTS THE SYSTEM CREATES. Ruled by Roy,
 2026-08-24. Nothing downstream may treat a record as the thing that carries an
@@ -20,6 +19,6 @@ LEFT ON `b50e7a4` -- so `from comment_review.binder.record import seed`, written
 by anyone following it, was an ImportError; and `binder.py`, which every other
 module in this package imports, was named nowhere. ! The line *"`record` IS FOUR
 SUBJECTS AND IS NOT YET SPLIT -- P10"* is superseded with the module: what a
-role fills is now `flows/marks.py`'s edit_copy, seeded per role and checked by
+role fills is now `flows/distribute.py`'s edit_copy, seeded per role and checked by
 `desk/mark.py`.
 """

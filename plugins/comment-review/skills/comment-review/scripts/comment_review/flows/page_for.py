@@ -1,11 +1,11 @@
 """The step that produces a PAGE, which nothing in the tree named until now.
 
-! FOUR SITES still run the same calls inline -- `read_source`, `language_for`,
+! THREE SITES still run the same calls inline -- `read_source`, `language_for`,
 `page_for`, carrying the sha -- and none of them is a named step. MEASURED
-2026-08-26: `commands/census.py`, `results/compositor.py` twice (`lossless` and
-`identity`), and `scripts/render_page.py`'s `render`. This is that step; both of
-`flows/proof_setter.py`'s reads ask it, and see `page_of` for why the other
-four sites are not repointed here.
+2026-08-26 at four: `results/compositor.py` twice (`lossless` and `identity`),
+`scripts/render_page.py`'s `render`, and the gather, which `flows/gather.py`
+repointed here. This is that step; both of `flows/proof_setter.py`'s reads ask
+it, and see `page_of` for why the other three are not repointed here.
 
 ! THE READ IS ITS OWN HALF, `source_of`, so a caller that must ask something of
 the BYTES before paying for the parse can -- `proof_setter._one` compares the
@@ -53,13 +53,13 @@ def page_of(
     undone.
 
     ! A REFUSAL IS RETURNED, NOT RAISED, in the shape `binder.read` and
-    `docket.read` already use: `(page, "")` or `(None, reason)`.
+    the docket's reader already use: `(page, "")` or `(None, reason)`.
 
     !! THAT COVERS `exceptions.Refused` TOO, and it did not until 2026-08-25.
     `page_for` raises it at `binder/page.py:521` and `:578` -- a `c` place whose
     anchor has no line, and a series with no branch -- and every one of the
     inline sites this consolidates handles it: `results/compositor.py` catches
-    `Refused`, `commands/census.py` catches a bare `Exception`. Catching only
+    `Refused`, `flows/gather.py` catches a bare `Exception`. Catching only
     `READ_ERRORS` here made this function narrower than the code it replaced, so
     such a file took `proof_setter.run` down with a traceback while this
     docstring promised a reason.
@@ -68,9 +68,9 @@ def page_of(
     class ordering -- the tuple rule forbids an `except` holding a literal, and
     a bound name is what `exceptions` exists to supply.
 
-    ! REPOINTING THE REMAINING FOUR SITES IS NOT THIS BRANCH'S -- it touches the
-    census, both compositor gates and `render_page.py`. Filed as
-    `TODO/no-step-produces-a-page.md` rather than widened here.
+    ! THE OTHER SITES ARE NOT REPOINTED HERE -- both compositor gates and
+    `render_page.py` are `TODO/no-step-produces-a-page.md` T2 and T3, filed
+    rather than widened into this step.
 
     Args:
         path: the file to read.

@@ -1,7 +1,7 @@
 """The one entry point. `python -m comment_review <command> [args...]`.
 
 !! A FILE INSIDE A PACKAGE CANNOT BE RUN BY PATH, which is what forces this.
-The modules import each other by the package name, so `python .../census.py`
+The modules import each other by the package name, so `python .../gather.py`
 fails at the first import: run by path, the file's own directory goes on
 `sys.path` and `comment_review` is not on it. Roy,
 2026-08-24: *"The entry points get an actual entry point .py file and the
@@ -24,10 +24,13 @@ from comment_review.machine import constants
 class Command(StrEnum):
     """A command name typed on the console, closed.
 
-    `T1.15` of `docs/plans/0.2.4-the-mark-and-the-collator.md`, following
-    `reading.series.Kind`: value DERIVED from the member name, never
-    hand-typed. A value carries an underscore where the module it names does
-    (`prove_unchanged`, `taken_in`), so `.lower()` alone is what derives it.
+    `T1.15` of `docs/plans/0.2.4-the-mark-and-the-collator.md`: value DERIVED
+    from the member name via `_generate_next_value_`, never hand-typed.
+    `reading.series.Kind` set the StrEnum precedent but hand-types its own
+    member values (`TRAILING = "trailing-comment"` is not `name.lower()`), so
+    it is not itself an example of this derivation. A value carries an
+    underscore where the module it names does (`prove_unchanged`, `taken_in`),
+    so `.lower()` alone is what derives it.
     """
 
     @staticmethod
@@ -37,14 +40,18 @@ class Command(StrEnum):
         return name.lower()
 
     ADDRESSER = auto()
+    CAP = auto()
     CARRY = auto()
-    CENSUS = auto()
+    CHECK = auto()
+    COLLATE = auto()
     COMPOSITOR = auto()
-    MARK = auto()
+    DISTRIBUTE = auto()
+    GATHER = auto()
     PROOF = auto()
     PROVE_UNCHANGED = auto()
     REFERRERS = auto()
     TAKEN_IN = auto()
+    TURN = auto()
 
 
 #: The command modules, by the name typed on the console -- `Command`'s

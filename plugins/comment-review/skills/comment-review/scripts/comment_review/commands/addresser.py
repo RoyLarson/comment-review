@@ -7,6 +7,7 @@ A COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `decision-log.md Process: #12`.
 """
 
 import argparse
+from collections.abc import Sequence
 from pathlib import Path
 
 from comment_review.binder.addresses import (
@@ -16,25 +17,24 @@ from comment_review.binder.addresses import (
     stable,
     unaddressed,
 )
-from comment_review.binder.binder import read as read_binder
-from comment_review.binder.binder import rows_of
-from comment_review.machine import exceptions
+from comment_review.flows.proof_io import load_binder
 from comment_review.reading.addresser import SERIES, cue_of, unflatten
+from comment_review.reading.paragraph import Paragraph
 
 
 def main() -> int:
-    """Print every census entry's ADDRESS and the kind of place it names.
+    """Print every binder entry's ADDRESS and the kind of place it names.
 
     ! One address column, not two. The LINE form it once printed beside this one
     was deleted 2026-08-20; see `docs/history.md`.
 
     Returns:
         0 when every entry was addressed, 1 when any could not be, 2 when the
-        census could not be read. ! This module reads no source file -- the
-        census is the only input.
+        binder could not be read. ! This module reads no source file -- the
+        binder is the only input.
     """
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--census", required=True, help="the census JSON")
+    ap.add_argument("--binder", required=True, help="the binder JSON")
     ap.add_argument(
         "--check",
         action="store_true",
@@ -55,56 +55,52 @@ def main() -> int:
         "--resolve",
         metavar="ADDRESS",
         help="an address in, the LINES that cover it out -- read it against a "
-        "census of the file as it is NOW",
+        "binder of the file as it is NOW",
     )
     args = ap.parse_args()
 
-    try:
-        text = Path(args.census).read_text(encoding="utf-8")
-    except exceptions.READ_ERRORS as e:
-        print(f"CANNOT READ {args.census} ({type(e).__name__})")
-        return 2
-    # ! REFUSED BY NAME, not read as empty. `rows_of` alone answers `[]` for a
-    # file it cannot understand, and an empty binder is indistinguishable
+    # !! THE LOAD IS THE FLOW'S AND THE DESERIALIZE IS THE CONTAINER'S --
+    # `decision-log.md Process: #67`. `flows.proof_io.load_binder` is the read,
+    # the decode and `Binder.deserialize`'s refusal, as three steps.
+    #
+    # ! REFUSED BY NAME, not read as empty. An empty binder is indistinguishable
     # downstream from a run with nothing in scope.
-    binder, why = read_binder(text)
-    if why:
-        print(f"{args.census}: {why}")
+    binder, problems = load_binder(Path(args.binder))
+    if binder is None:
+        for line in problems:
+            print(line)
         return 2
-    raw = rows_of(binder)
-    if not raw:
-        print(f"{args.census} carries no paragraphs")
+    paragraphs = binder.paragraphs
+    if not paragraphs:
+        print(f"{args.binder} carries no paragraphs")
         return 2
-    # !! EVERY ENTRY IS CHECKED, not just the list around them. A census row that
-    # is not a mapping cannot carry an address, a kind or a symbol, and every
-    # reader below calls `.get` on it -- so a hand-edited or truncated census
-    # arrived as an `AttributeError` naming neither the file nor the row.
-    # ! It is also what lets the type checker see this list as paragraphs. Before
-    # the check, each entry was `object` and three call sites here were reading
-    # attributes off it that the annotation said were not there.
-    paragraphs: list[dict] = [b for b in raw if isinstance(b, dict)]
-    if len(paragraphs) != len(raw):
-        print(f"{args.census}: {len(raw) - len(paragraphs)} entries are not paragraphs")
-        return 2
+    # !! THE PER-ENTRY MAPPING CHECK IS GONE, AND THE CONTAINER IS WHY. It read
+    # `[b for b in raw if isinstance(b, dict)]` and refused a binder whose rows
+    # were not mappings -- a check every reader below needed because the flat
+    # row walk
+    # handed back whatever it found. `Binder.deserialize` refuses that artifact
+    # at the boundary and by name, so what reaches here is `Paragraph`s or
+    # nothing. ! **A CONTAINER EARNS ITS KEEP BY DELETING THE RE-CHECKS**, not
+    # by sitting beside them: this is the second reader that stopped asking.
 
-    # !! NO STALENESS SWEEP. This module answers about the CENSUS IT WAS GIVEN,
-    # and every question it takes is census-internal: does each address resolve
-    # to one paragraph, what lines does this census say an address names, which
+    # !! NO STALENESS SWEEP. This module answers about the BINDER IT WAS GIVEN,
+    # and every question it takes is binder-internal: does each address resolve
+    # to one paragraph, what lines does this binder say an address names, which
     # place is this anchor's `c`. None of them reads the tree.
     #
     # !! CHECKING THE FILE WOULD ASSERT THAT LINE NUMBERS STILL MATTER, which is
-    # the thing an address exists to stop mattering. So long as the census is
+    # the thing an address exists to stop mattering. So long as the binder is
     # the document the caller means, it does not matter that the file has
     # changed lines underneath it.
     #
     # ! STALENESS MATTERS WHERE A FILE IS WRITTEN, and `galley.drifted` used to
     # refuse a moved anchor there -- retired, see `docs/history.md`. A sweep
-    # here refuses a census built seconds earlier on every non-Python file
+    # here refuses a binder built seconds earlier on every non-Python file
     # carrying a trailing comment, with a message re-running never fixes, and
     # masks the collisions `--check` exists to report.
     #
-    # ! THE CALLER CHOOSES THE CENSUS, which is what makes this safe. Stage 8
-    # censuses the file as it now stands and resolves against that, so the two
+    # ! THE CALLER CHOOSES THE BINDER, which is what makes this safe. Stage 8
+    # gathers the file as it now stands and resolves against that, so the two
     # agree by construction rather than by inspection.
 
     if args.anchor:
@@ -124,7 +120,7 @@ def main() -> int:
 
     # !! ASKED, NOT RE-DERIVED -- the rule `_check` states below, which this
     # listing was the one caller to break. It counted every entry with an empty
-    # address as UNPLACED, while `--check` on the SAME census answered that
+    # address as UNPLACED, while `--check` on the SAME binder answered that
     # every paragraph was addressed. MEASURED 2026-08-22 on
     # `tests/fixtures/sample.py`: "3 entries could not be addressed", exit 1,
     # beside "18 of 18 paragraphs addressed", exit 0.
@@ -135,7 +131,7 @@ def main() -> int:
         # no address; leading is the only such paragraph and `bind()` emits no
         # row for one, so the fallback could not fire.
         where = stable(paragraph) or "UNPLACED"
-        print(f"{i:4d}  {where:<34} {paragraph.get('cue', '')}")
+        print(f"{i:4d}  {where:<34} {cue_of(paragraph.address).cue}")
     if missing:
         print(f"\n{len(missing)} entries could not be addressed:")
         for line in missing:
@@ -143,19 +139,19 @@ def main() -> int:
     return 1 if missing else 0
 
 
-def _resolve_one(address: str, paragraphs: list[dict]) -> int:
+def _resolve_one(address: str, paragraphs: Sequence[Paragraph]) -> int:
     """An address in, the LINES that now cover it out.
 
     !! THIS IS THE DIRECTION STAGE 8 NEEDS, and it needs it because 7b has
     already written. Roy, 2026-08-18: *"in goes an address out comes the line
     numbers that cover that address ... particularly important after 7b and
     stage 8 wants to look something up to double check."* Every line number a
-    record carried is stale by then; the ADDRESS is not, so a census of the
+    record carried is stale by then; the ADDRESS is not, so a binder of the
     file AS IT IS NOW turns it back into lines to read.
 
-    ! Census the CURRENT file, not the one the run started from. The address is
+    ! Gather the CURRENT file, not the one the run started from. The address is
     what survives an edit; the lines are what moved, and reading a pre-edit
-    census here would hand back exactly the numbers 7b invalidated.
+    binder here would hand back exactly the numbers 7b invalidated.
 
     ! Several entries can answer to one address -- a docstring and the comment
     run beneath it sit in the same gap -- so every match is printed. Measured
@@ -168,46 +164,46 @@ def _resolve_one(address: str, paragraphs: list[dict]) -> int:
     if not where:
         print(f"{address!r} is not an address -- it needs a `@place`")
         return 2
-    real = unflatten(path, sorted({str(b.get("path", "")) for b in paragraphs}))
+    real = unflatten(path, sorted({b.path for b in paragraphs}))
     if not real:
-        print(f"no file in this census flattens to {path!r}")
+        print(f"no file in this binder flattens to {path!r}")
         return 1
-    mine = [b for b in paragraphs if str(b.get("path", "")) == real]
+    mine = [b for b in paragraphs if b.path == real]
     hits = resolve(address, mine)
     if not hits:
-        print(f"{address} names no entry in this census")
+        print(f"{address} names no entry in this binder")
         return 1
     for i in hits:
         paragraph = mine[i - 1]
-        span = f"{paragraph.get('original_start')}-{paragraph.get('original_end')}"
-        print(f"{real}:{span}\t{paragraph.get('cue', '')}")
+        span = f"{paragraph.original_start}-{paragraph.original_end}"
+        print(f"{real}:{span}\t{cue_of(paragraph.address).cue}")
     return 0
 
 
-def _for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> int:
+def _for_anchor(anchor: str, series: str, paragraphs: Sequence[Paragraph]) -> int:
     """Print the address of one anchor's place in one series.
 
     Returns:
-        0 when a place was named, 1 when the census carries none for that
+        0 when a place was named, 1 when the binder carries none for that
         anchor and series -- which is a fact about the run, not a fault: a
         language whose tier resolves no anchors has none to give.
     """
     found = for_anchor(anchor, series, paragraphs)
     if not found:
-        known = sorted({str(b.get("anchor")) for b in paragraphs if b.get("anchor")})
+        known = sorted({b.anchor for b in paragraphs if b.anchor})
         print(f"no `{series}` place for anchor {anchor!r}")
         if known:
-            print(f"  anchors this census carries: {', '.join(known[:12])}")
+            print(f"  anchors this binder carries: {', '.join(known[:12])}")
         return 1
     for b in found:
         where = stable(b)
-        span = f"{b.get('original_start')}-{b.get('original_end')}"
-        print(f"{where}	{span}	{b.get('cue', '')}	{b.get('anchor', '')}")
+        span = f"{b.original_start}-{b.original_end}"
+        print(f"{where}	{span}	{cue_of(b.address).cue}	{b.anchor}")
     # !! AN ANCHOR HAS MANY ADDRESSES, so this direction is not a lookup that
     # returns one. Roy, 2026-08-19, on two identical statements in one file:
     # *"for the addresses this is still exact -- for looking up the anchors to
     # get the addresses, not so exact."* `X=2  # initial` and `X=2  # reseting
-    # X` are two anchors spelled the same, and the census carries five places
+    # X` are two anchors spelled the same, and the binder carries five places
     # under that spelling. Every match is printed and the CALLER picks by
     # address; taking the first would silently rule on the wrong statement.
     if len(found) > 1:
@@ -220,7 +216,7 @@ def _for_anchor(anchor: str, series: str, paragraphs: list[dict]) -> int:
     return 0
 
 
-def _check(paragraphs: list[dict]) -> int:
+def _check(paragraphs: Sequence[Paragraph]) -> int:
     """Does every address resolve back to the one paragraph that carries it?
 
     !! THE REFERENCE HAS TO MATCH THE ANCHOR, and that is the whole worth of an
@@ -235,12 +231,12 @@ def _check(paragraphs: list[dict]) -> int:
     place and the check resolves it back to the entry. Both say: the reference
     is only worth what re-reading it proves.
 
-    ! Two reports, and only the first is a fault. UNADDRESSED means the census
+    ! Two reports, and only the first is a fault. UNADDRESSED means the binder
     cannot name the place at all -- no `original_start`, or no position -- and
     nothing can cite it.
 
     !! SHARED IS NOW A FAULT TOO, AND ITS OLD REMEDY IS GONE. It meant several
-    paragraphs sat in one gap, and the advice was to cite the census INDEX
+    paragraphs sat in one gap, and the advice was to cite the binder INDEX
     alongside the address -- a field retired 2026-08-19, so a record carries an
     address and an anchor and nothing that tells two such paragraphs apart. The
     one shape that produced it is fixed: a licence header and the run below the
@@ -253,7 +249,7 @@ def _check(paragraphs: list[dict]) -> int:
         refuse every docstring with a comment beneath it.
     """
     # ! ASKED, NOT RE-DERIVED. `unaddressed` is the one implementation, and
-    # `census.py` and the collator ask the same one.
+    # `gather` and the collator ask the same one.
     missing = unaddressed(paragraphs)
     shared: dict[str, list[str]] = {}
     # ! The path is not read here -- an address already names its own file, and
@@ -263,8 +259,8 @@ def _check(paragraphs: list[dict]) -> int:
             where = stable(paragraph)
             if where and len(resolve(where, mine)) > 1:
                 shared.setdefault(where, []).append(
-                    f"{paragraph.get('original_start')}-{paragraph.get('original_end')}"
-                    f" {paragraph.get('cue', '')}"
+                    f"{paragraph.original_start}-{paragraph.original_end}"
+                    f" {cue_of(paragraph.address).cue}"
                 )
     for line in missing:
         print(f"UNADDRESSED  {line}")
@@ -284,12 +280,12 @@ def _check(paragraphs: list[dict]) -> int:
         # tells a reader to guard something that did not happen.
         print(
             f"{len(shared)} places hold more than one paragraph"
-            f" ({sum(len(v) for v in shared.values())} paragraphs) -- cite the census"
+            f" ({sum(len(v) for v in shared.values())} paragraphs) -- cite the binder"
             f" index alongside the address for those."
         )
     if missing:
         print(
             f"{len(missing)} paragraphs could not be addressed at all."
-            " A census with no `original_start` cannot name a gap; re-run census.py."
+            " A binder with no `original_start` cannot name a gap; re-run gather."
         )
     return 1 if missing else 0

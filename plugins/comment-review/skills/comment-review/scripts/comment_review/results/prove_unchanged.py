@@ -20,7 +20,7 @@ Two proofs, because two tiers:
 
 ! For Python the proof is CPython parsing its own language. Elsewhere it rests
 on a lexer built from a data row, so where that lexer is unsure this refuses: a
-delimiter sharing a line with code, an unterminated paragraph comment, or a census
+delimiter sharing a line with code, an unterminated paragraph comment, or a binder
 that disagrees with the file all return `unprovable`.
 
 ! A file this cannot prove is REPORTED as unprovable and counted a failure. A
@@ -76,10 +76,10 @@ def _delimiter_shares_the_line(line: str, lang: Language) -> bool:
     that is comment start to end. Re-scanning the line for the delimiters
     themselves is what separates them.
 
-    ! A raw substring search, where census's own lexer is string-literal-aware.
+    ! A raw substring search, where gather's own lexer is string-literal-aware.
     A delimiter spelled inside a string literal on the same line trips this and
     routes a safe line to `unprovable` -- the SAFE direction for a proof to
-    fail, so it stands in place of a second copy of census's quoting logic.
+    fail, so it stands in place of a second copy of gather's quoting logic.
     """
     for opener, closer in lang.block_comment:
         if opener in line and line[: line.index(opener)].strip():
@@ -99,7 +99,7 @@ def _without_comments(text: str, path: Path) -> str | None:
     a paragraph-comment delimiter, see `_delimiter_shares_the_line` -- makes the
     whole file unprovable.
 
-    An UNTERMINATED paragraph comment is refused the same way, on the census's own
+    An UNTERMINATED paragraph comment is refused the same way, on the gather's own
     `unterminated-paragraph-comment` annotation. The lexer swallows every line below
     the opener into that run, so code below it never reaches the comparison and
     the stripped text is merely SHORT -- short, plausible, and equal on two
@@ -117,7 +117,7 @@ def _without_comments(text: str, path: Path) -> str | None:
     # !! A LITERAL THAT SPANS LINES MAKES THIS FILE UNPROVABLE. `_strip_strings`
     # is per-line and carries no open-quote state, so a line INSIDE a JS
     # template literal or a Java text block that begins with the language's
-    # comment marker is censused as a comment and deleted from BOTH
+    # comment marker is read as a comment and deleted from BOTH
     # fingerprints. Measured 2026-08-17: a template literal whose body changed
     # from `// alpha` to `// omega` produced identical fingerprints and the file
     # was reported PROVEN -- a fail-OPEN in the one gate whose whole claim is
@@ -147,7 +147,7 @@ def _without_comments(text: str, path: Path) -> str | None:
             elif stored and actual.endswith(stored):
                 kept[n] = actual[: len(actual) - len(stored)].rstrip()
             else:
-                return None  # census and the file disagree; do not reconcile
+                return None  # binder and the file disagree; do not reconcile
     survivors = [v for v in kept.values() if v is not None]
     return "\n".join(v for v in survivors if v.strip())
 
