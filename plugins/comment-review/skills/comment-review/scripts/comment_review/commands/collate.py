@@ -35,7 +35,7 @@ from comment_review.flows.turn import batch_for, proof_after
 #: branches on. `main` CHECKS `got.escalations`, THEN `got.rereads`, THEN
 #: `got.drift`, so a run holding more than one reports the FIRST of those it
 #: holds: an escalation is the stronger claim on a person's attention than a
-#: re-read, and a re-read is stronger than drift, which never blocks a place
+#: re-read, and a re-read is stronger than drift, which never keeps a place
 #: from settling -- `desk.collator.drift_in`'s own docstring: "REPORTED, NOT
 #: REFUSED".
 OK = 0
@@ -229,7 +229,7 @@ def main() -> int:
         # !! THE ROUTABLE PROBLEMS GO OUT FIRST, THEN THE REFUSAL. A refusal
         # says the SET cannot be folded; it says nothing about the marks the
         # pass already ruled on, and discarding those made one copy's
-        # incompatible header block routing for every other role. MEASURED
+        # incompatible header stop routing for every other role. MEASURED
         # 2026-08-30: exit 1, stdout EMPTY. See `flows.collate.CannotCollate`.
         _report(refusal.problems)
         # ! AND THE REVISIT LIST, since `P52` moved every malformed mark into

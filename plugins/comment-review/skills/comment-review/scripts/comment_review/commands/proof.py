@@ -105,7 +105,7 @@ def main() -> int:
     # !! ONE FORK, ASKED ONCE: is a revise being pulled, or does the run stop at
     # the docket? Every `--out` rule below belongs to the pulling path alone,
     # and `--to-docket` touches no revise root -- so they are answered inside
-    # this block rather than each re-testing the same flag. `out` stays None on
+    # this branch rather than each re-testing the same flag. `out` stays None on
     # the stop path, which is what makes "nothing reads it" a fact the code
     # states rather than a comment a reader has to trust.
     # !! `--out` MUST BE DISJOINT FROM `--repo`, and the per-file guard cannot

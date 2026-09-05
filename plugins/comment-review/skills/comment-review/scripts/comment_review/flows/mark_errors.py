@@ -18,7 +18,7 @@ went stale.
 !! IT IS FOR THE TASK AGENT, WHICH IS WHY IT IS ASSEMBLED AT ALL. Roy, the same
 day: the flow *"collects the errors and makes something that helps the task
 agent point to the correct ones for the role agents."* Every entry names the
-ROLE that owes it, so dispatch is a read rather than a join.
+ROLE that owes it, so dispatch is a read rather than a lookup across two lists.
 
 !! THE BOUND ON SENDING BACK IS NOT HERE. Roy, 2026-09-01: it *"will put it in
 the task agent briefing"*, and `a-coverage-gap-should-go-back-to-the-reviewer`
