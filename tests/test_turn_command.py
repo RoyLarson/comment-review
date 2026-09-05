@@ -303,23 +303,9 @@ class TestRefusals:
 
     def test_answers_without_a_role_is_UNREADABLE(self, tmp_path, monkeypatch, capsys):
         deal(tmp_path, monkeypatch, capsys, contested("m.py@b1"))
-        monkeypatch.setattr(
-            "sys.argv",
-            [
-                "turn",
-                "--proof",
-                str(tmp_path / "proof0.json"),
-                "--binder",
-                str(tmp_path / "binder.json"),
-                "--sent",
-                str(tmp_path / "batch1.json"),
-                "--proof-out",
-                str(tmp_path / "proof1.json"),
-                "--answers",
-                str(tmp_path / "nope.json"),
-            ],
-        )
-        assert command.main() == collate_command.UNREADABLE
+        # ! A bare path where `ROLE=PATH` is owed.
+        code, _out = turn(tmp_path, monkeypatch, capsys, 1, str(tmp_path / "nope.json"))
+        assert code == collate_command.UNREADABLE
 
 
 class TestTheGateSeesIt:
