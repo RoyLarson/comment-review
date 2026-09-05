@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 31 tasks closed
+Progress: 7 of 32 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -178,3 +178,5 @@ Four defects in collator.py, found by reading only the code.
 - [ ] T31 | Update _identical so an identical stet's side names every agreeing
       role, not the alphabetically first. Verify: hand 7 a1 names four
         > 2026-09-04 hand 7: a1 was ownership-context's drop; side read block-context
+- [ ] T32 | Update the fold so one owing mark beside outside-my-role queries and
+      cleans settles, per Process 90. Verify: 32 of 87 FitPlan carries settle

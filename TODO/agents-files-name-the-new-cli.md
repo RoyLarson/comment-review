@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 9 tasks closed
+Progress: 7 of 13 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -44,3 +44,11 @@ The agents files name the new CLI and say how to use it.
       the four role files so the body opens with the remit the description
       states, in the same words. Verify: grep Your remit hits four
         > 2026-09-05 the description reaches the dispatcher, never the reviewer
+- [ ] T10 | Decide whether the brief and the vocabulary reach a role by path as
+      the binder does, since four verbatim pastes did not fit one message
+- [ ] T11 | Update reviewer-brief.md's move text to say a move relocates a whole
+      place, never part of a paragraph. Verify: the from and to text says so
+- [ ] T12 | Update SKILL.md stage 2 to gather with --include-absent, since an
+      add needs an address for a gap. Verify: the gather line has the flag
+- [ ] T13 | Update SKILL.md stage 6 to take a paragraph's kind from its binder
+      row, not the listing, once the row carries it. Verify: no listing parse

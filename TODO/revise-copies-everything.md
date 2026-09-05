@@ -34,6 +34,7 @@ A revise copies the whole tree, so one pull moves 284MB to change 4MB of source.
       can be read against it. The candidates are: every tracked file (`git
       ls-files`), everything not ignored, or everything. Verify:
       `flows/revise.py` states the rule and cites where it was decided.
+        > 2026-09-05 FitPlan 09-05: copytree failed on 38,549 ignored JSON files
 - [ ] T2 | Make `pull` copy that set. ! `a_small_real_tree` in
       `tests/helpers.py` is NOT a git checkout, so a `git ls-files`
       implementation needs a path for a plain directory -- name it rather than

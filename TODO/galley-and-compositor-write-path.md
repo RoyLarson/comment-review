@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 11 tasks closed
+Progress: 4 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -112,3 +112,5 @@ files in `corpora/` are in that state today.
         > 2026-09-03 RULED DELETE by Roy 2026-09-03 -- Process 80
         > 2026-09-03 the or name the caller branch is gone: no piece may write
         > 2026-09-03 the work is only-a-flow-reaches-the-machine T1, and four more
+- [ ] T12 | Update the reread step in flows/revise so a drop that empties a
+      whole place is not looked up after. Verify: a drop of a whole b place sets

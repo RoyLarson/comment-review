@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 18 tasks closed
+Progress: 1 of 21 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, a code review of `binder/binder.py` run against its
@@ -174,3 +174,11 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
       `binder.py:22-26`'s claim -- "THE FORMAT IS A CONTRACT AND BELONGS TO
       NEITHER END ... one module both sides import is the fix" -- holds across
       the repo rather than in two of three places.
+- [ ] T19 | Update the addresser's no-place refusal to say the binder holds no
+      absent place when that is why. Verify: the message names --include-absent
+- [-] T20 | duplicate of T19, filed twice in one batch | dfe7ca56 | Update the
+      addresser's no-place refusal to name --include-absent when the binder
+      holds no absent place. Verify: the message names the flag
+- [ ] T21 | Implement kind on every binder JSON row. Verify: gather --json rows
+      carry kind and stage 6 reads it there
+        > 2026-09-05 compact.md routes on kind; the FitPlan run read it off the listing

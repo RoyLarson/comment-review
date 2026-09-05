@@ -79,6 +79,7 @@ the middle-of-file half real work too.
 - [?] T5 | T5 -- * RULE whether a blank line ends a comment run in the MIDDLE of
       a file. Verify: the ruling is recorded in `docs/decision-log.md`.
         > 2026-08-31 3 in this repo's own Python -- page.py b28, mark.py b27
+        > 2026-09-05 FitPlan 09-05: two places each held two paragraphs; no mark fits
 - [?] T6 | Decide whether Paragraph.lines still has a place, given the mark changes and
       the address system carrying the text properly?
         > 2026-08-31 11 writes, 1 read -- a debug print in commands/census.py

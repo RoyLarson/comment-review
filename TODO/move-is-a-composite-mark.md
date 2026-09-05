@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 1 of 22 tasks closed
+Progress: 1 of 23 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -206,3 +206,5 @@ and now there is one object that cannot be half-held.
 - [ ] T22 | Refuse a move's `claim.to` that names no recognized address. Verify:
       a bare prose destination is refused; `path@cue` passes
         > 2026-09-03 blocked -- ExternalAddress waits on the sketch's 4 open questions
+- [ ] T23 | Implement proof over a move whose destination is not a gathered
+      page, so an out-of-code move sets. Verify: the 13 in the job_board run set
