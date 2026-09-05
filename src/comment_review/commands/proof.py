@@ -197,7 +197,7 @@ def main() -> int:
     # `commands/collate.py` writes its chief copy with. Raw JSON at the save and
     # nowhere between.
     #
-    # ! THE SAME FORK AS THE `--out` BLOCK ABOVE, AND ITS OTHER SIDE. `out` is
+    # ! THE SAME FORK AS THE `--out` BRANCH ABOVE, AND ITS OTHER SIDE. `out` is
     # None exactly when this branch is taken, so the pull below reaches it only
     # where it is a real path -- which is why the two are written as one
     # question asked twice rather than four independent flag tests.
