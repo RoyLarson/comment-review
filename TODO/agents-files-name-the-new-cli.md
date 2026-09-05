@@ -42,3 +42,4 @@ The agents files name the new CLI and say how to use it.
         > 2026-09-05 Process 95: told where binder and marks are, roles read there
 - [ ] T9 | Update the four role files so the body opens with the remit the
       description states, in the same words. Verify: grep Your remit hits four
+        > 2026-09-05 the description reaches the dispatcher, never the reviewer
