@@ -1,11 +1,12 @@
 """Copy the source tree into the plugin, WHOLESALE.
 
-    python scripts/build_plugin.py [--check]
+    python scripts/build_plugin.py
 
 !! `plugins/` IS BUILT, NOT EDITED, since 2026-08-24. Before that the shipped
 scripts WERE the source, so there was nothing to build and nothing to disagree
 with; the move to `src/comment_review/` made them a copy, and a copy needs a
-step that makes it and a gate that proves it.
+step that makes it. It runs at release, not per change, and nothing holds the
+two equal between releases.
 
 !! WHOLESALE MEANS WHOLESALE. Roy, 2026-08-24: *"It is definitely not flattening
 them out again. I said wholesale I meant it. Whatever structure we end up with
@@ -16,13 +17,8 @@ works in the other.
 ! IT DELETES WHAT THE SOURCE NO LONGER HAS. A build that only copies leaves a
 renamed or removed module sitting in the shipped tree, where it is what a
 stranger installs -- and every gate reading `plugins/` would keep passing on it.
-
-! `--check` WRITES NOTHING and reports whether the two agree. That is the gate;
-`tests/gates/test_build.py` is what proves the gate can fail.
 """
 
-import argparse
-import filecmp
 import shutil
 import sys
 from pathlib import Path
@@ -50,32 +46,6 @@ def sources() -> list[Path]:
     return out
 
 
-def built() -> list[Path]:
-    """Every file currently in the shipped tree, relative to it."""
-    out = []
-    for p in sorted(DEST.rglob("*")):
-        if p.is_file() and "__pycache__" not in p.parts:
-            out.append(p.relative_to(DEST))
-    return out
-
-
-def differences() -> tuple[list[Path], list[Path], list[Path]]:
-    """`(missing, extra, differing)` between the source and the shipped tree.
-
-    Returns:
-        missing: in `src/`, absent from the plugin.
-        extra: in the plugin, absent from `src/` -- a file the source dropped.
-        differing: present in both, with different bytes.
-    """
-    want, have = set(sources()), set(built())
-    differing = [
-        rel
-        for rel in sorted(want & have)
-        if not filecmp.cmp(SRC / rel, DEST / rel, shallow=False)
-    ]
-    return sorted(want - have), sorted(have - want), differing
-
-
 def build() -> None:
     """Replace the shipped tree with the source tree."""
     if (DEST / PACKAGE).exists():
@@ -85,15 +55,7 @@ def build() -> None:
 
 
 def main() -> int:
-    """Build the plugin, or check that it is already built."""
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument(
-        "--check",
-        action="store_true",
-        help="write nothing; exit 1 if the plugin does not match the source",
-    )
-    args = ap.parse_args()
-
+    """Build the plugin."""
     # ! A Windows console is cp1252 and this prints paths. The shipped tree
     # takes its guard from `constants.utf8_console`; a dev script cannot import
     # the package it is building, so it spells the same three lines itself --
@@ -102,26 +64,10 @@ def main() -> int:
     if callable(reconfigure):
         reconfigure(encoding="utf-8", errors="replace")
 
-    if not args.check:
-        DEST.mkdir(parents=True, exist_ok=True)
-        build()
-        print(f"built {len(sources())} files into {DEST.relative_to(ROOT).as_posix()}")
-        return 0
-
-    missing, extra, differing = differences()
-    if not (missing or extra or differing):
-        print(f"the plugin matches the source: {len(sources())} files")
-        return 0
-    print("THE SHIPPED TREE DOES NOT MATCH THE SOURCE.")
-    for rel in missing:
-        print(f"  missing from the plugin   {rel.as_posix()}")
-    for rel in extra:
-        print(f"  not in the source         {rel.as_posix()}")
-    for rel in differing:
-        print(f"  differs                   {rel.as_posix()}")
-    print("\nRun `python scripts/build_plugin.py`.")
-    print("Edit `src/`, never `plugins/`.")
-    return 1
+    DEST.mkdir(parents=True, exist_ok=True)
+    build()
+    print(f"built {len(sources())} files into {DEST.relative_to(ROOT).as_posix()}")
+    return 0
 
 
 if __name__ == "__main__":

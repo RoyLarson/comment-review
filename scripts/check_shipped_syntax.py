@@ -30,9 +30,8 @@ FLOOR_TEXT = ".".join(str(n) for n in FLOOR)
 # exists to run AFTER, rewrites `src/`. Catching a floor break here catches it
 # before it is ever copied.
 #
-# ! THAT THE TWO MATCH IS A DIFFERENT QUESTION with its own gate:
-# `scripts/build_plugin.py --check`, proved able to fail by
-# `tests/gates/test_build.py`.
+# ! WHETHER THE TWO MATCH IS NOT ASKED HERE, or anywhere: `plugins/` is
+# rebuilt at release and is allowed to lag between releases.
 SHIPPED = "src"
 
 # ! A tuple literal in an `except` clause is the known regression: under
