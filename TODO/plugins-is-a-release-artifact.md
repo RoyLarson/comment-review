@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 7 tasks closed
+Progress: 4 of 7 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-09-05 (Roy, 2026-09-05: the build test is noise in development; a release
@@ -22,8 +22,9 @@ plugins/ is a release artifact, not a per-change gate.
       the agent files, SKILL.md, references/*.md and plugin.json into
       src/plugin/, in the plugin's own shape, by git mv.
         > 2026-09-05 Verify: git log --follow reaches each moved file's history.
-- [ ] T3 | Implement scripts/release.py, which rebuilds plugins/comment-review/
-      wholesale from src/plugin/ and src/comment_review/.
+- [x] T3 | FINISHED; deleted and rebuilt, git status is empty | 0f9fc697 | Implement
+      scripts/release.py, which rebuilds plugins/comment-review/ wholesale from
+      src/plugin/ and src/comment_review/.
         > 2026-09-05 Verify: rm plugins/comment-review/, run it, git status is clean.
 - [-] T4 | Roy retracted it 2026-09-05: version bumping in a command would cause issues; the release command copies and nothing else | afd3ef57 | Update
       scripts/release.py so it runs every documented release step: version,
