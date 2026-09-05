@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (114)
+### open  (115)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -235,7 +235,7 @@ that changed a published name or rule:
 | [no-stage-agrees-the-terms](no-stage-agrees-the-terms.md) | systems | yes | 0/7 | No stage establishes what the words mean before the roles are asked to use them |
 | [listing-hands-the-repo](listing-hands-the-repo.md) | backend | -- | 1/4 | The listing hands every reviewer the whole repo, four times a page |
 | [the-cue-legend-and-its-round-trip](the-cue-legend-and-its-round-trip.md) | backend | -- | 0/5 | The cue letter carries what three fields used to say, and nothing gives the agents the legend or checks they followed it |
-| [the-flow-lives-in-the-command](the-flow-lives-in-the-command.md) | backend | -- | 5/13 | Lifting main() out showed the orchestration was always inside it: commands/census.py took 446 lines and calls page_for, while flows/census.py kept 261 lines of helpers. A command is meant to EXPOSE a flow, not be one. |
+| [the-flow-lives-in-the-command](the-flow-lives-in-the-command.md) | backend | -- | 6/13 | Lifting main() out showed the orchestration was always inside it: commands/census.py took 446 lines and calls page_for, while flows/census.py kept 261 lines of helpers. A command is meant to EXPOSE a flow, not be one. |
 | [two-areas-have-no-tests](two-areas-have-no-tests.md) | backend | -- | 0/4 | tests/ mirrors the package, so an area with no directory is a visible hole. machine/ (repo, constants, exceptions) and commands/ (all ten) have none. repo is exercised only through flows/test_census_names.py, which tests something else. |
 | [concordance-gaps-stated-twice](concordance-gaps-stated-twice.md) | backend | -- | 0/4 | Both encode 'a gap is not a pass' and spell it differently: code_names returns unread rows keyed by NO_HARVESTER/WALKED_TREE, referrers collects unreadable and unsearched under NOT CHECKED. Three states, one idea, two vocabularies. The EXTRACTIONS stay separate -- code_names must be structural so a comment mentioning a symbol cannot prove it exists, and referrers must be textual to see mentions in files nothing parses. |
 | [name-corpus-sees-one-language](name-corpus-sees-one-language.md) | backend | -- | 0/5 | MEASURED 2026-08-24 on this checkout: 278 of 369 tracked files (75%) contribute NO names, every one NO_HARVESTER, zero read failures. code_names harvests via ast.parse, so it covers Python alone -- and on a checkout with syntax newer than the floor interpreter it goes blind to Python too, turning symbols defined only there into false obituaries. lexer.declarations() already finds every documentable declaration in eleven languages lexically; it returns positions, not identifiers. Harvesting from it instead of the AST makes the corpus polyglot and drops the floor limit in one change. |
@@ -296,6 +296,7 @@ that changed a published name or rule:
 | [only-a-flow-reaches-the-machine](only-a-flow-reaches-the-machine.md) | backend | yes | 0/6 | Route every machine read and write through a flow |
 | [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 0/6 | re-review is retired for revise |
+| [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | yes | 0/4 | The agents files name the new CLI and say how to use it |
 
 ### in-progress  (18)
 

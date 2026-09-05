@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 13 tasks closed
+Progress: 6 of 13 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (P2 of refactor/the-boundaries-are-not-real, 2026-08-24)
@@ -24,8 +24,8 @@ The flow lives in the command, not in flows/.
       the orchestration out of commands/census.py into flows/census.py
 - [x] T3 | FINISHED -- commands/gather.py (census renamed, Vocabulary 34) parses, prints and exits; it builds no page | 68bfc548 | commands/census.py
       parses arguments and calls it, and holds no page building
-- [ ] T4 | tests/binder/test_page.py reads source_of('census') again, not
-      command_source
+- [-] T4 | SUPERSEDED -- neither tests/binder/test_page.py nor command_source exists; it stood in for updating the agents files, which is TODO/agents-files-name-the-new-cli.md | 68bfc548 | tests/binder/test_page.py
+      reads source_of('census') again, not command_source
         > 2026-09-04 tests/binder/test_page.py and command_source both no longer exist
 - [-] T5 | SUPERSEDED -- verdicts, galley and record all left src/ for prototype/original/ and none of them runs | b50e7a4 | Ask
       the same question of verdicts, galley and record
