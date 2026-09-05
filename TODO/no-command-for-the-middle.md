@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 13 of 28 tasks closed
+Progress: 14 of 28 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -132,8 +132,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       MasterProof. Verify: proof_after strips nothing
 - [ ] T22 | Implement a Ruling container and a rulings_at_cap flow that stacks
       refusals. Verify: cap.py parses no ruling by hand; check --rulings
-- [ ] T23 | Update determined_chief or a close flow to return the closed
-      MasterProof. Verify: cap.py calls replace nowhere
+- [x] T23 | FINISHED -- flows.turn.close returns the closed proof and the chief; cap.py calls replace nowhere | 7f59a7f4 | Update
+      determined_chief or a close flow to return the closed MasterProof. Verify:
+      cap.py calls replace nowhere
 - [x] T24 | FINISHED -- Binder.root; the four sites read Path(args.repo) if args.repo else binder.root; the lint delta is the commit after | 231d5cf9 | Implement
       Binder.root and drop the args.repo-or-root-or-dot fallback at four
       commands. Verify: one resolution of the root
