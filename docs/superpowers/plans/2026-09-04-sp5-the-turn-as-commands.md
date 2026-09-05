@@ -217,7 +217,8 @@ drive what is left through `run_command`).
       `grep -rn "len(proof.turns)" src` returns the container alone. -- 0611de3e
 - [x] T23: `flows.turn.close(got, rulings, turns)` returns the closed proof and the chief's
       copy; `cap.py` calls `replace` nowhere. -- 7f59a7f4
-- [ ] T26: the three command tests drive `main()` through `conftest.run_command`; the hand
+- [x] T26: the three command tests drive `main()` through `conftest.run_command`; the hand
       driver (`deal`, `answer`, `turn`, `held_open`) and `BASE` live in `tests/helpers.py`.
-- [ ] Gates green after each; one commit `-F` per task; tick the T on the TODO and the
+      -- 171bfdb8
+- [x] Gates green after each; one commit `-F` per task; tick the T on the TODO and the
       boxes here against its sha; refresh; commit the tick. P10 closes with the last.
