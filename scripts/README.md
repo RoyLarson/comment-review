@@ -58,6 +58,30 @@ shortlist for reading, not a corpus.
 Unauthenticated GitHub search allows roughly ten requests a minute, so this is
 deliberately small and slow. Set `GITHUB_TOKEN` to go faster.
 
+## `release.py`
+
+Assembles `plugins/comment-review/` from its two sources, and is the only thing
+that writes there.
+
+```bash
+python scripts/release.py
+```
+
+| source | lands at |
+| --- | --- |
+| `src/plugin/` -- the agent files, `SKILL.md`, the references and `plugin.json`, in the plugin's own shape | `plugins/comment-review/` |
+| `src/comment_review/` and `src/comment-review.py` | `plugins/comment-review/skills/comment-review/scripts/` |
+
+**It deletes the plugin and rebuilds it**, so a file the source renamed or
+dropped does not survive in what a stranger installs.
+`tests/gates/test_release_assembles.py` proves that over a temporary tree.
+
+**It runs at release, not per change.** Nothing holds `plugins/` equal to
+`src/` between releases, so a branch may carry a stale `plugins/` and no gate
+reddens over it. Commit what it writes; the marketplace install reads committed
+state. The version bump, `claude plugin validate`, the tag and the push stay
+manual -- `CLAUDE.md`, *Cutting a release*, holds the order.
+
 ## `check_shipped_syntax.py`
 
 Refuses to ship a `plugins/` file that will not parse on Python 3.9.
