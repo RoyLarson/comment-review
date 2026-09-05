@@ -84,10 +84,10 @@ proofreader = "Who reads the finished PROOF and decides whether the document des
 address = "The name of a place: `pkg:mod.py@b3` -- a path, an `@`, and a cue. Counted against the CODE and not against the lines, which is what makes it survive this tool's own edits: every prose edit moves the line numbers below it, and an ordinal counts statements instead. It is what a record cites."
 cue = "The `b3` half of an address, after the `@`. The mark that says prose belongs at this place -- it carries no content, only the position. A reference mark in publishing, which is what it is here."
 series = "One of the three kinds of address, and which one says what the prose answers to: `a` a declaration's documentation, `b` the gap above a line of code, `c` the room beside one."
-"line of code" = "A line the census counts as CODE, and the exact characters on it that are code -- anything that is neither blank nor prose. A trailing comment is NOT part of it; a comment fenced by code on both sides IS. Right-stripped, and not unique: two identical statements are two anchors spelled alike."
+"line of code" = "A line the gather counts as CODE, and the exact characters on it that are code -- anything that is neither blank nor prose. A trailing comment is NOT part of it; a comment fenced by code on both sides IS. Right-stripped, and not unique: two identical statements are two anchors spelled alike."
 
 # --- what the page is made of -----------------------------------------------
-page = "ONE FILE: its paragraphs in order, among the code they sit with. A page does not nest, which is why the census is a flat list and needs no other shape. ! The CENSUS is the enumeration across EVERY page in scope, not this one."
+page = "ONE FILE: its paragraphs in order, among the code they sit with. A page does not nest, which is why the binder is a flat list and needs no other shape. ! The BINDER is the enumeration across EVERY page in scope, not this one."
 paragraph = "One unit of prose on the page: a comment run, a docstring, or the empty place where either could go. It answers to exactly one address. `block` is the older word for it and means the same thing."
 
 # --- what is SET, and who sets it --------------------------------------------
@@ -102,7 +102,7 @@ undocumented = "A declaration with no docstring -- an `a` place with nothing in 
 
 # --- comments that share a line with code ------------------------------------
 "trailing comment" = "Prose after the statement on its own line, about that statement. Its address is a `c`, and its anchor is the code before it."
-"intermediate comment" = "A comment with code on BOTH sides of it -- `int x = /* why */ 5;`. It is NOT censused and has no address, because it is part of the line of code rather than prose about it. Raise one as a code concern."
+"intermediate comment" = "A comment with code on BOTH sides of it -- `int x = /* why */ 5;`. It is NOT gathered and has no address, because it is part of the line of code rather than prose about it. Raise one as a code concern."
 
 [roles]
 # Every agent gets these.
