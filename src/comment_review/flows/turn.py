@@ -8,6 +8,7 @@
     batch_for(collated) -> the batch that goes out, every slot carrying its diff
     proof_after(collated, turns) -> the master proof as the state between turns
     refold(proof, binder, root) -> the fold over a proof read back, for the cap
+    close(collated, rulings, turns) -> (the closed proof, the chief's edit_copy)
     contracts() -> the three shapes a role is handed, generated from the code
 
 ! `commands/collate.py` writes the first batch through `batch_for` and the
@@ -653,6 +654,32 @@ def proof_after(got: Collated, turns: tuple[dict, ...] = ()) -> MasterProof:
             {k: v for k, v in u.items() if k != "marks"} for u in got.unsettlable
         ),
     )
+
+
+def close(
+    got: Collated, rulings: list[Determined], turns: tuple[dict, ...]
+) -> tuple[MasterProof, EditCopy]:
+    """The proof closed at the cap, and the chief's copy derived from the whole set.
+
+    Args:
+        got: the last fold, as `refold` returns it.
+        rulings: the chief's own, from `rule_at_cap`, one per place still
+            carried forward.
+        turns: the record as the proof stood; the cap adds no turn.
+
+    Returns:
+        `(the closed proof, the chief's edit_copy)`. The proof carries every
+        Determined -- the program's stets and the chief's rulings -- in
+        address order, and its unsettlable places as `proof_after` shapes them.
+
+    Raises:
+        ValueError: as `determined_chief` -- a place still carried forward
+            has no ruling, or the fold holds no proof.
+    """
+    every, chief = determined_chief(got, rulings)
+    proof = proof_after(got, turns)
+    closed = replace(proof, determined=tuple(every[a] for a in sorted(every)))
+    return closed, chief
 
 
 def contracts() -> dict:

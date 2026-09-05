@@ -3,8 +3,8 @@ r"""The `cap` command: the chief's rulings close a stage's collate.
     comment_review cap --proof P.json --binder B.json --rulings R.json \\
         --out chief.json --proof-out final.json [--repo R]
 
-The work is `flows.turn` -- `refold`, `rule_at_cap`, `determined_chief` --
-and this is only the console face of it. `Process: #78`: the task agent's
+The work is `flows.turn` -- `refold`, `rule_at_cap`, `close` -- and this is
+only the console face of it. `Process: #78`: the task agent's
 cap ends the turns; `#87`: every place still carried forward gets the chief's
 own `taken_in` or `recast`, one Determined per resolved place, and the
 chief's `edit_copy` is derived from the whole set.
@@ -29,7 +29,6 @@ for that asking, and none is on the chief's copy.
 
 import argparse
 import sys
-from dataclasses import replace
 from pathlib import Path
 
 from comment_review.commands.collate import BROKEN, OK, _refused, _report
@@ -42,12 +41,7 @@ from comment_review.flows.proof_io import (
     save_copy,
     save_proof,
 )
-from comment_review.flows.turn import (
-    determined_chief,
-    proof_after,
-    refold,
-    rule_at_cap,
-)
+from comment_review.flows.turn import close, refold, rule_at_cap
 
 
 def main() -> int:
@@ -142,15 +136,11 @@ def main() -> int:
     if refused:
         return BROKEN
     try:
-        every, chief = determined_chief(got, ruled)
+        closed, chief = close(got, ruled, proof.turns)
     except ValueError as err:
         print(str(err))
         return BROKEN
 
-    closed = replace(
-        proof_after(got, proof.turns),
-        determined=tuple(every[address] for address in sorted(every)),
-    )
     save_copy(Path(args.out), chief)
     save_proof(Path(args.proof_out), closed)
     places = sum(len(sheet.marks) for sheet in chief.sheets)

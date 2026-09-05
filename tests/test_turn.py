@@ -29,6 +29,7 @@ from comment_review.flows.collate import collate
 from comment_review.flows.mark_errors import Revisit
 from comment_review.flows.turn import (
     batch_for,
+    close,
     contracts,
     determined_chief,
     proof_after,
@@ -639,6 +640,19 @@ class TestTheCap:
             got, "m.py@b1", Answer.TAKEN_IN, "function-context", "dos is right", turn=2
         )
         _, chief = determined_chief(got, [ruled])
+        assert [m.change for m in entries_of(chief)] == [DOS]
+
+    def test_close_returns_the_closed_proof_and_the_chief(self):
+        """T23: what `cap` writes is the flow's, not assembled at the console."""
+        _, _, got = _escalated()
+        ruled = rule_at_cap(
+            got, "m.py@b1", Answer.TAKEN_IN, "function-context", "dos", turn=1
+        )
+        closed, chief = close(got, [ruled], ({"turn": 1},))
+        assert closed.turn == 1
+        assert [(d.address, d.answer) for d in closed.determined] == [
+            ("m.py@b1", Answer.TAKEN_IN)
+        ]
         assert [m.change for m in entries_of(chief)] == [DOS]
 
     def test_a_recast_carries_the_chiefs_own_prose_and_parses(self):
