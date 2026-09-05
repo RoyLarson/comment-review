@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (113)
+### open  (112)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -223,7 +223,6 @@ that changed a published name or rule:
 | [fixtures-do-not-test-the-shape](fixtures-do-not-test-the-shape.md) | testing | -- | 1/5 | A per-language fixture can pass without exercising the shape its language is measured on |
 | [drop-the-column](drop-the-column.md) | backend | -- | 7/9 | the column is len(anchor)+1 everywhere; the address system answers what it was added for |
 | [held-runs-need-a-one-off-migration](held-runs-need-a-one-off-migration.md) | testing | -- | 2/5 | the report cannot name a place, but the recorded hash can -- a script, not a feature |
-| [requires-roy-never-goes-back-down](requires-roy-never-goes-back-down.md) | systems | -- | 2/7 | nothing recomputes it or prompts the clearing; 6 cleared, 26 left to read |
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | agents | -- | 0/5 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |
 | [lookup-parses-whole-census](lookup-parses-whole-census.md) | backend | -- | 4/14 | A lookup is O(project), not O(file) -- 1.1s per lookup extrapolated at 500k lines; sharding or batching fixes it, re-lexing trades away staleness detection |
 | [verdicts-is-the-join](verdicts-is-the-join.md) | backend | -- | 8/12 | The VERDICTS table lives in record.py; verdicts.py is the collator and 43 sites say so |
@@ -456,3 +455,4 @@ the reason is inside the file.
 | [build-check-reads-the-working-tree](completed/build-check-reads-the-working-tree.md) | Superseded into plugins-is-a-release-artifact: the --check compare it asked to fix was removed at 8f4be1ac |
 | [build-gate-crlf-fragile](completed/build-gate-crlf-fragile.md) | Superseded into plugins-is-a-release-artifact: the raw byte compare was removed at 8f4be1ac |
 | [plugins-is-a-release-artifact](completed/plugins-is-a-release-artifact.md) | plugins/ is assembled by scripts/release.py from src/plugin/ and src/comment_review/, at release only; the per-change gate is gone |
+| [requires-roy-never-goes-back-down](completed/requires-roy-never-goes-back-down.md) | Superseded; completed elsewhere |
