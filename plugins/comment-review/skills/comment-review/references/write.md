@@ -61,7 +61,7 @@ the pre-edit ref. Against the merge base the rail below then says to restore a c
 
 It exits nonzero unless every path is proven, and it reports an **unprovable**
 file rather than passing it. It carries the AST comparison for Python, a
-comment-stripped byte comparison for every other language the census knows, and the line-ending check against an untouched sibling. ! **Re-run it
+comment-stripped byte comparison for every other language the gather knows, and the line-ending check against an untouched sibling. ! **Re-run it
 after the formatter** -- the formatter can reshape what you wrote.
 
 ! **A `FAIL` or `UNPROVABLE` line is a stop, not a note.** The claim is
@@ -85,7 +85,7 @@ mid-token, and on Windows the redirect can write UTF-16. Measured in two indepen
 the CODE CHECK cannot see it -- the damage is in prose, the AST is unchanged, and the run reports
 PROVEN. A formatter caught it once; nothing in this skill would have.
 
-! **A non-unique match is a re-review, not a `replace_all`.** N identical matches means N
+! **A non-unique match is a question for the author, not a `replace_all`.** N identical matches means N
 paragraphs, and they may not deserve the same instruction. Reaching for `replace_all` once rewrote two
 string literals.
 

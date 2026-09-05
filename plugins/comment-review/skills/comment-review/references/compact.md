@@ -89,15 +89,15 @@ edit already dropped things legitimately; checking against it lets a second, ill
 through unnoticed. **The original is the baseline, twice.**
 
 !! **The paragraph's KIND is part of the input, and it decides whether this pass may touch the
-paragraph at all.** The census stamps every paragraph `comment`, `trailing-comment`, `docstring` or
+paragraph at all.** The gather stamps every paragraph `comment`, `trailing-comment`, `docstring` or
 `unparsed`, and they are governed by different rules:
 
 | kind | governed by | what this pass may do |
 | --- | --- | --- |
 | `comment` / `trailing-comment` | **LENGTH** -- the cap counts lines in one `#` run | cut it to the cap |
 | `docstring` | **FORMAT** -- the convention resolved at 1.3 | **nothing.** Long is not a violation |
-| `comment` with `doc-kind-unresolved` | **UNKNOWN** -- the census could not tell | **nothing.** Ask, or carry it at length |
-| `unparsed` | **NOT PROSE** -- the file did not parse, so nothing was censused | **nothing.** It is a diagnostic standing in for a file, not a paragraph. Report it |
+| `comment` with `doc-kind-unresolved` | **UNKNOWN** -- the gather could not tell | **nothing.** Ask, or carry it at length |
+| `unparsed` | **NOT PROSE** -- the file did not parse, so nothing was gathered | **nothing.** It is a diagnostic standing in for a file, not a paragraph. Report it |
 
 ! **A work marker LINE is free of the cap** -- `TODO`, `FIXME`, `HACK`, `XXX`, `BUG`, or
 whatever the run context names. Its CONTINUATION lines are charged, so six lines plus a
@@ -110,7 +110,7 @@ docstring and a 7-line `#` run look like the same over-length problem, and cutti
 six destroys documentation that was never in violation.
 
 ! **A paragraph whose kind is UNRESOLVED is not a paragraph whose kind is `comment`.**
-The census stamps `doc-kind-unresolved` where a language attaches documentation
+The gather stamps `doc-kind-unresolved` where a language attaches documentation
 by position (Go, Ruby) and this tier cannot separate a doc run from an ordinary
 one. Do not infer it from the text, and do not cut it: carry it at length and
 say why. Measured: a three-line Go export doc counted as over a cap of two.

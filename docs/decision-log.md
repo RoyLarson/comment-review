@@ -3355,3 +3355,21 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   then refused, so the text listing carried annotations over a run that had already failed.
   It no longer does: a gather with an unreadable file stops at the page step, in both output
   modes, and the listing of a refused run shows the gap and nothing computed past it.
+
+- **#94.** **THE BASELINE IS THE NAIVE WORKFLOW: ALL FOUR ROLES AT ONCE, NO REVISE, ZERO TURNS,
+  AND THE TASK AGENT CAPS** (Roy, 2026-09-04: *"return the workflow to the v0.2.0 workflow with
+  all agents at once and no revise step"*; *"The purpose of this is to get a baseline of how the
+  system does on a real codebase with the naive implementation"*; and, asked whether the
+  baseline runs zero turns with the cap after the first fold, *"Yes on 1"*). Tested live: *"We
+  are going to put the current code in the plugins directory and the updates to the agents
+  files. This will make it live and I will test it out on workout_organizer and job_board."*
+
+  **What it settles.** Stage 4 is v0.2.0's shape again -- the four roles in one message, each
+  reading once -- and stages 5b and 6b are gone with `references/re-review.md`. Stage 5 is one
+  `collate`, then `cap`: every place carried forward is the task agent's to rule as copy chief,
+  `taken_in` or `recast`, with no batch sent back. The `turn` command stays built and is the
+  next experiment, measured against this. `#78` already put the number of turns in the task
+  agent's brief rather than the code; this sets it to zero for the baseline.
+
+  **What it does not settle.** Which role, if any, becomes the chief later; whether the
+  turns earn their cost -- that is what the baseline exists to measure.

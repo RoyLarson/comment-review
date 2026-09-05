@@ -8,47 +8,43 @@ description: Review the comments and docstrings in the files a change touched, a
 `/comment-review [cap] [target] [style]`
 
 **An editorial board for the comments and docstrings a change touched.** Four editors read
-the same manuscript in four editorial roles, a copy editor writes one set of edits, a condenser cuts
-them to fit, the author approves **that** text, and the page is proofed. Structure and fact
-first, then truth, then fit, then the page.
+the same manuscript in four editorial roles, the copy chief folds their marks into one set of
+edits, a condenser cuts them to fit, the author approves **that** text, and the page is proofed.
+Structure and fact first, then truth, then fit, then the page.
 
 ```
-1 PROJECT      2 GATHER    3 FIND       4 MARK   5 APPLY   6 COMPACT   7a PRESENT   8 REVIEW
-  DETERMINATION            REFERENCES      ^       5b RE-    6b RE-        7b WRITE
-                                           |       REVIEW    REVIEW            ^
-                                           |         |         |               |
-                                           +---------+---------+               |
-                                             back to the roles that ruled      |
-                                                             +---- no cap -----+
+1 PROJECT      2 GATHER    3 FIND       4 MARK       5 COLLATE   6 COMPACT   7a PRESENT   8 REVIEW
+  DETERMINATION            REFERENCES   4 roles,     and CAP                   7b WRITE
+                                        ONE message                              ^
+                                                                +---- no cap -----+
 ```
 
 | # | stage | who acts | what exists at the end of it |
 |---|---|---|---|
 | 1 | **PROJECT DETERMINATION** | task agent | language, doc convention, cap and width, project rules, style sheet, and where the name corpus will come from |
-| 2 | **GATHER** | `census.py` | every place prose can sit gathered into one numbered tree, each comment run and docstring a node on it |
-| 3 | **FIND REFERENCES** | `census.py` | every reference each node makes, resolved -- paths, symbols, counts |
-| 4 | **MARK** | 4 reviewers, SERIAL | `ownership-context` alone at 4a; the other three at 4c against its resolved placement. Read-only, nothing written |
-| 5 | **APPLY** | task agent | one instruction per paragraph and the **full-length** replacement text |
-| 5b | **RE-REVIEW** | the roles that ruled | *is this what you meant?* -- answered on the JOINED paragraph |
+| 2 | **GATHER** | `gather` | every page in scope bound into one BINDER -- each comment run and docstring a paragraph with its address -- and the listing a reviewer reads |
+| 3 | **FIND REFERENCES** | `gather` | every reference each paragraph makes, resolved -- paths, symbols, counts |
+| 4 | **MARK** | 4 reviewers, ONE message | one filled `edit_copy` per role, checked. Read-only, nothing under the repo written |
+| 5 | **COLLATE and CAP** | `collate`, then the task agent as **copy chief** | the copies folded; what they agreed on stands, what they did not is ruled at the cap; the chief's `edit_copy` holds one mark per resolved place with its **full-length** text |
 | 6 | **COMPACT** | task agent | that text cut to the cap -- **skipped entirely if there is no cap** |
-| 6b | **RE-REVIEW** | the roles that ruled | *is this still correct after my edits?* -- **stage 6's only reader** |
-| 7a | **APPROVAL -- present** | task agent, then `galley.py` and the **compositor** | the FINAL text SET as a galley -- a copy of each page, nothing under the repo touched -- in front of the author; **the run stops here** |
+| 7a | **APPROVAL -- present** | task agent, then `proof` and the **compositor** | the FINAL text SET as a galley -- a copy of each page, nothing under the repo touched -- in front of the author, with the places only the author can settle; **the run stops here** |
 | 7b | **APPROVAL -- write** | **author**, then the **compositor** | the approved draft put over the real file wholesale, byte-for-byte as approved |
 | 8 | **REVIEW** | `comment-review-review` | the finished page read as a reader would read it |
 
-!! **5b and 6b are the same mechanism asking DIFFERENT questions**, and
-[`references/re-review.md`](references/re-review.md) is the only file that defines either.
-Neither runs on every paragraph: the set is the one the collator prints as `RE-REVIEW`.
+!! **THIS IS THE BASELINE SHAPE, RULED 2026-09-04: every role reads ONCE, the copies fold ONCE,
+and nothing goes back to a role except a copy the checker refused.** No revise is pulled
+between stages and no batch of disagreements is sent out for a second reading. The `turn`
+command exists for that second reading and is the next experiment; it is not part of this
+run. What the baseline measures is how far one read per role, one fold and the chief's ruling
+get on a real codebase.
 
 **This file is the task agent's.** Each reviewer is a named agent carrying its own editorial role and
 reading [`references/reviewer-brief.md`](references/reviewer-brief.md) itself.
 [`references/residue-check.md`](references/residue-check.md) loads at stage 5,
 [`references/compact.md`](references/compact.md) at stage 6 -- **before** the author sees
 anything -- [`references/write.md`](references/write.md) only after approval, and
-[`references/review.md`](references/review.md) at stage 8.
-[`references/re-review.md`](references/re-review.md) loads whenever a paragraph goes BACK to the
-roles that ruled on it, which is after stage 5 and again after stage 6. **Nobody loads all of
-it**, and no file restates another.
+[`references/review.md`](references/review.md) at stage 8. **Nobody loads all of it**, and no
+file restates another.
 
 ## The seven instructions
 
@@ -58,9 +54,9 @@ obliges *you* to do.
 
 !! **And you are expected to read the code around where that replacement lands, to verify it.**
 An instruction rules on a SENTENCE; a paragraph is only its address, so a paragraph of six sentences can
-arrive carrying six. Synthesising them into one comment without re-reading the code beside it is
-how a run replaces an unfalsifiable claim with a checkably false one -- measured twice in the
-pass stage 8 rolled back.
+arrive carrying six. Ruling on them without re-reading the code beside it is how a run replaces
+an unfalsifiable claim with a checkably false one -- measured twice in the pass stage 8 rolled
+back.
 
 | instruction | the claim is | what you do with it |
 |---|---|---|
@@ -69,19 +65,19 @@ pass stage 8 rolled back.
 | `drop` | true but not worth keeping | delete the sentence |
 | `correct` | **FALSE** | apply the true/false pair. **Always before any `patch`** |
 | `patch` | **TRUE**, badly worded | apply the rewrite |
-| `add` | missing entirely | insert the text at the anchor named with it. Its `PARAGRAPH` is the empty INTERVAL the prose belongs in, so read it as being about that gap and not about a neighbour |
+| `add` | missing entirely | insert the text at the anchor named with it. Its paragraph is the empty INTERVAL the prose belongs in, so read it as being about that gap and not about a neighbour |
 | `move` | true, but **it belongs somewhere else** | re-attach the paragraph, unchanged, at the destination carried with it -- another line in this file, another file, or out of the code entirely |
 
 !! **A relocation is ONE judgment, and the DESTINATION carries the rest.** Whether the prose
 belongs ten lines down, in another file, or out of the code altogether is payload -- not a
-second instruction. The reason it belongs there goes in `REASON`, which every record already
+second instruction. The reason it belongs there goes in `reason`, which every mark already
 has. **Availability keys on the destination, never on the instruction:** only a destination
 OUTSIDE the code needs the tree 1.4 resolved, so only that case can be unavailable. A
 relocation into tracked code needs nothing outside it and is never withheld.
 
 A reviewer's instruction is only usable if it carries its payload. That contract is the
-reviewers', and [`references/reviewer-brief.md`](references/reviewer-brief.md) holds it -- you
-enforce it at stage 5 by refusing an instruction that arrives without one.
+reviewers', and [`references/reviewer-brief.md`](references/reviewer-brief.md) holds it --
+`check` and `collate` enforce it by refusing a mark that arrives without one.
 
 ## Why the stages are in this order
 
@@ -91,33 +87,23 @@ line is comment, this line is docstring. It carries only which lines are which, 
 what a reviewer of COMMENTS needs. The places holding nothing are on it too, because that
 is where prose is MISSING.
 
-**MARK (4) is separate from APPLY (5)** because a reviewer that fixes what it finds has
+**MARK (4) is separate from COLLATE (5)** because a reviewer that fixes what it finds has
 destroyed the finding.
 
-**APPLY (5) writes at FULL LENGTH.** Its only job is a
-comment that is true, local and load-bearing. Length is not one of its questions, and a run
-that returns long correct prose has succeeded.
+**COLLATE (5) writes at FULL LENGTH.** Its only job is a comment that is true, local and
+load-bearing. Length is not one of its questions, and a run that returns long correct prose
+has succeeded.
 
-!! **5b and 6b are what make every stage's output read by somebody who did not write it.** The
-collator reads MARK, the compact agent reads APPLY's text, the CODE CHECK reads WRITE, stage 8 reads
-the finished page -- and 5b and 6b cover the two that write PROSE, which is the only thing here
-no mechanical check can judge. ! APPLY still runs the residue check on its own output; 5b is a
-second reader, not a replacement for that.
+! **Measured 2026-08-17, with no second reading of the prose in the pipeline:** a run reached
+stage 8 with ruff clean, the AST PROVEN and 1103 tests green, and stage 8 returned twelve
+findings -- two of them the system replacing prose with something CHECKABLY FALSE. **That is
+the number this baseline is measured against**, and the reason stage 5 runs the residue check
+on its own output and stage 8 reads the page.
 
-! **Measured 2026-08-17, with neither in the pipeline:** a run reached stage 8 with ruff clean,
-the AST PROVEN and 1103 tests green, and stage 8 returned twelve findings -- two of them the
-system replacing prose with something CHECKABLY FALSE -- and the whole pass was rolled back.
+**COMPACT (6) is a separate pass over that text.** It comes AFTER the fold and BEFORE approval,
+and two constraints pin it into exactly that slot:
 
-! **The filer is the only participant who can answer.** Stage 5 turns several instructions into one
-sentence; when it misreads one, no later reader can tell, because none of them saw the finding.
-That is why the question goes back to the role rather than to a fresh reader, and why it is
-narrow -- *did your edit survive, is it still correct there, do the other edits break it* --
-rather than *is this OK*, which a role will wave through.
-
-**COMPACT (6) is a separate pass over that text.** It comes AFTER edit and BEFORE approval, and
-two constraints pin it into exactly that slot:
-
-- **After APPLY**, because prose can only be shortened without losing information once it is
+- **After COLLATE**, because prose can only be shortened without losing information once it is
   true. Shortening first is how a false sentence survives -- it gets *trimmed around* rather
   than checked, arriving shorter, cleaner, in-cap and strictly harder to falsify.
 - !! **Before APPROVAL, because the author must rule on the text that will actually be
@@ -142,10 +128,11 @@ sentence claims. With the author not reading, you may fix wording, placement and
 own judgement -- but every change to what a sentence CLAIMS needs evidence in hand, or it is a
 `query`. That is why `correct` must carry the line that settles the claim, and `patch` need not.
 
-**The TASK AGENT -- you.** Run stages 1-3, launch the reviewers, rule, present, and after
-approval apply. You are the only participant that writes, and only after approval. Reach
-every paragraph, rule on sentences, **write the replacement text yourself**, and verify what you
-write. *"Compact + correct"* is an instruction to somebody else, not the text.
+**The TASK AGENT -- you.** Run stages 1-3, launch the reviewers, fold their copies, rule at
+the cap as the **copy chief**, present, and after approval apply. You are the only participant
+that writes, and only after approval. **Write the replacement text yourself** where the roles
+did not agree, and verify what you write. *"Compact + correct"* is an instruction to somebody
+else, not the text.
 
 **The REVIEWERS** are read-only, one editorial role each, and never see this file.
 
@@ -158,12 +145,11 @@ write. *"Compact + correct"* is an instruction to somebody else, not the text.
 
 !! **Every instruction is available on every run.**
 
-!! **ONE ROLE IS REQUIRED AND THREE ARE OPTIONAL.** `ownership-context` runs at 4a, alone and
-first, and is never dropped; `block-context`, `function-context` and `module-context` run at 4c
-against its resolved placement. Each of the three checks a claim against the code at its own
-scope, so a run may omit any of them and still be a review -- but a claim attached to the WRONG
-scope is measured against the wrong code and `correct`ed into a falsehood, which none of the
-three can notice. **Say in the proposal which roles ran.**
+!! **ALL FOUR ROLES RUN, IN ONE MESSAGE, AND `ownership-context` IS NEVER DROPPED.** Each of
+the other three checks a claim against the code at its own scope, so a run may omit one of them
+and still be a review -- but a claim attached to the WRONG scope is measured against the wrong
+code and `correct`ed into a falsehood, which none of the three can notice, and
+`ownership-context` is the role that reads for that. **Say in the proposal which roles ran.**
 
 !! **THE CAP IS APPLIED IN STAGE 6 AND NOWHERE ELSE** -- never while text is being written,
 and **never passed to a reviewer** -- it is not a section of the stage-4 packet, and neither is
@@ -174,7 +160,7 @@ and **never passed to a reviewer** -- it is not a section of the stage-4 packet,
 !! **THE FLOOR IS A LOCAL GIT REPOSITORY, and that is the ONLY thing a rule here may assume.**
 `git ls-files` answers, and `git show <ref>:<path>` answers for a ref that exists. **Everything
 else is checked, not assumed** -- an upstream, a merge base, a clean tree, a cwd at the repo
-root. Pass `--repo` to every script rather than relying on the working directory.
+root. Pass `--repo` to every command rather than relying on the working directory.
 
 !! **Record the PRE-EDIT REF now, and carry it to stages 6 and 7b.** It is `HEAD` when the tree
 holds no uncommitted change to the files in scope, and `git stash create` otherwise -- which
@@ -199,7 +185,7 @@ number while counting differently produces a file that claims to comply and does
 ! **Two separate questions, and either may be absent.** A cap bounds the LINES in one `#` run;
 a width bounds the CHARACTERS in one line, and each is published where it is published -- a
 contributing guide, `.editorconfig`, a formatter config. **Record what the repo published and
-say which** -- the census takes neither number, so a cap you invented would reach stage 6 as a
+say which** -- the gather takes neither number, so a cap you invented would reach stage 6 as a
 project fact nobody published.
 
 ! **Then check the guard EXISTS, and if it does not, say what follows.** A convention citing
@@ -213,7 +199,7 @@ the proposal:
   ever measured is defective at a high rate by construction, and that fact belongs in the
   report as a finding about the REPO, above any individual paragraph.
 
-! **Ask which markers the repo exempts from the cap**, and say so in the proposal. `census.py`
+! **Ask which markers the repo exempts from the cap**, and say so in the proposal. The gather
 exempts `TODO`, `FIXME`, `HACK`, `XXX` and `BUG` and takes no flag for any other set, so a repo
 that exempts a different one is a fact you REPORT, not one you can pass down.
 
@@ -288,15 +274,15 @@ call against a representative file of each. Record which answered -- that is a f
 this run and it belongs in the proposal.
 
 The server is the user's, not ours: someone reviewing Rust already runs rust-analyzer, so
-this is structure available for free that `census.py` cannot ship. It buys exactly two
-things, and neither is the census:
+this is structure available for free that the gather cannot ship. It buys exactly two
+things, and neither is the binder:
 
 | | with a server | without |
 |---|---|---|
 | **a paragraph's ANCHOR** | `documentSymbol` -> the declaration on the line after the comment run ends | nothing resolves it |
 | **is a name alive** | `workspaceSymbol` / `findReferences`, in **any** language | the Python AST corpus only |
 
-!! **LSP RETURNS NO COMMENTS, so it can never replace `census.py`.** The nine operations
+!! **LSP RETURNS NO COMMENTS, so it can never replace the gather.** The nine operations
 exposed -- definition, references, hover, documentSymbol, workspaceSymbol, implementation and
 the call-hierarchy three -- return no prose at all; `semanticTokens` and `foldingRange`, the
 two that would, are not among them. On a Go file a server reports `func F` at line 4 while
@@ -318,10 +304,10 @@ nothing you had. What you may not do is let a run that had no server read like o
 
 **1.8 Decide where the name corpus comes from** -- every liveness check downstream depends on
 it. This substep CHOOSES the source; the corpus itself does not exist until stage 3, because
-`census.py` builds it. Do not try to produce it here.
+the gather builds it. Do not try to produce it here.
 
 - a server answered at 1.7 -> **`workspaceSymbol`**, which covers every language at once
-- no server -> the AST corpus `census.py` emits at stage 3, Python only
+- no server -> the AST corpus the gather builds at stage 3, Python only
 - both -> combine them, and say so
 
 From the AST never raw text (text contains the comments being checked, so everything passes);
@@ -336,33 +322,31 @@ were given. A relative one resolves against whatever directory you are in, which
 guaranteed to be the skill's.
 
 ```bash
-python <skill>/scripts/comment-review.py gather --repo . --out <run-dir>/census.txt <paths...>
-python <skill>/scripts/comment-review.py gather --json --repo . --out <run-dir>/census.json <paths...>
-python <skill>/scripts/comment-review.py gather --repo . --filtered --out <run-dir>/dispatch.txt <paths...>
+python <skill>/scripts/comment-review.py gather --json --repo . --out <run-dir>/binder.json <paths...>
+python <skill>/scripts/comment-review.py gather --repo . --filtered --out <run-dir>/listing.txt <paths...>
 ```
 
-!! **THREE FILES, AND THE THIRD IS THE ONE A REVIEWER IS HANDED.** `--filtered` prints the
+!! **TWO FILES, AND THE SECOND IS THE ONE A REVIEWER IS HANDED.** The BINDER is the artifact
+every later command reads -- `distribute` seeds from it, `collate` folds against it, `proof`
+sets from it. The LISTING is the binder as a reviewer reads it: `--filtered` prints the
 paragraphs holding prose and collapses each run of places holding none into one line --
 `227-234  @c1..b7  122-129  no-prose  0L  2-intervals, 6-margins`. **Re-measured 2026-08-19 over
 6,828 paragraphs: 397,685 bytes to 159,316, and every reviewer gets an identical copy, so a
 four-role run saves 953,476.**
 
 !! **IT IS A PROJECTION, NEVER A RENUMBERING.** Every paragraph keeps the ADDRESS it holds in the
-FULL census, because that address is what the collator resolves and what a record cites. ! The index
-in the first column is a READING AID for a human scanning the listing, and nothing cites it: it
-is a position in one census, and the galley is censused again for round 2. The full census
-stays on disk and is what stages 5 and 7b read; only the copy pasted into a reviewer's prompt is
-narrowed.
+binder, because that address is what the collator resolves and what a mark cites. ! The index
+in the first column is a READING AID for a human scanning the listing, and nothing cites it.
 
 !! **DO NOT SHIP THE FILTER WITHOUT A WAY TO NAME WHAT IT COLLAPSED.** A reviewer handed the
-filtered census can still see every gap, but the intervals inside a run are no longer numbered
-individually in front of it. A run NAMES ITS ENDS -- `@b7..b12` -- and `addresser.py --anchor`
+listing can still see every gap, but the intervals inside a run are no longer numbered
+individually in front of it. A run NAMES ITS ENDS -- `@b7..b12` -- and `addresser --anchor`
 resolves any place in between, so every collapsed interval is still citable. Filtering without
 that is worse than not filtering.
 
 ### What a place is CALLED
 
-!! **AN ADDRESS IS WHAT EVERY RECORD CITES**, and it is the only name that survives this run's own
+!! **AN ADDRESS IS WHAT EVERY MARK CITES**, and it is the only name that survives this run's own
 edits -- a prose edit moves the line numbers below it, and an address counts against the CODE.
 
 ```
@@ -380,8 +364,8 @@ separate addressers, and no number in one tells you a number in another -- nor d
 position tell you either.
 
 ```bash
-python <skill>/scripts/comment-review.py addresser --binder <FULL BINDER> --anchor LINE --series a|b|c|f
-python <skill>/scripts/comment-review.py addresser --binder <BINDER> --resolve <ADDRESS>
+python <skill>/scripts/comment-review.py addresser --binder <run-dir>/binder.json --anchor LINE --series a|b|c|f
+python <skill>/scripts/comment-review.py addresser --binder <run-dir>/binder.json --resolve <ADDRESS>
 ```
 
 ! **An anchor answers with SEVERAL places and that is not an error** -- an anchor has many
@@ -389,46 +373,33 @@ addresses and an address has one anchor, so two identical lines of code are two 
 alike. Choose by ADDRESS.
 
 !! **`--out`, never a shell redirect.** A worktree-isolated session REFUSES a command carrying
-one -- *"too complex to verify that it stays inside the worktree"* -- and the JSON census is what
-stage 5 parses, so a redirect makes the run impossible there rather than merely awkward.
+one -- *"too complex to verify that it stays inside the worktree"* -- and the binder is what
+every later stage parses, so a redirect makes the run impossible there rather than merely awkward.
 
-! **The census takes no cap and no width.** The cap belongs to stage 6, and the reviewers are
-handed this file -- printing an over-cap count here puts it in front of the four roles that must
-never see it.
+! **The gather takes no cap and no width.** The cap belongs to stage 6, and the reviewers are
+handed the listing -- printing an over-cap count there puts it in front of the four roles that
+must never see it.
 
-!! **TWO census files, and the JSON one is not optional.** The reviewers are handed the TEXT
-census; **the stage-5 collator reads the JSON census and parses it as JSON**, so a run that wrote
-only the text one fails at stage 5 with `CANNOT PARSE ... as JSON`.
+!! **Most of the binder is empty places, and nobody owes them a mark.** Every gap between two
+lines of code is addressed, empty ones included, because an `add` is a finding about prose that
+is MISSING and the mark needs an ADDRESS to carry it. They are ADDRESSABLE, not ACCOUNTABLE: the
+binder carries only the places holding prose unless `--include-absent` asks for the rest, and
+the collator computes coverage over what the binder carries. Re-measured 2026-08-19: the
+gather over its own command is 1,607 paragraphs, 118 of them prose.
 
-It emits the numbered tree -- `N  file:start-end  kind  lines  annotations  (anchor)` -- with each
-node's references already resolved, under a header of `N files, N paragraphs` and a
-`languages: <name> <count>` line.
-
-!! **Most of that tree is `interval` paragraphs, and nobody owes them a record.** Every gap
-between two lines of code is numbered, empty ones included, because an `add` is a finding about
-prose that is MISSING and the record needs an ADDRESS to carry it. They are ADDRESSABLE,
-not ACCOUNTABLE: the collator computes coverage over the paragraphs that hold prose and says both
-counts on its first line. Re-measured 2026-08-19: `census.py` over itself is 1,607 paragraphs, 118 of them prose.
-
-! That `languages:` count is
-AGGREGATED across files, not per file -- on a polyglot run it says how many files each language
-claimed and never which file is which. Run it; do not
+! The listing's `languages:` count is AGGREGATED across files, not per file -- on a polyglot run
+it says how many files each language claimed and never which file is which. Run it; do not
 re-derive its output by hand.
 
-!! **IT PRINTS NO TIER COUNTS, AND THIS FILE SAID IT DID UNTIL 2026-08-29.** Three places here
-told the task agent to report them. `commands/census.py` dropped them on a ruling of 2026-08-24
-and says so at the line that replaced them -- Roy: *"their level gets dropped entirely."* A
-reported number that no command prints is either invented or read as a run failure.
-
-! **Give both files a path unique to THIS run**, and hand the reviewers the text one. Two
+! **Give both files a path unique to THIS run**, and hand the reviewers the listing. Two
 concurrent reviews sharing one scratch filename overwrite each other between writing and
 reading, and nothing downstream can tell.
 
-**A suffix the census has no record for is named, and the census EXITS NONZERO** -- every file
-handed in is censused or the run stops, so a file that reaches a reviewer is reviewed like any
+**A suffix the gather has no record for is named, and the gather EXITS NONZERO** -- every file
+handed in is gathered or the run stops, so a file that reaches a reviewer is reviewed like any
 other whatever its tier. `python <skill>/scripts/comment-review.py gather --languages` lists what it knows.
 
-! **It builds the tree at the TIER available for each file's language.** Both tiers find the
+! **It builds the page at the TIER available for each file's language.** Both tiers find the
 same paragraphs and differ only in what else they can say:
 
 | tier | needs | answers | cannot answer |
@@ -436,7 +407,7 @@ same paragraphs and differ only in what else they can say:
 | `tokenized` | a lexer + AST (Python: the stdlib) | paragraphs, annotations, **docstring** anchors | a **comment's** anchor |
 | `lexical` | a comment-syntax record, nothing else | paragraphs, annotations | any anchor; a marker inside an exotic string |
 
-!! **Carry the census's CANDIDATE line into the proposal.** It prints that no comment
+!! **Carry the listing's CANDIDATE line into the proposal.** It prints that no comment
 carries an anchor at either tier, so every PLACEMENT instruction rests on a reviewer READING the
 file -- a judgement no field records and nothing downstream can check.
 
@@ -484,7 +455,7 @@ wrong changes what the reviewers see:
 - **A COMMENT paragraph belongs to the code BELOW it**, which is what makes it answerable at all:
   the paragraph above is about `result`, and a finding says so by naming that anchor. ! **A
   DOCSTRING belongs to the declaration it sits INSIDE** -- the `def` or `class` above it, which
-  is where the census reads its anchor from.
+  is where the gather reads its anchor from.
 - **A trailing comment is its own paragraph**, one line, anchored to the code on that line.
 
 Annotations, and what resolving each one means:
@@ -498,20 +469,20 @@ Annotations, and what resolving each one means:
 | `forbids-a-literal` | grep the forbidden literal across that file |
 | `repeated-literal` | where else is this number written? one source at both ends of a round trip? |
 | `narrative-in-docstring` | is the date, review label or *"used to"* a claim about HISTORY rather than about the code now? |
-| `continues-a-trailing-comment` | read it WITH the trailing comment above it -- the split is the census's, so a mid-clause ending here is not a `correct` |
+| `continues-a-trailing-comment` | read it WITH the trailing comment above it -- the split is the gather's, so a mid-clause ending here is not a `correct` |
 
 !! **Every row is a question a reviewer must answer, and none of them is answered by the
-census.** It says a path is cited; whether the claim about it is true is the reviewer's, and
+gather.** It says a path is cited; whether the claim about it is true is the reviewer's, and
 `reviewer-brief.md` holds that contract.
 
-### Enrich the census with the language server, where 1.7 found one
+### Enrich the binder with the language server, where 1.7 found one
 
-The census names every paragraph; the server can say what a paragraph BELONGS to. Do this once, here,
-and attach the answer to the node -- not in stage 4, where four reviewers would each re-derive
+The gather names every paragraph; the server can say what a paragraph BELONGS to. Do this once, here,
+and attach the answer to the paragraph -- not in stage 4, where four reviewers would each re-derive
 it and could disagree.
 
 - **Anchor** -- `documentSymbol` on each file in scope returns every declaration and its line.
-  A run ending at line N-1 is ANCHORED to the declaration at line N. Attach it; the census
+  A run ending at line N-1 is ANCHORED to the declaration at line N. Attach it; the listing
   prints anchors it has.
 - **Liveness** -- for each `names-a-symbol` candidate, `workspaceSymbol` answers whether the
   name exists at all, in any language in the workspace. `findReferences` answers whether
@@ -536,7 +507,7 @@ python <skill>/scripts/comment-review.py referrers --repo . <paths under review.
 It prints every tracked file that NAMES one of them -- by path, by stem, or by a
 public top-level definition. Those files are the **REFERENCE ONLY** list you hand
 the reviewers at stage 4; a config, data or documentation file carrying prose that
-justifies a value is a node like any other, and a file left out of scope carries the same
+justifies a value is a paragraph like any other, and a file left out of scope carries the same
 defects as the code -- including rewrites the pass already applied in a `.py` file.
 
 !! **This runs in `target` mode too.** A `target` run has no diff to widen from,
@@ -547,24 +518,9 @@ discovery at all.
 Report what the tool prints: `N files, N paragraphs`, the `languages:` line, and any paragraph whose
 KIND it could not resolve.
 
-## Stage 4 -- MARK: ownership first, then the other three
+## Stage 4 -- MARK: four reviewers, in parallel
 
-!! **IT IS SERIAL, IN TWO ROUNDS, AND THE ORDER IS THE POINT.**
-
-| | who | why |
-|---|---|---|
-| **4a** | `comment-review:comment-review-ownership-context`, ALONE | it settles WHERE each paragraph belongs |
-| **4c** | the other three, in ONE message | they measure a claim against the code at their own scope |
-
-**One role REQUIRED, three OPTIONAL.** Roy, 2026-08-19: *"ownership-context has to run, else
-[instructions] are made on statements that are not in the 'right' place. The other three are optional
-and only run after ownership-context has had its say."*
-
-! **A claim attached to the wrong scope is measured against the wrong code**, and the other three
-have no way to notice: `block-context` checks a claim against the code it sits with, so a
-misfiled note is verified against the passage it was misfiled into and stamped TRUE. The trade
-reached this long before this system measured it -- a house places the notes before the checker
-works the copy.
+**Dispatch all four in ONE message**, by agent name:
 
 | agent | asks |
 |---|---|
@@ -573,54 +529,65 @@ works the copy.
 | `comment-review:comment-review-function-context` | does the commentary match what the function is FOR? |
 | `comment-review:comment-review-module-context` | do the comments say this is ONE module? |
 
-!! **THE THREE AT 4c GO IN ONE MESSAGE, AND THAT IS WHAT PROTECTS INDEPENDENCE -- not speed.**
+!! **They must read INDEPENDENTLY, and that is what one message protects -- not speed.**
 Overlap between roles is signal ONLY if no role saw another's findings: two roles agreeing is
 corroboration when they read alone and nothing when the second read the first. A second
 dispatch runs concurrently too; what it risks is a prompt carrying what the first pair
-returned. **If you dispatch those three in more than one message, say so in the proposal** --
-the run is still usable, and a reader has to know the overlap was not blind.
-
-! **4a is NOT an exception to that.** `ownership-context` reads before any of the three exist,
-so nothing it saw can have come from them; what the three receive is its resolved PLACEMENT, not
-its findings.
-
-!! **RUNNING THE THREE WITHOUT 4a IS NOT A REDUCED RUN, IT IS AN UNSOUND ONE**, and the report
-must say which roles ran either way. Dropping any of the three narrows what was asked; dropping
-`ownership-context` leaves the rest resting on an assumption nobody made.
+returned. **If you dispatch in more than one message, say so in the proposal** -- the run is
+still usable, and a reader has to know the overlap was not blind.
 
 Each already carries its own editorial role.
 
+**Seed each role's `edit_copy` before dispatching it** -- one file per role, named for the
+role, with a slot already laid down for every prose paragraph in the binder:
+
+```bash
+python <skill>/scripts/comment-review.py distribute --seed --binder <run-dir>/binder.json \
+  --role ownership-context --out <run-dir>/copy_ownership-context.json
+```
+
+!! **A REVIEWER FILLS A FORM; IT DOES NOT COMPOSE A DOCUMENT.** Each slot arrives carrying the
+`address`, the `anchor` and the paragraph's `raw_text`, with `instruction` null, and the
+reviewer sets the fields that are its own. **Hand each agent the absolute path to ITS copy and
+no other**, and tell it to edit that file in place. It is the one path a reviewer is given, and
+the exception to *given, never sent looking* below: it is being given a form, not a tree.
+
+! **The seeded copy is why coverage is structural.** A paragraph nobody ruled on is a slot with
+a null instruction, not an address missing from a list, so nothing downstream reconciles what
+was expected against what arrived. A reviewer may still APPEND a mark for any binder address,
+and must for an `add` -- an `add` cites the empty INTERVAL prose is missing from, and intervals
+get no seeded slot.
+
 !! **Put the BRIEF and each agent's VOCABULARY in its prompt, verbatim.** Paste
 [`references/reviewer-brief.md`](references/reviewer-brief.md) whole -- it is the same text for
-all four.
+all four -- then that role's vocabulary: the `[definitions]` entries of
+`<skill>/scripts/comment_review/references/vocabulary.toml` whose keys are listed under that
+role in `[roles]`, plus the `all` list. ! Do not summarise it, do not trim it to the terms you
+think a file uses, and do not tell an agent where the vocabulary lives -- it is given the words,
+not a path to go reading. ! Read it fresh from the installed toml every run, never from a copy
+staged on disk: a vocabulary one version stale reads perfectly plausible.
 
-! **Handing over each agent's VOCABULARY by command is absent** -- the command that produced it
-moved to `prototype/` and no longer runs. See
-`TODO/the-skill-names-commands-that-moved-to-prototype.md`.
-
-!! **`CENSUS` POINTS AT THE FILTERED FILE**, `dispatch.txt` from stage 2 -- not the full census
-and not the JSON. That is the copy a reviewer reads, and it is four copies of it per run. The
-full census stays on disk for stages 5 and 7b, which resolve every address a reviewer cites
-against it.
+!! **`LISTING` POINTS AT THE FILTERED FILE**, `listing.txt` from stage 2 -- not the binder.
+That is the copy a reviewer reads, and it is four copies of it per run. The binder stays on disk
+for stages 5 and 7, which resolve every address a reviewer cites against it.
 
 **You also supply the run context as a PACKET, with every section filled and none blank** -- a
 published non-answer such as *"UNAVAILABLE"* is an answer and must be written; a blank is not.
-`REPO ROOT`, `CENSUS` and every `REVIEWER FILES` entry must be an **absolute path that exists**.
+`REPO ROOT`, `LISTING` and every `REVIEWER FILES` entry must be an **absolute path that exists**.
+The sections are: `REPO ROOT`; `LISTING`; `FILES UNDER REVIEW`; `REFERENCE ONLY`; the STYLE
+SHEET, templates included; whether a LANGUAGE SERVER answered, per language; the destination
+tree from 1.4, per path; and `REVIEWER FILES`, which is yours alone.
 
-! **Templating and checking the packet by command is absent** -- the command moved to
-`prototype/` and no longer runs. See `TODO/the-skill-names-commands-that-moved-to-prototype.md`.
-
-Hand every reviewer the one path. Dispatched without a style sheet, a run drifts the dialect
+Hand every reviewer the one packet. Dispatched without a style sheet, a run drifts the dialect
 while fixing the prose, and every role is satisfied because nothing owns consistency.
 
-!! **`REPO ROOT` is what every other path resolves against.** The census, `FILES UNDER
+!! **`REPO ROOT` is what every other path resolves against.** The binder, `FILES UNDER
 REVIEW` and every citation a reviewer writes are repo-relative, and a reviewer handed no root
 is guessing at a working directory.
 
 !! **Withhold every TASK AGENT ONLY section when you paste the packet.** `REVIEWER FILES` is
-one: it names paths inside the installed plugin, which is not the tree under review, and the
-template marks it so the withholding is visible while you fill it. It is checked here because
-it is YOURS -- the 1.6 fallback reads it.
+one: it names paths inside the installed plugin, which is not the tree under review. It is
+checked here because it is YOURS -- the 1.6 fallback reads it.
 
 ! **The templates go to the reviewers too, and stages 5 and 6 match their output against them.**
 A docstring's format decides which of its lines are structural and which are prose, so a
@@ -629,8 +596,8 @@ sentence in the wrong format is work the human has to redo by hand.
 
 !! **An agent is GIVEN what it needs, and is never sent looking.** A path into the installed
 plugin is an invitation to read its neighbours and act on what it finds there. Nothing a
-reviewer needs arrives as a path: the brief and the vocabulary are in the prompt, the census
-and the file lists come through the packet.
+reviewer needs arrives as a path: the brief and the vocabulary are in the prompt, the listing
+and the file lists come through the packet, and its copy is a form.
 
 ! **REFERENCE ONLY is a SELECTION, not a leftover.** Name the files that settle claims code
 cannot: the repo's **decision record** (*"ruled"*, *"rejected"*, *"deferred"* have no code
@@ -641,207 +608,147 @@ docstrings and one live constant; and a mirror tree that held the CORRECT text w
 was backwards. The code still settles code claims -- a
 disagreement with the mirror is itself a finding.
 
-**And you SEED each reviewer's report before dispatching it.** One file per role, named for
-the role, with a slot already laid down for every prose paragraph.
+**Check each copy when the agent returns**, before the fold:
 
-! **Seeding a report by command is absent** -- the command moved to `prototype/` and no longer
-runs. See `TODO/the-skill-names-commands-that-moved-to-prototype.md`.
+```bash
+python <skill>/scripts/comment-review.py check --edit-copy <run-dir>/copy_<role>.json \
+  --binder <run-dir>/binder.json --repo .
+```
 
-!! **A REVIEWER FILLS A TEMPLATE; IT DOES NOT COMPOSE A DOCUMENT.** Each slot arrives carrying
-the `address` and the `anchor`, and the reviewer sets only the five that are its
-own. **Hand each agent the absolute path to ITS file and no other**, and tell it to edit that
-file in place. It is the one path a reviewer is given, and the exception to *given, never sent
-looking* above: it is being given a form, not a tree.
+It names everything the fold would send back -- a slot left null, a mark that will not read, a
+claim quoting a sentence that is not in its paragraph, a cite whose line does not match, a
+`raw_text` that is not the one the slot was seeded with -- and exits 0 only when there is
+nothing. The brief tells each role to run the same command before it returns, so a copy that
+still fails here is one the role did not check.
 
-! **The seeded file is why coverage is structural.** A paragraph nobody ruled on is a slot with a
-null instruction, not an address missing from a list, so nothing downstream reconciles what was
-expected against what arrived.
+!! **A COPY THE CHECK REFUSES GOES BACK TO ITS OWN ROLE WITH THE LINES IT PRINTED, never
+repaired by you.** A mark you fixed is a finding you authored. Send it back once with the
+reasons; a role that returns it still failing is reported in the proposal as a role that did
+not answer, and the fold runs without that copy.
 
-! **A reviewer may APPEND a record for any census ADDRESS, and must for an `add`** -- an `add`
-cites the empty INTERVAL prose is missing from, and intervals get no seeded slot. The brief
-tells the reviewer this; you need it to read the count `--check` prints, which counts slots
-and not findings.
+Overlap between roles is **signal**: a claim one affirms and another refutes is carried
+forward by the fold for the chief to rule on, never tie-broken by count. ! **A single-role run
+ratifies falsehoods** -- one role reading a false absence claim writes that it is true, where
+another refutes it by grep.
 
-**Check each file when the agent returns**, before the collator.
+## Stage 5 -- COLLATE and CAP: one mark per place, at FULL LENGTH
 
-! **Checking a report by command is absent** -- the command moved to `prototype/` and no longer
-runs. See `TODO/the-skill-names-commands-that-moved-to-prototype.md`.
+!! **Run THE COLLATOR before you rule on anything** -- it reads every copy against the binder
+and against the others', refuses what it cannot verify, and folds what the roles agreed on. It
+is the gate between MARK and the chief's ruling:
 
-! It separates INCOMPLETE from MALFORMED and exits differently on each: a reviewer part-way
-through its paragraphs is not in error, a record whose shape is wrong is. **Send a malformed file
-back to its own reviewer rather than repairing it** -- a record you fixed is a finding you
-authored.
+```bash
+python <skill>/scripts/comment-review.py collate --stage 4 --binder <run-dir>/binder.json --repo . \
+  --edit-copy <run-dir>/copy_ownership-context.json --edit-copy <run-dir>/copy_block-context.json \
+  --edit-copy <run-dir>/copy_function-context.json --edit-copy <run-dir>/copy_module-context.json \
+  --out <run-dir>/chief0.json --proof-out <run-dir>/proof0.json --batch-out <run-dir>/batch1.json
+```
 
-Overlap between roles is **signal**: a claim one affirms and another refutes goes back for
-re-review, never to a tie-break. ! **A single-role run ratifies falsehoods** -- one role reading
-a false absence claim writes that it is true, where another refutes it by grep.
+**Read its exit code, and act on it before reading anything else:**
 
-**Re-review is normal.** An accreted paragraph is layered -- a live constraint, an origin story, a
-correction to it, a review label -- and peeling one reveals the next. Send a paragraph back when
-roles contradict, when a citation resolves to a *different* thing than the prose implies, or
-when you cannot write the replacement text.
+| exit | it means | what you do |
+|---|---|---|
+| `0` | every place the roles marked resolved on its own | go on; `chief0.json` is the chief's copy |
+| `1` BROKEN | a copy broke a rule, or the set cannot be reconciled -- nothing written | every line it printed names a role and a place; send each back to that role, re-check, re-run |
+| `2` UNREADABLE | a file is not what it says | fix the invocation |
+| `3` REREADS, `4` ESCALATIONS | places carried forward -- the roles did not agree | **rule at the cap**, below |
+| `5` DRIFT, `6` COVERAGE | a returned `raw_text` is not the seeded one, or a role left places unruled | the chief's copy is written; the printed places go back to their role once; say in the proposal what was left short |
 
-!! **[`references/re-review.md`](references/re-review.md) is what a re-review IS**, and it is
-the only file that says. Load it before sending anything back: it carries what the role is
-given, the three questions it answers about the JOINED paragraph, the return shape, the channel,
-and when the rounds stop. ! The subject is never the finding -- *"do you stand by your instruction"*
-returns the instruction already filed.
+Every printed line reads `<role> <place>: <reason>`. **That is your work list for sending
+back**, and a task agent reads it rather than the copies.
 
-!! **WHICH PARAGRAPHS go back: every paragraph carrying a CONFLICTING mark, and `query` conflicts with
-nothing.** Ruled 2026-08-17. That is exactly the set the collator prints as `RE-REVIEW`, so
-read the tool's list rather than deriving your own.
+!! **A finding whose evidence does not resolve is not a finding.** Only `clean` is exempt,
+because it cites no claim. **Never grade a review by reading its copy** -- self-reported
+confidence has been measured not to discriminate a real finding from a fabricated one.
 
-!! **A CONFLICT IS ON ONE SENTENCE. Two marks on two different sentences COMPOSE and are not a
-conflict**, however much they share a paragraph. Ruled 2026-08-17. `contradictions()` already keys
-on the edited SPAN rather than the address for exactly this reason -- and it was paid for:
-measured on a live run, one of eight flagged collisions was two roles ruling on two different
-clauses of one docstring, and a whole re-review round went on establishing that. A paragraph of six
-sentences can carry six instructions and still hold no conflict at all.
+!! **It catches a fabricated FINDING, never a fabricated CLEAN -- and the clean is the easier
+fabrication.** A copy reading `clean` on every slot accounts for every address, cites nothing,
+and exits 0 having read no file at all. Nothing mechanical can separate that from a real pass,
+because a negative leaves no artifact. **A green exit here is not evidence that anything was
+read.**
 
-! `query` sets neither trait and can never enter the set; `move` is absent by ruling, because
-relocation and a truth fix compose.
+! **The tool rules on ADMISSIBILITY, not on truth.** It cannot tell a correct instruction from
+an incorrect one. The ruling at the cap, and the order below, remain yours.
 
-! **One case is DELIBERATELY wider than the sentence rule**: where the edited span cannot be
-computed at all, the paragraph is flagged rather than passed. Silence there would hide a real
-collision behind an unreadable record, so the set is *conflicts, plus what could not be read*.
+**What the fold settles on its own.** A place every role read `clean` STANDS. A place one role
+marked and no other role marked against is that role's mark, taken in. A place two or more roles
+marked with byte-identical `change` text is their agreement, taken in -- agreement is the TEXT
+alone, whatever instruction each used. Each is a `stet` on the master proof, and the chief's
+copy carries the mark that stands.
 
-! **This is the NARROW model, taken on cost, and it is marked *for now*.** The alternative is
-every paragraph two or more roles filed on -- the *"reviewers that had comments"* model. Measured on
-a live run: **51 of 150 paragraphs** had two or more roles converge against **8** flagged as
-conflicts. ! The two numbers are not the same measurement: 51 counts roles converging on a
-PARAGRAPH, and the 8 already applies the sentence rule, so widening would cost less than six-fold
-but more than nothing.
+**What it carries forward, and prints as `escalated` or `re-read`, one line each with the roles
+that marked it:** two or more marks ruling on ONE sentence with different answers (an
+escalation); marks on different sentences of one paragraph that could be composed, a lone mark
+other roles marked against, every place an `add` touches, and every end of a `move` in a cycle
+(a re-read). !! **A CONFLICT IS ON ONE SENTENCE. Two marks on two different sentences COMPOSE**,
+and the fold composes them and carries the composition forward for a reading.
 
-## Stage 5 -- APPLY: one instruction, one FULL-LENGTH replacement
+**What it sets aside:** a place any role marked `query` with the shape `human-review-necessary`.
+It is UNSETTLABLE by the roles or by you, rides on the master proof, and is put to the author at
+7a. A `query` of the other two shapes is that role abstaining from the place.
 
-!! **Run THE COLLATOR before you rule on anything** -- it reads every
-reviewer's report against the census and against the others', and refuses what it cannot
-verify. It is the gate between MARK and APPLY.
+### Ruling at the cap -- you are the copy chief
 
-! **Running it by command is absent** -- the command moved to `prototype/` and no longer runs.
-See `TODO/the-skill-names-commands-that-moved-to-prototype.md`.
+!! **THE BASELINE RUNS NO TURN.** `batch1.json` is what a turn would send back to the roles;
+leave it. Every place `collate` carried forward is yours to rule NOW, once, and there are two
+rulings:
 
-!! **NAME EACH REPORT FILE AFTER ITS ROLE** -- `ownership-context.json`,
-`block-context.json`, `function-context.json`, `module-context.json`, which is what stage 4
-seeded. The tool takes the role name from the report's FILE STEM, and `--reviewers` compares
-against those stems, so a report saved as `report1.json` is a role nobody expected and every
-expected role reads as missing. Two files with the same stem are refused outright.
+| answer | when | what it carries |
+|---|---|---|
+| `taken_in` | one side is right | `side`: the role whose text stands, or `original` to let the paragraph stand as it was -- the author is a side |
+| `recast` | no side is right | `prose`: your own paragraph, as raw text, over every side |
 
-!! **ONLY `.json` IS READ, AND ANYTHING ELSE IS REFUSED BY NAME.** A report saved as `.md` gets
-one line saying it is not a record file -- counted fatal -- rather than being parsed by something
-that guesses where a field ends. ! There is no other reader and no converter: a report is
-written in the shape `record.py --seed` lays down, or it is not read.
+Write them to `<run-dir>/rulings.json` as a list -- `[{"address", "answer", "side", "reason",
+"prose"}]`, `reason` owed on every one -- then close the proof:
 
-! **Pass `--reviewers` every time, listing all four roles.** Without it a
-reviewer that never reported at all is invisible -- "every reviewer" silently
-means "every file I was handed", the easier version of the fabrication below.
+```bash
+python <skill>/scripts/comment-review.py cap --proof <run-dir>/proof0.json --binder <run-dir>/binder.json \
+  --repo . --rulings <run-dir>/rulings.json --out <run-dir>/chief.json --proof-out <run-dir>/final.json
+```
 
-It exits nonzero on a coverage gap, a citation that does not resolve, a quote
-not found near its cited line, an instruction outside the seven, a role
-that did not report, or a payload the instruction table requires and the record
-lacks. It also names the paragraphs where `drop` meets `correct`/`patch` -- **a
-re-review, never a tie-break** -- and the paragraphs where `move` meets either, since a claim
-ruled on at the wrong anchor was measured against the wrong code. !! **It then prints your
-WORK LIST: every paragraph needing a ruling, with the instructions held on it.** That is the grouping
-stage 5 works from -- read it rather than rebuilding it from the report files.
+**`cap` refuses a carried-forward place with no ruling, by name and with its roles, and writes
+nothing** -- rule it and run again. It prints every ruling as it lands and every unsettlable
+place with the role that asked; `chief.json` is the chief's `edit_copy`, one mark per resolved
+place, and it is what stages 6 and 7 read. ! `--stage` is `4` throughout: the four roles ran
+once, in one stage.
 
-! **It reports THREE states, not two.** A paragraph every role returned `clean` on STANDS. A paragraph
-carrying a substantive instruction NEEDS A RULING. A paragraph covered only by `clean` and
-`query -- outside-my-role` is neither: nothing is asked of you, and no role certified it either,
-because a role returns `query` rather than `clean` on a paragraph it never read. Measured: on one
-run 1159 paragraphs read as work when 76 carried an instruction.
+!! **A `taken_in` is a ruling, not a count.** Any `correct` outranks every `clean`: three roles
+finding nothing does not soften one role finding a falsehood, because they were not looking for
+the same thing. **Two placement marks naming different destinations: `ownership-context`'s
+governs** -- that is the precedence the role holds, not a tie-break.
 
-! **`query` is checked TWICE, and carries evidence like every other instruction.** Its citations
-resolve as any other's do; on top of that its payload must NAME which of the brief's three
-shapes it is -- in the brief's own words -- and name the check it attempted. A `query` that
-names no shape is refused, and so is one that names no check.
-
-!! **A finding whose evidence does not resolve is not a finding.** Only `clean`
-is exempt, because it cites no claim. **Never grade a review by reading its
-report** -- self-reported confidence has been measured not to discriminate a real
-finding from a fabricated one.
-
-!! **It catches a fabricated FINDING, never a fabricated CLEAN -- and the clean
-is the easier fabrication.** A report reading only `CLEAN 1-N` accounts for
-every address, cites nothing, and exits 0 having read no file at all. Nothing
-mechanical can separate that from a real pass, because a negative leaves no
-artifact. **A green exit here is not evidence that anything was read.**
-
-! **The tool rules on ADMISSIBILITY, not on truth.** It cannot tell a correct
-instruction from an incorrect one. Synthesis, and the order below, remain yours.
-
-! **A paragraph that ends mid-clause is a finding, and its instruction is `correct`.** A run whose last
-sentence stops mid-air -- a severed trailing comment, a `move` that cut a sentence in half -- is
-neither checkable nor necessary, so the matrix routes it to `drop`, deleting the pointer instead
-of repairing it. Restore the sentence.
-
-! **Two findings quoting the same sentence in different files are ONE finding.** A pass edits
-where it is reading, fixes the copy in front of it, and manufactures a disagreement with the one
-it never opened. Contradicting instructions trigger a **re-review**, never a tie-break. The collator
-cannot see this for you -- `contradictions()` keys on the ADDRESS, and the same
-sentence copied into two files is two different paragraphs it can never relate.
-
-!! **Whether a TRUE sentence earns its place is an INSTRUCTION, and instructions are theirs.** The
-CHECKABLE/NECESSARY matrix that settles it is in `reviewer-brief.md`, and every reviewer is
-handed it. A paragraph whose place no instruction settles goes BACK for re-review; you do not rule it
-here.
-
-### Synthesising one comment out of N instructions
-
-Four reviewers rule on the same paragraph, so you hold several recommendations and must emit **one**
-replacement. Apply them in this order. It is not arbitrary -- each step depends on the one above
-being settled:
+!! **Before you take a side or recast, read the code the paragraph sits with.** Rule in this
+order, because each step depends on the one above being settled:
 
 1. **`query`** -- resolve it or escalate it. An unresolved claim cannot be corrected, patched or
    dropped, because you would be editing something nobody has read.
 2. **Every `move`, and every `drop`** -- settle WHERE the prose lives before touching what it
-   says. A `move` out of the code and a `drop` take out what is leaving; a `move` inside the
-   code re-attaches what belongs beside different code, and a paragraph whose sentences belong in
-   different places is several `move`s, one per sentence. ! **Placement comes first because a
-   claim is measured against the code it sits with** -- correct it where it does not belong and
-   you have corrected it against the wrong code.
-3. **`correct`** -- fix truth, on what remains, **at the anchor it now sits on**. !! A `correct` that travelled with a `move` is applied AT THE DESTINATION and re-derived there, never against the code the prose left. ! It may leave a VACUOUS comment, and that is the accepted outcome: another pass drops it, which is cheaper than a correction that was true only where the prose used to be.
+   says. ! **Placement comes first because a claim is measured against the code it sits with**
+   -- correct it where it does not belong and you have corrected it against the wrong code.
+3. **`correct`** -- fix truth, on what remains, **at the anchor it now sits on**. !! A `correct`
+   that travelled with a `move` is applied AT THE DESTINATION and re-derived there, never against
+   the code the prose left.
 4. **`patch`** -- fix wording, on text now known to be true. ! **Never before step 3:** a
    `patch` on a false sentence polishes the wording of a falsehood and retires the finding.
    That is laundering, and this order is what prevents it.
 5. **`add`** -- insert at the stated anchors.
-6. **`clean`** -- the null instruction, and **the collator already did this one.** The paragraphs it printed
-   as `STANDS UNCHANGED` are exactly those every reviewer that ran returned `clean` on. Read
-   that number; do not re-derive the set.
 
-! **Load [`references/residue-check.md`](references/residue-check.md) before you write anything**
--- the check is defined there, and this is the first stage that owes it. Stages 6 and 7b re-run
-the same check against the same original; none of them may check against the previous edit.
+! **`drop` against `correct` or `patch` on the same sentence is a contradiction**, not a merge --
+one role says the sentence should not exist and another says it should exist and be fixed.
+Nothing composes those; it is a `taken_in` or a `recast`. !! **`move` against either of them
+COMPOSES.** Relocation and a truth fix are a SEQUENCE, and the fold composes them.
 
-Then emit the replacement and run the residue check on **the whole synthesised paragraph once** --
-not once per instruction. The check compares against the original, and the original was one paragraph.
+! **Two marks quoting the same sentence in different files are ONE finding.** A pass edits where
+it is reading, fixes the copy in front of it, and manufactures a disagreement with the one it
+never opened. The collator cannot see this for you -- it keys on the ADDRESS, and the same
+sentence copied into two files is two different paragraphs it can never relate.
 
-**Four rules that resolve the common collisions:**
-
-- **Two placement instructions on one paragraph, naming different destinations:**
-  `ownership-context`'s destination governs. Both findings stand; only the destination is
-  decided. ! This is the PRECEDENCE that role already holds, not a tie-break -- the rules below
-  break no ties.
-- **Any `correct` outranks every `clean`.** Three roles finding nothing does not soften one
-  role finding a falsehood; they were not looking for the same thing.
-- **`correct` and `patch` on the same sentence:** correct first, then re-read the patch against
-  the corrected text. Usually it no longer applies.
-- **`drop` against `correct` OR `patch` on the same sentence is a contradiction**, not a merge --
-  one role says the sentence should not exist and another says it should exist and be fixed.
-  Nothing composes those. The collator prints it as `RE-REVIEW`; send the paragraph back.
-- !! **`move` against either of them COMPOSES, and is not a contradiction.** Ruled 2026-08-17.
-  Relocation and a truth fix are a SEQUENCE: the synthesis order applies every `move` at step 2
-  and every `correct` at step 3, which is what applies the correction AT THE DESTINATION.
-  Measured on a live run: **5 of the 8 paragraphs the old set flagged were this shape**, and a
-  re-review round was spent on each establishing it was not a rivalry.
-  ! This paragraph used to name `move` alongside `drop`; the ruling removed it from the collator's
-  set and left the sentence here, so the skill and its own gate disagreed. See
-  `TODO/move-and-correct-compose.md`.
-
-! **Dedup on the SENTENCE RULED ON, not the paragraph**, before any of this -- the half of `CLAIM`
-that quotes the existing prose (`drop:`, `false:`, `from:`), never the whole `CLAIM`. Two roles
-fixing one sentence propose different edits, so their `CLAIM`s differ while their subject does
-not; the collator keys on that half for the same reason.
+! **Load [`references/residue-check.md`](references/residue-check.md) before you recast
+anything** -- the check is defined there, and this is the first stage that owes it. Stages 6
+and 7b re-run the same check against the same original; none of them may check against the
+previous edit. Run it on **the whole paragraph once** -- not once per mark. The check compares
+against the original, and the original was one paragraph. ! A `taken_in` text was written by a
+role that never ran it; run it over that too.
 
 !! **THE SENTENCE YOU PROPOSE TO KEEP IS A FINDING YOU HAVE NOT RAISED.** Before any `patch`
 or `move`, verify the retained clause the way stage 3 resolves an annotation. The reviewer keeps the
@@ -860,6 +767,11 @@ things that let a reader find out: the symbol that computes it, and the document
 why. Shorter, cleaner, in-cap, and **strictly harder to falsify than what it replaced.** A
 paragraph trimmed around an unchecked claim is **laundered, not reviewed**. ! **`move` has no truth check on its
 path** -- "write the destination verbatim" copies a falsehood somewhere harder to find.
+
+! **A paragraph that ends mid-clause is a finding, and its instruction is `correct`.** A run whose last
+sentence stops mid-air -- a severed trailing comment, a `move` that cut a sentence in half -- is
+neither checkable nor necessary, so the matrix routes it to `drop`, deleting the pointer instead
+of repairing it. Restore the sentence.
 
 ! **Length is not your question at this stage.** A paragraph that is true, local and load-bearing
 is finished here however long it is; COMPACT shortens it only if a cap applies. A run that
@@ -880,71 +792,16 @@ line above); a **paragraph split by an inserted statement**, where only the half
 talking about what came before is the finding; **the wrong half surviving** -- check what
 SURVIVED, not what went; **refactoring drift**.
 
-## Stage 5b -- RE-REVIEW: is this what you meant?
-
-**Every paragraph the collator printed as `RE-REVIEW` goes back to the roles that ruled on it**, once
-you have written its replacement. Load
-[`references/re-review.md`](references/re-review.md); it carries the payload, the three
-questions, the return shape, the channel and the stop rule, and this section does not restate
-them.
-
-!! **SET A GALLEY FIRST, and census it.** The joined paragraph is on no disk and in no census, so
-nothing can address it -- `address_problem` refuses a record whose ADDRESS matches no census
-entry, which is every round-2 record until this runs:
-
-```bash
-python <skill>/scripts/comment-review.py proof --repo . --from-docket <run-dir>/docket.json \
-  --out <run-dir>/galley
-python <skill>/scripts/comment-review.py gather --json --repo <run-dir>/galley \
-  --out <run-dir>/galley-census.json <the same paths, under the galley>
-```
-
-!! **`proof` HAS THREE ENTRY POINTS AND THIS SECTION USES ONE.** The command takes either an
-`edit_copy` or a docket, and may stop at the docket rather than pulling a revise:
-
-| | |
-| --- | --- |
-| `--copy C.json` | an `edit_copy` -- ANY role's, or the copy chief's. `proof` transcribes it into a docket as its first step |
-| `--from-docket D.json` | a docket you wrote yourself, as this section does. Skips the transcribe |
-| `--to-docket D.json` | stop after the transcribe and write the docket. Pulls no revise, and needs no `--out` |
-
-**`--copy` and `--from-docket` are exclusive and one is required.** `--copy` is what a stage's
-own output goes through -- the copy chief's `edit_copy` from `collate`, or a single role's --
-and it is how one stage's result becomes the tree the next stage reads.
-
-`--from-docket` is `{"pages": [{"path", "sha", "alterations": [{"cue", "text"}]}]}` -- one entry per
-page under review, `sha` the page's text hash when it was read, and each alteration's `cue` the
-address's series-and-number, since the page's own PATH is already carried once by the page entry
-rather than repeated per alteration. **`--out` must not already exist**, and it holds a full copy
-of `--repo` with the docket's pages overlaid -- **nothing under the repo itself is touched**; a
-galley is a copy and it is discarded with the run.
-
-! **A round-2 record is an ORDINARY record** citing the galley census, so it joins exactly as a
-round-1 record does. Run the collator against `galley-census.json` for it.
-
-!! **Do not carry a round-1 index into round 2.** A replacement whose line count differs shifts
-every paragraph below it, so the same prose holds different indices in the two censuses. They relate
-by PATH and CONTENT, and you are the only participant holding both.
-
-! **`proof` REFUSES rather than guesses.** It exits nonzero and NAMES what refused -- **read
-that, rather than a list you remember**: an input that fails to read prints `CANNOT READ`, one
-that does not match its shape prints `CANNOT READ THE DOCKET: <reason>` or `CANNOT READ THE
-COPY: <reason>` -- **the noun is the flag you passed** -- and a bad `--out` prints
-`REFUSED: --out <reason>` -- each at exit **2**. ! Naming `--from-docket` and `--to-docket`
-together is refused the same way: they are the two ends of the transcribe, so both leaves
-nothing to run. A refusal further into the chain
--- the address space having moved, or a page's own draft/set/reread step -- prints `REFUSED:
-<reason>` or `REFUSED at <step>: <where> -- <reason>` and exits **1**.
-
 ## Stage 6 -- COMPACT: only if there is a cap
 
 **If no cap applies, the run SKIPS this stage entirely.** Say so: the prose is correct, and
 absent a cap "long" is not a defect.
 
-If there is a cap, and only once **every** paragraph from stage 5 is CORRECT,
+If there is a cap, and only once **every** paragraph on the chief's copy is CORRECT,
 dispatch `comment-review:comment-review-compact` with the narrow input contract
 below, and paste [`references/compact.md`](references/compact.md) into its prompt
-whole.
+whole. Its input is each mark's `change` on `chief.json`, and its output replaces that
+`change` -- nothing else on the copy moves.
 
 !! **This pass is not yours to run.** You wrote the text; an agent that never
 saw the argument cannot preserve a sentence because it remembers writing it.
@@ -959,39 +816,42 @@ you hand to stage 7a is what will be written.
 
 ! **Do not fold it back into stage 5.** Compaction decisions depend on the final state of the
 whole tree -- a `move` that relocates prose between paragraphs, an owner that collapses N
-restatements into one -- and none of that is settled until every paragraph is edited. `compact.md`
+restatements into one -- and none of that is settled until every paragraph is ruled. `compact.md`
 carries the argument and the per-paragraph procedure.
-
-## Stage 6b -- RE-REVIEW: is this still correct after my edits?
-
-**Runs only if stage 6 ran**, and over the paragraphs it actually shortened. Same mechanism as 5b,
-same file, **different question**: 5b asks whether the synthesis carried the finding, 6b asks
-whether shortening broke it. ! A single *"is this still right"* prompt collapses them and
-answers neither.
 
 !! **NOTHING ELSE READS STAGE 6's OUTPUT BEFORE THE AUTHOR DOES.** Stage 7a presents it and
 rules on nothing; the CODE CHECK runs at 7b and reads only executable code; stage 8 runs after
-the write. **Skip 6b and the compacted text reaches the author read by nobody but the agent that
-wrote it.** ! Measured 2026-08-17: on one run the compact pass came under the cap by writing
-98-column lines and flagged that itself -- nothing else was positioned to catch it.
-
-!! **A paragraph stage 6 must edit that NO role ruled on goes to ALL FOUR, as a fresh paragraph.** A
-paragraph every role returned `clean` on can still be over the cap; shortening it is an edit with no
-instruction behind it, and neither 5b nor 6b reaches it because there is no filer to ask. It comes
-back with instructions. ! It is the only path by which stage 6 originates work, and it runs the
-opposite way to everything else: every other finding travels 4 -> 5, this one travels 6 -> 4.
-
-! **Set a galley of the COMPACTED text and census it**, exactly as 5b does. The text stage 6
-hands on is again on no disk, and it is not the text 5b addressed.
+the write. The baseline accepts that: the compacted text reaches the author read by nobody but
+the agent that wrote it, and stage 8 is where that shows.
 
 ## Stage 7a -- APPROVAL: present the FINAL text, then stop
 
-Grouped by instruction, most consequential first, in **five parts**
-(`INSTRUCTION / PARAGRAPH / CLAIM / REASON / CHANGE`) -- the reviewer record minus the fields only
-the collator reads -- replacement text inline
-for every `correct` / `patch` / `add`. State **raised / clean** and the
-longest paragraph that will remain. **The proposal ends here** -- nothing further is written until
-the author rules.
+**Set the proposal as a GALLEY first** -- a copy of each page with the chief's marks applied,
+nothing under the repo touched -- and prove it changed no code:
+
+```bash
+python <skill>/scripts/comment-review.py proof --repo . --copy <run-dir>/chief.json --out <run-dir>/galley
+```
+
+**`--out` must not already exist**, and it holds a full copy of `--repo` with the chief's
+pages overlaid; a galley is discarded with the run. ! **`proof` REFUSES rather than guesses.**
+It exits nonzero and NAMES what refused -- an input that fails to read prints `CANNOT READ`,
+one that does not match its shape prints `CANNOT READ THE COPY: <reason>`, and a bad `--out`
+prints `REFUSED: --out <reason>` -- each at exit **2**. A refusal further into the chain -- the
+address space having moved, or a page's own draft/set/reread step -- prints `REFUSED at <step>:
+<where> -- <reason>` and exits **1**. Read what it printed, rather than a list you remember.
+
+Then present, grouped by instruction, most consequential first, in **five parts**
+(`INSTRUCTION / PARAGRAPH / CLAIM / REASON / CHANGE`) -- the mark minus the fields only the
+collator reads -- replacement text inline for every `correct` / `patch` / `add`, and the galley's
+diff for the whole page. State **raised / clean**, which places you ruled at the cap and how,
+and the longest paragraph that will remain.
+
+!! **THE UNSETTLABLE PLACES ARE THE AUTHOR'S, AND THIS IS WHERE THEY ARE ASKED.** `cap` printed
+each one with the role that raised it and its reason; put every one to the author here, after
+everything else, as the questions they are. Nothing is proposed for them.
+
+**The proposal ends here** -- nothing further is written until the author rules.
 
 !! **What you show IS what gets written.** If stage 6 ran, show the COMPACTED text -- never the
 full-length version with a note that it will be shortened. The author rules once, quickly, and
