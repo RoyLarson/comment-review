@@ -211,10 +211,10 @@ drive what is left through `run_command`).
       `save_copy`, one `_dump` over `machine.repo.write_raw`; `check._load`, `_load_value`
       and `collate._load` are deleted. Verify: `grep -rn "def _load" src/comment_review/commands`
       is empty and every command's refusal wording is the loader's. -- 6cc6e742
-- [ ] T18, T19: `run_turn(proof, binder, root, sent, answers)` derives copies, `earlier` and
+- [x] T18, T19: `run_turn(proof, binder, root, sent, answers)` derives copies, `earlier` and
       the turn number from the proof and returns one `Collated` whose `revisit` holds the
       turn's refusals; `refold` shares the unpack; `MasterProof.turn` is the number. Verify:
-      `grep -rn "len(proof.turns)" src` returns the container alone.
+      `grep -rn "len(proof.turns)" src` returns the container alone. -- 0611de3e
 - [ ] T23: `flows.turn.close(got, rulings, turns)` returns the closed proof and the chief's
       copy; `cap.py` calls `replace` nowhere.
 - [ ] T26: the three command tests drive `main()` through `conftest.run_command`; the hand

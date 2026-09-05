@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 11 of 28 tasks closed
+Progress: 13 of 28 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -120,10 +120,12 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       one loader for the middle's commands; turn and cap import check's private
       _load and collate keeps its own. Verify: one definition
         > 2026-09-04 widen to proof_io: load_binder/copy/batch/value, save_copy
-- [ ] T18 | Update run_turn and refold to take the MasterProof, and derive the
-      turn number on the container. Verify: no len(proof.turns) in commands/
-- [ ] T19 | Update run_turn to fold its Revisits into Collated.revisit and
-      return the Collated alone. Verify: turn.py merges no lists
+- [x] T18 | FINISHED -- run_turn(proof, binder, root, sent, answers) and refold share _unpacked; MasterProof.turn is the number; grep len(proof.turns) in src returns the container alone | 0611de3e | Update
+      run_turn and refold to take the MasterProof, and derive the turn number on
+      the container. Verify: no len(proof.turns) in commands/
+- [x] T19 | FINISHED -- run_turn returns one Collated with its Revisits folded into revisit; turn.py merges no lists | 0611de3e | Update
+      run_turn to fold its Revisits into Collated.revisit and return the
+      Collated alone. Verify: turn.py merges no lists
 - [ ] T20 | Implement a Turn record container with seed, serialize and
       deserialize, written by the flow. Verify: turn.py composes no record dict
 - [ ] T21 | Implement a typed Unsettlable record held by Collated and
