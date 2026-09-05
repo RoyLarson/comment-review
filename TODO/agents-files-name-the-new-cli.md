@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 8 tasks closed
+Progress: 6 of 8 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -36,6 +36,7 @@ The agents files name the new CLI and say how to use it.
       experiment after the baseline. Verify: a hand with a turn runs from it
 - [ ] T7 | Update reviewer-brief.md with check --answers and the two answer
       shapes from check --contract, for the turn experiment
-- [ ] T8 | Update SKILL.md and the brief so the packet names the binder, the
-      listing and the copy by absolute path and a role reads from there
+- [x] T8 | SKILL.md packet carries BINDER, LISTING, EDIT COPY as paths; the brief reads from them | d0c1e9b1 | Update
+      SKILL.md and the brief so the packet names the binder, the listing and the
+      copy by absolute path and a role reads from there
         > 2026-09-05 Process 95: told where binder and marks are, roles read there
