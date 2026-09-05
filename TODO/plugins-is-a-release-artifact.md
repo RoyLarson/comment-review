@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 7 tasks closed
+Progress: 1 of 7 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-09-05 (Roy, 2026-09-05: the build test is noise in development; a release
@@ -24,8 +24,9 @@ plugins/ is a release artifact, not a per-change gate.
 - [ ] T3 | Implement scripts/release.py, which rebuilds plugins/comment-review/
       wholesale from src/plugin/ and src/comment_review/.
         > 2026-09-05 Verify: rm plugins/comment-review/, run it, git status is clean.
-- [ ] T4 | Update scripts/release.py so it runs every documented release step:
-      version, rebuild, validate, commit, tag, push, marketplace update.
+- [-] T4 | Roy retracted it 2026-09-05: version bumping in a command would cause issues; the release command copies and nothing else | afd3ef57 | Update
+      scripts/release.py so it runs every documented release step: version,
+      rebuild, validate, commit, tag, push, marketplace update.
         > 2026-09-05 Verify: --dry-run lists the steps in order and writes nothing.
         > 2026-09-05 Refuses off main or on a dirty tree, before any write.
         > 2026-09-05 Version: pyproject, plugin.json, and CHANGELOG's [Unreleased].
