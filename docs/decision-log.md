@@ -3414,3 +3414,9 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   command. The command as built takes the anchor's TEXT rather than its number, and the brief
   tells a role to ask with `def f():`; which of the two the argument is belongs to the work on
   `binder-defects` T22.
+
+  **Ruled: the line NUMBER.** Roy, the same morning: *"The anchor is not unique so it does
+  cause issues but I think that was an option discussed that they could supply the anchor as
+  well and it lists all of the places with the line number but I would rather they stick with
+  just the line number."* So the lookup takes a line number of the original file and a
+  series, and the brief stops telling a role to ask with the line's text.

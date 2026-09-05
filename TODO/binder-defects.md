@@ -188,3 +188,4 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
       from binder rows. Verify: an absent b answers on a default binder
         > 2026-09-05 Process 96; the FitPlan run lost four adds to a default binder
         > 2026-09-05 takes a line of the original file and a series; returns the address
+        > 2026-09-05 ruled: the argument is the line NUMBER and a series, not the text

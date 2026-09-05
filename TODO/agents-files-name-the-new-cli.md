@@ -57,3 +57,4 @@ The agents files name the new CLI and say how to use it.
       of the binder and are looked up with addresser. Verify: both say so
         > 2026-09-05 waits on binder-defects T22; the text would promise what fails now
         > 2026-09-05 the default filter stays; absent places are noise for a role
+        > 2026-09-05 the brief asks by line number, no longer with the line's text
