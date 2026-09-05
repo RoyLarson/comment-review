@@ -11,6 +11,7 @@ from helpers import a_query, entries_of
 from test_turn_command import DOS, TWO, _contested, _merged, answer, deal, turn
 
 from comment_review.commands import cap as command
+from comment_review.commands import collate as collate_command
 from comment_review.desk.containers import EditCopy
 from comment_review.desk.determined import CHIEF, ORIGINAL, Answer
 from comment_review.desk.mark import Shape
@@ -214,7 +215,7 @@ class TestRefusals:
     ):
         held_open(tmp_path, monkeypatch, capsys)
         code, _out = cap(tmp_path, monkeypatch, capsys, {"address": "m.py@b1"})
-        assert code == command.UNREADABLE
+        assert code == collate_command.UNREADABLE
 
 
 class TestTheGateSeesIt:

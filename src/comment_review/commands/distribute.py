@@ -20,12 +20,10 @@ import json
 import sys
 from pathlib import Path
 
-from comment_review.binder.binder import Binder
 from comment_review.desk.mark import allowed
 from comment_review.desk.stages import ROLES
 from comment_review.flows.distribute import seed
-from comment_review.machine import exceptions
-from comment_review.machine.json_object import object_of
+from comment_review.flows.proof_io import load_binder
 
 
 def _as_json(payload: dict) -> str:
@@ -79,18 +77,9 @@ def main() -> int:
             wanted = ", ".join("--" + n for n in missing)
             print(f"--seed needs {wanted}", file=sys.stderr)
             return 2
-        try:
-            text = Path(args.binder).read_text(encoding="utf-8")
-        except exceptions.READ_ERRORS as err:
-            print(f"cannot read {args.binder}: {err}", file=sys.stderr)
-            return 2
         # !! THE LOAD IS THE FLOW'S, THE DESERIALIZE THE CONTAINER'S --
-        # `decision-log.md Process: #67`.
-        loaded, problem = object_of(text, "binder")
-        if problem:
-            print(problem, file=sys.stderr)
-            return 2
-        binder, problems = Binder.deserialize(args.binder, loaded)
+        # `decision-log.md Process: #67`; `flows.proof_io.load_binder` is both.
+        binder, problems = load_binder(Path(args.binder))
         if binder is None:
             for line in problems:
                 print(line, file=sys.stderr)

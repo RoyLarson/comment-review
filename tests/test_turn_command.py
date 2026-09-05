@@ -376,7 +376,7 @@ class TestRefusals:
             ),
             proof=str(tmp_path / "binder.json"),
         )
-        assert code == command.UNREADABLE
+        assert code == collate_command.UNREADABLE
 
     def test_answers_without_a_role_is_UNREADABLE(self, tmp_path, monkeypatch, capsys):
         deal(tmp_path, monkeypatch, capsys, _contested("m.py@b1"))
@@ -396,7 +396,7 @@ class TestRefusals:
                 str(tmp_path / "nope.json"),
             ],
         )
-        assert command.main() == command.UNREADABLE
+        assert command.main() == collate_command.UNREADABLE
 
 
 class TestTheGateSeesIt:

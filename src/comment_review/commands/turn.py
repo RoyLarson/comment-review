@@ -17,17 +17,15 @@ A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`.
 names it: a proof fresh from `collate` carries no turns, so its first turn is
 1, and a caller cannot replay a turn under a number the record already holds.
 
-! THE EXIT CODES AND THE REPORT ARE `collate`'s, AND THE LOADERS ARE
-`check`'s -- imported rather than re-spelled, so a caller branching on a code
-branches once and a file is refused in one wording.
+! THE EXIT CODES AND THE REPORT ARE `collate`'s, imported rather than
+re-spelled, so a caller branching on a code branches once; every file is read
+through `flows.proof_io`, so a refusal has one wording.
 """
 
 import argparse
 import sys
 from pathlib import Path
 
-from comment_review.binder.binder import Binder
-from comment_review.commands.check import _load, _load_value
 from comment_review.commands.collate import (
     BROKEN,
     COVERAGE,
@@ -36,11 +34,18 @@ from comment_review.commands.collate import (
     OK,
     RECONCILE_ERRORS,
     REREADS,
-    UNREADABLE,
+    _refused,
     _report,
 )
 from comment_review.flows.collate import CannotCollate
-from comment_review.flows.proof_io import load_proof, save_batch, save_proof
+from comment_review.flows.proof_io import (
+    load_batch,
+    load_binder,
+    load_proof,
+    load_value,
+    save_batch,
+    save_proof,
+)
 from comment_review.flows.turn import batch_for, proof_after, run_turn
 
 
@@ -94,40 +99,21 @@ def main() -> int:
 
     proof, why = load_proof(Path(args.proof))
     if proof is None:
-        for line in why:
-            print(line, file=sys.stderr)
-        return UNREADABLE
-    loaded, problem = _load(args.binder, "binder")
-    if problem:
-        print(problem, file=sys.stderr)
-        return UNREADABLE
-    binder, why = Binder.deserialize(args.binder, loaded)
+        return _refused(why)
+    binder, why = load_binder(Path(args.binder))
     if binder is None:
-        for line in why:
-            print(line, file=sys.stderr)
-        return UNREADABLE
-    loaded, problem = _load(args.sent, "batch")
-    if problem:
-        print(problem, file=sys.stderr)
-        return UNREADABLE
-    # ! DECLARED, NOT NARROWED -- `ty` loses an isinstance narrow at `.items()`.
-    batch: dict = loaded if isinstance(loaded, dict) else {}
-    sent = {
-        role: list(slots) for role, slots in batch.items() if isinstance(slots, list)
-    }
-    if not sent:
-        print(f"{args.sent}: names no role's slots", file=sys.stderr)
-        return UNREADABLE
+        return _refused(why)
+    sent, why = load_batch(Path(args.sent))
+    if why:
+        return _refused(why)
     answers: dict[str, object] = {}
     for spec in args.answers:
         role, sep, path = spec.partition("=")
         if not sep or not role or not path:
-            print(f"--answers wants ROLE=PATH, got {spec!r}", file=sys.stderr)
-            return UNREADABLE
-        value, problem = _load_value(path)
-        if problem:
-            print(problem, file=sys.stderr)
-            return UNREADABLE
+            return _refused([f"--answers wants ROLE=PATH, got {spec!r}"])
+        value, why = load_value(Path(path))
+        if why:
+            return _refused(why)
         answers[role] = value
 
     root = Path(args.repo) if args.repo else binder.root

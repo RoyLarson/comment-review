@@ -15,11 +15,9 @@ import argparse
 import json
 from pathlib import Path
 
-from comment_review.binder.binder import Binder
 from comment_review.flows.carry import carry
 from comment_review.flows.page_for import page_of
-from comment_review.machine import exceptions
-from comment_review.machine.json_object import object_of
+from comment_review.flows.proof_io import load_binder
 from comment_review.reading.addresser import SERIES
 
 
@@ -52,22 +50,10 @@ def main() -> int:
     args = ap.parse_args()
 
     repo = Path(args.repo).resolve()
-    try:
-        binder_text = Path(args.binder).read_text(encoding="utf-8")
-    except exceptions.READ_ERRORS as e:
-        print(f"CANNOT READ ({type(e).__name__}) -- nothing written")
-        return 2
     # !! THE LOAD IS THE FLOW'S, THE DESERIALIZE THE CONTAINER'S -- `Process:
-    # #67`. One decode in and one `json.dumps` out, both at this end.
-    # ! IT SAID "one `json.loads` in" UNTIL `P43`, and this file holds none:
-    # `machine.json_object.object_of` is the one decode, so that the read error
-    # above, the malformed-JSON refusal here and `Binder.deserialize`'s
-    # not-a-binder refusal below are three steps rather than one message.
-    loaded, why = object_of(binder_text, "binder")
-    if why:
-        print(f"CANNOT READ THE BINDER: {why} -- nothing written")
-        return 2
-    held, problems = Binder.deserialize(args.binder, loaded)
+    # #67`. `flows.proof_io.load_binder` is the read, the decode and the
+    # container's refusal as three steps, worded once for every command.
+    held, problems = load_binder(Path(args.binder))
     if held is None:
         print(f"CANNOT READ THE BINDER: {'; '.join(problems)} -- nothing written")
         return 2

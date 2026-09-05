@@ -28,17 +28,20 @@ for that asking, and none is on the chief's copy.
 """
 
 import argparse
-import json
 import sys
 from dataclasses import replace
 from pathlib import Path
 
-from comment_review.binder.binder import Binder
-from comment_review.commands.check import _load, _load_value
-from comment_review.commands.collate import BROKEN, OK, UNREADABLE, _report
+from comment_review.commands.collate import BROKEN, OK, _refused, _report
 from comment_review.desk.determined import Answer
 from comment_review.flows.collate import CannotCollate
-from comment_review.flows.proof_io import load_proof, save_proof
+from comment_review.flows.proof_io import (
+    load_binder,
+    load_proof,
+    load_value,
+    save_copy,
+    save_proof,
+)
 from comment_review.flows.turn import (
     determined_chief,
     proof_after,
@@ -82,28 +85,18 @@ def main() -> int:
 
     proof, why = load_proof(Path(args.proof))
     if proof is None:
-        for line in why:
-            print(line, file=sys.stderr)
-        return UNREADABLE
-    loaded, problem = _load(args.binder, "binder")
-    if problem:
-        print(problem, file=sys.stderr)
-        return UNREADABLE
-    binder, why = Binder.deserialize(args.binder, loaded)
+        return _refused(why)
+    binder, why = load_binder(Path(args.binder))
     if binder is None:
-        for line in why:
-            print(line, file=sys.stderr)
-        return UNREADABLE
-    rulings, problem = _load_value(args.rulings)
-    if problem:
-        print(problem, file=sys.stderr)
-        return UNREADABLE
+        return _refused(why)
+    rulings, why = load_value(Path(args.rulings))
+    if why:
+        return _refused(why)
     rows: list[dict] = (
         [r for r in rulings if isinstance(r, dict)] if isinstance(rulings, list) else []
     )
     if not isinstance(rulings, list) or len(rows) != len(rulings):
-        print(f"{args.rulings}: the rulings are a list of objects", file=sys.stderr)
-        return UNREADABLE
+        return _refused([f"{args.rulings}: the rulings are a list of objects"])
 
     root = Path(args.repo) if args.repo else binder.root
     turn = len(proof.turns)
@@ -158,11 +151,7 @@ def main() -> int:
         proof_after(got, proof.turns),
         determined=tuple(every[address] for address in sorted(every)),
     )
-    # !! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE FLOW'S --
-    # `Process: #65`, `#67` -- the same line `collate` writes its chief with.
-    Path(args.out).write_text(
-        json.dumps(chief.serialize(), indent=2), encoding="utf-8", newline=""
-    )
+    save_copy(Path(args.out), chief)
     save_proof(Path(args.proof_out), closed)
     places = sum(len(sheet.marks) for sheet in chief.sheets)
     print(f"{args.out}: the chief's copy, {places} places")

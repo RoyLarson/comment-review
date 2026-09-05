@@ -17,17 +17,19 @@ the verb that runs the turn is `TODO/no-command-for-the-middle.md` T16.
 """
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
-from comment_review.binder.binder import Binder
 from comment_review.desk.proof import MismatchedRoot
 from comment_review.flows.collate import CannotCollate, collate
-from comment_review.flows.proof_io import save_batch, save_proof
+from comment_review.flows.proof_io import (
+    load_binder,
+    load_copy,
+    save_batch,
+    save_copy,
+    save_proof,
+)
 from comment_review.flows.turn import batch_for, proof_after
-from comment_review.machine import exceptions
-from comment_review.machine.json_object import object_of
 
 #: Exit codes, extending `distribute`'s own 0/1/2 with the outcomes a caller
 #: branches on. `main` CHECKS `got.escalations`, THEN `got.rereads`, THEN
@@ -131,32 +133,11 @@ def _report(problems: list) -> None:
 #: and read by nothing.
 
 
-def _load(path: str) -> tuple[dict, str]:
-    """Read one edit_copy off disk as a JSON object, or say why it is not one.
-
-    !! THE TWO FAILURES ARE SEPARATE STEPS, `decision-log.md Process: #67`.
-    Roy, 2026-08-31: moving the load out *"makes file io errors and malformed
-    json load dump errors an explicit different step in the flow so those can
-    be done without extra collisions."* The read is this function's; the decode
-    is `machine.json_object.object_of`'s; whether the object is an edit_copy is
-    `EditCopy.deserialize`'s, one step further along inside `collate`.
-
-    !! IT HELD ITS OWN `json.loads` AND ITS OWN DICT GUARD UNTIL `P43` -- the
-    second decode path in this file, beside the `object_of` call the binder
-    already went through. That is the duplication `object_of`'s own header
-    records being removed from the two readers, re-acquired one module over:
-    two spellings of *is this text an object*, in one command, disagreeing on
-    the wording of the refusal.
-
-    Returns:
-        `(the object, "")`, or `({}, reason)` naming the path.
-    """
-    try:
-        text = Path(path).read_text(encoding="utf-8")
-    except exceptions.READ_ERRORS as err:
-        return {}, f"cannot read {path}: {err}"
-    loaded, why = object_of(text, "edit_copy")
-    return ({}, f"{path} is {why}") if why else (loaded, "")
+def _refused(why: list[str]) -> int:
+    """A file that is not what it says: every reason on stderr, `UNREADABLE`."""
+    for line in why:
+        print(line, file=sys.stderr)
+    return UNREADABLE
 
 
 def main() -> int:
@@ -221,30 +202,19 @@ def main() -> int:
         print("collate needs at least one --edit-copy", file=sys.stderr)
         return UNREADABLE
 
-    try:
-        binder_text = Path(args.binder).read_text(encoding="utf-8")
-    except exceptions.READ_ERRORS as err:
-        print(f"cannot read {args.binder}: {err}", file=sys.stderr)
-        return UNREADABLE
     # !! THE LOAD IS THE FLOW'S, THE DESERIALIZE THE CONTAINER'S --
-    # `decision-log.md Process: #67`. `object_of` turns the text into an
-    # object; `Binder.deserialize` says whether that object is a binder.
-    loaded, why = object_of(binder_text, "binder")
-    if why:
-        print(why, file=sys.stderr)
-        return UNREADABLE
-    binder, problems = Binder.deserialize(args.binder, loaded)
+    # `decision-log.md Process: #67`. `flows.proof_io` holds both steps of
+    # the read and hands the binder over as a `Binder`; a copy comes back as
+    # its wire dict, because the fold parses those itself and reports each
+    # refusal beside the role that owes it.
+    binder, why = load_binder(Path(args.binder))
     if binder is None:
-        for line in problems:
-            print(line, file=sys.stderr)
-        return UNREADABLE
-
+        return _refused(why)
     copies = []
     for path in args.edit_copy:
-        copy, problem = _load(path)
-        if problem:
-            print(problem, file=sys.stderr)
-            return UNREADABLE
+        copy, why = load_copy(Path(path))
+        if why:
+            return _refused(why)
         copies.append(copy)
 
     # ! THE BINDER NAMES ITS OWN TREE, so a caller that already passed one does
@@ -307,10 +277,8 @@ def main() -> int:
 
     # !! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE FLOW'S --
     # `decision-log.md Process: #65`, `#67`. `collate` returns an `EditCopy`
-    # since `P42`; the wire dict is made here, at the save, and nowhere between.
-    Path(args.out).write_text(
-        json.dumps(got.chief.serialize(), indent=2), encoding="utf-8", newline=""
-    )
+    # since `P42`; the wire dict is made at the save, and nowhere between.
+    save_copy(Path(args.out), got.chief)
     resolved = sum(len(sheet.marks) for sheet in got.chief.sheets)
     print(f"{args.out}: {resolved} places resolved")
 
