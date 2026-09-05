@@ -118,11 +118,14 @@ def test_collate_reads_it_as_a_ruled_mark_and_reports_only_what_it_cannot_resolv
 
     !! IT ASSERTED `code == 0` UNTIL 2026-08-31, AND THAT ONLY HELD WHILE
     SOURCE VERIFICATION WAS UNWIRED. `P25` put `desk.collator.verify_report`
-    into the flow, and it reports three true things about this input:
+    into the flow, and it reports two true things about this input:
 
-        `address` 'b47' names no place the binder carries   -- the binder is EMPTY
         `claim.false` is not in the paragraph this row seeded -- there is no paragraph
         two `cite`s do not resolve                          -- see below
+
+    ! IT REPORTED A THIRD UNTIL 2026-09-05 -- `'b47' names no place the binder
+    carries` -- and `Process: #97` retired that check: the binder is filtered,
+    so an address it lacks is not a fault.
 
     !! THE CITATIONS CAN NEVER RESOLVE IN THIS TREE, BY DESIGN. The brief's
     worked example cites `redacted_pkg/...`, a package this repo does not ship
@@ -166,7 +169,6 @@ def test_collate_reads_it_as_a_ruled_mark_and_reports_only_what_it_cannot_resolv
         assert any(
             claim in line
             for claim in (
-                "names no place",
                 "is not in the paragraph",
                 "does not resolve",
             )
