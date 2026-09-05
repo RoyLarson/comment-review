@@ -297,7 +297,7 @@ that changed a published name or rule:
 | [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 4/6 | re-review is retired for revise |
 | [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 8/14 | The agents files name the new CLI and say how to use it |
-| [plugins-is-a-release-artifact](plugins-is-a-release-artifact.md) | systems | -- | 1/7 | plugins/ is a release artifact, not a per-change gate |
+| [plugins-is-a-release-artifact](plugins-is-a-release-artifact.md) | systems | -- | 2/7 | plugins/ is a release artifact, not a per-change gate |
 
 ### in-progress  (18)
 

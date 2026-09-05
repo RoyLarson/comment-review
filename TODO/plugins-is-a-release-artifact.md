@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 7 tasks closed
+Progress: 2 of 7 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-09-05 (Roy, 2026-09-05: the build test is noise in development; a release
@@ -15,8 +15,8 @@ plugins/ is a release artifact, not a per-change gate.
 
 ## Tasks
 
-- [ ] T1 | Delete tests/gates/test_build.py and the --check flag of
-      scripts/build_plugin.py.
+- [x] T1 | FINISHED; the suite no longer reads plugins/ against src/, its one failure is the inherited --anchor gate | 8f4be1ac | Delete
+      tests/gates/test_build.py and the --check flag of scripts/build_plugin.py.
         > 2026-09-05 Verify: pytest green over an unbuilt plugins/ tree.
 - [ ] T2 | Move the agent files, SKILL.md, references/*.md and plugin.json into
       src/plugin/, in the plugin's own shape, by git mv.
