@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 7 tasks closed
+Progress: 5 of 7 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-09-05 (Roy, 2026-09-05: the build test is noise in development; a release
@@ -32,8 +32,9 @@ plugins/ is a release artifact, not a per-change gate.
         > 2026-09-05 Verify: --dry-run lists the steps in order and writes nothing.
         > 2026-09-05 Refuses off main or on a dirty tree, before any write.
         > 2026-09-05 Version: pyproject, plugin.json, and CHANGELOG's [Unreleased].
-- [ ] T5 | Repoint every test and script that reads the shipped prose or
-      plugin.json under plugins/ at src/plugin/.
+- [x] T5 | FINISHED; only release.py opens a path under plugins/, the rest are prose mentions and fixtures | 8bb55e34 | Repoint
+      every test and script that reads the shipped prose or plugin.json under
+      plugins/ at src/plugin/.
         > 2026-09-05 Verify: only release.py opens a path under plugins/.
 - [ ] T6 | Update CLAUDE.md, docs/lanes.md and scripts/README.md so src/plugin/
       holds the written prose and only the release command writes plugins/.
