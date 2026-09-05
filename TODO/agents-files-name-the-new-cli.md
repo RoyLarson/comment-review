@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 8 tasks closed
+Progress: 6 of 9 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -40,3 +40,5 @@ The agents files name the new CLI and say how to use it.
       SKILL.md and the brief so the packet names the binder, the listing and the
       copy by absolute path and a role reads from there
         > 2026-09-05 Process 95: told where binder and marks are, roles read there
+- [ ] T9 | Update the four role files so the body opens with the remit the
+      description states, in the same words. Verify: grep Your remit hits four
