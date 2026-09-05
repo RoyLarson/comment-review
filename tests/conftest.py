@@ -192,7 +192,7 @@ def sample():
     return build(SAMPLE)
 
 
-def run_command(monkeypatch, capsys, command, *argv):
+def run_command(monkeypatch, capsys, command, *argv, with_stderr: bool = False):
     """One command, through its own `main()` and its own argument parsing.
 
     !! THROUGH `main()` AND `sys.argv`, NOT BY CALLING THE FLOW. That is the
@@ -208,9 +208,13 @@ def run_command(monkeypatch, capsys, command, *argv):
     Args:
         command: the `comment_review.commands.*` module to run.
         argv: the flags, without the program name.
+        with_stderr: read both streams, for a command that refuses on stderr
+            -- `gather --json` keeps its refusal out of the document it writes.
 
     Returns:
-        `(exit code, everything it printed to stdout)`.
+        `(exit code, everything it printed to stdout)`, or to both streams.
     """
     monkeypatch.setattr("sys.argv", [command.__name__.rsplit(".", 1)[-1], *argv])
-    return command.main(), capsys.readouterr().out
+    code = command.main()
+    got = capsys.readouterr()
+    return code, got.out + got.err if with_stderr else got.out

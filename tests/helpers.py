@@ -24,11 +24,15 @@ letting it drift.
 for `tests/test_collate.py`.
 """
 
+import json
 from pathlib import Path
 
-from conftest import ROOT, cue
+from conftest import ROOT, cue, run_command
 
 from comment_review.binder.binder import VERSION, Binder, bind
+from comment_review.commands import cap as cap_command
+from comment_review.commands import collate as collate_command
+from comment_review.commands import turn as turn_command
 from comment_review.desk.containers import EditCopy, MasterProof, Sheet
 from comment_review.desk.mark import (
     ANCHOR_EXAMPLE,
@@ -41,6 +45,7 @@ from comment_review.desk.proof import master_proof_of
 from comment_review.docket.docket import Docket
 from comment_review.flows.distribute import seed
 from comment_review.flows.page_for import page_of, source_of
+from comment_review.flows.proof_io import load_proof
 
 #: `src/comment_review/desk/` -- the source `a_small_real_tree` copies from.
 #: Any package with a handful of ordinary Python files would do; this one was
@@ -653,3 +658,164 @@ def an_add(address: str) -> dict:
             "anchor": ANCHOR_EXAMPLE,
         },
     )
+
+
+# -- the hand driver: a review from the console, over `tmp_path` ----------------
+#
+# !! THROUGH `conftest.run_command`, so every flag is parsed by the command's
+# own argparse -- the one thing that catches a flag the body reads under a
+# different name. `test_turn_command` and `test_cap_command` share it (T26 of
+# `TODO/no-command-for-the-middle.md`); before this each set `sys.argv` by hand
+# and one imported the other's underscored helpers.
+#
+# The files land in `tmp_path` under fixed names: `binder.json`, `copy<i>.json`,
+# `proof<n>.json` for the proof after turn n (0 is the first fold),
+# `batch<n>.json` for the batch turn n reads, `answers<n>_<role>.json`.
+
+BASE = "# one\n# two\n# three\n"
+TWO = "# one\n# TWO\n# three\n"
+DOS = "# one\n# dos\n# three\n"
+HAND_ROLES = ("block-context", "function-context")
+
+
+def contested(address: str, sentence="two", one=TWO, other=DOS) -> dict:
+    """Two roles correcting the same sentence to different texts."""
+    return {
+        "block-context": {address: a_correct_setting(address, sentence, one)},
+        "function-context": {address: a_correct_setting(address, sentence, other)},
+    }
+
+
+def agreed(address: str) -> dict:
+    """Two roles correcting the same sentence to the same text -- a stet at once."""
+    return {
+        role: {address: a_correct_setting(address, "two", DOS)} for role in HAND_ROLES
+    }
+
+
+def merged(*by_roles: dict) -> dict:
+    """Several role -> {address: mark} maps as one."""
+    out: dict = {}
+    for by_role in by_roles:
+        for role, marks in by_role.items():
+            out.setdefault(role, {}).update(marks)
+    return out
+
+
+def deal(
+    tmp_path, monkeypatch, capsys, by_role: dict, texts: dict | None = None
+) -> int:
+    """`collate` over `by_role`: binder.json, proof0.json, batch1.json, chief0.json."""
+    binder = a_binder_over(texts or {"m.py@b1": BASE})
+    copies = copies_over(binder, by_role)
+    (tmp_path / "binder.json").write_text(
+        json.dumps(binder.serialize()), encoding="utf-8"
+    )
+    argv = [
+        "--stage",
+        "4c",
+        "--binder",
+        str(tmp_path / "binder.json"),
+        "--out",
+        str(tmp_path / "chief0.json"),
+        "--proof-out",
+        str(tmp_path / "proof0.json"),
+        "--batch-out",
+        str(tmp_path / "batch1.json"),
+    ]
+    for i, copy in enumerate(copies):
+        path = tmp_path / f"copy{i}.json"
+        path.write_text(json.dumps(copy), encoding="utf-8")
+        argv += ["--edit-copy", str(path)]
+    code, _out = run_command(monkeypatch, capsys, collate_command, *argv)
+    return code
+
+
+def answer(tmp_path, n: int, role: str, address: str, **fields) -> str:
+    """This role's sent slot at `address` on batch<n>, with `fields` laid over.
+
+    Returns:
+        The `ROLE=PATH` spec `turn --answers` takes.
+    """
+    batch = json.loads((tmp_path / f"batch{n}.json").read_text(encoding="utf-8"))
+    slot = next(s for s in batch[role] if s["address"] == address)
+    path = tmp_path / f"answers{n}_{role}.json"
+    path.write_text(json.dumps([{**slot, **fields}]), encoding="utf-8")
+    return f"{role}={path}"
+
+
+def turn(
+    tmp_path, monkeypatch, capsys, n: int, *answers: str, proof: str = ""
+) -> tuple[int, str]:
+    """`turn` n: proof<n-1> and batch<n> in, proof<n> and batch<n+1> out."""
+    argv = [
+        "--proof",
+        proof or str(tmp_path / f"proof{n - 1}.json"),
+        "--binder",
+        str(tmp_path / "binder.json"),
+        "--sent",
+        str(tmp_path / f"batch{n}.json"),
+        "--proof-out",
+        str(tmp_path / f"proof{n}.json"),
+        "--batch-out",
+        str(tmp_path / f"batch{n + 1}.json"),
+    ]
+    for one in answers:
+        argv += ["--answers", one]
+    return run_command(monkeypatch, capsys, turn_command, *argv)
+
+
+def held_open(
+    tmp_path, monkeypatch, capsys, extra: dict | None = None, texts=None
+) -> None:
+    """Deal a contested place and hold it through one turn: proof1.json."""
+    by_role = contested("m.py@b1")
+    if extra:
+        by_role = merged(by_role, extra)
+    deal(tmp_path, monkeypatch, capsys, by_role, texts)
+    code, out = turn(
+        tmp_path,
+        monkeypatch,
+        capsys,
+        1,
+        answer(tmp_path, 1, "block-context", "m.py@b1", instruction="hold", reason="a"),
+        answer(
+            tmp_path, 1, "function-context", "m.py@b1", instruction="hold", reason="b"
+        ),
+    )
+    assert code == collate_command.ESCALATIONS, out
+
+
+def cap(
+    tmp_path, monkeypatch, capsys, rulings: object, proof: str = "proof1.json"
+) -> tuple[int, str]:
+    """`cap` over `proof` with `rulings`: chief.json and final.json out."""
+    (tmp_path / "rulings.json").write_text(json.dumps(rulings), encoding="utf-8")
+    return run_command(
+        monkeypatch,
+        capsys,
+        cap_command,
+        "--proof",
+        str(tmp_path / proof),
+        "--binder",
+        str(tmp_path / "binder.json"),
+        "--rulings",
+        str(tmp_path / "rulings.json"),
+        "--out",
+        str(tmp_path / "chief.json"),
+        "--proof-out",
+        str(tmp_path / "final.json"),
+    )
+
+
+def proof_at(tmp_path, n: int) -> MasterProof:
+    """The proof after turn n, read back through the loader."""
+    got, why = load_proof(tmp_path / f"proof{n}.json")
+    assert got is not None, why
+    return got
+
+
+def the_chief(tmp_path) -> EditCopy:
+    """`cap`'s chief.json, parsed as the ordinary edit_copy it must be."""
+    loaded = json.loads((tmp_path / "chief.json").read_text(encoding="utf-8"))
+    return returned(loaded, "chief")

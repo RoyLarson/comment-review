@@ -23,16 +23,13 @@ not expressible as text: the point of each is a byte sequence the reader
 chokes on.
 """
 
-import argparse
 import inspect
-import io
 import re
-from contextlib import redirect_stderr, redirect_stdout
 
 import pytest
+from conftest import run_command
 
 from comment_review.commands import gather as gather_command
-from comment_review.commands.gather import _report
 
 #: An ordinary nine-line Python page, and the CONTROL every case below is a
 #: corruption of. It carries a module docstring, a comment, a declaration with
@@ -73,8 +70,10 @@ CANNOT_PARSE = {
 }
 
 
-def _run(tmp_path, data: bytes, *, as_json: bool) -> tuple[int, str]:
-    """One gather over one file, and what it exited with.
+def _run(
+    tmp_path, monkeypatch, capsys, data: bytes, *, as_json: bool
+) -> tuple[int, str]:
+    """One gather over one file, through `main()` and argv, and what it exited with.
 
     ! BOTH STREAMS, because the two paths refuse on different ones: the text
     path prints its refusal to stdout beside the listing a person reads, and
@@ -84,22 +83,17 @@ def _run(tmp_path, data: bytes, *, as_json: bool) -> tuple[int, str]:
     """
     target = tmp_path / "m.py"
     target.write_bytes(data)
-    args = argparse.Namespace(
-        paths=[str(target)],
-        repo=str(tmp_path),
-        revise=0,
-        no_notes=False,
-        json=as_json,
-        filtered=False,
-        include_matter=False,
-        include_absent=False,
-        out=None,
-        languages=False,
+    flags = ["--json"] if as_json else []
+    return run_command(
+        monkeypatch,
+        capsys,
+        gather_command,
+        "--repo",
+        str(tmp_path),
+        *flags,
+        str(target),
+        with_stderr=True,
     )
-    out, err = io.StringIO(), io.StringIO()
-    with redirect_stdout(out), redirect_stderr(err):
-        code = _report(args)
-    return code, out.getvalue() + err.getvalue()
 
 
 AS_JSON = pytest.mark.parametrize("as_json", [False, True], ids=["text", "json"])
@@ -110,37 +104,47 @@ UNREADABLE = pytest.mark.parametrize(
 
 
 @AS_JSON
-def test_the_control_is_gathered_and_the_run_succeeds(tmp_path, as_json):
+def test_the_control_is_gathered_and_the_run_succeeds(
+    tmp_path, monkeypatch, capsys, as_json
+):
     """The case has to be able to pass, or every refusal below proves nothing:
     this same file, uncorrupted, must gather and exit 0."""
-    code, printed = _run(tmp_path, CONTROL.encode("utf-8"), as_json=as_json)
+    code, printed = _run(
+        tmp_path, monkeypatch, capsys, CONTROL.encode("utf-8"), as_json=as_json
+    )
     assert code == 0, printed
     assert "0 paragraphs" not in printed
 
 
 @AS_JSON
 @UNREADABLE
-def test_a_file_that_produced_no_paragraphs_stops_the_run(tmp_path, why, data, as_json):
+def test_a_file_that_produced_no_paragraphs_stops_the_run(
+    tmp_path, monkeypatch, capsys, why, data, as_json
+):
     """`CLAUDE.md`: *every file handed in is gathered or the run stops.*
 
     ! Neither half of this may pass on its own. A run that exits 1 without
     naming the file leaves the caller unable to act, and a run that names it at
     exit 0 is read as a success by everything downstream.
     """
-    code, printed = _run(tmp_path, data, as_json=as_json)
+    code, printed = _run(tmp_path, monkeypatch, capsys, data, as_json=as_json)
     assert code != 0, f"{why}: gathered nothing and reported success\n{printed}"
 
 
 @AS_JSON
 @UNREADABLE
-def test_the_file_that_stopped_the_run_is_NAMED(tmp_path, why, data, as_json):
+def test_the_file_that_stopped_the_run_is_NAMED(
+    tmp_path, monkeypatch, capsys, why, data, as_json
+):
     """Exit 1 over a run of many files says nothing about WHICH one to fix."""
-    _, printed = _run(tmp_path, data, as_json=as_json)
+    _, printed = _run(tmp_path, monkeypatch, capsys, data, as_json=as_json)
     assert "m.py" in printed, f"{why}: not named\n{printed}"
 
 
 @AS_JSON
-def test_a_parse_failure_is_AS_LOUD_AS_a_decode_failure(tmp_path, as_json):
+def test_a_parse_failure_is_AS_LOUD_AS_a_decode_failure(
+    tmp_path, monkeypatch, capsys, as_json
+):
     """The measured defect, stated as the property that forbids it.
 
     ! It compares the two halves to EACH OTHER, so it holds whatever exit code
@@ -148,7 +152,10 @@ def test_a_parse_failure_is_AS_LOUD_AS_a_decode_failure(tmp_path, as_json):
     """
 
     def codes(cases: dict[str, bytes]) -> dict[str, int]:
-        return {w: _run(tmp_path, d, as_json=as_json)[0] for w, d in cases.items()}
+        return {
+            w: _run(tmp_path, monkeypatch, capsys, d, as_json=as_json)[0]
+            for w, d in cases.items()
+        }
 
     decode, parse = codes(CANNOT_DECODE), codes(CANNOT_PARSE)
     assert set(decode.values()) == set(parse.values()), (

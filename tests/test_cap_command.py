@@ -5,67 +5,15 @@ deals, `turn` holds the place open, `cap` rules it. `P5` of
 `docs/plans/0.2.4-the-turn-as-commands.md`, and T16's other half.
 """
 
-import json
-
-from helpers import a_query, entries_of
-from test_turn_command import DOS, TWO, _contested, _merged, answer, deal, turn
+from helpers import BASE, DOS, TWO, a_query, cap, entries_of, held_open, the_chief
 
 from comment_review.commands import cap as command
 from comment_review.commands import collate as collate_command
-from comment_review.desk.containers import EditCopy
 from comment_review.desk.determined import CHIEF, ORIGINAL, Answer
 from comment_review.desk.mark import Shape
 from comment_review.flows.proof_io import load_proof
 
-BASE = "# one\n# two\n# three\n"
 RECAST = "# one\n# both\n# three\n"
-
-
-def held_open(tmp_path, monkeypatch, capsys, extra: dict | None = None, texts=None):
-    """Deal a contested place and hold it through one turn: proof1.json."""
-    by_role = _contested("m.py@b1")
-    if extra:
-        by_role = _merged(by_role, extra)
-    deal(tmp_path, monkeypatch, capsys, by_role, texts)
-    code, out = turn(
-        tmp_path,
-        monkeypatch,
-        capsys,
-        1,
-        answer(tmp_path, 1, "block-context", "m.py@b1", instruction="hold", reason="a"),
-        answer(
-            tmp_path, 1, "function-context", "m.py@b1", instruction="hold", reason="b"
-        ),
-    )
-    assert code == 4, out
-
-
-def cap(tmp_path, monkeypatch, capsys, rulings: object, proof: str = "proof1.json"):
-    (tmp_path / "rulings.json").write_text(json.dumps(rulings), encoding="utf-8")
-    monkeypatch.setattr(
-        "sys.argv",
-        [
-            "cap",
-            "--proof",
-            str(tmp_path / proof),
-            "--binder",
-            str(tmp_path / "binder.json"),
-            "--rulings",
-            str(tmp_path / "rulings.json"),
-            "--out",
-            str(tmp_path / "chief.json"),
-            "--proof-out",
-            str(tmp_path / "final.json"),
-        ],
-    )
-    return command.main(), capsys.readouterr().out
-
-
-def the_chief(tmp_path) -> EditCopy:
-    loaded = json.loads((tmp_path / "chief.json").read_text(encoding="utf-8"))
-    chief, why = EditCopy.deserialize("chief", loaded)
-    assert chief is not None, why
-    return chief
 
 
 class TestTheChiefRules:
