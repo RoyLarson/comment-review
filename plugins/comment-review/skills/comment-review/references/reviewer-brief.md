@@ -42,9 +42,11 @@ not check rather than reporting it clean.
 
 ## Read the listing end to end
 
-You are given a numbered LISTING -- the binder as a reviewer reads it -- and the mechanical
-resolutions for every paragraph on it. **Read it start to finish and fill the slot for EVERY
-paragraph that HOLDS PROSE.** Your edit copy already carries one slot per such paragraph.
+Your packet names three files on disk, each by absolute path: the BINDER; the LISTING -- the
+binder as a reviewer reads it, numbered, with the mechanical resolutions for every paragraph on
+it; and your EDIT COPY. Read the listing from that path; none of it is in this prompt. **Read
+it start to finish and fill the slot for EVERY paragraph that HOLDS PROSE.** Your edit copy
+already carries one slot per such paragraph.
 
 !! **`continues-a-trailing-comment` means the gather may have split one sentence.** A trailing
 comment closes its run, so a sentence wrapped onto the next line becomes a SECOND paragraph, anchored
@@ -226,7 +228,7 @@ tool prints how many answered; read that line.
 ```bash
 # by ANCHOR -- which place of this declaration: a its documentation,
 # b the gap above its opening line, c the room beside it
-python <skill>/scripts/comment-review.py addresser --binder <FULL BINDER> --anchor LINE --series a|b|c
+python <skill>/scripts/comment-review.py addresser --binder <BINDER from your packet> --anchor LINE --series a|b|c
 ```
 
 !! **THE ANCHOR IS THE ONLY WAY TO ASK.** Asking by position -- "the paragraph above the
@@ -507,7 +509,8 @@ The fold refuses what it cannot read, and a copy it refuses goes back to you wit
 Run the same check yourself, from the repo root, before you say you are done:
 
 ```bash
-python <skill>/scripts/comment-review.py check --edit-copy <your copy> --binder <the binder> --repo .
+python <skill>/scripts/comment-review.py check --edit-copy <EDIT COPY from your packet> \
+  --binder <BINDER from your packet> --repo .
 ```
 
 It names every slot you left `null`, every mark that will not read, every `claim` quoting a

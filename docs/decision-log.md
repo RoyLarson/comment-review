@@ -3373,3 +3373,15 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What it does not settle.** Which role, if any, becomes the chief later; whether the
   turns earn their cost -- that is what the baseline exists to measure.
+
+- **#95.** **A REVIEWER IS TOLD WHERE THE BINDER, THE LISTING AND ITS EDIT COPY ARE, AND READS
+  THEM FROM DISK** (Roy, 2026-09-05, during the first live run of `0.2.4-beta` on job_board:
+  *"The agents need to be told where the binder and their marks are at, and they can read from
+  there."*). The stage-4 packet carries `BINDER`, `LISTING` and `EDIT COPY` as absolute paths,
+  and nothing from those three files is pasted into a prompt.
+
+  **The case that asked.** The job_board run gathered 16,158 paragraphs into a 337 KB listing,
+  and the packet named no binder at all -- so the brief's `addresser --binder` and
+  `check --binder` lines pointed at a file the role had no path to. `#83`'s *"given, never sent
+  looking"* stands for the installed plugin; the run's own files are what a role reads and
+  fills, and they were always meant to arrive as the copy already did, by path.

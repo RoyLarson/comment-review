@@ -548,9 +548,11 @@ python <skill>/scripts/comment-review.py distribute --seed --binder <run-dir>/bi
 
 !! **A REVIEWER FILLS A FORM; IT DOES NOT COMPOSE A DOCUMENT.** Each slot arrives carrying the
 `address`, the `anchor` and the paragraph's `raw_text`, with `instruction` null, and the
-reviewer sets the fields that are its own. **Hand each agent the absolute path to ITS copy and
-no other**, and tell it to edit that file in place. It is the one path a reviewer is given, and
-the exception to *given, never sent looking* below: it is being given a form, not a tree.
+reviewer sets the fields that are its own. **Hand each agent three absolute paths, and it reads
+from there: the BINDER, the LISTING and ITS copy**, and tell it to edit that copy in place.
+Those are the run's own files, not the installed plugin, and they are the exception to *given,
+never sent looking* below: a form and the sheets it is filled against, not a tree. Nothing from
+the three is pasted into the prompt.
 
 ! **The seeded copy is why coverage is structural.** A paragraph nobody ruled on is a slot with
 a null instruction, not an address missing from a list, so nothing downstream reconciles what
@@ -567,14 +569,16 @@ think a file uses, and do not tell an agent where the vocabulary lives -- it is 
 not a path to go reading. ! Read it fresh from the installed toml every run, never from a copy
 staged on disk: a vocabulary one version stale reads perfectly plausible.
 
-!! **`LISTING` POINTS AT THE FILTERED FILE**, `listing.txt` from stage 2 -- not the binder.
-That is the copy a reviewer reads, and it is four copies of it per run. The binder stays on disk
-for stages 5 and 7, which resolve every address a reviewer cites against it.
+!! **`LISTING` POINTS AT THE FILTERED FILE**, `listing.txt` from stage 2, and `BINDER` at
+`binder.json`. The listing is what a reviewer reads end to end; the binder is what its
+`addresser` and `check` calls take, and what stages 5 and 7 resolve every cited address
+against. A reviewer reads both from disk; neither is pasted into a prompt.
 
 **You also supply the run context as a PACKET, with every section filled and none blank** -- a
 published non-answer such as *"UNAVAILABLE"* is an answer and must be written; a blank is not.
-`REPO ROOT`, `LISTING` and every `REVIEWER FILES` entry must be an **absolute path that exists**.
-The sections are: `REPO ROOT`; `LISTING`; `FILES UNDER REVIEW`; `REFERENCE ONLY`; the STYLE
+`REPO ROOT`, `LISTING`, `BINDER`, `EDIT COPY` and every `REVIEWER FILES` entry must be an
+**absolute path that exists**. The sections are: `REPO ROOT`; `LISTING`; `BINDER`; `EDIT COPY`,
+the one section that differs per role; `FILES UNDER REVIEW`; `REFERENCE ONLY`; the STYLE
 SHEET, templates included; whether a LANGUAGE SERVER answered, per language; the destination
 tree from 1.4, per path; and `REVIEWER FILES`, which is yours alone.
 
@@ -595,9 +599,10 @@ reviewer that does not know the format cannot tell what a paragraph contains. An
 sentence in the wrong format is work the human has to redo by hand.
 
 !! **An agent is GIVEN what it needs, and is never sent looking.** A path into the installed
-plugin is an invitation to read its neighbours and act on what it finds there. Nothing a
-reviewer needs arrives as a path: the brief and the vocabulary are in the prompt, the listing
-and the file lists come through the packet, and its copy is a form.
+plugin is an invitation to read its neighbours and act on what it finds there. Nothing from
+the installed plugin arrives as a path: the brief and the vocabulary are in the prompt. What
+does arrive as a path is the run's own files -- the binder, the listing and the role's copy --
+because those are what it reads and fills, and a listing is too large to paste four times.
 
 ! **REFERENCE ONLY is a SELECTION, not a leftover.** Name the files that settle claims code
 cannot: the repo's **decision record** (*"ruled"*, *"rejected"*, *"deferred"* have no code
