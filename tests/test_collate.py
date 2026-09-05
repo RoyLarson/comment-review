@@ -543,15 +543,16 @@ class TestTheEnvelope:
         assert named == {"block-context", "function-context"}
 
     #: !! `test_the_master_proof_is_parsed_at_its_own_boundary` WENT WITH THAT
-    #: BOUNDARY, `P42`. It monkeypatched `gather` to return `{"stage": ...,
+    #: BOUNDARY, `P42`. It monkeypatched `master_proof_of` to return `{"stage": ...,
     #: "edit_copies": "nope"}` and asserted `collate` reported it -- and its own
     #: docstring said why that was the only route: *"the proof is built INSIDE
-    #: `collate`, so the only way to hand it a malformed one is to make `gather`
-    #: return it. That is a seam, not a shape the chain can otherwise produce."*
-    #: `gather` returns a `MasterProof` now, so the seam is a type error rather
-    #: than an input, and every rule the parse enforced is settled upstream --
-    #: each copy's `read_from` at `EditCopy.deserialize`, their agreement at
-    #: `MismatchedRoot`, the `edit_copies` list by the type.
+    #: `collate`, so the only way to hand it a malformed one is to make
+    #: `master_proof_of` return it. That is a seam, not a shape the chain can
+    #: otherwise produce."* `master_proof_of` returns a `MasterProof` now, so the
+    #: seam is a type error rather than an input, and every rule the parse
+    #: enforced is settled upstream -- each copy's `read_from` at
+    #: `EditCopy.deserialize`, their agreement at `MismatchedRoot`, the
+    #: `edit_copies` list by the type.
     #: ! `MasterProof.deserialize` ITSELF IS STILL TESTED, in
     #: `tests/test_containers.py`, where it is reached the way production
     #: reaches it: over a document read off disk.
@@ -858,7 +859,7 @@ class TestTheStackedCheck:
         refuse -- which is why `_reconcilable` filters rather than produces.
 
         !! THE MECHANISM MOVED ON 2026-08-31 AND THE PROPERTY DID NOT. Written
-        first against `desk.proof.gather`'s `KeyError`, because `_reconcilable`
+        first against `desk.proof.master_proof_of`'s `KeyError`, because `_reconcilable`
         through `EditCopy.seed` handed it `read_from: {}` and the raise could
         not fire. The envelope parse now answers one step earlier and REPORTS,
         so there is no `KeyError` left to catch -- see

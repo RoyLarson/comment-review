@@ -39,13 +39,11 @@ import json
 import sys
 from pathlib import Path
 
-from comment_review.binder.binder import Binder
 from comment_review.desk.collator import Cache, base_texts, drift_in, verify_report
 from comment_review.desk.containers import EditCopy
 from comment_review.flows.mark_errors import mark_errors
+from comment_review.flows.proof_io import load_batch, load_binder, load_copy, load_value
 from comment_review.flows.turn import contracts, parse_answers, slots_of
-from comment_review.machine import exceptions
-from comment_review.machine.json_object import object_of
 
 #: Exit codes -- `distribute`'s 0/1/2. `BROKEN` is anything the fold would
 #: refuse or send back; `UNREADABLE` is a file that is not an object at all.
@@ -54,26 +52,17 @@ BROKEN = 1
 UNREADABLE = 2
 
 
-def _load(path: str, kind: str) -> tuple[object, str]:
-    """Read one file as a JSON value, or say why it is not one.
-
-    ! THE READ AND THE DECODE ARE SEPARATE STEPS, `decision-log.md Process:
-    #67`, and whether the value is a copy or a batch is the boundary's
-    question, one step further along.
-    """
-    try:
-        text = Path(path).read_text(encoding="utf-8")
-    except exceptions.READ_ERRORS as err:
-        return None, f"cannot read {path}: {err}"
-    loaded, why = object_of(text, kind)
-    return (None, f"{path} is {why}") if why else (loaded, "")
+def _refused(why: list[str]) -> int:
+    """A file that is not what it says: every reason on stderr, `UNREADABLE`."""
+    for line in why:
+        print(line, file=sys.stderr)
+    return UNREADABLE
 
 
 def _check_copy(path: str, binder_path: str | None, repo: str | None) -> int:
-    loaded, why = _load(path, "edit_copy")
+    loaded, why = load_copy(Path(path))
     if why:
-        print(why, file=sys.stderr)
-        return UNREADABLE
+        return _refused(why)
     copy, problems = EditCopy.deserialize(path, loaded)
     if copy is None:
         for line in problems:
@@ -85,16 +74,10 @@ def _check_copy(path: str, binder_path: str | None, repo: str | None) -> int:
             print(f"{one.role} {one.where}: {reason}")
             found += 1
     if binder_path:
-        loaded, why = _load(binder_path, "binder")
-        if why:
-            print(why, file=sys.stderr)
-            return UNREADABLE
-        binder, problems = Binder.deserialize(binder_path, loaded)
+        binder, why = load_binder(Path(binder_path))
         if binder is None:
-            for line in problems:
-                print(line, file=sys.stderr)
-            return UNREADABLE
-        root = Path(repo or binder.read_from.get("root") or ".")
+            return _refused(why)
+        root = Path(repo) if repo else binder.root
         cache: Cache = {}
         for problem in (
             *verify_report(copy, binder, root, cache),
@@ -108,31 +91,13 @@ def _check_copy(path: str, binder_path: str | None, repo: str | None) -> int:
     return BROKEN if found else OK
 
 
-def _load_value(path: str) -> tuple[object, str]:
-    """Read one file as ANY JSON value, or say why it is not one.
-
-    A batch answer is a list, which `machine.json_object.object_of` refuses
-    by design, since every container it reads is an object.
-    """
-    try:
-        text = Path(path).read_text(encoding="utf-8")
-    except exceptions.READ_ERRORS as err:
-        return None, f"cannot read {path}: {err}"
-    try:
-        return json.loads(text), ""
-    except ValueError as err:
-        return None, f"{path} is not JSON: {err}"
-
-
 def _check_answers(path: str, sent_path: str, role: str) -> int:
-    loaded, why = _load_value(path)
+    loaded, why = load_value(Path(path))
     if why:
-        print(why, file=sys.stderr)
-        return UNREADABLE
-    batch, why = _load(sent_path, "batch")
+        return _refused(why)
+    batch, why = load_batch(Path(sent_path))
     if why:
-        print(why, file=sys.stderr)
-        return UNREADABLE
+        return _refused(why)
     sent = slots_of(batch, role)
     if not sent:
         print(f"{sent_path}: no slots were sent to {role}")

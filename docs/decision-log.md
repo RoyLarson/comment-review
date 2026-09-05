@@ -1130,8 +1130,10 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **One collision to resolve in the same change.** `desk.proof.gather` already names the act
   of holding one stage's edit copies in a master proof. Two acts, one verb; the second is
-  renamed for what it makes -- proposed `master_proof_of`, the plan that does the work
-  carries the decision.
+  renamed for what it makes: `master_proof_of`. Roy, 2026-09-04, approving it: *"The term
+  gather was determined a while ago to be the stage that creates the binder and should
+  not have been repurposed because it seemed available."* A word the register has ruled
+  is not free because no code uses it yet.
 
   **The gate.** `census` joins `scripts/check_vocabulary.py`'s RETIRED list, replacement
   `gather`, so a shipped file cannot carry it back; the log's own history keeps the word.
@@ -3339,3 +3341,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   2026-08-25, and `prototype/` is kept as reference by its own README. So the ruling names
   what is built rather than choosing between two shapes, and the 0.2.4 plan's P12 -- delete
   the fallback -- has nothing running to delete.
+
+- **#93.** **A STEP THAT FAILS STOPS THE CHAIN THERE; NOTHING DOWNSTREAM RUNS OVER IT** (Roy,
+  2026-09-04: *"Failures at a stage get wrapped up and redirect the flow. Running farther than
+  the stage is assuming the brokenness is not affecting the downstream pieces which seems
+  silly."*). Rules [`the-flow-lives-in-the-command`](../TODO/the-flow-lives-in-the-command.md)
+  T11, and it is general: a flow is a sequence of steps, and a step that found a gap is the
+  last step that runs. The flow wraps what the step found and hands it back; the command
+  reports it and exits.
+
+  **The case that asked.** `gather` over a file it could not read ran stage 3 in full -- two
+  `git ls-files`, an `ast.parse` of every tracked file, `annotate` over every paragraph -- and
+  then refused, so the text listing carried annotations over a run that had already failed.
+  It no longer does: a gather with an unreadable file stops at the page step, in both output
+  modes, and the listing of a refused run shows the gap and nothing computed past it.

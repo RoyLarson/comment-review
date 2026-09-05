@@ -1,4 +1,4 @@
-"""`desk.determined` -- a PROTOTYPE. `decision-log.md Process: #87`.
+"""`desk.determined`. `decision-log.md Process: #87`.
 
 Mirrors `test_diff_mark.py`'s shape tests, over the chief's own object, and
 proves the master proof carries the turn record and the rulings across a
@@ -164,7 +164,7 @@ def test_a_master_proof_round_trips_turns_and_rulings():
 
 
 def test_a_master_proof_without_them_still_parses():
-    """The wire `gather` wrote before Process 87 carried neither key."""
+    """The wire `master_proof_of` wrote before Process 87 carried neither key."""
     proof = a_master_proof({"block-context": {"m.py@b1": a_correct("m.py@b1")}})
     wire = proof.serialize()
     del wire["turns"]

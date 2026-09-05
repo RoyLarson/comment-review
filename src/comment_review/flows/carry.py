@@ -143,14 +143,14 @@ def carry(binder: Binder, page, path: str, **lookup) -> tuple[Binder | None, str
     # !! THE SHA FIRST. The row is built from a page read NOW; if the file has
     # moved on, its walk describes prose nobody reviewed and the cues below any
     # edit may have shifted. Refusing is the only safe answer -- the caller
-    # re-censuses and asks again.
+    # re-gathers and asks again.
     if held.sha != page.sha:
         return (
             None,
             "",
             (
                 f"{path}: the binder records {held.sha or '<nothing>'} and the"
-                f" file reads now as {page.sha} -- re-run the census"
+                f" file reads now as {page.sha} -- re-run gather"
             ),
         )
     got, why = cue_for(page.cues, **lookup)

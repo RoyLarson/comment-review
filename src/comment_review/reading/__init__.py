@@ -15,5 +15,5 @@ a place has no prose in it, and prose has no place until a page puts the two
 together. `tests/test_page.py::TestTheTwoLeaves` enforces it.
 
 ! `addresser` IS THREE SUBJECTS AND IS NOT YET SPLIT -- P10. Its place-emitting
-half belongs here; the half that answers census queries is the binder's.
+half belongs here; the half that answers binder queries is the binder's.
 """

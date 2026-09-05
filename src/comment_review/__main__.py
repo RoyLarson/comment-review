@@ -1,7 +1,7 @@
 """The one entry point. `python -m comment_review <command> [args...]`.
 
 !! A FILE INSIDE A PACKAGE CANNOT BE RUN BY PATH, which is what forces this.
-The modules import each other by the package name, so `python .../census.py`
+The modules import each other by the package name, so `python .../gather.py`
 fails at the first import: run by path, the file's own directory goes on
 `sys.path` and `comment_review` is not on it. Roy,
 2026-08-24: *"The entry points get an actual entry point .py file and the
@@ -40,16 +40,18 @@ class Command(StrEnum):
         return name.lower()
 
     ADDRESSER = auto()
+    CAP = auto()
     CARRY = auto()
-    CENSUS = auto()
     CHECK = auto()
     COLLATE = auto()
     COMPOSITOR = auto()
     DISTRIBUTE = auto()
+    GATHER = auto()
     PROOF = auto()
     PROVE_UNCHANGED = auto()
     REFERRERS = auto()
     TAKEN_IN = auto()
+    TURN = auto()
 
 
 #: The command modules, by the name typed on the console -- `Command`'s

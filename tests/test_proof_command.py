@@ -297,15 +297,15 @@ class TestTheCommand:
 
     ! `galley` WAS THE OLD NAME FOR IT, from 2026-08-26 until the CLI alias
     was removed 2026-08-28. It used to resolve an address through
-    `rows_of(census)` -- the binder-row coupling this chain was ruled out of
+    `rows_of(binder)` -- the binder-row coupling this chain was ruled out of
     -- and keep a staleness comparison, an overlap guard and a draft loop of
     its own; all of it went, and the name is gone with it. See
     `docs/history.md`."""
 
     def test_the_command_holds_no_orchestration(self):
-        """! A COMMAND EXPOSES A FLOW; IT IS NOT ONE. `commands/census.py` took
-        446 lines calling page_for directly while flows/census.py kept 261 of
-        helpers. See TODO/the-flow-lives-in-the-command.md."""
+        """! A COMMAND EXPOSES A FLOW; IT IS NOT ONE. The gather's command took
+        446 lines calling page_for directly while its flow kept 261 of helpers,
+        until TODO/the-flow-lives-in-the-command.md T2 moved the chain."""
         text = (SRC / "comment_review" / "commands" / "proof.py").read_text(
             encoding="utf-8"
         )

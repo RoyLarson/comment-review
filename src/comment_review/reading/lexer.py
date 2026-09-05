@@ -138,7 +138,7 @@ MARKERS = ("TODO", "FIXME", "HACK", "XXX", "BUG")
 WORK_MARKER = re.compile(r"^(" + "|".join(MARKERS) + r")\b")
 # ! Every punctuation a language opens a comment with, stripped before the
 # marker is matched. Anchored on `#`, the exemption was Python-only: a
-# `// TODO:` was charged to the cap in a script that censuses eighteen languages.
+# `// TODO:` was charged to the cap in a script that gathers eighteen languages.
 LEAD_PUNCT = re.compile(r"^[\s#/*\-!=;%<>]+")
 
 
@@ -202,12 +202,12 @@ _PREFIXES = ("rb", "br", "r", "b", "f", "u")
 def docstring_text(lines: list[str]) -> str:
     """A docstring as ONE normalised string, read from the FILE's lines.
 
-    !! The census never takes this path: it reads a docstring's VALUE from the
+    !! The gather never takes this path: it reads a docstring's VALUE from the
     AST, which arrives with no delimiters. Anyone comparing against that value
     starts from the file instead -- delimiters, prefix and all -- and this is
     what makes the two comparable. Measured 2026-08-17: without it a perfect
     transcription kept its CLOSING delimiter, so a paragraph ending `did it` ran
-    together with the quotes into one token and was refused against a census
+    together with the quotes into one token and was refused against a binder
     holding the same sentence.
 
     Args:
@@ -232,14 +232,14 @@ def docstring_text(lines: list[str]) -> str:
 def _from_marker(line: str, markers: tuple[str, ...]) -> str:
     """A trailing comment's line, cut back to where its comment starts.
 
-    ! The census stores a trailing comment's PROSE from the comment token and
+    ! The gather stores a trailing comment's PROSE from the comment token and
     its WIDTH from the physical line, so the text a reviewer transcribes -- the
-    line as the file reads it -- carries code the census never had. Cutting at
+    line as the file reads it -- carries code the gather never had. Cutting at
     the marker is what makes the two comparable.
 
-    ! This finds the marker by SEARCH where the census used a lexer, so a
+    ! This finds the marker by SEARCH where the gather used a lexer, so a
     marker inside a string literal cuts in the wrong place. That is a wrong
-    answer on a line the census read correctly; it replaces a guaranteed
+    answer on a line the gather read correctly; it replaces a guaranteed
     mismatch on every trailing comment.
     """
     at = [i for m in markers if (i := line.find(m)) != -1]
@@ -252,10 +252,10 @@ def block_text(
     markers: tuple[str, ...] = ("#",),
     structural: bool = True,
 ) -> str:
-    """A paragraph's prose as the census stores it, from the file's LINES.
+    """A paragraph's prose as the gather stores it, from the file's LINES.
 
     !! The lines-to-paragraph half of the paragraph protocol, and the ONLY one. It is
-    here rather than in a caller because the census defines what a paragraph's text
+    here rather than in a caller because the gather defines what a paragraph's text
     IS; a second implementation elsewhere is a second definition, and the two
     drift. Measured 2026-08-17: the collator grew its own and disagreed with
     this file three ways at once -- a blank line, a raw-string prefix and a
@@ -265,12 +265,12 @@ def block_text(
     is prose instructing an agent. When it is built it belongs beside this.
 
     Args:
-        kind: the paragraph's `kind`, as the census records it.
+        kind: the paragraph's `kind`, as the gather records it.
         lines: the paragraph's source lines, as the file reads them.
         markers: the language's comment openers, longest first. ! The
-            language's LINE comments only, because that is what the census
+            language's LINE comments only, because that is what the gather
             passed -- a set that also stripped `/**` would produce prose the
-            census never stored.
+            gather never stored.
         structural: whether this language's doc is a STRING IN A DECLARATION'S
             BODY (Python) rather than a marked comment run (`///`, `/**`).
             `Language.doc_is_structural` records it, and it is the whole
@@ -346,7 +346,7 @@ def _closes_a_character(line: str, at: int, quote: str) -> bool:
 def _strip_strings(
     line: str, quotes: tuple[str, ...], char_quotes: tuple[str, ...] = ()
 ) -> str:
-    """Blank out string literals so a marker inside one stays out of the census.
+    """Blank out string literals so a marker inside one stays out of the binder.
 
     `url = "http://x"` holds `//` in most C-family languages. It handles
     single-line literals with backslash escapes; raw strings, heredocs and
@@ -401,7 +401,7 @@ def run_ends(
     first `*/` closes and ` c */` is code. Reading the nesting one as the flat one
     lost the WHOLE comment: the scan closed early, saw more comment after it, and
     applied the intermediate-comment rule -- which is about code after a mid-line
-    close. Measured 2026-08-20, a Rust trailing comment censused as zero prose.
+    close. Measured 2026-08-20, a Rust trailing comment read as zero prose.
 
     ! WHERE IT MATTERS IS THE TRAILING COMMENT. Roy, 2026-08-20: *"the only place
     we need to care is if it is a trailing comment."* A `b` needs no depth -- a
@@ -451,7 +451,7 @@ def _own_characters(span: list[str], column: int) -> list[str]:
     ! WHAT THE RULE IS FOR: the two tiers once stored different things -- the
     lexical one cut at the comment OPENER, the stdlib one kept the whole physical
     line -- so the retired `paragraph_matches` could not be written to satisfy
-    both, and refused a FRESH census on four of six comment shapes.
+    both, and refused a FRESH binder on four of six comment shapes.
 
     ! With `anchor` holding the code, `anchor + raw_lines[0]` reconstructs the
     first line exactly. Storing the whole line here instead would put the code
@@ -480,7 +480,7 @@ def _anchor_of(lines: list[str], line_no: int, column: int) -> str:
     tier already found where the comment opens, which means it already had the
     characters before it.
 
-    !! WITHOUT IT, STALENESS HAS NOTHING FROM THE CENSUS TO COMPARE THE CODE
+    !! WITHOUT IT, STALENESS HAS NOTHING FROM THE BINDER TO COMPARE THE CODE
     AGAINST. `paragraphs_stdlib` kept the whole physical line in `raw_lines` and so
     checked both halves by accident; `paragraphs_lexical` cuts at the opener and so
     checked only the prose -- measured 2026-08-19, a lexical trailing comment
@@ -632,7 +632,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
     needs the structure this tier lacks.
 
     ! A paragraph opener with no closer swallows every remaining line into one run,
-    so code below it is censused as prose. That paragraph is STAMPED
+    so code below it is read as prose. That paragraph is STAMPED
     `unterminated-paragraph-comment`, which is how a consumer tells it from a long
     comment; `prove_unchanged.py` refuses the whole file on that annotation.
     """
@@ -730,7 +730,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         # !! `raw_lines` IS THE SOURCE, `raw` IS THE PROSE. They were one list,
         # so a paragraph comment's own indentation and a trailing comment's code
         # were cut out of the record of what is on disk -- and `paragraph_matches`
-        # then refused a census built seconds earlier. The cut text still makes
+        # then refused a binder built seconds earlier. The cut text still makes
         # `text` and still counts against the cap; the file's own characters are
         # what a splice is checked against.
         span = lines[run[0][0] - 1 : run[-1][0]]
@@ -746,7 +746,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             # and the kind must say so. ! `trailing` alone answers only the
             # single-line case: a paragraph comment opened after a statement
             # flushes with `trailing=False`, because by then the run spans
-            # several lines -- so `int b = 2; /* opens` was censused as a plain
+            # several lines -- so `int b = 2; /* opens` was read as a plain
             # `comment` sitting at a `c` place, and kind and series disagreed.
             kind = "trailing-comment" if trailing or partial_first[0] else "comment"
         # !! THE LEXER SAYS WHICH SERIES THIS RUN IS, and matter is the case it
@@ -818,7 +818,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
     for n, raw_line in enumerate(lines, 1):
         if in_block is not None:
             # !! CODE AFTER THE CLOSER KEEPS ITS PROSE AND LOSES ITS CODE LINE.
-            # `/* note\n   more */ int x = 5;` censuses the run and leaves
+            # `/* note\n   more */ int x = 5;` gathers the run and leaves
             # `int x = 5;` out of `code_lines`, so every interval boundary below
             # it moves.
             #
@@ -883,7 +883,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         # `flush()` because `"".startswith(openers)` is False. SKILL.md names
         # the consequence exactly: "Split on blanks and a 9-line paragraph reads as
         # `6 + 3` and passes a cap of 6 -- the quickest way to fake compliance."
-        # Measured 2026-08-17: a six-line run with one blank censused as 3L + 3L
+        # Measured 2026-08-17: a six-line run with one blank read as 3L + 3L
         # in every LEXICAL language, while `paragraphs_stdlib` skips NL tokens and
         # kept it whole. Seventeen of the eighteen languages could evade any cap.
         #
@@ -926,7 +926,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             # decision moved down to where the facts are.
             # !! CUT AT THE OPENER, like the line-comment path below does. The
             # whole raw line was appended, so `int b = 2; /* note */` was
-            # censused as one `comment` paragraph whose TEXT held the statement --
+            # read as one `comment` paragraph whose TEXT held the statement --
             # executable code handed to four reviewers as prose, run through the
             # annotation regexes, and dropped from `code_lines`, which moved
             # every interval boundary in the file. Measured 2026-08-17, the same
@@ -940,7 +940,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             #
             # !! THIS SCANNED THE BLANKED TEXT FOR THE CLOSER, and an apostrophe
             # ate it. MEASURED 2026-08-22 on JavaScript: `/* don't cache this */`
-            # over two statements censused as ONE `matter` paragraph spanning
+            # over two statements read as ONE `matter` paragraph spanning
             # lines 1-3, with NO `c` place on the file -- the executable code
             # handed to four reviewers as prose and every address below it gone.
             # ! It hits every language whose `quotes` holds `'` and whose
@@ -950,7 +950,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             ends_at, layers = run_ends(tail, opened, lang.nests_comments)
             closes_here = ends_at >= 0
             after = tail[ends_at:] if closes_here else ""
-            # !! AN INTERMEDIATE COMMENT IS NOT CENSUSED -- one that CLOSES on
+            # !! AN INTERMEDIATE COMMENT IS NOT GATHERED -- one that CLOSES on
             # this line with code after it, `int x = /* why */ 5;`. Roy ruled it
             # 2026-08-19, on the same grounds as a Python type annotation: *"they
             # are not comments that can be systemically and completely verified
@@ -958,7 +958,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
             # of line length rules ... all intermediate comments are ignored.
             # They can be brought up by the agents as code change suggestions."*
             #
-            # ! It was censused, and the paragraph's TEXT was the whole statement:
+            # ! It was gathered, and the paragraph's TEXT was the whole statement:
             # measured 2026-08-19, `f.c@c1 comment text='int x = /* why */ 5;'`
             # -- executable code handed to four reviewers as prose. Cutting at
             # the opener instead loses the `5;`, so `5` and `7` would compare
@@ -1019,7 +1019,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
                 # flushed on every close, so `/* one */` alone on a line ended
                 # its paragraph and the blank beneath it could not bridge to the
                 # next run. ! Code AFTER the closer cannot reach here -- such a
-                # line is not censused at all, by the intermediate-comment ruling
+                # line is not gathered at all, by the intermediate-comment ruling
                 # above -- so code BEFORE the opener is the only thing left, and
                 # that makes this a trailing comment: prose about the statement
                 # on its own line, which must not absorb the prose beneath it.
@@ -1028,7 +1028,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         # !! ASKED OF THE RAW LINE, NOT THE BLANKED ONE. `_strip_strings` replaces
         # a literal with spaces, which erases the evidence that code came first:
         # `  "b" // the last one` blanks to `      // the last one`, whose strip
-        # starts with the opener, so a JS array element was censused as a
+        # starts with the opener, so a JS array element was read as a
         # whole-line `comment` whose TEXT held `"b"` -- executable code handed to
         # four reviewers as prose -- and its line left `code_lines` entirely.
         # ! WHAT THAT COSTS IS NOT THE MISREADING. Every `b` and `c` below the
@@ -1083,7 +1083,7 @@ def paragraphs_lexical(path: Path, text: str, lang: Language) -> list[Paragraph]
         out[-1].notes.append(
             f"UNTERMINATED {in_block[0]}: no closing {in_block[1]} before end of "
             "file, so every line below the opener was swallowed into this run. "
-            "Code down there was NOT censused as code."
+            "Code down there was NOT read as code."
         )
     return out
 
@@ -1411,9 +1411,9 @@ def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
             # declaration below it. That is correct by the paragraph definition --
             # the continuation sits between two lines of code -- and wrong about
             # the prose, which is one sentence. STAMPED rather than re-cut:
-            # merging would change paragraph boundaries and renumber every census,
+            # merging would change paragraph boundaries and renumber every binder,
             # and the harm is a reviewer filing `correct` against a mid-clause
-            # ending the census manufactured.
+            # ending the gather manufactured.
             if paragraph.kind == "comment" and paragraph.start == trailing_end[0] + 1:
                 paragraph.annotations.add("continues-a-trailing-comment")
                 paragraph.notes.append(
@@ -1446,7 +1446,7 @@ def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
         # `(filename, lineno, offset, text, ...)`, so `args[1][0]` is
         # `'<unknown>'`. MEASURED 2026-08-22 on a dedent mismatch: `page_for`
         # raised `TypeError: '>=' not supported between 'str' and 'int'`, the
-        # census printed that TypeError as its diagnosis, and the compositor
+        # gather printed that TypeError as its diagnosis, and the compositor
         # exited 1 on a traceback.
         # ! `lineno` IS THE ATTRIBUTE `SyntaxError` PUBLISHES, and `TokenError`
         # does not have one -- so asking for it tells the two apart without a
@@ -1542,7 +1542,7 @@ def paragraphs_stdlib(path: Path, text: str) -> list[Paragraph]:
         # `ast.get_docstring` returns the string CONTENT: no quote delimiters,
         # and no indent on the first line. Stored, it made every consumer that
         # compares a paragraph to the file compare unlike things -- measured
-        # 2026-08-17 on `galley.py`'s own census, `paragraph_matches` returned False
+        # 2026-08-17 on `galley.py`'s own binder, `paragraph_matches` returned False
         # for all six docstring paragraphs of an UNMODIFIED file and True for all
         # five comment paragraphs, so a docstring edit was refused as stale and the
         # galley could not be set for it at all. `text` is the whole source and

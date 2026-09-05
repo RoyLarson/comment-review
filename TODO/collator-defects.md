@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 29 tasks closed
+Progress: 7 of 31 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -171,3 +171,10 @@ Four defects in collator.py, found by reading only the code.
       bites
         > 2026-09-02 conventions.md called these filed on 2026-08-31; no task did
         > 2026-09-03 confirmed, not superseded, by Process 83 -- correct as written
+- [ ] T30 | Implement a stet Determined for a place every role marked clean, in
+      flows/collate._resolve. Verify: hand 7's b14 and a3 each carry one
+        > 2026-09-04 hand 7, 2026-09-04: b14 and a3 all clean, proof0.determined == []
+        > 2026-09-04 hand 7: b14 and a3 all clean, proof0.determined was empty
+- [ ] T31 | Update _identical so an identical stet's side names every agreeing
+      role, not the alphabetically first. Verify: hand 7 a1 names four
+        > 2026-09-04 hand 7: a1 was ownership-context's drop; side read block-context

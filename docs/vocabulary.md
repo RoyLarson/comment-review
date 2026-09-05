@@ -53,6 +53,7 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 | `verdict` | -> **instruction**. Judicial on an editorial system, the same register error `jurisdiction` made before it became `remit`; and it named the same thing twice -- the object a role returns is a **mark**, its type is an **instruction**. See `decision-log.md Vocabulary: #17` |
 | `mark` (the COMMAND, `flows/marks.py`, `Command.MARK`) | -> **`distribute`**, in `6187f71`. The command hands each role an EMPTY `edit_copy` and takes the filled one back; it produces no mark and rules on nothing. One stem named both a role's RULING and the machinery that circulates the forms, so `mark --seed` read as *make a mark* when it means *give out the blanks*. ! The NOUN IS LIVE and is defined in the shipped vocabulary -- this retires the command sense only, which is the shape `owner` (the census field) and `marks` (the census's) took before it |
 | `re-review` (stages 5b and 6b, `references/re-review.md`) | -> **revise**. The printer's word, and the code had already adopted it -- `flows/revise.pull`, `read_from.revise` -- for the second proof pulled after the marked corrections are set. 5b and 6b set a galley of the edited text and send it back to be read: that IS a revise. Roy, 2026-09-04; `decision-log.md Vocabulary: #32`. ! The rename lands as one objective, gate entry last -- `TODO/re-review-is-retired-for-revise.md` |
+| `census` | -> **gather** for the stage, the act and the command; **binder** for what it hands over. `gather` has been stage 2's word since 2026-08-23 and a second `gather` had taken it for the master proof, now `master_proof_of`. `censused` -> gathered, and where the lexer classified a line, **read**. No alias. Roy, 2026-09-04; `decision-log.md Vocabulary: #34` |
 
 ## Held in reserve -- publishing's word for something we already have
 
@@ -302,7 +303,7 @@ destination, or an `add`, may cite a page the binder never carried -- it is stil
 ! That is the constraint Roy stated the same day: a destination must be ADDRESSABLE, *"not
 necessarily in the binder."*
 
-! **AND IT GIVES THE PULLED-IN PAGE ITS PROVENANCE.** A code file censused mid-run is not
+! **AND IT GIVES THE PULLED-IN PAGE ITS PROVENANCE.** A code file gathered mid-run is not
 "external" to anything -- it was on the shelf all along. What is true of it is that **the roles
 never saw it**, which is a fact about the BINDER, not about the file.
 
@@ -320,7 +321,7 @@ never saw it**, which is a fact about the BINDER, not about the file.
 attaches its sha at the moment of the pull.
 
 !! **THE DISTINGUISHING FACT IS THAT NO ROLE SAW IT**, so no role vouched for it. That is a fact
-about the BINDER, not about the file -- which is why `external` was rejected: a page censused
+about the BINDER, not about the file -- which is why `external` was rejected: a page gathered
 mid-run is not external to anything, it was on the shelf all along.
 
 ! **AND IT STAYS TRUE IF THE PAGE IS SET.** A `move` destination may land in `pulled`, so the
@@ -453,7 +454,7 @@ check refuses a term no role uses. Adding it to tidy the numbers is writing to t
   date, not what it replaced. Every word in `vocabulary.toml` is shipped into a prompt and
   charged for; this table is where a superseded term stays legible.
 - **Polysemy is allowed when it is DECLARED and the contexts do not overlap** -- `opener` (a
-  comment delimiter, and a record's `--- RECORD`), `annotations` (the census's, and
+  comment delimiter, and a record's `--- RECORD`), `annotations` (the gather's, and
   `from __future__`), `node` (a page's node, and an AST node), **`leaf`** (a module that imports
   no sibling, and -- retired -- a sheet of paper).
   - !! **`leaf` IS THE ONE WHERE ONE SENSE WAS RETIRED AND THE OTHER KEPT.** Ruled by Roy,

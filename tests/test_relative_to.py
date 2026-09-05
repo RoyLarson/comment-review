@@ -27,14 +27,14 @@ def test_a_child_is_named_without_a_walk(tmp_path):
 
 
 def test_the_same_place_is_a_dot(tmp_path):
-    # ! WHAT THE CENSUS OF ITS OWN CHECKOUT REPORTS: `census --repo .` records
+    # ! WHAT A GATHER OF ITS OWN CHECKOUT REPORTS: `gather --repo .` records
     # `{"root": ".", "revise": 0}`, which is the value this case produces.
     assert relative_to(tmp_path, tmp_path) == Path(".")
 
 
 def test_a_sibling_walks_up(tmp_path):
     # ! THE REVISE CASE. `pull` puts a revise root beside the checkout, so the
-    # census of that root has to walk out of the checkout and back down.
+    # gather of that root has to walk out of the checkout and back down.
     repo = tmp_path / "repo"
     revise = tmp_path / "r1"
     repo.mkdir()
@@ -53,7 +53,7 @@ def test_two_anchors_yield_the_absolute_target():
     # MEASURED 2026-08-28: `os.path.relpath(r"D:\\corpora\\numpy",
     # r"C:\\Users\\Roy")` raises `ValueError: path is on mount 'D:'`. There is
     # no relative path between two anchors, so the absolute target is the only
-    # honest answer -- `census --json --repo D:\\...` from a `C:` cwd was an
+    # honest answer -- `gather --json --repo D:\\...` from a `C:` cwd was an
     # uncaught traceback before this.
     #
     # ! POSIX HAS ONE ANCHOR, so this asserts the RULE rather than a Windows

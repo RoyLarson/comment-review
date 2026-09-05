@@ -34,7 +34,7 @@ class TestBothBucketsFire(unittest.TestCase):
         )
         # ! Prose names one of them and no code does.
         (root / "plugins" / "SKILL.md").write_text(
-            "Run the tool with PROSE_ONLY when the census is stale.\n",
+            "Run the tool with PROSE_ONLY when the binder is stale.\n",
             encoding="utf-8",
         )
         (root / "scripts" / "caller.py").write_text(

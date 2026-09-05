@@ -1,6 +1,6 @@
 """THE ADDRESSER: numbering the places on a page, and reading the number back.
 
-    python addresser.py --census census.json --anchor "def f():" --series a
+    python addresser.py --binder binder.json --anchor "def f():" --series a
 
 FOUR ADDRESSERS walk one trigger list -- the MODULE, every line of code, then
 EOF -- each holding its own counter and the places it emitted. `cue()` runs
@@ -30,7 +30,7 @@ in its body -- so an anchor has many addresses. A LINE still has one.
 ! THE `d` SERIES TAKES NO ADDRESS AT ALL -- see `LEAD` for why, and `SERIES`
 for what it takes instead.
 
-!! THIS RESTS ENTIRELY ON THE CENSUS BEING WHAT ROY CALLED IT, 2026-08-18: a
+!! THIS RESTS ENTIRELY ON THE BINDER BEING WHAT ROY CALLED IT, 2026-08-18: a
 HASHED STATIC TABLE -- exact, constant, FULLY ENUMERATED. Take away any one of
 those and the scheme collapses without saying so:
 
@@ -62,7 +62,7 @@ still changes the body's shape and still fails -- filed as
 !! AND IT PROVES NOTHING AT ALL ON AN UNPROVABLE FILE, which is the hard
 exception this scheme rests on and must name. `prove_unchanged` returns
 `unprovable` for a comment delimiter sharing a line with code, for an
-unterminated paragraph comment, and for a census that disagrees with the file. Such
+unterminated paragraph comment, and for a binder that disagrees with the file. Such
 a run is REPORTED and counted a failure rather than passed -- so there is no
 stage 8 to hand an address to, and the guarantee above is never claimed for a
 file it does not cover.
@@ -839,7 +839,7 @@ def cue(
 
 
 #: The character that joins path segments in an address. A path may not hold it
-#: -- Windows forbids it outright, and `census.py` refuses a POSIX path that
+#: -- Windows forbids it outright, and `gather` refuses a POSIX path that
 #: does -- which is what makes `flatten` invertible. See `flatten`.
 SEPARATOR = ":"
 
@@ -853,7 +853,7 @@ def flatten(path: str) -> str:
     separator below carries that difference through into the address.
 
     !! THE EXTENSION STAYS. Dropping it reads better and reintroduces collisions
-    the moment a repo holds `b.py` beside `b.rs` -- which this census supports by
+    the moment a repo holds `b.py` beside `b.rs` -- which this gather supports by
     design, eighteen languages in one run. Roy ruled it 2026-08-18: "we could have
     mixed languages in the system with the same names that without that we are
     back to collisions."
@@ -868,7 +868,7 @@ def flatten(path: str) -> str:
     safe as a bare command-line argument where `<`, `>`, `|`, `?` and `*` are
     not. Measured 2026-08-19 over 2,472 source paths in seven corpora: zero hold
     any of the seven. ! POSIX forbids only `/` and NUL, so a POSIX path CAN
-    hold a colon and this would be ambiguous again -- `census.py` refuses such a
+    hold a colon and this would be ambiguous again -- `gather` refuses such a
     file rather than addressing it.
     """
     return str(path).replace("\\", "/").replace("/", SEPARATOR)
@@ -903,20 +903,20 @@ def address_for(path: str, cue: str) -> str:
 
 
 def unflatten(name: str, paths: list[str]) -> str:
-    """The real path a flattened one names, or "" if the census cannot say.
+    """The real path a flattened one names, or "" if the binder cannot say.
 
-    ! It resolves against the CENSUS rather than by string surgery, because the
-    census is what knows which paths exist. With `:` as the separator the form
+    ! It resolves against the BINDER rather than by string surgery, because the
+    binder is what knows which paths exist. With `:` as the separator the form
     is invertible, so this now answers for exactly one path or none.
 
     ! Ambiguity is still REFUSED rather than resolved by preferring one. It was
-    reachable while the separator was `.`; it is kept because `census.py`'s
+    reachable while the separator was `.`; it is kept because `gather`'s
     refusal is what makes it unreachable, and a reader here should not have to
     know that to trust the answer.
 
     Args:
         name: the flattened path from an address, without the `@cue`.
-        paths: the paths the census carries.
+        paths: the paths the binder carries.
 
     Returns:
         The one path whose flattened form is `name`, or "" when none or several

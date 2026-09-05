@@ -104,9 +104,9 @@ annotations lazy from 3.14, so the break was invisible locally. Roy: *"the floor
 will not fail if we are using the floor to evaluate the code."*
 
 ```bash
-# The census -- stages 2-3 of the skill -- over one or more files
-uv run python src/comment-review.py census --repo . <paths...>
-uv run python src/comment-review.py census --languages
+# The gather -- stages 2-3 of the skill -- over one or more files
+uv run python src/comment-review.py gather --repo . <paths...>
+uv run python src/comment-review.py gather --languages
 
 # Stage 3 inbound: which tracked files NAME the files under review
 uv run python src/comment-review.py referrers --repo . <paths...>
@@ -276,8 +276,8 @@ read it before touching the skill. The pipeline:
 1. **PROJECT DETERMINATION** (task agent) -- scope from the merge base, find the repo's cap/width
    conventions, doc style, `move` destination, style sheet, verify reviewer agents resolve, probe
    for a language server, decide the name-corpus source.
-2. **GATHER** (`page.py` builds each page, `census.py` stacks them) -- every line classified, in order -- code, part-code, comment, docstring. Each paragraph is addressed by the subject its prose answers to: a gap between two lines of code, a declaration's documentation, or the room beside a line.
-3. **FIND REFERENCES** (`census.py`) -- every reference each node makes, resolved (paths, symbols,
+2. **GATHER** (`page.py` builds each page, `flows/gather.py` stacks them) -- every line classified, in order -- code, part-code, comment, docstring. Each paragraph is addressed by the subject its prose answers to: a gap between two lines of code, a declaration's documentation, or the room beside a line.
+3. **FIND REFERENCES** (`flows/annotations_for.py`) -- every reference each node makes, resolved (paths, symbols,
    counts).
 4. **MARK** (4 reviewer agents, read-only) -- findings on the nodes. **SERIAL in two rounds:
    `ownership-context` alone at 4a, the other three in one message at 4c against its
@@ -293,7 +293,7 @@ read it before touching the skill. The pipeline:
 the pages at all. The edit process moves data in json files or memory nothing in the actual
 files."* Its inputs are a binder and the returned `edit_copy`s; its output is the copy chief's
 `edit_copy` and, downstream, a docket. **Pages are opened at the ENDS of the chain only** --
-`census` at one, the write chain at the other.
+`gather` at one, the write chain at the other.
 
 **So nothing in the middle asks whether a page changed.** No drift check, at any granularity: a
 `raw_text` comparison and a `sha` comparison are the same question, and the middle has no stake in
@@ -331,7 +331,7 @@ Reviewers are read-only and never see SKILL.md directly; they read the shared
 `references/reviewer-brief.md`. Fixing what you find destroys the finding -- MARK and APPLY are
 deliberately separate stages/actors.
 
-### The census -- the only thing the reviewers depend on
+### The binder -- the only thing the reviewers depend on
 
 It is built from the stdlib alone (no third-party dependency), at a per-language tier,
 across four modules that each announce ONE subject:
@@ -340,7 +340,7 @@ across four modules that each announce ONE subject:
 | --- | --- |
 | `addresser.py` | names places -- the addressers walk out, `Cues` reads back. The LEAF: it knows nothing about a paragraph |
 | `page.py` | one file -- its paragraphs tied to the places on it. `page_for()` builds one; a page names its own places |
-| `census.py` | every page in scope, formatted for the agents |
+| `flows/gather.py` | every page in scope, annotated and bound |
 | `repo.py` | what the checkout says: git, the filesystem, the exception tuples |
 
 `annotate.py` is stage 3, the resolution a reviewer would otherwise do by hand.
@@ -351,8 +351,8 @@ Each announces ONE subject, which is what `module-context` asks of any module:
 | `tokenized` | a lexer + AST (Python, stdlib)        | blocks, marks, docstring owners | a comment's owner |
 | `lexical`   | a comment-syntax record, nothing else | blocks, marks                   | any owner         |
 
-A language with no record is named and the census exits nonzero: every file handed in is
-censused or the run stops. Adding a LEXICAL language is a data row, not new code.
+A language with no record is named and the gather exits nonzero: every file handed in is
+gathered or the run stops. Adding a LEXICAL language is a data row, not new code.
 
 **AND A tokenized one is not, which this said otherwise until 2026-08-22.** It read *"adding
 a language is a data row"* flat. MEASURED: `language.py` decides the tier as `return "tokenized"
@@ -454,7 +454,7 @@ content elsewhere, and a change to a rule belongs in exactly one of these files 
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `src/comment_review/`             | **the Python, and the only place to edit it.** Seven areas -- `machine`, `reading`, `binder`, `concordance`, `desk`, `results`, `flows` -- plus `commands/`, which holds every `main()` and argparse, and `__main__.py`, the dispatcher. `src/comment-review.py` beside it is the launcher, the one file allowed to touch `sys.path` |
 | `plugins/comment-review/`         | the shipped plugin -- `agents/`, `SKILL.md` and `references/*.md` are WRITTEN here; `skills/*/scripts/` is BUILT from `src/` and is output                                  |
-| `docs/`                           | how this system behaves today, and the rules for changing it: `addressing.md` (how a place is NAMED -- the crux, and what the line-numbered form got wrong), `parsing.md` (where census structure could come from), `limitations.md` (rules for changing the skill itself -- budget-constrained, no invented examples), `vocabulary.md` (the settled terms, and every word this system stopped using), `the-turn.md` (the SOURCE for what a TURN is, what a DiffMark answers, and what closes the editorial roles -- the loop lived only in chat until 2026-09-02 and was reconstructed wrong twice), `history.md` (what the system used to DO and stopped doing -- a retired format or mechanism, with the commit that removed it, so an OLD artifact can still be read), `decision-log.md` (WHAT was decided and WHEN -- the dated chain of rulings, retractions and supersessions; the commentary on WHY is `history.md`'s. Cited as `decision-log.md TOPIC: #N`) |
+| `docs/`                           | how this system behaves today, and the rules for changing it: `addressing.md` (how a place is NAMED -- the crux, and what the line-numbered form got wrong), `parsing.md` (where a page's structure could come from), `limitations.md` (rules for changing the skill itself -- budget-constrained, no invented examples), `vocabulary.md` (the settled terms, and every word this system stopped using), `the-turn.md` (the SOURCE for what a TURN is, what a DiffMark answers, and what closes the editorial roles -- the loop lived only in chat until 2026-09-02 and was reconstructed wrong twice), `history.md` (what the system used to DO and stopped doing -- a retired format or mechanism, with the commit that removed it, so an OLD artifact can still be read), `decision-log.md` (WHAT was decided and WHEN -- the dated chain of rulings, retractions and supersessions; the commentary on WHY is `history.md`'s. Cited as `decision-log.md TOPIC: #N`) |
 | `docs/plans/`                     | release scopes -- what one version ships, what it does not, and which TODOs it works. !! **NOT `docs/superpowers/plans/`**, and the split is deliberate: Roy, 2026-08-19, *"I don't want to conflate the rigorous one for the less rigorous one."* A superpowers plan is written for an engineer with no context -- exact files, TDD steps, a commit per task. **A plan is not A TODO**: *"Todos can remain open an indefinite amount of time and make progress as we see fit. Plans are scopes of work to be complete in one run."* Anything in a plan that does not get done is filed in `TODO/` before the plan closes |
 | `evidence/`                       | the prose defects the system is measured against, and the searches scored on them: per-module probe reports over a real codebase, the triage that ranked them, `ga/ground_truth.py` and the candidate rewrites it scores. Nothing here describes this system's own behavior -- that is `docs/`                                                    |
 | `evals/`                          | `generator_split.py` (the authorship split) and `test-cases.jsonl`. The twelve planted hazards and their grader are NOT here -- there is no end-to-end grade, see Commands |

@@ -11,7 +11,7 @@ from conftest import PKG, READ_FROM, SAMPLE, build, by_cue, cue
 
 from comment_review.binder.binder import VERSION, Binder, bind
 from comment_review.binder.page import _place
-from comment_review.flows.census import carried
+from comment_review.flows.gather import carried
 from comment_review.machine.json_object import object_of
 from comment_review.reading.series import Kind
 
@@ -68,6 +68,15 @@ def read(text: str):
 def test_the_binder_names_its_own_version(binder):
     """A reader can say WHICH shape it refused, not only that it refused one."""
     assert binder.version == VERSION
+
+
+def test_the_binder_names_its_root_as_a_path(binder):
+    """The commands resolve a cite against `binder.root`; there is no fallback
+    to `"."`, because a binder with no root is refused before it is one."""
+    from pathlib import Path
+
+    assert isinstance(binder.root, Path)
+    assert str(binder.root) == READ_FROM["root"]
 
 
 def test_a_page_carries_its_path_and_its_identity(binder, wire):
@@ -172,7 +181,7 @@ def test_an_empty_place_is_still_ADDRESSED_on_the_page(binder):
 
 
 def test_carried_drops_fences_and_keeps_everything_else():
-    """`carried` is the one statement of what a census hands over."""
+    """`carried` is the one statement of what a gather hands over."""
     page = build(SAMPLE)
     kept = carried(page)
     assert all(b.address for b in kept)
@@ -403,7 +412,7 @@ class TestAReaderRefusesRatherThanCoping:
         prose.
 
         ! WHAT THAT COSTS: `Kind.holds_no_prose` is what `Page.prose` and the
-        census filter ask, so a role handed a re-read binder would be given 259
+        gather's filter ask, so a role handed a re-read binder would be given 259
         places to rule on that hold nothing. Roy, 2026-08-25: *"The absent kinds
         are not supposed to be sent to the agents."*
 
@@ -436,7 +445,7 @@ class TestAReaderRefusesRatherThanCoping:
         assert "carries no `read_from`" in why
 
     def test_a_bare_list_is_refused_by_name(self):
-        """The shape the census emitted before the envelope. Three commands each
+        """The shape the gather emitted before the envelope. Three commands each
         guessed at it a different way and a fourth did not guess at all."""
         page = build(SAMPLE)
         old = json.dumps([_place(b) for b in carried(page)])

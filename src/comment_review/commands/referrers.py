@@ -26,7 +26,7 @@ def main() -> int:
     )
     args = ap.parse_args()
 
-    # ! WRITES ITS OWN FILE, for the reason `census.py:276` carries: a
+    # ! WRITES ITS OWN FILE, for the reason `commands/gather.py`'s `--out` carries: a
     # worktree-isolated harness REFUSES a command carrying a shell redirect,
     # and the REFERENCE ONLY list is what stage 3 keeps -- so the only route to
     # holding it was unrunnable in the session type the skill is written for.

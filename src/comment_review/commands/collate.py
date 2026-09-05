@@ -1,7 +1,8 @@
 r"""The `collate` command: its argument parsing, its report and its exit code.
 
     comment_review collate --stage 4c --binder B.json --out chief.json \\
-        --edit-copy a.json --edit-copy b.json
+        --edit-copy a.json --edit-copy b.json \\
+        [--proof-out proof.json] [--batch-out batch1.json]
 
 The work is `flows.collate`; this is only the console face of it.
 
@@ -10,21 +11,25 @@ A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`.
 
 !! EVERY CARRIED-FORWARD PLACE IS NAMED, NEVER COUNTED. `A-T2` of
 `TODO/no-command-for-the-middle.md`: a run that settles 4 of 10 must say what
-became of the other 6. ! WHAT IT DOES NOT YET DO is name the command that
-CONTINUES them -- `Process: #51`'s other half, which is a later plan's, by
-this plan's own scoping.
+became of the other 6. ! `--proof-out` AND `--batch-out` WRITE WHAT CONTINUES
+THEM -- the state between turns and the first turn's batch (`Process: #87`);
+the verb that runs the turn is `TODO/no-command-for-the-middle.md` T16.
 """
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
-from comment_review.binder.binder import Binder
 from comment_review.desk.proof import MismatchedRoot
 from comment_review.flows.collate import CannotCollate, collate
-from comment_review.machine import exceptions
-from comment_review.machine.json_object import object_of
+from comment_review.flows.proof_io import (
+    load_binder,
+    load_copy,
+    save_batch,
+    save_copy,
+    save_proof,
+)
+from comment_review.flows.turn import batch_for, proof_after
 
 #: Exit codes, extending `distribute`'s own 0/1/2 with the outcomes a caller
 #: branches on. `main` CHECKS `got.escalations`, THEN `got.rereads`, THEN
@@ -71,16 +76,16 @@ COVERAGE = 6
 #: !! IT HELD THREE UNTIL `P42` AND NOW HOLDS ONE, because two of the three
 #: became unconstructable rather than merely unreached. `desk.collator
 #: .UnnamedRole` is DELETED -- `places` takes a `MasterProof`, whose copies each
-#: carry a `role` `EditCopy.deserialize` already required -- and `gather` no
-#: longer subscripts `read_from`, so the `KeyError` added 2026-08-30 has no
-#: raiser left. ! THAT `KeyError` WAS REAL WHEN IT WAS ADDED: `gather` raised it
+#: carry a `role` `EditCopy.deserialize` already required -- and `master_proof_of` no
+#: longer subscripts `read_from`, so the `KeyError` added 2026-08-30 has no raiser left.
+#: ! THAT `KeyError` WAS REAL WHEN IT WAS ADDED: `master_proof_of` raised it
 #: by design and, uncaught, it escaped past this module's own promise that "a
 #: raise is not a refusal".
 #: !! AND `MismatchedRoot` IS STILL UNREACHABLE FROM `collate`, which is a
 #: different fact and is why it stays: `flows.collate.collate` wraps its only
-#: `gather` call and re-raises it as `CannotCollate`, so both mismatched-root
+#: `master_proof_of` call and re-raises it as `CannotCollate`, so both mismatched-root
 #: tests go through THAT handler. It remains catchable here because nothing
-#: guarantees a future caller cannot reach `gather` another way, and a catch
+#: guarantees a future caller cannot reach `master_proof_of` another way, and a catch
 #: that cannot fire is cheaper than the traceback if one does.
 #: ! `CannotCollate` CARRIES ITS OWN `problems` and is handled separately below,
 #: which is the whole point of it; it is deliberately NOT in this tuple.
@@ -128,32 +133,11 @@ def _report(problems: list) -> None:
 #: and read by nothing.
 
 
-def _load(path: str) -> tuple[dict, str]:
-    """Read one edit_copy off disk as a JSON object, or say why it is not one.
-
-    !! THE TWO FAILURES ARE SEPARATE STEPS, `decision-log.md Process: #67`.
-    Roy, 2026-08-31: moving the load out *"makes file io errors and malformed
-    json load dump errors an explicit different step in the flow so those can
-    be done without extra collisions."* The read is this function's; the decode
-    is `machine.json_object.object_of`'s; whether the object is an edit_copy is
-    `EditCopy.deserialize`'s, one step further along inside `collate`.
-
-    !! IT HELD ITS OWN `json.loads` AND ITS OWN DICT GUARD UNTIL `P43` -- the
-    second decode path in this file, beside the `object_of` call the binder
-    already went through. That is the duplication `object_of`'s own header
-    records being removed from the two readers, re-acquired one module over:
-    two spellings of *is this text an object*, in one command, disagreeing on
-    the wording of the refusal.
-
-    Returns:
-        `(the object, "")`, or `({}, reason)` naming the path.
-    """
-    try:
-        text = Path(path).read_text(encoding="utf-8")
-    except exceptions.READ_ERRORS as err:
-        return {}, f"cannot read {path}: {err}"
-    loaded, why = object_of(text, "edit_copy")
-    return ({}, f"{path} is {why}") if why else (loaded, "")
+def _refused(why: list[str]) -> int:
+    """A file that is not what it says: every reason on stderr, `UNREADABLE`."""
+    for line in why:
+        print(line, file=sys.stderr)
+    return UNREADABLE
 
 
 def main() -> int:
@@ -191,7 +175,7 @@ def main() -> int:
     ap.add_argument("--out", required=True, help="where to write the chief's edit_copy")
     # !! THE ROOT SOURCE VERIFICATION RESOLVES A `cite` AGAINST -- `P25`. It
     # defaults to the binder's own `read_from.root`, which is the tree the
-    # copies were censused from and therefore the one their citations were
+    # copies were gathered from and therefore the one their citations were
     # written against. ! WHY OPENING A CITED FILE IS NOT A PAGE READ is stated
     # once, at the call in `flows.collate.collate`, and not restated here.
     ap.add_argument(
@@ -199,43 +183,45 @@ def main() -> int:
         help="the checkout a `sources` cite resolves against "
         "(default: the binder's own read_from.root)",
     )
+    ap.add_argument(
+        "--proof-out",
+        metavar="PATH",
+        help="where to write the master proof -- the state between turns: the"
+        " copies as they stand, every ruling, the unsettlable places. Written"
+        " beside the chief's copy, so not on BROKEN",
+    )
+    ap.add_argument(
+        "--batch-out",
+        metavar="PATH",
+        help="where to write the first turn's batch, one slot per carried-forward"
+        " place per role; nothing is written when nothing is carried forward",
+    )
     args = ap.parse_args()
 
     if not args.edit_copy:
         print("collate needs at least one --edit-copy", file=sys.stderr)
         return UNREADABLE
 
-    try:
-        binder_text = Path(args.binder).read_text(encoding="utf-8")
-    except exceptions.READ_ERRORS as err:
-        print(f"cannot read {args.binder}: {err}", file=sys.stderr)
-        return UNREADABLE
     # !! THE LOAD IS THE FLOW'S, THE DESERIALIZE THE CONTAINER'S --
-    # `decision-log.md Process: #67`. `object_of` turns the text into an
-    # object; `Binder.deserialize` says whether that object is a binder.
-    loaded, why = object_of(binder_text, "binder")
-    if why:
-        print(why, file=sys.stderr)
-        return UNREADABLE
-    binder, problems = Binder.deserialize(args.binder, loaded)
+    # `decision-log.md Process: #67`. `flows.proof_io` holds both steps of
+    # the read and hands the binder over as a `Binder`; a copy comes back as
+    # its wire dict, because the fold parses those itself and reports each
+    # refusal beside the role that owes it.
+    binder, why = load_binder(Path(args.binder))
     if binder is None:
-        for line in problems:
-            print(line, file=sys.stderr)
-        return UNREADABLE
-
+        return _refused(why)
     copies = []
     for path in args.edit_copy:
-        copy, problem = _load(path)
-        if problem:
-            print(problem, file=sys.stderr)
-            return UNREADABLE
+        copy, why = load_copy(Path(path))
+        if why:
+            return _refused(why)
         copies.append(copy)
 
     # ! THE BINDER NAMES ITS OWN TREE, so a caller that already passed one does
     # not pass it twice. `read_from` is refused as absent or malformed further
     # up the chain, and `.` is what a binder read from the working directory
     # says, so it is a fallback rather than a guess.
-    root = Path(args.repo or binder.read_from.get("root") or ".")
+    root = Path(args.repo) if args.repo else binder.root
 
     try:
         got = collate(args.stage, copies, binder, root)
@@ -260,7 +246,7 @@ def main() -> int:
         # ! THE REFUSAL'S OWN MESSAGE IS PRINTED AS IT STANDS. A `KeyError`
         # branch stood here reading `f"a copy carries no {err}"`, because that
         # exception's `str()` is only the missing key, repr'd -- naming the
-        # shape of a refusal rather than its cause. `gather` no longer raises
+        # shape of a refusal rather than its cause. `master_proof_of` no longer raises
         # one (`P42`), and `MismatchedRoot` already says what went wrong.
         print(f"REFUSED: the proof could not be reconciled -- {err}", file=sys.stderr)
         return BROKEN
@@ -291,10 +277,8 @@ def main() -> int:
 
     # !! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE FLOW'S --
     # `decision-log.md Process: #65`, `#67`. `collate` returns an `EditCopy`
-    # since `P42`; the wire dict is made here, at the save, and nowhere between.
-    Path(args.out).write_text(
-        json.dumps(got.chief.serialize(), indent=2), encoding="utf-8", newline=""
-    )
+    # since `P42`; the wire dict is made at the save, and nowhere between.
+    save_copy(Path(args.out), got.chief)
     resolved = sum(len(sheet.marks) for sheet in got.chief.sheets)
     print(f"{args.out}: {resolved} places resolved")
 
@@ -305,6 +289,26 @@ def main() -> int:
         print(f"escalated {entry['address']}: {', '.join(entry['roles'])}")
     for entry in got.rereads:
         print(f"re-read {entry['address']}: {', '.join(entry['roles'])}")
+
+    # !! THE STATE BETWEEN TURNS IS WRITTEN WITH THE CHIEF, NOT INSTEAD OF IT.
+    # `Process: #87`: the master proof carries the copies as they stand, so the
+    # turn verb can mutate and fold them again; the chief's copy is what the
+    # write end reads today. `turns` is empty here -- this is the first fold.
+    if args.proof_out and got.proof is not None:
+        save_proof(Path(args.proof_out), proof_after(got))
+        print(
+            f"{args.proof_out}: the master proof -- {len(got.determined)} determined,"
+            f" {len(got.unsettlable)} unsettlable"
+        )
+    # ! NOTHING CARRIED FORWARD IS NO BATCH, NOT AN EMPTY ONE. A file holding
+    # `{}` would be handed to roles as a turn with nothing in it.
+    if args.batch_out and (got.escalations or got.rereads):
+        batch = batch_for(got)
+        save_batch(Path(args.batch_out), batch)
+        sizes = ", ".join(
+            f"{role} {len(slots)}" for role, slots in sorted(batch.items())
+        )
+        print(f"{args.batch_out}: turn 1's batch -- {sizes}")
 
     if got.escalations:
         return ESCALATIONS

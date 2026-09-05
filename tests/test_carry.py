@@ -123,7 +123,7 @@ class TestWhatItRefuses:
         )
         _, added, why = carry(stale, page, "m.py", cue=empty_cues(page)[0])
         assert added == ""
-        assert "re-run the census" in why
+        assert "re-run gather" in why
 
     def test_a_NULL_sha_ARRIVES_AS_ABSENT_and_reads_as_nothing(self, tmp_path):
         """!! A PRESENT `"sha": null` IS A DIFFERENT CASE FROM AN ABSENT KEY.
@@ -150,7 +150,7 @@ class TestWhatItRefuses:
         assert held.pages[0].sha == ""
         _, added, why = carry(held, page, "m.py", cue=empty_cues(page)[0])
         assert added == ""
-        assert "re-run the census" in why
+        assert "re-run gather" in why
         assert "None" not in why
         assert "<nothing>" in why
 

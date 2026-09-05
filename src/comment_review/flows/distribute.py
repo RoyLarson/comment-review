@@ -51,7 +51,7 @@ def seed(binder: Binder, role: str) -> dict:
     Returns:
         `{"role": ..., "read_from": ..., "sheets": [...]}` -- `read_from` is
         copied from the binder as-is, naming the root and revise this
-        edit_copy was censused from. Each entry in `sheets` carries one page's `path`
+        edit_copy was gathered from. Each entry in `sheets` carries one page's `path`
         and `sha`, plus its `marks` -- one per row on that page, holding the
         `address`, `anchor` and `raw_text` copied from the row, and
         `instruction: None` for the role to fill. ! THE SLOT IS BUILT BY

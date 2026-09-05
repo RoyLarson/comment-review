@@ -6,7 +6,7 @@
     annotate     the KEY, built from prose, and looked up against the index
 
 !! THE FIRST TWO ARE INVERSES, AND THAT IS WHY THEY SIT TOGETHER. `referrers`
-says it itself: *"The census resolves what a comment CITES. This resolves the
+says it itself: *"The gather resolves what a comment CITES. This resolves the
 other direction -- who cites the code being edited."* One indexes definitions,
 the other occurrences.
 

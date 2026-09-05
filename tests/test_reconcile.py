@@ -4,7 +4,7 @@ reconciliation's grouping and its settle/escalate/reread rule.
 ! INPUTS FROM REALITY, `decision-log.md Vocabulary: #23`: every mark below is
 built through `desk.mark.INSTRUCTIONS` by `tests/helpers.py`'s `a_correct`,
 `a_move`, `a_clean` and `a_query`, and every `master_proof` is composed
-through the real `seed()` and `gather()` by `a_master_proof` -- never a
+through the real `seed()` and `master_proof_of()` by `a_master_proof` -- never a
 hand-authored container literal.
 
 !! `reconcile`'s expectation is `Process: #49`, NOT `reconcile` ITSELF --

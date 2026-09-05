@@ -50,7 +50,7 @@ class TestPageOfReturnsEveryRefusalItPromises:
     while `page_for` also raises `exceptions.Refused`, so such a file took
     `proof_setter.run` down with a raw traceback. All five inline sites this
     function consolidates handle it -- `results/compositor.py` catches
-    `Refused`, `commands/census.py` catches a bare `Exception`."""
+    `Refused`, `flows/gather.py` catches a bare `Exception` around this."""
 
     def test_page_for_DOES_raise_Refused(self):
         """! The handler below is not written for a hypothetical. This reads

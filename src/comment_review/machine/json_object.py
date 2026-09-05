@@ -24,7 +24,7 @@ message.
 dict guard were byte-identical in both, differing only in the trailing noun,
 and the comment on one of the copies said so -- *"This is the spelling
 `binder.read` uses"*. `binder.py`'s own header names that failure: four
-commands each deciding what a census file is, *"three spellings of one guess
+commands each deciding what a binder file is, *"three spellings of one guess
 and one absence"*, which is the reason that module owns the format at all.
 
 ! WHAT IS NOT SHARED IS EVERY CHECK PAST THE OBJECT. A binder must carry

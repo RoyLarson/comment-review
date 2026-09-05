@@ -2,7 +2,7 @@
 
     page       ONE FILE -- its paragraphs tied to the places on it
     binder     what a BINDER is on disk, and how one is read back
-    addresses  which paragraph of a census sits at which address
+    addresses  which paragraph of a binder sits at which address
 
 !! A PAGE AND A RECORD ARE IMMUTABLE ARTIFACTS THE SYSTEM CREATES. Ruled by Roy,
 2026-08-24. Nothing downstream may treat a record as the thing that carries an

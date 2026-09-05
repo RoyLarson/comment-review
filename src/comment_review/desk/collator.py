@@ -597,7 +597,7 @@ def places(proof: MasterProof) -> dict[str, list[Placed]]:
     another role marked there.
 
     Args:
-        proof: a parsed master_proof, as `desk.proof.gather` returns one.
+        proof: a parsed master_proof, as `desk.proof.master_proof_of` returns one.
 
     Returns:
         address -> the `Placed`s touching it, in the order the copies, their

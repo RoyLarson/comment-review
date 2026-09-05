@@ -10,7 +10,7 @@ import json
 from helpers import a_docket_that_rewrites, a_small_real_tree, binder_of, the_row_for
 
 from comment_review.binder.binder import Binder
-from comment_review.commands import census as census_command
+from comment_review.commands import gather as gather_command
 from comment_review.flows.revise import pull
 
 
@@ -26,8 +26,8 @@ def test_a_source_citing_an_edited_page_reads_the_revise(tmp_path):
     assert row.raw_text not in (repo / "mark.py").read_text(encoding="utf-8")
 
 
-def _census_args(repo, revise: int, paths: list[str]) -> argparse.Namespace:
-    """The `argparse.Namespace` `commands.census._report` reads -- built
+def _gather_args(repo, revise: int, paths: list[str]) -> argparse.Namespace:
+    """The `argparse.Namespace` `commands.gather._report` reads -- built
     directly rather than through `sys.argv`, since `_report` is the call
     site itself and the point is to force ITS `revise` handling, not
     argparse's.
@@ -44,10 +44,10 @@ def _census_args(repo, revise: int, paths: list[str]) -> argparse.Namespace:
     )
 
 
-def test_the_census_command_states_the_revise_it_read(tmp_path, capsys, monkeypatch):
-    """`commands/census.py --json` wrote `"revise": 0` into `read_from`
+def test_the_gather_command_states_the_revise_it_read(tmp_path, capsys, monkeypatch):
+    """`commands/gather.py --json` wrote `"revise": 0` into `read_from`
     unconditionally -- MEASURED, no `--revise` argument existed at all, so a
-    stage censusing a revise still reported the ORIGINAL's number, which is
+    stage gathering a revise still reported the ORIGINAL's number, which is
     indistinguishable from having read the original.
     """
     repo = a_small_real_tree(tmp_path)
@@ -57,13 +57,13 @@ def test_the_census_command_states_the_revise_it_read(tmp_path, capsys, monkeypa
     # !! THE CWD IS NOT THE ROOT, AND IT WAS `chdir(pulled.root)` UNTIL
     # 2026-08-28. MEASURED by mutation: with the two equal, replacing
     # `Path(args.repo)` with `Path.cwd()` in the command left this test GREEN --
-    # so the test could not tell whether the census honoured the root it was
+    # so the test could not tell whether the gather honoured the root it was
     # GIVEN or merely read where it happened to be standing, which is the one
     # question T2.5 exists to answer. ! Standing one directory up is what makes
     # the two distinguishable; `--repo` is then a real choice.
     monkeypatch.chdir(tmp_path)
-    exit_code = census_command._report(
-        _census_args(pulled.root, revise=1, paths=[str(pulled.root / "mark.py")])
+    exit_code = gather_command._report(
+        _gather_args(pulled.root, revise=1, paths=[str(pulled.root / "mark.py")])
     )
     assert exit_code == 0
     # ! DESERIALIZED, NOT READ AS A DICT -- so this also asserts the command

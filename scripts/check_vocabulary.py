@@ -98,6 +98,15 @@ RETIRED = {
     # sense to protect.
     "verdict": "instruction",
     "verdicts": "instructions",
+    # !! `census` IS RETIRED, 2026-09-04 -- `decision-log.md Vocabulary: #34`.
+    # `gather` has been stage 2's word since 2026-08-23; the command, the act
+    # and the module take it, and what the gather hands over is the BINDER.
+    # ! FOUR ROWS, as `verdict`/`verdicts`: the `(?![\w-])` boundary spares
+    # every derived form from the bare entry, and none of them is live.
+    "census": "gather, or binder for what it hands over",
+    "censused": "gathered",
+    "censuses": "gathers",
+    "censusing": "gathering",
 }
 
 # !! THE WAY OUT, AND IT IS PER FILE. Roy, 2026-08-19: *"let's give ourselves a
@@ -120,7 +129,15 @@ NOQA = "# noqa: vocabulary"
 # repo keeps an error legible instead of erasing it, which is the same rule that
 # keeps a SUPERSEDED task checked rather than deleted. A sentence that USES the
 # word to mean the thing is what this catches.
-MENTION = ("`block`", "`blocks`", "`block=", "`BLOCK`", "`BLOCK ", "`pCST`")
+MENTION = (
+    "`block`",
+    "`blocks`",
+    "`block=",
+    "`BLOCK`",
+    "`BLOCK ",
+    "`pCST`",
+    "`census`",
+)
 
 # !! A QUOTATION IS NOT AN EXEMPTION, AND THERE IS NOTHING TO EXEMPT. Ruled by
 # Roy, 2026-08-23: *"It simply isn't necessary to know the history to understand

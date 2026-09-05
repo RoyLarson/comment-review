@@ -4,7 +4,7 @@ WHY IT EXISTS. Roy, 2026-08-25, after a night in which the existing suite passed
 829 green while `verdicts.py`'s central check reported *"the sentence ruled on is not
 in <place>"* for EVERY finding: *"866 tests are likely garbage piling up with
 maybe 50 good ones in the mix."* Three changes that night -- fences leaving the
-census, eleven fields leaving the row, and a rename that broke every finding --
+binder, eleven fields leaving the row, and a rename that broke every finding --
 were noticed by ZERO tests each, because the fixtures were hand-authored in the
 shape the code expected and moved only when someone remembered to move them.
 
@@ -144,7 +144,7 @@ REPLACEMENT = {
 
 #: `bind()` has required `read_from` since `the-flow-assumes-every-role-reads-at-once`
 #: T2. A page built by `build()` above is text handed straight to `page_for`, never
-#: read off a census root, so there is no real root to name for it -- this stands in
+#: read off a gather root, so there is no real root to name for it -- this stands in
 #: for the tests below that exercise `bind()` in isolation and assert nothing about
 #: `read_from` itself.
 READ_FROM = {"root": "<synthetic>", "revise": 0}
@@ -192,7 +192,7 @@ def sample():
     return build(SAMPLE)
 
 
-def run_command(monkeypatch, capsys, command, *argv):
+def run_command(monkeypatch, capsys, command, *argv, with_stderr: bool = False):
     """One command, through its own `main()` and its own argument parsing.
 
     !! THROUGH `main()` AND `sys.argv`, NOT BY CALLING THE FLOW. That is the
@@ -208,9 +208,13 @@ def run_command(monkeypatch, capsys, command, *argv):
     Args:
         command: the `comment_review.commands.*` module to run.
         argv: the flags, without the program name.
+        with_stderr: read both streams, for a command that refuses on stderr
+            -- `gather --json` keeps its refusal out of the document it writes.
 
     Returns:
-        `(exit code, everything it printed to stdout)`.
+        `(exit code, everything it printed to stdout)`, or to both streams.
     """
     monkeypatch.setattr("sys.argv", [command.__name__.rsplit(".", 1)[-1], *argv])
-    return command.main(), capsys.readouterr().out
+    code = command.main()
+    got = capsys.readouterr()
+    return code, got.out + got.err if with_stderr else got.out

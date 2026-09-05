@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 16 tasks closed
+Progress: 15 of 28 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -112,6 +112,39 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [ ] T15 | Update check.py's header: drop MEASURED, condition the guarantee on
       --binder, name _load_value. Verify: it says so
         > 2026-09-04 hand 6's four-way stet is the text; hands/h6/chief.json
-- [ ] T16 | Implement the turn and cap commands over flows.turn, the master
-      proof as the state between them. Verify: game.py's verbs run as commands
+- [x] T16 | FINISHED -- turn (4040acea) and cap (54bde260) are console verbs over flows.turn; the chain gather, distribute, collate, turn, cap runs with no Python written by hand | 54bde260 | Implement
+      the turn and cap commands over flows.turn, the master proof as the state
+      between them. Verify: game.py's verbs run as commands
         > 2026-09-04 the scratchpad game.py (deal, turn, cap) is the specification
+- [x] T17 | FINISHED -- flows/proof_io.py: load_binder, load_copy, load_proof, load_batch, load_value, save_proof, save_copy, save_batch; check._load, _load_value and collate._load deleted; seven commands read through it | 6cc6e742 | Implement
+      one loader for the middle's commands; turn and cap import check's private
+      _load and collate keeps its own. Verify: one definition
+        > 2026-09-04 widen to proof_io: load_binder/copy/batch/value, save_copy
+- [x] T18 | FINISHED -- run_turn(proof, binder, root, sent, answers) and refold share _unpacked; MasterProof.turn is the number; grep len(proof.turns) in src returns the container alone | 0611de3e | Update
+      run_turn and refold to take the MasterProof, and derive the turn number on
+      the container. Verify: no len(proof.turns) in commands/
+- [x] T19 | FINISHED -- run_turn returns one Collated with its Revisits folded into revisit; turn.py merges no lists | 0611de3e | Update
+      run_turn to fold its Revisits into Collated.revisit and return the
+      Collated alone. Verify: turn.py merges no lists
+- [ ] T20 | Implement a Turn record container with seed, serialize and
+      deserialize, written by the flow. Verify: turn.py composes no record dict
+- [ ] T21 | Implement a typed Unsettlable record held by Collated and
+      MasterProof. Verify: proof_after strips nothing
+- [ ] T22 | Implement a Ruling container and a rulings_at_cap flow that stacks
+      refusals. Verify: cap.py parses no ruling by hand; check --rulings
+- [x] T23 | FINISHED -- flows.turn.close returns the closed proof and the chief; cap.py calls replace nowhere | 7f59a7f4 | Update
+      determined_chief or a close flow to return the closed MasterProof. Verify:
+      cap.py calls replace nowhere
+- [x] T24 | FINISHED -- Binder.root; the four sites read Path(args.repo) if args.repo else binder.root; the lint delta is the commit after | 231d5cf9 | Implement
+      Binder.root and drop the args.repo-or-root-or-dot fallback at four
+      commands. Verify: one resolution of the root
+- [ ] T25 | Update turn and cap to fold without re-serializing the proof's
+      copies, and cap without a refold. Verify: each mark parses once per
+      command
+- [x] T26 | FINISHED -- the hand driver lives in tests/helpers.py over conftest.run_command; test_turn_command, test_cap_command and test_gather_command drive main() through it | 171bfdb8 | Update
+      test_turn_command, test_cap_command and test_gather_command to drive
+      main() through run_command, with the hand driver in helpers.py
+- [ ] T27 | Update the command tests to deal each distinct hand once per module
+      and gather each case once. Verify: 9 collate runs become 2
+- [ ] T28 | Implement the outcome once: exit codes, _report, the Revisit
+      printer, the refused handler and the batch write, shared by three commands

@@ -139,7 +139,7 @@ class TestTheCheckItselfFires(unittest.TestCase):
     passed while the shipped path deleted a statement.
     """
 
-    SIBLINGS = {"repo", "census"}
+    SIBLINGS = {"repo", "gather"}
 
     def _found(self, source):
         return [module for module, _ in foreign_imports(source, self.SIBLINGS)]
@@ -170,11 +170,11 @@ class TestTheCheckItselfFires(unittest.TestCase):
         self.assertEqual(self._found("from __future__ import annotations"), [])
 
     def test_a_sibling_is_allowed(self):
-        self.assertEqual(self._found("from repo import READ_ERRORS\nimport census"), [])
+        self.assertEqual(self._found("from repo import READ_ERRORS\nimport gather"), [])
 
     def test_a_relative_import_is_not_reported(self):
         # ! It cannot reach outside the directory, so there is nothing to check.
-        self.assertEqual(self._found("from . import census\nfrom .repo import git"), [])
+        self.assertEqual(self._found("from . import gather\nfrom .repo import git"), [])
 
     def test_a_module_named_like_a_sibling_elsewhere_is_still_reported(self):
         # !! The allowed set is the stems BESIDE the file. A third-party

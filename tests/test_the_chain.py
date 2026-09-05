@@ -1,8 +1,9 @@
 """The middle-to-write chain, driven end to end by commands and nothing else.
 
-`P61`, and the verify text of `TODO/no-command-for-the-middle.md` T1 word for
-word: *"with the filled edit_copies of a stage on disk, the chain census -> seed
--> collate -> <this> -> proof runs with no Python written by hand."*
+`P61`, and the verify text of `TODO/no-command-for-the-middle.md` T1, with
+stage 2 under its current name: *"with the filled edit_copies of a stage on
+disk, the chain gather -> seed -> collate -> <this> -> proof runs with no Python
+written by hand."*
 
 !! THE `<this>` IS GONE, WHICH IS WHAT T1 WAS OPEN FOR. `collate` wrote the copy
 chief's `edit_copy` and `proof` read a docket, and nothing turned one into the
@@ -30,9 +31,9 @@ import json
 from conftest import SAMPLE, run_command
 from helpers import a_clean, a_correct
 
-from comment_review.commands import census as census_command
 from comment_review.commands import collate as collate_command
 from comment_review.commands import distribute as distribute_command
+from comment_review.commands import gather as gather_command
 from comment_review.commands import proof as proof_command
 
 #: The four editorial roles, in the order stage 4 dispatches them -- one alone,
@@ -48,7 +49,7 @@ ROLES = (
 
 
 class TestTheChainRunsOnCommandsAlone:
-    def test_census_to_distribute_to_collate_to_proof(
+    def test_gather_to_distribute_to_collate_to_proof(
         self, tmp_path, monkeypatch, capsys
     ):
         repo = tmp_path / "repo"
@@ -57,13 +58,13 @@ class TestTheChainRunsOnCommandsAlone:
 
         # 1 GATHER -- the binder every copy is seeded from.
         binder_path = tmp_path / "binder.json"
-        # ! THE PATH IS ABSOLUTE. `census` resolves its positional paths against
+        # ! THE PATH IS ABSOLUTE. `gather` resolves its positional paths against
         # the CWD and not against `--repo`, so a bare `m.py` matches no file and
-        # the run errors -- "1 of 0 files handed in were not censused".
+        # the run errors -- "1 of 0 files handed in were not gathered".
         code, out = run_command(
             monkeypatch,
             capsys,
-            census_command,
+            gather_command,
             "--repo",
             str(repo),
             "--json",
@@ -78,7 +79,7 @@ class TestTheChainRunsOnCommandsAlone:
         # `path@cue` when a page is read back, so a test reading the wire form
         # has to rejoin them the same way.
         addresses = [f"{page['path']}@{row['cue']}" for row in page["rows"]]
-        assert addresses, "the census carried no addressed place to rule on"
+        assert addresses, "the gather carried no addressed place to rule on"
 
         # 2 MARK -- one seeded copy per role, then a ruling written into one.
         copies = []

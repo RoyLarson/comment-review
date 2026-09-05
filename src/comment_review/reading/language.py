@@ -13,7 +13,7 @@ ask a language anything. Everything between them carries what those two state.
 
 ! IT CAME OUT OF `lexer.py`, where the rows sat beside the lexing. Nothing about
 the split is cosmetic: while they shared a module, four more modules imported the
-records through it -- `census`, `desk`, `page` and `prove_unchanged` -- and each
+records through it -- `gather`, `desk`, `page` and `prove_unchanged` -- and each
 one that holds a `Language` is a place a positioning rule can be written a second
 time and drift from the first.
 
@@ -50,7 +50,7 @@ class Language:
             and SQL. ! What it buys is that a `'` which does NOT close within a
             character's width is ORDINARY TEXT rather than an open quote --
             which is what a Rust lifetime is. Measured 2026-08-20: `pub fn
-            name(&self) -> &'static str { 1 } // the display name` censused
+            name(&self) -> &'static str { 1 } // the display name` gathered
             zero prose paragraphs, because `'static` opened a literal that
             never closed and blanked the comment with the rest of the line.
         spanning_quotes: delimiters whose literal may cross LINES -- a JS
@@ -154,7 +154,7 @@ LANGUAGES: tuple[Language, ...] = (
         char_quotes=("'",),
         # !! THE BACKTICK IS A STRING DELIMITER AND MUST BE BLANKED. Leaving it
         # out on the ground that a raw string takes no escapes was reasoning
-        # about the wrong cost: `return `http://example.com/a`` then censused as
+        # about the wrong cost: `return `http://example.com/a`` then read as
         # a TRAILING COMMENT carrying the URL as prose, the `return` line left
         # `return `http:` and dropped out of `code_lines`, and every `b`/`c`
         # below it renumbered. MEASURED 2026-08-22 on that exact line.
@@ -200,7 +200,7 @@ LANGUAGES: tuple[Language, ...] = (
         char_quotes=("'",),
         # !! A RAW STRING LITERAL CROSSES LINES. `R"(...)"` takes no escapes and
         # ends only at its matching delimiter, so a line inside one beginning
-        # `//` is censused as a comment and deleted from BOTH fingerprints --
+        # `//` is read as a comment and deleted from BOTH fingerprints --
         # the fail-open measured on Rust 2026-08-22. The prefix is declared
         # rather than the bare quote because `R"` is distinctive: `LR"`, `u8R"`
         # and `uR"` all contain it, and ordinary C++ strings do not.
@@ -287,7 +287,7 @@ LANGUAGES: tuple[Language, ...] = (
         # !! TWO SHAPES CROSS LINES HERE, and only the newer one was declared.
         # `"""` is the C# 11 raw string; `@"..."` is the VERBATIM string and has
         # been in the language since 1.0, so it is the one a real file holds. A
-        # `//` inside either is censused as a comment -- the fail-open measured
+        # `//` inside either is read as a comment -- the fail-open measured
         # on Rust 2026-08-22. ! `$@"` and `@$"` both contain `@"`.
         spanning_quotes=('"""', '@"'),
         quotes=('"', "'"),
@@ -454,7 +454,7 @@ LANGUAGES: tuple[Language, ...] = (
         (".lua",),
         # !! `---` IS LUA'S DOC COMMENT AND THIS ROW DOES NOT SAY SO, which
         # makes every documented declaration read as `undocumented`. MEASURED
-        # 2026-08-22 on `corpora/neovim`, the first real Lua this repo censused:
+        # 2026-08-22 on `corpora/neovim`, the first real Lua this repo gathered:
         # 2,505 of 2,741 declarations carry a `---` run -- 91% -- and all 2,505
         # came back undocumented. 43,563 lines there open with `---`, of which
         # 11,987 are LuaLS annotations (`---@param`, `---@return`).
@@ -478,7 +478,7 @@ LANGUAGES: tuple[Language, ...] = (
         # !! THE LEVELLED FORMS ARE THE SAME CONSTRUCT AND WERE MISSING. Lua
         # writes `[=[`, `[==[` and so on when the body itself holds brackets,
         # and the comment form takes the level too. Without them `--[==[ ... ]==]`
-        # censused as ONE `matter` paragraph whose whole text was `[==[`, with
+        # read as ONE `matter` paragraph whose whole text was `[==[`, with
         # the real prose below it counted as executable code. MEASURED 2026-08-22.
         # ! THE LEVEL IS UNBOUNDED AND THIS LIST IS NOT -- it stops at two `=`,
         # which is every level the wild uses. A deeper one is read as it was

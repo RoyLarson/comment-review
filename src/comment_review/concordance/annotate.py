@@ -9,7 +9,8 @@ reviewer spends its reading on the claim instead of on the lookup.
 token can name a config key, a record field or an API payload, and the resolver
 holds the namespaces it was handed.
 
-`census.py` builds the paragraphs and calls `annotate()` on each one.
+`flows/annotations_for.py` is the one caller, over every paragraph a gather
+carried; the repeated-literal pass, which needs the whole set, lives there.
 """
 
 import re
@@ -20,7 +21,7 @@ from comment_review.concordance.names import SYMBOLISH
 from comment_review.reading.paragraph import Paragraph
 
 # !! `Paragraph` WAS A TYPE-ONLY IMPORT UNTIL 2026-08-31, quoted at every use,
-# because *`census.py` imports this module, so a real import would be
+# because *`gather.py` imports this module, so a real import would be
 # circular*. ! That reason went when `Paragraph` left the lexer for its own
 # leaf the same day: nothing under `reading/` imports this package, so the
 # import is ordinary now. `decision-log.md Process: #70`.

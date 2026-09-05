@@ -1,4 +1,4 @@
-"""`binder.bind`: the root and revise it was censused from.
+"""`binder.bind`: the root and revise it was gathered from.
 
 `the-flow-assumes-every-role-reads-at-once` T2 -- a sheet seeded from a binder
 names the revise and the original in its header, and a binder built from the
@@ -29,8 +29,8 @@ def test_a_binder_built_from_the_original_says_so():
     binder = binder_of(DESK, 0)
     # ! THE PAGE COUNT IS ASSERTED FIRST, and that is what stops the whole
     # module passing over an empty read: every assertion below holds trivially
-    # when nothing was censused.
-    assert binder.pages, "censused no page -- the rest of this test is vacuous"
+    # when nothing was gathered.
+    assert binder.pages, "gathered no page -- the rest of this test is vacuous"
     assert Path(binder.read_from["root"]) == DESK
     assert binder.read_from["revise"] == 0
 

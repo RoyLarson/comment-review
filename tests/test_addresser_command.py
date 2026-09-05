@@ -47,7 +47,7 @@ def test_resolve_prints_the_real_lines_not_none_none():
 def test_for_anchor_finds_the_a_place_a_declared_docstring_owns():
     """`for_anchor`'s `DECLARED` short-circuit read `b.get("declares")`, a field
     no row carries since `e56bea9` -- so it always returned `[]` and reported
-    "no `a` place" for an anchor whose `a` row the census plainly holds."""
+    "no `a` place" for an anchor whose `a` row the binder plainly holds."""
     rows = _rows()
     target = next(r for r in rows if r.anchor == "def f(x):" and cue(r) == "a1")
 
@@ -68,7 +68,7 @@ def test_check_reports_the_real_span_for_a_shared_address():
 
     Two real rows made to share one address by duplicating a row `bind()`
     produced -- not a hand-written dict -- so the values checked are the ones a
-    census would actually carry for a comment run and the interval it fills.
+    binder would actually carry for a comment run and the interval it fills.
     """
     rows = _rows()
     target = next(r for r in rows if r.anchor == "def f(x):" and cue(r) == "a1")

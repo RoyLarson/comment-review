@@ -63,7 +63,7 @@ def census(target: Path, *flags: str) -> str:
             sys.executable,
             "-m",
             "comment_review",
-            "census",
+            "gather",
             "--repo",
             str(ROOT),
             *flags,

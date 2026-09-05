@@ -89,7 +89,7 @@ class Kind(StrEnum):
         NAMED for.
 
         Args:
-            kind: a paragraph's kind. A plain `str` is accepted because a census
+            kind: a paragraph's kind. A plain `str` is accepted because a binder
                 read back from JSON holds strings, not members.
         """
         return kind in ABSENT or kind == cls.LEADING

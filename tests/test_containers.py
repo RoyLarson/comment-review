@@ -1,7 +1,7 @@
 """The containers parse what the real chain builds, and refuse what it cannot.
 
 ! INPUTS ARE REAL -- a binder from `bind` over a real tree, seeded by the real
-`seed`, gathered by the real `gather`. A literal appears only where MALFORMED
+`seed`, assembled by the real `master_proof_of`. A literal appears only where MALFORMED
 is the input, which is what the refusals are about.
 """
 
@@ -15,7 +15,7 @@ from comment_review.desk.containers import (
     MasterProof,
     Sheet,
 )
-from comment_review.desk.proof import gather
+from comment_review.desk.proof import master_proof_of
 from comment_review.flows.distribute import seed
 
 
@@ -53,7 +53,7 @@ class TestTheWriteHalfLivesWithTheRead:
 
     def test_a_master_proof_is_written_with_every_WIRE_field_the_class_declares(self):
         """`turns` and `determined` are off the wire since `Process: #87`: a fold
-        writes them later, so `seed` -- which writes what `gather` takes from a
+        writes them later, so `seed` -- which writes what `master_proof_of` takes from a
         copy -- cannot. Same rule as the sheet's `unruled` and `refused`."""
         row = MasterProof.seed(stage="4c", read_from={}, edit_copies=[])
         wire = {f.name for f in fields(MasterProof) if f.metadata.get("wire", True)}
@@ -125,7 +125,7 @@ class TestWhatTheChainBuilds:
         assert {s.path for s in copy.sheets} == carried
 
     def test_a_master_proof_gather_built_parses(self, tmp_path):
-        """! THE ROUND TRIP, NOT A PARSE OF A DICT, since `P42`. `gather`
+        """! THE ROUND TRIP, NOT A PARSE OF A DICT, since `P42`. `master_proof_of`
         RETURNS a `MasterProof`, so what is read back here is that container's
         own `serialize` -- which is the stronger claim: the write half and the
         read half agree over the real producer."""
@@ -134,7 +134,9 @@ class TestWhatTheChainBuilds:
             returned(seed(binder, "block-context")),
             returned(seed(binder, "function-context")),
         ]
-        proof, why = MasterProof.deserialize("4c", gather("4c", copies).serialize())
+        proof, why = MasterProof.deserialize(
+            "4c", master_proof_of("4c", copies).serialize()
+        )
         assert why == []
         assert isinstance(proof, MasterProof)
         assert proof.stage == "4c"
@@ -174,7 +176,7 @@ class TestAnEmptyProofStillHoldsItsHeader:
         assert problems != []
 
     def test_an_empty_proof_with_an_empty_read_from_is_still_admitted(self):
-        """`gather` itself produces this shape -- the docstring's reasoning for
+        """`master_proof_of` itself produces this shape -- the docstring's reasoning for
         admitting `{}` was sound, and only the other five values were not."""
         parsed, problems = MasterProof.deserialize(
             "p", {"stage": "4c", "edit_copies": [], "read_from": {}}
@@ -186,7 +188,9 @@ class TestAnEmptyProofStillHoldsItsHeader:
     def test_what_gather_writes_for_no_copies_still_parses(self):
         """The round trip, so the admission above is measured against the real
         producer rather than against a literal that agrees with it."""
-        parsed, problems = MasterProof.deserialize("4c", gather("4c", []).serialize())
+        parsed, problems = MasterProof.deserialize(
+            "4c", master_proof_of("4c", []).serialize()
+        )
         assert problems == []
         assert parsed is not None
 
@@ -253,12 +257,14 @@ class TestWhatItRefuses:
     def test_a_master_proof_whose_read_from_disagrees_with_the_first_copy(
         self, tmp_path
     ):
-        """`desk.proof.gather` refuses this same disagreement with
+        """`desk.proof.master_proof_of` refuses this same disagreement with
         `MismatchedRoot` before a master_proof is ever built -- a proof
         reaching `MasterProof.deserialize` with one is malformed, not merely
         unusual."""
         binder = binder_of(a_small_real_tree(tmp_path), 0)
-        proof = gather("4c", [returned(seed(binder, "block-context"))]).serialize()
+        proof = master_proof_of(
+            "4c", [returned(seed(binder, "block-context"))]
+        ).serialize()
         proof["read_from"] = {"root": "somewhere else", "revise": 99}
         got, why = MasterProof.deserialize("4c", proof)
         assert got is None
@@ -268,14 +274,16 @@ class TestWhatItRefuses:
         """The same shape check `_read_from_problem` runs for an edit_copy,
         reused here for the master_proof's own `read_from` field."""
         binder = binder_of(a_small_real_tree(tmp_path), 0)
-        proof = gather("4c", [returned(seed(binder, "block-context"))]).serialize()
+        proof = master_proof_of(
+            "4c", [returned(seed(binder, "block-context"))]
+        ).serialize()
         proof["read_from"] = {"root": proof["read_from"]["root"]}
         got, why = MasterProof.deserialize("4c", proof)
         assert got is None
         assert "`revise`" in why[0]
 
     def test_a_master_proof_WITH_NO_EDIT_COPIES_still_parses(self):
-        """`desk.proof.gather`'s own contract: an empty `edit_copies` gathers
+        """`desk.proof.master_proof_of`'s own contract: an empty `edit_copies` assembles
         to `read_from={}`, since there is no first copy to take it from --
         that is not the disagreement or malformed shape the two cases above
         refuse."""
