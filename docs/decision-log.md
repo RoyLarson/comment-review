@@ -3401,3 +3401,16 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `--include-absent` describe the artifact -- is answered by making the artifact irrelevant to
   the lookup. The command as built reads no source file and prints *"anchors this binder
   carries"* when it fails; that is the defect.
+
+  **Restated the same morning, in three parts.** Roy: *"The address-for or whatever it is
+  called reads the original file line number and series type and returns the address. The use
+  case is specifically that the binder is filtered by default because having the agents rule
+  on Absent places is just noise and unnecessary work for them. So the binder being filtered
+  is the correct way. The instructions for looking up the absent places needs to be explicit
+  that the they are just filtered out and can be looked up using the command."* So: the lookup
+  takes a line of the original file and a series and answers the address; the default filter
+  stays, because a role ruling on empty places is noise; and SKILL.md and the brief say in so
+  many words that the absent places are filtered out of the binder and are asked for with the
+  command. The command as built takes the anchor's TEXT rather than its number, and the brief
+  tells a role to ask with `def f():`; which of the two the argument is belongs to the work on
+  `binder-defects` T22.
