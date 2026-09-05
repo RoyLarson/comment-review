@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 2 tasks closed
+Progress: 2 of 2 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-28 (found by the Task 1 reviewer during fix round 1, 2026-08-28, and
@@ -20,11 +20,13 @@ The build gate's raw byte compare is line-ending-fragile on Windows.
 
 ## Tasks
 
-- [ ] T1 | Fix the normalisation point: either compare src/ and plugins/ after
+- [-] T1 | SUPERSEDED by plugins-is-a-release-artifact: the --check compare no longer exists | 8f4be1ac | Fix
+      the normalisation point: either compare src/ and plugins/ after
       normalising line endings (e.g. read both in universal-newlines text mode)
       instead of a raw byte compare, or make build_plugin.py's copy step force a
       specific line ending on both sides so a plain checkout can't diverge from
       what the build produced.
-- [ ] T2 | Add a test: a src/ file written with CRLF and its built plugins/ copy
-      written with LF, identical content otherwise, and confirm the fix's
-      compare treats them as matching.
+- [-] T2 | SUPERSEDED by plugins-is-a-release-artifact: the --check compare no longer exists | 8f4be1ac | Add
+      a test: a src/ file written with CRLF and its built plugins/ copy written
+      with LF, identical content otherwise, and confirm the fix's compare treats
+      them as matching.
