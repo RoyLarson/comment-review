@@ -1,7 +1,7 @@
 """Questions asked of a binder BY ADDRESS: which paragraph sits at which place.
 
 !! IT IS HERE BECAUSE IT READS PARAGRAPHS. `addresser.py` calls itself the leaf
-that *"knows nothing about a paragraph"* and these six functions each take a
+that *"knows nothing about a paragraph"* and these five functions each take a
 list of addressed things -- the rows, which are the binder's material. The
 claim and the code disagreed until 2026-08-24, and the code was what moved.
 
@@ -56,72 +56,6 @@ def resolve(address: str, paragraphs: Sequence[Paragraph]) -> list[int]:
     return [i for i, b in enumerate(paragraphs, 1) if stable(b) == address]
 
 
-def for_anchor(
-    anchor: str, series: str, paragraphs: Sequence[Paragraph]
-) -> list[Paragraph]:
-    """The paragraphs of one SERIES belonging to one anchor -- `go`'s `c`, say.
-
-    !! AN ANCHOR OWNS A PLACE IN EVERY SERIES, and asking for one by POSITION
-    breaks the moment a language puts it elsewhere. Python's docstring sits
-    AFTER its `def` and Rust's `///` BEFORE its `fn`, so "the paragraph above the
-    declaration" names the doc in one language and the comment above it in the
-    other. This asks the GATHER, which parsed the file, instead of counting.
-
-    The three, for a declaration:
-
-      a   its documentation -- the docstring, or the place one would go
-      c   the room BESIDE its opening line -- a trailing comment, or the place
-      b   the gap ABOVE its opening line -- a comment run, or the place
-
-    ! The MODULE has no line to open on, so it has an `a` and an `f` -- its
-    own matter, bounded by nothing, which is where a licence header or a
-    shebang sits (`f0`, not `b0`). It has neither `b` nor `c`: `cue()` steps
-    past the module without emitting either -- `addresser.py`, "`b` AND `c`
-    SKIP THE MODULE ENTIRELY".
-
-    ! It returns a LIST because a binder may carry none -- a language whose
-    tier resolves no anchors at all -- and the caller reports that rather than
-    receiving a guess. More than one is a binder defect `--check` reports.
-
-    Args:
-        anchor: the LINE OF CODE, as the gather stamped it -- `def f():`, not `f`.
-        series: `a`, `b` or `c`.
-        paragraphs: the binder entries. Pass the FULL binder; a filtered one is
-            missing exactly the empty places this is most often asked for.
-
-    Returns:
-        The matching entries, in binder order.
-    """
-    mine = [b for b in paragraphs if b.anchor == anchor]
-    # !! EVERY SERIES CARRIES THE SAME SPELLING: THE LINE OF CODE. An `a`, the
-    # `b` above it and the `c` beside it all answer to `def f():`, never to `f`
-    # -- the name is not carried at all. It was two spellings until 2026-08-19,
-    # which routed `b`/`c` through `anchor_line` that only an `a` filled, so asking
-    # by the LINE found nothing: `--anchor 'def f():' --series c` answered "no
-    # `c` place" on a binder holding exactly that one.
-    #
-    # ! The paragraph's OWN series decides which places answer: an `a` declares,
-    # a `c` has a column, a `b` has neither. No second field, no inference from
-    # kind.
-    direct = [b for b in mine if series_of(b) == series]
-    # !! THIS IS THE WHOLE ANSWER, since 2026-08-25. A fallback stood below it,
-    # resolving by an `anchor_line` field carried on `mine` -- dead since the
-    # eleven-field row cut (`e56bea9`) dropped that field: no row carries it,
-    # so the fallback's own `at` was always `0` and every branch under it but
-    # one was unreachable. MEASURED: `for_anchor('<module>', GAP, rows)`
-    # returned `[]` through that dead fallback, reading as an answer where
-    # none was computed. `[]` IS the true answer here, not a coincidence --
-    # `cue()` never emits a `b` or `c` place for the module at all
-    # (`addresser.py`, "`b` AND `c` SKIP THE MODULE ENTIRELY"), so `direct`
-    # already covers every place a binder can name; nothing was left for a
-    # fallback to resolve. Removed rather than reintroduced the field,
-    # matching `521e327`'s DECLARED short-circuit. A resolver reading the
-    # PAGE instead of a row is the deferred redesign,
-    # `TODO/an-empty-place-is-not-citable.md` -- this is not that; it is
-    # deleting a branch that could not fire.
-    return direct
-
-
 def series_of(paragraph: Paragraph) -> str:
     """Which series this paragraph's own address is in -- `a`, `b` or `c`.
 
@@ -133,7 +67,7 @@ def series_of(paragraph: Paragraph) -> str:
     answered with the file's own place.
 
     ! Inferring was meant to avoid a case per KIND, and reading the address
-    avoids that too. It costs nothing: `for_anchor` is given a binder, and an
+    avoids that too. It costs nothing: the caller holds a binder row, and an
     entry carrying no address is one no caller could cite anyway.
 
     !! A `d` IS NOT ASKED, AND ANSWERING IT WAS THE DEFECT. Leading is walked

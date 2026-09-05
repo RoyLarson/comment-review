@@ -740,9 +740,11 @@ def _coverage_problems(edit_copies: list[EditCopy], binder: Binder) -> list[Prob
             # *"answered for 2 of 2 places -- missing m.py@b5"*, which
             # contradicts itself on its own line.
             #
-            # ! AN INVENTED ADDRESS IS NOT THIS FUNCTION'S TO REPORT.
-            # `desk.collator.address_problems` answers that one, per mark, and
-            # naming it here too would be the same fact in two vocabularies.
+            # ! AN ADDRESS THE BINDER NEVER HELD IS NOT REPORTED AT ALL --
+            # `Process: #97`. A role may cite a place the filter dropped or a
+            # file the run never gathered, and only the write end can say
+            # whether the page has it. This counts what came back against
+            # what was handed out, and nothing more.
             out.append(
                 Problem(
                     role,

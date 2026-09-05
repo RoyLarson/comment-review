@@ -3,7 +3,6 @@
     known_addresses()          every address the binder carries
     base_texts()               every address -> the paragraph the binder
                                seeded there
-    address_problems()         a mark's address is one of them
     claim_verbatim_problems()  the sentence the claim quotes is really in the
                                paragraph the row seeded
     source_problems()          every `cite` resolves inside the checkout, and
@@ -23,10 +22,16 @@
 !! FOUR KINDS OF CHECK, AND WHAT EACH NEEDS IS WHAT SEPARATES THEM. NAMED BY
 MEMBER, NOT BY FILE-ORDER RANGE -- `desk/mark.py` answers everything a mark
 can be judged by on its own. One kind needs the PAGE the role read and the
-FILES it cited: `known_addresses` and `base_texts` turn the binder into what
-`address_problems`, `claim_verbatim_problems`, `source_problems`,
-`source_verification` and `verify_report` measure a mark against -- never a
-mark's own `raw_text`, the base a party being checked could have altered.
+FILES it cited: `base_texts` turns the binder into what
+`claim_verbatim_problems`, `source_problems`, `source_verification` and
+`verify_report` measure a mark against -- never a mark's own `raw_text`, the
+base a party being checked could have altered. ! WHETHER THE ADDRESS IS ONE
+THE BINDER CARRIES IS NOT ASKED, since 2026-09-05 -- `decision-log.md Process:
+#97`. The binder is filtered to the places holding prose, so an `add` cites a
+place it dropped and a `move` may cite a file it never held; the write end
+opens the page and is the one thing that can say whether the place exists.
+`known_addresses` stays for the coverage count, which asks what came back
+against what was handed out.
 One kind needs only the report itself, and nothing outside it (`Problem`,
 `tally`) -- `decision-log.md Process: #54` put them here because they ask
 about the SET, and one mark cannot answer for the set alone. ! TWO MORE
@@ -140,28 +145,6 @@ def base_texts(binder: Binder) -> dict[str, str]:
         dropped, matching `known_addresses`.
     """
     return {b.address: b.raw_text for b in binder.paragraphs if b.address}
-
-
-def address_problems(where: str, mark: Mark, known: frozenset[str]) -> list[str]:
-    """Whether this mark's address names a place the binder carries.
-
-    ! AN EMPTY ADDRESS PASSES, and that is not a hole. `desk.mark.parse` owes
-    the address only where `INSTRUCTIONS[...].substantive` is True, and `clean`
-    is the one row it is False for -- so a `clean` reaches here carrying none.
-
-    Args:
-        where: how to name this mark in a message -- its address, or a position.
-        mark: one role's ruling, already through `desk.mark.parse`.
-        known: `known_addresses` of the binder this mark was seeded from.
-
-    Returns:
-        One message, or an empty list. Never more than one.
-    """
-    if mark.address and mark.address not in known:
-        return [
-            f"{where}: `address` {mark.address!r} names no place the binder carries"
-        ]
-    return []
 
 
 def claim_verbatim_problems(where: str, mark: Mark, base: str) -> list[str]:
@@ -325,30 +308,25 @@ def source_verification(
     mark: Mark,
     *,
     base: str,
-    known: frozenset[str],
     root: Path,
     cache: Cache,
 ) -> list[str]:
-    """The three checks over one mark.
+    """The two checks over one mark.
 
-    ! WHAT IT ADDS IS THE ORDER AND NOTHING ELSE -- address, then the quoted
-    sentence, then the sources. The three lists are concatenated and none of
-    them short-circuits, so one mark can come back carrying problems from all
-    three at once.
+    ! WHAT IT ADDS IS THE ORDER AND NOTHING ELSE -- the quoted sentence, then
+    the sources. The two lists are concatenated and neither short-circuits, so
+    one mark can come back carrying problems from both at once.
 
     Args:
         where: how to name this mark in a message -- its address, or a position.
         mark: one role's ruling, already through `desk.mark.parse`.
         base: the paragraph THE BINDER SEEDED at this place, for the quoted
             sentence -- see `claim_verbatim_problems`.
-        known: `known_addresses` of the binder the mark was seeded from.
         root: the checkout every `cite` is resolved against.
         cache: path -> lines, shared across the marks of one report.
     """
-    return (
-        address_problems(where, mark, known)
-        + claim_verbatim_problems(where, mark, base)
-        + source_problems(where, mark, root, cache)
+    return claim_verbatim_problems(where, mark, base) + source_problems(
+        where, mark, root, cache
     )
 
 
@@ -389,7 +367,7 @@ def verify_report(
             to, and `EditCopy.deserialize` has already refused a copy that
             carries none.
         binder: the binder the edit_copy was seeded from -- what each
-            `address` is measured against.
+            seeded paragraph is measured against.
         root: the checkout every `cite` is resolved against.
         cache: a `Cache` to read cited files through.
             !! REQUIRED, AND ONE PER STAGE. `flows.collate.collate` calls this
@@ -428,10 +406,13 @@ def verify_report(
     reported once by each. That is not two vocabularies for one fact, which
     `drift_in` already forbids; it is the same sentence twice.
 
-    ! SO THE THREE QUESTIONS THIS FUNCTION OWNS ARE THE ONLY ONES IT ANSWERS --
-    is the address one the binder carries, is the quoted sentence really in the
-    paragraph, does every `cite` resolve. Whether the mark is well formed at
-    all is asked once, one function over.
+    ! SO THE TWO QUESTIONS THIS FUNCTION OWNS ARE THE ONLY ONES IT ANSWERS --
+    is the quoted sentence really in the paragraph, does every `cite` resolve.
+    Whether the mark is well formed at all is asked once, one function over.
+    !! IT ASKED A THIRD UNTIL 2026-09-05 -- is the address one the binder
+    carries -- and `Process: #97` retired it: the binder is a filtered view, an
+    `add` cites a place the filter dropped, and only the write end can say
+    whether the page has it. Two live runs lost four `add`s to the refusal.
 
     ! A MARK IS NAMED BY ITS OWN `address`, falling back to `mark {n}` where it
     carries none. ! `n` COUNTS EVERY ENTRY WALKED, untouched slots included, so
@@ -443,7 +424,6 @@ def verify_report(
     this function's own contradiction: `Args: cache` said one per stage and
     this said one per report, and the second is what the code did.
     """
-    known = known_addresses(binder)
     base = base_texts(binder)
     out: list[Problem] = []
     for sheet in copy.sheets:
@@ -465,7 +445,6 @@ def verify_report(
                     mark.address,
                     mark,
                     base=base.get(mark.address, ""),
-                    known=known,
                     root=root,
                     cache=cache,
                 )
@@ -494,9 +473,9 @@ def drift_in(copy: EditCopy, base: dict[str, str]) -> list[Problem]:
 
     ! AN UNTOUCHED SLOT IS SKIPPED. Nobody wrote there, so nothing drifted.
 
-    ! AN ADDRESS THE BINDER DOES NOT CARRY IS NOT DRIFT EITHER -- that is
-    `address_problems`' question, and reporting it twice in two vocabularies is
-    the duplication `Problem` exists to avoid.
+    ! AN ADDRESS THE BINDER DOES NOT CARRY IS NOT DRIFT EITHER. Nothing was
+    seeded there, so nothing came back changed -- and nothing refuses it,
+    `Process: #97`: an `add` cites a place the filter dropped.
 
     Args:
         copy: one parsed edit_copy, as it came back.
