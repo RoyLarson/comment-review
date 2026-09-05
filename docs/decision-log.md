@@ -3420,3 +3420,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   well and it lists all of the places with the line number but I would rather they stick with
   just the line number."* So the lookup takes a line number of the original file and a
   series, and the brief stops telling a role to ask with the line's text.
+
+- **#97.** **THE BINDER NEVER DECIDES WHETHER AN ADDRESS IS WRITEABLE -- NOT AT COLLATE, NOT AT
+  WRITE** (Roy, 2026-09-05, on how `#96`'s fold change should be shaped: *"If the address is not
+  in the binder it will still be write-able on the write stage because the write stage doesn't
+  look for what is in the binder. That is on purpose. Saying something needs to move and not able
+  to because it is in another file causes issues"*).
+
+  **What it settles.** The collator's refusal of a mark whose address *"names no place the binder
+  carries"* is deleted, and nothing replaces it in the middle: `#62` bars the middle from a page,
+  so it cannot ask whether the place exists, and the write end -- which opens the page anyway --
+  is where an address that names nothing fails. That covers a `move` whose `claim.to` is on a
+  file the run never gathered, which the write end sets like any other page. `known_addresses`
+  stays for the two questions it still answers: the coverage count over the places a role was
+  handed, and the revise diff.
