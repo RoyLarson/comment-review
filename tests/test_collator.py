@@ -1,4 +1,7 @@
-"""`desk/collator.py`: source-verification -- T3.1, T3.2, T3.3, and T3.4.
+"""`desk/collator.py`: source-verification -- T3.2, T3.3, and T3.4.
+
+! T3.1 -- the address names a place the binder carries -- IS RETIRED, `Process:
+#97`, and `TestAnAbsentAddressIsNotRefused` asserts the opposite.
 
 ! INPUTS FROM REALITY, `decision-log.md Vocabulary: #23`. Every mark below is
 built from a real binder over this repo's own `src/comment_review/desk`, and
@@ -16,10 +19,17 @@ from dataclasses import replace
 from pathlib import Path
 
 from conftest import ROOT
-from helpers import a_clean, a_correct, a_small_real_tree, binder_of, returned
+from helpers import (
+    a_clean,
+    a_correct,
+    a_small_real_tree,
+    an_add,
+    binder_of,
+    pages_of,
+    returned,
+)
 
 from comment_review.desk.collator import (
-    address_problems,
     base_texts,
     claim_verbatim_problems,
     drift_in,
@@ -33,6 +43,7 @@ from comment_review.desk.containers import EditCopy
 from comment_review.desk.mark import Instruction, Mark
 from comment_review.flows.distribute import seed
 from comment_review.flows.mark_errors import mark_errors
+from comment_review.reading.addresser import address_for
 
 DESK = ROOT / "src" / "comment_review" / "desk"
 
@@ -138,20 +149,6 @@ def _ruled_places(copy) -> int:
 
 def test_known_addresses_carries_the_real_row():
     assert ROW.address in KNOWN
-
-
-class TestAddressProblems:
-    """T3.1 -- the address resolves to a place the binder carries."""
-
-    def test_a_real_address_resolves(self):
-        assert address_problems("here", _well_formed(), KNOWN) == []
-
-    def test_clean_needs_no_address(self):
-        """A role returns `clean` over most of the binder -- no address at
-        all, which is `desk.mark.parse`'s question, not this one's."""
-        clean, why = Mark.deserialize("here", {"instruction": "clean"})
-        assert why == [] and clean is not None
-        assert address_problems("here", clean, KNOWN) == []
 
 
 class TestClaimVerbatimProblems:
@@ -376,7 +373,6 @@ class TestSourceVerification:
             "here",
             _well_formed(),
             base=RAW_TEXT,
-            known=KNOWN,
             root=ROOT,
             cache={},
         )
@@ -511,12 +507,6 @@ class TestTheBaseIsTheBinders:
 class TestEachCheckCanFire:
     """T3.4: each check starts from a passing mark and is mutated to fail."""
 
-    def test_t3_1_an_address_the_binder_does_not_carry_is_refused(self):
-        bad = a_mark(address="src/comment_review/desk/mark.py@z9")
-        problems = address_problems("here", bad, KNOWN)
-        assert problems
-        assert "z9" in problems[0]
-
     def test_t3_2_a_verbatim_never_written_by_the_file_is_refused(self):
         bad = a_mark(
             sources=(
@@ -539,6 +529,36 @@ class TestEachCheckCanFire:
         problems = claim_verbatim_problems("here", bad, RAW_TEXT)
         assert problems
         assert "claim.false" in problems[0]
+
+
+class TestAnAbsentAddressIsNotRefused:
+    """`collator-defects` T33, `decision-log.md Process: #97`. The binder a role
+    reads is filtered to the places holding prose, so the place an `add` cites
+    is one it does not carry -- and whether the PAGE has that place is the
+    write end's question, which opens the page. T3.1 asserted the refusal here
+    until 2026-09-05; two live runs lost four `add`s to it."""
+
+    def test_an_add_at_a_place_the_binder_lacks_passes_verify_report(self, tmp_path):
+        repo = a_small_real_tree(tmp_path)
+        binder = binder_of(repo, 0)
+        known = known_addresses(binder)
+        # ! A REAL EMPTY PLACE, read off the page the binder was built from --
+        # not an invented cue. The default binder carried none of these.
+        page = next(p for p in pages_of(repo) if p.path == "mark.py")
+        absent = next(
+            address_for(page.path, c)
+            for c in page.cues.places
+            if address_for(page.path, c) not in known
+        )
+        wire = seed(binder, "block-context")
+        # ! The cite is INSIDE this repo, so the one thing left to refuse the
+        # mark is the address -- `an_add`'s default cites this checkout.
+        cite = {"cite": "mark.py:1", "verbatim": line_of(repo / "mark.py", 1)}
+        wire["sheets"][0]["marks"].append(
+            {**an_add(absent), "sources": [cite], "anchor": "", "raw_text": ""}
+        )
+        problems = verify_report(returned(wire), binder, repo, {})
+        assert [p for p in problems if p.address == absent] == []
 
 
 class TestProblemsAreRoutable:
