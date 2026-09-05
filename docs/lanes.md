@@ -14,19 +14,19 @@ the crossing rules are in [`conventions.md`](conventions.md).
 
 | path | lane |
 | --- | --- |
-| `plugins/comment-review/agents/**` | `agents` |
-| `plugins/comment-review/skills/comment-review/SKILL.md` | `agents` |
-| `plugins/comment-review/skills/comment-review/references/*.md` | `agents` |
+| `src/plugin/agents/**` | `agents` |
+| `src/plugin/skills/comment-review/SKILL.md` | `agents` |
+| `src/plugin/skills/comment-review/references/*.md` | `agents` |
 | `docs/limitations.md` | `agents` |
 | `src/comment_review/**`, `src/comment-review.py` | `backend` |
-| `plugins/**/scripts/**` -- BUILT OUTPUT, edit `src/` instead | `backend` |
+| `plugins/**` -- OUTPUT of `scripts/release.py`, edit `src/` instead | the lane that owns the source it was copied from |
 | `docs/addressing.md`, `docs/parsing.md` | `backend` |
 | `docs/the-mark.md` -- the SOURCE for the mark's fields and classifiers | `backend` |
 | `docs/the-turn.md` -- the SOURCE for what a TURN is and what closes the editorial roles | `backend` |
 | `evals/**`, `evidence/**`, `corpora/**` | `testing` |
 | `scripts/**` | `systems` |
 | `docs/gates.md` | `systems` |
-| `pyproject.toml`, `.claude-plugin/**`, `plugins/**/plugin.json` | `systems` |
+| `pyproject.toml`, `.claude-plugin/**`, `src/plugin/.claude-plugin/plugin.json` | `systems` |
 | `.gitignore`, `CHANGELOG.md`, release tagging | `systems` |
 | **`TODO/` as a BOARD** -- owners, splits, merges | `systems` |
 
@@ -52,7 +52,7 @@ regression test there is how a backend defect ends up waiting on a lane that own
 
 | path | why |
 | --- | --- |
-| `plugins/comment-review/skills/comment-review/references/vocabulary.toml` | **shared** -- see conventions, *The vocabulary is shared* |
+| `src/comment_review/references/vocabulary.toml` | **shared** -- see conventions, *The vocabulary is shared* |
 | `docs/vocabulary.md` | shared, same rule |
 | `docs/history.md`, `docs/decision-log.md` | written by whoever received the ruling |
 | `TODO/**` -- FILING one | filed by whoever found the thing, in whatever lane owns it |

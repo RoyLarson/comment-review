@@ -83,12 +83,14 @@ The repo root is **not** the plugin. Only `plugins/comment-review/` ships to a u
 `.claude/`; everything else (`docs/`, `evidence/`, `evals/`, `corpora/`, `scripts/`) is
 development and measurement tooling that stays behind.
 
-**And `plugins/` is built, not written, since 2026-08-24.** The Python lives in
-**`src/comment_review/`** and `scripts/build_plugin.py` copies it WHOLESALE into the skill --
-sub-packages intact, because Roy ruled the shipped tree takes the same shape as the source.
-**Edit `src/`; `plugins/*.py` is output.** What does NOT come from `src/` is the prose an agent
-reads: `agents/*.md`, `SKILL.md` and `references/*.md` are written in place, and only
-`references/vocabulary.toml` moved into the package, because code reads it.
+**And `plugins/` is assembled, not written.** `scripts/release.py` deletes it and rebuilds it
+from two sources, WHOLESALE -- sub-packages intact, because Roy ruled the shipped tree takes
+the same shape as the source: the Python in **`src/comment_review/`** with its launcher, and
+the prose an agent reads in **`src/plugin/`** -- `agents/*.md`, `SKILL.md`, `references/*.md`
+and `plugin.json`, laid out as the plugin is. **Edit `src/`; all of `plugins/` is output.** It
+is rebuilt at release only, so between releases it lags and nothing reddens over that. The
+gate that held the two equal per change went on 2026-09-05; Roy: *"It is just noise in the
+development."*
 
 ## Commands
 
@@ -135,7 +137,7 @@ uv run ruff check .
 uv run ruff format .
 uv run ty check
 uv run python scripts/check_shipped_syntax.py     # AFTER ruff format; reads src/
-uv run python scripts/build_plugin.py [--check]   # copy src/ -> plugins/
+uv run python scripts/release.py                  # assemble plugins/ from src/; at release
 uv run python scripts/check_vocabulary.py
 claude plugin validate plugins/comment-review     # release gate; before tagging
 
@@ -178,9 +180,6 @@ use `job-board`.
 **A baseline, so a later failure is attributable.** Measured 2026-08-30 on
 `feat/the-mark-and-the-collator`: 1381 passed, 1 skipped, 3 xfailed, 90 subtests,
 about 15 seconds. The skip needs symlinks and runs where they exist.
-
-!! **One failure is expected on a branch** -- `test_build.py`. `plugins/` is built
-at release, not during development.
 
 **Tests are written in plain pytest and build their inputs from the code** --
 pages from `page_for` over real source, binders from `bind`, with a literal only
@@ -250,11 +249,10 @@ every ty run and four real `invalid-argument-type` errors there passed a green
 suite, `ruff check`, `ty check` and the floor gate, because nothing was ever
 pointed at `tests/`.
 
-!! **`plugins/` is built from `src/`, not edited.** The Python lives in
-`src/comment_review/` and is copied wholesale into the skill. Edit `src/`, run the
-build, commit both. `scripts/check_shipped_syntax.py` reads `src/` because that is
-what the formatter rewrites; whether `plugins/` matches is the build gate's
-question.
+!! **`plugins/` is assembled from `src/`, not edited.** Edit `src/`; at release run
+`scripts/release.py` and commit what it writes. `scripts/check_shipped_syntax.py`
+reads `src/` because that is what the formatter rewrites; whether `plugins/` matches
+is not asked between releases.
 
 **`src/comment-review.py vocabulary` moved to `prototype/` on 2026-08-25 and does
 not run.** `TODO/the-skill-names-commands-that-moved-to-prototype.md` T1 holds
@@ -264,7 +262,7 @@ what replaces it.
 
 ### The skill's 8 stages
 
-`plugins/comment-review/skills/comment-review/SKILL.md` is the task agent's own instructions --
+`src/plugin/skills/comment-review/SKILL.md` is the task agent's own instructions --
 read it before touching the skill. The pipeline:
 
 ```
@@ -317,7 +315,7 @@ restate it.
 ### The four editorial roles
 
 Each is a separate namespaced plugin agent (`comment-review:comment-review-*`) under
-`plugins/comment-review/agents/`. **`ownership-context` runs ALONE and FIRST**; the other
+`src/plugin/agents/`. **`ownership-context` runs ALONE and FIRST**; the other
 three go in one message so they run concurrently and see nothing of each other:
 
 - **ownership-context** -- does this comment belong to the ANCHOR it sits on?
@@ -453,13 +451,14 @@ content elsewhere, and a change to a rule belongs in exactly one of these files 
 | path                              | what                                                                                                                                                                       |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `src/comment_review/`             | **the Python, and the only place to edit it.** Seven areas -- `machine`, `reading`, `binder`, `concordance`, `desk`, `results`, `flows` -- plus `commands/`, which holds every `main()` and argparse, and `__main__.py`, the dispatcher. `src/comment-review.py` beside it is the launcher, the one file allowed to touch `sys.path` |
-| `plugins/comment-review/`         | the shipped plugin -- `agents/`, `SKILL.md` and `references/*.md` are WRITTEN here; `skills/*/scripts/` is BUILT from `src/` and is output                                  |
+| `src/plugin/`                     | **the prose an agent reads, and the only place to edit it** -- `agents/*.md`, `SKILL.md`, `references/*.md` and `plugin.json`, in the plugin's own shape |
+| `plugins/comment-review/`         | the shipped plugin -- OUTPUT of `scripts/release.py`, all of it, rebuilt at release from `src/plugin/` and `src/comment_review/` |
 | `docs/`                           | how this system behaves today, and the rules for changing it: `addressing.md` (how a place is NAMED -- the crux, and what the line-numbered form got wrong), `parsing.md` (where a page's structure could come from), `limitations.md` (rules for changing the skill itself -- budget-constrained, no invented examples), `vocabulary.md` (the settled terms, and every word this system stopped using), `the-turn.md` (the SOURCE for what a TURN is, what a DiffMark answers, and what closes the editorial roles -- the loop lived only in chat until 2026-09-02 and was reconstructed wrong twice), `history.md` (what the system used to DO and stopped doing -- a retired format or mechanism, with the commit that removed it, so an OLD artifact can still be read), `decision-log.md` (WHAT was decided and WHEN -- the dated chain of rulings, retractions and supersessions; the commentary on WHY is `history.md`'s. Cited as `decision-log.md TOPIC: #N`) |
 | `docs/plans/`                     | release scopes -- what one version ships, what it does not, and which TODOs it works. !! **NOT `docs/superpowers/plans/`**, and the split is deliberate: Roy, 2026-08-19, *"I don't want to conflate the rigorous one for the less rigorous one."* A superpowers plan is written for an engineer with no context -- exact files, TDD steps, a commit per task. **A plan is not A TODO**: *"Todos can remain open an indefinite amount of time and make progress as we see fit. Plans are scopes of work to be complete in one run."* Anything in a plan that does not get done is filed in `TODO/` before the plan closes |
 | `evidence/`                       | the prose defects the system is measured against, and the searches scored on them: per-module probe reports over a real codebase, the triage that ranked them, `ga/ground_truth.py` and the candidate rewrites it scores. Nothing here describes this system's own behavior -- that is `docs/`                                                    |
 | `evals/`                          | `generator_split.py` (the authorship split) and `test-cases.jsonl`. The twelve planted hazards and their grader are NOT here -- there is no end-to-end grade, see Commands |
 | `corpora/`                        | `corpora.toml` MANIFEST of pinned corpora; the trees themselves are fetched, never vendored (gitignored)                                                                   |
-| `scripts/`                        | `build_plugin.py` (which makes `plugins/`), `fetch_corpora.py`, `find_llm_repos.py`, `check_shipped_syntax.py` -- none of this ships with the plugin                        |
+| `scripts/`                        | `release.py` (which assembles `plugins/`), `fetch_corpora.py`, `find_llm_repos.py`, `check_shipped_syntax.py` -- none of this ships with the plugin                        |
 | `prototype/`                      | **REFERENCE, not source.** The middle of the chain -- the desk, the verdicts, the record -- moved here 2026-08-25. Nothing imports it, nothing ships it, it does not run. Kept because the replacement is not designed yet; see `prototype/README.md` |
 | `.claude-plugin/marketplace.json` | lets this checkout be installed as a plugin marketplace in the same session (`claude plugin marketplace add <path>` then `claude plugin install comment-review`)           |
 
@@ -717,7 +716,7 @@ three in one commit, or the gate fails:
 | --- | --- |
 | `pyproject.toml` | `[project] version` |
 | `CHANGELOG.md` | the newest `## [x.y.z]` heading (`[Unreleased]` is skipped -- it carries no number) |
-| `plugins/comment-review/.claude-plugin/plugin.json` | `version` |
+| `src/plugin/.claude-plugin/plugin.json` | `version` |
 
 !! **Any change under `plugins/` after a tag needs a new version.** The plugin cache keys its
 directory on that `version` field -- `~/.claude/plugins/cache/roy-local/comment-review/0.2.1/`
@@ -735,19 +734,17 @@ Use `vX.Y.Z^{}` wherever a commit is wanted -- `git diff "v0.2.1^{}" HEAD`, `git
 "v0.2.0^{}:<path>"`. This is the trap anyone re-deriving which code produced a measurement hits
 first.
 
-**Run the build before tagging, and commit what it writes.** Since 2026-08-24 the shipped
-Python is a COPY of `src/comment_review/`, so a release cut without `uv run python
-scripts/build_plugin.py` ships whatever the last build left behind -- and every gate reading
-`plugins/` passes on it, because a stale copy is still a valid one.
+**Run the release command before tagging, and commit what it writes.** `plugins/` is a COPY
+of `src/`, so a release cut without `uv run python scripts/release.py` ships whatever the
+last run left behind -- and every gate reads `src/`, so nothing fails on a stale copy.
 
 | | |
 | --- | --- |
-| build | `uv run python scripts/build_plugin.py` |
-| prove it took | `uv run python scripts/build_plugin.py --check` |
+| assemble | `uv run python scripts/release.py` |
 | then commit | `plugins/` stays tracked -- the marketplace install reads committed state |
 
-**`tests/gates/test_build.py` is what proves that check can fail**, over a hand-edited file,
-a file never built, a file the source dropped, and an empty tree.
+**`tests/gates/test_release_assembles.py` is what proves the command rebuilds**, over a
+temporary tree: a file the source dropped is removed, and bytecode does not ship.
 
 **Run `claude plugin validate plugins/comment-review` before tagging.** No test replaces it:
 it is the parser the runtime actually uses, and it caught a YAML frontmatter failure that had
@@ -856,7 +853,7 @@ a measurement: nothing in this repo tests it.
   under "The skill's 8 stages" above and must not be used as a loose adjective for code or
   prose anywhere in this repo. As an instruction it means nothing to report from that role, and
   each role's `clean` asserts something specific -- read what, in that role's own file under
-  `plugins/comment-review/agents/`, which states it.
+  `src/plugin/agents/`, which states it.
 
 ## Exploration Budget
 
