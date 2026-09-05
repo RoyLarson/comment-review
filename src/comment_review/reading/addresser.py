@@ -520,6 +520,40 @@ class Cues:
         """The `a` for the nth documentable declaration; 0 is the module."""
         return self.addressers[DECLARED].at(ordinal)
 
+    def at_line(self, line: int, series: str) -> list[str]:
+        """The places of one SERIES that a line NUMBER of the file names.
+
+        !! A LINE NUMBER IS HOW A ROLE ASKS; AN ADDRESS IS HOW IT ANSWERS --
+        `decision-log.md Process: #96`. The binder a role reads is filtered to
+        the places holding prose, so the place an `add` wants is exactly the
+        one it cannot find there; this answers from the file `cue` walked.
+
+        ! EACH SERIES IS A DIFFERENT QUESTION OF THE SAME LINE, and each is a
+        lookup this object already answers -- `above`, `beside`, `anchor_line`,
+        `file_places` -- never a count.
+
+            b   the gap a paragraph inserting at `line` falls into
+            c   the room beside `line`, if it holds code
+            a   the documentation of a declaration OPENING on `line`
+            f   both of the file's own places -- no line tells the head from
+                the foot, so the caller chooses by address
+
+        Returns:
+            The cues, in emission order. Empty when the series has no place at
+            that line -- a `c` on a blank line, an `a` on a line that declares
+            nothing -- which a caller reports rather than treating as a place.
+        """
+        if series == GAP:
+            return [self.above(line)]
+        if series == ON:
+            return [c for c in (self.beside(line),) if c]
+        if series == DECLARED:
+            walker = self.addressers[DECLARED]
+            return [c for c in walker.places if self.anchor_line(c) == line]
+        if series == COVERS:
+            return self.file_places()
+        return []
+
     def anchor_line(self, cue: str) -> int | None:
         """The LINE the anchor of this place sits on. None when it has none.
 
