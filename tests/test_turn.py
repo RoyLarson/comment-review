@@ -21,6 +21,7 @@ from helpers import (
     entries_of,
 )
 
+from comment_review.desk.containers import MasterProof
 from comment_review.desk.determined import CHIEF, ORIGINAL, Answer
 from comment_review.desk.diff_mark import COMPOSITION, QUESTION, batch_of
 from comment_review.desk.mark import Mark, Shape
@@ -30,6 +31,7 @@ from comment_review.flows.turn import (
     batch_for,
     contracts,
     determined_chief,
+    proof_after,
     rule_at_cap,
     run_turn,
 )
@@ -40,6 +42,15 @@ DOS = "# one\n# dos\n# three\n"
 ONE_ = "# ONE\n# two\n# three\n"
 _THREE = "# one\n# two\n# THREE\n"
 COMPOSED = "# ONE\n# two\n# THREE\n"
+
+
+def _at(got, turns: int = 0) -> MasterProof:
+    """The proof a fold left, standing at `turns` -- what `run_turn` reads.
+
+    ! THE RECORD IS A PLACEHOLDER. The turn number is derived from its
+    length (`MasterProof.turn`), and nothing here reads its contents.
+    """
+    return proof_after(got, tuple({"turn": i + 1} for i in range(turns)))
 
 
 def _escalated():
@@ -85,7 +96,8 @@ class TestAnEscalation:
             ),
             **_answered(batch, "function-context", instruction="hold", reason="stands"),
         }
-        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        again = run_turn(_at(got), binder, REPO, batch, answers)
+        problems = again.revisit
         assert problems == []
         assert again.escalations == []
         # ! NOT A STET YET, since `Process: #89`: the surviving mark is a lone
@@ -96,8 +108,8 @@ class TestAnEscalation:
         assert again.rereads[0]["composed"].change == DOS
         batch2 = batch_of(again.escalations, again.rereads)
         answers2 = {r: [{**batch2[r][0], "instruction": "clean"}] for r in batch2}
-        final, problems = run_turn("4c", copies, binder, REPO, batch2, answers2, turn=2)
-        assert problems == []
+        final = run_turn(_at(again, 1), binder, REPO, batch2, answers2)
+        assert final.revisit == []
         ruled = final.determined["m.py@b1"]
         assert ruled.answer is Answer.STET
         assert ruled.turn == 2
@@ -113,7 +125,8 @@ class TestAnEscalation:
             ),
             **_answered(batch, "function-context", instruction="hold", reason="stands"),
         }
-        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        again = run_turn(_at(got), binder, REPO, batch, answers)
+        problems = again.revisit
         assert problems == []
         ruled = again.determined["m.py@b1"]
         assert ruled.answer is Answer.STET
@@ -127,7 +140,8 @@ class TestAnEscalation:
             **_answered(batch, "block-context", instruction="hold", reason="mine"),
             **_answered(batch, "function-context", instruction="hold", reason="mine"),
         }
-        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        again = run_turn(_at(got), binder, REPO, batch, answers)
+        problems = again.revisit
         assert problems == []
         assert [e["address"] for e in again.escalations] == ["m.py@b1"]
         assert again.determined == {}
@@ -139,7 +153,8 @@ class TestAnEscalation:
             "block-context": [batch["block-context"][0]],
             **_answered(batch, "function-context", instruction="hold", reason="mine"),
         }
-        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        again = run_turn(_at(got), binder, REPO, batch, answers)
+        problems = again.revisit
         assert any("unanswered" in r for p in problems for r in p.reasons)
         assert [e["address"] for e in again.escalations] == ["m.py@b1"]
 
@@ -157,7 +172,8 @@ class TestTheSentBatchPairsTheAnswer:
             "block-context": [bare],
             **_answered(batch, "function-context", instruction="hold", reason="stands"),
         }
-        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        again = run_turn(_at(got), binder, REPO, batch, answers)
+        problems = again.revisit
         assert problems == []
         # The withdrawal applied: function-context's mark is the lone one, and
         # it goes back to block-context (`#89`).
@@ -171,7 +187,7 @@ class TestTheSentBatchPairsTheAnswer:
             "block-context": [stray],
             **_answered(batch, "function-context", instruction="hold", reason="stands"),
         }
-        _, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        problems = run_turn(_at(got), binder, REPO, batch, answers).revisit
         assert any(
             p.address == "m.py@b9" and "never sent" in r
             for p in problems
@@ -185,7 +201,7 @@ class TestTheSentBatchPairsTheAnswer:
             "block-context": [],
             **_answered(batch, "function-context", instruction="hold", reason="stands"),
         }
-        _, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        problems = run_turn(_at(got), binder, REPO, batch, answers).revisit
         assert any(
             p.address == "m.py@b1" and "unanswered" in r
             for p in problems
@@ -211,7 +227,8 @@ class TestAComposition:
             **_answered(batch, "block-context", instruction="clean"),
             **_answered(batch, "function-context", instruction="clean"),
         }
-        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        again = run_turn(_at(got), binder, REPO, batch, answers)
+        problems = again.revisit
         assert problems == []
         assert again.rereads == []
         ruled = again.determined["m.py@b1"]
@@ -235,7 +252,8 @@ class TestAComposition:
                 change=fixed,
             ),
         }
-        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        again = run_turn(_at(got), binder, REPO, batch, answers)
+        problems = again.revisit
         assert problems == []
         assert [e["address"] for e in again.escalations] == ["m.py@b1"]
         assert again.determined == {}
@@ -262,7 +280,8 @@ class TestAComposition:
                 change=worded,
             ),
         }
-        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        again = run_turn(_at(got), binder, REPO, batch, answers)
+        problems = again.revisit
         assert problems == []
         assert again.revisit == []
         assert [e["address"] for e in again.escalations] == ["m.py@b1"]
@@ -284,7 +303,7 @@ class TestAComposition:
             ),
             **_answered(batch, "function-context", instruction="clean"),
         }
-        _, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        problems = run_turn(_at(got), binder, REPO, batch, answers).revisit
         assert any("not a composition answer" in r for p in problems for r in p.reasons)
 
 
@@ -329,7 +348,8 @@ class TestALoneOwingMark:
         binder, copies, got = _lone(a_correct_setting("m.py@b1", "two", TWO))
         batch = batch_of(got.escalations, got.rereads)
         answers = {r: [{**batch[r][0], "instruction": "clean"}] for r in batch}
-        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        again = run_turn(_at(got), binder, REPO, batch, answers)
+        problems = again.revisit
         assert problems == []
         assert again.rereads == [] and again.escalations == []
         ruled = again.determined["m.py@b1"]
@@ -345,7 +365,8 @@ class TestALoneOwingMark:
         batch = batch_of(got.escalations, got.rereads)
         assert all(batch[r][0]["raw_text"] == added["change"] for r in batch)
         answers = {r: [{**batch[r][0], "instruction": "clean"}] for r in batch}
-        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        again = run_turn(_at(got), binder, REPO, batch, answers)
+        problems = again.revisit
         assert problems == []
         assert [m.change for m in entries_of(again.chief)] == [added["change"]]
 
@@ -357,7 +378,7 @@ class TestALoneOwingMark:
         binder, copies, got = _lone(a_correct_setting("m.py@b1", "two", TWO))
         batch = batch_of(got.escalations, got.rereads)
         answers = {r: [{**batch[r][0], "instruction": "clean"}] for r in batch}
-        again, _ = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        again = run_turn(_at(got), binder, REPO, batch, answers)
         assert "m.py@b1" in again.determined
 
 
@@ -421,44 +442,45 @@ class TestOnceStetAlwaysStet:
                 },
             ],
         }
-        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        again = run_turn(_at(got), binder, REPO, batch, answers)
+        problems = again.revisit
         assert problems == []
         assert again.determined["m.py@b1"].turn == 1
         assert [e["address"] for e in again.escalations] == ["m.py@b5"]
-        return binder, copies, again
+        return binder, again
 
     def test_a_stet_place_keeps_its_turn_and_leaves_every_later_batch(self):
-        binder, copies, one = self._turn_one()
+        binder, one = self._turn_one()
         batch2 = batch_of(one.escalations, one.rereads)
         assert all(s["address"] == "m.py@b5" for r in batch2 for s in batch2[r])
         answers2 = {
             r: [{**batch2[r][0], "instruction": "hold", "reason": "still"}]
             for r in batch2
         }
-        two, problems = run_turn(
-            "4c", copies, binder, REPO, batch2, answers2, turn=2, earlier=one.determined
-        )
-        assert problems == []
+        two = run_turn(_at(one, 1), binder, REPO, batch2, answers2)
+        assert two.revisit == []
         assert two.determined["m.py@b1"].turn == 1
         assert [e["address"] for e in two.escalations] == ["m.py@b5"]
 
     def test_a_role_changing_its_entry_at_a_stet_place_changes_nothing(self):
-        binder, copies, one = self._turn_one()
-        # block-context rewrites its b1 entry behind the fold's back.
-        for copy in copies:
+        binder, one = self._turn_one()
+        # block-context rewrites its b1 entry behind the fold's back -- on the
+        # proof's wire, which is what the next turn reads.
+        wire = _at(one, 1).serialize()
+        for copy in wire["edit_copies"]:
             if copy["role"] == "block-context":
                 for sheet in copy["sheets"]:
                     for entry in sheet["marks"]:
                         if entry["address"] == "m.py@b1":
                             entry["change"] = "# one\n# something else\n# three\n"
+        proof, why = MasterProof.deserialize("rewritten", wire)
+        assert proof is not None, why
         batch2 = batch_of(one.escalations, one.rereads)
         answers2 = {
             r: [{**batch2[r][0], "instruction": "hold", "reason": "still"}]
             for r in batch2
         }
-        two, _ = run_turn(
-            "4c", copies, binder, REPO, batch2, answers2, turn=2, earlier=one.determined
-        )
+        two = run_turn(proof, binder, REPO, batch2, answers2)
         assert two.determined["m.py@b1"].turn == 1
         assert two.determined["m.py@b1"].mark is not None
         assert two.determined["m.py@b1"].mark.change == DOS
@@ -475,7 +497,7 @@ class TestTheConflictOutcomes:
         answers = {
             r: [{**batch[r][0], "instruction": "hold", "reason": "mine"}] for r in batch
         }
-        again, _ = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        again = run_turn(_at(got), binder, REPO, batch, answers)
         assert [e["address"] for e in again.escalations] == ["m.py@b1"]
         assert again.determined == {}
 
@@ -488,14 +510,12 @@ class TestTheConflictOutcomes:
             ),
             **_answered(batch, "function-context", instruction="hold", reason="stands"),
         }
-        one, _ = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        one = run_turn(_at(got), binder, REPO, batch, answers)
         assert one.rereads[0]["composed"].change == DOS
         batch2 = batch_of(one.escalations, one.rereads)
         answers2 = {r: [{**batch2[r][0], "instruction": "clean"}] for r in batch2}
-        two, problems = run_turn(
-            "4c", copies, binder, REPO, batch2, answers2, turn=2, earlier=one.determined
-        )
-        assert problems == []
+        two = run_turn(_at(one, 1), binder, REPO, batch2, answers2)
+        assert two.revisit == []
         ruled = two.determined["m.py@b1"]
         assert ruled.answer is Answer.STET and ruled.turn == 2
         assert [m.change for m in entries_of(two.chief)] == [DOS]
@@ -507,7 +527,8 @@ class TestTheConflictOutcomes:
             r: [{**batch[r][0], "instruction": "withdraw", "reason": "neither"}]
             for r in batch
         }
-        again, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        again = run_turn(_at(got), binder, REPO, batch, answers)
+        problems = again.revisit
         assert problems == []
         assert again.escalations == [] and again.rereads == []
         ruled = again.determined["m.py@b1"]
@@ -531,7 +552,7 @@ class TestARefusedAnswerIsARevisit:
             **_answered(batch, "block-context", instruction="correct", reason="x"),
             **_answered(batch, "function-context", instruction="hold", reason="stands"),
         }
-        _, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        problems = run_turn(_at(got), binder, REPO, batch, answers).revisit
         assert len(problems) == 1
         one = problems[0]
         assert isinstance(one, Revisit)
@@ -547,7 +568,7 @@ class TestARefusedAnswerIsARevisit:
             "block-context": [],
             **_answered(batch, "function-context", instruction="hold", reason="stands"),
         }
-        _, problems = run_turn("4c", copies, binder, REPO, batch, answers, turn=1)
+        problems = run_turn(_at(got), binder, REPO, batch, answers).revisit
         assert [(p.role, p.address, p.unreadable) for p in problems] == [
             ("block-context", "m.py@b1", False)
         ]

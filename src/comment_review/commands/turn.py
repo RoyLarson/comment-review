@@ -117,16 +117,9 @@ def main() -> int:
         answers[role] = value
 
     root = Path(args.repo) if args.repo else binder.root
-    turn = len(proof.turns) + 1
-    # ! THE WIRE DICTS, BECAUSE THE FLOW MUTATES THEM IN PLACE and folds what
-    # they then hold -- `flows.turn`'s own header. The proof's copies are the
-    # copies as they stood after the last fold, which is what a turn edits.
-    copies = [copy.serialize() for copy in proof.edit_copies]
-    earlier = {one.address: one for one in proof.determined}
+    turn = proof.turn + 1
     try:
-        got, revisit = run_turn(
-            proof.stage, copies, binder, root, sent, answers, turn, earlier
-        )
+        got = run_turn(proof, binder, root, sent, answers)
     except CannotCollate as refusal:
         _report(refusal.problems)
         for one in refusal.revisit:
@@ -143,21 +136,20 @@ def main() -> int:
     _report(got.problems)
     _report(got.drift)
     _report(got.coverage)
-    every = [*revisit, *got.revisit]
-    for one in every:
+    for one in got.revisit:
         for reason in one.reasons:
             print(f"{one.role} {one.where}: {reason}")
     # !! AN UNREADABLE ANSWER IS `BROKEN` AND NOTHING IS WRITTEN, the same gate
     # `collate` keeps: a proof folded over a refused answer would carry the
     # refusal forward as if it were the role's ruling.
-    if got.problems or got.proof is None or any(one.unreadable for one in every):
+    if got.problems or got.proof is None or any(one.unreadable for one in got.revisit):
         return BROKEN
 
     record = {
         "turn": turn,
         "sent": sent,
         "returned": answers,
-        "revisit": [one._asdict() for one in revisit],
+        "revisit": [one._asdict() for one in got.revisit],
     }
     save_proof(Path(args.proof_out), proof_after(got, (*proof.turns, record)))
     print(
@@ -180,7 +172,7 @@ def main() -> int:
         return ESCALATIONS
     if got.rereads:
         return REREADS
-    if got.coverage or every:
+    if got.coverage or got.revisit:
         return COVERAGE
     if got.drift:
         return DRIFT

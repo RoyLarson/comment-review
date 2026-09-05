@@ -543,6 +543,15 @@ class MasterProof:
     determined: tuple[Determined, ...] = field(default=(), metadata={"wire": False})
     unsettlable: tuple[dict, ...] = field(default=(), metadata={"wire": False})
 
+    @property
+    def turn(self) -> int:
+        """The turn this proof stands at.
+
+        0 fresh from the first fold, then one per record in `turns`. The next
+        turn is this plus one, derived here so no caller counts the record.
+        """
+        return len(self.turns)
+
     @classmethod
     def seed(cls, stage: str, read_from: dict, edit_copies: list) -> dict:
         """One master_proof as the wire dict `desk.proof.master_proof_of` returns.

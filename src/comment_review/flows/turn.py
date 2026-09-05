@@ -2,8 +2,7 @@
 
     parse_answers(role, sent, returned) -> (answers, revisit)
     apply(copies, role, answers) -> revisit
-    run_turn(stage, copies, binder, root, sent, answers, turn, earlier)
-        -> (Collated, revisit)
+    run_turn(proof, binder, root, sent, answers) -> Collated
     rule_at_cap(collated, address, answer, side, reason, turn, prose) -> Determined
     determined_chief(collated, rulings) -> (every Determined, the chief's edit_copy)
     batch_for(collated) -> the batch that goes out, every slot carrying its diff
@@ -52,8 +51,8 @@ did not agree is the next turn's batch, until the task agent's cap
 
 !! ONCE STET, ALWAYS STET -- `Process: #91`. A place determined on an earlier
 turn keeps that Determined, turn included, whatever the copies say now, and
-leaves every later batch. `run_turn` takes the last fold's `determined` as
-`earlier` for exactly that; MEASURED in the game, hands 1 and 4, without it
+leaves every later batch. `run_turn` reads the last fold's `determined` off
+the proof for exactly that; MEASURED in the game, hands 1 and 4, without it
 a stet at turn 1 read turn 2 after the next fold.
 
 !! A REFUSED ANSWER IS A `Revisit` -- T18, `flows.mark_errors`, the shape the
@@ -359,38 +358,46 @@ def apply(
     return revisit
 
 
+def _unpacked(proof: MasterProof) -> tuple[list[dict], dict[str, Determined]]:
+    """The proof as a fold takes it: its copies as wire dicts, its rulings by address.
+
+    ! THE WIRE DICTS, BECAUSE `apply` MUTATES THEM IN PLACE and the fold parses
+    what they then hold -- the header's own contract. The proof's copies are the
+    copies as they stood after the last fold, which is what a turn edits.
+    """
+    copies = [copy.serialize() for copy in proof.edit_copies]
+    return copies, {one.address: one for one in proof.determined}
+
+
 def run_turn(
-    stage: str,
-    copies: list[dict],
+    proof: MasterProof,
     binder: Binder,
     root: Path,
     sent: dict[str, list],
     answers: Mapping[str, object],
-    turn: int,
-    earlier: dict[str, Determined] | None = None,
-) -> tuple[Collated, list[Revisit]]:
-    """One turn: every role's answers applied, then the fold again.
+) -> Collated:
+    """One turn: every role's answers applied to the proof's copies, then the fold.
 
     Args:
-        stage: the label the copies were dispatched under.
-        copies: the wire copies as they stand. MUTATED.
-        binder: the binder they were seeded from.
+        proof: the master proof as the last fold left it -- the copies as
+            they stand and every Determined so far. This turn's number is
+            `proof.turn + 1`, and every `stet` the fold records carries it.
+        binder: the binder the copies were seeded from.
         root: the checkout citations resolve against.
         sent: the batch that went out -- role -> its slots, as `batch_of`
             built it. !! THE SENT BATCH DRIVES THE TURN: every role in it owes
             every slot in it, and a role's answers are read against it.
         answers: role -> what came back, in any shape `slots_of` reads.
-        turn: this turn's number, from 1. Every `stet` the fold records
-            carries it.
-        earlier: the last fold's `determined`. Every place in it is kept as
-            it was -- `Process: #91` -- over whatever this fold makes of it,
-            and is dropped from this turn's escalations and re-reads.
 
     Returns:
-        `(Collated, revisit)` -- the fold over the copies as they now stand,
-        and a `Revisit` for every slot that was refused, unanswered, never
+        The fold over the copies as they now stand. Every place the proof had
+        determined is kept as it was -- `Process: #91` -- and dropped from
+        this turn's escalations and re-reads; `revisit` holds the fold's own
+        beside a `Revisit` for every slot that was refused, unanswered, never
         sent, or had no home.
     """
+    copies, earlier = _unpacked(proof)
+    turn = proof.turn + 1
     revisit: list[Revisit] = []
     for role in answers:
         if role not in sent:
@@ -403,10 +410,11 @@ def run_turn(
         parsed, why = parse_answers(role, slots, slots_of(answers.get(role, []), role))
         revisit += why
         revisit += apply(copies, role, parsed)
-    got = collate(stage, copies, binder, root, turn=turn)
-    got = _keeping(got, earlier or {})
+    got = collate(proof.stage, copies, binder, root, turn=turn)
+    got = _keeping(got, earlier)
     contested = {slot["address"] for slots in sent.values() for slot in slots}
-    return _withdrawn(got, contested, turn), revisit
+    got = _withdrawn(got, contested, turn)
+    return replace(got, revisit=[*revisit, *got.revisit])
 
 
 def _withdrawn(got: Collated, contested: set[str], turn: int) -> Collated:
@@ -458,7 +466,7 @@ def refold(proof: MasterProof, binder: Binder, root: Path) -> Collated:
     What the cap reads: `rule_at_cap` needs the places still carried forward
     and `determined_chief` the program's stets, and neither is on the wire --
     the proof carries the copies and the rulings, and the fold is re-derived
-    from them at the turn the proof stands at, `len(proof.turns)`.
+    from them at the turn the proof stands at, `proof.turn`.
 
     Args:
         proof: the master proof as the last turn wrote it.
@@ -468,9 +476,10 @@ def refold(proof: MasterProof, binder: Binder, root: Path) -> Collated:
     Returns:
         The `Collated`, with `proof.determined` kept over this fold's (`#91`).
     """
-    copies = [copy.serialize() for copy in proof.edit_copies]
-    got = collate(proof.stage, copies, binder, root, turn=len(proof.turns))
-    return _keeping(got, {one.address: one for one in proof.determined})
+    copies, earlier = _unpacked(proof)
+    return _keeping(
+        collate(proof.stage, copies, binder, root, turn=proof.turn), earlier
+    )
 
 
 def rule_at_cap(

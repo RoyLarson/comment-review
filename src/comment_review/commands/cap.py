@@ -99,7 +99,7 @@ def main() -> int:
         return _refused([f"{args.rulings}: the rulings are a list of objects"])
 
     root = Path(args.repo) if args.repo else binder.root
-    turn = len(proof.turns)
+    turn = proof.turn
     try:
         got = refold(proof, binder, root)
     except CannotCollate as refusal:
