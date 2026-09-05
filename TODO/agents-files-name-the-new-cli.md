@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks closed
+Progress: 0 of 5 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -23,3 +23,5 @@ The agents files name the new CLI and say how to use it.
       escalation and composition, from check --contract. Verify: none hand-typed
 - [?] T4 | Decide who the copy chief is at the cap, the task agent or a role, so
       SKILL.md can say who writes rulings.json
+- [ ] T5 | Update SKILL.md so the task agent sends every refused copy or answer
+      back to the role that owes it, to be fixed. Verify: the brief says so
