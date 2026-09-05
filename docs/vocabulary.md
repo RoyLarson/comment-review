@@ -53,6 +53,7 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 | `verdict` | -> **instruction**. Judicial on an editorial system, the same register error `jurisdiction` made before it became `remit`; and it named the same thing twice -- the object a role returns is a **mark**, its type is an **instruction**. See `decision-log.md Vocabulary: #17` |
 | `mark` (the COMMAND, `flows/marks.py`, `Command.MARK`) | -> **`distribute`**, in `6187f71`. The command hands each role an EMPTY `edit_copy` and takes the filled one back; it produces no mark and rules on nothing. One stem named both a role's RULING and the machinery that circulates the forms, so `mark --seed` read as *make a mark* when it means *give out the blanks*. ! The NOUN IS LIVE and is defined in the shipped vocabulary -- this retires the command sense only, which is the shape `owner` (the census field) and `marks` (the census's) took before it |
 | `re-review` (stages 5b and 6b, `references/re-review.md`) | -> **revise**. The printer's word, and the code had already adopted it -- `flows/revise.pull`, `read_from.revise` -- for the second proof pulled after the marked corrections are set. 5b and 6b set a galley of the edited text and send it back to be read: that IS a revise. Roy, 2026-09-04; `decision-log.md Vocabulary: #32`. ! The rename lands as one objective, gate entry last -- `TODO/re-review-is-retired-for-revise.md` |
+| `record` (the JSON object a reviewer fills) | -> **mark**, in a **sheet**, in an **edit copy**. `record.py` left for the prototype on 2026-08-25 and the container ruling (`Vocabulary: #28`) named the object; the brief and `vocabulary.toml` said `record` until 2026-09-05 |
 | `census` | -> **gather** for the stage, the act and the command; **binder** for what it hands over. `gather` has been stage 2's word since 2026-08-23 and a second `gather` had taken it for the master proof, now `master_proof_of`. `censused` -> gathered, and where the lexer classified a line, **read**. No alias. Roy, 2026-09-04; `decision-log.md Vocabulary: #34` |
 
 ## Held in reserve -- publishing's word for something we already have
@@ -192,7 +193,7 @@ of stuff not binder as the person who bounds books."*
 
 | | |
 | --- | --- |
-| **binder** | **the ARTIFACT the gatherer hands over** -- a folder of pages, with sticky notes on them |
+| the binder | **the ARTIFACT the gatherer hands over** -- a folder of pages, with sticky notes on them. Defined for the agents in `vocabulary.toml` since 2026-09-05; this row is the record of the ruling |
 | NOT | the bookbinder, the trade that sews and cases a book |
 
 ! **IT HAS BEEN USED THIS WAY THROUGHOUT** -- *"a binder with sticky notes"* -- and the

@@ -24,7 +24,9 @@
 # --- what a comment sits on -------------------------------------------------
 anchor = "The LINE OF CODE that an address is attached to -- the exact characters on it. An `a` is attached to the line that OPENS the thing it documents, a `b` to the line of code below the gap, a `c` to the code on its own line. Mechanical -- whatever is there. An anchor has MANY addresses and an address has ONE anchor, so two identical lines are two anchors spelled alike."
 owner = "The anchor with the best justification for holding the comment. Where several compete it is the site that ENFORCES the constraint, or, where nothing enforces it, the code still expected to hold the invariant."
-census = "Every PARAGRAPH on every PAGE under review, in order, each carrying its ADDRESS and the references it makes already resolved. ! It spans the files; one page is one of them. ! Flat, because a page is: paragraphs run down a page and do not nest."
+gather = "Stage 2, and the command that runs it: every page in scope read, every paragraph addressed and its references resolved, and the pages bound into the BINDER. The act; the binder is what it hands over."
+binder = "The artifact the gather hands over: every PAGE in scope, each paragraph carrying its ADDRESS and the references it makes already resolved. ! It spans the files; one page is one of them. ! Flat, because a page is: paragraphs run down a page and do not nest. What every later command reads."
+listing = "The binder as a reviewer reads it: the paragraphs holding prose, numbered, and one line per run of empty places. A projection -- every address is the binder's."
 
 # --- the units that get ruled on --------------------------------------------
 sentence = "The unit an instruction rules on. A container of six sentences can hold six instructions."
@@ -33,8 +35,8 @@ statement = "A line of CODE. Never a piece of prose -- prose is a sentence or a 
 expression = "A piece of CODE that evaluates to a value."
 declaration = "Something that can carry DOCUMENTATION -- a module, class, function, method, struct -- and so what an `a` place is about. ! NOT every line that introduces a name: `x = 1` and `let x = 1;` get no `a`. Which kinds a language offers is whatever its tier can resolve. Four of the eighteen have no docstring practice at all -- sql, toml, ini, yaml. ! c and cpp carry an EMPTY LIST TODAY because the matcher reads a line FIRST word and a C declaration opens with its return type -- a matcher that looks for the keyword anywhere in the line resolves it, so this is deferred and not a property of the languages."
 assignment = "A piece of CODE that binds a value to a name."
-mark = "What stage 4 emits: one role's ruling on one paragraph. Editorial. The census's own observations are ANNOTATIONS, not marks."
-annotation = "A mechanical observation the census attaches to a paragraph -- `names-a-symbol`, `cites-a-path`, `counted`. A CANDIDATE you confirm by reading, never a settled fact."
+mark = "What stage 4 emits: one role's ruling on one paragraph, as one JSON object in its edit copy. The tool seeds the ADDRESS, the ANCHOR and the paragraph's text; the reviewer fills the instruction, claim, reason, sources and change. A mark that fails its shape check is a finding that does not count. The gather's own observations are ANNOTATIONS, not marks."
+annotation = "A mechanical observation the gather attaches to a paragraph -- `names-a-symbol`, `cites-a-path`, `counted`. A CANDIDATE you confirm by reading, never a settled fact."
 "comment run" = "The contiguous comment lines between the two lines of code that bound them. The prose INSIDE a paragraph, which may instead hold a docstring or nothing at all."
 
 # --- what a reviewer emits ---------------------------------------------------
@@ -48,9 +50,11 @@ patch = "The claim is TRUE and the wording is not."
 add = "A constraint exists in code and nowhere in prose."
 move = "True, but it belongs SOMEWHERE ELSE. One relocation instruction -- ten lines down, another file, or out of the code entirely is the DESTINATION, not a second instruction."
 payload = "What an instruction must carry to be usable."
-finding = "One ruling on one sentence, emitted as a RECORD."
-record = "One finding, as a JSON object. The tool seeds the ADDRESS and the ANCHOR; the reviewer fills the instruction, claim, reason, sources and change. A record that fails its shape check is a finding that does not count."
-remit = "The categories of claim a role rules on -- as against verifying, which is what it does to them."
+finding = "One ruling on one sentence, emitted as a MARK."
+"edit copy" = "One role's own copy of the pages it was handed -- its role, the tree it was gathered from, and one SHEET per page. Seeded with a slot per prose paragraph; the role fills the slots in place and hands the copy back. The one file a reviewer writes."
+sheet = "One page inside an edit copy: the file's path, the sha it was read at, and the marks on it."
+"copy chief" = "Who folds the roles' edit copies into one set of edits and rules where they disagree -- the task agent, at the cap. Its answers are its own -- let a mark stand, take one side in, or recast the paragraph -- and no role may give any of them."
+remit ="The categories of claim a role rules on -- as against verifying, which is what it does to them."
 "editorial role" = "One of the four scopes a reviewer reads for: ownership-context, block-context, function-context, module-context."
 reviewer = "The identifier for an editorial role, in flags, filenames and report stems."
 
@@ -111,9 +115,14 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "anchor",
   "annotation",
   "assignment",
-  "census",
+  "binder",
   "clean",
   "compositor",
+  "copy chief",
+  "edit copy",
+  "gather",
+  "listing",
+  "sheet",
   "correct",
   "cue",
   "declaration",
@@ -121,7 +130,6 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "edit mark",
   "editorial role",
   "expression",
-  "galley",
   "instruction",
   "intermediate comment",
   "interval",
@@ -136,7 +144,6 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "patch",
   "payload",
   "query",
-  "record",
   "remit",
   "reviewer",
   "series",
@@ -150,16 +157,20 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "address",
   "anchor",
   "annotation",
-  "census",
+  "binder",
   "clean",
   "compositor",
+  "copy chief",
+  "edit copy",
+  "gather",
+  "listing",
+  "sheet",
   "correct",
   "cue",
   "declaration",
   "drop",
   "edit mark",
   "editorial role",
-  "galley",
   "guard",
   "instruction",
   "intermediate comment",
@@ -174,7 +185,6 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "patch",
   "payload",
   "query",
-  "record",
   "remit",
   "reviewer",
   "series",
@@ -190,16 +200,20 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "anchor",
   "annotation",
   "argument",
-  "census",
+  "binder",
   "clean",
   "compositor",
+  "copy chief",
+  "edit copy",
+  "gather",
+  "listing",
+  "sheet",
   "correct",
   "cue",
   "declaration",
   "drop",
   "edit mark",
   "editorial role",
-  "galley",
   "guard",
   "instruction",
   "intermediate comment",
@@ -214,7 +228,6 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "patch",
   "payload",
   "query",
-  "record",
   "remit",
   "reviewer",
   "series",
@@ -231,16 +244,20 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "annotation",
   "argument",
   "banner",
-  "census",
+  "binder",
   "clean",
   "compositor",
+  "copy chief",
+  "edit copy",
+  "gather",
+  "listing",
+  "sheet",
   "correct",
   "cue",
   "declaration",
   "drop",
   "edit mark",
   "editorial role",
-  "galley",
   "instruction",
   "intermediate comment",
   "interval",
@@ -257,7 +274,6 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "patch",
   "payload",
   "query",
-  "record",
   "remit",
   "reviewer",
   "series",
@@ -269,27 +285,31 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
 ]
 
 # Stage 6 and stage 8 never read the shared brief, so they are given theirs here.
+# ! `sheet` is given to both because the drift check reads `style sheet` as a use
+# of it -- declared polysemy, the same way `docs/vocabulary.md` records it.
 compact = [
   "argument",
   "cap",
-  "census",
   "correct",
   "drop",
+  "gather",
   "instruction",
   "load-bearing",
   "original",
   "owner",
   "query",
-  "record",
   "residue",
   "reviewer",
+  "sheet",
   "style sheet",
 ]
 review = [
   "add",
   "address",
-  "census",
+  "binder",
   "comment run",
+  "gather",
+  "sheet",
   "compositor",
   "editorial role",
   "galley",

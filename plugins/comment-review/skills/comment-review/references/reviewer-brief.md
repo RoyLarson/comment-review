@@ -10,10 +10,10 @@ opened to settle a claim. **A reviewer that fixes what it finds has destroyed th
 the human never sees the question, and afterwards nobody can separate a real problem from an
 imagined one.
 
-!! **You write exactly ONE file: the RECORD FILE you were handed, and you edit it in place.**
+!! **You write exactly ONE file: the EDIT COPY you were handed, and you edit it in place.**
 That is your report, and it is the only exception. Nothing you find licenses a second one --
 not a summary beside it, not a note to the task agent, not a corrected copy of a paragraph. ! **If
-your record file does not reach you, say so and stop.** Reporting in prose instead is the
+your edit copy does not reach you, say so and stop.** Reporting in prose instead is the
 failure this shape exists to end: it goes to a parser that has to guess where each field ends,
 which is where every boundary defect this system has paid for came from.
 
@@ -28,7 +28,7 @@ produces and the only thing it produces.
 
 **REFERENCE ONLY** -- everything else in the repo. **Read them to settle a claim.**
 Stick to reading the references only - if a reference is wrong it needs to be stated
-with the record.
+with the mark.
 
 ! **If the run context says a LANGUAGE SERVER answered, use it to settle a claim about a
 symbol** -- `goToDefinition`, `findReferences`, `workspaceSymbol`, `hover`. It is faster and
@@ -40,24 +40,25 @@ are inputs to your judgement, not a substitute for it. And a server that is ABSE
 nothing: if the context does not say one answered, do not assume it -- report what you could
 not check rather than reporting it clean.
 
-## Read the census end to end
+## Read the listing end to end
 
-You are given a numbered census and the mechanical resolutions for it. **Read it start to
-finish and return at least one RECORD for EVERY paragraph that HOLDS PROSE.**
+You are given a numbered LISTING -- the binder as a reviewer reads it -- and the mechanical
+resolutions for every paragraph on it. **Read it start to finish and fill the slot for EVERY
+paragraph that HOLDS PROSE.** Your edit copy already carries one slot per such paragraph.
 
-!! **`continues-a-trailing-comment` means the census may have split one sentence.** A trailing
+!! **`continues-a-trailing-comment` means the gather may have split one sentence.** A trailing
 comment closes its run, so a sentence wrapped onto the next line becomes a SECOND paragraph, anchored
 to the code BELOW it. Read the two together before ruling. **A mid-clause ending on a paragraph
-carrying this annotation is the census's doing, not the author's, and is not a `correct`.**
+carrying this annotation is the gather's doing, not the author's, and is not a `correct`.**
 
 !! **FRONT MATTER IS NOT YOURS, and you will not be shown it.** A licence header, a shebang or
 a coding line -- the prose above a module's own docstring. It states no constraint the code
 could contradict, documents no function, and sits where law or convention puts it, so no role
-here can settle it. It is filtered out of your census. ! **An edit proposed on it anyway
+here can settle it. It is filtered out of your listing. ! **An edit proposed on it anyway
 becomes a `query`** -- a licence is a legal instrument and a shebang is how the file runs, and
 both are the human's to change.
 
-!! **A paragraph that holds nothing owes you no record.** Most of the census is empty -- a gap
+!! **A paragraph that holds nothing owes you no mark.** Most of the binder is empty -- a gap
 between two lines of code (`interval`), or a declaration with no docstring (`undocumented`).
 They are there to be CITED, not accounted for: an `add` says a constraint exists in code and
 NOWHERE in prose, which is a finding about one of them.
@@ -73,22 +74,21 @@ that file, and it may change.
 
 ! **`@f0` IS THE FILE'S OWN MATTER** -- a licence header, a shebang, a coding line, and at the
 other end an index, a glossary or a run of footnotes -- and not the gap above the first line of
-code. It is filtered out of your census, and any edit proposed on it becomes a `query`.
+code. It is filtered out of your listing, and any edit proposed on it becomes a `query`.
 
-!! **YOUR CENSUS CARRIES `a`, `b` AND `c`. THAT IS THE WHOLE SET YOU RULE ON.** The `f` series
+!! **YOUR LISTING CARRIES `a`, `b` AND `c`. THAT IS THE WHOLE SET YOU RULE ON.** The `f` series
 is not a place you were asked about, so there is no instruction to reach on one.
 
 ! **YOU WILL STILL READ IT, AND THAT IS FINE.** Opening the file puts a licence header in front
 of you, and you should use it the way you use any other context -- to understand what the file
-is and who owns it. Roy, 2026-08-20: *"they will obviously read the matter ends when they look at
-the file ... anytime you start to do something you load the whole document and then slice the
-pieces that matter."* ! **What is ruled out is RULING on it**, not seeing it.
+is and who owns it. ! **What is ruled out is RULING on it**, not seeing it.
 
-## You FILL a record; you do not write one
+## You FILL an edit copy; you do not write one
 
 **You are handed one SHEET per file, and one slot per prose paragraph on it.** The sheet names
-the file once, in `path`; each slot already carries the two things the tool knows -- the
-`address` it is and the `anchor` it sits on -- and you set the five that are yours:
+the file once, in `path`; each slot already carries the three things the tool knows -- the
+`address` it is, the `anchor` it sits on, and the paragraph's `raw_text` -- and you set the
+fields that are yours:
 
 ```json
 { "role": "block-context",
@@ -99,6 +99,7 @@ the file once, in `path`; each slot already carries the two things the tool know
       "marks": [
         { "address": "b47",
           "anchor":  "def compute_rates(plan, period, *, clamp=True):",
+          "raw_text": "# Kept because twenty call sites want this.\n# Narrowing it means re-deriving the clamp bounds.",
           "instruction": "correct",
           "claim":   { "false": "twenty call sites want this",
                        "true":  "31 callers, all in tests/" },
@@ -111,46 +112,39 @@ the file once, in `path`; each slot already carries the two things the tool know
 ```
 
 !! **THE THREE OUTER KEYS ARE NOT DECORATION, and the file you are handed already carries
-them.** `role` is the role this copy was seeded for, `read_from` is the tree it was censused
+them.** `role` is the role this copy was seeded for, `read_from` is the tree it was gathered
 from -- `revise` 0 is the original -- and `sha` is the bytes of the file your addresses were
 taken from. **Edit in place and leave all four alone**; the checker refuses a copy that comes
 back without `role` or `read_from`, and the `sha` is what proves nobody rewrote the file
 underneath your marks.
 
-!! **THIS EXAMPLE SHOWED A TWO-LEVEL `{"page", "records"}` UNTIL 2026-08-29, AND NOTHING
-ACCEPTED IT.** The container is `sheets`, one per file; the file's own name is `path`, inside
-its sheet; each sheet's entries are `marks`; and a mark names its `address`. `role`, `read_from`
-and `sha` appeared nowhere in this file at all.
-
-! **THE PLACE IS A CUE, NOT A FULL ADDRESS** -- `b47`, because the page above it already said
+! **THE PLACE IS A CUE, NOT A FULL ADDRESS** -- `b47`, because the sheet above it already said
 which file. You will still meet the full form `redacted_pkg:billing:rates.py@b47` in one place: a `move`
-whose destination is in ANOTHER file, which no page of yours can name.
+whose destination is in ANOTHER file, which no sheet of yours can name.
 
-!! **YOU ARE TOLD WHERE, NOT WHAT. Open the file.** The record carries no copy of the paragraph's
-prose, deliberately: handed the text you could produce a complete, admissible ruling without
-ever reading the code, and nothing could tell that from real work. Your remit requires the
-read. ! If you read the wrong lines, the sentence your `claim` quotes will not be in the paragraph
-and the collator says so -- that error is caught, and the other one is invisible.
+!! **`raw_text` IS WHERE, NOT WHAT. Open the file.** The slot carries the paragraph so the
+checker can hold your `claim` to it, not so you can rule without reading the code: handed the
+text alone you could produce a complete, admissible ruling without ever opening the file, and
+nothing could tell that from real work. Your remit requires the read. ! If you read the wrong
+lines, the sentence your `claim` quotes will not be in the paragraph and the collator says so --
+that error is caught, and the other one is invisible.
 
 !! **WHAT YOU OPEN IS THE ORIGINAL** -- the file as it stood when THIS RUN began, not the first
 version ever written. Nothing is written to disk before stage 7b, so the file you read at stage 4
 IS the state your `address` and your `anchor` were taken from, and the state the collator checks your
 `claim` against.
 
-!! **YOU NEVER TRANSCRIBE THE PARAGRAPH.** `address` and `anchor` are the tool's. Leave them alone;
-a mismatch there means the file was edited, not that you misquoted. ! The `anchor` is there to
-be GREPPED -- it names the declaration the census resolved, and is empty where none was.
-
-! **The file states what each constrained field allows** -- the seven instructions, the `claim` keys
-each one owes, `query`'s three shapes, `add`'s two sides. Read `allowed` at the top of your file
-rather than remembering them.
+!! **YOU NEVER TRANSCRIBE THE PARAGRAPH.** `address`, `anchor` and `raw_text` are the tool's.
+Leave them alone; a mismatch there means the file was edited, not that you misquoted. ! The
+`anchor` is there to be GREPPED -- it names the declaration the gather resolved, and is empty
+where none was.
 
 ### The five fields you fill
 
 | field | what it carries |
 | --- | --- |
 | `instruction` | one of the seven. ! `null` means you have not ruled yet, and a paragraph left `null` is a coverage gap |
-| `claim` | an OBJECT whose keys are set by your instruction -- see the table below. It is the SPEC: what must change, and from what to what. ! **The key naming the EXISTING sentence is CHECKED against the census text for your paragraph** -- if it is not in the paragraph you are filling, the finding is on the wrong paragraph |
+| `claim` | an OBJECT whose keys are set by your instruction -- see the table below. It is the SPEC: what must change, and from what to what. ! **The key naming the EXISTING sentence is CHECKED against `raw_text`** -- if it is not in the paragraph you are filling, the finding is on the wrong paragraph |
 | `reason` | what you DERIVED from the source, and why the claim is wrong -- one statement |
 | `sources` | a list of `{ "cite": "file:line", "verbatim": "the text AT it", "ran": "the command" }`, **one entry per place examined.** Every one is resolved and every `verbatim` must really be there. `ran` is owed only where the entry was settled by RUNNING something |
 | `change` | the RESULT: **the updated paragraph, as RAW TEXT** -- not lines, not sentences. Indentation and comment markers exactly as they will sit on disk |
@@ -166,19 +160,19 @@ apart. `change` is the finished prose, so the task agent applies your text rathe
 re-deriving it from a diff.
 
 !! **THE TWO ARE CHECKED AGAINST EACH OTHER.** The difference between the paragraph and your `change`
-is exactly what your edit does, and it must be the sentence your `claim` names. A record that
+is exactly what your edit does, and it must be the sentence your `claim` names. A mark that
 reasons about one sentence and rewrites another is refused, whichever of the two is right.
 
-!! **ONE record's `change` makes ONE record's edit.** If you rule twice on one paragraph, write
-TWO records with the same `address`, under the same sheet, each showing that paragraph with ITS OWN
+!! **ONE mark's `change` makes ONE mark's edit.** If you rule twice on one paragraph, write
+TWO marks with the same `address`, under the same sheet, each showing that paragraph with ITS OWN
 change and no other. Do not
-hand in the paragraph fully fixed twice: composing is the task agent's job, and it cannot compose
-records that have already been merged.
+hand in the paragraph fully fixed twice: composing is the copy chief's job, and it cannot compose
+marks that have already been merged.
 
 !! **EXPECT YOUR OWN `change`S TO READ ODDLY ALONE, and hand them in anyway.** A paragraph needing
-three coordinated edits gives three records, each showing the paragraph with one edit applied and
+three coordinated edits gives three marks, each showing the paragraph with one edit applied and
 the other two still wrong -- so none reads as finished prose. **That is the format working, not
-a demand for better writing.** Measured: a reviewer merged its three edits into one record
+a demand for better writing.** Measured: a reviewer merged its three edits into one mark
 twice, trying to keep a paragraph readable, and was correctly refused both times.
 
 !! **`sources`'s `verbatim` is the forcing function, and it is CHECKED.** The cited line is read
@@ -201,17 +195,15 @@ count is not a line any file contains, so checking it against the code made ever
 inadmissible.
 
 !! **A DEFECT YOU STATE IN `reason` REACHES NOBODY.** `reason` is read by no check, so a sentence
-there that your `claim` does not name is a second finding with no record -- the gate checks the
+there that your `claim` does not name is a second finding with no mark -- the gate checks the
 claim it was given, passes, and the defect never reaches a work list. **If your reasoning names a
-defect in a sentence your `claim` does not name, write a SECOND RECORD on that paragraph.** The collator
-reports a phrase you quote from the paragraph that no claim names, so you will see it; write the
-record instead.
+defect in a sentence your `claim` does not name, write a SECOND MARK on that paragraph.**
 
 ### Filing an `add`
 
 **An `add` cites the EMPTY PLACE the prose belongs in**, because its finding is that a
 constraint holds in code and appears in NO prose. Empty places get no seeded slot -- they are
-addressable, not accountable -- so **append a new record carrying that place's ADDRESS.** Read
+addressable, not accountable -- so **append a new mark carrying that place's ADDRESS.** Read
 it as being about that place, not about a neighbour.
 
 !! **ASK FOR THE ADDRESS. DO NOT COUNT.** A row like `2-9  @b12..b19  48-58  no-prose  0L
@@ -239,21 +231,20 @@ python <skill>/scripts/comment-review.py addresser --binder <FULL BINDER> --anch
 
 !! **THE ANCHOR IS THE ONLY WAY TO ASK.** Asking by position -- "the paragraph above the
 `def`" -- is right in Python and wrong in Rust, whose `///` sits before its `fn` where Python's
-docstring sits after. The census parsed the file and knows which is which; a count does not.
+docstring sits after. The gather parsed the file and knows which is which; a count does not.
 
 ! **There is no by-LINE lookup, and that is deliberate.** One existed until 2026-08-20 and was
 dropped: the anchor IS the line of code, verbatim, so asking by anchor already asks by line --
 and its other use, *where do I insert text*, is not a question a reviewer answers. You name the
-PLACE; the galley puts the text in it and the compositor sets the page.
+PLACE; the compositor sets the page.
 
-!! **A LINE NUMBER IS HOW YOU ASK; AN ADDRESS IS HOW YOU ANSWER.** A record naming a line as the
+!! **A LINE NUMBER IS HOW YOU ASK; AN ADDRESS IS HOW YOU ANSWER.** A mark naming a line as the
 place a thing belongs is refused.
 
 ! **The SIDE is the address's to say, never yours.** An `a` is a declaration's documentation, a
 `b` is a gap, a `c` is the room beside a line of code. **Which one a given number names is not
 something you can work out** -- ask, as above. Your payload names WHAT is missing and WHICH
 anchor.
-
 
 !! **YOUR `change` REPLACES THE GAP, INCLUDING ITS BLANK LINES.** An interval is bounded by two
 lines of CODE and the gap between them is whatever sits there -- nothing, or blank lines. The
@@ -267,34 +258,35 @@ spaces you want between them. Write `"# why"` and it lands hard against the code
 same rule an interval follows: the text is file-ready, and whatever whitespace you want is
 whitespace you write.
 
-! **It is why a `margin` and the trailing comment that would replace it are ONE place.** Roy,
-2026-08-19: *"c addresses start at the end of the code on the line."* Adding a comment where
-there is none and rewording one that is there write to the same column, so the two instructions do
-not need different rules.
+! **It is why a `margin` and the trailing comment that would replace it are ONE place.** Adding
+a comment where there is none and rewording one that is there write to the same column, so the
+two instructions do not need different rules.
 
-!! **AN INTERMEDIATE COMMENT IS NOT IN THE CENSUS AT ALL** -- one with code on BOTH sides, as in
+!! **AN INTERMEDIATE COMMENT IS NOT IN THE BINDER AT ALL** -- one with code on BOTH sides, as in
 `int x = /* why */ 5;`. It is ignored for the same reason a Python type annotation is: it cannot
 be verified the same way across codebases, and a line-length rule moves it. It is not a paragraph, it
-has no address, and no instruction reaches it. **If one is wrong, it is a `code_concerns` line.**
+has no address, and no instruction reaches it. **If one is wrong, raise it as a code concern.**
 
-### Code problems
+### Code concerns
 
-`code_concerns` at the end of your file is a list of strings, one line each, no instruction. See
-"The subject is the prose, not the program" below for what belongs there.
+A code concern is a `query` with the shape `human-review-necessary`, on the paragraph the code
+sits with, its `reason` the one line that names the problem. It rides to the author with every
+other place only the author can settle, and no instruction reaches the code. See "The subject is
+the prose, not the program" below for what belongs there.
 
 ### The instructions, and what each one MUST carry
 
 **An instruction rules on a SENTENCE, not on a paragraph.** A paragraph of six sentences can carry six
 instructions, and one `clean` sentence must not launder the five around it.
 
-An instruction is a recommendation the task agent will combine with the other roles' and synthesise
-into one comment. It is only usable if it carries its payload, so **an instruction without its payload is
+An instruction is a recommendation the copy chief will fold with the other roles' into one
+comment. It is only usable if it carries its payload, so **an instruction without its payload is
 not a finding** -- *"correct the count"* hands the judgement back; *"replace X with Y"* is the
 finding.
 
-**Every shape below is `CLAIM`'s.** `CHANGE` is the same edit already made, written out with
+**Every shape below is `claim`'s.** `change` is the same edit already made, written out with
 its surrounding paragraph, and it is required for all of these but `clean` and `query` -- those two
-propose no text, so there is nothing for the task agent to apply.
+propose no text, so there is nothing for the chief to take in.
 
 !! **THE TABLE BELOW IS GENERATED, FROM TWO SOURCES** -- the `claim` keys from `INSTRUCTIONS`
 in `desk/mark.py` (`claim_all`, stated once per row), and the "what they carry" prose from
@@ -324,16 +316,16 @@ claimed the table was generated, when no such script existed anywhere in the tre
 is not interchangeable.** `false:`/`true:` ASSERTS the sentence is wrong, and that assertion is
 the whole difference between the
 two instructions: a `patch` sentence is TRUE and merely reads badly. A neutral from/to on a
-`correct` would erase the distinction the synthesis order rests on, and it is refused.
+`correct` would erase the distinction the chief's order rests on, and it is refused.
 
 ! **A `move`'s halves are PLACES, not text** -- from where it sits, to where it belongs. It is
-the one edit whose `CLAIM` names no sentence, because the `PARAGRAPH` is what identifies the prose.
+the one edit whose `claim` names no sentence, because the paragraph is what identifies the prose.
 
-!! **A `move` changes TWO paragraphs, so its `CHANGE` carries BOTH -- and this is the only instruction
-where `CHANGE` is not a single paragraph.** Write them labelled:
+!! **A `move` changes TWO paragraphs, so its `change` carries BOTH -- and this is the only instruction
+where `change` is not a single paragraph.** Write them labelled:
 
 ```text
-CHANGE      to:   # the destination paragraph, as it reads once the prose arrives
+change      to:   # the destination paragraph, as it reads once the prose arrives
                   # ...including the lines already there.
             from: # the origin paragraph, as it reads once the prose has left.
 ```
@@ -341,11 +333,11 @@ CHANGE      to:   # the destination paragraph, as it reads once the prose arrive
 ! **`to:` is required. `from:` may be omitted, and omitting it ASSERTS the WHOLE paragraph moved** --
 that nothing is left behind to show. Nothing can tell a whole-paragraph move from a partial one by
 inspection, so you say which by what you supply. ! If a sentence leaves and the rest stays,
-`from:` is how the task agent learns what the remainder reads like; without it, the paragraph is
+`from:` is how the chief learns what the remainder reads like; without it, the paragraph is
 applied as if it emptied.
 
-! These are `CLAIM`'s two words used again, and they mean something different here: in `CLAIM`
-they are PLACES, in `CHANGE` they are the two resulting PARAGRAPHS. The field you are writing
+! These are `claim`'s two words used again, and they mean something different here: in `claim`
+they are PLACES, in `change` they are the two resulting PARAGRAPHS. The field you are writing
 decides which.
 
 #### Does a TRUE sentence earn its place?
@@ -381,7 +373,7 @@ governed by the code and unserved by the sentence, which is the test above.
 #### `correct` and `patch` specific rules
 
 ! **`correct` and `patch` are not interchangeable.** `correct` says the claim is wrong;
-`patch` says it is right and reads badly. The task agent applies every `correct` **before** any
+`patch` says it is right and reads badly. The chief applies every `correct` **before** any
 `patch`, so mislabelling one as the other means a false claim gets its wording polished and
 never gets checked -- that is laundering. If you are unsure which applies, you have not settled
 the claim -- that is `query`.
@@ -397,13 +389,13 @@ unbounded as "robust"**, so the sentence refusing the claim fails the same test.
 
 ! **One relocation instruction, and the DESTINATION is what varies.** A declaration ten lines
 down, another file, or out of the code entirely -- all `move`, and which one goes in the
-payload. Say what is wrong in `REASON`. **Only a destination outside the code can be
+payload. Say what is wrong in `reason`. **Only a destination outside the code can be
 unavailable**, and your run context says whether it is; a relocation into tracked code is
 always available.
 
 !! **`to:` IS AN ADDRESS when the destination is on a page THIS RUN CUED, and it is
 RESOLVED.** Ask for it the same way an `add` does -- `--anchor LINE --series a|b|c`. A
-destination naming a LINE on such a page is refused, and so is an address the census does not
+destination naming a LINE on such a page is refused, and so is an address the binder does not
 carry.
 
 !! **A FILE THE RUN NEVER CUED IS CITED BY LINE, AND THAT IS NOT A LOOPHOLE.** The run
@@ -418,8 +410,8 @@ absences. A destination OUTSIDE the code carries no address and is written as th
 
 #### `clean` specific rules
 
-**`clean` is scoped to YOU, and the other roles are looking at the same paragraph.** The task
-agent combines every role's records into one comment or docstring.
+**`clean` is scoped to YOU, and the other roles are looking at the same paragraph.** The copy
+chief folds every role's marks into one comment or docstring.
 
 **`clean` is a decision and is required -- it cannot be assumed or skipped past.**
 
@@ -431,24 +423,25 @@ constraint -- and none of those is your role's question unless your role file sa
 #### `query` specific rules
 
 ! **`query` is for a claim you could not settle -- not one you did not try to settle.** You are
-still required to open the code that would settle it; on every other instruction your `SOURCES` proves
+still required to open the code that would settle it; on every other instruction your `sources` proves
 you did. `query` is what you emit when you did and it was still not enough.
 
-!! **Three shapes reach it, and your `CLAIM` must NAME which one -- in these exact words.** They
+!! **Three shapes reach it, and your `claim` must NAME which one -- in these exact words.** They
 are keyed on WHO RESOLVES IT, not on where the missing evidence lives. The three are findings
-rather than admissions, and they route differently: the first says which scope owns the
-paragraph, the other two are work that reaches the author. Nothing downstream can tell them apart
-if you do not say which:
+rather than admissions, and they route differently: the first two are you abstaining from the
+place, the third rides to the author. Nothing downstream can tell them apart if you do not say
+which:
 
 - **outside-my-role** -- deferred to another agent's problem.
 - **unable-to-determine** -- *"don't know why but maybe another agent figured it out."*
 - **human-review-necessary** -- *"genuinely contradictory statements and/or code and only system
-  level intent might disambiguate it."*
+  level intent might disambiguate it."* The place is UNSETTLABLE by any role or by the chief; it
+  is put to the author after everything else has settled. A code concern takes this shape.
 
 ! **A claim you could not settle and marked `clean` is worse than the same claim marked
 `query`.** `clean` certifies; `query` asks.
 
-! **A `query` requires `SOURCES`, by construction** -- this is where you
+! **A `query` requires `sources`, by construction** -- this is where you
 looked to try to find the answer. These are the statements in the code that make it
 ambiguous or the location not yours to determine. **All three shapes carry them**, including
 `outside-my-role`: the paragraph is real and in the checkout on every one of them, so there is
@@ -456,8 +449,8 @@ always a line to quote.
 
 !! **`outside-my-role` is a FINDING, so you have to show it is not yours.** It is the shape a
 reviewer reaches for when it has nothing to say, and it is the one that costs the most when
-it is wrong -- the paragraph leaves your report certified by nobody. So quote the line that fixes
-the paragraph's SUBJECT, and say in `REASON` what about that subject your remit does not reach,
+it is wrong -- the paragraph leaves your copy certified by nobody. So quote the line that fixes
+the paragraph's SUBJECT, and say in `reason` what about that subject your remit does not reach,
 in the words your own role file uses for its remit. **Never name another role**; you do not
 know what the others were asked. *"Not mine"* is an admission. *"Its subject is the loop body,
 and my remit is what the module as a whole announces"* is a finding.
@@ -481,9 +474,9 @@ enforcing test was DELETED on the strength of a false dangling report.
 
 ## The subject is the prose, not the program
 
-Every instruction is an instruction on a comment. Code problems get **one line each** in a separate
-`CODE CONCERNS` section at the end, with no instruction. The findings this line exists for *look*
-like code findings and are not:
+Every instruction is an instruction on a comment. A code problem is a `query` of the shape
+`human-review-necessary` with the problem stated in one line, never an instruction. The findings
+this route exists for *look* like code findings and are not:
 
 | COMMENT finding                                     | CODE finding                          |
 | --------------------------------------------------- | ------------------------------------- |
@@ -500,10 +493,24 @@ sites. Out of scope is ruling on what the code **should be**.
 
 ! **Ruling on the code spends this review on what the code's own tests settle**, and four
 agreeing reviewers once reported a file "cannot compile" over valid syntax. A code problem has
-a place: `CODE CONCERNS`, one line, no instruction.
+a place: the query above, one line, no instruction.
 
 ### One paragraph, two placements -- report yours
 
 REMITS OVERLAP BY DESIGN: the roles read the same code bottom-up and top-down, so two roles
 can reach the same or different decisions per sentence. Report what your role sees and say in
-`REASON` what is wrong. Which instruction wins is the task agent's ruling later.
+`reason` what is wrong. Which mark stands is the copy chief's ruling later.
+
+## Before you return: run the check
+
+The fold refuses what it cannot read, and a copy it refuses goes back to you with the reasons.
+Run the same check yourself, from the repo root, before you say you are done:
+
+```bash
+python <skill>/scripts/comment-review.py check --edit-copy <your copy> --binder <the binder> --repo .
+```
+
+It names every slot you left `null`, every mark that will not read, every `claim` quoting a
+sentence that is not in its paragraph, and every cite whose line does not match, and it exits 0
+only when there is nothing. It writes nothing. **Fix your copy and run it again until it
+reports nothing**; a copy that fails at the fold is a copy you did not check.

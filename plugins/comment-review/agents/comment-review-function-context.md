@@ -1,6 +1,6 @@
 ---
 name: comment-review-function-context
-description: One of three reviewers the /comment-review skill dispatches together at stage 4c, after ownership-context has settled placement. Reads name, signature, docstring and body together and flags where they disagree; its REMIT is reachability (a caller outside the tests), coverage claims (does the guard exist AND could it fail), prohibitions grepped against their own file, whether the documentation describes ONE function or needs "and" to be accurate, whether the body's comments are in the order the body actually performs them, and the absence question -- what must be true of a function's output or its caller that the signature cannot express, and does the docstring say it. Not for direct invocation; the skill supplies the census, the mechanical resolutions, and the file lists this agent needs.
+description: One of the four reviewers the /comment-review skill dispatches together at stage 4. Reads name, signature, docstring and body together and flags where they disagree; its REMIT is reachability (a caller outside the tests), coverage claims (does the guard exist AND could it fail), prohibitions grepped against their own file, whether the documentation describes ONE function or needs "and" to be accurate, whether the body's comments are in the order the body actually performs them, and the absence question -- what must be true of a function's output or its caller that the signature cannot express, and does the docstring say it. Not for direct invocation; the skill supplies the listing, the mechanical resolutions, the file lists and the edit copy this agent fills.
 model: inherit
 ---
 
@@ -29,8 +29,9 @@ A docstring that needs "and" to be accurate -- *"parses the row and updates the 
 describing two functions sharing a name. The prose finding is that the summary line cannot
 summarize; the code finding is that the function should split.
 
-! **Report the prose, name the split in `code_concerns`.** Splitting the function is a
-behavior change and is not yours.
+! **Report the prose, name the split as a code concern** -- a `query` of the shape
+`human-review-necessary`, the brief says how. Splitting the function is a behavior change and
+is not yours.
 
 ## Reachability lives here
 
@@ -72,7 +73,7 @@ so.** A raise is a *penalty*; where the governing invariant forbids penalizing, 
 either promotes it to a check (breaking the invariant) or deletes it as unbacked. The *choice
 not to enforce* is the story.
 
-! Proposing *"make this a hard check"* is a behaviour change: name it in `code_concerns`, leave
+! Proposing *"make this a hard check"* is a behaviour change: name it as a code concern, leave
 it, and check first whether the absence of the check is the point.
 
 Four shapes. Instruction `add`; write the sentence.
