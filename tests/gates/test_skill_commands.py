@@ -20,7 +20,7 @@ import re
 
 from conftest import ROOT
 
-SKILL_DIR = ROOT / "plugins" / "comment-review" / "skills" / "comment-review"
+SKILL_DIR = ROOT / "src" / "plugin" / "skills" / "comment-review"
 
 #: Every file an agent reads that may name a command. Matches
 #: `docs/plans/0.2.4-the-mark-and-the-collator.md` T1.11's own list.

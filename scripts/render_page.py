@@ -57,7 +57,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(REPO / "plugins/comment-review/skills/comment-review/scripts"))
+sys.path.insert(0, str(REPO / "src"))
 
 import lexer  # noqa: E402
 import page as page_mod  # noqa: E402
@@ -167,7 +167,7 @@ def rows(path: Path) -> str:
     artifact this is measuring, and the untested one would be mine. A comparison
     against a rebuild measures the rebuild.
     """
-    tool = REPO / "plugins/comment-review/skills/comment-review/scripts/census.py"
+    tool = REPO / "src/census.py"
     done = subprocess.run(
         [sys.executable, str(tool), "--repo", str(REPO), str(path)],
         capture_output=True,

@@ -30,9 +30,9 @@ from collections import defaultdict
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-SHIPPED = REPO / "plugins"
+SHIPPED = REPO / "src"
 SETTLED = REPO / "docs" / "vocabulary.md"
-EMITTED = SHIPPED / "comment-review/skills/comment-review/references/vocabulary.toml"
+EMITTED = SHIPPED / "comment_review/references/vocabulary.toml"
 
 BACKTICKED = re.compile(r"`([A-Za-z][\w-]{2,})`")
 ALLCAPS = re.compile(r"\b([A-Z][A-Z-]{2,})\b")
@@ -110,7 +110,7 @@ def known_terms() -> set[str]:
 
 
 def shipped_files() -> list[Path]:
-    """Every markdown and Python file under `plugins/`, sorted."""
+    """Every markdown and Python file under `src/`, sorted."""
     return [
         p
         for p in sorted(SHIPPED.rglob("*"))

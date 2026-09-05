@@ -56,8 +56,8 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 #: The package itself. `gates/` sweeps it -- the files that ship are the files
-#: in `src/`, and `plugins/` is a built copy checked separately by the build
-#: gate.
+#: in `src/`, and `plugins/` is what `scripts/release.py` last assembled from
+#: them.
 PKG = SRC / "comment_review"
 
 sys.path.insert(0, str(SRC))

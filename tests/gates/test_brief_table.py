@@ -13,15 +13,7 @@ import sys
 
 from conftest import ROOT
 
-BRIEF_PATH = (
-    ROOT
-    / "plugins"
-    / "comment-review"
-    / "skills"
-    / "comment-review"
-    / "references"
-    / "reviewer-brief.md"
-)
+BRIEF_PATH = ROOT / "src/plugin/skills/comment-review/references/reviewer-brief.md"
 RENDER_SCRIPT = ROOT / "scripts" / "render_brief.py"
 
 

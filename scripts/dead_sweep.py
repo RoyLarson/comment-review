@@ -59,7 +59,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 # ! ONLY SHIPPED NAMES ARE REPORTED. `tests/` defines classes unittest finds by
 # REFLECTION, and every one would read as unreferenced.
-REPORTED = ("plugins",)
+REPORTED = ("src",)
 # !! WORKING CODE, as against code that only HOLDS a name. A development script
 # reading a shipped name is a real consumer; a TEST reading one proves nothing
 # about whether the system uses it, so `tests/` is a holder and not a reader.
@@ -207,7 +207,7 @@ def unread_names() -> tuple[list[tuple[Path, str]], list[tuple[Path, str, list[s
     holders: dict[Path, set[str] | str] = {
         p: referenced_names(p) for p in _python_files("tests")
     }
-    for p in sorted((ROOT / "plugins").rglob("*.md")):
+    for p in sorted((ROOT / "src").rglob("*.md")):
         holders[p] = p.read_text(encoding="utf-8", errors="replace")
 
     dead: list[tuple[Path, str]] = []

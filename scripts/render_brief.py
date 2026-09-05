@@ -35,15 +35,7 @@ os.environ["PYTHONPATH"] = str(SRC)
 from comment_review.desk.mark import INSTRUCTIONS  # noqa: E402
 
 SPEC_PATH = ROOT / "docs" / "the-mark.md"
-BRIEF_PATH = (
-    ROOT
-    / "plugins"
-    / "comment-review"
-    / "skills"
-    / "comment-review"
-    / "references"
-    / "reviewer-brief.md"
-)
+BRIEF_PATH = ROOT / "src/plugin/skills/comment-review/references/reviewer-brief.md"
 
 BEGIN_MARKER = "<!-- BEGIN GENERATED: instruction table -- scripts/render_brief.py -->"
 END_MARKER = "<!-- END GENERATED -->"

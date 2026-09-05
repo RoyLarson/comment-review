@@ -45,9 +45,7 @@ class TestTheVersionIsStatedOnce(unittest.TestCase):
         )
         self.changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
         self.plugin = json.loads(
-            (ROOT / "plugins/comment-review/.claude-plugin/plugin.json").read_text(
-                encoding="utf-8"
-            )
+            (ROOT / "src/plugin/.claude-plugin/plugin.json").read_text(encoding="utf-8")
         )
 
     def _newest_release(self) -> str:

@@ -25,15 +25,15 @@ class TestBothBucketsFire(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         root = Path(self.tmp.name)
-        (root / "plugins").mkdir()
+        (root / "src").mkdir()
         (root / "scripts").mkdir()
-        (root / "plugins" / "shipped.py").write_text(
+        (root / "src" / "shipped.py").write_text(
             "ALIVE = 1\nDEAD_NAME = 2\nPROSE_ONLY = 3\n\n\ndef main():\n"
             "    return ALIVE\n",
             encoding="utf-8",
         )
         # ! Prose names one of them and no code does.
-        (root / "plugins" / "SKILL.md").write_text(
+        (root / "src" / "SKILL.md").write_text(
             "Run the tool with PROSE_ONLY when the binder is stale.\n",
             encoding="utf-8",
         )
@@ -61,7 +61,7 @@ class TestBothBucketsFire(unittest.TestCase):
 
     def test_it_names_the_file_that_still_mentions_it(self):
         # ! The question needs somewhere to look, or it cannot be answered.
-        self.assertEqual(self.raised[0][2], ["plugins/SKILL.md"])
+        self.assertEqual(self.raised[0][2], ["src/SKILL.md"])
 
     def test_a_name_CODE_reads_is_in_neither(self):
         # ! Guards the guard the other way: a sweep that reports everything is
@@ -101,9 +101,9 @@ class TestANameHeldONLYByATestIsRaised(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         root = Path(self.tmp.name)
-        (root / "plugins").mkdir()
+        (root / "src").mkdir()
         (root / "tests").mkdir()
-        (root / "plugins" / "shipped.py").write_text(
+        (root / "src" / "shipped.py").write_text(
             "def used_by_code():\n    return 1\n\n\n"
             "def held_by_test():\n    return 2\n\n\n"
             # ! `main` because the sweep skips it as an entry point. It is here
@@ -113,7 +113,7 @@ class TestANameHeldONLYByATestIsRaised(unittest.TestCase):
         )
         # ! Another shipped module MENTIONS the test-only name in prose. This is
         # what cleared it before: a text scan counted the docstring as a caller.
-        (root / "plugins" / "other.py").write_text(
+        (root / "src" / "other.py").write_text(
             '"""Something about held_by_test, in prose only."""\n', encoding="utf-8"
         )
         (root / "tests" / "test_it.py").write_text(

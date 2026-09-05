@@ -43,7 +43,7 @@ import tomllib
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-AGENTS = REPO / "plugins/comment-review/agents"
+AGENTS = REPO / "src/plugin/agents"
 
 # !! WHAT THE VOCABULARY RETIRED, and the word that replaced it. A shipped file
 # may not use the left-hand side.
@@ -199,13 +199,11 @@ NOT_THE_TERM = (
     '__main__":` block',
     "Java text block",
 )
-REFERENCES = REPO / "plugins/comment-review/skills/comment-review/references"
-# !! THE TOML IS PACKAGE DATA AND NO LONGER SITS BESIDE THE `.md` REFERENCES.
-# `vocabulary.py` reads it relative to its own `__file__`, so it has to travel
-# with the code; the `.md` files beside it are read by AGENTS, not by any
-# script, and stay in the skill. Moved 2026-08-24 with the package -- a source
-# tree that reached into `plugins/` for its own data would depend on the tree
-# that is BUILT FROM it.
+REFERENCES = REPO / "src/plugin/skills/comment-review/references"
+# !! THE TOML IS PACKAGE DATA AND DOES NOT SIT BESIDE THE `.md` REFERENCES.
+# `vocabulary.py` reads it relative to its own `__file__`, so it travels with
+# the code; the `.md` files are read by AGENTS, not by any script, and live
+# with the rest of the plugin's prose under `src/plugin/`.
 EMITTED = REPO / "src/comment_review/references/vocabulary.toml"
 
 # The record of what CHANGED -- never a second place to look a live term up.
@@ -387,12 +385,13 @@ def check_duplicate(definitions: dict[str, str]) -> int:
 def check_retired() -> int:
     """No shipped file uses a retired word, unless it declares the exemption.
 
-    ! It reads the SHIPPED tree only. `docs/` records what was decided and when,
-    and `tests/` names fixtures after the format they exercise; neither is handed
-    to an agent, and rewriting the record is how a record stops being one.
+    ! It reads what SHIPS only -- `src/`, wholesale. `docs/` records what was
+    decided and when, and `tests/` names fixtures after the format they exercise;
+    neither is handed to an agent, and rewriting the record is how a record
+    stops being one.
     """
     bad = 0
-    for path in sorted((REPO / "plugins").rglob("*")):
+    for path in sorted((REPO / "src").rglob("*")):
         if not path.is_file() or path.suffix not in (".md", ".py", ".toml"):
             continue
         text = path.read_text(encoding="utf-8")

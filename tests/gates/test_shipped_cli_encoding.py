@@ -84,7 +84,7 @@ class TestEveryShippedCliGuardsItsOutput(unittest.TestCase):
 
 
 class TestWhatShipsIsAscii(unittest.TestCase):
-    """Nothing under `plugins/` holds a character outside ASCII.
+    """Nothing under `src/`, which is what ships, holds a character outside ASCII.
 
     The guard above keeps a non-ASCII character from being MANGLED on the way
     out. This keeps one from being there at all, which is the stronger property
@@ -105,7 +105,7 @@ class TestWhatShipsIsAscii(unittest.TestCase):
     """
 
     def test_no_shipped_file_holds_a_non_ascii_character(self):
-        for path in sorted((ROOT / "plugins").rglob("*")):
+        for path in sorted((ROOT / "src").rglob("*")):
             if not path.is_file():
                 continue
             try:

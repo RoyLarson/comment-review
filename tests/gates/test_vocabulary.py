@@ -7,7 +7,7 @@ container a `sheet`.
 
 `verdict` was struck 2026-08-27 in favour of `instruction` -- see
 `docs/decision-log.md Vocabulary: #17`. A line citing that ruling is exempt;
-everything else under `plugins/` must not use the retired word.
+everything else under `src/`, which is what ships, must not use the retired word.
 
 ! A FENCED BLOCK IS LITERAL SYNTAX, NOT PROSE, so a line inside one is skipped
 -- a shell invocation, a JSON worked example and an ASCII table each spell an
@@ -26,7 +26,7 @@ from conftest import ROOT
 
 REPO = ROOT
 
-_SKILL_DIR = ROOT / "plugins" / "comment-review" / "skills" / "comment-review"
+_SKILL_DIR = ROOT / "src" / "plugin" / "skills" / "comment-review"
 
 #: Every file an agent reads that may name a container -- matches
 #: `test_skill_commands.py`'s own `AGENT_FACING`.
@@ -40,7 +40,7 @@ AGENT_FACING = (
 
 def test_no_shipped_file_calls_the_field_a_verdict():
     offenders = []
-    for path in (REPO / "plugins").rglob("*"):
+    for path in (REPO / "src").rglob("*"):
         if path.suffix not in {".md", ".py", ".toml"} or not path.is_file():
             continue
         fenced = False

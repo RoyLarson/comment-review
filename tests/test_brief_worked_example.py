@@ -36,15 +36,7 @@ from comment_review.desk.collator import tally
 from comment_review.desk.mark import Mark, untouched
 from comment_review.flows.mark_errors import mark_errors
 
-BRIEF_PATH = (
-    ROOT
-    / "plugins"
-    / "comment-review"
-    / "skills"
-    / "comment-review"
-    / "references"
-    / "reviewer-brief.md"
-)
+BRIEF_PATH = ROOT / "src/plugin/skills/comment-review/references/reviewer-brief.md"
 
 
 def the_briefs_worked_example() -> dict:

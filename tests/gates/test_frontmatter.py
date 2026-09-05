@@ -22,7 +22,7 @@ import unittest
 from conftest import ROOT
 
 ROOT = ROOT
-SHIPPED = ROOT / "plugins" / "comment-review"
+SHIPPED = ROOT / "src" / "plugin"
 # A frontmatter paragraph is the first `---` fenced region of the file.
 FENCE = re.compile(r"\A---\r?\n(.*?)\r?\n---\r?\n", re.S)
 
