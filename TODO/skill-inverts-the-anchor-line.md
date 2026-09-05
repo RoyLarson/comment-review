@@ -16,6 +16,7 @@ SKILL.md says the census prints that no comment carries an anchor; it prints tha
 
 - [ ] T1 | Run the census and rewrite SKILL.md's CANDIDATE paragraph to the line
       it actually prints
+        > 2026-09-05 reported again by the 0.2.4-beta live run on job_board
 - [ ] T2 | Say what still makes a placement finding a CANDIDATE once the anchor
       is always present -- TODO/the-anchor-claims-are-inverted.md is the same
       defect elsewhere in the shipped prose
