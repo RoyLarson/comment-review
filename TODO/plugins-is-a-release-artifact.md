@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 7 tasks closed
+Progress: 6 of 7 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-09-05 (Roy, 2026-09-05: the build test is noise in development; a release
@@ -40,6 +40,7 @@ plugins/ is a release artifact, not a per-change gate.
       holds the written prose and only the release command writes plugins/.
         > 2026-09-05 Verify: 'written in place' is gone from CLAUDE.md.
         > 2026-09-05 lanes.md maps src/plugin/agents/** to agents; Roy approves first.
-- [ ] T7 | Supersede build-check-reads-the-working-tree T1-T4 and T6 and
+- [x] T7 | FINISHED; seven tasks superseded, both files completed | 43bad5a3 | Supersede
+      build-check-reads-the-working-tree T1-T4 and T6 and
       build-gate-crlf-fragile T1-T2 into this file, in one pass.
         > 2026-09-05 Verify: both files closed, each statement naming this file.
