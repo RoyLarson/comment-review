@@ -25,3 +25,5 @@ The agents files name the new CLI and say how to use it.
       SKILL.md can say who writes rulings.json
 - [ ] T5 | Update SKILL.md so the task agent sends every refused copy or answer
       back to the role that owes it, to be fixed. Verify: the brief says so
+        > 2026-09-04 Process 92: the errors stack; the task agent reroutes them
+        > 2026-09-04 bound on send-backs: a-coverage-gap-should-go-back T2
