@@ -99,10 +99,12 @@ def bind(pages: list[Page], read_from: dict, absent: bool = False) -> "Binder":
     walk emits every place, filled or not, so a reviewer that wants to `add`
     ASKS for the one it means:
 
-        comment_review addresser --binder C --anchor "<line of code>" --series b
+        comment_review addresser --binder B --file m.py --line N --series b
 
-    -- which answers `m.py@b1`. The place is citable without being carried, so
-    `add` stays expressible and nothing pays for the other 5,201.
+    -- which answers `m.py@b1` from the page at the binder's root, never from
+    the rows this filter kept (`decision-log.md Process: #96`). The place is
+    citable without being carried, so `add` stays expressible and nothing pays
+    for the other 5,201.
 
     ! A FENCE IS NEVER CARRIED, asked for or not. It names no place, so there is
     nothing to cite and nothing to rule on.

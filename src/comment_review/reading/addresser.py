@@ -1,6 +1,6 @@
 """THE ADDRESSER: numbering the places on a page, and reading the number back.
 
-    python addresser.py --binder binder.json --anchor "def f():" --series a
+    python addresser.py --binder binder.json --file m.py --line 12 --series a
 
 FOUR ADDRESSERS walk one trigger list -- the MODULE, every line of code, then
 EOF -- each holding its own counter and the places it emitted. `cue()` runs

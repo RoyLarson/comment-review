@@ -380,8 +380,9 @@ class RedactedPage:
 
     !! AND AN EMPTY PLACE IS STILL ADDRESSED, WHICH IS WHAT MAKES THE CUT SAFE.
     The walk emits every place, so a reviewer that wants to `add` ASKS the
-    addresser for the one it means -- `addresser --anchor "<line>" --series b`
-    answers `m.py@b1`. The place is citable without being carried.
+    addresser for the one it means -- `addresser --file m.py --line N --series b`
+    answers `m.py@b1` from the PAGE, not from these rows (`decision-log.md
+    Process: #96`). The place is citable without being carried.
 
     !! EVERYTHING READ BACK IS ONE OF THESE, WHATEVER WAS WRITTEN. A `Page`
     serializes its text nowhere, so a binder off disk cannot rebuild one --

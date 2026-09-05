@@ -58,3 +58,4 @@ The agents files name the new CLI and say how to use it.
         > 2026-09-05 waits on binder-defects T22; the text would promise what fails now
         > 2026-09-05 the default filter stays; absent places are noise for a role
         > 2026-09-05 the brief asks by line number, no longer with the line's text
+        > 2026-09-05 T22 landed; flag gate red on --anchor: SKILL 367, brief 231

@@ -157,7 +157,9 @@ class TestByLine:
         assert code == 1
         assert "declares nothing" in out
 
-    def test_the_room_beside_a_line_of_code(self, monkeypatch, capsys, a_default_binder):
+    def test_the_room_beside_a_line_of_code(
+        self, monkeypatch, capsys, a_default_binder
+    ):
         binder, name = a_default_binder
         code, out = self._ask(
             monkeypatch, capsys, binder, "--file", name, "--line", "8", "--series", "c"
@@ -203,9 +205,8 @@ class TestByLine:
         self, monkeypatch, capsys, a_default_binder
     ):
         binder, _ = a_default_binder
-        code, out = self._ask(
-            monkeypatch, capsys, binder, "--file", "gone.py", "--line", "1", "--series", "b"
-        )
+        gone = ("--file", "gone.py", "--line", "1", "--series", "b")
+        code, out = self._ask(monkeypatch, capsys, binder, *gone)
         assert code == 2
         assert "gone.py" in out
 

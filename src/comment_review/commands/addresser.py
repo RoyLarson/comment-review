@@ -10,15 +10,18 @@ import argparse
 from collections.abc import Sequence
 from pathlib import Path
 
-from comment_review.binder.addresses import (
-    _by_path,
-    for_anchor,
-    resolve,
-    stable,
-    unaddressed,
-)
+from comment_review.binder.addresses import _by_path, resolve, stable, unaddressed
+from comment_review.binder.binder import Binder
+from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_binder
-from comment_review.reading.addresser import SERIES, cue_of, unflatten
+from comment_review.machine.constants import text_lines
+from comment_review.reading.addresser import (
+    DECLARED,
+    SERIES,
+    address_for,
+    cue_of,
+    unflatten,
+)
 from comment_review.reading.paragraph import Paragraph
 
 
@@ -30,8 +33,9 @@ def main() -> int:
 
     Returns:
         0 when every entry was addressed, 1 when any could not be, 2 when the
-        binder could not be read. ! This module reads no source file -- the
-        binder is the only input.
+        binder could not be read. ! Only `--line` opens a source file -- the one
+        it asks about, at the binder's root; every other question reads the
+        binder alone.
     """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--binder", required=True, help="the binder JSON")
@@ -41,15 +45,23 @@ def main() -> int:
         help="verify every address resolves back to its own paragraph, and stop",
     )
     ap.add_argument(
-        "--anchor",
-        metavar="LINE",
-        help="a LINE OF CODE, verbatim -- with --series, the address of that place",
+        "--file",
+        metavar="PATH",
+        help="a file of the binder's root, as the binder names it -- with --line"
+        " and --series, the address of the place at that line",
+    )
+    ap.add_argument(
+        "--line",
+        type=int,
+        metavar="N",
+        help="a line NUMBER of that file as it was gathered",
     )
     ap.add_argument(
         "--series",
         choices=SERIES,
-        help="which place OF that anchor: a its documentation, b the gap above"
-        " its opening line, c the room beside it, f the file's own matter",
+        help="which place AT that line: a the documentation of the declaration"
+        " opening there, b the gap it falls in, c the room beside it, f the"
+        " file's own matter",
     )
     ap.add_argument(
         "--resolve",
@@ -84,9 +96,17 @@ def main() -> int:
     # by sitting beside them: this is the second reader that stopped asking.
 
     # !! NO STALENESS SWEEP. This module answers about the BINDER IT WAS GIVEN,
-    # and every question it takes is binder-internal: does each address resolve
-    # to one paragraph, what lines does this binder say an address names, which
-    # place is this anchor's `c`. None of them reads the tree.
+    # and every question it takes but one is binder-internal: does each address
+    # resolve to one paragraph, what lines does this binder say an address
+    # names. Neither reads the tree.
+    #
+    # !! `--line` IS THE ONE EXCEPTION, AND THE BINDER IS WHY. A role is handed
+    # the binder FILTERED to the places holding prose, because ruling on empty
+    # places is noise -- so the place an `add` wants is exactly the one the
+    # binder does not carry. `decision-log.md Process: #96`: the lookup opens
+    # the file at the binder's root and answers from the page. It read the
+    # binder's rows until 2026-09-05, and a live run lost four `add`s to
+    # *"no `b` place"* on gaps the file plainly had.
     #
     # !! CHECKING THE FILE WOULD ASSERT THAT LINE NUMBERS STILL MATTER, which is
     # the thing an address exists to stop mattering. So long as the binder is
@@ -103,16 +123,16 @@ def main() -> int:
     # gathers the file as it now stands and resolves against that, so the two
     # agree by construction rather than by inspection.
 
-    if args.anchor:
-        if not args.series:
+    if args.line is not None or args.file:
+        if not (args.file and args.line is not None and args.series):
             # ! THE SET IS DERIVED, and this line hand-wrote "a, b, c or f"
             # until 2026-08-28 -- the defect `T1.16` names, surviving in a
             # RUNTIME message after it was removed from every help string.
             # `SERIES` comes from the `Series` enum, so adding a series carries
             # this sentence with it.
-            print(f"--anchor needs --series: {', '.join(SERIES)}")
+            print(f"--line needs --file and --series: {', '.join(SERIES)}")
             return 2
-        return _for_anchor(args.anchor, args.series, paragraphs)
+        return _at_line(binder, args.file, args.line, args.series)
     if args.resolve:
         return _resolve_one(args.resolve, paragraphs)
     if args.check:
@@ -180,37 +200,64 @@ def _resolve_one(address: str, paragraphs: Sequence[Paragraph]) -> int:
     return 0
 
 
-def _for_anchor(anchor: str, series: str, paragraphs: Sequence[Paragraph]) -> int:
-    """Print the address of one anchor's place in one series.
+def _at_line(binder: Binder, file: str, line: int, series: str) -> int:
+    """Print the address of one series' place at one line of one file.
+
+    !! ANSWERED FROM THE PAGE, NOT FROM THE BINDER'S ROWS. The binder is a
+    filtered view and a filter is not the set of places a page has --
+    `decision-log.md Process: #96`. The file is opened at the binder's root,
+    the tree the binder was gathered from, so the line a role reads off the
+    listing is the line this takes.
+
+    ! EACH LINE PRINTED SAYS WHETHER THE BINDER HOLDS THE PLACE. `HELD` means a
+    row was seeded there; `ABSENT` means the filter dropped it as holding no
+    prose, and a mark may still cite it -- the write end reads the page, not
+    the binder (`Process: #97`).
+
+    ! THE FILE'S OWN MATTER ANSWERS TWICE, head and foot, since no line tells
+    them apart; a caller chooses by address, the same rule an anchor spelled
+    twice already follows.
 
     Returns:
-        0 when a place was named, 1 when the binder carries none for that
-        anchor and series -- which is a fact about the run, not a fault: a
-        language whose tier resolves no anchors has none to give.
+        0 when a place was named, 1 when the page has no such place at that
+        line, 2 when the file could not be read as a page.
     """
-    found = for_anchor(anchor, series, paragraphs)
-    if not found:
-        known = sorted({b.anchor for b in paragraphs if b.anchor})
-        print(f"no `{series}` place for anchor {anchor!r}")
-        if known:
-            print(f"  anchors this binder carries: {', '.join(known[:12])}")
+    given = Path(file)
+    try:
+        rel = (
+            given.relative_to(binder.root).as_posix()
+            if given.is_absolute()
+            else given.as_posix()
+        )
+    except ValueError:
+        print(f"{file} is not under the binder's root {binder.root}")
+        return 2
+    page, why = page_of(binder.root / rel, rel=rel)
+    if page is None:
+        print(f"{rel} {why}")
+        return 2
+    count = len(text_lines(page.text))
+    if not 1 <= line <= count:
+        print(f"{rel} has {count} lines; line {line} is not one of them")
         return 1
-    for b in found:
-        where = stable(b)
-        span = f"{b.original_start}-{b.original_end}"
-        print(f"{where}	{span}	{cue_of(b.address).cue}	{b.anchor}")
-    # !! AN ANCHOR HAS MANY ADDRESSES, so this direction is not a lookup that
-    # returns one. Roy, 2026-08-19, on two identical statements in one file:
-    # *"for the addresses this is still exact -- for looking up the anchors to
-    # get the addresses, not so exact."* `X=2  # initial` and `X=2  # reseting
-    # X` are two anchors spelled the same, and the binder carries five places
-    # under that spelling. Every match is printed and the CALLER picks by
-    # address; taking the first would silently rule on the wrong statement.
+    found = page.cues.at_line(line, series)
+    if not found:
+        what = "holds no code"
+        if series == DECLARED:
+            what = "declares nothing documentable"
+        print(f"line {line} of {rel} {what}, so it has no `{series}` place")
+        if series == DECLARED and page.cues.documents(0):
+            head = address_for(rel, page.cues.documents(0))
+            print(f"  the module's own documentation is {head}")
+        return 1
+    held = {b.address for b in binder.paragraphs}
+    for c in found:
+        address = address_for(rel, c)
+        state = "HELD" if address in held else "ABSENT"
+        print(f"{address}\t{page.cues.anchor_of(c)!r}\t{state}")
     if len(found) > 1:
         print(
-            f"\n{len(found)} places answer to anchor {anchor!r} in `{series}`."
-            " An anchor has many addresses and an address has one anchor, so"
-            " two identical lines of code are two anchors spelled alike."
+            f"\n{len(found)} places answer to line {line} in `{series}`."
             " Choose by ADDRESS."
         )
     return 0

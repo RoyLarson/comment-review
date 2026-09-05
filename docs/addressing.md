@@ -77,8 +77,10 @@ of code, takes a number at every trigger, and emits or does not: `a` and `b` emi
 `c` steps past it. That any two series line up on a given file is an OUTCOME of that walk, not a
 rule -- and nothing in this system reads one cue to derive another.
 
-! **ASK. DO NOT COUNT.** `addresser.py --anchor LINE --series a|b|c`, or `locator.py --at
-path:LINE`. The only supported way to learn a cue is to be told it.
+! **ASK. DO NOT COUNT.** `addresser --file PATH --line N --series a|b|c|f`, which opens the file
+at the binder's root and answers from the page -- so a place the filtered binder does not carry
+still answers (`decision-log.md Process: #96`). The only supported way to learn a cue is to be
+told it.
 
 !! **The `a` series counts DECLARATIONS, not code lines, and that is a ruling.** Numbering each
 declaration by the `c` of its own `def` would put all three series on one count, and was
@@ -144,8 +146,9 @@ cites. But `X=2` is TWO anchors spelled alike, so it answers with **two `c` plac
 places**, drawn from two different statements: the first gap is anchored to line 1, the other two
 to line 5. ! Those cues are what THIS walk emits on THIS file. Nothing may count them out from
 the lines -- see the ruling above.
-`addresser.py --anchor` prints every match and says how many; the CALLER chooses by address.
-Taking the first rules on the wrong statement.
+A line NUMBER names one trigger, so `addresser --line` answers one place per series -- except
+`f`, whose two places no line tells apart; there it prints both and the CALLER chooses by
+address. Taking the first rules on the wrong end of the file.
 
 ! **An anchor has ONE spelling: the line of code.** A declaration's `a`, the `b` above it and the
 `c` beside it all carry `def f():`. The NAME is not carried at all.
