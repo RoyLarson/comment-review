@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 32 tasks closed
+Progress: 7 of 33 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -180,3 +180,6 @@ Four defects in collator.py, found by reading only the code.
         > 2026-09-04 hand 7: a1 was ownership-context's drop; side read block-context
 - [ ] T32 | Update the fold so one owing mark beside outside-my-role queries and
       cleans settles, per Process 90. Verify: 32 of 87 FitPlan carries settle
+- [ ] T33 | Update the fold to refuse an address only when the page has no such
+      place. Verify: a mark at a real gap the binder lacks is accepted
+        > 2026-09-05 Process 96; tests/test_collator.py:514 asserts the refusal today

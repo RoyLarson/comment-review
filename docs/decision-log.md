@@ -3385,3 +3385,19 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `check --binder` lines pointed at a file the role had no path to. `#83`'s *"given, never sent
   looking"* stands for the installed plugin; the run's own files are what a role reads and
   fills, and they were always meant to arrive as the copy already did, by path.
+
+- **#96.** **AN ADDRESS IS LOOKED UP FROM THE CODE, NOT FROM THE BINDER, AND A MARK MAY ADD THE
+  ABSENT PLACE THE BINDER FILTERED OUT** (Roy, 2026-09-05, on the FitPlan run's four lost
+  `add`s: *"The cli that looks up addresses doesn't look up the address from the file, it
+  looks up the address in the binder and that is faulty, because the binder filters the
+  addresses. The address lookup is supposed to look it up from the code and allow that absent
+  spot from the binder to be added by a mark."*).
+
+  **What it settles.** The binder is a filtered view -- prose places by default, every place
+  under `--include-absent` -- and a filter is not the set of places a page has. `addresser
+  --anchor` answers from the page, so a gap or a documentation slot that holds nothing resolves
+  whether or not the binder carried it; and a mark at such an address is accepted by the fold,
+  which refuses an address only when the PAGE has no such place. `binder-defects` T16 -- does
+  `--include-absent` describe the artifact -- is answered by making the artifact irrelevant to
+  the lookup. The command as built reads no source file and prints *"anchors this binder
+  carries"* when it fails; that is the defect.

@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 1 of 21 tasks closed
+Progress: 3 of 22 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `binder/binder.py` run against its
           own docstrings -- eighteen tasks, and no TODO on the board is a home for that
           module)
@@ -154,12 +154,13 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
       Verify: the sentence matches `row \| {"path": path, "address": ...}`,
       whose dict-union order turns a row carrying `{"path": "other.py",
       "address": "other.py@b9"}` into `{'path': 'm.py', 'address': 'm.py@b1'}`.
-- [?] T16 | Decide whether `--include-absent` describes the binder ARTIFACT, or only the
-      invocation that produced it? Verify: the answer is recorded in `docs/decision-
-      log.md`; if it describes the artifact, `read_from` carries `absent` and a copy
-      seeded from an include-absent binder then collated against a default one is
-      refused rather than reporting every `interval` and `margin` mark as naming a place
-      the binder does not carry.
+- [-] T16 | RULED Process 96: the lookup reads the page, so the binder's filter never governs an address | 473afdba | Decide
+      whether `--include-absent` describes the binder ARTIFACT, or only the
+      invocation that produced it? Verify: the answer is recorded in
+      `docs/decision- log.md`; if it describes the artifact, `read_from` carries
+      `absent` and a copy seeded from an include-absent binder then collated
+      against a default one is refused rather than reporting every `interval`
+      and `margin` mark as naming a place the binder does not carry.
 - [ ] T17 | Update `bind`'s `ValueError` docstring at `binder.py:152-156` to
       state that no shipped caller can reach the guard. Verify: it names the
       four internal callers -- `commands/census.py:331`, `flows/revise.py:239`,
@@ -174,11 +175,15 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
       `binder.py:22-26`'s claim -- "THE FORMAT IS A CONTRACT AND BELONGS TO
       NEITHER END ... one module both sides import is the fix" -- holds across
       the repo rather than in two of three places.
-- [ ] T19 | Update the addresser's no-place refusal to say the binder holds no
-      absent place when that is why. Verify: the message names --include-absent
+- [-] T19 | SUPERSEDED by Process 96: the addresser answers from the page, so the refusal goes | 473afdba | Update
+      the addresser's no-place refusal to say the binder holds no absent place
+      when that is why. Verify: the message names --include-absent
 - [-] T20 | duplicate of T19, filed twice in one batch | dfe7ca56 | Update the
       addresser's no-place refusal to name --include-absent when the binder
       holds no absent place. Verify: the message names the flag
 - [ ] T21 | Implement kind on every binder JSON row. Verify: gather --json rows
       carry kind and stage 6 reads it there
         > 2026-09-05 compact.md routes on kind; the FitPlan run read it off the listing
+- [ ] T22 | Update commands/addresser so --anchor resolves from the page, not
+      from binder rows. Verify: an absent b answers on a default binder
+        > 2026-09-05 Process 96; the FitPlan run lost four adds to a default binder
