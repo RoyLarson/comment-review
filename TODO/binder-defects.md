@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 22 tasks closed
+Progress: 4 of 22 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `binder/binder.py` run against its
@@ -184,8 +184,9 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
 - [ ] T21 | Implement kind on every binder JSON row. Verify: gather --json rows
       carry kind and stage 6 reads it there
         > 2026-09-05 compact.md routes on kind; the FitPlan run read it off the listing
-- [ ] T22 | Update commands/addresser so --anchor resolves from the page, not
-      from binder rows. Verify: an absent b answers on a default binder
+- [x] T22 | FINISHED -- --file --line --series answer from the page at the binder root; for_anchor deleted | 5bead16e | Update
+      commands/addresser so --anchor resolves from the page, not from binder
+      rows. Verify: an absent b answers on a default binder
         > 2026-09-05 Process 96; the FitPlan run lost four adds to a default binder
         > 2026-09-05 takes a line of the original file and a series; returns the address
         > 2026-09-05 ruled: the argument is the line NUMBER and a series, not the text

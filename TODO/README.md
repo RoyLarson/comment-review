@@ -283,7 +283,7 @@ that changed a published name or rule:
 | [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | -- | 0/6 | A present-but-null key becomes the four characters None |
 | [collate-flow-defects](collate-flow-defects.md) | backend | -- | 0/12 | Twelve defects in `flows/collate.py`, from a review of one file |
 | [mark-defects](mark-defects.md) | backend | yes | 0/11 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
-| [binder-defects](binder-defects.md) | backend | -- | 3/22 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
+| [binder-defects](binder-defects.md) | backend | -- | 4/22 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
 | [docket-defects](docket-defects.md) | backend | -- | 2/8 | Six defects in docket.py, and one discards an approved page at exit 0 |
 | [collate-command-defects](collate-command-defects.md) | backend | -- | 3/19 | Sixteen defects in `commands/collate.py`, measured by running it |
 | [differences-defects](differences-defects.md) | backend | -- | 0/10 | Ten defects in `results/differences.py`, none of them in its arithmetic |
