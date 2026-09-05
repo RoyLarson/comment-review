@@ -84,7 +84,9 @@ manual -- `CLAUDE.md`, *Cutting a release*, holds the order.
 
 ## `check_shipped_syntax.py`
 
-Refuses to ship a `plugins/` file that will not parse on Python 3.9.
+Refuses to ship a `src/` file that will not parse on Python 3.11, the floor
+`pyproject.toml` and `.python-version` declare. It reads `src/` because that is
+what the formatter rewrites and what `release.py` copies.
 
 ```bash
 python scripts/check_shipped_syntax.py    # run it AFTER `ruff format`
