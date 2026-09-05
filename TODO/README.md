@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (114)
+### open  (113)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -295,7 +295,6 @@ that changed a published name or rule:
 | [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 4/6 | re-review is retired for revise |
 | [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 8/14 | The agents files name the new CLI and say how to use it |
-| [plugins-is-a-release-artifact](plugins-is-a-release-artifact.md) | systems | -- | 7/7 | plugins/ is a release artifact, not a per-change gate |
 
 ### in-progress  (18)
 
@@ -456,3 +455,4 @@ the reason is inside the file.
 | [census-should-be-a-chain-of-producers](completed/census-should-be-a-chain-of-producers.md) | flows/gather.py is the chain (STEPS), flows/annotations_for.py stage 3 as a step, commands/gather.py the face; census retired by Vocabulary 34 (68bfc548) |
 | [build-check-reads-the-working-tree](completed/build-check-reads-the-working-tree.md) | Superseded into plugins-is-a-release-artifact: the --check compare it asked to fix was removed at 8f4be1ac |
 | [build-gate-crlf-fragile](completed/build-gate-crlf-fragile.md) | Superseded into plugins-is-a-release-artifact: the raw byte compare was removed at 8f4be1ac |
+| [plugins-is-a-release-artifact](completed/plugins-is-a-release-artifact.md) | plugins/ is assembled by scripts/release.py from src/plugin/ and src/comment_review/, at release only; the per-change gate is gone |
