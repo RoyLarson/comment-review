@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 7 tasks closed
+Progress: 7 of 7 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-09-05 (Roy, 2026-09-05: the build test is noise in development; a release
@@ -36,8 +36,9 @@ plugins/ is a release artifact, not a per-change gate.
       every test and script that reads the shipped prose or plugin.json under
       plugins/ at src/plugin/.
         > 2026-09-05 Verify: only release.py opens a path under plugins/.
-- [ ] T6 | Update CLAUDE.md, docs/lanes.md and scripts/README.md so src/plugin/
-      holds the written prose and only the release command writes plugins/.
+- [x] T6 | FINISHED; Roy approved the wording, written in place is gone, lanes.md maps src/plugin/ | 9b8873c8 | Update
+      CLAUDE.md, docs/lanes.md and scripts/README.md so src/plugin/ holds the
+      written prose and only the release command writes plugins/.
         > 2026-09-05 Verify: 'written in place' is gone from CLAUDE.md.
         > 2026-09-05 lanes.md maps src/plugin/agents/** to agents; Roy approves first.
 - [x] T7 | FINISHED; seven tasks superseded, both files completed | 43bad5a3 | Supersede
