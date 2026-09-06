@@ -5,6 +5,11 @@
 # dispatch is transcribed from that section's own TOML example (lines
 # 96-113): fanned across two path globs, while function-context and
 # module-context each keep every page.
+#
+# The globs name THIS repo's layout, so this file fits this tree and no other:
+# tests/test_staged_chain.py shows `topology --verify` refusing it on a scratch
+# tree and naming these globs. A run gets a topology for its own tree from
+# `topology --build`, which writes this same shape over that tree's pages.
 
 [[stage]]
 name    = "4a"
