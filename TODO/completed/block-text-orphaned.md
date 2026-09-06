@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 1 tasks closed
+Progress: 1 of 1 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-26 (the final simplify pass on feat/the-write-chain-of-command,
@@ -30,4 +30,5 @@ consideration rather than riding in on an unrelated pass.
 
 ## Tasks
 
-- [ ] T1 | Delete block_text, or give it a caller and say what reads it
+- [x] T1 | FINISHED; deleted with docstring_text and _from_marker, on Roy's ruling 2026-09-06 | 620d1db6 | Delete
+      block_text, or give it a caller and say what reads it
