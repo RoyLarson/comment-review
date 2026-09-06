@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (110)
+### open  (109)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -231,7 +231,6 @@ that changed a published name or rule:
 | [nothing-makes-the-fair-copy](nothing-makes-the-fair-copy.md) | backend | yes | 1/13 | Nothing turns the collated marks into the paragraph the galley writes |
 | [settle-carries-two-meanings](settle-carries-two-meanings.md) | systems | yes | 0/6 | settle carries two meanings in what an agent is handed, and neither is declared to it |
 | [no-stage-agrees-the-terms](no-stage-agrees-the-terms.md) | systems | yes | 0/7 | No stage establishes what the words mean before the roles are asked to use them |
-| [listing-hands-the-repo](listing-hands-the-repo.md) | backend | -- | 4/4 | The listing hands every reviewer the whole repo, four times a page |
 | [the-cue-legend-and-its-round-trip](the-cue-legend-and-its-round-trip.md) | backend | -- | 0/5 | The cue letter carries what three fields used to say, and nothing gives the agents the legend or checks they followed it |
 | [the-flow-lives-in-the-command](the-flow-lives-in-the-command.md) | backend | -- | 6/13 | Lifting main() out showed the orchestration was always inside it: commands/census.py took 446 lines and calls page_for, while flows/census.py kept 261 lines of helpers. A command is meant to EXPOSE a flow, not be one. |
 | [two-areas-have-no-tests](two-areas-have-no-tests.md) | backend | -- | 0/4 | tests/ mirrors the package, so an area with no directory is a visible hole. machine/ (repo, constants, exceptions) and commands/ (all ten) have none. repo is exercised only through flows/test_census_names.py, which tests something else. |
@@ -457,3 +456,4 @@ the reason is inside the file.
 | [block-text-orphaned](completed/block-text-orphaned.md) | block_text deleted at 620d1db6 with the two helpers only it called |
 | [vocabulary-gate-is-red](completed/vocabulary-gate-is-red.md) | The gate is asserted by the suite, sees inside identifiers, and block is two senses the gate tells apart -- decision-log Vocabulary #35 |
 | [the-listing-goes](completed/the-listing-goes.md) | gather writes the binder only; a reviewer is handed the binder and its seeded copy; listing is retired and the gate says so -- Process #99 |
+| [listing-hands-the-repo](completed/listing-hands-the-repo.md) | Superseded: the listing was removed at Process #99, so its defects have no site |
