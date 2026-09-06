@@ -183,12 +183,22 @@ MENTION = (
 #   __main__":` block
 #                   a PYTHON code block, the language's own term
 #   Java text block the same feature as TEXT BLOCK above, in lower case
+#
+# ! AND ONE SENSE IS A LIVE TERM, NOT AN EXEMPTION: the code symbols that say
+# which series the lines they enclose belong to -- `/*` with `*/`, `/**` --
+# never the prose between them. `language.py` holds them as `block_comment`
+# and `doc_block`, and the lexer's `in_block` is the pair currently open.
+# `vocabulary.toml` states the sense beside `paragraph`. Declared here by the
+# three identifiers, because the scan otherwise reads the word inside them as
+# the retired noun.
 NOT_THE_TERM = (
     # ! Python's own str.join -- the VERB, and 28 sites in the shipped tree.
     ".join(",
     "block-context",
     "TEXT BLOCK",
-    "block_matches",
+    "block_comment",
+    "doc_block",
+    "in_block",
     "block: int",
     ".block",
     "block=",
