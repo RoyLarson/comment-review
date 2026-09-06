@@ -322,12 +322,15 @@ so in time these two commands run right after stage 2 writes `binder.json`:
 
 ```bash
 python <skill>/scripts/comment-review.py topology --build --binder <run-dir>/binder.json --out <run-dir>/topology.toml \
-  --stage 4a=ownership-context --stage 4c=block-context/2,function-context,module-context
+  --stage 4=ownership-context,block-context,function-context,module-context
 python <skill>/scripts/comment-review.py topology --verify <run-dir>/topology.toml --binder <run-dir>/binder.json
 ```
 
-`--build` writes a topology that fits the binder by construction and verifies it; `--verify`
-alone checks one you already hold. **A run against an unverified topology is not a path these
+That is this release's topology: one stage, the four roles over every page, one revise. A
+role split across shards (`block-context/2`) and a second stage reading the first's revise
+(`--stage 4a=... --stage 4c=...`) are shapes the file can express and a later release may
+turn to. `--build` writes a topology that fits the binder by construction and verifies it;
+`--verify` alone checks one you already hold. **A run against an unverified topology is not a path these
 instructions offer.** A bad configuration costs nothing only when it is caught here: `--verify`
 exits 1 and names the stage, the kind -- a page two shards of one role claim, or a page no shard
 of a role reaches -- and the pages and globs involved. **The fix is to the topology, never to
@@ -543,7 +546,7 @@ dispatch, named `<stage>_<role>_<n>.json`, each with a slot already laid down fo
 paragraph on the pages that dispatch covers:
 
 ```bash
-python <skill>/scripts/comment-review.py distribute --topology <run-dir>/topology.toml --stage 4c \
+python <skill>/scripts/comment-review.py distribute --topology <run-dir>/topology.toml --stage 4 \
   --binder <run-dir>/binder.json --out-dir <run-dir>/copies
 ```
 
@@ -649,10 +652,10 @@ and against the others', refuses what it cannot verify, and folds what the roles
 is the gate between MARK and the chief's ruling:
 
 ```bash
-python <skill>/scripts/comment-review.py collate --stage 4c --binder <run-dir>/binder.json --repo . \
+python <skill>/scripts/comment-review.py collate --stage 4 --binder <run-dir>/binder.json --repo . \
   --topology <run-dir>/topology.toml \
-  --edit-copy <run-dir>/copies/4c_block-context_1.json --edit-copy <run-dir>/copies/4c_block-context_2.json \
-  --edit-copy <run-dir>/copies/4c_function-context_1.json --edit-copy <run-dir>/copies/4c_module-context_1.json \
+  --edit-copy <run-dir>/copies/4_ownership-context_1.json --edit-copy <run-dir>/copies/4_block-context_1.json \
+  --edit-copy <run-dir>/copies/4_function-context_1.json --edit-copy <run-dir>/copies/4_module-context_1.json \
   --out <run-dir>/chief0.json --proof-out <run-dir>/proof0.json --batch-out <run-dir>/batch1.json
 ```
 

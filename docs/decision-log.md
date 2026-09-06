@@ -3518,3 +3518,16 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   -- *"it errors on a glob that matches no page"* -- is narrowed to what the guards already
   say. P33's *"a message naming the globs"* is kept by having the `uncovered` misfit name the
   role's globs beside the pages they missed, so the agent that wrote the glob sees it.
+
+- **#101.** **THE 0.2.4 TOPOLOGY IS ALL FOUR AT ONCE: ONE STAGE, FOUR DISPATCHES, ONE REVISE**
+  (Roy, 2026-09-06, on being shown that SKILL.md's stage 4 says *four reviewers, in parallel*
+  while `what-a-reviewer-is-handed` P1 asks for `4a` then `4c`: *"I want the current topology
+  to stay the 4 out in parallel but 1 revise step"*).
+
+  **What it settles.** Stage 4 stays as written. The topology SKILL.md 1.9 builds is one stage,
+  `4`, dispatching the four roles over every page, and stage 4 seeds it with one `distribute
+  --stage 4`. The `4a`-then-`4c` serialisation is a topology the file can express and the
+  design's table names (section 2, *the three topologies*); it is not the one this release
+  runs, so P1 on `what-a-reviewer-is-handed` is superseded for 0.2.4 rather than built. The
+  topology is a tuning knob (*Topology is a tuning knob, not an invariant*), and which knob a
+  later release turns is a later ruling.
