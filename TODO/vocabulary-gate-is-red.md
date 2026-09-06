@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 14 tasks closed
+Progress: 9 of 14 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-20 (both reviews of 2026-08-20; verified in-session)
@@ -114,5 +114,6 @@ see it, because `ruff` reads an unused import and an unused local, not a string 
       prose sense.
 - [ ] T13 | Rename nxt_block in binder/page.py to nxt_b, the name its neighbours
       in the same loop carry.
-- [ ] T14 | Update the retired row for block in docs/vocabulary.md to the prose
-      sense, pointing at where the live sense is stated.
+- [x] T14 | FINISHED | c56ccc7d | Update the retired row for block in
+      docs/vocabulary.md to the prose sense, pointing at where the live sense is
+      stated.
