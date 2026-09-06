@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 3 of 7 tasks closed
+Progress: 3 of 8 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, while ruling on what CLAIM and CHANGE each carry
@@ -136,6 +136,8 @@ filed, and still two.
       11)`, with kind `comment`.
 - [ ] T7 | T7 -- Cut the cycle to ONE census on disk. Verify: `SKILL.md` names
       one census artifact, not both `census.json` and `galley-census.json`.
+- [?] T8 | Rule what the proof setter does with a seeded place the role has not
+      filled, when it sets a partly filled copy.
 ## Related
 
 - [`the-author-approves-blocks-and-never-sees-the-page`](the-author-approves-blocks-and-never-sees-the-page.md)

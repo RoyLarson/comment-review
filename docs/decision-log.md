@@ -3457,3 +3457,25 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   file the run never gathered, which the write end sets like any other page. `known_addresses`
   stays for the two questions it still answers: the coverage count over the places a role was
   handed, and the revise diff.
+
+- **#98.** **NO SEPARATE REVIEWER VIEW: A ROLE READS ITS OWN DRAFT BY SETTING ITS EDIT COPY**
+  (Roy, 2026-09-06, ruling P1 of
+  [`0.2.4-rework-the-binder-hands-the-repo`](plans/0.2.4-rework-the-binder-hands-the-repo.md):
+  *"I think no - because the reviewer should be able to set its edit-copy using the proof
+  setter cli. This should be stated in the brief to help. Not certain how to deal with unruled
+  spots but that gives them the mechanism to see their draft if full"*).
+
+  **What it settles.** The listing is not a reviewer's view. A role is handed a seeded
+  `edit_copy`, fills it, and when it wants to see the result it runs `proof --copy` over its
+  own copy -- which takes any copy, not only the chief's (`#76`, and the command's own header)
+  -- and reads the draft tree that pulls. The brief has to say so; today it tells a role to
+  read the listing end to end and never names the setter. Filed on
+  [`agents-files-name-the-new-cli`](../TODO/agents-files-name-the-new-cli.md).
+
+  **What it leaves open, in Roy's words.** What the setter does with a seeded place the role
+  has not yet filled -- an *unruled spot* -- when it sets a partly filled copy. Filed as a
+  ruling owed on [`7a-can-prove-the-change-by-applying-it-to-a-copy`](../TODO/7a-can-prove-the-change-by-applying-it-to-a-copy.md).
+
+  **What it demotes.** The listing's own defects -- `NOT CHECKED` repeated per page, absolute
+  paths, its unmeasured size -- are defects of a human-facing output and stay filed as such;
+  they are no longer on the path a reviewer reads.
