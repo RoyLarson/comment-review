@@ -1289,8 +1289,8 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
                 recut(b)
             continue
         here[0].start = free[0]
-        for a, nxt_block in zip(here, here[1:], strict=False):
-            a.end = nxt_block.start - 1
+        for a, nxt_b in zip(here, here[1:], strict=False):
+            a.end = nxt_b.start - 1
         here[-1].end = free[-1]
         owned = set(free)
         for b in here:
