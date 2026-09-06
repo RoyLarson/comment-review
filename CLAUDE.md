@@ -680,8 +680,8 @@ mistake removes the record that it was made.
 | the task is | the box | the file's `Status:` |
 | --- | --- | --- |
 | **done** | `[x]` | -- |
-| **superseded** -- overtaken, no longer necessary | `[x]` | -- |
-| **superseded in part**, remainder still wanted | `[ ]`, tracking the remainder | -- |
+| **superseded** -- overtaken, no longer necessary | `[-]` | -- |
+| **partly delivered** | `[-]` on the original; the pieces filed as new tasks, the finished one `[x]` | -- |
 | **deferred** -- waiting on a named event | `[ ]` | say what it waits on |
 | not started | `[ ]` | -- |
 
