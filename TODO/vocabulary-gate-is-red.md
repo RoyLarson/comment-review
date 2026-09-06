@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 6 of 11 tasks closed
+Progress: 7 of 11 tasks closed
 Owner:    systems
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-20 (both reviews of 2026-08-20; verified in-session)
 Fixed:    2026-08-20 -- the gate exits 0. Roy ruled the direction: the four roles KEEP
           'original' because it is a purposeful definition, and the brief now states it
@@ -104,5 +104,7 @@ see it, because `ruff` reads an unused import and an unused local, not a string 
       identifiers as a class, as T9 rules.
         > 2026-09-05 Verify: the gate exits 0 under the T5 regex.
         > 2026-09-05 The ruling is T11, which replaced T9.
-- [?] T11 | Rule whether the retired noun sense of block reaches identifiers, or
+- [x] T11 | RULED 2026-09-05: it reaches identifiers; those three name the paragraph, the retired sense | add2fe1d | Rule
+      whether the retired noun sense of block reaches identifiers, or
       identifiers are exempt from the retired-word check as a class.
+        > 2026-09-05 Roy: block_comment, doc_block, block_text are all paragraphs.
