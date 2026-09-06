@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 7 tasks closed
+Progress: 7 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-06 (Roy, 2026-09-06, decision-log.md Process: #99: the gather text
@@ -38,6 +38,6 @@ The listing goes: gather writes the binder only, and a reviewer is handed the bi
       reviewer-brief.md so a role reads the binder, and the four agent
       descriptions stop naming a listing.
         > 2026-09-06 agents: 6 sites in the brief, 4 descriptions, 2 in module-context
-- [ ] T7 | Update scripts/measure_binder.py so it measures the binder and not a
-      listing.
+- [x] T7 | FINISHED; runs over a real file both ways | cedd8bbb | Update
+      scripts/measure_binder.py so it measures the binder and not a listing.
         > 2026-09-06 systems

@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (111)
+### open  (110)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -292,7 +292,6 @@ that changed a published name or rule:
 | [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 4/6 | re-review is retired for revise |
 | [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 8/15 | The agents files name the new CLI and say how to use it |
-| [the-listing-goes](the-listing-goes.md) | backend | -- | 6/7 | The listing goes: gather writes the binder only, and a reviewer is handed the binder and its seeded edit copy |
 
 ### in-progress  (18)
 
@@ -457,3 +456,4 @@ the reason is inside the file.
 | [requires-roy-never-goes-back-down](completed/requires-roy-never-goes-back-down.md) | Superseded; completed elsewhere |
 | [block-text-orphaned](completed/block-text-orphaned.md) | block_text deleted at 620d1db6 with the two helpers only it called |
 | [vocabulary-gate-is-red](completed/vocabulary-gate-is-red.md) | The gate is asserted by the suite, sees inside identifiers, and block is two senses the gate tells apart -- decision-log Vocabulary #35 |
+| [the-listing-goes](completed/the-listing-goes.md) | gather writes the binder only; a reviewer is handed the binder and its seeded copy; listing is retired and the gate says so -- Process #99 |
