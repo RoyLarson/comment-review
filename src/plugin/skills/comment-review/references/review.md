@@ -70,7 +70,7 @@ To read at one, resolve against a binder of the file as it now stands. ! The add
 about the BINDER, never the tree -- so gather the file first and the two agree by construction:
 
 ```bash
-python <skill>/scripts/comment-review.py gather --json --repo . --out <run-dir>/after.json <paths...>
+python <skill>/scripts/comment-review.py gather --repo . --out <run-dir>/after.json <paths...>
 python <skill>/scripts/comment-review.py addresser --binder <run-dir>/after.json --resolve <ADDRESS>
 ```
 

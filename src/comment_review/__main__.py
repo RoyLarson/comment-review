@@ -51,6 +51,7 @@ class Command(StrEnum):
     PROVE_UNCHANGED = auto()
     REFERRERS = auto()
     TAKEN_IN = auto()
+    TOPOLOGY = auto()
     TURN = auto()
 
 
