@@ -55,6 +55,71 @@ def run(tmp_path, marks_by_role, monkeypatch, capsys, *extra):
     return code, capsys.readouterr().out
 
 
+TWO_ROLES = (
+    '[[stage]]\nname = "4c"\nkind = "editorial"\n'
+    '  [[stage.dispatch]]\n  role = "block-context"\n'
+    '  [[stage.dispatch]]\n  role = "function-context"\n'
+)
+
+
+class TestStageCoverage:
+    """P26: a dispatch the topology named that returned no copy is reported.
+
+    `decision-log.md Process: #63`: coverage has its own list and its own
+    exit code, and the places that did come back still settle.
+    """
+
+    def test_a_dispatch_that_returned_nothing_is_named_with_its_count(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        (tmp_path / "t.toml").write_text(TWO_ROLES, encoding="utf-8")
+        code, out = run(
+            tmp_path,
+            {"block-context": {"m.py@b1": a_correct("m.py@b1")}},
+            monkeypatch,
+            capsys,
+            "--topology",
+            str(tmp_path / "t.toml"),
+        )
+        assert code == command.COVERAGE, out
+        assert "stage 4c: function-context returned 0 of 1 dispatches" in out
+        # ! The places that came back still settle -- the chief copy is written.
+        assert (tmp_path / "chief.json").exists()
+
+    def test_every_dispatch_returned_is_no_report(self, tmp_path, monkeypatch, capsys):
+        (tmp_path / "t.toml").write_text(TWO_ROLES, encoding="utf-8")
+        code, out = run(
+            tmp_path,
+            # ! The two agree, so the fold settles and nothing else is reported.
+            {
+                "block-context": {"m.py@b1": a_correct("m.py@b1")},
+                "function-context": {"m.py@b1": a_correct("m.py@b1")},
+            },
+            monkeypatch,
+            capsys,
+            "--topology",
+            str(tmp_path / "t.toml"),
+        )
+        assert code == 0, out
+        assert "dispatches" not in out
+
+    def test_a_stage_the_topology_lacks_is_refused_by_name(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        (tmp_path / "t.toml").write_text(
+            TWO_ROLES.replace('"4c"', '"4a"'), encoding="utf-8"
+        )
+        code, out = run(
+            tmp_path,
+            {"block-context": {"m.py@b1": a_correct("m.py@b1")}},
+            monkeypatch,
+            capsys,
+            "--topology",
+            str(tmp_path / "t.toml"),
+        )
+        assert code == command.UNREADABLE
+
+
 class TestExitCodes:
     def test_everything_resolved_exits_zero(self, tmp_path, monkeypatch, capsys):
         code, _out = run(

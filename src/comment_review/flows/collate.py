@@ -85,6 +85,7 @@ from comment_review.desk.containers import (
 from comment_review.desk.determined import Answer, Determined
 from comment_review.desk.mark import Instruction, Mark, Shape, filled
 from comment_review.desk.proof import MismatchedRoot, master_proof_of
+from comment_review.desk.stages import Stage
 from comment_review.flows.mark_errors import Revisit, mark_errors
 from comment_review.reading.addresser import cue_of, unflatten
 from comment_review.results.differences import CannotCompose, compose
@@ -758,12 +759,40 @@ def _coverage_problems(edit_copies: list[EditCopy], binder: Binder) -> list[Prob
     return out
 
 
+def _stage_problems(dispatches: Stage, edit_copies: list[EditCopy]) -> list[Problem]:
+    """One `Problem` per role that returned fewer copies than the stage dispatched.
+
+    ! STAGE COVERAGE, as against shard coverage. `_coverage_problems` asks
+    whether a copy that came back carries the addresses it was handed; this
+    asks whether every dispatch the topology named came back AT ALL. A role
+    dispatched twice under fan-out that returned once leaves nothing behind to
+    be short -- only the topology knows a second copy was owed (`P26`).
+    """
+    returned: dict[str, int] = {}
+    for copy in edit_copies:
+        returned[copy.role] = returned.get(copy.role, 0) + 1
+    owed: dict[str, int] = {}
+    for dispatch in dispatches.dispatches:
+        owed[str(dispatch.role)] = owed.get(str(dispatch.role), 0) + 1
+    return [
+        Problem(
+            role,
+            "",
+            f"stage {dispatches.name}: {role} returned {returned.get(role, 0)}"
+            f" of {want} dispatches",
+        )
+        for role, want in owed.items()
+        if returned.get(role, 0) < want
+    ]
+
+
 def collate(
     stage: str,
     edit_copies: list[dict],
     binder: Binder,
     root: Path,
     turn: int = 0,
+    dispatches: Stage | None = None,
 ) -> Collated:
     """One stage's returned copies, checked, reconciled and folded.
 
@@ -782,6 +811,9 @@ def collate(
         turn: which turn of the stage's collate this is -- 0 for the first
             fold, `flows.turn.run_turn`'s count after. Every `stet` this fold
             records carries it (`Process: #87`).
+        dispatches: the stage as the topology declares it, when the caller
+            has one. A dispatch that returned no copy is then reported in
+            `coverage`; without it nothing can know a copy was owed.
 
     Returns:
         A `Collated`.
@@ -883,6 +915,8 @@ def collate(
         )
 
     coverage = _coverage_problems(copies, binder)
+    if dispatches is not None:
+        coverage += _stage_problems(dispatches, copies)
 
     # ! ONE CACHE FOR THE WHOLE STAGE, not one per copy. Roles cite the same
     # evidence, and a cache built inside `verify_report` re-read a file once per
