@@ -64,6 +64,7 @@ wrote it while the rest of the stage settles.
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from comment_review.binder.addresses import handed
 from comment_review.binder.binder import Binder
 from comment_review.desk.collator import (
     Cache,
@@ -71,7 +72,6 @@ from comment_review.desk.collator import (
     Problem,
     base_texts,
     drift_in,
-    known_addresses,
     places,
     reconcile,
     tally,
@@ -702,7 +702,9 @@ def _coverage_problems(edit_copies: list[EditCopy], binder: Binder) -> list[Prob
     ! AN EMPTY BINDER YIELDS NOTHING. There is no address to be missing, and a
     run over one is what `tests/test_brief_worked_example.py` drives.
     """
-    known = known_addresses(binder)
+    # ! THE PLACES A ROLE WAS HANDED, not every address the binder carries --
+    # `binder.addresses.handed` is the one definition, and the seed reads it too.
+    known = frozenset(b.address for b in handed(binder.paragraphs))
     if not known:
         return []
     # !! ALL THREE KINDS COUNT AS CARRIED, and that is the whole point of this

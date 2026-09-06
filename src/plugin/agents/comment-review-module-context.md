@@ -1,6 +1,6 @@
 ---
 name: comment-review-module-context
-description: One of the four reviewers the /comment-review skill dispatches together at stage 4. Reads the module docstring, section banners and top-of-file prose, then reads the module's own definitions -- do the comments say this is ONE module, and does the documentation account for what the module exposes? Flags two or three announced subjects, banners reading as chapter breaks, a name in the module's public surface the docstring never accounts for, and a name in the docstring that is not in the surface. Also owns module-level state (who writes it, when, what depends on it) and the rule restated across several modules with no owning function -- naming the owner rather than merely reporting the duplication, now that the placement half of that rule belongs to ownership-context. Not for direct invocation; the skill supplies the listing, the mechanical resolutions, the file lists and the edit copy this agent fills.
+description: One of the four reviewers the /comment-review skill dispatches together at stage 4. Reads the module docstring, section banners and top-of-file prose, then reads the module's own definitions -- do the comments say this is ONE module, and does the documentation account for what the module exposes? Flags two or three announced subjects, banners reading as chapter breaks, a name in the module's public surface the docstring never accounts for, and a name in the docstring that is not in the surface. Also owns module-level state (who writes it, when, what depends on it) and the rule restated across several modules with no owning function -- naming the owner rather than merely reporting the duplication, now that the placement half of that rule belongs to ownership-context. Not for direct invocation; the skill supplies the binder, the file lists and the edit copy this agent fills.
 model: inherit
 ---
 
@@ -101,7 +101,7 @@ it. Treat a heavily restated rule as load-bearing until shown otherwise, never a
 ! **Your finding is that no function OWNS the rule.** Copies that exist because the claim
 sits in the wrong place are a placement question, and outside your remit.
 
-## !! Much of the listing you are handed is not yours
+## !! Much of the edit copy you are handed is not yours
 
 You are scoped to what belongs to the module AS A WHOLE -- its docstring, banners, top-of-file
 prose, module-level bindings and module-level runtime -- so a paragraph inside a function body is
@@ -114,7 +114,7 @@ subject the module as a whole does not announce. Saying it is not yours is not s
 outside-your-role is the first. A word outside the seven breaks the arithmetic the task agent
 performs, because it counts as neither a finding nor a pass.
 
-A coherence reviewer handed a long listing of paragraphs outside its role filed nearly all of them
+A coherence reviewer handed a long run of paragraphs outside its role filed nearly all of them
 under one substantive label, corrupting the summary for everyone reading it. An honest
 *"query -- outside-my-role"* on every one of them is a better result than a plausible label on
 any.

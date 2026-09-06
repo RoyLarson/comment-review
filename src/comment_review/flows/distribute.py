@@ -36,6 +36,7 @@ SOURCE-VERIFICATION in `collator`. `desk.mark.parse` says the same about its
 own half.
 """
 
+from comment_review.binder.addresses import handed
 from comment_review.binder.binder import Binder
 from comment_review.desk.containers import EditCopy, Sheet
 from comment_review.desk.mark import Mark
@@ -89,6 +90,10 @@ def seed(binder: Binder, role: str) -> dict:
     # composition a `Paragraph` already carries. A second site computing an
     # address is the defect the binder's own prose records the compositor being
     # MEASURED on for 2026-08-22, and the container is what leaves only one.
+    #
+    # !! ONE SLOT PER PLACE A ROLE IS HANDED, and `handed` is the one definition
+    # of that -- the coverage count in `flows.collate` reads the same one, so
+    # the two cannot disagree about the `f` series.
     return EditCopy.seed(
         role=role,
         read_from=binder.read_from,
@@ -97,7 +102,8 @@ def seed(binder: Binder, role: str) -> dict:
                 path=page.path,
                 sha=page.sha,
                 marks=[
-                    Mark.seed(b.address, b.anchor, b.raw_text) for b in page.paragraphs
+                    Mark.seed(b.address, b.anchor, b.raw_text)
+                    for b in handed(page.paragraphs)
                 ],
             )
             for page in binder.pages

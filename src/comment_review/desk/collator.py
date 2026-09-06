@@ -30,8 +30,8 @@ THE BINDER CARRIES IS NOT ASKED, since 2026-09-05 -- `decision-log.md Process:
 #97`. The binder is filtered to the places holding prose, so an `add` cites a
 place it dropped and a `move` may cite a file it never held; the write end
 opens the page and is the one thing that can say whether the place exists.
-`known_addresses` stays for the coverage count, which asks what came back
-against what was handed out.
+`known_addresses` stays for the revise diff; the coverage count asks what came
+back against what was handed out, and reads `binder.addresses.handed` for that.
 One kind needs only the report itself, and nothing outside it (`Problem`,
 `tally`) -- `decision-log.md Process: #54` put them here because they ask
 about the SET, and one mark cannot answer for the set alone. ! TWO MORE

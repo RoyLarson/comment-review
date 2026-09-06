@@ -38,7 +38,15 @@ def a_copy_on_disk(tmp_path, binder):
     placeholder sentence with the page's real one, which is what makes the
     claim verifiable.
     """
-    address = next(b.address for b in binder.paragraphs if b.address)
+    # ! A COMMENT PLACE, `b` or `c`. The file's own matter gets no seeded slot,
+    # so `f0` is not a place a role can rule on; and `a_correct`'s placeholder
+    # change is a `#` line, which set into a docstring's place leaves that
+    # place holding nothing, and the reread refuses it.
+    address = next(
+        b.address
+        for b in binder.paragraphs
+        if b.address and b.address.split("@")[-1][0] in "bc"
+    )
     copy = copies_over(binder, {"block-context": {address: a_correct(address)}})[0]
     ruled = [m for s in copy["sheets"] for m in s["marks"] if m.get("instruction")]
     assert len(ruled) == 1, "the mark did not attach -- the copy would go out empty"

@@ -77,7 +77,14 @@ class TestTheChainRunsOnCommandsAlone:
         # ! A ROW CARRIES ITS `cue`, NOT ITS ADDRESS. The two are rejoined as
         # `path@cue` when a page is read back, so a test reading the wire form
         # has to rejoin them the same way.
-        addresses = [f"{page['path']}@{row['cue']}" for row in page["rows"]]
+        # ! A COMMENT PLACE, `b` or `c`, FIRST. The file's own matter gets no
+        # seeded slot, so `f0` is not a place a role can rule on; and the
+        # placeholder change below is a `#` line, which a docstring's place
+        # cannot hold.
+        addresses = sorted(
+            (f"{page['path']}@{row['cue']}" for row in page["rows"]),
+            key=lambda a: a.split("@")[-1][0] not in "bc",
+        )
         assert addresses, "the gather carried no addressed place to rule on"
 
         # 2 MARK -- one seeded copy per role, then a ruling written into one.

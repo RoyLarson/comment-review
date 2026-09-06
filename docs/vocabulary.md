@@ -38,6 +38,7 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 | `detector` | the word is **annotation** |
 | `gap` (the module-surface sense) | -> **omission**, which pairs with **obituary**: one is in the code and absent from the prose, the other the reverse |
 | `statement` (of prose) | prose units are **sentence** and **clause**. The word names CODE |
+| `listing` | -> **binder**, and the reviewer's own **edit copy**. The text report `gather` printed without `--json`, handed to every role as the thing it read end to end. Removed 2026-09-06, `decision-log.md Process: #99`: the seeded copy carries each paragraph's text, so nothing needed a second rendering |
 | `acquittal list` | **deleted.** It matched a prose SHAPE while every role's `clean` is a truth assertion at that role's scope, so the two disagreed |
 | `suppression list` | **deleted.** No provenance, and it suppressed nothing |
 | `NOISE_FLOOR` / SUPPRESSED | **deleted** from `referrers.py`. Nothing gets suppressed |

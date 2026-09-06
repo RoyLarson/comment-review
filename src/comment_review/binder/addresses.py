@@ -28,7 +28,7 @@ addresses, over a binder -- and no trade word has been proposed for it.
 
 from collections.abc import Sequence
 
-from comment_review.reading.addresser import cue_of
+from comment_review.reading.addresser import COVERS, cue_of
 from comment_review.reading.paragraph import Paragraph
 
 
@@ -119,6 +119,29 @@ def _by_path(paragraphs: Sequence[Paragraph]) -> dict[str, list[Paragraph]]:
     for b in paragraphs:
         out.setdefault(b.path, []).append(b)
     return out
+
+
+def handed(paragraphs: Sequence[Paragraph]) -> list[Paragraph]:
+    """The paragraphs a role is handed: addressed, and not the file's own matter.
+
+    !! ONE DEFINITION, TWO READERS. `flows.distribute.seed` builds a role's slots
+    from this, and `flows.collate` counts a returned copy's coverage against
+    it. The two used to disagree by construction: the seed handed out every row
+    and the text report a role read dropped the `f` series, so a role could
+    never rule on a place its coverage was counted over.
+
+    ! The `f` series -- a licence header, a shebang, an index -- states no
+    constraint the code could contradict, so no role rules on it and the brief
+    says a role will not be shown one. It keeps its address in the binder, so
+    a `move` may still cite it.
+
+    Args:
+        paragraphs: a binder's or a page's rows.
+
+    Returns:
+        The rows a role is accountable for, in the order given.
+    """
+    return [b for b in paragraphs if b.address and series_of(b) != COVERS]
 
 
 def unaddressed(paragraphs: Sequence[Paragraph]) -> list[str]:

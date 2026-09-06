@@ -49,6 +49,9 @@ AGENTS = REPO / "src/plugin/agents"
 # may not use the left-hand side.
 RETIRED = {
     "block": "paragraph",
+    # ! The text report a reviewer used to read; the reviewer reads the binder
+    # and its seeded edit copy. `decision-log.md Process: #99`.
+    "listing": "binder",
     "blocks": "paragraphs",
     # ! Roy, 2026-08-20: *"it never really fit -- using libcst in python made it
     # easy to move and edit comments and so I thought that was what this was. It

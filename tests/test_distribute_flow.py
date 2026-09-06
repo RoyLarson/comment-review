@@ -33,6 +33,29 @@ def test_a_seeded_row_carries_the_paragraph_bytes():
     assert row["raw_text"] in source
 
 
+def test_the_files_own_matter_gets_no_slot(tmp_path):
+    """The brief promises a role it will not be shown front matter. The text
+    report that used to keep the promise is gone, so the seed keeps it."""
+    (tmp_path / "m.py").write_text(
+        "#!/usr/bin/env python\n"
+        "# Copyright 2026 Example. Licensed under the MIT licence.\n"
+        '"""A module with a licence header above its docstring."""\n'
+        "\n"
+        "\n"
+        "def f(x):\n"
+        '    """Doc."""\n'
+        "    return x + 1  # beside\n",
+        encoding="utf-8",
+    )
+    binder = binder_of(tmp_path, 0)
+    # ! The case has to be able to fail: the binder does carry the place.
+    assert any("@f" in b.address for page in binder.pages for b in page.paragraphs)
+    copy = seed(binder, "block-context")
+    seeded = [m["address"] for sheet in copy["sheets"] for m in sheet["marks"]]
+    assert seeded, "nothing seeded at all"
+    assert not [a for a in seeded if "@f" in a], seeded
+
+
 def test_an_edit_copy_holds_a_sheet_per_page_with_its_sha():
     # INPUT FROM REALITY: a real package through the real binder.
     binder = binder_of(DESK, 0)

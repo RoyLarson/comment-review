@@ -26,7 +26,6 @@ anchor = "The LINE OF CODE that an address is attached to -- the exact character
 owner = "The anchor with the best justification for holding the comment. Where several compete it is the site that ENFORCES the constraint, or, where nothing enforces it, the code still expected to hold the invariant."
 gather = "Stage 2, and the command that runs it: every page in scope read, every paragraph addressed and its references resolved, and the pages bound into the BINDER. The act; the binder is what it hands over."
 binder = "The artifact the gather hands over: every PAGE in scope, each paragraph carrying its ADDRESS and the references it makes already resolved. ! It spans the files; one page is one of them. ! Flat, because a page is: paragraphs run down a page and do not nest. What every later command reads."
-listing = "The binder as a reviewer reads it: the paragraphs holding prose, numbered, and one line per run of empty places. A projection -- every address is the binder's."
 
 # --- the units that get ruled on --------------------------------------------
 sentence = "The unit an instruction rules on. A container of six sentences can hold six instructions."
@@ -121,7 +120,6 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "copy chief",
   "edit copy",
   "gather",
-  "listing",
   "sheet",
   "correct",
   "cue",
@@ -163,7 +161,6 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "copy chief",
   "edit copy",
   "gather",
-  "listing",
   "sheet",
   "correct",
   "cue",
@@ -206,7 +203,6 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "copy chief",
   "edit copy",
   "gather",
-  "listing",
   "sheet",
   "correct",
   "cue",
@@ -250,7 +246,6 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "copy chief",
   "edit copy",
   "gather",
-  "listing",
   "sheet",
   "correct",
   "cue",

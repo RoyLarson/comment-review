@@ -116,8 +116,8 @@ def _walk(g: Gathering) -> None:
 def _pages(g: Gathering) -> None:
     """One page per file in scope, or the reason there is none."""
     # !! THE PAGES ARE KEPT, NOT ONLY THEIR PARAGRAPHS. A binder names the file
-    # ONCE PER PAGE and the rows sit under it, so the bind needs the page --
-    # while the LISTING still numbers one flat run. Both are built from this
+    # ONCE PER PAGE and the rows sit under it, so the bind needs the page, and
+    # `paragraphs` is the same rows as one flat run. Both are built from this
     # same walk, which is what stops the two disagreeing about what was
     # gathered.
     for path in g.files:

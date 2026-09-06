@@ -171,7 +171,7 @@ LANGUAGES: tuple[Language, ...] = (
         # PROVEN at exit 0.
         spanning_quotes=("`",),
         # ! `package` is NOT here: Go's package comment IS the file's own
-        # documentation, which is `a0`. Listing it gave the same prose two
+        # documentation, which is `a0`. Naming it gave the same prose two
         # places, `a0` and `a1`.
         declares=("func", "type", "var", "const"),
     ),
@@ -255,7 +255,7 @@ LANGUAGES: tuple[Language, ...] = (
     Language(
         "csharp",
         (".cs",),
-        # ! `///` FIRST -- see the note above the table. Listing only `//` cut
+        # ! `///` FIRST -- see the note above the table. Naming only `//` cut
         # two of the three slashes and left the third in the prose:
         # `/ <summary>The one doc.</summary>`.
         ("///", "//"),
