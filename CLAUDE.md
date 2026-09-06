@@ -38,7 +38,7 @@ SHAPE or the INSTRUCTION, and nothing separates them after the fact -- so the qu
 second half exists to answer cannot be asked. Both comparisons need a grader, which is why
 step 1 is blocked on [`the-harness-cannot-run-the-system-it-grades`](TODO/the-harness-cannot-run-the-system-it-grades.md).
 
--> [docs/decision-log.md](docs/decision-log.md), *Metaphor and its limits*, for why the editorial framing is a rule rather than decoration.
+-> [docs/decision-log.md](docs/decision-log.md), *Metaphor and its limits*.
 
 ### Why it exists: A green gate is not evidence of a good result
 
@@ -99,11 +99,7 @@ floor `plugins/` ships against, in `.python-version` and `[project]
 requires-python`. Substituting a bare `python` re-opens the gap that pinning
 closed.
 
--> [docs/history.md](docs/history.md), 2026-08-17. With 3.14 as the ambient
-interpreter, four of the eight shipped scripts raised `NameError` at import on
-3.11 while every test and the shipped-syntax gate passed. PEP 649 makes
-annotations lazy from 3.14, so the break was invisible locally. Roy: *"the floor
-will not fail if we are using the floor to evaluate the code."*
+-> [docs/history.md](docs/history.md), 2026-08-17.
 
 ```bash
 # The gather -- stages 2-3 of the skill -- over one or more files
@@ -164,12 +160,7 @@ read. `--todo-dir` behaves the same way wherever `TODO/` is not the board's home
 this repo's plans are in `docs/plans/`, and a run without the flag reads a
 directory that does not exist, then reports success over it.
 
--> [docs/history.md](docs/history.md), 2026-08-30. `audit` reported `INTEGRITY
-ISSUES (0)`, which was read and relayed as evidence the whole board was sound.
-The same command with the flag reports six: six of the seven `0.2.4` plans carry
-no `## TODO tasks this plan closes` heading. **The zero was the count of problems
-in a directory it never opened** -- `docs/gates.md`'s rule arriving through the
-CLI, that *"does the check pass" is not the question; "could the check fail" is*.
+-> [docs/history.md](docs/history.md), 2026-08-30.
 
 **The vendored `scripts/todo_tool.py` is the older copy** and writes the
 pre-2026-08-31 format. The board was migrated to the five marks on 2026-08-31;
@@ -177,9 +168,9 @@ use `job-board`.
 
 ### The suite
 
-**A baseline, so a later failure is attributable.** Measured 2026-08-30 on
-`feat/the-mark-and-the-collator`: 1381 passed, 1 skipped, 3 xfailed, 90 subtests,
-about 15 seconds. The skip needs symlinks and runs where they exist.
+**The baseline is the suite's own report on the commit before yours, so run it
+there rather than looking a count up here.** A skip that needs symlinks runs only
+where they exist.
 
 **Tests are written in plain pytest and build their inputs from the code** --
 pages from `page_for` over real source, binders from `bind`, with a literal only
@@ -187,14 +178,7 @@ where malformed *is* the input. `tests/gates/` is the exception and is still
 `unittest.TestCase`, which is what `unittest discover` finds; it survived the
 replacement because it asks a different question, whether a gate still bites.
 
--> [docs/history.md](docs/history.md), 2026-08-25. The old suite was replaced
-wholesale: 866 tests, and three changes on 2026-08-24 that each broke something
-real were noticed by none of them. The fixtures had been hand-authored in the
-shape the code expected, so they could only confirm, and when the contract moved
-they went on asserting the old one. What replaced it is 218 test functions
-collected as 877 tests, derived from the code without reading the suite they
-replaced, and measured by mutation against three defect classes the old suite
-could not see at all. `tests/README.md` describes the shape it settled on.
+-> [docs/history.md](docs/history.md), 2026-08-25.
 
 !! **The stdlib-only rule is about `plugins/` alone.** Only `plugins/` is copied
 into someone else's `.claude/`, and it imports nothing but the standard library.
@@ -229,14 +213,7 @@ has to be a rule: the two commands answer different questions, only one is in th
 suite, and a skipped format stays invisible until someone runs the formatter and
 gets a diff spanning files they never touched.
 
--> [docs/history.md](docs/history.md), 2026-08-30. Drift makes a later diff lie,
-worst over `plugins/`, which is built rather than written: a repo-wide format
-rewrote it, so the shipped tree carried a fresh commit while holding a materially
-older program, and a formatter pass and a rebuild are indistinguishable at a
-glance. The same day, 24 unformatted files were read as inherited drift when they
-were the branch's own work. And `scripts/render_brief.py` opened a docstring on a
-quoted word, `ruff format` inserted a space, and `ruff check` then reported
-`D210`.
+-> [docs/history.md](docs/history.md), 2026-08-30.
 
 **Green repo-wide as of 2026-08-30**: `ruff format --check .` reports 171 files
 already formatted, `ruff check .` passes, and `ty check` reports zero
@@ -310,7 +287,7 @@ The seven instructions (`clean`, `query`, `drop`, `correct`, `patch`, `add`,
 rather than re-deriving the rules here, since it is the single source and this file must not
 restate it.
 
--> [docs/decision-log.md](docs/decision-log.md), *Process*, for the staging and what each boundary was measured to protect.
+-> [docs/decision-log.md](docs/decision-log.md), *Process*.
 
 ### The four editorial roles
 
@@ -444,7 +421,7 @@ reading the file is what supplies an anchor no keyword names.
 content elsewhere, and a change to a rule belongs in exactly one of these files (or in
 `docs/limitations.md` for orchestration-level rules).
 
--> [docs/decision-log.md](docs/decision-log.md), *Addressing*, and [docs/history.md](docs/history.md) for the addressing schemes this one replaced.
+-> [docs/decision-log.md](docs/decision-log.md), *Addressing*.
 
 ### Repo layout
 
@@ -554,7 +531,7 @@ consequence: see [`docs/gates.md`](docs/gates.md).
 plausible local fix. A refusal is a finding: file it, say what it waits on, and leave the box
 unchecked -- *"Deferred is not done."*
 
--> [docs/decision-log.md](docs/decision-log.md), *Process*, where the refusals are recorded in Roy's own words.
+-> [docs/decision-log.md](docs/decision-log.md), *Process*.
 
 ### THE TODOs are the job board. Plans are how we mark them off.
 
@@ -695,7 +672,7 @@ where only a RULING has landed is `in-progress`, because a ruling is work.
 **A superseded ARGUMENT is not a superseded task.** Reasoning kept so an error stays legible
 carries no box at all; only work does.
 
--> [docs/decision-log.md](docs/decision-log.md), *Process*, for what a box may say and why a ruling does not get one.
+-> [docs/decision-log.md](docs/decision-log.md), *Process*.
 
 ### Cutting a release, and the version number
 
@@ -887,7 +864,7 @@ indistinguishable afterwards from one that always passed.
 
 The full roles, the crossing rules and the path map are in the two files loaded below.
 
--> [docs/decision-log.md](docs/decision-log.md), *Process*, for the lane split and what crossing one costs.
+-> [docs/decision-log.md](docs/decision-log.md), *Process*.
 
 ## Always resident -- loaded by the `@` lines below
 
