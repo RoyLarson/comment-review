@@ -315,6 +315,24 @@ skip directories holding `pyvenv.cfg`; never harvest string constants from tests
 (`assert "x" not in y` makes a dead name read alive); exclude `.md`/`.txt`; resolve a dotted
 name on its **head** segment only.
 
+**1.9 Build the topology and prove it fits, before any page is read.** The topology says
+which stage dispatches which role, in what order, and which role is split across how many
+shards; it is a determination, so it is decided here -- but it is proved against the binder,
+so in time these two commands run right after stage 2 writes `binder.json`:
+
+```bash
+python <skill>/scripts/comment-review.py topology --build --binder <run-dir>/binder.json --out <run-dir>/topology.toml \
+  --stage 4a=ownership-context --stage 4c=block-context/2,function-context,module-context
+python <skill>/scripts/comment-review.py topology --verify <run-dir>/topology.toml --binder <run-dir>/binder.json
+```
+
+`--build` writes a topology that fits the binder by construction and verifies it; `--verify`
+alone checks one you already hold. **A run against an unverified topology is not a path these
+instructions offer.** A bad configuration costs nothing only when it is caught here: `--verify`
+exits 1 and names the stage, the kind -- a page two shards of one role claim, or a page no shard
+of a role reaches -- and the pages and globs involved. **The fix is to the topology, never to
+the tree.** A glob that matches no page is not a fault on its own; only a page nobody covers is.
+
 ## Stages 2-3 -- GATHER, then FIND REFERENCES
 
 ! `<skill>` below is the directory holding this SKILL.md -- take it from the absolute path you
@@ -520,13 +538,19 @@ still usable, and a reader has to know the overlap was not blind.
 
 Each already carries its own editorial role.
 
-**Seed each role's `edit_copy` before dispatching it** -- one file per role, named for the
-role, with a slot already laid down for every prose paragraph in the binder:
+**Seed every copy of a stage in one command, from the topology 1.9 verified** -- one file per
+dispatch, named `<stage>_<role>_<n>.json`, each with a slot already laid down for every prose
+paragraph on the pages that dispatch covers:
 
 ```bash
-python <skill>/scripts/comment-review.py distribute --seed --binder <run-dir>/binder.json \
-  --role ownership-context --out <run-dir>/copy_ownership-context.json
+python <skill>/scripts/comment-review.py distribute --topology <run-dir>/topology.toml --stage 4c \
+  --binder <run-dir>/binder.json --out-dir <run-dir>/copies
 ```
+
+It prints one line per file it wrote. **Each file is one dispatch, and one dispatch is one
+packet**: a role split two ways is two agents of that role, each handed its own copy. The
+stage's order comes from the topology and the topology's order from 1.9; you run this once per
+stage, and no command sequences the stages for you.
 
 !! **A REVIEWER FILLS A FORM; IT DOES NOT COMPOSE A DOCUMENT.** Each slot arrives carrying the
 `address`, the `anchor` and the paragraph's `raw_text`, with `instruction` null, and the
@@ -598,7 +622,7 @@ disagreement with the mirror is itself a finding.
 **Check each copy when the agent returns**, before the fold:
 
 ```bash
-python <skill>/scripts/comment-review.py check --edit-copy <run-dir>/copy_<role>.json \
+python <skill>/scripts/comment-review.py check --edit-copy <run-dir>/copies/<stage>_<role>_<n>.json \
   --binder <run-dir>/binder.json --repo .
 ```
 
@@ -625,9 +649,10 @@ and against the others', refuses what it cannot verify, and folds what the roles
 is the gate between MARK and the chief's ruling:
 
 ```bash
-python <skill>/scripts/comment-review.py collate --stage 4 --binder <run-dir>/binder.json --repo . \
-  --edit-copy <run-dir>/copy_ownership-context.json --edit-copy <run-dir>/copy_block-context.json \
-  --edit-copy <run-dir>/copy_function-context.json --edit-copy <run-dir>/copy_module-context.json \
+python <skill>/scripts/comment-review.py collate --stage 4c --binder <run-dir>/binder.json --repo . \
+  --topology <run-dir>/topology.toml \
+  --edit-copy <run-dir>/copies/4c_block-context_1.json --edit-copy <run-dir>/copies/4c_block-context_2.json \
+  --edit-copy <run-dir>/copies/4c_function-context_1.json --edit-copy <run-dir>/copies/4c_module-context_1.json \
   --out <run-dir>/chief0.json --proof-out <run-dir>/proof0.json --batch-out <run-dir>/batch1.json
 ```
 
