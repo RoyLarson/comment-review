@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 2 of 7 tasks closed
+Progress: 4 of 10 tasks closed
 Owner:    systems
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-20 (both reviews of 2026-08-20; verified in-session)
 Fixed:    2026-08-20 -- the gate exits 0. Roy ruled the direction: the four roles KEEP
           'original' because it is a purposeful definition, and the brief now states it
@@ -75,9 +75,10 @@ see it, because `ruff` reads an unused import and an unused local, not a string 
 - [x] T1 | FINISHED | unknown | T1 -- FINISHED 2026-08-20. The gate exited 1 on
       `original` drift across four roles and the fix landed the same day. In the
       Objective.
-- [ ] T2 | T2 -- **Assert `check_drift() == 0` in `tests/test_vocabulary.py`.**
-      Verify: it fails on a `vocabulary.toml` that hands a role an unused term,
-      and passes on HEAD.
+- [-] T2 | SUPERSEDED by T8; tests/test_vocabulary.py no longer exists and no test asserts any of the four checks | 90a6d1fd | T2
+      -- **Assert `check_drift() == 0` in `tests/test_vocabulary.py`.** Verify:
+      it fails on a `vocabulary.toml` that hands a role an unused term, and
+      passes on HEAD.
 - [x] T3 | FINISHED | unknown | T3 -- SUPERSEDED. The record of the gate being
       reported as passing three times while it was red is in the Objective.
 - [ ] T4 | T4 -- **Write the test that the checker COUNTS a retired word inside
@@ -85,9 +86,18 @@ see it, because `ruff` reads an unused import and an unused local, not a string 
       `check_vocabulary.py:355`.
 - [ ] T5 | T5 -- **Make the retired-word regex see inside an identifier**
       (`check_vocabulary.py:355`). Verify: the T4 test passes.
-- [ ] T6 | T6 -- **Declare `block_problem`, `block_text` and `as_block` in
+- [-] T6 | SUPERSEDED by T10; two of the three names left src/ with the desk, and the live set is about a dozen code-sense identifiers | 90a6d1fd | T6
+      -- **Declare `block_problem`, `block_text` and `as_block` in
       `NOT_THE_TERM`.** Verify: `uv run python scripts/check_vocabulary.py`
       exits 0 with the new regex.
 - [ ] T7 | T7 -- **Drop the dead `block_matches` exemption from
       `NOT_THE_TERM`.** Verify: the tuple no longer holds it and the gate still
       exits 0.
+- [ ] T8 | Implement a gate test asserting all four checks of
+      scripts/check_vocabulary.py return 0, each provably able to fail.
+        > 2026-09-05 Verify: each check fails on a planted defect and passes on HEAD.
+- [?] T9 | Does the retired noun sense of block reach identifiers, or are
+      identifiers exempt from the retired-word check as a class?
+- [ ] T10 | Declare the identifiers carrying block in its code sense, or exempt
+      identifiers as a class, as T9 rules.
+        > 2026-09-05 Verify: the gate exits 0 under the T5 regex.
