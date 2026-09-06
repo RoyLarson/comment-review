@@ -3503,3 +3503,18 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   listing's own defects -- `NOT CHECKED` once per page, absolute paths, the unmeasured trim --
   and the filtered-census address test are superseded, not fixed. The `f` series is untouched:
   it names front and back matter, and only its PRINTING was tied to the filtered projection.
+
+- **#100.** **A GLOB THAT MATCHES NO PAGE IS NOT A FAULT; `topology --verify` REFUSES ONLY A
+  PAGE NO DISPATCH COVERS, OR ONE TWO SHARDS CLAIM** (Roy, 2026-09-06, on being asked
+  `staged-chain-untested` T2: *"I don't understand the question or why the question needs
+  answered. If am agent uses a glob to specify and it comes back empty why would that matter?
+  If this was a programming program it would matter agents can read the result and in some
+  form reason about the result and modify"*).
+
+  **What it settles.** The two fan-out guards of the design's section 2 are the whole of what
+  a topology can get wrong against a binder: a page in two shards of one role, and a page in
+  no shard of a role. An empty glob either leaves a page uncovered, which the second guard
+  names, or costs nothing. So `fit` has two misfit kinds and not three, and P29's verify text
+  -- *"it errors on a glob that matches no page"* -- is narrowed to what the guards already
+  say. P33's *"a message naming the globs"* is kept by having the `uncovered` misfit name the
+  role's globs beside the pages they missed, so the agent that wrote the glob sees it.

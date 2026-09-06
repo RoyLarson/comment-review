@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks closed
+Progress: 1 of 4 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, driving distribute and collate across real stages for
           the first time, on Roy's instruction to get through the full step with a setup
           that actually has the stages)
@@ -23,8 +23,9 @@ The staged chain runs but nothing tests it, and the fan-out topology fits one tr
       `src/comment_review/binder/*.py` -- this repo's own layout. ! THE REFUSAL
       IS CORRECT; fan-out must cover every page. What is wrong is that the only
       committed fan-out topology can be exercised on exactly one tree.
-- [?] T2 | Decide whether `topology --verify` refuses a glob matching no page,
-      or only a page no dispatch covers. Verify: the answer is in the log.
+- [x] T2 | RULED 2026-09-06, decision-log.md Process: #100 -- verify refuses only a page no dispatch covers, or one two shards claim; an empty glob is not a fault | 45742705 | Decide
+      whether `topology --verify` refuses a glob matching no page, or only a
+      page no dispatch covers. Verify: the answer is in the log.
         > 2026-09-02 REWORDED: the old Verify named two branches that Process 55
         > 2026-09-02 rules out -- topology.read has no tree so it cannot know, and fan
         > 2026-09-02 blaming the tree is the symptom 55 diagnoses, not the fix
@@ -32,6 +33,7 @@ The staged chain runs but nothing tests it, and the fan-out topology fits one tr
         > 2026-09-02 with a repo. What it does not settle is whether a REDUNDANT glob
         > 2026-09-02 is illegal -- a topology can hold one and still cover every page
         > 2026-09-02 and those are different conditions. That remainder is this box
+        > 2026-09-06 Roy: an empty glob does not matter; the agent reads and modifies.
 - [ ] T3 | Cover the staged chain with a test that survives. Verify: a test
       drives `sequential.toml` over a real tree through distribute, collate,
       docket and pull for every stage, and asserts the edits ACCUMULATE.
