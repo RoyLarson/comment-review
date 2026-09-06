@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 12 of 14 tasks closed
+Progress: 14 of 14 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-20 (both reviews of 2026-08-20; verified in-session)
@@ -81,10 +81,12 @@ see it, because `ruff` reads an unused import and an unused local, not a string 
       passes on HEAD.
 - [x] T3 | FINISHED | unknown | T3 -- SUPERSEDED. The record of the gate being
       reported as passing three times while it was red is in the Objective.
-- [ ] T4 | T4 -- **Write the test that the checker COUNTS a retired word inside
-      an identifier.** Verify: it fails on HEAD's regex at
+- [x] T4 | FINISHED; the identifier case failed on the old regex and passes on the new | 2d9eb630 | T4
+      -- **Write the test that the checker COUNTS a retired word inside an
+      identifier.** Verify: it fails on HEAD's regex at
       `check_vocabulary.py:355`.
-- [ ] T5 | T5 -- **Make the retired-word regex see inside an identifier**
+- [x] T5 | FINISHED; 16 hidden uses found and settled, gate exits 0 | 2d9eb630 | T5
+      -- **Make the retired-word regex see inside an identifier**
       (`check_vocabulary.py:355`). Verify: the T4 test passes.
 - [-] T6 | SUPERSEDED by T10; two of the three names left src/ with the desk, and the live set is about a dozen code-sense identifiers | 90a6d1fd | T6
       -- **Declare `block_problem`, `block_text` and `as_block` in
