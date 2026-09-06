@@ -60,16 +60,25 @@ class TestEachCheckCanFail(unittest.TestCase):
         roles = {**roles, "compact": [*roles["compact"], "zzzq"]}
         self.assertGreaterEqual(cv.check_drift(definitions, roles), 1)
 
-    def test_retired_reports_a_retired_word_in_a_shipped_file(self):
-        word = "block"
-        self.assertIn(word, cv.RETIRED)
+    def _retired_hits(self, planted: str) -> int:
         with tempfile.TemporaryDirectory() as tmp:
             (Path(tmp) / "src").mkdir()
-            (Path(tmp) / "src" / "planted.md").write_text(
-                f"one {word} and two {word}s\n", encoding="utf-8"
-            )
+            (Path(tmp) / "src" / "planted.py").write_text(planted, encoding="utf-8")
             saved, cv.REPO = cv.REPO, Path(tmp)
             try:
-                self.assertGreaterEqual(cv.check_retired(), 1)
+                return cv.check_retired()
             finally:
                 cv.REPO = saved
+
+    def test_retired_reports_a_retired_word_in_a_shipped_file(self):
+        self.assertIn("block", cv.RETIRED)
+        self.assertGreaterEqual(self._retired_hits("# one block and two blocks\n"), 1)
+
+    def test_retired_reports_a_retired_word_inside_an_identifier(self):
+        # ! `_` is a `\w`, so a scan for the word between non-word characters
+        # read `block_problem` as one word and never saw the retired noun in it.
+        self.assertGreaterEqual(self._retired_hits("block_problem = 1\n"), 1)
+
+    def test_a_declared_identifier_is_not_reported(self):
+        # The live symbol-to-series sense, declared in NOT_THE_TERM.
+        self.assertEqual(self._retired_hits("x = lang.block_comment\n"), 0)

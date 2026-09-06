@@ -433,10 +433,10 @@ one paragraph, however much or little that is.
 ```python
 variable_a = 1234
 
-# comment_block starts
+# paragraph starts
 # TODO: important thing in it
-# comment_block continues
-# comment_block ends
+# paragraph continues
+# paragraph ends
 result = foo_bar(variable_a)
 ```
 

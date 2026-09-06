@@ -135,6 +135,11 @@ MENTION = (
     "`block=",
     "`BLOCK`",
     "`BLOCK ",
+    # ! Two identifiers from a REVIEWED codebase, quoted by `block-context` as
+    # the measured case of a substring count sweeping in a longer name. They
+    # are what that run saw, and renaming them would falsify the measurement.
+    "`_block(`",
+    "`compose_block(`",
     "`pCST`",
     "`census`",
 )
@@ -194,7 +199,13 @@ MENTION = (
 NOT_THE_TERM = (
     # ! Python's own str.join -- the VERB, and 28 sites in the shipped tree.
     ".join(",
+    # ! The same VERB in this tree's own names: the lexer's `_join`, which
+    # joins a run's lines, and the collator's `_join_moves`. The retired word
+    # is the NOUN.
+    "_join",
+    # ! The role name, and its spelling as an enum member in `desk/stages.py`.
     "block-context",
+    "BLOCK_CONTEXT",
     "TEXT BLOCK",
     "block_comment",
     "doc_block",
@@ -411,7 +422,11 @@ def check_retired() -> int:
             hay = text
             for allowed in (*MENTION, *NOT_THE_TERM):
                 hay = hay.replace(allowed, "")
-            hits = len(re.findall(rf"(?<![\w-]){word}(?![\w-])", hay, re.I))
+            # ! NOT `\w`: `_` is a word character, and a retired noun inside an
+            # identifier -- `block_problem` -- is the retired noun. A hyphen
+            # still bounds a word, so `block-context`, a role name, is one.
+            pattern = rf"(?<![A-Za-z0-9-]){word}(?![A-Za-z0-9-])"
+            hits = len(re.findall(pattern, hay, re.I))
             if hits:
                 rel = path.relative_to(REPO).as_posix()
                 print(f"{rel}  RETIRED  {hits}x {word!r} -- say {instead!r}")
