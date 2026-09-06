@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 11 of 17 tasks closed
+Progress: 12 of 17 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (Roy, 2026-08-22, reading a census JSON: there are a lot of extra
@@ -232,9 +232,10 @@ re-parse. A set chosen for size alone would have refused it.
       file facts repeated per row. In the Objective.
 - [x] T6 | FINISHED | unknown | T6 -- RULED 2026-08-24: nineteen become six.
       `decision-log.md Addressing: #12`, and the set is in the Objective.
-- [ ] T7 | T7 -- Measure the trim in bytes and in the filtered listing, before
-      and after. Verify: both numbers from named `--json` and `--filtered` runs
-      are written here.
+- [-] T7 | SUPERSEDED by decision-log.md Process: #99 -- the listing goes; there is no filtered listing to measure | 1bd14279 | T7
+      -- Measure the trim in bytes and in the filtered listing, before and
+      after. Verify: both numbers from named `--json` and `--filtered` runs are
+      written here.
 - [x] T8 | FINISHED | unknown | T8 -- RECORD, not a task. 73,429 bytes over
       `repo.py`, roughly half duplication or empty, field by field. In the
       Objective.

@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (110)
+### open  (111)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -225,13 +225,13 @@ that changed a published name or rule:
 | [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | agents | -- | 0/5 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |
 | [lookup-parses-whole-census](lookup-parses-whole-census.md) | backend | -- | 4/14 | A lookup is O(project), not O(file) -- 1.1s per lookup extrapolated at 500k lines; sharding or batching fixes it, re-lexing trades away staleness detection |
 | [verdicts-is-the-join](verdicts-is-the-join.md) | backend | -- | 8/12 | The VERDICTS table lives in record.py; verdicts.py is the collator and 43 sites say so |
-| [census-row-carries-empty-fields](census-row-carries-empty-fields.md) | backend | -- | 11/17 | A census row carries 19 fields and an empty place fills 7, with three different spellings of absent |
+| [census-row-carries-empty-fields](census-row-carries-empty-fields.md) | backend | -- | 12/17 | A census row carries 19 fields and an empty place fills 7, with three different spellings of absent |
 | [matter-misses-two-languages](matter-misses-two-languages.md) | backend | yes | 2/5 | C and Python type a licence header as matter; Rust loses the run to the `a` series and TypeScript types it a docstring |
 | [nothing-runs-the-whole-chain](nothing-runs-the-whole-chain.md) | backend | -- | 0/7 | Every stage of the backend has its own tests and nothing runs census -> seed -> record -> join -> galley -> compositor -> prove in one pass. So the redesign phase has no measurement to hold constant, and a defect that lives BETWEEN two stages is invisible to every gate this repo has. |
 | [nothing-makes-the-fair-copy](nothing-makes-the-fair-copy.md) | backend | yes | 1/13 | Nothing turns the collated marks into the paragraph the galley writes |
 | [settle-carries-two-meanings](settle-carries-two-meanings.md) | systems | yes | 0/6 | settle carries two meanings in what an agent is handed, and neither is declared to it |
 | [no-stage-agrees-the-terms](no-stage-agrees-the-terms.md) | systems | yes | 0/7 | No stage establishes what the words mean before the roles are asked to use them |
-| [listing-hands-the-repo](listing-hands-the-repo.md) | backend | -- | 1/4 | The listing hands every reviewer the whole repo, four times a page |
+| [listing-hands-the-repo](listing-hands-the-repo.md) | backend | -- | 4/4 | The listing hands every reviewer the whole repo, four times a page |
 | [the-cue-legend-and-its-round-trip](the-cue-legend-and-its-round-trip.md) | backend | -- | 0/5 | The cue letter carries what three fields used to say, and nothing gives the agents the legend or checks they followed it |
 | [the-flow-lives-in-the-command](the-flow-lives-in-the-command.md) | backend | -- | 6/13 | Lifting main() out showed the orchestration was always inside it: commands/census.py took 446 lines and calls page_for, while flows/census.py kept 261 lines of helpers. A command is meant to EXPOSE a flow, not be one. |
 | [two-areas-have-no-tests](two-areas-have-no-tests.md) | backend | -- | 0/4 | tests/ mirrors the package, so an area with no directory is a visible hole. machine/ (repo, constants, exceptions) and commands/ (all ten) have none. repo is exercised only through flows/test_census_names.py, which tests something else. |
@@ -292,6 +292,7 @@ that changed a published name or rule:
 | [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 4/6 | re-review is retired for revise |
 | [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 8/15 | The agents files name the new CLI and say how to use it |
+| [the-listing-goes](the-listing-goes.md) | backend | -- | 0/7 | The listing goes: gather writes the binder only, and a reviewer is handed the binder and its seeded edit copy |
 
 ### in-progress  (18)
 
@@ -308,7 +309,7 @@ that changed a published name or rule:
 | [census-owns-addressing](census-owns-addressing.md) | backend | -- | 4/8 | The census owns addressing, and four modules share one subject between them |
 | [page-and-addresser-scans](page-and-addresser-scans.md) | backend | -- | 2/8 | page.py and addresser.py carry four scans that grow with the file and one CLI that contradicts the gate |
 | [record-verdict-desk-findings](record-verdict-desk-findings.md) | backend | -- | 9/14 | Round-4 findings in record/verdict/desk, including two that certify a run at exit 0 |
-| [the-census-is-mostly-intervals-nobody-rules-on](the-census-is-mostly-intervals-nobody-rules-on.md) | backend | yes | 13/27 | **The census is 67% of what it costs to start a reviewer, and 966 of its 1,120 blocks are intervals nobody rules on.** 131,353 bytes of 195,243, paid four times. Roy ruled the design 2026-08-18: the census stays fully enumerated ON DISK, the agents get a FILTERED view, and a destination outside their set comes from a TOOL answering one question -- what is the ADDRESS of this line of code. ! It does not reverse the 2026-08-17 enumeration; it is a projection of it, and `add` was not expressible before it. ! Rule 4 buys a check as well as bytes: `move`'s `to` is free text nothing resolves, and an index is resolvable exactly as an address already is |
+| [the-census-is-mostly-intervals-nobody-rules-on](the-census-is-mostly-intervals-nobody-rules-on.md) | backend | yes | 14/27 | **The census is 67% of what it costs to start a reviewer, and 966 of its 1,120 blocks are intervals nobody rules on.** 131,353 bytes of 195,243, paid four times. Roy ruled the design 2026-08-18: the census stays fully enumerated ON DISK, the agents get a FILTERED view, and a destination outside their set comes from a TOOL answering one question -- what is the ADDRESS of this line of code. ! It does not reverse the 2026-08-17 enumeration; it is a projection of it, and `add` was not expressible before it. ! Rule 4 buys a check as well as bytes: `move`'s `to` is free text nothing resolves, and an index is resolvable exactly as an address already is |
 | [the-lexer-reads-no-files](the-lexer-reads-no-files.md) | backend | -- | 8/22 | one decision -- bytes into text -- made in nine places, none of them the lexer |
 | [the-parser-merges-across-boundaries-it-cannot-read](the-parser-merges-across-boundaries-it-cannot-read.md) | backend | -- | 2/4 | The collator merges across a boundary it cannot read, and blames the neighbour |
 | [the-read-only-contract-is-enforced-by-nothing](the-read-only-contract-is-enforced-by-nothing.md) | agents | yes | 2/8 | The read-only contract is enforced by nothing, and four reviewers wrote files |

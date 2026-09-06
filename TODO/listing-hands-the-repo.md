@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 4 tasks closed
+Progress: 4 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-24 (measuring what a reviewer is actually charged for, while scoping
@@ -73,12 +73,15 @@ thing.
 - [x] T1 | FINISHED | unknown | T1 -- Record what each part of the listing
       costs, per page. Verify: the split above is re-derivable from one named
       command.
-- [ ] T2 | T2 -- State `NOT CHECKED` once per run rather than once per page.
-      Verify: a second page's listing does not repeat it.
-- [ ] T3 | T3 -- Make its paths repo-relative. Verify: no listing holds an
-      absolute path.
-- [ ] T4 | T4 -- Re-measure the listing after both. Verify: before and after,
-      from named commands, are written into this file.
+- [-] T2 | SUPERSEDED by decision-log.md Process: #99 -- the listing goes | 1bd14279 | T2
+      -- State `NOT CHECKED` once per run rather than once per page. Verify: a
+      second page's listing does not repeat it.
+- [-] T3 | SUPERSEDED by decision-log.md Process: #99 -- the listing goes | 1bd14279 | T3
+      -- Make its paths repo-relative. Verify: no listing holds an absolute
+      path.
+- [-] T4 | SUPERSEDED by decision-log.md Process: #99 -- the listing goes | 1bd14279 | T4
+      -- Re-measure the listing after both. Verify: before and after, from named
+      commands, are written into this file.
 
 ## Related
 

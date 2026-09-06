@@ -3479,3 +3479,27 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it demotes.** The listing's own defects -- `NOT CHECKED` repeated per page, absolute
   paths, its unmeasured size -- are defects of a human-facing output and stay filed as such;
   they are no longer on the path a reviewer reads.
+
+  **Corrected the same day by `#99`.** The two sentences above that put the listing off the
+  reviewer's path went past what was ruled: `#98` answered how a role SEES ITS DRAFT, and the
+  listing was the role's INPUT. `#99` is the ruling on the input.
+
+- **#99.** **THE LISTING GOES. A REVIEWER IS HANDED THE BINDER AND ITS SEEDED EDIT COPY** (Roy,
+  2026-09-06, ruling P2 of the same plan, on being shown that `gather` without `--json` prints a
+  text report and the skill hands it to every role: *"This should go ... It is not
+  necessary"*; and before that, *"listing is not something clearly defined and the question
+  dies because there is not a listing thing anywhere anymore"*).
+
+  **What it names.** `commands/gather.py`'s `_listing` -- the preamble, the numbered rows, the
+  `--filtered` projection -- and the artifact `listing.txt` that stage 2 wrote from it. MEASURED
+  2026-09-06 before the ruling: the code called it *"the text report a person reads"*, SKILL.md
+  called it *"what a reviewer reads end to end"* at 17 sites, the brief at 6, the four agent
+  descriptions once each, and the TODO holding its defects had been demoted on the ground that a
+  reviewer handed the JSON never sees them. Three files, three readers. The ruling ends it by
+  removing the thing rather than defining it.
+
+  **What follows.** The term `listing` is retired; the four roles stop being given it; the
+  packet is two paths, BINDER and EDIT COPY, and the brief says to read the binder. The
+  listing's own defects -- `NOT CHECKED` once per page, absolute paths, the unmeasured trim --
+  and the filtered-census address test are superseded, not fixed. The `f` series is untouched:
+  it names front and back matter, and only its PRINTING was tied to the filtered projection.

@@ -2,7 +2,7 @@
 
 ```
 Status:   in-progress
-Progress: 13 of 27 tasks closed
+Progress: 14 of 27 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-18, from measuring what a reviewer is handed before it works
@@ -221,9 +221,10 @@ mock-up and matches nothing in the tree.
       Verify: a place cited in round 1 appears in the round-2 handout.
 - [ ] T5 | T5 -- Grow it for EVERY role, not only the role that cited. Verify:
       all four round-2 handouts carry that place.
-- [ ] T6 | T6 -- Test that a filtered census carries every prose paragraph's
-      ADDRESS unchanged from the full one. Verify: a multi-file census test
-      fails if any address differs.
+- [-] T6 | SUPERSEDED by decision-log.md Process: #99 -- the listing goes; there is no filtered census | 1bd14279 | T6
+      -- Test that a filtered census carries every prose paragraph's ADDRESS
+      unchanged from the full one. Verify: a multi-file census test fails if any
+      address differs.
 - [x] T7 | FINISHED | unknown | T7 -- FINISHED, and neither "drop them" nor
       "keep them": a run of prose-less places collapses to ONE row that names
       its ends. Example in the Objective.
