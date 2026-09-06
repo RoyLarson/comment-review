@@ -228,7 +228,7 @@ tool prints how many answered; read that line.
 ```bash
 # by ANCHOR -- which place of this declaration: a its documentation,
 # b the gap above its opening line, c the room beside it
-python <skill>/scripts/comment-review.py addresser --binder <BINDER from your packet> --anchor LINE --series a|b|c
+python <skill>/scripts/comment-review.py addresser --binder <BINDER from your packet> --file <path> --line LINE --series a|b|c
 ```
 
 !! **THE ANCHOR IS THE ONLY WAY TO ASK.** Asking by position -- "the paragraph above the
@@ -396,7 +396,7 @@ unavailable**, and your run context says whether it is; a relocation into tracke
 always available.
 
 !! **`to:` IS AN ADDRESS when the destination is on a page THIS RUN CUED, and it is
-RESOLVED.** Ask for it the same way an `add` does -- `--anchor LINE --series a|b|c`. A
+RESOLVED.** Ask for it the same way an `add` does -- `--file <path> --line LINE --series a|b|c`. A
 destination naming a LINE on such a page is refused, and so is an address the binder does not
 carry.
 

@@ -369,7 +369,7 @@ separate addressers, and no number in one tells you a number in another -- nor d
 position tell you either.
 
 ```bash
-python <skill>/scripts/comment-review.py addresser --binder <run-dir>/binder.json --anchor LINE --series a|b|c|f
+python <skill>/scripts/comment-review.py addresser --binder <run-dir>/binder.json --file <path> --line LINE --series a|b|c|f
 python <skill>/scripts/comment-review.py addresser --binder <run-dir>/binder.json --resolve <ADDRESS>
 ```
 
