@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 15 of 28 tasks closed
+Progress: 16 of 28 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -98,8 +98,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
         > 2026-09-02 Roy answered it in substance at 3ffe334; no ruling is owed
 - [ ] T11 | Implement the one-line round summary from Collated.tally, or delete
       tally if the report does not want it
-- [ ] T12 | Implement distribute taking a stage, so one call seeds one edit_copy
-      per dispatch. Verify: fan and topology.read each gain a caller in src/
+- [x] T12 | FINISHED; distribute --topology --stage, one copy per dispatch through fan | d6d04d3a | Implement
+      distribute taking a stage, so one call seeds one edit_copy per dispatch.
+      Verify: fan and topology.read each gain a caller in src/
         > 2026-09-01 Process #74. Both had zero callers in src/ when this was filed
         > 2026-09-01 Fan-out was the one topology shape no command could reach
 - [x] T13 | FINISHED -- commands/check.py over EditCopy.deserialize, mark_errors, verify_report, drift_in and parse_answers; tests/test_check_command.py | 6b673f0 | Implement
