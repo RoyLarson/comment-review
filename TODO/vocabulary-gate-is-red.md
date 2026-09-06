@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 10 tasks closed
+Progress: 5 of 10 tasks closed
 Owner:    systems
 Requires-Roy: true
 Raised:   2026-08-20 (both reviews of 2026-08-20; verified in-session)
@@ -93,8 +93,9 @@ see it, because `ruff` reads an unused import and an unused local, not a string 
 - [ ] T7 | T7 -- **Drop the dead `block_matches` exemption from
       `NOT_THE_TERM`.** Verify: the tuple no longer holds it and the gate still
       exits 0.
-- [ ] T8 | Implement a gate test asserting all four checks of
-      scripts/check_vocabulary.py return 0, each provably able to fail.
+- [x] T8 | FINISHED; six cases, each check fails on a planted defect and main returns 0 on HEAD | 32bbc856 | Implement
+      a gate test asserting all four checks of scripts/check_vocabulary.py
+      return 0, each provably able to fail.
         > 2026-09-05 Verify: each check fails on a planted defect and passes on HEAD.
 - [?] T9 | Does the retired noun sense of block reach identifiers, or are
       identifiers exempt from the retired-word check as a class?
