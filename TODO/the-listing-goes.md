@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 7 tasks closed
+Progress: 2 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-06 (Roy, 2026-09-06, decision-log.md Process: #99: the gather text
@@ -15,11 +15,13 @@ The listing goes: gather writes the binder only, and a reviewer is handed the bi
 
 ## Tasks
 
-- [ ] T1 | Delete _listing and --filtered from commands/gather.py, so gather
-      writes the binder and nothing else.
+- [x] T1 | FINISHED; gather writes the binder only | 36f1e404 | Delete _listing
+      and --filtered from commands/gather.py, so gather writes the binder and
+      nothing else.
         > 2026-09-06 backend
-- [ ] T2 | Update the five tests that name the listing or --filtered so they pin
-      the binder output.
+- [x] T2 | FINISHED; the suite pins the one output path | 36f1e404 | Update the
+      five tests that name the listing or --filtered so they pin the binder
+      output.
         > 2026-09-06 backend
 - [ ] T3 | Retire listing in vocabulary.toml: delete its definition and its
       entry in the four role lists.
