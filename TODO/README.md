@@ -197,7 +197,7 @@ that changed a published name or rule:
 | [line-0-places-are-unreachable](line-0-places-are-unreachable.md) | backend | -- | 4/6 | **An empty place sits at line 0 by ruling, and both tools that answer by LINE filter on `start &lt;= line &lt;= end`.** So the places an `add` exists to cite are the ones no line lookup can name -- while the brief forbids the only remaining route, counting. |
 | [filtered-measurement-unrecorded](filtered-measurement-unrecorded.md) | testing | -- | 3/5 | The filtered-census measurement exists only in run history |
 | [doc-does-not-fill-its-a](doc-does-not-fill-its-a.md) | backend | yes | 5/8 | the a place now exists for Rust/Go/etc but the doc that fills it still sits at b |
-| [vocabulary-gate-is-red](vocabulary-gate-is-red.md) | systems | -- | 7/13 | check_vocabulary exits 1 on this branch and no test asserts check_drift |
+| [vocabulary-gate-is-red](vocabulary-gate-is-red.md) | systems | -- | 8/14 | check_vocabulary exits 1 on this branch and no test asserts check_drift |
 | [six-mutations-survive-the-suite](six-mutations-survive-the-suite.md) | testing | -- | 1/8 | 720 tests green against six deliberate defects in shipped code |
 | [the-anchor-claims-are-inverted](the-anchor-claims-are-inverted.md) | agents | -- | 0/4 | shipped prose says an anchor is often empty; it is never empty |
 | [stale-measurements-in-shipped-prose](stale-measurements-in-shipped-prose.md) | testing | yes | 1/6 | every one re-derivable by a command, and every one wrong |

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 13 tasks closed
+Progress: 8 of 14 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-20 (both reviews of 2026-08-20; verified in-session)
@@ -109,7 +109,10 @@ see it, because `ruff` reads an unused import and an unused local, not a string 
       identifiers are exempt from the retired-word check as a class.
         > 2026-09-05 Roy: block_comment, doc_block, block_text are all paragraphs.
         > 2026-09-06 Reopened: decision-log Vocabulary #35 rules the other way.
-- [ ] T12 | Define block's live sense in docs/vocabulary.md and narrow its
-      retired row to the prose sense.
+- [-] T12 | SUPERSEDED by T14; docs/vocabulary.md holds only retired or modified definitions, so the live sense is not defined there | 49480dbd | Define
+      block's live sense in docs/vocabulary.md and narrow its retired row to the
+      prose sense.
 - [ ] T13 | Rename nxt_block in binder/page.py to nxt_b, the name its neighbours
       in the same loop carry.
+- [ ] T14 | Update the retired row for block in docs/vocabulary.md to the prose
+      sense, pointing at where the live sense is stated.
