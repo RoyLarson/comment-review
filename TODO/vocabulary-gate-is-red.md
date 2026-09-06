@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 10 tasks closed
+Progress: 6 of 11 tasks closed
 Owner:    systems
 Requires-Roy: true
 Raised:   2026-08-20 (both reviews of 2026-08-20; verified in-session)
@@ -97,8 +97,12 @@ see it, because `ruff` reads an unused import and an unused local, not a string 
       a gate test asserting all four checks of scripts/check_vocabulary.py
       return 0, each provably able to fail.
         > 2026-09-05 Verify: each check fails on a planted defect and passes on HEAD.
-- [?] T9 | Does the retired noun sense of block reach identifiers, or are
-      identifiers exempt from the retired-word check as a class?
+- [-] T9 | SUPERSEDED by T11; the label carried no ruling word, so the board could not see the decision | 000c2e70 | Does
+      the retired noun sense of block reach identifiers, or are identifiers
+      exempt from the retired-word check as a class?
 - [ ] T10 | Declare the identifiers carrying block in its code sense, or exempt
       identifiers as a class, as T9 rules.
         > 2026-09-05 Verify: the gate exits 0 under the T5 regex.
+        > 2026-09-05 The ruling is T11, which replaced T9.
+- [?] T11 | Rule whether the retired noun sense of block reaches identifiers, or
+      identifiers are exempt from the retired-word check as a class.
