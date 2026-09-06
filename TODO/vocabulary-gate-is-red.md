@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 9 of 14 tasks closed
+Progress: 12 of 14 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-20 (both reviews of 2026-08-20; verified in-session)
@@ -90,9 +90,9 @@ see it, because `ruff` reads an unused import and an unused local, not a string 
       -- **Declare `block_problem`, `block_text` and `as_block` in
       `NOT_THE_TERM`.** Verify: `uv run python scripts/check_vocabulary.py`
       exits 0 with the new regex.
-- [ ] T7 | T7 -- **Drop the dead `block_matches` exemption from
-      `NOT_THE_TERM`.** Verify: the tuple no longer holds it and the gate still
-      exits 0.
+- [x] T7 | FINISHED; the tuple no longer holds it and the gate exits 0 | 96cbb58b | T7
+      -- **Drop the dead `block_matches` exemption from `NOT_THE_TERM`.**
+      Verify: the tuple no longer holds it and the gate still exits 0.
 - [x] T8 | FINISHED; six cases, each check fails on a planted defect and main returns 0 on HEAD | 32bbc856 | Implement
       a gate test asserting all four checks of scripts/check_vocabulary.py
       return 0, each provably able to fail.
@@ -100,8 +100,9 @@ see it, because `ruff` reads an unused import and an unused local, not a string 
 - [-] T9 | SUPERSEDED by T11; the label carried no ruling word, so the board could not see the decision | 000c2e70 | Does
       the retired noun sense of block reach identifiers, or are identifiers
       exempt from the retired-word check as a class?
-- [ ] T10 | Declare the identifiers carrying block in its code sense, or exempt
-      identifiers as a class, as T9 rules.
+- [x] T10 | FINISHED; block_comment, doc_block and in_block declared as the live sense | 96cbb58b | Declare
+      the identifiers carrying block in its code sense, or exempt identifiers as
+      a class, as T9 rules.
         > 2026-09-05 Verify: the gate exits 0 under the T5 regex.
         > 2026-09-05 The ruling is T11, which replaced T9.
 - [x] T11 | RULED 2026-09-06, decision-log.md Vocabulary: #35 -- block is unretired for the symbol-to-series sense; block_comment, doc_block, in_block keep their names; nxt_block is the paragraph sense | 1fa7a647 | Rule
@@ -112,8 +113,9 @@ see it, because `ruff` reads an unused import and an unused local, not a string 
 - [-] T12 | SUPERSEDED by T14; docs/vocabulary.md holds only retired or modified definitions, so the live sense is not defined there | 49480dbd | Define
       block's live sense in docs/vocabulary.md and narrow its retired row to the
       prose sense.
-- [ ] T13 | Rename nxt_block in binder/page.py to nxt_b, the name its neighbours
-      in the same loop carry.
+- [x] T13 | FINISHED; suite green before and after | 22e97bc3 | Rename nxt_block
+      in binder/page.py to nxt_b, the name its neighbours in the same loop
+      carry.
 - [x] T14 | FINISHED | c56ccc7d | Update the retired row for block in
       docs/vocabulary.md to the prose sense, pointing at where the live sense is
       stated.
