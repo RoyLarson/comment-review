@@ -1138,6 +1138,29 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **The gate.** `census` joins `scripts/check_vocabulary.py`'s RETIRED list, replacement
   `gather`, so a shipped file cannot carry it back; the log's own history keeps the word.
 
+- **#35.** **`block` IS UNRETIRED FOR ONE SENSE: THE MAPPING OF A CODE SYMBOL TO A SERIES**
+  (Roy, 2026-09-06: *"I am going to unretire block for the concept of the identification on
+  which type of text sits here as determined by the code specific symbols. It is the mapping
+  of code symbol to Series not the text in the block. That is different"*). Rules
+  [`vocabulary-gate-is-red`](../TODO/vocabulary-gate-is-red.md) T11 the other way from how
+  it was first closed.
+
+  **What it names.** The language record's `block_comment` and `doc_block` are the code
+  symbols -- `/*` with `*/`, `/**` -- that say which series the lines they enclose belong to;
+  the lexer's `in_block` is the pair currently open. Those three keep their names. The word
+  is about the SYMBOLS and the series they map to, never about the prose between them.
+
+  **What it is not.** The retired sense stands: `block` as the noun for one unit of prose on
+  the page is still `paragraph` (`#9`). The page's `nxt_block` steps over paragraph places,
+  so it is that sense and is renamed; the lexer's `block_text` has no caller
+  ([`block-text-orphaned`](../TODO/block-text-orphaned.md)) and is not renamed either way.
+
+  **How it was found.** The T11 question was whether the retired-word gate should look
+  inside identifiers. Measured 2026-09-05: five identifiers under `src/` carry the word,
+  and the first reading -- that all of them named the paragraph -- was corrected by reading
+  what each one holds. Two senses in one word, and the second was the one the retirement
+  had never been about.
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**

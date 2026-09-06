@@ -104,7 +104,8 @@ see it, because `ruff` reads an unused import and an unused local, not a string 
       identifiers as a class, as T9 rules.
         > 2026-09-05 Verify: the gate exits 0 under the T5 regex.
         > 2026-09-05 The ruling is T11, which replaced T9.
-- [x] T11 | RULED 2026-09-05: it reaches identifiers; those three name the paragraph, the retired sense | add2fe1d | Rule
+- [x] T11 | RULED 2026-09-06, decision-log.md Vocabulary: #35 -- block is unretired for the symbol-to-series sense; block_comment, doc_block, in_block keep their names; nxt_block is the paragraph sense | 1fa7a647 | Rule
       whether the retired noun sense of block reaches identifiers, or
       identifiers are exempt from the retired-word check as a class.
         > 2026-09-05 Roy: block_comment, doc_block, block_text are all paragraphs.
+        > 2026-09-06 Reopened: decision-log Vocabulary #35 rules the other way.
