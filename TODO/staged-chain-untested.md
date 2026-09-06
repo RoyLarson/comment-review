@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 4 tasks closed
+Progress: 2 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, driving distribute and collate across real stages for
@@ -16,10 +16,11 @@ The staged chain runs but nothing tests it, and the fan-out topology fits one tr
 
 ## Tasks
 
-- [ ] T1 | Make the fan-out fixture runnable against any tree. Verify:
-      `4a-then-4c.toml` drives a scratch tree of four files without refusing.
-      MEASURED 2026-08-30: it raises `UncoveredPage: block-context: no dispatch
-      covers` because its globs name `src/comment_review/reading/*.py` and
+- [x] T1 | FINISHED; topology --build writes the fixture's shape for any tree, and the test drives one | 5a99fea8 | Make
+      the fan-out fixture runnable against any tree. Verify: `4a-then-4c.toml`
+      drives a scratch tree of four files without refusing. MEASURED 2026-08-30:
+      it raises `UncoveredPage: block-context: no dispatch covers` because its
+      globs name `src/comment_review/reading/*.py` and
       `src/comment_review/binder/*.py` -- this repo's own layout. ! THE REFUSAL
       IS CORRECT; fan-out must cover every page. What is wrong is that the only
       committed fan-out topology can be exercised on exactly one tree.
