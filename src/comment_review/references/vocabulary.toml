@@ -88,7 +88,7 @@ series = "One of the three kinds of address, and which one says what the prose a
 
 # --- what the page is made of -----------------------------------------------
 page = "ONE FILE: its paragraphs in order, among the code they sit with. A page does not nest, which is why the binder is a flat list and needs no other shape. ! The BINDER is the enumeration across EVERY page in scope, not this one."
-paragraph = "One unit of prose on the page: a comment run, a docstring, or the empty place where either could go. It answers to exactly one address. `block` is the older word for it and means the same thing."
+paragraph = "One unit of prose on the page: a comment run, a docstring, or the empty place where either could go. It answers to exactly one address. `block` was the older word for it and no longer means this: a `block` is the code symbols that say which series the lines they enclose belong to, never the prose between them."
 
 # --- what is SET, and who sets it --------------------------------------------
 galley = "The proposal set as pages: every paragraph a stage proposes to change, put on a COPY of its page. A trial impression -- text set but not yet made into pages -- pulled so it can be corrected while correcting is still free. Nothing under review is touched."

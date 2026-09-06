@@ -124,7 +124,7 @@ RETIRED = {
 NOQA = "# noqa: vocabulary"
 
 # !! A RETIRED WORD *NAMED* IS NOT A RETIRED WORD *USED*, and the difference is
-# the backticks. `paragraph`'s own definition says *"`block` is the older word
+# the backticks. `paragraph`'s own definition says *"`block` was the older word
 # for it"*, and `page.py` explains what `block` meant before -- both are how this
 # repo keeps an error legible instead of erasing it, which is the same rule that
 # keeps a SUPERSEDED task checked rather than deleted. A sentence that USES the
