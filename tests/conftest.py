@@ -209,7 +209,7 @@ def run_command(monkeypatch, capsys, command, *argv, with_stderr: bool = False):
         command: the `comment_review.commands.*` module to run.
         argv: the flags, without the program name.
         with_stderr: read both streams, for a command that refuses on stderr
-            -- `gather --json` keeps its refusal out of the document it writes.
+            -- `gather` keeps its refusal out of the document it writes.
 
     Returns:
         `(exit code, everything it printed to stdout)`, or to both streams.

@@ -147,7 +147,7 @@ def unaddressed(paragraphs: Sequence[Paragraph]) -> list[str]:
     about.
 
     Args:
-        paragraphs: the binder, as `gather --json` emits it.
+        paragraphs: the binder, as `gather` emits it.
 
     Returns:
         One sentence per unaddressed paragraph, naming its file and its lines.

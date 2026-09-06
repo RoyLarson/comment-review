@@ -36,9 +36,6 @@ def _gather_args(repo, revise: int, paths: list[str]) -> argparse.Namespace:
         languages=False,
         paths=paths,
         repo=str(repo),
-        json=True,
-        filtered=False,
-        include_matter=False,
         include_absent=False,
         revise=revise,
     )

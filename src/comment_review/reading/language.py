@@ -535,7 +535,7 @@ def language_for(path: Path) -> Language | None:
 def tier_for(lang: Language) -> str:
     """The highest rung reachable for this language, here and now.
 
-    One definition, read by the dispatcher and by `--languages`, so the listing
+    One definition, read by the dispatcher and by `--languages`, so the table
     and the run report the same tier.
     """
     return "tokenized" if lang.name == "python" else "lexical"

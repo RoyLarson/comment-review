@@ -174,7 +174,7 @@ def _read_from_problem(loaded: dict) -> str:
     if "read_from" not in loaded:
         return (
             "carries no `read_from` -- a binder written before 2026-08-28 "
-            f'(version "1"); re-run `gather --json` to get a version "{VERSION}" one'
+            f'(version "1"); re-run `gather` to get a version "{VERSION}" one'
         )
     read_from = loaded["read_from"]
     if not isinstance(read_from, dict):
@@ -268,7 +268,7 @@ class Binder:
         checked: dict = data
         if "pages" not in checked:
             return None, [
-                f"{where}: carries no `pages` -- is this the output of `gather --json`?"
+                f"{where}: carries no `pages` -- is this the output of `gather`?"
             ]
         raw_pages = checked["pages"]
         if not isinstance(raw_pages, list):

@@ -24,7 +24,7 @@ def annotations_for(
     """Attach every annotation stage 3 can settle, onto the paragraphs themselves.
 
     ! IN PLACE, AS `annotate` IS. A paragraph carries its own `annotations` and
-    `notes`, and the listing and the binder read them there; a returned copy
+    `notes`, and the binder reads them there; a returned copy
     would be a second place for the same facts.
 
     Args:

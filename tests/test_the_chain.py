@@ -67,7 +67,6 @@ class TestTheChainRunsOnCommandsAlone:
             gather_command,
             "--repo",
             str(repo),
-            "--json",
             "--out",
             str(binder_path),
             str(repo / "m.py"),

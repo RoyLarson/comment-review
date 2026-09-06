@@ -454,7 +454,7 @@ def verify_report(
 
 #: !! `problems_in` AND `unruled` ARE DELETED, `P52`. Both walked a copy and
 #: reported what a role still owed -- `problems_in` turning `Sheet.refused` into
-#: `Problem`s, `unruled` listing `Sheet.unruled` -- and `flows.mark_errors`
+#: `Problem`s, `unruled` naming `Sheet.unruled` -- and `flows.mark_errors`
 #: answers both, as addresses and reasons, per `decision-log.md Process: #72`.
 #: ! `problems_in` ALSO RETURNED A `ruled` COUNT that nothing in production ever
 #: read: `flows.collate` discarded it at the call. The claim it carried -- a mark

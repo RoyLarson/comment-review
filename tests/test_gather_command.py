@@ -70,56 +70,43 @@ CANNOT_PARSE = {
 }
 
 
-def _run(
-    tmp_path, monkeypatch, capsys, data: bytes, *, as_json: bool
-) -> tuple[int, str]:
+def _run(tmp_path, monkeypatch, capsys, data: bytes) -> tuple[int, str]:
     """One gather over one file, through `main()` and argv, and what it exited with.
 
-    ! BOTH STREAMS, because the two paths refuse on different ones: the text
-    path prints its refusal to stdout beside the listing a person reads, and
-    the `--json` path prints to stderr so the refusal cannot land inside the
-    document stage 5 parses. Asking only one stream would let a path go
-    silent and still pass.
+    ! BOTH STREAMS. A refusal prints to stderr so it cannot land inside the
+    binder stage 5 parses; asking only stdout would let the run go silent and
+    still pass.
     """
     target = tmp_path / "m.py"
     target.write_bytes(data)
-    flags = ["--json"] if as_json else []
     return run_command(
         monkeypatch,
         capsys,
         gather_command,
         "--repo",
         str(tmp_path),
-        *flags,
         str(target),
         with_stderr=True,
     )
 
 
-AS_JSON = pytest.mark.parametrize("as_json", [False, True], ids=["text", "json"])
 UNREADABLE = pytest.mark.parametrize(
     ("why", "data"),
     [pytest.param(w, d, id=w) for w, d in {**CANNOT_DECODE, **CANNOT_PARSE}.items()],
 )
 
 
-@AS_JSON
-def test_the_control_is_gathered_and_the_run_succeeds(
-    tmp_path, monkeypatch, capsys, as_json
-):
+def test_the_control_is_gathered_and_the_run_succeeds(tmp_path, monkeypatch, capsys):
     """The case has to be able to pass, or every refusal below proves nothing:
     this same file, uncorrupted, must gather and exit 0."""
-    code, printed = _run(
-        tmp_path, monkeypatch, capsys, CONTROL.encode("utf-8"), as_json=as_json
-    )
+    code, printed = _run(tmp_path, monkeypatch, capsys, CONTROL.encode("utf-8"))
     assert code == 0, printed
     assert "0 paragraphs" not in printed
 
 
-@AS_JSON
 @UNREADABLE
 def test_a_file_that_produced_no_paragraphs_stops_the_run(
-    tmp_path, monkeypatch, capsys, why, data, as_json
+    tmp_path, monkeypatch, capsys, why, data
 ):
     """`CLAUDE.md`: *every file handed in is gathered or the run stops.*
 
@@ -127,24 +114,20 @@ def test_a_file_that_produced_no_paragraphs_stops_the_run(
     naming the file leaves the caller unable to act, and a run that names it at
     exit 0 is read as a success by everything downstream.
     """
-    code, printed = _run(tmp_path, monkeypatch, capsys, data, as_json=as_json)
+    code, printed = _run(tmp_path, monkeypatch, capsys, data)
     assert code != 0, f"{why}: gathered nothing and reported success\n{printed}"
 
 
-@AS_JSON
 @UNREADABLE
 def test_the_file_that_stopped_the_run_is_NAMED(
-    tmp_path, monkeypatch, capsys, why, data, as_json
+    tmp_path, monkeypatch, capsys, why, data
 ):
     """Exit 1 over a run of many files says nothing about WHICH one to fix."""
-    _, printed = _run(tmp_path, monkeypatch, capsys, data, as_json=as_json)
+    _, printed = _run(tmp_path, monkeypatch, capsys, data)
     assert "m.py" in printed, f"{why}: not named\n{printed}"
 
 
-@AS_JSON
-def test_a_parse_failure_is_AS_LOUD_AS_a_decode_failure(
-    tmp_path, monkeypatch, capsys, as_json
-):
+def test_a_parse_failure_is_AS_LOUD_AS_a_decode_failure(tmp_path, monkeypatch, capsys):
     """The measured defect, stated as the property that forbids it.
 
     ! It compares the two halves to EACH OTHER, so it holds whatever exit code
@@ -152,10 +135,7 @@ def test_a_parse_failure_is_AS_LOUD_AS_a_decode_failure(
     """
 
     def codes(cases: dict[str, bytes]) -> dict[str, int]:
-        return {
-            w: _run(tmp_path, monkeypatch, capsys, d, as_json=as_json)[0]
-            for w, d in cases.items()
-        }
+        return {w: _run(tmp_path, monkeypatch, capsys, d)[0] for w, d in cases.items()}
 
     decode, parse = codes(CANNOT_DECODE), codes(CANNOT_PARSE)
     assert set(decode.values()) == set(parse.values()), (
