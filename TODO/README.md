@@ -292,7 +292,7 @@ that changed a published name or rule:
 | [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 4/6 | re-review is retired for revise |
 | [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 8/15 | The agents files name the new CLI and say how to use it |
-| [the-listing-goes](the-listing-goes.md) | backend | -- | 2/7 | The listing goes: gather writes the binder only, and a reviewer is handed the binder and its seeded edit copy |
+| [the-listing-goes](the-listing-goes.md) | backend | -- | 6/7 | The listing goes: gather writes the binder only, and a reviewer is handed the binder and its seeded edit copy |
 
 ### in-progress  (18)
 
