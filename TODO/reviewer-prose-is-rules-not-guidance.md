@@ -32,6 +32,7 @@ The reviewer prose is rules and punishments, not guidance toward a good result.
 - [ ] T5 | Update the brief so a role does not fork itself into sub-agents
       writing part files outside its one copy.
         > 2026-09-07 2026-09-06: all four roles forked; 0 of 3,552 slots reached a copy.
+        > 2026-09-07 Sonnet run: two roles wrote 60 and 35 scripts under the scratchpad
 - [ ] T6 | Measure the Sonnet ownership-context copy: clean x888 against 64
       places the Fable forks marked, two verified by grep
         > 2026-09-07 compare_oc.py lists the 64; docket_of and the #12 paste verified

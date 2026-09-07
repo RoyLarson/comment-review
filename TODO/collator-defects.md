@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 33 tasks closed
+Progress: 8 of 36 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -184,3 +184,11 @@ Four defects in collator.py, found by reading only the code.
       the fold to refuse an address only when the page has no such place.
       Verify: a mark at a real gap the binder lacks is accepted
         > 2026-09-05 Process 96; tests/test_collator.py:514 asserts the refusal today
+- [ ] T34 | Update the fold so two marks from one role on different sentences
+      compose, as two roles' marks do
+- [ ] T35 | Update check so a change carrying the anchor's own code line is
+      refused before the write
+        > 2026-09-07 desk/mark.py@b24, function-context, 2026-09-06 run
+- [ ] T36 | Update check so a correct whose change drops sentences its claim
+      never named is named to the chief
+        > 2026-09-07 desk/mark.py@a6: both changes cut the class docstring; check exit 0

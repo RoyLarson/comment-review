@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 4 of 12 tasks closed
+Progress: 4 of 15 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
           write path, which is the one place a defect reaches disk)
 RE-VERIFIED: 2026-08-23 — 2026-08-23. Task 1 is FIXED and ticked -- the destructive case
@@ -114,3 +114,9 @@ files in `corpora/` are in that state today.
         > 2026-09-03 the work is only-a-flow-reaches-the-machine T1, and four more
 - [ ] T12 | Update the reread step in flows/revise so a drop that empties a
       whole place is not looked up after. Verify: a drop of a whole b place sets
+- [ ] T13 | Update revise.pull so the galley copies the tracked files, not the
+      checkout wholesale with corpora and the venv
+- [ ] T14 | Update revise.pull so a copy that fails part way leaves no partial
+      --out behind
+- [?] T15 | Decide whether the galley is pulled from the working tree's bytes or
+      from git, since this tree mixes CRLF and LF per file
