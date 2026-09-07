@@ -1,4 +1,5 @@
-"""`staged-chain-untested` T1 and P33: the fan-out fixture on a tree it was not written for.
+"""`staged-chain-untested` T1 and P33: the fan-out fixture on a tree it was not
+written for.
 
 ! BOTH BRANCHES OF P33 ARE MECHANICAL. The fixture's globs name this repo's own
 layout, so on a scratch tree `topology --verify` refuses it and NAMES THE GLOBS --
