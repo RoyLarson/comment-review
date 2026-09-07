@@ -192,3 +192,5 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
         > 2026-09-05 ruled: the argument is the line NUMBER and a series, not the text
 - [ ] T23 | Update addresser --resolve so an ABSENT place the anchor lookup
       names resolves too, instead of naming no entry
+        > 2026-09-07 claude-settings: b7 ABSENT by anchor, no entry by resolve
+        > 2026-09-07 evidence: OneDrive comment-review-feedback/claude-settings
