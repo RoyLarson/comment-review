@@ -26,8 +26,10 @@ from comment_review.desk.mark import (
     ANCHOR_EXAMPLE,
     INSTRUCTIONS,
     QUERY_SHAPES,
+    Instruction,
     Mark,
     allowed,
+    derived_change,
     text_at,
     untouched,
     without_location,
@@ -667,3 +669,81 @@ class TestTextAtOneEndOfAMark:
         )
         assert why == [] and mark is not None
         assert text_at("m.py@b1", mark) is None
+
+
+class TestTheChangeDerivedFromAClaim:
+    """`change` built from the paragraph and the claim, so a role never types it.
+
+    ! EXPECTATIONS ARE HAND-WRITTEN paragraphs. The rows are read only to
+    name which instruction is under test.
+
+    !! THE QUOTED CLAUSE IS ONE STATEMENT. Roy, 2026-09-07: *"a false clause is
+    one statement not multiple paragraphs."* A clause the paragraph holds
+    twice names two statements, and one it holds nowhere names none; both
+    are refused rather than guessed at.
+    """
+
+    BASE = "# one\n# two\n# three\n"
+
+    def test_a_correct_substitutes_the_false_clause_with_the_true_one(self):
+        change, why = derived_change(
+            Instruction.CORRECT, {"false": "two", "true": "2"}, self.BASE
+        )
+        assert why == []
+        assert change == "# one\n# 2\n# three\n"
+
+    def test_a_patch_substitutes_from_with_to(self):
+        change, why = derived_change(
+            Instruction.PATCH, {"from": "# three", "to": "# 3"}, self.BASE
+        )
+        assert why == []
+        assert change == "# one\n# two\n# 3\n"
+
+    def test_a_clause_may_span_two_lines(self):
+        change, why = derived_change(
+            Instruction.CORRECT,
+            {"false": "two\n# three", "true": "two and three"},
+            self.BASE,
+        )
+        assert why == []
+        assert change == "# one\n# two and three\n"
+
+    def test_a_drop_removes_the_sentence(self):
+        change, why = derived_change(
+            Instruction.DROP, {"drop": " Narrow it later."}, "# Kept. Narrow it later."
+        )
+        assert why == []
+        assert change == "# Kept."
+
+    def test_a_drop_of_the_whole_paragraph_is_the_empty_string(self):
+        change, why = derived_change(Instruction.DROP, {"drop": self.BASE}, self.BASE)
+        assert why == []
+        assert change == ""
+
+    @pytest.mark.parametrize(
+        "instruction",
+        [Instruction.CLEAN, Instruction.QUERY, Instruction.ADD, Instruction.MOVE],
+    )
+    def test_a_row_that_quotes_nothing_derives_nothing_and_reports_nothing(
+        self, instruction
+    ):
+        assert derived_change(instruction, {"to": "m.py@b8"}, self.BASE) == (None, [])
+
+    def test_a_clause_not_in_the_paragraph_is_refused(self):
+        change, why = derived_change(
+            Instruction.CORRECT, {"false": "four", "true": "4"}, self.BASE
+        )
+        assert change is None
+        assert len(why) == 1 and "`claim.false`" in why[0] and "not in" in why[0]
+
+    def test_a_clause_the_paragraph_holds_twice_is_refused(self):
+        change, why = derived_change(
+            Instruction.CORRECT, {"false": "# t", "true": "# T"}, self.BASE
+        )
+        assert change is None
+        assert len(why) == 1 and "`claim.false`" in why[0] and "2 times" in why[0]
+
+    def test_a_missing_counterpart_is_refused(self):
+        change, why = derived_change(Instruction.CORRECT, {"false": "two"}, self.BASE)
+        assert change is None
+        assert len(why) == 1 and "`claim.true`" in why[0]

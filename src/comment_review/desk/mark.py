@@ -12,6 +12,8 @@
                      problems. There is no third outcome
     untouched()      a seeded slot no role has written in -- the coverage gap,
                      which is NOT a mark that failed to name an instruction
+    derived_change() the `change` a claim implies, built from the paragraph, so
+                     a role never types the paragraph out
 
 !! A MARK IS THE OBJECT; ITS `instruction` IS ONE OF SEVEN. The word this table
 used to carry read as judicial and named the same thing twice, the object a
@@ -552,6 +554,78 @@ def text_at(address: str, mark: Mark) -> str | None:
     if mark.instruction is Instruction.MOVE and address == mark.address:
         return None
     return mark.change or None
+
+
+def derived_change(
+    instruction: Instruction, claim: object, base: str
+) -> tuple[str | None, list[str]]:
+    """The `change` this claim implies, built from the paragraph it rules on.
+
+    !! ONE DEFINITION OF WHAT A CLAIM SAYS THE CHANGE IS. The `mark` command
+    builds a role's `change` from it, so `claim` and `change` cannot disagree;
+    a check that asks whether a returned `change` does only what its `claim`
+    names would compare against the same function. Two sites deriving it are
+    two that can disagree, which is why it sits with the rows rather than in
+    the flow that first needed it.
+
+    ! THE ROW SAYS WHICH KEY IS REPLACED AND WHICH REPLACES IT. `quotes_original`
+    names the clause as it stands; the other key in `claim_all` is what takes
+    its place, and a row with no other key -- `drop` -- removes the clause. A
+    row that quotes nothing (`clean`, `query`, `add`, `move`) derives nothing,
+    and its `change` is the role's to supply.
+
+    !! THE QUOTED CLAUSE IS ONE STATEMENT. Roy, 2026-09-07: *"a false clause is
+    one statement not multiple paragraphs."* A clause the paragraph holds twice
+    names two statements and one it holds nowhere names none; both are refused
+    rather than guessed at. The nowhere case is the substring test
+    `desk.collator.claim_verbatim_problems` runs at the fold, asked here before
+    anything is written.
+
+    Args:
+        instruction: which row, already resolved to a member.
+        claim: the entry's `claim`, unvalidated -- `parse` runs later and
+            refuses a missing key by name; this reports only what stops the
+            derivation.
+        base: the paragraph the row seeded at this place.
+
+    Returns:
+        `(text, [])` -- the paragraph with the one substitution made, "" where
+        a `drop` names the whole paragraph. `(None, [])` for a row that quotes
+        nothing. `(None, [one message])` where the clause is absent, is not one
+        statement, or its counterpart is missing.
+    """
+    spec = INSTRUCTIONS[instruction]
+    key = spec.quotes_original
+    if not key:
+        return None, []
+    if not isinstance(claim, dict):
+        return None, [f"{instruction} needs `claim.{key}` to derive its change"]
+    # ! DECLARED, NOT NARROWED -- `desk.containers.EditCopy.deserialize` states
+    # why: `ty` loses an `isinstance` narrow past a branch, and the reads below
+    # sit past two.
+    data: dict = claim
+    quoted = data.get(key)
+    if not filled(quoted):
+        return None, [f"{instruction} needs `claim.{key}` to derive its change"]
+    others = [k for k in spec.claim_all if k != key]
+    replacement = ""
+    if others:
+        counterpart = others[0]
+        given = data.get(counterpart)
+        if not filled(given):
+            return None, [
+                f"{instruction} needs `claim.{counterpart}` to derive its change"
+            ]
+        replacement = given
+    found = base.count(quoted)
+    if found == 0:
+        return None, [f"`claim.{key}` is not in the paragraph this row seeded"]
+    if found > 1:
+        return None, [
+            f"`claim.{key}` occurs {found} times in the paragraph -- a clause "
+            "names one statement"
+        ]
+    return base.replace(quoted, replacement), []
 
 
 def allowed() -> dict:
