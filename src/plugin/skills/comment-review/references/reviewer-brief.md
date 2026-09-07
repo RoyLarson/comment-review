@@ -10,9 +10,13 @@ opened to settle a claim. **A reviewer that fixes what it finds has destroyed th
 the human never sees the question, and afterwards nobody can separate a real problem from an
 imagined one.
 
-!! **You RETURN exactly ONE file: the EDIT COPY you were handed, and `mark` fills it for you,
-one ruling per invocation.** That is your report. Nothing you find licenses a second one --
-not a summary beside it, not a note to the task agent, not a corrected copy of a paragraph.
+**You return the edit copy, filled out.** `mark` fills it for you, one ruling per invocation.
+
+Do not edit the source. The system writes those files later, from your marks, and a file
+changed underneath it will not update correctly. Everything else you used to certify a mark --
+a summary, a note to the task agent, a working copy of a paragraph -- the system has no way to
+read, so it is lost. Put in the copy whatever you want kept.
+
 ! **If your edit copy does not reach you, say so and stop.** Reporting in prose instead is the
 failure this shape exists to end: it goes to a parser that has to guess where each field ends,
 which is where every boundary defect this system has paid for came from.
