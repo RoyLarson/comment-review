@@ -47,6 +47,7 @@ class Command(StrEnum):
     COMPOSITOR = auto()
     DISTRIBUTE = auto()
     GATHER = auto()
+    MARK = auto()
     PROOF = auto()
     PROVE_UNCHANGED = auto()
     REFERRERS = auto()
