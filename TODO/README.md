@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (111)
+### open  (110)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -292,7 +292,6 @@ that changed a published name or rule:
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 4/6 | re-review is retired for revise |
 | [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 9/18 | The agents files name the new CLI and say how to use it |
 | [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 0/7 | The reviewer prose is rules and punishments, not guidance toward a good result |
-| [a-role-writes-its-own-mark-tool](a-role-writes-its-own-mark-tool.md) | backend | -- | 4/5 | A role writes its own tool to fill the edit copy |
 
 ### in-progress  (18)
 
@@ -459,3 +458,4 @@ the reason is inside the file.
 | [vocabulary-gate-is-red](completed/vocabulary-gate-is-red.md) | The gate is asserted by the suite, sees inside identifiers, and block is two senses the gate tells apart -- decision-log Vocabulary #35 |
 | [the-listing-goes](completed/the-listing-goes.md) | gather writes the binder only; a reviewer is handed the binder and its seeded copy; listing is retired and the gate says so -- Process #99 |
 | [listing-hands-the-repo](completed/listing-hands-the-repo.md) | Superseded: the listing was removed at Process #99, so its defects have no site |
+| [a-role-writes-its-own-mark-tool](completed/a-role-writes-its-own-mark-tool.md) | The mark command fills a role's copy: one ruling per invocation, change derived, the cited line quoted. T3's bulk clean superseded on Roy's ruling |

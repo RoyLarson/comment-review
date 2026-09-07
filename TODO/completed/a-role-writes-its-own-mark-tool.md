@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 5 tasks closed
+Progress: 5 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-07 (Roy, 2026-09-07, watching two Sonnet roles each write a library
@@ -29,6 +29,7 @@ A role writes its own tool to fill the edit copy.
 - [x] T4 | FINISHED -- a bare --cite has its line read from the checkout into verbatim | 7cfaeb81 | Implement
       quoting a source verbatim from the slot's own raw_text by line, so a role
       never retypes a citation
-- [ ] T5 | Update reviewer-brief.md so a role is told the command and never
-      writes a script of its own
+- [x] T5 | FINISHED -- the brief names the command and forbids a script of the role's own | 6b1a6171 | Update
+      reviewer-brief.md so a role is told the command and never writes a script
+      of its own
         > 2026-09-07 agents lane; a one-for-one naming of a command that exists
