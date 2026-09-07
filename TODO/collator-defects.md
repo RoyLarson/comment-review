@@ -186,6 +186,7 @@ Four defects in collator.py, found by reading only the code.
         > 2026-09-05 Process 96; tests/test_collator.py:514 asserts the refusal today
 - [ ] T34 | Update the fold so two marks from one role on different sentences
       compose, as two roles' marks do
+        > 2026-09-07 2026-09-06 run: six places, e.g. desk/mark.py@a8, reached the cap
 - [ ] T35 | Update check so a change carrying the anchor's own code line is
       refused before the write
         > 2026-09-07 desk/mark.py@b24, function-context, 2026-09-06 run

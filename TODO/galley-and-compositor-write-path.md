@@ -116,7 +116,9 @@ files in `corpora/` are in that state today.
       whole place is not looked up after. Verify: a drop of a whole b place sets
 - [ ] T13 | Update revise.pull so the galley copies the tracked files, not the
       checkout wholesale with corpora and the venv
+        > 2026-09-07 2026-09-07: 424 MB partial galley, 1,948 path errors
 - [ ] T14 | Update revise.pull so a copy that fails part way leaves no partial
       --out behind
+        > 2026-09-07 pull's docstring says a stopped run leaves no half-set; it did
 - [?] T15 | Decide whether the galley is pulled from the working tree's bytes or
       from git, since this tree mixes CRLF and LF per file
