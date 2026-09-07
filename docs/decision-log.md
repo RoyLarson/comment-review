@@ -3577,3 +3577,59 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   brief says why. The wider half of that -- a `clean` owes no reason today, so nothing in the
   contract records the consideration -- is filed as T7 of
   [`reviewer-prose-is-rules-not-guidance`](../TODO/reviewer-prose-is-rules-not-guidance.md).
+
+- **#104.** **`prove_unchanged` IS THE ADDRESS/ANCHOR IDENTITY, BOUND FRESH ON BOTH SIDES, AND
+  IT NEVER READS GIT** (Roy, 2026-09-07, on the gate reporting FAIL over line endings on a tree
+  nothing had written to: *"We should change prove_unchanged to purely if all of the anchors
+  have the same address then it is unchanged else this will cause us problems forever"*).
+
+  **What it settles.** The gate compares one value: each page's `{cue -> anchor}` mapping,
+  before the setting and after it. The anchor is the line of code verbatim -- `addresser.py`'s
+  `emit(anchor, trigger)` stores `places[cue] = anchor` -- so the mapping moves when a code
+  line's characters change, when one is added or removed, and when prose is written over code,
+  and holds when a comment is rewritten, deleted or added, including a trailing comment on its
+  own code line. MEASURED 2026-09-07 over `binder.py`, 176 places, seven edits: every case
+  correct. Every code line is carried as some place's anchor -- 0 misses over four files in two
+  languages -- which is what makes the mapping able to see a change anywhere in the code.
+
+  **Both sides are bound fresh.** Roy, the same day: *"This has to be settled from a fresh
+  binder flow not from the binder that was pulled before the galley-proofsetting work flow."*
+  The binder the run has carried since stage 2 is what produced the write, so a gate reading it
+  as the before side would be comparing the write against its own input. That is
+  [`gates.md`](gates.md)'s measured failure exactly -- the round-trip identity scored 699 of 699
+  on its first run by rebuilding each file from line positions it had just read out of that
+  file.
+
+  **And it never reads git, because the work may not be committed.** Roy: *"The reason it can't
+  be git is because we could be running this on uncommitted work, to prepare it for a commit.
+  So using git as the source of truth would negate that ability."* The gate takes no `--base`.
+  File identity is a question already answered upstream: `flows/proof_setter.py` refuses when
+  `held.sha != recorded`, and Roy, 2026-08-25, *"the sha is what says the file is still the one
+  the agents read"*. So the sha proves the file is the one the run started from, and the gate
+  proves the identity held across the setting. Neither question needs a commit to exist.
+
+  **What it is for.** MEASURED 2026-09-07 on `claude-settings`, a clean tree with nothing
+  written: the gate reported `4 unproven. WRITE's claim does NOT hold.` It compared each page's
+  line endings against an untouched SIBLING FILE, so it failed on a repository-wide LF/CRLF
+  mixture and would have failed identically whether or not anything was written. The AST
+  comparison, which answers the actual question, passed every file it parsed. A gate that
+  cannot pass on an unedited tree cannot gate a write.
+
+  **A file with no page is out of scope, at exit 0** -- Roy: *"Currently report out of scope"*
+  -- and it is never counted among the proven. **Two reasons, resolving in opposite
+  directions**, and the report distinguishes them because they wait on different things: a CODE
+  language with no record yet comes back in through a data row on the language table; a file
+  that is NOT CODE -- Markdown, docs, references -- comes back in through its own read, review,
+  resolve and write chain, which
+  [`a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own`](../TODO/a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md)
+  holds. Roy, on the second: *"those will never have a language but they will be editable
+  eventually."* Neither is permanent, and neither is to be written as though it were.
+
+  **What follows.** `results/prove_unchanged.py`'s AST proof, comment-stripping proof,
+  `unprovable` class, spanning-quote refusal, sibling lookup and line-ending comparison all go,
+  and with them `--base` and the command's git reads.
+  [`prove-refuses-a-doc`](../TODO/prove-refuses-a-doc.md) T1 already names the split this must
+  carry from the start -- NOT-CODE against CANNOT-BE-PROVEN. Whether this and
+  `flows/revise.assert_addresses_held`, which asks the same question over the address SET and
+  already binds both sides fresh, become one check is open. The design is
+  [`design/results/README.md`](design/results/README.md).
