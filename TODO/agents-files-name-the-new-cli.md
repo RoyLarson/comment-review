@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 15 tasks closed
+Progress: 9 of 15 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -59,5 +59,6 @@ The agents files name the new CLI and say how to use it.
         > 2026-09-05 the default filter stays; absent places are noise for a role
         > 2026-09-05 the brief asks by line number, no longer with the line's text
         > 2026-09-05 T22 landed; flag gate red on --anchor: SKILL 367, brief 231
-- [ ] T15 | Update reviewer-brief.md so a role knows it may set its own edit
-      copy with proof --copy and read the draft that pulls.
+- [x] T15 | FINISHED; the brief says a role may read its own draft with proof --copy | 70965ff4 | Update
+      reviewer-brief.md so a role knows it may set its own edit copy with proof
+      --copy and read the draft that pulls.
