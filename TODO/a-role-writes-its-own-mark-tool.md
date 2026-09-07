@@ -19,6 +19,7 @@ A role writes its own tool to fill the edit copy.
 - [ ] T1 | Implement a mark command that sets one address's instruction, claim,
       reason, sources and change on an edit copy in place
         > 2026-09-07 2026-09-06 run: fc/lib.py, work/apply_marks.py -- the same five ops
+        > 2026-09-07 claude-settings run: all four roles wrote a helper as well
 - [ ] T2 | Implement appending a second mark at an address already ruled,
       carrying the slot's anchor and raw_text
 - [ ] T3 | Implement marking every slot still null on a copy clean in one call

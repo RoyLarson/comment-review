@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 15 tasks closed
+Progress: 4 of 17 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -122,3 +122,9 @@ files in `corpora/` are in that state today.
         > 2026-09-07 pull's docstring says a stopped run leaves no half-set; it did
 - [?] T15 | Decide whether the galley is pulled from the working tree's bytes or
       from git, since this tree mixes CRLF and LF per file
+- [ ] T16 | Update proof so an address the binder does not carry is refused
+      rather than drafted without
+        > 2026-09-07 proof drafted 5 pages with b7's comment on none, exit 0
+- [?] T17 | Decide whether the compositor keeps a leading blank a change writes
+      at a gap, or the brief stops asking for one
+        > 2026-09-07 brief says write the blank lines; the setter dropped a leading one
