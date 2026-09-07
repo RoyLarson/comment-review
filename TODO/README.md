@@ -292,7 +292,7 @@ that changed a published name or rule:
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 4/6 | re-review is retired for revise |
 | [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 9/18 | The agents files name the new CLI and say how to use it |
 | [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 0/7 | The reviewer prose is rules and punishments, not guidance toward a good result |
-| [a-role-writes-its-own-mark-tool](a-role-writes-its-own-mark-tool.md) | backend | -- | 1/5 | A role writes its own tool to fill the edit copy |
+| [a-role-writes-its-own-mark-tool](a-role-writes-its-own-mark-tool.md) | backend | -- | 4/5 | A role writes its own tool to fill the edit copy |
 
 ### in-progress  (18)
 
