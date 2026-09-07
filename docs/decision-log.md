@@ -3531,3 +3531,20 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   runs, so P1 on `what-a-reviewer-is-handed` is superseded for 0.2.4 rather than built. The
   topology is a tuning knob (*Topology is a tuning knob, not an invariant*), and which knob a
   later release turns is a later ruling.
+
+- **#102.** **THE ROLES MAY BE DISPATCHED SEQUENTIALLY; ONE MESSAGE IS NOT WHAT KEEPS THEM
+  INDEPENDENT** (Roy, 2026-09-07, during the first live run over `src/`, after the four roles
+  went out in two messages twice: *"We can tell the task agent that they are able to be
+  launched somewhat sequentially. The topology and the file locations effectively isolate their
+  work"*).
+
+  **What it settles.** SKILL.md stage 4 says *dispatch all four in ONE message* and that the one
+  message is what protects independent reading. It is not: a role reads the binder and fills
+  its own seeded copy, named by the topology's stage and dispatch, and nothing a role writes is
+  a path another role is handed. Independence is a property of the artifacts, so the roles may
+  be launched one after another, and the proposal owes no note when they were. What the brief
+  still forbids is a role opening another role's copy.
+
+  **What follows.** SKILL.md stage 4's *ONE message* paragraph is rewritten to say the isolation
+  comes from the topology and the copies -- filed on
+  [`agents-files-name-the-new-cli`](../TODO/agents-files-name-the-new-cli.md), the agents lane's.
