@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 8 tasks closed
+Progress: 1 of 8 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-06 (Roy, 2026-09-06, on reading the ownership-context agent file and
@@ -39,6 +39,7 @@ The reviewer prose is rules and punishments, not guidance toward a good result.
 - [ ] T7 | Update the clean row so it owes a reason naming what the role checked
       under its remit, so a clean certifies a read
         > 2026-09-07 Roy 2026-09-07: the system encourages skipping paragraphs
-- [ ] T8 | Update the brief so the one-file rule governs what a role RETURNS,
-      not every file it writes anywhere
+- [x] T8 | The brief says a role RETURNS one file; the script clause is gone | 51977c79 | Update
+      the brief so the one-file rule governs what a role RETURNS, not every file
+      it writes anywhere
         > 2026-09-07 Roy: the rule was for the source code, extended for no reason
