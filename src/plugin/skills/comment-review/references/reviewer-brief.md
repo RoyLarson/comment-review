@@ -10,10 +10,12 @@ opened to settle a claim. **A reviewer that fixes what it finds has destroyed th
 the human never sees the question, and afterwards nobody can separate a real problem from an
 imagined one.
 
-!! **You write exactly ONE file: the EDIT COPY you were handed, and you edit it in place.**
-That is your report, and it is the only exception. Nothing you find licenses a second one --
-not a summary beside it, not a note to the task agent, not a corrected copy of a paragraph. ! **If
-your edit copy does not reach you, say so and stop.** Reporting in prose instead is the
+!! **You write exactly ONE file: the EDIT COPY you were handed, and `mark` fills it for you,
+one ruling per invocation.** That is your report, and it is the only exception. Nothing you
+find licenses a second one -- not a summary beside it, not a note to the task agent, not a
+corrected copy of a paragraph, **and not a script of your own to fill the copy**: the command
+below is that script, and a helper you write beside it is the second file this rule forbids.
+! **If your edit copy does not reach you, say so and stop.** Reporting in prose instead is the
 failure this shape exists to end: it goes to a parser that has to guess where each field ends,
 which is where every boundary defect this system has paid for came from.
 
@@ -46,7 +48,9 @@ Your packet names two files on disk, each by absolute path: the BINDER -- every 
 each paragraph with its address and the mechanical resolutions for it -- and your EDIT COPY,
 which carries one slot per paragraph that HOLDS PROSE, each with that paragraph's text. Read
 both from those paths; none of it is in this prompt. **Read the copy start to finish and fill
-EVERY slot.**
+EVERY slot**, one `mark` invocation per slot -- a `clean` as much as a `correct`. !! **THERE IS
+NO WAY TO ANSWER SEVERAL SLOTS AT ONCE, and that is the point:** each slot is a paragraph you
+are certifying you considered under your remit, so each is its own ruling.
 
 **You may read your own draft.** `proof --copy <EDIT COPY from your packet> --repo <REPO ROOT>
 --out <a directory that does not exist yet>` pulls a copy of the tree with your marks set on
@@ -94,8 +98,8 @@ is and who owns it. ! **What is ruled out is RULING on it**, not seeing it.
 
 **You are handed one SHEET per file, and one slot per prose paragraph on it.** The sheet names
 the file once, in `path`; each slot already carries the three things the tool knows -- the
-`address` it is, the `anchor` it sits on, and the paragraph's `raw_text` -- and you set the
-fields that are yours:
+`address` it is, the `anchor` it sits on, and the paragraph's `raw_text` -- and `mark` sets the
+fields that are yours. This is a filled slot:
 
 ```json
 { "role": "block-context",
@@ -118,11 +122,46 @@ fields that are yours:
           "change":  "# Kept because 31 callers want this, all of them in tests/.\n# Narrowing it means re-deriving the clamp bounds." } ] } ] }
 ```
 
+### One ruling, one invocation
+
+**You do not edit the JSON.** You decide a ruling, and `mark` places it on the slot -- from
+the repo root, one invocation per ruling:
+
+```bash
+python <skill>/scripts/comment-review.py mark --edit-copy <EDIT COPY from your packet> --repo <REPO ROOT> \
+  --address <the slot's address> --instruction correct \
+  --false "the clause as it stands" --true "the clause as it should read" \
+  --reason "what you derived, and why the claim is wrong" \
+  --cite path:line --ran "the command that settled it"
+```
+
+- **The claim's keys are flags by name** -- `--false --true` for a `correct`, `--from --to`
+  for a `patch` or a `move`, `--drop`, `--missing --anchor` for an `add`, `--shape
+  --attempted --settles` for a `query`. A flag the instruction does not carry is refused by
+  name, and a missing one is named, so the refusal tells you the contract.
+- **`change` is built for you** where the instruction quotes a clause -- `correct`, `patch`,
+  `drop` -- by substituting that clause inside the slot's own `raw_text`. So the clause you
+  quote must sit in the paragraph EXACTLY ONCE: it is one statement, and a clause found twice
+  or nowhere is refused. `add` and `move` quote nothing, so they take `--change`.
+- **A source is `--cite path:line`**, repeatable. `--verbatim` and `--ran` each bind to the
+  `--cite` before them. Leave `--verbatim` off and the cited line is read out of the file
+  for you; give it only where the text you mean is not that line.
+- **A value that spans lines is a file.** Spell it `@path` and the command reads that file --
+  a clause that wraps a comment line, a `change` for an `add`. Write the file with your
+  file-write tool. A one-line clause goes inline.
+- **A second ruling on the same paragraph is a second invocation** with the same `--address`;
+  it lands beside the first, carrying the same `anchor` and `raw_text`.
+- **An `add` on an empty place has no slot**, so its invocation carries `--anchor-line`, the
+  line of code the addresser printed for that place, and the slot is created.
+
+`mark` refuses exactly what the fold would refuse, and writes nothing when it does. Read the
+reasons and run it again.
+
 !! **THE THREE OUTER KEYS ARE NOT DECORATION, and the file you are handed already carries
 them.** `role` is the role this copy was seeded for, `read_from` is the tree it was gathered
 from -- `revise` 0 is the original -- and `sha` is the bytes of the file your addresses were
-taken from. **Edit in place and leave all four alone**; the checker refuses a copy that comes
-back without `role` or `read_from`, and the `sha` is what proves nobody rewrote the file
+taken from. **`mark` leaves all four alone, and so do you**; the checker refuses a copy that
+comes back without `role` or `read_from`, and the `sha` is what proves nobody rewrote the file
 underneath your marks.
 
 ! **THE PLACE IS A CUE, NOT A FULL ADDRESS** -- `b47`, because the sheet above it already said
@@ -170,9 +209,9 @@ re-deriving it from a diff.
 is exactly what your edit does, and it must be the sentence your `claim` names. A mark that
 reasons about one sentence and rewrites another is refused, whichever of the two is right.
 
-!! **ONE mark's `change` makes ONE mark's edit.** If you rule twice on one paragraph, write
-TWO marks with the same `address`, under the same sheet, each showing that paragraph with ITS OWN
-change and no other. Do not
+!! **ONE mark's `change` makes ONE mark's edit.** If you rule twice on one paragraph, run
+`mark` TWICE with the same `--address`, so the copy holds two marks under the same sheet, each
+showing that paragraph with ITS OWN change and no other. Do not
 hand in the paragraph fully fixed twice: composing is the copy chief's job, and it cannot compose
 marks that have already been merged.
 
@@ -210,8 +249,9 @@ defect in a sentence your `claim` does not name, write a SECOND MARK on that par
 
 **An `add` cites the EMPTY PLACE the prose belongs in**, because its finding is that a
 constraint holds in code and appears in NO prose. Empty places get no seeded slot -- they are
-addressable, not accountable -- so **append a new mark carrying that place's ADDRESS.** Read
-it as being about that place, not about a neighbour.
+addressable, not accountable -- so **run `mark` with that place's ADDRESS and the
+`--anchor-line` the addresser printed for it**, and the slot is created. Read it as being
+about that place, not about a neighbour.
 
 !! **ASK FOR THE ADDRESS. DO NOT COUNT.** A row like `2-9  @b12..b19  48-58  no-prose  0L
 8-intervals` hides eight numbered gaps, and counting them is how a citation lands one place off.
