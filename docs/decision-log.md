@@ -3548,3 +3548,32 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What follows.** SKILL.md stage 4's *ONE message* paragraph is rewritten to say the isolation
   comes from the topology and the copies -- filed on
   [`agents-files-name-the-new-cli`](../TODO/agents-files-name-the-new-cli.md), the agents lane's.
+
+- **#103.** **A ROLE PLACES A MARK THROUGH `mark`, ONE INVOCATION PER RULING: THE TEXT GOES
+  THROUGH A FILE, EVERYTHING ELSE THROUGH FLAGS** (Roy, 2026-09-07, on being shown a design that
+  had the role write a marks file for the command to read: *"Can we just tell the cli which file
+  to read for the text? And leave everything else in the cli pieces?"*).
+
+  **What it settles.** The 2026-08-17 ruling -- a role edits a seeded template with its
+  file-write tool, and calls no CLI per record, because no multi-line value passes through a
+  shell -- was read as forbidding a fill command outright. It forbids the TEXT crossing the
+  shell, not the command: a value spelled `@path` is read from that file, so a clause that wraps
+  a comment line and a `change` that is a whole paragraph never cross it, while the address, the
+  instruction, the claim's keys and a cite are ordinary flags. And the quoted clause is one
+  statement -- Roy, the same day: *"a false clause is one statement not multiple paragraphs"* --
+  so the inline form covers the ordinary case, and a clause the paragraph holds twice or nowhere
+  is refused rather than guessed at.
+
+  **What it is for.** MEASURED over the runs of 2026-09-06 and 2026-09-07: every role wrote a
+  Python helper to fill its copy -- find the slot by address, substitute the false clause inside
+  `raw_text`, append a second entry for a second ruling -- and each disclosed it, because the
+  brief says a role writes exactly one file. The helper is what kept `claim` and `change` from
+  drifting. Roy: *"we should have made a script that fills it in for them."*
+
+  **And no bulk pass, on the same day.** A flag that marked every slot still null `clean` was
+  drafted as `--clean-rest` and refused: *"It invites skipping reviewing each paragraph and
+  regardless of the role. Each should have to certify that it has considered that paragraph as
+  its role in respect to its remit."* There is no way to answer several slots at once, and the
+  brief says why. The wider half of that -- a `clean` owes no reason today, so nothing in the
+  contract records the consideration -- is filed as T7 of
+  [`reviewer-prose-is-rules-not-guidance`](../TODO/reviewer-prose-is-rules-not-guidance.md).
