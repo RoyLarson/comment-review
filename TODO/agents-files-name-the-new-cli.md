@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 9 of 15 tasks closed
+Progress: 9 of 16 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -62,3 +62,6 @@ The agents files name the new CLI and say how to use it.
 - [x] T15 | FINISHED; the brief says a role may read its own draft with proof --copy | 70965ff4 | Update
       reviewer-brief.md so a role knows it may set its own edit copy with proof
       --copy and read the draft that pulls.
+- [ ] T16 | Update SKILL.md 1.9 so the split per role is sized from the binder's
+      place count, not fixed at one.
+        > 2026-09-07 2026-09-06: 888 places per role over 71 pages exhausted a session.

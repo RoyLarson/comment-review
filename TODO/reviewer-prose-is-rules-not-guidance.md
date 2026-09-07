@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks closed
+Progress: 0 of 5 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-06 (Roy, 2026-09-06, on reading the ownership-context agent file and
@@ -28,3 +28,6 @@ The reviewer prose is rules and punishments, not guidance toward a good result.
 - [ ] T4 | Measure the rewrite on the same target as the 2026-09-06 run: the
       same binder, the four copies compared to that run's.
         > 2026-09-06 Copies of that run: the scratchpad run-2026-09-06 directory.
+- [ ] T5 | Update the brief so a role does not fork itself into sub-agents
+      writing part files outside its one copy.
+        > 2026-09-07 2026-09-06: all four roles forked; 0 of 3,552 slots reached a copy.
