@@ -3633,3 +3633,29 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `flows/revise.assert_addresses_held`, which asks the same question over the address SET and
   already binds both sides fresh, become one check is open. The design is
   [`design/results/README.md`](design/results/README.md).
+
+- **#105.** **ANY LANE MAY WRITE TO `docs/design/`, AND WHAT GOES THERE IS INTENT AND
+  UNDERSTANDING RATHER THAN RULES** (Roy, 2026-09-07, on the first design file written under
+  that folder: *"Any lane upon clarification and explanation can write to docs/design/ as long
+  as it is design intent and understanding not RULES and !!!!YELLING and YOU CANNOT and MUST NOT
+  and all of the other subjective nonsense you like to put in things"*).
+
+  **What it settles.** `docs/design/` belongs to no lane, and a lane that clarifies a piece
+  writes the clarification there without asking. It joins the short list of files owned by
+  nobody, beside the vocabulary and the two records -- `lanes.md`'s *Owned by no lane* table.
+
+  **And the register is the condition, not a preference.** A design file says what a piece is,
+  how it works and why it is that way. It does not carry rules, `!!` prefixes, capitalised
+  sentences, or a prohibition addressed to the reader. Where a rule belongs somewhere else --
+  `conventions.md`, `CLAUDE.md`, a reference under the skill -- the design file cites it rather
+  than restating it in the imperative.
+
+  **What it is for.** MEASURED the same day, on the file that prompted this. The first
+  `docs/design/results/README.md` carried three `!!` prefixes, two capitalised sentences and a
+  *"must not be reported as if it were"* -- written an hour after the same session had removed
+  an invented prohibition from `reviewer-brief.md` for the same fault. The register is what
+  separates a design doc from a rules file, and without it the folder becomes a second place
+  rules live and disagree with the first.
+
+  **What follows.** `docs/lanes.md` gains a `docs/design/**` row under *Owned by no lane*, and
+  the file above was rewritten in the register on the day it was ruled.

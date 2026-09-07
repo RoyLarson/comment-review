@@ -55,6 +55,7 @@ regression test there is how a backend defect ends up waiting on a lane that own
 | `src/comment_review/references/vocabulary.toml` | **shared** -- see conventions, *The vocabulary is shared* |
 | `docs/vocabulary.md` | shared, same rule |
 | `docs/history.md`, `docs/decision-log.md` | written by whoever received the ruling |
+| `docs/design/**` | any lane, on clarifying a piece -- **intent and understanding, never rules or prohibitions**; `decision-log.md Process: #105` |
 | `TODO/**` -- FILING one | filed by whoever found the thing, in whatever lane owns it |
 | `CLAUDE.md`, `README.md`, `docs/lanes.md`, `docs/conventions.md` | repo-wide; changing a rule is a decision, not a lane's edit |
 
