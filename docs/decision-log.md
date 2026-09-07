@@ -3659,3 +3659,29 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **What follows.** `docs/lanes.md` gains a `docs/design/**` row under *Owned by no lane*, and
   the file above was rewritten in the register on the day it was ruled.
+
+- **#106.** **The exclamation marks and shouted capitals go by attrition, with no gate**
+  (Roy, 2026-09-07, on being shown the size of the backlog: *"We will leave that alone at this
+  time. Every edit from here on out will reduce those uses until they will be gone."*).
+
+  **What it settles.** No test refuses them, and none is wanted yet. A file loses them when
+  something else brings a session into it, and the count only falls.
+
+  **What makes that one-directional rather than a hope.** `~/.claude/hooks/emphasis-guard.py` is
+  a `PreToolUse` hook on `Write` and `Edit` that refuses a `.md` or `.txt` write introducing
+  either shape, judging the text the write puts down rather than the file on disk. So new ones
+  cannot land in prose while the old ones drain. It refused the first draft of this very entry,
+  over its capitalised headline.
+
+  **The backlog on the day this was ruled**, so a later session can tell whether it is falling
+  rather than re-deriving it: over 538 tracked `.md`, `.py`, `.toml` and `.json` files outside
+  `corpora/`, `plugins/` and `prototype/`, **5,286 lines opening with a bang and 8,833 runs of
+  two or more capitalised words**. By area, the bang lines are `src` 1,636, `docs` 1,233,
+  `TODO` 1,085, `tests` 436, `evidence` 311, `docs/plans` 301, the rest 284. Only 116 of the
+  capitalised runs were written by `job-board` rather than by hand.
+
+  **That count is looser than the hook's own rule and reads high.** The hook masks fenced
+  blocks, inline code spans and the quoted-attribution form before it looks, and it takes three
+  consecutive capitalised words rather than two. The number above did none of that. Anyone
+  wanting the real figure runs the hook's `offences()` over the tree rather than a fresh regex,
+  since a second definition of the same rule is two that disagree in silence.
