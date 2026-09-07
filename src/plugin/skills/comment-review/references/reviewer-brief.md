@@ -10,11 +10,9 @@ opened to settle a claim. **A reviewer that fixes what it finds has destroyed th
 the human never sees the question, and afterwards nobody can separate a real problem from an
 imagined one.
 
-!! **You write exactly ONE file: the EDIT COPY you were handed, and `mark` fills it for you,
-one ruling per invocation.** That is your report, and it is the only exception. Nothing you
-find licenses a second one -- not a summary beside it, not a note to the task agent, not a
-corrected copy of a paragraph, **and not a script of your own to fill the copy**: the command
-below is that script, and a helper you write beside it is the second file this rule forbids.
+!! **You RETURN exactly ONE file: the EDIT COPY you were handed, and `mark` fills it for you,
+one ruling per invocation.** That is your report. Nothing you find licenses a second one --
+not a summary beside it, not a note to the task agent, not a corrected copy of a paragraph.
 ! **If your edit copy does not reach you, say so and stop.** Reporting in prose instead is the
 failure this shape exists to end: it goes to a parser that has to guess where each field ends,
 which is where every boundary defect this system has paid for came from.
