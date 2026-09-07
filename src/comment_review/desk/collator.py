@@ -182,11 +182,15 @@ def claim_verbatim_problems(where: str, mark: Mark, base: str) -> list[str]:
     return []
 
 
-def _cite_at(cite: str) -> tuple[str, int] | None:
+def cite_at(cite: str) -> tuple[str, int] | None:
     """`path:line` split at the LAST colon, or None where it is not that form.
 
     ! THE LAST COLON, so a path carrying one of its own -- a Windows drive,
     `C:/pkg/mod.py:12` -- keeps it and only the line number is taken off.
+
+    ! PUBLIC SINCE 2026-09-07: `flows.fill` reads the cited line to fill a
+    source's `verbatim`, and it has to split the cite the way this check does
+    or the two would disagree about which line was cited.
 
     Returns:
         `(path, lineno)`, or None for an empty path, a line that is not
@@ -272,7 +276,7 @@ def source_problems(where: str, mark: Mark, root: Path, cache: Cache) -> list[st
         verbatim = source.get("verbatim")
         if not filled(cite):
             continue
-        parsed = _cite_at(cite)
+        parsed = cite_at(cite)
         if parsed is None:
             out.append(f"{at}: `cite` {cite!r} is not `path:line`")
             continue
