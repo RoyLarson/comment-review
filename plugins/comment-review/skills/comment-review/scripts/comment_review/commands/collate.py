@@ -21,6 +21,7 @@ import sys
 from pathlib import Path
 
 from comment_review.desk.proof import MismatchedRoot
+from comment_review.desk.topology import read as read_topology
 from comment_review.flows.collate import CannotCollate, collate
 from comment_review.flows.proof_io import (
     load_binder,
@@ -173,6 +174,12 @@ def main() -> int:
         help="one role's returned edit_copy; repeat for each",
     )
     ap.add_argument("--out", required=True, help="where to write the chief's edit_copy")
+    ap.add_argument(
+        "--topology",
+        metavar="PATH",
+        help="the run's topology; with it, a dispatch of --stage that returned"
+        " no copy is reported in the coverage list",
+    )
     # !! THE ROOT SOURCE VERIFICATION RESOLVES A `cite` AGAINST -- `P25`. It
     # defaults to the binder's own `read_from.root`, which is the tree the
     # copies were gathered from and therefore the one their citations were
@@ -223,8 +230,23 @@ def main() -> int:
     # says, so it is a fallback rather than a guess.
     root = Path(args.repo) if args.repo else binder.root
 
+    # ! THE TOPOLOGY IS OPTIONAL HERE AND THE STAGE LABEL IS NOT: without a
+    # topology the fold still runs, and only the count of dispatches owed is
+    # unknown (`P26`).
+    dispatches = None
+    if args.topology:
+        stages, why = read_topology(Path(args.topology).read_text(encoding="utf-8"))
+        if why:
+            return _refused([why])
+        dispatches = next((s for s in stages if s.name == args.stage), None)
+        if dispatches is None:
+            known = ", ".join(s.name for s in stages)
+            return _refused(
+                [f"stage {args.stage!r} is not in the topology -- it holds: {known}"]
+            )
+
     try:
-        got = collate(args.stage, copies, binder, root)
+        got = collate(args.stage, copies, binder, root, dispatches=dispatches)
     except CannotCollate as refusal:
         # !! THE ROUTABLE PROBLEMS GO OUT FIRST, THEN THE REFUSAL. A refusal
         # says the SET cannot be folded; it says nothing about the marks the

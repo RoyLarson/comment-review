@@ -76,7 +76,47 @@ and rust (`startraders`, 2026-08-17).
 
 ## [Unreleased]
 
+## [0.2.4-beta.2] -- 2026-09-06
+
+A pre-release for the live runs on the two personal repos, cut from the agents branch.
+Decision log `Process: #98` to `#101` and `Vocabulary: #35` are this cut's rulings.
+
+### Added
+
+- **`scripts/release.py` assembles `plugins/`** from `src/plugin/` (the agent files, `SKILL.md`,
+  the references and `plugin.json`, in the plugin's own shape) and `src/comment_review/`. It
+  deletes the plugin and rebuilds it, and runs at release only. `plugins/` is output; nothing
+  under it is written by hand.
+- **The `topology` command** -- `--verify T --binder B` says whether a topology fits a binder on
+  fan-out's two guards; `--build` writes one that fits by construction. `distribute --topology
+  --stage` seeds one edit copy per dispatch, the topology's reader (`Process: #74`), and
+  `collate --topology` reports a dispatch that returned no copy. `SKILL.md` 1.9 builds and
+  verifies before a page is read; the 0.2.4 topology is one stage, four roles, one revise
+  (`#101`). A glob that matches no page is not a fault (`#100`).
+- **`tests/gates/test_vocabulary_gate_bites.py`** -- the suite runs the vocabulary gate, and
+  each of its four checks is proved able to fail. The retired-word scan now sees a retired noun
+  inside an identifier.
+
 ### Changed
+
+- **The listing is retired** (`Process: #99`). `gather` writes the binder and nothing else; a
+  reviewer is handed the binder and its seeded edit copy, and the brief opens with *Read your
+  edit copy end to end*. The seed no longer hands out the file's own matter (`f` series), and
+  the coverage count and the seed read one definition of the places a role is handed.
+- **`block` is two senses** (`Vocabulary: #35`): live for the code symbols that map enclosed
+  lines to a series -- `block_comment`, `doc_block`, `in_block` -- and retired as the noun for
+  a paragraph. `nxt_block` is `nxt_b`.
+- **The brief says a role may read its own draft** with `proof --copy` (`#98`), and the
+  addresser lookup is spelled `--file --line`, as its parser takes it.
+- **The per-change build gate is gone.** `tests/gates/test_build.py` and the build script's
+  `--check` reddened every branch until the build was run; `plugins/` lags between releases.
+
+### Removed
+
+- `block_text`, `docstring_text` and `_from_marker` in the lexer -- no caller since the desk
+  moved to `prototype/`.
+
+### Changed, earlier and unreleased until now
 
 - **Renamed, 2026-08-23** (`3f661d6`). No behaviour changed: the corpus round trip returned the
   same three numbers over the same 3,153 files before and after. Why each word moved is in

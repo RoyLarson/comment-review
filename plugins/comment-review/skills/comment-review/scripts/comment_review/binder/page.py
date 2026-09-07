@@ -98,7 +98,7 @@ WIRE_FIELDS = ("cue", "anchor", "original_start", "original_end", "raw_text")
 #
 # !! THE QUESTIONS ARE ASKED OF `Kind`, AND THIS MODULE KEEPS NO SET. There are
 # TWO of them and they are not the same question: `Kind.holds_no_prose` is what
-# a listing, a count or a record asks, and `Kind.occupies_no_lines` is what
+# a count or a record asks, and `Kind.occupies_no_lines` is what
 # `code_lines` asks. ! They part on exactly `leading`, which holds no prose and
 # DOES stand on real lines -- so answering the second with the first takes a
 # blank run out of `occupied`, reads it as CODE, and renumbers every `b` and
@@ -216,7 +216,7 @@ class Page:
 
         ! IT WAS NAMED AS A SERIES HERE, `not in (COVERS, LEAD)`, and that stopped
         working the moment leading gave up its address: `series_of` reads the
-        address, so a `d` answered `""` and passed a filter listing letters.
+        address, so a `d` answered `""` and passed a filter naming letters.
         Requiring an ADDRESS says the same thing without a list to keep current
         -- a paragraph that names no place is owed no record.
         """
@@ -1289,8 +1289,8 @@ def fill_the_gaps(text: str, paragraphs: list[Paragraph]) -> None:
                 recut(b)
             continue
         here[0].start = free[0]
-        for a, nxt_block in zip(here, here[1:], strict=False):
-            a.end = nxt_block.start - 1
+        for a, nxt_b in zip(here, here[1:], strict=False):
+            a.end = nxt_b.start - 1
         here[-1].end = free[-1]
         owned = set(free)
         for b in here:

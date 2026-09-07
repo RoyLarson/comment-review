@@ -64,6 +64,7 @@ wrote it while the rest of the stage settles.
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from comment_review.binder.addresses import handed
 from comment_review.binder.binder import Binder
 from comment_review.desk.collator import (
     Cache,
@@ -71,7 +72,6 @@ from comment_review.desk.collator import (
     Problem,
     base_texts,
     drift_in,
-    known_addresses,
     places,
     reconcile,
     tally,
@@ -85,6 +85,7 @@ from comment_review.desk.containers import (
 from comment_review.desk.determined import Answer, Determined
 from comment_review.desk.mark import Instruction, Mark, Shape, filled
 from comment_review.desk.proof import MismatchedRoot, master_proof_of
+from comment_review.desk.stages import Stage
 from comment_review.flows.mark_errors import Revisit, mark_errors
 from comment_review.reading.addresser import cue_of, unflatten
 from comment_review.results.differences import CannotCompose, compose
@@ -702,7 +703,9 @@ def _coverage_problems(edit_copies: list[EditCopy], binder: Binder) -> list[Prob
     ! AN EMPTY BINDER YIELDS NOTHING. There is no address to be missing, and a
     run over one is what `tests/test_brief_worked_example.py` drives.
     """
-    known = known_addresses(binder)
+    # ! THE PLACES A ROLE WAS HANDED, not every address the binder carries --
+    # `binder.addresses.handed` is the one definition, and the seed reads it too.
+    known = frozenset(b.address for b in handed(binder.paragraphs))
     if not known:
         return []
     # !! ALL THREE KINDS COUNT AS CARRIED, and that is the whole point of this
@@ -756,12 +759,40 @@ def _coverage_problems(edit_copies: list[EditCopy], binder: Binder) -> list[Prob
     return out
 
 
+def _stage_problems(dispatches: Stage, edit_copies: list[EditCopy]) -> list[Problem]:
+    """One `Problem` per role that returned fewer copies than the stage dispatched.
+
+    ! STAGE COVERAGE, as against shard coverage. `_coverage_problems` asks
+    whether a copy that came back carries the addresses it was handed; this
+    asks whether every dispatch the topology named came back AT ALL. A role
+    dispatched twice under fan-out that returned once leaves nothing behind to
+    be short -- only the topology knows a second copy was owed (`P26`).
+    """
+    returned: dict[str, int] = {}
+    for copy in edit_copies:
+        returned[copy.role] = returned.get(copy.role, 0) + 1
+    owed: dict[str, int] = {}
+    for dispatch in dispatches.dispatches:
+        owed[str(dispatch.role)] = owed.get(str(dispatch.role), 0) + 1
+    return [
+        Problem(
+            role,
+            "",
+            f"stage {dispatches.name}: {role} returned {returned.get(role, 0)}"
+            f" of {want} dispatches",
+        )
+        for role, want in owed.items()
+        if returned.get(role, 0) < want
+    ]
+
+
 def collate(
     stage: str,
     edit_copies: list[dict],
     binder: Binder,
     root: Path,
     turn: int = 0,
+    dispatches: Stage | None = None,
 ) -> Collated:
     """One stage's returned copies, checked, reconciled and folded.
 
@@ -780,6 +811,9 @@ def collate(
         turn: which turn of the stage's collate this is -- 0 for the first
             fold, `flows.turn.run_turn`'s count after. Every `stet` this fold
             records carries it (`Process: #87`).
+        dispatches: the stage as the topology declares it, when the caller
+            has one. A dispatch that returned no copy is then reported in
+            `coverage`; without it nothing can know a copy was owed.
 
     Returns:
         A `Collated`.
@@ -881,6 +915,8 @@ def collate(
         )
 
     coverage = _coverage_problems(copies, binder)
+    if dispatches is not None:
+        coverage += _stage_problems(dispatches, copies)
 
     # ! ONE CACHE FOR THE WHOLE STAGE, not one per copy. Roles cite the same
     # evidence, and a cache built inside `verify_report` re-read a file once per

@@ -63,8 +63,8 @@ class Gathering:
     """One gather, at whatever step of `STEPS` it has reached.
 
     ! THE GAPS ARE LISTS OF REASONS, NOT RAISES. A file that cannot be read is
-    named in `unreadable` and the command decides the exit code, so the text
-    listing and the `--json` emit refuse on one record rather than two.
+    named in `unreadable` and the command decides the exit code, so the emit
+    refuses on one record rather than the walk raising mid-way.
 
     ! `binder` IS SET BY THE LAST STEP AND HAS NO DEFAULT. Reading it before
     the chain has run is an `AttributeError`, which is the honest answer; a
@@ -116,8 +116,8 @@ def _walk(g: Gathering) -> None:
 def _pages(g: Gathering) -> None:
     """One page per file in scope, or the reason there is none."""
     # !! THE PAGES ARE KEPT, NOT ONLY THEIR PARAGRAPHS. A binder names the file
-    # ONCE PER PAGE and the rows sit under it, so the bind needs the page --
-    # while the LISTING still numbers one flat run. Both are built from this
+    # ONCE PER PAGE and the rows sit under it, so the bind needs the page, and
+    # `paragraphs` is the same rows as one flat run. Both are built from this
     # same walk, which is what stops the two disagreeing about what was
     # gathered.
     for path in g.files:
@@ -197,8 +197,8 @@ def _pages(g: Gathering) -> None:
         # stdout reported a complete run.
         #
         # ! IT JOINS `unreadable`, which is what makes it as loud as the decode
-        # failure: named on both the `--json` path and the text one, and exit
-        # 1 from either. The reader's own message is the reason, so the file
+        # failure: named on stderr, and exit 1. The reader's own message is the
+        # reason, so the file
         # says WHY it could not be read rather than merely that it was skipped.
         refused = next((b for b in got.paragraphs if b.kind == "unparsed"), None)
         if refused is not None:
@@ -296,8 +296,8 @@ def carried(page: Iterable[Paragraph]) -> list[Paragraph]:
     arrived as a row whose `address` was `""`, and every consumer downstream had
     to test for that blank to discover the row was never a place.
 
-    ! MEASURED, before this: `gather --json` over a ten-line file emitted THREE
-    such rows, and the listing printed them as `@` with no cue after it. Over
+    ! MEASURED, before this: `gather` over a ten-line file emitted THREE
+    such rows, and the report printed them as `@` with no cue after it. Over
     this repo's own `src/`, 422 of 9,459 paragraphs -- every one leading.
 
     ! THE PAGE KEEPS THEM. A fence still has to be set back, so `Page.leading`
@@ -341,7 +341,7 @@ def unaddressed_report(missing: list[str]) -> str:
     """What to say about a gather whose paragraphs cannot be cited.
 
     ! It names them rather than counting them: a reader has to know WHICH file
-    to look at, and the count alone sends them through the whole listing.
+    to look at, and the count alone sends them through the whole binder.
     """
     rows = "\n".join(f"  {line}" for line in missing)
     plural = "paragraph" if len(missing) == 1 else "paragraphs"
@@ -353,14 +353,14 @@ def unaddressed_report(missing: list[str]) -> str:
 
 
 def not_gathered(files: list[Path], unreadable: list[str]) -> str:
-    """The refusal, worded ONCE for both output modes.
+    """The refusal, worded once.
 
     !! The reviewers are handed the binder, so a file missing from it is
-    paragraphs nobody reviews and nothing downstream notices. `--json` used to
-    return 0 with a SHORT array on exactly the input the text path refused --
-    and `--json --out` is the route `SKILL.md` mandates for the binder stage 5
-    parses, so the coverage check then certified every paragraph accounted for
-    over paragraphs that were never collected.
+    paragraphs nobody reviews and nothing downstream notices. The emit used to
+    return 0 with a SHORT array on exactly this input -- and `--out` is the
+    route `SKILL.md` mandates for the binder stage 5 parses, so the coverage
+    check then certified every paragraph accounted for over paragraphs that
+    were never collected.
     """
     listed = "\n".join(f"    {u}" for u in unreadable)
     return (

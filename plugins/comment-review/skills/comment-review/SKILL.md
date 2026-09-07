@@ -22,7 +22,7 @@ Structure and fact first, then truth, then fit, then the page.
 | # | stage | who acts | what exists at the end of it |
 |---|---|---|---|
 | 1 | **PROJECT DETERMINATION** | task agent | language, doc convention, cap and width, project rules, style sheet, and where the name corpus will come from |
-| 2 | **GATHER** | `gather` | every page in scope bound into one BINDER -- each comment run and docstring a paragraph with its address -- and the listing a reviewer reads |
+| 2 | **GATHER** | `gather` | every page in scope bound into one BINDER -- each comment run and docstring a paragraph with its address |
 | 3 | **FIND REFERENCES** | `gather` | every reference each paragraph makes, resolved -- paths, symbols, counts |
 | 4 | **MARK** | 4 reviewers, ONE message | one filled `edit_copy` per role, checked. Read-only, nothing under the repo written |
 | 5 | **COLLATE and CAP** | `collate`, then the task agent as **copy chief** | the copies folded; what they agreed on stands, what they did not is ruled at the cap; the chief's `edit_copy` holds one mark per resolved place with its **full-length** text |
@@ -315,6 +315,27 @@ skip directories holding `pyvenv.cfg`; never harvest string constants from tests
 (`assert "x" not in y` makes a dead name read alive); exclude `.md`/`.txt`; resolve a dotted
 name on its **head** segment only.
 
+**1.9 Build the topology and prove it fits, before any page is read.** The topology says
+which stage dispatches which role, in what order, and which role is split across how many
+shards; it is a determination, so it is decided here -- but it is proved against the binder,
+so in time these two commands run right after stage 2 writes `binder.json`:
+
+```bash
+python <skill>/scripts/comment-review.py topology --build --binder <run-dir>/binder.json --out <run-dir>/topology.toml \
+  --stage 4=ownership-context,block-context,function-context,module-context
+python <skill>/scripts/comment-review.py topology --verify <run-dir>/topology.toml --binder <run-dir>/binder.json
+```
+
+That is this release's topology: one stage, the four roles over every page, one revise. A
+role split across shards (`block-context/2`) and a second stage reading the first's revise
+(`--stage 4a=... --stage 4c=...`) are shapes the file can express and a later release may
+turn to. `--build` writes a topology that fits the binder by construction and verifies it;
+`--verify` alone checks one you already hold. **A run against an unverified topology is not a path these
+instructions offer.** A bad configuration costs nothing only when it is caught here: `--verify`
+exits 1 and names the stage, the kind -- a page two shards of one role claim, or a page no shard
+of a role reaches -- and the pages and globs involved. **The fix is to the topology, never to
+the tree.** A glob that matches no page is not a fault on its own; only a page nobody covers is.
+
 ## Stages 2-3 -- GATHER, then FIND REFERENCES
 
 ! `<skill>` below is the directory holding this SKILL.md -- take it from the absolute path you
@@ -322,27 +343,14 @@ were given. A relative one resolves against whatever directory you are in, which
 guaranteed to be the skill's.
 
 ```bash
-python <skill>/scripts/comment-review.py gather --json --repo . --out <run-dir>/binder.json <paths...>
-python <skill>/scripts/comment-review.py gather --repo . --filtered --out <run-dir>/listing.txt <paths...>
+python <skill>/scripts/comment-review.py gather --repo . --out <run-dir>/binder.json <paths...>
 ```
 
-!! **TWO FILES, AND THE SECOND IS THE ONE A REVIEWER IS HANDED.** The BINDER is the artifact
-every later command reads -- `distribute` seeds from it, `collate` folds against it, `proof`
-sets from it. The LISTING is the binder as a reviewer reads it: `--filtered` prints the
-paragraphs holding prose and collapses each run of places holding none into one line --
-`227-234  @c1..b7  122-129  no-prose  0L  2-intervals, 6-margins`. **Re-measured 2026-08-19 over
-6,828 paragraphs: 397,685 bytes to 159,316, and every reviewer gets an identical copy, so a
-four-role run saves 953,476.**
-
-!! **IT IS A PROJECTION, NEVER A RENUMBERING.** Every paragraph keeps the ADDRESS it holds in the
-binder, because that address is what the collator resolves and what a mark cites. ! The index
-in the first column is a READING AID for a human scanning the listing, and nothing cites it.
-
-!! **DO NOT SHIP THE FILTER WITHOUT A WAY TO NAME WHAT IT COLLAPSED.** A reviewer handed the
-listing can still see every gap, but the intervals inside a run are no longer numbered
-individually in front of it. A run NAMES ITS ENDS -- `@b7..b12` -- and `addresser --anchor`
-resolves any place in between, so every collapsed interval is still citable. Filtering without
-that is worse than not filtering.
+!! **ONE FILE, AND EVERYTHING DOWNSTREAM READS IT.** The BINDER is the artifact every later
+command reads -- `distribute` seeds each reviewer's copy from it, `collate` folds against it,
+`proof` sets from it. A reviewer is handed the binder and its own seeded copy, and nothing else
+is made for it: the copy carries each prose paragraph's text in its slot, and the binder is what
+the reviewer's `addresser` and `check` calls take.
 
 ### What a place is CALLED
 
@@ -364,7 +372,7 @@ separate addressers, and no number in one tells you a number in another -- nor d
 position tell you either.
 
 ```bash
-python <skill>/scripts/comment-review.py addresser --binder <run-dir>/binder.json --anchor LINE --series a|b|c|f
+python <skill>/scripts/comment-review.py addresser --binder <run-dir>/binder.json --file <path> --line LINE --series a|b|c|f
 python <skill>/scripts/comment-review.py addresser --binder <run-dir>/binder.json --resolve <ADDRESS>
 ```
 
@@ -376,8 +384,8 @@ alike. Choose by ADDRESS.
 one -- *"too complex to verify that it stays inside the worktree"* -- and the binder is what
 every later stage parses, so a redirect makes the run impossible there rather than merely awkward.
 
-! **The gather takes no cap and no width.** The cap belongs to stage 6, and the reviewers are
-handed the listing -- printing an over-cap count there puts it in front of the four roles that
+! **The gather takes no cap and no width.** The cap belongs to stage 6, and every reviewer's
+copy is seeded from the binder -- an over-cap count in it lands in front of the four roles that
 must never see it.
 
 !! **Most of the binder is empty places, and nobody owes them a mark.** Every gap between two
@@ -387,13 +395,8 @@ binder carries only the places holding prose unless `--include-absent` asks for 
 the collator computes coverage over what the binder carries. Re-measured 2026-08-19: the
 gather over its own command is 1,607 paragraphs, 118 of them prose.
 
-! The listing's `languages:` count is AGGREGATED across files, not per file -- on a polyglot run
-it says how many files each language claimed and never which file is which. Run it; do not
-re-derive its output by hand.
-
-! **Give both files a path unique to THIS run**, and hand the reviewers the listing. Two
-concurrent reviews sharing one scratch filename overwrite each other between writing and
-reading, and nothing downstream can tell.
+! **Give the binder a path unique to THIS run.** Two concurrent reviews sharing one scratch
+filename overwrite each other between writing and reading, and nothing downstream can tell.
 
 **A suffix the gather has no record for is named, and the gather EXITS NONZERO** -- every file
 handed in is gathered or the run stops, so a file that reaches a reviewer is reviewed like any
@@ -407,9 +410,9 @@ same paragraphs and differ only in what else they can say:
 | `tokenized` | a lexer + AST (Python: the stdlib) | paragraphs, annotations, **docstring** anchors | a **comment's** anchor |
 | `lexical` | a comment-syntax record, nothing else | paragraphs, annotations | any anchor; a marker inside an exotic string |
 
-!! **Carry the listing's CANDIDATE line into the proposal.** It prints that no comment
-carries an anchor at either tier, so every PLACEMENT instruction rests on a reviewer READING the
-file -- a judgement no field records and nothing downstream can check.
+!! **Say in the proposal that every placement is a CANDIDATE.** No comment carries an anchor
+at either tier, so every PLACEMENT instruction rests on a reviewer READING the file -- a
+judgement no field records and nothing downstream can check.
 
 **What it guarantees, and why the reviewers depend on it.** A paragraph is bounded by CODE, not
 blank lines (else 9 lines becomes 6+3 and passes). Its comment run is matched as ONE joined
@@ -433,10 +436,10 @@ one paragraph, however much or little that is.
 ```python
 variable_a = 1234
 
-# comment_block starts
+# paragraph starts
 # TODO: important thing in it
-# comment_block continues
-# comment_block ends
+# paragraph continues
+# paragraph ends
 result = foo_bar(variable_a)
 ```
 
@@ -482,8 +485,8 @@ and attach the answer to the paragraph -- not in stage 4, where four reviewers w
 it and could disagree.
 
 - **Anchor** -- `documentSymbol` on each file in scope returns every declaration and its line.
-  A run ending at line N-1 is ANCHORED to the declaration at line N. Attach it; the listing
-  prints anchors it has.
+  A run ending at line N-1 is ANCHORED to the declaration at line N. Attach it; the binder
+  carries the anchors it has.
 - **Liveness** -- for each `names-a-symbol` candidate, `workspaceSymbol` answers whether the
   name exists at all, in any language in the workspace. `findReferences` answers whether
   anything uses it, which is the stronger claim a comment usually makes.
@@ -538,21 +541,27 @@ still usable, and a reader has to know the overlap was not blind.
 
 Each already carries its own editorial role.
 
-**Seed each role's `edit_copy` before dispatching it** -- one file per role, named for the
-role, with a slot already laid down for every prose paragraph in the binder:
+**Seed every copy of a stage in one command, from the topology 1.9 verified** -- one file per
+dispatch, named `<stage>_<role>_<n>.json`, each with a slot already laid down for every prose
+paragraph on the pages that dispatch covers:
 
 ```bash
-python <skill>/scripts/comment-review.py distribute --seed --binder <run-dir>/binder.json \
-  --role ownership-context --out <run-dir>/copy_ownership-context.json
+python <skill>/scripts/comment-review.py distribute --topology <run-dir>/topology.toml --stage 4 \
+  --binder <run-dir>/binder.json --out-dir <run-dir>/copies
 ```
+
+It prints one line per file it wrote. **Each file is one dispatch, and one dispatch is one
+packet**: a role split two ways is two agents of that role, each handed its own copy. The
+stage's order comes from the topology and the topology's order from 1.9; you run this once per
+stage, and no command sequences the stages for you.
 
 !! **A REVIEWER FILLS A FORM; IT DOES NOT COMPOSE A DOCUMENT.** Each slot arrives carrying the
 `address`, the `anchor` and the paragraph's `raw_text`, with `instruction` null, and the
-reviewer sets the fields that are its own. **Hand each agent three absolute paths, and it reads
-from there: the BINDER, the LISTING and ITS copy**, and tell it to edit that copy in place.
-Those are the run's own files, not the installed plugin, and they are the exception to *given,
-never sent looking* below: a form and the sheets it is filled against, not a tree. Nothing from
-the three is pasted into the prompt.
+reviewer sets the fields that are its own. **Hand each agent two absolute paths, and it reads
+from there: the BINDER and ITS copy**, and tell it to edit that copy in place. Those are the
+run's own files, not the installed plugin, and they are the exception to *given, never sent
+looking* below: a form and the sheets it is filled against, not a tree. Nothing from the two is
+pasted into the prompt.
 
 ! **The seeded copy is why coverage is structural.** A paragraph nobody ruled on is a slot with
 a null instruction, not an address missing from a list, so nothing downstream reconciles what
@@ -569,15 +578,15 @@ think a file uses, and do not tell an agent where the vocabulary lives -- it is 
 not a path to go reading. ! Read it fresh from the installed toml every run, never from a copy
 staged on disk: a vocabulary one version stale reads perfectly plausible.
 
-!! **`LISTING` POINTS AT THE FILTERED FILE**, `listing.txt` from stage 2, and `BINDER` at
-`binder.json`. The listing is what a reviewer reads end to end; the binder is what its
-`addresser` and `check` calls take, and what stages 5 and 7 resolve every cited address
-against. A reviewer reads both from disk; neither is pasted into a prompt.
+!! **`BINDER` POINTS AT `binder.json` FROM STAGE 2.** A reviewer's copy carries each prose
+paragraph's text; the binder is what its `addresser` and `check` calls take, and what stages 5
+and 7 resolve every cited address against. A reviewer reads both from disk; neither is pasted
+into a prompt.
 
 **You also supply the run context as a PACKET, with every section filled and none blank** -- a
 published non-answer such as *"UNAVAILABLE"* is an answer and must be written; a blank is not.
-`REPO ROOT`, `LISTING`, `BINDER`, `EDIT COPY` and every `REVIEWER FILES` entry must be an
-**absolute path that exists**. The sections are: `REPO ROOT`; `LISTING`; `BINDER`; `EDIT COPY`,
+`REPO ROOT`, `BINDER`, `EDIT COPY` and every `REVIEWER FILES` entry must be an
+**absolute path that exists**. The sections are: `REPO ROOT`; `BINDER`; `EDIT COPY`,
 the one section that differs per role; `FILES UNDER REVIEW`; `REFERENCE ONLY`; the STYLE
 SHEET, templates included; whether a LANGUAGE SERVER answered, per language; the destination
 tree from 1.4, per path; and `REVIEWER FILES`, which is yours alone.
@@ -601,8 +610,8 @@ sentence in the wrong format is work the human has to redo by hand.
 !! **An agent is GIVEN what it needs, and is never sent looking.** A path into the installed
 plugin is an invitation to read its neighbours and act on what it finds there. Nothing from
 the installed plugin arrives as a path: the brief and the vocabulary are in the prompt. What
-does arrive as a path is the run's own files -- the binder, the listing and the role's copy --
-because those are what it reads and fills, and a listing is too large to paste four times.
+does arrive as a path is the run's own files -- the binder and the role's copy -- because those
+are what it reads and fills, and a binder is too large to paste four times.
 
 ! **REFERENCE ONLY is a SELECTION, not a leftover.** Name the files that settle claims code
 cannot: the repo's **decision record** (*"ruled"*, *"rejected"*, *"deferred"* have no code
@@ -616,7 +625,7 @@ disagreement with the mirror is itself a finding.
 **Check each copy when the agent returns**, before the fold:
 
 ```bash
-python <skill>/scripts/comment-review.py check --edit-copy <run-dir>/copy_<role>.json \
+python <skill>/scripts/comment-review.py check --edit-copy <run-dir>/copies/<stage>_<role>_<n>.json \
   --binder <run-dir>/binder.json --repo .
 ```
 
@@ -644,8 +653,9 @@ is the gate between MARK and the chief's ruling:
 
 ```bash
 python <skill>/scripts/comment-review.py collate --stage 4 --binder <run-dir>/binder.json --repo . \
-  --edit-copy <run-dir>/copy_ownership-context.json --edit-copy <run-dir>/copy_block-context.json \
-  --edit-copy <run-dir>/copy_function-context.json --edit-copy <run-dir>/copy_module-context.json \
+  --topology <run-dir>/topology.toml \
+  --edit-copy <run-dir>/copies/4_ownership-context_1.json --edit-copy <run-dir>/copies/4_block-context_1.json \
+  --edit-copy <run-dir>/copies/4_function-context_1.json --edit-copy <run-dir>/copies/4_module-context_1.json \
   --out <run-dir>/chief0.json --proof-out <run-dir>/proof0.json --batch-out <run-dir>/batch1.json
 ```
 

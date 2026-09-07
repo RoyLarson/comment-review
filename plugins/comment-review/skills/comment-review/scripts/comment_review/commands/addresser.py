@@ -139,7 +139,7 @@ def main() -> int:
         return _check(paragraphs)
 
     # !! ASKED, NOT RE-DERIVED -- the rule `_check` states below, which this
-    # listing was the one caller to break. It counted every entry with an empty
+    # report was the one caller to break. It counted every entry with an empty
     # address as UNPLACED, while `--check` on the SAME binder answered that
     # every paragraph was addressed. MEASURED 2026-08-22 on
     # `tests/fixtures/sample.py`: "3 entries could not be addressed", exit 1,
@@ -207,7 +207,7 @@ def _at_line(binder: Binder, file: str, line: int, series: str) -> int:
     filtered view and a filter is not the set of places a page has --
     `decision-log.md Process: #96`. The file is opened at the binder's root,
     the tree the binder was gathered from, so the line a role reads off the
-    listing is the line this takes.
+    binder is the line this takes.
 
     ! EACH LINE PRINTED SAYS WHETHER THE BINDER HOLDS THE PLACE. `HELD` means a
     row was seeded there; `ABSENT` means the filter dropped it as holding no

@@ -2,8 +2,16 @@
 
     comment_review distribute --shape
     comment_review distribute --seed --binder B.json --role block-context --out F.json
+    comment_review distribute --topology T.toml --stage 4c --binder B.json --out-dir DIR
 
-The work is `flows.distribute` and `desk.mark`; this is only the console face of it.
+The work is `flows.distribute`, `flows.fan_out` and `desk.mark`; this is only the
+console face of it.
+
+!! `--stage` IS THE TOPOLOGY'S READER -- `decision-log.md Process: #74`. One
+invocation reads one stage's dispatches out of the topology and writes one
+seeded edit copy per dispatch, in dispatch order, as `DIR/<stage>_<role>_<n>.json`.
+The task agent reads the ORDER of the stages from SKILL.md and runs this once
+per stage (`#73`); no command sequences them.
 
 !! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
 A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`.
@@ -22,8 +30,14 @@ from pathlib import Path
 
 from comment_review.desk.mark import allowed
 from comment_review.desk.stages import ROLES
+from comment_review.desk.topology import read as read_topology
 from comment_review.flows.distribute import seed
+from comment_review.flows.fan_out import OverlappingShards, UncoveredPage, fan
 from comment_review.flows.proof_io import load_binder
+
+# ! Bound to a name: a tuple literal in an `except` is what a newer formatter
+# rewrites into a form the floor interpreter cannot parse.
+FAN_REFUSALS = (OverlappingShards, UncoveredPage)
 
 
 def _as_json(payload: dict) -> str:
@@ -62,6 +76,11 @@ def main() -> int:
         help="the editorial role (--seed only)",
     )
     ap.add_argument("--out", help="the file to write (--seed only)")
+    ap.add_argument("--topology", help="the run's topology file (--stage only)")
+    ap.add_argument("--stage", help="the stage to seed, by its name in the topology")
+    ap.add_argument(
+        "--out-dir", help="where one copy per dispatch is written (--stage only)"
+    )
     args = ap.parse_args()
 
     if args.shape:
@@ -88,6 +107,48 @@ def main() -> int:
         Path(args.out).write_text(_as_json(edit_copy), encoding="utf-8", newline="")
         places = sum(len(sheet["marks"]) for sheet in edit_copy["sheets"])
         print(f"{args.out}: {places} places for {args.role} to rule on")
+        return 0
+
+    if args.stage:
+        missing = [n for n in ("topology", "binder", "out_dir") if not getattr(args, n)]
+        if missing:
+            wanted = ", ".join("--" + n.replace("_", "-") for n in missing)
+            print(f"--stage needs {wanted}", file=sys.stderr)
+            return 2
+        stages, why = read_topology(Path(args.topology).read_text(encoding="utf-8"))
+        if why:
+            print(why, file=sys.stderr)
+            return 2
+        stage = next((s for s in stages if s.name == args.stage), None)
+        if stage is None:
+            known = ", ".join(s.name for s in stages)
+            print(
+                f"stage {args.stage!r} is not in the topology -- it holds: {known}",
+                file=sys.stderr,
+            )
+            return 2
+        binder, problems = load_binder(Path(args.binder))
+        if binder is None:
+            for line in problems:
+                print(line, file=sys.stderr)
+            return 2
+        # ! REFUSED BEFORE ANYTHING IS WRITTEN. `fan` raises on the two guards
+        # over the whole stage, so a stage that does not fit leaves no copies
+        # behind for a role to be handed.
+        try:
+            copies = fan(binder, stage)
+        except FAN_REFUSALS as exc:
+            print(f"stage {stage.name!r}: {exc}", file=sys.stderr)
+            return 2
+        out_dir = Path(args.out_dir)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        seen: dict[str, int] = {}
+        for dispatch, copy in zip(stage.dispatches, copies, strict=True):
+            n = seen[dispatch.role] = seen.get(dispatch.role, 0) + 1
+            where = out_dir / f"{stage.name}_{dispatch.role}_{n}.json"
+            where.write_text(_as_json(copy), encoding="utf-8", newline="")
+            places = sum(len(sheet["marks"]) for sheet in copy["sheets"])
+            print(f"{where}: {places} places for {dispatch.role} to rule on")
         return 0
 
     ap.print_usage()

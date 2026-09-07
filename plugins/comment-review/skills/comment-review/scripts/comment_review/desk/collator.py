@@ -30,8 +30,8 @@ THE BINDER CARRIES IS NOT ASKED, since 2026-09-05 -- `decision-log.md Process:
 #97`. The binder is filtered to the places holding prose, so an `add` cites a
 place it dropped and a `move` may cite a file it never held; the write end
 opens the page and is the one thing that can say whether the place exists.
-`known_addresses` stays for the coverage count, which asks what came back
-against what was handed out.
+`known_addresses` stays for the revise diff; the coverage count asks what came
+back against what was handed out, and reads `binder.addresses.handed` for that.
 One kind needs only the report itself, and nothing outside it (`Problem`,
 `tally`) -- `decision-log.md Process: #54` put them here because they ask
 about the SET, and one mark cannot answer for the set alone. ! TWO MORE
@@ -454,7 +454,7 @@ def verify_report(
 
 #: !! `problems_in` AND `unruled` ARE DELETED, `P52`. Both walked a copy and
 #: reported what a role still owed -- `problems_in` turning `Sheet.refused` into
-#: `Problem`s, `unruled` listing `Sheet.unruled` -- and `flows.mark_errors`
+#: `Problem`s, `unruled` naming `Sheet.unruled` -- and `flows.mark_errors`
 #: answers both, as addresses and reasons, per `decision-log.md Process: #72`.
 #: ! `problems_in` ALSO RETURNED A `ruled` COUNT that nothing in production ever
 #: read: `flows.collate` discarded it at the call. The claim it carried -- a mark

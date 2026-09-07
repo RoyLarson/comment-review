@@ -1,8 +1,9 @@
 """Split a binder by dispatch, so a stage's shards are structural, not counted.
 
-    fan(binder, stage)      one seeded edit_copy per dispatch, in dispatch order
-    OverlappingShards       two dispatches of ONE role both claim a page
-    UncoveredPage           a role's dispatches, together, miss a page
+    fan(binder, stage)        one seeded edit_copy per dispatch, in dispatch order
+    partition(binder, stage)  each dispatch with its pages, after the two guards
+    OverlappingShards         two dispatches of ONE role both claim a page
+    UncoveredPage             a role's dispatches, together, miss a page
 
 !! WHY FAN-OUT EXISTS AT ALL, AND IT IS MEASURED: a role handed too many rows
 inspects them less carefully, and the effect is largest for the role whose work
@@ -41,7 +42,8 @@ from dataclasses import replace
 from fnmatch import fnmatch
 
 from comment_review.binder.binder import Binder
-from comment_review.desk.stages import Stage
+from comment_review.binder.page import Page, RedactedPage
+from comment_review.desk.stages import Dispatch, Stage
 from comment_review.flows.distribute import seed
 
 
@@ -102,6 +104,27 @@ def fan(binder: Binder, stage: Stage) -> list[dict]:
     `{"read_from": ..., "pages": ...}` was a THIRD spelling of the binder
     shape, and it silently dropped `version`.
     """
+    return [
+        seed(replace(binder, pages=tuple(matched)), dispatch.role)
+        for dispatch, matched in partition(binder, stage)
+    ]
+
+
+Shard = tuple[Dispatch, list[Page | RedactedPage]]
+
+
+def partition(binder: Binder, stage: Stage) -> list[Shard]:
+    """Each dispatch with the pages its globs select, after the two guards.
+
+    ! ONE COMPUTATION, TWO READERS. `fan` seeds from this, and
+    `flows.topology.fit` asks it whether a topology fits before any page is
+    read -- so a topology `fit` passes is one `fan` will not refuse.
+
+    Raises:
+        OverlappingShards: a page matches two dispatches of the SAME role.
+        UncoveredPage: a page matches NO dispatch of a role this stage
+            dispatches at all.
+    """
     all_paths = [page.path for page in binder.pages]
 
     # ! MATCHED ONCE PER DISPATCH, kept alongside it, so the guard pass below
@@ -130,7 +153,4 @@ def fan(binder: Binder, stage: Stage) -> list[dict]:
         if missing:
             raise UncoveredPage(f"{role}: no dispatch covers -- {missing}")
 
-    return [
-        seed(replace(binder, pages=tuple(matched)), dispatch.role)
-        for dispatch, matched in shards
-    ]
+    return shards

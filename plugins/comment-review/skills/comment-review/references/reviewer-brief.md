@@ -40,13 +40,18 @@ are inputs to your judgement, not a substitute for it. And a server that is ABSE
 nothing: if the context does not say one answered, do not assume it -- report what you could
 not check rather than reporting it clean.
 
-## Read the listing end to end
+## Read your edit copy end to end
 
-Your packet names three files on disk, each by absolute path: the BINDER; the LISTING -- the
-binder as a reviewer reads it, numbered, with the mechanical resolutions for every paragraph on
-it; and your EDIT COPY. Read the listing from that path; none of it is in this prompt. **Read
-it start to finish and fill the slot for EVERY paragraph that HOLDS PROSE.** Your edit copy
-already carries one slot per such paragraph.
+Your packet names two files on disk, each by absolute path: the BINDER -- every page in scope,
+each paragraph with its address and the mechanical resolutions for it -- and your EDIT COPY,
+which carries one slot per paragraph that HOLDS PROSE, each with that paragraph's text. Read
+both from those paths; none of it is in this prompt. **Read the copy start to finish and fill
+EVERY slot.**
+
+**You may read your own draft.** `proof --copy <EDIT COPY from your packet> --repo <REPO ROOT>
+--out <a directory that does not exist yet>` pulls a copy of the tree with your marks set on
+their pages, so a paragraph can be read as it would stand. Nothing under the repo is written;
+the draft is the directory you named, and it is yours to read and discard.
 
 !! **`continues-a-trailing-comment` means the gather may have split one sentence.** A trailing
 comment closes its run, so a sentence wrapped onto the next line becomes a SECOND paragraph, anchored
@@ -56,7 +61,7 @@ carrying this annotation is the gather's doing, not the author's, and is not a `
 !! **FRONT MATTER IS NOT YOURS, and you will not be shown it.** A licence header, a shebang or
 a coding line -- the prose above a module's own docstring. It states no constraint the code
 could contradict, documents no function, and sits where law or convention puts it, so no role
-here can settle it. It is filtered out of your listing. ! **An edit proposed on it anyway
+here can settle it. It gets no slot in your copy. ! **An edit proposed on it anyway
 becomes a `query`** -- a licence is a legal instrument and a shebang is how the file runs, and
 both are the human's to change.
 
@@ -76,9 +81,9 @@ that file, and it may change.
 
 ! **`@f0` IS THE FILE'S OWN MATTER** -- a licence header, a shebang, a coding line, and at the
 other end an index, a glossary or a run of footnotes -- and not the gap above the first line of
-code. It is filtered out of your listing, and any edit proposed on it becomes a `query`.
+code. It gets no slot in your copy, and any edit proposed on it becomes a `query`.
 
-!! **YOUR LISTING CARRIES `a`, `b` AND `c`. THAT IS THE WHOLE SET YOU RULE ON.** The `f` series
+!! **YOUR COPY CARRIES `a`, `b` AND `c`. THAT IS THE WHOLE SET YOU RULE ON.** The `f` series
 is not a place you were asked about, so there is no instruction to reach on one.
 
 ! **YOU WILL STILL READ IT, AND THAT IS FINE.** Opening the file puts a licence header in front
@@ -228,7 +233,7 @@ tool prints how many answered; read that line.
 ```bash
 # by ANCHOR -- which place of this declaration: a its documentation,
 # b the gap above its opening line, c the room beside it
-python <skill>/scripts/comment-review.py addresser --binder <BINDER from your packet> --anchor LINE --series a|b|c
+python <skill>/scripts/comment-review.py addresser --binder <BINDER from your packet> --file <path> --line LINE --series a|b|c
 ```
 
 !! **THE ANCHOR IS THE ONLY WAY TO ASK.** Asking by position -- "the paragraph above the
@@ -396,7 +401,7 @@ unavailable**, and your run context says whether it is; a relocation into tracke
 always available.
 
 !! **`to:` IS AN ADDRESS when the destination is on a page THIS RUN CUED, and it is
-RESOLVED.** Ask for it the same way an `add` does -- `--anchor LINE --series a|b|c`. A
+RESOLVED.** Ask for it the same way an `add` does -- `--file <path> --line LINE --series a|b|c`. A
 destination naming a LINE on such a page is refused, and so is an address the binder does not
 carry.
 
