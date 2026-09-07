@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 8 tasks closed
+Progress: 3 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-17 (Roy, on the fixture for the fix that landed the same day:
@@ -154,8 +154,9 @@ verifications, where it can be checked.
 - [x] T7 | FINISHED | unknown | T7 -- NOT A TASK. Keeping the four existing
       shapes pinned is a standing constraint; it now sits inside T5's and T6's
       verifications. In the Objective.
-- [ ] T8 | Update prove_unchanged so a page's line endings are compared to its
-      own pre-edit state, not to a sibling file
+- [-] T8 | SUPERSEDED by decision-log.md Process: #104 -- the gate compares no line endings at all | 3534c4d0 | Update
+      prove_unchanged so a page's line endings are compared to its own pre-edit
+      state, not to a sibling file
         > 2026-09-07 claude-settings: 4 FAIL on a clean tree, sibling .gitignore crlf
 ## Related
 
