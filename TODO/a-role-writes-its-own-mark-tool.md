@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks closed
+Progress: 1 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-07 (Roy, 2026-09-07, watching two Sonnet roles each write a library
@@ -22,7 +22,8 @@ A role writes its own tool to fill the edit copy.
         > 2026-09-07 claude-settings run: all four roles wrote a helper as well
 - [ ] T2 | Implement appending a second mark at an address already ruled,
       carrying the slot's anchor and raw_text
-- [ ] T3 | Implement marking every slot still null on a copy clean in one call
+- [-] T3 | SUPERSEDED, Roy 2026-09-07: a bulk clean invites skipping paragraphs; each role certifies each paragraph under its remit | 08b4f8d3 | Implement
+      marking every slot still null on a copy clean in one call
 - [ ] T4 | Implement quoting a source verbatim from the slot's own raw_text by
       line, so a role never retypes a citation
 - [ ] T5 | Update reviewer-brief.md so a role is told the command and never
