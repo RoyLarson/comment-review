@@ -48,6 +48,11 @@ which carries one slot per paragraph that HOLDS PROSE, each with that paragraph'
 both from those paths; none of it is in this prompt. **Read the copy start to finish and fill
 EVERY slot.**
 
+**You may read your own draft.** `proof --copy <EDIT COPY from your packet> --repo <REPO ROOT>
+--out <a directory that does not exist yet>` pulls a copy of the tree with your marks set on
+their pages, so a paragraph can be read as it would stand. Nothing under the repo is written;
+the draft is the directory you named, and it is yours to read and discard.
+
 !! **`continues-a-trailing-comment` means the gather may have split one sentence.** A trailing
 comment closes its run, so a sentence wrapped onto the next line becomes a SECOND paragraph, anchored
 to the code BELOW it. Read the two together before ruling. **A mid-clause ending on a paragraph
