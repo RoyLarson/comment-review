@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (109)
+### open  (110)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -291,6 +291,7 @@ that changed a published name or rule:
 | [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 4/6 | re-review is retired for revise |
 | [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 9/15 | The agents files name the new CLI and say how to use it |
+| [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 0/4 | The reviewer prose is rules and punishments, not guidance toward a good result |
 
 ### in-progress  (18)
 

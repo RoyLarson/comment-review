@@ -1,0 +1,30 @@
+# The reviewer prose is rules and punishments, not guidance toward a good result
+
+```
+Status:   open
+Progress: 0 of 4 tasks closed
+Owner:    agents
+Requires-Roy: false
+Raised:   2026-09-06 (Roy, 2026-09-06, on reading the ownership-context agent file and
+          the brief as dispatched in a live run over src/: it is so uselessly verbose it
+          is disgusting; full of comments and commands about what it should not do that
+          distract from the things that matter to accomplishing the goal; written as
+          rules and punishments, not as something to guide towards a good result)
+```
+
+## Objective
+
+The reviewer prose is rules and punishments, not guidance toward a good result.
+
+## Tasks
+
+- [ ] T1 | Measure the brief and the four role files: lines, marked lines, and
+      sentences that prohibit against sentences that describe a good mark.
+        > 2026-09-06 The 2026-09-06 prompt was 47,000 characters per role.
+- [ ] T2 | Rewrite reviewer-brief.md to guide a role toward a good mark: what to
+      read, what a finding is, then the format; each gate stated once.
+- [ ] T3 | Rewrite comment-review-ownership-context.md the same way, then the
+      other three role files.
+- [ ] T4 | Measure the rewrite on the same target as the 2026-09-06 run: the
+      same binder, the four copies compared to that run's.
+        > 2026-09-06 Copies of that run: the scratchpad run-2026-09-06 directory.
