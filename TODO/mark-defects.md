@@ -191,6 +191,7 @@ cites as its measured example of a field answering neither necessary nor purpose
       not carry, before it writes. Verify: a cue no page holds is refused
         > 2026-09-07 The command has no binder today; it checks the page half only
         > 2026-09-07 The command has no binder; it checks the page half alone
+        > 2026-09-07 The flow does the lookup; the command hands it the binder path
 - [ ] T13 | Delete fill's manufactured seed, which invents raw_text and takes
       the anchor from the role's own entry. Verify: no slot means a refusal
         > 2026-09-07 The base is the binder's, never a returned mark's
