@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 16 of 45 tasks closed
+Progress: 17 of 46 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -333,6 +333,10 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
 - [ ] T44 | Name what a Reconciled container would make correct that a dict does
       not, so T36 can be ruled
         > 2026-09-02 Process 71: a new type needs its purpose named BEFORE the code
-- [ ] T45 | Implement the flow step that verifies every mark's address against a
-      full binder before the schedule is handed to the galley
+- [-] T45 | SUPERSEDED -- the page is the authority, not a binder, and the write path already holds it; refiled as T46 | e0430071 | Implement
+      the flow step that verifies every mark's address against a full binder
+      before the schedule is handed to the galley
         > 2026-09-07 The setter takes a schedule and pages; a page gives only its sha
+- [ ] T46 | Implement the write path's pre-verify: every alteration's address
+      matches a place on the page it is setting on, before it sets
+        > 2026-09-07 The galley sets on a page and hands it on; the page is in hand

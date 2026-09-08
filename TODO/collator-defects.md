@@ -207,3 +207,4 @@ Four defects in collator.py, found by reading only the code.
 - [ ] T40 | Update check to refuse a mark whose address resolves against no
       page. Verify: an invented cue is refused, a valid empty place is not
         > 2026-09-07 b7 was a valid empty place; the redacted binder rightly lacks it
+        > 2026-09-07 A page carries both the absent and present places of a series
