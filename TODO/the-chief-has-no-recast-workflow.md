@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks closed
+Progress: 1 of 6 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-09-08 (Roy 2026-09-08: implementing the recast workflow for the cli the
           copy-chief uses to resolve the final pieces is a good todo, and cap is a bad
           name for it)
@@ -26,5 +26,9 @@ The copy chief has no workflow for recasting the places that never settled.
 - [ ] T4 | Implement the count a run reports: how many recasts were made, and
       how many landed on an empty place
         > 2026-09-08 claude-settings: 2 recasts of 13 carried; one was the lost add
-- [?] T5 | Decide what the chief's command is called, since cap names the
-      condition that triggers it rather than the act
+- [x] T5 | RULED Vocabulary: #36 -- disposition; directive collides with topology and dispose reads as release | 6e770324 | Decide
+      what the chief's command is called, since cap names the condition that
+      triggers it rather than the act
+- [ ] T6 | Update the command cap to disposition and rulings.json to
+      dispositions.json, across the shipped prose and the gate
+        > 2026-09-08 A plugins change needs a version bump, as the role rename does
