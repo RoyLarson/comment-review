@@ -11,6 +11,26 @@ It is stage 3. A reviewer reads prose against code, and everything a symbol tabl
 and a regex can settle first is settled here and attached to the paragraph, so the role spends
 its reading on the claim rather than on the lookup.
 
+**Read together, the modules build an index**, which is what the package name has been saying
+all along -- a concordance is an index of where terms occur. Roy, 2026-09-07, seeing the four
+as one thing: *"all three files in concordance work as a thing that together builds an index.
+annotate.py seems to be getting the keys for the index the other two are cross-references for
+the keys to documents and keys to code."*
+
+| module | its part of the index |
+| --- | --- |
+| `names.py` | what may be a key |
+| `annotate.py` | the keys, taken from prose |
+| `code_names.py` | key to code |
+| `referrers.py` | key to documents |
+
+The two cross-references are asymmetric, and the return types show it. `code_names` gives a set
+of names, so the only question it answers is whether a key exists somewhere in the code.
+`referrers` gives the files that name a token, so it locates. Nothing in the package maps a name
+to a position, which is why an unresolved symbol note carries a single state while a path note
+separates absent from untracked: the filesystem offers two answers and the name corpus offers
+one bit.
+
 ## 2. What it may import, and what may import it
 
 A leaf. Nothing above it may be imported by it, and `binder`, `desk` and the write end all reach
@@ -109,3 +129,38 @@ What this file does not settle: whether any of the noticing patterns belongs in 
 time rather than in stage 3. The patterns here run over a paragraph the gather has already
 built, with the code beside it; a hook sees the text of one write and nothing else. That is a
 real difference and nobody has measured whether it matters.
+
+### The second subject, and where it is going
+
+Under the index frame above, `annotate` carries two subjects. Two of its annotation kinds
+produce a key and have somewhere to resolve it; the other four produce no key and resolve
+against nothing.
+
+| | key | cross-reference |
+| --- | --- | --- |
+| `names-a-symbol`, `cites-a-path` | yes | `code_names`, the git index |
+| `counted`, `coverage-claim`, `forbids-a-literal`, `narrative-in-docstring` | none | none |
+
+Those four classify a paragraph and hand the reader an imperative. They are not concordance
+work, and they are the shape this repo has met three times before, where one category was
+quietly doing a second job.
+
+The intent, ruled by Roy on 2026-09-07, is that the second job leaves rather than being given a
+name of its own. A machine context reads the paragraphs, raises a `query` where it finds a claim
+it cannot settle, and marks `clean` where it finds none; those marks pass to the agent contexts
+the way any role's marks do.
+
+It needs no new word, and that is the test it passed. `SKILL.md` defines a `query` as unsettled
+-- resolve it or escalate it -- and names no party, so a machine raising one is the same word at
+the same sense. `suspicion` was considered and refused, because it imports a prior the code does
+not hold: `coverage-claim` fires on a guard whether or not that guard exists.
+
+Two questions are open and are Roy's. Whether a machine-raised query gates its paragraph, since
+a query makes every other instruction on that sentence wait, and inheriting that would be a
+change in force rather than in bookkeeping. And the name, which waits on
+[`the-roles-are-named-for-what-they-read`](../../../TODO/the-roles-are-named-for-what-they-read.md),
+because the other four contexts are named for the scope they read rather than for the reader.
+
+The work is
+[`a-machine-context-raises-query-and-clean`](../../../TODO/a-machine-context-raises-query-and-clean.md),
+eight tasks, and it is a later scope than the release this was written during.
