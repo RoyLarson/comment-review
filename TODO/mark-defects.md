@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 13 tasks closed
+Progress: 2 of 15 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -187,11 +187,20 @@ cites as its measured example of a field answering neither necessary nor purpose
       one file order themselves by opposite rules. Verify:
       `allowed()["instruction"]` reads `clean, query, drop, correct, patch, add,
       move`, or the file says why it is alphabetical.
-- [ ] T12 | Update the mark command to refuse an address the full binder does
-      not carry, before it writes. Verify: a cue no page holds is refused
+- [-] T12 | SUPERSEDED -- the instrument is the page's cues, not the full binder; refiled as T14 | 29e3cd4c | Update
+      the mark command to refuse an address the full binder does not carry,
+      before it writes. Verify: a cue no page holds is refused
         > 2026-09-07 The command has no binder today; it checks the page half only
         > 2026-09-07 The command has no binder; it checks the page half alone
         > 2026-09-07 The flow does the lookup; the command hands it the binder path
-- [ ] T13 | Delete fill's manufactured seed, which invents raw_text and takes
-      the anchor from the role's own entry. Verify: no slot means a refusal
+- [-] T13 | SUPERSEDED -- a redacted copy has no slot for a valid absent place; refiled as T15 | 29e3cd4c | Delete
+      fill's manufactured seed, which invents raw_text and takes the anchor from
+      the role's own entry. Verify: no slot means a refusal
         > 2026-09-07 The base is the binder's, never a returned mark's
+- [ ] T14 | Update fill to resolve an address against its page's cues via
+      page_of. Verify: a place the page does not carry is refused before any
+      write
+        > 2026-09-07 The binder on disk is always redacted; a page carries every place
+- [ ] T15 | Update fill to seed an absent place from that page, not from the
+      role's entry. Verify: the anchor comes from the page and raw_text is empty
+        > 2026-09-07 The base is the system's, never the party being checked
