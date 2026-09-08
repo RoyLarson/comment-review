@@ -397,6 +397,42 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   ! **T22 IS NOT BLOCKED ON THIS.** The destination-form check is a small, self-contained
   piece; the editorial system is what makes accepting the form worth something once built.
 
+- **#22.** **The compositor owns leading, both adding it and dropping it, and the galley stops
+  touching the `d`** (Roy, 2026-09-08, on being shown that the two acts sit in different modules:
+  *"One is correct and the other is not. It can't be both because the leading adding and dropping
+  should be one things responsibility."*).
+
+  **What it settles.** Adding a leading and vacating one are the same question asked at two
+  moments, and they answer to one owner. `#19` already put the adding in the compositor, gated on
+  the place's kind saying absence. The dropping goes there with it, and `galley._vacate` stops
+  emptying the `d` a dropped place owns.
+
+  **Why the compositor and not the galley.** Roy, the same day: *"The galley's responsibility is
+  changing out text on the original page, making certain that the update happens correctly. The
+  leadings are not about resetting text they are about fences which if the originals to keep or
+  drop. And that is mostly accomplished by just saying is there still an address here."* A fence
+  is a property of the page being laid out, not of the edit being applied; a `d` names no place
+  and takes a symbol rather than an address, so emptying one is not swapping text.
+
+  **What it is for.** Two modules answering one question can disagree with nothing able to
+  notice. Today the galley decides a leading's fate at edit time and the compositor decides one
+  at set time, and no gate compares them.
+
+  **The `d` becomes derived rather than edited.** On a drop the galley empties the `b` alone; the
+  compositor, laying the page out, reads the place's kind and decides the leading from that.
+
+  **The risk is the one this area has already paid for, and it names its own check.** `#19`
+  records that the first absence rule fired on modifies and on unedited composes before it was
+  gated on the place's kind. Deriving a leading rather than storing it puts that failure back in
+  reach, and what would catch it is the round-trip identity over the pinned corpora: read every
+  page, set it back unedited, compare byte for byte.
+
+  **And it puts a question against `Process: #110`.** That ruling, made the previous evening,
+  says the compositor keeps the leading a role writes and the copy chief removes it on review. If
+  the compositor supplies leading from the place's kind, a role writing its own is supplying a
+  second one. Whether the brief should therefore stop asking roles for blank lines is not settled
+  here; it is the question `agents-files-name-the-new-cli` T19 has to answer before it is written.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 18 tasks closed
+Progress: 7 of 20 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -133,3 +133,8 @@ files in `corpora/` are in that state today.
         > 2026-09-07 brief says write the blank lines; the setter dropped a leading one
 - [ ] T18 | Update the compositor to keep the leading a change writes at a gap.
       Verify: a change given a leading blank is set with it, per Process 110
+- [ ] T19 | Delete the leading half of galley._vacate so a drop empties the b
+      alone. Verify: no d is written by the galley, per Addressing 22
+- [ ] T20 | Update the compositor to drop a leading whose place is vacated.
+      Verify: an unedited round trip stays byte-identical
+        > 2026-09-08 Addressing 19's absence rule first fired on unedited composes
