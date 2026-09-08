@@ -3826,6 +3826,24 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   close on it, so the branch holding it either supersedes it onto the plan that owns `P14` or
   waits for that work.
 
+  **WITHDRAWN 2026-09-08, and it was never Roy's.** The two paragraphs above are this session's
+  inference, written inside a ruling whose only quoted words are *"Broken code."* Roy did not
+  make the repair wait on `P14`, and on being shown that reading he corrected it: *"I didn't say
+  it couldn't be designed now. My statement was that what is designed now to verify the program
+  works end to end is subject to change and review once we see how it works end to end. Don't
+  over-engineer it, KISS."*
+
+  So the simple repair is the right one now, and it is one change: `cap` writes the instruction
+  the roles filed instead of forcing `correct`, and a recast of an `add` stays an `add`. The
+  chief's recast as a full act -- the docket attribution, the reachability when a compose refused
+  -- is what gets reviewed after a run rather than designed before one. Filed as
+  [`the-chief-has-no-recast-workflow`](../TODO/the-chief-has-no-recast-workflow.md) T1, with T2
+  to T4 held for that review.
+
+  **The observation this leaves standing** is that a ruling can be broadened by whoever records
+  it, and the broadening reads exactly like the ruling. The quoted words are the ruling; anything
+  around them is the recorder's, and this entry did not say so.
+
 - **#109.** **The roles differ by the question they ask, not by the territory they read, and
   `module-context` is seeded with everything** (Roy, 2026-09-07, asked whether the seeding should
   narrow: *"You show me a paragraph that you are certain is not module-context and I will tell
