@@ -3826,3 +3826,48 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What follows.** The addresser box asking it to resolve an absent place is superseded: with
   one representation the contradiction it names cannot be built. The `check` and `proof` boxes
   stay. The fabrication in `fill` is filed against the branch that landed it.
+
+- **#111.** **An address is verified against the page it names, everywhere, and against a binder
+  at no point** (Roy, 2026-09-07, closing four exchanges in which every proposal named the wrong
+  authority. Supersedes the *verified twice against a full binder* half of `Process: #110`, which
+  stands as the record of what was believed on the day).
+
+  **What it settles.** Three stages ask whether a mark's address is real, and all three ask it of
+  the page. `fill`, where the role is still present to fix what it filed. `check`, the gate a
+  role runs before returning. And the write path, before it sets.
+
+  **Why the page is the authority.** It carries both the absent and the present places of every
+  series. Roy: *"All alterations are able to be set on both ABSENT and PRESENT versions of a
+  series. And the compositor is able to recompose the page correctly."* So the page can tell a
+  place that does not exist from a place that exists and holds no prose, which is the whole
+  question.
+
+  **Why the binder is the wrong authority everywhere.** The one on disk is redacted and always
+  will be, so it carries only the places holding prose. It cannot make that distinction. Every
+  version of these three boxes that named the binder -- and there were several, filed over one
+  evening -- would have refused the valid `add` they were filed to protect.
+
+  **And the write path already holds the page**, so its check adds no coupling. Roy: *"the galley
+  sets alterations on a page then the updated page gets sent to the compositor to compose and
+  land the page on disk. This is the way the system really works and it has worked well ...
+  because this system needs the page it can also pre-verify that all alterations have addresses
+  that match to the page."*
+
+  **What the write path does not get is a binder.** Roy, the same evening: *"The galley and the
+  compositor do not get binders they get schedules and pages. While it may seem silly while a
+  binder only has pages. It will contain indexes and glossaries and references in the future so
+  that is not necessary and it was never the design intent."* Of a page it needs the sha, to know
+  the page is still the original, and now the places, to know the addresses are represented.
+
+  **What it is for.** MEASURED 2026-09-07 on `claude-settings`: an `add` at `b7`, a real and
+  empty place, passed `check` at exit 0, was carried by `collate`, ruled by `cap`, and drafted
+  around by `proof` which reported five pages set with the comment on none of them. No stage
+  tested whether the address resolved, and the stage that could have caught it first invented a
+  seed instead.
+
+  **A note on how this was arrived at**, because the shape of the error is more useful than the
+  count. The rule was filed four times in one evening and superseded three times, and every wrong
+  version came from an assumption about what a container holds rather than from reading what is
+  written to disk. `conventions.md` already names that fault one level down, on a field: follow
+  it to what finally consumes it, and one hop is the common failure. It applies to an artifact as
+  much as to a field.
