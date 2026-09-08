@@ -3776,3 +3776,53 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   it waits: Roy, the same day, *"until the backend part can be run end to almost end without
   causing problems chasing the fixes on agents stuff is putting the icing on before you baked the
   cake."*
+
+- **#110.** **The galley is pulled from the working tree, the compositor keeps the leading a role
+  writes, and an address is verified twice against a full binder** (Roy, 2026-09-07, ruling three
+  boxes that had been waiting).
+
+  **The galley comes from the working tree, not from git.** Same reason as `Process: #104`: the
+  system is run on uncommitted work being prepared for a commit, so a galley pulled from git
+  would be missing the very edits the run is about. File identity is the sha check's, before
+  composition. The line-ending worry the box was filed under dissolves, since nothing downstream
+  compares line endings once the gate is the address and anchor identity.
+
+  **The compositor keeps the leading a role writes.** Roy: *"what the role writes is what the
+  software can keep. The copy-chief can remove on review."* The setter's own docstring says it
+  sets the page and decides nothing, and dropping a blank line a role deliberately wrote is a
+  decision, made by the one component defined as making none. Removal is the copy chief's act, at
+  review, where the page is being read.
+
+  **And the brief has to teach leading**, which it does not today. Roy: *"We need to tell the
+  agents about leadings and that the originals get put back in. Any new spots need them added."*
+  So a role is told that an existing place's original leading is restored for it, and that a
+  place being newly filled needs its leading written. The brief currently tells a role that a
+  change at a gap replaces the gap including its blank lines, which is a different rule and is
+  the one that produced the refusal below.
+
+  **What it is for.** MEASURED 2026-09-07 on `claude-settings`: a role wrote the leading blank
+  the brief asked for, the write refused with a whitespace complaint at an address that was
+  working, and removing the blank turned that loud refusal into a silently dropped finding.
+
+  **An address is verified where the mark is placed, and again at the write.** Roy: *"There is
+  always going to be a check in proof for marks because we can't be certain that a mark was not
+  hand written into the json. So part of the flow is reading the marks and verifying against a
+  full binder not a redacted binder that those addresses exist."*
+
+  **The two checks answer different threats and neither replaces the other.** At `mark` the role
+  is still present and can fix what it filed. At `proof` nothing can vouch for how a mark got
+  into a copy, because a copy is a file on disk. Both ask the question of the full binder, which
+  is what `Process: #107` makes possible.
+
+  **The early check does not exist today, and what stands in its place fabricates.** MEASURED
+  2026-09-07: `flows/fill.py` validates only the page half of an address, splitting at the `@`
+  and finding that sheet. The cue is never checked against the page's own places. Where no slot
+  exists at the address it does not refuse; it seeds a mark with an empty `raw_text` and the
+  anchor taken from the entry the role supplied. That is the rule `desk/collator.py` already
+  states for base texts -- the base is the binder's and never a returned mark's -- broken one
+  layer up, and it is how an address that resolved nowhere became a well-formed mark that four
+  later stages accepted.
+
+  **What follows.** The addresser box asking it to resolve an absent place is superseded: with
+  one representation the contradiction it names cannot be built. The `check` and `proof` boxes
+  stay. The fabrication in `fill` is filed against the branch that landed it.
