@@ -433,6 +433,29 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   second one. Whether the brief should therefore stop asking roles for blank lines is not settled
   here; it is the question `agents-files-name-the-new-cli` T19 has to answer before it is written.
 
+- **#23.** **The brief stops asking a role for leading at either end of a change** (Roy,
+  2026-09-08, closing the question `#22` left open: *"Yes the brief should stop asking for
+  beginning and ending leadings."*).
+
+  **What it settles.** A role writes the prose and nothing else. The compositor supplies the
+  leading from the place's kind, so a leading blank in a role's `change` is a second one, and the
+  brief asking for it was asking a role to do the compositor's job with less information.
+
+  **What it supersedes.** The half of `Process: #110` that says the compositor keeps the leading
+  a role writes and the copy chief removes it on review. That was ruled before `#22` moved
+  leading to one owner, and it stands as the record of what was believed the previous evening.
+
+  **What it is for.** MEASURED 2026-09-07 on `claude-settings`: the brief told a reviewer twice
+  that a change at a gap replaces the gap including its blank lines and to write the ones it
+  wanted kept. The reviewer did. The write refused, naming the whitespace at an address that was
+  working, and removing the blank turned that refusal into a silently dropped finding.
+
+  **And nothing could have caught it.** Roy, on being shown the sentence: *"I didn't remember
+  that the brief had stated that, it has been a while since I had a reason to read it and see
+  that inconsistency."* The brief said one thing, the compositor did another, and no gate
+  compares an instruction given to an agent with the behaviour of the code that receives its
+  output. `docs/gates.md`'s question -- could this check fail -- has no check to ask it of here.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is
