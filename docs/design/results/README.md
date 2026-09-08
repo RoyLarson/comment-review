@@ -29,6 +29,36 @@ read end. It is in `conventions.md`'s table of four couplings, measured 2026-08-
 | `galley.py` | the proposed text SET AS FILES, so it can be read and gathered like any tree |
 | `prove_unchanged.py` | whether the setting changed anything but prose |
 
+## 3a. What each stage holds
+
+The write path takes a schedule and pages. It never takes a binder. Roy, 2026-09-07: *"The
+galley and the compositor do not get binders they get schedules and pages ... It will contain
+indexes and glossaries and references in the future so that is not necessary and it was never
+the design intent."*
+
+| stage | it is handed | it returns |
+| --- | --- | --- |
+| `galley.reset` | a page, and `{address: text}` where `None` is a delete | one sentence per edit it could not place; empty means all landed |
+| `compositor.set_page` | the page the galley has updated | the file's text |
+| `compositor.draft` | that page, and a directory | the drafted file's path |
+| `compositor.approve` | the drafted file and the real one | the real path, now holding the draft |
+
+`reset` resolves nothing. Roy, 2026-08-25: *"the galley shouldn't be resolving the page ... it
+should get handed the page, the cues-new text or a delete."* A page names its own file, so the
+path half of an address is a fact the caller already had.
+
+Of a page, this end needs the `sha`, to know the file is still the one the run read, and the
+places, to know the addresses it is about to set are represented. It needs nothing else from the
+read end.
+
+**A place is vacated, never removed.** A `drop` takes the empty sentinel and the paragraph stays,
+at the same address, holding no lines -- which is what keeps it citable, so an `add` can later
+fill the very place a `drop` emptied. The source half of a `move` is the same operation.
+
+**The leading is decided in the galley, not the compositor.** `_vacate` takes the leading below
+a dropped place with it, and the module says why: it read as a side effect in the compositor
+until 2026-08-22, which had that module making an editorial decision it is chartered not to make.
+
 ## 4. `prove_unchanged` -- the shape
 
 **The gate compares one value: each page's `{cue -> anchor}` mapping, before the setting and
