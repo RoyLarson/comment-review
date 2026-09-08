@@ -3685,3 +3685,58 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   consecutive capitalised words rather than two. The number above did none of that. Anyone
   wanting the real figure runs the hook's `offences()` over the tree rather than a fresh regex,
   since a second definition of the same rule is two that disagree in silence.
+
+- **#107.** **The binder carries one representation, and the flow owns which one is emitted**
+  (Roy, 2026-09-07, on a finding that reached the page as nothing: *"something is looking at the
+  filtered binder not the full one meant for the system. This also tells me the filtering is
+  happening in the wrong spot. It is happening inside of the binder entirely instead of a
+  representation of the binder on the output."* And then, on whether the parameter survives as a
+  renderer's flag: *"Goes away."*).
+
+  **What it settles.** `bind` builds `Page` always. The `absent` parameter goes, and with it the
+  reasoning at `binder/binder.py:139` that the cut is *"the page's own, at the one moment it
+  knows what it is being asked for"* -- the page does not know what it is being asked for, the
+  flow does. A named classmethod produces the emitted shape, and only a flow writing a binder out
+  for a consumer calls it. Roy: *"Maybe a classmethod that states it correctly. The result should
+  be an output, not the internal representation."*
+
+  **What it is for.** MEASURED 2026-09-07 on `claude-settings`. `module-context` found that
+  `evals/real_sessions.py` reconfigures stdout at module level with no prose saying so, and filed
+  an `add` at `b7`. The addresser answered the anchor lookup for that place and then refused to
+  resolve its own answer, because the anchor half reads the page and `--resolve` reads the
+  redacted rows. Four gates read the cue and none tested it; `proof` drafted the page without it
+  and reported `5 page(s) drafted` at exit 0. The finding was correct, useful, and lost in
+  silence.
+
+  **The leak is visible in a type.** `flows/fan_out.py:113` declares
+  `Shard = tuple[Dispatch, list[Page | RedactedPage]]`. A consumer that has to spell both shapes
+  is one that cannot know which it was handed, and under this ruling it collapses to
+  `list[Page]`.
+
+  **What follows.** Three boxes on `0.2.4-the-agents-read-the-cli` were filed as separate
+  defects of that chain -- the addresser's `--resolve`, `check` refusing an address that does not
+  resolve, and `proof` refusing one the binder does not carry. They share this cause. Whether
+  they are superseded into one piece of work or kept as three checks over a corrected binder is
+  a scope call on that plan.
+
+- **#108.** **`cap` rewriting every recast as `correct` is broken code, and is refused rather
+  than repaired** (Roy, 2026-09-07, on being shown the behaviour: *"Broken code."*).
+
+  **What it settles.** The defect is real and stays open. `cap` offers two answers, `taken_in`
+  and `recast`, and writes every recast into the chief's copy as `instruction: correct` whatever
+  the roles filed. MEASURED 2026-09-07: three addresses on `claude-settings`, one of them an
+  `add` at an empty place. `correct` asserts an existing sentence is false; at an empty place
+  there is no sentence, so the compositor wrote nothing and reported success. The chief had no
+  route to a repaired `add` at all -- taking the role's text in hit a whitespace refusal, and
+  recasting it downgraded the instruction to nothing.
+
+  **Why it is refused and not fixed.** `cap`'s recast was written against a `recast` that has not
+  decided what it is. `P14` of
+  [`0.2.4-the-commands-for-the-middle`](plans/0.2.4-the-commands-for-the-middle.md) still owes
+  it: the copy chief's own prose, with the docket recording the chief as who set it, reachable
+  when a compose refused. A repair to `cap` before that lands is shaped by the gap and has to be
+  undone, which is the standing practice `CLAUDE.md` records six instances of.
+
+  **What follows.** The box stays open with what it waits on named. A plan that carries it cannot
+  close on it, so the branch holding it either supersedes it onto the plan that owns `P14` or
+  waits for that work.
