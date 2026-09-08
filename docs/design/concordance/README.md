@@ -164,3 +164,29 @@ because the other four contexts are named for the scope they read rather than fo
 The work is
 [`a-machine-context-raises-query-and-clean`](../../../TODO/a-machine-context-raises-query-and-clean.md),
 eight tasks, and it is a later scope than the release this was written during.
+
+### Which desk it sits at, which is a bigger question than its name
+
+The four contexts have a second set of names, approved by Roy on 2026-08-19 and deferred past
+0.2.4. They name the desk each role sits at rather than the scope it reads, and the table lives
+in
+[`the-roles-are-named-for-what-they-read`](../../../TODO/the-roles-are-named-for-what-they-read.md).
+Cite that table rather than copying it: it has been rebuilt once from nothing after a compaction
+dropped it, and its own file says to cite it for that reason.
+
+Two rows from it bear on this package. `ownership-context` sits at the notes editor's desk, which
+checks that every note hangs off the sentence it is actually about. `block-context` sits at the
+fact-check editor's, which takes each claim to a source and resolves it, and owns nothing about
+placement.
+
+That second row is the machine context's own subject, word for word. `counted`,
+`coverage-claim` and `forbids-a-literal` are all claims to be taken to a source, and the machine
+raises them precisely because it cannot resolve them. So the open question is not only what to
+call this context. It is whether it is a fifth desk at all, or the fact-check editor's
+mechanical pre-pass -- a manuscript arriving with every checkable assertion already underlined,
+for that editor to resolve.
+
+The two answers produce different work. A fifth desk gets its own seeded copy, its own dispatch
+and its own place in the topology, which is what tasks `T1` through `T6` of the todo assume. A
+pre-pass instead seeds `block-context`'s copy with queries it must answer, and adds no role. That
+is worth settling before the naming task rather than inside it.
