@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 39 tasks closed
+Progress: 9 of 39 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -199,6 +199,7 @@ Four defects in collator.py, found by reading only the code.
 - [ ] T38 | Update check so a mark whose address does not resolve against the
       binder is refused, in those words
         > 2026-09-07 check passed an add at b7 the binder did not carry; exit 0
-- [?] T39 | Decide whether module-context is seeded with module-scope places
-      only; 694 of 888 and 39 of 71 came back outside-my-role
+- [-] T39 | SUPERSEDED by Process: #109 -- every role is seeded with every place; refiled as T10 to T12 of reviewer-prose-is-rules-not-guidance | 142de840 | Decide
+      whether module-context is seeded with module-scope places only; 694 of 888
+      and 39 of 71 came back outside-my-role
         > 2026-09-07 claude-settings: 39 of 71; src/: 694 of 888 outside-my-role
