@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (110)
+### open  (111)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -292,6 +292,7 @@ that changed a published name or rule:
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 4/6 | re-review is retired for revise |
 | [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 9/18 | The agents files name the new CLI and say how to use it |
 | [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 2/9 | The reviewer prose is rules and punishments, not guidance toward a good result |
+| [a-machine-context-raises-query-and-clean](a-machine-context-raises-query-and-clean.md) | backend | yes | 0/8 | annotate carries two subjects -- it extracts index keys, and it flags claims it cannot settle. The second half becomes a context that marks like a role. |
 
 ### in-progress  (18)
 
