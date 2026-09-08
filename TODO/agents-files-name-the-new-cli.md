@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 9 of 19 tasks closed
+Progress: 10 of 20 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -71,5 +71,8 @@ The agents files name the new CLI and say how to use it.
 - [ ] T18 | Update the packet so the language-server answer says who can call
       it; three reviewers found no LSP tool and fell back to grep
         > 2026-09-07 OneDrive claude-settings/2026-09-07/README.md, Feedback section
-- [ ] T19 | Update reviewer-brief.md to teach leading: an existing place's is
-      restored, a newly filled place needs its own written
+- [-] T19 | SUPERSEDED by Addressing: #23 -- the compositor supplies leading, not the role; refiled as T20 | f850c321 | Update
+      reviewer-brief.md to teach leading: an existing place's is restored, a
+      newly filled place needs its own written
+- [ ] T20 | Update reviewer-brief.md so a role writes no leading blank at either
+      end of a change. Verify: the brief asks for none

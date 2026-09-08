@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 20 tasks closed
+Progress: 8 of 20 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -131,8 +131,9 @@ files in `corpora/` are in that state today.
       whether the compositor keeps a leading blank a change writes at a gap, or
       the brief stops asking for one
         > 2026-09-07 brief says write the blank lines; the setter dropped a leading one
-- [ ] T18 | Update the compositor to keep the leading a change writes at a gap.
-      Verify: a change given a leading blank is set with it, per Process 110
+- [-] T18 | SUPERSEDED by Addressing: #23 -- a role writes no leading, so there is none to keep | f850c321 | Update
+      the compositor to keep the leading a change writes at a gap. Verify: a
+      change given a leading blank is set with it, per Process 110
 - [ ] T19 | Delete the leading half of galley._vacate so a drop empties the b
       alone. Verify: no d is written by the galley, per Addressing 22
 - [ ] T20 | Update the compositor to drop a leading whose place is vacated.
