@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 11 tasks closed
+Progress: 0 of 13 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -187,3 +187,10 @@ cites as its measured example of a field answering neither necessary nor purpose
       one file order themselves by opposite rules. Verify:
       `allowed()["instruction"]` reads `clean, query, drop, correct, patch, add,
       move`, or the file says why it is alphabetical.
+- [ ] T12 | Update the mark command to refuse an address the full binder does
+      not carry, before it writes. Verify: a cue no page holds is refused
+        > 2026-09-07 The command has no binder today; it checks the page half only
+        > 2026-09-07 The command has no binder; it checks the page half alone
+- [ ] T13 | Delete fill's manufactured seed, which invents raw_text and takes
+      the anchor from the role's own entry. Verify: no slot means a refusal
+        > 2026-09-07 The base is the binder's, never a returned mark's

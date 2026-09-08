@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 4 of 17 tasks closed
+Progress: 6 of 18 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
           write path, which is the one place a defect reaches disk)
 RE-VERIFIED: 2026-08-23 — 2026-08-23. Task 1 is FIXED and ticked -- the destructive case
@@ -120,11 +120,15 @@ files in `corpora/` are in that state today.
 - [ ] T14 | Update revise.pull so a copy that fails part way leaves no partial
       --out behind
         > 2026-09-07 pull's docstring says a stopped run leaves no half-set; it did
-- [?] T15 | Decide whether the galley is pulled from the working tree's bytes or
-      from git, since this tree mixes CRLF and LF per file
+- [x] T15 | RULED Process: #110 -- the working tree, since the system runs on uncommitted work | cfe76f33 | Decide
+      whether the galley is pulled from the working tree's bytes or from git,
+      since this tree mixes CRLF and LF per file
 - [ ] T16 | Update proof so an address the binder does not carry is refused
       rather than drafted without
         > 2026-09-07 proof drafted 5 pages with b7's comment on none, exit 0
-- [?] T17 | Decide whether the compositor keeps a leading blank a change writes
-      at a gap, or the brief stops asking for one
+- [x] T17 | RULED Process: #110 -- the compositor keeps it; the chief removes on review | cfe76f33 | Decide
+      whether the compositor keeps a leading blank a change writes at a gap, or
+      the brief stops asking for one
         > 2026-09-07 brief says write the blank lines; the setter dropped a leading one
+- [ ] T18 | Update the compositor to keep the leading a change writes at a gap.
+      Verify: a change given a leading blank is set with it, per Process 110
