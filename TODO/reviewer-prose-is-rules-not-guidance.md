@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 9 tasks closed
+Progress: 2 of 12 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-06 (Roy, 2026-09-06, on reading the ownership-context agent file and
@@ -46,3 +46,11 @@ The reviewer prose is rules and punishments, not guidance toward a good result.
 - [x] T9 | The paragraph states the consequence; the shouting markers are gone | 47d31f7a | Update
       the brief's return paragraph to state the consequence plainly, without the
       shouting markers
+- [ ] T10 | Update the four role files so each leads with its question and reads
+      the whole file. Verify: no role file names a list of parts to read
+        > 2026-09-07 module-context is told to read five parts; a body is not one
+- [ ] T11 | Update function-context and module-context to say they judge
+      composition, whether the parts fit together. Verify: both name that
+      question
+- [ ] T12 | Delete the prohibitions in the role files that carry no consequence,
+      keeping the checklists. Verify: each remaining one names what follows

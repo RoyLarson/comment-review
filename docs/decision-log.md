@@ -3740,3 +3740,39 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What follows.** The box stays open with what it waits on named. A plan that carries it cannot
   close on it, so the branch holding it either supersedes it onto the plan that owns `P14` or
   waits for that work.
+
+- **#109.** **The roles differ by the question they ask, not by the territory they read, and
+  `module-context` is seeded with everything** (Roy, 2026-09-07, asked whether the seeding should
+  narrow: *"You show me a paragraph that you are certain is not module-context and I will tell
+  you why it is."*).
+
+  **What it settles.** Every role is handed every place. A trailing comment on one line can be
+  the evidence that a module holds a second concern, and so can an argument description; nothing
+  in a file is outside the question *does this say one thing*. The same holds for placement,
+  which is a relation between a sentence and the whole tree, so `ownership-context` has no
+  smaller territory either.
+
+  **And the two tiers are what the role files never say.** Roy, the same day: *"Block and
+  ownership context are looking at the minutia. The other two are looking at levels of
+  composition. To understand composition you have to read the whole thing and determine if this
+  piece of the composition fits with the other pieces of composition."*
+
+  **What it is for.** MEASURED 2026-09-07 on `claude-settings`: `module-context` answered
+  `outside-my-role` on 39 of 71 places, and 694 of 888 on an earlier run. That was read as
+  evidence the seeding was too wide. It is the opposite. Its own agent file tells it to read the
+  module docstring, the section banners, the top-of-file commentary, the module-level bindings
+  and whatever runs at import -- five named parts, and a function body is not among them. The
+  role was doing what it was told, and narrowing the seeding would have built machinery to match
+  the file's mistake.
+
+  **The wider fault in the same files.** Roy: *"The rules that have been put in the agents
+  folders read as a list of 'You shall only look at' and 'DO NOT DO' ... Those are not guides to
+  better they are coding rules applied to agents and even then they are bad coding rules."* A
+  reading list is a territory, and a territory quietly overrides the question stated above it.
+
+  **What follows.** `collator-defects` T39, which asked whether to narrow the seeding, is
+  superseded rather than answered. The work moves to
+  [`reviewer-prose-is-rules-not-guidance`](../TODO/reviewer-prose-is-rules-not-guidance.md), and
+  it waits: Roy, the same day, *"until the backend part can be run end to almost end without
+  causing problems chasing the fixes on agents stuff is putting the icing on before you baked the
+  cake."*
