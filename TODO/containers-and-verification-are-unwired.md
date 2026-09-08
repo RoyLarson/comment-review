@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 17 of 46 tasks closed
+Progress: 18 of 47 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -337,6 +337,10 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       the flow step that verifies every mark's address against a full binder
       before the schedule is handed to the galley
         > 2026-09-07 The setter takes a schedule and pages; a page gives only its sha
-- [ ] T46 | Implement the write path's pre-verify: every alteration's address
-      matches a place on the page it is setting on, before it sets
+- [x] T46 | FINISHED -- already satisfied at filing: galley.reset refuses an unplaceable edit and proof_setter makes it a Refusal | 0dec922c | Implement
+      the write path's pre-verify: every alteration's address matches a place on
+      the page it is setting on, before it sets
         > 2026-09-07 The galley sets on a page and hands it on; the page is in hand
+- [ ] T47 | Implement a batch verify of the schedule against its pages before
+      any page is set, reporting every unmatched address at once
+        > 2026-09-08 reset refuses per page while setting; one bad address per run
