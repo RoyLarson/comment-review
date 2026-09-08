@@ -1220,6 +1220,32 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   what each one holds. Two senses in one word, and the second was the one the retirement
   had never been about.
 
+- **#36.** **The chief's command is `disposition`, and `cap` names the trigger rather than the
+  act** (Roy, 2026-09-08: *"Cap is bad name for the cli that the copy-chief would use to do this.
+  It states what the condition that triggers it not what the program does"*, then supplying the
+  register: *"In a professional publishing workflow, these judgments are classified as workflow
+  dispositions, markup status updates, or editorial directives"*).
+
+  **What it settles.** The command becomes `disposition`, and `rulings.json` becomes
+  `dispositions.json`. Each place the roles never settled receives one disposition, which is what
+  moves it out of the carried set and onto the chief's copy.
+
+  **Two candidates were refused on the register check**, run before proposing rather than after.
+  `directive` is taken by `flows/topology.py`, where a `Directive` is a stage's name with its
+  role and shard counts; both would be instructions inside one run, so the contexts overlap and
+  the polysemy rule refuses it. `dispose` is free but carries the resource-release idiom, so a
+  reader meets a plausible wrong meaning before reaching the docstring.
+
+  **And `rule` was refused for the fault it was proposed to avoid.** This session offered it
+  first, on the grounds that `rulings.json` and `rule_at_cap` already use the stem. In this repo a
+  ruling is a decision Roy makes, and this log is made of them, so a top-level `rule` command
+  would put the chief's act and Roy's rulings in one word inside overlapping contexts. That is the
+  same test `directive` failed, applied one message later to the proposal that had skipped it.
+
+  **What it costs.** A command rename reaches `SKILL.md`, `reviewer-brief.md`,
+  `tests/gates/test_skill_commands.py`, `COMMANDS`, and `vocabulary.toml`, and anything under
+  `plugins/` is a version-bumping change to the installed plugin. It is filed rather than done.
+
 ## Metaphor and its limits
 
 - **#1.** **A category doing two jobs gets asked what the trade calls the half that does not fit**
