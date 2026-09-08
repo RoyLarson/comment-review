@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 9 of 39 tasks closed
+Progress: 10 of 40 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -196,10 +196,14 @@ Four defects in collator.py, found by reading only the code.
 - [ ] T37 | Update cap so a recast keeps the instruction the roles filed; an add
       recast as correct at an empty place writes nothing
         > 2026-09-07 claude-settings: three recasts, an add among them, wrote correct
-- [ ] T38 | Update check so a mark whose address does not resolve against the
-      binder is refused, in those words
+- [-] T38 | SUPERSEDED -- the binder on disk is redacted, so this refuses a valid add; refiled as T40 | 90e1df5a | Update
+      check so a mark whose address does not resolve against the binder is
+      refused, in those words
         > 2026-09-07 check passed an add at b7 the binder did not carry; exit 0
 - [-] T39 | SUPERSEDED by Process: #109 -- every role is seeded with every place; refiled as T10 to T12 of reviewer-prose-is-rules-not-guidance | 142de840 | Decide
       whether module-context is seeded with module-scope places only; 694 of 888
       and 39 of 71 came back outside-my-role
         > 2026-09-07 claude-settings: 39 of 71; src/: 694 of 888 outside-my-role
+- [ ] T40 | Update check to refuse a mark whose address resolves against no
+      page. Verify: an invented cue is refused, a valid empty place is not
+        > 2026-09-07 b7 was a valid empty place; the redacted binder rightly lacks it

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 18 tasks closed
+Progress: 7 of 18 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -123,8 +123,9 @@ files in `corpora/` are in that state today.
 - [x] T15 | RULED Process: #110 -- the working tree, since the system runs on uncommitted work | cfe76f33 | Decide
       whether the galley is pulled from the working tree's bytes or from git,
       since this tree mixes CRLF and LF per file
-- [ ] T16 | Update proof so an address the binder does not carry is refused
-      rather than drafted without
+- [-] T16 | SUPERSEDED -- the write path takes a schedule and pages, not a binder; the flow verifies before handing over | 90e1df5a | Update
+      proof so an address the binder does not carry is refused rather than
+      drafted without
         > 2026-09-07 proof drafted 5 pages with b7's comment on none, exit 0
 - [x] T17 | RULED Process: #110 -- the compositor keeps it; the chief removes on review | cfe76f33 | Decide
       whether the compositor keeps a leading blank a change writes at a gap, or
