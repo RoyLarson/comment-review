@@ -267,6 +267,29 @@ class TestAnEditedPageStillComposes:
     def test_the_sample_itself_round_trips_before_any_edit(self):
         assert set_page(build(SAMPLE)) == SAMPLE
 
+    def test_a_vacated_place_loses_its_leading(self, sample):
+        """`Addressing: #22` -- the compositor derives a fence from the
+        place's kind, so a place a `drop` vacated does not stand over
+        whatever follows it. `a0` is the sample's one FILLED place whose
+        edge owns a leading (`page.leading == {"a0": "d0", "c1": "d1"}`).
+        """
+        from comment_review.results.galley import reset
+
+        reset(sample, {"a0": None})
+        out = set_page(sample)
+        assert "#!/usr/bin/env python\n# note\n" in out
+        assert '"""Doc."""' not in out
+
+    def test_a_dropped_c_does_not_lose_the_blank_below_its_code(self, sample):
+        """A `c` sets its line of code whether or not anything sits beside
+        it, so dropping the comment on it vacates nothing the code did not
+        already occupy -- `c1` keeps its owned leading (`d1`)."""
+        from comment_review.results.galley import reset
+
+        reset(sample, {"c1": None})
+        out = set_page(sample)
+        assert "return x + 1\n\n\ndef g(y):" in out
+
 
 class TestAWrappedTrailingCommentIsONEPlace:
     """!! THE SHAPE THAT SETTLED `original_column` -- `decision-log.md Process:

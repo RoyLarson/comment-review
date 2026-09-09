@@ -96,7 +96,7 @@ from comment_review.machine import constants
 # address* from `addresser`, which returns two blanks when there is no separator.
 # Both were live in one process. ! The shared one answers `(path, cue)`, so
 # every site here takes `[1]`.
-from comment_review.reading.addresser import ON, cue_of
+from comment_review.reading.addresser import cue_of
 
 
 def reset(page, edits: dict[str, str | None]) -> list[str]:
@@ -130,19 +130,16 @@ def reset(page, edits: dict[str, str | None]) -> list[str]:
     vacated exactly as a `drop` vacates, because in both cases the prose is no
     longer there and the space it introduced is no longer owed.
 
-    ! THE LEADING BELOW IT IS VACATED TOO, for the same reason and by the same
-    rule -- the live first key keeps its leading, the dropped one loses it. The
-    `d` becomes the empty sentinel; it does not cease to exist.
-    Without it the blank line the paragraph introduced stands over whatever
-    follows.
+    ! THE LEADING BELOW IT IS LEFT ALONE. `Addressing: #22` moved both halves
+    of the fence question -- adding one, dropping one -- to the compositor,
+    because a fence is a property of the page being laid out and not of the
+    edit being applied: whether a blank still belongs is answerable from the
+    place's own kind, with nothing this module needs to decide.
 
-    !! AND IT IS AN EDITORIAL DECISION MADE HERE, not in the compositor. It read
-    as a side-effect there until 2026-08-22 -- the loop skipped a place that set
-    nothing, so its edge was never asked for -- which had the module chartered
-    to decide NOTHING carrying out a `drop`. ! It could not have been right
-    there in any case: an emptied place and an always-empty one hold the SAME
-    empty sentinel, so the compositor cannot tell them apart. Only the EDIT
-    knows.
+    !! WHICH IS WHY `_vacate` EMPTIES THE PARAGRAPH ALONE, not the `d` below
+    it. This module's charter is changing out text on the page it is handed;
+    deciding whether a blank line still belongs is `set_page`'s question, made
+    from the place's kind rather than from what this loop just did to it.
 
     ! A `c` TAKES ONLY THE PROSE. The compositor sets the line of code and joins
     what sits beside it, so the replacement is the comment and its separator --
@@ -157,10 +154,6 @@ def reset(page, edits: dict[str, str | None]) -> list[str]:
         landed.
     """
     by_place: dict[str, list] = {}
-    # ! The `d` a place owns, so a `drop` can empty it too. Leading carries a
-    # SYMBOL and never an address -- it names no place -- so it is found here by
-    # that symbol and nowhere by a cue.
-    by_symbol = {b.symbol: b for b in page if b.symbol}
     for b in page:
         if b.address:
             by_place.setdefault(cue_of(b.address).cue, []).append(b)
@@ -182,11 +175,7 @@ def reset(page, edits: dict[str, str | None]) -> list[str]:
             )
             continue
         if replacement is None:
-            owns_leading = not where.startswith(ON)
-            _vacate(
-                found[0],
-                by_symbol.get(page.leading.get(where, "")) if owns_leading else None,
-            )
+            _vacate(found[0])
             continue
         if not isinstance(replacement, str):
             refused.append(
@@ -201,19 +190,20 @@ def reset(page, edits: dict[str, str | None]) -> list[str]:
     return refused
 
 
-def _vacate(paragraph, leading) -> None:
-    """Empty this place and the space below it, without removing either.
+def _vacate(paragraph) -> None:
+    """Empty this place, without removing it.
 
     !! THE EMPTY SENTINEL IS THE POINT: the place takes it, and does not itself
-    disappear. Both paragraphs keep their address, their anchor and their
-    position in the reading order; they hold no lines. A place that vanished
-    could not be cited
+    disappear. It keeps its address, its anchor and its position in the
+    reading order; it holds no lines. A place that vanished could not be cited
     by the `add` that fills it next.
+
+    ! THE LEADING BELOW IT IS NOT THIS FUNCTION'S TO TOUCH -- `Addressing:
+    #22`. `set_page` reads the place's kind to decide whether a blank still
+    belongs, so emptying it here would be a second, competing answer to the
+    same question.
 
     Args:
         paragraph: the place being vacated.
-        leading: the `d` it owns, or None where nothing blank follows it.
     """
     paragraph.raw_lines = []
-    if leading is not None:
-        leading.raw_lines = []

@@ -128,12 +128,12 @@ class TestDrop:
         assert cue in sample.cues.reading
 
     @pytest.mark.parametrize("series,cue", FILLED_PLACES)
-    def test_only_the_place_and_the_fence_it_OWNS_change(self, sample, series, cue):
-        """The blank below a dropped paragraph goes with it -- otherwise the
-        space it introduced stands over whatever follows.
+    def test_only_the_place_changes(self, sample, series, cue):
+        """The galley touches the place it was asked to and nothing else.
 
-        ! A `c` OWNS NONE. It sits beside code, so the blank below separates
-        that CODE from what follows and was never the comment's to lose.
+        !! NO FENCE MOVES HERE, ON ANY DROP. `Addressing: #22` moved the whole
+        fence question -- add one, drop one -- to the compositor, so a `drop`
+        leaves every `d` on the page exactly where it was.
         """
         fresh = build(SAMPLE)
         before, before_d = lines_by_cue(fresh), leading_by_symbol(fresh)
@@ -141,10 +141,22 @@ class TestDrop:
         after, after_d = lines_by_cue(sample), leading_by_symbol(sample)
 
         assert {c for c in after if after[c] != before[c]} == {cue}
-        moved = {s for s in after_d if after_d[s] != before_d[s]}
-        owned = sample.leading.get(cue, "")
-        expected = {owned} if owned and not cue.startswith("c") else set()
-        assert moved == expected
+        assert after_d == before_d
+
+    def test_a_drop_leaves_the_leading_alone(self, sample):
+        """`Addressing: #22` -- the compositor owns leading, adding and
+        dropping, because a fence is a property of the page being laid out
+        rather than of the edit being applied.
+
+        ! `a0` IS PICKED FOR TEETH: it is the one FILLED place in the sample
+        whose edge OWNS a leading (`page.leading == {"a0": "d0", "c1": "d1"}`),
+        so the old `_vacate` had something to empty here and the new one must
+        not.
+        """
+        cue = FILLED["a"][0]
+        before = leading_by_symbol(build(SAMPLE))
+        reset(sample, {cue: None})
+        assert leading_by_symbol(sample) == before
 
     def test_a_c_keeps_the_blank_below_its_code(self, sample):
         """Stated separately because `prove_unchanged` cannot see the

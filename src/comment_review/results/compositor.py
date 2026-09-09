@@ -200,6 +200,30 @@ def set_page(page: Page, newline: str | None = None) -> str:
         for b in page.paragraphs
         if b.address and Kind.occupies_no_lines(b.kind)
     }
+    # !! WHICH PLACES ONCE HELD PROSE AND HOLD NONE NOW -- the mirror of
+    # `absent` above, for the DROP side of `Addressing: #22`. `galley.reset`
+    # empties the paragraph and leaves its `d` alone, so a place whose KIND
+    # still says prose belongs and whose `raw_lines` are empty is one a
+    # `drop` just vacated -- which is the only case the rule below may fire
+    # on.
+    #
+    # ! KEYED ON THE PLACE'S STATE, NOT ON THE EDGE OR ON A LOOKUP.
+    # `Addressing: #19` paid for that mistake once already, on the add side:
+    # gating on "no leading was looked up" fired on a MODIFY and on an
+    # unedited compose too. This is its mirror and takes the same gate.
+    #
+    # !! `ON` IS EXCLUDED. A `c` sets its line of code whether or not
+    # anything sits beside it, so a comment leaving that line vacates
+    # nothing the code itself did not already occupy -- see
+    # `galley._vacate`.
+    vacated = {
+        cue_of(b.address).cue
+        for b in page.paragraphs
+        if b.address
+        and not cue_of(b.address).cue.startswith(ON)
+        and not Kind.occupies_no_lines(b.kind)
+        and not b.raw_lines
+    }
     # !! THE CLOSING GAP IS EXEMPT, AND THE FOOT IS WHY. Back matter is the run
     # AFTER the last blank line, so a leading above an added closing `b` pushes
     # it INTO the matter it was meant to stay clear of. MEASURED 2026-08-26 on
@@ -238,13 +262,17 @@ def set_page(page: Page, newline: str | None = None) -> str:
         #
         # !! A PLACE IS INVIOLABLE -- IT NEVER DISAPPEARS. Roy, 2026-08-22:
         # *"places are involatile; having an empty sentinel is the key, not that
-        # the place disappears."* An emptied place still holds its position and
-        # still owns the space below it. ! A first attempt made this loop skip a
-        # place that had held lines and now set none, so that a `drop` would
-        # take its leading with it -- which put an editorial decision inside the
-        # compositor, whose whole charter is to decide NOTHING. `galley.reset`
-        # empties the leading when it empties the paragraph.
-        edge = held.get(edges.get(previous, ""), [])
+        # the place disappears."* An emptied place still holds its position;
+        # whether it still owns the space below it is what `vacated` answers.
+        #
+        # !! AND WHOSE CALL THAT IS MOVED HERE, `Addressing: #22`. `galley.reset`
+        # used to empty the leading when it emptied the paragraph, deciding the
+        # fence question at edit time. Roy: *"the leadings are not about
+        # resetting text they are about fences ... that is mostly accomplished
+        # by just saying is there still an address here."* A fence is a
+        # property of the page being laid out, so it is asked here, from the
+        # place's own kind, and not by the edit that touched it.
+        edge = [] if previous in vacated else held.get(edges.get(previous, ""), [])
         out.extend(edge)
         # !! A `b` SET INTO A PLACE THAT OWNED NO LEADING TAKES ONE. Roy,
         # 2026-08-26: *"It needs to add the leading between before any b"*, and
