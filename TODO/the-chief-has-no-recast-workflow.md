@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 7 tasks closed
+Progress: 2 of 7 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-09-08 (Roy 2026-09-08: implementing the recast workflow for the cli the
@@ -16,8 +16,9 @@ The copy chief has no workflow for recasting the places that never settled.
 
 ## Tasks
 
-- [ ] T1 | Update cap so a recast keeps the instruction the roles filed rather
-      than writing every one as a correct
+- [x] T1 | a recast keeps the instruction the roles filed, and _recast_claim shapes the claim to it | 2a5de914 | Update
+      cap so a recast keeps the instruction the roles filed rather than writing
+      every one as a correct
         > 2026-09-08 It is refused, not repaired -- Process 108; it waits on T2
         > 2026-09-08 The P14 wait was withdrawn 2026-09-08; this is the simple repair
 - [ ] T2 | Implement the chief's recast end to end: its own prose at a place,

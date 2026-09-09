@@ -293,7 +293,7 @@ that changed a published name or rule:
 | [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 10/20 | The agents files name the new CLI and say how to use it |
 | [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 2/13 | The reviewer prose is rules and punishments, not guidance toward a good result |
 | [a-machine-context-raises-query-and-clean](a-machine-context-raises-query-and-clean.md) | backend | yes | 0/8 | annotate carries two subjects -- it extracts index keys, and it flags claims it cannot settle. The second half becomes a context that marks like a role. |
-| [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | yes | 1/7 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
+| [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | yes | 2/7 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
 
 ### in-progress  (18)
 
