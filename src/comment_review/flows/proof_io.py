@@ -121,7 +121,7 @@ def save_proof(path: Path, proof: MasterProof) -> None:
 
 
 def save_copy(path: Path, copy: EditCopy) -> None:
-    """An edit_copy as JSON at `path` -- the chief's, as `collate` and `cap` write."""
+    """An edit_copy as JSON at `path` -- the chief's, from collate or disposition."""
     _dump(path, copy.serialize())
 
 

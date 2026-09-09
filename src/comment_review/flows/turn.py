@@ -8,7 +8,7 @@
     determined_chief(collated, rulings) -> (every Determined, the chief's edit_copy)
     batch_for(collated) -> the batch that goes out, every slot carrying its diff
     proof_after(collated, turns) -> the master proof as the state between turns
-    refold(proof, binder, root) -> the fold over a proof read back, for the cap
+    refold(proof, binder, root) -> the fold over a proof read back, at max turns
     close(collated, rulings, turns) -> (the closed proof, the chief's edit_copy)
     contracts() -> the three shapes a role is handed, generated from the code
 
@@ -47,7 +47,7 @@ A COMPOSITION re-read is answered with a fresh `Mark` over the composed text
 
 Then `flows.collate.collate` runs again over the copies, and every place that
 agreed comes back as a `stet` Determined at this turn (`Process: #87`). What
-did not agree is the next turn's batch, until the task agent's cap
+did not agree is the next turn's batch, until the task agent's max turns
 (`Process: #78`), where `rule_at_max_turns` records the chief's `taken_in` or
 `recast` and `determined_chief` derives the chief's copy from the whole set.
 
@@ -465,7 +465,7 @@ def _keeping(got: Collated, earlier: dict[str, Determined]) -> Collated:
 def refold(proof: MasterProof, binder: Binder, root: Path) -> Collated:
     """The fold over the proof's copies as they stand, every Determined kept.
 
-    What the cap reads: `rule_at_max_turns` needs the places still carried forward
+    What max turns reads: `rule_at_max_turns` needs the places still carried forward
     and `determined_chief` the program's stets, and neither is on the wire --
     the proof carries the copies and the rulings, and the fold is re-derived
     from them at the turn the proof stands at, `proof.turn`.
@@ -504,7 +504,7 @@ def rule_at_max_turns(
         side: for `TAKEN_IN`, the role whose text is taken in, or `ORIGINAL`.
             Ignored for a `RECAST`, whose side is `CHIEF`.
         reason: the chief's, owed.
-        turn: the turn the cap fell on.
+        turn: the turn max turns fell on.
         prose: for a `RECAST`, the chief's own paragraph as raw text.
 
     Returns:
@@ -598,7 +598,7 @@ def determined_chief(
         named = "; ".join(
             f"{entry['address']} ({', '.join(entry['roles'])})" for entry in unruled
         )
-        raise ValueError(f"unruled at the cap: {named}")
+        raise ValueError(f"unruled at max turns: {named}")
     every = {**collated.determined, **{d.address: d for d in rulings}}
     return every, _chief_copy(collated.proof.read_from, every, collated.proof)
 
@@ -662,13 +662,13 @@ def proof_after(got: Collated, turns: tuple[dict, ...] = ()) -> MasterProof:
 def close(
     got: Collated, rulings: list[Determined], turns: tuple[dict, ...]
 ) -> tuple[MasterProof, EditCopy]:
-    """The proof closed at the cap, and the chief's copy derived from the whole set.
+    """The proof closed at max turns, and the chief's copy from the whole set.
 
     Args:
         got: the last fold, as `refold` returns it.
         rulings: the chief's own, from `rule_at_max_turns`, one per place still
             carried forward.
-        turns: the record as the proof stood; the cap adds no turn.
+        turns: the record as the proof stood; max turns adds no turn.
 
     Returns:
         `(the closed proof, the chief's edit_copy)`. The proof carries every

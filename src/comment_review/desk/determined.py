@@ -11,7 +11,8 @@ should not be added to the Mark class. That makes it a different object."*
 
     stet        the roles agreed, on a turn or at once; the chief lets it
                 stand. The program sets this one on the chief's behalf
-    taken_in    they never agreed; at the cap the chief takes one side's text
+    taken_in    they never agreed; at max turns the chief takes one side's
+                text
                 in. THE ORIGINAL AUTHOR IS A SIDE
     recast      they never agreed; the chief writes its own prose over every
                 side
@@ -22,7 +23,7 @@ should not be added to the Mark class. That makes it a different object."*
     identical   two or more owing marks, byte-identical
     withdrawn   every mark at a contested place was withdrawn, so the
                 original stands -- `side` is ORIGINAL and `mark` None
-    cap         no agreement; the chief ruled
+    max-turns   no agreement; the chief ruled
 
 The chief's `edit_copy` is DERIVED from these -- `flows.collate._chief_copy`
 -- one mark per place, the shape `Process: #30` ruled, so the write end reads

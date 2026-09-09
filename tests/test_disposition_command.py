@@ -140,7 +140,7 @@ class TestRefusals:
         held_open(tmp_path, monkeypatch, capsys)
         code, out = disposition(tmp_path, monkeypatch, capsys, [])
         assert code == command.BROKEN
-        assert "unruled at the cap: m.py@b1 (block-context, function-context)" in out
+        assert "unruled at max turns: m.py@b1 (block-context, function-context)" in out
         assert not (tmp_path / "chief.json").exists()
         assert not (tmp_path / "final.json").exists()
 

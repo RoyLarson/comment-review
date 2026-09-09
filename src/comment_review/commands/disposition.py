@@ -5,7 +5,7 @@ r"""The `disposition` command: the chief's dispositions close a stage's collate.
 
 The work is `flows.turn` -- `refold`, `rule_at_max_turns`, `close` -- and this is
 only the console face of it. `Process: #78`: the task agent's
-cap ends the turns; `#87`: every place still carried forward gets the chief's
+max turns ends them; `#87`: every place still carried forward gets the chief's
 own `taken_in` or `recast`, one Determined per resolved place, and the
 chief's `edit_copy` is derived from the whole set.
 
