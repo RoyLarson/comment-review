@@ -18,16 +18,21 @@ from helpers import (
     a_correct_setting,
     a_move,
     a_query,
+    a_small_real_tree,
     an_add,
+    binder_of,
     copies_over,
     entries_of,
     marks_of,
+    pages_of,
     seed,
 )
 
+from comment_review.desk.collator import known_addresses
 from comment_review.desk.containers import EditCopy
 from comment_review.desk.mark import Mark, Shape
 from comment_review.flows.collate import collate
+from comment_review.reading.addresser import address_for
 
 BASE = "# one\n# two\n# three\n"
 
@@ -1095,3 +1100,48 @@ class TestAResolvedMoveIsOneEntry:
         copy, why = EditCopy.deserialize("the chief's", got.chief.serialize())
         assert why == []
         assert copy is not None
+
+
+class TestAnAddressMustResolveAgainstAPage:
+    """`collator-defects` T40: the binder is redacted to the places holding
+    prose, so `Process: #97` retired the check that compared an address
+    against IT -- a real empty place is one the binder rightly lacks. This
+    restates the check against the real PAGE instead, over a real checkout so
+    an invented cue and a real empty place can be told apart."""
+
+    def test_an_invented_cue_is_reported(self, tmp_path):
+        repo = a_small_real_tree(tmp_path)
+        binder = binder_of(repo, 0)
+        wire = seed(binder, "block-context")
+        sheet = next(s for s in wire["sheets"] if s["path"] == "mark.py")
+        sheet["marks"].append(a_clean("mark.py@b9999"))
+        got = collate("4c", [wire], binder, root=repo)
+        found = [p for p in got.problems if p.address == "mark.py@b9999"]
+        assert found, got.problems
+        assert found[0].role == "block-context"
+
+    def test_a_real_empty_place_is_not_reported(self, tmp_path):
+        repo = a_small_real_tree(tmp_path)
+        binder = binder_of(repo, 0)
+        known = known_addresses(binder)
+        page = next(p for p in pages_of(repo) if p.path == "mark.py")
+        absent = next(
+            address_for(page.path, c)
+            for c in page.cues.places
+            if address_for(page.path, c) not in known
+        )
+        wire = seed(binder, "block-context")
+        sheet = next(s for s in wire["sheets"] if s["path"] == "mark.py")
+        sheet["marks"].append(a_clean(absent))
+        got = collate("4c", [wire], binder, root=repo)
+        assert [p for p in got.problems if p.address == absent] == []
+
+    def test_a_page_this_checkout_cannot_read_is_not_reported(self):
+        """The fictional-file fixtures every other test in this module builds
+        -- `m.py` names no real file under `REPO` -- must not become findings
+        just because they cannot be read. There is no page to measure the cue
+        against, so the run says nothing rather than guessing."""
+        binder = one_place()
+        copies = copies_over(binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}})
+        got = collate("4c", copies, binder, root=REPO)
+        assert got.problems == []

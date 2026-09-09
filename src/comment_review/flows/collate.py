@@ -18,10 +18,11 @@ Ten acts, in the order the body runs them:
     COVERAGE   did each role carry back every address the binder holds --
                `_coverage_problems`. `fan_out` refuses an uncovered page at the
                DISPATCH; this is the RETURN
-    VERIFY     each ruled mark's address, quoted sentence and citations --
-               `desk.collator.verify_report`, the three questions
-               `desk.mark.parse` cannot ask because it holds no binder, no page
-               and no filesystem
+    VERIFY     each ruled mark's quoted sentence and citations --
+               `desk.collator.verify_report` -- and its address --
+               `_resolution_problems`, whether it names a place any page
+               carries. Three questions `desk.mark.parse` cannot ask because
+               it holds no binder, no page and no filesystem
     DRIFT      a returned `raw_text` that is not the seeded one
     ASSEMBLE   `desk.proof.master_proof_of` -- the master_proof
     PLACE      `desk.collator.places` -- marks grouped by the place they touch
@@ -87,7 +88,8 @@ from comment_review.desk.mark import Instruction, Mark, Shape, filled
 from comment_review.desk.proof import MismatchedRoot, master_proof_of
 from comment_review.desk.stages import Stage
 from comment_review.flows.mark_errors import Revisit, mark_errors
-from comment_review.reading.addresser import cue_of, unflatten
+from comment_review.flows.page_for import page_of
+from comment_review.reading.addresser import Cues, cue_of, unflatten
 from comment_review.results.differences import CannotCompose, compose
 
 
@@ -786,6 +788,85 @@ def _stage_problems(dispatches: Stage, edit_copies: list[EditCopy]) -> list[Prob
     ]
 
 
+#: One path -> the real page's `Cues`, or `None` where this checkout holds no
+#: readable page there. Shared across a stage's copies, the same shape as
+#: `desk.collator.Cache` for a cited file: a page eight roles' marks touch is
+#: read once.
+PageCache = dict[str, Cues | None]
+
+
+def _page_cues(real: str, root: Path, cache: PageCache) -> Cues | None:
+    """One path's real places, filled or not -- read at most once per stage.
+
+    !! THE BINDER CANNOT ANSWER THIS, WHICH IS WHY THE FILE IS OPENED.
+    `Process: #97` retired the check that compared an address against the
+    BINDER's own addresses, because the binder is redacted to the places
+    holding prose and a real empty place is one it rightly lacks. `page_of`
+    rebuilds the PAGE instead, which carries every place a series has,
+    filled or not -- `collator-defects` T40.
+
+    Args:
+        real: the page's real repo path, unflattened.
+        root: the checkout this path is read from.
+        cache: shared across the stage's copies.
+
+    Returns:
+        The page's `Cues`, or `None` where `real` could not be turned into a
+        page at `root` -- unresolvable rather than false, which is what lets
+        `_resolution_problems` report nothing rather than guess.
+    """
+    if real not in cache:
+        page, _why = page_of(root / real, rel=real)
+        cache[real] = page.cues if page is not None else None
+    return cache[real]
+
+
+def _resolution_problems(
+    copy: EditCopy, paths: list[str], root: Path, cache: PageCache
+) -> list[Problem]:
+    """One `Problem` per ruled mark whose address resolves against no page.
+
+    !! ONLY AN UNRESOLVABLE CUE IS REPORTED, NEVER AN UNREADABLE PAGE. Where
+    `_page_cues` answers `None` -- this checkout holds no file at `real`, so
+    there is no page to measure the cue against -- this reports nothing.
+    Reporting anyway would be the guess `Process: #97` already retired one
+    layer up: an address the binder lacks is not thereby one no page holds.
+
+    `collator-defects` T40. Verify: an invented cue is refused, a valid empty
+    place is not -- the case `Process: #97` settled, restated against the
+    real page rather than the redacted binder.
+
+    Args:
+        copy: one parsed edit_copy, as it came back.
+        paths: the binder's own page paths, for `unflatten`.
+        root: the checkout every page is read from.
+        cache: shared across the stage's copies, keyed by real path.
+
+    Returns:
+        One `Problem` per mark whose cue no readable page carries, in sheet
+        then mark order. ! AN EMPTY ADDRESS IS SKIPPED -- `clean` is the one
+        row a mark may carry none for, and there is no place to resolve.
+    """
+    out: list[Problem] = []
+    for sheet in copy.sheets:
+        for mark in sheet.marks:
+            addr = cue_of(mark.address)
+            if not addr.path or not addr.cue:
+                continue
+            real = unflatten(addr.path, paths) or addr.path
+            cues = _page_cues(real, root, cache)
+            if cues is not None and addr.cue not in cues.places:
+                out.append(
+                    Problem(
+                        copy.role,
+                        mark.address,
+                        f"resolves against no page -- {real} carries no "
+                        f"place {addr.cue!r}",
+                    )
+                )
+    return out
+
+
 def collate(
     stage: str,
     edit_copies: list[dict],
@@ -922,6 +1003,11 @@ def collate(
     # evidence, and a cache built inside `verify_report` re-read a file once per
     # citing role -- four reads of one line for four roles, measured 2026-08-31.
     cache: Cache = {}
+    # ! THE BINDER'S OWN PAGES, for `unflatten` -- the same set `_chief_copy`
+    # resolves an address's flattened path against, and one `PageCache` for
+    # the whole stage for the same reason `cache` above is one.
+    paths = [page.path for page in binder.pages]
+    page_cache: PageCache = {}
 
     for copy in copies:
         # ! `mark_errors` ALREADY RAN, in the pass above. It is the one thing
@@ -941,6 +1027,10 @@ def collate(
         # carries none because nothing writes it, and reading it is what
         # settling a citation means. Roy, 2026-08-30, on exactly this call.
         problems += verify_report(copy, binder, root, cache)
+        # !! THE ADDRESS ITSELF -- `_resolution_problems`, `collator-defects`
+        # T40. `verify_report` asks two questions of a ruled mark; this asks
+        # the third, against the real page rather than the binder.
+        problems += _resolution_problems(copy, paths, root, page_cache)
         drift += drift_in(copy, base)
         counts[copy.role] = tally(copy)
 
