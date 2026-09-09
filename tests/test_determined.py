@@ -43,7 +43,7 @@ def _a_ruling(**over) -> dict:
         "answer": "taken_in",
         "turn": 2,
         "side": "block-context",
-        "how": "cap",
+        "how": "max-turns",
         "reason": "block-context's reading is the one the code supports",
         "mark": _a_mark().serialize(),
     }
@@ -53,7 +53,7 @@ def _a_ruling(**over) -> dict:
 
 def test_the_closed_set_is_exactly_three():
     assert set(Answer) == {"stet", "taken_in", "recast"}
-    assert HOW == ("one", "identical", "withdrawn", "cap")
+    assert HOW == ("one", "identical", "withdrawn", "max-turns")
 
 
 @pytest.mark.parametrize("named", sorted(INSTRUCTIONS))

@@ -33,7 +33,7 @@ from comment_review.flows.turn import (
     contracts,
     determined_chief,
     proof_after,
-    rule_at_cap,
+    rule_at_max_turns,
     run_turn,
 )
 
@@ -624,19 +624,19 @@ class TestTheBatchThatGoesOut:
 class TestTheCap:
     def test_taken_in_of_the_original_leaves_no_entry_on_the_chief(self):
         _, _, got = _escalated()
-        ruled = rule_at_cap(
+        ruled = rule_at_max_turns(
             got, "m.py@b1", Answer.TAKEN_IN, ORIGINAL, "neither reading holds", turn=2
         )
         assert ruled.mark is None
         assert ruled.side == ORIGINAL
-        assert ruled.how == "cap"
+        assert ruled.how == "max-turns"
         every, chief = determined_chief(got, [ruled])
         assert every["m.py@b1"] is ruled
         assert entries_of(chief) == []
 
     def test_taken_in_of_a_role_carries_that_roles_text(self):
         _, _, got = _escalated()
-        ruled = rule_at_cap(
+        ruled = rule_at_max_turns(
             got, "m.py@b1", Answer.TAKEN_IN, "function-context", "dos is right", turn=2
         )
         _, chief = determined_chief(got, [ruled])
@@ -645,7 +645,7 @@ class TestTheCap:
     def test_close_returns_the_closed_proof_and_the_chief(self):
         """T23: what `cap` writes is the flow's, not assembled at the console."""
         _, _, got = _escalated()
-        ruled = rule_at_cap(
+        ruled = rule_at_max_turns(
             got, "m.py@b1", Answer.TAKEN_IN, "function-context", "dos", turn=1
         )
         closed, chief = close(got, [ruled], ({"turn": 1},))
@@ -658,7 +658,7 @@ class TestTheCap:
     def test_a_recast_carries_the_chiefs_own_prose_and_parses(self):
         _, _, got = _escalated()
         prose = "# one\n# 2\n# three\n"
-        ruled = rule_at_cap(
+        ruled = rule_at_max_turns(
             got, "m.py@b1", Answer.RECAST, "", "both sides miss it", turn=2, prose=prose
         )
         assert ruled.side == CHIEF
@@ -688,7 +688,9 @@ class TestTheCap:
         got = collate("4c", copies, binder, root=REPO)
         assert [u["address"] for u in got.unsettlable] == ["m.py@b1"]
         with pytest.raises(ValueError) as caught:
-            rule_at_cap(got, "m.py@b1", Answer.TAKEN_IN, "block-context", "x", turn=2)
+            rule_at_max_turns(
+                got, "m.py@b1", Answer.TAKEN_IN, "block-context", "x", turn=2
+            )
         assert "unsettlable" in str(caught.value)
 
     def test_the_cap_refuses_to_close_with_a_place_unruled(self):
@@ -702,7 +704,7 @@ class TestTheCap:
 
     def test_the_cap_closes_once_every_carried_place_is_ruled(self):
         _, _, got = _escalated()
-        ruled = rule_at_cap(
+        ruled = rule_at_max_turns(
             got, "m.py@b1", Answer.TAKEN_IN, ORIGINAL, "neither", turn=2
         )
         every, chief = determined_chief(got, [ruled])
@@ -730,9 +732,11 @@ class TestTheCap:
     def test_stet_is_not_the_chiefs_to_rule(self):
         _, _, got = _escalated()
         with pytest.raises(ValueError):
-            rule_at_cap(got, "m.py@b1", Answer.STET, "block-context", "x", turn=2)
+            rule_at_max_turns(got, "m.py@b1", Answer.STET, "block-context", "x", turn=2)
 
     def test_a_side_with_no_mark_there_cannot_be_taken_in(self):
         _, _, got = _escalated()
         with pytest.raises(ValueError):
-            rule_at_cap(got, "m.py@b1", Answer.TAKEN_IN, "module-context", "x", turn=2)
+            rule_at_max_turns(
+                got, "m.py@b1", Answer.TAKEN_IN, "module-context", "x", turn=2
+            )

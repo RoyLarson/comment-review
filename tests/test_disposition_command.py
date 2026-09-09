@@ -53,7 +53,7 @@ class TestTheChiefRules:
         assert ruled.answer is Answer.TAKEN_IN
         assert ruled.side == "function-context"
         assert ruled.turn == 1
-        assert ruled.how == "cap"
+        assert ruled.how == "max-turns"
         assert len(final.turns) == 1
 
     def test_a_taken_in_of_the_original_writes_no_entry(

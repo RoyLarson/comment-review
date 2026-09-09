@@ -3,7 +3,8 @@
     parse_answers(role, sent, returned) -> (answers, revisit)
     apply(copies, role, answers) -> revisit
     run_turn(proof, binder, root, sent, answers) -> Collated
-    rule_at_cap(collated, address, answer, side, reason, turn, prose) -> Determined
+    rule_at_max_turns(collated, address, answer, side, reason, turn, prose)
+                                                                  -> Determined
     determined_chief(collated, rulings) -> (every Determined, the chief's edit_copy)
     batch_for(collated) -> the batch that goes out, every slot carrying its diff
     proof_after(collated, turns) -> the master proof as the state between turns
@@ -47,7 +48,7 @@ A COMPOSITION re-read is answered with a fresh `Mark` over the composed text
 Then `flows.collate.collate` runs again over the copies, and every place that
 agreed comes back as a `stet` Determined at this turn (`Process: #87`). What
 did not agree is the next turn's batch, until the task agent's cap
-(`Process: #78`), where `rule_at_cap` records the chief's `taken_in` or
+(`Process: #78`), where `rule_at_max_turns` records the chief's `taken_in` or
 `recast` and `determined_chief` derives the chief's copy from the whole set.
 
 !! ONCE STET, ALWAYS STET -- `Process: #91`. A place determined on an earlier
@@ -464,7 +465,7 @@ def _keeping(got: Collated, earlier: dict[str, Determined]) -> Collated:
 def refold(proof: MasterProof, binder: Binder, root: Path) -> Collated:
     """The fold over the proof's copies as they stand, every Determined kept.
 
-    What the cap reads: `rule_at_cap` needs the places still carried forward
+    What the cap reads: `rule_at_max_turns` needs the places still carried forward
     and `determined_chief` the program's stets, and neither is on the wire --
     the proof carries the copies and the rulings, and the fold is re-derived
     from them at the turn the proof stands at, `proof.turn`.
@@ -483,7 +484,7 @@ def refold(proof: MasterProof, binder: Binder, root: Path) -> Collated:
     )
 
 
-def rule_at_cap(
+def rule_at_max_turns(
     collated: Collated,
     address: str,
     answer: Answer,
@@ -536,11 +537,13 @@ def rule_at_cap(
     marks = entry["marks"]
     if answer is Answer.TAKEN_IN:
         if side == ORIGINAL:
-            return Determined(address, answer, turn, ORIGINAL, "cap", reason, None)
+            return Determined(
+                address, answer, turn, ORIGINAL, "max-turns", reason, None
+            )
         placed = next((p for p in marks if p.role == side), None)
         if placed is None:
             raise ValueError(f"{side} has no mark at {address} to take in")
-        return Determined(address, answer, turn, side, "cap", reason, placed.mark)
+        return Determined(address, answer, turn, side, "max-turns", reason, placed.mark)
     if not filled(prose):
         raise ValueError("a recast needs the chief's own prose")
     first = marks[0].mark
@@ -549,7 +552,7 @@ def rule_at_cap(
         answer,
         turn,
         CHIEF,
-        "cap",
+        "max-turns",
         reason,
         Mark(
             address=address,
@@ -571,7 +574,7 @@ def determined_chief(
 
     Args:
         collated: the last fold, carrying the program's `stet`s.
-        rulings: the chief's own, from `rule_at_cap`.
+        rulings: the chief's own, from `rule_at_max_turns`.
 
     Returns:
         `(address -> Determined, the chief's edit_copy)`.
@@ -663,7 +666,7 @@ def close(
 
     Args:
         got: the last fold, as `refold` returns it.
-        rulings: the chief's own, from `rule_at_cap`, one per place still
+        rulings: the chief's own, from `rule_at_max_turns`, one per place still
             carried forward.
         turns: the record as the proof stood; the cap adds no turn.
 

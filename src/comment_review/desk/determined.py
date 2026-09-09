@@ -66,7 +66,7 @@ ORIGINAL = "original"
 #: The side on a `recast` -- the chief wrote the prose.
 CHIEF = "copy-chief"
 #: How the place came to its answer, closed.
-HOW = ("one", "identical", "withdrawn", "cap")
+HOW = ("one", "identical", "withdrawn", "max-turns")
 
 
 @dataclass(frozen=True)
