@@ -13,7 +13,7 @@
 
 ! `commands/collate.py` writes the first batch through `batch_for` and the
 proof through `proof_after`; `commands/turn.py` runs a turn and
-`commands/cap.py` closes one. `docs/the-turn.md` is the source for what a
+`commands/disposition.py` closes one. `docs/the-turn.md` is the source for what a
 turn is, and its *What is BUILT* table is the map from that file to this one.
 
 === A DiffMark DOES NOT BECOME A Mark -- `Process: #86`

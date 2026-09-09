@@ -30,8 +30,8 @@ from pathlib import Path
 from conftest import ROOT, cue, run_command
 
 from comment_review.binder.binder import VERSION, Binder, bind
-from comment_review.commands import cap as cap_command
 from comment_review.commands import collate as collate_command
+from comment_review.commands import disposition as disposition_command
 from comment_review.commands import turn as turn_command
 from comment_review.desk.containers import EditCopy, MasterProof, Sheet
 from comment_review.desk.mark import (
@@ -664,7 +664,7 @@ def an_add(address: str) -> dict:
 #
 # !! THROUGH `conftest.run_command`, so every flag is parsed by the command's
 # own argparse -- the one thing that catches a flag the body reads under a
-# different name. `test_turn_command` and `test_cap_command` share it (T26 of
+# different name. `test_turn_command` and `test_disposition_command` share it (T26 of
 # `TODO/no-command-for-the-middle.md`); before this each set `sys.argv` by hand
 # and one imported the other's underscored helpers.
 #
@@ -786,21 +786,21 @@ def held_open(
     assert code == collate_command.ESCALATIONS, out
 
 
-def cap(
+def disposition(
     tmp_path, monkeypatch, capsys, rulings: object, proof: str = "proof1.json"
 ) -> tuple[int, str]:
-    """`cap` over `proof` with `rulings`: chief.json and final.json out."""
-    (tmp_path / "rulings.json").write_text(json.dumps(rulings), encoding="utf-8")
+    """`disposition` over `proof`: chief.json and final.json out."""
+    (tmp_path / "dispositions.json").write_text(json.dumps(rulings), encoding="utf-8")
     return run_command(
         monkeypatch,
         capsys,
-        cap_command,
+        disposition_command,
         "--proof",
         str(tmp_path / proof),
         "--binder",
         str(tmp_path / "binder.json"),
-        "--rulings",
-        str(tmp_path / "rulings.json"),
+        "--dispositions",
+        str(tmp_path / "dispositions.json"),
         "--out",
         str(tmp_path / "chief.json"),
         "--proof-out",
@@ -816,6 +816,6 @@ def proof_at(tmp_path, n: int) -> MasterProof:
 
 
 def the_chief(tmp_path) -> EditCopy:
-    """`cap`'s chief.json, parsed as the ordinary edit_copy it must be."""
+    """`disposition`'s chief.json, as the ordinary edit_copy it must be."""
     loaded = json.loads((tmp_path / "chief.json").read_text(encoding="utf-8"))
     return returned(loaded, "chief")

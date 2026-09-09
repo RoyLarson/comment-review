@@ -1,14 +1,23 @@
-"""The `cap` command: the chief's rulings close the proof, from the console.
+"""The `disposition` command: the chief closes the proof, from the console.
 
 ! DRIVEN THROUGH `main()` AND `sys.argv` over the real chain -- `collate`
-deals, `turn` holds the place open, `cap` rules it. `P5` of
+deals, `turn` holds the place open, `disposition` rules it. `P5` of
 `docs/plans/0.2.4-the-turn-as-commands.md`, and T16's other half.
 """
 
-from helpers import BASE, DOS, TWO, a_query, cap, entries_of, held_open, the_chief
+from helpers import (
+    BASE,
+    DOS,
+    TWO,
+    a_query,
+    disposition,
+    entries_of,
+    held_open,
+    the_chief,
+)
 
-from comment_review.commands import cap as command
 from comment_review.commands import collate as collate_command
+from comment_review.commands import disposition as command
 from comment_review.desk.determined import CHIEF, ORIGINAL, Answer
 from comment_review.desk.mark import Shape
 from comment_review.flows.proof_io import load_proof
@@ -21,7 +30,7 @@ class TestTheChiefRules:
         self, tmp_path, monkeypatch, capsys
     ):
         held_open(tmp_path, monkeypatch, capsys)
-        code, out = cap(
+        code, out = disposition(
             tmp_path,
             monkeypatch,
             capsys,
@@ -51,7 +60,7 @@ class TestTheChiefRules:
         self, tmp_path, monkeypatch, capsys
     ):
         held_open(tmp_path, monkeypatch, capsys)
-        code, out = cap(
+        code, out = disposition(
             tmp_path,
             monkeypatch,
             capsys,
@@ -74,7 +83,7 @@ class TestTheChiefRules:
 
     def test_a_recast_carries_the_chiefs_own_prose(self, tmp_path, monkeypatch, capsys):
         held_open(tmp_path, monkeypatch, capsys)
-        code, out = cap(
+        code, out = disposition(
             tmp_path,
             monkeypatch,
             capsys,
@@ -103,7 +112,7 @@ class TestTheChiefRules:
             }
         }
         held_open(tmp_path, monkeypatch, capsys, asked, texts)
-        code, out = cap(
+        code, out = disposition(
             tmp_path,
             monkeypatch,
             capsys,
@@ -129,7 +138,7 @@ class TestRefusals:
         self, tmp_path, monkeypatch, capsys
     ):
         held_open(tmp_path, monkeypatch, capsys)
-        code, out = cap(tmp_path, monkeypatch, capsys, [])
+        code, out = disposition(tmp_path, monkeypatch, capsys, [])
         assert code == command.BROKEN
         assert "unruled at the cap: m.py@b1 (block-context, function-context)" in out
         assert not (tmp_path / "chief.json").exists()
@@ -137,7 +146,7 @@ class TestRefusals:
 
     def test_a_recast_without_prose_is_BROKEN(self, tmp_path, monkeypatch, capsys):
         held_open(tmp_path, monkeypatch, capsys)
-        code, out = cap(
+        code, out = disposition(
             tmp_path,
             monkeypatch,
             capsys,
@@ -149,7 +158,7 @@ class TestRefusals:
 
     def test_a_roles_answer_is_not_the_chiefs(self, tmp_path, monkeypatch, capsys):
         held_open(tmp_path, monkeypatch, capsys)
-        code, out = cap(
+        code, out = disposition(
             tmp_path,
             monkeypatch,
             capsys,
@@ -162,7 +171,7 @@ class TestRefusals:
         self, tmp_path, monkeypatch, capsys
     ):
         held_open(tmp_path, monkeypatch, capsys)
-        code, _out = cap(tmp_path, monkeypatch, capsys, {"address": "m.py@b1"})
+        code, _out = disposition(tmp_path, monkeypatch, capsys, {"address": "m.py@b1"})
         assert code == collate_command.UNREADABLE
 
 
@@ -170,13 +179,13 @@ class TestTheGateSeesIt:
     def test_cap_is_in_COMMANDS(self):
         from comment_review.__main__ import COMMANDS
 
-        assert "cap" in COMMANDS
+        assert "disposition" in COMMANDS
 
     def test_TWO_is_the_side_a_taken_in_can_name(self, tmp_path, monkeypatch, capsys):
         """The other side too -- so the test above is not passing by taking
         the one text the fold happened to hold."""
         held_open(tmp_path, monkeypatch, capsys)
-        code, out = cap(
+        code, out = disposition(
             tmp_path,
             monkeypatch,
             capsys,

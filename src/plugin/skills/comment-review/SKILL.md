@@ -713,12 +713,12 @@ rulings:
 | `taken_in` | one side is right | `side`: the role whose text stands, or `original` to let the paragraph stand as it was -- the author is a side |
 | `recast` | no side is right | `prose`: your own paragraph, as raw text, over every side |
 
-Write them to `<run-dir>/rulings.json` as a list -- `[{"address", "answer", "side", "reason",
+Write them to `<run-dir>/dispositions.json` as a list -- `[{"address", "answer", "side", "reason",
 "prose"}]`, `reason` owed on every one -- then close the proof:
 
 ```bash
-python <skill>/scripts/comment-review.py cap --proof <run-dir>/proof0.json --binder <run-dir>/binder.json \
-  --repo . --rulings <run-dir>/rulings.json --out <run-dir>/chief.json --proof-out <run-dir>/final.json
+python <skill>/scripts/comment-review.py disposition --proof <run-dir>/proof0.json --binder <run-dir>/binder.json \
+  --repo . --dispositions <run-dir>/dispositions.json --out <run-dir>/chief.json --proof-out <run-dir>/final.json
 ```
 
 **`cap` refuses a carried-forward place with no ruling, by name and with its roles, and writes
