@@ -14,14 +14,17 @@ import json
 from pathlib import Path
 
 import pytest
-from helpers import a_binder_over
+from helpers import a_binder_over, a_small_real_tree, binder_of
 
 from comment_review.desk.mark import Mark, untouched
 from comment_review.flows.distribute import seed
 from comment_review.flows.fill import fill
 
 BASE = "# one\n# two\n# three\n"
-PAGE = "x = 1\n# one\n# two\n# three\ny = 2\n"
+#: Six real code lines so the file carries a real, empty `b3` gap (before
+#: `w = 4`) for the "no slot" tests to target -- `m.py:5` still names
+#: `y = 2`, which the existing cites rely on.
+PAGE = "x = 1\n# one\n# two\n# three\ny = 2\nz = 3\nw = 4\n"
 
 
 @pytest.fixture
@@ -188,3 +191,15 @@ class TestARefusalWritesNothing:
         placed, why = fill(copy, _a_correct(instruction="fix"), root)
         assert placed is None
         assert len(why) == 1 and "`instruction`" in why[0]
+
+
+class TestACueThePageDoesNotHaveIsRefused:
+    def test_a_cue_the_page_does_not_have_is_refused(self, tmp_path):
+        """The page carries every place, absent and present, so a cue it does
+        not have names nothing there."""
+        tree = a_small_real_tree(tmp_path)
+        copy = seed(binder_of(tree, 0), "block-context")
+        entry = {"address": "mark.py@b9999", "instruction": "clean"}
+        placed, why = fill(copy, entry, tree)
+        assert placed is None
+        assert any("names no place on that page" in reason for reason in why)

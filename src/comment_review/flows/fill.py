@@ -21,10 +21,13 @@ a role reads the reasons and calls again.
     an untouched slot        filled in place -- the seeded dict object itself
     a slot already ruled     a second entry, inserted right after it, seeded
                              from the first's own anchor and raw_text
-    no slot, a known page    appended to that page's sheet with the anchor the
+    no slot, a real place    appended to that page's sheet with the anchor the
                              role gave and an empty raw_text -- an `add` on an
                              empty place, which the binder does not carry
     no slot, no such page    refused
+    no slot, no such place   refused -- the page carries every place, absent
+                             and present, so a cue it does not hold names
+                             nothing there
 
 !! THE COPY IS A WIRE DICT, NEVER AN `EditCopy`. `flows.proof_io`'s header
 says why: a role's copy mid-fill holds slots nobody has ruled on, and
@@ -48,6 +51,7 @@ from comment_review.desk.mark import (
     filled,
     untouched,
 )
+from comment_review.flows.page_for import page_of
 from comment_review.machine import constants
 from comment_review.machine.exceptions import READ_ERRORS
 from comment_review.machine.repo import can_escape, read_raw
@@ -81,16 +85,20 @@ def _slot_at(copy: dict, address: str) -> tuple[list | None, int]:
     return None, -1
 
 
-def _sheet_for(copy: dict, address: str) -> list | None:
-    """The `marks` list of the sheet whose page `address` names, or None."""
+def _sheet_for(copy: dict, address: str) -> tuple[list | None, str]:
+    """The `marks` list of the sheet whose page `address` names.
+
+    Returns that sheet's own path alongside it, or `(None, "")` if no
+    sheet names the page at all.
+    """
     name = address.partition("@")[0]
     sheets = [s for s in copy.get("sheets", []) if isinstance(s, dict)]
     by_path = {str(s.get("path", "")): s for s in sheets}
     path = unflatten(name, list(by_path))
     if not path:
-        return None
+        return None, ""
     marks = by_path[path].get("marks")
-    return marks if isinstance(marks, list) else None
+    return (marks if isinstance(marks, list) else None), path
 
 
 def _quoted(root: Path | None, sources: object) -> tuple[list | None, list[str]]:
@@ -175,9 +183,16 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
 
     marks, at = _slot_at(copy, address)
     if marks is None:
-        marks = _sheet_for(copy, address)
+        marks, rel = _sheet_for(copy, address)
         if marks is None:
             return None, [f"{address} names a page this copy has no sheet for"]
+        if root is None:
+            return None, [f"{address}: no checkout to resolve its page against"]
+        page, why_page = page_of(root / rel, rel=rel)
+        if page is None:
+            return None, [f"{address}: {why_page}"]
+        if address.partition("@")[2] not in page.cues.places:
+            return None, [f"{address} names no place on that page"]
         seeded = Mark.seed(address, str(entry.get("anchor") or ""), "")
         in_place = False
     else:
