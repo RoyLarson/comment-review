@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 40 tasks closed
+Progress: 11 of 41 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -204,7 +204,12 @@ Four defects in collator.py, found by reading only the code.
       whether module-context is seeded with module-scope places only; 694 of 888
       and 39 of 71 came back outside-my-role
         > 2026-09-07 claude-settings: 39 of 71; src/: 694 of 888 outside-my-role
-- [ ] T40 | Update check to refuse a mark whose address resolves against no
-      page. Verify: an invented cue is refused, a valid empty place is not
+- [x] T40 | the fold reports a mark whose cue no page carries; an empty place is not reported | 5438cfb2 | Update
+      check to refuse a mark whose address resolves against no page. Verify: an
+      invented cue is refused, a valid empty place is not
         > 2026-09-07 b7 was a valid empty place; the redacted binder rightly lacks it
         > 2026-09-07 A page carries both the absent and present places of a series
+- [ ] T41 | Implement the fold's report for an address whose page the checkout
+      cannot read. Verify: an invented path half is named, not passed silently
+        > 2026-09-08 About 50 fold tests use fictional paths and would break
+        > 2026-09-08 Caught at fill and at the write; the fold is the silent one
