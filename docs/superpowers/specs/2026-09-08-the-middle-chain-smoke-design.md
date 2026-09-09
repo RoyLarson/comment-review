@@ -155,21 +155,25 @@ gather -> topology --build -> topology --verify -> distribute
 
 ## What it asserts
 
-**Exit codes.** Every stage exits 0 on planted-correct input. A stage stopping is the second
-bar failing.
+Two things, and nothing else. Roy, 2026-09-08: *"Really i would go just for start here end there
+no errors. Counting artifacts and other things in between makes it more complicated and brittle
+than it needs to be. Those are testing implementation details not api functionality."*
 
-**Artifacts, never stdout.** The counts come from the seeded copies, `proof0.json`, the chief's
-copy and the dispositions file -- JSON with declared container shapes. Stage output is prose,
-and prose in a prototype changes wording; a script asserting on a sentence breaks on edits that
-broke nothing. Coupling to a container's wire format is coupling to a contract.
+**Exit codes.** Every stage exits 0 on planted-correct input. A stage stopping is the second bar
+failing.
 
 **The diff, exactly.** The script planted every decision, so it knows what the proof must
 contain. It compares the original tree with the proof and requires that every planted change is
 present, in the right place, and that nothing else moved.
 
-**The marks balance.** The number entering the chain equals the number reaching the proof, plus
-those the chief settled as `original`, plus the queries printed as unsettlable. A lost mark makes
-those disagree, which is exactly what nothing noticed on 2026-09-07.
+**The diff is also the loss detector**, which is why nothing counts marks in between. A mark
+that goes missing anywhere in the chain arrives as a planted change absent from the diff. An
+intermediate count would be a second detector for what the first one already sees, bought at the
+price of asserting on the shape of `proof0.json` and the chief's copy -- implementation detail
+that belongs in unit tests, where it can be dropped when it stops earning its place.
+
+**And nothing reads stdout.** Stage output is prose, and prose in a prototype changes wording; a
+script asserting on a sentence breaks on edits that broke nothing.
 
 ## Coupling, and the fact that this is provisional
 
@@ -177,8 +181,9 @@ those disagree, which is exactly what nothing noticed on 2026-09-07.
 `Vocabulary: #36` renames it to `disposition`, and when that lands one row changes rather than a
 dozen call sites.
 
-**It asserts on exit codes, artifacts and the diff. Nothing else.** Not wording, not file layout
-beyond what the commands are told to write, not ordering the commands do not promise.
+**It asserts on exit codes and the diff. Nothing else.** Not wording, not intermediate artifacts,
+not file layout beyond what the commands are told to write, not ordering the commands do not
+promise. Every one of those is a way to couple a durable test to a prototype's insides.
 
 **The script is provisional and the spec says so.** Roy, 2026-09-08: *"while it is a good thing
 to build it is also building against a prototype so be careful of the tight coupling. When this
