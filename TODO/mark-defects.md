@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 15 tasks closed
+Progress: 3 of 15 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -197,9 +197,9 @@ cites as its measured example of a field answering neither necessary nor purpose
       fill's manufactured seed, which invents raw_text and takes the anchor from
       the role's own entry. Verify: no slot means a refusal
         > 2026-09-07 The base is the binder's, never a returned mark's
-- [ ] T14 | Update fill to resolve an address against its page's cues via
-      page_of. Verify: a place the page does not carry is refused before any
-      write
+- [x] T14 | fill resolves the cue against its page and refuses one the page does not carry | d8821bb4 | Update
+      fill to resolve an address against its page's cues via page_of. Verify: a
+      place the page does not carry is refused before any write
         > 2026-09-07 The binder on disk is always redacted; a page carries every place
         > 2026-09-07 A page carries both the absent and present places of a series
 - [ ] T15 | Update fill to seed an absent place from that page, not from the
