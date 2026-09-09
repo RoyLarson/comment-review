@@ -191,10 +191,23 @@ passes and agents can run it on an actual repo we can review and decide it is ne
 prototype."* It is a rung. Nothing else should grow to depend on it, and it is allowed to be
 thrown away when the surface it drives is settled.
 
+## The order: the fixes first, the script second
+
+Roy, 2026-09-08: *"Write it second because we do not want to confuse it with a TDD design
+system."*
+
+The known defects are repaired first, and the script is written against a chain we already
+believe works. Written first it would fail four times on things already filed, and those failures
+would read as a red-green cycle -- which would invite deriving the fixes from what the script
+reports rather than from the rulings that already specify them. It is a verification instrument,
+not a design driver. Its first real run should be against a chain nobody expects it to break, so
+that anything it stops on is new.
+
 ## What it is expected to surface
 
-Four known defects are inside its path, and the script would have found all four before an agent
-was dispatched:
+Four known defects are inside its path. They are repaired before it is written, per the order
+above, and they are listed here because they are what the script would have caught had it existed
+on 2026-09-07:
 
 - `cap` writing every recast as `correct`, so a recast of an `add` at an empty place writes
   nothing and exits 0.
