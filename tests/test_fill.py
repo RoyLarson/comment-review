@@ -203,3 +203,14 @@ class TestACueThePageDoesNotHaveIsRefused:
         placed, why = fill(copy, entry, tree)
         assert placed is None
         assert any("names no place on that page" in reason for reason in why)
+
+    def test_a_no_slot_address_with_no_checkout_is_refused_not_raised(self, tmp_path):
+        """The cue can only be checked against a real page, so an address
+        with no slot and no checkout to build one from is refused rather
+        than crashing on `root / rel`."""
+        tree = a_small_real_tree(tmp_path)
+        copy = seed(binder_of(tree, 0), "block-context")
+        entry = {"address": "mark.py@b9999", "instruction": "clean"}
+        placed, why = fill(copy, entry, None)
+        assert placed is None
+        assert any("no checkout" in reason for reason in why)
