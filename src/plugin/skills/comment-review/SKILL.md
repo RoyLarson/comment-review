@@ -25,7 +25,7 @@ Structure and fact first, then truth, then fit, then the page.
 | 2 | **GATHER** | `gather` | every page in scope bound into one BINDER -- each comment run and docstring a paragraph with its address |
 | 3 | **FIND REFERENCES** | `gather` | every reference each paragraph makes, resolved -- paths, symbols, counts |
 | 4 | **MARK** | 4 reviewers, ONE message | one filled `edit_copy` per role, checked. Read-only, nothing under the repo written |
-| 5 | **COLLATE and CAP** | `collate`, then the task agent as **copy chief** | the copies folded; what they agreed on stands, what they did not is ruled at the cap; the chief's `edit_copy` holds one mark per resolved place with its **full-length** text |
+| 5 | **COLLATE and DISPOSITION** | `collate`, then the task agent as **copy chief** | the copies folded; what they agreed on stands, what they did not is ruled at max turns; the chief's `edit_copy` holds one mark per resolved place with its **full-length** text |
 | 6 | **COMPACT** | task agent | that text cut to the cap -- **skipped entirely if there is no cap** |
 | 7a | **APPROVAL -- present** | task agent, then `proof` and the **compositor** | the FINAL text SET as a galley -- a copy of each page, nothing under the repo touched -- in front of the author, with the places only the author can settle; **the run stops here** |
 | 7b | **APPROVAL -- write** | **author**, then the **compositor** | the approved draft put over the real file wholesale, byte-for-byte as approved |
@@ -129,7 +129,7 @@ own judgement -- but every change to what a sentence CLAIMS needs evidence in ha
 `query`. That is why `correct` must carry the line that settles the claim, and `patch` need not.
 
 **The TASK AGENT -- you.** Run stages 1-3, launch the reviewers, fold their copies, rule at
-the cap as the **copy chief**, present, and after approval apply. You are the only participant
+max turns as the **copy chief**, present, and after approval apply. You are the only participant
 that writes, and only after approval. **Write the replacement text yourself** where the roles
 did not agree, and verify what you write. *"Compact + correct"* is an instruction to somebody
 else, not the text.
@@ -666,7 +666,7 @@ python <skill>/scripts/comment-review.py collate --stage 4 --binder <run-dir>/bi
 | `0` | every place the roles marked resolved on its own | go on; `chief0.json` is the chief's copy |
 | `1` BROKEN | a copy broke a rule, or the set cannot be reconciled -- nothing written | every line it printed names a role and a place; send each back to that role, re-check, re-run |
 | `2` UNREADABLE | a file is not what it says | fix the invocation |
-| `3` REREADS, `4` ESCALATIONS | places carried forward -- the roles did not agree | **rule at the cap**, below |
+| `3` REREADS, `4` ESCALATIONS | places carried forward -- the roles did not agree | **rule at max turns**, below |
 | `5` DRIFT, `6` COVERAGE | a returned `raw_text` is not the seeded one, or a role left places unruled | the chief's copy is written; the printed places go back to their role once; say in the proposal what was left short |
 
 Every printed line reads `<role> <place>: <reason>`. **That is your work list for sending
@@ -683,7 +683,7 @@ because a negative leaves no artifact. **A green exit here is not evidence that 
 read.**
 
 ! **The tool rules on ADMISSIBILITY, not on truth.** It cannot tell a correct instruction from
-an incorrect one. The ruling at the cap, and the order below, remain yours.
+an incorrect one. The ruling at max turns, and the order below, remain yours.
 
 **What the fold settles on its own.** A place every role read `clean` STANDS. A place one role
 marked and no other role marked against is that role's mark, taken in. A place two or more roles
@@ -702,7 +702,7 @@ and the fold composes them and carries the composition forward for a reading.
 It is UNSETTLABLE by the roles or by you, rides on the master proof, and is put to the author at
 7a. A `query` of the other two shapes is that role abstaining from the place.
 
-### Ruling at the cap -- you are the copy chief
+### Ruling at max turns -- you are the copy chief
 
 !! **THE BASELINE RUNS NO TURN.** `batch1.json` is what a turn would send back to the roles;
 leave it. Every place `collate` carried forward is yours to rule NOW, once, and there are two
@@ -721,7 +721,7 @@ python <skill>/scripts/comment-review.py disposition --proof <run-dir>/proof0.js
   --repo . --dispositions <run-dir>/dispositions.json --out <run-dir>/chief.json --proof-out <run-dir>/final.json
 ```
 
-**`cap` refuses a carried-forward place with no ruling, by name and with its roles, and writes
+**`disposition` refuses a carried-forward place with no ruling, by name and with its roles, and writes
 nothing** -- rule it and run again. It prints every ruling as it lands and every unsettlable
 place with the role that asked; `chief.json` is the chief's `edit_copy`, one mark per resolved
 place, and it is what stages 6 and 7 read. ! `--stage` is `4` throughout: the four roles ran
@@ -859,10 +859,10 @@ address space having moved, or a page's own draft/set/reread step -- prints `REF
 Then present, grouped by instruction, most consequential first, in **five parts**
 (`INSTRUCTION / PARAGRAPH / CLAIM / REASON / CHANGE`) -- the mark minus the fields only the
 collator reads -- replacement text inline for every `correct` / `patch` / `add`, and the galley's
-diff for the whole page. State **raised / clean**, which places you ruled at the cap and how,
+diff for the whole page. State **raised / clean**, which places you ruled at max turns and how,
 and the longest paragraph that will remain.
 
-!! **THE UNSETTLABLE PLACES ARE THE AUTHOR'S, AND THIS IS WHERE THEY ARE ASKED.** `cap` printed
+!! **THE UNSETTLABLE PLACES ARE THE AUTHOR'S, AND THIS IS WHERE THEY ARE ASKED.** `disposition` printed
 each one with the role that raised it and its reason; put every one to the author here, after
 everything else, as the questions they are. Nothing is proposed for them.
 

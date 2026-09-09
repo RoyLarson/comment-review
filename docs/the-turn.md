@@ -9,7 +9,7 @@ it.**
 after typing it out for the second time: *"This time give that story line a more permanent
 home because it is a lot to remember and type back in."* ! Before this file, the turn was
 reconstructed from a decision-log quote each time it came up -- and reconstructed WRONG twice:
-once as a code-enforced cap (`a-revise-answer-has-no-artifact` T8, ticked, unticked, then
+once as a code-enforced limit (`a-revise-answer-has-no-artifact` T8, ticked, unticked, then
 superseded), and once as dissolved entirely, by a session reading `Process: #78` to mean that
 turns were not structural. **A decision log records WHEN something was ruled. It is not where
 someone goes to learn how the thing works.**
@@ -44,7 +44,7 @@ Roy, 2026-09-02, verbatim and unelided:
                 and joins the non-disagreements in the chief's edit_copy
                                                             <- that is TURN TWO
     CAP         the number of turns is what the TASK AGENT was told
-    CHIEF RULES on whatever is still unresolved when the cap is reached
+    CHIEF RULES on whatever is still unresolved when max turns is reached
     CLOSE       the editorial roles are done
 
 !! **ONE BATCH, NOT ONE MESSAGE PER DISAGREEMENT.** *"all of the disagreements are sent out as
@@ -63,7 +63,7 @@ superseded.
 
 ## The copy chief's own ruling is the terminator
 
-**When the cap is reached, the chief rules.** Not "the run fails", not "it escalates to a
+**When max turns is reached, the chief rules.** Not "the run fails", not "it escalates to a
 human", not "the place is dropped": *"the copy-chief or the task agent acting as copy chief
 applies its own ruling to the final piece and puts that in the copy-chiefs edit copy."*
 
@@ -135,17 +135,17 @@ MEASURED 2026-09-04, on `feat/the-turn`, after SP-4
 | the batch send-out | **built** -- `desk.diff_mark.batch_of`, seeded by question (`#86`), `bc62ea5` |
 | the ruling coming back, and the recollate | **built** -- `flows.turn.parse_answers`, paired to the sent slot (`2c04181`); `apply`; `run_turn` |
 | the turn counter | **built** -- `Determined.turn`, and `MasterProof.turns`; a stet keeps its turn (`aefefdd`) |
-| the chief's own final ruling | **built** -- `flows.turn.rule_at_cap` (`taken_in`, `recast`), `determined_chief` refusing an unruled place (`d1ddbd8`) |
+| the chief's own final ruling | **built** -- `flows.turn.rule_at_max_turns` (`taken_in`, `recast`), `determined_chief` refusing an unruled place (`d1ddbd8`) |
 | the record of how each place was ruled | **built** -- `desk/determined.py`, one `Determined` per resolved place on the master proof (`#87`) |
 | the human's query riding with the set | **built** -- `Collated.unsettlable`, `MasterProof.unsettlable` (`99c7620`) |
-| a console command that runs a turn | **built** -- `collate --proof-out --batch-out` (`a40ae775`), `turn` (`4040acea`), `cap` (`54bde260`); the master proof on disk is `flows/proof_io.py` |
+| a console command that runs a turn | **built** -- `collate --proof-out --batch-out` (`a40ae775`), `turn` (`4040acea`), `disposition` (`54bde260`); the master proof on disk is `flows/proof_io.py` |
 | **what SKILL.md tells the task agent about a turn** | **NOT built** -- `agents` lane |
 
 ! **THE LOOP RUNS FROM THE CONSOLE.** It has been played three times as a game -- five hands
 on `bc62ea5`, which produced `Process: #88`-`#91`; once more on the build above; and once on
 the commands alone, 2026-09-04, over `desk/determined.py`: `gather`, `distribute`, four roles
 filling seeded copies and running `check`, `collate --proof-out --batch-out`, two turns
-through `turn`, and `cap` with nothing left to rule. Eight places: four settled by the roles
+through `turn`, and `disposition` with nothing left to rule. Eight places: four settled by the roles
 (one at turn 2, after an escalation), two every role read clean, two unsettlable and printed
 for the human. Every finding of the three games either landed here or is a task on
 `TODO/a-revise-answer-has-no-artifact.md` or `TODO/collator-defects.md`.
@@ -161,7 +161,7 @@ which is the `agents` lane's.
 | | |
 | --- | --- |
 | the loop, the batch, the chief's terminator | Roy, 2026-09-02, quoted in full above |
-| the turn is structural, the cap is the agent's | `decision-log.md Process: #78` |
+| the turn is structural, max turns is the agent's | `decision-log.md Process: #78` |
 | the DiffMark is its own artifact, and its closed set | `Process: #22` |
 | the composition re-read, and its passes | `Process: #49` |
 | `change` is the wanted paragraph as raw text | Roy, 2026-08-28; `docs/the-mark.md` |

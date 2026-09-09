@@ -1,6 +1,6 @@
 """`flows.turn`. The loop `docs/the-turn.md` describes, run over
 the real `collate()`: a batch answered, applied, folded again; the chief at
-the cap.
+max turns.
 
 ! INPUTS ARE REAL -- binders from `a_binder_over`, copies from the real
 `seed`, marks through `desk.mark.INSTRUCTIONS`. The answers are what a role
@@ -643,7 +643,7 @@ class TestTheCap:
         assert [m.change for m in entries_of(chief)] == [DOS]
 
     def test_close_returns_the_closed_proof_and_the_chief(self):
-        """T23: what `cap` writes is the flow's, not assembled at the console."""
+        """T23: what `disposition` writes is the flow's, not the console."""
         _, _, got = _escalated()
         ruled = rule_at_max_turns(
             got, "m.py@b1", Answer.TAKEN_IN, "function-context", "dos", turn=1
@@ -671,7 +671,7 @@ class TestTheCap:
 
     def test_an_unsettlable_place_is_not_the_chiefs_to_rule(self):
         """`Process: #90`: the place with the human's query is asked of the
-        human after everything else, not ruled at the cap."""
+        human after everything else, not ruled at max turns."""
         binder = a_binder_over({"m.py@b1": BASE})
         copies = copies_over(
             binder,

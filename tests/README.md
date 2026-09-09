@@ -120,7 +120,7 @@ restored from memory. A MISSED row is a finding; the one found is now a test.
 | `flows/turn.py` | an unanswered sent slot is refused | `test_turn.py` |
 | `flows/turn.py` | an address never sent is refused | `test_turn.py` |
 | `flows/turn.py` | an earlier Determined is kept over this fold's | `test_turn.py` |
-| `flows/turn.py` | the cap refuses an unruled place | `test_turn.py` |
+| `flows/turn.py` | disposition refuses an unruled place | `test_turn.py` |
 | `flows/collate.py` | agreement needs byte-identical text | `test_collate.py` |
 | `flows/collate.py` | a lone mark goes back when another role marked | `test_turn.py` |
 | `flows/collate.py` | a human-review query holds a place that would have resolved | `test_collate.py`, MISSED on the first run and the test written for it |

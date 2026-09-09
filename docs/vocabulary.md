@@ -375,7 +375,7 @@ instructions, since no role may give any of them.
 | the word | what it names | who says it |
 | --- | --- | --- |
 | **`stet`** | *let this stand.* The roles agreed, on a turn or at once, and the chief lets what they agreed on stand. The program sets this one on the chief's behalf | the **copy chief**, and no one else |
-| **`taken in`** | they never agreed; at the cap the chief takes one side's text into the page. The original author is a side, so the original is a `taken in` too. *Taking in corrections* is the compositor's own phrase for making the marked changes on a proof | the **copy chief** at the cap; the compositor, mechanically, about every mark that reaches the text |
+| **`taken in`** | they never agreed; at max turns the chief takes one side's text into the page. The original author is a side, so the original is a `taken in` too. *Taking in corrections* is the compositor's own phrase for making the marked changes on a proof | the **copy chief** at max turns; the compositor, mechanically, about every mark that reaches the text |
 | **`recast`** | they never agreed; the chief writes its own prose over every side. The trade's word for rewriting a passage in a different form | the **copy chief**, and no one else |
 
 !! **SUPERSEDED 2026-09-04, `Process: #87`, and kept so the change is legible.** The 2026-08-24

@@ -196,7 +196,7 @@ class Collated:
             re-derives it. Empty where no move resolved.
         determined: address -> the `Determined` this fold recorded -- every
             one a `stet`, since the chief's own `taken_in` and `recast` are
-            `flows.turn.rule_at_cap`'s. `Process: #87`.
+            `flows.turn.rule_at_max_turns`'s. `Process: #87`.
         proof: the master proof the fold read, so a turn can carry the
             record forward. None on an early return.
         unsettlable: every place a `human-review-necessary` query holds --
