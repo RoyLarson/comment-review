@@ -15,6 +15,8 @@ from helpers import (
     a_binder_over,
     a_clean,
     a_correct_setting,
+    a_drop,
+    a_move,
     a_query,
     an_add,
     copies_over,
@@ -101,6 +103,76 @@ def _escalated_add():
     )
     got = collate("4c", copies, binder, root=REPO)
     assert [e["address"] for e in got.rereads] == ["m.py@b1"]
+    return binder, copies, got
+
+
+def _patch(change: str) -> dict:
+    """A `patch` mark quoting "two" -- real text in `BASE` -- with `change`
+    the caller's own, so two calls can disagree on `to`."""
+    return {
+        "address": "m.py@b1",
+        "instruction": Instruction.PATCH,
+        "reason": "patch for the recast test",
+        "claim": {"from": "two", "to": "TWO"},
+        "change": change,
+    }
+
+
+def _escalated_patch():
+    """Two roles' `patch` marks quoting the same sentence with different
+    `change`, so the fold escalates rather than resolving to a stet."""
+    binder = a_binder_over({"m.py@b1": BASE})
+    copies = copies_over(
+        binder,
+        {
+            "block-context": {"m.py@b1": _patch(TWO)},
+            "function-context": {"m.py@b1": _patch(DOS)},
+        },
+    )
+    got = collate("4c", copies, binder, root=REPO)
+    assert [e["address"] for e in got.escalations] == ["m.py@b1"]
+    return binder, copies, got
+
+
+def _escalated_drop():
+    """Two roles' `drop` marks quoting the same paragraph with different
+    `change` -- one the empty edit `may_empty` allows, one not -- so the
+    fold escalates rather than resolving to a stet."""
+    binder = a_binder_over({"m.py@b1": BASE})
+    copies = copies_over(
+        binder,
+        {
+            "block-context": {"m.py@b1": {**a_drop("m.py@b1"), "change": ""}},
+            "function-context": {
+                "m.py@b1": {**a_drop("m.py@b1"), "change": "# leftover\n"}
+            },
+        },
+    )
+    got = collate("4c", copies, binder, root=REPO)
+    assert [e["address"] for e in got.escalations] == ["m.py@b1"]
+    return binder, copies, got
+
+
+def _escalated_move():
+    """Two roles' `move` marks off one origin to different destinations.
+    `move` quotes no sentence, so `_outcome` sends it to a re-read rather
+    than an escalation, and `_join_moves` carries every end of either move
+    to that same outcome -- the origin is carried forward alongside both
+    destinations."""
+    binder = a_binder_over({"m.py@b1": BASE})
+    copies = copies_over(
+        binder,
+        {
+            "block-context": {
+                "m.py@b1": {**a_move("m.py@b1", "n.py@c1"), "change": TWO}
+            },
+            "function-context": {
+                "m.py@b1": {**a_move("m.py@b1", "o.py@c1"), "change": DOS}
+            },
+        },
+    )
+    got = collate("4c", copies, binder, root=REPO)
+    assert "m.py@b1" in [e["address"] for e in got.rereads]
     return binder, copies, got
 
 
@@ -691,6 +763,32 @@ class TestTheCap:
         again, why = Mark.deserialize(entry.address, entry.serialize())
         assert why == []
         assert again == entry
+
+    @pytest.mark.parametrize(
+        "escalated, instruction",
+        [
+            (_escalated_patch, Instruction.PATCH),
+            (_escalated_drop, Instruction.DROP),
+            (_escalated_move, Instruction.MOVE),
+        ],
+    )
+    def test_a_recast_keeps_the_filed_instruction(self, escalated, instruction):
+        """Fix round 1 on `_recast_claim`: `add` had its own test above and
+        `correct` its own below, leaving `patch`, `drop` and `move` verified
+        by code trace only. Each is carried through a real fold here rather
+        than hand-traced -- `patch` and `drop` quote an original sentence and
+        escalate; `move` quotes none and is re-read, widened by
+        `_join_moves` to both its ends -- and each recast still parses under
+        the instruction it carries."""
+        _, _, got = escalated()
+        ruled = rule_at_max_turns(
+            got, "m.py@b1", Answer.RECAST, "", "chief's own", turn=2, prose="# mine\n"
+        )
+        assert ruled.mark is not None
+        assert ruled.mark.instruction is instruction
+        again, why = Mark.deserialize(ruled.mark.address, ruled.mark.serialize())
+        assert why == []
+        assert again == ruled.mark
 
     def test_a_recast_carries_the_chiefs_own_prose_and_parses(self):
         _, _, got = _escalated()
