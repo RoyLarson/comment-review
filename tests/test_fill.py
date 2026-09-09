@@ -196,7 +196,7 @@ class TestARefusalWritesNothing:
 class TestACueThePageDoesNotHaveIsRefused:
     def test_a_cue_the_page_does_not_have_is_refused(self, tmp_path):
         """The page carries every place, absent and present, so a cue it does
-        not have names nothing there."""
+        not have names nothing. `decision-log.md Process: #111`."""
         tree = a_small_real_tree(tmp_path)
         copy = seed(binder_of(tree, 0), "block-context")
         entry = {"address": "mark.py@b9999", "instruction": "clean"}
