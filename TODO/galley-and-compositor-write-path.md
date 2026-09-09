@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 20 tasks closed
+Progress: 8 of 21 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -139,3 +139,6 @@ files in `corpora/` are in that state today.
 - [ ] T20 | Update the compositor to drop a leading whose place is vacated.
       Verify: an unedited round trip stays byte-identical
         > 2026-09-08 Addressing 19's absence rule first fired on unedited composes
+- [ ] T21 | Update galley.py's docstring, which claims it sets text as files.
+      Verify: it says it alters Paragraphs on a Page and writes none
+        > 2026-09-08 The compositor sets the Page into a proof; the galley writes none
