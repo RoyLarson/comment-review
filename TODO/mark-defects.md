@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 15 tasks closed
+Progress: 4 of 15 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -202,6 +202,7 @@ cites as its measured example of a field answering neither necessary nor purpose
       place the page does not carry is refused before any write
         > 2026-09-07 The binder on disk is always redacted; a page carries every place
         > 2026-09-07 A page carries both the absent and present places of a series
-- [ ] T15 | Update fill to seed an absent place from that page, not from the
-      role's entry. Verify: the anchor comes from the page and raw_text is empty
+- [x] T15 | fill seeds an absent place from its page; the anchor is the page's, not the entry's | a5477f37 | Update
+      fill to seed an absent place from that page, not from the role's entry.
+      Verify: the anchor comes from the page and raw_text is empty
         > 2026-09-07 The base is the system's, never the party being checked
