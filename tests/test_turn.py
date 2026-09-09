@@ -24,7 +24,7 @@ from helpers import (
 from comment_review.desk.containers import MasterProof
 from comment_review.desk.determined import CHIEF, ORIGINAL, Answer
 from comment_review.desk.diff_mark import COMPOSITION, QUESTION, batch_of
-from comment_review.desk.mark import Mark, Shape
+from comment_review.desk.mark import Instruction, Mark, Shape
 from comment_review.flows.collate import collate
 from comment_review.flows.mark_errors import Revisit
 from comment_review.flows.turn import (
@@ -80,6 +80,27 @@ def _composed():
     got = collate("4c", copies, binder, root=REPO)
     assert [e["address"] for e in got.rereads] == ["m.py@b1"]
     assert got.rereads[0]["composed"].change == COMPOSED
+    return binder, copies, got
+
+
+def _escalated_add():
+    """Two roles' `add` marks at one EMPTY place -- `first.raw_text` is "",
+    which is what leaves a `correct`-shaped recast with no false clause to
+    quote."""
+    binder = a_binder_over({"m.py@b1": ""})
+    added_one = an_add("m.py@b1")
+    added_one["change"] = "# one\n"
+    added_two = an_add("m.py@b1")
+    added_two["change"] = "# two\n"
+    copies = copies_over(
+        binder,
+        {
+            "block-context": {"m.py@b1": added_one},
+            "function-context": {"m.py@b1": added_two},
+        },
+    )
+    got = collate("4c", copies, binder, root=REPO)
+    assert [e["address"] for e in got.rereads] == ["m.py@b1"]
     return binder, copies, got
 
 
@@ -654,6 +675,22 @@ class TestTheCap:
             ("m.py@b1", Answer.TAKEN_IN)
         ]
         assert [m.change for m in entries_of(chief)] == [DOS]
+
+    def test_a_recast_of_an_add_stays_an_add(self):
+        """Measured 2026-09-07 on claude-settings: a recast of an add was
+        written as a correct, which asserts a sentence is false at a place
+        holding no sentence, so the compositor wrote nothing and exited 0."""
+        _, _, got = _escalated_add()
+        ruled = rule_at_max_turns(
+            got, "m.py@b1", Answer.RECAST, "", "chief's own", turn=2, prose="# mine\n"
+        )
+        assert ruled.mark is not None
+        assert ruled.mark.instruction is Instruction.ADD
+        _, chief = determined_chief(got, [ruled])
+        entry = entries_of(chief)[0]
+        again, why = Mark.deserialize(entry.address, entry.serialize())
+        assert why == []
+        assert again == entry
 
     def test_a_recast_carries_the_chiefs_own_prose_and_parses(self):
         _, _, got = _escalated()

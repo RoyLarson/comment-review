@@ -86,7 +86,14 @@ from comment_review.desk.diff_mark import (
     parse_batch,
 )
 from comment_review.desk.diff_mark import allowed as diff_allowed
-from comment_review.desk.mark import Instruction, Mark, allowed, filled, untouched
+from comment_review.desk.mark import (
+    INSTRUCTIONS,
+    Instruction,
+    Mark,
+    allowed,
+    filled,
+    untouched,
+)
 from comment_review.flows.collate import Collated, _chief_copy, collate
 from comment_review.flows.mark_errors import Revisit
 from comment_review.results.differences import diff3
@@ -484,6 +491,33 @@ def refold(proof: MasterProof, binder: Binder, root: Path) -> Collated:
     )
 
 
+def _recast_claim(first: Mark, prose: str) -> dict:
+    """The claim a recast's synthesized mark owes, shaped to `first`'s instruction.
+
+    `correct` and `patch` are the only rows this quotes an original text for;
+    `add`, `move` and `drop` keep `first.claim` unmodified.
+
+    Args:
+        first: the first owing mark at the place being recast -- whose
+            `instruction` the synthesized mark carries forward.
+        prose: the chief's own paragraph.
+
+    Returns:
+        `INSTRUCTIONS[first.instruction].claim_all`, filled. For the two rows
+        that quote an existing sentence (`correct`, `patch`) the quoted key
+        (`false`, `from`) takes `first.raw_text` and the other key takes
+        `prose`. A row that quotes nothing (`add`, `move`) or whose claim
+        IS the quoted key (`drop`) keeps `first.claim` as filed -- `prose`
+        has no slot in that shape to fill; it becomes `change`, not `claim`.
+    """
+    spec = INSTRUCTIONS[first.instruction]
+    key = spec.quotes_original
+    others = [k for k in spec.claim_all if k != key]
+    if key and others:
+        return {key: first.raw_text, others[0]: prose}
+    return dict(first.claim)
+
+
 def rule_at_max_turns(
     collated: Collated,
     address: str,
@@ -509,9 +543,11 @@ def rule_at_max_turns(
 
     Returns:
         The `Determined`, its `mark` being what the chief's copy will carry:
-        the side's mark, None for the original, or a synthesized `correct`
-        over the base for a recast, citing every side's sources so it parses
-        as an ordinary mark the way `flows.collate._composition`'s does.
+        the side's mark, None for the original, or a synthesized mark for a
+        recast -- carrying the instruction the roles filed, `claim` shaped to
+        it by `_recast_claim`, and citing every side's sources -- so it
+        parses as an ordinary mark the way `flows.collate._composition`'s
+        does.
 
     Raises:
         ValueError: the place is not carried forward, the side has no mark
@@ -558,8 +594,8 @@ def rule_at_max_turns(
             address=address,
             anchor=first.anchor,
             raw_text=first.raw_text,
-            instruction=Instruction.CORRECT,
-            claim={"false": first.raw_text, "true": prose},
+            instruction=first.instruction,
+            claim=_recast_claim(first, prose),
             reason=reason,
             sources=tuple(s for p in marks for s in p.mark.sources),
             change=prose,
