@@ -148,7 +148,7 @@ As `SKILL.md` names it:
 ```
 gather -> topology --build -> topology --verify -> distribute
   -> [mark, once per ruling, per role] -> check x4
-  -> collate -> cap -> proof
+  -> collate -> disposition -> proof
 ```
 
 `turn` never appears, which is consistent with the disposition sitting at turn 0.
@@ -177,9 +177,9 @@ script asserting on a sentence breaks on edits that broke nothing.
 
 ## Coupling, and the fact that this is provisional
 
-**Command names and flags live in one table at the top.** Today the chief's command is `cap`;
-`Vocabulary: #36` renames it to `disposition`, and when that lands one row changes rather than a
-dozen call sites.
+**Command names and flags live in one table at the top**, so a renamed command touches one row
+rather than a dozen call sites. The chief's command was `cap` while this was being written and
+is `disposition` as of 2026-09-08, `Vocabulary: #36`.
 
 **It asserts on exit codes and the diff. Nothing else.** Not wording, not intermediate artifacts,
 not file layout beyond what the commands are told to write, not ordering the commands do not
@@ -209,7 +209,7 @@ Four known defects are inside its path. They are repaired before it is written, 
 above, and they are listed here because they are what the script would have caught had it existed
 on 2026-09-07:
 
-- `cap` writing every recast as `correct`, so a recast of an `add` at an empty place writes
+- `disposition` writing every recast as `correct`, so a recast of an `add` at an empty place writes
   nothing and exits 0.
 - The leading disagreement between the brief and the setter.
 - `fill` seeding a mark from the role's own entry where the copy has no slot.
