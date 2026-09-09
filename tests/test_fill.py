@@ -133,9 +133,29 @@ class TestAnAddressWithNoSlotIsAppendedToItsSheet:
         marks = _marks(copy)
         assert marks[-1] is placed
         assert placed["address"] == "m.py@b3"
-        assert placed["anchor"] == "y = 2"
+        assert placed["anchor"] == "w = 4"
         assert placed["raw_text"] == ""
         assert placed["sources"] == [{"cite": "m.py:5", "verbatim": "y = 2"}]
+
+    def test_the_anchor_comes_from_the_page_not_the_entry(self, copy, root):
+        """The base is the system's, never the party being checked. It is
+        the rule `desk/collator.base_texts` states for base texts, one layer
+        up: an entry's own `anchor` is what a role invented, not what the
+        page carries at that place."""
+        entry = {
+            "address": "m.py@b3",
+            "instruction": "add",
+            "anchor": "a line the role invented",
+            "claim": {"missing": "why y is 2", "anchor": "`y`"},
+            "reason": "the constant is explained nowhere",
+            "sources": [{"cite": "m.py:5"}],
+            "change": "# y is 2 because the fixture says so\n",
+        }
+        placed, why = fill(copy, entry, root)
+        assert why == [] and placed is not None
+        assert placed["anchor"] != "a line the role invented"
+        assert placed["anchor"] == "w = 4"
+        assert placed["raw_text"] == ""
 
     def test_a_page_this_copy_has_no_sheet_for_is_refused(self, copy, root):
         before = json.dumps(copy)

@@ -21,9 +21,12 @@ a role reads the reasons and calls again.
     an untouched slot        filled in place -- the seeded dict object itself
     a slot already ruled     a second entry, inserted right after it, seeded
                              from the first's own anchor and raw_text
-    no slot, a real place    appended to that page's sheet with the anchor the
-                             role gave and an empty raw_text -- an `add` on an
-                             empty place, which the binder does not carry
+    no slot, a real place    appended to that page's sheet with the page's own
+                             anchor at that place and an empty raw_text -- an
+                             `add` on an empty place, which the binder does
+                             not carry. The base is the page's, never the
+                             role's own entry -- `desk.collator.base_texts`'s
+                             rule for base texts, applied one layer up.
     no slot, no such page    refused
     no slot, no such place   refused -- the page carries every place, absent
                              and present, so a cue it does not hold names
@@ -58,8 +61,9 @@ from comment_review.machine.repo import can_escape, read_raw
 from comment_review.reading.addresser import unflatten
 
 #: The fields a role decides, in the order a mark carries them. `address` is
-#: how the entry is placed and `anchor` is read only for a slot that must be
-#: created; neither is copied from the entry onto the mark.
+#: how the entry is placed; `anchor` is never read off the entry at all --
+#: a slot that must be created takes its anchor from the page. Neither is
+#: copied from the entry onto the mark.
 ROLE_FIELDS = ("claim", "reason", "sources", "change")
 
 
@@ -163,8 +167,9 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
         entry: what the role decided -- `address`, `instruction`, and whichever
             of `claim`, `reason`, `sources` and `change` its row owes. `change`
             may be left out where the row quotes a clause; `derived_change`
-            builds it from the slot's `raw_text`. `anchor` is read only when a
-            slot has to be created.
+            builds it from the slot's `raw_text`. An `anchor` here is never
+            read -- a slot that has to be created takes its anchor from the
+            page, not from the entry.
         root: the checkout a bare `cite` is read from, or None.
 
     Returns:
@@ -193,7 +198,7 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
             return None, [f"{address}: {why_page}"]
         if address.partition("@")[2] not in page.cues.places:
             return None, [f"{address} names no place on that page"]
-        seeded = Mark.seed(address, str(entry.get("anchor") or ""), "")
+        seeded = Mark.seed(address, page.cues.anchor_of(address.partition("@")[2]), "")
         in_place = False
     else:
         slot = marks[at]
