@@ -4060,3 +4060,21 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **Tasks.** `collate-command-defects` T21 implements the code; `agents-files-name-the-new-cli`
   T22 gives it its row in the table.
+
+- **#113.** **The proof's code check compares against the approved changes, not against "nothing
+  changed"** (Roy, 2026-09-11, ruling on `the-code-check-refuses-add-and-drop-on-a-docstring` T1,
+  open since 2026-08-17).
+
+  **The question.** `flows/proof_setter.py`'s `_prove` compares the code's syntax tree before
+  and after, with docstring text blanked but docstring presence kept, so an approved `add` or
+  `drop` of a docstring always fails it. The middle-chain smoke's `add` at `fib.py@a2` -- a
+  docstring for `wrapper`, which had none -- stops the proof there: *"REFUSED at prove: fib.py --
+  the executable code is not what it was"*.
+
+  *"It would be stupid to say it fails or passes based on 'nothing changes' when we are
+  specifically testing if the system is able to run end to end and that any requested changes be
+  the agents happen"*.
+
+  **Related, not ruled here.** `Process: #104` makes `prove_unchanged` the address/anchor
+  identity, under which a docstring is not a code line and adding one moves no anchor. Which
+  mechanism carries this ruling is the implementing task's to work out.
