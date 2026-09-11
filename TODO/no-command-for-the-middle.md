@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 16 of 28 tasks closed
+Progress: 16 of 31 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -149,3 +149,13 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       and gather each case once. Verify: 9 collate runs become 2
 - [ ] T28 | Implement the outcome once: exit codes, _report, the Revisit
       printer, the refused handler and the batch write, shared by three commands
+- [ ] T29 | Update turn so a role answering a composition re-read at an add's
+      empty place is not refused for having no slot
+        > 2026-09-11 flows/turn.py:323; collate sent the place to all four roles
+        > 2026-09-11 smoke run 2026-09-11: 9 answers refused, b8 c3 a2 b15 b17
+- [ ] T30 | Update turn so the adding role's own clean answer on its add is not
+      read as a correct missing its clause
+        > 2026-09-11 smoke run: block b8, function a2 c3, module b15 b17 refused
+- [ ] T31 | Update check --answers to refuse what turn refuses; it passed the
+      answers turn then rejected
+        > 2026-09-11 check printed 0 the fold would refuse for all four roles

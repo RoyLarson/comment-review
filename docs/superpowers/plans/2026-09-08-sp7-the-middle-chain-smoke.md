@@ -553,6 +553,25 @@ close: the whole script exiting 0 from empty.
 
 ---
 
+### Task 12: one turn, between collate and disposition
+
+Added 2026-09-11. Roy: *"Can we do one revise step just to make certain?"* The baseline runs no
+turn, so the turn loop had never been driven. Run by hand on a smoke run the same day: the
+escalation half of a turn folds and writes turn 2's batch (exit 4), and `disposition` closes the
+proof at turn 1; the composition half -- the re-read every `add` gets -- is refused by `turn`
+after `check --answers` passed it. Those three defects are `no-command-for-the-middle` T29-T31,
+and this task waits on them.
+
+**Files:**
+- Modify: `scripts/smoke_middle.ps1`, `scripts/smoke_fixture.py`
+
+- [ ] **Step 1: Fix** `no-command-for-the-middle` T29, T30 and T31, each with a test that fails first
+- [ ] **Step 2: A `turn` stage** -- `collate --batch-out`, one planted answer per slot (a withdrawal at `c1`, holds and cleans elsewhere), `check --answers` per role, `turn`, then `disposition` on the turn's proof
+- [ ] **Step 3: Done gate** -- the whole script, with the turn, exits 0 from empty and the diff matches what was planted
+- [ ] **Step 4: Tick** each task against its commit, in a later commit
+
+---
+
 ## What this plan does not do
 
 Each of these is on the board, and none blocks the script.
