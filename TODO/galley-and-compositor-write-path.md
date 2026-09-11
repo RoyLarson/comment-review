@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 18 of 31 tasks closed
+Progress: 20 of 31 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -173,9 +173,11 @@ files in `corpora/` are in that state today.
       test_a_drop_leaves_the_leading_alone at test_galley.py:146-159, or name
       what it catches beyond :131
         > 2026-09-11 the :131 test already asserts the leading unchanged on every drop
-- [ ] T30 | Implement a second test of the drop rule at compositor.py:275 on a
-      place other than a0
+- [x] T30 | b1 drop test; an a0-only rule passes the old test and fails it | 6fd87377 | Implement
+      a second test of the drop rule at compositor.py:275 on a place other than
+      a0
         > 2026-09-11 only test_compositor.py:270 catches it, and only at a0
-- [ ] T31 | Update compositor.py:159-162, which says the survivor of a drop
-      takes a new key where :175-178 says it needs none
+- [x] T31 | the paragraph now says no key changes on a drop | d19de5b8 | Update
+      compositor.py:159-162, which says the survivor of a drop takes a new key
+      where :175-178 says it needs none
         > 2026-09-11 at 4326b793: new key claimed at :161, no new key at :176
