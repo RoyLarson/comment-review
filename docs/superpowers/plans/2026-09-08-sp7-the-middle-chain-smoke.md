@@ -468,6 +468,25 @@ this rewrites are T27 and T28.
 
 ---
 
+### Task 9b: the landing table reads without guessing
+
+Added 2026-09-11 on Roy's "Yes" after the Task 9a review. `smoke-middle-script` T32 is still open
+-- `None` means both removed and kept, and two entries hold a clause rather than a paragraph --
+and Task 10 cannot write its expectation from the table until it reads plainly. T45 indents the
+`b8` landing text; T34-T44 are the comments the 9a change made false, on the same lines.
+
+**Files:**
+- Modify: `scripts/smoke_fixture.py`, `scripts/smoke_middle.ps1`
+- Test: `tests/gates/test_smoke_fixture.py`
+
+- [ ] **Step 1: T32 -- every entry states its outcome; every landing text is the whole paragraph as it sits on disk**
+- [ ] **Step 2: T45 -- the `b8` text carries the indent of `logged`'s body**
+- [ ] **Step 3: T34-T44 -- the comments and docstrings on the changed code are true**
+- [ ] **Step 4: Done gate** -- `-Stop disposition` exits 0; the fixture gate passes
+- [ ] **Step 5: Tick** `smoke-middle-script` T32, T34-T45 against their commits, in a later commit
+
+---
+
 ### Task 10: the proof, and the diff that is the assertion
 
 **Files:**
