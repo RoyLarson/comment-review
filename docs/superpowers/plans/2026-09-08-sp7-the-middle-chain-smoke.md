@@ -534,6 +534,25 @@ final review of the whole branch rather than a review per round. T19 and T56 wai
 
 ---
 
+### Task 11: the proof's code check compares against the approved changes
+
+Added 2026-09-11. Roy ruled `the-code-check-refuses-add-and-drop-on-a-docstring` T1 as Process
+#113: *"It would be stupid to say it fails or passes based on 'nothing changes' when we are
+specifically testing if the system is able to run end to end and that any requested changes be
+the agents happen"*. Its implementation is that TODO's T6, and it is what lets Task 10's step 4
+close: the whole script exiting 0 from empty.
+
+**Files:**
+- Modify: `src/comment_review/flows/proof_setter.py`, `src/comment_review/results/prove_unchanged.py`
+- Test: `tests/test_proof_setter.py`, `tests/test_prove_unchanged.py`
+
+- [ ] **Step 1: A failing test** -- an approved docstring `add` and an approved `drop` pass `proof`; a docstring change no alteration names, and a code change, still refuse
+- [ ] **Step 2: The check** -- docstring presence is excluded only at declarations whose documentation place carries an approved alteration
+- [ ] **Step 3: Gates, and the whole smoke script from empty exits 0**
+- [ ] **Step 4: Tick** `the-code-check-refuses-add-and-drop-on-a-docstring` T6, and SP7 Task 10 step 4, against the commit, in a later commit
+
+---
+
 ## What this plan does not do
 
 Each of these is on the board, and none blocks the script.
