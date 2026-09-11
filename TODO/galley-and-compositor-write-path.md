@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 8 of 21 tasks closed
+Progress: 8 of 30 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
           write path, which is the one place a defect reaches disk)
 RE-VERIFIED: 2026-08-23 — 2026-08-23. Task 1 is FIXED and ticked -- the destructive case
@@ -142,3 +142,28 @@ files in `corpora/` are in that state today.
 - [ ] T21 | Update galley.py's docstring, which claims it sets text as files.
       Verify: it says it alters Paragraphs on a Page and writes none
         > 2026-09-08 The compositor sets the Page into a proof; the galley writes none
+- [?] T22 | Decide whether a drop may leave a comment flush under front matter;
+      after an a0 drop, # note re-reads into f0
+        > 2026-09-11 Set at compositor.py:275; test_compositor.py:280 asserts it
+        > 2026-09-11 Not introduced by 4ce9605d: the old galley.reset did the same
+- [ ] T23 | Update compositor.py:215-218 so it stops sending the reader to
+      galley._vacate, which no longer says why c is excluded
+- [ ] T24 | Update the comments saying the drop rule keys on kind alone; it keys
+      on kind and empty raw_lines
+        > 2026-09-11 compositor.py:204-207, :274; galley.py:137, :142, :202
+- [ ] T25 | Update compositor.py:268-274 so the quoted ruling is whole and its
+      stated test matches the check at :275
+- [ ] T26 | Update compositor.py:164-178; its drop half contradicts :248-251 and
+      its add half the rule at :277
+- [ ] T27 | Update galley.py:97-98, which says every site takes [1] where the
+      code reads .cue
+- [ ] T28 | Update the nine paragraphs 4ce9605d opened with a bang prefix and
+      capitalised runs, per Process 105 and 106
+        > 2026-09-11 compositor.py:203, :210, :215, :268; galley.py:133, :139, :201
+        > 2026-09-11 test_galley.py:134, :151
+- [ ] T29 | Delete test_a_drop_leaves_the_leading_alone at
+      test_galley.py:146-159, or name what it catches beyond :131
+        > 2026-09-11 the :131 test already asserts the leading unchanged on every drop
+- [ ] T30 | Implement a second test of the drop rule at compositor.py:275 on a
+      place other than a0
+        > 2026-09-11 only test_compositor.py:270 catches it, and only at a0
