@@ -80,6 +80,7 @@ The middle-chain smoke script carries the findings of its Task 8 review.
       the indentation wrapper's body needs
         > 2026-09-11 unindented, the proof's reread loses every altered cue
         > 2026-09-11 waits on the galley-and-compositor indentation ruling
+        > 2026-09-11 unblocked: Addressing 27 gives indentation to the role
 - [ ] T21 | Delete recast_prose.txt from write_texts at
       smoke_fixture.py:146-147, which nothing reads
         > 2026-09-11 disposition takes no @path; the prose rides in dispositions.json

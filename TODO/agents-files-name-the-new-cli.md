@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 20 tasks closed
+Progress: 10 of 21 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -76,3 +76,6 @@ The agents files name the new CLI and say how to use it.
       newly filled place needs its own written
 - [ ] T20 | Update reviewer-brief.md so a role writes no leading blank at either
       end of a change. Verify: the brief asks for none
+- [ ] T21 | Update SKILL.md so the task agent runs a compile step on the set
+      page to verify it is set correctly
+        > 2026-09-11 Addressing 27; Roy: we can have the task-agent run it
