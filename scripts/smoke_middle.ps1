@@ -110,8 +110,8 @@ $BinderFile = Join-Path $Run 'binder.json'
 $TopologyFile = Join-Path $Run 'topology.toml'
 $CopiesDir = Join-Path $Run 'copies'
 
-# Each entry is one stage's work. Add an entry and its name to $StageOrder
-# to extend the chain -- nothing else here needs to change.
+# Each entry is one stage's work. Add an entry to $Stages to extend the
+# chain -- nothing else here needs to change.
 $Stages = [ordered]@{
     fixture = {
         New-Item -ItemType Directory -Path $OriginalDir | Out-Null
