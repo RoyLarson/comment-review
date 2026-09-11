@@ -215,11 +215,6 @@ gets a diff spanning files they never touched.
 
 -> [docs/history.md](docs/history.md), 2026-08-30.
 
-**Green repo-wide as of 2026-08-30**: `ruff format --check .` reports 171 files
-already formatted, `ruff check .` passes, and `ty check` reports zero
-diagnostics. **A new error is something the current change introduced, not a
-backlog it inherited.**
-
 !! **`ty` runs bare, covering both trees.** `[tool.ty]` in `pyproject.toml` sets
 the scope, not a path typed on the command line. Before that, `tests/` sat outside
 every ty run and four real `invalid-argument-type` errors there passed a green
@@ -240,28 +235,7 @@ what replaces it.
 ### The skill's 8 stages
 
 `src/plugin/skills/comment-review/SKILL.md` is the task agent's own instructions --
-read it before touching the skill. The pipeline:
-
-```
-1 PROJECT      2 GATHER     3 FIND      4 MARK   5 APPLY  6 COMPACT   7a PRESENT   8 REVIEW
-  DETERMINATION             REFERENCES               |                    7b WRITE
-                                                      +---- no cap --------^
-```
-
-1. **PROJECT DETERMINATION** (task agent) -- scope from the merge base, find the repo's cap/width
-   conventions, doc style, `move` destination, style sheet, verify reviewer agents resolve, probe
-   for a language server, decide the name-corpus source.
-2. **GATHER** (`page.py` builds each page, `flows/gather.py` stacks them) -- every line classified, in order -- code, part-code, comment, docstring. Each paragraph is addressed by the subject its prose answers to: a gap between two lines of code, a declaration's documentation, or the room beside a line.
-3. **FIND REFERENCES** (`flows/annotations_for.py`) -- every reference each node makes, resolved (paths, symbols,
-   counts).
-4. **MARK** (4 reviewer agents, read-only) -- findings on the nodes. **SERIAL in two rounds:
-   `ownership-context` alone at 4a, the other three in one message at 4c against its
-   resolved placement.** One role REQUIRED, three OPTIONAL -- a claim attached to the wrong
-   scope is measured against the wrong code, and the other three cannot notice.
-5. **APPLY** (task agent) -- one instruction per block, full-length replacement text.
-6. **COMPACT** (task agent) -- cut to the cap; skipped entirely if there is no cap.
-7. **APPROVAL** -- present the final text and stop (7a); on approval, apply verbatim (7b).
-8. **REVIEW** (task agent) -- read the finished page against itself.
+read it before touching the skill.
 
 !! **The middle touches no files. Stages 4-6 read and write JSON AND MEMORY, NOTHING ELSE.** Roy,
 2026-08-30: *"the middle doesn't care if the pages have changed - it is not reading or writing to
@@ -291,35 +265,13 @@ restate it.
 
 ### The four editorial roles
 
-Each is a separate namespaced plugin agent (`comment-review:comment-review-*`) under
-`src/plugin/agents/`. **`ownership-context` runs ALONE and FIRST**; the other
-three go in one message so they run concurrently and see nothing of each other:
-
-- **ownership-context** -- does this comment belong to the ANCHOR it sits on?
-- **block-context** -- is every claim in this block true of the code it sits with -- its state
-  (not past, not future), its constraints (value, direction, units, boundary), its worked
-  examples?
-- **function-context** -- does the commentary match what the function is for?
-- **module-context** -- do the comments say this module is one set of ideas?
-
 Reviewers are read-only and never see SKILL.md directly; they read the shared
 `references/reviewer-brief.md`. Fixing what you find destroys the finding -- MARK and APPLY are
 deliberately separate stages/actors.
 
 ### The binder -- the only thing the reviewers depend on
 
-It is built from the stdlib alone (no third-party dependency), at a per-language tier,
-across four modules that each announce ONE subject:
-
-| module | owns |
-| --- | --- |
-| `addresser.py` | names places -- the addressers walk out, `Cues` reads back. The LEAF: it knows nothing about a paragraph |
-| `page.py` | one file -- its paragraphs tied to the places on it. `page_for()` builds one; a page names its own places |
-| `flows/gather.py` | every page in scope, annotated and bound |
-| `repo.py` | what the checkout says: git, the filesystem, the exception tuples |
-
-`annotate.py` is stage 3, the resolution a reviewer would otherwise do by hand.
-Each announces ONE subject, which is what `module-context` asks of any module:
+It is built from the standard library alone, at a per-language tier:
 
 | tier        | needs                                 | answers                         | cannot answer     |
 | ----------- | ------------------------------------- | ------------------------------- | ----------------- |
@@ -603,23 +555,6 @@ no context -- exact files, TDD steps, a commit per task. The first is a release 
 
 -> [docs/decision-log.md](docs/decision-log.md), *Process*.
 
-### The TODO backlog, and who writes it
-
-**`scripts/todo_tool.py` writes `TODO/`. Do not hand-edit a `Progress:` line or a README row.**
-Every command recomputes the counts from the boxes it just wrote, which is the thing a hand edit
-gets wrong. The full command table is
-[`.claude/skills/todo-tool/SKILL.md`](.claude/skills/todo-tool/SKILL.md) and is not restated
-here; `resync` is what fixes drift after a merge.
-
-**The tool is VENDORED from `redacted_corpus` at `todo-requires-roy` REDACTED_SHA_D** and is
-re-grabbed rather than maintained here, so ruff excludes it. One local patch -- the stdout
-encoding guard -- says so at the patch.
-
-**Two writing methods coexist and Roy knows.** 2026-08-18: *"I know this is two methods of
-writing the todos but right now I don't want to fix that."* The tool owns counts, rows and
-status; the prose inside a file is still written by hand. Do not spend a session reconciling
-them.
-
 #### A box is a claim about whether work remains
 
 !! **A box is a verifiable checkpoint and nothing else gets one.** A task names something a
@@ -676,63 +611,17 @@ carries no box at all; only work does.
 
 ### Cutting a release, and the version number
 
-!! **Proposing a tag is the moment to check which branch you are on.** A tag is a main-only act,
+**Proposing a tag is the moment to check which branch you are on.** A tag is a main-only act,
 so wanting one means the work has been accumulating somewhere -- and if that somewhere is main,
 it went there without the branch question ever being asked.
 
-**It is a better checkpoint than the rule above it**, which fires when editing STARTS. The
-start is where this goes wrong: a one-line fix becomes a migration with no moment that announces
-itself. Roy, 2026-08-17, after 26 commits reached main: *"your repeated asking to tag the commits
-with a new version should have cued me in that you were on main."* Both of us had the signal
-and neither read it, which is why it is written down rather than remembered.
+**Any change under `plugins/` after a tag needs a new version, and a tag someone has measured
+against is never moved -- cut the next number instead.** The plugin cache keys its directory on
+the `version` field, so a second tree installed under the same number overwrites the first.
 
-**The version is stated three times and `tests/test_release.py` holds them equal.** Bump all
-three in one commit, or the gate fails:
-
-| file | field |
-| --- | --- |
-| `pyproject.toml` | `[project] version` |
-| `CHANGELOG.md` | the newest `## [x.y.z]` heading (`[Unreleased]` is skipped -- it carries no number) |
-| `src/plugin/.claude-plugin/plugin.json` | `version` |
-
-!! **Any change under `plugins/` after a tag needs a new version.** The plugin cache keys its
-directory on that `version` field -- `~/.claude/plugins/cache/roy-local/comment-review/0.2.1/`
--- so a second, different tree installed under the same number overwrites the first and
-`claude plugin list` reports both as the same release. Measured 2026-08-17: three commits after
-`v0.2.1` was tagged and pushed, `plugins/` held a block-context whose frontmatter parsed where
-the tag's did not. **Two materially different reviewers, one version number**, while another
-session had already pinned an evidence package to the tag. **Never move a tag someone has
-measured against; cut the next number instead.** The version field exists precisely to make a
-run attributable, so shipping two trees under one number returns the repo to the state the
-field was added to end.
-
-**A tag here is ANNOTATED, so `git rev-parse vX.Y.Z` returns the tag object, not the commit.**
-Use `vX.Y.Z^{}` wherever a commit is wanted -- `git diff "v0.2.1^{}" HEAD`, `git show
-"v0.2.0^{}:<path>"`. This is the trap anyone re-deriving which code produced a measurement hits
-first.
-
-**Run the release command before tagging, and commit what it writes.** `plugins/` is a COPY
-of `src/`, so a release cut without `uv run python scripts/release.py` ships whatever the
-last run left behind -- and every gate reads `src/`, so nothing fails on a stale copy.
-
-| | |
-| --- | --- |
-| assemble | `uv run python scripts/release.py` |
-| then commit | `plugins/` stays tracked -- the marketplace install reads committed state |
-
-**`tests/gates/test_release_assembles.py` is what proves the command rebuilds**, over a
-temporary tree: a file the source dropped is removed, and bytecode does not ship.
-
-**Run `claude plugin validate plugins/comment-review` before tagging.** No test replaces it:
-it is the parser the runtime actually uses, and it caught a YAML frontmatter failure that had
-shipped through every release to date, silently dropping a skill's whole metadata and an agent's
-description. `tests/test_frontmatter.py` gates the one cause that is known; the validator is
-what finds the next one.
-
-To publish the cut: `git tag -a vX.Y.Z -m "..."`, `git push origin main`, `git push origin
-vX.Y.Z`, then `claude plugin marketplace update roy-local` and `claude plugin update
-comment-review@roy-local`. **The install reads COMMITTED state**, so commit before updating, and
-a session already open keeps the old agents until it restarts.
+**The procedure is the `cut-a-release` skill**,
+[`.claude/skills/cut-a-release/SKILL.md`](.claude/skills/cut-a-release/SKILL.md): the version
+stated three times, assembling `plugins/`, validating, and publishing, with the reasons for each.
 
 -> [docs/decision-log.md](docs/decision-log.md), *Process*.
 
