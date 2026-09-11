@@ -26,10 +26,24 @@ $Launcher = @('uv', 'run', 'python', 'src/comment-review.py')
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 
+# Captured before the script ever changes directory, so a relative -Run
+# resolves against where the caller stood, not against $RepoRoot below.
+$CallerLocation = Get-Location
+
 if (-not $Run) {
     $Run = Join-Path ([System.IO.Path]::GetTempPath()) ("smoke-middle-" + (Get-Date -Format 'yyyyMMdd-HHmmss'))
 } else {
-    $Run = [System.IO.Path]::GetFullPath($Run)
+    $Run = [System.IO.Path]::GetFullPath((Join-Path $CallerLocation.Path $Run))
+}
+
+# A run never writes inside the repo, so a -Run landing there is refused
+# before any work is done.
+$RepoRootTrimmed = $RepoRoot.TrimEnd([System.IO.Path]::DirectorySeparatorChar)
+$RunTrimmed = $Run.TrimEnd([System.IO.Path]::DirectorySeparatorChar)
+if ($RunTrimmed -eq $RepoRootTrimmed -or
+    $Run.StartsWith($RepoRootTrimmed + [System.IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase)) {
+    Write-Host "-Run resolves inside the repo: $Run"
+    exit 1
 }
 
 if (Test-Path -LiteralPath $Run) {
@@ -131,7 +145,6 @@ if ($Stop -and ($Stages.Keys -notcontains $Stop)) {
     exit 1
 }
 
-$CallerLocation = Get-Location
 try {
     Set-Location $RepoRoot
     New-Item -ItemType Directory -Path $Run | Out-Null
