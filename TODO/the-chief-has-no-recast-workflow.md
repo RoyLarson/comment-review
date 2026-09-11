@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 7 tasks closed
+Progress: 2 of 8 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-09-08 (Roy 2026-09-08: implementing the recast workflow for the cli the
@@ -38,3 +38,6 @@ The copy chief has no workflow for recasting the places that never settled.
 - [?] T7 | Decide what a recast of a drop should write, since change carries the
       chief's prose whatever the instruction says
         > 2026-09-08 Not new: the hardcoded correct wrote prose for every instruction
+- [ ] T8 | Update disposition.py:20 and turn.py:621, which still say cap for max
+      turns, per Vocabulary 36
+        > 2026-09-11 seen in disposition --help while preparing SP7 Task 9
