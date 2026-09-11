@@ -20,13 +20,6 @@ $Cmd = @{
     disposition = 'disposition'; proof = 'proof'; addresser = 'addresser'
 }
 
-$StageOrder = @('fixture', 'gather', 'topology', 'distribute')
-
-if ($Stop -and ($StageOrder -notcontains $Stop)) {
-    Write-Host "unknown -Stop value: $Stop (valid: $($StageOrder -join ', '))"
-    exit 1
-}
-
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 
 if (-not $Run) {
@@ -98,7 +91,7 @@ $CopiesDir = Join-Path $Run 'copies'
 
 # Each entry is one stage's work. Add an entry and its name to $StageOrder
 # to extend the chain -- nothing else here needs to change.
-$Stages = @{
+$Stages = [ordered]@{
     fixture = {
         New-Item -ItemType Directory -Path $OriginalDir | Out-Null
         Invoke-Checked -Stage 'fixture' -CommandLine @(
@@ -133,12 +126,17 @@ $Stages = @{
     }
 }
 
+if ($Stop -and ($Stages.Keys -notcontains $Stop)) {
+    Write-Host "unknown -Stop value: $Stop (valid: $($Stages.Keys -join ', '))"
+    exit 1
+}
+
 $CallerLocation = Get-Location
 try {
     Set-Location $RepoRoot
     New-Item -ItemType Directory -Path $Run | Out-Null
 
-    foreach ($stageName in $StageOrder) {
+    foreach ($stageName in $Stages.Keys) {
         & $Stages[$stageName]
         if ($Stop -eq $stageName) {
             break
