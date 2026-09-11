@@ -526,11 +526,11 @@ final review of the whole branch rather than a review per round. T19 and T56 wai
 **Files:**
 - Modify: `scripts/smoke_middle.ps1`, `scripts/smoke_fixture.py`, `tests/gates/test_smoke_fixture.py`
 
-- [ ] **Step 1: The behaviour fixes** -- T13, T16, T17, T18, T22, T31, T53, T57, T58, each shown by the case that exposed it
-- [ ] **Step 2: The tests and types** -- T33, T51, T54, T55
-- [ ] **Step 3: The comments** -- T14, T15, T23, T25, T26, T29, T37, T46-T50, T52, then every comment in the three files re-read against the code
-- [ ] **Step 4: Done gate** -- the whole script stops only at `proof`; the probe without `a2` passes through `diff`
-- [ ] **Step 5: Tick** each task against its commit, in a later commit
+- [x] **Step 1: The behaviour fixes** -- T13, T16, T17, T18, T22, T31, T53, T57, T58, each shown by the case that exposed it
+- [x] **Step 2: The tests and types** -- T33, T51, T54, T55
+- [x] **Step 3: The comments** -- T14, T15, T23, T25, T26, T29, T37, T46-T50, T52, then every comment in the three files re-read against the code
+- [x] **Step 4: Done gate** -- the whole script stops only at `proof`; the probe without `a2` passes through `diff`
+- [x] **Step 5: Tick** each task against its commit, in a later commit
 
 ---
 
