@@ -31,7 +31,8 @@ $RepoRoot = Split-Path -Parent $PSScriptRoot
 $CallerLocation = Get-Location
 
 if (-not $Run) {
-    $Run = Join-Path ([System.IO.Path]::GetTempPath()) ("smoke-middle-" + (Get-Date -Format 'yyyyMMdd-HHmmss-fff'))
+    $RandomPart = [System.Guid]::NewGuid().ToString('N').Substring(0, 8)
+    $Run = Join-Path ([System.IO.Path]::GetTempPath()) ("smoke-middle-" + (Get-Date -Format 'yyyyMMdd-HHmmss-fff') + '-' + $RandomPart)
 } else {
     $Run = [System.IO.Path]::GetFullPath($Run, $CallerLocation.ProviderPath)
 }
@@ -46,9 +47,18 @@ if ($RunTrimmed -eq $RepoRootTrimmed -or
     exit 1
 }
 
-if (Test-Path -LiteralPath $Run) {
-    Write-Host "run directory already exists: $Run"
-    exit 1
+# Created here, at the point its existence is checked, rather than
+# checked with Test-Path and created later -- so nothing can be written
+# into $Run between the check and the creation by two runs racing on the
+# same name.
+try {
+    New-Item -ItemType Directory -Path $Run -ErrorAction Stop | Out-Null
+} catch [System.IO.IOException] {
+    if ($_.FullyQualifiedErrorId -eq 'DirectoryExist,Microsoft.PowerShell.Commands.NewItemCommand') {
+        Write-Host "run directory already exists: $Run"
+        exit 1
+    }
+    throw
 }
 
 # Quotes each argument that needs it for a faithful paste into PowerShell:
@@ -153,7 +163,6 @@ if ($PSBoundParameters.ContainsKey('Stop') -and
 
 try {
     Set-Location $RepoRoot
-    New-Item -ItemType Directory -Path $Run | Out-Null
 
     foreach ($stageName in $Stages.Keys) {
         & $Stages[$stageName]
