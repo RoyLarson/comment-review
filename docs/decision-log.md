@@ -514,6 +514,16 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   role. **What it opens.** The agents' wording, carried by `brief-says-three-series` T4, and a
   workflow for raising each correction to an `f` place to the human on its own.
 
+- **#27.** **A docstring's indentation is the role's to write, for now** (Roy, 2026-09-11,
+  ruling on `galley-and-compositor-write-path` T33, asked after the middle-chain smoke's `add` at
+  `a2` carried an unindented docstring that `check`, `collate` and `disposition` passed and only
+  the proof's re-read refused).
+
+  *"the roles for now because spacing and flowing the text can be tricky. How to flow and how
+  many normal paragraph splits all make this a tricky task for the compositor if we want to
+  automate it. We can have the task-agent run a compile step on the set page to verify that the
+  stuff is set correctly"*
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is
