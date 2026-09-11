@@ -166,6 +166,13 @@ Two things, and nothing else. Roy, 2026-09-08: *"Really i would go just for star
 no errors. Counting artifacts and other things in between makes it more complicated and brittle
 than it needs to be. Those are testing implementation details not api functionality."*
 
+It held when a review showed its cost: a row planted to escalate can re-read instead, and while
+another row escalates, `collate` still exits 4 and nothing in the script notices. Asked on
+2026-09-11 whether the rule still stands (`smoke-middle-script` T24), Roy: *"yes because the
+only thing that matters is that the workflow works from end-to-end not if the middle things
+don't work as expected. If the middle things are not doing what they are supposed to do then
+that becomes an actual pytest test"*.
+
 **Exit codes.** Every stage exits 0 on planted-correct input, except `collate`, which exits the
 code the plant predicts. Its exit codes are a contract (`commands/collate.py`): 3 when places are
 carried forward for a re-read, 4 when any is an escalation, which outranks a re-read. The matrix
