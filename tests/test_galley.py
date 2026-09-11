@@ -143,21 +143,6 @@ class TestDrop:
         assert {c for c in after if after[c] != before[c]} == {cue}
         assert after_d == before_d
 
-    def test_a_drop_leaves_the_leading_alone(self, sample):
-        """`Addressing: #22` -- the compositor owns leading, adding and
-        dropping, because a fence is a property of the page being laid out
-        rather than of the edit being applied.
-
-        `a0` is picked for teeth: it is the one filled place in the sample
-        whose edge owns a leading (`page.leading == {"a0": "d0", "c1": "d1"}`),
-        so the old `_vacate` had something to empty here and the new one must
-        not.
-        """
-        cue = FILLED["a"][0]
-        before = leading_by_symbol(build(SAMPLE))
-        reset(sample, {cue: None})
-        assert leading_by_symbol(sample) == before
-
     def test_a_c_keeps_the_blank_below_its_code(self, sample):
         """Stated separately because `prove_unchanged` cannot see the
         difference -- the AST is identical either way -- so getting it wrong

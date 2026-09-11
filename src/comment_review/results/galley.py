@@ -90,12 +90,12 @@ carries stops that file rather than writing a galley nobody can trust.
 
 from comment_review.machine import constants
 
-# !! THE ONE `cue_of`, since 2026-08-22. This module had a second of its own --
-# `str(address).split("@")[-1]` -- and the two DISAGREED on a malformed address:
-# a bare `b3` with no `@` came back as the cue `b3` here and as *not an
-# address* from `addresser`, which returns two blanks when there is no separator.
-# Both were live in one process. ! The shared one answers `(path, cue)`, so
-# every site here takes `[1]`.
+# The one `cue_of`, since 2026-08-22. This module had a second of its own --
+# `str(address).split("@")[-1]` -- and the two disagreed on a malformed address:
+# a bare `b3` with no `@` came back as the cue `b3` here and as not an
+# address from `addresser`, which returns two blanks when there is no separator.
+# Both were live in one process. The shared one answers `(path, cue)`, so
+# every site here reads `.cue`.
 from comment_review.reading.addresser import cue_of
 
 
@@ -134,12 +134,13 @@ def reset(page, edits: dict[str, str | None]) -> list[str]:
     of the fence question -- adding one, dropping one -- to the compositor,
     because a fence is a property of the page being laid out and not of the
     edit being applied: whether a blank still belongs is answerable from the
-    place's own kind, with nothing this module needs to decide.
+    place's kind and whether it still holds lines, with nothing this module
+    needs to decide.
 
     Which is why `_vacate` empties the paragraph alone, not the `d` below
     it. This module's charter is changing out text on the page it is handed;
-    deciding whether a blank line still belongs is `set_page`'s question, made
-    from the place's kind rather than from what this loop just did to it.
+    deciding whether a blank line still belongs is `set_page`'s question,
+    asked of the place's kind and of whether it still holds lines.
 
     ! A `c` TAKES ONLY THE PROSE. The compositor sets the line of code and joins
     what sits beside it, so the replacement is the comment and its separator --
@@ -199,9 +200,9 @@ def _vacate(paragraph) -> None:
     by the `add` that fills it next.
 
     The leading below it is not this function's to touch -- `Addressing:
-    #22`. `set_page` reads the place's kind to decide whether a blank still
-    belongs, so emptying it here would be a second, competing answer to the
-    same question.
+    #22`. `set_page` reads the place's kind, and whether it still holds lines,
+    to decide whether a blank still belongs, so emptying it here would be a
+    second, competing answer to the same question.
 
     Args:
         paragraph: the place being vacated.
