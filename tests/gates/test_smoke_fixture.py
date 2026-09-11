@@ -81,3 +81,39 @@ class TestTheFixtureYieldsEverySeries(unittest.TestCase):
     def test_leading_holds_seven_runs_d0_to_d6(self):
         self.assertEqual(len(self.page.leading), 7)
         self.assertEqual(set(self.page.leading.values()), {f"d{i}" for i in range(7)})
+
+
+class TestTheLandingTableAgreesWithTheFixture(unittest.TestCase):
+    """T32's check: for a correction, `Landing.text` is what `desk.mark`'s
+    own derivation (`claim_change`) would produce -- the fixture's own
+    paragraph at that address, with the `--false` clause replaced by the
+    `--true` clause -- so the table cannot drift from what the fixture
+    actually holds.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name)
+        path = smoke_fixture.write_fixture(self.root)
+        page, why = page_of(path, rel="fib.py")
+        assert page is not None, why
+        self.page = page
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_each_corrections_landing_is_the_fixture_with_true_for_false(self):
+        by_cue = {cue_of(p): p for p in self.page.paragraphs if p.text}
+        corrections = [
+            address
+            for address, landing in smoke_fixture.LANDINGS.items()
+            if landing.false is not None
+        ]
+        self.assertEqual({a.split("@")[-1] for a in corrections}, {"c6", "c1"})
+        for address in corrections:
+            cue = address.split("@")[-1]
+            landing = smoke_fixture.LANDINGS[address]
+            assert landing.false is not None
+            assert landing.true is not None
+            corrected = by_cue[cue].raw_text.replace(landing.false, landing.true)
+            self.assertEqual(corrected, landing.text, cue)

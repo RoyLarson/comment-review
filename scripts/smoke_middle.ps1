@@ -174,10 +174,14 @@ $Stages = [ordered]@{
         )
         # One file per address `smoke_fixture.LANDINGS` gives text that a
         # `mark` call below plants -- written above by `write_texts`, named
-        # here to match its own naming rather than read back from it.
+        # here to match its own naming rather than read back from it. c6
+        # and c1 are corrections, so each names two files: its false clause
+        # and its true clause.
         $LandingFile = @{
-            c6 = Join-Path $Run 'c6.txt'
-            c1 = Join-Path $Run 'c1.txt'
+            c6_false = Join-Path $Run 'c6-false.txt'
+            c6_true = Join-Path $Run 'c6-true.txt'
+            c1_false = Join-Path $Run 'c1-false.txt'
+            c1_true = Join-Path $Run 'c1-true.txt'
             b0 = Join-Path $Run 'b0.txt'
             a2 = Join-Path $Run 'a2.txt'
             b8 = Join-Path $Run 'b8.txt'
@@ -277,7 +281,7 @@ $Stages = [ordered]@{
         Invoke-Checked -Stage 'mark c6 block-context correct' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@c6',
             '--instruction', 'correct',
-            '--false', "the decorator's whole job", '--true', "@$($LandingFile.c6)",
+            '--false', "@$($LandingFile.c6_false)", '--true', "@$($LandingFile.c6_true)",
             '--reason', 'counting is the whole job of the decorator, worded oddly',
             '--cite', 'fib.py:15', '--repo', $OriginalDir
         ))
@@ -296,7 +300,7 @@ $Stages = [ordered]@{
         Invoke-Checked -Stage 'mark c1 block-context correct' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@c1',
             '--instruction', 'correct',
-            '--false', 'memoised or not', '--true', "@$($LandingFile.c1)",
+            '--false', "@$($LandingFile.c1_false)", '--true', "@$($LandingFile.c1_true)",
             '--reason', 'the fixture calls this a cache everywhere else',
             '--cite', 'fib.py:6', '--repo', $OriginalDir
         ))
