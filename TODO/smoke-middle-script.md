@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 0 of 12 tasks closed
+Progress: 1 of 12 tasks closed
 Owner:    systems
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-09-11 (review of SP7 Task 8 at 34aea6d4, 2026-09-11)
 ```
 
@@ -39,6 +39,7 @@ The middle-chain smoke script carries the findings of its Task 8 review.
       get different default directories
 - [ ] T11 | Update smoke_middle.ps1:25 so an empty -Stop is refused rather than
       running every stage
-- [?] T12 | Decide whether flags join the command table, as the spec says at
-      line 187, or stay at call sites as the script has them
+- [x] T12 | RULED -- flags stay at call sites; spec reworded to names only | 440f4f2e | Decide
+      whether flags join the command table, as the spec says at line 187, or
+      stay at call sites as the script has them
         > 2026-09-11 the script follows a ruling in the SP7 ledger
