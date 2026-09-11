@@ -20,6 +20,10 @@ $Cmd = @{
     disposition = 'disposition'; proof = 'proof'; addresser = 'addresser'
 }
 
+# The launcher every comment-review command runs through, written once so
+# a change to how it is invoked is one edit.
+$Launcher = @('uv', 'run', 'python', 'src/comment-review.py')
+
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 
 if (-not $Run) {
@@ -101,28 +105,24 @@ $Stages = [ordered]@{
         )
     }
     gather = {
-        Invoke-Checked -Stage 'gather' -CommandLine @(
-            'uv', 'run', 'python', 'src/comment-review.py', $Cmd.gather,
-            '--repo', $OriginalDir, '--out', $BinderFile, $FixtureFile
-        )
+        Invoke-Checked -Stage 'gather' -CommandLine ($Launcher + @(
+            $Cmd.gather, '--repo', $OriginalDir, '--out', $BinderFile, $FixtureFile
+        ))
     }
     topology = {
-        Invoke-Checked -Stage 'topology-build' -CommandLine @(
-            'uv', 'run', 'python', 'src/comment-review.py', $Cmd.topology,
-            '--build', '--binder', $BinderFile, '--out', $TopologyFile,
+        Invoke-Checked -Stage 'topology-build' -CommandLine ($Launcher + @(
+            $Cmd.topology, '--build', '--binder', $BinderFile, '--out', $TopologyFile,
             '--stage', '4=ownership-context,block-context,function-context,module-context'
-        )
-        Invoke-Checked -Stage 'topology-verify' -CommandLine @(
-            'uv', 'run', 'python', 'src/comment-review.py', $Cmd.topology,
-            '--verify', $TopologyFile, '--binder', $BinderFile
-        )
+        ))
+        Invoke-Checked -Stage 'topology-verify' -CommandLine ($Launcher + @(
+            $Cmd.topology, '--verify', $TopologyFile, '--binder', $BinderFile
+        ))
     }
     distribute = {
-        Invoke-Checked -Stage 'distribute-4' -CommandLine @(
-            'uv', 'run', 'python', 'src/comment-review.py', $Cmd.distribute,
-            '--topology', $TopologyFile, '--stage', '4',
+        Invoke-Checked -Stage 'distribute-4' -CommandLine ($Launcher + @(
+            $Cmd.distribute, '--topology', $TopologyFile, '--stage', '4',
             '--binder', $BinderFile, '--out-dir', $CopiesDir
-        )
+        ))
     }
 }
 
