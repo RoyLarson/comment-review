@@ -54,14 +54,15 @@ function Format-CommandLine {
     }) -join ' '
 }
 
-# Runs one native command, checks its exit code against what the stage
-# expects (0 unless -Expect says otherwise) and stops the script on
-# failure -- printing the stage name, the expected and actual exit codes,
-# the directory it ran from and a command line that runs when pasted into
-# PowerShell, so the failure carries its own reproduction. A missing
-# executable is caught the same way, naming the stage and command instead
-# of an exit code. $PSNativeCommandUseErrorActionPreference is off above,
-# so nothing but this function reports a native failure.
+# Runs one native command, piping its output to the console (Out-Host) so
+# a caller capturing this script's own output gets only what it
+# Write-Outputs, and checks the exit code against what the stage expects
+# (0 unless -Expect says otherwise). On failure -- a wrong exit code or a
+# missing executable -- it stops the script, printing the stage name, the
+# expected and actual exit codes, the directory it ran from and a command
+# line that runs when pasted into PowerShell, so the failure carries its
+# own reproduction. $PSNativeCommandUseErrorActionPreference is off
+# above, so nothing but this function reports a native failure.
 function Invoke-Checked {
     param(
         [Parameter(Mandatory)] [string]$Stage,
@@ -71,7 +72,7 @@ function Invoke-Checked {
     $exe = $CommandLine[0]
     $rest = @($CommandLine | Select-Object -Skip 1)
     try {
-        & $exe @rest
+        & $exe @rest | Out-Host
     } catch [System.Management.Automation.CommandNotFoundException] {
         Write-Host "stage failed: $Stage"
         Write-Host "executable not found: $exe"
