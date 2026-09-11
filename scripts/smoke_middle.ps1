@@ -161,11 +161,12 @@ $Stages = [ordered]@{
             '--binder', $BinderFile, '--out-dir', $CopiesDir
         ))
     }
-    # The scenario matrix, `docs/superpowers/specs/2026-09-08-the-middle-chain-
-    # smoke-design.md`'s "The scenario matrix", planted one `mark` invocation
-    # per ruling per role -- no bulk pass, since `mark` itself refuses one.
-    # Every one of the nine filled places gets a ruling from every role, so a
-    # place the matrix does not otherwise name is marked clean by all four.
+    # `docs/superpowers/specs/2026-09-08-the-middle-chain-smoke-design.md`'s
+    # "The scenario matrix" named the first nine of these places; the plant
+    # goes five further -- one `mark` invocation per ruling per role, no
+    # bulk pass, since `mark` itself refuses one. A place three roles have
+    # nothing to add to is marked clean by all three, or queried outside
+    # their remit; a2, b8, b17 and c3 get a ruling from one role alone.
     mark = {
         Invoke-Checked -Stage 'plant-texts' -CommandLine @(
             'uv', 'run', 'python', '-c',
@@ -405,8 +406,9 @@ $Stages = [ordered]@{
                 '--cite', 'fib.py:5', '--repo', $OriginalDir
             ))
         }
-        # a2 -- the add. function-context is the only role that touches this
-        # empty place; wrapper carries no slot in anyone else's copy to rule on.
+        # a2 -- one of six adds. function-context is the only role that
+        # touches this empty place; wrapper carries no slot in anyone
+        # else's copy to rule on.
         Invoke-Checked -Stage 'mark a2 function-context add' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['function-context'], '--address', 'fib.py@a2',
             '--instruction', 'add',
@@ -441,10 +443,11 @@ $Stages = [ordered]@{
             '--out', $ChiefFile, '--proof-out', $Proof0File
         ))
     }
-    # The chief's dispositions close the four carried-forward places
-    # (`write_texts` plants them at the mark stage above, matching
-    # `LANDINGS` in smoke_fixture.py), then `disposition` folds them into
-    # the closed proof.
+    # The chief's dispositions close the nine carried-forward places
+    # (`write_texts` writes `dispositions.json` at the mark stage above,
+    # from `DISPOSITIONS` in smoke_fixture.py, which reads `b9`'s recast
+    # prose out of `LANDINGS`), then `disposition` folds them into the
+    # closed proof.
     disposition = {
         Invoke-Checked -Stage 'disposition' -CommandLine ($Launcher + @(
             $Cmd.disposition, '--proof', $Proof0File, '--binder', $BinderFile,

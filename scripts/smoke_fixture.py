@@ -4,20 +4,21 @@
 fixture", names this text verbatim: a short recursive Fibonacci with a
 logging decorator, three trailing comments, three standalone comment runs,
 two stacked decorators, a nested `def`, and a dunder-main block. Its structure
-is fixed -- a later task plants decisions against specific addresses on it,
-so the text here must not drift from what that table describes.
+is fixed -- `LANDINGS` and `DISPOSITIONS` below plant decisions against
+specific addresses on it, so the text here must not drift from what those
+tables describe.
 
 `LANDINGS` names, per planted address, a `Landing`: the outcome (`"text"`,
 `"removed"` or `"kept"`), the paragraph as it will sit on disk where the
 outcome is text, and -- for the two corrections whose landing IS the
 corrected side -- the `--false` and `--true` clauses beside it, since `mark`
-needs both. `DISPOSITIONS`
-is the chief's own ruling over each place `collate` escalates, reading its
-`b9` recast prose out of `LANDINGS` rather than holding a second copy.
-`write_texts` writes a file for every address whose `Landing.route` is
-`"mark"` (two files for a correction's clauses, one otherwise), plus
-`dispositions.json`; `b9`'s route is `"disposition"`, so it gets no file
-and reaches the proof only inline.
+needs both. `DISPOSITIONS` is the chief's own ruling over every place
+`collate` carries forward -- three escalations and six re-reads, one per
+`add` -- reading its `b9` recast prose out of `LANDINGS` rather than
+holding a second copy. `write_texts` writes a file for every address whose
+`Landing.route` is `"mark"` (two files for a correction's clauses, one
+otherwise), plus `dispositions.json`; `b9`'s route is `"disposition"`, so it
+gets no file and reaches the proof only inline.
 """
 
 import json
@@ -117,17 +118,20 @@ class Landing(NamedTuple):
     true: str | None = None
 
 
-#: What the plant makes land at each planted address once the chain closes --
-#: the same outcomes `docs/superpowers/specs/2026-09-08-the-middle-chain-
-#: smoke-design.md`'s "The scenario matrix" describes in prose, held here by
-#: address instead. Nine entries carry text: a role's own clause, the move's
-#: destination, or one of six `add`s -- one on the empty `a2`, and five more
-#: testing an `add` at other absent and already-filled places across the `a`,
-#: `b` and `c` series. One entry carries the chief's own `recast` prose; four
-#: carry no text at all, because the outcome drops the paragraph, vacates its
-#: origin, or leaves the fixture as it already reads. Task 10 diffs `FIXTURE`
-#: against this table to know what the closed proof should read at each
-#: address.
+#: What the plant makes land at each planted address once the chain closes.
+#: `docs/superpowers/specs/2026-09-08-the-middle-chain-smoke-design.md`'s
+#: "The scenario matrix" names the first nine of these addresses in prose;
+#: the plant goes five further, testing an `add` at other absent and
+#: already-filled places across the `a`, `b` and `c` series. Nine entries
+#: carry text landed by a `mark` call's `--change`, `--false` or `--true`:
+#: a role's own clause, the move's destination, or one of six `add`s -- one
+#: on the empty `a2`, and five more on `a0`, `b8`, `b17`, `c3` and `c12`.
+#: One entry, `b9`, carries the chief's own `recast` prose instead, reaching
+#: the proof only through `dispositions.json`. Four carry no text: `outcome`
+#: is `"removed"` where the drop or the move's own vacated origin leaves
+#: nothing, and `"kept"` where the fixture's own wording stands. Task 10
+#: will diff `FIXTURE` against this table to know what the closed proof
+#: should read at each address.
 LANDINGS: dict[str, Landing] = {
     # block-context's correction is the only one that lands at c6; the
     # other three roles mark a scope-declaring query instead of clean.
@@ -145,7 +149,7 @@ LANDINGS: dict[str, Landing] = {
         false="memoised or not",
         true="cached or not",
     ),
-    # the move's --change: b1's paragraph relocates to b0, reworded there.
+    # the move's --change: b1's paragraph relocates to b0, unchanged.
     "fib.py@b0": Landing(
         "text", "# Module state, written by the wrapper and read by the caller."
     ),
@@ -154,7 +158,9 @@ LANDINGS: dict[str, Landing] = {
         "text", '        """Count each call, then pass it through."""'
     ),
     # collate escalates b9; disposition recasts it in the chief's own words,
-    # over both roles' losing corrections.
+    # over both roles' losing corrections -- no single mark call's --true
+    # carries this text, so it reaches the proof only inline in
+    # dispositions.json.
     "fib.py@b9": Landing(
         "text",
         "# The cache and the counter measure different things, worth stating\n"
@@ -259,13 +265,19 @@ DISPOSITIONS = [
         "address": "fib.py@c12",
         "answer": "taken_in",
         "side": "ownership-context",
-        "reason": "ownership-context is the only role that read this place",
+        "reason": (
+            "ownership-context's add is the only ruling that changes the "
+            "paragraph; the other three roles read the place and clean it"
+        ),
     },
     {
         "address": "fib.py@a0",
         "answer": "taken_in",
         "side": "block-context",
-        "reason": "block-context is the only role that read this place",
+        "reason": (
+            "block-context's add is the only ruling that changes the "
+            "paragraph; the other three roles read the place and clean it"
+        ),
     },
 ]
 
