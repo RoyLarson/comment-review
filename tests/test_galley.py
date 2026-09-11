@@ -131,7 +131,7 @@ class TestDrop:
     def test_only_the_place_changes(self, sample, series, cue):
         """The galley touches the place it was asked to and nothing else.
 
-        !! NO FENCE MOVES HERE, ON ANY DROP. `Addressing: #22` moved the whole
+        No fence moves here, on any drop. `Addressing: #22` moved the whole
         fence question -- add one, drop one -- to the compositor, so a `drop`
         leaves every `d` on the page exactly where it was.
         """
@@ -148,8 +148,8 @@ class TestDrop:
         dropping, because a fence is a property of the page being laid out
         rather than of the edit being applied.
 
-        ! `a0` IS PICKED FOR TEETH: it is the one FILLED place in the sample
-        whose edge OWNS a leading (`page.leading == {"a0": "d0", "c1": "d1"}`),
+        `a0` is picked for teeth: it is the one filled place in the sample
+        whose edge owns a leading (`page.leading == {"a0": "d0", "c1": "d1"}`),
         so the old `_vacate` had something to empty here and the new one must
         not.
         """

@@ -200,19 +200,19 @@ def set_page(page: Page, newline: str | None = None) -> str:
         for b in page.paragraphs
         if b.address and Kind.occupies_no_lines(b.kind)
     }
-    # !! WHICH PLACES ONCE HELD PROSE AND HOLD NONE NOW -- the mirror of
-    # `absent` above, for the DROP side of `Addressing: #22`. `galley.reset`
-    # empties the paragraph and leaves its `d` alone, so a place whose KIND
+    # Which places once held prose and hold none now -- the mirror of
+    # `absent` above, for the drop side of `Addressing: #22`. `galley.reset`
+    # empties the paragraph and leaves its `d` alone, so a place whose kind
     # still says prose belongs and whose `raw_lines` are empty is one a
     # `drop` just vacated -- which is the only case the rule below may fire
     # on.
     #
-    # ! KEYED ON THE PLACE'S STATE, NOT ON THE EDGE OR ON A LOOKUP.
+    # Keyed on the place's state, not on the edge or on a lookup.
     # `Addressing: #19` paid for that mistake once already, on the add side:
-    # gating on "no leading was looked up" fired on a MODIFY and on an
+    # gating on "no leading was looked up" fired on a modify and on an
     # unedited compose too. This is its mirror and takes the same gate.
     #
-    # !! `ON` IS EXCLUDED. A `c` sets its line of code whether or not
+    # `ON` is excluded. A `c` sets its line of code whether or not
     # anything sits beside it, so a comment leaving that line vacates
     # nothing the code itself did not already occupy -- see
     # `galley._vacate`.
@@ -265,7 +265,7 @@ def set_page(page: Page, newline: str | None = None) -> str:
         # the place disappears."* An emptied place still holds its position;
         # whether it still owns the space below it is what `vacated` answers.
         #
-        # !! AND WHOSE CALL THAT IS MOVED HERE, `Addressing: #22`. `galley.reset`
+        # And whose call that is moved here, `Addressing: #22`. `galley.reset`
         # used to empty the leading when it emptied the paragraph, deciding the
         # fence question at edit time. Roy: *"the leadings are not about
         # resetting text they are about fences ... that is mostly accomplished

@@ -130,13 +130,13 @@ def reset(page, edits: dict[str, str | None]) -> list[str]:
     vacated exactly as a `drop` vacates, because in both cases the prose is no
     longer there and the space it introduced is no longer owed.
 
-    ! THE LEADING BELOW IT IS LEFT ALONE. `Addressing: #22` moved both halves
+    The leading below it is left alone. `Addressing: #22` moved both halves
     of the fence question -- adding one, dropping one -- to the compositor,
     because a fence is a property of the page being laid out and not of the
     edit being applied: whether a blank still belongs is answerable from the
     place's own kind, with nothing this module needs to decide.
 
-    !! WHICH IS WHY `_vacate` EMPTIES THE PARAGRAPH ALONE, not the `d` below
+    Which is why `_vacate` empties the paragraph alone, not the `d` below
     it. This module's charter is changing out text on the page it is handed;
     deciding whether a blank line still belongs is `set_page`'s question, made
     from the place's kind rather than from what this loop just did to it.
@@ -198,7 +198,7 @@ def _vacate(paragraph) -> None:
     reading order; it holds no lines. A place that vanished could not be cited
     by the `add` that fills it next.
 
-    ! THE LEADING BELOW IT IS NOT THIS FUNCTION'S TO TOUCH -- `Addressing:
+    The leading below it is not this function's to touch -- `Addressing:
     #22`. `set_page` reads the place's kind to decide whether a blank still
     belongs, so emptying it here would be a second, competing answer to the
     same question.
