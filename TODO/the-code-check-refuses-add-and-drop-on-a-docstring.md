@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 1 of 5 tasks closed
+Progress: 2 of 6 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-17, on the FIRST run ever to reach stage 7b. A docstring `add` failed the
           CODE CHECK, the rail said restore, and an approved edit was reverted.
 Split:    2026-08-23 -- boxes cut to two lines each, a Verify written for every open one,
@@ -83,9 +83,10 @@ being ADDED or REMOVED -- only rewritten, which is the case that passes.
 
 ## Tasks
 
-- [?] T1 | T1 -- * Rule whether 7b compares against the approved SET or
-      nothing-changed. Verify: `docs/decision-log.md` records the answer and
-      `write.md` states it.
+- [x] T1 | RULED Process: #113 -- against the approved changes | 565a14b1 | T1
+      -- * Rule whether 7b compares against the approved SET or nothing-changed.
+      Verify: `docs/decision-log.md` records the answer and `write.md` states
+      it.
 - [ ] T2 | T2 -- Report docstring-presence deltas SEPARATELY from executable
       ones. Verify: `prove_unchanged.py` prints them under their own heading
       with each declaration.
@@ -98,3 +99,6 @@ being ADDED or REMOVED -- only rewritten, which is the case that passes.
 - [x] T5 | FINISHED | unknown | T5 -- Add a docstring-ADDED case and a
       docstring-REMOVED case to `tests/test_prove_unchanged.py`. Verify: both
       cases run and the suite is green.
+- [ ] T6 | Implement the proof code check against the approved changes, per
+      Process 113, so an approved docstring add passes
+        > 2026-09-11 verify: smoke a2 passes proof; an unapproved code change refuses
