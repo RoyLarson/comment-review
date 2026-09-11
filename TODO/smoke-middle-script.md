@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 12 of 33 tasks closed
+Progress: 17 of 45 tasks closed
 Owner:    systems
 Requires-Roy: true
 Raised:   2026-09-11 (review of SP7 Task 8 at 34aea6d4, 2026-09-11)
@@ -76,13 +76,15 @@ The middle-chain smoke script carries the findings of its Task 8 review.
 - [?] T19 | Decide whether a run may write gitignored __pycache__ folders inside
       the repo
         > 2026-09-11 review: predates Task 8a; .gitignore:18 covers them
-- [ ] T20 | Update the a2 add at smoke_middle.ps1:336 so its docstring carries
-      the indentation wrapper's body needs
+- [x] T20 | the a2 docstring carries wrapper's eight-space body indent | ce10d1ee | Update
+      the a2 add at smoke_middle.ps1:336 so its docstring carries the
+      indentation wrapper's body needs
         > 2026-09-11 unindented, the proof's reread loses every altered cue
         > 2026-09-11 waits on the galley-and-compositor indentation ruling
         > 2026-09-11 unblocked: Addressing 27 gives indentation to the role
-- [ ] T21 | Delete recast_prose.txt from write_texts at
-      smoke_fixture.py:146-147, which nothing reads
+- [x] T21 | nothing writes recast_prose.txt; the prose rides inline | ce10d1ee | Delete
+      recast_prose.txt from write_texts at smoke_fixture.py:146-147, which
+      nothing reads
         > 2026-09-11 disposition takes no @path; the prose rides in dispositions.json
 - [ ] T22 | Update smoke_middle.ps1:116-124 to find the copies distribute wrote
       rather than spell its file names
@@ -98,20 +100,52 @@ The middle-chain smoke script carries the findings of its Task 8 review.
       that mark has no mode for
 - [ ] T26 | Update smoke_middle.ps1:329-330, which says wrapper has no slot in
       anyone else's copy when no copy has one
-- [ ] T27 | Update smoke_middle.ps1:366 and smoke_fixture.py:86, :88, :134,
-      which cite a table only the brief holds
+- [x] T27 | no comment cites the brief's table any more | ce10d1ee | Update
+      smoke_middle.ps1:366 and smoke_fixture.py:86, :88, :134, which cite a
+      table only the brief holds
         > 2026-09-11 the brief is gitignored scratch
-- [ ] T28 | Update the smoke_fixture.py docstring at :1-9 to account for
-      RECAST_PROSE, DISPOSITIONS and write_texts
+- [x] T28 | the docstring names LANDINGS, DISPOSITIONS and write_texts | 03258d76 | Update
+      the smoke_fixture.py docstring at :1-9 to account for RECAST_PROSE,
+      DISPOSITIONS and write_texts
 - [ ] T29 | Update smoke_middle.ps1:341-343, which says check applies the same
       boundary collate does
         > 2026-09-11 by exit code check is stricter: an escalation outranks coverage
-- [ ] T30 | Implement one planted mark whose text goes to mark as @path, so the
-      file expansion is exercised
+- [x] T30 | nine mark calls read their landing text as @path | ce10d1ee | Implement
+      one planted mark whose text goes to mark as @path, so the file expansion
+      is exercised
 - [ ] T31 | Update smoke_middle.ps1 so the role set at :120, :152 and :358-361
       is written once
 - [ ] T32 | Update the plant so every planted outcome is written in one place at
       plant time, for Task 10's diff
         > 2026-09-11 texts at :205 :224 :315 :336; sides in smoke_fixture.py:90-128
+        > 2026-09-11 review: None means both removed (b14, b1) and kept (a3, a1)
+        > 2026-09-11 review: c6 and c1 hold a clause; their old wording is in the ps1
+        > 2026-09-11 review: empty places and added blank lines are not in the table
 - [ ] T33 | Implement a test in test_smoke_fixture.py that calls write_texts,
       which no test calls today
+- [ ] T34 | Update smoke_fixture.py:12-13, which says DISPOSITIONS rules each
+      place collate escalates; six of nine are re-reads
+- [ ] T35 | Update smoke_middle.ps1:440-443, which counts four carried places
+      where there are nine and names LANDINGS as their source
+- [ ] T36 | Update smoke_middle.ps1:167-168, which says every unnamed place is
+      clean from all four; a0 and c12 now take an add
+- [ ] T37 | Update smoke_fixture.py:84-87 and smoke_middle.ps1:164-166, which
+      equate the plant with the spec matrix it goes beyond
+- [ ] T38 | Update smoke_fixture.py:101, which says the move is reworded when b0
+      carries b1's text unchanged
+- [ ] T39 | Update smoke_fixture.py:96, which calls c6's correct the only mark
+      when three roles also mark query there
+- [ ] T40 | Update smoke_fixture.py:222-224, which says every value goes by
+      file; mark.py:11-18 sends a clause inline
+- [ ] T41 | Update the c12 and a0 reasons at smoke_fixture.py:203 and :209,
+      which say one role alone read a place four read
+- [ ] T42 | Update smoke_fixture.py:92-94, which says in the present tense that
+      Task 10 diffs against the table
+- [ ] T43 | Update smoke_fixture.py:7-8, which says a later task plants
+      decisions this module now holds
+- [ ] T44 | Update smoke_middle.ps1:404, which calls a2 the add when the plant
+      has six
+        > 2026-09-11 the rest of that comment is T26
+- [ ] T45 | Update the b8 landing text at smoke_fixture.py:121 so it carries the
+      four-space indent of logged's body
+        > 2026-09-11 probe: lands at column 0 above return wrapper; reviewer-brief :198

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 16 tasks closed
+Progress: 4 of 17 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -208,3 +208,6 @@ cites as its measured example of a field answering neither necessary nor purpose
         > 2026-09-07 The base is the system's, never the party being checked
 - [ ] T16 | Implement a test that a move from f0 to a b place reaches the
       docket, and make it pass, per Addressing 25
+- [ ] T17 | Update fill to refuse an add at a place that already holds prose,
+      which SKILL.md:68 defines as missing
+        > 2026-09-11 smoke 89956870: add at a0 and c12 replaced the prose, every stage
