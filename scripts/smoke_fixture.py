@@ -170,8 +170,11 @@ LANDINGS: dict[str, Landing] = {
     "fib.py@a3": Landing("kept"),
     # block-context's query settles nothing; a1 is left as it was.
     "fib.py@a1": Landing("kept"),
-    # block-context's add, on an absent b above `return wrapper`.
-    "fib.py@b8": Landing("text", "# Counting done, wrapper is handed back unchanged."),
+    # block-context's add, on an absent b above `return wrapper`, indented
+    # to logged's own body depth.
+    "fib.py@b8": Landing(
+        "text", "    # Counting done, wrapper is handed back unchanged."
+    ),
     # module-context's add, on an absent b at the foot, after the dunder-main
     # block -- Addressing #19's foot rule.
     "fib.py@b17": Landing(
