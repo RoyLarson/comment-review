@@ -4042,3 +4042,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   written to disk. `conventions.md` already names that fault one level down, on a field: follow
   it to what finally consumes it, and one hop is the common failure. It applies to an artifact as
   much as to a field.
+
+- **#112.** **A `collate` run that carries places forward and also has places a role left
+  unruled exits a code of its own** (Roy, 2026-09-11, ruling on `collate-command-defects` T20).
+
+  **The question.** `commands/collate.py:335-354` checks escalations, then re-reads, then
+  coverage, so a run holding an escalation and an unruled place exits 4. `SKILL.md:664-670` maps
+  4 to ruling at max turns and 6 to sending the unruled places back, so a task agent acting on
+  the code alone is never pointed at the unruled place. It is printed, and `SKILL.md:672` calls
+  every printed line the work list, but no row of the table names it.
+
+  **The two options put to Roy.** One: leave the exit code alone and add a line to the 3 and 4
+  row telling the agent to send back any printed unruled place, a change to the agents' wording.
+  Two: give the case a code of its own, so the table can name it, a change to `collate`'s
+  exit-code contract. Roy chose the second: *"2"*.
