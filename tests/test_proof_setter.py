@@ -5,6 +5,7 @@ forgotten call -- which is the one failure a runner that hard-codes its
 sequence cannot show you.
 """
 
+import dataclasses
 from pathlib import Path
 
 import pytest
@@ -48,11 +49,31 @@ def _split(text: str) -> tuple[set[str], set[str]]:
 
 FILLED, ABSENT = _split(SAMPLE)
 
-#: The docstring series. It is held out of the two cases below because a
-#: docstring `add` or `drop` is STILL REFUSED at `prove` and that is a ruling
-#: Roy holds -- `TODO/the-code-check-refuses-add-and-drop-on-a-docstring.md`,
-#: task T1. The two cases that pin what happens today are named for it.
+#: The docstring series. It is held out of the two matrices below because a
+#: docstring `add` or `drop` changes a docstring's presence, which the proof
+#: sets aside only at the declaration an approved alteration documents
+#: (`decision-log.md Process: #113`); the cases named for it sit beside the
+#: cases the proof still refuses.
 DOCSTRING = {c for c in FILLED | ABSENT if c.startswith("a")}
+
+#: A decorated declaration nested inside another, with an undocumented `inner`
+#: at `a2` -- the shape where the page's `a` numbering and `ast.walk`'s order
+#: disagree.
+NESTED = (
+    "def outer(fn):\n"
+    '    """Outer."""\n'
+    "\n"
+    "    @fn\n"
+    "    def inner():\n"
+    "        return 1\n"
+    "\n"
+    "    return inner\n"
+    "\n"
+    "\n"
+    "def later():\n"
+    '    """Later."""\n'
+    "    return 2\n"
+)
 
 
 def address(binder, path: str, series: str = "b") -> str:
@@ -342,6 +363,28 @@ def _fail_the_draft_of(monkeypatch, name: str, why: str) -> None:
         return real(path, text)
 
     monkeypatch.setattr(compositor, "write_raw", failing)
+
+
+def _the_draft_also(monkeypatch, old: str, new: str) -> None:
+    """Make every draft carry one change beyond the approved alterations.
+
+    It patches `results.compositor.write_raw`, the one writer, so the draft
+    `_one` reads back and proves holds `new` where the set page held `old`.
+    `_reread` checks only the places an alteration names, so the change
+    reaches `_prove`.
+
+    Args:
+        monkeypatch: the test's own fixture.
+        old: text the set page holds exactly once.
+        new: what the draft holds in its place.
+    """
+    real = compositor.write_raw
+
+    def changed(path, text):
+        assert text.count(old) == 1, old
+        return real(path, text.replace(old, new))
+
+    monkeypatch.setattr(compositor, "write_raw", changed)
 
 
 def _two_pages(tmp_path):
@@ -644,7 +687,7 @@ def test_a_REREAD_REFUSAL_over_a_NESTED_rel_removes_its_directory_too(
     into = tmp_path / "out"
 
     def refusing_reread(*args, **kwargs):
-        return "", proof_setter.Refusal("reread", "pkg/d.py", "simulated mismatch")
+        return None, proof_setter.Refusal("reread", "pkg/d.py", "simulated mismatch")
 
     monkeypatch.setattr(proof_setter, "_reread", refusing_reread)
 
@@ -783,41 +826,97 @@ class TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain:
         assert by_cue(build(gap))["b4"].raw_lines == ["# ADDED"]
         assert by_cue(build(matter))["f1"].raw_lines == ["# ADDED"]
 
-    def test_a_docstring_DROP_is_STILL_REFUSED_at_prove(self, tmp_path):
-        """!! NOT FIXED IN THIS WAVE, AND DELIBERATELY. MEASURED 2026-08-25:
-        `{'m.py@a0': None}` and `{'m.py@a1': None}` both answer
-        `Refusal('prove', ..., 'the executable code is not what it was')`.
-        `prove_unchanged._blank_docstrings` blanks a docstring's CONTENT and
-        keeps its NODE, so the PRESENCE is in the fingerprint.
+    @pytest.mark.parametrize("where", sorted(ABSENT & DOCSTRING))
+    def test_an_approved_docstring_ADD_reaches_a_draft(self, tmp_path, where):
+        """The proof compares against the approved changes, not against nothing
+        changed -- `decision-log.md Process: #113`. A docstring added at an
+        undocumented declaration by an approved `add` is the edit landing."""
+        drafted, refused = self._run(tmp_path, {f"m.py@{where}": ADDED["a"]})
+        assert refused == []
+        assert len(drafted) == 1
+        again = build(drafted[0].draft.read_text(encoding="utf-8"))
+        assert by_cue(again)[where].raw_lines == [ADDED["a"]]
 
-        ! REMOVING PRESENCE FROM THE FINGERPRINT WOULD CERTIFY A REAL CHANGE AS
-        UNCHANGED: a docstring binds `__doc__`, and SIX modules in this package
-        read `ArgumentParser(description=__doc__)`. Whether the proof stays a
-        blanket one or becomes a diff against the APPROVED set is task T1 of
-        `TODO/the-code-check-refuses-add-and-drop-on-a-docstring.md` -- a `*`
-        box, which is a decision only Roy makes.
+    @pytest.mark.parametrize("where", sorted(FILLED & DOCSTRING))
+    def test_an_approved_docstring_DROP_reaches_a_draft(self, tmp_path, where):
+        """The other half: the module's docstring and a function's, each
+        removed by an approved `drop`."""
+        drafted, refused = self._run(tmp_path, {f"m.py@{where}": None})
+        assert refused == []
+        assert len(drafted) == 1
+        again = build(drafted[0].draft.read_text(encoding="utf-8"))
+        assert not any(line.strip() for line in by_cue(again)[where].raw_lines)
 
-        ! THIS IS WHAT T5 OF THAT FILE ASKS FOR: a docstring ADDED and a
-        docstring REMOVED, running, so the suite states the behaviour instead
-        of leaving it to be rediscovered."""
-        for n, where in enumerate(sorted(FILLED & DOCSTRING)):
-            each = tmp_path / str(n)
-            each.mkdir()
-            drafted, refused = self._run(each, {f"m.py@{where}": None})
-            assert drafted == []
-            assert refused[0].step == "prove", where
-            assert "not what it was" in refused[0].why
+    def test_a_docstring_presence_NO_ALTERATION_NAMES_is_refused_at_prove(
+        self, tmp_path, monkeypatch
+    ):
+        """An approved `add` at `a2` sets aside the presence of that one
+        declaration's docstring. The draft also loses the docstring `a1` holds,
+        which no alteration names, so the proof refuses it: a docstring binds
+        `__doc__`, and a module reading `ArgumentParser(description=__doc__)`
+        behaves differently without one."""
+        held = by_cue(build(SAMPLE))["a1"].raw_lines
+        assert len(held) == 1
+        _the_draft_also(monkeypatch, held[0] + "\n", "")
+        drafted, refused = self._run(tmp_path, {"m.py@a2": ADDED["a"]})
+        assert drafted == []
+        assert refused[0].step == "prove"
+        assert "not what it was" in refused[0].why
 
-    def test_a_docstring_ADD_is_STILL_REFUSED_at_prove(self, tmp_path):
-        """The other half, on the `undocumented` place that exists precisely so
-        an `add` can cite it -- `binder.bind`'s own docstring says so."""
-        for n, where in enumerate(sorted(ABSENT & DOCSTRING)):
-            each = tmp_path / str(n)
-            each.mkdir()
-            drafted, refused = self._run(each, {f"m.py@{where}": ADDED["a"]})
-            assert drafted == []
-            assert refused[0].step == "prove", where
-            assert "not what it was" in refused[0].why
+    @pytest.mark.parametrize(
+        "alterations",
+        [{"m.py@a2": ADDED["a"]}, {"m.py@b0": "# REPLACED"}],
+        ids=["beside-a-docstring-add", "no-docstring-alteration"],
+    )
+    def test_a_CODE_CHANGE_is_refused_at_prove(
+        self, tmp_path, monkeypatch, alterations
+    ):
+        """Setting a docstring's presence aside leaves every line of code in
+        the comparison, whether or not an approved docstring alteration sits
+        beside the change."""
+        _the_draft_also(monkeypatch, "    return y\n", "    return y + 1\n")
+        drafted, refused = self._run(tmp_path, alterations)
+        assert drafted == []
+        assert refused[0].step == "prove"
+        assert "not what it was" in refused[0].why
+
+    def test_an_approved_ADD_at_a_NESTED_declaration_reaches_a_draft(self, tmp_path):
+        """The declaration is the one the page puts the place's anchor on.
+        `ast.walk` is breadth first and meets `later` before `inner`, so taking
+        the `a` ordinal in walk order would set aside the wrong declaration and
+        refuse this draft."""
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        (repo / "m.py").write_text(NESTED, encoding="utf-8", newline="")
+        binder = bind([build(NESTED)], read_from={"root": str(repo), "revise": 0})
+        assert by_cue(build(NESTED))["a2"].anchor == "    def inner():"
+        added = '        """ADDED."""'
+        drafted, refused = proof_setter.run(
+            docket_from({"m.py@a2": added}, binder), repo, tmp_path / "out"
+        )
+        assert refused == []
+        again = build(drafted[0].draft.read_text(encoding="utf-8"))
+        assert by_cue(again)["a2"].raw_lines == [added]
+
+    def test_a_declaration_the_code_does_not_hold_there_is_refused_at_prove(self):
+        """A place whose line holds no declaration in the code names nothing
+        to set aside, and the proof refuses rather than guess at one."""
+        page = build(SAMPLE)
+        assert galley.reset(page, {"a2": ADDED["a"]}) == []
+        after = compositor.set_page(page)
+        was, now = by_cue(page)["a2"], by_cue(build(after))["a2"]
+        assert (
+            proof_setter._prove("m.py", SAMPLE, after, Path("m.py"), [(was, now)])
+            is None
+        )
+        assert now.anchor_line is not None
+        astray = dataclasses.replace(now, anchor_line=now.anchor_line + 1)
+        refused = proof_setter._prove(
+            "m.py", SAMPLE, after, Path("m.py"), [(was, astray)]
+        )
+        assert refused is not None
+        assert refused.step == "prove"
+        assert "cannot be identified" in refused.why
 
     def test_an_ADD_at_b4_NOW_REACHES_A_DRAFT_AT_ITS_OWN_PLACE(self, tmp_path):
         """!! IT REFUSED UNTIL 2026-08-26, and the refusal was right about the
@@ -848,18 +947,12 @@ class TestOnlyCommentsChange:
     edited cue, so an alteration surviving it was -- by construction -- read back
     as prose at that cue, and a COMMENT never enters the AST.
 
-    !! THIS PARAGRAPH CLAIMED *"No `b`, `a` or `c` cue alteration reaching
-    `proof_setter.run()` on this module's own `SAMPLE` fixture can therefore
-    make `_prove`'s comparison disagree -- measured, not assumed"*, AND IT WAS
-    FALSE WHEN IT WAS WRITTEN. Two `a` cues do exactly that on exactly that
-    fixture: `{'m.py@a0': None}` and `{'m.py@a1': None}` both refuse with
-    `Refusal('prove', ..., 'the executable code is not what it was')`, because
-    `_blank_docstrings` keeps a docstring's PRESENCE in the fingerprint -- and
-    so does an `add` at `a2`.
-    `TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain` above is what
-    would have disagreed; the measurement behind the claim only ever tried the
-    `b` series it was written beside. ! The claim holds for a COMMENT and that
-    is the whole of what it holds for.
+    A docstring is the other prose that reaches the comparison: its presence
+    is in the fingerprint except at a declaration an approved alteration
+    documents (`decision-log.md Process: #113`), so an approved `add` or
+    `drop` passes and a presence change no alteration names is refused.
+    `TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain` above holds those
+    cases.
 
     The real hazard `_prove` guards is `TODO/closing-line-deletes-code.md`: a
     comment whose run closes mid-line, or never closes at all, can swallow the
