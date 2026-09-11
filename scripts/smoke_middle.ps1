@@ -180,21 +180,82 @@ $Stages = [ordered]@{
             c1 = Join-Path $Run 'c1.txt'
             b0 = Join-Path $Run 'b0.txt'
             a2 = Join-Path $Run 'a2.txt'
+            b8 = Join-Path $Run 'b8.txt'
+            b17 = Join-Path $Run 'b17.txt'
+            c3 = Join-Path $Run 'c3.txt'
+            c12 = Join-Path $Run 'c12.txt'
+            a0 = Join-Path $Run 'a0.txt'
         }
-        # a0 -- named by nothing else, clean from every role.
-        foreach ($role in $Roles) {
+        # a0 -- the module docstring, already filled. block-context adds over
+        # it instead of cleaning it, to see what an add on a filled a does;
+        # the other three clean it as before.
+        Invoke-Checked -Stage 'mark a0 block-context add' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@a0',
+            '--instruction', 'add',
+            '--missing', 'nothing states why the recursion is counted',
+            '--anchor', '`__doc__`', '--anchor-line', '<module>',
+            '--change', "@$($LandingFile.a0)",
+            '--reason', 'the module docstring says what it counts but not what for',
+            '--cite', 'fib.py:1', '--repo', $OriginalDir
+        ))
+        foreach ($role in @('ownership-context', 'function-context', 'module-context')) {
             Invoke-Checked -Stage "mark a0 $role clean" -CommandLine ($Launcher + @(
                 $Cmd.mark, '--edit-copy', $CopyFile[$role], '--address', 'fib.py@a0',
                 '--instruction', 'clean', '--repo', $OriginalDir
             ))
         }
-        # c12 -- named by nothing else, clean from every role.
-        foreach ($role in $Roles) {
+        # c12 -- beside `if n < 2:`, already filled with `# base case`.
+        # ownership-context adds over it instead of cleaning it, to see what
+        # an add on a filled c does; the other three clean it as before.
+        Invoke-Checked -Stage 'mark c12 ownership-context add' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['ownership-context'], '--address', 'fib.py@c12',
+            '--instruction', 'add',
+            '--missing', 'nothing notes which values are already fibonacci numbers',
+            '--anchor', '`n < 2`', '--anchor-line', '    if n < 2:',
+            '--change', "@$($LandingFile.c12)",
+            '--reason', 'the base case deserves saying why it needs no recursion',
+            '--cite', 'fib.py:27', '--repo', $OriginalDir
+        ))
+        foreach ($role in @('block-context', 'function-context', 'module-context')) {
             Invoke-Checked -Stage "mark c12 $role clean" -CommandLine ($Launcher + @(
                 $Cmd.mark, '--edit-copy', $CopyFile[$role], '--address', 'fib.py@c12',
                 '--instruction', 'clean', '--repo', $OriginalDir
             ))
         }
+        # b8 -- the empty gap above `return wrapper`, absent b. block-context
+        # is the only role that touches this empty place.
+        Invoke-Checked -Stage 'mark b8 block-context add' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@b8',
+            '--instruction', 'add',
+            '--missing', 'nothing notes that counting is finished before wrapper returns',
+            '--anchor', '`return wrapper`', '--anchor-line', '    return wrapper',
+            '--change', "@$($LandingFile.b8)",
+            '--reason', 'the return is the last step and nothing says so',
+            '--cite', 'fib.py:18', '--repo', $OriginalDir
+        ))
+        # b17 -- the empty closing gap after the dunder-main block, absent b
+        # at the foot (Addressing #19's foot rule). module-context is the
+        # only role that touches this empty place.
+        Invoke-Checked -Stage 'mark b17 module-context add' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', 'fib.py@b17',
+            '--instruction', 'add',
+            '--missing', 'nothing notes that the module has nothing left to do here',
+            '--anchor', '`__main__`', '--anchor-line', '<eof>',
+            '--change', "@$($LandingFile.b17)",
+            '--reason', 'the module ends here and nothing says so',
+            '--cite', 'fib.py:34', '--repo', $OriginalDir
+        ))
+        # c3 -- the empty room beside `@functools.wraps(fn)`, absent c.
+        # function-context is the only role that touches this empty place.
+        Invoke-Checked -Stage 'mark c3 function-context add' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['function-context'], '--address', 'fib.py@c3',
+            '--instruction', 'add',
+            '--missing', "nothing notes that wraps preserves fn's identity",
+            '--anchor', '`functools.wraps`', '--anchor-line', '    @functools.wraps(fn)',
+            '--change', "@$($LandingFile.c3)",
+            '--reason', 'the decorator is why wrapper still looks like fn',
+            '--cite', 'fib.py:12', '--repo', $OriginalDir
+        ))
         # a1 -- the human query nothing settles. block-context raises it; the
         # other three have nothing to add.
         Invoke-Checked -Stage 'mark a1 block-context query' -CommandLine ($Launcher + @(

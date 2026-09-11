@@ -12,7 +12,7 @@ proof, or `None` where the outcome leaves no text at all -- a drop, a
 vacated origin, or an address left as the fixture already reads. `DISPOSITIONS`
 is the chief's own ruling over each place `collate` escalates, reading its
 `b9` recast prose out of `LANDINGS` rather than holding a second copy.
-`write_texts` writes the four addresses `LANDINGS` gives text that a `mark`
+`write_texts` writes the nine addresses `LANDINGS` gives text that a `mark`
 call plants, one file each, plus `dispositions.json`.
 """
 
@@ -84,12 +84,14 @@ def write_fixture(root: Path) -> Path:
 #: What the plant makes land at each planted address once the chain closes --
 #: the same outcomes `docs/superpowers/specs/2026-09-08-the-middle-chain-
 #: smoke-design.md`'s "The scenario matrix" describes in prose, held here by
-#: address instead. Four entries carry the text a role's own clause, the
-#: move's destination, or the add supplies; one carries the chief's own
-#: `recast` prose; four carry no text at all, because the outcome drops the
-#: paragraph, vacates its origin, or leaves the fixture as it already reads.
-#: Task 10 diffs `FIXTURE` against this table to know what the closed proof
-#: should read at each address.
+#: address instead. Nine entries carry text: a role's own clause, the move's
+#: destination, or one of six `add`s -- one on the empty `a2`, and five more
+#: testing an `add` at other absent and already-filled places across the `a`,
+#: `b` and `c` series. One entry carries the chief's own `recast` prose; four
+#: carry no text at all, because the outcome drops the paragraph, vacates its
+#: origin, or leaves the fixture as it already reads. Task 10 diffs `FIXTURE`
+#: against this table to know what the closed proof should read at each
+#: address.
 LANDINGS = {
     # block-context's --true clause is the only mark at c6; it lands as is.
     "fib.py@c6": "the decorator's only job",
@@ -115,12 +117,29 @@ LANDINGS = {
     "fib.py@a3": None,
     # block-context's query settles nothing; a1 is left as it was.
     "fib.py@a1": None,
+    # block-context's add, on an absent b above `return wrapper`.
+    "fib.py@b8": "# Counting done, wrapper is handed back unchanged.",
+    # module-context's add, on an absent b at the foot, after the dunder-main
+    # block -- Addressing #19's foot rule.
+    "fib.py@b17": "# Nothing follows; running this module only prints one count.",
+    # function-context's add, on an absent c beside `@functools.wraps(fn)`.
+    "fib.py@c3": "  # keeps wrapper's name and doc matching fn's own",
+    # ownership-context's add, on a filled c that already holds `# base case`
+    # beside `if n < 2:` -- the add's own change is what lands, not a merge
+    # with what was there.
+    "fib.py@c12": "  # 0 and 1 are already fibonacci numbers",
+    # block-context's add, on a filled a -- the module docstring already
+    # reads. Same rule: the add's own change replaces it outright.
+    "fib.py@a0": (
+        '"""Fibonacci, counted so the recursion can be seen -- and why it is '
+        'counted."""'
+    ),
 }
 
-#: The chief's own rulings over the four places `collate` carries forward
-#: (the three escalations and the one re-read) -- `LANDINGS` above names what
-#: each one makes land; this names how. A carried-forward place with no entry
-#: here is refused by `disposition`, by name.
+#: The chief's own rulings over the nine places `collate` carries forward
+#: (three escalations and six re-reads, one per `add`) -- `LANDINGS` above
+#: names what each one makes land; this names how. A carried-forward place
+#: with no entry here is refused by `disposition`, by name.
 DISPOSITIONS = [
     {
         "address": "fib.py@a3",
@@ -159,29 +178,58 @@ DISPOSITIONS = [
             "docstring is what lands"
         ),
     },
+    {
+        "address": "fib.py@b8",
+        "answer": "taken_in",
+        "side": "block-context",
+        "reason": "block-context is the only role that read this place",
+    },
+    {
+        "address": "fib.py@b17",
+        "answer": "taken_in",
+        "side": "module-context",
+        "reason": "module-context is the only role that read this place",
+    },
+    {
+        "address": "fib.py@c3",
+        "answer": "taken_in",
+        "side": "function-context",
+        "reason": "function-context is the only role that read this place",
+    },
+    {
+        "address": "fib.py@c12",
+        "answer": "taken_in",
+        "side": "ownership-context",
+        "reason": "ownership-context is the only role that read this place",
+    },
+    {
+        "address": "fib.py@a0",
+        "answer": "taken_in",
+        "side": "block-context",
+        "reason": "block-context is the only role that read this place",
+    },
 ]
 
 
 def write_texts(run: Path) -> dict[str, Path]:
     """Write the plant's landing texts to their own files, and dispositions.json.
 
-    `LANDINGS` names four addresses whose text a single `mark` call plants
-    on a role's copy -- `c6`, `c1`, the move's destination `b0`, and the
-    `add`'s `a2` -- and one, `b9`, that only `disposition` reads, inline out
-    of `dispositions.json`; `b9` gets no file of its own here. Each of the
-    four files holds exactly the text `LANDINGS` names, with no trailing
-    newline, so the `mark` call that plants it can pass `@<path>` rather
-    than the text itself, matching the "text never crosses the shell" rule
-    every `mark` call follows.
+    `LANDINGS` names nine addresses whose text a single `mark` call plants
+    on a role's copy -- `c6`, `c1`, the move's destination `b0`, and six
+    `add`s (`a0`, `a2`, `b8`, `b17`, `c3`, `c12`) -- and one, `b9`, that only
+    `disposition` reads, inline out of `dispositions.json`; `b9` gets no file
+    of its own here. Each of the nine files holds exactly the text `LANDINGS`
+    names, with no trailing newline, so the `mark` call that plants it can
+    pass `@<path>` rather than the text itself, matching the "text never
+    crosses the shell" rule every `mark` call follows.
 
     Args:
         run: the run directory the smoke script writes into. Not created
             here -- the caller's own run directory already exists.
 
     Returns:
-        one path per file written, keyed by the address whose text it holds
-        (`fib.py@c6`, `fib.py@c1`, `fib.py@b0`, `fib.py@a2`), plus
-        `"dispositions"` for `dispositions.json`.
+        one path per file written, keyed by the address whose text it holds,
+        plus `"dispositions"` for `dispositions.json`.
     """
     paths: dict[str, Path] = {}
     for address, text in LANDINGS.items():
