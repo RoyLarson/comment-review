@@ -19,6 +19,7 @@ from helpers import (
     a_move,
     a_query,
     an_add,
+    binder_of,
     copies_over,
     entries_of,
 )
@@ -28,7 +29,10 @@ from comment_review.desk.determined import CHIEF, ORIGINAL, Answer
 from comment_review.desk.diff_mark import COMPOSITION, QUESTION, batch_of
 from comment_review.desk.mark import Instruction, Mark, Shape
 from comment_review.flows.collate import collate
+from comment_review.flows.distribute import seed
+from comment_review.flows.fill import fill
 from comment_review.flows.mark_errors import Revisit
+from comment_review.flows.page_for import page_of
 from comment_review.flows.turn import (
     batch_for,
     close,
@@ -474,6 +478,122 @@ class TestALoneOwingMark:
         answers = {r: [{**batch[r][0], "instruction": "clean"}] for r in batch}
         again = run_turn(_at(got), binder, REPO, batch, answers)
         assert "m.py@b1" in again.determined
+
+
+#: A real page whose `b3`, the gap above `w = 4`, holds no prose -- so the
+#: binder does not carry it and no seeded copy has a slot there.
+PAGE = "x = 1\n# one\n# two\n# three\ny = 2\nz = 3\nw = 4\n"
+EMPTY = "m.py@b3"
+ADDED = "# w is 4 because the fixture says so\n"
+
+#: A composition `query`, citing a line the page in `PAGE` holds.
+_A_QUERY = {
+    "instruction": "query",
+    "reason": "the added sentence names a value this role does not rule on",
+    "claim": {
+        "shape": Shape.UNABLE_TO_DETERMINE,
+        "attempted": "read the added sentence against the line below it",
+        "settles": "block-context, which made the add",
+    },
+    "sources": [{"cite": "m.py:7", "verbatim": "w = 4"}],
+}
+
+
+def _added_at_an_empty_place(tmp_path):
+    """block-context adds at `EMPTY`; both roles clean the one place the binder
+    carries. `fill` places the add, so only block-context's copy holds a slot
+    there -- the shape `mark` leaves on a real run."""
+    (tmp_path / "m.py").write_text(PAGE, encoding="utf-8")
+    binder = binder_of(tmp_path, 0)
+    assert EMPTY not in {p.address for p in binder.paragraphs}
+    copies = [seed(binder, role) for role in ("block-context", "function-context")]
+    for copy in copies:
+        for paragraph in binder.paragraphs:
+            clean = {"address": paragraph.address, "instruction": "clean"}
+            _, why = fill(copy, clean, tmp_path)
+            assert why == []
+    added = {
+        "address": EMPTY,
+        "instruction": "add",
+        "claim": {"missing": "why w is 4", "anchor": "`w`"},
+        "reason": "the constant is explained nowhere",
+        "sources": [{"cite": "m.py:7"}],
+        "change": ADDED,
+    }
+    _, why = fill(copies[0], added, tmp_path)
+    assert why == []
+    got = collate("4c", copies, binder, root=tmp_path)
+    assert [e["address"] for e in got.rereads] == [EMPTY]
+    assert got.rereads[0]["roles"] == ["block-context", "function-context"]
+    return binder, got
+
+
+def _held_at(got, role: str, address: str) -> list[Mark]:
+    assert got.proof is not None
+    return [
+        mark
+        for copy in got.proof.edit_copies
+        if copy.role == role
+        for mark in entries_of(copy)
+        if mark.address == address
+    ]
+
+
+class TestAnAddAtAnEmptyPlace:
+    """An `add` at an empty place is re-read by every role of the stage, and
+    only the adding role's copy holds a slot there --
+    `no-command-for-the-middle` T29 and T30."""
+
+    def test_a_role_with_no_slot_there_is_seeded_one_from_the_page(self, tmp_path):
+        binder, got = _added_at_an_empty_place(tmp_path)
+        batch = batch_of(got.escalations, got.rereads)
+        answers = {
+            **_answered(batch, "block-context", instruction="clean"),
+            **_answered(batch, "function-context", **_A_QUERY),
+        }
+        again = run_turn(_at(got), binder, tmp_path, batch, answers)
+        assert [p for p in again.revisit if p.role == "function-context"] == []
+        page, _ = page_of(tmp_path / "m.py", rel="m.py")
+        assert page is not None
+        (held,) = _held_at(again, "function-context", EMPTY)
+        assert held.instruction is Instruction.QUERY
+        assert held.anchor == page.cues.anchor_of("b3")
+        assert held.raw_text == ""
+
+    def test_a_place_the_page_does_not_carry_is_still_refused(self, tmp_path):
+        binder, got = _added_at_an_empty_place(tmp_path)
+        batch = batch_of(got.escalations, got.rereads)
+        # Malformed is the input: a sent slot naming a cue `m.py` does not have.
+        stray = {**batch["function-context"][0], "address": "m.py@b9999"}
+        sent = {**batch, "function-context": [*batch["function-context"], stray]}
+        answers = {
+            **_answered(batch, "block-context", instruction="clean"),
+            "function-context": [
+                {**slot, **_A_QUERY} for slot in sent["function-context"]
+            ],
+        }
+        again = run_turn(_at(got), binder, tmp_path, sent, answers)
+        refused = [p for p in again.revisit if p.address == "m.py@b9999"]
+        assert [(p.role, p.unreadable) for p in refused] == [("function-context", True)]
+        assert any("names no place on that page" in r for r in refused[0].reasons)
+        assert _held_at(again, "function-context", "m.py@b9999") == []
+
+    def test_a_place_the_batch_did_not_send_to_that_role_is_still_refused(
+        self, tmp_path
+    ):
+        binder, got = _added_at_an_empty_place(tmp_path)
+        batch = batch_of(got.escalations, got.rereads)
+        # Malformed is the input: the batch withholds the place from one role.
+        sent = {**batch, "function-context": []}
+        answers = {
+            **_answered(batch, "block-context", instruction="clean"),
+            **_answered(batch, "function-context", **_A_QUERY),
+        }
+        again = run_turn(_at(got), binder, tmp_path, sent, answers)
+        refused = [p for p in again.revisit if p.role == "function-context"]
+        assert [p.address for p in refused] == [EMPTY]
+        assert any("never sent" in r for r in refused[0].reasons)
+        assert _held_at(again, "function-context", EMPTY) == []
 
 
 def _two_places():

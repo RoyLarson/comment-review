@@ -1,6 +1,8 @@
 """FILL -- place one role's ruling on its edit copy, in place.
 
     fill(copy, entry, root) -> (the entry as placed, []) or (None, problems)
+    place_on_the_page(copies, address, root) -> (that sheet's marks, a slot, [])
+                                                or (None, {}, problems)
 
 !! IT DOES WHAT THE ROLES' OWN HELPERS DID. In the runs of 2026-09-06 and
 2026-09-07 every role wrote a script that found the slot by address, set the
@@ -31,6 +33,10 @@ a role reads the reasons and calls again.
     no slot, no such place   refused -- the page carries every place, absent
                              and present, so a cue it does not hold names
                              nothing there
+
+The three "no slot" rows are `place_on_the_page`, which `flows.turn.apply`
+also calls for a composition answer at a place the role's copy holds no
+slot for.
 
 !! THE COPY IS A WIRE DICT, NEVER AN `EditCopy`. `flows.proof_io`'s header
 says why: a role's copy mid-fill holds slots nobody has ruled on, and
@@ -103,6 +109,47 @@ def _sheet_for(copy: dict, address: str) -> tuple[list | None, str]:
         return None, ""
     marks = by_path[path].get("marks")
     return (marks if isinstance(marks, list) else None), path
+
+
+def place_on_the_page(
+    copies: list[dict], address: str, root: Path | None
+) -> tuple[list | None, dict, list[str]]:
+    """The sheet an address with no slot belongs on, and a slot seeded from the page.
+
+    Args:
+        copies: one role's copies as wire dicts -- one, or one per shard. The
+            first whose sheets name the address's page is the one used.
+        address: `path@cue`, a place none of `copies` holds a slot for.
+        root: the checkout the page is read from, or None.
+
+    Returns:
+        `(that sheet's marks list, the seeded slot, [])`, the slot carrying the
+        page's own anchor at that place and an empty `raw_text`, and not yet
+        on the sheet. Or `(None, {}, [message])` where no copy has a sheet for
+        the page, there is no checkout, the page cannot be read, or the page
+        carries no such place.
+    """
+    found = next(
+        (
+            (marks, rel)
+            for copy in copies
+            for marks, rel in [_sheet_for(copy, address)]
+            if marks is not None
+        ),
+        None,
+    )
+    if found is None:
+        return None, {}, [f"{address} names a page this copy has no sheet for"]
+    marks, rel = found
+    if root is None:
+        return None, {}, [f"{address}: no checkout to resolve its page against"]
+    page, why_page = page_of(root / rel, rel=rel)
+    if page is None:
+        return None, {}, [f"{address}: {why_page}"]
+    cue = address.partition("@")[2]
+    if cue not in page.cues.places:
+        return None, {}, [f"{address} names no place on that page"]
+    return marks, Mark.seed(address, page.cues.anchor_of(cue), ""), []
 
 
 def _quoted(root: Path | None, sources: object) -> tuple[list | None, list[str]]:
@@ -188,17 +235,9 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
 
     marks, at = _slot_at(copy, address)
     if marks is None:
-        marks, rel = _sheet_for(copy, address)
+        marks, seeded, why = place_on_the_page([copy], address, root)
         if marks is None:
-            return None, [f"{address} names a page this copy has no sheet for"]
-        if root is None:
-            return None, [f"{address}: no checkout to resolve its page against"]
-        page, why_page = page_of(root / rel, rel=rel)
-        if page is None:
-            return None, [f"{address}: {why_page}"]
-        if address.partition("@")[2] not in page.cues.places:
-            return None, [f"{address} names no place on that page"]
-        seeded = Mark.seed(address, page.cues.anchor_of(address.partition("@")[2]), "")
+            return None, why
         in_place = False
     else:
         slot = marks[at]

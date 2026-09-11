@@ -1,7 +1,7 @@
 """The turn: a batch answered, applied to the copies, folded again.
 
     parse_answers(role, sent, returned) -> (answers, revisit)
-    apply(copies, role, answers) -> revisit
+    apply(copies, role, answers, root) -> revisit
     run_turn(proof, binder, root, sent, answers) -> Collated
     rule_at_max_turns(collated, address, answer, side, reason, turn, prose)
                                                                   -> Determined
@@ -44,6 +44,14 @@ A COMPOSITION re-read is answered with a fresh `Mark` over the composed text
     patch       the entry becomes a `patch` over the base -- NOT a correct,
                 which owes sources a patch never carried. `claim.from` is
                 the role's where the base holds it, else the whole base
+
+An answer at a place the role's copy holds no slot for -- an `add`'s empty
+place, which `desk.collator._outcome` sends to every role of the stage while
+only the adding role's copy holds it -- lands on a slot seeded from the page
+and appended to that page's sheet, by `flows.fill.place_on_the_page`: the
+"no slot" rows of `flows/fill.py`'s table. A place the page does not carry is
+refused there; one the batch did not send to the role is refused before, by
+`parse_answers`.
 
 Then `flows.collate.collate` runs again over the copies, and every place that
 agreed comes back as a `stet` Determined at this turn (`Process: #87`). What
@@ -95,6 +103,7 @@ from comment_review.desk.mark import (
     untouched,
 )
 from comment_review.flows.collate import Collated, _chief_copy, collate
+from comment_review.flows.fill import place_on_the_page
 from comment_review.flows.mark_errors import Revisit
 from comment_review.results.differences import diff3
 
@@ -302,8 +311,48 @@ def _a_patch_over_base(entry: dict, answer: Mark) -> dict:
     }
 
 
+def _answered(entry: dict, answer: DiffMark | Mark) -> dict | None:
+    """What one slot becomes under one answer, per the tables above.
+
+    Returns:
+        The entry the slot is to hold, or None where it stays as it is -- a
+        `hold`.
+    """
+    if isinstance(answer, DiffMark):
+        if answer.instruction is DiffInstruction.HOLD:
+            return None
+        if answer.instruction is DiffInstruction.WITHDRAW:
+            return _a_clean(entry)
+        held = {**entry, "change": answer.change}
+        claim = entry.get("claim")
+        if isinstance(claim, dict):
+            held["claim"] = {
+                key: answer.change if key in ("true", "to") else value
+                for key, value in claim.items()
+            }
+        return held
+    sources = entry.get("sources") or list(answer.sources)
+    if answer.instruction is Instruction.CLEAN:
+        adopts = bool(sources) and answer.raw_text != entry.get("raw_text", "")
+        if adopts:
+            return _a_correct_over_base(
+                entry, answer.raw_text, "adopted the composition", sources
+            )
+        return _a_clean(entry)
+    if answer.instruction is Instruction.QUERY:
+        return {**answer.serialize(), "raw_text": entry.get("raw_text", "")}
+    if answer.instruction is Instruction.PATCH:
+        return _a_patch_over_base(entry, answer)
+    return _a_correct_over_base(
+        entry, answer.change, answer.reason, list(answer.sources) or sources
+    )
+
+
 def apply(
-    copies: list[dict], role: str, answers: list[tuple[str, DiffMark | Mark]]
+    copies: list[dict],
+    role: str,
+    answers: list[tuple[str, DiffMark | Mark]],
+    root: Path | None,
 ) -> list[Revisit]:
     """Write one role's answers into its own copy, per the tables above.
 
@@ -311,59 +360,35 @@ def apply(
         copies: the wire copies `collate` was handed. MUTATED.
         role: whose answers these are.
         answers: `parse_answers`' pairs.
+        root: the checkout a page is read from, to seed a slot at a place the
+            role's copy does not hold.
 
     Returns:
-        A `Revisit` per address this role's copy carries no slot for.
+        A `Revisit` per address this role's copy holds no slot for and
+        `flows.fill.place_on_the_page` seeds none for -- no sheet for the page,
+        no readable page, or no such place on it.
     """
     revisit: list[Revisit] = []
     for address, answer in answers:
         entry = _entry_at(copies, role, address)
+        sheet = None
         if entry is None:
-            revisit.append(
-                _refused(role, address, address, ["no slot on this role's copy"])
-            )
-            continue
-        if isinstance(answer, DiffMark):
-            if answer.instruction is DiffInstruction.HOLD:
+            mine = [c for c in copies if isinstance(c, dict) and c.get("role") == role]
+            sheet, entry, why = place_on_the_page(mine, address, root)
+            if sheet is None:
+                reasons = [
+                    m.removeprefix(f"{address}: ").removeprefix(f"{address} ")
+                    for m in why
+                ]
+                revisit.append(_refused(role, address, address, reasons))
                 continue
-            if answer.instruction is DiffInstruction.WITHDRAW:
-                _becomes(entry, _a_clean(entry))
-                continue
-            entry["change"] = answer.change
-            claim = entry.get("claim")
-            if isinstance(claim, dict):
-                for key in ("true", "to"):
-                    if key in claim:
-                        claim[key] = answer.change
+        held = _answered(entry, answer)
+        if held is None:
             continue
-        sources = entry.get("sources") or list(answer.sources)
-        if answer.instruction is Instruction.CLEAN:
-            adopts = bool(sources) and answer.raw_text != entry.get("raw_text", "")
-            if adopts:
-                _becomes(
-                    entry,
-                    _a_correct_over_base(
-                        entry, answer.raw_text, "adopted the composition", sources
-                    ),
-                )
-            else:
-                _becomes(entry, _a_clean(entry))
-        elif answer.instruction is Instruction.QUERY:
-            _becomes(
-                entry, {**answer.serialize(), "raw_text": entry.get("raw_text", "")}
-            )
-        elif answer.instruction is Instruction.PATCH:
-            _becomes(entry, _a_patch_over_base(entry, answer))
+        if sheet is None:
+            _becomes(entry, held)
         else:
-            _becomes(
-                entry,
-                _a_correct_over_base(
-                    entry,
-                    answer.change,
-                    answer.reason,
-                    list(answer.sources) or sources,
-                ),
-            )
+            sheet.append(held)
     return revisit
 
 
@@ -418,7 +443,7 @@ def run_turn(
     for role, slots in sent.items():
         parsed, why = parse_answers(role, slots, slots_of(answers.get(role, []), role))
         revisit += why
-        revisit += apply(copies, role, parsed)
+        revisit += apply(copies, role, parsed, root)
     got = collate(proof.stage, copies, binder, root, turn=turn)
     got = _keeping(got, earlier)
     contested = {slot["address"] for slots in sent.values() for slot in slots}
