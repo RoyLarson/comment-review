@@ -4078,3 +4078,10 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **Related, not ruled here.** `Process: #104` makes `prove_unchanged` the address/anchor
   identity, under which a docstring is not a code line and adding one moves no anchor. Which
   mechanism carries this ruling is the implementing task's to work out.
+
+- **#114.** **`ty` does not check `scripts/`** (Roy, 2026-09-11, ruling on `smoke-middle-script`
+  T56, raised when a review found `ty` and Pyright both report `str | None` in
+  `scripts/smoke_fixture.py` when pointed at it, while bare `uv run ty check` passes because
+  `pyproject.toml`'s `[tool.ty]` scope is `src` and `tests`).
+
+  *"No"*. *"Scripts are not source or tests. They are convenience"*.
