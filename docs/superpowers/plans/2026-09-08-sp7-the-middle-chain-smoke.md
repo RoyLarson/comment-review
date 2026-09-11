@@ -428,23 +428,23 @@ Each step is one finding, one commit, and the Task 8 done gate re-run after it:
 - Consumes: Task 8's copies and Task 7's text files.
 - Produces: `proof0.json` and the chief's copy.
 
-- [ ] **Step 1: Plant the matrix**
+- [x] **Step 1: Plant the matrix**
 
 One `mark` invocation per ruling per role, covering every row of the spec's matrix: a lone mark, two roles differing, three roles differing, a drop, an add at an empty place, a move, and a query no role can settle. Multi-line text goes as `@path`.
 
-- [ ] **Step 2: Run `check` over each of the four copies**
+- [x] **Step 2: Run `check` over each of the four copies**
 
 Expected: exit 0 for all four. A refusal here is the second bar failing and stops the script.
 
-- [ ] **Step 3: Run `collate`, then `disposition`**
+- [x] **Step 3: Run `collate`, then `disposition`**
 
 The dispositions file carries a `taken_in` on a role's side, a `taken_in` on `original`, and a `recast` with the chief's own prose.
 
-- [ ] **Step 4: Run it as far as the disposition**
+- [x] **Step 4: Run it as far as the disposition**
 
 Run: `pwsh scripts/smoke_middle.ps1 -Stop disposition`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ---
 
