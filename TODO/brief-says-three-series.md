@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks closed
+Progress: 1 of 6 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-29 (found sweeping reviewer-brief.md against its consumers on
           feat/the-mark-and-the-collator, 2026-08-29)
 ```
@@ -28,5 +28,9 @@ place the same brief tells it to cite at `:74`.
       may only read
 - [ ] T4 | Update reviewer-brief.md:67-72 and :88-97 so a role may act on an f
       run it reads as a comment
-- [?] T5 | Decide which instructions an f place takes, and whether a licence or
-      a shebang keeps any protection
+        > 2026-09-11 what the brief says is ruled in Addressing 25
+- [x] T5 | RULED Addressing: #25 -- move to a b place, human asked first | dd5dc235 | Decide
+      which instructions an f place takes, and whether a licence or a shebang
+      keeps any protection
+- [ ] T6 | Update SKILL.md so the task agent asks the human before a move out of
+      the f series goes ahead

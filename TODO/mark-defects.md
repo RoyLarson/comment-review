@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 15 tasks closed
+Progress: 4 of 16 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -206,3 +206,5 @@ cites as its measured example of a field answering neither necessary nor purpose
       fill to seed an absent place from that page, not from the role's entry.
       Verify: the anchor comes from the page and raw_text is empty
         > 2026-09-07 The base is the system's, never the party being checked
+- [ ] T16 | Implement a test that a move from f0 to a b place reaches the
+      docket, and make it pass, per Addressing 25
