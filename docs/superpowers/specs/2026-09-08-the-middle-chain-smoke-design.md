@@ -133,7 +133,7 @@ is that a clean is recorded; a page of cleans proves nothing about resolution.
 
 | what is planted | what it proves |
 | --- | --- |
-| one role marks, the other three clean | the fold settles a place on its own, without the chief |
+| one role marks, the other three defer with `query outside-my-role` | the fold settles a place on its own, without the chief |
 | two roles `correct` one address differently | the disagreement is carried forward rather than silently resolved |
 | three roles disagree at one address | the fold handles more than a pair |
 | chief `taken_in`, side a role | a role's text reaches the proof, attributed |
@@ -166,8 +166,18 @@ Two things, and nothing else. Roy, 2026-09-08: *"Really i would go just for star
 no errors. Counting artifacts and other things in between makes it more complicated and brittle
 than it needs to be. Those are testing implementation details not api functionality."*
 
-**Exit codes.** Every stage exits 0 on planted-correct input. A stage stopping is the second bar
-failing.
+**Exit codes.** Every stage exits 0 on planted-correct input, except `collate`, which exits the
+code the plant predicts. Its exit codes are a contract (`commands/collate.py`): 3 when places are
+carried forward for a re-read, 4 when any is an escalation, which outranks a re-read. The matrix
+plants disagreements on purpose, so the script expects exactly 4 there and fails on any other
+code. A stage stopping is the second bar failing.
+
+Corrected 2026-09-11, before Task 9, from a hand probe and two rulings by Roy. The first row of
+the matrix read "one role marks, the other three clean". Under `Process: #89` a lone mark is sent
+back to every role that marked the place, so three cleans carry it forward rather than letting
+it settle. With the other three deferring by `query outside-my-role`, it settles alone. And this
+paragraph said every stage exits 0, which the matrix's own disagreements make `collate` refuse to
+do.
 
 **The diff, exactly.** The script planted every decision, so it knows what the proof must
 contain. It compares the original tree with the proof and requires that every planted change is
