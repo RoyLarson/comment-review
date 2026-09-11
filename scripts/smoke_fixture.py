@@ -382,10 +382,10 @@ def write_texts(run: Path) -> dict[str, Path]:
     paths: dict[str, Path] = {}
     recast = {d["address"] for d in DISPOSITIONS if d["answer"] == "recast"}
     for address, landing in LANDINGS.items():
-        if landing.outcome != "text" or address in recast:
+        if landing.text is None or address in recast:
             continue
         part = address.split("@")[1]
-        if landing.false is not None:
+        if landing.false is not None and landing.true is not None:
             for suffix, value in (("false", landing.false), ("true", landing.true)):
                 path = run / f"{part}-{suffix}.txt"
                 path.write_text(value, encoding="utf-8", newline="\n")
