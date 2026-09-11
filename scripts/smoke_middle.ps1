@@ -33,7 +33,7 @@ $CallerLocation = Get-Location
 if (-not $Run) {
     $Run = Join-Path ([System.IO.Path]::GetTempPath()) ("smoke-middle-" + (Get-Date -Format 'yyyyMMdd-HHmmss-fff'))
 } else {
-    $Run = [System.IO.Path]::GetFullPath((Join-Path $CallerLocation.Path $Run))
+    $Run = [System.IO.Path]::GetFullPath($Run, $CallerLocation.ProviderPath)
 }
 
 # A run never writes inside the repo, so a -Run landing there is refused
