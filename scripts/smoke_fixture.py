@@ -73,20 +73,46 @@ def write_fixture(root: Path) -> Path:
     return path
 
 
-#: The chief's own prose for the `b9` recast -- text neither role proposed,
-#: kept as its own file rather than typed inline into a JSON literal, matching
-#: the "text never crosses the shell" rule the `mark` calls follow: a
-#: multi-line value gets a file of its own rather than a string built by hand
-#: at the call site.
-RECAST_PROSE = (
-    "# The cache and the counter measure different things, worth stating\n"
-    "# separately. fib is cached; logged counts every call, cached or not."
-)
+#: What the plant makes land at each planted address once the chain closes --
+#: the same outcomes `docs/superpowers/specs/2026-09-08-the-middle-chain-
+#: smoke-design.md`'s "The scenario matrix" describes in prose, held here by
+#: address instead. Four entries carry the text a role's own clause, the
+#: move's destination, or the add supplies; one carries the chief's own
+#: `recast` prose; four carry no text at all, because the outcome drops the
+#: paragraph, vacates its origin, or leaves the fixture as it already reads.
+#: Task 10 diffs `FIXTURE` against this table to know what the closed proof
+#: should read at each address.
+LANDINGS = {
+    # block-context's --true clause is the only mark at c6; it lands as is.
+    "fib.py@c6": "the decorator's only job",
+    # collate escalates c1; disposition takes block-context's --true clause
+    # over function-context's losing one.
+    "fib.py@c1": "cached or not",
+    # the move's --change: b1's paragraph relocates to b0, reworded there.
+    "fib.py@b0": "# Module state, written by the wrapper and read by the caller.",
+    # the add's --change: wrapper's docstring, indented to its body's depth.
+    "fib.py@a2": '        """Count each call, then pass it through."""',
+    # collate escalates b9; disposition recasts it in the chief's own words,
+    # over both roles' losing corrections.
+    "fib.py@b9": (
+        "# The cache and the counter measure different things, worth stating\n"
+        "# separately. fib is cached; logged counts every call, cached or not."
+    ),
+    # the drop vacates b14; nothing replaces the dropped paragraph.
+    "fib.py@b14": None,
+    # the move vacates its own address; the text it carried now lives at b0.
+    "fib.py@b1": None,
+    # collate escalates a3; disposition keeps the original over all three
+    # roles' losing corrections.
+    "fib.py@a3": None,
+    # block-context's query settles nothing; a1 is left as it was.
+    "fib.py@a1": None,
+}
 
-#: The chief's dispositions for Task 9's plant -- one entry per place
-#: `collate` carries forward (the three escalations and the one re-read),
-#: matching the matrix's own "the chief" column. A carried-forward place with
-#: no entry here is refused by `disposition`, by name.
+#: The chief's own rulings over the four places `collate` carries forward
+#: (the three escalations and the one re-read) -- `LANDINGS` above names what
+#: each one makes land; this names how. A carried-forward place with no entry
+#: here is refused by `disposition`, by name.
 DISPOSITIONS = [
     {
         "address": "fib.py@a3",
@@ -100,7 +126,7 @@ DISPOSITIONS = [
     {
         "address": "fib.py@b9",
         "answer": "recast",
-        "prose": RECAST_PROSE,
+        "prose": LANDINGS["fib.py@b9"],
         "reason": (
             "block-context and module-context each rewrote one verb "
             "differently; neither wording is preferred, so the paragraph is "
@@ -129,25 +155,37 @@ DISPOSITIONS = [
 
 
 def write_texts(run: Path) -> dict[str, Path]:
-    """Write the plant's file-carried values under `run`, and return their paths.
+    """Write the plant's landing texts to their own files, and dispositions.json.
 
-    Two values in Task 9's plant do not fit as CLI flags or as bare literals
-    typed into a JSON file by hand: the `b9` recast's own two-line prose,
-    kept as its own file, and the dispositions themselves, which
-    `disposition`'s `--dispositions` flag always takes as a file.
+    `LANDINGS` names four addresses whose text a single `mark` call plants
+    on a role's copy -- `c6`, `c1`, the move's destination `b0`, and the
+    `add`'s `a2` -- and one, `b9`, that only `disposition` reads, inline out
+    of `dispositions.json`; `b9` gets no file of its own here. Each of the
+    four files holds exactly the text `LANDINGS` names, with no trailing
+    newline, so the `mark` call that plants it can pass `@<path>` rather
+    than the text itself, matching the "text never crosses the shell" rule
+    every `mark` call follows.
 
     Args:
         run: the run directory the smoke script writes into. Not created
             here -- the caller's own run directory already exists.
 
     Returns:
-        `{"recast_prose": path, "dispositions": path}`.
+        one path per file written, keyed by the address whose text it holds
+        (`fib.py@c6`, `fib.py@c1`, `fib.py@b0`, `fib.py@a2`), plus
+        `"dispositions"` for `dispositions.json`.
     """
-    recast_path = run / "recast_prose.txt"
-    recast_path.write_text(RECAST_PROSE, encoding="utf-8", newline="\n")
+    paths: dict[str, Path] = {}
+    for address, text in LANDINGS.items():
+        if text is None or address == "fib.py@b9":
+            continue
+        path = run / f"{address.split('@')[1]}.txt"
+        path.write_text(text, encoding="utf-8", newline="\n")
+        paths[address] = path
 
     dispositions_path = run / "dispositions.json"
     dispositions_path.write_text(
         json.dumps(DISPOSITIONS, indent=2) + "\n", encoding="utf-8", newline="\n"
     )
-    return {"recast_prose": recast_path, "dispositions": dispositions_path}
+    paths["dispositions"] = dispositions_path
+    return paths

@@ -167,6 +167,20 @@ $Stages = [ordered]@{
     # Every one of the nine filled places gets a ruling from every role, so a
     # place the matrix does not otherwise name is marked clean by all four.
     mark = {
+        Invoke-Checked -Stage 'plant-texts' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_texts; write_texts(Path(sys.argv[1]))',
+            $Run
+        )
+        # One file per address `smoke_fixture.LANDINGS` gives text that a
+        # `mark` call below plants -- written above by `write_texts`, named
+        # here to match its own naming rather than read back from it.
+        $LandingFile = @{
+            c6 = Join-Path $Run 'c6.txt'
+            c1 = Join-Path $Run 'c1.txt'
+            b0 = Join-Path $Run 'b0.txt'
+            a2 = Join-Path $Run 'a2.txt'
+        }
         # a0 -- named by nothing else, clean from every role.
         foreach ($role in $Roles) {
             Invoke-Checked -Stage "mark a0 $role clean" -CommandLine ($Launcher + @(
@@ -202,7 +216,7 @@ $Stages = [ordered]@{
         Invoke-Checked -Stage 'mark c6 block-context correct' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@c6',
             '--instruction', 'correct',
-            '--false', "the decorator's whole job", '--true', "the decorator's only job",
+            '--false', "the decorator's whole job", '--true', "@$($LandingFile.c6)",
             '--reason', 'counting is the whole job of the decorator, worded oddly',
             '--cite', 'fib.py:15', '--repo', $OriginalDir
         ))
@@ -221,7 +235,7 @@ $Stages = [ordered]@{
         Invoke-Checked -Stage 'mark c1 block-context correct' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@c1',
             '--instruction', 'correct',
-            '--false', 'memoised or not', '--true', 'cached or not',
+            '--false', 'memoised or not', '--true', "@$($LandingFile.c1)",
             '--reason', 'the fixture calls this a cache everywhere else',
             '--cite', 'fib.py:6', '--repo', $OriginalDir
         ))
@@ -312,7 +326,7 @@ $Stages = [ordered]@{
         Invoke-Checked -Stage 'mark b1 ownership-context move' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['ownership-context'], '--address', 'fib.py@b1',
             '--instruction', 'move', '--from', 'fib.py@b1', '--to', 'fib.py@b0',
-            '--change', '# Module state, written by the wrapper and read by the caller.',
+            '--change', "@$($LandingFile.b0)",
             '--reason', 'module state belongs above the import, not below it',
             '--cite', 'fib.py:5', '--repo', $OriginalDir
         ))
@@ -333,7 +347,7 @@ $Stages = [ordered]@{
             '--instruction', 'add',
             '--missing', 'wrapper has no docstring', '--anchor', '`wrapper`',
             '--anchor-line', '    def wrapper(n):',
-            '--change', '"""Count each call, then pass it through."""',
+            '--change', "@$($LandingFile.a2)",
             '--reason', 'wrapper is the declared function; logged only wraps it',
             '--cite', 'fib.py:13', '--repo', $OriginalDir
         ))
@@ -363,14 +377,10 @@ $Stages = [ordered]@{
         ))
     }
     # The chief's dispositions close the four carried-forward places
-    # (`write_texts` plants them, matching the "the chief" column of the
-    # scenario matrix), then `disposition` folds them into the closed proof.
+    # (`write_texts` plants them at the mark stage above, matching
+    # `LANDINGS` in smoke_fixture.py), then `disposition` folds them into
+    # the closed proof.
     disposition = {
-        Invoke-Checked -Stage 'plant-dispositions' -CommandLine @(
-            'uv', 'run', 'python', '-c',
-            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_texts; write_texts(Path(sys.argv[1]))',
-            $Run
-        )
         Invoke-Checked -Stage 'disposition' -CommandLine ($Launcher + @(
             $Cmd.disposition, '--proof', $Proof0File, '--binder', $BinderFile,
             '--dispositions', $DispositionsFile, '--out', $ChiefFinalFile,
