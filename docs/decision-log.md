@@ -499,6 +499,21 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   expansion on what I ruled and implies a bunch of stuff I did not rule at all."* The entry now
   holds his words and nothing drawn from them.
 
+- **#26.** **The `f` places are still excluded by default, and a role may still ask for one's
+  address and mark it** (Roy, 2026-09-11, asked whether `binder-defects` T24 -- handing roles the
+  `f` places -- still stands after `#25`).
+
+  *"f places are still excluded by default. The address and the move can be asked for. The
+  agents roles should state that it is expected to be matter but may not be and so if it isn't
+  the addresser can return the address and a mark against it can be made."*
+
+  *"The one caveat is that any corrections to an f places gets raised to human individually to
+  approve. That probably needs its own workflow"*
+
+  **What it closes.** `binder-defects` T24 is superseded: the `f` places are not handed to a
+  role. **What it opens.** The agents' wording, carried by `brief-says-three-series` T4, and a
+  workflow for raising each correction to an `f` place to the human on its own.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is
