@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 12 of 30 tasks closed
+Progress: 18 of 31 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -149,25 +149,33 @@ files in `corpora/` are in that state today.
       drop, # note re-reads into f0
         > 2026-09-11 Set at compositor.py:275; test_compositor.py:280 asserts it
         > 2026-09-11 Not introduced by 4ce9605d: the old galley.reset did the same
-- [ ] T23 | Update compositor.py:215-218 so it stops sending the reader to
-      galley._vacate, which no longer says why c is excluded
-- [ ] T24 | Update the comments saying the drop rule keys on kind alone; it keys
-      on kind and empty raw_lines
+- [x] T23 | the pointer names the test that holds the c exclusion | 4326b793 | Update
+      compositor.py:215-218 so it stops sending the reader to galley._vacate,
+      which no longer says why c is excluded
+- [x] T24 | galley.py says kind and held lines; compositor 203-208 already did | 4326b793 | Update
+      the comments saying the drop rule keys on kind alone; it keys on kind and
+      empty raw_lines
         > 2026-09-11 compositor.py:204-207, :274; galley.py:137, :142, :202
-- [ ] T25 | Update compositor.py:268-274 so the quoted ruling is whole and its
-      stated test matches the check at :275
-- [ ] T26 | Update compositor.py:164-178; its drop half contradicts :248-251 and
-      its add half the rule at :277
-- [ ] T27 | Update galley.py:97-98, which says every site takes [1] where the
-      code reads .cue
+- [x] T25 | quotation replaced by the Addressing 22 cite; test matches vacated | 4326b793 | Update
+      compositor.py:268-274 so the quoted ruling is whole and its stated test
+      matches the check at :275
+- [x] T26 | describes the lookup plus the drop and add checks | 4326b793 | Update
+      compositor.py:164-178; its drop half contradicts :248-251 and its add half
+      the rule at :277
+- [x] T27 | says every site reads .cue | 4326b793 | Update galley.py:97-98,
+      which says every site takes [1] where the code reads .cue
 - [x] T28 | no bang prefix or caps run left in the nine | 03908eb3 | Update the
       nine paragraphs 4ce9605d opened with a bang prefix and capitalised runs,
       per Process 105 and 106
         > 2026-09-11 compositor.py:203, :210, :215, :268; galley.py:133, :139, :201
         > 2026-09-11 test_galley.py:134, :151
-- [ ] T29 | Delete test_a_drop_leaves_the_leading_alone at
-      test_galley.py:146-159, or name what it catches beyond :131
+- [x] T29 | deleted; test_only_the_place_changes covers a0 | 4326b793 | Delete
+      test_a_drop_leaves_the_leading_alone at test_galley.py:146-159, or name
+      what it catches beyond :131
         > 2026-09-11 the :131 test already asserts the leading unchanged on every drop
 - [ ] T30 | Implement a second test of the drop rule at compositor.py:275 on a
       place other than a0
         > 2026-09-11 only test_compositor.py:270 catches it, and only at a0
+- [ ] T31 | Update compositor.py:159-162, which says the survivor of a drop
+      takes a new key where :175-178 says it needs none
+        > 2026-09-11 at 4326b793: new key claimed at :161, no new key at :176
