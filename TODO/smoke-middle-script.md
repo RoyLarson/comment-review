@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 30 of 58 tasks closed
+Progress: 31 of 58 tasks closed
 Owner:    systems
 Requires-Roy: true
 Raised:   2026-09-11 (review of SP7 Task 8 at 34aea6d4, 2026-09-11)
@@ -75,8 +75,8 @@ The middle-chain smoke script carries the findings of its Task 8 review.
       home directory
 - [ ] T18 | Update the -Stop refusal at smoke_middle.ps1:150 so an empty value
       reads as empty
-- [?] T19 | Decide whether a run may write gitignored __pycache__ folders inside
-      the repo
+- [x] T19 | RULED -- no permanent code changes inside the repo; pycache allowed | e30f48ad | Decide
+      whether a run may write gitignored __pycache__ folders inside the repo
         > 2026-09-11 review: predates Task 8a; .gitignore:18 covers them
 - [x] T20 | the a2 docstring carries wrapper's eight-space body indent | ce10d1ee | Update
       the a2 add at smoke_middle.ps1:336 so its docstring carries the
