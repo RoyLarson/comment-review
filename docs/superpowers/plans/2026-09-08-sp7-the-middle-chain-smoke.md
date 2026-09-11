@@ -464,6 +464,7 @@ this rewrites are T27 and T28.
 - [ ] **Step 2: The comments and docstring on that code say what is true of it**
 - [ ] **Step 3: Done gate** -- `-Stop disposition` exits 0, and `proof --copy chief-final.json` run by hand on that run exits 0
 - [ ] **Step 4: Tick** `smoke-middle-script` T20, T21, T27, T28, T30 and T32 against their commits, in a later commit
+- [ ] **Step 5: `add` at several places, filled and absent, across the series** -- Roy, 2026-09-11: *"Test several spots both filled and absent"*. What the proof then refuses is reported, not routed around
 
 ---
 
