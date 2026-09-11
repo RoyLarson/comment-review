@@ -480,6 +480,27 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   header or a shebang keeps any protection once a role can reach it. Those belong to the tasks
   that carry this into the brief and the backend.
 
+- **#25.** **Matter stays out of a role's copy by default; comments mistaken for matter leave by
+  a `move` into the `b` series, approved by the human first** (Roy, 2026-09-11, ruling on
+  `brief-says-three-series` T5, the question `#24` left open. On which instructions: *"we should
+  have the task agent ask the human first and then move to a b series"*. On protection: *"none -
+  the statement should be front-matter and back-matter are excluded by default as license and
+  other information is not normally editable. If code comments are classified as such a move and
+  then modify. This will cause a human to be asked for approval."*).
+
+  **What it settles.** An `f` place takes one instruction, `move`, and its destination is a `b`
+  place. Any rewording is a second instruction on the `b` place once the move has landed, never
+  an edit at the `f` address. Before a move out of the `f` series goes ahead, the task agent asks
+  the human.
+
+  **What it keeps from before `#24`.** Front and back matter are excluded from a role's copy by
+  default, because a licence and similar text is not normally editable. What changes is that
+  the exclusion is a default rather than a wall: a role that reads an `f` run as code comments
+  has a way to say so.
+
+  **Why no protection is needed beyond that.** The only way out of the `f` series goes through
+  the human, so a real licence header or shebang cannot be edited without someone approving it.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is
