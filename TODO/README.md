@@ -213,7 +213,7 @@ that changed a published name or rule:
 | [one-stem-four-jobs](one-stem-four-jobs.md) | backend | -- | 7/15 | one stem, four jobs -- and the vocabulary sweep cannot see it |
 | [python-cannot-read-python](python-cannot-read-python.md) | backend | -- | 32/39 | the AST cannot read syntax newer than the floor, and two readers hide each other's bugs |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | -- | 3/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
-| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 20/31 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
+| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | yes | 20/33 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | backend | -- | 4/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
 | [exception-hierarchy](exception-hierarchy.md) | backend | -- | 2/10 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | -- | 6/16 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
@@ -278,8 +278,8 @@ that changed a published name or rule:
 | [collate-flow-defects](collate-flow-defects.md) | backend | -- | 0/12 | Twelve defects in `flows/collate.py`, from a review of one file |
 | [mark-defects](mark-defects.md) | backend | yes | 4/16 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
 | [binder-defects](binder-defects.md) | backend | -- | 6/24 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
-| [docket-defects](docket-defects.md) | backend | -- | 2/8 | Six defects in docket.py, and one discards an approved page at exit 0 |
-| [collate-command-defects](collate-command-defects.md) | backend | -- | 3/19 | Sixteen defects in `commands/collate.py`, measured by running it |
+| [docket-defects](docket-defects.md) | backend | -- | 2/9 | Six defects in docket.py, and one discards an approved page at exit 0 |
+| [collate-command-defects](collate-command-defects.md) | backend | yes | 3/20 | Sixteen defects in `commands/collate.py`, measured by running it |
 | [differences-defects](differences-defects.md) | backend | -- | 0/10 | Ten defects in `results/differences.py`, none of them in its arithmetic |
 | [plans-name-no-todo-tasks](plans-name-no-todo-tasks.md) | systems | yes | 0/4 | Six 0.2.4 plans carry no heading naming the TODO tasks they close |
 | [index-and-glossary-for-roles](index-and-glossary-for-roles.md) | agents | yes | 0/1 | Hand a reviewer the name index and the glossary rather than leaving it to grep |
@@ -293,8 +293,8 @@ that changed a published name or rule:
 | [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 10/20 | The agents files name the new CLI and say how to use it |
 | [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 2/13 | The reviewer prose is rules and punishments, not guidance toward a good result |
 | [a-machine-context-raises-query-and-clean](a-machine-context-raises-query-and-clean.md) | backend | yes | 0/8 | annotate carries two subjects -- it extracts index keys, and it flags claims it cannot settle. The second half becomes a context that marks like a role. |
-| [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | yes | 2/8 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
-| [smoke-middle-script](smoke-middle-script.md) | systems | yes | 11/19 | The middle-chain smoke script carries the findings of its Task 8 review |
+| [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | yes | 2/9 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
+| [smoke-middle-script](smoke-middle-script.md) | systems | yes | 11/33 | The middle-chain smoke script carries the findings of its Task 8 review |
 
 ### in-progress  (18)
 

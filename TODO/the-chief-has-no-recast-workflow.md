@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 8 tasks closed
+Progress: 2 of 9 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-09-08 (Roy 2026-09-08: implementing the recast workflow for the cli the
@@ -41,3 +41,5 @@ The copy chief has no workflow for recasting the places that never settled.
 - [ ] T8 | Update disposition.py:20 and turn.py:621, which still say cap for max
       turns, per Vocabulary 36
         > 2026-09-11 seen in disposition --help while preparing SP7 Task 9
+- [ ] T9 | Update the recast so the b9 mark in final.json does not carry the
+      source fib.py:21 twice

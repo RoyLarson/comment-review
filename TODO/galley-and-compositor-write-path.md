@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 20 of 31 tasks closed
+Progress: 20 of 33 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
           write path, which is the one place a defect reaches disk)
 RE-VERIFIED: 2026-08-23 — 2026-08-23. Task 1 is FIXED and ticked -- the destructive case
@@ -181,3 +181,10 @@ files in `corpora/` are in that state today.
       compositor.py:159-162, which says the survivor of a drop takes a new key
       where :175-178 says it needs none
         > 2026-09-11 at 4326b793: new key claimed at :161, no new key at :176
+- [ ] T32 | Update proof_setter.py:465-470 so a draft that re-reads with a
+      different structure is named as that
+        > 2026-09-11 smoke run: an unindented a2 lost every cue; b1 was named
+- [?] T33 | Decide whether a docstring's indentation is the role's to write or
+      the compositor's to supply
+        > 2026-09-11 check, collate, disposition all passed an unindented a2 add
+        > 2026-09-11 Addressing 23 moved leading to the compositor the same way

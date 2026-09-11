@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 3 of 19 tasks closed
+Progress: 3 of 20 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, a code review of `commands/collate.py` driven by
           sixteen recorded runs of the command -- no TODO on the board is a home for
           that module)
@@ -179,3 +179,6 @@ under `utf8_console()`.
         > 2026-09-01 MEASURED 2026-09-01 through the CLI: 'block-context m.py@b1:
         > 2026-09-01 m.py@b1: correct needs a reason'. _report prints Problem.address,
         > 2026-09-01 and the message opens with it because the assembler passed where.
+- [?] T20 | Decide whether collate's exit code may hide an unruled place behind
+      an escalation, collate.py:335-354
+        > 2026-09-11 the comment ranks it weaker; no ruling is cited for that

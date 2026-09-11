@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 8 tasks closed
+Progress: 2 of 9 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `docket/docket.py` run end to end
@@ -125,3 +125,6 @@ caller.
       `machine.repo.can_escape` as the single guard site
       (`flows/proof_setter.py:184`), and states that `docket.read` accepts
       `/etc/passwd`, `../outside.py` and `C:/Windows/x.py` on purpose.
+- [ ] T9 | Update flows/transcribe.docket_of so a settled move yields its two
+      alterations once, not twice
+        > 2026-09-11 smoke run: b1 null and b0 text each appear twice in the docket
