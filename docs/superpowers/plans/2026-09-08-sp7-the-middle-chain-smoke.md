@@ -492,17 +492,17 @@ and Task 10 cannot write its expectation from the table until it reads plainly. 
 **Files:**
 - Modify: `scripts/smoke_middle.ps1`
 
-- [ ] **Step 1: Run `proof`, then diff the two trees**
+- [x] **Step 1: Run `proof`, then diff the two trees**
 
 ```powershell
 git --no-pager diff --no-index -- $Original $Proof
 ```
 
-- [ ] **Step 2: Assert the diff against what was planted**
+- [x] **Step 2: Assert the diff against what was planted**
 
 The script wrote its expected diff at plant time. A difference between expected and actual is the failure, and it prints both.
 
-- [ ] **Step 3: Add the addresser scenario**
+- [x] **Step 3: Add the addresser scenario**
 
 Look up the empty place by file and line, take the address that comes back, use it for the `add`, and confirm that comment is in the diff. This is the positive form of the defect that lost a finding on 2026-09-07.
 
