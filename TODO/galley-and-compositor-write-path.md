@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 11 of 30 tasks closed
+Progress: 12 of 30 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
           write path, which is the one place a defect reaches disk)
 RE-VERIFIED: 2026-08-23 — 2026-08-23. Task 1 is FIXED and ticked -- the destructive case
@@ -144,8 +144,9 @@ files in `corpora/` are in that state today.
 - [ ] T21 | Update galley.py's docstring, which claims it sets text as files.
       Verify: it says it alters Paragraphs on a Page and writes none
         > 2026-09-08 The compositor sets the Page into a proof; the galley writes none
-- [?] T22 | Decide whether a drop may leave a comment flush under front matter;
-      after an a0 drop, # note re-reads into f0
+- [x] T22 | RULED Addressing: #24 -- unavoidable; matter is a guess by position | aea75e34 | Decide
+      whether a drop may leave a comment flush under front matter; after an a0
+      drop, # note re-reads into f0
         > 2026-09-11 Set at compositor.py:275; test_compositor.py:280 asserts it
         > 2026-09-11 Not introduced by 4ce9605d: the old galley.reset did the same
 - [ ] T23 | Update compositor.py:215-218 so it stops sending the reader to
