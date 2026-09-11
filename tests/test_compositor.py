@@ -280,6 +280,17 @@ class TestAnEditedPageStillComposes:
         assert "#!/usr/bin/env python\n# note\n" in out
         assert '"""Doc."""' not in out
 
+    def test_a_vacated_gap_loses_its_leading(self):
+        """The same rule at a `b`, on a page with no `a` at all, so a rule
+        that fired only at `a0` fails here. `b1` owns the blank below it
+        (`page.leading == {"c0": "d0", "b1": "d1"}`); dropped, the two
+        statements keep the one blank `c0` owns, not both."""
+        from comment_review.results.galley import reset
+
+        page = build("x = 1\n\n# note\n\ny = 2\n")
+        reset(page, {"b1": None})
+        assert set_page(page) == "x = 1\n\ny = 2\n"
+
     def test_a_dropped_c_does_not_lose_the_blank_below_its_code(self, sample):
         """A `c` sets its line of code whether or not anything sits beside
         it, so dropping the comment on it vacates nothing the code did not
