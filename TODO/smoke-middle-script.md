@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 28 of 52 tasks closed
+Progress: 30 of 58 tasks closed
 Owner:    systems
 Requires-Roy: true
 Raised:   2026-09-11 (review of SP7 Task 8 at 34aea6d4, 2026-09-11)
@@ -39,8 +39,9 @@ The middle-chain smoke script carries the findings of its Task 8 review.
       smoke_middle.ps1 so the stage names at :23 and the stage blocks at :71
       cannot fall out of step
         > 2026-09-11 at 0c7f3e44 the note at :110 still names $StageOrder
-- [ ] T7 | Update the header at smoke_middle.ps1:1-3 and the note at :69-70 as
-      stages are added past distribute
+- [x] T7 | the header and stage note describe the script through diff | 4279b443 | Update
+      the header at smoke_middle.ps1:1-3 and the note at :69-70 as stages are
+      added past distribute
         > 2026-09-11 review: a new stage also needs a path variable near :107
         > 2026-09-11 review of 4ed781c0: :132-134 still says nothing else changes
 - [x] T8 | the launcher prefix is defined once | a40a4a49 | Update
@@ -67,6 +68,7 @@ The middle-chain smoke script carries the findings of its Task 8 review.
 - [ ] T15 | Update the helper comment at smoke_middle.ps1:68-76, which claims
       more than a failure prints
         > 2026-09-11 missing-exe path prints no codes; pwsh -File puts output on stdout
+        > 2026-09-11 review 10: rewritten at smoke_middle.ps1:79-83, still overclaims
 - [ ] T16 | Update smoke_middle.ps1:36 so a relative -Run from a non-filesystem
       location is refused, not thrown
 - [ ] T17 | Update smoke_middle.ps1:36 so a -Run starting with ~ expands to the
@@ -115,8 +117,9 @@ The middle-chain smoke script carries the findings of its Task 8 review.
       is exercised
 - [ ] T31 | Update smoke_middle.ps1 so the role set at :120, :152 and :358-361
       is written once
-- [ ] T32 | Update the plant so every planted outcome is written in one place at
-      plant time, for Task 10's diff
+- [x] T32 | each landing states its outcome, what decides it, its line | 520446ff | Update
+      the plant so every planted outcome is written in one place at plant time,
+      for Task 10's diff
         > 2026-09-11 texts at :205 :224 :315 :336; sides in smoke_fixture.py:90-128
         > 2026-09-11 review: None means both removed (b14, b1) and kept (a3, a1)
         > 2026-09-11 review: c6 and c1 hold a clause; their old wording is in the ps1
@@ -139,6 +142,7 @@ The middle-chain smoke script carries the findings of its Task 8 review.
 - [ ] T37 | Update smoke_fixture.py:84-87 and smoke_middle.ps1:164-166, which
       equate the plant with the spec matrix it goes beyond
         > 2026-09-11 review 9b: the matrix names no addresses; the new text says nine
+        > 2026-09-11 review 10: still at smoke_middle.ps1:190-191, fixture :137-138
 - [x] T38 | the move is described as carrying b1 unchanged | d2648ffc | Update
       smoke_fixture.py:101, which says the move is reworded when b0 carries b1's
       text unchanged
@@ -170,8 +174,10 @@ The middle-chain smoke script carries the findings of its Task 8 review.
       mark entry gets a file; kept and removed ones do not
 - [ ] T48 | Update smoke_fixture.py:101-104, which says write_texts writes text
       for route mark; for c6 and c1 it writes clauses
+        > 2026-09-11 review 10: smoke_fixture.py:103-104 says text goes as --true
 - [ ] T49 | Update smoke_fixture.py:13 and :109, which write IS in capitals for
       stress
+        > 2026-09-11 review 10: the rewritten docstring keeps IS at :14
 - [ ] T50 | Update smoke_fixture.py:156, which calls a2's text the add's
       --change as T44 corrected in the script
 - [ ] T51 | Update the agreement test in test_smoke_fixture.py to call
@@ -180,3 +186,20 @@ The middle-chain smoke script carries the findings of its Task 8 review.
 - [ ] T52 | Update the b17 entry, which cites Addressing 19 for the foot rule
       that only compositor.py:298-305 states
         > 2026-09-11 #19 covers the blank before an added b, not the one after
+- [ ] T53 | Update the diff stage to run git with core.autocrlf=false, so a
+      line-ending difference fails it
+        > 2026-09-11 review 10: a CRLF expectation passed under the system autocrlf
+        > 2026-09-11 header :6-7 and :526 claim an exactness the stage lacks
+- [ ] T54 | Update the line test at test_smoke_fixture.py:121-138 so a wrong
+      line on a b entry fails it
+        > 2026-09-11 at_line(n, b) answers one gap for every line down to its code
+- [ ] T55 | Update smoke_fixture.py:383 and :387 so write_text is never handed
+      str or None
+        > 2026-09-11 ty reports both when pointed at scripts/; no None reaches it
+- [?] T56 | Decide whether ty's scope in pyproject.toml:170-171 takes in
+      scripts/, which it skips today
+- [ ] T57 | Update smoke_middle.ps1:456 to read the addresser row's line from
+      LANDINGS, not a second copy
+- [ ] T58 | Update the addresser stage so an address other than the planted one
+      fails there, not at mark
+        > 2026-09-11 by reading: a wrong address fails at the next @path or disposition

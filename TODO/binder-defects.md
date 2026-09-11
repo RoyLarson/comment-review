@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 24 tasks closed
+Progress: 6 of 25 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `binder/binder.py` run against its
@@ -201,3 +201,6 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
         > 2026-09-11 seeded at distribute.py:106, counted at collate.py:710
         > 2026-09-11 page.py:234 in Page.prose leaves the f series out as well
         > 2026-09-11 reopened: its supersede read Addressing 25 past what was ruled
+- [ ] T25 | Update gather so read_from.root does not depend on the directory
+      gather ran in
+        > 2026-09-11 smoke review: addresser fails from any other directory
