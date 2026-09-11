@@ -53,7 +53,7 @@ function Invoke-Checked {
         [int]$Expect = 0
     )
     $exe = $CommandLine[0]
-    $rest = $CommandLine[1..($CommandLine.Length - 1)]
+    $rest = @($CommandLine | Select-Object -Skip 1)
     & $exe @rest
     if ($LASTEXITCODE -ne $Expect) {
         Write-Host "stage failed: $Stage"
