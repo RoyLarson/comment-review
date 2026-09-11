@@ -460,11 +460,11 @@ this rewrites are T27 and T28.
 **Files:**
 - Modify: `scripts/smoke_fixture.py`, `scripts/smoke_middle.ps1`
 
-- [ ] **Step 1: One table of the texts that land, written before the marks, read by `mark` as `@path`, `a2` indented**
-- [ ] **Step 2: The comments and docstring on that code say what is true of it**
-- [ ] **Step 3: Done gate** -- `-Stop disposition` exits 0, and `proof --copy chief-final.json` run by hand on that run exits 0
-- [ ] **Step 4: Tick** `smoke-middle-script` T20, T21, T27, T28, T30 and T32 against their commits, in a later commit
-- [ ] **Step 5: `add` at several places, filled and absent, across the series** -- Roy, 2026-09-11: *"Test several spots both filled and absent"*. What the proof then refuses is reported, not routed around
+- [x] **Step 1: One table of the texts that land, written before the marks, read by `mark` as `@path`, `a2` indented**
+- [x] **Step 2: The comments and docstring on that code say what is true of it**
+- [x] **Step 3: Done gate** -- `-Stop disposition` exits 0, and `proof --copy chief-final.json` run by hand on that run exits 0
+- [x] **Step 4: Tick** `smoke-middle-script` T20, T21, T27, T28, T30 and T32 against their commits, in a later commit
+- [x] **Step 5: `add` at several places, filled and absent, across the series** -- Roy, 2026-09-11: *"Test several spots both filled and absent"*. What the proof then refuses is reported, not routed around
 
 ---
 
@@ -480,9 +480,9 @@ and Task 10 cannot write its expectation from the table until it reads plainly. 
 - Test: `tests/gates/test_smoke_fixture.py`
 
 - [ ] **Step 1: T32 -- every entry states its outcome; every landing text is the whole paragraph as it sits on disk**
-- [ ] **Step 2: T45 -- the `b8` text carries the indent of `logged`'s body**
+- [x] **Step 2: T45 -- the `b8` text carries the indent of `logged`'s body**
 - [ ] **Step 3: T34-T44 -- the comments and docstrings on the changed code are true**
-- [ ] **Step 4: Done gate** -- `-Stop disposition` exits 0; the fixture gate passes
+- [x] **Step 4: Done gate** -- `-Stop disposition` exits 0; the fixture gate passes
 - [ ] **Step 5: Tick** `smoke-middle-script` T32, T34-T45 against their commits, in a later commit
 
 ---
