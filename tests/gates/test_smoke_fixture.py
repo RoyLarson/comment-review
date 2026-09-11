@@ -117,3 +117,22 @@ class TestTheLandingTableAgreesWithTheFixture(unittest.TestCase):
             assert landing.true is not None
             corrected = by_cue[cue].raw_text.replace(landing.false, landing.true)
             self.assertEqual(corrected, landing.text, cue)
+
+    def test_each_landing_at_an_empty_place_names_the_line_it_is_set_against(self):
+        """A text landing names a `line` exactly where `FIXTURE` left its place
+        empty, and the page built from `FIXTURE` answers that line with that
+        place -- or, for a place with no line of its own (the closing gap),
+        the line is the file's last."""
+        filled = {cue_of(p) for p in self.page.paragraphs if p.text}
+        last = len(smoke_fixture.FIXTURE.splitlines())
+        for address, landing in smoke_fixture.LANDINGS.items():
+            cue = address.split("@")[-1]
+            empty = landing.outcome == "text" and cue not in filled
+            self.assertEqual(landing.line is not None, empty, cue)
+            if landing.line is None:
+                continue
+            if self.page.cues.anchor_line(cue) is None:
+                self.assertEqual(landing.line, last, cue)
+            else:
+                found = self.page.cues.at_line(landing.line, cue[0])
+                self.assertEqual(found, [cue], cue)

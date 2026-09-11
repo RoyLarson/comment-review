@@ -297,7 +297,8 @@ $Stages = [ordered]@{
             ))
         }
         # c1 -- two differ. block-context and function-context correct the same
-        # clause to different text; ownership-context and module-context clean.
+        # clause to different text, both reading that clause from one file;
+        # ownership-context and module-context clean.
         Invoke-Checked -Stage 'mark c1 block-context correct' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@c1',
             '--instruction', 'correct',
@@ -308,7 +309,7 @@ $Stages = [ordered]@{
         Invoke-Checked -Stage 'mark c1 function-context correct' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['function-context'], '--address', 'fib.py@c1',
             '--instruction', 'correct',
-            '--false', 'memoised or not', '--true', 'computed or not',
+            '--false', "@$($LandingFile.c1_false)", '--true', 'computed or not',
             '--reason', 'the counter increments whether or not the value was computed',
             '--cite', 'fib.py:6', '--repo', $OriginalDir
         ))
