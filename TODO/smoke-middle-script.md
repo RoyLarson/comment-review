@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 58 of 58 tasks closed
+Progress: 58 of 59 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-09-11 (review of SP7 Task 8 at 34aea6d4, 2026-09-11)
@@ -226,3 +226,5 @@ The middle-chain smoke script carries the findings of its Task 8 review.
       the addresser stage so an address other than the planted one fails there,
       not at mark
         > 2026-09-11 by reading: a wrong address fails at the next @path or disposition
+- [ ] T59 | Update smoke_middle.ps1:552-555, which says the proof stops at a2
+      until the code-check ruling lands; it no longer does

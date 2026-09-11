@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (112)
+### open  (113)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -294,6 +294,7 @@ that changed a published name or rule:
 | [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 2/13 | The reviewer prose is rules and punishments, not guidance toward a good result |
 | [a-machine-context-raises-query-and-clean](a-machine-context-raises-query-and-clean.md) | backend | yes | 0/8 | annotate carries two subjects -- it extracts index keys, and it flags claims it cannot settle. The second half becomes a context that marks like a role. |
 | [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | yes | 2/9 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
+| [smoke-middle-script](smoke-middle-script.md) | systems | -- | 58/59 | The middle-chain smoke script carries the findings of its Task 8 review |
 
 ### in-progress  (18)
 
@@ -461,4 +462,3 @@ the reason is inside the file.
 | [the-listing-goes](completed/the-listing-goes.md) | gather writes the binder only; a reviewer is handed the binder and its seeded copy; listing is retired and the gate says so -- Process #99 |
 | [listing-hands-the-repo](completed/listing-hands-the-repo.md) | Superseded: the listing was removed at Process #99, so its defects have no site |
 | [a-role-writes-its-own-mark-tool](completed/a-role-writes-its-own-mark-tool.md) | The mark command fills a role's copy: one ruling per invocation, change derived, the cited line quoted. T3's bulk clean superseded on Roy's ruling |
-| [smoke-middle-script](completed/smoke-middle-script.md) | every finding from the SP7 smoke script's reviews fixed or ruled, 2026-09-11 |
