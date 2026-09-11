@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 30 tasks closed
+Progress: 11 of 30 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -159,8 +159,9 @@ files in `corpora/` are in that state today.
       its add half the rule at :277
 - [ ] T27 | Update galley.py:97-98, which says every site takes [1] where the
       code reads .cue
-- [ ] T28 | Update the nine paragraphs 4ce9605d opened with a bang prefix and
-      capitalised runs, per Process 105 and 106
+- [x] T28 | no bang prefix or caps run left in the nine | 03908eb3 | Update the
+      nine paragraphs 4ce9605d opened with a bang prefix and capitalised runs,
+      per Process 105 and 106
         > 2026-09-11 compositor.py:203, :210, :215, :268; galley.py:133, :139, :201
         > 2026-09-11 test_galley.py:134, :151
 - [ ] T29 | Delete test_a_drop_leaves_the_leading_alone at
