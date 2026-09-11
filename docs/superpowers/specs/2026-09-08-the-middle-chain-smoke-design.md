@@ -194,8 +194,10 @@ script asserting on a sentence breaks on edits that broke nothing.
 
 ## Coupling, and the fact that this is provisional
 
-**Command names and flags live in one table at the top**, so a renamed command touches one row
-rather than a dozen call sites. The chief's command was `cap` while this was being written and
+**Command names live in one table at the top**, so a renamed command touches one row rather
+than a dozen call sites. Flags are written at each call site: each stage calls its command in
+one place, and a renamed flag touches only the calls that pass it (Roy, 2026-09-11,
+`smoke-middle-script` T12). The chief's command was `cap` while this was being written and
 is `disposition` as of 2026-09-08, `Vocabulary: #36`.
 
 **It asserts on exit codes and the diff. Nothing else.** Not wording, not intermediate artifacts,
