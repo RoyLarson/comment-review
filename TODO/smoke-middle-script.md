@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 31 of 58 tasks closed
+Progress: 32 of 58 tasks closed
 Owner:    systems
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-09-11 (review of SP7 Task 8 at 34aea6d4, 2026-09-11)
 ```
 
@@ -196,8 +196,9 @@ The middle-chain smoke script carries the findings of its Task 8 review.
 - [ ] T55 | Update smoke_fixture.py:383 and :387 so write_text is never handed
       str or None
         > 2026-09-11 ty reports both when pointed at scripts/; no None reaches it
-- [?] T56 | Decide whether ty's scope in pyproject.toml:170-171 takes in
-      scripts/, which it skips today
+- [x] T56 | RULED Process: #114 -- no; scripts are convenience | bd850467 | Decide
+      whether ty's scope in pyproject.toml:170-171 takes in scripts/, which it
+      skips today
 - [ ] T57 | Update smoke_middle.ps1:456 to read the addresser row's line from
       LANDINGS, not a second copy
 - [ ] T58 | Update the addresser stage so an address other than the planted one
