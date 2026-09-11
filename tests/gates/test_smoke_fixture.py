@@ -1,8 +1,9 @@
-"""The middle-chain smoke test's fixture yields every series, with more than
-one member in each -- a series of one never exercises its ordinals, which is
-what the first two drafts of this fixture got wrong.
+"""`scripts/smoke_fixture.py`: the fixture yields every series, with more than
+one member in each -- a series of one never exercises its ordinals -- the
+landing table agrees with the fixture, and `write_texts` writes what the
+smoke script reads.
 
-Read off the real page builder, `flows/page_for.page_of`, on 2026-09-11 --
+The series are read off the real page builder, `flows/page_for.page_of` --
 see `docs/superpowers/specs/2026-09-08-the-middle-chain-smoke-design.md`,
 "The fixture" and "What it yields".
 """
@@ -86,11 +87,11 @@ class TestTheFixtureYieldsEverySeries(unittest.TestCase):
 
 
 class TestTheLandingTableAgreesWithTheFixture(unittest.TestCase):
-    """T32's check: for a correction, `Landing.text` is what `desk.mark`'s
-    own derivation (`claim_change`) would produce -- the fixture's own
-    paragraph at that address, with the `--false` clause replaced by the
-    `--true` clause -- so the table cannot drift from what the fixture
-    actually holds.
+    """`LANDINGS` against the page built from `FIXTURE`: a correction's
+    `Landing.text` is what `desk.mark.derived_change` makes of the fixture's
+    paragraph at that address, and a landing at an empty place names the
+    line its place is set against -- so the table cannot drift from what the
+    fixture holds.
     """
 
     def setUp(self):

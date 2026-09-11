@@ -1,10 +1,10 @@
 # Drives the middle stages of the comment-review chain over a fixture tree,
 # for a smoke check that the chain from gather through proof still
-# composes: a binder, a topology, seeded copies, a planted scenario matrix
-# of marks, the fold's proof, the chief's dispositions closing it, and the
-# revise `proof` pulls from the closed copy. The last stage diffs that
-# revise against the text smoke_fixture.py says the plant makes land, and
-# passes only when the two are identical.
+# composes: a binder, a topology, seeded copies, the planted marks, the
+# fold's proof, the chief's dispositions closing it, and the revise `proof`
+# pulls from the closed copy. The last stage diffs that revise against the
+# text smoke_fixture.py says the plant makes land, and passes only when the
+# two are identical.
 # Provisional -- it drives a prototype surface and may be thrown away once
 # that surface settles.
 
@@ -44,8 +44,9 @@ if (-not $Run) {
     if ($Run -match '^~(?=$|[\\/])') {
         $Run = $HOME + $Run.Substring(1)
     }
-    # GetFullPath refuses a base that is not a directory, so a relative -Run
-    # from a registry or other non-filesystem location is refused here.
+    # GetFullPath throws on a base that is not a fully qualified path, and a
+    # registry or other non-filesystem location has none, so a relative -Run
+    # from one is refused and an absolute one is resolved without a base.
     if ([System.IO.Path]::IsPathFullyQualified($Run)) {
         $Run = [System.IO.Path]::GetFullPath($Run)
     } elseif ($CallerLocation.Provider.Name -eq 'FileSystem') {
@@ -56,8 +57,9 @@ if (-not $Run) {
     }
 }
 
-# A run never writes inside the repo, so a -Run landing there is refused
-# before any work is done.
+# A run leaves no permanent code changes inside the repo, and its outputs
+# belong outside it, so a -Run landing there is refused before any work is
+# done.
 $RepoRootTrimmed = $RepoRoot.TrimEnd([System.IO.Path]::DirectorySeparatorChar)
 $RunTrimmed = $Run.TrimEnd([System.IO.Path]::DirectorySeparatorChar)
 if ($RunTrimmed -eq $RepoRootTrimmed -or
@@ -71,8 +73,8 @@ if ($RunTrimmed -eq $RepoRootTrimmed -or
 # letter, digit or one of _ . / \ : = , - is single-quoted, with an
 # embedded single quote doubled; everything else is left bare. The line
 # is prefixed with "& " so a quoted executable (a path with a space)
-# still runs -- a bare quoted path is a parse error without the call
-# operator.
+# still runs -- a quoted path followed by arguments is a parse error
+# without the call operator.
 function Format-CommandLine {
     param([Parameter(Mandatory)] [string[]]$CommandLine)
     $formatted = $CommandLine | ForEach-Object {
@@ -85,18 +87,22 @@ function Format-CommandLine {
     '& ' + ($formatted -join ' ')
 }
 
-# Runs one native command, piping its output to the console (Out-Host) so
-# a caller capturing this script's own output gets only what it
-# Write-Outputs, and checks the exit code against what the stage expects
-# (0 unless -Expect says otherwise). With -Capture it returns the
-# command's standard output to the caller instead, for the one call whose
-# output the script reads. On failure -- a wrong exit code or a missing
-# executable -- it stops the script, printing any captured output, then
-# running -OnFailure if given, then the stage name, the expected and
-# actual exit codes, the directory it ran from and a command line that
-# runs when pasted into PowerShell, so the failure carries its own
-# reproduction. $PSNativeCommandUseErrorActionPreference is off above, so
-# nothing but this function reports a native failure.
+# Runs one native command and checks its exit code against what the stage
+# expects (0 unless -Expect says otherwise). The command's output goes to
+# the host (Out-Host), so an in-process caller capturing this script's
+# output gets only what the script Write-Outputs; under pwsh -File the
+# host writes to stdout, so a caller capturing that process gets both.
+# With -Capture it returns the command's standard output instead, for the
+# one call whose output the script reads.
+#
+# A wrong exit code stops the script: it prints any captured output, runs
+# -OnFailure if given, then prints the stage name, the expected and actual
+# exit codes, the directory it ran from and a command line that runs when
+# pasted into PowerShell, and exits with the actual code, or 1 where that
+# is 0. A missing executable stops it too, printing the stage name, the
+# executable, the directory and the command line, and exiting 1.
+# $PSNativeCommandUseErrorActionPreference is off above, so nothing but
+# this function reports a native failure.
 function Invoke-Checked {
     param(
         [Parameter(Mandatory)] [string]$Stage,
@@ -164,8 +170,11 @@ $ProofDir = Join-Path $Run 'proof'
 $ExpectedDir = Join-Path $Run 'expected'
 
 # Each entry is one stage's work, and the chain as this script leaves it ends
-# at diff. Add an entry to $Stages to extend it further, and a path variable
-# above for anything the new stage writes.
+# at diff. Each block runs in its own scope, so a variable a stage assigns is
+# gone when the next stage starts: what a later stage reads is a path above,
+# or a table above that a stage fills in place, as distribute fills
+# $CopyFile. Add an entry to $Stages to extend the chain, and a path
+# variable above for anything the new stage writes.
 $Stages = [ordered]@{
     fixture = {
         New-Item -ItemType Directory -Path $OriginalDir | Out-Null
@@ -215,13 +224,12 @@ $Stages = [ordered]@{
             $CopyFile[$role] = $held[0].Path
         }
     }
-    # `docs/superpowers/specs/2026-09-08-the-middle-chain-smoke-design.md`'s
-    # "The scenario matrix" named the first nine of these places, and the
-    # addresser row's at the end; the plant goes five further -- one `mark`
-    # invocation per ruling per role, no bulk pass, since `mark` itself
-    # refuses one. A place three roles have nothing to add to is marked
-    # clean by all three, or queried outside their remit; a2, b8, b17, c3
-    # and the addresser row's place get a ruling from one role alone.
+    # One `mark` call per ruling per role: `mark` takes one ruling per call
+    # and has no bulk pass. `LANDINGS` in smoke_fixture.py names what each
+    # planted place makes land. An empty place is in no copy, since a copy
+    # is seeded with the places that hold prose, so an add there creates its
+    # slot in its own role's copy and no other role has one to rule on: a2,
+    # b8, b17, c3 and the addresser row's place take one call each.
     mark = {
         Invoke-Checked -Stage 'plant-texts' -CommandLine @(
             'uv', 'run', 'python', '-c',
@@ -248,8 +256,7 @@ $Stages = [ordered]@{
             a0 = Join-Path $Run 'a0.txt'
         }
         # a0 -- the module docstring, already filled. block-context adds over
-        # it instead of cleaning it, to see what an add on a filled a does;
-        # the other three clean it as before.
+        # it, to see what an add on a filled a does; the other three clean it.
         Invoke-Checked -Stage 'mark a0 block-context add' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@a0',
             '--instruction', 'add',
@@ -266,8 +273,8 @@ $Stages = [ordered]@{
             ))
         }
         # c12 -- beside `if n < 2:`, already filled with `# base case`.
-        # ownership-context adds over it instead of cleaning it, to see what
-        # an add on a filled c does; the other three clean it as before.
+        # ownership-context adds over it, to see what an add on a filled c
+        # does; the other three clean it.
         Invoke-Checked -Stage 'mark c12 ownership-context add' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['ownership-context'], '--address', 'fib.py@c12',
             '--instruction', 'add',
@@ -283,8 +290,7 @@ $Stages = [ordered]@{
                 '--instruction', 'clean', '--repo', $OriginalDir
             ))
         }
-        # b8 -- the empty gap above `return wrapper`, absent b. block-context
-        # is the only role that touches this empty place.
+        # b8 -- the empty gap above `return wrapper`, absent b.
         Invoke-Checked -Stage 'mark b8 block-context add' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@b8',
             '--instruction', 'add',
@@ -294,9 +300,7 @@ $Stages = [ordered]@{
             '--reason', 'the return is the last step and nothing says so',
             '--cite', 'fib.py:18', '--repo', $OriginalDir
         ))
-        # b17 -- the empty closing gap after the dunder-main block, absent b
-        # at the foot (Addressing #19's foot rule). module-context is the
-        # only role that touches this empty place.
+        # b17 -- the empty closing gap after the dunder-main block, absent b.
         Invoke-Checked -Stage 'mark b17 module-context add' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', 'fib.py@b17',
             '--instruction', 'add',
@@ -307,7 +311,6 @@ $Stages = [ordered]@{
             '--cite', 'fib.py:34', '--repo', $OriginalDir
         ))
         # c3 -- the empty room beside `@functools.wraps(fn)`, absent c.
-        # function-context is the only role that touches this empty place.
         Invoke-Checked -Stage 'mark c3 function-context add' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['function-context'], '--address', 'fib.py@c3',
             '--instruction', 'add',
@@ -463,9 +466,7 @@ $Stages = [ordered]@{
                 '--cite', 'fib.py:5', '--repo', $OriginalDir
             ))
         }
-        # a2 -- one of seven adds. function-context is the only role that
-        # touches this empty place; wrapper carries no slot in anyone
-        # else's copy to rule on.
+        # a2 -- the empty place for wrapper's docstring, absent a.
         Invoke-Checked -Stage 'mark a2 function-context add' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['function-context'], '--address', 'fib.py@a2',
             '--instruction', 'add',
@@ -476,12 +477,12 @@ $Stages = [ordered]@{
             '--cite', 'fib.py:13', '--repo', $OriginalDir
         ))
         # The addresser row -- one add whose address this script does not
-        # spell. `addresser` names the `b` place at line 33, the empty gap
-        # above the dunder-main block, from the page itself, and prints one
-        # tab-separated line: the address, the line of code as Python's
-        # repr quotes it, and whether the binder holds the place. Only the
-        # first two fields are read. module-context is the only role that
-        # touches this empty place.
+        # spell. It asks `addresser` for the `b` place at the line
+        # `write_texts` put in addresser-row.json, and stops unless the
+        # address that comes back is the one beside it there. `addresser`
+        # prints one tab-separated line: the address, the line of code as
+        # Python's repr quotes it, and whether the binder holds the place.
+        # Only the first two fields are read.
         $row = Get-Content -LiteralPath (Join-Path $Run 'addresser-row.json') -Raw | ConvertFrom-Json
         $addresserCommand = $Launcher + @(
             $Cmd.addresser, '--binder', $BinderFile, '--file', 'fib.py',
@@ -513,9 +514,11 @@ $Stages = [ordered]@{
             '--cite', "fib.py:$($row.line)", '--repo', $OriginalDir
         ))
     }
-    # `check --edit-copy ... --binder ...` over each of the four copies, the
-    # same boundary `collate` would apply -- a run that passes here is a copy
-    # the fold reads whole.
+    # `check` over each of the four copies, before `collate`, whose exit code
+    # cannot say the same: collate is expected to exit 4 below, and in its
+    # exit codes an escalation outranks a place a role left unruled, so a
+    # copy short of a ruling would still meet that expectation. `check`
+    # exits 1 on it.
     check = {
         foreach ($role in $Roles) {
             Invoke-Checked -Stage "check $role" -CommandLine ($Launcher + @(
@@ -535,11 +538,10 @@ $Stages = [ordered]@{
             '--out', $ChiefFile, '--proof-out', $Proof0File
         ))
     }
-    # The chief's dispositions close the ten carried-forward places
-    # (`write_texts` writes `dispositions.json` at the mark stage above,
-    # from `DISPOSITIONS` in smoke_fixture.py, which reads `b9`'s recast
-    # prose out of `LANDINGS`), then `disposition` folds them into the
-    # closed proof.
+    # `disposition` folds the chief's rulings over the places `collate`
+    # carried forward into the closed proof. The rulings are
+    # dispositions.json, which `write_texts` wrote at the mark stage from
+    # `DISPOSITIONS` in smoke_fixture.py.
     disposition = {
         Invoke-Checked -Stage 'disposition' -CommandLine ($Launcher + @(
             $Cmd.disposition, '--proof', $Proof0File, '--binder', $BinderFile,
@@ -559,7 +561,8 @@ $Stages = [ordered]@{
     }
     # The diff is the assertion: `write_expected` writes the text
     # smoke_fixture.py says the plant makes land, and git compares it with
-    # the proof. Exit 0 means the proof is exactly what was planted. On a
+    # the proof, with core.autocrlf off so a line ending that differs is a
+    # difference. Exit 0 means the proof is exactly what was planted. On a
     # difference it also prints the original against the proof, so a reader
     # sees what the chain did.
     diff = {
@@ -618,6 +621,6 @@ finally {
     Set-Location $CallerLocation
 }
 
-# An in-process caller reads $LASTEXITCODE, which still holds the last native
-# command's code -- collate's expected 4, for a run stopped there.
+# Without this an in-process caller's $LASTEXITCODE would hold the last
+# native command's code -- collate's expected 4, for a run stopped there.
 exit 0

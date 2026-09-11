@@ -8,18 +8,13 @@ is fixed -- `LANDINGS` and `DISPOSITIONS` below plant decisions against
 specific addresses on it, so the text here must not drift from what those
 tables describe.
 
-`LANDINGS` names, per planted address, a `Landing`: the outcome (`"text"`,
-`"removed"` or `"kept"`), what decides it, the paragraph as it will sit on
-disk where the outcome is text, the `--false` and `--true` clauses beside it
-for the two corrections whose landing IS the corrected side, since `mark`
-needs both, and -- where the place was empty in `FIXTURE` -- the fixture line
-the landing is set against. `DISPOSITIONS` is the chief's own ruling over
-every place `collate` carries forward -- three escalations and seven
-re-reads, one per `add` -- reading its `b9` recast prose out of `LANDINGS`
-rather than holding a second copy. `write_texts` writes a file for every
-text landing a `mark` call carries (two files for a correction's clauses,
-one otherwise), plus `dispositions.json`; `b9` is recast in `DISPOSITIONS`,
-so it gets no file and reaches the proof only inline.
+`LANDINGS` names, per planted address, a `Landing`: what lands there and
+what decides it. `ADDRESSER_ROW` is the entry the smoke script finds through
+`addresser` rather than by its address. `DISPOSITIONS` is the chief's own
+ruling over every place `collate` carries forward. `write_texts` writes the
+files the smoke script's `mark` calls read by `@path` -- a file for every
+text landing a `mark` call carries, two for a correction's clauses -- plus
+`dispositions.json` and `addresser-row.json`.
 
 `EXPECTED` is the text the proof's `fib.py` must read once the chain
 closes, and `write_expected` writes it for the smoke script's `diff` stage.
@@ -74,10 +69,10 @@ FIXTURE = (
 def write_fixture(root: Path) -> Path:
     """Write the fixture to `root / "fib.py"` and return its path.
 
-    Written with an explicit LF newline: a later task diffs the proof
-    against this file byte for byte, and `write_text`'s default newline
-    translation would make the fixture differ by machine on a repo that
-    mixes line endings.
+    Written with an explicit LF newline: the proof is set from this file,
+    and the smoke script's `diff` stage compares the proof byte for byte
+    with `EXPECTED`, which `write_expected` writes with LF too.
+    `write_text`'s default newline translation would write CRLF on Windows.
 
     Args:
         root: the directory to write into. Not created here -- the caller's
@@ -100,9 +95,10 @@ class Landing(NamedTuple):
     escalation the original side won, or a query nothing else settles).
     `text` is set only where `outcome` is `"text"`, and holds the whole
     paragraph exactly as it will sit on disk -- a `c` place's separator and
-    marker included. A role's `mark` call carries it as `--change` or
-    `--true`, except where the chief recasts the place in `DISPOSITIONS`,
-    whose own prose is the text.
+    marker included. For an `add` or the move's destination, a role's `mark`
+    call carries it as `--change`; for a correction, `mark` derives it from
+    `false` and `true`; where the chief recasts the place in `DISPOSITIONS`,
+    the recast prose is the text.
 
     `route` says what decides the outcome, and has no default, so every
     entry states its own: `"mark"` where the fold settles the place from the
@@ -113,9 +109,10 @@ class Landing(NamedTuple):
 
     `false` and `true` hold a correction's own clauses, bare, beside its
     landing -- set only for `c6` and `c1`, the two corrections whose
-    landing IS the corrected side. `mark` needs both to derive the change
-    itself (`desk.mark.claim_change` replaces `false` with `true` in the
-    paragraph it seeded), so `write_texts` writes each to its own file.
+    landing is the corrected side. `mark` needs both to derive the change
+    itself (`desk.mark.derived_change` replaces `false` with `true` in the
+    paragraph the row seeded), and the smoke script passes each by `@path`
+    from the file `write_texts` writes for it.
 
     `line` is set only where the place was empty in `FIXTURE`, and names the
     1-based `FIXTURE` line the landing is set against: the declaring line an
@@ -134,21 +131,12 @@ class Landing(NamedTuple):
 
 #: What the plant makes land at each planted address once the chain closes.
 #: `docs/superpowers/specs/2026-09-08-the-middle-chain-smoke-design.md`'s
-#: "The scenario matrix" names the first nine of these addresses in prose,
-#: and asks for one more found by `addresser` -- `b15`; the plant goes five
-#: further, testing an `add` at other absent and already-filled places
-#: across the `a`, `b` and `c` series. Ten entries carry text landed by a
-#: `mark` call's `--change`, `--false` or `--true`: a role's own clause, the
-#: move's destination, or one of seven `add`s -- one on the empty `a2`, one
-#: on the empty `b15`, and five more on `a0`, `b8`, `b17`, `c3` and `c12`.
-#: One entry, `b9`, carries the chief's own `recast` prose instead, reaching
-#: the proof only through `dispositions.json`. Four carry no text: `outcome`
-#: is `"removed"` where the drop or the move's own vacated origin leaves
-#: nothing, and `"kept"` where the fixture's own wording stands. Each entry's
-#: `route` names what decides it: the fold alone for `c6`, `b14`, `b1` and
-#: `b0`; a human query left standing for `a1`; and `disposition` for the
-#: other ten -- `c1`, `a3`, `b9` and the seven adds. `EXPECTED` below is
-#: written from `FIXTURE` and this table.
+#: "The scenario matrix" lists paths through the middle, not addresses; each
+#: of its rows is planted at one or more of these. It asks for an `add` at an
+#: empty place and one fed by the addresser lookup -- `a2` and `b15` -- and the
+#: plant adds at five places more: the empty `b8`, `b17` and `c3`, and the
+#: filled `a0` and `c12`. `EXPECTED` below is written from `FIXTURE` and this
+#: table.
 LANDINGS: dict[str, Landing] = {
     # block-context's correction is the only one that lands at c6; the
     # other three roles mark a scope-declaring query instead of clean, so
@@ -177,8 +165,8 @@ LANDINGS: dict[str, Landing] = {
         text="# Module state, written by the wrapper and read by the caller.",
         line=3,
     ),
-    # the add's --change: wrapper's docstring, indented to its body's depth,
-    # below `def wrapper(n):`.
+    # function-context's add, on the absent a below `def wrapper(n):` --
+    # wrapper's docstring, indented to its body's depth.
     "fib.py@a2": Landing(
         "text",
         route="disposition",
@@ -217,8 +205,8 @@ LANDINGS: dict[str, Landing] = {
         text="    # Counting done, wrapper is handed back unchanged.",
         line=18,
     ),
-    # module-context's add, on an absent b at the foot, after the dunder-main
-    # block -- Addressing #19's foot rule.
+    # module-context's add, on the absent closing gap after the dunder-main
+    # block.
     "fib.py@b17": Landing(
         "text",
         route="disposition",
@@ -226,9 +214,7 @@ LANDINGS: dict[str, Landing] = {
         line=34,
     ),
     # module-context's add, on the absent b above `if __name__ ==
-    # "__main__":` -- the addresser row. smoke_middle.ps1 does not spell
-    # this address: it asks `addresser` for the `b` place at line 33 and
-    # marks the address that comes back.
+    # "__main__":` -- `ADDRESSER_ROW`.
     "fib.py@b15": Landing(
         "text",
         route="disposition",
@@ -473,9 +459,9 @@ def write_expected(root: Path) -> Path:
 
     Written with an explicit LF newline, as `write_fixture` writes, so it
     carries the line endings the proof sets from the fixture. The smoke
-    script's `diff` stage compares the two with `git diff --no-index`, which
-    under `core.autocrlf=true` reads a CRLF line as LF -- so that comparison
-    does not see a line-ending difference, only a text one.
+    script's `diff` stage compares the two with `git diff --no-index` under
+    `core.autocrlf=false`, so a line-ending difference fails it as a text
+    one does.
 
     Args:
         root: the directory to write into. Not created here -- the smoke
