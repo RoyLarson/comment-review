@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 24 tasks closed
+Progress: 6 of 24 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `binder/binder.py` run against its
@@ -195,8 +195,9 @@ task 5's, but the fix for these two lands in `binder/binder.py`.
       too, instead of naming no entry
         > 2026-09-07 claude-settings: b7 ABSENT by anchor, no entry by resolve
         > 2026-09-07 evidence: OneDrive comment-review-feedback/claude-settings
-- [ ] T24 | Update binder.addresses.handed so a role is handed the f places too,
-      per Addressing 24
+- [-] T24 | SUPERSEDED -- Addressing 26: f places are still excluded by default | 824044df | Update
+      binder.addresses.handed so a role is handed the f places too, per
+      Addressing 24
         > 2026-09-11 seeded at distribute.py:106, counted at collate.py:710
         > 2026-09-11 page.py:234 in Page.prose leaves the f series out as well
         > 2026-09-11 reopened: its supersede read Addressing 25 past what was ruled
