@@ -97,7 +97,10 @@ function Invoke-Checked {
         Write-Host "actual exit code: $LASTEXITCODE"
         Write-Host "directory: $((Get-Location).Path)"
         Write-Host "command: $(Format-CommandLine $CommandLine)"
-        exit $LASTEXITCODE
+        if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+        }
+        exit 1
     }
 }
 
