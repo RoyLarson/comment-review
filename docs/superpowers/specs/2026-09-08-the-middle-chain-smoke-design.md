@@ -102,18 +102,25 @@ if __name__ == "__main__":
 
 ### What it yields
 
+Read off the page builder itself, `flows/page_for.page_of`, on 2026-09-11 -- the first draft of
+this table was written from memory and was wrong in two rows.
+
 | series | what the fixture gives it |
 | --- | --- |
-| `a` | four places: the module docstring, `logged`, `fib`, and **`wrapper` with none**, which is the empty declaration an `add` can fill |
-| `b` | three filled, including **a two-line run** above the decorator stack and one **inside a function body**; empties remain after `import functools` and before `return wrapper` |
-| `c` | three filled, one of them **inside a function body** |
-| `d` | the blank lines between every block, which a drop has to resolve |
-| `f` | both ends: the module docstring at the head, the dunder-main block at the foot |
+| `a` | four places: `a0` the module docstring, `a1` `logged`, `a3` `fib`, and **`a2` `wrapper` with none**, the empty declaration an `add` can fill |
+| `b` | eighteen places, three filled: `b1`, **the two-line run at `b9`** above the decorator stack, and `b14` **inside `fib`'s body**. The rest are empty, `b8` above `return wrapper` among them |
+| `c` | seventeen places, one per code line, three filled: `c1`, and two **inside a function body** -- `c6` in `wrapper`, `c12` in `fib` |
+| `f` | two places, **both empty**: `f0` at the head, since the module docstring is `a0`, and `f1` at the end of file, since the dunder-main block is code at `b15` and `b16` |
+
+**Leading is not a series here, and not a place.** It takes a symbol and never an address --
+`Addressing: #4` and `#5` -- so it appears in `page.leading` rather than in `page.cues.places`:
+seven of them, `d0` to `d6`, which a drop has to resolve.
 
 Three shapes in it are edge cases rather than decoration: **two stacked decorators**, so the
 anchor of a declaration is not its `def` line; **a nested `def` inside a function body**, which
-is the position `module-context` declined 39 times on the 2026-09-07 run; and the **dunder-main
-block at the foot**, where `Addressing: #19` says the leading goes on the other side.
+is the position `module-context` declined 39 times on the 2026-09-07 run; and **an empty foot**,
+`f1` and the closing gap `b17` after the dunder-main block, where an `add` exercises
+`Addressing: #19`'s rule that at the foot the leading goes on the other side.
 
 Each series carries more than one member on purpose. A series of one never exercises its
 ordinals, and the first two drafts of this fixture had exactly that fault -- a single `c` and no
