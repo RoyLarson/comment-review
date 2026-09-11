@@ -40,21 +40,25 @@ if (Test-Path -LiteralPath $Run) {
     exit 1
 }
 
-# Runs one native command, checks its exit code and stops the script on
-# failure -- printing the stage name, the exit code and the full command
-# line, so the failure carries its own reproduction. $PSNativeCommandUseErrorActionPreference
-# is off above, so nothing but this function reports a native failure.
+# Runs one native command, checks its exit code against what the stage
+# expects (0 unless -Expect says otherwise) and stops the script on
+# failure -- printing the stage name, the expected and actual exit codes
+# and the full command line, so the failure carries its own reproduction.
+# $PSNativeCommandUseErrorActionPreference is off above, so nothing but
+# this function reports a native failure.
 function Invoke-Checked {
     param(
         [Parameter(Mandatory)] [string]$Stage,
-        [Parameter(Mandatory)] [string[]]$CommandLine
+        [Parameter(Mandatory)] [string[]]$CommandLine,
+        [int]$Expect = 0
     )
     $exe = $CommandLine[0]
     $rest = $CommandLine[1..($CommandLine.Length - 1)]
     & $exe @rest
-    if ($LASTEXITCODE -ne 0) {
+    if ($LASTEXITCODE -ne $Expect) {
         Write-Host "stage failed: $Stage"
-        Write-Host "exit code: $LASTEXITCODE"
+        Write-Host "expected exit code: $Expect"
+        Write-Host "actual exit code: $LASTEXITCODE"
         Write-Host "command: $($CommandLine -join ' ')"
         exit $LASTEXITCODE
     }
