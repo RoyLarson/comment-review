@@ -569,6 +569,7 @@ and this task waits on them.
 - [ ] **Step 2: A `turn` stage** -- `collate --batch-out`, one planted answer per slot (a withdrawal at `c1`, holds and cleans elsewhere), `check --answers` per role, `turn`, then `disposition` on the turn's proof
 - [ ] **Step 3: Done gate** -- the whole script, with the turn, exits 0 from empty and the diff matches what was planted
 - [ ] **Step 4: Tick** each task against its commit, in a later commit
+- [ ] **Step 5: Every answer a turn can take is planted at least once** -- Roy, 2026-09-11: *"Thats why it can't be partially done. The options need to be exercised."* On an escalation: `hold`, `withdraw`, `correct` and `patch`. On a composition re-read: `clean`, `correct`, `patch` and `query`. Each lands in the expected proof or is shown refused where the contract says it must be
 
 ---
 
