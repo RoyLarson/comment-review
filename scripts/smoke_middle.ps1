@@ -140,7 +140,10 @@ $Stages = [ordered]@{
     }
 }
 
-if ($Stop -and ($Stages.Keys -notcontains $Stop)) {
+# $PSBoundParameters tells "not given" (run every stage) from "given
+# empty" (refused), which $Stop alone cannot: both read as falsy.
+if ($PSBoundParameters.ContainsKey('Stop') -and
+    ($Stop -eq '' -or $Stages.Keys -notcontains $Stop)) {
     Write-Host "unknown -Stop value: $Stop (valid: $($Stages.Keys -join ', '))"
     exit 1
 }
