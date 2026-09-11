@@ -44,8 +44,9 @@ if (Test-Path -LiteralPath $Run) {
 # expects (0 unless -Expect says otherwise) and stops the script on
 # failure -- printing the stage name, the expected and actual exit codes
 # and the full command line, so the failure carries its own reproduction.
-# $PSNativeCommandUseErrorActionPreference is off above, so nothing but
-# this function reports a native failure.
+# A missing executable is caught the same way, naming the stage and
+# command instead of an exit code. $PSNativeCommandUseErrorActionPreference
+# is off above, so nothing but this function reports a native failure.
 function Invoke-Checked {
     param(
         [Parameter(Mandatory)] [string]$Stage,
@@ -54,7 +55,14 @@ function Invoke-Checked {
     )
     $exe = $CommandLine[0]
     $rest = @($CommandLine | Select-Object -Skip 1)
-    & $exe @rest
+    try {
+        & $exe @rest
+    } catch [System.Management.Automation.CommandNotFoundException] {
+        Write-Host "stage failed: $Stage"
+        Write-Host "executable not found: $exe"
+        Write-Host "command: $($CommandLine -join ' ')"
+        exit 1
+    }
     if ($LASTEXITCODE -ne $Expect) {
         Write-Host "stage failed: $Stage"
         Write-Host "expected exit code: $Expect"
