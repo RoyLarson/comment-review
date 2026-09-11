@@ -31,7 +31,7 @@ $RepoRoot = Split-Path -Parent $PSScriptRoot
 $CallerLocation = Get-Location
 
 if (-not $Run) {
-    $Run = Join-Path ([System.IO.Path]::GetTempPath()) ("smoke-middle-" + (Get-Date -Format 'yyyyMMdd-HHmmss'))
+    $Run = Join-Path ([System.IO.Path]::GetTempPath()) ("smoke-middle-" + (Get-Date -Format 'yyyyMMdd-HHmmss-fff'))
 } else {
     $Run = [System.IO.Path]::GetFullPath((Join-Path $CallerLocation.Path $Run))
 }
