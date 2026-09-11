@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 30 tasks closed
+Progress: 10 of 30 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -134,10 +134,12 @@ files in `corpora/` are in that state today.
 - [-] T18 | SUPERSEDED by Addressing: #23 -- a role writes no leading, so there is none to keep | f850c321 | Update
       the compositor to keep the leading a change writes at a gap. Verify: a
       change given a leading blank is set with it, per Process 110
-- [ ] T19 | Delete the leading half of galley._vacate so a drop empties the b
-      alone. Verify: no d is written by the galley, per Addressing 22
-- [ ] T20 | Update the compositor to drop a leading whose place is vacated.
-      Verify: an unedited round trip stays byte-identical
+- [x] T19 | galley._vacate empties raw_lines alone | 4ce9605d | Delete the
+      leading half of galley._vacate so a drop empties the b alone. Verify: no d
+      is written by the galley, per Addressing 22
+- [x] T20 | set_page drops the leading under a vacated place | 4ce9605d | Update
+      the compositor to drop a leading whose place is vacated. Verify: an
+      unedited round trip stays byte-identical
         > 2026-09-08 Addressing 19's absence rule first fired on unedited composes
 - [ ] T21 | Update galley.py's docstring, which claims it sets text as files.
       Verify: it says it alters Paragraphs on a Page and writes none

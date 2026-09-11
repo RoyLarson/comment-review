@@ -49,7 +49,7 @@
 - Consumes: `flows.page_for.page_of(source, rel=..., source=...) -> tuple[Page | None, str]`
 - Produces: `fill(copy, entry, root)` refusing an address whose cue names no place on its page, with a reason containing `names no place on that page`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_a_cue_the_page_does_not_have_is_refused(tmp_path):
@@ -62,12 +62,12 @@ def test_a_cue_the_page_does_not_have_is_refused(tmp_path):
     assert any("names no place" in reason for reason in why)
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `uv run pytest -q tests/test_fill.py -k cue_the_page_does_not_have`
 Expected: fail. Today `fill` checks the path half only, so the mark is accepted and a seed is manufactured for it.
 
-- [ ] **Step 3: Resolve the address against its page**
+- [x] **Step 3: Resolve the address against its page**
 
 In `fill()`, after `_sheet_for` finds the sheet and before the seed is built:
 
@@ -81,16 +81,16 @@ In `fill()`, after `_sheet_for` finds the sheet and before the seed is built:
         return None, [f"{address} names no place on that page"]
 ```
 
-- [ ] **Step 4: Run it and watch it pass**
+- [x] **Step 4: Run it and watch it pass**
 
 Run: `uv run pytest -q tests/test_fill.py -v`
 Expected: pass, and all sixteen existing cases still pass. They use real addresses over a real tree, which is why they are unaffected.
 
-- [ ] **Step 5: Gates**
+- [x] **Step 5: Gates**
 
 Run: `uv run ruff check . ; uv run ruff format . ; uv run ruff check . ; uv run ty check ; uv run pytest -q`
 
-- [ ] **Step 6: Commit, then tick in a later commit**
+- [x] **Step 6: Commit, then tick in a later commit**
 
 ```bash
 git add src/comment_review/flows/fill.py tests/test_fill.py
@@ -111,7 +111,7 @@ git add TODO/ ; git commit -F <tick message file>
 - Consumes: the `page` lookup Task 1 put in `fill()`.
 - Produces: a mark at a place the copy has no slot for, carrying the page's own anchor and an empty `raw_text`, never the entry's anchor.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_an_absent_place_is_seeded_from_the_page(tmp_path):
@@ -133,22 +133,22 @@ def test_an_absent_place_is_seeded_from_the_page(tmp_path):
     assert placed["raw_text"] == ""
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `uv run pytest -q tests/test_fill.py -k seeded_from_the_page`
 Expected: fail on the anchor assertion. Today the no-slot branch reads `Mark.seed(address, str(entry.get("anchor") or ""), "")`.
 
-- [ ] **Step 3: Take the anchor from the page**
+- [x] **Step 3: Take the anchor from the page**
 
 ```python
         seeded = Mark.seed(address, page.cues.anchor_of(address.partition("@")[2]), "")
 ```
 
-- [ ] **Step 4: Run it and watch it pass**
+- [x] **Step 4: Run it and watch it pass**
 
 Run: `uv run pytest -q tests/test_fill.py -v`
 
-- [ ] **Step 5: Gates, then commit and tick `mark-defects` T15**
+- [x] **Step 5: Gates, then commit and tick `mark-defects` T15**
 
 Same gate sequence and commit shape as Task 1.
 
@@ -163,7 +163,7 @@ Same gate sequence and commit shape as Task 1.
 **Interfaces:**
 - Produces: a problem naming the role and the address, so the task agent can route it back. Reported, never raised.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_a_mark_at_a_cue_no_page_holds_is_reported(tmp_path):
@@ -176,20 +176,20 @@ def test_a_mark_at_a_cue_no_page_holds_is_reported(tmp_path):
     assert any("b9999" in p.address for p in got.problems)
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `uv run pytest -q tests/test_collate.py -k cue_no_page_holds`
 Expected: fail. The fold rules on contents and an address nothing holds is not among what it checks today.
 
-- [ ] **Step 3: Report it, do not raise**
+- [x] **Step 3: Report it, do not raise**
 
 `desk/containers.py` states the split this obeys: a container rules on the envelope and the run errors out; `problems_in` rules on contents and reports so each routes back to the role that wrote it. An unresolvable address is contents.
 
-- [ ] **Step 4: Run it and watch it pass, then the file**
+- [x] **Step 4: Run it and watch it pass, then the file**
 
 Run: `uv run pytest -q tests/test_collate.py`
 
-- [ ] **Step 5: Gates, then commit and tick `collator-defects` T40**
+- [x] **Step 5: Gates, then commit and tick `collator-defects` T40**
 
 ---
 
@@ -202,7 +202,7 @@ Run: `uv run pytest -q tests/test_collate.py`
 **Interfaces:**
 - Produces: `rule_at_max_turns(..., Answer.RECAST, ...)` yielding a `Determined` whose mark carries the instruction the roles filed rather than `correct`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_a_recast_of_an_add_stays_an_add(self):
@@ -218,12 +218,12 @@ def test_a_recast_of_an_add_stays_an_add(self):
 
 `_escalated_add` is a new helper beside `_escalated`, building two roles' `add` marks at one empty place so the fold carries it forward.
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `uv run pytest -q tests/test_turn.py -k recast_of_an_add`
 Expected: fail, the instruction reading `correct`.
 
-- [ ] **Step 3: Carry the filed instruction through the recast**
+- [x] **Step 3: Carry the filed instruction through the recast**
 
 `flows/turn.py:561` hardcodes `instruction=Instruction.CORRECT` inside the recast's synthesized
 `Mark`, with `claim={"false": first.raw_text, "true": prose}`. Take the instruction from
@@ -231,11 +231,11 @@ Expected: fail, the instruction reading `correct`.
 quote, which is exactly why the empty `claim.false` wrote nothing. The claim each instruction
 owes is in `desk/mark.py`'s `INSTRUCTIONS` table.
 
-- [ ] **Step 4: Run it and watch it pass, then both files**
+- [x] **Step 4: Run it and watch it pass, then both files**
 
 Run: `uv run pytest -q tests/test_turn.py tests/test_disposition_command.py`
 
-- [ ] **Step 5: Gates, then commit and tick `the-chief-has-no-recast-workflow` T1**
+- [x] **Step 5: Gates, then commit and tick `the-chief-has-no-recast-workflow` T1**
 
 Leave its note in place. It records that the `P14` wait was withdrawn rather than satisfied.
 
@@ -250,7 +250,7 @@ Leave its note in place. It records that the `P14` wait was withdrawn rather tha
 **Interfaces:**
 - Produces: `reset()` emptying the paragraph alone. No leading is written by the galley.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_a_drop_leaves_the_leading_alone(self):
@@ -263,21 +263,21 @@ def test_a_drop_leaves_the_leading_alone(self):
     assert page.leading == before
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `uv run pytest -q tests/test_galley.py -k leading_alone`
 Expected: fail. `_vacate` empties the leading the dropped place owns.
 
-- [ ] **Step 3: Remove the leading half of `_vacate`**
+- [x] **Step 3: Remove the leading half of `_vacate`**
 
 Delete the branch that empties it. The paragraph is still vacated; the leading is left to the compositor.
 
-- [ ] **Step 4: Run the two files and expect red**
+- [x] **Step 4: Run the two files and expect red**
 
 Run: `uv run pytest -q tests/test_galley.py tests/test_compositor.py`
 Expected: the drop cases now fail on composed output, because nothing drops the leading yet. **Do not commit here.** Tasks 5 and 6 are one unit and land in one commit.
 
-- [ ] **Step 5: Go straight to Task 6**
+- [x] **Step 5: Go straight to Task 6**
 
 ---
 
@@ -291,7 +291,7 @@ Expected: the drop cases now fail on composed output, because nothing drops the 
 - Consumes: Task 5's galley, which now leaves `page.leading` untouched.
 - Produces: `set_page` omitting the leading of a place whose kind held prose and whose `raw_lines` are now empty.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_a_vacated_place_loses_its_leading(self):
@@ -300,21 +300,21 @@ def test_a_vacated_place_loses_its_leading(self):
     assert "\n\n\n" not in set_page(page)
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `uv run pytest -q tests/test_compositor.py -k vacated_place_loses`
 Expected: fail, the blank standing over whatever follows.
 
-- [ ] **Step 3: Mirror the absence rule already there**
+- [x] **Step 3: Mirror the absence rule already there**
 
 `set_page` computes `absent` -- the places whose kind says absence -- for the add rule. The drop is its mirror: a place whose kind held prose and whose `raw_lines` are now empty owes no leading. Key it on the paragraph's state, not on whether a leading was looked up. `Addressing: #19` records that the edge alone fired on modifies and on unedited composes.
 
-- [ ] **Step 4: Run the round trip, which is the real gate**
+- [x] **Step 4: Run the round trip, which is the real gate**
 
 Run: `uv run pytest -q tests/test_compositor.py tests/test_galley.py tests/test_proof_setter.py`
 Expected: pass, and **an unedited page still sets back byte-identical.** That is the hazard `Addressing: #19` paid for once already, arriving from the other side.
 
-- [ ] **Step 5: Gates, then commit Tasks 5 and 6 together, then tick**
+- [x] **Step 5: Gates, then commit Tasks 5 and 6 together, then tick**
 
 Tick `galley-and-compositor-write-path` T19 and T20 against the one sha.
 
@@ -329,7 +329,7 @@ Tick `galley-and-compositor-write-path` T19 and T20 against the one sha.
 **Interfaces:**
 - Produces: `write_fixture(root: Path) -> Path`, the written file's path; and `write_texts(run_dir: Path) -> dict[str, Path]`, the planted comment text files keyed by scenario name.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 def test_the_fixture_yields_every_series(tmp_path):
@@ -342,20 +342,20 @@ def test_the_fixture_yields_every_series(tmp_path):
     assert len(trailing) == 3
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 Run: `uv run pytest -q tests/gates/test_smoke_fixture.py`
 Expected: fail, the module not existing.
 
-- [ ] **Step 3: Write the module**
+- [x] **Step 3: Write the module**
 
 `write_fixture` writes the file the spec names, verbatim: the recursive Fibonacci with the logging decorator, three trailing comments, three standalone comment runs, two stacked decorators, a nested `def`, and a dunder-main block. `write_texts` writes one file per planted change so no multi-line text crosses a shell.
 
-- [ ] **Step 4: Run it and watch it pass**
+- [x] **Step 4: Run it and watch it pass**
 
 Run: `uv run pytest -q tests/gates/test_smoke_fixture.py -v`
 
-- [ ] **Step 5: Gates, then commit**
+- [x] **Step 5: Gates, then commit**
 
 ---
 
