@@ -40,13 +40,28 @@ if (Test-Path -LiteralPath $Run) {
     exit 1
 }
 
+# Quotes each argument that needs it for a faithful paste into PowerShell:
+# single-quoted, with an embedded single quote doubled. An argument with
+# no space or quote is left bare.
+function Format-CommandLine {
+    param([Parameter(Mandatory)] [string[]]$CommandLine)
+    ($CommandLine | ForEach-Object {
+        if ($_ -match '[\s''"]') {
+            "'" + ($_ -replace "'", "''") + "'"
+        } else {
+            $_
+        }
+    }) -join ' '
+}
+
 # Runs one native command, checks its exit code against what the stage
 # expects (0 unless -Expect says otherwise) and stops the script on
-# failure -- printing the stage name, the expected and actual exit codes
-# and the full command line, so the failure carries its own reproduction.
-# A missing executable is caught the same way, naming the stage and
-# command instead of an exit code. $PSNativeCommandUseErrorActionPreference
-# is off above, so nothing but this function reports a native failure.
+# failure -- printing the stage name, the expected and actual exit codes,
+# the directory it ran from and a command line that runs when pasted into
+# PowerShell, so the failure carries its own reproduction. A missing
+# executable is caught the same way, naming the stage and command instead
+# of an exit code. $PSNativeCommandUseErrorActionPreference is off above,
+# so nothing but this function reports a native failure.
 function Invoke-Checked {
     param(
         [Parameter(Mandatory)] [string]$Stage,
@@ -60,14 +75,16 @@ function Invoke-Checked {
     } catch [System.Management.Automation.CommandNotFoundException] {
         Write-Host "stage failed: $Stage"
         Write-Host "executable not found: $exe"
-        Write-Host "command: $($CommandLine -join ' ')"
+        Write-Host "directory: $((Get-Location).Path)"
+        Write-Host "command: $(Format-CommandLine $CommandLine)"
         exit 1
     }
     if ($LASTEXITCODE -ne $Expect) {
         Write-Host "stage failed: $Stage"
         Write-Host "expected exit code: $Expect"
         Write-Host "actual exit code: $LASTEXITCODE"
-        Write-Host "command: $($CommandLine -join ' ')"
+        Write-Host "directory: $((Get-Location).Path)"
+        Write-Host "command: $(Format-CommandLine $CommandLine)"
         exit $LASTEXITCODE
     }
 }
