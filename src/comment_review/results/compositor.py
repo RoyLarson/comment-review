@@ -155,11 +155,10 @@ def set_page(page: Page, newline: str | None = None) -> str:
     # key means those two places sit against each other, which is what 90% of
     # `c`->`c` boundaries do.
     #
-    # ! A RUN ABOVE EVERYTHING FOLLOWS NOTHING, and is filed under `""`.
-    # !! AN EDGE BELONGS TO THE PLACE BEFORE IT, which is what it is KEYED BY.
-    # When a paragraph goes away the live first key keeps its leading and the
-    # dropped one loses it; the live one takes a new key covering the new end
-    # and beginning.
+    # A run above everything follows nothing, and is filed under `""`.
+    # An edge belongs to the place before it, which is what it is keyed by.
+    # When a paragraph goes away the place before it keeps its leading and the
+    # dropped place's is not set; no key changes.
     #
     # The lookup is the base rule, and each direction adds one check to it.
     # Drop `P` between X and Y: `P` sets nothing but still becomes `previous`,
