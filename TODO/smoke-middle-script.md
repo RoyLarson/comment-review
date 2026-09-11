@@ -17,6 +17,7 @@ The middle-chain smoke script carries the findings of its Task 8 review.
 - [ ] T1 | Update smoke_middle.ps1:35 so a relative -Run resolves against the
       caller's location, not the process directory
         > 2026-09-11 probed: -Run scripts from elsewhere named the repo dir
+        > 2026-09-11 at 38671d29 an absolute -Run is refused as inside the repo
 - [ ] T2 | Update smoke_middle.ps1:58 so a failed stage prints a command that
       runs when pasted, and its working directory
 - [ ] T3 | Update smoke_middle.ps1 so a missing executable is reported by the
@@ -25,10 +26,12 @@ The middle-chain smoke script carries the findings of its Task 8 review.
 - [ ] T4 | Update the helper at smoke_middle.ps1:55 so a stage can expect a code
       other than 0, as collate must expect 4
         > 2026-09-11 Task 9 needs it: spec c7ec4932 wants collate at 4
+        > 2026-09-11 at dccdbcb5 expecting 4 and getting 0 still exits 0
 - [ ] T5 | Update smoke_middle.ps1:53 so a one-element command line does not
       throw under strict mode
 - [ ] T6 | Update smoke_middle.ps1 so the stage names at :23 and the stage
       blocks at :71 cannot fall out of step
+        > 2026-09-11 at 0c7f3e44 the note at :110 still names $StageOrder
 - [ ] T7 | Update the header at smoke_middle.ps1:1-3 and the note at :69-70 as
       stages are added past distribute
 - [ ] T8 | Update smoke_middle.ps1 so the launcher prefix at :82, :88, :93 and
