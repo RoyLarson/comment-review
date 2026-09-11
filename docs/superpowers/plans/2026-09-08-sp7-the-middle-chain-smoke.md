@@ -367,7 +367,7 @@ Run: `uv run pytest -q tests/gates/test_smoke_fixture.py -v`
 **Interfaces:**
 - Produces: a run directory holding `binder.json`, `topology.toml`, and four seeded copies.
 
-- [ ] **Step 1: Write the command table and the first stages**
+- [x] **Step 1: Write the command table and the first stages**
 
 One hashtable at the top, so a renamed command touches one row:
 
@@ -379,16 +379,16 @@ $Cmd = @{
 }
 ```
 
-- [ ] **Step 2: Give every invocation an exit check**
+- [x] **Step 2: Give every invocation an exit check**
 
 Each stage is followed by a check that stops the script, naming the stage and printing the command it ran, so a failure carries its own reproduction.
 
-- [ ] **Step 3: Run it as far as distribute**
+- [x] **Step 3: Run it as far as distribute**
 
 Run: `pwsh scripts/smoke_middle.ps1 -Stop distribute`
 Expected: exit 0, four seeded copies in the run directory.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ---
 
