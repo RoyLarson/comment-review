@@ -14,12 +14,15 @@ disk where the outcome is text, the `--false` and `--true` clauses beside it
 for the two corrections whose landing IS the corrected side, since `mark`
 needs both, and -- where the place was empty in `FIXTURE` -- the fixture line
 the landing is set against. `DISPOSITIONS` is the chief's own ruling over
-every place `collate` carries forward -- three escalations and six re-reads,
-one per `add` -- reading its `b9` recast prose out of `LANDINGS` rather than
-holding a second copy. `write_texts` writes a file for every text landing a
-`mark` call carries (two files for a correction's clauses, one otherwise),
-plus `dispositions.json`; `b9` is recast in `DISPOSITIONS`, so it gets no
-file and reaches the proof only inline.
+every place `collate` carries forward -- three escalations and seven
+re-reads, one per `add` -- reading its `b9` recast prose out of `LANDINGS`
+rather than holding a second copy. `write_texts` writes a file for every
+text landing a `mark` call carries (two files for a correction's clauses,
+one otherwise), plus `dispositions.json`; `b9` is recast in `DISPOSITIONS`,
+so it gets no file and reaches the proof only inline.
+
+`EXPECTED` is the text the proof's `fib.py` must read once the chain
+closes, and `write_expected` writes it for the smoke script's `diff` stage.
 """
 
 import json
@@ -131,21 +134,21 @@ class Landing(NamedTuple):
 
 #: What the plant makes land at each planted address once the chain closes.
 #: `docs/superpowers/specs/2026-09-08-the-middle-chain-smoke-design.md`'s
-#: "The scenario matrix" names the first nine of these addresses in prose;
-#: the plant goes five further, testing an `add` at other absent and
-#: already-filled places across the `a`, `b` and `c` series. Nine entries
-#: carry text landed by a `mark` call's `--change`, `--false` or `--true`:
-#: a role's own clause, the move's destination, or one of six `add`s -- one
-#: on the empty `a2`, and five more on `a0`, `b8`, `b17`, `c3` and `c12`.
+#: "The scenario matrix" names the first nine of these addresses in prose,
+#: and asks for one more found by `addresser` -- `b15`; the plant goes five
+#: further, testing an `add` at other absent and already-filled places
+#: across the `a`, `b` and `c` series. Ten entries carry text landed by a
+#: `mark` call's `--change`, `--false` or `--true`: a role's own clause, the
+#: move's destination, or one of seven `add`s -- one on the empty `a2`, one
+#: on the empty `b15`, and five more on `a0`, `b8`, `b17`, `c3` and `c12`.
 #: One entry, `b9`, carries the chief's own `recast` prose instead, reaching
 #: the proof only through `dispositions.json`. Four carry no text: `outcome`
 #: is `"removed"` where the drop or the move's own vacated origin leaves
 #: nothing, and `"kept"` where the fixture's own wording stands. Each entry's
 #: `route` names what decides it: the fold alone for `c6`, `b14`, `b1` and
 #: `b0`; a human query left standing for `a1`; and `disposition` for the
-#: other nine -- `c1`, `a3`, `b9` and the six adds. Task 10 will diff
-#: `FIXTURE` against this table to know what the closed proof should read at
-#: each address.
+#: other ten -- `c1`, `a3`, `b9` and the seven adds. `EXPECTED` below is
+#: written from `FIXTURE` and this table.
 LANDINGS: dict[str, Landing] = {
     # block-context's correction is the only one that lands at c6; the
     # other three roles mark a scope-declaring query instead of clean, so
@@ -222,6 +225,16 @@ LANDINGS: dict[str, Landing] = {
         text="# Nothing follows; running this module only prints one count.",
         line=34,
     ),
+    # module-context's add, on the absent b above `if __name__ ==
+    # "__main__":` -- the addresser row. smoke_middle.ps1 does not spell
+    # this address: it asks `addresser` for the `b` place at line 33 and
+    # marks the address that comes back.
+    "fib.py@b15": Landing(
+        "text",
+        route="disposition",
+        text="# Run directly, the module prints fib(10) and how many calls it took.",
+        line=33,
+    ),
     # function-context's add, on an absent c beside `@functools.wraps(fn)`.
     "fib.py@c3": Landing(
         "text",
@@ -249,8 +262,8 @@ LANDINGS: dict[str, Landing] = {
     ),
 }
 
-#: The chief's own rulings over the nine places `collate` carries forward
-#: (three escalations and six re-reads, one per `add`) -- `LANDINGS` above
+#: The chief's own rulings over the ten places `collate` carries forward
+#: (three escalations and seven re-reads, one per `add`) -- `LANDINGS` above
 #: names what each one makes land; this names how. A carried-forward place
 #: with no entry here is refused by `disposition`, by name.
 DISPOSITIONS = [
@@ -299,6 +312,12 @@ DISPOSITIONS = [
     },
     {
         "address": "fib.py@b17",
+        "answer": "taken_in",
+        "side": "module-context",
+        "reason": "module-context is the only role that read this place",
+    },
+    {
+        "address": "fib.py@b15",
         "answer": "taken_in",
         "side": "module-context",
         "reason": "module-context is the only role that read this place",
@@ -374,3 +393,84 @@ def write_texts(run: Path) -> dict[str, Path]:
     )
     paths["dispositions"] = dispositions_path
     return paths
+
+
+#: What the proof's `fib.py` must read once the chain closes, written out by
+#: hand from `FIXTURE` and the decisions in `LANDINGS` and `DISPOSITIONS` --
+#: never taken from a proof the chain produced, since an expectation copied
+#: from the output agrees with it by construction (`docs/gates.md`). Each text
+#: landing sits at its place, the paragraphs `b14` drops and `b1` moves are
+#: gone from where they stood, and every other line is `FIXTURE`'s.
+#:
+#: Blank lines follow `set_page` in `src/comment_review/results/compositor.py`.
+#: A run of blank lines belongs to the place before it and is set where it
+#: stood, so every blank line here but the last is one `FIXTURE` has. A `b`
+#: added where the place before it owns blank lines sits below them and
+#: directly on its own code: `b0` under the blank after `a0`, `b8` under the
+#: one after `return fn(n)`, `b15` under the two after `fib`'s last line. The
+#: places the drop and the move vacate owned no blank lines, so their
+#: neighbours sit as they did. A `b` added past the last line of code takes a
+#: blank line below it, so the file ends with the `b17` comment and then a
+#: blank line.
+EXPECTED = (
+    '"""Fibonacci, counted so the recursion can be seen -- and why it is '
+    'counted."""\n'
+    "\n"
+    "# Module state, written by the wrapper and read by the caller.\n"
+    "import functools\n"
+    "\n"
+    "CALLS = 0  # every entry, cached or not\n"
+    "\n"
+    "\n"
+    "def logged(fn):\n"
+    '    """Count each call and pass it through."""\n'
+    "\n"
+    "    @functools.wraps(fn)  # keeps wrapper's name and doc matching fn's own\n"
+    "    def wrapper(n):\n"
+    '        """Count each call, then pass it through."""\n'
+    "        global CALLS\n"
+    "        CALLS += 1  # the decorator's only job\n"
+    "        return fn(n)\n"
+    "\n"
+    "    # Counting done, wrapper is handed back unchanged.\n"
+    "    return wrapper\n"
+    "\n"
+    "\n"
+    "# The cache and the counter measure different things, worth stating\n"
+    "# separately. fib is cached; logged counts every call, cached or not.\n"
+    "@logged\n"
+    "@functools.cache\n"
+    "def fib(n):\n"
+    '    """The nth Fibonacci number, counting from fib(0) = 0."""\n'
+    "    if n < 2:  # 0 and 1 are already fibonacci numbers\n"
+    "        return n\n"
+    "    return fib(n - 1) + fib(n - 2)\n"
+    "\n"
+    "\n"
+    "# Run directly, the module prints fib(10) and how many calls it took.\n"
+    'if __name__ == "__main__":\n'
+    "    print(fib(10), CALLS)\n"
+    "# Nothing follows; running this module only prints one count.\n"
+    "\n"
+)
+
+
+def write_expected(root: Path) -> Path:
+    """Write `EXPECTED` to `root / "fib.py"` and return its path.
+
+    Written with an explicit LF newline, as `write_fixture` writes, so it
+    carries the line endings the proof sets from the fixture. The smoke
+    script's `diff` stage compares the two with `git diff --no-index`, which
+    under `core.autocrlf=true` reads a CRLF line as LF -- so that comparison
+    does not see a line-ending difference, only a text one.
+
+    Args:
+        root: the directory to write into. Not created here -- the smoke
+            script creates its run's `expected` directory first.
+
+    Returns:
+        The path written.
+    """
+    path = root / "fib.py"
+    path.write_text(EXPECTED, encoding="utf-8", newline="\n")
+    return path

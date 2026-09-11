@@ -1,7 +1,10 @@
 # Drives the middle stages of the comment-review chain over a fixture tree,
-# for a smoke check that the chain from gather through disposition still
+# for a smoke check that the chain from gather through proof still
 # composes: a binder, a topology, seeded copies, a planted scenario matrix
-# of marks, the fold's proof and the chief's dispositions closing it.
+# of marks, the fold's proof, the chief's dispositions closing it, and the
+# revise `proof` pulls from the closed copy. The last stage diffs that
+# revise against the text smoke_fixture.py says the plant makes land, and
+# passes only when the two are identical.
 # Provisional -- it drives a prototype surface and may be thrown away once
 # that surface settles.
 
@@ -71,22 +74,32 @@ function Format-CommandLine {
 # Runs one native command, piping its output to the console (Out-Host) so
 # a caller capturing this script's own output gets only what it
 # Write-Outputs, and checks the exit code against what the stage expects
-# (0 unless -Expect says otherwise). On failure -- a wrong exit code or a
-# missing executable -- it stops the script, printing the stage name, the
-# expected and actual exit codes, the directory it ran from and a command
-# line that runs when pasted into PowerShell, so the failure carries its
-# own reproduction. $PSNativeCommandUseErrorActionPreference is off
-# above, so nothing but this function reports a native failure.
+# (0 unless -Expect says otherwise). With -Capture it returns the
+# command's standard output to the caller instead, for the one call whose
+# output the script reads. On failure -- a wrong exit code or a missing
+# executable -- it stops the script, printing any captured output, then
+# running -OnFailure if given, then the stage name, the expected and
+# actual exit codes, the directory it ran from and a command line that
+# runs when pasted into PowerShell, so the failure carries its own
+# reproduction. $PSNativeCommandUseErrorActionPreference is off above, so
+# nothing but this function reports a native failure.
 function Invoke-Checked {
     param(
         [Parameter(Mandatory)] [string]$Stage,
         [Parameter(Mandatory)] [string[]]$CommandLine,
-        [int]$Expect = 0
+        [int]$Expect = 0,
+        [switch]$Capture,
+        [scriptblock]$OnFailure
     )
     $exe = $CommandLine[0]
     $rest = @($CommandLine | Select-Object -Skip 1)
+    $captured = @()
     try {
-        & $exe @rest | Out-Host
+        if ($Capture) {
+            $captured = @(& $exe @rest)
+        } else {
+            & $exe @rest | Out-Host
+        }
     } catch [System.Management.Automation.CommandNotFoundException] {
         Write-Host "stage failed: $Stage"
         Write-Host "executable not found: $exe"
@@ -94,16 +107,26 @@ function Invoke-Checked {
         Write-Host "command: $(Format-CommandLine $CommandLine)"
         exit 1
     }
-    if ($LASTEXITCODE -ne $Expect) {
+    # Held before -OnFailure runs, since a native command it runs sets
+    # $LASTEXITCODE again.
+    $actual = $LASTEXITCODE
+    if ($actual -ne $Expect) {
+        $captured | Out-Host
+        if ($OnFailure) {
+            & $OnFailure
+        }
         Write-Host "stage failed: $Stage"
         Write-Host "expected exit code: $Expect"
-        Write-Host "actual exit code: $LASTEXITCODE"
+        Write-Host "actual exit code: $actual"
         Write-Host "directory: $((Get-Location).Path)"
         Write-Host "command: $(Format-CommandLine $CommandLine)"
-        if ($LASTEXITCODE -ne 0) {
-            exit $LASTEXITCODE
+        if ($actual -ne 0) {
+            exit $actual
         }
         exit 1
+    }
+    if ($Capture) {
+        return $captured
     }
 }
 
@@ -128,10 +151,12 @@ $Proof0File = Join-Path $Run 'proof0.json'
 $DispositionsFile = Join-Path $Run 'dispositions.json'
 $ChiefFinalFile = Join-Path $Run 'chief-final.json'
 $FinalFile = Join-Path $Run 'final.json'
+$ProofDir = Join-Path $Run 'proof'
+$ExpectedDir = Join-Path $Run 'expected'
 
 # Each entry is one stage's work, and the chain as this script leaves it ends
-# at disposition. Add an entry to $Stages to extend it further -- nothing
-# else here needs to change.
+# at diff. Add an entry to $Stages to extend it further, and a path variable
+# above for anything the new stage writes.
 $Stages = [ordered]@{
     fixture = {
         New-Item -ItemType Directory -Path $OriginalDir | Out-Null
@@ -162,11 +187,12 @@ $Stages = [ordered]@{
         ))
     }
     # `docs/superpowers/specs/2026-09-08-the-middle-chain-smoke-design.md`'s
-    # "The scenario matrix" named the first nine of these places; the plant
-    # goes five further -- one `mark` invocation per ruling per role, no
-    # bulk pass, since `mark` itself refuses one. A place three roles have
-    # nothing to add to is marked clean by all three, or queried outside
-    # their remit; a2, b8, b17 and c3 get a ruling from one role alone.
+    # "The scenario matrix" named the first nine of these places, and the
+    # addresser row's at the end; the plant goes five further -- one `mark`
+    # invocation per ruling per role, no bulk pass, since `mark` itself
+    # refuses one. A place three roles have nothing to add to is marked
+    # clean by all three, or queried outside their remit; a2, b8, b17, c3
+    # and the addresser row's place get a ruling from one role alone.
     mark = {
         Invoke-Checked -Stage 'plant-texts' -CommandLine @(
             'uv', 'run', 'python', '-c',
@@ -177,7 +203,8 @@ $Stages = [ordered]@{
         # `mark` call below plants -- written above by `write_texts`, named
         # here to match its own naming rather than read back from it. c6
         # and c1 are corrections, so each names two files: its false clause
-        # and its true clause.
+        # and its true clause. The addresser row's file is not here: it is
+        # named at that row from the address `addresser` returns.
         $LandingFile = @{
             c6_false = Join-Path $Run 'c6-false.txt'
             c6_true = Join-Path $Run 'c6-true.txt'
@@ -407,7 +434,7 @@ $Stages = [ordered]@{
                 '--cite', 'fib.py:5', '--repo', $OriginalDir
             ))
         }
-        # a2 -- one of six adds. function-context is the only role that
+        # a2 -- one of seven adds. function-context is the only role that
         # touches this empty place; wrapper carries no slot in anyone
         # else's copy to rule on.
         Invoke-Checked -Stage 'mark a2 function-context add' -CommandLine ($Launcher + @(
@@ -418,6 +445,34 @@ $Stages = [ordered]@{
             '--change', "@$($LandingFile.a2)",
             '--reason', 'wrapper is the declared function; logged only wraps it',
             '--cite', 'fib.py:13', '--repo', $OriginalDir
+        ))
+        # The addresser row -- one add whose address this script does not
+        # spell. `addresser` names the `b` place at line 33, the empty gap
+        # above the dunder-main block, from the page itself, and prints one
+        # tab-separated line: the address, the line of code as Python's
+        # repr quotes it, and whether the binder holds the place. Only the
+        # first two fields are read. module-context is the only role that
+        # touches this empty place.
+        $AddresserLine = 33
+        $found = Invoke-Checked -Stage 'addresser' -Capture -CommandLine ($Launcher + @(
+            $Cmd.addresser, '--binder', $BinderFile, '--file', 'fib.py',
+            '--line', $AddresserLine, '--series', 'b'
+        ))
+        $fields = @($found)[0] -split "`t"
+        $addedAddress = $fields[0]
+        # The repr's enclosing quotes are its only escaping on this line,
+        # which holds no single quote and no backslash.
+        $addedAnchorLine = $fields[1].Substring(1, $fields[1].Length - 2)
+        # `write_texts` names an add's file after its address's cue.
+        $addedFile = Join-Path $Run ($addedAddress.Split('@')[1] + '.txt')
+        Invoke-Checked -Stage "mark $addedAddress module-context add" -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', $addedAddress,
+            '--instruction', 'add',
+            '--missing', 'nothing says what running the module directly does',
+            '--anchor', '`__name__`', '--anchor-line', $addedAnchorLine,
+            '--change', "@$addedFile",
+            '--reason', 'the entry point is where a reader looks to see how it runs',
+            '--cite', "fib.py:$AddresserLine", '--repo', $OriginalDir
         ))
     }
     # `check --edit-copy ... --binder ...` over each of the four copies, the
@@ -444,7 +499,7 @@ $Stages = [ordered]@{
             '--out', $ChiefFile, '--proof-out', $Proof0File
         ))
     }
-    # The chief's dispositions close the nine carried-forward places
+    # The chief's dispositions close the ten carried-forward places
     # (`write_texts` writes `dispositions.json` at the mark stage above,
     # from `DISPOSITIONS` in smoke_fixture.py, which reads `b9`'s recast
     # prose out of `LANDINGS`), then `disposition` folds them into the
@@ -455,6 +510,35 @@ $Stages = [ordered]@{
             '--dispositions', $DispositionsFile, '--out', $ChiefFinalFile,
             '--proof-out', $FinalFile
         ))
+    }
+    # `proof` pulls the closed chief copy into a revise of the original tree
+    # at $ProofDir, which must not exist yet. Its code check refuses the
+    # docstring a2 adds where wrapper had none, so a run stops here until
+    # TODO/the-code-check-refuses-add-and-drop-on-a-docstring.md is settled.
+    proof = {
+        Invoke-Checked -Stage 'proof' -CommandLine ($Launcher + @(
+            $Cmd.proof, '--copy', $ChiefFinalFile, '--repo', $OriginalDir,
+            '--out', $ProofDir
+        ))
+    }
+    # The diff is the assertion: `write_expected` writes the text
+    # smoke_fixture.py says the plant makes land, and git compares it with
+    # the proof. Exit 0 means the proof is exactly what was planted. On a
+    # difference it also prints the original against the proof, so a reader
+    # sees what the chain did.
+    diff = {
+        New-Item -ItemType Directory -Path $ExpectedDir | Out-Null
+        Invoke-Checked -Stage 'expected' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_expected; write_expected(Path(sys.argv[1]))',
+            $ExpectedDir
+        )
+        Invoke-Checked -Stage 'diff' -CommandLine @(
+            'git', '--no-pager', 'diff', '--no-index', '--', $ExpectedDir, $ProofDir
+        ) -OnFailure {
+            Write-Host 'what the chain did -- the original against the proof:'
+            & git --no-pager diff --no-index -- $OriginalDir $ProofDir | Out-Host
+        }
     }
 }
 
