@@ -47,20 +47,6 @@ if ($RunTrimmed -eq $RepoRootTrimmed -or
     exit 1
 }
 
-# Created here, at the point its existence is checked, rather than
-# checked with Test-Path and created later -- so nothing can be written
-# into $Run between the check and the creation by two runs racing on the
-# same name.
-try {
-    New-Item -ItemType Directory -Path $Run -ErrorAction Stop | Out-Null
-} catch [System.IO.IOException] {
-    if ($_.FullyQualifiedErrorId -eq 'DirectoryExist,Microsoft.PowerShell.Commands.NewItemCommand') {
-        Write-Host "run directory already exists: $Run"
-        exit 1
-    }
-    throw
-}
-
 # Formats a command line for a faithful paste into PowerShell: any
 # argument -- the executable included -- holding anything besides a
 # letter, digit or one of _ . / \ : = , - is single-quoted, with an
@@ -164,6 +150,21 @@ if ($PSBoundParameters.ContainsKey('Stop') -and
     ($Stop -eq '' -or $Stages.Keys -notcontains $Stop)) {
     Write-Host "unknown -Stop value: $Stop (valid: $($Stages.Keys -join ', '))"
     exit 1
+}
+
+# Created here, after every refusal above, at the point its existence is
+# checked, rather than checked with Test-Path and created later -- so
+# nothing can be written into $Run between the check and the creation by
+# two runs racing on the same name, and no refusal above leaves an empty
+# $Run behind.
+try {
+    New-Item -ItemType Directory -Path $Run -ErrorAction Stop | Out-Null
+} catch [System.IO.IOException] {
+    if ($_.FullyQualifiedErrorId -eq 'DirectoryExist,Microsoft.PowerShell.Commands.NewItemCommand') {
+        Write-Host "run directory already exists: $Run"
+        exit 1
+    }
+    throw
 }
 
 try {
