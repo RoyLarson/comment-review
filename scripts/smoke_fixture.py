@@ -262,6 +262,11 @@ LANDINGS: dict[str, Landing] = {
     ),
 }
 
+#: The `LANDINGS` entry smoke_middle.ps1 marks without spelling its address:
+#: it asks `addresser` for the `b` place at this entry's `line`, and stops
+#: unless the address that comes back is this one.
+ADDRESSER_ROW = "fib.py@b15"
+
 #: The chief's own rulings over the ten places `collate` carries forward
 #: (three escalations and seven re-reads, one per `add`) -- `LANDINGS` above
 #: names what each one makes land; this names how. A carried-forward place
@@ -350,7 +355,7 @@ DISPOSITIONS = [
 
 
 def write_texts(run: Path) -> dict[str, Path]:
-    """Write the plant's landing texts to their own files, and dispositions.json.
+    """Write the plant's landing texts, dispositions.json and addresser-row.json.
 
     Every text landing a `mark` call carries gets a file that call passes
     as `@path`: one holding `text` for an `add` or the move's destination,
@@ -360,7 +365,9 @@ def write_texts(run: Path) -> dict[str, Path]:
     file while a one-line clause may go inline. A place the chief recasts in
     `DISPOSITIONS` -- `b9` -- is skipped: its text is the chief's own prose
     and no `mark` call carries it. This reads each disposition's `answer`
-    to find it rather than checking its address by name.
+    to find it rather than checking its address by name. `addresser-row.json`
+    holds `ADDRESSER_ROW` and its `line`, which the smoke script reads to ask
+    `addresser` and to check what it answers.
 
     Args:
         run: the run directory the smoke script writes into. Not created
@@ -369,7 +376,8 @@ def write_texts(run: Path) -> dict[str, Path]:
     Returns:
         one path per file written, keyed by the address (`"<address>:false"`
         and `"<address>:true"` for a correction's pair), plus
-        `"dispositions"` for `dispositions.json`.
+        `"dispositions"` for `dispositions.json` and `"addresser-row"` for
+        `addresser-row.json`.
     """
     paths: dict[str, Path] = {}
     recast = {d["address"] for d in DISPOSITIONS if d["answer"] == "recast"}
@@ -392,6 +400,11 @@ def write_texts(run: Path) -> dict[str, Path]:
         json.dumps(DISPOSITIONS, indent=2) + "\n", encoding="utf-8", newline="\n"
     )
     paths["dispositions"] = dispositions_path
+
+    row_path = run / "addresser-row.json"
+    row = {"address": ADDRESSER_ROW, "line": LANDINGS[ADDRESSER_ROW].line}
+    row_path.write_text(json.dumps(row) + "\n", encoding="utf-8", newline="\n")
+    paths["addresser-row"] = row_path
     return paths
 
 

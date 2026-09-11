@@ -39,7 +39,21 @@ if (-not $Run) {
     $RandomPart = [System.Guid]::NewGuid().ToString('N').Substring(0, 8)
     $Run = Join-Path ([System.IO.Path]::GetTempPath()) ("smoke-middle-" + (Get-Date -Format 'yyyyMMdd-HHmmss-fff') + '-' + $RandomPart)
 } else {
-    $Run = [System.IO.Path]::GetFullPath($Run, $CallerLocation.ProviderPath)
+    # PowerShell expands a leading ~ only in a path it resolves itself, and
+    # GetFullPath would read it as a directory named ~.
+    if ($Run -match '^~(?=$|[\\/])') {
+        $Run = $HOME + $Run.Substring(1)
+    }
+    # GetFullPath refuses a base that is not a directory, so a relative -Run
+    # from a registry or other non-filesystem location is refused here.
+    if ([System.IO.Path]::IsPathFullyQualified($Run)) {
+        $Run = [System.IO.Path]::GetFullPath($Run)
+    } elseif ($CallerLocation.Provider.Name -eq 'FileSystem') {
+        $Run = [System.IO.Path]::GetFullPath($Run, $CallerLocation.ProviderPath)
+    } else {
+        Write-Host "-Run is relative and the current location is not a directory: $Run"
+        exit 1
+    }
 }
 
 # A run never writes inside the repo, so a -Run landing there is refused
@@ -136,15 +150,10 @@ $BinderFile = Join-Path $Run 'binder.json'
 $TopologyFile = Join-Path $Run 'topology.toml'
 $CopiesDir = Join-Path $Run 'copies'
 
-# The four roles stage 4 dispatches to, and where distribute's own naming
-# (`<stage>_<role>_<n>.json`) puts each one's seeded copy. This fixture is
-# small enough that stage 4 never shards a role over more than one dispatch,
-# so `n` is always 1.
+# The four roles stage 4 dispatches to. The distribute stage fills $CopyFile
+# with the copy distribute wrote for each.
 $Roles = @('ownership-context', 'block-context', 'function-context', 'module-context')
 $CopyFile = @{}
-foreach ($role in $Roles) {
-    $CopyFile[$role] = Join-Path $CopiesDir "4_${role}_1.json"
-}
 
 $ChiefFile = Join-Path $Run 'chief.json'
 $Proof0File = Join-Path $Run 'proof0.json'
@@ -174,7 +183,7 @@ $Stages = [ordered]@{
     topology = {
         Invoke-Checked -Stage 'topology-build' -CommandLine ($Launcher + @(
             $Cmd.topology, '--build', '--binder', $BinderFile, '--out', $TopologyFile,
-            '--stage', '4=ownership-context,block-context,function-context,module-context'
+            '--stage', ('4=' + ($Roles -join ','))
         ))
         Invoke-Checked -Stage 'topology-verify' -CommandLine ($Launcher + @(
             $Cmd.topology, '--verify', $TopologyFile, '--binder', $BinderFile
@@ -185,6 +194,26 @@ $Stages = [ordered]@{
             $Cmd.distribute, '--topology', $TopologyFile, '--stage', '4',
             '--binder', $BinderFile, '--out-dir', $CopiesDir
         ))
+        # Each copy names its own role, so the copies are found by what they
+        # hold rather than by the file names distribute gives them. The plant
+        # marks one copy per role, so a role with none, or with more than one
+        # -- a role stage 4 sharded -- stops the run here.
+        $written = @(Get-ChildItem -LiteralPath $CopiesDir -File | ForEach-Object {
+            [pscustomobject]@{
+                Role = (Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json).role
+                Path = $_.FullName
+            }
+        })
+        foreach ($role in $Roles) {
+            $held = @($written | Where-Object Role -EQ $role)
+            if ($held.Count -ne 1) {
+                Write-Host 'stage failed: distribute-4'
+                Write-Host "copies for ${role}: $($held.Count), where the plant marks one"
+                Write-Host "directory: $CopiesDir"
+                exit 1
+            }
+            $CopyFile[$role] = $held[0].Path
+        }
     }
     # `docs/superpowers/specs/2026-09-08-the-middle-chain-smoke-design.md`'s
     # "The scenario matrix" named the first nine of these places, and the
@@ -453,13 +482,22 @@ $Stages = [ordered]@{
         # repr quotes it, and whether the binder holds the place. Only the
         # first two fields are read. module-context is the only role that
         # touches this empty place.
-        $AddresserLine = 33
-        $found = Invoke-Checked -Stage 'addresser' -Capture -CommandLine ($Launcher + @(
+        $row = Get-Content -LiteralPath (Join-Path $Run 'addresser-row.json') -Raw | ConvertFrom-Json
+        $addresserCommand = $Launcher + @(
             $Cmd.addresser, '--binder', $BinderFile, '--file', 'fib.py',
-            '--line', $AddresserLine, '--series', 'b'
-        ))
+            '--line', $row.line, '--series', 'b'
+        )
+        $found = Invoke-Checked -Stage 'addresser' -Capture -CommandLine $addresserCommand
         $fields = @($found)[0] -split "`t"
         $addedAddress = $fields[0]
+        if ($addedAddress -cne $row.address) {
+            Write-Host 'stage failed: addresser'
+            Write-Host "planted address: $($row.address)"
+            Write-Host "addresser returned: $addedAddress"
+            Write-Host "directory: $((Get-Location).Path)"
+            Write-Host "command: $(Format-CommandLine $addresserCommand)"
+            exit 1
+        }
         # The repr's enclosing quotes are its only escaping on this line,
         # which holds no single quote and no backslash.
         $addedAnchorLine = $fields[1].Substring(1, $fields[1].Length - 2)
@@ -472,7 +510,7 @@ $Stages = [ordered]@{
             '--anchor', '`__name__`', '--anchor-line', $addedAnchorLine,
             '--change', "@$addedFile",
             '--reason', 'the entry point is where a reader looks to see how it runs',
-            '--cite', "fib.py:$AddresserLine", '--repo', $OriginalDir
+            '--cite', "fib.py:$($row.line)", '--repo', $OriginalDir
         ))
     }
     # `check --edit-copy ... --binder ...` over each of the four copies, the
@@ -490,12 +528,10 @@ $Stages = [ordered]@{
     # contract) rather than 0, so this is the one stage `-Expect`s something
     # else.
     collate = {
+        $copies = foreach ($role in $Roles) { '--edit-copy', $CopyFile[$role] }
         Invoke-Checked -Stage 'collate' -Expect 4 -CommandLine ($Launcher + @(
-            $Cmd.collate, '--stage', '4', '--binder', $BinderFile, '--topology', $TopologyFile,
-            '--edit-copy', $CopyFile['ownership-context'],
-            '--edit-copy', $CopyFile['block-context'],
-            '--edit-copy', $CopyFile['function-context'],
-            '--edit-copy', $CopyFile['module-context'],
+            $Cmd.collate, '--stage', '4', '--binder', $BinderFile, '--topology', $TopologyFile
+        ) + $copies + @(
             '--out', $ChiefFile, '--proof-out', $Proof0File
         ))
     }
@@ -534,10 +570,11 @@ $Stages = [ordered]@{
             $ExpectedDir
         )
         Invoke-Checked -Stage 'diff' -CommandLine @(
-            'git', '--no-pager', 'diff', '--no-index', '--', $ExpectedDir, $ProofDir
+            'git', '-c', 'core.autocrlf=false', '--no-pager', 'diff', '--no-index', '--',
+            $ExpectedDir, $ProofDir
         ) -OnFailure {
             Write-Host 'what the chain did -- the original against the proof:'
-            & git --no-pager diff --no-index -- $OriginalDir $ProofDir | Out-Host
+            & git -c core.autocrlf=false --no-pager diff --no-index -- $OriginalDir $ProofDir | Out-Host
         }
     }
 }
@@ -546,7 +583,7 @@ $Stages = [ordered]@{
 # empty" (refused), which $Stop alone cannot: both read as falsy.
 if ($PSBoundParameters.ContainsKey('Stop') -and
     ($Stop -eq '' -or $Stages.Keys -notcontains $Stop)) {
-    Write-Host "unknown -Stop value: $Stop (valid: $($Stages.Keys -join ', '))"
+    Write-Host "unknown -Stop value: '$Stop' (valid: $($Stages.Keys -join ', '))"
     exit 1
 }
 
@@ -580,3 +617,7 @@ try {
 finally {
     Set-Location $CallerLocation
 }
+
+# An in-process caller reads $LASTEXITCODE, which still holds the last native
+# command's code -- collate's expected 4, for a run stopped there.
+exit 0
