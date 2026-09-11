@@ -448,6 +448,25 @@ Run: `pwsh scripts/smoke_middle.ps1 -Stop disposition`
 
 ---
 
+### Task 9a: the plant's landing texts in one place, before Task 10 diffs against them
+
+Added 2026-09-11 on Roy's "Go" to doing `smoke-middle-script` T20 and T32 before Task 10. The
+proof refuses Task 9's plant because the `a2` docstring carries no indentation (T20; Addressing
+#27 gives indentation to the role), and Task 10's expected diff needs every text that lands in
+one place (T32). Moving those texts into files makes `mark` read them as `@path`, which is T30,
+and drops the unread `recast_prose.txt`, which is T21. The comments and docstring on the code
+this rewrites are T27 and T28.
+
+**Files:**
+- Modify: `scripts/smoke_fixture.py`, `scripts/smoke_middle.ps1`
+
+- [ ] **Step 1: One table of the texts that land, written before the marks, read by `mark` as `@path`, `a2` indented**
+- [ ] **Step 2: The comments and docstring on that code say what is true of it**
+- [ ] **Step 3: Done gate** -- `-Stop disposition` exits 0, and `proof --copy chief-final.json` run by hand on that run exits 0
+- [ ] **Step 4: Tick** `smoke-middle-script` T20, T21, T27, T28, T30 and T32 against their commits, in a later commit
+
+---
+
 ### Task 10: the proof, and the diff that is the assertion
 
 **Files:**
