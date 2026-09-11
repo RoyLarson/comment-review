@@ -4055,4 +4055,8 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **The two options put to Roy.** One: leave the exit code alone and add a line to the 3 and 4
   row telling the agent to send back any printed unruled place, a change to the agents' wording.
   Two: give the case a code of its own, so the table can name it, a change to `collate`'s
-  exit-code contract. Roy chose the second: *"2"*.
+  exit-code contract. Roy chose the second: *"2"*, and gave the reason: *"Because that is the
+  instruction that they should be given regardless of which round it happened"*.
+
+  **Tasks.** `collate-command-defects` T21 implements the code; `agents-files-name-the-new-cli`
+  T22 gives it its row in the table.
