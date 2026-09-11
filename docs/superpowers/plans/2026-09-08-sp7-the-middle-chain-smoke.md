@@ -517,6 +517,23 @@ Say plainly which of the spec's four bars the run demonstrated and which it did 
 
 ---
 
+### Task 10a: the smoke script's open findings, in one pass
+
+Added 2026-09-11 on Roy's "Yes": every open `smoke-middle-script` task that is not a ruling --
+T13-T18, T22, T23, T25, T26, T29, T31, T33, T37, T46-T55, T57, T58 -- in one pass, checked by the
+final review of the whole branch rather than a review per round. T19 and T56 wait on Roy.
+
+**Files:**
+- Modify: `scripts/smoke_middle.ps1`, `scripts/smoke_fixture.py`, `tests/gates/test_smoke_fixture.py`
+
+- [ ] **Step 1: The behaviour fixes** -- T13, T16, T17, T18, T22, T31, T53, T57, T58, each shown by the case that exposed it
+- [ ] **Step 2: The tests and types** -- T33, T51, T54, T55
+- [ ] **Step 3: The comments** -- T14, T15, T23, T25, T26, T29, T37, T46-T50, T52, then every comment in the three files re-read against the code
+- [ ] **Step 4: Done gate** -- the whole script stops only at `proof`; the probe without `a2` passes through `diff`
+- [ ] **Step 5: Tick** each task against its commit, in a later commit
+
+---
+
 ## What this plan does not do
 
 Each of these is on the board, and none blocks the script.
