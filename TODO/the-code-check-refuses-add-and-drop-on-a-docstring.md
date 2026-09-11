@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 6 tasks closed
+Progress: 3 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-17, on the FIRST run ever to reach stage 7b. A docstring `add` failed the
@@ -99,6 +99,21 @@ being ADDED or REMOVED -- only rewritten, which is the case that passes.
 - [x] T5 | FINISHED | unknown | T5 -- Add a docstring-ADDED case and a
       docstring-REMOVED case to `tests/test_prove_unchanged.py`. Verify: both
       cases run and the suite is green.
-- [ ] T6 | Implement the proof code check against the approved changes, per
-      Process 113, so an approved docstring add passes
+- [x] T6 | the approved docstring alterations are set aside; all else exact | cd7d2c94 | Implement
+      the proof code check against the approved changes, per Process 113, so an
+      approved docstring add passes
         > 2026-09-11 verify: smoke a2 passes proof; an unapproved code change refuses
+- [ ] T7 | Implement a test where an approved declaration's own line moves in
+      the draft, so a lookup at the old line fails it
+        > 2026-09-11 review: that mutant is caught only by an error message today
+- [ ] T8 | Implement approved-add cases at a0, a class, a method and a decorated
+      declaration; SAMPLE gives only a2
+        > 2026-09-11 checked by probe in review; no chain test holds them
+- [ ] T9 | Update _blank_docstrings' first line at prove_unchanged.py:55, which
+      says every docstring is blanked
+- [ ] T10 | Update _declared_at, _approved and the comment in proof_setter._one
+      to cite Process 113 with the rest
+- [ ] T11 | Update _prove's docstring to say an approved rewrite at an a place
+      leaves presence to _reread's text check
+- [ ] T12 | Update this file's Measured line, which names the two tests cd7d2c94
+      replaced

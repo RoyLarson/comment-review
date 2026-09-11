@@ -506,7 +506,7 @@ The script wrote its expected diff at plant time. A difference between expected 
 
 Look up the empty place by file and line, take the address that comes back, use it for the `add`, and confirm that comment is in the diff. This is the positive form of the defect that lost a finding on 2026-09-07.
 
-- [ ] **Step 4: Run the whole script from empty**
+- [x] **Step 4: Run the whole script from empty**
 
 Run: `pwsh scripts/smoke_middle.ps1`
 Expected: exit 0, and the diff matching what was planted.
@@ -546,10 +546,10 @@ close: the whole script exiting 0 from empty.
 - Modify: `src/comment_review/flows/proof_setter.py`, `src/comment_review/results/prove_unchanged.py`
 - Test: `tests/test_proof_setter.py`, `tests/test_prove_unchanged.py`
 
-- [ ] **Step 1: A failing test** -- an approved docstring `add` and an approved `drop` pass `proof`; a docstring change no alteration names, and a code change, still refuse
-- [ ] **Step 2: The check** -- docstring presence is excluded only at declarations whose documentation place carries an approved alteration
-- [ ] **Step 3: Gates, and the whole smoke script from empty exits 0**
-- [ ] **Step 4: Tick** `the-code-check-refuses-add-and-drop-on-a-docstring` T6, and SP7 Task 10 step 4, against the commit, in a later commit
+- [x] **Step 1: A failing test** -- an approved docstring `add` and an approved `drop` pass `proof`; a docstring change no alteration names, and a code change, still refuse
+- [x] **Step 2: The check** -- docstring presence is excluded only at declarations whose documentation place carries an approved alteration
+- [x] **Step 3: Gates, and the whole smoke script from empty exits 0**
+- [x] **Step 4: Tick** `the-code-check-refuses-add-and-drop-on-a-docstring` T6, and SP7 Task 10 step 4, against the commit, in a later commit
 
 ---
 
