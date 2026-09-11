@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 9 of 19 tasks closed
+Progress: 11 of 19 tasks closed
 Owner:    systems
 Requires-Roy: true
 Raised:   2026-09-11 (review of SP7 Task 8 at 34aea6d4, 2026-09-11)
@@ -19,8 +19,9 @@ The middle-chain smoke script carries the findings of its Task 8 review.
       location, not the process directory
         > 2026-09-11 probed: -Run scripts from elsewhere named the repo dir
         > 2026-09-11 at 38671d29 an absolute -Run is refused as inside the repo
-- [ ] T2 | Update smoke_middle.ps1:58 so a failed stage prints a command that
-      runs when pasted, and its working directory
+- [x] T2 | the printed line starts with & and quotes unsafe arguments | 575054f7 | Update
+      smoke_middle.ps1:58 so a failed stage prints a command that runs when
+      pasted, and its working directory
         > 2026-09-11 review: a quoted exe and args with $ ; ( ) do not paste
 - [x] T3 | a missing executable prints the stage line, exits 1 | b680577e | Update
       smoke_middle.ps1 so a missing executable is reported by the stage helper,
@@ -47,9 +48,11 @@ The middle-chain smoke script carries the findings of its Task 8 review.
 - [x] T9 | an in-process capture holds only the run path | 6a62edbe | Update
       smoke_middle.ps1:54 so command output goes to the console rather than into
       the script's output
-- [ ] T10 | Update smoke_middle.ps1:33 so two runs started in the same second
-      get different default directories
+- [x] T10 | distinct default names; a refused -Stop leaves nothing | de603166 | Update
+      smoke_middle.ps1:33 so two runs started in the same second get different
+      default directories
         > 2026-09-11 review: 4 of 7 simultaneous pairs shared a name
+        > 2026-09-11 at 9cf500ae a refused -Stop leaves an empty run dir
 - [x] T11 | an empty -Stop is refused | 75febc65 | Update smoke_middle.ps1:25 so
       an empty -Stop is refused rather than running every stage
 - [x] T12 | RULED -- flags stay at call sites; spec reworded to names only | 440f4f2e | Decide

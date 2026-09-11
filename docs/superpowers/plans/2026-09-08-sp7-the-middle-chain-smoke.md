@@ -405,17 +405,17 @@ rewrite them as they add stages.
 Each step is one finding, one commit, and the Task 8 done gate re-run after it:
 `pwsh -NoProfile -File scripts/smoke_middle.ps1 -Stop distribute`, exit 0, four copies.
 
-- [ ] **Step 1: T4 -- the helper takes the exit code a stage expects, 0 by default**
-- [ ] **Step 2: T5 -- a one-element command line runs under strict mode**
-- [ ] **Step 3: T3 -- a missing executable is reported by the helper, naming the stage**
-- [ ] **Step 4: T2 -- a failed stage prints a command that runs when pasted, and where it runs**
-- [ ] **Step 5: T9 -- command output goes to the console; the script's own output is the run path**
-- [ ] **Step 6: T6 -- one ordered table of stages, so a name and its block cannot fall out of step**
-- [ ] **Step 7: T8 -- the launcher prefix is written once**
-- [ ] **Step 8: T1 -- a relative `-Run` resolves against the caller, and one inside the repo is refused**
-- [ ] **Step 9: T10 -- two runs in the same second get different default directories**
-- [ ] **Step 10: T11 -- an empty `-Stop` is refused**
-- [ ] **Step 11: Tick** `smoke-middle-script` T1-T6 and T8-T11 against their commits, in a later commit
+- [x] **Step 1: T4 -- the helper takes the exit code a stage expects, 0 by default**
+- [x] **Step 2: T5 -- a one-element command line runs under strict mode**
+- [x] **Step 3: T3 -- a missing executable is reported by the helper, naming the stage**
+- [x] **Step 4: T2 -- a failed stage prints a command that runs when pasted, and where it runs**
+- [x] **Step 5: T9 -- command output goes to the console; the script's own output is the run path**
+- [x] **Step 6: T6 -- one ordered table of stages, so a name and its block cannot fall out of step**
+- [x] **Step 7: T8 -- the launcher prefix is written once**
+- [x] **Step 8: T1 -- a relative `-Run` resolves against the caller, and one inside the repo is refused**
+- [x] **Step 9: T10 -- two runs in the same second get different default directories**
+- [x] **Step 10: T11 -- an empty `-Stop` is refused**
+- [x] **Step 11: Tick** `smoke-middle-script` T1-T6 and T8-T11 against their commits, in a later commit
 
 ---
 
