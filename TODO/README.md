@@ -294,7 +294,7 @@ that changed a published name or rule:
 | [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 2/13 | The reviewer prose is rules and punishments, not guidance toward a good result |
 | [a-machine-context-raises-query-and-clean](a-machine-context-raises-query-and-clean.md) | backend | yes | 0/8 | annotate carries two subjects -- it extracts index keys, and it flags claims it cannot settle. The second half becomes a context that marks like a role. |
 | [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | yes | 2/9 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
-| [smoke-middle-script](smoke-middle-script.md) | systems | yes | 11/33 | The middle-chain smoke script carries the findings of its Task 8 review |
+| [smoke-middle-script](smoke-middle-script.md) | systems | yes | 12/33 | The middle-chain smoke script carries the findings of its Task 8 review |
 
 ### in-progress  (18)
 

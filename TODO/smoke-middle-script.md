@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 11 of 33 tasks closed
+Progress: 12 of 33 tasks closed
 Owner:    systems
 Requires-Roy: true
 Raised:   2026-09-11 (review of SP7 Task 8 at 34aea6d4, 2026-09-11)
@@ -89,8 +89,9 @@ The middle-chain smoke script carries the findings of its Task 8 review.
         > 2026-09-11 the spec's Coupling section rules out distribute's naming
 - [ ] T23 | Update smoke_middle.ps1:164-165, which says the whole matrix is
       planted when the addresser row is not
-- [?] T24 | Decide whether the smoke must tell a row that should escalate from
-      one that re-reads beside another
+- [x] T24 | RULED -- the end-to-end bar stands; a middle fault becomes a pytest test | d474bf15 | Decide
+      whether the smoke must tell a row that should escalate from one that
+      re-reads beside another
         > 2026-09-11 review: c1 turned re-read, a3 and b9 kept collate at 4
         > 2026-09-11 Roy 2026-09-08: no assertions on intermediate artifacts
 - [ ] T25 | Update smoke_middle.ps1:166, which says mark refuses a bulk pass
