@@ -61,18 +61,23 @@ try {
     throw
 }
 
-# Quotes each argument that needs it for a faithful paste into PowerShell:
-# single-quoted, with an embedded single quote doubled. An argument with
-# no space or quote is left bare.
+# Formats a command line for a faithful paste into PowerShell: any
+# argument -- the executable included -- holding anything besides a
+# letter, digit or one of _ . / \ : = , - is single-quoted, with an
+# embedded single quote doubled; everything else is left bare. The line
+# is prefixed with "& " so a quoted executable (a path with a space)
+# still runs -- a bare quoted path is a parse error without the call
+# operator.
 function Format-CommandLine {
     param([Parameter(Mandatory)] [string[]]$CommandLine)
-    ($CommandLine | ForEach-Object {
-        if ($_ -match '[\s''"]') {
-            "'" + ($_ -replace "'", "''") + "'"
-        } else {
+    $formatted = $CommandLine | ForEach-Object {
+        if ($_ -match '^[A-Za-z0-9_./\\:=,-]*$') {
             $_
+        } else {
+            "'" + ($_ -replace "'", "''") + "'"
         }
-    }) -join ' '
+    }
+    '& ' + ($formatted -join ' ')
 }
 
 # Runs one native command, piping its output to the console (Out-Host) so
