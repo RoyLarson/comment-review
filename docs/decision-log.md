@@ -456,6 +456,30 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   compares an instruction given to an agent with the behaviour of the code that receives its
   output. `docs/gates.md`'s question -- could this check fail -- has no check to ask it of here.
 
+- **#24.** **A comment left flush under front matter reads back as matter, and that is accepted;
+  the `f` places stop being off limits to a role** (Roy, 2026-09-11, ruling on
+  `galley-and-compositor-write-path` T22: *"Unavoidable. Also forces a change to the Agents
+  files. The Agents files state that the front and back matter are off limits. This is not true
+  because of this fact that we cannot absolutely know if an opening/closing comment block are
+  actually Matter or if they are comments. If they inspect the code and determine it is actually
+  a comment block they need to be able to do something with it."*).
+
+  **What it settles.** After a drop at `a0` on a page whose shebang is followed by a blank and a
+  comment, the compositor sets the comment directly under the shebang, and a fresh read files it
+  into `f0` (`test_compositor.py:280` asserts that output). The lexer decides matter by position
+  -- the run above the first blank -- so nothing in the text can tell a licence header from an
+  ordinary comment that happens to open the file. The reading is not a defect to repair.
+
+  **What it reverses.** The rule that the file's own matter is not a role's. The brief says a
+  role is not shown front matter and that an edit on it becomes a `query`
+  (`references/reviewer-brief.md:67-72`, `:88-97`), and `binder/addresses.py:144` leaves the `f`
+  series out of every role's copy. Since the classification is a guess about position, a role
+  that reads the code and finds the `f` run is a comment block needs to be able to act on it.
+
+  **What it does not settle.** Which instructions an `f` place takes, and whether a licence
+  header or a shebang keeps any protection once a role can reach it. Those belong to the tasks
+  that carry this into the brief and the backend.
+
 ## Vocabulary
 
 - **#1.** **The metaphor is EDITORIAL, and a new term is checked against the register BEFORE it is
