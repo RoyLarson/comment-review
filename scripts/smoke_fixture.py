@@ -1,4 +1,4 @@
-"""Writes the fixture the middle-chain smoke test drives.
+"""Writes the fixture the middle-chain smoke test drives, and what lands on it.
 
 `docs/superpowers/specs/2026-09-08-the-middle-chain-smoke-design.md`, "The
 fixture", names this text verbatim: a short recursive Fibonacci with a
@@ -6,6 +6,14 @@ logging decorator, three trailing comments, three standalone comment runs,
 two stacked decorators, a nested `def`, and a dunder-main block. Its structure
 is fixed -- a later task plants decisions against specific addresses on it,
 so the text here must not drift from what that table describes.
+
+`LANDINGS` names, per planted address, the text the plant makes reach the
+proof, or `None` where the outcome leaves no text at all -- a drop, a
+vacated origin, or an address left as the fixture already reads. `DISPOSITIONS`
+is the chief's own ruling over each place `collate` escalates, reading its
+`b9` recast prose out of `LANDINGS` rather than holding a second copy.
+`write_texts` writes the four addresses `LANDINGS` gives text that a `mark`
+call plants, one file each, plus `dispositions.json`.
 """
 
 import json
