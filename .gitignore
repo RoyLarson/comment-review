@@ -95,3 +95,6 @@ TODO/.*.md.tmp*
 htmlcov/
 
 .claude/skills/*
+!.claude/skills/cut-a-release/
+.claude/skills/cut-a-release/*
+!.claude/skills/cut-a-release/SKILL.md
