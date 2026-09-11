@@ -217,6 +217,13 @@ passes and agents can run it on an actual repo we can review and decide it is ne
 prototype."* It is a rung. Nothing else should grow to depend on it, and it is allowed to be
 thrown away when the surface it drives is settled.
 
+**A run leaves no permanent code changes inside the repo.** Its outputs -- the fixture, the
+binder, the copies, the proof -- go to a run directory outside it. Python's own gitignored
+`__pycache__` folders are not a run output and are allowed. An earlier brief said a run writes
+nothing inside the repo; Roy, 2026-09-11, ruling on `smoke-middle-script` T19: *"it was a stupid
+absolute literal statement. It should have been leaves no permanent code changes inside of the
+repo"*.
+
 ## The order: the fixes first, the script second
 
 Roy, 2026-09-08: *"Write it second because we do not want to confuse it with a TDD design
