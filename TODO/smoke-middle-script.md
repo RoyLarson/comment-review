@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 17 of 45 tasks closed
+Progress: 28 of 52 tasks closed
 Owner:    systems
 Requires-Roy: true
 Raised:   2026-09-11 (review of SP7 Task 8 at 34aea6d4, 2026-09-11)
@@ -121,31 +121,62 @@ The middle-chain smoke script carries the findings of its Task 8 review.
         > 2026-09-11 review: None means both removed (b14, b1) and kept (a3, a1)
         > 2026-09-11 review: c6 and c1 hold a clause; their old wording is in the ps1
         > 2026-09-11 review: empty places and added blank lines are not in the table
+        > 2026-09-11 review 9b: smoke_middle.ps1:311 spells c1's false clause inline
+        > 2026-09-11 review 9b: a3, a1, b14, b1 default to route mark
+        > 2026-09-11 review 9b: c1, a3 and the adds are decided by disposition too
+        > 2026-09-11 review 9b: b0's position and b17's trailing blank are outside it
 - [ ] T33 | Implement a test in test_smoke_fixture.py that calls write_texts,
       which no test calls today
-- [ ] T34 | Update smoke_fixture.py:12-13, which says DISPOSITIONS rules each
-      place collate escalates; six of nine are re-reads
-- [ ] T35 | Update smoke_middle.ps1:440-443, which counts four carried places
-      where there are nine and names LANDINGS as their source
-- [ ] T36 | Update smoke_middle.ps1:167-168, which says every unnamed place is
-      clean from all four; a0 and c12 now take an add
+- [x] T34 | the docstring says three escalations and six re-reads | d2648ffc | Update
+      smoke_fixture.py:12-13, which says DISPOSITIONS rules each place collate
+      escalates; six of nine are re-reads
+- [x] T35 | the comment counts nine carried places from DISPOSITIONS | d2648ffc | Update
+      smoke_middle.ps1:440-443, which counts four carried places where there are
+      nine and names LANDINGS as their source
+- [x] T36 | the clean comment names a0 and c12's adds | d2648ffc | Update
+      smoke_middle.ps1:167-168, which says every unnamed place is clean from all
+      four; a0 and c12 now take an add
 - [ ] T37 | Update smoke_fixture.py:84-87 and smoke_middle.ps1:164-166, which
       equate the plant with the spec matrix it goes beyond
-- [ ] T38 | Update smoke_fixture.py:101, which says the move is reworded when b0
-      carries b1's text unchanged
-- [ ] T39 | Update smoke_fixture.py:96, which calls c6's correct the only mark
-      when three roles also mark query there
-- [ ] T40 | Update smoke_fixture.py:222-224, which says every value goes by
-      file; mark.py:11-18 sends a clause inline
-- [ ] T41 | Update the c12 and a0 reasons at smoke_fixture.py:203 and :209,
-      which say one role alone read a place four read
-- [ ] T42 | Update smoke_fixture.py:92-94, which says in the present tense that
-      Task 10 diffs against the table
-- [ ] T43 | Update smoke_fixture.py:7-8, which says a later task plants
-      decisions this module now holds
-- [ ] T44 | Update smoke_middle.ps1:404, which calls a2 the add when the plant
-      has six
+        > 2026-09-11 review 9b: the matrix names no addresses; the new text says nine
+- [x] T38 | the move is described as carrying b1 unchanged | d2648ffc | Update
+      smoke_fixture.py:101, which says the move is reworded when b0 carries b1's
+      text unchanged
+- [x] T39 | c6's comment names the three queries beside the correct | d408ebc0 | Update
+      smoke_fixture.py:96, which calls c6's correct the only mark when three
+      roles also mark query there
+- [x] T40 | the shell-rule comment matches mark.py:11-18 | d408ebc0 | Update
+      smoke_fixture.py:222-224, which says every value goes by file;
+      mark.py:11-18 sends a clause inline
+- [x] T41 | the c12 and a0 reasons name all four roles | d2648ffc | Update the
+      c12 and a0 reasons at smoke_fixture.py:203 and :209, which say one role
+      alone read a place four read
+- [x] T42 | the table comment no longer claims Task 10 exists | d2648ffc | Update
+      smoke_fixture.py:92-94, which says in the present tense that Task 10 diffs
+      against the table
+- [x] T43 | the module docstring names the decisions it holds | d2648ffc | Update
+      smoke_fixture.py:7-8, which says a later task plants decisions this module
+      now holds
+- [x] T44 | the comment names six adds | d2648ffc | Update smoke_middle.ps1:404,
+      which calls a2 the add when the plant has six
         > 2026-09-11 the rest of that comment is T26
-- [ ] T45 | Update the b8 landing text at smoke_fixture.py:121 so it carries the
-      four-space indent of logged's body
+- [x] T45 | b8 carries the four-space indent of logged's body | 878b55b7 | Update
+      the b8 landing text at smoke_fixture.py:121 so it carries the four-space
+      indent of logged's body
         > 2026-09-11 probe: lands at column 0 above return wrapper; reviewer-brief :198
+- [ ] T46 | Update smoke_fixture.py:110 and test_smoke_fixture.py:88, which cite
+      desk.mark.claim_change for derived_change
+- [ ] T47 | Update smoke_fixture.py:18-20 and :288-289, which say every route
+      mark entry gets a file; kept and removed ones do not
+- [ ] T48 | Update smoke_fixture.py:101-104, which says write_texts writes text
+      for route mark; for c6 and c1 it writes clauses
+- [ ] T49 | Update smoke_fixture.py:13 and :109, which write IS in capitals for
+      stress
+- [ ] T50 | Update smoke_fixture.py:156, which calls a2's text the add's
+      --change as T44 corrected in the script
+- [ ] T51 | Update the agreement test in test_smoke_fixture.py to call
+      derived_change rather than str.replace
+        > 2026-09-11 replace swaps every occurrence; derived_change refuses a repeat
+- [ ] T52 | Update the b17 entry, which cites Addressing 19 for the foot rule
+      that only compositor.py:298-305 states
+        > 2026-09-11 #19 covers the blank before an added b, not the one after
