@@ -129,7 +129,7 @@ class TestAnAddressWithNoSlotIsAppendedToItsSheet:
             "change": "# y is 2 because the fixture says so\n",
         }
         placed, why = fill(copy, entry, root)
-        assert why == []
+        assert why == [] and placed is not None
         marks = _marks(copy)
         assert marks[-1] is placed
         assert placed["address"] == "m.py@b3"
@@ -163,6 +163,66 @@ class TestAnAddressWithNoSlotIsAppendedToItsSheet:
         assert placed is None
         assert len(why) == 1 and "other.py@b1" in why[0] and "no sheet" in why[0]
         assert json.dumps(copy) == before
+
+
+class TestAnAddAtAPlaceHoldingProseKeepsItsWords:
+    """`decision-log.md Process: #132`, `mark-defects` T20. An `add` where the
+    page already holds prose adds to that paragraph, so its change keeps every
+    word of the prose, in order; punctuation and whitespace are free to move.
+    The copy is seeded from a binder over the real page `root` holds, whose
+    `b1` holds `# one`, `# two` and `# three`."""
+
+    def _add_at(self, address: str, change: str) -> dict:
+        return {
+            "address": address,
+            "instruction": "add",
+            "claim": {"missing": "why y is 2", "anchor": "`y`"},
+            "reason": "the constant is explained nowhere",
+            "sources": [{"cite": "m.py:5"}],
+            "change": change,
+        }
+
+    def test_an_add_that_drops_a_word_is_refused(self, root):
+        copy = seed(binder_of(root, 0), "block-context")
+        slot = _marks(copy)[0]
+        assert slot["raw_text"] == "# one\n# two\n# three"
+        before = json.dumps(copy)
+        change = "# one\n# three\n# y is 2 because the fixture says so\n"
+        placed, why = fill(copy, self._add_at(slot["address"], change), root)
+        assert placed is None
+        assert len(why) == 1, why
+        assert slot["address"] in why[0] and "'two'" in why[0]
+        assert json.dumps(copy) == before
+
+    def test_an_add_that_keeps_the_words_out_of_order_is_refused(self, root):
+        copy = seed(binder_of(root, 0), "block-context")
+        slot = _marks(copy)[0]
+        before = json.dumps(copy)
+        change = "# three, two, one\n# y is 2 because the fixture says so\n"
+        placed, why = fill(copy, self._add_at(slot["address"], change), root)
+        assert placed is None
+        assert len(why) == 1 and slot["address"] in why[0], why
+        assert json.dumps(copy) == before
+
+    def test_an_add_that_keeps_every_word_in_order_is_placed(self, root):
+        copy = seed(binder_of(root, 0), "block-context")
+        slot = _marks(copy)[0]
+        change = "# one, two and three.\n# y is 2 because the fixture says so\n"
+        placed, why = fill(copy, self._add_at(slot["address"], change), root)
+        assert why == [] and placed is not None
+        assert placed is slot
+        assert placed["raw_text"] == "# one\n# two\n# three"
+        assert placed["change"] == change
+
+    def test_an_add_at_an_empty_place_has_no_words_to_keep(self, root):
+        binder = binder_of(root, 0)
+        assert "m.py@b3" not in {p.address for p in binder.paragraphs}
+        copy = seed(binder, "block-context")
+        change = "# y is 2 because the fixture says so\n"
+        placed, why = fill(copy, self._add_at("m.py@b3", change), root)
+        assert why == [] and placed is not None
+        assert placed["raw_text"] == ""
+        assert _marks(copy)[-1] is placed
 
 
 class TestARefusalWritesNothing:

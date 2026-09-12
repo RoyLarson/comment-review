@@ -49,6 +49,7 @@ cited line is read here, through `machine.repo.read_raw`, the same reader and
 the same splitter `desk.collator.source_problems` will check the result with.
 """
 
+import re
 from pathlib import Path
 
 from comment_review.desk.collator import cite_at
@@ -71,6 +72,24 @@ from comment_review.reading.addresser import unflatten
 #: a slot that must be created takes its anchor from the page. Neither is
 #: copied from the entry onto the mark.
 ROLE_FIELDS = ("claim", "reason", "sources", "change")
+
+#: A word, as the keep-the-prose check counts one: a run of letters and
+#: digits. Punctuation, whitespace and the underscore only separate words.
+_WORD = re.compile(r"[^\W_]+")
+
+
+def _first_word_dropped(prose: str, change: str) -> str | None:
+    """The first word of `prose` that `change` does not keep in order, or None.
+
+    `decision-log.md Process: #132`: an `add` at a place holding prose adds to
+    that paragraph, so its change holds every word of the prose, in the order
+    the prose has them, and punctuation and whitespace are free to move.
+    """
+    kept = iter(_WORD.findall(change))
+    for word in _WORD.findall(prose):
+        if word not in kept:
+            return word
+    return None
 
 
 def _slot_at(copy: dict, address: str) -> tuple[list | None, int]:
@@ -224,6 +243,12 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
         the copy untouched. The messages are `Mark.deserialize`'s own wording
         where the parse is what refused, so a role learns the contract from the
         refusal.
+
+    An `add` at a place holding prose adds to that paragraph, so it is refused
+    unless its change keeps every word of the prose in order -- a word being a
+    run of letters and digits, with punctuation and whitespace free to move
+    (`decision-log.md Process: #132`). At an empty place there is nothing to
+    keep.
     """
     address = entry.get("address")
     if not filled(address):
@@ -265,6 +290,19 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
                 ]
         else:
             mark["change"] = derived
+
+    change = mark.get("change")
+    if (
+        instruction is Instruction.ADD
+        and filled(seeded["raw_text"])
+        and isinstance(change, str)
+    ):
+        dropped = _first_word_dropped(seeded["raw_text"], change)
+        if dropped is not None:
+            return None, [
+                f"{address} holds prose, so an `add` there keeps every word of it"
+                f" in order; the change does not keep {dropped!r}"
+            ]
 
     if "sources" in mark:
         quoted, why = _quoted(root, mark["sources"])
