@@ -3,8 +3,8 @@
     known_addresses()          every address the binder carries
     base_texts()               every address -> the paragraph the binder
                                seeded there
-    claim_verbatim_problems()  the sentence the claim quotes is really in the
-                               paragraph the row seeded
+    claim_verbatim_problems()  the sentence the claim quotes is really in a
+                               text at its place
     source_problems()          every `cite` resolves inside the checkout, and
                                its `verbatim` sits near the line it names
     source_verification()      those three, over one mark
@@ -22,10 +22,11 @@
 !! FOUR KINDS OF CHECK, AND WHAT EACH NEEDS IS WHAT SEPARATES THEM. NAMED BY
 MEMBER, NOT BY FILE-ORDER RANGE -- `desk/mark.py` answers everything a mark
 can be judged by on its own. One kind needs the PAGE the role read and the
-FILES it cited: `base_texts` turns the binder into what
-`claim_verbatim_problems`, `source_problems`, `source_verification` and
-`verify_report` measure a mark against -- never a mark's own `raw_text`, the
-base a party being checked could have altered. ! WHETHER THE ADDRESS IS ONE
+FILES it cited: `claim_verbatim_problems`, `source_problems`,
+`source_verification` and `verify_report` measure a mark against the texts
+the flow reads off the page and the batch it sent, and against those files
+-- never a mark's own `raw_text`, the base a party being checked could have
+altered. ! WHETHER THE ADDRESS IS ONE
 THE BINDER CARRIES IS NOT ASKED, since 2026-09-05 -- `decision-log.md Process:
 #97`. The binder is filtered to the places holding prose, so an `add` cites a
 place it dropped and a `move` may cite a file it never held; the write end
@@ -83,6 +84,7 @@ returned only sentences inside it. `decision-log.md Process: #58`, `P25`.
 `copies[0]` only, never 2..N.
 """
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import NamedTuple
@@ -128,14 +130,19 @@ def known_addresses(binder: Binder) -> frozenset[str]:
 
 
 def base_texts(binder: Binder) -> dict[str, str]:
-    """Every address the binder carries -> the paragraph it SEEDED there.
+    """Every address the binder carries -> the paragraph it seeded there.
 
-    !! THE BASE IS THE BINDER'S, NEVER A RETURNED MARK'S. `raw_text` is seeded
-    and comes back on the mark, so a compose or a verbatim check reading it off
-    the mark would measure a claim against text the party being checked
-    supplied. `docs/gates.md` holds the measured case: the round-trip identity
-    scored 699 of 699 on its first run by rebuilding each file from line
-    positions it had just read out of that file.
+    The base the drift check measures against. It is the
+    binder's, never a returned mark's: `raw_text` is seeded and comes back on
+    the mark, so reading it off the mark would measure against text the party
+    being checked supplied. `docs/gates.md` holds the measured case: the
+    round-trip identity scored 699 of 699 on its first run by rebuilding each
+    file from line positions it had just read out of that file.
+
+    A quoted clause is not checked against it. The binder is the seed for
+    what can be ruled on, not every place or file that can be, so the flow
+    reads the page's text at a mark's place and hands it to
+    `claim_verbatim_problems` -- `decision-log.md Process: #119`.
 
     Args:
         binder: the deserialized binder.
@@ -147,8 +154,10 @@ def base_texts(binder: Binder) -> dict[str, str]:
     return {b.address: b.raw_text for b in binder.paragraphs if b.address}
 
 
-def claim_verbatim_problems(where: str, mark: Mark, base: str) -> list[str]:
-    """Whether the sentence this mark's claim quotes is really in the paragraph.
+def claim_verbatim_problems(
+    where: str, mark: Mark, texts: tuple[str, ...]
+) -> list[str]:
+    """Whether the sentence this mark's claim quotes is really in a text at its place.
 
     !! WHICH KEY HOLDS IT IS READ OFF THE ROW, never branched on the
     instruction: `INSTRUCTIONS[...].quotes_original` names it -- `claim.drop`
@@ -156,15 +165,21 @@ def claim_verbatim_problems(where: str, mark: Mark, base: str) -> list[str]:
     and is "" for the rows that quote no existing sentence, which are passed
     over here entirely.
 
-    ! A SUBSTRING TEST OVER THE WHOLE PARAGRAPH. The quoted text may run across
-    several of its lines, and is anchored at neither end.
+    It passes when one of `texts` holds the quote, by a substring test over
+    each whole text: the quoted text may run across several of its lines, and
+    is anchored at neither end.
 
     Args:
         where: how to name this mark in a message -- its address, or a position.
         mark: one role's ruling, already through `desk.mark.parse`.
-        base: the paragraph THE BINDER SEEDED at this place, from `base_texts`.
-            ! NOT `mark.raw_text`, which is what came BACK -- a check reading
-            its own base off the thing it is checking cannot disagree with it.
+        texts: every text at this place the quote may be in, as the flow reads
+            them (`decision-log.md Process: #119`): the page's text at the
+            mark's address, whether or not the binder holds that place or its
+            file, and for a place a turn's batch sent the role, the text sent
+            there. Where no page can be read the page's text is "", so a quote
+            nothing else holds is refused. Never `mark.raw_text`, which is what
+            came back -- a check reading its own base off the thing it is
+            checking cannot disagree with it.
 
     Returns:
         One message, or an empty list. A key that is absent, is not a string,
@@ -177,8 +192,8 @@ def claim_verbatim_problems(where: str, mark: Mark, base: str) -> list[str]:
     value = mark.claim.get(key)
     if not filled(value):
         return []
-    if value not in base:
-        return [f"{where}: `claim.{key}` is not in the paragraph this row seeded"]
+    if not any(value in text for text in texts):
+        return [f"{where}: `claim.{key}` is not in the paragraph at this place"]
     return []
 
 
@@ -311,7 +326,7 @@ def source_verification(
     where: str,
     mark: Mark,
     *,
-    base: str,
+    texts: tuple[str, ...],
     root: Path,
     cache: Cache,
 ) -> list[str]:
@@ -324,12 +339,12 @@ def source_verification(
     Args:
         where: how to name this mark in a message -- its address, or a position.
         mark: one role's ruling, already through `desk.mark.parse`.
-        base: the paragraph THE BINDER SEEDED at this place, for the quoted
-            sentence -- see `claim_verbatim_problems`.
+        texts: every text at this place the quoted sentence may be in -- see
+            `claim_verbatim_problems`.
         root: the checkout every `cite` is resolved against.
         cache: path -> lines, shared across the marks of one report.
     """
-    return claim_verbatim_problems(where, mark, base) + source_problems(
+    return claim_verbatim_problems(where, mark, texts) + source_problems(
         where, mark, root, cache
     )
 
@@ -361,7 +376,7 @@ class Problem:
 
 
 def verify_report(
-    copy: EditCopy, binder: Binder, root: Path, cache: Cache
+    copy: EditCopy, texts: Mapping[str, tuple[str, ...]], root: Path, cache: Cache
 ) -> list[Problem]:
     """Source-verification over every ruled mark of ONE role's edit_copy.
 
@@ -370,8 +385,9 @@ def verify_report(
             a role hands it back. Its `role` names who to send a finding back
             to, and `EditCopy.deserialize` has already refused a copy that
             carries none.
-        binder: the binder the edit_copy was seeded from -- what each
-            seeded paragraph is measured against.
+        texts: address -> every text a quote there may be in, as
+            `flows.collate.texts_at` reads them. An address it lacks is
+            checked against nothing, so a quote there is refused.
         root: the checkout every `cite` is resolved against.
         cache: a `Cache` to read cited files through.
             !! REQUIRED, AND ONE PER STAGE. `flows.collate.collate` calls this
@@ -428,7 +444,6 @@ def verify_report(
     this function's own contradiction: `Args: cache` said one per stage and
     this said one per report, and the second is what the code did.
     """
-    base = base_texts(binder)
     out: list[Problem] = []
     for sheet in copy.sheets:
         # !! IT WALKS PARSED MARKS AND PARSES NOTHING, since `P51`. This held
@@ -448,7 +463,7 @@ def verify_report(
                 for message in source_verification(
                     mark.address,
                     mark,
-                    base=base.get(mark.address, ""),
+                    texts=texts.get(mark.address, ()),
                     root=root,
                     cache=cache,
                 )

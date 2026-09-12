@@ -306,19 +306,14 @@ class TestABatchIsAppliedAsTheTurnAppliesIt:
             assert "1 answered, 0 the fold would refuse" in out
 
     def test_what_the_turn_refuses_is_named(self, tmp_path, monkeypatch, capsys):
-        """A composition `correct` at an add's empty place is written over the
-        empty base, which leaves its `claim.false` nothing to quote."""
-        corrected = {
-            "instruction": "correct",
-            "reason": "the value reads better in words",
-            "claim": {"false": "w is 4", "true": "w is four"},
-            "sources": [{"cite": "m.py:7", "verbatim": "w = 4"}],
-            "change": "# w is four because the fixture says so\n",
-        }
+        """An answer at a place the role's copy holds no slot for is placed
+        from the page, so with the page gone from the checkout the turn refuses
+        it when it applies the answer -- and `check` names the same refusal."""
+        clean = {"instruction": "clean"}
         binder, got, batch, answers, paths = _gapped_files(
-            tmp_path,
-            {"block-context": {"instruction": "clean"}, "function-context": corrected},
+            tmp_path, {"block-context": clean, "function-context": clean}
         )
+        (tmp_path / "m.py").unlink()
         turned = run_turn(proof_after(got), binder, tmp_path, batch, answers)
         refused = [p for p in turned.revisit if p.role == "function-context"]
         assert [p.address for p in refused] == [EMPTY_PLACE]

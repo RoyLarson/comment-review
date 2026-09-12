@@ -47,6 +47,7 @@ from pathlib import Path
 
 from comment_review.desk.collator import Cache, base_texts, drift_in, verify_report
 from comment_review.desk.containers import EditCopy
+from comment_review.flows.collate import texts_at
 from comment_review.flows.mark_errors import mark_errors
 from comment_review.flows.proof_io import (
     load_batch,
@@ -91,8 +92,9 @@ def _check_copy(path: str, binder_path: str | None, repo: str | None) -> int:
             return _refused(why)
         root = Path(repo) if repo else binder.root
         cache: Cache = {}
+        texts = texts_at(copy, [page.path for page in binder.pages], root, {})
         for problem in (
-            *verify_report(copy, binder, root, cache),
+            *verify_report(copy, texts, root, cache),
             *drift_in(copy, base_texts(binder)),
         ):
             print(

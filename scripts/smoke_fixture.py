@@ -141,8 +141,8 @@ class Landing(NamedTuple):
     call carries it as `--change`; for a correction or a patch the turn
     leaves alone, `mark` derives it from `claim`; where the chief recasts the
     place in `DISPOSITIONS`, the recast prose is the text; where the turn
-    settles the place on a text of its own, it is the `change` the place's
-    answers in `ANSWERS` carry.
+    settles the place on a text of its own, or the chief takes in a role's
+    answer there, it is the `change` the place's answers in `ANSWERS` carry.
 
     `route` says what decides the outcome, and has no default, so every
     entry states its own: `"mark"` where the fold settles the place from the
@@ -164,7 +164,8 @@ class Landing(NamedTuple):
     first-round mark's change to land, and holds that change: at `c1`, what
     `mark` derives from `claim`, which the turn's answers replace; at `c12`,
     what the `add`'s `mark` call carries as `--change`, which a human query
-    in the turn keeps off the page.
+    in the turn keeps off the page; at `b8` and `c3`, what each `add`'s
+    `mark` call carries, which the chief replaces with a turn answer's text.
 
     `line` is set only where the place was empty in its file's fixture, and
     names the 1-based fixture line the landing is set against: the declaring
@@ -226,10 +227,11 @@ LANDINGS: dict[str, Landing] = {
         line=3,
     ),
     # function-context's add, on the absent a below `def wrapper(n):` --
-    # wrapper's docstring, indented to its body's depth.
+    # wrapper's docstring, indented to its body's depth. In the turn the
+    # other three roles clean it, which settles it.
     "fib.py@a2": Landing(
         "text",
-        route="disposition",
+        route="turn",
         text='        """Count each call, then pass it through."""',
         line=13,
     ),
@@ -262,34 +264,47 @@ LANDINGS: dict[str, Landing] = {
     # as it was.
     "fib.py@a1": Landing("kept", route="query"),
     # block-context's add, on an absent b above `return wrapper`, indented
-    # to logged's own body depth.
+    # to logged's own body depth. In the turn function-context answers the
+    # composition with a correct and the other two roles clean it, so an add
+    # and a correct both stand there, two texts at one place, and the place
+    # is carried forward as an escalation; disposition takes in
+    # function-context's text. `marked` is the add's own change, which its
+    # `mark` call carries.
     "fib.py@b8": Landing(
         "text",
         route="disposition",
-        text="    # Counting done, wrapper is handed back unchanged.",
+        text="    # Counting finished, wrapper is handed back unchanged.",
+        marked="    # Counting done, wrapper is handed back unchanged.",
         line=18,
     ),
     # module-context's add, on the absent closing gap after the dunder-main
-    # block.
+    # block. In the turn the other three roles clean it, which settles it.
     "fib.py@b17": Landing(
         "text",
-        route="disposition",
+        route="turn",
         text="# Nothing follows; running this module only prints one count.",
         line=34,
     ),
     # module-context's add, on the absent b above `if __name__ ==
-    # "__main__":` -- `ADDRESSER_ROW`.
+    # "__main__":` -- `ADDRESSER_ROW`. In the turn the other three roles
+    # clean it, which settles it.
     "fib.py@b15": Landing(
         "text",
-        route="disposition",
+        route="turn",
         text="# Run directly, the module prints fib(10) and how many calls it took.",
         line=33,
     ),
     # function-context's add, on an absent c beside `@functools.wraps(fn)`.
+    # In the turn module-context answers the composition with a patch and
+    # the other two roles clean it, so an add and a patch both stand there,
+    # two texts at one place, and the place is carried forward as an
+    # escalation; disposition takes in module-context's text. `marked` is
+    # the add's own change, which its `mark` call carries.
     "fib.py@c3": Landing(
         "text",
         route="disposition",
-        text="  # keeps wrapper's name and doc matching fn's own",
+        text="  # keeps wrapper's name and doc in step with fn's own",
+        marked="  # keeps wrapper's name and doc matching fn's own",
         line=12,
     ),
     # ownership-context's add, on a filled c that already holds `# base case`
@@ -365,9 +380,10 @@ ADDED = (
 #: `withdraw`, `correct` or `patch`, and a composition `clean`, `query`,
 #: `correct` or `patch`; each of the eight is planted at least once, and a
 #: role answers `clean` at every place in `ADDED` this gives it nothing for.
-#: A composition `correct` or `patch` is planted only on `rate.py@b1`, whose
-#: base is a real paragraph: at an `add`'s empty place there is no base
-#: clause for one to quote. What each answer makes land is in `LANDINGS`.
+#: A composition `correct` and a composition `patch` are planted on
+#: `rate.py@b1`, whose base is a real paragraph, and at the empty places of
+#: two `add`s, `b8` and `c3`, where each quotes the add's text -- the text the
+#: turn sent (`Process: #115`). What each answer makes land is in `LANDINGS`.
 ANSWERS: dict[str, dict[str, dict]] = {
     "block-context": {
         "fib.py@c1": {
@@ -409,6 +425,13 @@ ANSWERS: dict[str, dict[str, dict]] = {
             "instruction": "withdraw",
             "reason": "the signature is described well enough as it stands",
         },
+        "fib.py@b8": {
+            "instruction": "correct",
+            "claim": {"false": "Counting done", "true": "Counting finished"},
+            "reason": "finished says the counting is over, which done leaves open",
+            "sources": [{"cite": "fib.py:18", "verbatim": "return wrapper"}],
+            "change": LANDINGS["fib.py@b8"].text,
+        },
         "rate.py@b1": {
             "instruction": "patch",
             "claim": {
@@ -428,6 +451,12 @@ ANSWERS: dict[str, dict[str, dict]] = {
             "instruction": "hold",
             "reason": "beginning at still matches the module docstring",
         },
+        "fib.py@c3": {
+            "instruction": "patch",
+            "claim": {"from": "matching fn's own", "to": "in step with fn's own"},
+            "reason": "in step with reads more plainly than matching",
+            "change": LANDINGS["fib.py@c3"].text,
+        },
         "fib.py@c12": {
             "instruction": "query",
             "claim": {
@@ -444,13 +473,12 @@ ANSWERS: dict[str, dict[str, dict]] = {
     "ownership-context": {},
 }
 
-#: The chief's own rulings over the seven places the turn leaves carried
-#: forward -- `a3` and `b9`, each left a lone correction, and the five
-#: `add`s at empty places, which every role cleans and the fold re-reads
-#: again -- `LANDINGS` above names what each one makes land; this names
-#: how. A carried-forward place with no entry here is refused by
-#: `disposition`, by name, and so is an entry for a place that is not
-#: carried forward.
+#: The chief's own rulings over the four places the turn leaves carried
+#: forward -- `a3` and `b9`, each left a lone correction, and `b8` and `c3`,
+#: each holding an `add` beside another role's answer to it -- `LANDINGS`
+#: above names what each one makes land; this names how. A carried-forward
+#: place with no entry here is refused by `disposition`, by name, and so is
+#: an entry for a place that is not carried forward.
 DISPOSITIONS = [
     {
         "address": "fib.py@a3",
@@ -472,37 +500,16 @@ DISPOSITIONS = [
         ),
     },
     {
-        "address": "fib.py@a2",
-        "answer": "taken_in",
-        "side": "function-context",
-        "reason": (
-            "function-context is the only role that read this place; its "
-            "docstring is what lands"
-        ),
-    },
-    {
         "address": "fib.py@b8",
         "answer": "taken_in",
-        "side": "block-context",
-        "reason": "block-context is the only role that read this place",
-    },
-    {
-        "address": "fib.py@b17",
-        "answer": "taken_in",
-        "side": "module-context",
-        "reason": "module-context is the only role that read this place",
-    },
-    {
-        "address": "fib.py@b15",
-        "answer": "taken_in",
-        "side": "module-context",
-        "reason": "module-context is the only role that read this place",
+        "side": "function-context",
+        "reason": "the corrected add says the counting is finished, as the code shows",
     },
     {
         "address": "fib.py@c3",
         "answer": "taken_in",
-        "side": "function-context",
-        "reason": "function-context is the only role that read this place",
+        "side": "module-context",
+        "reason": "the patched add says the same and reads more plainly",
     },
 ]
 
@@ -512,7 +519,8 @@ def write_texts(run: Path) -> dict[str, Path]:
 
     Every text a `mark` call carries gets a file that call passes as
     `@path`: one holding the text for an `add` or the move's destination --
-    `marked` where the turn keeps it off the page, else `text` -- or one per
+    `marked` where the turn or the chief keeps it off the page, else `text`
+    -- or one per
     `claim` key -- `<cue>-false.txt` and `<cue>-true.txt` for the two
     corrections (`fib.py`'s `c6`, `c1`), `<cue>-from.txt` and
     `<cue>-to.txt` for the patch (`rate.py`'s `c3`) -- whose clauses `mark`
@@ -639,14 +647,14 @@ EXPECTED = (
     "def logged(fn):\n"
     '    """Count each call and pass it through."""\n'
     "\n"
-    "    @functools.wraps(fn)  # keeps wrapper's name and doc matching fn's own\n"
+    "    @functools.wraps(fn)  # keeps wrapper's name and doc in step with fn's own\n"
     "    def wrapper(n):\n"
     '        """Count each call, then pass it through."""\n'
     "        global CALLS\n"
     "        CALLS += 1  # the decorator's only job\n"
     "        return fn(n)\n"
     "\n"
-    "    # Counting done, wrapper is handed back unchanged.\n"
+    "    # Counting finished, wrapper is handed back unchanged.\n"
     "    return wrapper\n"
     "\n"
     "\n"

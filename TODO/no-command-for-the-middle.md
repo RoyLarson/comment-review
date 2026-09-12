@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 21 of 38 tasks closed
+Progress: 48 of 65 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
           REAL reviewer agent -- census, mark --seed, the block-context agent, mark
           --check and taken_in are all commands; the middle is not)
@@ -168,16 +168,23 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       what a role answers in a turn to propose different text at an add's empty
       place
         > 2026-09-11 composition correct, patch need a base clause: turn.py:294, :306
-- [ ] T33 | Implement a test of a move whose other end escalates, to settle
-      whether turn.py:337 overwrites claim.to
+- [x] T33 | a real two-turn run shows claim.to overwritten; T38 fixes it | 6b256ef5 | Implement
+      a test of a move whose other end escalates, to settle whether turn.py:337
+      overwrites claim.to
         > 2026-09-11 unconfirmed; a DiffMark correct or patch writes claim.to
         > 2026-09-11 by reading: the chief's c1 claim keeps the old false clause
         > 2026-09-11 final review probe: confirmed; deserialize at :402 accepts it
-- [ ] T34 | Update turn so a correct or patch answer quotes the slot's modified
-      text, not the original, per Process 115
+        > 2026-09-11 the probe called _answered directly; no real fold reaches it
+        > 2026-09-12 waits on T41, left open by Process 120
+        > 2026-09-12 Process 128: done now, from a real two-turn run
+- [-] T34 | SUPERSEDED by T47 and T48: split | 60e477e2 | Update turn so a
+      correct or patch answer quotes the slot's modified text, not the original,
+      per Process 115
         > 2026-09-11 verify: a correct answer at an add's empty place composes
         > 2026-09-11 overlaps stay uncomposed as today; Roy agreed 2026-09-11
         > 2026-09-11 in an escalation: whose modified text a correct quotes, to report
+        > 2026-09-11 waits on T39: the fold refuses a quote of the modified text
+        > 2026-09-12 waits on T44, the quote check Process 119 rules
 - [x] T35 | RULED Process: #116 -- goes back; their clean settles it | c0659be2 | Decide
       whether an add at an empty place settles when every other role cleans it;
       turn.py:320-345 keeps it a re-read
@@ -186,8 +193,133 @@ Reconciliation has no command, so the chain cannot be driven end to end.
         > 2026-09-11 Roy: Process 49 stands; an add to an empty place goes back
 - [ ] T36 | Update the history narration in added lines at test_turn.py:854 and
       :878
-- [ ] T37 | Update turn so every other role answering clean at an add at an
-      empty place settles it, per Process 116
+- [x] T37 | another role's clean adopts the add; all holding it is a stet | d4e98476 | Update
+      turn so every other role answering clean at an add at an empty place
+      settles it, per Process 116
         > 2026-09-11 undoes the plain clean daa86dc8 keeps; smoke drops 5 dispositions
-- [ ] T38 | Update turn so no answer overwrites a move claim.to with paragraph
-      text; T33 confirmed it at turn.py:337
+- [x] T38 | a correct at a move's escalation keeps its destination | 685a16d0 | Update
+      turn so no answer overwrites a move claim.to with paragraph text; T33
+      confirmed it at turn.py:337
+        > 2026-09-12 waits on T41, left open by Process 120
+        > 2026-09-12 Process 128: done now, after T33's test
+- [x] T39 | the page at the mark's address; for the turn, the text sent; P119 | 8894c9d3 | Decide
+      how the fold verifies a turn-written correct or patch whose claim quotes
+      the modified text, per Process 115
+        > 2026-09-11 desk/collator.py:150-182 checks every quote against the binder
+        > 2026-09-11 probe: claim.false is not in the paragraph this row seeded
+        > 2026-09-12 Process 119: a check against the binder alone is faulty
+        > 2026-09-12 collator.py:451 checks a place the binder lacks against empty text
+- [x] T40 | an escalation's correct or patch claim quotes the role's proposal | 5ff707be | Update
+      turn so a correct answer's claim derives its change: claim.false quotes
+      what the answer replaces
+        > 2026-09-11 T33's note: the chief's c1 claim keeps the old false clause
+        > 2026-09-11 waits on T39, how the fold verifies it
+        > 2026-09-12 waits on T44, the quote check Process 119 rules
+- [x] T41 | Process 128: T33's test runs a real two-turn collate, now | c4eaeeee | Decide
+      whether T33's test calls _answered directly, since collator.py:720-743
+      never sends a move end an escalation
+        > 2026-09-11 set 2's real collate: both move ends came back as re-reads
+        > 2026-09-12 Process 120: open until we have experimented enough to know
+        > 2026-09-12 by reading, 18e757ad escalates a move whose ends disagree
+        > 2026-09-12 so Process 120's premise may no longer hold
+- [x] T42 | Process 121: kept; a deferring query lets the add settle | 30b376ce | Decide
+      whether a deferring query at an add's empty place settles the add, as
+      d4e98476 does; Process 116 names only clean
+        > 2026-09-11 test_a_role_with_no_slot_there_is_seeded_one_from_the_page
+- [x] T43 | the test shows the defect; xfail strict until the fix lands | 5224085a | Implement
+      a test of a mover's own clean at its move's origin, to settle whether
+      _answered withdraws the move or makes it a correct
+        > 2026-09-11 found by reading in set 2: _answered's filled-text branch
+- [x] T44 | the quote check reads the page and the text a turn sent | f91722df | Update
+      the quote check so it reads the page at the mark's address and, for a mark
+      the turn wrote, the text collate sent there
+        > 2026-09-12 Process 119; desk/collator.py:431-451 reads base_texts(binder)
+        > 2026-09-12 Process 119: where no page can be read, the quote is refused
+- [x] T45 | Process 122: it reports a page it cannot read; T46 does it | 1f9ba90d | Decide
+      whether _resolution_problems at flows/collate.py:824-867 reports a page it
+      cannot read, now the quote check refuses one
+        > 2026-09-12 its docstring skips that case, citing Process 97
+        > 2026-09-12 Process 111: an address is verified against its page, everywhere
+- [x] T46 | an address whose page cannot be read is reported | fe13d10f | Update
+      _resolution_problems at flows/collate.py:824-867 so a page it cannot read
+      is reported, per Process 122
+        > 2026-09-12 Process 122; its docstring skips that case, citing Process 97
+- [x] T47 | a composition correct or patch quotes the text it was sent | 60e477e2 | Update
+      turn so a composition correct or patch quotes the text collate sent, not
+      the original, per Process 115
+- [x] T48 | Process 123: carried forward; no change, the chief rules | c5b695de | Decide
+      whether a composition correct or patch at an add's empty place composes
+      with the add, or stays carried forward
+        > 2026-09-12 T34's verify said composes; Process 115 leaves overlaps open
+        > 2026-09-12 smoke b8, c3: the add and the answer both stand; chief takes in
+- [x] T49 | Process 124: an escalation; T52 makes it so | c5b695de | Decide
+      whether a composition correct beside another role's clean adoption folds
+      as an escalation or a re-read
+        > 2026-09-12 60e477e2 loosened test_turn.py:341 and :369 to accept either
+        > 2026-09-12 before 60e477e2 it folded as an escalation
+- [x] T50 | a mover's own clean at its origin keeps the move | 1b249d0d | Update
+      _answered so a mover's own clean at its move's origin keeps the move;
+      T43's xfail test pins it
+        > 2026-09-12 T43 at 5224085a: clean when unchanged, correct when reworded
+- [x] T51 | Process 125: the base reads the page, drift does not; T53 | c5b695de | Decide
+      whether the composition base and the drift check read the page, not the
+      binder, per Process 119
+        > 2026-09-12 flows/collate.py:948 and commands/check.py:96 read base_texts
+        > 2026-09-12 by reading: differs only for a file outside the binder
+- [x] T52 | a contested re-read with two texts escalates, in the turn | 18e757ad | Update
+      the fold so a composition correct beside another role's clean adoption
+      folds as an escalation, per Process 124
+        > 2026-09-12 test_turn.py:341 and :369 assert the escalation again
+        > 2026-09-12 Process 127: decided in the turn, not the collator
+- [x] T53 | a composition composes over the page's text | 7855a05b | Update the
+      composition base to read the page's text at the mark's address, not the
+      binder's, per Process 125
+        > 2026-09-12 flows/collate.py:948 via base_texts; drift is left for T27
+- [x] T54 | hold versus correct stays an escalation after the turn | 18e757ad | Update
+      the fold so an escalation where one role answers correct and another holds
+      stays an escalation after the turn
+        > 2026-09-12 5ff707be: the answer quotes its proposal, the hold the original
+        > 2026-09-12 found by probe in set 2; it now folds as a re-read
+        > 2026-09-12 Process 127: the same step in the turn as T52
+- [x] T55 | refold escalates what the last turn escalated | 52b32fc8 | Update
+      refold so it applies the in-turn escalation step as run_turn does, per
+      Process 127
+        > 2026-09-12 refold misses _disagreeing; disposition sees b8, c3 as re-reads
+        > 2026-09-12 no outcome moves today: rule_at_max_turns reads both lists
+- [x] T56 | deleted; it rebuilt other claims unchanged, so nothing moved | f5c27575 | Delete
+      the escalation fallback in _answered that rewrites a claim's true and to
+      keys; no instruction reaches it since 685a16d0
+        > 2026-09-12 correct, patch and move carry those keys; each is handled above it
+- [x] T57 | the answer does not reach the move; xfail strict, T61 fixes it | 6ed51da4 | Implement
+      a test of a mover's answer at its move's destination end, to settle
+      whether it reaches the move
+        > 2026-09-12 set 2: it lands on the mover's own seeded clean at that address
+- [x] T58 | a move's claim.to is resolved against its page | d2114b38 | Update
+      the resolution check so a move's claim.to resolves against its page, per
+      Process 111
+        > 2026-09-12 the overwritten claim.to in T33's run passed with no problem
+        > 2026-09-12 _destination_problems says it does not ask this
+- [x] T59 | Process 129: it reaches the move; T61 does it | 336b7a4c | Decide
+      what a mover's answer at its move's destination end does: reach the move,
+      or be refused there
+        > 2026-09-12 T57 6ed51da4: it lands on the mover's clean; the move is unchanged
+- [x] T60 | a clean carrying a filled change is refused | f5248790 | Update
+      Mark.parse so a clean carrying a filled change is refused
+        > 2026-09-12 T57's run: a turn wrote one and nothing refused it
+        > 2026-09-12 Process 129: before set 2 merges
+- [x] T61 | a mover's answer at the destination end reaches the move | e260438d | Update
+      the turn so a mover's answer at its move's destination end applies to its
+      move, per Process 129
+        > 2026-09-12 T57's xfail test at 6ed51da4 pins it; remove the marker
+- [?] T62 | Decide whether a mover's answer to a composition re-read at its
+      move's destination end reaches the move
+        > 2026-09-12 outside Process 129, which covers escalation answers
+- [ ] T63 | Implement a test of a role holding its own mark at a move's
+      destination and a move there, to settle where its answer lands
+        > 2026-09-12 e260438d routes to the move only past a clean or no slot
+- [ ] T64 | Implement a test of a role holding two moves to one destination, to
+      settle where its answer lands
+        > 2026-09-12 _move_to returns None for two; the answer stays on its slot
+- [ ] T65 | Update T33's test in test_turn.py to use the two-turn helper T57's
+      test and the withdraw test share
+        > 2026-09-12 e260438d added the helper; T33's test repeats its setup

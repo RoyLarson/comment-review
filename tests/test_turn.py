@@ -13,6 +13,7 @@ from helpers import (
     _MARK_PY_LINE_1,
     ADDED_TEXT,
     EMPTY_PLACE,
+    GAPPED_PAGE,
     REPO,
     a_binder_over,
     a_clean,
@@ -20,8 +21,10 @@ from helpers import (
     a_drop,
     a_move,
     a_query,
+    a_real_binder_over,
     an_add,
     an_add_at_an_empty_place,
+    binder_of,
     copies_over,
     entries_of,
 )
@@ -29,8 +32,16 @@ from helpers import (
 from comment_review.desk.containers import MasterProof
 from comment_review.desk.determined import CHIEF, ORIGINAL, Answer
 from comment_review.desk.diff_mark import COMPOSITION, QUESTION, batch_of
-from comment_review.desk.mark import Instruction, Mark, Shape
+from comment_review.desk.mark import (
+    INSTRUCTIONS,
+    Instruction,
+    Mark,
+    Shape,
+    derived_change,
+)
 from comment_review.flows.collate import collate
+from comment_review.flows.distribute import seed
+from comment_review.flows.fill import fill
 from comment_review.flows.mark_errors import Revisit
 from comment_review.flows.page_for import page_of
 from comment_review.flows.turn import (
@@ -39,6 +50,7 @@ from comment_review.flows.turn import (
     contracts,
     determined_chief,
     proof_after,
+    refold,
     rule_at_max_turns,
     run_turn,
 )
@@ -46,9 +58,11 @@ from comment_review.flows.turn import (
 BASE = "# one\n# two\n# three\n"
 TWO = "# one\n# TWO\n# three\n"
 DOS = "# one\n# dos\n# three\n"
-ONE_ = "# ONE\n# two\n# three\n"
-_THREE = "# one\n# two\n# THREE\n"
-COMPOSED = "# ONE\n# two\n# THREE\n"
+#: A composition's two sides and what they compose to, over `BASE` as a real
+#: page holds it: `a_real_binder_over` strips the trailing newline.
+ONE_ = "# ONE\n# two\n# three"
+_THREE = "# one\n# two\n# THREE"
+COMPOSED = "# ONE\n# two\n# THREE"
 
 
 def _at(got, turns: int = 0) -> MasterProof:
@@ -74,8 +88,9 @@ def _escalated():
     return binder, copies, got
 
 
-def _composed():
-    binder = a_binder_over({"m.py@b1": BASE})
+def _composed(root):
+    """Two roles' disjoint corrects over a real page, folded into a composition."""
+    binder = a_real_binder_over(root, {"m.py@b1": BASE})
     copies = copies_over(
         binder,
         {
@@ -83,7 +98,7 @@ def _composed():
             "function-context": {"m.py@b1": a_correct_setting("m.py@b1", 2, _THREE)},
         },
     )
-    got = collate("4c", copies, binder, root=REPO)
+    got = collate("4c", copies, binder, root=root)
     assert [e["address"] for e in got.rereads] == ["m.py@b1"]
     assert got.rereads[0]["composed"].change == COMPOSED
     return binder, copies, got
@@ -257,6 +272,87 @@ class TestAnEscalation:
         assert [e["address"] for e in again.escalations] == ["m.py@b1"]
 
 
+class TestAnEscalationAnswerDerivesItsChange:
+    """`no-command-for-the-middle` T40: an escalation's `correct` or `patch`
+    answer replaces the role's own proposal, so its claim quotes that proposal
+    and derives the answer's `change` the way `desk.mark.derived_change`
+    relates a claim to its change. The fold checks the quote against the
+    proposal the batch sent the role (`Process: #119`)."""
+
+    @pytest.mark.parametrize("instruction", [Instruction.CORRECT, Instruction.PATCH])
+    def test_the_claim_quotes_the_roles_own_proposal(self, tmp_path, instruction):
+        def filed(change: str) -> dict:
+            if instruction is Instruction.CORRECT:
+                return a_correct_setting("m.py@b1", "two", change)
+            return _patch(change)
+
+        binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {"m.py@b1": filed(TWO)},
+                "function-context": {"m.py@b1": filed(DOS)},
+            },
+        )
+        got = collate("4c", copies, binder, root=tmp_path)
+        assert [e["address"] for e in got.escalations] == ["m.py@b1"]
+        batch = batch_of(got.escalations, got.rereads)
+        answers = {
+            **_answered(
+                batch,
+                "block-context",
+                instruction=str(instruction),
+                reason="theirs reads better",
+                change=DOS,
+            ),
+            **_answered(batch, "function-context", instruction="hold", reason="mine"),
+        }
+        again = run_turn(_at(got), binder, tmp_path, batch, answers)
+        assert again.revisit == []
+        assert [p for p in again.problems if p.address == "m.py@b1"] == []
+        (held,) = _held_at(again, "block-context", "m.py@b1")
+        assert held.claim[INSTRUCTIONS[instruction].quotes_original] == TWO
+        assert derived_change(instruction, held.claim, TWO) == (DOS, [])
+
+
+class TestAnAnswerThatStillDisagrees:
+    """`no-command-for-the-middle` T54, `Process: #127`: after a turn, a place
+    the turn asked about whose roles still hold different texts is an
+    escalation."""
+
+    def test_a_correct_to_a_new_text_beside_a_hold_stays_an_escalation(self, tmp_path):
+        binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {"m.py@b1": a_correct_setting("m.py@b1", "two", TWO)},
+                "function-context": {
+                    "m.py@b1": a_correct_setting("m.py@b1", "two", DOS)
+                },
+            },
+        )
+        got = collate("4c", copies, binder, root=tmp_path)
+        assert [e["address"] for e in got.escalations] == ["m.py@b1"]
+        batch = batch_of(got.escalations, got.rereads)
+        tres = "# one\n# tres\n# three\n"
+        answers = {
+            **_answered(
+                batch,
+                "block-context",
+                instruction="correct",
+                reason="neither reading holds",
+                change=tres,
+            ),
+            **_answered(batch, "function-context", instruction="hold", reason="mine"),
+        }
+        again = run_turn(_at(got), binder, tmp_path, batch, answers)
+        assert again.revisit == []
+        assert [p for p in again.problems if p.address == "m.py@b1"] == []
+        assert again.rereads == []
+        assert [e["address"] for e in again.escalations] == ["m.py@b1"]
+        assert {p.mark.change for p in again.escalations[0]["marks"]} == {tres, DOS}
+
+
 class TestTheSentBatchPairsTheAnswer:
     """T27, MEASURED in the game's hand 1: a role rewrote its slot without the
     `question` key and the fold refused it. The flow SENT the slot; the answer
@@ -308,8 +404,8 @@ class TestTheSentBatchPairsTheAnswer:
 
 
 class TestAComposition:
-    def test_the_composed_text_goes_back_as_a_marks_question(self):
-        _, _, got = _composed()
+    def test_the_composed_text_goes_back_as_a_marks_question(self, tmp_path):
+        _, _, got = _composed(tmp_path)
         batch = batch_of(got.escalations, got.rereads)
         slot = batch["block-context"][0]
         assert slot[QUESTION] == COMPOSITION
@@ -318,14 +414,14 @@ class TestAComposition:
         assert slot["instruction"] is None
         assert entries_of(got.chief) == []
 
-    def test_every_role_clean_on_it_is_a_stet_carrying_the_composition(self):
-        binder, copies, got = _composed()
+    def test_every_role_clean_on_it_is_a_stet_carrying_the_composition(self, tmp_path):
+        binder, copies, got = _composed(tmp_path)
         batch = batch_of(got.escalations, got.rereads)
         answers = {
             **_answered(batch, "block-context", instruction="clean"),
             **_answered(batch, "function-context", instruction="clean"),
         }
-        again = run_turn(_at(got), binder, REPO, batch, answers)
+        again = run_turn(_at(got), binder, tmp_path, batch, answers)
         problems = again.revisit
         assert problems == []
         assert again.rereads == []
@@ -334,10 +430,13 @@ class TestAComposition:
         assert ruled.how == "identical"
         assert [m.change for m in entries_of(again.chief)] == [COMPOSED]
 
-    def test_a_correct_over_it_folds_again_as_an_escalation(self):
-        binder, copies, got = _composed()
+    def test_a_correct_over_it_beside_a_clean_adoption_is_an_escalation(self, tmp_path):
+        """`Process: #124`: the adopting role holds the composed text and this
+        role its own correct of it, so two roles hold different texts at one
+        place, and the place is an escalation carrying both."""
+        binder, copies, got = _composed(tmp_path)
         batch = batch_of(got.escalations, got.rereads)
-        fixed = "# ONE\n# two\n# 3\n"
+        fixed = "# ONE\n# two\n# 3"
         answers = {
             **_answered(batch, "block-context", instruction="clean"),
             **_answered(
@@ -350,7 +449,7 @@ class TestAComposition:
                 change=fixed,
             ),
         }
-        again = run_turn(_at(got), binder, REPO, batch, answers)
+        again = run_turn(_at(got), binder, tmp_path, batch, answers)
         problems = again.revisit
         assert problems == []
         assert [e["address"] for e in again.escalations] == ["m.py@b1"]
@@ -360,13 +459,15 @@ class TestAComposition:
             fixed,
         }
 
-    def test_a_patch_over_it_stays_a_patch_and_the_role_stays_in_the_fold(self):
+    def test_a_patch_over_it_stays_a_patch_and_the_role_stays_in_the_fold(
+        self, tmp_path
+    ):
         """MEASURED in the game's hand 2: a patch answer was rewritten as a
         `correct`, which owes sources a patch never carried, and the role's
         entry was refused at the fold -- the role vanished from the escalation."""
-        binder, copies, got = _composed()
+        binder, copies, got = _composed(tmp_path)
         batch = batch_of(got.escalations, got.rereads)
-        worded = "# ONE\n# two\n# three!\n"
+        worded = "# ONE\n# two\n# three!"
         answers = {
             **_answered(batch, "block-context", instruction="clean"),
             **_answered(
@@ -378,7 +479,7 @@ class TestAComposition:
                 change=worded,
             ),
         }
-        again = run_turn(_at(got), binder, REPO, batch, answers)
+        again = run_turn(_at(got), binder, tmp_path, batch, answers)
         problems = again.revisit
         assert problems == []
         assert again.revisit == []
@@ -386,8 +487,8 @@ class TestAComposition:
         roles = {p.role for p in again.escalations[0]["marks"]}
         assert roles == {"block-context", "function-context"}
 
-    def test_a_drop_is_not_a_composition_answer(self):
-        binder, copies, got = _composed()
+    def test_a_drop_is_not_a_composition_answer(self, tmp_path):
+        binder, copies, got = _composed(tmp_path)
         batch = batch_of(got.escalations, got.rereads)
         answers = {
             **_answered(
@@ -401,7 +502,7 @@ class TestAComposition:
             ),
             **_answered(batch, "function-context", instruction="clean"),
         }
-        problems = run_turn(_at(got), binder, REPO, batch, answers).revisit
+        problems = run_turn(_at(got), binder, tmp_path, batch, answers).revisit
         assert any("not a composition answer" in r for p in problems for r in p.reasons)
 
 
@@ -507,7 +608,7 @@ def _held_at(got, role: str, address: str) -> list[Mark]:
 class TestAnAddAtAnEmptyPlace:
     """An `add` at an empty place is re-read by every role of the stage, and
     only the adding role's copy holds a slot there --
-    `no-command-for-the-middle` T29 and T30."""
+    `no-command-for-the-middle` T29, T30 and T37."""
 
     def test_a_role_with_no_slot_there_is_seeded_one_from_the_page(self, tmp_path):
         binder, got = an_add_at_an_empty_place(tmp_path)
@@ -525,22 +626,26 @@ class TestAnAddAtAnEmptyPlace:
         assert held.anchor == page.cues.anchor_of("b3")
         assert held.raw_text == ""
 
-    def test_every_role_clean_there_leaves_the_add_standing(self, tmp_path):
-        """A `clean` on a composition re-read says the role has nothing
-        further at the place. At an empty place no `correct` can quote the
-        base, so the adding role keeps its `add` and the other role holds a
-        `clean`; the place is re-read again, as every `add`'s place is."""
+    def test_every_role_clean_there_settles_the_add(self, tmp_path):
+        """`Process: #116`: every other role's `clean` at an add's empty
+        place is agreement. The other role adopts the add, and the place is a
+        `stet` at this turn carrying the add's text to the chief's copy."""
         binder, got = an_add_at_an_empty_place(tmp_path)
         batch = batch_of(got.escalations, got.rereads)
         answers = {r: [{**batch[r][0], "instruction": "clean"}] for r in batch}
         again = run_turn(_at(got), binder, tmp_path, batch, answers)
         assert again.revisit == []
-        (added,) = _held_at(again, "block-context", EMPTY_PLACE)
-        assert added.instruction is Instruction.ADD
-        assert added.change == ADDED_TEXT
+        assert again.problems == []
+        assert again.rereads == [] and again.escalations == []
         held = _held_at(again, "function-context", EMPTY_PLACE)
-        assert [m.instruction for m in held] == [Instruction.CLEAN]
-        assert [e["address"] for e in again.rereads] == [EMPTY_PLACE]
+        assert [(m.instruction, m.change) for m in held] == [
+            (Instruction.ADD, ADDED_TEXT)
+        ]
+        ruled = again.determined[EMPTY_PLACE]
+        assert (ruled.answer, ruled.turn, ruled.how) == (Answer.STET, 1, "identical")
+        assert [(m.instruction, m.change) for m in entries_of(again.chief)] == [
+            (Instruction.ADD, ADDED_TEXT)
+        ]
 
     def test_a_place_the_page_does_not_carry_is_still_refused(self, tmp_path):
         binder, got = an_add_at_an_empty_place(tmp_path)
@@ -576,6 +681,299 @@ class TestAnAddAtAnEmptyPlace:
         assert [p.address for p in refused] == [EMPTY_PLACE]
         assert any("never sent" in r for r in refused[0].reasons)
         assert _held_at(again, "function-context", EMPTY_PLACE) == []
+
+    @pytest.mark.parametrize(
+        "answer",
+        [
+            pytest.param(
+                {
+                    "instruction": "correct",
+                    "reason": "four is the word the rest of the fixture uses",
+                    "claim": {"false": "w is 4", "true": "w is four"},
+                    "sources": [{"cite": "m.py:7", "verbatim": "w = 4"}],
+                    "change": ADDED_TEXT.replace("w is 4", "w is four"),
+                },
+                id="correct",
+            ),
+            pytest.param(
+                {
+                    "instruction": "patch",
+                    "reason": "four is the word the rest of the fixture uses",
+                    "claim": {"from": "w is 4", "to": "w is four"},
+                    "change": ADDED_TEXT.replace("w is 4", "w is four"),
+                },
+                id="patch",
+            ),
+        ],
+    )
+    def test_a_correct_or_patch_quotes_the_text_it_was_sent(self, tmp_path, answer):
+        """`no-command-for-the-middle` T34, `Process: #115`: a composition
+        `correct` or `patch` is made against the slot's text -- here the add's,
+        where the original holds nothing. It lands on the role's copy as the
+        role gave it, and the fold checks its quote against the text sent."""
+        binder, got = an_add_at_an_empty_place(tmp_path)
+        batch = batch_of(got.escalations, got.rereads)
+        assert _slot(batch, "function-context", EMPTY_PLACE)["raw_text"] == ADDED_TEXT
+        answers = {
+            **_answered(batch, "block-context", instruction="clean"),
+            **_answered(batch, "function-context", **answer),
+        }
+        again = run_turn(_at(got), binder, tmp_path, batch, answers)
+        assert again.revisit == []
+        assert [p for p in again.problems if p.address == EMPTY_PLACE] == []
+        (held,) = _held_at(again, "function-context", EMPTY_PLACE)
+        assert held.instruction is Instruction(answer["instruction"])
+        assert held.claim == answer["claim"]
+
+
+class TestRefold:
+    """`no-command-for-the-middle` T55, `Process: #127`: `refold` re-derives
+    the fold at the turn the proof stands at, so a place the last turn left
+    escalated is an escalation there as well."""
+
+    def test_a_place_the_turn_escalated_is_an_escalation_again(self, tmp_path):
+        binder, got = an_add_at_an_empty_place(tmp_path)
+        batch = batch_of(got.escalations, got.rereads)
+        answers = {
+            **_answered(batch, "block-context", instruction="clean"),
+            **_answered(
+                batch,
+                "function-context",
+                instruction="patch",
+                reason="four is the word the rest of the fixture uses",
+                claim={"from": "w is 4", "to": "w is four"},
+                change=ADDED_TEXT.replace("w is 4", "w is four"),
+            ),
+        }
+        again = run_turn(_at(got), binder, tmp_path, batch, answers)
+        assert again.revisit == []
+        assert [e["address"] for e in again.escalations] == [EMPTY_PLACE]
+        # The proof as `commands/turn.py` writes it and `disposition` reads it.
+        wire = proof_after(again, ({"turn": 1, "sent": batch},)).serialize()
+        proof, why = MasterProof.deserialize("turn 1", wire)
+        assert proof is not None, why
+        refolded = refold(proof, binder, tmp_path)
+        assert [p for p in refolded.problems if p.address == EMPTY_PLACE] == []
+        assert refolded.rereads == []
+        assert [e["address"] for e in refolded.escalations] == [EMPTY_PLACE]
+
+
+#: `GAPPED_PAGE`'s one filled place, the comment above `y = 2`.
+MOVED_FROM = "m.py@b1"
+MOVED_TEXT = "# one\n# two\n# three"
+
+
+def _a_lone_move(root, change: str):
+    """block-context moves `MOVED_FROM` to `EMPTY_PLACE` carrying `change`,
+    function-context cleans `MOVED_FROM`, and `collate` folds the two.
+
+    Both marks are placed by `fill` on copies seeded from a binder over the
+    real page `GAPPED_PAGE`, as the `mark` command places them.
+    """
+    (root / "m.py").write_text(GAPPED_PAGE, encoding="utf-8")
+    binder = binder_of(root, 0)
+    copies = [seed(binder, role) for role in ("block-context", "function-context")]
+    moved = {
+        "address": MOVED_FROM,
+        "instruction": "move",
+        "claim": {"from": MOVED_FROM, "to": EMPTY_PLACE},
+        "reason": "the comment is about w, not y",
+        "sources": [{"cite": "m.py:7"}],
+        "change": change,
+    }
+    _, why = fill(copies[0], moved, root)
+    assert why == []
+    _, why = fill(copies[1], {"address": MOVED_FROM, "instruction": "clean"}, root)
+    assert why == []
+    return binder, collate("4c", copies, binder, root=root)
+
+
+class TestAMoversOwnClean:
+    """A mover's own `clean` at its move's origin -- `no-command-for-the-middle`
+    T43.
+
+    A lone `move` with another role marking its origin goes back to both roles
+    as a re-read at each end, and the origin's slot carries the move's own
+    text. The mover answering `clean` there agrees with its own move, so after
+    the turn it still holds that move.
+    """
+
+    @pytest.mark.parametrize(
+        "change",
+        [
+            pytest.param(MOVED_TEXT, id="moved-as-it-stands"),
+            pytest.param(MOVED_TEXT + ", which is about w", id="moved-reworded"),
+        ],
+    )
+    def test_it_keeps_the_move(self, tmp_path, change):
+        binder, got = _a_lone_move(tmp_path, change)
+        assert sorted(e["address"] for e in got.rereads) == [MOVED_FROM, EMPTY_PLACE]
+        batch = batch_of(got.escalations, got.rereads)
+        assert _slot(batch, "block-context", MOVED_FROM)["raw_text"] == change
+        answers = {
+            role: [{**slot, "instruction": "clean"} for slot in slots]
+            for role, slots in batch.items()
+        }
+        again = run_turn(_at(got), binder, tmp_path, batch, answers)
+        (held,) = _held_at(again, "block-context", MOVED_FROM)
+        assert held.instruction is Instruction.MOVE
+        assert held.claim["to"] == EMPTY_PLACE
+
+
+class TestAMoveWhoseEndsStillDisagree:
+    """A move whose other end escalates -- `no-command-for-the-middle` T33.
+
+    On turn 1 the other role patches the moved text at the move's origin, so
+    both ends of the move hold two texts and `_disagreeing` escalates both
+    (`Process: #127`). On turn 2 the mover answers its origin's escalation
+    with a `correct`: that changes the moved text, the entry's `change`, and
+    the destination stays where the mover put it.
+    """
+
+    def test_a_correct_changes_the_moved_text_and_keeps_the_destination(self, tmp_path):
+        binder, got = _a_lone_move(tmp_path, MOVED_TEXT)
+        batch = batch_of(got.escalations, got.rereads)
+        patched = {
+            "instruction": "patch",
+            "claim": {"from": "two", "to": "TWO"},
+            "reason": "the fixture spells its numbers in capitals",
+            "change": MOVED_TEXT.replace("two", "TWO"),
+        }
+        answers = {
+            role: [
+                {**slot, **patched}
+                if (role, slot["address"]) == ("function-context", MOVED_FROM)
+                else {**slot, "instruction": "clean"}
+                for slot in slots
+            ]
+            for role, slots in batch.items()
+        }
+        one = run_turn(_at(got), binder, tmp_path, batch, answers)
+        assert one.revisit == []
+        assert one.rereads == []
+        assert sorted(e["address"] for e in one.escalations) == [
+            MOVED_FROM,
+            EMPTY_PLACE,
+        ]
+
+        batch2 = batch_of(one.escalations, one.rereads)
+        moved_again = MOVED_TEXT.replace("two", "2")
+        answers2 = {
+            role: [
+                {
+                    **slot,
+                    "instruction": "correct",
+                    "reason": "a digit reads as the count it is",
+                    "change": moved_again,
+                }
+                if (role, slot["address"]) == ("block-context", MOVED_FROM)
+                else {**slot, "instruction": "hold", "reason": "mine stands"}
+                for slot in slots
+            ]
+            for role, slots in batch2.items()
+        }
+        # The record carries what turn 1 sent, as `commands/turn.py` writes it.
+        proof = proof_after(one, ({"turn": 1, "sent": batch},))
+        two = run_turn(proof, binder, tmp_path, batch2, answers2)
+        assert two.revisit == []
+        (held,) = _held_at(two, "block-context", MOVED_FROM)
+        assert held.instruction is Instruction.MOVE
+        assert held.change == moved_again
+        assert held.claim == {"from": MOVED_FROM, "to": EMPTY_PLACE}
+        assert sorted(e["address"] for e in two.escalations) == [
+            MOVED_FROM,
+            EMPTY_PLACE,
+        ]
+
+
+def _the_mover_answers_at_the_destination(root, answer: dict):
+    """Two real turns over `_a_lone_move`, the second answered by the mover at
+    its move's destination end.
+
+    Turn 1: function-context patches the moved text at the move's origin and
+    every other slot is `clean`, so both ends of the move escalate
+    (`Process: #127`). Turn 2: block-context gives `answer` at `EMPTY_PLACE`
+    and every other slot holds.
+
+    Returns:
+        The fold after turn 2.
+    """
+    binder, got = _a_lone_move(root, MOVED_TEXT)
+    batch = batch_of(got.escalations, got.rereads)
+    patched = {
+        "instruction": "patch",
+        "claim": {"from": "two", "to": "TWO"},
+        "reason": "the fixture spells its numbers in capitals",
+        "change": MOVED_TEXT.replace("two", "TWO"),
+    }
+    answers = {
+        role: [
+            {**slot, **patched}
+            if (role, slot["address"]) == ("function-context", MOVED_FROM)
+            else {**slot, "instruction": "clean"}
+            for slot in slots
+        ]
+        for role, slots in batch.items()
+    }
+    one = run_turn(_at(got), binder, root, batch, answers)
+    assert one.revisit == []
+    assert sorted(e["address"] for e in one.escalations) == [
+        MOVED_FROM,
+        EMPTY_PLACE,
+    ]
+
+    batch2 = batch_of(one.escalations, one.rereads)
+    answers2 = {
+        role: [
+            {**slot, **answer}
+            if (role, slot["address"]) == ("block-context", EMPTY_PLACE)
+            else {**slot, "instruction": "hold", "reason": "mine stands"}
+            for slot in slots
+        ]
+        for role, slots in batch2.items()
+    }
+    proof = proof_after(one, ({"turn": 1, "sent": batch},))
+    return run_turn(proof, binder, root, batch2, answers2)
+
+
+class TestAMoversAnswerAtItsDestination:
+    """A mover's answer at its move's destination end --
+    `no-command-for-the-middle` T57 and T61, `Process: #129`.
+
+    Turn 1 leaves both ends of a move escalated, as in T33's case. On turn 2
+    the mover answers the escalation at the destination end, and the answer
+    reaches the move at the origin. The mover's slot at the destination is
+    the `clean` turn 1 seeded from the page, and it stays that `clean`.
+    """
+
+    def test_the_answer_changes_the_moved_text(self, tmp_path):
+        moved_again = MOVED_TEXT.replace("two", "2")
+        two = _the_mover_answers_at_the_destination(
+            tmp_path,
+            {
+                "instruction": "correct",
+                "reason": "a digit reads as the count it is",
+                "change": moved_again,
+            },
+        )
+        assert two.revisit == []
+        (held,) = _held_at(two, "block-context", MOVED_FROM)
+        assert held.instruction is Instruction.MOVE
+        assert held.change == moved_again
+        assert held.claim == {"from": MOVED_FROM, "to": EMPTY_PLACE}
+        (seeded,) = _held_at(two, "block-context", EMPTY_PLACE)
+        assert (seeded.instruction, seeded.change) == (Instruction.CLEAN, "")
+
+    def test_a_withdraw_withdraws_the_move(self, tmp_path):
+        two = _the_mover_answers_at_the_destination(
+            tmp_path,
+            {"instruction": "withdraw", "reason": "the comment is about y after all"},
+        )
+        assert two.revisit == []
+        (held,) = _held_at(two, "block-context", MOVED_FROM)
+        assert held.instruction is Instruction.CLEAN
+        (seeded,) = _held_at(two, "block-context", EMPTY_PLACE)
+        assert (seeded.instruction, seeded.change) == (Instruction.CLEAN, "")
 
 
 def _two_places():
@@ -784,8 +1182,8 @@ class TestTheBatchThatGoesOut:
             assert "======= function-context" in diff
         assert batch["block-context"][0]["diff"] == batch["function-context"][0]["diff"]
 
-    def test_a_reread_slot_carries_the_diff_too(self):
-        _, _, got = _composed()
+    def test_a_reread_slot_carries_the_diff_too(self, tmp_path):
+        _, _, got = _composed(tmp_path)
         batch = batch_for(got)
         assert "<<<<<<< conflict" in batch["block-context"][0]["diff"]
 

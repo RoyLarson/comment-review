@@ -42,41 +42,12 @@ step 1 is blocked on [`the-harness-cannot-run-the-system-it-grades`](TODO/the-ha
 
 ### Why it exists: A green gate is not evidence of a good result
 
-Roy, 2026-08-18: *"Just because the code passes -- even if it has gone through multiple rounds of
-simplify and code-review -- doesn't mean that the code is good, that it has the right structure,
-the right documentation and the right reasons why things are the way they are."*
+**A gate says the code still parses, still runs, still says what it said.** None can say
+whether the prose beside it is true, or whether a reader would learn the reason a thing is the
+way it is. That gap is the whole remit of the four editorial roles, and it is why this is a
+reviewer rather than a linter.
 
-**Measured, on a real run.** A tree carrying **31 reader-visible defects** while every
-mechanical gate was green: `prove_unchanged` 23/23, the hygiene guard 19/19, **2,413 tests
-passing**, every citation resolving, the residue check clean. Stage 8 -- a reader, not a checker
--- is what found them.
-
-**The package that recorded that run is not in this tree**, so the numbers above are a
-measurement you cannot re-derive here. They are kept because they are specific enough to be
-checked against a NEW run, which is the only thing that would settle them either way -- and
-because the corroborating case below was measured on this repo and can still be read.
-
-**The gates were not wrong; they were answering a different question.** Each says the code still
-parses, still runs, still says what it said. None can say whether the prose beside it is TRUE, or
-whether a reader would learn the reason a thing is the way it is. That gap is the whole remit of
-the four editorial roles, and it is why this is a reviewer rather than a linter.
-
-**Corroborated on this repo, 2026-08-18**, with 519-534 tests green throughout: `verdicts.py` admitted
-a citation whose `verbatim` was `null`, because it rendered as the word "None" and the cited line
-happened to contain it; `payload_problem` admitted a claim key that was present and empty, and
-every check that would have caught it then skipped; the brief generator imported a table from a
-module that no longer defined it, passing only on an accidental re-export; and the backlog index
-listed eight finished TODOs as open. **Every one was found by reading, and none by a gate.**
-
-**And a gate can be green because it shares the defect** -- a different failure from answering
-a different question, and the one that looks most like success. **MEASURED 2026-08-21**: the
-round-trip identity, the strongest check in this tree, scored **699 of 699 across ten languages
-on its first run while 157 addresses were held by two paragraphs each**. It rebuilt each file
-from the line positions it had just read out of that file, so it could not disagree. It began
-finding things one commit later (`7c9ad96`), when it was made to set from the CUES instead.
-
-**[`docs/gates.md`](docs/gates.md) holds that case and the rule it produced**: *"does the check
-pass" is not the question; "could the check fail" is* -- plus the three ways a green run means
+**[`docs/gates.md`](docs/gates.md) holds the measured cases**, the three ways a green run means
 nothing, and what to ask before trusting a new check.
 
 The repo root is **not** the plugin. Only `plugins/comment-review/` ships to a user's
@@ -152,15 +123,8 @@ job-board --plans-dir docs/plans todo list [--owner T] [--requires-roy]
 
 ### The board
 
-!! **Every `job-board` invocation in this repo passes `--plans-dir docs/plans`.**
-It is a top-level flag and comes before the noun. No exceptions, including a bare
-read. `--todo-dir` behaves the same way wherever `TODO/` is not the board's home.
-
-**The wrong directory is silent, not an error.** The tool defaults to `plans/`,
-this repo's plans are in `docs/plans/`, and a run without the flag reads a
-directory that does not exist, then reports success over it.
-
--> [docs/history.md](docs/history.md), 2026-08-30.
+**This repo's plans are in `docs/plans/`**, so every `job-board` invocation passes
+`--plans-dir docs/plans`.
 
 **The vendored `scripts/todo_tool.py` is the older copy** and writes the
 pre-2026-08-31 format. The board was migrated to the five marks on 2026-08-31;
@@ -168,9 +132,7 @@ use `job-board`.
 
 ### The suite
 
-**The baseline is the suite's own report on the commit before yours, so run it
-there rather than looking a count up here.** A skip that needs symlinks runs only
-where they exist.
+A skip that needs symlinks runs only where they exist.
 
 **Tests are written in plain pytest and build their inputs from the code** --
 pages from `page_for` over real source, binders from `bind`, with a literal only
@@ -202,18 +164,6 @@ in, and planting the set on one of the public corpora.
 dev dependencies. A bare `ruff` is whatever the machine has, and `ruff format`
 rewrites source. Ruff config lives in `pyproject.toml`, and `corpora/**` is
 excluded from linting.
-
-!! **A formatter or linter delta is part of the task that surfaced it.** It is not
-filed, not batched, and not left for the release. Deferring one past an in-flight
-edit is acceptable; at the next code checkpoint it becomes critical-path.
-
-**Run `ruff check` again after `ruff format`** -- the formatter can create a lint
-error. **`ruff check` cannot see a formatting delta at all**, which is why this
-has to be a rule: the two commands answer different questions, only one is in the
-suite, and a skipped format stays invisible until someone runs the formatter and
-gets a diff spanning files they never touched.
-
--> [docs/history.md](docs/history.md), 2026-08-30.
 
 !! **`ty` runs bare, covering both trees.** `[tool.ty]` in `pyproject.toml` sets
 the scope, not a path typed on the command line. Before that, `tests/` sat outside
@@ -417,71 +367,14 @@ history) since it depends on `git blame`.
 
 ## Working on this repo
 
-!! **No heredocs. Not for anything.** Ruled by Roy, 2026-08-19. A heredoc (`<<'EOF'`, `<<EOF`,
-`@'...'@`) puts the text through the shell before the program that needs it, and this repo's work
-is almost entirely text that the shell eats: an f-string's `{}`, a regex's `\s` or `\|`, a
-Windows path's `\U`, an escape sequence, a `!`. It has broken every one of those in a single
-session -- including a `sed` that silently produced `[\w./\-]+` from `[\w.:/\\-]+`, which is the
-worst kind, because the command SUCCEEDED.
-
-**What to do instead:**
-
-| the job | the tool |
-| --- | --- |
-| change a file | `Edit` / `Write` |
-| a multi-step or repeated edit | `Write` a `.py` script under the job's tmp dir, then `uv run python` it |
-| a commit message | `Write` it to a file, then `git commit -F <file>` |
-| file content in a test fixture | `Write` |
-
-**The rule is about the SHELL, not about scripting.** A Python script that does the same edits
-is fine and is usually better -- it fails loudly on a bad assumption (`assert old in t`) where a
-`sed` writes something plausible and moves on.
+**A heredoc here includes PowerShell's here-string, `@'...'@`.** A multi-step or repeated edit
+is a `.py` script written under the job's tmp dir and run with `uv run python`.
 
 - Grade a comment-review run from its **diff**, never from its own report -- self-reported
   confidence has been measured to not discriminate real from fabricated findings.
 - `docs/limitations.md` governs changes to the skill's prose/rules themselves: every example
   used there must be invented (never a real quotation), each new rule should replace an
   existing one at budget rather than accumulate, and a rule belongs in exactly one file.
-- If you are **preparing making edits to code and not in a branch "ASK"** if you should be.
-  The git history on main contains work that should have been branch work because we decided
-  to start implementing before realizing we were corrections to code that belongs on a branch
-  first.
-
--> [docs/decision-log.md](docs/decision-log.md), *Process*.
-
-### A thing whose dependencies are broken is not worked on. It is refused.
-
-Roy, 2026-08-22, correcting a claim that the round-trip identity was this system's most productive
-instrument: *"But the compositor couldn't be built until the lexer and the langauges and the page
-and the census was doing the work each needed to do individually. So from start to finish the old
-system was insufficient and mixed up concerns in so many places that it was never going to
-work."*
-
-!! **This is a standing practice, not a one-off, and it is visible six times in the record:**
-
-| when | what was refused | until |
-| --- | --- | --- |
-| 2026-08-21 | *"I have refused every galley update to this point. The galley was always broken and on this commit is still broken."* | the compositor split existed |
-| 2026-08-21 | *"what was broken stays very broken out of this branch and I am not willing to accept that. I can accept it being broken in the branch but not merged out of it."* | the merge |
-| 2026-08-22 | *"I stopped the development at the page everytime before that ... There was no reason to try to fix the galley as it was."* | page, cues and census were *"at least passably functional"* |
-| 2026-08-22 | *"this needs to go in before we can finish this plan and branch"* | `TODO/cues-knows-about-lines.md` landed |
-| 2026-08-22 | the compositor itself | the lexer, the languages, the page and the census each did ONE job |
-| 2026-08-21 | *"This one is going to take serious thought before we can release it because it looks like it needs a look-ahead lexer"* | the lexer can see ahead |
-
-!! **The cost of ignoring it is the fix itself, not the time.** A repair to a module whose inputs
-are wrong is shaped by those inputs, so it encodes the defect and has to be undone -- which is
-what *"mixed up concerns in so many places that it was never going to work"* describes. The old
-galley was not badly written; it was written against parts that had not decided what they were.
-
-**And it is why an instrument arrives late.** The round-trip could not be built early, so
-`matter`, the collisions, the straddle and the empty-file bug stayed invisible -- not because
-nobody looked, but because **nothing yet existed that could disagree with the file.** A measuring
-device is downstream of every part it measures, which is the same rule wearing its most expensive
-consequence: see [`docs/gates.md`](docs/gates.md).
-
-**What this asks of a session** is to name the dependency and STOP, rather than to produce a
-plausible local fix. A refusal is a finding: file it, say what it waits on, and leave the box
-unchecked -- *"Deferred is not done."*
 
 -> [docs/decision-log.md](docs/decision-log.md), *Process*.
 
@@ -494,16 +387,6 @@ Roy, 2026-08-19: *"the todos are the job board -- plans are how we mark them off
 | holds | every piece of work known to be wanted | one release's scope |
 | lifetime | **indefinite.** Progress as we see fit | **one run.** It closes |
 | answers | *what is there to do* | *what is this version doing about it* |
-
-!! **Every finding gets a TODO -- an existing one it fits, or its own.** A finding recorded only
-in a plan dies when the plan closes, and one recorded only in a session transcript was never
-recorded at all. **The plan then NAMES the TODOs it works**, so the two can see each other.
-
-!! **A plan that names no TODO cannot be closed from either end** -- the backlog cannot see the
-work scheduled against it, and the plan cannot see the work already filed. Audited 2026-08-19 on
-`two-live-runs-proposed-fifteen-changes.md`: **0 of 15 tasks named the TODO they close**, three
-were named in a `Related` section only, and one of those was already completed -- so the scope
-pointed at finished work as though it were pending.
 
 **And this is two trackers that can drift, knowingly.** Roy: *"I know this is two ways of
 tracking work which can get them out of sync."* The rule that keeps them honest is one-directional
@@ -536,18 +419,13 @@ be answered from the tree, so it gets asked of the person -- repeatedly, and usu
 moment, because the agent has no way to tell whether the answer has changed since last time.
 **The plan externalises DONE**, so the state is read rather than requested.
 
-**It does not remove the rulings, and must not.** A `*` box is a decision only Roy can make --
-whether the galley splices within a line, what `address:lines` does with a code range. Those are
-asked because they are genuinely his. **Asking for a ruling is work; asking whether the work is
-finished is a missing artifact.** An agent that cannot tell the two apart will either interrupt
+**It does not remove the rulings, and must not.** A ruling is asked because it is genuinely
+Roy's. **Asking for a ruling is work; asking whether the work is finished is a missing
+artifact.** An agent that cannot tell the two apart will either interrupt
 constantly or guess at a decision that was never its own.
 
 **Prose in a plan is EVIDENCE for a box, never a second list of work.** A section that restates
 what a box says is a place for the two to disagree.
-
-**`scripts/todo_tool.py` manages `TODO/` and not `docs/plans/`**, so a plan carries no
-`Progress:` line -- a hand-maintained count is the arithmetic the tool exists to prevent. **The
-boxes are the state.**
 
 **`docs/plans/` is NOT `docs/superpowers/plans/`.** The second is written for an engineer with
 no context -- exact files, TDD steps, a commit per task. The first is a release scope. Roy:
@@ -583,8 +461,7 @@ deleted they get SUPERSEDED and checked. That is going to be an addition to the 
 
 **A deleted box leaves no trace that it was ever there, or why it went.** A superseded one
 keeps the error legible -- which is the same reason a superseded RULING is kept beside the one
-that replaced it rather than rewritten away. The tool has no delete command and is not getting
-one; what it is getting is a way to mark this.
+that replaced it rather than rewritten away.
 
 It applies to a task filed in error as much as to one overtaken by better work. Removing a
 mistake removes the record that it was made.
@@ -723,8 +600,6 @@ a measurement: nothing in this repo tests it.
 
 ## Exploration Budget
 
-- Before a long read/grep sweep, state a one-line plan and the files you intend to inspect,
-  then stop and confirm.
 - Cap initial exploration at ~10 tool calls; if you still lack context, report what you
   found and ask rather than continuing to browse.
 - Prefer dispatching a Task agent for open-ended codebase exploration so the main context

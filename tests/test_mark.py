@@ -327,6 +327,13 @@ class TestTheRulesBite:
         bad["claim"] = "not an object at all"
         assert any("claim" in p for p in problems("here", bad))
 
+    def test_a_clean_carrying_a_change_is_refused(self):
+        """`no-command-for-the-middle` T60: `clean` proposes no text, so a
+        filled `change` on one is refused rather than carried."""
+        bad = well_formed("clean")
+        bad["change"] = "# a paragraph no role proposed"
+        assert any("change" in p for p in problems("here", bad))
+
     def test_an_empty_claim_key_is_not_an_answer(self):
         bad = well_formed("correct")
         bad["claim"]["false"] = "   "

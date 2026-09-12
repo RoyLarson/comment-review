@@ -4043,8 +4043,8 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   it to what finally consumes it, and one hop is the common failure. It applies to an artifact as
   much as to a field.
 
-- **#112.** **A `collate` run that carries places forward and also has places a role left
-  unruled exits a code of its own** (Roy, 2026-09-11, ruling on `collate-command-defects` T20).
+- **#112.** **What `collate` exits when it carries places forward and has unruled places**
+  (Roy, 2026-09-11, ruling on `collate-command-defects` T20).
 
   **The question.** `commands/collate.py:335-354` checks escalations, then re-reads, then
   coverage, so a run holding an escalation and an unruled place exits 4. `SKILL.md:664-670` maps
@@ -4061,9 +4061,8 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **Tasks.** `collate-command-defects` T21 implements the code; `agents-files-name-the-new-cli`
   T22 gives it its row in the table.
 
-- **#113.** **The proof's code check compares against the approved changes, not against "nothing
-  changed"** (Roy, 2026-09-11, ruling on `the-code-check-refuses-add-and-drop-on-a-docstring` T1,
-  open since 2026-08-17).
+- **#113.** **What the proof's code check compares against** (Roy, 2026-09-11, ruling on
+  `the-code-check-refuses-add-and-drop-on-a-docstring` T1, open since 2026-08-17).
 
   **The question.** `flows/proof_setter.py`'s `_prove` compares the code's syntax tree before
   and after, with docstring text blanked but docstring presence kept, so an approved `add` or
@@ -4079,17 +4078,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   identity, under which a docstring is not a code line and adding one moves no anchor. Which
   mechanism carries this ruling is the implementing task's to work out.
 
-- **#114.** **`ty` does not check `scripts/`** (Roy, 2026-09-11, ruling on `smoke-middle-script`
+- **#114.** **Whether `ty` checks `scripts/`** (Roy, 2026-09-11, ruling on `smoke-middle-script`
   T56, raised when a review found `ty` and Pyright both report `str | None` in
   `scripts/smoke_fixture.py` when pointed at it, while bare `uv run ty check` passes because
   `pyproject.toml`'s `[tool.ty]` scope is `src` and `tests`).
 
   *"No"*. *"Scripts are not source or tests. They are convenience"*.
 
-- **#115.** **In a turn, a `correct` or `patch` answer is made against the modified text, not the
-  original** (Roy, 2026-09-11, ruling on `no-command-for-the-middle` T32, raised when a hand-run
-  turn found no answer can propose different text at an `add`'s empty place: a composition
-  `correct` or `patch` quotes a base clause, and there the original has none).
+- **#115.** **What a turn's `correct` or `patch` is made against** (Roy, 2026-09-11, ruling on
+  `no-command-for-the-middle` T32, raised when a hand-run turn found no answer can propose
+  different text at an `add`'s empty place: a composition `correct` or `patch` quotes a base
+  clause, and there the original has none).
 
   *"I agree with you that the turn correct or patch has to be against to modified text not the
   original. It wouldn't make sense in several cases including a drop or a correct and patch
@@ -4097,8 +4096,8 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   **Left open, in his words:** how composed edits that overlap are made.
 
-- **#116.** **An `add` at an empty place goes back to every role of the stage, and their `clean`
-  in the turn settles it** (Roy, 2026-09-11, ruling on `no-command-for-the-middle` T35).
+- **#116.** **Whether an `add` at an empty place goes back to every role, and what settles it**
+  (Roy, 2026-09-11, ruling on `no-command-for-the-middle` T35).
 
   **The question.** In the turn, the roles that never held an `add`'s empty place answered its
   re-read with `clean`, and `flows/turn.py` (daa86dc8) kept each as a plain `clean` rather than
@@ -4113,7 +4112,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   In the turn, every other role answering `clean` at that place is agreement, and the `add`
   settles.
 
-- **#117.** **The write phase copies only the files it modifies** (Roy, 2026-09-11, asked how
+- **#117.** **What the write phase copies** (Roy, 2026-09-11, asked how
   `Process: #35`'s address gate should compare a revise once `revise.pull` stopped copying the
   whole checkout -- set 1, `galley-and-compositor-write-path` T13).
 
@@ -4131,10 +4130,110 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   against the same pages of the original -- measured the same day, gathering every file of this
   checkout for the gate took 249 seconds.
 
-- **#118.** **A later stage always has the original, and also needs a new binder with the edits
-  and a revised set of code** (Roy, 2026-09-11, ruling on `galley-and-compositor-write-path` T39:
-  once a revise holds only the pages its docket writes, `#117`, does a later stage gathering from
-  it read the pages it did not write from the original).
+- **#118.** **What a later stage reads** (Roy, 2026-09-11, on `galley-and-compositor-write-path`
+  T39: once a revise holds only the pages its docket writes, `#117`, does a later stage read the
+  pages it did not write from the original).
 
   *"it always has the original but it also needs to new binder with the edits and a revised set of
   code"*.
+
+- **#119.** **What a quoted clause is checked against** (Roy, 2026-09-12, on
+  `no-command-for-the-middle` T39; `desk/collator.py:431-451` looks every quote up in
+  `base_texts(binder)`).
+
+  *"This is a faulty check"*, and *"It is the same type of error that assumed only visible
+  addresses in the binder matter. The binder is the seed for what can be ruled on it is not
+  everything that can be ruled on and it is not every file"*.
+
+  Asked what it reads instead -- (1) the text at the mark's own address, read from the page,
+  whether or not the binder holds that place or its file; (2) for a mark the turn wrote, the text
+  collate composed and sent at that address -- Roy: *"1"*. Asked whether, for a turn's `correct`
+  at an add's empty place, where the page holds nothing, it also reads (2): *"yes"*. Asked what it
+  does where no page can be read, the checkout holding no file at that path -- the resolution
+  check skips that case, `flows/collate.py:829-833` -- Roy: *"Refuse"*.
+
+- **#120.** **Whether T33's test calls `_answered` directly** (Roy, 2026-09-12, on
+  `no-command-for-the-middle` T41: the line in `flows/turn.py` that rewrites a claim's `to` is
+  for a `patch`, where `to` is the replacement text, and on a `move` would overwrite the
+  destination, but no real fold sends a move's end back as an escalation,
+  `desk/collator.py:720-743`).
+
+  *"Leave it open until we have experimented with the system enough to know what to do"*.
+  T33, T38 and T41 stay open.
+
+- **#121.** **Whether a deferring query at an add's empty place settles the add** (Roy,
+  2026-09-12, on `no-command-for-the-middle` T42: since d4e98476 it does, as a `stet` marked
+  "one", while `#116` speaks only of `clean`).
+
+  Asked whether to keep that -- a deferring query already abstains everywhere else, so the
+  adding role's `add` stands alone and settles -- Roy: *"Keep it"*.
+
+- **#122.** **Whether the resolution check reports a page it cannot read** (Roy, 2026-09-12, on
+  `no-command-for-the-middle` T45: `_resolution_problems`, `flows/collate.py:824-867`, skips that
+  case citing `#97`, while the quote check refuses it, `#119`).
+
+  Asked whether it should report it -- `#97`'s reason was about guessing from the binder, and here
+  the page itself is read -- Roy: *"Report it"*.
+
+- **#123.** **Whether a composition `correct` or `patch` at an add's empty place composes with the
+  add** (Roy, 2026-09-12, on `no-command-for-the-middle` T48: in the smoke the add and the answer
+  both stand at `fib.py@b8` and `c3`, and the chief rules each).
+
+  Asked -- carried forward, the adding role and the answering role holding different texts until
+  they agree or the chief rules; or composed, the answer being an edit of the add's own text --
+  Roy: *"Carried forward"*.
+
+- **#124.** **Whether a composition `correct` beside another role's `clean` adoption folds as an
+  escalation or a re-read** (Roy, 2026-09-12, on T49: before 60e477e2 it folded as an escalation,
+  since as a re-read).
+
+  Asked, with the reason that two roles holding different texts at one place disagree -- Roy:
+  *"Escalation"*.
+
+- **#125.** **Whether the composition base and the drift check read the page** (Roy, 2026-09-12,
+  on T51: `flows/collate.py:948` and `commands/check.py:96` read `base_texts(binder)`, which by
+  reading differs from the page only for a file outside the binder).
+
+  Roy: *"Read the page"*, the source the quote check reads (`#119`). Then shown that drift read
+  off the page asks whether the page changed, which `#62` rules out of the middle, and that
+  `collator-defects` T27 deletes drift -- Roy: *"Base only"*. Only the composition base moves; the
+  drift half is superseded by `#62`.
+
+- **#126.** **Whether set 2 merges with T33, T38 and T41 open** (Roy, 2026-09-12; `#120` leaves
+  them open until the system has been experimented with).
+
+  Asked whether to do T50, then merge set 2 into `feat/the-agents-read-the-cli` with those three
+  left open on the 0.2.4 plan -- Roy: *"Yes, both"*.
+
+- **#127.** **Where `#124`'s disagreement is decided** (Roy, 2026-09-12, on
+  `no-command-for-the-middle` T52: a collator row that made `#124`'s case an escalation also
+  escalated a turn-0 composition, since the collator cannot tell a `clean` adoption from a
+  `correct` of a whole paragraph).
+
+  Asked -- in the turn, where a place the turn asked about whose roles still hold different texts
+  becomes an escalation, turn 0 unchanged, which also covers T54 and escalates `fib.py@b8` and
+  `c3`; a collator row; or the turn marking an adoption in the copy -- Roy: *"In the turn"*.
+
+- **#128.** **Whether T33 and T38 wait for experimenting** (Roy, 2026-09-12, on
+  `no-command-for-the-middle` T41: `#120` left them open because no real fold sent a move's end
+  back as an escalation; by reading, since 18e757ad a move whose ends still disagree after a turn
+  escalates, so a `correct` answer on the next turn could overwrite its `claim.to`).
+
+  Asked whether to do T33 and T38 before set 2 merges -- Roy: *"Do them now"*. `#120` is
+  superseded for those two tasks.
+
+- **#129.** **What a mover's answer at its move's destination end does** (Roy, 2026-09-12, on
+  `no-command-for-the-middle` T59: in T57's two-turn run a mover's `correct` at the destination
+  end landed on its own `clean` slot there, and the move kept its old text).
+
+  Asked -- reach the move, a `correct` or `patch` changing the move's text and a `withdraw`
+  withdrawing it; or refused there, pointing the mover to the origin -- Roy: *"Reach the move"*.
+  Then asked whether T59's fix and T60, refusing a `clean` that carries a change, land before set
+  2 merges -- Roy: *"Both first"*.
+
+- **#130.** **Whether set 2 merges with T62-T65 open** (Roy, 2026-09-12: each round of set 2 had
+  turned up a few more edges at a move's destination end; with T60 in, an answer that does not
+  reach the move comes back to the role as a refusal rather than being lost).
+
+  Asked whether to merge with `no-command-for-the-middle` T62-T65 left open on the 0.2.4 plan,
+  against the rule that a branch's own findings close before it merges -- Roy: *"Merge now"*.

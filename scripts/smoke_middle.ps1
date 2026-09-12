@@ -609,8 +609,11 @@ $Stages = [ordered]@{
     # reads each file against that batch and the proof it went out with, and
     # exits 1 on a slot left unanswered; `turn` reports such a slot and folds
     # past it, so its exit code cannot say the same. Then `turn` applies all
-    # four roles' answers and folds again. The answers leave re-reads and no
-    # escalation, so `turn`, whose exit codes are `collate`'s, exits 3.
+    # four roles' answers and folds again. The answers leave b8 and c3
+    # escalated -- each holds an add beside another role's answer to it, two
+    # texts at one place after the turn -- and a3 and b9 re-read, each a lone
+    # correction, so `turn`, whose exit codes are `collate`'s, exits 4:
+    # escalation outranks re-read.
     turn = {
         Invoke-Checked -Stage 'plant-answers' -CommandLine @(
             'uv', 'run', 'python', '-c',
@@ -628,7 +631,7 @@ $Stages = [ordered]@{
             ))
         }
         $answers = foreach ($role in $Roles) { '--answers', "$role=$($answerFile[$role])" }
-        Invoke-Checked -Stage 'turn' -Expect 3 -CommandLine ($Launcher + @(
+        Invoke-Checked -Stage 'turn' -Expect 4 -CommandLine ($Launcher + @(
             $Cmd.turn, '--proof', $Proof0File, '--binder', $BinderFile, '--sent', $Batch1File
         ) + $answers + @(
             '--proof-out', $Proof1File, '--batch-out', $Batch2File

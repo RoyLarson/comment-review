@@ -78,9 +78,7 @@ whatever lane owns the thing it found; `systems` decides where each one sits, sp
 holds two problems, and merges two that hold one.
 
 **Adding a task is any lane's.** Roy, 2026-08-23: *"adding a task can be done by any lane
-because that is a result of who found it creates it."* A lane that finds something writes it
-down where it belongs, in the file that owns it -- waiting for the owning lane to notice is how
-a finding becomes a session transcript.
+because that is a result of who found it creates it."*
 
 **What is not any lane's:** ticking a box and rewriting an Objective belong to the lane that
 owns the work, because both assert that the work's state or shape has changed. Moving a file
@@ -145,51 +143,17 @@ alternative is filing a TODO and shipping a file that is wrong in the meantime.*
 
 ---
 
-## T, P and SP -- what references what, and in which direction
+## T and P -- what references what, and in which direction
 
-Roy, 2026-08-23. Three kinds of checkbox exist and they are not interchangeable.
+Roy, 2026-08-23. Two kinds of checkbox exist and they are not interchangeable.
 
 | | lives in | is | references |
 | --- | --- | --- | --- |
 | **T** | `TODO/*.md` | **the goal.** One verifiable checkpoint of work that is wanted | nothing |
-| **P** | `docs/plans/*.md` | **a task that makes one or more Ts accomplishable.** NOT an ordered step -- see below | the T tasks it works |
-| **SP** | `docs/superpowers/plans/*.md` | **a subplan of a P** -- exact files, TDD steps, a commit per task | the P steps it accomplishes |
+| **P** | `docs/plans/*.md` | **a task that makes one or more Ts accomplishable.** Not an ordered step | the T tasks it works |
 
-!! **A `P` is not an ordered step, and only an `SP` is.** Roy, 2026-09-02: *"at this level plan
-tasks are not ordered steps in the plan. They the specific tasks that make the todos
-accomplishable. Similar to a superpowers spec. The exact ordered list is either a subplan or a
-superpowers plan. That is where and when the tasks are know to the degree to be ordered off
-of."*
-
-| | what it is | is it ordered |
-| --- | --- | --- |
-| **P** | the SET of tasks that make the `T`s accomplishable -- a spec | **no** |
-| **SP** | the exact list, in the order it is done | **yes** |
-
-**SO A `P` file needs no reading order and must not claim one.** MEASURED 2026-09-02: a
-session added six `P`s to `0.2.4-the-mark-and-the-collator`, found their ids did not run in
-the order the mechanism runs, and wrote a table calling itself *"the order to read the steps
-in"* plus a note explaining why the numbers were out of sequence. **It was solving a problem
-that does not exist at this level**, and the fix imported an ordering assumption into a file
-whose whole point is that it has none.
-
-**THE WORD `step` is what carried the assumption.** This table read *"a step along the way"*
-until the same day. A `P` is a task; the sequence is the `SP`'s.
-
-**And only what can be known and ordered goes into an `SP`.** Roy, the same message: *"only
-for the pieces that can be known and ordered should be included in a SP plan. Stopping and
-regrouping is important. Forcing through a plan when the inputs have changed causes
-problems."*
-
-**SO AN `SP` COVERING A `P` that is still being figured out is the error**, not a short `SP`.
-A plan that ends where the knowledge ends, and is followed by a regroup, is the intended
-shape. MEASURED on `SP-3`, 2026-09-02: its task order put SKILL.md last, and a gate coupled
-that task to the fourth -- so the suite would have sat at two failures for four tasks. The
-order was CHANGED mid-flight and recorded, rather than forced through. That is this rule
-working; the failure it names is the other choice.
-
-**The arrows go one way: `SP -> P -> T`.** A plan cites the TODOs it works; a superpowers
-plan cites the plan steps it delivers. **A TODO takes no DEPENDENCY on a plan** -- nothing in
+**The arrows go one way: `P -> T`.** A plan cites the TODOs it works.
+**A TODO takes no DEPENDENCY on a plan** -- nothing in
 `TODO/` may wait on a plan, be closed by one, or read its state from one, so a closed plan
 leaves the backlog intact.
 
@@ -205,10 +169,6 @@ delivers, and the box cannot be verified by anyone who did not write it. Name th
 **"works tasks 1, 2 and 4 of ..."*. That is what makes a ticked box re-derivable by a
 stranger, which is the standard `CLAUDE.md` sets for the release gate.
 
-**Both are added as the work is figured out.** A T appears whenever a finding is made; a P
-appears whenever a step towards one becomes clear. Neither list is settled at the start, and
-neither is closed by the other being written.
-
 **AND A `T` IS STILL A VERIFIABLE CHECKPOINT** -- see `CLAUDE.md`, *A box is a claim about
 whether work remains*. A ruling, a measurement or a piece of reasoning is not a T, and
 wrapping it in a P does not make it one.
@@ -219,41 +179,12 @@ wrapping it in a P does not make it one.
 
 ## How a `P` gets written, and when
 
-Roy, 2026-08-24, porting this from `job_board` deliberately: *"put the planning process
-into their conventions.md"*, and the reason is his own -- **it is a guardrail against
-jumping into the work before the scope exists.** It is here rather than in a TODO because
-a rule that only exists where you would go looking after the fact is not a guardrail.
-
-!! **A branch starts with a plan, not with code.** A `docs/plans/*.md` entry names the `T`
-tasks it works, and it is what says when the branch is finished. A plan assembled
-AFTERWARDS is a description of what happened -- it cannot tell anyone whether the work is
-done, because it was written from what got done.
-
-1. **Roy suggests the scope of work.** A sentence or two naming the release or the problem.
-2. **The scope is worked out together** -- what it entails, what "done" means, and what is
-   outside it.
-3. **An agent drafts the `P` steps** for review.
-4. **Roy requests modifications until he approves.**
-5. **The agent writes the plan file.**
-6. **Branch, commit the plan, then start the work.**
-
-!! **Step 4 is the authoring; the drafting is stenography.** Roy, 2026-08-24: *"I can't
-write it I am not there at all ... I suggest the scope of work. We work together to figure
-out what the scope of work entails. You draft the steps in the plan for me to review. I
-request modifications until I approve the plan."* What cannot be delegated is naming the
-scope and approving the result. Those are what make a plan a contract instead of a
-suggestion, and neither depends on who types it.
-
-**A "DONE" that cannot be checked is not A GATE.** *"The reviewer works"* is a feeling;
-**"a compound citation is either rejected or fully resolved"* is a claim a stranger can
-test. This is the same standard the `P` section above sets for naming the `T` tasks a plan
-works -- a box a stranger cannot re-derive is not finished, it is asserted.
+A `docs/plans/*.md` entry names the `T` tasks it works, and it is what says when the branch is
+finished.
 
 **Where a design deliberately reaches into territory that will later belong somewhere
 else, mark it provisional in the code AND in the records.** Necessary now is not correct
 forever, and a boundary never written down as temporary calcifies by silence.
-
--> [`decision-log.md`](decision-log.md), *Process*, for the six steps and where the authoring sits.
 
 ---
 
@@ -423,53 +354,6 @@ update, delete, or a question" is a reading* -- arriving on a field instead of o
 
 ---
 
-## What a box may SAY -- the four openings, and why everything else is a trap
-
-Roy, 2026-08-29: *"the box must declare what it is implementing, updating, deleting or for
-Roy explicitly the question that needs to be answered once it becomes part of the critical
-path. Everything else is prose and is a trap."*
-
-**A box opens with ONE of four things.** Whatever follows is the `Verify:` -- how a stranger
-checks it -- and that may carry as many clauses as the one deliverable needs.
-
-| the box declares | it reads |
-| --- | --- |
-| **implement** | *"Implement X, where ..."* |
-| **update** | *"Update X so that ..."* |
-| **delete** | *"Delete X ..."* |
-| **a question for Roy** | the question itself, asked |
-
-!! **A statement of fact is not a box.** *"The last revise IS the 7a draft"* is already true
-or false, so nothing in it says when the work is done -- and it stays readable as a task
-either way. A bare noun phrase -- *"The composition answer set"* -- names an artifact and no
-work at all.
-
-!! **The proof that A box was malformed is that it could be SUPERSEDED in part.** A box
-naming one deliverable cannot be half-overtaken. `0.2.4`'s **T6.1** named four answers as the
-closed set and **T6.3** named four outcomes; `decision-log.md Process: #49` then added a
-SECOND question to the revise step, and each box was left half-right -- correct for a
-conflict, wrong for a composition. Both were retired whole, which took the conflict half's
-only specification with them and had to be carried back as T6.12-T6.14.
-
-**AND A prose box can be ticked over A half that was never reachable.** `0.2.4`'s **T4.3**
-reads *"A scope-declaring `query` is a boundary report and does not block the other roles"* --
-an assertion, not work -- and carries its own note: *"THE SECOND CLAUSE IS NOT VERIFIED BY
-WHAT LANDED."* It is `[x]`.
-
-**MEASURED 2026-08-29 on `docs/plans/0.2.4-the-mark-and-the-collator.md`: 38 of 67 boxes are
-prose, 25 name an action, and NONE poses a question** -- so the decisions that plan waits on
-are not visible as boxes anywhere in it.
-
-**The rule is mechanical, which is the whole point.** *"Is this a verifiable checkpoint"*
-is a judgement and was already written down; *"does this box open with implement, update,
-delete, or a question"* is a reading, and a stranger can run it down a file. `CLAUDE.md`
-states the symptom -- *"the tell is that it cannot be finished"* -- and this states the
-cause.
-
--> [`decision-log.md`](decision-log.md), *Process*, for what a box may open with and why a statement of fact is not one.
-
----
-
 ## A task list is not split by a heading, ever.
 
 Roy, 2026-08-30: *"This very thing made an earlier session completely jump a bunch of
@@ -498,14 +382,6 @@ PROSE ABOVE the list or a dated note -- **the tasks stay in one block, in one or
 ---
 
 ## Where a finding goes -- a task first, a file only when nothing holds it
-
-Roy, 2026-08-30: *"Every finding gets a TODO task - only open new files if the todo
-truely doesn't have a good home. For general fixes a new TODO can be made per module.
-When there are multiple dependencies where it is a design objective that needs the todos
-that can be split into a new file"*
-
-`CLAUDE.md` says every finding gets a TODO, *"an existing one it fits, or its own."*
-**This is the test for which, and the default is the task.**
 
 | the finding | where it goes |
 | --- | --- |
@@ -549,9 +425,9 @@ filing mistake as much as work overtaken: move the tasks to their home, then
 
 - **Name the lane and ask.** A one-line question costs less than a change the owning lane has to
   discover by reading a diff.
-- **A finding gets a TODO TASK, in whatever lane owns the thing found.** The lane that FOUND it
-  files it; the lane that OWNS it works it. **A new FILE only when nothing holds it** -- see
-  *Where a finding goes*, above.
+- **A filed finding goes to whatever lane owns the thing found.** The lane that found it files
+  it; the lane that owns it works it. **A new file only when nothing holds it** -- see *Where a
+  finding goes*, above.
 - **A gate is not a lane's to relax.** See `systems`, above.
 - **A ruling is recorded by whoever received it** -- `docs/decision-log.md` for what and when,
   `docs/history.md` for why. Neither is owned.

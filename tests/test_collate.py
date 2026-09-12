@@ -18,6 +18,7 @@ from helpers import (
     a_correct_setting,
     a_move,
     a_query,
+    a_real_binder_over,
     a_small_real_tree,
     an_add,
     binder_of,
@@ -30,6 +31,7 @@ from helpers import (
 
 from comment_review.desk.collator import known_addresses
 from comment_review.desk.containers import EditCopy
+from comment_review.desk.diff_mark import batch_of
 from comment_review.desk.mark import Mark, Shape
 from comment_review.flows.collate import collate
 from comment_review.reading.addresser import address_for
@@ -164,50 +166,42 @@ class TestTheResolutions:
         assert [e["address"] for e in got.escalations] == ["m.py@b1"]
         assert entries_of(got.chief) == []
 
-    def test_disjoint_edits_compose_and_still_go_back_as_a_reread(self):
+    def test_disjoint_edits_compose_and_still_go_back_as_a_reread(self, tmp_path):
         """`Process: #87`: a composition is not a resolution. The composed
         `Mark` rides on the reread entry so the batch can ask the roles
         whether it is right; the chief carries nothing until they agree."""
-        binder = one_place()
+        binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
         copies = copies_over(
             binder,
             {
                 "block-context": {
-                    "m.py@b1": a_correct_setting(
-                        "m.py@b1", 0, "# ONE\n# two\n# three\n"
-                    )
+                    "m.py@b1": a_correct_setting("m.py@b1", 0, "# ONE\n# two\n# three")
                 },
                 "function-context": {
-                    "m.py@b1": a_correct_setting(
-                        "m.py@b1", 2, "# one\n# two\n# THREE\n"
-                    )
+                    "m.py@b1": a_correct_setting("m.py@b1", 2, "# one\n# two\n# THREE")
                 },
             },
         )
-        got = collate("4c", copies, binder, root=REPO)
+        got = collate("4c", copies, binder, root=tmp_path)
         assert got.escalations == []
         assert [e["address"] for e in got.rereads] == ["m.py@b1"]
-        assert got.rereads[0]["composed"].change == "# ONE\n# two\n# THREE\n"
+        assert got.rereads[0]["composed"].change == "# ONE\n# two\n# THREE"
         assert entries_of(got.chief) == []
 
-    def test_a_refused_compose_stays_a_reread(self):
-        binder = one_place()
+    def test_a_refused_compose_stays_a_reread(self, tmp_path):
+        binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
         copies = copies_over(
             binder,
             {
                 "block-context": {
-                    "m.py@b1": a_correct_setting(
-                        "m.py@b1", 0, "# ONE\n# two\n# three\n"
-                    )
+                    "m.py@b1": a_correct_setting("m.py@b1", 0, "# ONE\n# two\n# three")
                 },
                 "function-context": {
-                    "m.py@b1": a_correct_setting(
-                        "m.py@b1", 1, "# UNO\n# two\n# three\n"
-                    )
+                    "m.py@b1": a_correct_setting("m.py@b1", 1, "# UNO\n# two\n# three")
                 },
             },
         )
-        got = collate("4c", copies, binder, root=REPO)
+        got = collate("4c", copies, binder, root=tmp_path)
         assert [e["address"] for e in got.rereads] == ["m.py@b1"]
         assert entries_of(got.chief) == []
 
@@ -373,46 +367,44 @@ class TestTheChiefsCopy:
             assert why == [], why
             assert again == mark
 
-    def test_a_composed_mark_carries_both_sides_sources(self):
-        binder = one_place()
+    def test_a_composed_mark_carries_both_sides_sources(self, tmp_path):
+        binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
         copies = copies_over(
             binder,
             {
                 "block-context": {
-                    "m.py@b1": a_correct_setting(
-                        "m.py@b1", 0, "# ONE\n# two\n# three\n"
-                    )
+                    "m.py@b1": a_correct_setting("m.py@b1", 0, "# ONE\n# two\n# three")
                 },
                 "function-context": {
-                    "m.py@b1": a_correct_setting(
-                        "m.py@b1", 2, "# one\n# two\n# THREE\n"
-                    )
+                    "m.py@b1": a_correct_setting("m.py@b1", 2, "# one\n# two\n# THREE")
                 },
             },
         )
-        got = collate("4c", copies, binder, root=REPO)
+        got = collate("4c", copies, binder, root=tmp_path)
         entry = got.rereads[0]["composed"]
         assert len(entry.sources) == 2
         assert "block-context" in entry.reason
         assert "function-context" in entry.reason
 
-    def test_sources_and_reason_AGREE_on_the_roles_ORDER(self):
+    def test_sources_and_reason_AGREE_on_the_roles_ORDER(self, tmp_path):
         """!! `reason` NAMES THE ROLES ALPHABETICALLY (`roles = sorted(sides)`
         below `_composition`). `sources` must walk the SAME order rather than
         `owing`'s dispatch order -- the order `edit_copies` happened to be
         handed to `collate` in, which is not a property of the data. Three
         roles, dispatched in a non-alphabetical order, over three
         non-adjacent spans of a 7-line base so all three compose."""
-        binder = a_binder_over({"m.py@b1": "# a\n# b\n# c\n# d\n# e\n# f\n# g\n"})
+        binder = a_real_binder_over(
+            tmp_path, {"m.py@b1": "# a\n# b\n# c\n# d\n# e\n# f\n# g"}
+        )
         by_role = {
             "zebra-context": a_correct_setting(
-                "m.py@b1", 0, "# A\n# b\n# c\n# d\n# e\n# f\n# g\n"
+                "m.py@b1", 0, "# A\n# b\n# c\n# d\n# e\n# f\n# g"
             ),
             "apple-context": a_correct_setting(
-                "m.py@b1", 1, "# a\n# b\n# c\n# D\n# e\n# f\n# g\n"
+                "m.py@b1", 1, "# a\n# b\n# c\n# D\n# e\n# f\n# g"
             ),
             "mango-context": a_correct_setting(
-                "m.py@b1", 2, "# a\n# b\n# c\n# d\n# e\n# f\n# G\n"
+                "m.py@b1", 2, "# a\n# b\n# c\n# d\n# e\n# f\n# G"
             ),
         }
         for role, mark in by_role.items():
@@ -425,7 +417,7 @@ class TestTheChiefsCopy:
             "apple-context",
             "mango-context",
         ]
-        got = collate("4c", copies, binder, root=REPO)
+        got = collate("4c", copies, binder, root=tmp_path)
         entry = got.rereads[0]["composed"]
         roles_in_reason = entry.reason.split(" by ")[1].split(" -- ")[0].split(", ")
         # ! `Mark.sources` IS `tuple[object, ...]` DELIBERATELY -- a source that
@@ -629,7 +621,7 @@ class TestSourceVerificationRunsInProduction:
     def test_a_claim_quoting_a_sentence_absent_from_its_paragraph_is_reported(
         self, tmp_path
     ):
-        binder = one_place()
+        binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
         copies = copies_over(
             binder,
             {
@@ -643,7 +635,7 @@ class TestSourceVerificationRunsInProduction:
 
     def test_a_clean_run_still_reports_nothing(self, tmp_path):
         """The other side of it: verification must not invent a finding."""
-        binder = one_place()
+        binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
         copies = copies_over(binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}})
         got = collate("4c", copies, binder, root=tmp_path)
         assert got.problems == []
@@ -675,14 +667,14 @@ class TestWhatTheEnvelopeActuallyGuarantees:
         assert parsed.sheets[0].sha == ""
         assert "sha" not in copies[0]["sheets"][0]
 
-    def test_and_the_fold_survives_it(self):
+    def test_and_the_fold_survives_it(self, tmp_path):
         """The flow must not subscript what the envelope only normalizes."""
-        binder = one_place()
+        binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
         copies = copies_over(
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
         del copies[0]["sheets"][0]["sha"]
-        got = collate("4c", copies, binder, root=REPO)
+        got = collate("4c", copies, binder, root=tmp_path)
         assert got.problems == []
         assert [s.sha for s in got.chief.sheets] == [""]
 
@@ -810,17 +802,153 @@ class TestShardCoverage:
         got = collate("4c", halves, binder, root=REPO)
         assert got.problems == []
 
-    def test_the_places_that_did_come_back_still_settle(self):
+    def test_the_places_that_did_come_back_still_settle(self, tmp_path):
         """`Process: #63` -- coverage reports; it does not void the round."""
-        binder = two_places()
+        binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE, "m.py@b5": BASE})
         copies = copies_over(
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
-        got = collate("4c", [_keeping_only(copies[0], ["m.py@b1"])], binder, root=REPO)
+        short = [_keeping_only(copies[0], ["m.py@b1"])]
+        got = collate("4c", short, binder, root=tmp_path)
         assert got.coverage != []
         assert got.problems == []
         marks = entries_of(got.chief)
         assert [m.address for m in marks] == ["m.py@b1"]
+
+
+#: The comment `a_real_binder_over` sets at a page's `b1` for the quote check.
+QUOTED = "# one\n# two\n# three"
+
+
+def _refused_quotes(got, address: str) -> list[str]:
+    """The quote check's refusals at `address`, off the fold's problems."""
+    return [
+        p.message
+        for p in got.problems
+        if p.address == address and "is not in the paragraph" in p.message
+    ]
+
+
+class TestAQuoteIsCheckedAgainstThePage:
+    """`no-command-for-the-middle` T44, `decision-log.md Process: #119`.
+
+    A quoted clause is checked against the text at the mark's own address,
+    read from the page whether or not the binder holds that place or its
+    file, and, for a place a turn's batch sent the role, against the text
+    sent there. Where no page can be read the quote is checked against
+    nothing, so it is refused.
+    """
+
+    def _elsewhere(self, root, false: str, written: bool = True):
+        """The fold over one copy seeded from a binder holding `a.py` alone,
+        carrying a `correct` at `b.py@b1` that quotes `false`. `b.py` is a
+        copy of `a.py`, holding `QUOTED` at `b1`, unless `written` is False.
+        """
+        binder = a_real_binder_over(root, {"a.py@b1": QUOTED})
+        if written:
+            (root / "b.py").write_bytes((root / "a.py").read_bytes())
+        copy = seed(binder, "block-context")
+        copy["sheets"][0]["marks"][0].update(a_clean("a.py@b1"))
+        correct = {
+            **Mark.seed("b.py@b1", "", ""),
+            "instruction": "correct",
+            "claim": {"false": false, "true": "# 2"},
+            "reason": "written for the quote check",
+            "sources": [{"cite": "a.py:1", "verbatim": "v0 = 0"}],
+            "change": "# one\n# 2\n# three",
+        }
+        copy["sheets"].append({"path": "b.py", "sha": "", "marks": [correct]})
+        return collate("4c", [copy], binder, root=root)
+
+    def _answered_over_a_composition(self, root, false: str):
+        """Two roles' disjoint corrects at `a.py@b1`, folded into a composition,
+        then block-context's entry quoting `false` as its answer over the
+        composed text. Returns the copies, the binder and the batch sent."""
+        binder = a_real_binder_over(root, {"a.py@b1": QUOTED})
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {
+                    "a.py@b1": a_correct_setting(
+                        "a.py@b1", "# one", "# ONE\n# two\n# three"
+                    )
+                },
+                "function-context": {
+                    "a.py@b1": a_correct_setting(
+                        "a.py@b1", "# three", "# one\n# two\n# THREE"
+                    )
+                },
+            },
+        )
+        got = collate("4c", copies, binder, root=root)
+        (entry,) = got.rereads
+        assert entry["composed"].change == "# ONE\n# two\n# THREE"
+        batch = batch_of(got.escalations, got.rereads)
+        copies[0]["sheets"][0]["marks"][0].update(
+            claim={"false": false, "true": "# 3"}, change="# ONE\n# two\n# 3"
+        )
+        return copies, binder, batch
+
+    def test_a_quote_at_a_place_the_binder_lacks_passes_when_on_the_page(
+        self, tmp_path
+    ):
+        got = self._elsewhere(tmp_path, "# two")
+        assert [p for p in got.problems if p.address == "b.py@b1"] == []
+
+    def test_that_quote_is_refused_when_it_is_not_on_the_page(self, tmp_path):
+        got = self._elsewhere(tmp_path, "# four")
+        assert _refused_quotes(got, "b.py@b1") != []
+
+    def test_a_quote_where_no_page_can_be_read_is_refused(self, tmp_path):
+        got = self._elsewhere(tmp_path, "# two", written=False)
+        assert _refused_quotes(got, "b.py@b1") != []
+
+    def test_a_turns_quote_of_the_sent_text_passes(self, tmp_path):
+        copies, binder, batch = self._answered_over_a_composition(tmp_path, "# THREE")
+        unsent = collate("4c", copies, binder, root=tmp_path, turn=1)
+        assert _refused_quotes(unsent, "a.py@b1") != []
+        got = collate("4c", copies, binder, root=tmp_path, turn=1, sent=[batch])
+        assert [p for p in got.problems if p.address == "a.py@b1"] == []
+
+    def test_a_quote_in_neither_the_page_nor_the_sent_text_is_refused(self, tmp_path):
+        copies, binder, batch = self._answered_over_a_composition(tmp_path, "# FOUR")
+        got = collate("4c", copies, binder, root=tmp_path, turn=1, sent=[batch])
+        assert _refused_quotes(got, "a.py@b1") != []
+
+
+class TestACompositionComposesOverThePage:
+    """`no-command-for-the-middle` T53, `decision-log.md Process: #125`.
+
+    A composition composes over the page's text at its place, read the way a
+    quote is, whether or not the binder holds that place or its file.
+    """
+
+    def test_at_a_place_the_binder_lacks_it_composes_over_the_page(self, tmp_path):
+        binder = a_real_binder_over(tmp_path, {"a.py@b1": QUOTED})
+        (tmp_path / "b.py").write_bytes((tmp_path / "a.py").read_bytes())
+        copies = []
+        for role, false, true, change in (
+            ("block-context", "# one", "# ONE", "# ONE\n# two\n# three"),
+            ("function-context", "# three", "# THREE", "# one\n# two\n# THREE"),
+        ):
+            copy = seed(binder, role)
+            copy["sheets"][0]["marks"][0].update(a_clean("a.py@b1"))
+            correct = {
+                **Mark.seed("b.py@b1", "", ""),
+                "instruction": "correct",
+                "claim": {"false": false, "true": true},
+                "reason": "written for the composition base",
+                "sources": [{"cite": "a.py:1", "verbatim": "v0 = 0"}],
+                "change": change,
+            }
+            copy["sheets"].append({"path": "b.py", "sha": "", "marks": [correct]})
+            copies.append(copy)
+        got = collate("4c", copies, binder, root=tmp_path)
+        (entry,) = [e for e in got.rereads if e["address"] == "b.py@b1"]
+        composed = entry.get("composed")
+        assert composed is not None
+        assert composed.raw_text == QUOTED
+        assert composed.change == "# ONE\n# two\n# THREE"
 
 
 class TestTheStackedCheck:
@@ -1136,12 +1264,73 @@ class TestAnAddressMustResolveAgainstAPage:
         got = collate("4c", [wire], binder, root=repo)
         assert [p for p in got.problems if p.address == absent] == []
 
-    def test_a_page_this_checkout_cannot_read_is_not_reported(self):
-        """The fictional-file fixtures every other test in this module builds
-        -- `m.py` names no real file under `REPO` -- must not become findings
-        just because they cannot be read. There is no page to measure the cue
-        against, so the run says nothing rather than guessing."""
-        binder = one_place()
-        copies = copies_over(binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}})
-        got = collate("4c", copies, binder, root=REPO)
-        assert got.problems == []
+    def test_a_file_this_checkout_does_not_hold_is_reported(self, tmp_path):
+        """`no-command-for-the-middle` T46, `decision-log.md Process: #122`: an
+        address whose page cannot be read resolves against nothing, and is
+        reported as an invented cue is."""
+        repo = a_small_real_tree(tmp_path)
+        binder = binder_of(repo, 0)
+        wire = seed(binder, "block-context")
+        sheet = next(s for s in wire["sheets"] if s["path"] == "mark.py")
+        sheet["marks"].append(a_clean("gone.py@b1"))
+        got = collate("4c", [wire], binder, root=repo)
+        found = [p for p in got.problems if p.address == "gone.py@b1"]
+        assert found, got.problems
+        assert found[0].role == "block-context"
+
+    @pytest.mark.parametrize(
+        "destination",
+        [
+            pytest.param("mark.py@b9999", id="an-invented-cue"),
+            pytest.param("gone.py@b1", id="a-file-this-checkout-does-not-hold"),
+            pytest.param("# one\n# two\n# three", id="paragraph-text"),
+        ],
+    )
+    def test_a_moves_unresolved_destination_is_reported(self, tmp_path, destination):
+        """`no-command-for-the-middle` T58, `decision-log.md Process: #111`: a
+        `move`'s `claim.to` is an address, and resolves against its page as
+        the mark's own address does. The problem is the mover's, at the
+        move's own address."""
+        repo = a_small_real_tree(tmp_path)
+        binder, wire, origin = _a_move_on_mark_py(repo, destination)
+        got = collate("4c", [wire], binder, root=repo)
+        found = [p for p in got.problems if p.address == origin]
+        assert found, got.problems
+        assert found[0].role == "block-context"
+
+    def test_a_move_to_a_real_empty_place_is_not_reported(self, tmp_path):
+        repo = a_small_real_tree(tmp_path)
+        known = known_addresses(binder_of(repo, 0))
+        page = next(p for p in pages_of(repo) if p.path == "mark.py")
+        absent = next(
+            address_for(page.path, c)
+            for c in page.cues.places
+            if address_for(page.path, c) not in known
+        )
+        binder, wire, origin = _a_move_on_mark_py(repo, absent)
+        got = collate("4c", [wire], binder, root=repo)
+        assert [p for p in got.problems if p.address == origin] == []
+
+
+def _a_move_on_mark_py(repo, destination: str):
+    """block-context's copy over `repo`, its first slot on `mark.py` a `move`
+    to `destination`.
+
+    The move cites the first line of `repo`'s own `mark.py`, so its source
+    resolves and any problem at its address is the address check's.
+
+    Returns:
+        `(binder, the wire copy, the move's own address)`.
+    """
+    binder = binder_of(repo, 0)
+    wire = seed(binder, "block-context")
+    sheet = next(s for s in wire["sheets"] if s["path"] == "mark.py")
+    slot = sheet["marks"][0]
+    first = (repo / "mark.py").read_text(encoding="utf-8").splitlines()[0]
+    slot.update(
+        {
+            **a_move(slot["address"], destination),
+            "sources": [{"cite": "mark.py:1", "verbatim": first}],
+        }
+    )
+    return binder, wire, slot["address"]

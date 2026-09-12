@@ -284,8 +284,8 @@ class Mark:
             the gather resolved none.
         raw_text: the paragraph as it stands -- seeded, and what a role's
             `change` is a rewrite of. ! CARRIED, NEVER TRUSTED AS THE BASE:
-            every check that measures a claim against the paragraph reads the
-            BINDER's text, through `collator.base_texts`.
+            a quote is checked against the page's text at the place, and
+            drift against the binder's, through `collator.base_texts`.
         instruction: one of the seven, as an `Instruction` member, so
             `INSTRUCTIONS[mark.instruction]` resolves with no cast.
         claim: the surgical spec -- structured keys, per instruction. Which
@@ -449,6 +449,10 @@ class Mark:
             out += _source_problems(where, entry.get("sources"))
         if spec.owes_change:
             out += _change_problems(where, instruction, spec, entry.get("change"))
+        if not spec.substantive and filled(entry.get("change")):
+            out.append(
+                f"{where}: {instruction} proposes no text, so carries no `change`"
+            )
         if out:
             return None, out
 
