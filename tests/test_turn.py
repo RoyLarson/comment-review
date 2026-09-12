@@ -13,6 +13,7 @@ from helpers import (
     _MARK_PY_LINE_1,
     ADDED_TEXT,
     EMPTY_PLACE,
+    GAPPED_PAGE,
     REPO,
     a_binder_over,
     a_clean,
@@ -22,6 +23,7 @@ from helpers import (
     a_query,
     an_add,
     an_add_at_an_empty_place,
+    binder_of,
     copies_over,
     entries_of,
 )
@@ -31,6 +33,8 @@ from comment_review.desk.determined import CHIEF, ORIGINAL, Answer
 from comment_review.desk.diff_mark import COMPOSITION, QUESTION, batch_of
 from comment_review.desk.mark import Instruction, Mark, Shape
 from comment_review.flows.collate import collate
+from comment_review.flows.distribute import seed
+from comment_review.flows.fill import fill
 from comment_review.flows.mark_errors import Revisit
 from comment_review.flows.page_for import page_of
 from comment_review.flows.turn import (
@@ -580,6 +584,76 @@ class TestAnAddAtAnEmptyPlace:
         assert [p.address for p in refused] == [EMPTY_PLACE]
         assert any("never sent" in r for r in refused[0].reasons)
         assert _held_at(again, "function-context", EMPTY_PLACE) == []
+
+
+#: `GAPPED_PAGE`'s one filled place, the comment above `y = 2`.
+MOVED_FROM = "m.py@b1"
+MOVED_TEXT = "# one\n# two\n# three"
+
+
+def _a_lone_move(root, change: str):
+    """block-context moves `MOVED_FROM` to `EMPTY_PLACE` carrying `change`,
+    function-context cleans `MOVED_FROM`, and `collate` folds the two.
+
+    Both marks are placed by `fill` on copies seeded from a binder over the
+    real page `GAPPED_PAGE`, as the `mark` command places them.
+    """
+    (root / "m.py").write_text(GAPPED_PAGE, encoding="utf-8")
+    binder = binder_of(root, 0)
+    copies = [seed(binder, role) for role in ("block-context", "function-context")]
+    moved = {
+        "address": MOVED_FROM,
+        "instruction": "move",
+        "claim": {"from": MOVED_FROM, "to": EMPTY_PLACE},
+        "reason": "the comment is about w, not y",
+        "sources": [{"cite": "m.py:7"}],
+        "change": change,
+    }
+    _, why = fill(copies[0], moved, root)
+    assert why == []
+    _, why = fill(copies[1], {"address": MOVED_FROM, "instruction": "clean"}, root)
+    assert why == []
+    return binder, collate("4c", copies, binder, root=root)
+
+
+class TestAMoversOwnClean:
+    """A mover's own `clean` at its move's origin -- `no-command-for-the-middle`
+    T43.
+
+    A lone `move` with another role marking its origin goes back to both roles
+    as a re-read at each end, and the origin's slot carries the move's own
+    text. The mover answering `clean` there agrees with its own move, so after
+    the turn it still holds that move.
+    """
+
+    @pytest.mark.xfail(
+        strict=True,
+        reason=(
+            "T43: _answered does not keep a mover's move at its origin -- it "
+            "writes a clean where the moved text is the origin's, and a correct "
+            "over the origin where it is not"
+        ),
+    )
+    @pytest.mark.parametrize(
+        "change",
+        [
+            pytest.param(MOVED_TEXT, id="moved-as-it-stands"),
+            pytest.param(MOVED_TEXT + ", which is about w", id="moved-reworded"),
+        ],
+    )
+    def test_it_keeps_the_move(self, tmp_path, change):
+        binder, got = _a_lone_move(tmp_path, change)
+        assert sorted(e["address"] for e in got.rereads) == [MOVED_FROM, EMPTY_PLACE]
+        batch = batch_of(got.escalations, got.rereads)
+        assert _slot(batch, "block-context", MOVED_FROM)["raw_text"] == change
+        answers = {
+            role: [{**slot, "instruction": "clean"} for slot in slots]
+            for role, slots in batch.items()
+        }
+        again = run_turn(_at(got), binder, tmp_path, batch, answers)
+        (held,) = _held_at(again, "block-context", MOVED_FROM)
+        assert held.instruction is Instruction.MOVE
+        assert held.claim["to"] == EMPTY_PLACE
 
 
 def _two_places():
