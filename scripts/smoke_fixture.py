@@ -1,11 +1,15 @@
-"""Writes the fixture the middle-chain smoke test drives, and what lands on it.
+"""Writes the middle-chain smoke test's two fixture files, and what lands on them.
 
 `docs/superpowers/specs/2026-09-08-the-middle-chain-smoke-design.md`, "The
-fixture", names this text verbatim: a short recursive Fibonacci with a
+fixture", names `fib.py`'s text verbatim: a short recursive Fibonacci with a
 logging decorator, three trailing comments, three standalone comment runs,
-two stacked decorators, a nested `def`, and a dunder-main block. Its structure
-is fixed -- `LANDINGS` and `DISPOSITIONS` below plant decisions against
-specific addresses on it, so the text here must not drift from what those
+two stacked decorators, a nested `def`, and a dunder-main block. `rate.py`
+is the second file, beside it: one function holding a three-line comment of
+two sentences and a trailing comment, the places a `patch`, an
+`unable-to-determine` query and a composition are planted on, since every
+prose place in `fib.py` already carries another row. Both structures are
+fixed -- `LANDINGS` and `DISPOSITIONS` below plant decisions against
+specific addresses on them, so neither text may drift from what those
 tables describe.
 
 `LANDINGS` names, per planted address, a `Landing`: what lands there and
@@ -13,11 +17,12 @@ what decides it. `ADDRESSER_ROW` is the entry the smoke script finds through
 `addresser` rather than by its address. `DISPOSITIONS` is the chief's own
 ruling over every place `collate` carries forward. `write_texts` writes the
 files the smoke script's `mark` calls read by `@path` -- a file for every
-text landing a `mark` call carries, two for a correction's clauses -- plus
-`dispositions.json` and `addresser-row.json`.
+text landing a `mark` call carries, one per clause where `mark` derives the
+landing from a claim -- plus `dispositions.json` and `addresser-row.json`.
 
-`EXPECTED` is the text the proof's `fib.py` must read once the chain
-closes, and `write_expected` writes it for the smoke script's `diff` stage.
+`EXPECTED` and `RATE_EXPECTED` are the texts the proof's `fib.py` and
+`rate.py` must read once the chain closes, and `write_expected` writes them
+for the smoke script's `diff` stage.
 """
 
 import json
@@ -86,6 +91,40 @@ def write_fixture(root: Path) -> Path:
     return path
 
 
+#: The second fixture file, `rate.py`. Its two prose places are the ones the
+#: plant needs and `fib.py` cannot spare: `b1`, a comment of two sentences
+#: whose first and last lines two roles each correct, with a line between so
+#: the two edits do not touch; and `c3`, the trailing comment a `patch`
+#: rewords.
+RATE_FIXTURE = (
+    "def rate(hits, total):\n"
+    "    # Zero calls give a zero rate: nothing\n"
+    "    # was asked of the cache. The rate is\n"
+    "    # hits over total, never above one.\n"
+    "    if total == 0:\n"
+    "        return 0.0\n"
+    "    return hits / total  # share of calls the cache answered\n"
+)
+
+
+def write_rate_fixture(root: Path) -> Path:
+    """Write `RATE_FIXTURE` to `root / "rate.py"` and return its path.
+
+    Written with an explicit LF newline, for the reason `write_fixture`
+    gives.
+
+    Args:
+        root: the directory to write into, which `write_fixture` also writes
+            into. Not created here.
+
+    Returns:
+        The path written.
+    """
+    path = root / "rate.py"
+    path.write_text(RATE_FIXTURE, encoding="utf-8", newline="\n")
+    return path
+
+
 class Landing(NamedTuple):
     """What one planted address lands as on disk, and what decides it.
 
@@ -96,9 +135,9 @@ class Landing(NamedTuple):
     `text` is set only where `outcome` is `"text"`, and holds the whole
     paragraph exactly as it will sit on disk -- a `c` place's separator and
     marker included. For an `add` or the move's destination, a role's `mark`
-    call carries it as `--change`; for a correction, `mark` derives it from
-    `false` and `true`; where the chief recasts the place in `DISPOSITIONS`,
-    the recast prose is the text.
+    call carries it as `--change`; for a correction or a patch, `mark`
+    derives it from `claim`; where the chief recasts the place in
+    `DISPOSITIONS`, the recast prose is the text.
 
     `route` says what decides the outcome, and has no default, so every
     entry states its own: `"mark"` where the fold settles the place from the
@@ -107,25 +146,26 @@ class Landing(NamedTuple):
     where a human query rides to the end, nothing rules, and the fixture's
     wording stands.
 
-    `false` and `true` hold a correction's own clauses, bare, beside its
-    landing -- set only for `c6` and `c1`, the two corrections whose
-    landing is the corrected side. `mark` needs both to derive the change
-    itself (`desk.mark.derived_change` replaces `false` with `true` in the
-    paragraph the row seeded), and the smoke script passes each by `@path`
-    from the file `write_texts` writes for it.
+    `claim` holds the clauses of a mark whose landing is its own derived
+    change, bare and keyed as `mark`'s flags name them -- `false` and `true`
+    for `fib.py`'s corrections `c6` and `c1`, `from` and `to` for
+    `rate.py`'s patch `c3`. `mark` needs both to derive the change itself
+    (`desk.mark.derived_change` replaces the quoted clause with the other in
+    the paragraph the row seeded), and the smoke script passes each by
+    `@path` from the file `write_texts` writes for it.
 
-    `line` is set only where the place was empty in `FIXTURE`, and names the
-    1-based `FIXTURE` line the landing is set against: the declaring line an
-    `a` goes directly below, the line of code a `c` sits beside, the line of
-    code a `b`'s gap sits directly above -- or, for the closing gap `b17`,
-    which has no code below it, the file's last line, which it follows.
+    `line` is set only where the place was empty in its file's fixture, and
+    names the 1-based fixture line the landing is set against: the declaring
+    line an `a` goes directly below, the line of code a `c` sits beside, the
+    line of code a `b`'s gap sits directly above -- or, for the closing gap
+    `b17`, which has no code below it, the file's last line, which it
+    follows.
     """
 
     outcome: str
     route: str
     text: str | None = None
-    false: str | None = None
-    true: str | None = None
+    claim: dict[str, str] | None = None
     line: int | None = None
 
 
@@ -135,8 +175,9 @@ class Landing(NamedTuple):
 #: of its rows is planted at one or more of these. It asks for an `add` at an
 #: empty place and one fed by the addresser lookup -- `a2` and `b15` -- and the
 #: plant adds at five places more: the empty `b8`, `b17` and `c3`, and the
-#: filled `a0` and `c12`. `EXPECTED` below is written from `FIXTURE` and this
-#: table.
+#: filled `a0` and `c12`. The matrix names no `patch`, no `unable-to-determine`
+#: query and no composition; the plant puts all three on `rate.py`. `EXPECTED`
+#: and `RATE_EXPECTED` below are written from the two fixtures and this table.
 LANDINGS: dict[str, Landing] = {
     # block-context's correction is the only one that lands at c6; the
     # other three roles mark a scope-declaring query instead of clean, so
@@ -145,8 +186,10 @@ LANDINGS: dict[str, Landing] = {
         "text",
         route="mark",
         text="  # the decorator's only job",
-        false="the decorator's whole job",
-        true="the decorator's only job",
+        claim={
+            "false": "the decorator's whole job",
+            "true": "the decorator's only job",
+        },
     ),
     # collate escalates c1; disposition takes block-context's correction
     # over function-context's losing one, which replaces the same `false`.
@@ -154,8 +197,7 @@ LANDINGS: dict[str, Landing] = {
         "text",
         route="disposition",
         text="  # every entry, cached or not",
-        false="memoised or not",
-        true="cached or not",
+        claim={"false": "memoised or not", "true": "cached or not"},
     ),
     # the move's --change: b1's paragraph relocates to b0, unchanged, and
     # the fold settles the move. b0's gap sits above `import functools`.
@@ -246,6 +288,30 @@ LANDINGS: dict[str, Landing] = {
             'counted."""'
         ),
     ),
+    # module-context's patch is the only mark that owes a change at c3.
+    # function-context marks an unable-to-determine query and the other two
+    # a scope-declaring one; a query of either shape abstains, so the fold
+    # settles the patch alone.
+    "rate.py@c3": Landing(
+        "text",
+        route="mark",
+        text="  # fraction of calls the cache answered",
+        claim={"from": "share of calls", "to": "fraction of calls"},
+    ),
+    # the composition: block-context corrects the first sentence on the
+    # paragraph's first line, function-context the second on its last, and
+    # collate composes the two and carries the place forward as a re-read.
+    # disposition recasts it with the composed paragraph as the chief's own
+    # prose, since a `taken_in` names one role and would land one sentence.
+    "rate.py@b1": Landing(
+        "text",
+        route="disposition",
+        text=(
+            "    # No calls give a zero rate: nothing\n"
+            "    # was asked of the cache. The rate is\n"
+            "    # hits over total, never more than one."
+        ),
+    ),
 }
 
 #: The `LANDINGS` entry smoke_middle.ps1 marks without spelling its address:
@@ -253,10 +319,11 @@ LANDINGS: dict[str, Landing] = {
 #: unless the address that comes back is this one.
 ADDRESSER_ROW = "fib.py@b15"
 
-#: The chief's own rulings over the ten places `collate` carries forward
-#: (three escalations and seven re-reads, one per `add`) -- `LANDINGS` above
-#: names what each one makes land; this names how. A carried-forward place
-#: with no entry here is refused by `disposition`, by name.
+#: The chief's own rulings over the eleven places `collate` carries forward
+#: (three escalations and eight re-reads, one per `add` and one for the
+#: composition) -- `LANDINGS` above names what each one makes land; this
+#: names how. A carried-forward place with no entry here is refused by
+#: `disposition`, by name.
 DISPOSITIONS = [
     {
         "address": "fib.py@a3",
@@ -337,6 +404,15 @@ DISPOSITIONS = [
             "paragraph; the other three roles read the place and clean it"
         ),
     },
+    {
+        "address": "rate.py@b1",
+        "answer": "recast",
+        "prose": LANDINGS["rate.py@b1"].text,
+        "reason": (
+            "block-context and function-context each corrected a different "
+            "sentence; the chief takes both, as the composition reads"
+        ),
+    },
 ]
 
 
@@ -345,14 +421,18 @@ def write_texts(run: Path) -> dict[str, Path]:
 
     Every text landing a `mark` call carries gets a file that call passes
     as `@path`: one holding `text` for an `add` or the move's destination,
-    or two -- `<part>-false.txt` and `<part>-true.txt` -- for the two
-    corrections (`c6`, `c1`) whose `false` and `true` clauses `mark` needs
-    separately, matching its own rule that a whole paragraph is passed by
-    file while a one-line clause may go inline. A place the chief recasts in
-    `DISPOSITIONS` -- `b9` -- is skipped: its text is the chief's own prose
-    and no `mark` call carries it. This reads each disposition's `answer`
-    to find it rather than checking its address by name. `addresser-row.json`
-    holds `ADDRESSER_ROW` and its `line`, which the smoke script reads to ask
+    or one per `claim` key -- `<cue>-false.txt` and `<cue>-true.txt` for the
+    two corrections (`fib.py`'s `c6`, `c1`), `<cue>-from.txt` and
+    `<cue>-to.txt` for the patch (`rate.py`'s `c3`) -- whose clauses `mark`
+    needs separately, matching its own rule that a whole paragraph is passed
+    by file while a one-line clause may go inline. A file is named by its
+    address's cue alone, not its page, so two landings sharing a cue and a
+    suffix would write one file; the plant's do not. A place the chief
+    recasts in `DISPOSITIONS` -- `fib.py`'s `b9`, `rate.py`'s `b1` -- is
+    skipped: its text is the chief's own prose and no `mark` call carries
+    it. This reads each disposition's `answer` to find it rather than
+    checking its address by name. `addresser-row.json` holds
+    `ADDRESSER_ROW` and its `line`, which the smoke script reads to ask
     `addresser` and to check what it answers.
 
     Args:
@@ -360,10 +440,9 @@ def write_texts(run: Path) -> dict[str, Path]:
             here -- the caller's own run directory already exists.
 
     Returns:
-        one path per file written, keyed by the address (`"<address>:false"`
-        and `"<address>:true"` for a correction's pair), plus
-        `"dispositions"` for `dispositions.json` and `"addresser-row"` for
-        `addresser-row.json`.
+        one path per file written, keyed by the address (`"<address>:<key>"`
+        for each `claim` key), plus `"dispositions"` for `dispositions.json`
+        and `"addresser-row"` for `addresser-row.json`.
     """
     paths: dict[str, Path] = {}
     recast = {d["address"] for d in DISPOSITIONS if d["answer"] == "recast"}
@@ -371,11 +450,11 @@ def write_texts(run: Path) -> dict[str, Path]:
         if landing.text is None or address in recast:
             continue
         part = address.split("@")[1]
-        if landing.false is not None and landing.true is not None:
-            for suffix, value in (("false", landing.false), ("true", landing.true)):
-                path = run / f"{part}-{suffix}.txt"
+        if landing.claim is not None:
+            for key, value in landing.claim.items():
+                path = run / f"{part}-{key}.txt"
                 path.write_text(value, encoding="utf-8", newline="\n")
-                paths[f"{address}:{suffix}"] = path
+                paths[f"{address}:{key}"] = path
         else:
             path = run / f"{part}.txt"
             path.write_text(landing.text, encoding="utf-8", newline="\n")
@@ -454,22 +533,41 @@ EXPECTED = (
 )
 
 
-def write_expected(root: Path) -> Path:
-    """Write `EXPECTED` to `root / "fib.py"` and return its path.
+#: What the proof's `rate.py` must read once the chain closes, written out by
+#: hand the same way from `RATE_FIXTURE` and `LANDINGS`. Both places were
+#: filled and each lands as many lines as it held, so the file is
+#: `RATE_FIXTURE` with three lines changed: the paragraph's first and last,
+#: which the two corrections touched, and the line the patched trailing
+#: comment sits on.
+RATE_EXPECTED = (
+    "def rate(hits, total):\n"
+    "    # No calls give a zero rate: nothing\n"
+    "    # was asked of the cache. The rate is\n"
+    "    # hits over total, never more than one.\n"
+    "    if total == 0:\n"
+    "        return 0.0\n"
+    "    return hits / total  # fraction of calls the cache answered\n"
+)
 
-    Written with an explicit LF newline, as `write_fixture` writes, so it
-    carries the line endings the proof sets from the fixture. The smoke
-    script's `diff` stage compares the two with `git diff --no-index` under
-    `core.autocrlf=false`, so a line-ending difference fails it as a text
-    one does.
+
+def write_expected(root: Path) -> tuple[Path, Path]:
+    """Write `EXPECTED` to `root / "fib.py"` and `RATE_EXPECTED` to `root / "rate.py"`.
+
+    Written with an explicit LF newline, as `write_fixture` writes, so each
+    carries the line endings the proof sets from its fixture. The smoke
+    script's `diff` stage compares this directory with the proof's using
+    `git diff --no-index` under `core.autocrlf=false`, so a line-ending
+    difference fails it as a text one does.
 
     Args:
         root: the directory to write into. Not created here -- the smoke
             script creates its run's `expected` directory first.
 
     Returns:
-        The path written.
+        The two paths written, `fib.py`'s first.
     """
-    path = root / "fib.py"
-    path.write_text(EXPECTED, encoding="utf-8", newline="\n")
-    return path
+    fib = root / "fib.py"
+    fib.write_text(EXPECTED, encoding="utf-8", newline="\n")
+    rate = root / "rate.py"
+    rate.write_text(RATE_EXPECTED, encoding="utf-8", newline="\n")
+    return fib, rate

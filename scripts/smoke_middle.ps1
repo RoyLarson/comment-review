@@ -152,6 +152,7 @@ function Invoke-Checked {
 
 $OriginalDir = Join-Path $Run 'original'
 $FixtureFile = Join-Path $OriginalDir 'fib.py'
+$RateFile = Join-Path $OriginalDir 'rate.py'
 $BinderFile = Join-Path $Run 'binder.json'
 $TopologyFile = Join-Path $Run 'topology.toml'
 $CopiesDir = Join-Path $Run 'copies'
@@ -180,13 +181,13 @@ $Stages = [ordered]@{
         New-Item -ItemType Directory -Path $OriginalDir | Out-Null
         Invoke-Checked -Stage 'fixture' -CommandLine @(
             'uv', 'run', 'python', '-c',
-            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_fixture; write_fixture(Path(sys.argv[1]))',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_fixture, write_rate_fixture; root = Path(sys.argv[1]); write_fixture(root); write_rate_fixture(root)',
             $OriginalDir
         )
     }
     gather = {
         Invoke-Checked -Stage 'gather' -CommandLine ($Launcher + @(
-            $Cmd.gather, '--repo', $OriginalDir, '--out', $BinderFile, $FixtureFile
+            $Cmd.gather, '--repo', $OriginalDir, '--out', $BinderFile, $FixtureFile, $RateFile
         ))
     }
     topology = {
@@ -228,8 +229,10 @@ $Stages = [ordered]@{
     # and has no bulk pass. `LANDINGS` in smoke_fixture.py names what each
     # planted place makes land. An empty place is in no copy, since a copy
     # is seeded with the places that hold prose, so an add there creates its
-    # slot in its own role's copy and no other role has one to rule on: a2,
-    # b8, b17, c3 and the addresser row's place take one call each.
+    # slot in its own role's copy and no other role has one to rule on:
+    # fib.py's a2, b8, b17 and c3 and the addresser row's place take one call
+    # each. A row's comment names a fib.py place by its cue alone; the two
+    # rate.py rows, last, name their page.
     mark = {
         Invoke-Checked -Stage 'plant-texts' -CommandLine @(
             'uv', 'run', 'python', '-c',
@@ -240,13 +243,17 @@ $Stages = [ordered]@{
         # `mark` call below plants -- written above by `write_texts`, named
         # here to match its own naming rather than read back from it. c6
         # and c1 are corrections, so each names two files: its false clause
-        # and its true clause. The addresser row's file is not here: it is
-        # named at that row from the address `addresser` returns.
+        # and its true clause. rate.py's c3 is a patch, so it names two too:
+        # its from clause and its to clause, in files `write_texts` names by
+        # cue alone, as it names every file. The addresser row's file is not
+        # here: it is named at that row from the address `addresser` returns.
         $LandingFile = @{
             c6_false = Join-Path $Run 'c6-false.txt'
             c6_true = Join-Path $Run 'c6-true.txt'
             c1_false = Join-Path $Run 'c1-false.txt'
             c1_true = Join-Path $Run 'c1-true.txt'
+            rate_c3_from = Join-Path $Run 'c3-from.txt'
+            rate_c3_to = Join-Path $Run 'c3-to.txt'
             b0 = Join-Path $Run 'b0.txt'
             a2 = Join-Path $Run 'a2.txt'
             b8 = Join-Path $Run 'b8.txt'
@@ -513,6 +520,61 @@ $Stages = [ordered]@{
             '--reason', 'the entry point is where a reader looks to see how it runs',
             '--cite', "fib.py:$($row.line)", '--repo', $OriginalDir
         ))
+        # rate.py@b1 -- the composition. block-context corrects the first
+        # sentence on the paragraph's first line and function-context the
+        # second on its last; the line between is untouched, so the two
+        # edits meet on no line and collate composes them. ownership-context
+        # and module-context clean.
+        Invoke-Checked -Stage 'mark rate.py@b1 block-context correct' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'rate.py@b1',
+            '--instruction', 'correct',
+            '--false', 'Zero calls give', '--true', 'No calls give',
+            '--reason', 'the guard tests for no calls at all, not for a count',
+            '--cite', 'rate.py:5', '--repo', $OriginalDir
+        ))
+        Invoke-Checked -Stage 'mark rate.py@b1 function-context correct' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['function-context'], '--address', 'rate.py@b1',
+            '--instruction', 'correct',
+            '--false', 'never above one', '--true', 'never more than one',
+            '--reason', 'more than names the comparison the division is bounded by',
+            '--cite', 'rate.py:7', '--repo', $OriginalDir
+        ))
+        foreach ($role in @('ownership-context', 'module-context')) {
+            Invoke-Checked -Stage "mark rate.py@b1 $role clean" -CommandLine ($Launcher + @(
+                $Cmd.mark, '--edit-copy', $CopyFile[$role], '--address', 'rate.py@b1',
+                '--instruction', 'clean', '--repo', $OriginalDir
+            ))
+        }
+        # rate.py@c3 -- the patch. module-context rewords the trailing
+        # comment and cites nothing, since a patch owes no source.
+        # function-context cannot tell whether the wording wants changing and
+        # defers with an unable-to-determine query; ownership-context and
+        # block-context defer with a scope-declaring query. A query of either
+        # shape abstains, so the fold settles the patch alone.
+        Invoke-Checked -Stage 'mark rate.py@c3 module-context patch' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', 'rate.py@c3',
+            '--instruction', 'patch',
+            '--from', "@$($LandingFile.rate_c3_from)", '--to', "@$($LandingFile.rate_c3_to)",
+            '--reason', 'fraction names the ratio the division returns'
+        ))
+        Invoke-Checked -Stage 'mark rate.py@c3 function-context query' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['function-context'], '--address', 'rate.py@c3',
+            '--instruction', 'query', '--shape', 'unable-to-determine',
+            '--attempted', 'read the comment against the division on its line',
+            '--settles', 'another role',
+            '--reason', 'the code does not say which word for the ratio is wanted',
+            '--cite', 'rate.py:7', '--repo', $OriginalDir
+        ))
+        foreach ($role in @('ownership-context', 'block-context')) {
+            Invoke-Checked -Stage "mark rate.py@c3 $role query" -CommandLine ($Launcher + @(
+                $Cmd.mark, '--edit-copy', $CopyFile[$role], '--address', 'rate.py@c3',
+                '--instruction', 'query', '--shape', 'outside-my-role',
+                '--attempted', 'read the paragraph against the code at this place',
+                '--settles', 'module-context',
+                '--reason', "this paragraph's subject is the wording of one comment, not my remit",
+                '--cite', 'rate.py:7', '--repo', $OriginalDir
+            ))
+        }
     }
     # `check` over each of the four copies, before `collate`, whose exit code
     # cannot say the same: collate is expected to exit 4 below, and in its
@@ -550,9 +612,7 @@ $Stages = [ordered]@{
         ))
     }
     # `proof` pulls the closed chief copy into a revise of the original tree
-    # at $ProofDir, which must not exist yet. Its code check refuses the
-    # docstring a2 adds where wrapper had none, so a run stops here until
-    # TODO/the-code-check-refuses-add-and-drop-on-a-docstring.md is settled.
+    # at $ProofDir, which must not exist yet.
     proof = {
         Invoke-Checked -Stage 'proof' -CommandLine ($Launcher + @(
             $Cmd.proof, '--copy', $ChiefFinalFile, '--repo', $OriginalDir,

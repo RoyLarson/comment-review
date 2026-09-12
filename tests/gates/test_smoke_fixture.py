@@ -1,7 +1,7 @@
-"""`scripts/smoke_fixture.py`: the fixture yields every series, with more than
-one member in each -- a series of one never exercises its ordinals -- the
-landing table agrees with the fixture, and `write_texts` writes what the
-smoke script reads.
+"""`scripts/smoke_fixture.py`: `fib.py`'s fixture yields every series, with
+more than one member in each -- a series of one never exercises its ordinals --
+the landing table agrees with both fixture files, and `write_texts` writes what
+the smoke script reads.
 
 The series are read off the real page builder, `flows/page_for.page_of` --
 see `docs/superpowers/specs/2026-09-08-the-middle-chain-smoke-design.md`,
@@ -86,59 +86,79 @@ class TestTheFixtureYieldsEverySeries(unittest.TestCase):
         self.assertEqual(set(self.page.leading.values()), {f"d{i}" for i in range(7)})
 
 
+#: The instruction a `Landing.claim` is the claim of, keyed by its keys in
+#: `mark`'s flag order.
+DERIVED_BY: dict[tuple[str, ...], Instruction] = {
+    ("false", "true"): Instruction.CORRECT,
+    ("from", "to"): Instruction.PATCH,
+}
+
+
 class TestTheLandingTableAgreesWithTheFixture(unittest.TestCase):
-    """`LANDINGS` against the page built from `FIXTURE`: a correction's
-    `Landing.text` is what `desk.mark.derived_change` makes of the fixture's
-    paragraph at that address, and a landing at an empty place names the
-    line its place is set against -- so the table cannot drift from what the
-    fixture holds.
+    """`LANDINGS` against the pages built from `FIXTURE` and `RATE_FIXTURE`:
+    a landing carrying a `claim` has as its `Landing.text` what
+    `desk.mark.derived_change` makes of its fixture's paragraph at that
+    address, and a landing at an empty place names the line its place is
+    set against -- so the table cannot drift from what the fixtures hold.
     """
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
-        self.root = Path(self.tmp.name)
-        path = smoke_fixture.write_fixture(self.root)
-        page, why = page_of(path, rel="fib.py")
-        assert page is not None, why
-        self.page = page
+        root = Path(self.tmp.name)
+        self.texts = {
+            "fib.py": smoke_fixture.FIXTURE,
+            "rate.py": smoke_fixture.RATE_FIXTURE,
+        }
+        self.pages = {}
+        for path in (
+            smoke_fixture.write_fixture(root),
+            smoke_fixture.write_rate_fixture(root),
+        ):
+            page, why = page_of(path, rel=path.name)
+            assert page is not None, why
+            self.pages[path.name] = page
 
     def tearDown(self):
         self.tmp.cleanup()
 
-    def test_each_corrections_landing_is_the_fixture_with_true_for_false(self):
-        by_cue = {cue_of(p): p for p in self.page.paragraphs if p.text}
-        corrections = [
-            address
-            for address, landing in smoke_fixture.LANDINGS.items()
-            if landing.false is not None
-        ]
-        self.assertEqual({a.split("@")[-1] for a in corrections}, {"c6", "c1"})
-        for address in corrections:
-            cue = address.split("@")[-1]
-            landing = smoke_fixture.LANDINGS[address]
-            corrected, why = derived_change(
-                Instruction.CORRECT,
-                {"false": landing.false, "true": landing.true},
-                by_cue[cue].raw_text,
+    def test_rate_holds_a_comment_at_b1_and_a_trailing_comment_at_c3(self):
+        by_cue = {cue_of(p): p for p in self.pages["rate.py"].paragraphs if p.text}
+        self.assertEqual(
+            {cue: p.kind for cue, p in by_cue.items()},
+            {"b1": "comment", "c3": "trailing-comment"},
+        )
+
+    def test_each_claimed_landing_is_the_fixture_with_its_claim_applied(self):
+        claimed = []
+        for address, landing in smoke_fixture.LANDINGS.items():
+            if landing.claim is None:
+                continue
+            claimed.append(address)
+            path, cue = address.split("@")
+            by_cue = {cue_of(p): p for p in self.pages[path].paragraphs if p.text}
+            changed, why = derived_change(
+                DERIVED_BY[tuple(landing.claim)], landing.claim, by_cue[cue].raw_text
             )
-            self.assertEqual(why, [], cue)
-            self.assertEqual(corrected, landing.text, cue)
+            self.assertEqual(why, [], address)
+            self.assertEqual(changed, landing.text, address)
+        self.assertEqual(set(claimed), {"fib.py@c6", "fib.py@c1", "rate.py@c3"})
 
     def test_each_landing_at_an_empty_place_names_the_line_it_is_set_against(self):
-        """A text landing names a `line` exactly where `FIXTURE` left its place
-        empty, and it is the line the place's anchor sits on in the page built
-        from `FIXTURE` -- or, for a place with no anchor line (the closing
-        gap), the file's last."""
-        filled = {cue_of(p) for p in self.page.paragraphs if p.text}
-        last = len(smoke_fixture.FIXTURE.splitlines())
+        """A text landing names a `line` exactly where its fixture left its
+        place empty, and it is the line the place's anchor sits on in the page
+        built from that fixture -- or, for a place with no anchor line (the
+        closing gap), the file's last."""
         for address, landing in smoke_fixture.LANDINGS.items():
-            cue = address.split("@")[-1]
+            path, cue = address.split("@")
+            page = self.pages[path]
+            filled = {cue_of(p) for p in page.paragraphs if p.text}
             empty = landing.outcome == "text" and cue not in filled
-            self.assertEqual(landing.line is not None, empty, cue)
+            self.assertEqual(landing.line is not None, empty, address)
             if landing.line is None:
                 continue
-            anchor = self.page.cues.anchor_line(cue)
-            self.assertEqual(landing.line, last if anchor is None else anchor, cue)
+            last = len(self.texts[path].splitlines())
+            anchor = page.cues.anchor_line(cue)
+            self.assertEqual(landing.line, last if anchor is None else anchor, address)
 
 
 class TestWriteTextsWritesWhatTheScriptReads(unittest.TestCase):
@@ -156,11 +176,19 @@ class TestWriteTextsWritesWhatTheScriptReads(unittest.TestCase):
     def test_each_file_it_writes_and_what_it_holds(self):
         paths = smoke_fixture.write_texts(self.run_dir)
         landings = smoke_fixture.LANDINGS
+
+        def clause(address: str, key: str) -> str:
+            claim = landings[address].claim
+            assert claim is not None, address
+            return claim[key]
+
         texts = {
-            "fib.py@c6:false": ("c6-false.txt", landings["fib.py@c6"].false),
-            "fib.py@c6:true": ("c6-true.txt", landings["fib.py@c6"].true),
-            "fib.py@c1:false": ("c1-false.txt", landings["fib.py@c1"].false),
-            "fib.py@c1:true": ("c1-true.txt", landings["fib.py@c1"].true),
+            "fib.py@c6:false": ("c6-false.txt", clause("fib.py@c6", "false")),
+            "fib.py@c6:true": ("c6-true.txt", clause("fib.py@c6", "true")),
+            "fib.py@c1:false": ("c1-false.txt", clause("fib.py@c1", "false")),
+            "fib.py@c1:true": ("c1-true.txt", clause("fib.py@c1", "true")),
+            "rate.py@c3:from": ("c3-from.txt", clause("rate.py@c3", "from")),
+            "rate.py@c3:to": ("c3-to.txt", clause("rate.py@c3", "to")),
         }
         for cue in ("b0", "a2", "b8", "b17", "b15", "c3", "c12", "a0"):
             address = f"fib.py@{cue}"
