@@ -149,13 +149,13 @@ is that a clean is recorded; a page of cleans proves nothing about resolution.
 | a `patch` beside a `query unable-to-determine` (`rate.py`) | the patch settles alone; the abstaining query stays out of the fold |
 | a composition: two roles correct two sentences of one paragraph (`rate.py`) | the fold combines them, and the combined text reaches the proof |
 | one turn, every answer planted (Task 12) | the turn loop folds each of `hold`, `withdraw`, `correct`, `patch`, `clean` and `query` |
-
-Roy, 2026-09-11, on why every option is planted: *"Thats why it can't be partially done. The
-options need to be exercised."*
 | **the addresser lookup feeding an `add`** | a place found by file and line, its returned address used to add, and the comment present in the proof |
 
 The last row is the positive form of the defect that lost a finding, and it pulls `addresser`
 into the chain, which the eight-command sequence otherwise never touches.
+
+Roy, 2026-09-11, on why every option is planted: *"Thats why it can't be partially done. The
+options need to be exercised."*
 
 ## The chain the script drives
 
@@ -164,10 +164,12 @@ As `SKILL.md` names it:
 ```
 gather -> topology --build -> topology --verify -> distribute
   -> [mark, once per ruling, per role] -> check x4
-  -> collate -> disposition -> proof
+  -> collate -> [one turn: answers, check --answers x4, turn] -> disposition -> proof
 ```
 
-`turn` never appears, which is consistent with the disposition sitting at turn 0.
+One turn runs between `collate` and `disposition`, added 2026-09-11 (Task 12) when a hand-run
+turn found the re-read half of the loop broken, which no run had reached while the baseline ran
+none. The disposition then closes the proof at turn 1.
 
 ## What it asserts
 

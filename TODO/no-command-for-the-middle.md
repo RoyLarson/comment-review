@@ -170,6 +170,7 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [ ] T33 | Implement a test of a move whose other end escalates, to settle
       whether turn.py:337 overwrites claim.to
         > 2026-09-11 unconfirmed; a DiffMark correct or patch writes claim.to
+        > 2026-09-11 by reading: the chief's c1 claim keeps the old false clause
 - [ ] T34 | Update turn so a correct or patch answer quotes the slot's modified
       text, not the original, per Process 115
         > 2026-09-11 verify: a correct answer at an add's empty place composes

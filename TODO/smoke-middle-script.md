@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 59 of 59 tasks closed
+Progress: 59 of 60 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-09-11 (review of SP7 Task 8 at 34aea6d4, 2026-09-11)
@@ -229,3 +229,5 @@ The middle-chain smoke script carries the findings of its Task 8 review.
 - [x] T59 | the proof comment no longer says it stops at a2 | 8e4f933f | Update
       smoke_middle.ps1:552-555, which says the proof stops at a2 until the
       code-check ruling lands; it no longer does
+- [ ] T60 | Update the a3 and b9 reason strings in smoke_fixture.py, which
+      describe the first round after the turn changed it

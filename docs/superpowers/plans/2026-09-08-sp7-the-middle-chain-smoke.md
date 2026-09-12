@@ -566,10 +566,10 @@ and this task waits on them.
 - Modify: `scripts/smoke_middle.ps1`, `scripts/smoke_fixture.py`
 
 - [x] **Step 1: Fix** `no-command-for-the-middle` T29, T30 and T31, each with a test that fails first
-- [ ] **Step 2: A `turn` stage** -- `collate --batch-out`, one planted answer per slot (a withdrawal at `c1`, holds and cleans elsewhere), `check --answers` per role, `turn`, then `disposition` on the turn's proof
-- [ ] **Step 3: Done gate** -- the whole script, with the turn, exits 0 from empty and the diff matches what was planted
-- [ ] **Step 4: Tick** each task against its commit, in a later commit
-- [ ] **Step 5: Every answer a turn can take is planted at least once** -- Roy, 2026-09-11: *"Thats why it can't be partially done. The options need to be exercised."* On an escalation: `hold`, `withdraw`, `correct` and `patch`. On a composition re-read: `clean`, `correct`, `patch` and `query`. Each lands in the expected proof or is shown refused where the contract says it must be
+- [x] **Step 2: A `turn` stage** -- `collate --batch-out`, one planted answer per slot (a withdrawal at `c1`, holds and cleans elsewhere), `check --answers` per role, `turn`, then `disposition` on the turn's proof
+- [x] **Step 3: Done gate** -- the whole script, with the turn, exits 0 from empty and the diff matches what was planted
+- [x] **Step 4: Tick** each task against its commit, in a later commit
+- [x] **Step 5: Every answer a turn can take is planted at least once** -- Roy, 2026-09-11: *"Thats why it can't be partially done. The options need to be exercised."* On an escalation: `hold`, `withdraw`, `correct` and `patch`. On a composition re-read: `clean`, `correct`, `patch` and `query`. Each lands in the expected proof or is shown refused where the contract says it must be
 - [x] **Step 6: The first round plants the options it skips today** -- the same ruling, applied to the marks: a `patch` (none is planted), a `query` of shape `unable-to-determine` (only the other two are), and a composition, two roles each correcting a different sentence of one paragraph
 
 ---
