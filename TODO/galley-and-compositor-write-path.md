@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 32 of 44 tasks closed
+Progress: 32 of 45 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -234,3 +234,6 @@ files in `corpora/` are in that state today.
       the docstring of test_taken_in.py's no-paths test (:41) so it states the
       rule, not what Process 117 narrowed
         > 2026-09-11 introduced in 7a514831; no history narration, per the brief
+- [ ] T45 | Implement what a later stage reads, per Process 118: the original,
+      plus a new binder with the edits and a revised set of code
+        > 2026-09-11 this release runs one stage, SKILL.md:329-332

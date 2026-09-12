@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 21 of 38 tasks closed
+Progress: 22 of 43 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
           REAL reviewer agent -- census, mark --seed, the block-context agent, mark
           --check and taken_in are all commands; the middle is not)
@@ -173,11 +173,13 @@ Reconciliation has no command, so the chain cannot be driven end to end.
         > 2026-09-11 unconfirmed; a DiffMark correct or patch writes claim.to
         > 2026-09-11 by reading: the chief's c1 claim keeps the old false clause
         > 2026-09-11 final review probe: confirmed; deserialize at :402 accepts it
+        > 2026-09-11 the probe called _answered directly; no real fold reaches it
 - [ ] T34 | Update turn so a correct or patch answer quotes the slot's modified
       text, not the original, per Process 115
         > 2026-09-11 verify: a correct answer at an add's empty place composes
         > 2026-09-11 overlaps stay uncomposed as today; Roy agreed 2026-09-11
         > 2026-09-11 in an escalation: whose modified text a correct quotes, to report
+        > 2026-09-11 waits on T39: the fold refuses a quote of the modified text
 - [x] T35 | RULED Process: #116 -- goes back; their clean settles it | c0659be2 | Decide
       whether an add at an empty place settles when every other role cleans it;
       turn.py:320-345 keeps it a re-read
@@ -186,8 +188,26 @@ Reconciliation has no command, so the chain cannot be driven end to end.
         > 2026-09-11 Roy: Process 49 stands; an add to an empty place goes back
 - [ ] T36 | Update the history narration in added lines at test_turn.py:854 and
       :878
-- [ ] T37 | Update turn so every other role answering clean at an add at an
-      empty place settles it, per Process 116
+- [x] T37 | another role's clean adopts the add; all holding it is a stet | d4e98476 | Update
+      turn so every other role answering clean at an add at an empty place
+      settles it, per Process 116
         > 2026-09-11 undoes the plain clean daa86dc8 keeps; smoke drops 5 dispositions
 - [ ] T38 | Update turn so no answer overwrites a move claim.to with paragraph
       text; T33 confirmed it at turn.py:337
+- [?] T39 | Decide how the fold verifies a turn-written correct or patch whose
+      claim quotes the modified text, per Process 115
+        > 2026-09-11 desk/collator.py:150-182 checks every quote against the binder
+        > 2026-09-11 probe: claim.false is not in the paragraph this row seeded
+- [ ] T40 | Update turn so a correct answer's claim derives its change:
+      claim.false quotes what the answer replaces
+        > 2026-09-11 T33's note: the chief's c1 claim keeps the old false clause
+        > 2026-09-11 waits on T39, how the fold verifies it
+- [?] T41 | Decide whether T33's test calls _answered directly, since
+      collator.py:720-743 never sends a move end an escalation
+        > 2026-09-11 set 2's real collate: both move ends came back as re-reads
+- [?] T42 | Decide whether a deferring query at an add's empty place settles the
+      add, as d4e98476 does; Process 116 names only clean
+        > 2026-09-11 test_a_role_with_no_slot_there_is_seeded_one_from_the_page
+- [ ] T43 | Implement a test of a mover's own clean at its move's origin, to
+      settle whether _answered withdraws the move or makes it a correct
+        > 2026-09-11 found by reading in set 2: _answered's filled-text branch
