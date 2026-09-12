@@ -38,9 +38,9 @@ def test_taken_in_shows_a_real_revise(tmp_path, capsys):
 def test_taken_in_with_no_paths_compares_only_the_pages_the_revise_holds(
     tmp_path, capsys
 ):
-    """With no paths, compare the pages the revise holds, not every page of
-    the original -- Process 117 narrowed a pull to the docket's own pages, so
-    a page the docket did not write is no longer the revise's to compare.
+    """With no paths, compare only the pages the revise holds: a revise holds
+    only the pages its docket schedules (Process 117), so a page the docket
+    did not write is not the revise's to compare.
     """
     repo = a_small_real_tree(tmp_path)
     assert len(list(repo.glob("*.py"))) > 1, "one page cannot show a page left out"
@@ -106,10 +106,10 @@ def test_a_page_that_cannot_be_read_is_named_not_skipped(tmp_path, capsys):
     # above. "nothing changed" and "I could not look" were the same result.
     repo = a_small_real_tree(tmp_path)
     pulled = pull(a_docket_over(repo, ["mark.py"]), repo, tmp_path / "r1", revise=1)
-    # ! THE PATH IS NAMED EXPLICITLY. With no paths, the default is the pages
-    # the revise holds (`Process: #117`), and an unlinked page is not one of
-    # them -- naming it keeps this the case where a caller asks about a page
-    # the revise lacks, per `commands/taken_in.py`'s own rule for that case.
+    # The path is named explicitly: with no paths, only the pages the revise
+    # holds are compared (`Process: #117`), and an unlinked page is not one of
+    # them. Naming it makes this the case where a caller asks about a page the
+    # revise lacks.
     (pulled.root / "mark.py").unlink()
 
     exit_code = main(["mark.py", "--original", str(repo), "--revise", str(pulled.root)])
