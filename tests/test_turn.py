@@ -21,6 +21,7 @@ from helpers import (
     a_drop,
     a_move,
     a_query,
+    a_real_binder_over,
     an_add,
     an_add_at_an_empty_place,
     binder_of,
@@ -31,7 +32,13 @@ from helpers import (
 from comment_review.desk.containers import MasterProof
 from comment_review.desk.determined import CHIEF, ORIGINAL, Answer
 from comment_review.desk.diff_mark import COMPOSITION, QUESTION, batch_of
-from comment_review.desk.mark import Instruction, Mark, Shape
+from comment_review.desk.mark import (
+    INSTRUCTIONS,
+    Instruction,
+    Mark,
+    Shape,
+    derived_change,
+)
 from comment_review.flows.collate import collate
 from comment_review.flows.distribute import seed
 from comment_review.flows.fill import fill
@@ -259,6 +266,49 @@ class TestAnEscalation:
         problems = again.revisit
         assert any("unanswered" in r for p in problems for r in p.reasons)
         assert [e["address"] for e in again.escalations] == ["m.py@b1"]
+
+
+class TestAnEscalationAnswerDerivesItsChange:
+    """`no-command-for-the-middle` T40: an escalation's `correct` or `patch`
+    answer replaces the role's own proposal, so its claim quotes that proposal
+    and derives the answer's `change` the way `desk.mark.derived_change`
+    relates a claim to its change. The fold checks the quote against the
+    proposal the batch sent the role (`Process: #119`)."""
+
+    @pytest.mark.parametrize("instruction", [Instruction.CORRECT, Instruction.PATCH])
+    def test_the_claim_quotes_the_roles_own_proposal(self, tmp_path, instruction):
+        def filed(change: str) -> dict:
+            if instruction is Instruction.CORRECT:
+                return a_correct_setting("m.py@b1", "two", change)
+            return _patch(change)
+
+        binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {"m.py@b1": filed(TWO)},
+                "function-context": {"m.py@b1": filed(DOS)},
+            },
+        )
+        got = collate("4c", copies, binder, root=tmp_path)
+        assert [e["address"] for e in got.escalations] == ["m.py@b1"]
+        batch = batch_of(got.escalations, got.rereads)
+        answers = {
+            **_answered(
+                batch,
+                "block-context",
+                instruction=str(instruction),
+                reason="theirs reads better",
+                change=DOS,
+            ),
+            **_answered(batch, "function-context", instruction="hold", reason="mine"),
+        }
+        again = run_turn(_at(got), binder, tmp_path, batch, answers)
+        assert again.revisit == []
+        assert [p for p in again.problems if p.address == "m.py@b1"] == []
+        (held,) = _held_at(again, "block-context", "m.py@b1")
+        assert held.claim[INSTRUCTIONS[instruction].quotes_original] == TWO
+        assert derived_change(instruction, held.claim, TWO) == (DOS, [])
 
 
 class TestTheSentBatchPairsTheAnswer:

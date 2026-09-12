@@ -25,7 +25,9 @@ ESCALATION is an edit to that role's copy at the address:
 
     hold        nothing
     withdraw    the entry becomes a `clean`
-    correct     the entry's `change` becomes the DiffMark's `change`
+    correct     the entry's `change` becomes the DiffMark's `change`; on a
+                `correct` or `patch` entry the claim becomes the role's own
+                proposal replaced by it, so the claim derives the change
     patch       the same
 
 A COMPOSITION re-read is answered with a fresh `Mark` over the composed text
@@ -345,6 +347,20 @@ def _an_add_adopting(entry: dict, added: dict) -> dict:
     }
 
 
+def _replacing(instruction: Instruction, proposal: str, change: str) -> dict:
+    """A `correct` or `patch` claim that `change` replaces the role's `proposal`.
+
+    The quoted key holds the proposal and the other key the change, so
+    `desk.mark.derived_change` over the proposal gives the change. The
+    proposal is the entry's own `change`, which the batch sent the role among
+    the slot's marks.
+    """
+    spec = INSTRUCTIONS[instruction]
+    key = spec.quotes_original
+    other = next(k for k in spec.claim_all if k != key)
+    return {key: proposal, other: change}
+
+
 def _answered(entry: dict, answer: DiffMark | Mark, composition: dict) -> dict | None:
     """What one slot becomes under one answer, per the tables above.
 
@@ -366,7 +382,12 @@ def _answered(entry: dict, answer: DiffMark | Mark, composition: dict) -> dict |
             return _a_clean(entry)
         held = {**entry, "change": answer.change}
         claim = entry.get("claim")
-        if isinstance(claim, dict):
+        named = entry.get("instruction")
+        if named in (str(Instruction.CORRECT), str(Instruction.PATCH)):
+            held["claim"] = _replacing(
+                Instruction(named), entry.get("change", ""), answer.change
+            )
+        elif isinstance(claim, dict):
             held["claim"] = {
                 key: answer.change if key in ("true", "to") else value
                 for key, value in claim.items()

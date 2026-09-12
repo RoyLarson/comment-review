@@ -86,6 +86,7 @@ from comment_review.desk.containers import (
     Sheet,
 )
 from comment_review.desk.determined import Answer, Determined
+from comment_review.desk.diff_mark import ESCALATION, QUESTION
 from comment_review.desk.mark import Instruction, Mark, Shape, filled
 from comment_review.desk.proof import MismatchedRoot, master_proof_of
 from comment_review.desk.stages import Stage
@@ -895,9 +896,10 @@ def texts_at(
 
     `decision-log.md Process: #119`: the text at the mark's own address, read
     from the page whether or not the binder holds that place or its file, and
-    for a place a turn's batch sent this copy's role, the text sent there. The
-    page's text comes first, and is "" where no page can be read or the page
-    holds nothing at the place.
+    for a place a turn's batch sent this copy's role, the text sent there --
+    the slot's own text for a composition, the role's own proposal among the
+    slot's marks for an escalation. The page's text comes first, and is ""
+    where no page can be read or the page holds nothing at the place.
 
     Args:
         copy: one parsed edit_copy.
@@ -936,15 +938,30 @@ def texts_at(
 def _sent_to(
     role: str, address: str, sent: Sequence[Mapping[str, object]]
 ) -> list[str]:
-    """The text each batch in `sent` sent `role` at `address`, oldest first."""
+    """The text each batch in `sent` sent `role` at `address`, oldest first.
+
+    A composition slot's own text, and in an escalation slot the change of
+    the mark it lists for `role` -- that role's own proposal.
+    """
     out: list[str] = []
     for batch in sent:
         slots = batch.get(role)
         for slot in slots if isinstance(slots, list) else []:
-            if isinstance(slot, dict) and slot.get("address") == address:
-                text = slot.get("raw_text")
-                if isinstance(text, str):
-                    out.append(text)
+            if not isinstance(slot, dict) or slot.get("address") != address:
+                continue
+            text = slot.get("raw_text")
+            if isinstance(text, str):
+                out.append(text)
+            marks = slot.get("marks")
+            if slot.get(QUESTION) != ESCALATION or not isinstance(marks, list):
+                continue
+            for mark in marks:
+                if not isinstance(mark, dict):
+                    continue
+                listed: dict = mark
+                change = listed.get("change")
+                if listed.get("role") == role and isinstance(change, str):
+                    out.append(change)
     return out
 
 
