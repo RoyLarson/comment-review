@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 19 of 33 tasks closed
+Progress: 20 of 34 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
           REAL reviewer agent -- census, mark --seed, the block-context agent, mark
           --check and taken_in are all commands; the middle is not)
@@ -163,9 +163,13 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       check --answers to refuse what turn refuses; it passed the answers turn
       then rejected
         > 2026-09-11 check printed 0 the fold would refuse for all four roles
-- [?] T32 | Decide what a role answers in a turn to propose different text at an
-      add's empty place
+- [x] T32 | RULED Process: #115 -- against the modified text | 301e685a | Decide
+      what a role answers in a turn to propose different text at an add's empty
+      place
         > 2026-09-11 composition correct, patch need a base clause: turn.py:294, :306
 - [ ] T33 | Implement a test of a move whose other end escalates, to settle
       whether turn.py:337 overwrites claim.to
         > 2026-09-11 unconfirmed; a DiffMark correct or patch writes claim.to
+- [ ] T34 | Update turn so a correct or patch answer quotes the slot's modified
+      text, not the original, per Process 115
+        > 2026-09-11 verify: a correct answer at an add's empty place composes
