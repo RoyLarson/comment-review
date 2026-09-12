@@ -18,6 +18,7 @@ from helpers import (
     a_correct_setting,
     a_move,
     a_query,
+    a_real_binder_over,
     a_small_real_tree,
     an_add,
     binder_of,
@@ -30,6 +31,7 @@ from helpers import (
 
 from comment_review.desk.collator import known_addresses
 from comment_review.desk.containers import EditCopy
+from comment_review.desk.diff_mark import batch_of
 from comment_review.desk.mark import Mark, Shape
 from comment_review.flows.collate import collate
 from comment_review.reading.addresser import address_for
@@ -675,14 +677,14 @@ class TestWhatTheEnvelopeActuallyGuarantees:
         assert parsed.sheets[0].sha == ""
         assert "sha" not in copies[0]["sheets"][0]
 
-    def test_and_the_fold_survives_it(self):
+    def test_and_the_fold_survives_it(self, tmp_path):
         """The flow must not subscript what the envelope only normalizes."""
-        binder = one_place()
+        binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
         copies = copies_over(
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
         del copies[0]["sheets"][0]["sha"]
-        got = collate("4c", copies, binder, root=REPO)
+        got = collate("4c", copies, binder, root=tmp_path)
         assert got.problems == []
         assert [s.sha for s in got.chief.sheets] == [""]
 
@@ -810,17 +812,118 @@ class TestShardCoverage:
         got = collate("4c", halves, binder, root=REPO)
         assert got.problems == []
 
-    def test_the_places_that_did_come_back_still_settle(self):
+    def test_the_places_that_did_come_back_still_settle(self, tmp_path):
         """`Process: #63` -- coverage reports; it does not void the round."""
-        binder = two_places()
+        binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE, "m.py@b5": BASE})
         copies = copies_over(
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
-        got = collate("4c", [_keeping_only(copies[0], ["m.py@b1"])], binder, root=REPO)
+        short = [_keeping_only(copies[0], ["m.py@b1"])]
+        got = collate("4c", short, binder, root=tmp_path)
         assert got.coverage != []
         assert got.problems == []
         marks = entries_of(got.chief)
         assert [m.address for m in marks] == ["m.py@b1"]
+
+
+#: The comment `a_real_binder_over` sets at a page's `b1` for the quote check.
+QUOTED = "# one\n# two\n# three"
+
+
+def _refused_quotes(got, address: str) -> list[str]:
+    """The quote check's refusals at `address`, off the fold's problems."""
+    return [
+        p.message
+        for p in got.problems
+        if p.address == address and "is not in the paragraph" in p.message
+    ]
+
+
+class TestAQuoteIsCheckedAgainstThePage:
+    """`no-command-for-the-middle` T44, `decision-log.md Process: #119`.
+
+    A quoted clause is checked against the text at the mark's own address,
+    read from the page whether or not the binder holds that place or its
+    file, and, for a place a turn's batch sent the role, against the text
+    sent there. Where no page can be read the quote is checked against
+    nothing, so it is refused.
+    """
+
+    def _elsewhere(self, root, false: str, written: bool = True):
+        """The fold over one copy seeded from a binder holding `a.py` alone,
+        carrying a `correct` at `b.py@b1` that quotes `false`. `b.py` is a
+        copy of `a.py`, holding `QUOTED` at `b1`, unless `written` is False.
+        """
+        binder = a_real_binder_over(root, {"a.py@b1": QUOTED})
+        if written:
+            (root / "b.py").write_bytes((root / "a.py").read_bytes())
+        copy = seed(binder, "block-context")
+        copy["sheets"][0]["marks"][0].update(a_clean("a.py@b1"))
+        correct = {
+            **Mark.seed("b.py@b1", "", ""),
+            "instruction": "correct",
+            "claim": {"false": false, "true": "# 2"},
+            "reason": "written for the quote check",
+            "sources": [{"cite": "a.py:1", "verbatim": "v0 = 0"}],
+            "change": "# one\n# 2\n# three",
+        }
+        copy["sheets"].append({"path": "b.py", "sha": "", "marks": [correct]})
+        return collate("4c", [copy], binder, root=root)
+
+    def _answered_over_a_composition(self, root, false: str):
+        """Two roles' disjoint corrects at `a.py@b1`, folded into a composition,
+        then block-context's entry quoting `false` as its answer over the
+        composed text. Returns the copies, the binder and the batch sent."""
+        binder = a_real_binder_over(root, {"a.py@b1": QUOTED})
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {
+                    "a.py@b1": a_correct_setting(
+                        "a.py@b1", "# one", "# ONE\n# two\n# three"
+                    )
+                },
+                "function-context": {
+                    "a.py@b1": a_correct_setting(
+                        "a.py@b1", "# three", "# one\n# two\n# THREE"
+                    )
+                },
+            },
+        )
+        got = collate("4c", copies, binder, root=root)
+        (entry,) = got.rereads
+        assert entry["composed"].change == "# ONE\n# two\n# THREE"
+        batch = batch_of(got.escalations, got.rereads)
+        copies[0]["sheets"][0]["marks"][0].update(
+            claim={"false": false, "true": "# 3"}, change="# ONE\n# two\n# 3"
+        )
+        return copies, binder, batch
+
+    def test_a_quote_at_a_place_the_binder_lacks_passes_when_on_the_page(
+        self, tmp_path
+    ):
+        got = self._elsewhere(tmp_path, "# two")
+        assert [p for p in got.problems if p.address == "b.py@b1"] == []
+
+    def test_that_quote_is_refused_when_it_is_not_on_the_page(self, tmp_path):
+        got = self._elsewhere(tmp_path, "# four")
+        assert _refused_quotes(got, "b.py@b1") != []
+
+    def test_a_quote_where_no_page_can_be_read_is_refused(self, tmp_path):
+        got = self._elsewhere(tmp_path, "# two", written=False)
+        assert _refused_quotes(got, "b.py@b1") != []
+
+    def test_a_turns_quote_of_the_sent_text_passes(self, tmp_path):
+        copies, binder, batch = self._answered_over_a_composition(tmp_path, "# THREE")
+        unsent = collate("4c", copies, binder, root=tmp_path, turn=1)
+        assert _refused_quotes(unsent, "a.py@b1") != []
+        got = collate("4c", copies, binder, root=tmp_path, turn=1, sent=[batch])
+        assert [p for p in got.problems if p.address == "a.py@b1"] == []
+
+    def test_a_quote_in_neither_the_page_nor_the_sent_text_is_refused(self, tmp_path):
+        copies, binder, batch = self._answered_over_a_composition(tmp_path, "# FOUR")
+        got = collate("4c", copies, binder, root=tmp_path, turn=1, sent=[batch])
+        assert _refused_quotes(got, "a.py@b1") != []
 
 
 class TestTheStackedCheck:

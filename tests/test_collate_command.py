@@ -14,6 +14,7 @@ from helpers import (
     a_correct,
     a_correct_setting,
     a_query,
+    a_real_binder_over,
     an_add,
     copies_over,
     entries_of,
@@ -29,7 +30,7 @@ BASE = "# one\n# two\n# three\n"
 
 
 def run(tmp_path, marks_by_role, monkeypatch, capsys, *extra):
-    binder = a_binder_over({"m.py@b1": BASE})
+    binder = a_real_binder_over(tmp_path / "repo", {"m.py@b1": BASE})
     copies = copies_over(binder, marks_by_role)
     binder_path = tmp_path / "binder.json"
     binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
@@ -173,7 +174,9 @@ class TestExitCodes:
         Confirmed to FAIL if the two `if` branches in `commands/collate.py`
         are swapped -- see the task report for the swapped-branch run.
         """
-        binder = a_binder_over({"m.py@b1": BASE, "m.py@b2": "# four\n# five\n# six\n"})
+        binder = a_real_binder_over(
+            tmp_path / "repo", {"m.py@b1": BASE, "m.py@b2": "# four\n# five\n# six\n"}
+        )
         copies = copies_over(
             binder,
             {
@@ -429,7 +432,7 @@ class TestExitCodes:
         fix `main` gave no exit-code signal that a drifted place fed the
         output: it returned 0, indistinguishable from a run with nothing to
         report at all."""
-        binder = a_binder_over({"m.py@b1": BASE})
+        binder = a_real_binder_over(tmp_path / "repo", {"m.py@b1": BASE})
         copies = copies_over(
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
@@ -473,7 +476,8 @@ class TestExitCodes:
         asserts `Collated.coverage`, which cannot see the command's exit code
         or whether the file was written -- and those two ARE the fix.
         """
-        binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})
+        root = tmp_path / "repo"
+        binder = a_real_binder_over(root, {"m.py@b1": BASE, "m.py@b5": BASE})
         copies = copies_over(
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
@@ -496,7 +500,7 @@ class TestExitCodes:
                 "--edit-copy",
                 str(copy_path),
                 "--repo",
-                str(REPO),
+                str(root),
             ],
         )
         code = command.main()

@@ -363,6 +363,56 @@ def a_binder_over(paragraphs: dict[str, str]) -> Binder:
     )
 
 
+def a_real_binder_over(root: Path, paragraphs: dict[str, str]) -> Binder:
+    """A binder over real pages whose `b` places hold `paragraphs`, by address.
+
+    Each page is written into `root` as one line of code per `b` place up to
+    the highest named, each named text directly above its line, and read
+    back through `page_of`. The file `_MARK_PY_CITE` names is copied in
+    beside it, so the citations the mark builders here write resolve against
+    `root`. Only the written pages are bound, and `read_from.root` names
+    `root`, so a command handed the binder alone reads its pages there.
+
+    Args:
+        root: the directory to write into, created if absent.
+        paragraphs: `path@b<n>` -> comment lines, `n` at least 1, so every
+            named place sits below a line of code.
+
+    Returns:
+        The binder over the written pages.
+
+    Raises:
+        AssertionError: a named place did not come back holding its text.
+    """
+    root.mkdir(parents=True, exist_ok=True)
+    cited = root / _MARK_PY_CITE.rpartition(":")[0]
+    cited.parent.mkdir(parents=True, exist_ok=True)
+    cited.write_bytes((_DESK / "mark.py").read_bytes())
+    by_path: dict[str, dict[int, str]] = {}
+    for address, text in paragraphs.items():
+        path, _, place = address.partition("@")
+        n = int(place.removeprefix("b"))
+        assert place == f"b{n}" and n >= 1, address
+        by_path.setdefault(path, {})[n] = text.rstrip("\n")
+    pages = []
+    for path, texts in by_path.items():
+        lines: list[str] = []
+        for n in range(max(texts) + 1):
+            if n in texts:
+                lines.append(texts[n])
+            lines.append(f"v{n} = {n}")
+        (root / path).write_text(
+            "\n".join(lines) + "\n", encoding="utf-8", newline="\n"
+        )
+        page, why = page_of(root / path, rel=path)
+        assert page is not None, why
+        pages.append(page)
+    binder = bind(pages, read_from={"root": str(root), "revise": 0})
+    held = {p.address: p.raw_text for p in binder.paragraphs}
+    assert held == {a: t.rstrip("\n") for a, t in paragraphs.items()}, held
+    return binder
+
+
 def copies_over(binder: Binder, by_role: dict) -> list[dict]:
     """One real seeded `edit_copy` per role, each overlaid with that role's marks.
 
@@ -752,8 +802,12 @@ def merged(*by_roles: dict) -> dict:
 def deal(
     tmp_path, monkeypatch, capsys, by_role: dict, texts: dict | None = None
 ) -> int:
-    """`collate` over `by_role`: binder.json, proof0.json, batch1.json, chief0.json."""
-    binder = a_binder_over(texts or {"m.py@b1": BASE})
+    """`collate` over `by_role`: binder.json, proof0.json, batch1.json, chief0.json.
+
+    The binder is over real pages written to `tmp_path / "repo"`, which the
+    commands read as its root.
+    """
+    binder = a_real_binder_over(tmp_path / "repo", texts or {"m.py@b1": BASE})
     copies = copies_over(binder, by_role)
     (tmp_path / "binder.json").write_text(
         json.dumps(binder.serialize()), encoding="utf-8"

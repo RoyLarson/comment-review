@@ -62,11 +62,13 @@ an entry that will not read is `Sheet.refused`, and it routes to the role that
 wrote it while the rest of the stage settles.
 """
 
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from comment_review.binder.addresses import handed
 from comment_review.binder.binder import Binder
+from comment_review.binder.page import Page
 from comment_review.desk.collator import (
     Cache,
     Placed,
@@ -788,11 +790,19 @@ def _stage_problems(dispatches: Stage, edit_copies: list[EditCopy]) -> list[Prob
     ]
 
 
-#: One path -> the real page's `Cues`, or `None` where this checkout holds no
-#: readable page there. Shared across a stage's copies, the same shape as
+#: One path -> the real page, or `None` where this checkout holds no readable
+#: page there. Shared across a stage's copies, the same shape as
 #: `desk.collator.Cache` for a cited file: a page eight roles' marks touch is
 #: read once.
-PageCache = dict[str, Cues | None]
+PageCache = dict[str, Page | None]
+
+
+def _page_at(real: str, root: Path, cache: PageCache) -> Page | None:
+    """One path's page, read at most once per stage, or `None` where none reads."""
+    if real not in cache:
+        page, _why = page_of(root / real, rel=real)
+        cache[real] = page
+    return cache[real]
 
 
 def _page_cues(real: str, root: Path, cache: PageCache) -> Cues | None:
@@ -815,10 +825,8 @@ def _page_cues(real: str, root: Path, cache: PageCache) -> Cues | None:
         page at `root` -- unresolvable rather than false, which is what lets
         `_resolution_problems` report nothing rather than guess.
     """
-    if real not in cache:
-        page, _why = page_of(root / real, rel=real)
-        cache[real] = page.cues if page is not None else None
-    return cache[real]
+    page = _page_at(real, root, cache)
+    return page.cues if page is not None else None
 
 
 def _resolution_problems(
@@ -867,6 +875,70 @@ def _resolution_problems(
     return out
 
 
+def texts_at(
+    copy: EditCopy,
+    paths: list[str],
+    root: Path,
+    pages: PageCache,
+    sent: Sequence[Mapping[str, object]] = (),
+) -> dict[str, tuple[str, ...]]:
+    """Every text a quote on `copy` may be in, keyed by the mark's address.
+
+    `decision-log.md Process: #119`: the text at the mark's own address, read
+    from the page whether or not the binder holds that place or its file, and
+    for a place a turn's batch sent this copy's role, the text sent there. The
+    page's text comes first, and is "" where no page can be read or the page
+    holds nothing at the place.
+
+    Args:
+        copy: one parsed edit_copy.
+        paths: the binder's own page paths, for `unflatten`.
+        root: the checkout every page is read from.
+        pages: shared across the stage's copies, keyed by real path.
+        sent: every batch the stage's turns sent, oldest first -- role -> its
+            slots, as `desk.diff_mark.batch_of` shapes them.
+
+    Returns:
+        address -> the texts, one entry per address a ruled mark carries.
+    """
+    out: dict[str, tuple[str, ...]] = {}
+    for sheet in copy.sheets:
+        for mark in sheet.marks:
+            if mark.address in out:
+                continue
+            addr = cue_of(mark.address)
+            page = None
+            if addr.path:
+                page = _page_at(unflatten(addr.path, paths) or addr.path, root, pages)
+            held = ""
+            if page is not None:
+                held = next(
+                    (
+                        b.raw_text
+                        for b in page.paragraphs
+                        if b.address and cue_of(b.address).cue == addr.cue
+                    ),
+                    "",
+                )
+            out[mark.address] = (held, *_sent_to(copy.role, mark.address, sent))
+    return out
+
+
+def _sent_to(
+    role: str, address: str, sent: Sequence[Mapping[str, object]]
+) -> list[str]:
+    """The text each batch in `sent` sent `role` at `address`, oldest first."""
+    out: list[str] = []
+    for batch in sent:
+        slots = batch.get(role)
+        for slot in slots if isinstance(slots, list) else []:
+            if isinstance(slot, dict) and slot.get("address") == address:
+                text = slot.get("raw_text")
+                if isinstance(text, str):
+                    out.append(text)
+    return out
+
+
 def collate(
     stage: str,
     edit_copies: list[dict],
@@ -874,6 +946,7 @@ def collate(
     root: Path,
     turn: int = 0,
     dispatches: Stage | None = None,
+    sent: Sequence[Mapping[str, object]] = (),
 ) -> Collated:
     """One stage's returned copies, checked, reconciled and folded.
 
@@ -881,20 +954,24 @@ def collate(
         stage: the label these copies were dispatched under -- "4a", "4c".
         edit_copies: one per role, or one per SHARD under fan-out, as each came
             back.
-        binder: the binder they were seeded from. ! IT SUPPLIES THE BASE, THE
-            OTHER SIDE OF THE DRIFT CHECK, AND THE KNOWN ADDRESSES SOURCE
-            VERIFICATION MEASURES AGAINST -- address integrity over the DOCKET
-            is a different question and is `P28`'s.
-        root: the checkout every `sources` citation is resolved against. ! IT
-            IS NOT A PAGE ROOT. `Process: #62` bars the middle from a page
-            under review; what this reads is evidence, which carries no `sha`
-            because nothing writes it.
+        binder: the binder they were seeded from. It supplies the base the
+            drift check and a composition read, and the page paths an address
+            is resolved against -- address integrity over the DOCKET is a
+            different question and is `P28`'s.
+        root: the checkout every `sources` citation is resolved against, and
+            every page a mark's address is read from, by `_resolution_problems`
+            and `texts_at`.
         turn: which turn of the stage's collate this is -- 0 for the first
             fold, `flows.turn.run_turn`'s count after. Every `stet` this fold
             records carries it (`Process: #87`).
         dispatches: the stage as the topology declares it, when the caller
             has one. A dispatch that returned no copy is then reported in
             `coverage`; without it nothing can know a copy was owed.
+        sent: every batch the stage's turns sent, oldest first, which
+            `flows.turn.run_turn` and `refold` hand in. A quote at a place a
+            batch sent the role is checked against the text sent there as well
+            as the page's (`decision-log.md Process: #119`). Empty for the
+            first fold.
 
     Returns:
         A `Collated`.
@@ -1023,10 +1100,13 @@ def collate(
         #
         # ! IT READS FILES, AND THAT IS NOT `Process: #62`'s "no files". The
         # test is the `sha`: a page under review carries one because it will be
-        # written, and the middle must not touch it; a cited evidence file
+        # written, and the middle writes none of it; a cited evidence file
         # carries none because nothing writes it, and reading it is what
         # settling a citation means. Roy, 2026-08-30, on exactly this call.
-        problems += verify_report(copy, binder, root, cache)
+        # A page is read for the text at each mark's place, which a quote is
+        # checked against -- `decision-log.md Process: #119`.
+        texts = texts_at(copy, paths, root, page_cache, sent)
+        problems += verify_report(copy, texts, root, cache)
         # !! THE ADDRESS ITSELF -- `_resolution_problems`, `collator-defects`
         # T40. `verify_report` asks two questions of a ruled mark; this asks
         # the third, against the real page rather than the binder.

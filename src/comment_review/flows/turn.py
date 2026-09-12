@@ -44,9 +44,7 @@ A COMPOSITION re-read is answered with a fresh `Mark` over the composed text
                 there, the entry becomes a `clean`
     query       the entry becomes the query
     correct     the entry becomes a `correct` over the ORIGINAL base whose
-                `change` is the role's. `claim.false` quotes the base because
-                source verification measures a claim against the binder, not
-                against the text the question was asked over
+                `change` is the role's. `claim.false` quotes the base
     patch       the entry becomes a `patch` over the base -- NOT a correct,
                 which owes sources a patch never carried. `claim.from` is
                 the role's where the base holds it, else the whole base
@@ -502,7 +500,9 @@ def run_turn(
         root: the checkout citations resolve against.
         sent: the batch that went out -- role -> its slots, as `batch_of`
             built it. !! THE SENT BATCH DRIVES THE TURN: every role in it owes
-            every slot in it, and a role's answers are read against it.
+            every slot in it, and a role's answers are read against it. It and
+            every batch the proof's record holds are what a quote a turn wrote
+            is checked against, beside the page (`Process: #119`).
         answers: role -> what came back, in any shape `slots_of` reads.
 
     Returns:
@@ -525,12 +525,23 @@ def run_turn(
     for role, slots in sent.items():
         _, why = take_answers(copies, role, slots, answers.get(role, []), root)
         revisit += why
-    got = collate(proof.stage, copies, binder, root, turn=turn)
+    got = collate(
+        proof.stage, copies, binder, root, turn=turn, sent=(*_sent_of(proof), sent)
+    )
     got = _keeping(got, earlier)
     contested = {slot["address"] for slots in sent.values() for slot in slots}
     got = _withdrawn(got, contested, turn)
     got = _agreed_adds(got, contested, turn)
     return replace(got, revisit=[*revisit, *got.revisit])
+
+
+def _sent_of(proof: MasterProof) -> tuple[dict, ...]:
+    """Every batch the proof's turn record says was sent, oldest first."""
+    return tuple(
+        record["sent"]
+        for record in proof.turns
+        if isinstance(record, dict) and isinstance(record.get("sent"), dict)
+    )
 
 
 def _withdrawn(got: Collated, contested: set[str], turn: int) -> Collated:
@@ -624,7 +635,9 @@ def refold(proof: MasterProof, binder: Binder, root: Path) -> Collated:
     What max turns reads: `rule_at_max_turns` needs the places still carried forward
     and `determined_chief` the program's stets, and neither is on the wire --
     the proof carries the copies and the rulings, and the fold is re-derived
-    from them at the turn the proof stands at, `proof.turn`.
+    from them at the turn the proof stands at, `proof.turn`. A quote a turn
+    wrote is checked against the batches the proof's record holds, beside the
+    page (`Process: #119`).
 
     Args:
         proof: the master proof as the last turn wrote it.
@@ -635,9 +648,10 @@ def refold(proof: MasterProof, binder: Binder, root: Path) -> Collated:
         The `Collated`, with `proof.determined` kept over this fold's (`#91`).
     """
     copies, earlier = _unpacked(proof)
-    return _keeping(
-        collate(proof.stage, copies, binder, root, turn=proof.turn), earlier
+    got = collate(
+        proof.stage, copies, binder, root, turn=proof.turn, sent=_sent_of(proof)
     )
+    return _keeping(got, earlier)
 
 
 def _recast_claim(first: Mark, prose: str) -> dict:

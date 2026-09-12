@@ -41,6 +41,7 @@ from comment_review.desk.collator import (
 )
 from comment_review.desk.containers import EditCopy
 from comment_review.desk.mark import Instruction, Mark
+from comment_review.flows.collate import texts_at
 from comment_review.flows.distribute import seed
 from comment_review.flows.mark_errors import mark_errors
 from comment_review.reading.addresser import address_for
@@ -131,6 +132,11 @@ def a_mark(**overrides) -> Mark:
     return replace(_well_formed(), **overrides)
 
 
+def _texts(copy: EditCopy, binder=BINDER, root: Path = DESK) -> dict:
+    """What the fold hands `verify_report` for `copy`, off the real pages."""
+    return texts_at(copy, [page.path for page in binder.pages], root, {})
+
+
 def _ruled_places(copy) -> int:
     """How many places a role WROTE IN -- ruled marks and refused entries both.
 
@@ -155,7 +161,7 @@ class TestClaimVerbatimProblems:
     """T3.3 -- the sentence the claim rules on is really in the paragraph."""
 
     def test_the_false_clause_is_really_in_the_paragraph(self):
-        assert claim_verbatim_problems("here", _well_formed(), RAW_TEXT) == []
+        assert claim_verbatim_problems("here", _well_formed(), (RAW_TEXT,)) == []
 
     def test_add_and_query_quote_nothing(self):
         """`add`'s `missing` and `query`'s `shape` are not checked this way --
@@ -163,13 +169,13 @@ class TestClaimVerbatimProblems:
         against the paragraph even when it names nothing in it."""
         add = a_mark(instruction="add", claim={"missing": "x", "anchor": "`f`"})
         query = a_mark(instruction="query", claim={"shape": "outside-my-role"})
-        assert claim_verbatim_problems("here", add, RAW_TEXT) == []
-        assert claim_verbatim_problems("here", query, RAW_TEXT) == []
+        assert claim_verbatim_problems("here", add, (RAW_TEXT,)) == []
+        assert claim_verbatim_problems("here", query, (RAW_TEXT,)) == []
 
     def test_a_missing_claim_key_is_not_this_checks_question(self):
         """`desk.mark.parse` already refuses a `correct` with no `false`;
         source-verification has nothing to compare and says nothing."""
-        assert claim_verbatim_problems("here", a_mark(claim={}), RAW_TEXT) == []
+        assert claim_verbatim_problems("here", a_mark(claim={}), (RAW_TEXT,)) == []
 
 
 class TestSourceProblems:
@@ -372,7 +378,7 @@ class TestSourceVerification:
         problems = source_verification(
             "here",
             _well_formed(),
-            base=RAW_TEXT,
+            texts=(RAW_TEXT,),
             root=ROOT,
             cache={},
         )
@@ -407,10 +413,11 @@ class TestVerifyReport:
         -- `desk.mark.untouched`, a coverage gap rather than a problem this
         step reports."""
         copy = returned(seed(BINDER, "block-context"))
-        assert verify_report(copy, BINDER, ROOT, {}) == []
+        assert verify_report(copy, _texts(copy), ROOT, {}) == []
 
     def test_one_filled_entry_is_checked_against_the_page(self):
-        assert verify_report(_filled({}), BINDER, ROOT, {}) == []
+        copy = _filled({})
+        assert verify_report(copy, _texts(copy), ROOT, {}) == []
 
     def test_a_broken_entry_is_reported_by_its_address(self):
         copy = _filled(
@@ -421,7 +428,7 @@ class TestVerifyReport:
                 }
             }
         )
-        problems = verify_report(copy, BINDER, ROOT, {})
+        problems = verify_report(copy, _texts(copy), ROOT, {})
         assert problems
         # !! THE ADDRESS IS A FIELD SINCE 2026-08-31, not a prefix on a
         # sentence -- `P25` gave this a production caller, and `Problem` exists
@@ -447,14 +454,14 @@ class TestVerifyReport:
         first. It is reported once, and this asserts which of the two says it.
         """
         copy = _filled({"instruction": None})
-        assert verify_report(copy, BINDER, ROOT, {}) == []
+        assert verify_report(copy, _texts(copy), ROOT, {}) == []
         found = mark_errors([copy])
         assert any("instruction" in reason for one in found for reason in one.reasons)
 
 
 class TestTheBaseIsTheBinders:
-    """D10 -- a compose or a verbatim check reads its base off the binder,
-    never off a mark's own returned `raw_text`."""
+    """D10 -- a compose or a drift check reads its base off the binder, and
+    the quote check reads the page -- never a mark's own returned `raw_text`."""
 
     def test_base_texts_keys_every_address_the_binder_carries(self, tmp_path):
         binder = binder_of(a_small_real_tree(tmp_path), 0)
@@ -490,17 +497,18 @@ class TestTheBaseIsTheBinders:
         entry.update(a_clean(entry["address"]))
         assert drift_in(returned(wire), base_texts(binder)) == []
 
-    def test_verify_report_measures_the_claim_against_the_BINDER(self, tmp_path):
-        """A mark whose `claim.false` is absent from the seeded paragraph is
+    def test_verify_report_measures_the_claim_against_the_PAGE(self, tmp_path):
+        """A mark whose `claim.false` is absent from the page's paragraph is
         reported even when the mark's own `raw_text` was rewritten to contain
-        it -- which is the whole point of taking the base from the binder."""
+        it -- the text is read off the page, never off the mark."""
         repo = a_small_real_tree(tmp_path)
         binder = binder_of(repo, 0)
         wire = seed(binder, "block-context")
         entry = wire["sheets"][0]["marks"][0]
         entry.update(a_correct(entry["address"], "a sentence nobody wrote"))
         entry["raw_text"] = "a sentence nobody wrote"
-        problems = verify_report(returned(wire), binder, repo, {})
+        copy = returned(wire)
+        problems = verify_report(copy, _texts(copy, binder, repo), repo, {})
         assert any("is not in the paragraph" in p.message for p in problems)
 
 
@@ -526,7 +534,7 @@ class TestEachCheckCanFire:
                 "true": "the corrected sentence",
             }
         )
-        problems = claim_verbatim_problems("here", bad, RAW_TEXT)
+        problems = claim_verbatim_problems("here", bad, (RAW_TEXT,))
         assert problems
         assert "claim.false" in problems[0]
 
@@ -557,7 +565,8 @@ class TestAnAbsentAddressIsNotRefused:
         wire["sheets"][0]["marks"].append(
             {**an_add(absent), "sources": [cite], "anchor": "", "raw_text": ""}
         )
-        problems = verify_report(returned(wire), binder, repo, {})
+        copy = returned(wire)
+        problems = verify_report(copy, _texts(copy, binder, repo), repo, {})
         assert [p for p in problems if p.address == absent] == []
 
 
