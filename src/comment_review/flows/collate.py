@@ -93,6 +93,7 @@ from comment_review.desk.proof import MismatchedRoot, master_proof_of
 from comment_review.desk.stages import Stage
 from comment_review.flows.mark_errors import Revisit, mark_errors
 from comment_review.flows.page_for import page_of
+from comment_review.machine.repo import can_escape
 from comment_review.reading.addresser import Cues, cue_of, unflatten
 from comment_review.results.differences import CannotCompose, compose
 
@@ -803,9 +804,17 @@ PageCache = dict[str, Page | None]
 
 
 def _page_at(real: str, root: Path, cache: PageCache) -> Page | None:
-    """One path's page, read at most once per stage, or `None` where none reads."""
+    """One path's page, read at most once per stage, or `None` where none reads.
+
+    A path that would land outside `root` once joined to it -- absolute,
+    carrying a drive, or climbing with `..` -- answers `None` and nothing is
+    opened. The path comes from a mark's address, which a role wrote, and
+    `desk.collator.source_problems` keeps the same guard for a cited path.
+    """
     if real not in cache:
-        page, _why = page_of(root / real, rel=real)
+        page = None
+        if not can_escape(real):
+            page, _why = page_of(root / real, rel=real)
         cache[real] = page
     return cache[real]
 
