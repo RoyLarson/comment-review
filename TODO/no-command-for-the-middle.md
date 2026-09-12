@@ -173,3 +173,5 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [ ] T34 | Update turn so a correct or patch answer quotes the slot's modified
       text, not the original, per Process 115
         > 2026-09-11 verify: a correct answer at an add's empty place composes
+        > 2026-09-11 overlaps stay uncomposed as today; Roy agreed 2026-09-11
+        > 2026-09-11 in an escalation: whose modified text a correct quotes, to report
