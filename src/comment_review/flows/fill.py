@@ -224,11 +224,6 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
         the copy untouched. The messages are `Mark.deserialize`'s own wording
         where the parse is what refused, so a role learns the contract from the
         refusal.
-
-    An `add` is refused where the slot's `raw_text` holds prose: `SKILL.md`
-    defines it as prose missing entirely, so its place is one holding none.
-    A slot `place_on_the_page` creates is seeded with an empty `raw_text`,
-    so an `add` there is not refused.
     """
     address = entry.get("address")
     if not filled(address):
@@ -250,11 +245,6 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
             address, str(slot.get("anchor") or ""), str(slot.get("raw_text") or "")
         )
         in_place = untouched(slot)
-
-    if instruction is Instruction.ADD and filled(seeded["raw_text"]):
-        return None, [
-            f"{address} already holds prose; `add` is for a place that holds none"
-        ]
 
     mark: dict = {**seeded, "instruction": named}
     for key in ROLE_FIELDS:
