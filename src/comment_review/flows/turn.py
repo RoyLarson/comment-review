@@ -27,7 +27,8 @@ ESCALATION is an edit to that role's copy at the address:
     withdraw    the entry becomes a `clean`
     correct     the entry's `change` becomes the DiffMark's `change`; on a
                 `correct` or `patch` entry the claim becomes the role's own
-                proposal replaced by it, so the claim derives the change
+                proposal replaced by it, so the claim derives the change; on
+                a `move` the claim stands, its `to` naming the destination
     patch       the same
 
 A COMPOSITION re-read is answered with a fresh `Mark` over the composed text
@@ -392,7 +393,7 @@ def _answered(entry: dict, answer: DiffMark | Mark, composition: dict) -> dict |
             held["claim"] = _replacing(
                 Instruction(named), entry.get("change", ""), answer.change
             )
-        elif isinstance(claim, dict):
+        elif isinstance(claim, dict) and named != str(Instruction.MOVE):
             held["claim"] = {
                 key: answer.change if key in ("true", "to") else value
                 for key, value in claim.items()

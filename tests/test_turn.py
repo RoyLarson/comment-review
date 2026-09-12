@@ -797,10 +797,6 @@ class TestAMoveWhoseEndsStillDisagree:
     the destination stays where the mover put it.
     """
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="T38: a correct at a move's escalation writes its text into claim.to",
-    )
     def test_a_correct_changes_the_moved_text_and_keeps_the_destination(self, tmp_path):
         binder, got = _a_lone_move(tmp_path, MOVED_TEXT)
         batch = batch_of(got.escalations, got.rereads)
