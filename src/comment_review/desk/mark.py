@@ -449,6 +449,10 @@ class Mark:
             out += _source_problems(where, entry.get("sources"))
         if spec.owes_change:
             out += _change_problems(where, instruction, spec, entry.get("change"))
+        if not spec.substantive and filled(entry.get("change")):
+            out.append(
+                f"{where}: {instruction} proposes no text, so carries no `change`"
+            )
         if out:
             return None, out
 
