@@ -4194,7 +4194,10 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   on T51: `flows/collate.py:948` and `commands/check.py:96` read `base_texts(binder)`, which by
   reading differs from the page only for a file outside the binder).
 
-  Roy: *"Read the page"*, the source the quote check reads (`#119`).
+  Roy: *"Read the page"*, the source the quote check reads (`#119`). Then shown that drift read
+  off the page asks whether the page changed, which `#62` rules out of the middle, and that
+  `collator-defects` T27 deletes drift -- Roy: *"Base only"*. Only the composition base moves; the
+  drift half is superseded by `#62`.
 
 - **#126.** **Whether set 2 merges with T33, T38 and T41 open** (Roy, 2026-09-12; `#120` leaves
   them open until the system has been experimented with).
