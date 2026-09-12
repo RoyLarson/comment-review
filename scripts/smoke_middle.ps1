@@ -267,7 +267,8 @@ $Stages = [ordered]@{
             a0 = Join-Path $Run 'a0.txt'
         }
         # a0 -- the module docstring, already filled. block-context adds over
-        # it, to see what an add on a filled a does; the other three clean it.
+        # it, keeping every word of the docstring in order, so `mark` accepts
+        # the add (Process #132); the other three clean it.
         Invoke-Checked -Stage 'mark a0 block-context add' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@a0',
             '--instruction', 'add',
@@ -284,9 +285,12 @@ $Stages = [ordered]@{
             ))
         }
         # c12 -- beside `if n < 2:`, already filled with `# base case`.
-        # ownership-context adds over it, to see what an add on a filled c
-        # does; the other three clean it.
-        Invoke-Checked -Stage 'mark c12 ownership-context add' -CommandLine ($Launcher + @(
+        # ownership-context adds over it with a change that drops `base` and
+        # `case`, and `mark` refuses it: an add at a place holding prose keeps
+        # every word of it, in order (Process #132). The refusal is asserted
+        # by its exit code and by the line naming the place. The copy is left
+        # as it was, so ownership-context then cleans c12 as the other three do.
+        $c12Add = $Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['ownership-context'], '--address', 'fib.py@c12',
             '--instruction', 'add',
             '--missing', 'nothing notes which values are already fibonacci numbers',
@@ -294,8 +298,17 @@ $Stages = [ordered]@{
             '--change', "@$($LandingFile.c12)",
             '--reason', 'the base case deserves saying why it needs no recursion',
             '--cite', 'fib.py:27', '--repo', $OriginalDir
-        ))
-        foreach ($role in @('block-context', 'function-context', 'module-context')) {
+        )
+        $refused = Invoke-Checked -Stage 'mark c12 ownership-context add refused' -Expect 1 -Capture -CommandLine $c12Add
+        if (-not (($refused -join "`n").Contains('fib.py@c12 holds prose'))) {
+            Write-Host 'stage failed: mark c12 ownership-context add refused'
+            Write-Host 'expected a refusal naming fib.py@c12 as holding prose; mark printed:'
+            $refused | Out-Host
+            Write-Host "directory: $((Get-Location).Path)"
+            Write-Host "command: $(Format-CommandLine $c12Add)"
+            exit 1
+        }
+        foreach ($role in $Roles) {
             Invoke-Checked -Stage "mark c12 $role clean" -CommandLine ($Launcher + @(
                 $Cmd.mark, '--edit-copy', $CopyFile[$role], '--address', 'fib.py@c12',
                 '--instruction', 'clean', '--repo', $OriginalDir
