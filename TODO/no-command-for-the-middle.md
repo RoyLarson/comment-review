@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 16 of 31 tasks closed
+Progress: 19 of 33 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
           REAL reviewer agent -- census, mark --seed, the block-context agent, mark
           --check and taken_in are all commands; the middle is not)
@@ -149,13 +149,23 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       and gather each case once. Verify: 9 collate runs become 2
 - [ ] T28 | Implement the outcome once: exit codes, _report, the Revisit
       printer, the refused handler and the batch write, shared by three commands
-- [ ] T29 | Update turn so a role answering a composition re-read at an add's
-      empty place is not refused for having no slot
+- [x] T29 | a composition answer at a real place seeds a slot, as fill does | 30071cf1 | Update
+      turn so a role answering a composition re-read at an add's empty place is
+      not refused for having no slot
         > 2026-09-11 flows/turn.py:323; collate sent the place to all four roles
         > 2026-09-11 smoke run 2026-09-11: 9 answers refused, b8 c3 a2 b15 b17
-- [ ] T30 | Update turn so the adding role's own clean answer on its add is not
-      read as a correct missing its clause
+- [x] T30 | a clean at an add's empty place says nothing further | daa86dc8 | Update
+      turn so the adding role's own clean answer on its add is not read as a
+      correct missing its clause
         > 2026-09-11 smoke run: block b8, function a2 c3, module b15 b17 refused
-- [ ] T31 | Update check --answers to refuse what turn refuses; it passed the
-      answers turn then rejected
+        > 2026-09-11 other roles' clean stays clean, not an adopted add; see daa86dc8
+- [x] T31 | check --answers applies the answers through turn's own call | 0f01d744 | Update
+      check --answers to refuse what turn refuses; it passed the answers turn
+      then rejected
         > 2026-09-11 check printed 0 the fold would refuse for all four roles
+- [?] T32 | Decide what a role answers in a turn to propose different text at an
+      add's empty place
+        > 2026-09-11 composition correct, patch need a base clause: turn.py:294, :306
+- [ ] T33 | Implement a test of a move whose other end escalates, to settle
+      whether turn.py:337 overwrites claim.to
+        > 2026-09-11 unconfirmed; a DiffMark correct or patch writes claim.to

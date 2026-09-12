@@ -565,7 +565,7 @@ and this task waits on them.
 **Files:**
 - Modify: `scripts/smoke_middle.ps1`, `scripts/smoke_fixture.py`
 
-- [ ] **Step 1: Fix** `no-command-for-the-middle` T29, T30 and T31, each with a test that fails first
+- [x] **Step 1: Fix** `no-command-for-the-middle` T29, T30 and T31, each with a test that fails first
 - [ ] **Step 2: A `turn` stage** -- `collate --batch-out`, one planted answer per slot (a withdrawal at `c1`, holds and cleans elsewhere), `check --answers` per role, `turn`, then `disposition` on the turn's proof
 - [ ] **Step 3: Done gate** -- the whole script, with the turn, exits 0 from empty and the diff matches what was planted
 - [ ] **Step 4: Tick** each task against its commit, in a later commit

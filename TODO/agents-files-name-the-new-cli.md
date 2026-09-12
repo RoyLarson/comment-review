@@ -36,6 +36,7 @@ The agents files name the new CLI and say how to use it.
       experiment after the baseline. Verify: a hand with a turn runs from it
 - [ ] T7 | Update reviewer-brief.md with check --answers and the two answer
       shapes from check --contract, for the turn experiment
+        > 2026-09-11 check --answers now needs --proof, since 0f01d744
 - [x] T8 | SKILL.md packet carries BINDER, LISTING, EDIT COPY as paths; the brief reads from them | d0c1e9b1 | Update
       SKILL.md and the brief so the packet names the binder, the listing and the
       copy by absolute path and a role reads from there
