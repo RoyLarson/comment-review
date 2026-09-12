@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 22 of 37 tasks closed
+Progress: 24 of 41 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
           write path, which is the one place a defect reaches disk)
 RE-VERIFIED: 2026-08-23 — 2026-08-23. Task 1 is FIXED and ticked -- the destructive case
@@ -119,8 +119,8 @@ files in `corpora/` are in that state today.
       wholesale with corpora and the venv
         > 2026-09-07 2026-09-07: 424 MB partial galley, 1,948 path errors
         > 2026-09-11 Roy 2026-09-11: copy the files git does not ignore, per #110
-- [ ] T14 | Update revise.pull so a copy that fails part way leaves no partial
-      --out behind
+- [x] T14 | a copy that fails part way leaves no revise root | 3fc85964 | Update
+      revise.pull so a copy that fails part way leaves no partial --out behind
         > 2026-09-07 pull's docstring says a stopped run leaves no half-set; it did
 - [x] T15 | RULED Process: #110 -- the working tree, since the system runs on uncommitted work | cfe76f33 | Decide
       whether the galley is pulled from the working tree's bytes or from git,
@@ -196,9 +196,23 @@ files in `corpora/` are in that state today.
 - [ ] T35 | Identify the 3 of 3310 pages that do not set back byte-identical
       unedited, and file what each shows
         > 2026-09-11 final review: the vacated rule fired on none of them
-- [ ] T36 | Update revise.pull so the revise root holds only the pages the
-      docket writes, and the address gate compares only those, per Process 117
+- [x] T36 | the revise holds only the docket's pages; the gate reads only those | 4bf2acd3 | Update
+      revise.pull so the revise root holds only the pages the docket writes, and
+      the address gate compares only those, per Process 117
         > 2026-09-11 gate over this checkout took 249 s gathering every file
 - [ ] T37 | Update commands/proof.py:25 and :129-131 and
       test_proof_command.py:423-428, which name copytree as what refuses an
       existing --out
+        > 2026-09-11 also proof.py:18-25, which says --out holds a full copy of --repo
+- [ ] T38 | Update taken_in so with no paths it compares the pages the revise
+      holds, not every page of the original
+        > 2026-09-11 since 4bf2acd3 every unwritten page prints NOT COMPARED on stderr
+- [?] T39 | Decide whether a later stage gathering from a revise reads the pages
+      that revise did not write from the original
+        > 2026-09-11 one stage this release, SKILL.md:329-332
+        > 2026-09-11 a cite to an unwritten page would not resolve
+- [ ] T40 | Update flows/__init__.py:22-24 and flows/transcribe.py:12-13, which
+      say a revise copies the repo or the whole tree
+- [ ] T41 | Update test_proof_command.py:26-27 and :82-85, helpers.py:152-153
+      and test_taken_in.py:89-90 for Process 117
+        > 2026-09-11 each describes a revise root holding the whole tree

@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (113)
+### open  (114)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -213,7 +213,7 @@ that changed a published name or rule:
 | [one-stem-four-jobs](one-stem-four-jobs.md) | backend | -- | 7/15 | one stem, four jobs -- and the vocabulary sweep cannot see it |
 | [python-cannot-read-python](python-cannot-read-python.md) | backend | -- | 32/39 | the AST cannot read syntax newer than the floor, and two readers hide each other's bugs |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | -- | 3/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
-| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 22/37 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
+| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | yes | 24/41 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | backend | -- | 4/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
 | [exception-hierarchy](exception-hierarchy.md) | backend | -- | 2/10 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | -- | 6/16 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
@@ -295,6 +295,7 @@ that changed a published name or rule:
 | [a-machine-context-raises-query-and-clean](a-machine-context-raises-query-and-clean.md) | backend | yes | 0/8 | annotate carries two subjects -- it extracts index keys, and it flags claims it cannot settle. The second half becomes a context that marks like a role. |
 | [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | yes | 2/9 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
 | [smoke-middle-script](smoke-middle-script.md) | systems | -- | 60/66 | The middle-chain smoke script carries the findings of its Task 8 review |
+| [the-scope-is-git-in-prose](the-scope-is-git-in-prose.md) | backend | -- | 0/2 | The scope a run reviews is worked out by the task agent running git |
 
 ### in-progress  (18)
 
