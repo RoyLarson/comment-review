@@ -338,7 +338,11 @@ class TestAComposition:
         assert ruled.how == "identical"
         assert [m.change for m in entries_of(again.chief)] == [COMPOSED]
 
-    def test_a_correct_over_it_folds_again_as_an_escalation(self):
+    def test_a_correct_over_it_goes_back_into_the_fold_carrying_both_texts(self):
+        """The place is carried forward, not settled, with both texts in it.
+        Which list carries it is not asserted: the adopting role's `correct`
+        quotes the original and this one the composed text, and how overlapping
+        composed edits are made is left open by `Process: #115`."""
         binder, copies, got = _composed()
         batch = batch_of(got.escalations, got.rereads)
         fixed = "# ONE\n# two\n# 3\n"
@@ -357,12 +361,11 @@ class TestAComposition:
         again = run_turn(_at(got), binder, REPO, batch, answers)
         problems = again.revisit
         assert problems == []
-        assert [e["address"] for e in again.escalations] == ["m.py@b1"]
         assert again.determined == {}
-        assert {p.mark.change for p in again.escalations[0]["marks"]} == {
-            COMPOSED,
-            fixed,
-        }
+        (entry,) = [
+            e for e in (*again.escalations, *again.rereads) if e["address"] == "m.py@b1"
+        ]
+        assert {p.mark.change for p in entry["marks"]} == {COMPOSED, fixed}
 
     def test_a_patch_over_it_stays_a_patch_and_the_role_stays_in_the_fold(self):
         """MEASURED in the game's hand 2: a patch answer was rewritten as a
@@ -386,8 +389,10 @@ class TestAComposition:
         problems = again.revisit
         assert problems == []
         assert again.revisit == []
-        assert [e["address"] for e in again.escalations] == ["m.py@b1"]
-        roles = {p.role for p in again.escalations[0]["marks"]}
+        (entry,) = [
+            e for e in (*again.escalations, *again.rereads) if e["address"] == "m.py@b1"
+        ]
+        roles = {p.role for p in entry["marks"]}
         assert roles == {"block-context", "function-context"}
 
     def test_a_drop_is_not_a_composition_answer(self):
@@ -584,6 +589,49 @@ class TestAnAddAtAnEmptyPlace:
         assert [p.address for p in refused] == [EMPTY_PLACE]
         assert any("never sent" in r for r in refused[0].reasons)
         assert _held_at(again, "function-context", EMPTY_PLACE) == []
+
+    @pytest.mark.parametrize(
+        "answer",
+        [
+            pytest.param(
+                {
+                    "instruction": "correct",
+                    "reason": "four is the word the rest of the fixture uses",
+                    "claim": {"false": "w is 4", "true": "w is four"},
+                    "sources": [{"cite": "m.py:7", "verbatim": "w = 4"}],
+                    "change": ADDED_TEXT.replace("w is 4", "w is four"),
+                },
+                id="correct",
+            ),
+            pytest.param(
+                {
+                    "instruction": "patch",
+                    "reason": "four is the word the rest of the fixture uses",
+                    "claim": {"from": "w is 4", "to": "w is four"},
+                    "change": ADDED_TEXT.replace("w is 4", "w is four"),
+                },
+                id="patch",
+            ),
+        ],
+    )
+    def test_a_correct_or_patch_quotes_the_text_it_was_sent(self, tmp_path, answer):
+        """`no-command-for-the-middle` T34, `Process: #115`: a composition
+        `correct` or `patch` is made against the slot's text -- here the add's,
+        where the original holds nothing. It lands on the role's copy as the
+        role gave it, and the fold checks its quote against the text sent."""
+        binder, got = an_add_at_an_empty_place(tmp_path)
+        batch = batch_of(got.escalations, got.rereads)
+        assert _slot(batch, "function-context", EMPTY_PLACE)["raw_text"] == ADDED_TEXT
+        answers = {
+            **_answered(batch, "block-context", instruction="clean"),
+            **_answered(batch, "function-context", **answer),
+        }
+        again = run_turn(_at(got), binder, tmp_path, batch, answers)
+        assert again.revisit == []
+        assert [p for p in again.problems if p.address == EMPTY_PLACE] == []
+        (held,) = _held_at(again, "function-context", EMPTY_PLACE)
+        assert held.instruction is Instruction(answer["instruction"])
+        assert held.claim == answer["claim"]
 
 
 #: `GAPPED_PAGE`'s one filled place, the comment above `y = 2`.

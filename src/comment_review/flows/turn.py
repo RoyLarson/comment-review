@@ -43,11 +43,11 @@ A COMPOSITION re-read is answered with a fresh `Mark` over the composed text
                 slot's text stays as it is. Where the slot carries no `add`
                 there, the entry becomes a `clean`
     query       the entry becomes the query
-    correct     the entry becomes a `correct` over the ORIGINAL base whose
-                `change` is the role's. `claim.false` quotes the base
-    patch       the entry becomes a `patch` over the base -- NOT a correct,
-                which owes sources a patch never carried. `claim.from` is
-                the role's where the base holds it, else the whole base
+    correct     the entry becomes the role's own `correct`, its claim quoting
+                the slot's text -- the text collate sent -- not the original
+                (`Process: #115`); the fold checks the quote against that text
+    patch       the same, as a `patch` -- not a correct, which owes sources a
+                patch never carried
 
 An answer at a place the role's copy holds no slot for -- an `add`'s empty
 place, which `desk.collator._outcome` sends to every role of the stage while
@@ -306,18 +306,25 @@ def _a_correct_over_base(entry: dict, change: str, reason: str, sources: list) -
     }
 
 
-def _a_patch_over_base(entry: dict, answer: Mark) -> dict:
-    base = entry.get("raw_text", "")
-    quoted = answer.claim.get("from") if isinstance(answer.claim, dict) else None
-    sentence = quoted if isinstance(quoted, str) and quoted in base else base
-    to = answer.claim.get("to") if isinstance(answer.claim, dict) else None
-    return {
-        **Mark.seed(entry["address"], entry.get("anchor", ""), base),
-        "instruction": str(Instruction.PATCH),
-        "claim": {"from": sentence, "to": to if filled(to) else answer.change},
+def _as_answered(entry: dict, answer: Mark, sources: list) -> dict:
+    """The slot as the role's own `correct` or `patch`, over the text it was sent.
+
+    Its claim is the role's, quoting the slot's text rather than the original
+    (`Process: #115`). The address, anchor and `raw_text` stay the slot's, and
+    a `correct` cites the role's sources, else the slot's.
+    """
+    held = {
+        **Mark.seed(
+            entry["address"], entry.get("anchor", ""), entry.get("raw_text", "")
+        ),
+        "instruction": str(answer.instruction),
+        "claim": dict(answer.claim),
         "reason": answer.reason,
         "change": answer.change,
     }
+    if INSTRUCTIONS[answer.instruction].owes_sources:
+        held["sources"] = list(answer.sources) or list(sources)
+    return held
 
 
 def _an_add_adopting(entry: dict, added: dict) -> dict:
@@ -381,11 +388,7 @@ def _answered(entry: dict, answer: DiffMark | Mark, composition: dict) -> dict |
         return _a_clean(entry)
     if answer.instruction is Instruction.QUERY:
         return {**answer.serialize(), "raw_text": entry.get("raw_text", "")}
-    if answer.instruction is Instruction.PATCH:
-        return _a_patch_over_base(entry, answer)
-    return _a_correct_over_base(
-        entry, answer.change, answer.reason, list(answer.sources) or sources
-    )
+    return _as_answered(entry, answer, sources)
 
 
 def apply(
