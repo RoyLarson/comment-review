@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 42 of 58 tasks closed
+Progress: 46 of 61 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -286,13 +286,26 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       Process 127
         > 2026-09-12 refold misses _disagreeing; disposition sees b8, c3 as re-reads
         > 2026-09-12 no outcome moves today: rule_at_max_turns reads both lists
-- [ ] T56 | Delete the escalation fallback in _answered that rewrites a claim's
-      true and to keys; no instruction reaches it since 685a16d0
+- [x] T56 | deleted; it rebuilt other claims unchanged, so nothing moved | f5c27575 | Delete
+      the escalation fallback in _answered that rewrites a claim's true and to
+      keys; no instruction reaches it since 685a16d0
         > 2026-09-12 correct, patch and move carry those keys; each is handled above it
-- [ ] T57 | Implement a test of a mover's answer at its move's destination end,
-      to settle whether it reaches the move
+- [x] T57 | the answer does not reach the move; xfail strict, T61 fixes it | 6ed51da4 | Implement
+      a test of a mover's answer at its move's destination end, to settle
+      whether it reaches the move
         > 2026-09-12 set 2: it lands on the mover's own seeded clean at that address
-- [ ] T58 | Update the resolution check so a move's claim.to resolves against
-      its page, per Process 111
+- [x] T58 | a move's claim.to is resolved against its page | d2114b38 | Update
+      the resolution check so a move's claim.to resolves against its page, per
+      Process 111
         > 2026-09-12 the overwritten claim.to in T33's run passed with no problem
         > 2026-09-12 _destination_problems says it does not ask this
+- [x] T59 | Process 129: it reaches the move; T61 does it | 336b7a4c | Decide
+      what a mover's answer at its move's destination end does: reach the move,
+      or be refused there
+        > 2026-09-12 T57 6ed51da4: it lands on the mover's clean; the move is unchanged
+- [ ] T60 | Update Mark.parse so a clean carrying a filled change is refused
+        > 2026-09-12 T57's run: a turn wrote one and nothing refused it
+        > 2026-09-12 Process 129: before set 2 merges
+- [ ] T61 | Update the turn so a mover's answer at its move's destination end
+      applies to its move, per Process 129
+        > 2026-09-12 T57's xfail test at 6ed51da4 pins it; remove the marker
