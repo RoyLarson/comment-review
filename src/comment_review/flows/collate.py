@@ -920,22 +920,32 @@ def texts_at(
         for mark in sheet.marks:
             if mark.address in out:
                 continue
-            addr = cue_of(mark.address)
-            page = None
-            if addr.path:
-                page = _page_at(unflatten(addr.path, paths) or addr.path, root, pages)
-            held = ""
-            if page is not None:
-                held = next(
-                    (
-                        b.raw_text
-                        for b in page.paragraphs
-                        if b.address and cue_of(b.address).cue == addr.cue
-                    ),
-                    "",
-                )
+            held = _text_at(mark.address, paths, root, pages)
             out[mark.address] = (held, *_sent_to(copy.role, mark.address, sent))
     return out
+
+
+def _text_at(address: str, paths: list[str], root: Path, pages: PageCache) -> str:
+    """The page's text at `address`, read through the stage's page cache.
+
+    "" where no page can be read at the address's path, or the page holds
+    nothing at its place. `texts_at` puts it first among a quote's texts, and
+    a composition composes over it (`decision-log.md Process: #119`, `#125`).
+    """
+    addr = cue_of(address)
+    page = None
+    if addr.path:
+        page = _page_at(unflatten(addr.path, paths) or addr.path, root, pages)
+    if page is None:
+        return ""
+    return next(
+        (
+            b.raw_text
+            for b in page.paragraphs
+            if b.address and cue_of(b.address).cue == addr.cue
+        ),
+        "",
+    )
 
 
 def _sent_to(
@@ -984,12 +994,12 @@ def collate(
         edit_copies: one per role, or one per SHARD under fan-out, as each came
             back.
         binder: the binder they were seeded from. It supplies the base the
-            drift check and a composition read, and the page paths an address
-            is resolved against -- address integrity over the DOCKET is a
-            different question and is `P28`'s.
+            drift check reads, and the page paths an address is resolved
+            against -- address integrity over the DOCKET is a different
+            question and is `P28`'s.
         root: the checkout every `sources` citation is resolved against, and
             every page a mark's address is read from, by `_resolution_problems`
-            and `texts_at`.
+            and `texts_at`, and for a composition's base (`Process: #125`).
         turn: which turn of the stage's collate this is -- 0 for the first
             fold, `flows.turn.run_turn`'s count after. Every `stet` this fold
             records carries it (`Process: #87`).
@@ -1165,7 +1175,14 @@ def collate(
     # check reachable only by breaking the producer is answering a question the
     # types now answer.
     reconciled = reconcile(proof)
-    resolved, escalations, rereads = _resolve(reconciled, base, turn)
+    # A composition composes over the page's text at its place, read the way a
+    # quote's is, not over the binder's seed the drift check reads --
+    # `decision-log.md Process: #125`.
+    composing = {
+        entry["address"]: _text_at(entry["address"], paths, root, page_cache)
+        for entry in reconciled.rereads
+    }
+    resolved, escalations, rereads = _resolve(reconciled, composing, turn)
 
     # !! THE HUMAN'S QUERY HOLDS ITS PLACE, `Process: #90`. Wherever a role
     # asked for the human, the place is UNSETTLABLE by roles or chief: out

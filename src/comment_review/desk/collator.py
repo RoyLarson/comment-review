@@ -132,7 +132,7 @@ def known_addresses(binder: Binder) -> frozenset[str]:
 def base_texts(binder: Binder) -> dict[str, str]:
     """Every address the binder carries -> the paragraph it seeded there.
 
-    The base the drift check and a composition measure against. It is the
+    The base the drift check measures against. It is the
     binder's, never a returned mark's: `raw_text` is seeded and comes back on
     the mark, so reading it off the mark would measure against text the party
     being checked supplied. `docs/gates.md` holds the measured case: the

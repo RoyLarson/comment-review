@@ -460,8 +460,9 @@ class TestVerifyReport:
 
 
 class TestTheBaseIsTheBinders:
-    """D10 -- a compose or a drift check reads its base off the binder, and
-    the quote check reads the page -- never a mark's own returned `raw_text`."""
+    """D10 -- the drift check reads its base off the binder, and the quote
+    check and a compose read the page -- never a mark's own returned
+    `raw_text`."""
 
     def test_base_texts_keys_every_address_the_binder_carries(self, tmp_path):
         binder = binder_of(a_small_real_tree(tmp_path), 0)

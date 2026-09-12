@@ -57,9 +57,11 @@ from comment_review.flows.turn import (
 BASE = "# one\n# two\n# three\n"
 TWO = "# one\n# TWO\n# three\n"
 DOS = "# one\n# dos\n# three\n"
-ONE_ = "# ONE\n# two\n# three\n"
-_THREE = "# one\n# two\n# THREE\n"
-COMPOSED = "# ONE\n# two\n# THREE\n"
+#: A composition's two sides and what they compose to, over `BASE` as a real
+#: page holds it: `a_real_binder_over` strips the trailing newline.
+ONE_ = "# ONE\n# two\n# three"
+_THREE = "# one\n# two\n# THREE"
+COMPOSED = "# ONE\n# two\n# THREE"
 
 
 def _at(got, turns: int = 0) -> MasterProof:
@@ -85,8 +87,9 @@ def _escalated():
     return binder, copies, got
 
 
-def _composed():
-    binder = a_binder_over({"m.py@b1": BASE})
+def _composed(root):
+    """Two roles' disjoint corrects over a real page, folded into a composition."""
+    binder = a_real_binder_over(root, {"m.py@b1": BASE})
     copies = copies_over(
         binder,
         {
@@ -94,7 +97,7 @@ def _composed():
             "function-context": {"m.py@b1": a_correct_setting("m.py@b1", 2, _THREE)},
         },
     )
-    got = collate("4c", copies, binder, root=REPO)
+    got = collate("4c", copies, binder, root=root)
     assert [e["address"] for e in got.rereads] == ["m.py@b1"]
     assert got.rereads[0]["composed"].change == COMPOSED
     return binder, copies, got
@@ -400,8 +403,8 @@ class TestTheSentBatchPairsTheAnswer:
 
 
 class TestAComposition:
-    def test_the_composed_text_goes_back_as_a_marks_question(self):
-        _, _, got = _composed()
+    def test_the_composed_text_goes_back_as_a_marks_question(self, tmp_path):
+        _, _, got = _composed(tmp_path)
         batch = batch_of(got.escalations, got.rereads)
         slot = batch["block-context"][0]
         assert slot[QUESTION] == COMPOSITION
@@ -410,14 +413,14 @@ class TestAComposition:
         assert slot["instruction"] is None
         assert entries_of(got.chief) == []
 
-    def test_every_role_clean_on_it_is_a_stet_carrying_the_composition(self):
-        binder, copies, got = _composed()
+    def test_every_role_clean_on_it_is_a_stet_carrying_the_composition(self, tmp_path):
+        binder, copies, got = _composed(tmp_path)
         batch = batch_of(got.escalations, got.rereads)
         answers = {
             **_answered(batch, "block-context", instruction="clean"),
             **_answered(batch, "function-context", instruction="clean"),
         }
-        again = run_turn(_at(got), binder, REPO, batch, answers)
+        again = run_turn(_at(got), binder, tmp_path, batch, answers)
         problems = again.revisit
         assert problems == []
         assert again.rereads == []
@@ -426,13 +429,13 @@ class TestAComposition:
         assert ruled.how == "identical"
         assert [m.change for m in entries_of(again.chief)] == [COMPOSED]
 
-    def test_a_correct_over_it_beside_a_clean_adoption_is_an_escalation(self):
+    def test_a_correct_over_it_beside_a_clean_adoption_is_an_escalation(self, tmp_path):
         """`Process: #124`: the adopting role holds the composed text and this
         role its own correct of it, so two roles hold different texts at one
         place, and the place is an escalation carrying both."""
-        binder, copies, got = _composed()
+        binder, copies, got = _composed(tmp_path)
         batch = batch_of(got.escalations, got.rereads)
-        fixed = "# ONE\n# two\n# 3\n"
+        fixed = "# ONE\n# two\n# 3"
         answers = {
             **_answered(batch, "block-context", instruction="clean"),
             **_answered(
@@ -445,7 +448,7 @@ class TestAComposition:
                 change=fixed,
             ),
         }
-        again = run_turn(_at(got), binder, REPO, batch, answers)
+        again = run_turn(_at(got), binder, tmp_path, batch, answers)
         problems = again.revisit
         assert problems == []
         assert [e["address"] for e in again.escalations] == ["m.py@b1"]
@@ -455,13 +458,15 @@ class TestAComposition:
             fixed,
         }
 
-    def test_a_patch_over_it_stays_a_patch_and_the_role_stays_in_the_fold(self):
+    def test_a_patch_over_it_stays_a_patch_and_the_role_stays_in_the_fold(
+        self, tmp_path
+    ):
         """MEASURED in the game's hand 2: a patch answer was rewritten as a
         `correct`, which owes sources a patch never carried, and the role's
         entry was refused at the fold -- the role vanished from the escalation."""
-        binder, copies, got = _composed()
+        binder, copies, got = _composed(tmp_path)
         batch = batch_of(got.escalations, got.rereads)
-        worded = "# ONE\n# two\n# three!\n"
+        worded = "# ONE\n# two\n# three!"
         answers = {
             **_answered(batch, "block-context", instruction="clean"),
             **_answered(
@@ -473,7 +478,7 @@ class TestAComposition:
                 change=worded,
             ),
         }
-        again = run_turn(_at(got), binder, REPO, batch, answers)
+        again = run_turn(_at(got), binder, tmp_path, batch, answers)
         problems = again.revisit
         assert problems == []
         assert again.revisit == []
@@ -481,8 +486,8 @@ class TestAComposition:
         roles = {p.role for p in again.escalations[0]["marks"]}
         assert roles == {"block-context", "function-context"}
 
-    def test_a_drop_is_not_a_composition_answer(self):
-        binder, copies, got = _composed()
+    def test_a_drop_is_not_a_composition_answer(self, tmp_path):
+        binder, copies, got = _composed(tmp_path)
         batch = batch_of(got.escalations, got.rereads)
         answers = {
             **_answered(
@@ -496,7 +501,7 @@ class TestAComposition:
             ),
             **_answered(batch, "function-context", instruction="clean"),
         }
-        problems = run_turn(_at(got), binder, REPO, batch, answers).revisit
+        problems = run_turn(_at(got), binder, tmp_path, batch, answers).revisit
         assert any("not a composition answer" in r for p in problems for r in p.reasons)
 
 
@@ -988,8 +993,8 @@ class TestTheBatchThatGoesOut:
             assert "======= function-context" in diff
         assert batch["block-context"][0]["diff"] == batch["function-context"][0]["diff"]
 
-    def test_a_reread_slot_carries_the_diff_too(self):
-        _, _, got = _composed()
+    def test_a_reread_slot_carries_the_diff_too(self, tmp_path):
+        _, _, got = _composed(tmp_path)
         batch = batch_for(got)
         assert "<<<<<<< conflict" in batch["block-context"][0]["diff"]
 
