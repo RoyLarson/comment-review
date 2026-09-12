@@ -4131,24 +4131,19 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   against the same pages of the original -- measured the same day, gathering every file of this
   checkout for the gate took 249 seconds.
 
-- **#118.** **A later stage always has the original, and also needs a new binder with the edits
-  and a revised set of code** (Roy, 2026-09-11, ruling on `galley-and-compositor-write-path` T39:
-  once a revise holds only the pages its docket writes, `#117`, does a later stage gathering from
-  it read the pages it did not write from the original).
+- **#118.** **What a later stage reads** (Roy, 2026-09-11, on `galley-and-compositor-write-path`
+  T39: once a revise holds only the pages its docket writes, `#117`, does a later stage read the
+  pages it did not write from the original).
 
   *"it always has the original but it also needs to new binder with the edits and a revised set of
   code"*.
 
-- **#119.** **Checking a quoted clause against the binder's copy of the original is a faulty
-  check: the binder is the seed for what can be ruled on, not everything that can be ruled on,
-  and not every file** (Roy, 2026-09-12, ruling on `no-command-for-the-middle` T39, which asked
-  what the fold checks a turn's `correct` or `patch` against once `#115` has it quote the modified
-  text; `desk/collator.py:150-182` checks every quote against `base_texts(binder)`).
+- **#119.** **What a quoted clause is checked against** (Roy, 2026-09-12, on
+  `no-command-for-the-middle` T39; `desk/collator.py:431-451` looks every quote up in
+  `base_texts(binder)`).
 
-  Quoting back the session's description of the check -- *"It checks against the binder's copy of
-  the original, never against text the role sent back, so a role can't pass the check by quoting
-  something that isn't there."* -- Roy: *"This is a faulty check"*, and *"It is the same type of
-  error that assumed only visible addresses in the binder matter. The binder is the seed for what
-  can be ruled on it is not everything that can be ruled on and it is not every file"*.
+  *"This is a faulty check"*, and *"It is the same type of error that assumed only visible
+  addresses in the binder matter. The binder is the seed for what can be ruled on it is not
+  everything that can be ruled on and it is not every file"*.
 
-  **Not said:** what a quoted clause is checked against in its place.
+  **Not said:** what the check reads instead.
