@@ -183,7 +183,10 @@ class Collated:
             not about the tree. The shape they share is temporary, because one
             of them is going.
         escalations: places carried forward -- two or more owing marks ruling
-            on ONE sentence with different answers.
+            on ONE sentence with different answers. After a turn,
+            `flows.turn.run_turn` also moves here, out of `rereads`, every
+            place the turn asked about whose owing marks carry more than one
+            text (`Process: #127`).
         rereads: places carried forward -- marks on different sentences whose
             compose refused, plus every place an `add` touches, plus every end
             of a `move` in a cycle.

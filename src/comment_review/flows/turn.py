@@ -65,7 +65,9 @@ Then `flows.collate.collate` runs again over the copies, and every place that
 agreed comes back as a `stet` Determined at this turn (`Process: #87`). The
 fold carries every place an `add` touches as a re-read, so where every role of
 that re-read now holds the same `add`, `_agreed_adds` records the `stet`
-(`Process: #116`). What did not agree is the next turn's batch, until the task
+(`Process: #116`). A place the turn asked about that comes back as a re-read
+whose roles still hold different texts is an escalation, which `_disagreeing`
+records (`Process: #127`). What did not agree is the next turn's batch, until the task
 agent's max turns (`Process: #78`), where `rule_at_max_turns` records the
 chief's `taken_in` or `recast` and `determined_chief` derives the chief's copy
 from the whole set.
@@ -564,6 +566,7 @@ def run_turn(
     contested = {slot["address"] for slots in sent.values() for slot in slots}
     got = _withdrawn(got, contested, turn)
     got = _agreed_adds(got, contested, turn)
+    got = _disagreeing(got, contested)
     return replace(got, revisit=[*revisit, *got.revisit])
 
 
@@ -640,6 +643,39 @@ def _agreed_adds(got: Collated, contested: set[str], turn: int) -> Collated:
         determined=determined,
         rereads=[e for e in got.rereads if e["address"] not in agreed],
         chief=_chief_copy(got.proof.read_from, determined, got.proof),
+    )
+
+
+def _disagreeing(got: Collated, contested: set[str]) -> Collated:
+    """A contested re-read whose owing marks carry more than one text escalates.
+
+    `Process: #124` and `#127`: two roles holding different texts at one place
+    disagree, and after a turn that is decided here, not in the collator, so
+    the first fold is unchanged. It covers a composition `correct` or `patch`
+    beside another role's `clean` adoption, an escalation where one role
+    answers with a new text and another holds, and an `add` beside another
+    role's answer to it, which stays carried forward (`Process: #123`).
+
+    Returns:
+        The fold with each such place out of `rereads` and at the end of
+        `escalations`, without the `composed` mark only a re-read carries.
+    """
+    moved = [
+        entry
+        for entry in got.rereads
+        if entry["address"] in contested
+        and len({placed.mark.change for placed in entry["marks"]}) > 1
+    ]
+    if not moved:
+        return got
+    gone = {entry["address"] for entry in moved}
+    return replace(
+        got,
+        escalations=[
+            *got.escalations,
+            *({k: v for k, v in e.items() if k != "composed"} for e in moved),
+        ],
+        rereads=[e for e in got.rereads if e["address"] not in gone],
     )
 
 

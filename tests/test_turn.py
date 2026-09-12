@@ -311,6 +311,44 @@ class TestAnEscalationAnswerDerivesItsChange:
         assert derived_change(instruction, held.claim, TWO) == (DOS, [])
 
 
+class TestAnAnswerThatStillDisagrees:
+    """`no-command-for-the-middle` T54, `Process: #127`: after a turn, a place
+    the turn asked about whose roles still hold different texts is an
+    escalation."""
+
+    def test_a_correct_to_a_new_text_beside_a_hold_stays_an_escalation(self, tmp_path):
+        binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {"m.py@b1": a_correct_setting("m.py@b1", "two", TWO)},
+                "function-context": {
+                    "m.py@b1": a_correct_setting("m.py@b1", "two", DOS)
+                },
+            },
+        )
+        got = collate("4c", copies, binder, root=tmp_path)
+        assert [e["address"] for e in got.escalations] == ["m.py@b1"]
+        batch = batch_of(got.escalations, got.rereads)
+        tres = "# one\n# tres\n# three\n"
+        answers = {
+            **_answered(
+                batch,
+                "block-context",
+                instruction="correct",
+                reason="neither reading holds",
+                change=tres,
+            ),
+            **_answered(batch, "function-context", instruction="hold", reason="mine"),
+        }
+        again = run_turn(_at(got), binder, tmp_path, batch, answers)
+        assert again.revisit == []
+        assert [p for p in again.problems if p.address == "m.py@b1"] == []
+        assert again.rereads == []
+        assert [e["address"] for e in again.escalations] == ["m.py@b1"]
+        assert {p.mark.change for p in again.escalations[0]["marks"]} == {tres, DOS}
+
+
 class TestTheSentBatchPairsTheAnswer:
     """T27, MEASURED in the game's hand 1: a role rewrote its slot without the
     `question` key and the fold refused it. The flow SENT the slot; the answer
@@ -388,11 +426,10 @@ class TestAComposition:
         assert ruled.how == "identical"
         assert [m.change for m in entries_of(again.chief)] == [COMPOSED]
 
-    def test_a_correct_over_it_goes_back_into_the_fold_carrying_both_texts(self):
-        """The place is carried forward, not settled, with both texts in it.
-        Which list carries it is not asserted: the adopting role's `correct`
-        quotes the original and this one the composed text, and how overlapping
-        composed edits are made is left open by `Process: #115`."""
+    def test_a_correct_over_it_beside_a_clean_adoption_is_an_escalation(self):
+        """`Process: #124`: the adopting role holds the composed text and this
+        role its own correct of it, so two roles hold different texts at one
+        place, and the place is an escalation carrying both."""
         binder, copies, got = _composed()
         batch = batch_of(got.escalations, got.rereads)
         fixed = "# ONE\n# two\n# 3\n"
@@ -411,11 +448,12 @@ class TestAComposition:
         again = run_turn(_at(got), binder, REPO, batch, answers)
         problems = again.revisit
         assert problems == []
+        assert [e["address"] for e in again.escalations] == ["m.py@b1"]
         assert again.determined == {}
-        (entry,) = [
-            e for e in (*again.escalations, *again.rereads) if e["address"] == "m.py@b1"
-        ]
-        assert {p.mark.change for p in entry["marks"]} == {COMPOSED, fixed}
+        assert {p.mark.change for p in again.escalations[0]["marks"]} == {
+            COMPOSED,
+            fixed,
+        }
 
     def test_a_patch_over_it_stays_a_patch_and_the_role_stays_in_the_fold(self):
         """MEASURED in the game's hand 2: a patch answer was rewritten as a
@@ -439,10 +477,8 @@ class TestAComposition:
         problems = again.revisit
         assert problems == []
         assert again.revisit == []
-        (entry,) = [
-            e for e in (*again.escalations, *again.rereads) if e["address"] == "m.py@b1"
-        ]
-        roles = {p.role for p in entry["marks"]}
+        assert [e["address"] for e in again.escalations] == ["m.py@b1"]
+        roles = {p.role for p in again.escalations[0]["marks"]}
         assert roles == {"block-context", "function-context"}
 
     def test_a_drop_is_not_a_composition_answer(self):
