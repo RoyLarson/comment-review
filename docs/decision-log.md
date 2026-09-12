@@ -4213,3 +4213,11 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   Asked -- in the turn, where a place the turn asked about whose roles still hold different texts
   becomes an escalation, turn 0 unchanged, which also covers T54 and escalates `fib.py@b8` and
   `c3`; a collator row; or the turn marking an adoption in the copy -- Roy: *"In the turn"*.
+
+- **#128.** **Whether T33 and T38 wait for experimenting** (Roy, 2026-09-12, on
+  `no-command-for-the-middle` T41: `#120` left them open because no real fold sent a move's end
+  back as an escalation; by reading, since 18e757ad a move whose ends still disagree after a turn
+  escalates, so a `correct` answer on the next turn could overwrite its `claim.to`).
+
+  Asked whether to do T33 and T38 before set 2 merges -- Roy: *"Do them now"*. `#120` is
+  superseded for those two tasks.
