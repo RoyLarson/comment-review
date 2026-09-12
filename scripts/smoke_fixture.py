@@ -164,8 +164,9 @@ class Landing(NamedTuple):
     first-round mark's change to land, and holds that change: at `c1`, what
     `mark` derives from `claim`, which the turn's answers replace; at `c12`,
     what the `add`'s `mark` call carries as `--change`, which a human query
-    in the turn keeps off the page; at `b8` and `c3`, what each `add`'s
-    `mark` call carries, which the chief replaces with a turn answer's text.
+    in the turn keeps off the page; at `b8`, what the `add`'s `mark` call
+    carries, which the chief replaces with a turn answer's text; at `c3`,
+    the same, which the chief replaces with a recast of its own.
 
     `line` is set only where the place was empty in its file's fixture, and
     names the 1-based fixture line the landing is set against: the declaring
@@ -298,12 +299,16 @@ LANDINGS: dict[str, Landing] = {
     # In the turn module-context answers the composition with a patch and
     # the other two roles clean it, so an add and a patch both stand there,
     # two texts at one place, and the place is carried forward as an
-    # escalation; disposition takes in module-context's text. `marked` is
-    # the add's own change, which its `mark` call carries.
+    # escalation; disposition recasts it in the chief's own words. The add is
+    # the place's first mark, so the recast carries `add`, the instruction
+    # the roles filed there (`flows.turn._recast_claim`). `marked` is the
+    # add's own change, which its `mark` call carries; no mark call and no
+    # turn answer carries `text`, so it reaches the proof only inline in
+    # dispositions.json.
     "fib.py@c3": Landing(
         "text",
         route="disposition",
-        text="  # keeps wrapper's name and doc in step with fn's own",
+        text="  # copies fn's name and docstring onto wrapper",
         marked="  # keeps wrapper's name and doc matching fn's own",
         line=12,
     ),
@@ -455,7 +460,7 @@ ANSWERS: dict[str, dict[str, dict]] = {
             "instruction": "patch",
             "claim": {"from": "matching fn's own", "to": "in step with fn's own"},
             "reason": "in step with reads more plainly than matching",
-            "change": LANDINGS["fib.py@c3"].text,
+            "change": "  # keeps wrapper's name and doc in step with fn's own",
         },
         "fib.py@c12": {
             "instruction": "query",
@@ -507,9 +512,12 @@ DISPOSITIONS = [
     },
     {
         "address": "fib.py@c3",
-        "answer": "taken_in",
-        "side": "module-context",
-        "reason": "the patched add says the same and reads more plainly",
+        "answer": "recast",
+        "prose": LANDINGS["fib.py@c3"].text,
+        "reason": (
+            "the add and the patch word one point two ways; the chief says "
+            "what wraps copies instead"
+        ),
     },
 ]
 
@@ -647,7 +655,7 @@ EXPECTED = (
     "def logged(fn):\n"
     '    """Count each call and pass it through."""\n'
     "\n"
-    "    @functools.wraps(fn)  # keeps wrapper's name and doc in step with fn's own\n"
+    "    @functools.wraps(fn)  # copies fn's name and docstring onto wrapper\n"
     "    def wrapper(n):\n"
     '        """Count each call, then pass it through."""\n'
     "        global CALLS\n"
