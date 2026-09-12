@@ -4230,3 +4230,10 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   withdrawing it; or refused there, pointing the mover to the origin -- Roy: *"Reach the move"*.
   Then asked whether T59's fix and T60, refusing a `clean` that carries a change, land before set
   2 merges -- Roy: *"Both first"*.
+
+- **#130.** **Whether set 2 merges with T62-T65 open** (Roy, 2026-09-12: each round of set 2 had
+  turned up a few more edges at a move's destination end; with T60 in, an answer that does not
+  reach the move comes back to the role as a refusal rather than being lost).
+
+  Asked whether to merge with `no-command-for-the-middle` T62-T65 left open on the 0.2.4 plan,
+  against the rule that a branch's own findings close before it merges -- Roy: *"Merge now"*.
