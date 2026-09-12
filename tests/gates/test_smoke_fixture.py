@@ -1,7 +1,7 @@
 """`scripts/smoke_fixture.py`: `fib.py`'s fixture yields every series, with
 more than one member in each -- a series of one never exercises its ordinals --
-the landing table agrees with both fixture files, and `write_texts` writes what
-the smoke script reads.
+the landing table agrees with both fixture files, and `write_texts` and
+`write_answers` write what the smoke script reads.
 
 The series are read off the real page builder, `flows/page_for.page_of` --
 see `docs/superpowers/specs/2026-09-08-the-middle-chain-smoke-design.md`,
@@ -96,10 +96,11 @@ DERIVED_BY: dict[tuple[str, ...], Instruction] = {
 
 class TestTheLandingTableAgreesWithTheFixture(unittest.TestCase):
     """`LANDINGS` against the pages built from `FIXTURE` and `RATE_FIXTURE`:
-    a landing carrying a `claim` has as its `Landing.text` what
-    `desk.mark.derived_change` makes of its fixture's paragraph at that
-    address, and a landing at an empty place names the line its place is
-    set against -- so the table cannot drift from what the fixtures hold.
+    a landing carrying a `claim` has as its `Landing.marked`, or else its
+    `Landing.text`, what `desk.mark.derived_change` makes of its fixture's
+    paragraph at that address, and a landing at an empty place names the
+    line its place is set against -- so the table cannot drift from what the
+    fixtures hold.
     """
 
     def setUp(self):
@@ -140,7 +141,7 @@ class TestTheLandingTableAgreesWithTheFixture(unittest.TestCase):
                 DERIVED_BY[tuple(landing.claim)], landing.claim, by_cue[cue].raw_text
             )
             self.assertEqual(why, [], address)
-            self.assertEqual(changed, landing.text, address)
+            self.assertEqual(changed, landing.marked or landing.text, address)
         self.assertEqual(set(claimed), {"fib.py@c6", "fib.py@c1", "rate.py@c3"})
 
     def test_each_landing_at_an_empty_place_names_the_line_it_is_set_against(self):
@@ -192,7 +193,8 @@ class TestWriteTextsWritesWhatTheScriptReads(unittest.TestCase):
         }
         for cue in ("b0", "a2", "b8", "b17", "b15", "c3", "c12", "a0"):
             address = f"fib.py@{cue}"
-            texts[address] = (f"{cue}.txt", landings[address].text)
+            landing = landings[address]
+            texts[address] = (f"{cue}.txt", landing.marked or landing.text)
         others = {
             "dispositions": "dispositions.json",
             "addresser-row": "addresser-row.json",
@@ -215,3 +217,42 @@ class TestWriteTextsWritesWhatTheScriptReads(unittest.TestCase):
             json.loads(paths["addresser-row"].read_bytes()),
             {"address": "fib.py@b15", "line": 33},
         )
+
+
+class TestWriteAnswersWritesWhatTheScriptReads(unittest.TestCase):
+    """`write_answers` writes one file per role the smoke script's turn stage
+    names, each holding that role's answers from `ANSWERS` and a `clean` at
+    every `ADDED` place those leave out, and nothing else."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.run_dir = Path(self.tmp.name)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_each_file_it_writes_and_what_it_holds(self):
+        paths = smoke_fixture.write_answers(self.run_dir)
+        roles = {
+            "ownership-context",
+            "block-context",
+            "function-context",
+            "module-context",
+        }
+
+        self.assertEqual(set(paths), roles)
+        self.assertEqual(
+            {p.name for p in self.run_dir.iterdir()},
+            {f"answers-{role}.json" for role in roles},
+        )
+        for role, given in smoke_fixture.ANSWERS.items():
+            self.assertEqual(paths[role], self.run_dir / f"answers-{role}.json", role)
+            written = json.loads(paths[role].read_bytes())
+            by_address = {entry.pop("address"): entry for entry in written}
+            self.assertEqual(len(by_address), len(written), role)
+            cleans = {
+                address: {"instruction": "clean"}
+                for address in smoke_fixture.ADDED
+                if address not in given
+            }
+            self.assertEqual(by_address, {**given, **cleans}, role)

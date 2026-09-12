@@ -1,10 +1,11 @@
 # Drives the middle stages of the comment-review chain over a fixture tree,
 # for a smoke check that the chain from gather through proof still
 # composes: a binder, a topology, seeded copies, the planted marks, the
-# fold's proof, the chief's dispositions closing it, and the revise `proof`
-# pulls from the closed copy. The last stage diffs that revise against the
-# text smoke_fixture.py says the plant makes land, and passes only when the
-# two are identical.
+# fold's proof, one turn in which every role answers what the fold carried
+# forward, the chief's dispositions closing what the turn still carries
+# forward, and the revise `proof` pulls from the closed copy. The last stage
+# diffs that revise against the text smoke_fixture.py says the plant makes
+# land, and passes only when the two are identical.
 # Provisional -- it drives a prototype surface and may be thrown away once
 # that surface settles.
 
@@ -21,7 +22,7 @@ $PSNativeCommandUseErrorActionPreference = $false
 # each call are written at the call site below.
 $Cmd = @{
     gather = 'gather'; topology = 'topology'; distribute = 'distribute'
-    mark = 'mark'; check = 'check'; collate = 'collate'
+    mark = 'mark'; check = 'check'; collate = 'collate'; turn = 'turn'
     disposition = 'disposition'; proof = 'proof'; addresser = 'addresser'
 }
 
@@ -164,6 +165,9 @@ $CopyFile = @{}
 
 $ChiefFile = Join-Path $Run 'chief.json'
 $Proof0File = Join-Path $Run 'proof0.json'
+$Batch1File = Join-Path $Run 'batch1.json'
+$Proof1File = Join-Path $Run 'proof1.json'
+$Batch2File = Join-Path $Run 'batch2.json'
 $DispositionsFile = Join-Path $Run 'dispositions.json'
 $ChiefFinalFile = Join-Path $Run 'chief-final.json'
 $FinalFile = Join-Path $Run 'final.json'
@@ -239,8 +243,8 @@ $Stages = [ordered]@{
             'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_texts; write_texts(Path(sys.argv[1]))',
             $Run
         )
-        # One file per address `smoke_fixture.LANDINGS` gives text that a
-        # `mark` call below plants -- written above by `write_texts`, named
+        # One file per text a `mark` call below plants from
+        # `smoke_fixture.LANDINGS` -- written above by `write_texts`, named
         # here to match its own naming rather than read back from it. c6
         # and c1 are corrections, so each names two files: its false clause
         # and its true clause. rate.py's c3 is a patch, so it names two too:
@@ -588,25 +592,55 @@ $Stages = [ordered]@{
             ))
         }
     }
-    # One `collate` over all four copies. The plant's disagreements make this
-    # exit 4 (escalation outranks re-read in `collate`'s own exit-code
-    # contract) rather than 0, so this is the one stage `-Expect`s something
-    # else.
+    # One `collate` over all four copies, writing the master proof and the
+    # turn's batch. The plant's disagreements make this exit 4 (escalation
+    # outranks re-read in `collate`'s own exit-code contract) rather than 0;
+    # `turn` below is the other stage that `-Expect`s something else.
     collate = {
         $copies = foreach ($role in $Roles) { '--edit-copy', $CopyFile[$role] }
         Invoke-Checked -Stage 'collate' -Expect 4 -CommandLine ($Launcher + @(
             $Cmd.collate, '--stage', '4', '--binder', $BinderFile, '--topology', $TopologyFile
         ) + $copies + @(
-            '--out', $ChiefFile, '--proof-out', $Proof0File
+            '--out', $ChiefFile, '--proof-out', $Proof0File, '--batch-out', $Batch1File
         ))
     }
-    # `disposition` folds the chief's rulings over the places `collate`
+    # One turn. `write_answers` writes each role's answers to the batch
+    # `collate` sent, from `ANSWERS` in smoke_fixture.py. `check --answers`
+    # reads each file against that batch and the proof it went out with, and
+    # exits 1 on a slot left unanswered; `turn` reports such a slot and folds
+    # past it, so its exit code cannot say the same. Then `turn` applies all
+    # four roles' answers and folds again. The answers leave re-reads and no
+    # escalation, so `turn`, whose exit codes are `collate`'s, exits 3.
+    turn = {
+        Invoke-Checked -Stage 'plant-answers' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_answers; write_answers(Path(sys.argv[1]))',
+            $Run
+        )
+        # `write_answers` names each role's file after the role; named here
+        # to match rather than read back from what it returns.
+        $answerFile = @{}
+        foreach ($role in $Roles) {
+            $answerFile[$role] = Join-Path $Run "answers-$role.json"
+            Invoke-Checked -Stage "check answers $role" -CommandLine ($Launcher + @(
+                $Cmd.check, '--answers', $answerFile[$role], '--sent', $Batch1File,
+                '--role', $role, '--proof', $Proof0File
+            ))
+        }
+        $answers = foreach ($role in $Roles) { '--answers', "$role=$($answerFile[$role])" }
+        Invoke-Checked -Stage 'turn' -Expect 3 -CommandLine ($Launcher + @(
+            $Cmd.turn, '--proof', $Proof0File, '--binder', $BinderFile, '--sent', $Batch1File
+        ) + $answers + @(
+            '--proof-out', $Proof1File, '--batch-out', $Batch2File
+        ))
+    }
+    # `disposition` folds the chief's rulings over the places the turn left
     # carried forward into the closed proof. The rulings are
     # dispositions.json, which `write_texts` wrote at the mark stage from
     # `DISPOSITIONS` in smoke_fixture.py.
     disposition = {
         Invoke-Checked -Stage 'disposition' -CommandLine ($Launcher + @(
-            $Cmd.disposition, '--proof', $Proof0File, '--binder', $BinderFile,
+            $Cmd.disposition, '--proof', $Proof1File, '--binder', $BinderFile,
             '--dispositions', $DispositionsFile, '--out', $ChiefFinalFile,
             '--proof-out', $FinalFile
         ))
