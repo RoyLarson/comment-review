@@ -724,14 +724,6 @@ class TestAMoversOwnClean:
     the turn it still holds that move.
     """
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "T43: _answered does not keep a mover's move at its origin -- it "
-            "writes a clean where the moved text is the origin's, and a correct "
-            "over the origin where it is not"
-        ),
-    )
     @pytest.mark.parametrize(
         "change",
         [
