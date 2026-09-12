@@ -4221,3 +4221,12 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   Asked whether to do T33 and T38 before set 2 merges -- Roy: *"Do them now"*. `#120` is
   superseded for those two tasks.
+
+- **#129.** **What a mover's answer at its move's destination end does** (Roy, 2026-09-12, on
+  `no-command-for-the-middle` T59: in T57's two-turn run a mover's `correct` at the destination
+  end landed on its own `clean` slot there, and the move kept its old text).
+
+  Asked -- reach the move, a `correct` or `patch` changing the move's text and a `withdraw`
+  withdrawing it; or refused there, pointing the mover to the origin -- Roy: *"Reach the move"*.
+  Then asked whether T59's fix and T60, refusing a `clean` that carries a change, land before set
+  2 merges -- Roy: *"Both first"*.
