@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 46 of 61 tasks closed
+Progress: 48 of 65 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
           REAL reviewer agent -- census, mark --seed, the block-context agent, mark
           --check and taken_in are all commands; the middle is not)
@@ -303,9 +303,23 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       what a mover's answer at its move's destination end does: reach the move,
       or be refused there
         > 2026-09-12 T57 6ed51da4: it lands on the mover's clean; the move is unchanged
-- [ ] T60 | Update Mark.parse so a clean carrying a filled change is refused
+- [x] T60 | a clean carrying a filled change is refused | f5248790 | Update
+      Mark.parse so a clean carrying a filled change is refused
         > 2026-09-12 T57's run: a turn wrote one and nothing refused it
         > 2026-09-12 Process 129: before set 2 merges
-- [ ] T61 | Update the turn so a mover's answer at its move's destination end
-      applies to its move, per Process 129
+- [x] T61 | a mover's answer at the destination end reaches the move | e260438d | Update
+      the turn so a mover's answer at its move's destination end applies to its
+      move, per Process 129
         > 2026-09-12 T57's xfail test at 6ed51da4 pins it; remove the marker
+- [?] T62 | Decide whether a mover's answer to a composition re-read at its
+      move's destination end reaches the move
+        > 2026-09-12 outside Process 129, which covers escalation answers
+- [ ] T63 | Implement a test of a role holding its own mark at a move's
+      destination and a move there, to settle where its answer lands
+        > 2026-09-12 e260438d routes to the move only past a clean or no slot
+- [ ] T64 | Implement a test of a role holding two moves to one destination, to
+      settle where its answer lands
+        > 2026-09-12 _move_to returns None for two; the answer stays on its slot
+- [ ] T65 | Update T33's test in test_turn.py to use the two-turn helper T57's
+      test and the withdraw test share
+        > 2026-09-12 e260438d added the helper; T33's test repeats its setup
