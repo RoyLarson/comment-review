@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 39 of 55 tasks closed
+Progress: 42 of 58 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -168,8 +168,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       what a role answers in a turn to propose different text at an add's empty
       place
         > 2026-09-11 composition correct, patch need a base clause: turn.py:294, :306
-- [ ] T33 | Implement a test of a move whose other end escalates, to settle
-      whether turn.py:337 overwrites claim.to
+- [x] T33 | a real two-turn run shows claim.to overwritten; T38 fixes it | 6b256ef5 | Implement
+      a test of a move whose other end escalates, to settle whether turn.py:337
+      overwrites claim.to
         > 2026-09-11 unconfirmed; a DiffMark correct or patch writes claim.to
         > 2026-09-11 by reading: the chief's c1 claim keeps the old false clause
         > 2026-09-11 final review probe: confirmed; deserialize at :402 accepts it
@@ -196,8 +197,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       turn so every other role answering clean at an add at an empty place
       settles it, per Process 116
         > 2026-09-11 undoes the plain clean daa86dc8 keeps; smoke drops 5 dispositions
-- [ ] T38 | Update turn so no answer overwrites a move claim.to with paragraph
-      text; T33 confirmed it at turn.py:337
+- [x] T38 | a correct at a move's escalation keeps its destination | 685a16d0 | Update
+      turn so no answer overwrites a move claim.to with paragraph text; T33
+      confirmed it at turn.py:337
         > 2026-09-12 waits on T41, left open by Process 120
         > 2026-09-12 Process 128: done now, after T33's test
 - [x] T39 | the page at the mark's address; for the turn, the text sent; P119 | 8894c9d3 | Decide
@@ -279,7 +281,18 @@ Reconciliation has no command, so the chain cannot be driven end to end.
         > 2026-09-12 5ff707be: the answer quotes its proposal, the hold the original
         > 2026-09-12 found by probe in set 2; it now folds as a re-read
         > 2026-09-12 Process 127: the same step in the turn as T52
-- [ ] T55 | Update refold so it applies the in-turn escalation step as run_turn
-      does, per Process 127
+- [x] T55 | refold escalates what the last turn escalated | 52b32fc8 | Update
+      refold so it applies the in-turn escalation step as run_turn does, per
+      Process 127
         > 2026-09-12 refold misses _disagreeing; disposition sees b8, c3 as re-reads
         > 2026-09-12 no outcome moves today: rule_at_max_turns reads both lists
+- [ ] T56 | Delete the escalation fallback in _answered that rewrites a claim's
+      true and to keys; no instruction reaches it since 685a16d0
+        > 2026-09-12 correct, patch and move carry those keys; each is handled above it
+- [ ] T57 | Implement a test of a mover's answer at its move's destination end,
+      to settle whether it reaches the move
+        > 2026-09-12 set 2: it lands on the mover's own seeded clean at that address
+- [ ] T58 | Update the resolution check so a move's claim.to resolves against
+      its page, per Process 111
+        > 2026-09-12 the overwritten claim.to in T33's run passed with no problem
+        > 2026-09-12 _destination_problems says it does not ask this
