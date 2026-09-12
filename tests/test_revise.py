@@ -169,6 +169,28 @@ def test_a_failure_mid_overlay_leaves_no_partial_revise(tmp_path, monkeypatch):
     assert not into.exists()
 
 
+def test_a_failure_mid_copy_leaves_no_partial_revise(tmp_path, monkeypatch):
+    """A copy that raises after writing part of the tree leaves no `into`.
+
+    The patched copy writes the whole tree and then raises, so a partial
+    `into` is on disk when the exception leaves the copy call.
+    """
+    repo = a_small_real_tree(tmp_path)
+    into = tmp_path / "r1"
+    real = shutil.copytree
+
+    def copies_then_fails(src, dst, **kw):
+        real(src, dst, **kw)
+        raise OSError("path too long (simulated)")
+
+    monkeypatch.setattr(
+        "comment_review.flows.revise.shutil.copytree", copies_then_fails
+    )
+    with pytest.raises(OSError):
+        pull(a_docket_over(repo, ["mark.py"]), repo, into, revise=1)
+    assert not into.exists()
+
+
 def test_a_refusal_leaves_no_revise(tmp_path):
     repo = a_small_real_tree(tmp_path)
     docket = a_docket_whose_claim_is_not_in_the_page(repo, "mark.py")

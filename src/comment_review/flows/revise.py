@@ -86,8 +86,9 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
         docket: the deserialized docket -- the settled alterations for
             one editorial boundary.
         repo: the checkout the docket's pages are read from.
-        into: where the revise lands. Must not exist yet -- `shutil.copytree`
-            makes it from `repo`.
+        into: where the revise lands. Must not exist yet: `pull` makes it,
+            and an `into` that is already there raises `FileExistsError` and
+            is left as it was.
         revise: the number this revise is pulled as, carried onto `Pulled`
             unexamined.
 
@@ -95,29 +96,32 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
         `Pulled(into, revise, set_by, [])` when every page in the docket
         passed, or `Pulled(into, revise, {}, refusals)` with `into` removed
         again when any page refused.
+
+    Nothing partial is left on any path. Once `into` is made, any exception
+    -- in the copy, the drafting, the overlay or the address gate -- removes
+    it before propagating.
     """
     repo = Path(repo)
     into = Path(into)
-    # !! THE COPY IS FIRST, so a docket naming only SOME of the tree's pages
-    # still leaves a revise root that holds every file -- `proof_setter.run`
-    # only ever produces drafts for the pages a docket names.
-    shutil.copytree(repo, into)
-
-    # !! THE SCRATCH DIRECTORY IS A SIBLING OF `into`, MADE AFTER THE COPY.
-    # `proof_setter.undraftable` refuses a draft directory that overlaps the
-    # repo it drafts from, so scratch must be disjoint from `repo`; a fresh,
-    # randomly-named directory is disjoint from `into`, and `into.parent` is
-    # guaranteed to exist once `into` itself does.
-    #
-    # ! THIS SAID "DISJOINT FROM BOTH BY CONSTRUCTION" UNTIL 2026-08-28, AND
-    # THAT IS A PRECONDITION RATHER THAN A GUARANTEE. It holds while
-    # `into.parent` is outside `repo`; call `pull` with an `into` nested inside
-    # the checkout and scratch lands inside it too, and `undraftable` then
-    # refuses every page. ! The `proof` command is protected by its own
-    # `undraftable(out, repo)` check before it gets here; `pull` as a flow is
-    # not, so the caller owns this.
-    scratch = Path(tempfile.mkdtemp(prefix="revise-scratch-", dir=into.parent))
+    # `into` is made outside the protection below, so an `into` that already
+    # exists raises `FileExistsError` here and is never removed by it.
+    into.mkdir(parents=True)
+    scratch = None
     try:
+        # The copy is first, so a docket naming only some of the tree's pages
+        # still leaves a revise root that holds every file -- `proof_setter.run`
+        # only ever produces drafts for the pages a docket names.
+        shutil.copytree(repo, into, dirs_exist_ok=True)
+
+        # The scratch directory is a sibling of `into`. `proof_setter.run`
+        # refuses, through `undraftable`, a draft directory that overlaps the
+        # repo it drafts from, so scratch must be disjoint from `repo`; a fresh,
+        # randomly named directory is disjoint from `into`. That holds while
+        # `into.parent` is outside `repo`: an `into` nested inside the checkout
+        # puts scratch inside it too, and `undraftable` then refuses every page.
+        # The `proof` command asks `undraftable(out, repo)` before it gets here;
+        # `pull` as a flow does not, so the caller owns this.
+        scratch = Path(tempfile.mkdtemp(prefix="revise-scratch-", dir=into.parent))
         drafted, refusals = proof_setter.run(docket, repo, scratch)
         if refusals:
             # !! ONE RULING, CARRIED UP A LEVEL. `proof_setter.run` already
@@ -159,32 +163,26 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
         assert_addresses_held(repo, pulled)
         return pulled
     except BaseException:
-        # !! EVERY WAY OUT BUT THE TWO GOOD ONES DISCARDS THE COPY, and only
-        # the refusal and `AddressesMoved` paths did until 2026-08-28 -- while
-        # this module's docstring asserted, flatly, that *"nothing partial is
-        # left on disk"*.
+        # Every way out but a return discards `into`: the copy failing part
+        # way, an exception escaping `proof_setter.run`, `shutil.copy2` in the
+        # overlay failing on a full disk, a permission or a locked target, and
+        # the gate's `AddressesMoved`. Each would leave a revise root holding
+        # some of the tree or some of the stage's corrections, which a later
+        # stage cannot tell from a whole one.
         #
-        # ! THE UNGUARDED PATHS WERE REAL, not hypothetical: `shutil.copy2` in
-        # the overlay loop above raises on a full disk, a permission, or a
-        # locked target, leaving `into` holding SOME of the stage's corrections
-        # and not the rest -- verbatim the state the docstring says cannot
-        # exist. An exception escaping `proof_setter.run` left the opposite and
-        # worse shape: a pristine, complete-looking copy with NONE of them.
+        # `BaseException`, not `Exception`: a `KeyboardInterrupt` leaves the
+        # same partial revise on disk, and what is kept here is a claim about
+        # what a later stage can find. Re-raised at once.
         #
-        # ! `BaseException`, NOT `Exception`. A `KeyboardInterrupt` between the
-        # copy and the gate leaves exactly the same half-set on disk, and the
-        # claim being kept here is about what a later stage can find, not about
-        # which class of thing went wrong. Re-raised immediately.
-        #
-        # ! `ignore_errors` STILL, AND `remove_tree` STILL CLEARS THE WRITE BIT
-        # FIRST. An exception is already in flight here, so a second one raised
-        # while removing would replace the one the caller needs; what
-        # `shutil.rmtree(ignore_errors=True)` did instead was skip every
-        # read-only `.git` object and leave the copy standing at exit.
+        # `ignore_errors`, because an exception is already in flight and a
+        # second one raised while removing would replace the one the caller
+        # needs; `remove_tree` clears the read-only bit before it retries, so
+        # a read-only file does not keep the copy standing.
         remove_tree(into, ignore_errors=True)
         raise
     finally:
-        remove_tree(scratch, ignore_errors=True)
+        if scratch is not None:
+            remove_tree(scratch, ignore_errors=True)
 
 
 def assert_addresses_held(original: Path, pulled: Pulled) -> None:
