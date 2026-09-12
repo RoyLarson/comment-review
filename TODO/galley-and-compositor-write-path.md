@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 21 of 35 tasks closed
+Progress: 22 of 37 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -114,9 +114,11 @@ files in `corpora/` are in that state today.
         > 2026-09-03 the work is only-a-flow-reaches-the-machine T1, and four more
 - [ ] T12 | Update the reread step in flows/revise so a drop that empties a
       whole place is not looked up after. Verify: a drop of a whole b place sets
-- [ ] T13 | Update revise.pull so the galley copies the tracked files, not the
-      checkout wholesale with corpora and the venv
+- [-] T13 | SUPERSEDED by Process #117 -- only the modified files are copied | 09d99023 | Update
+      revise.pull so the galley copies the tracked files, not the checkout
+      wholesale with corpora and the venv
         > 2026-09-07 2026-09-07: 424 MB partial galley, 1,948 path errors
+        > 2026-09-11 Roy 2026-09-11: copy the files git does not ignore, per #110
 - [ ] T14 | Update revise.pull so a copy that fails part way leaves no partial
       --out behind
         > 2026-09-07 pull's docstring says a stopped run leaves no half-set; it did
@@ -194,3 +196,9 @@ files in `corpora/` are in that state today.
 - [ ] T35 | Identify the 3 of 3310 pages that do not set back byte-identical
       unedited, and file what each shows
         > 2026-09-11 final review: the vacated rule fired on none of them
+- [ ] T36 | Update revise.pull so the revise root holds only the pages the
+      docket writes, and the address gate compares only those, per Process 117
+        > 2026-09-11 gate over this checkout took 249 s gathering every file
+- [ ] T37 | Update commands/proof.py:25 and :129-131 and
+      test_proof_command.py:423-428, which name copytree as what refuses an
+      existing --out
