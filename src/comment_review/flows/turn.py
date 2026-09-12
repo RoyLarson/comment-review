@@ -387,17 +387,11 @@ def _answered(entry: dict, answer: DiffMark | Mark, composition: dict) -> dict |
         if answer.instruction is DiffInstruction.WITHDRAW:
             return _a_clean(entry)
         held = {**entry, "change": answer.change}
-        claim = entry.get("claim")
         named = entry.get("instruction")
         if named in (str(Instruction.CORRECT), str(Instruction.PATCH)):
             held["claim"] = _replacing(
                 Instruction(named), entry.get("change", ""), answer.change
             )
-        elif isinstance(claim, dict) and named != str(Instruction.MOVE):
-            held["claim"] = {
-                key: answer.change if key in ("true", "to") else value
-                for key, value in claim.items()
-            }
         return held
     sources = entry.get("sources") or list(answer.sources)
     if answer.instruction is Instruction.CLEAN:
