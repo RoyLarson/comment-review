@@ -560,6 +560,23 @@ class TestAnAddAtAnEmptyPlace:
         assert held.anchor == page.cues.anchor_of("b3")
         assert held.raw_text == ""
 
+    def test_every_role_clean_there_leaves_the_add_standing(self, tmp_path):
+        """A `clean` on a composition re-read says the role has nothing
+        further at the place. At an empty place no `correct` can quote the
+        base, so the adding role keeps its `add` and the other role holds a
+        `clean`; the place is re-read again, as every `add`'s place is."""
+        binder, got = _added_at_an_empty_place(tmp_path)
+        batch = batch_of(got.escalations, got.rereads)
+        answers = {r: [{**batch[r][0], "instruction": "clean"}] for r in batch}
+        again = run_turn(_at(got), binder, tmp_path, batch, answers)
+        assert again.revisit == []
+        (added,) = _held_at(again, "block-context", EMPTY)
+        assert added.instruction is Instruction.ADD
+        assert added.change == ADDED
+        held = _held_at(again, "function-context", EMPTY)
+        assert [m.instruction for m in held] == [Instruction.CLEAN]
+        assert [e["address"] for e in again.rereads] == [EMPTY]
+
     def test_a_place_the_page_does_not_carry_is_still_refused(self, tmp_path):
         binder, got = _added_at_an_empty_place(tmp_path)
         batch = batch_of(got.escalations, got.rereads)

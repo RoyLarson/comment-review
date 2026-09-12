@@ -35,7 +35,11 @@ A COMPOSITION re-read is answered with a fresh `Mark` over the composed text
                 (`Process: #89`: a lone mark goes back to the roles that were
                 clean, and their clean over it is agreement). The sources are
                 the composed side's, from the sent slot. A `clean` over the
-                BASE, where nothing composed, is a withdrawal
+                BASE, where nothing composed, is a withdrawal. Where the base
+                is empty -- an `add`'s place -- no `correct` can quote it, so
+                the clean says the role has nothing further there: an entry
+                already carrying the slot's text stays as it is, and any
+                other becomes a `clean`
     query       the entry becomes the query
     correct     the entry becomes a `correct` over the ORIGINAL base whose
                 `change` is the role's. `claim.false` quotes the base because
@@ -316,7 +320,8 @@ def _answered(entry: dict, answer: DiffMark | Mark) -> dict | None:
 
     Returns:
         The entry the slot is to hold, or None where it stays as it is -- a
-        `hold`.
+        `hold`, or a `clean` at an empty place from the role whose entry
+        already carries the slot's text.
     """
     if isinstance(answer, DiffMark):
         if answer.instruction is DiffInstruction.HOLD:
@@ -334,10 +339,14 @@ def _answered(entry: dict, answer: DiffMark | Mark) -> dict | None:
     sources = entry.get("sources") or list(answer.sources)
     if answer.instruction is Instruction.CLEAN:
         adopts = bool(sources) and answer.raw_text != entry.get("raw_text", "")
-        if adopts:
+        if not adopts:
+            return _a_clean(entry)
+        if filled(entry.get("raw_text")):
             return _a_correct_over_base(
                 entry, answer.raw_text, "adopted the composition", sources
             )
+        if entry.get("change") == answer.raw_text:
+            return None
         return _a_clean(entry)
     if answer.instruction is Instruction.QUERY:
         return {**answer.serialize(), "raw_text": entry.get("raw_text", "")}
