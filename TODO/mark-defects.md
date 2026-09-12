@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 21 tasks closed
+Progress: 9 of 21 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -220,7 +220,9 @@ cites as its measured example of a field answering neither necessary nor purpose
       fill so an add at an f place holding prose is refused, as T17 refuses one
       elsewhere
         > 2026-09-12 384dc8cc: an f place gets no slot, so its seed is empty
-- [ ] T20 | Update fill so an add at a place holding prose is accepted only when
-      its change keeps every word of that prose, in order, per Process 132
-- [ ] T21 | Update fill so an f place holding prose is seeded from the page, so
-      Process 132's check applies there
+- [x] T20 | an add on prose keeps every word of it, in order | bee1b7e8 | Update
+      fill so an add at a place holding prose is accepted only when its change
+      keeps every word of that prose, in order, per Process 132
+- [x] T21 | a slot at an f place is seeded with the page's prose | 16dabbab | Update
+      fill so an f place holding prose is seeded from the page, so Process 132's
+      check applies there
