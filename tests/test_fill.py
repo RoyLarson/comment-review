@@ -165,6 +165,43 @@ class TestAnAddressWithNoSlotIsAppendedToItsSheet:
         assert json.dumps(copy) == before
 
 
+class TestAnAddIsForAPlaceHoldingNoProse:
+    """`mark-defects` T17. `SKILL.md` defines `add` as prose missing entirely,
+    so an add where the page already holds prose is refused and the copy is
+    left as it was, and an add at an empty place on the same page is placed.
+    The copy is seeded from a binder over the real page `root` holds."""
+
+    def _add_at(self, address: str) -> dict:
+        return {
+            "address": address,
+            "instruction": "add",
+            "claim": {"missing": "why y is 2", "anchor": "`y`"},
+            "reason": "the constant is explained nowhere",
+            "sources": [{"cite": "m.py:5"}],
+            "change": "# y is 2 because the fixture says so\n",
+        }
+
+    def test_an_add_where_the_page_holds_prose_is_refused(self, root):
+        copy = seed(binder_of(root, 0), "block-context")
+        slot = _marks(copy)[0]
+        assert slot["raw_text"], "the seeded slot carries the page's prose"
+        before = json.dumps(copy)
+        placed, why = fill(copy, self._add_at(slot["address"]), root)
+        assert placed is None
+        assert len(why) == 1, why
+        assert slot["address"] in why[0] and "holds prose" in why[0]
+        assert json.dumps(copy) == before
+
+    def test_an_add_at_an_empty_place_on_the_same_page_is_placed(self, root):
+        binder = binder_of(root, 0)
+        assert "m.py@b3" not in {p.address for p in binder.paragraphs}
+        copy = seed(binder, "block-context")
+        placed, why = fill(copy, self._add_at("m.py@b3"), root)
+        assert why == [] and placed is not None
+        assert placed["raw_text"] == ""
+        assert _marks(copy)[-1] is placed
+
+
 class TestARefusalWritesNothing:
     def test_a_clause_not_in_the_paragraph(self, copy, root):
         before = json.dumps(copy)
