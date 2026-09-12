@@ -31,6 +31,10 @@ ESCALATION is an edit to that role's copy at the address:
                 a `move` the claim stands, its `to` naming the destination
     patch       the same
 
+The mover's answer at its move's destination end is an edit to the move
+(`Process: #129`): the table applies to the `move` entry at the origin, and the
+mover's slot at the destination stays as it is.
+
 A COMPOSITION re-read is answered with a fresh `Mark` over the composed text
 (`#86`), and the answer set is `clean`, `query`, `correct`, `patch`:
 
@@ -90,7 +94,7 @@ turn IS. The master proof's record of what each turn sent and got back is the
 caller's to keep (`MasterProof.turns`); this module returns what it needs.
 """
 
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
 from dataclasses import replace
 from pathlib import Path
 
@@ -272,8 +276,8 @@ def _composition_of(slot: dict) -> dict:
     return {}
 
 
-def _entry_at(copies: list[dict], role: str, address: str) -> dict | None:
-    """The slot on `role`'s copy at `address`, the dict object itself."""
+def _entries_of(copies: list[dict], role: str) -> Iterator[dict]:
+    """Every slot on `role`'s copy, the dict objects themselves."""
     for copy in copies:
         if not isinstance(copy, dict) or copy.get("role") != role:
             continue
@@ -281,9 +285,30 @@ def _entry_at(copies: list[dict], role: str, address: str) -> dict | None:
             if not isinstance(sheet, dict):
                 continue
             for entry in sheet.get("marks", []):
-                if isinstance(entry, dict) and entry.get("address") == address:
-                    return entry
-    return None
+                if isinstance(entry, dict):
+                    yield entry
+
+
+def _entry_at(copies: list[dict], role: str, address: str) -> dict | None:
+    """The slot on `role`'s copy at `address`, the dict object itself."""
+    return next(
+        (e for e in _entries_of(copies, role) if e.get("address") == address), None
+    )
+
+
+def _move_to(copies: list[dict], role: str, address: str) -> dict | None:
+    """The one `move` on `role`'s copy whose `claim.to` names `address`.
+
+    None where the copy holds no such move, or more than one.
+    """
+    moves = [
+        entry
+        for entry in _entries_of(copies, role)
+        if entry.get("instruction") == str(Instruction.MOVE)
+        and isinstance(claim := entry.get("claim"), dict)
+        and claim.get("to") == address
+    ]
+    return moves[0] if len(moves) == 1 else None
 
 
 def _becomes(entry: dict, new: dict) -> None:
@@ -370,7 +395,8 @@ def _answered(entry: dict, answer: DiffMark | Mark, composition: dict) -> dict |
     """What one slot becomes under one answer, per the tables above.
 
     Args:
-        entry: the slot on the role's own copy.
+        entry: the slot on the role's own copy the answer applies to, as
+            `apply` finds it.
         answer: the role's answer there.
         composition: `_composition_of` the slot the answer was sent, which a
             `clean` at an empty place adopts where it is an `add`.
@@ -435,6 +461,12 @@ def apply(
         root: the checkout a page is read from, to seed a slot at a place the
             role's copy does not hold.
 
+    An escalation answer at a move's destination end is written to the move
+    (`Process: #129`): where the role's own slot there is absent or a
+    `clean`, and its copy holds exactly one `move` whose `claim.to` names that
+    address, the answer applies to that `move` entry, and the slot at the
+    destination stays as it is.
+
     Returns:
         A `Revisit` per address this role's copy holds no slot for and
         `flows.fill.place_on_the_page` seeds none for -- no sheet for the page,
@@ -451,6 +483,10 @@ def apply(
     revisit: list[Revisit] = []
     for address, answer in answers:
         entry = _entry_at(copies, role, address)
+        if isinstance(answer, DiffMark) and (
+            entry is None or entry.get("instruction") == str(Instruction.CLEAN)
+        ):
+            entry = _move_to(copies, role, address) or entry
         sheet = None
         if entry is None:
             mine = [c for c in copies if isinstance(c, dict) and c.get("role") == role]
