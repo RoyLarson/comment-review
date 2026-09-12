@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 24 of 41 tasks closed
+Progress: 28 of 44 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -200,19 +200,33 @@ files in `corpora/` are in that state today.
       revise.pull so the revise root holds only the pages the docket writes, and
       the address gate compares only those, per Process 117
         > 2026-09-11 gate over this checkout took 249 s gathering every file
-- [ ] T37 | Update commands/proof.py:25 and :129-131 and
-      test_proof_command.py:423-428, which name copytree as what refuses an
-      existing --out
+- [x] T37 | proof.py names its own out.exists() check as what refuses --out | 6d006aa7 | Update
+      commands/proof.py:25 and :129-131 and test_proof_command.py:423-428, which
+      name copytree as what refuses an existing --out
         > 2026-09-11 also proof.py:18-25, which says --out holds a full copy of --repo
-- [ ] T38 | Update taken_in so with no paths it compares the pages the revise
-      holds, not every page of the original
+- [x] T38 | with no paths, taken_in walks the revise, not the original | 7a514831 | Update
+      taken_in so with no paths it compares the pages the revise holds, not
+      every page of the original
         > 2026-09-11 since 4bf2acd3 every unwritten page prints NOT COMPARED on stderr
 - [?] T39 | Decide whether a later stage gathering from a revise reads the pages
       that revise did not write from the original
         > 2026-09-11 one stage this release, SKILL.md:329-332
         > 2026-09-11 a cite to an unwritten page would not resolve
-- [ ] T40 | Update flows/__init__.py:22-24 and flows/transcribe.py:12-13, which
-      say a revise copies the repo or the whole tree
-- [ ] T41 | Update test_proof_command.py:26-27 and :82-85, helpers.py:152-153
-      and test_taken_in.py:89-90 for Process 117
+- [x] T40 | flows/__init__.py and transcribe.py say a pull copies no other file | 6d006aa7 | Update
+      flows/__init__.py:22-24 and flows/transcribe.py:12-13, which say a revise
+      copies the repo or the whole tree
+- [x] T41 | each now describes a revise holding only the docket's pages | 6d006aa7 | Update
+      test_proof_command.py:26-27 and :82-85, helpers.py:152-153 and
+      test_taken_in.py:89-90 for Process 117
         > 2026-09-11 each describes a revise root holding the whole tree
+        > 2026-09-11 test_taken_in.py's part landed in 7a514831 with T38's test
+- [ ] T42 | Update the default-walk comment at commands/taken_in.py:63 so it has
+      no !! or caps run and no past behaviour
+        > 2026-09-11 introduced in 7a514831; the set 1 finishing brief forbade both
+        > 2026-09-11 the old walk it narrates is history in code
+- [ ] T43 | Update the comment in test_taken_in.py's unreadable-page test (:109)
+      so it has no leading ! or caps run
+        > 2026-09-11 introduced in 7a514831; the set 1 finishing brief forbade both
+- [ ] T44 | Update the docstring of test_taken_in.py's no-paths test (:41) so it
+      states the rule, not what Process 117 narrowed
+        > 2026-09-11 introduced in 7a514831; no history narration, per the brief
