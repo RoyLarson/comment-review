@@ -668,6 +668,7 @@ python <skill>/scripts/comment-review.py collate --stage 4 --binder <run-dir>/bi
 | `2` UNREADABLE | a file is not what it says | fix the invocation |
 | `3` REREADS, `4` ESCALATIONS | places carried forward -- the roles did not agree | **rule at max turns**, below |
 | `5` DRIFT, `6` COVERAGE | a returned `raw_text` is not the seeded one, or a role left places unruled | the chief's copy is written; the printed places go back to their role once; say in the proposal what was left short |
+| `7` `CARRIED_AND_UNRULED` | places carried forward, and a role left a place unruled | the printed unruled places go back to their role once, as for `6`; the carried-forward places are what a `3` or `4` asks of you |
 
 Every printed line reads `<role> <place>: <reason>`. **That is your work list for sending
 back**, and a task agent reads it rather than the copies.
