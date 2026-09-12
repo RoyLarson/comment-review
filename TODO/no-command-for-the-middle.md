@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 24 of 44 tasks closed
+Progress: 25 of 46 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -223,3 +223,12 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [ ] T44 | Update the quote check so it reads the page at the mark's address
       and, for a mark the turn wrote, the text collate sent there
         > 2026-09-12 Process 119; desk/collator.py:431-451 reads base_texts(binder)
+        > 2026-09-12 Process 119: where no page can be read, the quote is refused
+- [x] T45 | Process 122: it reports a page it cannot read; T46 does it | 1f9ba90d | Decide
+      whether _resolution_problems at flows/collate.py:824-867 reports a page it
+      cannot read, now the quote check refuses one
+        > 2026-09-12 its docstring skips that case, citing Process 97
+        > 2026-09-12 Process 111: an address is verified against its page, everywhere
+- [ ] T46 | Update _resolution_problems at flows/collate.py:824-867 so a page it
+      cannot read is reported, per Process 122
+        > 2026-09-12 Process 122; its docstring skips that case, citing Process 97
