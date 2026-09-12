@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 49 of 67 tasks closed
+Progress: 50 of 67 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -328,7 +328,7 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       Process 133
         > 2026-09-12 collate exits 7 since 685f2ecb
         > 2026-09-12 collate exits 7 since 685f2ecb
-- [ ] T67 | Update the name of
+- [x] T67 | renamed for the exit 7 it asserts | 84601860 | Update the name of
       test_an_unanswered_slot_is_COVERAGE_and_the_place_stays in
       tests/test_turn_command.py, which asserts exit 7
         > 2026-09-12 f85ea724 moved its expected code to CARRIED_AND_UNRULED
