@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 34 of 49 tasks closed
+Progress: 36 of 49 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -245,7 +245,9 @@ files in `corpora/` are in that state today.
       the write end to refuse an alteration with no anchor at a mark's own
       address, a move's destination exempt, per Process 135
         > 2026-09-12 72470b0f checks only an anchor present; 8fc050c2 rules it
-- [ ] T48 | Update the flow so a move's destination alteration carries the
-      page's anchor at that address, per Process 135 as amended
-- [ ] T49 | Update the write end to refuse an alteration that carries no anchor,
-      per Process 135 as amended
+- [x] T48 | a move's destination carries the page's anchor there | 9eaea3f8 | Update
+      the flow so a move's destination alteration carries the page's anchor at
+      that address, per Process 135 as amended
+- [x] T49 | an alteration with no anchor is refused at verify | 9dd5059d | Update
+      the write end to refuse an alteration that carries no anchor, per Process
+      135 as amended
