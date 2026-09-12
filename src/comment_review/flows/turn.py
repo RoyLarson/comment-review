@@ -2,6 +2,7 @@
 
     parse_answers(role, sent, returned) -> (answers, revisit)
     apply(copies, role, answers, root) -> revisit
+    take_answers(copies, role, sent, returned, root) -> (answers, revisit)
     run_turn(proof, binder, root, sent, answers) -> Collated
     rule_at_max_turns(collated, address, answer, side, reason, turn, prose)
                                                                   -> Determined
@@ -105,6 +106,7 @@ from comment_review.desk.mark import (
     allowed,
     filled,
     untouched,
+    without_location,
 )
 from comment_review.flows.collate import Collated, _chief_copy, collate
 from comment_review.flows.fill import place_on_the_page
@@ -375,7 +377,10 @@ def apply(
     Returns:
         A `Revisit` per address this role's copy holds no slot for and
         `flows.fill.place_on_the_page` seeds none for -- no sheet for the page,
-        no readable page, or no such place on it.
+        no readable page, or no such place on it -- and one per answer whose
+        entry would not parse. An entry is written only once
+        `Mark.deserialize`, the boundary the fold's `Sheet` runs, accepts it,
+        so a refused answer leaves the slot as it stood.
     """
     revisit: list[Revisit] = []
     for address, answer in answers:
@@ -394,11 +399,40 @@ def apply(
         held = _answered(entry, answer)
         if held is None:
             continue
+        parsed, why = Mark.deserialize(address, held)
+        if parsed is None:
+            reasons = [without_location(address, m) for m in why]
+            revisit.append(_refused(role, address, address, reasons))
+            continue
         if sheet is None:
             _becomes(entry, held)
         else:
             sheet.append(held)
     return revisit
+
+
+def take_answers(
+    copies: list[dict], role: str, sent: list, returned: object, root: Path | None
+) -> tuple[list[tuple[str, DiffMark | Mark]], list[Revisit]]:
+    """One role's answers, read against what was sent and written into its copy.
+
+    `run_turn` calls this for each role before the fold, and
+    `commands/check.py --answers` calls it over the proof's copies, so the two
+    refuse the same answers.
+
+    Args:
+        copies: the wire copies. MUTATED, as `apply` says.
+        role: whose answers these are.
+        sent: the slots the batch sent this role.
+        returned: what came back, in any shape `slots_of` reads.
+        root: the checkout a page is read from, as `apply` takes it.
+
+    Returns:
+        `(answers, revisit)` -- `parse_answers`' pairs, and every `Revisit`
+        `parse_answers` and `apply` recorded.
+    """
+    answers, revisit = parse_answers(role, sent, slots_of(returned, role))
+    return answers, revisit + apply(copies, role, answers, root)
 
 
 def _unpacked(proof: MasterProof) -> tuple[list[dict], dict[str, Determined]]:
@@ -450,9 +484,8 @@ def run_turn(
                 )
             )
     for role, slots in sent.items():
-        parsed, why = parse_answers(role, slots, slots_of(answers.get(role, []), role))
+        _, why = take_answers(copies, role, slots, answers.get(role, []), root)
         revisit += why
-        revisit += apply(copies, role, parsed, root)
     got = collate(proof.stage, copies, binder, root, turn=turn)
     got = _keeping(got, earlier)
     contested = {slot["address"] for slots in sent.values() for slot in slots}

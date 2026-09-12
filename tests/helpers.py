@@ -43,7 +43,9 @@ from comment_review.desk.mark import (
 )
 from comment_review.desk.proof import master_proof_of
 from comment_review.docket.docket import Docket
+from comment_review.flows.collate import Collated, collate
 from comment_review.flows.distribute import seed
+from comment_review.flows.fill import fill
 from comment_review.flows.page_for import page_of, source_of
 from comment_review.flows.proof_io import load_proof
 
@@ -658,6 +660,50 @@ def an_add(address: str) -> dict:
             "anchor": ANCHOR_EXAMPLE,
         },
     )
+
+
+#: A real page whose `b3`, the gap above `w = 4`, holds no prose -- so the
+#: binder does not carry it and no seeded copy has a slot there.
+GAPPED_PAGE = "x = 1\n# one\n# two\n# three\ny = 2\nz = 3\nw = 4\n"
+EMPTY_PLACE = "m.py@b3"
+ADDED_TEXT = "# w is 4 because the fixture says so\n"
+
+
+def an_add_at_an_empty_place(root: Path) -> tuple[Binder, Collated]:
+    """A fold over one `add` at an empty place on a real page, as `mark` leaves it.
+
+    `GAPPED_PAGE` is written to `root/m.py`. block-context adds at
+    `EMPTY_PLACE`, which the binder does not carry, and both roles clean the
+    one place it does. `fill` places the add, so only block-context's copy
+    holds a slot there.
+
+    Returns:
+        `(binder, the fold)` -- the fold carrying `EMPTY_PLACE` as its one
+        re-read, sent to both roles.
+    """
+    (root / "m.py").write_text(GAPPED_PAGE, encoding="utf-8")
+    binder = binder_of(root, 0)
+    assert EMPTY_PLACE not in {p.address for p in binder.paragraphs}
+    copies = [seed(binder, role) for role in ("block-context", "function-context")]
+    for copy in copies:
+        for paragraph in binder.paragraphs:
+            clean = {"address": paragraph.address, "instruction": "clean"}
+            _, why = fill(copy, clean, root)
+            assert why == []
+    added = {
+        "address": EMPTY_PLACE,
+        "instruction": "add",
+        "claim": {"missing": "why w is 4", "anchor": "`w`"},
+        "reason": "the constant is explained nowhere",
+        "sources": [{"cite": "m.py:7"}],
+        "change": ADDED_TEXT,
+    }
+    _, why = fill(copies[0], added, root)
+    assert why == []
+    got = collate("4c", copies, binder, root=root)
+    assert [e["address"] for e in got.rereads] == [EMPTY_PLACE]
+    assert got.rereads[0]["roles"] == ["block-context", "function-context"]
+    return binder, got
 
 
 # -- the hand driver: a review from the console, over `tmp_path` ----------------

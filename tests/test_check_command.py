@@ -2,7 +2,8 @@
 
 ! IT RUNS `main()` IN-PROCESS with a built argv. Inputs are real -- a binder
 from `a_binder_over`, copies from the real `seed`, batches from the real
-`batch_of` over the real `collate`.
+`batch_of` over the real `collate`, and the proof each batch went out with
+from `proof_after`.
 
 ! WHERE THE EXPECTATIONS COME FROM: the 2026-08-17 ruling that a role edits
 the seeded template and a CLI validates it
@@ -15,17 +16,21 @@ unanswered slot, a `patch` meant as *keep my patch*, a batch keyed by role
 import json
 
 from helpers import (
+    EMPTY_PLACE,
     REPO,
     a_binder_over,
     a_clean,
     a_correct,
     a_correct_setting,
+    an_add_at_an_empty_place,
     copies_over,
 )
 
 from comment_review.commands import check as command
 from comment_review.desk.diff_mark import batch_of
 from comment_review.flows.collate import collate
+from comment_review.flows.proof_io import save_batch, save_proof
+from comment_review.flows.turn import batch_for, proof_after, run_turn
 
 BASE = "# one\n# two\n# three\n"
 
@@ -128,7 +133,11 @@ def _batch_file(tmp_path, answered_by_role: dict):
     got = collate("4c", copies, binder, root=REPO)
     batch = batch_of(got.escalations, got.rereads)
     (tmp_path / "batch.json").write_text(json.dumps(batch), encoding="utf-8")
-    paths = {"sent": str(tmp_path / "batch.json")}
+    save_proof(tmp_path / "proof.json", proof_after(got))
+    paths = {
+        "sent": str(tmp_path / "batch.json"),
+        "proof": str(tmp_path / "proof.json"),
+    }
     for role, how in answered_by_role.items():
         slots = batch[role]
         if how == "role-keyed":
@@ -155,6 +164,8 @@ class TestABatch:
             paths["sent"],
             "--role",
             "block-context",
+            "--proof",
+            paths["proof"],
         )
         assert code == 0
         assert "1 answered, 0" in out
@@ -170,6 +181,8 @@ class TestABatch:
             paths["sent"],
             "--role",
             "block-context",
+            "--proof",
+            paths["proof"],
         )
         assert code == 1
         assert "unanswered" in out
@@ -189,6 +202,8 @@ class TestABatch:
             paths["sent"],
             "--role",
             "block-context",
+            "--proof",
+            paths["proof"],
         )
         assert code == 1
         assert "patch needs a `change`" in out
@@ -206,6 +221,8 @@ class TestABatch:
             paths["sent"],
             "--role",
             "block-context",
+            "--proof",
+            paths["proof"],
         )
         # ! The slots are the seeded ones, unanswered -- so BROKEN, but for the
         # right reason: the shape was read, and the slot inside it was empty.
@@ -223,6 +240,8 @@ class TestABatch:
             paths["sent"],
             "--role",
             "module-context",
+            "--proof",
+            paths["proof"],
         )
         assert code == 1
         assert "no slots were sent to module-context" in out
@@ -234,6 +253,80 @@ class TestABatch:
         code, _, err = _run(monkeypatch, capsys, "--answers", paths["block-context"])
         assert code == 2
         assert "--role" in err and "--sent" in err
+
+
+def _gapped_files(tmp_path, answered: dict):
+    """A real fold over an `add` at an empty place, written as `collate`
+    writes it -- `proof0.json` and `batch1.json` -- plus one answers file per
+    role in `answered`: that role's sent slots with its fields laid over."""
+    binder, got = an_add_at_an_empty_place(tmp_path)
+    batch = batch_for(got)
+    save_proof(tmp_path / "proof0.json", proof_after(got))
+    save_batch(tmp_path / "batch1.json", batch)
+    answers = {
+        role: [{**slot, **fields} for slot in batch[role]]
+        for role, fields in answered.items()
+    }
+    paths = {}
+    for role, slots in answers.items():
+        path = tmp_path / f"answers_{role}.json"
+        path.write_text(json.dumps(slots), encoding="utf-8")
+        paths[role] = str(path)
+    return binder, got, batch, answers, paths
+
+
+def _check(monkeypatch, capsys, tmp_path, paths, role):
+    return _run(
+        monkeypatch,
+        capsys,
+        "--answers",
+        paths[role],
+        "--sent",
+        str(tmp_path / "batch1.json"),
+        "--role",
+        role,
+        "--proof",
+        str(tmp_path / "proof0.json"),
+    )
+
+
+class TestABatchIsAppliedAsTheTurnAppliesIt:
+    """`check --answers` runs what `run_turn` runs for one role's answers, over
+    the copies on the proof the batch went out with --
+    `no-command-for-the-middle` T31."""
+
+    def test_answers_the_turn_takes_exit_zero(self, tmp_path, monkeypatch, capsys):
+        clean = {"instruction": "clean"}
+        *_, paths = _gapped_files(
+            tmp_path, {"block-context": clean, "function-context": clean}
+        )
+        for role in ("block-context", "function-context"):
+            code, out, _ = _check(monkeypatch, capsys, tmp_path, paths, role)
+            assert code == 0, out
+            assert "1 answered, 0 the fold would refuse" in out
+
+    def test_what_the_turn_refuses_is_named(self, tmp_path, monkeypatch, capsys):
+        """A composition `correct` at an add's empty place is written over the
+        empty base, which leaves its `claim.false` nothing to quote."""
+        corrected = {
+            "instruction": "correct",
+            "reason": "the value reads better in words",
+            "claim": {"false": "w is 4", "true": "w is four"},
+            "sources": [{"cite": "m.py:7", "verbatim": "w = 4"}],
+            "change": "# w is four because the fixture says so\n",
+        }
+        binder, got, batch, answers, paths = _gapped_files(
+            tmp_path,
+            {"block-context": {"instruction": "clean"}, "function-context": corrected},
+        )
+        turned = run_turn(proof_after(got), binder, tmp_path, batch, answers)
+        refused = [p for p in turned.revisit if p.role == "function-context"]
+        assert [p.address for p in refused] == [EMPTY_PLACE]
+        code, out, _ = _check(monkeypatch, capsys, tmp_path, paths, "function-context")
+        assert code == 1
+        for one in refused:
+            for reason in one.reasons:
+                assert f"{one.role} {one.where}: {reason}" in out
 
 
 class TestTheContract:
