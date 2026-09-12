@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 22 tasks closed
+Progress: 11 of 23 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -32,8 +32,9 @@ The agents files name the new CLI and say how to use it.
       role that owes it, to be fixed. Verify: the brief says so
         > 2026-09-04 Process 92: the errors stack; the task agent reroutes them
         > 2026-09-04 bound on send-backs: a-coverage-gap-should-go-back T2
-- [ ] T6 | Update SKILL.md to run turn between collate and cap, for the
-      experiment after the baseline. Verify: a hand with a turn runs from it
+- [-] T6 | SUPERSEDED by T23: the command is disposition since f2b8f988 | f2b8f988 | Update
+      SKILL.md to run turn between collate and cap, for the experiment after the
+      baseline. Verify: a hand with a turn runs from it
 - [ ] T7 | Update reviewer-brief.md with check --answers and the two answer
       shapes from check --contract, for the turn experiment
         > 2026-09-11 check --answers now needs --proof, since 0f01d744
@@ -83,3 +84,5 @@ The agents files name the new CLI and say how to use it.
 - [ ] T22 | Update SKILL.md's collate exit table at :664-670 with a row for that
       code
         > 2026-09-11 Process 112; waits on collate-command-defects for the number
+- [ ] T23 | Update SKILL.md to run turn between collate and disposition, for the
+      experiment after the baseline. Verify: a hand with a turn runs from it

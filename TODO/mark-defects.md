@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 18 tasks closed
+Progress: 4 of 19 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -214,3 +214,6 @@ cites as its measured example of a field answering neither necessary nor purpose
 - [?] T18 | Decide what a mark's anchor is for, since nothing after fill reads
       it; the proof reads the page's
         > 2026-09-12 Process 131: smoke exits 0 with the seeded anchor emptied
+- [ ] T19 | Update fill so an add at an f place holding prose is refused, as T17
+      refuses one elsewhere
+        > 2026-09-12 384dc8cc: an f place gets no slot, so its seed is empty

@@ -38,3 +38,4 @@ place the same brief tells it to cite at `:74`.
 - [ ] T7 | Implement a workflow that raises each correction to an f place to the
       human on its own for approval
         > 2026-09-11 Addressing 26, Roy: that probably needs its own workflow
+        > 2026-09-12 Roy 2026-09-12: its own plan and branch, not set 4
