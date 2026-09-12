@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 21 of 37 tasks closed
+Progress: 21 of 38 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -189,3 +189,5 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [ ] T37 | Update turn so every other role answering clean at an add at an
       empty place settles it, per Process 116
         > 2026-09-11 undoes the plain clean daa86dc8 keeps; smoke drops 5 dispositions
+- [ ] T38 | Update turn so no answer overwrites a move claim.to with paragraph
+      text; T33 confirmed it at turn.py:337

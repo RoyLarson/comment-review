@@ -14,10 +14,20 @@ from comment_review.flows.revise import AddressesMoved, assert_addresses_held, p
 
 
 def test_a_revise_yields_the_address_set_the_original_yielded(tmp_path):
+    """The revise holds the docket's pages alone (`Process: #117`), so the
+    original is compared over the same pages."""
     repo = a_small_real_tree(tmp_path)
-    before = {r.address for r in binder_of(repo, 0).paragraphs}
     pulled = pull(a_docket_over(repo, ["mark.py"]), repo, tmp_path / "r1", revise=1)
-    after = {r.address for r in binder_of(pulled.root, 1).paragraphs}
+    revised = binder_of(pulled.root, 1)
+    held = {page.path for page in revised.pages}
+    assert held == {"mark.py"}
+    before = {
+        row.address
+        for page in binder_of(repo, 0).pages
+        if page.path in held
+        for row in page.paragraphs
+    }
+    after = {r.address for r in revised.paragraphs}
     assert after == before
 
 
@@ -32,7 +42,7 @@ def test_the_gate_fires_when_the_code_moved(tmp_path):
         encoding="utf-8",
     )
     with pytest.raises(AddressesMoved):
-        assert_addresses_held(repo, pulled)
+        assert_addresses_held(repo, pulled, ["mark.py"])
 
 
 def test_pull_itself_runs_the_gate_and_discards_a_revise_that_moved(
@@ -54,7 +64,7 @@ def test_pull_itself_runs_the_gate_and_discards_a_revise_that_moved(
     docket = a_docket_over(repo, ["mark.py"])
     into = tmp_path / "r1"
 
-    def moved(original, pulled):
+    def moved(original, pulled, pages):
         raise AddressesMoved("addresses appeared: x.py@b9; disappeared: x.py@b8")
 
     monkeypatch.setattr("comment_review.flows.revise.assert_addresses_held", moved)
