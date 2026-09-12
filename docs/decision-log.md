@@ -4283,3 +4283,9 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   mark's own address, and exempt a move's destination. No agent writes the anchor -- `fill`
   copies it from the page -- so the refusal fires only on a docket the flow did not write, which
   is where an edit applying as expected is in doubt; a destination carries no anchor of its own.
+
+  **Amended the same day.** The write end cannot tell a move's destination from a hand-written
+  alteration: both arrive with no anchor (`flows/transcribe.py:81`), so the exemption could not
+  be built. Asked -- the flow gives the destination the page's anchor there, so every alteration
+  carries one and nothing is exempt; a docket field marking a destination; or wait for
+  `move-is-a-composite-mark` -- Roy: *"Flow gives it an anchor"*.
