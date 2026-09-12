@@ -787,6 +787,76 @@ class TestAMoversOwnClean:
         assert held.claim["to"] == EMPTY_PLACE
 
 
+class TestAMoveWhoseEndsStillDisagree:
+    """A move whose other end escalates -- `no-command-for-the-middle` T33.
+
+    On turn 1 the other role patches the moved text at the move's origin, so
+    both ends of the move hold two texts and `_disagreeing` escalates both
+    (`Process: #127`). On turn 2 the mover answers its origin's escalation
+    with a `correct`: that changes the moved text, the entry's `change`, and
+    the destination stays where the mover put it.
+    """
+
+    @pytest.mark.xfail(
+        strict=True,
+        reason="T38: a correct at a move's escalation writes its text into claim.to",
+    )
+    def test_a_correct_changes_the_moved_text_and_keeps_the_destination(self, tmp_path):
+        binder, got = _a_lone_move(tmp_path, MOVED_TEXT)
+        batch = batch_of(got.escalations, got.rereads)
+        patched = {
+            "instruction": "patch",
+            "claim": {"from": "two", "to": "TWO"},
+            "reason": "the fixture spells its numbers in capitals",
+            "change": MOVED_TEXT.replace("two", "TWO"),
+        }
+        answers = {
+            role: [
+                {**slot, **patched}
+                if (role, slot["address"]) == ("function-context", MOVED_FROM)
+                else {**slot, "instruction": "clean"}
+                for slot in slots
+            ]
+            for role, slots in batch.items()
+        }
+        one = run_turn(_at(got), binder, tmp_path, batch, answers)
+        assert one.revisit == []
+        assert one.rereads == []
+        assert sorted(e["address"] for e in one.escalations) == [
+            MOVED_FROM,
+            EMPTY_PLACE,
+        ]
+
+        batch2 = batch_of(one.escalations, one.rereads)
+        moved_again = MOVED_TEXT.replace("two", "2")
+        answers2 = {
+            role: [
+                {
+                    **slot,
+                    "instruction": "correct",
+                    "reason": "a digit reads as the count it is",
+                    "change": moved_again,
+                }
+                if (role, slot["address"]) == ("block-context", MOVED_FROM)
+                else {**slot, "instruction": "hold", "reason": "mine stands"}
+                for slot in slots
+            ]
+            for role, slots in batch2.items()
+        }
+        # The record carries what turn 1 sent, as `commands/turn.py` writes it.
+        proof = proof_after(one, ({"turn": 1, "sent": batch},))
+        two = run_turn(proof, binder, tmp_path, batch2, answers2)
+        assert two.revisit == []
+        (held,) = _held_at(two, "block-context", MOVED_FROM)
+        assert held.instruction is Instruction.MOVE
+        assert held.change == moved_again
+        assert held.claim == {"from": MOVED_FROM, "to": EMPTY_PLACE}
+        assert sorted(e["address"] for e in two.escalations) == [
+            MOVED_FROM,
+            EMPTY_PLACE,
+        ]
+
+
 def _two_places():
     """b1 will converge on turn 1; b5 stays contested -- so turn 2 has a batch."""
     binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})
