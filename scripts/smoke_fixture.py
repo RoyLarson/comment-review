@@ -226,10 +226,11 @@ LANDINGS: dict[str, Landing] = {
         line=3,
     ),
     # function-context's add, on the absent a below `def wrapper(n):` --
-    # wrapper's docstring, indented to its body's depth.
+    # wrapper's docstring, indented to its body's depth. In the turn the
+    # other three roles clean it, which settles it.
     "fib.py@a2": Landing(
         "text",
-        route="disposition",
+        route="turn",
         text='        """Count each call, then pass it through."""',
         line=13,
     ),
@@ -262,33 +263,36 @@ LANDINGS: dict[str, Landing] = {
     # as it was.
     "fib.py@a1": Landing("kept", route="query"),
     # block-context's add, on an absent b above `return wrapper`, indented
-    # to logged's own body depth.
+    # to logged's own body depth. In the turn the other three roles clean
+    # it, which settles it.
     "fib.py@b8": Landing(
         "text",
-        route="disposition",
+        route="turn",
         text="    # Counting done, wrapper is handed back unchanged.",
         line=18,
     ),
     # module-context's add, on the absent closing gap after the dunder-main
-    # block.
+    # block. In the turn the other three roles clean it, which settles it.
     "fib.py@b17": Landing(
         "text",
-        route="disposition",
+        route="turn",
         text="# Nothing follows; running this module only prints one count.",
         line=34,
     ),
     # module-context's add, on the absent b above `if __name__ ==
-    # "__main__":` -- `ADDRESSER_ROW`.
+    # "__main__":` -- `ADDRESSER_ROW`. In the turn the other three roles
+    # clean it, which settles it.
     "fib.py@b15": Landing(
         "text",
-        route="disposition",
+        route="turn",
         text="# Run directly, the module prints fib(10) and how many calls it took.",
         line=33,
     ),
     # function-context's add, on an absent c beside `@functools.wraps(fn)`.
+    # In the turn the other three roles clean it, which settles it.
     "fib.py@c3": Landing(
         "text",
-        route="disposition",
+        route="turn",
         text="  # keeps wrapper's name and doc matching fn's own",
         line=12,
     ),
@@ -444,13 +448,11 @@ ANSWERS: dict[str, dict[str, dict]] = {
     "ownership-context": {},
 }
 
-#: The chief's own rulings over the seven places the turn leaves carried
-#: forward -- `a3` and `b9`, each left a lone correction, and the five
-#: `add`s at empty places, which every role cleans and the fold re-reads
-#: again -- `LANDINGS` above names what each one makes land; this names
-#: how. A carried-forward place with no entry here is refused by
-#: `disposition`, by name, and so is an entry for a place that is not
-#: carried forward.
+#: The chief's own rulings over the two places the turn leaves carried
+#: forward -- `a3` and `b9`, each left a lone correction -- `LANDINGS`
+#: above names what each one makes land; this names how. A carried-forward
+#: place with no entry here is refused by `disposition`, by name, and so is
+#: an entry for a place that is not carried forward.
 DISPOSITIONS = [
     {
         "address": "fib.py@a3",
@@ -470,39 +472,6 @@ DISPOSITIONS = [
             "differently; neither wording is preferred, so the paragraph is "
             "restated"
         ),
-    },
-    {
-        "address": "fib.py@a2",
-        "answer": "taken_in",
-        "side": "function-context",
-        "reason": (
-            "function-context is the only role that read this place; its "
-            "docstring is what lands"
-        ),
-    },
-    {
-        "address": "fib.py@b8",
-        "answer": "taken_in",
-        "side": "block-context",
-        "reason": "block-context is the only role that read this place",
-    },
-    {
-        "address": "fib.py@b17",
-        "answer": "taken_in",
-        "side": "module-context",
-        "reason": "module-context is the only role that read this place",
-    },
-    {
-        "address": "fib.py@b15",
-        "answer": "taken_in",
-        "side": "module-context",
-        "reason": "module-context is the only role that read this place",
-    },
-    {
-        "address": "fib.py@c3",
-        "answer": "taken_in",
-        "side": "function-context",
-        "reason": "function-context is the only role that read this place",
     },
 ]
 
