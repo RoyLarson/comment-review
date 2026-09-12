@@ -61,7 +61,10 @@ so a failure carries its own reproduction.
 
 ## The fixture
 
-A tree the script writes, not this repository. One Python file, short enough to read whole:
+A tree the script writes, not this repository. Two Python files, each short enough to read whole.
+`fib.py` carries the scenario rows below; `rate.py`, added 2026-09-11, carries the options
+`fib.py` had no free place for -- a `patch`, a `query` of shape `unable-to-determine`, and a
+composition -- and puts a second page in the docket. `fib.py`:
 
 ```python
 """Fibonacci, counted so the recursion can be seen."""
@@ -143,6 +146,12 @@ is that a clean is recorded; a page of cleans proves nothing about resolution.
 | an `add` at an empty place | the case that vanished on the 2026-09-07 run |
 | a `move` | one mark becoming two alterations, origin and destination |
 | a `query` no role can settle | it rides to the end and is printed, not ruled |
+| a `patch` beside a `query unable-to-determine` (`rate.py`) | the patch settles alone; the abstaining query stays out of the fold |
+| a composition: two roles correct two sentences of one paragraph (`rate.py`) | the fold combines them, and the combined text reaches the proof |
+| one turn, every answer planted (Task 12) | the turn loop folds each of `hold`, `withdraw`, `correct`, `patch`, `clean` and `query` |
+
+Roy, 2026-09-11, on why every option is planted: *"Thats why it can't be partially done. The
+options need to be exercised."*
 | **the addresser lookup feeding an `add`** | a place found by file and line, its returned address used to add, and the comment present in the proof |
 
 The last row is the positive form of the defect that lost a finding, and it pulls `addresser`
