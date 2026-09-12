@@ -4146,4 +4146,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   addresses in the binder matter. The binder is the seed for what can be ruled on it is not
   everything that can be ruled on and it is not every file"*.
 
-  **Not said:** what the check reads instead.
+  Asked what it reads instead -- (1) the text at the mark's own address, read from the page,
+  whether or not the binder holds that place or its file; (2) for a mark the turn wrote, the text
+  collate composed and sent at that address -- Roy: *"1"*. Asked whether, for a turn's `correct`
+  at an add's empty place, where the page holds nothing, it also reads (2): *"yes"*.
