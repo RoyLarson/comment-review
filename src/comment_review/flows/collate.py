@@ -183,7 +183,8 @@ class Collated:
             not about the tree. The shape they share is temporary, because one
             of them is going.
         escalations: places carried forward -- two or more owing marks ruling
-            on ONE sentence with different answers.
+            on ONE sentence, or beside a `correct` replacing the whole
+            paragraph, with different answers.
         rereads: places carried forward -- marks on different sentences whose
             compose refused, plus every place an `add` touches, plus every end
             of a `move` in a cycle.

@@ -634,7 +634,8 @@ class Reconciled(NamedTuple):
             before it stands (`decision-log.md Process: #89`); it is no longer
             the list a transcription reads at turn 0.
         escalations: two or more owing marks that all rule on the SAME
-            sentence -- two answers to one question.
+            sentence, or that quote an original beside a `correct` replacing
+            the whole paragraph -- two answers to one question.
         rereads: every other place with more than one owing mark, plus every
             place an `add` touches.
     """
@@ -710,6 +711,11 @@ def _outcome(
                               instruction or sentence each carried
         one sentence key      ESCALATION -- every mark rules on the same
                               sentence, so they answer each other
+        a whole paragraph     ESCALATION -- every mark quotes an original and
+                              one is a `correct` whose `claim.false` is its
+                              whole `raw_text`, as a `clean` adoption writes
+                              it, so every other mark rules on text it
+                              replaces (`decision-log.md Process: #124`)
         anything else         RE-READ -- marks on different sentences of one
                               paragraph, which compose or do not, and this
                               step cannot say which
@@ -753,6 +759,16 @@ def _outcome(
         # `_sentence_key` gives them `id(mark)`.
         kind = "escalations"
     elif len({_sentence_key(placed.mark) for placed in owing}) == 1:
+        kind = "escalations"
+    elif all(
+        INSTRUCTIONS[placed.mark.instruction].quotes_original for placed in owing
+    ) and any(
+        placed.mark.instruction is Instruction.CORRECT
+        and placed.mark.claim.get("false") == placed.mark.raw_text
+        for placed in owing
+    ):
+        # A `correct` quoting its whole paragraph, the shape a `clean` adoption
+        # takes, rules on every sentence there, so each other mark answers it.
         kind = "escalations"
     else:
         kind = "rereads"
