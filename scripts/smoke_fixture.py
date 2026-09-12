@@ -535,8 +535,8 @@ DISPOSITIONS = [
         "answer": "taken_in",
         "side": "original",
         "reason": (
-            "three roles rewrote the same clause three ways; none reads as "
-            "more correct than the wording already there"
+            "module-context alone still holds its rewording after the turn, "
+            "and it reads no more correctly than the wording already there"
         ),
     },
     {
@@ -544,8 +544,8 @@ DISPOSITIONS = [
         "answer": "recast",
         "prose": LANDINGS["fib.py@b9"].text,
         "reason": (
-            "block-context and module-context each rewrote one verb "
-            "differently; neither wording is preferred, so the paragraph is "
+            "block-context still holds watches and module-context withdrew "
+            "tracks; neither verb says what the paragraph means, so it is "
             "restated"
         ),
     },
