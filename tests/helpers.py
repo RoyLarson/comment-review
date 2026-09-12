@@ -48,6 +48,7 @@ from comment_review.flows.distribute import seed
 from comment_review.flows.fill import fill
 from comment_review.flows.page_for import page_of, source_of
 from comment_review.flows.proof_io import load_proof
+from comment_review.machine.repo import git
 
 #: `src/comment_review/desk/` -- the source `a_small_real_tree` copies from.
 #: Any package with a handful of ordinary Python files would do; this one was
@@ -156,6 +157,30 @@ def a_small_real_tree(tmp_path: Path) -> Path:
     repo.mkdir()
     for name in ("mark.py", "stages.py", "collator.py", "__init__.py"):
         (repo / name).write_bytes((_DESK / name).read_bytes())
+    return repo
+
+
+def a_git_checkout(tmp_path: Path) -> Path:
+    """`a_small_real_tree`, committed to a git checkout with a gitignored `corpora/`.
+
+    `corpora/vendored/stages.py` is a real `.py` file, as the corpora this
+    repo fetches hold real source, and `.gitignore` names `corpora/`. The four
+    files and `.gitignore` are committed; nothing else is.
+    """
+    repo = a_small_real_tree(tmp_path)
+    vendored = repo / "corpora" / "vendored"
+    vendored.mkdir(parents=True)
+    (vendored / "stages.py").write_bytes((_DESK / "stages.py").read_bytes())
+    (repo / ".gitignore").write_text("corpora/\n", encoding="utf-8")
+    tracked = ("mark.py", "stages.py", "collator.py", "__init__.py", ".gitignore")
+    identity = ("-c", "user.name=test", "-c", "user.email=test@example.com")
+    for args in (
+        ("init", "-q"),
+        ("add", *tracked),
+        (*identity, "commit", "-q", "-m", "the committed tree"),
+    ):
+        done = git(repo, *args)
+        assert done.returncode == 0, done.stderr
     return repo
 
 

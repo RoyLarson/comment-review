@@ -251,6 +251,36 @@ def git_ls_files(repo: Path) -> list[str] | None:
     return listed.stdout.splitlines()
 
 
+def unignored_files(repo: Path) -> list[str]:
+    """Every file git does not ignore, as a repo-relative posix path.
+
+    Tracked files and untracked files no ignore rule names -- `git ls-files
+    --cached --others --exclude-standard` -- less any tracked file the working
+    tree no longer holds, so each path names a file that is there now. `.git`
+    is never listed.
+
+    When git cannot answer -- not a checkout, or git absent -- every file
+    under `repo`, skipping `EXCLUDED_DIRS` by the parts of its path relative
+    to `repo`, as `walk_files` walks.
+
+    Args:
+        repo: the checkout.
+
+    Returns:
+        The paths, each naming a file under `repo`.
+    """
+    try:
+        listed = git(
+            repo, "ls-files", "-z", "--cached", "--others", "--exclude-standard"
+        )
+    except exceptions.GIT_ERRORS:
+        listed = None
+    if listed is None or listed.returncode != 0:
+        return [p.relative_to(repo).as_posix() for p in walk_files(repo)]
+    # `-z` ends each path with a NUL byte and quotes none of them.
+    return [rel for rel in listed.stdout.split("\0") if rel and (repo / rel).is_file()]
+
+
 def undraftable(into: Path, repo: Path) -> str:
     """Why drafts of files under `repo` cannot be written into `into`, or "".
 

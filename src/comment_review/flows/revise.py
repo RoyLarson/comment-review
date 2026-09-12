@@ -1,8 +1,9 @@
 """Pull a revise: a second proof of the whole tree, one stage's corrections set.
 
     the docket           the settled alterations for one editorial boundary
-        -> copy the repo         FIRST, so every file the docket does not
-                                  name is still present under the revise root
+        -> copy the repo         FIRST -- every file git does not ignore, so
+                                  every file the docket does not name is still
+                                  present under the revise root
         -> proof_setter.run      into a SCRATCH directory, disjoint from both
                                   the checkout and the copy
         -> overlay each draft    onto the copy, at the page path it names
@@ -37,7 +38,7 @@ from comment_review.desk.collator import known_addresses
 from comment_review.docket.docket import Docket
 from comment_review.flows import proof_setter
 from comment_review.flows.page_for import page_of
-from comment_review.machine.repo import remove_tree, walk_files
+from comment_review.machine.repo import remove_tree, unignored_files, walk_files
 from comment_review.reading.addresser import address_for
 from comment_review.reading.lexer import language_for
 
@@ -46,8 +47,9 @@ class Pulled(NamedTuple):
     """One revise: where it landed, which number it is, and who set what.
 
     Attributes:
-        root: the revise -- a full copy of the repo with the docket's pages
-            overlaid. Absent when `refusals` is non-empty.
+        root: the revise -- a copy of every file in the repo git does not
+            ignore, with the docket's pages overlaid. Absent when `refusals`
+            is non-empty.
         revise: the number this revise was pulled as. Passed through, never
             computed here -- `TODO/the-flow-assumes-every-role-reads-at-once.md`
             T2 is what a binder later reads this against.
@@ -80,7 +82,7 @@ class AddressesMoved(Exception):
 
 
 def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
-    """The whole tree, with `docket`'s corrections set -- or nothing at all.
+    """The tree git does not ignore, with `docket`'s corrections set -- or nothing.
 
     Args:
         docket: the deserialized docket -- the settled alterations for
@@ -109,9 +111,17 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
     scratch = None
     try:
         # The copy is first, so a docket naming only some of the tree's pages
-        # still leaves a revise root that holds every file -- `proof_setter.run`
-        # only ever produces drafts for the pages a docket names.
-        shutil.copytree(repo, into, dirs_exist_ok=True)
+        # still leaves a revise root that holds every other file --
+        # `proof_setter.run` only ever produces drafts for the pages a docket
+        # names. It copies what `unignored_files` lists, from the working tree
+        # as it is now (`Process: #110`), so `.git` and ignored paths such as
+        # `corpora/` stay behind; `copy2` keeps each file's mode. A docket
+        # page the copy leaves out is still written by the overlay below,
+        # which makes its parent.
+        for rel in unignored_files(repo):
+            target = into / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(repo / rel, target)
 
         # The scratch directory is a sibling of `into`. `proof_setter.run`
         # refuses, through `undraftable`, a draft directory that overlaps the
@@ -130,14 +140,11 @@ def pull(docket: Docket, repo: Path, into: Path, revise: int) -> Pulled:
             # `Process: #20` applies to that copy exactly as it applies to
             # the drafts.
             #
-            # !! `repo.remove_tree`, NOT `shutil.rmtree`, SINCE 2026-08-29 --
-            # the copy above includes `.git`, whose loose objects git writes
-            # READ-ONLY and Windows refuses to unlink. MEASURED on this
-            # machine: `shutil.rmtree` raised `PermissionError: [WinError 5]`
-            # and left 15 entries, so a refused `proof` run on the platform
-            # `CLAUDE.md` names as primary exited with a traceback AND left a
-            # complete-looking revise root holding none of the corrections --
-            # falsifying `Pulled.refusals`' own docstring.
+            # `repo.remove_tree`, not `shutil.rmtree`: `copy2` keeps each
+            # file's mode, so a read-only file in the checkout is read-only in
+            # the copy, and Windows refuses to unlink a read-only file.
+            # `shutil.rmtree` would raise and leave a complete-looking revise
+            # root holding none of the corrections.
             remove_tree(into)
             return Pulled(root=into, revise=revise, set_by={}, refusals=refusals)
 

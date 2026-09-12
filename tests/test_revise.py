@@ -6,6 +6,7 @@
 
 import shutil
 import stat
+from pathlib import Path
 
 import pytest
 from helpers import (
@@ -14,6 +15,7 @@ from helpers import (
     a_docket_over,
     a_docket_whose_claim_is_not_in_the_page,
     a_drop,
+    a_git_checkout,
     a_move,
     a_small_real_tree,
     copies_over,
@@ -23,6 +25,7 @@ from helpers import (
 from comment_review.desk.containers import EditCopy
 from comment_review.flows.revise import _set_by, pull
 from comment_review.flows.transcribe import docket_of
+from comment_review.machine.repo import git_ls_files
 
 
 def a_copy(role: str, paragraphs: dict[str, str], marks: dict) -> EditCopy:
@@ -159,8 +162,13 @@ def test_a_failure_mid_overlay_leaves_no_partial_revise(tmp_path, monkeypatch):
     # verbatim the state the docstring says cannot exist.
     repo = a_small_real_tree(tmp_path)
     into = tmp_path / "r1"
+    real = shutil.copy2
 
     def explodes(src, dst, *a, **kw):
+        # The copy out of `repo` goes through, so the failure lands in the
+        # overlay, whose drafts come from the scratch directory.
+        if Path(src).is_relative_to(repo):
+            return real(src, dst, *a, **kw)
         raise OSError("disk full (simulated)")
 
     monkeypatch.setattr("comment_review.flows.revise.shutil.copy2", explodes)
@@ -170,24 +178,25 @@ def test_a_failure_mid_overlay_leaves_no_partial_revise(tmp_path, monkeypatch):
 
 
 def test_a_failure_mid_copy_leaves_no_partial_revise(tmp_path, monkeypatch):
-    """A copy that raises after writing part of the tree leaves no `into`.
+    """A copy that raises part way through leaves no `into`.
 
-    The patched copy writes the whole tree and then raises, so a partial
-    `into` is on disk when the exception leaves the copy call.
+    The patched copy writes the first file and raises on the second, so a
+    partial `into` is on disk when the exception leaves the copy.
     """
     repo = a_small_real_tree(tmp_path)
     into = tmp_path / "r1"
-    real = shutil.copytree
+    real = shutil.copy2
+    copied = []
 
-    def copies_then_fails(src, dst, **kw):
-        real(src, dst, **kw)
-        raise OSError("path too long (simulated)")
+    def fails_on_the_second(src, dst, *a, **kw):
+        if copied:
+            raise OSError("path too long (simulated)")
+        copied.append(real(src, dst, *a, **kw))
 
-    monkeypatch.setattr(
-        "comment_review.flows.revise.shutil.copytree", copies_then_fails
-    )
+    monkeypatch.setattr("comment_review.flows.revise.shutil.copy2", fails_on_the_second)
     with pytest.raises(OSError):
         pull(a_docket_over(repo, ["mark.py"]), repo, into, revise=1)
+    assert copied and Path(copied[0]).is_relative_to(into)
     assert not into.exists()
 
 
@@ -199,12 +208,12 @@ def test_a_refusal_leaves_no_revise(tmp_path):
 
 
 def test_a_refusal_leaves_no_revise_when_the_copy_holds_a_read_only_file(tmp_path):
-    """!! `Pulled.refusals` SAYS *"root was discarded and does not exist"*, and
-    a checkout carries files the platform refuses to unlink: git writes loose
-    objects and packs under `.git/objects` read-only, and `shutil.copytree`
-    reproduces the mode. `pull` copies the tree WHOLE, so `.git` comes with it.
+    """`Pulled.refusals` says root was discarded and does not exist, and a
+    checkout can hold a file the platform refuses to unlink. `pull` copies
+    with `shutil.copy2`, which keeps each file's mode, so a read-only file in
+    the checkout is read-only in the copy.
 
-    ! THE PRECONDITION IS ASSERTED, NOT ASSUMED -- the same probe
+    The precondition is asserted, not assumed -- the same probe
     `tests/test_machine.py` uses, so this says nothing about a platform where
     a read-only file unlinks freely.
     """
@@ -227,3 +236,51 @@ def test_a_refusal_leaves_no_revise_when_the_copy_holds_a_read_only_file(tmp_pat
     docket = a_docket_whose_claim_is_not_in_the_page(repo, "mark.py")
     pulled = pull(docket, repo, tmp_path / "r1", revise=1)
     assert pulled.refusals and not pulled.root.exists()
+
+
+def files_under(root):
+    """Every file under `root`, as posix paths relative to it."""
+    return {p.relative_to(root).as_posix() for p in root.rglob("*") if p.is_file()}
+
+
+def test_a_pull_over_a_git_checkout_copies_the_files_git_does_not_ignore(tmp_path):
+    """Tracked files and untracked ones git does not ignore arrive, each as the
+    working tree holds it now. The gitignored `corpora/`, a tracked file
+    deleted from the working tree, and `.git` do not."""
+    repo = a_git_checkout(tmp_path)
+    (repo / "notes.py").write_bytes((repo / "stages.py").read_bytes())
+    (repo / "stages.py").unlink()
+    edited = (repo / "collator.py").read_bytes() + b"# edited, not committed\n"
+    (repo / "collator.py").write_bytes(edited)
+
+    pulled = pull(a_docket_over(repo, ["mark.py"]), repo, tmp_path / "r1", revise=1)
+
+    assert files_under(pulled.root) == {
+        ".gitignore",
+        "__init__.py",
+        "collator.py",
+        "mark.py",
+        "notes.py",
+    }
+    assert (pulled.root / "collator.py").read_bytes() == edited
+
+
+def test_a_pull_outside_git_copies_every_file_but_the_excluded_dirs(tmp_path):
+    """With no git to ask, every file under the tree arrives except those under
+    a directory `EXCLUDED_DIRS` names."""
+    repo = a_small_real_tree(tmp_path)
+    assert git_ls_files(repo) is None, "the tree must not be inside a git checkout"
+    (repo / "notes.txt").write_text("not a page\n", encoding="utf-8")
+    venv = repo / ".venv" / "lib"
+    venv.mkdir(parents=True)
+    (venv / "stages.py").write_bytes((repo / "stages.py").read_bytes())
+
+    pulled = pull(a_docket_over(repo, ["mark.py"]), repo, tmp_path / "r1", revise=1)
+
+    assert files_under(pulled.root) == {
+        "__init__.py",
+        "collator.py",
+        "mark.py",
+        "notes.txt",
+        "stages.py",
+    }
