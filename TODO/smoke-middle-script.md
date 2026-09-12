@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 60 of 66 tasks closed
+Progress: 66 of 66 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-09-11 (review of SP7 Task 8 at 34aea6d4, 2026-09-11)
@@ -229,22 +229,28 @@ The middle-chain smoke script carries the findings of its Task 8 review.
 - [x] T59 | the proof comment no longer says it stops at a2 | 8e4f933f | Update
       smoke_middle.ps1:552-555, which says the proof stops at a2 until the
       code-check ruling lands; it no longer does
-- [ ] T60 | Update the a3 and b9 reason strings in smoke_fixture.py, which
-      describe the first round after the turn changed it
-- [ ] T61 | Implement a recast in the plant over a place the roles filed a
-      non-correct instruction on, so Task 4's repair is exercised
+- [x] T60 | the a3 and b9 reasons describe the state after the turn | e4d4b4f5 | Update
+      the a3 and b9 reason strings in smoke_fixture.py, which describe the first
+      round after the turn changed it
+- [x] T61 | the chief recasts the add at fib.py@c3; undone, diff fails | aff741c6 | Implement
+      a recast in the plant over a place the roles filed a non-correct
+      instruction on, so Task 4's repair is exercised
         > 2026-09-11 final review: turn.py:664-665 reverted, the smoke still passes
-- [ ] T62 | Implement a drop in the plant of a place that owns a leading, so the
-      drop's leading rule is exercised
+- [x] T62 | the drop at rate.py@b5 owns a leading; undone, diff fails | 5eec3ad7 | Implement
+      a drop in the plant of a place that owns a leading, so the drop's leading
+      rule is exercised
         > 2026-09-11 final review: compositor.py:273 off, the smoke still passes
-- [ ] T63 | Implement a plant row whose outcome depends on the anchor fill seeds
-      at an empty place, so Task 2's repair is exercised
+- [-] T63 | SUPERSEDED by mark-defects T18: unplantable, Process 131 | 57fe5ffb | Implement
+      a plant row whose outcome depends on the anchor fill seeds at an empty
+      place, so Task 2's repair is exercised
         > 2026-09-11 final review: an emptied seeded anchor, the smoke still passes
-- [ ] T64 | Update the spec's What it is expected to surface at :256-260, which
-      says the script catches four defects it catches none of
+- [x] T64 | two repairs caught, two not, and why each is not | 7323030f | Update
+      the spec's What it is expected to surface at :256-260, which says the
+      script catches four defects it catches none of
         > 2026-09-11 true once the three rows above are planted
-- [ ] T65 | Implement turn query answers of shape outside-my-role and
-      unable-to-determine; only human-review-necessary is planted
+- [x] T65 | outside-my-role at a2 and unable-to-determine at b17, in the turn | 4e5dfa94 | Implement
+      turn query answers of shape outside-my-role and unable-to-determine; only
+      human-review-necessary is planted
         > 2026-09-11 check --contract lists three composition shapes
 - [x] T66 | RULED -- the script never deletes a run dir; dropped by hand | e81e8fb0 | Decide
       whether a run removes its run directory; 62 smoke-middle directories sat

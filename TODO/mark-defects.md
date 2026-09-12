@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 17 tasks closed
+Progress: 4 of 18 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -211,3 +211,6 @@ cites as its measured example of a field answering neither necessary nor purpose
 - [ ] T17 | Update fill to refuse an add at a place that already holds prose,
       which SKILL.md:68 defines as missing
         > 2026-09-11 smoke 89956870: add at a0 and c12 replaced the prose, every stage
+- [?] T18 | Decide what a mark's anchor is for, since nothing after fill reads
+      it; the proof reads the page's
+        > 2026-09-12 Process 131: smoke exits 0 with the seeded anchor emptied
