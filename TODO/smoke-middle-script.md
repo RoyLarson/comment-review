@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 59 of 66 tasks closed
+Progress: 60 of 66 tasks closed
 Owner:    systems
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-09-11 (review of SP7 Task 8 at 34aea6d4, 2026-09-11)
 ```
 
@@ -246,5 +246,6 @@ The middle-chain smoke script carries the findings of its Task 8 review.
 - [ ] T65 | Implement turn query answers of shape outside-my-role and
       unable-to-determine; only human-review-necessary is planted
         > 2026-09-11 check --contract lists three composition shapes
-- [?] T66 | Decide whether a run removes its run directory; 62 smoke-middle
-      directories sat in TEMP after one day
+- [x] T66 | RULED -- the script never deletes a run dir; dropped by hand | e81e8fb0 | Decide
+      whether a run removes its run directory; 62 smoke-middle directories sat
+      in TEMP after one day
