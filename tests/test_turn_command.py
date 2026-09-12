@@ -263,7 +263,7 @@ class TestRefusals:
         assert not (tmp_path / "proof1.json").exists()
         assert not (tmp_path / "batch2.json").exists()
 
-    def test_an_unanswered_slot_is_COVERAGE_and_the_place_stays(
+    def test_an_unanswered_slot_exits_7_and_the_proof_is_written(
         self, tmp_path, monkeypatch, capsys
     ):
         """Unanswered is not unreadable -- `Revisit.unreadable` is False -- so
