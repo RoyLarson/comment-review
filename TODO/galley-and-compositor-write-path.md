@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 21 of 33 tasks closed
+Progress: 21 of 35 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -189,3 +189,8 @@ files in `corpora/` are in that state today.
       compositor's to supply
         > 2026-09-11 check, collate, disposition all passed an unindented a2 add
         > 2026-09-11 Addressing 23 moved leading to the compositor the same way
+- [ ] T34 | Update the history narration in added lines at compositor.py:211-213
+      and galley.py:93-98
+- [ ] T35 | Identify the 3 of 3310 pages that do not set back byte-identical
+      unedited, and file what each shows
+        > 2026-09-11 final review: the vacated rule fired on none of them

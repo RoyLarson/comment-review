@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 59 of 60 tasks closed
+Progress: 59 of 66 tasks closed
 Owner:    systems
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-09-11 (review of SP7 Task 8 at 34aea6d4, 2026-09-11)
 ```
 
@@ -231,3 +231,20 @@ The middle-chain smoke script carries the findings of its Task 8 review.
       code-check ruling lands; it no longer does
 - [ ] T60 | Update the a3 and b9 reason strings in smoke_fixture.py, which
       describe the first round after the turn changed it
+- [ ] T61 | Implement a recast in the plant over a place the roles filed a
+      non-correct instruction on, so Task 4's repair is exercised
+        > 2026-09-11 final review: turn.py:664-665 reverted, the smoke still passes
+- [ ] T62 | Implement a drop in the plant of a place that owns a leading, so the
+      drop's leading rule is exercised
+        > 2026-09-11 final review: compositor.py:273 off, the smoke still passes
+- [ ] T63 | Implement a plant row whose outcome depends on the anchor fill seeds
+      at an empty place, so Task 2's repair is exercised
+        > 2026-09-11 final review: an emptied seeded anchor, the smoke still passes
+- [ ] T64 | Update the spec's What it is expected to surface at :256-260, which
+      says the script catches four defects it catches none of
+        > 2026-09-11 true once the three rows above are planted
+- [ ] T65 | Implement turn query answers of shape outside-my-role and
+      unable-to-determine; only human-review-necessary is planted
+        > 2026-09-11 check --contract lists three composition shapes
+- [?] T66 | Decide whether a run removes its run directory; 62 smoke-middle
+      directories sat in TEMP after one day

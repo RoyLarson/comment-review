@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 12 tasks closed
+Progress: 0 of 16 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `flows/collate.py` on the collate-
@@ -173,3 +173,13 @@ eight acts while `Collated` has eight attributes, so the two it omits -- `unrule
       `unruled` and `tally`, which the same loop computes at lines 496-498.
       Verify: every attribute of `Collated` is attributable to a named act, and
       a reader counting acts against fields finds a correspondence.
+- [ ] T13 | Update collate so a move's claim.to is checked against a page, as
+      Process 111 asks everywhere; collate.py:853 checks the address alone
+        > 2026-09-11 by reading; galley.reset is the first to refuse it today
+- [ ] T14 | Update _page_cues at collate.py:853-857 to guard the path it reads,
+      as collator.py:284 guards a cited one
+        > 2026-09-11 by reading; the read only asks whether a cue exists
+- [ ] T15 | Update the leading bang and capitalised runs added at
+      collate.py:801, :829, :847, :1006 and :1030
+- [ ] T16 | Update the history narration in added lines at collate.py:802 and
+      test_collate.py:1107

@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 20 of 34 tasks closed
+Progress: 20 of 36 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
           REAL reviewer agent -- census, mark --seed, the block-context agent, mark
           --check and taken_in are all commands; the middle is not)
@@ -171,8 +171,15 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       whether turn.py:337 overwrites claim.to
         > 2026-09-11 unconfirmed; a DiffMark correct or patch writes claim.to
         > 2026-09-11 by reading: the chief's c1 claim keeps the old false clause
+        > 2026-09-11 final review probe: confirmed; deserialize at :402 accepts it
 - [ ] T34 | Update turn so a correct or patch answer quotes the slot's modified
       text, not the original, per Process 115
         > 2026-09-11 verify: a correct answer at an add's empty place composes
         > 2026-09-11 overlaps stay uncomposed as today; Roy agreed 2026-09-11
         > 2026-09-11 in an escalation: whose modified text a correct quotes, to report
+- [?] T35 | Decide whether an add at an empty place settles when every other
+      role cleans it; turn.py:320-345 keeps it a re-read
+        > 2026-09-11 Process 89 says a lone mark stets when those roles agree
+        > 2026-09-11 set in daa86dc8; T30's note records it
+- [ ] T36 | Update the history narration in added lines at test_turn.py:854 and
+      :878
