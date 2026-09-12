@@ -255,15 +255,19 @@ that anything it stops on is new.
 
 ## What it is expected to surface
 
-Four known defects are inside its path. They are repaired before it is written, per the order
-above, and they are listed here because they are what the script would have caught had it existed
-on 2026-09-07:
+Four known defects were inside its path on 2026-09-07. Each was repaired before the script was
+written, and each is checked by undoing its repair and running the script again:
 
 - `disposition` writing every recast as `correct`, so a recast of an `add` at an empty place writes
-  nothing and exits 0.
-- The leading disagreement between the brief and the setter.
-- `fill` seeding a mark from the role's own entry where the copy has no slot.
-- The address checks that are absent at `mark` and at `check`.
+  nothing and exits 0. Caught: with the repair undone, the chief's recast of the `add` at
+  `fib.py@c3` lands nothing, and the `diff` stage fails.
+- The leading disagreement between the brief and the setter. Caught: with the repair undone, the
+  drop at `rate.py@b5` leaves the blank line it owns, and the `diff` stage fails.
+- `fill` seeding a mark from the role's own entry where the copy has no slot. Not caught: the
+  anchor `fill` seeds is carried forward and nothing after it reads it, so no row's outcome
+  depends on it (`decision-log.md Process: #131`).
+- The address checks that are absent at `mark` and at `check`. Not caught: they refuse bad input,
+  which this script leaves out of scope (above).
 
 Anything else it stops on is new, and is a defect with a reproduction attached.
 
