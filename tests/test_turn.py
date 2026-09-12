@@ -50,6 +50,7 @@ from comment_review.flows.turn import (
     contracts,
     determined_chief,
     proof_after,
+    refold,
     rule_at_max_turns,
     run_turn,
 )
@@ -723,6 +724,38 @@ class TestAnAddAtAnEmptyPlace:
         (held,) = _held_at(again, "function-context", EMPTY_PLACE)
         assert held.instruction is Instruction(answer["instruction"])
         assert held.claim == answer["claim"]
+
+
+class TestRefold:
+    """`no-command-for-the-middle` T55, `Process: #127`: `refold` re-derives
+    the fold at the turn the proof stands at, so a place the last turn left
+    escalated is an escalation there as well."""
+
+    def test_a_place_the_turn_escalated_is_an_escalation_again(self, tmp_path):
+        binder, got = an_add_at_an_empty_place(tmp_path)
+        batch = batch_of(got.escalations, got.rereads)
+        answers = {
+            **_answered(batch, "block-context", instruction="clean"),
+            **_answered(
+                batch,
+                "function-context",
+                instruction="patch",
+                reason="four is the word the rest of the fixture uses",
+                claim={"from": "w is 4", "to": "w is four"},
+                change=ADDED_TEXT.replace("w is 4", "w is four"),
+            ),
+        }
+        again = run_turn(_at(got), binder, tmp_path, batch, answers)
+        assert again.revisit == []
+        assert [e["address"] for e in again.escalations] == [EMPTY_PLACE]
+        # The proof as `commands/turn.py` writes it and `disposition` reads it.
+        wire = proof_after(again, ({"turn": 1, "sent": batch},)).serialize()
+        proof, why = MasterProof.deserialize("turn 1", wire)
+        assert proof is not None, why
+        refolded = refold(proof, binder, tmp_path)
+        assert [p for p in refolded.problems if p.address == EMPTY_PLACE] == []
+        assert refolded.rereads == []
+        assert [e["address"] for e in refolded.escalations] == [EMPTY_PLACE]
 
 
 #: `GAPPED_PAGE`'s one filled place, the comment above `y = 2`.

@@ -564,7 +564,7 @@ def run_turn(
         proof.stage, copies, binder, root, turn=turn, sent=(*_sent_of(proof), sent)
     )
     got = _keeping(got, earlier)
-    contested = {slot["address"] for slots in sent.values() for slot in slots}
+    contested = _asked(sent)
     got = _withdrawn(got, contested, turn)
     got = _agreed_adds(got, contested, turn)
     got = _disagreeing(got, contested)
@@ -578,6 +578,11 @@ def _sent_of(proof: MasterProof) -> tuple[dict, ...]:
         for record in proof.turns
         if isinstance(record, dict) and isinstance(record.get("sent"), dict)
     )
+
+
+def _asked(sent: dict) -> set[str]:
+    """Every address one batch sent to any role: the places that turn asked about."""
+    return {slot["address"] for slots in sent.values() for slot in slots}
 
 
 def _withdrawn(got: Collated, contested: set[str], turn: int) -> Collated:
@@ -714,13 +719,15 @@ def refold(proof: MasterProof, binder: Binder, root: Path) -> Collated:
         root: the checkout citations resolve against.
 
     Returns:
-        The `Collated`, with `proof.determined` kept over this fold's (`#91`).
+        The `Collated`, with `proof.determined` kept over this fold's (`#91`),
+        and every place the last recorded turn sent whose roles still hold
+        different texts an escalation, as `run_turn` returned it (`#127`).
     """
     copies, earlier = _unpacked(proof)
-    got = collate(
-        proof.stage, copies, binder, root, turn=proof.turn, sent=_sent_of(proof)
-    )
-    return _keeping(got, earlier)
+    sent = _sent_of(proof)
+    got = collate(proof.stage, copies, binder, root, turn=proof.turn, sent=sent)
+    got = _keeping(got, earlier)
+    return _disagreeing(got, _asked(sent[-1]) if sent else set())
 
 
 def _recast_claim(first: Mark, prose: str) -> dict:
