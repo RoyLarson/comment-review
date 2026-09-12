@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 31 of 51 tasks closed
+Progress: 34 of 53 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -240,18 +240,27 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [x] T47 | a composition correct or patch quotes the text it was sent | 60e477e2 | Update
       turn so a composition correct or patch quotes the text collate sent, not
       the original, per Process 115
-- [?] T48 | Decide whether a composition correct or patch at an add's empty
-      place composes with the add, or stays carried forward
+- [x] T48 | Process 123: carried forward; no change, the chief rules | c5b695de | Decide
+      whether a composition correct or patch at an add's empty place composes
+      with the add, or stays carried forward
         > 2026-09-12 T34's verify said composes; Process 115 leaves overlaps open
         > 2026-09-12 smoke b8, c3: the add and the answer both stand; chief takes in
-- [?] T49 | Decide whether a composition correct beside another role's clean
-      adoption folds as an escalation or a re-read
+- [x] T49 | Process 124: an escalation; T52 makes it so | c5b695de | Decide
+      whether a composition correct beside another role's clean adoption folds
+      as an escalation or a re-read
         > 2026-09-12 60e477e2 loosened test_turn.py:341 and :369 to accept either
         > 2026-09-12 before 60e477e2 it folded as an escalation
 - [ ] T50 | Update _answered so a mover's own clean at its move's origin keeps
       the move; T43's xfail test pins it
         > 2026-09-12 T43 at 5224085a: clean when unchanged, correct when reworded
-- [?] T51 | Decide whether the composition base and the drift check read the
-      page, not the binder, per Process 119
+- [x] T51 | Process 125: the base reads the page, drift does not; T53 | c5b695de | Decide
+      whether the composition base and the drift check read the page, not the
+      binder, per Process 119
         > 2026-09-12 flows/collate.py:948 and commands/check.py:96 read base_texts
         > 2026-09-12 by reading: differs only for a file outside the binder
+- [ ] T52 | Update the fold so a composition correct beside another role's clean
+      adoption folds as an escalation, per Process 124
+        > 2026-09-12 test_turn.py:341 and :369 assert the escalation again
+- [ ] T53 | Update the composition base to read the page's text at the mark's
+      address, not the binder's, per Process 125
+        > 2026-09-12 flows/collate.py:948 via base_texts; drift is left for T27
