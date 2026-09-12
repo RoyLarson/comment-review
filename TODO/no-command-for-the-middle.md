@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 38 of 55 tasks closed
+Progress: 39 of 55 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
           REAL reviewer agent -- census, mark --seed, the block-context agent, mark
           --check and taken_in are all commands; the middle is not)
@@ -175,6 +175,7 @@ Reconciliation has no command, so the chain cannot be driven end to end.
         > 2026-09-11 final review probe: confirmed; deserialize at :402 accepts it
         > 2026-09-11 the probe called _answered directly; no real fold reaches it
         > 2026-09-12 waits on T41, left open by Process 120
+        > 2026-09-12 Process 128: done now, from a real two-turn run
 - [-] T34 | SUPERSEDED by T47 and T48: split | 60e477e2 | Update turn so a
       correct or patch answer quotes the slot's modified text, not the original,
       per Process 115
@@ -198,6 +199,7 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [ ] T38 | Update turn so no answer overwrites a move claim.to with paragraph
       text; T33 confirmed it at turn.py:337
         > 2026-09-12 waits on T41, left open by Process 120
+        > 2026-09-12 Process 128: done now, after T33's test
 - [x] T39 | the page at the mark's address; for the turn, the text sent; P119 | 8894c9d3 | Decide
       how the fold verifies a turn-written correct or patch whose claim quotes
       the modified text, per Process 115
@@ -211,8 +213,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
         > 2026-09-11 T33's note: the chief's c1 claim keeps the old false clause
         > 2026-09-11 waits on T39, how the fold verifies it
         > 2026-09-12 waits on T44, the quote check Process 119 rules
-- [?] T41 | Decide whether T33's test calls _answered directly, since
-      collator.py:720-743 never sends a move end an escalation
+- [x] T41 | Process 128: T33's test runs a real two-turn collate, now | c4eaeeee | Decide
+      whether T33's test calls _answered directly, since collator.py:720-743
+      never sends a move end an escalation
         > 2026-09-11 set 2's real collate: both move ends came back as re-reads
         > 2026-09-12 Process 120: open until we have experimented enough to know
         > 2026-09-12 by reading, 18e757ad escalates a move whose ends disagree
