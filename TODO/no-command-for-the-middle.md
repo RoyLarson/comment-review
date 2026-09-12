@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 34 of 53 tasks closed
+Progress: 34 of 54 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -261,6 +261,12 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [ ] T52 | Update the fold so a composition correct beside another role's clean
       adoption folds as an escalation, per Process 124
         > 2026-09-12 test_turn.py:341 and :369 assert the escalation again
+        > 2026-09-12 Process 127: decided in the turn, not the collator
 - [ ] T53 | Update the composition base to read the page's text at the mark's
       address, not the binder's, per Process 125
         > 2026-09-12 flows/collate.py:948 via base_texts; drift is left for T27
+- [ ] T54 | Update the fold so an escalation where one role answers correct and
+      another holds stays an escalation after the turn
+        > 2026-09-12 5ff707be: the answer quotes its proposal, the hold the original
+        > 2026-09-12 found by probe in set 2; it now folds as a re-read
+        > 2026-09-12 Process 127: the same step in the turn as T52

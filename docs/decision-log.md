@@ -4204,3 +4204,12 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   Asked whether to do T50, then merge set 2 into `feat/the-agents-read-the-cli` with those three
   left open on the 0.2.4 plan -- Roy: *"Yes, both"*.
+
+- **#127.** **Where `#124`'s disagreement is decided** (Roy, 2026-09-12, on
+  `no-command-for-the-middle` T52: a collator row that made `#124`'s case an escalation also
+  escalated a turn-0 composition, since the collator cannot tell a `clean` adoption from a
+  `correct` of a whole paragraph).
+
+  Asked -- in the turn, where a place the turn asked about whose roles still hold different texts
+  becomes an escalation, turn 0 unchanged, which also covers T54 and escalates `fib.py@b8` and
+  `c3`; a collator row; or the turn marking an adoption in the copy -- Roy: *"In the turn"*.
