@@ -1,4 +1,4 @@
-"""Pulling a revise: a copy of the tree with one stage's corrections set.
+"""Pulling a revise: the docket's pages, with one stage's corrections set.
 
 `TODO/the-flow-assumes-every-role-reads-at-once.md` T3, delivered by task 8 of
 `.superpowers/sdd/2026-08-28-the-mark-and-the-revise/task-8-brief.md`.
@@ -6,6 +6,7 @@
 
 import shutil
 import stat
+from pathlib import Path
 
 import pytest
 from helpers import (
@@ -21,7 +22,9 @@ from helpers import (
 )
 
 from comment_review.desk.containers import EditCopy
-from comment_review.flows.revise import _set_by, pull
+from comment_review.flows import proof_setter
+from comment_review.flows.page_for import page_of
+from comment_review.flows.revise import AddressesMoved, _set_by, pull
 from comment_review.flows.transcribe import docket_of
 
 
@@ -35,6 +38,22 @@ def a_copy(role: str, paragraphs: dict[str, str], marks: dict) -> EditCopy:
     """
     binder = a_binder_over(paragraphs)
     return returned(copies_over(binder, {role: marks})[0])
+
+
+def every_other_file_fails_to_gather(monkeypatch, names: set[str]) -> None:
+    """Make the gate's reader raise on every file whose name is not in `names`.
+
+    The gate reads pages through `comment_review.flows.revise.page_of`, and
+    only that name is replaced, so `proof_setter.run` still reads and drafts
+    through its own import.
+    """
+
+    def reads_only_the_named(path, *args, **kwargs):
+        if Path(path).name not in names:
+            raise OSError(f"{path} cannot be gathered (simulated)")
+        return page_of(path, *args, **kwargs)
+
+    monkeypatch.setattr("comment_review.flows.revise.page_of", reads_only_the_named)
 
 
 class TestDocketOf:
@@ -134,20 +153,73 @@ class TestDocketOf:
         assert docket_of(copy).schedules == ()
 
 
-def test_the_revise_holds_every_library_file_and_only_the_scheduled_ones_differ(
-    tmp_path,
-):
-    repo = a_small_real_tree(tmp_path)  # INPUT FROM REALITY, not a fixture literal
-    pulled = pull(a_docket_over(repo, ["mark.py"]), repo, tmp_path / "r1", revise=1)
-    assert {p.name for p in pulled.root.rglob("*.py")} == {
-        p.name for p in repo.rglob("*.py")
-    }
-    changed = [
-        p
-        for p in pulled.root.rglob("*.py")
-        if p.read_bytes() != (repo / p.relative_to(pulled.root)).read_bytes()
-    ]
-    assert [p.name for p in changed] == ["mark.py"]
+def test_the_revise_holds_only_the_docket_page_as_drafted(tmp_path):
+    """A pull holds each page the docket schedules, as drafted, and no other file.
+
+    The write phase copies only the files it modifies --
+    `docs/decision-log.md Process: #117`. The expected bytes are
+    `proof_setter.run`'s own draft of the same docket, so this test does not
+    restate what a draft holds.
+    """
+    repo = a_small_real_tree(tmp_path)  # input from reality, not a fixture literal
+    assert len(list(repo.glob("*.py"))) > 1, "one file cannot show a file left out"
+    docket = a_docket_over(repo, ["mark.py"])
+    pulled = pull(docket, repo, tmp_path / "r1", revise=1)
+    held = sorted(
+        p.relative_to(pulled.root).as_posix()
+        for p in pulled.root.rglob("*")
+        if p.is_file()
+    )
+    assert held == ["mark.py"]
+    drafted, refusals = proof_setter.run(docket, repo, tmp_path / "drafts")
+    assert not refusals
+    assert [made.path for made in drafted] == ["mark.py"]
+    assert (pulled.root / "mark.py").read_bytes() == drafted[0].draft.read_bytes()
+    assert drafted[0].draft.read_bytes() != (repo / "mark.py").read_bytes()
+
+
+def test_the_gate_passes_reading_only_the_docket_pages(tmp_path, monkeypatch):
+    """The gate compares the docket's pages and reads no other file.
+
+    Every file the docket does not name fails to gather here, so a gate that
+    walked either tree would raise on the first of them. `pull` runs the gate
+    before it returns, so a pull that returns is a gate that passed.
+    """
+    repo = a_small_real_tree(tmp_path)
+    docket = a_docket_over(repo, ["mark.py"])
+    every_other_file_fails_to_gather(monkeypatch, {"mark.py"})
+    pulled = pull(docket, repo, tmp_path / "r1", revise=1)
+    assert not pulled.refusals
+    assert (pulled.root / "mark.py").is_file()
+
+
+def test_the_gate_raises_on_a_docket_page_whose_addresses_moved(tmp_path, monkeypatch):
+    """A draft whose code moved raises `AddressesMoved`, and no revise is left.
+
+    The draft gains a function at its end after `proof_setter.run` proved it,
+    so addresses appear in the revise that the original does not hold -- the
+    change `Process: #35`'s gate exists to catch. Every other file fails to
+    gather, so the raise comes from the docket's page alone.
+    """
+    repo = a_small_real_tree(tmp_path)
+    docket = a_docket_over(repo, ["mark.py"])
+    real_run = proof_setter.run
+
+    def drafts_then_moves_the_code(docket, repo, into):
+        drafted, refusals = real_run(docket, repo, into)
+        for made in drafted:
+            added = b"\n\ndef added():\n    return 1\n"
+            made.draft.write_bytes(made.draft.read_bytes() + added)
+        return drafted, refusals
+
+    monkeypatch.setattr(
+        "comment_review.flows.revise.proof_setter.run", drafts_then_moves_the_code
+    )
+    every_other_file_fails_to_gather(monkeypatch, {"mark.py"})
+    into = tmp_path / "r1"
+    with pytest.raises(AddressesMoved):
+        pull(docket, repo, into, revise=1)
+    assert not into.exists()
 
 
 def test_a_failure_mid_overlay_leaves_no_partial_revise(tmp_path, monkeypatch):
@@ -170,24 +242,28 @@ def test_a_failure_mid_overlay_leaves_no_partial_revise(tmp_path, monkeypatch):
 
 
 def test_a_failure_mid_copy_leaves_no_partial_revise(tmp_path, monkeypatch):
-    """A copy that raises after writing part of the tree leaves no `into`.
+    """A write of the drafts that fails part way leaves no `into`.
 
-    The patched copy writes the whole tree and then raises, so a partial
-    `into` is on disk when the exception leaves the copy call.
+    The docket names two pages. The patched copy writes the first draft and
+    raises on the second, so one drafted page is on disk under `into` when the
+    exception leaves the copy.
     """
     repo = a_small_real_tree(tmp_path)
     into = tmp_path / "r1"
-    real = shutil.copytree
+    real = shutil.copy2
+    written = []
 
-    def copies_then_fails(src, dst, **kw):
-        real(src, dst, **kw)
-        raise OSError("path too long (simulated)")
+    def copies_once_then_fails(src, dst, *a, **kw):
+        if written:
+            raise OSError("path too long (simulated)")
+        written.append(real(src, dst, *a, **kw))
 
     monkeypatch.setattr(
-        "comment_review.flows.revise.shutil.copytree", copies_then_fails
+        "comment_review.flows.revise.shutil.copy2", copies_once_then_fails
     )
     with pytest.raises(OSError):
-        pull(a_docket_over(repo, ["mark.py"]), repo, into, revise=1)
+        pull(a_docket_over(repo, ["mark.py", "collator.py"]), repo, into, revise=1)
+    assert written, "no draft was written, so nothing failed part way"
     assert not into.exists()
 
 
@@ -199,12 +275,15 @@ def test_a_refusal_leaves_no_revise(tmp_path):
 
 
 def test_a_refusal_leaves_no_revise_when_the_copy_holds_a_read_only_file(tmp_path):
-    """!! `Pulled.refusals` SAYS *"root was discarded and does not exist"*, and
-    a checkout carries files the platform refuses to unlink: git writes loose
-    objects and packs under `.git/objects` read-only, and `shutil.copytree`
-    reproduces the mode. `pull` copies the tree WHOLE, so `.git` comes with it.
+    """A refused pull leaves no revise when the checkout holds a read-only file.
 
-    ! THE PRECONDITION IS ASSERTED, NOT ASSUMED -- the same probe
+    `Pulled.refusals` says *"root was discarded and does not exist"*, and a
+    checkout carries files the platform refuses to unlink: git writes loose
+    objects and packs under `.git/objects` read-only. The revise holds only
+    the docket's pages -- `docs/decision-log.md Process: #117` -- so such a
+    file never reaches it.
+
+    The precondition is asserted, not assumed -- the same probe
     `tests/test_machine.py` uses, so this says nothing about a platform where
     a read-only file unlinks freely.
     """
