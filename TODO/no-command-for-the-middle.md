@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 34 of 54 tasks closed
+Progress: 38 of 55 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -215,6 +215,8 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       collator.py:720-743 never sends a move end an escalation
         > 2026-09-11 set 2's real collate: both move ends came back as re-reads
         > 2026-09-12 Process 120: open until we have experimented enough to know
+        > 2026-09-12 by reading, 18e757ad escalates a move whose ends disagree
+        > 2026-09-12 so Process 120's premise may no longer hold
 - [x] T42 | Process 121: kept; a deferring query lets the add settle | 30b376ce | Decide
       whether a deferring query at an add's empty place settles the add, as
       d4e98476 does; Process 116 names only clean
@@ -250,23 +252,31 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       as an escalation or a re-read
         > 2026-09-12 60e477e2 loosened test_turn.py:341 and :369 to accept either
         > 2026-09-12 before 60e477e2 it folded as an escalation
-- [ ] T50 | Update _answered so a mover's own clean at its move's origin keeps
-      the move; T43's xfail test pins it
+- [x] T50 | a mover's own clean at its origin keeps the move | 1b249d0d | Update
+      _answered so a mover's own clean at its move's origin keeps the move;
+      T43's xfail test pins it
         > 2026-09-12 T43 at 5224085a: clean when unchanged, correct when reworded
 - [x] T51 | Process 125: the base reads the page, drift does not; T53 | c5b695de | Decide
       whether the composition base and the drift check read the page, not the
       binder, per Process 119
         > 2026-09-12 flows/collate.py:948 and commands/check.py:96 read base_texts
         > 2026-09-12 by reading: differs only for a file outside the binder
-- [ ] T52 | Update the fold so a composition correct beside another role's clean
-      adoption folds as an escalation, per Process 124
+- [x] T52 | a contested re-read with two texts escalates, in the turn | 18e757ad | Update
+      the fold so a composition correct beside another role's clean adoption
+      folds as an escalation, per Process 124
         > 2026-09-12 test_turn.py:341 and :369 assert the escalation again
         > 2026-09-12 Process 127: decided in the turn, not the collator
-- [ ] T53 | Update the composition base to read the page's text at the mark's
-      address, not the binder's, per Process 125
+- [x] T53 | a composition composes over the page's text | 7855a05b | Update the
+      composition base to read the page's text at the mark's address, not the
+      binder's, per Process 125
         > 2026-09-12 flows/collate.py:948 via base_texts; drift is left for T27
-- [ ] T54 | Update the fold so an escalation where one role answers correct and
-      another holds stays an escalation after the turn
+- [x] T54 | hold versus correct stays an escalation after the turn | 18e757ad | Update
+      the fold so an escalation where one role answers correct and another holds
+      stays an escalation after the turn
         > 2026-09-12 5ff707be: the answer quotes its proposal, the hold the original
         > 2026-09-12 found by probe in set 2; it now folds as a re-read
         > 2026-09-12 Process 127: the same step in the turn as T52
+- [ ] T55 | Update refold so it applies the in-turn escalation step as run_turn
+      does, per Process 127
+        > 2026-09-12 refold misses _disagreeing; disposition sees b8, c3 as re-reads
+        > 2026-09-12 no outcome moves today: rule_at_max_turns reads both lists
