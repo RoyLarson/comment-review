@@ -62,7 +62,11 @@ def docket_of(copy: EditCopy) -> Docket:
 
     Returns:
         A `Docket` -- one `Schedule` per sheet that carries at least one mark,
-        each naming that sheet's own path and sha and the COPY's role.
+        each naming that sheet's own path and sha and the COPY's role. An
+        alteration at a mark's own address carries the mark's anchor, which
+        the write end checks (`decision-log.md Process: #134`); a move's
+        destination is an address the mark carries no anchor for, so it
+        carries None.
 
     ! A SHEET WITH NO MARKS GETS NO SCHEDULE. A seeded copy holds a slot for
     every place; only the ones a role filled are edits, and an empty schedule
@@ -71,7 +75,11 @@ def docket_of(copy: EditCopy) -> Docket:
     schedules = []
     for sheet in copy.sheets:
         alterations = tuple(
-            Alteration(cue=cue_of(address).cue, text=text_at(address, mark))
+            Alteration(
+                cue=cue_of(address).cue,
+                text=text_at(address, mark),
+                anchor=mark.anchor if address == mark.address else None,
+            )
             for mark in sheet.marks
             for address in _touched_by(mark)
         )

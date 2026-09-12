@@ -18,6 +18,7 @@ from helpers import (
     a_move,
     a_small_real_tree,
     copies_over,
+    entries_of,
     returned,
 )
 
@@ -80,6 +81,22 @@ class TestDocketOf:
         assert [(one.cue, one.text) for one in schedule.alterations] == [
             ("b1", None),
             ("b8", "# set by the reconcile test suite (move)"),
+        ]
+
+    def test_the_anchor_rides_at_the_marks_own_address_only(self):
+        """`decision-log.md Process: #134` checks a mark's anchor at its own
+        address. A move's destination is a second address the mark carries no
+        anchor for, so its alteration carries none."""
+        copy = a_copy(
+            "block-context",
+            {"m.py@b1": "# a paragraph\n", "m.py@b8": "# elsewhere\n"},
+            {"m.py@b1": a_move("m.py@b1", "m.py@b8")},
+        )
+        (mark,) = entries_of(copy)
+        schedule = docket_of(copy).schedules[0]
+        assert [(one.cue, one.anchor) for one in schedule.alterations] == [
+            ("b1", mark.anchor),
+            ("b8", None),
         ]
 
     def test_the_schedule_carries_the_copys_own_role(self):

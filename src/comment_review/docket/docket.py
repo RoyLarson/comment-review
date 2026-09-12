@@ -13,7 +13,7 @@ page, binder. We have to be able to unwind the alterations pretty close to the
 same way."*
 
     level       READ                    WRITE
-    one place   a Paragraph             an ALTERATION -- a cue, and its text
+    one place   a Paragraph             an ALTERATION -- a cue, its text, its anchor
     one file    a Page / RedactedPage   a SCHEDULE: path, sha, alterations
     the whole   a Binder                a DOCKET: its schedules
 
@@ -116,6 +116,10 @@ class Alteration:
     Attributes:
         cue: the place on the page -- `b1`, `c0`.
         text: the replacement, or None to DELETE.
+        anchor: the anchor the mark carried at this place, or None where the
+            mark carries none for it -- a move's destination. The write end
+            refuses one that is not the page's anchor here
+            (`decision-log.md Process: #134`); None is not checked.
 
     !! `None` IS THE DELETE AND AN EMPTY STRING IS REFUSED -- see this module's
     header. Two spellings for one act is how a serialisation bug upstream
@@ -129,6 +133,7 @@ class Alteration:
 
     cue: str
     text: str | None
+    anchor: str | None = None
 
     @classmethod
     def deserialize(
@@ -153,9 +158,15 @@ class Alteration:
             return None, [f"{where}: every alteration needs a `cue`"]
         if "text" not in checked:
             return None, [f"{where}@{cue}: an alteration needs `text` (null deletes)"]
+        anchor = checked.get("anchor")
+        if anchor is not None and not isinstance(anchor, str):
+            return None, [
+                f"{where}@{cue}: an anchor must be text or absent, not"
+                f" {type(anchor).__name__}"
+            ]
         text = checked["text"]
         if text is None:
-            return cls(cue=cue, text=None), []
+            return cls(cue=cue, text=None, anchor=anchor), []
         if not isinstance(text, str):
             return None, [
                 f"{where}@{cue}: a replacement must be text or null, not"
@@ -167,11 +178,14 @@ class Alteration:
                 " Two spellings for one act is how a serialisation bug"
                 " becomes a deletion"
             ]
-        return cls(cue=cue, text=text), []
+        return cls(cue=cue, text=text, anchor=anchor), []
 
     def serialize(self) -> dict:
-        """This alteration as the wire dict."""
-        return {"cue": self.cue, "text": self.text}
+        """This alteration as the wire dict, with `anchor` only where it has one."""
+        out: dict = {"cue": self.cue, "text": self.text}
+        if self.anchor is not None:
+            out["anchor"] = self.anchor
+        return out
 
 
 @dataclass(frozen=True)
@@ -283,6 +297,17 @@ class Schedule:
         cue, which is the one thing that would make this lossy.
         """
         return {one.cue: one.text for one in self.alterations}
+
+    @property
+    def anchors(self) -> dict[str, str]:
+        """Cue -> the anchor the mark carried there, for each alteration with one.
+
+        What `flows.proof_setter._one` checks against the page's own anchors
+        (`decision-log.md Process: #134`).
+        """
+        return {
+            one.cue: one.anchor for one in self.alterations if one.anchor is not None
+        }
 
 
 @dataclass(frozen=True)
