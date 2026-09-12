@@ -198,6 +198,8 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       claim quotes the modified text, per Process 115
         > 2026-09-11 desk/collator.py:150-182 checks every quote against the binder
         > 2026-09-11 probe: claim.false is not in the paragraph this row seeded
+        > 2026-09-12 Process 119: a check against the binder alone is faulty
+        > 2026-09-12 collator.py:451 checks a place the binder lacks against empty text
 - [ ] T40 | Update turn so a correct answer's claim derives its change:
       claim.false quotes what the answer replaces
         > 2026-09-11 T33's note: the chief's c1 claim keeps the old false clause

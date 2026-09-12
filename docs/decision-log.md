@@ -4138,3 +4138,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   *"it always has the original but it also needs to new binder with the edits and a revised set of
   code"*.
+
+- **#119.** **Checking a quoted clause against the binder's copy of the original is a faulty
+  check: the binder is the seed for what can be ruled on, not everything that can be ruled on,
+  and not every file** (Roy, 2026-09-12, ruling on `no-command-for-the-middle` T39, which asked
+  what the fold checks a turn's `correct` or `patch` against once `#115` has it quote the modified
+  text; `desk/collator.py:150-182` checks every quote against `base_texts(binder)`).
+
+  Quoting back the session's description of the check -- *"It checks against the binder's copy of
+  the original, never against text the role sent back, so a role can't pass the check by quoting
+  something that isn't there."* -- Roy: *"This is a faulty check"*, and *"It is the same type of
+  error that assumed only visible addresses in the binder matter. The binder is the seed for what
+  can be ruled on it is not everything that can be ruled on and it is not every file"*.
+
+  **Not said:** what a quoted clause is checked against in its place.
