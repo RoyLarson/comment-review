@@ -24,9 +24,10 @@ a role reads the reasons and calls again.
     a slot already ruled     a second entry, inserted right after it, seeded
                              from the first's own anchor and raw_text
     no slot, a real place    appended to that page's sheet with the page's own
-                             anchor at that place and an empty raw_text -- an
-                             `add` on an empty place, which the binder does
-                             not carry. The base is the page's, never the
+                             anchor and raw_text at that place -- empty at an
+                             empty place, which the binder does not carry, and
+                             the page's prose at an `f` place, which no role
+                             is handed. The base is the page's, never the
                              role's own entry -- `desk.collator.base_texts`'s
                              rule for base texts, applied one layer up.
     no slot, no such page    refused
@@ -65,7 +66,7 @@ from comment_review.flows.page_for import page_of
 from comment_review.machine import constants
 from comment_review.machine.exceptions import READ_ERRORS
 from comment_review.machine.repo import can_escape, read_raw
-from comment_review.reading.addresser import unflatten
+from comment_review.reading.addresser import cue_of, unflatten
 
 #: The fields a role decides, in the order a mark carries them. `address` is
 #: how the entry is placed; `anchor` is never read off the entry at all --
@@ -143,8 +144,8 @@ def place_on_the_page(
 
     Returns:
         `(that sheet's marks list, the seeded slot, [])`, the slot carrying the
-        page's own anchor at that place and an empty `raw_text`, and not yet
-        on the sheet. Or `(None, {}, [message])` where no copy has a sheet for
+        page's own anchor and `raw_text` at that place, and not yet on the
+        sheet. Or `(None, {}, [message])` where no copy has a sheet for
         the page, there is no checkout, the page cannot be read, or the page
         carries no such place.
     """
@@ -168,7 +169,10 @@ def place_on_the_page(
     cue = address.partition("@")[2]
     if cue not in page.cues.places:
         return None, {}, [f"{address} names no place on that page"]
-    return marks, Mark.seed(address, page.cues.anchor_of(cue), ""), []
+    raw_text = next(
+        (p.raw_text for p in page.paragraphs if cue_of(p.address).cue == cue), ""
+    )
+    return marks, Mark.seed(address, page.cues.anchor_of(cue), raw_text), []
 
 
 def _quoted(root: Path | None, sources: object) -> tuple[list | None, list[str]]:

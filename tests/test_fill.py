@@ -14,6 +14,7 @@ import json
 from pathlib import Path
 
 import pytest
+from conftest import SAMPLE
 from helpers import a_binder_over, a_small_real_tree, binder_of
 
 from comment_review.desk.mark import Mark, untouched
@@ -222,6 +223,47 @@ class TestAnAddAtAPlaceHoldingProseKeepsItsWords:
         placed, why = fill(copy, self._add_at("m.py@b3", change), root)
         assert why == [] and placed is not None
         assert placed["raw_text"] == ""
+        assert _marks(copy)[-1] is placed
+
+
+class TestAnAddAtAnFPlaceKeepsThePagesProse:
+    """`mark-defects` T21. A role is handed no slot at an `f` place, so a
+    ruling there is seeded from the page -- its anchor and its `raw_text` --
+    and `decision-log.md Process: #132`'s check applies to the prose the page
+    holds. The page is `SAMPLE`, whose front matter `f0` is its interpreter
+    line."""
+
+    @pytest.fixture
+    def front(self, tmp_path) -> Path:
+        (tmp_path / "m.py").write_text(SAMPLE, encoding="utf-8", newline="")
+        return tmp_path
+
+    def _add_at_f0(self, change: str) -> dict:
+        return {
+            "address": "m.py@f0",
+            "instruction": "add",
+            "claim": {"missing": "what runs the module", "anchor": "`python`"},
+            "reason": "the interpreter line is all the front matter says",
+            "sources": [{"cite": "m.py:1"}],
+            "change": change,
+        }
+
+    def test_an_add_that_drops_the_prose_is_refused(self, front):
+        copy = seed(binder_of(front, 0), "block-context")
+        assert "m.py@f0" not in {m["address"] for m in _marks(copy)}
+        before = json.dumps(copy)
+        placed, why = fill(copy, self._add_at_f0("# runs as a script\n"), front)
+        assert placed is None
+        assert len(why) == 1 and "m.py@f0" in why[0] and "'usr'" in why[0], why
+        assert json.dumps(copy) == before
+
+    def test_an_add_that_keeps_the_prose_is_seeded_from_the_page(self, front):
+        copy = seed(binder_of(front, 0), "block-context")
+        change = "#!/usr/bin/env python\n# runs as a script\n"
+        placed, why = fill(copy, self._add_at_f0(change), front)
+        assert why == [] and placed is not None
+        assert placed["raw_text"] == "#!/usr/bin/env python"
+        assert placed["anchor"] == "<module>"
         assert _marks(copy)[-1] is placed
 
 
