@@ -631,7 +631,7 @@ class TestSourceVerificationRunsInProduction:
     def test_a_claim_quoting_a_sentence_absent_from_its_paragraph_is_reported(
         self, tmp_path
     ):
-        binder = one_place()
+        binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
         copies = copies_over(
             binder,
             {
@@ -645,7 +645,7 @@ class TestSourceVerificationRunsInProduction:
 
     def test_a_clean_run_still_reports_nothing(self, tmp_path):
         """The other side of it: verification must not invent a finding."""
-        binder = one_place()
+        binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
         copies = copies_over(binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}})
         got = collate("4c", copies, binder, root=tmp_path)
         assert got.problems == []
@@ -1239,12 +1239,16 @@ class TestAnAddressMustResolveAgainstAPage:
         got = collate("4c", [wire], binder, root=repo)
         assert [p for p in got.problems if p.address == absent] == []
 
-    def test_a_page_this_checkout_cannot_read_is_not_reported(self):
-        """The fictional-file fixtures every other test in this module builds
-        -- `m.py` names no real file under `REPO` -- must not become findings
-        just because they cannot be read. There is no page to measure the cue
-        against, so the run says nothing rather than guessing."""
-        binder = one_place()
-        copies = copies_over(binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}})
-        got = collate("4c", copies, binder, root=REPO)
-        assert got.problems == []
+    def test_a_file_this_checkout_does_not_hold_is_reported(self, tmp_path):
+        """`no-command-for-the-middle` T46, `decision-log.md Process: #122`: an
+        address whose page cannot be read resolves against nothing, and is
+        reported as an invented cue is."""
+        repo = a_small_real_tree(tmp_path)
+        binder = binder_of(repo, 0)
+        wire = seed(binder, "block-context")
+        sheet = next(s for s in wire["sheets"] if s["path"] == "mark.py")
+        sheet["marks"].append(a_clean("gone.py@b1"))
+        got = collate("4c", [wire], binder, root=repo)
+        found = [p for p in got.problems if p.address == "gone.py@b1"]
+        assert found, got.problems
+        assert found[0].role == "block-context"

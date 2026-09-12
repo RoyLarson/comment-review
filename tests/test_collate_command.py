@@ -579,7 +579,8 @@ class TestExitCodes:
         role owes an answer at this address, and a code exists so a caller can
         branch on something it would act on differently.
         """
-        binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})
+        root = tmp_path / "repo"
+        binder = a_real_binder_over(root, {"m.py@b1": BASE, "m.py@b5": BASE})
         # ! ONE ROLE, ONE RULING, EVERY SLOT KEPT -- the shape `_keeping_only`
         # cannot make, since that helper REMOVES the entry and this case needs
         # it present and unfilled.
@@ -602,7 +603,7 @@ class TestExitCodes:
                 "--edit-copy",
                 str(copy_path),
                 "--repo",
-                str(REPO),
+                str(root),
             ],
         )
         code = command.main()

@@ -822,8 +822,7 @@ def _page_cues(real: str, root: Path, cache: PageCache) -> Cues | None:
 
     Returns:
         The page's `Cues`, or `None` where `real` could not be turned into a
-        page at `root` -- unresolvable rather than false, which is what lets
-        `_resolution_problems` report nothing rather than guess.
+        page at `root`, which `_resolution_problems` reports.
     """
     page = _page_at(real, root, cache)
     return page.cues if page is not None else None
@@ -834,11 +833,12 @@ def _resolution_problems(
 ) -> list[Problem]:
     """One `Problem` per ruled mark whose address resolves against no page.
 
-    !! ONLY AN UNRESOLVABLE CUE IS REPORTED, NEVER AN UNREADABLE PAGE. Where
-    `_page_cues` answers `None` -- this checkout holds no file at `real`, so
-    there is no page to measure the cue against -- this reports nothing.
-    Reporting anyway would be the guess `Process: #97` already retired one
-    layer up: an address the binder lacks is not thereby one no page holds.
+    An address resolves when a page can be read at its path and that page
+    carries its cue. Where `_page_cues` answers `None` -- this checkout holds
+    no readable page at `real` -- the address resolves against nothing and is
+    reported, as a quote there is refused (`decision-log.md Process: #122`).
+    An address the binder lacks is not thereby unresolved: the page is read,
+    not the binder (`Process: #97`).
 
     `collator-defects` T40. Verify: an invented cue is refused, a valid empty
     place is not -- the case `Process: #97` settled, restated against the
@@ -851,9 +851,10 @@ def _resolution_problems(
         cache: shared across the stage's copies, keyed by real path.
 
     Returns:
-        One `Problem` per mark whose cue no readable page carries, in sheet
-        then mark order. ! AN EMPTY ADDRESS IS SKIPPED -- `clean` is the one
-        row a mark may carry none for, and there is no place to resolve.
+        One `Problem` per mark whose path no page can be read at, or whose
+        cue its page does not carry, in sheet then mark order. ! AN EMPTY
+        ADDRESS IS SKIPPED -- `clean` is the one row a mark may carry none
+        for, and there is no place to resolve.
     """
     out: list[Problem] = []
     for sheet in copy.sheets:
@@ -863,7 +864,15 @@ def _resolution_problems(
                 continue
             real = unflatten(addr.path, paths) or addr.path
             cues = _page_cues(real, root, cache)
-            if cues is not None and addr.cue not in cues.places:
+            if cues is None:
+                out.append(
+                    Problem(
+                        copy.role,
+                        mark.address,
+                        f"resolves against no page -- no page can be read at {real}",
+                    )
+                )
+            elif addr.cue not in cues.places:
                 out.append(
                     Problem(
                         copy.role,
