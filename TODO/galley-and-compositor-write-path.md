@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 28 of 44 tasks closed
+Progress: 32 of 44 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
           write path, which is the one place a defect reaches disk)
 RE-VERIFIED: 2026-08-23 — 2026-08-23. Task 1 is FIXED and ticked -- the destructive case
@@ -208,8 +208,9 @@ files in `corpora/` are in that state today.
       taken_in so with no paths it compares the pages the revise holds, not
       every page of the original
         > 2026-09-11 since 4bf2acd3 every unwritten page prints NOT COMPARED on stderr
-- [?] T39 | Decide whether a later stage gathering from a revise reads the pages
-      that revise did not write from the original
+- [x] T39 | always the original, plus a new binder and revised code; Process 118 | 180b9fa2 | Decide
+      whether a later stage gathering from a revise reads the pages that revise
+      did not write from the original
         > 2026-09-11 one stage this release, SKILL.md:329-332
         > 2026-09-11 a cite to an unwritten page would not resolve
 - [x] T40 | flows/__init__.py and transcribe.py say a pull copies no other file | 6d006aa7 | Update
@@ -220,13 +221,16 @@ files in `corpora/` are in that state today.
       test_taken_in.py:89-90 for Process 117
         > 2026-09-11 each describes a revise root holding the whole tree
         > 2026-09-11 test_taken_in.py's part landed in 7a514831 with T38's test
-- [ ] T42 | Update the default-walk comment at commands/taken_in.py:63 so it has
-      no !! or caps run and no past behaviour
+- [x] T42 | the default-walk comment states the rule, no bang, no old walk | 97d81d1e | Update
+      the default-walk comment at commands/taken_in.py:63 so it has no !! or
+      caps run and no past behaviour
         > 2026-09-11 introduced in 7a514831; the set 1 finishing brief forbade both
         > 2026-09-11 the old walk it narrates is history in code
-- [ ] T43 | Update the comment in test_taken_in.py's unreadable-page test (:109)
-      so it has no leading ! or caps run
+- [x] T43 | the explicit-path comment has no leading bang or caps run | 97d81d1e | Update
+      the comment in test_taken_in.py's unreadable-page test (:109) so it has no
+      leading ! or caps run
         > 2026-09-11 introduced in 7a514831; the set 1 finishing brief forbade both
-- [ ] T44 | Update the docstring of test_taken_in.py's no-paths test (:41) so it
-      states the rule, not what Process 117 narrowed
+- [x] T44 | the docstring states the rule, citing Process 117 | 97d81d1e | Update
+      the docstring of test_taken_in.py's no-paths test (:41) so it states the
+      rule, not what Process 117 narrowed
         > 2026-09-11 introduced in 7a514831; no history narration, per the brief
