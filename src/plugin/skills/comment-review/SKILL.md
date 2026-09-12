@@ -34,9 +34,9 @@ Structure and fact first, then truth, then fit, then the page.
 !! **THIS IS THE BASELINE SHAPE, RULED 2026-09-04: every role reads ONCE, the copies fold ONCE,
 and nothing goes back to a role except a copy the checker refused.** No revise is pulled
 between stages and no batch of disagreements is sent out for a second reading. The `turn`
-command exists for that second reading and is the next experiment; it is not part of this
-run. What the baseline measures is how far one read per role, one fold and the chief's ruling
-get on a real codebase.
+command exists for that second reading and is the next experiment, run only when you are told
+a number of turns above zero -- see stage 5. What the baseline measures is how far one read
+per role, one fold and the chief's ruling get on a real codebase.
 
 **This file is the task agent's.** Each reviewer is a named agent carrying its own editorial role and
 reading [`references/reviewer-brief.md`](references/reviewer-brief.md) itself.
@@ -702,11 +702,42 @@ and the fold composes them and carries the composition forward for a reading.
 It is UNSETTLABLE by the roles or by you, rides on the master proof, and is put to the author at
 7a. A `query` of the other two shapes is that role abstaining from the place.
 
+### A turn, when you are told to run turns
+
+How many turns a run takes is what you are told, and the baseline is told none. Told a number
+above zero, run up to that many turns between `collate` and `disposition`. Each turn sends the
+last batch out and folds what comes back:
+
+1. **Send each role the batch.** Every role the batch names gets the batch's absolute path, its
+   own role name, the master proof the batch went out with, and a path to write its answers to.
+2. **Check each role's answers when it returns**, before the fold. A file the check refuses goes
+   back to its role with the lines it printed, as a copy does at stage 4:
+
+   ```bash
+   python <skill>/scripts/comment-review.py check --answers <run-dir>/answers1_<role>.json \
+     --sent <run-dir>/batch1.json --role <role> --proof <run-dir>/proof0.json --repo .
+   ```
+
+3. **Fold them**, with one `--answers` for every role the batch named:
+
+   ```bash
+   python <skill>/scripts/comment-review.py turn --proof <run-dir>/proof0.json --binder <run-dir>/binder.json \
+     --sent <run-dir>/batch1.json --answers block-context=<run-dir>/answers1_block-context.json \
+     --answers function-context=<run-dir>/answers1_function-context.json \
+     --proof-out <run-dir>/proof1.json --batch-out <run-dir>/batch2.json --repo .
+   ```
+
+`turn` exits the codes in the table above, and each asks of you what it asks after `collate`,
+except that a place carried forward while a turn is left goes out in the next turn rather than
+to your ruling. The next turn reads `proof1.json` and sends `batch2.json`; a turn that carries
+nothing forward writes no batch, and there is no next turn to run. The last proof a turn wrote
+is the one `disposition` closes.
+
 ### Ruling at max turns -- you are the copy chief
 
 !! **THE BASELINE RUNS NO TURN.** `batch1.json` is what a turn would send back to the roles;
-leave it. Every place `collate` carried forward is yours to rule NOW, once, and there are two
-rulings:
+leave it. Every place still carried forward -- after `collate` in the baseline, after the last
+turn otherwise -- is yours to rule now, once, and there are two rulings:
 
 | answer | when | what it carries |
 |---|---|---|
@@ -721,11 +752,13 @@ python <skill>/scripts/comment-review.py disposition --proof <run-dir>/proof0.js
   --repo . --dispositions <run-dir>/dispositions.json --out <run-dir>/chief.json --proof-out <run-dir>/final.json
 ```
 
+`--proof` is the last proof written: `proof0.json` when no turn ran, the last turn's otherwise.
+
 **`disposition` refuses a carried-forward place with no ruling, by name and with its roles, and writes
 nothing** -- rule it and run again. It prints every ruling as it lands and every unsettlable
 place with the role that asked; `chief.json` is the chief's `edit_copy`, one mark per resolved
 place, and it is what stages 6 and 7 read. ! `--stage` is `4` throughout: the four roles ran
-once, in one stage.
+in one stage.
 
 !! **A `taken_in` is a ruling, not a count.** Any `correct` outranks every `clean`: three roles
 finding nothing does not soften one role finding a falsehood, because they were not looking for
