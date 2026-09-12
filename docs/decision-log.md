@@ -4085,3 +4085,14 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `pyproject.toml`'s `[tool.ty]` scope is `src` and `tests`).
 
   *"No"*. *"Scripts are not source or tests. They are convenience"*.
+
+- **#115.** **In a turn, a `correct` or `patch` answer is made against the modified text, not the
+  original** (Roy, 2026-09-11, ruling on `no-command-for-the-middle` T32, raised when a hand-run
+  turn found no answer can propose different text at an `add`'s empty place: a composition
+  `correct` or `patch` quotes a base clause, and there the original has none).
+
+  *"I agree with you that the turn correct or patch has to be against to modified text not the
+  original. It wouldn't make sense in several cases including a drop or a correct and patch
+  composed. I am not certain how we make composed edits that overlap"*.
+
+  **Left open, in his words:** how composed edits that overlap are made.
