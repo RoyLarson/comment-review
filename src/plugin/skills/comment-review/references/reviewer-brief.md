@@ -295,17 +295,13 @@ place a thing belongs is refused.
 something you can work out** -- ask, as above. Your payload names WHAT is missing and WHICH
 anchor.
 
-!! **YOUR `change` REPLACES THE GAP, INCLUDING ITS BLANK LINES.** An interval is bounded by two
-lines of CODE and the gap between them is whatever sits there -- nothing, or blank lines. The
-edit is applied to the GAP, so a two-blank-line separation you do not write out is a separation
-the file loses. **Write the blank lines you want kept**, as blank lines in the raw text, the
-same way you would write them in the file.
+**Write no leading blank line at either end of your `change`.** The compositor supplies the
+leading from the place's kind, so a blank line you write at the start or the end of a `change`
+is a second one.
 
 !! **A `c` PLACE STARTS AT THE END OF THE CODE, so your `change` carries its own separator.**
 A trailing comment is written from the point the statement stops -- `"  # why"`, with the two
-spaces you want between them. Write `"# why"` and it lands hard against the code. This is the
-same rule an interval follows: the text is file-ready, and whatever whitespace you want is
-whitespace you write.
+spaces you want between them. Write `"# why"` and it lands hard against the code.
 
 ! **It is why a `margin` and the trailing comment that would replace it are ONE place.** Adding
 a comment where there is none and rewording one that is there write to the same column, so the
