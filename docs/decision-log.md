@@ -4130,3 +4130,11 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it leaves to the implementation.** The address gate compares the pages the revise holds
   against the same pages of the original -- measured the same day, gathering every file of this
   checkout for the gate took 249 seconds.
+
+- **#118.** **A later stage always has the original, and also needs a new binder with the edits
+  and a revised set of code** (Roy, 2026-09-11, ruling on `galley-and-compositor-write-path` T39:
+  once a revise holds only the pages its docket writes, `#117`, does a later stage gathering from
+  it read the pages it did not write from the original).
+
+  *"it always has the original but it also needs to new binder with the edits and a revised set of
+  code"*.
