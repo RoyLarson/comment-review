@@ -266,9 +266,10 @@ LANDINGS: dict[str, Landing] = {
     # block-context's add, on an absent b above `return wrapper`, indented
     # to logged's own body depth. In the turn function-context answers the
     # composition with a correct and the other two roles clean it, so an add
-    # and a correct both stand there and the place is still carried forward;
-    # disposition takes in function-context's text. `marked` is the add's own
-    # change, which its `mark` call carries.
+    # and a correct both stand there, two texts at one place, and the place
+    # is carried forward as an escalation; disposition takes in
+    # function-context's text. `marked` is the add's own change, which its
+    # `mark` call carries.
     "fib.py@b8": Landing(
         "text",
         route="disposition",
@@ -295,10 +296,10 @@ LANDINGS: dict[str, Landing] = {
     ),
     # function-context's add, on an absent c beside `@functools.wraps(fn)`.
     # In the turn module-context answers the composition with a patch and
-    # the other two roles clean it, so an add and a patch both stand there
-    # and the place is still carried forward; disposition takes in
-    # module-context's text. `marked` is the add's own change, which its
-    # `mark` call carries.
+    # the other two roles clean it, so an add and a patch both stand there,
+    # two texts at one place, and the place is carried forward as an
+    # escalation; disposition takes in module-context's text. `marked` is
+    # the add's own change, which its `mark` call carries.
     "fib.py@c3": Landing(
         "text",
         route="disposition",
