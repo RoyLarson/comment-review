@@ -265,9 +265,9 @@ class TestTheDocketsOwnPages:
         assert docket.schedules[0].edits == {"b1": "# new", "c0": None}
 
     def test_an_alteration_carries_the_anchor_it_was_given(self):
-        """`decision-log.md Process: #134`: the write end checks a mark's
-        anchor, so the alteration carries it. One without an anchor, a move's
-        destination, carries None and writes no `anchor` key back."""
+        """`decision-log.md Process: #134`: the write end checks the anchor an
+        alteration carries, so the docket reads it back. One without an anchor
+        reads back as None and writes no `anchor` key back."""
         text = json.dumps(
             {
                 "pages": [

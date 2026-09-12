@@ -116,10 +116,11 @@ class Alteration:
     Attributes:
         cue: the place on the page -- `b1`, `c0`.
         text: the replacement, or None to DELETE.
-        anchor: the anchor the mark carried at this place, or None where the
-            mark carries none for it -- a move's destination. The write end
-            refuses one that is not the page's anchor here
-            (`decision-log.md Process: #134`); None is not checked.
+        anchor: the page's anchor at this place, as the docket's writer took
+            it -- `flows.transcribe.docket_of` takes a mark's own, and the
+            page's at a move's destination -- or None where a docket carries
+            none. The write end refuses one that is not the page's anchor
+            here (`decision-log.md Process: #134`); None is not checked.
 
     !! `None` IS THE DELETE AND AN EMPTY STRING IS REFUSED -- see this module's
     header. Two spellings for one act is how a serialisation bug upstream

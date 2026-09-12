@@ -491,7 +491,9 @@ class TestTheWriteEndChecksAMarksAnchor:
         repo, binder, _ = _tree(tmp_path)
         where = address(binder, "m.py")
         copy = self._copy(binder, where, anchor="a line the role invented")
-        drafted, refused = proof_setter.run(docket_of(copy), repo, tmp_path / "out")
+        drafted, refused = proof_setter.run(
+            docket_of(copy, repo), repo, tmp_path / "out"
+        )
         assert drafted == []
         assert [(r.step, r.path) for r in refused] == [("verify", "m.py")]
         assert where in refused[0].why, refused[0].why
@@ -501,7 +503,9 @@ class TestTheWriteEndChecksAMarksAnchor:
         repo, binder, _ = _tree(tmp_path)
         where = address(binder, "m.py")
         copy = self._copy(binder, where)
-        drafted, refused = proof_setter.run(docket_of(copy), repo, tmp_path / "out")
+        drafted, refused = proof_setter.run(
+            docket_of(copy, repo), repo, tmp_path / "out"
+        )
         assert refused == []
         assert "# NOTE" in drafted[0].draft.read_text(encoding="utf-8")
 

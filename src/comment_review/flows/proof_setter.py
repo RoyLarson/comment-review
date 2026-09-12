@@ -30,10 +30,9 @@ nearly true: Roy, 2026-08-25, *"besides reading the sha and file path/name you
 should not be assuming any binder things make it this far."*
 
 ! WHAT IS READ FROM DISK IS THE PAGE ITSELF. No paragraph text or kind crosses
-from anywhere, and the one anchor that does -- a mark's, carried on its
-alteration -- is checked against the page's and never set from
-(`decision-log.md Process: #134`); the sha is what says the file is still the
-one the agents read.
+from anywhere, and the one anchor that does -- the one an alteration carries --
+is checked against the page's and never set from (`decision-log.md Process:
+#134`); the sha is what says the file is still the one the agents read.
 
 ! THE ORDER LIVES HERE AND NOWHERE ELSE. The galley edits, the compositor sets,
 and neither knows what runs next. `STEPS` names that sequence as DATA; nothing
