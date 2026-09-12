@@ -18,14 +18,16 @@ from comment_review.docket.docket import Docket
 def a_copy_on_disk(tmp_path, binder):
     """A role's filled `edit_copy`, written to disk, and the address it rules on.
 
-    !! THE ADDRESS COMES FROM THE BINDER, NOT THE PAGE, and that is the whole
+    The address comes from the binder, not the page, and that is the whole
     reason this helper picks it. MEASURED 2026-09-02: a page of `SAMPLE` carries
     14 addresses and `bind` keeps the 5 that hold prose, so an address taken off
     the page -- `m.py@a2` -- matches no seeded slot, `copies_over` attaches
-    nothing, and the copy goes out EMPTY. A test then asserting that the revise
-    holds `m.py` passes anyway, because `pull` copies the whole tree before it
-    sets a single page. **The binder is what a role is handed; it is the only
-    honest source for an address a mark can rule on.**
+    nothing, and the copy goes out empty. The write phase copies only the
+    files it modifies (`decision-log.md Process: #117`), so an empty copy
+    schedules no page at all: a test asserting the revise holds `m.py` fails
+    outright, rather than passing over a page it never touched. **The binder
+    is what a role is handed; it is the only honest source for an address a
+    mark can rule on.**
 
     !! SEEDED FROM THE REAL BINDER, not a synthetic one. The docket carries each
     page's sha straight off the sheet, and `proof_setter` refuses a page whose
@@ -79,10 +81,11 @@ class TestProofTakesAnEditCopy:
             str(tmp_path / "r1"),
         )
         assert code == 0, out
-        # !! THE PAGE MUST HAVE CHANGED, not merely exist. `pull` copies the whole
-        # tree before it sets anything, so `m.py` is present under a revise even
-        # when the docket is empty -- which is exactly what this assertion said
-        # until 2026-09-02, over a copy that carried no mark at all.
+        # The page must have changed, not merely exist. Since `decision-log.md
+        # Process: #117` a revise holds only the pages the docket schedules,
+        # so `m.py` is present here because `a_copy_on_disk` seeded a real
+        # mark for it -- this asserts that mark actually landed, not merely
+        # that the docket named the page.
         drafted = (tmp_path / "r1" / "m.py").read_text(encoding="utf-8")
         assert drafted != SAMPLE
 
@@ -420,12 +423,12 @@ class TestTheCommand:
         assert "is not a directory" in capsys.readouterr().out
 
     def test_an_out_that_ALREADY_EXISTS_is_REFUSED(self, tmp_path, capsys, monkeypatch):
-        """!! `--out` IS THE REVISE ROOT SINCE 2026-08-28, and `revise.pull`
-        copies `--repo` into it with `shutil.copytree`, which raises
-        `FileExistsError` on a directory that is already there -- even an
-        empty one, which `undraftable` (a non-directory or an overlap) does
-        not refuse. The same convention as every other bad `--out` above:
-        a reason printed at exit 2, not a traceback."""
+        """`--out` is the revise root, and this command's own `out.exists()`
+        check is what refuses one already there: `pull` makes `--out` itself
+        with `into.mkdir`, which would otherwise raise `FileExistsError` even
+        on an empty directory, which `undraftable` (a non-directory or an
+        overlap) does not refuse. The same convention as every other bad
+        `--out` above: a reason printed at exit 2, not a traceback."""
         from comment_review.commands import proof as cmd
 
         repo, _, _ = _tree(tmp_path)

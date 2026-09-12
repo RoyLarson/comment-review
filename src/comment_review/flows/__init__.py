@@ -19,9 +19,10 @@
     proof_setter   the results-side flow -- calls the galley, the compositor
                     and `prove_unchanged` in order, from a role's alterations to
                     a drafted file a human can read
-    revise         pulls one revise -- copies the repo, calls `proof_setter`,
-                    overlays the drafts -- for `TODO/the-flow-assumes-every-
-                    role-reads-at-once.md` T3
+    revise         pulls one revise -- drafts the docket's pages through
+                    `proof_setter` and writes each at its repo path, copying
+                    no other file (`Process: #117`) -- for `TODO/the-flow-
+                    assumes-every-role-reads-at-once.md` T3
 
 ! `carry`, `fan_out` AND `marks` WERE ABSENT FROM THIS INVENTORY UNTIL
 2026-08-29, having landed with the mark and the collator.

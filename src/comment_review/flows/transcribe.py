@@ -10,11 +10,12 @@ Process: #76`.
 
 !! IT IS ITS OWN FLOW BECAUSE IT IS ITS OWN ACT. It lived in `flows/revise.py`
 until `P55`+, whose docstring describes exactly one job -- *"Pull a revise: a
-second proof of the whole tree"* -- which transcription is not: `pull` never
-calls this, and `commands/proof.py` calls both. The cost of leaving it there was
-that `revise.py` imported `EditCopy`, `Instruction`, `text_at`, `Alteration` and
-`Schedule` for a function `pull` does not touch, so the module's import list
-stopped describing what the module's stated job needs. Every other flow file
+second proof of the pages one stage's corrections set"* -- which transcription
+is not: `pull` never calls this, and `commands/proof.py` calls both. The cost
+of leaving it there was that `revise.py` imported `EditCopy`, `Instruction`,
+`text_at`, `Alteration` and `Schedule` for a function `pull` does not touch,
+so the module's import list stopped describing what the module's stated job
+needs. Every other flow file
 here -- `distribute.seed`, `fan_out.fan`, `mark_errors.mark_errors`,
 `proof_setter.run` -- exposes one act.
 

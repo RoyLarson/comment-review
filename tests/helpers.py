@@ -149,8 +149,9 @@ def a_small_real_tree(tmp_path: Path) -> Path:
 
     ! REAL SOURCE, NEVER A HAND-AUTHORED LITERAL -- `CLAUDE.md`'s ruling for
     this suite. `mark.py` keeps its own name so a docket over "mark.py" names
-    a file that is actually there; the other three are along for the
-    "every library file" half of `test_revise.py`'s first case.
+    a file that is actually there; the other three are along so
+    `test_revise.py`'s own case can show a page the docket does not name is
+    missing from the revise, per `decision-log.md Process: #117`.
     """
     repo = tmp_path / "repo"
     repo.mkdir()
