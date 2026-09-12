@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 25 of 46 tasks closed
+Progress: 31 of 51 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -175,8 +175,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
         > 2026-09-11 final review probe: confirmed; deserialize at :402 accepts it
         > 2026-09-11 the probe called _answered directly; no real fold reaches it
         > 2026-09-12 waits on T41, left open by Process 120
-- [ ] T34 | Update turn so a correct or patch answer quotes the slot's modified
-      text, not the original, per Process 115
+- [-] T34 | SUPERSEDED by T47 and T48: split | 60e477e2 | Update turn so a
+      correct or patch answer quotes the slot's modified text, not the original,
+      per Process 115
         > 2026-09-11 verify: a correct answer at an add's empty place composes
         > 2026-09-11 overlaps stay uncomposed as today; Roy agreed 2026-09-11
         > 2026-09-11 in an escalation: whose modified text a correct quotes, to report
@@ -204,8 +205,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
         > 2026-09-11 probe: claim.false is not in the paragraph this row seeded
         > 2026-09-12 Process 119: a check against the binder alone is faulty
         > 2026-09-12 collator.py:451 checks a place the binder lacks against empty text
-- [ ] T40 | Update turn so a correct answer's claim derives its change:
-      claim.false quotes what the answer replaces
+- [x] T40 | an escalation's correct or patch claim quotes the role's proposal | 5ff707be | Update
+      turn so a correct answer's claim derives its change: claim.false quotes
+      what the answer replaces
         > 2026-09-11 T33's note: the chief's c1 claim keeps the old false clause
         > 2026-09-11 waits on T39, how the fold verifies it
         > 2026-09-12 waits on T44, the quote check Process 119 rules
@@ -217,11 +219,13 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       whether a deferring query at an add's empty place settles the add, as
       d4e98476 does; Process 116 names only clean
         > 2026-09-11 test_a_role_with_no_slot_there_is_seeded_one_from_the_page
-- [ ] T43 | Implement a test of a mover's own clean at its move's origin, to
-      settle whether _answered withdraws the move or makes it a correct
+- [x] T43 | the test shows the defect; xfail strict until the fix lands | 5224085a | Implement
+      a test of a mover's own clean at its move's origin, to settle whether
+      _answered withdraws the move or makes it a correct
         > 2026-09-11 found by reading in set 2: _answered's filled-text branch
-- [ ] T44 | Update the quote check so it reads the page at the mark's address
-      and, for a mark the turn wrote, the text collate sent there
+- [x] T44 | the quote check reads the page and the text a turn sent | f91722df | Update
+      the quote check so it reads the page at the mark's address and, for a mark
+      the turn wrote, the text collate sent there
         > 2026-09-12 Process 119; desk/collator.py:431-451 reads base_texts(binder)
         > 2026-09-12 Process 119: where no page can be read, the quote is refused
 - [x] T45 | Process 122: it reports a page it cannot read; T46 does it | 1f9ba90d | Decide
@@ -229,6 +233,25 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       cannot read, now the quote check refuses one
         > 2026-09-12 its docstring skips that case, citing Process 97
         > 2026-09-12 Process 111: an address is verified against its page, everywhere
-- [ ] T46 | Update _resolution_problems at flows/collate.py:824-867 so a page it
-      cannot read is reported, per Process 122
+- [x] T46 | an address whose page cannot be read is reported | fe13d10f | Update
+      _resolution_problems at flows/collate.py:824-867 so a page it cannot read
+      is reported, per Process 122
         > 2026-09-12 Process 122; its docstring skips that case, citing Process 97
+- [x] T47 | a composition correct or patch quotes the text it was sent | 60e477e2 | Update
+      turn so a composition correct or patch quotes the text collate sent, not
+      the original, per Process 115
+- [?] T48 | Decide whether a composition correct or patch at an add's empty
+      place composes with the add, or stays carried forward
+        > 2026-09-12 T34's verify said composes; Process 115 leaves overlaps open
+        > 2026-09-12 smoke b8, c3: the add and the answer both stand; chief takes in
+- [?] T49 | Decide whether a composition correct beside another role's clean
+      adoption folds as an escalation or a re-read
+        > 2026-09-12 60e477e2 loosened test_turn.py:341 and :369 to accept either
+        > 2026-09-12 before 60e477e2 it folded as an escalation
+- [ ] T50 | Update _answered so a mover's own clean at its move's origin keeps
+      the move; T43's xfail test pins it
+        > 2026-09-12 T43 at 5224085a: clean when unchanged, correct when reworded
+- [?] T51 | Decide whether the composition base and the drift check read the
+      page, not the binder, per Process 119
+        > 2026-09-12 flows/collate.py:948 and commands/check.py:96 read base_texts
+        > 2026-09-12 by reading: differs only for a file outside the binder
