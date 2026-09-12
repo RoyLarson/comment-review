@@ -235,6 +235,11 @@ nothing inside the repo; Roy, 2026-09-11, ruling on `smoke-middle-script` T19: *
 absolute literal statement. It should have been leaves no permanent code changes inside of the
 repo"*.
 
+**The script never deletes a run directory.** Its outputs stay where they are, so a run that
+breaks can be inspected, and they are removed by hand when no longer needed. Roy, 2026-09-11,
+ruling on `smoke-middle-script` T66: *"Neither the script doesn't drop anything. We drop the
+outputs manually when we are ready"*.
+
 ## The order: the fixes first, the script second
 
 Roy, 2026-09-08: *"Write it second because we do not want to confuse it with a TDD design
