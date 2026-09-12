@@ -4272,3 +4272,14 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   Asked, with the note that `fill` copies the anchor from the page so the check could not fail
   as things stand -- Roy: *"Write end checks it"*: the write end refuses a mark whose anchor is
   not the page's at its address.
+
+- **#135.** **Whether the write end refuses an alteration that carries no anchor** (Roy,
+  2026-09-12, on `galley-and-compositor-write-path` T46: since 72470b0f an anchor that disagrees
+  with the page is refused, and one that is absent is not checked -- a move's destination, a
+  docket written before, or one written by hand).
+
+  Roy: *"I don't know. What is the answer that is most likely to not confuse the agents or apply
+  the edits as expected?"* The session's answer, taken on that test: refuse a missing anchor at a
+  mark's own address, and exempt a move's destination. No agent writes the anchor -- `fill`
+  copies it from the page -- so the refusal fires only on a docket the flow did not write, which
+  is where an edit applying as expected is in doubt; a destination carries no anchor of its own.
