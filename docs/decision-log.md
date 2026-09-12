@@ -4245,3 +4245,27 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   Asked -- close T63 as unplantable and file a task to follow a mark's anchor to what consumes
   it; or give the write end a check that reads it -- Roy: *"Close; file the question"*.
+
+- **#132.** **What an `add` at a place that already holds prose does** (Roy, 2026-09-12, on
+  `mark-defects` T17, which the session had filed as a refusal from `SKILL.md:68`'s *"missing
+  entirely"* and built at 384dc8cc, with no ruling behind it).
+
+  Roy: *"Why would a mark refuse an Add at a place that is not empty?"* Then, asked what such an
+  `add` does -- accepted as missing text added to that paragraph, its change still holding the
+  existing text so nothing is lost; accepted and replacing the paragraph; or refused -- Roy:
+  *"Adds, keeping the prose"*.
+
+- **#133.** **Whether `turn` exits 7 as `collate` does** (Roy, 2026-09-12, on
+  `collate-command-defects` T21: `collate` exits 7 when places are carried forward and a role
+  left a place unruled; `turn` uses `collate`'s codes and was not changed, while `#112`'s reason
+  was *"regardless of which round it happened"*).
+
+  Roy: *"Yes, turn too"*.
+
+- **#134.** **What a mark's anchor is for** (Roy, 2026-09-12, on `mark-defects` T18: no code reads
+  it after `fill` -- `mark`'s `--anchor-line` value, `DiffMark.anchor` and an `Alteration` each
+  drop it -- while `SKILL.md:68` places an `add` "at the anchor named with it").
+
+  Asked, with the note that `fill` copies the anchor from the page so the check could not fail
+  as things stand -- Roy: *"Write end checks it"*: the write end refuses a mark whose anchor is
+  not the page's at its address.
