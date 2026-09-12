@@ -186,6 +186,7 @@ class TestExitCodes:
                 },
                 "function-context": {
                     "m.py@b1": a_correct_setting("m.py@b1", "two", "# b\n"),
+                    "m.py@b2": a_clean("m.py@b2"),
                 },
             },
         )
@@ -617,6 +618,54 @@ class TestExitCodes:
         assert "m.py@b1: handed to this role" not in out
         # ! THE ROUND STILL SETTLES, `Process: #63`.
         assert out_path.exists()
+
+    def test_an_escalation_beside_an_unruled_place_exits_its_own_code(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """`decision-log.md Process: #112`, `collate-command-defects` T21.
+
+        Two roles correct `m.py@b1` to different texts, an escalation, and
+        function-context leaves `m.py@b5` as it was handed, an unruled place.
+        The escalation's code sends a task agent to rule at max turns and
+        names no unruled place, so the case exits a code of its own.
+        """
+        root = tmp_path / "repo"
+        binder = a_real_binder_over(root, {"m.py@b1": BASE, "m.py@b5": BASE})
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {
+                    "m.py@b1": a_correct_setting("m.py@b1", "two", "# a\n"),
+                    "m.py@b5": a_clean("m.py@b5"),
+                },
+                "function-context": {
+                    "m.py@b1": a_correct_setting("m.py@b1", "two", "# b\n"),
+                },
+            },
+        )
+        binder_path = tmp_path / "binder.json"
+        binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
+        argv = [
+            "collate",
+            "--stage",
+            "4c",
+            "--binder",
+            str(binder_path),
+            "--out",
+            str(tmp_path / "chief.json"),
+        ]
+        for i, copy in enumerate(copies):
+            path = tmp_path / f"copy{i}.json"
+            path.write_text(json.dumps(copy), encoding="utf-8")
+            argv += ["--edit-copy", str(path)]
+        monkeypatch.setattr("sys.argv", argv)
+        code = command.main()
+        out = capsys.readouterr().out
+        assert "escalated m.py@b1" in out
+        assert "function-context m.py@b5: handed to this role and not ruled on" in out
+        assert code not in (command.ESCALATIONS, command.COVERAGE), out
+        assert code == command.CARRIED_AND_UNRULED == 7
+        assert (tmp_path / "chief.json").exists()
 
     def test_an_unreadable_input_exits_two(self, tmp_path, monkeypatch, capsys):
         monkeypatch.setattr(
