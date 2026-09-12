@@ -4112,3 +4112,21 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   **What it settles.** `#49` stands for an `add` at an empty place, so T29's slot stands with it.
   In the turn, every other role answering `clean` at that place is agreement, and the `add`
   settles.
+
+- **#117.** **The write phase copies only the files it modifies** (Roy, 2026-09-11, asked how
+  `Process: #35`'s address gate should compare a revise once `revise.pull` stopped copying the
+  whole checkout -- set 1, `galley-and-compositor-write-path` T13).
+
+  *"It would be crazy to pull everything. We only need the files that can reasonably be reviewed
+  or possibly written to. Also the agents are only asked to review certain files most of the time
+  as part of the binder and only modified files need to be copied for the write phase"*.
+
+  **What it replaces.** `revise.pull` built its revise root with `shutil.copytree` of the whole
+  checkout -- on 2026-09-07, 424 MB with `corpora/` and `.venv`, and 1,948 path errors -- and its
+  comment gave the reason: a docket naming only some pages still leaves a root holding every file.
+  T13 as filed narrowed that to the tracked files; this narrows it to the files the docket writes.
+  What the roles review is the binder's scope, which `gather` already sets.
+
+  **What it leaves to the implementation.** The address gate compares the pages the revise holds
+  against the same pages of the original -- measured the same day, gathering every file of this
+  checkout for the gate took 249 seconds.
