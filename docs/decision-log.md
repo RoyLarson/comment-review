@@ -4096,3 +4096,19 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   composed. I am not certain how we make composed edits that overlap"*.
 
   **Left open, in his words:** how composed edits that overlap are made.
+
+- **#116.** **An `add` at an empty place goes back to every role of the stage, and their `clean`
+  in the turn settles it** (Roy, 2026-09-11, ruling on `no-command-for-the-middle` T35).
+
+  **The question.** In the turn, the roles that never held an `add`'s empty place answered its
+  re-read with `clean`, and `flows/turn.py` (daa86dc8) kept each as a plain `clean` rather than
+  agreement, so the place stayed a re-read and the chief had to rule every one.
+  `no-command-for-the-middle` T29 (30071cf1) seeds those roles a slot from the page so they can
+  answer at all. Asked first whether such roles should be asked about the place, and shown
+  `Process: #49` -- *"An add on a new place is sent back to all of them"* -- Roy: *"So I am going
+  to go back to the original statement and so yes add to an empty goes back."* Then, on the
+  turn: *"And on the revise yes their clean settles it"*.
+
+  **What it settles.** `#49` stands for an `add` at an empty place, so T29's slot stands with it.
+  In the turn, every other role answering `clean` at that place is agreement, and the `add`
+  settles.

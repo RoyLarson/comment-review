@@ -154,6 +154,7 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       not refused for having no slot
         > 2026-09-11 flows/turn.py:323; collate sent the place to all four roles
         > 2026-09-11 smoke run 2026-09-11: 9 answers refused, b8 c3 a2 b15 b17
+        > 2026-09-11 stands: Process 49 reaffirmed; the roles need the slot
 - [x] T30 | a clean at an add's empty place says nothing further | daa86dc8 | Update
       turn so the adding role's own clean answer on its add is not read as a
       correct missing its clause
@@ -181,5 +182,6 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       role cleans it; turn.py:320-345 keeps it a re-read
         > 2026-09-11 Process 89 says a lone mark stets when those roles agree
         > 2026-09-11 set in daa86dc8; T30's note records it
+        > 2026-09-11 Roy: Process 49 stands; an add to an empty place goes back
 - [ ] T36 | Update the history narration in added lines at test_turn.py:854 and
       :878
