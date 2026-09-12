@@ -1,7 +1,7 @@
 """The turn: a batch answered, applied to the copies, folded again.
 
     parse_answers(role, sent, returned) -> (answers, revisit)
-    apply(copies, role, answers, root) -> revisit
+    apply(copies, role, sent, answers, root) -> revisit
     take_answers(copies, role, sent, returned, root) -> (answers, revisit)
     run_turn(proof, binder, root, sent, answers) -> Collated
     rule_at_max_turns(collated, address, answer, side, reason, turn, prose)
@@ -38,9 +38,10 @@ A COMPOSITION re-read is answered with a fresh `Mark` over the composed text
                 the composed side's, from the sent slot. A `clean` over the
                 BASE, where nothing composed, is a withdrawal. Where the base
                 is empty -- an `add`'s place -- no `correct` can quote it, so
-                the clean says the role has nothing further there: an entry
-                already carrying the slot's text stays as it is, and any
-                other becomes a `clean`
+                a role adopts the `add` the slot carries by holding that add,
+                its claim and sources included; an entry already carrying the
+                slot's text stays as it is. Where the slot carries no `add`
+                there, the entry becomes a `clean`
     query       the entry becomes the query
     correct     the entry becomes a `correct` over the ORIGINAL base whose
                 `change` is the role's. `claim.false` quotes the base because
@@ -59,10 +60,13 @@ refused there; one the batch did not send to the role is refused before, by
 `parse_answers`.
 
 Then `flows.collate.collate` runs again over the copies, and every place that
-agreed comes back as a `stet` Determined at this turn (`Process: #87`). What
-did not agree is the next turn's batch, until the task agent's max turns
-(`Process: #78`), where `rule_at_max_turns` records the chief's `taken_in` or
-`recast` and `determined_chief` derives the chief's copy from the whole set.
+agreed comes back as a `stet` Determined at this turn (`Process: #87`). The
+fold carries every place an `add` touches as a re-read, so where every role of
+that re-read now holds the same `add`, `_agreed_adds` records the `stet`
+(`Process: #116`). What did not agree is the next turn's batch, until the task
+agent's max turns (`Process: #78`), where `rule_at_max_turns` records the
+chief's `taken_in` or `recast` and `determined_chief` derives the chief's copy
+from the whole set.
 
 !! ONCE STET, ALWAYS STET -- `Process: #91`. A place determined on an earlier
 turn keeps that Determined, turn included, whatever the copies say now, and
@@ -108,7 +112,7 @@ from comment_review.desk.mark import (
     untouched,
     without_location,
 )
-from comment_review.flows.collate import Collated, _chief_copy, collate
+from comment_review.flows.collate import Collated, _chief_copy, _identical, collate
 from comment_review.flows.fill import place_on_the_page
 from comment_review.flows.mark_errors import Revisit
 from comment_review.results.differences import diff3
@@ -222,7 +226,7 @@ def parse_answers(
             if entry.get("instruction") == str(Instruction.CLEAN) and not entry.get(
                 "sources"
             ):
-                entry["sources"] = _sources_of_the_composition(slot)
+                entry["sources"] = list(_composition_of(slot).get("sources") or [])
             mark, why = Mark.deserialize(loc, entry)
             if mark is None:
                 revisit.append(_refused(role, address, address, why))
@@ -248,18 +252,19 @@ def parse_answers(
     return answers, revisit
 
 
-def _sources_of_the_composition(slot: dict) -> list:
-    """The sources of the mark whose text the slot carries.
+def _composition_of(slot: dict) -> dict:
+    """The mark whose text the slot carries, as the slot lists it.
 
-    The composed side's, or the lone mark's, so a role adopting it by `clean`
-    can hold a `correct` that parses. Empty where no mark on the slot carries
-    that text.
+    The composed side's, or the lone mark's. A role adopting it by `clean`
+    takes its sources, so the `correct` it then holds parses, and at an empty
+    place its claim as well, so the `add` it then holds parses. Empty where no
+    mark on the slot carries that text.
     """
     text = slot.get("raw_text")
     for mark in slot.get("marks", []):
         if isinstance(mark, dict) and mark.get("change") == text:
-            return list(mark.get("sources") or [])
-    return []
+            return mark
+    return {}
 
 
 def _entry_at(copies: list[dict], role: str, address: str) -> dict | None:
@@ -317,8 +322,32 @@ def _a_patch_over_base(entry: dict, answer: Mark) -> dict:
     }
 
 
-def _answered(entry: dict, answer: DiffMark | Mark) -> dict | None:
+def _an_add_adopting(entry: dict, added: dict) -> dict:
+    """The slot as an `add` of the text another role's `add` carries.
+
+    Its claim, sources and change are that add's, as the sent slot lists it;
+    its reason names the adoption.
+    """
+    return {
+        **Mark.seed(
+            entry["address"], entry.get("anchor", ""), entry.get("raw_text", "")
+        ),
+        "instruction": str(Instruction.ADD),
+        "claim": dict(added.get("claim") or {}),
+        "reason": "adopted the composition",
+        "sources": list(added.get("sources") or []),
+        "change": added.get("change", ""),
+    }
+
+
+def _answered(entry: dict, answer: DiffMark | Mark, composition: dict) -> dict | None:
     """What one slot becomes under one answer, per the tables above.
+
+    Args:
+        entry: the slot on the role's own copy.
+        answer: the role's answer there.
+        composition: `_composition_of` the slot the answer was sent, which a
+            `clean` at an empty place adopts where it is an `add`.
 
     Returns:
         The entry the slot is to hold, or None where it stays as it is -- a
@@ -349,6 +378,8 @@ def _answered(entry: dict, answer: DiffMark | Mark) -> dict | None:
             )
         if entry.get("change") == answer.raw_text:
             return None
+        if composition.get("instruction") == str(Instruction.ADD):
+            return _an_add_adopting(entry, composition)
         return _a_clean(entry)
     if answer.instruction is Instruction.QUERY:
         return {**answer.serialize(), "raw_text": entry.get("raw_text", "")}
@@ -362,6 +393,7 @@ def _answered(entry: dict, answer: DiffMark | Mark) -> dict | None:
 def apply(
     copies: list[dict],
     role: str,
+    sent: list,
     answers: list[tuple[str, DiffMark | Mark]],
     root: Path | None,
 ) -> list[Revisit]:
@@ -370,6 +402,8 @@ def apply(
     Args:
         copies: the wire copies `collate` was handed. MUTATED.
         role: whose answers these are.
+        sent: the slots the batch sent this role, which `parse_answers`
+            paired each answer to.
         answers: `parse_answers`' pairs.
         root: the checkout a page is read from, to seed a slot at a place the
             role's copy does not hold.
@@ -382,6 +416,11 @@ def apply(
         `Mark.deserialize`, the boundary the fold's `Sheet` runs, accepts it,
         so a refused answer leaves the slot as it stood.
     """
+    composed = {
+        slot["address"]: _composition_of(slot)
+        for slot in sent
+        if isinstance(slot, dict) and filled(slot.get("address"))
+    }
     revisit: list[Revisit] = []
     for address, answer in answers:
         entry = _entry_at(copies, role, address)
@@ -396,7 +435,7 @@ def apply(
                 ]
                 revisit.append(_refused(role, address, address, reasons))
                 continue
-        held = _answered(entry, answer)
+        held = _answered(entry, answer, composed.get(address, {}))
         if held is None:
             continue
         parsed, why = Mark.deserialize(address, held)
@@ -432,7 +471,7 @@ def take_answers(
         `parse_answers` and `apply` recorded.
     """
     answers, revisit = parse_answers(role, sent, slots_of(returned, role))
-    return answers, revisit + apply(copies, role, answers, root)
+    return answers, revisit + apply(copies, role, sent, answers, root)
 
 
 def _unpacked(proof: MasterProof) -> tuple[list[dict], dict[str, Determined]]:
@@ -490,6 +529,7 @@ def run_turn(
     got = _keeping(got, earlier)
     contested = {slot["address"] for slots in sent.values() for slot in slots}
     got = _withdrawn(got, contested, turn)
+    got = _agreed_adds(got, contested, turn)
     return replace(got, revisit=[*revisit, *got.revisit])
 
 
@@ -516,6 +556,48 @@ def _withdrawn(got: Collated, contested: set[str], turn: int) -> Collated:
             address, Answer.STET, turn, ORIGINAL, "withdrawn", "", None
         )
     return replace(got, determined=determined)
+
+
+def _agreed_adds(got: Collated, contested: set[str], turn: int) -> Collated:
+    """A contested `add` that every role of its re-read now holds is a `stet`.
+
+    `Process: #116`: at an add's empty place every other role's `clean` is
+    agreement, and `apply` writes that role as holding the same `add`. The
+    fold carries every place an `add` touches as a re-read whatever the roles
+    hold, so the agreement is read here: every owing mark is an `add`, every
+    role of the re-read holds one, and all carry one text (`Process: #88`).
+    At a place holding text a `clean` adopts by a `correct` instead, which the
+    fold settles as an escalation.
+
+    Returns:
+        The fold with each such place out of `rereads`, a `stet` Determined at
+        `turn` for it -- `how` "identical", or "one" where one role is left
+        to hold it -- and the chief's copy derived again.
+    """
+    agreed: dict[str, Determined] = {}
+    for entry in got.rereads:
+        address, marks = entry["address"], entry["marks"]
+        if address not in contested:
+            continue
+        if any(placed.mark.instruction is not Instruction.ADD for placed in marks):
+            continue
+        if not set(entry["roles"]) <= {placed.role for placed in marks}:
+            continue
+        one = _identical(marks)
+        if one is not None:
+            how = "identical" if len(marks) > 1 else "one"
+            agreed[address] = Determined(
+                address, Answer.STET, turn, one.role, how, "", one.mark
+            )
+    if not agreed or got.proof is None:
+        return got
+    determined = {**got.determined, **agreed}
+    return replace(
+        got,
+        determined=determined,
+        rereads=[e for e in got.rereads if e["address"] not in agreed],
+        chief=_chief_copy(got.proof.read_from, determined, got.proof),
+    )
 
 
 def _keeping(got: Collated, earlier: dict[str, Determined]) -> Collated:

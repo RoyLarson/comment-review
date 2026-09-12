@@ -507,7 +507,7 @@ def _held_at(got, role: str, address: str) -> list[Mark]:
 class TestAnAddAtAnEmptyPlace:
     """An `add` at an empty place is re-read by every role of the stage, and
     only the adding role's copy holds a slot there --
-    `no-command-for-the-middle` T29 and T30."""
+    `no-command-for-the-middle` T29, T30 and T37."""
 
     def test_a_role_with_no_slot_there_is_seeded_one_from_the_page(self, tmp_path):
         binder, got = an_add_at_an_empty_place(tmp_path)
@@ -525,22 +525,26 @@ class TestAnAddAtAnEmptyPlace:
         assert held.anchor == page.cues.anchor_of("b3")
         assert held.raw_text == ""
 
-    def test_every_role_clean_there_leaves_the_add_standing(self, tmp_path):
-        """A `clean` on a composition re-read says the role has nothing
-        further at the place. At an empty place no `correct` can quote the
-        base, so the adding role keeps its `add` and the other role holds a
-        `clean`; the place is re-read again, as every `add`'s place is."""
+    def test_every_role_clean_there_settles_the_add(self, tmp_path):
+        """`Process: #116`: every other role's `clean` at an add's empty
+        place is agreement. The other role adopts the add, and the place is a
+        `stet` at this turn carrying the add's text to the chief's copy."""
         binder, got = an_add_at_an_empty_place(tmp_path)
         batch = batch_of(got.escalations, got.rereads)
         answers = {r: [{**batch[r][0], "instruction": "clean"}] for r in batch}
         again = run_turn(_at(got), binder, tmp_path, batch, answers)
         assert again.revisit == []
-        (added,) = _held_at(again, "block-context", EMPTY_PLACE)
-        assert added.instruction is Instruction.ADD
-        assert added.change == ADDED_TEXT
+        assert again.problems == []
+        assert again.rereads == [] and again.escalations == []
         held = _held_at(again, "function-context", EMPTY_PLACE)
-        assert [m.instruction for m in held] == [Instruction.CLEAN]
-        assert [e["address"] for e in again.rereads] == [EMPTY_PLACE]
+        assert [(m.instruction, m.change) for m in held] == [
+            (Instruction.ADD, ADDED_TEXT)
+        ]
+        ruled = again.determined[EMPTY_PLACE]
+        assert (ruled.answer, ruled.turn, ruled.how) == (Answer.STET, 1, "identical")
+        assert [(m.instruction, m.change) for m in entries_of(again.chief)] == [
+            (Instruction.ADD, ADDED_TEXT)
+        ]
 
     def test_a_place_the_page_does_not_carry_is_still_refused(self, tmp_path):
         binder, got = an_add_at_an_empty_place(tmp_path)
