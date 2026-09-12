@@ -122,12 +122,17 @@ class TestTheLandingTableAgreesWithTheFixture(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def test_rate_holds_a_comment_at_b1_and_a_trailing_comment_at_c3(self):
+    def test_rate_holds_comments_at_b1_and_b5_and_a_trailing_comment_at_c3(self):
         by_cue = {cue_of(p): p for p in self.pages["rate.py"].paragraphs if p.text}
         self.assertEqual(
             {cue: p.kind for cue, p in by_cue.items()},
-            {"b1": "comment", "c3": "trailing-comment"},
+            {"b1": "comment", "c3": "trailing-comment", "b5": "comment"},
         )
+
+    def test_the_dropped_b5_owns_a_leading(self):
+        """The drop at `rate.py@b5` reaches the compositor's leading rule only
+        while the blank line below it is a leading `b5` owns."""
+        self.assertIn("b5", self.pages["rate.py"].leading)
 
     def test_each_claimed_landing_is_the_fixture_with_its_claim_applied(self):
         claimed = []

@@ -4237,3 +4237,11 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   Asked whether to merge with `no-command-for-the-middle` T62-T65 left open on the 0.2.4 plan,
   against the rule that a branch's own findings close before it merges -- Roy: *"Merge now"*.
+
+- **#131.** **Whether the smoke can plant a row that depends on `fill`'s seeded anchor** (Roy,
+  2026-09-12, on `smoke-middle-script` T63: nothing after `fill` reads a mark's anchor -- the
+  batch, the turn and the recast copy it forward, and the proof reads anchors off the page,
+  `flows/proof_setter.py:641-653` -- so the smoke exits 0 with the seeded anchor emptied).
+
+  Asked -- close T63 as unplantable and file a task to follow a mark's anchor to what consumes
+  it; or give the write end a check that reads it -- Roy: *"Close; file the question"*.

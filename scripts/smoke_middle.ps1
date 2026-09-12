@@ -235,7 +235,7 @@ $Stages = [ordered]@{
     # is seeded with the places that hold prose, so an add there creates its
     # slot in its own role's copy and no other role has one to rule on:
     # fib.py's a2, b8, b17 and c3 and the addresser row's place take one call
-    # each. A row's comment names a fib.py place by its cue alone; the two
+    # each. A row's comment names a fib.py place by its cue alone; the three
     # rate.py rows, last, name their page.
     mark = {
         Invoke-Checked -Stage 'plant-texts' -CommandLine @(
@@ -577,6 +577,26 @@ $Stages = [ordered]@{
                 '--settles', 'module-context',
                 '--reason', "this paragraph's subject is the wording of one comment, not my remit",
                 '--cite', 'rate.py:7', '--repo', $OriginalDir
+            ))
+        }
+        # rate.py@b5 -- the drop of a place that owns a leading, the blank
+        # line below it. block-context drops share's comment; the other three
+        # defer with a scope-declaring query rather than clean.
+        Invoke-Checked -Stage 'mark rate.py@b5 block-context drop' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'rate.py@b5',
+            '--instruction', 'drop',
+            '--drop', '    # Kept for callers that ask for a share rather than a rate.',
+            '--reason', "share's one line already says it hands the call to rate",
+            '--cite', 'rate.py:13', '--repo', $OriginalDir
+        ))
+        foreach ($role in @('ownership-context', 'function-context', 'module-context')) {
+            Invoke-Checked -Stage "mark rate.py@b5 $role query" -CommandLine ($Launcher + @(
+                $Cmd.mark, '--edit-copy', $CopyFile[$role], '--address', 'rate.py@b5',
+                '--instruction', 'query', '--shape', 'outside-my-role',
+                '--attempted', 'read the paragraph against the code at this place',
+                '--settles', 'block-context',
+                '--reason', "this paragraph's subject is what share's body already says, not my remit",
+                '--cite', 'rate.py:13', '--repo', $OriginalDir
             ))
         }
     }
