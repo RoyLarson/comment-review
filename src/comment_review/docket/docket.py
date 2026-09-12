@@ -120,7 +120,8 @@ class Alteration:
             it -- `flows.transcribe.docket_of` takes a mark's own, and the
             page's at a move's destination -- or None where a docket carries
             none. The write end refuses one that is not the page's anchor
-            here (`decision-log.md Process: #134`); None is not checked.
+            here (`decision-log.md Process: #134`), and refuses None
+            (`#135`).
 
     !! `None` IS THE DELETE AND AN EMPTY STRING IS REFUSED -- see this module's
     header. Two spellings for one act is how a serialisation bug upstream
@@ -301,7 +302,7 @@ class Schedule:
 
     @property
     def anchors(self) -> dict[str, str]:
-        """Cue -> the anchor the mark carried there, for each alteration with one.
+        """Cue -> the anchor the alteration there carries, for each one with one.
 
         What `flows.proof_setter._one` checks against the page's own anchors
         (`decision-log.md Process: #134`).

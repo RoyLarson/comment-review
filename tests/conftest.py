@@ -164,6 +164,12 @@ def docket_from(flat: dict, binder: Binder) -> Docket:
     nested JSON and reads it back, so the shape has a witness that does not go
     through this function -- which is the point, since a fixture built by the
     same code it feeds can only agree with it.
+
+    Each alteration carries the anchor the page it names holds at its place,
+    as `flows.transcribe.docket_of` gives one. The page is read from the
+    binder's root and built by `build`, because a binder carries only the
+    places that hold prose, and `build` is not the reader a test patches in
+    `flows.page_for`. A place the page does not carry gets no anchor.
     """
     paths = [p.path for p in binder.pages]
     shas = {p.path: p.sha for p in binder.pages}
@@ -172,6 +178,12 @@ def docket_from(flat: dict, binder: Binder) -> Docket:
         addr = cue_of(address)
         rel = unflatten(str(addr.path), paths) or str(addr.path)
         pages.setdefault(rel, []).append({"cue": str(addr.cue), "text": text})
+    for rel, alterations in pages.items():
+        text = (binder.root / rel).read_bytes().decode("utf-8")
+        places = build(text, rel).cues.places
+        for one in alterations:
+            if one["cue"] in places:
+                one["anchor"] = places[one["cue"]]
     wire = {
         "pages": [
             {"path": rel, "sha": shas.get(rel, ""), "alterations": alterations}

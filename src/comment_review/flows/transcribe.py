@@ -86,7 +86,7 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
         Process: #134` and `#135`): at a mark's own address the mark's, which
         `fill` copied from the page, and at a move's destination the anchor
         the sheet's page in `repo` holds there. A destination with no such
-        anchor carries None.
+        anchor carries None, which the write end refuses.
 
     ! A SHEET WITH NO MARKS GETS NO SCHEDULE. A seeded copy holds a slot for
     every place; only the ones a role filled are edits, and an empty schedule

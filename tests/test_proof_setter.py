@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 from conftest import PKG, SAMPLE, build, by_cue, cue, docket_from
+from helpers import a_move, copies_over, entries_of, returned
 
 from comment_review.binder.binder import bind
 from comment_review.desk.containers import EditCopy
@@ -508,6 +509,51 @@ class TestTheWriteEndChecksAMarksAnchor:
         )
         assert refused == []
         assert "# NOTE" in drafted[0].draft.read_text(encoding="utf-8")
+
+
+class TestEveryAlterationCarriesAnAnchor:
+    """`decision-log.md Process: #135`, as amended, and
+    `galley-and-compositor-write-path` T49. The write end refuses an
+    alteration that carries no anchor. The flow gives every alteration the
+    page's anchor at its place, a move's destination included, so its own
+    docket for a move is set."""
+
+    def test_an_alteration_with_no_anchor_is_refused(self, tmp_path):
+        repo, binder, _ = _tree(tmp_path)
+        where = address(binder, "m.py")
+        (page,) = binder.pages
+        docket, problems = Docket.deserialize(
+            "d.json",
+            {
+                "pages": [
+                    {
+                        "path": "m.py",
+                        "sha": page.sha,
+                        "alterations": [{"cue": cue_of(where).cue, "text": "# x"}],
+                    }
+                ]
+            },
+        )
+        assert docket is not None, problems
+        drafted, refused = proof_setter.run(docket, repo, tmp_path / "out")
+        assert drafted == []
+        assert [(r.step, r.path) for r in refused] == [("verify", "m.py")]
+        assert where in refused[0].why, refused[0].why
+        assert "no anchor" in refused[0].why, refused[0].why
+
+    def test_the_flows_own_docket_for_a_move_is_set(self, tmp_path):
+        repo, binder, _ = _tree(tmp_path)
+        origin = address(binder, "m.py")
+        destination = f"m.py@{min(c for c in ABSENT if c.startswith('b'))}"
+        move = a_move(origin, destination)
+        copy = returned(copies_over(binder, {"block-context": {origin: move}})[0])
+        (mark,) = entries_of(copy)
+        drafted, refused = proof_setter.run(
+            docket_of(copy, repo), repo, tmp_path / "out"
+        )
+        assert refused == []
+        again = build(drafted[0].draft.read_text(encoding="utf-8"))
+        assert by_cue(again)[cue_of(destination).cue].raw_lines == [mark.change]
 
 
 def test_A_REFUSAL_IS_NOT_LOST_to_a_later_page_that_raises(tmp_path, monkeypatch):

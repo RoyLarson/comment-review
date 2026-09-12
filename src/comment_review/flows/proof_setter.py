@@ -5,7 +5,7 @@
         -> reread the file FROM DISK                source_of
         -> the sha is the one the SCHEDULE recorded
         -> build the page                           page_of
-        -> each mark's anchor is the page's at its place
+        -> each alteration carries the page's anchor at its place
         -> galley          the marks are put on the page
         -> compositor      the page is set as text
         -> draft           a temporary file, never the original
@@ -355,12 +355,21 @@ def _one(
     if page is None:
         return None, Refusal("read", rel, why)
 
-    # Each mark's anchor is checked against the page's own anchor at the
-    # mark's place, which is what `decision-log.md Process: #134` rules the
-    # anchor is for. A place the page does not carry is left to
+    # Every alteration carries the page's anchor at its place, and each is
+    # checked against the page's own anchor there, which is what
+    # `decision-log.md Process: #134` and `#135` rule the anchor is for. An
+    # anchored alteration at a place the page does not carry is left to
     # `galley.reset`, which refuses it by name.
     places = page.cues.places
-    for where, anchor in anchors.items():
+    for where in edits:
+        anchor = anchors.get(where)
+        if anchor is None:
+            return None, Refusal(
+                "verify",
+                rel,
+                f"{address_for(rel, where)}: the alteration carries no anchor,"
+                " and every alteration carries the page's anchor at its place",
+            )
         at = places.get(where)
         if at is not None and at != anchor:
             return None, Refusal(
