@@ -4174,3 +4174,30 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   Asked whether it should report it -- `#97`'s reason was about guessing from the binder, and here
   the page itself is read -- Roy: *"Report it"*.
+
+- **#123.** **Whether a composition `correct` or `patch` at an add's empty place composes with the
+  add** (Roy, 2026-09-12, on `no-command-for-the-middle` T48: in the smoke the add and the answer
+  both stand at `fib.py@b8` and `c3`, and the chief rules each).
+
+  Asked -- carried forward, the adding role and the answering role holding different texts until
+  they agree or the chief rules; or composed, the answer being an edit of the add's own text --
+  Roy: *"Carried forward"*.
+
+- **#124.** **Whether a composition `correct` beside another role's `clean` adoption folds as an
+  escalation or a re-read** (Roy, 2026-09-12, on T49: before 60e477e2 it folded as an escalation,
+  since as a re-read).
+
+  Asked, with the reason that two roles holding different texts at one place disagree -- Roy:
+  *"Escalation"*.
+
+- **#125.** **Whether the composition base and the drift check read the page** (Roy, 2026-09-12,
+  on T51: `flows/collate.py:948` and `commands/check.py:96` read `base_texts(binder)`, which by
+  reading differs from the page only for a file outside the binder).
+
+  Roy: *"Read the page"*, the source the quote check reads (`#119`).
+
+- **#126.** **Whether set 2 merges with T33, T38 and T41 open** (Roy, 2026-09-12; `#120` leaves
+  them open until the system has been experimented with).
+
+  Asked whether to do T50, then merge set 2 into `feat/the-agents-read-the-cli` with those three
+  left open on the 0.2.4 plan -- Roy: *"Yes, both"*.
