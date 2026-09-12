@@ -43,7 +43,7 @@ def main(argv: list[str] | None = None) -> int:
     """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument(
-        "paths", nargs="*", help="pages to compare; default every page under --original"
+        "paths", nargs="*", help="pages to compare; default every page under --revise"
     )
     ap.add_argument(
         "--original", required=True, help="the checkout, or an earlier revise"
@@ -60,7 +60,13 @@ def main(argv: list[str] | None = None) -> int:
         print(f"CANNOT READ {args.revise}: not a directory")
         return 2
 
-    rels = args.paths or _every_page(original)
+    # !! DEFAULTS TO THE REVISE, NOT THE ORIGINAL. A pull now holds only the
+    # pages its docket schedules (`docs/decision-log.md Process: #117`), so a
+    # page the docket did not write is not the revise's to compare -- walking
+    # `original` named it anyway and printed a `NOT COMPARED ... could not be
+    # read` line for every such page. A path given explicitly is unaffected:
+    # naming one the revise lacks still reaches that same line, below.
+    rels = args.paths or _every_page(revise)
 
     changed_addresses: list[str] = []
     # !! A PAGE THIS CANNOT READ IS NAMED, AND WAS SILENTLY SKIPPED UNTIL
