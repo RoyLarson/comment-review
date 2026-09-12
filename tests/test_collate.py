@@ -1277,3 +1277,60 @@ class TestAnAddressMustResolveAgainstAPage:
         found = [p for p in got.problems if p.address == "gone.py@b1"]
         assert found, got.problems
         assert found[0].role == "block-context"
+
+    @pytest.mark.parametrize(
+        "destination",
+        [
+            pytest.param("mark.py@b9999", id="an-invented-cue"),
+            pytest.param("gone.py@b1", id="a-file-this-checkout-does-not-hold"),
+            pytest.param("# one\n# two\n# three", id="paragraph-text"),
+        ],
+    )
+    def test_a_moves_unresolved_destination_is_reported(self, tmp_path, destination):
+        """`no-command-for-the-middle` T58, `decision-log.md Process: #111`: a
+        `move`'s `claim.to` is an address, and resolves against its page as
+        the mark's own address does. The problem is the mover's, at the
+        move's own address."""
+        repo = a_small_real_tree(tmp_path)
+        binder, wire, origin = _a_move_on_mark_py(repo, destination)
+        got = collate("4c", [wire], binder, root=repo)
+        found = [p for p in got.problems if p.address == origin]
+        assert found, got.problems
+        assert found[0].role == "block-context"
+
+    def test_a_move_to_a_real_empty_place_is_not_reported(self, tmp_path):
+        repo = a_small_real_tree(tmp_path)
+        known = known_addresses(binder_of(repo, 0))
+        page = next(p for p in pages_of(repo) if p.path == "mark.py")
+        absent = next(
+            address_for(page.path, c)
+            for c in page.cues.places
+            if address_for(page.path, c) not in known
+        )
+        binder, wire, origin = _a_move_on_mark_py(repo, absent)
+        got = collate("4c", [wire], binder, root=repo)
+        assert [p for p in got.problems if p.address == origin] == []
+
+
+def _a_move_on_mark_py(repo, destination: str):
+    """block-context's copy over `repo`, its first slot on `mark.py` a `move`
+    to `destination`.
+
+    The move cites the first line of `repo`'s own `mark.py`, so its source
+    resolves and any problem at its address is the address check's.
+
+    Returns:
+        `(binder, the wire copy, the move's own address)`.
+    """
+    binder = binder_of(repo, 0)
+    wire = seed(binder, "block-context")
+    sheet = next(s for s in wire["sheets"] if s["path"] == "mark.py")
+    slot = sheet["marks"][0]
+    first = (repo / "mark.py").read_text(encoding="utf-8").splitlines()[0]
+    slot.update(
+        {
+            **a_move(slot["address"], destination),
+            "sources": [{"cite": "mark.py:1", "verbatim": first}],
+        }
+    )
+    return binder, wire, slot["address"]

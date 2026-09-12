@@ -19,9 +19,10 @@ Ten acts, in the order the body runs them:
                `_coverage_problems`. `fan_out` refuses an uncovered page at the
                DISPATCH; this is the RETURN
     VERIFY     each ruled mark's quoted sentence and citations --
-               `desk.collator.verify_report` -- and its address --
-               `_resolution_problems`, whether it names a place any page
-               carries. Three questions `desk.mark.parse` cannot ask because
+               `desk.collator.verify_report` -- and its address, and a
+               `move`'s destination -- `_resolution_problems`, whether each
+               names a place any page carries. Three questions
+               `desk.mark.parse` cannot ask because
                it holds no binder, no page and no filesystem
     DRIFT      a returned `raw_text` that is not the seeded one
     ASSEMBLE   `desk.proof.master_proof_of` -- the master_proof
@@ -87,7 +88,7 @@ from comment_review.desk.containers import (
 )
 from comment_review.desk.determined import Answer, Determined
 from comment_review.desk.diff_mark import ESCALATION, QUESTION
-from comment_review.desk.mark import Instruction, Mark, Shape, filled
+from comment_review.desk.mark import INSTRUCTIONS, Instruction, Mark, Shape, filled
 from comment_review.desk.proof import MismatchedRoot, master_proof_of
 from comment_review.desk.stages import Stage
 from comment_review.flows.mark_errors import Revisit, mark_errors
@@ -844,6 +845,10 @@ def _resolution_problems(
     An address the binder lacks is not thereby unresolved: the page is read,
     not the binder (`Process: #97`).
 
+    A `move`'s `claim.to` is an address as well, and resolves the same way
+    (`Process: #111`). A destination that is not `path@cue` resolves against
+    nothing -- `path@cue` is the only address built (`Addressing: #21`).
+
     `collator-defects` T40. Verify: an invented cue is refused, a valid empty
     place is not -- the case `Process: #97` settled, restated against the
     real page rather than the redacted binder.
@@ -856,36 +861,58 @@ def _resolution_problems(
 
     Returns:
         One `Problem` per mark whose path no page can be read at, or whose
-        cue its page does not carry, in sheet then mark order. ! AN EMPTY
-        ADDRESS IS SKIPPED -- `clean` is the one row a mark may carry none
-        for, and there is no place to resolve.
+        cue its page does not carry, and one per `move` whose `claim.to`
+        fails the same way, at the move's own address, in sheet then mark
+        order. ! AN EMPTY ADDRESS IS SKIPPED -- `clean` is the one row a mark
+        may carry none for, and there is no place to resolve.
     """
     out: list[Problem] = []
     for sheet in copy.sheets:
         for mark in sheet.marks:
             addr = cue_of(mark.address)
-            if not addr.path or not addr.cue:
-                continue
-            real = unflatten(addr.path, paths) or addr.path
-            cues = _page_cues(real, root, cache)
-            if cues is None:
-                out.append(
-                    Problem(
-                        copy.role,
-                        mark.address,
-                        f"resolves against no page -- no page can be read at {real}",
+            if addr.path and addr.cue:
+                why = _unresolved(mark.address, paths, root, cache)
+                if why:
+                    out.append(
+                        Problem(
+                            copy.role,
+                            mark.address,
+                            f"resolves against no page -- {why}",
+                        )
                     )
-                )
-            elif addr.cue not in cues.places:
-                out.append(
-                    Problem(
-                        copy.role,
-                        mark.address,
-                        f"resolves against no page -- {real} carries no "
-                        f"place {addr.cue!r}",
+            if INSTRUCTIONS[mark.instruction].owes_destination:
+                to = str(mark.claim.get("to", ""))
+                why = _unresolved(to, paths, root, cache)
+                if why:
+                    out.append(
+                        Problem(
+                            copy.role,
+                            mark.address,
+                            f"`claim.to` {to!r} resolves against no page -- {why}",
+                        )
                     )
-                )
     return out
+
+
+def _unresolved(address: str, paths: list[str], root: Path, cache: PageCache) -> str:
+    """Why `address` resolves against no page, or "" where it resolves.
+
+    Args:
+        address: a mark's own address, or a `move`'s `claim.to`.
+        paths: the binder's own page paths, for `unflatten`.
+        root: the checkout every page is read from.
+        cache: shared across the stage's copies, keyed by real path.
+    """
+    addr = cue_of(address)
+    if not addr.path or not addr.cue:
+        return "it is not a `path@cue` address"
+    real = unflatten(addr.path, paths) or addr.path
+    cues = _page_cues(real, root, cache)
+    if cues is None:
+        return f"no page can be read at {real}"
+    if addr.cue not in cues.places:
+        return f"{real} carries no place {addr.cue!r}"
+    return ""
 
 
 def texts_at(
