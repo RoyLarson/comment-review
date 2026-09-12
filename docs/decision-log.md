@@ -4148,7 +4148,9 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   Asked what it reads instead -- (1) the text at the mark's own address, read from the page,
   whether or not the binder holds that place or its file; (2) for a mark the turn wrote, the text
   collate composed and sent at that address -- Roy: *"1"*. Asked whether, for a turn's `correct`
-  at an add's empty place, where the page holds nothing, it also reads (2): *"yes"*.
+  at an add's empty place, where the page holds nothing, it also reads (2): *"yes"*. Asked what it
+  does where no page can be read, the checkout holding no file at that path -- the resolution
+  check skips that case, `flows/collate.py:829-833` -- Roy: *"Refuse"*.
 
 - **#120.** **Whether T33's test calls `_answered` directly** (Roy, 2026-09-12, on
   `no-command-for-the-middle` T41: the line in `flows/turn.py` that rewrites a claim's `to` is
@@ -4165,3 +4167,10 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   Asked whether to keep that -- a deferring query already abstains everywhere else, so the
   adding role's `add` stands alone and settles -- Roy: *"Keep it"*.
+
+- **#122.** **Whether the resolution check reports a page it cannot read** (Roy, 2026-09-12, on
+  `no-command-for-the-middle` T45: `_resolution_problems`, `flows/collate.py:824-867`, skips that
+  case citing `#97`, while the quote check refuses it, `#119`).
+
+  Asked whether it should report it -- `#97`'s reason was about guessing from the binder, and here
+  the page itself is read -- Roy: *"Report it"*.
