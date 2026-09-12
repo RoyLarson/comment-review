@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 21 tasks closed
+Progress: 5 of 21 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `commands/collate.py` driven by
@@ -183,6 +183,7 @@ under `utf8_console()`.
       collate's exit code may hide an unruled place behind an escalation,
       collate.py:335-354
         > 2026-09-11 the comment ranks it weaker; no ruling is cited for that
-- [ ] T21 | Implement a collate exit code of its own for places carried forward
-      alongside a place left unruled
+- [x] T21 | collate exits 7 for places carried forward beside an unruled one | 685f2ecb | Implement
+      a collate exit code of its own for places carried forward alongside a
+      place left unruled
         > 2026-09-11 Process 112; test: an escalation plus an unruled slot exits it

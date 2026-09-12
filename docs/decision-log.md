@@ -4253,7 +4253,10 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   Roy: *"Why would a mark refuse an Add at a place that is not empty?"* Then, asked what such an
   `add` does -- accepted as missing text added to that paragraph, its change still holding the
   existing text so nothing is lost; accepted and replacing the paragraph; or refused -- Roy:
-  *"Adds, keeping the prose"*.
+  *"Adds, keeping the prose"*. Then shown that the smoke's `a0` add moves the old docstring's
+  full stop and its `c12` add replaces `# base case` outright, and asked what "still holding the
+  existing text" checks -- every word of it kept in the change, in order, punctuation free to
+  move; or the text kept verbatim -- Roy: *"Words kept, in order"*.
 
 - **#133.** **Whether `turn` exits 7 as `collate` does** (Roy, 2026-09-12, on
   `collate-command-defects` T21: `collate` exits 7 when places are carried forward and a role

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 48 of 65 tasks closed
+Progress: 48 of 66 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -323,3 +323,7 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [ ] T65 | Update T33's test in test_turn.py to use the two-turn helper T57's
       test and the withdraw test share
         > 2026-09-12 e260438d added the helper; T33's test repeats its setup
+- [ ] T66 | Update turn so it exits 7 when its fold carries places forward and a
+      role left a place unruled, per Process 133
+        > 2026-09-12 collate exits 7 since 685f2ecb
+        > 2026-09-12 collate exits 7 since 685f2ecb

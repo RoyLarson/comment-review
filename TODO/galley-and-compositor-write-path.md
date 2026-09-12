@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 32 of 45 tasks closed
+Progress: 32 of 46 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -237,3 +237,6 @@ files in `corpora/` are in that state today.
 - [ ] T45 | Implement what a later stage reads, per Process 118: the original,
       plus a new binder with the edits and a revised set of code
         > 2026-09-11 this release runs one stage, SKILL.md:329-332
+- [ ] T46 | Update the write end to refuse a mark whose anchor is not the page's
+      anchor at its address, per Process 134
+        > 2026-09-12 mark-defects T18's trace: no code after fill read it
