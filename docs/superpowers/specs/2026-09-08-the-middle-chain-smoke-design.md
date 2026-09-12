@@ -63,8 +63,9 @@ so a failure carries its own reproduction.
 
 A tree the script writes, not this repository. Two Python files, each short enough to read whole.
 `fib.py` carries the scenario rows below; `rate.py`, added 2026-09-11, carries the options
-`fib.py` had no free place for -- a `patch`, a `query` of shape `unable-to-determine`, and a
-composition -- and puts a second page in the docket. `fib.py`:
+`fib.py` had no free place for -- a `patch`, a `query` of shape `unable-to-determine`, a
+composition, and a `drop` of a place that owns a leading -- and puts a second page in the
+docket. `fib.py`:
 
 ```python
 """Fibonacci, counted so the recursion can be seen."""

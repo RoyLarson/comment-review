@@ -4,10 +4,12 @@
 fixture", names `fib.py`'s text verbatim: a short recursive Fibonacci with a
 logging decorator, three trailing comments, three standalone comment runs,
 two stacked decorators, a nested `def`, and a dunder-main block. `rate.py`
-is the second file, beside it: one function holding a three-line comment of
-two sentences and a trailing comment, the places a `patch`, an
-`unable-to-determine` query and a composition are planted on, since every
-prose place in `fib.py` already carries another row. Both structures are
+is the second file, beside it: `rate`, holding a three-line comment of two
+sentences and a trailing comment, and `share`, holding a one-line comment
+with a blank line below it -- the places a `patch`, an
+`unable-to-determine` query, a composition and a `drop` of a place that
+owns a leading are planted on, since every prose place in `fib.py` already
+carries another row. Both structures are
 fixed -- `LANDINGS`, `ANSWERS` and `DISPOSITIONS` below plant decisions
 against specific addresses on them, so neither text may drift from what
 those tables describe.
@@ -94,11 +96,12 @@ def write_fixture(root: Path) -> Path:
     return path
 
 
-#: The second fixture file, `rate.py`. Its two prose places are the ones the
-#: plant needs and `fib.py` cannot spare: `b1`, a comment of two sentences
-#: whose first and last lines two roles each correct, with a line between so
-#: the two edits do not touch; and `c3`, the trailing comment a `patch`
-#: rewords.
+#: The second fixture file, `rate.py`. Its three prose places are the ones
+#: the plant needs and `fib.py` cannot spare: `b1`, a comment of two
+#: sentences whose first and last lines two roles each correct, with a line
+#: between so the two edits do not touch; `c3`, the trailing comment a
+#: `patch` rewords; and `b5`, the comment in `share` a `drop` vacates, whose
+#: blank line below it is the leading `d1` it owns.
 RATE_FIXTURE = (
     "def rate(hits, total):\n"
     "    # Zero calls give a zero rate: nothing\n"
@@ -107,6 +110,12 @@ RATE_FIXTURE = (
     "    if total == 0:\n"
     "        return 0.0\n"
     "    return hits / total  # share of calls the cache answered\n"
+    "\n"
+    "\n"
+    "def share(hits, total):\n"
+    "    # Kept for callers that ask for a share rather than a rate.\n"
+    "\n"
+    "    return rate(hits, total)\n"
 )
 
 
@@ -191,7 +200,8 @@ class Landing(NamedTuple):
 #: empty place and one fed by the addresser lookup -- `a2` and `b15` -- and the
 #: plant adds at five places more: the empty `b8`, `b17` and `c3`, and the
 #: filled `a0` and `c12`. Its `patch`, `unable-to-determine` query and
-#: composition rows are planted on `rate.py`, and its turn row is `ANSWERS`
+#: composition rows are planted on `rate.py`, and so is a second `drop`, of
+#: a place that owns a leading; its turn row is `ANSWERS`
 #: below. `EXPECTED` and `RATE_EXPECTED` below are written from the two
 #: fixtures, this table and `ANSWERS`.
 LANDINGS: dict[str, Landing] = {
@@ -359,6 +369,12 @@ LANDINGS: dict[str, Landing] = {
             "    # hits over total, never more than one."
         ),
     ),
+    # the drop of a place that owns a leading: block-context drops share's
+    # comment, and the other three roles mark a scope-declaring query
+    # instead of clean, so the fold settles it. The blank line below the
+    # comment is the leading `b5` owns, and `set_page` sets no leading after
+    # a place a drop vacated, so the blank goes with the comment.
+    "rate.py@b5": Landing("removed", route="mark"),
 }
 
 #: The `LANDINGS` entry smoke_middle.ps1 marks without spelling its address:
@@ -686,11 +702,14 @@ EXPECTED = (
 
 
 #: What the proof's `rate.py` must read once the chain closes, written out by
-#: hand the same way from `RATE_FIXTURE`, `LANDINGS` and `ANSWERS`. Both
-#: places were filled and each lands as many lines as it held, so the file is
-#: `RATE_FIXTURE` with four lines changed: the paragraph's first and last,
-#: which the two corrections touched, its middle, which the turn's answers
-#: reword, and the line the patched trailing comment sits on.
+#: hand the same way from `RATE_FIXTURE`, `LANDINGS` and `ANSWERS`. `b1` and
+#: `c3` each land as many lines as they held, so in `rate` four lines change:
+#: the paragraph's first and last, which the two corrections touched, its
+#: middle, which the turn's answers reword, and the line the patched
+#: trailing comment sits on. In `share` the dropped comment is gone and so is
+#: the blank line below it, the leading `b5` owned: `set_page` sets no
+#: leading after a place a drop vacated. The two blank lines above `share`
+#: are the leading `c3` owns, which a `c` keeps whatever sits beside it.
 RATE_EXPECTED = (
     "def rate(hits, total):\n"
     "    # No calls give a zero rate: nothing\n"
@@ -699,6 +718,10 @@ RATE_EXPECTED = (
     "    if total == 0:\n"
     "        return 0.0\n"
     "    return hits / total  # fraction of calls the cache answered\n"
+    "\n"
+    "\n"
+    "def share(hits, total):\n"
+    "    return rate(hits, total)\n"
 )
 
 
