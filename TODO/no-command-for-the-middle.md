@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 23 of 44 tasks closed
+Progress: 24 of 44 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -174,6 +174,7 @@ Reconciliation has no command, so the chain cannot be driven end to end.
         > 2026-09-11 by reading: the chief's c1 claim keeps the old false clause
         > 2026-09-11 final review probe: confirmed; deserialize at :402 accepts it
         > 2026-09-11 the probe called _answered directly; no real fold reaches it
+        > 2026-09-12 waits on T41, left open by Process 120
 - [ ] T34 | Update turn so a correct or patch answer quotes the slot's modified
       text, not the original, per Process 115
         > 2026-09-11 verify: a correct answer at an add's empty place composes
@@ -195,6 +196,7 @@ Reconciliation has no command, so the chain cannot be driven end to end.
         > 2026-09-11 undoes the plain clean daa86dc8 keeps; smoke drops 5 dispositions
 - [ ] T38 | Update turn so no answer overwrites a move claim.to with paragraph
       text; T33 confirmed it at turn.py:337
+        > 2026-09-12 waits on T41, left open by Process 120
 - [x] T39 | the page at the mark's address; for the turn, the text sent; P119 | 8894c9d3 | Decide
       how the fold verifies a turn-written correct or patch whose claim quotes
       the modified text, per Process 115
@@ -210,8 +212,10 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [?] T41 | Decide whether T33's test calls _answered directly, since
       collator.py:720-743 never sends a move end an escalation
         > 2026-09-11 set 2's real collate: both move ends came back as re-reads
-- [?] T42 | Decide whether a deferring query at an add's empty place settles the
-      add, as d4e98476 does; Process 116 names only clean
+        > 2026-09-12 Process 120: open until we have experimented enough to know
+- [x] T42 | Process 121: kept; a deferring query lets the add settle | 30b376ce | Decide
+      whether a deferring query at an add's empty place settles the add, as
+      d4e98476 does; Process 116 names only clean
         > 2026-09-11 test_a_role_with_no_slot_there_is_seeded_one_from_the_page
 - [ ] T43 | Implement a test of a mover's own clean at its move's origin, to
       settle whether _answered withdraws the move or makes it a correct
