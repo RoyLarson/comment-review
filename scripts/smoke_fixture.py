@@ -238,8 +238,10 @@ LANDINGS: dict[str, Landing] = {
         line=3,
     ),
     # function-context's add, on the absent a below `def wrapper(n):` --
-    # wrapper's docstring, indented to its body's depth. In the turn the
-    # other three roles clean it, which settles it.
+    # wrapper's docstring, indented to its body's depth. In the turn
+    # block-context answers with an outside-my-role query and the other two
+    # roles clean it; a deferring query abstains (`Process: #121`), so the
+    # add settles.
     "fib.py@a2": Landing(
         "text",
         route="turn",
@@ -289,7 +291,9 @@ LANDINGS: dict[str, Landing] = {
         line=18,
     ),
     # module-context's add, on the absent closing gap after the dunder-main
-    # block. In the turn the other three roles clean it, which settles it.
+    # block. In the turn ownership-context answers with an
+    # unable-to-determine query and the other two roles clean it; a
+    # deferring query abstains (`Process: #121`), so the add settles.
     "fib.py@b17": Landing(
         "text",
         route="turn",
@@ -401,6 +405,10 @@ ADDED = (
 #: `withdraw`, `correct` or `patch`, and a composition `clean`, `query`,
 #: `correct` or `patch`; each of the eight is planted at least once, and a
 #: role answers `clean` at every place in `ADDED` this gives it nothing for.
+#: A composition `query` is planted in each of its three shapes:
+#: human-review-necessary at `c12`, where it keeps the add off the page, and
+#: outside-my-role at `a2` and unable-to-determine at `b17`, where it
+#: abstains and the add settles (`Process: #121`).
 #: A composition `correct` and a composition `patch` are planted on
 #: `rate.py@b1`, whose base is a real paragraph, and at the empty places of
 #: two `add`s, `b8` and `c3`, where each quotes the add's text -- the text the
@@ -419,6 +427,16 @@ ANSWERS: dict[str, dict[str, dict]] = {
         "fib.py@a3": {
             "instruction": "withdraw",
             "reason": "the docstring already says where the count starts",
+        },
+        "fib.py@a2": {
+            "instruction": "query",
+            "claim": {
+                "shape": "outside-my-role",
+                "attempted": "read the added docstring against wrapper's body",
+                "settles": "function-context",
+            },
+            "reason": "what wrapper's own docstring says is function-context's remit",
+            "sources": [{"cite": "fib.py:13", "verbatim": "def wrapper(n):"}],
         },
         "rate.py@b1": {
             "instruction": "correct",
@@ -491,7 +509,18 @@ ANSWERS: dict[str, dict[str, dict]] = {
             "sources": [{"cite": "fib.py:27", "verbatim": "if n < 2:  # base case"}],
         },
     },
-    "ownership-context": {},
+    "ownership-context": {
+        "fib.py@b17": {
+            "instruction": "query",
+            "claim": {
+                "shape": "unable-to-determine",
+                "attempted": "read the added comment against the dunder-main block",
+                "settles": "another role",
+            },
+            "reason": "the code does not say whether the module's foot wants a note",
+            "sources": [{"cite": "fib.py:34", "verbatim": "print(fib(10), CALLS)"}],
+        },
+    },
 }
 
 #: The chief's own rulings over the four places the turn leaves carried
