@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 66 of 85 tasks closed
+Progress: 69 of 87 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -399,12 +399,21 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       a test of a place carried forward with no roles left, to settle whether
       any turn is sent it
         > 2026-09-12 round 2: a deferring query leaves the destination with no roles
-- [ ] T83 | Update the turn so a mover's clean at its move's origin keeps the
-      move, per Process 137 and 138
+- [x] T83 | a mover's clean at the origin keeps the move | 12990b28 | Update the
+      turn so a mover's clean at its move's origin keeps the move, per Process
+      137 and 138
         > 2026-09-13 T79's xfail at 17d0491d: turn 2's origin clean withdraws it
-- [ ] T84 | Update the turn so a mover's query at its move's origin holds both
-      ends, per Process 137 and 138
+- [x] T84 | a mover's query at the origin holds both ends | f10de03b | Update
+      the turn so a mover's query at its move's origin holds both ends, per
+      Process 137 and 138
         > 2026-09-13 T80's xfail at 7b728ca0: the query is written over the move
-- [ ] T85 | Update disposition to refuse a ruling that treats a move's two ends
-      differently, per Process 137
+- [-] T85 | SUPERSEDED by T86: Process 139, the chief rules each end | 80e15c4b | Update
+      disposition to refuse a ruling that treats a move's two ends differently,
+      per Process 137
         > 2026-09-13 round 3: origin original, destination the move; the origin is lost
+- [ ] T86 | Update disposition so the chief's ruling at each end of a move takes
+      effect on its own section, per Process 139
+        > 2026-09-13 round 3: a split ruling lost the origin's ruling
+- [ ] T87 | Implement a test of a reworded move every role cleans over two
+      turns, to settle whether it settles
+        > 2026-09-13 round 4, by reading: turn 2's clean withdraws its adoption
