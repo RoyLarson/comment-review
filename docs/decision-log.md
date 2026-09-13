@@ -4340,3 +4340,16 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   Asked -- one more round on T88 and T89, then merge, anything new filed rather than worked; or
   merge now -- Roy: *"One more round, then merge"*.
+
+- **#141.** **Whether the Reconciled entry becomes a container** (Roy, 2026-09-13, on
+  `containers-and-verification-are-unwired` T36, with T44's purpose named first as `#71`
+  requires).
+
+  **The purpose, from T44.** `desk.collator._outcome` builds the entry as `{address, roles,
+  marks}`; `flows/collate.py` then adds a `composed` key to a re-read only, by mutation, and
+  `flows.turn._disagreeing` strips it by hand when a re-read becomes an escalation. Four modules
+  read it by string key. A container gives the re-read and the escalation their own shapes, so
+  `composed` exists only on a re-read and cannot ride into an escalation, and every read is one
+  `ty` can check. No defect has been measured from the dict shape.
+
+  Asked -- a container, or stays a dict -- Roy: *"Container"*. `T43` builds it.
