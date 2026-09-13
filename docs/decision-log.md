@@ -4435,4 +4435,7 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   On the two passages that needed new wording, Roy: *"1 - Delete it - that is about the
   job-board and the tool takes care of this because you now always use it"* (the box-on-a-ruling
   paragraph in `CLAUDE.md`), and *"2 - Also not useful in helping you determine how to work in
-  the project"* (the two examples of citing a plan as evidence, in `conventions.md`).
+  the project"* (the two examples of citing a plan as evidence, in `conventions.md`). And on the
+  two sentences left beside them, which ruled that a T may not take its state from a P: *"Yep
+  those go to. Now that the job-board handles this and the global CLAUDE.md states that the tool
+  needs to be used for work progression"*.

@@ -157,9 +157,6 @@ Roy, 2026-08-23. Two kinds of checkbox exist and they are not interchangeable.
 `TODO/` may wait on a plan, be closed by one, or read its state from one, so a closed plan
 leaves the backlog intact.
 
-What is forbidden is a T whose state a P decides. The test is whether deleting every plan would
-leave the TODO still answerable: a measurement survives it, a dependency does not.
-
 !! **A `P` names the `T` tasks it works, not just the file.** *"Closes
 `some-todo.md` (0/4)"* is not checkable -- a reader cannot tell which of the four it
 delivers, and the box cannot be verified by anyone who did not write it. Name the tasks:
