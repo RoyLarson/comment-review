@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (114)
+### open  (115)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -296,6 +296,7 @@ that changed a published name or rule:
 | [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | yes | 2/9 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
 | [smoke-middle-script](smoke-middle-script.md) | systems | -- | 66/66 | The middle-chain smoke script carries the findings of its Task 8 review |
 | [the-scope-is-git-in-prose](the-scope-is-git-in-prose.md) | backend | -- | 0/2 | The scope a run reviews is worked out by the task agent running git |
+| [prove-unchanged-line-endings-follow-a-sibling](prove-unchanged-line-endings-follow-a-sibling.md) | backend | -- | 0/2 | On a checkout with core.autocrlf=true, git writes a checked-out text file with CRLF while its blob stays LF, and a file git never rewrote can still be LF. prove_unchanged compares an edited file's line endings with one untouched sibling, so a CRLF file whose sibling is a one-line LF __init__.py FAILs though the write kept every ending and the AST comparison passes. The check should hold the file to its own pre-edit endings. |
 
 ### in-progress  (18)
 
