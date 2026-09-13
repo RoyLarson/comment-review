@@ -4407,3 +4407,18 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   lands; keep the `drop` and land the prose; or refuse a recast of a `drop` -- Roy: *"A correct
   to the prose"*. T1's reason for keeping the roles' instruction, that a `correct` at an add's
   empty place writes nothing, does not reach a `drop`, whose place holds text.
+
+- **#147.** **What becomes of the page rendering and the census file's listing-era tasks** (Roy,
+  2026-09-13, on `the-census-is-mostly-intervals-nobody-rules-on` T19, the margin rendering
+  deferred 2026-08-21: the listing it would have replaced is gone, `#99`, and a reviewer asks the
+  `addresser` for a line's address).
+
+  *"Shouldn't all of that be superseded by the current implementation. 3 weeks ago has caused
+  lots of change"*, and: *"I do think there is a usefulness to the margin script but it should
+  have its own todo. I think it has a script still there that can be pulled in once we fix the
+  rest"*. The script already has one, `render-page-imports-flat-names`. Checked against the
+  current implementation, T4, T5, T9, T10, T11, T17 and T18 are overtaken by the binder and by
+  `#99`; T15 is delivered, the brief names `<BINDER from your packet>`; T26 repeats that TODO's
+  T6; T14 and T16 still hold at other lines; T27 is one comment short. Roy, on that list: *"T19
+  - yes move / the rest yes"*. So T19 moves to the script's TODO, T14 and T16 are re-filed on
+  `agents-files-name-the-new-cli` with today's lines, T27 stays, and the rest are superseded.
