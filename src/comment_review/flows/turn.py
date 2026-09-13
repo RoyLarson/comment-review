@@ -81,8 +81,11 @@ Then `flows.collate.collate` runs again over the copies, and every place that
 agreed comes back as a `stet` Determined at this turn (`Process: #87`). The
 fold carries every place an `add` touches as a re-read, so where every role of
 that re-read now holds the same `add`, `_agreed_adds` records the `stet`
-(`Process: #116`). A place the turn asked about that comes back as a re-read
-whose roles still hold different texts is an escalation, which `_disagreeing`
+(`Process: #116`). Where every role of both ends of a lone `move` carrying
+its origin's text unchanged answered `clean` there, `_agreed_moves` records
+the `stet` at both ends (`Process: #89` and `#137`). A place the turn asked
+about that comes back as a re-read whose roles still hold different texts is
+an escalation, which `_disagreeing`
 records (`Process: #127`). What did not agree is the next turn's batch, until the task
 agent's max turns (`Process: #78`), where `rule_at_max_turns` records the
 chief's `taken_in` or `recast` and `determined_chief` derives the chief's copy
@@ -110,6 +113,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from comment_review.binder.binder import Binder
+from comment_review.desk.collator import Placed
 from comment_review.desk.containers import EditCopy, MasterProof
 from comment_review.desk.determined import CHIEF, ORIGINAL, Answer, Determined
 from comment_review.desk.diff_mark import (
@@ -132,7 +136,13 @@ from comment_review.desk.mark import (
     untouched,
     without_location,
 )
-from comment_review.flows.collate import Collated, _chief_copy, _identical, collate
+from comment_review.flows.collate import (
+    Collated,
+    _chief_copy,
+    _identical,
+    _touched_by,
+    collate,
+)
 from comment_review.flows.fill import place_on_the_page
 from comment_review.flows.mark_errors import Revisit
 from comment_review.results.differences import diff3
@@ -617,8 +627,17 @@ def run_turn(
                     role, "", f"{role} (the batch)", ["no slots were sent to this role"]
                 )
             )
+    cleaned: set[tuple[str, str]] = set()
     for role, slots in sent.items():
-        _, why = take_answers(copies, role, slots, answers.get(role, []), root)
+        taken, why = take_answers(copies, role, slots, answers.get(role, []), root)
+        refused = {one.address for one in why}
+        cleaned |= {
+            (role, address)
+            for address, answer in taken
+            if isinstance(answer, Mark)
+            and answer.instruction is Instruction.CLEAN
+            and address not in refused
+        }
         revisit += why
     got = collate(
         proof.stage, copies, binder, root, turn=turn, sent=(*_sent_of(proof), sent)
@@ -627,6 +646,7 @@ def run_turn(
     contested = _asked(sent)
     got = _withdrawn(got, contested, turn)
     got = _agreed_adds(got, contested, turn)
+    got = _agreed_moves(got, contested, cleaned, turn)
     got = _disagreeing(got, contested)
     return replace(got, revisit=[*revisit, *got.revisit])
 
@@ -701,6 +721,60 @@ def _agreed_adds(got: Collated, contested: set[str], turn: int) -> Collated:
             agreed[address] = Determined(
                 address, Answer.STET, turn, one.role, how, "", one.mark
             )
+    if not agreed or got.proof is None:
+        return got
+    determined = {**got.determined, **agreed}
+    return replace(
+        got,
+        determined=determined,
+        rereads=[e for e in got.rereads if e["address"] not in agreed],
+        chief=_chief_copy(got.proof.read_from, determined, got.proof),
+    )
+
+
+def _agreed_moves(
+    got: Collated, contested: set[str], cleaned: set[tuple[str, str]], turn: int
+) -> Collated:
+    """A lone `move` every role of both its ends cleaned this turn is a `stet`.
+
+    `Process: #89`: a lone owing mark goes back to every role that marked the
+    place and stands once they agree, and a `clean` over the slot's text is
+    agreement. Where the move carries its origin's text unchanged, a `clean`
+    adopts nothing -- `_answered` adopts only a text that differs from the
+    entry's -- so the copies after the turn are the copies before it, and the
+    agreement is read here from the turn's own answers. Both ends settle
+    together or neither does (`Process: #137`).
+
+    Args:
+        got: the fold after the turn.
+        contested: every address the turn asked about.
+        cleaned: every `(role, address)` whose composition `clean` the turn
+            applied.
+        turn: this turn's number.
+
+    Returns:
+        The fold with both ends of each such move out of `rereads`, a `stet`
+        Determined at `turn` for each -- `how` "one", the move its mark -- and
+        the chief's copy derived again.
+    """
+    ends: dict[str, Placed] = {}
+    for entry in got.rereads:
+        address, marks, roles = entry["address"], entry["marks"], entry["roles"]
+        if address not in contested or len(marks) != 1 or not roles:
+            continue
+        (placed,) = marks
+        move = placed.mark
+        if move.instruction is not Instruction.MOVE or move.change != move.raw_text:
+            continue
+        if all((role, address) in cleaned for role in roles):
+            ends[address] = placed
+    agreed = {
+        address: Determined(
+            address, Answer.STET, turn, placed.role, "one", "", placed.mark
+        )
+        for address, placed in ends.items()
+        if all(end in ends for end in _touched_by(placed.mark))
+    }
     if not agreed or got.proof is None:
         return got
     determined = {**got.determined, **agreed}

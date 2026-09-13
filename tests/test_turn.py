@@ -1077,17 +1077,20 @@ class TestAMoversCompositionAnswerAtItsDestination:
     def test_it_follows_the_movers_clean_there(self, tmp_path):
         """Turn 1's `clean` at the destination writes no slot there
         (`Process: #138`). Turn 2's `correct` there still sets the move's
-        text, and writes none either."""
+        text, and writes none either.
+
+        On turn 1 function-context leaves its slot at the origin unanswered.
+        An unanswered slot is not agreement, so the move is carried to turn 2
+        rather than settled by every role's `clean` (`Process: #89`).
+        """
         binder, got = _a_lone_move(tmp_path, MOVED_TEXT)
         batch = batch_of(got.escalations, got.rereads)
-        one = run_turn(
-            _at(got),
-            binder,
-            tmp_path,
-            batch,
-            _clean_but_the_destination(batch, {"instruction": "clean"}),
-        )
-        assert one.revisit == []
+        answers = _clean_but_the_destination(batch, {"instruction": "clean"})
+        answers["function-context"] = []
+        one = run_turn(_at(got), binder, tmp_path, batch, answers)
+        assert [(r.role, r.address) for r in one.revisit] == [
+            ("function-context", MOVED_FROM)
+        ]
         assert _held_at(one, "block-context", EMPTY_PLACE) == []
 
         batch2 = batch_of(one.escalations, one.rereads)
@@ -1224,12 +1227,6 @@ class TestEveryRoleCleansAMoveAsItStands:
     the move.
     """
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="no-command-for-the-middle T74: the fold sends a lone move back "
-        "as a re-read at both ends on every turn, and nothing reads every "
-        "role's clean over its unchanged text as agreement",
-    )
     def test_both_ends_settle_carrying_the_move(self, tmp_path):
         binder, got = _a_lone_move(tmp_path, MOVED_TEXT)
         batch = batch_of(got.escalations, got.rereads)
