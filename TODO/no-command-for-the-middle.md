@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 51 of 68 tasks closed
+Progress: 52 of 69 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
           REAL reviewer agent -- census, mark --seed, the block-context agent, mark
           --check and taken_in are all commands; the middle is not)
@@ -311,8 +311,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       the turn so a mover's answer at its move's destination end applies to its
       move, per Process 129
         > 2026-09-12 T57's xfail test at 6ed51da4 pins it; remove the marker
-- [?] T62 | Decide whether a mover's answer to a composition re-read at its
-      move's destination end reaches the move
+- [x] T62 | Process 137: a move is two sided; both ends resolve together | 2a34928c | Decide
+      whether a mover's answer to a composition re-read at its move's
+      destination end reaches the move
         > 2026-09-12 outside Process 129, which covers escalation answers
 - [ ] T63 | Implement a test of a role holding its own mark at a move's
       destination and a move there, to settle where its answer lands
@@ -338,3 +339,6 @@ Reconciliation has no command, so the chain cannot be driven end to end.
         > 2026-09-12 smoke 2026-09-12 18:27: chief.json has it once, chief-final twice
         > 2026-09-12 the docket lists b1 and b0 twice; --from-docket would refuse it
         > 2026-09-12 Roy 2026-09-12: fixed in set 4
+- [ ] T69 | Update the turn so a mover's composition answer at its move's
+      destination end reaches the move, per Process 137
+        > 2026-09-12 T61 reroutes escalation answers only; e260438d
