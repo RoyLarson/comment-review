@@ -1358,6 +1358,41 @@ class TestARewordedMoveOverTwoCleanTurns:
             assert ruled is None or ruled.mark is not None
 
 
+class TestARewordedMoveEveryRoleCleansTwice:
+    """A reworded move every role cleans over two turns --
+    `no-command-for-the-middle` T87, `Process: #89` and `#137`.
+
+    On turn 1 function-context's `clean` adopts the reworded moved text at
+    the origin, and the mover's `clean` at each end keeps the move. Turn 2
+    answers every slot `clean` again. Every role that marked the move has
+    then agreed with its text, which `#89` says makes it a `stet`: the test
+    settles whether both ends are determined after turn 2, each carrying
+    the move.
+    """
+
+    @pytest.mark.xfail(
+        strict=True,
+        reason=(
+            "no-command-for-the-middle T87: turn 2 sends function-context the "
+            "origin's base text, since the move and its adopting correct do not "
+            "compose, and its clean over the base withdraws the adoption, so "
+            "both ends go back again and neither is determined"
+        ),
+    )
+    def test_both_ends_settle_carrying_the_move(self, tmp_path):
+        reworded = MOVED_TEXT + ", which is about w"
+        _, one, two, _ = _two_turns(tmp_path, reworded, _all_clean, _all_clean)
+        assert one.revisit == []
+        assert two.revisit == []
+        for address in (MOVED_FROM, EMPTY_PLACE):
+            ruled = two.determined.get(address)
+            assert ruled is not None, address
+            assert ruled.answer is Answer.STET
+            assert ruled.mark is not None
+            assert ruled.mark.instruction is Instruction.MOVE
+            assert ruled.mark.change == reworded
+
+
 class TestAMoversQueryAtItsOrigin:
     """A mover's composition `query` at its move's origin --
     `no-command-for-the-middle` T80, `Process: #137` and `#138`.
