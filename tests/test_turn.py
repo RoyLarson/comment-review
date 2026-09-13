@@ -1482,6 +1482,65 @@ class TestAMoversCleanSlotAtItsDestination:
         assert slot.instruction is Instruction.CLEAN
 
 
+class TestAMovesEndWithNoRolesLeft:
+    """A move's destination carried forward with no roles left --
+    `no-command-for-the-middle` T82, `Process: #90` and `#138`.
+
+    Turn 1 answers the mover's slot at `EMPTY_PLACE` with an
+    `outside-my-role` query and every other slot `clean`, so the mover
+    abstains at both ends: the destination is carried with no roles, the
+    origin with function-context alone. Turn 2 answers every slot sent
+    `clean`. The test settles whether any turn is sent the destination, and
+    what the chief sees at max turns.
+    """
+
+    def test_no_turn_is_sent_it_and_the_chief_rules_it(self, tmp_path):
+        binder, one, two, turns = _two_turns(
+            tmp_path,
+            MOVED_TEXT,
+            lambda batch: _clean_but_the_destination(
+                batch, _a_movers_query(Shape.OUTSIDE_MY_ROLE)
+            ),
+            _all_clean,
+        )
+        assert one.revisit == []
+        ends = {e["address"]: e["roles"] for e in one.rereads}
+        assert ends == {MOVED_FROM: ["function-context"], EMPTY_PLACE: []}
+        sent = [
+            (role, slot["address"])
+            for role, slots in turns[-1]["sent"].items()
+            for slot in slots
+        ]
+        assert sent == [("function-context", MOVED_FROM)]
+        assert two.revisit == []
+        assert {e["address"]: e["roles"] for e in two.rereads} == ends
+        assert two.determined.keys().isdisjoint({MOVED_FROM, EMPTY_PLACE})
+
+        last = refold(proof_after(two, turns), binder, tmp_path)
+        (carried,) = [e for e in last.rereads if e["address"] == EMPTY_PLACE]
+        assert carried["roles"] == []
+        assert [(p.role, p.mark.instruction) for p in carried["marks"]] == [
+            ("block-context", Instruction.MOVE)
+        ]
+        with pytest.raises(ValueError, match=r"m\.py@b3 \(\)"):
+            determined_chief(last, [])
+        ruled = [
+            rule_at_max_turns(
+                last,
+                address,
+                Answer.TAKEN_IN,
+                "block-context",
+                "the move stands",
+                len(turns),
+            )
+            for address in (MOVED_FROM, EMPTY_PLACE)
+        ]
+        _, chief = determined_chief(last, ruled)
+        assert [(m.address, m.instruction) for m in entries_of(chief)] == [
+            (MOVED_FROM, Instruction.MOVE)
+        ]
+
+
 class TestAMovesEndsResolveTogether:
     """Both ends of a move resolve together over the turn --
     `no-command-for-the-middle` T69, `Process: #137`.
