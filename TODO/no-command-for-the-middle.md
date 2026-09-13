@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 54 of 75 tasks closed
+Progress: 59 of 82 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -347,18 +347,45 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [x] T70 | correct and patch set the move's text; both ends tested together | c7930fb2 | Update
       the turn so a mover's composition correct or patch at its move's
       destination end reaches the move, per Process 137
-- [ ] T71 | Update the turn so a mover's clean at its move's destination end
-      keeps the move, per Process 138
+- [x] T71 | a mover's clean at the destination keeps the move | 162c8b43 | Update
+      the turn so a mover's clean at its move's destination end keeps the move,
+      per Process 138
         > 2026-09-12 the composition table would read it as a withdrawal
-- [ ] T72 | Update the turn so a mover's query at its move's destination end
-      holds both ends of the move, per Process 138
+- [x] T72 | a mover's query at the destination holds both ends | 84d7641d | Update
+      the turn so a mover's query at its move's destination end holds both ends
+      of the move, per Process 138
         > 2026-09-12 written over the move entry today it would remove the move
-- [ ] T73 | Implement a test of a mover's composition correct or patch at its
-      move's origin, to settle whether the move is lost
+- [x] T73 | the move is lost at the origin; xfail strict, a fix is filed | 935b6bed | Implement
+      a test of a mover's composition correct or patch at its move's origin, to
+      settle whether the move is lost
         > 2026-09-12 by reading: _as_answered makes the move a correct or a patch
-- [ ] T74 | Implement a test of every role cleaning a move whose text is
-      unchanged, to settle why neither end settles
+- [x] T74 | an unchanged move never settles; xfail strict, a fix is filed | 09c9b6e0 | Implement
+      a test of every role cleaning a move whose text is unchanged, to settle
+      why neither end settles
         > 2026-09-12 T69's probe: both ends went back as re-reads again
-- [ ] T75 | Implement a test of a move whose ends disagree after a turn, to
-      settle whether _disagreeing splits them across the carried lists
+- [x] T75 | the ends split across the carried lists; xfail strict, fix filed | 1f867373 | Implement
+      a test of a move whose ends disagree after a turn, to settle whether
+      _disagreeing splits them across the carried lists
         > 2026-09-12 by reading in T69; the fold's own pairing keeps them together
+- [ ] T76 | Update the turn so a mover's composition correct or patch at its
+      move's origin keeps the move, per Process 137
+        > 2026-09-12 T73's xfail at 935b6bed: the move becomes a correct or a patch
+- [ ] T77 | Update the fold so every role cleaning a move whose text is
+      unchanged settles it, per Process 89
+        > 2026-09-12 T74's xfail at 09c9b6e0: both ends go back as re-reads each turn
+        > 2026-09-12 fixing it breaks test_it_follows_the_movers_clean_there's turn 2
+- [ ] T78 | Update _disagreeing so a move's two ends land in the same carried
+      list, per Process 137
+        > 2026-09-12 T75's xfail at 1f867373: the destination escalates, the origin not
+- [ ] T79 | Implement a test of a reworded move over two all-clean turns, to
+      settle whether the move is lost
+        > 2026-09-12 round 2's probe: both ends ended as withdrawn stets
+- [ ] T80 | Implement a test of a mover's query at its move's origin, to settle
+      whether the move is lost
+        > 2026-09-12 by reading: the query is written over the move entry
+- [ ] T81 | Implement a test of apply routing to a move where the mover's slot
+      at the destination is a clean
+        > 2026-09-12 by reading: after 162c8b43 no test reaches that half
+- [ ] T82 | Implement a test of a place carried forward with no roles left, to
+      settle whether any turn is sent it
+        > 2026-09-12 round 2: a deferring query leaves the destination with no roles
