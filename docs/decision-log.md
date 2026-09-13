@@ -4353,3 +4353,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `ty` can check. No defect has been measured from the dict shape.
 
   Asked -- a container, or stays a dict -- Roy: *"Container"*. `T43` builds it.
+
+- **#142.** **What files exist between the stages, and whether a master proof is written** (Roy,
+  2026-09-13, on `containers-and-verification-are-unwired` T42 and T37, parked 2026-09-01
+  because the intermediate stage artifacts were not yet specified).
+
+  **What was built since.** The chain now writes one file per hand-off, each written by one
+  command and read by the next: `binder.json`, `topology.toml`, the copies, `proof0.json` and
+  `batch1.json`, the roles' answers, `proof1.json` and `batch2.json`, `dispositions.json`,
+  `chief-final.json` and `final.json`, `docket.json`, and the revise -- every one of them run by
+  `scripts/smoke_middle.ps1`. The master proof has been written and read back since a40ae775,
+  and `run_turn` and `refold` read its `stage`.
+
+  Asked whether that answers T42 or needs a written specification -- Roy: *"Answered; close
+  both"*.
