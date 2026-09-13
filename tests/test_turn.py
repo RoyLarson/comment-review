@@ -1006,18 +1006,23 @@ class TestAMoversCleanAtItsDestination:
         assert _held_at(two, "block-context", EMPTY_PLACE) == []
 
 
-def _clean_but_the_destination(batch: dict, answer: dict) -> dict:
-    """Every slot of `batch` answered `clean`, but block-context's at
-    `EMPTY_PLACE`, which is answered with `answer`."""
+def _clean_but(batch: dict, role: str, address: str, answer: dict) -> dict:
+    """Every slot of `batch` answered `clean`, but `role`'s at `address`,
+    which is answered with `answer`."""
     return {
-        role: [
+        who: [
             {**slot, **answer}
-            if (role, slot["address"]) == ("block-context", EMPTY_PLACE)
+            if (who, slot["address"]) == (role, address)
             else {**slot, "instruction": "clean"}
             for slot in slots
         ]
-        for role, slots in batch.items()
+        for who, slots in batch.items()
     }
+
+
+def _clean_but_the_destination(batch: dict, answer: dict) -> dict:
+    """`_clean_but`, answering block-context's slot at `EMPTY_PLACE`."""
+    return _clean_but(batch, "block-context", EMPTY_PLACE, answer)
 
 
 #: A mover's composition answers at its move's destination, each over the
@@ -1171,6 +1176,45 @@ class TestAMoversQueryAtItsDestination:
         assert sorted(ends) == [MOVED_FROM, EMPTY_PLACE]
         assert all("block-context" not in roles for roles in ends.values())
         assert "function-context" in ends[MOVED_FROM]
+
+
+class TestAMoversCompositionAnswerAtItsOrigin:
+    """A mover's composition `correct` or `patch` at its move's origin --
+    `no-command-for-the-middle` T73, `Process: #137`.
+
+    `_a_lone_move` sends the origin back to the mover as a re-read carrying
+    the moved text. The mover answers it with a `correct` or a `patch`, and
+    every other slot is `clean`. The test settles whether the mover still
+    holds its move there afterwards, its claim naming both ends.
+    """
+
+    @pytest.mark.xfail(
+        strict=True,
+        reason="no-command-for-the-middle T73: _as_answered writes the answer "
+        "over the move entry, so the move is lost",
+    )
+    @pytest.mark.parametrize(
+        "answer",
+        [
+            pytest.param(_A_COMPOSITION_CORRECT, id="correct"),
+            pytest.param(_A_COMPOSITION_PATCH, id="patch"),
+        ],
+    )
+    def test_the_move_survives(self, tmp_path, answer):
+        binder, got = _a_lone_move(tmp_path, MOVED_TEXT)
+        batch = batch_of(got.escalations, got.rereads)
+        assert _slot(batch, "block-context", MOVED_FROM)[QUESTION] == COMPOSITION
+        one = run_turn(
+            _at(got),
+            binder,
+            tmp_path,
+            batch,
+            _clean_but(batch, "block-context", MOVED_FROM, answer),
+        )
+        assert one.revisit == []
+        (held,) = _held_at(one, "block-context", MOVED_FROM)
+        assert held.instruction is Instruction.MOVE
+        assert held.claim == {"from": MOVED_FROM, "to": EMPTY_PLACE}
 
 
 class TestAMovesEndsResolveTogether:
