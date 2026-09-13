@@ -1355,6 +1355,51 @@ class TestARewordedMoveOverTwoCleanTurns:
             assert ruled is None or ruled.mark is not None
 
 
+class TestAMoversQueryAtItsOrigin:
+    """A mover's composition `query` at its move's origin --
+    `no-command-for-the-middle` T80, `Process: #137` and `#138`.
+
+    `_a_lone_move` sends the origin back to the mover as a re-read carrying
+    the moved text. The mover answers it with a `query`, in each of the three
+    shapes, and every other slot is `clean`. The test settles whether the
+    mover still holds its move there afterwards, its claim naming both ends.
+    """
+
+    @pytest.mark.xfail(
+        strict=True,
+        reason="no-command-for-the-middle T80: _answered writes the query over "
+        "the move entry, so the move is lost",
+    )
+    @pytest.mark.parametrize(
+        "shape",
+        [
+            Shape.HUMAN_REVIEW_NECESSARY,
+            Shape.OUTSIDE_MY_ROLE,
+            Shape.UNABLE_TO_DETERMINE,
+        ],
+    )
+    def test_the_move_survives(self, tmp_path, shape):
+        binder, got = _a_lone_move(tmp_path, MOVED_TEXT)
+        batch = batch_of(got.escalations, got.rereads)
+        assert _slot(batch, "block-context", MOVED_FROM)[QUESTION] == COMPOSITION
+        one = run_turn(
+            _at(got),
+            binder,
+            tmp_path,
+            batch,
+            _clean_but(batch, "block-context", MOVED_FROM, _a_movers_query(shape)),
+        )
+        assert one.revisit == []
+        moves = [
+            mark
+            for mark in _held_at(one, "block-context", MOVED_FROM)
+            if mark.instruction is Instruction.MOVE
+        ]
+        assert [mark.claim for mark in moves] == [
+            {"from": MOVED_FROM, "to": EMPTY_PLACE}
+        ]
+
+
 class TestAMovesEndsResolveTogether:
     """Both ends of a move resolve together over the turn --
     `no-command-for-the-middle` T69, `Process: #137`.
