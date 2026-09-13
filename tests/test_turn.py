@@ -1251,6 +1251,75 @@ class TestEveryRoleCleansAMoveAsItStands:
             assert ruled.mark.instruction is Instruction.MOVE
 
 
+class TestAMovesEndsDisagreeAfterATurn:
+    """A move whose two ends hold different texts after a turn --
+    `no-command-for-the-middle` T75, `Process: #127` and `#137`.
+
+    `_a_lone_move` carries the moved text reworded. Turn 1 answers every
+    slot `clean`, so function-context adopts the moved text at the origin
+    and both ends go back to both roles as re-reads. On turn 2 the mover
+    leaves the origin unanswered and cleans the destination, while
+    function-context restates the moved text at the origin and corrects the
+    destination to another text. The test asserts both ends of the move are
+    in one carried list.
+    """
+
+    @pytest.mark.xfail(
+        strict=True,
+        reason="no-command-for-the-middle T75: each end is its own re-read, and "
+        "_disagreeing escalates the destination, holding two texts, while the "
+        "origin, holding one, stays a re-read",
+    )
+    def test_both_ends_are_in_one_carried_list(self, tmp_path):
+        reworded = MOVED_TEXT + ", which is about w"
+        binder, got = _a_lone_move(tmp_path, reworded)
+        batch = batch_of(got.escalations, got.rereads)
+        answers = {
+            role: [{**slot, "instruction": "clean"} for slot in slots]
+            for role, slots in batch.items()
+        }
+        one = run_turn(_at(got), binder, tmp_path, batch, answers)
+        assert one.revisit == []
+
+        batch2 = batch_of(one.escalations, one.rereads)
+        restated = {
+            "instruction": "correct",
+            "claim": {"false": "# three", "true": "# three, which is about w"},
+            "reason": "the comment is about w",
+            "sources": [{"cite": "m.py:7", "verbatim": "w = 4"}],
+            "change": reworded,
+        }
+        answers2 = {
+            "block-context": [
+                {**slot, "instruction": "clean"}
+                for slot in batch2["block-context"]
+                if slot["address"] == EMPTY_PLACE
+            ],
+            "function-context": [
+                {
+                    **slot,
+                    **(
+                        restated
+                        if slot["address"] == MOVED_FROM
+                        else _A_COMPOSITION_CORRECT
+                    ),
+                }
+                for slot in batch2["function-context"]
+            ],
+        }
+        proof = proof_after(one, ({"turn": 1, "sent": batch},))
+        two = run_turn(proof, binder, tmp_path, batch2, answers2)
+        assert [(r.role, r.address) for r in two.revisit] == [
+            ("block-context", MOVED_FROM)
+        ]
+        (held,) = _held_at(two, "block-context", MOVED_FROM)
+        assert held.instruction is Instruction.MOVE
+        escalated = {e["address"] for e in two.escalations}
+        reread = {e["address"] for e in two.rereads}
+        assert {MOVED_FROM, EMPTY_PLACE} <= escalated | reread
+        assert (MOVED_FROM in escalated) == (EMPTY_PLACE in escalated)
+
+
 class TestAMovesEndsResolveTogether:
     """Both ends of a move resolve together over the turn --
     `no-command-for-the-middle` T69, `Process: #137`.
