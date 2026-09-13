@@ -336,3 +336,4 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       chief-final.json carries fib.py@b1's move twice
         > 2026-09-12 smoke 2026-09-12 18:27: chief.json has it once, chief-final twice
         > 2026-09-12 the docket lists b1 and b0 twice; --from-docket would refuse it
+        > 2026-09-12 Roy 2026-09-12: fixed in set 4
