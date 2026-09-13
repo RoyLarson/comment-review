@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 18 of 47 tasks closed
+Progress: 20 of 47 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -285,8 +285,9 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       existence check is IO outside machine
         > 2026-08-31 line 156 -- the only IO in binder/; picks UNVERIFIABLE or UNRESOLVE
         > 2026-09-03 new location: concordance/annotate.py, not binder/
-- [?] T36 | Decide whether the Reconciled entry becomes a container or stays a
-      dict. Verify: the answer is in `docs/decision-log.md`.
+- [x] T36 | Process 141: a container, re-read and escalation shaped apart | 57c89056 | Decide
+      whether the Reconciled entry becomes a container or stays a dict. Verify:
+      the answer is in `docs/decision-log.md`.
         > 2026-08-31 P42 left it deliberately: a new type needs its purpose
         > 2026-08-31 named before the code -- conventions.md. _outcome builds it;
         > 2026-08-31 _composition, _resolve and commands/collate.py read it by key.
@@ -330,8 +331,10 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       or a dict whose staying is recorded
         > 2026-09-02 Follows T36's ruling; it cannot start before the answer exists
         > 2026-09-02 Process 71 filed the type as needing its purpose named before code
-- [ ] T44 | Name what a Reconciled container would make correct that a dict does
-      not, so T36 can be ruled
+        > 2026-09-13 Process 141: a container; the purpose is recorded there
+- [x] T44 | named in Process 141: composed only on a re-read; typed reads | 57c89056 | Name
+      what a Reconciled container would make correct that a dict does not, so
+      T36 can be ruled
         > 2026-09-02 Process 71: a new type needs its purpose named BEFORE the code
 - [-] T45 | SUPERSEDED -- the page is the authority, not a binder, and the write path already holds it; refiled as T46 | e0430071 | Implement
       the flow step that verifies every mark's address against a full binder
