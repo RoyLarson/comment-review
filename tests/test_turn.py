@@ -1257,12 +1257,6 @@ class TestAMovesEndsDisagreeAfterATurn:
     in one carried list.
     """
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="no-command-for-the-middle T75: each end is its own re-read, and "
-        "_disagreeing escalates the destination, holding two texts, while the "
-        "origin, holding one, stays a re-read",
-    )
     def test_both_ends_are_in_one_carried_list(self, tmp_path):
         reworded = MOVED_TEXT + ", which is about w"
         binder, got = _a_lone_move(tmp_path, reworded)

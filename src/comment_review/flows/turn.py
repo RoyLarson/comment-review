@@ -796,19 +796,37 @@ def _disagreeing(got: Collated, contested: set[str]) -> Collated:
     answers with a new text and another holds, and an `add` beside another
     role's answer to it, which stays carried forward (`Process: #123`).
 
+    Both ends of a `move` escalate together (`Process: #137`): a re-read
+    holding a move whose other end escalates here escalates with it. It runs
+    to a fixed point, because moves chain.
+
     Returns:
         The fold with each such place out of `rereads` and at the end of
         `escalations`, without the `composed` mark only a re-read carries.
     """
-    moved = [
-        entry
+    gone = {
+        entry["address"]
         for entry in got.rereads
         if entry["address"] in contested
         and len({placed.mark.change for placed in entry["marks"]}) > 1
-    ]
-    if not moved:
+    }
+    changed = bool(gone)
+    while changed:
+        changed = False
+        for entry in got.rereads:
+            if entry["address"] in gone:
+                continue
+            if any(
+                end in gone
+                for placed in entry["marks"]
+                if placed.mark.instruction is Instruction.MOVE
+                for end in _touched_by(placed.mark)
+            ):
+                gone.add(entry["address"])
+                changed = True
+    if not gone:
         return got
-    gone = {entry["address"] for entry in moved}
+    moved = [entry for entry in got.rereads if entry["address"] in gone]
     return replace(
         got,
         escalations=[
