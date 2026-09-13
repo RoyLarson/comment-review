@@ -4304,3 +4304,21 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   which `Mark.parse` refuses since T60).
 
   *"A move is two sided both have to resolve together"*.
+
+  **Corrected the same day.** The question as recorded above says a composition answer at the
+  destination is refused by `Mark.parse` since T60. The session wrote that from an implementer's
+  reading and did not check it; in T69's two-turn run over a lone move, none of the four
+  composition answers there was refused. T69 routes the mover's `correct` and `patch` there to
+  the move (c7930fb2); what its `clean` and `query` there do is asked of Roy separately.
+
+- **#138.** **What a mover's `clean` and `query` at its move's destination end do** (Roy,
+  2026-09-12, on `no-command-for-the-middle` T69: the destination slot carries the origin's
+  original text, uncomposed, so the composition table would read a `clean` there as a withdrawal,
+  while the same `clean` at the origin keeps the move; a `query` written over the move entry
+  would remove the move).
+
+  Asked of the `clean` -- it keeps the move, both ends answering alike under `#137`; or the
+  table's withdrawal applies -- Roy: *"Keeps the move"*. Asked of the `query` -- it is filed
+  against the move, which stays, a human-review query holding both ends for the human and a
+  deferring query abstaining at both; or it stays at the destination slot -- Roy: *"Holds both
+  ends"*.
