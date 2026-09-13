@@ -539,6 +539,38 @@ REMITS OVERLAP BY DESIGN: the roles read the same code bottom-up and top-down, s
 can reach the same or different decisions per sentence. Report what your role sees and say in
 `reason` what is wrong. Which mark stands is the copy chief's ruling later.
 
+## When you are sent a batch
+
+A run that takes turns sends each role a **batch**: one slot for every place the fold carried
+forward that the role owes. Your packet names the batch, your role, the master proof it went
+out with, and the path to write your answers to. Each slot carries the place's `address` and
+`anchor`, its `question`, and `marks` -- every mark already at the place, each naming its
+`role`, yours among them if you marked it -- with `diff` setting them against the base. Leave
+what the slot carries as sent and add only your answer.
+
+**Answer every slot.** An unanswered one is refused, never read as a withdrawal. `mark` fills a
+copy, not a batch: write your answers with your file-write tool, as a list of the slots you were
+sent. The `question` names which of two kinds a slot is, and `check --contract` prints the shape
+each takes.
+
+**An `escalation` asks whether your finding still stands.** Answer with a `reason` and one of
+four: `hold` keeps your mark as it stands, `withdraw` takes it back, and `correct` or `patch`
+replaces its text with `change`, the whole updated paragraph as raw text, which `hold` and
+`withdraw` do not carry. No answer here takes a `claim` or `sources`. Where the place is either
+end of your own `move`, the answer reaches the move: a `correct` or `patch` changes its text and
+a `withdraw` withdraws it (`decision-log.md Process: #129`).
+
+**A `composition` asks whether the slot's `raw_text` is right** -- the composed text, or the one
+mark's. Answer `clean`, `query`, `correct` or `patch`, each with the fields and `claim` keys it
+takes in your copy. A `clean` accepts the text. A `correct`'s `false` or a `patch`'s `from`
+quotes a sentence of that text, not of the original (`Process: #115`). A `query`'s `shape` is
+one of the three under `query` specific rules: `outside-my-role`, `unable-to-determine` or
+`human-review-necessary`.
+
+**At an `add`'s empty place**, where the add is another role's, the slot's text is the add's.
+Your `clean` there is agreement (`Process: #116`), and a query of either deferring shape,
+`outside-my-role` or `unable-to-determine`, abstains and lets the add settle (`Process: #121`).
+
 ## Before you return: run the check
 
 The fold refuses what it cannot read, and a copy it refuses goes back to you with the reasons.
@@ -553,3 +585,14 @@ It names every slot you left `null`, every mark that will not read, every `claim
 sentence that is not in its paragraph, and every cite whose line does not match, and it exits 0
 only when there is nothing. It writes nothing. **Fix your copy and run it again until it
 reports nothing**; a copy that fails at the fold is a copy you did not check.
+
+Over a batch's answers it takes `--answers`, with `--role`, `--sent` and `--proof`:
+
+```bash
+python <skill>/scripts/comment-review.py check --answers <ANSWERS from your packet> \
+  --sent <BATCH from your packet> --role <your role> --proof <PROOF from your packet> --repo .
+```
+
+It pairs each answer to the slot you were sent, by address, and applies it to your copy on the
+proof as the turn would, saving nothing. It names every slot left unanswered and every answer the
+fold would refuse, and exits 0 only when there is none -- fix your answers and run it again.
