@@ -4322,3 +4322,13 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   against the move, which stays, a human-review query holding both ends for the human and a
   deferring query abstaining at both; or it stays at the destination slot -- Roy: *"Holds both
   ends"*.
+
+- **#139.** **Whether the chief may rule a move's two ends differently at max turns** (Roy,
+  2026-09-13, on `no-command-for-the-middle` T85, which the session had filed as a refusal of a
+  ruling that treats the two ends differently: round 3 found a chief ruling "original stands" at
+  the origin and "the mover's move" at the destination is accepted, and the chief's copy then
+  writes the whole move, so the origin's ruling is lost).
+
+  *"I think the chief can rule on the drop/add sections independently. This is because it is
+  supposed to be looking at the total composition by then and maybe the drop is correct but the
+  words on the add are still bad"*.
