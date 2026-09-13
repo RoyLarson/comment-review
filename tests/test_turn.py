@@ -1129,7 +1129,7 @@ class TestAMoversCompositionAnswerAtItsDestination:
 
 
 def _a_movers_query(shape: Shape) -> dict:
-    """The mover's composition `query` at its move's destination, in `shape`."""
+    """The mover's composition `query` at an end of its move, in `shape`."""
     return {
         "instruction": "query",
         "reason": "whether the comment belongs above w is not this role's to say",
@@ -1355,15 +1355,12 @@ class TestAMoversQueryAtItsOrigin:
 
     `_a_lone_move` sends the origin back to the mover as a re-read carrying
     the moved text. The mover answers it with a `query`, in each of the three
-    shapes, and every other slot is `clean`. The test settles whether the
-    mover still holds its move there afterwards, its claim naming both ends.
+    shapes, and every other slot is `clean`. The move stays, and the query is
+    filed against it at both ends, as at the destination (T84): a
+    `human-review-necessary` query holds both for the human, and a deferring
+    query takes the mover out of the roles at both, over two turns.
     """
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="no-command-for-the-middle T80: _answered writes the query over "
-        "the move entry, so the move is lost",
-    )
     @pytest.mark.parametrize(
         "shape",
         [
@@ -1392,6 +1389,61 @@ class TestAMoversQueryAtItsOrigin:
         assert [mark.claim for mark in moves] == [
             {"from": MOVED_FROM, "to": EMPTY_PLACE}
         ]
+
+    def test_a_human_review_query_holds_both_ends(self, tmp_path):
+        asked = _a_movers_query(Shape.HUMAN_REVIEW_NECESSARY)
+        _, one, two, turns = _two_turns(
+            tmp_path,
+            MOVED_TEXT,
+            lambda batch: _clean_but(batch, "block-context", MOVED_FROM, asked),
+            _all_clean,
+        )
+        assert one.revisit == []
+        assert one.problems == []
+        assert two.revisit == []
+        for got in (one, two):
+            assert sorted(u["address"] for u in got.unsettlable) == [
+                MOVED_FROM,
+                EMPTY_PLACE,
+            ]
+            carried = {e["address"] for e in (*got.escalations, *got.rereads)}
+            assert carried.isdisjoint({MOVED_FROM, EMPTY_PLACE})
+            assert got.determined.keys().isdisjoint({MOVED_FROM, EMPTY_PLACE})
+        sent = [
+            slot["address"] for slots in turns[-1]["sent"].values() for slot in slots
+        ]
+        assert set(sent).isdisjoint({MOVED_FROM, EMPTY_PLACE})
+
+    @pytest.mark.parametrize(
+        "shape", [Shape.OUTSIDE_MY_ROLE, Shape.UNABLE_TO_DETERMINE]
+    )
+    def test_a_deferring_query_abstains_at_both_ends(self, tmp_path, shape):
+        asked = _a_movers_query(shape)
+        _, one, two, turns = _two_turns(
+            tmp_path,
+            MOVED_TEXT,
+            lambda batch: _clean_but(batch, "block-context", MOVED_FROM, asked),
+            _all_clean,
+        )
+        assert one.revisit == []
+        assert one.problems == []
+        assert one.unsettlable == []
+        ends = {
+            e["address"]: e["roles"]
+            for e in (*one.escalations, *one.rereads)
+            if e["address"] in (MOVED_FROM, EMPTY_PLACE)
+        }
+        assert sorted(ends) == [MOVED_FROM, EMPTY_PLACE]
+        assert all("block-context" not in roles for roles in ends.values())
+        assert "function-context" in ends[MOVED_FROM]
+        sent = [
+            (role, slot["address"])
+            for role, slots in turns[-1]["sent"].items()
+            for slot in slots
+        ]
+        assert ("block-context", MOVED_FROM) not in sent
+        assert ("block-context", EMPTY_PLACE) not in sent
+        assert two.revisit == []
 
 
 #: A page whose place `m.py@b3` holds a comment of its own, so a move there

@@ -592,10 +592,11 @@ def places(proof: MasterProof) -> dict[str, list[Placed]]:
 
     A mark lands under its own `address`; a `move` lands under its destination
     as well, so the destination's group holds the move alongside anything
-    another role marked there. A role's `query` at its own move's destination
-    lands under that move's origin as well: it is filed against the move
-    (`decision-log.md Process: #138`), so a `human-review-necessary` query
-    holds both ends for the human and a deferring query abstains at both.
+    another role marked there. A role's `query` at either end of its own
+    move lands under the other end as well: it is filed against the move
+    (`decision-log.md Process: #137` and `#138`), so a
+    `human-review-necessary` query holds both ends for the human and a
+    deferring query abstains at both.
 
     Args:
         proof: a parsed master_proof, as `desk.proof.master_proof_of` returns one.
@@ -623,30 +624,37 @@ def places(proof: MasterProof) -> dict[str, list[Placed]]:
 
 
 def _filed_against(mark: Mark, marks: list[Mark]) -> list[str]:
-    """The origin of the move a role's `query` at its destination is filed against.
+    """The other end of the move a role's `query` at one of its ends is filed against.
 
-    `decision-log.md Process: #138`. The copy must hold exactly one such
-    move, the same test `flows.turn._move_to` applies before it routes an
-    answer to a move.
+    `decision-log.md Process: #137` and `#138`. A query at a move's
+    destination lands under its origin, and one at a move's origin under its
+    destination. Each needs the copy to hold exactly one such move, the test
+    `flows.turn._move_to` applies before it routes an answer to a move.
 
     Args:
         mark: one mark on a role's copy.
         marks: every mark on that copy.
 
     Returns:
-        That move's origin, where `mark` is a `query` and the copy holds
-        exactly one `move` whose `claim.to` is the query's address. Empty
-        otherwise.
+        Where `mark` is a `query`: the origin of the one `move` on the copy
+        whose `claim.to` is the query's address, and the destination of the
+        one `move` whose own address it is. Empty otherwise.
     """
     if mark.instruction is not Instruction.QUERY:
         return []
-    origins = [
-        other.address
-        for other in marks
-        if other.instruction is Instruction.MOVE
-        and other.claim.get("to") == mark.address
+    moves = [other for other in marks if other.instruction is Instruction.MOVE]
+    origins = [move.address for move in moves if move.claim.get("to") == mark.address]
+    destinations = [
+        to
+        for move in moves
+        if move.address == mark.address
+        and isinstance(to := move.claim.get("to"), str)
+        and to
     ]
-    return origins if len(origins) == 1 else []
+    return [
+        *(origins if len(origins) == 1 else []),
+        *(destinations if len(destinations) == 1 else []),
+    ]
 
 
 class Reconciled(NamedTuple):

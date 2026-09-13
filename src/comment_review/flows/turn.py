@@ -51,7 +51,8 @@ A COMPOSITION re-read is answered with a fresh `Mark` over the composed text
                 its claim and sources included; an entry already carrying the
                 slot's text stays as it is. Where the slot carries no `add`
                 there, the entry becomes a `clean`
-    query       the entry becomes the query
+    query       the entry becomes the query; the mover's at its move's
+                origin is a second entry there, after the move, which stays
     correct     the entry becomes the role's own `correct`, its claim quoting
                 the slot's text -- the text collate sent -- not the original
                 (`Process: #115`); the fold checks the quote against that text
@@ -66,8 +67,8 @@ the destination stays as it is. A `correct` or `patch` sets the `move` entry's
 `change` at the origin, the claim standing. A `clean` leaves the move as it
 stands: the slot there carries the origin's text uncomposed, and the table's
 withdrawal does not reach the move. Its `query` there is an answer at that
-slot, which the fold files against the move at both ends
-(`desk.collator.places`, `#138`).
+slot. At either end the fold files the mover's `query` against the move at
+both ends (`desk.collator.places`, `#137` and `#138`).
 
 An answer at a place the role's copy holds no slot for -- an `add`'s empty
 place, which `desk.collator._outcome` sends to every role of the stage while
@@ -343,6 +344,19 @@ def _becomes(entry: dict, new: dict) -> None:
     entry.update(new)
 
 
+def _put_after(copies: list[dict], role: str, entry: dict, new: dict) -> None:
+    """Put `new` on `role`'s copy right after `entry`, the dict object itself."""
+    for copy in copies:
+        if not isinstance(copy, dict) or copy.get("role") != role:
+            continue
+        for sheet in copy.get("sheets", []):
+            marks = sheet.get("marks", []) if isinstance(sheet, dict) else []
+            for i, held in enumerate(marks):
+                if held is entry:
+                    marks.insert(i + 1, new)
+                    return
+
+
 def _a_clean(entry: dict) -> dict:
     return {
         **Mark.seed(
@@ -493,7 +507,8 @@ def apply(
     the answer applies to that `move` entry, and the slot at the destination
     stays as it is. A composition `correct` or `patch` sets the move's
     `change`, its claim standing; a composition `clean` leaves the move as
-    it stands.
+    it stands. A composition `query` at a move's origin, from the role that
+    holds the move, is put on the copy right after the move, which stays.
 
     Returns:
         A `Revisit` per address this role's copy holds no slot for and
@@ -528,6 +543,11 @@ def apply(
                 ]
                 revisit.append(_refused(role, address, address, reasons))
                 continue
+        beside = (
+            isinstance(answer, Mark)
+            and answer.instruction is Instruction.QUERY
+            and entry.get("instruction") == str(Instruction.MOVE)
+        )
         if move is not None and isinstance(answer, Mark):
             held = (
                 None
@@ -543,7 +563,9 @@ def apply(
             reasons = [without_location(address, m) for m in why]
             revisit.append(_refused(role, address, address, reasons))
             continue
-        if sheet is None:
+        if beside:
+            _put_after(copies, role, entry, held)
+        elif sheet is None:
             _becomes(entry, held)
         else:
             sheet.append(held)
