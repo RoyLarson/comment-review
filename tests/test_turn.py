@@ -1217,6 +1217,40 @@ class TestAMoversCompositionAnswerAtItsOrigin:
         assert held.claim == {"from": MOVED_FROM, "to": EMPTY_PLACE}
 
 
+class TestEveryRoleCleansAMoveAsItStands:
+    """Every role's `clean` over a lone move whose text is unchanged --
+    `no-command-for-the-middle` T74, `Process: #89`.
+
+    `_a_lone_move` carries the origin's text as it stands, and turn 1
+    answers every slot `clean`, as T43's test does. Every role that marked
+    the place has then agreed with the move's text, which `#89` says makes
+    it a `stet`: the test asserts both ends are determined, each carrying
+    the move.
+    """
+
+    @pytest.mark.xfail(
+        strict=True,
+        reason="no-command-for-the-middle T74: the fold sends a lone move back "
+        "as a re-read at both ends on every turn, and nothing reads every "
+        "role's clean over its unchanged text as agreement",
+    )
+    def test_both_ends_settle_carrying_the_move(self, tmp_path):
+        binder, got = _a_lone_move(tmp_path, MOVED_TEXT)
+        batch = batch_of(got.escalations, got.rereads)
+        answers = {
+            role: [{**slot, "instruction": "clean"} for slot in slots]
+            for role, slots in batch.items()
+        }
+        one = run_turn(_at(got), binder, tmp_path, batch, answers)
+        assert one.revisit == []
+        assert {MOVED_FROM, EMPTY_PLACE} <= one.determined.keys()
+        for address in (MOVED_FROM, EMPTY_PLACE):
+            ruled = one.determined[address]
+            assert ruled.answer is Answer.STET
+            assert ruled.mark is not None
+            assert ruled.mark.instruction is Instruction.MOVE
+
+
 class TestAMovesEndsResolveTogether:
     """Both ends of a move resolve together over the turn --
     `no-command-for-the-middle` T69, `Process: #137`.
