@@ -1336,12 +1336,6 @@ class TestARewordedMoveOverTwoCleanTurns:
     may be determined without it.
     """
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="no-command-for-the-middle T79: nothing composed at either end, "
-        "so turn 2's slots carry the origin's text; the mover's clean over it "
-        "withdraws the move, and both ends are withdrawn stets",
-    )
     def test_the_move_is_not_lost(self, tmp_path):
         reworded = MOVED_TEXT + ", which is about w"
         _, one, two, _ = _two_turns(tmp_path, reworded, _all_clean, _all_clean)

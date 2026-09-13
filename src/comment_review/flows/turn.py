@@ -44,8 +44,8 @@ A COMPOSITION re-read is answered with a fresh `Mark` over the composed text
                 clean, and their clean over it is agreement). The sources are
                 the composed side's, from the sent slot. A `clean` over the
                 BASE, where nothing composed, is a withdrawal. A mover's
-                `clean` at its move's origin, where the slot carries the
-                move's own text, keeps the move. Where the base
+                `clean` at its move's origin keeps the move, whatever text
+                the slot carries (`Process: #137` and `#138`). Where the base
                 is empty -- an `add`'s place -- no `correct` can quote it, so
                 a role adopts the `add` the slot carries by holding that add,
                 its claim and sources included; an entry already carrying the
@@ -429,9 +429,9 @@ def _answered(entry: dict, answer: DiffMark | Mark, composition: dict) -> dict |
 
     Returns:
         The entry the slot is to hold, or None where it stays as it is -- a
-        `hold`, a mover's `clean` at its move's origin where the slot carries
-        the move's own text, or a `clean` at an empty place from the role
-        whose entry already carries the slot's text.
+        `hold`, a mover's `clean` at its move's origin, or a `clean` at an
+        empty place from the role whose entry already carries the slot's
+        text.
     """
     if isinstance(answer, DiffMark):
         if answer.instruction is DiffInstruction.HOLD:
@@ -447,10 +447,7 @@ def _answered(entry: dict, answer: DiffMark | Mark, composition: dict) -> dict |
         return held
     sources = entry.get("sources") or list(answer.sources)
     if answer.instruction is Instruction.CLEAN:
-        if (
-            entry.get("instruction") == str(Instruction.MOVE)
-            and entry.get("change") == answer.raw_text
-        ):
+        if entry.get("instruction") == str(Instruction.MOVE):
             return None
         adopts = bool(sources) and answer.raw_text != entry.get("raw_text", "")
         if not adopts:
