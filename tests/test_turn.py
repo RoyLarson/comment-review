@@ -7,7 +7,10 @@ max turns.
 would hand back: the seeded slot with its fields filled.
 """
 
+import json
+
 import pytest
+from conftest import run_command
 from helpers import (
     _MARK_PY_CITE,
     _MARK_PY_LINE_1,
@@ -26,9 +29,13 @@ from helpers import (
     an_add_at_an_empty_place,
     binder_of,
     copies_over,
+    disposition,
     entries_of,
+    the_chief,
 )
 
+from comment_review.commands import proof as proof_command
+from comment_review.commands.collate import OK
 from comment_review.desk.containers import MasterProof
 from comment_review.desk.determined import CHIEF, ORIGINAL, Answer
 from comment_review.desk.diff_mark import COMPOSITION, QUESTION, batch_of
@@ -39,11 +46,13 @@ from comment_review.desk.mark import (
     Shape,
     derived_change,
 )
+from comment_review.docket.docket import Docket
 from comment_review.flows.collate import collate
 from comment_review.flows.distribute import seed
 from comment_review.flows.fill import fill
 from comment_review.flows.mark_errors import Revisit
 from comment_review.flows.page_for import page_of
+from comment_review.flows.proof_io import load_proof, save_proof
 from comment_review.flows.turn import (
     batch_for,
     close,
@@ -1569,7 +1578,7 @@ class TestAMovesEndWithNoRolesLeft:
             ("block-context", Instruction.MOVE)
         ]
         with pytest.raises(ValueError, match=r"m\.py@b3 \(\)"):
-            determined_chief(last, [])
+            determined_chief(last, [], tmp_path)
         ruled = [
             rule_at_max_turns(
                 last,
@@ -1581,7 +1590,7 @@ class TestAMovesEndWithNoRolesLeft:
             )
             for address in (MOVED_FROM, EMPTY_PLACE)
         ]
-        _, chief = determined_chief(last, ruled)
+        _, chief = determined_chief(last, ruled, tmp_path)
         assert [(m.address, m.instruction) for m in entries_of(chief)] == [
             (MOVED_FROM, Instruction.MOVE)
         ]
@@ -1745,9 +1754,158 @@ class TestAMoveSettledAtTurnZero:
         ruled = rule_at_max_turns(
             last, OTHER, Answer.TAKEN_IN, "block-context", "TWO", proof.turn
         )
-        _, chief = close(last, [ruled], proof.turns)
+        _, chief = close(last, [ruled], proof.turns, tmp_path)
         moves = [m for m in entries_of(chief) if m.instruction is Instruction.MOVE]
         assert [m.address for m in moves] == [MOVED_FROM]
+
+
+def _a_move_at_max_turns(root) -> None:
+    """A lone move carried to max turns, on disk as `disposition` reads it.
+
+    Turn 1 is T33's: function-context patches the moved text at the move's
+    origin and every other slot is `clean`, so both ends escalate
+    (`Process: #127` and `#137`). `binder.json` and `proof1.json`, the
+    proof after turn 1 with its record, are written into `root`.
+    """
+    binder, got = _a_lone_move(root, MOVED_TEXT)
+    batch = batch_of(got.escalations, got.rereads)
+    patched = {
+        "instruction": "patch",
+        "claim": {"from": "two", "to": "TWO"},
+        "reason": "the fixture spells its numbers in capitals",
+        "change": MOVED_TEXT.replace("two", "TWO"),
+    }
+    one = run_turn(
+        _at(got),
+        binder,
+        root,
+        batch,
+        _clean_but(batch, "function-context", MOVED_FROM, patched),
+    )
+    assert one.revisit == []
+    assert sorted(e["address"] for e in one.escalations) == [MOVED_FROM, EMPTY_PLACE]
+    (root / "binder.json").write_text(json.dumps(binder.serialize()), encoding="utf-8")
+    save_proof(root / "proof1.json", proof_after(one, ({"turn": 1, "sent": batch},)))
+
+
+def _the_chief_rules_each_end(root, monkeypatch, capsys, origin: dict, to: dict):
+    """`disposition` over `_a_move_at_max_turns`, then `proof --to-docket`.
+
+    Args:
+        root: the checkout the move's page is written into.
+        monkeypatch: pytest's, for `run_command`.
+        capsys: pytest's, for `run_command`.
+        origin: the chief's ruling at `MOVED_FROM`, without its address.
+        to: the chief's ruling at `EMPTY_PLACE`, without its address.
+
+    Returns:
+        `(the chief's copy, the closed proof, the docket)`, each read back
+        from the JSON its command wrote.
+    """
+    _a_move_at_max_turns(root)
+    code, out = disposition(
+        root,
+        monkeypatch,
+        capsys,
+        [{"address": MOVED_FROM, **origin}, {"address": EMPTY_PLACE, **to}],
+    )
+    assert code == OK, out
+    closed, why = load_proof(root / "final.json")
+    assert closed is not None, why
+    code, out = run_command(
+        monkeypatch,
+        capsys,
+        proof_command,
+        "--copy",
+        str(root / "chief.json"),
+        "--repo",
+        str(root),
+        "--to-docket",
+        str(root / "docket.json"),
+    )
+    assert code == 0, out
+    loaded = json.loads((root / "docket.json").read_text(encoding="utf-8"))
+    docket, why = Docket.deserialize("docket.json", loaded)
+    assert docket is not None, why
+    return the_chief(root), closed, docket
+
+
+def _altered(docket, root) -> dict[str, str | None]:
+    """cue -> the text the docket sets there, each place asserted once.
+
+    Every alteration is on `m.py` and carries the page's own anchor at its
+    place, which the write end refuses anything else for.
+    """
+    page, why = page_of(root / "m.py", rel="m.py")
+    assert page is not None, why
+    rows = [
+        (schedule.path, one.cue, one.text, one.anchor)
+        for schedule in docket.schedules
+        for one in schedule.alterations
+    ]
+    assert len({(path, cue) for path, cue, _, _ in rows}) == len(rows), rows
+    assert all(path == "m.py" for path, _, _, _ in rows), rows
+    assert all(anchor == page.cues.anchor_of(cue) for _, cue, _, anchor in rows), rows
+    return {cue: text for _, cue, text, _ in rows}
+
+
+#: The chief's own paragraph for the move's destination.
+RECAST_THERE = "# w is 4, the count the comment above y described"
+
+
+class TestTheChiefRulesEachEndOfAMove:
+    """The chief's ruling at each end of a move takes effect on its own
+    section -- `no-command-for-the-middle` T86, `Process: #139`.
+
+    `_a_move_at_max_turns` carries both ends of block-context's move to max
+    turns, and the chief rules the origin, the drop, and the destination,
+    the add, each on its own. Each case is driven through `disposition` and
+    `proof --to-docket`, and read back from what each wrote.
+    """
+
+    def test_the_original_at_the_origin_and_the_move_at_the_destination(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        chief, _closed, docket = _the_chief_rules_each_end(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            {"answer": "taken_in", "side": ORIGINAL, "reason": "it reads true above y"},
+            {"answer": "taken_in", "side": "block-context", "reason": "w wants it"},
+        )
+        assert [(m.address, m.instruction) for m in entries_of(chief)] == [
+            (EMPTY_PLACE, Instruction.ADD)
+        ]
+        assert _altered(docket, tmp_path) == {"b3": MOVED_TEXT}
+
+    def test_the_move_at_the_origin_and_a_recast_at_the_destination(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        chief, _closed, docket = _the_chief_rules_each_end(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            {"answer": "taken_in", "side": "block-context", "reason": "not about y"},
+            {"answer": "recast", "reason": "wrong words", "prose": RECAST_THERE},
+        )
+        assert sorted((m.address, m.instruction) for m in entries_of(chief)) == [
+            (MOVED_FROM, Instruction.DROP),
+            (EMPTY_PLACE, Instruction.ADD),
+        ]
+        assert _altered(docket, tmp_path) == {"b1": None, "b3": RECAST_THERE}
+
+    def test_the_move_at_both_ends_is_written_once(self, tmp_path, monkeypatch, capsys):
+        chief, _closed, docket = _the_chief_rules_each_end(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            {"answer": "taken_in", "side": "block-context", "reason": "not about y"},
+            {"answer": "taken_in", "side": "block-context", "reason": "about w"},
+        )
+        assert [(m.address, m.instruction) for m in entries_of(chief)] == [
+            (MOVED_FROM, Instruction.MOVE)
+        ]
+        assert _altered(docket, tmp_path) == {"b1": None, "b3": MOVED_TEXT}
 
 
 def _two_places():
@@ -1997,7 +2155,7 @@ class TestTheCap:
         assert ruled.mark is None
         assert ruled.side == ORIGINAL
         assert ruled.how == "max-turns"
-        every, chief = determined_chief(got, [ruled])
+        every, chief = determined_chief(got, [ruled], REPO)
         assert every["m.py@b1"] is ruled
         assert entries_of(chief) == []
 
@@ -2006,7 +2164,7 @@ class TestTheCap:
         ruled = rule_at_max_turns(
             got, "m.py@b1", Answer.TAKEN_IN, "function-context", "dos is right", turn=2
         )
-        _, chief = determined_chief(got, [ruled])
+        _, chief = determined_chief(got, [ruled], REPO)
         assert [m.change for m in entries_of(chief)] == [DOS]
 
     def test_close_returns_the_closed_proof_and_the_chief(self):
@@ -2015,7 +2173,7 @@ class TestTheCap:
         ruled = rule_at_max_turns(
             got, "m.py@b1", Answer.TAKEN_IN, "function-context", "dos", turn=1
         )
-        closed, chief = close(got, [ruled], ({"turn": 1},))
+        closed, chief = close(got, [ruled], ({"turn": 1},), REPO)
         assert closed.turn == 1
         assert [(d.address, d.answer) for d in closed.determined] == [
             ("m.py@b1", Answer.TAKEN_IN)
@@ -2032,7 +2190,7 @@ class TestTheCap:
         )
         assert ruled.mark is not None
         assert ruled.mark.instruction is Instruction.ADD
-        _, chief = determined_chief(got, [ruled])
+        _, chief = determined_chief(got, [ruled], REPO)
         entry = entries_of(chief)[0]
         again, why = Mark.deserialize(entry.address, entry.serialize())
         assert why == []
@@ -2043,7 +2201,7 @@ class TestTheCap:
         [
             (_escalated_patch, Instruction.PATCH),
             (_escalated_drop, Instruction.DROP),
-            (_escalated_move, Instruction.MOVE),
+            (_escalated_move, Instruction.DROP),
         ],
     )
     def test_a_recast_keeps_the_filed_instruction(self, escalated, instruction):
@@ -2053,7 +2211,9 @@ class TestTheCap:
         than hand-traced -- `patch` and `drop` quote an original sentence and
         escalate; `move` quotes none and is re-read, widened by
         `_join_moves` to both its ends -- and each recast still parses under
-        the instruction it carries."""
+        the instruction it carries. `m.py@b1` is the move's origin, where
+        the recast rules that end alone and is its `drop` (`Process:
+        #139`)."""
         _, _, got = escalated()
         ruled = rule_at_max_turns(
             got, "m.py@b1", Answer.RECAST, "", "chief's own", turn=2, prose="# mine\n"
@@ -2071,7 +2231,7 @@ class TestTheCap:
             got, "m.py@b1", Answer.RECAST, "", "both sides miss it", turn=2, prose=prose
         )
         assert ruled.side == CHIEF
-        _, chief = determined_chief(got, [ruled])
+        _, chief = determined_chief(got, [ruled], REPO)
         entry = entries_of(chief)[0]
         assert entry.change == prose
         again, why = Mark.deserialize(entry.address, entry.serialize())
@@ -2107,7 +2267,7 @@ class TestTheCap:
         nothing would have noticed a second left unruled."""
         _, _, got = _escalated()
         with pytest.raises(ValueError) as caught:
-            determined_chief(got, [])
+            determined_chief(got, [], REPO)
         assert "m.py@b1" in str(caught.value)
         assert "block-context, function-context" in str(caught.value)
 
@@ -2116,7 +2276,7 @@ class TestTheCap:
         ruled = rule_at_max_turns(
             got, "m.py@b1", Answer.TAKEN_IN, ORIGINAL, "neither", turn=2
         )
-        every, chief = determined_chief(got, [ruled])
+        every, chief = determined_chief(got, [ruled], REPO)
         assert set(every) == {"m.py@b1"}
         assert entries_of(chief) == []
 
@@ -2135,7 +2295,7 @@ class TestTheCap:
             },
         )
         got = collate("4c", copies, binder, root=REPO)
-        every, _ = determined_chief(got, [])
+        every, _ = determined_chief(got, [], REPO)
         assert every == {}
 
     def test_stet_is_not_the_chiefs_to_rule(self):

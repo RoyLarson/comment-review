@@ -138,7 +138,7 @@ def main() -> int:
     if refused:
         return BROKEN
     try:
-        closed, chief = close(got, ruled, proof.turns)
+        closed, chief = close(got, ruled, proof.turns, root)
     except ValueError as err:
         print(str(err))
         return BROKEN

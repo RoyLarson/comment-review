@@ -6,11 +6,13 @@
     run_turn(proof, binder, root, sent, answers) -> Collated
     rule_at_max_turns(collated, address, answer, side, reason, turn, prose)
                                                                   -> Determined
-    determined_chief(collated, rulings) -> (every Determined, the chief's edit_copy)
+    determined_chief(collated, rulings, root)
+                                -> (every Determined, the chief's edit_copy)
     batch_for(collated) -> the batch that goes out, every slot carrying its diff
     proof_after(collated, turns) -> the master proof as the state between turns
     refold(proof, binder, root) -> the fold over a proof read back, at max turns
-    close(collated, rulings, turns) -> (the closed proof, the chief's edit_copy)
+    close(collated, rulings, turns, root)
+                                -> (the closed proof, the chief's edit_copy)
     contracts() -> the three shapes a role is handed, generated from the code
 
 ! `commands/collate.py` writes the first batch through `batch_for` and the
@@ -90,7 +92,9 @@ an escalation, which `_disagreeing`
 records (`Process: #127`). What did not agree is the next turn's batch, until the task
 agent's max turns (`Process: #78`), where `rule_at_max_turns` records the
 chief's `taken_in` or `recast` and `determined_chief` derives the chief's copy
-from the whole set.
+from the whole set. A move the chief rules differently at its two ends is
+written as each end's own mark, a `drop` at the origin and an `add` at the
+destination (`Process: #139`).
 
 !! ONCE STET, ALWAYS STET -- `Process: #91`. A place determined on an earlier
 turn keeps that Determined, turn included, whatever the copies say now, and
@@ -957,7 +961,13 @@ def rule_at_max_turns(
         recast -- carrying the instruction the roles filed, `claim` shaped to
         it by `_recast_claim`, and citing every side's sources -- so it
         parses as an ordinary mark the way `flows.collate._composition`'s
-        does.
+        does. A recast follows the first mark there that touches `address`,
+        not one `desk.collator._join_moves` carried from a move's other end.
+        Where that mark is a move, the recast rules one end of it
+        (`Process: #139`): at the origin it is `_the_origin`'s `drop`,
+        leaving the chief's prose there, and at the destination the move
+        carrying the chief's prose, which `determined_chief` writes as
+        that end's `add`.
 
     Raises:
         ValueError: the place is not carried forward, the side has no mark
@@ -992,45 +1002,129 @@ def rule_at_max_turns(
         return Determined(address, answer, turn, side, "max-turns", reason, placed.mark)
     if not filled(prose):
         raise ValueError("a recast needs the chief's own prose")
-    first = marks[0].mark
-    return Determined(
-        address,
-        answer,
-        turn,
-        CHIEF,
-        "max-turns",
-        reason,
-        Mark(
-            address=address,
-            anchor=first.anchor,
-            raw_text=first.raw_text,
-            instruction=first.instruction,
-            claim=_recast_claim(first, prose),
-            reason=reason,
-            sources=tuple(s for p in marks for s in p.mark.sources),
-            change=prose,
-        ),
+    first = next(p.mark for p in marks if address in _touched_by(p.mark))
+    moved = first.instruction is Instruction.MOVE
+    recast = Mark(
+        address=first.address if moved else address,
+        anchor=first.anchor,
+        raw_text=first.raw_text,
+        instruction=first.instruction,
+        claim=_recast_claim(first, prose),
+        reason=reason,
+        sources=tuple(s for p in marks for s in p.mark.sources),
+        change=prose,
+    )
+    if moved and address == first.address:
+        recast = _the_origin(recast, prose)
+    return Determined(address, answer, turn, CHIEF, "max-turns", reason, recast)
+
+
+def _the_origin(move: Mark, change: str) -> Mark:
+    """A move's origin as a `drop` of the paragraph it moves, leaving `change`.
+
+    An empty `change` empties the place, as the move does there
+    (`desk.mark.text_at`). The address, anchor, `raw_text`, reason and
+    sources are the move's.
+    """
+    return Mark(
+        address=move.address,
+        anchor=move.anchor,
+        raw_text=move.raw_text,
+        instruction=Instruction.DROP,
+        claim={"drop": move.raw_text},
+        reason=move.reason,
+        sources=move.sources,
+        change=change,
     )
 
 
+def _the_destination(move: Mark, address: str, proof: MasterProof, root: Path) -> Mark:
+    """A move's destination as an `add` of the text the move carries there.
+
+    The place's anchor and text are the page's, seeded as `apply` seeds a
+    slot a role's copy lacks (`flows.fill.place_on_the_page`), so the write
+    end finds the page's own anchor there. The claim names the move's origin
+    as what is missing and the anchor's line as the code it sits on; the
+    reason, sources and change are the move's.
+
+    Raises:
+        ValueError: no copy has a sheet for the destination's page, or the
+            page cannot be read or holds no such place.
+    """
+    copies = [copy.serialize() for copy in proof.edit_copies]
+    _, slot, why = place_on_the_page(copies, address, root)
+    if why:
+        raise ValueError("; ".join(why))
+    anchor = slot["anchor"]
+    return Mark(
+        address=address,
+        anchor=anchor,
+        raw_text=slot["raw_text"],
+        instruction=Instruction.ADD,
+        claim={
+            "missing": f"the paragraph moved here from {move.address}",
+            "anchor": f"`{anchor.strip()}`",
+        },
+        reason=move.reason,
+        sources=move.sources,
+        change=move.change,
+    )
+
+
+def _each_end(
+    every: dict[str, Determined], proof: MasterProof, root: Path
+) -> dict[str, Determined]:
+    """`every`, with each end of a split move carrying that end's own mark.
+
+    `Process: #139`: the chief rules a move's origin, the drop, and its
+    destination, the add, each on its own. A move that every one of its ends
+    carries stands whole, and the chief's copy writes it once at its origin.
+    Where the other end carries anything else, the end ruled with the move
+    carries its own ordinary mark instead: `_the_origin`'s `drop`, emptying
+    the place, or `_the_destination`'s `add` of the moved text. A recast
+    that `rule_at_max_turns` builds as a move at its destination is written
+    the same way, as an `add` of the chief's prose.
+    """
+    out = dict(every)
+    for address, ruled in every.items():
+        move = ruled.mark
+        if move is None or move.instruction is not Instruction.MOVE:
+            continue
+        ends = [every.get(end) for end in _touched_by(move)]
+        if all(end is not None and end.mark == move for end in ends):
+            continue
+        if address == move.address:
+            out[address] = replace(ruled, mark=_the_origin(move, ""))
+        elif address == move.claim.get("to"):
+            half = _the_destination(move, address, proof, root)
+            out[address] = replace(ruled, mark=half)
+    return out
+
+
 def determined_chief(
-    collated: Collated, rulings: list[Determined]
+    collated: Collated, rulings: list[Determined], root: Path
 ) -> tuple[dict[str, Determined], EditCopy]:
     """Every Determined of the stage, and the chief's copy derived from them.
 
     Args:
         collated: the last fold, carrying the program's `stet`s.
         rulings: the chief's own, from `rule_at_max_turns`.
+        root: the checkout a move's destination page is read from, where
+            `_each_end` writes that end as an `add`.
 
     Returns:
-        `(address -> Determined, the chief's edit_copy)`.
+        `(address -> Determined, the chief's edit_copy)`. Each end of a move
+        the chief ruled differently at its two ends carries that end's own
+        mark, as `_each_end` says (`Process: #139`).
 
     Raises:
         ValueError: the fold returned early and holds no proof; or a place
             still carried forward -- an escalation or a re-read -- has no
             ruling among `rulings`. !! NOTHING SURVIVES THE CAP UNRULED, T17:
             the refusal names every such place and its roles. An unsettlable
-            place is not among them; it is the human's (`Process: #90`).
+            place is not among them; it is the human's (`Process: #90`). Or
+            a move's destination the page cannot seed, as `_the_destination`
+            says.
     """
     if collated.proof is None:
         raise ValueError("the fold returned early -- no proof to derive a copy from")
@@ -1045,7 +1139,11 @@ def determined_chief(
             f"{entry['address']} ({', '.join(entry['roles'])})" for entry in unruled
         )
         raise ValueError(f"unruled at max turns: {named}")
-    every = {**collated.determined, **{d.address: d for d in rulings}}
+    every = _each_end(
+        {**collated.determined, **{d.address: d for d in rulings}},
+        collated.proof,
+        root,
+    )
     return every, _chief_copy(collated.proof.read_from, every, collated.proof)
 
 
@@ -1106,7 +1204,7 @@ def proof_after(got: Collated, turns: tuple[dict, ...] = ()) -> MasterProof:
 
 
 def close(
-    got: Collated, rulings: list[Determined], turns: tuple[dict, ...]
+    got: Collated, rulings: list[Determined], turns: tuple[dict, ...], root: Path
 ) -> tuple[MasterProof, EditCopy]:
     """The proof closed at max turns, and the chief's copy from the whole set.
 
@@ -1115,6 +1213,8 @@ def close(
         rulings: the chief's own, from `rule_at_max_turns`, one per place still
             carried forward.
         turns: the record as the proof stood; max turns adds no turn.
+        root: the checkout a move's destination page is read from, as
+            `determined_chief` takes it.
 
     Returns:
         `(the closed proof, the chief's edit_copy)`. The proof carries every
@@ -1123,9 +1223,10 @@ def close(
 
     Raises:
         ValueError: as `determined_chief` -- a place still carried forward
-            has no ruling, or the fold holds no proof.
+            has no ruling, the fold holds no proof, or a move's destination
+            the page cannot seed.
     """
-    every, chief = determined_chief(got, rulings)
+    every, chief = determined_chief(got, rulings, root)
     proof = proof_after(got, turns)
     closed = replace(proof, determined=tuple(every[a] for a in sorted(every)))
     return closed, chief
