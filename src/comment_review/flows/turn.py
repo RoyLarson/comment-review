@@ -58,7 +58,9 @@ A COMPOSITION re-read is answered with a fresh `Mark` over the composed text
     patch       the same, as a `patch` -- not a correct, which owes sources a
                 patch never carried
 
-The mover's `correct`, `patch` or `clean` at its move's destination end is an
+The mover's `correct` or `patch` at its move's origin sets the `move` entry's
+`change`, the claim standing, and does not replace the move (`Process: #137`).
+Its `correct`, `patch` or `clean` at its move's destination end is an
 edit to the move as well (`Process: #137` and `#138`), and the mover's slot at
 the destination stays as it is. A `correct` or `patch` sets the `move` entry's
 `change` at the origin, the claim standing. A `clean` leaves the move as it
@@ -454,6 +456,8 @@ def _answered(entry: dict, answer: DiffMark | Mark, composition: dict) -> dict |
         return _a_clean(entry)
     if answer.instruction is Instruction.QUERY:
         return {**answer.serialize(), "raw_text": entry.get("raw_text", "")}
+    if entry.get("instruction") == str(Instruction.MOVE):
+        return {**entry, "change": answer.change}
     return _as_answered(entry, answer, sources)
 
 

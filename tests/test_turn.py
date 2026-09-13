@@ -1188,11 +1188,6 @@ class TestAMoversCompositionAnswerAtItsOrigin:
     holds its move there afterwards, its claim naming both ends.
     """
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason="no-command-for-the-middle T73: _as_answered writes the answer "
-        "over the move entry, so the move is lost",
-    )
     @pytest.mark.parametrize(
         "answer",
         [
@@ -1214,6 +1209,7 @@ class TestAMoversCompositionAnswerAtItsOrigin:
         assert one.revisit == []
         (held,) = _held_at(one, "block-context", MOVED_FROM)
         assert held.instruction is Instruction.MOVE
+        assert held.change == answer["change"]
         assert held.claim == {"from": MOVED_FROM, "to": EMPTY_PLACE}
 
 
