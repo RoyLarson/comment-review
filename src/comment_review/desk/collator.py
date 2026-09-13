@@ -16,7 +16,7 @@
                                address
     tally()                    how many of each instruction the edit_copy carries
     places()                   every ruled mark of a master_proof, grouped by
-                               the address it TOUCHES
+                               every address it lands on
     reconcile()                each place -> settled, escalation or re-read
 
 !! FOUR KINDS OF CHECK, AND WHAT EACH NEEDS IS WHAT SEPARATES THEM. NAMED BY
@@ -588,11 +588,14 @@ class Placed(NamedTuple):
 
 
 def places(proof: MasterProof) -> dict[str, list[Placed]]:
-    """Every ruled mark of a master_proof, grouped by the address it TOUCHES.
+    """Every ruled mark of a master_proof, grouped by every address it lands on.
 
     A mark lands under its own `address`; a `move` lands under its destination
     as well, so the destination's group holds the move alongside anything
-    another role marked there.
+    another role marked there. A role's `query` at its own move's destination
+    lands under that move's origin as well: it is filed against the move
+    (`decision-log.md Process: #138`), so a `human-review-necessary` query
+    holds both ends for the human and a deferring query abstains at both.
 
     Args:
         proof: a parsed master_proof, as `desk.proof.master_proof_of` returns one.
@@ -611,12 +614,39 @@ def places(proof: MasterProof) -> dict[str, list[Placed]]:
     """
     out: dict[str, list[Placed]] = {}
     for copy in proof.edit_copies:
-        for sheet in copy.sheets:
-            for mark in sheet.marks:
-                placed = Placed(mark, copy.role)
-                for address in _touches(mark):
-                    out.setdefault(address, []).append(placed)
+        marks = [mark for sheet in copy.sheets for mark in sheet.marks]
+        for mark in marks:
+            placed = Placed(mark, copy.role)
+            for address in (*_touches(mark), *_filed_against(mark, marks)):
+                out.setdefault(address, []).append(placed)
     return out
+
+
+def _filed_against(mark: Mark, marks: list[Mark]) -> list[str]:
+    """The origin of the move a role's `query` at its destination is filed against.
+
+    `decision-log.md Process: #138`. The copy must hold exactly one such
+    move, the same test `flows.turn._move_to` applies before it routes an
+    answer to a move.
+
+    Args:
+        mark: one mark on a role's copy.
+        marks: every mark on that copy.
+
+    Returns:
+        That move's origin, where `mark` is a `query` and the copy holds
+        exactly one `move` whose `claim.to` is the query's address. Empty
+        otherwise.
+    """
+    if mark.instruction is not Instruction.QUERY:
+        return []
+    origins = [
+        other.address
+        for other in marks
+        if other.instruction is Instruction.MOVE
+        and other.claim.get("to") == mark.address
+    ]
+    return origins if len(origins) == 1 else []
 
 
 class Reconciled(NamedTuple):

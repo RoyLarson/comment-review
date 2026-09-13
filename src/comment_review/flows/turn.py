@@ -64,7 +64,8 @@ the destination stays as it is. A `correct` or `patch` sets the `move` entry's
 `change` at the origin, the claim standing. A `clean` leaves the move as it
 stands: the slot there carries the origin's text uncomposed, and the table's
 withdrawal does not reach the move. Its `query` there is an answer at that
-slot.
+slot, which the fold files against the move at both ends
+(`desk.collator.places`, `#138`).
 
 An answer at a place the role's copy holds no slot for -- an `add`'s empty
 place, which `desk.collator._outcome` sends to every role of the stage while
