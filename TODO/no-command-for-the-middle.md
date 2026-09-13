@@ -423,6 +423,8 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       Process 89
         > 2026-09-13 T87's xfail at 2fb8c079; after turn 1 no agreement was read
         > 2026-09-13 it reaches the chief at max turns, so nothing is lost
+        > 2026-09-13 Roy 2026-09-13: the last round before the move branch merges
 - [ ] T89 | Implement a test of a move whose origin is held for the human while
       the chief rules its destination, to settle what lands
         > 2026-09-13 round 5, by reading: only the destination's add is written
+        > 2026-09-13 Roy 2026-09-13: the last round before the move branch merges

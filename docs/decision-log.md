@@ -4332,3 +4332,11 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   *"I think the chief can rule on the drop/add sections independently. This is because it is
   supposed to be looking at the total composition by then and maybe the drop is correct but the
   words on the add are still bad"*.
+
+- **#140.** **When the move branch merges** (Roy, 2026-09-13: five rounds on
+  `feat/a-move-resolves-at-both-ends` had each turned up a few more edges of a move; round 5 left
+  `no-command-for-the-middle` T88, a reworded move every role cleans never settling, and T89, a
+  move whose origin is held for the human while the chief rules its destination).
+
+  Asked -- one more round on T88 and T89, then merge, anything new filed rather than worked; or
+  merge now -- Roy: *"One more round, then merge"*.
