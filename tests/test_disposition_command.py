@@ -9,6 +9,7 @@ from helpers import (
     BASE,
     DOS,
     TWO,
+    a_clean,
     a_query,
     disposition,
     entries_of,
@@ -106,10 +107,13 @@ class TestTheChiefRules:
         self, tmp_path, monkeypatch, capsys
     ):
         texts = {"m.py@b1": BASE, "m.py@b2": "# four\n# five\n# six\n"}
+        # function-context cleans m.py@b2, so the turn owes no answer there and
+        # exits as the escalation at m.py@b1 alone, which `held_open` asserts.
         asked = {
             "block-context": {
                 "m.py@b2": a_query("m.py@b2", Shape.HUMAN_REVIEW_NECESSARY)
-            }
+            },
+            "function-context": {"m.py@b2": a_clean("m.py@b2")},
         }
         held_open(tmp_path, monkeypatch, capsys, asked, texts)
         code, out = disposition(

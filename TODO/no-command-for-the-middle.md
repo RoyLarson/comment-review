@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 48 of 65 tasks closed
+Progress: 51 of 68 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -323,3 +323,18 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [ ] T65 | Update T33's test in test_turn.py to use the two-turn helper T57's
       test and the withdraw test share
         > 2026-09-12 e260438d added the helper; T33's test repeats its setup
+- [x] T66 | turn exits 7 as collate does | f85ea724 | Update turn so it exits 7
+      when its fold carries places forward and a role left a place unruled, per
+      Process 133
+        > 2026-09-12 collate exits 7 since 685f2ecb
+        > 2026-09-12 collate exits 7 since 685f2ecb
+- [x] T67 | renamed for the exit 7 it asserts | 84601860 | Update the name of
+      test_an_unanswered_slot_is_COVERAGE_and_the_place_stays in
+      tests/test_turn_command.py, which asserts exit 7
+        > 2026-09-12 f85ea724 moved its expected code to CARRIED_AND_UNRULED
+- [x] T68 | a settled move is written once in the chief's copy after the wire | c7ca8be5 | Update
+      the chief copy so a place determined at turn 0 appears once;
+      chief-final.json carries fib.py@b1's move twice
+        > 2026-09-12 smoke 2026-09-12 18:27: chief.json has it once, chief-final twice
+        > 2026-09-12 the docket lists b1 and b0 twice; --from-docket would refuse it
+        > 2026-09-12 Roy 2026-09-12: fixed in set 4

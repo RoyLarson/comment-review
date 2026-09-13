@@ -5,6 +5,7 @@
         -> reread the file FROM DISK                source_of
         -> the sha is the one the SCHEDULE recorded
         -> build the page                           page_of
+        -> each alteration carries the page's anchor at its place
         -> galley          the marks are put on the page
         -> compositor      the page is set as text
         -> draft           a temporary file, never the original
@@ -28,9 +29,10 @@ names it, and the sha it was read at. So the ruling is literal rather than
 nearly true: Roy, 2026-08-25, *"besides reading the sha and file path/name you
 should not be assuming any binder things make it this far."*
 
-! WHAT IS READ FROM DISK IS THE PAGE ITSELF. No paragraph text, kind or anchor
-crosses from anywhere; the sha is what says the file is still the one the agents
-read.
+! WHAT IS READ FROM DISK IS THE PAGE ITSELF. No paragraph text or kind crosses
+from anywhere, and the one anchor that does -- the one an alteration carries --
+is checked against the page's and never set from (`decision-log.md Process:
+#134`); the sha is what says the file is still the one the agents read.
 
 ! THE ORDER LIVES HERE AND NOWHERE ELSE. The galley edits, the compositor sets,
 and neither knows what runs next. `STEPS` names that sequence as DATA; nothing
@@ -49,7 +51,7 @@ from comment_review.docket.docket import Docket
 from comment_review.flows.page_for import page_of, source_of
 from comment_review.machine import constants
 from comment_review.machine.repo import can_escape, undraftable
-from comment_review.reading.addresser import cue_of
+from comment_review.reading.addresser import address_for, cue_of
 from comment_review.reading.paragraph import Paragraph
 from comment_review.reading.series import Series
 from comment_review.results import compositor, galley
@@ -217,6 +219,7 @@ def run(docket: Docket, repo: Path, into: Path) -> tuple[list[Drafted], list[Ref
             made, why = _one(
                 schedule.path,
                 schedule.edits,
+                schedule.anchors,
                 schedule.sha,
                 repo,
                 into,
@@ -299,6 +302,7 @@ def _discard(draft: Path, created: set[Path]) -> None:
 def _one(
     rel: str,
     edits: dict[str, str | None],
+    anchors: dict[str, str],
     recorded: str,
     repo: Path,
     into: Path,
@@ -350,6 +354,30 @@ def _one(
     page, why = page_of(source, rel=rel, source=held)
     if page is None:
         return None, Refusal("read", rel, why)
+
+    # Every alteration carries the page's anchor at its place, and each is
+    # checked against the page's own anchor there, which is what
+    # `decision-log.md Process: #134` and `#135` rule the anchor is for. An
+    # anchored alteration at a place the page does not carry is left to
+    # `galley.reset`, which refuses it by name.
+    places = page.cues.places
+    for where in edits:
+        anchor = anchors.get(where)
+        if anchor is None:
+            return None, Refusal(
+                "verify",
+                rel,
+                f"{address_for(rel, where)}: the alteration carries no anchor,"
+                " and every alteration carries the page's anchor at its place",
+            )
+        at = places.get(where)
+        if at is not None and at != anchor:
+            return None, Refusal(
+                "verify",
+                rel,
+                f"{address_for(rel, where)}: the mark's anchor is {anchor!r}, and"
+                f" the page's anchor at that place is {at!r}",
+            )
 
     placed = galley.reset(page, edits)
     if placed:

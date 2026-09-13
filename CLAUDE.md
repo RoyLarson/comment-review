@@ -372,9 +372,7 @@ is a `.py` script written under the job's tmp dir and run with `uv run python`.
 
 - Grade a comment-review run from its **diff**, never from its own report -- self-reported
   confidence has been measured to not discriminate real from fabricated findings.
-- `docs/limitations.md` governs changes to the skill's prose/rules themselves: every example
-  used there must be invented (never a real quotation), each new rule should replace an
-  existing one at budget rather than accumulate, and a rule belongs in exactly one file.
+- Changing the agent files or the skill's prose follows [`docs/limitations.md`](docs/limitations.md).
 
 -> [docs/decision-log.md](docs/decision-log.md), *Process*.
 

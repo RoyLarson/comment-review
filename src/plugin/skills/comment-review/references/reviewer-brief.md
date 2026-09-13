@@ -64,13 +64,6 @@ comment closes its run, so a sentence wrapped onto the next line becomes a SECON
 to the code BELOW it. Read the two together before ruling. **A mid-clause ending on a paragraph
 carrying this annotation is the gather's doing, not the author's, and is not a `correct`.**
 
-!! **FRONT MATTER IS NOT YOURS, and you will not be shown it.** A licence header, a shebang or
-a coding line -- the prose above a module's own docstring. It states no constraint the code
-could contradict, documents no function, and sits where law or convention puts it, so no role
-here can settle it. It gets no slot in your copy. ! **An edit proposed on it anyway
-becomes a `query`** -- a licence is a legal instrument and a shebang is how the file runs, and
-both are the human's to change.
-
 !! **A paragraph that holds nothing owes you no mark.** Most of the binder is empty -- a gap
 between two lines of code (`interval`), or a declaration with no docstring (`undocumented`).
 They are there to be CITED, not accounted for: an `add` says a constraint exists in code and
@@ -85,16 +78,16 @@ separate addressers, and no number in one tells you a number in another -- nor d
 position tell you either. Two of them lining up on the file in front of you is a coincidence of
 that file, and it may change.
 
-! **`@f0` IS THE FILE'S OWN MATTER** -- a licence header, a shebang, a coding line, and at the
+**`@f0` is the file's own matter** -- a licence header, a shebang, a coding line, and at the
 other end an index, a glossary or a run of footnotes -- and not the gap above the first line of
-code. It gets no slot in your copy, and any edit proposed on it becomes a `query`.
+code. Front and back matter are excluded by default, as licence and other information is not
+normally editable, and your copy carries no `f` slot.
 
-!! **YOUR COPY CARRIES `a`, `b` AND `c`. THAT IS THE WHOLE SET YOU RULE ON.** The `f` series
-is not a place you were asked about, so there is no instruction to reach on one.
-
-! **YOU WILL STILL READ IT, AND THAT IS FINE.** Opening the file puts a licence header in front
-of you, and you should use it the way you use any other context -- to understand what the file
-is and who owns it. ! **What is ruled out is RULING on it**, not seeing it.
+**An `f` place is expected to be matter, but it may not be.** Matter is filed by where it sits
+in the file, so a comment paragraph that opens or closes one can land in the `f` series. If you read
+the code and find the `f` run is a comment, ask the addresser for its address with `--series f`
+and mark it; the address and a `move` to a `b` place can both be asked for. Any correction to
+an `f` place is raised to the human individually, to approve.
 
 ## You FILL an edit copy; you do not write one
 
@@ -295,17 +288,13 @@ place a thing belongs is refused.
 something you can work out** -- ask, as above. Your payload names WHAT is missing and WHICH
 anchor.
 
-!! **YOUR `change` REPLACES THE GAP, INCLUDING ITS BLANK LINES.** An interval is bounded by two
-lines of CODE and the gap between them is whatever sits there -- nothing, or blank lines. The
-edit is applied to the GAP, so a two-blank-line separation you do not write out is a separation
-the file loses. **Write the blank lines you want kept**, as blank lines in the raw text, the
-same way you would write them in the file.
+**Write no leading blank line at either end of your `change`.** The compositor supplies the
+leading from the place's kind, so a blank line you write at the start or the end of a `change`
+is a second one.
 
 !! **A `c` PLACE STARTS AT THE END OF THE CODE, so your `change` carries its own separator.**
 A trailing comment is written from the point the statement stops -- `"  # why"`, with the two
-spaces you want between them. Write `"# why"` and it lands hard against the code. This is the
-same rule an interval follows: the text is file-ready, and whatever whitespace you want is
-whitespace you write.
+spaces you want between them. Write `"# why"` and it lands hard against the code.
 
 ! **It is why a `margin` and the trailing comment that would replace it are ONE place.** Adding
 a comment where there is none and rewording one that is there write to the same column, so the
@@ -550,6 +539,38 @@ REMITS OVERLAP BY DESIGN: the roles read the same code bottom-up and top-down, s
 can reach the same or different decisions per sentence. Report what your role sees and say in
 `reason` what is wrong. Which mark stands is the copy chief's ruling later.
 
+## When you are sent a batch
+
+A run that takes turns sends each role a **batch**: one slot for every place the fold carried
+forward that the role owes. Your packet names the batch, your role, the master proof it went
+out with, and the path to write your answers to. Each slot carries the place's `address` and
+`anchor`, its `question`, and `marks` -- every mark already at the place, each naming its
+`role`, yours among them if you marked it -- with `diff` setting them against the base. Leave
+what the slot carries as sent and add only your answer.
+
+**Answer every slot.** An unanswered one is refused, never read as a withdrawal. `mark` fills a
+copy, not a batch: write your answers with your file-write tool, as a list of the slots you were
+sent. The `question` names which of two kinds a slot is, and `check --contract` prints the shape
+each takes.
+
+**An `escalation` asks whether your finding still stands.** Answer with a `reason` and one of
+four: `hold` keeps your mark as it stands, `withdraw` takes it back, and `correct` or `patch`
+replaces its text with `change`, the whole updated paragraph as raw text, which `hold` and
+`withdraw` do not carry. No answer here takes a `claim` or `sources`. Where the place is either
+end of your own `move`, the answer reaches the move: a `correct` or `patch` changes its text and
+a `withdraw` withdraws it (`decision-log.md Process: #129`).
+
+**A `composition` asks whether the slot's `raw_text` is right** -- the composed text, or the one
+mark's. Answer `clean`, `query`, `correct` or `patch`, each with the fields and `claim` keys it
+takes in your copy. A `clean` accepts the text. A `correct`'s `false` or a `patch`'s `from`
+quotes a sentence of that text, not of the original (`Process: #115`). A `query`'s `shape` is
+one of the three under `query` specific rules: `outside-my-role`, `unable-to-determine` or
+`human-review-necessary`.
+
+**At an `add`'s empty place**, where the add is another role's, the slot's text is the add's.
+Your `clean` there is agreement (`Process: #116`), and a query of either deferring shape,
+`outside-my-role` or `unable-to-determine`, abstains and lets the add settle (`Process: #121`).
+
 ## Before you return: run the check
 
 The fold refuses what it cannot read, and a copy it refuses goes back to you with the reasons.
@@ -564,3 +585,14 @@ It names every slot you left `null`, every mark that will not read, every `claim
 sentence that is not in its paragraph, and every cite whose line does not match, and it exits 0
 only when there is nothing. It writes nothing. **Fix your copy and run it again until it
 reports nothing**; a copy that fails at the fold is a copy you did not check.
+
+Over a batch's answers it takes `--answers`, with `--role`, `--sent` and `--proof`:
+
+```bash
+python <skill>/scripts/comment-review.py check --answers <ANSWERS from your packet> \
+  --sent <BATCH from your packet> --role <your role> --proof <PROOF from your packet> --repo .
+```
+
+It pairs each answer to the slot you were sent, by address, and applies it to your copy on the
+proof as the turn would, saving nothing. It names every slot left unanswered and every answer the
+fold would refuse, and exits 0 only when there is none -- fix your answers and run it again.

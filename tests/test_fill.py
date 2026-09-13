@@ -14,6 +14,7 @@ import json
 from pathlib import Path
 
 import pytest
+from conftest import SAMPLE
 from helpers import a_binder_over, a_small_real_tree, binder_of
 
 from comment_review.desk.mark import Mark, untouched
@@ -129,7 +130,7 @@ class TestAnAddressWithNoSlotIsAppendedToItsSheet:
             "change": "# y is 2 because the fixture says so\n",
         }
         placed, why = fill(copy, entry, root)
-        assert why == []
+        assert why == [] and placed is not None
         marks = _marks(copy)
         assert marks[-1] is placed
         assert placed["address"] == "m.py@b3"
@@ -163,6 +164,107 @@ class TestAnAddressWithNoSlotIsAppendedToItsSheet:
         assert placed is None
         assert len(why) == 1 and "other.py@b1" in why[0] and "no sheet" in why[0]
         assert json.dumps(copy) == before
+
+
+class TestAnAddAtAPlaceHoldingProseKeepsItsWords:
+    """`decision-log.md Process: #132`, `mark-defects` T20. An `add` where the
+    page already holds prose adds to that paragraph, so its change keeps every
+    word of the prose, in order; punctuation and whitespace are free to move.
+    The copy is seeded from a binder over the real page `root` holds, whose
+    `b1` holds `# one`, `# two` and `# three`."""
+
+    def _add_at(self, address: str, change: str) -> dict:
+        return {
+            "address": address,
+            "instruction": "add",
+            "claim": {"missing": "why y is 2", "anchor": "`y`"},
+            "reason": "the constant is explained nowhere",
+            "sources": [{"cite": "m.py:5"}],
+            "change": change,
+        }
+
+    def test_an_add_that_drops_a_word_is_refused(self, root):
+        copy = seed(binder_of(root, 0), "block-context")
+        slot = _marks(copy)[0]
+        assert slot["raw_text"] == "# one\n# two\n# three"
+        before = json.dumps(copy)
+        change = "# one\n# three\n# y is 2 because the fixture says so\n"
+        placed, why = fill(copy, self._add_at(slot["address"], change), root)
+        assert placed is None
+        assert len(why) == 1, why
+        assert slot["address"] in why[0] and "'two'" in why[0]
+        assert json.dumps(copy) == before
+
+    def test_an_add_that_keeps_the_words_out_of_order_is_refused(self, root):
+        copy = seed(binder_of(root, 0), "block-context")
+        slot = _marks(copy)[0]
+        before = json.dumps(copy)
+        change = "# three, two, one\n# y is 2 because the fixture says so\n"
+        placed, why = fill(copy, self._add_at(slot["address"], change), root)
+        assert placed is None
+        assert len(why) == 1 and slot["address"] in why[0], why
+        assert json.dumps(copy) == before
+
+    def test_an_add_that_keeps_every_word_in_order_is_placed(self, root):
+        copy = seed(binder_of(root, 0), "block-context")
+        slot = _marks(copy)[0]
+        change = "# one, two and three.\n# y is 2 because the fixture says so\n"
+        placed, why = fill(copy, self._add_at(slot["address"], change), root)
+        assert why == [] and placed is not None
+        assert placed is slot
+        assert placed["raw_text"] == "# one\n# two\n# three"
+        assert placed["change"] == change
+
+    def test_an_add_at_an_empty_place_has_no_words_to_keep(self, root):
+        binder = binder_of(root, 0)
+        assert "m.py@b3" not in {p.address for p in binder.paragraphs}
+        copy = seed(binder, "block-context")
+        change = "# y is 2 because the fixture says so\n"
+        placed, why = fill(copy, self._add_at("m.py@b3", change), root)
+        assert why == [] and placed is not None
+        assert placed["raw_text"] == ""
+        assert _marks(copy)[-1] is placed
+
+
+class TestAnAddAtAnFPlaceKeepsThePagesProse:
+    """`mark-defects` T21. A role is handed no slot at an `f` place, so a
+    ruling there is seeded from the page -- its anchor and its `raw_text` --
+    and `decision-log.md Process: #132`'s check applies to the prose the page
+    holds. The page is `SAMPLE`, whose front matter `f0` is its interpreter
+    line."""
+
+    @pytest.fixture
+    def front(self, tmp_path) -> Path:
+        (tmp_path / "m.py").write_text(SAMPLE, encoding="utf-8", newline="")
+        return tmp_path
+
+    def _add_at_f0(self, change: str) -> dict:
+        return {
+            "address": "m.py@f0",
+            "instruction": "add",
+            "claim": {"missing": "what runs the module", "anchor": "`python`"},
+            "reason": "the interpreter line is all the front matter says",
+            "sources": [{"cite": "m.py:1"}],
+            "change": change,
+        }
+
+    def test_an_add_that_drops_the_prose_is_refused(self, front):
+        copy = seed(binder_of(front, 0), "block-context")
+        assert "m.py@f0" not in {m["address"] for m in _marks(copy)}
+        before = json.dumps(copy)
+        placed, why = fill(copy, self._add_at_f0("# runs as a script\n"), front)
+        assert placed is None
+        assert len(why) == 1 and "m.py@f0" in why[0] and "'usr'" in why[0], why
+        assert json.dumps(copy) == before
+
+    def test_an_add_that_keeps_the_prose_is_seeded_from_the_page(self, front):
+        copy = seed(binder_of(front, 0), "block-context")
+        change = "#!/usr/bin/env python\n# runs as a script\n"
+        placed, why = fill(copy, self._add_at_f0(change), front)
+        assert why == [] and placed is not None
+        assert placed["raw_text"] == "#!/usr/bin/env python"
+        assert placed["anchor"] == "<module>"
+        assert _marks(copy)[-1] is placed
 
 
 class TestARefusalWritesNothing:

@@ -3,9 +3,10 @@
 # composes: a binder, a topology, seeded copies, the planted marks, the
 # fold's proof, one turn in which every role answers what the fold carried
 # forward, the chief's dispositions closing what the turn still carries
-# forward, and the revise `proof` pulls from the closed copy. The last stage
-# diffs that revise against the text smoke_fixture.py says the plant makes
-# land, and passes only when the two are identical.
+# forward, the docket `proof` transcribes from the closed copy, and the
+# revise `proof` pulls from that docket. The last stage diffs that revise
+# against the text smoke_fixture.py says the plant makes land, and passes
+# only when the two are identical.
 # Provisional -- it drives a prototype surface and may be thrown away once
 # that surface settles.
 
@@ -171,6 +172,7 @@ $Batch2File = Join-Path $Run 'batch2.json'
 $DispositionsFile = Join-Path $Run 'dispositions.json'
 $ChiefFinalFile = Join-Path $Run 'chief-final.json'
 $FinalFile = Join-Path $Run 'final.json'
+$DocketFile = Join-Path $Run 'docket.json'
 $ProofDir = Join-Path $Run 'proof'
 $ExpectedDir = Join-Path $Run 'expected'
 
@@ -267,7 +269,8 @@ $Stages = [ordered]@{
             a0 = Join-Path $Run 'a0.txt'
         }
         # a0 -- the module docstring, already filled. block-context adds over
-        # it, to see what an add on a filled a does; the other three clean it.
+        # it, keeping every word of the docstring in order, so `mark` accepts
+        # the add (Process #132); the other three clean it.
         Invoke-Checked -Stage 'mark a0 block-context add' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@a0',
             '--instruction', 'add',
@@ -284,9 +287,12 @@ $Stages = [ordered]@{
             ))
         }
         # c12 -- beside `if n < 2:`, already filled with `# base case`.
-        # ownership-context adds over it, to see what an add on a filled c
-        # does; the other three clean it.
-        Invoke-Checked -Stage 'mark c12 ownership-context add' -CommandLine ($Launcher + @(
+        # ownership-context adds over it with a change that drops `base` and
+        # `case`, and `mark` refuses it: an add at a place holding prose keeps
+        # every word of it, in order (Process #132). The refusal is asserted
+        # by its exit code and by the line naming the place. The copy is left
+        # as it was, so ownership-context then cleans c12 as the other three do.
+        $c12Add = $Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['ownership-context'], '--address', 'fib.py@c12',
             '--instruction', 'add',
             '--missing', 'nothing notes which values are already fibonacci numbers',
@@ -294,8 +300,17 @@ $Stages = [ordered]@{
             '--change', "@$($LandingFile.c12)",
             '--reason', 'the base case deserves saying why it needs no recursion',
             '--cite', 'fib.py:27', '--repo', $OriginalDir
-        ))
-        foreach ($role in @('block-context', 'function-context', 'module-context')) {
+        )
+        $refused = Invoke-Checked -Stage 'mark c12 ownership-context add refused' -Expect 1 -Capture -CommandLine $c12Add
+        if (-not (($refused -join "`n").Contains('fib.py@c12 holds prose'))) {
+            Write-Host 'stage failed: mark c12 ownership-context add refused'
+            Write-Host 'expected a refusal naming fib.py@c12 as holding prose; mark printed:'
+            $refused | Out-Host
+            Write-Host "directory: $((Get-Location).Path)"
+            Write-Host "command: $(Format-CommandLine $c12Add)"
+            exit 1
+        }
+        foreach ($role in $Roles) {
             Invoke-Checked -Stage "mark c12 $role clean" -CommandLine ($Launcher + @(
                 $Cmd.mark, '--edit-copy', $CopyFile[$role], '--address', 'fib.py@c12',
                 '--instruction', 'clean', '--repo', $OriginalDir
@@ -668,11 +683,18 @@ $Stages = [ordered]@{
             '--proof-out', $FinalFile
         ))
     }
-    # `proof` pulls the closed chief copy into a revise of the original tree
-    # at $ProofDir, which must not exist yet.
+    # `proof --to-docket` transcribes the closed chief copy into a docket and
+    # stops. `proof --from-docket` then reads that docket as the write end
+    # reads one, and pulls it into a revise of the original tree at
+    # $ProofDir, which must not exist yet -- so a docket the write end
+    # refuses stops the smoke at proof-from-docket.
     proof = {
-        Invoke-Checked -Stage 'proof' -CommandLine ($Launcher + @(
+        Invoke-Checked -Stage 'proof-to-docket' -CommandLine ($Launcher + @(
             $Cmd.proof, '--copy', $ChiefFinalFile, '--repo', $OriginalDir,
+            '--to-docket', $DocketFile
+        ))
+        Invoke-Checked -Stage 'proof-from-docket' -CommandLine ($Launcher + @(
+            $Cmd.proof, '--from-docket', $DocketFile, '--repo', $OriginalDir,
             '--out', $ProofDir
         ))
     }

@@ -185,7 +185,7 @@ def main() -> int:
         copy, problems = EditCopy.deserialize(source, loaded)
         # ! THE TRANSCRIBE IS THE FLOW'S FIRST STEP and cannot fail: every rule
         # it would have checked is settled by the parse -- `Process: #76`.
-        held = transcribe.docket_of(copy) if copy is not None else None
+        held = transcribe.docket_of(copy, repo) if copy is not None else None
     if held is None:
         for line in problems:
             print(f"CANNOT READ THE {noun}: {line} -- nothing written")

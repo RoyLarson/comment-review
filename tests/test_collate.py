@@ -34,6 +34,7 @@ from comment_review.desk.containers import EditCopy
 from comment_review.desk.diff_mark import batch_of
 from comment_review.desk.mark import Mark, Shape
 from comment_review.flows.collate import collate
+from comment_review.flows.page_for import page_of
 from comment_review.reading.addresser import address_for
 
 BASE = "# one\n# two\n# three\n"
@@ -827,6 +828,55 @@ def _refused_quotes(got, address: str) -> list[str]:
         for p in got.problems
         if p.address == address and "is not in the paragraph" in p.message
     ]
+
+
+class TestAnAddressOutsideTheCheckoutIsNotRead:
+    """`collate-flow-defects` T14.
+
+    A mark's address is written by a role, and `_page_at` joins its path to
+    the root. An absolute path discards the root when joined and a `..` climbs
+    out of it, so an address naming either is reported as resolving against no
+    page, and no file outside the root is opened -- the guard
+    `desk.collator.source_problems` keeps for a cited path.
+    """
+
+    @pytest.mark.parametrize("form", ["climbs", "absolute"])
+    def test_it_is_unresolved_and_nothing_outside_the_root_is_read(
+        self, tmp_path, monkeypatch, form
+    ):
+        root = tmp_path / "repo"
+        binder = a_real_binder_over(root, {"m.py@b1": QUOTED})
+        outside = tmp_path / "outside.py"
+        outside.write_bytes((root / "m.py").read_bytes())
+        path = "../outside.py" if form == "climbs" else outside.as_posix()
+        address = f"{path}@b1"
+        copy = seed(binder, "block-context")
+        copy["sheets"][0]["marks"][0].update(a_clean("m.py@b1"))
+        correct = {
+            **Mark.seed(address, "", ""),
+            "instruction": "correct",
+            "claim": {"false": "# two", "true": "# 2"},
+            "reason": "written for the containment check",
+            "sources": [{"cite": "m.py:1", "verbatim": "v0 = 0"}],
+            "change": "# one\n# 2\n# three",
+        }
+        copy["sheets"].append({"path": path, "sha": "", "marks": [correct]})
+        read = []
+
+        def recording(page_path, *args, **kwargs):
+            read.append(page_path.resolve())
+            return page_of(page_path, *args, **kwargs)
+
+        monkeypatch.setattr("comment_review.flows.collate.page_of", recording)
+        got = collate("4c", [copy], binder, root=root)
+        unresolved = [
+            p.message
+            for p in got.problems
+            if p.address == address and "resolves against no page" in p.message
+        ]
+        assert unresolved, [p.message for p in got.problems]
+        assert read, "the page inside the root is read, so the record sees reads"
+        assert all(p.is_relative_to(root.resolve()) for p in read), read
 
 
 class TestAQuoteIsCheckedAgainstThePage:

@@ -143,7 +143,8 @@ class Landing(NamedTuple):
     `outcome` is `"text"` where a paragraph lands, `"removed"` where the
     address holds nothing afterward (a drop, or the move's own vacated
     origin), or `"kept"` where the fixture's own wording stands (a place the
-    chief rules for the original, or a query nothing else settles).
+    chief rules for the original, a place every role cleans, or a query
+    nothing else settles).
     `text` is set only where `outcome` is `"text"`, and holds the whole
     paragraph exactly as it will sit on disk -- a `c` place's separator and
     marker included. For an `add` or the move's destination, a role's `mark`
@@ -169,16 +170,18 @@ class Landing(NamedTuple):
     the paragraph the row seeded), and the smoke script passes each by
     `@path` from the file `write_texts` writes for it.
 
-    `marked` is set only where the turn leaves something other than the
-    first-round mark's change to land, and holds that change: at `c1`, what
-    `mark` derives from `claim`, which the turn's answers replace; at `c12`,
-    what the `add`'s `mark` call carries as `--change`, which a human query
-    in the turn keeps off the page; at `b8`, what the `add`'s `mark` call
-    carries, which the chief replaces with a turn answer's text; at `c3`,
-    the same, which the chief replaces with a recast of its own.
+    `marked` is set only where something other than the first-round mark's
+    change lands, and holds that change: at `c1`, what `mark` derives from
+    `claim`, which the turn's answers replace; at `c12`, what the `add`'s
+    `mark` call carries as `--change`, which `mark` refuses because it does
+    not keep the words the place already holds; at `b15`, what the `add`'s
+    `mark` call carries, which a human query in the turn keeps off the page;
+    at `b8`, what the `add`'s `mark` call carries, which the chief replaces
+    with a turn answer's text; at `c3`, the same, which the chief replaces
+    with a recast of its own.
 
-    `line` is set only where the place was empty in its file's fixture, and
-    names the 1-based fixture line the landing is set against: the declaring
+    `line` is set exactly where the place was empty in its file's fixture,
+    and names the 1-based fixture line the place is set against: the declaring
     line an `a` goes directly below, the line of code a `c` sits beside, the
     line of code a `b`'s gap sits directly above -- or, for the closing gap
     `b17`, which has no code below it, the file's last line, which it
@@ -199,7 +202,8 @@ class Landing(NamedTuple):
 #: of its rows is planted at one or more of these. It asks for an `add` at an
 #: empty place and one fed by the addresser lookup -- `a2` and `b15` -- and the
 #: plant adds at five places more: the empty `b8`, `b17` and `c3`, and the
-#: filled `a0` and `c12`. Its `patch`, `unable-to-determine` query and
+#: filled `a0` and `c12`, where `mark` accepts `a0`'s add and refuses
+#: `c12`'s. Its `patch`, `unable-to-determine` query and
 #: composition rows are planted on `rate.py`, and so is a second `drop`, of
 #: a place that owns a leading; its turn row is `ANSWERS`
 #: below. `EXPECTED` and `RATE_EXPECTED` below are written from the two
@@ -301,12 +305,14 @@ LANDINGS: dict[str, Landing] = {
         line=34,
     ),
     # module-context's add, on the absent b above `if __name__ ==
-    # "__main__":` -- `ADDRESSER_ROW`. In the turn the other three roles
-    # clean it, which settles it.
+    # "__main__":` -- `ADDRESSER_ROW`. In the turn block-context answers the
+    # composition with a human-review query and the other two roles clean it,
+    # so the place rides to the end unruled and stays empty. `marked` is the
+    # add's own change, which its `mark` call carries.
     "fib.py@b15": Landing(
-        "text",
-        route="turn",
-        text="# Run directly, the module prints fib(10) and how many calls it took.",
+        "kept",
+        route="query",
+        marked="# Run directly, the module prints fib(10) and how many calls it took.",
         line=33,
     ),
     # function-context's add, on an absent c beside `@functools.wraps(fn)`.
@@ -327,19 +333,21 @@ LANDINGS: dict[str, Landing] = {
         line=12,
     ),
     # ownership-context's add, on a filled c that already holds `# base case`
-    # beside `if n < 2:`. In the turn module-context answers the composition
-    # with a human-review query, so the place rides to the end unruled and
-    # `# base case` stands. `marked` is the add's own change, which its
-    # `mark` call carries.
+    # beside `if n < 2:`. Its change drops `base` and `case`, and an add at a
+    # place holding prose keeps every word of it in order (`Process: #132`),
+    # so `mark` refuses it; ownership-context then cleans the place, as the
+    # other three roles do, the fold settles it, and `# base case` stands.
+    # `marked` is the refused add's change, which its `mark` call carries.
     "fib.py@c12": Landing(
         "kept",
-        route="query",
+        route="mark",
         marked="  # 0 and 1 are already fibonacci numbers",
     ),
     # block-context's add, on a filled a -- the module docstring already
-    # reads. The add's own change replaces it outright rather than merging
-    # with what was there: in the turn all four roles clean the composition,
-    # and the fold settles it as one text.
+    # reads. Its change keeps every word of that docstring in order, with the
+    # full stop moved, so `mark` accepts it (`Process: #132`); in the turn
+    # all four roles clean the composition, and the fold settles it as one
+    # text.
     "fib.py@a0": Landing(
         "text",
         route="turn",
@@ -391,7 +399,6 @@ ADDRESSER_ROW = "fib.py@b15"
 #: that read its page.
 ADDED = (
     "fib.py@a0",
-    "fib.py@c12",
     "fib.py@b8",
     "fib.py@c3",
     "fib.py@a2",
@@ -406,7 +413,7 @@ ADDED = (
 #: `correct` or `patch`; each of the eight is planted at least once, and a
 #: role answers `clean` at every place in `ADDED` this gives it nothing for.
 #: A composition `query` is planted in each of its three shapes:
-#: human-review-necessary at `c12`, where it keeps the add off the page, and
+#: human-review-necessary at `b15`, where it keeps the add off the page, and
 #: outside-my-role at `a2` and unable-to-determine at `b17`, where it
 #: abstains and the add settles (`Process: #121`).
 #: A composition `correct` and a composition `patch` are planted on
@@ -437,6 +444,18 @@ ANSWERS: dict[str, dict[str, dict]] = {
             },
             "reason": "what wrapper's own docstring says is function-context's remit",
             "sources": [{"cite": "fib.py:13", "verbatim": "def wrapper(n):"}],
+        },
+        "fib.py@b15": {
+            "instruction": "query",
+            "claim": {
+                "shape": "human-review-necessary",
+                "attempted": "read the added comment against the dunder-main block",
+                "settles": "human",
+            },
+            "reason": "whether the entry point wants a note is the author's call",
+            "sources": [
+                {"cite": "fib.py:33", "verbatim": 'if __name__ == "__main__":'}
+            ],
         },
         "rate.py@b1": {
             "instruction": "correct",
@@ -495,18 +514,6 @@ ANSWERS: dict[str, dict[str, dict]] = {
             "claim": {"from": "matching fn's own", "to": "in step with fn's own"},
             "reason": "in step with reads more plainly than matching",
             "change": "  # keeps wrapper's name and doc in step with fn's own",
-        },
-        "fib.py@c12": {
-            "instruction": "query",
-            "claim": {
-                "shape": "human-review-necessary",
-                "attempted": "read the add against the base case it replaces",
-                "settles": "human",
-            },
-            "reason": (
-                "whether the base case needs more than its name is the author's call"
-            ),
-            "sources": [{"cite": "fib.py:27", "verbatim": "if n < 2:  # base case"}],
         },
     },
     "ownership-context": {
@@ -681,8 +688,8 @@ def write_answers(run: Path) -> dict[str, Path]:
 #: A run of blank lines belongs to the place before it and is set where it
 #: stood, so every blank line here but the last is one `FIXTURE` has. A `b`
 #: added where the place before it owns blank lines sits below them and
-#: directly on its own code: `b0` under the blank after `a0`, `b8` under the
-#: one after `return fn(n)`, `b15` under the two after `fib`'s last line. The
+#: directly on its own code: `b0` under the blank after `a0` and `b8` under
+#: the one after `return fn(n)`. The
 #: places the drop and the move vacate owned no blank lines, so their
 #: neighbours sit as they did. A `b` added past the last line of code takes a
 #: blank line below it, so the file ends with the `b17` comment and then a
@@ -722,7 +729,6 @@ EXPECTED = (
     "    return fib(n - 1) + fib(n - 2)\n"
     "\n"
     "\n"
-    "# Run directly, the module prints fib(10) and how many calls it took.\n"
     'if __name__ == "__main__":\n'
     "    print(fib(10), CALLS)\n"
     "# Nothing follows; running this module only prints one count.\n"

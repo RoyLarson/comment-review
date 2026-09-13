@@ -93,6 +93,7 @@ from comment_review.desk.proof import MismatchedRoot, master_proof_of
 from comment_review.desk.stages import Stage
 from comment_review.flows.mark_errors import Revisit, mark_errors
 from comment_review.flows.page_for import page_of
+from comment_review.machine.repo import can_escape
 from comment_review.reading.addresser import Cues, cue_of, unflatten
 from comment_review.results.differences import CannotCompose, compose
 
@@ -568,10 +569,11 @@ def _chief_copy(
     (`desk.mark._destination_problems`). Writing a second entry at the
     destination, with `address` rewritten to match, is therefore not an entry
     `parse` can accept -- it reads as a move to where the paragraph already
-    is. `seen` dedups by `id(mark)` so the SAME `Mark` object, reached under
-    either of its two keys, contributes its one entry once, always placed by
-    `mark.address` rather than by whichever key `resolved` happened to
-    iterate to first.
+    is. A mark equal to one already on its page is skipped, so the move,
+    reached under either of its two keys -- one object after a fold, two
+    equal ones once `Determined.deserialize` has read each end off the
+    wire -- contributes its one entry once, always placed by `mark.address`
+    rather than by whichever key `resolved` happened to iterate to first.
 
     !! PROVISIONAL, over a shape Roy has since ruled against, 2026-08-30:
     *"A move needs to be what it is and that is a composite Mark - Drop Here
@@ -579,11 +581,11 @@ def _chief_copy(
     at once."* A SENTENCE can move without the paragraph moving, so the
     origin is not always emptied -- both ends can carry their own new text,
     which today's singular `Mark` (one `address`, one `change`) cannot
-    express. The composite is a separate scope, not this fix. `seen`'s dedup
+    express. The composite is a separate scope, not this fix. The dedup
     is the SMALLEST stand-in for that shape: once a move is two ordinary
     marks (a `drop` at the origin, an `add` at the destination), each has its
-    own `address` and its own `id()`, `resolved` never carries one `Mark`
-    under two keys, and `seen` never finds a repeat -- so this dedup becomes
+    own `address`, `resolved` never carries one move under two keys, and no
+    mark on a page ever equals one already there -- so this dedup becomes
     dead code, deletable outright, with no entry ever built two different
     ways.
     """
@@ -626,14 +628,14 @@ def _chief_copy(
     # is where `Process: #65` puts it.
     marks_of: dict[str, list[Mark]] = {}
     shas_of: dict[str, str] = {}
-    seen: set[int] = set()
     for det in determined.values():
         mark = det.mark
-        if mark is None or id(mark) in seen:
+        if mark is None:
             continue
-        seen.add(id(mark))
         addr = cue_of(mark.address)
         real = unflatten(addr.path, paths) or addr.path
+        if mark in marks_of.get(real, []):
+            continue
         shas_of.setdefault(real, shas.get(real, ""))
         marks_of.setdefault(real, []).append(mark)
     # ! BUILT AS THE CONTAINER, NOT AS THE WIRE DICT, since `P42`. It is the one
@@ -803,9 +805,17 @@ PageCache = dict[str, Page | None]
 
 
 def _page_at(real: str, root: Path, cache: PageCache) -> Page | None:
-    """One path's page, read at most once per stage, or `None` where none reads."""
+    """One path's page, read at most once per stage, or `None` where none reads.
+
+    A path that would land outside `root` once joined to it -- absolute,
+    carrying a drive, or climbing with `..` -- answers `None` and nothing is
+    opened. The path comes from a mark's address, which a role wrote, and
+    `desk.collator.source_problems` keeps the same guard for a cited path.
+    """
     if real not in cache:
-        page, _why = page_of(root / real, rel=real)
+        page = None
+        if not can_escape(real):
+            page, _why = page_of(root / real, rel=real)
         cache[real] = page
     return cache[real]
 

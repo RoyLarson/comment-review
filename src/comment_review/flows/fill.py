@@ -24,9 +24,10 @@ a role reads the reasons and calls again.
     a slot already ruled     a second entry, inserted right after it, seeded
                              from the first's own anchor and raw_text
     no slot, a real place    appended to that page's sheet with the page's own
-                             anchor at that place and an empty raw_text -- an
-                             `add` on an empty place, which the binder does
-                             not carry. The base is the page's, never the
+                             anchor and raw_text at that place -- empty at an
+                             empty place, which the binder does not carry, and
+                             the page's prose at an `f` place, which no role
+                             is handed. The base is the page's, never the
                              role's own entry -- `desk.collator.base_texts`'s
                              rule for base texts, applied one layer up.
     no slot, no such page    refused
@@ -49,6 +50,7 @@ cited line is read here, through `machine.repo.read_raw`, the same reader and
 the same splitter `desk.collator.source_problems` will check the result with.
 """
 
+import re
 from pathlib import Path
 
 from comment_review.desk.collator import cite_at
@@ -64,13 +66,31 @@ from comment_review.flows.page_for import page_of
 from comment_review.machine import constants
 from comment_review.machine.exceptions import READ_ERRORS
 from comment_review.machine.repo import can_escape, read_raw
-from comment_review.reading.addresser import unflatten
+from comment_review.reading.addresser import cue_of, unflatten
 
 #: The fields a role decides, in the order a mark carries them. `address` is
 #: how the entry is placed; `anchor` is never read off the entry at all --
 #: a slot that must be created takes its anchor from the page. Neither is
 #: copied from the entry onto the mark.
 ROLE_FIELDS = ("claim", "reason", "sources", "change")
+
+#: A word, as the keep-the-prose check counts one: a run of letters and
+#: digits. Punctuation, whitespace and the underscore only separate words.
+_WORD = re.compile(r"[^\W_]+")
+
+
+def _first_word_dropped(prose: str, change: str) -> str | None:
+    """The first word of `prose` that `change` does not keep in order, or None.
+
+    `decision-log.md Process: #132`: an `add` at a place holding prose adds to
+    that paragraph, so its change holds every word of the prose, in the order
+    the prose has them, and punctuation and whitespace are free to move.
+    """
+    kept = iter(_WORD.findall(change))
+    for word in _WORD.findall(prose):
+        if word not in kept:
+            return word
+    return None
 
 
 def _slot_at(copy: dict, address: str) -> tuple[list | None, int]:
@@ -124,8 +144,8 @@ def place_on_the_page(
 
     Returns:
         `(that sheet's marks list, the seeded slot, [])`, the slot carrying the
-        page's own anchor at that place and an empty `raw_text`, and not yet
-        on the sheet. Or `(None, {}, [message])` where no copy has a sheet for
+        page's own anchor and `raw_text` at that place, and not yet on the
+        sheet. Or `(None, {}, [message])` where no copy has a sheet for
         the page, there is no checkout, the page cannot be read, or the page
         carries no such place.
     """
@@ -149,7 +169,10 @@ def place_on_the_page(
     cue = address.partition("@")[2]
     if cue not in page.cues.places:
         return None, {}, [f"{address} names no place on that page"]
-    return marks, Mark.seed(address, page.cues.anchor_of(cue), ""), []
+    raw_text = next(
+        (p.raw_text for p in page.paragraphs if cue_of(p.address).cue == cue), ""
+    )
+    return marks, Mark.seed(address, page.cues.anchor_of(cue), raw_text), []
 
 
 def _quoted(root: Path | None, sources: object) -> tuple[list | None, list[str]]:
@@ -224,6 +247,12 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
         the copy untouched. The messages are `Mark.deserialize`'s own wording
         where the parse is what refused, so a role learns the contract from the
         refusal.
+
+    An `add` at a place holding prose adds to that paragraph, so it is refused
+    unless its change keeps every word of the prose in order -- a word being a
+    run of letters and digits, with punctuation and whitespace free to move
+    (`decision-log.md Process: #132`). At an empty place there is nothing to
+    keep.
     """
     address = entry.get("address")
     if not filled(address):
@@ -265,6 +294,19 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
                 ]
         else:
             mark["change"] = derived
+
+    change = mark.get("change")
+    if (
+        instruction is Instruction.ADD
+        and filled(seeded["raw_text"])
+        and isinstance(change, str)
+    ):
+        dropped = _first_word_dropped(seeded["raw_text"], change)
+        if dropped is not None:
+            return None, [
+                f"{address} holds prose, so an `add` there keeps every word of it"
+                f" in order; the change does not keep {dropped!r}"
+            ]
 
     if "sources" in mark:
         quoted, why = _quoted(root, mark["sources"])

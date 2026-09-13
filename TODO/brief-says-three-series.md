@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 7 tasks closed
+Progress: 2 of 7 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-29 (found sweeping reviewer-brief.md against its consumers on
@@ -26,8 +26,9 @@ place the same brief tells it to cite at `:74`.
       own matter, filtered out of the census and not a place a role rules on --
       if that still holds, say which of the four a role may cite and which it
       may only read
-- [ ] T4 | Update reviewer-brief.md:67-72 and :88-97 so a role may act on an f
-      run it reads as a comment
+- [x] T4 | a role may act on an f run it reads as a comment | 7627b266 | Update
+      reviewer-brief.md:67-72 and :88-97 so a role may act on an f run it reads
+      as a comment
         > 2026-09-11 what the brief says is ruled in Addressing 25
         > 2026-09-11 Addressing 26: expected to be matter, may not be
 - [x] T5 | RULED Addressing: #25 -- move to a b place, human asked first | dd5dc235 | Decide
@@ -35,6 +36,9 @@ place the same brief tells it to cite at `:74`.
       keeps any protection
 - [ ] T6 | Update SKILL.md so the task agent asks the human before a move out of
       the f series goes ahead
+        > 2026-09-12 Roy 2026-09-12: goes with T7's plan, not set 4
 - [ ] T7 | Implement a workflow that raises each correction to an f place to the
       human on its own for approval
         > 2026-09-11 Addressing 26, Roy: that probably needs its own workflow
+        > 2026-09-12 Roy 2026-09-12: its own plan and branch, not set 4
+        > 2026-09-12 reviewer-brief :86-90 states the routing since 7627b266

@@ -145,6 +145,20 @@ def test_None_is_the_delete():
         (a_docket([("m.py", "a", [("b1", 123)])]), "must be text or null"),
         (a_docket([("m.py", "a", [("b1", ["a"])])]), "must be text or null"),
         (a_docket([("m.py", "a", [("b1", "")])]), "empty string"),
+        (
+            json.dumps(
+                {
+                    "pages": [
+                        {
+                            "path": "m.py",
+                            "sha": "a",
+                            "alterations": [{"cue": "b1", "text": "# x", "anchor": 5}],
+                        }
+                    ]
+                }
+            ),
+            "an anchor must be text",
+        ),
     ],
 )
 def test_what_is_refused(text, fragment):
@@ -249,6 +263,31 @@ class TestTheDocketsOwnPages:
         docket, _ = read(a_docket([("m.py", "sha", [("b1", "# new"), ("c0", None)])]))
         assert docket is not None
         assert docket.schedules[0].edits == {"b1": "# new", "c0": None}
+
+    def test_an_alteration_carries_the_anchor_it_was_given(self):
+        """`decision-log.md Process: #134`: the write end checks the anchor an
+        alteration carries, so the docket reads it back. One without an anchor
+        reads back as None and writes no `anchor` key back."""
+        text = json.dumps(
+            {
+                "pages": [
+                    {
+                        "path": "m.py",
+                        "sha": "sha",
+                        "alterations": [
+                            {"cue": "b1", "text": "# new", "anchor": "x = 1"},
+                            {"cue": "b3", "text": "# moved"},
+                        ],
+                    }
+                ]
+            }
+        )
+        docket, why = read(text)
+        assert why == "" and docket is not None
+        schedule = docket.schedules[0]
+        assert [one.anchor for one in schedule.alterations] == ["x = 1", None]
+        assert schedule.anchors == {"b1": "x = 1"}
+        assert docket.serialize() == json.loads(text)
 
 
 #: TRANSCRIPTION, moved: `test_the_docket_names_the_role_that_set_each_alteration`

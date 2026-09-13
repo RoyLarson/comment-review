@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 18 tasks closed
+Progress: 9 of 21 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -208,9 +208,21 @@ cites as its measured example of a field answering neither necessary nor purpose
         > 2026-09-07 The base is the system's, never the party being checked
 - [ ] T16 | Implement a test that a move from f0 to a b place reaches the
       docket, and make it pass, per Addressing 25
-- [ ] T17 | Update fill to refuse an add at a place that already holds prose,
-      which SKILL.md:68 defines as missing
+- [-] T17 | SUPERSEDED by T20: Process 132 keeps the prose, not a refusal | 393672ef | Update
+      fill to refuse an add at a place that already holds prose, which
+      SKILL.md:68 defines as missing
         > 2026-09-11 smoke 89956870: add at a0 and c12 replaced the prose, every stage
-- [?] T18 | Decide what a mark's anchor is for, since nothing after fill reads
-      it; the proof reads the page's
+- [x] T18 | Process 134: the write end checks it; galley T46 does it | 393672ef | Decide
+      what a mark's anchor is for, since nothing after fill reads it; the proof
+      reads the page's
         > 2026-09-12 Process 131: smoke exits 0 with the seeded anchor emptied
+- [-] T19 | SUPERSEDED by T21: the f place is held to Process 132 | 393672ef | Update
+      fill so an add at an f place holding prose is refused, as T17 refuses one
+      elsewhere
+        > 2026-09-12 384dc8cc: an f place gets no slot, so its seed is empty
+- [x] T20 | an add on prose keeps every word of it, in order | bee1b7e8 | Update
+      fill so an add at a place holding prose is accepted only when its change
+      keeps every word of that prose, in order, per Process 132
+- [x] T21 | a slot at an f place is seeded with the page's prose | 16dabbab | Update
+      fill so an f place holding prose is seeded from the page, so Process 132's
+      check applies there

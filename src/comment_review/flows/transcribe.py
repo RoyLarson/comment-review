@@ -1,6 +1,6 @@
 """TRANSCRIBE -- one edit_copy, as the docket the write chain reads.
 
-    docket_of(copy) -> Docket
+    docket_of(copy, repo) -> Docket
 
 !! ANY COPY, NOT ONLY THE COPY CHIEF'S. Roy, 2026-09-02: *"it could also be
 ownership contexts edit-copy or any intermediate edit-copy which allows the stage
@@ -27,9 +27,13 @@ because it would put a middle type in `docket/docket.py`, which imports nothing
 at all.
 """
 
+from pathlib import Path
+
 from comment_review.desk.containers import EditCopy
 from comment_review.desk.mark import Instruction, Mark, text_at
 from comment_review.docket.docket import Alteration, Docket, Schedule
+from comment_review.flows.page_for import page_of
+from comment_review.machine.repo import can_escape
 from comment_review.reading.addresser import cue_of
 
 
@@ -54,15 +58,35 @@ def _touched_by(mark: Mark) -> tuple[str, ...]:
     return (mark.address,)
 
 
-def docket_of(copy: EditCopy) -> Docket:
+def _anchor_on_page(repo: Path, rel: str, cue: str) -> str | None:
+    """The anchor the page `rel` names holds at `cue` in `repo`, or None.
+
+    None where `rel` would resolve outside the checkout, where the page cannot
+    be read, or where it carries no such place. `machine.repo.can_escape` is
+    the rule `flows.proof_setter.run` asks before it reads a page.
+    """
+    if can_escape(rel):
+        return None
+    page, _ = page_of(repo / rel, rel=rel)
+    return page.cues.places.get(cue) if page is not None else None
+
+
+def docket_of(copy: EditCopy, repo: Path) -> Docket:
     """One edit_copy, transcribed into the docket the write chain reads.
 
     Args:
         copy: a returned edit_copy, already through `EditCopy.deserialize`.
+        repo: the checkout whose pages the write end sets, which a move's
+            destination anchor is read from.
 
     Returns:
         A `Docket` -- one `Schedule` per sheet that carries at least one mark,
-        each naming that sheet's own path and sha and the COPY's role.
+        each naming that sheet's own path and sha and the COPY's role. Every
+        alteration carries the page's anchor at its place (`decision-log.md
+        Process: #134` and `#135`): at a mark's own address the mark's, which
+        `fill` copied from the page, and at a move's destination the anchor
+        the sheet's page in `repo` holds there. A destination with no such
+        anchor carries None, which the write end refuses.
 
     ! A SHEET WITH NO MARKS GETS NO SCHEDULE. A seeded copy holds a slot for
     every place; only the ones a role filled are edits, and an empty schedule
@@ -71,7 +95,15 @@ def docket_of(copy: EditCopy) -> Docket:
     schedules = []
     for sheet in copy.sheets:
         alterations = tuple(
-            Alteration(cue=cue_of(address).cue, text=text_at(address, mark))
+            Alteration(
+                cue=cue_of(address).cue,
+                text=text_at(address, mark),
+                anchor=(
+                    mark.anchor
+                    if address == mark.address
+                    else _anchor_on_page(repo, sheet.path, cue_of(address).cue)
+                ),
+            )
             for mark in sheet.marks
             for address in _touched_by(mark)
         )

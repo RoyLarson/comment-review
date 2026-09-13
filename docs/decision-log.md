@@ -4245,3 +4245,55 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   Asked -- close T63 as unplantable and file a task to follow a mark's anchor to what consumes
   it; or give the write end a check that reads it -- Roy: *"Close; file the question"*.
+
+- **#132.** **What an `add` at a place that already holds prose does** (Roy, 2026-09-12, on
+  `mark-defects` T17, which the session had filed as a refusal from `SKILL.md:68`'s *"missing
+  entirely"* and built at 384dc8cc, with no ruling behind it).
+
+  Roy: *"Why would a mark refuse an Add at a place that is not empty?"* Then, asked what such an
+  `add` does -- accepted as missing text added to that paragraph, its change still holding the
+  existing text so nothing is lost; accepted and replacing the paragraph; or refused -- Roy:
+  *"Adds, keeping the prose"*. Then shown that the smoke's `a0` add moves the old docstring's
+  full stop and its `c12` add replaces `# base case` outright, and asked what "still holding the
+  existing text" checks -- every word of it kept in the change, in order, punctuation free to
+  move; or the text kept verbatim -- Roy: *"Words kept, in order"*.
+
+- **#133.** **Whether `turn` exits 7 as `collate` does** (Roy, 2026-09-12, on
+  `collate-command-defects` T21: `collate` exits 7 when places are carried forward and a role
+  left a place unruled; `turn` uses `collate`'s codes and was not changed, while `#112`'s reason
+  was *"regardless of which round it happened"*).
+
+  Roy: *"Yes, turn too"*.
+
+- **#134.** **What a mark's anchor is for** (Roy, 2026-09-12, on `mark-defects` T18: no code reads
+  it after `fill` -- `mark`'s `--anchor-line` value, `DiffMark.anchor` and an `Alteration` each
+  drop it -- while `SKILL.md:68` places an `add` "at the anchor named with it").
+
+  Asked, with the note that `fill` copies the anchor from the page so the check could not fail
+  as things stand -- Roy: *"Write end checks it"*: the write end refuses a mark whose anchor is
+  not the page's at its address.
+
+- **#135.** **Whether the write end refuses an alteration that carries no anchor** (Roy,
+  2026-09-12, on `galley-and-compositor-write-path` T46: since 72470b0f an anchor that disagrees
+  with the page is refused, and one that is absent is not checked -- a move's destination, a
+  docket written before, or one written by hand).
+
+  Roy: *"I don't know. What is the answer that is most likely to not confuse the agents or apply
+  the edits as expected?"* The session's answer, taken on that test: refuse a missing anchor at a
+  mark's own address, and exempt a move's destination. No agent writes the anchor -- `fill`
+  copies it from the page -- so the refusal fires only on a docket the flow did not write, which
+  is where an edit applying as expected is in doubt; a destination carries no anchor of its own.
+
+  **Amended the same day.** The write end cannot tell a move's destination from a hand-written
+  alteration: both arrive with no anchor (`flows/transcribe.py:81`), so the exemption could not
+  be built. Asked -- the flow gives the destination the page's anchor there, so every alteration
+  carries one and nothing is exempt; a docket field marking a destination; or wait for
+  `move-is-a-composite-mark` -- Roy: *"Flow gives it an anchor"*.
+
+- **#136.** **What CLAUDE.md says about changing the skill's prose** (Roy, 2026-09-12, on
+  `agents-files-name-the-new-cli` T24: `CLAUDE.md:376-377` said a new rule replaces an existing
+  one at budget, while `docs/limitations.md:46` records Roy, 2026-08-18, that a new rule does
+  not have to displace another).
+
+  *"We can just drop the section in CLAUDE.md and state the reference on the process of
+  modifying the agent files."*

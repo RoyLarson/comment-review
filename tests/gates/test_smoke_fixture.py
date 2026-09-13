@@ -150,15 +150,15 @@ class TestTheLandingTableAgreesWithTheFixture(unittest.TestCase):
         self.assertEqual(set(claimed), {"fib.py@c6", "fib.py@c1", "rate.py@c3"})
 
     def test_each_landing_at_an_empty_place_names_the_line_it_is_set_against(self):
-        """A text landing names a `line` exactly where its fixture left its
-        place empty, and it is the line the place's anchor sits on in the page
-        built from that fixture -- or, for a place with no anchor line (the
-        closing gap), the file's last."""
+        """A landing names a `line` exactly where its fixture left its place
+        empty, and it is the line the place's anchor sits on in the page built
+        from that fixture -- or, for a place with no anchor line (the closing
+        gap), the file's last."""
         for address, landing in smoke_fixture.LANDINGS.items():
             path, cue = address.split("@")
             page = self.pages[path]
             filled = {cue_of(p) for p in page.paragraphs if p.text}
-            empty = landing.outcome == "text" and cue not in filled
+            empty = cue not in filled
             self.assertEqual(landing.line is not None, empty, address)
             if landing.line is None:
                 continue

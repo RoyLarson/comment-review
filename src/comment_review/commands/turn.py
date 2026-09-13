@@ -28,6 +28,7 @@ from pathlib import Path
 
 from comment_review.commands.collate import (
     BROKEN,
+    CARRIED_AND_UNRULED,
     COVERAGE,
     DRIFT,
     ESCALATIONS,
@@ -55,9 +56,12 @@ def main() -> int:
     Returns:
         `collate`'s codes: `UNREADABLE` when a file is not what it says;
         `BROKEN` when a copy broke a rule, an answer would not read, or the
-        set cannot be reconciled -- nothing written; else `ESCALATIONS`,
-        `REREADS`, `COVERAGE`, `DRIFT` or `OK`, in that order, with the proof
-        written and the next batch beside it while a place is carried forward.
+        set cannot be reconciled -- nothing written; else
+        `CARRIED_AND_UNRULED`, `ESCALATIONS`, `REREADS`, `COVERAGE`, `DRIFT`
+        or `OK`, in that order, with the proof written and the next batch
+        beside it while a place is carried forward. `CARRIED_AND_UNRULED` is
+        a place carried forward while a role still owes an answer at a place,
+        as `collate` exits it (`decision-log.md Process: #133`).
     """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument(
@@ -168,6 +172,8 @@ def main() -> int:
         )
         print(f"{args.batch_out}: turn {turn + 1}'s batch -- {sizes}")
 
+    if (got.escalations or got.rereads) and (got.coverage or got.revisit):
+        return CARRIED_AND_UNRULED
     if got.escalations:
         return ESCALATIONS
     if got.rereads:

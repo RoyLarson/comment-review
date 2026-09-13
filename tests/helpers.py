@@ -167,6 +167,7 @@ def a_docket_over(repo: Path, names: list[str]) -> Docket:
     ! THE CUE AND ITS ORIGINAL TEXT COME OFF THE REAL PAGE, through
     `binder_of`, never hand-written -- a `b` row is picked because its
     replacement needs no more than `#`, which every file here (`.py`) shares.
+    The anchor is that row's own, which `binder_of` also read off the page.
 
     Args:
         repo: a checkout `binder_of` can read, e.g. from `a_small_real_tree`.
@@ -186,7 +187,7 @@ def a_docket_over(repo: Path, names: list[str]) -> Docket:
             continue
         found = next(
             (
-                cue(row)
+                row
                 for row in page.paragraphs
                 if cue(row).startswith("b") and row.raw_text.strip()
             ),
@@ -198,7 +199,13 @@ def a_docket_over(repo: Path, names: list[str]) -> Docket:
             {
                 "path": page.path,
                 "sha": page.sha,
-                "alterations": [{"cue": found, "text": "# revised by a_docket_over"}],
+                "alterations": [
+                    {
+                        "cue": cue(found),
+                        "text": "# revised by a_docket_over",
+                        "anchor": found.anchor,
+                    }
+                ],
             }
         )
         remaining.discard(Path(page.path).name)
@@ -210,6 +217,10 @@ def a_docket_over(repo: Path, names: list[str]) -> Docket:
 def a_docket_whose_claim_is_not_in_the_page(repo: Path, name: str) -> Docket:
     """A docket naming a cue no paragraph on the page holds -- a chain
     refusal, without asserting which step raises it.
+
+    The page holds no anchor at that cue, so the alteration carries the anchor
+    of the page's first carried place, and the cue is the one thing wrong
+    with the docket.
 
     Args:
         repo: a checkout `binder_of` can read.
@@ -231,7 +242,11 @@ def a_docket_whose_claim_is_not_in_the_page(repo: Path, name: str) -> Docket:
                             "path": page.path,
                             "sha": page.sha,
                             "alterations": [
-                                {"cue": "zzz9999", "text": "# never reaches the page"}
+                                {
+                                    "cue": "zzz9999",
+                                    "text": "# never reaches the page",
+                                    "anchor": page.paragraphs[0].anchor,
+                                }
                             ],
                         }
                     ]

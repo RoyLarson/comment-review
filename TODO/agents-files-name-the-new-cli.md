@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 22 tasks closed
+Progress: 17 of 25 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -32,11 +32,14 @@ The agents files name the new CLI and say how to use it.
       role that owes it, to be fixed. Verify: the brief says so
         > 2026-09-04 Process 92: the errors stack; the task agent reroutes them
         > 2026-09-04 bound on send-backs: a-coverage-gap-should-go-back T2
-- [ ] T6 | Update SKILL.md to run turn between collate and cap, for the
-      experiment after the baseline. Verify: a hand with a turn runs from it
-- [ ] T7 | Update reviewer-brief.md with check --answers and the two answer
-      shapes from check --contract, for the turn experiment
+- [-] T6 | SUPERSEDED by T23: the command is disposition since f2b8f988 | f2b8f988 | Update
+      SKILL.md to run turn between collate and cap, for the experiment after the
+      baseline. Verify: a hand with a turn runs from it
+- [x] T7 | the brief says what a batch slot takes and how to check it | 3b0314e6 | Update
+      reviewer-brief.md with check --answers and the two answer shapes from
+      check --contract, for the turn experiment
         > 2026-09-11 check --answers now needs --proof, since 0f01d744
+        > 2026-09-12 Roy 2026-09-12: joins set 4, the role's side of the turn
 - [x] T8 | SKILL.md packet carries BINDER, LISTING, EDIT COPY as paths; the brief reads from them | d0c1e9b1 | Update
       SKILL.md and the brief so the packet names the binder, the listing and the
       copy by absolute path and a role reads from there
@@ -75,11 +78,23 @@ The agents files name the new CLI and say how to use it.
 - [-] T19 | SUPERSEDED by Addressing: #23 -- the compositor supplies leading, not the role; refiled as T20 | f850c321 | Update
       reviewer-brief.md to teach leading: an existing place's is restored, a
       newly filled place needs its own written
-- [ ] T20 | Update reviewer-brief.md so a role writes no leading blank at either
-      end of a change. Verify: the brief asks for none
+- [x] T20 | the brief asks for no leading blank at either end | 7d2e1834 | Update
+      reviewer-brief.md so a role writes no leading blank at either end of a
+      change. Verify: the brief asks for none
 - [ ] T21 | Update SKILL.md so the task agent runs a compile step on the set
       page to verify it is set correctly
         > 2026-09-11 Addressing 27; Roy: we can have the task-agent run it
-- [ ] T22 | Update SKILL.md's collate exit table at :664-670 with a row for that
-      code
+- [x] T22 | the collate exit table carries exit 7's row | 49066f15 | Update
+      SKILL.md's collate exit table at :664-670 with a row for that code
         > 2026-09-11 Process 112; waits on collate-command-defects for the number
+- [x] T23 | SKILL.md runs turn between collate and disposition when told | 25162cb6 | Update
+      SKILL.md to run turn between collate and disposition, for the experiment
+      after the baseline. Verify: a hand with a turn runs from it
+- [x] T24 | Process 136: CLAUDE.md points to limitations.md instead | d3fe7151 | Decide
+      which rule governs new skill prose: CLAUDE.md:376-377's replace-at-budget
+      or limitations.md:46's earn-its-context
+        > 2026-09-12 a brief quoted CLAUDE.md's; limitations.md has Roy, 2026-08-18
+- [x] T25 | re-measured as stored blobs, with what set 4's growth bought | c2e64382 | Update
+      docs/limitations.md's size table for SKILL.md and reviewer-brief.md as set
+      4 left them
+        > 2026-09-12 set 4: SKILL.md 60,979 bytes, reviewer-brief.md 38,688 bytes

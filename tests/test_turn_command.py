@@ -263,11 +263,13 @@ class TestRefusals:
         assert not (tmp_path / "proof1.json").exists()
         assert not (tmp_path / "batch2.json").exists()
 
-    def test_an_unanswered_slot_is_COVERAGE_and_the_place_stays(
+    def test_an_unanswered_slot_exits_7_and_the_proof_is_written(
         self, tmp_path, monkeypatch, capsys
     ):
         """Unanswered is not unreadable -- `Revisit.unreadable` is False -- so
-        the proof is written and the place is still escalated."""
+        the proof is written and the place is still escalated. A place carried
+        forward while a role owes an answer exits 7 (`decision-log.md Process:
+        #133`)."""
         deal(tmp_path, monkeypatch, capsys, contested("m.py@b1"))
         code, out = turn(
             tmp_path,
@@ -283,8 +285,49 @@ class TestRefusals:
                 reason="stands",
             ),
         )
-        assert code == command.ESCALATIONS, out
+        assert code == collate_command.CARRIED_AND_UNRULED, out
         assert "unanswered" in out
+        assert (tmp_path / "proof1.json").exists()
+
+    def test_a_place_carried_forward_beside_an_unruled_one_exits_7(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """`decision-log.md Process: #133`, `no-command-for-the-middle` T66:
+        `turn` exits 7 where `collate` does. Both roles hold at `m.py@b1`, so
+        the fold carries it forward, and function-context leaves `m.py@b2`
+        unanswered, a place it still owes."""
+        texts = {"m.py@b1": BASE, "m.py@b2": "# four\n# five\n# six\n"}
+        by_role = merged(
+            contested("m.py@b1"),
+            contested("m.py@b2", "five", "# four\n# FIVE\n# six\n", "# four\n# 5\n"),
+        )
+        assert deal(tmp_path, monkeypatch, capsys, by_role, texts) == 4
+        batch = json.loads((tmp_path / "batch1.json").read_text(encoding="utf-8"))
+        held = [
+            {**slot, "instruction": "hold", "reason": "mine"}
+            for slot in batch["block-context"]
+        ]
+        assert sorted(s["address"] for s in held) == ["m.py@b1", "m.py@b2"]
+        block = tmp_path / "answers1_block-context.json"
+        block.write_text(json.dumps(held), encoding="utf-8")
+        code, out = turn(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            1,
+            f"block-context={block}",
+            answer(
+                tmp_path,
+                1,
+                "function-context",
+                "m.py@b1",
+                instruction="hold",
+                reason="mine",
+            ),
+        )
+        assert "escalated m.py@b1" in out
+        assert "function-context m.py@b2" in out and "unanswered" in out
+        assert code == collate_command.CARRIED_AND_UNRULED == 7, out
         assert (tmp_path / "proof1.json").exists()
 
     def test_a_proof_that_is_not_one_is_UNREADABLE(self, tmp_path, monkeypatch, capsys):
