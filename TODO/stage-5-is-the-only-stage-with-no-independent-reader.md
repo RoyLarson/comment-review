@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 13 tasks closed
+Progress: 8 of 14 tasks closed
 Owner:    agents
 Requires-Roy: true
 Raised:   2026-08-17, by the session that ran all eight stages and rolled its own work back.
@@ -178,9 +178,10 @@ answered. A rail read and not run is a shape problem, and it was measured twice 
 - [x] T4 | FINISHED | unknown | T4 -- FINISHED. `SKILL.md:905` is stage 5b and
       `:972` is stage 6b, both deferring to `references/re-review.md` rather
       than restating it.
-- [?] T5 | T5 -- Decide (d): does a whole-page read run before the write?
-      Verify: `SKILL.md` states whether it runs; there are zero matches for
-      `pre-write` today.
+- [x] T5 | Process 144: yes, stage 8 reads the drafted pages before 7a | 8b3e25db | T5
+      -- Decide (d): does a whole-page read run before the write? Verify:
+      `SKILL.md` states whether it runs; there are zero matches for `pre-write`
+      today.
 - [ ] T6 | T6 -- If it runs, state that a SELECTIVE approval invalidates it and
       needs a re-read. Verify: `SKILL.md` says so; there are zero matches for
       `blanket` today.
@@ -204,3 +205,6 @@ answered. A rail read and not run is a shape problem, and it was measured twice 
 - [-] T13 | SUPERSEDED in part by Process 94 -- SKILL.md runs the cap after one fold; the turn's text is agents-files-name-the-new-cli T6 | c1b7268a | Update
       SKILL.md so the task agent runs the turns and the cap between collate and
       proof. Verify: stage 5 names the commands and the cap
+- [ ] T14 | Update SKILL.md so stage 8's whole-page read runs on the drafted
+      pages before 7a and its findings join the proposal, per Process 144
+        > 2026-09-13 T6 then says a selective approval re-reads the pages it changes
