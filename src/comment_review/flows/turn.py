@@ -85,8 +85,9 @@ agreed comes back as a `stet` Determined at this turn (`Process: #87`). The
 fold carries every place an `add` touches as a re-read, so where every role of
 that re-read now holds the same `add`, `_agreed_adds` records the `stet`
 (`Process: #116`). Where every role of both ends of a lone `move` carrying
-its origin's text unchanged answered `clean` there, `_agreed_moves` records
-the `stet` at both ends (`Process: #89` and `#137`). A place the turn asked
+its origin's text unchanged answered `clean` there, or every role of both
+ends holds a mark carrying the move's one text, `_agreed_moves` records the
+`stet` at both ends (`Process: #88`, `#89` and `#137`). A place the turn asked
 about that comes back as a re-read whose roles still hold different texts is
 an escalation, which `_disagreeing`
 records (`Process: #127`). What did not agree is the next turn's batch, until the task
@@ -758,15 +759,24 @@ def _agreed_adds(got: Collated, contested: set[str], turn: int) -> Collated:
 def _agreed_moves(
     got: Collated, contested: set[str], cleaned: set[tuple[str, str]], turn: int
 ) -> Collated:
-    """A lone `move` every role of both its ends cleaned this turn is a `stet`.
+    """A `move` every role of both its ends agreed with this turn is a `stet`.
 
     `Process: #89`: a lone owing mark goes back to every role that marked the
     place and stands once they agree, and a `clean` over the slot's text is
-    agreement. Where the move carries its origin's text unchanged, a `clean`
-    adopts nothing -- `_answered` adopts only a text that differs from the
-    entry's -- so the copies after the turn are the copies before it, and the
-    agreement is read here from the turn's own answers. Both ends settle
-    together or neither does (`Process: #137`).
+    agreement. It is read at each end one of two ways:
+
+        the move alone      it carries its origin's text unchanged and every
+                            role there answered `clean`. A `clean` adopts
+                            nothing -- `_answered` adopts only a text that
+                            differs from the entry's -- so the copies after
+                            the turn are the copies before it, and the
+                            agreement is read from the turn's own answers
+        the move and more   every mark there carries the move's one text and
+                            every role there holds one of them, which is
+                            agreement by the text alone (`Process: #88`). A
+                            `clean` adopting a reworded move leaves this
+
+    Both ends settle together or neither does (`Process: #137`).
 
     Args:
         got: the fold after the turn.
@@ -777,25 +787,30 @@ def _agreed_moves(
 
     Returns:
         The fold with both ends of each such move out of `rereads`, a `stet`
-        Determined at `turn` for each -- `how` "one", the move its mark -- and
-        the chief's copy derived again.
+        Determined at `turn` for each -- `how` "one" for the move alone and
+        "identical" for the move and more, the move its mark -- and the
+        chief's copy derived again.
     """
-    ends: dict[str, Placed] = {}
+    ends: dict[str, tuple[Placed, str]] = {}
     for entry in got.rereads:
         address, marks, roles = entry["address"], entry["marks"], entry["roles"]
-        if address not in contested or len(marks) != 1 or not roles:
+        moves = [p for p in marks if p.mark.instruction is Instruction.MOVE]
+        if address not in contested or len(moves) != 1 or not roles:
             continue
-        (placed,) = marks
+        (placed,) = moves
         move = placed.mark
-        if move.instruction is not Instruction.MOVE or move.change != move.raw_text:
-            continue
-        if all((role, address) in cleaned for role in roles):
-            ends[address] = placed
+        if len(marks) == 1:
+            if move.change == move.raw_text and all(
+                (role, address) in cleaned for role in roles
+            ):
+                ends[address] = (placed, "one")
+        elif _identical(marks) is not None and set(roles) <= {p.role for p in marks}:
+            ends[address] = (placed, "identical")
     agreed = {
         address: Determined(
-            address, Answer.STET, turn, placed.role, "one", "", placed.mark
+            address, Answer.STET, turn, placed.role, how, "", placed.mark
         )
-        for address, placed in ends.items()
+        for address, (placed, how) in ends.items()
         if all(end in ends for end in _touched_by(placed.mark))
     }
     if not agreed or got.proof is None:

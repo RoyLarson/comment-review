@@ -772,9 +772,10 @@ MOVED_FROM = "m.py@b1"
 MOVED_TEXT = "# one\n# two\n# three"
 
 
-def _a_lone_move(root, change: str):
+def _a_lone_move(root, change: str, other: dict | None = None):
     """block-context moves `MOVED_FROM` to `EMPTY_PLACE` carrying `change`,
-    function-context cleans `MOVED_FROM`, and `collate` folds the two.
+    function-context rules `other` at `MOVED_FROM` -- a `clean` where none is
+    given -- and `collate` folds the two.
 
     Both marks are placed by `fill` on copies seeded from a binder over the
     real page `GAPPED_PAGE`, as the `mark` command places them.
@@ -792,7 +793,8 @@ def _a_lone_move(root, change: str):
     }
     _, why = fill(copies[0], moved, root)
     assert why == []
-    _, why = fill(copies[1], {"address": MOVED_FROM, "instruction": "clean"}, root)
+    ruled = {"address": MOVED_FROM, **(other or {"instruction": "clean"})}
+    _, why = fill(copies[1], ruled, root)
     assert why == []
     return binder, collate("4c", copies, binder, root=root)
 
@@ -1275,10 +1277,10 @@ class TestAMovesEndsDisagreeAfterATurn:
     """A move whose two ends hold different texts after a turn --
     `no-command-for-the-middle` T75, `Process: #127` and `#137`.
 
-    `_a_lone_move` carries the moved text reworded. Turn 1 answers every
-    slot `clean`, so function-context adopts the moved text at the origin
-    and both ends go back to both roles as re-reads. On turn 2 the mover
-    leaves the origin unanswered and cleans the destination, while
+    `_a_lone_move` carries the moved text reworded, and function-context
+    corrects the origin to that same text, so both ends go to both roles as
+    re-reads, each holding the move and that `correct`. On the turn the
+    mover leaves the origin unanswered and cleans the destination, while
     function-context restates the moved text at the origin and corrects the
     destination to another text. The test asserts both ends of the move are
     in one carried list.
@@ -1286,16 +1288,6 @@ class TestAMovesEndsDisagreeAfterATurn:
 
     def test_both_ends_are_in_one_carried_list(self, tmp_path):
         reworded = MOVED_TEXT + ", which is about w"
-        binder, got = _a_lone_move(tmp_path, reworded)
-        batch = batch_of(got.escalations, got.rereads)
-        answers = {
-            role: [{**slot, "instruction": "clean"} for slot in slots]
-            for role, slots in batch.items()
-        }
-        one = run_turn(_at(got), binder, tmp_path, batch, answers)
-        assert one.revisit == []
-
-        batch2 = batch_of(one.escalations, one.rereads)
         restated = {
             "instruction": "correct",
             "claim": {"false": "# three", "true": "# three, which is about w"},
@@ -1303,10 +1295,16 @@ class TestAMovesEndsDisagreeAfterATurn:
             "sources": [{"cite": "m.py:7", "verbatim": "w = 4"}],
             "change": reworded,
         }
-        answers2 = {
+        binder, got = _a_lone_move(tmp_path, reworded, restated)
+        assert sorted(e["address"] for e in got.rereads) == [MOVED_FROM, EMPTY_PLACE]
+        assert all(
+            e["roles"] == ["block-context", "function-context"] for e in got.rereads
+        )
+        batch = batch_of(got.escalations, got.rereads)
+        answers = {
             "block-context": [
                 {**slot, "instruction": "clean"}
-                for slot in batch2["block-context"]
+                for slot in batch["block-context"]
                 if slot["address"] == EMPTY_PLACE
             ],
             "function-context": [
@@ -1318,18 +1316,17 @@ class TestAMovesEndsDisagreeAfterATurn:
                         else _A_COMPOSITION_CORRECT
                     ),
                 }
-                for slot in batch2["function-context"]
+                for slot in batch["function-context"]
             ],
         }
-        proof = proof_after(one, ({"turn": 1, "sent": batch},))
-        two = run_turn(proof, binder, tmp_path, batch2, answers2)
-        assert [(r.role, r.address) for r in two.revisit] == [
+        one = run_turn(_at(got), binder, tmp_path, batch, answers)
+        assert [(r.role, r.address) for r in one.revisit] == [
             ("block-context", MOVED_FROM)
         ]
-        (held,) = _held_at(two, "block-context", MOVED_FROM)
+        (held,) = _held_at(one, "block-context", MOVED_FROM)
         assert held.instruction is Instruction.MOVE
-        escalated = {e["address"] for e in two.escalations}
-        reread = {e["address"] for e in two.rereads}
+        escalated = {e["address"] for e in one.escalations}
+        reread = {e["address"] for e in one.rereads}
         assert {MOVED_FROM, EMPTY_PLACE} <= escalated | reread
         assert (MOVED_FROM in escalated) == (EMPTY_PLACE in escalated)
 
@@ -1339,17 +1336,15 @@ class TestARewordedMoveOverTwoCleanTurns:
     `no-command-for-the-middle` T79, `Process: #89` and `#137`.
 
     On turn 1 function-context's `clean` adopts the reworded moved text at the
-    origin by a `correct`, and both ends go back to both roles as re-reads.
-    Turn 2 answers every slot `clean` again. The test settles whether the
-    move is lost: the mover must still hold it at the origin, and neither end
-    may be determined without it.
+    origin by a `correct`, and turn 2 answers every slot it is sent `clean`.
+    The test settles whether the move is lost: the mover must still hold it
+    at the origin, and neither end may be determined without it.
     """
 
     def test_the_move_is_not_lost(self, tmp_path):
         reworded = MOVED_TEXT + ", which is about w"
         _, one, two, _ = _two_turns(tmp_path, reworded, _all_clean, _all_clean)
         assert one.revisit == []
-        assert sorted(e["address"] for e in one.rereads) == [MOVED_FROM, EMPTY_PLACE]
         assert two.revisit == []
         (held,) = _held_at(two, "block-context", MOVED_FROM)
         assert held.instruction is Instruction.MOVE
@@ -1370,15 +1365,6 @@ class TestARewordedMoveEveryRoleCleansTwice:
     the move.
     """
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "no-command-for-the-middle T87: turn 2 sends function-context the "
-            "origin's base text, since the move and its adopting correct do not "
-            "compose, and its clean over the base withdraws the adoption, so "
-            "both ends go back again and neither is determined"
-        ),
-    )
     def test_both_ends_settle_carrying_the_move(self, tmp_path):
         reworded = MOVED_TEXT + ", which is about w"
         _, one, two, _ = _two_turns(tmp_path, reworded, _all_clean, _all_clean)
