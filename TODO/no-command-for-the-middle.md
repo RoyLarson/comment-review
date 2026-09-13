@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 52 of 69 tasks closed
+Progress: 73 of 92 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -324,6 +324,7 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [ ] T65 | Update T33's test in test_turn.py to use the two-turn helper T57's
       test and the withdraw test share
         > 2026-09-12 e260438d added the helper; T33's test repeats its setup
+        > 2026-09-12 f2a2d47b's both-ends test repeats the same turn-1 setup
 - [x] T66 | turn exits 7 as collate does | f85ea724 | Update turn so it exits 7
       when its fold carries places forward and a role left a place unruled, per
       Process 133
@@ -339,6 +340,101 @@ Reconciliation has no command, so the chain cannot be driven end to end.
         > 2026-09-12 smoke 2026-09-12 18:27: chief.json has it once, chief-final twice
         > 2026-09-12 the docket lists b1 and b0 twice; --from-docket would refuse it
         > 2026-09-12 Roy 2026-09-12: fixed in set 4
-- [ ] T69 | Update the turn so a mover's composition answer at its move's
-      destination end reaches the move, per Process 137
+- [-] T69 | SUPERSEDED by T70, T71 and T72: Process 138 | c7930fb2 | Update the
+      turn so a mover's composition answer at its move's destination end reaches
+      the move, per Process 137
         > 2026-09-12 T61 reroutes escalation answers only; e260438d
+- [x] T70 | correct and patch set the move's text; both ends tested together | c7930fb2 | Update
+      the turn so a mover's composition correct or patch at its move's
+      destination end reaches the move, per Process 137
+- [x] T71 | a mover's clean at the destination keeps the move | 162c8b43 | Update
+      the turn so a mover's clean at its move's destination end keeps the move,
+      per Process 138
+        > 2026-09-12 the composition table would read it as a withdrawal
+- [x] T72 | a mover's query at the destination holds both ends | 84d7641d | Update
+      the turn so a mover's query at its move's destination end holds both ends
+      of the move, per Process 138
+        > 2026-09-12 written over the move entry today it would remove the move
+- [x] T73 | the move is lost at the origin; xfail strict, a fix is filed | 935b6bed | Implement
+      a test of a mover's composition correct or patch at its move's origin, to
+      settle whether the move is lost
+        > 2026-09-12 by reading: _as_answered makes the move a correct or a patch
+- [x] T74 | an unchanged move never settles; xfail strict, a fix is filed | 09c9b6e0 | Implement
+      a test of every role cleaning a move whose text is unchanged, to settle
+      why neither end settles
+        > 2026-09-12 T69's probe: both ends went back as re-reads again
+- [x] T75 | the ends split across the carried lists; xfail strict, fix filed | 1f867373 | Implement
+      a test of a move whose ends disagree after a turn, to settle whether
+      _disagreeing splits them across the carried lists
+        > 2026-09-12 by reading in T69; the fold's own pairing keeps them together
+- [x] T76 | a mover's correct or patch at the origin keeps the move | c6ee610d | Update
+      the turn so a mover's composition correct or patch at its move's origin
+      keeps the move, per Process 137
+        > 2026-09-12 T73's xfail at 935b6bed: the move becomes a correct or a patch
+        > 2026-09-13 Roy 2026-09-13: fixed before the move branch merges
+- [x] T77 | every role cleaning an unchanged move settles both ends | 7fd6a549 | Update
+      the fold so every role cleaning a move whose text is unchanged settles it,
+      per Process 89
+        > 2026-09-12 T74's xfail at 09c9b6e0: both ends go back as re-reads each turn
+        > 2026-09-12 fixing it breaks test_it_follows_the_movers_clean_there's turn 2
+        > 2026-09-13 Roy 2026-09-13: fixed before the move branch merges
+- [x] T78 | both ends of a move escalate together | b09692ab | Update
+      _disagreeing so a move's two ends land in the same carried list, per
+      Process 137
+        > 2026-09-12 T75's xfail at 1f867373: the destination escalates, the origin not
+        > 2026-09-13 Roy 2026-09-13: fixed before the move branch merges
+- [x] T79 | a reworded move is lost over two all-clean turns; xfail, fix filed | 17d0491d | Implement
+      a test of a reworded move over two all-clean turns, to settle whether the
+      move is lost
+        > 2026-09-12 round 2's probe: both ends ended as withdrawn stets
+- [x] T80 | a mover's query at the origin loses the move; xfail, fix filed | 7b728ca0 | Implement
+      a test of a mover's query at its move's origin, to settle whether the move
+      is lost
+        > 2026-09-12 by reading: the query is written over the move entry
+- [x] T81 | the clean-slot half of apply's routing is tested and holds | efb89e43 | Implement
+      a test of apply routing to a move where the mover's slot at the
+      destination is a clean
+        > 2026-09-12 by reading: after 162c8b43 no test reaches that half
+- [x] T82 | a place with no roles is carried to the chief, nothing lost | 3f1d2550 | Implement
+      a test of a place carried forward with no roles left, to settle whether
+      any turn is sent it
+        > 2026-09-12 round 2: a deferring query leaves the destination with no roles
+- [x] T83 | a mover's clean at the origin keeps the move | 12990b28 | Update the
+      turn so a mover's clean at its move's origin keeps the move, per Process
+      137 and 138
+        > 2026-09-13 T79's xfail at 17d0491d: turn 2's origin clean withdraws it
+- [x] T84 | a mover's query at the origin holds both ends | f10de03b | Update
+      the turn so a mover's query at its move's origin holds both ends, per
+      Process 137 and 138
+        > 2026-09-13 T80's xfail at 7b728ca0: the query is written over the move
+- [-] T85 | SUPERSEDED by T86: Process 139, the chief rules each end | 80e15c4b | Update
+      disposition to refuse a ruling that treats a move's two ends differently,
+      per Process 137
+        > 2026-09-13 round 3: origin original, destination the move; the origin is lost
+- [x] T86 | each end of a split move is written as its own drop or add | 0f9657a0 | Update
+      disposition so the chief's ruling at each end of a move takes effect on
+      its own section, per Process 139
+        > 2026-09-13 round 3: a split ruling lost the origin's ruling
+- [x] T87 | a reworded move never settles; xfail strict, a fix is filed | 2fb8c079 | Implement
+      a test of a reworded move every role cleans over two turns, to settle
+      whether it settles
+        > 2026-09-13 round 4, by reading: turn 2's clean withdraws its adoption
+- [x] T88 | a reworded move every role cleans settles at turn 1 | cb42539e | Update
+      the turn so a reworded move every role cleans settles, per Process 89
+        > 2026-09-13 T87's xfail at 2fb8c079; after turn 1 no agreement was read
+        > 2026-09-13 it reaches the chief at max turns, so nothing is lost
+        > 2026-09-13 Roy 2026-09-13: the last round before the move branch merges
+- [x] T89 | the add lands; the held origin's drop misses 7a; xfail, fix filed | ed8afe94 | Implement
+      a test of a move whose origin is held for the human while the chief rules
+      its destination, to settle what lands
+        > 2026-09-13 round 5, by reading: only the destination's add is written
+        > 2026-09-13 Roy 2026-09-13: the last round before the move branch merges
+- [ ] T90 | Update the unsettlable entry for a move's held origin so the move's
+      drop rides with it to the human at 7a, per Process 90 and 139
+        > 2026-09-13 T89's xfail at ed8afe94: text at both ends until 7a
+- [ ] T91 | Implement a test of a mover that leaves its origin slot unanswered
+      while every role holds one text, to settle whether it settles
+        > 2026-09-13 by reading: cb42539e reads copies, not the turn's answers
+- [ ] T92 | Delete T79's test in tests/test_turn.py, which since cb42539e runs
+      T87's route with weaker assertions
+        > 2026-09-13 round 6: T79's turn-1 assertion went with the fix

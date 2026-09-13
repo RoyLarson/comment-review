@@ -389,7 +389,9 @@ def _unsettlable(proof: MasterProof) -> list[dict]:
         One entry per such place -- `{"address", "roles", "marks", "query"}`,
         `roles` every role that marked it, `marks` every `Placed` there, and
         `query` the first human-review query's serialized mark with its
-        `role` beside it.
+        `role` beside it. A mover's query at its move's destination holds
+        the origin as well, where `desk.collator.places` files it
+        (`Process: #138`), so the `query` there names the destination.
     """
     out: list[dict] = []
     for address, marks in places(proof).items():
