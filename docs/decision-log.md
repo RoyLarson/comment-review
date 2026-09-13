@@ -4289,3 +4289,11 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   be built. Asked -- the flow gives the destination the page's anchor there, so every alteration
   carries one and nothing is exempt; a docket field marking a destination; or wait for
   `move-is-a-composite-mark` -- Roy: *"Flow gives it an anchor"*.
+
+- **#136.** **What CLAUDE.md says about changing the skill's prose** (Roy, 2026-09-12, on
+  `agents-files-name-the-new-cli` T24: `CLAUDE.md:376-377` said a new rule replaces an existing
+  one at budget, while `docs/limitations.md:46` records Roy, 2026-08-18, that a new rule does
+  not have to displace another).
+
+  *"We can just drop the section in CLAUDE.md and state the reference on the process of
+  modifying the agent files."*
