@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 16 of 25 tasks closed
+Progress: 17 of 25 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -94,6 +94,7 @@ The agents files name the new CLI and say how to use it.
       which rule governs new skill prose: CLAUDE.md:376-377's replace-at-budget
       or limitations.md:46's earn-its-context
         > 2026-09-12 a brief quoted CLAUDE.md's; limitations.md has Roy, 2026-08-18
-- [ ] T25 | Update docs/limitations.md's size table for SKILL.md and
-      reviewer-brief.md as set 4 left them
+- [x] T25 | re-measured as stored blobs, with what set 4's growth bought | c2e64382 | Update
+      docs/limitations.md's size table for SKILL.md and reviewer-brief.md as set
+      4 left them
         > 2026-09-12 set 4: SKILL.md 60,979 bytes, reviewer-brief.md 38,688 bytes
