@@ -58,6 +58,11 @@ A COMPOSITION re-read is answered with a fresh `Mark` over the composed text
     patch       the same, as a `patch` -- not a correct, which owes sources a
                 patch never carried
 
+The mover's `correct` or `patch` at its move's destination end is an edit to
+the move as well (`Process: #137`): it sets the `move` entry's `change` at the
+origin, the claim standing, and the mover's slot at the destination stays as
+it is. Its `clean` and `query` there are answers at that slot.
+
 An answer at a place the role's copy holds no slot for -- an `add`'s empty
 place, which `desk.collator._outcome` sends to every role of the stage while
 only the adding role's copy holds it -- lands on a slot seeded from the page
@@ -133,6 +138,10 @@ COMPOSITION_ANSWERS = (
     Instruction.CORRECT,
     Instruction.PATCH,
 )
+
+#: The composition answers that reach a move from its destination end, each
+#: setting the move's text -- `Process: #137`.
+_SETS_THE_MOVED_TEXT = (Instruction.CORRECT, Instruction.PATCH)
 
 
 def slots_of(loaded: object, role: str) -> list:
@@ -461,11 +470,13 @@ def apply(
         root: the checkout a page is read from, to seed a slot at a place the
             role's copy does not hold.
 
-    An escalation answer at a move's destination end is written to the move
-    (`Process: #129`): where the role's own slot there is absent or a
-    `clean`, and its copy holds exactly one `move` whose `claim.to` names that
-    address, the answer applies to that `move` entry, and the slot at the
-    destination stays as it is.
+    An escalation answer, or a composition `correct` or `patch`, at a move's
+    destination end is written to the move (`Process: #129` and `#137`):
+    where the role's own slot there is absent or a `clean`, and its copy
+    holds exactly one `move` whose `claim.to` names that address, the answer
+    applies to that `move` entry, and the slot at the destination stays as it
+    is. A composition `correct` or `patch` sets the move's `change`, its
+    claim standing.
 
     Returns:
         A `Revisit` per address this role's copy holds no slot for and
@@ -483,10 +494,12 @@ def apply(
     revisit: list[Revisit] = []
     for address, answer in answers:
         entry = _entry_at(copies, role, address)
-        if isinstance(answer, DiffMark) and (
-            entry is None or entry.get("instruction") == str(Instruction.CLEAN)
-        ):
-            entry = _move_to(copies, role, address) or entry
+        move = None
+        if (
+            isinstance(answer, DiffMark) or answer.instruction in _SETS_THE_MOVED_TEXT
+        ) and (entry is None or entry.get("instruction") == str(Instruction.CLEAN)):
+            move = _move_to(copies, role, address)
+        entry = move or entry
         sheet = None
         if entry is None:
             mine = [c for c in copies if isinstance(c, dict) and c.get("role") == role]
@@ -498,7 +511,10 @@ def apply(
                 ]
                 revisit.append(_refused(role, address, address, reasons))
                 continue
-        held = _answered(entry, answer, composed.get(address, {}))
+        if move is not None and isinstance(answer, Mark):
+            held = {**move, "change": answer.change}
+        else:
+            held = _answered(entry, answer, composed.get(address, {}))
         if held is None:
             continue
         parsed, why = Mark.deserialize(address, held)

@@ -976,6 +976,104 @@ class TestAMoversAnswerAtItsDestination:
         assert (seeded.instruction, seeded.change) == (Instruction.CLEAN, "")
 
 
+def _clean_but_the_destination(batch: dict, answer: dict) -> dict:
+    """Every slot of `batch` answered `clean`, but block-context's at
+    `EMPTY_PLACE`, which is answered with `answer`."""
+    return {
+        role: [
+            {**slot, **answer}
+            if (role, slot["address"]) == ("block-context", EMPTY_PLACE)
+            else {**slot, "instruction": "clean"}
+            for slot in slots
+        ]
+        for role, slots in batch.items()
+    }
+
+
+#: A mover's composition answers at its move's destination, each over the
+#: text the slot there carries.
+_A_COMPOSITION_CORRECT = {
+    "instruction": "correct",
+    "claim": {"false": "# two", "true": "# 2"},
+    "reason": "a digit reads as the count it is",
+    "sources": [{"cite": "m.py:7", "verbatim": "w = 4"}],
+    "change": MOVED_TEXT.replace("two", "2"),
+}
+_A_COMPOSITION_PATCH = {
+    "instruction": "patch",
+    "claim": {"from": "two", "to": "2"},
+    "reason": "a digit reads as the count it is",
+    "change": MOVED_TEXT.replace("two", "2"),
+}
+
+
+class TestAMoversCompositionAnswerAtItsDestination:
+    """A mover's composition answer at its move's destination end --
+    `no-command-for-the-middle` T69, `Process: #129` and `#137`.
+
+    `_a_lone_move` sends both ends of the move back as re-reads, and the
+    destination only to the mover. A `correct` or `patch` there sets the
+    move's text at the origin, the destination staying where the mover put
+    it, and writes no slot of the mover's at the destination.
+    """
+
+    @pytest.mark.parametrize(
+        "answer",
+        [
+            pytest.param(_A_COMPOSITION_CORRECT, id="correct"),
+            pytest.param(_A_COMPOSITION_PATCH, id="patch"),
+        ],
+    )
+    def test_it_sets_the_moved_text(self, tmp_path, answer):
+        binder, got = _a_lone_move(tmp_path, MOVED_TEXT)
+        batch = batch_of(got.escalations, got.rereads)
+        assert _slot(batch, "block-context", EMPTY_PLACE)[QUESTION] == COMPOSITION
+        one = run_turn(
+            _at(got), binder, tmp_path, batch, _clean_but_the_destination(batch, answer)
+        )
+        assert one.revisit == []
+        assert one.problems == []
+        (held,) = _held_at(one, "block-context", MOVED_FROM)
+        assert held.instruction is Instruction.MOVE
+        assert held.change == answer["change"]
+        assert held.claim == {"from": MOVED_FROM, "to": EMPTY_PLACE}
+        assert _held_at(one, "block-context", EMPTY_PLACE) == []
+
+    def test_it_passes_the_movers_clean_there(self, tmp_path):
+        """Turn 1's `clean` at the destination is written to a slot seeded
+        from the page. Turn 2's `correct` there still sets the move's text,
+        and that slot stays the `clean`."""
+        binder, got = _a_lone_move(tmp_path, MOVED_TEXT)
+        batch = batch_of(got.escalations, got.rereads)
+        one = run_turn(
+            _at(got),
+            binder,
+            tmp_path,
+            batch,
+            _clean_but_the_destination(batch, {"instruction": "clean"}),
+        )
+        assert one.revisit == []
+        (seeded,) = _held_at(one, "block-context", EMPTY_PLACE)
+        assert seeded.instruction is Instruction.CLEAN
+
+        batch2 = batch_of(one.escalations, one.rereads)
+        proof = proof_after(one, ({"turn": 1, "sent": batch},))
+        two = run_turn(
+            proof,
+            binder,
+            tmp_path,
+            batch2,
+            _clean_but_the_destination(batch2, _A_COMPOSITION_CORRECT),
+        )
+        assert two.revisit == []
+        (held,) = _held_at(two, "block-context", MOVED_FROM)
+        assert held.instruction is Instruction.MOVE
+        assert held.change == _A_COMPOSITION_CORRECT["change"]
+        assert held.claim == {"from": MOVED_FROM, "to": EMPTY_PLACE}
+        (seeded,) = _held_at(two, "block-context", EMPTY_PLACE)
+        assert (seeded.instruction, seeded.change) == (Instruction.CLEAN, "")
+
+
 #: A second page, whose one paragraph two roles correct two ways.
 OTHER_PAGE = "a = 1\n# one\n# two\n# three\nb = 2\n"
 OTHER = "n.py@b1"
