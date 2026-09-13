@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks closed
+Progress: 0 of 8 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-08-25 (backend, 2026-08-25, while giving Page a sha during the write-
@@ -43,3 +43,9 @@ render_page.py imports flat module names the 2026-08-24 reorg removed.
       at a bad path prints a failure, not a number
 - [ ] T6 | Point rows() at how the census is invoked now. Verify: all three
       renderings report non-zero bytes over a real file
+- [ ] T7 | Rule the margin view once the script runs: an empty place's row, text
+      or structured, its format, the marks. Verify: in decision-log.md
+        > 2026-09-13 from the-census-is-mostly-intervals T19, Process 147
+        > 2026-09-13 deferred by Roy 2026-09-13 until the rest is fixed
+- [ ] T8 | Update render_page.py's docstring to name this TODO, not the census
+      one. Verify: grep census-is-mostly scripts returns nothing

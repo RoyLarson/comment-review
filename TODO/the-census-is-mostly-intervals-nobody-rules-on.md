@@ -2,9 +2,9 @@
 
 ```
 Status:   in-progress
-Progress: 14 of 27 tasks closed
+Progress: 26 of 27 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-18, from measuring what a reviewer is handed before it works
 Triaged:  2026-08-23 -- the filter SHIPPED and is what stage 4 hands a reviewer. Eleven
           of the twenty boxes were rulings, measurements or reasoning, or had landed;
@@ -217,10 +217,12 @@ mock-up and matches nothing in the tree.
 - [x] T3 | FINISHED | unknown | T3 -- FINISHED. A `move` destination that is not
       an address is refused, which is rule 4. The two refusal messages are
       quoted in the Objective.
-- [ ] T4 | T4 -- Grow the filtered table between rounds so rule 5 holds at 5b.
-      Verify: a place cited in round 1 appears in the round-2 handout.
-- [ ] T5 | T5 -- Grow it for EVERY role, not only the role that cited. Verify:
-      all four round-2 handouts carry that place.
+- [-] T4 | SUPERSEDED, Process 147: no filtered table since #99; a turn sends a batch | 99004b8f | T4
+      -- Grow the filtered table between rounds so rule 5 holds at 5b. Verify: a
+      place cited in round 1 appears in the round-2 handout.
+- [-] T5 | SUPERSEDED, Process 147: no filtered table since #99; a turn sends a batch | 99004b8f | T5
+      -- Grow it for EVERY role, not only the role that cited. Verify: all four
+      round-2 handouts carry that place.
 - [-] T6 | SUPERSEDED by decision-log.md Process: #99 -- the listing goes; there is no filtered census | 1bd14279 | T6
       -- Test that a filtered census carries every prose paragraph's ADDRESS
       unchanged from the full one. Verify: a multi-file census test fails if any
@@ -231,37 +233,43 @@ mock-up and matches nothing in the tree.
 - [x] T8 | FINISHED | unknown | T8 -- FINISHED for the byte half, re-measured
       2026-08-19 (`SKILL.md:346-348`). ! The other half of the claim -- *without
       a verdict changing* -- is T11's.
-- [ ] T9 | T9 -- Record which of `verdicts.py`, `galley.py`, `record.py` and
+- [-] T9 | SUPERSEDED, Process 147: verdicts, record and census.py are gone | 99004b8f | T9
+      -- Record which of `verdicts.py`, `galley.py`, `record.py` and
       `addresser.py` read the census in full. Verify: each of the four is named
       here as full or filtered.
-- [ ] T10 | T10 -- Check that survey against T8 of
+- [-] T10 | SUPERSEDED, Process 147: verdicts, record and census.py are gone | 99004b8f | T10
+      -- Check that survey against T8 of
       `the-bridge-landed-and-the-rewrite-did-not`. Verify: both name the same
       set of full-census readers.
-- [ ] T11 | T11 -- Re-run `evidence/cycle-0.2.3/` filtered and full and diff the
-      verdicts. Verify: the mix differs only in which places were cited, or the
-      filter is wrong.
+- [-] T11 | SUPERSEDED, Process 147: no filtered side to diff since #99 | 99004b8f | T11
+      -- Re-run `evidence/cycle-0.2.3/` filtered and full and diff the verdicts.
+      Verify: the mix differs only in which places were cited, or the filter is
+      wrong.
 - [x] T12 | FINISHED | unknown | T12 -- FINISHED, and the OPPOSITE of what the
       box proposed: the record carries no `side`, because the address carries
       it. `record.py:327-332`, in the Objective.
 - [x] T13 | FINISHED | unknown | T13 -- FINISHED. `--filtered` collapses on
       `Kind.holds_no_prose` (`census.py:576`), not on one kind. Verified
       2026-08-23: 0 bare `margin` rows over two shipped scripts.
-- [ ] T14 | T14 -- Resolve `<skill>` in `reviewer-brief.md:210` to a path a
-      reviewer is given. Verify: it comes from a packet section not in
-      `TASK_AGENT_ONLY`.
-- [ ] T15 | T15 -- Resolve `<FULL CENSUS>` in `reviewer-brief.md:210`; the
-      packet field is `LOOKUP CENSUS`. Verify: the file names that field
-      instead.
-- [ ] T16 | T16 -- Check every other placeholder in `reviewer-brief.md`. Verify:
-      each names a packet section a reviewer is given.
-- [ ] T17 | T17 -- Define every `kind` the census listing can print where a
-      reviewer reads it. Verify: each of the nine kinds measured 2026-08-23 is
-      in `reviewer-brief.md`.
-- [ ] T18 | T18 -- Ship a column legend with the census listing itself. Verify:
-      a filtered listing handed to a reviewer carries a legend, without reading
-      `SKILL.md`.
-- [?] T19 | T19 -- * Rule the page rendering, deferred by Roy 2026-08-21; the
-      open questions are in the Objective. Verify: the ruling is in
+- [-] T14 | SUPERSEDED by agents-files-name-the-new-cli T27, Process 147 | 99004b8f | T14
+      -- Resolve `<skill>` in `reviewer-brief.md:210` to a path a reviewer is
+      given. Verify: it comes from a packet section not in `TASK_AGENT_ONLY`.
+- [-] T15 | SUPERSEDED, Process 147: the brief names BINDER from the packet, :271 | 99004b8f | T15
+      -- Resolve `<FULL CENSUS>` in `reviewer-brief.md:210`; the packet field is
+      `LOOKUP CENSUS`. Verify: the file names that field instead.
+- [-] T16 | SUPERSEDED by agents-files-name-the-new-cli T28, Process 147 | 99004b8f | T16
+      -- Check every other placeholder in `reviewer-brief.md`. Verify: each
+      names a packet section a reviewer is given.
+- [-] T17 | SUPERSEDED, Process 147: the listing is gone, #99; a copy has no kind | 99004b8f | T17
+      -- Define every `kind` the census listing can print where a reviewer reads
+      it. Verify: each of the nine kinds measured 2026-08-23 is in
+      `reviewer-brief.md`.
+- [-] T18 | SUPERSEDED, Process 147: the listing is gone, #99; a copy has no kind | 99004b8f | T18
+      -- Ship a column legend with the census listing itself. Verify: a filtered
+      listing handed to a reviewer carries a legend, without reading `SKILL.md`.
+- [-] T19 | SUPERSEDED by render-page-imports-flat-names T7, Process 147 | 99004b8f | T19
+      -- * Rule the page rendering, deferred by Roy 2026-08-21; the open
+      questions are in the Objective. Verify: the ruling is in
       `docs/decision-log.md`.
         > 2026-09-02 Deferred by Roy 2026-08-21; decision-log ends at 78 with no entry
         > 2026-09-02 audit: a ruling made invisible by the marks migration
@@ -283,8 +291,9 @@ mock-up and matches nothing in the tree.
 - [x] T25 | FINISHED | unknown | T25 -- Not a task. The 26-file measurement is a
       MEASUREMENT, and `scripts/render_page.py` is in the tree so it can be
       re-taken. In the Objective.
-- [ ] T26 | Update scripts/render_page.py rows() to run the gather command; it
-      names a scripts/census.py that does not exist. Verify: it runs
+- [-] T26 | SUPERSEDED by render-page-imports-flat-names T6, Process 147 | 99004b8f | Update
+      scripts/render_page.py rows() to run the gather command; it names a
+      scripts/census.py that does not exist. Verify: it runs
 - [ ] T27 | Update scripts/measure_binder.py so its prose and its census() name
       the gather, Vocabulary 34. Verify: grep census returns nothing
 ## Related

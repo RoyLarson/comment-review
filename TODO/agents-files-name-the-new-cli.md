@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 17 of 26 tasks closed
+Progress: 17 of 28 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -101,3 +101,10 @@ The agents files name the new CLI and say how to use it.
 - [ ] T26 | Update SKILL.md:885, which says proof's --out holds a full copy of
       --repo; since Process 117 it holds only the docket's pages
         > 2026-09-13 seen reading stage 7a for stage-5 T12
+- [ ] T27 | Update reviewer-brief.md so <skill> at :126, 271, 580, 592 names a
+      path the packet gives a reviewer. Verify: the packet list names it
+        > 2026-09-13 from census T14, Process 147
+        > 2026-09-13 SKILL.md:610-614 sends a role no path into the plugin
+- [ ] T28 | Update reviewer-brief.md:592-593 so ANSWERS, BATCH and PROOF name
+      what SKILL.md:712-713 hands a role. Verify: the two agree
+        > 2026-09-13 from census T16, Process 147
