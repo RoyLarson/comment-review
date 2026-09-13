@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 20 of 47 tasks closed
+Progress: 22 of 47 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
           collator's source-verification half is wired into the flow rather than split
           out, after a review measured containers with no production importer and
@@ -294,8 +294,9 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
         > 2026-09-02 SPLIT 2026-09-02: this box read Implement a container ... or rule
         > 2026-09-02 that it stays a dict -- a question wearing an implement opening
         > 2026-09-02 Roy: LLMs are slippery in getting around the rules. The act is T43
-- [?] T37 | Decide whether a master_proof is ever written to disk, or delete its
-      serialize, deserialize and stage
+- [x] T37 | yes: a master proof is written and read back at every stage | a40ae775 | Decide
+      whether a master_proof is ever written to disk, or delete its serialize,
+      deserialize and stage
         > 2026-08-31 MEASURED after P42: grep -rn MasterProof src/ shows deserialize
         > 2026-08-31 and serialize with no production caller -- collate's PROOF boundary
         > 2026-08-31 was the last one, and gather returns the container now. stage is
@@ -322,8 +323,8 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
 - [x] T41 | flows/mark_errors.py collects Sheet.unruled and Sheet.refused across a stage into addresses and reasons, grouped by the role that owes each place. | 0a0d856 | Implement
       flows/mark_errors.py, which collects every place a role must revisit as
       addresses and reasons
-- [?] T42 | Decide what artifacts exist between the stages, and how each is
-      resolved
+- [x] T42 | Process 142: answered by the chain the commands and smoke run | f441249a | Decide
+      what artifacts exist between the stages, and how each is resolved
         > 2026-09-01 Roy 2026-09-01, on why the master_proof question cannot be settled
         > 2026-09-01 yet: we have not fully specified the intermediate stage artifacts
         > 2026-09-01 and how that is resolved. T37 waits on this, not the other way.
