@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 66 of 66 tasks closed
+Progress: 66 of 67 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-09-11 (review of SP7 Task 8 at 34aea6d4, 2026-09-11)
@@ -255,3 +255,6 @@ The middle-chain smoke script carries the findings of its Task 8 review.
 - [x] T66 | RULED -- the script never deletes a run dir; dropped by hand | e81e8fb0 | Decide
       whether a run removes its run directory; 62 smoke-middle directories sat
       in TEMP after one day
+- [ ] T67 | Update the smoke to write a docket from chief-final.json and prove
+      from it, so a docket the write end refuses fails the smoke
+        > 2026-09-12 T68's duplicate passed: the smoke proves from --copy, no docket
