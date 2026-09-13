@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 11 of 41 tasks closed
+Progress: 12 of 42 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
           deleted whole and written back by an agent with no access to the vocabulary,
           the docs, the prototype, git history or the built copy under plugins)
@@ -33,9 +33,11 @@ Four defects in collator.py, found by reading only the code.
       Verify: a two-line `verbatim` taken verbatim from that file is reported as
       not found. MEASURED: the window is rejoined with a newline while `_lines`
       preserved the carriage returns.
-- [?] T5 | Decide which side normalises -- the window, the `verbatim`, or both
-      at the boundary. Verify: a single-line `verbatim` still matches, and the
-      choice is stated where `_lines` says it preserves the endings.
+        > 2026-09-13 since then _lines drops the endings; only the quote keeps them
+- [x] T5 | settled by Addressing #12: lines drop endings, so the quote does too | b3d79d2d | Decide
+      which side normalises -- the window, the `verbatim`, or both at the
+      boundary. Verify: a single-line `verbatim` still matches, and the choice
+      is stated where `_lines` says it preserves the endings.
 - [ ] T6 | Check the same rejoin elsewhere. Verify: no other comparison in `src/`
       splits on real line endings and rejoins with one spelling.
 - [ ] T7 | Reproduce the cache collision: one cache, two roots holding the same
@@ -213,3 +215,6 @@ Four defects in collator.py, found by reading only the code.
       cannot read. Verify: an invented path half is named, not passed silently
         > 2026-09-08 About 50 fold tests use fictional paths and would break
         > 2026-09-08 Caught at fill and at the write; the fold is the silent one
+- [ ] T42 | Update source_problems to split a verbatim as the cited window is
+      split, per Addressing #12
+        > 2026-09-13 Roy 2026-09-13: the compositor rewrites endings; inside, none
