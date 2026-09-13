@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 59 of 82 tasks closed
+Progress: 66 of 85 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -367,28 +367,44 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       a test of a move whose ends disagree after a turn, to settle whether
       _disagreeing splits them across the carried lists
         > 2026-09-12 by reading in T69; the fold's own pairing keeps them together
-- [ ] T76 | Update the turn so a mover's composition correct or patch at its
-      move's origin keeps the move, per Process 137
+- [x] T76 | a mover's correct or patch at the origin keeps the move | c6ee610d | Update
+      the turn so a mover's composition correct or patch at its move's origin
+      keeps the move, per Process 137
         > 2026-09-12 T73's xfail at 935b6bed: the move becomes a correct or a patch
         > 2026-09-13 Roy 2026-09-13: fixed before the move branch merges
-- [ ] T77 | Update the fold so every role cleaning a move whose text is
-      unchanged settles it, per Process 89
+- [x] T77 | every role cleaning an unchanged move settles both ends | 7fd6a549 | Update
+      the fold so every role cleaning a move whose text is unchanged settles it,
+      per Process 89
         > 2026-09-12 T74's xfail at 09c9b6e0: both ends go back as re-reads each turn
         > 2026-09-12 fixing it breaks test_it_follows_the_movers_clean_there's turn 2
         > 2026-09-13 Roy 2026-09-13: fixed before the move branch merges
-- [ ] T78 | Update _disagreeing so a move's two ends land in the same carried
-      list, per Process 137
+- [x] T78 | both ends of a move escalate together | b09692ab | Update
+      _disagreeing so a move's two ends land in the same carried list, per
+      Process 137
         > 2026-09-12 T75's xfail at 1f867373: the destination escalates, the origin not
         > 2026-09-13 Roy 2026-09-13: fixed before the move branch merges
-- [ ] T79 | Implement a test of a reworded move over two all-clean turns, to
-      settle whether the move is lost
+- [x] T79 | a reworded move is lost over two all-clean turns; xfail, fix filed | 17d0491d | Implement
+      a test of a reworded move over two all-clean turns, to settle whether the
+      move is lost
         > 2026-09-12 round 2's probe: both ends ended as withdrawn stets
-- [ ] T80 | Implement a test of a mover's query at its move's origin, to settle
-      whether the move is lost
+- [x] T80 | a mover's query at the origin loses the move; xfail, fix filed | 7b728ca0 | Implement
+      a test of a mover's query at its move's origin, to settle whether the move
+      is lost
         > 2026-09-12 by reading: the query is written over the move entry
-- [ ] T81 | Implement a test of apply routing to a move where the mover's slot
-      at the destination is a clean
+- [x] T81 | the clean-slot half of apply's routing is tested and holds | efb89e43 | Implement
+      a test of apply routing to a move where the mover's slot at the
+      destination is a clean
         > 2026-09-12 by reading: after 162c8b43 no test reaches that half
-- [ ] T82 | Implement a test of a place carried forward with no roles left, to
-      settle whether any turn is sent it
+- [x] T82 | a place with no roles is carried to the chief, nothing lost | 3f1d2550 | Implement
+      a test of a place carried forward with no roles left, to settle whether
+      any turn is sent it
         > 2026-09-12 round 2: a deferring query leaves the destination with no roles
+- [ ] T83 | Update the turn so a mover's clean at its move's origin keeps the
+      move, per Process 137 and 138
+        > 2026-09-13 T79's xfail at 17d0491d: turn 2's origin clean withdraws it
+- [ ] T84 | Update the turn so a mover's query at its move's origin holds both
+      ends, per Process 137 and 138
+        > 2026-09-13 T80's xfail at 7b728ca0: the query is written over the move
+- [ ] T85 | Update disposition to refuse a ruling that treats a move's two ends
+      differently, per Process 137
+        > 2026-09-13 round 3: origin original, destination the move; the origin is lost
