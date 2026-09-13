@@ -4439,3 +4439,10 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   two sentences left beside them, which ruled that a T may not take its state from a P: *"Yep
   those go to. Now that the job-board handles this and the global CLAUDE.md states that the tool
   needs to be used for work progression"*.
+
+  And on the rest of the T-and-P section, after a probe on a copy of the board showed the tool
+  refusing a plan that names no T id, a task claimed by two plans and a plan closing a T, while
+  accepting a TODO that says in words it waits on a plan: *"I does this well enough. Nothing but
+  convention and collaboration keeps people and agents really honest and their is no reason for
+  excessive dishonesty checking. The tool keeps plan steps from being added to a todo and that
+  is the important part"*. So the section goes from `conventions.md`.

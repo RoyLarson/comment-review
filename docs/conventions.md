@@ -143,34 +143,6 @@ alternative is filing a TODO and shipping a file that is wrong in the meantime.*
 
 ---
 
-## T and P -- what references what, and in which direction
-
-Roy, 2026-08-23. Two kinds of checkbox exist and they are not interchangeable.
-
-| | lives in | is | references |
-| --- | --- | --- | --- |
-| **T** | `TODO/*.md` | **the goal.** One verifiable checkpoint of work that is wanted | nothing |
-| **P** | `docs/plans/*.md` | **a task that makes one or more Ts accomplishable.** Not an ordered step | the T tasks it works |
-
-**The arrows go one way: `P -> T`.** A plan cites the TODOs it works.
-**A TODO takes no DEPENDENCY on a plan** -- nothing in
-`TODO/` may wait on a plan, be closed by one, or read its state from one, so a closed plan
-leaves the backlog intact.
-
-!! **A `P` names the `T` tasks it works, not just the file.** *"Closes
-`some-todo.md` (0/4)"* is not checkable -- a reader cannot tell which of the four it
-delivers, and the box cannot be verified by anyone who did not write it. Name the tasks:
-**"works tasks 1, 2 and 4 of ..."*. That is what makes a ticked box re-derivable by a
-stranger, which is the standard `CLAUDE.md` sets for the release gate.
-
-**AND A `T` IS STILL A VERIFIABLE CHECKPOINT** -- see `CLAUDE.md`, *A box is a claim about
-whether work remains*. A ruling, a measurement or a piece of reasoning is not a T, and
-wrapping it in a P does not make it one.
-
--> [`decision-log.md`](decision-log.md), *Process*, for the direction of the arrows and what each mark may reference.
-
----
-
 ## How a `P` gets written, and when
 
 A `docs/plans/*.md` entry names the `T` tasks it works, and it is what says when the branch is
