@@ -432,12 +432,6 @@ in a dated `note`.
 is written and every day after -- there is no state in which someone ticks it. If ticking would
 be a JUDGEMENT rather than an observation, it is not a task.
 
-**And a box on a ruling makes the count lie towards more work.** MEASURED 2026-08-23:
-`leading-owns-the-space-between` read **0 of 10** while nine of the ten were rulings and
-measurements already settled, and the one real defect was not among them. `Progress:` is
-computed from boxes, so the file advertised that nothing had been done on work that was
-finished -- and no gate can see it, because a box is well-formed whatever is written in it.
-
 **An unchecked box says the work is still to do, and something automated now reads it.** Roy,
 2026-08-18: *"a check box not-marked is left as something todo, even if it was superseded and no
 longer necessary."* Measured the same day: five RESOLVED proposals held in a prose table with no
