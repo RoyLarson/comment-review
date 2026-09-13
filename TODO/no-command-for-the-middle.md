@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 71 of 89 tasks closed
+Progress: 73 of 92 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -419,12 +419,22 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       a test of a reworded move every role cleans over two turns, to settle
       whether it settles
         > 2026-09-13 round 4, by reading: turn 2's clean withdraws its adoption
-- [ ] T88 | Update the turn so a reworded move every role cleans settles, per
-      Process 89
+- [x] T88 | a reworded move every role cleans settles at turn 1 | cb42539e | Update
+      the turn so a reworded move every role cleans settles, per Process 89
         > 2026-09-13 T87's xfail at 2fb8c079; after turn 1 no agreement was read
         > 2026-09-13 it reaches the chief at max turns, so nothing is lost
         > 2026-09-13 Roy 2026-09-13: the last round before the move branch merges
-- [ ] T89 | Implement a test of a move whose origin is held for the human while
-      the chief rules its destination, to settle what lands
+- [x] T89 | the add lands; the held origin's drop misses 7a; xfail, fix filed | ed8afe94 | Implement
+      a test of a move whose origin is held for the human while the chief rules
+      its destination, to settle what lands
         > 2026-09-13 round 5, by reading: only the destination's add is written
         > 2026-09-13 Roy 2026-09-13: the last round before the move branch merges
+- [ ] T90 | Update the unsettlable entry for a move's held origin so the move's
+      drop rides with it to the human at 7a, per Process 90 and 139
+        > 2026-09-13 T89's xfail at ed8afe94: text at both ends until 7a
+- [ ] T91 | Implement a test of a mover that leaves its origin slot unanswered
+      while every role holds one text, to settle whether it settles
+        > 2026-09-13 by reading: cb42539e reads copies, not the turn's answers
+- [ ] T92 | Delete T79's test in tests/test_turn.py, which since cb42539e runs
+      T87's route with weaker assertions
+        > 2026-09-13 round 6: T79's turn-1 assertion went with the fix
