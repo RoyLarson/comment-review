@@ -1074,6 +1074,70 @@ class TestAMoversCompositionAnswerAtItsDestination:
         assert (seeded.instruction, seeded.change) == (Instruction.CLEAN, "")
 
 
+class TestAMovesEndsResolveTogether:
+    """Both ends of a move resolve together over the turn --
+    `no-command-for-the-middle` T69, `Process: #137`.
+
+    Turn 1 is T33's: function-context patches the moved text at the origin,
+    so both ends escalate. On turn 2 function-context withdraws its patch and
+    every other slot holds. The destination then carries the move alone and
+    no other role marked it, which by itself stands as a `stet`, while the
+    origin carries the move beside function-context's `clean` and goes back
+    as a re-read. Neither end is determined, and both are carried.
+    """
+
+    def test_an_end_that_would_stand_alone_is_carried_with_the_other(self, tmp_path):
+        binder, got = _a_lone_move(tmp_path, MOVED_TEXT)
+        batch = batch_of(got.escalations, got.rereads)
+        patched = {
+            "instruction": "patch",
+            "claim": {"from": "two", "to": "TWO"},
+            "reason": "the fixture spells its numbers in capitals",
+            "change": MOVED_TEXT.replace("two", "TWO"),
+        }
+        answers = {
+            role: [
+                {**slot, **patched}
+                if (role, slot["address"]) == ("function-context", MOVED_FROM)
+                else {**slot, "instruction": "clean"}
+                for slot in slots
+            ]
+            for role, slots in batch.items()
+        }
+        one = run_turn(_at(got), binder, tmp_path, batch, answers)
+        assert one.revisit == []
+        assert sorted(e["address"] for e in one.escalations) == [
+            MOVED_FROM,
+            EMPTY_PLACE,
+        ]
+
+        batch2 = batch_of(one.escalations, one.rereads)
+        answers2 = {
+            role: [
+                {**slot, "instruction": "withdraw", "reason": "the move carries it"}
+                if (role, slot["address"]) == ("function-context", MOVED_FROM)
+                else {**slot, "instruction": "hold", "reason": "mine stands"}
+                for slot in slots
+            ]
+            for role, slots in batch2.items()
+        }
+        proof = proof_after(one, ({"turn": 1, "sent": batch},))
+        two = run_turn(proof, binder, tmp_path, batch2, answers2)
+        assert two.revisit == []
+        (moved,) = _held_at(two, "block-context", MOVED_FROM)
+        assert moved.instruction is Instruction.MOVE
+        (withdrawn,) = _held_at(two, "function-context", MOVED_FROM)
+        assert withdrawn.instruction is Instruction.CLEAN
+        destination = next(e for e in two.rereads if e["address"] == EMPTY_PLACE)
+        assert destination["roles"] == ["block-context"]
+        assert [placed.mark for placed in destination["marks"]] == [moved]
+
+        assert MOVED_FROM not in two.determined
+        assert EMPTY_PLACE not in two.determined
+        carried = {e["address"] for e in (*two.escalations, *two.rereads)}
+        assert {MOVED_FROM, EMPTY_PLACE} <= carried
+
+
 #: A second page, whose one paragraph two roles correct two ways.
 OTHER_PAGE = "a = 1\n# one\n# two\n# three\nb = 2\n"
 OTHER = "n.py@b1"
