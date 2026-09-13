@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 2 of 9 tasks closed
+Progress: 3 of 10 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-09-08 (Roy 2026-09-08: implementing the recast workflow for the cli the
           copy-chief uses to resolve the final pieces is a good todo, and cap is a bad
           name for it)
@@ -35,11 +35,16 @@ The copy chief has no workflow for recasting the places that never settled.
 - [ ] T6 | Update the command cap to disposition and rulings.json to
       dispositions.json, across the shipped prose and the gate
         > 2026-09-08 A plugins change needs a version bump, as the role rename does
-- [?] T7 | Decide what a recast of a drop should write, since change carries the
-      chief's prose whatever the instruction says
+- [x] T7 | Process 146: a correct from the original to the chief's prose | a4a132be | Decide
+      what a recast of a drop should write, since change carries the chief's
+      prose whatever the instruction says
         > 2026-09-08 Not new: the hardcoded correct wrote prose for every instruction
 - [ ] T8 | Update disposition.py:20 and turn.py:621, which still say cap for max
       turns, per Vocabulary 36
         > 2026-09-11 seen in disposition --help while preparing SP7 Task 9
 - [ ] T9 | Update the recast so the b9 mark in final.json does not carry the
       source fib.py:21 twice
+- [ ] T10 | Update rule_at_max_turns so a recast over a drop is written as a
+      correct from the original paragraph to the chief's prose, per Process 146
+        > 2026-09-13 includes the recast at a move's origin, 0f9657a0
+        > 2026-09-13 test: the claim's true is what lands; false is the original
