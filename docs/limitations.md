@@ -101,10 +101,15 @@ file plus the brief, and **the brief is read FIVE times** -- by the four reviewe
 task agent. Roy, 2026-08-18. So a line there costs five times a line in a role file, and the
 numbers above budget the ROLE files only -- the smallest part of what a run actually costs.
 
-| | 2026-08-16 | 2026-08-18 | |
-| --- | ---: | ---: | --- |
-| `reviewer-brief.md` | 11,579 | 23,397 | paid FIVE times |
-| `SKILL.md` | 45,257 | 62,531 | paid once, by the task agent |
+| | 2026-08-16 | 2026-08-18 | 2026-09-12 | |
+| --- | ---: | ---: | ---: | --- |
+| `reviewer-brief.md` | 11,579 | 23,397 | 38,090 | paid FIVE times |
+| `SKILL.md` | 45,257 | 62,531 | 60,037 | paid once, by the task agent |
+
+The 2026-09-12 column is each file's stored blob, `git show HEAD:<path> | wc -c`, after five
+commits (7d2e1834 to 3b0314e6). The brief grew 1,964 bytes: what a role answers in a turn and
+the `f` run a role may act on, net of the blank-line rule it dropped. `SKILL.md` grew 2,128: the
+turn run between `collate` and `disposition`, and exit 7's row.
 
 !! **THE BRIEF HAS MORE THAN DOUBLED IN TWO DAYS, WHICH IS THIS WARNING COMING TRUE.** Every
 addition was argued on its own and none was weighed against the file, because nothing measures
