@@ -976,6 +976,105 @@ class TestAMoversAnswerAtItsDestination:
         assert (seeded.instruction, seeded.change) == (Instruction.CLEAN, "")
 
 
+#: A second page, whose one paragraph two roles correct two ways.
+OTHER_PAGE = "a = 1\n# one\n# two\n# three\nb = 2\n"
+OTHER = "n.py@b1"
+
+
+def _over_the_wire(proof: MasterProof) -> MasterProof:
+    """The proof as the next command reads it back off disk."""
+    again, why = MasterProof.deserialize("the wire", proof.serialize())
+    assert again is not None, why
+    return again
+
+
+class TestAMoveSettledAtTurnZero:
+    """A move settled at turn 0 reaches the final chief copy once --
+    `no-command-for-the-middle` T68.
+
+    block-context moves `MOVED_FROM` to `EMPTY_PLACE` and function-context
+    defers there with an outside-my-role query, so the move is a `stet` at
+    turn 0 at both its ends. The two roles correct `OTHER` two ways, which
+    escalates it, both hold on turn 1, and the chief takes one side in at max
+    turns. The proof crosses the wire between each step, as `collate`, `turn`
+    and `disposition` hand it on.
+    """
+
+    def test_the_final_chief_copy_holds_the_move_once(self, tmp_path):
+        (tmp_path / "m.py").write_text(GAPPED_PAGE, encoding="utf-8")
+        (tmp_path / "n.py").write_text(OTHER_PAGE, encoding="utf-8")
+        binder = binder_of(tmp_path, 0)
+        copies = [seed(binder, role) for role in ("block-context", "function-context")]
+        rulings = {
+            "block-context": [
+                {
+                    "address": MOVED_FROM,
+                    "instruction": "move",
+                    "claim": {"from": MOVED_FROM, "to": EMPTY_PLACE},
+                    "reason": "the comment is about w, not y",
+                    "sources": [{"cite": "m.py:7"}],
+                    "change": MOVED_TEXT,
+                },
+                {
+                    "address": OTHER,
+                    "instruction": "correct",
+                    "claim": {"false": "two", "true": "TWO"},
+                    "reason": "the fixture spells its numbers in capitals",
+                    "sources": [{"cite": "n.py:1"}],
+                },
+            ],
+            "function-context": [
+                {
+                    "address": MOVED_FROM,
+                    "instruction": "query",
+                    "claim": {
+                        "shape": str(Shape.OUTSIDE_MY_ROLE),
+                        "attempted": "read the paragraph against the code below it",
+                        "settles": "block-context",
+                    },
+                    "reason": "where a comment sits is not this role's remit",
+                    "sources": [{"cite": "m.py:5"}],
+                },
+                {
+                    "address": OTHER,
+                    "instruction": "correct",
+                    "claim": {"false": "two", "true": "dos"},
+                    "reason": "the fixture spells its numbers in Spanish",
+                    "sources": [{"cite": "n.py:1"}],
+                },
+            ],
+        }
+        for copy in copies:
+            for ruling in rulings[copy["role"]]:
+                _, why = fill(copy, ruling, tmp_path)
+                assert why == []
+        got = collate("4c", copies, binder, root=tmp_path)
+        assert got.problems == []
+        moved = got.determined[MOVED_FROM]
+        assert (moved.answer, moved.turn) == (Answer.STET, 0)
+        assert got.determined[EMPTY_PLACE].mark == moved.mark
+        assert [e["address"] for e in got.escalations] == [OTHER]
+
+        batch = batch_for(got)
+        answers = {
+            role: [{**slot, "instruction": "hold", "reason": "mine"} for slot in slots]
+            for role, slots in batch.items()
+        }
+        one = run_turn(
+            _over_the_wire(proof_after(got)), binder, tmp_path, batch, answers
+        )
+        assert one.revisit == []
+        proof = _over_the_wire(proof_after(one, ({"turn": 1, "sent": batch},)))
+
+        last = refold(proof, binder, tmp_path)
+        ruled = rule_at_max_turns(
+            last, OTHER, Answer.TAKEN_IN, "block-context", "TWO", proof.turn
+        )
+        _, chief = close(last, [ruled], proof.turns)
+        moves = [m for m in entries_of(chief) if m.instruction is Instruction.MOVE]
+        assert [m.address for m in moves] == [MOVED_FROM]
+
+
 def _two_places():
     """b1 will converge on turn 1; b5 stays contested -- so turn 2 has a batch."""
     binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})
