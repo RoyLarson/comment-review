@@ -370,13 +370,16 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [ ] T76 | Update the turn so a mover's composition correct or patch at its
       move's origin keeps the move, per Process 137
         > 2026-09-12 T73's xfail at 935b6bed: the move becomes a correct or a patch
+        > 2026-09-13 Roy 2026-09-13: fixed before the move branch merges
 - [ ] T77 | Update the fold so every role cleaning a move whose text is
       unchanged settles it, per Process 89
         > 2026-09-12 T74's xfail at 09c9b6e0: both ends go back as re-reads each turn
         > 2026-09-12 fixing it breaks test_it_follows_the_movers_clean_there's turn 2
+        > 2026-09-13 Roy 2026-09-13: fixed before the move branch merges
 - [ ] T78 | Update _disagreeing so a move's two ends land in the same carried
       list, per Process 137
         > 2026-09-12 T75's xfail at 1f867373: the destination escalates, the origin not
+        > 2026-09-13 Roy 2026-09-13: fixed before the move branch merges
 - [ ] T79 | Implement a test of a reworded move over two all-clean turns, to
       settle whether the move is lost
         > 2026-09-12 round 2's probe: both ends ended as withdrawn stets
