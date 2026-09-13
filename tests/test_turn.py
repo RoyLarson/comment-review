@@ -1820,16 +1820,33 @@ def _the_chief_rules_each_end(root, monkeypatch, capsys, origin: dict, to: dict)
         to: the chief's ruling at `EMPTY_PLACE`, without its address.
 
     Returns:
-        `(the chief's copy, the closed proof, the docket)`, each read back
-        from the JSON its command wrote.
+        As `_disposed`.
     """
     _a_move_at_max_turns(root)
-    code, out = disposition(
+    return _disposed(
         root,
         monkeypatch,
         capsys,
         [{"address": MOVED_FROM, **origin}, {"address": EMPTY_PLACE, **to}],
     )
+
+
+def _disposed(root, monkeypatch, capsys, rulings: list, proof: str = "proof1.json"):
+    """`disposition` over `proof` with the chief's `rulings`, then
+    `proof --to-docket`.
+
+    Args:
+        root: the checkout holding `binder.json` and `proof`.
+        monkeypatch: pytest's, for `run_command`.
+        capsys: pytest's, for `run_command`.
+        rulings: the chief's, one per place carried to max turns.
+        proof: the file `disposition` reads the last proof from.
+
+    Returns:
+        `(the chief's copy, the closed proof, the docket)`, each read back
+        from the JSON its command wrote.
+    """
+    code, out = disposition(root, monkeypatch, capsys, rulings, proof)
     assert code == OK, out
     closed, why = load_proof(root / "final.json")
     assert closed is not None, why
@@ -1927,6 +1944,98 @@ class TestTheChiefRulesEachEndOfAMove:
             (MOVED_FROM, Instruction.MOVE)
         ]
         assert _altered(docket, tmp_path) == {"b1": None, "b3": MOVED_TEXT}
+
+
+def _the_origin_held_for_the_human(root, monkeypatch, capsys):
+    """A move whose origin function-context holds for the human, run through
+    max turns, where the chief takes the move in at its destination.
+
+    Turn 1 of `_two_turns`: function-context answers its slot at the origin
+    with a `human-review-necessary` query and every other slot is `clean`.
+    Turn 2: every slot sent is `clean`. `binder.json` and `proof2.json`, the
+    proof after turn 2 with its record, are written into `root`, and
+    `_disposed` closes it with the chief's one ruling, at the destination.
+
+    Returns:
+        As `_disposed`.
+    """
+    asked = _a_movers_query(Shape.HUMAN_REVIEW_NECESSARY)
+    binder, one, two, turns = _two_turns(
+        root,
+        MOVED_TEXT,
+        lambda batch: _clean_but(batch, "function-context", MOVED_FROM, asked),
+        _all_clean,
+    )
+    assert one.revisit == []
+    assert two.revisit == []
+    (root / "binder.json").write_text(json.dumps(binder.serialize()), encoding="utf-8")
+    save_proof(root / "proof2.json", proof_after(two, turns))
+    last, why = load_proof(root / "proof2.json")
+    assert last is not None, why
+    assert [u["address"] for u in last.unsettlable] == [MOVED_FROM]
+    ruling = {
+        "address": EMPTY_PLACE,
+        "answer": "taken_in",
+        "side": "block-context",
+        "reason": "w wants it",
+    }
+    return _disposed(root, monkeypatch, capsys, [ruling], "proof2.json")
+
+
+class TestAMoveWhoseOriginIsHeldForTheHuman:
+    """A move whose origin is held for the human while the chief rules its
+    destination -- `no-command-for-the-middle` T89, `Process: #90` and
+    `#139`.
+
+    function-context's `human-review-necessary` query at the origin makes
+    it unsettlable, and the destination is carried alone to max turns,
+    where the chief takes block-context's move in
+    (`_the_origin_held_for_the_human`). Under `#139` that ruling takes
+    effect on its own, and under `#90` the origin is the human's, asked at
+    7a from the closed proof.
+    """
+
+    def test_the_destination_lands_and_the_origin_is_the_humans(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        chief, closed, docket = _the_origin_held_for_the_human(
+            tmp_path, monkeypatch, capsys
+        )
+        assert [(m.address, m.instruction) for m in entries_of(chief)] == [
+            (EMPTY_PLACE, Instruction.ADD)
+        ]
+        assert _altered(docket, tmp_path) == {"b3": MOVED_TEXT}
+        assert [d.address for d in closed.determined] == [EMPTY_PLACE]
+        (held,) = closed.unsettlable
+        assert held["address"] == MOVED_FROM
+        assert held["query"]["role"] == "function-context"
+        moves = [
+            mark
+            for copy in closed.edit_copies
+            if copy.role == "block-context"
+            for mark in entries_of(copy)
+            if mark.address == MOVED_FROM
+        ]
+        assert [(m.instruction, m.claim["to"]) for m in moves] == [
+            (Instruction.MOVE, EMPTY_PLACE)
+        ]
+
+    @pytest.mark.xfail(
+        strict=True,
+        reason=(
+            "no-command-for-the-middle T89: the closed proof carries the held "
+            "origin as function-context's query alone; the move's drop there "
+            "is on block-context's copy, not on the place the human is asked "
+            "at 7a"
+        ),
+    )
+    def test_the_moves_drop_rides_with_the_held_origin(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        _, closed, _ = _the_origin_held_for_the_human(tmp_path, monkeypatch, capsys)
+        (held,) = [u for u in closed.unsettlable if u["address"] == MOVED_FROM]
+        rendered = json.dumps(held)
+        assert any(f'"instruction": "{one}"' in rendered for one in ("move", "drop"))
 
 
 def _two_places():
