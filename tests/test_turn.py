@@ -1400,6 +1400,88 @@ class TestAMoversQueryAtItsOrigin:
         ]
 
 
+#: A page whose place `m.py@b3` holds a comment of its own, so a move there
+#: lands on a place every role's copy is seeded with.
+FILLED_PAGE = "x = 1\n# one\n# two\n# three\ny = 2\nz = 3\n# four\nw = 4\n"
+FILLED_PLACE = "m.py@b3"
+
+
+class TestAMoversCleanSlotAtItsDestination:
+    """`apply` routing to a move where the mover's own slot at the
+    destination is a `clean` -- `no-command-for-the-middle` T81,
+    `Process: #129`, `#137` and `#138`.
+
+    block-context moves `MOVED_FROM` to `FILLED_PLACE`, which `FILLED_PAGE`
+    fills, so both copies are seeded a slot there and both roles `clean` it.
+    Turn 1 answers the mover's slot at `FILLED_PLACE` and every other slot
+    `clean`. The answer reaches the move at the origin, and the mover's
+    `clean` at the destination stays as it is.
+    """
+
+    @pytest.mark.parametrize(
+        "answer, change",
+        [
+            pytest.param(
+                {
+                    "instruction": "correct",
+                    "claim": {"false": "# two", "true": "# 2"},
+                    "reason": "a digit reads as the count it is",
+                    "sources": [{"cite": "m.py:8", "verbatim": "w = 4"}],
+                    "change": MOVED_TEXT.replace("two", "2"),
+                },
+                MOVED_TEXT.replace("two", "2"),
+                id="correct",
+            ),
+            pytest.param({"instruction": "clean"}, MOVED_TEXT, id="clean"),
+        ],
+    )
+    def test_the_answer_reaches_the_move(self, tmp_path, answer, change):
+        (tmp_path / "m.py").write_text(FILLED_PAGE, encoding="utf-8")
+        binder = binder_of(tmp_path, 0)
+        copies = [seed(binder, role) for role in ("block-context", "function-context")]
+        rulings = {
+            "block-context": [
+                {
+                    "address": MOVED_FROM,
+                    "instruction": "move",
+                    "claim": {"from": MOVED_FROM, "to": FILLED_PLACE},
+                    "reason": "the comment is about w, not y",
+                    "sources": [{"cite": "m.py:8"}],
+                    "change": MOVED_TEXT,
+                },
+                {"address": FILLED_PLACE, "instruction": "clean"},
+            ],
+            "function-context": [
+                {"address": MOVED_FROM, "instruction": "clean"},
+                {"address": FILLED_PLACE, "instruction": "clean"},
+            ],
+        }
+        for copy in copies:
+            for ruling in rulings[copy["role"]]:
+                _, why = fill(copy, ruling, tmp_path)
+                assert why == []
+        got = collate("4c", copies, binder, root=tmp_path)
+        (slot,) = _held_at(got, "block-context", FILLED_PLACE)
+        assert slot.instruction is Instruction.CLEAN
+        batch = batch_of(got.escalations, got.rereads)
+        assert _slot(batch, "block-context", FILLED_PLACE)[QUESTION] == COMPOSITION
+        one = run_turn(
+            _at(got),
+            binder,
+            tmp_path,
+            batch,
+            _clean_but(batch, "block-context", FILLED_PLACE, answer),
+        )
+        assert one.revisit == []
+        assert one.problems == []
+        (held,) = _held_at(one, "block-context", MOVED_FROM)
+        assert held.instruction is Instruction.MOVE
+        assert held.change == change
+        assert held.claim == {"from": MOVED_FROM, "to": FILLED_PLACE}
+        (slot,) = _held_at(one, "block-context", FILLED_PLACE)
+        assert slot.instruction is Instruction.CLEAN
+
+
 class TestAMovesEndsResolveTogether:
     """Both ends of a move resolve together over the turn --
     `no-command-for-the-middle` T69, `Process: #137`.
