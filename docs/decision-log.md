@@ -4422,3 +4422,12 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   T6; T14 and T16 still hold at other lines; T27 is one comment short. Roy, on that list: *"T19
   - yes move / the rest yes"*. So T19 moves to the script's TODO, T14 and T16 are re-filed on
   `agents-files-name-the-new-cli` with today's lines, T27 stays, and the rest are superseded.
+
+- **#148.** **CLAUDE.md and conventions.md name no specific TODO or plan** (Roy, 2026-09-13,
+  after a `CLAUDE.md` command comment was found pointing at a TODO the question had left).
+
+  *"I think you should remove any line in CLAUDE.md or conventions.md that lists a specific todo
+  or plan. The plans are where the information lives and CLAUDE.md and conventions.md are not the
+  dumping ground for reference material"*, and on `TODO/README.md`: *"that is fine it is a
+  general file"*. So a pointer to one TODO or plan comes out of both files; a general file or
+  directory -- `TODO/`, `TODO/README.md`, `docs/plans/` -- stays.
