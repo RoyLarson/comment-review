@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 69 of 87 tasks closed
+Progress: 71 of 89 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -411,9 +411,18 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       disposition to refuse a ruling that treats a move's two ends differently,
       per Process 137
         > 2026-09-13 round 3: origin original, destination the move; the origin is lost
-- [ ] T86 | Update disposition so the chief's ruling at each end of a move takes
-      effect on its own section, per Process 139
+- [x] T86 | each end of a split move is written as its own drop or add | 0f9657a0 | Update
+      disposition so the chief's ruling at each end of a move takes effect on
+      its own section, per Process 139
         > 2026-09-13 round 3: a split ruling lost the origin's ruling
-- [ ] T87 | Implement a test of a reworded move every role cleans over two
-      turns, to settle whether it settles
+- [x] T87 | a reworded move never settles; xfail strict, a fix is filed | 2fb8c079 | Implement
+      a test of a reworded move every role cleans over two turns, to settle
+      whether it settles
         > 2026-09-13 round 4, by reading: turn 2's clean withdraws its adoption
+- [ ] T88 | Update the turn so a reworded move every role cleans settles, per
+      Process 89
+        > 2026-09-13 T87's xfail at 2fb8c079; after turn 1 no agreement was read
+        > 2026-09-13 it reaches the chief at max turns, so nothing is lost
+- [ ] T89 | Implement a test of a move whose origin is held for the human while
+      the chief rules its destination, to settle what lands
+        > 2026-09-13 round 5, by reading: only the destination's add is written
