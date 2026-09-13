@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 17 of 25 tasks closed
+Progress: 17 of 26 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -98,3 +98,6 @@ The agents files name the new CLI and say how to use it.
       docs/limitations.md's size table for SKILL.md and reviewer-brief.md as set
       4 left them
         > 2026-09-12 set 4: SKILL.md 60,979 bytes, reviewer-brief.md 38,688 bytes
+- [ ] T26 | Update SKILL.md:885, which says proof's --out holds a full copy of
+      --repo; since Process 117 it holds only the docket's pages
+        > 2026-09-13 seen reading stage 7a for stage-5 T12
