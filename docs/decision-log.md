@@ -4380,3 +4380,13 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   Asked -- delete all three; wire the scope flag and delete the others; or wire all three --
   Roy: *"Delete all three"*.
+
+- **#144.** **Whether stage 8's whole-page read runs before the write** (Roy, 2026-09-13, on
+  `stage-5-is-the-only-stage-with-no-independent-reader` T5, option (d), kept live since
+  2026-08-17: stage 8 reads fresh but only after the write, and the objection that *"a proposal
+  is not a page"* no longer holds, since 7a now puts the final text set as pages before the
+  author).
+
+  Asked -- stage 8 reads the drafted pages before 7a, its findings in the proposal, a selective
+  approval re-reading the pages it changes (T6); or stage 8 stays after the write -- Roy: *"Yes,
+  before 7a"*. His caveat stands from 2026-08-17: the read is valid for a blanket approval only.
