@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 15 of 25 tasks closed
+Progress: 16 of 25 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
 ```
 
@@ -90,8 +90,9 @@ The agents files name the new CLI and say how to use it.
 - [x] T23 | SKILL.md runs turn between collate and disposition when told | 25162cb6 | Update
       SKILL.md to run turn between collate and disposition, for the experiment
       after the baseline. Verify: a hand with a turn runs from it
-- [?] T24 | Decide which rule governs new skill prose: CLAUDE.md:376-377's
-      replace-at-budget or limitations.md:46's earn-its-context
+- [x] T24 | Process 136: CLAUDE.md points to limitations.md instead | d3fe7151 | Decide
+      which rule governs new skill prose: CLAUDE.md:376-377's replace-at-budget
+      or limitations.md:46's earn-its-context
         > 2026-09-12 a brief quoted CLAUDE.md's; limitations.md has Roy, 2026-08-18
 - [ ] T25 | Update docs/limitations.md's size table for SKILL.md and
       reviewer-brief.md as set 4 left them
