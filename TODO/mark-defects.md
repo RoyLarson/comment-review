@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 9 of 21 tasks closed
+Progress: 12 of 22 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
           against the claims in `docs/the-mark.md` and the module's own docstrings --
           eleven defects in one module, with no per-module TODO to hold them)
@@ -139,23 +139,26 @@ cites as its measured example of a field answering neither necessary nor purpose
       `mark.sources`, or the comment bounds the guarantee to the containers and
       names `as_entry()` as the second route -- today both mutations are visible
       through a frozen `Mark`.
-- [?] T3 | Decide whether `can_declare_scope`, `rules_on_text` and `diffable` stay as
-      row flags, and what reads each? MEASURED 2026-08-30: no reader anywhere in `src/`
-      outside `desk/mark.py`; the only other sites are
-      `tests/gates/test_mark_shape.py:135,137,138`, which map the spec's phrase to the
-      field name. Verify: the answer is recorded in `docs/decision-log.md`, and each of
-      the three is either read by a module or gone.
-- [ ] T4 | Update `allowed()` so `scope_shape` is published from the row's
+- [x] T3 | Process 143: delete all three; nothing reads them | 7924d645 | Decide
+      whether `can_declare_scope`, `rules_on_text` and `diffable` stay as row
+      flags, and what reads each? MEASURED 2026-08-30: no reader anywhere in
+      `src/` outside `desk/mark.py`; the only other sites are
+      `tests/gates/test_mark_shape.py:135,137,138`, which map the spec's phrase
+      to the field name. Verify: the answer is recorded in
+      `docs/decision-log.md`, and each of the three is either read by a module
+      or gone.
+- [-] T4 | SUPERSEDED by T22: Process 143 deletes the flag | 7924d645 | Update
+      `allowed()` so `scope_shape` is published from the row's
       `can_declare_scope` rather than the hardcoded `Shape.OUTSIDE_MY_ROLE`
       literal at `desk/mark.py:438`, or delete the flag. Verify: editing that
       row's `can_declare_scope` changes what `allowed()` publishes -- today the
       two are independent and the copy that ships to a role is the literal.
-- [ ] T5 | Implement the contradiction `rules_on_text`'s docstring names -- a
-      `drop` against an edit on ONE sentence -- in `desk.collator._outcome`, or
-      delete the flag. Verify: two marks on one sentence, one `drop` and one
-      `correct`, reach a named outcome; today `_outcome` routes on
-      `Instruction.ADD`, the count and `_sentence_key` only, and no module in
-      `src/` detects the pair.
+- [-] T5 | SUPERSEDED by T22: Process 143 deletes the flag | 7924d645 | Implement
+      the contradiction `rules_on_text`'s docstring names -- a `drop` against an
+      edit on ONE sentence -- in `desk.collator._outcome`, or delete the flag.
+      Verify: two marks on one sentence, one `drop` and one `correct`, reach a
+      named outcome; today `_outcome` routes on `Instruction.ADD`, the count and
+      `_sentence_key` only, and no module in `src/` detects the pair.
 - [ ] T6 | Update the comment on `Shape.UNABLE_TO_DETERMINE` at
       `desk/mark.py:132`, which calls it "the one a collate step can ACT on".
       Verify: no sentence in `desk/mark.py` names a collate step that reads
@@ -226,3 +229,7 @@ cites as its measured example of a field answering neither necessary nor purpose
 - [x] T21 | a slot at an f place is seeded with the page's prose | 16dabbab | Update
       fill so an f place holding prose is seeded from the page, so Process 132's
       check applies there
+- [ ] T22 | Delete can_declare_scope, rules_on_text and diffable from
+      desk/mark.py's Row and INSTRUCTIONS, per Process 143
+        > 2026-09-13 tests/gates/test_mark_shape.py:135-138 maps the spec's phrases
+        > 2026-09-13 check docs/the-mark.md names none of the three after
