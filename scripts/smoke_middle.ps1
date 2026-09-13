@@ -3,9 +3,10 @@
 # composes: a binder, a topology, seeded copies, the planted marks, the
 # fold's proof, one turn in which every role answers what the fold carried
 # forward, the chief's dispositions closing what the turn still carries
-# forward, and the revise `proof` pulls from the closed copy. The last stage
-# diffs that revise against the text smoke_fixture.py says the plant makes
-# land, and passes only when the two are identical.
+# forward, the docket `proof` transcribes from the closed copy, and the
+# revise `proof` pulls from that docket. The last stage diffs that revise
+# against the text smoke_fixture.py says the plant makes land, and passes
+# only when the two are identical.
 # Provisional -- it drives a prototype surface and may be thrown away once
 # that surface settles.
 
@@ -171,6 +172,7 @@ $Batch2File = Join-Path $Run 'batch2.json'
 $DispositionsFile = Join-Path $Run 'dispositions.json'
 $ChiefFinalFile = Join-Path $Run 'chief-final.json'
 $FinalFile = Join-Path $Run 'final.json'
+$DocketFile = Join-Path $Run 'docket.json'
 $ProofDir = Join-Path $Run 'proof'
 $ExpectedDir = Join-Path $Run 'expected'
 
@@ -681,11 +683,18 @@ $Stages = [ordered]@{
             '--proof-out', $FinalFile
         ))
     }
-    # `proof` pulls the closed chief copy into a revise of the original tree
-    # at $ProofDir, which must not exist yet.
+    # `proof --to-docket` transcribes the closed chief copy into a docket and
+    # stops. `proof --from-docket` then reads that docket as the write end
+    # reads one, and pulls it into a revise of the original tree at
+    # $ProofDir, which must not exist yet -- so a docket the write end
+    # refuses stops the smoke at proof-from-docket.
     proof = {
-        Invoke-Checked -Stage 'proof' -CommandLine ($Launcher + @(
+        Invoke-Checked -Stage 'proof-to-docket' -CommandLine ($Launcher + @(
             $Cmd.proof, '--copy', $ChiefFinalFile, '--repo', $OriginalDir,
+            '--to-docket', $DocketFile
+        ))
+        Invoke-Checked -Stage 'proof-from-docket' -CommandLine ($Launcher + @(
+            $Cmd.proof, '--from-docket', $DocketFile, '--repo', $OriginalDir,
             '--out', $ProofDir
         ))
     }
