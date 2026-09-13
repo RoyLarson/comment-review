@@ -4297,3 +4297,10 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   *"We can just drop the section in CLAUDE.md and state the reference on the process of
   modifying the agent files."*
+
+- **#137.** **Whether a mover's answer to a composition re-read at its move's destination end
+  reaches the move** (Roy, 2026-09-12, on `no-command-for-the-middle` T62: `#129` settled the
+  escalation answers there, and a composition answer still lands on the mover's own seeded slot,
+  which `Mark.parse` refuses since T60).
+
+  *"A move is two sided both have to resolve together"*.
