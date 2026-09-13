@@ -886,25 +886,25 @@ class TestAMoveWhoseEndsStillDisagree:
         ]
 
 
-def _the_mover_answers_at_the_destination(root, answer: dict):
-    """Two real turns over `_a_lone_move`, the second answered by the mover at
-    its move's destination end.
+def _the_mover_answers_at_the_destination(root, answer: dict, change: str = MOVED_TEXT):
+    """Two real turns over `_a_lone_move` carrying `change`, the second
+    answered by the mover at its move's destination end.
 
     Turn 1: function-context patches the moved text at the move's origin and
-    every other slot is `clean`, so both ends of the move escalate
-    (`Process: #127`). Turn 2: block-context gives `answer` at `EMPTY_PLACE`
-    and every other slot holds.
+    every other slot is `clean` -- the mover's at `EMPTY_PLACE` among them --
+    so both ends of the move escalate (`Process: #127`). Turn 2:
+    block-context gives `answer` at `EMPTY_PLACE` and every other slot holds.
 
     Returns:
         The fold after turn 2.
     """
-    binder, got = _a_lone_move(root, MOVED_TEXT)
+    binder, got = _a_lone_move(root, change)
     batch = batch_of(got.escalations, got.rereads)
     patched = {
         "instruction": "patch",
         "claim": {"from": "two", "to": "TWO"},
         "reason": "the fixture spells its numbers in capitals",
-        "change": MOVED_TEXT.replace("two", "TWO"),
+        "change": change.replace("two", "TWO"),
     }
     answers = {
         role: [
@@ -942,8 +942,9 @@ class TestAMoversAnswerAtItsDestination:
 
     Turn 1 leaves both ends of a move escalated, as in T33's case. On turn 2
     the mover answers the escalation at the destination end, and the answer
-    reaches the move at the origin. The mover's slot at the destination is
-    the `clean` turn 1 seeded from the page, and it stays that `clean`.
+    reaches the move at the origin. Neither turn writes a slot of the
+    mover's at the destination: turn 1's `clean` there reaches the move too
+    (`Process: #138`).
     """
 
     def test_the_answer_changes_the_moved_text(self, tmp_path):
@@ -961,8 +962,7 @@ class TestAMoversAnswerAtItsDestination:
         assert held.instruction is Instruction.MOVE
         assert held.change == moved_again
         assert held.claim == {"from": MOVED_FROM, "to": EMPTY_PLACE}
-        (seeded,) = _held_at(two, "block-context", EMPTY_PLACE)
-        assert (seeded.instruction, seeded.change) == (Instruction.CLEAN, "")
+        assert _held_at(two, "block-context", EMPTY_PLACE) == []
 
     def test_a_withdraw_withdraws_the_move(self, tmp_path):
         two = _the_mover_answers_at_the_destination(
@@ -972,8 +972,38 @@ class TestAMoversAnswerAtItsDestination:
         assert two.revisit == []
         (held,) = _held_at(two, "block-context", MOVED_FROM)
         assert held.instruction is Instruction.CLEAN
-        (seeded,) = _held_at(two, "block-context", EMPTY_PLACE)
-        assert (seeded.instruction, seeded.change) == (Instruction.CLEAN, "")
+        assert _held_at(two, "block-context", EMPTY_PLACE) == []
+
+
+class TestAMoversCleanAtItsDestination:
+    """A mover's composition `clean` at its move's destination end --
+    `no-command-for-the-middle` T71, `Process: #138`.
+
+    Turn 1 of `_the_mover_answers_at_the_destination` answers the mover's
+    slot at `EMPTY_PLACE` with `clean`. That slot carries the origin's text
+    as the page holds it, not the moved text, so the composition table would
+    read the `clean` as a withdrawal. It reaches the move instead, leaves it
+    as it stands, and writes no slot of the mover's at the destination.
+    Turn 2 holds.
+    """
+
+    @pytest.mark.parametrize(
+        "change",
+        [
+            pytest.param(MOVED_TEXT, id="moved-as-it-stands"),
+            pytest.param(MOVED_TEXT + ", which is about w", id="moved-reworded"),
+        ],
+    )
+    def test_it_keeps_the_move(self, tmp_path, change):
+        two = _the_mover_answers_at_the_destination(
+            tmp_path, {"instruction": "hold", "reason": "mine stands"}, change
+        )
+        assert two.revisit == []
+        (held,) = _held_at(two, "block-context", MOVED_FROM)
+        assert held.instruction is Instruction.MOVE
+        assert held.change == change
+        assert held.claim == {"from": MOVED_FROM, "to": EMPTY_PLACE}
+        assert _held_at(two, "block-context", EMPTY_PLACE) == []
 
 
 def _clean_but_the_destination(batch: dict, answer: dict) -> dict:
@@ -1039,10 +1069,10 @@ class TestAMoversCompositionAnswerAtItsDestination:
         assert held.claim == {"from": MOVED_FROM, "to": EMPTY_PLACE}
         assert _held_at(one, "block-context", EMPTY_PLACE) == []
 
-    def test_it_passes_the_movers_clean_there(self, tmp_path):
-        """Turn 1's `clean` at the destination is written to a slot seeded
-        from the page. Turn 2's `correct` there still sets the move's text,
-        and that slot stays the `clean`."""
+    def test_it_follows_the_movers_clean_there(self, tmp_path):
+        """Turn 1's `clean` at the destination writes no slot there
+        (`Process: #138`). Turn 2's `correct` there still sets the move's
+        text, and writes none either."""
         binder, got = _a_lone_move(tmp_path, MOVED_TEXT)
         batch = batch_of(got.escalations, got.rereads)
         one = run_turn(
@@ -1053,8 +1083,7 @@ class TestAMoversCompositionAnswerAtItsDestination:
             _clean_but_the_destination(batch, {"instruction": "clean"}),
         )
         assert one.revisit == []
-        (seeded,) = _held_at(one, "block-context", EMPTY_PLACE)
-        assert seeded.instruction is Instruction.CLEAN
+        assert _held_at(one, "block-context", EMPTY_PLACE) == []
 
         batch2 = batch_of(one.escalations, one.rereads)
         proof = proof_after(one, ({"turn": 1, "sent": batch},))
@@ -1070,8 +1099,7 @@ class TestAMoversCompositionAnswerAtItsDestination:
         assert held.instruction is Instruction.MOVE
         assert held.change == _A_COMPOSITION_CORRECT["change"]
         assert held.claim == {"from": MOVED_FROM, "to": EMPTY_PLACE}
-        (seeded,) = _held_at(two, "block-context", EMPTY_PLACE)
-        assert (seeded.instruction, seeded.change) == (Instruction.CLEAN, "")
+        assert _held_at(two, "block-context", EMPTY_PLACE) == []
 
 
 class TestAMovesEndsResolveTogether:

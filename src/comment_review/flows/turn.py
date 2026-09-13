@@ -58,10 +58,13 @@ A COMPOSITION re-read is answered with a fresh `Mark` over the composed text
     patch       the same, as a `patch` -- not a correct, which owes sources a
                 patch never carried
 
-The mover's `correct` or `patch` at its move's destination end is an edit to
-the move as well (`Process: #137`): it sets the `move` entry's `change` at the
-origin, the claim standing, and the mover's slot at the destination stays as
-it is. Its `clean` and `query` there are answers at that slot.
+The mover's `correct`, `patch` or `clean` at its move's destination end is an
+edit to the move as well (`Process: #137` and `#138`), and the mover's slot at
+the destination stays as it is. A `correct` or `patch` sets the `move` entry's
+`change` at the origin, the claim standing. A `clean` leaves the move as it
+stands: the slot there carries the origin's text uncomposed, and the table's
+withdrawal does not reach the move. Its `query` there is an answer at that
+slot.
 
 An answer at a place the role's copy holds no slot for -- an `add`'s empty
 place, which `desk.collator._outcome` sends to every role of the stage while
@@ -139,9 +142,10 @@ COMPOSITION_ANSWERS = (
     Instruction.PATCH,
 )
 
-#: The composition answers that reach a move from its destination end, each
-#: setting the move's text -- `Process: #137`.
-_SETS_THE_MOVED_TEXT = (Instruction.CORRECT, Instruction.PATCH)
+#: The composition answers that reach a move from its destination end --
+#: `Process: #137` and `#138`. A `correct` or `patch` sets the move's text; a
+#: `clean` leaves the move as it stands.
+_REACHES_THE_MOVE = (Instruction.CLEAN, Instruction.CORRECT, Instruction.PATCH)
 
 
 def slots_of(loaded: object, role: str) -> list:
@@ -470,13 +474,14 @@ def apply(
         root: the checkout a page is read from, to seed a slot at a place the
             role's copy does not hold.
 
-    An escalation answer, or a composition `correct` or `patch`, at a move's
-    destination end is written to the move (`Process: #129` and `#137`):
-    where the role's own slot there is absent or a `clean`, and its copy
-    holds exactly one `move` whose `claim.to` names that address, the answer
-    applies to that `move` entry, and the slot at the destination stays as it
-    is. A composition `correct` or `patch` sets the move's `change`, its
-    claim standing.
+    An escalation answer, or a composition `correct`, `patch` or `clean`, at a
+    move's destination end is written to the move (`Process: #129`, `#137`
+    and `#138`): where the role's own slot there is absent or a `clean`, and
+    its copy holds exactly one `move` whose `claim.to` names that address,
+    the answer applies to that `move` entry, and the slot at the destination
+    stays as it is. A composition `correct` or `patch` sets the move's
+    `change`, its claim standing; a composition `clean` leaves the move as
+    it stands.
 
     Returns:
         A `Revisit` per address this role's copy holds no slot for and
@@ -496,7 +501,7 @@ def apply(
         entry = _entry_at(copies, role, address)
         move = None
         if (
-            isinstance(answer, DiffMark) or answer.instruction in _SETS_THE_MOVED_TEXT
+            isinstance(answer, DiffMark) or answer.instruction in _REACHES_THE_MOVE
         ) and (entry is None or entry.get("instruction") == str(Instruction.CLEAN)):
             move = _move_to(copies, role, address)
         entry = move or entry
@@ -512,7 +517,11 @@ def apply(
                 revisit.append(_refused(role, address, address, reasons))
                 continue
         if move is not None and isinstance(answer, Mark):
-            held = {**move, "change": answer.change}
+            held = (
+                None
+                if answer.instruction is Instruction.CLEAN
+                else {**move, "change": answer.change}
+            )
         else:
             held = _answered(entry, answer, composed.get(address, {}))
         if held is None:
