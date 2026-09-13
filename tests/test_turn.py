@@ -898,42 +898,52 @@ def _the_mover_answers_at_the_destination(root, answer: dict, change: str = MOVE
     Returns:
         The fold after turn 2.
     """
-    binder, got = _a_lone_move(root, change)
-    batch = batch_of(got.escalations, got.rereads)
     patched = {
         "instruction": "patch",
         "claim": {"from": "two", "to": "TWO"},
         "reason": "the fixture spells its numbers in capitals",
         "change": change.replace("two", "TWO"),
     }
-    answers = {
-        role: [
-            {**slot, **patched}
-            if (role, slot["address"]) == ("function-context", MOVED_FROM)
-            else {**slot, "instruction": "clean"}
-            for slot in slots
-        ]
-        for role, slots in batch.items()
-    }
-    one = run_turn(_at(got), binder, root, batch, answers)
+    _, one, two, _ = _two_turns(
+        root,
+        change,
+        lambda batch: _clean_but(batch, "function-context", MOVED_FROM, patched),
+        lambda batch: {
+            role: [
+                {**slot, **answer}
+                if (role, slot["address"]) == ("block-context", EMPTY_PLACE)
+                else {**slot, "instruction": "hold", "reason": "mine stands"}
+                for slot in slots
+            ]
+            for role, slots in batch.items()
+        },
+    )
     assert one.revisit == []
     assert sorted(e["address"] for e in one.escalations) == [
         MOVED_FROM,
         EMPTY_PLACE,
     ]
+    return two
 
+
+def _two_turns(root, change: str, first, second):
+    """Two real turns over `_a_lone_move` carrying `change`.
+
+    `first` and `second` each take the batch one turn sends and return that
+    turn's answers. Turn 2 reads the proof turn 1 left, its record carrying
+    what turn 1 sent, as `commands/turn.py` writes it.
+
+    Returns:
+        `(binder, the fold after turn 1, the fold after turn 2, the record)`,
+        the record carrying what each turn sent.
+    """
+    binder, got = _a_lone_move(root, change)
+    batch = batch_of(got.escalations, got.rereads)
+    one = run_turn(_at(got), binder, root, batch, first(batch))
     batch2 = batch_of(one.escalations, one.rereads)
-    answers2 = {
-        role: [
-            {**slot, **answer}
-            if (role, slot["address"]) == ("block-context", EMPTY_PLACE)
-            else {**slot, "instruction": "hold", "reason": "mine stands"}
-            for slot in slots
-        ]
-        for role, slots in batch2.items()
-    }
     proof = proof_after(one, ({"turn": 1, "sent": batch},))
-    return run_turn(proof, binder, root, batch2, answers2)
+    two = run_turn(proof, binder, root, batch2, second(batch2))
+    return binder, one, two, ({"turn": 1, "sent": batch}, {"turn": 2, "sent": batch2})
 
 
 class TestAMoversAnswerAtItsDestination:
@@ -1004,6 +1014,14 @@ class TestAMoversCleanAtItsDestination:
         assert held.change == change
         assert held.claim == {"from": MOVED_FROM, "to": EMPTY_PLACE}
         assert _held_at(two, "block-context", EMPTY_PLACE) == []
+
+
+def _all_clean(batch: dict) -> dict:
+    """Every slot of `batch` answered `clean`."""
+    return {
+        role: [{**slot, "instruction": "clean"} for slot in slots]
+        for role, slots in batch.items()
+    }
 
 
 def _clean_but(batch: dict, role: str, address: str, answer: dict) -> dict:
@@ -1305,6 +1323,36 @@ class TestAMovesEndsDisagreeAfterATurn:
         reread = {e["address"] for e in two.rereads}
         assert {MOVED_FROM, EMPTY_PLACE} <= escalated | reread
         assert (MOVED_FROM in escalated) == (EMPTY_PLACE in escalated)
+
+
+class TestARewordedMoveOverTwoCleanTurns:
+    """A reworded move over two turns in which every role answers `clean` --
+    `no-command-for-the-middle` T79, `Process: #89` and `#137`.
+
+    On turn 1 function-context's `clean` adopts the reworded moved text at the
+    origin by a `correct`, and both ends go back to both roles as re-reads.
+    Turn 2 answers every slot `clean` again. The test settles whether the
+    move is lost: the mover must still hold it at the origin, and neither end
+    may be determined without it.
+    """
+
+    @pytest.mark.xfail(
+        strict=True,
+        reason="no-command-for-the-middle T79: nothing composed at either end, "
+        "so turn 2's slots carry the origin's text; the mover's clean over it "
+        "withdraws the move, and both ends are withdrawn stets",
+    )
+    def test_the_move_is_not_lost(self, tmp_path):
+        reworded = MOVED_TEXT + ", which is about w"
+        _, one, two, _ = _two_turns(tmp_path, reworded, _all_clean, _all_clean)
+        assert one.revisit == []
+        assert sorted(e["address"] for e in one.rereads) == [MOVED_FROM, EMPTY_PLACE]
+        assert two.revisit == []
+        (held,) = _held_at(two, "block-context", MOVED_FROM)
+        assert held.instruction is Instruction.MOVE
+        for address in (MOVED_FROM, EMPTY_PLACE):
+            ruled = two.determined.get(address)
+            assert ruled is None or ruled.mark is not None
 
 
 class TestAMovesEndsResolveTogether:
