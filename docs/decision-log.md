@@ -4367,3 +4367,16 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   Asked whether that answers T42 or needs a written specification -- Roy: *"Answered; close
   both"*.
+
+- **#143.** **Whether three instruction-row flags stay** (Roy, 2026-09-13, on `mark-defects` T3:
+  `can_declare_scope`, `rules_on_text` and `diffable` are set in `desk/mark.py`'s
+  `INSTRUCTIONS` and read by nothing in `src/`).
+
+  **What was measured.** `rules_on_text`'s one contradiction, a `drop` against an edit on the
+  same sentence, already escalates: `desk.collator._sentence_key` compares a `drop` on
+  `claim.drop` and a `correct` on `claim.false`, and one shared key is an escalation.
+  `diffable` is False on `add` alone. `can_declare_scope` is True on `query` alone, and a bool
+  cannot say which shape it admits, so `allowed()` would still need its `outside-my-role` literal.
+
+  Asked -- delete all three; wire the scope flag and delete the others; or wire all three --
+  Roy: *"Delete all three"*.
