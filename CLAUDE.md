@@ -28,15 +28,9 @@ named for.
 then change the agents to tell them they can use it. Verify that it improved the
 recommendations."*
 
-| order | file | lane | pass criterion |
-| --- | --- | --- | --- |
-| 1 | [`code-concerns-cannot-carry-a-proposed-change`](TODO/code-concerns-cannot-carry-a-proposed-change.md) | `backend` | effectiveness **unchanged** -- the machinery is the CONTROL and no agent file is touched |
-| 2 | [`a-role-with-no-code-out-damages-the-prose`](TODO/a-role-with-no-code-out-damages-the-prose.md) | `agents` | recommendations **improve** against the baseline step 1 established |
-
 **Shipping both at once destroys the attribution.** A movement in the output could be the
 SHAPE or the INSTRUCTION, and nothing separates them after the fact -- so the question the
-second half exists to answer cannot be asked. Both comparisons need a grader, which is why
-step 1 is blocked on [`the-harness-cannot-run-the-system-it-grades`](TODO/the-harness-cannot-run-the-system-it-grades.md).
+second half exists to answer cannot be asked. Both comparisons need a grader.
 
 -> [docs/decision-log.md](docs/decision-log.md), *Metaphor and its limits*.
 
@@ -112,8 +106,6 @@ claude plugin validate plugins/comment-review     # release gate; before tagging
 uv run python scripts/vocabulary_sweep.py         # terms of art the inventory misses
 uv run python scripts/dead_sweep.py [--names] [--links]
 uv run python scripts/render_page.py <paths...> [--show margin|prose|rows]
-#   the decision this one feeds lies in
-#   TODO/the-census-is-mostly-intervals-nobody-rules-on.md
 
 # The board
 job-board --plans-dir docs/plans                  # the rollup
@@ -156,7 +148,6 @@ never from the run's own report** -- self-reported confidence was measured not t
 discriminate a real finding from a fabricated one. Rebuilding it means restating
 each hazard, naming the failure precisely without copying the code it was found
 in, and planting the set on one of the public corpora.
-`TODO/the-harness-cannot-run-the-system-it-grades.md` tracks it.
 
 ### The gates
 
@@ -177,8 +168,7 @@ reads `src/` because that is what the formatter rewrites; whether `plugins/` mat
 is not asked between releases.
 
 **`src/comment-review.py vocabulary` moved to `prototype/` on 2026-08-25 and does
-not run.** `TODO/the-skill-names-commands-that-moved-to-prototype.md` T1 holds
-what replaces it.
+not run.**
 
 ## Architecture
 
@@ -239,12 +229,11 @@ three edits in two modules, and half a fix leaves a file **read at one tier and 
 other**. Three more sites decide *is this Python* three more ways.
 
 **IT IS A claim about the cost of a change, which is the kind that invites someone to make the
-change and discover the cost.** Filed as
-[`tier-dispatched-on-name`](TODO/completed/tier-dispatched-on-name-SUPERSEDED.md).
+change and discover the cost.**
 
 **The row becomes true again when the AST goes.** Roy, 2026-08-22: *"as much because we are
 going to remove the ast system from python coming up as it is not an accurate statement."* With
-Python read lexically -- [`python-cannot-read-python`](TODO/python-cannot-read-python.md) -- there
+Python read lexically there
 is one tier, the name test has nothing to answer, and adding any language is a row again. **The
 sentence is not being corrected toward permanence; it is being made honest until the thing it
 describes is rebuilt.**
@@ -564,7 +553,6 @@ nothing to report*, and *a mark WAS proposed here and the original stands*. The 
 publishing's **stet** ("let it stand"), written in the margin with dots under the text so the
 refused correction stays visible underneath. Recorded as `clean`, a declined proposal says
 nothing was found, so a re-run raises it again and stage 8 cannot know it was already refused.
-Filed as `TODO/no-mark-for-let-it-stand.md`; **not this branch.**
 
 **The register is itself an instruction, and that is the point.** Roy, 2026-08-16: *"I bet it
 helps the LLM focus in on what it is doing. Because of locality and other context items the llm

@@ -252,8 +252,7 @@ anchor-matching scheme invented and measured, a plan step filed as needing a rul
 ruling was owed on. **Each of those was work produced by the field rather than by the
 PROBLEM.**
 
-**And the third is left in, deliberately.** `TODO/a-comment-run-merges-across-blanks.md`
-T6 asks the question and holds the measurement. Roy: *"that thread probably needs pulled a
+**And the third is left in, deliberately.** Roy: *"that thread probably needs pulled a
 little more carefully and it isn't hurting yet to leave it in."*
 
 **A field a current design is being shaped around is a defect right now**, whatever its
@@ -369,12 +368,6 @@ is never worked.** That has happened. The cheap half is arithmetic: a counter th
 to `## Tasks` reports fewer tasks than a counter that reads the document, and the
 finished work in the other section is exactly what falls in the gap.
 
-**MEASURED 2026-08-30 on two files.** `two-live-runs-proposed-fifteen-changes.md` held
-T1-T16 under `## Tasks` and T17-T21 under `## Resolved -- do not redo` -- one sequence,
-two headings -- and the two tools read it as `11/21` and `6/16`. `completed/the-record-is-
-a-parsed-template-and-should-be-a-value.md` held two rulings under `## Tasks` and eight
-build steps under `## Build order`, read as `10/10` and `2/2`. Both were merged.
-
 **The fix is never A BETTER COUNTER.** A heading that groups tasks is legible to a
 human and invisible to everything else. If a group needs explaining, the explanation is
 PROSE ABOVE the list or a dated note -- **the tasks stay in one block, in one order**.
@@ -398,9 +391,7 @@ from a single observation.
 
 **And the cost is paid by whoever works the module, not by whoever filed.** Four
 separate files each holding one `desk/collator.py` defect are four things to find, four
-Objectives saying the same thing about one module, and four closes. That is why
-[`collator-defects`](../TODO/collator-defects.md) exists and carries a standing note that
-the four are superseded into it **in one pass** rather than closed by hand one at a time.
+Objectives saying the same thing about one module, and four closes.
 
 **The tell that A file is warranted is dependency, not size.** Tasks that must land
 **TOGETHER** -- because they block each other, or because none of them is finished until
