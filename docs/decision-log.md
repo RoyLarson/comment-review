@@ -4396,3 +4396,14 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   names no stage 5b now; its one `proof` call, at 7a, hands it the chief's copy (`proof --copy
   <run-dir>/chief.json`), and the write end reads the docket transcribed from that copy. Asked
   whether that answers it -- Roy: *"Answered; close it"*.
+
+- **#146.** **What the chief's recast of a `drop` writes** (Roy, 2026-09-13, on
+  `the-chief-has-no-recast-workflow` T7: a recast keeps the roles' instruction since 2a5de914, so
+  a recast of a `drop` stays a `drop` whose claim names the sentence to remove while its `change`
+  lands the chief's prose, and `desk.mark._change_problems` never checks the one against the
+  other; the chief's recast at a move's origin, 0f9657a0, has the same shape).
+
+  Asked -- a `correct` from the original paragraph to the chief's prose, so the claim says what
+  lands; keep the `drop` and land the prose; or refuse a recast of a `drop` -- Roy: *"A correct
+  to the prose"*. T1's reason for keeping the roles' instruction, that a `correct` at an add's
+  empty place writes nothing, does not reach a `drop`, whose place holds text.
