@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 14 of 23 tasks closed
+Progress: 15 of 25 tasks closed
 Owner:    agents
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
 ```
 
@@ -35,8 +35,9 @@ The agents files name the new CLI and say how to use it.
 - [-] T6 | SUPERSEDED by T23: the command is disposition since f2b8f988 | f2b8f988 | Update
       SKILL.md to run turn between collate and cap, for the experiment after the
       baseline. Verify: a hand with a turn runs from it
-- [ ] T7 | Update reviewer-brief.md with check --answers and the two answer
-      shapes from check --contract, for the turn experiment
+- [x] T7 | the brief says what a batch slot takes and how to check it | 3b0314e6 | Update
+      reviewer-brief.md with check --answers and the two answer shapes from
+      check --contract, for the turn experiment
         > 2026-09-11 check --answers now needs --proof, since 0f01d744
         > 2026-09-12 Roy 2026-09-12: joins set 4, the role's side of the turn
 - [x] T8 | SKILL.md packet carries BINDER, LISTING, EDIT COPY as paths; the brief reads from them | d0c1e9b1 | Update
@@ -89,3 +90,9 @@ The agents files name the new CLI and say how to use it.
 - [x] T23 | SKILL.md runs turn between collate and disposition when told | 25162cb6 | Update
       SKILL.md to run turn between collate and disposition, for the experiment
       after the baseline. Verify: a hand with a turn runs from it
+- [?] T24 | Decide which rule governs new skill prose: CLAUDE.md:376-377's
+      replace-at-budget or limitations.md:46's earn-its-context
+        > 2026-09-12 a brief quoted CLAUDE.md's; limitations.md has Roy, 2026-08-18
+- [ ] T25 | Update docs/limitations.md's size table for SKILL.md and
+      reviewer-brief.md as set 4 left them
+        > 2026-09-12 set 4: SKILL.md 60,979 bytes, reviewer-brief.md 38,688 bytes

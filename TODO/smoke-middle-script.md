@@ -258,3 +258,4 @@ The middle-chain smoke script carries the findings of its Task 8 review.
 - [ ] T67 | Update the smoke to write a docket from chief-final.json and prove
       from it, so a docket the write end refuses fails the smoke
         > 2026-09-12 T68's duplicate passed: the smoke proves from --copy, no docket
+        > 2026-09-12 Roy 2026-09-12: fixed in set 4
