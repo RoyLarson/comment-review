@@ -4390,3 +4390,9 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   Asked -- stage 8 reads the drafted pages before 7a, its findings in the proposal, a selective
   approval re-reading the pages it changes (T6); or stage 8 stays after the write -- Roy: *"Yes,
   before 7a"*. His caveat stands from 2026-08-17: the read is valid for a blanket approval only.
+
+- **#145.** **Whether stage 5b hands `proof` a copy or a hand-written docket** (Roy, 2026-09-13,
+  on `stage-5-is-the-only-stage-with-no-independent-reader` T12, raised 2026-09-02). `SKILL.md`
+  names no stage 5b now; its one `proof` call, at 7a, hands it the chief's copy (`proof --copy
+  <run-dir>/chief.json`), and the write end reads the docket transcribed from that copy. Asked
+  whether that answers it -- Roy: *"Answered; close it"*.
