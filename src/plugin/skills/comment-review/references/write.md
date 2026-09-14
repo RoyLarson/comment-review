@@ -56,7 +56,7 @@ python <skill>/scripts/comment-review.py prove_unchanged --base <pre-edit-ref> -
 !! **`--base` is the PRE-EDIT REF 1.1 recorded -- NOT the merge base.** This proves what WRITE
 changed, and the branch's own code changes are not WRITE's. Measured: on a branch that edits
 code and comments together -- which is what this skill reviews -- a run where WRITE touched only
-a comment reports `FAIL: executable code DIFFERS` against the merge base, and `PROVEN` against
+a comment reports `FAIL <path>: executable code DIFFERS` against the merge base, and `PROVEN` against
 the pre-edit ref. Against the merge base the rail below then says to restore a correct edit.
 
 It exits nonzero unless every path is proven, and it reports an **unprovable**
