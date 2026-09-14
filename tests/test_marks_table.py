@@ -1,7 +1,7 @@
 """The marks table: what each row sets, refuses and pairs as."""
 
 from comment_review.desk.marks.mark import Instruction, Mark
-from comment_review.desk.marks.table import INSTRUCTIONS, Stance, Touch
+from comment_review.desk.marks.table import INSTRUCTIONS, Row, Stance, Touch
 
 
 def _mark(instruction: Instruction, **fields) -> Mark:
@@ -128,3 +128,12 @@ def test_add_rereads_and_only_add_rereads():
     forward for every role that read its page."""
     for instruction, row in INSTRUCTIONS.items():
         assert row.rereads == (instruction is Instruction.ADD), instruction
+
+
+def test_owes_destination_is_derived_from_touches_not_set_beside_it():
+    """A row cannot state `owes_destination` and `touches` in disagreement --
+    `__post_init__` derives the first from the second every time, so passing
+    a literal for it is overwritten rather than kept."""
+    assert Row(touches=(Touch.ORIGIN, Touch.DESTINATION)).owes_destination is True
+    assert Row().owes_destination is False
+    assert Row(touches=(Touch.OWN,), owes_destination=True).owes_destination is False

@@ -138,7 +138,21 @@ class Row:
     #: and `#121`: an add is carried forward for every role that read its
     #: page, not only the role that filed it.
     rereads: bool = False
+    #: Derived from `touches` in `__post_init__`, below -- never set by a row
+    #: literal. The default here is only what a `Row()` with no `touches`
+    #: argument gets before the derivation runs.
     owes_destination: bool = False
+
+    def __post_init__(self) -> None:
+        """Derive `owes_destination` from `touches`, overwriting any literal.
+
+        The dataclass is frozen, so this is the one place allowed to set a
+        field after construction. `owes_destination` is a fact about
+        `touches`, not a second fact a row author could state differently --
+        deriving it here is what keeps the two from drifting apart, the way
+        a stored copy next to its source could.
+        """
+        object.__setattr__(self, "owes_destination", Touch.DESTINATION in self.touches)
 
 
 INSTRUCTIONS: dict[Instruction, Row] = {
@@ -179,6 +193,5 @@ INSTRUCTIONS: dict[Instruction, Row] = {
         touches=(Touch.ORIGIN, Touch.DESTINATION),
         sets=_move_sets,
         reads=_move_reads,
-        owes_destination=True,
     ),
 }
