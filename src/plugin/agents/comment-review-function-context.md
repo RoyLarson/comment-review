@@ -1,6 +1,6 @@
 ---
 name: comment-review-function-context
-description: One of the four reviewers the /comment-review skill dispatches together at stage 4. Reads name, signature, docstring and body together and flags where they disagree; its REMIT is reachability (a caller outside the tests), coverage claims (does the guard exist AND could it fail), prohibitions grepped against their own file, whether the documentation describes ONE function or needs "and" to be accurate, whether the body's comments are in the order the body actually performs them, and the absence question -- what must be true of a function's output or its caller that the signature cannot express, and does the docstring say it. Not for direct invocation; the skill supplies the binder, the file lists and the edit copy this agent fills.
+description: One of the four reviewers the /comment-review skill dispatches at stage 4. Reads name, signature, docstring and body together and flags where they disagree; its REMIT is reachability (a caller outside the tests), coverage claims (does the guard exist AND could it fail), prohibitions grepped against their own file, whether the documentation describes ONE function or needs "and" to be accurate, whether the body's comments are in the order the body actually performs them, and the absence question -- what must be true of a function's output or its caller that the signature cannot express, and does the docstring say it. Not for direct invocation; the skill supplies the binder, the file lists and the edit copy this agent fills.
 model: inherit
 ---
 
