@@ -675,6 +675,12 @@ Every line that opens with a role reads `<role> <place>: <reason>`, the place `(
 problem with the whole copy. **That is your work list for sending
 back**, and a task agent reads it rather than the copies.
 
+The lines under `for the chief -- each correct below drops words its claim never named:` are not
+on that list, and no exit code reads them. Each reads `<role> <place>: its change drops '<word>',
+which its claim never names` -- a `correct` whose change removes words beyond the clause its
+claim quotes, a deletion no role argued for. Where the place is carried forward, rule on it
+knowing that; where it settled, it goes to the author at 7a.
+
 !! **A finding whose evidence does not resolve is not a finding.** Only `clean` is exempt,
 because it cites no claim. **Never grade a review by reading its copy** -- self-reported
 confidence has been measured not to discriminate a real finding from a fabricated one.
@@ -907,6 +913,9 @@ that will remain.
 !! **THE UNSETTLABLE PLACES ARE THE AUTHOR'S, AND THIS IS WHERE THEY ARE ASKED.** `disposition` printed
 each one with the role that raised it and its reason; put every one to the author here, after
 everything else, as the questions they are. Nothing is proposed for them.
+
+Put each settled `correct` from stage 5's `for the chief` list to the author here too, with the
+words its change drops.
 
 **The proposal ends here** -- nothing further is written until the author rules.
 
