@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 16 tasks closed
+Progress: 4 of 16 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `flows/collate.py` on the collate-
@@ -184,5 +184,6 @@ eight acts while `Collated` has eight attributes, so the two it omits -- `unrule
 - [x] T15 | The leading bang and capitalised runs are gone from the page-resolution comments in collate.py | 7097ee5a | Update
       the leading bang and capitalised runs added at collate.py:801, :829, :847,
       :1006 and :1030
-- [ ] T16 | Update the history narration in added lines at collate.py:802 and
+- [x] T16 | collate.py _page_cues and the test_collate class docstring state why the page is read, with no history | 7097ee5a | Update
+      the history narration in added lines at collate.py:802 and
       test_collate.py:1107

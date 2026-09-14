@@ -275,7 +275,7 @@ that changed a published name or rule:
 | [mark-holds-spec-and-parse](mark-holds-spec-and-parse.md) | backend | -- | 0/6 | mark.py holds the instruction spec and the boundary parse at one scope |
 | [ty-cannot-see-the-tests](ty-cannot-see-the-tests.md) | systems (the gate) - backend (the test fixes) | -- | 1/5 | The type gate is scoped to src and cannot see the tests |
 | [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | -- | 0/6 | A present-but-null key becomes the four characters None |
-| [collate-flow-defects](collate-flow-defects.md) | backend | -- | 3/16 | Twelve defects in `flows/collate.py`, from a review of one file |
+| [collate-flow-defects](collate-flow-defects.md) | backend | -- | 4/16 | Twelve defects in `flows/collate.py`, from a review of one file |
 | [mark-defects](mark-defects.md) | backend | -- | 14/22 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
 | [binder-defects](binder-defects.md) | backend | -- | 6/25 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
 | [docket-defects](docket-defects.md) | backend | -- | 3/9 | Six defects in docket.py, and one discards an approved page at exit 0 |
