@@ -14,8 +14,8 @@ Structure and fact first, then truth, then fit, then the page.
 
 ```
 1 PROJECT      2 GATHER    3 FIND       4 MARK       5 COLLATE   6 COMPACT   7a PRESENT   8 REVIEW
-  DETERMINATION            REFERENCES   4 roles,     and CAP                   7b WRITE
-                                        ONE message                              ^
+  DETERMINATION            REFERENCES   4 roles      and CAP                   7b WRITE
+                                                                                 ^
                                                                 +---- no cap -----+
 ```
 
@@ -24,7 +24,7 @@ Structure and fact first, then truth, then fit, then the page.
 | 1 | **PROJECT DETERMINATION** | task agent | language, doc convention, cap and width, project rules, style sheet, and where the name corpus will come from |
 | 2 | **GATHER** | `gather` | every page in scope bound into one BINDER -- each comment run and docstring a paragraph with its address |
 | 3 | **FIND REFERENCES** | `gather` | every reference each paragraph makes, resolved -- paths, symbols, counts |
-| 4 | **MARK** | 4 reviewers, ONE message | one filled `edit_copy` per role, checked. Read-only, nothing under the repo written |
+| 4 | **MARK** | 4 reviewers | one filled `edit_copy` per role, checked. Read-only, nothing under the repo written |
 | 5 | **COLLATE and DISPOSITION** | `collate`, then the task agent as **copy chief** | the copies folded; what they agreed on stands, what they did not is ruled at max turns; the chief's `edit_copy` holds one mark per resolved place with its **full-length** text |
 | 6 | **COMPACT** | task agent | that text cut to the cap -- **skipped entirely if there is no cap** |
 | 7a | **APPROVAL -- present** | task agent, then `proof` and the **compositor** | the FINAL text SET as a galley -- a copy of each page, nothing under the repo touched -- in front of the author, with the places only the author can settle; **the run stops here** |
@@ -145,7 +145,7 @@ else, not the text.
 
 !! **Every instruction is available on every run.**
 
-!! **ALL FOUR ROLES RUN, IN ONE MESSAGE, AND `ownership-context` IS NEVER DROPPED.** Each of
+**All four roles run, and `ownership-context` is never dropped.** Each of
 the other three checks a claim against the code at its own scope, so a run may omit one of them
 and still be a review -- but a claim attached to the WRONG scope is measured against the wrong
 code and `correct`ed into a falsehood, which none of the three can notice, and
@@ -521,9 +521,9 @@ Report the gaps both commands print -- every `NOT CHECKED` and `PASSED OVER` lis
 `NO GIT INDEX` -- then the files, paragraphs and languages the binder covers, and any paragraph
 whose KIND it could not resolve.
 
-## Stage 4 -- MARK: four reviewers, in parallel
+## Stage 4 -- MARK: four reviewers
 
-**Dispatch all four in ONE message**, by agent name:
+**Dispatch all four**, by agent name, together or one after another:
 
 | agent | asks |
 |---|---|
@@ -532,12 +532,13 @@ whose KIND it could not resolve.
 | `comment-review:comment-review-function-context` | does the commentary match what the function is FOR? |
 | `comment-review:comment-review-module-context` | do the comments say this is ONE module? |
 
-!! **They must read INDEPENDENTLY, and that is what one message protects -- not speed.**
-Overlap between roles is signal ONLY if no role saw another's findings: two roles agreeing is
-corroboration when they read alone and nothing when the second read the first. A second
-dispatch runs concurrently too; what it risks is a prompt carrying what the first pair
-returned. **If you dispatch in more than one message, say so in the proposal** -- the run is
-still usable, and a reader has to know the overlap was not blind.
+**They must read independently, and the topology and the copies are what keep them apart.**
+Overlap between roles is signal only if no role saw another's findings: two roles agreeing is
+corroboration when they read alone and nothing when the second read the first. Each role reads
+the binder and fills its own seeded copy, and nothing a role writes is a path another role is
+handed -- so the roles may go out in one message or one after another, and the proposal owes
+no note either way. **Never put in a role's prompt anything another role returned**, and never
+hand it another role's copy.
 
 Each already carries its own editorial role.
 
