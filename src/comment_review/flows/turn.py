@@ -66,7 +66,8 @@ The mover's `correct` or `patch` at its move's origin sets the `move` entry's
 `change`, the claim standing, and does not replace the move (`Process: #137`).
 Its `correct`, `patch` or `clean` at its move's destination end is an
 edit to the move as well (`Process: #137` and `#138`), and the mover's slot at
-the destination stays as it is. A `correct` or `patch` sets the `move` entry's
+the destination stays as it is, whatever it holds (`#153`). A `correct` or
+`patch` sets the `move` entry's
 `change` at the origin, the claim standing. A `clean` leaves the move as it
 stands: the slot there carries the origin's text uncomposed, and the table's
 withdrawal does not reach the move. Its `query` there is an answer at that
@@ -506,10 +507,11 @@ def apply(
 
     An escalation answer, or a composition `correct`, `patch` or `clean`, at a
     move's destination end is written to the move (`Process: #129`, `#137`
-    and `#138`): where the role's own slot there is absent or a `clean`, the
-    answer applies to every `move` on its copy whose `claim.to` names that
-    address -- both, where the role moves two paragraphs there (`#154`) --
-    and the slot at the destination stays as it is. A composition `correct`
+    and `#138`): the answer applies to every `move` on the role's copy whose
+    `claim.to` names that address -- both, where the role moves two
+    paragraphs there (`#154`) -- and the role's own slot at the destination
+    stays as it is, whatever it holds: a mark of its own there stands for
+    the other roles to rule on (`#153`). A composition `correct`
     or `patch` sets each move's `change`, its claim standing; a composition
     `clean` leaves each move as it stands. A composition `query` at a move's
     origin, from the role that holds the move, is put on the copy right
@@ -532,9 +534,7 @@ def apply(
     for address, answer in answers:
         entry = _entry_at(copies, role, address)
         moves = []
-        if (
-            isinstance(answer, DiffMark) or answer.instruction in _REACHES_THE_MOVE
-        ) and (entry is None or entry.get("instruction") == str(Instruction.CLEAN)):
+        if isinstance(answer, DiffMark) or answer.instruction in _REACHES_THE_MOVE:
             moves = _moves_to(copies, role, address)
         sheet = None
         if moves:

@@ -1621,17 +1621,16 @@ def _fold_over(root, page: str, rulings: dict):
 
 class TestAMoverWithItsOwnMarkAtTheDestination:
     """A role holding its own mark at its move's destination as well as the
-    move -- `no-command-for-the-middle` T63, `Process: #129` and `#138`.
+    move -- `no-command-for-the-middle` T63 and T94, `Process: #129`, `#138`
+    and `#153`.
 
     block-context moves `MOVED_FROM` to `FILLED_PLACE` and patches the
     comment `FILLED_PAGE` holds there; function-context cleans both. Both
     ends go back as re-reads, the slot at the destination carrying the moved
     text. Turn 1 answers block-context's slot there and every other slot
-    `clean`. `apply` routes an answer to the move only where the role's slot
-    is a `clean` or absent, so the answer lands on the patch: a `correct`
-    replaces it, the move keeping its text, and a `clean` adopts the moved
-    text over it. The test asks that the answer reach the move and the patch
-    stay as it is, as `#129` and `#138` say of a mover's answer there.
+    `clean`. The test asserts that the answer reaches the move -- a
+    `correct` setting its text, a `clean` leaving it -- and that the patch
+    stays as it is, for the other roles to rule on (`#153`).
     """
 
     @pytest.mark.parametrize(
@@ -1650,15 +1649,6 @@ class TestAMoverWithItsOwnMarkAtTheDestination:
             ),
             pytest.param({"instruction": "clean"}, MOVED_TEXT, id="clean"),
         ],
-    )
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "no-command-for-the-middle T63: the answer lands on the role's own "
-            "patch at the destination, not on the move; whether a mover's "
-            "answer there reaches the move past its own mark is a question "
-            "for Roy"
-        ),
     )
     def test_the_answer_reaches_the_move(self, tmp_path, answer, change):
         patched = {
