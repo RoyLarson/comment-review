@@ -4488,3 +4488,24 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
       3  tests and comment cleanups   Q T7-T12; H T34; S T15 T16
       4  scope command, agent prose   T T1 T2; A T16 T17 T18 T21 T26; C T14; I T5
       5  measurements, alongside      H T35; I T6; the P5 run
+
+- **#151.** **What happens to a finding the work turns up, and the P5 build's version** (Roy,
+  2026-09-13, asked where new findings go -- `workflow.md`'s default joins them to the branch's
+  plan, while `#140` filed them and merged -- and what version the P5 build carries, with
+  `0.2.4-beta.3` recommended).
+
+  *"yes Broken is filed and fixed as well as consumer facing test failures (including agents as
+  consumers) also get filed and fixed. Everything else can be either easily fixed immediately or
+  dropped because they will likely get superseded"*
+
+  *"it is also stupid to make a goal to find more bugs. There is an infinite set of them out
+  there. They might be a countable infinite set but it is more likely an uncountable set so don't
+  do that again. The goal is not to find bugs it is to make software that works correctly for the
+  consumer."*
+
+  On the version: *"go ahead and increment but honestly I don't care and the system doesn't
+  actually care and until this becomes a releasable product no one else cares either"*.
+
+  So on this plan: Broken code, and a failure a consumer meets -- an agent reading the shipped
+  prose is a consumer -- are filed and fixed before it closes. Any other finding is fixed at once
+  when that is easy, or dropped. The P5 build is `0.2.4-beta.3`.
