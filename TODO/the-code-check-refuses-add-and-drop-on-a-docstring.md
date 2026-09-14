@@ -13,7 +13,7 @@ Measured: 2026-08-25 — on the CHAIN, not the 7b gate: flows/proof_setter.run r
           {m.py@a0: None}, {m.py@a1: None} and an add at a2 with Refusal('prove', ...,
           'the executable code is not what it was'), on tests/conftest.SAMPLE. T5's two
           cases now RUN, as
-          TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain::test_a_docstring_{DROP,ADD}_is_STILL_REFUSED_at_prove;
+          TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain::test_an_approved_docstring_{ADD,DROP}_reaches_a_draft;
           T1 is untouched and the fingerprint was not weakened -- six modules in
           src/comment_review/commands read ArgumentParser(description=__doc__)
 ```
