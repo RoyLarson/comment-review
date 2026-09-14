@@ -42,6 +42,7 @@ from helpers import (
 from comment_review.binder.binder import Binder
 from comment_review.commands import proof as proof_command
 from comment_review.commands.collate import OK
+from comment_review.commands.disposition import _put_to_the_human
 from comment_review.desk.containers import MasterProof
 from comment_review.desk.determined import CHIEF, ORIGINAL, Answer
 from comment_review.desk.diff_mark import COMPOSITION, ESCALATION, QUESTION, batch_of
@@ -2560,7 +2561,7 @@ class TestAMoveHeldAtBothEnds:
     closes the proof with nothing carried forward. The test asserts that
     the origin's entry carries the move's `drop` and the destination's its
     `add` of the moved text, and that `disposition` prints the two ends as
-    one move under one entry.
+    one move under one entry, whichever end's entry comes first.
     """
 
     @pytest.mark.parametrize(
@@ -2605,6 +2606,13 @@ class TestAMoveHeldAtBothEnds:
             f"block-context's move drops the paragraph at {MOVED_FROM}"
             f" and adds it at {EMPTY_PLACE}" in out
         ), out
+        for order in (closed.unsettlable, closed.unsettlable[::-1]):
+            entries = [
+                line
+                for line in _put_to_the_human(order)
+                if line.startswith("unsettlable ")
+            ]
+            assert entries == [f"{header} the human -- {asked['reason']}"], order
 
 
 def _two_places():

@@ -55,7 +55,14 @@ def _put_to_the_human(places: tuple[dict, ...]) -> list[str]:
     that is not the origin's is named on it as well.
     """
     lines: list[str] = []
-    joined: set[str] = set()
+    joined = {
+        one["address"]
+        for one in places
+        for held in places
+        if "drop" in held
+        and one.get("add", {}).get("from") == held["address"]
+        and one["add"].get("role") == held["drop"].get("role")
+    }
     for place in places:
         address = place["address"]
         if address in joined:
@@ -78,7 +85,6 @@ def _put_to_the_human(places: tuple[dict, ...]) -> list[str]:
             f" -- {query.get('reason', '')}"
         )
         if other is not None and drop is not None:
-            joined.add(other["address"])
             theirs = other.get("query", {})
             if theirs != query:
                 lines.append(
