@@ -9,7 +9,7 @@ description: Review the comments and docstrings in the files a change touched, a
 
 **An editorial board for the comments and docstrings a change touched.** Four editors read
 the same manuscript in four editorial roles, the copy chief folds their marks into one set of
-edits, a condenser cuts them to fit, the author approves **that** text, and the page is proofed.
+edits, a condenser cuts them to fit, the page is set and proofed, and the author approves **that** text.
 Structure and fact first, then truth, then fit, then the page.
 
 ```
