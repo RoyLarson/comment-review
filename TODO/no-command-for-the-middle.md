@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 76 of 92 tasks closed
+Progress: 77 of 92 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -319,8 +319,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       a test of a role holding its own mark at a move's destination and a move
       there, to settle where its answer lands
         > 2026-09-12 e260438d routes to the move only past a clean or no slot
-- [ ] T64 | Implement a test of a role holding two moves to one destination, to
-      settle where its answer lands
+- [x] T64 | a movers answer where two of its moves land reaches neither and lands on a seeded slot; xfail strict, question for Roy | b5ef0bf9 | Implement
+      a test of a role holding two moves to one destination, to settle where its
+      answer lands
         > 2026-09-12 _move_to returns None for two; the answer stays on its slot
 - [ ] T65 | Update T33's test in test_turn.py to use the two-turn helper T57's
       test and the withdraw test share
