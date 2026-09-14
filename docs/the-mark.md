@@ -218,7 +218,7 @@ instruction set and the cli help."* This file is the instruction set.
 !! **IT WAS LOST ONCE ALREADY, ON 2026-08-28, AND THE MECHANISM IS WORTH KNOWING.** This prose used
 to live in a `payload` field on each row. Deleting that field was right -- a row carries no prose --
 but the text had **no other home**, so the brief's generator was pointed at this file's *flags*
-column instead and published `"rules on text"` where a role had been reading *"the false clause and
+column instead and published the `correct` row's flag where a role had been reading *"the false clause and
 the true one, and a `sources` entry carrying the line that settles it."*
 
 ! **DELETING A FIELD DOES NOT DELETE WHAT IT HELD.** The content has to land somewhere first, or

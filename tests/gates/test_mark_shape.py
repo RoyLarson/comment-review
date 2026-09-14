@@ -159,7 +159,7 @@ def _flag_names() -> list[str]:
 
 #: The classifiers heading's own stated column count, and the flags label's
 #: own stated flag count -- `## The classifiers -- FOUR COLUMNS ...` and
-#: `**The flags, and there are seven:**`.
+#: `**The flags, and there are four:**`.
 _CLASSIFIER_HEADING = _found(
     re.search(r"^## The classifiers -- (\w+) COLUMNS", SPEC, re.MULTILINE),
     "the classifiers heading (## The classifiers -- N COLUMNS)",
