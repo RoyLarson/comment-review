@@ -900,6 +900,12 @@ prints `REFUSED: --out <reason>` -- each at exit **2**. A refusal further into t
 moved address space prints `REFUSED: the address space moved -- <reason>`, and a step on one page
 prints `REFUSED at <step>: <where> -- <reason>`. Read what it printed, rather than a list you remember.
 
+**Then compile each drafted Python page**: `python -m py_compile <draft>` for every
+`<path> -> <draft>` line whose page is Python. It prints nothing for a page that compiles. A page
+that does not was set wrong -- a role writes a docstring's indentation -- so put the page and the
+compiler's message to the author with the proposal. No command here compiles another
+language's page; say in the proposal which pages no compile step reached.
+
 Then present, grouped by instruction, most consequential first, in **five parts**
 (`INSTRUCTION / PARAGRAPH / CLAIM / REASON / CHANGE`) -- the mark minus the fields only the
 collator reads -- replacement text inline for every `correct` / `patch` / `add`, and the galley's
