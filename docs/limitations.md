@@ -113,7 +113,7 @@ turn run between `collate` and `disposition`, and exit 7's row.
 
 The 2026-09-14 column is the same measure at 6277bdd8, against 37,288 and 60,383 at a22eb0ec:
 the brief's 466 bytes and `SKILL.md`'s 1,692 bought stage 8's read of the galley before 7a, 7a's
-compile step and its questions on a held move and a correct that drops words, `disposition`'s
+questions on a held move and a correct that drops words, `disposition`'s
 printed lines, 7b's temporary files, and a role that fills its one copy itself and calls LSP only
 when it holds the tool, net of the annotation table and prose that went.
 
