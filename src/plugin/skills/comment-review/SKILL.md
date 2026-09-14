@@ -589,7 +589,9 @@ published non-answer such as *"UNAVAILABLE"* is an answer and must be written; a
 `REPO ROOT`, `BINDER`, `EDIT COPY` and every `REVIEWER FILES` entry must be an
 **absolute path that exists**. The sections are: `REPO ROOT`; `BINDER`; `EDIT COPY`,
 the one section that differs per role; `FILES UNDER REVIEW`; `REFERENCE ONLY`; the STYLE
-SHEET, templates included; whether a LANGUAGE SERVER answered, per language; the destination
+SHEET, templates included; which language servers answered your probe at 1.7, per language --
+your answer, not a promise that a reviewer can call one, since a reviewer may have no LSP tool;
+the destination
 tree from 1.4, per path; and `REVIEWER FILES`, which is yours alone.
 
 Hand every reviewer the one packet. Dispatched without a style sheet, a run drifts the dialect

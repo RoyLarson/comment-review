@@ -34,10 +34,12 @@ produces and the only thing it produces.
 Stick to reading the references only - if a reference is wrong it needs to be stated
 with the mark.
 
-! **If the run context says a LANGUAGE SERVER answered, use it to settle a claim about a
-symbol** -- `goToDefinition`, `findReferences`, `workspaceSymbol`, `hover`. It is faster and
-more exact than grep, it works in languages no parser here reads, and `findReferences` is the
-only quick way to test a claim like *"the only caller"* or *"nothing reads this"*.
+**If the run context says a language server answered and your own tools include LSP, use it to
+settle a claim about a symbol** -- `goToDefinition`, `findReferences`, `workspaceSymbol`, `hover`.
+It is faster and more exact than grep, it works in languages no parser here reads, and
+`findReferences` is the only quick way to test a claim like *"the only caller"* or *"nothing
+reads this"*. The run context reports the task agent's probe, and a reviewer can lack the tool:
+with no LSP tool, settle the claim by grep and say so in `ran`.
 
 !! **A server settles a FACT, never an INSTRUCTION.** "This name exists" and "three files call it"
 are inputs to your judgement, not a substitute for it. And a server that is ABSENT proves
