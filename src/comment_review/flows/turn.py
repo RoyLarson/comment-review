@@ -1034,7 +1034,8 @@ def rule_at_max_turns(
 
     Raises:
         ValueError: the place is not carried forward, the side has no mark
-            there, `STET` was asked for, or a recast has no prose.
+            there, `STET` was asked for, a recast has no prose, or the recast
+            does not parse (`Process: #161`).
     """
     entry = next(
         (
@@ -1087,6 +1088,9 @@ def rule_at_max_turns(
         sources=tuple(s for i, s in enumerate(cited) if s not in cited[:i]),
         change=prose,
     )
+    _, why = Mark.deserialize(address, recast.serialize())
+    if why:
+        raise ValueError(f"the recast does not parse -- {'; '.join(why)}")
     return Determined(address, answer, turn, CHIEF, "max-turns", reason, recast)
 
 

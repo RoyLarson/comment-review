@@ -3093,6 +3093,27 @@ class TestTheDisposition:
         assert ruled.mark is not None
         assert list(ruled.mark.sources) == [cited[0]]
 
+    def test_a_recast_that_does_not_parse_is_refused(self):
+        """`Process: #161`: two roles' `patch`es at an empty place, with no
+        `add` filed there, escalate, and the chief's recast there is a
+        `patch` quoting the empty paragraph, which does not parse.
+        `rule_at_max_turns` refuses it rather than returning a mark that
+        `disposition` would write."""
+        binder = a_binder_over({"m.py@b1": ""})
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {"m.py@b1": _patch(TWO)},
+                "function-context": {"m.py@b1": _patch(DOS)},
+            },
+        )
+        got = collate("4c", copies, binder, root=REPO)
+        assert [e["address"] for e in got.escalations] == ["m.py@b1"]
+        with pytest.raises(ValueError, match="does not parse"):
+            rule_at_max_turns(
+                got, "m.py@b1", Answer.RECAST, "", "chief's own", turn=2, prose=TWO
+            )
+
     def test_an_unsettlable_place_is_not_the_chiefs_to_rule(self):
         """`Process: #90`: the place with the human's query is asked of the
         human after everything else, not ruled at max turns."""
