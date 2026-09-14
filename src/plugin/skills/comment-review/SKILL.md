@@ -407,8 +407,8 @@ same paragraphs and differ only in what else they can say:
 
 | tier | needs | answers | cannot answer |
 |---|---|---|---|
-| `tokenized` | a lexer + AST (Python: the stdlib) | paragraphs, annotations, **docstring** anchors | a **comment's** anchor |
-| `lexical` | a comment-syntax record, nothing else | paragraphs, annotations | any anchor; a marker inside an exotic string |
+| `tokenized` | a lexer + AST (Python: the stdlib) | paragraphs, **docstring** anchors | a **comment's** anchor |
+| `lexical` | a comment-syntax record, nothing else | paragraphs | any anchor; a marker inside an exotic string |
 
 !! **Say in the proposal that every placement is a CANDIDATE.** No comment carries an anchor
 at either tier, so every PLACEMENT instruction rests on a reviewer READING the file -- a
@@ -445,7 +445,7 @@ result = foo_bar(variable_a)
 
 **One paragraph**, bounded by `variable_a = 1234` and `result = ...`. Four physical comment lines,
 **three** counted: the marker line is free. The blank is inside the paragraph and is charged
-nothing. ! The example carries no inline annotations on purpose -- a `#` note explaining the
+nothing. The example carries no inline notes on purpose -- a `#` note explaining the
 example would be a comment sitting inside the very interval it describes, and would be counted.
 
 Three rules people state separately all follow from the one definition, and getting any of them
@@ -461,23 +461,6 @@ wrong changes what the reviewers see:
   is where the gather reads its anchor from.
 - **A trailing comment is its own paragraph**, one line, anchored to the code on that line.
 
-Annotations, and what resolving each one means:
-
-| annotation | resolved by |
-|---|---|
-| `cites-a-path` | tracked in the tree? ! present-but-untracked is **unverifiable**, not dangling |
-| `names-a-symbol` | `workspaceSymbol` where 1.7 found a server, else the AST corpus (head segment; `foo()` normalised) |
-| `counted` | re-derive the POPULATION, then count it |
-| `coverage-claim` | does the guard exist -- and **can it fail**? |
-| `forbids-a-literal` | grep the forbidden literal across that file |
-| `repeated-literal` | where else is this number written? one source at both ends of a round trip? |
-| `narrative-in-docstring` | is the date, review label or *"used to"* a claim about HISTORY rather than about the code now? |
-| `continues-a-trailing-comment` | read it WITH the trailing comment above it -- the split is the gather's, so a mid-clause ending here is not a `correct` |
-
-!! **Every row is a question a reviewer must answer, and none of them is answered by the
-gather.** It says a path is cited; whether the claim about it is true is the reviewer's, and
-`reviewer-brief.md` holds that contract.
-
 ### Enrich the binder with the language server, where 1.7 found one
 
 The gather names every paragraph; the server can say what a paragraph BELONGS to. Do this once, here,
@@ -487,12 +470,12 @@ it and could disagree.
 - **Anchor** -- `documentSymbol` on each file in scope returns every declaration and its line.
   A run ending at line N-1 is ANCHORED to the declaration at line N. Attach it; the binder
   carries the anchors it has.
-- **Liveness** -- for each `names-a-symbol` candidate, `workspaceSymbol` answers whether the
+- **Liveness** -- for a name a paragraph uses, `workspaceSymbol` answers whether the
   name exists at all, in any language in the workspace. `findReferences` answers whether
   anything uses it, which is the stronger claim a comment usually makes.
 
 ! **A server does not settle a claim, it settles a FACT.** "This name exists" is not "this
-comment is true" -- the annotation stays a CANDIDATE a reviewer confirms, exactly as when the AST
+comment is true" -- the claim stays a candidate a reviewer confirms, exactly as when the AST
 answered it. What changes is the cost of checking, not who decides.
 
 !! **Say which servers answered, per language, in the proposal.** Availability is a
@@ -519,8 +502,7 @@ the invocation most likely to be typed by hand was the one with no backlink
 discovery at all.
 
 Report the gaps both commands print -- every `NOT CHECKED` and `PASSED OVER` list, and
-`NO GIT INDEX` -- then the files, paragraphs and languages the binder covers, and any paragraph
-whose KIND it could not resolve.
+`NO GIT INDEX` -- then the files, paragraphs and languages the binder covers.
 
 ## Stage 4 -- MARK: four reviewers
 
@@ -817,7 +799,9 @@ against the original, and the original was one paragraph. ! A `taken_in` text wa
 role that never ran it; run it over that too.
 
 !! **THE SENTENCE YOU PROPOSE TO KEEP IS A FINDING YOU HAVE NOT RAISED.** Before any `patch`
-or `move`, verify the retained clause the way stage 3 resolves an annotation. The reviewer keeps the
+or `move`, verify the retained clause against the code: a path it cites is tracked -- present but
+untracked is unverifiable, not dangling -- a name it uses is in the name corpus, and a count
+re-derives from its population. The reviewer keeps the
 load-bearing-*sounding* clause -- which is the claim, which is what is wrong -- and cuts the
 **provenance** around it: the date, the pointer, the grepable name.
 
@@ -850,8 +834,9 @@ which reads as safe for exactly that reason. Grep the cited name, every time. An
 
 **A `#` comment is governed by LENGTH; a docstring by FORMAT.** Long is not a violation; what
 fails is a body carrying what is not documentation -- a date, a quotation, a retraction, a
-rationale paragraph, a claim about callers or coverage -- **at any length**. ! **Acquit on
-KIND, never on LENGTH**: a two-line docstring whose summary runs on is still a finding.
+rationale paragraph, a claim about callers or coverage -- **at any length**. **Acquit on what
+a body carries, never on its length**: a two-line docstring whose summary runs on is still a
+finding.
 
 Invisible to any counter: a **trailing comment carrying past its own line** (a `move` to the
 line above); a **paragraph split by an inserted statement**, where only the half still

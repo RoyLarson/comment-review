@@ -287,9 +287,13 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
 # ! `sheet` is given to both because the drift check reads `style sheet` as a use
 # of it -- declared polysemy, the same way `docs/vocabulary.md` records it.
 compact = [
+  "address",
+  "anchor",
   "argument",
   "cap",
+  "comment run",
   "correct",
+  "declaration",
   "drop",
   "gather",
   "instruction",
@@ -299,8 +303,10 @@ compact = [
   "query",
   "residue",
   "reviewer",
+  "series",
   "sheet",
   "style sheet",
+  "trailing comment",
 ]
 review = [
   "add",
