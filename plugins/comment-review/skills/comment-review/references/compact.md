@@ -88,16 +88,14 @@ problem.**
 edit already dropped things legitimately; checking against it lets a second, illegitimate drop
 through unnoticed. **The original is the baseline, twice.**
 
-!! **The paragraph's KIND is part of the input, and it decides whether this pass may touch the
-paragraph at all.** The gather stamps every paragraph `comment`, `trailing-comment`, `docstring` or
-`unparsed`, and they are governed by different rules:
+**The paragraph's place decides whether this pass may touch it at all.** The gather gives each
+paragraph its address, its anchor, its start and end line and its text, and no kind; the
+address's series is what tells a comment from documentation:
 
-| kind | governed by | what this pass may do |
+| the place | governed by | what this pass may do |
 | --- | --- | --- |
-| `comment` / `trailing-comment` | **LENGTH** -- the cap counts lines in one `#` run | cut it to the cap |
-| `docstring` | **FORMAT** -- the convention resolved at 1.3 | **nothing.** Long is not a violation |
-| `comment` with `doc-kind-unresolved` | **UNKNOWN** -- the gather could not tell | **nothing.** Ask, or carry it at length |
-| `unparsed` | **NOT PROSE** -- the file did not parse, so nothing was gathered | **nothing.** It is a diagnostic standing in for a file, not a paragraph. Report it |
+| `b` or `c` -- a comment run, or a trailing comment | **length** -- the cap counts lines in one comment run | cut it to the cap, except as below |
+| `a` -- a declaration's documentation, wherever the language puts it | **format** -- the convention resolved at 1.3 | **nothing.** Long is not a violation |
 
 ! **A work marker LINE is free of the cap** -- `TODO`, `FIXME`, `HACK`, `XXX`, `BUG`, or
 whatever the run context names. Its CONTINUATION lines are charged, so six lines plus a
@@ -105,17 +103,17 @@ whatever the run context names. Its CONTINUATION lines are charged, so six lines
 filed work: quick to do and expensive to have done, because the work is still needed and
 nothing names it any more.
 
-**A cap never applies to a docstring.** Without the kind in front of you, a 107-line numpydoc
+**A cap never applies to a docstring.** Without the place in front of you, a 107-line numpydoc
 docstring and a 7-line `#` run look like the same over-length problem, and cutting the first to
 six destroys documentation that was never in violation.
 
-! **A paragraph whose kind is UNRESOLVED is not a paragraph whose kind is `comment`.**
-The gather stamps `doc-kind-unresolved` where a language attaches documentation
-by position (Go, Ruby) and this tier cannot separate a doc run from an ordinary
-one. Do not infer it from the text, and do not cut it: carry it at length and
-say why. Measured: a three-line Go export doc counted as over a cap of two.
+**A comment run at a `b` place whose anchor is a declaration may be that declaration's
+documentation** in a language that attaches documentation by position, such as Go or Ruby,
+where the gather cannot always separate a doc run from an ordinary one. Do not infer which from
+the text, and do not cut it: carry it at length and say why. Measured: a three-line Go export
+doc counted as over a cap of two.
 
-! **This is the input contract, and it is deliberately narrow:** the paragraph's KIND, the original paragraph, the
+**This is the input contract, and it is deliberately narrow:** the paragraph's address and anchor, the original paragraph, the
 edited text, the cap, the style sheet. Not the reasoning that produced the edit. An agent that
 never saw the argument cannot keep a sentence because it remembers writing it -- which is what
 makes this pass safe. ! **It IS a separate subagent --
@@ -150,6 +148,5 @@ wrong word read as house style and the result was wrong on two independent axes.
 Paragraphs condensed, paragraphs left at length with the reason, and the final longest paragraph. A paragraph
 you could not condense is a finding, not a silence.
 
-! **No CODE CHECK here** -- nothing has been written yet. That check belongs to
-WRITE (stage 7b), which is the only pass that touches a file. What you hand back is the text
-stage 7a will put in front of the author.
+**No code check here** -- that check runs at stage 7a, and no pass writes over a file under
+review. What you hand back is the text stage 7a will put in front of the author.

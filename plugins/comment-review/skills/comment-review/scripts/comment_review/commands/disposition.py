@@ -44,6 +44,73 @@ from comment_review.flows.proof_io import (
 from comment_review.flows.turn import close, refold, rule_at_max_turns
 
 
+def _put_to_the_human(places: tuple[dict, ...]) -> list[str]:
+    """The lines naming each unsettlable place, from which 7a asks the human.
+
+    Each place is one entry: who asks the human and why, then the end of a
+    move the place holds -- the move's `drop` at its origin, its `add` at
+    its destination. A move held at both ends is one entry naming both
+    places, its drop and its add on one line, so the author approves or
+    refuses the move whole (`Process: #155`); a query at the destination
+    that is not the origin's is named on it as well.
+    """
+    lines: list[str] = []
+    joined = {
+        one["address"]
+        for one in places
+        for held in places
+        if "drop" in held
+        and one.get("add", {}).get("from") == held["address"]
+        and one["add"].get("role") == held["drop"].get("role")
+    }
+    for place in places:
+        address = place["address"]
+        if address in joined:
+            continue
+        query = place.get("query", {})
+        drop = place.get("drop")
+        other = next(
+            (
+                one
+                for one in places
+                if drop is not None
+                and one.get("add", {}).get("from") == address
+                and one["add"].get("role") == drop.get("role")
+            ),
+            None,
+        )
+        where = address if other is None else f"{address} and {other['address']}"
+        lines.append(
+            f"unsettlable {where}: {query.get('role', '?')} asks the human"
+            f" -- {query.get('reason', '')}"
+        )
+        if other is not None and drop is not None:
+            theirs = other.get("query", {})
+            if theirs != query:
+                lines.append(
+                    f"  and {theirs.get('role', '?')} asks the human at"
+                    f" {other['address']} -- {theirs.get('reason', '')}"
+                )
+            lines.append(
+                f"  and {drop.get('role', '?')}'s move drops the paragraph at"
+                f" {address} and adds it at {other['address']}, one move"
+                f" -- {drop.get('reason', '')}"
+            )
+            continue
+        if drop is not None:
+            lines.append(
+                f"  and {drop.get('role', '?')}'s move drops the paragraph there"
+                f" -- {drop.get('reason', '')}"
+            )
+        added = place.get("add")
+        if added is not None:
+            lines.append(
+                f"  and {added.get('role', '?')}'s move from {added.get('from', '?')}"
+                f" adds the paragraph there -- {added.get('reason', '')}"
+            )
+    return lines
+
+
 def main() -> int:
     """Rule every carried-forward place, derive the chief's copy, close the proof.
 
@@ -153,18 +220,8 @@ def main() -> int:
     )
     for one in closed.determined:
         print(f"{one.answer} {one.address}: {one.side} ({one.how}, turn {one.turn})")
-    for place in closed.unsettlable:
-        query = place.get("query", {})
-        print(
-            f"unsettlable {place['address']}: {query.get('role', '?')} asks the human"
-            f" -- {query.get('reason', '')}"
-        )
-        if "drop" in place:
-            drop = place["drop"]
-            print(
-                f"  and {drop.get('role', '?')}'s move drops the paragraph there"
-                f" -- {drop.get('reason', '')}"
-            )
+    for line in _put_to_the_human(closed.unsettlable):
+        print(line)
     return OK
 
 

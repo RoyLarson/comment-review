@@ -435,7 +435,9 @@ def _one(
     try:
         compositor.draft(page, target)
         # The draft is read once. `_reread` hands back the page it read, and
-        # `_prove` takes its text and the places the alterations name on it.
+        # `_prove` takes its text and the places the alterations name on it,
+        # the approved changes it compares against (`decision-log.md Process:
+        # #113`).
         draft, off = _reread(rel, target, edits)
         if draft is None:
             _discard(target, created)
@@ -592,6 +594,9 @@ def _approved(
 ) -> list[tuple[Paragraph, Paragraph]]:
     """Each approved alteration's place, on the page and in the draft.
 
+    `_prove` compares the draft against these approved changes, not against
+    nothing changed (`decision-log.md Process: #113`).
+
     Keying each page by cue is safe for the cues read here: by the time this
     runs, every cue in `edits` is held by exactly one paragraph on the page --
     `galley.reset` refuses a cue that no paragraph, or more than one, holds --
@@ -639,6 +644,10 @@ def _prove(
     of both texts, so an approved `add` or `drop` of a docstring passes. Every
     other declaration keeps its docstring's presence in the comparison, and
     all code is compared.
+
+    An approved rewrite at an `a` place has its presence set aside the same
+    way, so whether the docstring is still there is left to `_reread`, which
+    refuses a draft whose text at that cue is not the approved text.
 
     The declaration is identified from the place, never from the `a` ordinal:
     in the text before, at the line the page the draft was set from puts the

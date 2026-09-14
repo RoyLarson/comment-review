@@ -105,8 +105,8 @@ RECONCILE_ERRORS = (MismatchedRoot,)
 def _report(problems: list) -> None:
     """Every routable `Problem` on stdout, one per line.
 
-    ! ONE SPELLING, FOUR CALLERS -- the refusal path, `problems`, `drift` and
-    `coverage`. A second copy of the format string is a place for them to
+    One spelling, five callers -- the refusal path, `problems`, `drift`,
+    `coverage` and `dropped`. A second copy of the format string is a place for them to
     disagree about what a reader is shown. ! IT SAID TWO UNTIL 2026-08-31, and
     `drift` kept its own hand-written loop three lines below this function for
     the whole of that day, which is the duplication this exists to prevent.
@@ -300,6 +300,11 @@ def main() -> int:
     for one in got.revisit:
         for reason in one.reasons:
             print(f"{one.role} {one.where}: {reason}")
+    # A correct whose change drops words its claim never named, for the chief
+    # to read (`decision-log.md Process: #163`). No exit code reads this list.
+    if got.dropped:
+        print("for the chief -- each correct below drops words its claim never named:")
+        _report(got.dropped)
     # !! AN UNREADABLE MARK IS `BROKEN` AND AN UNRULED PLACE IS NOT, which is
     # the whole reason `Revisit.unreadable` exists. `Process: #63` says a
     # missing ANSWER routes without voiding the round; a mark that will not
@@ -308,6 +313,19 @@ def main() -> int:
     # where the command reads them from.
     if got.problems or any(one.unreadable for one in got.revisit):
         return BROKEN
+
+    # The proof is built before anything is written: a held move destination
+    # whose page cannot be seeded refuses it (`flows.turn.proof_after`), and
+    # a refusal writes nothing.
+    proof = None
+    if args.proof_out and got.proof is not None:
+        try:
+            proof = proof_after(got, root=root)
+        except ValueError as err:
+            print(
+                f"REFUSED: the master proof cannot be written -- {err}", file=sys.stderr
+            )
+            return BROKEN
 
     # !! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE FLOW'S --
     # `decision-log.md Process: #65`, `#67`. `collate` returns an `EditCopy`
@@ -328,8 +346,8 @@ def main() -> int:
     # `Process: #87`: the master proof carries the copies as they stand, so the
     # turn verb can mutate and fold them again; the chief's copy is what the
     # write end reads today. `turns` is empty here -- this is the first fold.
-    if args.proof_out and got.proof is not None:
-        save_proof(Path(args.proof_out), proof_after(got))
+    if proof is not None:
+        save_proof(Path(args.proof_out), proof)
         print(
             f"{args.proof_out}: the master proof -- {len(got.determined)} determined,"
             f" {len(got.unsettlable)} unsettlable"

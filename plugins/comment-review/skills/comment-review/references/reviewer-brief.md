@@ -12,6 +12,10 @@ imagined one.
 
 **You return the edit copy, filled out.** `mark` fills it for you, one ruling per invocation.
 
+**Fill it yourself.** Hand no slot to a sub-agent, write no mark into a part file, and open no
+other role's copy: the fold reads your one copy and nothing else. On one run all four roles
+forked, and none of 3,552 slots reached a copy.
+
 Do not edit the source. The system writes those files later, from your marks, and a file
 changed underneath it will not update correctly. Everything else you used to certify a mark --
 a summary, a note to the task agent, a working copy of a paragraph -- the system has no way to
@@ -34,10 +38,12 @@ produces and the only thing it produces.
 Stick to reading the references only - if a reference is wrong it needs to be stated
 with the mark.
 
-! **If the run context says a LANGUAGE SERVER answered, use it to settle a claim about a
-symbol** -- `goToDefinition`, `findReferences`, `workspaceSymbol`, `hover`. It is faster and
-more exact than grep, it works in languages no parser here reads, and `findReferences` is the
-only quick way to test a claim like *"the only caller"* or *"nothing reads this"*.
+**If the run context says a language server answered and your own tools include LSP, use it to
+settle a claim about a symbol** -- `goToDefinition`, `findReferences`, `workspaceSymbol`, `hover`.
+It is faster and more exact than grep, it works in languages no parser here reads, and
+`findReferences` is the only quick way to test a claim like *"the only caller"* or *"nothing
+reads this"*. The run context reports the task agent's probe, and a reviewer can lack the tool:
+with no LSP tool, settle the claim by grep and say so in `ran`.
 
 !! **A server settles a FACT, never an INSTRUCTION.** "This name exists" and "three files call it"
 are inputs to your judgement, not a substitute for it. And a server that is ABSENT proves
@@ -47,7 +53,8 @@ not check rather than reporting it clean.
 ## Read your edit copy end to end
 
 Your packet names two files on disk, each by absolute path: the BINDER -- every page in scope,
-each paragraph with its address and the mechanical resolutions for it -- and your EDIT COPY,
+each paragraph a row carrying its address, its anchor, its start and end line and its text,
+and nothing else -- and your edit copy,
 which carries one slot per paragraph that HOLDS PROSE, each with that paragraph's text. Read
 both from those paths; none of it is in this prompt. **Read the copy start to finish and fill
 EVERY slot**, one `mark` invocation per slot -- a `clean` as much as a `correct`. !! **THERE IS
@@ -59,10 +66,11 @@ are certifying you considered under your remit, so each is its own ruling.
 the marks set, so a paragraph can be read as it would stand. Nothing under the repo is written;
 the draft is the directory you named, and it is yours to read and discard.
 
-!! **`continues-a-trailing-comment` means the gather may have split one sentence.** A trailing
-comment closes its run, so a sentence wrapped onto the next line becomes a SECOND paragraph, anchored
-to the code BELOW it. Read the two together before ruling. **A mid-clause ending on a paragraph
-carrying this annotation is the gather's doing, not the author's, and is not a `correct`.**
+**A trailing comment closes its run, so the gather may have split one sentence.** A sentence
+wrapped from a trailing comment onto the next line becomes a second paragraph, anchored to the
+code below it. Where the line above a paragraph's start line ends in a trailing comment, read
+the two together before ruling. **A mid-clause ending there is the gather's doing, not the
+author's, and is not a `correct`.**
 
 !! **A paragraph that holds nothing owes you no mark.** Most of the binder is empty -- a gap
 between two lines of code (`interval`), or a declaration with no docstring (`undocumented`).
@@ -391,7 +399,7 @@ would decide worse without it. Both axes are satisfied and the sentence is still
 this pass measures narrowness.
 
 ! Measured 2026-08-17: one run caught *"Six call sites"* and *"Four kinds"* -- countable claims,
-which the annotations surface -- and missed, in the same file, a sentence describing one
+which a count settles -- and missed, in the same file, a sentence describing one
 positional column by name where the rule it stands for governs every column after any insertion.
 **Generalising it lost nothing**: the rule, the four functions it names, both test files, the
 exception, its cause and its pointer all survived. ! A reader who inserts a DIFFERENT column is

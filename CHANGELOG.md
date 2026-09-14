@@ -76,6 +76,47 @@ and rust (`startraders`, 2026-08-17).
 
 ## [Unreleased]
 
+## [0.2.4-beta.4] -- 2026-09-14
+
+A pre-release for the fresh live run P5 asks for, cut from the agents branch after sets 1c, 2
+and 3. Decision log `Process: #152` to `#167` are this cut's rulings; `#156` holds the move
+semantics provisional, and `#162` keeps the prototype middle from being hardened further.
+
+### Added
+
+- **`collate` lists each `correct` whose change drops words its claim never named**, under the
+  heading `for the chief -- each correct below drops words its claim never named:`, one line per
+  mark. The list prints only when it is not empty, and no exit code reads it (`decision-log.md
+  Process: #163`).
+
+### Changed
+
+- **A move resolves by its mover's answer at both ends** (`#152` to `#155`): an unanswered slot
+  at the origin leaves the move open, reworded or not; the mover's answer at a destination
+  where it also holds a mark reaches the move; one role's two moves to one place take its answer
+  at both and go back as a conflict; and a move held at both ends is put to the author as one
+  move -- `disposition` prints its drop and add under one entry, whichever end comes first.
+- **The batch's text where two moves land is the same under every hash seed.**
+- **At max turns a chief's recast at an add's empty place is an `add`** (`#157`), and
+  `disposition` refuses a recast that does not parse rather than writing it and exiting 0
+  (`#161`).
+- **`collate` and `turn` refuse, writing nothing, when a held move's destination is a page no
+  copy holds**, where the paragraph was lost at 7a before.
+- **`check` refuses a change that carries its anchor's own code line.**
+- **The instruction rows lose `can_declare_scope`, `rules_on_text` and `diffable`**, which
+  nothing read (`#143`).
+- **`addresser --check` no longer tells the reader to cite the binder index**, a field retired
+  on 2026-08-19; the vocabulary names max turns rather than `cap`.
+- **What the task agent and the roles are told matches the chain as built** (`SKILL.md`, the
+  references, the role files and the vocabulary): the roles may go out one after another
+  (`#102`); each role's work splits per file, at most five files a dispatch as a first estimate
+  (`#165`); stage 8 reads the proof as set before 7a and only reports (`#144`, `#167`); a held
+  move is put to the author as one move (`#155`); no agent is told to use a paragraph's kind or
+  annotations (`#158`); 7b sets the approved text in temporary files and runs no
+  `prove_unchanged` check, and the task agent writes nothing under the repo (`#159`, `#160`);
+  `proof`'s re-read is the compile step (`#166`); and stage 5 says what to do with `collate`'s
+  dropped-words list (`#163`).
+
 ## [0.2.4-beta.3] -- 2026-09-13
 
 A pre-release cut from the agents branch, covering the `mark` command, a runnable turn between

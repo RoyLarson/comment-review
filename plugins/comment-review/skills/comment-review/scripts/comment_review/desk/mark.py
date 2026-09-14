@@ -54,13 +54,13 @@ functions, each with its own branch on the field. Finding all eight is what
 nobody did, and five defects shipped in one morning. A contract change should
 touch one row.
 
-!! `Row` CARRIES ONLY WHAT `docs/the-mark.md` APPROVES -- ELEVEN
-FIELDS, NO PROSE. A 22-field scheme entered this file on 2026-08-27 during a
+`Row` carries only what `docs/the-mark.md` approves -- eight fields, no
+prose. A 22-field scheme entered this file on 2026-08-27 during a
 port that was never proposed and never approved -- `decision-log.md Process:
 #37`. `docs/the-mark.md` is the spec; this file implements it and defines
 nothing. `tests/gates/test_mark_shape.py` reads the spec's own tables and
 refuses a field that is not one of them -- for `Mark`'s eight as well as for
-`Row`'s eleven.
+`Row`'s eight.
 
 !! AND `Mark` REPLACED `problems(where, mark: dict)` ON 2026-08-29. Nothing
 parsed a mark, so the seven fields existed as prose plus string literals at
@@ -157,7 +157,7 @@ ANCHOR_EXAMPLE = "`compute_rates`"
 class Row:
     """Everything this system knows about one instruction, in one place.
 
-    Four classifier columns, then seven row flags -- `docs/the-mark.md`'s
+    Four classifier columns, then four row flags -- `docs/the-mark.md`'s
     "The classifiers" section states each; this docstring restates only which
     field carries which, not what it means.
 
@@ -178,18 +178,9 @@ class Row:
             apply step. Only `clean` does not, which is what makes it the null
             mark rather than a pass, and the row every other default (`reason`,
             `address`) is owed unless this is False.
-        can_declare_scope: MAY DECLARE SCOPE -- this may be a BOUNDARY REPORT
-            rather than work -- `query`, and only in its `outside-my-role`
-            shape.
         may_empty: EMPTY CHANGE ALLOWED -- this may leave the paragraph with
             NOTHING in it, so an empty `change` is the edit rather than a
             missing one. Only `drop`.
-        rules_on_text: RULES ON TEXT -- keeps the sentence and changes it.
-            ! Against `drop` on ONE sentence is the only contradiction the set
-            can express. `move` is deliberately neither: relocation and a
-            truth fix COMPOSE.
-        diffable: NOT DIFFABLE, inverted -- the original against `change` names
-            the edited sentence. False where there is nothing to diff.
         needs_anchor: ANCHOR NAMED IN BACKTICKS -- a FORM check on
             `claim.anchor`, not a side; the address says that.
         owes_destination: DESTINATION ADDRESSABLE -- `claim.to` names a place
@@ -204,10 +195,7 @@ class Row:
     owes_change: bool = True
     owes_sources: bool = True
     substantive: bool = True
-    can_declare_scope: bool = False
     may_empty: bool = False
-    rules_on_text: bool = False
-    diffable: bool = True
     needs_anchor: bool = False
     owes_destination: bool = False
 
@@ -221,7 +209,6 @@ INSTRUCTIONS: dict[Instruction, Row] = {
     Instruction.QUERY: Row(
         claim_all=("shape", "attempted", "settles"),
         owes_change=False,
-        can_declare_scope=True,
     ),
     Instruction.DROP: Row(
         claim_all=("drop",),
@@ -231,7 +218,6 @@ INSTRUCTIONS: dict[Instruction, Row] = {
     Instruction.CORRECT: Row(
         claim_all=("false", "true"),
         quotes_original="false",
-        rules_on_text=True,
     ),
     Instruction.PATCH: Row(
         claim_all=("from", "to"),
@@ -241,11 +227,9 @@ INSTRUCTIONS: dict[Instruction, Row] = {
         # flag and the brief's own sentence shipped out of agreement once, and
         # the gate fatally refused every `patch` a compliant reviewer filed.
         owes_sources=False,
-        rules_on_text=True,
     ),
     Instruction.ADD: Row(
         claim_all=("missing", "anchor"),
-        diffable=False,
         needs_anchor=True,
     ),
     Instruction.MOVE: Row(
@@ -448,7 +432,9 @@ class Mark:
         if spec.owes_sources:
             out += _source_problems(where, entry.get("sources"))
         if spec.owes_change:
-            out += _change_problems(where, instruction, spec, entry.get("change"))
+            out += _change_problems(
+                where, instruction, spec, entry.get("change"), entry.get("anchor")
+            )
         if not spec.substantive and filled(entry.get("change")):
             out.append(
                 f"{where}: {instruction} proposes no text, so carries no `change`"
@@ -771,7 +757,7 @@ def _source_problems(where: str, sources: object) -> list[str]:
 
 
 def _change_problems(
-    where: str, instruction: Instruction, spec: Row, change: object
+    where: str, instruction: Instruction, spec: Row, change: object, anchor: object
 ) -> list[str]:
     """Whether `change` is the updated paragraph, as RAW TEXT.
 
@@ -796,6 +782,10 @@ def _change_problems(
     content, and it should not. `not change` alone let a role return `"   "`
     for a `correct` or a `patch` and pass unchallenged, the same gap `filled`
     exists to close for a `claim` key.
+
+    A `change` holding a line equal to the mark's `anchor`, whitespace aside,
+    is refused: the anchor is the line of code the place sits on, and a change
+    is the paragraph alone (`collator-defects` T35).
     """
     if not isinstance(change, str):
         return [
@@ -804,6 +794,13 @@ def _change_problems(
         ]
     if not filled(change) and not spec.may_empty:
         return [f"{where}: {instruction} needs `change` to hold the new text"]
+    if filled(anchor) and anchor.strip() in (
+        line.strip() for line in change.splitlines()
+    ):
+        return [
+            f"{where}: {instruction}'s `change` carries the anchor's own line of "
+            f"code, {anchor.strip()!r} -- `change` is the paragraph alone"
+        ]
     return []
 
 
