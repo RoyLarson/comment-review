@@ -1,6 +1,6 @@
 """Sets a page as TEXT, in memory, top to bottom. It decides nothing.
 
-    comment_review compositor <paths...>          # prove the identity, file by file
+    python -m comment_review compositor <paths...>  # prove the identity, file by file
 
 !! A COMPOSITOR SETS TYPE; IT DOES NOT EDIT IT. Roy, 2026-08-21: *"galley gets
 the old page - updates the old page with the [instruction]/record/marks and then a
