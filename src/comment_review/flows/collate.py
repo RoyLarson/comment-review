@@ -825,12 +825,10 @@ def _page_at(real: str, root: Path, cache: PageCache) -> Page | None:
 def _page_cues(real: str, root: Path, cache: PageCache) -> Cues | None:
     """One path's real places, filled or not -- read at most once per stage.
 
-    !! THE BINDER CANNOT ANSWER THIS, WHICH IS WHY THE FILE IS OPENED.
-    `Process: #97` retired the check that compared an address against the
-    BINDER's own addresses, because the binder is redacted to the places
-    holding prose and a real empty place is one it rightly lacks. `page_of`
-    rebuilds the PAGE instead, which carries every place a series has,
-    filled or not -- `collator-defects` T40.
+    The binder cannot answer this, which is why the file is opened: the
+    binder is redacted to the places holding prose, so a real empty place is
+    one it rightly lacks (`Process: #97`). `page_of` rebuilds the page, which
+    carries every place a series has, filled or not -- `collator-defects` T40.
 
     Args:
         real: the page's real repo path, unflattened.
@@ -875,7 +873,7 @@ def _resolution_problems(
         One `Problem` per mark whose path no page can be read at, or whose
         cue its page does not carry, and one per `move` whose `claim.to`
         fails the same way, at the move's own address, in sheet then mark
-        order. ! AN EMPTY ADDRESS IS SKIPPED -- `clean` is the one row a mark
+        order. An empty address is skipped -- `clean` is the one row a mark
         may carry none for, and there is no place to resolve.
     """
     out: list[Problem] = []
@@ -1158,7 +1156,7 @@ def collate(
     # evidence, and a cache built inside `verify_report` re-read a file once per
     # citing role -- four reads of one line for four roles, measured 2026-08-31.
     cache: Cache = {}
-    # ! THE BINDER'S OWN PAGES, for `unflatten` -- the same set `_chief_copy`
+    # The binder's own pages, for `unflatten` -- the same set `_chief_copy`
     # resolves an address's flattened path against, and one `PageCache` for
     # the whole stage for the same reason `cache` above is one.
     paths = [page.path for page in binder.pages]
@@ -1185,7 +1183,7 @@ def collate(
         # checked against -- `decision-log.md Process: #119`.
         texts = texts_at(copy, paths, root, page_cache, sent)
         problems += verify_report(copy, texts, root, cache)
-        # !! THE ADDRESS ITSELF -- `_resolution_problems`, `collator-defects`
+        # The address itself -- `_resolution_problems`, `collator-defects`
         # T40. `verify_report` asks two questions of a ruled mark; this asks
         # the third, against the real page rather than the binder.
         problems += _resolution_problems(copy, paths, root, page_cache)

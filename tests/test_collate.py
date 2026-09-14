@@ -1282,10 +1282,9 @@ class TestAResolvedMoveIsOneEntry:
 
 class TestAnAddressMustResolveAgainstAPage:
     """`collator-defects` T40: the binder is redacted to the places holding
-    prose, so `Process: #97` retired the check that compared an address
-    against IT -- a real empty place is one the binder rightly lacks. This
-    restates the check against the real PAGE instead, over a real checkout so
-    an invented cue and a real empty place can be told apart."""
+    prose, so a real empty place is one it rightly lacks (`Process: #97`).
+    The check asks the real page instead, over a real checkout so an invented
+    cue and a real empty place can be told apart."""
 
     def test_an_invented_cue_is_reported(self, tmp_path):
         repo = a_small_real_tree(tmp_path)
