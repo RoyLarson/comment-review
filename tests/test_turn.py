@@ -1400,13 +1400,15 @@ class TestAMoverThatLeavesItsOriginUnanswered:
     which never comes back and is revisited. Every role then holds the
     move's one text at both ends: function-context's `clean` there adopts a
     reworded text, and leaves a clean over the text as it stands. The test
-    runs the move both ways and asserts that neither end settles, since an
-    unanswered slot is not agreement (`#152`).
+    runs the move both ways and asserts that neither end settles and both
+    are still carried: an unanswered slot is not agreement, and the move
+    stays open (`#152`).
     """
 
     @staticmethod
-    def _settled(root, change: str) -> set[str]:
-        """The places determined after turn 1, the proof read back from JSON."""
+    def _settled(root, change: str) -> tuple[set[str], set[str]]:
+        """The places determined after turn 1, the proof read back from JSON,
+        and the places the fold after turn 1 carries forward."""
         root.mkdir()
         binder, got = _a_lone_move(root, change)
         batch = batch_of(got.escalations, got.rereads)
@@ -1427,7 +1429,8 @@ class TestAMoverThatLeavesItsOriginUnanswered:
         proof = _read_back(
             root, 1, proof_after(one, ({"turn": 1, "sent": batch},), root=root)
         )
-        return {d.address for d in proof.determined}
+        carried = {e["address"] for e in (*one.escalations, *one.rereads)}
+        return {d.address for d in proof.determined}, carried
 
     @pytest.mark.parametrize(
         "change",
@@ -1437,8 +1440,9 @@ class TestAMoverThatLeavesItsOriginUnanswered:
         ],
     )
     def test_neither_end_settles(self, tmp_path, change):
-        settled = self._settled(tmp_path / "run", change)
+        settled, carried = self._settled(tmp_path / "run", change)
         assert settled.isdisjoint({MOVED_FROM, EMPTY_PLACE})
+        assert {MOVED_FROM, EMPTY_PLACE} <= carried
 
 
 class TestAMoversQueryAtItsOrigin:
