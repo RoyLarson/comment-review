@@ -2178,6 +2178,65 @@ class TestTheChiefRulesEachEndOfAMove:
         assert _altered(docket, tmp_path) == {"b1": None, "b3": MOVED_TEXT}
 
 
+def _an_add_carried_to_max_turns(root) -> None:
+    """An add at an empty place, escalated at turn 1 and on disk for `disposition`.
+
+    Turn 1 is `TestRefold`'s: block-context cleans its own add and
+    function-context patches it, so two texts stand at `EMPTY_PLACE`.
+    `binder.json` and `proof1.json`, the proof after turn 1 with its record,
+    are written into `root`.
+    """
+    binder, got = an_add_at_an_empty_place(root)
+    batch = batch_of(got.escalations, got.rereads)
+    answers = {
+        **_answered(batch, "block-context", instruction="clean"),
+        **_answered(
+            batch,
+            "function-context",
+            instruction="patch",
+            reason="four is the word the rest of the fixture uses",
+            claim={"from": "w is 4", "to": "w is four"},
+            change=ADDED_TEXT.replace("w is 4", "w is four"),
+        ),
+    }
+    one = run_turn(_at(got), binder, root, batch, answers)
+    assert one.revisit == []
+    assert [e["address"] for e in one.escalations] == [EMPTY_PLACE]
+    (root / "binder.json").write_text(json.dumps(binder.serialize()), encoding="utf-8")
+    save_proof(root / "proof1.json", proof_after(one, ({"turn": 1, "sent": batch},)))
+
+
+class TestTheChiefRecastsAnAdd:
+    """The chief's recast at an add's empty place lands there --
+    `collator-defects` T37.
+
+    The recast keeps the `add` the roles filed, so its prose reaches the
+    docket; a `correct` there would quote an empty paragraph and write
+    nothing. Driven through `disposition` and `proof --to-docket`, and read
+    back from what each wrote.
+    """
+
+    def test_the_recast_lands_at_the_empty_place(self, tmp_path, monkeypatch, capsys):
+        _an_add_carried_to_max_turns(tmp_path)
+        chief, _closed, docket = _disposed(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            [
+                {
+                    "address": EMPTY_PLACE,
+                    "answer": "recast",
+                    "reason": "both word the constant loosely",
+                    "prose": RECAST_THERE,
+                }
+            ],
+        )
+        assert [(m.address, m.instruction) for m in entries_of(chief)] == [
+            (EMPTY_PLACE, Instruction.ADD)
+        ]
+        assert _altered(docket, tmp_path) == {"b3": RECAST_THERE}
+
+
 def _the_origin_held_for_the_human(root, monkeypatch, capsys):
     """`_disposed` over `_the_origin_held_at_max_turns`, with its ruling.
 
