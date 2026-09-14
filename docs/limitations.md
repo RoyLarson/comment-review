@@ -104,18 +104,18 @@ numbers above budget the ROLE files only -- the smallest part of what a run actu
 | | 2026-08-16 | 2026-08-18 | 2026-09-12 | 2026-09-14 | |
 | --- | ---: | ---: | ---: | ---: | --- |
 | `reviewer-brief.md` | 11,579 | 23,397 | 38,090 | 37,754 | paid FIVE times |
-| `SKILL.md` | 45,257 | 62,531 | 60,037 | 62,075 | paid once, by the task agent |
+| `SKILL.md` | 45,257 | 62,531 | 60,037 | 62,242 | paid once, by the task agent |
 
 The 2026-09-12 column is each file's stored blob, `git show HEAD:<path> | wc -c`, after five
 commits (7d2e1834 to 3b0314e6). The brief grew 1,964 bytes: what a role answers in a turn and
 the `f` run a role may act on, net of the blank-line rule it dropped. `SKILL.md` grew 2,128: the
 turn run between `collate` and `disposition`, and exit 7's row.
 
-The 2026-09-14 column is the same measure at 6277bdd8, against 37,288 and 60,383 at a22eb0ec:
-the brief's 466 bytes and `SKILL.md`'s 1,692 bought stage 8's read of the galley before 7a, 7a's
-questions on a held move and a correct that drops words, `disposition`'s
-printed lines, 7b's temporary files, and a role that fills its one copy itself and calls LSP only
-when it holds the tool, net of the annotation table and prose that went.
+The 2026-09-14 column is the same measure at ebe58e91, against 37,288 and 60,383 at a22eb0ec:
+the brief's 466 bytes and `SKILL.md`'s 1,859 bought stage 8's read of the proof before 7a, 7a's
+questions on a held move and a correct that drops words, `disposition`'s printed lines, 7b's
+temporary files, a per-file split of each role, and a role that fills its one copy itself and
+calls LSP only when it holds the tool, net of the annotation table and prose that went.
 
 !! **THE BRIEF HAS MORE THAN DOUBLED IN TWO DAYS, WHICH IS THIS WARNING COMING TRUE.** Every
 addition was argued on its own and none was weighed against the file, because nothing measures
