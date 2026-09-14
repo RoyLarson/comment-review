@@ -74,7 +74,7 @@ The agents files name the new CLI and say how to use it.
       SKILL.md stage 4 so the roles may be dispatched sequentially: the topology
       and the copies isolate them, not one message.
         > 2026-09-07 decision-log.md Process: #102, Roy 2026-09-07.
-- [x] T18 | the packet says the LSP answer is the task agent probe; the brief has a role without the tool grep | 07372c96 | Update
+- [x] T18 | the packet says the LSP answer is the task agent's probe; a role without the tool settles by grep | 07372c96 | Update
       the packet so the language-server answer says who can call it; three
       reviewers found no LSP tool and fell back to grep
         > 2026-09-07 OneDrive claude-settings/2026-09-07/README.md, Feedback section
