@@ -324,14 +324,16 @@ so in time these two commands run right after stage 2 writes `binder.json`:
 
 ```bash
 python <skill>/scripts/comment-review.py topology --build --binder <run-dir>/binder.json --out <run-dir>/topology.toml \
-  --stage 4=ownership-context,block-context,function-context,module-context
+  --stage 4=ownership-context/<n>,block-context/<n>,function-context/<n>,module-context/<n>
 python <skill>/scripts/comment-review.py topology --verify <run-dir>/topology.toml --binder <run-dir>/binder.json
 ```
 
-That is this release's topology: one stage, the four roles over every page, one revise. A
-role split across shards (`block-context/2`) and a second stage reading the first's revise
-(`--stage 4a=... --stage 4c=...`) are shapes the file can express and a later release may
-turn to. `--build` writes a topology that fits the binder by construction and verifies it;
+**Split each role per file, at most five files a dispatch.** `<n>` is the number of files you
+gathered divided by five, rounded up -- 12 files is `/3` -- and `--build` deals the files to the
+dispatches in turn, so none holds more than five. Five is a first estimate, and the next run is
+the first to test it. That is this release's topology: one stage, the four roles, one revise. A
+second stage reading the first's revise (`--stage 4a=... --stage 4c=...`) is a shape the file
+can express and a later release may turn to. `--build` writes a topology that fits the binder by construction and verifies it;
 `--verify` alone checks one you already hold. **A run against an unverified topology is not a path these
 instructions offer.** A bad configuration costs nothing only when it is caught here: `--verify`
 exits 1 and names the stage, the kind -- a page two shards of one role claim, or a page no shard
@@ -645,6 +647,8 @@ python <skill>/scripts/comment-review.py collate --stage 4 --binder <run-dir>/bi
   --edit-copy <run-dir>/copies/4_function-context_1.json --edit-copy <run-dir>/copies/4_module-context_1.json \
   --out <run-dir>/chief0.json --proof-out <run-dir>/proof0.json --batch-out <run-dir>/batch1.json
 ```
+
+Pass one `--edit-copy` for every file `distribute` printed -- a role split three ways is three.
 
 **Read its exit code, and act on it before reading anything else:**
 
