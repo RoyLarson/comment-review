@@ -96,7 +96,6 @@ address's series is what tells a comment from documentation:
 | --- | --- | --- |
 | `b` or `c` -- a comment run, or a trailing comment | **length** -- the cap counts lines in one comment run | cut it to the cap, except as below |
 | `a` -- a declaration's documentation, wherever the language puts it | **format** -- the convention resolved at 1.3 | **nothing.** Long is not a violation |
-| `f` -- the file's own matter | not this pass's | **nothing** |
 
 ! **A work marker LINE is free of the cap** -- `TODO`, `FIXME`, `HACK`, `XXX`, `BUG`, or
 whatever the run context names. Its CONTINUATION lines are charged, so six lines plus a
