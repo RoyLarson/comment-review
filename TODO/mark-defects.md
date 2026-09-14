@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 16 of 25 tasks closed
+Progress: 17 of 25 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -242,8 +242,9 @@ cites as its measured example of a field answering neither necessary nor purpose
         > 2026-09-14 self-run: mc1 saved 8 marks with a scratch path as their text
         > 2026-09-14 check passed those 8; bc1 had 80 rulings refused the same way
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
-- [ ] T24 | Implement a way for a role to withdraw or replace a mark it placed,
-      after which the copy holds only the new mark
+- [x] T24 | FINISHED -- mark --withdraw takes back a placed ruling; six tests | 1a4d7cfc | Implement
+      a way for a role to withdraw or replace a mark it placed, after which the
+      copy holds only the new mark
         > 2026-09-14 SKILL.md's exit-1 send-back cannot be carried out without it
         > 2026-09-14 self-run: mc1 edited its copy's JSON by hand to repair 8 marks
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
