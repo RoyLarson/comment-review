@@ -323,12 +323,9 @@ def _check(paragraphs: Sequence[Paragraph]) -> int:
     files = len(_by_path(paragraphs))
     print(f"\n{named} of {len(paragraphs)} paragraphs addressed over {files} files.")
     if shared:
-        # ! Advice only where it applies. Printing it against zero shared places
-        # tells a reader to guard something that did not happen.
         print(
             f"{len(shared)} places hold more than one paragraph"
-            f" ({sum(len(v) for v in shared.values())} paragraphs) -- cite the binder"
-            f" index alongside the address for those."
+            f" ({sum(len(v) for v in shared.values())} paragraphs)."
         )
     if missing:
         print(
