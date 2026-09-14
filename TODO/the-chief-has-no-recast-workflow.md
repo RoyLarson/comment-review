@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 7 of 11 tasks closed
+Progress: 7 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-08 (Roy 2026-09-08: implementing the recast workflow for the cli the
@@ -53,3 +53,5 @@ The copy chief has no workflow for recasting the places that never settled.
         > 2026-09-13 test: the claim's true is what lands; false is the original
 - [x] T11 | a chief recast at an adds empty place follows the add filed there and lands as an add whatever mark comes first, per Process 157 | 7dcc3cb1 | Update
       the recast so a recast at an empty place is always an add, per Process 157
+- [ ] T12 | Update disposition so a chief's recast that does not parse is
+      refused rather than written at exit 0, per Process 161

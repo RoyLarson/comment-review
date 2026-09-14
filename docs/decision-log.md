@@ -4597,3 +4597,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   Offered -- drop the 7b check, since `proof` already proves every drafted page against the
   approved changes and under `#159` nothing is written over the real files; or teach the command
   the approved changes -- Roy chose *"Drop the 7b check"*.
+
+- **#161.** **Set 1c's edges: the general one is fixed, the move ones wait for the live runs**
+  (Roy, 2026-09-14, after set 1c built `#152` to `#157` and met cases no ruling covers).
+
+  The move edges: a refused answer at a mover's slot; two moves carrying one text into a place
+  until its conflict is ruled; a recast at a move's empty destination where no role filed an
+  `add`, still refused on read-back; a held destination two moves reach showing only the first
+  move's `add`. The one not specific to moves: `disposition` exits 0 on a chief's recast that
+  will not parse.
+
+  Offered -- fix the general one only, with a test for the new refusal of a held destination
+  whose page no copy holds; file and fix all five; or leave all to the live runs -- Roy chose
+  *"Fix the general one only"*. The four move edges wait for what a run over real code shows,
+  per `#156`.
