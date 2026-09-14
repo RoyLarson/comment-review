@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 14 of 25 tasks closed
+Progress: 15 of 25 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -126,12 +126,12 @@ cites as its measured example of a field answering neither necessary nor purpose
 
 ## Tasks
 
-- [ ] T1 | Implement the FORM check on a substantive mark's `address` in
-      `desk.mark.parse`, so an address carrying no `@` is refused by name.
-      Verify: `parse("w", {"instruction": "correct", "address": "a0", ...})`
-      returns a named problem -- today it returns `(mark, [])`, and
-      `reading.addresser.cue_of("a0")` answers `Address('', '')`; the test goes
-      red when the check is removed.
+- [x] T1 | FINISHED -- Mark.deserialize refuses an address with no path; test | 42987afd | Implement
+      the FORM check on a substantive mark's `address` in `desk.mark.parse`, so
+      an address carrying no `@` is refused by name. Verify: `parse("w",
+      {"instruction": "correct", "address": "a0", ...})` returns a named problem
+      -- today it returns `(mark, [])`, and `reading.addresser.cue_of("a0")`
+      answers `Address('', '')`; the test goes red when the check is removed.
         > 2026-09-14 self-run 2026-09-14: still passes; fc1 marked it at mark.py b121
 - [ ] T2 | Update the COPIED, NOT ALIASED comment at `desk/mark.py:719-720` and
       `:375-376` to the depth the copy holds, or copy `sources`' entries and

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 85 of 99 tasks closed
+Progress: 86 of 99 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -463,8 +463,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       anchor and lines, so no role writes its own lister
         > 2026-09-14 self-run: fc1, bc2, fc2 and oc2 each wrote a slot lister
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
-- [ ] T99 | Update check to run the fold's address resolution, so a move to
-      docs/ or to a bare cue exits 1 at check as at collate
+- [x] T99 | FINISHED -- check runs the fold's resolution_problems; test and smoke | 42987afd | Update
+      check to run the fold's address resolution, so a move to docs/ or to a
+      bare cue exits 1 at check as at collate
         > 2026-09-14 self-run: 23 destinations passed check; collate refused all 23
         > 2026-09-14 _resolution_problems runs only inside collate()
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run

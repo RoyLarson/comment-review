@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (114)
+### open  (113)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -259,12 +259,11 @@ that changed a published name or rule:
 | [revise-copies-everything](revise-copies-everything.md) | backend | yes | 0/4 | `pull` copies `.git`, `.venv` and `corpora` into every revise root -- 284MB measured on this repo, per editorial stage, to set a docket over ~4MB of source |
 | [sheet-rename-gate-cannot-see-the-source](sheet-rename-gate-cannot-see-the-source.md) | systems | -- | 0/2 | the gate's scope excludes the tree the retired sense actually survived in -- docs/gates.md: a check that could not have failed is not evidence |
 | [doc-on-the-declaring-line](doc-on-the-declaring-line.md) | backend | -- | 2/4 | A docstring written on its declaration's own line takes no address, and the round trip invents a blank line |
-| [brief-forbids-the-full-address](brief-forbids-the-full-address.md) | agents | -- | 0/3 | reviewer-brief.md:109 instructs the bare cue; the seeder writes the full address and the checker refuses a substantive mark without it |
 | [brief-says-prose-is-withheld](brief-says-prose-is-withheld.md) | agents | yes | 0/3 | reviewer-brief.md:113 says the record withholds the prose so a role cannot rule without reading the code; flows/marks.py:81 puts raw_text on every mark and collator.py makes it load-bearing |
 | [brief-says-three-series](brief-says-three-series.md) | agents | yes | 2/8 | reviewer-brief.md:69 and :221 say three series; reading/series.py ADDRESSED is ('a','b','c','f') and SKILL.md:378 says four, so a role cannot resolve the @f0 place the same brief tells it to cite |
 | [skill-inverts-the-anchor-line](skill-inverts-the-anchor-line.md) | agents | -- | 0/2 | SKILL.md's CANDIDATE paragraph describes the opposite of the line commands/census.py prints, and the reasoning built on it is what the task agent carries into every proposal |
 | [external-address-cites-dead-modules](external-address-cites-dead-modules.md) | backend | -- | 0/1 | desk/external_address.py says the address is declared in binder/record.py and resolved in desk/desk.py; record.py left on b50e7a4 and desk.py is in no directory of this tree |
-| [no-command-for-the-middle](no-command-for-the-middle.md) | backend | -- | 85/99 | `gather`, `places`, `reconcile` and `docket_from` have no CLI face, so nothing turns checked marks into the docket `proof --docket` requires. Measured 2026-08-29 on a real run: every other step of the chain is a command; this one had to be driven from a hand-written script |
+| [no-command-for-the-middle](no-command-for-the-middle.md) | backend | -- | 86/99 | `gather`, `places`, `reconcile` and `docket_from` have no CLI face, so nothing turns checked marks into the docket `proof --docket` requires. Measured 2026-08-29 on a real run: every other step of the chain is a command; this one had to be driven from a hand-written script |
 | [query-names-no-sentence](query-names-no-sentence.md) | backend | yes | 0/3 | every other substantive instruction names the sentence it rules on through a `claim` key -- `false` for `correct`, `drop` for `drop`, `from` for `patch` -- and `query` has none, so `_sentence_key` falls back to an identity and two queries at one place read as two different sentences |
 | [brief-example-and-scope](brief-example-and-scope.md) | agents | -- | 0/3 | the brief's worked example shows a 40-character `sha` where `bind` writes 16, and the brief says a source resolves against 'the repo' without saying whether that is the scoped tree or the checkout it was cut from |
 | [rows-of-derives-no-type](rows-of-derives-no-type.md) | backend | -- | 0/4 | `binder.rows_of` returns `list[dict]` where `docket.schedules_of` returns `list[Schedule]`; the codebase holds one example of each pattern, the typed one is the one that catches things, and `rows_of` has 8 callers and no covering tests |
@@ -276,7 +275,7 @@ that changed a published name or rule:
 | [ty-cannot-see-the-tests](ty-cannot-see-the-tests.md) | systems (the gate) - backend (the test fixes) | -- | 1/5 | The type gate is scoped to src and cannot see the tests |
 | [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | -- | 0/6 | A present-but-null key becomes the four characters None |
 | [collate-flow-defects](collate-flow-defects.md) | backend | -- | 4/16 | Twelve defects in `flows/collate.py`, from a review of one file |
-| [mark-defects](mark-defects.md) | backend | -- | 14/25 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
+| [mark-defects](mark-defects.md) | backend | -- | 15/25 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
 | [binder-defects](binder-defects.md) | backend | -- | 7/25 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
 | [docket-defects](docket-defects.md) | backend | -- | 5/11 | Six defects in docket.py, and one discards an approved page at exit 0 |
 | [collate-command-defects](collate-command-defects.md) | backend | -- | 5/21 | Sixteen defects in `commands/collate.py`, measured by running it |
@@ -295,7 +294,7 @@ that changed a published name or rule:
 | [a-machine-context-raises-query-and-clean](a-machine-context-raises-query-and-clean.md) | backend | yes | 0/8 | annotate carries two subjects -- it extracts index keys, and it flags claims it cannot settle. The second half becomes a context that marks like a role. |
 | [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | -- | 8/12 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
 | [prove-unchanged-line-endings-follow-a-sibling](prove-unchanged-line-endings-follow-a-sibling.md) | backend | -- | 0/2 | On a checkout with core.autocrlf=true, git writes a checked-out text file with CRLF while its blob stays LF, and a file git never rewrote can still be LF. prove_unchanged compares an edited file's line endings with one untouched sibling, so a CRLF file whose sibling is a one-line LF __init__.py FAILs though the write kept every ending and the AST comparison passes. The check should hold the file to its own pre-edit endings. |
-| [smoke-drives-one-route](smoke-drives-one-route.md) | systems | -- | 3/9 | The smoke drives one route, and the self-run broke on the others |
+| [smoke-drives-one-route](smoke-drives-one-route.md) | systems | -- | 4/9 | The smoke drives one route, and the self-run broke on the others |
 
 ### in-progress  (18)
 
@@ -348,7 +347,7 @@ that changed a published name or rule:
 | [null-is-not-a-decision](null-is-not-a-decision.md) | backend | yes | 0/2 | `null` is the delete signal, and it is also what a failed serialisation writes |
 | [strip-and-fill-the-markers](strip-and-fill-the-markers.md) | backend | yes | 0/9 | A role is handed the paragraph with its `#`/`"""` markers and indentation, and must reproduce them exactly in `change`. Measured 2026-08-29: three consecutive attempts by an agent with full context broke the file, and each failure read as a defect in the setter |
 | [task-agent-vocabulary-home](task-agent-vocabulary-home.md) | agents (the instructions) - backend (the enum they derive from) | yes | 0/4 | The task agent has no vocabulary home and is never told the command set |
-| [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | yes | 2/25 | A move is a composite mark and the code cannot express one |
+| [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | yes | 3/25 | A move is a composite mark and the code cannot express one |
 
 ### in flight  (0)
 
@@ -465,3 +464,4 @@ the reason is inside the file.
 | [a-role-writes-its-own-mark-tool](completed/a-role-writes-its-own-mark-tool.md) | The mark command fills a role's copy: one ruling per invocation, change derived, the cited line quoted. T3's bulk clean superseded on Roy's ruling |
 | [the-scope-is-git-in-prose](completed/the-scope-is-git-in-prose.md) | Both tasks superseded by Process 162; the scope step stays in SKILL.md 1.1 |
 | [smoke-middle-script](completed/smoke-middle-script.md) | 66 finished, 1 superseded |
+| [brief-forbids-the-full-address](completed/brief-forbids-the-full-address.md) | 3 finished |

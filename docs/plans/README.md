@@ -5,7 +5,7 @@
 | [0.2.4-plugins-is-a-release-artifact](0.2.4-plugins-is-a-release-artifact.md) | in-progress | 6/6 | 7/7 |
 | [0.2.4-rework-the-binder-hands-the-repo](0.2.4-rework-the-binder-hands-the-repo.md) | in-progress | 6/6 | 5/5 |
 | [0.2.4-the-agents-read-the-cli](0.2.4-the-agents-read-the-cli.md) | in-progress | 261/261 | 16/19 |
-| [0.2.4-the-cli-carries-a-real-run](0.2.4-the-cli-carries-a-real-run.md) | in-progress | 4/25 | 2/13 |
+| [0.2.4-the-cli-carries-a-real-run](0.2.4-the-cli-carries-a-real-run.md) | in-progress | 11/25 | 2/13 |
 | [0.2.4-the-commands-for-the-middle](0.2.4-the-commands-for-the-middle.md) | in-progress | 7/8 | 53/61 |
 | [0.2.4-the-listing-goes](0.2.4-the-listing-goes.md) | in-progress | 7/7 | 4/4 |
 | [0.2.4-the-mark-and-the-collator](0.2.4-the-mark-and-the-collator.md) | in-progress | 31/31 | 21/21 |

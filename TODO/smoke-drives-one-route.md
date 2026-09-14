@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 9 tasks closed
+Progress: 4 of 9 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-09-14 (2026-09-14 comment-review self-run, refused at stage 5)
@@ -24,9 +24,9 @@ The smoke drives one route, and the self-run broke on the others.
 - [x] T3 | FINISHED -- the draft stage's collision copy is refused naming rate.py@b1 | 4a3ccf8b | Implement
       a smoke plant of a move into a place holding prose, failing while the
       moved text is lost (docket-defects T11)
-- [ ] T4 | Implement a smoke plant of a move out of the code that lands as
-      Process 169 says
-- [ ] T5 | Implement smoke plants of a bare-cue destination and a --flag=@path
+- [x] T4 | FINISHED -- the mark stage's move to docs/history.md is refused | 42987afd | Implement
+      a smoke plant of a move out of the code that lands as Process 169 says
+- [~] T5 | Implement smoke plants of a bare-cue destination and a --flag=@path
       value, each refused at check (no-command-for-the-middle T99)
 - [ ] T6 | Implement a second smoke stage reading the first stage's revise,
       failing while that revise drops clean paragraphs

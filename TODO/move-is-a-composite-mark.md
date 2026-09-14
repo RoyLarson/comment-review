@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 2 of 25 tasks closed
+Progress: 3 of 25 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -203,8 +203,9 @@ and now there is one object that cannot be half-held.
       deletion at the origin and the removed text is recoverable, where today's
       line opcodes report a single `replace` and the removed text appears in no
       opcode.
-- [ ] T22 | Refuse a move's `claim.to` that names no recognized address. Verify:
-      a bare prose destination is refused; `path@cue` passes
+- [x] T22 | FINISHED -- mark refuses a non-path@cue destination, routed per #173 | 42987afd | Refuse
+      a move's `claim.to` that names no recognized address. Verify: a bare prose
+      destination is refused; `path@cue` passes
         > 2026-09-03 blocked -- ExternalAddress waits on the sketch's 4 open questions
         > 2026-09-14 self-run: 4 bare-cue destinations passed mark and check
 - [ ] T23 | Implement proof over a move whose destination is not a gathered
