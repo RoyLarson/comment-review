@@ -843,50 +843,38 @@ class TestAMoveWhoseEndsStillDisagree:
     """
 
     def test_a_correct_changes_the_moved_text_and_keeps_the_destination(self, tmp_path):
-        binder, got = _a_lone_move(tmp_path, MOVED_TEXT)
-        batch = batch_of(got.escalations, got.rereads)
         patched = {
             "instruction": "patch",
             "claim": {"from": "two", "to": "TWO"},
             "reason": "the fixture spells its numbers in capitals",
             "change": MOVED_TEXT.replace("two", "TWO"),
         }
-        answers = {
-            role: [
-                {**slot, **patched}
-                if (role, slot["address"]) == ("function-context", MOVED_FROM)
-                else {**slot, "instruction": "clean"}
-                for slot in slots
-            ]
-            for role, slots in batch.items()
-        }
-        one = run_turn(_at(got), binder, tmp_path, batch, answers)
+        moved_again = MOVED_TEXT.replace("two", "2")
+        _, one, two, _ = _two_turns(
+            tmp_path,
+            MOVED_TEXT,
+            lambda batch: _clean_but(batch, "function-context", MOVED_FROM, patched),
+            lambda batch: {
+                role: [
+                    {
+                        **slot,
+                        "instruction": "correct",
+                        "reason": "a digit reads as the count it is",
+                        "change": moved_again,
+                    }
+                    if (role, slot["address"]) == ("block-context", MOVED_FROM)
+                    else {**slot, "instruction": "hold", "reason": "mine stands"}
+                    for slot in slots
+                ]
+                for role, slots in batch.items()
+            },
+        )
         assert one.revisit == []
         assert one.rereads == []
         assert sorted(e["address"] for e in one.escalations) == [
             MOVED_FROM,
             EMPTY_PLACE,
         ]
-
-        batch2 = batch_of(one.escalations, one.rereads)
-        moved_again = MOVED_TEXT.replace("two", "2")
-        answers2 = {
-            role: [
-                {
-                    **slot,
-                    "instruction": "correct",
-                    "reason": "a digit reads as the count it is",
-                    "change": moved_again,
-                }
-                if (role, slot["address"]) == ("block-context", MOVED_FROM)
-                else {**slot, "instruction": "hold", "reason": "mine stands"}
-                for slot in slots
-            ]
-            for role, slots in batch2.items()
-        }
-        # The record carries what turn 1 sent, as `commands/turn.py` writes it.
-        proof = proof_after(one, ({"turn": 1, "sent": batch},))
-        two = run_turn(proof, binder, tmp_path, batch2, answers2)
         assert two.revisit == []
         (held,) = _held_at(two, "block-context", MOVED_FROM)
         assert held.instruction is Instruction.MOVE
@@ -2582,9 +2570,10 @@ class TestTheCap:
         assert [m.change for m in entries_of(chief)] == [DOS]
 
     def test_a_recast_of_an_add_stays_an_add(self):
-        """Measured 2026-09-07 on claude-settings: a recast of an add was
-        written as a correct, which asserts a sentence is false at a place
-        holding no sentence, so the compositor wrote nothing and exited 0."""
+        """The chief's recast at an escalated `add`'s empty place is an `add`,
+        not a `correct`, which would assert a sentence is false at a place
+        holding none; the chief's copy carries it as a mark that reads back
+        unchanged."""
         _, _, got = _escalated_add()
         ruled = rule_at_max_turns(
             got, "m.py@b1", Answer.RECAST, "", "chief's own", turn=2, prose="# mine\n"
@@ -2606,15 +2595,12 @@ class TestTheCap:
         ],
     )
     def test_a_recast_keeps_the_filed_instruction(self, escalated, instruction):
-        """Fix round 1 on `_recast_claim`: `add` had its own test above and
-        `correct` its own below, leaving `patch`, `drop` and `move` verified
-        by code trace only. Each is carried through a real fold here rather
-        than hand-traced -- `patch` and `drop` quote an original sentence and
-        escalate; `move` quotes none and is re-read, widened by
-        `_join_moves` to both its ends -- and each recast still parses under
-        the instruction it carries. `m.py@b1` is the move's origin, where
-        the recast rules that end alone and is its `drop` (`Process:
-        #139`)."""
+        """A recast at `m.py@b1` carries the instruction the roles filed
+        there and reads back unchanged, each through a real fold: `patch`
+        and `drop` quote an original sentence and escalate, and `move`
+        quotes none and is re-read, widened by `_join_moves` to both its
+        ends. `m.py@b1` is the move's origin, where the recast rules that end
+        alone and is its `drop` (`Process: #139`)."""
         _, _, got = escalated()
         ruled = rule_at_max_turns(
             got, "m.py@b1", Answer.RECAST, "", "chief's own", turn=2, prose="# mine\n"
