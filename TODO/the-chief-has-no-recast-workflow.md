@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 10 tasks closed
+Progress: 6 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-08 (Roy 2026-09-08: implementing the recast workflow for the cli the
@@ -43,8 +43,9 @@ The copy chief has no workflow for recasting the places that never settled.
       disposition.py:20 and turn.py:621, which still say cap for max turns, per
       Vocabulary 36
         > 2026-09-11 seen in disposition --help while preparing SP7 Task 9
-- [ ] T9 | Update the recast so the b9 mark in final.json does not carry the
-      source fib.py:21 twice
+- [x] T9 | the chief recast cites each equal source once, so b9 no longer carries fib.py:21 twice | 35c13150 | Update
+      the recast so the b9 mark in final.json does not carry the source
+      fib.py:21 twice
 - [x] T10 | a recast over a drop, and at a move origin, is a correct from the original paragraph to the prose, per Process 146 | e33c3ab0 | Update
       rule_at_max_turns so a recast over a drop is written as a correct from the
       original paragraph to the chief's prose, per Process 146
