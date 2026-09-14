@@ -1387,6 +1387,17 @@ def _read_back(root, n: int, proof: MasterProof) -> MasterProof:
     return proof_at(root, n)
 
 
+def _on(proof: MasterProof, role: str, address: str) -> list[Mark]:
+    """Every mark on `role`'s copy in `proof` at `address`."""
+    return [
+        mark
+        for copy in proof.edit_copies
+        if copy.role == role
+        for mark in entries_of(copy)
+        if mark.address == address
+    ]
+
+
 class TestAMoverThatLeavesItsOriginUnanswered:
     """A mover that leaves its slot at its move's origin unanswered while
     every role holds one text -- `no-command-for-the-middle` T91,
@@ -1612,6 +1623,113 @@ class TestAMoversCleanSlotAtItsDestination:
         assert held.claim == {"from": MOVED_FROM, "to": FILLED_PLACE}
         (slot,) = _held_at(one, "block-context", FILLED_PLACE)
         assert slot.instruction is Instruction.CLEAN
+
+
+def _fold_over(root, page: str, rulings: dict):
+    """block-context's and function-context's `rulings` over `page`, folded.
+
+    `page` is written to `m.py` in `root`, each copy is seeded from its
+    binder, and each ruling is placed by `fill`, as T81's test places them.
+
+    Returns:
+        `(binder, the fold)`.
+    """
+    (root / "m.py").write_text(page, encoding="utf-8")
+    binder = binder_of(root, 0)
+    copies = [seed(binder, role) for role in ("block-context", "function-context")]
+    for copy in copies:
+        for ruling in rulings[copy["role"]]:
+            _, why = fill(copy, ruling, root)
+            assert why == []
+    return binder, collate("4c", copies, binder, root=root)
+
+
+class TestAMoverWithItsOwnMarkAtTheDestination:
+    """A role holding its own mark at its move's destination as well as the
+    move -- `no-command-for-the-middle` T63, `Process: #129` and `#138`.
+
+    block-context moves `MOVED_FROM` to `FILLED_PLACE` and patches the
+    comment `FILLED_PAGE` holds there; function-context cleans both. Both
+    ends go back as re-reads, the slot at the destination carrying the moved
+    text. Turn 1 answers block-context's slot there and every other slot
+    `clean`. `apply` routes an answer to the move only where the role's slot
+    is a `clean` or absent, so the answer lands on the patch: a `correct`
+    replaces it, the move keeping its text, and a `clean` adopts the moved
+    text over it. The test asks that the answer reach the move and the patch
+    stay as it is, as `#129` and `#138` say of a mover's answer there.
+    """
+
+    @pytest.mark.parametrize(
+        "answer, change",
+        [
+            pytest.param(
+                {
+                    "instruction": "correct",
+                    "claim": {"false": "# two", "true": "# 2"},
+                    "reason": "a digit reads as the count it is",
+                    "sources": [{"cite": "m.py:8", "verbatim": "w = 4"}],
+                    "change": MOVED_TEXT.replace("two", "2"),
+                },
+                MOVED_TEXT.replace("two", "2"),
+                id="correct",
+            ),
+            pytest.param({"instruction": "clean"}, MOVED_TEXT, id="clean"),
+        ],
+    )
+    @pytest.mark.xfail(
+        strict=True,
+        reason=(
+            "no-command-for-the-middle T63: the answer lands on the role's own "
+            "patch at the destination, not on the move; whether a mover's "
+            "answer there reaches the move past its own mark is a question "
+            "for Roy"
+        ),
+    )
+    def test_the_answer_reaches_the_move(self, tmp_path, answer, change):
+        patched = {
+            "address": FILLED_PLACE,
+            "instruction": "patch",
+            "claim": {"from": "four", "to": "4"},
+            "reason": "a digit reads as the count it is",
+            "change": "# 4",
+        }
+        binder, got = _fold_over(
+            tmp_path,
+            FILLED_PAGE,
+            {
+                "block-context": [
+                    {
+                        "address": MOVED_FROM,
+                        "instruction": "move",
+                        "claim": {"from": MOVED_FROM, "to": FILLED_PLACE},
+                        "reason": "the comment is about w, not y",
+                        "sources": [{"cite": "m.py:8"}],
+                        "change": MOVED_TEXT,
+                    },
+                    patched,
+                ],
+                "function-context": [
+                    {"address": MOVED_FROM, "instruction": "clean"},
+                    {"address": FILLED_PLACE, "instruction": "clean"},
+                ],
+            },
+        )
+        batch = batch_of(got.escalations, got.rereads)
+        assert _slot(batch, "block-context", FILLED_PLACE)["raw_text"] == MOVED_TEXT
+        one = run_turn(
+            _read_back(tmp_path, 0, _at(got)),
+            binder,
+            tmp_path,
+            batch,
+            _clean_but(batch, "block-context", FILLED_PLACE, answer),
+        )
+        assert one.revisit == []
+        proof = _read_back(tmp_path, 1, proof_after(one, ({"turn": 1, "sent": batch},)))
+        (held,) = _on(proof, "block-context", MOVED_FROM)
+        assert held.instruction is Instruction.MOVE
+        assert held.change == change
+        (own,) = _on(proof, "block-context", FILLED_PLACE)
+        assert (own.instruction, own.change) == (Instruction.PATCH, "# 4")
 
 
 class TestAMovesEndWithNoRolesLeft:
