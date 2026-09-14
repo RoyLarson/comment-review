@@ -90,12 +90,9 @@ carries stops that file rather than writing a galley nobody can trust.
 
 from comment_review.machine import constants
 
-# The one `cue_of`, since 2026-08-22. This module had a second of its own --
-# `str(address).split("@")[-1]` -- and the two disagreed on a malformed address:
-# a bare `b3` with no `@` came back as the cue `b3` here and as not an
-# address from `addresser`, which returns two blanks when there is no separator.
-# Both were live in one process. The shared one answers `(path, cue)`, so
-# every site here reads `.cue`.
+# The one `cue_of`. It answers `(path, cue)`, so every site here reads `.cue`,
+# and it returns two blanks where there is no `@` separator, so a bare `b3` is
+# not an address.
 from comment_review.reading.addresser import cue_of
 
 

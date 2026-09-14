@@ -207,10 +207,10 @@ def set_page(page: Page, newline: str | None = None) -> str:
     # `drop` just vacated -- which is the only case the rule below may fire
     # on.
     #
-    # Keyed on the place's state, not on the edge or on a lookup.
-    # `Addressing: #19` paid for that mistake once already, on the add side:
-    # gating on "no leading was looked up" fired on a modify and on an
-    # unedited compose too. This is its mirror and takes the same gate.
+    # Keyed on the place's state, not on the edge or on a lookup: a gate on
+    # "no leading was looked up" would fire on a modify and on an unedited
+    # compose too. `Addressing: #19` gates the add side the same way, and this
+    # is its mirror.
     #
     # `ON` is excluded. A `c` sets its line of code whether or not
     # anything sits beside it, so a comment leaving that line vacates
