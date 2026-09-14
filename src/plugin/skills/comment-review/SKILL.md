@@ -160,7 +160,7 @@ and **never passed to a reviewer** -- it is not a section of the stage-4 packet,
 !! **THE FLOOR IS A LOCAL GIT REPOSITORY, and that is the ONLY thing a rule here may assume.**
 `git ls-files` answers, and `git show <ref>:<path>` answers for a ref that exists. **Everything
 else is checked, not assumed** -- an upstream, a merge base, a clean tree, a cwd at the repo
-root. Pass `--repo` to every command rather than relying on the working directory.
+root. Pass `--repo` to every command that takes one rather than relying on the working directory.
 
 !! **Record the PRE-EDIT REF now, and carry it to stages 6 and 7b.** It is `HEAD` when the tree
 holds no uncommitted change to the files in scope, and `git stash create` otherwise -- which
@@ -346,9 +346,9 @@ guaranteed to be the skill's.
 python <skill>/scripts/comment-review.py gather --repo . --out <run-dir>/binder.json <paths...>
 ```
 
-!! **ONE FILE, AND EVERYTHING DOWNSTREAM READS IT.** The BINDER is the artifact every later
-command reads -- `distribute` seeds each reviewer's copy from it, `collate` folds against it,
-`proof` sets from it. A reviewer is handed the binder and its own seeded copy, and nothing else
+**One file, and every stage up to the fold reads it.** The BINDER is what those stages'
+commands take -- `distribute` seeds each reviewer's copy from it, and `collate`, `turn` and
+`disposition` fold against it. A reviewer is handed the binder and its own seeded copy, and nothing else
 is made for it: the copy carries each prose paragraph's text in its slot, and the binder is what
 the reviewer's `addresser` and `check` calls take.
 
@@ -376,9 +376,8 @@ python <skill>/scripts/comment-review.py addresser --binder <run-dir>/binder.jso
 python <skill>/scripts/comment-review.py addresser --binder <run-dir>/binder.json --resolve <ADDRESS>
 ```
 
-! **An anchor answers with SEVERAL places and that is not an error** -- an anchor has many
-addresses and an address has one anchor, so two identical lines of code are two anchors spelled
-alike. Choose by ADDRESS.
+**A line can answer with more than one place, and that is not an error** -- `--series f` prints
+both of the file's own places, head and foot, since no line tells them apart. Choose by ADDRESS.
 
 !! **`--out`, never a shell redirect.** A worktree-isolated session REFUSES a command carrying
 one -- *"too complex to verify that it stays inside the worktree"* -- and the binder is what
@@ -518,8 +517,9 @@ which is exactly why the memory-based rule it replaces could not fire there --
 the invocation most likely to be typed by hand was the one with no backlink
 discovery at all.
 
-Report what the tool prints: `N files, N paragraphs`, the `languages:` line, and any paragraph whose
-KIND it could not resolve.
+Report the gaps both commands print -- every `NOT CHECKED` and `PASSED OVER` list, and
+`NO GIT INDEX` -- then the files, paragraphs and languages the binder covers, and any paragraph
+whose KIND it could not resolve.
 
 ## Stage 4 -- MARK: four reviewers, in parallel
 
