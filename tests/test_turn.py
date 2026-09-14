@@ -1320,28 +1320,6 @@ class TestAMovesEndsDisagreeAfterATurn:
         assert (MOVED_FROM in escalated) == (EMPTY_PLACE in escalated)
 
 
-class TestARewordedMoveOverTwoCleanTurns:
-    """A reworded move over two turns in which every role answers `clean` --
-    `no-command-for-the-middle` T79, `Process: #89` and `#137`.
-
-    On turn 1 function-context's `clean` adopts the reworded moved text at the
-    origin by a `correct`, and turn 2 answers every slot it is sent `clean`.
-    The test settles whether the move is lost: the mover must still hold it
-    at the origin, and neither end may be determined without it.
-    """
-
-    def test_the_move_is_not_lost(self, tmp_path):
-        reworded = MOVED_TEXT + ", which is about w"
-        _, one, two, _ = _two_turns(tmp_path, reworded, _all_clean, _all_clean)
-        assert one.revisit == []
-        assert two.revisit == []
-        (held,) = _held_at(two, "block-context", MOVED_FROM)
-        assert held.instruction is Instruction.MOVE
-        for address in (MOVED_FROM, EMPTY_PLACE):
-            ruled = two.determined.get(address)
-            assert ruled is None or ruled.mark is not None
-
-
 class TestARewordedMoveEveryRoleCleansTwice:
     """A reworded move every role cleans over two turns --
     `no-command-for-the-middle` T87, `Process: #89` and `#137`.
@@ -1351,7 +1329,8 @@ class TestARewordedMoveEveryRoleCleansTwice:
     answers every slot `clean` again. Every role that marked the move has
     then agreed with its text, which `#89` says makes it a `stet`: the test
     settles whether both ends are determined after turn 2, each carrying
-    the move.
+    the move, and whether the mover's copy still holds the move at the
+    origin.
     """
 
     def test_both_ends_settle_carrying_the_move(self, tmp_path):
@@ -1359,6 +1338,8 @@ class TestARewordedMoveEveryRoleCleansTwice:
         _, one, two, _ = _two_turns(tmp_path, reworded, _all_clean, _all_clean)
         assert one.revisit == []
         assert two.revisit == []
+        (held,) = _held_at(two, "block-context", MOVED_FROM)
+        assert held.instruction is Instruction.MOVE
         for address in (MOVED_FROM, EMPTY_PLACE):
             ruled = two.determined.get(address)
             assert ruled is not None, address
