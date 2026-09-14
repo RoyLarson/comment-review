@@ -4446,3 +4446,11 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   convention and collaboration keeps people and agents really honest and their is no reason for
   excessive dishonesty checking. The tool keeps plan steps from being added to a todo and that
   is the important part"*. So the section goes from `conventions.md`.
+
+- **#149.** **The board's two directories are set in `board.toml`** (Roy, 2026-09-13, after
+  job-board 0.10.0 was installed: `CLAUDE.md` passed `--plans-dir docs/plans` alone, with the
+  TODO directory found by the walk, and named `--requires-roy`, which 0.10.0 refuses).
+
+  *"yes go with board.toml"*. So `board.toml` at the root states `todo-dir = "TODO"` and
+  `plans-dir = "docs/plans"` -- the two directories the board already used -- and a bare
+  `job-board` finds both.
