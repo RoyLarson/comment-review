@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 8 tasks closed
+Progress: 1 of 9 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-09-14 (2026-09-14 comment-review self-run, refused at stage 5)
@@ -17,8 +17,9 @@ The smoke drives one route, and the self-run broke on the others.
 - [ ] T1 | Implement a smoke stage that drafts a role's copy with proof --copy,
       failing while cleaned paragraphs vanish (docket-defects T10)
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
-- [ ] T2 | Implement a smoke plant of a partial move in the brief's labelled
-      form, failing while a label lands (move-is-a-composite-mark T24)
+- [-] T2 | SUPERSEDED by Process 172 -- no labelled form to plant; refiled as T9 | 35d2fcd9 | Implement
+      a smoke plant of a partial move in the brief's labelled form, failing
+      while a label lands (move-is-a-composite-mark T24)
 - [ ] T3 | Implement a smoke plant of a move into a place holding prose, failing
       while the moved text is lost (docket-defects T11)
 - [ ] T4 | Implement a smoke plant of a move out of the code that lands as
@@ -31,3 +32,5 @@ The smoke drives one route, and the self-run broke on the others.
       command mark-defects T24 adds
 - [ ] T8 | Implement a smoke plant of a drop inside a line, failing while a line
       runs past the paragraph's longest (mark-defects T25)
+- [ ] T9 | Implement a smoke plant of a partial move whose change is the
+      snippet, failing while the origin keeps it or the destination lacks it

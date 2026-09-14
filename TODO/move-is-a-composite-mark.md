@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 1 of 24 tasks closed
+Progress: 2 of 25 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -211,9 +211,12 @@ and now there is one object that cannot be half-held.
       page, so an out-of-code move sets. Verify: the 13 in the job_board run set
         > 2026-09-14 self-run: 19 of 35 moves left the code; collate, proof refused
         > 2026-09-14 Process 169: until one sets, it becomes a human-review query
-- [ ] T24 | Make a partial move keep its remainder, and draft the brief's
-      labelled to:/from: move with no label line in either page
+- [-] T24 | SUPERSEDED by Process 172 -- the change is the snippet, no labelled form; refiled as T25 | 35d2fcd9 | Make
+      a partial move keep its remainder, and draft the brief's labelled
+      to:/from: move with no label line in either page
         > 2026-09-14 self-run: 3 of oc1's moves refused at reread, labels set as code
         > 2026-09-14 oc1 and oc2 spelled the labels two ways; mark takes any text
         > 2026-09-14 reviewers reported 11 partial moves; each composed by script
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
+- [ ] T25 | Implement a move whose --change is the snippet, removed exactly from
+      the origin and inserted at the destination, per Process 172
