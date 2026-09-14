@@ -42,8 +42,8 @@ END_MARKER = "<!-- END GENERATED -->"
 
 #: The spec section whose table holds the role-facing sentence. ! NOT "What each
 #: instruction owes", whose last column is the row's FLAGS -- classifier facts
-#: like "rules on text", which say nothing to a role about what to write.
-#: MEASURED 2026-08-28: reading that column published "rules on text" for
+#: like "not substantive", which say nothing to a role about what to write.
+#: MEASURED 2026-08-28: reading that column published the flag for
 #: `correct` where the brief had said "the false clause and the true one, and a
 #: `sources` entry carrying the line that settles it".
 _PROSE_HEADING = "## What each `claim` carries, in the role's own terms"

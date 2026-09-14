@@ -105,8 +105,8 @@ RECONCILE_ERRORS = (MismatchedRoot,)
 def _report(problems: list) -> None:
     """Every routable `Problem` on stdout, one per line.
 
-    ! ONE SPELLING, FOUR CALLERS -- the refusal path, `problems`, `drift` and
-    `coverage`. A second copy of the format string is a place for them to
+    One spelling, five callers -- the refusal path, `problems`, `drift`,
+    `coverage` and `dropped`. A second copy of the format string is a place for them to
     disagree about what a reader is shown. ! IT SAID TWO UNTIL 2026-08-31, and
     `drift` kept its own hand-written loop three lines below this function for
     the whole of that day, which is the duplication this exists to prevent.
@@ -300,6 +300,11 @@ def main() -> int:
     for one in got.revisit:
         for reason in one.reasons:
             print(f"{one.role} {one.where}: {reason}")
+    # A correct whose change drops words its claim never named, for the chief
+    # to read (`decision-log.md Process: #163`). No exit code reads this list.
+    if got.dropped:
+        print("for the chief -- each correct below drops words its claim never named:")
+        _report(got.dropped)
     # !! AN UNREADABLE MARK IS `BROKEN` AND AN UNRULED PLACE IS NOT, which is
     # the whole reason `Revisit.unreadable` exists. `Process: #63` says a
     # missing ANSWER routes without voiding the round; a mark that will not

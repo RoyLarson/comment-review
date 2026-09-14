@@ -1280,12 +1280,47 @@ class TestAResolvedMoveIsOneEntry:
         assert copy is not None
 
 
+class TestACorrectThatDropsWhatItsClaimNeverNamed:
+    """`collator-defects` T36, `decision-log.md Process: #163`: a `correct` whose
+    change drops a word its claim never quotes is listed for the chief."""
+
+    def test_a_sentence_the_claim_never_quotes_is_listed(self):
+        binder = one_place()
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {
+                    "m.py@b1": a_correct_setting("m.py@b1", "two", "# one\n# TWO\n")
+                }
+            },
+        )
+        got = collate("4c", copies, binder, root=REPO)
+        assert [(p.role, p.address) for p in got.dropped] == [
+            ("block-context", "m.py@b1")
+        ]
+        assert "'three'" in got.dropped[0].message
+
+    def test_dropping_only_what_the_claim_quotes_is_not_listed(self):
+        binder = one_place()
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {
+                    "m.py@b1": a_correct_setting(
+                        "m.py@b1", "two", "# one\n# TWO\n# three\n"
+                    )
+                }
+            },
+        )
+        got = collate("4c", copies, binder, root=REPO)
+        assert got.dropped == []
+
+
 class TestAnAddressMustResolveAgainstAPage:
     """`collator-defects` T40: the binder is redacted to the places holding
-    prose, so `Process: #97` retired the check that compared an address
-    against IT -- a real empty place is one the binder rightly lacks. This
-    restates the check against the real PAGE instead, over a real checkout so
-    an invented cue and a real empty place can be told apart."""
+    prose, so a real empty place is one it rightly lacks (`Process: #97`).
+    The check asks the real page instead, over a real checkout so an invented
+    cue and a real empty place can be told apart."""
 
     def test_an_invented_cue_is_reported(self, tmp_path):
         repo = a_small_real_tree(tmp_path)

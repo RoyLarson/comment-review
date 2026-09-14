@@ -2,7 +2,7 @@
 
     collate(stage, edit_copies, binder, root) -> Collated
 
-Ten acts, in the order the body runs them:
+Eleven acts, in the order the body runs them:
 
     ENVELOPE   is each document the shape a copy must be --
                `desk.containers.EditCopy.deserialize`. Reported, never raised.
@@ -25,6 +25,8 @@ Ten acts, in the order the body runs them:
                `desk.mark.parse` cannot ask because
                it holds no binder, no page and no filesystem
     DRIFT      a returned `raw_text` that is not the seeded one
+    DROPPED    a `correct` whose change drops words its claim never named,
+               against the seeded paragraph -- listed for the chief
     ASSEMBLE   `desk.proof.master_proof_of` -- the master_proof
     PLACE      `desk.collator.places` -- marks grouped by the place they touch
     RECONCILE  `desk.collator.reconcile` -- settled, escalated, re-read
@@ -91,6 +93,7 @@ from comment_review.desk.diff_mark import ESCALATION, QUESTION
 from comment_review.desk.mark import INSTRUCTIONS, Instruction, Mark, Shape, filled
 from comment_review.desk.proof import MismatchedRoot, master_proof_of
 from comment_review.desk.stages import Stage
+from comment_review.flows.fill import first_word_dropped
 from comment_review.flows.mark_errors import Revisit, mark_errors
 from comment_review.flows.page_for import page_of
 from comment_review.machine.repo import can_escape
@@ -170,6 +173,10 @@ class Collated:
             a claim that does not hold are answered by different work.
         drift: a returned `raw_text` that is not the one the place was seeded
             with, same shape and same routing.
+        dropped: a `correct` whose change drops words its claim never named,
+            against the paragraph its place was seeded with -- listed for the
+            chief, with no exit code of its own (`decision-log.md Process:
+            #163`).
         coverage: a role whose copies do not between them carry the binder's
             address set, same shape and same routing.
             !! ITS OWN LIST, NOT `problems`, since 2026-08-31 -- `Process: #63`
@@ -219,6 +226,7 @@ class Collated:
     chief: EditCopy
     problems: list[Problem] = field(default_factory=list)
     drift: list[Problem] = field(default_factory=list)
+    dropped: list[Problem] = field(default_factory=list)
     coverage: list[Problem] = field(default_factory=list)
     escalations: list[dict] = field(default_factory=list)
     rereads: list[dict] = field(default_factory=list)
@@ -825,12 +833,10 @@ def _page_at(real: str, root: Path, cache: PageCache) -> Page | None:
 def _page_cues(real: str, root: Path, cache: PageCache) -> Cues | None:
     """One path's real places, filled or not -- read at most once per stage.
 
-    !! THE BINDER CANNOT ANSWER THIS, WHICH IS WHY THE FILE IS OPENED.
-    `Process: #97` retired the check that compared an address against the
-    BINDER's own addresses, because the binder is redacted to the places
-    holding prose and a real empty place is one it rightly lacks. `page_of`
-    rebuilds the PAGE instead, which carries every place a series has,
-    filled or not -- `collator-defects` T40.
+    The binder cannot answer this, which is why the file is opened: the
+    binder is redacted to the places holding prose, so a real empty place is
+    one it rightly lacks (`Process: #97`). `page_of` rebuilds the page, which
+    carries every place a series has, filled or not -- `collator-defects` T40.
 
     Args:
         real: the page's real repo path, unflattened.
@@ -875,7 +881,7 @@ def _resolution_problems(
         One `Problem` per mark whose path no page can be read at, or whose
         cue its page does not carry, and one per `move` whose `claim.to`
         fails the same way, at the move's own address, in sheet then mark
-        order. ! AN EMPTY ADDRESS IS SKIPPED -- `clean` is the one row a mark
+        order. An empty address is skipped -- `clean` is the one row a mark
         may carry none for, and there is no place to resolve.
     """
     out: list[Problem] = []
@@ -1103,6 +1109,7 @@ def collate(
     base = base_texts(binder)
     problems: list[Problem] = []
     drift: list[Problem] = []
+    dropped: list[Problem] = []
     counts: dict[str, dict] = {}
 
     # ! THE ROLE MAY BE THE MISSING THING. `EditCopy.deserialize` refuses a copy with
@@ -1158,7 +1165,7 @@ def collate(
     # evidence, and a cache built inside `verify_report` re-read a file once per
     # citing role -- four reads of one line for four roles, measured 2026-08-31.
     cache: Cache = {}
-    # ! THE BINDER'S OWN PAGES, for `unflatten` -- the same set `_chief_copy`
+    # The binder's own pages, for `unflatten` -- the same set `_chief_copy`
     # resolves an address's flattened path against, and one `PageCache` for
     # the whole stage for the same reason `cache` above is one.
     paths = [page.path for page in binder.pages]
@@ -1185,11 +1192,28 @@ def collate(
         # checked against -- `decision-log.md Process: #119`.
         texts = texts_at(copy, paths, root, page_cache, sent)
         problems += verify_report(copy, texts, root, cache)
-        # !! THE ADDRESS ITSELF -- `_resolution_problems`, `collator-defects`
+        # The address itself -- `_resolution_problems`, `collator-defects`
         # T40. `verify_report` asks two questions of a ruled mark; this asks
         # the third, against the real page rather than the binder.
         problems += _resolution_problems(copy, paths, root, page_cache)
         drift += drift_in(copy, base)
+        # A `correct` whose change drops words its claim never named, over the
+        # paragraph its place was seeded with (`decision-log.md Process: #163`).
+        for sheet in copy.sheets:
+            for mark in sheet.marks:
+                if mark.instruction is not Instruction.CORRECT:
+                    continue
+                named = str(mark.claim.get("false", ""))
+                rest = base.get(mark.address, "").replace(named, "", 1)
+                word = first_word_dropped(rest, mark.change)
+                if word is not None:
+                    dropped.append(
+                        Problem(
+                            copy.role,
+                            mark.address,
+                            f"its change drops {word!r}, which its claim never names",
+                        )
+                    )
         counts[copy.role] = tally(copy)
 
     # !! THE REFUSAL CARRIES WHAT THE PASS ALREADY FOUND. Everything above this
@@ -1266,6 +1290,7 @@ def collate(
         chief=_chief_copy(proof.read_from, resolved, proof),
         problems=problems,
         drift=drift,
+        dropped=dropped,
         coverage=coverage,
         escalations=escalations,
         rereads=rereads,

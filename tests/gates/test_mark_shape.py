@@ -110,7 +110,7 @@ def test_no_field_is_spelled_two_ways():
     assert "instruction" in _field_names()
 
 
-#: The section stating the four columns and the seven flags, and nothing
+#: The section stating the four columns and the flags, and nothing
 #: else -- `## The classifiers ...` up to the next `##` heading,
 #: `## The three \`query\` shapes`. Scoped so the parse below cannot pick up
 #: an unrelated bold-first-column table or fixed-width block elsewhere in the
@@ -120,7 +120,7 @@ _SECTION = _found(
     "the classifiers section (## The classifiers ... up to the next ##)",
 ).group()
 
-#: The four classifier columns and the seven row flags, each stated once in
+#: The four classifier columns and the row flags, each stated once in
 #: `docs/the-mark.md`, mapped to the field that carries it. English prose is
 #: not a valid Python identifier, so this dict is the one place the spec's
 #: wording and the dataclass's field names meet -- it supplies no NAMES of its
@@ -132,10 +132,7 @@ FIELD_FOR = {
     "change": "owes_change",
     "sources": "owes_sources",
     "not substantive": "substantive",
-    "may declare scope": "can_declare_scope",
     "empty change allowed": "may_empty",
-    "rules on text": "rules_on_text",
-    "not diffable": "diffable",
     "anchor named in backticks": "needs_anchor",
     "destination addressable": "owes_destination",
 }
@@ -151,19 +148,18 @@ def _classifier_names() -> list[str]:
 
 
 def _flag_names() -> list[str]:
-    """The seven row-flag phrases, read out of the spec's own fixed block.
+    """The row-flag phrases, read out of the spec's own fixed block.
 
     Each flag starts a line right after the block's 4-space indent, followed
-    by a 2+ space gap and its one-line explanation; a WRAPPED continuation
-    line (see "may declare scope") carries extra leading whitespace instead
-    and does not match.
+    by a 2+ space gap and its one-line explanation; a wrapped continuation
+    line carries extra leading whitespace instead and does not match.
     """
     return re.findall(r"^ {4}(\S.*?) {2,}\S", _SECTION, re.MULTILINE)
 
 
 #: The classifiers heading's own stated column count, and the flags label's
 #: own stated flag count -- `## The classifiers -- FOUR COLUMNS ...` and
-#: `**The flags, and there are seven:**`.
+#: `**The flags, and there are four:**`.
 _CLASSIFIER_HEADING = _found(
     re.search(r"^## The classifiers -- (\w+) COLUMNS", SPEC, re.MULTILINE),
     "the classifiers heading (## The classifiers -- N COLUMNS)",
@@ -339,7 +335,7 @@ def test_the_owes_table_sources_agree_with_the_row(name):
 
 
 #: The block's own wrapped description text, phrase -> full explanation
-#: (continuation lines, e.g. "may declare scope"'s, joined back on).
+#: (continuation lines joined back on).
 _FLAGS_BLOCK = _found(
     re.search(r"\*\*The flags, and there are \w+:\*\*\n\n(.*?)\n\n!!", SPEC, re.DOTALL),
     "the flags block (**The flags, and there are N:** ... up to !!)",
@@ -361,10 +357,10 @@ def _flag_descriptions() -> dict[str, str]:
 
 _WORD = re.compile(r"[A-Za-z]+")
 
-#: The two flags stated in the NEGATIVE ("not substantive", "not diffable"):
-#: the description names who the flag applies to, which is the opposite of
-#: what the field's own boolean reads for that row.
-_INVERTED = {"substantive", "diffable"}
+#: The flag stated in the negative ("not substantive"): the description names
+#: who the flag applies to, which is the opposite of what the field's own
+#: boolean reads for that row.
+_INVERTED = {"substantive"}
 
 
 def _flag_owners(description: str, names: set[Instruction]) -> set[str]:

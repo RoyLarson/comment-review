@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 13 of 22 tasks closed
+Progress: 14 of 22 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -230,7 +230,8 @@ cites as its measured example of a field answering neither necessary nor purpose
 - [x] T21 | a slot at an f place is seeded with the page's prose | 16dabbab | Update
       fill so an f place holding prose is seeded from the page, so Process 132's
       check applies there
-- [ ] T22 | Delete can_declare_scope, rules_on_text and diffable from
-      desk/mark.py's Row and INSTRUCTIONS, per Process 143
+- [x] T22 | The three flags are gone from Row, INSTRUCTIONS, the gate and docs/the-mark.md | 9fabde74 | Delete
+      can_declare_scope, rules_on_text and diffable from desk/mark.py's Row and
+      INSTRUCTIONS, per Process 143
         > 2026-09-13 tests/gates/test_mark_shape.py:135-138 maps the spec's phrases
         > 2026-09-13 check docs/the-mark.md names none of the three after

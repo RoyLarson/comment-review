@@ -375,6 +375,21 @@ class TestTheRulesBite:
         bad["change"] = "   "
         assert any("change" in p for p in problems("here", bad))
 
+    def test_a_change_carrying_the_anchors_own_code_line_is_refused(self):
+        """`collator-defects` T35: a change is the paragraph alone, so one
+        holding the line of code its place sits on is refused, and the same
+        mark without that line is not."""
+        anchor = "    UNABLE_TO_DETERMINE = auto()"
+        bad = well_formed("correct")
+        bad["anchor"] = anchor
+        bad["change"] = f"    #: the corrected comment\n{anchor}"
+        assert any("anchor's own line" in p for p in problems("here", bad))
+
+        good = well_formed("correct")
+        good["anchor"] = anchor
+        good["change"] = "    #: the corrected comment"
+        assert problems("here", good) == []
+
     def test_a_mark_owing_sources_that_cites_nothing_is_refused(self):
         """! ADDED after a mutation survived: both source cases below pass a
         NON-EMPTY list, so the loop caught them and the guard above it was

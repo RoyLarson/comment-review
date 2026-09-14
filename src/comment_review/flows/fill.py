@@ -79,12 +79,15 @@ ROLE_FIELDS = ("claim", "reason", "sources", "change")
 _WORD = re.compile(r"[^\W_]+")
 
 
-def _first_word_dropped(prose: str, change: str) -> str | None:
+def first_word_dropped(prose: str, change: str) -> str | None:
     """The first word of `prose` that `change` does not keep in order, or None.
 
     `decision-log.md Process: #132`: an `add` at a place holding prose adds to
     that paragraph, so its change holds every word of the prose, in the order
     the prose has them, and punctuation and whitespace are free to move.
+
+    `flows.collate` asks the same of a `correct`'s change, over its seeded
+    paragraph with `claim.false` taken out (`decision-log.md Process: #163`).
     """
     kept = iter(_WORD.findall(change))
     for word in _WORD.findall(prose):
@@ -301,7 +304,7 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
         and filled(seeded["raw_text"])
         and isinstance(change, str)
     ):
-        dropped = _first_word_dropped(seeded["raw_text"], change)
+        dropped = first_word_dropped(seeded["raw_text"], change)
         if dropped is not None:
             return None, [
                 f"{address} holds prose, so an `add` there keeps every word of it"

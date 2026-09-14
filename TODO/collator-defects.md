@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 16 of 43 tasks closed
+Progress: 18 of 43 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -190,11 +190,13 @@ Four defects in collator.py, found by reading only the code.
       the fold so two marks from one role on different sentences compose, as two
       roles' marks do
         > 2026-09-07 2026-09-06 run: six places, e.g. desk/mark.py@a8, reached the cap
-- [ ] T35 | Update check so a change carrying the anchor's own code line is
-      refused before the write
+- [x] T35 | Mark.deserialize refuses a change holding the anchor line; check reports it through mark_errors | 1e307c1b | Update
+      check so a change carrying the anchor's own code line is refused before
+      the write
         > 2026-09-07 desk/mark.py@b24, function-context, 2026-09-06 run
-- [ ] T36 | Update check so a correct whose change drops sentences its claim
-      never named is named to the chief
+- [x] T36 | collate lists each correct whose change drops words its claim never named, under a heading for the chief; no exit code reads it | 71d84070 | Update
+      check so a correct whose change drops sentences its claim never named is
+      named to the chief
         > 2026-09-07 desk/mark.py@a6: both changes cut the class docstring; check exit 0
 - [-] T37 | split: the filed-add half is T43; an empty place always takes an add, the-chief T11, Process 157 | 7c4942d1 | Update
       cap so a recast keeps the instruction the roles filed; an add recast as

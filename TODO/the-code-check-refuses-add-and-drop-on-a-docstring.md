@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 12 tasks closed
+Progress: 9 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-17, on the FIRST run ever to reach stage 7b. A docstring `add` failed the
@@ -13,7 +13,7 @@ Measured: 2026-08-25 — on the CHAIN, not the 7b gate: flows/proof_setter.run r
           {m.py@a0: None}, {m.py@a1: None} and an add at a2 with Refusal('prove', ...,
           'the executable code is not what it was'), on tests/conftest.SAMPLE. T5's two
           cases now RUN, as
-          TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain::test_a_docstring_{DROP,ADD}_is_STILL_REFUSED_at_prove;
+          TestEveryVerdictThePlacesCanEXPRESSGetsThroughTheChain::test_an_approved_docstring_{ADD,DROP}_reaches_a_draft, SUPERSEDING that (cd7d2c94);
           T1 is untouched and the fingerprint was not weakened -- six modules in
           src/comment_review/commands read ArgumentParser(description=__doc__)
 ```
@@ -111,11 +111,14 @@ being ADDED or REMOVED -- only rewritten, which is the case that passes.
       approved-add cases at a0, a class, a method and a decorated declaration;
       SAMPLE gives only a2
         > 2026-09-11 checked by probe in review; no chain test holds them
-- [ ] T9 | Update _blank_docstrings' first line at prove_unchanged.py:55, which
-      says every docstring is blanked
-- [ ] T10 | Update _declared_at, _approved and the comment in proof_setter._one
-      to cite Process 113 with the rest
-- [ ] T11 | Update _prove's docstring to say an approved rewrite at an a place
-      leaves presence to _reread's text check
-- [ ] T12 | Update this file's Measured line, which names the two tests cd7d2c94
-      replaced
+- [x] T9 | _blank_docstrings' first line names the docstrings outside aside as the ones blanked | 294d27b7 | Update
+      _blank_docstrings' first line at prove_unchanged.py:55, which says every
+      docstring is blanked
+- [x] T10 | _declared_at, _approved and the draft-read comment in _one cite Process 113 | 294d27b7 | Update
+      _declared_at, _approved and the comment in proof_setter._one to cite
+      Process 113 with the rest
+- [x] T11 | _prove's docstring says an approved a rewrite leaves presence to _reread's text check | 294d27b7 | Update
+      _prove's docstring to say an approved rewrite at an a place leaves
+      presence to _reread's text check
+- [x] T12 | The Measured line names test_an_approved_docstring_ADD and _DROP_reaches_a_draft, which stand | 87d9ab02 | Update
+      this file's Measured line, which names the two tests cd7d2c94 replaced

@@ -63,6 +63,34 @@ TWO_ROLES = (
 )
 
 
+class TestTheDroppedList:
+    """`decision-log.md Process: #163`: the list reaches the chief under its own
+    heading in the report, and carries no exit code of its own."""
+
+    def test_a_run_whose_only_finding_is_the_list_exits_as_it_did(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        code, out = run(
+            tmp_path,
+            {
+                "block-context": {
+                    "m.py@b1": a_correct_setting("m.py@b1", "two", "# one\n# TWO\n")
+                }
+            },
+            monkeypatch,
+            capsys,
+        )
+        assert code == 0, out
+        assert (
+            "for the chief -- each correct below drops words its claim never named:"
+            in out
+        )
+        assert (
+            "block-context m.py@b1: its change drops 'three', which its claim never"
+            " names" in out
+        )
+
+
 class TestStageCoverage:
     """P26: a dispatch the topology named that returned no copy is reported.
 
