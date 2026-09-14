@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 20 of 33 tasks closed
+Progress: 21 of 33 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -73,8 +73,9 @@ The agents files name the new CLI and say how to use it.
       SKILL.md stage 4 so the roles may be dispatched sequentially: the topology
       and the copies isolate them, not one message.
         > 2026-09-07 decision-log.md Process: #102, Roy 2026-09-07.
-- [ ] T18 | Update the packet so the language-server answer says who can call
-      it; three reviewers found no LSP tool and fell back to grep
+- [x] T18 | the packet says the LSP answer is the task agent probe; the brief has a role without the tool grep | 07372c96 | Update
+      the packet so the language-server answer says who can call it; three
+      reviewers found no LSP tool and fell back to grep
         > 2026-09-07 OneDrive claude-settings/2026-09-07/README.md, Feedback section
 - [-] T19 | SUPERSEDED by Addressing: #23 -- the compositor supplies leading, not the role; refiled as T20 | f850c321 | Update
       reviewer-brief.md to teach leading: an existing place's is restored, a
