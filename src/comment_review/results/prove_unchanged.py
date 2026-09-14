@@ -52,7 +52,7 @@ from comment_review.reading.lexer import (
 
 
 def _blank_docstrings(tree: ast.AST, aside: Collection[ast.AST] = ()) -> ast.AST:
-    """Replace every docstring's value with an empty string, in place.
+    """Replace each docstring's value outside `aside` with an empty string, in place.
 
     A docstring is prose this skill is allowed to rewrite, so its content must
     not enter the fingerprint. Its presence does: a docstring binds `__doc__`,
@@ -97,6 +97,10 @@ def _declared_at(
 
     It returns None unless exactly one declaration matches, so a caller
     refuses rather than guess between two.
+
+    `code_fingerprint_setting_aside` asks it for each declaration an approved
+    alteration documents, whose docstring's presence the proof sets aside
+    (`decision-log.md Process: #113`).
 
     Args:
         tree: the parsed file.
