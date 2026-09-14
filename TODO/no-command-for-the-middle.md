@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 81 of 97 tasks closed
+Progress: 82 of 97 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -448,8 +448,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       open, reworded or not, per Process 152
 - [ ] T94 | Update apply so a mover's answer at a destination where it holds a
       mark reaches the move, per Process 153
-- [ ] T95 | Update the turn so a role's answer where two of its moves land
-      reaches both and goes back as a conflict, per Process 154
+- [x] T95 | a role answer where two of its moves land reaches both moves and the place and both origins go back as escalations, per Process 154 | 48dd530c | Update
+      the turn so a role's answer where two of its moves land reaches both and
+      goes back as a conflict, per Process 154
 - [ ] T96 | Update a held move destination's entry to carry the add, both ends
       put to the author as one move, per Process 155
 - [x] T97 | the batch where two moves land is the same under every hash seed; _join_moves walks its pairs in sorted order | f8e5e2e8 | Update
