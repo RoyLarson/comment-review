@@ -4551,3 +4551,14 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   So `#152` to `#155` stand as provisional, like the code they rule on, and a move shape is next
   judged on what a run over real code shows.
+
+- **#157.** **A chief's recast at an empty place is an `add`** (Roy, 2026-09-13, on a failure
+  set 1b found: at max turns a recast copies the instruction of the first role's mark at the
+  place, so where that role filed a `patch` or `correct` at an add's empty place the recast
+  quotes an empty paragraph, `disposition` exits 0, and the closed proof is refused when read
+  back -- the chief's prose is lost).
+
+  Offered -- always an `add`; a role's filed `add` over its `patch` or `correct`, refusing the
+  recast when none filed one; or refuse and have the chief name the instruction -- Roy chose
+  *"Always an add"*. An empty place holds no sentence, so only an `add` writes anything there,
+  which is the reason `#146` gives for a `correct` being wrong at such a place.
