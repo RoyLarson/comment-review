@@ -4733,3 +4733,29 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   didn't. They probably need to be a subbranch of this again."* So the plan's merge waits on
   them, and they are worked on a subplan with its own branch cut from
   `feat/the-agents-read-the-cli`.
+
+- **#172.** **A move's `change` is the snippet** (Roy, 2026-09-14, asked how a partial move --
+  one sentence leaves, the rest stays -- is expressed, now that nothing reads the brief's
+  labelled `to:`/`from:` change, `move-is-a-composite-mark` T24).
+
+  Offered two flags on one move, a drop plus an add, or whole paragraphs only, Roy: *"--change
+  is the snipit - this is subtracted exactly from the source text. The output paragraph is the
+  part that has to be composed so the raw_text or text or whatever the full paragraph
+  destination is gets the snipit inserted where it is supposed to be inserted. This was part of
+  the design discussion over a week ago when the move was initially thought of as composed marks
+  and then we thought we could get away with just the one mark"*. So a move's `change` is the
+  moved text itself: the origin's result is its paragraph with that text removed exactly, and the
+  destination's result is its paragraph with the text inserted where it belongs. It falsifies the
+  premise `docs/the-mark.md` gives the one-`Mark` move -- that a move's origin has one outcome --
+  which that section says reopens it.
+
+- **#173.** **Refusing a move out of the code at `mark` is temporary** (Roy, 2026-09-14, asked
+  where `#169`'s human-review query is made: `mark` and `check` refusing a destination that is not
+  `path@cue`, or the fold converting the move).
+
+  Roy: *"1) is temporary - the move or add or anything else is part of anything addressable.
+  Still need to work on addresses for external documentss"*. So for now `mark` and `check` refuse
+  a destination that is not `path@cue` and the refusal tells the role to file a
+  human-review-necessary query naming it, marked provisional in the code and in the records; once
+  external documents have addresses, a `move`, an `add` or any other instruction applies to
+  anything addressable.
