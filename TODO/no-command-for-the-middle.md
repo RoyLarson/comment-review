@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 75 of 92 tasks closed
+Progress: 76 of 92 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -315,8 +315,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       whether a mover's answer to a composition re-read at its move's
       destination end reaches the move
         > 2026-09-12 outside Process 129, which covers escalation answers
-- [ ] T63 | Implement a test of a role holding its own mark at a move's
-      destination and a move there, to settle where its answer lands
+- [x] T63 | a movers answer at a destination holding its own mark lands on that mark; xfail strict, question for Roy | 822ee987 | Implement
+      a test of a role holding its own mark at a move's destination and a move
+      there, to settle where its answer lands
         > 2026-09-12 e260438d routes to the move only past a clean or no slot
 - [ ] T64 | Implement a test of a role holding two moves to one destination, to
       settle where its answer lands
