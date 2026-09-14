@@ -84,26 +84,51 @@ class _Source(argparse.Action):
         setattr(namespace, self.dest, sources)
 
 
+def _names_a_file(value: str) -> bool:
+    """Whether `value` is an `@path` -- the prefix and something after it."""
+    return value.startswith(FROM_FILE) and len(value) > 1
+
+
+def _from_file(value: str) -> tuple[str | None, str]:
+    """The text of the file an `@path` value names, or None and why not.
+
+    The file's line endings become LF, whatever it was written with: a slot's
+    `raw_text` is the page's lines joined on LF, so that is the form a
+    `change` or a clause is compared against, and a CRLF scratch file on
+    Windows would otherwise never match.
+    """
+    path = Path(value[1:])
+    try:
+        return constants.LINE_BREAK.sub("\n", read_raw(path)), ""
+    except exceptions.READ_ERRORS as err:
+        return None, f"cannot read {path}: {err}"
+
+
 def _expanded(argv: list[str]) -> tuple[list[str], list[str]]:
     """`argv` with every `@path` value replaced by that file's text.
 
-    ! A flag is never a path, and neither is a lone `@`. The file's line
-    endings become LF, whatever it was written with: a slot's `raw_text` is
-    the page's lines joined on LF, so that is the form a `change` or a
-    clause is compared against, and a CRLF scratch file on Windows would
-    otherwise never match.
+    A value is read from its file whether it stands as its own token or
+    follows a flag's `=` -- `--true=@path`, which argparse reads as it reads
+    `--true @path`. Only the first form was read until `mark-defects` T23,
+    so the second saved the literal path as the clause and inside the derived
+    change. A flag is never a path, and neither is a lone `@`.
     """
     out: list[str] = []
     problems: list[str] = []
     for token in argv:
-        if token.startswith(FROM_FILE) and len(token) > 1 and not token.startswith("-"):
-            path = Path(token[1:])
-            try:
-                out.append(constants.LINE_BREAK.sub("\n", read_raw(path)))
-            except exceptions.READ_ERRORS as err:
-                problems.append(f"cannot read {path}: {err}")
+        flag, eq, value = token.partition("=")
+        if token.startswith("--") and eq and _names_a_file(value):
+            text, why = _from_file(value)
+        elif _names_a_file(token) and not token.startswith("-"):
+            flag, eq = "", ""
+            text, why = _from_file(token)
         else:
             out.append(token)
+            continue
+        if text is None:
+            problems.append(why)
+        else:
+            out.append(f"{flag}{eq}{text}")
     return out, problems
 
 

@@ -105,6 +105,29 @@ class TestARulingIsPlaced:
             == "# one\n# two and\n# three\n"
         )
 
+    def test_a_value_spelled_flag_equals_at_path_is_read_from_that_file(self, run):
+        """`mark-defects` T23. argparse takes `--true=@f` as it takes `--true
+        @f`, but an `@path` was expanded only as a token of its own, so the
+        literal path was saved as the clause and inside the derived change --
+        measured 2026-09-14, module-context 1 saved eight marks that way and
+        `check` passed them."""
+        (run.dir / "true.txt").write_text("2", encoding="utf-8")
+        flags = list(CORRECT)
+        at = flags.index("--true")
+        flags[at : at + 2] = ["--true=@" + str(run.dir / "true.txt")]
+        code, out = run(*flags)
+        assert code == command.OK, out
+        slot = run.copy()["sheets"][0]["marks"][0]
+        assert slot["claim"]["true"] == "2"
+        assert slot["change"] == "# one\n# 2\n# three\n"
+
+    def test_a_flag_equals_at_path_that_cannot_be_read_exits_two(self, run):
+        flags = list(CORRECT)
+        at = flags.index("--true")
+        flags[at : at + 2] = ["--true=@" + str(run.dir / "missing.txt")]
+        code, _ = run(*flags)
+        assert code == command.UNREADABLE
+
     def test_ran_binds_to_the_cite_before_it(self, run):
         code, out = run(*CORRECT, "--cite", "m.py:1", "--ran", "rg -n x m.py")
         assert code == command.OK, out

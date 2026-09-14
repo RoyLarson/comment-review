@@ -369,10 +369,13 @@ $Stages = [ordered]@{
         }
         # c6 -- the lone mark. block-context settles it alone; the other three
         # defer with a scope-declaring query rather than clean, per Process #89.
+        # The true clause is spelled `--true=@path`, which argparse reads as it
+        # reads `--true @path`: mark reads the file either way, and the literal
+        # path never lands in the claim (mark-defects T23, smoke T5).
         Invoke-Checked -Stage 'mark c6 block-context correct' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@c6',
             '--instruction', 'correct',
-            '--false', "@$($LandingFile.c6_false)", '--true', "@$($LandingFile.c6_true)",
+            '--false', "@$($LandingFile.c6_false)", "--true=@$($LandingFile.c6_true)",
             '--reason', 'counting is the whole job of the decorator, worded oddly',
             '--cite', 'fib.py:15', '--repo', $OriginalDir
         ))
