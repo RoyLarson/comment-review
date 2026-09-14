@@ -4454,3 +4454,9 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   *"yes go with board.toml"*. So `board.toml` at the root states `todo-dir = "TODO"` and
   `plans-dir = "docs/plans"` -- the two directories the board already used -- and a bare
   `job-board` finds both.
+
+  Then, asked *"are those job-board commands in for the local CLAUDE.md update?"*, and shown
+  that the global job-board guide lists the same three and that the directories were the one
+  fact particular to this repo, Roy approved deleting them: *"yes"*. So `CLAUDE.md` loses the
+  `# The board` command lines and the paragraph saying every invocation passes `--plans-dir`;
+  the paragraph on the vendored `scripts/todo_tool.py` stays.
