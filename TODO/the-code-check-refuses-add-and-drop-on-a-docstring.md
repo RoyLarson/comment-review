@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 12 tasks closed
+Progress: 7 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-17, on the FIRST run ever to reach stage 7b. A docstring `add` failed the
@@ -114,8 +114,9 @@ being ADDED or REMOVED -- only rewritten, which is the case that passes.
 - [x] T9 | _blank_docstrings' first line names the docstrings outside aside as the ones blanked | 294d27b7 | Update
       _blank_docstrings' first line at prove_unchanged.py:55, which says every
       docstring is blanked
-- [ ] T10 | Update _declared_at, _approved and the comment in proof_setter._one
-      to cite Process 113 with the rest
+- [x] T10 | _declared_at, _approved and the draft-read comment in _one cite Process 113 | 294d27b7 | Update
+      _declared_at, _approved and the comment in proof_setter._one to cite
+      Process 113 with the rest
 - [ ] T11 | Update _prove's docstring to say an approved rewrite at an a place
       leaves presence to _reread's text check
 - [ ] T12 | Update this file's Measured line, which names the two tests cd7d2c94
