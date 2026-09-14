@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 38 of 49 tasks closed
+Progress: 39 of 49 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -192,8 +192,9 @@ files in `corpora/` are in that state today.
       compositor's to supply
         > 2026-09-11 check, collate, disposition all passed an unindented a2 add
         > 2026-09-11 Addressing 23 moved leading to the compositor the same way
-- [ ] T34 | Update the history narration in added lines at compositor.py:211-213
-      and galley.py:93-98
+- [x] T34 | compositor's vacated comment and galley's cue_of comment state what holds, with no history | 21cf82b7 | Update
+      the history narration in added lines at compositor.py:211-213 and
+      galley.py:93-98
 - [x] T35 | identified: 3 of 3310, all corpora/pymc, the ruled f0-first order; nothing filed | 7bd1bdb9 | Identify
       the 3 of 3310 pages that do not set back byte-identical unedited, and file
       what each shows
