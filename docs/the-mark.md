@@ -225,10 +225,10 @@ the true one, and a `sources` entry carrying the line that settles it."*
 the next thing that reads it silently gets a worse answer. ! `add`'s sentence ended *"never the
 payload's"* and now reads *"never the claim's"*: the old word named the field that was removed.
 
-## The classifiers -- FOUR COLUMNS AND A CLOSED LIST OF FLAGS
+## The classifiers -- nine COLUMNS and a closed list of flags
 
 !! **THIS IS THE PART THAT WAS MISSING, AND ITS ABSENCE IS WHAT LET TWENTY-TWO FIELDS IN.** A row
-may state these and nothing else -- **eight things, and no prose.** A new classifier is a change
+may state these and nothing else -- **fourteen things, and no prose.** A new classifier is a change
 to THIS FILE first.
 
 | classifier | what it decides | shape |
@@ -237,13 +237,19 @@ to THIS FILE first.
 | **verbatim** | which ONE claim key is checked word-for-word against the paragraph | a name, or none |
 | **change** | whether a change is owed, and for `move` that it shows both ends | owed / not owed |
 | **sources** | whether sources are owed | owed / not owed |
+| **touches** | which places -- own, origin, destination -- the row writes | a list of place names |
+| **sets** | the text a mark of this row writes at one touch, given its base | a function of the mark, the touch and the base |
+| **reads** | the problems a mark of this row has at one touch, against its base | a function of the mark, the touch and the base |
+| **pairs** | how a mark of this row stands toward the others at its place | a function of the mark |
+| **answers** | which answers a turn may give where this row proposes | a list of names |
 
-**The flags, and there are four:**
+**The flags, and there are five:**
 
     not substantive        clean alone. It is the NULL mark and the coverage record
     empty change allowed   drop alone, where the claim names the whole paragraph
     anchor named in backticks   add alone, and it is a FORM check on `claim.anchor`
     destination addressable     move alone
+    rereads                 add alone -- carried forward for every role that read its page
 
 !! **THE COLUMN COUNT IN THIS HEADING AND THE FLAG COUNT IN THE LABEL ABOVE ARE BOTH READ
 BY THE GATE**, and their sum must equal the names these two tables state. Same rule as the

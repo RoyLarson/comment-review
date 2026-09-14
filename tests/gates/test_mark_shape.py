@@ -120,7 +120,7 @@ _SECTION = _found(
     "the classifiers section (## The classifiers ... up to the next ##)",
 ).group()
 
-#: The four classifier columns and the row flags, each stated once in
+#: The classifier columns and the row flags, each stated once in
 #: `docs/the-mark.md`, mapped to the field that carries it. English prose is
 #: not a valid Python identifier, so this dict is the one place the spec's
 #: wording and the dataclass's field names meet -- it supplies no NAMES of its
@@ -131,15 +131,21 @@ FIELD_FOR = {
     "verbatim": "quotes_original",
     "change": "owes_change",
     "sources": "owes_sources",
+    "touches": "touches",
+    "sets": "sets",
+    "reads": "reads",
+    "pairs": "pairs",
+    "answers": "answers",
     "not substantive": "substantive",
     "empty change allowed": "may_empty",
     "anchor named in backticks": "needs_anchor",
     "destination addressable": "owes_destination",
+    "rereads": "rereads",
 }
 
 
 def _classifier_names() -> list[str]:
-    """The four classifier-column names, read out of the spec's own table.
+    """The classifier-column names, read out of the spec's own table.
 
     `docs/the-mark.md`'s "The classifiers" table names each in its first,
     bolded column -- `| **claim keys** | ... |`.
@@ -158,8 +164,8 @@ def _flag_names() -> list[str]:
 
 
 #: The classifiers heading's own stated column count, and the flags label's
-#: own stated flag count -- `## The classifiers -- FOUR COLUMNS ...` and
-#: `**The flags, and there are four:**`.
+#: own stated flag count -- `## The classifiers -- N COLUMNS ...` and
+#: `**The flags, and there are N:**`.
 _CLASSIFIER_HEADING = _found(
     re.search(r"^## The classifiers -- (\w+) COLUMNS", SPEC, re.MULTILINE),
     "the classifiers heading (## The classifiers -- N COLUMNS)",
@@ -192,20 +198,9 @@ def test_every_mapped_phrase_is_in_the_spec():
     assert set(FIELD_FOR) == set(_classifier_names()) | set(_flag_names())
 
 
-def test_the_spec_named_fields_are_still_readable_off_the_row():
-    """Loosened from set-equality 2026-09-14, T1 of
-    docs/superpowers/plans/2026-09-14-the-middle-rebuilt.md: `Row` moved to
-    `desk.marks.table` and gained `touches`, `sets`, `reads`, `pairs`,
-    `answers` and `rereads` -- fields the marks table needs that
-    `docs/the-mark.md` does not yet state. `owes_destination` is now a
-    property derived from `touches` rather than a stored field, so this asks
-    for the name on the class rather than in `dataclasses.fields`. Task 9 and
-    Task 12 of that plan bring `docs/the-mark.md` and this gate back into
-    exact agreement; until then this checks only that nothing the spec
-    promises went missing, not that the row carries nothing else.
-    """
-    missing = [name for name in allowed_names() if not hasattr(Row, name)]
-    assert missing == []
+def test_the_row_carries_only_what_the_spec_allows():
+    have = {f.name for f in dataclasses.fields(Row)}
+    assert have == allowed_names(), sorted(have ^ allowed_names())
 
 
 def test_no_field_carries_prose():

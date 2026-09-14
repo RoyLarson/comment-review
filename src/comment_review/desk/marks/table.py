@@ -138,11 +138,7 @@ class Row:
     #: and `#121`: an add is carried forward for every role that read its
     #: page, not only the role that filed it.
     rereads: bool = False
-
-    @property
-    def owes_destination(self) -> bool:
-        """Whether this row writes a second place -- true for `move` alone."""
-        return Touch.DESTINATION in self.touches
+    owes_destination: bool = False
 
 
 INSTRUCTIONS: dict[Instruction, Row] = {
@@ -183,5 +179,6 @@ INSTRUCTIONS: dict[Instruction, Row] = {
         touches=(Touch.ORIGIN, Touch.DESTINATION),
         sets=_move_sets,
         reads=_move_reads,
+        owes_destination=True,
     ),
 }
