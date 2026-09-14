@@ -4562,3 +4562,22 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   recast when none filed one; or refuse and have the chief name the instruction -- Roy chose
   *"Always an add"*. An empty place holds no sentence, so only an `add` writes anything there,
   which is the reason `#146` gives for a `correct` being wrong at such a place.
+
+- **#158.** **The agent prose stops naming a paragraph's kind and annotations** (Roy,
+  2026-09-14: `SKILL.md`, `reviewer-brief.md` and `compact.md` tell agents to act on a
+  paragraph's kind and its annotations, while a binder row carries five fields -- address,
+  anchor, start line, end line, text -- since `#12` dropped `kind` and `annotations` from the
+  row, and stage 6's condenser refuses a paragraph whose kind is unresolved).
+
+  Offered -- the prose stops naming them; the binder carries kind again; or a command answers
+  kind on demand -- Roy chose *"Prose stops naming them"*. The agents are told what the binder
+  gives them, and `compact.md`'s kind table and stage 6's refusal are rewritten around it.
+
+- **#159.** **Stage 7b writes temporary files for the author to diff** (Roy, 2026-09-14:
+  `write.md` and `SKILL.md` say the compositor puts the approved galley over the real files,
+  while the `compositor` command only checks pages and writes nothing, so no command performs
+  that write).
+
+  Offered a write command or the task agent copying the pages over the files, Roy: *"This stage
+  is write to temporary files that can be diffed for the human to read through"*. So 7b does
+  not write over the real files, and no write command is built.
