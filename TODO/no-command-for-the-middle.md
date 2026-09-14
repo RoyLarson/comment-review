@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 83 of 97 tasks closed
+Progress: 84 of 97 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -444,8 +444,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       T79's test in tests/test_turn.py, which since cb42539e runs T87's route
       with weaker assertions
         > 2026-09-13 round 6: T79's turn-1 assertion went with the fix
-- [ ] T93 | Update the turn so a mover's unanswered origin slot leaves its move
-      open, reworded or not, per Process 152
+- [x] T93 | a movers unanswered slot at either end leaves its move open, reworded or not, per Process 152 | 67dd5915 | Update
+      the turn so a mover's unanswered origin slot leaves its move open,
+      reworded or not, per Process 152
 - [x] T94 | a movers answer at a destination where it holds its own mark reaches the move and its own mark stands, per Process 153 | 9031d93c | Update
       apply so a mover's answer at a destination where it holds a mark reaches
       the move, per Process 153
