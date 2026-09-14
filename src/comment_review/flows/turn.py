@@ -990,7 +990,7 @@ def rule_at_max_turns(
         The `Determined`, its `mark` being what the chief's copy will carry:
         the side's mark, None for the original, or a synthesized mark for a
         recast -- carrying the instruction `_recast_as` decides, `claim`
-        shaped to it by `_recast_claim`, and citing every side's sources --
+        shaped to it by `_recast_claim`, and citing each side's sources once --
         so it parses as an ordinary mark the way `flows.collate._composition`'s
         does. A recast follows the first mark there that touches `address`,
         not one `desk.collator._join_moves` carried from a move's other end.
@@ -1035,6 +1035,7 @@ def rule_at_max_turns(
         raise ValueError("a recast needs the chief's own prose")
     first = next(p.mark for p in marks if address in _touched_by(p.mark))
     instruction = _recast_as(first, address)
+    cited = [s for p in marks for s in p.mark.sources]
     recast = Mark(
         address=first.address,
         anchor=first.anchor,
@@ -1042,7 +1043,7 @@ def rule_at_max_turns(
         instruction=instruction,
         claim=_recast_claim(instruction, first, prose),
         reason=reason,
-        sources=tuple(s for p in marks for s in p.mark.sources),
+        sources=tuple(s for i, s in enumerate(cited) if s not in cited[:i]),
         change=prose,
     )
     return Determined(address, answer, turn, CHIEF, "max-turns", reason, recast)

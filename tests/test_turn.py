@@ -2627,6 +2627,20 @@ class TestTheCap:
         assert why == []
         assert again == entry
 
+    def test_a_recast_cites_each_source_once(self):
+        """Both roles at `m.py@b1` cite the one source `a_correct_setting`
+        gives, and the chief's recast there carries it once rather than once
+        per role."""
+        _, _, got = _escalated()
+        (carried,) = got.escalations
+        cited = [s for placed in carried["marks"] for s in placed.mark.sources]
+        assert len(cited) == 2 and cited[0] == cited[1]
+        ruled = rule_at_max_turns(
+            got, "m.py@b1", Answer.RECAST, "", "both miss it", turn=2, prose=TWO
+        )
+        assert ruled.mark is not None
+        assert list(ruled.mark.sources) == [cited[0]]
+
     def test_an_unsettlable_place_is_not_the_chiefs_to_rule(self):
         """`Process: #90`: the place with the human's query is asked of the
         human after everything else, not ruled at max turns."""
