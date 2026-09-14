@@ -196,6 +196,7 @@ files in `corpora/` are in that state today.
 - [ ] T35 | Identify the 3 of 3310 pages that do not set back byte-identical
       unedited, and file what each shows
         > 2026-09-11 final review: the vacated rule fired on none of them
+        > 2026-09-13 scan fe78d91f: 3 of 3310 differ, all pymc; compositor.py:124 rules
 - [x] T36 | the revise holds only the docket's pages; the gate reads only those | 4bf2acd3 | Update
       revise.pull so the revise root holds only the pages the docket writes, and
       the address gate compares only those, per Process 117
