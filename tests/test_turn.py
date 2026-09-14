@@ -31,6 +31,7 @@ from helpers import (
     copies_over,
     disposition,
     entries_of,
+    proof_at,
     the_chief,
 )
 
@@ -1377,6 +1378,61 @@ class TestARewordedMoveEveryRoleCleansTwice:
             assert ruled.mark is not None
             assert ruled.mark.instruction is Instruction.MOVE
             assert ruled.mark.change == reworded
+
+
+def _read_back(root, n: int, proof: MasterProof) -> MasterProof:
+    """`proof` written to `proof{n}.json` in `root` and read back, as the
+    commands hand a proof from one turn to the next."""
+    save_proof(root / f"proof{n}.json", proof)
+    return proof_at(root, n)
+
+
+class TestAMoverThatLeavesItsOriginUnanswered:
+    """A mover that leaves its slot at its move's origin unanswered while
+    every role holds one text -- `no-command-for-the-middle` T91,
+    `Process: #88`, `#89` and `#137`.
+
+    Turn 1 answers every slot `clean` but block-context's at the origin,
+    which never comes back and is revisited. Every role then holds the
+    move's one text at both ends: function-context's `clean` there adopts a
+    reworded text, and leaves a clean over the text as it stands. The test
+    runs the move both ways and asks that it settle alike.
+    """
+
+    @staticmethod
+    def _settled(root, change: str) -> set[str]:
+        """The places determined after turn 1, the proof read back from JSON."""
+        root.mkdir()
+        binder, got = _a_lone_move(root, change)
+        batch = batch_of(got.escalations, got.rereads)
+        answers = {
+            role: [
+                {**slot, "instruction": "clean"}
+                for slot in slots
+                if (role, slot["address"]) != ("block-context", MOVED_FROM)
+            ]
+            for role, slots in batch.items()
+        }
+        one = run_turn(_read_back(root, 0, _at(got)), binder, root, batch, answers)
+        assert [(r.role, r.address) for r in one.revisit] == [
+            ("block-context", MOVED_FROM)
+        ]
+        proof = _read_back(root, 1, proof_after(one, ({"turn": 1, "sent": batch},)))
+        return {d.address for d in proof.determined}
+
+    @pytest.mark.xfail(
+        strict=True,
+        reason=(
+            "no-command-for-the-middle T91: the reworded move settles at both "
+            "ends with the mover's origin slot unanswered, and the move as it "
+            "stands settles at neither; whether an unanswered slot is "
+            "agreement is a question for Roy"
+        ),
+    )
+    def test_it_settles_alike_whether_or_not_the_text_is_reworded(self, tmp_path):
+        as_it_stands = self._settled(tmp_path / "as-it-stands", MOVED_TEXT)
+        reworded = self._settled(tmp_path / "reworded", MOVED_TEXT + ", about w")
+        assert as_it_stands == reworded
 
 
 class TestAMoversQueryAtItsOrigin:
