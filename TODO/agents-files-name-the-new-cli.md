@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 32 of 40 tasks closed
+Progress: 33 of 41 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
 ```
 
@@ -144,11 +144,15 @@ The agents files name the new CLI and say how to use it.
 - [x] T38 | the language-server section writes nothing into the binder; the task agent uses the server itself | fe0aed64 | Update
       SKILL.md's Enrich the binder section so it asks only for what a command
       does
-- [?] T39 | Decide whether a reviewer is handed the brief pasted or by path, so
-      SKILL.md's opening, stage 4 and the role files agree
+- [x] T39 | RULED Process 170 -- by path, not pasted | 3713bf5e | Decide whether
+      a reviewer is handed the brief pasted or by path, so SKILL.md's opening,
+      stage 4 and the role files agree
         > 2026-09-14 12 pasted prompts came to about 540 KB, sent over several turns
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
+        > 2026-09-14 RULED Process 170: by path; the roles read it in pieces
 - [ ] T40 | Update SKILL.md 1.9 to order the roles in stages and size each
       role's ways to its pages, per Process 168
         > 2026-09-14 a later stage reads a revise; docket-defects T10 first
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
+- [ ] T41 | Update SKILL.md stage 4's packet and the four role files to hand a
+      reviewer the brief and vocabulary by path, per Process 170
