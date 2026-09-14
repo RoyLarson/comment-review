@@ -883,19 +883,25 @@ nothing under the repo touched -- and prove it changed no code:
 python <skill>/scripts/comment-review.py proof --repo . --copy <run-dir>/chief.json --out <run-dir>/galley
 ```
 
-**`--out` must not already exist**, and it holds a full copy of `--repo` with the chief's
-pages overlaid; a galley is discarded with the run. ! **`proof` REFUSES rather than guesses.**
+**`--out` must not already exist**, and it holds only the pages `proof` lists as drafted, one
+`<path> -> <draft>` line each, and no other file of `--repo`; a galley is discarded with the run. ! **`proof` REFUSES rather than guesses.**
 It exits nonzero and NAMES what refused -- an input that fails to read prints `CANNOT READ`,
 one that does not match its shape prints `CANNOT READ THE COPY: <reason>`, and a bad `--out`
-prints `REFUSED: --out <reason>` -- each at exit **2**. A refusal further into the chain -- the
-address space having moved, or a page's own draft/set/reread step -- prints `REFUSED at <step>:
-<where> -- <reason>` and exits **1**. Read what it printed, rather than a list you remember.
+prints `REFUSED: --out <reason>` -- each at exit **2**. A refusal further into the chain exits **1**: a
+moved address space prints `REFUSED: the address space moved -- <reason>`, and a step on one page
+prints `REFUSED at <step>: <where> -- <reason>`. Read what it printed, rather than a list you remember.
 
 Then present, grouped by instruction, most consequential first, in **five parts**
 (`INSTRUCTION / PARAGRAPH / CLAIM / REASON / CHANGE`) -- the mark minus the fields only the
 collator reads -- replacement text inline for every `correct` / `patch` / `add`, and the galley's
-diff for the whole page. State **raised / clean**, which places you ruled at max turns and how,
-and the longest paragraph that will remain.
+diff for the whole page, which this prints:
+
+```bash
+python <skill>/scripts/comment-review.py taken_in --original . --revise <run-dir>/galley
+```
+
+State **raised / clean**, which places you ruled at max turns and how, and the longest paragraph
+that will remain.
 
 !! **THE UNSETTLABLE PLACES ARE THE AUTHOR'S, AND THIS IS WHERE THEY ARE ASKED.** `disposition` printed
 each one with the role that raised it and its reason; put every one to the author here, after
