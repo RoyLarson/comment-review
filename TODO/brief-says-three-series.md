@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 2 of 7 tasks closed
+Progress: 2 of 8 tasks closed
 Owner:    agents
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-29 (found sweeping reviewer-brief.md against its consumers on
           feat/the-mark-and-the-collator, 2026-08-29)
 ```
@@ -42,3 +42,5 @@ place the same brief tells it to cite at `:74`.
         > 2026-09-11 Addressing 26, Roy: that probably needs its own workflow
         > 2026-09-12 Roy 2026-09-12: its own plan and branch, not set 4
         > 2026-09-12 reviewer-brief :86-90 states the routing since 7627b266
+- [?] T8 | Decide at which stage each correction to an f place is raised to the
+      human, and what the human is shown
