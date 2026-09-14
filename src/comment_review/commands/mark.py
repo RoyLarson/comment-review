@@ -3,6 +3,11 @@
     comment_review mark --edit-copy COPY --address ADDRESS --instruction correct \
         --false "the clause as it stands" --true "the clause as it should read" \
         --reason "..." --cite pkg/mod.py:12 [--ran "rg -n ..."] [--repo ROOT]
+    comment_review mark --edit-copy COPY --address ADDRESS --withdraw
+
+`--withdraw` takes back every ruling the copy holds at `--address`, handing a
+seeded slot back as it was seeded, so a role places its ruling again rather
+than editing the JSON (`mark-defects` T24, `flows.fill.withdraw`).
 
 !! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
 A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`. The flow is
@@ -42,7 +47,7 @@ import sys
 from pathlib import Path
 
 from comment_review.desk.mark import INSTRUCTIONS
-from comment_review.flows.fill import fill
+from comment_review.flows.fill import fill, withdraw
 from comment_review.flows.proof_io import load_copy, save_wire
 from comment_review.machine import constants, exceptions
 from comment_review.machine.repo import read_raw
@@ -176,9 +181,13 @@ def main() -> int:
     )
     ap.add_argument(
         "--instruction",
-        required=True,
         choices=sorted(INSTRUCTIONS),
-        help="one of the seven",
+        help="one of the seven; required unless --withdraw",
+    )
+    ap.add_argument(
+        "--withdraw",
+        action="store_true",
+        help="take back every ruling placed at --address, and place nothing",
     )
     for key in CLAIM_FLAGS:
         ap.add_argument(f"--{key}", help=f"claim.{key}")
@@ -207,6 +216,10 @@ def main() -> int:
             print(line, file=sys.stderr)
         return UNREADABLE
     args = ap.parse_args(argv)
+    if args.withdraw and args.instruction:
+        ap.error("--withdraw takes back what is placed; it takes no --instruction")
+    if not args.withdraw and not args.instruction:
+        ap.error("--instruction is required, unless --withdraw")
 
     copy_path = Path(args.edit_copy)
     copy, why = load_copy(copy_path)
@@ -214,6 +227,15 @@ def main() -> int:
         for line in why:
             print(line, file=sys.stderr)
         return UNREADABLE
+    if args.withdraw:
+        _, why = withdraw(copy, args.address)
+        if why:
+            for line in why:
+                print(line)
+            return BROKEN
+        save_wire(copy_path, copy)
+        print(f"{args.address}: withdrawn from {copy_path}")
+        return OK
     entry, why = _entry(args)
     if not why:
         _, why = fill(copy, entry, Path(args.repo) if args.repo else None)

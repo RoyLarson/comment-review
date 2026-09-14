@@ -658,7 +658,7 @@ Pass one `--edit-copy` for every file `distribute` printed -- a role split three
 | exit | it means | what you do |
 |---|---|---|
 | `0` | every place the roles marked resolved on its own | go on; `chief0.json` is the chief's copy |
-| `1` BROKEN | a copy broke a rule, or the set cannot be reconciled -- nothing written | every line it printed names a role and a place; send each back to that role, re-check, re-run |
+| `1` BROKEN | a copy broke a rule, or the set cannot be reconciled -- nothing written | every line it printed names a role and a place; send each back to that role, which takes the mark back with `mark --withdraw --address <place>` and places its ruling again; re-check, re-run |
 | `2` UNREADABLE | a file is not what it says | fix the invocation |
 | `3` REREADS, `4` ESCALATIONS | places carried forward -- the roles did not agree | **rule at max turns**, below |
 | `5` DRIFT, `6` COVERAGE | a returned `raw_text` is not the seeded one, or a role left places unruled | the chief's copy is written; the printed places go back to their role once; say in the proposal what was left short |

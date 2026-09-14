@@ -442,6 +442,20 @@ $Stages = [ordered]@{
         # b9 -- the recast. block-context and module-context each correct the
         # same clause a different way; ownership-context and function-context
         # clean.
+        # smoke T7: block-context places a first ruling at b9, takes it back
+        # with --withdraw, and places the one that lands below -- the copy
+        # holds only the second (mark-defects T24).
+        Invoke-Checked -Stage 'mark b9 block-context first correct' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@b9',
+            '--instruction', 'correct',
+            '--false', 'logged sees', '--true', 'logged looks at',
+            '--reason', 'a first reading, taken back below',
+            '--cite', 'fib.py:21', '--repo', $OriginalDir
+        ))
+        Invoke-Checked -Stage 'mark b9 block-context withdraw' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@b9',
+            '--withdraw'
+        ))
         Invoke-Checked -Stage 'mark b9 block-context correct' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@b9',
             '--instruction', 'correct',

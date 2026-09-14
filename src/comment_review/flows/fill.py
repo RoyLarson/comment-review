@@ -328,3 +328,45 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
         return slot, []
     marks.insert(at + 1 if at >= 0 else len(marks), mark)
     return mark, []
+
+
+def withdraw(copy: dict, address: str) -> tuple[dict | None, list[str]]:
+    """Every ruling the copy holds at `address`, taken back.
+
+    `mark-defects` T24. A second ruling at an address lands beside the first,
+    so a role had no way to take back a mark it placed -- and a refused mark is
+    sent back to the role that wrote it, which then had nothing to fix it with
+    but the JSON. A place the seed gave a slot -- one holding prose, outside
+    the file's own matter, which is never seeded -- keeps one untouched slot,
+    as it was handed; a place the role created for an `add` at an empty place
+    is left with nothing, as it was before.
+
+    Args:
+        copy: a role's edit_copy as its wire dict. MUTATED on success, and only
+            then.
+        address: `path@cue`, as the slot carries it.
+
+    Returns:
+        `(the slot left, [])`, `({}, [])` where the place is left with no slot,
+        or `(None, [message])` with the copy untouched where nothing is placed.
+    """
+    marks, _ = _slot_at(copy, address)
+    if marks is None:
+        return None, [f"{address}: this copy holds no slot there"]
+    here = [
+        i
+        for i, entry in enumerate(marks)
+        if isinstance(entry, dict) and entry.get("address") == address
+    ]
+    if all(untouched(marks[i]) for i in here):
+        return None, [f"{address}: nothing is placed there to withdraw"]
+    first = marks[here[0]]
+    anchor = str(first.get("anchor") or "")
+    raw_text = str(first.get("raw_text") or "")
+    for i in reversed(here):
+        del marks[i]
+    if not filled(raw_text) or address.partition("@")[2].startswith("f"):
+        return {}, []
+    slot = Mark.seed(address, anchor, raw_text)
+    marks.insert(here[0], slot)
+    return slot, []

@@ -128,6 +128,21 @@ class TestARulingIsPlaced:
         code, _ = run(*flags)
         assert code == command.UNREADABLE
 
+    def test_withdraw_takes_a_placed_mark_back(self, run):
+        """`mark-defects` T24, through the command: the slot is handed back as
+        it was seeded, and the role places its ruling again."""
+        run(*CORRECT)
+        code, out = run("--address", "m.py@b1", "--withdraw")
+        assert code == command.OK, out
+        assert "m.py@b1" in out and "withdrawn" in out
+        slot = run.copy()["sheets"][0]["marks"][0]
+        assert slot["instruction"] is None and "claim" not in slot
+
+    def test_withdraw_where_nothing_is_placed_is_refused(self, run):
+        code, out = run("--address", "m.py@b1", "--withdraw")
+        assert code == command.BROKEN
+        assert "nothing is placed" in out
+
     def test_ran_binds_to_the_cite_before_it(self, run):
         code, out = run(*CORRECT, "--cite", "m.py:1", "--ran", "rg -n x m.py")
         assert code == command.OK, out

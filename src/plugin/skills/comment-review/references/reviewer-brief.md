@@ -158,7 +158,9 @@ python <skill>/scripts/comment-review.py mark --edit-copy <EDIT COPY from your p
   line of code the addresser printed for that place, and the slot is created.
 
 `mark` refuses exactly what the fold would refuse, and writes nothing when it does. Read the
-reasons and run it again.
+reasons and run it again. A ruling already placed is taken back with
+`mark --withdraw --address <the slot's address>`, which hands the slot back as it was seeded;
+then place the ruling again. You never edit the JSON.
 
 !! **THE THREE OUTER KEYS ARE NOT DECORATION, and the file you are handed already carries
 them.** `role` is the role this copy was seeded for, `read_from` is the tree it was gathered
@@ -585,7 +587,8 @@ python <skill>/scripts/comment-review.py check --edit-copy <EDIT COPY from your 
 It names every slot you left `null`, every mark that will not read, every `claim` quoting a
 sentence that is not in its paragraph, and every cite whose line does not match, and it exits 0
 only when there is nothing. It writes nothing. **Fix your copy and run it again until it
-reports nothing**; a copy that fails at the fold is a copy you did not check.
+reports nothing** -- `mark --withdraw` takes back a mark it names, and `mark` places the ruling
+again; a copy that fails at the fold is a copy you did not check.
 
 Over a batch's answers it takes `--answers`, with `--role`, `--sent` and `--proof`:
 

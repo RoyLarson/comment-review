@@ -19,7 +19,7 @@ from helpers import a_binder_over, a_small_real_tree, binder_of
 
 from comment_review.desk.mark import Mark, untouched
 from comment_review.flows.distribute import seed
-from comment_review.flows.fill import fill
+from comment_review.flows.fill import fill, withdraw
 
 BASE = "# one\n# two\n# three\n"
 #: Six real code lines so the file carries a real, empty `b3` gap (before
@@ -116,6 +116,50 @@ class TestASecondRulingOnARuledSlotIsAppendedBesideIt:
         assert marks[1]["raw_text"] == marks[0]["raw_text"] == BASE
         assert marks[1]["change"] == "# one\n# two\n# 3\n"
         assert marks[2]["address"] == "m.py@b5"
+
+
+class TestAWithdrawnMarkLeavesTheSlotAsSeeded:
+    """`mark-defects` T24. A second ruling at an address lands beside the
+    first, so a role had no way to take back a mark it placed -- and SKILL.md
+    sends a refused mark back to the role that wrote it. On the 2026-09-14
+    self-run one role edited its copy's JSON by hand to repair eight."""
+
+    def test_a_seeded_slot_is_handed_back_untouched(self, copy, root):
+        seeded = dict(_marks(copy)[0])
+        fill(copy, _a_correct(), root)
+        fill(copy, _a_correct(claim={"false": "one", "true": "1"}), root)
+        left, why = withdraw(copy, "m.py@b1")
+        assert why == []
+        assert [m for m in _marks(copy) if m["address"] == "m.py@b1"] == [seeded]
+        assert left is not None and untouched(left)
+
+    def test_a_ruling_placed_again_is_the_only_one(self, copy, root):
+        fill(copy, _a_correct(), root)
+        withdraw(copy, "m.py@b1")
+        placed, why = fill(copy, _a_correct(claim={"false": "one", "true": "1"}), root)
+        assert why == []
+        assert [m for m in _marks(copy) if m["address"] == "m.py@b1"] == [placed]
+
+    def test_a_slot_the_role_created_is_removed(self, copy, root):
+        entry = {
+            "address": "m.py@b3",
+            "instruction": "add",
+            "claim": {"missing": "why y is 2", "anchor": "`y`"},
+            "reason": "the constant is explained nowhere",
+            "sources": [{"cite": "m.py:5"}],
+            "change": "# y is 2 because the fixture says so\n",
+        }
+        placed, why = fill(copy, entry, root)
+        assert why == [] and placed is not None
+        left, why = withdraw(copy, "m.py@b3")
+        assert why == [] and left == {}
+        assert all(m["address"] != "m.py@b3" for m in _marks(copy))
+
+    def test_nothing_placed_is_refused_and_the_copy_is_untouched(self, copy):
+        before = json.dumps(copy)
+        left, why = withdraw(copy, "m.py@b1")
+        assert left is None and "nothing is placed" in why[0], why
+        assert json.dumps(copy) == before
 
 
 class TestAnAddressWithNoSlotIsAppendedToItsSheet:
