@@ -4759,3 +4759,13 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   human-review-necessary query naming it, marked provisional in the code and in the records; once
   external documents have addresses, a `move`, an `add` or any other instruction applies to
   anything addressable.
+
+- **#174.** **A Schedule holds no alteration for a clean place** (Roy, 2026-09-14, after P1 of
+  `0.2.4-the-cli-carries-a-real-run` (`87746e4b`) stopped `flows.transcribe.docket_of` writing a
+  delete for every `clean` on a role's copy).
+
+  Roy: *"Just so we are on the same page. A Schedule should not hold any Alteration for clean
+  places. The galley will therefore not change any comment that does not have an Alteration and
+  will leave the prose intact"*. So a place with no alteration keeps the prose it was read with.
+  `docket_of` states the rule on the row's `owes_change`, so a `query`, which proposes no text
+  either, writes no alteration too.
