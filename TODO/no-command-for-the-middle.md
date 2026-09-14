@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 74 of 92 tasks closed
+Progress: 75 of 92 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -433,8 +433,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       the unsettlable entry for a move's held origin so the move's drop rides
       with it to the human at 7a, per Process 90 and 139
         > 2026-09-13 T89's xfail at ed8afe94: text at both ends until 7a
-- [ ] T91 | Implement a test of a mover that leaves its origin slot unanswered
-      while every role holds one text, to settle whether it settles
+- [x] T91 | a reworded move settles with the movers origin unanswered and one as it stands does not; xfail strict, question for Roy | c6c28bc5 | Implement
+      a test of a mover that leaves its origin slot unanswered while every role
+      holds one text, to settle whether it settles
         > 2026-09-13 by reading: cb42539e reads copies, not the turn's answers
 - [ ] T92 | Delete T79's test in tests/test_turn.py, which since cb42539e runs
       T87's route with weaker assertions
