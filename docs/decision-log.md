@@ -4581,3 +4581,19 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   Offered a write command or the task agent copying the pages over the files, Roy: *"This stage
   is write to temporary files that can be diffed for the human to read through"*. So 7b does
   not write over the real files, and no write command is built.
+
+- **#160.** **Stage 7b runs no `prove_unchanged` check** (Roy, 2026-09-14, after asking whether
+  `prove_unchanged` is still tied to Python, since a session on `0.2.4-beta.2` saw a docstring
+  change come back as a code change through the Python AST).
+
+  What was read: the proof has two tiers -- Python through its own `ast`, every other language
+  through this repo's comment lexer. The Python tier blanks a docstring's text and keeps its
+  presence, so a reworded docstring passes and an added or dropped one differs. `proof`'s own
+  check sets aside the presence at each declaration an approved alteration documents (`#113`);
+  the standalone `prove_unchanged` command calls the plain fingerprint and does not, and the one
+  agent instruction running it is `references/write.md`'s stage 7b check, which then says to
+  restore the edit.
+
+  Offered -- drop the 7b check, since `proof` already proves every drafted page against the
+  approved changes and under `#159` nothing is written over the real files; or teach the command
+  the approved changes -- Roy chose *"Drop the 7b check"*.

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 19 of 32 tasks closed
+Progress: 19 of 33 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -118,3 +118,5 @@ The agents files name the new CLI and say how to use it.
 - [x] T32 | SKILL.md, the brief and write.md match the CLI: 16 changes, merged at 626017b7 | 626017b7 | Update
       SKILL.md, reviewer-brief.md and write.md so every command, flag, exit code
       and output they name matches the CLI
+- [ ] T33 | Update write.md so stage 7b runs no prove_unchanged check and
+      restores no edit on its result, per Process 160
