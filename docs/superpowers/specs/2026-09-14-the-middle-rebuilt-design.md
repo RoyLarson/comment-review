@@ -40,7 +40,7 @@ sends and prints.
 | the transaction | one fold: `collate`, one `turn`, or `disposition`; and `mark` over one copy | every "nothing written" rule is a rollback |
 | how it lands | rebuilt beside; the old goes private as each piece passes, then is deleted with its tests | nothing has to keep working in between |
 | where the business lives | `desk/`, in sub-packages; `flows/` runs the steps | desk imports leaves only; the flow derives places from the copies and the proof and hands them over |
-| what it is measured against | the three real runs, and the old tests where they still describe wanted behaviour | the fixture is real copies, not hand-built shapes |
+| what it is measured against | the smoke script, with every problem the three real runs found planted on its fixture; and the old tests where they still describe wanted behaviour | no run's copies are checked in, so nothing from one run contaminates another |
 
 ## The three tables
 
@@ -220,16 +220,21 @@ The three `table.py` modules are the only places that name a row.
 
 ## How it is measured
 
-- The three runs are the fixture: the self-run's twelve copies and the two live runs'
-  copies, checked in as test inputs, redacted where they must be. A test folds each through
-  the new middle and asserts what the rulings say: the 23 destinations refused at `mark`, an
-  all-clean copy drafting unchanged, every move landing whole, every place in exactly one
-  state.
+- The smoke script is the fixture. Roy, 2026-09-14: *"Instead of using the three runs
+  directly we should setup the scenarios appropriately in the Powershell script to mimic
+  the problems. That way there is not cross-contamination."* Each problem the three real
+  runs found is planted as a scenario on `scripts/smoke_fixture.py`'s two files and driven
+  through the commands by `scripts/smoke_middle.ps1`, as P1 to P6 already plant six of
+  them: a destination out of the code and a bare cue refused at `mark`, an all-clean copy
+  drafting unchanged, a partial move landing whole at both ends, an add at a place holding
+  prose, a drop across a line break, a second stage reading a revise, and every row of the
+  three tables reached by at least one plant. The real runs' copies stay in
+  `OneDrive/comment-review-feedback` as evidence and are checked in nowhere.
 - Differential where the old was right: for each old test whose expectation stands, the new
   fold over the same input must agree; where the expectation was the defect, the test is
   rewritten to the ruling and the old one deleted.
 - Gates: nothing outside the three table modules names a row; every field of every row is
-  exercised by a place in the fixture runs; the smoke plants every row.
+  exercised by a planted scenario, which a test over `smoke_fixture.py`'s tables asserts.
 
 ## The order
 
@@ -237,10 +242,10 @@ Each step is a unit: work and verify, commit, tick, commit.
 
 1. The three tables under `desk/`, with the gate. The old code made to pass the gate by
    reading the tables -- the first differential: same outputs, one source.
-2. The place and the evaluator, on hand-written places and on the self-run's copies; the
-   old fold left in place.
+2. The place and the evaluator, on hand-written places; the old fold left in place.
 3. The Unit of Work in `desk/work/`, the bus and the collate handler in `flows/`; `collate`
-   switched, differential against the old on the fixture runs; the old fold made private.
+   switched, differential against the old over the smoke's copies; the old fold made
+   private.
 4. `turn` and `disposition` switched the same way; the old `turn.py` made private.
 5. The ends: `fill`, `docket_of` and `check` reading the tables; `text_at` deleted; #172,
    #175 and #176 landed -- the paused P7 and the add step of
