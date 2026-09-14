@@ -4509,3 +4509,34 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   So on this plan: Broken code, and a failure a consumer meets -- an agent reading the shipped
   prose is a consumer -- are filed and fixed before it closes. Any other finding is fixed at once
   when that is easy, or dropped. The P5 build is `0.2.4-beta.3`.
+
+- **#152.** **A mover's unanswered slot leaves its move open** (Roy, 2026-09-13, on
+  `no-command-for-the-middle` T91: in a turn where the mover leaves its origin slot unanswered
+  while every role holds one text, a reworded move settled and the same move unchanged did not,
+  so the outcome turned on the rewording rather than on the mover).
+
+  Asked whether a copy that already holds the one text is agreement without an answer -- Roy
+  chose *"No: unanswered stays open"*. Neither move settles until the mover answers.
+
+- **#153.** **A mover's answer at its destination reaches the move, though it holds a mark
+  there too** (Roy, 2026-09-13, on T63: block-context moves b1 onto b3 and patches the comment
+  already at b3; the batch shows it the moved text at b3 and its answer lands on its patch, so a
+  `clean` there turns the patch into an adoption and the patch leaves the stage unruled).
+
+  Roy chose *"To the move"*: `#129` and `#138` read literally, and the role's own patch stands
+  for the other roles to rule on.
+
+- **#154.** **One role's two moves to one place are a conflict sent back** (Roy, 2026-09-13, on
+  T64: block-context moves b1 and b2 onto b3; its answer there reaches neither move and lands as
+  a third mark, and which move's text the batch shows at b3 varies with Python's hash seed).
+
+  Offered -- refuse it at `check`; the answer reaches both; the answer goes back to the role --
+  Roy: *"the answer reaches both but it is a conflict that has to be sent back because the order
+  and wording are ambiguous and probably need editing"*.
+
+- **#155.** **A held move's two ends go to the author as one move** (Roy, 2026-09-13, on T90's
+  other end: a held origin now carries the move's `drop` to 7a, while a held destination carries
+  no `add`, so approving the drop alone would lose the paragraph).
+
+  Roy chose *"The add, asked together"*: per `#137` both ends ride to 7a and are put to the
+  author as one move, approved or refused whole.
