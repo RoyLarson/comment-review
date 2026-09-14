@@ -106,17 +106,9 @@ claude plugin validate plugins/comment-review     # release gate; before tagging
 uv run python scripts/vocabulary_sweep.py         # terms of art the inventory misses
 uv run python scripts/dead_sweep.py [--names] [--links]
 uv run python scripts/render_page.py <paths...> [--show margin|prose|rows]
-
-# The board
-job-board --plans-dir docs/plans                  # the rollup
-job-board --plans-dir docs/plans audit            # what is waiting, and what is broken
-job-board --plans-dir docs/plans todo list [--owner T] [--requires-roy]
 ```
 
 ### The board
-
-**This repo's plans are in `docs/plans/`**, so every `job-board` invocation passes
-`--plans-dir docs/plans`.
 
 **The vendored `scripts/todo_tool.py` is the older copy** and writes the
 pre-2026-08-31 format. The board was migrated to the five marks on 2026-08-31;
