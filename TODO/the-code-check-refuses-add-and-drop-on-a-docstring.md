@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 12 tasks closed
+Progress: 9 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-17, on the FIRST run ever to reach stage 7b. A docstring `add` failed the
@@ -120,5 +120,5 @@ being ADDED or REMOVED -- only rewritten, which is the case that passes.
 - [x] T11 | _prove's docstring says an approved a rewrite leaves presence to _reread's text check | 294d27b7 | Update
       _prove's docstring to say an approved rewrite at an a place leaves
       presence to _reread's text check
-- [ ] T12 | Update this file's Measured line, which names the two tests cd7d2c94
-      replaced
+- [x] T12 | The Measured line names test_an_approved_docstring_ADD and _DROP_reaches_a_draft, which stand | 87d9ab02 | Update
+      this file's Measured line, which names the two tests cd7d2c94 replaced
