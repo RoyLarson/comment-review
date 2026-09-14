@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 31 of 38 tasks closed
+Progress: 32 of 38 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -140,5 +140,6 @@ The agents files name the new CLI and say how to use it.
 - [x] T37 | the skill description says what the human approves is set in temporary files to diff, per Process 159 | d66af29d | Update
       the skill's front-matter description so the task agent does not apply the
       approved text, per Process 159
-- [ ] T38 | Update SKILL.md's Enrich the binder section so it asks only for what
-      a command does
+- [x] T38 | the language-server section writes nothing into the binder; the task agent uses the server itself | fe0aed64 | Update
+      SKILL.md's Enrich the binder section so it asks only for what a command
+      does
