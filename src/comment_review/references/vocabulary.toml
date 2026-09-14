@@ -34,8 +34,8 @@ statement = "A line of CODE. Never a piece of prose -- prose is a sentence or a 
 expression = "A piece of CODE that evaluates to a value."
 declaration = "Something that can carry DOCUMENTATION -- a module, class, function, method, struct -- and so what an `a` place is about. ! NOT every line that introduces a name: `x = 1` and `let x = 1;` get no `a`. Which kinds a language offers is whatever its tier can resolve. Four of the eighteen have no docstring practice at all -- sql, toml, ini, yaml. ! c and cpp carry an EMPTY LIST TODAY because the matcher reads a line FIRST word and a C declaration opens with its return type -- a matcher that looks for the keyword anywhere in the line resolves it, so this is deferred and not a property of the languages."
 assignment = "A piece of CODE that binds a value to a name."
-mark = "What stage 4 emits: one role's ruling on one paragraph, as one JSON object in its edit copy. The tool seeds the ADDRESS, the ANCHOR and the paragraph's text; the reviewer fills the instruction, claim, reason, sources and change. A mark that fails its shape check is a finding that does not count. The gather's own observations are ANNOTATIONS, not marks."
-annotation = "A mechanical observation the gather attaches to a paragraph -- `names-a-symbol`, `cites-a-path`, `counted`. A CANDIDATE you confirm by reading, never a settled fact."
+mark = "What stage 4 emits: one role's ruling on one paragraph, as one JSON object in its edit copy. The tool seeds the ADDRESS, the ANCHOR and the paragraph's text; the reviewer fills the instruction, claim, reason, sources and change. A mark that fails its shape check is a finding that does not count."
+annotation = "A type annotation in code -- `x: int` -- which is part of the line of code, not prose. The gather attaches none to a paragraph: a binder row holds its address, its anchor, its start and end line and its text, and nothing else."
 "comment run" = "The contiguous comment lines between the two lines of code that bound them. The prose INSIDE a paragraph, which may instead hold a docstring or nothing at all."
 
 # --- what a reviewer emits ---------------------------------------------------
