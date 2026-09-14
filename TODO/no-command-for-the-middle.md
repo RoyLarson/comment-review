@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 78 of 92 tasks closed
+Progress: 79 of 92 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -191,8 +191,8 @@ Reconciliation has no command, so the chain cannot be driven end to end.
         > 2026-09-11 Process 89 says a lone mark stets when those roles agree
         > 2026-09-11 set in daa86dc8; T30's note records it
         > 2026-09-11 Roy: Process 49 stands; an add to an empty place goes back
-- [ ] T36 | Update the history narration in added lines at test_turn.py:854 and
-      :878
+- [x] T36 | the two recast test docstrings state what each asserts, not when it was measured | 1b1cf2da | Update
+      the history narration in added lines at test_turn.py:854 and :878
 - [x] T37 | another role's clean adopts the add; all holding it is a stet | d4e98476 | Update
       turn so every other role answering clean at an add at an empty place
       settles it, per Process 116
