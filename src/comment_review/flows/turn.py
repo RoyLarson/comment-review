@@ -95,7 +95,8 @@ agent's max turns (`Process: #78`), where `rule_at_max_turns` records the
 chief's `taken_in` or `recast` and `determined_chief` derives the chief's copy
 from the whole set. A move the chief rules differently at its two ends is
 written as each end's own mark, a `drop` at the origin and an `add` at the
-destination (`Process: #139`).
+destination (`Process: #139`); a recast at the origin, as over any `drop`,
+is a `correct` to the chief's prose (`#146`).
 
 !! ONCE STET, ALWAYS STET -- `Process: #91`. A place determined on an earlier
 turn keeps that Determined, turn included, whatever the copies say now, and
@@ -920,26 +921,41 @@ def refold(proof: MasterProof, binder: Binder, root: Path) -> Collated:
     return _disagreeing(got, _asked(sent[-1]) if sent else set())
 
 
-def _recast_claim(first: Mark, prose: str) -> dict:
-    """The claim a recast's synthesized mark owes, shaped to `first`'s instruction.
+def _recast_as(first: Mark, address: str) -> Instruction:
+    """The instruction the chief's recast at `address` carries, over `first`.
 
-    `correct` and `patch` are the only rows this quotes an original text for;
-    `add`, `move` and `drop` keep `first.claim` unmodified.
+    A recast of a `drop`, or at the origin of the move `first` is, is a
+    `correct` from the original paragraph to the chief's prose
+    (`Process: #146`), so its claim says what lands; that place holds text
+    for the claim to quote. Any other recast keeps the instruction the roles
+    filed, since a `correct` at an add's empty place quotes nothing and
+    writes nothing.
 
     Args:
-        first: the first owing mark at the place being recast -- whose
-            `instruction` the synthesized mark carries forward.
+        first: the first owing mark at the place being recast.
+        address: which place -- for a move, one of its two ends.
+    """
+    dropped = first.instruction is Instruction.DROP
+    origin = first.instruction is Instruction.MOVE and first.address == address
+    return Instruction.CORRECT if dropped or origin else first.instruction
+
+
+def _recast_claim(instruction: Instruction, first: Mark, prose: str) -> dict:
+    """The claim a recast's synthesized mark owes, shaped to `instruction`.
+
+    Args:
+        instruction: what the recast carries, as `_recast_as` decides it.
+        first: the first owing mark at the place being recast.
         prose: the chief's own paragraph.
 
     Returns:
-        `INSTRUCTIONS[first.instruction].claim_all`, filled. For the two rows
-        that quote an existing sentence (`correct`, `patch`) the quoted key
+        `INSTRUCTIONS[instruction].claim_all`, filled. For `correct` and
+        `patch`, the rows that quote an existing sentence, the quoted key
         (`false`, `from`) takes `first.raw_text` and the other key takes
-        `prose`. A row that quotes nothing (`add`, `move`) or whose claim
-        IS the quoted key (`drop`) keeps `first.claim` as filed -- `prose`
-        has no slot in that shape to fill; it becomes `change`, not `claim`.
+        `prose`. An `add` or a `move` quotes nothing and keeps `first.claim`
+        as filed; `prose` becomes its `change`, not its claim.
     """
-    spec = INSTRUCTIONS[first.instruction]
+    spec = INSTRUCTIONS[instruction]
     key = spec.quotes_original
     others = [k for k in spec.claim_all if k != key]
     if key and others:
@@ -973,16 +989,16 @@ def rule_at_max_turns(
     Returns:
         The `Determined`, its `mark` being what the chief's copy will carry:
         the side's mark, None for the original, or a synthesized mark for a
-        recast -- carrying the instruction the roles filed, `claim` shaped to
-        it by `_recast_claim`, and citing every side's sources -- so it
-        parses as an ordinary mark the way `flows.collate._composition`'s
+        recast -- carrying the instruction `_recast_as` decides, `claim`
+        shaped to it by `_recast_claim`, and citing every side's sources --
+        so it parses as an ordinary mark the way `flows.collate._composition`'s
         does. A recast follows the first mark there that touches `address`,
         not one `desk.collator._join_moves` carried from a move's other end.
         Where that mark is a move, the recast rules one end of it
-        (`Process: #139`): at the origin it is `_the_origin`'s `drop`,
-        leaving the chief's prose there, and at the destination the move
-        carrying the chief's prose, which `determined_chief` writes as
-        that end's `add`.
+        (`Process: #139`): at the origin it is a `correct` from the
+        paragraph to the chief's prose, as over a `drop` (`#146`), and at
+        the destination the move carrying the chief's prose, which
+        `determined_chief` writes as that end's `add`.
 
     Raises:
         ValueError: the place is not carried forward, the side has no mark
@@ -1018,26 +1034,24 @@ def rule_at_max_turns(
     if not filled(prose):
         raise ValueError("a recast needs the chief's own prose")
     first = next(p.mark for p in marks if address in _touched_by(p.mark))
-    moved = first.instruction is Instruction.MOVE
+    instruction = _recast_as(first, address)
     recast = Mark(
-        address=first.address if moved else address,
+        address=first.address,
         anchor=first.anchor,
         raw_text=first.raw_text,
-        instruction=first.instruction,
-        claim=_recast_claim(first, prose),
+        instruction=instruction,
+        claim=_recast_claim(instruction, first, prose),
         reason=reason,
         sources=tuple(s for p in marks for s in p.mark.sources),
         change=prose,
     )
-    if moved and address == first.address:
-        recast = _the_origin(recast, prose)
     return Determined(address, answer, turn, CHIEF, "max-turns", reason, recast)
 
 
-def _the_origin(move: Mark, change: str) -> Mark:
-    """A move's origin as a `drop` of the paragraph it moves, leaving `change`.
+def _the_origin(move: Mark) -> Mark:
+    """A move's origin as a `drop` of the paragraph it moves.
 
-    An empty `change` empties the place, as the move does there
+    Its `change` is empty, which empties the place as the move does there
     (`desk.mark.text_at`). The address, anchor, `raw_text`, reason and
     sources are the move's.
     """
@@ -1049,7 +1063,7 @@ def _the_origin(move: Mark, change: str) -> Mark:
         claim={"drop": move.raw_text},
         reason=move.reason,
         sources=move.sources,
-        change=change,
+        change="",
     )
 
 
@@ -1109,7 +1123,7 @@ def _each_end(
         if all(end is not None and end.mark == move for end in ends):
             continue
         if address == move.address:
-            out[address] = replace(ruled, mark=_the_origin(move, ""))
+            out[address] = replace(ruled, mark=_the_origin(move))
         elif address == move.claim.get("to"):
             half = _the_destination(move, address, proof, root)
             out[address] = replace(ruled, mark=half)
@@ -1238,7 +1252,7 @@ def _riding(held: dict) -> dict:
         None,
     )
     if moved is not None:
-        out["drop"] = {"role": moved.role, **_the_origin(moved.mark, "").serialize()}
+        out["drop"] = {"role": moved.role, **_the_origin(moved.mark).serialize()}
     return out
 
 

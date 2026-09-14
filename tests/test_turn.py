@@ -54,6 +54,7 @@ from comment_review.flows.fill import fill
 from comment_review.flows.mark_errors import Revisit
 from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_proof, save_proof
+from comment_review.flows.transcribe import docket_of
 from comment_review.flows.turn import (
     batch_for,
     close,
@@ -2567,30 +2568,50 @@ class TestTheCap:
         assert why == []
         assert again == entry
 
-    @pytest.mark.parametrize(
-        "escalated, instruction",
-        [
-            (_escalated_patch, Instruction.PATCH),
-            (_escalated_drop, Instruction.DROP),
-            (_escalated_move, Instruction.DROP),
-        ],
-    )
-    def test_a_recast_keeps_the_filed_instruction(self, escalated, instruction):
-        """A recast at `m.py@b1` carries the instruction the roles filed
-        there and reads back unchanged, each through a real fold: `patch`
-        and `drop` quote an original sentence and escalate, and `move`
-        quotes none and is re-read, widened by `_join_moves` to both its
-        ends. `m.py@b1` is the move's origin, where the recast rules that end
-        alone and is its `drop` (`Process: #139`)."""
-        _, _, got = escalated()
+    def test_a_recast_of_a_patch_stays_a_patch(self):
+        """A recast at `m.py@b1` over two roles' `patch`es, which quote an
+        original sentence and escalate through a real fold, carries the
+        instruction the roles filed there and reads back unchanged."""
+        _, _, got = _escalated_patch()
         ruled = rule_at_max_turns(
             got, "m.py@b1", Answer.RECAST, "", "chief's own", turn=2, prose="# mine\n"
         )
         assert ruled.mark is not None
-        assert ruled.mark.instruction is instruction
+        assert ruled.mark.instruction is Instruction.PATCH
         again, why = Mark.deserialize(ruled.mark.address, ruled.mark.serialize())
         assert why == []
         assert again == ruled.mark
+
+    @pytest.mark.parametrize("escalated", [_escalated_drop, _escalated_move])
+    def test_a_recast_over_a_drop_is_a_correct_to_the_chiefs_prose(self, escalated):
+        """`Process: #146`: the chief's recast over two roles' `drop`s, and at
+        the origin of a move `_join_moves` widened to both its ends, is a
+        `correct` whose `false` is the original paragraph and whose `true` is
+        the chief's prose -- the text the docket lands at `m.py@b1`. Every
+        other place carried forward is ruled for the original."""
+        _, _, got = escalated()
+        prose = "# mine\n"
+        ruled = rule_at_max_turns(
+            got, "m.py@b1", Answer.RECAST, "", "chief's own", turn=2, prose=prose
+        )
+        others = [
+            rule_at_max_turns(
+                got, entry["address"], Answer.TAKEN_IN, ORIGINAL, "neither", turn=2
+            )
+            for entry in (*got.escalations, *got.rereads)
+            if entry["address"] != "m.py@b1"
+        ]
+        _, chief = determined_chief(got, [ruled, *others], REPO)
+        (entry,) = entries_of(chief)
+        assert entry.instruction is Instruction.CORRECT
+        assert entry.claim == {"false": BASE, "true": prose}
+        again, why = Mark.deserialize(entry.address, entry.serialize())
+        assert why == []
+        assert again == entry
+        (schedule,) = docket_of(chief, REPO).schedules
+        assert [(one.cue, one.text) for one in schedule.alterations] == [
+            ("b1", entry.claim["true"])
+        ]
 
     def test_a_recast_carries_the_chiefs_own_prose_and_parses(self):
         _, _, got = _escalated()

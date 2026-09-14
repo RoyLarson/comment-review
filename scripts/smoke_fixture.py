@@ -321,7 +321,7 @@ LANDINGS: dict[str, Landing] = {
     # two texts at one place, and the place is carried forward as an
     # escalation; disposition recasts it in the chief's own words. The add is
     # the place's first mark, so the recast carries `add`, the instruction
-    # the roles filed there (`flows.turn._recast_claim`). `marked` is the
+    # the roles filed there (`flows.turn._recast_as`). `marked` is the
     # add's own change, which its `mark` call carries; no mark call and no
     # turn answer carries `text`, so it reaches the proof only inline in
     # dispositions.json.
