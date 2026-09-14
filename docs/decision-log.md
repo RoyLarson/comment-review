@@ -4712,3 +4712,24 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   1.4"* -- Roy chose *"Human-review query"*: a human-review-necessary query at the origin naming
   the intended destination, so it reaches the author at 7a with its reason. The question said 18;
   the refusal holds 19. Filed against `move-is-a-composite-mark` T23.
+
+- **#170.** **A reviewer is handed the brief by path, not pasted** (Roy, 2026-09-14, on
+  `agents-files-name-the-new-cli` T39: `SKILL.md`'s opening said a reviewer reads
+  `reviewer-brief.md` itself, while stage 4 and the four role files say the brief and the
+  vocabulary are pasted into the prompt -- twelve pasted prompts came to about 540 KB in the run
+  of `#168`).
+
+  Offered pasted or by path, Roy: *"by path- no reason to duplicate the data that they are going
+  to read anyway. It also lets them iterate through the pieces one at a time instead of loading
+  up the context with a bunch of stuff that will matter but doesn't yet."* So stage 4's packet
+  names the brief and the vocabulary by path, and the role files say a reviewer reads them from
+  there.
+
+- **#171.** **The self-run's tool findings are fixed under `0.2.4-the-agents-read-the-cli`, as a
+  subbranch of it** (Roy, 2026-09-14, asked whether the findings filed at `82e3d753` join that
+  plan, blocking its merge, or go to a plan of their own).
+
+  Roy: *"go into the agents-read-the-cli because it was supposed to work with just the cli and it
+  didn't. They probably need to be a subbranch of this again."* So the plan's merge waits on
+  them, and they are worked on a subplan with its own branch cut from
+  `feat/the-agents-read-the-cli`.
