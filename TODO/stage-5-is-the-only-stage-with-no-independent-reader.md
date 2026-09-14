@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 9 of 14 tasks closed
+Progress: 10 of 14 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-17, by the session that ran all eight stages and rolled its own work back.
@@ -206,6 +206,7 @@ answered. A rail read and not run is a shape problem, and it was measured twice 
 - [-] T13 | SUPERSEDED in part by Process 94 -- SKILL.md runs the cap after one fold; the turn's text is agents-files-name-the-new-cli T6 | c1b7268a | Update
       SKILL.md so the task agent runs the turns and the cap between collate and
       proof. Verify: stage 5 names the commands and the cap
-- [ ] T14 | Update SKILL.md so stage 8's whole-page read runs on the drafted
-      pages before 7a and its findings join the proposal, per Process 144
+- [x] T14 | stage 8 reads the galley before 7a and its findings join the proposal; blanket approval only | 7f5ce4ab | Update
+      SKILL.md so stage 8's whole-page read runs on the drafted pages before 7a
+      and its findings join the proposal, per Process 144
         > 2026-09-13 T6 then says a selective approval re-reads the pages it changes
