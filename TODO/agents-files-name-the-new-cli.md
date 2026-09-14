@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 28 of 38 tasks closed
+Progress: 29 of 38 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -131,8 +131,9 @@ The agents files name the new CLI and say how to use it.
 - [x] T34 | comment-review-compact.md names no kind: its input is address and anchor, its procedure a place table | 23acf5cc | Update
       comment-review-compact.md so it names no paragraph kind, no refusal of an
       unresolved kind and no kind table, per Process 158
-- [ ] T35 | Update comment-review-review.md so the review reads the galley
-      before 7a, not each file WRITE changed, per Process 144
+- [x] T35 | comment-review-review.md reads the proof as set, each page proof drafted, before the author rules | c8f0eb60 | Update
+      comment-review-review.md so the review reads the galley before 7a, not
+      each file WRITE changed, per Process 144
 - [ ] T36 | Update vocabulary.toml's annotation definition so it is true of what
       the roles are handed, per Process 158
 - [ ] T37 | Update the skill's front-matter description so the task agent does
