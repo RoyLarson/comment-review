@@ -14,7 +14,7 @@ from helpers import a_move, copies_over, entries_of, returned
 
 from comment_review.binder.binder import bind
 from comment_review.desk.containers import EditCopy
-from comment_review.docket.docket import Docket
+from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.flows import page_for as page_for_mod
 from comment_review.flows import proof_setter
 from comment_review.flows.distribute import seed
@@ -554,6 +554,42 @@ class TestEveryAlterationCarriesAnAnchor:
         assert refused == []
         again = build(drafted[0].draft.read_text(encoding="utf-8"))
         assert by_cue(again)[cue_of(destination).cue].raw_lines == [mark.change]
+
+
+class TestOnePlaceTakesOneAlteration:
+    """`docket-defects` T11. `Schedule.deserialize` refuses a repeated place, but
+    `flows.transcribe.docket_of` builds its schedules directly, and
+    `Schedule.edits` keeps the last alteration at a place -- so a role's copy
+    that moves a paragraph into a place it also edits drafted with one of the
+    two lost, at exit 0. The write end refuses it by name however the docket
+    was built."""
+
+    def test_two_alterations_at_one_place_are_refused_naming_both(self, tmp_path):
+        repo, binder, _ = _tree(tmp_path)
+        where = address(binder, "m.py")
+        at = cue_of(where).cue
+        (page,) = binder.pages
+        held, why = page_for_mod.page_of(repo / "m.py", rel="m.py")
+        assert held is not None, why
+        anchor = held.cues.places[at]
+        docket = Docket(
+            schedules=(
+                Schedule(
+                    path="m.py",
+                    sha=page.sha,
+                    alterations=(
+                        Alteration(cue=at, text="# one", anchor=anchor),
+                        Alteration(cue=at, text=None, anchor=anchor),
+                    ),
+                ),
+            )
+        )
+        drafted, refused = proof_setter.run(docket, repo, tmp_path / "out")
+        assert drafted == []
+        assert [(r.step, r.path) for r in refused] == [("verify", "m.py")]
+        assert f"{where}: two alterations for one place" in refused[0].why
+        assert "'# one'" in refused[0].why, refused[0].why
+        assert "a delete" in refused[0].why, refused[0].why
 
 
 def test_A_REFUSAL_IS_NOT_LOST_to_a_later_page_that_raises(tmp_path, monkeypatch):

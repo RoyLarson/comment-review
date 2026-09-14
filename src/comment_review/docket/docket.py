@@ -293,12 +293,27 @@ class Schedule:
     def edits(self) -> dict[str, str | None]:
         """Cue -> the replacement text, or None to delete.
 
-        ! WHAT `flows.proof_setter._one` CONSUMES. It sets places by cue and
-        never asks about order, so the mapping is built once here rather than
-        by every caller -- and `deserialize` has already refused a repeated
-        cue, which is the one thing that would make this lossy.
+        What `flows.proof_setter._one` consumes. It sets places by cue and never
+        asks about order, so the mapping is built once here rather than by every
+        caller. A repeated cue is the one thing that would make this lossy --
+        the last alteration at a place would win. `deserialize` refuses one, and
+        `flows.proof_setter.run` refuses a schedule built directly that holds
+        one, through `repeated`, before this is read.
         """
         return {one.cue: one.text for one in self.alterations}
+
+    @property
+    def repeated(self) -> dict[str, tuple[Alteration, ...]]:
+        """Each cue holding more than one alteration, with the alterations there.
+
+        Empty for a schedule `deserialize` read, which refuses a repeated cue.
+        `flows.transcribe.docket_of` builds its schedules directly, so the write
+        end asks this before it sets a page (`docket-defects` T11).
+        """
+        at: dict[str, list[Alteration]] = {}
+        for one in self.alterations:
+            at.setdefault(one.cue, []).append(one)
+        return {cue: tuple(ones) for cue, ones in at.items() if len(ones) > 1}
 
     @property
     def anchors(self) -> dict[str, str]:

@@ -47,7 +47,7 @@ from pathlib import Path
 from typing import NamedTuple
 
 from comment_review.binder.page import Page
-from comment_review.docket.docket import Docket
+from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.flows.page_for import page_of, source_of
 from comment_review.machine import constants
 from comment_review.machine.repo import can_escape, undraftable
@@ -215,6 +215,10 @@ def run(docket: Docket, repo: Path, into: Path) -> tuple[list[Drafted], list[Ref
     # and a name that resolved to nothing was its own refusal. A schedule
     # carries the repo's own path, so both went with the shape change.
     for schedule in sorted(schedules, key=lambda s: s.path):
+        repeated = _repeated(schedule)
+        if repeated is not None:
+            refusals.append(repeated)
+            break
         try:
             made, why = _one(
                 schedule.path,
@@ -249,6 +253,36 @@ def run(docket: Docket, repo: Path, into: Path) -> tuple[list[Drafted], list[Ref
         _discard_all(drafted, created)
         return [], refusals
     return drafted, []
+
+
+def _repeated(schedule: Schedule) -> Refusal | None:
+    """The refusal for a schedule holding two alterations at one place, or None.
+
+    `Schedule.edits` keeps the last alteration at a place, so setting such a
+    page would drop the others without a word (`docket-defects` T11). Every
+    repeated place is named, with what each alteration there would do.
+    """
+    parts = []
+    for at, ones in schedule.repeated.items():
+        count = "two" if len(ones) == 2 else str(len(ones))
+        doing = "; ".join(_doing(one) for one in ones)
+        where = address_for(schedule.path, at)
+        parts.append(f"{where}: {count} alterations for one place -- {doing}")
+    if not parts:
+        return None
+    return Refusal(
+        "verify",
+        schedule.path,
+        " / ".join(parts) + " -- and setting the page would keep only the last",
+    )
+
+
+def _doing(one: Alteration) -> str:
+    """What one alteration would do to its place, in a few words."""
+    if one.text is None:
+        return "a delete"
+    first = one.text.splitlines()[0] if one.text else ""
+    return f"text {first[:60]!r}"
 
 
 def _discard_all(drafted: list[Drafted], created: set[Path]) -> None:

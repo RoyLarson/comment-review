@@ -523,9 +523,12 @@ def text_at(address: str, mark: Mark) -> str | None:
     in: the same mark writes its `change` at the other end, and writing it at
     both is the duplication the one instruction exists to prevent.
 
-    ! AN EMPTY `change` IS ALSO A DELETE. `parse` admits one only where the
-    row's `may_empty` is True -- `drop`, whose claim can name the whole
-    paragraph -- so the empty string reaching here is the edit.
+    An empty `change` is also a delete. Of the rows that owe a change only
+    `drop` admits an empty one (`may_empty`), its claim able to name the whole
+    paragraph. A `clean` or a `query` owes no change and must not be handed
+    here: its empty change would read as a delete, which is how `proof --copy`
+    once set every paragraph a role certified as gone. `flows.transcribe.docket_of`
+    writes no alteration for one (`decision-log.md Process: #174`).
 
     !! IT WAS `desk/collator.py::_alteration_text` UNTIL `P53`. It reads
     `mark.instruction` and `mark.change` and nothing else, so it is a fact about

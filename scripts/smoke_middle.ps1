@@ -177,6 +177,8 @@ $ProofDir = Join-Path $Run 'proof'
 $ExpectedDir = Join-Path $Run 'expected'
 $RoleDraftDir = Join-Path $Run 'role-draft'
 $RoleExpectedDir = Join-Path $Run 'role-expected'
+$CollideCopyFile = Join-Path $Run 'collide-copy.json'
+$CollideDraftDir = Join-Path $Run 'collide-draft'
 
 # Each entry is one stage's work, and the chain as this script leaves it ends
 # at diff. Each block runs in its own scope, so a variable a stage assigns is
@@ -649,6 +651,31 @@ $Stages = [ordered]@{
             'git', '-c', 'core.autocrlf=false', '--no-pager', 'diff', '--no-index', '--',
             $RoleExpectedDir, $RoleDraftDir
         )
+        # docket-defects T11: a copy of that role's copy, with a move from
+        # rate.py@b5 into rate.py@b1, a place the role also corrected -- two
+        # alterations at one place. It is a copy so the fold still reads the
+        # role's own; drafting it is refused by name, and no draft keeps one
+        # alteration and loses the other.
+        Copy-Item -LiteralPath $CopyFile['function-context'] -Destination $CollideCopyFile
+        Invoke-Checked -Stage 'draft collide mark' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CollideCopyFile, '--address', 'rate.py@b5',
+            '--instruction', 'move', '--from', 'rate.py@b5', '--to', 'rate.py@b1',
+            '--change', '    # Kept for callers that ask for a share rather than a rate.',
+            '--reason', "share's comment says what rate's does, and belongs with it",
+            '--cite', 'rate.py:11', '--repo', $OriginalDir
+        ))
+        $collide = $Launcher + @(
+            $Cmd.proof, '--copy', $CollideCopyFile, '--repo', $OriginalDir,
+            '--out', $CollideDraftDir
+        )
+        $refused = Invoke-Checked -Stage 'draft collide refused' -Expect 1 -Capture -CommandLine $collide
+        if (-not (($refused -join "`n").Contains('rate.py@b1: two alterations for one place'))) {
+            Write-Host 'stage failed: draft collide refused'
+            Write-Host 'expected a refusal naming rate.py@b1 as holding two alterations; proof printed:'
+            $refused | Out-Host
+            Write-Host "command: $(Format-CommandLine $collide)"
+            exit 1
+        }
     }
     # One `collate` over all four copies, writing the master proof and the
     # turn's batch. The plant's disagreements make this exit 4 (escalation
