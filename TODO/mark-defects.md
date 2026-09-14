@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 18 of 25 tasks closed
+Progress: 18 of 26 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -253,3 +253,6 @@ cites as its measured example of a field answering neither necessary nor purpose
       paragraph's longest line before the drop
         > 2026-09-14 self-run: 11 changes past 88 columns, bc2 4 and fc2 7
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
+- [ ] T26 | Implement an add whose change is the snippet and whose raw_text is
+      the paragraph as it will read, per Process 176
+        > 2026-09-14 Roy: the location and the snippet and the destination raw text

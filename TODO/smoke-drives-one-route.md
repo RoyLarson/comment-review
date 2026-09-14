@@ -37,5 +37,5 @@ The smoke drives one route, and the self-run broke on the others.
 - [x] T8 | FINISHED -- a fresh copy's drop across rate.py@b1 drafts rewrapped | e4d69ded | Implement
       a smoke plant of a drop inside a line, failing while a line runs past the
       paragraph's longest (mark-defects T25)
-- [ ] T9 | Implement a smoke plant of a partial move whose change is the
+- [~] T9 | Implement a smoke plant of a partial move whose change is the
       snippet, failing while the origin keeps it or the destination lacks it
