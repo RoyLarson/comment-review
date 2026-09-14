@@ -4769,3 +4769,14 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   will leave the prose intact"*. So a place with no alteration keeps the prose it was read with.
   `docket_of` states the rule on the row's `owes_change`, so a `query`, which proposes no text
   either, writes no alteration too.
+
+- **#175.** **A move's `raw_text` is the updated destination text** (Roy, 2026-09-14, asked for
+  P7 of `0.2.4-the-cli-carries-a-real-run` where `#172`'s snippet lands in the destination
+  paragraph, and who puts it in the destination's form).
+
+  Offered -- the role writes the arrival as a second value, the tool appends and re-marks, or
+  the role names the sentence it follows -- Roy: *"The raw text in the mark is the updated
+  destination text"*. So a move's mark carries the snippet in `change`, removed exactly from the
+  origin, and the destination paragraph as it will read with the snippet in, in the
+  destination's own form, as its `raw_text` -- the premise `docs/the-mark.md` records from
+  2026-09-02, that `raw_text` holds the edited text and so says where the text lands.
