@@ -579,8 +579,8 @@ not a path to go reading. ! Read it fresh from the installed toml every run, nev
 staged on disk: a vocabulary one version stale reads perfectly plausible.
 
 !! **`BINDER` POINTS AT `binder.json` FROM STAGE 2.** A reviewer's copy carries each prose
-paragraph's text; the binder is what its `addresser` and `check` calls take, and what stages 5
-and 7 resolve every cited address against. A reviewer reads both from disk; neither is pasted
+paragraph's text; the binder is what its `addresser` and `check` calls take, and what stage 5
+resolves every cited address against. A reviewer reads both from disk; neither is pasted
 into a prompt.
 
 **You also supply the run context as a PACKET, with every section filled and none blank** -- a
@@ -670,7 +670,8 @@ python <skill>/scripts/comment-review.py collate --stage 4 --binder <run-dir>/bi
 | `5` DRIFT, `6` COVERAGE | a returned `raw_text` is not the seeded one, or a role left places unruled | the chief's copy is written; the printed places go back to their role once; say in the proposal what was left short |
 | `7` `CARRIED_AND_UNRULED` | places carried forward, and a role left a place unruled | the printed unruled places go back to their role once, as for `6`; the carried-forward places are what a `3` or `4` asks of you |
 
-Every printed line reads `<role> <place>: <reason>`. **That is your work list for sending
+Every line that opens with a role reads `<role> <place>: <reason>`, the place `(the copy)` for a
+problem with the whole copy. **That is your work list for sending
 back**, and a task agent reads it rather than the copies.
 
 !! **A finding whose evidence does not resolve is not a finding.** Only `clean` is exempt,
