@@ -2025,10 +2025,10 @@ class TestAMoveSettledAtTurnZero:
     def test_the_docket_sets_each_end_of_the_move_once(
         self, tmp_path, monkeypatch, capsys
     ):
-        """`docket-defects` T9: the smoke's docket on 2026-09-11 carried the
-        move's delete and its text twice each. The proof after turn 1 is
-        written to disk, and `disposition` and `proof --to-docket` read it,
-        as the smoke's do."""
+        """`docket-defects` T9: the docket sets each end of the move once --
+        the delete at its origin and the moved text at its destination. The
+        proof after turn 1 is written to disk, and `disposition` and
+        `proof --to-docket` read it, as the smoke's do."""
         binder, proof = _a_move_stet_at_turn_zero(tmp_path)
         (tmp_path / "binder.json").write_text(
             json.dumps(binder.serialize()), encoding="utf-8"
