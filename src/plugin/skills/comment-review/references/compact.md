@@ -149,6 +149,5 @@ wrong word read as house style and the result was wrong on two independent axes.
 Paragraphs condensed, paragraphs left at length with the reason, and the final longest paragraph. A paragraph
 you could not condense is a finding, not a silence.
 
-! **No CODE CHECK here** -- nothing has been written yet. That check belongs to
-WRITE (stage 7b), which is the only pass that touches a file. What you hand back is the text
-stage 7a will put in front of the author.
+**No code check here** -- that check runs at stage 7a, and no pass writes over a file under
+review. What you hand back is the text stage 7a will put in front of the author.

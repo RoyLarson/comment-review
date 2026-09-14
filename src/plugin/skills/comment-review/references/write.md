@@ -1,4 +1,4 @@
-# Stage 7b -- WRITE: put on disk what the human approved
+# Stage 7b -- WRITE: set what the human approved, for the author to diff
 
 Loaded by the task agent **after approval**, never by a reviewer. If you are reading this
 before the human has approved an instruction list, stop.
@@ -28,17 +28,31 @@ leave behind.
 
 ## What actually writes
 
-!! **The COMPOSITOR writes, and it is the only thing that does.** 7a already set the approved
-text as a GALLEY -- a complete copy of each page, built by putting every approved replacement on
-the page and setting the whole of it. **7b puts that copy over the real file, wholesale.**
+**`proof` sets the approved text in temporary files, and nothing is written over the real
+files.** The author diffs those files against the tree and reads them through; this stage puts
+nothing on the pages under review, and a run leaves the tree exactly as it found it.
 
-! **So there is nothing to merge and no range to get wrong.** The draft IS the finished page: it
-was set from the whole of it, not patched into the original. A write that edited the real file in
-place would be re-deriving, at the one point in the run where a mistake lands on disk, a result
-that already exists.
+1. **Hand `proof` the copy the author approved.** On a blanket approval that is `chief.json`,
+   and the galley 7a set from it is already the approved text: go to step 3 with that
+   directory. Otherwise write `approved.json` -- `chief.json` holding only the marks the author
+   approved -- with your file-write tool.
+2. **Set it into a directory that does not exist yet:**
 
-! **Which is also why the real file is untouched until this moment.** A run abandoned, refused or
-stopped at 7a leaves the tree exactly as it found it.
+   ```bash
+   python <skill>/scripts/comment-review.py proof --repo . --copy <run-dir>/approved.json --out <run-dir>/approved
+   ```
+
+   It prints one `<path> -> <draft>` line per page it set and refuses rather than guesses, as at
+   7a. It refuses a draft whose executable code is not the code the page was set from, and that
+   is the only code check this stage runs.
+3. **Print the diff the author reads:**
+
+   ```bash
+   python <skill>/scripts/comment-review.py taken_in --original . --revise <run-dir>/approved
+   ```
+
+**A held move the author approved is not on `chief.json`**, so `proof` cannot set it: tell the
+author it was approved and not set.
 
 ## Rails
 
@@ -47,51 +61,13 @@ docstring that states something **false** is in scope -- that is the `correct` i
 Changing what the docstring *documents* is not. ! **A `correct` on a claim inside a string
 literal is REPORTED, never applied** -- hand it to the human as a code concern.
 
-**Prove the code says the same; do not assert it.** Run the CODE CHECK -- do not perform it:
-
-```bash
-python <skill>/scripts/comment-review.py prove_unchanged --base <pre-edit-ref> --repo . <paths...>
-```
-
-!! **`--base` is the PRE-EDIT REF 1.1 recorded -- NOT the merge base.** This proves what WRITE
-changed, and the branch's own code changes are not WRITE's. Measured: on a branch that edits
-code and comments together -- which is what this skill reviews -- a run where WRITE touched only
-a comment reports `FAIL <path>: executable code DIFFERS` against the merge base, and `PROVEN` against
-the pre-edit ref. Against the merge base the rail below then says to restore a correct edit.
-
-It exits nonzero unless every path is proven, and it reports an **unprovable**
-file rather than passing it. It carries the AST comparison for Python, a
-comment-stripped byte comparison for every other language the gather knows, and the line-ending check against an untouched sibling. ! **Re-run it
-after the formatter** -- the formatter can reshape what you wrote.
-
-! **A `FAIL` or `UNPROVABLE` line is a stop, not a note.** The claim is
-what this skill promises the people who run it; report the line verbatim and
-restore the file. **An `UNCHECKED` line does not stop the run** -- it means the
-line-ending check had no untouched sibling to compare against, not that it
-passed -- but report it verbatim too, so the human deciding knows which claims
-this run actually has a signal for.
-
-**Edit through an exact-match tool, never raw text.** Measured, all caught only by the CODE
-CHECK: a path-rewrite regex reached inside a runtime `raise` message because it worked on raw
-text instead of the paragraph list; `open(..., newline="")` stripped CRLF from every file it
-touched, in two separate runs, while the agent was reading this rail; a sweep regex without a
-leading boundary doubled a directory prefix.
-
 !! **A HEREDOC is raw text, and it is the one that reaches the prose itself.** Passing
 replacement text through `<<'PY'` or any shell here-document hands it to two parsers before it
 lands: `\n` inside the new comment collapses into a real newline and breaks the sentence
 mid-token, and on Windows the redirect can write UTF-16. Measured in two independent sessions on
-2026-08-17, one of them while quoting this rail. ! It is worse than the failures above because
-the CODE CHECK cannot see it -- the damage is in prose, the AST is unchanged, and the run reports
-PROVEN. A formatter caught it once; nothing in this skill would have.
-
-! **A non-unique match is a question for the author, not a `replace_all`.** N identical matches means N
-paragraphs, and they may not deserve the same instruction. Reaching for `replace_all` once rewrote two
-string literals.
-
-**Extract before you cut, when the instruction is `move`.** Write the destination first, verbatim,
-then remove the source. The other order loses the text on any interruption -- three times,
-before this became the rule.
+2026-08-17, one of them while quoting this rail. No code check can see it -- the damage is in
+prose and the code is unchanged. Write `approved.json` with your file-write tool, never through
+a heredoc or a shell redirect.
 
 **Re-read what you wrote, against the block-context rule.** The failure mode is producing
 exactly what you are removing -- a pass that cuts obituaries writes new ones, and writes the
@@ -132,12 +108,12 @@ the rails say never change a string literal.
 
 ## Report
 
-Edits applied, files touched, the CODE CHECK and how you ran it, and every paragraph you
-could not write with the reason -- that is a finding, not a silence.
+The directory `proof` set and the pages it lists, the `taken_in` command the author diffs with,
+and every approved paragraph you could not set, with the reason -- that is a finding, not a
+silence.
 
 **Say explicitly whether every approved paragraph landed byte-for-byte as approved.** A divergence
 between what the author saw and what is on disk is invisible in a diff that shows only the new
 text, so this line is the one place it can surface.
 
-Then hand to stage 8 (REVIEW), which reads each changed file end to end and is the only pass
-that can see damage the editing itself caused.
+Nothing follows this stage: stage 8 read the galley before 7a.

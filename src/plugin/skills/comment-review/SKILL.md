@@ -28,7 +28,7 @@ Structure and fact first, then truth, then fit, then the page.
 | 5 | **COLLATE and DISPOSITION** | `collate`, then the task agent as **copy chief** | the copies folded; what they agreed on stands, what they did not is ruled at max turns; the chief's `edit_copy` holds one mark per resolved place with its **full-length** text |
 | 6 | **COMPACT** | task agent | that text cut to the cap -- **skipped entirely if there is no cap** |
 | 7a | **APPROVAL -- present** | task agent, then `proof` and the **compositor**, then stage 8 | the final text set as a galley -- a copy of each page, nothing under the repo touched -- read by stage 8, then in front of the author with stage 8's findings and the places only the author can settle; **the run stops here** |
-| 7b | **APPROVAL -- write** | **author**, then the **compositor** | the approved draft put over the real file wholesale, byte-for-byte as approved |
+| 7b | **APPROVAL -- write** | **author**, then task agent and `proof` | the approved text set in temporary files for the author to diff and read through, byte-for-byte as approved; nothing under the repo written |
 | 8 | **REVIEW** | `comment-review-review` | the galley's pages read as a reader would read them, before the author sees the proposal |
 
 !! **THIS IS THE BASELINE SHAPE, RULED 2026-09-04: every role reads ONCE, the copies fold ONCE,
@@ -111,7 +111,8 @@ and two constraints pin it into exactly that slot:
   means the author approved something that never reached the file.
 
 **APPROVAL (7) presents the FINAL text and STOPS.** It takes the author's ruling, and applies
-that text only if it was approved.
+that text only if it was approved -- set in temporary files for the author to diff, never over
+the real files.
 
 **REVIEW (8) is the only stage that reads the artifact against itself.** Everything before it
 compares prose to code; this asks whether the finished page still reads. It reads the galley 7a
@@ -168,7 +169,7 @@ holds no uncommitted change to the files in scope, and `git stash create` otherw
 writes a commit object for the current state and leaves the working tree untouched. **It is not
 the merge base**, and the two answer different questions: the merge base says what the BRANCH
 changed, the pre-edit ref says what THIS RUN changed. Stage 6 reads the ORIGINAL prose from it
-and stage 7b proves against it.
+and stage 7b's residue check reads it again.
 
 **1.1 Scope from the MERGE BASE** -- `git merge-base HEAD <upstream>`, then
 `git diff --name-only "$base"..HEAD`. Never `A...B` between two tips, never a `HEAD~1`
@@ -933,10 +934,11 @@ next pass avoids re-deciding, and it is worthless if it stays in your head.
 ! **Approval IS authorization.** "Yes", "do it", "continue" -> load `references/write.md` and
 apply. Never-edit binds reviewers, not you acting on an approval.
 
-## Stage 7b -- WRITE: put the approved text on disk
+## Stage 7b -- WRITE: set the approved text for the author to diff
 
-On approval, load [`references/write.md`](references/write.md) and follow it. It carries the
-residue check and the write rails. Do not write from memory.
+On approval, load [`references/write.md`](references/write.md) and follow it. It sets the
+approved text in temporary files with `proof`, for the author to diff, and puts nothing over the
+real files; it carries the residue check and the write rails. Do not write from memory.
 
 ! **Stage 7b writes the APPROVED text verbatim.** It does not shorten, re-word or re-judge --
 every one of those questions was settled upstream, and re-opening one here writes something
