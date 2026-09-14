@@ -275,7 +275,7 @@ that changed a published name or rule:
 | [ty-cannot-see-the-tests](ty-cannot-see-the-tests.md) | systems (the gate) - backend (the test fixes) | -- | 1/5 | The type gate is scoped to src and cannot see the tests |
 | [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | -- | 0/6 | A present-but-null key becomes the four characters None |
 | [collate-flow-defects](collate-flow-defects.md) | backend | -- | 4/16 | Twelve defects in `flows/collate.py`, from a review of one file |
-| [mark-defects](mark-defects.md) | backend | -- | 15/25 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
+| [mark-defects](mark-defects.md) | backend | -- | 16/25 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
 | [binder-defects](binder-defects.md) | backend | -- | 7/25 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
 | [docket-defects](docket-defects.md) | backend | -- | 5/11 | Six defects in docket.py, and one discards an approved page at exit 0 |
 | [collate-command-defects](collate-command-defects.md) | backend | -- | 5/21 | Sixteen defects in `commands/collate.py`, measured by running it |
@@ -294,7 +294,7 @@ that changed a published name or rule:
 | [a-machine-context-raises-query-and-clean](a-machine-context-raises-query-and-clean.md) | backend | yes | 0/8 | annotate carries two subjects -- it extracts index keys, and it flags claims it cannot settle. The second half becomes a context that marks like a role. |
 | [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | -- | 8/12 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
 | [prove-unchanged-line-endings-follow-a-sibling](prove-unchanged-line-endings-follow-a-sibling.md) | backend | -- | 0/2 | On a checkout with core.autocrlf=true, git writes a checked-out text file with CRLF while its blob stays LF, and a file git never rewrote can still be LF. prove_unchanged compares an edited file's line endings with one untouched sibling, so a CRLF file whose sibling is a one-line LF __init__.py FAILs though the write kept every ending and the AST comparison passes. The check should hold the file to its own pre-edit endings. |
-| [smoke-drives-one-route](smoke-drives-one-route.md) | systems | -- | 4/9 | The smoke drives one route, and the self-run broke on the others |
+| [smoke-drives-one-route](smoke-drives-one-route.md) | systems | -- | 5/9 | The smoke drives one route, and the self-run broke on the others |
 
 ### in-progress  (18)
 

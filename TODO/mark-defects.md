@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 15 of 25 tasks closed
+Progress: 16 of 25 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -236,8 +236,9 @@ cites as its measured example of a field answering neither necessary nor purpose
       INSTRUCTIONS, per Process 143
         > 2026-09-13 tests/gates/test_mark_shape.py:135-138 maps the spec's phrases
         > 2026-09-13 check docs/the-mark.md names none of the three after
-- [ ] T23 | Update the mark command so --flag=@path reads the file as @path
-      does, and no literal path lands in a claim or change
+- [x] T23 | FINISHED -- mark reads --flag=@path from the file; two tests | f71b6ad6 | Update
+      the mark command so --flag=@path reads the file as @path does, and no
+      literal path lands in a claim or change
         > 2026-09-14 self-run: mc1 saved 8 marks with a scratch path as their text
         > 2026-09-14 check passed those 8; bc1 had 80 rulings refused the same way
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
