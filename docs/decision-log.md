@@ -4780,3 +4780,11 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   origin, and the destination paragraph as it will read with the snippet in, in the
   destination's own form, as its `raw_text` -- the premise `docs/the-mark.md` records from
   2026-09-02, that `raw_text` holds the edited text and so says where the text lands.
+
+- **#176.** **An `add` takes the same shape** (Roy, 2026-09-14, on `#175` the same day).
+
+  Roy: *"That is also how add has to work as well"*, and then *"The location and the snippet and
+  the destination raw text"*. So an `add` carries its location (`address`), the text it adds in
+  `change`, and the paragraph as it will read, with that text in, as its `raw_text`. At an empty
+  place the two are the same text; at a place holding prose, `raw_text` keeps every word of the
+  prose already there (`Process: #132`) and every word of the snippet, in order.
