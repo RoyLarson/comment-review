@@ -10,10 +10,14 @@ opened to settle a claim. **A reviewer that fixes what it finds has destroyed th
 the human never sees the question, and afterwards nobody can separate a real problem from an
 imagined one.
 
-!! **You write exactly ONE file: the EDIT COPY you were handed, and you edit it in place.**
-That is your report, and it is the only exception. Nothing you find licenses a second one --
-not a summary beside it, not a note to the task agent, not a corrected copy of a paragraph. ! **If
-your edit copy does not reach you, say so and stop.** Reporting in prose instead is the
+**You return the edit copy, filled out.** `mark` fills it for you, one ruling per invocation.
+
+Do not edit the source. The system writes those files later, from your marks, and a file
+changed underneath it will not update correctly. Everything else you used to certify a mark --
+a summary, a note to the task agent, a working copy of a paragraph -- the system has no way to
+read, so it is lost. Put in the copy whatever you want kept.
+
+! **If your edit copy does not reach you, say so and stop.** Reporting in prose instead is the
 failure this shape exists to end: it goes to a parser that has to guess where each field ends,
 which is where every boundary defect this system has paid for came from.
 
@@ -46,24 +50,19 @@ Your packet names two files on disk, each by absolute path: the BINDER -- every 
 each paragraph with its address and the mechanical resolutions for it -- and your EDIT COPY,
 which carries one slot per paragraph that HOLDS PROSE, each with that paragraph's text. Read
 both from those paths; none of it is in this prompt. **Read the copy start to finish and fill
-EVERY slot.**
+EVERY slot**, one `mark` invocation per slot -- a `clean` as much as a `correct`. !! **THERE IS
+NO WAY TO ANSWER SEVERAL SLOTS AT ONCE, and that is the point:** each slot is a paragraph you
+are certifying you considered under your remit, so each is its own ruling.
 
 **You may read your own draft.** `proof --copy <EDIT COPY from your packet> --repo <REPO ROOT>
---out <a directory that does not exist yet>` pulls a copy of the tree with your marks set on
-their pages, so a paragraph can be read as it would stand. Nothing under the repo is written;
+--out <a directory that does not exist yet>` pulls a copy of each page your marks change, with
+the marks set, so a paragraph can be read as it would stand. Nothing under the repo is written;
 the draft is the directory you named, and it is yours to read and discard.
 
 !! **`continues-a-trailing-comment` means the gather may have split one sentence.** A trailing
 comment closes its run, so a sentence wrapped onto the next line becomes a SECOND paragraph, anchored
 to the code BELOW it. Read the two together before ruling. **A mid-clause ending on a paragraph
 carrying this annotation is the gather's doing, not the author's, and is not a `correct`.**
-
-!! **FRONT MATTER IS NOT YOURS, and you will not be shown it.** A licence header, a shebang or
-a coding line -- the prose above a module's own docstring. It states no constraint the code
-could contradict, documents no function, and sits where law or convention puts it, so no role
-here can settle it. It gets no slot in your copy. ! **An edit proposed on it anyway
-becomes a `query`** -- a licence is a legal instrument and a shebang is how the file runs, and
-both are the human's to change.
 
 !! **A paragraph that holds nothing owes you no mark.** Most of the binder is empty -- a gap
 between two lines of code (`interval`), or a declaration with no docstring (`undocumented`).
@@ -79,23 +78,23 @@ separate addressers, and no number in one tells you a number in another -- nor d
 position tell you either. Two of them lining up on the file in front of you is a coincidence of
 that file, and it may change.
 
-! **`@f0` IS THE FILE'S OWN MATTER** -- a licence header, a shebang, a coding line, and at the
+**`@f0` is the file's own matter** -- a licence header, a shebang, a coding line, and at the
 other end an index, a glossary or a run of footnotes -- and not the gap above the first line of
-code. It gets no slot in your copy, and any edit proposed on it becomes a `query`.
+code. Front and back matter are excluded by default, as licence and other information is not
+normally editable, and your copy carries no `f` slot.
 
-!! **YOUR COPY CARRIES `a`, `b` AND `c`. THAT IS THE WHOLE SET YOU RULE ON.** The `f` series
-is not a place you were asked about, so there is no instruction to reach on one.
-
-! **YOU WILL STILL READ IT, AND THAT IS FINE.** Opening the file puts a licence header in front
-of you, and you should use it the way you use any other context -- to understand what the file
-is and who owns it. ! **What is ruled out is RULING on it**, not seeing it.
+**An `f` place is expected to be matter, but it may not be.** Matter is filed by where it sits
+in the file, so a comment paragraph that opens or closes one can land in the `f` series. If you read
+the code and find the `f` run is a comment, ask the addresser for its address with `--series f`
+and mark it; the address and a `move` to a `b` place can both be asked for. Any correction to
+an `f` place is raised to the human individually, to approve.
 
 ## You FILL an edit copy; you do not write one
 
 **You are handed one SHEET per file, and one slot per prose paragraph on it.** The sheet names
 the file once, in `path`; each slot already carries the three things the tool knows -- the
-`address` it is, the `anchor` it sits on, and the paragraph's `raw_text` -- and you set the
-fields that are yours:
+`address` it is, the `anchor` it sits on, and the paragraph's `raw_text` -- and `mark` sets the
+fields that are yours. This is a filled slot:
 
 ```json
 { "role": "block-context",
@@ -118,11 +117,46 @@ fields that are yours:
           "change":  "# Kept because 31 callers want this, all of them in tests/.\n# Narrowing it means re-deriving the clamp bounds." } ] } ] }
 ```
 
+### One ruling, one invocation
+
+**You do not edit the JSON.** You decide a ruling, and `mark` places it on the slot -- from
+the repo root, one invocation per ruling:
+
+```bash
+python <skill>/scripts/comment-review.py mark --edit-copy <EDIT COPY from your packet> --repo <REPO ROOT> \
+  --address <the slot's address> --instruction correct \
+  --false "the clause as it stands" --true "the clause as it should read" \
+  --reason "what you derived, and why the claim is wrong" \
+  --cite path:line --ran "the command that settled it"
+```
+
+- **The claim's keys are flags by name** -- `--false --true` for a `correct`, `--from --to`
+  for a `patch` or a `move`, `--drop`, `--missing --anchor` for an `add`, `--shape
+  --attempted --settles` for a `query`. A flag the instruction does not carry is refused by
+  name, and a missing one is named, so the refusal tells you the contract.
+- **`change` is built for you** where the instruction quotes a clause -- `correct`, `patch`,
+  `drop` -- by substituting that clause inside the slot's own `raw_text`. So the clause you
+  quote must sit in the paragraph EXACTLY ONCE: it is one statement, and a clause found twice
+  or nowhere is refused. `add` and `move` quote nothing, so they take `--change`.
+- **A source is `--cite path:line`**, repeatable. `--verbatim` and `--ran` each bind to the
+  `--cite` before them. Leave `--verbatim` off and the cited line is read out of the file
+  for you; give it only where the text you mean is not that line.
+- **A value that spans lines is a file.** Spell it `@path` and the command reads that file --
+  a clause that wraps a comment line, a `change` for an `add`. Write the file with your
+  file-write tool. A one-line clause goes inline.
+- **A second ruling on the same paragraph is a second invocation** with the same `--address`;
+  it lands beside the first, carrying the same `anchor` and `raw_text`.
+- **An `add` on an empty place has no slot**, so its invocation carries `--anchor-line`, the
+  line of code the addresser printed for that place, and the slot is created.
+
+`mark` refuses exactly what the fold would refuse, and writes nothing when it does. Read the
+reasons and run it again.
+
 !! **THE THREE OUTER KEYS ARE NOT DECORATION, and the file you are handed already carries
 them.** `role` is the role this copy was seeded for, `read_from` is the tree it was gathered
 from -- `revise` 0 is the original -- and `sha` is the bytes of the file your addresses were
-taken from. **Edit in place and leave all four alone**; the checker refuses a copy that comes
-back without `role` or `read_from`, and the `sha` is what proves nobody rewrote the file
+taken from. **`mark` leaves all four alone, and so do you**; the checker refuses a copy that
+comes back without `role` or `read_from`, and the `sha` is what proves nobody rewrote the file
 underneath your marks.
 
 ! **THE PLACE IS A CUE, NOT A FULL ADDRESS** -- `b47`, because the sheet above it already said
@@ -170,9 +204,9 @@ re-deriving it from a diff.
 is exactly what your edit does, and it must be the sentence your `claim` names. A mark that
 reasons about one sentence and rewrites another is refused, whichever of the two is right.
 
-!! **ONE mark's `change` makes ONE mark's edit.** If you rule twice on one paragraph, write
-TWO marks with the same `address`, under the same sheet, each showing that paragraph with ITS OWN
-change and no other. Do not
+!! **ONE mark's `change` makes ONE mark's edit.** If you rule twice on one paragraph, run
+`mark` TWICE with the same `--address`, so the copy holds two marks under the same sheet, each
+showing that paragraph with ITS OWN change and no other. Do not
 hand in the paragraph fully fixed twice: composing is the copy chief's job, and it cannot compose
 marks that have already been merged.
 
@@ -210,40 +244,30 @@ defect in a sentence your `claim` does not name, write a SECOND MARK on that par
 
 **An `add` cites the EMPTY PLACE the prose belongs in**, because its finding is that a
 constraint holds in code and appears in NO prose. Empty places get no seeded slot -- they are
-addressable, not accountable -- so **append a new mark carrying that place's ADDRESS.** Read
-it as being about that place, not about a neighbour.
+addressable, not accountable -- so **run `mark` with that place's ADDRESS and the
+`--anchor-line` the addresser printed for it**, and the slot is created. Read it as being
+about that place, not about a neighbour.
 
-!! **ASK FOR THE ADDRESS. DO NOT COUNT.** A row like `2-9  @b12..b19  48-58  no-prose  0L
-8-intervals` hides eight numbered gaps, and counting them is how a citation lands one place off.
-Two ways to ask:
+**Ask for the address; do not count.** Counting gaps is how a citation lands one place off.
+Ask by the line of the code the place belongs to.
 
-!! **AN ANCHOR ANSWERS WITH SEVERAL PLACES, AND THAT IS NOT AN ERROR.** An anchor has MANY
-addresses; an address has ONE anchor. Two identical statements in one file are two anchors spelled
-alike -- `X=2  # initial` and `X=2  # reseting X` -- so asking for *"the `c` of `X=2`"* answers
-with both and you **choose by ADDRESS**. Taking the first rules on the wrong statement.
-
-! **The `b` series is worse on the same file: THREE gaps answer**, and they are drawn from two
-different statements -- the gap above the first, the gap holding the comment between them (which
-is anchored to the code BELOW it, the second statement), and the gap at the end of the file. The
-tool prints how many answered; read that line.
-
-! **An anchor is a LINE OF CODE, never a name**: ask with `def f():`, not with `f`. Its `a`, the
-`b` above it and the `c` beside it all answer to that one spelling.
+**An anchor is a line of code, never a name**: `def f():`, not `f`. Its `a`, the `b` above it
+and the `c` beside it are all asked for by that line's number.
 
 ```bash
-# by ANCHOR -- which place of this declaration: a its documentation,
-# b the gap above its opening line, c the room beside it
+# which place of the code on LINE: a the documentation of a declaration opening there,
+# b the gap above it, c the room beside it
 python <skill>/scripts/comment-review.py addresser --binder <BINDER from your packet> --file <path> --line LINE --series a|b|c
 ```
+
+It prints one line per place: its address, its anchor, and `HELD` or `ABSENT` -- `ABSENT` is a
+place your binder does not carry, which a mark may still cite. A line answers with one place per
+series, except that `--series f` prints both of the file's own places; choose between them by
+address.
 
 !! **THE ANCHOR IS THE ONLY WAY TO ASK.** Asking by position -- "the paragraph above the
 `def`" -- is right in Python and wrong in Rust, whose `///` sits before its `fn` where Python's
 docstring sits after. The gather parsed the file and knows which is which; a count does not.
-
-! **There is no by-LINE lookup, and that is deliberate.** One existed until 2026-08-20 and was
-dropped: the anchor IS the line of code, verbatim, so asking by anchor already asks by line --
-and its other use, *where do I insert text*, is not a question a reviewer answers. You name the
-PLACE; the compositor sets the page.
 
 !! **A LINE NUMBER IS HOW YOU ASK; AN ADDRESS IS HOW YOU ANSWER.** A mark naming a line as the
 place a thing belongs is refused.
@@ -253,17 +277,13 @@ place a thing belongs is refused.
 something you can work out** -- ask, as above. Your payload names WHAT is missing and WHICH
 anchor.
 
-!! **YOUR `change` REPLACES THE GAP, INCLUDING ITS BLANK LINES.** An interval is bounded by two
-lines of CODE and the gap between them is whatever sits there -- nothing, or blank lines. The
-edit is applied to the GAP, so a two-blank-line separation you do not write out is a separation
-the file loses. **Write the blank lines you want kept**, as blank lines in the raw text, the
-same way you would write them in the file.
+**Write no leading blank line at either end of your `change`.** The compositor supplies the
+leading from the place's kind, so a blank line you write at the start or the end of a `change`
+is a second one.
 
 !! **A `c` PLACE STARTS AT THE END OF THE CODE, so your `change` carries its own separator.**
 A trailing comment is written from the point the statement stops -- `"  # why"`, with the two
-spaces you want between them. Write `"# why"` and it lands hard against the code. This is the
-same rule an interval follows: the text is file-ready, and whatever whitespace you want is
-whitespace you write.
+spaces you want between them. Write `"# why"` and it lands hard against the code.
 
 ! **It is why a `margin` and the trailing comment that would replace it are ONE place.** Adding
 a comment where there is none and rewording one that is there write to the same column, so the
@@ -508,6 +528,38 @@ REMITS OVERLAP BY DESIGN: the roles read the same code bottom-up and top-down, s
 can reach the same or different decisions per sentence. Report what your role sees and say in
 `reason` what is wrong. Which mark stands is the copy chief's ruling later.
 
+## When you are sent a batch
+
+A run that takes turns sends each role a **batch**: one slot for every place the fold carried
+forward that the role owes. Your packet names the batch, your role, the master proof it went
+out with, and the path to write your answers to. Each slot carries the place's `address` and
+`anchor`, its `question`, and `marks` -- every mark already at the place, each naming its
+`role`, yours among them if you marked it -- with `diff` setting them against the base. Leave
+what the slot carries as sent and add only your answer.
+
+**Answer every slot.** An unanswered one is refused, never read as a withdrawal. `mark` fills a
+copy, not a batch: write your answers with your file-write tool, as a list of the slots you were
+sent. The `question` names which of two kinds a slot is, and `check --contract` prints the shape
+each takes.
+
+**An `escalation` asks whether your finding still stands.** Answer with a `reason` and one of
+four: `hold` keeps your mark as it stands, `withdraw` takes it back, and `correct` or `patch`
+replaces its text with `change`, the whole updated paragraph as raw text, which `hold` and
+`withdraw` do not carry. No answer here takes a `claim` or `sources`. Where the place is either
+end of your own `move`, the answer reaches the move: a `correct` or `patch` changes its text and
+a `withdraw` withdraws it (`decision-log.md Process: #129`).
+
+**A `composition` asks whether the slot's `raw_text` is right** -- the composed text, or the one
+mark's. Answer `clean`, `query`, `correct` or `patch`, each with the fields and `claim` keys it
+takes in your copy. A `clean` accepts the text. A `correct`'s `false` or a `patch`'s `from`
+quotes a sentence of that text, not of the original (`Process: #115`). A `query`'s `shape` is
+one of the three under `query` specific rules: `outside-my-role`, `unable-to-determine` or
+`human-review-necessary`.
+
+**At an `add`'s empty place**, where the add is another role's, the slot's text is the add's.
+Your `clean` there is agreement (`Process: #116`), and a query of either deferring shape,
+`outside-my-role` or `unable-to-determine`, abstains and lets the add settle (`Process: #121`).
+
 ## Before you return: run the check
 
 The fold refuses what it cannot read, and a copy it refuses goes back to you with the reasons.
@@ -522,3 +574,14 @@ It names every slot you left `null`, every mark that will not read, every `claim
 sentence that is not in its paragraph, and every cite whose line does not match, and it exits 0
 only when there is nothing. It writes nothing. **Fix your copy and run it again until it
 reports nothing**; a copy that fails at the fold is a copy you did not check.
+
+Over a batch's answers it takes `--answers`, with `--role`, `--sent` and `--proof`:
+
+```bash
+python <skill>/scripts/comment-review.py check --answers <ANSWERS from your packet> \
+  --sent <BATCH from your packet> --role <your role> --proof <PROOF from your packet> --repo .
+```
+
+It pairs each answer to the slot you were sent, by address, and applies it to your copy on the
+proof as the turn would, saving nothing. It names every slot left unanswered and every answer the
+fold would refuse, and exits 0 only when there is none -- fix your answers and run it again.

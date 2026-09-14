@@ -65,7 +65,8 @@ class Revisit(NamedTuple):
             !! IT EXISTS BECAUSE THE EXIT CODE BRANCHES ON IT, which is what
             makes it necessary rather than descriptive. `commands/collate.py`
             returns `BROKEN` for a mark that would not read and `COVERAGE` for a
-            place left unanswered -- the second routes back without voiding the
+            place left unanswered, or `CARRIED_AND_UNRULED` where places are
+            also carried forward -- the second routes back without voiding the
             round (`Process: #63`) and the first does not. Without this the two
             are one list and the command cannot tell them apart.
             ! THE TWO ARE NOT THE SAME FACT, which `desk.mark.untouched`'s own

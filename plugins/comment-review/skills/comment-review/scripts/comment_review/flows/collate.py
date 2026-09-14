@@ -18,10 +18,12 @@ Ten acts, in the order the body runs them:
     COVERAGE   did each role carry back every address the binder holds --
                `_coverage_problems`. `fan_out` refuses an uncovered page at the
                DISPATCH; this is the RETURN
-    VERIFY     each ruled mark's address, quoted sentence and citations --
-               `desk.collator.verify_report`, the three questions
-               `desk.mark.parse` cannot ask because it holds no binder, no page
-               and no filesystem
+    VERIFY     each ruled mark's quoted sentence and citations --
+               `desk.collator.verify_report` -- and its address, and a
+               `move`'s destination -- `_resolution_problems`, whether each
+               names a place any page carries. Three questions
+               `desk.mark.parse` cannot ask because
+               it holds no binder, no page and no filesystem
     DRIFT      a returned `raw_text` that is not the seeded one
     ASSEMBLE   `desk.proof.master_proof_of` -- the master_proof
     PLACE      `desk.collator.places` -- marks grouped by the place they touch
@@ -61,11 +63,13 @@ an entry that will not read is `Sheet.refused`, and it routes to the role that
 wrote it while the rest of the stage settles.
 """
 
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from comment_review.binder.addresses import handed
 from comment_review.binder.binder import Binder
+from comment_review.binder.page import Page
 from comment_review.desk.collator import (
     Cache,
     Placed,
@@ -83,11 +87,14 @@ from comment_review.desk.containers import (
     Sheet,
 )
 from comment_review.desk.determined import Answer, Determined
-from comment_review.desk.mark import Instruction, Mark, Shape, filled
+from comment_review.desk.diff_mark import ESCALATION, QUESTION
+from comment_review.desk.mark import INSTRUCTIONS, Instruction, Mark, Shape, filled
 from comment_review.desk.proof import MismatchedRoot, master_proof_of
 from comment_review.desk.stages import Stage
 from comment_review.flows.mark_errors import Revisit, mark_errors
-from comment_review.reading.addresser import cue_of, unflatten
+from comment_review.flows.page_for import page_of
+from comment_review.machine.repo import can_escape
+from comment_review.reading.addresser import Cues, cue_of, unflatten
 from comment_review.results.differences import CannotCompose, compose
 
 
@@ -178,7 +185,10 @@ class Collated:
             not about the tree. The shape they share is temporary, because one
             of them is going.
         escalations: places carried forward -- two or more owing marks ruling
-            on ONE sentence with different answers.
+            on ONE sentence with different answers. After a turn,
+            `flows.turn.run_turn` also moves here, out of `rereads`, every
+            place the turn asked about whose owing marks carry more than one
+            text (`Process: #127`).
         rereads: places carried forward -- marks on different sentences whose
             compose refused, plus every place an `add` touches, plus every end
             of a `move` in a cycle.
@@ -196,7 +206,7 @@ class Collated:
             re-derives it. Empty where no move resolved.
         determined: address -> the `Determined` this fold recorded -- every
             one a `stet`, since the chief's own `taken_in` and `recast` are
-            `flows.turn.rule_at_cap`'s. `Process: #87`.
+            `flows.turn.rule_at_max_turns`'s. `Process: #87`.
         proof: the master proof the fold read, so a turn can carry the
             record forward. None on an early return.
         unsettlable: every place a `human-review-necessary` query holds --
@@ -379,7 +389,9 @@ def _unsettlable(proof: MasterProof) -> list[dict]:
         One entry per such place -- `{"address", "roles", "marks", "query"}`,
         `roles` every role that marked it, `marks` every `Placed` there, and
         `query` the first human-review query's serialized mark with its
-        `role` beside it.
+        `role` beside it. A mover's query at its move's destination holds
+        the origin as well, where `desk.collator.places` files it
+        (`Process: #138`), so the `query` there names the destination.
     """
     out: list[dict] = []
     for address, marks in places(proof).items():
@@ -559,10 +571,11 @@ def _chief_copy(
     (`desk.mark._destination_problems`). Writing a second entry at the
     destination, with `address` rewritten to match, is therefore not an entry
     `parse` can accept -- it reads as a move to where the paragraph already
-    is. `seen` dedups by `id(mark)` so the SAME `Mark` object, reached under
-    either of its two keys, contributes its one entry once, always placed by
-    `mark.address` rather than by whichever key `resolved` happened to
-    iterate to first.
+    is. A mark equal to one already on its page is skipped, so the move,
+    reached under either of its two keys -- one object after a fold, two
+    equal ones once `Determined.deserialize` has read each end off the
+    wire -- contributes its one entry once, always placed by `mark.address`
+    rather than by whichever key `resolved` happened to iterate to first.
 
     !! PROVISIONAL, over a shape Roy has since ruled against, 2026-08-30:
     *"A move needs to be what it is and that is a composite Mark - Drop Here
@@ -570,11 +583,11 @@ def _chief_copy(
     at once."* A SENTENCE can move without the paragraph moving, so the
     origin is not always emptied -- both ends can carry their own new text,
     which today's singular `Mark` (one `address`, one `change`) cannot
-    express. The composite is a separate scope, not this fix. `seen`'s dedup
+    express. The composite is a separate scope, not this fix. The dedup
     is the SMALLEST stand-in for that shape: once a move is two ordinary
     marks (a `drop` at the origin, an `add` at the destination), each has its
-    own `address` and its own `id()`, `resolved` never carries one `Mark`
-    under two keys, and `seen` never finds a repeat -- so this dedup becomes
+    own `address`, `resolved` never carries one move under two keys, and no
+    mark on a page ever equals one already there -- so this dedup becomes
     dead code, deletable outright, with no entry ever built two different
     ways.
     """
@@ -617,14 +630,14 @@ def _chief_copy(
     # is where `Process: #65` puts it.
     marks_of: dict[str, list[Mark]] = {}
     shas_of: dict[str, str] = {}
-    seen: set[int] = set()
     for det in determined.values():
         mark = det.mark
-        if mark is None or id(mark) in seen:
+        if mark is None:
             continue
-        seen.add(id(mark))
         addr = cue_of(mark.address)
         real = unflatten(addr.path, paths) or addr.path
+        if mark in marks_of.get(real, []):
+            continue
         shas_of.setdefault(real, shas.get(real, ""))
         marks_of.setdefault(real, []).append(mark)
     # ! BUILT AS THE CONTAINER, NOT AS THE WIRE DICT, since `P42`. It is the one
@@ -786,6 +799,224 @@ def _stage_problems(dispatches: Stage, edit_copies: list[EditCopy]) -> list[Prob
     ]
 
 
+#: One path -> the real page, or `None` where this checkout holds no readable
+#: page there. Shared across a stage's copies, the same shape as
+#: `desk.collator.Cache` for a cited file: a page eight roles' marks touch is
+#: read once.
+PageCache = dict[str, Page | None]
+
+
+def _page_at(real: str, root: Path, cache: PageCache) -> Page | None:
+    """One path's page, read at most once per stage, or `None` where none reads.
+
+    A path that would land outside `root` once joined to it -- absolute,
+    carrying a drive, or climbing with `..` -- answers `None` and nothing is
+    opened. The path comes from a mark's address, which a role wrote, and
+    `desk.collator.source_problems` keeps the same guard for a cited path.
+    """
+    if real not in cache:
+        page = None
+        if not can_escape(real):
+            page, _why = page_of(root / real, rel=real)
+        cache[real] = page
+    return cache[real]
+
+
+def _page_cues(real: str, root: Path, cache: PageCache) -> Cues | None:
+    """One path's real places, filled or not -- read at most once per stage.
+
+    !! THE BINDER CANNOT ANSWER THIS, WHICH IS WHY THE FILE IS OPENED.
+    `Process: #97` retired the check that compared an address against the
+    BINDER's own addresses, because the binder is redacted to the places
+    holding prose and a real empty place is one it rightly lacks. `page_of`
+    rebuilds the PAGE instead, which carries every place a series has,
+    filled or not -- `collator-defects` T40.
+
+    Args:
+        real: the page's real repo path, unflattened.
+        root: the checkout this path is read from.
+        cache: shared across the stage's copies.
+
+    Returns:
+        The page's `Cues`, or `None` where `real` could not be turned into a
+        page at `root`, which `_resolution_problems` reports.
+    """
+    page = _page_at(real, root, cache)
+    return page.cues if page is not None else None
+
+
+def _resolution_problems(
+    copy: EditCopy, paths: list[str], root: Path, cache: PageCache
+) -> list[Problem]:
+    """One `Problem` per ruled mark whose address resolves against no page.
+
+    An address resolves when a page can be read at its path and that page
+    carries its cue. Where `_page_cues` answers `None` -- this checkout holds
+    no readable page at `real` -- the address resolves against nothing and is
+    reported, as a quote there is refused (`decision-log.md Process: #122`).
+    An address the binder lacks is not thereby unresolved: the page is read,
+    not the binder (`Process: #97`).
+
+    A `move`'s `claim.to` is an address as well, and resolves the same way
+    (`Process: #111`). A destination that is not `path@cue` resolves against
+    nothing -- `path@cue` is the only address built (`Addressing: #21`).
+
+    `collator-defects` T40. Verify: an invented cue is refused, a valid empty
+    place is not -- the case `Process: #97` settled, restated against the
+    real page rather than the redacted binder.
+
+    Args:
+        copy: one parsed edit_copy, as it came back.
+        paths: the binder's own page paths, for `unflatten`.
+        root: the checkout every page is read from.
+        cache: shared across the stage's copies, keyed by real path.
+
+    Returns:
+        One `Problem` per mark whose path no page can be read at, or whose
+        cue its page does not carry, and one per `move` whose `claim.to`
+        fails the same way, at the move's own address, in sheet then mark
+        order. ! AN EMPTY ADDRESS IS SKIPPED -- `clean` is the one row a mark
+        may carry none for, and there is no place to resolve.
+    """
+    out: list[Problem] = []
+    for sheet in copy.sheets:
+        for mark in sheet.marks:
+            addr = cue_of(mark.address)
+            if addr.path and addr.cue:
+                why = _unresolved(mark.address, paths, root, cache)
+                if why:
+                    out.append(
+                        Problem(
+                            copy.role,
+                            mark.address,
+                            f"resolves against no page -- {why}",
+                        )
+                    )
+            if INSTRUCTIONS[mark.instruction].owes_destination:
+                to = str(mark.claim.get("to", ""))
+                why = _unresolved(to, paths, root, cache)
+                if why:
+                    out.append(
+                        Problem(
+                            copy.role,
+                            mark.address,
+                            f"`claim.to` {to!r} resolves against no page -- {why}",
+                        )
+                    )
+    return out
+
+
+def _unresolved(address: str, paths: list[str], root: Path, cache: PageCache) -> str:
+    """Why `address` resolves against no page, or "" where it resolves.
+
+    Args:
+        address: a mark's own address, or a `move`'s `claim.to`.
+        paths: the binder's own page paths, for `unflatten`.
+        root: the checkout every page is read from.
+        cache: shared across the stage's copies, keyed by real path.
+    """
+    addr = cue_of(address)
+    if not addr.path or not addr.cue:
+        return "it is not a `path@cue` address"
+    real = unflatten(addr.path, paths) or addr.path
+    cues = _page_cues(real, root, cache)
+    if cues is None:
+        return f"no page can be read at {real}"
+    if addr.cue not in cues.places:
+        return f"{real} carries no place {addr.cue!r}"
+    return ""
+
+
+def texts_at(
+    copy: EditCopy,
+    paths: list[str],
+    root: Path,
+    pages: PageCache,
+    sent: Sequence[Mapping[str, object]] = (),
+) -> dict[str, tuple[str, ...]]:
+    """Every text a quote on `copy` may be in, keyed by the mark's address.
+
+    `decision-log.md Process: #119`: the text at the mark's own address, read
+    from the page whether or not the binder holds that place or its file, and
+    for a place a turn's batch sent this copy's role, the text sent there --
+    the slot's own text for a composition, the role's own proposal among the
+    slot's marks for an escalation. The page's text comes first, and is ""
+    where no page can be read or the page holds nothing at the place.
+
+    Args:
+        copy: one parsed edit_copy.
+        paths: the binder's own page paths, for `unflatten`.
+        root: the checkout every page is read from.
+        pages: shared across the stage's copies, keyed by real path.
+        sent: every batch the stage's turns sent, oldest first -- role -> its
+            slots, as `desk.diff_mark.batch_of` shapes them.
+
+    Returns:
+        address -> the texts, one entry per address a ruled mark carries.
+    """
+    out: dict[str, tuple[str, ...]] = {}
+    for sheet in copy.sheets:
+        for mark in sheet.marks:
+            if mark.address in out:
+                continue
+            held = _text_at(mark.address, paths, root, pages)
+            out[mark.address] = (held, *_sent_to(copy.role, mark.address, sent))
+    return out
+
+
+def _text_at(address: str, paths: list[str], root: Path, pages: PageCache) -> str:
+    """The page's text at `address`, read through the stage's page cache.
+
+    "" where no page can be read at the address's path, or the page holds
+    nothing at its place. `texts_at` puts it first among a quote's texts, and
+    a composition composes over it (`decision-log.md Process: #119`, `#125`).
+    """
+    addr = cue_of(address)
+    page = None
+    if addr.path:
+        page = _page_at(unflatten(addr.path, paths) or addr.path, root, pages)
+    if page is None:
+        return ""
+    return next(
+        (
+            b.raw_text
+            for b in page.paragraphs
+            if b.address and cue_of(b.address).cue == addr.cue
+        ),
+        "",
+    )
+
+
+def _sent_to(
+    role: str, address: str, sent: Sequence[Mapping[str, object]]
+) -> list[str]:
+    """The text each batch in `sent` sent `role` at `address`, oldest first.
+
+    A composition slot's own text, and in an escalation slot the change of
+    the mark it lists for `role` -- that role's own proposal.
+    """
+    out: list[str] = []
+    for batch in sent:
+        slots = batch.get(role)
+        for slot in slots if isinstance(slots, list) else []:
+            if not isinstance(slot, dict) or slot.get("address") != address:
+                continue
+            text = slot.get("raw_text")
+            if isinstance(text, str):
+                out.append(text)
+            marks = slot.get("marks")
+            if slot.get(QUESTION) != ESCALATION or not isinstance(marks, list):
+                continue
+            for mark in marks:
+                if not isinstance(mark, dict):
+                    continue
+                listed: dict = mark
+                change = listed.get("change")
+                if listed.get("role") == role and isinstance(change, str):
+                    out.append(change)
+    return out
+
+
 def collate(
     stage: str,
     edit_copies: list[dict],
@@ -793,6 +1024,7 @@ def collate(
     root: Path,
     turn: int = 0,
     dispatches: Stage | None = None,
+    sent: Sequence[Mapping[str, object]] = (),
 ) -> Collated:
     """One stage's returned copies, checked, reconciled and folded.
 
@@ -800,20 +1032,24 @@ def collate(
         stage: the label these copies were dispatched under -- "4a", "4c".
         edit_copies: one per role, or one per SHARD under fan-out, as each came
             back.
-        binder: the binder they were seeded from. ! IT SUPPLIES THE BASE, THE
-            OTHER SIDE OF THE DRIFT CHECK, AND THE KNOWN ADDRESSES SOURCE
-            VERIFICATION MEASURES AGAINST -- address integrity over the DOCKET
-            is a different question and is `P28`'s.
-        root: the checkout every `sources` citation is resolved against. ! IT
-            IS NOT A PAGE ROOT. `Process: #62` bars the middle from a page
-            under review; what this reads is evidence, which carries no `sha`
-            because nothing writes it.
+        binder: the binder they were seeded from. It supplies the base the
+            drift check reads, and the page paths an address is resolved
+            against -- address integrity over the DOCKET is a different
+            question and is `P28`'s.
+        root: the checkout every `sources` citation is resolved against, and
+            every page a mark's address is read from, by `_resolution_problems`
+            and `texts_at`, and for a composition's base (`Process: #125`).
         turn: which turn of the stage's collate this is -- 0 for the first
             fold, `flows.turn.run_turn`'s count after. Every `stet` this fold
             records carries it (`Process: #87`).
         dispatches: the stage as the topology declares it, when the caller
             has one. A dispatch that returned no copy is then reported in
             `coverage`; without it nothing can know a copy was owed.
+        sent: every batch the stage's turns sent, oldest first, which
+            `flows.turn.run_turn` and `refold` hand in. A quote at a place a
+            batch sent the role is checked against the text sent there as well
+            as the page's (`decision-log.md Process: #119`). Empty for the
+            first fold.
 
     Returns:
         A `Collated`.
@@ -922,6 +1158,11 @@ def collate(
     # evidence, and a cache built inside `verify_report` re-read a file once per
     # citing role -- four reads of one line for four roles, measured 2026-08-31.
     cache: Cache = {}
+    # ! THE BINDER'S OWN PAGES, for `unflatten` -- the same set `_chief_copy`
+    # resolves an address's flattened path against, and one `PageCache` for
+    # the whole stage for the same reason `cache` above is one.
+    paths = [page.path for page in binder.pages]
+    page_cache: PageCache = {}
 
     for copy in copies:
         # ! `mark_errors` ALREADY RAN, in the pass above. It is the one thing
@@ -937,10 +1178,17 @@ def collate(
         #
         # ! IT READS FILES, AND THAT IS NOT `Process: #62`'s "no files". The
         # test is the `sha`: a page under review carries one because it will be
-        # written, and the middle must not touch it; a cited evidence file
+        # written, and the middle writes none of it; a cited evidence file
         # carries none because nothing writes it, and reading it is what
         # settling a citation means. Roy, 2026-08-30, on exactly this call.
-        problems += verify_report(copy, binder, root, cache)
+        # A page is read for the text at each mark's place, which a quote is
+        # checked against -- `decision-log.md Process: #119`.
+        texts = texts_at(copy, paths, root, page_cache, sent)
+        problems += verify_report(copy, texts, root, cache)
+        # !! THE ADDRESS ITSELF -- `_resolution_problems`, `collator-defects`
+        # T40. `verify_report` asks two questions of a ruled mark; this asks
+        # the third, against the real page rather than the binder.
+        problems += _resolution_problems(copy, paths, root, page_cache)
         drift += drift_in(copy, base)
         counts[copy.role] = tally(copy)
 
@@ -966,7 +1214,14 @@ def collate(
     # check reachable only by breaking the producer is answering a question the
     # types now answer.
     reconciled = reconcile(proof)
-    resolved, escalations, rereads = _resolve(reconciled, base, turn)
+    # A composition composes over the page's text at its place, read the way a
+    # quote's is, not over the binder's seed the drift check reads --
+    # `decision-log.md Process: #125`.
+    composing = {
+        entry["address"]: _text_at(entry["address"], paths, root, page_cache)
+        for entry in reconciled.rereads
+    }
+    resolved, escalations, rereads = _resolve(reconciled, composing, turn)
 
     # !! THE HUMAN'S QUERY HOLDS ITS PLACE, `Process: #90`. Wherever a role
     # asked for the human, the place is UNSETTLABLE by roles or chief: out

@@ -155,27 +155,27 @@ def set_page(page: Page, newline: str | None = None) -> str:
     # key means those two places sit against each other, which is what 90% of
     # `c`->`c` boundaries do.
     #
-    # ! A RUN ABOVE EVERYTHING FOLLOWS NOTHING, and is filed under `""`.
-    # !! AN EDGE BELONGS TO THE PLACE BEFORE IT, which is what it is KEYED BY.
-    # When a paragraph goes away the live first key keeps its leading and the
-    # dropped one loses it; the live one takes a new key covering the new end
-    # and beginning.
+    # A run above everything follows nothing, and is filed under `""`.
+    # An edge belongs to the place before it, which is what it is keyed by.
+    # When a paragraph goes away the place before it keeps its leading and the
+    # dropped place's is not set; no key changes.
     #
-    # !! IT IS ONE RULE FOR BOTH DIRECTIONS, which is why it is a lookup rather
-    # than a rewrite. DROP `P` between X and Y: `P` sets nothing, so it never
-    # becomes `previous` and the edge it owned is never asked for -- it dies with
-    # it -- while X's edge is found and set before Y, which is the separation
-    # that was above `P`. ADD `N` between X and Y: X's edge is found and set
-    # before `N`, and `N` owns none, so `N` sits directly against Y.
+    # The lookup is the base rule, and each direction adds one check to it.
+    # Drop `P` between X and Y: `P` sets nothing but still becomes `previous`,
+    # and because it is in `vacated` the edge it owned is not set -- so what
+    # separates X from Y is X's own edge, set before `P`. Add `N` between X and
+    # Y: X's edge is set before `N`, and where X owns none and `N` is a `b`
+    # above the last line of code, `adding_a_gap` supplies one; `N` owns no
+    # edge, so it sits directly against Y.
     #
     # ! MEASURED: that is the shape the corpus has. `b`->`c` holds no blank in
     # 88% of 15,987 boundaries, so a new comment sitting straight on the code it
     # documents is the common case, not a compromise.
     #
-    # !! THE SURVIVOR NEEDS NO NEW KEY, which is why this is a lookup and not a
+    # The survivor needs no new key, which is why this is a lookup and not a
     # rewrite. Dropping `P` between X and Y leaves X's edge keyed on X, and this
-    # loop sets it before Y -- the new adjacency, reached without computing
-    # anything, because the key that finds it never mentioned `P`.
+    # loop sets it where it always was -- the new adjacency, reached without
+    # computing anything, because the key that finds it never mentioned `P`.
     #
     # ! IT WAS KEYED BY A PAIR UNTIL 2026-08-22 and this line collapsed it. Roy,
     # shown that nothing read the second half: *"so drop the second edge if it
@@ -199,6 +199,30 @@ def set_page(page: Page, newline: str | None = None) -> str:
         cue_of(b.address).cue
         for b in page.paragraphs
         if b.address and Kind.occupies_no_lines(b.kind)
+    }
+    # Which places once held prose and hold none now -- the mirror of
+    # `absent` above, for the drop side of `Addressing: #22`. `galley.reset`
+    # empties the paragraph and leaves its `d` alone, so a place whose kind
+    # still says prose belongs and whose `raw_lines` are empty is one a
+    # `drop` just vacated -- which is the only case the rule below may fire
+    # on.
+    #
+    # Keyed on the place's state, not on the edge or on a lookup.
+    # `Addressing: #19` paid for that mistake once already, on the add side:
+    # gating on "no leading was looked up" fired on a modify and on an
+    # unedited compose too. This is its mirror and takes the same gate.
+    #
+    # `ON` is excluded. A `c` sets its line of code whether or not
+    # anything sits beside it, so a comment leaving that line vacates
+    # nothing the code itself did not already occupy --
+    # `test_a_dropped_c_does_not_lose_the_blank_below_its_code` holds it.
+    vacated = {
+        cue_of(b.address).cue
+        for b in page.paragraphs
+        if b.address
+        and not cue_of(b.address).cue.startswith(ON)
+        and not Kind.occupies_no_lines(b.kind)
+        and not b.raw_lines
     }
     # !! THE CLOSING GAP IS EXEMPT, AND THE FOOT IS WHY. Back matter is the run
     # AFTER the last blank line, so a leading above an added closing `b` pushes
@@ -238,13 +262,15 @@ def set_page(page: Page, newline: str | None = None) -> str:
         #
         # !! A PLACE IS INVIOLABLE -- IT NEVER DISAPPEARS. Roy, 2026-08-22:
         # *"places are involatile; having an empty sentinel is the key, not that
-        # the place disappears."* An emptied place still holds its position and
-        # still owns the space below it. ! A first attempt made this loop skip a
-        # place that had held lines and now set none, so that a `drop` would
-        # take its leading with it -- which put an editorial decision inside the
-        # compositor, whose whole charter is to decide NOTHING. `galley.reset`
-        # empties the leading when it empties the paragraph.
-        edge = held.get(edges.get(previous, ""), [])
+        # the place disappears."* An emptied place still holds its position;
+        # whether it still owns the space below it is what `vacated` answers.
+        #
+        # And the call is this loop's, `Addressing: #22`: a fence is
+        # a property of the page being laid out, so it is asked here and not by
+        # the edit that touched the place. The question is the place's state --
+        # a kind that says prose belongs, and no lines held -- which is what
+        # `vacated` reads.
+        edge = [] if previous in vacated else held.get(edges.get(previous, ""), [])
         out.extend(edge)
         # !! A `b` SET INTO A PLACE THAT OWNED NO LEADING TAKES ONE. Roy,
         # 2026-08-26: *"It needs to add the leading between before any b"*, and

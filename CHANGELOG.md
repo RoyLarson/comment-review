@@ -76,6 +76,80 @@ and rust (`startraders`, 2026-08-17).
 
 ## [Unreleased]
 
+## [0.2.4-beta.3] -- 2026-09-13
+
+A pre-release cut from the agents branch, covering the `mark` command, a runnable turn between
+`collate` and `disposition`, and the move instruction's two-sided resolution.
+Decision log `Process: #102` to `#149`, `Addressing: #22` to `#27` and `Vocabulary: #36` are
+this cut's rulings.
+
+### Added
+
+- **The `mark` command** (`src/comment_review/commands/mark.py`) -- places one ruling on a
+  role's edit copy from the console, one invocation per ruling: `--edit-copy --address
+  --instruction`, the claim's keys as flags by name (`--false --true` for `correct`, `--from
+  --to` for `patch`/`move`, `--drop`, `--missing --anchor` for `add`, `--shape --attempted
+  --settles` for `query`), plus `--reason`, `--cite`/`--verbatim`/`--ran` for sources, and
+  `--change` where the row quotes nothing. Any value may be spelled `@path` to read from a
+  file. Exits `0`/`1`/`2`. `references/reviewer-brief.md` now has a role write every mark
+  through this command rather than editing the edit_copy JSON in place.
+- **A turn is runnable inside a real run.** `SKILL.md` stage 5's baseline note now reads "run
+  only when you are told a number of turns above zero," with a new "A turn, when you are told
+  to run turns" section: send the batch, `check --answers` each role's reply, then `turn` folds
+  it and writes the next batch. Previously `turn` was named as "the next experiment... not part
+  of this run."
+- **`collate` and `turn` exit `7`, `CARRIED_AND_UNRULED`** -- a run that carries a place forward
+  while a role also still owes an answer elsewhere; checked before `ESCALATIONS`/`REREADS`
+  (`decision-log.md Process: #112`, `#133`). `SKILL.md`'s exit-code table carries the new row.
+- **`docket.Alteration` carries an `anchor`** -- at a mark's own address the mark's anchor, and
+  at a move's destination the anchor its page holds there. The write end refuses an alteration
+  whose anchor does not match the page, and refuses one with none at all (`decision-log.md
+  Process: #134`, `#135`).
+- **`prove_unchanged.code_fingerprint_setting_aside`** -- the proof's code-unchanged check now
+  compares against the approved alterations rather than against nothing having changed, so a
+  docstring an approved change adds or drops no longer breaks that proof (`decision-log.md
+  Process: #113`).
+
+### Changed
+
+- **`cap` is renamed `disposition`** (`decision-log.md Vocabulary: #36`): the command
+  (`src/comment_review/commands/disposition.py`), its `--rulings` flag (now `--dispositions`),
+  `rulings.json` (now `dispositions.json`), and `flows.turn.rule_at_cap` (now
+  `rule_at_max_turns`) all take the new name. `close()` gains a `root` argument.
+- **The compositor alone decides whether a blank line survives a drop** (`decision-log.md
+  Addressing: #22`). `results/galley.py`'s `reset` no longer vacates the leading below a
+  dropped paragraph; `results/compositor.py`'s `set_page` reads the place's kind and whether it
+  still holds lines. `references/reviewer-brief.md` now tells a role to write no leading or
+  trailing blank line inside `change` for an interval or a `c` place -- the compositor supplies
+  it.
+- **Front matter (the `f` series) is reachable through a move.** `references/reviewer-brief.md`
+  drops the earlier rule that front matter "gets no slot ... and you will not be shown it": a
+  role may ask the addresser for an `f` place's address (`--series f`) and mark a `move` to a
+  `b` place; any correction to an `f` place is still raised to the human individually.
+- **A mover's answer at either end reaches the move, not just that end's slot.** During a turn,
+  an `escalation`'s `correct`, `patch` or `withdraw` on a place that is either end of a role's
+  own `move` changes or withdraws the move itself (`decision-log.md Process: #129`, `#137`).
+- **A move origin held for the author carries the move's drop to 7a.** The closed proof's
+  unsettlable entry for that place names the drop, and `disposition` prints `and <role>'s move
+  drops the paragraph there -- <reason>` under it, so the author is asked about the whole of
+  what lands there (`decision-log.md Process: #90`, `#139`).
+- **At max turns the chief's recast of a `drop` is written as a `correct`** from the original
+  paragraph to the chief's prose, at a move's origin too (`decision-log.md Process: #146`), and
+  a recast cites each source once. `disposition --help` names the condition as max turns.
+- **The agent instructions name the CLI as it is at this cut.** `SKILL.md` (stages 1 to 5 and
+  7a), `references/reviewer-brief.md` and `references/write.md`: `addresser --file --line
+  --series` and the line it prints per place saying whether the binder holds it, `collate`'s
+  `(the copy)` lines, `proof`'s exit-1 refusals, and `taken_in` for the galley's diff.
+- **`taken_in`'s default paths compare the pages `--revise` holds**, not every page under
+  `--original` -- a revise holds only the pages its docket schedules, so a page outside it was
+  never the revise's to compare.
+- **`proof --out` holds only the pages the docket schedules**, as drafted, and no other file --
+  not a full copy of `--repo` with the docket's pages overlaid as before (`decision-log.md
+  Process: #117`).
+- **`check --answers` requires `--proof`** alongside `--sent` and `--role`, and now applies an
+  answer to a role's copy on that proof the same way a live turn does
+  (`flows.turn.take_answers`), rather than only pairing answers to the sent slots.
+
 ## [0.2.4-beta.2] -- 2026-09-06
 
 A pre-release for the live runs on the two personal repos, cut from the agents branch.
