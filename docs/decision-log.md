@@ -4651,3 +4651,38 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   Offered -- supersede T25 and keep the ruling, since stage 1 checks that a run starts at the
   repo root; write the root relative to the binder file; or write it absolute -- Roy chose
   *"Supersede T25, keep the ruling"*.
+
+- **#165.** **Each role's work is split per file, at five files a dispatch to start** (Roy,
+  2026-09-14, on `agents-files-name-the-new-cli` T16: `SKILL.md` 1.9 fixes the split at one
+  dispatch per role, and sizing it needs a figure no measurement gives -- 888 places over 71
+  pages exhausted a session, 54 over 7 finished, and forks in the 888-place run filled about 100
+  each).
+
+  Offered a count of places per dispatch -- 100, provisional -- or superseding T16, Roy: *"Per
+  file, first estimate at 5 files"*. So a role's dispatch holds at most five files, a first
+  estimate that the P5 run is the first to test.
+
+- **#166.** **`proof` is the compile step** (Roy, 2026-09-14, on `agents-files-name-the-new-cli`
+  T21, which set 3 built as `python -m py_compile` on each drafted Python page at 7a: it covers
+  Python only, and for Python it repeats `proof`, which parses each drafted page and refuses one
+  it cannot prove unchanged).
+
+  Offered -- `proof` is the compile step; keep `py_compile`; or have stage 1 find the repo's own
+  compiler -- Roy chose *"`proof` is the compile step"*. So the `py_compile` step comes out, and
+  `SKILL.md` names `proof`'s re-read of each drafted page as the check Addressing `#27` asked for.
+
+- **#167.** **What stage 8 reads is still the proof** (Roy, 2026-09-14, after `#144` moved stage
+  8's read before 7a: `SKILL.md` and `references/review.md` call that input the galley, while
+  `review.md` opens *"WHAT YOU ARE HANDED IS A PROOF"* and the vocabulary defines proof and galley
+  apart).
+
+  Offered -- the galley, with `review.md`'s opening reworded to match; or still the proof, since
+  a galley is a proof in the trade and the proofreader reads proofs -- Roy chose *"Still the
+  proof"*. So `review.md` keeps its opening, and the vocabulary's definitions of the two words
+  are brought into line with it.
+
+  And, the same day: *"And just to be clear. It should be handed a proof that has been set. It
+  should not be moving things around or giving the galley new Schedules of things to fix. That
+  is a different thing entirely"*. So stage 8 reads the pages as set and reports what it finds;
+  it makes no alteration and writes no schedule, and `review.md`'s line that a galley is what
+  gets corrected while correcting is still free goes.

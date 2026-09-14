@@ -1,6 +1,6 @@
 ---
 name: comment-review
-description: Review the comments and docstrings in the files a change touched, across four editorial roles -- ownership-context, block-context, function-context, module-context -- using parallel read-only subagents, and return each finding as instruction/location/summary/finding/change for the human to rule on. Use this whenever comments or documentation are the subject -- after finishing a task that added or edited commentary, when a file's comments have drifted from what the code now does, when someone says a comment is too long or out of date or "isn't this history", when reviewing a diff specifically for its prose rather than its logic, before a docs or comment burn-down, or when asked to check whether a module still reads as one module. Trigger on phrasings that never say "comment review" -- "these comments are getting out of hand", "does this docstring still match", "is this comment still true", "clean up the narration in this file", "why does this file need so much explaining" all mean run this. It is NOT /simplify (which reviews code structure) and NOT /code-review (which hunts correctness bugs). The REVIEWERS never edit; the task agent applies what the human approves, and every applied change passes a residue check against the original prose.
+description: Review the comments and docstrings in the files a change touched, across four editorial roles -- ownership-context, block-context, function-context, module-context -- using parallel read-only subagents, and return each finding as instruction/location/summary/finding/change for the human to rule on. Use this whenever comments or documentation are the subject -- after finishing a task that added or edited commentary, when a file's comments have drifted from what the code now does, when someone says a comment is too long or out of date or "isn't this history", when reviewing a diff specifically for its prose rather than its logic, before a docs or comment burn-down, or when asked to check whether a module still reads as one module. Trigger on phrasings that never say "comment review" -- "these comments are getting out of hand", "does this docstring still match", "is this comment still true", "clean up the narration in this file", "why does this file need so much explaining" all mean run this. It is NOT /simplify (which reviews code structure) and NOT /code-review (which hunts correctness bugs). The REVIEWERS never edit; what the human approves is set in temporary files for them to diff, and every approved change passes a residue check against the original prose.
 ---
 
 # comment-review
@@ -9,27 +9,27 @@ description: Review the comments and docstrings in the files a change touched, a
 
 **An editorial board for the comments and docstrings a change touched.** Four editors read
 the same manuscript in four editorial roles, the copy chief folds their marks into one set of
-edits, a condenser cuts them to fit, the author approves **that** text, and the page is proofed.
+edits, a condenser cuts them to fit, the page is set and proofed, and the author approves **that** text.
 Structure and fact first, then truth, then fit, then the page.
 
 ```
-1 PROJECT      2 GATHER    3 FIND       4 MARK       5 COLLATE   6 COMPACT   7a PRESENT   8 REVIEW
-  DETERMINATION            REFERENCES   4 roles,     and CAP                   7b WRITE
-                                        ONE message                              ^
-                                                                +---- no cap -----+
+1 PROJECT      2 GATHER    3 FIND       4 MARK       5 COLLATE   6 COMPACT   7a SET       8 REVIEW    7a PRESENT
+  DETERMINATION            REFERENCES   4 roles      and CAP                   a galley     reads it    7b WRITE
+                                                                              ^
+                                                                +---- no cap -+
 ```
 
 | # | stage | who acts | what exists at the end of it |
 |---|---|---|---|
 | 1 | **PROJECT DETERMINATION** | task agent | language, doc convention, cap and width, project rules, style sheet, and where the name corpus will come from |
 | 2 | **GATHER** | `gather` | every page in scope bound into one BINDER -- each comment run and docstring a paragraph with its address |
-| 3 | **FIND REFERENCES** | `gather` | every reference each paragraph makes, resolved -- paths, symbols, counts |
-| 4 | **MARK** | 4 reviewers, ONE message | one filled `edit_copy` per role, checked. Read-only, nothing under the repo written |
+| 3 | **FIND REFERENCES** | `referrers` | every tracked file that names a page under review -- the `REFERENCE ONLY` list |
+| 4 | **MARK** | 4 reviewers | one filled `edit_copy` per role, checked. Read-only, nothing under the repo written |
 | 5 | **COLLATE and DISPOSITION** | `collate`, then the task agent as **copy chief** | the copies folded; what they agreed on stands, what they did not is ruled at max turns; the chief's `edit_copy` holds one mark per resolved place with its **full-length** text |
 | 6 | **COMPACT** | task agent | that text cut to the cap -- **skipped entirely if there is no cap** |
-| 7a | **APPROVAL -- present** | task agent, then `proof` and the **compositor** | the FINAL text SET as a galley -- a copy of each page, nothing under the repo touched -- in front of the author, with the places only the author can settle; **the run stops here** |
-| 7b | **APPROVAL -- write** | **author**, then the **compositor** | the approved draft put over the real file wholesale, byte-for-byte as approved |
-| 8 | **REVIEW** | `comment-review-review` | the finished page read as a reader would read it |
+| 7a | **APPROVAL -- present** | task agent, then `proof` and the **compositor**, then stage 8 | the final text set as a galley -- a copy of each page, nothing under the repo touched -- read by stage 8, then in front of the author with stage 8's findings and the places only the author can settle; **the run stops here** |
+| 7b | **APPROVAL -- write** | **author**, then task agent and `proof` | the approved text set in temporary files for the author to diff and read through, byte-for-byte as approved; nothing under the repo written |
+| 8 | **REVIEW** | `comment-review-review` | the galley's pages read as a reader would read them, before the author sees the proposal |
 
 !! **THIS IS THE BASELINE SHAPE, RULED 2026-09-04: every role reads ONCE, the copies fold ONCE,
 and nothing goes back to a role except a copy the checker refused.** No revise is pulled
@@ -81,8 +81,9 @@ reviewers', and [`references/reviewer-brief.md`](references/reviewer-brief.md) h
 
 ## Why the stages are in this order
 
-**1-3 build the PAGES** -- one per file: every LINE classified, numbered in order, with every
-reference it makes already resolved. This line is code, this PART of a line is code, this
+**1-3 build the PAGES** -- one per file: every LINE classified and numbered in order, each
+paragraph carrying its address, its anchor, its start and end line and its text. This line is
+code, this PART of a line is code, this
 line is comment, this line is docstring. It carries only which lines are which, which is
 what a reviewer of COMMENTS needs. The places holding nothing are on it too, because that
 is where prose is MISSING.
@@ -111,10 +112,12 @@ and two constraints pin it into exactly that slot:
   means the author approved something that never reached the file.
 
 **APPROVAL (7) presents the FINAL text and STOPS.** It takes the author's ruling, and applies
-that text only if it was approved.
+that text only if it was approved -- set in temporary files for the author to diff, never over
+the real files.
 
 **REVIEW (8) is the only stage that reads the artifact against itself.** Everything before it
-compares prose to code; this asks whether the finished page still reads.
+compares prose to code; this asks whether the finished page still reads. It reads the galley 7a
+sets, before the author sees anything, and its findings go into the proposal.
 
 ## Three roles
 
@@ -129,8 +132,8 @@ own judgement -- but every change to what a sentence CLAIMS needs evidence in ha
 `query`. That is why `correct` must carry the line that settles the claim, and `patch` need not.
 
 **The TASK AGENT -- you.** Run stages 1-3, launch the reviewers, fold their copies, rule at
-max turns as the **copy chief**, present, and after approval apply. You are the only participant
-that writes, and only after approval. **Write the replacement text yourself** where the roles
+max turns as the **copy chief**, present, and after approval set the approved text in temporary
+files the author diffs (7b). You write nothing under the repo. **Write the replacement text yourself** where the roles
 did not agree, and verify what you write. *"Compact + correct"* is an instruction to somebody
 else, not the text.
 
@@ -145,7 +148,7 @@ else, not the text.
 
 !! **Every instruction is available on every run.**
 
-!! **ALL FOUR ROLES RUN, IN ONE MESSAGE, AND `ownership-context` IS NEVER DROPPED.** Each of
+**All four roles run, and `ownership-context` is never dropped.** Each of
 the other three checks a claim against the code at its own scope, so a run may omit one of them
 and still be a review -- but a claim attached to the WRONG scope is measured against the wrong
 code and `correct`ed into a falsehood, which none of the three can notice, and
@@ -167,7 +170,7 @@ holds no uncommitted change to the files in scope, and `git stash create` otherw
 writes a commit object for the current state and leaves the working tree untouched. **It is not
 the merge base**, and the two answer different questions: the merge base says what the BRANCH
 changed, the pre-edit ref says what THIS RUN changed. Stage 6 reads the ORIGINAL prose from it
-and stage 7b proves against it.
+and stage 7b's residue check reads it again.
 
 **1.1 Scope from the MERGE BASE** -- `git merge-base HEAD <upstream>`, then
 `git diff --name-only "$base"..HEAD`. Never `A...B` between two tips, never a `HEAD~1`
@@ -322,14 +325,16 @@ so in time these two commands run right after stage 2 writes `binder.json`:
 
 ```bash
 python <skill>/scripts/comment-review.py topology --build --binder <run-dir>/binder.json --out <run-dir>/topology.toml \
-  --stage 4=ownership-context,block-context,function-context,module-context
+  --stage 4=ownership-context/<n>,block-context/<n>,function-context/<n>,module-context/<n>
 python <skill>/scripts/comment-review.py topology --verify <run-dir>/topology.toml --binder <run-dir>/binder.json
 ```
 
-That is this release's topology: one stage, the four roles over every page, one revise. A
-role split across shards (`block-context/2`) and a second stage reading the first's revise
-(`--stage 4a=... --stage 4c=...`) are shapes the file can express and a later release may
-turn to. `--build` writes a topology that fits the binder by construction and verifies it;
+**Split each role per file, at most five files a dispatch.** `<n>` is the number of files you
+gathered divided by five, rounded up -- 12 files is `/3` -- and `--build` deals the files to the
+dispatches in turn, so none holds more than five. Five is a first estimate, and the next run is
+the first to test it. That is this release's topology: one stage, the four roles, one revise. A
+second stage reading the first's revise (`--stage 4a=... --stage 4c=...`) is a shape the file
+can express and a later release may turn to. `--build` writes a topology that fits the binder by construction and verifies it;
 `--verify` alone checks one you already hold. **A run against an unverified topology is not a path these
 instructions offer.** A bad configuration costs nothing only when it is caught here: `--verify`
 exits 1 and names the stage, the kind -- a page two shards of one role claim, or a page no shard
@@ -406,8 +411,8 @@ same paragraphs and differ only in what else they can say:
 
 | tier | needs | answers | cannot answer |
 |---|---|---|---|
-| `tokenized` | a lexer + AST (Python: the stdlib) | paragraphs, annotations, **docstring** anchors | a **comment's** anchor |
-| `lexical` | a comment-syntax record, nothing else | paragraphs, annotations | any anchor; a marker inside an exotic string |
+| `tokenized` | a lexer + AST (Python: the stdlib) | paragraphs, **docstring** anchors | a **comment's** anchor |
+| `lexical` | a comment-syntax record, nothing else | paragraphs | any anchor; a marker inside an exotic string |
 
 !! **Say in the proposal that every placement is a CANDIDATE.** No comment carries an anchor
 at either tier, so every PLACEMENT instruction rests on a reviewer READING the file -- a
@@ -444,7 +449,7 @@ result = foo_bar(variable_a)
 
 **One paragraph**, bounded by `variable_a = 1234` and `result = ...`. Four physical comment lines,
 **three** counted: the marker line is free. The blank is inside the paragraph and is charged
-nothing. ! The example carries no inline annotations on purpose -- a `#` note explaining the
+nothing. The example carries no inline notes on purpose -- a `#` note explaining the
 example would be a comment sitting inside the very interval it describes, and would be counted.
 
 Three rules people state separately all follow from the one definition, and getting any of them
@@ -460,38 +465,19 @@ wrong changes what the reviewers see:
   is where the gather reads its anchor from.
 - **A trailing comment is its own paragraph**, one line, anchored to the code on that line.
 
-Annotations, and what resolving each one means:
+### The language server, where 1.7 found one
 
-| annotation | resolved by |
-|---|---|
-| `cites-a-path` | tracked in the tree? ! present-but-untracked is **unverifiable**, not dangling |
-| `names-a-symbol` | `workspaceSymbol` where 1.7 found a server, else the AST corpus (head segment; `foo()` normalised) |
-| `counted` | re-derive the POPULATION, then count it |
-| `coverage-claim` | does the guard exist -- and **can it fail**? |
-| `forbids-a-literal` | grep the forbidden literal across that file |
-| `repeated-literal` | where else is this number written? one source at both ends of a round trip? |
-| `narrative-in-docstring` | is the date, review label or *"used to"* a claim about HISTORY rather than about the code now? |
-| `continues-a-trailing-comment` | read it WITH the trailing comment above it -- the split is the gather's, so a mid-clause ending here is not a `correct` |
+The gather names every paragraph and the anchor it sits on, and nothing a server says is written
+into the binder -- no command attaches it. Use the server yourself where you verify a claim:
 
-!! **Every row is a question a reviewer must answer, and none of them is answered by the
-gather.** It says a path is cited; whether the claim about it is true is the reviewer's, and
-`reviewer-brief.md` holds that contract.
-
-### Enrich the binder with the language server, where 1.7 found one
-
-The gather names every paragraph; the server can say what a paragraph BELONGS to. Do this once, here,
-and attach the answer to the paragraph -- not in stage 4, where four reviewers would each re-derive
-it and could disagree.
-
-- **Anchor** -- `documentSymbol` on each file in scope returns every declaration and its line.
-  A run ending at line N-1 is ANCHORED to the declaration at line N. Attach it; the binder
-  carries the anchors it has.
-- **Liveness** -- for each `names-a-symbol` candidate, `workspaceSymbol` answers whether the
+- **Anchor** -- `documentSymbol` on a file returns every declaration and its line, which tells
+  you whether a paragraph's anchor is the declaration it documents.
+- **Liveness** -- for a name a paragraph uses, `workspaceSymbol` answers whether the
   name exists at all, in any language in the workspace. `findReferences` answers whether
   anything uses it, which is the stronger claim a comment usually makes.
 
 ! **A server does not settle a claim, it settles a FACT.** "This name exists" is not "this
-comment is true" -- the annotation stays a CANDIDATE a reviewer confirms, exactly as when the AST
+comment is true" -- the claim stays a candidate a reviewer confirms, exactly as when the AST
 answered it. What changes is the cost of checking, not who decides.
 
 !! **Say which servers answered, per language, in the proposal.** Availability is a
@@ -518,12 +504,11 @@ the invocation most likely to be typed by hand was the one with no backlink
 discovery at all.
 
 Report the gaps both commands print -- every `NOT CHECKED` and `PASSED OVER` list, and
-`NO GIT INDEX` -- then the files, paragraphs and languages the binder covers, and any paragraph
-whose KIND it could not resolve.
+`NO GIT INDEX` -- then the files, paragraphs and languages the binder covers.
 
-## Stage 4 -- MARK: four reviewers, in parallel
+## Stage 4 -- MARK: four reviewers
 
-**Dispatch all four in ONE message**, by agent name:
+**Dispatch all four**, by agent name, together or one after another:
 
 | agent | asks |
 |---|---|
@@ -532,12 +517,13 @@ whose KIND it could not resolve.
 | `comment-review:comment-review-function-context` | does the commentary match what the function is FOR? |
 | `comment-review:comment-review-module-context` | do the comments say this is ONE module? |
 
-!! **They must read INDEPENDENTLY, and that is what one message protects -- not speed.**
-Overlap between roles is signal ONLY if no role saw another's findings: two roles agreeing is
-corroboration when they read alone and nothing when the second read the first. A second
-dispatch runs concurrently too; what it risks is a prompt carrying what the first pair
-returned. **If you dispatch in more than one message, say so in the proposal** -- the run is
-still usable, and a reader has to know the overlap was not blind.
+**They must read independently, and the topology and the copies are what keep them apart.**
+Overlap between roles is signal only if no role saw another's findings: two roles agreeing is
+corroboration when they read alone and nothing when the second read the first. Each role reads
+the binder and fills its own seeded copy, and nothing a role writes is a path another role is
+handed -- so the roles may go out in one message or one after another, and the proposal owes
+no note either way. **Never put in a role's prompt anything another role returned**, and never
+hand it another role's copy.
 
 Each already carries its own editorial role.
 
@@ -588,7 +574,9 @@ published non-answer such as *"UNAVAILABLE"* is an answer and must be written; a
 `REPO ROOT`, `BINDER`, `EDIT COPY` and every `REVIEWER FILES` entry must be an
 **absolute path that exists**. The sections are: `REPO ROOT`; `BINDER`; `EDIT COPY`,
 the one section that differs per role; `FILES UNDER REVIEW`; `REFERENCE ONLY`; the STYLE
-SHEET, templates included; whether a LANGUAGE SERVER answered, per language; the destination
+SHEET, templates included; which language servers answered your probe at 1.7, per language --
+your answer, not a promise that a reviewer can call one, since a reviewer may have no LSP tool;
+the destination
 tree from 1.4, per path; and `REVIEWER FILES`, which is yours alone.
 
 Hand every reviewer the one packet. Dispatched without a style sheet, a run drifts the dialect
@@ -659,6 +647,8 @@ python <skill>/scripts/comment-review.py collate --stage 4 --binder <run-dir>/bi
   --out <run-dir>/chief0.json --proof-out <run-dir>/proof0.json --batch-out <run-dir>/batch1.json
 ```
 
+Pass one `--edit-copy` for every file `distribute` printed -- a role split three ways is three.
+
 **Read its exit code, and act on it before reading anything else:**
 
 | exit | it means | what you do |
@@ -673,6 +663,12 @@ python <skill>/scripts/comment-review.py collate --stage 4 --binder <run-dir>/bi
 Every line that opens with a role reads `<role> <place>: <reason>`, the place `(the copy)` for a
 problem with the whole copy. **That is your work list for sending
 back**, and a task agent reads it rather than the copies.
+
+The lines under `for the chief -- each correct below drops words its claim never named:` are not
+on that list, and no exit code reads them. Each reads `<role> <place>: its change drops '<word>',
+which its claim never names` -- a `correct` whose change removes words beyond the clause its
+claim quotes, a deletion no role argued for. Where the place is carried forward, rule on it
+knowing that; where it settled, it goes to the author at 7a.
 
 !! **A finding whose evidence does not resolve is not a finding.** Only `clean` is exempt,
 because it cites no claim. **Never grade a review by reading its copy** -- self-reported
@@ -757,8 +753,14 @@ python <skill>/scripts/comment-review.py disposition --proof <run-dir>/proof0.js
 `--proof` is the last proof written: `proof0.json` when no turn ran, the last turn's otherwise.
 
 **`disposition` refuses a carried-forward place with no ruling, by name and with its roles, and writes
-nothing** -- rule it and run again. It prints every ruling as it lands and every unsettlable
-place with the role that asked; `chief.json` is the chief's `edit_copy`, one mark per resolved
+nothing** -- rule it and run again. Otherwise it prints what it wrote -- `<out>: the chief's
+copy, <n> places` and `<proof-out>: the proof closed at turn <t> -- <n> determined, <m>
+unsettlable` -- then one line per ruling, `<answer> <place>: <side> (<how>, turn <t>)`, then one
+entry per unsettlable place: `unsettlable <place>: <role> asks the human -- <reason>`, with an
+indented `and ...` line for a move's drop or add held there. A move held at both ends is one
+entry, `unsettlable <origin> and <destination>: ...`, whose last line reads `and <role>'s move
+drops the paragraph at <origin> and adds it at <destination>, one move -- <reason>`.
+`chief.json` is the chief's `edit_copy`, one mark per resolved
 place, and it is what stages 6 and 7 read. ! `--stage` is `4` throughout: the four roles ran
 in one stage.
 
@@ -801,7 +803,9 @@ against the original, and the original was one paragraph. ! A `taken_in` text wa
 role that never ran it; run it over that too.
 
 !! **THE SENTENCE YOU PROPOSE TO KEEP IS A FINDING YOU HAVE NOT RAISED.** Before any `patch`
-or `move`, verify the retained clause the way stage 3 resolves an annotation. The reviewer keeps the
+or `move`, verify the retained clause against the code: a path it cites is tracked -- present but
+untracked is unverifiable, not dangling -- a name it uses is in the name corpus, and a count
+re-derives from its population. The reviewer keeps the
 load-bearing-*sounding* clause -- which is the claim, which is what is wrong -- and cuts the
 **provenance** around it: the date, the pointer, the grepable name.
 
@@ -834,8 +838,9 @@ which reads as safe for exactly that reason. Grep the cited name, every time. An
 
 **A `#` comment is governed by LENGTH; a docstring by FORMAT.** Long is not a violation; what
 fails is a body carrying what is not documentation -- a date, a quotation, a retraction, a
-rationale paragraph, a claim about callers or coverage -- **at any length**. ! **Acquit on
-KIND, never on LENGTH**: a two-line docstring whose summary runs on is still a finding.
+rationale paragraph, a claim about callers or coverage -- **at any length**. **Acquit on what
+a body carries, never on its length**: a two-line docstring whose summary runs on is still a
+finding.
 
 Invisible to any counter: a **trailing comment carrying past its own line** (a `move` to the
 line above); a **paragraph split by an inserted statement**, where only the half still
@@ -869,10 +874,9 @@ whole tree -- a `move` that relocates prose between paragraphs, an owner that co
 restatements into one -- and none of that is settled until every paragraph is ruled. `compact.md`
 carries the argument and the per-paragraph procedure.
 
-!! **NOTHING ELSE READS STAGE 6's OUTPUT BEFORE THE AUTHOR DOES.** Stage 7a presents it and
-rules on nothing; the CODE CHECK runs at 7b and reads only executable code; stage 8 runs after
-the write. The baseline accepts that: the compacted text reaches the author read by nobody but
-the agent that wrote it, and stage 8 is where that shows.
+**Stage 8 is the one reader of stage 6's output before the author.** Stage 7a presents it and
+rules on nothing; stage 8 reads the galley 7a sets from it, and what it finds goes to the author
+with the proposal.
 
 ## Stage 7a -- APPROVAL: present the FINAL text, then stop
 
@@ -891,6 +895,12 @@ prints `REFUSED: --out <reason>` -- each at exit **2**. A refusal further into t
 moved address space prints `REFUSED: the address space moved -- <reason>`, and a step on one page
 prints `REFUSED at <step>: <where> -- <reason>`. Read what it printed, rather than a list you remember.
 
+**`proof`'s re-read of each page it drafts is the compile step.** It reads the drafted page back
+and refuses one whose text at a place is not the text approved for it, so a docstring a role set
+at the wrong indentation is refused here, by name.
+
+**Then dispatch stage 8 on the proof** (below), and present once its findings are back.
+
 Then present, grouped by instruction, most consequential first, in **five parts**
 (`INSTRUCTION / PARAGRAPH / CLAIM / REASON / CHANGE`) -- the mark minus the fields only the
 collator reads -- replacement text inline for every `correct` / `patch` / `add`, and the galley's
@@ -905,7 +915,13 @@ that will remain.
 
 !! **THE UNSETTLABLE PLACES ARE THE AUTHOR'S, AND THIS IS WHERE THEY ARE ASKED.** `disposition` printed
 each one with the role that raised it and its reason; put every one to the author here, after
-everything else, as the questions they are. Nothing is proposed for them.
+everything else, as the questions they are. Nothing is proposed for them but a held move: an
+entry naming a move's drop and its add is one move, put to the author as the paragraph leaving
+its origin and arriving at its destination, with the text it carries -- the `change` of that
+place's `add` in `final.json`'s `unsettlable` list -- and approved or refused whole.
+
+Put each settled `correct` from stage 5's `for the chief` list to the author here too, with the
+words its change drops.
 
 **The proposal ends here** -- nothing further is written until the author rules.
 
@@ -916,23 +932,29 @@ on the assumption that the text in front of them is the text that lands.
 **Hand back the STYLE SHEET**, updated with every decision this run made -- the sheet is how the
 next pass avoids re-deciding, and it is worthless if it stays in your head.
 
-! **Approval IS authorization.** "Yes", "do it", "continue" -> load `references/write.md` and
-apply. Never-edit binds reviewers, not you acting on an approval.
+**Approval is the go-ahead for 7b.** "Yes", "do it", "continue" -> load `references/write.md`
+and follow it. You edit nothing under the repo either: 7b sets the approved text in temporary
+files.
 
-## Stage 7b -- WRITE: put the approved text on disk
+## Stage 7b -- WRITE: set the approved text for the author to diff
 
-On approval, load [`references/write.md`](references/write.md) and follow it. It carries the
-residue check and the write rails. Do not write from memory.
+On approval, load [`references/write.md`](references/write.md) and follow it. It sets the
+approved text in temporary files with `proof`, for the author to diff, and puts nothing over the
+real files; it carries the residue check and the write rails. Do not write from memory.
 
 ! **Stage 7b writes the APPROVED text verbatim.** It does not shorten, re-word or re-judge --
 every one of those questions was settled upstream, and re-opening one here writes something
 the author never saw.
 
-## Stage 8 -- REVIEW: the finished page
+## Stage 8 -- REVIEW: the proof, before the author sees it
 
-On completion of 7b, dispatch `comment-review:comment-review-review` with the
-list of changed files and the style sheet, and paste
-[`references/review.md`](references/review.md) into its prompt whole.
+Once 7a has set the galley, and before you present, dispatch
+`comment-review:comment-review-review` with the proof -- the galley directory and the `<draft>`
+pages `proof` listed -- and the style sheet, and paste [`references/review.md`](references/review.md) into its
+prompt whole. Its findings go into the proposal at 7a.
+
+The read holds for a blanket approval only: where the author approves some changes and not
+others, the pages 7b sets are pages stage 8 never read.
 
 !! **This pass is not yours to run either**, and for the same reason: a reader
 who remembers intending each edit reads the page they meant to write. If the

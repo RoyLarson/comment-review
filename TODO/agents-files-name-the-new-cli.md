@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 19 of 33 tasks closed
+Progress: 32 of 38 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -66,14 +66,17 @@ The agents files name the new CLI and say how to use it.
 - [x] T15 | FINISHED; the brief says a role may read its own draft with proof --copy | 70965ff4 | Update
       reviewer-brief.md so a role knows it may set its own edit copy with proof
       --copy and read the draft that pulls.
-- [ ] T16 | Update SKILL.md 1.9 so the split per role is sized from the binder's
-      place count, not fixed at one.
+- [x] T16 | SKILL.md 1.9 splits each role per file, at most five files a dispatch, per Process 165 | 56ab05d6 | Update
+      SKILL.md 1.9 so the split per role is sized from the binder's place count,
+      not fixed at one.
         > 2026-09-07 2026-09-06: 888 places per role over 71 pages exhausted a session.
-- [ ] T17 | Update SKILL.md stage 4 so the roles may be dispatched sequentially:
-      the topology and the copies isolate them, not one message.
+- [x] T17 | SKILL.md stage 4 lets the roles go out together or one after another, per Process 102 | 23ef6352 | Update
+      SKILL.md stage 4 so the roles may be dispatched sequentially: the topology
+      and the copies isolate them, not one message.
         > 2026-09-07 decision-log.md Process: #102, Roy 2026-09-07.
-- [ ] T18 | Update the packet so the language-server answer says who can call
-      it; three reviewers found no LSP tool and fell back to grep
+- [x] T18 | the packet says the LSP answer is the task agent's probe; a role without the tool settles by grep | 07372c96 | Update
+      the packet so the language-server answer says who can call it; three
+      reviewers found no LSP tool and fell back to grep
         > 2026-09-07 OneDrive claude-settings/2026-09-07/README.md, Feedback section
 - [-] T19 | SUPERSEDED by Addressing: #23 -- the compositor supplies leading, not the role; refiled as T20 | f850c321 | Update
       reviewer-brief.md to teach leading: an existing place's is restored, a
@@ -81,8 +84,9 @@ The agents files name the new CLI and say how to use it.
 - [x] T20 | the brief asks for no leading blank at either end | 7d2e1834 | Update
       reviewer-brief.md so a role writes no leading blank at either end of a
       change. Verify: the brief asks for none
-- [ ] T21 | Update SKILL.md so the task agent runs a compile step on the set
-      page to verify it is set correctly
+- [x] T21 | SKILL.md names proof re-read of each drafted page as the compile step; py_compile is gone, per Process 166 | 6a6bd27f | Update
+      SKILL.md so the task agent runs a compile step on the set page to verify
+      it is set correctly
         > 2026-09-11 Addressing 27; Roy: we can have the task-agent run it
 - [x] T22 | the collate exit table carries exit 7's row | 49066f15 | Update
       SKILL.md's collate exit table at :664-670 with a row for that code
@@ -109,14 +113,33 @@ The agents files name the new CLI and say how to use it.
 - [ ] T28 | Update reviewer-brief.md:592-593 so ANSWERS, BATCH and PROOF name
       what SKILL.md:712-713 hands a role. Verify: the two agree
         > 2026-09-13 from census T16, Process 147
-- [ ] T29 | Update SKILL.md 7a so the task agent puts a held move's drop and add
-      to the author as one move, per Process 155
-- [ ] T30 | Update SKILL.md, reviewer-brief.md and compact.md so no agent is
-      told to use a paragraph's kind or annotations, per Process 158
-- [ ] T31 | Update SKILL.md and write.md so stage 7b writes the approved text to
-      temporary files for the author to diff, per Process 159
+- [x] T29 | 7a puts a held move to the author as one move; SKILL.md gives the lines disposition prints | dc06c677 | Update
+      SKILL.md 7a so the task agent puts a held move's drop and add to the
+      author as one move, per Process 155
+- [x] T30 | SKILL.md, the brief and compact.md tell no agent to use a kind or annotations; compact keys on the place | fd846264 | Update
+      SKILL.md, reviewer-brief.md and compact.md so no agent is told to use a
+      paragraph's kind or annotations, per Process 158
+- [x] T31 | stage 7b has proof set the approved text in temporary files for the author to diff | 6277bdd8 | Update
+      SKILL.md and write.md so stage 7b writes the approved text to temporary
+      files for the author to diff, per Process 159
 - [x] T32 | SKILL.md, the brief and write.md match the CLI: 16 changes, merged at 626017b7 | 626017b7 | Update
       SKILL.md, reviewer-brief.md and write.md so every command, flag, exit code
       and output they name matches the CLI
-- [ ] T33 | Update write.md so stage 7b runs no prove_unchanged check and
-      restores no edit on its result, per Process 160
+- [x] T33 | write.md runs no prove_unchanged at 7b and restores no edit on its result | 6277bdd8 | Update
+      write.md so stage 7b runs no prove_unchanged check and restores no edit on
+      its result, per Process 160
+- [x] T34 | comment-review-compact.md names no kind: its input is address and anchor, its procedure a place table | 23acf5cc | Update
+      comment-review-compact.md so it names no paragraph kind, no refusal of an
+      unresolved kind and no kind table, per Process 158
+- [x] T35 | comment-review-review.md reads the proof as set, each page proof drafted, before the author rules | c8f0eb60 | Update
+      comment-review-review.md so the review reads the galley before 7a, not
+      each file WRITE changed, per Process 144
+- [x] T36 | the vocabulary annotation is a type annotation in code, and mark no longer names annotations, per Process 158 | 9f488535 | Update
+      vocabulary.toml's annotation definition so it is true of what the roles
+      are handed, per Process 158
+- [x] T37 | the skill description says what the human approves is set in temporary files to diff, per Process 159 | d66af29d | Update
+      the skill's front-matter description so the task agent does not apply the
+      approved text, per Process 159
+- [x] T38 | the language-server section writes nothing into the binder; the task agent uses the server itself | fe0aed64 | Update
+      SKILL.md's Enrich the binder section so it asks only for what a command
+      does

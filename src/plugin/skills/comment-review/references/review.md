@@ -2,10 +2,10 @@
 
 **This stage sees the finished page. Every earlier one saw a plan.**
 
-!! **WHAT YOU ARE HANDED IS A PROOF**, and the word carries the rule. A GALLEY is pulled so it can
-be corrected while correcting is still free; a proof is pulled to be JUDGED. The compositor set
-it from the page after the author approved every replacement, so nothing here is a draft you are
-helping to shape -- it is the document, and your question is whether it deserves more marks.
+!! **WHAT YOU ARE HANDED IS A PROOF**, and the word carries the rule: a proof is pulled to be judged. The compositor set
+it from the page with every replacement the proposal holds, before the author rules, so nothing
+here is a draft you are helping to shape -- it is the document the author will be asked to
+approve, and your question is whether it deserves more marks.
 
 ! **You are a PROOFREADER, and that is not a fifth editorial role.** The four roles each measured
 one kind of claim against one scope. You read what they produced, as a reader meets it, and the
@@ -16,8 +16,8 @@ files are done or whether another comment-review round is wanted. Almost no edit
 finishes in one round -- each pass refines what the next one works on, and this is where that
 judgement is made.
 
-! **Your whole input is the file list, the style sheet, and this file.** Everything you need is
-on the page and in the code beside it.
+**Your whole input is the proof -- the galley `proof` set and the pages drafted in it -- the
+style sheet, and this file.** Everything you need is on the page and in the code beside it.
 
 Read each file end to end, as a reader would, and ask of every comment and docstring:
 
@@ -43,9 +43,12 @@ And of the file as a whole: does it still read as one page? Look for --
 ! **Do not edit.** You read and you report; the human decides what happens next. That holds for
 a defect this run created and for one that was already there.
 
+**Move nothing, and write no alteration or schedule for the pages.** You are handed the proof as
+set; what it becomes next is the author's to decide.
+
 ! **Do not rewrite for quality.** A better wording you notice is a finding for the next round,
-not a licence to write it: the text on the page is what a human approved, and writing over it
-puts prose on disk nobody read.
+not a licence to write it: the text on the page is what the author is about to rule on, and
+writing over it puts prose in front of them that nobody read.
 
 ## Report
 
@@ -59,18 +62,19 @@ naming what and where.
 Separately, every defect that predates this run. That list is the next round's input and must
 not be folded into the first.
 
-## Looking a place up, after the write
+## Looking a place up on a drafted page
 
-!! **THE ADDRESS IS UNCHANGED AND 7b PROVED IT.** The CODE CHECK passed, so the
-code reads the same in the same ORDER -- the Nth code line is still the same
-statement, and an address counts those. The line numbers moved with the prose;
-the ordinal did not.
+**The address is unchanged, and `proof` proved it**: it refuses a draft whose executable code is
+not the code the page was set from, so the code reads the same in the same order -- the Nth code
+line is still the same statement, and an address counts those. The line numbers moved with the
+prose; the ordinal did not.
 
-To read at one, resolve against a binder of the file as it now stands. ! The addresser answers
-about the BINDER, never the tree -- so gather the file first and the two agree by construction:
+To read at one, resolve against a binder of the drafted page. The addresser answers about the
+binder, never the tree -- so gather the page first, from the proof's directory as the revise
+`proof` pulled, and the two agree by construction:
 
 ```bash
-python <skill>/scripts/comment-review.py gather --repo . --out <run-dir>/after.json <paths...>
+python <skill>/scripts/comment-review.py gather --repo <proof-dir> --revise 1 --out <run-dir>/after.json <paths...>
 python <skill>/scripts/comment-review.py addresser --binder <run-dir>/after.json --resolve <ADDRESS>
 ```
 

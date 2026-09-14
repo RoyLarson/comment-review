@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 13 tasks closed
+Progress: 5 of 13 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-06 (Roy, 2026-09-06, on reading the ownership-context agent file and
@@ -29,8 +29,9 @@ The reviewer prose is rules and punishments, not guidance toward a good result.
       same binder, the four copies compared to that run's.
         > 2026-09-06 Copies of that run: the scratchpad run-2026-09-06 directory.
         > 2026-09-07 The Sonnet ownership copy is all clean; compare to the forks' parts
-- [ ] T5 | Update the brief so a role does not fork itself into sub-agents
-      writing part files outside its one copy.
+- [x] T5 | the brief tells a role to fill its one copy itself: no sub-agent, no part file, no other copy | e0af5df1 | Update
+      the brief so a role does not fork itself into sub-agents writing part
+      files outside its one copy.
         > 2026-09-07 2026-09-06: all four roles forked; 0 of 3,552 slots reached a copy.
         > 2026-09-07 Sonnet run: two roles wrote 60 and 35 scripts under the scratchpad
 - [x] T6 | Sonnet cleaned all 888; 64 of 64 places the forks marked are real at ab0f9266 | cc699ff0 | Measure
