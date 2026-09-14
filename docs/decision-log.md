@@ -4651,3 +4651,22 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   Offered -- supersede T25 and keep the ruling, since stage 1 checks that a run starts at the
   repo root; write the root relative to the binder file; or write it absolute -- Roy chose
   *"Supersede T25, keep the ruling"*.
+
+- **#165.** **Each role's work is split per file, at five files a dispatch to start** (Roy,
+  2026-09-14, on `agents-files-name-the-new-cli` T16: `SKILL.md` 1.9 fixes the split at one
+  dispatch per role, and sizing it needs a figure no measurement gives -- 888 places over 71
+  pages exhausted a session, 54 over 7 finished, and forks in the 888-place run filled about 100
+  each).
+
+  Offered a count of places per dispatch -- 100, provisional -- or superseding T16, Roy: *"Per
+  file, first estimate at 5 files"*. So a role's dispatch holds at most five files, a first
+  estimate that the P5 run is the first to test.
+
+- **#166.** **`proof` is the compile step** (Roy, 2026-09-14, on `agents-files-name-the-new-cli`
+  T21, which set 3 built as `python -m py_compile` on each drafted Python page at 7a: it covers
+  Python only, and for Python it repeats `proof`, which parses each drafted page and refuses one
+  it cannot prove unchanged).
+
+  Offered -- `proof` is the compile step; keep `py_compile`; or have stage 1 find the repo's own
+  compiler -- Roy chose *"`proof` is the compile step"*. So the `py_compile` step comes out, and
+  `SKILL.md` names `proof`'s re-read of each drafted page as the check Addressing `#27` asked for.
