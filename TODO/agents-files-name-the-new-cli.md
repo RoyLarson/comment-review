@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 26 of 38 tasks closed
+Progress: 27 of 38 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -66,8 +66,9 @@ The agents files name the new CLI and say how to use it.
 - [x] T15 | FINISHED; the brief says a role may read its own draft with proof --copy | 70965ff4 | Update
       reviewer-brief.md so a role knows it may set its own edit copy with proof
       --copy and read the draft that pulls.
-- [ ] T16 | Update SKILL.md 1.9 so the split per role is sized from the binder's
-      place count, not fixed at one.
+- [x] T16 | SKILL.md 1.9 splits each role per file, at most five files a dispatch, per Process 165 | 56ab05d6 | Update
+      SKILL.md 1.9 so the split per role is sized from the binder's place count,
+      not fixed at one.
         > 2026-09-07 2026-09-06: 888 places per role over 71 pages exhausted a session.
 - [x] T17 | SKILL.md stage 4 lets the roles go out together or one after another, per Process 102 | 23ef6352 | Update
       SKILL.md stage 4 so the roles may be dispatched sequentially: the topology
