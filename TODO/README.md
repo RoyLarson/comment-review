@@ -278,7 +278,7 @@ that changed a published name or rule:
 | [collate-flow-defects](collate-flow-defects.md) | backend | -- | 2/16 | Twelve defects in `flows/collate.py`, from a review of one file |
 | [mark-defects](mark-defects.md) | backend | -- | 12/22 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
 | [binder-defects](binder-defects.md) | backend | -- | 6/25 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
-| [docket-defects](docket-defects.md) | backend | -- | 2/9 | Six defects in docket.py, and one discards an approved page at exit 0 |
+| [docket-defects](docket-defects.md) | backend | -- | 3/9 | Six defects in docket.py, and one discards an approved page at exit 0 |
 | [collate-command-defects](collate-command-defects.md) | backend | -- | 5/21 | Sixteen defects in `commands/collate.py`, measured by running it |
 | [differences-defects](differences-defects.md) | backend | -- | 0/10 | Ten defects in `results/differences.py`, none of them in its arithmetic |
 | [plans-name-no-todo-tasks](plans-name-no-todo-tasks.md) | systems | yes | 0/4 | Six 0.2.4 plans carry no heading naming the TODO tasks they close |
