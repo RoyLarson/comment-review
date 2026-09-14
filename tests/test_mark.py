@@ -383,7 +383,7 @@ class TestTheRulesBite:
         bad = well_formed("correct")
         bad["anchor"] = anchor
         bad["change"] = f"    #: the corrected comment\n{anchor}"
-        assert any("anchor" in p for p in problems("here", bad))
+        assert any("anchor's own line" in p for p in problems("here", bad))
 
         good = well_formed("correct")
         good["anchor"] = anchor

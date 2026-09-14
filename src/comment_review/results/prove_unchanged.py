@@ -52,7 +52,7 @@ from comment_review.reading.lexer import (
 
 
 def _blank_docstrings(tree: ast.AST, aside: Collection[ast.AST] = ()) -> ast.AST:
-    """Replace each docstring's value outside `aside` with an empty string, in place.
+    """Empty each docstring whose declaration is not in `aside`, in place.
 
     A docstring is prose this skill is allowed to rewrite, so its content must
     not enter the fingerprint. Its presence does: a docstring binds `__doc__`,
