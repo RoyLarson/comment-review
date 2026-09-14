@@ -1947,17 +1947,26 @@ class TestTheChiefRulesEachEndOfAMove:
 
 
 def _the_origin_held_for_the_human(root, monkeypatch, capsys):
-    """A move whose origin function-context holds for the human, run through
-    max turns, where the chief takes the move in at its destination.
+    """`_disposed` over `_the_origin_held_at_max_turns`, with its ruling.
+
+    Returns:
+        As `_disposed`.
+    """
+    rulings = _the_origin_held_at_max_turns(root)
+    return _disposed(root, monkeypatch, capsys, rulings, "proof2.json")
+
+
+def _the_origin_held_at_max_turns(root) -> list[dict]:
+    """A move whose origin function-context holds for the human, carried to
+    max turns, on disk as `disposition` reads it.
 
     Turn 1 of `_two_turns`: function-context answers its slot at the origin
     with a `human-review-necessary` query and every other slot is `clean`.
     Turn 2: every slot sent is `clean`. `binder.json` and `proof2.json`, the
-    proof after turn 2 with its record, are written into `root`, and
-    `_disposed` closes it with the chief's one ruling, at the destination.
+    proof after turn 2 with its record, are written into `root`.
 
     Returns:
-        As `_disposed`.
+        The chief's one ruling, taking the move in at its destination.
     """
     asked = _a_movers_query(Shape.HUMAN_REVIEW_NECESSARY)
     binder, one, two, turns = _two_turns(
@@ -1979,7 +1988,7 @@ def _the_origin_held_for_the_human(root, monkeypatch, capsys):
         "side": "block-context",
         "reason": "w wants it",
     }
-    return _disposed(root, monkeypatch, capsys, [ruling], "proof2.json")
+    return [ruling]
 
 
 class TestAMoveWhoseOriginIsHeldForTheHuman:
@@ -2020,15 +2029,6 @@ class TestAMoveWhoseOriginIsHeldForTheHuman:
             (Instruction.MOVE, EMPTY_PLACE)
         ]
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "no-command-for-the-middle T89: the closed proof carries the held "
-            "origin as function-context's query alone; the move's drop there "
-            "is on block-context's copy, not on the place the human is asked "
-            "at 7a"
-        ),
-    )
     def test_the_moves_drop_rides_with_the_held_origin(
         self, tmp_path, monkeypatch, capsys
     ):
@@ -2036,6 +2036,15 @@ class TestAMoveWhoseOriginIsHeldForTheHuman:
         (held,) = [u for u in closed.unsettlable if u["address"] == MOVED_FROM]
         rendered = json.dumps(held)
         assert any(f'"instruction": "{one}"' in rendered for one in ("move", "drop"))
+
+    def test_disposition_prints_the_drop_with_the_held_origin(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        rulings = _the_origin_held_at_max_turns(tmp_path)
+        code, out = disposition(tmp_path, monkeypatch, capsys, rulings, "proof2.json")
+        assert code == OK, out
+        assert f"unsettlable {MOVED_FROM}: function-context asks the human" in out
+        assert "block-context's move drops the paragraph there" in out
 
 
 def _two_places():

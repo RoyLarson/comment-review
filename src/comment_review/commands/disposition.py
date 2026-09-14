@@ -159,6 +159,12 @@ def main() -> int:
             f"unsettlable {place['address']}: {query.get('role', '?')} asks the human"
             f" -- {query.get('reason', '')}"
         )
+        if "drop" in place:
+            drop = place["drop"]
+            print(
+                f"  and {drop.get('role', '?')}'s move drops the paragraph there"
+                f" -- {drop.get('reason', '')}"
+            )
     return OK
 
 

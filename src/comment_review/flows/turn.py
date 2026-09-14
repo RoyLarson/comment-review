@@ -1200,8 +1200,7 @@ def proof_after(got: Collated, turns: tuple[dict, ...] = ()) -> MasterProof:
 
     Returns:
         `got.proof` carrying `turns`, every Determined in address order, and
-        each unsettlable place without its `Placed` marks -- `{address, roles,
-        query}`, the shape the wire holds and the human is asked.
+        each unsettlable place as `_riding` shapes it.
 
     Raises:
         ValueError: the fold returned early and holds no proof.
@@ -1212,10 +1211,34 @@ def proof_after(got: Collated, turns: tuple[dict, ...] = ()) -> MasterProof:
         got.proof,
         turns=tuple(turns),
         determined=tuple(got.determined[a] for a in sorted(got.determined)),
-        unsettlable=tuple(
-            {k: v for k, v in u.items() if k != "marks"} for u in got.unsettlable
-        ),
+        unsettlable=tuple(_riding(u) for u in got.unsettlable),
     )
+
+
+def _riding(held: dict) -> dict:
+    """One unsettlable place as the wire holds it and the human is asked.
+
+    `held` without its `Placed` marks -- `{address, roles, query}` -- and,
+    where the place is a move's origin, `drop`: that end of the move as
+    `_the_origin` writes it, emptying the place, with the mover's `role`
+    beside it as `query` carries its own. The chief rules the move's
+    destination on its own (`Process: #139`), so the drop is the human's
+    to rule at the origin (`#90`). Every move from one origin drops the
+    same paragraph, and the first one's is carried.
+    """
+    out = {k: v for k, v in held.items() if k != "marks"}
+    moved = next(
+        (
+            placed
+            for placed in held.get("marks", [])
+            if placed.mark.instruction is Instruction.MOVE
+            and placed.mark.address == held["address"]
+        ),
+        None,
+    )
+    if moved is not None:
+        out["drop"] = {"role": moved.role, **_the_origin(moved.mark, "").serialize()}
+    return out
 
 
 def close(
