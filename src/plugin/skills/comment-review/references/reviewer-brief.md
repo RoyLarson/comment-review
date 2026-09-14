@@ -12,6 +12,10 @@ imagined one.
 
 **You return the edit copy, filled out.** `mark` fills it for you, one ruling per invocation.
 
+**Fill it yourself.** Hand no slot to a sub-agent, write no mark into a part file, and open no
+other role's copy: the fold reads your one copy and nothing else. On one run all four roles
+forked, and none of 3,552 slots reached a copy.
+
 Do not edit the source. The system writes those files later, from your marks, and a file
 changed underneath it will not update correctly. Everything else you used to certify a mark --
 a summary, a note to the task agent, a working copy of a paragraph -- the system has no way to
