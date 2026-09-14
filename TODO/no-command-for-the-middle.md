@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 79 of 92 tasks closed
+Progress: 80 of 92 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -440,6 +440,7 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       a test of a mover that leaves its origin slot unanswered while every role
       holds one text, to settle whether it settles
         > 2026-09-13 by reading: cb42539e reads copies, not the turn's answers
-- [ ] T92 | Delete T79's test in tests/test_turn.py, which since cb42539e runs
-      T87's route with weaker assertions
+- [x] T92 | T79s test is deleted; T87s test carries its one assertion T87 lacked, the movers copy holding the move | 9d43f884 | Delete
+      T79's test in tests/test_turn.py, which since cb42539e runs T87's route
+      with weaker assertions
         > 2026-09-13 round 6: T79's turn-1 assertion went with the fix
