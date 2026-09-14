@@ -1,7 +1,7 @@
 # The c series is admitted by the gate and cannot be written
 
 ```
-Status:   decision-needed
+Status:   closed
 Progress: 5 of 5 tasks closed
 Owner:    session
 Requires-Roy: false

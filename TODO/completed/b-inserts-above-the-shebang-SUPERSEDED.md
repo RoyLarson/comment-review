@@ -1,7 +1,7 @@
 # An empty b whose gap opens on front matter inserts ABOVE the shebang
 
 ```
-Status:   open
+Status:   closed
 Progress: 4 of 4 tasks closed
 Owner:    session
 Requires-Roy: false

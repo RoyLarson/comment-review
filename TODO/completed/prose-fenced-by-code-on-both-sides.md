@@ -1,7 +1,7 @@
 # A comment fenced by code on both sides is censused as prose holding the statement
 
 ```
-Status:   decision-needed
+Status:   closed
 Progress: 4 of 4 tasks closed
 Owner:    session
 Requires-Roy: false

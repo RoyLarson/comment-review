@@ -1,7 +1,7 @@
 # The galley is the last index-keyed interface, at the write boundary
 
 ```
-Status:   open
+Status:   closed
 Progress: 3 of 3 tasks closed
 Owner:    session
 Requires-Roy: false

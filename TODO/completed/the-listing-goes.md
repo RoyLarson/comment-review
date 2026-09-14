@@ -1,7 +1,7 @@
 # The listing goes: gather writes the binder only, and a reviewer is handed the binder and its seeded edit copy
 
 ```
-Status:   open
+Status:   closed
 Progress: 7 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false

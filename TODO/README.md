@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (115)
+### open  (114)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -294,7 +294,6 @@ that changed a published name or rule:
 | [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 5/13 | The reviewer prose is rules and punishments, not guidance toward a good result |
 | [a-machine-context-raises-query-and-clean](a-machine-context-raises-query-and-clean.md) | backend | yes | 0/8 | annotate carries two subjects -- it extracts index keys, and it flags claims it cannot settle. The second half becomes a context that marks like a role. |
 | [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | -- | 8/12 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
-| [smoke-middle-script](smoke-middle-script.md) | systems | -- | 67/67 | The middle-chain smoke script carries the findings of its Task 8 review |
 | [prove-unchanged-line-endings-follow-a-sibling](prove-unchanged-line-endings-follow-a-sibling.md) | backend | -- | 0/2 | On a checkout with core.autocrlf=true, git writes a checked-out text file with CRLF while its blob stays LF, and a file git never rewrote can still be LF. prove_unchanged compares an edited file's line endings with one untouched sibling, so a CRLF file whose sibling is a one-line LF __init__.py FAILs though the write kept every ending and the AST comparison passes. The check should hold the file to its own pre-edit endings. |
 | [smoke-drives-one-route](smoke-drives-one-route.md) | systems | -- | 0/8 | The smoke drives one route, and the self-run broke on the others |
 
@@ -465,3 +464,4 @@ the reason is inside the file.
 | [listing-hands-the-repo](completed/listing-hands-the-repo.md) | Superseded: the listing was removed at Process #99, so its defects have no site |
 | [a-role-writes-its-own-mark-tool](completed/a-role-writes-its-own-mark-tool.md) | The mark command fills a role's copy: one ruling per invocation, change derived, the cited line quoted. T3's bulk clean superseded on Roy's ruling |
 | [the-scope-is-git-in-prose](completed/the-scope-is-git-in-prose.md) | Both tasks superseded by Process 162; the scope step stays in SKILL.md 1.1 |
+| [smoke-middle-script](completed/smoke-middle-script.md) | 66 finished, 1 superseded |

@@ -1,7 +1,7 @@
 # The build gate's raw byte compare is line-ending-fragile on Windows
 
 ```
-Status:   open
+Status:   closed
 Progress: 2 of 2 tasks closed
 Owner:    systems
 Requires-Roy: false

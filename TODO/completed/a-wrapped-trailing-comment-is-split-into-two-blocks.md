@@ -1,7 +1,7 @@
 # A wrapped trailing comment is split into two blocks, and the tail re-anchors
 
 ```
-Status:   CLOSED 2026-08-17 by group A
+Status:   closed
 Progress: 5 of 5 tasks closed
 Owner:    session * Roy (* 1 ruling)
 Raised:   2026-08-17 (ownership-context diagnosed the mechanism during a live run and named

@@ -1,7 +1,7 @@
 # mark.py validates dicts instead of defining the Mark the-mark.md specifies
 
 ```
-Status:   open
+Status:   closed
 Progress: 7 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false

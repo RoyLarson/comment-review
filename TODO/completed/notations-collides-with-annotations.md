@@ -1,7 +1,7 @@
 # notations and annotations are one letter apart and mean different things
 
 ```
-Status:   in-progress
+Status:   closed
 Progress: 4 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false

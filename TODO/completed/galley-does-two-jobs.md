@@ -1,7 +1,7 @@
 # The galley updates the page AND sets the text, which are two roles
 
 ```
-Status:   open
+Status:   closed
 Progress: 13 of 13 tasks closed
 Owner:    session
 Requires-Roy: false

@@ -1,7 +1,7 @@
 # The census is one step that should be a chain of producers
 
 ```
-Status:   open
+Status:   closed
 Progress: 4 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false

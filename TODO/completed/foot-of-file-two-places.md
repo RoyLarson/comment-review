@@ -1,7 +1,7 @@
 # Two places name the foot of a file, and only one of them can hold prose
 
 ```
-Status:   decision-needed
+Status:   closed
 Progress: 3 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false

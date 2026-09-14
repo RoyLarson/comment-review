@@ -1,7 +1,7 @@
 # block_text (reading/lexer.py) has had no caller since desk.py moved to prototype
 
 ```
-Status:   open
+Status:   closed
 Progress: 1 of 1 tasks closed
 Owner:    backend
 Requires-Roy: false

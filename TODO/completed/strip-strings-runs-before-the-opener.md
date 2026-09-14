@@ -1,7 +1,7 @@
 # A quote inside a block comment blanks the comment's own closer
 
 ```
-Status:   open
+Status:   closed
 Progress: 4 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false

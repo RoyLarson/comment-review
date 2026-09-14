@@ -1,7 +1,7 @@
 # The gate demands `change` as a line array and the spec rules it raw text
 
 ```
-Status:   open
+Status:   closed
 Progress: 4 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false

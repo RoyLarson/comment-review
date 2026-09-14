@@ -1,7 +1,7 @@
 # Nothing orders the settled moves, and nothing refuses a cycle
 
 ```
-Status:   open
+Status:   closed
 Progress: 0 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false

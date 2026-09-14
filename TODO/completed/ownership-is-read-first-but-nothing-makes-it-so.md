@@ -1,7 +1,7 @@
 # `ownership-context` is read FIRST, and nothing in the run makes that true
 
 ```
-Status:   in-progress
+Status:   closed
 Progress: 14 of 14 tasks closed
 Owner:    agents
 Requires-Roy: false

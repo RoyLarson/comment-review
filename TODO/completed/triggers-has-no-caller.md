@@ -1,7 +1,7 @@
 # addresser.triggers() has no production caller and takes a shape the walk no longer uses
 
 ```
-Status:   open
+Status:   closed
 Progress: 0 of 3 tasks closed
 Owner:    session
 Requires-Roy: false

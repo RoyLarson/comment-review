@@ -1,7 +1,7 @@
 # todo_tool complete breaks a file's relative links when it moves it
 
 ```
-Status:   open
+Status:   closed
 Progress: 4 of 4 tasks closed
 Owner:    session
 Requires-Roy: false

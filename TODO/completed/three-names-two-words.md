@@ -1,7 +1,7 @@
 # Three functions in page.py are permutations of the same two words
 
 ```
-Status:   open
+Status:   closed
 Progress: 5 of 5 tasks closed
 Owner:    session
 Requires-Roy: false

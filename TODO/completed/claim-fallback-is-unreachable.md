@@ -1,7 +1,7 @@
 # A non-object claim is silently emptied, and 60 lines of fallback say the opposite
 
 ```
-Status:   deferred
+Status:   closed
 Progress: 8 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false

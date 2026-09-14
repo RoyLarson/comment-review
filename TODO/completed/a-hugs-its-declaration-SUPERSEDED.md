@@ -1,7 +1,7 @@
 # The a-then-b tie order is Python's placement, not a universal rule
 
 ```
-Status:   open
+Status:   closed
 Progress: 4 of 4 tasks closed
 Owner:    session
 Requires-Roy: false

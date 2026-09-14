@@ -1,7 +1,7 @@
 # The stage-5 gate certifies a census nobody could have reviewed
 
 ```
-Status:   open
+Status:   closed
 Progress: 2 of 2 tasks closed
 Owner:    session
 Requires-Roy: false

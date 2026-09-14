@@ -1,7 +1,7 @@
 # The addresser command answers three questions wrongly at exit 0
 
 ```
-Status:   open
+Status:   closed
 Progress: 4 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false

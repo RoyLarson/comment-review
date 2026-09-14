@@ -1,7 +1,7 @@
 # Every address carries an anchor, and 98 percent of the census did not
 
 ```
-Status:   open
+Status:   closed
 Progress: 3 of 4 tasks closed
 Owner:    session
 Requires-Roy: false

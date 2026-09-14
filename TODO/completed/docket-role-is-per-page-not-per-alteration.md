@@ -1,7 +1,7 @@
 # the docket names one role per page, so two roles settling one page names neither
 
 ```
-Status:   open
+Status:   closed
 Progress: 3 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false

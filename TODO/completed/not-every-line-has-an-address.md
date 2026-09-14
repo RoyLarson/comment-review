@@ -1,7 +1,7 @@
 # The addressing docstring states a universal that leading refutes
 
 ```
-Status:   open
+Status:   closed
 Progress: 8 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false

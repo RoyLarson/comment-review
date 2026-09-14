@@ -1,7 +1,7 @@
 # Requires-Roy never goes back down, so 32 TODOs claim to be waiting on a ruling
 
 ```
-Status:   deferred
+Status:   closed
 Progress: 7 of 7 tasks closed
 Owner:    systems
 Requires-Roy: false

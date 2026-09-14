@@ -1,7 +1,7 @@
 # The middle-chain smoke script carries the findings of its Task 8 review
 
 ```
-Status:   open
+Status:   closed
 Progress: 67 of 67 tasks closed
 Owner:    systems
 Requires-Roy: false

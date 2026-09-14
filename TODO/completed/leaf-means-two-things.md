@@ -1,7 +1,7 @@
 # A leaf is the page and also the place, in two shipped definitions
 
 ```
-Status:   open
+Status:   closed
 Progress: 19 of 19 tasks closed
 Owner:    comment-review
 Requires-Roy: false

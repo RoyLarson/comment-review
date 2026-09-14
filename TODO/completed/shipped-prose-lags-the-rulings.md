@@ -1,7 +1,7 @@
 # The shipped prose lags the rulings, and it is what agents read
 
 ```
-Status:   open
+Status:   closed
 Progress: 6 of 6 tasks closed
 Owner:    session
 Requires-Roy: false

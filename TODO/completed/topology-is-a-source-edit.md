@@ -1,7 +1,7 @@
 # The stage list is a literal, so every topology is a source edit
 
 ```
-Status:   open
+Status:   closed
 Progress: 5 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false

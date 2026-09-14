@@ -1,7 +1,7 @@
 # An address is not unique across two paths that dot alike
 
 ```
-Status:   open
+Status:   closed
 Progress: 3 of 3 tasks closed
 Owner:    session
 Requires-Roy: false

@@ -1,7 +1,7 @@
 # The gate and the brief disagree about what a finding must carry
 
 ```
-Status:   CLOSED 2026-08-17
+Status:   closed
 Progress: 8 of 8 tasks closed
 Owner:    session * Roy (3 rulings made, 0 left)
 Raised:   2026-08-15 (the vocabulary survey, which collected these while reading for terms)

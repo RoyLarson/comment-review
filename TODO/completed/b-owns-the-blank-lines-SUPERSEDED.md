@@ -1,7 +1,7 @@
 # The original range leaves 105 blank lines owned by nothing, and 25 blanks go to an a
 
 ```
-Status:   open
+Status:   closed
 Progress: 12 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false

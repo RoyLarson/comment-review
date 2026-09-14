@@ -1,7 +1,7 @@
 # Two prose paragraphs in one gap answer to the SAME address
 
 ```
-Status:   open
+Status:   closed
 Progress: 8 of 8 tasks closed
 Owner:    session
 Requires-Roy: false

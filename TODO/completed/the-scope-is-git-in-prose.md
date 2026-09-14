@@ -1,7 +1,7 @@
 # The scope a run reviews is worked out by the task agent running git
 
 ```
-Status:   open
+Status:   closed
 Progress: 2 of 2 tasks closed
 Owner:    backend
 Requires-Roy: false

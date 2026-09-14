@@ -1,7 +1,7 @@
 # record.py --convert drops every record it was written to migrate
 
 ```
-Status:   open
+Status:   closed
 Progress: 3 of 3 tasks closed
 Owner:    session
 Requires-Roy: false

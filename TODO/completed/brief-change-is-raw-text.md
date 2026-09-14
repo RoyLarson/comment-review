@@ -1,7 +1,7 @@
 # The brief tells roles to write change as raw text; the checker refuses anything but an array of lines
 
 ```
-Status:   open
+Status:   closed
 Progress: 2 of 2 tasks closed
 Owner:    agents
 Requires-Roy: false

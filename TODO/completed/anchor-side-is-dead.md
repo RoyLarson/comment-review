@@ -1,7 +1,7 @@
 # record.ANCHOR_SIDE is written and read by nothing
 
 ```
-Status:   open
+Status:   closed
 Progress: 2 of 2 tasks closed
 Owner:    session
 Requires-Roy: false

@@ -1,7 +1,7 @@
 # The lexer emits a page kind, and its own docstring says it does not
 
 ```
-Status:   open
+Status:   closed
 Progress: 4 of 5 tasks closed
 Owner:    session
 Requires-Roy: false

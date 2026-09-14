@@ -1,7 +1,7 @@
 # Adding a module docstring restamps the comment run above it as front matter
 
 ```
-Status:   open
+Status:   closed
 Progress: 0 of 7 tasks closed
 Owner:    session
 Requires-Roy: false

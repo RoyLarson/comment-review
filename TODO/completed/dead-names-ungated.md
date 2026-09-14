@@ -1,7 +1,7 @@
 # Nothing gates a module-level name that no code reads
 
 ```
-Status:   open
+Status:   closed
 Progress: 5 of 5 tasks closed
 Owner:    session
 Requires-Roy: false

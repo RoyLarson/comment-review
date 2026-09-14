@@ -1,7 +1,7 @@
 # A page carries no identity, so staleness is checked by re-parsing and comparing
 
 ```
-Status:   open
+Status:   closed
 Progress: 4 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false

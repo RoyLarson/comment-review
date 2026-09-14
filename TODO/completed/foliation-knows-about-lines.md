@@ -1,7 +1,7 @@
 # The foliation carries line data for one consumer, and one field of it is read by nobody
 
 ```
-Status:   in-flight
+Status:   closed
 Progress: 18 of 18 tasks closed
 Owner:    comment-review
 Requires-Roy: false

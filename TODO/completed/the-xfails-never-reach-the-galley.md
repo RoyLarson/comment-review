@@ -1,7 +1,7 @@
 # Seven of the eight expectedFailures never reach the code they name
 
 ```
-Status:   in-progress
+Status:   closed
 Progress: 3 of 3 tasks closed
 Owner:    testing
 Requires-Roy: false

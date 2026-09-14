@@ -1,7 +1,7 @@
 # A block does not say where its text starts, so two things infer it
 
 ```
-Status:   in-progress
+Status:   closed
 Progress: 10 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false

@@ -1,7 +1,7 @@
 # The space between two paragraphs belongs to nobody, so a page cannot be set back
 
 ```
-Status:   in-progress
+Status:   closed
 Progress: 11 of 11 tasks closed
 Owner:    backend
 Requires-Roy: false

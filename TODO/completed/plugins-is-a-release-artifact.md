@@ -1,7 +1,7 @@
 # plugins/ is a release artifact, not a per-change gate
 
 ```
-Status:   open
+Status:   closed
 Progress: 7 of 7 tasks closed
 Owner:    systems
 Requires-Roy: false

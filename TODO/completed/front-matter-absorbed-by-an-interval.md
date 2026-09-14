@@ -1,7 +1,7 @@
 # Front matter is absorbed by an interval, and the galley then deletes it
 
 ```
-Status:   in-progress
+Status:   closed
 Progress: 6 of 6 tasks closed
 Owner:    backend
 Requires-Roy: false

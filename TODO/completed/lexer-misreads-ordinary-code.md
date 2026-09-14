@@ -1,7 +1,7 @@
 # The lexer misreads three shapes of ordinary code
 
 ```
-Status:   open
+Status:   closed
 Progress: 6 of 6 tasks closed
 Owner:    session
 Requires-Roy: false

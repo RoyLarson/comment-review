@@ -1,7 +1,7 @@
 # The block-to-paragraph rename corrupted a verb inside the verdict table
 
 ```
-Status:   open
+Status:   closed
 Progress: 5 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false

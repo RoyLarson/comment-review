@@ -1,7 +1,7 @@
 # The reviewers are called read-only and are granted every tool
 
 ```
-Status:   open
+Status:   closed
 Progress: 4 of 4 tasks closed
 Owner:    agents
 Requires-Roy: false

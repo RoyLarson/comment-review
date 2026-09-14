@@ -1,7 +1,7 @@
 # A docstring whose closing `"""` carries a trailing comment is owned twice
 
 ```
-Status:   blocked (python-cannot-read-python -- the lexical Python reader)
+Status:   closed
 Progress: 2 of 2 tasks closed
 Owner:    backend
 Requires-Roy: false

@@ -1,7 +1,7 @@
 # A move's change_all check never decides the shape gate's outcome
 
 ```
-Status:   open
+Status:   closed
 Progress: 0 of 2 tasks closed
 Owner:    backend
 Requires-Roy: false

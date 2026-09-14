@@ -1,7 +1,7 @@
 # A role can be asked to revise and has nothing to answer ON
 
 ```
-Status:   open
+Status:   closed
 Progress: 35 of 35 tasks closed
 Owner:    backend
 Requires-Roy: false

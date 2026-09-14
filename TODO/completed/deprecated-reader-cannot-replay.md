@@ -1,7 +1,7 @@
 # The deprecated reader cannot replay a held run, which is the only reason it exists
 
 ```
-Status:   open
+Status:   closed
 Progress: 3 of 3 tasks closed
 Owner:    session
 Requires-Roy: false

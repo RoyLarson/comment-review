@@ -1,7 +1,7 @@
 # The vocabulary gate is green, and the test that would hold it there does not exist
 
 ```
-Status:   open
+Status:   closed
 Progress: 14 of 14 tasks closed
 Owner:    systems
 Requires-Roy: false

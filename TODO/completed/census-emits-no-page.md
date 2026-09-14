@@ -1,7 +1,7 @@
 # The census emits rows, not pages, and page.py defines no Page
 
 ```
-Status:   open
+Status:   closed
 Progress: 0 of 7 tasks closed
 Owner:    session
 Requires-Roy: false

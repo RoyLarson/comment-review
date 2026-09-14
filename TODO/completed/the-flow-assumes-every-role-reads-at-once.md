@@ -1,7 +1,7 @@
 # The flow assumes every role reads the same page at the same time, once
 
 ```
-Status:   open
+Status:   closed
 Progress: 7 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false

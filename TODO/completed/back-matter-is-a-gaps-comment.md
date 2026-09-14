@@ -1,7 +1,7 @@
 # Back matter has the same problem front matter had, and lands in the closing gap
 
 ```
-Status:   open
+Status:   closed
 Progress: 1 of 7 tasks closed
 Owner:    session
 Requires-Roy: false

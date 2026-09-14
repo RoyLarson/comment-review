@@ -1,7 +1,7 @@
 # A role writes its own tool to fill the edit copy
 
 ```
-Status:   open
+Status:   closed
 Progress: 5 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false

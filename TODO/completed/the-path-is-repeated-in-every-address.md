@@ -1,7 +1,7 @@
 # Every record repeats its page's path, which is 26% of what a reviewer is handed
 
 ```
-Status:   decision-needed
+Status:   closed
 Progress: 4 of 4 tasks closed
 Owner:    session
 Requires-Roy: false

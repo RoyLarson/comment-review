@@ -1,7 +1,7 @@
 # Nothing compares a returned edit_copy's read_from against the binder it was seeded from
 
 ```
-Status:   open
+Status:   closed
 Progress: 0 of 2 tasks closed
 Owner:    backend
 Requires-Roy: false

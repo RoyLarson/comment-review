@@ -1,7 +1,7 @@
 # `annotate.py` resolves references and sits in `binder/`, not `concordance/`
 
 ```
-Status:   open
+Status:   closed
 Progress: 3 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false

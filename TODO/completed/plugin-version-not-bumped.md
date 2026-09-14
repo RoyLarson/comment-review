@@ -1,7 +1,7 @@
 # plugin.json still says 0.2.3 after a branch that rewrote plugins/
 
 ```
-Status:   open
+Status:   closed
 Progress: 3 of 3 tasks closed
 Owner:    session
 Requires-Roy: false

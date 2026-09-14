@@ -1,7 +1,7 @@
 # A line-numbered address is not stable under the edits this tool makes
 
 ```
-Status:   CLOSED 2026-08-18
+Status:   closed
 Progress: 6 of 6 tasks closed
 Owner:    session (the ruling was made 2026-08-18; the addresser is the answer)
 Requires-Roy: false

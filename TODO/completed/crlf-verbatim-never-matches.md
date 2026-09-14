@@ -1,7 +1,7 @@
 # A multi-line verbatim from a CRLF file can never match
 
 ```
-Status:   open
+Status:   closed
 Progress: 3 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false

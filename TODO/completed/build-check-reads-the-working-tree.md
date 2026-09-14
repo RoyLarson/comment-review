@@ -1,7 +1,7 @@
 # build --check reads the working tree, so committed drift is invisible to it
 
 ```
-Status:   open
+Status:   closed
 Progress: 6 of 6 tasks closed
 Owner:    systems
 Requires-Roy: false

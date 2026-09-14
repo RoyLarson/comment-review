@@ -1,7 +1,7 @@
 # The leading edge keeps a stale second key after a drop, and the compositor is correct only because it never reads one
 
 ```
-Status:   open
+Status:   closed
 Progress: 0 of 6 tasks closed
 Owner:    comment-review
 Requires-Roy: false

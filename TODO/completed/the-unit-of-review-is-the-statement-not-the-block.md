@@ -1,7 +1,7 @@
 # The unit of review is the statement, and three files disagree about it
 
 ```
-Status:   CLOSED 2026-08-17 by group A
+Status:   closed
 Progress: 5 of 5 tasks closed
 Owner:    session * Roy (1 ruling)
 Raised:   2026-08-16 (Roy, on a proposed sentence saying "why the BLOCK belongs there":

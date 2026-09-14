@@ -1,7 +1,7 @@
 # Five 0.2.4 plans carry checkbox lines the tool cannot read
 
 ```
-Status:   open
+Status:   closed
 Progress: 1 of 1 tasks closed
 Owner:    systems
 Requires-Roy: false

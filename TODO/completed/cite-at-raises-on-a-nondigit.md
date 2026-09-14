@@ -1,7 +1,7 @@
 # A malformed cite aborts the half meant to report rather than raise
 
 ```
-Status:   open
+Status:   closed
 Progress: 3 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false

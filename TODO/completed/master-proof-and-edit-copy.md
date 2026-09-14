@@ -1,7 +1,7 @@
 # The middle has no container for one stage's marks, so nothing can reconcile them
 
 ```
-Status:   open
+Status:   closed
 Progress: 5 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false

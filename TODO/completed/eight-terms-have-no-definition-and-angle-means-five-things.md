@@ -1,7 +1,7 @@
 # Eight terms have no definition, and `angle` means five things
 
 ```
-Status:   done
+Status:   closed
 Progress: 18 of 18 tasks closed
 Owner:    session
 Raised:   2026-08-15 (a twelve-agent usage collection over the whole live tree)

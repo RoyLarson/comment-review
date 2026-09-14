@@ -1,7 +1,7 @@
 # The listing hands every reviewer the whole repo, four times a page
 
 ```
-Status:   open
+Status:   closed
 Progress: 4 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false

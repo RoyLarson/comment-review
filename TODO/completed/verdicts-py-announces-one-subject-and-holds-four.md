@@ -1,7 +1,7 @@
 # verdicts.py announces one subject and holds four, and its own reviewer said so
 
 ```
-Status:   in-progress
+Status:   closed
 Progress: 8 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false

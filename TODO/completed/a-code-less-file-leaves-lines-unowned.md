@@ -1,7 +1,7 @@
 # A code-less file leaves lines owned by no paragraph
 
 ```
-Status:   open
+Status:   closed
 Progress: 3 of 3 tasks closed
 Owner:    backend
 Requires-Roy: false

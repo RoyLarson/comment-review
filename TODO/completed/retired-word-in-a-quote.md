@@ -1,7 +1,7 @@
 # A retired word inside a quoted ruling forces a whole-file exemption
 
 ```
-Status:   open
+Status:   closed
 Progress: 5 of 5 tasks closed
 Owner:    systems
 Requires-Roy: false

@@ -1,7 +1,7 @@
 # The measurement harness leaks into the shipped rules
 
 ```
-Status:   COMPLETE 2026-08-16
+Status:   closed
 Progress: 6 of 6 tasks closed
 Owner:    session
 Raised:   2026-08-16 (Roy, on finding `worktree` in the shipped plugin: "that is

@@ -1,7 +1,7 @@
 # The ported mark refuses marks the shipped brief tells a role to write
 
 ```
-Status:   open
+Status:   closed
 Progress: 5 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false

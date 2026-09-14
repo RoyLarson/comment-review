@@ -1,7 +1,7 @@
 # An empty interval has no census index, so `add` has no block to cite
 
 ```
-Status:   CLOSED 2026-08-17 -- the census change landed, and Roy ruled the name
+Status:   closed
 Progress: 11 of 11 tasks closed
 Owner:    session * Roy (* 1 ruling, deferred by him and now unblocked)
 Raised:   2026-08-15 (Roy ruled (a): every interval is a block, empty ones included)
