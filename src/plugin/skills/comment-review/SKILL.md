@@ -13,10 +13,10 @@ edits, a condenser cuts them to fit, the author approves **that** text, and the 
 Structure and fact first, then truth, then fit, then the page.
 
 ```
-1 PROJECT      2 GATHER    3 FIND       4 MARK       5 COLLATE   6 COMPACT   7a PRESENT   8 REVIEW
-  DETERMINATION            REFERENCES   4 roles      and CAP                   7b WRITE
-                                                                                 ^
-                                                                +---- no cap -----+
+1 PROJECT      2 GATHER    3 FIND       4 MARK       5 COLLATE   6 COMPACT   7a SET       8 REVIEW    7a PRESENT
+  DETERMINATION            REFERENCES   4 roles      and CAP                   a galley     reads it    7b WRITE
+                                                                              ^
+                                                                +---- no cap -+
 ```
 
 | # | stage | who acts | what exists at the end of it |
@@ -27,9 +27,9 @@ Structure and fact first, then truth, then fit, then the page.
 | 4 | **MARK** | 4 reviewers | one filled `edit_copy` per role, checked. Read-only, nothing under the repo written |
 | 5 | **COLLATE and DISPOSITION** | `collate`, then the task agent as **copy chief** | the copies folded; what they agreed on stands, what they did not is ruled at max turns; the chief's `edit_copy` holds one mark per resolved place with its **full-length** text |
 | 6 | **COMPACT** | task agent | that text cut to the cap -- **skipped entirely if there is no cap** |
-| 7a | **APPROVAL -- present** | task agent, then `proof` and the **compositor** | the FINAL text SET as a galley -- a copy of each page, nothing under the repo touched -- in front of the author, with the places only the author can settle; **the run stops here** |
+| 7a | **APPROVAL -- present** | task agent, then `proof` and the **compositor**, then stage 8 | the final text set as a galley -- a copy of each page, nothing under the repo touched -- read by stage 8, then in front of the author with stage 8's findings and the places only the author can settle; **the run stops here** |
 | 7b | **APPROVAL -- write** | **author**, then the **compositor** | the approved draft put over the real file wholesale, byte-for-byte as approved |
-| 8 | **REVIEW** | `comment-review-review` | the finished page read as a reader would read it |
+| 8 | **REVIEW** | `comment-review-review` | the galley's pages read as a reader would read them, before the author sees the proposal |
 
 !! **THIS IS THE BASELINE SHAPE, RULED 2026-09-04: every role reads ONCE, the copies fold ONCE,
 and nothing goes back to a role except a copy the checker refused.** No revise is pulled
@@ -114,7 +114,8 @@ and two constraints pin it into exactly that slot:
 that text only if it was approved.
 
 **REVIEW (8) is the only stage that reads the artifact against itself.** Everything before it
-compares prose to code; this asks whether the finished page still reads.
+compares prose to code; this asks whether the finished page still reads. It reads the galley 7a
+sets, before the author sees anything, and its findings go into the proposal.
 
 ## Three roles
 
@@ -878,10 +879,9 @@ whole tree -- a `move` that relocates prose between paragraphs, an owner that co
 restatements into one -- and none of that is settled until every paragraph is ruled. `compact.md`
 carries the argument and the per-paragraph procedure.
 
-!! **NOTHING ELSE READS STAGE 6's OUTPUT BEFORE THE AUTHOR DOES.** Stage 7a presents it and
-rules on nothing; the CODE CHECK runs at 7b and reads only executable code; stage 8 runs after
-the write. The baseline accepts that: the compacted text reaches the author read by nobody but
-the agent that wrote it, and stage 8 is where that shows.
+**Stage 8 is the one reader of stage 6's output before the author.** Stage 7a presents it and
+rules on nothing; stage 8 reads the galley 7a sets from it, and what it finds goes to the author
+with the proposal.
 
 ## Stage 7a -- APPROVAL: present the FINAL text, then stop
 
@@ -905,6 +905,8 @@ prints `REFUSED at <step>: <where> -- <reason>`. Read what it printed, rather th
 that does not was set wrong -- a role writes a docstring's indentation -- so put the page and the
 compiler's message to the author with the proposal. No command here compiles another
 language's page; say in the proposal which pages no compile step reached.
+
+**Then dispatch stage 8 on the galley** (below), and present once its findings are back.
 
 Then present, grouped by instruction, most consequential first, in **five parts**
 (`INSTRUCTION / PARAGRAPH / CLAIM / REASON / CHANGE`) -- the mark minus the fields only the
@@ -946,11 +948,15 @@ residue check and the write rails. Do not write from memory.
 every one of those questions was settled upstream, and re-opening one here writes something
 the author never saw.
 
-## Stage 8 -- REVIEW: the finished page
+## Stage 8 -- REVIEW: the galley, before the author sees it
 
-On completion of 7b, dispatch `comment-review:comment-review-review` with the
-list of changed files and the style sheet, and paste
-[`references/review.md`](references/review.md) into its prompt whole.
+Once 7a has set and compiled the galley, and before you present, dispatch
+`comment-review:comment-review-review` with the galley directory, the `<draft>` pages `proof`
+listed, and the style sheet, and paste [`references/review.md`](references/review.md) into its
+prompt whole. Its findings go into the proposal at 7a.
+
+The read holds for a blanket approval only: where the author approves some changes and not
+others, the pages 7b sets are pages stage 8 never read.
 
 !! **This pass is not yours to run either**, and for the same reason: a reader
 who remembers intending each edit reads the page they meant to write. If the
