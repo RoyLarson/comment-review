@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 4 tasks closed
+Progress: 2 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, driving distribute and collate across real stages for
@@ -46,3 +46,7 @@ The staged chain runs but nothing tests it, and the fan-out topology fits one tr
       binder its topology names rather than from a path typed by hand
         > 2026-08-31 grep .reads over src/ returns one line: topology.py:140, a WRITE
         > 2026-08-31 topology.py:84-95 refuses a bad value: validated, then unread
+- [ ] T5 | Update topology --build to deal a role's pages by place count, not
+      round-robin by path, so its dispatches hold near-equal places
+        > 2026-09-14 self-run: one role's 3 dispatches held 104, 156 and 75 places
+        > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run

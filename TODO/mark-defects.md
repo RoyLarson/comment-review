@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 14 of 22 tasks closed
+Progress: 14 of 25 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -132,6 +132,7 @@ cites as its measured example of a field answering neither necessary nor purpose
       returns a named problem -- today it returns `(mark, [])`, and
       `reading.addresser.cue_of("a0")` answers `Address('', '')`; the test goes
       red when the check is removed.
+        > 2026-09-14 self-run 2026-09-14: still passes; fc1 marked it at mark.py b121
 - [ ] T2 | Update the COPIED, NOT ALIASED comment at `desk/mark.py:719-720` and
       `:375-376` to the depth the copy holds, or copy `sources`' entries and
       `claim`'s values deeply. Verify: mutating
@@ -235,3 +236,17 @@ cites as its measured example of a field answering neither necessary nor purpose
       INSTRUCTIONS, per Process 143
         > 2026-09-13 tests/gates/test_mark_shape.py:135-138 maps the spec's phrases
         > 2026-09-13 check docs/the-mark.md names none of the three after
+- [ ] T23 | Update the mark command so --flag=@path reads the file as @path
+      does, and no literal path lands in a claim or change
+        > 2026-09-14 self-run: mc1 saved 8 marks with a scratch path as their text
+        > 2026-09-14 check passed those 8; bc1 had 80 rulings refused the same way
+        > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
+- [ ] T24 | Implement a way for a role to withdraw or replace a mark it placed,
+      after which the copy holds only the new mark
+        > 2026-09-14 SKILL.md's exit-1 send-back cannot be carried out without it
+        > 2026-09-14 self-run: mc1 edited its copy's JSON by hand to repair 8 marks
+        > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
+- [ ] T25 | Update derived_change so a drop inside a line leaves no line longer
+      than the paragraph's longest line before the drop
+        > 2026-09-14 self-run: 11 changes past 88 columns, bc2 4 and fc2 7
+        > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run

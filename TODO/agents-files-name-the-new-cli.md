@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 32 of 38 tasks closed
+Progress: 32 of 40 tasks closed
 Owner:    agents
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
 ```
 
@@ -110,6 +110,7 @@ The agents files name the new CLI and say how to use it.
       path the packet gives a reviewer. Verify: the packet list names it
         > 2026-09-13 from census T14, Process 147
         > 2026-09-13 SKILL.md:610-614 sends a role no path into the plugin
+        > 2026-09-14 self-run 2026-09-14: the packet carried the launcher itself
 - [ ] T28 | Update reviewer-brief.md:592-593 so ANSWERS, BATCH and PROOF name
       what SKILL.md:712-713 hands a role. Verify: the two agree
         > 2026-09-13 from census T16, Process 147
@@ -143,3 +144,11 @@ The agents files name the new CLI and say how to use it.
 - [x] T38 | the language-server section writes nothing into the binder; the task agent uses the server itself | fe0aed64 | Update
       SKILL.md's Enrich the binder section so it asks only for what a command
       does
+- [?] T39 | Decide whether a reviewer is handed the brief pasted or by path, so
+      SKILL.md's opening, stage 4 and the role files agree
+        > 2026-09-14 12 pasted prompts came to about 540 KB, sent over several turns
+        > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
+- [ ] T40 | Update SKILL.md 1.9 to order the roles in stages and size each
+      role's ways to its pages, per Process 168
+        > 2026-09-14 a later stage reads a revise; docket-defects T10 first
+        > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run

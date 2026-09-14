@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (114)
+### open  (115)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -264,21 +264,21 @@ that changed a published name or rule:
 | [brief-says-three-series](brief-says-three-series.md) | agents | yes | 2/8 | reviewer-brief.md:69 and :221 say three series; reading/series.py ADDRESSED is ('a','b','c','f') and SKILL.md:378 says four, so a role cannot resolve the @f0 place the same brief tells it to cite |
 | [skill-inverts-the-anchor-line](skill-inverts-the-anchor-line.md) | agents | -- | 0/2 | SKILL.md's CANDIDATE paragraph describes the opposite of the line commands/census.py prints, and the reasoning built on it is what the task agent carries into every proposal |
 | [external-address-cites-dead-modules](external-address-cites-dead-modules.md) | backend | -- | 0/1 | desk/external_address.py says the address is declared in binder/record.py and resolved in desk/desk.py; record.py left on b50e7a4 and desk.py is in no directory of this tree |
-| [no-command-for-the-middle](no-command-for-the-middle.md) | backend | -- | 85/97 | `gather`, `places`, `reconcile` and `docket_from` have no CLI face, so nothing turns checked marks into the docket `proof --docket` requires. Measured 2026-08-29 on a real run: every other step of the chain is a command; this one had to be driven from a hand-written script |
+| [no-command-for-the-middle](no-command-for-the-middle.md) | backend | -- | 85/99 | `gather`, `places`, `reconcile` and `docket_from` have no CLI face, so nothing turns checked marks into the docket `proof --docket` requires. Measured 2026-08-29 on a real run: every other step of the chain is a command; this one had to be driven from a hand-written script |
 | [query-names-no-sentence](query-names-no-sentence.md) | backend | yes | 0/3 | every other substantive instruction names the sentence it rules on through a `claim` key -- `false` for `correct`, `drop` for `drop`, `from` for `patch` -- and `query` has none, so `_sentence_key` falls back to an identity and two queries at one place read as two different sentences |
 | [brief-example-and-scope](brief-example-and-scope.md) | agents | -- | 0/3 | the brief's worked example shows a 40-character `sha` where `bind` writes 16, and the brief says a source resolves against 'the repo' without saying whether that is the scoped tree or the checkout it was cut from |
 | [rows-of-derives-no-type](rows-of-derives-no-type.md) | backend | -- | 0/4 | `binder.rows_of` returns `list[dict]` where `docket.schedules_of` returns `list[Schedule]`; the codebase holds one example of each pattern, the typed one is the one that catches things, and `rows_of` has 8 callers and no covering tests |
 | [strip-before-review-experiment](strip-before-review-experiment.md) | agents | yes | 0/5 | the `collator.py` prose was deleted whole and rewritten by an agent that could read only the code -- it found three defects the old prose never mentioned and named two things the code cannot say; whether that beats editing in place is untested |
 | [collator-defects](collator-defects.md) | backend | -- | 18/43 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
-| [staged-chain-untested](staged-chain-untested.md) | backend | -- | 2/4 | the four-stage chain runs and the edits accumulate, proven 2026-08-30 -- but no test in the suite drives it, and the only committed fan-out topology refuses any tree but this repo's |
+| [staged-chain-untested](staged-chain-untested.md) | backend | -- | 2/5 | the four-stage chain runs and the edits accumulate, proven 2026-08-30 -- but no test in the suite drives it, and the only committed fan-out topology refuses any tree but this repo's |
 | [containers-and-verification-are-unwired](containers-and-verification-are-unwired.md) | backend | -- | 23/47 | The containers and the source-verification half are wired to nothing |
 | [mark-holds-spec-and-parse](mark-holds-spec-and-parse.md) | backend | -- | 0/6 | mark.py holds the instruction spec and the boundary parse at one scope |
 | [ty-cannot-see-the-tests](ty-cannot-see-the-tests.md) | systems (the gate) - backend (the test fixes) | -- | 1/5 | The type gate is scoped to src and cannot see the tests |
 | [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | -- | 0/6 | A present-but-null key becomes the four characters None |
 | [collate-flow-defects](collate-flow-defects.md) | backend | -- | 4/16 | Twelve defects in `flows/collate.py`, from a review of one file |
-| [mark-defects](mark-defects.md) | backend | -- | 14/22 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
+| [mark-defects](mark-defects.md) | backend | -- | 14/25 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
 | [binder-defects](binder-defects.md) | backend | -- | 7/25 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
-| [docket-defects](docket-defects.md) | backend | -- | 3/9 | Six defects in docket.py, and one discards an approved page at exit 0 |
+| [docket-defects](docket-defects.md) | backend | -- | 3/11 | Six defects in docket.py, and one discards an approved page at exit 0 |
 | [collate-command-defects](collate-command-defects.md) | backend | -- | 5/21 | Sixteen defects in `commands/collate.py`, measured by running it |
 | [differences-defects](differences-defects.md) | backend | -- | 0/10 | Ten defects in `results/differences.py`, none of them in its arithmetic |
 | [plans-name-no-todo-tasks](plans-name-no-todo-tasks.md) | systems | yes | 0/4 | Six 0.2.4 plans carry no heading naming the TODO tasks they close |
@@ -290,12 +290,13 @@ that changed a published name or rule:
 | [only-a-flow-reaches-the-machine](only-a-flow-reaches-the-machine.md) | backend | yes | 0/6 | Route every machine read and write through a flow |
 | [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 4/6 | re-review is retired for revise |
-| [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 32/38 | The agents files name the new CLI and say how to use it |
+| [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | yes | 32/40 | The agents files name the new CLI and say how to use it |
 | [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 5/13 | The reviewer prose is rules and punishments, not guidance toward a good result |
 | [a-machine-context-raises-query-and-clean](a-machine-context-raises-query-and-clean.md) | backend | yes | 0/8 | annotate carries two subjects -- it extracts index keys, and it flags claims it cannot settle. The second half becomes a context that marks like a role. |
 | [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | -- | 8/12 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
 | [smoke-middle-script](smoke-middle-script.md) | systems | -- | 67/67 | The middle-chain smoke script carries the findings of its Task 8 review |
 | [prove-unchanged-line-endings-follow-a-sibling](prove-unchanged-line-endings-follow-a-sibling.md) | backend | -- | 0/2 | On a checkout with core.autocrlf=true, git writes a checked-out text file with CRLF while its blob stays LF, and a file git never rewrote can still be LF. prove_unchanged compares an edited file's line endings with one untouched sibling, so a CRLF file whose sibling is a one-line LF __init__.py FAILs though the write kept every ending and the AST comparison passes. The check should hold the file to its own pre-edit endings. |
+| [smoke-drives-one-route](smoke-drives-one-route.md) | systems | -- | 0/8 | The smoke drives one route, and the self-run broke on the others |
 
 ### in-progress  (18)
 
@@ -348,7 +349,7 @@ that changed a published name or rule:
 | [null-is-not-a-decision](null-is-not-a-decision.md) | backend | yes | 0/2 | `null` is the delete signal, and it is also what a failed serialisation writes |
 | [strip-and-fill-the-markers](strip-and-fill-the-markers.md) | backend | yes | 0/9 | A role is handed the paragraph with its `#`/`"""` markers and indentation, and must reproduce them exactly in `change`. Measured 2026-08-29: three consecutive attempts by an agent with full context broke the file, and each failure read as a defect in the setter |
 | [task-agent-vocabulary-home](task-agent-vocabulary-home.md) | agents (the instructions) - backend (the enum they derive from) | yes | 0/4 | The task agent has no vocabulary home and is never told the command set |
-| [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | yes | 1/23 | A move is a composite mark and the code cannot express one |
+| [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | yes | 1/24 | A move is a composite mark and the code cannot express one |
 
 ### in flight  (0)
 

@@ -4686,3 +4686,29 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   is a different thing entirely"*. So stage 8 reads the pages as set and reports what it finds;
   it makes no alteration and writes no schedule, and `review.md`'s line that a galley is what
   gets corrected while correcting is still free goes.
+
+- **#168.** **The topology states the run: the roles in stages, each role's ways sized to its
+  pages** (Roy, 2026-09-14, during the comment-review run over this session's shipped code,
+  which was built as one stage of all four roles at three ways each, by `SKILL.md` 1.9's split).
+
+  Roy: *"Btw this should have been done with the topology command and it should have been known
+  to set it up flexibly using the topology command"*. Offered -- *"The order, in stages"*, *"The
+  sizing, per role"* or *"Both"* -- Roy chose *"Both"*: *"Rebuild the topology with the order in
+  stages and each role's ways sized to its pages."* And, once the run was under way: *"Continue
+  with the review as you have started but the fact that this session building the tool didn't use
+  the tool correctly tells me ot needs some work yet"*. So `SKILL.md` 1.9 has the task agent order
+  the roles across stages and size each role's ways to its pages, and `topology --build` deals a
+  role's pages by their weight rather than round-robin by path.
+
+- **#169.** **The self-run stops at stage 4, and a move out of the code the chain cannot carry
+  becomes a human-review query** (Roy, 2026-09-14, after `collate` refused all 23 move
+  destinations of the run in `#168` -- 19 out of the code by path, 4 bare cues -- that `mark` and
+  `check` had both accepted, with no command to take a placed mark back).
+
+  Offered four routes for the send-back -- *"Roles fix by hand"*, *"Re-dispatch fresh copies"*,
+  *"I fix them mechanically"*, *"Stop at stage 4"* -- Roy chose *"Stop at stage 4"*: no fold, and
+  the stage-4 findings and the tool findings are the run's output. Asked what each refused move
+  out of the code should become in a copy -- *"Human-review query"* or *"clean, per SKILL.md
+  1.4"* -- Roy chose *"Human-review query"*: a human-review-necessary query at the origin naming
+  the intended destination, so it reaches the author at 7a with its reason. The question said 18;
+  the refusal holds 19. Filed against `move-is-a-composite-mark` T23.
