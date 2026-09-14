@@ -84,7 +84,7 @@ The agents files name the new CLI and say how to use it.
 - [x] T20 | the brief asks for no leading blank at either end | 7d2e1834 | Update
       reviewer-brief.md so a role writes no leading blank at either end of a
       change. Verify: the brief asks for none
-- [x] T21 | 7a compiles each drafted Python page with py_compile and names pages no compile step reached | 401e36de | Update
+- [x] T21 | SKILL.md names proof re-read of each drafted page as the compile step; py_compile is gone, per Process 166 | 6a6bd27f | Update
       SKILL.md so the task agent runs a compile step on the set page to verify
       it is set correctly
         > 2026-09-11 Addressing 27; Roy: we can have the task-agent run it
