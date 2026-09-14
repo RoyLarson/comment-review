@@ -132,8 +132,8 @@ own judgement -- but every change to what a sentence CLAIMS needs evidence in ha
 `query`. That is why `correct` must carry the line that settles the claim, and `patch` need not.
 
 **The TASK AGENT -- you.** Run stages 1-3, launch the reviewers, fold their copies, rule at
-max turns as the **copy chief**, present, and after approval apply. You are the only participant
-that writes, and only after approval. **Write the replacement text yourself** where the roles
+max turns as the **copy chief**, present, and after approval set the approved text in temporary
+files the author diffs (7b). You write nothing under the repo. **Write the replacement text yourself** where the roles
 did not agree, and verify what you write. *"Compact + correct"* is an instruction to somebody
 else, not the text.
 

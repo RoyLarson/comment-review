@@ -113,4 +113,4 @@ silence.
 between what the author saw and what `proof` set is invisible in a diff that shows only the new
 text, so this line is the one place it can surface.
 
-Nothing follows this stage: stage 8 read the galley before 7a.
+Nothing follows this stage: stage 8 read the proof before 7a.
