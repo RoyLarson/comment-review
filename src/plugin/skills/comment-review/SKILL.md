@@ -71,9 +71,11 @@ back.
 !! **A relocation is ONE judgment, and the DESTINATION carries the rest.** Whether the prose
 belongs ten lines down, in another file, or out of the code altogether is payload -- not a
 second instruction. The reason it belongs there goes in `reason`, which every mark already
-has. **Availability keys on the destination, never on the instruction:** only a destination
-OUTSIDE the code needs the tree 1.4 resolved, so only that case can be unavailable. A
-relocation into tracked code needs nothing outside it and is never withheld.
+has. **Availability keys on the destination, never on the instruction.** A relocation into
+tracked code needs nothing outside it and is never withheld. A destination outside the code --
+or in a file this run never gathered -- is not carried yet (`decision-log.md Process: #173`):
+`mark` refuses it, and the role files a `human-review-necessary` query naming it instead, which
+reaches the author at 7a (`#169`).
 
 A reviewer's instruction is only usable if it carries its payload. That contract is the
 reviewers', and [`references/reviewer-brief.md`](references/reviewer-brief.md) holds it --
@@ -233,10 +235,12 @@ rather than picking the stricter answer for everything: told UNAVAILABLE everywh
 withholds a legal `move` on the half that has a destination; told the tree everywhere, it emits
 instructions pointing at a tree that is not there.
 
-!! **If the destination tree is absent, only `move` OUT OF THE CODE is unavailable -- and
-those paragraphs become `clean`, never `drop`. A `move` to a destination inside tracked code is
-unaffected and always available.** Say so at stage 1, and again in the proposal; offer the human the one-line alternative
-(create the tree, or name another destination). This matters because the matrix routes
+**A `move` out of the code is not carried yet, tree or no tree** (`Process: #173`): a paragraph
+that belongs outside the code reaches the author as a `human-review-necessary` query naming
+where it belongs (`#169`), never a `drop`. A `move` to a destination inside tracked code is
+unaffected and always available. Where the tree is absent, say so at stage 1 and again in the
+proposal, and offer the human the one-line alternative (create the tree, or name another
+destination). This matters because the matrix routes
 *not-checkable + necessary* to `move`, and a repo that stages prose usually also rules that
 prose is MOVED, never deleted -- so with no destination those two rules leave the paragraph with no
 legal instruction at all -- *the matrix* is the checkable/necessary table in the reviewers' brief, and

@@ -20,7 +20,7 @@ Eleven acts, in the order the body runs them:
                DISPATCH; this is the RETURN
     VERIFY     each ruled mark's quoted sentence and citations --
                `desk.collator.verify_report` -- and its address, and a
-               `move`'s destination -- `_resolution_problems`, whether each
+               `move`'s destination -- `resolution_problems`, whether each
                names a place any page carries. Three questions
                `desk.mark.parse` cannot ask because
                it holds no binder, no page and no filesystem
@@ -845,16 +845,19 @@ def _page_cues(real: str, root: Path, cache: PageCache) -> Cues | None:
 
     Returns:
         The page's `Cues`, or `None` where `real` could not be turned into a
-        page at `root`, which `_resolution_problems` reports.
+        page at `root`, which `resolution_problems` reports.
     """
     page = _page_at(real, root, cache)
     return page.cues if page is not None else None
 
 
-def _resolution_problems(
+def resolution_problems(
     copy: EditCopy, paths: list[str], root: Path, cache: PageCache
 ) -> list[Problem]:
     """One `Problem` per ruled mark whose address resolves against no page.
+
+    Public because `commands/check.py` runs it too, so a role learns before the
+    fold what the fold would refuse (`no-command-for-the-middle` T99).
 
     An address resolves when a page can be read at its path and that page
     carries its cue. Where `_page_cues` answers `None` -- this checkout holds
@@ -1043,7 +1046,7 @@ def collate(
             against -- address integrity over the DOCKET is a different
             question and is `P28`'s.
         root: the checkout every `sources` citation is resolved against, and
-            every page a mark's address is read from, by `_resolution_problems`
+            every page a mark's address is read from, by `resolution_problems`
             and `texts_at`, and for a composition's base (`Process: #125`).
         turn: which turn of the stage's collate this is -- 0 for the first
             fold, `flows.turn.run_turn`'s count after. Every `stet` this fold
@@ -1192,10 +1195,10 @@ def collate(
         # checked against -- `decision-log.md Process: #119`.
         texts = texts_at(copy, paths, root, page_cache, sent)
         problems += verify_report(copy, texts, root, cache)
-        # The address itself -- `_resolution_problems`, `collator-defects`
+        # The address itself -- `resolution_problems`, `collator-defects`
         # T40. `verify_report` asks two questions of a ruled mark; this asks
         # the third, against the real page rather than the binder.
-        problems += _resolution_problems(copy, paths, root, page_cache)
+        problems += resolution_problems(copy, paths, root, page_cache)
         drift += drift_in(copy, base)
         # A `correct` whose change drops words its claim never named, over the
         # paragraph its place was seeded with (`decision-log.md Process: #163`).

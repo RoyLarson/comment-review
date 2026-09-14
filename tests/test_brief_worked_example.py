@@ -104,9 +104,16 @@ def test_collate_reads_it_as_a_ruled_mark_and_reports_only_what_it_cannot_resolv
 ):
     """The command a role's output actually meets, end to end.
 
-    ! `--binder` carries no page for `b47`, so `drift_in`'s `address not in
-    base` skip fires and nothing is compared -- the drift check is not what
-    this test is about.
+    ! `--binder` carries no page for `redacted_pkg:billing:rates.py@b47`, so
+    `drift_in`'s `address not in base` skip fires and nothing is compared --
+    the drift check is not what this test is about.
+
+    ! THE ADDRESS NAMES ITS PAGE SINCE `mark-defects` T1. The example carried
+    the bare cue `b47`, which names a place on no page and which the mark's
+    parse now refuses; the seeder writes the full address, so the example
+    does too. The page is `redacted_pkg`'s, which this tree does not hold, so
+    the fold reports the address as resolving against no page -- the same
+    fact as the citations below, about the example and not the flow.
 
     !! IT ASSERTED `code == 0` UNTIL 2026-08-31, AND THAT ONLY HELD WHILE
     SOURCE VERIFICATION WAS UNWIRED. `P25` put `desk.collator.verify_report`
@@ -163,6 +170,7 @@ def test_collate_reads_it_as_a_ruled_mark_and_reports_only_what_it_cannot_resolv
             for claim in (
                 "is not in the paragraph",
                 "does not resolve",
+                "resolves against no page",
             )
         ), line
 

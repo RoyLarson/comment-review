@@ -178,6 +178,7 @@ $ExpectedDir = Join-Path $Run 'expected'
 $RoleDraftDir = Join-Path $Run 'role-draft'
 $RoleExpectedDir = Join-Path $Run 'role-expected'
 $CollideCopyFile = Join-Path $Run 'collide-copy.json'
+$ParityCopyFile = Join-Path $Run 'parity-copy.json'
 $CollideDraftDir = Join-Path $Run 'collide-draft'
 
 # Each entry is one stage's work, and the chain as this script leaves it ends
@@ -496,6 +497,40 @@ $Stages = [ordered]@{
                 '--cite', 'fib.py:5', '--repo', $OriginalDir
             ))
         }
+        # Two moves mark refuses and writes nothing for, so the copy the fold
+        # reads is unchanged: one out of the code, which is not carried yet and
+        # is routed to a human-review query (Process #173, smoke T4), and one
+        # to a bare cue, which names a place on no page (smoke T5).
+        $outOfCode = $Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', 'fib.py@b9',
+            '--instruction', 'move', '--from', 'fib.py@b9', '--to', 'docs/history.md',
+            '--change', '# The cache sits inside the decorator stack on purpose.',
+            '--reason', 'why the stack is ordered is history, not a rule for this code',
+            '--cite', 'fib.py:21', '--repo', $OriginalDir
+        )
+        $refused = Invoke-Checked -Stage 'mark b9 module-context move out of the code refused' -Expect 1 -Capture -CommandLine $outOfCode
+        if (-not (($refused -join "`n").Contains('human-review-necessary'))) {
+            Write-Host 'stage failed: mark b9 module-context move out of the code refused'
+            Write-Host 'expected a refusal routing the role to a human-review query; mark printed:'
+            $refused | Out-Host
+            Write-Host "command: $(Format-CommandLine $outOfCode)"
+            exit 1
+        }
+        $bareCue = $Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', 'fib.py@b1',
+            '--instruction', 'move', '--from', 'fib.py@b1', '--to', 'b0',
+            '--change', '# Module state, written by the wrapper and read by the caller.',
+            '--reason', 'module state belongs above the import',
+            '--cite', 'fib.py:5', '--repo', $OriginalDir
+        )
+        $refused = Invoke-Checked -Stage 'mark b1 module-context move to a bare cue refused' -Expect 1 -Capture -CommandLine $bareCue
+        if (-not (($refused -join "`n").Contains('`path@cue`'))) {
+            Write-Host 'stage failed: mark b1 module-context move to a bare cue refused'
+            Write-Host 'expected a refusal naming the path@cue form; mark printed:'
+            $refused | Out-Host
+            Write-Host "command: $(Format-CommandLine $bareCue)"
+            exit 1
+        }
         # a2 -- the empty place for wrapper's docstring, absent a.
         Invoke-Checked -Stage 'mark a2 function-context add' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['function-context'], '--address', 'fib.py@a2',
@@ -629,6 +664,27 @@ $Stages = [ordered]@{
             Invoke-Checked -Stage "check $role" -CommandLine ($Launcher + @(
                 $Cmd.check, '--edit-copy', $CopyFile[$role], '--binder', $BinderFile
             ))
+        }
+        # no-command-for-the-middle T99: check resolves a move's destination
+        # against the real page, as collate does. A copy of module-context's
+        # copy moves fib.py@b14 to fib.py@b99, a place fib.py does not carry;
+        # mark takes it, since the form is right, and check names it.
+        Copy-Item -LiteralPath $CopyFile['module-context'] -Destination $ParityCopyFile
+        Invoke-Checked -Stage 'check parity mark' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $ParityCopyFile, '--address', 'fib.py@b14',
+            '--instruction', 'move', '--from', 'fib.py@b14', '--to', 'fib.py@b99',
+            '--change', '    # Two calls per level, which is what the counter measures.',
+            '--reason', 'the counting note belongs with the counter',
+            '--cite', 'fib.py:29', '--repo', $OriginalDir
+        ))
+        $parity = $Launcher + @($Cmd.check, '--edit-copy', $ParityCopyFile, '--binder', $BinderFile)
+        $named = Invoke-Checked -Stage 'check parity refused' -Expect 1 -Capture -CommandLine $parity
+        if (-not (($named -join "`n").Contains("carries no place 'b99'"))) {
+            Write-Host 'stage failed: check parity refused'
+            Write-Host 'expected check to name fib.py@b99 as a place fib.py does not carry; check printed:'
+            $named | Out-Host
+            Write-Host "command: $(Format-CommandLine $parity)"
+            exit 1
         }
     }
     # `proof --copy` over one role's own copy, before the fold -- the draft the

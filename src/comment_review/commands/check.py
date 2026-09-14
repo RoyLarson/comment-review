@@ -28,7 +28,9 @@ was flattened. Each cost a turn. All are named here, before the send.
 
 For a COPY: the envelope (`EditCopy.deserialize`), every place the role left
 alone or wrote unreadably (`flows.mark_errors`), and, with `--binder`, source
-verification and drift (`desk.collator.verify_report`, `drift_in`). For a
+verification, drift, and whether each address and each move's destination
+names a place its page carries (`desk.collator.verify_report`, `drift_in`,
+`flows.collate.resolution_problems` -- the fold's own). For a
 BATCH: `flows.turn.take_answers`, the call `run_turn` makes for each role --
 every answer paired to the slot the flow SENT, by address (`parse_answers`,
 T27), then written into that role's copy on the proof (`apply`). So `--sent`
@@ -47,7 +49,7 @@ from pathlib import Path
 
 from comment_review.desk.collator import Cache, base_texts, drift_in, verify_report
 from comment_review.desk.containers import EditCopy
-from comment_review.flows.collate import texts_at
+from comment_review.flows.collate import resolution_problems, texts_at
 from comment_review.flows.mark_errors import mark_errors
 from comment_review.flows.proof_io import (
     load_batch,
@@ -92,10 +94,12 @@ def _check_copy(path: str, binder_path: str | None, repo: str | None) -> int:
             return _refused(why)
         root = Path(repo) if repo else binder.root
         cache: Cache = {}
-        texts = texts_at(copy, [page.path for page in binder.pages], root, {})
+        paths = [page.path for page in binder.pages]
+        texts = texts_at(copy, paths, root, {})
         for problem in (
             *verify_report(copy, texts, root, cache),
             *drift_in(copy, base_texts(binder)),
+            *resolution_problems(copy, paths, root, {}),
         ):
             print(
                 f"{problem.role} {problem.address or '(the copy)'}: {problem.message}"

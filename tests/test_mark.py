@@ -569,6 +569,52 @@ def test_a_move_to_a_different_address_still_parses():
     assert mark is not None
 
 
+def _a_move_to(destination: str) -> dict:
+    """A well-formed `move` from `m.py@b1` to `destination`."""
+    return {
+        "address": "m.py@b1",
+        "anchor": "def f(x):",
+        "raw_text": "# a paragraph\n",
+        "instruction": "move",
+        "claim": {"from": "a paragraph", "to": destination},
+        "reason": "it reads better beside the function it describes",
+        "sources": [{"cite": "m.py:1", "verbatim": "def f(x):"}],
+        "change": "# a paragraph\n",
+    }
+
+
+def test_a_move_out_of_the_code_is_refused_and_routed_to_a_query():
+    """`move-is-a-composite-mark` T22, provisional by `decision-log.md Process:
+    #173`. The fold and the write end carry no destination that is not a
+    `path@cue` place, and the 2026-09-14 self-run filed 19 that `mark` and
+    `check` accepted and `collate` refused. Refused here, the role is told to
+    file a human-review query naming where the paragraph belongs."""
+    for destination in ("docs/history.md", "src/pkg/mod.py:1"):
+        mark, why = Mark.deserialize("m.py@b1", _a_move_to(destination))
+        assert mark is None, destination
+        assert len(why) == 1, why
+        assert repr(destination) in why[0]
+        assert "human-review-necessary" in why[0]
+        assert "#173" in why[0]
+
+
+def test_a_move_to_a_bare_cue_is_refused():
+    """A cue with no path names a place on no page -- the self-run's four
+    same-file destinations. The full address is what the addresser prints."""
+    mark, why = Mark.deserialize("m.py@b1", _a_move_to("b8"))
+    assert mark is None
+    assert "`path@cue`" in why[0], why
+
+
+def test_a_substantive_mark_whose_address_names_no_page_is_refused():
+    """`mark-defects` T1. `filled()` asked only for a non-blank string, so a
+    bare cue -- the form measured at 62 of 78 marks on 2026-08-27 -- parsed,
+    and `cue_of("b1")` answers `Address('', '')`."""
+    mark, why = Mark.deserialize("b1", {**_a_move_to("m.py@b8"), "address": "b1"})
+    assert mark is None
+    assert any("full `path@cue` address" in one for one in why), why
+
+
 class TestAStoredReasonDoesNotRepeatItsLocator:
     """A container that carries the place must not carry it twice.
 

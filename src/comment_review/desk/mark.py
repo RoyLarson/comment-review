@@ -84,6 +84,8 @@ from dataclasses import dataclass, fields
 from enum import StrEnum, auto
 from typing import TypeGuard
 
+from comment_review.reading.addresser import cue_of
+
 
 class Instruction(StrEnum):
     """The seven, closed. `docs/the-mark.md` is the spec; this only names them.
@@ -421,6 +423,13 @@ class Mark:
             # marks came back unqualified -- `a0` then means four different places.
             out.append(
                 f"{where}: {instruction} needs the `address`, copied from the row"
+            )
+        elif spec.substantive and not _names_a_place(entry.get("address")):
+            # `mark-defects` T1: `filled` passed a bare cue, which names a
+            # place on no page.
+            out.append(
+                f"{where}: {instruction} needs its full `path@cue` address, copied"
+                f" from the row -- {entry.get('address')!r} names a place on no page"
             )
         if spec.substantive and not filled(entry.get("reason")):
             out.append(f"{where}: {instruction} needs a `reason`")
@@ -837,6 +846,18 @@ def untouched(entry: object) -> bool:
     return not any(data.get(key) for key in ROLE_FIELDS)
 
 
+def _names_a_place(value: object) -> bool:
+    """Whether `value` is a `path@cue` address -- a page, and a place on it.
+
+    `reading.addresser.cue_of` is the one parse of an address, and it answers
+    two blanks for anything that is not one, a bare cue included.
+    """
+    if not isinstance(value, str):
+        return False
+    got = cue_of(value.strip())
+    return bool(got.path and got.cue)
+
+
 def _destination_problems(where: str, address: object, claim: object) -> list[str]:
     """WHERE a `move` sends the paragraph, checked against where it already IS.
 
@@ -846,9 +867,10 @@ def _destination_problems(where: str, address: object, claim: object) -> list[st
     two ends to one address, and the docket step wrote the delete at the origin
     with no matching write -- the paragraph removed and never put back.
 
-    ! THE OTHER HALF IS NOT ASKED HERE. Whether the destination is ADDRESSABLE
-    (Roy, 2026-08-27) needs an addresser, and this module imports `re`,
-    `dataclasses`, `enum` and `typing` and nothing else.
+    Its form is asked here too: a destination is a `path@cue` place, for now
+    (`decision-log.md Process: #173`). Whether the page carries that place
+    needs the page, and is `flows.collate.resolution_problems`' -- which
+    `collate` and `check` both run.
 
     Args:
         where: how to name this mark in a message.
@@ -869,5 +891,18 @@ def _destination_problems(where: str, address: object, claim: object) -> list[st
         return [
             f"{where}: `claim.to` is this mark's own `address` -- a move to "
             "where the paragraph already is deletes it and writes nothing back"
+        ]
+    # PROVISIONAL, `decision-log.md Process: #173`: a destination that is not a
+    # `path@cue` place -- a path outside the code, a `file:line`, a bare cue --
+    # is carried by neither the fold nor the write end, and the 2026-09-14
+    # self-run filed 23 that only `collate` refused. Once external documents
+    # have addresses, a move to one of them is carried.
+    if destination.strip() and not _names_a_place(destination):
+        return [
+            f"{where}: `claim.to` {destination!r} is not a `path@cue` place -- a"
+            " destination on a gathered page is its full address, as the addresser"
+            " prints it, and one outside the code is not carried yet"
+            " (`decision-log.md Process: #173`): file a `human-review-necessary`"
+            " query here naming it instead"
         ]
     return []

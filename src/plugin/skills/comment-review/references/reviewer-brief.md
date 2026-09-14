@@ -111,7 +111,7 @@ fields that are yours. This is a filled slot:
     { "path": "redacted_pkg/billing/rates.py",
       "sha":  "9c1f0b7a4e2d6835aa10c4bb37f9e05d2c8471a6",
       "marks": [
-        { "address": "b47",
+        { "address": "redacted_pkg:billing:rates.py@b47",
           "anchor":  "def compute_rates(plan, period, *, clamp=True):",
           "raw_text": "# Kept because twenty call sites want this.\n# Narrowing it means re-deriving the clamp bounds.",
           "instruction": "correct",
@@ -167,9 +167,11 @@ taken from. **`mark` leaves all four alone, and so do you**; the checker refuses
 comes back without `role` or `read_from`, and the `sha` is what proves nobody rewrote the file
 underneath your marks.
 
-! **THE PLACE IS A CUE, NOT A FULL ADDRESS** -- `b47`, because the sheet above it already said
-which file. You will still meet the full form `redacted_pkg:billing:rates.py@b47` in one place: a `move`
-whose destination is in ANOTHER file, which no sheet of yours can name.
+**Every address is the full form** -- `redacted_pkg:billing:rates.py@b47`: the page's path, an
+`@`, and the cue. Your slots already carry it and `mark` copies it. You write one yourself only
+for a place no slot names -- a `move`'s destination, in this file or another, and an `add` at an
+empty place -- and you write it as the addresser prints it. `mark` refuses a bare cue: a cue
+alone names a place on no page.
 
 !! **`raw_text` IS WHERE, NOT WHAT. Open the file.** The slot carries the paragraph so the
 checker can hold your `claim` to it, not so you can rule without reading the code: handed the
@@ -422,26 +424,28 @@ unbounded as "robust"**, so the sentence refusing the claim fails the same test.
 
 #### `move` specific rules
 
-! **One relocation instruction, and the DESTINATION is what varies.** A declaration ten lines
-down, another file, or out of the code entirely -- all `move`, and which one goes in the
-payload. Say what is wrong in `reason`. **Only a destination outside the code can be
-unavailable**, and your run context says whether it is; a relocation into tracked code is
-always available.
+**One relocation instruction, and the destination is what varies.** A declaration ten lines
+down or another file -- both `move`, and which one goes in the payload. Say what is wrong in
+`reason`.
+
+**A destination outside the code is not carried yet** (`decision-log.md Process: #173`): `mark`
+refuses a `to` that is not a `path@cue` place. A paragraph that belongs outside the code is a
+`query` of the shape `human-review-necessary` at its origin, naming where it belongs; it reaches
+the author with the other places only the author can settle.
 
 !! **`to:` IS AN ADDRESS when the destination is on a page THIS RUN CUED, and it is
 RESOLVED.** Ask for it the same way an `add` does -- `--file <path> --line LINE --series a|b|c`. A
 destination naming a LINE on such a page is refused, and so is an address the binder does not
 carry.
 
-!! **A FILE THE RUN NEVER CUED IS CITED BY LINE, AND THAT IS NOT A LOOPHOLE.** The run
-cues the files the change touched; everything else has no places at all, so there is no
-address to ask for. A line number is refused INSIDE the run because this run's own edits shift
-the lines below them -- a file the run does not edit has no such shift. ! So the rule is not
-*never a line number*; it is **never a line number for a place this run can name properly.**
+**A file the run never cued has no places, so a move into it has no address either.** The run
+cues the files the change touched, and everything else is outside this run's addresses. Until
+external documents have them (`Process: #173`), a move into such a file takes the same route as
+a destination outside the code: a `human-review-necessary` query at the origin, naming the file.
 
-! **The destination may hold NO PROSE, and that is ordinary.** A paragraph can move to a gap with
+**The destination may hold no prose, and that is ordinary.** A paragraph can move to a gap with
 no comment in it or a declaration with no docstring: those are places with addresses, not
-absences. A destination OUTSIDE the code carries no address and is written as the path.
+absences.
 
 #### `clean` specific rules
 

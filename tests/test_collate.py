@@ -1368,7 +1368,6 @@ class TestAnAddressMustResolveAgainstAPage:
         [
             pytest.param("mark.py@b9999", id="an-invented-cue"),
             pytest.param("gone.py@b1", id="a-file-this-checkout-does-not-hold"),
-            pytest.param("# one\n# two\n# three", id="paragraph-text"),
         ],
     )
     def test_a_moves_unresolved_destination_is_reported(self, tmp_path, destination):
@@ -1382,6 +1381,20 @@ class TestAnAddressMustResolveAgainstAPage:
         found = [p for p in got.problems if p.address == origin]
         assert found, got.problems
         assert found[0].role == "block-context"
+
+    def test_a_prose_destination_is_refused_at_the_moves_own_parse(self, tmp_path):
+        """`move-is-a-composite-mark` T22, provisional by `decision-log.md
+        Process: #173`: a destination that is not a `path@cue` place is refused
+        where the mark is parsed, so it reaches the fold as a place its role
+        must go back to, with the route to a human-review query in the reason,
+        rather than as an address that resolves against no page."""
+        repo = a_small_real_tree(tmp_path)
+        binder, wire, origin = _a_move_on_mark_py(repo, "# one\n# two\n# three")
+        got = collate("4c", [wire], binder, root=repo)
+        found = [r for r in got.revisit if r.address == origin]
+        assert found, got.revisit
+        assert found[0].role == "block-context"
+        assert any("human-review-necessary" in one for one in found[0].reasons)
 
     def test_a_move_to_a_real_empty_place_is_not_reported(self, tmp_path):
         repo = a_small_real_tree(tmp_path)

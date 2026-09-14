@@ -22,6 +22,8 @@ from helpers import (
     a_clean,
     a_correct,
     a_correct_setting,
+    a_move,
+    a_real_binder_over,
     an_add_at_an_empty_place,
     copies_over,
 )
@@ -101,6 +103,36 @@ class TestACopy:
         )
         assert code == 1
         assert "cite" in out
+
+    def test_with_a_binder_a_destination_no_page_carries_is_named(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """`no-command-for-the-middle` T99. `collate` resolves every mark's
+        address and every move's destination against the real page, and
+        `check` did not, so the 2026-09-14 self-run's copies passed `check` and
+        were refused at the fold. A `path@cue` destination the page does not
+        carry passes the mark's own parse; `check` now names it as the fold
+        does."""
+        root = tmp_path / "repo"
+        binder = a_real_binder_over(root, {"m.py@b1": "# a paragraph\n"})
+        move = a_move("m.py@b1", "m.py@b99")
+        copy = copies_over(binder, {"block-context": {"m.py@b1": move}})[0]
+        path = tmp_path / "copy.json"
+        path.write_text(json.dumps(copy), encoding="utf-8")
+        binder_path = tmp_path / "binder.json"
+        binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
+        code, out, _ = _run(
+            monkeypatch,
+            capsys,
+            "--edit-copy",
+            str(path),
+            "--binder",
+            str(binder_path),
+            "--repo",
+            str(root),
+        )
+        assert code == 1
+        assert "m.py@b1" in out and "carries no place 'b99'" in out, out
 
     def test_a_file_that_is_not_json_exits_two(self, tmp_path, monkeypatch, capsys):
         path = tmp_path / "copy.json"
