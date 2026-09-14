@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 9 tasks closed
+Progress: 7 of 9 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-09-14 (2026-09-14 comment-review self-run, refused at stage 5)
@@ -34,7 +34,8 @@ The smoke drives one route, and the self-run broke on the others.
 - [x] T7 | FINISHED -- block-context withdraws a first b9 ruling and places the real one | 1a4d7cfc | Implement
       a smoke plant that replaces a placed mark through the command mark-defects
       T24 adds
-- [ ] T8 | Implement a smoke plant of a drop inside a line, failing while a line
-      runs past the paragraph's longest (mark-defects T25)
+- [x] T8 | FINISHED -- a fresh copy's drop across rate.py@b1 drafts rewrapped | e4d69ded | Implement
+      a smoke plant of a drop inside a line, failing while a line runs past the
+      paragraph's longest (mark-defects T25)
 - [ ] T9 | Implement a smoke plant of a partial move whose change is the
       snippet, failing while the origin keeps it or the destination lacks it

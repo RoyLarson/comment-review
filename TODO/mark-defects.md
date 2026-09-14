@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 17 of 25 tasks closed
+Progress: 18 of 25 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -248,7 +248,8 @@ cites as its measured example of a field answering neither necessary nor purpose
         > 2026-09-14 SKILL.md's exit-1 send-back cannot be carried out without it
         > 2026-09-14 self-run: mc1 edited its copy's JSON by hand to repair 8 marks
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
-- [ ] T25 | Update derived_change so a drop inside a line leaves no line longer
-      than the paragraph's longest line before the drop
+- [x] T25 | FINISHED -- a drop's joined line is rewrapped to the paragraph's widest; test | e4d69ded | Update
+      derived_change so a drop inside a line leaves no line longer than the
+      paragraph's longest line before the drop
         > 2026-09-14 self-run: 11 changes past 88 columns, bc2 4 and fc2 7
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
