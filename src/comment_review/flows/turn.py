@@ -89,7 +89,8 @@ that re-read now holds the same `add`, `_agreed_adds` records the `stet`
 (`Process: #116`). Where every role of both ends of a lone `move` carrying
 its origin's text unchanged answered `clean` there, or every role of both
 ends holds a mark carrying the move's one text, `_agreed_moves` records the
-`stet` at both ends (`Process: #88`, `#89` and `#137`). A place the turn asked
+`stet` at both ends (`Process: #88`, `#89` and `#137`), unless the mover left
+its slot at either end unanswered (`#152`). A place the turn asked
 about that comes back as a re-read whose roles still hold different texts is
 an escalation, which `_disagreeing`
 records (`Process: #127`), as is a place one role moves two paragraphs to
@@ -650,6 +651,7 @@ def run_turn(
                 )
             )
     cleaned: set[tuple[str, str]] = set()
+    unanswered: set[tuple[str, str]] = set()
     for role, slots in sent.items():
         taken, why = take_answers(copies, role, slots, answers.get(role, []), root)
         refused = {one.address for one in why}
@@ -660,6 +662,7 @@ def run_turn(
             and answer.instruction is Instruction.CLEAN
             and address not in refused
         }
+        unanswered |= {(one.role, one.address) for one in why if not one.unreadable}
         revisit += why
     got = collate(
         proof.stage, copies, binder, root, turn=turn, sent=(*_sent_of(proof), sent)
@@ -668,7 +671,7 @@ def run_turn(
     contested = _asked(sent)
     got = _withdrawn(got, contested, turn)
     got = _agreed_adds(got, contested, turn)
-    got = _agreed_moves(got, contested, cleaned, turn)
+    got = _agreed_moves(got, contested, cleaned, unanswered, turn)
     got = _disagreeing(got, contested)
     return replace(got, revisit=[*revisit, *got.revisit])
 
@@ -755,7 +758,11 @@ def _agreed_adds(got: Collated, contested: set[str], turn: int) -> Collated:
 
 
 def _agreed_moves(
-    got: Collated, contested: set[str], cleaned: set[tuple[str, str]], turn: int
+    got: Collated,
+    contested: set[str],
+    cleaned: set[tuple[str, str]],
+    unanswered: set[tuple[str, str]],
+    turn: int,
 ) -> Collated:
     """A `move` every role of both its ends agreed with this turn is a `stet`.
 
@@ -774,13 +781,17 @@ def _agreed_moves(
                             agreement by the text alone (`Process: #88`). A
                             `clean` adopting a reworded move leaves this
 
-    Both ends settle together or neither does (`Process: #137`).
+    Both ends settle together or neither does (`Process: #137`), and neither
+    settles while the mover left its slot at either end unanswered this
+    turn, whatever text its copy already holds (`Process: #152`).
 
     Args:
         got: the fold after the turn.
         contested: every address the turn asked about.
         cleaned: every `(role, address)` whose composition `clean` the turn
             applied.
+        unanswered: every `(role, address)` the turn sent and got no answer
+            for -- each `Revisit` that is not `unreadable`.
         turn: this turn's number.
 
     Returns:
@@ -797,6 +808,8 @@ def _agreed_moves(
             continue
         (placed,) = moves
         move = placed.mark
+        if any((placed.role, end) in unanswered for end in _touched_by(move)):
+            continue
         if len(marks) == 1:
             if move.change == move.raw_text and all(
                 (role, address) in cleaned for role in roles

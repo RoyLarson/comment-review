@@ -1375,14 +1375,15 @@ def _on(proof: MasterProof, role: str, address: str) -> list[Mark]:
 
 class TestAMoverThatLeavesItsOriginUnanswered:
     """A mover that leaves its slot at its move's origin unanswered while
-    every role holds one text -- `no-command-for-the-middle` T91,
-    `Process: #88`, `#89` and `#137`.
+    every role holds one text -- `no-command-for-the-middle` T91 and T93,
+    `Process: #88`, `#89`, `#137` and `#152`.
 
     Turn 1 answers every slot `clean` but block-context's at the origin,
     which never comes back and is revisited. Every role then holds the
     move's one text at both ends: function-context's `clean` there adopts a
     reworded text, and leaves a clean over the text as it stands. The test
-    runs the move both ways and asks that it settle alike.
+    runs the move both ways and asserts that neither end settles, since an
+    unanswered slot is not agreement (`#152`).
     """
 
     @staticmethod
@@ -1406,19 +1407,16 @@ class TestAMoverThatLeavesItsOriginUnanswered:
         proof = _read_back(root, 1, proof_after(one, ({"turn": 1, "sent": batch},)))
         return {d.address for d in proof.determined}
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "no-command-for-the-middle T91: the reworded move settles at both "
-            "ends with the mover's origin slot unanswered, and the move as it "
-            "stands settles at neither; whether an unanswered slot is "
-            "agreement is a question for Roy"
-        ),
+    @pytest.mark.parametrize(
+        "change",
+        [
+            pytest.param(MOVED_TEXT, id="moved-as-it-stands"),
+            pytest.param(MOVED_TEXT + ", about w", id="moved-reworded"),
+        ],
     )
-    def test_it_settles_alike_whether_or_not_the_text_is_reworded(self, tmp_path):
-        as_it_stands = self._settled(tmp_path / "as-it-stands", MOVED_TEXT)
-        reworded = self._settled(tmp_path / "reworded", MOVED_TEXT + ", about w")
-        assert as_it_stands == reworded
+    def test_neither_end_settles(self, tmp_path, change):
+        settled = self._settled(tmp_path / "run", change)
+        assert settled.isdisjoint({MOVED_FROM, EMPTY_PLACE})
 
 
 class TestAMoversQueryAtItsOrigin:
