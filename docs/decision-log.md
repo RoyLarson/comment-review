@@ -4488,3 +4488,146 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
       3  tests and comment cleanups   Q T7-T12; H T34; S T15 T16
       4  scope command, agent prose   T T1 T2; A T16 T17 T18 T21 T26; C T14; I T5
       5  measurements, alongside      H T35; I T6; the P5 run
+
+- **#151.** **What happens to a finding the work turns up, and the P5 build's version** (Roy,
+  2026-09-13, asked where new findings go -- `workflow.md`'s default joins them to the branch's
+  plan, while `#140` filed them and merged -- and what version the P5 build carries, with
+  `0.2.4-beta.3` recommended).
+
+  *"yes Broken is filed and fixed as well as consumer facing test failures (including agents as
+  consumers) also get filed and fixed. Everything else can be either easily fixed immediately or
+  dropped because they will likely get superseded"*
+
+  *"it is also stupid to make a goal to find more bugs. There is an infinite set of them out
+  there. They might be a countable infinite set but it is more likely an uncountable set so don't
+  do that again. The goal is not to find bugs it is to make software that works correctly for the
+  consumer."*
+
+  On the version: *"go ahead and increment but honestly I don't care and the system doesn't
+  actually care and until this becomes a releasable product no one else cares either"*.
+
+  So on this plan: Broken code, and a failure a consumer meets -- an agent reading the shipped
+  prose is a consumer -- are filed and fixed before it closes. Any other finding is fixed at once
+  when that is easy, or dropped. The P5 build is `0.2.4-beta.3`.
+
+- **#152.** **A mover's unanswered slot leaves its move open** (Roy, 2026-09-13, on
+  `no-command-for-the-middle` T91: in a turn where the mover leaves its origin slot unanswered
+  while every role holds one text, a reworded move settled and the same move unchanged did not,
+  so the outcome turned on the rewording rather than on the mover).
+
+  Asked whether a copy that already holds the one text is agreement without an answer -- Roy
+  chose *"No: unanswered stays open"*. Neither move settles until the mover answers.
+
+- **#153.** **A mover's answer at its destination reaches the move, though it holds a mark
+  there too** (Roy, 2026-09-13, on T63: block-context moves b1 onto b3 and patches the comment
+  already at b3; the batch shows it the moved text at b3 and its answer lands on its patch, so a
+  `clean` there turns the patch into an adoption and the patch leaves the stage unruled).
+
+  Roy chose *"To the move"*: `#129` and `#138` read literally, and the role's own patch stands
+  for the other roles to rule on.
+
+- **#154.** **One role's two moves to one place are a conflict sent back** (Roy, 2026-09-13, on
+  T64: block-context moves b1 and b2 onto b3; its answer there reaches neither move and lands as
+  a third mark, and which move's text the batch shows at b3 varies with Python's hash seed).
+
+  Offered -- refuse it at `check`; the answer reaches both; the answer goes back to the role --
+  Roy: *"the answer reaches both but it is a conflict that has to be sent back because the order
+  and wording are ambiguous and probably need editing"*.
+
+- **#155.** **A held move's two ends go to the author as one move** (Roy, 2026-09-13, on T90's
+  other end: a held origin now carries the move's `drop` to 7a, while a held destination carries
+  no `add`, so approving the drop alone would lose the paragraph).
+
+  Roy chose *"The add, asked together"*: per `#137` both ends ride to 7a and are put to the
+  author as one move, approved or refused whole.
+
+- **#156.** **The move semantics are provisional** (Roy, 2026-09-13, after `#152` to `#155`
+  ruled four move shapes a test had constructed, and while the other sessions waited on a fresh
+  build to run on real code).
+
+  *"All of the 'move' semantics and things are provisional like the rest of the code at this
+  point. I don't know how all of this is actuallly going to work and until we have tested it on
+  code it is hard to see the problems"*
+
+  So `#152` to `#155` stand as provisional, like the code they rule on, and a move shape is next
+  judged on what a run over real code shows.
+
+- **#157.** **A chief's recast at an empty place is an `add`** (Roy, 2026-09-13, on a failure
+  set 1b found: at max turns a recast copies the instruction of the first role's mark at the
+  place, so where that role filed a `patch` or `correct` at an add's empty place the recast
+  quotes an empty paragraph, `disposition` exits 0, and the closed proof is refused when read
+  back -- the chief's prose is lost).
+
+  Offered -- always an `add`; a role's filed `add` over its `patch` or `correct`, refusing the
+  recast when none filed one; or refuse and have the chief name the instruction -- Roy chose
+  *"Always an add"*. An empty place holds no sentence, so only an `add` writes anything there,
+  which is the reason `#146` gives for a `correct` being wrong at such a place.
+
+- **#158.** **The agent prose stops naming a paragraph's kind and annotations** (Roy,
+  2026-09-14: `SKILL.md`, `reviewer-brief.md` and `compact.md` tell agents to act on a
+  paragraph's kind and its annotations, while a binder row carries five fields -- address,
+  anchor, start line, end line, text -- since `#12` dropped `kind` and `annotations` from the
+  row, and stage 6's condenser refuses a paragraph whose kind is unresolved).
+
+  Offered -- the prose stops naming them; the binder carries kind again; or a command answers
+  kind on demand -- Roy chose *"Prose stops naming them"*. The agents are told what the binder
+  gives them, and `compact.md`'s kind table and stage 6's refusal are rewritten around it.
+
+- **#159.** **Stage 7b writes temporary files for the author to diff** (Roy, 2026-09-14:
+  `write.md` and `SKILL.md` say the compositor puts the approved galley over the real files,
+  while the `compositor` command only checks pages and writes nothing, so no command performs
+  that write).
+
+  Offered a write command or the task agent copying the pages over the files, Roy: *"This stage
+  is write to temporary files that can be diffed for the human to read through"*. So 7b does
+  not write over the real files, and no write command is built.
+
+- **#160.** **Stage 7b runs no `prove_unchanged` check** (Roy, 2026-09-14, after asking whether
+  `prove_unchanged` is still tied to Python, since a session on `0.2.4-beta.2` saw a docstring
+  change come back as a code change through the Python AST).
+
+  What was read: the proof has two tiers -- Python through its own `ast`, every other language
+  through this repo's comment lexer. The Python tier blanks a docstring's text and keeps its
+  presence, so a reworded docstring passes and an added or dropped one differs. `proof`'s own
+  check sets aside the presence at each declaration an approved alteration documents (`#113`);
+  the standalone `prove_unchanged` command calls the plain fingerprint and does not, and the one
+  agent instruction running it is `references/write.md`'s stage 7b check, which then says to
+  restore the edit.
+
+  Offered -- drop the 7b check, since `proof` already proves every drafted page against the
+  approved changes and under `#159` nothing is written over the real files; or teach the command
+  the approved changes -- Roy chose *"Drop the 7b check"*.
+
+- **#161.** **Set 1c's edges: the general one is fixed, the move ones wait for the live runs**
+  (Roy, 2026-09-14, after set 1c built `#152` to `#157` and met cases no ruling covers).
+
+  The move edges: a refused answer at a mover's slot; two moves carrying one text into a place
+  until its conflict is ruled; a recast at a move's empty destination where no role filed an
+  `add`, still refused on read-back; a held destination two moves reach showing only the first
+  move's `add`. The one not specific to moves: `disposition` exits 0 on a chief's recast that
+  will not parse.
+
+  Offered -- fix the general one only, with a test for the new refusal of a held destination
+  whose page no copy holds; file and fix all five; or leave all to the live runs -- Roy chose
+  *"Fix the general one only"*. The four move edges wait for what a run over real code shows,
+  per `#156`.
+
+- **#162.** **The rest of `0.2.4-the-agents-read-the-cli` keeps the small fixes and supersedes
+  the hardening of the middle** (Roy, 2026-09-14: *"Before we get too much further on this.
+  Remember that this is prototype code and I am starting to see the patterns that will allow
+  this to be built correctly so we do NOT want to over-engineer this just yet."*).
+
+  Offered -- keep the small fixes and supersede the rest; pause after set 1; or continue as
+  planned with the least code -- Roy chose *"Keep the small fixes, supersede the rest"*.
+
+  Kept, as something a live run or an agent meets: `binder-defects` T25, `collator-defects` T35
+  and T36, `mark-defects` T22, the comment cleanups (`galley-and-compositor-write-path` T34,
+  `collate-flow-defects` T15 and T16, `the-code-check-refuses-add-and-drop-on-a-docstring` T9 to
+  T12), and the agent prose (`agents-files-name-the-new-cli` T16 to T18, T21, T29 to T31, T33,
+  `stage-5-is-the-only-stage-with-no-independent-reader` T14, `reviewer-prose-is-rules-not-guidance`
+  T5).
+
+  Superseded as hardening of the prototype middle: `collator-defects` T34 and T42,
+  `containers-and-verification-are-unwired` T47, `galley-and-compositor-write-path` T32,
+  `mark-defects` T16, `reviewer-prose-is-rules-not-guidance` T7, `the-code-check-refuses-add-and-
+  drop-on-a-docstring` T7 and T8, and `the-scope-is-git-in-prose` T1 and T2.

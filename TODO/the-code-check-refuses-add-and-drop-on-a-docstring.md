@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 12 tasks closed
+Progress: 5 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-17, on the FIRST run ever to reach stage 7b. A docstring `add` failed the
@@ -103,11 +103,13 @@ being ADDED or REMOVED -- only rewritten, which is the case that passes.
       the proof code check against the approved changes, per Process 113, so an
       approved docstring add passes
         > 2026-09-11 verify: smoke a2 passes proof; an unapproved code change refuses
-- [ ] T7 | Implement a test where an approved declaration's own line moves in
-      the draft, so a lookup at the old line fails it
+- [-] T7 | superseded by Process 162: hardening of the prototype middle, not built now | 9519ead5 | Implement
+      a test where an approved declaration's own line moves in the draft, so a
+      lookup at the old line fails it
         > 2026-09-11 review: that mutant is caught only by an error message today
-- [ ] T8 | Implement approved-add cases at a0, a class, a method and a decorated
-      declaration; SAMPLE gives only a2
+- [-] T8 | superseded by Process 162: hardening of the prototype middle, not built now | 9519ead5 | Implement
+      approved-add cases at a0, a class, a method and a decorated declaration;
+      SAMPLE gives only a2
         > 2026-09-11 checked by probe in review; no chain test holds them
 - [ ] T9 | Update _blank_docstrings' first line at prove_unchanged.py:55, which
       says every docstring is blanked

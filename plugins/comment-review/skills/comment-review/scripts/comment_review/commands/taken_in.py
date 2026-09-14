@@ -43,7 +43,7 @@ def main(argv: list[str] | None = None) -> int:
     """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument(
-        "paths", nargs="*", help="pages to compare; default every page under --original"
+        "paths", nargs="*", help="pages to compare; default every page under --revise"
     )
     ap.add_argument(
         "--original", required=True, help="the checkout, or an earlier revise"
@@ -60,7 +60,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"CANNOT READ {args.revise}: not a directory")
         return 2
 
-    rels = args.paths or _every_page(original)
+    # With no paths, compare the pages the revise holds. A revise holds only
+    # the pages its docket schedules (`docs/decision-log.md Process: #117`),
+    # so no other page is the revise's to compare. A path given explicitly is
+    # read from both roots, and one the revise lacks is named on stderr, below.
+    rels = args.paths or _every_page(revise)
 
     changed_addresses: list[str] = []
     # !! A PAGE THIS CANNOT READ IS NAMED, AND WAS SILENTLY SKIPPED UNTIL

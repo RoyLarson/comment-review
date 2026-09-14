@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 12 of 22 tasks closed
+Progress: 13 of 22 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -209,8 +209,9 @@ cites as its measured example of a field answering neither necessary nor purpose
       fill to seed an absent place from that page, not from the role's entry.
       Verify: the anchor comes from the page and raw_text is empty
         > 2026-09-07 The base is the system's, never the party being checked
-- [ ] T16 | Implement a test that a move from f0 to a b place reaches the
-      docket, and make it pass, per Addressing 25
+- [-] T16 | superseded by Process 162: moves are provisional, not built now | 9519ead5 | Implement
+      a test that a move from f0 to a b place reaches the docket, and make it
+      pass, per Addressing 25
 - [-] T17 | SUPERSEDED by T20: Process 132 keeps the prose, not a refusal | 393672ef | Update
       fill to refuse an add at a place that already holds prose, which
       SKILL.md:68 defines as missing

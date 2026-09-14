@@ -2,6 +2,7 @@
 
     comment_review check --edit-copy copy.json [--binder B.json] [--repo R]
     comment_review check --answers answers.json --sent batch.json --role block-context
+        --proof proof.json [--repo R]
     comment_review check --contract
 
 A role writes its copy or its batch answers with its file-write tool and runs
@@ -28,8 +29,13 @@ was flattened. Each cost a turn. All are named here, before the send.
 For a COPY: the envelope (`EditCopy.deserialize`), every place the role left
 alone or wrote unreadably (`flows.mark_errors`), and, with `--binder`, source
 verification and drift (`desk.collator.verify_report`, `drift_in`). For a
-BATCH: every answer paired to the slot the flow SENT, by address
-(`flows.turn.parse_answers`, T27), so `--sent` is the batch that went out.
+BATCH: `flows.turn.take_answers`, the call `run_turn` makes for each role --
+every answer paired to the slot the flow SENT, by address (`parse_answers`,
+T27), then written into that role's copy on the proof (`apply`). So `--sent`
+is the batch that went out, `--proof` the proof it went out with, and
+`--repo` the checkout a page is read from, by default the proof's own
+`read_from.root`; nothing is saved. Source verification of what an answer
+cites is the fold's, and is not run for a batch.
 The shape a role hands back is read the way the flow reads it
 (`flows.turn.slots_of`): a list of slots, `{role: [slots]}`, or a lone slot.
 """
@@ -41,9 +47,16 @@ from pathlib import Path
 
 from comment_review.desk.collator import Cache, base_texts, drift_in, verify_report
 from comment_review.desk.containers import EditCopy
+from comment_review.flows.collate import texts_at
 from comment_review.flows.mark_errors import mark_errors
-from comment_review.flows.proof_io import load_batch, load_binder, load_copy, load_value
-from comment_review.flows.turn import contracts, parse_answers, slots_of
+from comment_review.flows.proof_io import (
+    load_batch,
+    load_binder,
+    load_copy,
+    load_proof,
+    load_value,
+)
+from comment_review.flows.turn import contracts, slots_of, take_answers
 
 #: Exit codes -- `distribute`'s 0/1/2. `BROKEN` is anything the fold would
 #: refuse or send back; `UNREADABLE` is a file that is not an object at all.
@@ -79,8 +92,9 @@ def _check_copy(path: str, binder_path: str | None, repo: str | None) -> int:
             return _refused(why)
         root = Path(repo) if repo else binder.root
         cache: Cache = {}
+        texts = texts_at(copy, [page.path for page in binder.pages], root, {})
         for problem in (
-            *verify_report(copy, binder, root, cache),
+            *verify_report(copy, texts, root, cache),
             *drift_in(copy, base_texts(binder)),
         ):
             print(
@@ -91,18 +105,25 @@ def _check_copy(path: str, binder_path: str | None, repo: str | None) -> int:
     return BROKEN if found else OK
 
 
-def _check_answers(path: str, sent_path: str, role: str) -> int:
+def _check_answers(
+    path: str, sent_path: str, role: str, proof_path: str, repo: str | None
+) -> int:
     loaded, why = load_value(Path(path))
     if why:
         return _refused(why)
     batch, why = load_batch(Path(sent_path))
     if why:
         return _refused(why)
+    proof, why = load_proof(Path(proof_path))
+    if proof is None:
+        return _refused(why)
     sent = slots_of(batch, role)
     if not sent:
         print(f"{sent_path}: no slots were sent to {role}")
         return BROKEN
-    answers, revisit = parse_answers(role, sent, slots_of(loaded, role))
+    root = Path(repo) if repo else Path(proof.read_from["root"])
+    copies = [copy.serialize() for copy in proof.edit_copies]
+    answers, revisit = take_answers(copies, role, sent, loaded, root)
     for one in revisit:
         for reason in one.reasons:
             print(f"{one.role} {one.where}: {reason}")
@@ -116,7 +137,7 @@ def main() -> int:
     Returns:
         `OK` when nothing would be refused or sent back; `BROKEN` when
         something would, each named on stdout; `UNREADABLE` when the file is
-        not a JSON object or list, or the binder is not a binder.
+        not a JSON object or list, or the binder or the proof is not one.
     """
     ap = argparse.ArgumentParser(description=__doc__)
     what = ap.add_mutually_exclusive_group(required=True)
@@ -134,13 +155,19 @@ def main() -> int:
         "--sent", metavar="PATH", help="the batch that went out (with --answers)"
     )
     ap.add_argument(
+        "--proof",
+        metavar="PATH",
+        help="the master proof the batch went out with (with --answers)",
+    )
+    ap.add_argument(
         "--binder",
         help="the binder the copy was seeded from; adds source verification and drift",
     )
     ap.add_argument(
         "--repo",
-        help="the checkout a `sources` cite resolves against "
-        "(default: the binder's own read_from.root)",
+        help="the checkout a `sources` cite resolves against, and with --answers"
+        " the one a page is read from (default: the binder's or the proof's own"
+        " read_from.root)",
     )
     args = ap.parse_args()
 
@@ -150,10 +177,10 @@ def main() -> int:
         print(json.dumps(contracts(), indent=2))
         return OK
     if args.answers:
-        if not args.role or not args.sent:
-            print("check --answers needs --role and --sent", file=sys.stderr)
+        if not args.role or not args.sent or not args.proof:
+            print("check --answers needs --role, --sent and --proof", file=sys.stderr)
             return UNREADABLE
-        return _check_answers(args.answers, args.sent, args.role)
+        return _check_answers(args.answers, args.sent, args.role, args.proof, args.repo)
     return _check_copy(args.edit_copy, args.binder, args.repo)
 
 

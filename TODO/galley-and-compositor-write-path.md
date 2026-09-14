@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 36 of 49 tasks closed
+Progress: 38 of 49 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -183,8 +183,9 @@ files in `corpora/` are in that state today.
       compositor.py:159-162, which says the survivor of a drop takes a new key
       where :175-178 says it needs none
         > 2026-09-11 at 4326b793: new key claimed at :161, no new key at :176
-- [ ] T32 | Update proof_setter.py:465-470 so a draft that re-reads with a
-      different structure is named as that
+- [-] T32 | superseded by Process 162: hardening of the prototype middle, not built now | 9519ead5 | Update
+      proof_setter.py:465-470 so a draft that re-reads with a different
+      structure is named as that
         > 2026-09-11 smoke run: an unindented a2 lost every cue; b1 was named
 - [x] T33 | RULED Addressing: #27 -- the roles, for now | fe9ebbef | Decide
       whether a docstring's indentation is the role's to write or the
@@ -193,9 +194,11 @@ files in `corpora/` are in that state today.
         > 2026-09-11 Addressing 23 moved leading to the compositor the same way
 - [ ] T34 | Update the history narration in added lines at compositor.py:211-213
       and galley.py:93-98
-- [ ] T35 | Identify the 3 of 3310 pages that do not set back byte-identical
-      unedited, and file what each shows
+- [x] T35 | identified: 3 of 3310, all corpora/pymc, the ruled f0-first order; nothing filed | 7bd1bdb9 | Identify
+      the 3 of 3310 pages that do not set back byte-identical unedited, and file
+      what each shows
         > 2026-09-11 final review: the vacated rule fired on none of them
+        > 2026-09-13 scan fe78d91f: 3 of 3310 differ, all pymc; compositor.py:124 rules
 - [x] T36 | the revise holds only the docket's pages; the gate reads only those | 4bf2acd3 | Update
       revise.pull so the revise root holds only the pages the docket writes, and
       the address gate compares only those, per Process 117

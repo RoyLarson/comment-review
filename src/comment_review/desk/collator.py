@@ -628,8 +628,7 @@ def _filed_against(mark: Mark, marks: list[Mark]) -> list[str]:
 
     `decision-log.md Process: #137` and `#138`. A query at a move's
     destination lands under its origin, and one at a move's origin under its
-    destination. Each needs the copy to hold exactly one such move, the test
-    `flows.turn._move_to` applies before it routes an answer to a move.
+    destination. Each needs the copy to hold exactly one such move.
 
     Args:
         mark: one mark on a role's copy.
@@ -835,6 +834,11 @@ def _join_moves(outcomes: dict[str, tuple[str, dict]]) -> None:
     be another move's origin, and promoting the first pair can promote the
     second. The loop stops on the pass that changes nothing.
 
+    The pairs are walked in address order. Where two moves share an end, the
+    pair promoted last decides which marks lead that end's entry, and so the
+    text `desk.diff_mark.batch_of` sends there, so the order is the same in
+    every process -- `no-command-for-the-middle` T97.
+
     !! PROVISIONAL. Roy, 2026-08-30, ruling AGAINST the shape this whole
     function joins: *"A move needs to be what it is and that is a composite
     Mark - Drop Here Add There. They have to go together ... Nothing else
@@ -864,7 +868,7 @@ def _join_moves(outcomes: dict[str, tuple[str, dict]]) -> None:
     changed = True
     while changed:
         changed = False
-        for ends in ends_of:
+        for ends in sorted(ends_of):
             kinds = [outcomes[end][0] for end in ends]
             strongest = max(kinds, key=OUTCOMES.index)
             if len(set(kinds)) == 1:

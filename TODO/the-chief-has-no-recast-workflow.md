@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 10 tasks closed
+Progress: 8 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-08 (Roy 2026-09-08: implementing the recast workflow for the cli the
@@ -39,12 +39,20 @@ The copy chief has no workflow for recasting the places that never settled.
       what a recast of a drop should write, since change carries the chief's
       prose whatever the instruction says
         > 2026-09-08 Not new: the hardcoded correct wrote prose for every instruction
-- [ ] T8 | Update disposition.py:20 and turn.py:621, which still say cap for max
-      turns, per Vocabulary 36
+- [x] T8 | disposition.py and turn.py say nothing survives max turns without a disposition, per Vocabulary 36 | d1529b62 | Update
+      disposition.py:20 and turn.py:621, which still say cap for max turns, per
+      Vocabulary 36
         > 2026-09-11 seen in disposition --help while preparing SP7 Task 9
-- [ ] T9 | Update the recast so the b9 mark in final.json does not carry the
-      source fib.py:21 twice
-- [ ] T10 | Update rule_at_max_turns so a recast over a drop is written as a
-      correct from the original paragraph to the chief's prose, per Process 146
+- [x] T9 | the chief recast cites each equal source once, so b9 no longer carries fib.py:21 twice | 35c13150 | Update
+      the recast so the b9 mark in final.json does not carry the source
+      fib.py:21 twice
+- [x] T10 | a recast over a drop, and at a move origin, is a correct from the original paragraph to the prose, per Process 146 | e33c3ab0 | Update
+      rule_at_max_turns so a recast over a drop is written as a correct from the
+      original paragraph to the chief's prose, per Process 146
         > 2026-09-13 includes the recast at a move's origin, 0f9657a0
         > 2026-09-13 test: the claim's true is what lands; false is the original
+- [x] T11 | a chief recast at an adds empty place follows the add filed there and lands as an add whatever mark comes first, per Process 157 | 7dcc3cb1 | Update
+      the recast so a recast at an empty place is always an add, per Process 157
+- [x] T12 | rule_at_max_turns parses the chief recast when it builds it and refuses one that does not parse, so disposition exits BROKEN and writes nothing, per Process 161 | e381df74 | Update
+      disposition so a chief's recast that does not parse is refused rather than
+      written at exit 0, per Process 161

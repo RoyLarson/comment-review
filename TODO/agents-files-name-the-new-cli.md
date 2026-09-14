@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 17 of 28 tasks closed
+Progress: 19 of 33 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -98,8 +98,9 @@ The agents files name the new CLI and say how to use it.
       docs/limitations.md's size table for SKILL.md and reviewer-brief.md as set
       4 left them
         > 2026-09-12 set 4: SKILL.md 60,979 bytes, reviewer-brief.md 38,688 bytes
-- [ ] T26 | Update SKILL.md:885, which says proof's --out holds a full copy of
-      --repo; since Process 117 it holds only the docket's pages
+- [x] T26 | proof --out holds only the drafted pages, per Process 117 | a2fce3ed | Update
+      SKILL.md:885, which says proof's --out holds a full copy of --repo; since
+      Process 117 it holds only the docket's pages
         > 2026-09-13 seen reading stage 7a for stage-5 T12
 - [ ] T27 | Update reviewer-brief.md so <skill> at :126, 271, 580, 592 names a
       path the packet gives a reviewer. Verify: the packet list names it
@@ -108,3 +109,14 @@ The agents files name the new CLI and say how to use it.
 - [ ] T28 | Update reviewer-brief.md:592-593 so ANSWERS, BATCH and PROOF name
       what SKILL.md:712-713 hands a role. Verify: the two agree
         > 2026-09-13 from census T16, Process 147
+- [ ] T29 | Update SKILL.md 7a so the task agent puts a held move's drop and add
+      to the author as one move, per Process 155
+- [ ] T30 | Update SKILL.md, reviewer-brief.md and compact.md so no agent is
+      told to use a paragraph's kind or annotations, per Process 158
+- [ ] T31 | Update SKILL.md and write.md so stage 7b writes the approved text to
+      temporary files for the author to diff, per Process 159
+- [x] T32 | SKILL.md, the brief and write.md match the CLI: 16 changes, merged at 626017b7 | 626017b7 | Update
+      SKILL.md, reviewer-brief.md and write.md so every command, flag, exit code
+      and output they name matches the CLI
+- [ ] T33 | Update write.md so stage 7b runs no prove_unchanged check and
+      restores no edit on its result, per Process 160

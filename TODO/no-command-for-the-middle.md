@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 73 of 92 tasks closed
+Progress: 85 of 97 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -191,8 +191,8 @@ Reconciliation has no command, so the chain cannot be driven end to end.
         > 2026-09-11 Process 89 says a lone mark stets when those roles agree
         > 2026-09-11 set in daa86dc8; T30's note records it
         > 2026-09-11 Roy: Process 49 stands; an add to an empty place goes back
-- [ ] T36 | Update the history narration in added lines at test_turn.py:854 and
-      :878
+- [x] T36 | the two recast test docstrings state what each asserts, not when it was measured | 1b1cf2da | Update
+      the history narration in added lines at test_turn.py:854 and :878
 - [x] T37 | another role's clean adopts the add; all holding it is a stet | d4e98476 | Update
       turn so every other role answering clean at an add at an empty place
       settles it, per Process 116
@@ -315,14 +315,17 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       whether a mover's answer to a composition re-read at its move's
       destination end reaches the move
         > 2026-09-12 outside Process 129, which covers escalation answers
-- [ ] T63 | Implement a test of a role holding its own mark at a move's
-      destination and a move there, to settle where its answer lands
+- [x] T63 | a movers answer at a destination holding its own mark lands on that mark; xfail strict, question for Roy | 822ee987 | Implement
+      a test of a role holding its own mark at a move's destination and a move
+      there, to settle where its answer lands
         > 2026-09-12 e260438d routes to the move only past a clean or no slot
-- [ ] T64 | Implement a test of a role holding two moves to one destination, to
-      settle where its answer lands
+- [x] T64 | a movers answer where two of its moves land reaches neither and lands on a seeded slot; xfail strict, question for Roy | b5ef0bf9 | Implement
+      a test of a role holding two moves to one destination, to settle where its
+      answer lands
         > 2026-09-12 _move_to returns None for two; the answer stays on its slot
-- [ ] T65 | Update T33's test in test_turn.py to use the two-turn helper T57's
-      test and the withdraw test share
+- [x] T65 | the T33 test builds both turns through _two_turns, its assertions unchanged | 1b1cf2da | Update
+      T33's test in test_turn.py to use the two-turn helper T57's test and the
+      withdraw test share
         > 2026-09-12 e260438d added the helper; T33's test repeats its setup
         > 2026-09-12 f2a2d47b's both-ends test repeats the same turn-1 setup
 - [x] T66 | turn exits 7 as collate does | f85ea724 | Update turn so it exits 7
@@ -429,12 +432,30 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       its destination, to settle what lands
         > 2026-09-13 round 5, by reading: only the destination's add is written
         > 2026-09-13 Roy 2026-09-13: the last round before the move branch merges
-- [ ] T90 | Update the unsettlable entry for a move's held origin so the move's
-      drop rides with it to the human at 7a, per Process 90 and 139
+- [x] T90 | a held move origin carries the moves drop on the proof and in disposition output | a67fba8a | Update
+      the unsettlable entry for a move's held origin so the move's drop rides
+      with it to the human at 7a, per Process 90 and 139
         > 2026-09-13 T89's xfail at ed8afe94: text at both ends until 7a
-- [ ] T91 | Implement a test of a mover that leaves its origin slot unanswered
-      while every role holds one text, to settle whether it settles
+- [x] T91 | a reworded move settles with the movers origin unanswered and one as it stands does not; xfail strict, question for Roy | c6c28bc5 | Implement
+      a test of a mover that leaves its origin slot unanswered while every role
+      holds one text, to settle whether it settles
         > 2026-09-13 by reading: cb42539e reads copies, not the turn's answers
-- [ ] T92 | Delete T79's test in tests/test_turn.py, which since cb42539e runs
-      T87's route with weaker assertions
+- [x] T92 | T79s test is deleted; T87s test carries its one assertion T87 lacked, the movers copy holding the move | 9d43f884 | Delete
+      T79's test in tests/test_turn.py, which since cb42539e runs T87's route
+      with weaker assertions
         > 2026-09-13 round 6: T79's turn-1 assertion went with the fix
+- [x] T93 | a movers unanswered slot at either end leaves its move open, reworded or not, per Process 152 | 67dd5915 | Update
+      the turn so a mover's unanswered origin slot leaves its move open,
+      reworded or not, per Process 152
+- [x] T94 | a movers answer at a destination where it holds its own mark reaches the move and its own mark stands, per Process 153 | 9031d93c | Update
+      apply so a mover's answer at a destination where it holds a mark reaches
+      the move, per Process 153
+- [x] T95 | a role answer where two of its moves land reaches both moves and the place and both origins go back as escalations, per Process 154 | 48dd530c | Update
+      the turn so a role's answer where two of its moves land reaches both and
+      goes back as a conflict, per Process 154
+- [x] T96 | a held move destination carries the moves add beside the origins drop, and disposition prints a move held at both ends as one entry in either order, per Process 155 | d57001c2 | Update
+      a held move destination's entry to carry the add, both ends put to the
+      author as one move, per Process 155
+- [x] T97 | the batch where two moves land is the same under every hash seed; _join_moves walks its pairs in sorted order | f8e5e2e8 | Update
+      the collator so the batch's text where two moves land does not depend on
+      the hash seed

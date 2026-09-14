@@ -33,6 +33,7 @@ hides that.
 """
 
 import ast
+from collections.abc import Collection
 from pathlib import Path
 
 from comment_review.machine import constants, exceptions
@@ -42,19 +43,32 @@ from comment_review.machine.repo import git, read_raw
 # file holds a tuple LITERAL. `exceptions.py` carries the reason once.
 from comment_review.reading.lexer import (
     DOC_ANCHORS,
+    MODULE_ANCHOR,
+    NAMED_DEFS,
     Language,
     language_for,
     paragraphs_lexical,
 )
 
 
-def _blank_docstrings(tree: ast.AST) -> ast.AST:
+def _blank_docstrings(tree: ast.AST, aside: Collection[ast.AST] = ()) -> ast.AST:
     """Replace every docstring's value with an empty string, in place.
 
-    A docstring is prose this skill is allowed to rewrite, so its CONTENT must
-    not enter the fingerprint. Its presence still does: deleting a docstring
-    entirely changes the body's shape and stays visible.
+    A docstring is prose this skill is allowed to rewrite, so its content must
+    not enter the fingerprint. Its presence does: a docstring binds `__doc__`,
+    and adding or deleting one changes the body's shape, which the dump shows.
+
+    The one exception is a declaration in `aside`, whose docstring is removed
+    rather than blanked, so its presence is left out of the fingerprint too.
+    `code_fingerprint_setting_aside` names those declarations: each one an
+    approved alteration documents (`decision-log.md Process: #113`).
+
+    Args:
+        tree: the parsed file, changed in place.
+        aside: declarations -- the module node or a named definition -- whose
+            docstring's presence is left out. Compared by identity.
     """
+    removed = {id(node) for node in aside}
     for node in ast.walk(tree):
         if not isinstance(node, DOC_ANCHORS):
             continue
@@ -63,8 +77,45 @@ def _blank_docstrings(tree: ast.AST) -> ast.AST:
         first = node.body[0]
         if isinstance(first, ast.Expr) and isinstance(first.value, ast.Constant):
             if isinstance(first.value.value, str):
-                first.value.value = ""
+                if id(node) in removed:
+                    del node.body[0]
+                else:
+                    first.value.value = ""
     return tree
+
+
+def _declared_at(
+    tree: ast.Module, lines: list[str], anchor: str, line: int | None
+) -> ast.AST | None:
+    """The one declaration the page puts at `line` with `anchor`, or None.
+
+    A named definition matches when its `def` or `class` keyword sits on
+    `line` -- `lineno`, which is the keyword's line and not a decorator's --
+    and that line begins with `anchor`, the declaring line's code as the page
+    holds it. The module is the declaration whose anchor is `MODULE_ANCHOR`
+    and which sits on no line.
+
+    It returns None unless exactly one declaration matches, so a caller
+    refuses rather than guess between two.
+
+    Args:
+        tree: the parsed file.
+        lines: the file's text as lines, as `constants.text_lines` splits it.
+        anchor: the place's anchor.
+        line: the line the page puts that anchor on, or None for a sentinel.
+    """
+    if line is None:
+        return tree if anchor == MODULE_ANCHOR else None
+    if not anchor.strip() or not 1 <= line <= len(lines):
+        return None
+    if not lines[line - 1].strip().startswith(anchor.strip()):
+        return None
+    found = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, NAMED_DEFS) and node.lineno == line
+    ]
+    return found[0] if len(found) == 1 else None
 
 
 def _delimiter_shares_the_line(line: str, lang: Language) -> bool:
@@ -178,6 +229,45 @@ def code_fingerprint(text: str, path: Path) -> tuple[str, str]:
         # whatever code either one carried.
         return "unprovable", ""
     return "stripped", stripped
+
+
+def code_fingerprint_setting_aside(
+    text: str, path: Path, declarations: Collection[tuple[str, int | None]]
+) -> tuple[str, str]:
+    """`code_fingerprint`, with some declarations' docstring presence left out.
+
+    The proof compares against the approved changes, not against nothing
+    changed (`decision-log.md Process: #113`), so a docstring an approved
+    alteration adds or drops is the edit landing. Each declaration named here
+    has its docstring removed before the dump; every other declaration keeps
+    its docstring's presence, and all code is compared as `code_fingerprint`
+    compares it.
+
+    Only the `ast` kind reads `declarations`: a file `code_fingerprint`
+    answers as `stripped` or `unprovable` gets that answer unchanged.
+
+    Args:
+        text: the file's contents.
+        path: used only for its suffix, as in `code_fingerprint`.
+        declarations: `(anchor, line)` for each declaration whose docstring's
+            presence is left out -- the place's anchor, and the line the page
+            puts it on. See `_declared_at`.
+
+    Returns:
+        `(kind, fingerprint)` as `code_fingerprint` returns it, or
+        `("unidentified", "")` when a pair names no single declaration in this
+        text. An unidentified file must never be reported as proven.
+    """
+    kind, fingerprint = code_fingerprint(text, path)
+    if kind != "ast" or not declarations:
+        return kind, fingerprint
+    tree = ast.parse(text)
+    lines = constants.text_lines(text)
+    aside = [_declared_at(tree, lines, anchor, line) for anchor, line in declarations]
+    found = [node for node in aside if node is not None]
+    if len(found) != len(aside):
+        return "unidentified", ""
+    return "ast", ast.dump(_blank_docstrings(tree, found))
 
 
 def dominant_ending(text: str) -> str:

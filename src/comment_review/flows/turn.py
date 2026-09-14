@@ -9,7 +9,7 @@
     determined_chief(collated, rulings, root)
                                 -> (every Determined, the chief's edit_copy)
     batch_for(collated) -> the batch that goes out, every slot carrying its diff
-    proof_after(collated, turns) -> the master proof as the state between turns
+    proof_after(collated, turns, root) -> the master proof as the state between turns
     refold(proof, binder, root) -> the fold over a proof read back, at max turns
     close(collated, rulings, turns, root)
                                 -> (the closed proof, the chief's edit_copy)
@@ -35,7 +35,8 @@ ESCALATION is an edit to that role's copy at the address:
 
 The mover's answer at its move's destination end is an edit to the move
 (`Process: #129`): the table applies to the `move` entry at the origin, and the
-mover's slot at the destination stays as it is.
+mover's slot at the destination stays as it is. Where the mover moves two
+paragraphs there, the answer is an edit to both moves (`#154`).
 
 A COMPOSITION re-read is answered with a fresh `Mark` over the composed text
 (`#86`), and the answer set is `clean`, `query`, `correct`, `patch`:
@@ -65,7 +66,8 @@ The mover's `correct` or `patch` at its move's origin sets the `move` entry's
 `change`, the claim standing, and does not replace the move (`Process: #137`).
 Its `correct`, `patch` or `clean` at its move's destination end is an
 edit to the move as well (`Process: #137` and `#138`), and the mover's slot at
-the destination stays as it is. A `correct` or `patch` sets the `move` entry's
+the destination stays as it is, whatever it holds (`#153`). A `correct` or
+`patch` sets the `move` entry's
 `change` at the origin, the claim standing. A `clean` leaves the move as it
 stands: the slot there carries the origin's text uncomposed, and the table's
 withdrawal does not reach the move. Its `query` there is an answer at that
@@ -87,15 +89,18 @@ that re-read now holds the same `add`, `_agreed_adds` records the `stet`
 (`Process: #116`). Where every role of both ends of a lone `move` carrying
 its origin's text unchanged answered `clean` there, or every role of both
 ends holds a mark carrying the move's one text, `_agreed_moves` records the
-`stet` at both ends (`Process: #88`, `#89` and `#137`). A place the turn asked
+`stet` at both ends (`Process: #88`, `#89` and `#137`), unless the mover left
+its slot at either end unanswered (`#152`). A place the turn asked
 about that comes back as a re-read whose roles still hold different texts is
 an escalation, which `_disagreeing`
-records (`Process: #127`). What did not agree is the next turn's batch, until the task
+records (`Process: #127`), as is a place one role moves two paragraphs to
+(`#154`). What did not agree is the next turn's batch, until the task
 agent's max turns (`Process: #78`), where `rule_at_max_turns` records the
 chief's `taken_in` or `recast` and `determined_chief` derives the chief's copy
 from the whole set. A move the chief rules differently at its two ends is
 written as each end's own mark, a `drop` at the origin and an `add` at the
-destination (`Process: #139`).
+destination (`Process: #139`); a recast at the origin, as over any `drop`,
+is a `correct` to the chief's prose (`#146`).
 
 !! ONCE STET, ALWAYS STET -- `Process: #91`. A place determined on an earlier
 turn keeps that Determined, turn included, whatever the copies say now, and
@@ -328,19 +333,15 @@ def _entry_at(copies: list[dict], role: str, address: str) -> dict | None:
     )
 
 
-def _move_to(copies: list[dict], role: str, address: str) -> dict | None:
-    """The one `move` on `role`'s copy whose `claim.to` names `address`.
-
-    None where the copy holds no such move, or more than one.
-    """
-    moves = [
+def _moves_to(copies: list[dict], role: str, address: str) -> list[dict]:
+    """Every `move` on `role`'s copy whose `claim.to` names `address`."""
+    return [
         entry
         for entry in _entries_of(copies, role)
         if entry.get("instruction") == str(Instruction.MOVE)
         and isinstance(claim := entry.get("claim"), dict)
         and claim.get("to") == address
     ]
-    return moves[0] if len(moves) == 1 else None
 
 
 def _becomes(entry: dict, new: dict) -> None:
@@ -507,13 +508,15 @@ def apply(
 
     An escalation answer, or a composition `correct`, `patch` or `clean`, at a
     move's destination end is written to the move (`Process: #129`, `#137`
-    and `#138`): where the role's own slot there is absent or a `clean`, and
-    its copy holds exactly one `move` whose `claim.to` names that address,
-    the answer applies to that `move` entry, and the slot at the destination
-    stays as it is. A composition `correct` or `patch` sets the move's
-    `change`, its claim standing; a composition `clean` leaves the move as
-    it stands. A composition `query` at a move's origin, from the role that
-    holds the move, is put on the copy right after the move, which stays.
+    and `#138`): the answer applies to every `move` on the role's copy whose
+    `claim.to` names that address -- both, where the role moves two
+    paragraphs there (`#154`) -- and the role's own slot at the destination
+    stays as it is, whatever it holds: a mark of its own there stands for
+    the other roles to rule on (`#153`). A composition `correct`
+    or `patch` sets each move's `change`, its claim standing; a composition
+    `clean` leaves each move as it stands. A composition `query` at a move's
+    origin, from the role that holds the move, is put on the copy right
+    after the move, which stays.
 
     Returns:
         A `Revisit` per address this role's copy holds no slot for and
@@ -531,16 +534,17 @@ def apply(
     revisit: list[Revisit] = []
     for address, answer in answers:
         entry = _entry_at(copies, role, address)
-        move = None
-        if (
-            isinstance(answer, DiffMark) or answer.instruction in _REACHES_THE_MOVE
-        ) and (entry is None or entry.get("instruction") == str(Instruction.CLEAN)):
-            move = _move_to(copies, role, address)
-        entry = move or entry
+        moves = []
+        if isinstance(answer, DiffMark) or answer.instruction in _REACHES_THE_MOVE:
+            moves = _moves_to(copies, role, address)
         sheet = None
-        if entry is None:
+        if moves:
+            targets = moves
+        elif entry is not None:
+            targets = [entry]
+        else:
             mine = [c for c in copies if isinstance(c, dict) and c.get("role") == role]
-            sheet, entry, why = place_on_the_page(mine, address, root)
+            sheet, seeded, why = place_on_the_page(mine, address, root)
             if sheet is None:
                 reasons = [
                     m.removeprefix(f"{address}: ").removeprefix(f"{address} ")
@@ -548,32 +552,27 @@ def apply(
                 ]
                 revisit.append(_refused(role, address, address, reasons))
                 continue
-        beside = (
-            isinstance(answer, Mark)
-            and answer.instruction is Instruction.QUERY
-            and entry.get("instruction") == str(Instruction.MOVE)
-        )
-        if move is not None and isinstance(answer, Mark):
-            held = (
-                None
-                if answer.instruction is Instruction.CLEAN
-                else {**move, "change": answer.change}
+            targets = [seeded]
+        for target in targets:
+            beside = (
+                isinstance(answer, Mark)
+                and answer.instruction is Instruction.QUERY
+                and target.get("instruction") == str(Instruction.MOVE)
             )
-        else:
-            held = _answered(entry, answer, composed.get(address, {}))
-        if held is None:
-            continue
-        parsed, why = Mark.deserialize(address, held)
-        if parsed is None:
-            reasons = [without_location(address, m) for m in why]
-            revisit.append(_refused(role, address, address, reasons))
-            continue
-        if beside:
-            _put_after(copies, role, entry, held)
-        elif sheet is None:
-            _becomes(entry, held)
-        else:
-            sheet.append(held)
+            held = _answered(target, answer, composed.get(address, {}))
+            if held is None:
+                continue
+            parsed, why = Mark.deserialize(address, held)
+            if parsed is None:
+                reasons = [without_location(address, m) for m in why]
+                revisit.append(_refused(role, address, address, reasons))
+                continue
+            if beside:
+                _put_after(copies, role, target, held)
+            elif sheet is None:
+                _becomes(target, held)
+            else:
+                sheet.append(held)
     return revisit
 
 
@@ -652,6 +651,7 @@ def run_turn(
                 )
             )
     cleaned: set[tuple[str, str]] = set()
+    unanswered: set[tuple[str, str]] = set()
     for role, slots in sent.items():
         taken, why = take_answers(copies, role, slots, answers.get(role, []), root)
         refused = {one.address for one in why}
@@ -662,6 +662,7 @@ def run_turn(
             and answer.instruction is Instruction.CLEAN
             and address not in refused
         }
+        unanswered |= {(one.role, one.address) for one in why if not one.unreadable}
         revisit += why
     got = collate(
         proof.stage, copies, binder, root, turn=turn, sent=(*_sent_of(proof), sent)
@@ -670,7 +671,7 @@ def run_turn(
     contested = _asked(sent)
     got = _withdrawn(got, contested, turn)
     got = _agreed_adds(got, contested, turn)
-    got = _agreed_moves(got, contested, cleaned, turn)
+    got = _agreed_moves(got, contested, cleaned, unanswered, turn)
     got = _disagreeing(got, contested)
     return replace(got, revisit=[*revisit, *got.revisit])
 
@@ -757,7 +758,11 @@ def _agreed_adds(got: Collated, contested: set[str], turn: int) -> Collated:
 
 
 def _agreed_moves(
-    got: Collated, contested: set[str], cleaned: set[tuple[str, str]], turn: int
+    got: Collated,
+    contested: set[str],
+    cleaned: set[tuple[str, str]],
+    unanswered: set[tuple[str, str]],
+    turn: int,
 ) -> Collated:
     """A `move` every role of both its ends agreed with this turn is a `stet`.
 
@@ -776,13 +781,17 @@ def _agreed_moves(
                             agreement by the text alone (`Process: #88`). A
                             `clean` adopting a reworded move leaves this
 
-    Both ends settle together or neither does (`Process: #137`).
+    Both ends settle together or neither does (`Process: #137`), and neither
+    settles while the mover left its slot at either end unanswered this
+    turn, whatever text its copy already holds (`Process: #152`).
 
     Args:
         got: the fold after the turn.
         contested: every address the turn asked about.
         cleaned: every `(role, address)` whose composition `clean` the turn
             applied.
+        unanswered: every `(role, address)` the turn sent and got no answer
+            for -- each `Revisit` that is not `unreadable`.
         turn: this turn's number.
 
     Returns:
@@ -799,6 +808,8 @@ def _agreed_moves(
             continue
         (placed,) = moves
         move = placed.mark
+        if any((placed.role, end) in unanswered for end in _touched_by(move)):
+            continue
         if len(marks) == 1:
             if move.change == move.raw_text and all(
                 (role, address) in cleaned for role in roles
@@ -832,7 +843,10 @@ def _disagreeing(got: Collated, contested: set[str]) -> Collated:
     the first fold is unchanged. It covers a composition `correct` or `patch`
     beside another role's `clean` adoption, an escalation where one role
     answers with a new text and another holds, and an `add` beside another
-    role's answer to it, which stays carried forward (`Process: #123`).
+    role's answer to it, which stays carried forward (`Process: #123`). A
+    contested re-read one role moves two or more paragraphs to escalates as
+    well, whatever texts its moves carry: which lands first and how they
+    read together is a conflict sent back (`Process: #154`).
 
     Both ends of a `move` escalate together (`Process: #137`): a re-read
     holding a move whose other end escalates here escalates with it. It runs
@@ -846,7 +860,10 @@ def _disagreeing(got: Collated, contested: set[str]) -> Collated:
         entry["address"]
         for entry in got.rereads
         if entry["address"] in contested
-        and len({placed.mark.change for placed in entry["marks"]}) > 1
+        and (
+            len({placed.mark.change for placed in entry["marks"]}) > 1
+            or _moved_here_twice(entry)
+        )
     }
     changed = bool(gone)
     while changed:
@@ -873,6 +890,17 @@ def _disagreeing(got: Collated, contested: set[str]) -> Collated:
         ],
         rereads=[e for e in got.rereads if e["address"] not in gone],
     )
+
+
+def _moved_here_twice(entry: dict) -> bool:
+    """Whether one role holds two or more moves to this entry's place."""
+    movers = [
+        placed.role
+        for placed in entry["marks"]
+        if placed.mark.instruction is Instruction.MOVE
+        and placed.mark.claim.get("to") == entry["address"]
+    ]
+    return len(movers) != len(set(movers))
 
 
 def _keeping(got: Collated, earlier: dict[str, Determined]) -> Collated:
@@ -920,26 +948,43 @@ def refold(proof: MasterProof, binder: Binder, root: Path) -> Collated:
     return _disagreeing(got, _asked(sent[-1]) if sent else set())
 
 
-def _recast_claim(first: Mark, prose: str) -> dict:
-    """The claim a recast's synthesized mark owes, shaped to `first`'s instruction.
+def _recast_as(first: Mark, address: str) -> Instruction:
+    """The instruction the chief's recast at `address` carries, over `first`.
 
-    `correct` and `patch` are the only rows this quotes an original text for;
-    `add`, `move` and `drop` keep `first.claim` unmodified.
+    A recast of a `drop`, or at the origin of the move `first` is, is a
+    `correct` from the original paragraph to the chief's prose
+    (`Process: #146`), so its claim says what lands; that place holds text
+    for the claim to quote. Any other recast keeps the instruction the roles
+    filed, since a `correct` at an add's empty place quotes nothing and
+    writes nothing.
 
     Args:
-        first: the first owing mark at the place being recast -- whose
-            `instruction` the synthesized mark carries forward.
+        first: the mark the recast follows, as `rule_at_max_turns` picks it
+            -- the first owing mark at the place, or at an add's empty
+            place the `add` filed there (`Process: #157`).
+        address: which place -- for a move, one of its two ends.
+    """
+    dropped = first.instruction is Instruction.DROP
+    origin = first.instruction is Instruction.MOVE and first.address == address
+    return Instruction.CORRECT if dropped or origin else first.instruction
+
+
+def _recast_claim(instruction: Instruction, first: Mark, prose: str) -> dict:
+    """The claim a recast's synthesized mark owes, shaped to `instruction`.
+
+    Args:
+        instruction: what the recast carries, as `_recast_as` decides it.
+        first: the first owing mark at the place being recast.
         prose: the chief's own paragraph.
 
     Returns:
-        `INSTRUCTIONS[first.instruction].claim_all`, filled. For the two rows
-        that quote an existing sentence (`correct`, `patch`) the quoted key
+        `INSTRUCTIONS[instruction].claim_all`, filled. For `correct` and
+        `patch`, the rows that quote an existing sentence, the quoted key
         (`false`, `from`) takes `first.raw_text` and the other key takes
-        `prose`. A row that quotes nothing (`add`, `move`) or whose claim
-        IS the quoted key (`drop`) keeps `first.claim` as filed -- `prose`
-        has no slot in that shape to fill; it becomes `change`, not `claim`.
+        `prose`. An `add` or a `move` quotes nothing and keeps `first.claim`
+        as filed; `prose` becomes its `change`, not its claim.
     """
-    spec = INSTRUCTIONS[first.instruction]
+    spec = INSTRUCTIONS[instruction]
     key = spec.quotes_original
     others = [k for k in spec.claim_all if k != key]
     if key and others:
@@ -973,20 +1018,24 @@ def rule_at_max_turns(
     Returns:
         The `Determined`, its `mark` being what the chief's copy will carry:
         the side's mark, None for the original, or a synthesized mark for a
-        recast -- carrying the instruction the roles filed, `claim` shaped to
-        it by `_recast_claim`, and citing every side's sources -- so it
-        parses as an ordinary mark the way `flows.collate._composition`'s
+        recast -- carrying the instruction `_recast_as` decides, `claim`
+        shaped to it by `_recast_claim`, and citing each side's sources once --
+        so it parses as an ordinary mark the way `flows.collate._composition`'s
         does. A recast follows the first mark there that touches `address`,
-        not one `desk.collator._join_moves` carried from a move's other end.
+        not one `desk.collator._join_moves` carried from a move's other end;
+        where that mark sits at `address` with no text -- an add's empty
+        place -- it follows the `add` filed there instead, so the recast is
+        an `add` whatever mark comes first (`Process: #157`).
         Where that mark is a move, the recast rules one end of it
-        (`Process: #139`): at the origin it is `_the_origin`'s `drop`,
-        leaving the chief's prose there, and at the destination the move
-        carrying the chief's prose, which `determined_chief` writes as
-        that end's `add`.
+        (`Process: #139`): at the origin it is a `correct` from the
+        paragraph to the chief's prose, as over a `drop` (`#146`), and at
+        the destination the move carrying the chief's prose, which
+        `determined_chief` writes as that end's `add`.
 
     Raises:
         ValueError: the place is not carried forward, the side has no mark
-            there, `STET` was asked for, or a recast has no prose.
+            there, `STET` was asked for, a recast has no prose, or the recast
+            does not parse (`Process: #161`).
     """
     entry = next(
         (
@@ -1018,26 +1067,37 @@ def rule_at_max_turns(
     if not filled(prose):
         raise ValueError("a recast needs the chief's own prose")
     first = next(p.mark for p in marks if address in _touched_by(p.mark))
-    moved = first.instruction is Instruction.MOVE
+    if first.address == address and not filled(first.raw_text):
+        first = next(
+            (
+                p.mark
+                for p in marks
+                if p.mark.instruction is Instruction.ADD and p.mark.address == address
+            ),
+            first,
+        )
+    instruction = _recast_as(first, address)
+    cited = [s for p in marks for s in p.mark.sources]
     recast = Mark(
-        address=first.address if moved else address,
+        address=first.address,
         anchor=first.anchor,
         raw_text=first.raw_text,
-        instruction=first.instruction,
-        claim=_recast_claim(first, prose),
+        instruction=instruction,
+        claim=_recast_claim(instruction, first, prose),
         reason=reason,
-        sources=tuple(s for p in marks for s in p.mark.sources),
+        sources=tuple(s for i, s in enumerate(cited) if s not in cited[:i]),
         change=prose,
     )
-    if moved and address == first.address:
-        recast = _the_origin(recast, prose)
+    _, why = Mark.deserialize(address, recast.serialize())
+    if why:
+        raise ValueError(f"the recast does not parse -- {'; '.join(why)}")
     return Determined(address, answer, turn, CHIEF, "max-turns", reason, recast)
 
 
-def _the_origin(move: Mark, change: str) -> Mark:
-    """A move's origin as a `drop` of the paragraph it moves, leaving `change`.
+def _the_origin(move: Mark) -> Mark:
+    """A move's origin as a `drop` of the paragraph it moves.
 
-    An empty `change` empties the place, as the move does there
+    Its `change` is empty, which empties the place as the move does there
     (`desk.mark.text_at`). The address, anchor, `raw_text`, reason and
     sources are the move's.
     """
@@ -1049,7 +1109,7 @@ def _the_origin(move: Mark, change: str) -> Mark:
         claim={"drop": move.raw_text},
         reason=move.reason,
         sources=move.sources,
-        change=change,
+        change="",
     )
 
 
@@ -1109,7 +1169,7 @@ def _each_end(
         if all(end is not None and end.mark == move for end in ends):
             continue
         if address == move.address:
-            out[address] = replace(ruled, mark=_the_origin(move, ""))
+            out[address] = replace(ruled, mark=_the_origin(move))
         elif address == move.claim.get("to"):
             half = _the_destination(move, address, proof, root)
             out[address] = replace(ruled, mark=half)
@@ -1135,9 +1195,10 @@ def determined_chief(
     Raises:
         ValueError: the fold returned early and holds no proof; or a place
             still carried forward -- an escalation or a re-read -- has no
-            ruling among `rulings`. !! NOTHING SURVIVES THE CAP UNRULED, T17:
-            the refusal names every such place and its roles. An unsettlable
-            place is not among them; it is the human's (`Process: #90`). Or
+            ruling among `rulings`. Nothing survives max turns without a
+            disposition, T17: the refusal names every such place and its
+            roles. An unsettlable place is not among them; it is the human's
+            (`Process: #90`). Or
             a move's destination the page cannot seed, as `_the_destination`
             says.
     """
@@ -1190,32 +1251,67 @@ def batch_for(collated: Collated) -> dict[str, list[dict]]:
     return batch
 
 
-def proof_after(got: Collated, turns: tuple[dict, ...] = ()) -> MasterProof:
+def proof_after(
+    got: Collated, turns: tuple[dict, ...] = (), *, root: Path
+) -> MasterProof:
     """The master proof as the state between turns, from a fold -- `Process: #87`.
 
     Args:
         got: the fold. Its `proof` is the copies AS THEY STAND, which is what
             the next turn mutates and folds again.
         turns: the record so far. The caller keeps it; a fold does not know it.
+        root: the checkout a held move destination's page is read from, where
+            `_riding` writes that end as the move's `add`.
 
     Returns:
         `got.proof` carrying `turns`, every Determined in address order, and
-        each unsettlable place without its `Placed` marks -- `{address, roles,
-        query}`, the shape the wire holds and the human is asked.
+        each unsettlable place as `_riding` shapes it.
 
     Raises:
-        ValueError: the fold returned early and holds no proof.
+        ValueError: the fold returned early and holds no proof; or a held
+            move destination the page cannot seed, as `_the_destination` says.
     """
-    if got.proof is None:
+    proof = got.proof
+    if proof is None:
         raise ValueError("the fold returned early -- no proof to carry forward")
     return replace(
-        got.proof,
+        proof,
         turns=tuple(turns),
         determined=tuple(got.determined[a] for a in sorted(got.determined)),
-        unsettlable=tuple(
-            {k: v for k, v in u.items() if k != "marks"} for u in got.unsettlable
-        ),
+        unsettlable=tuple(_riding(u, proof, root) for u in got.unsettlable),
     )
+
+
+def _riding(held: dict, proof: MasterProof, root: Path) -> dict:
+    """One unsettlable place as the wire holds it and the human is asked.
+
+    `held` without its `Placed` marks -- `{address, roles, query}` -- and,
+    where the place is an end of a move, that end as the move writes it,
+    with the mover's `role` beside it as `query` carries its own: at the
+    origin, `drop`, `_the_origin`'s emptying the place; at the destination,
+    `add`, `_the_destination`'s add of the moved text, with the origin
+    beside it as `from`. The chief rules a move's other end on its own
+    (`Process: #139`), so a held end is the human's to rule (`#90`), and a
+    move held at both ends is put to the author as one move, its drop and
+    its add together (`#155`). Every move from one origin drops the same
+    paragraph, and the first one's is carried; at a destination, the first
+    move to it.
+    """
+    out = {k: v for k, v in held.items() if k != "marks"}
+    address = held["address"]
+    moves = [p for p in held.get("marks", []) if p.mark.instruction is Instruction.MOVE]
+    moved = next((p for p in moves if p.mark.address == address), None)
+    if moved is not None:
+        out["drop"] = {"role": moved.role, **_the_origin(moved.mark).serialize()}
+    landing = next((p for p in moves if p.mark.claim.get("to") == address), None)
+    if landing is not None:
+        added = _the_destination(landing.mark, address, proof, root)
+        out["add"] = {
+            "role": landing.role,
+            "from": landing.mark.address,
+            **added.serialize(),
+        }
+    return out
 
 
 def close(
@@ -1242,7 +1338,7 @@ def close(
             the page cannot seed.
     """
     every, chief = determined_chief(got, rulings, root)
-    proof = proof_after(got, turns)
+    proof = proof_after(got, turns, root=root)
     closed = replace(proof, determined=tuple(every[a] for a in sorted(every)))
     return closed, chief
 

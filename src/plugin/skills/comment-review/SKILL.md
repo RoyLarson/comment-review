@@ -160,7 +160,7 @@ and **never passed to a reviewer** -- it is not a section of the stage-4 packet,
 !! **THE FLOOR IS A LOCAL GIT REPOSITORY, and that is the ONLY thing a rule here may assume.**
 `git ls-files` answers, and `git show <ref>:<path>` answers for a ref that exists. **Everything
 else is checked, not assumed** -- an upstream, a merge base, a clean tree, a cwd at the repo
-root. Pass `--repo` to every command rather than relying on the working directory.
+root. Pass `--repo` to every command that takes one rather than relying on the working directory.
 
 !! **Record the PRE-EDIT REF now, and carry it to stages 6 and 7b.** It is `HEAD` when the tree
 holds no uncommitted change to the files in scope, and `git stash create` otherwise -- which
@@ -346,9 +346,9 @@ guaranteed to be the skill's.
 python <skill>/scripts/comment-review.py gather --repo . --out <run-dir>/binder.json <paths...>
 ```
 
-!! **ONE FILE, AND EVERYTHING DOWNSTREAM READS IT.** The BINDER is the artifact every later
-command reads -- `distribute` seeds each reviewer's copy from it, `collate` folds against it,
-`proof` sets from it. A reviewer is handed the binder and its own seeded copy, and nothing else
+**One file, and every stage up to the fold reads it.** The BINDER is what those stages'
+commands take -- `distribute` seeds each reviewer's copy from it, and `collate`, `turn` and
+`disposition` fold against it. A reviewer is handed the binder and its own seeded copy, and nothing else
 is made for it: the copy carries each prose paragraph's text in its slot, and the binder is what
 the reviewer's `addresser` and `check` calls take.
 
@@ -376,9 +376,8 @@ python <skill>/scripts/comment-review.py addresser --binder <run-dir>/binder.jso
 python <skill>/scripts/comment-review.py addresser --binder <run-dir>/binder.json --resolve <ADDRESS>
 ```
 
-! **An anchor answers with SEVERAL places and that is not an error** -- an anchor has many
-addresses and an address has one anchor, so two identical lines of code are two anchors spelled
-alike. Choose by ADDRESS.
+**A line can answer with more than one place, and that is not an error** -- `--series f` prints
+both of the file's own places, head and foot, since no line tells them apart. Choose by ADDRESS.
 
 !! **`--out`, never a shell redirect.** A worktree-isolated session REFUSES a command carrying
 one -- *"too complex to verify that it stays inside the worktree"* -- and the binder is what
@@ -518,8 +517,9 @@ which is exactly why the memory-based rule it replaces could not fire there --
 the invocation most likely to be typed by hand was the one with no backlink
 discovery at all.
 
-Report what the tool prints: `N files, N paragraphs`, the `languages:` line, and any paragraph whose
-KIND it could not resolve.
+Report the gaps both commands print -- every `NOT CHECKED` and `PASSED OVER` list, and
+`NO GIT INDEX` -- then the files, paragraphs and languages the binder covers, and any paragraph
+whose KIND it could not resolve.
 
 ## Stage 4 -- MARK: four reviewers, in parallel
 
@@ -579,8 +579,8 @@ not a path to go reading. ! Read it fresh from the installed toml every run, nev
 staged on disk: a vocabulary one version stale reads perfectly plausible.
 
 !! **`BINDER` POINTS AT `binder.json` FROM STAGE 2.** A reviewer's copy carries each prose
-paragraph's text; the binder is what its `addresser` and `check` calls take, and what stages 5
-and 7 resolve every cited address against. A reviewer reads both from disk; neither is pasted
+paragraph's text; the binder is what its `addresser` and `check` calls take, and what stage 5
+resolves every cited address against. A reviewer reads both from disk; neither is pasted
 into a prompt.
 
 **You also supply the run context as a PACKET, with every section filled and none blank** -- a
@@ -670,7 +670,8 @@ python <skill>/scripts/comment-review.py collate --stage 4 --binder <run-dir>/bi
 | `5` DRIFT, `6` COVERAGE | a returned `raw_text` is not the seeded one, or a role left places unruled | the chief's copy is written; the printed places go back to their role once; say in the proposal what was left short |
 | `7` `CARRIED_AND_UNRULED` | places carried forward, and a role left a place unruled | the printed unruled places go back to their role once, as for `6`; the carried-forward places are what a `3` or `4` asks of you |
 
-Every printed line reads `<role> <place>: <reason>`. **That is your work list for sending
+Every line that opens with a role reads `<role> <place>: <reason>`, the place `(the copy)` for a
+problem with the whole copy. **That is your work list for sending
 back**, and a task agent reads it rather than the copies.
 
 !! **A finding whose evidence does not resolve is not a finding.** Only `clean` is exempt,
@@ -882,19 +883,25 @@ nothing under the repo touched -- and prove it changed no code:
 python <skill>/scripts/comment-review.py proof --repo . --copy <run-dir>/chief.json --out <run-dir>/galley
 ```
 
-**`--out` must not already exist**, and it holds a full copy of `--repo` with the chief's
-pages overlaid; a galley is discarded with the run. ! **`proof` REFUSES rather than guesses.**
+**`--out` must not already exist**, and it holds only the pages `proof` lists as drafted, one
+`<path> -> <draft>` line each, and no other file of `--repo`; a galley is discarded with the run. ! **`proof` REFUSES rather than guesses.**
 It exits nonzero and NAMES what refused -- an input that fails to read prints `CANNOT READ`,
 one that does not match its shape prints `CANNOT READ THE COPY: <reason>`, and a bad `--out`
-prints `REFUSED: --out <reason>` -- each at exit **2**. A refusal further into the chain -- the
-address space having moved, or a page's own draft/set/reread step -- prints `REFUSED at <step>:
-<where> -- <reason>` and exits **1**. Read what it printed, rather than a list you remember.
+prints `REFUSED: --out <reason>` -- each at exit **2**. A refusal further into the chain exits **1**: a
+moved address space prints `REFUSED: the address space moved -- <reason>`, and a step on one page
+prints `REFUSED at <step>: <where> -- <reason>`. Read what it printed, rather than a list you remember.
 
 Then present, grouped by instruction, most consequential first, in **five parts**
 (`INSTRUCTION / PARAGRAPH / CLAIM / REASON / CHANGE`) -- the mark minus the fields only the
 collator reads -- replacement text inline for every `correct` / `patch` / `add`, and the galley's
-diff for the whole page. State **raised / clean**, which places you ruled at max turns and how,
-and the longest paragraph that will remain.
+diff for the whole page, which this prints:
+
+```bash
+python <skill>/scripts/comment-review.py taken_in --original . --revise <run-dir>/galley
+```
+
+State **raised / clean**, which places you ruled at max turns and how, and the longest paragraph
+that will remain.
 
 !! **THE UNSETTLABLE PLACES ARE THE AUTHOR'S, AND THIS IS WHERE THEY ARE ASKED.** `disposition` printed
 each one with the role that raised it and its reason; put every one to the author here, after

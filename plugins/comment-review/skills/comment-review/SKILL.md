@@ -25,7 +25,7 @@ Structure and fact first, then truth, then fit, then the page.
 | 2 | **GATHER** | `gather` | every page in scope bound into one BINDER -- each comment run and docstring a paragraph with its address |
 | 3 | **FIND REFERENCES** | `gather` | every reference each paragraph makes, resolved -- paths, symbols, counts |
 | 4 | **MARK** | 4 reviewers, ONE message | one filled `edit_copy` per role, checked. Read-only, nothing under the repo written |
-| 5 | **COLLATE and CAP** | `collate`, then the task agent as **copy chief** | the copies folded; what they agreed on stands, what they did not is ruled at the cap; the chief's `edit_copy` holds one mark per resolved place with its **full-length** text |
+| 5 | **COLLATE and DISPOSITION** | `collate`, then the task agent as **copy chief** | the copies folded; what they agreed on stands, what they did not is ruled at max turns; the chief's `edit_copy` holds one mark per resolved place with its **full-length** text |
 | 6 | **COMPACT** | task agent | that text cut to the cap -- **skipped entirely if there is no cap** |
 | 7a | **APPROVAL -- present** | task agent, then `proof` and the **compositor** | the FINAL text SET as a galley -- a copy of each page, nothing under the repo touched -- in front of the author, with the places only the author can settle; **the run stops here** |
 | 7b | **APPROVAL -- write** | **author**, then the **compositor** | the approved draft put over the real file wholesale, byte-for-byte as approved |
@@ -34,9 +34,9 @@ Structure and fact first, then truth, then fit, then the page.
 !! **THIS IS THE BASELINE SHAPE, RULED 2026-09-04: every role reads ONCE, the copies fold ONCE,
 and nothing goes back to a role except a copy the checker refused.** No revise is pulled
 between stages and no batch of disagreements is sent out for a second reading. The `turn`
-command exists for that second reading and is the next experiment; it is not part of this
-run. What the baseline measures is how far one read per role, one fold and the chief's ruling
-get on a real codebase.
+command exists for that second reading and is the next experiment, run only when you are told
+a number of turns above zero -- see stage 5. What the baseline measures is how far one read
+per role, one fold and the chief's ruling get on a real codebase.
 
 **This file is the task agent's.** Each reviewer is a named agent carrying its own editorial role and
 reading [`references/reviewer-brief.md`](references/reviewer-brief.md) itself.
@@ -129,7 +129,7 @@ own judgement -- but every change to what a sentence CLAIMS needs evidence in ha
 `query`. That is why `correct` must carry the line that settles the claim, and `patch` need not.
 
 **The TASK AGENT -- you.** Run stages 1-3, launch the reviewers, fold their copies, rule at
-the cap as the **copy chief**, present, and after approval apply. You are the only participant
+max turns as the **copy chief**, present, and after approval apply. You are the only participant
 that writes, and only after approval. **Write the replacement text yourself** where the roles
 did not agree, and verify what you write. *"Compact + correct"* is an instruction to somebody
 else, not the text.
@@ -160,7 +160,7 @@ and **never passed to a reviewer** -- it is not a section of the stage-4 packet,
 !! **THE FLOOR IS A LOCAL GIT REPOSITORY, and that is the ONLY thing a rule here may assume.**
 `git ls-files` answers, and `git show <ref>:<path>` answers for a ref that exists. **Everything
 else is checked, not assumed** -- an upstream, a merge base, a clean tree, a cwd at the repo
-root. Pass `--repo` to every command rather than relying on the working directory.
+root. Pass `--repo` to every command that takes one rather than relying on the working directory.
 
 !! **Record the PRE-EDIT REF now, and carry it to stages 6 and 7b.** It is `HEAD` when the tree
 holds no uncommitted change to the files in scope, and `git stash create` otherwise -- which
@@ -346,9 +346,9 @@ guaranteed to be the skill's.
 python <skill>/scripts/comment-review.py gather --repo . --out <run-dir>/binder.json <paths...>
 ```
 
-!! **ONE FILE, AND EVERYTHING DOWNSTREAM READS IT.** The BINDER is the artifact every later
-command reads -- `distribute` seeds each reviewer's copy from it, `collate` folds against it,
-`proof` sets from it. A reviewer is handed the binder and its own seeded copy, and nothing else
+**One file, and every stage up to the fold reads it.** The BINDER is what those stages'
+commands take -- `distribute` seeds each reviewer's copy from it, and `collate`, `turn` and
+`disposition` fold against it. A reviewer is handed the binder and its own seeded copy, and nothing else
 is made for it: the copy carries each prose paragraph's text in its slot, and the binder is what
 the reviewer's `addresser` and `check` calls take.
 
@@ -376,9 +376,8 @@ python <skill>/scripts/comment-review.py addresser --binder <run-dir>/binder.jso
 python <skill>/scripts/comment-review.py addresser --binder <run-dir>/binder.json --resolve <ADDRESS>
 ```
 
-! **An anchor answers with SEVERAL places and that is not an error** -- an anchor has many
-addresses and an address has one anchor, so two identical lines of code are two anchors spelled
-alike. Choose by ADDRESS.
+**A line can answer with more than one place, and that is not an error** -- `--series f` prints
+both of the file's own places, head and foot, since no line tells them apart. Choose by ADDRESS.
 
 !! **`--out`, never a shell redirect.** A worktree-isolated session REFUSES a command carrying
 one -- *"too complex to verify that it stays inside the worktree"* -- and the binder is what
@@ -518,8 +517,9 @@ which is exactly why the memory-based rule it replaces could not fire there --
 the invocation most likely to be typed by hand was the one with no backlink
 discovery at all.
 
-Report what the tool prints: `N files, N paragraphs`, the `languages:` line, and any paragraph whose
-KIND it could not resolve.
+Report the gaps both commands print -- every `NOT CHECKED` and `PASSED OVER` list, and
+`NO GIT INDEX` -- then the files, paragraphs and languages the binder covers, and any paragraph
+whose KIND it could not resolve.
 
 ## Stage 4 -- MARK: four reviewers, in parallel
 
@@ -579,8 +579,8 @@ not a path to go reading. ! Read it fresh from the installed toml every run, nev
 staged on disk: a vocabulary one version stale reads perfectly plausible.
 
 !! **`BINDER` POINTS AT `binder.json` FROM STAGE 2.** A reviewer's copy carries each prose
-paragraph's text; the binder is what its `addresser` and `check` calls take, and what stages 5
-and 7 resolve every cited address against. A reviewer reads both from disk; neither is pasted
+paragraph's text; the binder is what its `addresser` and `check` calls take, and what stage 5
+resolves every cited address against. A reviewer reads both from disk; neither is pasted
 into a prompt.
 
 **You also supply the run context as a PACKET, with every section filled and none blank** -- a
@@ -666,10 +666,12 @@ python <skill>/scripts/comment-review.py collate --stage 4 --binder <run-dir>/bi
 | `0` | every place the roles marked resolved on its own | go on; `chief0.json` is the chief's copy |
 | `1` BROKEN | a copy broke a rule, or the set cannot be reconciled -- nothing written | every line it printed names a role and a place; send each back to that role, re-check, re-run |
 | `2` UNREADABLE | a file is not what it says | fix the invocation |
-| `3` REREADS, `4` ESCALATIONS | places carried forward -- the roles did not agree | **rule at the cap**, below |
+| `3` REREADS, `4` ESCALATIONS | places carried forward -- the roles did not agree | **rule at max turns**, below |
 | `5` DRIFT, `6` COVERAGE | a returned `raw_text` is not the seeded one, or a role left places unruled | the chief's copy is written; the printed places go back to their role once; say in the proposal what was left short |
+| `7` `CARRIED_AND_UNRULED` | places carried forward, and a role left a place unruled | the printed unruled places go back to their role once, as for `6`; the carried-forward places are what a `3` or `4` asks of you |
 
-Every printed line reads `<role> <place>: <reason>`. **That is your work list for sending
+Every line that opens with a role reads `<role> <place>: <reason>`, the place `(the copy)` for a
+problem with the whole copy. **That is your work list for sending
 back**, and a task agent reads it rather than the copies.
 
 !! **A finding whose evidence does not resolve is not a finding.** Only `clean` is exempt,
@@ -683,7 +685,7 @@ because a negative leaves no artifact. **A green exit here is not evidence that 
 read.**
 
 ! **The tool rules on ADMISSIBILITY, not on truth.** It cannot tell a correct instruction from
-an incorrect one. The ruling at the cap, and the order below, remain yours.
+an incorrect one. The ruling at max turns, and the order below, remain yours.
 
 **What the fold settles on its own.** A place every role read `clean` STANDS. A place one role
 marked and no other role marked against is that role's mark, taken in. A place two or more roles
@@ -702,30 +704,63 @@ and the fold composes them and carries the composition forward for a reading.
 It is UNSETTLABLE by the roles or by you, rides on the master proof, and is put to the author at
 7a. A `query` of the other two shapes is that role abstaining from the place.
 
-### Ruling at the cap -- you are the copy chief
+### A turn, when you are told to run turns
+
+How many turns a run takes is what you are told, and the baseline is told none. Told a number
+above zero, run up to that many turns between `collate` and `disposition`. Each turn sends the
+last batch out and folds what comes back:
+
+1. **Send each role the batch.** Every role the batch names gets the batch's absolute path, its
+   own role name, the master proof the batch went out with, and a path to write its answers to.
+2. **Check each role's answers when it returns**, before the fold. A file the check refuses goes
+   back to its role with the lines it printed, as a copy does at stage 4:
+
+   ```bash
+   python <skill>/scripts/comment-review.py check --answers <run-dir>/answers1_<role>.json \
+     --sent <run-dir>/batch1.json --role <role> --proof <run-dir>/proof0.json --repo .
+   ```
+
+3. **Fold them**, with one `--answers` for every role the batch named:
+
+   ```bash
+   python <skill>/scripts/comment-review.py turn --proof <run-dir>/proof0.json --binder <run-dir>/binder.json \
+     --sent <run-dir>/batch1.json --answers block-context=<run-dir>/answers1_block-context.json \
+     --answers function-context=<run-dir>/answers1_function-context.json \
+     --proof-out <run-dir>/proof1.json --batch-out <run-dir>/batch2.json --repo .
+   ```
+
+`turn` exits the codes in the table above, and each asks of you what it asks after `collate`,
+except that a place carried forward while a turn is left goes out in the next turn rather than
+to your ruling. The next turn reads `proof1.json` and sends `batch2.json`; a turn that carries
+nothing forward writes no batch, and there is no next turn to run. The last proof a turn wrote
+is the one `disposition` closes.
+
+### Ruling at max turns -- you are the copy chief
 
 !! **THE BASELINE RUNS NO TURN.** `batch1.json` is what a turn would send back to the roles;
-leave it. Every place `collate` carried forward is yours to rule NOW, once, and there are two
-rulings:
+leave it. Every place still carried forward -- after `collate` in the baseline, after the last
+turn otherwise -- is yours to rule now, once, and there are two rulings:
 
 | answer | when | what it carries |
 |---|---|---|
 | `taken_in` | one side is right | `side`: the role whose text stands, or `original` to let the paragraph stand as it was -- the author is a side |
 | `recast` | no side is right | `prose`: your own paragraph, as raw text, over every side |
 
-Write them to `<run-dir>/rulings.json` as a list -- `[{"address", "answer", "side", "reason",
+Write them to `<run-dir>/dispositions.json` as a list -- `[{"address", "answer", "side", "reason",
 "prose"}]`, `reason` owed on every one -- then close the proof:
 
 ```bash
-python <skill>/scripts/comment-review.py cap --proof <run-dir>/proof0.json --binder <run-dir>/binder.json \
-  --repo . --rulings <run-dir>/rulings.json --out <run-dir>/chief.json --proof-out <run-dir>/final.json
+python <skill>/scripts/comment-review.py disposition --proof <run-dir>/proof0.json --binder <run-dir>/binder.json \
+  --repo . --dispositions <run-dir>/dispositions.json --out <run-dir>/chief.json --proof-out <run-dir>/final.json
 ```
 
-**`cap` refuses a carried-forward place with no ruling, by name and with its roles, and writes
+`--proof` is the last proof written: `proof0.json` when no turn ran, the last turn's otherwise.
+
+**`disposition` refuses a carried-forward place with no ruling, by name and with its roles, and writes
 nothing** -- rule it and run again. It prints every ruling as it lands and every unsettlable
 place with the role that asked; `chief.json` is the chief's `edit_copy`, one mark per resolved
 place, and it is what stages 6 and 7 read. ! `--stage` is `4` throughout: the four roles ran
-once, in one stage.
+in one stage.
 
 !! **A `taken_in` is a ruling, not a count.** Any `correct` outranks every `clean`: three roles
 finding nothing does not soften one role finding a falsehood, because they were not looking for
@@ -848,21 +883,27 @@ nothing under the repo touched -- and prove it changed no code:
 python <skill>/scripts/comment-review.py proof --repo . --copy <run-dir>/chief.json --out <run-dir>/galley
 ```
 
-**`--out` must not already exist**, and it holds a full copy of `--repo` with the chief's
-pages overlaid; a galley is discarded with the run. ! **`proof` REFUSES rather than guesses.**
+**`--out` must not already exist**, and it holds only the pages `proof` lists as drafted, one
+`<path> -> <draft>` line each, and no other file of `--repo`; a galley is discarded with the run. ! **`proof` REFUSES rather than guesses.**
 It exits nonzero and NAMES what refused -- an input that fails to read prints `CANNOT READ`,
 one that does not match its shape prints `CANNOT READ THE COPY: <reason>`, and a bad `--out`
-prints `REFUSED: --out <reason>` -- each at exit **2**. A refusal further into the chain -- the
-address space having moved, or a page's own draft/set/reread step -- prints `REFUSED at <step>:
-<where> -- <reason>` and exits **1**. Read what it printed, rather than a list you remember.
+prints `REFUSED: --out <reason>` -- each at exit **2**. A refusal further into the chain exits **1**: a
+moved address space prints `REFUSED: the address space moved -- <reason>`, and a step on one page
+prints `REFUSED at <step>: <where> -- <reason>`. Read what it printed, rather than a list you remember.
 
 Then present, grouped by instruction, most consequential first, in **five parts**
 (`INSTRUCTION / PARAGRAPH / CLAIM / REASON / CHANGE`) -- the mark minus the fields only the
 collator reads -- replacement text inline for every `correct` / `patch` / `add`, and the galley's
-diff for the whole page. State **raised / clean**, which places you ruled at the cap and how,
-and the longest paragraph that will remain.
+diff for the whole page, which this prints:
 
-!! **THE UNSETTLABLE PLACES ARE THE AUTHOR'S, AND THIS IS WHERE THEY ARE ASKED.** `cap` printed
+```bash
+python <skill>/scripts/comment-review.py taken_in --original . --revise <run-dir>/galley
+```
+
+State **raised / clean**, which places you ruled at max turns and how, and the longest paragraph
+that will remain.
+
+!! **THE UNSETTLABLE PLACES ARE THE AUTHOR'S, AND THIS IS WHERE THEY ARE ASKED.** `disposition` printed
 each one with the role that raised it and its reason; put every one to the author here, after
 everything else, as the questions they are. Nothing is proposed for them.
 

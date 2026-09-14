@@ -155,7 +155,12 @@ def main() -> int:
         "returned": answers,
         "revisit": [one._asdict() for one in got.revisit],
     }
-    save_proof(Path(args.proof_out), proof_after(got, (*proof.turns, record)))
+    try:
+        after = proof_after(got, (*proof.turns, record), root=root)
+    except ValueError as err:
+        print(f"REFUSED: the master proof cannot be written -- {err}", file=sys.stderr)
+        return BROKEN
+    save_proof(Path(args.proof_out), after)
     print(
         f"{args.proof_out}: the master proof after turn {turn} --"
         f" {len(got.determined)} determined, {len(got.unsettlable)} unsettlable"

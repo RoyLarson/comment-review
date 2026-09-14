@@ -532,8 +532,10 @@ class MasterProof:
             `serialize` carries them; `deserialize` reads them where present.
         unsettlable: every place a human-review query holds, riding to the
             end of the review to be asked of the human -- `Process: #90`.
-            One dict per place, `{address, roles, query}`, carried as it
-            came, like `turns`; `wire: False` for the same reason.
+            One dict per place, `{address, roles, query}`, `drop` where the
+            place is a move's origin and `add` where it is a move's
+            destination (`flows.turn.proof_after`), carried as it came, like
+            `turns`; `wire: False` for the same reason.
     """
 
     stage: str

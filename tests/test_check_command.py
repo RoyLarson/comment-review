@@ -133,7 +133,7 @@ def _batch_file(tmp_path, answered_by_role: dict):
     got = collate("4c", copies, binder, root=REPO)
     batch = batch_of(got.escalations, got.rereads)
     (tmp_path / "batch.json").write_text(json.dumps(batch), encoding="utf-8")
-    save_proof(tmp_path / "proof.json", proof_after(got))
+    save_proof(tmp_path / "proof.json", proof_after(got, root=tmp_path))
     paths = {
         "sent": str(tmp_path / "batch.json"),
         "proof": str(tmp_path / "proof.json"),
@@ -261,7 +261,7 @@ def _gapped_files(tmp_path, answered: dict):
     role in `answered`: that role's sent slots with its fields laid over."""
     binder, got = an_add_at_an_empty_place(tmp_path)
     batch = batch_for(got)
-    save_proof(tmp_path / "proof0.json", proof_after(got))
+    save_proof(tmp_path / "proof0.json", proof_after(got, root=tmp_path))
     save_batch(tmp_path / "batch1.json", batch)
     answers = {
         role: [{**slot, **fields} for slot in batch[role]]
@@ -314,7 +314,9 @@ class TestABatchIsAppliedAsTheTurnAppliesIt:
             tmp_path, {"block-context": clean, "function-context": clean}
         )
         (tmp_path / "m.py").unlink()
-        turned = run_turn(proof_after(got), binder, tmp_path, batch, answers)
+        turned = run_turn(
+            proof_after(got, root=tmp_path), binder, tmp_path, batch, answers
+        )
         refused = [p for p in turned.revisit if p.role == "function-context"]
         assert [p.address for p in refused] == [EMPTY_PLACE]
         code, out, _ = _check(monkeypatch, capsys, tmp_path, paths, "function-context")

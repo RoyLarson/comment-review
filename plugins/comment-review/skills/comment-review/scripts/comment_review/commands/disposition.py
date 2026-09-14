@@ -1,15 +1,15 @@
-r"""The `cap` command: the chief's rulings close a stage's collate.
+r"""The `disposition` command: the chief's dispositions close a stage's collate.
 
-    comment_review cap --proof P.json --binder B.json --rulings R.json \\
+    comment_review disposition --proof P.json --binder B.json --dispositions D.json \\
         --out chief.json --proof-out final.json [--repo R]
 
-The work is `flows.turn` -- `refold`, `rule_at_cap`, `close` -- and this is
+The work is `flows.turn` -- `refold`, `rule_at_max_turns`, `close` -- and this is
 only the console face of it. `Process: #78`: the task agent's
-cap ends the turns; `#87`: every place still carried forward gets the chief's
+max turns ends them; `#87`: every place still carried forward gets the chief's
 own `taken_in` or `recast`, one Determined per resolved place, and the
 chief's `edit_copy` is derived from the whole set.
 
-    rulings.json   [{"address", "answer", "side", "reason", "prose"}]
+    dispositions.json  [{"address", "answer", "side", "reason", "prose"}]
                    answer: taken_in | recast. side: a role, or "original",
                    for a taken_in. prose: the chief's own paragraph, for a
                    recast.
@@ -17,8 +17,8 @@ chief's `edit_copy` is derived from the whole set.
 !! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
 A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`.
 
-!! NOTHING SURVIVES THE CAP UNRULED, T17. A carried-forward place with no
-ruling is refused by name, with its roles, and nothing is written -- the
+Nothing survives max turns without a disposition, T17. A carried-forward
+place with no ruling is refused by name, with its roles, and nothing is written -- the
 refusal is the whole answer, so the caller rules and runs again.
 
 ! THE UNSETTLABLE PLACES ARE PRINTED, NOT RULED -- `Process: #90`. A
@@ -41,7 +41,7 @@ from comment_review.flows.proof_io import (
     save_copy,
     save_proof,
 )
-from comment_review.flows.turn import close, refold, rule_at_cap
+from comment_review.flows.turn import close, refold, rule_at_max_turns
 
 
 def main() -> int:
@@ -60,9 +60,9 @@ def main() -> int:
         "--binder", required=True, help="the binder the copies were seeded from"
     )
     ap.add_argument(
-        "--rulings",
+        "--dispositions",
         required=True,
-        help="the chief's rulings, a list -- one per carried-forward place",
+        help="the chief's dispositions, one per carried-forward place",
     )
     ap.add_argument("--out", required=True, help="where to write the chief's edit_copy")
     ap.add_argument(
@@ -83,14 +83,16 @@ def main() -> int:
     binder, why = load_binder(Path(args.binder))
     if binder is None:
         return _refused(why)
-    rulings, why = load_value(Path(args.rulings))
+    rulings, why = load_value(Path(args.dispositions))
     if why:
         return _refused(why)
     rows: list[dict] = (
         [r for r in rulings if isinstance(r, dict)] if isinstance(rulings, list) else []
     )
     if not isinstance(rulings, list) or len(rows) != len(rulings):
-        return _refused([f"{args.rulings}: the rulings are a list of objects"])
+        return _refused(
+            [f"{args.dispositions}: the dispositions are a list of objects"]
+        )
 
     root = Path(args.repo) if args.repo else binder.root
     turn = proof.turn
@@ -120,7 +122,7 @@ def main() -> int:
             continue
         try:
             ruled.append(
-                rule_at_cap(
+                rule_at_max_turns(
                     got,
                     str(data.get("address", "")),
                     Answer(named),
@@ -136,7 +138,7 @@ def main() -> int:
     if refused:
         return BROKEN
     try:
-        closed, chief = close(got, ruled, proof.turns)
+        closed, chief = close(got, ruled, proof.turns, root)
     except ValueError as err:
         print(str(err))
         return BROKEN
@@ -157,6 +159,12 @@ def main() -> int:
             f"unsettlable {place['address']}: {query.get('role', '?')} asks the human"
             f" -- {query.get('reason', '')}"
         )
+        if "drop" in place:
+            drop = place["drop"]
+            print(
+                f"  and {drop.get('role', '?')}'s move drops the paragraph there"
+                f" -- {drop.get('reason', '')}"
+            )
     return OK
 
 

@@ -70,6 +70,13 @@ DRIFT = 5
 #: `_unruled_problems` for the measurement. Both mean *this role owes an answer
 #: at this address*, and a code exists so a caller can branch.
 COVERAGE = 6
+#: A run that carries places forward and also holds a place a role owes an
+#: answer at -- one it left unruled, or one its copies did not carry back.
+#: `decision-log.md Process: #112`: that place goes back to its role in
+#: whichever round it is found, and the carried-forward codes tell a caller to
+#: rule at max turns, so the case exits a code of its own and the chief copy
+#: is still written.
+CARRIED_AND_UNRULED = 7
 
 #: The ways a stage cannot be reconciled at all, as against a mark that broke a
 #: rule. They mean the SET cannot be read, so none is routable back to one role
@@ -146,16 +153,21 @@ def main() -> int:
 
     Returns:
         One of `OK`, `BROKEN`, `UNREADABLE`, `REREADS`, `ESCALATIONS`,
-        `DRIFT` or `COVERAGE`. `BROKEN` covers both a copy that broke a rule
-        (`got.problems`) and a stage that could not be reconciled at all -- a
-        raise is not a refusal, so both are caught and named on stderr rather
-        than left to escape as a traceback.
+        `DRIFT`, `COVERAGE` or `CARRIED_AND_UNRULED`. `BROKEN` covers both a
+        copy that broke a rule (`got.problems`) and a stage that could not be
+        reconciled at all -- a raise is not a refusal, so both are caught and
+        named on stderr rather than left to escape as a traceback.
 
         ! NEITHER `COVERAGE` NOR `DRIFT` VOIDS THE ROUND -- both write the
         chief copy first, and both are weaker than either carried-forward
         outcome, so they are checked after `ESCALATIONS` and `REREADS`. A
         drifted place can still settle, and so can the places a short shard
         did answer (`decision-log.md Process: #63`).
+
+        `CARRIED_AND_UNRULED` is checked before all of those: a run carrying a
+        place forward while a role still owes an answer at another exits it
+        rather than `ESCALATIONS` or `REREADS` (`decision-log.md Process:
+        #112`), and it writes the chief copy too.
 
         ! `COVERAGE` WAS MISSING FROM THIS LIST UNTIL 2026-08-31, one commit
         after it became reachable. A caller branching on the exit code -- the
@@ -332,12 +344,17 @@ def main() -> int:
         )
         print(f"{args.batch_out}: turn 1's batch -- {sizes}")
 
+    # A place carried forward beside a place a role still owes is two
+    # instructions to the task agent, and the carried-forward codes name only
+    # the first -- `decision-log.md Process: #112`.
+    if (got.escalations or got.rereads) and (got.coverage or got.revisit):
+        return CARRIED_AND_UNRULED
     if got.escalations:
         return ESCALATIONS
     if got.rereads:
         return REREADS
-    # ! COVERAGE IS OUTRANKED BY BOTH CARRIED-FORWARD OUTCOMES -- a place
-    # nobody answered is weaker than a place a person must now rule on.
+    # Nothing is carried forward by here: a run that also held a place a role
+    # owes exited `CARRIED_AND_UNRULED` above.
     #
     # ! IT SITS ABOVE `DRIFT` BY ACCIDENT OF WHAT IS LEFT, NOT BY DESIGN.
     # `Process: #62` ruled `drift_in` out, and its deletion is the move plan's

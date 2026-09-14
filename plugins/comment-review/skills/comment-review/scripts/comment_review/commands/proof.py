@@ -15,16 +15,13 @@ calls into, but no longer the whole chain.
 sha it was read at, so the binder it used to be handed alongside has nothing
 left to answer -- `decision-log.md Vocabulary: #14`.
 
-!! `--out` IS THE REVISE ROOT SINCE 2026-08-28, NOT A DIRECTORY OF ONLY THE
-CHANGED PAGES. This command used to call `flows.proof_setter.run` directly,
-which drafted only the docket's own pages into `--out`; `commands/proof.py`
-and `flows/revise.py`'s own `pull` were then two mechanisms that each built a
-draft tree, when stage 7a must read ONE artifact. `pull` is what stage 7a
-reads now -- see `TODO/the-flow-assumes-every-role-reads-at-once.md` T7 --
-so `--out` holds a full copy of `--repo` with the docket's pages overlaid,
-and `pull`'s own `shutil.copytree` requires it not to exist yet. `revise=1`:
-this command pulls straight off the checkout (the original, revise 0), and
-has no record of an earlier revise to number itself after -- the same number
+`--out` is the revise root: it holds only the pages the docket schedules,
+as drafted, and no other file -- the write phase copies only the files it
+modifies, `docs/decision-log.md Process: #117`. `pull` is what stage 7a
+reads -- see `TODO/the-flow-assumes-every-role-reads-at-once.md` T7 -- and
+its own `into.mkdir` requires `--out` not to exist yet. `revise=1`: this
+command pulls straight off the checkout (the original, revise 0), and has
+no record of an earlier revise to number itself after -- the same number
 `tests/test_revise.py` and `tests/test_revise_addresses.py` use for a pull
 off the original.
 """
@@ -126,11 +123,13 @@ def main() -> int:
     # `into.mkdir(exist_ok=True)` -- `exist_ok` covers an existing DIRECTORY
     # only, and every other bad input here prints a reason and returns 2.
     #
-    # ! AND `--out` MUST NOT EXIST YET, since 2026-08-28. `revise.pull` copies
-    # `--repo` into it with `shutil.copytree`, which raises `FileExistsError`
-    # on a directory that is already there -- even an empty one. `undraftable`
-    # does not ask this: it refuses a non-directory or an overlap, and a
-    # pre-existing, disjoint `--out` passes it.
+    # `--out` must not exist yet, and the check below is what refuses it:
+    # `pull` makes `--out` itself with `into.mkdir`, which raises
+    # `FileExistsError` on a directory that is already there -- even an
+    # empty one -- so this turns that into a named reason at exit 2 rather
+    # than a traceback out of `pull`. `undraftable` does not ask this: it
+    # refuses a non-directory or an overlap, and a pre-existing, disjoint
+    # `--out` passes it.
     out = None
     if not args.to_docket:
         if not args.out:
@@ -186,7 +185,7 @@ def main() -> int:
         copy, problems = EditCopy.deserialize(source, loaded)
         # ! THE TRANSCRIBE IS THE FLOW'S FIRST STEP and cannot fail: every rule
         # it would have checked is settled by the parse -- `Process: #76`.
-        held = transcribe.docket_of(copy) if copy is not None else None
+        held = transcribe.docket_of(copy, repo) if copy is not None else None
     if held is None:
         for line in problems:
             print(f"CANNOT READ THE {noun}: {line} -- nothing written")

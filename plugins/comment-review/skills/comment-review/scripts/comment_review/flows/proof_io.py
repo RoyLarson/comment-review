@@ -6,6 +6,7 @@
     load_batch(path)  -> (role -> slots, problems)
     load_value(path)  -> (any JSON value, problems)      a role's answers, the rulings
     save_proof(path, proof), save_copy(path, copy), save_batch(path, batch)
+    save_wire(path, copy)   a role's copy mid-fill, every slot kept
 
 `decision-log.md Process: #65`, `#67`: raw JSON exists at the load and the
 save only, and each load is three steps -- the read is this module's, the
@@ -120,10 +121,21 @@ def save_proof(path: Path, proof: MasterProof) -> None:
 
 
 def save_copy(path: Path, copy: EditCopy) -> None:
-    """An edit_copy as JSON at `path` -- the chief's, as `collate` and `cap` write."""
+    """An edit_copy as JSON at `path` -- the chief's, from collate or disposition."""
     _dump(path, copy.serialize())
 
 
 def save_batch(path: Path, batch: dict[str, list[dict]]) -> None:
     """A turn's batch as JSON at `path` -- role -> slots, as `batch_for` shaped it."""
     _dump(path, batch)
+
+
+def save_wire(path: Path, copy: dict) -> None:
+    """A role's copy as its wire dict at `path`, every slot kept.
+
+    ! NOT `save_copy`. That takes an `EditCopy`, and `Sheet.serialize` writes
+    only the rulings -- a copy mid-fill holds slots nobody has ruled on yet,
+    and parsing it to save it would drop every one. `commands/mark.py` writes
+    the dict `load_copy` returned, with one more ruling on it.
+    """
+    _dump(path, copy)
