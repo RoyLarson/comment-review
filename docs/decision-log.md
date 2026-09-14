@@ -4631,3 +4631,23 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `containers-and-verification-are-unwired` T47, `galley-and-compositor-write-path` T32,
   `mark-defects` T16, `reviewer-prose-is-rules-not-guidance` T7, `the-code-check-refuses-add-and-
   drop-on-a-docstring` T7 and T8, and `the-scope-is-git-in-prose` T1 and T2.
+
+- **#163.** **A `correct` that drops sentences its claim never named reaches the chief as a list
+  in `collate`'s report** (Roy, 2026-09-14, on `collator-defects` T36: the chief's copy has no
+  field for a note, and every line `collate` prints is a refusal, a send-back, or a place for
+  the chief to rule on, so no channel carried it).
+
+  Offered -- a new list in `collate`'s report with no exit code of its own; carry the place
+  forward as a re-read; or supersede T36 under `#162` -- Roy chose *"A new list in collate's
+  report"*. Detection reuses `flows/fill.py`'s `_first_word_dropped`, which tolerates
+  rewrapping; `SKILL.md` says what the task agent does with the list.
+
+- **#164.** **The binder's root stays relative to the working directory** (Roy, 2026-09-14, on
+  `binder-defects` T25: the addresser fails when run from a directory other than where `gather`
+  ran, because `read_from.root` is written relative to the cwd, as Roy ruled on 2026-08-28 --
+  `flows/gather.py:219` -- so that no absolute path carrying his home directory goes into an
+  artifact handed to agents and kept as evidence).
+
+  Offered -- supersede T25 and keep the ruling, since stage 1 checks that a run starts at the
+  repo root; write the root relative to the binder file; or write it absolute -- Roy chose
+  *"Supersede T25, keep the ruling"*.
