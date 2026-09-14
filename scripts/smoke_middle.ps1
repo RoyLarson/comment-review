@@ -179,6 +179,9 @@ $RoleDraftDir = Join-Path $Run 'role-draft'
 $RoleExpectedDir = Join-Path $Run 'role-expected'
 $CollideCopyFile = Join-Path $Run 'collide-copy.json'
 $ParityCopyFile = Join-Path $Run 'parity-copy.json'
+$WrapCopiesDir = Join-Path $Run 'wrap-copies'
+$WrapDraftDir = Join-Path $Run 'wrap-draft'
+$WrapExpectedDir = Join-Path $Run 'wrap-expected'
 $CollideDraftDir = Join-Path $Run 'collide-draft'
 
 # Each entry is one stage's work, and the chain as this script leaves it ends
@@ -749,6 +752,37 @@ $Stages = [ordered]@{
             Write-Host "command: $(Format-CommandLine $collide)"
             exit 1
         }
+        # mark-defects T25, smoke T8: a drop across a line break joins the text
+        # either side onto one line. Copies distributed again hold no rulings,
+        # so ownership-context's fresh copy carries this one drop alone, and
+        # its draft of rate.py is compared with smoke_fixture.py's
+        # WRAP_RATE_DRAFT: the joined line rewrapped to b1's widest before it.
+        Invoke-Checked -Stage 'wrap distribute' -CommandLine ($Launcher + @(
+            $Cmd.distribute, '--topology', $TopologyFile, '--stage', '4',
+            '--binder', $BinderFile, '--out-dir', $WrapCopiesDir
+        ))
+        $wrapCopy = @(Get-ChildItem -LiteralPath $WrapCopiesDir -File | Where-Object {
+            (Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json).role -eq 'ownership-context'
+        })[0].FullName
+        New-Item -ItemType Directory -Path $WrapExpectedDir | Out-Null
+        Invoke-Checked -Stage 'wrap plant' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_wrap_plant; write_wrap_plant(Path(sys.argv[1]), Path(sys.argv[2]))',
+            $Run, $WrapExpectedDir
+        )
+        Invoke-Checked -Stage 'wrap drop' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $wrapCopy, '--address', 'rate.py@b1',
+            '--instruction', 'drop', '--drop', "@$(Join-Path $Run 'wrap-drop.txt')",
+            '--reason', 'what the guard tests is said by the code below it',
+            '--cite', 'rate.py:5', '--repo', $OriginalDir
+        ))
+        Invoke-Checked -Stage 'wrap draft' -CommandLine ($Launcher + @(
+            $Cmd.proof, '--copy', $wrapCopy, '--repo', $OriginalDir, '--out', $WrapDraftDir
+        ))
+        Invoke-Checked -Stage 'wrap diff' -CommandLine @(
+            'git', '-c', 'core.autocrlf=false', '--no-pager', 'diff', '--no-index', '--',
+            $WrapExpectedDir, $WrapDraftDir
+        )
     }
     # One `collate` over all four copies, writing the master proof and the
     # turn's batch. The plant's disagreements make this exit 4 (escalation

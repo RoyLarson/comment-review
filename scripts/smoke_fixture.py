@@ -846,6 +846,51 @@ def write_role_draft(root: Path) -> tuple[Path, Path]:
     return fib, rate
 
 
+#: `mark-defects` T25's plant: a `drop` on `rate.py@b1` of the clause that
+#: spans its first line break, so the text either side joins onto one line --
+#: 46 columns, where the paragraph's widest line was 42.
+WRAP_DROP = " nothing\n    # was asked of the cache."
+
+#: What `proof --copy` drafts of `rate.py` from a fresh ownership-context copy
+#: holding that one drop and nothing else, written out by hand from
+#: `RATE_FIXTURE`: the joined line rewrapped to 42 columns, under its own
+#: indent and marker, and every other line as the fixture has it.
+WRAP_RATE_DRAFT = (
+    "def rate(hits, total):\n"
+    "    # Zero calls give a zero rate: The\n"
+    "    # rate is\n"
+    "    # hits over total, never above one.\n"
+    "    if total == 0:\n"
+    "        return 0.0\n"
+    "    return hits / total  # share of calls the cache answered\n"
+    "\n"
+    "\n"
+    "def share(hits, total):\n"
+    "    # Kept for callers that ask for a share rather than a rate.\n"
+    "\n"
+    "    return rate(hits, total)\n"
+)
+
+
+def write_wrap_plant(run: Path, expected: Path) -> tuple[Path, Path]:
+    """Write `WRAP_DROP` for the smoke's `mark` call, and `WRAP_RATE_DRAFT`.
+
+    Args:
+        run: the run directory; the clause goes to `wrap-drop.txt` in it,
+            which the smoke script passes to `mark` as `@path`.
+        expected: the directory the expected draft goes into. Not created
+            here -- the smoke script creates it first.
+
+    Returns:
+        The clause file and the expected `rate.py`.
+    """
+    clause = run / "wrap-drop.txt"
+    clause.write_text(WRAP_DROP, encoding="utf-8", newline="\n")
+    rate = expected / "rate.py"
+    rate.write_text(WRAP_RATE_DRAFT, encoding="utf-8", newline="\n")
+    return clause, rate
+
+
 def write_expected(root: Path) -> tuple[Path, Path]:
     """Write `EXPECTED` to `root / "fib.py"` and `RATE_EXPECTED` to `root / "rate.py"`.
 

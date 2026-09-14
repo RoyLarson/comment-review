@@ -788,6 +788,27 @@ class TestTheChangeDerivedFromAClaim:
         assert why == []
         assert change == ""
 
+    def test_a_drop_across_a_line_break_is_rewrapped_to_the_paragraphs_width(self):
+        """`mark-defects` T25. Dropping a clause that spans a line break joins
+        the text either side onto one line, and on the 2026-09-14 self-run
+        eleven changes ran past 88 columns that way, up to 126. The joined line
+        is rewrapped to the paragraph's own widest -- here 67 -- under its own
+        indent and marker."""
+        base = (
+            "    # The first sentence stays where it is. The second one goes\n"
+            "    # away entirely. The third sentence is long enough to overflow.\n"
+        )
+        change, why = derived_change(
+            Instruction.DROP,
+            {"drop": " The second one goes\n    # away entirely."},
+            base,
+        )
+        assert why == []
+        assert change == (
+            "    # The first sentence stays where it is. The third sentence is\n"
+            "    # long enough to overflow.\n"
+        )
+
     @pytest.mark.parametrize(
         "instruction",
         [Instruction.CLEAN, Instruction.QUERY, Instruction.ADD, Instruction.MOVE],
