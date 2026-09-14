@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 11 tasks closed
+Progress: 5 of 11 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `docket/docket.py` run end to end
@@ -135,7 +135,8 @@ caller.
         > 2026-09-14 self-run: compositor.py drafted 439 -> 219 lines at exit 0
         > 2026-09-14 no test puts a clean or query mark through docket_of
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
-- [ ] T11 | Refuse two alterations at one cue in one schedule, naming both,
-      rather than drafting one and losing the other
+- [x] T11 | FINISHED -- the write end refuses two alterations at one place, naming both | 4a3ccf8b | Refuse
+      two alterations at one cue in one schedule, naming both, rather than
+      drafting one and losing the other
         > 2026-09-14 self-run: a move into compositor a5, clean there too; text gone
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run

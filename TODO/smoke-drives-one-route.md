@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 9 tasks closed
+Progress: 3 of 9 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-09-14 (2026-09-14 comment-review self-run, refused at stage 5)
@@ -21,8 +21,9 @@ The smoke drives one route, and the self-run broke on the others.
 - [-] T2 | SUPERSEDED by Process 172 -- no labelled form to plant; refiled as T9 | 35d2fcd9 | Implement
       a smoke plant of a partial move in the brief's labelled form, failing
       while a label lands (move-is-a-composite-mark T24)
-- [ ] T3 | Implement a smoke plant of a move into a place holding prose, failing
-      while the moved text is lost (docket-defects T11)
+- [x] T3 | FINISHED -- the draft stage's collision copy is refused naming rate.py@b1 | 4a3ccf8b | Implement
+      a smoke plant of a move into a place holding prose, failing while the
+      moved text is lost (docket-defects T11)
 - [ ] T4 | Implement a smoke plant of a move out of the code that lands as
       Process 169 says
 - [ ] T5 | Implement smoke plants of a bare-cue destination and a --flag=@path
