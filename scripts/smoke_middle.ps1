@@ -175,6 +175,8 @@ $FinalFile = Join-Path $Run 'final.json'
 $DocketFile = Join-Path $Run 'docket.json'
 $ProofDir = Join-Path $Run 'proof'
 $ExpectedDir = Join-Path $Run 'expected'
+$RoleDraftDir = Join-Path $Run 'role-draft'
+$RoleExpectedDir = Join-Path $Run 'role-expected'
 
 # Each entry is one stage's work, and the chain as this script leaves it ends
 # at diff. Each block runs in its own scope, so a variable a stage assigns is
@@ -626,6 +628,27 @@ $Stages = [ordered]@{
                 $Cmd.check, '--edit-copy', $CopyFile[$role], '--binder', $BinderFile
             ))
         }
+    }
+    # `proof --copy` over one role's own copy, before the fold -- the draft the
+    # brief tells a role it may pull to read its marks as they would stand.
+    # `write_role_draft` writes what smoke_fixture.py says that role's marks
+    # make land, and git compares it with the draft: every place the role
+    # marked clean or query keeps its prose (docket-defects T10).
+    draft = {
+        Invoke-Checked -Stage 'draft' -CommandLine ($Launcher + @(
+            $Cmd.proof, '--copy', $CopyFile['function-context'], '--repo', $OriginalDir,
+            '--out', $RoleDraftDir
+        ))
+        New-Item -ItemType Directory -Path $RoleExpectedDir | Out-Null
+        Invoke-Checked -Stage 'draft-expected' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_role_draft; write_role_draft(Path(sys.argv[1]))',
+            $RoleExpectedDir
+        )
+        Invoke-Checked -Stage 'draft-diff' -CommandLine @(
+            'git', '-c', 'core.autocrlf=false', '--no-pager', 'diff', '--no-index', '--',
+            $RoleExpectedDir, $RoleDraftDir
+        )
     }
     # One `collate` over all four copies, writing the master proof and the
     # turn's batch. The plant's disagreements make this exit 4 (escalation

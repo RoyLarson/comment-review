@@ -27,7 +27,9 @@ chief's own ruling over every place the turn leaves carried forward.
 
 `EXPECTED` and `RATE_EXPECTED` are the texts the proof's `fib.py` and
 `rate.py` must read once the chain closes, and `write_expected` writes them
-for the smoke script's `diff` stage.
+for the smoke script's `diff` stage. `ROLE_DRAFT` and `ROLE_RATE_DRAFT` are
+what `proof --copy` drafts from `DRAFTED_ROLE`'s own copy before the fold, and
+`write_role_draft` writes them for the smoke script's `draft` stage.
 """
 
 import json
@@ -758,6 +760,90 @@ RATE_EXPECTED = (
     "def share(hits, total):\n"
     "    return rate(hits, total)\n"
 )
+
+
+#: The role whose own copy the smoke drafts with `proof --copy` before the fold.
+DRAFTED_ROLE = "function-context"
+
+#: What `proof --copy` drafts of `fib.py` from `DRAFTED_ROLE`'s copy alone,
+#: written out by hand from `FIXTURE` and that role's rows in the smoke
+#: script's mark stage: its corrections at `c1` and `a3` and its adds at `c3`
+#: and `a2` land, and every place it marked `clean` or `query` keeps the
+#: fixture's prose -- a mark that proposes no text alters nothing
+#: (`docket-defects` T10).
+ROLE_DRAFT = (
+    '"""Fibonacci, counted so the recursion can be seen."""\n'
+    "\n"
+    "import functools\n"
+    "\n"
+    "# Module state, written by the wrapper and read by the caller.\n"
+    "CALLS = 0  # every entry, computed or not\n"
+    "\n"
+    "\n"
+    "def logged(fn):\n"
+    '    """Count each call and pass it through."""\n'
+    "\n"
+    "    @functools.wraps(fn)  # keeps wrapper's name and doc matching fn's own\n"
+    "    def wrapper(n):\n"
+    '        """Count each call, then pass it through."""\n'
+    "        global CALLS\n"
+    "        CALLS += 1  # the decorator's whole job\n"
+    "        return fn(n)\n"
+    "\n"
+    "    return wrapper\n"
+    "\n"
+    "\n"
+    "# The cache sits inside the decorator stack on purpose: logged sees\n"
+    "# every call, cache sees only the misses.\n"
+    "@logged\n"
+    "@functools.cache\n"
+    "def fib(n):\n"
+    '    """The nth Fibonacci number, starting at fib(0) = 0."""\n'
+    "    if n < 2:  # base case\n"
+    "        return n\n"
+    "    # Two calls per level, which is what the counter measures.\n"
+    "    return fib(n - 1) + fib(n - 2)\n"
+    "\n"
+    "\n"
+    'if __name__ == "__main__":\n'
+    "    print(fib(10), CALLS)\n"
+)
+
+#: What `proof --copy` drafts of `rate.py` from the same copy: the role's
+#: correction on `b1`'s last line lands, and its queries at `c3` and `b5` keep
+#: the fixture's prose.
+ROLE_RATE_DRAFT = (
+    "def rate(hits, total):\n"
+    "    # Zero calls give a zero rate: nothing\n"
+    "    # was asked of the cache. The rate is\n"
+    "    # hits over total, never more than one.\n"
+    "    if total == 0:\n"
+    "        return 0.0\n"
+    "    return hits / total  # share of calls the cache answered\n"
+    "\n"
+    "\n"
+    "def share(hits, total):\n"
+    "    # Kept for callers that ask for a share rather than a rate.\n"
+    "\n"
+    "    return rate(hits, total)\n"
+)
+
+
+def write_role_draft(root: Path) -> tuple[Path, Path]:
+    """Write `ROLE_DRAFT` and `ROLE_RATE_DRAFT` to `root`, as `write_expected` writes.
+
+    Args:
+        root: the directory to write into. Not created here -- the smoke
+            script creates its run's `role-expected` directory first.
+
+    Returns:
+        The two paths written, `fib.py`'s first.
+    """
+    fib = root / "fib.py"
+    fib.write_text(ROLE_DRAFT, encoding="utf-8", newline="\n")
+    rate = root / "rate.py"
+    rate.write_text(ROLE_RATE_DRAFT, encoding="utf-8", newline="\n")
+    return fib, rate
 
 
 def write_expected(root: Path) -> tuple[Path, Path]:

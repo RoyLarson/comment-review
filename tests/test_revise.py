@@ -11,11 +11,13 @@ from pathlib import Path
 import pytest
 from helpers import (
     a_binder_over,
+    a_clean,
     a_correct,
     a_docket_over,
     a_docket_whose_claim_is_not_in_the_page,
     a_drop,
     a_move,
+    a_query,
     a_real_binder_over,
     a_small_real_tree,
     copies_over,
@@ -170,6 +172,34 @@ class TestDocketOf:
         page whose slots are all untouched must not reach the docket as an empty
         schedule the write end would then set nothing from."""
         copy = a_copy("block-context", {"m.py@b1": "# one\n"}, {})
+        assert docket_of(copy, tmp_path).schedules == ()
+
+    def test_a_clean_or_query_mark_writes_no_alteration(self, tmp_path):
+        """`docket-defects` T10. `clean` and `query` owe no change -- they
+        propose no text -- so neither is an edit. Transcribed as one, `text_at`
+        read the empty change as a delete, and `proof --copy` over a role's copy
+        set every paragraph the role had certified or questioned as gone:
+        measured 2026-09-14, `compositor.py` drafted from 439 lines to 219."""
+        copy = a_copy(
+            "block-context",
+            {"m.py@b1": "# one\n", "m.py@b2": "# two\n", "m.py@b3": "# three\n"},
+            {
+                "m.py@b1": a_clean("m.py@b1"),
+                "m.py@b2": a_query("m.py@b2"),
+                "m.py@b3": a_correct("m.py@b3", sentence="three"),
+            },
+        )
+        schedule = docket_of(copy, tmp_path).schedules[0]
+        assert [one.cue for one in schedule.alterations] == ["b3"]
+
+    def test_a_page_ruled_only_clean_or_query_gets_no_schedule(self, tmp_path):
+        """A page whose marks propose no text has nothing for the write end to
+        set, the same as a page nobody ruled on."""
+        copy = a_copy(
+            "block-context",
+            {"m.py@b1": "# one\n", "m.py@b2": "# two\n"},
+            {"m.py@b1": a_clean("m.py@b1"), "m.py@b2": a_query("m.py@b2")},
+        )
         assert docket_of(copy, tmp_path).schedules == ()
 
 

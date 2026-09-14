@@ -30,7 +30,7 @@ at all.
 from pathlib import Path
 
 from comment_review.desk.containers import EditCopy
-from comment_review.desk.mark import Instruction, Mark, text_at
+from comment_review.desk.mark import INSTRUCTIONS, Instruction, Mark, text_at
 from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.flows.page_for import page_of
 from comment_review.machine.repo import can_escape
@@ -88,9 +88,13 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
         the sheet's page in `repo` holds there. A destination with no such
         anchor carries None, which the write end refuses.
 
-    ! A SHEET WITH NO MARKS GETS NO SCHEDULE. A seeded copy holds a slot for
-    every place; only the ones a role filled are edits, and an empty schedule
-    would tell the write end to set a page from nothing.
+    Only a mark that proposes text is an edit. A `clean` or a `query` owes no
+    change -- its row's `owes_change` is False -- and writes no alteration:
+    handed to `text_at`, its empty change would read as a delete, which set
+    every paragraph a role certified or questioned as gone
+    (`docket-defects` T10). So a sheet whose marks propose no text gets no
+    schedule, as a sheet nobody ruled on does; an empty schedule would tell the
+    write end to set a page from nothing.
     """
     schedules = []
     for sheet in copy.sheets:
@@ -105,6 +109,7 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
                 ),
             )
             for mark in sheet.marks
+            if INSTRUCTIONS[mark.instruction].owes_change
             for address in _touched_by(mark)
         )
         if alterations:
