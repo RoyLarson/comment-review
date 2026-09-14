@@ -2,8 +2,7 @@
 
 **This stage sees the finished page. Every earlier one saw a plan.**
 
-!! **WHAT YOU ARE HANDED IS A PROOF**, and the word carries the rule. A GALLEY is pulled so it can
-be corrected while correcting is still free; a proof is pulled to be JUDGED. The compositor set
+!! **WHAT YOU ARE HANDED IS A PROOF**, and the word carries the rule: a proof is pulled to be judged. The compositor set
 it from the page with every replacement the proposal holds, before the author rules, so nothing
 here is a draft you are helping to shape -- it is the document the author will be asked to
 approve, and your question is whether it deserves more marks.
@@ -17,8 +16,8 @@ files are done or whether another comment-review round is wanted. Almost no edit
 finishes in one round -- each pass refines what the next one works on, and this is where that
 judgement is made.
 
-**Your whole input is the galley directory, the pages drafted in it, the style sheet, and this
-file.** Everything you need is on the page and in the code beside it.
+**Your whole input is the proof -- the galley `proof` set and the pages drafted in it -- the
+style sheet, and this file.** Everything you need is on the page and in the code beside it.
 
 Read each file end to end, as a reader would, and ask of every comment and docstring:
 
@@ -44,6 +43,9 @@ And of the file as a whole: does it still read as one page? Look for --
 ! **Do not edit.** You read and you report; the human decides what happens next. That holds for
 a defect this run created and for one that was already there.
 
+**Move nothing, and write no alteration or schedule for the pages.** You are handed the proof as
+set; what it becomes next is the author's to decide.
+
 ! **Do not rewrite for quality.** A better wording you notice is a finding for the next round,
 not a licence to write it: the text on the page is what the author is about to rule on, and
 writing over it puts prose in front of them that nobody read.
@@ -68,11 +70,11 @@ line is still the same statement, and an address counts those. The line numbers 
 prose; the ordinal did not.
 
 To read at one, resolve against a binder of the drafted page. The addresser answers about the
-binder, never the tree -- so gather the page first, from the galley, and the two agree by
-construction:
+binder, never the tree -- so gather the page first, from the proof's directory as the revise
+`proof` pulled, and the two agree by construction:
 
 ```bash
-python <skill>/scripts/comment-review.py gather --repo <galley> --out <run-dir>/after.json <paths...>
+python <skill>/scripts/comment-review.py gather --repo <proof-dir> --revise 1 --out <run-dir>/after.json <paths...>
 python <skill>/scripts/comment-review.py addresser --binder <run-dir>/after.json --resolve <ADDRESS>
 ```
 

@@ -899,7 +899,7 @@ prints `REFUSED at <step>: <where> -- <reason>`. Read what it printed, rather th
 and refuses one whose text at a place is not the text approved for it, so a docstring a role set
 at the wrong indentation is refused here, by name.
 
-**Then dispatch stage 8 on the galley** (below), and present once its findings are back.
+**Then dispatch stage 8 on the proof** (below), and present once its findings are back.
 
 Then present, grouped by instruction, most consequential first, in **five parts**
 (`INSTRUCTION / PARAGRAPH / CLAIM / REASON / CHANGE`) -- the mark minus the fields only the
@@ -946,11 +946,11 @@ real files; it carries the residue check and the write rails. Do not write from 
 every one of those questions was settled upstream, and re-opening one here writes something
 the author never saw.
 
-## Stage 8 -- REVIEW: the galley, before the author sees it
+## Stage 8 -- REVIEW: the proof, before the author sees it
 
 Once 7a has set the galley, and before you present, dispatch
-`comment-review:comment-review-review` with the galley directory, the `<draft>` pages `proof`
-listed, and the style sheet, and paste [`references/review.md`](references/review.md) into its
+`comment-review:comment-review-review` with the proof -- the galley directory and the `<draft>`
+pages `proof` listed -- and the style sheet, and paste [`references/review.md`](references/review.md) into its
 prompt whole. Its findings go into the proposal at 7a.
 
 The read holds for a blanket approval only: where the author approves some changes and not

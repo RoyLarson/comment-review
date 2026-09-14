@@ -90,9 +90,9 @@ page = "ONE FILE: its paragraphs in order, among the code they sit with. A page 
 paragraph = "One unit of prose on the page: a comment run, a docstring, or the empty place where either could go. It answers to exactly one address. `block` was the older word for it and no longer means this: a `block` is the code symbols that say which series the lines they enclose belong to, never the prose between them."
 
 # --- what is SET, and who sets it --------------------------------------------
-galley = "The proposal set as pages: every paragraph a stage proposes to change, put on a COPY of its page. A trial impression -- text set but not yet made into pages -- pulled so it can be corrected while correcting is still free. Nothing under review is touched."
+galley = "The proposal set as pages: every paragraph a stage proposes to change, put on a COPY of its page. Nothing under review is touched. In the trade a galley is a proof: what stage 8 reads is the galley `proof` sets, as set."
 compositor = "Who SETS a page as text. It walks the page's places in order and asks each one what it holds. It decides nothing, and it is the only thing that writes a file."
-proof = "A finished page, pulled for checking -- what a PROOFREADER reads. The galley precedes it: a galley is corrected, a proof is judged."
+proof = "Pages as set, pulled to be judged -- what a PROOFREADER reads. It is read as set: the proofreader reports, and moves nothing and writes no alteration or schedule for it."
 
 # --- the empty places, which are what an `add` cites -------------------------
 interval = "A gap between two lines of code that holds no prose -- a `b` place with nothing in it."
