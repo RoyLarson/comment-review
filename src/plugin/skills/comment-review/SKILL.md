@@ -767,8 +767,14 @@ python <skill>/scripts/comment-review.py disposition --proof <run-dir>/proof0.js
 `--proof` is the last proof written: `proof0.json` when no turn ran, the last turn's otherwise.
 
 **`disposition` refuses a carried-forward place with no ruling, by name and with its roles, and writes
-nothing** -- rule it and run again. It prints every ruling as it lands and every unsettlable
-place with the role that asked; `chief.json` is the chief's `edit_copy`, one mark per resolved
+nothing** -- rule it and run again. Otherwise it prints what it wrote -- `<out>: the chief's
+copy, <n> places` and `<proof-out>: the proof closed at turn <t> -- <n> determined, <m>
+unsettlable` -- then one line per ruling, `<answer> <place>: <side> (<how>, turn <t>)`, then one
+entry per unsettlable place: `unsettlable <place>: <role> asks the human -- <reason>`, with an
+indented `and ...` line for a move's drop or add held there. A move held at both ends is one
+entry, `unsettlable <origin> and <destination>: ...`, whose last line reads `and <role>'s move
+drops the paragraph at <origin> and adds it at <destination>, one move -- <reason>`.
+`chief.json` is the chief's `edit_copy`, one mark per resolved
 place, and it is what stages 6 and 7 read. ! `--stage` is `4` throughout: the four roles ran
 in one stage.
 
@@ -922,7 +928,10 @@ that will remain.
 
 !! **THE UNSETTLABLE PLACES ARE THE AUTHOR'S, AND THIS IS WHERE THEY ARE ASKED.** `disposition` printed
 each one with the role that raised it and its reason; put every one to the author here, after
-everything else, as the questions they are. Nothing is proposed for them.
+everything else, as the questions they are. Nothing is proposed for them but a held move: an
+entry naming a move's drop and its add is one move, put to the author as the paragraph leaving
+its origin and arriving at its destination, with the text it carries -- the `change` of that
+place's `add` in `final.json`'s `unsettlable` list -- and approved or refused whole.
 
 Put each settled `correct` from stage 5's `for the chief` list to the author here too, with the
 words its change drops.
