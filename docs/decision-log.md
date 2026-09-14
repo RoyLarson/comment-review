@@ -4611,3 +4611,23 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   whose page no copy holds; file and fix all five; or leave all to the live runs -- Roy chose
   *"Fix the general one only"*. The four move edges wait for what a run over real code shows,
   per `#156`.
+
+- **#162.** **The rest of `0.2.4-the-agents-read-the-cli` keeps the small fixes and supersedes
+  the hardening of the middle** (Roy, 2026-09-14: *"Before we get too much further on this.
+  Remember that this is prototype code and I am starting to see the patterns that will allow
+  this to be built correctly so we do NOT want to over-engineer this just yet."*).
+
+  Offered -- keep the small fixes and supersede the rest; pause after set 1; or continue as
+  planned with the least code -- Roy chose *"Keep the small fixes, supersede the rest"*.
+
+  Kept, as something a live run or an agent meets: `binder-defects` T25, `collator-defects` T35
+  and T36, `mark-defects` T22, the comment cleanups (`galley-and-compositor-write-path` T34,
+  `collate-flow-defects` T15 and T16, `the-code-check-refuses-add-and-drop-on-a-docstring` T9 to
+  T12), and the agent prose (`agents-files-name-the-new-cli` T16 to T18, T21, T29 to T31, T33,
+  `stage-5-is-the-only-stage-with-no-independent-reader` T14, `reviewer-prose-is-rules-not-guidance`
+  T5).
+
+  Superseded as hardening of the prototype middle: `collator-defects` T34 and T42,
+  `containers-and-verification-are-unwired` T47, `galley-and-compositor-write-path` T32,
+  `mark-defects` T16, `reviewer-prose-is-rules-not-guidance` T7, `the-code-check-refuses-add-and-
+  drop-on-a-docstring` T7 and T8, and `the-scope-is-git-in-prose` T1 and T2.
