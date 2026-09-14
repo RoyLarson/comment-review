@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 24 of 33 tasks closed
+Progress: 26 of 33 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -118,10 +118,12 @@ The agents files name the new CLI and say how to use it.
 - [x] T30 | SKILL.md, the brief and compact.md tell no agent to use a kind or annotations; compact keys on the place | fd846264 | Update
       SKILL.md, reviewer-brief.md and compact.md so no agent is told to use a
       paragraph's kind or annotations, per Process 158
-- [ ] T31 | Update SKILL.md and write.md so stage 7b writes the approved text to
-      temporary files for the author to diff, per Process 159
+- [x] T31 | stage 7b has proof set the approved text in temporary files for the author to diff | 6277bdd8 | Update
+      SKILL.md and write.md so stage 7b writes the approved text to temporary
+      files for the author to diff, per Process 159
 - [x] T32 | SKILL.md, the brief and write.md match the CLI: 16 changes, merged at 626017b7 | 626017b7 | Update
       SKILL.md, reviewer-brief.md and write.md so every command, flag, exit code
       and output they name matches the CLI
-- [ ] T33 | Update write.md so stage 7b runs no prove_unchanged check and
-      restores no edit on its result, per Process 160
+- [x] T33 | write.md runs no prove_unchanged at 7b and restores no edit on its result | 6277bdd8 | Update
+      write.md so stage 7b runs no prove_unchanged check and restores no edit on
+      its result, per Process 160
