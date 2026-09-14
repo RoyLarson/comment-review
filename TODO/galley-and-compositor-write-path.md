@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 37 of 49 tasks closed
+Progress: 38 of 49 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-22 (code-review high round 3 and /simplify round 2, 2026-08-22 -- the
@@ -183,8 +183,9 @@ files in `corpora/` are in that state today.
       compositor.py:159-162, which says the survivor of a drop takes a new key
       where :175-178 says it needs none
         > 2026-09-11 at 4326b793: new key claimed at :161, no new key at :176
-- [ ] T32 | Update proof_setter.py:465-470 so a draft that re-reads with a
-      different structure is named as that
+- [-] T32 | superseded by Process 162: hardening of the prototype middle, not built now | 9519ead5 | Update
+      proof_setter.py:465-470 so a draft that re-reads with a different
+      structure is named as that
         > 2026-09-11 smoke run: an unindented a2 lost every cue; b1 was named
 - [x] T33 | RULED Addressing: #27 -- the roles, for now | fe9ebbef | Decide
       whether a docstring's indentation is the role's to write or the

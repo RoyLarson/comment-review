@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 22 of 47 tasks closed
+Progress: 23 of 47 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -345,6 +345,7 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       the write path's pre-verify: every alteration's address matches a place on
       the page it is setting on, before it sets
         > 2026-09-07 The galley sets on a page and hands it on; the page is in hand
-- [ ] T47 | Implement a batch verify of the schedule against its pages before
-      any page is set, reporting every unmatched address at once
+- [-] T47 | superseded by Process 162: hardening of the prototype middle, not built now | 9519ead5 | Implement
+      a batch verify of the schedule against its pages before any page is set,
+      reporting every unmatched address at once
         > 2026-09-08 reset refuses per page while setting; one bad address per run

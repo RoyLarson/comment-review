@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 13 tasks closed
+Progress: 4 of 13 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-06 (Roy, 2026-09-06, on reading the ownership-context agent file and
@@ -37,8 +37,9 @@ The reviewer prose is rules and punishments, not guidance toward a good result.
       the Sonnet ownership-context copy: clean x888 against 64 places the Fable
       forks marked, two verified by grep
         > 2026-09-07 compare_oc.py lists the 64; docket_of and the #12 paste verified
-- [ ] T7 | Update the clean row so it owes a reason naming what the role checked
-      under its remit, so a clean certifies a read
+- [-] T7 | superseded by Process 162: a change to the prototype mark contract, not made now | 9519ead5 | Update
+      the clean row so it owes a reason naming what the role checked under its
+      remit, so a clean certifies a read
         > 2026-09-07 Roy 2026-09-07: the system encourages skipping paragraphs
 - [x] T8 | The brief says a role RETURNS one file; the script clause is gone | 51977c79 | Update
       the brief so the one-file rule governs what a role RETURNS, not every file

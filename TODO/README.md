@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (115)
+### open  (114)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -190,7 +190,7 @@ that changed a published name or rule:
 | [only-census-got-out-and-the-skill-instructs-a-redirect](only-census-got-out-and-the-skill-instructs-a-redirect.md) | agents | -- | 3/5 | Only `census.py` got `--out`, and `SKILL.md` instructs the redirect it forbids |
 | [referrers-matches-on-any-public-name-and-surfaces-the-whole-repo](referrers-matches-on-any-public-name-and-surfaces-the-whole-repo.md) | backend | -- | 0/6 | `referrers.py` matches on any public name, and surfaced the whole repo |
 | [stage-5-is-the-only-stage-with-no-independent-reader](stage-5-is-the-only-stage-with-no-independent-reader.md) | agents | -- | 9/14 | Stage 5 is the only stage whose writer is also its checker |
-| [the-code-check-refuses-add-and-drop-on-a-docstring](the-code-check-refuses-add-and-drop-on-a-docstring.md) | backend | -- | 3/12 | The CODE CHECK refuses `add` and `drop` when the prose is a docstring |
+| [the-code-check-refuses-add-and-drop-on-a-docstring](the-code-check-refuses-add-and-drop-on-a-docstring.md) | backend | -- | 5/12 | The CODE CHECK refuses `add` and `drop` when the prose is a docstring |
 | [the-emitted-vocabulary-can-collide-with-the-repo](the-emitted-vocabulary-can-collide-with-the-repo.md) | agents | yes | 1/6 | The emitted vocabulary can collide with the reviewed repo's own terms |
 | [doc-is-structural-means-two-things](doc-is-structural-means-two-things.md) | backend | -- | 0/3 | doc_is_structural means two things and its docstring names one |
 | [docstrings-need-their-own-address-series](docstrings-need-their-own-address-series.md) | backend | -- | 5/9 | A docstring needs its own address series, and it names what it documents |
@@ -213,7 +213,7 @@ that changed a published name or rule:
 | [one-stem-four-jobs](one-stem-four-jobs.md) | backend | -- | 7/15 | one stem, four jobs -- and the vocabulary sweep cannot see it |
 | [python-cannot-read-python](python-cannot-read-python.md) | backend | -- | 32/39 | the AST cannot read syntax newer than the floor, and two readers hide each other's bugs |
 | [census-walks-and-flushes](census-walks-and-flushes.md) | backend | -- | 3/7 | census.py walks the whole repo, runs git twice, and its run-flush never fires |
-| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 37/49 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
+| [galley-and-compositor-write-path](galley-and-compositor-write-path.md) | backend | -- | 38/49 | The galley can overwrite the file under review, and the compositor reads through a normaliser |
 | [record-and-verdicts-disagree](record-and-verdicts-disagree.md) | backend | -- | 4/8 | record.py and verdicts.py disagree about what a valid record is, in four places |
 | [exception-hierarchy](exception-hierarchy.md) | backend | -- | 2/10 | Named tuples give us the seam; the hierarchy that catches our own types is not built |
 | [language-rows-in-toml](language-rows-in-toml.md) | backend | -- | 6/16 | 18 rows of pure data sit in shipped Python; references/vocabulary.toml is the pattern |
@@ -269,14 +269,14 @@ that changed a published name or rule:
 | [brief-example-and-scope](brief-example-and-scope.md) | agents | -- | 0/3 | the brief's worked example shows a 40-character `sha` where `bind` writes 16, and the brief says a source resolves against 'the repo' without saying whether that is the scoped tree or the checkout it was cut from |
 | [rows-of-derives-no-type](rows-of-derives-no-type.md) | backend | -- | 0/4 | `binder.rows_of` returns `list[dict]` where `docket.schedules_of` returns `list[Schedule]`; the codebase holds one example of each pattern, the typed one is the one that catches things, and `rows_of` has 8 callers and no covering tests |
 | [strip-before-review-experiment](strip-before-review-experiment.md) | agents | yes | 0/5 | the `collator.py` prose was deleted whole and rewritten by an agent that could read only the code -- it found three defects the old prose never mentioned and named two things the code cannot say; whether that beats editing in place is untested |
-| [collator-defects](collator-defects.md) | backend | -- | 14/43 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
+| [collator-defects](collator-defects.md) | backend | -- | 16/43 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
 | [staged-chain-untested](staged-chain-untested.md) | backend | -- | 2/4 | the four-stage chain runs and the edits accumulate, proven 2026-08-30 -- but no test in the suite drives it, and the only committed fan-out topology refuses any tree but this repo's |
-| [containers-and-verification-are-unwired](containers-and-verification-are-unwired.md) | backend | -- | 22/47 | The containers and the source-verification half are wired to nothing |
+| [containers-and-verification-are-unwired](containers-and-verification-are-unwired.md) | backend | -- | 23/47 | The containers and the source-verification half are wired to nothing |
 | [mark-holds-spec-and-parse](mark-holds-spec-and-parse.md) | backend | -- | 0/6 | mark.py holds the instruction spec and the boundary parse at one scope |
 | [ty-cannot-see-the-tests](ty-cannot-see-the-tests.md) | systems (the gate) - backend (the test fixes) | -- | 1/5 | The type gate is scoped to src and cannot see the tests |
 | [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | -- | 0/6 | A present-but-null key becomes the four characters None |
 | [collate-flow-defects](collate-flow-defects.md) | backend | -- | 2/16 | Twelve defects in `flows/collate.py`, from a review of one file |
-| [mark-defects](mark-defects.md) | backend | -- | 12/22 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
+| [mark-defects](mark-defects.md) | backend | -- | 13/22 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
 | [binder-defects](binder-defects.md) | backend | -- | 6/25 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
 | [docket-defects](docket-defects.md) | backend | -- | 3/9 | Six defects in docket.py, and one discards an approved page at exit 0 |
 | [collate-command-defects](collate-command-defects.md) | backend | -- | 5/21 | Sixteen defects in `commands/collate.py`, measured by running it |
@@ -291,11 +291,10 @@ that changed a published name or rule:
 | [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 4/6 | re-review is retired for revise |
 | [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 19/33 | The agents files name the new CLI and say how to use it |
-| [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 3/13 | The reviewer prose is rules and punishments, not guidance toward a good result |
+| [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 4/13 | The reviewer prose is rules and punishments, not guidance toward a good result |
 | [a-machine-context-raises-query-and-clean](a-machine-context-raises-query-and-clean.md) | backend | yes | 0/8 | annotate carries two subjects -- it extracts index keys, and it flags claims it cannot settle. The second half becomes a context that marks like a role. |
 | [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | -- | 8/12 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
 | [smoke-middle-script](smoke-middle-script.md) | systems | -- | 67/67 | The middle-chain smoke script carries the findings of its Task 8 review |
-| [the-scope-is-git-in-prose](the-scope-is-git-in-prose.md) | backend | -- | 0/2 | The scope a run reviews is worked out by the task agent running git |
 | [prove-unchanged-line-endings-follow-a-sibling](prove-unchanged-line-endings-follow-a-sibling.md) | backend | -- | 0/2 | On a checkout with core.autocrlf=true, git writes a checked-out text file with CRLF while its blob stays LF, and a file git never rewrote can still be LF. prove_unchanged compares an edited file's line endings with one untouched sibling, so a CRLF file whose sibling is a one-line LF __init__.py FAILs though the write kept every ending and the AST comparison passes. The check should hold the file to its own pre-edit endings. |
 
 ### in-progress  (18)
@@ -464,3 +463,4 @@ the reason is inside the file.
 | [the-listing-goes](completed/the-listing-goes.md) | gather writes the binder only; a reviewer is handed the binder and its seeded copy; listing is retired and the gate says so -- Process #99 |
 | [listing-hands-the-repo](completed/listing-hands-the-repo.md) | Superseded: the listing was removed at Process #99, so its defects have no site |
 | [a-role-writes-its-own-mark-tool](completed/a-role-writes-its-own-mark-tool.md) | The mark command fills a role's copy: one ruling per invocation, change derived, the cited line quoted. T3's bulk clean superseded on Roy's ruling |
+| [the-scope-is-git-in-prose](completed/the-scope-is-git-in-prose.md) | Both tasks superseded by Process 162; the scope step stays in SKILL.md 1.1 |

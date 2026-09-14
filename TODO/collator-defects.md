@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 14 of 43 tasks closed
+Progress: 16 of 43 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -186,8 +186,9 @@ Four defects in collator.py, found by reading only the code.
       the fold to refuse an address only when the page has no such place.
       Verify: a mark at a real gap the binder lacks is accepted
         > 2026-09-05 Process 96; tests/test_collator.py:514 asserts the refusal today
-- [ ] T34 | Update the fold so two marks from one role on different sentences
-      compose, as two roles' marks do
+- [-] T34 | superseded by Process 162: hardening of the prototype middle, not built now | 9519ead5 | Update
+      the fold so two marks from one role on different sentences compose, as two
+      roles' marks do
         > 2026-09-07 2026-09-06 run: six places, e.g. desk/mark.py@a8, reached the cap
 - [ ] T35 | Update check so a change carrying the anchor's own code line is
       refused before the write
@@ -216,8 +217,9 @@ Four defects in collator.py, found by reading only the code.
       cannot read. Verify: an invented path half is named, not passed silently
         > 2026-09-08 About 50 fold tests use fictional paths and would break
         > 2026-09-08 Caught at fill and at the write; the fold is the silent one
-- [ ] T42 | Update source_problems to split a verbatim as the cited window is
-      split, per Addressing #12
+- [-] T42 | superseded by Process 162: hardening of the prototype middle, not built now | 9519ead5 | Update
+      source_problems to split a verbatim as the cited window is split, per
+      Addressing #12
         > 2026-09-13 Roy 2026-09-13: the compositor rewrites endings; inside, none
 - [x] T43 | a recast keeps a filed add at an empty place and its text lands; the test is 3fbaa5c5 | 3fbaa5c5 | Implement
       a test that a recast at an add's empty place, where a role filed the add,
