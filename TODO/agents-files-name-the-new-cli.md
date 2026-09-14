@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 22 of 33 tasks closed
+Progress: 23 of 33 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -112,8 +112,9 @@ The agents files name the new CLI and say how to use it.
 - [ ] T28 | Update reviewer-brief.md:592-593 so ANSWERS, BATCH and PROOF name
       what SKILL.md:712-713 hands a role. Verify: the two agree
         > 2026-09-13 from census T16, Process 147
-- [ ] T29 | Update SKILL.md 7a so the task agent puts a held move's drop and add
-      to the author as one move, per Process 155
+- [x] T29 | 7a puts a held move to the author as one move; SKILL.md gives the lines disposition prints | dc06c677 | Update
+      SKILL.md 7a so the task agent puts a held move's drop and add to the
+      author as one move, per Process 155
 - [ ] T30 | Update SKILL.md, reviewer-brief.md and compact.md so no agent is
       told to use a paragraph's kind or annotations, per Process 158
 - [ ] T31 | Update SKILL.md and write.md so stage 7b writes the approved text to
