@@ -2845,7 +2845,7 @@ class TestTheBatchThatGoesOut:
         )
 
 
-class TestTheCap:
+class TestTheDisposition:
     def test_taken_in_of_the_original_leaves_no_entry_on_the_chief(self):
         _, _, got = _escalated()
         ruled = rule_at_max_turns(
@@ -2993,7 +2993,7 @@ class TestTheCap:
             )
         assert "unsettlable" in str(caught.value)
 
-    def test_the_cap_refuses_to_close_with_a_place_unruled(self):
+    def test_the_disposition_refuses_to_close_with_a_place_unruled(self):
         """T17. MEASURED in the game's hand 3: the chief recast one place and
         nothing would have noticed a second left unruled."""
         _, _, got = _escalated()
@@ -3002,7 +3002,7 @@ class TestTheCap:
         assert "m.py@b1" in str(caught.value)
         assert "block-context, function-context" in str(caught.value)
 
-    def test_the_cap_closes_once_every_carried_place_is_ruled(self):
+    def test_the_disposition_closes_once_every_carried_place_is_ruled(self):
         _, _, got = _escalated()
         ruled = rule_at_max_turns(
             got, "m.py@b1", Answer.TAKEN_IN, ORIGINAL, "neither", turn=2
