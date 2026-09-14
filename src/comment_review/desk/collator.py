@@ -628,8 +628,7 @@ def _filed_against(mark: Mark, marks: list[Mark]) -> list[str]:
 
     `decision-log.md Process: #137` and `#138`. A query at a move's
     destination lands under its origin, and one at a move's origin under its
-    destination. Each needs the copy to hold exactly one such move, the test
-    `flows.turn._move_to` applies before it routes an answer to a move.
+    destination. Each needs the copy to hold exactly one such move.
 
     Args:
         mark: one mark on a role's copy.

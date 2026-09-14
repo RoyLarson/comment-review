@@ -35,7 +35,8 @@ ESCALATION is an edit to that role's copy at the address:
 
 The mover's answer at its move's destination end is an edit to the move
 (`Process: #129`): the table applies to the `move` entry at the origin, and the
-mover's slot at the destination stays as it is.
+mover's slot at the destination stays as it is. Where the mover moves two
+paragraphs there, the answer is an edit to both moves (`#154`).
 
 A COMPOSITION re-read is answered with a fresh `Mark` over the composed text
 (`#86`), and the answer set is `clean`, `query`, `correct`, `patch`:
@@ -90,7 +91,8 @@ ends holds a mark carrying the move's one text, `_agreed_moves` records the
 `stet` at both ends (`Process: #88`, `#89` and `#137`). A place the turn asked
 about that comes back as a re-read whose roles still hold different texts is
 an escalation, which `_disagreeing`
-records (`Process: #127`). What did not agree is the next turn's batch, until the task
+records (`Process: #127`), as is a place one role moves two paragraphs to
+(`#154`). What did not agree is the next turn's batch, until the task
 agent's max turns (`Process: #78`), where `rule_at_max_turns` records the
 chief's `taken_in` or `recast` and `determined_chief` derives the chief's copy
 from the whole set. A move the chief rules differently at its two ends is
@@ -329,19 +331,15 @@ def _entry_at(copies: list[dict], role: str, address: str) -> dict | None:
     )
 
 
-def _move_to(copies: list[dict], role: str, address: str) -> dict | None:
-    """The one `move` on `role`'s copy whose `claim.to` names `address`.
-
-    None where the copy holds no such move, or more than one.
-    """
-    moves = [
+def _moves_to(copies: list[dict], role: str, address: str) -> list[dict]:
+    """Every `move` on `role`'s copy whose `claim.to` names `address`."""
+    return [
         entry
         for entry in _entries_of(copies, role)
         if entry.get("instruction") == str(Instruction.MOVE)
         and isinstance(claim := entry.get("claim"), dict)
         and claim.get("to") == address
     ]
-    return moves[0] if len(moves) == 1 else None
 
 
 def _becomes(entry: dict, new: dict) -> None:
@@ -508,13 +506,14 @@ def apply(
 
     An escalation answer, or a composition `correct`, `patch` or `clean`, at a
     move's destination end is written to the move (`Process: #129`, `#137`
-    and `#138`): where the role's own slot there is absent or a `clean`, and
-    its copy holds exactly one `move` whose `claim.to` names that address,
-    the answer applies to that `move` entry, and the slot at the destination
-    stays as it is. A composition `correct` or `patch` sets the move's
-    `change`, its claim standing; a composition `clean` leaves the move as
-    it stands. A composition `query` at a move's origin, from the role that
-    holds the move, is put on the copy right after the move, which stays.
+    and `#138`): where the role's own slot there is absent or a `clean`, the
+    answer applies to every `move` on its copy whose `claim.to` names that
+    address -- both, where the role moves two paragraphs there (`#154`) --
+    and the slot at the destination stays as it is. A composition `correct`
+    or `patch` sets each move's `change`, its claim standing; a composition
+    `clean` leaves each move as it stands. A composition `query` at a move's
+    origin, from the role that holds the move, is put on the copy right
+    after the move, which stays.
 
     Returns:
         A `Revisit` per address this role's copy holds no slot for and
@@ -532,16 +531,19 @@ def apply(
     revisit: list[Revisit] = []
     for address, answer in answers:
         entry = _entry_at(copies, role, address)
-        move = None
+        moves = []
         if (
             isinstance(answer, DiffMark) or answer.instruction in _REACHES_THE_MOVE
         ) and (entry is None or entry.get("instruction") == str(Instruction.CLEAN)):
-            move = _move_to(copies, role, address)
-        entry = move or entry
+            moves = _moves_to(copies, role, address)
         sheet = None
-        if entry is None:
+        if moves:
+            targets = moves
+        elif entry is not None:
+            targets = [entry]
+        else:
             mine = [c for c in copies if isinstance(c, dict) and c.get("role") == role]
-            sheet, entry, why = place_on_the_page(mine, address, root)
+            sheet, seeded, why = place_on_the_page(mine, address, root)
             if sheet is None:
                 reasons = [
                     m.removeprefix(f"{address}: ").removeprefix(f"{address} ")
@@ -549,32 +551,27 @@ def apply(
                 ]
                 revisit.append(_refused(role, address, address, reasons))
                 continue
-        beside = (
-            isinstance(answer, Mark)
-            and answer.instruction is Instruction.QUERY
-            and entry.get("instruction") == str(Instruction.MOVE)
-        )
-        if move is not None and isinstance(answer, Mark):
-            held = (
-                None
-                if answer.instruction is Instruction.CLEAN
-                else {**move, "change": answer.change}
+            targets = [seeded]
+        for target in targets:
+            beside = (
+                isinstance(answer, Mark)
+                and answer.instruction is Instruction.QUERY
+                and target.get("instruction") == str(Instruction.MOVE)
             )
-        else:
-            held = _answered(entry, answer, composed.get(address, {}))
-        if held is None:
-            continue
-        parsed, why = Mark.deserialize(address, held)
-        if parsed is None:
-            reasons = [without_location(address, m) for m in why]
-            revisit.append(_refused(role, address, address, reasons))
-            continue
-        if beside:
-            _put_after(copies, role, entry, held)
-        elif sheet is None:
-            _becomes(entry, held)
-        else:
-            sheet.append(held)
+            held = _answered(target, answer, composed.get(address, {}))
+            if held is None:
+                continue
+            parsed, why = Mark.deserialize(address, held)
+            if parsed is None:
+                reasons = [without_location(address, m) for m in why]
+                revisit.append(_refused(role, address, address, reasons))
+                continue
+            if beside:
+                _put_after(copies, role, target, held)
+            elif sheet is None:
+                _becomes(target, held)
+            else:
+                sheet.append(held)
     return revisit
 
 
@@ -833,7 +830,10 @@ def _disagreeing(got: Collated, contested: set[str]) -> Collated:
     the first fold is unchanged. It covers a composition `correct` or `patch`
     beside another role's `clean` adoption, an escalation where one role
     answers with a new text and another holds, and an `add` beside another
-    role's answer to it, which stays carried forward (`Process: #123`).
+    role's answer to it, which stays carried forward (`Process: #123`). A
+    contested re-read one role moves two or more paragraphs to escalates as
+    well, whatever texts its moves carry: which lands first and how they
+    read together is a conflict sent back (`Process: #154`).
 
     Both ends of a `move` escalate together (`Process: #137`): a re-read
     holding a move whose other end escalates here escalates with it. It runs
@@ -847,7 +847,10 @@ def _disagreeing(got: Collated, contested: set[str]) -> Collated:
         entry["address"]
         for entry in got.rereads
         if entry["address"] in contested
-        and len({placed.mark.change for placed in entry["marks"]}) > 1
+        and (
+            len({placed.mark.change for placed in entry["marks"]}) > 1
+            or _moved_here_twice(entry)
+        )
     }
     changed = bool(gone)
     while changed:
@@ -874,6 +877,17 @@ def _disagreeing(got: Collated, contested: set[str]) -> Collated:
         ],
         rereads=[e for e in got.rereads if e["address"] not in gone],
     )
+
+
+def _moved_here_twice(entry: dict) -> bool:
+    """Whether one role holds two or more moves to this entry's place."""
+    movers = [
+        placed.role
+        for placed in entry["marks"]
+        if placed.mark.instruction is Instruction.MOVE
+        and placed.mark.claim.get("to") == entry["address"]
+    ]
+    return len(movers) != len(set(movers))
 
 
 def _keeping(got: Collated, earlier: dict[str, Determined]) -> Collated:

@@ -44,7 +44,7 @@ from comment_review.commands import proof as proof_command
 from comment_review.commands.collate import OK
 from comment_review.desk.containers import MasterProof
 from comment_review.desk.determined import CHIEF, ORIGINAL, Answer
-from comment_review.desk.diff_mark import COMPOSITION, QUESTION, batch_of
+from comment_review.desk.diff_mark import COMPOSITION, ESCALATION, QUESTION, batch_of
 from comment_review.desk.mark import (
     INSTRUCTIONS,
     Instruction,
@@ -1807,27 +1807,19 @@ class TestTheBatchWhereTwoMovesLand:
 
 class TestAMoverWithTwoMovesToOnePlace:
     """A role holding two moves to one destination --
-    `no-command-for-the-middle` T64, `Process: #129` and `#137`.
+    `no-command-for-the-middle` T64 and T95, `Process: #129`, `#137` and
+    `#154`.
 
     `_two_moves_to_one_place` carries all three places as re-reads, the
     slot at the destination carrying one move's text. Turn 1 answers
     block-context's slot there with a `correct` over the text it carries
-    and every other slot `clean`. `flows.turn._move_to` finds no one move
-    to route it to, so the answer lands on a slot seeded from the page,
-    beside both moves. The test asks that it land on no slot there, whether
-    it reaches a move or comes back to the role.
+    and every other slot `clean`. Under `#154` the answer reaches both
+    moves, each carrying the answer's text, and no slot of block-context's
+    lands at the destination; and the place is a conflict sent back, so it
+    and both moves' origins are escalations the next batch carries.
     """
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "no-command-for-the-middle T64: with two moves to the destination "
-            "the answer there reaches neither and lands on a seeded slot; "
-            "whether it reaches a move, and which, or comes back to the role "
-            "is a question for Roy"
-        ),
-    )
-    def test_the_answer_lands_on_no_slot_at_the_destination(self, tmp_path):
+    def test_the_answer_reaches_both_and_goes_back_as_a_conflict(self, tmp_path):
         binder, got = _two_moves_to_one_place(tmp_path)
         batch = batch_of(got.escalations, got.rereads)
         sent = _slot(batch, "block-context", EMPTY_PLACE)["raw_text"]
@@ -1847,14 +1839,19 @@ class TestAMoverWithTwoMovesToOnePlace:
             batch,
             _clean_but(batch, "block-context", EMPTY_PLACE, answer),
         )
+        assert one.revisit == []
         proof = _read_back(tmp_path, 1, proof_after(one, ({"turn": 1, "sent": batch},)))
         moves = [
-            mark.instruction
+            (mark.instruction, mark.change)
             for origin in (MOVED_FROM, SECOND_COMMENT)
             for mark in _on(proof, "block-context", origin)
         ]
-        assert moves == [Instruction.MOVE, Instruction.MOVE]
+        assert moves == [(Instruction.MOVE, answer["change"])] * 2
         assert _on(proof, "block-context", EMPTY_PLACE) == []
+        escalated = {e["address"] for e in one.escalations}
+        assert {MOVED_FROM, SECOND_COMMENT, EMPTY_PLACE} <= escalated
+        again = batch_of(one.escalations, one.rereads)
+        assert _slot(again, "block-context", EMPTY_PLACE)[QUESTION] == ESCALATION
 
 
 class TestAMovesEndWithNoRolesLeft:
