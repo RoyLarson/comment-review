@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 30 of 38 tasks closed
+Progress: 31 of 38 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -137,7 +137,8 @@ The agents files name the new CLI and say how to use it.
 - [x] T36 | the vocabulary annotation is a type annotation in code, and mark no longer names annotations, per Process 158 | 9f488535 | Update
       vocabulary.toml's annotation definition so it is true of what the roles
       are handed, per Process 158
-- [ ] T37 | Update the skill's front-matter description so the task agent does
-      not apply the approved text, per Process 159
+- [x] T37 | the skill description says what the human approves is set in temporary files to diff, per Process 159 | d66af29d | Update
+      the skill's front-matter description so the task agent does not apply the
+      approved text, per Process 159
 - [ ] T38 | Update SKILL.md's Enrich the binder section so it asks only for what
       a command does
