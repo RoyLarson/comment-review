@@ -40,8 +40,10 @@ from helpers import (
 )
 
 from comment_review.binder.binder import Binder
+from comment_review.commands import collate as collate_command
 from comment_review.commands import proof as proof_command
-from comment_review.commands.collate import OK
+from comment_review.commands import turn as turn_command
+from comment_review.commands.collate import BROKEN, OK
 from comment_review.commands.disposition import _put_to_the_human
 from comment_review.desk.containers import MasterProof
 from comment_review.desk.determined import CHIEF, ORIGINAL, Answer
@@ -2613,6 +2615,120 @@ class TestAMoveHeldAtBothEnds:
                 if line.startswith("unsettlable ")
             ]
             assert entries == [f"{header} the human -- {asked['reason']}"], order
+
+
+def _a_move_held_where_no_copy_has_the_page(root):
+    """A move held at both ends to a page no copy has a sheet for, on disk.
+
+    block-context moves `MOVED_FROM` to `OTHER`, on `n.py`, which is
+    written after the binder is bound, so the run never gathered it.
+    Turn 1, run in process, answers block-context's slot at the origin with
+    a `human-review-necessary` query and every other slot `clean`, so both
+    ends are held for the human. `binder.json`, `proof0.json`, `sent.json`
+    and each role's answers, as `<role>.json`, are written into `root`.
+
+    Returns:
+        The fold after turn 1.
+    """
+    (root / "m.py").write_text(GAPPED_PAGE, encoding="utf-8")
+    binder = binder_of(root, 0)
+    copies = [seed(binder, role) for role in ("block-context", "function-context")]
+    (root / "n.py").write_text(OTHER_PAGE, encoding="utf-8")
+    moved = {
+        "address": MOVED_FROM,
+        "instruction": "move",
+        "claim": {"from": MOVED_FROM, "to": OTHER},
+        "reason": "the comment is about n.py, not y",
+        "sources": [{"cite": "m.py:7"}],
+        "change": MOVED_TEXT,
+    }
+    cleaned = {"address": MOVED_FROM, "instruction": "clean"}
+    for copy, ruled in zip(copies, (moved, cleaned), strict=True):
+        _, why = fill(copy, ruled, root)
+        assert why == []
+    got = collate("4c", copies, binder, root=root)
+    assert got.problems == []
+    batch = batch_of(got.escalations, got.rereads)
+    asked = _a_movers_query(Shape.HUMAN_REVIEW_NECESSARY)
+    answers = _clean_but(batch, "block-context", MOVED_FROM, asked)
+    (root / "binder.json").write_text(json.dumps(binder.serialize()), encoding="utf-8")
+    save_proof(root / "proof0.json", proof_after(got, root=root))
+    (root / "sent.json").write_text(json.dumps(batch), encoding="utf-8")
+    for role, slots in answers.items():
+        (root / f"{role}.json").write_text(json.dumps(slots), encoding="utf-8")
+    one = run_turn(_at(got, root), binder, root, batch, answers)
+    assert one.revisit == []
+    assert sorted(u["address"] for u in one.unsettlable) == [MOVED_FROM, OTHER]
+    return one
+
+
+class TestAHeldDestinationNoCopyHasASheetFor:
+    """A held move destination whose page no copy has a sheet for --
+    `Process: #155` and `#161`.
+
+    `flows.turn.proof_after` cannot seed that end's `add`, so `collate` and
+    `turn` each refuse the proof: the test asserts BROKEN, the refusal on
+    stderr, and that neither command writes a file.
+    """
+
+    def test_collate_refuses_and_writes_nothing(self, tmp_path, monkeypatch, capsys):
+        one = _a_move_held_where_no_copy_has_the_page(tmp_path)
+        assert one.proof is not None
+        copies = []
+        for copy in one.proof.edit_copies:
+            path = tmp_path / f"copy-{copy.role}.json"
+            path.write_text(json.dumps(copy.serialize()), encoding="utf-8")
+            copies += ["--edit-copy", str(path)]
+        code, out = run_command(
+            monkeypatch,
+            capsys,
+            collate_command,
+            "--stage",
+            "4c",
+            "--binder",
+            str(tmp_path / "binder.json"),
+            *copies,
+            "--out",
+            str(tmp_path / "chief.json"),
+            "--proof-out",
+            str(tmp_path / "proof.json"),
+            "--repo",
+            str(tmp_path),
+            with_stderr=True,
+        )
+        assert code == BROKEN, out
+        assert "REFUSED: the master proof cannot be written" in out
+        assert not (tmp_path / "chief.json").exists()
+        assert not (tmp_path / "proof.json").exists()
+
+    def test_turn_refuses_and_writes_nothing(self, tmp_path, monkeypatch, capsys):
+        _a_move_held_where_no_copy_has_the_page(tmp_path)
+        code, out = run_command(
+            monkeypatch,
+            capsys,
+            turn_command,
+            "--proof",
+            str(tmp_path / "proof0.json"),
+            "--binder",
+            str(tmp_path / "binder.json"),
+            "--sent",
+            str(tmp_path / "sent.json"),
+            "--answers",
+            f"block-context={tmp_path / 'block-context.json'}",
+            "--answers",
+            f"function-context={tmp_path / 'function-context.json'}",
+            "--proof-out",
+            str(tmp_path / "proof1.json"),
+            "--batch-out",
+            str(tmp_path / "batch2.json"),
+            "--repo",
+            str(tmp_path),
+            with_stderr=True,
+        )
+        assert code == BROKEN, out
+        assert "REFUSED: the master proof cannot be written" in out
+        assert not (tmp_path / "proof1.json").exists()
+        assert not (tmp_path / "batch2.json").exists()
 
 
 def _two_places():
