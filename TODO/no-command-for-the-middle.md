@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 73 of 92 tasks closed
+Progress: 74 of 92 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -429,8 +429,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       its destination, to settle what lands
         > 2026-09-13 round 5, by reading: only the destination's add is written
         > 2026-09-13 Roy 2026-09-13: the last round before the move branch merges
-- [ ] T90 | Update the unsettlable entry for a move's held origin so the move's
-      drop rides with it to the human at 7a, per Process 90 and 139
+- [x] T90 | a held move origin carries the moves drop on the proof and in disposition output | a67fba8a | Update
+      the unsettlable entry for a move's held origin so the move's drop rides
+      with it to the human at 7a, per Process 90 and 139
         > 2026-09-13 T89's xfail at ed8afe94: text at both ends until 7a
 - [ ] T91 | Implement a test of a mover that leaves its origin slot unanswered
       while every role holds one text, to settle whether it settles
