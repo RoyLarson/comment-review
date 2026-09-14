@@ -4540,3 +4540,14 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   Roy chose *"The add, asked together"*: per `#137` both ends ride to 7a and are put to the
   author as one move, approved or refused whole.
+
+- **#156.** **The move semantics are provisional** (Roy, 2026-09-13, after `#152` to `#155`
+  ruled four move shapes a test had constructed, and while the other sessions waited on a fresh
+  build to run on real code).
+
+  *"All of the 'move' semantics and things are provisional like the rest of the code at this
+  point. I don't know how all of this is actuallly going to work and until we have tested it on
+  code it is hard to see the problems"*
+
+  So `#152` to `#155` stand as provisional, like the code they rule on, and a move shape is next
+  judged on what a run over real code shows.
