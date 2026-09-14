@@ -98,25 +98,25 @@ place nobody looked at.** A reviewer following the brief produced findings that 
 ## What each instruction owes
 
 **Defaults:** an instruction owes `claim`, `reason`, `change`, `address` and `sources`, and is
-substantive and diffable, **unless its row says otherwise.**
+substantive, **unless its row says otherwise.**
 
 ```
            claim carries    verbatim   change   sources   the row's own flags
 --------------------------------------------------------------------------------------
 clean      --               --         no       no        not substantive. The NULL
                                                           mark, and the coverage record
-query      shape,           --         no       YES       may declare scope
+query      shape,           --         no       YES       --
            attempted,
            settles
 drop       drop             drop       yes      yes       an empty change IS the edit
                                                           where the claim names the
                                                           whole paragraph
-correct    false, true      false      yes      yes       rules on text
+correct    false, true      false      yes      yes       --
 patch      from, to         from       yes      NO        wording alone -- nothing
                                                           outside the paragraph
                                                           settles it
-add        missing,         --         yes      yes       not diffable. The anchor is
-           anchor                                         NAMED IN BACKTICKS
+add        missing,         --         yes      yes       the anchor is named in
+           anchor                                         backticks
 move       from, to         --         the      yes       the `to` must be ADDRESSABLE
                                        COMPOSITE
 ```
@@ -228,7 +228,7 @@ payload's"* and now reads *"never the claim's"*: the old word named the field th
 ## The classifiers -- FOUR COLUMNS AND A CLOSED LIST OF FLAGS
 
 !! **THIS IS THE PART THAT WAS MISSING, AND ITS ABSENCE IS WHAT LET TWENTY-TWO FIELDS IN.** A row
-may state these and nothing else -- **eleven things, and no prose.** A new classifier is a change
+may state these and nothing else -- **eight things, and no prose.** A new classifier is a change
 to THIS FILE first.
 
 | classifier | what it decides | shape |
@@ -238,14 +238,10 @@ to THIS FILE first.
 | **change** | whether a change is owed, and for `move` that it shows both ends | owed / not owed |
 | **sources** | whether sources are owed | owed / not owed |
 
-**The flags, and there are seven:**
+**The flags, and there are four:**
 
     not substantive        clean alone. It is the NULL mark and the coverage record
-    may declare scope      query alone. A boundary report is not work and must not block
-                           the other roles
     empty change allowed   drop alone, where the claim names the whole paragraph
-    rules on text          correct and patch. The two that propose wording
-    not diffable           add alone. There is no original to diff against
     anchor named in backticks   add alone, and it is a FORM check on `claim.anchor`
     destination addressable     move alone
 
