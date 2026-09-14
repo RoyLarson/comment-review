@@ -72,9 +72,9 @@ def apply_unified(before: str, diff_lines: list[str]) -> str:
 
 def test_the_rendered_diff_reproduces_the_revise():
     # !! THE SUBSTITUTED TEXT IS REAL, GREPPED OFF THE FILE ITSELF -- `CLAUDE.md`'s
-    # ruling against a hand-authored fixture. `mark.py:227`'s own docstring reads
-    # "carries the keys this instruction's row demands".
-    rel = "src/comment_review/desk/mark.py"
+    # ruling against a hand-authored fixture. `marks/mark.py:692`'s own docstring
+    # reads "carries the keys this instruction's row demands".
+    rel = "src/comment_review/desk/marks/mark.py"
     before = (_REPO_ROOT / rel).read_text(encoding="utf-8")
     needle = "the keys this instruction's row demands"
     assert needle in before
@@ -84,7 +84,9 @@ def test_the_rendered_diff_reproduces_the_revise():
 
 
 def test_no_difference_renders_no_lines():
-    text = (_REPO_ROOT / "src/comment_review/desk/mark.py").read_text(encoding="utf-8")
+    text = (_REPO_ROOT / "src/comment_review/desk/marks/mark.py").read_text(
+        encoding="utf-8"
+    )
     assert unified(text, text, "mark.py") == []
 
 

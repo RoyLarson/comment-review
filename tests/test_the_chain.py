@@ -193,8 +193,8 @@ def _correct_one_place(document: dict, address: str) -> None:
                 "true": "the corrected sentence",
             }
             # !! THE CITE MUST RESOLVE INSIDE THIS RUN'S OWN REPO. `a_correct`
-            # seeds one naming `src/comment_review/desk/mark.py`, which is real
-            # in this checkout and absent from a tmp tree -- and `collate`
+            # seeds one naming `src/comment_review/desk/marks/mark.py`, which
+            # is real in this checkout and absent from a tmp tree -- and `collate`
             # resolves a cite against the binder's `read_from.root`, so it
             # reports "does not resolve -- the file cannot be read" and exits
             # nonzero. Source verification is doing its job; the fixture was

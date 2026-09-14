@@ -8,6 +8,7 @@ from helpers import binder_of
 
 from comment_review.binder.binder import VERSION, Binder
 from comment_review.flows.distribute import seed
+from comment_review.reading.addresser import flatten
 
 # !! ABSOLUTE, matching `tests/test_binder_records_its_root.py`'s own `DESK` --
 # a relative `Path("src/comment_review/desk")` only rglobs correctly when the
@@ -69,11 +70,16 @@ def test_an_edit_copy_holds_a_sheet_per_page_with_its_sha():
 
 
 def test_every_mark_reaches_the_sheet_for_its_own_page():
+    # `mark["address"]` is flattened (`reading.addresser.flatten`, `:` for a
+    # path separator); `sheet["path"]` is the raw relative path `pages_of`
+    # stamped, `os.sep` on this platform. `desk/` gained a subdirectory in
+    # T1 of the-middle-rebuilt, so a nested page's raw path and its
+    # flattened address stopped reading as the same string here.
     binder = binder_of(DESK, 0)
     copy = seed(binder, "block-context")
     for sheet in copy["sheets"]:
         for mark in sheet["marks"]:
-            assert mark["address"].startswith(sheet["path"])
+            assert mark["address"].startswith(flatten(sheet["path"]))
 
 
 def test_a_NULL_sha_is_seeded_as_absent_not_the_word_None():

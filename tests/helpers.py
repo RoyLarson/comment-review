@@ -55,9 +55,15 @@ from comment_review.flows.proof_io import load_proof
 _DESK = Path(__file__).resolve().parents[1] / "src" / "comment_review" / "desk"
 
 #: A real citation `a_correct`, `a_move`, `a_query` and `an_add` reuse for
-#: `sources` -- `mark.py`'s own first line, read once at import time.
-_MARK_PY_CITE = "src/comment_review/desk/mark.py:1"
-_MARK_PY_LINE_1 = (_DESK / "mark.py").read_text(encoding="utf-8").splitlines()[0]
+#: `sources` -- `desk/marks/mark.py`'s own first line, read once at import
+#: time. `desk/mark.py` moved to `desk/marks/mark.py` in T1 of
+#: `docs/superpowers/plans/2026-09-14-the-middle-rebuilt.md`, taking its
+#: comment paragraphs with it; the shim left behind is thirteen lines of
+#: imports, with no filled `b` row for `a_docket_over` to find.
+_MARK_PY_CITE = "src/comment_review/desk/marks/mark.py:1"
+_MARK_PY_LINE_1 = (
+    (_DESK / "marks" / "mark.py").read_text(encoding="utf-8").splitlines()[0]
+)
 
 #: The sentence `a_drop` and `a_correct` quote when a caller names none. It is
 #: a PLACEHOLDER and belongs to no paragraph, which `_quoting_the_real_text`
@@ -148,14 +154,18 @@ def a_small_real_tree(tmp_path: Path) -> Path:
     """A repo of a few real `.py` files, copied from `src/comment_review/desk/`.
 
     ! REAL SOURCE, NEVER A HAND-AUTHORED LITERAL -- `CLAUDE.md`'s ruling for
-    this suite. `mark.py` keeps its own name so a docket over "mark.py" names
-    a file that is actually there; the other three are along so
-    `test_revise.py`'s own case can show a page the docket does not name is
-    missing from the revise, per `decision-log.md Process: #117`.
+    this suite. `mark.py` keeps its own flat name in the written repo so a
+    docket over "mark.py" names a file that is actually there, though its
+    content is read from `desk/marks/mark.py` now that the move landed --
+    the shim left at `desk/mark.py` carries no filled `b` row to pick. The
+    other three are along so `test_revise.py`'s own case can show a page the
+    docket does not name is missing from the revise, per `decision-log.md
+    Process: #117`.
     """
     repo = tmp_path / "repo"
     repo.mkdir()
-    for name in ("mark.py", "stages.py", "collator.py", "__init__.py"):
+    (repo / "mark.py").write_bytes((_DESK / "marks" / "mark.py").read_bytes())
+    for name in ("stages.py", "collator.py", "__init__.py"):
         (repo / name).write_bytes((_DESK / name).read_bytes())
     return repo
 
@@ -402,7 +412,7 @@ def a_real_binder_over(root: Path, paragraphs: dict[str, str]) -> Binder:
     root.mkdir(parents=True, exist_ok=True)
     cited = root / _MARK_PY_CITE.rpartition(":")[0]
     cited.parent.mkdir(parents=True, exist_ok=True)
-    cited.write_bytes((_DESK / "mark.py").read_bytes())
+    cited.write_bytes((_DESK / "marks" / "mark.py").read_bytes())
     by_path: dict[str, dict[int, str]] = {}
     for address, text in paragraphs.items():
         path, _, place = address.partition("@")

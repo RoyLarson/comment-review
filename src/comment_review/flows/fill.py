@@ -50,7 +50,6 @@ cited line is read here, through `machine.repo.read_raw`, the same reader and
 the same splitter `desk.collator.source_problems` will check the result with.
 """
 
-import re
 from pathlib import Path
 
 from comment_review.desk.collator import cite_at
@@ -62,6 +61,7 @@ from comment_review.desk.mark import (
     filled,
     untouched,
 )
+from comment_review.desk.marks.mark import first_word_dropped
 from comment_review.flows.page_for import page_of
 from comment_review.machine import constants
 from comment_review.machine.exceptions import READ_ERRORS
@@ -74,26 +74,9 @@ from comment_review.reading.addresser import cue_of, unflatten
 #: copied from the entry onto the mark.
 ROLE_FIELDS = ("claim", "reason", "sources", "change")
 
-#: A word, as the keep-the-prose check counts one: a run of letters and
-#: digits. Punctuation, whitespace and the underscore only separate words.
-_WORD = re.compile(r"[^\W_]+")
-
-
-def first_word_dropped(prose: str, change: str) -> str | None:
-    """The first word of `prose` that `change` does not keep in order, or None.
-
-    `decision-log.md Process: #132`: an `add` at a place holding prose adds to
-    that paragraph, so its change holds every word of the prose, in the order
-    the prose has them, and punctuation and whitespace are free to move.
-
-    `flows.collate` asks the same of a `correct`'s change, over its seeded
-    paragraph with `claim.false` taken out (`decision-log.md Process: #163`).
-    """
-    kept = iter(_WORD.findall(change))
-    for word in _WORD.findall(prose):
-        if word not in kept:
-            return word
-    return None
+#: `first_word_dropped` moved to `desk.marks.mark` so the marks table can use
+#: it without `desk` importing `flows`; imported above and used below.
+#: `flows.collate` still imports it from this module's own namespace.
 
 
 def _slot_at(copy: dict, address: str) -> tuple[list | None, int]:

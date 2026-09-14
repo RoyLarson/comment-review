@@ -154,6 +154,22 @@ to one leaving.
 
 ! Tracked in [`TODO/verdicts-is-the-join.md`](../TODO/verdicts-is-the-join.md).
 
+### `stance` and `touch` -- the marks table's own words, recorded here first
+
+T1 of `docs/superpowers/plans/2026-09-14-the-middle-rebuilt.md` gave `desk.marks.table` two closed
+sets:
+
+- **`touch`** -- which of the places a mark writes is being asked about: `own`, `origin`,
+  `destination`. A `move` touches two; every other instruction touches one, its own.
+- **`stance`** -- how a mark stands toward the other marks at its place: `proposes` (a change is
+  on the table), `abstains` (nothing to add here), `unsettlable` (a human decides). What the
+  evaluator built on later tasks asks of a row.
+
+Same rule as `copy chief` above: do not add either to `vocabulary.toml` until a role's own text
+uses the word. Neither term is reviewer-facing yet -- `desk.marks.table.Touch` and `.Stance` are
+read by the middle, not by an editorial role's prompt -- so the drift check would refuse a term no
+role's text carries. Add them once an agents-lane task puts the word in a reviewer's own file.
+
 ## The middle has four containers -- `master_proof`, `edit_copy`, `sheet`, `mark`
 
 **Ruled 2026-08-29** (`decision-log.md Vocabulary: #28`), naming the level the three-container

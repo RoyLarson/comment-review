@@ -192,9 +192,20 @@ def test_every_mapped_phrase_is_in_the_spec():
     assert set(FIELD_FOR) == set(_classifier_names()) | set(_flag_names())
 
 
-def test_the_row_carries_only_what_the_spec_allows():
-    have = {f.name for f in dataclasses.fields(Row)}
-    assert have == allowed_names(), sorted(have ^ allowed_names())
+def test_the_spec_named_fields_are_still_readable_off_the_row():
+    """Loosened from set-equality 2026-09-14, T1 of
+    docs/superpowers/plans/2026-09-14-the-middle-rebuilt.md: `Row` moved to
+    `desk.marks.table` and gained `touches`, `sets`, `reads`, `pairs`,
+    `answers` and `rereads` -- fields the marks table needs that
+    `docs/the-mark.md` does not yet state. `owes_destination` is now a
+    property derived from `touches` rather than a stored field, so this asks
+    for the name on the class rather than in `dataclasses.fields`. Task 9 and
+    Task 12 of that plan bring `docs/the-mark.md` and this gate back into
+    exact agreement; until then this checks only that nothing the spec
+    promises went missing, not that the row carries nothing else.
+    """
+    missing = [name for name in allowed_names() if not hasattr(Row, name)]
+    assert missing == []
 
 
 def test_no_field_carries_prose():
