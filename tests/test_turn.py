@@ -8,6 +8,10 @@ would hand back: the seeded slot with its fields filled.
 """
 
 import json
+import os
+import subprocess
+import sys
+from pathlib import Path
 
 import pytest
 from conftest import run_command
@@ -1709,14 +1713,104 @@ TWO_COMMENTS_PAGE = "x = 1\n# one\n# two\n# three\ny = 2\n# four\nz = 3\nw = 4\n
 SECOND_COMMENT = "m.py@b2"
 
 
+def _two_moves_to_one_place(root):
+    """block-context moves `MOVED_FROM` and `SECOND_COMMENT` to `EMPTY_PLACE`
+    on `TWO_COMMENTS_PAGE`, function-context cleans both origins, and
+    `_fold_over` folds the two.
+
+    Returns:
+        As `_fold_over`.
+    """
+    moved = {
+        "instruction": "move",
+        "reason": "the comment is about w",
+        "sources": [{"cite": "m.py:8"}],
+    }
+    return _fold_over(
+        root,
+        TWO_COMMENTS_PAGE,
+        {
+            "block-context": [
+                {
+                    **moved,
+                    "address": MOVED_FROM,
+                    "claim": {"from": MOVED_FROM, "to": EMPTY_PLACE},
+                    "change": MOVED_TEXT,
+                },
+                {
+                    **moved,
+                    "address": SECOND_COMMENT,
+                    "claim": {"from": SECOND_COMMENT, "to": EMPTY_PLACE},
+                    "change": "# four",
+                },
+            ],
+            "function-context": [
+                {"address": MOVED_FROM, "instruction": "clean"},
+                {"address": SECOND_COMMENT, "instruction": "clean"},
+            ],
+        },
+    )
+
+
+#: What `TestTheBatchWhereTwoMovesLand` runs in each fresh process: the fold
+#: `_two_moves_to_one_place` leaves, and the batch it sends as JSON with its
+#: keys sorted. The first argument is this directory, the second the root.
+_THE_BATCH_IN_A_FRESH_PROCESS = """
+import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, sys.argv[1])
+from test_turn import _two_moves_to_one_place
+
+from comment_review.desk.diff_mark import batch_of
+
+_, got = _two_moves_to_one_place(Path(sys.argv[2]))
+print(json.dumps(batch_of(got.escalations, got.rereads), sort_keys=True))
+"""
+
+
+class TestTheBatchWhereTwoMovesLand:
+    """The batch sent where two moves land -- `no-command-for-the-middle` T97.
+
+    `_two_moves_to_one_place` is folded and its batch built in a fresh
+    process under each of six hash seeds. The test asserts every process
+    sends the same batch, the text at `EMPTY_PLACE` among it.
+    """
+
+    def test_it_is_the_same_under_every_hash_seed(self, tmp_path):
+        sent = set()
+        for hash_seed in range(6):
+            root = tmp_path / f"seed-{hash_seed}"
+            root.mkdir()
+            ran = subprocess.run(
+                [
+                    sys.executable,
+                    "-c",
+                    _THE_BATCH_IN_A_FRESH_PROCESS,
+                    str(Path(__file__).parent),
+                    str(root),
+                ],
+                env={
+                    **os.environ,
+                    "PYTHONHASHSEED": str(hash_seed),
+                    "PYTHONDONTWRITEBYTECODE": "1",
+                },
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            assert ran.returncode == 0, ran.stderr
+            sent.add(ran.stdout)
+        assert len(sent) == 1
+
+
 class TestAMoverWithTwoMovesToOnePlace:
     """A role holding two moves to one destination --
     `no-command-for-the-middle` T64, `Process: #129` and `#137`.
 
-    block-context moves `MOVED_FROM` and `SECOND_COMMENT` to `EMPTY_PLACE`,
-    and function-context cleans both origins. The fold carries all three
-    places as re-reads, the slot at the destination carrying one move's
-    text; which one varies with `PYTHONHASHSEED`. Turn 1 answers
+    `_two_moves_to_one_place` carries all three places as re-reads, the
+    slot at the destination carrying one move's text. Turn 1 answers
     block-context's slot there with a `correct` over the text it carries
     and every other slot `clean`. `flows.turn._move_to` finds no one move
     to route it to, so the answer lands on a slot seeded from the page,
@@ -1734,35 +1828,7 @@ class TestAMoverWithTwoMovesToOnePlace:
         ),
     )
     def test_the_answer_lands_on_no_slot_at_the_destination(self, tmp_path):
-        moved = {
-            "instruction": "move",
-            "reason": "the comment is about w",
-            "sources": [{"cite": "m.py:8"}],
-        }
-        binder, got = _fold_over(
-            tmp_path,
-            TWO_COMMENTS_PAGE,
-            {
-                "block-context": [
-                    {
-                        **moved,
-                        "address": MOVED_FROM,
-                        "claim": {"from": MOVED_FROM, "to": EMPTY_PLACE},
-                        "change": MOVED_TEXT,
-                    },
-                    {
-                        **moved,
-                        "address": SECOND_COMMENT,
-                        "claim": {"from": SECOND_COMMENT, "to": EMPTY_PLACE},
-                        "change": "# four",
-                    },
-                ],
-                "function-context": [
-                    {"address": MOVED_FROM, "instruction": "clean"},
-                    {"address": SECOND_COMMENT, "instruction": "clean"},
-                ],
-            },
-        )
+        binder, got = _two_moves_to_one_place(tmp_path)
         batch = batch_of(got.escalations, got.rereads)
         sent = _slot(batch, "block-context", EMPTY_PLACE)["raw_text"]
         assert sent in (MOVED_TEXT, "# four")
