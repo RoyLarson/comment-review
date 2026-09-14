@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 6 of 10 tasks closed
+Progress: 6 of 11 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-08 (Roy 2026-09-08: implementing the recast workflow for the cli the
@@ -51,3 +51,5 @@ The copy chief has no workflow for recasting the places that never settled.
       original paragraph to the chief's prose, per Process 146
         > 2026-09-13 includes the recast at a move's origin, 0f9657a0
         > 2026-09-13 test: the claim's true is what lands; false is the original
+- [ ] T11 | Update the recast so a recast at an empty place is always an add,
+      per Process 157

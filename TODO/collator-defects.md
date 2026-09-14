@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 13 of 42 tasks closed
+Progress: 13 of 43 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -195,7 +195,7 @@ Four defects in collator.py, found by reading only the code.
 - [ ] T36 | Update check so a correct whose change drops sentences its claim
       never named is named to the chief
         > 2026-09-07 desk/mark.py@a6: both changes cut the class docstring; check exit 0
-- [x] T37 | an add recast at an empty place stays an add and its prose lands; test_the_recast_lands_at_the_empty_place proves it | 3fbaa5c5 | Update
+- [-] T37 | split: the filed-add half is T43; an empty place always takes an add, the-chief T11, Process 157 | 7c4942d1 | Update
       cap so a recast keeps the instruction the roles filed; an add recast as
       correct at an empty place writes nothing
         > 2026-09-07 claude-settings: three recasts, an add among them, wrote correct
@@ -219,3 +219,5 @@ Four defects in collator.py, found by reading only the code.
 - [ ] T42 | Update source_problems to split a verbatim as the cited window is
       split, per Addressing #12
         > 2026-09-13 Roy 2026-09-13: the compositor rewrites endings; inside, none
+- [ ] T43 | Implement a test that a recast at an add's empty place, where a role
+      filed the add, keeps add and lands its text

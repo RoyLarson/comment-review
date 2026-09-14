@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 17 of 29 tasks closed
+Progress: 17 of 32 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -110,3 +110,9 @@ The agents files name the new CLI and say how to use it.
         > 2026-09-13 from census T16, Process 147
 - [ ] T29 | Update SKILL.md 7a so the task agent puts a held move's drop and add
       to the author as one move, per Process 155
+- [ ] T30 | Update SKILL.md, reviewer-brief.md and compact.md so no agent is
+      told to use a paragraph's kind or annotations, per Process 158
+- [ ] T31 | Update SKILL.md and write.md so stage 7b writes the approved text to
+      temporary files for the author to diff, per Process 159
+- [ ] T32 | Update SKILL.md, reviewer-brief.md and write.md so every command,
+      flag, exit code and output they name matches the CLI
