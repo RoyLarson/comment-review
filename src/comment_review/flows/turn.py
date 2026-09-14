@@ -959,7 +959,9 @@ def _recast_as(first: Mark, address: str) -> Instruction:
     writes nothing.
 
     Args:
-        first: the first owing mark at the place being recast.
+        first: the mark the recast follows, as `rule_at_max_turns` picks it
+            -- the first owing mark at the place, or at an add's empty
+            place the `add` filed there (`Process: #157`).
         address: which place -- for a move, one of its two ends.
     """
     dropped = first.instruction is Instruction.DROP
@@ -1020,7 +1022,10 @@ def rule_at_max_turns(
         shaped to it by `_recast_claim`, and citing each side's sources once --
         so it parses as an ordinary mark the way `flows.collate._composition`'s
         does. A recast follows the first mark there that touches `address`,
-        not one `desk.collator._join_moves` carried from a move's other end.
+        not one `desk.collator._join_moves` carried from a move's other end;
+        where that mark sits at `address` with no text -- an add's empty
+        place -- it follows the `add` filed there instead, so the recast is
+        an `add` whatever mark comes first (`Process: #157`).
         Where that mark is a move, the recast rules one end of it
         (`Process: #139`): at the origin it is a `correct` from the
         paragraph to the chief's prose, as over a `drop` (`#146`), and at
@@ -1061,6 +1066,15 @@ def rule_at_max_turns(
     if not filled(prose):
         raise ValueError("a recast needs the chief's own prose")
     first = next(p.mark for p in marks if address in _touched_by(p.mark))
+    if first.address == address and not filled(first.raw_text):
+        first = next(
+            (
+                p.mark
+                for p in marks
+                if p.mark.instruction is Instruction.ADD and p.mark.address == address
+            ),
+            first,
+        )
     instruction = _recast_as(first, address)
     cited = [s for p in marks for s in p.mark.sources]
     recast = Mark(

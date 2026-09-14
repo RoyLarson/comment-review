@@ -2326,15 +2326,107 @@ def _an_add_carried_to_max_turns(root) -> None:
     )
 
 
+#: block-context's answers to function-context's add at `EMPTY_PLACE`, each
+#: over the text the slot there carries.
+_A_PATCH_TO_THE_ADD = {
+    "instruction": "patch",
+    "reason": "four is the word the rest of the fixture uses",
+    "claim": {"from": "w is 4", "to": "w is four"},
+    "change": ADDED_TEXT.replace("w is 4", "w is four"),
+}
+_A_CORRECT_TO_THE_ADD = {
+    "instruction": "correct",
+    "reason": "four is the word the rest of the fixture uses",
+    "claim": {"false": "w is 4", "true": "w is four"},
+    "sources": [{"cite": "m.py:7", "verbatim": "w = 4"}],
+    "change": ADDED_TEXT.replace("w is 4", "w is four"),
+}
+
+
+def _an_add_answered_first_by_another_role(root, answer: dict) -> None:
+    """function-context's add at an empty place, escalated at turn 1 with
+    block-context's `answer` the first mark there, on disk for `disposition`.
+
+    Both roles clean `MOVED_FROM`, and function-context adds at
+    `EMPTY_PLACE`. Turn 1: block-context gives `answer` at `EMPTY_PLACE`,
+    which lands on a slot seeded from the page, and every other slot is
+    `clean`, so two texts stand there. `binder.json` and `proof1.json`, the
+    proof after turn 1 with its record, are written into `root`.
+    """
+    binder, got = _fold_over(
+        root,
+        GAPPED_PAGE,
+        {
+            "block-context": [{"address": MOVED_FROM, "instruction": "clean"}],
+            "function-context": [
+                {"address": MOVED_FROM, "instruction": "clean"},
+                {
+                    "address": EMPTY_PLACE,
+                    "instruction": "add",
+                    "claim": {"missing": "why w is 4", "anchor": "`w`"},
+                    "reason": "the constant is explained nowhere",
+                    "sources": [{"cite": "m.py:7"}],
+                    "change": ADDED_TEXT,
+                },
+            ],
+        },
+    )
+    batch = batch_of(got.escalations, got.rereads)
+    answers = _clean_but(batch, "block-context", EMPTY_PLACE, answer)
+    one = run_turn(_at(got, root), binder, root, batch, answers)
+    assert one.revisit == []
+    (carried,) = [e for e in one.escalations if e["address"] == EMPTY_PLACE]
+    assert [(p.role, p.mark.instruction) for p in carried["marks"]] == [
+        ("block-context", Instruction(answer["instruction"])),
+        ("function-context", Instruction.ADD),
+    ]
+    (root / "binder.json").write_text(json.dumps(binder.serialize()), encoding="utf-8")
+    save_proof(
+        root / "proof1.json",
+        proof_after(one, ({"turn": 1, "sent": batch},), root=root),
+    )
+
+
 class TestTheChiefRecastsAnAdd:
     """The chief's recast at an add's empty place lands there --
-    `collator-defects` T37.
+    `collator-defects` T37 and `the-chief-has-no-recast-workflow` T11,
+    `Process: #157`.
 
-    The recast keeps the `add` the roles filed, so its prose reaches the
-    docket; a `correct` there would quote an empty paragraph and write
-    nothing. Driven through `disposition` and `proof --to-docket`, and read
-    back from what each wrote.
+    The recast at an empty place is an `add`, whatever mark comes first
+    there, so its prose reaches the docket; a `correct` or `patch` there
+    would quote an empty paragraph and write nothing. Driven through
+    `disposition` and `proof --to-docket`, and read back from what each
+    wrote.
     """
+
+    @pytest.mark.parametrize(
+        "answer",
+        [
+            pytest.param(_A_PATCH_TO_THE_ADD, id="a-patch-first"),
+            pytest.param(_A_CORRECT_TO_THE_ADD, id="a-correct-first"),
+        ],
+    )
+    def test_the_recast_is_an_add_whatever_mark_comes_first(
+        self, tmp_path, monkeypatch, capsys, answer
+    ):
+        _an_add_answered_first_by_another_role(tmp_path, answer)
+        chief, _closed, docket = _disposed(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            [
+                {
+                    "address": EMPTY_PLACE,
+                    "answer": "recast",
+                    "reason": "both word the constant loosely",
+                    "prose": RECAST_THERE,
+                }
+            ],
+        )
+        assert [(m.address, m.instruction) for m in entries_of(chief)] == [
+            (EMPTY_PLACE, Instruction.ADD)
+        ]
+        assert _altered(docket, tmp_path) == {"b3": RECAST_THERE}
 
     def test_the_recast_lands_at_the_empty_place(self, tmp_path, monkeypatch, capsys):
         _an_add_carried_to_max_turns(tmp_path)
