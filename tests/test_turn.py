@@ -1732,6 +1732,94 @@ class TestAMoverWithItsOwnMarkAtTheDestination:
         assert (own.instruction, own.change) == (Instruction.PATCH, "# 4")
 
 
+#: A page holding comments at `m.py@b1` and `m.py@b2`, with the empty place
+#: `EMPTY_PLACE` between `z = 3` and `w = 4`.
+TWO_COMMENTS_PAGE = "x = 1\n# one\n# two\n# three\ny = 2\n# four\nz = 3\nw = 4\n"
+SECOND_COMMENT = "m.py@b2"
+
+
+class TestAMoverWithTwoMovesToOnePlace:
+    """A role holding two moves to one destination --
+    `no-command-for-the-middle` T64, `Process: #129` and `#137`.
+
+    block-context moves `MOVED_FROM` and `SECOND_COMMENT` to `EMPTY_PLACE`,
+    and function-context cleans both origins. The fold carries all three
+    places as re-reads, the slot at the destination carrying one move's
+    text; which one varies with `PYTHONHASHSEED`. Turn 1 answers
+    block-context's slot there with a `correct` over the text it carries
+    and every other slot `clean`. `flows.turn._move_to` finds no one move
+    to route it to, so the answer lands on a slot seeded from the page,
+    beside both moves. The test asks that it land on no slot there, whether
+    it reaches a move or comes back to the role.
+    """
+
+    @pytest.mark.xfail(
+        strict=True,
+        reason=(
+            "no-command-for-the-middle T64: with two moves to the destination "
+            "the answer there reaches neither and lands on a seeded slot; "
+            "whether it reaches a move, and which, or comes back to the role "
+            "is a question for Roy"
+        ),
+    )
+    def test_the_answer_lands_on_no_slot_at_the_destination(self, tmp_path):
+        moved = {
+            "instruction": "move",
+            "reason": "the comment is about w",
+            "sources": [{"cite": "m.py:8"}],
+        }
+        binder, got = _fold_over(
+            tmp_path,
+            TWO_COMMENTS_PAGE,
+            {
+                "block-context": [
+                    {
+                        **moved,
+                        "address": MOVED_FROM,
+                        "claim": {"from": MOVED_FROM, "to": EMPTY_PLACE},
+                        "change": MOVED_TEXT,
+                    },
+                    {
+                        **moved,
+                        "address": SECOND_COMMENT,
+                        "claim": {"from": SECOND_COMMENT, "to": EMPTY_PLACE},
+                        "change": "# four",
+                    },
+                ],
+                "function-context": [
+                    {"address": MOVED_FROM, "instruction": "clean"},
+                    {"address": SECOND_COMMENT, "instruction": "clean"},
+                ],
+            },
+        )
+        batch = batch_of(got.escalations, got.rereads)
+        sent = _slot(batch, "block-context", EMPTY_PLACE)["raw_text"]
+        assert sent in (MOVED_TEXT, "# four")
+        line = sent.splitlines()[0]
+        answer = {
+            "instruction": "correct",
+            "claim": {"false": line, "true": line.upper()},
+            "reason": "the fixture spells its comments in capitals",
+            "sources": [{"cite": "m.py:8", "verbatim": "w = 4"}],
+            "change": sent.replace(line, line.upper(), 1),
+        }
+        one = run_turn(
+            _read_back(tmp_path, 0, _at(got)),
+            binder,
+            tmp_path,
+            batch,
+            _clean_but(batch, "block-context", EMPTY_PLACE, answer),
+        )
+        proof = _read_back(tmp_path, 1, proof_after(one, ({"turn": 1, "sent": batch},)))
+        moves = [
+            mark.instruction
+            for origin in (MOVED_FROM, SECOND_COMMENT)
+            for mark in _on(proof, "block-context", origin)
+        ]
+        assert moves == [Instruction.MOVE, Instruction.MOVE]
+        assert _on(proof, "block-context", EMPTY_PLACE) == []
+
+
 class TestAMovesEndWithNoRolesLeft:
     """A move's destination carried forward with no roles left --
     `no-command-for-the-middle` T82, `Process: #90` and `#138`.
