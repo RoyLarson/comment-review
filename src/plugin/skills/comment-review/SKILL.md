@@ -464,15 +464,13 @@ wrong changes what the reviewers see:
   is where the gather reads its anchor from.
 - **A trailing comment is its own paragraph**, one line, anchored to the code on that line.
 
-### Enrich the binder with the language server, where 1.7 found one
+### The language server, where 1.7 found one
 
-The gather names every paragraph; the server can say what a paragraph BELONGS to. Do this once, here,
-and attach the answer to the paragraph -- not in stage 4, where four reviewers would each re-derive
-it and could disagree.
+The gather names every paragraph and the anchor it sits on, and nothing a server says is written
+into the binder -- no command attaches it. Use the server yourself where you verify a claim:
 
-- **Anchor** -- `documentSymbol` on each file in scope returns every declaration and its line.
-  A run ending at line N-1 is ANCHORED to the declaration at line N. Attach it; the binder
-  carries the anchors it has.
+- **Anchor** -- `documentSymbol` on a file returns every declaration and its line, which tells
+  you whether a paragraph's anchor is the declaration it documents.
 - **Liveness** -- for a name a paragraph uses, `workspaceSymbol` answers whether the
   name exists at all, in any language in the workspace. `findReferences` answers whether
   anything uses it, which is the stronger claim a comment usually makes.
