@@ -35,6 +35,7 @@ from helpers import (
     the_chief,
 )
 
+from comment_review.binder.binder import Binder
 from comment_review.commands import proof as proof_command
 from comment_review.commands.collate import OK
 from comment_review.desk.containers import MasterProof
@@ -1938,71 +1939,7 @@ class TestAMoveSettledAtTurnZero:
     """
 
     def test_the_final_chief_copy_holds_the_move_once(self, tmp_path):
-        (tmp_path / "m.py").write_text(GAPPED_PAGE, encoding="utf-8")
-        (tmp_path / "n.py").write_text(OTHER_PAGE, encoding="utf-8")
-        binder = binder_of(tmp_path, 0)
-        copies = [seed(binder, role) for role in ("block-context", "function-context")]
-        rulings = {
-            "block-context": [
-                {
-                    "address": MOVED_FROM,
-                    "instruction": "move",
-                    "claim": {"from": MOVED_FROM, "to": EMPTY_PLACE},
-                    "reason": "the comment is about w, not y",
-                    "sources": [{"cite": "m.py:7"}],
-                    "change": MOVED_TEXT,
-                },
-                {
-                    "address": OTHER,
-                    "instruction": "correct",
-                    "claim": {"false": "two", "true": "TWO"},
-                    "reason": "the fixture spells its numbers in capitals",
-                    "sources": [{"cite": "n.py:1"}],
-                },
-            ],
-            "function-context": [
-                {
-                    "address": MOVED_FROM,
-                    "instruction": "query",
-                    "claim": {
-                        "shape": str(Shape.OUTSIDE_MY_ROLE),
-                        "attempted": "read the paragraph against the code below it",
-                        "settles": "block-context",
-                    },
-                    "reason": "where a comment sits is not this role's remit",
-                    "sources": [{"cite": "m.py:5"}],
-                },
-                {
-                    "address": OTHER,
-                    "instruction": "correct",
-                    "claim": {"false": "two", "true": "dos"},
-                    "reason": "the fixture spells its numbers in Spanish",
-                    "sources": [{"cite": "n.py:1"}],
-                },
-            ],
-        }
-        for copy in copies:
-            for ruling in rulings[copy["role"]]:
-                _, why = fill(copy, ruling, tmp_path)
-                assert why == []
-        got = collate("4c", copies, binder, root=tmp_path)
-        assert got.problems == []
-        moved = got.determined[MOVED_FROM]
-        assert (moved.answer, moved.turn) == (Answer.STET, 0)
-        assert got.determined[EMPTY_PLACE].mark == moved.mark
-        assert [e["address"] for e in got.escalations] == [OTHER]
-
-        batch = batch_for(got)
-        answers = {
-            role: [{**slot, "instruction": "hold", "reason": "mine"} for slot in slots]
-            for role, slots in batch.items()
-        }
-        one = run_turn(
-            _over_the_wire(proof_after(got)), binder, tmp_path, batch, answers
-        )
-        assert one.revisit == []
-        proof = _over_the_wire(proof_after(one, ({"turn": 1, "sent": batch},)))
-
+        binder, proof = _a_move_stet_at_turn_zero(tmp_path)
         last = refold(proof, binder, tmp_path)
         ruled = rule_at_max_turns(
             last, OTHER, Answer.TAKEN_IN, "block-context", "TWO", proof.turn
@@ -2010,6 +1947,109 @@ class TestAMoveSettledAtTurnZero:
         _, chief = close(last, [ruled], proof.turns, tmp_path)
         moves = [m for m in entries_of(chief) if m.instruction is Instruction.MOVE]
         assert [m.address for m in moves] == [MOVED_FROM]
+
+    def test_the_docket_sets_each_end_of_the_move_once(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """`docket-defects` T9: the smoke's docket on 2026-09-11 carried the
+        move's delete and its text twice each. The proof after turn 1 is
+        written to disk, and `disposition` and `proof --to-docket` read it,
+        as the smoke's do."""
+        binder, proof = _a_move_stet_at_turn_zero(tmp_path)
+        (tmp_path / "binder.json").write_text(
+            json.dumps(binder.serialize()), encoding="utf-8"
+        )
+        save_proof(tmp_path / "proof1.json", proof)
+        _, _, docket = _disposed(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            [
+                {
+                    "address": OTHER,
+                    "answer": "taken_in",
+                    "side": ORIGINAL,
+                    "reason": "neither spelling improves it",
+                }
+            ],
+        )
+        assert _altered(docket, tmp_path) == {"b1": None, "b3": MOVED_TEXT}
+
+
+def _a_move_stet_at_turn_zero(root) -> tuple[Binder, MasterProof]:
+    """`TestAMoveSettledAtTurnZero`'s fold and one turn, the proof crossing the wire.
+
+    block-context moves `MOVED_FROM` to `EMPTY_PLACE` and function-context
+    defers there, so the move is a `stet` at turn 0 at both its ends; the two
+    roles correct `OTHER` two ways, which escalates it, and both hold on
+    turn 1.
+
+    Returns:
+        `(binder, the proof after turn 1)`, read back off the wire.
+    """
+    (root / "m.py").write_text(GAPPED_PAGE, encoding="utf-8")
+    (root / "n.py").write_text(OTHER_PAGE, encoding="utf-8")
+    binder = binder_of(root, 0)
+    copies = [seed(binder, role) for role in ("block-context", "function-context")]
+    rulings = {
+        "block-context": [
+            {
+                "address": MOVED_FROM,
+                "instruction": "move",
+                "claim": {"from": MOVED_FROM, "to": EMPTY_PLACE},
+                "reason": "the comment is about w, not y",
+                "sources": [{"cite": "m.py:7"}],
+                "change": MOVED_TEXT,
+            },
+            {
+                "address": OTHER,
+                "instruction": "correct",
+                "claim": {"false": "two", "true": "TWO"},
+                "reason": "the fixture spells its numbers in capitals",
+                "sources": [{"cite": "n.py:1"}],
+            },
+        ],
+        "function-context": [
+            {
+                "address": MOVED_FROM,
+                "instruction": "query",
+                "claim": {
+                    "shape": str(Shape.OUTSIDE_MY_ROLE),
+                    "attempted": "read the paragraph against the code below it",
+                    "settles": "block-context",
+                },
+                "reason": "where a comment sits is not this role's remit",
+                "sources": [{"cite": "m.py:5"}],
+            },
+            {
+                "address": OTHER,
+                "instruction": "correct",
+                "claim": {"false": "two", "true": "dos"},
+                "reason": "the fixture spells its numbers in Spanish",
+                "sources": [{"cite": "n.py:1"}],
+            },
+        ],
+    }
+    for copy in copies:
+        for ruling in rulings[copy["role"]]:
+            _, why = fill(copy, ruling, root)
+            assert why == []
+    got = collate("4c", copies, binder, root=root)
+    assert got.problems == []
+    moved = got.determined[MOVED_FROM]
+    assert (moved.answer, moved.turn) == (Answer.STET, 0)
+    assert got.determined[EMPTY_PLACE].mark == moved.mark
+    assert [e["address"] for e in got.escalations] == [OTHER]
+
+    batch = batch_for(got)
+    answers = {
+        role: [{**slot, "instruction": "hold", "reason": "mine"} for slot in slots]
+        for role, slots in batch.items()
+    }
+    one = run_turn(_over_the_wire(proof_after(got)), binder, root, batch, answers)
+    assert one.revisit == []
+    proof = _over_the_wire(proof_after(one, ({"turn": 1, "sent": batch},)))
+    return binder, proof
 
 
 def _a_move_at_max_turns(root) -> None:
