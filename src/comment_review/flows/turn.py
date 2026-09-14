@@ -1135,9 +1135,10 @@ def determined_chief(
     Raises:
         ValueError: the fold returned early and holds no proof; or a place
             still carried forward -- an escalation or a re-read -- has no
-            ruling among `rulings`. !! NOTHING SURVIVES THE CAP UNRULED, T17:
-            the refusal names every such place and its roles. An unsettlable
-            place is not among them; it is the human's (`Process: #90`). Or
+            ruling among `rulings`. Nothing survives max turns without a
+            disposition, T17: the refusal names every such place and its
+            roles. An unsettlable place is not among them; it is the human's
+            (`Process: #90`). Or
             a move's destination the page cannot seed, as `_the_destination`
             says.
     """

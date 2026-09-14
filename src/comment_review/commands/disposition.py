@@ -17,8 +17,8 @@ chief's `edit_copy` is derived from the whole set.
 !! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
 A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`.
 
-!! NOTHING SURVIVES THE CAP UNRULED, T17. A carried-forward place with no
-ruling is refused by name, with its roles, and nothing is written -- the
+Nothing survives max turns without a disposition, T17. A carried-forward
+place with no ruling is refused by name, with its roles, and nothing is written -- the
 refusal is the whole answer, so the caller rules and runs again.
 
 ! THE UNSETTLABLE PLACES ARE PRINTED, NOT RULED -- `Process: #90`. A
