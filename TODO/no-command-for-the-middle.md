@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 77 of 92 tasks closed
+Progress: 78 of 92 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-29 (2026-08-29, running the chain end to end for the first time with a
@@ -323,8 +323,9 @@ Reconciliation has no command, so the chain cannot be driven end to end.
       a test of a role holding two moves to one destination, to settle where its
       answer lands
         > 2026-09-12 _move_to returns None for two; the answer stays on its slot
-- [ ] T65 | Update T33's test in test_turn.py to use the two-turn helper T57's
-      test and the withdraw test share
+- [x] T65 | the T33 test builds both turns through _two_turns, its assertions unchanged | 1b1cf2da | Update
+      T33's test in test_turn.py to use the two-turn helper T57's test and the
+      withdraw test share
         > 2026-09-12 e260438d added the helper; T33's test repeats its setup
         > 2026-09-12 f2a2d47b's both-ends test repeats the same turn-1 setup
 - [x] T66 | turn exits 7 as collate does | f85ea724 | Update turn so it exits 7
