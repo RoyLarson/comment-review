@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 10 tasks closed
+Progress: 4 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-08 (Roy 2026-09-08: implementing the recast workflow for the cli the
@@ -39,8 +39,9 @@ The copy chief has no workflow for recasting the places that never settled.
       what a recast of a drop should write, since change carries the chief's
       prose whatever the instruction says
         > 2026-09-08 Not new: the hardcoded correct wrote prose for every instruction
-- [ ] T8 | Update disposition.py:20 and turn.py:621, which still say cap for max
-      turns, per Vocabulary 36
+- [x] T8 | disposition.py and turn.py say nothing survives max turns without a disposition, per Vocabulary 36 | d1529b62 | Update
+      disposition.py:20 and turn.py:621, which still say cap for max turns, per
+      Vocabulary 36
         > 2026-09-11 seen in disposition --help while preparing SP7 Task 9
 - [ ] T9 | Update the recast so the b9 mark in final.json does not carry the
       source fib.py:21 twice
