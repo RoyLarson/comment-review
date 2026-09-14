@@ -3,9 +3,9 @@
 Loaded by the task agent **after approval**, never by a reviewer. If you are reading this
 before the human has approved an instruction list, stop.
 
-Apply only what was approved, and only what was marked. ! **An unmarked paragraph is never written.**
-If WRITE wants to touch something the mark did not reach, that is a finding for the next
-run, not an edit.
+Set only what was approved, and only what was marked. **An unmarked paragraph is never set.**
+Something the marks did not reach that wants changing is a finding for the next run, not an
+edit.
 
 ## The residue check, and the four refusals
 
@@ -69,36 +69,33 @@ mid-token, and on Windows the redirect can write UTF-16. Measured in two indepen
 prose and the code is unchanged. Write `approved.json` with your file-write tool, never through
 a heredoc or a shell redirect.
 
-**Re-read what you wrote, against the block-context rule.** The failure mode is producing
-exactly what you are removing -- a pass that cuts obituaries writes new ones, and writes the
-same one twice.
+**Read the diff against the block-context rule.** The failure it looks for is text producing
+exactly what it removes -- a pass that cuts obituaries writes new ones, and writes the same one
+twice. Report it; the approved text is not re-worded here.
 
-**Fix the whole claim, not the copy in front of you.** If the claim-dedup found the same
-sentence in two files, both are in the same edit or neither is.
+**Set the whole claim, not the copy in front of you.** If the same sentence was marked in two
+files, both marks are in `approved.json` or neither is; where the author approved one and not
+the other, ask.
 
-!! **Every word you WRITE is bound by the STYLE SHEET; every word you did not touch is out of
-scope.** There is no copy-editing reviewer, so this pass is where consistency is kept -- but
-only inside paragraphs an instruction already opened. Write in the sheet's dialect, capitalisation,
-citation form and docstring convention; do NOT sweep the file for departures from it.
+**The style sheet binds the approved text, and a departure from it is a finding to report.**
+This stage changes no word, so it keeps consistency only by naming where the approved text
+breaks the sheet -- its dialect, capitalisation, citation form or docstring convention. A
+departure in a paragraph no mark reached is the next run's.
 
-**A change no instruction asked for is out of scope** -- a re-spelling, a dialect harmonisation, a
-de-personalisation, an alignment with the neighbours. The residue check cannot see any of it,
-because it only asks what was LOST. A departure in a paragraph you are not editing is a
-finding for the next run. Record any new decision on the sheet as you make it.
+**A paragraph the approved text touches has its claim re-derived, or it is reported.** A
+mechanical repair -- a renamed symbol, a moved path -- removes the only visible symptom of a stale
+paragraph and leaves the claim behind, strictly harder to find than before. Measured in three
+independent slices; in one, the same six-line paragraph carried a false claim, a repairable ghost
+and a stale path, and the pass fixed only the ghost. Where the diff shows a repair whose claim
+nobody re-derived, report it.
 
-!! **Touching a paragraph obliges re-deriving its claim.** A mechanical repair -- a renamed symbol,
-a moved path -- removes the only VISIBLE symptom of a stale paragraph and leaves the claim behind,
-strictly harder to find than before. Measured in three independent slices; in one, the same
-six-line paragraph carried a false claim, a repairable ghost and a stale path, and the pass fixed
-only the ghost.
-
-!! **Run a FORWARD pass on anything you authored.** The residue check is inbound-only, so text
+**Run a forward pass on every addition in the diff.** The residue check is inbound-only, so text
 with no predecessor -- an `add`, a coverage-driven docstring, a clause added while compacting --
 is outside it entirely. An authored docstring has been confirmed false, and a faithful
 compaction has gained a clause with no antecedent anywhere. Ask of each addition: what
-line settles this? The name of the function does not count.
+line settles this? The name of the function does not count. Report one nothing settles.
 
-! **Re-resolve every pointer that names the paragraph you edited.** Grep the file for *"see X's
+**Re-resolve every pointer that names a paragraph the diff changes.** Grep the file for *"see X's
 docstring"*, *"the paragraph above"*, *"for the reason Y gives"*. Measured twice: the defect lands
 in a paragraph the diff never touched, created by editing a different one.
 
@@ -113,7 +110,7 @@ and every approved paragraph you could not set, with the reason -- that is a fin
 silence.
 
 **Say explicitly whether every approved paragraph landed byte-for-byte as approved.** A divergence
-between what the author saw and what is on disk is invisible in a diff that shows only the new
+between what the author saw and what `proof` set is invisible in a diff that shows only the new
 text, so this line is the one place it can surface.
 
 Nothing follows this stage: stage 8 read the galley before 7a.
