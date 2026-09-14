@@ -4460,3 +4460,31 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   fact particular to this repo, Roy approved deleting them: *"yes"*. So `CLAUDE.md` loses the
   `# The board` command lines and the paragraph saying every invocation passes `--plans-dir`;
   the paragraph on the vendored `scripts/todo_tool.py` stays.
+
+- **#150.** **How the rest of `0.2.4-the-agents-read-the-cli` is finished** (Roy, 2026-09-13,
+  after `plan show` listed 46 open reasons on it: *"No lets finish the other 46 items on this
+  plan"*). Asked three questions, he chose one offered option on each.
+
+  On `brief-says-three-series` T6 and T7, which his 2026-09-12 notes give their own plan and
+  branch: *"Draft their subplan"*. The option as offered said a subplan would let this plan
+  close without them. It would not: the global workflow counts a subplan's boxes toward the
+  parent's merge. So what is drafted is a separate plan on its own branch, which is what the
+  2026-09-12 notes say, and the draft is put to Roy before the board is written. Shown the
+  draft -- `0.2.4-an-f-correction-is-raised-alone` on `feat/an-f-correction-is-raised-alone`,
+  founded on a new decision task T8 because the tool founds a plan only on an unclaimed task,
+  with T6 and T7 moved to it -- Roy chose *"Approve the draft"*.
+
+  On what `P5` closes against: *"A fresh run at the end"*. After the other sets land,
+  `plugins/` is built and Roy runs the plugin on `workout_organizer` and `job_board` again;
+  `P5` closes on that run's findings, not on the 2026-09-05 and 2026-09-07 runs.
+
+  On the order: *"Approve as listed"*. Five sets, each a sub-branch off
+  `feat/the-agents-read-the-cli` that passes the suite, `ruff`, `ty`, the floor, the vocabulary
+  gate and the smoke before it merges, one at a time; agent prose goes last so it describes the
+  finished code.
+
+      1  the move and the chief       R T90 T63 T64 T91 T65 T92 T36; L T8 T9 T10; E T37; O T9
+      2  check, fold, the write end   E T34 T35 T36 T42; K T47; H T32; J T16 T22; I T7; D T25
+      3  tests and comment cleanups   Q T7-T12; H T34; S T15 T16
+      4  scope command, agent prose   T T1 T2; A T16 T17 T18 T21 T26; C T14; I T5
+      5  measurements, alongside      H T35; I T6; the P5 run
