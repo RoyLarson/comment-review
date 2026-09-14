@@ -931,8 +931,9 @@ on the assumption that the text in front of them is the text that lands.
 **Hand back the STYLE SHEET**, updated with every decision this run made -- the sheet is how the
 next pass avoids re-deciding, and it is worthless if it stays in your head.
 
-! **Approval IS authorization.** "Yes", "do it", "continue" -> load `references/write.md` and
-apply. Never-edit binds reviewers, not you acting on an approval.
+**Approval is the go-ahead for 7b.** "Yes", "do it", "continue" -> load `references/write.md`
+and follow it. You edit nothing under the repo either: 7b sets the approved text in temporary
+files.
 
 ## Stage 7b -- WRITE: set the approved text for the author to diff
 
