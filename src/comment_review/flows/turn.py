@@ -9,7 +9,7 @@
     determined_chief(collated, rulings, root)
                                 -> (every Determined, the chief's edit_copy)
     batch_for(collated) -> the batch that goes out, every slot carrying its diff
-    proof_after(collated, turns) -> the master proof as the state between turns
+    proof_after(collated, turns, root) -> the master proof as the state between turns
     refold(proof, binder, root) -> the fold over a proof read back, at max turns
     close(collated, rulings, turns, root)
                                 -> (the closed proof, the chief's edit_copy)
@@ -1233,54 +1233,66 @@ def batch_for(collated: Collated) -> dict[str, list[dict]]:
     return batch
 
 
-def proof_after(got: Collated, turns: tuple[dict, ...] = ()) -> MasterProof:
+def proof_after(
+    got: Collated, turns: tuple[dict, ...] = (), *, root: Path
+) -> MasterProof:
     """The master proof as the state between turns, from a fold -- `Process: #87`.
 
     Args:
         got: the fold. Its `proof` is the copies AS THEY STAND, which is what
             the next turn mutates and folds again.
         turns: the record so far. The caller keeps it; a fold does not know it.
+        root: the checkout a held move destination's page is read from, where
+            `_riding` writes that end as the move's `add`.
 
     Returns:
         `got.proof` carrying `turns`, every Determined in address order, and
         each unsettlable place as `_riding` shapes it.
 
     Raises:
-        ValueError: the fold returned early and holds no proof.
+        ValueError: the fold returned early and holds no proof; or a held
+            move destination the page cannot seed, as `_the_destination` says.
     """
-    if got.proof is None:
+    proof = got.proof
+    if proof is None:
         raise ValueError("the fold returned early -- no proof to carry forward")
     return replace(
-        got.proof,
+        proof,
         turns=tuple(turns),
         determined=tuple(got.determined[a] for a in sorted(got.determined)),
-        unsettlable=tuple(_riding(u) for u in got.unsettlable),
+        unsettlable=tuple(_riding(u, proof, root) for u in got.unsettlable),
     )
 
 
-def _riding(held: dict) -> dict:
+def _riding(held: dict, proof: MasterProof, root: Path) -> dict:
     """One unsettlable place as the wire holds it and the human is asked.
 
     `held` without its `Placed` marks -- `{address, roles, query}` -- and,
-    where the place is a move's origin, `drop`: that end of the move as
-    `_the_origin` writes it, emptying the place, with the mover's `role`
-    beside it as `query` carries its own. The chief rules the move's
-    destination on its own (`Process: #139`), so the drop is the human's
-    to rule at the origin (`#90`). Every move from one origin drops the
-    same paragraph, and the first one's is carried.
+    where the place is an end of a move, that end as the move writes it,
+    with the mover's `role` beside it as `query` carries its own: at the
+    origin, `drop`, `_the_origin`'s emptying the place; at the destination,
+    `add`, `_the_destination`'s add of the moved text, with the origin
+    beside it as `from`. The chief rules a move's other end on its own
+    (`Process: #139`), so a held end is the human's to rule (`#90`), and a
+    move held at both ends is put to the author as one move, its drop and
+    its add together (`#155`). Every move from one origin drops the same
+    paragraph, and the first one's is carried; at a destination, the first
+    move to it.
     """
     out = {k: v for k, v in held.items() if k != "marks"}
-    moved = next(
-        (
-            placed
-            for placed in held.get("marks", [])
-            if placed.mark.instruction is Instruction.MOVE
-            and placed.mark.address == held["address"]
-        ),
-        None,
-    )
+    address = held["address"]
+    moves = [p for p in held.get("marks", []) if p.mark.instruction is Instruction.MOVE]
+    moved = next((p for p in moves if p.mark.address == address), None)
     if moved is not None:
         out["drop"] = {"role": moved.role, **_the_origin(moved.mark).serialize()}
+    landing = next((p for p in moves if p.mark.claim.get("to") == address), None)
+    if landing is not None:
+        added = _the_destination(landing.mark, address, proof, root)
+        out["add"] = {
+            "role": landing.role,
+            "from": landing.mark.address,
+            **added.serialize(),
+        }
     return out
 
 
@@ -1308,7 +1320,7 @@ def close(
             the page cannot seed.
     """
     every, chief = determined_chief(got, rulings, root)
-    proof = proof_after(got, turns)
+    proof = proof_after(got, turns, root=root)
     closed = replace(proof, determined=tuple(every[a] for a in sorted(every)))
     return closed, chief
 

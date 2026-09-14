@@ -309,6 +309,19 @@ def main() -> int:
     if got.problems or any(one.unreadable for one in got.revisit):
         return BROKEN
 
+    # The proof is built before anything is written: a held move destination
+    # whose page cannot be seeded refuses it (`flows.turn.proof_after`), and
+    # a refusal writes nothing.
+    proof = None
+    if args.proof_out and got.proof is not None:
+        try:
+            proof = proof_after(got, root=root)
+        except ValueError as err:
+            print(
+                f"REFUSED: the master proof cannot be written -- {err}", file=sys.stderr
+            )
+            return BROKEN
+
     # !! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE FLOW'S --
     # `decision-log.md Process: #65`, `#67`. `collate` returns an `EditCopy`
     # since `P42`; the wire dict is made at the save, and nowhere between.
@@ -328,8 +341,8 @@ def main() -> int:
     # `Process: #87`: the master proof carries the copies as they stand, so the
     # turn verb can mutate and fold them again; the chief's copy is what the
     # write end reads today. `turns` is empty here -- this is the first fold.
-    if args.proof_out and got.proof is not None:
-        save_proof(Path(args.proof_out), proof_after(got))
+    if proof is not None:
+        save_proof(Path(args.proof_out), proof)
         print(
             f"{args.proof_out}: the master proof -- {len(got.determined)} determined,"
             f" {len(got.unsettlable)} unsettlable"

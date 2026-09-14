@@ -81,13 +81,16 @@ _THREE = "# one\n# two\n# THREE"
 COMPOSED = "# ONE\n# two\n# THREE"
 
 
-def _at(got, turns: int = 0) -> MasterProof:
+def _at(got, root: Path, turns: int = 0) -> MasterProof:
     """The proof a fold left, standing at `turns` -- what `run_turn` reads.
+
+    `root` is the checkout the fold read its pages from, which `proof_after`
+    reads a held move destination's page from.
 
     ! THE RECORD IS A PLACEHOLDER. The turn number is derived from its
     length (`MasterProof.turn`), and nothing here reads its contents.
     """
-    return proof_after(got, tuple({"turn": i + 1} for i in range(turns)))
+    return proof_after(got, tuple({"turn": i + 1} for i in range(turns)), root=root)
 
 
 def _escalated():
@@ -225,7 +228,7 @@ class TestAnEscalation:
             ),
             **_answered(batch, "function-context", instruction="hold", reason="stands"),
         }
-        again = run_turn(_at(got), binder, REPO, batch, answers)
+        again = run_turn(_at(got, REPO), binder, REPO, batch, answers)
         problems = again.revisit
         assert problems == []
         assert again.escalations == []
@@ -237,7 +240,7 @@ class TestAnEscalation:
         assert again.rereads[0]["composed"].change == DOS
         batch2 = batch_of(again.escalations, again.rereads)
         answers2 = {r: [{**batch2[r][0], "instruction": "clean"}] for r in batch2}
-        final = run_turn(_at(again, 1), binder, REPO, batch2, answers2)
+        final = run_turn(_at(again, REPO, 1), binder, REPO, batch2, answers2)
         assert final.revisit == []
         ruled = final.determined["m.py@b1"]
         assert ruled.answer is Answer.STET
@@ -254,7 +257,7 @@ class TestAnEscalation:
             ),
             **_answered(batch, "function-context", instruction="hold", reason="stands"),
         }
-        again = run_turn(_at(got), binder, REPO, batch, answers)
+        again = run_turn(_at(got, REPO), binder, REPO, batch, answers)
         problems = again.revisit
         assert problems == []
         ruled = again.determined["m.py@b1"]
@@ -269,7 +272,7 @@ class TestAnEscalation:
             **_answered(batch, "block-context", instruction="hold", reason="mine"),
             **_answered(batch, "function-context", instruction="hold", reason="mine"),
         }
-        again = run_turn(_at(got), binder, REPO, batch, answers)
+        again = run_turn(_at(got, REPO), binder, REPO, batch, answers)
         problems = again.revisit
         assert problems == []
         assert [e["address"] for e in again.escalations] == ["m.py@b1"]
@@ -282,7 +285,7 @@ class TestAnEscalation:
             "block-context": [batch["block-context"][0]],
             **_answered(batch, "function-context", instruction="hold", reason="mine"),
         }
-        again = run_turn(_at(got), binder, REPO, batch, answers)
+        again = run_turn(_at(got, REPO), binder, REPO, batch, answers)
         problems = again.revisit
         assert any("unanswered" in r for p in problems for r in p.reasons)
         assert [e["address"] for e in again.escalations] == ["m.py@b1"]
@@ -323,7 +326,7 @@ class TestAnEscalationAnswerDerivesItsChange:
             ),
             **_answered(batch, "function-context", instruction="hold", reason="mine"),
         }
-        again = run_turn(_at(got), binder, tmp_path, batch, answers)
+        again = run_turn(_at(got, tmp_path), binder, tmp_path, batch, answers)
         assert again.revisit == []
         assert [p for p in again.problems if p.address == "m.py@b1"] == []
         (held,) = _held_at(again, "block-context", "m.py@b1")
@@ -361,7 +364,7 @@ class TestAnAnswerThatStillDisagrees:
             ),
             **_answered(batch, "function-context", instruction="hold", reason="mine"),
         }
-        again = run_turn(_at(got), binder, tmp_path, batch, answers)
+        again = run_turn(_at(got, tmp_path), binder, tmp_path, batch, answers)
         assert again.revisit == []
         assert [p for p in again.problems if p.address == "m.py@b1"] == []
         assert again.rereads == []
@@ -382,7 +385,7 @@ class TestTheSentBatchPairsTheAnswer:
             "block-context": [bare],
             **_answered(batch, "function-context", instruction="hold", reason="stands"),
         }
-        again = run_turn(_at(got), binder, REPO, batch, answers)
+        again = run_turn(_at(got, REPO), binder, REPO, batch, answers)
         problems = again.revisit
         assert problems == []
         # The withdrawal applied: function-context's mark is the lone one, and
@@ -397,7 +400,7 @@ class TestTheSentBatchPairsTheAnswer:
             "block-context": [stray],
             **_answered(batch, "function-context", instruction="hold", reason="stands"),
         }
-        problems = run_turn(_at(got), binder, REPO, batch, answers).revisit
+        problems = run_turn(_at(got, REPO), binder, REPO, batch, answers).revisit
         assert any(
             p.address == "m.py@b9" and "never sent" in r
             for p in problems
@@ -411,7 +414,7 @@ class TestTheSentBatchPairsTheAnswer:
             "block-context": [],
             **_answered(batch, "function-context", instruction="hold", reason="stands"),
         }
-        problems = run_turn(_at(got), binder, REPO, batch, answers).revisit
+        problems = run_turn(_at(got, REPO), binder, REPO, batch, answers).revisit
         assert any(
             p.address == "m.py@b1" and "unanswered" in r
             for p in problems
@@ -437,7 +440,7 @@ class TestAComposition:
             **_answered(batch, "block-context", instruction="clean"),
             **_answered(batch, "function-context", instruction="clean"),
         }
-        again = run_turn(_at(got), binder, tmp_path, batch, answers)
+        again = run_turn(_at(got, tmp_path), binder, tmp_path, batch, answers)
         problems = again.revisit
         assert problems == []
         assert again.rereads == []
@@ -465,7 +468,7 @@ class TestAComposition:
                 change=fixed,
             ),
         }
-        again = run_turn(_at(got), binder, tmp_path, batch, answers)
+        again = run_turn(_at(got, tmp_path), binder, tmp_path, batch, answers)
         problems = again.revisit
         assert problems == []
         assert [e["address"] for e in again.escalations] == ["m.py@b1"]
@@ -495,7 +498,7 @@ class TestAComposition:
                 change=worded,
             ),
         }
-        again = run_turn(_at(got), binder, tmp_path, batch, answers)
+        again = run_turn(_at(got, tmp_path), binder, tmp_path, batch, answers)
         problems = again.revisit
         assert problems == []
         assert again.revisit == []
@@ -518,7 +521,9 @@ class TestAComposition:
             ),
             **_answered(batch, "function-context", instruction="clean"),
         }
-        problems = run_turn(_at(got), binder, tmp_path, batch, answers).revisit
+        problems = run_turn(
+            _at(got, tmp_path), binder, tmp_path, batch, answers
+        ).revisit
         assert any("not a composition answer" in r for p in problems for r in p.reasons)
 
 
@@ -563,7 +568,7 @@ class TestALoneOwingMark:
         binder, copies, got = _lone(a_correct_setting("m.py@b1", "two", TWO))
         batch = batch_of(got.escalations, got.rereads)
         answers = {r: [{**batch[r][0], "instruction": "clean"}] for r in batch}
-        again = run_turn(_at(got), binder, REPO, batch, answers)
+        again = run_turn(_at(got, REPO), binder, REPO, batch, answers)
         problems = again.revisit
         assert problems == []
         assert again.rereads == [] and again.escalations == []
@@ -580,7 +585,7 @@ class TestALoneOwingMark:
         batch = batch_of(got.escalations, got.rereads)
         assert all(batch[r][0]["raw_text"] == added["change"] for r in batch)
         answers = {r: [{**batch[r][0], "instruction": "clean"}] for r in batch}
-        again = run_turn(_at(got), binder, REPO, batch, answers)
+        again = run_turn(_at(got, REPO), binder, REPO, batch, answers)
         problems = again.revisit
         assert problems == []
         assert [m.change for m in entries_of(again.chief)] == [added["change"]]
@@ -593,7 +598,7 @@ class TestALoneOwingMark:
         binder, copies, got = _lone(a_correct_setting("m.py@b1", "two", TWO))
         batch = batch_of(got.escalations, got.rereads)
         answers = {r: [{**batch[r][0], "instruction": "clean"}] for r in batch}
-        again = run_turn(_at(got), binder, REPO, batch, answers)
+        again = run_turn(_at(got, REPO), binder, REPO, batch, answers)
         assert "m.py@b1" in again.determined
 
 
@@ -633,7 +638,7 @@ class TestAnAddAtAnEmptyPlace:
             **_answered(batch, "block-context", instruction="clean"),
             **_answered(batch, "function-context", **_A_QUERY),
         }
-        again = run_turn(_at(got), binder, tmp_path, batch, answers)
+        again = run_turn(_at(got, tmp_path), binder, tmp_path, batch, answers)
         assert [p for p in again.revisit if p.role == "function-context"] == []
         page, _ = page_of(tmp_path / "m.py", rel="m.py")
         assert page is not None
@@ -649,7 +654,7 @@ class TestAnAddAtAnEmptyPlace:
         binder, got = an_add_at_an_empty_place(tmp_path)
         batch = batch_of(got.escalations, got.rereads)
         answers = {r: [{**batch[r][0], "instruction": "clean"}] for r in batch}
-        again = run_turn(_at(got), binder, tmp_path, batch, answers)
+        again = run_turn(_at(got, tmp_path), binder, tmp_path, batch, answers)
         assert again.revisit == []
         assert again.problems == []
         assert again.rereads == [] and again.escalations == []
@@ -675,7 +680,7 @@ class TestAnAddAtAnEmptyPlace:
                 {**slot, **_A_QUERY} for slot in sent["function-context"]
             ],
         }
-        again = run_turn(_at(got), binder, tmp_path, sent, answers)
+        again = run_turn(_at(got, tmp_path), binder, tmp_path, sent, answers)
         refused = [p for p in again.revisit if p.address == "m.py@b9999"]
         assert [(p.role, p.unreadable) for p in refused] == [("function-context", True)]
         assert any("names no place on that page" in r for r in refused[0].reasons)
@@ -692,7 +697,7 @@ class TestAnAddAtAnEmptyPlace:
             **_answered(batch, "block-context", instruction="clean"),
             **_answered(batch, "function-context", **_A_QUERY),
         }
-        again = run_turn(_at(got), binder, tmp_path, sent, answers)
+        again = run_turn(_at(got, tmp_path), binder, tmp_path, sent, answers)
         refused = [p for p in again.revisit if p.role == "function-context"]
         assert [p.address for p in refused] == [EMPTY_PLACE]
         assert any("never sent" in r for r in refused[0].reasons)
@@ -734,7 +739,7 @@ class TestAnAddAtAnEmptyPlace:
             **_answered(batch, "block-context", instruction="clean"),
             **_answered(batch, "function-context", **answer),
         }
-        again = run_turn(_at(got), binder, tmp_path, batch, answers)
+        again = run_turn(_at(got, tmp_path), binder, tmp_path, batch, answers)
         assert again.revisit == []
         assert [p for p in again.problems if p.address == EMPTY_PLACE] == []
         (held,) = _held_at(again, "function-context", EMPTY_PLACE)
@@ -761,11 +766,13 @@ class TestRefold:
                 change=ADDED_TEXT.replace("w is 4", "w is four"),
             ),
         }
-        again = run_turn(_at(got), binder, tmp_path, batch, answers)
+        again = run_turn(_at(got, tmp_path), binder, tmp_path, batch, answers)
         assert again.revisit == []
         assert [e["address"] for e in again.escalations] == [EMPTY_PLACE]
         # The proof as `commands/turn.py` writes it and `disposition` reads it.
-        wire = proof_after(again, ({"turn": 1, "sent": batch},)).serialize()
+        wire = proof_after(
+            again, ({"turn": 1, "sent": batch},), root=tmp_path
+        ).serialize()
         proof, why = MasterProof.deserialize("turn 1", wire)
         assert proof is not None, why
         refolded = refold(proof, binder, tmp_path)
@@ -832,7 +839,7 @@ class TestAMoversOwnClean:
             role: [{**slot, "instruction": "clean"} for slot in slots]
             for role, slots in batch.items()
         }
-        again = run_turn(_at(got), binder, tmp_path, batch, answers)
+        again = run_turn(_at(got, tmp_path), binder, tmp_path, batch, answers)
         (held,) = _held_at(again, "block-context", MOVED_FROM)
         assert held.instruction is Instruction.MOVE
         assert held.claim["to"] == EMPTY_PLACE
@@ -945,9 +952,9 @@ def _two_turns(root, change: str, first, second):
     """
     binder, got = _a_lone_move(root, change)
     batch = batch_of(got.escalations, got.rereads)
-    one = run_turn(_at(got), binder, root, batch, first(batch))
+    one = run_turn(_at(got, root), binder, root, batch, first(batch))
     batch2 = batch_of(one.escalations, one.rereads)
-    proof = proof_after(one, ({"turn": 1, "sent": batch},))
+    proof = proof_after(one, ({"turn": 1, "sent": batch},), root=root)
     two = run_turn(proof, binder, root, batch2, second(batch2))
     return binder, one, two, ({"turn": 1, "sent": batch}, {"turn": 2, "sent": batch2})
 
@@ -1088,7 +1095,11 @@ class TestAMoversCompositionAnswerAtItsDestination:
         batch = batch_of(got.escalations, got.rereads)
         assert _slot(batch, "block-context", EMPTY_PLACE)[QUESTION] == COMPOSITION
         one = run_turn(
-            _at(got), binder, tmp_path, batch, _clean_but_the_destination(batch, answer)
+            _at(got, tmp_path),
+            binder,
+            tmp_path,
+            batch,
+            _clean_but_the_destination(batch, answer),
         )
         assert one.revisit == []
         assert one.problems == []
@@ -1111,14 +1122,14 @@ class TestAMoversCompositionAnswerAtItsDestination:
         batch = batch_of(got.escalations, got.rereads)
         answers = _clean_but_the_destination(batch, {"instruction": "clean"})
         answers["function-context"] = []
-        one = run_turn(_at(got), binder, tmp_path, batch, answers)
+        one = run_turn(_at(got, tmp_path), binder, tmp_path, batch, answers)
         assert [(r.role, r.address) for r in one.revisit] == [
             ("function-context", MOVED_FROM)
         ]
         assert _held_at(one, "block-context", EMPTY_PLACE) == []
 
         batch2 = batch_of(one.escalations, one.rereads)
-        proof = proof_after(one, ({"turn": 1, "sent": batch},))
+        proof = proof_after(one, ({"turn": 1, "sent": batch},), root=tmp_path)
         two = run_turn(
             proof,
             binder,
@@ -1163,7 +1174,11 @@ class TestAMoversQueryAtItsDestination:
         batch = batch_of(got.escalations, got.rereads)
         asked = _a_movers_query(Shape.HUMAN_REVIEW_NECESSARY)
         one = run_turn(
-            _at(got), binder, tmp_path, batch, _clean_but_the_destination(batch, asked)
+            _at(got, tmp_path),
+            binder,
+            tmp_path,
+            batch,
+            _clean_but_the_destination(batch, asked),
         )
         assert one.revisit == []
         assert one.problems == []
@@ -1184,7 +1199,7 @@ class TestAMoversQueryAtItsDestination:
         binder, got = _a_lone_move(tmp_path, MOVED_TEXT)
         batch = batch_of(got.escalations, got.rereads)
         one = run_turn(
-            _at(got),
+            _at(got, tmp_path),
             binder,
             tmp_path,
             batch,
@@ -1227,7 +1242,7 @@ class TestAMoversCompositionAnswerAtItsOrigin:
         batch = batch_of(got.escalations, got.rereads)
         assert _slot(batch, "block-context", MOVED_FROM)[QUESTION] == COMPOSITION
         one = run_turn(
-            _at(got),
+            _at(got, tmp_path),
             binder,
             tmp_path,
             batch,
@@ -1258,7 +1273,7 @@ class TestEveryRoleCleansAMoveAsItStands:
             role: [{**slot, "instruction": "clean"} for slot in slots]
             for role, slots in batch.items()
         }
-        one = run_turn(_at(got), binder, tmp_path, batch, answers)
+        one = run_turn(_at(got, tmp_path), binder, tmp_path, batch, answers)
         assert one.revisit == []
         assert {MOVED_FROM, EMPTY_PLACE} <= one.determined.keys()
         for address in (MOVED_FROM, EMPTY_PLACE):
@@ -1314,7 +1329,7 @@ class TestAMovesEndsDisagreeAfterATurn:
                 for slot in batch["function-context"]
             ],
         }
-        one = run_turn(_at(got), binder, tmp_path, batch, answers)
+        one = run_turn(_at(got, tmp_path), binder, tmp_path, batch, answers)
         assert [(r.role, r.address) for r in one.revisit] == [
             ("block-context", MOVED_FROM)
         ]
@@ -1400,11 +1415,15 @@ class TestAMoverThatLeavesItsOriginUnanswered:
             ]
             for role, slots in batch.items()
         }
-        one = run_turn(_read_back(root, 0, _at(got)), binder, root, batch, answers)
+        one = run_turn(
+            _read_back(root, 0, _at(got, root)), binder, root, batch, answers
+        )
         assert [(r.role, r.address) for r in one.revisit] == [
             ("block-context", MOVED_FROM)
         ]
-        proof = _read_back(root, 1, proof_after(one, ({"turn": 1, "sent": batch},)))
+        proof = _read_back(
+            root, 1, proof_after(one, ({"turn": 1, "sent": batch},), root=root)
+        )
         return {d.address for d in proof.determined}
 
     @pytest.mark.parametrize(
@@ -1444,7 +1463,7 @@ class TestAMoversQueryAtItsOrigin:
         batch = batch_of(got.escalations, got.rereads)
         assert _slot(batch, "block-context", MOVED_FROM)[QUESTION] == COMPOSITION
         one = run_turn(
-            _at(got),
+            _at(got, tmp_path),
             binder,
             tmp_path,
             batch,
@@ -1582,7 +1601,7 @@ class TestAMoversCleanSlotAtItsDestination:
         batch = batch_of(got.escalations, got.rereads)
         assert _slot(batch, "block-context", FILLED_PLACE)[QUESTION] == COMPOSITION
         one = run_turn(
-            _at(got),
+            _at(got, tmp_path),
             binder,
             tmp_path,
             batch,
@@ -1680,14 +1699,16 @@ class TestAMoverWithItsOwnMarkAtTheDestination:
         batch = batch_of(got.escalations, got.rereads)
         assert _slot(batch, "block-context", FILLED_PLACE)["raw_text"] == MOVED_TEXT
         one = run_turn(
-            _read_back(tmp_path, 0, _at(got)),
+            _read_back(tmp_path, 0, _at(got, tmp_path)),
             binder,
             tmp_path,
             batch,
             _clean_but(batch, "block-context", FILLED_PLACE, answer),
         )
         assert one.revisit == []
-        proof = _read_back(tmp_path, 1, proof_after(one, ({"turn": 1, "sent": batch},)))
+        proof = _read_back(
+            tmp_path, 1, proof_after(one, ({"turn": 1, "sent": batch},), root=tmp_path)
+        )
         (held,) = _on(proof, "block-context", MOVED_FROM)
         assert held.instruction is Instruction.MOVE
         assert held.change == change
@@ -1821,14 +1842,16 @@ class TestAMoverWithTwoMovesToOnePlace:
             "change": sent.replace(line, line.upper(), 1),
         }
         one = run_turn(
-            _read_back(tmp_path, 0, _at(got)),
+            _read_back(tmp_path, 0, _at(got, tmp_path)),
             binder,
             tmp_path,
             batch,
             _clean_but(batch, "block-context", EMPTY_PLACE, answer),
         )
         assert one.revisit == []
-        proof = _read_back(tmp_path, 1, proof_after(one, ({"turn": 1, "sent": batch},)))
+        proof = _read_back(
+            tmp_path, 1, proof_after(one, ({"turn": 1, "sent": batch},), root=tmp_path)
+        )
         moves = [
             (mark.instruction, mark.change)
             for origin in (MOVED_FROM, SECOND_COMMENT)
@@ -1876,7 +1899,7 @@ class TestAMovesEndWithNoRolesLeft:
         assert {e["address"]: e["roles"] for e in two.rereads} == ends
         assert two.determined.keys().isdisjoint({MOVED_FROM, EMPTY_PLACE})
 
-        last = refold(proof_after(two, turns), binder, tmp_path)
+        last = refold(proof_after(two, turns, root=tmp_path), binder, tmp_path)
         (carried,) = [e for e in last.rereads if e["address"] == EMPTY_PLACE]
         assert carried["roles"] == []
         assert [(p.role, p.mark.instruction) for p in carried["marks"]] == [
@@ -1931,7 +1954,7 @@ class TestAMovesEndsResolveTogether:
             ]
             for role, slots in batch.items()
         }
-        one = run_turn(_at(got), binder, tmp_path, batch, answers)
+        one = run_turn(_at(got, tmp_path), binder, tmp_path, batch, answers)
         assert one.revisit == []
         assert sorted(e["address"] for e in one.escalations) == [
             MOVED_FROM,
@@ -1948,7 +1971,7 @@ class TestAMovesEndsResolveTogether:
             ]
             for role, slots in batch2.items()
         }
-        proof = proof_after(one, ({"turn": 1, "sent": batch},))
+        proof = proof_after(one, ({"turn": 1, "sent": batch},), root=tmp_path)
         two = run_turn(proof, binder, tmp_path, batch2, answers2)
         assert two.revisit == []
         (moved,) = _held_at(two, "block-context", MOVED_FROM)
@@ -2097,9 +2120,11 @@ def _a_move_stet_at_turn_zero(root) -> tuple[Binder, MasterProof]:
         role: [{**slot, "instruction": "hold", "reason": "mine"} for slot in slots]
         for role, slots in batch.items()
     }
-    one = run_turn(_over_the_wire(proof_after(got)), binder, root, batch, answers)
+    one = run_turn(
+        _over_the_wire(proof_after(got, root=root)), binder, root, batch, answers
+    )
     assert one.revisit == []
-    proof = _over_the_wire(proof_after(one, ({"turn": 1, "sent": batch},)))
+    proof = _over_the_wire(proof_after(one, ({"turn": 1, "sent": batch},), root=root))
     return binder, proof
 
 
@@ -2120,7 +2145,7 @@ def _a_move_at_max_turns(root) -> None:
         "change": MOVED_TEXT.replace("two", "TWO"),
     }
     one = run_turn(
-        _at(got),
+        _at(got, root),
         binder,
         root,
         batch,
@@ -2129,7 +2154,9 @@ def _a_move_at_max_turns(root) -> None:
     assert one.revisit == []
     assert sorted(e["address"] for e in one.escalations) == [MOVED_FROM, EMPTY_PLACE]
     (root / "binder.json").write_text(json.dumps(binder.serialize()), encoding="utf-8")
-    save_proof(root / "proof1.json", proof_after(one, ({"turn": 1, "sent": batch},)))
+    save_proof(
+        root / "proof1.json", proof_after(one, ({"turn": 1, "sent": batch},), root=root)
+    )
 
 
 def _the_chief_rules_each_end(root, monkeypatch, capsys, origin: dict, to: dict):
@@ -2290,11 +2317,13 @@ def _an_add_carried_to_max_turns(root) -> None:
             change=ADDED_TEXT.replace("w is 4", "w is four"),
         ),
     }
-    one = run_turn(_at(got), binder, root, batch, answers)
+    one = run_turn(_at(got, root), binder, root, batch, answers)
     assert one.revisit == []
     assert [e["address"] for e in one.escalations] == [EMPTY_PLACE]
     (root / "binder.json").write_text(json.dumps(binder.serialize()), encoding="utf-8")
-    save_proof(root / "proof1.json", proof_after(one, ({"turn": 1, "sent": batch},)))
+    save_proof(
+        root / "proof1.json", proof_after(one, ({"turn": 1, "sent": batch},), root=root)
+    )
 
 
 class TestTheChiefRecastsAnAdd:
@@ -2360,7 +2389,7 @@ def _the_origin_held_at_max_turns(root) -> list[dict]:
     assert one.revisit == []
     assert two.revisit == []
     (root / "binder.json").write_text(json.dumps(binder.serialize()), encoding="utf-8")
-    save_proof(root / "proof2.json", proof_after(two, turns))
+    save_proof(root / "proof2.json", proof_after(two, turns, root=root))
     last, why = load_proof(root / "proof2.json")
     assert last is not None, why
     assert [u["address"] for u in last.unsettlable] == [MOVED_FROM]
@@ -2429,6 +2458,63 @@ class TestAMoveWhoseOriginIsHeldForTheHuman:
         assert "block-context's move drops the paragraph there" in out
 
 
+class TestAMoveHeldAtBothEnds:
+    """A move whose mover's query holds both its ends for the human --
+    `no-command-for-the-middle` T96, `Process: #138` and `#155`.
+
+    Turn 1 answers block-context's slot at one end of its move with a
+    `human-review-necessary` query and every other slot `clean`, as T84's
+    and T72's tests do, so both ends are unsettlable, and `disposition`
+    closes the proof with nothing carried forward. The test asserts that
+    the origin's entry carries the move's `drop` and the destination's its
+    `add` of the moved text, and that `disposition` prints the two ends as
+    one move under one entry.
+    """
+
+    @pytest.mark.parametrize(
+        "asked_at",
+        [
+            pytest.param(MOVED_FROM, id="asked-at-the-origin"),
+            pytest.param(EMPTY_PLACE, id="asked-at-the-destination"),
+        ],
+    )
+    def test_both_ends_go_to_the_author_as_one_move(
+        self, tmp_path, monkeypatch, capsys, asked_at
+    ):
+        binder, got = _a_lone_move(tmp_path, MOVED_TEXT)
+        batch = batch_of(got.escalations, got.rereads)
+        asked = _a_movers_query(Shape.HUMAN_REVIEW_NECESSARY)
+        answers = _clean_but(batch, "block-context", asked_at, asked)
+        one = run_turn(_at(got, tmp_path), binder, tmp_path, batch, answers)
+        assert one.revisit == []
+        (tmp_path / "binder.json").write_text(
+            json.dumps(binder.serialize()), encoding="utf-8"
+        )
+        turns = ({"turn": 1, "sent": batch},)
+        save_proof(tmp_path / "proof1.json", proof_after(one, turns, root=tmp_path))
+        code, out = disposition(tmp_path, monkeypatch, capsys, [])
+        assert code == OK, out
+        closed, why = load_proof(tmp_path / "final.json")
+        assert closed is not None, why
+        held = {place["address"]: place for place in closed.unsettlable}
+        assert sorted(held) == [MOVED_FROM, EMPTY_PLACE]
+        drop = held[MOVED_FROM]["drop"]
+        assert (drop["role"], drop["instruction"]) == ("block-context", "drop")
+        add = held[EMPTY_PLACE].get("add", {})
+        assert (add.get("role"), add.get("from")) == ("block-context", MOVED_FROM)
+        riding = {k: v for k, v in add.items() if k not in ("role", "from")}
+        mark, why = Mark.deserialize(EMPTY_PLACE, riding)
+        assert mark is not None, why
+        assert (mark.instruction, mark.change) == (Instruction.ADD, MOVED_TEXT)
+        header = f"unsettlable {MOVED_FROM} and {EMPTY_PLACE}: block-context asks"
+        assert out.count("unsettlable ") == 1, out
+        assert header in out, out
+        assert (
+            f"block-context's move drops the paragraph at {MOVED_FROM}"
+            f" and adds it at {EMPTY_PLACE}" in out
+        ), out
+
+
 def _two_places():
     """b1 will converge on turn 1; b5 stays contested -- so turn 2 has a batch."""
     binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})
@@ -2489,7 +2575,7 @@ class TestOnceStetAlwaysStet:
                 },
             ],
         }
-        again = run_turn(_at(got), binder, REPO, batch, answers)
+        again = run_turn(_at(got, REPO), binder, REPO, batch, answers)
         problems = again.revisit
         assert problems == []
         assert again.determined["m.py@b1"].turn == 1
@@ -2504,7 +2590,7 @@ class TestOnceStetAlwaysStet:
             r: [{**batch2[r][0], "instruction": "hold", "reason": "still"}]
             for r in batch2
         }
-        two = run_turn(_at(one, 1), binder, REPO, batch2, answers2)
+        two = run_turn(_at(one, REPO, 1), binder, REPO, batch2, answers2)
         assert two.revisit == []
         assert two.determined["m.py@b1"].turn == 1
         assert [e["address"] for e in two.escalations] == ["m.py@b5"]
@@ -2513,7 +2599,7 @@ class TestOnceStetAlwaysStet:
         binder, one = self._turn_one()
         # block-context rewrites its b1 entry behind the fold's back -- on the
         # proof's wire, which is what the next turn reads.
-        wire = _at(one, 1).serialize()
+        wire = _at(one, REPO, 1).serialize()
         for copy in wire["edit_copies"]:
             if copy["role"] == "block-context":
                 for sheet in copy["sheets"]:
@@ -2544,7 +2630,7 @@ class TestTheConflictOutcomes:
         answers = {
             r: [{**batch[r][0], "instruction": "hold", "reason": "mine"}] for r in batch
         }
-        again = run_turn(_at(got), binder, REPO, batch, answers)
+        again = run_turn(_at(got, REPO), binder, REPO, batch, answers)
         assert [e["address"] for e in again.escalations] == ["m.py@b1"]
         assert again.determined == {}
 
@@ -2557,11 +2643,11 @@ class TestTheConflictOutcomes:
             ),
             **_answered(batch, "function-context", instruction="hold", reason="stands"),
         }
-        one = run_turn(_at(got), binder, REPO, batch, answers)
+        one = run_turn(_at(got, REPO), binder, REPO, batch, answers)
         assert one.rereads[0]["composed"].change == DOS
         batch2 = batch_of(one.escalations, one.rereads)
         answers2 = {r: [{**batch2[r][0], "instruction": "clean"}] for r in batch2}
-        two = run_turn(_at(one, 1), binder, REPO, batch2, answers2)
+        two = run_turn(_at(one, REPO, 1), binder, REPO, batch2, answers2)
         assert two.revisit == []
         ruled = two.determined["m.py@b1"]
         assert ruled.answer is Answer.STET and ruled.turn == 2
@@ -2574,7 +2660,7 @@ class TestTheConflictOutcomes:
             r: [{**batch[r][0], "instruction": "withdraw", "reason": "neither"}]
             for r in batch
         }
-        again = run_turn(_at(got), binder, REPO, batch, answers)
+        again = run_turn(_at(got, REPO), binder, REPO, batch, answers)
         problems = again.revisit
         assert problems == []
         assert again.escalations == [] and again.rereads == []
@@ -2599,7 +2685,7 @@ class TestARefusedAnswerIsARevisit:
             **_answered(batch, "block-context", instruction="correct", reason="x"),
             **_answered(batch, "function-context", instruction="hold", reason="stands"),
         }
-        problems = run_turn(_at(got), binder, REPO, batch, answers).revisit
+        problems = run_turn(_at(got, REPO), binder, REPO, batch, answers).revisit
         assert len(problems) == 1
         one = problems[0]
         assert isinstance(one, Revisit)
@@ -2615,7 +2701,7 @@ class TestARefusedAnswerIsARevisit:
             "block-context": [],
             **_answered(batch, "function-context", instruction="hold", reason="stands"),
         }
-        problems = run_turn(_at(got), binder, REPO, batch, answers).revisit
+        problems = run_turn(_at(got, REPO), binder, REPO, batch, answers).revisit
         assert [(p.role, p.address, p.unreadable) for p in problems] == [
             ("block-context", "m.py@b1", False)
         ]
