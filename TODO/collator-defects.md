@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 13 of 43 tasks closed
+Progress: 14 of 43 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, from the blind rewrite of collator.py -- the prose was
@@ -219,5 +219,6 @@ Four defects in collator.py, found by reading only the code.
 - [ ] T42 | Update source_problems to split a verbatim as the cited window is
       split, per Addressing #12
         > 2026-09-13 Roy 2026-09-13: the compositor rewrites endings; inside, none
-- [ ] T43 | Implement a test that a recast at an add's empty place, where a role
-      filed the add, keeps add and lands its text
+- [x] T43 | a recast keeps a filed add at an empty place and its text lands; the test is 3fbaa5c5 | 3fbaa5c5 | Implement
+      a test that a recast at an add's empty place, where a role filed the add,
+      keeps add and lands its text
