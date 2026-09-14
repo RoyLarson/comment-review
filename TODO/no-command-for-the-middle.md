@@ -453,7 +453,7 @@ Reconciliation has no command, so the chain cannot be driven end to end.
 - [x] T95 | a role answer where two of its moves land reaches both moves and the place and both origins go back as escalations, per Process 154 | 48dd530c | Update
       the turn so a role's answer where two of its moves land reaches both and
       goes back as a conflict, per Process 154
-- [x] T96 | a held move destination carries the moves add beside the origins drop, and disposition prints a move held at both ends as one entry, per Process 155 | d95a60b8 | Update
+- [x] T96 | a held move destination carries the moves add beside the origins drop, and disposition prints a move held at both ends as one entry in either order, per Process 155 | d57001c2 | Update
       a held move destination's entry to carry the add, both ends put to the
       author as one move, per Process 155
 - [x] T97 | the batch where two moves land is the same under every hash seed; _join_moves walks its pairs in sorted order | f8e5e2e8 | Update
