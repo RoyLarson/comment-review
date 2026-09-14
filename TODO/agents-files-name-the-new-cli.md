@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 21 of 33 tasks closed
+Progress: 22 of 33 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-04 (Roy, 2026-09-04, superseding the-flow-lives-in-the-command T4)
@@ -83,8 +83,9 @@ The agents files name the new CLI and say how to use it.
 - [x] T20 | the brief asks for no leading blank at either end | 7d2e1834 | Update
       reviewer-brief.md so a role writes no leading blank at either end of a
       change. Verify: the brief asks for none
-- [ ] T21 | Update SKILL.md so the task agent runs a compile step on the set
-      page to verify it is set correctly
+- [x] T21 | 7a compiles each drafted Python page with py_compile and names pages no compile step reached | 401e36de | Update
+      SKILL.md so the task agent runs a compile step on the set page to verify
+      it is set correctly
         > 2026-09-11 Addressing 27; Roy: we can have the task-agent run it
 - [x] T22 | the collate exit table carries exit 7's row | 49066f15 | Update
       SKILL.md's collate exit table at :664-670 with a row for that code
