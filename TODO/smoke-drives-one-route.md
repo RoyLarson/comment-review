@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 9 tasks closed
+Progress: 2 of 9 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-09-14 (2026-09-14 comment-review self-run, refused at stage 5)
@@ -14,8 +14,9 @@ The smoke drives one route, and the self-run broke on the others.
 
 ## Tasks
 
-- [ ] T1 | Implement a smoke stage that drafts a role's copy with proof --copy,
-      failing while cleaned paragraphs vanish (docket-defects T10)
+- [x] T1 | FINISHED -- the draft stage diffs function-context's own draft | 87746e4b | Implement
+      a smoke stage that drafts a role's copy with proof --copy, failing while
+      cleaned paragraphs vanish (docket-defects T10)
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
 - [-] T2 | SUPERSEDED by Process 172 -- no labelled form to plant; refiled as T9 | 35d2fcd9 | Implement
       a smoke plant of a partial move in the brief's labelled form, failing

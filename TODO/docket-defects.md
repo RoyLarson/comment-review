@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 11 tasks closed
+Progress: 4 of 11 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `docket/docket.py` run end to end
@@ -129,8 +129,9 @@ caller.
       flows/transcribe.docket_of so a settled move yields its two alterations
       once, not twice
         > 2026-09-11 smoke run: b1 null and b0 text each appear twice in the docket
-- [ ] T10 | Update docket_of so a clean or query mark writes no alteration;
-      proof --copy of an all-clean copy then drafts every page unchanged
+- [x] T10 | FINISHED -- docket_of skips a mark whose row owes no change; two tests | 87746e4b | Update
+      docket_of so a clean or query mark writes no alteration; proof --copy of
+      an all-clean copy then drafts every page unchanged
         > 2026-09-14 self-run: compositor.py drafted 439 -> 219 lines at exit 0
         > 2026-09-14 no test puts a clean or query mark through docket_of
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
