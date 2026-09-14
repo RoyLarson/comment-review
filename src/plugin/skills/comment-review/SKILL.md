@@ -23,7 +23,7 @@ Structure and fact first, then truth, then fit, then the page.
 |---|---|---|---|
 | 1 | **PROJECT DETERMINATION** | task agent | language, doc convention, cap and width, project rules, style sheet, and where the name corpus will come from |
 | 2 | **GATHER** | `gather` | every page in scope bound into one BINDER -- each comment run and docstring a paragraph with its address |
-| 3 | **FIND REFERENCES** | `gather` | every reference each paragraph makes, resolved -- paths, symbols, counts |
+| 3 | **FIND REFERENCES** | `referrers` | every tracked file that names a page under review -- the `REFERENCE ONLY` list |
 | 4 | **MARK** | 4 reviewers | one filled `edit_copy` per role, checked. Read-only, nothing under the repo written |
 | 5 | **COLLATE and DISPOSITION** | `collate`, then the task agent as **copy chief** | the copies folded; what they agreed on stands, what they did not is ruled at max turns; the chief's `edit_copy` holds one mark per resolved place with its **full-length** text |
 | 6 | **COMPACT** | task agent | that text cut to the cap -- **skipped entirely if there is no cap** |
@@ -81,8 +81,9 @@ reviewers', and [`references/reviewer-brief.md`](references/reviewer-brief.md) h
 
 ## Why the stages are in this order
 
-**1-3 build the PAGES** -- one per file: every LINE classified, numbered in order, with every
-reference it makes already resolved. This line is code, this PART of a line is code, this
+**1-3 build the PAGES** -- one per file: every LINE classified and numbered in order, each
+paragraph carrying its address, its anchor, its start and end line and its text. This line is
+code, this PART of a line is code, this
 line is comment, this line is docstring. It carries only which lines are which, which is
 what a reviewer of COMMENTS needs. The places holding nothing are on it too, because that
 is where prose is MISSING.

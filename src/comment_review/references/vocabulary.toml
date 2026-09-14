@@ -24,8 +24,8 @@
 # --- what a comment sits on -------------------------------------------------
 anchor = "The LINE OF CODE that an address is attached to -- the exact characters on it. An `a` is attached to the line that OPENS the thing it documents, a `b` to the line of code below the gap, a `c` to the code on its own line. Mechanical -- whatever is there. An anchor has MANY addresses and an address has ONE anchor, so two identical lines are two anchors spelled alike."
 owner = "The anchor with the best justification for holding the comment. Where several compete it is the site that ENFORCES the constraint, or, where nothing enforces it, the code still expected to hold the invariant."
-gather = "Stage 2, and the command that runs it: every page in scope read, every paragraph addressed and its references resolved, and the pages bound into the BINDER. The act; the binder is what it hands over."
-binder = "The artifact the gather hands over: every PAGE in scope, each paragraph carrying its ADDRESS and the references it makes already resolved. ! It spans the files; one page is one of them. ! Flat, because a page is: paragraphs run down a page and do not nest. What every later command reads."
+gather = "Stage 2, and the command that runs it: every page in scope read, every paragraph addressed, and the pages bound into the BINDER. The act; the binder is what it hands over."
+binder = "The artifact the gather hands over: every PAGE in scope, each paragraph carrying its ADDRESS, its ANCHOR, its start and end line and its text, and nothing else. ! It spans the files; one page is one of them. ! Flat, because a page is: paragraphs run down a page and do not nest. What every later command reads."
 
 # --- the units that get ruled on --------------------------------------------
 sentence = "The unit an instruction rules on. A container of six sentences can hold six instructions."
