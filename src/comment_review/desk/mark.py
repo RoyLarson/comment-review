@@ -448,7 +448,9 @@ class Mark:
         if spec.owes_sources:
             out += _source_problems(where, entry.get("sources"))
         if spec.owes_change:
-            out += _change_problems(where, instruction, spec, entry.get("change"))
+            out += _change_problems(
+                where, instruction, spec, entry.get("change"), entry.get("anchor")
+            )
         if not spec.substantive and filled(entry.get("change")):
             out.append(
                 f"{where}: {instruction} proposes no text, so carries no `change`"
@@ -771,7 +773,7 @@ def _source_problems(where: str, sources: object) -> list[str]:
 
 
 def _change_problems(
-    where: str, instruction: Instruction, spec: Row, change: object
+    where: str, instruction: Instruction, spec: Row, change: object, anchor: object
 ) -> list[str]:
     """Whether `change` is the updated paragraph, as RAW TEXT.
 
@@ -796,6 +798,10 @@ def _change_problems(
     content, and it should not. `not change` alone let a role return `"   "`
     for a `correct` or a `patch` and pass unchallenged, the same gap `filled`
     exists to close for a `claim` key.
+
+    A `change` holding a line equal to the mark's `anchor`, whitespace aside,
+    is refused: the anchor is the line of code the place sits on, and a change
+    is the paragraph alone (`collator-defects` T35).
     """
     if not isinstance(change, str):
         return [
@@ -804,6 +810,13 @@ def _change_problems(
         ]
     if not filled(change) and not spec.may_empty:
         return [f"{where}: {instruction} needs `change` to hold the new text"]
+    if filled(anchor) and anchor.strip() in (
+        line.strip() for line in change.splitlines()
+    ):
+        return [
+            f"{where}: {instruction}'s `change` carries the anchor's own line of "
+            f"code, {anchor.strip()!r} -- `change` is the paragraph alone"
+        ]
     return []
 
 
