@@ -55,8 +55,8 @@ NO WAY TO ANSWER SEVERAL SLOTS AT ONCE, and that is the point:** each slot is a 
 are certifying you considered under your remit, so each is its own ruling.
 
 **You may read your own draft.** `proof --copy <EDIT COPY from your packet> --repo <REPO ROOT>
---out <a directory that does not exist yet>` pulls a copy of the tree with your marks set on
-their pages, so a paragraph can be read as it would stand. Nothing under the repo is written;
+--out <a directory that does not exist yet>` pulls a copy of each page your marks change, with
+the marks set, so a paragraph can be read as it would stand. Nothing under the repo is written;
 the draft is the directory you named, and it is yours to read and discard.
 
 !! **`continues-a-trailing-comment` means the gather may have split one sentence.** A trailing
@@ -248,37 +248,26 @@ addressable, not accountable -- so **run `mark` with that place's ADDRESS and th
 `--anchor-line` the addresser printed for it**, and the slot is created. Read it as being
 about that place, not about a neighbour.
 
-!! **ASK FOR THE ADDRESS. DO NOT COUNT.** A row like `2-9  @b12..b19  48-58  no-prose  0L
-8-intervals` hides eight numbered gaps, and counting them is how a citation lands one place off.
-Two ways to ask:
+**Ask for the address; do not count.** Counting gaps is how a citation lands one place off.
+Ask by the line of the code the place belongs to.
 
-!! **AN ANCHOR ANSWERS WITH SEVERAL PLACES, AND THAT IS NOT AN ERROR.** An anchor has MANY
-addresses; an address has ONE anchor. Two identical statements in one file are two anchors spelled
-alike -- `X=2  # initial` and `X=2  # reseting X` -- so asking for *"the `c` of `X=2`"* answers
-with both and you **choose by ADDRESS**. Taking the first rules on the wrong statement.
-
-! **The `b` series is worse on the same file: THREE gaps answer**, and they are drawn from two
-different statements -- the gap above the first, the gap holding the comment between them (which
-is anchored to the code BELOW it, the second statement), and the gap at the end of the file. The
-tool prints how many answered; read that line.
-
-! **An anchor is a LINE OF CODE, never a name**: ask with `def f():`, not with `f`. Its `a`, the
-`b` above it and the `c` beside it all answer to that one spelling.
+**An anchor is a line of code, never a name**: `def f():`, not `f`. Its `a`, the `b` above it
+and the `c` beside it are all asked for by that line's number.
 
 ```bash
-# by ANCHOR -- which place of this declaration: a its documentation,
-# b the gap above its opening line, c the room beside it
+# which place of the code on LINE: a the documentation of a declaration opening there,
+# b the gap above it, c the room beside it
 python <skill>/scripts/comment-review.py addresser --binder <BINDER from your packet> --file <path> --line LINE --series a|b|c
 ```
+
+It prints one line per place: its address, its anchor, and `HELD` or `ABSENT` -- `ABSENT` is a
+place your binder does not carry, which a mark may still cite. A line answers with one place per
+series, except that `--series f` prints both of the file's own places; choose between them by
+address.
 
 !! **THE ANCHOR IS THE ONLY WAY TO ASK.** Asking by position -- "the paragraph above the
 `def`" -- is right in Python and wrong in Rust, whose `///` sits before its `fn` where Python's
 docstring sits after. The gather parsed the file and knows which is which; a count does not.
-
-! **There is no by-LINE lookup, and that is deliberate.** One existed until 2026-08-20 and was
-dropped: the anchor IS the line of code, verbatim, so asking by anchor already asks by line --
-and its other use, *where do I insert text*, is not a question a reviewer answers. You name the
-PLACE; the compositor sets the page.
 
 !! **A LINE NUMBER IS HOW YOU ASK; AN ADDRESS IS HOW YOU ANSWER.** A mark naming a line as the
 place a thing belongs is refused.
