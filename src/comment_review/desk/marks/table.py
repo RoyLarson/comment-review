@@ -17,9 +17,15 @@ that read its page, per `decision-log.md Process: #116` and `#121`.
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum, auto
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from comment_review.desk.marks.mark import Instruction, Shape, first_word_dropped
+from comment_review.desk.dispositions.disposition import CHIEF
+from comment_review.desk.marks.mark import Instruction, Mark, Shape, first_word_dropped
+
+if TYPE_CHECKING:
+    # Type-only: `place` imports `INSTRUCTIONS`, `Stance` and `Touch` from this
+    # module, so a runtime import here would cycle back to it.
+    from comment_review.desk.evaluate.place import Place
 
 
 class Touch(StrEnum):
@@ -195,3 +201,61 @@ INSTRUCTIONS: dict[Instruction, Row] = {
         reads=_move_reads,
     ),
 }
+
+
+def chief_mark(place: "Place") -> Mark:
+    """The chief's mark at one decided place -- the side taken in, or synthesized.
+
+    Returns the filed mark whose row sets `place.text` at this place, where
+    one of the filed marks does -- the side the fold took in, returned
+    unchanged. Otherwise synthesizes one: a drop where the decided text is
+    empty, a correct where the base held a paragraph, an add where it did
+    not.
+
+    Args:
+        place: a decided place -- `place.text` is not None.
+
+    Returns:
+        The taken-in `Mark`, or a synthesized one whose `reason` names the
+        copy chief.
+    """
+    for filed in place.filed:
+        row = INSTRUCTIONS[filed.mark.instruction]
+        if row.sets(filed.mark, filed.touch, place.base) == place.text:
+            return filed.mark
+
+    text = place.text
+    assert text is not None, "chief_mark needs a place the fold decided a text for"
+    reason = f"{CHIEF}: decided at this place"
+    if text == "":
+        return Mark(
+            address=place.address,
+            anchor=place.anchor,
+            raw_text=place.base,
+            instruction=Instruction.DROP,
+            claim={"drop": place.base},
+            reason=reason,
+            sources=(),
+            change="",
+        )
+    if place.base:
+        return Mark(
+            address=place.address,
+            anchor=place.anchor,
+            raw_text=place.base,
+            instruction=Instruction.CORRECT,
+            claim={"false": place.base, "true": text},
+            reason=reason,
+            sources=(),
+            change=text,
+        )
+    return Mark(
+        address=place.address,
+        anchor=place.anchor,
+        raw_text="",
+        instruction=Instruction.ADD,
+        claim={"missing": text.splitlines()[0], "anchor": f"`{place.anchor}`"},
+        reason=reason,
+        sources=(),
+        change=text,
+    )

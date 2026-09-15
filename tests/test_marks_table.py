@@ -1,7 +1,8 @@
 """The marks table: what each row sets, refuses and pairs as."""
 
+from comment_review.desk.evaluate.place import Filed, Place
 from comment_review.desk.marks.mark import Instruction, Mark
-from comment_review.desk.marks.table import INSTRUCTIONS, Row, Stance, Touch
+from comment_review.desk.marks.table import INSTRUCTIONS, Row, Stance, Touch, chief_mark
 
 
 def _mark(instruction: Instruction, **fields) -> Mark:
@@ -137,3 +138,58 @@ def test_owes_destination_is_derived_from_touches_not_set_beside_it():
     assert Row(touches=(Touch.ORIGIN, Touch.DESTINATION)).owes_destination is True
     assert Row().owes_destination is False
     assert Row(touches=(Touch.OWN,), owes_destination=True).owes_destination is False
+
+
+def test_chief_mark_returns_the_filed_mark_that_set_the_decided_text():
+    """Ruling R5: the side taken in is returned as-is, not resynthesized."""
+    mark = _mark(
+        Instruction.CORRECT,
+        claim={"false": "two", "true": "2"},
+        change="# one\n# 2\n# three\n",
+    )
+    place = Place(
+        address="m.py@b1",
+        anchor="x = 1",
+        base=BASE,
+        filed=[Filed("a", mark, Touch.OWN)],
+        text="# one\n# 2\n# three\n",
+    )
+    assert chief_mark(place) is mark
+
+
+def test_chief_mark_synthesizes_a_correct_when_no_filed_mark_set_the_text():
+    mark = _mark(
+        Instruction.CORRECT,
+        claim={"false": "two", "true": "2"},
+        change="# one\n# 2\n# three\n",
+    )
+    place = Place(
+        address="m.py@b1",
+        anchor="x = 1",
+        base=BASE,
+        filed=[Filed("a", mark, Touch.OWN)],
+        text="# different\n",
+    )
+    got = chief_mark(place)
+    assert got.instruction is Instruction.CORRECT
+    assert got.claim == {"false": BASE, "true": "# different\n"}
+    assert got.change == "# different\n"
+    assert got.raw_text == BASE
+
+
+def test_chief_mark_synthesizes_an_add_over_an_empty_base():
+    place = Place(address="m.py@b1", anchor="x = 1", base="", filed=[], text="# new\n")
+    got = chief_mark(place)
+    assert got.instruction is Instruction.ADD
+    assert got.claim == {"missing": "# new", "anchor": "`x = 1`"}
+    assert got.change == "# new\n"
+    assert got.raw_text == ""
+
+
+def test_chief_mark_synthesizes_a_drop_when_the_decided_text_is_empty():
+    place = Place(address="m.py@b1", anchor="x = 1", base=BASE, filed=[], text="")
+    got = chief_mark(place)
+    assert got.instruction is Instruction.DROP
+    assert got.claim == {"drop": BASE}
+    assert got.change == ""
+    assert got.raw_text == BASE
