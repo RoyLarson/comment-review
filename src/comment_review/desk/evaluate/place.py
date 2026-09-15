@@ -25,11 +25,11 @@ class Place:
     address: str
     anchor: str
     base: str
-    #: The roles whose edit copies held this place's page. Ruling R4,
-    #: `decision-log.md Process: #116` and `#121`: an `add` is carried
-    #: forward for every role that read the page, not only the role that
-    #: filed it, and the marks pass reads this to know who that is.
-    #: `places_of` (a later task) fills it; here it is data.
+    #: The roles whose edit copies held this place's page, carried as data --
+    #: `places_of` (a later task) fills it, and nothing here reads it. Ruling
+    #: R4, `decision-log.md Process: #116` and `#121`: an `add` is carried
+    #: forward for every role that read the page, so the bus asks this field
+    #: when it sends a composition back to every role that read the page.
     readers: tuple[str, ...] = ()
     filed: list[Filed] = field(default_factory=list)
     answers: dict[int, dict[str, Answer]] = field(default_factory=dict)
