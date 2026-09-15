@@ -295,7 +295,7 @@ that changed a published name or rule:
 | [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | -- | 8/12 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
 | [prove-unchanged-line-endings-follow-a-sibling](prove-unchanged-line-endings-follow-a-sibling.md) | backend | -- | 0/2 | On a checkout with core.autocrlf=true, git writes a checked-out text file with CRLF while its blob stays LF, and a file git never rewrote can still be LF. prove_unchanged compares an edited file's line endings with one untouched sibling, so a CRLF file whose sibling is a one-line LF __init__.py FAILs though the write kept every ending and the AST comparison passes. The check should hold the file to its own pre-edit endings. |
 | [smoke-drives-one-route](smoke-drives-one-route.md) | systems | -- | 7/9 | The smoke drives one route, and the self-run broke on the others |
-| [the-middle-rebuilt](the-middle-rebuilt.md) | backend | -- | 1/7 | The middle folds through three tables, an evaluator and a Unit of Work |
+| [the-middle-rebuilt](the-middle-rebuilt.md) | backend | -- | 2/7 | The middle folds through three tables, an evaluator and a Unit of Work |
 
 ### in-progress  (18)
 
