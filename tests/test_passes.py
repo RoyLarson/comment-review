@@ -1,7 +1,14 @@
 """The marks pass: from the marks filed at a place to its state and text."""
 
-from comment_review.desk.answers.answer import Question
-from comment_review.desk.evaluate.passes import marks_pass, pair_moves
+from comment_review.desk.answers.answer import Answer, Question
+from comment_review.desk.dispositions.disposition import Disposition
+from comment_review.desk.evaluate.passes import (
+    answers_pass,
+    dispositions_pass,
+    evaluate,
+    marks_pass,
+    pair_moves,
+)
 from comment_review.desk.evaluate.place import Filed, Place
 from comment_review.desk.evaluate.state import State
 from comment_review.desk.marks.mark import Instruction, Mark, Shape
@@ -162,3 +169,106 @@ def test_a_lone_add_composes_even_alone():
     got = marks_pass(_place(Filed("a", add, Touch.OWN), base=""))
     assert got.state is State.COMPOSED and got.text == "# new paragraph\n"
     assert got.question is Question.COMPOSITION
+
+
+def _contested() -> Place:
+    a = _mark(
+        Instruction.CORRECT,
+        change="# one\n# 2\n# three\n",
+        claim={"false": "two", "true": "2"},
+    )
+    b = _mark(
+        Instruction.CORRECT,
+        change="# one\n# II\n# three\n",
+        claim={"false": "two", "true": "II"},
+    )
+    return marks_pass(_place(Filed("a", a, Touch.OWN), Filed("b", b, Touch.OWN)))
+
+
+def _answer(name, change="", claim=None):
+    return Answer(
+        address="m.py@b1",
+        anchor="x = 1",
+        question=Question.ESCALATION,
+        name=name,
+        reason="r",
+        change=change,
+        claim=claim or {},
+    )
+
+
+def test_a_withdrawal_leaves_the_other_side_standing():
+    place = _contested()
+    place.answers[1] = {"a": _answer("hold"), "b": _answer("withdraw")}
+    got = answers_pass(place, 1)
+    assert got.state is State.STANDS and got.text == "# one\n# 2\n# three\n"
+
+
+def test_two_holds_keep_the_place_contested():
+    place = _contested()
+    place.answers[1] = {"a": _answer("hold"), "b": _answer("hold")}
+    assert answers_pass(place, 1).state is State.CONTESTED
+
+
+def test_both_replacing_with_one_text_agree():
+    place = _contested()
+    place.answers[1] = {
+        "a": _answer("correct", "# one\n# 2\n# three\n"),
+        "b": _answer("patch", "# one\n# 2\n# three\n"),
+    }
+    got = answers_pass(place, 1)
+    assert got.state is State.AGREED and got.text == "# one\n# 2\n# three\n"
+
+
+def test_an_unanswered_role_leaves_its_side_and_the_place_open():
+    place = _contested()
+    place.answers[1] = {"a": _answer("hold")}
+    got = answers_pass(place, 1)
+    assert got.state is State.CONTESTED
+    assert "b" in got.sides
+
+
+def test_a_taken_in_closes_a_contested_place_on_one_side():
+    place = _contested()
+    place.disposition = Disposition(
+        address="m.py@b1", name="taken_in", side="b", prose="", reason="r"
+    )
+    got = dispositions_pass(place)
+    assert got.state is State.STANDS and got.text == "# one\n# II\n# three\n"
+
+
+def test_a_recast_closes_it_on_the_chiefs_prose():
+    place = _contested()
+    place.disposition = Disposition(
+        address="m.py@b1",
+        name="recast",
+        side="copy-chief",
+        prose="# mine\n",
+        reason="r",
+    )
+    got = dispositions_pass(place)
+    assert got.state is State.STANDS and got.text == "# mine\n"
+
+
+def test_a_disposition_on_an_unsettlable_place_is_refused():
+    q = _mark(Instruction.QUERY, claim={"shape": str(Shape.HUMAN_REVIEW_NECESSARY)})
+    place = marks_pass(_place(Filed("a", q, Touch.OWN)))
+    place.disposition = Disposition(
+        address="m.py@b1",
+        name="recast",
+        side="copy-chief",
+        prose="# mine\n",
+        reason="r",
+    )
+    got = dispositions_pass(place)
+    assert got.state is State.REFUSED and "unsettlable" in got.reasons[0]
+
+
+def test_evaluate_runs_the_three_in_order():
+    place = _contested()
+    place.answers[1] = {"a": _answer("hold"), "b": _answer("hold")}
+    place.disposition = Disposition(
+        address="m.py@b1", name="taken_in", side="a", prose="", reason="r"
+    )
+    got = evaluate(place, turn=1)
+    assert got.state is State.STANDS and got.text == "# one\n# 2\n# three\n"
