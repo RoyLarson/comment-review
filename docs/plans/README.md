@@ -9,7 +9,7 @@
 | [0.2.4-the-commands-for-the-middle](0.2.4-the-commands-for-the-middle.md) | in-progress | 7/8 | 53/61 |
 | [0.2.4-the-listing-goes](0.2.4-the-listing-goes.md) | in-progress | 7/7 | 4/4 |
 | [0.2.4-the-mark-and-the-collator](0.2.4-the-mark-and-the-collator.md) | in-progress | 31/31 | 21/21 |
-| [0.2.4-the-middle-rebuilt](0.2.4-the-middle-rebuilt.md) | in-progress | 1/12 | 2/12 |
+| [0.2.4-the-middle-rebuilt](0.2.4-the-middle-rebuilt.md) | in-progress | 1/12 | 3/12 |
 | [0.2.4-the-turn-as-commands](0.2.4-the-turn-as-commands.md) | in-progress | 14/14 | 10/10 |
 | [0.2.4-the-vocabulary-gate-is-asserted](0.2.4-the-vocabulary-gate-is-asserted.md) | in-progress | 1/1 | 2/2 |
 | [0.2.4-what-a-reviewer-is-handed](0.2.4-what-a-reviewer-is-handed.md) | in-progress | 12/24 | 3/4 |
