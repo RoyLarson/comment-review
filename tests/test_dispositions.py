@@ -1,6 +1,6 @@
 """The dispositions table: what the chief may close, and what text it sets."""
 
-from comment_review.desk.dispositions.disposition import Disposition
+from comment_review.desk.dispositions.disposition import CHIEF, Disposition
 from comment_review.desk.dispositions.table import DISPOSITIONS
 from comment_review.desk.evaluate.state import State
 
@@ -51,3 +51,18 @@ def test_a_disposition_is_read_by_name():
         "m.py@b1", {"address": "m.py@b1", "answer": "correct", "reason": "r"}
     )
     assert got is None and "a role's answer" in why[0]
+
+
+def test_a_recast_with_no_side_takes_the_rows_own():
+    got, why = Disposition.deserialize(
+        "m.py@b1",
+        {"address": "m.py@b1", "answer": "recast", "prose": "# mine\n", "reason": "r"},
+    )
+    assert why == [] and got is not None and got.side == CHIEF
+
+
+def test_a_taken_in_with_no_side_is_refused():
+    got, why = Disposition.deserialize(
+        "m.py@b1", {"address": "m.py@b1", "answer": "taken_in", "reason": "r"}
+    )
+    assert got is None and "needs `side`" in why[0]

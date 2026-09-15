@@ -19,7 +19,7 @@ class Disposition:
     reason: str
 
     def serialize(self) -> dict:
-        """This ruling as the wire entry a docket carries -- its OWN field names."""
+        """This ruling as a docket carries it, keyed by this class's own field names."""
         out = {f.name: getattr(self, f.name) for f in fields(self)}
         out["answer"] = out.pop("name")
         return out

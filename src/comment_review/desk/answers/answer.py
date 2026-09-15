@@ -31,7 +31,7 @@ class Answer:
     sources: tuple = ()
 
     def serialize(self) -> dict:
-        """This answer as the wire entry a turn carries -- its OWN field names."""
+        """This answer as a turn carries it, keyed by this class's own field names."""
         out = {f.name: getattr(self, f.name) for f in fields(self)}
         out["question"] = str(self.question)
         out["instruction"] = out.pop("name")
