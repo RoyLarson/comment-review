@@ -170,6 +170,20 @@ uses the word. Neither term is reviewer-facing yet -- `desk.marks.table.Touch` a
 read by the middle, not by an editorial role's prompt -- so the drift check would refuse a term no
 role's text carries. Add them once an agents-lane task puts the word in a reviewer's own file.
 
+### `place` and `pass` -- the evaluator's own words, recorded here first
+
+T2 of `docs/superpowers/plans/2026-09-14-the-middle-rebuilt.md` gave `desk.evaluate` two more:
+
+- **`place`** -- the aggregate the middle decides: one address, its base text, every mark filed
+  against it, and the state, text and sides that follow from those marks. `desk.evaluate.place.Place`.
+- **`pass`** -- one table applied to a place. The marks pass reads `desk.marks.table` over a
+  place's filed marks and sets its state; later tasks add the turn pass and the disposition pass,
+  each reading its own table the same way.
+
+Same rule as `stance` and `touch` above: do not add either to `vocabulary.toml` until a role's own
+text uses the word. Neither is reviewer-facing yet -- a place and a pass are read and written by
+the middle, never by an editorial role's prompt.
+
 ## The middle has four containers -- `master_proof`, `edit_copy`, `sheet`, `mark`
 
 **Ruled 2026-08-29** (`decision-log.md Vocabulary: #28`), naming the level the three-container

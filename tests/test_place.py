@@ -1,0 +1,104 @@
+"""Place: which marks propose, and the serialize round trip."""
+
+from comment_review.desk.answers.answer import Answer, Question
+from comment_review.desk.dispositions.disposition import ORIGINAL, Disposition
+from comment_review.desk.evaluate.place import Filed, Place
+from comment_review.desk.evaluate.state import State
+from comment_review.desk.marks.mark import Instruction, Mark
+from comment_review.desk.marks.table import Touch
+
+BASE = "# one\n# two\n# three\n"
+
+
+def _mark(
+    instruction, change="", raw_text=BASE, claim=None, address="m.py@b1", sources=()
+):
+    return Mark(
+        address=address,
+        anchor="x = 1",
+        raw_text=raw_text,
+        instruction=instruction,
+        claim=claim or {},
+        reason="r",
+        sources=sources,
+        change=change,
+    )
+
+
+def test_proposals_holds_only_the_marks_that_propose():
+    corr = _mark(
+        Instruction.CORRECT,
+        change="# one\n# 2\n# three\n",
+        claim={"false": "two", "true": "2"},
+    )
+    clean = _mark(Instruction.CLEAN)
+    place = Place(
+        address="m.py@b1",
+        anchor="x = 1",
+        base=BASE,
+        filed=[Filed("a", corr, Touch.OWN), Filed("b", clean, Touch.OWN)],
+    )
+    assert place.proposals() == {"a": "# one\n# 2\n# three\n"}
+
+
+def test_a_move_proposes_its_origin_delete_and_its_destination_text():
+    move = _mark(
+        Instruction.MOVE,
+        change="# two\n",
+        raw_text="# four\n# two\n# five\n",
+        claim={"from": "m.py@b1", "to": "m.py@b5"},
+    )
+    origin = Place(
+        address="m.py@b1",
+        anchor="x = 1",
+        base=BASE,
+        filed=[Filed("a", move, Touch.ORIGIN)],
+    )
+    assert origin.proposals() == {"a": "# one\n# three\n"}
+
+
+def test_a_place_round_trips_through_serialize():
+    corr = _mark(
+        Instruction.CORRECT,
+        change="# one\n# 2\n# three\n",
+        claim={"false": "two", "true": "2"},
+        sources=({"cite": "m.py:1", "verbatim": "two"},),
+    )
+    answer = Answer(
+        address="m.py@b1",
+        anchor="x = 1",
+        question=Question.ESCALATION,
+        name="hold",
+        reason="the prose is right as it stands",
+    )
+    disposition = Disposition(
+        address="m.py@b1",
+        name="taken_in",
+        side=ORIGINAL,
+        prose="",
+        reason="the base already says this",
+    )
+    place = Place(
+        address="m.py@b1",
+        anchor="x = 1",
+        base=BASE,
+        readers=("a", "b"),
+        filed=[Filed("a", corr, Touch.OWN)],
+        answers={1: {"a": answer}},
+        disposition=disposition,
+        state=State.STANDS,
+        text="# one\n# 2\n# three\n",
+        sides={"a": "# one\n# 2\n# three\n"},
+        reasons=(),
+        question=None,
+        partner=None,
+    )
+    got, problems = Place.deserialize("m.py@b1", place.serialize())
+    assert problems == []
+    assert got == place
+
+
+def test_deserialize_refuses_a_place_that_is_not_an_object():
+    got, problems = Place.deserialize("m.py@b1", "not a place")
+    assert got is None
+    assert problems == ["m.py@b1: a place must be an object"]
