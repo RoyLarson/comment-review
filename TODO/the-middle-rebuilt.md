@@ -21,6 +21,7 @@ The middle folds through three tables, an evaluator and a Unit of Work.
       the place, its six states and the three passes in desk/evaluate
 - [ ] T3 | Implement the Unit of Work in desk/work and the bus in flows, and
       switch collate to it
+        > 2026-09-14 Fold and events landed at 1ef041f3; bus and collate switch remain
 - [ ] T4 | Implement the turn and disposition handlers and switch both commands
       to the bus
 - [ ] T5 | Update fill, check and docket_of to read the tables, and delete
