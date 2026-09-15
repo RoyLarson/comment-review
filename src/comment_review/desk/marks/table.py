@@ -218,6 +218,11 @@ def chief_mark(place: "Place") -> Mark:
     Returns:
         The taken-in `Mark`, or a synthesized one whose `reason` names the
         copy chief.
+
+    Raises:
+        ValueError: `place.text` is None -- the caller's contract is a place
+            the fold already decided a text for; `chief_copy_of` filters
+            those out before calling this.
     """
     for filed in place.filed:
         row = INSTRUCTIONS[filed.mark.instruction]
@@ -225,7 +230,11 @@ def chief_mark(place: "Place") -> Mark:
             return filed.mark
 
     text = place.text
-    assert text is not None, "chief_mark needs a place the fold decided a text for"
+    if text is None:
+        raise ValueError(
+            "chief_mark needs a place the fold decided a text for, "
+            f"got None at {place.address!r}"
+        )
     reason = f"{CHIEF}: decided at this place"
     if text == "":
         return Mark(

@@ -7,7 +7,7 @@ from comment_review.desk.collator import base_texts
 from comment_review.desk.containers import Sheet
 from comment_review.desk.evaluate.place import Place
 from comment_review.desk.marks.mark import Instruction
-from comment_review.desk.marks.table import Touch
+from comment_review.desk.marks.table import INSTRUCTIONS, Touch
 from comment_review.flows.places import chief_copy_of, places_of
 
 BASE = "# one\n# two\n# three\n"
@@ -56,6 +56,31 @@ def test_readers_are_every_role_whose_copy_holds_a_sheet_for_the_page():
     copies = [returned(w) for w in wire]
     places = places_of(copies, base_texts(binder), {})
     assert places["m.py@b1"].readers == ("block-context", "function-context")
+
+
+def test_a_taken_in_move_writes_one_mark_at_its_origin_and_none_at_its_destination():
+    binder = a_binder_over({"one.py@b1": BASE, "two.py@b1": "# four\n# five\n"})
+    move = a_move("one.py@b1", "two.py@b1")
+    move["change"] = "# two\n"
+    wire = copies_over(binder, {"block-context": {"one.py@b1": move}})
+    copies = [returned(w) for w in wire]
+    places = places_of(copies, base_texts(binder), {})
+
+    origin, destination = places["one.py@b1"], places["two.py@b1"]
+    move_mark = origin.filed[0].mark
+    row = INSTRUCTIONS[Instruction.MOVE]
+    origin.text = row.sets(move_mark, Touch.ORIGIN, origin.base)
+    destination.text = row.sets(move_mark, Touch.DESTINATION, destination.base)
+
+    sheets = [
+        Sheet(path="one.py", sha="0" * 40, marks=()),
+        Sheet(path="two.py", sha="0" * 40, marks=()),
+    ]
+    copy = chief_copy_of(places, "copy-chief", {"root": ".", "revise": 0}, sheets)
+
+    by_path = {sheet.path: sheet.marks for sheet in copy.sheets}
+    assert len(by_path.get("one.py", ())) == 1
+    assert "two.py" not in by_path
 
 
 def test_chief_copy_of_synthesizes_a_correct_for_a_decided_place():
