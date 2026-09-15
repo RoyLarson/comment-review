@@ -43,7 +43,7 @@ from comment_review.desk.mark import (
 )
 from comment_review.desk.proof import master_proof_of
 from comment_review.docket.docket import Docket
-from comment_review.flows.collate import Collated, collate
+from comment_review.flows._collate import Collated, collate
 from comment_review.flows.distribute import seed
 from comment_review.flows.fill import fill
 from comment_review.flows.page_for import page_of, source_of

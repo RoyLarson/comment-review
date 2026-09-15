@@ -26,7 +26,7 @@ STILL_OLD = {
     "desk/collator.py",
     "desk/determined.py",
     "desk/diff_mark.py",
-    "flows/collate.py",
+    "flows/_collate.py",
     "flows/fill.py",
     "flows/transcribe.py",
     "flows/turn.py",

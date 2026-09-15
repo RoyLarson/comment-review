@@ -38,7 +38,7 @@ from comment_review.commands.collate import (
     _refused,
     _report,
 )
-from comment_review.flows.collate import CannotCollate
+from comment_review.flows._collate import CannotCollate
 from comment_review.flows.proof_io import (
     load_batch,
     load_binder,

@@ -33,7 +33,7 @@ from comment_review.desk.collator import known_addresses
 from comment_review.desk.containers import EditCopy
 from comment_review.desk.diff_mark import batch_of
 from comment_review.desk.mark import Mark, Shape
-from comment_review.flows.collate import collate
+from comment_review.flows._collate import collate
 from comment_review.flows.page_for import page_of
 from comment_review.reading.addresser import address_for
 
@@ -867,7 +867,7 @@ class TestAnAddressOutsideTheCheckoutIsNotRead:
             read.append(page_path.resolve())
             return page_of(page_path, *args, **kwargs)
 
-        monkeypatch.setattr("comment_review.flows.collate.page_of", recording)
+        monkeypatch.setattr("comment_review.flows._collate.page_of", recording)
         got = collate("4c", [copy], binder, root=root)
         unresolved = [
             p.message
@@ -1151,7 +1151,7 @@ class TestTheMovesAreADag:
         address is a two-mark place. That is exactly why the rule is written:
         the protection upstream is a side effect, and a side effect is not a
         rule."""
-        from comment_review.flows.collate import _move_order
+        from comment_review.flows._collate import _move_order
 
         def a_resolved_move(origin, destination):
             mark, why = Mark.deserialize(origin, a_move(origin, destination))
@@ -1168,7 +1168,7 @@ class TestTheMovesAreADag:
         assert set(cycle) == {"m.py@b1", "m.py@b2"}
 
     def test_a_chain_orders_rather_than_cycling(self):
-        from comment_review.flows.collate import _move_order
+        from comment_review.flows._collate import _move_order
 
         def a_resolved_move(origin, destination):
             mark, why = Mark.deserialize(origin, a_move(origin, destination))
@@ -1194,7 +1194,7 @@ class TestPairMoves:
     hand, the one shape a caller bypassing `_join_moves` could still produce."""
 
     def test_withdraws_a_move_whose_other_end_is_absent(self):
-        from comment_review.flows.collate import _pair_moves
+        from comment_review.flows._collate import _pair_moves
 
         mark, why = Mark.deserialize("m.py@b1", a_move("m.py@b1", "m.py@b5"))
         assert why == [], why
@@ -1210,7 +1210,7 @@ class TestPairMoves:
         pass over `resolved` (in insertion order: b1 then b2) would check A
         while b2 still looks resolved and miss it. This is what the fixed
         point in `_pair_moves`'s docstring is for."""
-        from comment_review.flows.collate import _pair_moves
+        from comment_review.flows._collate import _pair_moves
 
         a_mark, why_a = Mark.deserialize("m.py@b1", a_move("m.py@b1", "m.py@b2"))
         b_mark, why_b = Mark.deserialize("m.py@b2", a_move("m.py@b2", "m.py@b3"))

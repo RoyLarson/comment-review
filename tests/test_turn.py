@@ -56,7 +56,7 @@ from comment_review.desk.mark import (
     derived_change,
 )
 from comment_review.docket.docket import Docket
-from comment_review.flows.collate import collate
+from comment_review.flows._collate import collate
 from comment_review.flows.distribute import seed
 from comment_review.flows.fill import fill
 from comment_review.flows.mark_errors import Revisit

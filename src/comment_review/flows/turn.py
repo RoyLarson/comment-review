@@ -147,7 +147,7 @@ from comment_review.desk.mark import (
     untouched,
     without_location,
 )
-from comment_review.flows.collate import (
+from comment_review.flows._collate import (
     Collated,
     _chief_copy,
     _identical,

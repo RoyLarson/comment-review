@@ -41,7 +41,7 @@ from comment_review.desk.collator import (
 )
 from comment_review.desk.containers import EditCopy
 from comment_review.desk.mark import Instruction, Mark
-from comment_review.flows.collate import texts_at
+from comment_review.flows._collate import texts_at
 from comment_review.flows.distribute import seed
 from comment_review.flows.mark_errors import mark_errors
 from comment_review.reading.addresser import address_for

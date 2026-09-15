@@ -30,7 +30,7 @@ from helpers import (
 
 from comment_review.commands import check as command
 from comment_review.desk.diff_mark import batch_of
-from comment_review.flows.collate import collate
+from comment_review.flows._collate import collate
 from comment_review.flows.proof_io import save_batch, save_proof
 from comment_review.flows.turn import batch_for, proof_after, run_turn
 

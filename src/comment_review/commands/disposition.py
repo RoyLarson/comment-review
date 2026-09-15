@@ -33,7 +33,7 @@ from pathlib import Path
 
 from comment_review.commands.collate import BROKEN, OK, _refused, _report
 from comment_review.desk.determined import Answer
-from comment_review.flows.collate import CannotCollate
+from comment_review.flows._collate import CannotCollate
 from comment_review.flows.proof_io import (
     load_binder,
     load_proof,

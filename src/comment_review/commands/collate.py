@@ -22,7 +22,7 @@ from pathlib import Path
 
 from comment_review.desk.proof import MismatchedRoot
 from comment_review.desk.topology import read as read_topology
-from comment_review.flows.collate import CannotCollate, collate
+from comment_review.flows._collate import CannotCollate, collate
 from comment_review.flows.proof_io import (
     load_binder,
     load_copy,

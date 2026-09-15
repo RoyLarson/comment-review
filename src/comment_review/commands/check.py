@@ -49,7 +49,7 @@ from pathlib import Path
 
 from comment_review.desk.collator import Cache, base_texts, drift_in, verify_report
 from comment_review.desk.containers import EditCopy
-from comment_review.flows.collate import resolution_problems, texts_at
+from comment_review.flows._collate import resolution_problems, texts_at
 from comment_review.flows.mark_errors import mark_errors
 from comment_review.flows.proof_io import (
     load_batch,
