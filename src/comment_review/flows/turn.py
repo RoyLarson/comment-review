@@ -156,7 +156,7 @@ from comment_review.flows.collate import (
 )
 from comment_review.flows.fill import place_on_the_page
 from comment_review.flows.mark_errors import Revisit
-from comment_review.results.differences import diff3
+from comment_review.machine.differences import diff3
 
 #: What a role may answer a composition re-read with -- `Process: #86`.
 COMPOSITION_ANSWERS = (
@@ -1226,11 +1226,13 @@ def determined_chief(
 def batch_for(collated: Collated) -> dict[str, list[dict]]:
     """The batch that goes out -- `batch_of`, with every slot's diff attached.
 
-    !! THE RENDERER LIVES AT THE FLOW -- T11, P13. `results.differences.diff3`
-    is the write end, which `desk/` may not reach, so `desk.diff_mark.batch_of`
-    sends a slot with no rendered text and this fills `DIFF` on each: the base
-    against every side at the place, in diff3 form, the same string for every
-    role that owes the place.
+    !! THE RENDERER LIVES AT THE FLOW -- T11, P13. `differences.diff3` sat in
+    the write end at the time, which `desk/` could not reach, so
+    `desk.diff_mark.batch_of` sends a slot with no rendered text and this
+    fills `DIFF` on each: the base against every side at the place, in diff3
+    form, the same string for every role that owes the place. (`differences`
+    moved to the `machine` leaf under T2 of the same plan; this module is
+    itself scheduled for deletion under T6.)
 
     Args:
         collated: the last fold.

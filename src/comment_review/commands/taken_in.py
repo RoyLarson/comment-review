@@ -29,9 +29,9 @@ from pathlib import Path
 
 from comment_review.binder.binder import bind
 from comment_review.flows.page_for import page_of, source_of
+from comment_review.machine.differences import unified
 from comment_review.machine.repo import walk_files
 from comment_review.reading.lexer import language_for
-from comment_review.results.differences import unified
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -96,9 +96,9 @@ from comment_review.desk.stages import Stage
 from comment_review.flows.fill import first_word_dropped
 from comment_review.flows.mark_errors import Revisit, mark_errors
 from comment_review.flows.page_for import page_of
+from comment_review.machine.differences import CannotCompose, compose
 from comment_review.machine.repo import can_escape
 from comment_review.reading.addresser import Cues, cue_of, unflatten
-from comment_review.results.differences import CannotCompose, compose
 
 
 class CannotCollate(Exception):
