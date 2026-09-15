@@ -5,7 +5,7 @@ from comment_review.desk.answers.table import ANSWERS, Effect
 from comment_review.desk.dispositions.disposition import CHIEF, ORIGINAL
 from comment_review.desk.dispositions.table import DISPOSITIONS
 from comment_review.desk.evaluate.place import Place
-from comment_review.desk.evaluate.state import State
+from comment_review.desk.evaluate.state import CARRIED, State
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
 from comment_review.machine.differences import CannotCompose, compose
 
@@ -80,7 +80,7 @@ def pair_moves(places: dict[str, Place]) -> None:
 
 def answers_pass(place: Place, turn: int) -> Place:
     """Narrow a carried-forward place by the roles' answers at `turn`."""
-    if place.state not in (State.COMPOSED, State.CONTESTED):
+    if place.state not in CARRIED:
         return place
     answers = place.answers.get(turn, {})
     sides = dict(place.sides)

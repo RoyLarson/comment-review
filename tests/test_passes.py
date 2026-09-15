@@ -1,7 +1,7 @@
 """The marks pass: from the marks filed at a place to its state and text."""
 
 from comment_review.desk.answers.answer import Answer, Question
-from comment_review.desk.dispositions.disposition import Disposition
+from comment_review.desk.dispositions.disposition import ORIGINAL, Disposition
 from comment_review.desk.evaluate.passes import (
     answers_pass,
     dispositions_pass,
@@ -226,6 +226,44 @@ def test_an_unanswered_role_leaves_its_side_and_the_place_open():
     got = answers_pass(place, 1)
     assert got.state is State.CONTESTED
     assert "b" in got.sides
+
+
+def test_answers_pass_leaves_a_place_that_is_not_carried_forward_alone():
+    stands = marks_pass(
+        _place(
+            Filed("a", _mark(Instruction.CLEAN), Touch.OWN),
+            Filed("b", _mark(Instruction.CLEAN), Touch.OWN),
+        )
+    )
+    state, text, reasons = stands.state, stands.text, stands.reasons
+    got = answers_pass(stands, 1)
+    assert (got.state, got.text, got.reasons) == (state, text, reasons)
+
+    move = _mark(
+        Instruction.MOVE, change="# six\n", claim={"from": "m.py@b1", "to": "m.py@b5"}
+    )
+    refused = marks_pass(_place(Filed("a", move, Touch.ORIGIN)))
+    state, text, reasons = refused.state, refused.text, refused.reasons
+    got = answers_pass(refused, 1)
+    assert (got.state, got.text, got.reasons) == (state, text, reasons)
+
+
+def test_answers_pass_refuses_an_unknown_answer_name():
+    place = _contested()
+    place.answers[1] = {"a": _answer("not-a-real-answer")}
+    got = answers_pass(place, 1)
+    assert got.state is State.REFUSED
+    assert got.reasons == ("a: not-a-real-answer is not an answer to escalation",)
+
+
+def test_a_taken_in_on_the_original_side_stands_on_the_base():
+    place = _contested()
+    place.disposition = Disposition(
+        address="m.py@b1", name="taken_in", side=ORIGINAL, prose="", reason="r"
+    )
+    got = dispositions_pass(place)
+    assert got.state is State.STANDS and got.text is None
+    assert got.base == BASE
 
 
 def test_a_taken_in_closes_a_contested_place_on_one_side():
