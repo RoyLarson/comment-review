@@ -370,6 +370,11 @@ last result, 2026-09-18, over the smoke's own plant:
 | `fib.py@c12` | ruling `#174`: a place every role cleaned is decided and alters nothing, so the new fold settles it with no text where the old recorded no ruling for it at all |
 | `store.py@b8` | rulings `#155` and `#182`: a move a role holds for the human is held at both ends, so the new fold takes the destination out of what it carries and reports the pair as one question. The old fold held the origin alone and carried the destination forward |
 
+**The addresses above are the plant's as it stood that day.** `store.py`'s closing gap was
+`b8`; a fifth function was appended to the fixture later the same day, for a contested move the
+chief could close, and the closing gap is `b10` from that commit on. The scenario at that row is
+unchanged -- a move to the closing gap, held for the human.
+
 ### Reading an old artifact
 
 **A `master_proof` written before the rebuild carries three keys nothing reads now** -- `turns`,
