@@ -496,8 +496,8 @@ def drift_in(copy: EditCopy, base: dict[str, str]) -> list[Problem]:
     seeded there, so nothing came back changed -- and nothing refuses it,
     `Process: #97`: an `add` cites a place the filter dropped.
 
-    ! AND NEITHER IS A ROW THAT WRITES ITS OWN `raw_text`. On `add` and `move`
-    the field is the paragraph as it will READ, which the role composes
+    Neither is a row that writes its own `raw_text`. On `add` and `move` the
+    field is the paragraph as it will read, which the role composes
     (`Process: #175`, `#176`), so it is expected to differ from the base and
     says nothing about whether the tree moved. Every other row still carries
     the seeded paragraph back and is measured against it.

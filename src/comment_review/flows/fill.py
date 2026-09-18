@@ -7,11 +7,11 @@
     quoted_sources(root, sources) -> each source with its `verbatim` read in
     page_text_at(copies, address, root) -> the page's paragraph at one place
 
-! `row_problems` IS THE RULE, AND `commands/check.py` RUNS THE SAME CALL over a
-whole copy. A role may write a copy with its file-write tool instead of placing
-each ruling here, so the check a ruling passes on the way in is the check a
-hand-written copy is held to -- one function, two callers, no second reading of
-the rows.
+`row_problems` is the rule, and `commands/check.py` runs the same call over a
+whole copy. A role may write a copy with its file-write tool instead of
+placing each ruling here, so the check a ruling passes on the way in is the
+check a hand-written copy is held to -- one function, two callers, no second
+reading of the rows.
 
 !! IT DOES WHAT THE ROLES' OWN HELPERS DID. In the runs of 2026-09-06 and
 2026-09-07 every role wrote a script that found the slot by address, set the
@@ -74,7 +74,7 @@ from comment_review.desk.mark import (
     filled,
     untouched,
 )
-from comment_review.desk.marks.table import Touch
+from comment_review.desk.marks.table import Row, Touch
 from comment_review.flows.page_for import page_of
 from comment_review.machine import constants
 from comment_review.machine.exceptions import READ_ERRORS
@@ -258,9 +258,9 @@ def row_problems(mark: Mark, base_at: Callable[[str], str]) -> list[str]:
 def page_text_at(copies: list[dict], address: str, root: Path | None) -> str:
     """The page's paragraph at `address`, or "" where no page answers for it.
 
-    ! "" IS NOT A CLAIM THAT THE PLACE IS EMPTY, and nothing here turns an
-    unreadable page into a refusal: an address no page resolves is
-    `flows.collate.resolution_problems`' finding, which `check` and the fold
+    An empty answer is not a claim that the place is empty, and nothing here
+    turns an unreadable page into a refusal: an address no page resolves is
+    `flows._collate.resolution_problems`' finding, which `check` and the fold
     both run, and reporting it twice would refuse at `mark` what the parity
     case (`no-command-for-the-middle` T99) exists to have `check` name.
     """
@@ -293,7 +293,7 @@ def _seeded_beside(
 
     The anchor and the paragraph come off the entry already at the address,
     which is where they were copied to -- except where that entry's row wrote
-    its own `raw_text`, the paragraph as it will READ rather than as it stands
+    its own `raw_text`, the paragraph as it will read rather than as it stands
     (`decision-log.md Process: #175`, `#176`). Reseeding from that would give
     the next ruling at the place a base the page never held, so the page is
     read again instead.
@@ -308,12 +308,12 @@ def _seeded_beside(
 
 
 def _composed_text(
-    row, instruction: Instruction, entry: dict, seeded: dict, change: object
+    row: Row, instruction: Instruction, entry: dict, seeded: dict, change: object
 ) -> tuple[str | None, list[str]]:
     """The `raw_text` this mark carries -- the role's, the seed's, or a refusal.
 
     `decision-log.md Process: #175` and `#176`: on a row whose
-    `carries_raw_text` is True the field is the paragraph as it will READ, with
+    `carries_raw_text` is True the field is the paragraph as it will read, with
     the added or moved text in, and the role writes it. A row that touches a
     destination always owes one, since the paragraph it describes is at the
     other end and nothing here stands in for it. A row that does not owes one
@@ -433,7 +433,7 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
     if parsed is None:
         return None, why
 
-    # ! THE ROW READS THE PAGES LAST, after the parse: `Mark.deserialize` is
+    # The row reads the pages last, after the parse: `Mark.deserialize` is
     # what settles a destination that is not addressable at all, and a row
     # asked to read against a place no address names has nothing to say.
     found = row_problems(parsed, lambda where: _base_beside(copy, seeded, where, root))
@@ -462,11 +462,11 @@ def withdraw(
     as it was handed; a place the role created for an `add` at an empty place
     is left with nothing, as it was before.
 
-    ! THE SEED IS READ OFF THE PAGE where any ruling at the place wrote its own
-    `raw_text` -- `add` and `move` carry the paragraph as it will READ
+    The seed is read off the page where any ruling at the place wrote its own
+    `raw_text` -- `add` and `move` carry the paragraph as it will read
     (`decision-log.md Process: #175`, `#176`), so handing that back would seed
-    the place with a paragraph the page never held. That read needs `root`, and
-    without one the withdrawal is refused rather than guessed at.
+    the place with a paragraph the page never held. That read needs `root`,
+    and without one the withdrawal is refused rather than guessed at.
 
     Args:
         copy: a role's edit_copy as its wire dict. MUTATED on success, and only

@@ -3047,7 +3047,7 @@ class TestTheDisposition:
         the chief's prose -- the text the docket lands at `m.py@b1`. Every
         other place carried forward is ruled for the original.
 
-        ! THE DOCKET IS TAKEN OVER A REAL `m.py`, written here: `docket_of`
+        The docket is taken over a real `m.py`, written here: `docket_of`
         folds the chief's copy against the page at each place, so a checkout
         with no such page decides nothing there."""
         root = tmp_path / "repo"

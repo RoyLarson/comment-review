@@ -183,10 +183,10 @@ def main() -> int:
         held, problems = Docket.deserialize(source, loaded)
     else:
         copy, problems = EditCopy.deserialize(source, loaded)
-        # !! THE TRANSCRIBE FOLDS, SO IT CAN REFUSE -- and it could not until
-        # the marks table decided what a mark sets. `docket_of` runs the Unit
-        # of Work over the copy's own places, so a mark whose row cannot read
-        # it against the page rolls the fold back and nothing is drafted. A
+        # The transcribe folds, so it can refuse, and it could not until the
+        # marks table decided what a mark sets. `docket_of` runs the Unit of
+        # Work over the copy's own places, so a mark whose row cannot read it
+        # against the page rolls the fold back and nothing is drafted. A
         # console face prints the reasons rather than handing over a
         # traceback, the same way `AddressesMoved` is reported below.
         try:

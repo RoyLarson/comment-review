@@ -39,7 +39,7 @@ def a_copy(root: Path, role: str, paragraphs: dict[str, str], marks: dict) -> Ed
     result through the container boundary. A dict shaped the way this test
     expects would agree with the test whatever the code did.
 
-    ! THE PAGES ARE ON DISK, AND THEY DID NOT HAVE TO BE until `docket_of`
+    The pages are on disk, and they did not have to be until `docket_of`
     folded. The fold measures every mark against the page at its place, so a
     copy whose pages are not in `root` decides nothing there.
     """
@@ -216,7 +216,7 @@ class TestDocketOf:
         ]
 
     def test_a_drop_is_written_as_a_delete(self, tmp_path):
-        """! `drop` IS THE ROW WHOSE `may_empty` IS TRUE, and an empty text at a
+        """`drop` is the row whose `may_empty` is True, and an empty text at a
         decided place becomes the `None` the write end reads as a delete."""
         root = tmp_path / "repo"
         copy = a_copy(

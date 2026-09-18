@@ -562,13 +562,13 @@ def _as_the_rows_read_it(mark: Mark) -> Mark:
     from its origin, and `raw_text` is the paragraph the place reads with once
     that text is in.
 
-    ! IT IS A TRANSLATION AT THE EDGE, and it is here because this flow's
+    It is a translation at the edge, and it is here because this flow's
     output is read downstream by the rows -- `flows.transcribe.docket_of`
     folds the chief's copy and asks each row what it sets. Only the two rows
     whose `carries_raw_text` is True are touched; every other row means the
     same thing to both readings.
 
-    ! IT GOES WITH THIS MODULE. Once the turn and the disposition fold through
+    It goes with this module. Once the turn and the disposition fold through
     the bus there is one reading of a mark, and nothing to translate.
 
     Args:

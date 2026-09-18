@@ -173,7 +173,7 @@ class Row:
     #: and `#121`: an add is carried forward for every role that read its
     #: page, not only the role that filed it.
     rereads: bool = False
-    #: True where `raw_text` is the paragraph as it will READ and the role
+    #: True where `raw_text` is the paragraph as it will read and the role
     #: writes it, rather than the seeded paragraph as it stands --
     #: `decision-log.md Process: #175` and `#176`. `flows.fill` takes it from
     #: the entry for these rows and from the page for every other, and

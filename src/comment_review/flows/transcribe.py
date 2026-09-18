@@ -2,14 +2,14 @@
 
     docket_of(copy, repo) -> Docket
 
-!! IT FOLDS, AND THAT IS WHAT MAKES IT A TRANSCRIPTION OF DECIDED PLACES. The
+It folds, and that is what makes it a transcription of decided places. The
 copy's marks are turned into places (`flows.places.places_of`), the Unit of
 Work decides every one of them, and each place the fold settled a text for
 becomes one alteration. Nothing here reads a mark's `change` or asks which end
 of a `move` it is looking at: the marks table answered both when the fold ran,
 and a place carries one text whatever produced it.
 
-!! A ROLLED-BACK FOLD IS A REFUSAL, NOT AN EMPTY DOCKET. `CannotTranscribe`
+A rolled-back fold is a refusal, not an empty docket. `CannotTranscribe`
 carries the events' own reasons, and `commands/proof.py` prints them. An empty
 docket would say the copy asked for nothing, which is the opposite of a copy
 whose marks could not be read.
@@ -29,8 +29,9 @@ flow file here -- `distribute.seed`, `fan_out.fan`, `mark_errors.mark_errors`,
 
 !! AND IT IS A FLOW BECAUSE A FLOW MAY REACH BOTH ENDS AND NEITHER END MAY REACH
 THE OTHER. Roy, 2026-08-31: *"No direct coupling inside of ends and middle, flows
-are neither they run the steps."* This reads the pages, builds the MIDDLE's
-places, runs the fold, and builds the WRITE END's `Docket`; `Docket.of(edit_copy)`
+are neither they run the steps."* This reads the pages, builds the middle's
+places, runs the fold, and builds the write end's `Docket`;
+`Docket.of(edit_copy)`
 was offered and declined, because it would put a middle type in
 `docket/docket.py`, which imports nothing at all.
 """
@@ -131,7 +132,7 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
 
     Returns:
         A `Docket` -- one `Schedule` per page the fold decided a text on, each
-        naming that page's own path and sha and the COPY's role. An alteration
+        naming that page's own path and sha and the copy's own role. An alteration
         carries the page's anchor at its place (`decision-log.md Process:
         #134` and `#135`) and its text, with an emptied place written as the
         `None` the write end reads as a delete.
@@ -155,12 +156,12 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
                 bases[paragraph.address] = paragraph.raw_text
         for cue, anchor in page.cues.places.items():
             anchors[f"{name}@{cue}"] = anchor
-    # !! A MARK'S OWN ANCHOR WINS AT ITS OWN ADDRESS, and the page's stands
-    # only where no mark names the place -- a move's destination. The write
-    # end refuses an alteration whose anchor is not the page's there
+    # A mark's own anchor wins at its own address, and the page's stands only
+    # where no mark names the place -- a move's destination. The write end
+    # refuses an alteration whose anchor is not the page's there
     # (`decision-log.md Process: #134`), and that check has something to
-    # refuse only while what reaches it is the anchor the ROLE returned: taken
-    # from the page here, it would compare the page with itself.
+    # refuse only while what reaches it is the anchor the role returned:
+    # taken from the page here, it would compare the page with itself.
     anchors.update(
         {
             mark.address: mark.anchor
@@ -197,7 +198,7 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
         schedules.append(
             Schedule(
                 path=rel,
-                # ! THE SHEET'S SHA WHERE THE COPY CARRIES ONE, since that is
+                # The sheet's sha where the copy carries one, since that is
                 # the bytes its addresses were taken from. A page only a
                 # move's destination names has no sheet and so no recorded
                 # sha, and the page read here is the only one there is.

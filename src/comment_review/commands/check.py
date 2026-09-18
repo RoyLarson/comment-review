@@ -86,11 +86,11 @@ def _row_problems(
 ) -> list[Problem]:
     """What each mark's own row finds against the pages -- `mark`'s own check.
 
-    ! THE SAME CALL `flows.fill` MAKES, over a whole copy. A role may write its
-    copy with its file-write tool rather than placing each ruling through
-    `mark`, and the rows are what decide a `move`'s snippet and an `add`'s
-    paragraph (`decision-log.md Process: #172`, `#175`, `#176`) -- so a
-    hand-written copy is held to what `mark` enforces on the way in.
+    It is the same call `flows.fill` makes, over a whole copy. A role may
+    write its copy with its file-write tool rather than placing each ruling
+    through `mark`, and the rows are what decide a `move`'s snippet and an
+    `add`'s paragraph (`decision-log.md Process: #172`, `#175`, `#176`), so
+    a hand-written copy is held to what `mark` enforces on the way in.
 
     Args:
         copy: one parsed edit_copy.

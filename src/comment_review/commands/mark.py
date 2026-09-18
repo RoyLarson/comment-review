@@ -37,14 +37,14 @@ CREATED here sits on -- an `add` at an empty place, which the binder does not
 carry -- as the addresser printed it. The second is `add`'s claim key: the
 anchor NAMED in backticks.
 
-! `--change` IS THE TEXT THAT MOVES OR ARRIVES; `--raw-text` IS THE PARAGRAPH
-IT LANDS IN. `decision-log.md Process: #172`, `#175` and `#176`. An `add` gives
-the snippet in `--change` and the paragraph as it will read in `--raw-text`;
-a `move` gives the snippet subtracted from the origin and the destination
-paragraph as it will read. `--raw-text` is owed on every `move` and on an
-`add` at a place that already holds prose; at an empty place the two are the
-same text and it may be left off. Every other instruction takes its paragraph
-from the page and is refused a `--raw-text`.
+`--change` is the text that moves or arrives and `--raw-text` is the
+paragraph it lands in -- `decision-log.md Process: #172`, `#175` and `#176`.
+An `add` gives the snippet in `--change` and the paragraph as it will read in
+`--raw-text`; a `move` gives the snippet subtracted from the origin and the
+destination paragraph as it will read. `--raw-text` is owed on every `move`
+and on an `add` at a place that already holds prose; at an empty place the
+two are the same text and it may be left off. Every other instruction takes
+its paragraph from the page and is refused a `--raw-text`.
 
 ! NO BULK PASS OF ANY KIND. Roy, 2026-09-07: a flag that marks every null
 slot `clean` *"invites skipping reviewing each paragraph"*; each role

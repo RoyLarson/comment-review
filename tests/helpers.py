@@ -509,22 +509,22 @@ def _quoting_the_real_text(mark: dict, entry: dict) -> dict:
 def placed_as_the_old_turn_reads_it(copy: dict, ruling: dict, root: Path) -> dict:
     """One ruling written onto the slot it names, seeding one from the page.
 
-    !! NOT THROUGH `flows.fill`, AND THE REASON IS A SUPERSEDED SHAPE. `fill`
-    places a mark as `decision-log.md Process: #172`, `#175` and `#176` have
-    it: a `move`'s `change` is the snippet it subtracts from its origin and its
-    `raw_text` the destination paragraph as it will read, and an `add`'s
-    `raw_text` is the paragraph as it will read. `flows.turn` and
+    It is not through `flows.fill`, and the reason is a superseded shape.
+    `fill` places a mark as `decision-log.md Process: #172`, `#175` and `#176`
+    have it: a `move`'s `change` is the snippet it subtracts from its origin
+    and its `raw_text` the destination paragraph as it will read, and an
+    `add`'s `raw_text` is the paragraph as it will read. `flows.turn` and
     `flows._collate` read `change` as the destination's own text and
     `raw_text` as the paragraph the place was seeded with, so no one mark
     satisfies both, and a fixture for those two flows is written in the shape
     they read.
 
-    ! IT GOES WITH THEM. `tests/test_fill.py` and `tests/test_mark_command.py`
+    It goes with them. `tests/test_fill.py` and `tests/test_mark_command.py`
     are where what `mark` places is asserted; this exists only while a flow
     that reads the older shape is still in the tree.
 
     Args:
-        copy: a role's edit_copy as its wire dict. MUTATED.
+        copy: a role's edit_copy as its wire dict, which this mutates.
         ruling: the mark, carrying at least `address` and `instruction`. Its
             `sources` are quoted the way `fill` quotes them, so a fixture
             names a `cite` and no `verbatim`.
