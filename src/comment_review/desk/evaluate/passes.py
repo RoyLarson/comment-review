@@ -253,6 +253,13 @@ def pair_moves(places: dict[str, Place]) -> None:
     has none of its own. Without them an end carried forward by its partner
     would go out asking nobody.
 
+    An end that has a question of its own keeps it, so a paired place's state
+    and its question are read separately: the state says how the move stands,
+    the question says what this end's roles are asked, and an answer is read
+    against the question alone. A destination can be carried forward contested,
+    its partner's state, while it still asks a composition of the roles that
+    have not seen its text.
+
     And an end held for the human decides no text, as `marks_pass` decides
     none where the query was filed. A text left on the end that took the
     state is read downstream as a place the fold decided
