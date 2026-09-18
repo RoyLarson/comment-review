@@ -36,29 +36,53 @@ reads = "revise:4a"
 """
 
 
-def _tree(tmp_path, monkeypatch, capsys) -> Path:
-    """Two pages, a binder over them, and the topology above, all on disk."""
-    for name in ("a.py", "b.py"):
-        (tmp_path / name).write_text(SAMPLE, encoding="utf-8", newline="")
-    binder = tmp_path / "binder.json"
+def _bind(tmp_path, monkeypatch, capsys, repo: Path, out: Path, revise: int):
+    """One binder over `repo`'s two pages, stamped with the revise `repo` is."""
     code, printed = run_command(
         monkeypatch,
         capsys,
         gather_command,
         "--repo",
-        str(tmp_path),
+        str(repo),
+        "--revise",
+        str(revise),
         "--out",
-        str(binder),
-        str(tmp_path / "a.py"),
-        str(tmp_path / "b.py"),
+        str(out),
+        str(repo / "a.py"),
+        str(repo / "b.py"),
         with_stderr=True,
     )
     assert code == 0, printed
+
+
+def _tree(tmp_path, monkeypatch, capsys) -> Path:
+    """Two pages, a revise of them, a binder over each, and the topology above.
+
+    The revise stands in for what stage `4a`'s `proof` pulls: `4c` reads it,
+    so the copies it seeds are cut from the revise's binder rather than the
+    original's.
+    """
+    pulled = tmp_path / "revise"
+    pulled.mkdir()
+    for name in ("a.py", "b.py"):
+        (tmp_path / name).write_text(SAMPLE, encoding="utf-8", newline="")
+        (pulled / name).write_text(SAMPLE, encoding="utf-8", newline="")
+    _bind(tmp_path, monkeypatch, capsys, tmp_path, tmp_path / "binder.json", 0)
+    _bind(tmp_path, monkeypatch, capsys, pulled, tmp_path / "revise-binder.json", 1)
     (tmp_path / "t.toml").write_text(FOUR_C, encoding="utf-8")
     return tmp_path
 
 
-def _stage(root: Path, monkeypatch, capsys, stage: str, out: Path):
+def _stage(
+    root: Path,
+    monkeypatch,
+    capsys,
+    stage: str,
+    out: Path,
+    revise: Path | None = None,
+    binder: str = "",
+):
+    named = ["--revise", str(revise)] if revise is not None else []
     return run_command(
         monkeypatch,
         capsys,
@@ -68,10 +92,24 @@ def _stage(root: Path, monkeypatch, capsys, stage: str, out: Path):
         "--stage",
         stage,
         "--binder",
-        str(root / "binder.json"),
+        str(root / (binder or "binder.json")),
         "--out-dir",
         str(out),
+        *named,
         with_stderr=True,
+    )
+
+
+def _second(root: Path, monkeypatch, capsys, out: Path, **named):
+    """Stage `4c` as it is meant to be run: the revise it reads, and its binder."""
+    return _stage(
+        root,
+        monkeypatch,
+        capsys,
+        "4c",
+        out,
+        revise=named.pop("revise", root / "revise"),
+        binder=named.pop("binder", "revise-binder.json"),
     )
 
 
@@ -80,7 +118,7 @@ def test_a_stage_seeds_one_copy_per_dispatch_in_dispatch_order(
 ):
     root = _tree(tmp_path, monkeypatch, capsys)
     out = root / "copies"
-    code, printed = _stage(root, monkeypatch, capsys, "4c", out)
+    code, printed = _second(root, monkeypatch, capsys, out)
     assert code == 0, printed
     names = sorted(p.name for p in out.iterdir())
     assert names == [
@@ -108,6 +146,35 @@ def test_an_uncovered_page_is_refused_with_fan_outs_own_reason(
     (root / "t.toml").write_text(
         FOUR_C.replace('paths = ["b.py"]', 'paths = ["zzz.py"]'), encoding="utf-8"
     )
-    code, printed = _stage(root, monkeypatch, capsys, "4c", root / "copies")
+    code, printed = _second(root, monkeypatch, capsys, root / "copies")
     assert code == 2
     assert "no dispatch covers" in printed and "b.py" in printed
+
+
+def test_a_stage_reading_a_revise_is_refused_without_one(tmp_path, monkeypatch, capsys):
+    """`4c` reads `revise:4a`, so the original's binder is not what seeds it."""
+    root = _tree(tmp_path, monkeypatch, capsys)
+    out = root / "copies"
+    code, printed = _stage(root, monkeypatch, capsys, "4c", out)
+    assert code == 2, printed
+    assert "4c" in printed and "4a" in printed
+    assert not out.exists()
+
+
+def test_a_binder_gathered_from_another_tree_is_refused(tmp_path, monkeypatch, capsys):
+    """The revise root is named and the binder is the original's."""
+    root = _tree(tmp_path, monkeypatch, capsys)
+    out = root / "copies"
+    code, printed = _second(root, monkeypatch, capsys, out, binder="binder.json")
+    assert code == 2, printed
+    assert "revise" in printed
+    assert not out.exists()
+
+
+def test_a_stage_reading_the_original_takes_no_revise(tmp_path, monkeypatch, capsys):
+    root = _tree(tmp_path, monkeypatch, capsys)
+    out = root / "copies"
+    code, printed = _stage(root, monkeypatch, capsys, "4a", out, revise=root / "revise")
+    assert code == 2, printed
+    assert "4a" in printed and "original" in printed
+    assert not out.exists()

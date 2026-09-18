@@ -20,24 +20,46 @@ from comment_review.commands import topology as topology_command
 FIXTURE = ROOT / "tests" / "fixtures" / "topologies" / "4a-then-4c.toml"
 
 
-def _four(tmp_path, monkeypatch, capsys) -> Path:
-    """Four pages on disk and a binder over them."""
-    for n in "abcd":
-        (tmp_path / f"{n}.py").write_text(SAMPLE, encoding="utf-8", newline="")
-    binder = tmp_path / "binder.json"
+def _bind(tmp_path, monkeypatch, capsys, repo: Path, out: Path, revise: int) -> Path:
+    """One binder over `repo`'s four pages, stamped with the revise `repo` is."""
     code, printed = run_command(
         monkeypatch,
         capsys,
         gather_command,
         "--repo",
-        str(tmp_path),
+        str(repo),
+        "--revise",
+        str(revise),
         "--out",
-        str(binder),
-        *[str(tmp_path / f"{n}.py") for n in "abcd"],
+        str(out),
+        *[str(repo / f"{n}.py") for n in "abcd"],
         with_stderr=True,
     )
     assert code == 0, printed
-    return binder
+    return out
+
+
+def _four(tmp_path, monkeypatch, capsys) -> Path:
+    """Four pages on disk and a binder over them."""
+    for n in "abcd":
+        (tmp_path / f"{n}.py").write_text(SAMPLE, encoding="utf-8", newline="")
+    return _bind(tmp_path, monkeypatch, capsys, tmp_path, tmp_path / "binder.json", 0)
+
+
+def _revise(tmp_path, monkeypatch, capsys) -> tuple[Path, Path]:
+    """A revise of the four pages, standing in for what `4a`'s proof pulls.
+
+    `4c` reads `revise:4a`, so it is seeded from a binder gathered over that
+    revise rather than over the original -- `desk.topology.seeded_from_problem`.
+    """
+    pulled = tmp_path / "revise"
+    pulled.mkdir()
+    for n in "abcd":
+        (pulled / f"{n}.py").write_text(SAMPLE, encoding="utf-8", newline="")
+    binder = _bind(
+        tmp_path, monkeypatch, capsys, pulled, tmp_path / "revise-binder.json", 1
+    )
+    return pulled, binder
 
 
 def test_the_committed_fixture_is_refused_on_a_scratch_tree_by_its_globs(
@@ -79,6 +101,7 @@ def test_the_same_shape_built_for_the_scratch_tree_drives_it(
         with_stderr=True,
     )
     assert code == 0, printed
+    pulled, revise_binder = _revise(tmp_path, monkeypatch, capsys)
     out = tmp_path / "copies"
     code, printed = run_command(
         monkeypatch,
@@ -89,7 +112,9 @@ def test_the_same_shape_built_for_the_scratch_tree_drives_it(
         "--stage",
         "4c",
         "--binder",
-        str(binder),
+        str(revise_binder),
+        "--revise",
+        str(pulled),
         "--out-dir",
         str(out),
         with_stderr=True,

@@ -11,8 +11,8 @@ ways, the others left whole.
 
 from pathlib import Path
 
-from comment_review.desk.stages import Role
-from comment_review.desk.topology import read
+from comment_review.desk.stages import Kind, Role, Stage
+from comment_review.desk.topology import read, seeded_from_problem
 
 TOPOLOGIES = Path(__file__).parent / "fixtures" / "topologies"
 
@@ -102,3 +102,38 @@ def test_a_non_empty_carries_is_refused_with_a_reason():
         '[[stage.dispatch]]\nrole="block-context"\n'
     )
     assert stages == [] and "carries" in why
+
+
+ORIGINAL = Stage(name="4", kind=Kind.EDITORIAL, reads="original")
+SECOND = Stage(name="5", kind=Kind.EDITORIAL, reads="revise:4")
+
+
+def test_a_stage_reading_the_original_is_seeded_from_the_gathered_binder():
+    assert seeded_from_problem(ORIGINAL, "", {"root": "/tree", "revise": 0}) == ""
+
+
+def test_a_stage_reading_the_original_is_refused_a_revise_root():
+    why = seeded_from_problem(ORIGINAL, "/pulled", {"root": "/tree", "revise": 0})
+    assert "4" in why and "original" in why
+
+
+def test_a_stage_reading_a_revise_is_refused_without_one():
+    why = seeded_from_problem(SECOND, "", {"root": "/tree", "revise": 0})
+    assert "5" in why and "4" in why
+
+
+def test_a_stage_reading_a_revise_takes_the_binder_gathered_from_it():
+    read_from = {"root": "/pulled", "revise": 1}
+    assert seeded_from_problem(SECOND, "/pulled", read_from) == ""
+
+
+def test_a_binder_gathered_from_another_tree_is_refused():
+    why = seeded_from_problem(SECOND, "/pulled", {"root": "/tree", "revise": 1})
+    assert "/pulled" in why and "/tree" in why
+
+
+def test_a_binder_that_says_it_read_the_original_is_refused():
+    # The root agrees and the number does not: a gather over the revise root
+    # that was never told which revise it is says 0, the original.
+    why = seeded_from_problem(SECOND, "/pulled", {"root": "/pulled", "revise": 0})
+    assert "5" in why and "0" in why

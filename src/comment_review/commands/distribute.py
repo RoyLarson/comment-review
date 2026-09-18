@@ -3,6 +3,7 @@
     comment_review distribute --shape
     comment_review distribute --seed --binder B.json --role block-context --out F.json
     comment_review distribute --topology T.toml --stage 4c --binder B.json --out-dir DIR
+        [--revise REVISE_ROOT]
 
 The work is `flows.distribute`, `flows.fan_out` and `desk.mark`; this is only the
 console face of it.
@@ -12,6 +13,13 @@ invocation reads one stage's dispatches out of the topology and writes one
 seeded edit copy per dispatch, in dispatch order, as `DIR/<stage>_<role>_<n>.json`.
 The task agent reads the ORDER of the stages from SKILL.md and runs this once
 per stage (`#73`); no command sequences them.
+
+!! AND THE STAGE'S `reads` DECIDES WHICH TREE IT IS SEEDED FROM. A stage
+reading `"revise:<name>"` is seeded from the revise that stage's `proof`
+pulled: `--revise` names that root and the binder must be the one gathered
+from it, which `desk.topology.seeded_from_problem` rules on. A stage reading
+`"original"` takes no `--revise`. The rule is the topology's; this passes it
+the stage, the root and what the binder says about itself.
 
 !! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
 A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`.
@@ -31,6 +39,7 @@ from pathlib import Path
 from comment_review.desk.mark import allowed
 from comment_review.desk.stages import ROLES
 from comment_review.desk.topology import read as read_topology
+from comment_review.desk.topology import seeded_from_problem
 from comment_review.flows.distribute import seed
 from comment_review.flows.fan_out import OverlappingShards, UncoveredPage, fan
 from comment_review.flows.proof_io import load_binder
@@ -80,6 +89,11 @@ def main() -> int:
     ap.add_argument("--stage", help="the stage to seed, by its name in the topology")
     ap.add_argument(
         "--out-dir", help="where one copy per dispatch is written (--stage only)"
+    )
+    ap.add_argument(
+        "--revise",
+        help="the revise root a stage whose `reads` names one is seeded from"
+        " (--stage only); the binder must be the one gathered from it",
     )
     args = ap.parse_args()
 
@@ -131,6 +145,19 @@ def main() -> int:
         if binder is None:
             for line in problems:
                 print(line, file=sys.stderr)
+            return 2
+        # ! THE TWO PATHS ARE RESOLVED BEFORE THE RULE ASKS, and only here: a
+        # binder writes its root relative to the directory the gather was run
+        # from, so the same tree is spelled two ways and a comparison of what
+        # was typed would refuse a stage that is correctly seeded.
+        named = str(Path(args.revise).resolve()) if args.revise else ""
+        read_from = {
+            **binder.read_from,
+            "root": str(Path(binder.read_from["root"]).resolve()),
+        }
+        why = seeded_from_problem(stage, named, read_from)
+        if why:
+            print(why, file=sys.stderr)
             return 2
         # ! REFUSED BEFORE ANYTHING IS WRITTEN. `fan` raises on the two guards
         # over the whole stage, so a stage that does not fit leaves no copies
