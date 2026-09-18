@@ -125,10 +125,11 @@ def handed(paragraphs: Sequence[Paragraph]) -> list[Paragraph]:
     """The paragraphs a role is handed: addressed, and not the file's own matter.
 
     !! ONE DEFINITION, TWO READERS. `flows.distribute.seed` builds a role's slots
-    from this, and `flows.collate` counts a returned copy's coverage against
-    it. The two used to disagree by construction: the seed handed out every row
-    and the text report a role read dropped the `f` series, so a role could
-    never rule on a place its coverage was counted over.
+    from this, and `flows.verify.coverage_problems` counts a returned copy's
+    coverage against it. The two used to disagree by construction: the seed
+    handed out every row and the text report a role read dropped the `f`
+    series, so a role could never rule on a place its coverage was counted
+    over.
 
     ! The `f` series -- a licence header, a shebang, an index -- states no
     constraint the code could contradict, so no role rules on it and the brief

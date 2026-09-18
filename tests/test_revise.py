@@ -321,7 +321,7 @@ class TestDocketOf:
         )
         schedule = docket_of(copy, root).schedules[0]
         assert [(one.cue, one.text) for one in schedule.alterations] == [
-            ("b1", "# set by the reconcile test suite (correct)")
+            ("b1", "# set by the mark helpers (correct)")
         ]
 
     def test_a_drop_is_written_as_a_delete(self, tmp_path):

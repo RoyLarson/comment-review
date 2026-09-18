@@ -16,7 +16,7 @@ TABLES = {
     ROOT / "desk" / "dispositions" / "table.py",
 }
 NAMES = re.compile(
-    r"\bInstruction\.[A-Z_]+\b|\bDiffInstruction\.[A-Z_]+\b|\bAnswer\.[A-Z_]+\b"
+    r"\bInstruction\.[A-Z_]+\b|\bAnswer\.[A-Z_]+\b"
     r"|\"(taken_in|recast|stet|hold|withdraw)\""
 )
 

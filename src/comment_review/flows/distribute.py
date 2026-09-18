@@ -5,7 +5,7 @@
 !! NAMED FOR THE ACT, NOT THE ARTIFACT, since 2026-08-30. Roy: *"a flow named
 mark reads like it is doing something that it is probably not doing"* -- and
 *"the broadcasting part seems like distribute, the bringin back together seems
-like collate."* `flows/collate.py` is the other half of the round.
+like collate."* `flows/bus.py` is the other half of the round.
 
 !! AND THE CHECK IS NO LONGER HERE. The set-level checks moved
 to `desk/collator.py` -- `decision-log.md Process: #54`: a mark answers for
@@ -24,7 +24,7 @@ when the edit_copy comes back is a COVERAGE GAP, which is a different thing from
 `clean`: `clean` says a role read this and had nothing to report.
 
 !! AND A COVERAGE GAP IS NOT THE SAME AS A MARK THAT NAMES NO INSTRUCTION.
-`desk.mark.untouched` is what tells them apart, and this flow read
+`desk.marks.mark.untouched` is what tells them apart, and this flow read
 `mark.get("mark") is None` until 2026-08-29 -- which said YES to both, so a
 filled-in mark whose ruling key the code did not recognise was dropped before
 `parse` saw it and recounted as a place nobody looked at.
@@ -32,7 +32,7 @@ filled-in mark whose ruling key the code did not recognise was dropped before
 !! WHAT THIS FLOW DOES NOT DO IS CHECK A CLAIM AGAINST THE PAGE. Whether
 `claim.false` appears VERBATIM in the paragraph, whether a `move`'s destination
 is addressable -- both need the page the role read, and both belong to
-SOURCE-VERIFICATION in `collator`. `desk.mark.parse` says the same about its
+SOURCE-VERIFICATION in `collator`. `desk.marks.mark.parse` says the same about its
 own half.
 """
 
@@ -56,7 +56,7 @@ def seed(binder: Binder, role: str) -> dict:
         and `sha`, plus its `marks` -- one per row on that page, holding the
         `address`, `anchor` and `raw_text` copied from the row, and
         `instruction: None` for the role to fill. ! THE SLOT IS BUILT BY
-        `desk.mark.Mark.seed`, from the mark's own field names, so a
+        `desk.marks.mark.Mark.seed`, from the mark's own field names, so a
         renamed field breaks there rather than leaving this module writing
         the old key.
 
@@ -92,7 +92,7 @@ def seed(binder: Binder, role: str) -> dict:
     # MEASURED on for 2026-08-22, and the container is what leaves only one.
     #
     # !! ONE SLOT PER PLACE A ROLE IS HANDED, and `handed` is the one definition
-    # of that -- the coverage count in `flows.collate` reads the same one, so
+    # of that -- the coverage count in `flows.verify` reads the same one, so
     # the two cannot disagree about the `f` series.
     return EditCopy.seed(
         role=role,

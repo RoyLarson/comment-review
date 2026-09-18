@@ -29,7 +29,7 @@ mark-tool.md`. This is that script, and `commands/mark.py` exposes it.
 
 !! ONE RULING PER CALL, AND IT WRITES NOTHING UNTIL EVERY CHECK HAS PASSED.
 The entry is built whole -- placed, derived, quoted -- and then run through
-`desk.mark.Mark.deserialize`, the same boundary the fold applies; only a mark
+`desk.marks.mark.Mark.deserialize`, the same boundary the fold applies; only a mark
 that parses lands on the copy. A refusal leaves the copy exactly as it was, so
 a role reads the reasons and calls again.
 
@@ -53,7 +53,7 @@ a role reads the reasons and calls again.
                              and present, so a cue it does not hold names
                              nothing there
 
-The three "no slot" rows are `place_on_the_page`, which `flows.turn.apply`
+The three "no slot" rows are `place_on_the_page`, which this flow's own `fill`
 also calls for a composition answer at a place the role's copy holds no
 slot for.
 
@@ -62,7 +62,7 @@ says why: a role's copy mid-fill holds slots nobody has ruled on, and
 `Sheet.serialize` writes only the rulings, so parsing the copy to save it would
 drop every null slot -- the coverage the seeded shape exists to keep.
 
-! THE FLOW READS THE CHECKOUT AND THE DESK DOES NOT. `desk.mark.derived_change`
+! THE FLOW READS THE CHECKOUT AND THE DESK DOES NOT. `desk.marks.mark.derived_change`
 is the pure half -- the paragraph and the claim in, the change out -- and the
 cited line is read here, through `machine.repo.read_raw`, the same reader and
 the same splitter `desk.collator.source_problems` will check the result with.
@@ -337,7 +337,7 @@ def page_text_at(copies: list[dict], address: str, root: Path | None) -> str:
 
     An empty answer is not a claim that the place is empty, and nothing here
     turns an unreadable page into a refusal: an address no page resolves is
-    `flows._collate.resolution_problems`' finding, which `check` and the fold
+    `flows.verify.resolution_problems`' finding, which `check` and the fold
     both run, and reporting it twice would refuse at `mark` what the parity
     case (`no-command-for-the-middle` T99) exists to have `check` name.
     """

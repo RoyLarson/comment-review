@@ -141,13 +141,13 @@ def _ruled_places(copy) -> int:
     """How many places a role WROTE IN -- ruled marks and refused entries both.
 
     !! A MARK A ROLE GOT WRONG STILL COUNTS, and that is the claim, not the
-    arithmetic. `desk.mark.untouched`'s own docstring forbids conflating *nobody
+    arithmetic. `desk.marks.mark.untouched`'s own docstring forbids conflating *nobody
     wrote here* with *someone wrote here and got the shape wrong*; counting only
     `marks` would report the second as a coverage gap and send a reader looking
     for a place nobody answered.
 
     ! IT WAS `problems_in`'s SECOND RETURN VALUE until `P52` deleted it. Nothing
-    in production ever read that count -- `flows.collate` discarded it -- so it
+    in production ever read that count -- the fold discarded it -- so it
     is derived here, from the container, where the tests that assert it live.
     """
     return sum(len(sheet.marks) + len(sheet.refused) for sheet in copy.sheets)
@@ -173,7 +173,7 @@ class TestClaimVerbatimProblems:
         assert claim_verbatim_problems("here", query, (RAW_TEXT,)) == []
 
     def test_a_missing_claim_key_is_not_this_checks_question(self):
-        """`desk.mark.parse` already refuses a `correct` with no `false`;
+        """`desk.marks.mark.parse` already refuses a `correct` with no `false`;
         source-verification has nothing to compare and says nothing."""
         assert claim_verbatim_problems("here", a_mark(claim={}), (RAW_TEXT,)) == []
 
@@ -394,7 +394,7 @@ def _filled(overrides: dict) -> EditCopy:
 
     ! THE PARSE IS PART OF THE FIXTURE SINCE `P42`, because it is part of the
     flow: `seed` writes the wire dict a role is handed, and every function in
-    the middle takes the `EditCopy` `flows.collate.collate` deserializes on the
+    the middle takes the `EditCopy` `commands/collate.py` deserializes on the
     way back. A fixture stopping at the dict would be handing these functions a
     value production never gives them.
     """
@@ -410,7 +410,7 @@ def _filled(overrides: dict) -> EditCopy:
 class TestVerifyReport:
     def test_a_freshly_seeded_sheet_has_nothing_to_refuse(self):
         """Every entry is still `instruction: None` and nothing else written
-        -- `desk.mark.untouched`, a coverage gap rather than a problem this
+        -- `desk.marks.mark.untouched`, a coverage gap rather than a problem this
         step reports."""
         copy = returned(seed(BINDER, "block-context"))
         assert verify_report(copy, _texts(copy), ROOT, {}) == []
@@ -442,7 +442,7 @@ class TestVerifyReport:
         """!! SUPERSEDED TWICE, AND THE DISTINCTION IT NAMED STILL HOLDS.
 
         It read `test_..._is_reported_not_skipped` and asserted `verify_report`
-        contributed `desk.mark.parse`'s messages -- right while this function
+        contributed `desk.marks.mark.parse`'s messages -- right while this function
         had no production caller. `P25` put it in the flow beside the per-mark
         check, so a malformed mark came back TWICE with a byte-identical
         message. Then `P52` made `flows.mark_errors` the one assembler.
@@ -693,7 +693,7 @@ def test_tally_counts_a_ruled_mark_wherever_its_sheet_sits():
     #
     # !! THE MARK IS BUILT BY `a_correct` SINCE `P51`, AND THAT IS A FINDING
     # RATHER THAN A FIXTURE REPAIR. It was a hand-written dict carrying
-    # `"sources": []`, which `desk.mark.parse` REFUSES -- *"needs at least one
+    # `"sources": []`, which `desk.marks.mark.parse` REFUSES -- *"needs at least one
     # source"*. The old `tally` counted it anyway, because it read the
     # `instruction` string off the entry and never parsed it: **it was counting
     # marks that are not marks**. Counting `Sheet.marks` cannot, so the fixture

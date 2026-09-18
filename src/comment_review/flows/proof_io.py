@@ -14,16 +14,16 @@ decode is `machine.json_object`'s, and whether the object is the artifact it
 claims is the container's. Every command reads through here, so a file is
 refused in one wording and a change to the read is one edit.
 
-! A COPY LOADS AS ITS WIRE DICT, NOT AS AN `EditCopy`. The fold parses the
-copies itself and reports each refusal beside the role that owes it
-(`flows.collate.collate`), and `flows.turn.apply` mutates the dicts in place;
-a loader that parsed them here would parse them twice and refuse them once,
-in the wrong place.
+! A COPY LOADS AS ITS WIRE DICT, NOT AS AN `EditCopy`. `commands/collate.py`
+parses the copies itself and reports each refusal beside the role that owes
+it, and `flows.fill` mutates the dicts in place; a loader that parsed them
+here would parse them twice and refuse them once, in the wrong place.
 
 ! THE SAVE IS `machine.repo.write_raw`, the tree's one `newline=""` writer.
 `Process: #87`: the master proof is the state between turns -- the copies as
-they stand, the turn record, every Determined, the unsettlable places -- so
-`collate` saves it and the verbs that advance and close a turn load it.
+they stand and every place the fold decided, each carrying its own answers,
+its state and who it is asked of -- so `collate` saves it and the verbs that
+advance and close a turn load it.
 """
 
 import json
@@ -93,7 +93,7 @@ def load_proof(path: Path) -> tuple[MasterProof | None, list[str]]:
 
 
 def load_batch(path: Path) -> tuple[dict[str, list], list[str]]:
-    """A turn's batch off disk -- role -> its slots, as `batch_for` wrote it.
+    """A turn's batch off disk -- role -> its slots, as the fold wrote them.
 
     Returns:
         `(batch, [])`, or `({}, [why])` when the file is not an object or
@@ -126,7 +126,7 @@ def save_copy(path: Path, copy: EditCopy) -> None:
 
 
 def save_batch(path: Path, batch: dict[str, list[dict]]) -> None:
-    """A turn's batch as JSON at `path` -- role -> slots, as `batch_for` shaped it."""
+    """A turn's batch as JSON at `path` -- role -> slots, as the fold shaped them."""
     _dump(path, batch)
 
 

@@ -97,7 +97,7 @@ from the individual roles already then we know the answer."*
 
 ! IT USED TO BE DERIVED PER PLACE, and a page two roles had settled carried
 no `role` at all rather than naming one of them. That input was
-`Reconciled`, which never travelled through an `edit_copy` -- so the rule
+the fold's own intermediate, which never travelled through an `edit_copy` -- so the rule
 went with the function that could read it.
 """
 

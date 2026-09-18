@@ -531,7 +531,7 @@ def test_serialize_round_trips_through_deserialize():
 
 def test_a_move_onto_its_own_address_is_refused_by_name():
     """MEASURED 2026-08-30: this parsed with no problems reported, `_touches`
-    deduped its two ends to one address, `reconcile` settled it, and the
+    deduped its two ends to one address, the fold settled it, and the
     docket carried a single alteration deleting the paragraph --
     `('m.py', 'b1', None)` -- with no matching write."""
     entry = {
@@ -619,7 +619,7 @@ class TestAStoredReasonDoesNotRepeatItsLocator:
 
     !! MEASURED 2026-09-01 ON EVERY LINE OF THE REPORT: `block-context
     m.py@b1: m.py@b1: correct needs a reason`. Fifteen message sites in
-    `desk/mark.py` open `f"{where}: "` -- right for a caller holding nothing
+    `desk/marks/mark.py` open `f"{where}: "` -- right for a caller holding nothing
     else to say which mark it is -- and the two callers that record the place as
     a FIELD printed both. `collate-command-defects` T3.
 

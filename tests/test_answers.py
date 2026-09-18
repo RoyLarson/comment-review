@@ -81,7 +81,8 @@ def test_an_answer_is_read_against_its_question():
 
 def test_the_contracts_are_the_tables_own_sets():
     """Ported from `tests/test_turn.py`, which read the same three shapes off
-    the old `DiffMark`. They come off the answers table now, so a row added to
+    the old escalation type's own names. They come off the answers table now,
+    so a row added to
     it reaches `check --contract` with no edit here or there."""
     got = contracts()
     assert set(got) == {"stage_4c_mark", "escalation", "composition"}

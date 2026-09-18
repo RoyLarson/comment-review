@@ -208,8 +208,8 @@ def _root_problems(copies: list[EditCopy]) -> list[Problem]:
     #178`.
 
     Reported rather than raised, like everything else the handler finds: a
-    refusal that raises empties the report for every other role, which is
-    what `flows._collate.CannotCollate` exists to record.
+    refusal that raises empties the report for every other role, measured
+    2026-08-30 as exit 1 with an empty stdout.
 
     Returns:
         One `Problem` per odd copy, naming both `read_from` values, with no

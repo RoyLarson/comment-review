@@ -2,7 +2,7 @@
 
 ! EXPECTATION FROM `docs/the-mark.md`. `decision-log.md Process: #37` records
 what it cost to have no file able to refuse a field: a 22-field classifier
-scheme entered `desk/mark.py` during a port that was never proposed and never
+scheme entered `desk/marks/mark.py` during a port that was never proposed and never
 approved, because nothing could name what the row was allowed to carry.
 
 !! TWO TABLES, TWO TYPES. `Row` answers "The classifiers"; `Mark` answers "The
@@ -216,7 +216,7 @@ def test_no_field_carries_prose():
 # !! WHY THIS EXISTS. `tests/test_mark.py`'s
 # `test_patch_owes_no_source_because_its_payload_says_so` was deleted
 # 2026-08-28 along with the `payload` field it read, but it was not noise: it
-# guarded a defect `desk/mark.py`'s own history records as having SHIPPED and
+# guarded a defect `desk/marks/mark.py`'s own history records as having SHIPPED and
 # been RE-CONFIRMED TWICE -- `patch`'s stored prose said "needs no source"
 # while its flag said otherwise, fatally refusing every compliant `patch`.
 # That prose now lives in `docs/the-mark.md`'s "What each instruction owes"

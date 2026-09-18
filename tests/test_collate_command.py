@@ -69,7 +69,7 @@ class TestTheDroppedList:
     settles the place it is about.
 
     ! IT IS THE `correct` ROW'S `notes` RULE NOW, reported as an `Advised`
-    event rather than as a fourth list on a `Collated`. The heading and the
+    event rather than as a fourth list beside the fold's own. The heading and the
     sentence a reader sees are the ones `#163` landed."""
 
     def test_a_run_whose_only_finding_is_the_list_exits_as_it_did(
@@ -325,9 +325,9 @@ class TestExitCodes:
         !! THE DOOR MOVED TWICE AND THIS TEST DID NOT. It was written against
         `desk.collator.UnnamedRole`, raised by `places()` inside `collate` --
         `problems_in` also reported a missing `role`, but nothing branched on
-        that before `master_proof_of` and `reconcile` ran, so a role-less copy reached
+        that before the proof was assembled and folded, so a role-less copy reached
         `places()` and the raise aborted `collate` before it could return a
-        `Collated` at all. Then `P21` made the envelope parse report it as a
+        a report at all. Then `P21` made the envelope parse report it as a
         `Problem` first, and `P42` deleted `UnnamedRole` outright. ! WHAT THE
         TEST ASSERTS -- the exit code, the reason on the reader's screen, and
         no chief copy on disk -- is the same claim through all three, which is
@@ -648,7 +648,7 @@ class TestExitCodes:
         prints**. Nothing separated *everyone read it and had nothing to say*
         from *a role skipped two thirds of its work*.
 
-        ! `Collated.unruled` HELD THE ANSWER THE WHOLE TIME: the flow computed
+        ! THE OLD FOLD'S `unruled` HELD THE ANSWER THE WHOLE TIME: it computed
         `{'module-context': ['m.py@b5', 'm.py@b7']}` and this command threw it
         away. That is why the fix is a report and a code, not a new check.
 

@@ -220,7 +220,7 @@ class TestABatch:
 
     def test_a_patch_meant_as_hold_is_named(self, tmp_path, monkeypatch, capsys):
         """MEASURED in the game's hand 4: a role answered `patch` to keep its
-        own patch; a DiffMark patch owes a change."""
+        own patch; an escalation patch owes a change."""
         paths = _batch_file(
             tmp_path, {"block-context": {"instruction": "patch", "reason": "keep mine"}}
         )

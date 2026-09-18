@@ -117,7 +117,7 @@ WIDER = {"store.py@c5": "wants"}
 class TestTheLandingTableAgreesWithTheFixture(unittest.TestCase):
     """`LANDINGS` against the pages built from `FIXTURE` and `RATE_FIXTURE`:
     a landing carrying a `claim` has as its `Landing.marked`, or else its
-    `Landing.text`, what `desk.mark.derived_change` makes of its fixture's
+    `Landing.text`, what `desk.marks.mark.derived_change` makes of its fixture's
     paragraph at that address, and a landing at an empty place names the
     line its place is set against -- so the table cannot drift from what the
     fixtures hold.

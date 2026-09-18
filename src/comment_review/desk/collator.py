@@ -159,7 +159,7 @@ def claim_verbatim_problems(
 
     Args:
         where: how to name this mark in a message -- its address, or a position.
-        mark: one role's ruling, already through `desk.mark.parse`.
+        mark: one role's ruling, already through `desk.marks.mark.parse`.
         texts: every text at this place the quote may be in, as the flow reads
             them (`decision-log.md Process: #119`): the page's text at the
             mark's address, whether or not the binder holds that place or its
@@ -171,7 +171,7 @@ def claim_verbatim_problems(
 
     Returns:
         One message, or an empty list. A key that is absent, is not a string,
-        or holds only whitespace says nothing here -- `desk.mark.parse` is what
+        or holds only whitespace says nothing here -- `desk.marks.mark.parse` is what
         refuses those, and this step has nothing to compare.
     """
     key = INSTRUCTIONS[mark.instruction].quotes_original
@@ -266,7 +266,7 @@ def cited_problems(where: str, sources: object, root: Path, cache: Cache) -> lis
 
     ! A SOURCE WITH NO USABLE `cite` IS PASSED OVER, and so is one with no
     usable `verbatim` once its cite has resolved. Whether a source was OWED at
-    all is `desk.mark.parse`'s question, off `INSTRUCTIONS[...].owes_sources`;
+    all is `desk.marks.mark.parse`'s question, off `INSTRUCTIONS[...].owes_sources`;
     this step rules only on what it can resolve.
 
     Args:
@@ -340,7 +340,7 @@ def source_verification(
 
     Args:
         where: how to name this mark in a message -- its address, or a position.
-        mark: one role's ruling, already through `desk.mark.parse`.
+        mark: one role's ruling, already through `desk.marks.mark.parse`.
         texts: every text at this place the quoted sentence may be in -- see
             `claim_verbatim_problems`.
         root: the checkout every `cite` is resolved against.
@@ -357,7 +357,7 @@ class Problem:
 
     !! STRUCTURED RATHER THAN A SENTENCE, ruled by Roy 2026-08-30: *"the errors
     should be stacked and capable of being read off correctly so that each can
-    be fixed or sent back to the role."* `desk.mark.parse` returns flat strings
+    be fixed or sent back to the role."* `desk.marks.mark.parse` returns flat strings
     each opening with a `where`, and a caller cannot route on a sentence -- so
     the role and the address ride beside the message.
 
@@ -388,11 +388,11 @@ def verify_report(
             to, and `EditCopy.deserialize` has already refused a copy that
             carries none.
         texts: address -> every text a quote there may be in, as
-            `flows.collate.texts_at` reads them. An address it lacks is
+            `flows.verify.texts_at` reads them. An address it lacks is
             checked against nothing, so a quote there is refused.
         root: the checkout every `cite` is resolved against.
         cache: a `Cache` to read cited files through.
-            !! REQUIRED, AND ONE PER STAGE. `flows.collate.collate` calls this
+            !! REQUIRED, AND ONE PER STAGE. `flows.bus` calls this
             once per copy, and a cache built per call re-reads a file for every
             citing role -- MEASURED 2026-08-31: four roles citing the same line
             read it from disk four times. The note below already promised "a
@@ -416,12 +416,12 @@ def verify_report(
         because it is the one that holds the copy and therefore the role.
 
     !! AN UNTOUCHED SLOT IS SKIPPED, and so is AN UNPARSEABLE ENTRY -- the
-    second only since 2026-08-31. The first is `desk.mark.untouched`: a
+    second only since 2026-08-31. The first is `desk.marks.mark.untouched`: a
     coverage gap, a place no role wrote in. The second has no `Mark` to check,
     and its parse messages belong to `flows.mark_errors`.
 
     !! IT USED TO REPORT THEM, AND THAT WAS RIGHT WHILE THIS HAD NO PRODUCTION
-    CALLER. `P25` put it in `flows.collate.collate` beside the per-copy check,
+    CALLER. `P25` put it in the fold beside the per-copy check,
     which parsed every entry already -- so a malformed mark came back **twice
     with a BYTE-IDENTICAL message**, measured on an emptied `claim`:
     `m.py@b1: correct needs `claim` to carry false, true (missing false, true)`,
@@ -478,7 +478,7 @@ def verify_report(
 #: `Problem`s, `unruled` naming `Sheet.unruled` -- and `flows.mark_errors`
 #: answers both, as addresses and reasons, per `decision-log.md Process: #72`.
 #: ! `problems_in` ALSO RETURNED A `ruled` COUNT that nothing in production ever
-#: read: `flows.collate` discarded it at the call. The claim it carried -- a mark
+#: read: the fold discarded it at the call. The claim it carried -- a mark
 #: a role wrote in and got WRONG still counts as ruled, and is not a coverage gap
 #: -- survives in `tests/test_collator.py::_ruled_places`, derived from the
 #: container where the cases that assert it live.

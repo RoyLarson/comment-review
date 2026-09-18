@@ -182,8 +182,9 @@ class Mark:
     front of them. `docs/the-mark.md`, "The fields -- eight", holds Roy's own
     sentence for it, in the register that ruling was given in.
 
-    ! `role` IS NOT A FIELD, and `collator.Placed` is what carries the pair. It
-    belongs to the `edit_copy` a mark came back in, not to the mark.
+    ! `role` IS NOT A FIELD, and `desk.evaluate.place.Filed` is what carries
+    the pair. It belongs to the `edit_copy` a mark came back in, not to the
+    mark.
 
     !! `raw_text` IS THE THIRD SEEDED FIELD AND WAS EXCLUDED UNTIL 2026-08-30.
     It went out on every slot and `parse` dropped it, so one of the three
@@ -439,7 +440,7 @@ def first_word_dropped(prose: str, change: str) -> str | None:
     that paragraph, so its change holds every word of the prose, in the order
     the prose has them, and punctuation and whitespace are free to move.
 
-    `flows.collate` asks the same of a `correct`'s change, over its seeded
+    `desk.evaluate` asks the same of a `correct`'s change, over its seeded
     paragraph with `claim.false` taken out (`decision-log.md Process: #163`).
     Moved here from `flows.fill` so the marks table can read it without
     `desk` importing `flows`.
@@ -845,7 +846,7 @@ def _destination_problems(where: str, address: object, claim: object) -> list[st
 
     Its form is asked here too: a destination is a `path@cue` place, for now
     (`decision-log.md Process: #173`). Whether the page carries that place
-    needs the page, and is `flows.collate.resolution_problems`' -- which
+    needs the page, and is `flows.verify.resolution_problems`' -- which
     `collate` and `check` both run.
 
     Args:

@@ -28,7 +28,7 @@ WHAT is owed; how many times it may be asked for is the briefing's.
 ! WHAT IT DOES NOT DO IS VERIFICATION. `desk.collator.verify_report` asks
 whether a well-formed mark's claims hold against the tree; this asks only about
 places that produced no usable mark at all. The two are separate lists on
-`flows.collate.Collated` for that reason.
+the fold's own report for that reason.
 """
 
 from typing import NamedTuple
@@ -54,7 +54,7 @@ class Revisit(NamedTuple):
             ! THE TWO ARE SEPARATE BECAUSE ONE CAN BE EMPTY AND THE OTHER MUST
             NOT BE. A reader needs somewhere to look even for an entry the
             system cannot route; a router needs to know when there is nowhere.
-        reasons: every rule the entry broke, as `desk.mark.parse` worded them,
+        reasons: every rule the entry broke, as `desk.marks.mark.parse` worded them,
             or the one sentence `NOT_RULED` for a place nobody wrote in.
             ! ALL OF THEM TOGETHER, which is the half `Process: #72` asks for
             beyond the address -- one malformed `correct` breaks four rules, and
@@ -69,7 +69,7 @@ class Revisit(NamedTuple):
             also carried forward -- the second routes back without voiding the
             round (`Process: #63`) and the first does not. Without this the two
             are one list and the command cannot tell them apart.
-            ! THE TWO ARE NOT THE SAME FACT, which `desk.mark.untouched`'s own
+            ! THE TWO ARE NOT THE SAME FACT, which `desk.marks.mark.untouched`'s own
             docstring already forbids conflating: a malformed mark means a role
             DID rule here and got the shape wrong.
     """
@@ -85,7 +85,7 @@ def mark_errors(edit_copies: list[EditCopy]) -> list[Revisit]:
     """Every place a role must revisit, across one stage's returned copies.
 
     Args:
-        edit_copies: the parsed copies, as `flows.collate.collate` holds them
+        edit_copies: the parsed copies, as `flows.bus` holds them
             after its envelope pass. ! PARSED, because that is what sorted each
             entry: `desk.containers.Sheet` carries `unruled` and `refused`, and
             this flow reads them rather than re-deciding what an entry was.

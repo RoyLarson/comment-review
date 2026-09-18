@@ -1,7 +1,7 @@
 """The MARK sequence, as data: what each stage hands back, and what follows it.
 
     Kind            what a stage can be, closed
-    Kind.EDITORIAL  hands back marks -- verify -> reconcile -> revise step ->
+    Kind.EDITORIAL  hands back marks -- verify -> fold -> revise step ->
                     pull a revise
     Kind.ENRICHING  hands back facts -- into the next binder. No docket, no
                     revise, and no producer yet

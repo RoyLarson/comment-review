@@ -11,9 +11,9 @@ r"""The containers a mark travels in -- the sheet, the edit_copy, the master_pro
 `decision-log.md Vocabulary: #30`. `docs/the-mark.md` exists because an agent
 AUTHORS a mark, so a mark's shape must be published to a role. No agent ever
 authors a container, so the type is where the shape lives, the way
-`desk/mark.py` defines `Mark`.
+`desk/marks/mark.py` defines `Mark`.
 
-!! THE WIRE STAYS DICTS. Each parse has `desk.mark.parse`'s own contract --
+!! THE WIRE STAYS DICTS. Each parse has `desk.marks.mark.parse`'s own contract --
 `(T, [])` or `(None, [one message per broken rule])` -- so a caller holds a
 checked object rather than re-deriving the same keys with `isinstance`
 ladders.
@@ -21,10 +21,10 @@ ladders.
 !! BOTH HALVES OF THE ROUND TRIP LIVE HERE, as of 2026-08-31. `seed` writes a
 container from the class's own field names -- `Process: #64` -- and `parse`
 reads one back. Renaming a field breaks at construction rather than folding to
-a default one module away, which is `desk.mark.Mark.seed`'s guard one level up.
+a default one module away, which is `desk.marks.mark.Mark.seed`'s guard one level up.
 
 !!! **`seed` RETURNS THE WIRE DICT AND THAT IS CORRECT** -- `Process: #66`. A
-seed is an EMPTY FORM, not an instance: `desk.mark.Mark.seed` writes three of
+seed is an EMPTY FORM, not an instance: `desk.marks.mark.Mark.seed` writes three of
 `Mark`'s eight fields plus `instruction: None`, and typing that as a `Mark`
 would need five optionals, at which point holding a `Mark` would stop meaning
 the ruling is complete. **The split is `parse` versus `seed`, not container
@@ -38,9 +38,10 @@ flow CARRIES between its load and its save; a seed is emitted AT a save --
 `flows.distribute.seed` builds one and the command writes it as the JSON a role
 is handed -- so the dict is where that ruling puts it.
 
-    write   flows.distribute.seed, flows.collate._chief_copy,
-            flows.collate._nothing_settled, desk.proof.master_proof_of
-    read    flows.collate.collate, at its inbound boundary and after `master_proof_of`
+    write   flows.distribute.seed, flows.places.chief_copy_of,
+            flows.bus, desk.proof.master_proof_of
+    read    commands/collate.py, at its inbound boundary, and
+            flows.proof_io.load_proof
 
 ! THE PARSES HAD NO PRODUCTION CALLER UNTIL 2026-08-31, and this file said so
 for as long as that was true. `P21` closed it: `collate` runs `EditCopy.deserialize`
@@ -51,7 +52,7 @@ builds, so **every refusal declared below can now fire.**
 A container guards the **ENVELOPE** -- is this document the shape a copy must
 be -- while `flows.mark_errors` rules on the **CONTENTS**, so each per-mark
 problem routes back to the role that wrote it. They are not competing
-contracts, and both run. ! `flows/collate.py` owns the ORDER and the RESPONSE
+contracts, and both run. ! `commands/collate.py` owns the ORDER and the RESPONSE
 (envelope first; reported, not raised) and cites this paragraph rather than
 repeating it -- a rule in two places is a rule that will disagree with itself.
 
@@ -60,7 +61,7 @@ every place has exactly one answer, and one mark per place is an ordinary copy.
 There is no second shape and no second parse.
 
 !! `Sheet.marks` HOLDS `Mark`s SINCE `P51`, and was `tuple[object, ...]` --
-an entry that is not an object was CARRIED so `desk.mark.parse` could refuse it
+an entry that is not an object was CARRIED so `desk.marks.mark.parse` could refuse it
 by name rather than have it vanish. `_sorted_entries` refuses it at the parse
 instead, into `Sheet.refused`, so nothing vanishes and nothing downstream has to
 re-read a raw entry. ! `Mark.sources` IS STILL `object` for the original
@@ -91,7 +92,7 @@ def _written(cls, values: dict) -> dict:
     """One container as the wire dict, keyed by `cls`'s OWN field names.
 
     !! THE WRITE HALF OF THE ROUND TRIP LIVES WITH THE READ HALF, ruled
-    `decision-log.md Process: #64`. It is `desk.mark.Mark.seed`'s guard one
+    `decision-log.md Process: #64`. It is `desk.marks.mark.Mark.seed`'s guard one
     level up: every producer spelled these keys as literals, so renaming a
     field left another module writing the old key and NOTHING could notice --
     `Sheet.deserialize` folds an absent `sha` to `""` and reports no problem, where
@@ -167,7 +168,7 @@ def _sorted_entries(
     """One sheet's entries, split into the three kinds a returned sheet holds.
 
     !! THE ONLY PLACE A MARK IS PARSED, since `P51`. It was parsed at FOUR --
-    `problems_in`, `verify_report`, `places` and `flows.collate._keeps` -- so
+    `verify_report` and the passes that build a place from the marks -- so
     every ruled entry went through `Mark.deserialize` four times per run,
     measured 2026-09-01. Each of those four also spelled its own `where`
     fallback and its own untouched test, which is four chances to disagree
@@ -184,7 +185,7 @@ def _sorted_entries(
         `(ruled, unruled, refused)`.
 
         ruled: one `Mark` per entry that parsed.
-        unruled: the ADDRESS of every untouched entry -- `desk.mark.untouched`,
+        unruled: the ADDRESS of every untouched entry -- `desk.marks.mark.untouched`,
             a place nobody wrote in. ! IT IS ASKED FIRST, because an untouched
             entry does not parse either: `Mark.deserialize` refuses its
             `instruction: None` with *"must be one of add, clean, ..."*, which
@@ -262,10 +263,10 @@ class Sheet:
         marks: one `Mark` per place a role RULED on, in the order they came
             back.
         unruled: the address of every place handed to the role and left
-            untouched -- `desk.mark.untouched`. A coverage gap, not an error.
+            untouched -- `desk.marks.mark.untouched`. A coverage gap, not an error.
         refused: one `Refused` per entry that is neither untouched nor
             parseable. ! IT IS NOT FATAL TO THE SHEET, and that is what keeps
-            one role's bad mark from blocking the stage: `flows.collate.collate`
+            one role's bad mark from blocking the stage: the fold
             returns early on an envelope failure, so refusing here would stop
             three roles over one. Roy, 2026-08-30: *"the errors should be
             stacked and capable of being read off correctly so that each can be
@@ -331,7 +332,7 @@ class Sheet:
 
             ! THE REAL PRODUCERS ARE TWO SITES INSIDE THE MIDDLE, and both write
             `""` for a path `unflatten` could not resolve back to a real page:
-            `flows.collate._chief_copy` and, until `P55`,
+            `flows.places.chief_copy_of` and, until `P55`,
             `desk.collator._real_pages`. Neither is a gather, and neither is
             about a repo.
 
@@ -358,7 +359,7 @@ class Sheet:
         # the same rule as one this module wrote.
         #
         # !! AND THE FOLD WAS SPELLED AT FIVE SITES. `flows.carry` and
-        # `flows.collate._chief_copy` each carry their own copy, and neither
+        # `flows.places.chief_copy_of` each carry their own copy, and neither
         # imports this module; a third, `desk.collator._real_pages`, went with
         # `docket_from` at `P55`. `carry`'s own comment already
         # says it is "matching `desk.containers.Sheet.deserialize`". This pair is the
@@ -366,7 +367,7 @@ class Sheet:
         # reach.
         #
         # ! THE COUNT WAS FOUR UNTIL 2026-08-31 AND THE FIFTH WAS ADDED KNOWINGLY.
-        # `_chief_copy` subscripted `sheet["sha"]` on the belief that the envelope
+        # the chief's copy subscripted `sheet["sha"]` on the belief that the envelope
         # guaranteed it; it does not, and `823834f` restored the fold there rather
         # than carry the parsed `Sheet` that already holds the answer. That is a
         # stopgap standing until `Process: #65`, and counting it here is what keeps

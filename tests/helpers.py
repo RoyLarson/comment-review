@@ -50,7 +50,7 @@ _DESK = Path(__file__).resolve().parents[1] / "src" / "comment_review" / "desk"
 
 #: A real citation `a_correct`, `a_move`, `a_query` and `an_add` reuse for
 #: `sources` -- `desk/marks/mark.py`'s own first line, read once at import
-#: time. `desk/mark.py` moved to `desk/marks/mark.py` in T1 of
+#: time. `desk/marks/mark.py` moved to `desk/marks/mark.py` in T1 of
 #: `docs/superpowers/plans/2026-09-14-the-middle-rebuilt.md`, taking its
 #: comment paragraphs with it; the shim left behind is thirteen lines of
 #: imports, with no filled `b` row for `a_docket_over` to find.
@@ -151,7 +151,7 @@ def a_small_real_tree(tmp_path: Path) -> Path:
     this suite. `mark.py` keeps its own flat name in the written repo so a
     docket over "mark.py" names a file that is actually there, though its
     content is read from `desk/marks/mark.py` now that the move landed --
-    the shim left at `desk/mark.py` carries no filled `b` row to pick. The
+    which is where it lives since the move. The
     other three are along so `test_revise.py`'s own case can show a page the
     docket does not name is missing from the revise, per `decision-log.md
     Process: #117`.
@@ -322,7 +322,7 @@ def _synthetic_binder(addresses: list[str]) -> Binder:
 
     !! BUT `read_from.root` MUST NAME A REAL DIRECTORY, and held the string
     `"tests/helpers.py"` until 2026-08-31 -- a FILE, chosen as a placeholder
-    when nothing read it. `P25` gave it a reader: `flows.collate.collate`
+    when nothing read it. `P25` gave it a reader: the fold
     resolves every `sources` cite against this root, and `commands/collate.py`
     defaults to it. Against a file, every citation these helpers build fails to
     resolve, and five exit-code tests came back BROKEN for a reason that had
@@ -464,12 +464,12 @@ def _quoting_the_real_text(mark: dict, entry: dict) -> dict:
     !! MEASURED 2026-08-31, WHEN `P25` GAVE THE CLAIM A READER. `a_correct`'s
     default sentence -- `"the paragraph's own claim"` -- is in no paragraph any
     helper builds, so **every mark built from that default carried a claim that
-    was never true of its own base**. Nothing could see it: `desk.mark.parse`
+    was never true of its own base**. Nothing could see it: `desk.marks.mark.parse`
     imports no binder and no page, so the sentence was unfalsifiable until
     `desk.collator.claim_verbatim_problems` ran in the flow.
 
     ! THE WHOLE PARAGRAPH IS A LEGITIMATE `claim.false`, not a dodge --
-    `flows.collate._composition` sets exactly that when it synthesizes a
+    the composing pass sets exactly that when it synthesizes a
     `correct` over a base two roles both edited.
 
     ! ONLY THE PLACEHOLDER IS TOUCHED. A test that passes its own sentence --
@@ -565,7 +565,7 @@ def returned(wire: dict, where: str = "copy") -> EditCopy:
 
     A test builds the wire dict a role hands back -- `flows.distribute.seed`,
     then whatever the case writes into a slot -- and this is the boundary
-    `flows.collate.collate` runs it through before `problems_in`,
+    the fold runs it through before the per-mark checks,
     `verify_report`, `drift_in`, `unruled` or `tally` sees it.
 
     ! IT ASSERTS THE PARSE SUCCEEDED, so a fixture that has quietly stopped
@@ -592,7 +592,7 @@ def a_master_proof(by_role: dict) -> MasterProof:
         the same `entry.update(...)` pattern `tests/test_collator.py` uses over
         a real one.
 
-    ! IT RUNS THE REAL PARSE BETWEEN THE TWO, exactly as `flows.collate.collate`
+    ! IT RUNS THE REAL PARSE BETWEEN THE TWO, exactly as the command
     does since `P42`: `seed` writes the wire dict a role is handed, and
     `master_proof_of` takes the parsed `EditCopy`. A fixture that skipped the parse
     would hand `master_proof_of` a shape production cannot produce.
@@ -637,13 +637,13 @@ def _mark(instruction: Instruction, address: str, claim: dict) -> dict:
     mark: dict = {
         "address": address,
         "instruction": instruction,
-        "reason": f"written for the reconcile test suite ({instruction})",
+        "reason": f"written for the mark helpers ({instruction})",
         "claim": claim,
     }
     if spec.owes_sources:
         mark["sources"] = [{"cite": _MARK_PY_CITE, "verbatim": _MARK_PY_LINE_1}]
     if spec.owes_change:
-        mark["change"] = f"# set by the reconcile test suite ({instruction})"
+        mark["change"] = f"# set by the mark helpers ({instruction})"
     return mark
 
 
@@ -677,7 +677,7 @@ def a_correct(address: str, sentence: object = _PLACEHOLDER_SENTENCE) -> dict:
 
     ! `sentence` IS COERCED TO A STRING, so a caller may pass a bare
     discriminator (`sentence=0`, `sentence=2`) to say only *a different
-    sentence from the other mark's*. `desk.mark.parse` requires a filled
+    sentence from the other mark's*. `desk.marks.mark.parse` requires a filled
     STRING, and `0` is neither.
     """
     return _mark(
@@ -742,7 +742,7 @@ def a_query(address: str, shape: Shape = Shape.UNABLE_TO_DETERMINE) -> dict:
 
 def an_add(address: str) -> dict:
     """An `add` mark -- `claim.anchor` NAMED IN BACKTICKS, using
-    `desk.mark.ANCHOR_EXAMPLE` rather than a hand-typed name."""
+    `desk.marks.mark.ANCHOR_EXAMPLE` rather than a hand-typed name."""
     return _mark(
         Instruction.ADD,
         address,

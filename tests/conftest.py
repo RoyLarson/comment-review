@@ -37,7 +37,7 @@ FULL page -- fences included -- and none of what a binder carries.
 
 !! NEITHER THE VERDICTS NOR THE RECORD IS TOUCHED -- neither exists in `src/`,
 only in `prototype/`, which does not run. Roy: *"There is code there none of it
-is correct so testing it is solidifying wrong."* ! `desk/mark.py` is the
+is correct so testing it is solidifying wrong."* ! `desk/marks/mark.py` is the
 EXCEPTION, since 2026-08-28: `tests/test_mark.py` and `tests/test_mark_brief.py`
 test it directly, once the port's own defect
 (`TODO/the-ported-mark-does-not-fit-the-brief.md`) made it worth testing.

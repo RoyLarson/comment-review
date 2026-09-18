@@ -1,7 +1,7 @@
 """T7 -- the brief's OWN worked example, run through `collate`.
 
 !! THE DEFECT THIS EXISTS FOR, MEASURED 2026-08-29. `reviewer-brief.md` keys a
-mark's ruling `instruction` and `desk/mark.py` read `mark`, so the example the
+mark's ruling `instruction` and `desk/marks/mark.py` read `mark`, so the example the
 brief publishes for a role to copy passed `mark --check` AT EXIT 0 -- as
 UNRULED. `problems_in` skipped any entry whose `mark` key was absent and
 counted it as a place nobody looked at. **A reviewer following the brief

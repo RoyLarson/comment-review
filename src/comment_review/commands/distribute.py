@@ -5,7 +5,8 @@
     comment_review distribute --topology T.toml --stage 4c --binder B.json --out-dir DIR
         [--revise REVISE_ROOT]
 
-The work is `flows.distribute`, `flows.fan_out` and `desk.mark`; this is only the
+The work is `flows.distribute`, `flows.fan_out` and `desk.marks`; this is only
+the
 console face of it.
 
 !! `--stage` IS THE TOPOLOGY'S READER -- `decision-log.md Process: #74`. One

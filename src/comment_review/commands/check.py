@@ -20,7 +20,7 @@ named there is the file-write plus a CLI that validates; this is that CLI.
 
 ! MEASURED 2026-09-04, the game that asked for it: of about fifty submissions
 across five hands, ten were refused at the fold and none on substance -- a
-slot rewritten without its `question` key, a DiffMark `patch` meant as *keep
+slot rewritten without its `question` key, an escalation `patch` meant as *keep
 my patch*, three batches returned keyed by role instead of as a list, a
 citation whose line did not match, addresses in slash form where the seed
 was flattened. Each cost a turn. All are named here, before the send.

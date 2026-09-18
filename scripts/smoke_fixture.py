@@ -222,7 +222,7 @@ class Landing(NamedTuple):
     and keyed as `mark`'s flags name them -- `false` and `true` for
     `fib.py`'s corrections `c6` and `c1`, `from` and `to` for `rate.py`'s
     patch `c3`. `mark` needs both to derive the change itself
-    (`desk.mark.derived_change` replaces the quoted clause with the other in
+    (`desk.marks.mark.derived_change` replaces the quoted clause with the other in
     the paragraph the row seeded), and the smoke script passes each by
     `@path` from the file `write_texts` writes for it.
 
@@ -393,7 +393,7 @@ LANDINGS: dict[str, Landing] = {
     # two texts at one place, and the place is carried forward as an
     # escalation; disposition recasts it in the chief's own words. The add is
     # the place's first mark, so the recast carries `add`, the instruction
-    # the roles filed there (`flows.turn._recast_as`). `marked` is the
+    # the roles filed there (`desk.dispositions`). `marked` is the
     # add's own change, which its `mark` call carries; no mark call and no
     # turn answer carries `text`, so it reaches the proof only inline in
     # dispositions.json.

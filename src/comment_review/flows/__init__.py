@@ -11,7 +11,7 @@
     fan_out        splits a binder by a stage's dispatches -- one seeded
                     edit_copy per dispatch, refusing an overlap or a gap
     marks          hands a role an edit_copy to fill, and checks what comes
-                    back against every rule `desk/mark.py` settles
+                    back against every rule `desk/marks/mark.py` settles
     turn           a batch answered, applied to the copies, folded again --
                     and the master proof as the state between turns
     proof_io       that proof on disk: the load and the save, raw JSON at

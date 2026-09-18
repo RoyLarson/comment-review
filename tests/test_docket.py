@@ -17,13 +17,14 @@ the only such import in the tree. What replaces it is
 `tests/test_revise.py::TestDocketOf` beside it.
 
 ! SO THE CASES THAT USED IT SPLIT IN TWO, and neither claim was dropped. What
-each was really asking is either RECONCILIATION -- what survives to be settled
-at all, which now asks `reconcile()` directly instead of routing through a
-transcription step to observe it -- or TRANSCRIPTION, which `TestDocketOf`
-asserts over the copy the production path actually carries.
+each was really asking is either THE FOLD -- what survives to be settled at
+all, which `_settled` below asks of the fold directly instead of routing
+through a transcription step to observe it -- or TRANSCRIPTION, which
+`TestDocketOf` asserts over the copy the production path actually carries.
 
 !! ONE CLAIM IS SUPERSEDED RATHER THAN MOVED, and it is the `role` of a page two
-roles settled. `docket_from` read a per-place `roles` off `Reconciled`; an
+roles settled. `docket_from` read a per-place `roles` off the fold's own
+intermediate; an
 `edit_copy` has one role for the whole copy, so `docket_of` writes that.
 **The per-role fact is lost at the FOLD, not at the docket** -- Roy, 2026-09-02:
 *"by the time the copy-chiefs edit-copy becomes the sole edit-copy in the master
@@ -79,10 +80,10 @@ def _refused_reasons(proof) -> list[str]:
 
 
 def _fold(proof, bases: dict | None = None):
-    """The fold over the proof's copies -- what `desk.collator.reconcile` answered.
+    """The fold over the proof's copies: which places it comes out of decided.
 
-    ! THESE CASES ASKED RECONCILIATION WHICH PLACES SETTLED, and the fold is
-    what answers that now, so they ask the step that decides it.
+    ! THESE CASES ASKED THE DESK WHICH PLACES SETTLED, and the fold is what
+    answers that now, so they ask the step that decides it.
 
     Args:
         proof: a master proof, from `helpers.a_master_proof`.
@@ -101,7 +102,7 @@ def _fold(proof, bases: dict | None = None):
 
 
 def _settled(proof, bases: dict | None = None) -> list[str]:
-    """Every address the fold settles -- what `reconcile().settled` listed.
+    """Every address the fold settles.
 
     Read off the events rather than off `decided`, which holds every place the
     fold saw: a move's origin carries the remainder it would be left with even
