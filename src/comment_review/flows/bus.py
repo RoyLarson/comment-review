@@ -1,15 +1,25 @@
 """The bus: the stage transitions as messages, one handler each.
 
+    CopiesReturned       one stage's copies, back from the roles
+    AnswersReturned      one turn's answers, back from the roles
+    DispositionsWritten  the chief's rulings on what is still carried forward
+
 Each handler checks what its message carries, derives the places, opens a
 Fold, and on commit builds what the stage saves. A command sends one message
 and prints the events; nothing here reads or writes a file, and nothing here
 names a row of the three tables.
+
+! THE TWO LATER MESSAGES CARRY NO BINDER AND NO ROOT. The copies are read
+against the tree once, when they come back; after that the places carry their
+own base text and the middle decides from the record alone, opening no page
+(`decision-log.md Process: #62`).
 """
 
 from pathlib import Path
 from typing import NamedTuple
 
 from comment_review.binder.binder import Binder
+from comment_review.desk.answers.answer import Answer
 from comment_review.desk.collator import (
     Cache,
     Problem,
@@ -18,12 +28,14 @@ from comment_review.desk.collator import (
     verify_report,
 )
 from comment_review.desk.containers import EditCopy, MasterProof, Sheet
+from comment_review.desk.dispositions.disposition import CHIEF, Disposition
 from comment_review.desk.evaluate.place import Place
 from comment_review.desk.evaluate.state import CARRIED
 from comment_review.desk.stages import Stage
 from comment_review.desk.work import events
 from comment_review.desk.work.fold import Fold, asked
 from comment_review.flows import _collate as old
+from comment_review.flows.answers import answers_of, slots_of
 from comment_review.flows.mark_errors import mark_errors
 from comment_review.flows.places import chief_copy_of, places_of
 
@@ -48,6 +60,37 @@ class CopiesReturned(NamedTuple):
     binder: Binder
     root: Path
     topology: Stage | None = None
+
+
+class AnswersReturned(NamedTuple):
+    """One turn's answers, back from the roles and ready to fold.
+
+    Attributes:
+        proof: the master proof as the last fold wrote it -- the copies as
+            they stand and every place that fold decided. Its places say
+            which are still carried forward and who each was put to.
+        answers: role -> what that role handed back, in any shape
+            `flows.answers.slots_of` reads. A role the batch named and that
+            returned nothing is absent, and every slot it owed is refused.
+    """
+
+    proof: MasterProof
+    answers: dict[str, object]
+
+
+class DispositionsWritten(NamedTuple):
+    """The chief's rulings on the places the roles never settled.
+
+    Attributes:
+        proof: the master proof as the last turn wrote it, or as the first
+            fold wrote it where no turn ran -- the baseline.
+        dispositions: one ruling per place still carried forward, as the
+            chief wrote them. A place left unruled is refused by name, and a
+            ruling at a place nothing carries forward is refused too.
+    """
+
+    proof: MasterProof
+    dispositions: list
 
 
 class Result(NamedTuple):
@@ -204,6 +247,170 @@ def _anchors_of(copies: list[EditCopy]) -> dict[str, str]:
     }
 
 
+#: Who a problem with the proof itself is filed against. It is not a role and
+#: not the chief: the file was written by a fold, so nobody is being asked to
+#: correct a ruling -- the document is being refused.
+THE_PROOF = "the master proof"
+
+
+def _places_on(proof: MasterProof) -> tuple[dict[str, Place], list[Problem]]:
+    """The proof's places, read back, or one `Problem` per reason they are not.
+
+    Args:
+        proof: the master proof a turn or the chief is folding again.
+
+    Returns:
+        `(address -> Place, the problems)`. An entry that will not read back
+        is named by its own address where it has one, and by its position
+        where it does not; the proof is nobody's copy, so the problem is
+        filed against the document rather than against a role.
+    """
+    places: dict[str, Place] = {}
+    problems: list[Problem] = []
+    for i, entry in enumerate(proof.places):
+        where = str(entry.get("address") or "") if isinstance(entry, dict) else ""
+        where = where or f"place {i}"
+        place, why = Place.deserialize(where, entry)
+        if place is None:
+            problems += [
+                Problem(THE_PROOF, where, one.removeprefix(f"{where}: ")) for one in why
+            ]
+        else:
+            places[place.address] = place
+    return places, problems
+
+
+def _on_answers(message: AnswersReturned) -> tuple[list, Result | None]:
+    """One turn's answers written onto the places, then folded again.
+
+    Every role the fold asked owes an answer at every place it was asked
+    about, and nothing else may answer: an entry at a place no turn carries
+    forward, or at one this role was not asked about, is refused, and so is a
+    slot left unanswered. Each refusal voids the round, as a copy's does, so
+    a proof is never written over an answer that was not read.
+    """
+    places, problems = _places_on(message.proof)
+    carried = {a: p for a, p in places.items() if p.state in CARRIED}
+    turn = 1 + max((t for p in places.values() for t in p.answers), default=0)
+    given: dict[str, dict[str, Answer]] = {}
+    roles = {role for place in carried.values() for role in asked(place)}
+    for role in sorted(roles | set(message.answers)):
+        sent = {
+            address: {"question": str(place.question), "anchor": place.anchor}
+            for address, place in carried.items()
+            if role in asked(place)
+        }
+        answers, why = answers_of(
+            role,
+            sent,
+            slots_of(message.answers.get(role, []), role),
+            _unsent(places, role),
+        )
+        problems += why
+        given[role] = answers
+    if problems:
+        return _rolled_back(problems)
+    for role, answers in given.items():
+        for address, answer in answers.items():
+            places[address].answers.setdefault(turn, {})[role] = answer
+    return _commit(message.proof, places, turn)
+
+
+def _unsent(places: dict[str, Place], role: str):
+    """Why an answer at `address` is not this role's to write, for `answers_of`."""
+
+    def why(address: str) -> str:
+        place = places.get(address)
+        if place is None or place.state not in CARRIED:
+            return "not carried forward"
+        return f"not put to {role} -- this place is put to {', '.join(asked(place))}"
+
+    return why
+
+
+def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]:
+    """The chief's rulings written onto the places, then folded to a close.
+
+    Nothing survives the chief's ruling unruled, and nothing is ruled on
+    twice: a place carried forward with no ruling is refused by name and with
+    the roles it was put to, and a ruling at a place the roles settled, or
+    that rides to the human, is refused as well.
+    """
+    places, problems = _places_on(message.proof)
+    for i, entry in enumerate(message.dispositions, 1):
+        named = str(entry.get("address") or "") if isinstance(entry, dict) else ""
+        where = named or f"ruling {i}"
+        disposition, why = Disposition.deserialize(where, entry)
+        if disposition is None:
+            problems += [
+                Problem(CHIEF, where, one.removeprefix(f"{where}: ")) for one in why
+            ]
+            continue
+        place = places.get(disposition.address)
+        if place is None or place.state not in CARRIED:
+            problems.append(Problem(CHIEF, disposition.address, "not carried forward"))
+            continue
+        place.disposition = disposition
+    for address in sorted(places):
+        place = places[address]
+        if place.state in CARRIED and place.disposition is None:
+            problems.append(
+                Problem(
+                    CHIEF,
+                    address,
+                    "carried forward and not ruled on -- it was put to "
+                    f"{', '.join(asked(place))}",
+                )
+            )
+    if problems:
+        return _rolled_back(problems)
+    turn = max((t for p in places.values() for t in p.answers), default=0)
+    return _commit(message.proof, places, turn)
+
+
+def _rolled_back(problems: list[Problem]) -> tuple[list, None]:
+    """Every problem as its own `Refused`, then the rollback -- nothing saved."""
+    out: list = [
+        events.Refused(one.role, one.address, (one.message,)) for one in problems
+    ]
+    out.append(events.RolledBack(len(problems)))
+    return out, None
+
+
+def _commit(
+    proof: MasterProof, places: dict[str, Place], turn: int
+) -> tuple[list, Result | None]:
+    """The fold over the places as they now stand, and what a commit saves.
+
+    Args:
+        proof: the proof these places were read from. Its stage, its
+            `read_from` and its copies are carried onto the next one; what
+            the fold decided replaces its places.
+        places: the places, each carrying whatever this message wrote onto
+            it. `Fold` evaluates every one of them from its own record.
+        turn: the turn the fold stands at -- every answer up to it is applied.
+
+    Returns:
+        `(the events, the result)`, the result being None on a rollback.
+    """
+    out: list = []
+    fold = Fold(places, turn=turn).run()
+    out += fold.events
+    if not fold.committed:
+        return out, None
+    next_proof = MasterProof(
+        stage=proof.stage,
+        read_from={**proof.read_from},
+        edit_copies=proof.edit_copies,
+        places=tuple(place.serialize() for place in fold.decided.values()),
+    )
+    chief = chief_copy_of(
+        fold.decided, CHIEF, proof.read_from, _pages_of(list(proof.edit_copies))
+    )
+    carried = [place for place in fold.decided.values() if place.state in CARRIED]
+    return out, Result(next_proof, chief, _batch_of(carried) if carried else None)
+
+
 def _batch_of(carried: list[Place]) -> dict[str, list[dict]]:
     """Role -> one slot per carried-forward place that role is asked about."""
     batch: dict[str, list[dict]] = {}
@@ -222,4 +429,8 @@ def _batch_of(carried: list[Place]) -> dict[str, list[dict]]:
     return batch
 
 
-HANDLERS = {CopiesReturned: _on_copies}
+HANDLERS = {
+    CopiesReturned: _on_copies,
+    AnswersReturned: _on_answers,
+    DispositionsWritten: _on_dispositions,
+}
