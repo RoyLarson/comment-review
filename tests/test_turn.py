@@ -800,6 +800,11 @@ MOVED_FROM = "m.py@b1"
 MOVED_TEXT = "# one\n# two\n# three"
 
 
+def _old_shape(ruling: dict) -> bool:
+    """Whether this ruling carries `change` and `raw_text` as this flow reads them."""
+    return INSTRUCTIONS[Instruction(ruling["instruction"])].carries_raw_text
+
+
 def _place(copy: dict, ruling: dict, root) -> None:
     """One ruling onto its copy, through whichever placer reads its shape.
 
@@ -809,11 +814,26 @@ def _place(copy: dict, ruling: dict, root) -> None:
     other row means the same thing to both, and goes through `fill`, so what
     `mark` derives and quotes is still what these fixtures carry.
     """
-    if INSTRUCTIONS[Instruction(ruling["instruction"])].carries_raw_text:
+    if _old_shape(ruling):
         placed_as_the_old_turn_reads_it(copy, ruling, root)
         return
     _, why = fill(copy, ruling, root)
     assert why == [], why
+
+
+def _place_all(copy: dict, rulings: list, root) -> None:
+    """A copy's rulings, the ones this flow's own shape carries placed last.
+
+    `fill` reads what the copy already holds when it places a ruling, since a
+    role's marks at one place compose (`decision-log.md Process: #179`), and
+    a mark written in the shape this flow reads is not one it can compose
+    against. Leaving those to the end keeps every `fill` call looking only at
+    marks `fill` itself placed. `sorted` is stable, so the rest keep the
+    order the fixture states them in, and a mark lands in its own seeded slot
+    either way -- the copy comes out the same.
+    """
+    for ruling in sorted(rulings, key=_old_shape):
+        _place(copy, ruling, root)
 
 
 def _a_lone_move(root, change: str, other: dict | None = None):
@@ -1628,8 +1648,7 @@ class TestAMoversCleanSlotAtItsDestination:
             ],
         }
         for copy in copies:
-            for ruling in rulings[copy["role"]]:
-                _place(copy, ruling, tmp_path)
+            _place_all(copy, rulings[copy["role"]], tmp_path)
         got = collate("4c", copies, binder, root=tmp_path)
         (slot,) = _held_at(got, "block-context", FILLED_PLACE)
         assert slot.instruction is Instruction.CLEAN
@@ -1665,8 +1684,7 @@ def _fold_over(root, page: str, rulings: dict):
     binder = binder_of(root, 0)
     copies = [seed(binder, role) for role in ("block-context", "function-context")]
     for copy in copies:
-        for ruling in rulings[copy["role"]]:
-            _place(copy, ruling, root)
+        _place_all(copy, rulings[copy["role"]], root)
     return binder, collate("4c", copies, binder, root=root)
 
 
@@ -2139,8 +2157,7 @@ def _a_move_stet_at_turn_zero(root) -> tuple[Binder, MasterProof]:
         ],
     }
     for copy in copies:
-        for ruling in rulings[copy["role"]]:
-            _place(copy, ruling, root)
+        _place_all(copy, rulings[copy["role"]], root)
     got = collate("4c", copies, binder, root=root)
     assert got.problems == []
     moved = got.determined[MOVED_FROM]

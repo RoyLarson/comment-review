@@ -12,6 +12,7 @@ import pytest
 from helpers import (
     a_clean,
     a_correct,
+    a_correct_setting,
     a_docket_over,
     a_docket_whose_claim_is_not_in_the_page,
     a_drop,
@@ -158,22 +159,43 @@ class TestDocketOf:
             "the snippet is not in the origin" in one for one in raised.value.reasons
         )
 
-    def test_two_of_one_roles_marks_at_one_place_are_a_refusal(self, tmp_path):
-        """A role correcting a place and moving a paragraph into it files two
-        marks there, and the fold refuses the place rather than letting one
-        proposal stand over the other."""
-        root = tmp_path / "repo"
-        copy = a_copy(
+    def _a_correction_and_a_move_into_it(self, root, reads: str):
+        """One role correcting `m.py@b1` and moving `m.py@b2`'s comment into it.
+
+        `decision-log.md Process: #179`: the two are one role's marks at one
+        place, so they compose or are refused together. `reads` is the
+        destination paragraph the move says `b1` will have, which decides
+        which.
+        """
+        return a_copy(
             root,
             "block-context",
-            {"m.py@b1": "# one\n", "m.py@b2": "# two\n"},
+            {"m.py@b1": "# one\n# two\n", "m.py@b2": "# five\n"},
             {
-                "m.py@b1": a_correct("m.py@b1", sentence="one"),
-                "m.py@b2": a_move(
-                    "m.py@b2", "m.py@b1", change="# two", reads="# one\n# two"
-                ),
+                "m.py@b1": a_correct_setting("m.py@b1", "two", "# one\n# 2"),
+                "m.py@b2": a_move("m.py@b2", "m.py@b1", change="# five", reads=reads),
             },
         )
+
+    def test_two_of_one_roles_marks_on_different_sentences_compose(self, tmp_path):
+        """The move lands above the paragraph and the correction rewrites its
+        last line, so the place takes one text holding both and the origin is
+        emptied. Neither mark is lost, which is what a docket holding one
+        alteration per place used to cost."""
+        root = tmp_path / "repo"
+        copy = self._a_correction_and_a_move_into_it(root, "# five\n# one\n# two")
+        schedule = docket_of(copy, root).schedules[0]
+        assert [(one.cue, one.text) for one in schedule.alterations] == [
+            ("b1", "# five\n# one\n# 2"),
+            ("b2", None),
+        ]
+
+    def test_two_of_one_roles_marks_on_one_sentence_are_a_refusal(self, tmp_path):
+        """The move lands below instead, which rewrites the paragraph's last
+        line -- the line the correction rewrites. Two marks, one sentence, and
+        the role is told which two."""
+        root = tmp_path / "repo"
+        copy = self._a_correction_and_a_move_into_it(root, "# one\n# two\n# five")
         with pytest.raises(CannotTranscribe) as raised:
             docket_of(copy, root)
         # Both ends of the move report it: a move is refused whole, so
@@ -184,8 +206,8 @@ class TestDocketOf:
             if why.startswith("block-context m.py@b1: ")
         ]
         assert len(at_the_place) == 1, raised.value.reasons
-        assert "correct at m.py@b1" in at_the_place[0]
-        assert "move at m.py@b2" in at_the_place[0]
+        assert "its correct at m.py@b1" in at_the_place[0]
+        assert "its move at m.py@b2" in at_the_place[0]
 
     def test_a_page_this_checkout_cannot_read_is_a_refusal(self, tmp_path):
         """A page a mark writes at that the checkout has no page for would

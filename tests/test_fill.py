@@ -103,7 +103,10 @@ class TestAnUntouchedSlotIsFilledInPlace:
 
 class TestASecondRulingOnARuledSlotIsAppendedBesideIt:
     def test_the_second_entry_follows_the_first_and_carries_its_seed(self, copy, root):
-        _, why = fill(copy, _a_correct(), root)
+        """The two rule on the paragraph's first and last lines, which compose
+        -- a role's marks at one place have to (`decision-log.md Process:
+        #179`), and `compose` reads edits on adjacent lines as meeting."""
+        _, why = fill(copy, _a_correct(claim={"false": "one", "true": "1"}), root)
         assert why == []
         second = _a_correct(claim={"false": "three", "true": "3"})
         placed, why = fill(copy, second, root)
@@ -116,6 +119,43 @@ class TestASecondRulingOnARuledSlotIsAppendedBesideIt:
         assert marks[1]["raw_text"] == marks[0]["raw_text"] == BASE
         assert marks[1]["change"] == "# one\n# two\n# 3\n"
         assert marks[2]["address"] == "m.py@b5"
+
+
+class TestASecondRulingComposesWithTheFirstOrIsRefused:
+    """`decision-log.md Process: #179`: a role's marks at one place compose,
+    so `mark` asks of the ruling being placed what the fold would ask of the
+    pair -- and refuses in the fold's own words rather than leaving the role
+    to find out at the fold."""
+
+    def test_a_second_ruling_on_another_sentence_is_placed(self, copy, root):
+        """The paragraph's first line and its last: two sentences with one
+        between them, which `compose` reads as not meeting."""
+        _, why = fill(copy, _a_correct(claim={"false": "one", "true": "1"}), root)
+        assert why == []
+        second = _a_correct(claim={"false": "three", "true": "3"})
+        placed, why = fill(copy, second, root)
+        assert why == [] and placed is not None
+
+    def test_a_second_ruling_on_the_same_sentence_is_refused(self, copy, root):
+        _, why = fill(copy, _a_correct(), root)
+        assert why == []
+        before = json.dumps(copy)
+        second = _a_correct(claim={"false": "two", "true": "TWO"})
+        placed, why = fill(copy, second, root)
+        assert placed is None
+        assert len(why) == 1, why
+        assert "m.py@b1" in why[0] and "do not compose" in why[0]
+        assert "withdraw one" in why[0]
+        assert json.dumps(copy) == before
+
+    def test_a_pair_elsewhere_on_the_copy_does_not_refuse_this_ruling(self, copy, root):
+        """Only the places this ruling touches are asked about. A pair the
+        copy already held somewhere else is not this ruling's doing, and
+        refusing it here would leave the role no call that lands."""
+        for claim in ({"false": "two", "true": "2"}, {"false": "two", "true": "TWO"}):
+            fill(copy, {**_a_correct(address="m.py@b5"), "claim": claim}, root)
+        placed, why = fill(copy, _a_correct(), root)
+        assert why == [] and placed is not None
 
 
 class TestAWithdrawnMarkLeavesTheSlotAsSeeded:

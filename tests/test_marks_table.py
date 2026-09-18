@@ -184,6 +184,48 @@ def test_chief_mark_synthesizes_a_correct_when_no_filed_mark_set_the_text():
     assert got.raw_text == BASE
 
 
+def test_chief_mark_synthesizes_over_a_side_composed_from_two_marks():
+    """`decision-log.md Process: #179`: where a role's two marks composed into
+    its side, no filed mark set the decided text by itself, so there is no
+    side to take in and the chief's own mark carries the composition."""
+    cited = ({"cite": "m.py:1", "verbatim": "x = 1"},)
+    correct = _mark(
+        Instruction.CORRECT,
+        claim={"false": "two", "true": "2"},
+        change="# one\n# 2\n# three\n",
+        sources=cited,
+    )
+    moved = _mark(
+        Instruction.MOVE,
+        address="m.py@b5",
+        claim={"from": "m.py@b5", "to": "m.py@b1"},
+        change="# five\n",
+        raw_text="# five\n" + BASE,
+        sources=cited,
+    )
+    composed = "# five\n# one\n# 2\n# three\n"
+    place = Place(
+        address="m.py@b1",
+        anchor="x = 1",
+        base=BASE,
+        filed=[Filed("a", correct, Touch.OWN), Filed("a", moved, Touch.DESTINATION)],
+        text=composed,
+    )
+    assert all(
+        INSTRUCTIONS[one.mark.instruction].sets(one.mark, one.touch, place.base)
+        != composed
+        for one in place.filed
+    )
+    got = chief_mark(place)
+    assert got.change == composed
+    assert got.raw_text == BASE
+    # The filed marks' evidence, deduped: what the chief read to decide the
+    # text, and what the parse demands of the row it synthesized.
+    assert got.sources == cited
+    again, why = Mark.deserialize(got.address, got.serialize())
+    assert why == [] and again == got
+
+
 def test_chief_mark_synthesizes_an_add_over_an_empty_base():
     place = Place(address="m.py@b1", anchor="x = 1", base="", filed=[], text="# new\n")
     got = chief_mark(place)

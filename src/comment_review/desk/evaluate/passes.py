@@ -4,42 +4,106 @@ from comment_review.desk.answers.answer import Question
 from comment_review.desk.answers.table import ANSWERS, Effect
 from comment_review.desk.dispositions.disposition import CHIEF, ORIGINAL
 from comment_review.desk.dispositions.table import DISPOSITIONS
-from comment_review.desk.evaluate.place import Place
+from comment_review.desk.evaluate.place import Filed, Place
 from comment_review.desk.evaluate.state import CARRIED, State
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
 from comment_review.machine.differences import CannotCompose, compose
 
 
-def _doubled(place: Place) -> list[str]:
-    """One reason per role that filed more than one mark touching this place.
+def proposing(filed: list[Filed]) -> list[Filed]:
+    """Those of these marks whose row proposes text where they are filed.
 
-    A place holds one text and a role holds one position on it, so two of a
-    role's own marks reaching here cannot both be honoured -- and nothing
-    downstream could say which was meant: `Place.proposals` is keyed by role,
-    so the second would stand and the first would vanish without a word. The
-    reason names each mark by its instruction and its own address, since a
-    mark reaching a place is not always addressed to it: a move is filed at
-    its destination under the origin's address.
+    A `clean` and a deferring `query` propose none: they stand beside a
+    proposal and are read for their stance, never for a text.
+    """
+    return [
+        one
+        for one in filed
+        if INSTRUCTIONS[one.mark.instruction].pairs(one.mark) is Stance.PROPOSES
+    ]
+
+
+def _named(one: Filed) -> str:
+    """One mark as a reason names it -- its instruction and its own address.
+
+    The address is the mark's own, not the place's: a mark reaching a place is
+    not always addressed to it, since a move is filed at its destination under
+    its origin's address, and a role fixing the pair has to find both.
+    """
+    return f"its {one.mark.instruction} at {one.mark.address}"
+
+
+def composed_side(
+    role: str, filed: list[Filed], base: str
+) -> tuple[str | None, list[str]]:
+    """The one text a role proposes at a place, from every mark it filed there.
+
+    `decision-log.md Process: #179`: a role's own marks compose the way two
+    roles' do. One proposing mark sets the side by itself. Two or more compose
+    against the base, each keyed by the mark it came from, so marks on
+    different sentences become one text and marks on the same sentence are
+    refused back to the role rather than one of them silently standing.
 
     Args:
-        place: a place with its marks filed.
+        role: whose marks these are, for the reason.
+        filed: that role's proposing marks at one place, as `proposing`
+            returns them. An empty list is not a caller's to pass -- a role
+            with no proposal has no side.
+        base: the paragraph the place was seeded with, which is what every
+            side is measured against.
 
     Returns:
-        `"<role>: <why>"` for each such role, in the order the marks were
-        filed. Empty where every role filed at most one.
+        `(the text, [])`, the text being whatever the row sets where one mark
+        was filed and the composition where several were. Or
+        `(None, [one "<role>: <why>" reason])` where they will not compose.
     """
-    by_role: dict[str, list[str]] = {}
+    if len(filed) == 1:
+        one = filed[0]
+        return INSTRUCTIONS[one.mark.instruction].sets(one.mark, one.touch, base), []
+    # Keyed by position, not by what `_named` calls the mark: two of a role's
+    # corrections at one address are named the same, and one key would drop
+    # one of them into the other and compose a pair with itself.
+    texts: dict[str, str] = {}
+    for i, one in enumerate(filed):
+        text = INSTRUCTIONS[one.mark.instruction].sets(one.mark, one.touch, base)
+        texts[f"{i} {_named(one)}"] = base if text is None else text
+    try:
+        return compose(base, texts), []
+    except CannotCompose:
+        return None, [
+            f"{role}: its marks here edit the same sentence and do not compose"
+            f" -- {', '.join(_named(one) for one in filed)}; withdraw one"
+        ]
+
+
+def sides_of(place: Place) -> tuple[dict[str, str | None], tuple[str, ...]]:
+    """Role -> the one text it proposes here, and what would not compose.
+
+    One entry per role that filed a proposing mark, whatever number of them it
+    filed: a role holds one position on a place, and `#179` is how several of
+    its marks make one. A role that proposed nothing is absent, which is what
+    keeps a `clean` from reading as a proposal of the base.
+
+    Returns:
+        `(role -> its text, the reasons)`. A text is None where the row sets
+        nothing there; a role whose marks would not compose is left out and
+        named in the reasons instead.
+    """
+    by_role: dict[str, list[Filed]] = {}
     for one in place.filed:
-        by_role.setdefault(one.role, []).append(
-            f"{one.mark.instruction} at {one.mark.address}"
-        )
-    return [
-        f"{role}: {len(named)} of its marks touch this place -- "
-        + ", ".join(named)
-        + "; a place takes one mark from a role"
-        for role, named in by_role.items()
-        if len(named) > 1
-    ]
+        by_role.setdefault(one.role, []).append(one)
+    sides: dict[str, str | None] = {}
+    reasons: list[str] = []
+    for role, filed in by_role.items():
+        here = proposing(filed)
+        if not here:
+            continue
+        text, why = composed_side(role, here, place.base)
+        if why:
+            reasons += why
+        else:
+            sides[role] = text
+    return sides, tuple(reasons)
 
 
 def marks_pass(place: Place) -> Place:
@@ -58,7 +122,7 @@ def marks_pass(place: Place) -> Place:
             one.mark, one.touch, place.base
         )
     )
-    reasons = _doubled(place)
+    reasons = []
     for one in place.filed:
         row = INSTRUCTIONS[one.mark.instruction]
         reasons += [
@@ -66,13 +130,22 @@ def marks_pass(place: Place) -> Place:
         ]
     if reasons:
         return _set(place, State.REFUSED, reasons=tuple(reasons))
-    stances = {
-        one.role: INSTRUCTIONS[one.mark.instruction].pairs(one.mark)
-        for one in place.filed
+    proposals, why = sides_of(place)
+    if why:
+        return _set(place, State.REFUSED, reasons=why)
+    sides = {
+        role: text if text is not None else place.base
+        for role, text in proposals.items()
     }
-    if Stance.UNSETTLABLE in stances.values():
-        return _set(place, State.UNSETTLABLE)
-    proposals = place.proposals()
+    # Asked of every mark filed here, not one per role: a role may file a
+    # query beside a proposal, and the place goes to the human on the query
+    # whatever else it holds. Its side is recorded all the same, so what it
+    # proposed is not lost behind the question.
+    if any(
+        INSTRUCTIONS[one.mark.instruction].pairs(one.mark) is Stance.UNSETTLABLE
+        for one in place.filed
+    ):
+        return _set(place, State.UNSETTLABLE, sides=sides)
     # Ruling R4, `decision-log.md Process: #116` and `#121`: an `add` is
     # carried forward for every role that read the page, so it composes on
     # its own text even where it is the only proposal at this place --
@@ -91,10 +164,6 @@ def marks_pass(place: Place) -> Place:
             sides=dict(proposals),
             question=Question.COMPOSITION,
         )
-    sides = {
-        role: text if text is not None else place.base
-        for role, text in proposals.items()
-    }
     return _from_sides(place, sides)
 
 

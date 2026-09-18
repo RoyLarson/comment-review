@@ -4,14 +4,20 @@
     place_on_the_page(copies, address, root) -> (that sheet's marks, a slot, [])
                                                 or (None, {}, problems)
     row_problems(mark, base_at) -> what the mark's row finds against its bases
+    composition_problems(role, marks, base_at) -> the places its own marks
+                                                  will not compose at
+    touched_by(mark) -> every place it writes at, and which touch that is
+    marks_on(copy) -> every entry on it that parses as a mark
     quoted_sources(root, sources) -> each source with its `verbatim` read in
     page_text_at(copies, address, root) -> the page's paragraph at one place
 
-`row_problems` is the rule, and `commands/check.py` runs the same call over a
-whole copy. A role may write a copy with its file-write tool instead of
-placing each ruling here, so the check a ruling passes on the way in is the
-check a hand-written copy is held to -- one function, two callers, no second
-reading of the rows.
+`row_problems` and `composition_problems` are the rules, and
+`commands/check.py` runs the same two calls over a whole copy. A role may
+write a copy with its file-write tool instead of placing each ruling here, so
+the check a ruling passes on the way in is the check a hand-written copy is
+held to -- and neither rule is written twice: the rows answer the first and
+`desk.evaluate.passes.composed_side`, which the fold itself asks, answers the
+second.
 
 !! IT DOES WHAT THE ROLES' OWN HELPERS DID. In the runs of 2026-09-06 and
 2026-09-07 every role wrote a script that found the slot by address, set the
@@ -66,6 +72,8 @@ from collections.abc import Callable
 from pathlib import Path
 
 from comment_review.desk.collator import cite_at
+from comment_review.desk.evaluate.passes import composed_side, proposing
+from comment_review.desk.evaluate.place import Filed
 from comment_review.desk.mark import (
     INSTRUCTIONS,
     Instruction,
@@ -243,15 +251,85 @@ def row_problems(mark: Mark, base_at: Callable[[str], str]) -> list[str]:
         The row's own messages, in the order its touches are stated. Empty
         where the row finds nothing.
     """
-    row = INSTRUCTIONS[mark.instruction]
     out: list[str] = []
-    for touch in row.touches:
+    for address, touch in touched_by(mark):
+        out += INSTRUCTIONS[mark.instruction].reads(mark, touch, base_at(address))
+    return out
+
+
+def touched_by(mark: Mark) -> list[tuple[str, Touch]]:
+    """Every place this mark writes at, with which of its touches that is.
+
+    The row states the touches; a destination is `claim.to` and every other
+    touch is the mark's own address. A place with no address is left out --
+    the one row that may carry none writes nowhere.
+    """
+    out = []
+    for touch in INSTRUCTIONS[mark.instruction].touches:
         where = (
             str(mark.claim.get("to", ""))
             if touch is Touch.DESTINATION
             else mark.address
         )
-        out += row.reads(mark, touch, base_at(where))
+        if where:
+            out.append((where, touch))
+    return out
+
+
+def marks_on(copy: dict) -> list[Mark]:
+    """Every entry on this copy that parses as a mark, in sheet then mark order.
+
+    A slot nobody ruled on is not one, and neither is an entry the parse
+    refuses -- `flows.mark_errors` is what names those, and a walk that has to
+    read what a role already placed is not the place to name them again.
+    """
+    out: list[Mark] = []
+    for sheet in copy.get("sheets", []):
+        if not isinstance(sheet, dict):
+            continue
+        for entry in sheet.get("marks") or []:
+            if untouched(entry):
+                continue
+            mark, _why = Mark.deserialize("", entry)
+            if mark is not None:
+                out.append(mark)
+    return out
+
+
+def composition_problems(
+    role: str, marks: list[Mark], base_at: Callable[[str], str]
+) -> list[tuple[str, str]]:
+    """Every place where several of one role's marks will not compose.
+
+    `decision-log.md Process: #179`: a role's own marks at one place compose
+    against the base the way two roles' do, so two on different sentences are
+    one side and two on the same sentence are refused back to the role. The
+    rule is `desk.evaluate.passes.composed_side`, which the fold asks; this
+    walks a copy's marks into the places they touch and asks it there, so
+    `mark` refuses at placing time what the fold would refuse at the fold.
+
+    Args:
+        role: whose copy this is. It names the role in the reason, which is
+            the fold's own wording.
+        marks: the marks to consider, which for `mark` is what the copy
+            already holds plus the one being placed.
+        base_at: address -> the page's paragraph there.
+
+    Returns:
+        `(address, the reason)` per place that will not compose, in the order
+        the places were first touched.
+    """
+    at: dict[str, list[Filed]] = {}
+    for mark in marks:
+        for address, touch in touched_by(mark):
+            at.setdefault(address, []).append(Filed(role, mark, touch))
+    out: list[tuple[str, str]] = []
+    for address, filed in at.items():
+        here = proposing(filed)
+        if len(here) < 2:
+            continue
+        _text, why = composed_side(role, here, base_at(address))
+        out += [(address, one) for one in why]
     return out
 
 
@@ -436,9 +514,27 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
     # The row reads the pages last, after the parse: `Mark.deserialize` is
     # what settles a destination that is not addressable at all, and a row
     # asked to read against a place no address names has nothing to say.
-    found = row_problems(parsed, lambda where: _base_beside(copy, seeded, where, root))
+    def base_at(where: str) -> str:
+        return _base_beside(copy, seeded, where, root)
+
+    found = row_problems(parsed, base_at)
     if found:
         return None, [f"{address}: {why}" for why in found]
+
+    # And what this ruling makes of the ones already placed. Only the places
+    # this mark touches are asked about: a pair the copy already held
+    # elsewhere is not this ruling's doing, and refusing it here would leave
+    # the role no call that lands.
+    mine = {where for where, _touch in touched_by(parsed)}
+    doubled = [
+        f"{where}: {why}"
+        for where, why in composition_problems(
+            str(copy.get("role") or ""), [*marks_on(copy), parsed], base_at
+        )
+        if where in mine
+    ]
+    if doubled:
+        return None, doubled
 
     if in_place:
         slot = marks[at]

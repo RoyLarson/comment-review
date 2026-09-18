@@ -157,7 +157,10 @@ python <skill>/scripts/comment-review.py mark --edit-copy <EDIT COPY from your p
   a clause that wraps a comment line, a `change` for an `add`. Write the file with your
   file-write tool. A one-line clause goes inline.
 - **A second ruling on the same paragraph is a second invocation** with the same `--address`;
-  it lands beside the first, carrying the same `anchor` and `raw_text`.
+  it lands beside the first, carrying the same `anchor` and `raw_text`. **Your rulings at one
+  place are composed into one text**, so two on different sentences both land; two on the same
+  sentence do not compose and the second is refused naming both -- withdraw one. A `move` into
+  a paragraph you also ruled on is a second ruling there too.
 - **An `add` on an empty place has no slot**, so its invocation carries `--anchor-line`, the
   line of code the addresser printed for that place, and the slot is created.
 

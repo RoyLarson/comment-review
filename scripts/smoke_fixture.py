@@ -878,31 +878,83 @@ WRAP_RATE_DRAFT = (
 #: `RATE_FIXTURE` holds it, which is the whole of `rate.py@b5`.
 COLLIDE_SNIPPET = "    # Kept for callers that ask for a share rather than a rate."
 
-#: What `rate.py@b1` reads once that snippet arrives, written out by hand from
-#: `RATE_FIXTURE`: the paragraph already there, then the moved comment. It
-#: keeps every word of both, so `mark` places the move -- which is what lets
-#: the plant reach the fold, where the role's own `correct` at `b1` is the
-#: second mark of its at that place.
-COLLIDE_RATE_B1 = (
+#: `rate.py@b1` as `RATE_FIXTURE` holds it, which is the base both of the
+#: collide plant's two marks is measured against.
+COLLIDE_RATE_BASE = (
     "    # Zero calls give a zero rate: nothing\n"
     "    # was asked of the cache. The rate is\n"
-    "    # hits over total, never above one.\n" + COLLIDE_SNIPPET
+    "    # hits over total, never above one."
+)
+
+#: What `rate.py@b1` reads once the snippet arrives above it. It keeps every
+#: word of the paragraph and of the snippet, so `mark` places the move, and it
+#: edits no line the role's own `correct` at `b1` edits -- so the two compose
+#: into that role's one side (`decision-log.md Process: #179`).
+COLLIDE_RATE_B1 = COLLIDE_SNIPPET + "\n" + COLLIDE_RATE_BASE
+
+#: And what it reads with the snippet below it instead, which keeps the same
+#: words and does not compose: the paragraph's last line carries no newline,
+#: so a line after it rewrites that line -- the one the `correct` rewrites.
+COLLIDE_SAME_SENTENCE = COLLIDE_RATE_BASE + "\n" + COLLIDE_SNIPPET
+
+
+def write_collide_plant(run: Path) -> tuple[Path, Path]:
+    """Write the collide move's two destination texts, and return their paths.
+
+    Args:
+        run: the run directory; the texts go to `collide-raw-text.txt` and
+            `collide-same-sentence.txt` in it, which the smoke script passes
+            to `mark` as `@path`.
+
+    Returns:
+        The composing text's path first, the refused one's second.
+    """
+    composes = run / "collide-raw-text.txt"
+    composes.write_text(COLLIDE_RATE_B1, encoding="utf-8", newline="\n")
+    refused = run / "collide-same-sentence.txt"
+    refused.write_text(COLLIDE_SAME_SENTENCE, encoding="utf-8", newline="\n")
+    return composes, refused
+
+
+#: What `proof --copy` drafts of `rate.py` from the collide copy, written out
+#: by hand from `RATE_FIXTURE` and that copy's marks: `b1` reads with the
+#: snippet the move brought and the `correct`'s own last line, which is the
+#: composition of the role's two marks there; `b5`, the move's origin, is
+#: vacated and takes the blank line below it, the leading it owned; `c3` keeps
+#: the fixture's prose, which the role only queried. `fib.py` is drafted from
+#: the same copy and is `ROLE_DRAFT` unchanged -- the collide move touches
+#: neither of its pages' places.
+COLLIDE_RATE_DRAFT = (
+    "def rate(hits, total):\n"
+    "    # Kept for callers that ask for a share rather than a rate.\n"
+    "    # Zero calls give a zero rate: nothing\n"
+    "    # was asked of the cache. The rate is\n"
+    "    # hits over total, never more than one.\n"
+    "    if total == 0:\n"
+    "        return 0.0\n"
+    "    return hits / total  # share of calls the cache answered\n"
+    "\n"
+    "\n"
+    "def share(hits, total):\n"
+    "    return rate(hits, total)\n"
 )
 
 
-def write_collide_plant(run: Path) -> Path:
-    """Write `COLLIDE_RATE_B1` for the smoke's collide move, and return its path.
+def write_collide_draft(root: Path) -> tuple[Path, Path]:
+    """Write what the collide copy drafts, as `write_expected` writes.
 
     Args:
-        run: the run directory; the text goes to `collide-raw-text.txt` in it,
-            which the smoke script passes to `mark` as `@path`.
+        root: the directory to write into. Not created here -- the smoke
+            script creates its run's `collide-expected` directory first.
 
     Returns:
-        The path written.
+        The two paths written, `fib.py`'s first.
     """
-    path = run / "collide-raw-text.txt"
-    path.write_text(COLLIDE_RATE_B1, encoding="utf-8", newline="\n")
-    return path
+    fib = root / "fib.py"
+    fib.write_text(ROLE_DRAFT, encoding="utf-8", newline="\n")
+    rate = root / "rate.py"
+    rate.write_text(COLLIDE_RATE_DRAFT, encoding="utf-8", newline="\n")
+    return fib, rate
 
 
 def write_wrap_plant(run: Path, expected: Path) -> tuple[Path, Path]:

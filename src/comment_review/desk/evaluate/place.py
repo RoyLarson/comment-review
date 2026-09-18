@@ -6,7 +6,7 @@ from comment_review.desk.answers.answer import Answer, Question
 from comment_review.desk.dispositions.disposition import Disposition
 from comment_review.desk.evaluate.state import State
 from comment_review.desk.marks.mark import Mark
-from comment_review.desk.marks.table import INSTRUCTIONS, Stance, Touch
+from comment_review.desk.marks.table import Touch
 
 
 @dataclass
@@ -47,23 +47,6 @@ class Place:
     notes: tuple[str, ...] = ()
     question: Question | None = None
     partner: str | None = None
-
-    def proposals(self) -> dict[str, str | None]:
-        """Role -> the text that role's proposing mark sets here.
-
-        Keyed by role, and it stays that way: a role is what the sides, the
-        batch, the answers and the chief's dispositions are all addressed to,
-        so a second key would have to be invented for every one of them. What
-        made the key safe is `desk.evaluate.passes.marks_pass`, which refuses
-        a place two of one role's marks reach -- before that, the second
-        proposal overwrote the first here and nothing said so.
-        """
-        out: dict[str, str | None] = {}
-        for one in self.filed:
-            row = INSTRUCTIONS[one.mark.instruction]
-            if row.pairs(one.mark) is Stance.PROPOSES:
-                out[one.role] = row.sets(one.mark, one.touch, self.base)
-        return out
 
     def serialize(self) -> dict:
         """This place's own fields, as a dict keyed by this class's own field names."""

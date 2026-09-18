@@ -56,7 +56,11 @@ from comment_review.desk.collator import (
 )
 from comment_review.desk.containers import EditCopy
 from comment_review.flows._collate import resolution_problems, texts_at
-from comment_review.flows.fill import page_text_at, row_problems
+from comment_review.flows.fill import (
+    composition_problems,
+    page_text_at,
+    row_problems,
+)
 from comment_review.flows.mark_errors import mark_errors
 from comment_review.flows.proof_io import (
     load_batch,
@@ -110,11 +114,20 @@ def _row_problems(
             bases[address] = page_text_at([loaded], address, root)
         return bases[address]
 
-    return [
+    out = [
         Problem(copy.role, mark.address, why)
         for sheet in copy.sheets
         for mark in sheet.marks
         for why in row_problems(mark, base_at)
+    ]
+    # And what this role's own marks make of each other: two at one place
+    # compose or are refused back to it (`decision-log.md Process: #179`),
+    # which `mark` asks of one ruling as it is placed and this asks of the
+    # copy as it stands.
+    marks = [mark for sheet in copy.sheets for mark in sheet.marks]
+    return out + [
+        Problem(copy.role, address, why)
+        for address, why in composition_problems(copy.role, marks, base_at)
     ]
 
 

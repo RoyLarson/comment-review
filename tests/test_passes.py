@@ -8,6 +8,7 @@ from comment_review.desk.evaluate.passes import (
     evaluate,
     marks_pass,
     pair_moves,
+    sides_of,
 )
 from comment_review.desk.evaluate.place import Filed, Place
 from comment_review.desk.evaluate.state import State
@@ -43,48 +44,136 @@ def test_an_all_clean_place_stands_on_its_base():
     assert got.state is State.STANDS and got.text is None
 
 
-class TestTwoOfOneRolesMarksAtOnePlace:
-    """A place holds one text and a role holds one position on it, so two of
-    one role's marks reaching it is refused. Before that the second
-    overwrote the first in `Place.proposals`, which is keyed by role, and a
-    role's own correction vanished under its own move at exit 0."""
+def test_sides_holds_only_the_roles_that_propose():
+    """A `clean` proposes no text, so its role has no side -- which is what
+    keeps it from reading as a proposal of the base."""
+    corr = _mark(
+        Instruction.CORRECT,
+        change="# one\n# 2\n# three\n",
+        claim={"false": "two", "true": "2"},
+    )
+    place = _place(
+        Filed("a", corr, Touch.OWN),
+        Filed("b", _mark(Instruction.CLEAN), Touch.OWN),
+    )
+    assert sides_of(place) == ({"a": "# one\n# 2\n# three\n"}, ())
 
-    def _a_correct_and_a_move_into_it(self, role: str, other: str) -> Place:
-        correct = _mark(
+
+def test_a_move_sets_its_origins_remainder_and_its_destinations_text():
+    move = _mark(
+        Instruction.MOVE,
+        change="# two\n",
+        raw_text="# four\n# two\n# five\n",
+        claim={"from": "m.py@b1", "to": "m.py@b5"},
+    )
+    origin = _place(Filed("a", move, Touch.ORIGIN))
+    assert sides_of(origin) == ({"a": "# one\n# three\n"}, ())
+    landing = _place(Filed("a", move, Touch.DESTINATION), base="# four\n# five\n")
+    assert sides_of(landing) == ({"a": "# four\n# two\n# five\n"}, ())
+
+
+class TestSeveralOfOneRolesMarksAtOnePlace:
+    """`decision-log.md Process: #179`: a role's own marks at one place
+    compose the way two roles' do. Before it the second overwrote the first in
+    a sides map keyed by role, and a role's own correction vanished under its
+    own move at exit 0."""
+
+    def _a_correct(self) -> Mark:
+        return _mark(
             Instruction.CORRECT,
             change="# one\n# 2\n# three\n",
             claim={"false": "two", "true": "2"},
         )
-        moved = _mark(
+
+    def _a_move_landing(self, reads: str) -> Mark:
+        return _mark(
             Instruction.MOVE,
             address="m.py@b5",
             change="# five\n",
-            raw_text=BASE + "# five\n",
+            raw_text=reads,
             claim={"from": "m.py@b5", "to": "m.py@b1"},
         )
+
+    def _place_with(self, role: str, other: str, reads: str) -> Place:
         return _place(
-            Filed(role, correct, Touch.OWN),
-            Filed(other, moved, Touch.DESTINATION),
+            Filed(role, self._a_correct(), Touch.OWN),
+            Filed(other, self._a_move_landing(reads), Touch.DESTINATION),
         )
 
-    def test_one_role_filing_both_is_refused_naming_each_mark(self):
-        got = marks_pass(self._a_correct_and_a_move_into_it("a", "a"))
+    #: The move lands its text above the paragraph, so it edits no line the
+    #: correct edits -- the correct replaces the second.
+    ABOVE = "# five\n" + BASE
+    #: And here it lands on the second line, keeping every word already there
+    #: as its row demands -- which is the line the correct rewrites. One
+    #: sentence, two marks.
+    ON_THE_SENTENCE = "# one\n# two five\n# three\n"
+
+    def test_marks_on_different_sentences_compose_into_one_side(self):
+        got = sides_of(self._place_with("a", "a", self.ABOVE))
+        assert got == ({"a": "# five\n# one\n# 2\n# three\n"}, ())
+
+    def test_the_composed_side_settles_the_place_as_one_side_would(self):
+        got = marks_pass(self._place_with("a", "a", self.ABOVE))
+        assert got.state is State.STANDS
+        assert got.text == "# five\n# one\n# 2\n# three\n"
+
+    def test_marks_on_the_same_sentence_are_refused_naming_both(self):
+        got = marks_pass(self._place_with("a", "a", self.ON_THE_SENTENCE))
         assert got.state is State.REFUSED
-        assert len(got.reasons) == 1, got.reasons
         (why,) = got.reasons
         assert why.startswith("a: ")
-        assert "correct at m.py@b1" in why and "move at m.py@b5" in why
+        assert "its correct at m.py@b1" in why and "its move at m.py@b5" in why
+        assert "withdraw one" in why
 
-    def test_two_roles_filing_one_mark_each_is_not(self):
-        got = marks_pass(self._a_correct_and_a_move_into_it("a", "b"))
-        assert got.state is not State.REFUSED
-        assert got.reasons == ()
+    def test_two_roles_filing_one_mark_each_still_compose(self):
+        got = marks_pass(self._place_with("a", "b", self.ABOVE))
+        assert got.state is State.COMPOSED
+        assert got.text == "# five\n# one\n# 2\n# three\n"
+        assert sorted(got.sides) == ["a", "b"]
 
-    def test_the_other_role_is_not_named(self):
-        place = self._a_correct_and_a_move_into_it("a", "a")
-        place.filed.append(Filed("b", _mark(Instruction.CLEAN), Touch.OWN))
+    def test_a_composed_side_contests_another_roles(self):
+        """The composed text is one role's side and meets the others as any
+        side does -- here on the sentence the other role also rewrote."""
+        place = self._place_with("a", "a", self.ABOVE)
+        place.filed.append(
+            Filed(
+                "b",
+                _mark(
+                    Instruction.CORRECT,
+                    change="# one\n# TWO\n# three\n",
+                    claim={"false": "two", "true": "TWO"},
+                ),
+                Touch.OWN,
+            )
+        )
         got = marks_pass(place)
-        assert [why.split(":")[0] for why in got.reasons] == ["a"]
+        assert got.state is State.CONTESTED
+        assert got.sides["a"] == "# five\n# one\n# 2\n# three\n"
+        assert got.sides["b"] == "# one\n# TWO\n# three\n"
+
+    def test_a_query_beside_a_proposal_holds_the_place_and_keeps_the_side(self):
+        """A mark that proposes no text stands beside the ones that do, and
+        behaves as it would from any role: the human's query holds the place,
+        and what the role proposed is still recorded."""
+        place = self._place_with("a", "a", self.ABOVE)
+        place.filed.append(
+            Filed(
+                "a",
+                _mark(
+                    Instruction.QUERY,
+                    claim={
+                        "shape": str(Shape.HUMAN_REVIEW_NECESSARY),
+                        "attempted": "read it",
+                        "settles": "human",
+                    },
+                ),
+                Touch.OWN,
+            )
+        )
+        got = marks_pass(place)
+        assert got.state is State.UNSETTLABLE
+        assert got.sides == {"a": "# five\n# one\n# 2\n# three\n"}
+        assert got.reasons == ()
 
 
 def test_a_lone_proposal_stands():

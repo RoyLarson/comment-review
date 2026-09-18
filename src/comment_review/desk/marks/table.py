@@ -277,6 +277,13 @@ def chief_mark(place: "Place") -> Mark:
             f"got None at {place.address!r}"
         )
     reason = f"{CHIEF}: decided at this place"
+    # The evidence the filed marks brought, carried onto the synthesized one:
+    # every row that owes a change owes sources too, so a mark handed back
+    # without them is one the parse refuses -- and the chief read those marks
+    # to decide the text, so they are what stands behind it. Deduped in
+    # place, since a source is a dict and cannot go through a set.
+    cited = [source for one in place.filed for source in one.mark.sources]
+    sources = tuple(s for i, s in enumerate(cited) if s not in cited[:i])
     if text == "":
         return Mark(
             address=place.address,
@@ -285,7 +292,7 @@ def chief_mark(place: "Place") -> Mark:
             instruction=Instruction.DROP,
             claim={"drop": place.base},
             reason=reason,
-            sources=(),
+            sources=sources,
             change="",
         )
     if place.base:
@@ -296,7 +303,7 @@ def chief_mark(place: "Place") -> Mark:
             instruction=Instruction.CORRECT,
             claim={"false": place.base, "true": text},
             reason=reason,
-            sources=(),
+            sources=sources,
             change=text,
         )
     return Mark(
@@ -310,6 +317,6 @@ def chief_mark(place: "Place") -> Mark:
         instruction=Instruction.ADD,
         claim={"missing": text.splitlines()[0], "anchor": f"`{place.anchor}`"},
         reason=reason,
-        sources=(),
+        sources=sources,
         change=text,
     )
