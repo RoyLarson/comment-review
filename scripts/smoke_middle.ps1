@@ -878,7 +878,7 @@ $Stages = [ordered]@{
             $answerFile[$role] = Join-Path $Run "answers-$role.json"
             Invoke-Checked -Stage "check answers $role" -CommandLine ($Launcher + @(
                 $Cmd.check, '--answers', $answerFile[$role], '--sent', $Batch1File,
-                '--role', $role
+                '--role', $role, '--repo', $OriginalDir
             ))
         }
         $answers = foreach ($role in $Roles) { '--answers', "$role=$($answerFile[$role])" }

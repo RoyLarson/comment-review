@@ -25,8 +25,9 @@ through `flows.proof_io`, so a refusal has one wording.
 
 ! NEITHER THE BINDER NOR THE BATCH IS READ HERE. The places on the proof
 carry their own base text and say who each was put to, so what a role owes is
-read off the proof rather than off the batch that went out; and the fold
-opens no page, so there is no tree to resolve against.
+read off the proof rather than off the batch that went out, and no page is
+opened. `--repo` is the checkout an answer's own citations resolve against,
+which is verified before the fold as a mark's is (`Process: #181`).
 """
 
 import argparse
@@ -77,6 +78,11 @@ def main() -> int:
         help="where to write the next turn's batch; nothing is written when"
         " nothing is carried forward",
     )
+    ap.add_argument(
+        "--repo",
+        help="the checkout an answer's `sources` cite resolves against "
+        "(default: the proof's own read_from.root)",
+    )
     args = ap.parse_args()
 
     proof, why = load_proof(Path(args.proof))
@@ -92,7 +98,11 @@ def main() -> int:
             return _refused(why)
         answers[role] = value
 
-    out, result = handle(AnswersReturned(proof, answers))
+    # The proof names the tree its copies were gathered from, which is the one
+    # their citations were written against, so a caller that passed it to
+    # `gather` does not pass it again.
+    root = Path(args.repo) if args.repo else Path(str(proof.read_from.get("root", ".")))
+    out, result = handle(AnswersReturned(proof, answers, root))
     _print(out)
     if result is None:
         return _code_for(out)

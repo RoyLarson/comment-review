@@ -607,7 +607,7 @@ Over a batch's answers it takes `--answers`, with `--role` and `--sent`:
 
 ```bash
 python <skill>/scripts/comment-review.py check --answers <ANSWERS from your packet> \
-  --sent <BATCH from your packet> --role <your role>
+  --sent <BATCH from your packet> --role <your role> --repo .
 ```
 
 It pairs each answer to the slot you were sent, by address, and reads it against that slot's own

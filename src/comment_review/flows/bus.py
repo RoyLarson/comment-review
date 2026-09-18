@@ -9,10 +9,10 @@ Fold, and on commit builds what the stage saves. A command sends one message
 and prints the events; nothing here reads or writes a file, and nothing here
 names a row of the three tables.
 
-! THE TWO LATER MESSAGES CARRY NO BINDER AND NO ROOT. The copies are read
-against the tree once, when they come back; after that the places carry their
-own base text and the middle decides from the record alone, opening no page
-(`decision-log.md Process: #62`).
+No handler reads a page. A place carries its own base text, so what the fold
+decides comes from the record alone (`decision-log.md Process: #62`); the one
+file a later message opens is a file an answer cites, which is verified as a
+mark's citation is (`Process: #181`).
 """
 
 from collections.abc import Callable, Mapping
@@ -73,10 +73,16 @@ class AnswersReturned(NamedTuple):
         answers: role -> what that role handed back, in any shape
             `flows.answers.slots_of` reads. A role the batch named and that
             returned nothing is absent, and every slot it owed is refused.
+        root: the checkout an answer's `cite` is resolved against. Opening a
+            cited file is not a page read: the places are still decided from
+            the record alone, and what an answer cites as its evidence is
+            held to the check a mark's citation is held to
+            (`decision-log.md Process: #181`).
     """
 
     proof: MasterProof
     answers: Mapping[str, object]
+    root: Path
 
 
 class DispositionsWritten(NamedTuple):
@@ -319,6 +325,10 @@ def _on_answers(message: AnswersReturned) -> tuple[list, Result | None]:
     turn = turn_of(message.proof) + 1
     given: dict[str, dict[str, Answer]] = {}
     roles = {role for place in carried.values() for role in asked(place)}
+    # One cache for the whole turn, as the collate handler keeps one for the
+    # whole stage: the roles answer at the same places and cite the same
+    # evidence, so a per-role cache reads one file once per answering role.
+    cache: Cache = {}
     for role in sorted(roles | set(message.answers)):
         sent = {
             address: {"question": str(place.question), "anchor": place.anchor}
@@ -332,7 +342,9 @@ def _on_answers(message: AnswersReturned) -> tuple[list, Result | None]:
         if not sent and not returned:
             problems.append(Problem(role, "", "no slots were sent to this role"))
             continue
-        answers, why = answers_of(role, sent, returned, _unsent(places, role))
+        answers, why = answers_of(
+            role, sent, returned, _unsent(places, role), message.root, cache
+        )
         problems += why
         given[role] = answers
     if problems:

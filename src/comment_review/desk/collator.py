@@ -250,7 +250,20 @@ def _lines(root: Path, path: str, cache: Cache) -> tuple[str, ...] | None:
 def source_problems(where: str, mark: Mark, root: Path, cache: Cache) -> list[str]:
     """Every source on this mark, checked against the file it cites.
 
-    !! IT WALKS `mark.sources` AS HANDED. The field is typed `object` and
+    The checks are `cited_problems`, over the mark's own `sources`. An answer
+    a turn brings back cites its evidence the same way and is held to the same
+    checks (`decision-log.md Process: #181`), which is why they take a list of
+    sources rather than the mark that carries them.
+    """
+    return cited_problems(where, mark.sources, root, cache)
+
+
+def cited_problems(
+    where: str, sources: object, root: Path, cache: Cache
+) -> list[str]:
+    """Every source in this list, checked against the file it cites.
+
+    !! IT WALKS THE SOURCES AS HANDED. Each entry is typed `object` and
     nothing narrows it first, so an entry that is not an object is REFUSED BY
     NAME rather than filtered out and lost.
 
@@ -271,18 +284,21 @@ def source_problems(where: str, mark: Mark, root: Path, cache: Cache) -> list[st
     this step rules only on what it can resolve.
 
     Args:
-        where: how to name this mark in a message -- its address, or a position.
-        mark: one role's ruling, already through `desk.mark.parse`.
+        where: how to name the citing ruling in a message -- its address, or
+            a position.
+        sources: what it cites, as a mark or an answer carries them.
         root: the checkout every `cite` is resolved against.
-        cache: shared across the marks of one report so a file cited many
+        cache: shared across the rulings of one report so a file cited many
             times is read once.
 
     Returns:
         One message per refused source, each opening `{where}: source {n}` and
-        numbered from 1 in the order the mark carries them.
+        numbered from 1 in the order they were carried.
     """
     out = []
-    for i, source in enumerate(mark.sources, 1):
+    if not isinstance(sources, (list, tuple)):
+        return out
+    for i, source in enumerate(sources, 1):
         at = f"{where}: source {i}"
         if not isinstance(source, dict):
             out.append(f"{at} is not an object -- a bare string cannot be resolved")

@@ -296,6 +296,8 @@ def _check(monkeypatch, capsys, tmp_path, path, role):
         str(tmp_path / "batch.json"),
         "--role",
         role,
+        "--repo",
+        str(tmp_path / "repo"),
     )
 
 
@@ -316,7 +318,7 @@ class TestABatchIsHeldToWhatTheTurnRefuses:
             code, out, _ = _check(monkeypatch, capsys, tmp_path, path, role)
             assert code == 0, out
             assert "1 answered, 0 the fold would refuse" in out
-        out, turned = handle(AnswersReturned(result.proof, answers))
+        out, turned = handle(AnswersReturned(result.proof, answers, tmp_path / "repo"))
         assert turned is not None, out
 
     def test_what_the_turn_refuses_is_named_here_too(
@@ -340,13 +342,45 @@ class TestABatchIsHeldToWhatTheTurnRefuses:
         code, out, _ = _check(monkeypatch, capsys, tmp_path, path, "block-context")
         assert code == 1
         assert "block-context m.py@b9" in out
-        events, turned = handle(AnswersReturned(result.proof, answers))
+        events, turned = handle(
+            AnswersReturned(result.proof, answers, tmp_path / "repo")
+        )
         assert turned is None
         assert any(
             one.role == "block-context" and one.address == "m.py@b9"
             for one in events
             if isinstance(one, Refused)
         )
+
+    def test_a_cite_that_does_not_resolve_is_named_here_and_refused_at_the_turn(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """`decision-log.md Process: #181`: an answer's evidence is verified
+        as a mark's is, and the check runs what the turn runs -- so the role
+        reads the same refusal before it sends."""
+        result = _folded(tmp_path)
+        (tmp_path / "batch.json").write_text(json.dumps(result.batch), encoding="utf-8")
+        cited = {
+            "address": "m.py@b1",
+            "instruction": "correct",
+            "reason": "the line I read says so",
+            "change": "# one\n# corrected\n# three",
+            "sources": [{"cite": "nowhere.py:1", "verbatim": "x = 1"}],
+        }
+        answers = {
+            "block-context": [cited],
+            "function-context": [
+                {"address": "m.py@b1", "instruction": "hold", "reason": "mine"}
+            ],
+        }
+        path = _answers_file(tmp_path, "block-context", answers["block-context"])
+        code, out, _ = _check(monkeypatch, capsys, tmp_path, path, "block-context")
+        assert code == 1
+        assert "block-context m.py@b1" in out and "does not resolve" in out
+        _events, turned = handle(
+            AnswersReturned(result.proof, answers, tmp_path / "repo")
+        )
+        assert turned is None
 
 
 class TestTheContract:

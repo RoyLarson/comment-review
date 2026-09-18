@@ -16,9 +16,10 @@ question written down twice.
 """
 
 from collections.abc import Callable
+from pathlib import Path
 
 from comment_review.desk.answers.answer import Answer
-from comment_review.desk.collator import Problem
+from comment_review.desk.collator import Cache, Problem, cited_problems
 from comment_review.desk.marks.mark import filled
 
 
@@ -54,6 +55,8 @@ def answers_of(
     sent: dict[str, dict],
     returned: list,
     unsent: Callable[[str], str],
+    root: Path,
+    cache: Cache,
 ) -> tuple[dict[str, Answer], list[Problem]]:
     """One role's answers, paired to the slots it was sent, or the problems.
 
@@ -71,6 +74,11 @@ def answers_of(
         unsent: given an address outside `sent`, the reason an entry there is
             refused. Only the caller knows why the address is not this role's
             to answer, so only the caller can word it.
+        root: the checkout each answer's `cite` is resolved against. An
+            answer's evidence is verified as a mark's is
+            (`decision-log.md Process: #181`), by the same checks.
+        cache: path -> lines, shared across the roles of one turn so a file
+            several answers cite is read once.
 
     Returns:
         `(address -> Answer, the problems)`, the problems in slot order after
@@ -111,6 +119,13 @@ def answers_of(
             problems += [
                 Problem(role, address, one.removeprefix(f"{address}: ")) for one in why
             ]
+            continue
+        cited = [
+            Problem(role, address, one.removeprefix(f"{address}: "))
+            for one in cited_problems(address, answer.sources, root, cache)
+        ]
+        if cited:
+            problems += cited
             continue
         out[address] = answer
     return out, problems

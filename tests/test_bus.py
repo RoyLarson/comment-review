@@ -261,7 +261,9 @@ def test_a_hold_and_a_withdraw_leave_one_side_and_it_goes_to_the_role_that_clean
     say; the role that was clean at the first fold has seen no text, and the
     one side left is put to it."""
     collated = _collated(tmp_path)
-    out, result = handle(AnswersReturned(collated.proof, _held_and_withdrawn()))
+    out, result = handle(
+        AnswersReturned(collated.proof, _held_and_withdrawn(), tmp_path / "repo")
+    )
     assert result is not None, out
     assert _state_at(result.proof, PLACE) == "composed"
     assert result.batch is not None
@@ -271,7 +273,9 @@ def test_a_hold_and_a_withdraw_leave_one_side_and_it_goes_to_the_role_that_clean
 
 def test_a_hold_and_a_withdraw_settle_the_place_where_nobody_else_read_it(tmp_path):
     collated = _collated(tmp_path, JUST_THE_TWO)
-    out, result = handle(AnswersReturned(collated.proof, _held_and_withdrawn()))
+    out, result = handle(
+        AnswersReturned(collated.proof, _held_and_withdrawn(), tmp_path / "repo")
+    )
     assert result is not None, out
     assert events.Settled(PLACE, CORRECTED) in out
     assert _state_at(result.proof, PLACE) == "stands"
@@ -282,7 +286,7 @@ def test_a_recast_at_a_still_contested_place_puts_the_chiefs_prose_on_its_copy(
     tmp_path,
 ):
     collated = _collated(tmp_path)
-    out, held = handle(AnswersReturned(collated.proof, _both_hold()))
+    out, held = handle(AnswersReturned(collated.proof, _both_hold(), tmp_path / "repo"))
     assert held is not None, out
     assert _state_at(held.proof, PLACE) == "contested"
     out, closed = handle(
@@ -328,7 +332,7 @@ def test_an_answer_at_a_place_no_turn_carried_is_refused(tmp_path):
     collated = _collated(tmp_path)
     answers = _both_hold()
     answers["block-context"].append(_answer("m.py@b2", "hold", "and this one"))
-    out, result = handle(AnswersReturned(collated.proof, answers))
+    out, result = handle(AnswersReturned(collated.proof, answers, tmp_path / "repo"))
     assert result is None
     assert ("block-context", "m.py@b2", "not carried forward") in _refusals(out)
 
@@ -337,7 +341,7 @@ def test_an_answer_from_a_role_the_place_was_not_put_to_is_refused(tmp_path):
     collated = _collated(tmp_path)
     answers = _both_hold()
     answers["module-context"] = [_answer(PLACE, "hold", "reading over their shoulder")]
-    out, result = handle(AnswersReturned(collated.proof, answers))
+    out, result = handle(AnswersReturned(collated.proof, answers, tmp_path / "repo"))
     assert result is None
     refused = [one for one in _refusals(out) if one[0] == "module-context"]
     assert [(role, address) for role, address, _why in refused] == [
@@ -352,24 +356,67 @@ def test_a_role_that_was_asked_and_answered_nothing_is_refused(tmp_path):
         AnswersReturned(
             collated.proof,
             {"block-context": [_answer(PLACE, "hold", "mine reads correctly")]},
+            tmp_path / "repo",
         )
     )
     assert result is None
     assert ("function-context", PLACE, "unanswered") in _refusals(out)
 
 
+def test_an_answer_whose_cite_does_not_resolve_is_refused(tmp_path):
+    """`decision-log.md Process: #181`: an answer's evidence is verified as a
+    mark's is, before the fold, so a turn never folds over a citation that
+    resolves against nothing."""
+    collated = _collated(tmp_path)
+    answers = _both_hold()
+    answers["block-context"] = [
+        _answer(
+            PLACE,
+            "correct",
+            "the line I read says so",
+            change=CORRECTED,
+            sources=[{"cite": "nowhere.py:1", "verbatim": "x = 1"}],
+        )
+    ]
+    out, result = handle(AnswersReturned(collated.proof, answers, tmp_path / "repo"))
+    assert result is None
+    refused = [one for one in _refusals(out) if one[0] == "block-context"]
+    assert [(role, address) for role, address, _why in refused] == [
+        ("block-context", PLACE)
+    ]
+    assert "does not resolve" in refused[0][2]
+
+
+def test_an_answer_whose_cite_resolves_is_taken(tmp_path):
+    collated = _collated(tmp_path)
+    answers = _both_hold()
+    answers["block-context"] = [
+        _answer(
+            PLACE,
+            "correct",
+            "the line I read says so",
+            change=CORRECTED,
+            sources=[{"cite": "m.py:2", "verbatim": "# one"}],
+        )
+    ]
+    out, result = handle(AnswersReturned(collated.proof, answers, tmp_path / "repo"))
+    assert result is not None, out
+
+
 def test_a_role_this_turn_asked_nothing_of_is_refused_by_name(tmp_path):
     collated = _collated(tmp_path)
     answers = _both_hold()
     answers["module-context"] = []
-    out, result = handle(AnswersReturned(collated.proof, answers))
+    out, result = handle(AnswersReturned(collated.proof, answers, tmp_path / "repo"))
     assert result is None
     assert ("module-context", "", "no slots were sent to this role") in _refusals(out)
 
 
 def test_a_second_turn_reads_the_first_turns_answers_and_its_own(tmp_path):
     collated = _collated(tmp_path, JUST_THE_TWO)
-    _out, held = handle(AnswersReturned(collated.proof, _both_hold()))
+    _out, held = handle(
+        AnswersReturned(collated.proof, _both_hold(), tmp_path / "repo")
+    )
     assert held is not None
     out, result = handle(
         AnswersReturned(
@@ -378,6 +425,7 @@ def test_a_second_turn_reads_the_first_turns_answers_and_its_own(tmp_path):
                 "block-context": [_answer(PLACE, "withdraw", "theirs reads better")],
                 "function-context": [_answer(PLACE, "hold", "mine stands")],
             },
+            tmp_path / "repo",
         )
     )
     assert result is not None, out
@@ -387,7 +435,9 @@ def test_a_second_turn_reads_the_first_turns_answers_and_its_own(tmp_path):
 
 def test_a_disposition_at_a_place_the_answers_settled_is_refused(tmp_path):
     collated = _collated(tmp_path, JUST_THE_TWO)
-    _out, settled = handle(AnswersReturned(collated.proof, _held_and_withdrawn()))
+    _out, settled = handle(
+        AnswersReturned(collated.proof, _held_and_withdrawn(), tmp_path / "repo")
+    )
     assert settled is not None
     out, result = handle(
         DispositionsWritten(
@@ -444,6 +494,7 @@ def test_a_place_an_answer_holds_for_the_human_is_named_for_the_asking(tmp_path)
                     _answer(PLACE, "clean", "the two read as one paragraph")
                 ],
             },
+            tmp_path / "repo",
         )
     )
     assert result is not None, out
@@ -474,7 +525,9 @@ def test_an_advisory_note_is_reported_again_after_a_turn(tmp_path):
             },
         },
     )
-    out, result = handle(AnswersReturned(collated.proof, _both_hold()))
+    out, result = handle(
+        AnswersReturned(collated.proof, _both_hold(), tmp_path / "repo")
+    )
     assert result is not None, out
     advised = [one for one in out if isinstance(one, events.Advised)]
     assert [(one.role, one.address) for one in advised] == [("block-context", PLACE)]

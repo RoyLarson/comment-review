@@ -32,10 +32,11 @@ names a place its page carries (`desk.collator.verify_report`, `drift_in`,
 `flows.collate.resolution_problems` -- the fold's own). For a
 BATCH: `flows.answers.answers_of`, the call the turn makes for each role --
 every answer paired to the slot that went out at its address, and read against
-that slot's own question. So `--sent` is the batch that went out; nothing is
-saved. A slot left unanswered, an answer at an address the batch never sent
-this role, and an answer the question does not admit are each named here,
-which is what the turn refuses the round for.
+that slot's own question. So `--sent` is the batch that went out and `--repo`
+the checkout its citations resolve against; nothing is saved. A slot left
+unanswered, an answer at an address the batch never sent this role, an answer
+the question does not admit, and a `cite` that does not resolve are each named
+here, which is what the turn refuses the round for.
 The shape a role hands back is read the way the fold reads it
 (`flows.answers.slots_of`): a list of slots, `{role: [slots]}`, or a lone slot.
 """
@@ -176,7 +177,7 @@ def _never_sent(address: str) -> str:
     return "never sent to this role"
 
 
-def _check_answers(path: str, sent_path: str, role: str) -> int:
+def _check_answers(path: str, sent_path: str, role: str, repo: str | None) -> int:
     loaded, why = load_value(Path(path))
     if why:
         return _refused(why)
@@ -192,7 +193,10 @@ def _check_answers(path: str, sent_path: str, role: str) -> int:
         for slot in slots
         if isinstance(slot, dict) and slot.get("address")
     }
-    answers, problems = answers_of(role, sent, slots_of(loaded, role), _never_sent)
+    cache: Cache = {}
+    answers, problems = answers_of(
+        role, sent, slots_of(loaded, role), _never_sent, Path(repo or "."), cache
+    )
     for one in problems:
         print(f"{one.role} {one.address or '(the batch)'}: {one.message}")
     print(f"{path}: {len(answers)} answered, {len(problems)} the fold would refuse")
@@ -228,8 +232,9 @@ def main() -> int:
     )
     ap.add_argument(
         "--repo",
-        help="the checkout a `sources` cite resolves against "
-        "(default: the binder's own read_from.root)",
+        help="the checkout a `sources` cite resolves against -- with --binder"
+        " the binder's own read_from.root by default, and with --answers the"
+        " directory this is run from",
     )
     args = ap.parse_args()
 
@@ -242,7 +247,7 @@ def main() -> int:
         if not args.role or not args.sent:
             print("check --answers needs --role and --sent", file=sys.stderr)
             return UNREADABLE
-        return _check_answers(args.answers, args.sent, args.role)
+        return _check_answers(args.answers, args.sent, args.role, args.repo)
     return _check_copy(args.edit_copy, args.binder, args.repo)
 
 

@@ -717,7 +717,7 @@ last batch out and folds what comes back:
 
    ```bash
    python <skill>/scripts/comment-review.py check --answers <run-dir>/answers1_<role>.json \
-     --sent <run-dir>/batch1.json --role <role>
+     --sent <run-dir>/batch1.json --role <role> --repo .
    ```
 
 3. **Fold them**, with one `--answers` for every role the batch named:
@@ -726,7 +726,7 @@ last batch out and folds what comes back:
    python <skill>/scripts/comment-review.py turn --proof <run-dir>/proof0.json \
      --answers block-context=<run-dir>/answers1_block-context.json \
      --answers function-context=<run-dir>/answers1_function-context.json \
-     --proof-out <run-dir>/proof1.json --batch-out <run-dir>/batch2.json
+     --proof-out <run-dir>/proof1.json --batch-out <run-dir>/batch2.json --repo .
    ```
 
 `turn` exits the codes in the table above, and each asks of you what it asks after `collate`,
