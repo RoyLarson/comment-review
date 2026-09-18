@@ -1,6 +1,6 @@
 """`scripts/smoke_fixture.py`: `fib.py`'s fixture yields every series, with
 more than one member in each -- a series of one never exercises its ordinals --
-the landing table agrees with both fixture files, and `write_texts` and
+the landing table agrees with all three fixture files, and `write_texts` and
 `write_answers` write what the smoke script reads.
 
 The series are read off the real page builder, `flows/page_for.page_of` --
@@ -19,7 +19,11 @@ from conftest import ROOT
 sys.path.insert(0, str(ROOT / "scripts"))
 import smoke_fixture  # noqa: E402
 
-from comment_review.desk.mark import Instruction, derived_change  # noqa: E402
+from comment_review.desk.mark import (  # noqa: E402
+    Instruction,
+    derived_change,
+    first_word_dropped,
+)
 from comment_review.flows.page_for import page_of  # noqa: E402
 
 
@@ -93,6 +97,11 @@ DERIVED_BY: dict[tuple[str, ...], Instruction] = {
     ("from", "to"): Instruction.PATCH,
 }
 
+#: The landings whose text is wider than their claim, and the word each drops
+#: beyond it -- written out by hand from the plant, never from the fold. One
+#: entry: `store.py@c5`, where the `mark` call carries its own `--change`.
+WIDER = {"store.py@c5": "wants"}
+
 
 class TestTheLandingTableAgreesWithTheFixture(unittest.TestCase):
     """`LANDINGS` against the pages built from `FIXTURE` and `RATE_FIXTURE`:
@@ -109,11 +118,13 @@ class TestTheLandingTableAgreesWithTheFixture(unittest.TestCase):
         self.texts = {
             "fib.py": smoke_fixture.FIXTURE,
             "rate.py": smoke_fixture.RATE_FIXTURE,
+            "store.py": smoke_fixture.STORE_FIXTURE,
         }
         self.pages = {}
         for path in (
             smoke_fixture.write_fixture(root),
             smoke_fixture.write_rate_fixture(root),
+            smoke_fixture.write_store_fixture(root),
         ):
             page, why = page_of(path, rel=path.name)
             assert page is not None, why
@@ -146,8 +157,40 @@ class TestTheLandingTableAgreesWithTheFixture(unittest.TestCase):
                 DERIVED_BY[tuple(landing.claim)], landing.claim, by_cue[cue].raw_text
             )
             self.assertEqual(why, [], address)
+            if address in WIDER:
+                continue
             self.assertEqual(changed, landing.marked or landing.text, address)
-        self.assertEqual(set(claimed), {"fib.py@c6", "fib.py@c1", "rate.py@c3"})
+        self.assertEqual(
+            set(claimed),
+            {
+                "fib.py@c6",
+                "fib.py@c1",
+                "rate.py@c3",
+                "store.py@b7",
+                "store.py@c5",
+            },
+        )
+
+    def test_the_wider_landing_drops_the_word_its_claim_never_names(self):
+        """`WIDER`'s one entry: the role wrote its own change rather than
+        leaving the claim to derive one, so the change is not what the claim
+        implies, and what it drops beyond the claim is the word named there --
+        the advisory the fold reports and rolls nothing back for
+        (`decision-log.md Process: #177`)."""
+        for address, word in WIDER.items():
+            landing = smoke_fixture.LANDINGS[address]
+            assert landing.claim is not None
+            path, cue = address.split("@")
+            by_cue = {cue_of(p): p for p in self.pages[path].paragraphs if p.text}
+            base = by_cue[cue].raw_text
+            changed, why = derived_change(
+                DERIVED_BY[tuple(landing.claim)], landing.claim, base
+            )
+            self.assertEqual(why, [], address)
+            self.assertNotEqual(changed, landing.text, address)
+            rest = base.replace(landing.claim["false"], "", 1)
+            dropped = first_word_dropped(rest, landing.text or "")
+            self.assertEqual(dropped, word, address)
 
     def test_each_landing_at_an_empty_place_names_the_line_it_is_set_against(self):
         """A landing names a `line` exactly where its fixture left its place
@@ -188,18 +231,30 @@ class TestWriteTextsWritesWhatTheScriptReads(unittest.TestCase):
             assert claim is not None, address
             return claim[key]
 
-        texts = {
-            "fib.py@c6:false": ("c6-false.txt", clause("fib.py@c6", "false")),
-            "fib.py@c6:true": ("c6-true.txt", clause("fib.py@c6", "true")),
-            "fib.py@c1:false": ("c1-false.txt", clause("fib.py@c1", "false")),
-            "fib.py@c1:true": ("c1-true.txt", clause("fib.py@c1", "true")),
-            "rate.py@c3:from": ("c3-from.txt", clause("rate.py@c3", "from")),
-            "rate.py@c3:to": ("c3-to.txt", clause("rate.py@c3", "to")),
+        clauses = {
+            "fib.py@c6": ("false", "true"),
+            "fib.py@c1": ("false", "true"),
+            "rate.py@c3": ("from", "to"),
+            "store.py@b7": ("false", "true"),
+            "store.py@c5": ("false", "true"),
         }
-        for cue in ("b0", "a2", "b8", "b17", "b15", "c3", "c12", "a0"):
-            address = f"fib.py@{cue}"
+        texts = {
+            f"{address}:{key}": (
+                f"{address.split('.')[0]}-{address.split('@')[1]}-{key}.txt",
+                clause(address, key),
+            )
+            for address, keys in clauses.items()
+            for key in keys
+        }
+        carried = [f"fib.py@{cue}" for cue in ("b0", "a2", "b8", "b17", "b15", "c3")]
+        carried += [f"fib.py@{cue}" for cue in ("c12", "a0")]
+        carried += [f"store.py@{cue}" for cue in ("b1", "b3", "b8")]
+        for address in carried:
             landing = landings[address]
-            texts[address] = (f"{cue}.txt", landing.marked or landing.text)
+            stem, cue = address.split(".")[0], address.split("@")[1]
+            held = landing.marked or landing.text
+            assert held is not None, address
+            texts[address] = (f"{stem}-{cue}.txt", held)
         others = {
             "dispositions": "dispositions.json",
             "addresser-row": "addresser-row.json",
@@ -227,7 +282,7 @@ class TestWriteTextsWritesWhatTheScriptReads(unittest.TestCase):
 class TestWriteAnswersWritesWhatTheScriptReads(unittest.TestCase):
     """`write_answers` writes one file per role the smoke script's turn stage
     names, each holding that role's answers from `ANSWERS` and a `clean`
-    carrying `CLEAN_REASON` at every `ADDED` place those leave out, and
+    carrying `CLEAN_REASON` at every `PROPOSED` place those leave out, and
     nothing else."""
 
     def setUp(self):
@@ -261,7 +316,7 @@ class TestWriteAnswersWritesWhatTheScriptReads(unittest.TestCase):
                     "instruction": "clean",
                     "reason": smoke_fixture.CLEAN_REASON,
                 }
-                for address, adder in smoke_fixture.ADDED.items()
-                if address not in given and role != adder
+                for address, proposer in smoke_fixture.PROPOSED.items()
+                if address not in given and role != proposer
             }
             self.assertEqual(by_address, {**given, **cleans}, role)

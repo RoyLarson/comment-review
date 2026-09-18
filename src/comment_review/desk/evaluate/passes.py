@@ -252,6 +252,14 @@ def pair_moves(places: dict[str, Place]) -> None:
     the question a turn asks about it and the roles it is asked of, where it
     has none of its own. Without them an end carried forward by its partner
     would go out asking nobody.
+
+    And an end held for the human decides no text, as `marks_pass` decides
+    none where the query was filed. A text left on the end that took the
+    state is read downstream as a place the fold decided
+    (`flows.places.chief_copy_of` takes every place carrying one), so the move
+    the human was asked to rule would be written to the page while the
+    question was still open -- measured 2026-09-18 on the smoke's held move,
+    which landed at both ends.
     """
     order = [
         State.REFUSED,
@@ -281,6 +289,7 @@ def pair_moves(places: dict[str, Place]) -> None:
                     end.owed = end.owed or taken.owed
                 if worst is State.UNSETTLABLE:
                     end.asking = end.asking or taken.asking
+                    end.text = None
 
 
 def answers_pass(place: Place, turn: int, partner: Place | None = None) -> Place:

@@ -44,12 +44,21 @@ CLEAN_PLACE = (
     " the new fold settles it with no text where the old recorded no ruling"
     " for it at all"
 )
+HELD_MOVE = (
+    "rulings #155 and #182: a move a role holds for the human is held at both"
+    " of its ends, so the new fold takes the destination out of what it"
+    " carries forward and reports the pair as one question. The old fold held"
+    " the origin alone and carried the destination forward to the roles"
+)
 
 #: address -> why the two folds differ there. Every entry must actually
 #: differ, and every difference must have an entry.
 EXPLAINED = {
     "fib.py@b1": MOVE_ENDS,
     "fib.py@c12": CLEAN_PLACE,
+    "store.py@b1": MOVE_ENDS,
+    "store.py@b3": MOVE_ENDS,
+    "store.py@b8": HELD_MOVE,
 }
 
 
@@ -118,7 +127,7 @@ def test_the_plant_reaches_both_folds(folded):
     """Neither fold is comparing an empty stage."""
     got, out = folded
     assert got.problems == []
-    assert len(got.determined) == 6
+    assert len(got.determined) == 9
     assert len(out) > 10
 
 
@@ -178,14 +187,15 @@ def test_the_advisory_notes_name_the_places_the_old_dropped_list_did(folded):
     of one finding: the old fold's `dropped` list and the new fold's `Advised`
     events must name the same role at the same place.
 
-    ! IT IS EMPTY ON BOTH SIDES over the plant as it stands -- no planted
-    `correct` drops a word its claim never named. Compared rather than
-    asserted empty, so the day the plant grows one this says whether the two
-    folds still agree about it."""
+    ! THE PLANT REACHES IT AT ONE PLACE, `store.py@c5`, where the `correct`
+    carries its own change rather than the one its claim derives. Compared
+    rather than listed, so a second such place is covered without an edit
+    here and a fold that stops noticing one is not."""
     got, out = folded
     was = {(one.role, one.address) for one in got.dropped}
     now = {(one.role, one.address) for one in out if isinstance(one, events.Advised)}
     assert was == now
+    assert now == {("block-context", "store.py@c5")}
 
 
 def test_no_explanation_is_stale(folded):

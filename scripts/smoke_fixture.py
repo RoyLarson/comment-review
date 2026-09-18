@@ -1,4 +1,4 @@
-"""Writes the middle-chain smoke test's two fixture files, and what lands on them.
+"""Writes the middle-chain smoke test's three fixture files, and what lands on them.
 
 `docs/superpowers/specs/2026-09-08-the-middle-chain-smoke-design.md`, "The
 fixture", names `fib.py`'s text verbatim: a short recursive Fibonacci with a
@@ -9,9 +9,13 @@ sentences and a trailing comment, and `share`, holding a one-line comment
 with a blank line below it -- the places a `patch`, an
 `unable-to-determine` query, a composition and a `drop` of a place that
 owns a leading are planted on, since every prose place in `fib.py` already
-carries another row. Both structures are
+carries another row. `store.py` is the third, four one-line functions
+carrying four standalone comments and a trailing one -- the places a
+PARTIAL move, a move a role holds for the human, a lone proposal against
+cleans and a `correct` whose change is wider than its claim are planted on,
+for the same reason. All three structures are
 fixed -- `LANDINGS`, `ANSWERS` and `DISPOSITIONS` below plant decisions
-against specific addresses on them, so neither text may drift from what
+against specific addresses on them, so no text may drift from what
 those tables describe.
 
 `LANDINGS` names, per planted address, a `Landing`: what lands there and
@@ -25,8 +29,9 @@ chief's own ruling over every place the turn leaves carried forward.
 `mark` derives the change from a claim -- plus `dispositions.json` and
 `addresser-row.json`.
 
-`EXPECTED` and `RATE_EXPECTED` are the texts the proof's `fib.py` and
-`rate.py` must read once the chain closes, and `write_expected` writes them
+`EXPECTED`, `RATE_EXPECTED` and `STORE_EXPECTED` are the texts the proof's
+`fib.py`, `rate.py` and `store.py` must read once the chain closes, and
+`write_expected` writes them
 for the smoke script's `diff` stage. `ROLE_DRAFT` and `ROLE_RATE_DRAFT` are
 what `proof --copy` drafts from `DRAFTED_ROLE`'s own copy before the fold, and
 `write_role_draft` writes them for the smoke script's `draft` stage.
@@ -136,6 +141,55 @@ def write_rate_fixture(root: Path) -> Path:
     """
     path = root / "rate.py"
     path.write_text(RATE_FIXTURE, encoding="utf-8", newline="\n")
+    return path
+
+
+#: The third fixture file, `store.py`. Four one-line functions, each with a
+#: standalone comment above its body, and one trailing comment. Its five prose
+#: places are the ones the plant needs and the other two files cannot spare:
+#: `b1`, a comment of two sentences whose second a PARTIAL move takes to `b3`,
+#: leaving the first behind; `b3`, the comment that move arrives above; `b5`,
+#: the comment a move sends to `b8` and a role holds for the human, so neither
+#: end lands; `b7`, the comment one role corrects and the other three clean,
+#: which carries forward to those three as a composition; and `c5`, the
+#: trailing comment whose `correct` writes a change wider than its claim.
+STORE_FIXTURE = (
+    "def kept(log):\n"
+    "    # Every lookup is recorded. Entries are never removed.\n"
+    "    return len(log)\n"
+    "\n"
+    "\n"
+    "def missed(log, found):\n"
+    "    # A miss is a lookup the store had no answer for.\n"
+    "    return kept(log) - found\n"
+    "\n"
+    "\n"
+    "def part(log, found):\n"
+    "    # Rounded before it is printed.\n"
+    "    return round(found / kept(log), 2)  # two places, as the report wants\n"
+    "\n"
+    "\n"
+    "def empty(log):\n"
+    "    # True when the store has answered nothing at all.\n"
+    "    return kept(log) == 0\n"
+)
+
+
+def write_store_fixture(root: Path) -> Path:
+    """Write `STORE_FIXTURE` to `root / "store.py"` and return its path.
+
+    Written with an explicit LF newline, for the reason `write_fixture`
+    gives.
+
+    Args:
+        root: the directory to write into, which `write_fixture` also writes
+            into. Not created here.
+
+    Returns:
+        The path written.
+    """
+    path = root / "store.py"
+    path.write_text(STORE_FIXTURE, encoding="utf-8", newline="\n")
     return path
 
 
@@ -391,6 +445,70 @@ LANDINGS: dict[str, Landing] = {
     # comment is the leading `b5` owns, and `set_page` sets no leading after
     # a place a drop vacated, so the blank goes with the comment.
     "rate.py@b5": Landing("removed", route="mark"),
+    # the PARTIAL move's origin: ownership-context takes the paragraph's
+    # second sentence to `b3` and the first stays where it is, since a move's
+    # `change` is the snippet and the origin keeps what the snippet left
+    # behind (`Process: #172`). The other three roles mark a scope-declaring
+    # query rather than clean, so the fold settles it. `marked` is that
+    # snippet, which the move's `mark` call carries as `--change`.
+    "store.py@b1": Landing(
+        "text",
+        route="mark",
+        text="    # Every lookup is recorded.",
+        marked=" Entries are never removed.",
+    ),
+    # and its destination: the paragraph `b3` already held with the snippet
+    # on a line below it, which is the move's `--raw-text` -- the destination
+    # text as it will read (`Process: #175`). ownership-context marks `b3`
+    # clean beside its own move and the other three query, so the fold
+    # settles it.
+    "store.py@b3": Landing(
+        "text",
+        route="mark",
+        text=(
+            "    # A miss is a lookup the store had no answer for.\n"
+            "    # Entries are never removed."
+        ),
+    ),
+    # the held move's origin: module-context moves the whole paragraph to
+    # `b8` and block-context marks a human-review query at the same place, so
+    # both ends ride to the end unruled and the paragraph stays where it is
+    # (`Process: #182`).
+    "store.py@b5": Landing("kept", route="query"),
+    # and its destination, the closing gap after the last line of code, which
+    # stays empty for the same reason. `marked` is the paragraph the move
+    # carries, which its `mark` call passes as both `--change` and
+    # `--raw-text`: the whole paragraph leaves, so the two are one text.
+    "store.py@b8": Landing(
+        "kept",
+        route="query",
+        marked="    # Rounded before it is printed.",
+        line=18,
+    ),
+    # the lone proposal against cleans: module-context corrects, and the
+    # other three roles clean rather than defer, so the text is one none of
+    # them has seen and the place carries forward to exactly those three as a
+    # composition (`Process: #180`). Each answers `clean` in the turn and the
+    # fold settles it.
+    "store.py@b7": Landing(
+        "text",
+        route="turn",
+        text="    # True when the store has answered nothing yet.",
+        claim={"false": "nothing at all", "true": "nothing yet"},
+    ),
+    # the `correct` whose change is wider than its claim: block-context
+    # writes its own `--change` rather than letting the claim derive one, and
+    # it drops a word the claim never named. The fold reports that as an
+    # advisory and rolls nothing back for it (`Process: #177`), the other
+    # three roles query, and the change lands. `text` is what the role wrote,
+    # which is not what the claim derives -- `tests/gates/
+    # test_smoke_fixture.py`'s `WIDER` names the word it drops.
+    "store.py@c5": Landing(
+        "text",
+        route="mark",
+        text="  # two decimal places, as the report asks",
+        claim={"false": "two places", "true": "two decimal places"},
+    ),
 }
 
 #: The `LANDINGS` entry smoke_middle.ps1 marks without spelling its address:
@@ -398,18 +516,22 @@ LANDINGS: dict[str, Landing] = {
 #: unless the address that comes back is this one.
 ADDRESSER_ROW = "fib.py@b15"
 
-#: The places `collate` carries forward at an `add`, and whose add each is.
-#: The turn's batch sends each to every other role that read the page: a text
-#: settles once every role that read the place has accepted it, and the role
-#: that proposed it has (`decision-log.md Process: #180`), so the adding role
-#: is not asked about its own add.
-ADDED = {
+#: The places `collate` carries forward at a lone proposal, and whose
+#: proposal each is. The turn's batch sends each to every other role that read
+#: the page: a text settles once every role that read the place has accepted
+#: it, and the role that proposed it has (`decision-log.md Process: #180`), so
+#: the proposing role is not asked about its own proposal. Six are `add`s, at
+#: places no other role was handed a slot for; `store.py@b7` is a `correct`
+#: the other three roles cleaned, which is the same rule reaching a place they
+#: all read.
+PROPOSED = {
     "fib.py@a0": "block-context",
     "fib.py@b8": "block-context",
     "fib.py@c3": "function-context",
     "fib.py@a2": "function-context",
     "fib.py@b17": "module-context",
     "fib.py@b15": "module-context",
+    "store.py@b7": "module-context",
 }
 
 #: Each role's answers to the batch `collate` sends for the turn, keyed by
@@ -417,8 +539,8 @@ ADDED = {
 #: the place it is asking about. An escalation (`c1`, `b9`, `a3`) takes
 #: `hold`, `withdraw`, `correct` or `patch`, and a composition `clean`,
 #: `query`, `correct` or `patch`; each of the eight is planted at least once,
-#: and a role answers `clean` at every place in `ADDED` this gives it nothing
-#: for.
+#: and a role answers `clean` at every place in `PROPOSED` this gives it
+#: nothing for.
 #: A composition `query` is planted in each of its three shapes:
 #: human-review-necessary at `b15`, where it keeps the add off the page, and
 #: outside-my-role at `a2` and unable-to-determine at `b17`, where it
@@ -621,20 +743,40 @@ DISPOSITIONS = [
 ]
 
 
+def file_for(address: str, key: str = "") -> str:
+    """What `write_texts` names the file holding one address's text.
+
+    The page's stem as well as the cue, so `fib.py@b8` and `store.py@b8` are
+    two files: the plant reaches the same cue on more than one page, and a
+    name taken from the cue alone would have one landing's text overwrite
+    another's.
+
+    Args:
+        address: `path@cue`, as a `LANDINGS` key spells it.
+        key: a `claim` key where the file holds one clause, else `""`.
+
+    Returns:
+        The file's name, `"<stem>-<cue>.txt"` or `"<stem>-<cue>-<key>.txt"`.
+    """
+    page, _, cue = address.partition("@")
+    stem = page.rsplit(".", 1)[0]
+    return f"{stem}-{cue}-{key}.txt" if key else f"{stem}-{cue}.txt"
+
+
 def write_texts(run: Path) -> dict[str, Path]:
     """Write the plant's landing texts, dispositions.json and addresser-row.json.
 
     Every text a `mark` call carries gets a file that call passes as
-    `@path`: one holding the text for an `add` or the move's destination --
-    `marked` where the turn or the chief keeps it off the page, else `text`
-    -- or one per
-    `claim` key -- `<cue>-false.txt` and `<cue>-true.txt` for the two
-    corrections (`fib.py`'s `c6`, `c1`), `<cue>-from.txt` and
-    `<cue>-to.txt` for the patch (`rate.py`'s `c3`) -- whose clauses `mark`
-    needs separately, matching its own rule that a whole paragraph is passed
-    by file while a one-line clause may go inline. A file is named by its
-    address's cue alone, not its page, so two landings sharing a cue and a
-    suffix would write one file; the plant's do not. A place whose text no
+    `@path`: one holding the text for an `add`, a move's snippet or a move's
+    destination -- `marked` where the mark carries something other than what
+    lands, else `text` -- or one per
+    `claim` key -- `<stem>-<cue>-false.txt` and `<stem>-<cue>-true.txt` for
+    the three corrections, `<stem>-<cue>-from.txt` and
+    `<stem>-<cue>-to.txt` for the patch (`rate.py`'s `c3`) -- whose clauses
+    `mark` needs separately, matching its own rule that a whole paragraph is
+    passed by file while a one-line clause may go inline. `file_for` names
+    every one of them, by the page as well as the cue, so two landings
+    sharing a cue never write one file. A place whose text no
     `mark` call carries is skipped: `fib.py`'s `b9`, which the chief
     recasts in `DISPOSITIONS` in its own prose, and `rate.py`'s `b1`, which
     the turn settles on the `change` its answers in `ANSWERS` carry. This
@@ -661,10 +803,9 @@ def write_texts(run: Path) -> dict[str, Path]:
         if "change" in fields
     }
     for address, landing in LANDINGS.items():
-        part = address.split("@")[1]
         if landing.claim is not None:
             for key, value in landing.claim.items():
-                path = run / f"{part}-{key}.txt"
+                path = run / file_for(address, key)
                 path.write_text(value, encoding="utf-8", newline="\n")
                 paths[f"{address}:{key}"] = path
             continue
@@ -673,7 +814,7 @@ def write_texts(run: Path) -> dict[str, Path]:
             carried = landing.text
         if carried is None:
             continue
-        path = run / f"{part}.txt"
+        path = run / file_for(address)
         path.write_text(carried, encoding="utf-8", newline="\n")
         paths[address] = path
 
@@ -699,9 +840,9 @@ def answers_for(role: str) -> list[dict]:
     """One role's whole answer to the turn's batch, in the order it is written.
 
     Every place `ANSWERS` answers for that role, then a `clean` carrying
-    `CLEAN_REASON` at each place in `ADDED` it does not -- except its own
-    add, which it is not asked about -- one answer for each slot the plant
-    expects the batch to send the role.
+    `CLEAN_REASON` at each place in `PROPOSED` it does not -- except its own
+    proposal, which it is not asked about -- one answer for each slot the
+    plant expects the batch to send the role.
 
     Args:
         role: whose answers these are.
@@ -713,8 +854,8 @@ def answers_for(role: str) -> list[dict]:
     answers = [{"address": address, **fields} for address, fields in given.items()]
     return answers + [
         {"address": address, "instruction": "clean", "reason": CLEAN_REASON}
-        for address, adder in ADDED.items()
-        if address not in given and role != adder
+        for address, proposer in PROPOSED.items()
+        if address not in given and role != proposer
     ]
 
 
@@ -864,6 +1005,39 @@ RATE_EXPECTED = (
     "\n"
     "def share(hits, total):\n"
     "    return rate(hits, total)\n"
+)
+
+
+#: What the proof's `store.py` must read once the chain closes, written out by
+#: hand the same way from `STORE_FIXTURE` and `LANDINGS`. `b1` keeps the first
+#: of its two sentences and `b3` reads with the second on a line of its own --
+#: the partial move, whose origin keeps what the snippet left behind. `b5`
+#: stands exactly as the fixture has it: the move sending it to `b8` is held
+#: for the human, so neither end of it lands. `b7` reads with the correction
+#: three roles cleaned their way to in the turn, and `c5` with the change its
+#: own role wrote. The blank lines are `STORE_FIXTURE`'s, since no place here
+#: is vacated.
+STORE_EXPECTED = (
+    "def kept(log):\n"
+    "    # Every lookup is recorded.\n"
+    "    return len(log)\n"
+    "\n"
+    "\n"
+    "def missed(log, found):\n"
+    "    # A miss is a lookup the store had no answer for.\n"
+    "    # Entries are never removed.\n"
+    "    return kept(log) - found\n"
+    "\n"
+    "\n"
+    "def part(log, found):\n"
+    "    # Rounded before it is printed.\n"
+    "    return round(found / kept(log), 2)"
+    "  # two decimal places, as the report asks\n"
+    "\n"
+    "\n"
+    "def empty(log):\n"
+    "    # True when the store has answered nothing yet.\n"
+    "    return kept(log) == 0\n"
 )
 
 
@@ -1079,8 +1253,8 @@ def write_wrap_plant(run: Path, expected: Path) -> tuple[Path, Path]:
     return clause, rate
 
 
-def write_expected(root: Path) -> tuple[Path, Path]:
-    """Write `EXPECTED` to `root / "fib.py"` and `RATE_EXPECTED` to `root / "rate.py"`.
+def write_expected(root: Path) -> tuple[Path, Path, Path]:
+    """Write `EXPECTED`, `RATE_EXPECTED` and `STORE_EXPECTED` to `root`.
 
     Written with an explicit LF newline, as `write_fixture` writes, so each
     carries the line endings the proof sets from its fixture. The smoke
@@ -1093,10 +1267,12 @@ def write_expected(root: Path) -> tuple[Path, Path]:
             script creates its run's `expected` directory first.
 
     Returns:
-        The two paths written, `fib.py`'s first.
+        The three paths written, in the order the fixtures are written.
     """
     fib = root / "fib.py"
     fib.write_text(EXPECTED, encoding="utf-8", newline="\n")
     rate = root / "rate.py"
     rate.write_text(RATE_EXPECTED, encoding="utf-8", newline="\n")
-    return fib, rate
+    store = root / "store.py"
+    store.write_text(STORE_EXPECTED, encoding="utf-8", newline="\n")
+    return fib, rate, store

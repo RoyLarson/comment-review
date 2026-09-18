@@ -155,6 +155,7 @@ function Invoke-Checked {
 $OriginalDir = Join-Path $Run 'original'
 $FixtureFile = Join-Path $OriginalDir 'fib.py'
 $RateFile = Join-Path $OriginalDir 'rate.py'
+$StoreFile = Join-Path $OriginalDir 'store.py'
 $BinderFile = Join-Path $Run 'binder.json'
 $TopologyFile = Join-Path $Run 'topology.toml'
 $CopiesDir = Join-Path $Run 'copies'
@@ -200,6 +201,10 @@ $OtherBatchFile = Join-Path $Run 'other-batch.json'
 $BadCiteProofFile = Join-Path $Run 'bad-cite-proof.json'
 $BadCiteBatchFile = Join-Path $Run 'bad-cite-batch.json'
 
+# The one-liner that writes the three fixture files into a directory, used by
+# the fixture stage and by the second tree the root refusal sub-plant gathers.
+$WriteFixtures = 'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_fixture, write_rate_fixture, write_store_fixture; root = Path(sys.argv[1]); write_fixture(root); write_rate_fixture(root); write_store_fixture(root)'
+
 # Each entry is one stage's work, and the chain as this script leaves it ends
 # at diff. Each block runs in its own scope, so a variable a stage assigns is
 # gone when the next stage starts: what a later stage reads is a path above,
@@ -211,13 +216,14 @@ $Stages = [ordered]@{
         New-Item -ItemType Directory -Path $OriginalDir | Out-Null
         Invoke-Checked -Stage 'fixture' -CommandLine @(
             'uv', 'run', 'python', '-c',
-            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_fixture, write_rate_fixture; root = Path(sys.argv[1]); write_fixture(root); write_rate_fixture(root)',
+            $WriteFixtures,
             $OriginalDir
         )
     }
     gather = {
         Invoke-Checked -Stage 'gather' -CommandLine ($Launcher + @(
-            $Cmd.gather, '--repo', $OriginalDir, '--out', $BinderFile, $FixtureFile, $RateFile
+            $Cmd.gather, '--repo', $OriginalDir, '--out', $BinderFile,
+            $FixtureFile, $RateFile, $StoreFile
         ))
     }
     topology = {
@@ -271,26 +277,33 @@ $Stages = [ordered]@{
         )
         # One file per text a `mark` call below plants from
         # `smoke_fixture.LANDINGS` -- written above by `write_texts`, named
-        # here to match its own naming rather than read back from it. c6
-        # and c1 are corrections, so each names two files: its false clause
-        # and its true clause. rate.py's c3 is a patch, so it names two too:
-        # its from clause and its to clause, in files `write_texts` names by
-        # cue alone, as it names every file. The addresser row's file is not
+        # here to match its own naming rather than read back from it. A
+        # correction names two files, its false clause and its true clause,
+        # and so does the patch, its from clause and its to clause. Every
+        # name carries the page as well as the cue, which is what
+        # `smoke_fixture.file_for` spells. The addresser row's file is not
         # here: it is named at that row from the address `addresser` returns.
         $LandingFile = @{
-            c6_false = Join-Path $Run 'c6-false.txt'
-            c6_true = Join-Path $Run 'c6-true.txt'
-            c1_false = Join-Path $Run 'c1-false.txt'
-            c1_true = Join-Path $Run 'c1-true.txt'
-            rate_c3_from = Join-Path $Run 'c3-from.txt'
-            rate_c3_to = Join-Path $Run 'c3-to.txt'
-            b0 = Join-Path $Run 'b0.txt'
-            a2 = Join-Path $Run 'a2.txt'
-            b8 = Join-Path $Run 'b8.txt'
-            b17 = Join-Path $Run 'b17.txt'
-            c3 = Join-Path $Run 'c3.txt'
-            c12 = Join-Path $Run 'c12.txt'
-            a0 = Join-Path $Run 'a0.txt'
+            fib_c6_false = Join-Path $Run 'fib-c6-false.txt'
+            fib_c6_true = Join-Path $Run 'fib-c6-true.txt'
+            fib_c1_false = Join-Path $Run 'fib-c1-false.txt'
+            fib_c1_true = Join-Path $Run 'fib-c1-true.txt'
+            rate_c3_from = Join-Path $Run 'rate-c3-from.txt'
+            rate_c3_to = Join-Path $Run 'rate-c3-to.txt'
+            fib_b0 = Join-Path $Run 'fib-b0.txt'
+            fib_a2 = Join-Path $Run 'fib-a2.txt'
+            fib_b8 = Join-Path $Run 'fib-b8.txt'
+            fib_b17 = Join-Path $Run 'fib-b17.txt'
+            fib_c3 = Join-Path $Run 'fib-c3.txt'
+            fib_c12 = Join-Path $Run 'fib-c12.txt'
+            fib_a0 = Join-Path $Run 'fib-a0.txt'
+            store_b1 = Join-Path $Run 'store-b1.txt'
+            store_b3 = Join-Path $Run 'store-b3.txt'
+            store_b8 = Join-Path $Run 'store-b8.txt'
+            store_b7_false = Join-Path $Run 'store-b7-false.txt'
+            store_b7_true = Join-Path $Run 'store-b7-true.txt'
+            store_c5_false = Join-Path $Run 'store-c5-false.txt'
+            store_c5_true = Join-Path $Run 'store-c5-true.txt'
         }
         # a0 -- the module docstring, already filled. block-context adds over
         # it: `--change` is the text it adds and `--raw-text` the docstring as
@@ -303,7 +316,7 @@ $Stages = [ordered]@{
             '--missing', 'nothing states why the recursion is counted',
             '--anchor', '`__doc__`', '--anchor-line', '<module>',
             '--change', 'and why it is counted',
-            '--raw-text', "@$($LandingFile.a0)",
+            '--raw-text', "@$($LandingFile.fib_a0)",
             '--reason', 'the module docstring says what it counts but not what for',
             '--cite', 'fib.py:1', '--repo', $OriginalDir
         ))
@@ -326,7 +339,7 @@ $Stages = [ordered]@{
             '--missing', 'nothing notes which values are already fibonacci numbers',
             '--anchor', '`n < 2`', '--anchor-line', '    if n < 2:',
             '--change', '0 and 1 are already fibonacci numbers',
-            '--raw-text', "@$($LandingFile.c12)",
+            '--raw-text', "@$($LandingFile.fib_c12)",
             '--reason', 'the base case deserves saying why it needs no recursion',
             '--cite', 'fib.py:27', '--repo', $OriginalDir
         )
@@ -351,7 +364,7 @@ $Stages = [ordered]@{
             '--instruction', 'add',
             '--missing', 'nothing notes that counting is finished before wrapper returns',
             '--anchor', '`return wrapper`', '--anchor-line', '    return wrapper',
-            '--change', "@$($LandingFile.b8)",
+            '--change', "@$($LandingFile.fib_b8)",
             '--reason', 'the return is the last step and nothing says so',
             '--cite', 'fib.py:18', '--repo', $OriginalDir
         ))
@@ -361,7 +374,7 @@ $Stages = [ordered]@{
             '--instruction', 'add',
             '--missing', 'nothing notes that the module has nothing left to do here',
             '--anchor', '`__main__`', '--anchor-line', '<eof>',
-            '--change', "@$($LandingFile.b17)",
+            '--change', "@$($LandingFile.fib_b17)",
             '--reason', 'the module ends here and nothing says so',
             '--cite', 'fib.py:34', '--repo', $OriginalDir
         ))
@@ -371,7 +384,7 @@ $Stages = [ordered]@{
             '--instruction', 'add',
             '--missing', "nothing notes that wraps preserves fn's identity",
             '--anchor', '`functools.wraps`', '--anchor-line', '    @functools.wraps(fn)',
-            '--change', "@$($LandingFile.c3)",
+            '--change', "@$($LandingFile.fib_c3)",
             '--reason', 'the decorator is why wrapper still looks like fn',
             '--cite', 'fib.py:12', '--repo', $OriginalDir
         ))
@@ -399,7 +412,7 @@ $Stages = [ordered]@{
         Invoke-Checked -Stage 'mark c6 block-context correct' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@c6',
             '--instruction', 'correct',
-            '--false', "@$($LandingFile.c6_false)", "--true=@$($LandingFile.c6_true)",
+            '--false', "@$($LandingFile.fib_c6_false)", "--true=@$($LandingFile.fib_c6_true)",
             '--reason', 'counting is the whole job of the decorator, worded oddly',
             '--cite', 'fib.py:15', '--repo', $OriginalDir
         ))
@@ -419,14 +432,14 @@ $Stages = [ordered]@{
         Invoke-Checked -Stage 'mark c1 block-context correct' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@c1',
             '--instruction', 'correct',
-            '--false', "@$($LandingFile.c1_false)", '--true', "@$($LandingFile.c1_true)",
+            '--false', "@$($LandingFile.fib_c1_false)", '--true', "@$($LandingFile.fib_c1_true)",
             '--reason', 'the fixture calls this a cache everywhere else',
             '--cite', 'fib.py:6', '--repo', $OriginalDir
         ))
         Invoke-Checked -Stage 'mark c1 function-context correct' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['function-context'], '--address', 'fib.py@c1',
             '--instruction', 'correct',
-            '--false', "@$($LandingFile.c1_false)", '--true', 'computed or not',
+            '--false', "@$($LandingFile.fib_c1_false)", '--true', 'computed or not',
             '--reason', 'the counter increments whether or not the value was computed',
             '--cite', 'fib.py:6', '--repo', $OriginalDir
         ))
@@ -526,7 +539,7 @@ $Stages = [ordered]@{
         Invoke-Checked -Stage 'mark b1 ownership-context move' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['ownership-context'], '--address', 'fib.py@b1',
             '--instruction', 'move', '--from', 'fib.py@b1', '--to', 'fib.py@b0',
-            '--change', "@$($LandingFile.b0)", '--raw-text', "@$($LandingFile.b0)",
+            '--change', "@$($LandingFile.fib_b0)", '--raw-text', "@$($LandingFile.fib_b0)",
             '--reason', 'module state belongs above the import, not below it',
             '--cite', 'fib.py:5', '--repo', $OriginalDir
         ))
@@ -582,7 +595,7 @@ $Stages = [ordered]@{
             '--instruction', 'add',
             '--missing', 'wrapper has no docstring', '--anchor', '`wrapper`',
             '--anchor-line', '    def wrapper(n):',
-            '--change', "@$($LandingFile.a2)",
+            '--change', "@$($LandingFile.fib_a2)",
             '--reason', 'wrapper is the declared function; logged only wraps it',
             '--cite', 'fib.py:13', '--repo', $OriginalDir
         ))
@@ -612,8 +625,10 @@ $Stages = [ordered]@{
         # The repr's enclosing quotes are its only escaping on this line,
         # which holds no single quote and no backslash.
         $addedAnchorLine = $fields[1].Substring(1, $fields[1].Length - 2)
-        # `write_texts` names an add's file after its address's cue.
-        $addedFile = Join-Path $Run ($addedAddress.Split('@')[1] + '.txt')
+        # `write_texts` names an add's file after its address's page and cue,
+        # which `smoke_fixture.file_for` spells and this composes to match.
+        $addedParts = $addedAddress.Split('@')
+        $addedFile = Join-Path $Run ([System.IO.Path]::GetFileNameWithoutExtension($addedParts[0]) + '-' + $addedParts[1] + '.txt')
         Invoke-Checked -Stage "mark $addedAddress module-context add" -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', $addedAddress,
             '--instruction', 'add',
@@ -696,6 +711,121 @@ $Stages = [ordered]@{
                 '--settles', 'block-context',
                 '--reason', "this paragraph's subject is what share's body already says, not my remit",
                 '--cite', 'rate.py:13', '--repo', $OriginalDir
+            ))
+        }
+        # store.py@b1 -- the PARTIAL move, to store.py@b3. ownership-context
+        # takes the paragraph's second sentence: `--change` is that snippet,
+        # subtracted from b1 exactly once, and `--raw-text` is b3's paragraph
+        # as it will read with the snippet on a line of its own (Process #172
+        # and #175). The origin keeps its first sentence where a whole-
+        # paragraph move would have emptied it. The other three roles defer
+        # with a scope-declaring query.
+        Invoke-Checked -Stage 'mark store.py@b1 ownership-context move' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['ownership-context'], '--address', 'store.py@b1',
+            '--instruction', 'move', '--from', 'store.py@b1', '--to', 'store.py@b3',
+            '--change', "@$($LandingFile.store_b1)", '--raw-text', "@$($LandingFile.store_b3)",
+            '--reason', 'what is never removed is a fact about a miss, not about a lookup',
+            '--cite', 'store.py:2', '--repo', $OriginalDir
+        ))
+        foreach ($role in @('block-context', 'function-context', 'module-context')) {
+            Invoke-Checked -Stage "mark store.py@b1 $role query" -CommandLine ($Launcher + @(
+                $Cmd.mark, '--edit-copy', $CopyFile[$role], '--address', 'store.py@b1',
+                '--instruction', 'query', '--shape', 'outside-my-role',
+                '--attempted', 'read the paragraph against the code at this place',
+                '--settles', 'ownership-context',
+                '--reason', "this paragraph's subject is which function a sentence belongs to, not my remit",
+                '--cite', 'store.py:2', '--repo', $OriginalDir
+            ))
+        }
+        # store.py@b3 -- where that snippet arrives. ownership-context was
+        # handed a slot here as well as at the origin, and reports nothing
+        # about the paragraph itself; the move is what rules the place. The
+        # other three defer.
+        Invoke-Checked -Stage 'mark store.py@b3 ownership-context clean' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['ownership-context'], '--address', 'store.py@b3',
+            '--instruction', 'clean', '--repo', $OriginalDir
+        ))
+        foreach ($role in @('block-context', 'function-context', 'module-context')) {
+            Invoke-Checked -Stage "mark store.py@b3 $role query" -CommandLine ($Launcher + @(
+                $Cmd.mark, '--edit-copy', $CopyFile[$role], '--address', 'store.py@b3',
+                '--instruction', 'query', '--shape', 'outside-my-role',
+                '--attempted', 'read the paragraph against the code at this place',
+                '--settles', 'ownership-context',
+                '--reason', "this paragraph's subject is which function a sentence belongs to, not my remit",
+                '--cite', 'store.py:7', '--repo', $OriginalDir
+            ))
+        }
+        # store.py@b5 -- the move a role holds for the human. module-context
+        # moves the whole paragraph to store.py@b8, the closing gap, so its
+        # `--change` and its `--raw-text` are one text; block-context reads
+        # the same place and marks a human-review query. Both ends of the
+        # move then ride to the end unruled and print as one entry naming
+        # both (Process #182). The other two roles defer.
+        Invoke-Checked -Stage 'mark store.py@b5 module-context move' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', 'store.py@b5',
+            '--instruction', 'move', '--from', 'store.py@b5', '--to', 'store.py@b8',
+            '--change', "@$($LandingFile.store_b8)", '--raw-text', "@$($LandingFile.store_b8)",
+            '--reason', 'rounding is the last thing the module does and reads as its closing note',
+            '--cite', 'store.py:12', '--repo', $OriginalDir
+        ))
+        Invoke-Checked -Stage 'mark store.py@b5 block-context query' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'store.py@b5',
+            '--instruction', 'query', '--shape', 'human-review-necessary',
+            '--attempted', 'read the comment against the rounding on the line below it',
+            '--settles', 'human',
+            '--reason', 'whether this note belongs beside the code or at the foot is the author''s call',
+            '--cite', 'store.py:12', '--repo', $OriginalDir
+        ))
+        foreach ($role in @('ownership-context', 'function-context')) {
+            Invoke-Checked -Stage "mark store.py@b5 $role query" -CommandLine ($Launcher + @(
+                $Cmd.mark, '--edit-copy', $CopyFile[$role], '--address', 'store.py@b5',
+                '--instruction', 'query', '--shape', 'outside-my-role',
+                '--attempted', 'read the paragraph against the code at this place',
+                '--settles', 'block-context',
+                '--reason', "this paragraph's subject is where a note sits on the page, not my remit",
+                '--cite', 'store.py:12', '--repo', $OriginalDir
+            ))
+        }
+        # store.py@b7 -- the lone proposal against cleans. module-context
+        # corrects; the other three clean rather than defer, so the corrected
+        # text is one none of them has seen and collate carries the place
+        # forward to exactly those three as a composition (Process #180).
+        # Their `clean` answers in the turn settle it.
+        Invoke-Checked -Stage 'mark store.py@b7 module-context correct' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', 'store.py@b7',
+            '--instruction', 'correct',
+            '--false', "@$($LandingFile.store_b7_false)", '--true', "@$($LandingFile.store_b7_true)",
+            '--reason', 'the guard tests the count, which is not the same as nothing having happened',
+            '--cite', 'store.py:18', '--repo', $OriginalDir
+        ))
+        foreach ($role in @('ownership-context', 'block-context', 'function-context')) {
+            Invoke-Checked -Stage "mark store.py@b7 $role clean" -CommandLine ($Launcher + @(
+                $Cmd.mark, '--edit-copy', $CopyFile[$role], '--address', 'store.py@b7',
+                '--instruction', 'clean', '--repo', $OriginalDir
+            ))
+        }
+        # store.py@c5 -- the correct whose change is wider than its claim.
+        # block-context writes the change itself rather than leaving `mark` to
+        # derive it from the clauses, and it drops `wants`, a word the claim
+        # never names. The fold reports that under its own heading for the
+        # chief and rolls nothing back for it (Process #177), so the change
+        # lands. The other three roles defer.
+        Invoke-Checked -Stage 'mark store.py@c5 block-context correct' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'store.py@c5',
+            '--instruction', 'correct',
+            '--false', "@$($LandingFile.store_c5_false)", '--true', "@$($LandingFile.store_c5_true)",
+            '--change', '  # two decimal places, as the report asks',
+            '--reason', 'round(x, 2) keeps two decimal places, which two places alone does not say',
+            '--cite', 'store.py:13', '--repo', $OriginalDir
+        ))
+        foreach ($role in @('ownership-context', 'function-context', 'module-context')) {
+            Invoke-Checked -Stage "mark store.py@c5 $role query" -CommandLine ($Launcher + @(
+                $Cmd.mark, '--edit-copy', $CopyFile[$role], '--address', 'store.py@c5',
+                '--instruction', 'query', '--shape', 'outside-my-role',
+                '--attempted', 'read the comment against the rounding on its line',
+                '--settles', 'block-context',
+                '--reason', 'what round(x, 2) keeps is the block below me, not my remit',
+                '--cite', 'store.py:13', '--repo', $OriginalDir
             ))
         }
     }
@@ -878,12 +1008,13 @@ $Stages = [ordered]@{
         New-Item -ItemType Directory -Path $OtherDir | Out-Null
         Invoke-Checked -Stage 'other fixture' -CommandLine @(
             'uv', 'run', 'python', '-c',
-            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_fixture, write_rate_fixture; root = Path(sys.argv[1]); write_fixture(root); write_rate_fixture(root)',
+            $WriteFixtures,
             $OtherDir
         )
         Invoke-Checked -Stage 'other gather' -CommandLine ($Launcher + @(
             $Cmd.gather, '--repo', $OtherDir, '--out', $OtherBinderFile,
-            (Join-Path $OtherDir 'fib.py'), (Join-Path $OtherDir 'rate.py')
+            (Join-Path $OtherDir 'fib.py'), (Join-Path $OtherDir 'rate.py'),
+            (Join-Path $OtherDir 'store.py')
         ))
         Invoke-Checked -Stage 'other distribute' -CommandLine ($Launcher + @(
             $Cmd.distribute, '--topology', $TopologyFile, '--stage', '4',

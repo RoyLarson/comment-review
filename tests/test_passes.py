@@ -412,6 +412,40 @@ def test_a_moves_two_places_take_one_state():
     assert places["m.py@b5"].state is State.CONTESTED
 
 
+def test_an_end_held_for_the_human_by_its_partner_decides_no_text():
+    """A move held at one end is held at both, and nothing is decided at
+    either: a text left on the end that took the state reads downstream as a
+    place the fold decided (`flows.places.chief_copy_of`), so the move the
+    human was asked about would be written to the page anyway."""
+    move = _mark(
+        Instruction.MOVE,
+        change=BASE,
+        raw_text=BASE,
+        claim={"from": "m.py@b1", "to": "m.py@b5"},
+    )
+    query = _mark(
+        Instruction.QUERY,
+        claim={
+            "shape": str(Shape.HUMAN_REVIEW_NECESSARY),
+            "attempted": "read it",
+            "settles": "human",
+        },
+    )
+    origin = marks_pass(
+        _place(Filed("a", move, Touch.ORIGIN), Filed("b", query, Touch.OWN))
+    )
+    destination = marks_pass(
+        _place(Filed("a", move, Touch.DESTINATION), base="", address="m.py@b5")
+    )
+    assert destination.state is State.STANDS and destination.text == BASE
+    origin.partner, destination.partner = "m.py@b5", "m.py@b1"
+    places = {"m.py@b1": origin, "m.py@b5": destination}
+    pair_moves(places)
+    assert places["m.py@b5"].state is State.UNSETTLABLE
+    assert places["m.py@b5"].text is None
+    assert places["m.py@b5"].asking == ("b: r",)
+
+
 def _contested() -> Place:
     a = _mark(
         Instruction.CORRECT,
