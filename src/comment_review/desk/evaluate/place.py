@@ -39,6 +39,12 @@ class Place:
     text: str | None = None
     sides: dict[str, str] = field(default_factory=dict)
     reasons: tuple[str, ...] = ()
+    #: What the chief is told about the marks filed here without any of them
+    #: being refused for it, as `"<role>: <note>"` -- the same shape `reasons`
+    #: takes, read the same way. `desk.evaluate.passes.marks_pass` fills it
+    #: from each row's `notes`, and it never decides a state
+    #: (`decision-log.md Process: #177`).
+    notes: tuple[str, ...] = ()
     question: Question | None = None
     partner: str | None = None
 
@@ -71,6 +77,7 @@ class Place:
             "text": self.text,
             "sides": dict(self.sides),
             "reasons": list(self.reasons),
+            "notes": list(self.notes),
             "question": str(self.question) if self.question else None,
             "partner": self.partner,
         }
@@ -120,6 +127,7 @@ class Place:
                 text=data.get("text"),
                 sides=dict(data.get("sides") or {}),
                 reasons=tuple(data.get("reasons") or ()),
+                notes=tuple(data.get("notes") or ()),
                 question=Question(question) if question else None,
                 partner=data.get("partner"),
             ),

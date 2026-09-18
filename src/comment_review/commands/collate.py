@@ -28,6 +28,7 @@ from pathlib import Path
 
 from comment_review.desk.answers.answer import Question
 from comment_review.desk.containers import EditCopy
+from comment_review.desk.evaluate.state import CARRIED, State
 from comment_review.desk.proof import MismatchedRoot
 from comment_review.desk.topology import read as read_topology
 from comment_review.desk.work import events
@@ -100,6 +101,8 @@ def _lines(event: object) -> list[str]:
 
     `Committed` and `RolledBack` carry a count of the places decided or the
     reasons refused, and every one of those has already printed its own line.
+    `Advised` has a line and a heading of its own, which `_print` writes
+    after the places.
     """
     if isinstance(event, events.Refused):
         where = event.address or "(the copy)"
@@ -114,14 +117,34 @@ def _lines(event: object) -> list[str]:
         ]
     if isinstance(event, events.Settled):
         return [f"stet {event.address}"]
+    # `Advised` prints under its own heading, after the places -- see `_print`.
     return []
 
 
+#: The heading the advisory notes print under. It names the one rule that
+#: produces a note today -- `desk.marks.table`'s `correct` row, which is what
+#: `decision-log.md Process: #163` asked for and `#177` kept advisory.
+FOR_THE_CHIEF = "for the chief -- each correct below drops words its claim never named:"
+
+
 def _print(out: list) -> None:
-    """Every event's own lines on stdout, in the order the fold produced them."""
+    """Every event's own lines on stdout, the advisory notes last.
+
+    A note is for the chief and changes nothing, so it sits under its own
+    heading below the places rather than between them -- and it prints on
+    every path, a rollback included, because it is a fact about a mark
+    whatever became of the round.
+    """
     for event in out:
         for line in _lines(event):
             print(line)
+    advised = [one for one in out if isinstance(one, events.Advised)]
+    if advised:
+        print(FOR_THE_CHIEF)
+        for one in advised:
+            where = one.address or "(the copy)"
+            for note in one.notes:
+                print(f"{one.role} {where}: {note}")
 
 
 def _code_for(out: list) -> int:
@@ -140,6 +163,31 @@ def _code_for(out: list) -> int:
     if any(one.question is Question.COMPOSITION for one in carried):
         return REREADS
     return OK
+
+
+def _counted(places: tuple[dict, ...]) -> str:
+    """What the written proof holds, by the state each of its places came to.
+
+    ! IT READ `N determined, M unsettlable` OFF THE OLD FOLD'S OWN LISTS, and
+    said only `N places` for one commit. A reader of the console has no other
+    summary of what the round did with the places it carries, so the counts
+    are read back off the states the proof records.
+
+    Args:
+        places: `MasterProof.places`, as `Place.serialize` writes each.
+
+    Returns:
+        `"N places -- S settled, U unsettlable, C carried forward"`. Settled
+        is every state that is neither, which after a commit is `stands` and
+        `agreed`.
+    """
+    states = [str(place.get("state") or "") for place in places]
+    carried = sum(1 for state in states if state in CARRIED)
+    unsettlable = sum(1 for state in states if state == State.UNSETTLABLE)
+    return (
+        f"{len(states)} places -- {len(states) - carried - unsettlable} settled,"
+        f" {unsettlable} unsettlable, {carried} carried forward"
+    )
 
 
 def _envelope(documents: list) -> tuple[list[EditCopy], list]:
@@ -300,9 +348,7 @@ def main() -> int:
     # again; the chief's copy is what the write end reads today.
     if args.proof_out:
         save_proof(Path(args.proof_out), result.proof)
-        print(
-            f"{args.proof_out}: the master proof -- {len(result.proof.places)} places"
-        )
+        print(f"{args.proof_out}: the master proof -- {_counted(result.proof.places)}")
     # ! NOTHING CARRIED FORWARD IS NO BATCH, NOT AN EMPTY ONE. A file holding
     # `{}` would be handed to roles as a turn with nothing in it.
     if args.batch_out and result.batch:

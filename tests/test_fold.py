@@ -124,6 +124,28 @@ def test_a_move_refused_at_one_end_rolls_back_both():
     }
 
 
+def test_an_advised_place_is_reported_and_the_fold_commits():
+    """`decision-log.md Process: #177`: a note is for the chief to read, not a
+    reason to give up the round."""
+    correct = _mark(
+        Instruction.CORRECT,
+        "# one\n# TWO\n",
+        {"false": "two", "true": "TWO"},
+    )
+    fold = Fold({"m.py@b1": _place("m.py@b1", Filed("a", correct, Touch.OWN))})
+    fold.run()
+    assert fold.committed
+    assert [type(e).__name__ for e in fold.events] == [
+        "Settled",
+        "Advised",
+        "Committed",
+    ]
+    advised = fold.events[1]
+    assert advised.role == "a"
+    assert advised.address == "m.py@b1"
+    assert advised.notes == ("its change drops 'three', which its claim never names",)
+
+
 def test_a_composed_place_carries_forward_every_reader_beyond_its_sides():
     a = _mark(
         Instruction.CORRECT, "# 1\n# two\n# three\n", {"false": "one", "true": "1"}

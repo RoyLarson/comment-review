@@ -31,9 +31,8 @@ ADD_SHAPE = (
     "ruling #176: an add takes the same shape as every other mark, so its"
     " `raw_text` is the text as it will stand. `flows.fill` still writes the"
     " seeded text there and the new text in `change`, which the marks table"
-    " reads as an add that drops every word of its own prose. T5 of"
-    " docs/superpowers/plans/2026-09-14-the-middle-rebuilt.md moves `fill`"
-    " onto the tables"
+    " reads as an add that drops every word of its own prose. It goes when"
+    " `flows.fill` writes an add's `raw_text` as the table reads it"
 )
 MOVE_ENDS = (
     "rulings #172 and #175: a move's `change` is the snippet it takes and its"
@@ -182,6 +181,21 @@ def test_every_refusal_is_an_add_the_new_table_cannot_read(folded):
             f"{address}: {reasons} is not the add-shape refusal {ADD_SHAPE}"
         )
     assert any(isinstance(one, events.RolledBack) for one in out)
+
+
+def test_the_advisory_notes_name_the_places_the_old_dropped_list_did(folded):
+    """`decision-log.md Process: #163` and `#177`, the two folds' own wording
+    of one finding: the old fold's `dropped` list and the new fold's `Advised`
+    events must name the same role at the same place.
+
+    ! IT IS EMPTY ON BOTH SIDES over the plant as it stands -- no planted
+    `correct` drops a word its claim never named. Compared rather than
+    asserted empty, so the day the plant grows one this says whether the two
+    folds still agree about it."""
+    got, out = folded
+    was = {(one.role, one.address) for one in got.dropped}
+    now = {(one.role, one.address) for one in out if isinstance(one, events.Advised)}
+    assert was == now
 
 
 def test_no_explanation_is_stale(folded):

@@ -84,10 +84,10 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
 
     Everything a copy can be wrong about on its own -- a quote that is not in
     its paragraph, a cite that resolves against nothing, an address no page
-    carries, a place a role left unruled, a role short of its shard -- is
-    found before the fold opens, because none of it is a question about how
-    the roles' rulings meet. Each becomes one `Refused`, and the fold never
-    runs.
+    carries, a place a role left unruled, a role short of its shard, a tree
+    the other copies were not gathered from -- is found before the fold
+    opens, because none of it is a question about how the roles' rulings
+    meet. Each becomes one `Refused`, and the fold never runs.
     """
     binder, root, copies = message.binder, message.root, message.copies
     paths = [page.path for page in binder.pages]
@@ -115,6 +115,7 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
         for one in mark_errors(copies)
     ]
     problems += old._coverage_problems(copies, binder)
+    problems += _root_problems(copies)
     if message.topology is not None:
         problems += old._stage_problems(message.topology, copies)
     if problems:
@@ -137,6 +138,41 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     chief = chief_copy_of(fold.decided, "copy-chief", read_from, _pages_of(copies))
     carried = [place for place in fold.decided.values() if place.state in CARRIED]
     return out, Result(proof, chief, _batch_of(carried) if carried else None)
+
+
+def _root_problems(copies: list[EditCopy]) -> list[Problem]:
+    """One `Problem` per copy gathered from a tree the first copy disagrees with.
+
+    Two copies from different trees have no fold between them: their
+    addresses answer to different address spaces, so an `a0` in one tells
+    nothing about the `a0` in the other. `desk.proof.master_proof_of` raised
+    `MismatchedRoot` for this and the handler reaches no `master_proof_of`,
+    so the comparison is here -- ruled back in as `decision-log.md Process:
+    #178`.
+
+    Reported rather than raised, like everything else the handler finds: a
+    refusal that raises empties the report for every other role, which is
+    what `flows._collate.CannotCollate` exists to record.
+
+    Returns:
+        One `Problem` per odd copy, naming both `read_from` values, with no
+        address -- the finding is about the document. Empty where the copies
+        agree, and for a stage with fewer than two.
+    """
+    if not copies:
+        return []
+    first = copies[0].read_from
+    return [
+        Problem(
+            copy.role,
+            "",
+            f"was gathered from {copy.read_from!r}, disagreeing with the first"
+            f" edit_copy's {first!r} -- copies from different trees share no"
+            " address space",
+        )
+        for copy in copies[1:]
+        if copy.read_from != first
+    ]
 
 
 def _pages_of(copies: list[EditCopy]) -> list[Sheet]:

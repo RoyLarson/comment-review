@@ -11,7 +11,21 @@ from comment_review.machine.differences import CannotCompose, compose
 
 
 def marks_pass(place: Place) -> Place:
-    """The place's state from the marks filed there."""
+    """The place's state from the marks filed there, and what to advise on them.
+
+    The notes are collected first and kept whatever the state turns out to
+    be: a note is something the chief is told, never a reason a place came
+    to one state rather than another (`decision-log.md Process: #177`).
+    Collected here rather than once per fold so that re-evaluating a place
+    from its own record derives them again with everything else.
+    """
+    place.notes = tuple(
+        f"{one.role}: {note}"
+        for one in place.filed
+        for note in INSTRUCTIONS[one.mark.instruction].notes(
+            one.mark, one.touch, place.base
+        )
+    )
     reasons = []
     for one in place.filed:
         row = INSTRUCTIONS[one.mark.instruction]

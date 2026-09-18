@@ -63,6 +63,68 @@ TWO_ROLES = (
 )
 
 
+class TestTheDroppedList:
+    """`decision-log.md Process: #163` and `#177`: the list reaches the chief
+    under its own heading in the report, carries no exit code of its own, and
+    settles the place it is about.
+
+    ! IT IS THE `correct` ROW'S `notes` RULE NOW, reported as an `Advised`
+    event rather than as a fourth list on a `Collated`. The heading and the
+    sentence a reader sees are the ones `#163` landed."""
+
+    def test_a_run_whose_only_finding_is_the_list_exits_as_it_did(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        code, out = run(
+            tmp_path,
+            {
+                "block-context": {
+                    "m.py@b1": a_correct_setting("m.py@b1", "two", "# one\n# TWO\n")
+                }
+            },
+            monkeypatch,
+            capsys,
+        )
+        assert code == 0, out
+        assert command.FOR_THE_CHIEF in out
+        assert (
+            "block-context m.py@b1: its change drops 'three', which its claim never"
+            " names" in out
+        )
+
+    def test_the_place_still_settles_and_the_chief_copy_is_written(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """A note is not a refusal: the round commits over it."""
+        code, out = run(
+            tmp_path,
+            {
+                "block-context": {
+                    "m.py@b1": a_correct_setting("m.py@b1", "two", "# one\n# TWO\n")
+                }
+            },
+            monkeypatch,
+            capsys,
+        )
+        assert code == command.OK, out
+        assert "stet m.py@b1" in out
+        chief = json.loads((tmp_path / "chief.json").read_text(encoding="utf-8"))
+        assert [m["address"] for s in chief["sheets"] for m in s["marks"]] == [
+            "m.py@b1"
+        ]
+
+    def test_the_heading_is_absent_where_nothing_is_advised(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        _code, out = run(
+            tmp_path,
+            {"block-context": {"m.py@b1": a_clean("m.py@b1")}},
+            monkeypatch,
+            capsys,
+        )
+        assert command.FOR_THE_CHIEF not in out
+
+
 class TestStageCoverage:
     """P26: a dispatch the topology named that returned no copy is reported.
 
@@ -303,6 +365,49 @@ class TestExitCodes:
         # Process: #57`. A refusal that raises empties the report for every
         # OTHER role, which is what the report path fixes.
         assert "role" in out.out.lower()
+        assert not (tmp_path / "chief.json").exists()
+
+    def test_mismatched_roots_exit_one_naming_the_reason(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """`decision-log.md Process: #178`: two copies gathered from different
+        trees share no address space, so the handler refuses the round.
+
+        ! THE OLD FOLD RAISED `desk.proof.MismatchedRoot` from `master_proof_of`
+        and the command caught it onto stderr. The handler reaches no
+        `master_proof_of`, so the comparison is `flows.bus._root_problems` and
+        the reason routes to the role that owes it, on stdout, like every
+        other finding."""
+        binder = a_binder_over({"m.py@b1": BASE})
+        copies = copies_over(
+            binder,
+            {
+                "block-context": {"m.py@b1": a_correct("m.py@b1")},
+                "function-context": {"m.py@b1": a_correct("m.py@b1", 2)},
+            },
+        )
+        copies[1]["read_from"] = {"root": "somewhere/else", "revise": 0}
+        binder_path = tmp_path / "binder.json"
+        binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
+        argv = [
+            "collate",
+            "--stage",
+            "4c",
+            "--binder",
+            str(binder_path),
+            "--out",
+            str(tmp_path / "chief.json"),
+        ]
+        for i, copy in enumerate(copies):
+            path = tmp_path / f"copy{i}.json"
+            path.write_text(json.dumps(copy), encoding="utf-8")
+            argv += ["--edit-copy", str(path)]
+        monkeypatch.setattr("sys.argv", argv)
+        code = command.main()
+        out = capsys.readouterr().out
+        assert code == command.BROKEN
+        assert "somewhere/else" in out
+        assert "function-context (the copy):" in out
         assert not (tmp_path / "chief.json").exists()
 
     def test_every_copys_findings_are_printed_not_just_the_first(
@@ -722,6 +827,10 @@ class TestTheStateBetweenTurnsOnDisk:
             tmp_path, self.ONE, monkeypatch, capsys, "--proof-out", str(proof_path)
         )
         assert code == command.OK, out
+        # ! THE SUMMARY COUNTS THE PLACES BY WHAT THEY CAME TO. A bare place
+        # count says nothing a reader can act on, which is what it said for
+        # one commit.
+        assert "1 places -- 1 settled, 0 unsettlable, 0 carried forward" in out
         proof, why = load_proof(proof_path)
         assert why == []
         assert proof is not None
@@ -809,6 +918,7 @@ class TestTheStateBetweenTurnsOnDisk:
             tmp_path, asked, monkeypatch, capsys, "--proof-out", str(proof_path)
         )
         assert "unsettlable m.py@b1: block-context asks the human -- " in out
+        assert "1 places -- 0 settled, 1 unsettlable, 0 carried forward" in out
         proof, why = load_proof(proof_path)
         assert proof is not None, why
         (entry,) = proof.places

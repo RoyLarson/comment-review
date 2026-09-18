@@ -310,3 +310,48 @@ def test_evaluate_runs_the_three_in_order():
     )
     got = evaluate(place, turn=1)
     assert got.state is State.STANDS and got.text == "# one\n# 2\n# three\n"
+
+
+def test_a_correct_that_drops_an_unnamed_word_is_noted_and_still_settles():
+    """`decision-log.md Process: #163` and `#177`: the words a change drops
+    that its claim never named are advisory, so the place settles on the
+    change and the note rides beside it."""
+    correct = _mark(
+        Instruction.CORRECT,
+        change="# one\n# TWO\n",
+        claim={"false": "two", "true": "TWO"},
+    )
+    got = marks_pass(_place(Filed("a", correct, Touch.OWN)))
+    assert got.state is State.STANDS
+    assert got.text == "# one\n# TWO\n"
+    assert got.notes == ("a: its change drops 'three', which its claim never names",)
+
+
+def test_a_correct_that_keeps_every_unnamed_word_is_not_noted():
+    correct = _mark(
+        Instruction.CORRECT,
+        change="# one\n# TWO\n# three\n",
+        claim={"false": "two", "true": "TWO"},
+    )
+    got = marks_pass(_place(Filed("a", correct, Touch.OWN)))
+    assert got.state is State.STANDS
+    assert got.notes == ()
+
+
+def test_a_note_survives_the_state_the_place_comes_to():
+    """A refusal is decided after the notes are collected, and keeps them."""
+    correct = _mark(
+        Instruction.CORRECT,
+        change="# one\n# TWO\n",
+        claim={"false": "two", "true": "TWO"},
+    )
+    move = _mark(
+        Instruction.MOVE,
+        change="# nowhere\n",
+        claim={"from": "m.py@b1", "to": "m.py@b5"},
+    )
+    got = marks_pass(
+        _place(Filed("a", correct, Touch.OWN), Filed("b", move, Touch.ORIGIN))
+    )
+    assert got.state is State.REFUSED
+    assert got.notes == ("a: its change drops 'three', which its claim never names",)

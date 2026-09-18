@@ -31,6 +31,19 @@ class Unsettlable(NamedTuple):
     reason: str
 
 
+class Advised(NamedTuple):
+    """What one role is told about one place without being refused for it.
+
+    It reports and decides nothing: a place carrying notes takes whatever
+    state its marks give it, and a fold that emits one still commits
+    (`decision-log.md Process: #177`).
+    """
+
+    role: str
+    address: str
+    notes: tuple[str, ...]
+
+
 class Settled(NamedTuple):
     """One place the fold decided, and the text it settled on, if any."""
 
@@ -50,4 +63,6 @@ class RolledBack(NamedTuple):
     reasons: int
 
 
-Event = Refused | CarriedForward | Unsettlable | Settled | Committed | RolledBack
+Event = (
+    Refused | CarriedForward | Unsettlable | Advised | Settled | Committed | RolledBack
+)

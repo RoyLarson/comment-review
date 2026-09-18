@@ -134,6 +134,7 @@ FIELD_FOR = {
     "touches": "touches",
     "sets": "sets",
     "reads": "reads",
+    "notes": "notes",
     "pairs": "pairs",
     "answers": "answers",
     "not substantive": "substantive",

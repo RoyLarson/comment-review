@@ -32,7 +32,12 @@ class Fold:
         return self.places if self.committed else {}
 
     def run(self) -> "Fold":
-        """Evaluate every place, pair a move's two ends, commit or roll back."""
+        """Evaluate every place, pair a move's two ends, commit or roll back.
+
+        A place that carries advisory notes reports them beside whatever it
+        came to, and the fold commits over them: an `Advised` is for the
+        chief to read, not a reason to give up the round.
+        """
         for place in self.places.values():
             evaluate(place, self.turn)
         pair_moves(self.places)
@@ -60,6 +65,10 @@ class Fold:
                         )
             else:
                 self.events.append(events.Settled(address, place.text))
+            # A note is reported wherever it is found, whatever the place
+            # came to, and nothing branches on it -- `Process: #177`.
+            for role, notes in _by_role(place.notes).items():
+                self.events.append(events.Advised(role, address, notes))
         if refused:
             self.events.append(events.RolledBack(refused))
             return self

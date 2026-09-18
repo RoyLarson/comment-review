@@ -8,7 +8,10 @@ outside this module names an instruction; a gate holds that.
 `sets` returns None where the mark sets nothing (`decision-log.md Process:
 #174`), "" for a delete, else the text. `reads` returns the problems the row
 finds; `flows.fill` runs it before a mark is placed and the evaluator before
-it is folded, so a mark reaching the evaluator has been read.
+it is folded, so a mark reaching the evaluator has been read. `notes` returns
+what the chief should be told about a mark that is not a problem with it --
+read once, by the evaluator, and reported without changing a state
+(`Process: #177`).
 
 `rereads` is True on `add` alone: an add is carried forward for every role
 that read its page, per `decision-log.md Process: #116` and `#121`.
@@ -54,6 +57,7 @@ class Stance(StrEnum):
 
 Sets = Callable[[Any, Touch, str], str | None]
 Reads = Callable[[Any, Touch, str], list[str]]
+Notes = Callable[[Any, Touch, str], list[str]]
 Pairs = Callable[[Any], Stance]
 
 
@@ -62,6 +66,10 @@ def _nothing(mark, touch, base):
 
 
 def _no_problems(mark, touch, base):
+    return []
+
+
+def _no_notes(mark, touch, base):
     return []
 
 
@@ -99,6 +107,23 @@ def _move_reads(mark, touch, base):
     return []
 
 
+def _correct_notes(mark, touch, base):
+    """The words a `correct` drops from its base that its claim never named.
+
+    The claim's `false` clause is the part of the paragraph the mark says it
+    is replacing, so the rest of the base is what it said nothing about and
+    what the change is expected to keep. A word missing from there is the
+    only one worth telling anyone about, and it is advisory: the chief reads
+    it and the place settles either way (`decision-log.md Process: #163` and
+    `#177`).
+    """
+    rest = base.replace(str(mark.claim.get("false", "")), "", 1)
+    word = first_word_dropped(rest, mark.change)
+    if word is None:
+        return []
+    return [f"its change drops {word!r}, which its claim never names"]
+
+
 def _add_reads(mark, touch, base):
     for held in (base, mark.change):
         dropped = first_word_dropped(held, mark.raw_text)
@@ -133,6 +158,10 @@ class Row:
     touches: tuple[Touch, ...] = (Touch.OWN,)
     sets: Sets = _nothing
     reads: Reads = _no_problems
+    #: What a mark of this row should be told about itself without being
+    #: refused for it. A note reaches the chief as an `Advised` event and
+    #: changes no place's state -- `decision-log.md Process: #177`.
+    notes: Notes = _no_notes
     pairs: Pairs = _proposes
     answers: tuple[str, ...] = ESCALATION_ANSWERS
     owes_change: bool = True
@@ -179,7 +208,10 @@ INSTRUCTIONS: dict[Instruction, Row] = {
         claim_all=("drop",), quotes_original="drop", sets=_the_change, may_empty=True
     ),
     Instruction.CORRECT: Row(
-        claim_all=("false", "true"), quotes_original="false", sets=_the_change
+        claim_all=("false", "true"),
+        quotes_original="false",
+        sets=_the_change,
+        notes=_correct_notes,
     ),
     Instruction.PATCH: Row(
         claim_all=("from", "to"),

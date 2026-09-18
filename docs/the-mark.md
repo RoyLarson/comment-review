@@ -225,10 +225,10 @@ the true one, and a `sources` entry carrying the line that settles it."*
 the next thing that reads it silently gets a worse answer. ! `add`'s sentence ended *"never the
 payload's"* and now reads *"never the claim's"*: the old word named the field that was removed.
 
-## The classifiers -- nine COLUMNS and a closed list of flags
+## The classifiers -- ten COLUMNS and a closed list of flags
 
 !! **THIS IS THE PART THAT WAS MISSING, AND ITS ABSENCE IS WHAT LET TWENTY-TWO FIELDS IN.** A row
-may state these and nothing else -- **fourteen things, and no prose.** A new classifier is a change
+may state these and nothing else -- **fifteen things, and no prose.** A new classifier is a change
 to THIS FILE first.
 
 | classifier | what it decides | shape |
@@ -240,6 +240,7 @@ to THIS FILE first.
 | **touches** | which places -- own, origin, destination -- the row writes | a list of place names |
 | **sets** | the text a mark of this row writes at one touch, given its base | a function of the mark, the touch and the base |
 | **reads** | the problems a mark of this row has at one touch, against its base | a function of the mark, the touch and the base |
+| **notes** | what the chief is told about a mark of this row that is not a problem with it | a function of the mark, the touch and the base |
 | **pairs** | how a mark of this row stands toward the others at its place | a function of the mark |
 | **answers** | which answers a turn may give where this row proposes | a list of names |
 

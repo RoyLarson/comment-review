@@ -835,14 +835,12 @@ def deal(
 
     !! THE COMMAND DEALS THE HAND AND THE OLD FOLD WRITES WHAT THE TURN READS,
     which is two folds over one set of copies and is deliberately temporary.
-    `collate` folds through the Unit of Work since T3 of
-    `docs/superpowers/plans/2026-09-14-the-middle-rebuilt.md`, so the proof it
-    writes carries decided PLACES and its batch carries a place's sides --
-    neither of which `flows.turn.run_turn` reads. `turn` and `disposition`
-    still fold through `flows._collate`, so the hand they are dealt is that
-    fold's, and this writes `proof0.json` and `batch1.json` from it. T4 of
-    that plan moves both commands onto the bus; the second half of this
-    function goes with them.
+    `collate` folds through the Unit of Work, so the proof it writes carries
+    decided PLACES and its batch carries a place's sides -- neither of which
+    `flows.turn.run_turn` reads. `turn` and `disposition` still fold through
+    `flows._collate`, so the hand they are dealt is that fold's, and this
+    writes `proof0.json` and `batch1.json` from it. The second half of this
+    function goes once those two commands fold through the bus as well.
 
     ! THE EXIT CODE IS THE COMMAND'S, not the old fold's. It is what a caller
     of `collate` reads, and every case here contests a place, where the two

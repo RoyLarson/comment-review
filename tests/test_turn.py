@@ -2674,9 +2674,8 @@ class TestAHeldDestinationNoCopyHasASheetFor:
     command writes no file.
 
     ! IT ASSERTED THE SAME OF `collate` UNTIL THAT COMMAND MOVED ONTO THE UNIT
-    OF WORK, T3 of `docs/superpowers/plans/2026-09-14-the-middle-rebuilt.md`.
-    `collate` reaches no `proof_after`, so the refusal has no raiser on that
-    side and the case is the turn's alone.
+    OF WORK. `collate` reaches no `proof_after`, so the refusal has no raiser
+    on that side and the case is the turn's alone.
     """
 
     def test_turn_refuses_and_writes_nothing(self, tmp_path, monkeypatch, capsys):
