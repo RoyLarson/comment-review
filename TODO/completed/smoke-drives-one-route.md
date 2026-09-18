@@ -1,8 +1,8 @@
 # The smoke drives one route, and the self-run broke on the others
 
 ```
-Status:   open
-Progress: 7 of 9 tasks closed
+Status:   closed
+Progress: 9 of 9 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-09-14 (2026-09-14 comment-review self-run, refused at stage 5)
@@ -29,13 +29,15 @@ The smoke drives one route, and the self-run broke on the others.
 - [x] T5 | FINISHED -- bare cue refused at mark, parity at check, c6 via --true=@path | f71b6ad6 | Implement
       smoke plants of a bare-cue destination and a --flag=@path value, each
       refused at check (no-command-for-the-middle T99)
-- [ ] T6 | Implement a second smoke stage reading the first stage's revise,
-      failing while that revise drops clean paragraphs
+- [x] T6 | the smoke's second stage reads the first stage's revise; a clean paragraph is still there and the correction lands over the revised text | 95600fa8 | Implement
+      a second smoke stage reading the first stage's revise, failing while that
+      revise drops clean paragraphs
 - [x] T7 | FINISHED -- block-context withdraws a first b9 ruling and places the real one | 1a4d7cfc | Implement
       a smoke plant that replaces a placed mark through the command mark-defects
       T24 adds
 - [x] T8 | FINISHED -- a fresh copy's drop across rate.py@b1 drafts rewrapped | e4d69ded | Implement
       a smoke plant of a drop inside a line, failing while a line runs past the
       paragraph's longest (mark-defects T25)
-- [~] T9 | Implement a smoke plant of a partial move whose change is the
-      snippet, failing while the origin keeps it or the destination lacks it
+- [x] T9 | store.py's partial move: the origin keeps its remainder, the destination reads as its raw_text; hand-written landing | c200d372 | Implement
+      a smoke plant of a partial move whose change is the snippet, failing while
+      the origin keeps it or the destination lacks it

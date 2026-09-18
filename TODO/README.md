@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (114)
+### open  (113)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -269,7 +269,7 @@ that changed a published name or rule:
 | [rows-of-derives-no-type](rows-of-derives-no-type.md) | backend | -- | 0/4 | `binder.rows_of` returns `list[dict]` where `docket.schedules_of` returns `list[Schedule]`; the codebase holds one example of each pattern, the typed one is the one that catches things, and `rows_of` has 8 callers and no covering tests |
 | [strip-before-review-experiment](strip-before-review-experiment.md) | agents | yes | 0/5 | the `collator.py` prose was deleted whole and rewritten by an agent that could read only the code -- it found three defects the old prose never mentioned and named two things the code cannot say; whether that beats editing in place is untested |
 | [collator-defects](collator-defects.md) | backend | -- | 18/43 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
-| [staged-chain-untested](staged-chain-untested.md) | backend | -- | 2/5 | the four-stage chain runs and the edits accumulate, proven 2026-08-30 -- but no test in the suite drives it, and the only committed fan-out topology refuses any tree but this repo's |
+| [staged-chain-untested](staged-chain-untested.md) | backend | -- | 3/5 | the four-stage chain runs and the edits accumulate, proven 2026-08-30 -- but no test in the suite drives it, and the only committed fan-out topology refuses any tree but this repo's |
 | [containers-and-verification-are-unwired](containers-and-verification-are-unwired.md) | backend | -- | 23/47 | The containers and the source-verification half are wired to nothing |
 | [mark-holds-spec-and-parse](mark-holds-spec-and-parse.md) | backend | -- | 0/6 | mark.py holds the instruction spec and the boundary parse at one scope |
 | [ty-cannot-see-the-tests](ty-cannot-see-the-tests.md) | systems (the gate) - backend (the test fixes) | -- | 1/5 | The type gate is scoped to src and cannot see the tests |
@@ -294,8 +294,7 @@ that changed a published name or rule:
 | [a-machine-context-raises-query-and-clean](a-machine-context-raises-query-and-clean.md) | backend | yes | 0/8 | annotate carries two subjects -- it extracts index keys, and it flags claims it cannot settle. The second half becomes a context that marks like a role. |
 | [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | -- | 8/12 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
 | [prove-unchanged-line-endings-follow-a-sibling](prove-unchanged-line-endings-follow-a-sibling.md) | backend | -- | 0/2 | On a checkout with core.autocrlf=true, git writes a checked-out text file with CRLF while its blob stays LF, and a file git never rewrote can still be LF. prove_unchanged compares an edited file's line endings with one untouched sibling, so a CRLF file whose sibling is a one-line LF __init__.py FAILs though the write kept every ending and the AST comparison passes. The check should hold the file to its own pre-edit endings. |
-| [smoke-drives-one-route](smoke-drives-one-route.md) | systems | -- | 7/9 | The smoke drives one route, and the self-run broke on the others |
-| [the-middle-rebuilt](the-middle-rebuilt.md) | backend | -- | 5/7 | The middle folds through three tables, an evaluator and a Unit of Work |
+| [the-middle-rebuilt](the-middle-rebuilt.md) | backend | -- | 6/7 | The middle folds through three tables, an evaluator and a Unit of Work |
 
 ### in-progress  (18)
 
@@ -466,3 +465,4 @@ the reason is inside the file.
 | [the-scope-is-git-in-prose](completed/the-scope-is-git-in-prose.md) | Both tasks superseded by Process 162; the scope step stays in SKILL.md 1.1 |
 | [smoke-middle-script](completed/smoke-middle-script.md) | 66 finished, 1 superseded |
 | [brief-forbids-the-full-address](completed/brief-forbids-the-full-address.md) | 3 finished |
+| [smoke-drives-one-route](completed/smoke-drives-one-route.md) | 8 finished, 1 superseded |

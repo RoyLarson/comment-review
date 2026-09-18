@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 5 tasks closed
+Progress: 3 of 5 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, driving distribute and collate across real stages for
@@ -42,8 +42,9 @@ The staged chain runs but nothing tests it, and the fan-out topology fits one tr
       stage, each reading the revise the one before it pulled. Fewer means a
       stage read a tree that did not carry the one before it, and nothing in the
       suite would notice today.
-- [ ] T4 | Implement the reader for `Stage.reads`, so a stage seeds from the
-      binder its topology names rather than from a path typed by hand
+- [x] T4 | desk/topology.py seeded_from_problem reads Stage.reads; distribute --revise; tests/test_topology.py, test_distribute_command.py | 5e08440f | Implement
+      the reader for `Stage.reads`, so a stage seeds from the binder its
+      topology names rather than from a path typed by hand
         > 2026-08-31 grep .reads over src/ returns one line: topology.py:140, a WRITE
         > 2026-08-31 topology.py:84-95 refuses a bad value: validated, then unread
 - [ ] T5 | Update topology --build to deal a role's pages by place count, not
