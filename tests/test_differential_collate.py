@@ -15,16 +15,21 @@ stands the new fold commits, and the events are what it settled.
 import json
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 from conftest import ROOT
 
-from comment_review.desk.containers import EditCopy
-from comment_review.desk.work import events
-from comment_review.flows import _collate as old
-from comment_review.flows.bus import CopiesReturned, handle
-from comment_review.flows.proof_io import load_binder
+sys.path.insert(0, str(ROOT / "scripts"))
+import smoke_fixture  # noqa: E402
+
+from comment_review.desk.containers import EditCopy  # noqa: E402
+from comment_review.desk.work import events  # noqa: E402
+from comment_review.flows import _collate as old  # noqa: E402
+from comment_review.flows.bus import CopiesReturned, handle  # noqa: E402
+from comment_review.flows.fill import marks_on, touched_by  # noqa: E402
+from comment_review.flows.proof_io import load_binder  # noqa: E402
 
 #: The rulings that account for a difference. Nothing else may.
 #:
@@ -196,6 +201,28 @@ def test_the_advisory_notes_name_the_places_the_old_dropped_list_did(folded):
     now = {(one.role, one.address) for one in out if isinstance(one, events.Advised)}
     assert was == now
     assert now == {("block-context", "store.py@c5")}
+
+
+def test_the_copies_file_what_the_landing_table_says_they_do(smoke_run):
+    """`smoke_fixture.LANDINGS`' `filed` against the copies the plant left.
+
+    The row-coverage gate reads that field to say which rows of the three
+    tables the smoke reaches, and a field nothing checks would say so whether
+    or not the `mark` calls still place them. The copies are what the calls
+    placed, and this run is already paid for here, which is why the check
+    sits beside the differential rather than in the gate.
+    """
+    placed: dict[str, set] = {}
+    for path in sorted((smoke_run / "copies").glob("*.json")):
+        copy = json.loads(path.read_text(encoding="utf-8"))
+        for mark in marks_on(copy):
+            for address, _touch in touched_by(mark):
+                placed.setdefault(address, set()).add(str(mark.instruction))
+    said = {
+        address: set(landing.filed)
+        for address, landing in smoke_fixture.LANDINGS.items()
+    }
+    assert placed == said
 
 
 def test_no_explanation_is_stale(folded):

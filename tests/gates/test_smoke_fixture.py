@@ -19,7 +19,13 @@ from conftest import ROOT
 sys.path.insert(0, str(ROOT / "scripts"))
 import smoke_fixture  # noqa: E402
 
+from comment_review.desk.answers.table import ANSWERS as ANSWER_ROWS  # noqa: E402
+from comment_review.desk.dispositions.disposition import ORIGINAL  # noqa: E402
+from comment_review.desk.dispositions.table import (  # noqa: E402
+    DISPOSITIONS as DISPOSITION_ROWS,
+)
 from comment_review.desk.mark import (  # noqa: E402
+    INSTRUCTIONS,
     Instruction,
     derived_change,
     first_word_dropped,
@@ -208,6 +214,48 @@ class TestTheLandingTableAgreesWithTheFixture(unittest.TestCase):
             last = len(self.texts[path].splitlines())
             anchor = page.cues.anchor_line(cue)
             self.assertEqual(landing.line, last if anchor is None else anchor, address)
+
+
+class TestEveryRowOfTheThreeTablesIsPlanted(unittest.TestCase):
+    """The marks table, the answers table and the dispositions table against
+    the plant's own tables: every row one of them carries has a scenario in
+    `LANDINGS`, `ANSWERS` or `DISPOSITIONS`.
+
+    ! IT READS THE PLANT'S TABLES AND NOT THE SCRIPT. A row named nowhere in
+    them is a row the smoke cannot be driving, whatever `smoke_middle.ps1`
+    types; what holds those tables to what the script places is the smoke
+    itself, and `tests/test_differential_collate.py` over the copies one run
+    leaves behind.
+    """
+
+    def test_every_instruction_is_filed_at_some_place(self):
+        planted = {
+            instruction
+            for landing in smoke_fixture.LANDINGS.values()
+            for instruction in landing.filed
+        }
+        self.assertEqual(planted, {str(one) for one in INSTRUCTIONS})
+
+    def test_every_answer_is_given_under_the_question_it_answers(self):
+        planted = {
+            (smoke_fixture.question_at(address), str(fields["instruction"]))
+            for given in smoke_fixture.ANSWERS.values()
+            for address, fields in given.items()
+        }
+        # The `clean`s `write_answers` fills in are not in `ANSWERS` itself.
+        planted.add(("composition", "clean"))
+        self.assertEqual(planted, {(str(q), name) for q, name in ANSWER_ROWS})
+
+    def test_every_disposition_is_ruled_and_taken_in_takes_both_sides(self):
+        ruled = {str(one["answer"]) for one in smoke_fixture.DISPOSITIONS}
+        self.assertEqual(ruled, set(DISPOSITION_ROWS))
+        sides = {
+            str(one["side"])
+            for one in smoke_fixture.DISPOSITIONS
+            if one["answer"] == "taken_in"
+        }
+        self.assertIn(ORIGINAL, sides)
+        self.assertTrue(sides - {ORIGINAL}, "taken_in is never ruled for a role's side")
 
 
 class TestTheSecondStageRulesTheRevisesOwnPlaces(unittest.TestCase):

@@ -236,6 +236,13 @@ class Landing(NamedTuple):
     with a turn answer's text; at `c3`, the same, which the chief replaces
     with a recast of its own.
 
+    `filed` names every instruction any role files at the place, once each
+    and in no particular order -- what the plant reaches at that address,
+    which is what `tests/gates/test_smoke_fixture.py` walks the marks table
+    against. A move is named at both of the places it touches, since the row
+    writes at both. `tests/test_differential_collate.py` reads the copies one
+    smoke run leaves and holds this to what the `mark` calls actually placed.
+
     `line` is set exactly where the place was empty in its file's fixture,
     and names the 1-based fixture line the place is set against: the declaring
     line an `a` goes directly below, the line of code a `c` sits beside, the
@@ -246,6 +253,7 @@ class Landing(NamedTuple):
 
     outcome: str
     route: str
+    filed: tuple[str, ...] = ()
     text: str | None = None
     claim: dict[str, str] | None = None
     marked: str | None = None
@@ -271,6 +279,7 @@ LANDINGS: dict[str, Landing] = {
     "fib.py@c6": Landing(
         "text",
         route="mark",
+        filed=("correct", "query"),
         text="  # the decorator's only job",
         claim={
             "false": "the decorator's whole job",
@@ -287,6 +296,7 @@ LANDINGS: dict[str, Landing] = {
     "fib.py@c1": Landing(
         "text",
         route="disposition",
+        filed=("correct", "clean"),
         text="  # every call, cached or not",
         claim={"false": "memoised or not", "true": "cached or not"},
         marked="  # every entry, cached or not",
@@ -296,6 +306,7 @@ LANDINGS: dict[str, Landing] = {
     "fib.py@b0": Landing(
         "text",
         route="mark",
+        filed=("move",),
         text="# Module state, written by the wrapper and read by the caller.",
         line=3,
     ),
@@ -307,6 +318,7 @@ LANDINGS: dict[str, Landing] = {
     "fib.py@a2": Landing(
         "text",
         route="turn",
+        filed=("add",),
         text='        """Count each call, then pass it through."""',
         line=13,
     ),
@@ -318,6 +330,7 @@ LANDINGS: dict[str, Landing] = {
     "fib.py@b9": Landing(
         "text",
         route="disposition",
+        filed=("correct", "clean"),
         text=(
             "# The cache and the counter measure different things, worth stating\n"
             "# separately. fib is cached; logged counts every call, cached or not."
@@ -325,17 +338,17 @@ LANDINGS: dict[str, Landing] = {
     ),
     # the drop vacates b14, and the fold settles it; nothing replaces the
     # dropped paragraph.
-    "fib.py@b14": Landing("removed", route="mark"),
+    "fib.py@b14": Landing("removed", route="mark", filed=("drop", "query")),
     # the move vacates its own address, and the fold settles it; the text it
     # carried now lives at b0.
-    "fib.py@b1": Landing("removed", route="mark"),
+    "fib.py@b1": Landing("removed", route="mark", filed=("move", "query")),
     # collate escalates a3. In the turn block-context withdraws and the other
     # two each hold, so two texts still stand at the place and it is carried
     # forward; disposition keeps the original over both.
-    "fib.py@a3": Landing("kept", route="disposition"),
+    "fib.py@a3": Landing("kept", route="disposition", filed=("correct", "clean")),
     # block-context's query settles nothing and rides to the end; a1 is left
     # as it was.
-    "fib.py@a1": Landing("kept", route="query"),
+    "fib.py@a1": Landing("kept", route="query", filed=("query", "clean")),
     # block-context's add, on an absent b above `return wrapper`, indented
     # to logged's own body depth. In the turn function-context answers the
     # composition with a correct and the other two roles clean it, so an add
@@ -346,6 +359,7 @@ LANDINGS: dict[str, Landing] = {
     "fib.py@b8": Landing(
         "text",
         route="disposition",
+        filed=("add",),
         text="    # Counting finished, wrapper is handed back unchanged.",
         marked="    # Counting done, wrapper is handed back unchanged.",
         line=18,
@@ -357,6 +371,7 @@ LANDINGS: dict[str, Landing] = {
     "fib.py@b17": Landing(
         "text",
         route="turn",
+        filed=("add",),
         text="# Nothing follows; running this module only prints one count.",
         line=34,
     ),
@@ -368,6 +383,7 @@ LANDINGS: dict[str, Landing] = {
     "fib.py@b15": Landing(
         "kept",
         route="query",
+        filed=("add",),
         marked="# Run directly, the module prints fib(10) and how many calls it took.",
         line=33,
     ),
@@ -384,6 +400,7 @@ LANDINGS: dict[str, Landing] = {
     "fib.py@c3": Landing(
         "text",
         route="disposition",
+        filed=("add",),
         text="  # copies fn's name and docstring onto wrapper",
         marked="  # keeps wrapper's name and doc matching fn's own",
         line=12,
@@ -398,6 +415,7 @@ LANDINGS: dict[str, Landing] = {
     "fib.py@c12": Landing(
         "kept",
         route="mark",
+        filed=("clean",),
         marked="  # 0 and 1 are already fibonacci numbers",
     ),
     # block-context's add, on a filled a -- the module docstring already
@@ -409,6 +427,7 @@ LANDINGS: dict[str, Landing] = {
     "fib.py@a0": Landing(
         "text",
         route="turn",
+        filed=("add", "clean"),
         text=(
             '"""Fibonacci, counted so the recursion can be seen -- and why it is '
             'counted."""'
@@ -421,6 +440,7 @@ LANDINGS: dict[str, Landing] = {
     "rate.py@c3": Landing(
         "text",
         route="mark",
+        filed=("patch", "query"),
         text="  # fraction of calls the cache answered",
         claim={"from": "share of calls", "to": "fraction of calls"},
     ),
@@ -433,6 +453,7 @@ LANDINGS: dict[str, Landing] = {
     "rate.py@b1": Landing(
         "text",
         route="turn",
+        filed=("correct", "clean"),
         text=(
             "    # No calls give a zero rate: nothing\n"
             "    # was put to the cache. The rate is\n"
@@ -444,7 +465,7 @@ LANDINGS: dict[str, Landing] = {
     # instead of clean, so the fold settles it. The blank line below the
     # comment is the leading `b5` owns, and `set_page` sets no leading after
     # a place a drop vacated, so the blank goes with the comment.
-    "rate.py@b5": Landing("removed", route="mark"),
+    "rate.py@b5": Landing("removed", route="mark", filed=("drop", "query")),
     # the PARTIAL move's origin: ownership-context takes the paragraph's
     # second sentence to `b3` and the first stays where it is, since a move's
     # `change` is the snippet and the origin keeps what the snippet left
@@ -454,6 +475,7 @@ LANDINGS: dict[str, Landing] = {
     "store.py@b1": Landing(
         "text",
         route="mark",
+        filed=("move", "query"),
         text="    # Every lookup is recorded.",
         marked=" Entries are never removed.",
     ),
@@ -465,6 +487,7 @@ LANDINGS: dict[str, Landing] = {
     "store.py@b3": Landing(
         "text",
         route="mark",
+        filed=("move", "clean", "query"),
         text=(
             "    # A miss is a lookup the store had no answer for.\n"
             "    # Entries are never removed."
@@ -474,7 +497,7 @@ LANDINGS: dict[str, Landing] = {
     # `b8` and block-context marks a human-review query at the same place, so
     # both ends ride to the end unruled and the paragraph stays where it is
     # (`Process: #182`).
-    "store.py@b5": Landing("kept", route="query"),
+    "store.py@b5": Landing("kept", route="query", filed=("move", "query")),
     # and its destination, the closing gap after the last line of code, which
     # stays empty for the same reason. `marked` is the paragraph the move
     # carries, which its `mark` call passes as both `--change` and
@@ -482,6 +505,7 @@ LANDINGS: dict[str, Landing] = {
     "store.py@b8": Landing(
         "kept",
         route="query",
+        filed=("move",),
         marked="    # Rounded before it is printed.",
         line=18,
     ),
@@ -493,6 +517,7 @@ LANDINGS: dict[str, Landing] = {
     "store.py@b7": Landing(
         "text",
         route="turn",
+        filed=("correct", "clean"),
         text="    # True when the store has answered nothing yet.",
         claim={"false": "nothing at all", "true": "nothing yet"},
     ),
@@ -506,6 +531,7 @@ LANDINGS: dict[str, Landing] = {
     "store.py@c5": Landing(
         "text",
         route="mark",
+        filed=("correct", "query"),
         text="  # two decimal places, as the report asks",
         claim={"false": "two places", "true": "two decimal places"},
     ),
@@ -533,6 +559,26 @@ PROPOSED = {
     "fib.py@b15": "module-context",
     "store.py@b7": "module-context",
 }
+
+#: The places `collate` carries forward as an ESCALATION -- two texts at one
+#: place that will not compose -- which is the question the turn asks there.
+#: Every other place the plant answers is carried forward as a COMPOSITION.
+#: `check --answers` refuses an answer the question does not admit, so the
+#: smoke is what holds this to the fold rather than this table standing alone.
+ESCALATED = ("fib.py@c1", "fib.py@b9", "fib.py@a3")
+
+
+def question_at(address: str) -> str:
+    """Which question the turn asks at one answered place.
+
+    Args:
+        address: a place the plant answers for some role.
+
+    Returns:
+        `"escalation"` for a place in `ESCALATED`, else `"composition"`.
+    """
+    return "escalation" if address in ESCALATED else "composition"
+
 
 #: Each role's answers to the batch `collate` sends for the turn, keyed by
 #: address and holding only the fields the role fills; `turn` lays them over
