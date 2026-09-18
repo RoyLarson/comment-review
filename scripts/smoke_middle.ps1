@@ -738,7 +738,7 @@ $Stages = [ordered]@{
                 '--cite', 'rate.py:13', '--repo', $OriginalDir
             ))
         }
-        # store.py@b1 -- the PARTIAL move, to store.py@b3. ownership-context
+        # store.py@b1 -- the partial move, to store.py@b3. ownership-context
         # takes the paragraph's second sentence: `--change` is that snippet,
         # subtracted from b1 exactly once, and `--raw-text` is b3's paragraph
         # as it will read with the snippet on a line of its own (Process #172

@@ -11,7 +11,7 @@ with a blank line below it -- the places a `patch`, an
 owns a leading are planted on, since every prose place in `fib.py` already
 carries another row. `store.py` is the third, four one-line functions
 carrying four standalone comments and a trailing one -- the places a
-PARTIAL move, a move a role holds for the human, a lone proposal against
+partial move, a move a role holds for the human, a lone proposal against
 cleans and a `correct` whose change is wider than its claim are planted on,
 for the same reason. All three structures are
 fixed -- `LANDINGS`, `ANSWERS` and `DISPOSITIONS` below plant decisions
@@ -147,7 +147,7 @@ def write_rate_fixture(root: Path) -> Path:
 #: The third fixture file, `store.py`. Four one-line functions, each with a
 #: standalone comment above its body, and one trailing comment. Its five prose
 #: places are the ones the plant needs and the other two files cannot spare:
-#: `b1`, a comment of two sentences whose second a PARTIAL move takes to `b3`,
+#: `b1`, a comment of two sentences whose second a partial move takes to `b3`,
 #: leaving the first behind; `b3`, the comment that move arrives above; `b5`,
 #: the comment a move sends to `b8` and a role holds for the human, so neither
 #: end lands; `b7`, the comment one role corrects and the other three clean,
@@ -466,7 +466,7 @@ LANDINGS: dict[str, Landing] = {
     # comment is the leading `b5` owns, and `set_page` sets no leading after
     # a place a drop vacated, so the blank goes with the comment.
     "rate.py@b5": Landing("removed", route="mark", filed=("drop", "query")),
-    # the PARTIAL move's origin: ownership-context takes the paragraph's
+    # the partial move's origin: ownership-context takes the paragraph's
     # second sentence to `b3` and the first stays where it is, since a move's
     # `change` is the snippet and the origin keeps what the snippet left
     # behind (`Process: #172`). The other three roles mark a scope-declaring
@@ -560,9 +560,9 @@ PROPOSED = {
     "store.py@b7": "module-context",
 }
 
-#: The places `collate` carries forward as an ESCALATION -- two texts at one
+#: The places `collate` carries forward as an escalation -- two texts at one
 #: place that will not compose -- which is the question the turn asks there.
-#: Every other place the plant answers is carried forward as a COMPOSITION.
+#: Every other place the plant answers is carried forward as a composition.
 #: `check --answers` refuses an answer the question does not admit, so the
 #: smoke is what holds this to the fold rather than this table standing alone.
 ESCALATED = ("fib.py@c1", "fib.py@b9", "fib.py@a3")
