@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 7 tasks closed
+Progress: 5 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-14 (docs/superpowers/specs/2026-09-14-the-middle-rebuilt-design.md)
@@ -23,8 +23,8 @@ The middle folds through three tables, an evaluator and a Unit of Work.
       the Unit of Work in desk/work and the bus in flows, and switch collate to
       it
         > 2026-09-14 Fold and events landed at 1ef041f3; bus and collate switch remain
-- [ ] T4 | Implement the turn and disposition handlers and switch both commands
-      to the bus
+- [x] T4 | flows/bus.py handles AnswersReturned and DispositionsWritten; turn, disposition and check --answers fold through it; the full smoke exits 0 | efad40b3 | Implement
+      the turn and disposition handlers and switch both commands to the bus
 - [x] T5 | fill, check and docket_of read the rows; text_at deleted; one role's marks at a place compose (#179) | d5455d43 | Update
       fill, check and docket_of to read the tables, and delete text_at
 - [ ] T6 | Delete the old fold, turn, determined and diff_mark with their tests
