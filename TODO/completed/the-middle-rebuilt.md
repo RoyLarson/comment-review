@@ -1,8 +1,8 @@
 # The middle folds through three tables, an evaluator and a Unit of Work
 
 ```
-Status:   open
-Progress: 6 of 7 tasks closed
+Status:   closed
+Progress: 7 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-14 (docs/superpowers/specs/2026-09-14-the-middle-rebuilt-design.md)
@@ -27,7 +27,8 @@ The middle folds through three tables, an evaluator and a Unit of Work.
       the turn and disposition handlers and switch both commands to the bus
 - [x] T5 | fill, check and docket_of read the rows; text_at deleted; one role's marks at a place compose (#179) | d5455d43 | Update
       fill, check and docket_of to read the tables, and delete text_at
-- [ ] T6 | Delete the old fold, turn, determined and diff_mark with their tests
+- [x] T6 | the old fold, turn, determined and diff_mark are deleted with their tests; src -3349 lines; the tables gate holds the whole tree; docs/history.md carries the differential | dd81b99e | Delete
+      the old fold, turn, determined and diff_mark with their tests
 - [x] T7 | the smoke plants every row, shape, effect and side; a row-coverage gate; a second stage over the revise; desk/topology.py seeded_from_problem | 962e3438 | Implement
       a smoke plant for every row of the three tables, and the reader for a
       stage's revise
