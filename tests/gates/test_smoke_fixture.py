@@ -27,6 +27,7 @@ from comment_review.desk.dispositions.table import (  # noqa: E402
 from comment_review.desk.mark import (  # noqa: E402
     INSTRUCTIONS,
     Instruction,
+    Shape,
     derived_change,
     first_word_dropped,
 )
@@ -245,6 +246,19 @@ class TestEveryRowOfTheThreeTablesIsPlanted(unittest.TestCase):
         # The `clean`s `write_answers` fills in are not in `ANSWERS` itself.
         planted.add(("composition", "clean"))
         self.assertEqual(planted, {(str(q), name) for q, name in ANSWER_ROWS})
+
+    def test_every_query_shape_is_answered(self):
+        """A `query` is one answer row and two effects, which the shape
+        decides: human-review-necessary holds the place for the person and
+        the other two abstain. Each is planted, so both effects are reached.
+        """
+        planted = {
+            str(fields["claim"]["shape"])
+            for given in smoke_fixture.ANSWERS.values()
+            for fields in given.values()
+            if fields["instruction"] == "query"
+        }
+        self.assertEqual(planted, {str(one) for one in Shape})
 
     def test_every_disposition_is_ruled_and_taken_in_takes_both_sides(self):
         ruled = {str(one["answer"]) for one in smoke_fixture.DISPOSITIONS}
