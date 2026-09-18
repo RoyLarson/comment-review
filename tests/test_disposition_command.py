@@ -8,24 +8,33 @@ deals, `turn` holds the place open, `disposition` rules it. `P5` of
 `tests/test_turn_command.py` gives.
 """
 
+import json
+
+import pytest
+from conftest import run_command
 from helpers import (
     BASE,
     DOS,
     TWO,
     a_clean,
+    a_correct_setting,
     a_move,
     a_query,
+    a_real_binder_over,
     deal,
     disposition,
     entries_of,
     held_open,
     place_on,
     the_chief,
+    turn,
 )
 
 from comment_review.commands import collate as collate_command
 from comment_review.desk.dispositions.disposition import ORIGINAL
-from comment_review.desk.marks.mark import Shape
+from comment_review.desk.marks.mark import Instruction, Shape
+from comment_review.flows.distribute import seed
+from comment_review.flows.fill import fill
 from comment_review.flows.proof_io import load_proof
 
 RECAST = "# one\n# both\n# three\n"
@@ -186,6 +195,230 @@ class TestAMoveHeldForTheHuman:
             "block-context's move drops the paragraph at m.py@b1 and adds it at"
             " m.py@b2, one move" in out
         ), out
+
+
+class TestAContestedMoveIsRuledWhole:
+    """A move's two places take one state, so the chief owes a ruling at both.
+
+    Ported from `tests/test_turn.py::TestTheChiefRulesEachEndOfAMove`, which
+    asked the old flow whether a ruling at one end took effect on its own.
+    What the new path holds is the half below: a ruling at one end alone
+    leaves the other carried forward and unruled, and the round is refused by
+    name. Whether the chief may rule the two ends DIFFERENTLY is an open
+    question -- see the task report; it is not asserted here either way.
+    """
+
+    TEXTS = {"m.py@b1": "# one\n# two\n# three\n", "m.py@b2": "# four\n# five\n# six\n"}
+    #: block-context moves b1's middle line to b2; function-context corrects
+    #: b2, which contests the destination and pulls the origin with it.
+    PLANT = {
+        "block-context": {
+            "m.py@b1": a_move(
+                "m.py@b1",
+                "m.py@b2",
+                change="# two\n",
+                reads="# four\n# five\n# six\n# two\n",
+            ),
+            "m.py@b2": a_clean("m.py@b2"),
+        },
+        "function-context": {
+            "m.py@b1": a_clean("m.py@b1"),
+            "m.py@b2": a_correct_setting("m.py@b2", "five", "# four\n# 5\n# six\n"),
+        },
+    }
+
+    def test_both_ends_are_carried_forward_together(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """The case has to be able to fail: the chief is owed a ruling at two
+        places, not one."""
+        code = deal(tmp_path, monkeypatch, capsys, self.PLANT, self.TEXTS)
+        assert code == collate_command.ESCALATIONS
+        proof, why = load_proof(tmp_path / "proof0.json")
+        assert proof is not None, why
+        assert {entry["address"]: entry["state"] for entry in proof.places} == {
+            "m.py@b1": "contested",
+            "m.py@b2": "contested",
+        }
+
+    def test_a_ruling_at_one_end_alone_is_BROKEN_naming_the_other(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        deal(tmp_path, monkeypatch, capsys, self.PLANT, self.TEXTS)
+        code, out = disposition(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            [
+                {
+                    "address": "m.py@b1",
+                    "answer": "taken_in",
+                    "side": "block-context",
+                    "reason": "the move stands",
+                }
+            ],
+            proof="proof0.json",
+        )
+        assert code == collate_command.BROKEN, out
+        assert "copy-chief m.py@b2: carried forward and not ruled on" in out, out
+        assert not (tmp_path / "final.json").exists()
+
+
+#: The two paragraphs the add cases stand between: `m.py@b2` is the gap they
+#: leave, which holds no prose, so the binder does not carry it and no seeded
+#: copy has a slot there.
+GAPPED = {"m.py@b1": "# one\n# two\n# three\n", "m.py@b3": "# four\n# five\n# six\n"}
+EMPTY_PLACE = "m.py@b2"
+ADDED = "# the gap wants a sentence\n"
+#: The chief's own paragraph for that place.
+RECAST_THERE = "# the chief's own sentence for the gap\n"
+
+_CLEAN_ABOVE = {"address": "m.py@b1", "instruction": "clean", "reason": "reads true"}
+_CLEAN_BELOW = {"address": "m.py@b3", "instruction": "clean", "reason": "reads true"}
+THE_ADD = {
+    "address": EMPTY_PLACE,
+    "instruction": "add",
+    "claim": {"missing": "why the gap is here", "anchor": "`v2`"},
+    "reason": "the gap is explained nowhere",
+    "sources": [{"cite": "m.py:1"}],
+    "change": ADDED,
+}
+
+
+def _dealt_through_mark(tmp_path, monkeypatch, capsys, by_role: dict) -> int:
+    """`collate` over copies each ruling is PLACED on, as `mark` places it.
+
+    ! NOT `helpers.copies_over`, which overlays a mark onto a seeded slot. An
+    add at a place the binder lacks has no slot to overlay, and `flows.fill`
+    is what creates one from the page -- the same call `commands/mark.py`
+    makes. The rest is `helpers.deal`'s own argv.
+    """
+    root = tmp_path / "repo"
+    binder = a_real_binder_over(root, GAPPED)
+    (tmp_path / "binder.json").write_text(
+        json.dumps(binder.serialize()), encoding="utf-8"
+    )
+    argv = [
+        "--stage",
+        "4c",
+        "--binder",
+        str(tmp_path / "binder.json"),
+        "--out",
+        str(tmp_path / "chief0.json"),
+        "--proof-out",
+        str(tmp_path / "proof0.json"),
+        "--batch-out",
+        str(tmp_path / "batch1.json"),
+    ]
+    for i, (role, rulings) in enumerate(by_role.items()):
+        copy = seed(binder, role)
+        for ruling in rulings:
+            _placed, why = fill(copy, ruling, root)
+            assert why == [], (role, ruling["address"], why)
+        path = tmp_path / f"copy{i}.json"
+        path.write_text(json.dumps(copy), encoding="utf-8")
+        argv += ["--edit-copy", str(path)]
+    code, _out = run_command(monkeypatch, capsys, collate_command, *argv)
+    return code
+
+
+def _answer_every_slot(tmp_path, n: int, **fields) -> list[str]:
+    """One answers file per role of batch `n`, every slot given `fields`."""
+    batch = json.loads((tmp_path / f"batch{n}.json").read_text(encoding="utf-8"))
+    out = []
+    for role, slots in batch.items():
+        path = tmp_path / f"answers{n}_{role}.json"
+        path.write_text(
+            json.dumps([{**slot, **fields} for slot in slots]), encoding="utf-8"
+        )
+        out.append(f"{role}={path}")
+    return out
+
+
+class TestTheChiefRecastsAnAdd:
+    """The chief's recast at an add's empty place lands there as an `add`.
+
+    Ported from `tests/test_turn.py::TestTheChiefRecastsAnAdd`,
+    `decision-log.md Process: #157`: the recast at an empty place is an `add`
+    whatever answer reached it first, so the chief's prose gets to the docket.
+    A `correct` or a `patch` there would quote an empty paragraph and write
+    nothing.
+
+    block-context adds at the gap and everyone cleans the two real
+    paragraphs, so the add is composed and put to function-context; that role
+    answers with its own text, which contests the place; both then hold, and
+    the chief recasts it.
+    """
+
+    @pytest.mark.parametrize(
+        "answer",
+        [
+            pytest.param(
+                {
+                    "instruction": "correct",
+                    "claim": {"false": "wants", "true": "needs"},
+                    "change": ADDED.replace("wants", "needs"),
+                    "reason": "the fixture says needs",
+                },
+                id="a-correct-first",
+            ),
+            pytest.param(
+                {
+                    "instruction": "patch",
+                    "claim": {"from": "wants", "to": "needs"},
+                    "change": ADDED.replace("wants", "needs"),
+                    "reason": "the fixture says needs",
+                },
+                id="a-patch-first",
+            ),
+        ],
+    )
+    def test_the_recast_is_an_add_whatever_answer_comes_first(
+        self, tmp_path, monkeypatch, capsys, answer
+    ):
+        code = _dealt_through_mark(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            {
+                "block-context": [_CLEAN_ABOVE, _CLEAN_BELOW, THE_ADD],
+                "function-context": [_CLEAN_ABOVE, _CLEAN_BELOW],
+            },
+        )
+        assert code == collate_command.REREADS
+        code, out = turn(
+            tmp_path, monkeypatch, capsys, 1, *_answer_every_slot(tmp_path, 1, **answer)
+        )
+        assert code == collate_command.ESCALATIONS, out
+        code, out = turn(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            2,
+            *_answer_every_slot(tmp_path, 2, instruction="hold", reason="mine"),
+        )
+        assert code == collate_command.ESCALATIONS, out
+        code, out = disposition(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            [
+                {
+                    "address": EMPTY_PLACE,
+                    "answer": "recast",
+                    "reason": "neither wording carries it",
+                    "prose": RECAST_THERE,
+                }
+            ],
+            proof="proof2.json",
+        )
+        assert code == collate_command.OK, out
+        marks = entries_of(the_chief(tmp_path))
+        assert [(m.address, m.instruction) for m in marks] == [
+            (EMPTY_PLACE, Instruction.ADD)
+        ]
+        assert marks[0].change == RECAST_THERE
+        assert place_on(_closed(tmp_path), EMPTY_PLACE)["text"] == RECAST_THERE
 
 
 class TestRefusals:
