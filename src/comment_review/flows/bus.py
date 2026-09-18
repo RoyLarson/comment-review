@@ -187,7 +187,8 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     )
     chief = chief_copy_of(fold.decided, "copy-chief", read_from, _pages_of(copies))
     carried = [place for place in fold.decided.values() if place.state in CARRIED]
-    return out, Result(proof, chief, _batch_of(carried) if carried else None)
+    batch = _batch_of(carried, read_from) if carried else None
+    return out, Result(proof, chief, batch)
 
 
 def _root_problems(copies: list[EditCopy]) -> list[Problem]:
@@ -446,11 +447,27 @@ def _commit(
         fold.decided, CHIEF, proof.read_from, _pages_of(list(proof.edit_copies))
     )
     carried = [place for place in fold.decided.values() if place.state in CARRIED]
-    return out, Result(next_proof, chief, _batch_of(carried) if carried else None)
+    batch = _batch_of(carried, proof.read_from) if carried else None
+    return out, Result(next_proof, chief, batch)
 
 
-def _batch_of(carried: list[Place]) -> dict[str, list[dict]]:
-    """Role -> one slot per carried-forward place that role is asked about."""
+def _batch_of(carried: list[Place], read_from: dict) -> dict[str, list[dict]]:
+    """Role -> one slot per carried-forward place that role is asked about.
+
+    Every slot carries the tree the copies were read from, as an edit_copy and
+    a master proof each carry their own: a role hands the slot back as it was
+    sent and adds only its answer, so the file its answers arrive in says what
+    its citations are resolved against, and `check --answers` defaults its
+    root from the file it is handed rather than from the directory it stands
+    in.
+
+    Args:
+        carried: the places this fold is carrying forward.
+        read_from: the proof's own, copied onto each slot rather than aliased.
+
+    Returns:
+        role -> its slots. A role nothing is asked of is absent.
+    """
     batch: dict[str, list[dict]] = {}
     for place in carried:
         for role in asked(place):
@@ -462,6 +479,7 @@ def _batch_of(carried: list[Place]) -> dict[str, list[dict]]:
                     "raw_text": place.text if place.text is not None else place.base,
                     "sides": dict(place.sides),
                     "instruction": None,
+                    "read_from": {**read_from},
                 }
             )
     return batch

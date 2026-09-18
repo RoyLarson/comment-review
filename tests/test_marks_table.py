@@ -118,9 +118,29 @@ def test_stances():
         is Stance.PROPOSES
     )
     deferring = _mark(Instruction.QUERY, claim={"shape": str(Shape.OUTSIDE_MY_ROLE)})
+    unable = _mark(Instruction.QUERY, claim={"shape": str(Shape.UNABLE_TO_DETERMINE)})
     human = _mark(Instruction.QUERY, claim={"shape": str(Shape.HUMAN_REVIEW_NECESSARY)})
-    assert INSTRUCTIONS[Instruction.QUERY].pairs(deferring) is Stance.ABSTAINS
+    assert INSTRUCTIONS[Instruction.QUERY].pairs(deferring) is Stance.DEFERS
+    assert INSTRUCTIONS[Instruction.QUERY].pairs(unable) is Stance.DEFERS
     assert INSTRUCTIONS[Instruction.QUERY].pairs(human) is Stance.UNSETTLABLE
+
+
+def test_only_a_deferring_query_defers():
+    """`decision-log.md Process: #121` and `#180`: a role that defers is not
+    waited on, and a `clean` is -- so no other row may take that stance."""
+    from comment_review.desk.marks.mark import Shape
+
+    deferring = [
+        instruction
+        for instruction, row in INSTRUCTIONS.items()
+        if row.pairs(_mark(instruction, claim={"shape": str(Shape.OUTSIDE_MY_ROLE)}))
+        is Stance.DEFERS
+    ]
+    assert deferring == [Instruction.QUERY]
+    assert (
+        INSTRUCTIONS[Instruction.CLEAN].pairs(_mark(Instruction.CLEAN))
+        is Stance.ABSTAINS
+    )
 
 
 def test_every_row_names_the_answers_a_turn_may_give_on_it():

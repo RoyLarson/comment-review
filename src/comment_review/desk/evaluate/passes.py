@@ -109,12 +109,10 @@ def sides_of(place: Place) -> tuple[dict[str, str | None], tuple[str, ...]]:
 def _defers(filed: list[Filed]) -> bool:
     """Whether every one of one role's marks here declines to hold a view.
 
-    A `query` defers, to another role or to the human, and stays out of the
-    reckoning for the rest of the review (`decision-log.md Process: #121`).
-    Two classifiers say so together: the row's stance, which is not a
-    proposal, and its `substantive`, which separates a query from the null
-    mark -- a `clean` reports that nothing was found in the paragraph as it
-    stands, which is not a refusal to hold a view about somebody's proposal.
+    The row says so itself: a deferring `query` takes the stance of that
+    name, and it is the only mark that does. A `clean` abstains from
+    proposing and still holds a view -- it read the paragraph and found
+    nothing to report -- so a text it has not been shown owes it a say.
 
     Args:
         filed: one role's marks at one place, never empty.
@@ -123,8 +121,7 @@ def _defers(filed: list[Filed]) -> bool:
         True where the role is not waited on for its say here.
     """
     return all(
-        INSTRUCTIONS[one.mark.instruction].pairs(one.mark) is not Stance.PROPOSES
-        and INSTRUCTIONS[one.mark.instruction].substantive
+        INSTRUCTIONS[one.mark.instruction].pairs(one.mark) is Stance.DEFERS
         for one in filed
     )
 

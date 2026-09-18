@@ -352,6 +352,40 @@ class TestABatchIsHeldToWhatTheTurnRefuses:
             if isinstance(one, Refused)
         )
 
+    def test_the_root_comes_off_the_slots_where_no_repo_is_given(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """A slot carries the tree the copies were read from, as an edit_copy
+        and a proof do, so a role checking its answers names no tree of its
+        own. The cite below resolves there and nowhere near this suite's own
+        directory, which is what `--repo` would otherwise have to say."""
+        result = _folded(tmp_path)
+        (tmp_path / "batch.json").write_text(json.dumps(result.batch), encoding="utf-8")
+        path = _answers_file(
+            tmp_path,
+            "block-context",
+            [
+                {
+                    "address": "m.py@b1",
+                    "instruction": "correct",
+                    "reason": "the line I read says so",
+                    "change": "# one\n# corrected\n# three",
+                    "sources": [{"cite": "m.py:2", "verbatim": "# one"}],
+                }
+            ],
+        )
+        code, out, _ = _run(
+            monkeypatch,
+            capsys,
+            "--answers",
+            path,
+            "--sent",
+            str(tmp_path / "batch.json"),
+            "--role",
+            "block-context",
+        )
+        assert code == 0, out
+
     def test_a_cite_that_does_not_resolve_is_named_here_and_refused_at_the_turn(
         self, tmp_path, monkeypatch, capsys
     ):

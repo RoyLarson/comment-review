@@ -876,9 +876,12 @@ $Stages = [ordered]@{
         $answerFile = @{}
         foreach ($role in $Roles) {
             $answerFile[$role] = Join-Path $Run "answers-$role.json"
+            # No --repo: the slots the batch sent name the tree they were read
+            # from, so the check resolves an answer's citations against it
+            # without being told where the checkout is.
             Invoke-Checked -Stage "check answers $role" -CommandLine ($Launcher + @(
                 $Cmd.check, '--answers', $answerFile[$role], '--sent', $Batch1File,
-                '--role', $role, '--repo', $OriginalDir
+                '--role', $role
             ))
         }
         $answers = foreach ($role in $Roles) { '--answers', "$role=$($answerFile[$role])" }

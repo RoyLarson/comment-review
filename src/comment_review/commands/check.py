@@ -32,8 +32,8 @@ names a place its page carries (`desk.collator.verify_report`, `drift_in`,
 `flows.collate.resolution_problems` -- the fold's own). For a
 BATCH: `flows.answers.answers_of`, the call the turn makes for each role --
 every answer paired to the slot that went out at its address, and read against
-that slot's own question. So `--sent` is the batch that went out and `--repo`
-the checkout its citations resolve against; nothing is saved. A slot left
+that slot's own question. So `--sent` is the batch that went out, whose slots
+name the checkout their citations resolve against; nothing is saved. A slot left
 unanswered, an answer at an address the batch never sent this role, an answer
 the question does not admit, and a `cite` that does not resolve are each named
 here, which is what the turn refuses the round for.
@@ -177,6 +177,30 @@ def _never_sent(address: str) -> str:
     return "never sent to this role"
 
 
+def _root_of(repo: str | None, sent: dict[str, dict]) -> Path:
+    """The checkout an answer's citations resolve against.
+
+    A slot carries the tree the copies were read from, as an edit_copy and a
+    master proof do, so a role checking its answers names no tree of its own.
+    `--repo` still wins, and a batch written before a slot carried one leaves
+    the directory this is run from.
+
+    Args:
+        repo: what `--repo` said, or None.
+        sent: the slots this role was handed, by address.
+
+    Returns:
+        The root, which is what every `cite` is resolved against.
+    """
+    if repo:
+        return Path(repo)
+    for slot in sent.values():
+        read_from = slot.get("read_from")
+        if isinstance(read_from, dict) and read_from.get("root"):
+            return Path(str(read_from["root"]))
+    return Path(".")
+
+
 def _check_answers(path: str, sent_path: str, role: str, repo: str | None) -> int:
     loaded, why = load_value(Path(path))
     if why:
@@ -195,7 +219,7 @@ def _check_answers(path: str, sent_path: str, role: str, repo: str | None) -> in
     }
     cache: Cache = {}
     answers, problems = answers_of(
-        role, sent, slots_of(loaded, role), _never_sent, Path(repo or "."), cache
+        role, sent, slots_of(loaded, role), _never_sent, _root_of(repo, sent), cache
     )
     for one in problems:
         print(f"{one.role} {one.address or '(the batch)'}: {one.message}")
@@ -234,7 +258,7 @@ def main() -> int:
         "--repo",
         help="the checkout a `sources` cite resolves against -- with --binder"
         " the binder's own read_from.root by default, and with --answers the"
-        " directory this is run from",
+        " one the sent slots name",
     )
     args = ap.parse_args()
 

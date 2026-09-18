@@ -47,7 +47,15 @@ class Touch(StrEnum):
 
 
 class Stance(StrEnum):
-    """How a mark stands toward the other marks at its place."""
+    """How a mark stands toward the other marks at its place.
+
+    `ABSTAINS` and `DEFERS` are not one stance. A `clean` holds a view -- it
+    read the paragraph and found nothing to report -- so a text nobody has
+    shown it still owes it a say. A deferring `query` holds none: it hands the
+    place to another role for the rest of the review
+    (`decision-log.md Process: #121`), and nothing waits on it
+    (`desk.evaluate.passes.owed_a_say`, `Process: #180`).
+    """
 
     @staticmethod
     def _generate_next_value_(name, start, count, last_values):
@@ -55,6 +63,7 @@ class Stance(StrEnum):
 
     PROPOSES = auto()
     ABSTAINS = auto()
+    DEFERS = auto()
     UNSETTLABLE = auto()
 
 
@@ -146,7 +155,7 @@ def _abstains(mark):
 def _query_stance(mark):
     if mark.claim.get("shape") == str(Shape.HUMAN_REVIEW_NECESSARY):
         return Stance.UNSETTLABLE
-    return Stance.ABSTAINS
+    return Stance.DEFERS
 
 
 ESCALATION_ANSWERS = ("hold", "withdraw", "correct", "patch")

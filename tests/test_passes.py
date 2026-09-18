@@ -267,6 +267,32 @@ class TestATextEveryReaderMustHaveSeen:
         assert got.state is State.COMPOSED and got.text == "# new paragraph\n"
         assert got.question is Question.COMPOSITION and got.owed == ("b",)
 
+    def test_a_role_deferring_at_one_end_of_a_move_defers_at_the_other(self):
+        """A move is one mark at two places (`decision-log.md Process: #137`
+        and `#138`), so a role that queried its origin is not waited on at a
+        destination it never marked -- which is what the differential caught,
+        on a move's landing place that every role had read."""
+        move = _mark(
+            Instruction.MOVE,
+            change="# two\n",
+            raw_text="# four\n# two\n# five\n",
+            claim={"from": "m.py@b1", "to": "m.py@b5"},
+        )
+        deferred = _mark(Instruction.QUERY, claim={"shape": str(Shape.OUTSIDE_MY_ROLE)})
+        origin = _place(Filed("a", move, Touch.ORIGIN), Filed("b", deferred, Touch.OWN))
+        landing = _place(
+            Filed("a", move, Touch.DESTINATION),
+            base="# four\n# five\n",
+            address="m.py@b5",
+        )
+        for end, other in ((origin, landing), (landing, origin)):
+            end.readers = ("a", "b")
+            end.partner = other.address
+        assert marks_pass(landing).owed == ("b",)
+        assert marks_pass(landing, origin).state is State.STANDS
+        assert marks_pass(landing, origin).owed == ()
+        assert marks_pass(origin, landing).owed == ()
+
     def test_a_deferring_query_beside_an_add_settles_it(self):
         """`decision-log.md Process: #121`, which the invariant keeps: the one
         role that could have opposed the add abstains, so nothing is owed."""
