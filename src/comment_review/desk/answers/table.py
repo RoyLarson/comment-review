@@ -36,11 +36,29 @@ def _query_effect(answer) -> Effect:
 
 @dataclass(frozen=True)
 class AnswerRow:
-    """One answer, as every reader sees it."""
+    """One answer, as every reader sees it.
+
+    Attributes:
+        question: which of the two this answer answers.
+        effect: what it does to the role's own proposal.
+        owes_change: whether it owes a `change`.
+        claim_all: every key its `claim` must carry, as the marks table's own
+            `Row.claim_all` states it for a mark. Empty for a row whose claim
+            is nothing to this table.
+
+            !! IT IS WHAT `effect` READS, STATED WHERE A READER CAN FIND IT.
+            `_query_effect` asks a `query`'s `claim["shape"]` to tell a place
+            held for the human from a role standing aside, and a missing key
+            fell to the second silently -- the difference between a review
+            that stops for a person and one that does not. The parse refuses
+            the absence now, and `flows.answers.contracts` publishes the keys
+            off this field, so nothing hand-types them.
+    """
 
     question: Question
     effect: Callable[[Any], Effect]
     owes_change: bool = False
+    claim_all: tuple[str, ...] = ()
 
 
 ANSWERS: dict[tuple[Question, str], AnswerRow] = {
@@ -59,7 +77,11 @@ ANSWERS: dict[tuple[Question, str], AnswerRow] = {
     (Question.COMPOSITION, "clean"): AnswerRow(
         Question.COMPOSITION, _always(Effect.ACCEPTS)
     ),
-    (Question.COMPOSITION, "query"): AnswerRow(Question.COMPOSITION, _query_effect),
+    (Question.COMPOSITION, "query"): AnswerRow(
+        Question.COMPOSITION,
+        _query_effect,
+        claim_all=("shape", "attempted", "settles"),
+    ),
     (Question.COMPOSITION, "correct"): AnswerRow(
         Question.COMPOSITION, _always(Effect.REPLACES), True
     ),
