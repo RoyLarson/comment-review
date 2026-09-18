@@ -4820,3 +4820,35 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   into that role's side, marks on the same sentence are refused back to the role, naming both.
   A mark that proposes no text -- a `query` -- stands beside them and sends the place to the
   human as it does from any role.
+
+- **#180.** **`#89` stands in the rebuilt fold, as one invariant** (Roy, 2026-09-18, asked after
+  `6cea8547` put the turn onto the Unit of Work and `#89` was found to have no implementation
+  left).
+
+  The design of 2026-09-14 gave a place the state *stands* where "the one proposal is unopposed",
+  written without being checked against `#89`, and the rebuilt fold carried `#89` for an `add`
+  alone. Offered -- restoring it as one invariant, restoring it at the first fold only, or
+  superseding it -- Roy chose the invariant. So a place settles on a text only when every role
+  that read it, a role that filed only a `query` excluded, has proposed that text or answered
+  `clean` to it. A lone proposal against cleans is carried forward as a composition to those
+  roles, at the first fold and after a turn that leaves one side standing; a lone proposal at a
+  place no other role read stands. An `add` going back to every reader (`#49`, `#116`) is this
+  rule's case and no longer a rule of its own. The design's row is corrected.
+
+- **#181.** **An answer's sources are verified before the fold, as a mark's are** (Roy,
+  2026-09-18, the same question round).
+
+  The old turn wrote the answers into the copies and folded again, which resolved every cite
+  against the tree; the turn handler verified nothing. Offered -- verifying before the fold,
+  verifying in `check --answers` alone, or leaving them unverified -- Roy chose before the fold.
+  So the turn handler runs over the answers the source verification the collate handler runs
+  over the marks; a cite that does not resolve is refused back to the role and the round rolls
+  back, and `check --answers` reports the same. Opening a cited file is not a page read.
+
+- **#182.** **A held move prints as one entry naming both ends** (Roy, 2026-09-18, the same
+  question round).
+
+  `disposition` printed a move a role sent to the human as one entry -- the paragraph dropped at
+  one place and added at the other -- and the switched commands printed two unsettlable lines.
+  Roy chose one entry per move. So two places that partner each other print as one line naming
+  the origin and the destination, in `collate`, `turn` and `disposition` alike.

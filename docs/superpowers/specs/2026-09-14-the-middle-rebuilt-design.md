@@ -115,9 +115,9 @@ place's state, and what is still open after the last pass is what the author see
 
 | state | meaning | next |
 | --- | --- | --- |
-| stands | every mark proposes nothing, or the one proposal is unopposed | settled on the proposal or the base |
-| agreed | every proposal is one text | settled on that text |
-| composed | proposals touch different sentences and compose | carried forward as a composition |
+| stands | every mark proposes nothing, or the one proposal is at a place no other role read | settled on the proposal or the base |
+| agreed | every role that read the place proposed the one text or answered `clean` to it | settled on that text |
+| composed | proposals touch different sentences and compose, or one proposal stands before roles that have not seen it (#89, #180) | carried forward as a composition |
 | contested | proposals on one sentence differ | carried forward as an escalation |
 | unsettlable | a human-review query is present | rides to the author; no later pass changes it |
 | refused | a mark the table cannot read | back to the role; the transaction does not commit |
