@@ -149,10 +149,13 @@ def write_rate_fixture(root: Path) -> Path:
 #: places are the ones the plant needs and the other two files cannot spare:
 #: `b1`, a comment of two sentences whose second a partial move takes to `b3`,
 #: leaving the first behind; `b3`, the comment that move arrives above; `b5`,
-#: the comment a move sends to `b8` and a role holds for the human, so neither
+#: the comment a move sends to `b10` and a role holds for the human, so neither
 #: end lands; `b7`, the comment one role corrects and the other three clean,
-#: which carries forward to those three as a composition; and `c5`, the
-#: trailing comment whose `correct` writes a change wider than its claim.
+#: which carries forward to those three as a composition; `c5`, the
+#: trailing comment whose `correct` writes a change wider than its claim; and
+#: `b9`, the comment one role moves up to `b8` while another rewords it where
+#: it stands, which contests both ends of the move and leaves the chief to
+#: rule each of them.
 STORE_FIXTURE = (
     "def kept(log):\n"
     "    # Every lookup is recorded. Entries are never removed.\n"
@@ -172,6 +175,11 @@ STORE_FIXTURE = (
     "def empty(log):\n"
     "    # True when the store has answered nothing at all.\n"
     "    return kept(log) == 0\n"
+    "\n"
+    "\n"
+    "def total(log):\n"
+    "    # The number of lookups the store has seen.\n"
+    "    return kept(log)\n"
 )
 
 
@@ -494,7 +502,7 @@ LANDINGS: dict[str, Landing] = {
         ),
     ),
     # the held move's origin: module-context moves the whole paragraph to
-    # `b8` and block-context marks a human-review query at the same place, so
+    # `b10` and block-context marks a human-review query at the same place, so
     # both ends ride to the end unruled and the paragraph stays where it is
     # (`Process: #182`).
     "store.py@b5": Landing("kept", route="query", filed=("move", "query")),
@@ -502,12 +510,35 @@ LANDINGS: dict[str, Landing] = {
     # stays empty for the same reason. `marked` is the paragraph the move
     # carries, which its `mark` call passes as both `--change` and
     # `--raw-text`: the whole paragraph leaves, so the two are one text.
-    "store.py@b8": Landing(
+    "store.py@b10": Landing(
         "kept",
         route="query",
         filed=("move",),
         marked="    # Rounded before it is printed.",
-        line=18,
+        line=23,
+    ),
+    # the contested move's origin: block-context moves the whole paragraph up
+    # to `b8`, the gap above the declaration it describes, and
+    # function-context rewords it where it stands. Two texts that do not
+    # compose, so the place is an escalation and the pairing carries the
+    # destination with it; both roles hold in the turn and the chief takes the
+    # move in at each end, which empties the origin. `marked` is the paragraph
+    # the move carries -- the whole of it leaves, so its `--change` and its
+    # `--raw-text` differ only in the indentation the destination reads with.
+    "store.py@b9": Landing(
+        "removed",
+        route="disposition",
+        filed=("move", "correct", "query"),
+        marked="    # The number of lookups the store has seen.",
+    ),
+    # and its destination, the gap above `def total`, where the chief's second
+    # ruling lands the paragraph at the declaration's own indentation.
+    "store.py@b8": Landing(
+        "text",
+        route="disposition",
+        filed=("move",),
+        text="# The number of lookups the store has seen.",
+        line=21,
     ),
     # the lone proposal against cleans: module-context corrects, and the
     # other three roles clean rather than defer, so the text is one none of
@@ -565,7 +596,12 @@ PROPOSED = {
 #: Every other place the plant answers is carried forward as a composition.
 #: `check --answers` refuses an answer the question does not admit, so the
 #: smoke is what holds this to the fold rather than this table standing alone.
-ESCALATED = ("fib.py@c1", "fib.py@b9", "fib.py@a3")
+#: `store.py@b8` is NOT here, and it is the contested move's destination: an
+#: end takes its partner's STATE but keeps its own question and its own roles
+#: where it has them (`desk.evaluate.passes.pair_moves`). One role proposed
+#: the moved text there and one other has not seen it, so `b8` is carried
+#: forward contested, with its own composition put to that one role.
+ESCALATED = ("fib.py@c1", "fib.py@b9", "fib.py@a3", "store.py@b9")
 
 
 def question_at(address: str) -> str:
@@ -657,6 +693,13 @@ ANSWERS: dict[str, dict[str, dict]] = {
             ],
             "change": LANDINGS["rate.py@b1"].text,
         },
+        # The contested move's origin, held: the mover keeps its move, so the
+        # two texts there still stand and the chief rules each end. Its
+        # destination is not asked of this role -- the text there is its own.
+        "store.py@b9": {
+            "instruction": "hold",
+            "reason": "the paragraph describes the declaration, not the body",
+        },
     },
     "function-context": {
         "fib.py@c1": {
@@ -683,6 +726,18 @@ ANSWERS: dict[str, dict[str, dict]] = {
             },
             "reason": "put to reads more plainly than asked of",
             "change": LANDINGS["rate.py@b1"].text,
+        },
+        "store.py@b9": {
+            "instruction": "hold",
+            "reason": "the wording is what wants fixing, not where it sits",
+        },
+        # The move's destination is a composition to this role, the one reader
+        # of the page that has not seen the text there, and it accepts it --
+        # which leaves the place carried forward all the same, since its
+        # partner is still contested and the two take one state.
+        "store.py@b8": {
+            "instruction": "clean",
+            "reason": "the paragraph reads correctly where the move puts it",
         },
     },
     "module-context": {
@@ -785,6 +840,25 @@ DISPOSITIONS = [
             "the add and the patch word one point two ways; the chief says "
             "what wraps copies instead"
         ),
+    },
+    # The contested move, ruled at each of its ends. A move's two places take
+    # one state, so the chief is owed a ruling at both and `disposition`
+    # refuses the round for either one left alone; each end closes on the
+    # text its own ruling decides.
+    {
+        "address": "store.py@b9",
+        "answer": "taken_in",
+        "side": "block-context",
+        "reason": (
+            "the paragraph says what the function is for, which is read above "
+            "the declaration rather than inside it"
+        ),
+    },
+    {
+        "address": "store.py@b8",
+        "answer": "taken_in",
+        "side": "block-context",
+        "reason": "and this is where the move lands it",
     },
 ]
 
@@ -1058,11 +1132,14 @@ RATE_EXPECTED = (
 #: hand the same way from `STORE_FIXTURE` and `LANDINGS`. `b1` keeps the first
 #: of its two sentences and `b3` reads with the second on a line of its own --
 #: the partial move, whose origin keeps what the snippet left behind. `b5`
-#: stands exactly as the fixture has it: the move sending it to `b8` is held
+#: stands exactly as the fixture has it: the move sending it to `b10` is held
 #: for the human, so neither end of it lands. `b7` reads with the correction
 #: three roles cleaned their way to in the turn, and `c5` with the change its
-#: own role wrote. The blank lines are `STORE_FIXTURE`'s, since no place here
-#: is vacated.
+#: own role wrote. `b9` is empty and `b8` holds its paragraph: the chief took
+#: the contested move in at both ends, so the comment leaves the body and
+#: stands above the declaration at the declaration's own indentation -- the
+#: one place here that IS vacated, which is why `def total` follows its
+#: comment with no blank line between them.
 STORE_EXPECTED = (
     "def kept(log):\n"
     "    # Every lookup is recorded.\n"
@@ -1084,6 +1161,11 @@ STORE_EXPECTED = (
     "def empty(log):\n"
     "    # True when the store has answered nothing yet.\n"
     "    return kept(log) == 0\n"
+    "\n"
+    "\n"
+    "# The number of lookups the store has seen.\n"
+    "def total(log):\n"
+    "    return kept(log)\n"
 )
 
 
@@ -1154,21 +1236,55 @@ ROLE_RATE_DRAFT = (
 )
 
 
-def write_role_draft(root: Path) -> tuple[Path, Path]:
-    """Write `ROLE_DRAFT` and `ROLE_RATE_DRAFT` to `root`, as `write_expected` writes.
+#: And of `store.py` from the same copy: the role's own correction at `b9`
+#: lands and every other place it marked is a `clean` or a `query`, which
+#: propose no text -- including `b9`'s move, which is another role's. The
+#: comment stays inside `total`'s body here, since the draft is one role's
+#: marks and the move is not among them.
+ROLE_STORE_DRAFT = (
+    "def kept(log):\n"
+    "    # Every lookup is recorded. Entries are never removed.\n"
+    "    return len(log)\n"
+    "\n"
+    "\n"
+    "def missed(log, found):\n"
+    "    # A miss is a lookup the store had no answer for.\n"
+    "    return kept(log) - found\n"
+    "\n"
+    "\n"
+    "def part(log, found):\n"
+    "    # Rounded before it is printed.\n"
+    "    return round(found / kept(log), 2)  # two places, as the report wants\n"
+    "\n"
+    "\n"
+    "def empty(log):\n"
+    "    # True when the store has answered nothing at all.\n"
+    "    return kept(log) == 0\n"
+    "\n"
+    "\n"
+    "def total(log):\n"
+    "    # The count of lookups the store has seen.\n"
+    "    return kept(log)\n"
+)
+
+
+def write_role_draft(root: Path) -> tuple[Path, Path, Path]:
+    """Write the three role drafts to `root`, as `write_expected` writes.
 
     Args:
         root: the directory to write into. Not created here -- the smoke
             script creates its run's `role-expected` directory first.
 
     Returns:
-        The two paths written, `fib.py`'s first.
+        The three paths written, `fib.py`'s first.
     """
     fib = root / "fib.py"
     fib.write_text(ROLE_DRAFT, encoding="utf-8", newline="\n")
     rate = root / "rate.py"
     rate.write_text(ROLE_RATE_DRAFT, encoding="utf-8", newline="\n")
-    return fib, rate
+    store = root / "store.py"
+    store.write_text(ROLE_STORE_DRAFT, encoding="utf-8", newline="\n")
+    return fib, rate, store
 
 
 #: `mark-defects` T25's plant: a `drop` on `rate.py@b1` of the clause that
@@ -1244,9 +1360,9 @@ def write_collide_plant(run: Path) -> tuple[Path, Path]:
 #: snippet the move brought and the `correct`'s own last line, which is the
 #: composition of the role's two marks there; `b5`, the move's origin, is
 #: vacated and takes the blank line below it, the leading it owned; `c3` keeps
-#: the fixture's prose, which the role only queried. `fib.py` is drafted from
-#: the same copy and is `ROLE_DRAFT` unchanged -- the collide move touches
-#: neither of its pages' places.
+#: the fixture's prose, which the role only queried. `fib.py` and `store.py`
+#: are drafted from the same copy and are `ROLE_DRAFT` and `ROLE_STORE_DRAFT`
+#: unchanged -- the collide move touches no place of either.
 COLLIDE_RATE_DRAFT = (
     "def rate(hits, total):\n"
     "    # Kept for callers that ask for a share rather than a rate.\n"
@@ -1263,7 +1379,7 @@ COLLIDE_RATE_DRAFT = (
 )
 
 
-def write_collide_draft(root: Path) -> tuple[Path, Path]:
+def write_collide_draft(root: Path) -> tuple[Path, Path, Path]:
     """Write what the collide copy drafts, as `write_expected` writes.
 
     Args:
@@ -1271,13 +1387,15 @@ def write_collide_draft(root: Path) -> tuple[Path, Path]:
             script creates its run's `collide-expected` directory first.
 
     Returns:
-        The two paths written, `fib.py`'s first.
+        The three paths written, `fib.py`'s first.
     """
     fib = root / "fib.py"
     fib.write_text(ROLE_DRAFT, encoding="utf-8", newline="\n")
     rate = root / "rate.py"
     rate.write_text(COLLIDE_RATE_DRAFT, encoding="utf-8", newline="\n")
-    return fib, rate
+    store = root / "store.py"
+    store.write_text(ROLE_STORE_DRAFT, encoding="utf-8", newline="\n")
+    return fib, rate, store
 
 
 def write_wrap_plant(run: Path, expected: Path) -> tuple[Path, Path]:

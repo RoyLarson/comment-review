@@ -11,7 +11,6 @@ deals, `turn` holds the place open, `disposition` rules it. `P5` of
 import json
 
 import pytest
-from conftest import run_command
 from helpers import (
     BASE,
     DOS,
@@ -20,7 +19,6 @@ from helpers import (
     a_correct_setting,
     a_move,
     a_query,
-    a_real_binder_over,
     deal,
     disposition,
     entries_of,
@@ -33,8 +31,6 @@ from helpers import (
 from comment_review.commands import collate as collate_command
 from comment_review.desk.dispositions.disposition import ORIGINAL
 from comment_review.desk.marks.mark import Instruction, Shape
-from comment_review.flows.distribute import seed
-from comment_review.flows.fill import fill
 from comment_review.flows.proof_io import load_proof
 from comment_review.flows.transcribe import docket_of
 
@@ -378,43 +374,6 @@ THE_ADD = {
 }
 
 
-def _dealt_through_mark(tmp_path, monkeypatch, capsys, by_role: dict) -> int:
-    """`collate` over copies each ruling is PLACED on, as `mark` places it.
-
-    ! NOT `helpers.copies_over`, which overlays a mark onto a seeded slot. An
-    add at a place the binder lacks has no slot to overlay, and `flows.fill`
-    is what creates one from the page -- the same call `commands/mark.py`
-    makes. The rest is `helpers.deal`'s own argv.
-    """
-    root = tmp_path / "repo"
-    binder = a_real_binder_over(root, GAPPED)
-    (tmp_path / "binder.json").write_text(
-        json.dumps(binder.serialize()), encoding="utf-8"
-    )
-    argv = [
-        "--stage",
-        "4c",
-        "--binder",
-        str(tmp_path / "binder.json"),
-        "--out",
-        str(tmp_path / "chief0.json"),
-        "--proof-out",
-        str(tmp_path / "proof0.json"),
-        "--batch-out",
-        str(tmp_path / "batch1.json"),
-    ]
-    for i, (role, rulings) in enumerate(by_role.items()):
-        copy = seed(binder, role)
-        for ruling in rulings:
-            _placed, why = fill(copy, ruling, root)
-            assert why == [], (role, ruling["address"], why)
-        path = tmp_path / f"copy{i}.json"
-        path.write_text(json.dumps(copy), encoding="utf-8")
-        argv += ["--edit-copy", str(path)]
-    code, _out = run_command(monkeypatch, capsys, collate_command, *argv)
-    return code
-
-
 def _answer_every_slot(tmp_path, n: int, **fields) -> list[str]:
     """One answers file per role of batch `n`, every slot given `fields`."""
     batch = json.loads((tmp_path / f"batch{n}.json").read_text(encoding="utf-8"))
@@ -469,11 +428,12 @@ class TestTheChiefRecastsAnAdd:
     def test_the_recast_is_an_add_whatever_answer_comes_first(
         self, tmp_path, monkeypatch, capsys, answer
     ):
-        code = _dealt_through_mark(
+        code = deal(
             tmp_path,
             monkeypatch,
             capsys,
-            {
+            texts=GAPPED,
+            placed={
                 "block-context": [_CLEAN_ABOVE, _CLEAN_BELOW, THE_ADD],
                 "function-context": [_CLEAN_ABOVE, _CLEAN_BELOW],
             },

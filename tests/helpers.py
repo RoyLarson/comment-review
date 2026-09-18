@@ -40,6 +40,7 @@ from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof import master_proof_of
 from comment_review.docket.docket import Docket
 from comment_review.flows.distribute import seed
+from comment_review.flows.fill import fill
 from comment_review.flows.page_for import page_of, source_of
 from comment_review.flows.proof_io import load_proof
 
@@ -450,13 +451,25 @@ def copies_over(binder: Binder, by_role: dict) -> list[dict]:
     copies = []
     for role, marks_by_address in by_role.items():
         copy = seed(binder, role)
-        for sheet in copy["sheets"]:
-            for entry in sheet["marks"]:
-                mark = marks_by_address.get(entry["address"])
-                if mark is not None:
-                    entry.update(_quoting_the_real_text(mark, entry))
+        _overlaid(copy, marks_by_address)
         copies.append(copy)
     return copies
+
+
+def _overlaid(copy: dict, marks_by_address: dict) -> dict:
+    """`copy` with each mark laid over the seeded slot at its own address.
+
+    ! ONLY A SLOT THE SEED ALREADY WROTE. A mark at a place the binder does
+    not carry has none to lay over and is silently dropped here; `deal`'s
+    `placed` is the way to put one on a copy, since creating a slot from the
+    page is `flows.fill`'s.
+    """
+    for sheet in copy["sheets"]:
+        for entry in sheet["marks"]:
+            mark = marks_by_address.get(entry["address"])
+            if mark is not None:
+                entry.update(_quoting_the_real_text(mark, entry))
+    return copy
 
 
 def _quoting_the_real_text(mark: dict, entry: dict) -> dict:
@@ -797,9 +810,14 @@ def merged(*by_roles: dict) -> dict:
 
 
 def deal(
-    tmp_path, monkeypatch, capsys, by_role: dict, texts: dict | None = None
+    tmp_path,
+    monkeypatch,
+    capsys,
+    by_role: dict | None = None,
+    texts: dict | None = None,
+    placed: dict | None = None,
 ) -> int:
-    """`collate` over `by_role`: binder.json, chief0.json, proof0.json, batch1.json.
+    """`collate` over the hand: binder.json, chief0.json, proof0.json, batch1.json.
 
     The binder is over real pages written to `tmp_path / "repo"`, which the
     commands read as its root.
@@ -809,12 +827,33 @@ def deal(
     from there -- so the hand a turn is dealt is the hand `collate` dealt,
     with nothing folded twice.
 
+    Args:
+        by_role: role -> {address: mark}, each laid over the seeded slot at
+            that address.
+        texts: the paragraphs the binder's pages hold, for
+            `a_real_binder_over`.
+        placed: role -> [rulings], each PLACED through `flows.fill` -- the
+            call `commands/mark.py` makes. ! IT IS NOT THE SAME AS
+            `by_role`, and that is why both are here: a ruling at a place the
+            binder does not carry has no seeded slot to lay a mark over, and
+            `fill` is what creates one from the page. An `add` or a move's
+            destination at an empty place can only be dealt this way. A role
+            may appear in both, and its overlaid marks go on first.
+
     Returns:
         `collate`'s exit code, which is what a caller of it reads.
     """
     root = tmp_path / "repo"
     binder = a_real_binder_over(root, texts or {"m.py@b1": BASE})
-    copies = copies_over(binder, by_role)
+    roles = list(by_role or {})
+    roles += [role for role in (placed or {}) if role not in roles]
+    copies = []
+    for role in roles:
+        copy = _overlaid(seed(binder, role), (by_role or {}).get(role, {}))
+        for ruling in (placed or {}).get(role, []):
+            _mark, why = fill(copy, ruling, root)
+            assert why == [], (role, ruling["address"], why)
+        copies.append(copy)
     (tmp_path / "binder.json").write_text(
         json.dumps(binder.serialize()), encoding="utf-8"
     )

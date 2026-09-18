@@ -325,6 +325,8 @@ $Stages = [ordered]@{
             store_b1 = Join-Path $Run 'store-b1.txt'
             store_b3 = Join-Path $Run 'store-b3.txt'
             store_b8 = Join-Path $Run 'store-b8.txt'
+            store_b9 = Join-Path $Run 'store-b9.txt'
+            store_b10 = Join-Path $Run 'store-b10.txt'
             store_b7_false = Join-Path $Run 'store-b7-false.txt'
             store_b7_true = Join-Path $Run 'store-b7-true.txt'
             store_c5_false = Join-Path $Run 'store-c5-false.txt'
@@ -781,15 +783,15 @@ $Stages = [ordered]@{
             ))
         }
         # store.py@b5 -- the move a role holds for the human. module-context
-        # moves the whole paragraph to store.py@b8, the closing gap, so its
+        # moves the whole paragraph to store.py@b10, the closing gap, so its
         # `--change` and its `--raw-text` are one text; block-context reads
         # the same place and marks a human-review query. Both ends of the
         # move then ride to the end unruled and print as one entry naming
         # both (Process #182). The other two roles defer.
         Invoke-Checked -Stage 'mark store.py@b5 module-context move' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', 'store.py@b5',
-            '--instruction', 'move', '--from', 'store.py@b5', '--to', 'store.py@b8',
-            '--change', "@$($LandingFile.store_b8)", '--raw-text', "@$($LandingFile.store_b8)",
+            '--instruction', 'move', '--from', 'store.py@b5', '--to', 'store.py@b10',
+            '--change', "@$($LandingFile.store_b10)", '--raw-text', "@$($LandingFile.store_b10)",
             '--reason', 'rounding is the last thing the module does and reads as its closing note',
             '--cite', 'store.py:12', '--repo', $OriginalDir
         ))
@@ -851,6 +853,38 @@ $Stages = [ordered]@{
                 '--settles', 'block-context',
                 '--reason', 'what round(x, 2) keeps is the block below me, not my remit',
                 '--cite', 'store.py:13', '--repo', $OriginalDir
+            ))
+        }
+        # store.py@b9 -- the contested move. block-context moves the whole
+        # paragraph up to store.py@b8, the gap above the declaration it
+        # describes; function-context rewords it where it stands. The two
+        # texts do not compose, so the origin is an escalation, and a move's
+        # two places take one state, so the destination is carried with it.
+        # Both roles hold in the turn and the chief rules each end in
+        # DISPOSITIONS -- which is what a run could not do until 2026-09-18,
+        # when the dispositions pass read a state the pairing had not reached.
+        Invoke-Checked -Stage 'mark store.py@b9 block-context move' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'store.py@b9',
+            '--instruction', 'move', '--from', 'store.py@b9', '--to', 'store.py@b8',
+            '--change', "@$($LandingFile.store_b9)", '--raw-text', "@$($LandingFile.store_b8)",
+            '--reason', 'the paragraph says what total is for, which is read above the declaration',
+            '--cite', 'store.py:22', '--repo', $OriginalDir
+        ))
+        Invoke-Checked -Stage 'mark store.py@b9 function-context correct' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['function-context'], '--address', 'store.py@b9',
+            '--instruction', 'correct',
+            '--false', 'number of lookups', '--true', 'count of lookups',
+            '--reason', 'the body returns a count, and count is the word the module uses',
+            '--cite', 'store.py:23', '--repo', $OriginalDir
+        ))
+        foreach ($role in @('ownership-context', 'module-context')) {
+            Invoke-Checked -Stage "mark store.py@b9 $role query" -CommandLine ($Launcher + @(
+                $Cmd.mark, '--edit-copy', $CopyFile[$role], '--address', 'store.py@b9',
+                '--instruction', 'query', '--shape', 'outside-my-role',
+                '--attempted', 'read the comment against the declaration it sits under',
+                '--settles', 'block-context',
+                '--reason', 'where this note belongs on the page is not my remit',
+                '--cite', 'store.py:22', '--repo', $OriginalDir
             ))
         }
     }

@@ -418,7 +418,7 @@ class TestWriteTextsWritesWhatTheScriptReads(unittest.TestCase):
         }
         carried = [f"fib.py@{cue}" for cue in ("b0", "a2", "b8", "b17", "b15", "c3")]
         carried += [f"fib.py@{cue}" for cue in ("c12", "a0")]
-        carried += [f"store.py@{cue}" for cue in ("b1", "b3", "b8")]
+        carried += [f"store.py@{cue}" for cue in ("b1", "b3", "b8", "b9", "b10")]
         for address in carried:
             landing = landings[address]
             stem, cue = address.split(".")[0], address.split("@")[1]
