@@ -89,36 +89,64 @@ def _real_path(name: str, known: list[str]) -> str:
     return unflatten(name, known) or name.replace(SEPARATOR, "/")
 
 
-def _pages_of(copy: EditCopy, repo: Path) -> dict[str, tuple[str, Page]]:
-    """Every page this copy's marks touch, read from `repo`.
+def _touched_by_page(copy: EditCopy) -> dict[str, list[str]]:
+    """The flattened page name -> every address this copy's marks write there.
+
+    Sorted within a page, so two runs over one copy name them in one order.
+    A mark carrying no address -- the one row that may -- names no page.
+    """
+    out: dict[str, list[str]] = {}
+    for sheet in copy.sheets:
+        for mark in sheet.marks:
+            for address in _touched(mark):
+                name = cue_of(address).path
+                if name and address not in out.setdefault(name, []):
+                    out[name].append(address)
+    return {name: sorted(addresses) for name, addresses in out.items()}
+
+
+def _pages_of(
+    copy: EditCopy, repo: Path
+) -> tuple[dict[str, tuple[str, Page]], list[str]]:
+    """Every page this copy's marks touch, read from `repo`, and what would not read.
+
+    A page a mark writes at and this checkout cannot answer for is a refusal
+    rather than an omission: its marks would decide nothing, its page would
+    get no schedule, and the copy would draft as though those rulings had
+    never been made. A page the copy holds a sheet for but files no mark on
+    is not missed, since nothing was going to be set there.
 
     Returns:
-        The flattened page name -> `(its real relative path, the page)`, in
-        the copy's own sheet order and then in the order a destination first
-        names a page the copy has no sheet for. A page that cannot be read,
-        or whose path would escape the checkout, is left out: it carries no
-        base, no anchor and no schedule.
+        `(the flattened page name -> (its real relative path, the page), the
+        reasons)`, the pages in the copy's own sheet order and then in the
+        order a destination first names one the copy has no sheet for. A
+        reason names the role, the page and every address on it.
     """
     known = [sheet.path for sheet in copy.sheets]
-    names = [flatten(path) for path in known]
-    names += [
-        cue_of(address).path
-        for sheet in copy.sheets
-        for mark in sheet.marks
-        for address in _touched(mark)
-        if cue_of(address).path
-    ]
+    touched = _touched_by_page(copy)
+    names = [flatten(path) for path in known] + list(touched)
     out: dict[str, tuple[str, Page]] = {}
+    refused: list[str] = []
+    # A page the copy holds a sheet for and files a mark on is named twice,
+    # so what has been read already is tracked rather than tested for on
+    # `out` -- which a page that would not read never reaches.
+    seen: set[str] = set()
     for name in names:
-        if name in out:
+        if name in seen:
             continue
+        seen.add(name)
         rel = _real_path(name, known)
-        if not rel or can_escape(rel):
-            continue
-        page, _why = page_of(repo / rel, rel=rel)
+        page = None
+        if rel and not can_escape(rel):
+            page, _why = page_of(repo / rel, rel=rel)
         if page is not None:
             out[name] = (rel, page)
-    return out
+        elif name in touched:
+            refused.append(
+                f"{copy.role} {rel or name}: this checkout has no page here, so"
+                f" the marks at {', '.join(touched[name])} cannot be set"
+            )
+    return out, refused
 
 
 def docket_of(copy: EditCopy, repo: Path) -> Docket:
@@ -144,10 +172,13 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
         nothing.
 
     Raises:
-        CannotTranscribe: the fold rolled back. Nothing it reported can be
-            set, and the reasons are the report.
+        CannotTranscribe: a page a mark writes at cannot be read here, or the
+            fold rolled back. Nothing it reported can be set, and the reasons
+            are the report.
     """
-    pages = _pages_of(copy, repo)
+    pages, unreadable = _pages_of(copy, repo)
+    if unreadable:
+        raise CannotTranscribe(tuple(unreadable))
     bases: dict[str, str] = {}
     anchors: dict[str, str] = {}
     for name, (_rel, page) in pages.items():

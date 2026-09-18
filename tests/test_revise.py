@@ -158,6 +158,66 @@ class TestDocketOf:
             "the snippet is not in the origin" in one for one in raised.value.reasons
         )
 
+    def test_two_of_one_roles_marks_at_one_place_are_a_refusal(self, tmp_path):
+        """A role correcting a place and moving a paragraph into it files two
+        marks there, and the fold refuses the place rather than letting one
+        proposal stand over the other."""
+        root = tmp_path / "repo"
+        copy = a_copy(
+            root,
+            "block-context",
+            {"m.py@b1": "# one\n", "m.py@b2": "# two\n"},
+            {
+                "m.py@b1": a_correct("m.py@b1", sentence="one"),
+                "m.py@b2": a_move(
+                    "m.py@b2", "m.py@b1", change="# two", reads="# one\n# two"
+                ),
+            },
+        )
+        with pytest.raises(CannotTranscribe) as raised:
+            docket_of(copy, root)
+        # Both ends of the move report it: a move is refused whole, so
+        # `pair_moves` carries the origin's reasons to the destination.
+        at_the_place = [
+            why
+            for why in raised.value.reasons
+            if why.startswith("block-context m.py@b1: ")
+        ]
+        assert len(at_the_place) == 1, raised.value.reasons
+        assert "correct at m.py@b1" in at_the_place[0]
+        assert "move at m.py@b2" in at_the_place[0]
+
+    def test_a_page_this_checkout_cannot_read_is_a_refusal(self, tmp_path):
+        """A page a mark writes at that the checkout has no page for would
+        decide nothing and get no schedule, so the copy would draft as though
+        those rulings were never made. It is named instead."""
+        root = tmp_path / "repo"
+        copy = a_copy(
+            root,
+            "block-context",
+            {"m.py@b1": "# one\n"},
+            {"m.py@b1": a_correct("m.py@b1", sentence="one")},
+        )
+        (root / "m.py").unlink()
+        with pytest.raises(CannotTranscribe) as raised:
+            docket_of(copy, root)
+        (why,) = raised.value.reasons
+        assert why.startswith("block-context m.py: ")
+        assert "m.py@b1" in why
+
+    def test_a_page_the_copy_files_no_mark_on_is_not_missed(self, tmp_path):
+        """Only a page a mark writes at is owed. A sheet nobody ruled on has
+        nothing to set, so the checkout need not answer for it."""
+        root = tmp_path / "repo"
+        copy = a_copy(
+            root,
+            "block-context",
+            {"m.py@b1": "# one\n", "n.py@b1": "# two\n"},
+            {"m.py@b1": a_correct("m.py@b1", sentence="one")},
+        )
+        (root / "n.py").unlink()
+        assert [one.path for one in docket_of(copy, root).schedules] == ["m.py"]
+
     def test_a_moves_destination_carries_the_pages_anchor_there(self, tmp_path):
         """`decision-log.md Process: #135`, as amended: every alteration carries
         an anchor. At a mark's own address it is the mark's; at a move's

@@ -10,6 +10,38 @@ from comment_review.desk.marks.table import INSTRUCTIONS, Stance
 from comment_review.machine.differences import CannotCompose, compose
 
 
+def _doubled(place: Place) -> list[str]:
+    """One reason per role that filed more than one mark touching this place.
+
+    A place holds one text and a role holds one position on it, so two of a
+    role's own marks reaching here cannot both be honoured -- and nothing
+    downstream could say which was meant: `Place.proposals` is keyed by role,
+    so the second would stand and the first would vanish without a word. The
+    reason names each mark by its instruction and its own address, since a
+    mark reaching a place is not always addressed to it: a move is filed at
+    its destination under the origin's address.
+
+    Args:
+        place: a place with its marks filed.
+
+    Returns:
+        `"<role>: <why>"` for each such role, in the order the marks were
+        filed. Empty where every role filed at most one.
+    """
+    by_role: dict[str, list[str]] = {}
+    for one in place.filed:
+        by_role.setdefault(one.role, []).append(
+            f"{one.mark.instruction} at {one.mark.address}"
+        )
+    return [
+        f"{role}: {len(named)} of its marks touch this place -- "
+        + ", ".join(named)
+        + "; a place takes one mark from a role"
+        for role, named in by_role.items()
+        if len(named) > 1
+    ]
+
+
 def marks_pass(place: Place) -> Place:
     """The place's state from the marks filed there, and what to advise on them.
 
@@ -26,7 +58,7 @@ def marks_pass(place: Place) -> Place:
             one.mark, one.touch, place.base
         )
     )
-    reasons = []
+    reasons = _doubled(place)
     for one in place.filed:
         row = INSTRUCTIONS[one.mark.instruction]
         reasons += [

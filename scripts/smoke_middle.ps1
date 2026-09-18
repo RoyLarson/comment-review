@@ -182,6 +182,7 @@ $ParityCopyFile = Join-Path $Run 'parity-copy.json'
 $WrapCopiesDir = Join-Path $Run 'wrap-copies'
 $WrapDraftDir = Join-Path $Run 'wrap-draft'
 $WrapExpectedDir = Join-Path $Run 'wrap-expected'
+$CollideDraftDir = Join-Path $Run 'collide-draft'
 
 # Each entry is one stage's work, and the chain as this script leaves it ends
 # at diff. Each block runs in its own scope, so a variable a stage assigns is
@@ -736,24 +737,56 @@ $Stages = [ordered]@{
             'git', '-c', 'core.autocrlf=false', '--no-pager', 'diff', '--no-index', '--',
             $RoleExpectedDir, $RoleDraftDir
         )
-        # A copy of that role's copy, with a move from rate.py@b5 into
-        # rate.py@b1, whose destination text is the moved comment alone and so
-        # discards the paragraph already at b1. `mark` refuses it by name --
-        # the move's row reads the destination against the page there
-        # (Process #175) -- and writes nothing, so the copy is left as it was.
+        # docket-defects T11, over a copy of that role's copy: a move from
+        # rate.py@b5 into rate.py@b1, a place the role also corrected. It is a
+        # copy so the fold still reads the role's own.
+        #
+        # First the same move with the moved comment alone as its destination
+        # text, which discards the paragraph b1 already holds: `mark` refuses
+        # it by name, the move's row reading the destination against the page
+        # there (Process #175), and writes nothing -- so the copy is
+        # unchanged and the move below is the only one placed. Nothing else
+        # drives that refusal through the console over a real page.
         Copy-Item -LiteralPath $CopyFile['function-context'] -Destination $CollideCopyFile
-        $collide = $Launcher + @(
+        Invoke-Checked -Stage 'collide plant' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_collide_plant; write_collide_plant(Path(sys.argv[1]))',
+            $Run
+        )
+        $collideMove = $Launcher + @(
             $Cmd.mark, '--edit-copy', $CollideCopyFile, '--address', 'rate.py@b5',
             '--instruction', 'move', '--from', 'rate.py@b5', '--to', 'rate.py@b1',
             '--change', '    # Kept for callers that ask for a share rather than a rate.',
-            '--raw-text', '    # Kept for callers that ask for a share rather than a rate.',
             '--reason', "share's comment says what rate's does, and belongs with it",
             '--cite', 'rate.py:11', '--repo', $OriginalDir
         )
-        $refused = Invoke-Checked -Stage 'draft collide refused' -Expect 1 -Capture -CommandLine $collide
+        $discards = $collideMove + @(
+            '--raw-text', '    # Kept for callers that ask for a share rather than a rate.'
+        )
+        $refused = Invoke-Checked -Stage 'draft collide destination refused' -Expect 1 -Capture -CommandLine $discards
         if (-not (($refused -join "`n").Contains('the destination text does not keep'))) {
-            Write-Host 'stage failed: draft collide refused'
+            Write-Host 'stage failed: draft collide destination refused'
             Write-Host 'expected a refusal naming what the destination text drops; mark printed:'
+            $refused | Out-Host
+            Write-Host "command: $(Format-CommandLine $discards)"
+            exit 1
+        }
+        # Then the move whose destination text keeps b1's paragraph and the
+        # moved comment, which `mark` places. The copy now holds two marks of
+        # one role touching rate.py@b1 -- its correct and this move's
+        # destination -- and `proof --copy` refuses the place by name: no
+        # draft keeps one of the two and loses the other.
+        Invoke-Checked -Stage 'draft collide mark' -CommandLine ($collideMove + @(
+            '--raw-text', "@$(Join-Path $Run 'collide-raw-text.txt')"
+        ))
+        $collide = $Launcher + @(
+            $Cmd.proof, '--copy', $CollideCopyFile, '--repo', $OriginalDir,
+            '--out', $CollideDraftDir
+        )
+        $refused = Invoke-Checked -Stage 'draft collide refused' -Expect 1 -Capture -CommandLine $collide
+        if (-not (($refused -join "`n").Contains('function-context rate.py@b1: 2 of its marks touch this place'))) {
+            Write-Host 'stage failed: draft collide refused'
+            Write-Host 'expected a refusal naming rate.py@b1 as holding two of one role''s marks; proof printed:'
             $refused | Out-Host
             Write-Host "command: $(Format-CommandLine $collide)"
             exit 1

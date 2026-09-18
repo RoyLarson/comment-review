@@ -568,8 +568,24 @@ def _as_the_rows_read_it(mark: Mark) -> Mark:
     whose `carries_raw_text` is True are touched; every other row means the
     same thing to both readings.
 
-    It goes with this module. Once the turn and the disposition fold through
-    the bus there is one reading of a mark, and nothing to translate.
+    What it cannot recover is the part of each shape this flow never held,
+    and in both cases that is the snippet:
+
+        a move   `change` becomes the origin's whole paragraph, so it reads
+                 as a whole-paragraph move. A partial one is not expressible
+                 here, and a destination that already holds prose is refused
+                 downstream, since the text this flow decided for it does not
+                 keep what was there.
+        an add   `change` stays the paragraph as it will read, and `raw_text`
+                 becomes the same string. So the row's check that the text
+                 keeps every word of what it adds compares a text with
+                 itself and can never fail. The other half of that check --
+                 that it keeps every word of the base -- still measures the
+                 page.
+
+    It goes with this module, and so do both of those. Once the turn and the
+    disposition fold through the bus a role writes the two fields and there is
+    one reading of a mark, with nothing to translate and nothing to recover.
 
     Args:
         mark: one settled mark, as this flow decided it.

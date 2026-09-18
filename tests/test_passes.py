@@ -43,6 +43,50 @@ def test_an_all_clean_place_stands_on_its_base():
     assert got.state is State.STANDS and got.text is None
 
 
+class TestTwoOfOneRolesMarksAtOnePlace:
+    """A place holds one text and a role holds one position on it, so two of
+    one role's marks reaching it is refused. Before that the second
+    overwrote the first in `Place.proposals`, which is keyed by role, and a
+    role's own correction vanished under its own move at exit 0."""
+
+    def _a_correct_and_a_move_into_it(self, role: str, other: str) -> Place:
+        correct = _mark(
+            Instruction.CORRECT,
+            change="# one\n# 2\n# three\n",
+            claim={"false": "two", "true": "2"},
+        )
+        moved = _mark(
+            Instruction.MOVE,
+            address="m.py@b5",
+            change="# five\n",
+            raw_text=BASE + "# five\n",
+            claim={"from": "m.py@b5", "to": "m.py@b1"},
+        )
+        return _place(
+            Filed(role, correct, Touch.OWN),
+            Filed(other, moved, Touch.DESTINATION),
+        )
+
+    def test_one_role_filing_both_is_refused_naming_each_mark(self):
+        got = marks_pass(self._a_correct_and_a_move_into_it("a", "a"))
+        assert got.state is State.REFUSED
+        assert len(got.reasons) == 1, got.reasons
+        (why,) = got.reasons
+        assert why.startswith("a: ")
+        assert "correct at m.py@b1" in why and "move at m.py@b5" in why
+
+    def test_two_roles_filing_one_mark_each_is_not(self):
+        got = marks_pass(self._a_correct_and_a_move_into_it("a", "b"))
+        assert got.state is not State.REFUSED
+        assert got.reasons == ()
+
+    def test_the_other_role_is_not_named(self):
+        place = self._a_correct_and_a_move_into_it("a", "a")
+        place.filed.append(Filed("b", _mark(Instruction.CLEAN), Touch.OWN))
+        got = marks_pass(place)
+        assert [why.split(":")[0] for why in got.reasons] == ["a"]
+
+
 def test_a_lone_proposal_stands():
     place = _place(
         Filed(

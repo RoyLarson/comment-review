@@ -178,6 +178,29 @@ class TestAWithdrawnMarkLeavesTheSlotAsSeeded:
         assert left["raw_text"] == slot["raw_text"]
         assert untouched(left)
 
+    def test_a_move_is_handed_back_its_origins_own_paragraph(self, root):
+        """A move's `raw_text` is the destination's text, so the origin's slot
+        is reseeded off the page too -- handing the mark's back would leave
+        the origin holding a paragraph that belongs at the other end."""
+        copy = seed(binder_of(root, 0), "block-context")
+        slot = dict(_marks(copy)[0])
+        entry = {
+            "address": slot["address"],
+            "instruction": "move",
+            "claim": {"from": slot["address"], "to": "m.py@b3"},
+            "reason": "the sentence belongs beside the code it describes",
+            "sources": [{"cite": "m.py:5"}],
+            "change": "# two\n",
+            "raw_text": "# four\n# two\n# five\n",
+        }
+        placed, why = fill(copy, entry, root)
+        assert why == [] and placed is not None
+        left, why = withdraw(copy, slot["address"], root)
+        assert why == [] and left is not None
+        assert left["raw_text"] == slot["raw_text"] == "# one\n# two\n# three"
+        assert left["anchor"] == slot["anchor"]
+        assert untouched(left)
+
     def test_nothing_placed_is_refused_and_the_copy_is_untouched(self, copy):
         before = json.dumps(copy)
         left, why = withdraw(copy, "m.py@b1")

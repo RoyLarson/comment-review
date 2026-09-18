@@ -874,6 +874,37 @@ WRAP_RATE_DRAFT = (
 )
 
 
+#: The move the collide plant places: `share`'s comment, exactly as
+#: `RATE_FIXTURE` holds it, which is the whole of `rate.py@b5`.
+COLLIDE_SNIPPET = "    # Kept for callers that ask for a share rather than a rate."
+
+#: What `rate.py@b1` reads once that snippet arrives, written out by hand from
+#: `RATE_FIXTURE`: the paragraph already there, then the moved comment. It
+#: keeps every word of both, so `mark` places the move -- which is what lets
+#: the plant reach the fold, where the role's own `correct` at `b1` is the
+#: second mark of its at that place.
+COLLIDE_RATE_B1 = (
+    "    # Zero calls give a zero rate: nothing\n"
+    "    # was asked of the cache. The rate is\n"
+    "    # hits over total, never above one.\n" + COLLIDE_SNIPPET
+)
+
+
+def write_collide_plant(run: Path) -> Path:
+    """Write `COLLIDE_RATE_B1` for the smoke's collide move, and return its path.
+
+    Args:
+        run: the run directory; the text goes to `collide-raw-text.txt` in it,
+            which the smoke script passes to `mark` as `@path`.
+
+    Returns:
+        The path written.
+    """
+    path = run / "collide-raw-text.txt"
+    path.write_text(COLLIDE_RATE_B1, encoding="utf-8", newline="\n")
+    return path
+
+
 def write_wrap_plant(run: Path, expected: Path) -> tuple[Path, Path]:
     """Write `WRAP_DROP` for the smoke's `mark` call, and `WRAP_RATE_DRAFT`.
 
