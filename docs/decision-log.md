@@ -4806,3 +4806,17 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   the handler refuses where the copies' `read_from` differ -- one refusal per odd copy, then the
   rollback -- for the reason the old refusal gave: copies from different trees share no address
   space.
+
+- **#179.** **One role's marks at one place compose, the way two roles' marks do** (Roy,
+  2026-09-18, asked after `0bde30b8` made the rebuilt fold refuse any place two of one role's
+  marks reach).
+
+  The reviewer brief tells a role that a second ruling at an address "lands beside the first";
+  the old write end refused the pair only where both produced an alteration
+  (`docket-defects` T11); the rebuilt fold keyed a place's sides by role and silently kept one.
+  Offered -- a `query` beside one proposal and nothing else, one ruling per role per place, or
+  any pair composed -- Roy chose any pair, composed. So a role's marks that propose text at one
+  place compose against the base as two roles' marks do: marks on different sentences compose
+  into that role's side, marks on the same sentence are refused back to the role, naming both.
+  A mark that proposes no text -- a `query` -- stands beside them and sends the place to the
+  human as it does from any role.
