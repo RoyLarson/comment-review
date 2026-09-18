@@ -6,10 +6,10 @@ and through `flows.bus`, and compares what each made of every place. Where
 they disagree, the address must be in `EXPLAINED` and the message names the
 ruling that accounts for it -- anything else is a defect in the new fold.
 
-The comparison reads the new fold's EVENTS rather than its decided places,
-because the Unit of Work rolls back over the six adds below and a rollback
-decides nothing. Each place still reported what it came to on the way, which
-is what a rollback's report is for.
+The comparison reads the new fold's EVENTS rather than its decided places, so
+that a rollback is still legible: a rolled-back fold decides nothing, and each
+place has already reported what it came to on the way. Over the plant as it
+stands the new fold commits, and the events are what it settled.
 """
 
 import json
@@ -27,13 +27,11 @@ from comment_review.flows.bus import CopiesReturned, handle
 from comment_review.flows.proof_io import load_binder
 
 #: The rulings that account for a difference. Nothing else may.
-ADD_SHAPE = (
-    "ruling #176: an add takes the same shape as every other mark, so its"
-    " `raw_text` is the text as it will stand. `flows.fill` still writes the"
-    " seeded text there and the new text in `change`, which the marks table"
-    " reads as an add that drops every word of its own prose. It goes when"
-    " `flows.fill` writes an add's `raw_text` as the table reads it"
-)
+#:
+#: ! `ADD_SHAPE` WAS THE SIXTH ENTRY AND CAME OUT when `flows.fill` began
+#: writing an add's `raw_text` as ruling `#176` has it -- the paragraph as it
+#: will read. The six adds the plant files now settle to the same text in both
+#: folds, so nothing is left for it to explain.
 MOVE_ENDS = (
     "rulings #172 and #175: a move's `change` is the snippet it takes and its"
     " `raw_text` is the destination's text as it will stand, so the origin"
@@ -50,12 +48,6 @@ CLEAN_PLACE = (
 #: address -> why the two folds differ there. Every entry must actually
 #: differ, and every difference must have an entry.
 EXPLAINED = {
-    "fib.py@a0": ADD_SHAPE,
-    "fib.py@a2": ADD_SHAPE,
-    "fib.py@b8": ADD_SHAPE,
-    "fib.py@b15": ADD_SHAPE,
-    "fib.py@b17": ADD_SHAPE,
-    "fib.py@c3": ADD_SHAPE,
     "fib.py@b1": MOVE_ENDS,
     "fib.py@c12": CLEAN_PLACE,
 }
@@ -158,10 +150,6 @@ def test_the_places_carried_forward_are_the_same_set(folded):
             f" {'did not' if address in was else 'did'}, and no ruling"
             " explains it"
         )
-        assert EXPLAINED[address] is ADD_SHAPE, (
-            f"{address}: {EXPLAINED[address]} does not explain a carried-forward"
-            " place that changed sides"
-        )
 
 
 def test_the_unsettlable_place_is_the_same_place(folded):
@@ -171,16 +159,18 @@ def test_the_unsettlable_place_is_the_same_place(folded):
     assert was == now
 
 
-def test_every_refusal_is_an_add_the_new_table_cannot_read(folded):
-    """The new fold rolls back, and `#176` is the whole of why."""
+def test_the_new_fold_refuses_nothing_and_commits(folded):
+    """Every mark the plant files reads against its page, so the round stands.
+
+    ! IT ASSERTED THE OPPOSITE UNTIL `flows.fill` WROTE AN ADD'S `raw_text` as
+    ruling `#176` has it: the six adds came back carrying the seeded paragraph
+    and the added text in `change`, which the marks table read as an add
+    dropping every word of its own prose, and the fold rolled back over all
+    six."""
     _got, out = folded
-    refused = _refused(out)
-    assert sorted(refused) == sorted(a for a, w in EXPLAINED.items() if w is ADD_SHAPE)
-    for address, reasons in sorted(refused.items()):
-        assert all("does not keep" in reason for reason in reasons), (
-            f"{address}: {reasons} is not the add-shape refusal {ADD_SHAPE}"
-        )
-    assert any(isinstance(one, events.RolledBack) for one in out)
+    assert _refused(out) == {}
+    assert not any(isinstance(one, events.RolledBack) for one in out)
+    assert any(isinstance(one, events.Committed) for one in out)
 
 
 def test_the_advisory_notes_name_the_places_the_old_dropped_list_did(folded):

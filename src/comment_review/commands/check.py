@@ -47,9 +47,16 @@ import json
 import sys
 from pathlib import Path
 
-from comment_review.desk.collator import Cache, base_texts, drift_in, verify_report
+from comment_review.desk.collator import (
+    Cache,
+    Problem,
+    base_texts,
+    drift_in,
+    verify_report,
+)
 from comment_review.desk.containers import EditCopy
 from comment_review.flows._collate import resolution_problems, texts_at
+from comment_review.flows.fill import page_text_at, row_problems
 from comment_review.flows.mark_errors import mark_errors
 from comment_review.flows.proof_io import (
     load_batch,
@@ -72,6 +79,43 @@ def _refused(why: list[str]) -> int:
     for line in why:
         print(line, file=sys.stderr)
     return UNREADABLE
+
+
+def _row_problems(
+    copy: EditCopy, loaded: dict, texts: dict, root: Path
+) -> list[Problem]:
+    """What each mark's own row finds against the pages -- `mark`'s own check.
+
+    ! THE SAME CALL `flows.fill` MAKES, over a whole copy. A role may write its
+    copy with its file-write tool rather than placing each ruling through
+    `mark`, and the rows are what decide a `move`'s snippet and an `add`'s
+    paragraph (`decision-log.md Process: #172`, `#175`, `#176`) -- so a
+    hand-written copy is held to what `mark` enforces on the way in.
+
+    Args:
+        copy: one parsed edit_copy.
+        loaded: the same copy as its wire dict, which `place_on_the_page`
+            reads a sheet off for a place no mark's own address names.
+        texts: `flows._collate.texts_at`'s map, whose first text at each
+            address is the page's own -- already read once for the stage.
+        root: the checkout every page is read from.
+
+    Returns:
+        One `Problem` per finding, in sheet then mark order.
+    """
+    bases = {address: held[0] for address, held in texts.items()}
+
+    def base_at(address: str) -> str:
+        if address not in bases:
+            bases[address] = page_text_at([loaded], address, root)
+        return bases[address]
+
+    return [
+        Problem(copy.role, mark.address, why)
+        for sheet in copy.sheets
+        for mark in sheet.marks
+        for why in row_problems(mark, base_at)
+    ]
 
 
 def _check_copy(path: str, binder_path: str | None, repo: str | None) -> int:
@@ -100,6 +144,7 @@ def _check_copy(path: str, binder_path: str | None, repo: str | None) -> int:
             *verify_report(copy, texts, root, cache),
             *drift_in(copy, base_texts(binder)),
             *resolution_problems(copy, paths, root, {}),
+            *_row_problems(copy, loaded, texts, root),
         ):
             print(
                 f"{problem.role} {problem.address or '(the copy)'}: {problem.message}"

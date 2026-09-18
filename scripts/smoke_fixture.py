@@ -175,7 +175,7 @@ class Landing(NamedTuple):
     `marked` is set only where something other than the first-round mark's
     change lands, and holds that change: at `c1`, what `mark` derives from
     `claim`, which the turn's answers replace; at `c12`, what the `add`'s
-    `mark` call carries as `--change`, which `mark` refuses because it does
+    `mark` call carries as `--raw-text`, which `mark` refuses because it does
     not keep the words the place already holds; at `b15`, what the `add`'s
     `mark` call carries, which a human query in the turn keeps off the page;
     at `b8`, what the `add`'s `mark` call carries, which the chief replaces
@@ -335,21 +335,23 @@ LANDINGS: dict[str, Landing] = {
         line=12,
     ),
     # ownership-context's add, on a filled c that already holds `# base case`
-    # beside `if n < 2:`. Its change drops `base` and `case`, and an add at a
-    # place holding prose keeps every word of it in order (`Process: #132`),
-    # so `mark` refuses it; ownership-context then cleans the place, as the
-    # other three roles do, the fold settles it, and `# base case` stands.
-    # `marked` is the refused add's change, which its `mark` call carries.
+    # beside `if n < 2:`. The paragraph it says will read there drops `base`
+    # and `case`, and an add at a place holding prose keeps every word of it
+    # in order (`Process: #132` and `#176`), so `mark` refuses it;
+    # ownership-context then cleans the place, as the other three roles do,
+    # the fold settles it, and `# base case` stands. `marked` is that refused
+    # paragraph, which its `mark` call carries as `--raw-text`.
     "fib.py@c12": Landing(
         "kept",
         route="mark",
         marked="  # 0 and 1 are already fibonacci numbers",
     ),
     # block-context's add, on a filled a -- the module docstring already
-    # reads. Its change keeps every word of that docstring in order, with the
-    # full stop moved, so `mark` accepts it (`Process: #132`); in the turn
-    # all four roles clean the composition, and the fold settles it as one
-    # text.
+    # reads. The paragraph it says will read there keeps every word of that
+    # docstring in order, with the full stop moved, so `mark` accepts the add
+    # (`Process: #132` and `#176`), and its `mark` call carries this text as
+    # `--raw-text`; in the turn all four roles clean the composition, and the
+    # fold settles it as one text.
     "fib.py@a0": Landing(
         "text",
         route="turn",

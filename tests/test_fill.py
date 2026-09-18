@@ -151,9 +151,32 @@ class TestAWithdrawnMarkLeavesTheSlotAsSeeded:
         }
         placed, why = fill(copy, entry, root)
         assert why == [] and placed is not None
-        left, why = withdraw(copy, "m.py@b3")
+        left, why = withdraw(copy, "m.py@b3", root)
         assert why == [] and left == {}
         assert all(m["address"] != "m.py@b3" for m in _marks(copy))
+
+    def test_an_add_over_prose_is_handed_back_the_pages_paragraph(self, root):
+        """A row that carries its own `raw_text` wrote the paragraph as it
+        would read, so the slot's seed is read back off the page rather than
+        off the mark that replaced it."""
+        copy = seed(binder_of(root, 0), "block-context")
+        slot = dict(_marks(copy)[0])
+        added = "# y is 2 because the fixture says so\n"
+        entry = {
+            "address": slot["address"],
+            "instruction": "add",
+            "claim": {"missing": "why y is 2", "anchor": "`y`"},
+            "reason": "the constant is explained nowhere",
+            "sources": [{"cite": "m.py:5"}],
+            "change": added,
+            "raw_text": "# one, two and three.\n" + added,
+        }
+        placed, why = fill(copy, entry, root)
+        assert why == [] and placed is not None
+        left, why = withdraw(copy, slot["address"], root)
+        assert why == [] and left is not None
+        assert left["raw_text"] == slot["raw_text"]
+        assert untouched(left)
 
     def test_nothing_placed_is_refused_and_the_copy_is_untouched(self, copy):
         before = json.dumps(copy)
@@ -179,7 +202,7 @@ class TestAnAddressWithNoSlotIsAppendedToItsSheet:
         assert marks[-1] is placed
         assert placed["address"] == "m.py@b3"
         assert placed["anchor"] == "w = 4"
-        assert placed["raw_text"] == ""
+        assert placed["raw_text"] == entry["change"]
         assert placed["sources"] == [{"cite": "m.py:5", "verbatim": "y = 2"}]
 
     def test_the_anchor_comes_from_the_page_not_the_entry(self, copy, root):
@@ -200,7 +223,7 @@ class TestAnAddressWithNoSlotIsAppendedToItsSheet:
         assert why == [] and placed is not None
         assert placed["anchor"] != "a line the role invented"
         assert placed["anchor"] == "w = 4"
-        assert placed["raw_text"] == ""
+        assert placed["raw_text"] == entry["change"]
 
     def test_a_page_this_copy_has_no_sheet_for_is_refused(self, copy, root):
         before = json.dumps(copy)
@@ -210,15 +233,88 @@ class TestAnAddressWithNoSlotIsAppendedToItsSheet:
         assert json.dumps(copy) == before
 
 
-class TestAnAddAtAPlaceHoldingProseKeepsItsWords:
-    """`decision-log.md Process: #132`, `mark-defects` T20. An `add` where the
-    page already holds prose adds to that paragraph, so its change keeps every
-    word of the prose, in order; punctuation and whitespace are free to move.
-    The copy is seeded from a binder over the real page `root` holds, whose
-    `b1` holds `# one`, `# two` and `# three`."""
+class TestAMoveCarriesItsSnippetAndTheDestinationsText:
+    """`decision-log.md Process: #172` and `#175`. A move's `change` is the
+    snippet, subtracted exactly once from the origin's paragraph, and its
+    `raw_text` is the destination paragraph as it will read with the snippet
+    in. Both are checked against the pages before the mark is placed."""
 
-    def _add_at(self, address: str, change: str) -> dict:
-        return {
+    def _a_move(self, origin: str, **overrides) -> dict:
+        entry = {
+            "address": origin,
+            "instruction": "move",
+            "claim": {"from": origin, "to": "m.py@b3"},
+            "reason": "the sentence belongs beside the code it describes",
+            "sources": [{"cite": "m.py:5"}],
+            "change": "# two\n",
+            "raw_text": "# four\n# two\n# five\n",
+        }
+        entry.update(overrides)
+        return entry
+
+    def _origin(self, root) -> tuple[dict, str]:
+        copy = seed(binder_of(root, 0), "block-context")
+        return copy, _marks(copy)[0]["address"]
+
+    def test_both_texts_land_on_the_mark(self, root):
+        copy, origin = self._origin(root)
+        placed, why = fill(copy, self._a_move(origin), root)
+        assert why == [] and placed is not None
+        assert placed["change"] == "# two\n"
+        assert placed["raw_text"] == "# four\n# two\n# five\n"
+
+    def test_a_snippet_the_origin_does_not_hold_once_is_refused(self, root):
+        copy, origin = self._origin(root)
+        before = json.dumps(copy)
+        placed, why = fill(copy, self._a_move(origin, change="# nine\n"), root)
+        assert placed is None
+        assert any("the snippet is not in the origin" in one for one in why), why
+        assert json.dumps(copy) == before
+
+    def test_a_destination_text_that_drops_the_snippet_is_refused(self, root):
+        copy, origin = self._origin(root)
+        entry = self._a_move(origin, raw_text="# four\n# five\n")
+        placed, why = fill(copy, entry, root)
+        assert placed is None
+        assert len(why) == 1 and "does not keep" in why[0]
+
+    def test_a_move_with_no_raw_text_is_refused(self, root):
+        copy, origin = self._origin(root)
+        entry = self._a_move(origin)
+        del entry["raw_text"]
+        placed, why = fill(copy, entry, root)
+        assert placed is None
+        assert len(why) == 1 and "`raw_text`" in why[0]
+
+
+class TestARowThatDoesNotCarryItsOwnRawTextIsRefusedOne:
+    """Every row but `add` and `move` takes its `raw_text` from the page, so a
+    role supplying one has misread what the field is for and is told so."""
+
+    def test_a_correct_carrying_a_raw_text_is_refused(self, copy, root):
+        before = json.dumps(copy)
+        entry = _a_correct(raw_text="# one\n# 2\n# three\n")
+        placed, why = fill(copy, entry, root)
+        assert placed is None
+        assert len(why) == 1 and "`raw_text`" in why[0]
+        assert json.dumps(copy) == before
+
+    def test_a_raw_text_equal_to_the_seeded_one_is_not_a_refusal(self, copy, root):
+        placed, why = fill(copy, _a_correct(raw_text=BASE), root)
+        assert why == [] and placed is not None
+        assert placed["raw_text"] == BASE
+
+
+class TestAnAddAtAPlaceHoldingProseKeepsItsWords:
+    """`decision-log.md Process: #132` and `#176`, `mark-defects` T20. An `add`
+    where the page already holds prose adds to that paragraph, so the paragraph
+    as it will read keeps every word of the prose, in order; punctuation and
+    whitespace are free to move. That paragraph is the mark's `raw_text` and
+    the role writes it. The copy is seeded from a binder over the real page
+    `root` holds, whose `b1` holds `# one`, `# two` and `# three`."""
+
+    def _add_at(self, address: str, change: str, **overrides) -> dict:
+        entry = {
             "address": address,
             "instruction": "add",
             "claim": {"missing": "why y is 2", "anchor": "`y`"},
@@ -226,47 +322,70 @@ class TestAnAddAtAPlaceHoldingProseKeepsItsWords:
             "sources": [{"cite": "m.py:5"}],
             "change": change,
         }
+        entry.update(overrides)
+        return entry
 
-    def test_an_add_that_drops_a_word_is_refused(self, root):
+    def test_an_add_whose_raw_text_drops_a_word_is_refused(self, root):
         copy = seed(binder_of(root, 0), "block-context")
         slot = _marks(copy)[0]
         assert slot["raw_text"] == "# one\n# two\n# three"
         before = json.dumps(copy)
-        change = "# one\n# three\n# y is 2 because the fixture says so\n"
-        placed, why = fill(copy, self._add_at(slot["address"], change), root)
+        added = "# y is 2 because the fixture says so\n"
+        reads = "# one\n# three\n" + added
+        entry = self._add_at(slot["address"], added, raw_text=reads)
+        placed, why = fill(copy, entry, root)
         assert placed is None
         assert len(why) == 1, why
         assert slot["address"] in why[0] and "'two'" in why[0]
         assert json.dumps(copy) == before
 
-    def test_an_add_that_keeps_the_words_out_of_order_is_refused(self, root):
+    def test_an_add_whose_raw_text_reorders_the_words_is_refused(self, root):
         copy = seed(binder_of(root, 0), "block-context")
         slot = _marks(copy)[0]
         before = json.dumps(copy)
-        change = "# three, two, one\n# y is 2 because the fixture says so\n"
-        placed, why = fill(copy, self._add_at(slot["address"], change), root)
+        added = "# y is 2 because the fixture says so\n"
+        reads = "# three, two, one\n" + added
+        entry = self._add_at(slot["address"], added, raw_text=reads)
+        placed, why = fill(copy, entry, root)
         assert placed is None
         assert len(why) == 1 and slot["address"] in why[0], why
         assert json.dumps(copy) == before
 
-    def test_an_add_that_keeps_every_word_in_order_is_placed(self, root):
+    def test_an_add_whose_raw_text_keeps_every_word_in_order_is_placed(self, root):
         copy = seed(binder_of(root, 0), "block-context")
         slot = _marks(copy)[0]
-        change = "# one, two and three.\n# y is 2 because the fixture says so\n"
-        placed, why = fill(copy, self._add_at(slot["address"], change), root)
+        added = "# y is 2 because the fixture says so\n"
+        reads = "# one, two and three.\n" + added
+        entry = self._add_at(slot["address"], added, raw_text=reads)
+        placed, why = fill(copy, entry, root)
         assert why == [] and placed is not None
         assert placed is slot
-        assert placed["raw_text"] == "# one\n# two\n# three"
-        assert placed["change"] == change
+        assert placed["raw_text"] == reads
+        assert placed["change"] == added
 
-    def test_an_add_at_an_empty_place_has_no_words_to_keep(self, root):
+    def test_an_add_over_prose_with_no_raw_text_is_refused(self, root):
+        """The paragraph as it will read is the role's, and at a place holding
+        prose nothing can derive it -- so its absence is named rather than
+        guessed at."""
+        copy = seed(binder_of(root, 0), "block-context")
+        slot = _marks(copy)[0]
+        before = json.dumps(copy)
+        added = "# y is 2 because the fixture says so\n"
+        placed, why = fill(copy, self._add_at(slot["address"], added), root)
+        assert placed is None
+        assert len(why) == 1 and "`raw_text`" in why[0], why
+        assert json.dumps(copy) == before
+
+    def test_an_add_at_an_empty_place_takes_its_change_as_its_raw_text(self, root):
+        """`decision-log.md Process: #176`: at an empty place the snippet and
+        the paragraph as it will read are the same text, so nothing is owed."""
         binder = binder_of(root, 0)
         assert "m.py@b3" not in {p.address for p in binder.paragraphs}
         copy = seed(binder, "block-context")
         change = "# y is 2 because the fixture says so\n"
         placed, why = fill(copy, self._add_at("m.py@b3", change), root)
         assert why == [] and placed is not None
-        assert placed["raw_text"] == ""
+        assert placed["raw_text"] == change
         assert _marks(copy)[-1] is placed
 
 
@@ -282,8 +401,8 @@ class TestAnAddAtAnFPlaceKeepsThePagesProse:
         (tmp_path / "m.py").write_text(SAMPLE, encoding="utf-8", newline="")
         return tmp_path
 
-    def _add_at_f0(self, change: str) -> dict:
-        return {
+    def _add_at_f0(self, change: str, **overrides) -> dict:
+        entry = {
             "address": "m.py@f0",
             "instruction": "add",
             "claim": {"missing": "what runs the module", "anchor": "`python`"},
@@ -291,22 +410,26 @@ class TestAnAddAtAnFPlaceKeepsThePagesProse:
             "sources": [{"cite": "m.py:1"}],
             "change": change,
         }
+        entry.update(overrides)
+        return entry
 
-    def test_an_add_that_drops_the_prose_is_refused(self, front):
+    def test_an_add_whose_raw_text_drops_the_prose_is_refused(self, front):
         copy = seed(binder_of(front, 0), "block-context")
         assert "m.py@f0" not in {m["address"] for m in _marks(copy)}
         before = json.dumps(copy)
-        placed, why = fill(copy, self._add_at_f0("# runs as a script\n"), front)
+        added = "# runs as a script\n"
+        placed, why = fill(copy, self._add_at_f0(added, raw_text=added), front)
         assert placed is None
         assert len(why) == 1 and "m.py@f0" in why[0] and "'usr'" in why[0], why
         assert json.dumps(copy) == before
 
-    def test_an_add_that_keeps_the_prose_is_seeded_from_the_page(self, front):
+    def test_an_add_whose_raw_text_keeps_the_pages_prose_is_placed(self, front):
         copy = seed(binder_of(front, 0), "block-context")
-        change = "#!/usr/bin/env python\n# runs as a script\n"
-        placed, why = fill(copy, self._add_at_f0(change), front)
+        reads = "#!/usr/bin/env python\n# runs as a script\n"
+        entry = self._add_at_f0("# runs as a script\n", raw_text=reads)
+        placed, why = fill(copy, entry, front)
         assert why == [] and placed is not None
-        assert placed["raw_text"] == "#!/usr/bin/env python"
+        assert placed["raw_text"] == reads
         assert placed["anchor"] == "<module>"
         assert _marks(copy)[-1] is placed
 

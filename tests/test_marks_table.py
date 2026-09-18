@@ -23,6 +23,13 @@ def _mark(instruction: Instruction, **fields) -> Mark:
 BASE = "# one\n# two\n# three\n"
 
 
+def test_the_rows_that_carry_their_own_raw_text_are_add_and_move():
+    """Process #175 and #176: for these two the role writes the paragraph as
+    it will read; for every other row `raw_text` is the seeded paragraph."""
+    carried = {name for name, row in INSTRUCTIONS.items() if row.carries_raw_text}
+    assert carried == {Instruction.ADD, Instruction.MOVE}
+
+
 def test_a_clean_and_a_query_set_nothing_anywhere():
     for instruction in (Instruction.CLEAN, Instruction.QUERY):
         row = INSTRUCTIONS[instruction]
@@ -183,7 +190,11 @@ def test_chief_mark_synthesizes_an_add_over_an_empty_base():
     assert got.instruction is Instruction.ADD
     assert got.claim == {"missing": "# new", "anchor": "`x = 1`"}
     assert got.change == "# new\n"
-    assert got.raw_text == ""
+    # Process #176: an add's `raw_text` is the paragraph as it will read, and
+    # its row sets that text at the place. The base is empty here, so the two
+    # are the same text.
+    assert got.raw_text == "# new\n"
+    assert INSTRUCTIONS[got.instruction].sets(got, Touch.OWN, place.base) == place.text
 
 
 def test_chief_mark_synthesizes_a_drop_when_the_decided_text_is_empty():

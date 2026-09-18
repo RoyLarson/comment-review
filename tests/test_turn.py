@@ -35,6 +35,7 @@ from helpers import (
     copies_over,
     disposition,
     entries_of,
+    placed_as_the_old_turn_reads_it,
     proof_at,
     the_chief,
 )
@@ -203,11 +204,22 @@ def _escalated_move():
     copies = copies_over(
         binder,
         {
+            # `raw_text` is put back to the seeded paragraph: this flow reads
+            # it as the origin's, where the rows read a move's as its
+            # destination's (`decision-log.md Process: #175`).
             "block-context": {
-                "m.py@b1": {**a_move("m.py@b1", "n.py@c1"), "change": TWO}
+                "m.py@b1": {
+                    **a_move("m.py@b1", "n.py@c1"),
+                    "change": TWO,
+                    "raw_text": BASE,
+                }
             },
             "function-context": {
-                "m.py@b1": {**a_move("m.py@b1", "o.py@c1"), "change": DOS}
+                "m.py@b1": {
+                    **a_move("m.py@b1", "o.py@c1"),
+                    "change": DOS,
+                    "raw_text": BASE,
+                }
             },
         },
     )
@@ -788,13 +800,32 @@ MOVED_FROM = "m.py@b1"
 MOVED_TEXT = "# one\n# two\n# three"
 
 
+def _place(copy: dict, ruling: dict, root) -> None:
+    """One ruling onto its copy, through whichever placer reads its shape.
+
+    A `move` or an `add` carries `change` and `raw_text` as this flow reads
+    them, which `flows.fill` no longer places (`decision-log.md Process:
+    #172`, `#175`, `#176`) -- see `placed_as_the_old_turn_reads_it`. Every
+    other row means the same thing to both, and goes through `fill`, so what
+    `mark` derives and quotes is still what these fixtures carry.
+    """
+    if INSTRUCTIONS[Instruction(ruling["instruction"])].carries_raw_text:
+        placed_as_the_old_turn_reads_it(copy, ruling, root)
+        return
+    _, why = fill(copy, ruling, root)
+    assert why == [], why
+
+
 def _a_lone_move(root, change: str, other: dict | None = None):
     """block-context moves `MOVED_FROM` to `EMPTY_PLACE` carrying `change`,
     function-context rules `other` at `MOVED_FROM` -- a `clean` where none is
     given -- and `collate` folds the two.
 
-    Both marks are placed by `fill` on copies seeded from a binder over the
-    real page `GAPPED_PAGE`, as the `mark` command places them.
+    The copies are seeded from a binder over the real page `GAPPED_PAGE`. The
+    move is written in the shape this flow reads -- `change` is the
+    destination's own text -- by `placed_as_the_old_turn_reads_it`, which says
+    why; the other role's ruling goes through `fill`, as the `mark` command
+    places it.
     """
     (root / "m.py").write_text(GAPPED_PAGE, encoding="utf-8")
     binder = binder_of(root, 0)
@@ -807,8 +838,7 @@ def _a_lone_move(root, change: str, other: dict | None = None):
         "sources": [{"cite": "m.py:7"}],
         "change": change,
     }
-    _, why = fill(copies[0], moved, root)
-    assert why == []
+    placed_as_the_old_turn_reads_it(copies[0], moved, root)
     ruled = {"address": MOVED_FROM, **(other or {"instruction": "clean"})}
     _, why = fill(copies[1], ruled, root)
     assert why == []
@@ -1599,8 +1629,7 @@ class TestAMoversCleanSlotAtItsDestination:
         }
         for copy in copies:
             for ruling in rulings[copy["role"]]:
-                _, why = fill(copy, ruling, tmp_path)
-                assert why == []
+                _place(copy, ruling, tmp_path)
         got = collate("4c", copies, binder, root=tmp_path)
         (slot,) = _held_at(got, "block-context", FILLED_PLACE)
         assert slot.instruction is Instruction.CLEAN
@@ -1627,7 +1656,7 @@ def _fold_over(root, page: str, rulings: dict):
     """block-context's and function-context's `rulings` over `page`, folded.
 
     `page` is written to `m.py` in `root`, each copy is seeded from its
-    binder, and each ruling is placed by `fill`, as T81's test places them.
+    binder, and each ruling is placed by `_place`, as T81's test places them.
 
     Returns:
         `(binder, the fold)`.
@@ -1637,8 +1666,7 @@ def _fold_over(root, page: str, rulings: dict):
     copies = [seed(binder, role) for role in ("block-context", "function-context")]
     for copy in copies:
         for ruling in rulings[copy["role"]]:
-            _, why = fill(copy, ruling, root)
-            assert why == []
+            _place(copy, ruling, root)
     return binder, collate("4c", copies, binder, root=root)
 
 
@@ -2112,8 +2140,7 @@ def _a_move_stet_at_turn_zero(root) -> tuple[Binder, MasterProof]:
     }
     for copy in copies:
         for ruling in rulings[copy["role"]]:
-            _, why = fill(copy, ruling, root)
-            assert why == []
+            _place(copy, ruling, root)
     got = collate("4c", copies, binder, root=root)
     assert got.problems == []
     moved = got.determined[MOVED_FROM]
@@ -2647,8 +2674,7 @@ def _a_move_held_where_no_copy_has_the_page(root):
     }
     cleaned = {"address": MOVED_FROM, "instruction": "clean"}
     for copy, ruled in zip(copies, (moved, cleaned), strict=True):
-        _, why = fill(copy, ruled, root)
-        assert why == []
+        _place(copy, ruled, root)
     got = collate("4c", copies, binder, root=root)
     assert got.problems == []
     batch = batch_of(got.escalations, got.rereads)
@@ -3012,12 +3038,20 @@ class TestTheDisposition:
         assert again == ruled.mark
 
     @pytest.mark.parametrize("escalated", [_escalated_drop, _escalated_move])
-    def test_a_recast_over_a_drop_is_a_correct_to_the_chiefs_prose(self, escalated):
+    def test_a_recast_over_a_drop_is_a_correct_to_the_chiefs_prose(
+        self, tmp_path, escalated
+    ):
         """`Process: #146`: the chief's recast over two roles' `drop`s, and at
         the origin of a move `_join_moves` widened to both its ends, is a
         `correct` whose `false` is the original paragraph and whose `true` is
         the chief's prose -- the text the docket lands at `m.py@b1`. Every
-        other place carried forward is ruled for the original."""
+        other place carried forward is ruled for the original.
+
+        ! THE DOCKET IS TAKEN OVER A REAL `m.py`, written here: `docket_of`
+        folds the chief's copy against the page at each place, so a checkout
+        with no such page decides nothing there."""
+        root = tmp_path / "repo"
+        a_real_binder_over(root, {"m.py@b1": BASE})
         _, _, got = escalated()
         prose = "# mine\n"
         ruled = rule_at_max_turns(
@@ -3037,7 +3071,7 @@ class TestTheDisposition:
         again, why = Mark.deserialize(entry.address, entry.serialize())
         assert why == []
         assert again == entry
-        (schedule,) = docket_of(chief, REPO).schedules
+        (schedule,) = docket_of(chief, root).schedules
         assert [(one.cue, one.text) for one in schedule.alterations] == [
             ("b1", entry.claim["true"])
         ]

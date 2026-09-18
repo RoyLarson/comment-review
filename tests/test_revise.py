@@ -10,7 +10,6 @@ from pathlib import Path
 
 import pytest
 from helpers import (
-    a_binder_over,
     a_clean,
     a_correct,
     a_docket_over,
@@ -29,18 +28,22 @@ from comment_review.desk.containers import EditCopy
 from comment_review.flows import proof_setter
 from comment_review.flows.page_for import page_of
 from comment_review.flows.revise import AddressesMoved, _set_by, pull
-from comment_review.flows.transcribe import docket_of
+from comment_review.flows.transcribe import CannotTranscribe, docket_of
 
 
-def a_copy(role: str, paragraphs: dict[str, str], marks: dict) -> EditCopy:
-    """One returned `edit_copy`, seeded from a real binder and PARSED.
+def a_copy(root: Path, role: str, paragraphs: dict[str, str], marks: dict) -> EditCopy:
+    """One returned `edit_copy`, seeded from a real binder over real pages.
 
     ! THROUGH `seed` AND `EditCopy.deserialize`, never hand-built -- `copies_over`
     seeds from the binder the way `distribute` does, and `returned` runs the
     result through the container boundary. A dict shaped the way this test
     expects would agree with the test whatever the code did.
+
+    ! THE PAGES ARE ON DISK, AND THEY DID NOT HAVE TO BE until `docket_of`
+    folded. The fold measures every mark against the page at its place, so a
+    copy whose pages are not in `root` decides nothing there.
     """
-    binder = a_binder_over(paragraphs)
+    binder = a_real_binder_over(root, paragraphs)
     return returned(copies_over(binder, {role: marks})[0])
 
 
@@ -61,7 +64,7 @@ def every_other_file_fails_to_gather(monkeypatch, names: set[str]) -> None:
 
 
 class TestDocketOf:
-    """`edit_copy -> Docket`, the proof flow's first step.
+    """`edit_copy -> the fold -> Docket`, the proof flow's first step.
 
     !! IT TAKES ANY COPY, NOT ONLY THE COPY CHIEF'S. Roy, 2026-09-02: *"it could
     also be ownership contexts edit-copy or any intermediate edit-copy which
@@ -70,21 +73,90 @@ class TestDocketOf:
     `decision-log.md Process: #76`.
     """
 
-    def test_one_move_mark_yields_two_alterations(self, tmp_path):
-        """!! ONE `Mark` HOLDS BOTH ENDS. `claim_all` for a move is
-        `("from", "to")`, so the origin and the destination are derivable from
-        the single entry a copy carries -- the delete at `address`, the text at
-        `claim.to`. Nothing here needs the copy to carry a move twice."""
+    def test_a_partial_move_leaves_the_remainder_and_lands_the_destination(
+        self, tmp_path
+    ):
+        """`decision-log.md Process: #172` and `#175`: the snippet is
+        subtracted from the origin's paragraph, and what is left stands there;
+        the destination lands the paragraph the mark says it will read with."""
+        root = tmp_path / "repo"
         copy = a_copy(
+            root,
             "block-context",
-            {"m.py@b1": "# a paragraph\n", "m.py@b8": "# elsewhere\n"},
-            {"m.py@b1": a_move("m.py@b1", "m.py@b8")},
+            {"m.py@b1": "# one\n# two\n"},
+            {"m.py@b1": a_move("m.py@b1", "m.py@b0", change="# two", reads="# two")},
         )
-        schedule = docket_of(copy, tmp_path).schedules[0]
+        schedule = docket_of(copy, root).schedules[0]
         assert [(one.cue, one.text) for one in schedule.alterations] == [
-            ("b1", None),
-            ("b8", "# set by the reconcile test suite (move)"),
+            ("b0", "# two"),
+            ("b1", "# one\n"),
         ]
+
+    def test_a_whole_move_empties_its_origin(self, tmp_path):
+        """The snippet is the whole paragraph, so nothing is left at the
+        origin and the alteration there is the `None` the write end reads as a
+        delete."""
+        root = tmp_path / "repo"
+        copy = a_copy(
+            root,
+            "block-context",
+            {"m.py@b1": "# a paragraph\n"},
+            {
+                "m.py@b1": a_move(
+                    "m.py@b1", "m.py@b0", change="# a paragraph", reads="# a paragraph"
+                )
+            },
+        )
+        schedule = docket_of(copy, root).schedules[0]
+        assert [(one.cue, one.text) for one in schedule.alterations] == [
+            ("b0", "# a paragraph"),
+            ("b1", None),
+        ]
+
+    def test_a_move_onto_a_page_this_copy_holds_no_sheet_for_is_scheduled(
+        self, tmp_path
+    ):
+        """The chief's copy files a move under its origin's page, so the
+        destination's page can be one the copy never carried. `docket_of`
+        reads that page out of the checkout and schedules it, taking the sha
+        it read there -- the copy holds none for it."""
+        root = tmp_path / "repo"
+        copy = a_copy(
+            root,
+            "block-context",
+            {"m.py@b1": "# a paragraph\n"},
+            {
+                "m.py@b1": a_move(
+                    "m.py@b1", "n.py@b0", change="# a paragraph", reads="# a paragraph"
+                )
+            },
+        )
+        (root / "n.py").write_text("v0 = 0\nv1 = 1\n", encoding="utf-8", newline="\n")
+        page, why = page_of(root / "n.py", rel="n.py")
+        assert page is not None, why
+        docket = docket_of(copy, root)
+        assert [one.path for one in docket.schedules] == ["m.py", "n.py"]
+        landed = docket.schedules[1]
+        assert landed.sha == page.sha
+        assert [(one.cue, one.text) for one in landed.alterations] == [
+            ("b0", "# a paragraph")
+        ]
+
+    def test_a_copy_the_fold_sends_back_is_a_refusal_naming_its_reasons(self, tmp_path):
+        """A rolled-back fold decides nothing, so there is no docket to build
+        and the events are the report."""
+        root = tmp_path / "repo"
+        copy = a_copy(
+            root,
+            "block-context",
+            {"m.py@b1": "# a paragraph\n"},
+            {"m.py@b1": a_move("m.py@b1", "m.py@b0", change="# not in the paragraph")},
+        )
+        with pytest.raises(CannotTranscribe) as raised:
+            docket_of(copy, root)
+        assert any(
+            "the snippet is not in the origin" in one for one in raised.value.reasons
+        )
 
     def test_a_moves_destination_carries_the_pages_anchor_there(self, tmp_path):
         """`decision-log.md Process: #135`, as amended: every alteration carries
@@ -93,58 +165,67 @@ class TestDocketOf:
         destination here is an empty gap, so no slot on the copy holds it."""
         root = tmp_path / "repo"
         binder = a_real_binder_over(root, {"m.py@b1": "# a paragraph\n"})
-        move = a_move("m.py@b1", "m.py@b0")
+        move = a_move(
+            "m.py@b1", "m.py@b0", change="# a paragraph", reads="# a paragraph"
+        )
         copy = returned(copies_over(binder, {"block-context": {"m.py@b1": move}})[0])
         (mark,) = entries_of(copy)
         page, why = page_of(root / "m.py", rel="m.py")
         assert page is not None, why
         schedule = docket_of(copy, root).schedules[0]
         assert [(one.cue, one.anchor) for one in schedule.alterations] == [
-            ("b1", mark.anchor),
             ("b0", page.cues.places["b0"]),
+            ("b1", mark.anchor),
         ]
 
     def test_the_schedule_carries_the_copys_own_role(self, tmp_path):
         """! THE COPY'S ROLE, NOT A PER-PLACE ONE. An ordinary role's copy names
         that role; the fold's names `copy-chief`. Either is what set the page."""
+        root = tmp_path / "repo"
         copy = a_copy(
+            root,
             "ownership-context",
             {"m.py@b1": "# a paragraph\n"},
             {"m.py@b1": a_correct("m.py@b1", sentence="a paragraph")},
         )
-        assert docket_of(copy, tmp_path).schedules[0].role == "ownership-context"
+        assert docket_of(copy, root).schedules[0].role == "ownership-context"
 
     def test_a_sheet_becomes_a_schedule_with_its_own_path_and_sha(self, tmp_path):
+        root = tmp_path / "repo"
         copy = a_copy(
+            root,
             "block-context",
             {"m.py@b1": "# one\n", "n.py@b1": "# two\n"},
             {"m.py@b1": a_correct("m.py@b1", sentence="one")},
         )
-        docket = docket_of(copy, tmp_path)
+        docket = docket_of(copy, root)
         assert [one.path for one in docket.schedules] == ["m.py"]
-        assert docket.schedules[0].sha == "0" * 40
+        assert docket.schedules[0].sha == copy.sheets[0].sha
 
     def test_an_ordinary_mark_yields_one_alteration_at_its_own_address(self, tmp_path):
+        root = tmp_path / "repo"
         copy = a_copy(
+            root,
             "block-context",
             {"m.py@b1": "# one\n"},
             {"m.py@b1": a_correct("m.py@b1", sentence="one")},
         )
-        schedule = docket_of(copy, tmp_path).schedules[0]
+        schedule = docket_of(copy, root).schedules[0]
         assert [(one.cue, one.text) for one in schedule.alterations] == [
             ("b1", "# set by the reconcile test suite (correct)")
         ]
 
     def test_a_drop_is_written_as_a_delete(self, tmp_path):
-        """! `drop` IS THE ROW WHOSE `may_empty` IS TRUE, and `text_at` turns an
-        empty change into None -- which is what the write end reads as a
-        delete."""
+        """! `drop` IS THE ROW WHOSE `may_empty` IS TRUE, and an empty text at a
+        decided place becomes the `None` the write end reads as a delete."""
+        root = tmp_path / "repo"
         copy = a_copy(
+            root,
             "block-context",
             {"m.py@b1": "# one\n"},
             {"m.py@b1": {**a_drop("m.py@b1", "one"), "change": ""}},
         )
-        schedule = docket_of(copy, tmp_path).schedules[0]
+        schedule = docket_of(copy, root).schedules[0]
         assert [(one.cue, one.text) for one in schedule.alterations] == [("b1", None)]
 
     def test_set_by_names_the_role_whose_copy_was_pulled(self, tmp_path):
@@ -159,28 +240,34 @@ class TestDocketOf:
         empty`, which built a `MasterProof` and went through `docket_from`. The
         subject is the same and the input is now the one production carries.
         """
+        root = tmp_path / "repo"
         copy = a_copy(
+            root,
             "module-context",
             {"m.py@b1": "# one\n"},
             {"m.py@b1": a_correct("m.py@b1", sentence="one")},
         )
-        assert set(_set_by(docket_of(copy, tmp_path)).values()) == {"module-context"}
+        assert set(_set_by(docket_of(copy, root)).values()) == {"module-context"}
 
     def test_a_page_nobody_ruled_on_gets_no_schedule(self, tmp_path):
         """!! AN UNTOUCHED SLOT IS NOT AN ALTERATION. A seeded copy carries a
         slot for every place; only the ones a role filled become edits, and a
         page whose slots are all untouched must not reach the docket as an empty
         schedule the write end would then set nothing from."""
-        copy = a_copy("block-context", {"m.py@b1": "# one\n"}, {})
-        assert docket_of(copy, tmp_path).schedules == ()
+        root = tmp_path / "repo"
+        copy = a_copy(root, "block-context", {"m.py@b1": "# one\n"}, {})
+        assert docket_of(copy, root).schedules == ()
 
     def test_a_clean_or_query_mark_writes_no_alteration(self, tmp_path):
-        """`docket-defects` T10. `clean` and `query` owe no change -- they
-        propose no text -- so neither is an edit. Transcribed as one, `text_at`
-        read the empty change as a delete, and `proof --copy` over a role's copy
-        set every paragraph the role had certified or questioned as gone:
-        measured 2026-09-14, `compositor.py` drafted from 439 lines to 219."""
+        """`docket-defects` T10 and `decision-log.md Process: #174`. A `clean`
+        and a `query` propose no text, so the fold decides their places with
+        none and neither is an edit. Transcribed as one, an empty change read
+        as a delete, and `proof --copy` over a role's copy set every paragraph
+        the role had certified or questioned as gone: measured 2026-09-14,
+        `compositor.py` drafted from 439 lines to 219."""
+        root = tmp_path / "repo"
         copy = a_copy(
+            root,
             "block-context",
             {"m.py@b1": "# one\n", "m.py@b2": "# two\n", "m.py@b3": "# three\n"},
             {
@@ -189,18 +276,20 @@ class TestDocketOf:
                 "m.py@b3": a_correct("m.py@b3", sentence="three"),
             },
         )
-        schedule = docket_of(copy, tmp_path).schedules[0]
+        schedule = docket_of(copy, root).schedules[0]
         assert [one.cue for one in schedule.alterations] == ["b3"]
 
     def test_a_page_ruled_only_clean_or_query_gets_no_schedule(self, tmp_path):
         """A page whose marks propose no text has nothing for the write end to
         set, the same as a page nobody ruled on."""
+        root = tmp_path / "repo"
         copy = a_copy(
+            root,
             "block-context",
             {"m.py@b1": "# one\n", "m.py@b2": "# two\n"},
             {"m.py@b1": a_clean("m.py@b1"), "m.py@b2": a_query("m.py@b2")},
         )
-        assert docket_of(copy, tmp_path).schedules == ()
+        assert docket_of(copy, root).schedules == ()
 
 
 def test_the_revise_holds_only_the_docket_page_as_drafted(tmp_path):

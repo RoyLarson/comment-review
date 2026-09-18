@@ -159,6 +159,82 @@ class TestARulingIsPlaced:
         ]
 
 
+#: An `add` at `m.py@b1`, which already holds `BASE` -- so the paragraph as it
+#: will read is owed (`decision-log.md Process: #176`).
+ADD_OVER_PROSE: tuple[str, ...] = (
+    "--address",
+    "m.py@b1",
+    "--instruction",
+    "add",
+    "--missing",
+    "nothing says why the count is three",
+    "--anchor",
+    "`three`",
+    "--reason",
+    "the run of three is unexplained",
+    "--cite",
+    "m.py:5",
+    "--change",
+    "# and that is all of them\n",
+)
+
+
+class TestAnAddAndAMoveCarryTheParagraphAsItWillRead:
+    """`decision-log.md Process: #175` and `#176`, through the console."""
+
+    def test_an_add_over_prose_takes_its_raw_text_from_a_file(self, run):
+        reads = "# one\n# two\n# three\n# and that is all of them\n"
+        (run.dir / "reads.txt").write_text(reads, encoding="utf-8")
+        code, out = run(*ADD_OVER_PROSE, "--raw-text", "@" + str(run.dir / "reads.txt"))
+        assert code == command.OK, out
+        slot = run.copy()["sheets"][0]["marks"][0]
+        assert slot["raw_text"] == reads
+        assert slot["change"] == "# and that is all of them\n"
+
+    def test_a_raw_text_spelled_flag_equals_at_path_is_read_too(self, run):
+        reads = "# one\n# two\n# three\n# and that is all of them\n"
+        (run.dir / "reads.txt").write_text(reads, encoding="utf-8")
+        code, out = run(*ADD_OVER_PROSE, "--raw-text=@" + str(run.dir / "reads.txt"))
+        assert code == command.OK, out
+        assert run.copy()["sheets"][0]["marks"][0]["raw_text"] == reads
+
+    def test_an_add_over_prose_with_no_raw_text_is_refused(self, run):
+        before = run.copy()
+        code, out = run(*ADD_OVER_PROSE)
+        assert code == command.BROKEN
+        assert "--raw-text" in out and "m.py@b1" in out
+        assert run.copy() == before
+
+    def test_a_move_places_its_snippet_and_its_destination_text(self, run):
+        code, out = run(
+            "--address",
+            "m.py@b1",
+            "--instruction",
+            "move",
+            "--from",
+            "m.py@b1",
+            "--to",
+            "m.py@b5",
+            "--change",
+            "# two\n",
+            "--raw-text",
+            "# two\n",
+            "--reason",
+            "the note belongs beside the code it describes",
+            "--cite",
+            "m.py:5",
+        )
+        assert code == command.OK, out
+        slot = run.copy()["sheets"][0]["marks"][0]
+        assert slot["change"] == "# two\n"
+        assert slot["raw_text"] == "# two\n"
+
+    def test_a_correct_given_a_raw_text_is_refused(self, run):
+        code, out = run(*CORRECT, "--raw-text", "# one\n# 2\n# three\n")
+        assert code == command.BROKEN
+        assert "`raw_text`" in out
+
+
 class TestARefusalWritesNothing:
     def test_a_claim_flag_the_row_does_not_carry(self, run):
         before = run.copy()

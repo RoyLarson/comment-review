@@ -1097,8 +1097,8 @@ def rule_at_max_turns(
 def _the_origin(move: Mark) -> Mark:
     """A move's origin as a `drop` of the paragraph it moves.
 
-    Its `change` is empty, which empties the place as the move does there
-    (`desk.mark.text_at`). The address, anchor, `raw_text`, reason and
+    Its `change` is empty, which the write end reads as the delete a move
+    makes at its origin. The address, anchor, `raw_text`, reason and
     sources are the move's.
     """
     return Mark(

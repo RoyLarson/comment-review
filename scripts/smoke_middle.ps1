@@ -182,7 +182,6 @@ $ParityCopyFile = Join-Path $Run 'parity-copy.json'
 $WrapCopiesDir = Join-Path $Run 'wrap-copies'
 $WrapDraftDir = Join-Path $Run 'wrap-draft'
 $WrapExpectedDir = Join-Path $Run 'wrap-expected'
-$CollideDraftDir = Join-Path $Run 'collide-draft'
 
 # Each entry is one stage's work, and the chain as this script leaves it ends
 # at diff. Each block runs in its own scope, so a variable a stage assigns is
@@ -277,14 +276,17 @@ $Stages = [ordered]@{
             a0 = Join-Path $Run 'a0.txt'
         }
         # a0 -- the module docstring, already filled. block-context adds over
-        # it, keeping every word of the docstring in order, so `mark` accepts
-        # the add (Process #132); the other three clean it.
+        # it: `--change` is the text it adds and `--raw-text` the docstring as
+        # it will read, which keeps every word already there in order, so
+        # `mark` accepts the add (Process #132 and #176); the other three
+        # clean it.
         Invoke-Checked -Stage 'mark a0 block-context add' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@a0',
             '--instruction', 'add',
             '--missing', 'nothing states why the recursion is counted',
             '--anchor', '`__doc__`', '--anchor-line', '<module>',
-            '--change', "@$($LandingFile.a0)",
+            '--change', 'and why it is counted',
+            '--raw-text', "@$($LandingFile.a0)",
             '--reason', 'the module docstring says what it counts but not what for',
             '--cite', 'fib.py:1', '--repo', $OriginalDir
         ))
@@ -295,24 +297,26 @@ $Stages = [ordered]@{
             ))
         }
         # c12 -- beside `if n < 2:`, already filled with `# base case`.
-        # ownership-context adds over it with a change that drops `base` and
-        # `case`, and `mark` refuses it: an add at a place holding prose keeps
-        # every word of it, in order (Process #132). The refusal is asserted
-        # by its exit code and by the line naming the place. The copy is left
-        # as it was, so ownership-context then cleans c12 as the other three do.
+        # ownership-context adds over it with a `--raw-text` that drops `base`
+        # and `case`, and `mark` refuses it: an add at a place holding prose
+        # reads with every word of that prose, in order (Process #132 and
+        # #176). The refusal is asserted by its exit code and by the line
+        # naming the place and the word dropped. The copy is left as it was, so
+        # ownership-context then cleans c12 as the other three do.
         $c12Add = $Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['ownership-context'], '--address', 'fib.py@c12',
             '--instruction', 'add',
             '--missing', 'nothing notes which values are already fibonacci numbers',
             '--anchor', '`n < 2`', '--anchor-line', '    if n < 2:',
-            '--change', "@$($LandingFile.c12)",
+            '--change', '0 and 1 are already fibonacci numbers',
+            '--raw-text', "@$($LandingFile.c12)",
             '--reason', 'the base case deserves saying why it needs no recursion',
             '--cite', 'fib.py:27', '--repo', $OriginalDir
         )
         $refused = Invoke-Checked -Stage 'mark c12 ownership-context add refused' -Expect 1 -Capture -CommandLine $c12Add
-        if (-not (($refused -join "`n").Contains('fib.py@c12 holds prose'))) {
+        if (-not (($refused -join "`n").Contains("fib.py@c12: the text does not keep 'base'"))) {
             Write-Host 'stage failed: mark c12 ownership-context add refused'
-            Write-Host 'expected a refusal naming fib.py@c12 as holding prose; mark printed:'
+            Write-Host 'expected a refusal naming fib.py@c12 and the word it drops; mark printed:'
             $refused | Out-Host
             Write-Host "directory: $((Get-Location).Path)"
             Write-Host "command: $(Format-CommandLine $c12Add)"
@@ -499,11 +503,13 @@ $Stages = [ordered]@{
             ))
         }
         # b1 -- the move, to b0. ownership-context moves it; the other three
-        # defer with a scope-declaring query rather than clean.
+        # defer with a scope-declaring query rather than clean. The whole
+        # paragraph leaves, so the snippet `--change` subtracts from b1 and the
+        # `--raw-text` b0 reads with are the same text (Process #172 and #175).
         Invoke-Checked -Stage 'mark b1 ownership-context move' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['ownership-context'], '--address', 'fib.py@b1',
             '--instruction', 'move', '--from', 'fib.py@b1', '--to', 'fib.py@b0',
-            '--change', "@$($LandingFile.b0)",
+            '--change', "@$($LandingFile.b0)", '--raw-text', "@$($LandingFile.b0)",
             '--reason', 'module state belongs above the import, not below it',
             '--cite', 'fib.py:5', '--repo', $OriginalDir
         ))
@@ -525,6 +531,7 @@ $Stages = [ordered]@{
             $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', 'fib.py@b9',
             '--instruction', 'move', '--from', 'fib.py@b9', '--to', 'docs/history.md',
             '--change', '# The cache sits inside the decorator stack on purpose.',
+            '--raw-text', '# The cache sits inside the decorator stack on purpose.',
             '--reason', 'why the stack is ordered is history, not a rule for this code',
             '--cite', 'fib.py:21', '--repo', $OriginalDir
         )
@@ -540,6 +547,7 @@ $Stages = [ordered]@{
             $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', 'fib.py@b1',
             '--instruction', 'move', '--from', 'fib.py@b1', '--to', 'b0',
             '--change', '# Module state, written by the wrapper and read by the caller.',
+            '--raw-text', '# Module state, written by the wrapper and read by the caller.',
             '--reason', 'module state belongs above the import',
             '--cite', 'fib.py:5', '--repo', $OriginalDir
         )
@@ -694,6 +702,7 @@ $Stages = [ordered]@{
             $Cmd.mark, '--edit-copy', $ParityCopyFile, '--address', 'fib.py@b14',
             '--instruction', 'move', '--from', 'fib.py@b14', '--to', 'fib.py@b99',
             '--change', '    # Two calls per level, which is what the counter measures.',
+            '--raw-text', '    # Two calls per level, which is what the counter measures.',
             '--reason', 'the counting note belongs with the counter',
             '--cite', 'fib.py:29', '--repo', $OriginalDir
         ))
@@ -727,27 +736,24 @@ $Stages = [ordered]@{
             'git', '-c', 'core.autocrlf=false', '--no-pager', 'diff', '--no-index', '--',
             $RoleExpectedDir, $RoleDraftDir
         )
-        # docket-defects T11: a copy of that role's copy, with a move from
-        # rate.py@b5 into rate.py@b1, a place the role also corrected -- two
-        # alterations at one place. It is a copy so the fold still reads the
-        # role's own; drafting it is refused by name, and no draft keeps one
-        # alteration and loses the other.
+        # A copy of that role's copy, with a move from rate.py@b5 into
+        # rate.py@b1, whose destination text is the moved comment alone and so
+        # discards the paragraph already at b1. `mark` refuses it by name --
+        # the move's row reads the destination against the page there
+        # (Process #175) -- and writes nothing, so the copy is left as it was.
         Copy-Item -LiteralPath $CopyFile['function-context'] -Destination $CollideCopyFile
-        Invoke-Checked -Stage 'draft collide mark' -CommandLine ($Launcher + @(
+        $collide = $Launcher + @(
             $Cmd.mark, '--edit-copy', $CollideCopyFile, '--address', 'rate.py@b5',
             '--instruction', 'move', '--from', 'rate.py@b5', '--to', 'rate.py@b1',
             '--change', '    # Kept for callers that ask for a share rather than a rate.',
+            '--raw-text', '    # Kept for callers that ask for a share rather than a rate.',
             '--reason', "share's comment says what rate's does, and belongs with it",
             '--cite', 'rate.py:11', '--repo', $OriginalDir
-        ))
-        $collide = $Launcher + @(
-            $Cmd.proof, '--copy', $CollideCopyFile, '--repo', $OriginalDir,
-            '--out', $CollideDraftDir
         )
         $refused = Invoke-Checked -Stage 'draft collide refused' -Expect 1 -Capture -CommandLine $collide
-        if (-not (($refused -join "`n").Contains('rate.py@b1: two alterations for one place'))) {
+        if (-not (($refused -join "`n").Contains('the destination text does not keep'))) {
             Write-Host 'stage failed: draft collide refused'
-            Write-Host 'expected a refusal naming rate.py@b1 as holding two alterations; proof printed:'
+            Write-Host 'expected a refusal naming what the destination text drops; mark printed:'
             $refused | Out-Host
             Write-Host "command: $(Format-CommandLine $collide)"
             exit 1

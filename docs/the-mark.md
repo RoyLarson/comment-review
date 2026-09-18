@@ -228,7 +228,7 @@ payload's"* and now reads *"never the claim's"*: the old word named the field th
 ## The classifiers -- ten COLUMNS and a closed list of flags
 
 !! **THIS IS THE PART THAT WAS MISSING, AND ITS ABSENCE IS WHAT LET TWENTY-TWO FIELDS IN.** A row
-may state these and nothing else -- **fifteen things, and no prose.** A new classifier is a change
+may state these and nothing else -- **sixteen things, and no prose.** A new classifier is a change
 to THIS FILE first.
 
 | classifier | what it decides | shape |
@@ -244,13 +244,15 @@ to THIS FILE first.
 | **pairs** | how a mark of this row stands toward the others at its place | a function of the mark |
 | **answers** | which answers a turn may give where this row proposes | a list of names |
 
-**The flags, and there are five:**
+**The flags, and there are six:**
 
     not substantive        clean alone. It is the NULL mark and the coverage record
     empty change allowed   drop alone, where the claim names the whole paragraph
     anchor named in backticks   add alone, and it is a FORM check on `claim.anchor`
     destination addressable     move alone
     rereads                 add alone -- carried forward for every role that read its page
+    carries raw text        add and move -- the paragraph as it will read is the role's to
+                            write, not the seed's
 
 !! **THE COLUMN COUNT IN THIS HEADING AND THE FLAG COUNT IN THE LABEL ABOVE ARE BOTH READ
 BY THE GATE**, and their sum must equal the names these two tables state. Same rule as the

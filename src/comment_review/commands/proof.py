@@ -183,9 +183,19 @@ def main() -> int:
         held, problems = Docket.deserialize(source, loaded)
     else:
         copy, problems = EditCopy.deserialize(source, loaded)
-        # ! THE TRANSCRIBE IS THE FLOW'S FIRST STEP and cannot fail: every rule
-        # it would have checked is settled by the parse -- `Process: #76`.
-        held = transcribe.docket_of(copy, repo) if copy is not None else None
+        # !! THE TRANSCRIBE FOLDS, SO IT CAN REFUSE -- and it could not until
+        # the marks table decided what a mark sets. `docket_of` runs the Unit
+        # of Work over the copy's own places, so a mark whose row cannot read
+        # it against the page rolls the fold back and nothing is drafted. A
+        # console face prints the reasons rather than handing over a
+        # traceback, the same way `AddressesMoved` is reported below.
+        try:
+            held = transcribe.docket_of(copy, repo) if copy is not None else None
+        except transcribe.CannotTranscribe as refused:
+            print("REFUSED: the copy's own marks were sent back -- nothing written")
+            for line in refused.reasons:
+                print(line)
+            return 1
     if held is None:
         for line in problems:
             print(f"CANNOT READ THE {noun}: {line} -- nothing written")

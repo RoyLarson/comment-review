@@ -21,14 +21,15 @@ TABLES = {
 #: `desk/mark.py`, `desk/containers.py` and `commands/mark.py` were in the
 #: brief's own list but name no row by this gate's own second test -- removed
 #: 2026-09-14, T1 of docs/superpowers/plans/2026-09-14-the-middle-rebuilt.md.
+#: `flows/fill.py` came off when it stopped naming `add` to check an add's
+#: words and asked the row instead; `flows/transcribe.py` when it stopped
+#: branching on `move` to say which end of it a docket was writing.
 STILL_OLD = {
     "desk/marks/mark.py",
     "desk/collator.py",
     "desk/determined.py",
     "desk/diff_mark.py",
     "flows/_collate.py",
-    "flows/fill.py",
-    "flows/transcribe.py",
     "flows/turn.py",
 }
 NAMES = re.compile(

@@ -142,6 +142,7 @@ FIELD_FOR = {
     "anchor named in backticks": "needs_anchor",
     "destination addressable": "owes_destination",
     "rereads": "rereads",
+    "carries raw text": "carries_raw_text",
 }
 
 

@@ -496,6 +496,12 @@ def drift_in(copy: EditCopy, base: dict[str, str]) -> list[Problem]:
     seeded there, so nothing came back changed -- and nothing refuses it,
     `Process: #97`: an `add` cites a place the filter dropped.
 
+    ! AND NEITHER IS A ROW THAT WRITES ITS OWN `raw_text`. On `add` and `move`
+    the field is the paragraph as it will READ, which the role composes
+    (`Process: #175`, `#176`), so it is expected to differ from the base and
+    says nothing about whether the tree moved. Every other row still carries
+    the seeded paragraph back and is measured against it.
+
     Args:
         copy: one parsed edit_copy, as it came back.
         base: `base_texts` of the binder it was seeded from.
@@ -514,7 +520,9 @@ def drift_in(copy: EditCopy, base: dict[str, str]) -> list[Problem]:
         )
         for sheet in copy.sheets
         for mark in sheet.marks
-        if mark.address in base and mark.raw_text != base[mark.address]
+        if not INSTRUCTIONS[mark.instruction].carries_raw_text
+        and mark.address in base
+        and mark.raw_text != base[mark.address]
     ]
 
 

@@ -66,7 +66,7 @@ wrote it while the rest of the stage settles.
 """
 
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from comment_review.binder.addresses import handed
@@ -91,9 +91,9 @@ from comment_review.desk.containers import (
 from comment_review.desk.determined import Answer, Determined
 from comment_review.desk.diff_mark import ESCALATION, QUESTION
 from comment_review.desk.mark import INSTRUCTIONS, Instruction, Mark, Shape, filled
+from comment_review.desk.marks.mark import first_word_dropped
 from comment_review.desk.proof import MismatchedRoot, master_proof_of
 from comment_review.desk.stages import Stage
-from comment_review.flows.fill import first_word_dropped
 from comment_review.flows.mark_errors import Revisit, mark_errors
 from comment_review.flows.page_for import page_of
 from comment_review.machine.differences import CannotCompose, compose
@@ -551,6 +551,41 @@ def _move_order(resolved: dict[str, Mark]) -> tuple[list[str], list[str]]:
     return out, []
 
 
+def _as_the_rows_read_it(mark: Mark) -> Mark:
+    """One settled mark turned into the shape the marks table reads.
+
+    This flow decides a place from a mark's `change`: at a `move` that is the
+    destination's own text and `raw_text` is the origin's paragraph, and at an
+    `add` `change` is the paragraph as it will read while `raw_text` is
+    whatever the place was seeded with. `decision-log.md Process: #172`,
+    `#175` and `#176` swap the two: `change` is the snippet a move subtracts
+    from its origin, and `raw_text` is the paragraph the place reads with once
+    that text is in.
+
+    ! IT IS A TRANSLATION AT THE EDGE, and it is here because this flow's
+    output is read downstream by the rows -- `flows.transcribe.docket_of`
+    folds the chief's copy and asks each row what it sets. Only the two rows
+    whose `carries_raw_text` is True are touched; every other row means the
+    same thing to both readings.
+
+    ! IT GOES WITH THIS MODULE. Once the turn and the disposition fold through
+    the bus there is one reading of a mark, and nothing to translate.
+
+    Args:
+        mark: one settled mark, as this flow decided it.
+
+    Returns:
+        The same mark, or a copy of it with the two fields as the rows read
+        them.
+    """
+    row = INSTRUCTIONS[mark.instruction]
+    if not row.carries_raw_text:
+        return mark
+    if row.owes_destination:
+        return replace(mark, change=mark.raw_text, raw_text=mark.change)
+    return replace(mark, raw_text=mark.change)
+
+
 def _chief_copy(
     read_from: dict, determined: dict[str, Determined], proof: MasterProof
 ) -> EditCopy:
@@ -642,6 +677,7 @@ def _chief_copy(
         mark = det.mark
         if mark is None:
             continue
+        mark = _as_the_rows_read_it(mark)
         addr = cue_of(mark.address)
         real = unflatten(addr.path, paths) or addr.path
         if mark in marks_of.get(real, []):

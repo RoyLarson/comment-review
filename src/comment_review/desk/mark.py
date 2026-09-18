@@ -8,7 +8,6 @@ from comment_review.desk.marks.mark import (  # noqa: F401
     Shape,
     derived_change,
     filled,
-    text_at,
     untouched,
 )
 from comment_review.desk.marks.table import INSTRUCTIONS, Row  # noqa: F401

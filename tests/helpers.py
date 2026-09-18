@@ -45,7 +45,7 @@ from comment_review.desk.proof import master_proof_of
 from comment_review.docket.docket import Docket
 from comment_review.flows._collate import Collated, collate
 from comment_review.flows.distribute import seed
-from comment_review.flows.fill import fill
+from comment_review.flows.fill import fill, place_on_the_page, quoted_sources
 from comment_review.flows.page_for import page_of, source_of
 from comment_review.flows.proof_io import load_proof, save_batch, save_proof
 from comment_review.flows.turn import batch_for, proof_after
@@ -506,6 +506,55 @@ def _quoting_the_real_text(mark: dict, entry: dict) -> dict:
     return {**mark, "claim": {**claim, key: base}}
 
 
+def placed_as_the_old_turn_reads_it(copy: dict, ruling: dict, root: Path) -> dict:
+    """One ruling written onto the slot it names, seeding one from the page.
+
+    !! NOT THROUGH `flows.fill`, AND THE REASON IS A SUPERSEDED SHAPE. `fill`
+    places a mark as `decision-log.md Process: #172`, `#175` and `#176` have
+    it: a `move`'s `change` is the snippet it subtracts from its origin and its
+    `raw_text` the destination paragraph as it will read, and an `add`'s
+    `raw_text` is the paragraph as it will read. `flows.turn` and
+    `flows._collate` read `change` as the destination's own text and
+    `raw_text` as the paragraph the place was seeded with, so no one mark
+    satisfies both, and a fixture for those two flows is written in the shape
+    they read.
+
+    ! IT GOES WITH THEM. `tests/test_fill.py` and `tests/test_mark_command.py`
+    are where what `mark` places is asserted; this exists only while a flow
+    that reads the older shape is still in the tree.
+
+    Args:
+        copy: a role's edit_copy as its wire dict. MUTATED.
+        ruling: the mark, carrying at least `address` and `instruction`. Its
+            `sources` are quoted the way `fill` quotes them, so a fixture
+            names a `cite` and no `verbatim`.
+        root: the checkout the page and the cited lines are read from.
+
+    Returns:
+        The entry now on the copy.
+    """
+    marks, seeded, why = place_on_the_page([copy], ruling["address"], root)
+    assert marks is not None, why
+    entry = dict(ruling)
+    if "sources" in entry:
+        quoted, why = quoted_sources(root, entry["sources"])
+        assert quoted is not None, why
+        entry["sources"] = quoted
+    at = next(
+        (
+            i
+            for i, one in enumerate(marks)
+            if isinstance(one, dict) and one.get("address") == ruling["address"]
+        ),
+        None,
+    )
+    if at is None:
+        marks.append({**seeded, **entry})
+        return marks[-1]
+    marks[at].update(entry)
+    return marks[at]
+
+
 def _without_sheet(copy: dict, path: str) -> dict:
     """`copy` with the sheet for `path` removed -- a role that skipped a page.
 
@@ -706,10 +755,31 @@ def a_correct_setting(address: str, sentence: object, change: str) -> dict:
     return mark
 
 
-def a_move(origin: str, destination: str) -> dict:
+def a_move(origin: str, destination: str, change: str = "", reads: str = "") -> dict:
     """A `move` mark -- `origin` as its own `address`, `destination` as
-    `claim.to`. `collator.places()` must group it into both."""
-    return _mark(Instruction.MOVE, origin, {"from": origin, "to": destination})
+    `claim.to`. `collator.places()` must group it into both.
+
+    Args:
+        origin: the mark's own address.
+        destination: `claim.to`.
+        change: the snippet the move subtracts from the origin's paragraph
+            (`decision-log.md Process: #172`). A caller whose fold reads the
+            real page passes the text that is there; the default belongs to
+            no paragraph, which is what `_quoting_the_real_text` does for a
+            quoted clause.
+        reads: the destination paragraph as it will read, with the snippet in
+            (`Process: #175`). Defaults to the snippet alone, which is what a
+            move onto an empty place reads with.
+
+    Returns:
+        The mark, its `raw_text` the destination's text rather than the
+        origin's -- the one row besides `add` where the role writes it.
+    """
+    mark = _mark(Instruction.MOVE, origin, {"from": origin, "to": destination})
+    if change:
+        mark["change"] = change
+    mark["raw_text"] = reads or mark["change"]
+    return mark
 
 
 def a_query(address: str, shape: Shape = Shape.UNABLE_TO_DETERMINE) -> dict:
@@ -775,8 +845,7 @@ def an_add_at_an_empty_place(root: Path) -> tuple[Binder, Collated]:
         "sources": [{"cite": "m.py:7"}],
         "change": ADDED_TEXT,
     }
-    _, why = fill(copies[0], added, root)
-    assert why == []
+    placed_as_the_old_turn_reads_it(copies[0], added, root)
     got = collate("4c", copies, binder, root=root)
     assert [e["address"] for e in got.rereads] == [EMPTY_PLACE]
     assert got.rereads[0]["roles"] == ["block-context", "function-context"]

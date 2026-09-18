@@ -173,6 +173,13 @@ class Row:
     #: and `#121`: an add is carried forward for every role that read its
     #: page, not only the role that filed it.
     rereads: bool = False
+    #: True where `raw_text` is the paragraph as it will READ and the role
+    #: writes it, rather than the seeded paragraph as it stands --
+    #: `decision-log.md Process: #175` and `#176`. `flows.fill` takes it from
+    #: the entry for these rows and from the page for every other, and
+    #: `desk.collator.drift_in` asks nothing of it here, since it is not the
+    #: base the place was seeded with.
+    carries_raw_text: bool = False
     #: Derived from `touches` in `__post_init__`, below -- never set by a row
     #: literal. The default here is only what a `Row()` with no `touches`
     #: argument gets before the derivation runs.
@@ -225,12 +232,14 @@ INSTRUCTIONS: dict[Instruction, Row] = {
         reads=_add_reads,
         needs_anchor=True,
         rereads=True,
+        carries_raw_text=True,
     ),
     Instruction.MOVE: Row(
         claim_all=("from", "to"),
         touches=(Touch.ORIGIN, Touch.DESTINATION),
         sets=_move_sets,
         reads=_move_reads,
+        carries_raw_text=True,
     ),
 }
 
@@ -293,7 +302,11 @@ def chief_mark(place: "Place") -> Mark:
     return Mark(
         address=place.address,
         anchor=place.anchor,
-        raw_text="",
+        # An `add`'s `raw_text` is the paragraph as it will read, which its
+        # own row sets at the place (`decision-log.md Process: #176`). The
+        # base here is empty, so that is the decided text itself; writing ""
+        # would make the row set nothing where the fold decided something.
+        raw_text=text,
         instruction=Instruction.ADD,
         claim={"missing": text.splitlines()[0], "anchor": f"`{place.anchor}`"},
         reason=reason,

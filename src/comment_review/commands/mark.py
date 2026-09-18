@@ -37,6 +37,15 @@ CREATED here sits on -- an `add` at an empty place, which the binder does not
 carry -- as the addresser printed it. The second is `add`'s claim key: the
 anchor NAMED in backticks.
 
+! `--change` IS THE TEXT THAT MOVES OR ARRIVES; `--raw-text` IS THE PARAGRAPH
+IT LANDS IN. `decision-log.md Process: #172`, `#175` and `#176`. An `add` gives
+the snippet in `--change` and the paragraph as it will read in `--raw-text`;
+a `move` gives the snippet subtracted from the origin and the destination
+paragraph as it will read. `--raw-text` is owed on every `move` and on an
+`add` at a place that already holds prose; at an empty place the two are the
+same text and it may be left off. Every other instruction takes its paragraph
+from the page and is refused a `--raw-text`.
+
 ! NO BULK PASS OF ANY KIND. Roy, 2026-09-07: a flag that marks every null
 slot `clean` *"invites skipping reviewing each paragraph"*; each role
 certifies each paragraph under its remit, one invocation at a time.
@@ -154,7 +163,7 @@ def _entry(args: argparse.Namespace) -> tuple[dict, list[str]]:
     entry: dict = {"address": args.address, "instruction": args.instruction}
     if given:
         entry["claim"] = given
-    for key in ("reason", "change"):
+    for key in ("reason", "change", "raw_text"):
         if getattr(args, key) is not None:
             entry[key] = getattr(args, key)
     if args.sources:
@@ -197,6 +206,12 @@ def main() -> int:
         help="the updated paragraph as raw text; derived where the row quotes",
     )
     ap.add_argument(
+        "--raw-text",
+        dest="raw_text",
+        help="for an add or a move: the paragraph as it will read, with the"
+        " added or moved text in",
+    )
+    ap.add_argument(
         "--cite", dest="sources", action=_Source, metavar="PATH:LINE", help="one source"
     )
     ap.add_argument(
@@ -228,7 +243,7 @@ def main() -> int:
             print(line, file=sys.stderr)
         return UNREADABLE
     if args.withdraw:
-        _, why = withdraw(copy, args.address)
+        _, why = withdraw(copy, args.address, Path(args.repo) if args.repo else None)
         if why:
             for line in why:
                 print(line)

@@ -545,7 +545,11 @@ class TestEveryAlterationCarriesAnAnchor:
         repo, binder, _ = _tree(tmp_path)
         origin = address(binder, "m.py")
         destination = f"m.py@{min(c for c in ABSENT if c.startswith('b'))}"
-        move = a_move(origin, destination)
+        # The whole paragraph moves, so the snippet subtracted from the origin
+        # and the text the empty destination reads with are the same
+        # (`decision-log.md Process: #172` and `#175`).
+        base = next(p.raw_text for p in binder.paragraphs if p.address == origin)
+        move = a_move(origin, destination, change=base, reads=base)
         copy = returned(copies_over(binder, {"block-context": {origin: move}})[0])
         (mark,) = entries_of(copy)
         drafted, refused = proof_setter.run(
@@ -553,7 +557,9 @@ class TestEveryAlterationCarriesAnAnchor:
         )
         assert refused == []
         again = build(drafted[0].draft.read_text(encoding="utf-8"))
-        assert by_cue(again)[cue_of(destination).cue].raw_lines == [mark.change]
+        assert by_cue(again)[cue_of(destination).cue].raw_lines == mark.raw_text.split(
+            "\n"
+        )
 
 
 class TestOnePlaceTakesOneAlteration:
