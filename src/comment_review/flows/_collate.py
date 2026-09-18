@@ -69,9 +69,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 
-from comment_review.binder.addresses import handed
 from comment_review.binder.binder import Binder
-from comment_review.binder.page import Page
 from comment_review.desk.collator import (
     Cache,
     Placed,
@@ -95,10 +93,15 @@ from comment_review.desk.marks.mark import first_word_dropped
 from comment_review.desk.proof import MismatchedRoot, master_proof_of
 from comment_review.desk.stages import Stage
 from comment_review.flows.mark_errors import Revisit, mark_errors
-from comment_review.flows.page_for import page_of
+from comment_review.flows.verify import (
+    PageCache,
+    _text_at,
+    resolution_problems,
+)
+from comment_review.flows.verify import coverage_problems as _coverage_problems
+from comment_review.flows.verify import stage_problems as _stage_problems
 from comment_review.machine.differences import CannotCompose, compose
-from comment_review.machine.repo import can_escape
-from comment_review.reading.addresser import Cues, cue_of, unflatten
+from comment_review.reading.addresser import cue_of, unflatten
 
 
 class CannotCollate(Exception):
@@ -740,254 +743,6 @@ def _nothing_settled() -> EditCopy:
     return EditCopy(role="copy-chief", read_from={}, sheets=())
 
 
-def _coverage_problems(edit_copies: list[EditCopy], binder: Binder) -> list[Problem]:
-    """One `Problem` per role whose copies do not carry the binder's addresses.
-
-    !! `flows.fan_out.fan` REFUSES AT THE DISPATCH AND NOTHING READ THE RETURN.
-    It raises `OverlappingShards` and `UncoveredPage` over the pages it is about
-    to hand out; a role that then answered for three of the four files in its
-    shard was invisible. `P27`, and
-    `TODO/containers-and-verification-are-unwired.md` T6.
-
-    !! THE UNION ACROSS A ROLE'S COPIES, NEVER ONE COPY AGAINST THE BINDER.
-    Under fan-out each copy carries only its own shard, so comparing per copy
-    would report every shard of a correctly partitioned role as incomplete.
-    That is the shape `unruled` and `tally` already have -- both keyed by role,
-    both clobbering under fan-out -- and it is deliberately not copied here.
-
-    !! IT NEEDS NO NEW INPUT, which is why `P27` is in SP-2 and `P26` is not.
-    `collate` already holds the WHOLE binder: `base_texts` needs every address,
-    so what it is handed cannot be a shard. **Stage coverage is a different
-    question and cannot be answered from here** -- a role that returned nothing
-    leaves nothing behind to be missing from, since `flows.distribute.seed`
-    stamps a copy with `role`, `read_from` and `sheets` and no dispatch
-    identity. That one takes the `Stage`, in SP-3.
-
-    Args:
-        edit_copies: the copies as they came back, already parsed.
-        binder: the binder they were seeded from.
-
-    Returns:
-        One `Problem` per short role, naming every address that role did not
-        carry, sorted so a reader can re-derive the list. Empty where every
-        role is complete. ! REPORTED, NOT RAISED -- `Process: #63`: the places
-        that did come back still settle.
-
-    ! AN EMPTY BINDER YIELDS NOTHING. There is no address to be missing, and a
-    run over one is what `tests/test_brief_worked_example.py` drives.
-    """
-    # ! THE PLACES A ROLE WAS HANDED, not every address the binder carries --
-    # `binder.addresses.handed` is the one definition, and the seed reads it too.
-    known = frozenset(b.address for b in handed(binder.paragraphs))
-    if not known:
-        return []
-    # !! ALL THREE KINDS COUNT AS CARRIED, and that is the whole point of this
-    # check. It asks whether the copy came BACK with the binder's addresses, not
-    # whether the role ruled on them -- an untouched slot and an entry that
-    # would not parse are both places the role still HAS. Whether it answered
-    # is `unruled`'s question, and `commands/collate.py` reports that
-    # separately. ! A REFUSED ENTRY WITH NO ADDRESS contributes nothing, since
-    # there is no place to say it carried.
-    by_role: dict[str, set[str]] = {}
-    for copy in edit_copies:
-        carried = by_role.setdefault(copy.role, set())
-        for sheet in copy.sheets:
-            carried.update(mark.address for mark in sheet.marks)
-            carried.update(sheet.unruled)
-            carried.update(one.address for one in sheet.refused if one.address)
-    out: list[Problem] = []
-    for role, carried in by_role.items():
-        missing = sorted(known - carried)
-        if missing:
-            # !! THE ADDRESSES LEAD, AND THE COUNT FOLLOWS. Roy, 2026-09-01:
-            # *"That way the potential address comes as soon as possible."* This
-            # is the ONE line in the report whose `address` field is empty --
-            # the finding is about the copy, so the places it names can only be
-            # in the message -- and a reader scanning for somewhere to look had
-            # to read past a count to reach them. Every other line opens with
-            # its place; this one now does too.
-            #
-            # !! COUNTED OVER THE INTERSECTION, NOT OVER EVERYTHING RETURNED.
-            # `carried` holds every address the role sent back, including any
-            # the binder never held, so `len(carried)` can equal `len(known)`
-            # while something is still missing. MEASURED 2026-08-31, and quoted
-            # in the order it printed then: a role that dropped `m.py@b5` and
-            # invented `m.py@b9` against a two-place binder reported
-            # *"answered for 2 of 2 places -- missing m.py@b5"*, which
-            # contradicts itself on its own line.
-            #
-            # ! AN ADDRESS THE BINDER NEVER HELD IS NOT REPORTED AT ALL --
-            # `Process: #97`. A role may cite a place the filter dropped or a
-            # file the run never gathered, and only the write end can say
-            # whether the page has it. This counts what came back against
-            # what was handed out, and nothing more.
-            out.append(
-                Problem(
-                    role,
-                    "",
-                    f"missing {', '.join(missing)} -- answered for "
-                    f"{len(carried & known)} of {len(known)} places",
-                )
-            )
-    return out
-
-
-def _stage_problems(dispatches: Stage, edit_copies: list[EditCopy]) -> list[Problem]:
-    """One `Problem` per role that returned fewer copies than the stage dispatched.
-
-    ! STAGE COVERAGE, as against shard coverage. `_coverage_problems` asks
-    whether a copy that came back carries the addresses it was handed; this
-    asks whether every dispatch the topology named came back AT ALL. A role
-    dispatched twice under fan-out that returned once leaves nothing behind to
-    be short -- only the topology knows a second copy was owed (`P26`).
-    """
-    returned: dict[str, int] = {}
-    for copy in edit_copies:
-        returned[copy.role] = returned.get(copy.role, 0) + 1
-    owed: dict[str, int] = {}
-    for dispatch in dispatches.dispatches:
-        owed[str(dispatch.role)] = owed.get(str(dispatch.role), 0) + 1
-    return [
-        Problem(
-            role,
-            "",
-            f"stage {dispatches.name}: {role} returned {returned.get(role, 0)}"
-            f" of {want} dispatches",
-        )
-        for role, want in owed.items()
-        if returned.get(role, 0) < want
-    ]
-
-
-#: One path -> the real page, or `None` where this checkout holds no readable
-#: page there. Shared across a stage's copies, the same shape as
-#: `desk.collator.Cache` for a cited file: a page eight roles' marks touch is
-#: read once.
-PageCache = dict[str, Page | None]
-
-
-def _page_at(real: str, root: Path, cache: PageCache) -> Page | None:
-    """One path's page, read at most once per stage, or `None` where none reads.
-
-    A path that would land outside `root` once joined to it -- absolute,
-    carrying a drive, or climbing with `..` -- answers `None` and nothing is
-    opened. The path comes from a mark's address, which a role wrote, and
-    `desk.collator.source_problems` keeps the same guard for a cited path.
-    """
-    if real not in cache:
-        page = None
-        if not can_escape(real):
-            page, _why = page_of(root / real, rel=real)
-        cache[real] = page
-    return cache[real]
-
-
-def _page_cues(real: str, root: Path, cache: PageCache) -> Cues | None:
-    """One path's real places, filled or not -- read at most once per stage.
-
-    The binder cannot answer this, which is why the file is opened: the
-    binder is redacted to the places holding prose, so a real empty place is
-    one it rightly lacks (`Process: #97`). `page_of` rebuilds the page, which
-    carries every place a series has, filled or not -- `collator-defects` T40.
-
-    Args:
-        real: the page's real repo path, unflattened.
-        root: the checkout this path is read from.
-        cache: shared across the stage's copies.
-
-    Returns:
-        The page's `Cues`, or `None` where `real` could not be turned into a
-        page at `root`, which `resolution_problems` reports.
-    """
-    page = _page_at(real, root, cache)
-    return page.cues if page is not None else None
-
-
-def resolution_problems(
-    copy: EditCopy, paths: list[str], root: Path, cache: PageCache
-) -> list[Problem]:
-    """One `Problem` per ruled mark whose address resolves against no page.
-
-    Public because `commands/check.py` runs it too, so a role learns before the
-    fold what the fold would refuse (`no-command-for-the-middle` T99).
-
-    An address resolves when a page can be read at its path and that page
-    carries its cue. Where `_page_cues` answers `None` -- this checkout holds
-    no readable page at `real` -- the address resolves against nothing and is
-    reported, as a quote there is refused (`decision-log.md Process: #122`).
-    An address the binder lacks is not thereby unresolved: the page is read,
-    not the binder (`Process: #97`).
-
-    A `move`'s `claim.to` is an address as well, and resolves the same way
-    (`Process: #111`). A destination that is not `path@cue` resolves against
-    nothing -- `path@cue` is the only address built (`Addressing: #21`).
-
-    `collator-defects` T40. Verify: an invented cue is refused, a valid empty
-    place is not -- the case `Process: #97` settled, restated against the
-    real page rather than the redacted binder.
-
-    Args:
-        copy: one parsed edit_copy, as it came back.
-        paths: the binder's own page paths, for `unflatten`.
-        root: the checkout every page is read from.
-        cache: shared across the stage's copies, keyed by real path.
-
-    Returns:
-        One `Problem` per mark whose path no page can be read at, or whose
-        cue its page does not carry, and one per `move` whose `claim.to`
-        fails the same way, at the move's own address, in sheet then mark
-        order. An empty address is skipped -- `clean` is the one row a mark
-        may carry none for, and there is no place to resolve.
-    """
-    out: list[Problem] = []
-    for sheet in copy.sheets:
-        for mark in sheet.marks:
-            addr = cue_of(mark.address)
-            if addr.path and addr.cue:
-                why = _unresolved(mark.address, paths, root, cache)
-                if why:
-                    out.append(
-                        Problem(
-                            copy.role,
-                            mark.address,
-                            f"resolves against no page -- {why}",
-                        )
-                    )
-            if INSTRUCTIONS[mark.instruction].owes_destination:
-                to = str(mark.claim.get("to", ""))
-                why = _unresolved(to, paths, root, cache)
-                if why:
-                    out.append(
-                        Problem(
-                            copy.role,
-                            mark.address,
-                            f"`claim.to` {to!r} resolves against no page -- {why}",
-                        )
-                    )
-    return out
-
-
-def _unresolved(address: str, paths: list[str], root: Path, cache: PageCache) -> str:
-    """Why `address` resolves against no page, or "" where it resolves.
-
-    Args:
-        address: a mark's own address, or a `move`'s `claim.to`.
-        paths: the binder's own page paths, for `unflatten`.
-        root: the checkout every page is read from.
-        cache: shared across the stage's copies, keyed by real path.
-    """
-    addr = cue_of(address)
-    if not addr.path or not addr.cue:
-        return "it is not a `path@cue` address"
-    real = unflatten(addr.path, paths) or addr.path
-    cues = _page_cues(real, root, cache)
-    if cues is None:
-        return f"no page can be read at {real}"
-    if addr.cue not in cues.places:
-        return f"{real} carries no place {addr.cue!r}"
-    return ""
-
-
 def texts_at(
     copy: EditCopy,
     paths: list[str],
@@ -1023,29 +778,6 @@ def texts_at(
             held = _text_at(mark.address, paths, root, pages)
             out[mark.address] = (held, *_sent_to(copy.role, mark.address, sent))
     return out
-
-
-def _text_at(address: str, paths: list[str], root: Path, pages: PageCache) -> str:
-    """The page's text at `address`, read through the stage's page cache.
-
-    "" where no page can be read at the address's path, or the page holds
-    nothing at its place. `texts_at` puts it first among a quote's texts, and
-    a composition composes over it (`decision-log.md Process: #119`, `#125`).
-    """
-    addr = cue_of(address)
-    page = None
-    if addr.path:
-        page = _page_at(unflatten(addr.path, paths) or addr.path, root, pages)
-    if page is None:
-        return ""
-    return next(
-        (
-            b.raw_text
-            for b in page.paragraphs
-            if b.address and cue_of(b.address).cue == addr.cue
-        ),
-        "",
-    )
 
 
 def _sent_to(

@@ -29,7 +29,7 @@ For a COPY: the envelope (`EditCopy.deserialize`), every place the role left
 alone or wrote unreadably (`flows.mark_errors`), and, with `--binder`, source
 verification, drift, and whether each address and each move's destination
 names a place its page carries (`desk.collator.verify_report`, `drift_in`,
-`flows.collate.resolution_problems` -- the fold's own). For a
+`flows.verify.resolution_problems` -- the fold's own). For a
 BATCH: `flows.answers.answers_of`, the call the turn makes for each role --
 every answer paired to the slot that went out at its address, and read against
 that slot's own question. So `--sent` is the batch that went out, whose slots
@@ -54,7 +54,6 @@ from comment_review.desk.collator import (
     verify_report,
 )
 from comment_review.desk.containers import EditCopy
-from comment_review.flows._collate import resolution_problems, texts_at
 from comment_review.flows._turn import contracts
 from comment_review.flows.answers import answers_of, slots_of
 from comment_review.flows.fill import (
@@ -69,6 +68,7 @@ from comment_review.flows.proof_io import (
     load_copy,
     load_value,
 )
+from comment_review.flows.verify import resolution_problems, texts_at
 
 #: Exit codes -- `distribute`'s 0/1/2. `BROKEN` is anything the fold would
 #: refuse or send back; `UNREADABLE` is a file that is not an object at all.
@@ -99,7 +99,7 @@ def _row_problems(
         copy: one parsed edit_copy.
         loaded: the same copy as its wire dict, which `place_on_the_page`
             reads a sheet off for a place no mark's own address names.
-        texts: `flows._collate.texts_at`'s map, whose first text at each
+        texts: `flows.verify.texts_at`'s map, whose first text at each
             address is the page's own -- already read once for the stage.
         root: the checkout every page is read from.
 

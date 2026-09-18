@@ -35,10 +35,16 @@ from comment_review.desk.evaluate.state import CARRIED
 from comment_review.desk.stages import Stage
 from comment_review.desk.work import events
 from comment_review.desk.work.fold import Fold, asked
-from comment_review.flows import _collate as old
 from comment_review.flows.answers import answers_of, slots_of
 from comment_review.flows.mark_errors import mark_errors
 from comment_review.flows.places import chief_copy_of, places_of
+from comment_review.flows.verify import (
+    PageCache,
+    coverage_problems,
+    resolution_problems,
+    stage_problems,
+    texts_at,
+)
 
 
 class CopiesReturned(NamedTuple):
@@ -147,12 +153,12 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     # the same evidence and mark the same pages, so a per-copy cache reads one
     # file once per citing role.
     cache: Cache = {}
-    page_cache: old.PageCache = {}
+    page_cache: PageCache = {}
     problems: list[Problem] = []
     for copy in copies:
-        texts = old.texts_at(copy, paths, root, page_cache)
+        texts = texts_at(copy, paths, root, page_cache)
         problems += verify_report(copy, texts, root, cache)
-        problems += old.resolution_problems(copy, paths, root, page_cache)
+        problems += resolution_problems(copy, paths, root, page_cache)
         problems += drift_in(copy, bases)
     # ! `where` RATHER THAN `address`, and the two differ in one case only:
     # an entry that named no place. `where` is that entry's own address
@@ -164,10 +170,10 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
         Problem(one.role, one.where, "; ".join(one.reasons))
         for one in mark_errors(copies)
     ]
-    problems += old._coverage_problems(copies, binder)
+    problems += coverage_problems(copies, binder)
     problems += _root_problems(copies)
     if message.topology is not None:
-        problems += old._stage_problems(message.topology, copies)
+        problems += stage_problems(message.topology, copies)
     if problems:
         for one in problems:
             out.append(events.Refused(one.role, one.address, (one.message,)))

@@ -867,7 +867,7 @@ class TestAnAddressOutsideTheCheckoutIsNotRead:
             read.append(page_path.resolve())
             return page_of(page_path, *args, **kwargs)
 
-        monkeypatch.setattr("comment_review.flows._collate.page_of", recording)
+        monkeypatch.setattr("comment_review.flows.verify.page_of", recording)
         got = collate("4c", [copy], binder, root=root)
         unresolved = [
             p.message
