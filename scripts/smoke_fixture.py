@@ -1253,6 +1253,120 @@ def write_wrap_plant(run: Path, expected: Path) -> tuple[Path, Path]:
     return clause, rate
 
 
+#: The second stage's label in the topology and the one role it dispatches.
+#: Its `reads` is `revise:4`, so `distribute` seeds it from the revise the
+#: first stage's `proof` pulled rather than from the original -- the stage's
+#: own `reads` deciding which tree it is cut from
+#: (`desk.topology.seeded_from_problem`).
+SECOND_STAGE = "5"
+SECOND_ROLE = "ownership-context"
+
+#: What that stage rules, on the revise's `fib.py`: one `correct` over the
+#: module docstring, a paragraph the first stage already changed, so the
+#: correction is measured against the revised text rather than the original's.
+#: No other role reads the place, so the proposal stands at once
+#: (`decision-log.md Process: #180`).
+SECOND_CORRECT = "fib.py@a0"
+SECOND_CLAIM = {"false": "why it is counted", "true": "why the count matters"}
+
+#: And a `clean` at every other prose place the revise carries, written out by
+#: hand from `EXPECTED` -- the addresses the revise has, which are not the
+#: addresses the original had. `tests/gates/test_smoke_fixture.py` reads the
+#: revise's own page and holds this list to it.
+SECOND_CLEAN = (
+    "fib.py@b0",
+    "fib.py@c1",
+    "fib.py@a1",
+    "fib.py@c3",
+    "fib.py@a2",
+    "fib.py@c6",
+    "fib.py@b8",
+    "fib.py@b9",
+    "fib.py@a3",
+    "fib.py@c12",
+    "fib.py@b17",
+)
+
+
+def write_second_plant(run: Path) -> Path:
+    """Write the second stage's clean list, for the smoke script to loop over.
+
+    Args:
+        run: the run directory the smoke script writes into.
+
+    Returns:
+        The path written, `second-clean.json`.
+    """
+    path = run / "second-clean.json"
+    path.write_text(
+        json.dumps(list(SECOND_CLEAN)) + "\n", encoding="utf-8", newline="\n"
+    )
+    return path
+
+
+#: What the second stage's proof must read, written out by hand from
+#: `EXPECTED` and the correction above: the module docstring's last clause is
+#: the one thing that moves, and every other line is the revise's. `# base
+#: case` is the line the plant is watching -- the first stage left it exactly
+#: as the fixture had it and the second stage cleans it, so a revise that
+#: dropped the paragraphs nobody changed would be caught here.
+SECOND_EXPECTED = (
+    '"""Fibonacci, counted so the recursion can be seen -- and why the count '
+    'matters."""\n'
+    "\n"
+    "# Module state, written by the wrapper and read by the caller.\n"
+    "import functools\n"
+    "\n"
+    "CALLS = 0  # every call, cached or not\n"
+    "\n"
+    "\n"
+    "def logged(fn):\n"
+    '    """Count each call and pass it through."""\n'
+    "\n"
+    "    @functools.wraps(fn)  # copies fn's name and docstring onto wrapper\n"
+    "    def wrapper(n):\n"
+    '        """Count each call, then pass it through."""\n'
+    "        global CALLS\n"
+    "        CALLS += 1  # the decorator's only job\n"
+    "        return fn(n)\n"
+    "\n"
+    "    # Counting finished, wrapper is handed back unchanged.\n"
+    "    return wrapper\n"
+    "\n"
+    "\n"
+    "# The cache and the counter measure different things, worth stating\n"
+    "# separately. fib is cached; logged counts every call, cached or not.\n"
+    "@logged\n"
+    "@functools.cache\n"
+    "def fib(n):\n"
+    '    """The nth Fibonacci number, counting from fib(0) = 0."""\n'
+    "    if n < 2:  # base case\n"
+    "        return n\n"
+    "    return fib(n - 1) + fib(n - 2)\n"
+    "\n"
+    "\n"
+    'if __name__ == "__main__":\n'
+    "    print(fib(10), CALLS)\n"
+    "# Nothing follows; running this module only prints one count.\n"
+    "\n"
+)
+
+
+def write_second_expected(root: Path) -> Path:
+    """Write `SECOND_EXPECTED` to `root / "fib.py"`, as `write_expected` writes.
+
+    Args:
+        root: the directory to write into. Not created here -- the smoke
+            script creates its run's `second-expected` directory first.
+
+    Returns:
+        The path written.
+    """
+    path = root / "fib.py"
+    path.write_text(SECOND_EXPECTED, encoding="utf-8", newline="\n")
+    return path
+
+
 def write_expected(root: Path) -> tuple[Path, Path, Path]:
     """Write `EXPECTED`, `RATE_EXPECTED` and `STORE_EXPECTED` to `root`.
 

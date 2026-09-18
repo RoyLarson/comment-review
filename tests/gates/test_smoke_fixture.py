@@ -210,6 +210,45 @@ class TestTheLandingTableAgreesWithTheFixture(unittest.TestCase):
             self.assertEqual(landing.line, last if anchor is None else anchor, address)
 
 
+class TestTheSecondStageRulesTheRevisesOwnPlaces(unittest.TestCase):
+    """`SECOND_CORRECT` and `SECOND_CLEAN` against the page built from
+    `EXPECTED`, which is the revise the first stage pulls: the second stage
+    rules every prose place that revise carries and no other, so `check`
+    cannot refuse its copy for a place it left alone, and the addresses are
+    the revise's rather than the original's."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        root = Path(self.tmp.name)
+        path = root / "fib.py"
+        path.write_text(smoke_fixture.EXPECTED, encoding="utf-8", newline="\n")
+        page, why = page_of(path, rel="fib.py")
+        assert page is not None, why
+        self.page = page
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_it_rules_every_prose_place_the_revise_carries_and_no_other(self):
+        prose = {p.address for p in self.page.paragraphs if p.text}
+        ruled = {smoke_fixture.SECOND_CORRECT, *smoke_fixture.SECOND_CLEAN}
+        self.assertEqual(ruled, prose)
+        self.assertEqual(len(smoke_fixture.SECOND_CLEAN), len(prose) - 1)
+
+    def test_the_corrected_place_is_one_the_first_stage_changed(self):
+        """The point of the stage: the correction is measured against the
+        revised text, so the clause it quotes is one only the revise holds."""
+        false = smoke_fixture.SECOND_CLAIM["false"]
+        self.assertIn(false, smoke_fixture.EXPECTED)
+        self.assertNotIn(false, smoke_fixture.FIXTURE)
+
+    def test_the_second_expected_keeps_what_the_first_stage_left_alone(self):
+        """A paragraph neither stage changed is still on the page: the defect
+        this stage is watching for is a revise that drops them."""
+        self.assertIn("    if n < 2:  # base case\n", smoke_fixture.SECOND_EXPECTED)
+        self.assertIn(smoke_fixture.SECOND_CLAIM["true"], smoke_fixture.SECOND_EXPECTED)
+
+
 class TestWriteTextsWritesWhatTheScriptReads(unittest.TestCase):
     """`write_texts` writes the files smoke_middle.ps1 names for its `mark`
     calls, its addresser row and its disposition stage, each holding the

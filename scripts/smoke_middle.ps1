@@ -4,9 +4,11 @@
 # fold's proof, one turn in which every role answers what the fold carried
 # forward, the chief's dispositions closing what the turn still carries
 # forward, the docket `proof` transcribes from the closed copy, and the
-# revise `proof` pulls from that docket. The last stage diffs that revise
-# against the text smoke_fixture.py says the plant makes land, and passes
-# only when the two are identical.
+# revise `proof` pulls from that docket. The diff stage compares that revise
+# with the text smoke_fixture.py says the plant makes land, and passes
+# only when the two are identical. The last stage runs a second editorial
+# stage over that revise -- the topology says it reads it -- and diffs its
+# proof the same way.
 # Provisional -- it drives a prototype surface and may be thrown away once
 # that surface settles.
 
@@ -95,7 +97,9 @@ function Format-CommandLine {
 # output gets only what the script Write-Outputs; under pwsh -File the
 # host writes to stdout, so a caller capturing that process gets both.
 # With -Capture it returns the command's standard output instead, for the
-# one call whose output the script reads.
+# calls whose output the script reads, and -AndErrors merges the command's
+# standard error into what comes back -- a command that prints its refusals
+# there, as `distribute` does, says nothing on stdout to assert against.
 #
 # A wrong exit code stops the script: it prints any captured output, runs
 # -OnFailure if given, then prints the stage name, the expected and actual
@@ -111,13 +115,16 @@ function Invoke-Checked {
         [Parameter(Mandatory)] [string[]]$CommandLine,
         [int]$Expect = 0,
         [switch]$Capture,
+        [switch]$AndErrors,
         [scriptblock]$OnFailure
     )
     $exe = $CommandLine[0]
     $rest = @($CommandLine | Select-Object -Skip 1)
     $captured = @()
     try {
-        if ($Capture) {
+        if ($Capture -and $AndErrors) {
+            $captured = @(& $exe @rest 2>&1 | ForEach-Object { $_.ToString() })
+        } elseif ($Capture) {
             $captured = @(& $exe @rest)
         } else {
             & $exe @rest | Out-Host
@@ -201,6 +208,19 @@ $OtherBatchFile = Join-Path $Run 'other-batch.json'
 $BadCiteProofFile = Join-Path $Run 'bad-cite-proof.json'
 $BadCiteBatchFile = Join-Path $Run 'bad-cite-batch.json'
 
+# The second stage, whose topology row reads the revise the first stage's
+# proof pulled. Its binder is gathered from $ProofDir, so the addresses it
+# rules on are the revise's own.
+$SecondStage = '5'
+$SecondRole = 'ownership-context'
+$SecondBinderFile = Join-Path $Run 'binder2.json'
+$SecondCopiesDir = Join-Path $Run 'copies2'
+$SecondChiefFile = Join-Path $Run 'chief2.json'
+$SecondProofFile = Join-Path $Run 'proof2.json'
+$SecondDocketFile = Join-Path $Run 'docket2.json'
+$SecondProofDir = Join-Path $Run 'proof2'
+$SecondExpectedDir = Join-Path $Run 'second-expected'
+
 # The one-liner that writes the three fixture files into a directory, used by
 # the fixture stage and by the second tree the root refusal sub-plant gathers.
 $WriteFixtures = 'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_fixture, write_rate_fixture, write_store_fixture; root = Path(sys.argv[1]); write_fixture(root); write_rate_fixture(root); write_store_fixture(root)'
@@ -227,9 +247,14 @@ $Stages = [ordered]@{
         ))
     }
     topology = {
+        # Two stages: the four roles at once, then one role reading the revise
+        # the first stage's proof pulls. `compose` writes the second stage's
+        # `reads` as `revise:4`, which is what decides the tree the `second`
+        # stage below is seeded from.
         Invoke-Checked -Stage 'topology-build' -CommandLine ($Launcher + @(
             $Cmd.topology, '--build', '--binder', $BinderFile, '--out', $TopologyFile,
-            '--stage', ('4=' + ($Roles -join ','))
+            '--stage', ('4=' + ($Roles -join ',')),
+            '--stage', ($SecondStage + '=' + $SecondRole)
         ))
         Invoke-Checked -Stage 'topology-verify' -CommandLine ($Launcher + @(
             $Cmd.topology, '--verify', $TopologyFile, '--binder', $BinderFile
@@ -1171,6 +1196,94 @@ $Stages = [ordered]@{
         ) -OnFailure {
             Write-Host 'what the chain did -- the original against the proof:'
             & git -c core.autocrlf=false --no-pager diff --no-index -- $OriginalDir $ProofDir | Out-Host
+        }
+    }
+    # The second stage, which reads what the first one pulled. Its topology row
+    # says `reads = "revise:4"`, so `distribute` is handed that revise root and
+    # refuses a binder gathered from anywhere else -- the stage's own `reads`
+    # deciding the tree rather than a path typed here. The binder is gathered
+    # over the revise's fib.py, whose addresses are its own and not the
+    # original's, and the one role corrects a paragraph the first stage already
+    # corrected, so the correction is measured against the revised text. Every
+    # other prose place is cleaned, and the diff is what says the revise still
+    # carries the paragraphs nobody changed.
+    second = {
+        Invoke-Checked -Stage 'second gather' -CommandLine ($Launcher + @(
+            $Cmd.gather, '--repo', $ProofDir, '--revise', '1',
+            '--out', $SecondBinderFile, (Join-Path $ProofDir 'fib.py')
+        ))
+        Invoke-Checked -Stage 'second distribute' -CommandLine ($Launcher + @(
+            $Cmd.distribute, '--topology', $TopologyFile, '--stage', $SecondStage,
+            '--binder', $SecondBinderFile, '--revise', $ProofDir,
+            '--out-dir', $SecondCopiesDir
+        ))
+        $secondCopy = @(Get-ChildItem -LiteralPath $SecondCopiesDir -File)[0].FullName
+        # A binder gathered from the original is refused for the same stage,
+        # so what the stage reads is what decides the seeding rather than
+        # whichever binder the caller reached for.
+        $wrongTree = $Launcher + @(
+            $Cmd.distribute, '--topology', $TopologyFile, '--stage', $SecondStage,
+            '--binder', $BinderFile, '--revise', $ProofDir,
+            '--out-dir', (Join-Path $Run 'copies2-refused')
+        )
+        $refused = Invoke-Checked -Stage 'second distribute from the original refused' -Expect 2 -Capture -AndErrors -CommandLine $wrongTree
+        if (-not (($refused -join "`n").Contains('a stage is seeded from the revise it reads'))) {
+            Write-Host 'stage failed: second distribute from the original refused'
+            Write-Host 'expected a refusal naming the revise the stage reads; distribute printed:'
+            $refused | Out-Host
+            Write-Host "command: $(Format-CommandLine $wrongTree)"
+            exit 1
+        }
+        Invoke-Checked -Stage 'second plant' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_second_plant; write_second_plant(Path(sys.argv[1]))',
+            $Run
+        )
+        Invoke-Checked -Stage 'second correct' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $secondCopy, '--address', 'fib.py@a0',
+            '--instruction', 'correct',
+            '--false', 'why it is counted', '--true', 'why the count matters',
+            '--reason', 'what the count is for is the point, not that it happens',
+            '--cite', 'fib.py:1', '--repo', $ProofDir
+        ))
+        $secondClean = Get-Content -LiteralPath (Join-Path $Run 'second-clean.json') -Raw | ConvertFrom-Json
+        foreach ($address in $secondClean) {
+            Invoke-Checked -Stage "second clean $address" -CommandLine ($Launcher + @(
+                $Cmd.mark, '--edit-copy', $secondCopy, '--address', $address,
+                '--instruction', 'clean', '--repo', $ProofDir
+            ))
+        }
+        Invoke-Checked -Stage 'second check' -CommandLine ($Launcher + @(
+            $Cmd.check, '--edit-copy', $secondCopy, '--binder', $SecondBinderFile
+        ))
+        # One role read the place, so its proposal stands with nothing to
+        # carry forward and no turn to run (Process #180). collate exits 0.
+        Invoke-Checked -Stage 'second collate' -CommandLine ($Launcher + @(
+            $Cmd.collate, '--stage', $SecondStage, '--binder', $SecondBinderFile,
+            '--topology', $TopologyFile, '--repo', $ProofDir,
+            '--edit-copy', $secondCopy, '--out', $SecondChiefFile,
+            '--proof-out', $SecondProofFile
+        ))
+        Invoke-Checked -Stage 'second proof-to-docket' -CommandLine ($Launcher + @(
+            $Cmd.proof, '--copy', $SecondChiefFile, '--repo', $ProofDir,
+            '--to-docket', $SecondDocketFile
+        ))
+        Invoke-Checked -Stage 'second proof-from-docket' -CommandLine ($Launcher + @(
+            $Cmd.proof, '--from-docket', $SecondDocketFile, '--repo', $ProofDir,
+            '--out', $SecondProofDir
+        ))
+        New-Item -ItemType Directory -Path $SecondExpectedDir | Out-Null
+        Invoke-Checked -Stage 'second expected' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_second_expected; write_second_expected(Path(sys.argv[1]))',
+            $SecondExpectedDir
+        )
+        Invoke-Checked -Stage 'second diff' -CommandLine @(
+            'git', '-c', 'core.autocrlf=false', '--no-pager', 'diff', '--no-index', '--',
+            $SecondExpectedDir, $SecondProofDir
+        ) -OnFailure {
+            Write-Host 'what the second stage did -- the revise against its proof:'
+            & git -c core.autocrlf=false --no-pager diff --no-index -- $ProofDir $SecondProofDir | Out-Host
         }
     }
 }
