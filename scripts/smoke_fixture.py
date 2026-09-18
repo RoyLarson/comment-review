@@ -695,15 +695,35 @@ def write_texts(run: Path) -> dict[str, Path]:
 CLEAN_REASON = "the paragraph the turn sent reads as one; I have nothing to add"
 
 
+def answers_for(role: str) -> list[dict]:
+    """One role's whole answer to the turn's batch, in the order it is written.
+
+    Every place `ANSWERS` answers for that role, then a `clean` carrying
+    `CLEAN_REASON` at each place in `ADDED` it does not -- except its own
+    add, which it is not asked about -- one answer for each slot the plant
+    expects the batch to send the role.
+
+    Args:
+        role: whose answers these are.
+
+    Returns:
+        The answers, each a `{"address", **fields}` object.
+    """
+    given = ANSWERS.get(role, {})
+    answers = [{"address": address, **fields} for address, fields in given.items()]
+    return answers + [
+        {"address": address, "instruction": "clean", "reason": CLEAN_REASON}
+        for address, adder in ADDED.items()
+        if address not in given and role != adder
+    ]
+
+
 def write_answers(run: Path) -> dict[str, Path]:
     """Write each role's answers to the turn's batch, one file per role.
 
-    A role's file, `answers-<role>.json`, lists `{"address", **fields}` for
-    each place `ANSWERS` answers for it, then a `clean` carrying
-    `CLEAN_REASON` for every place in `ADDED` it does not -- except its own
-    add, which it is not asked about -- one answer for each slot the plant
-    expects the batch to send the role. `check --answers` refuses a file that
-    leaves a sent slot unanswered or answers one that was never sent.
+    A role's file is `answers-<role>.json` and holds `answers_for(role)`.
+    `check --answers` refuses a file that leaves a sent slot unanswered or
+    answers one that was never sent.
 
     Args:
         run: the run directory the smoke script writes into. Not created
@@ -713,19 +733,54 @@ def write_answers(run: Path) -> dict[str, Path]:
         role -> the path written.
     """
     paths: dict[str, Path] = {}
-    for role, given in ANSWERS.items():
-        answers = [{"address": address, **fields} for address, fields in given.items()]
-        answers += [
-            {"address": address, "instruction": "clean", "reason": CLEAN_REASON}
-            for address, adder in ADDED.items()
-            if address not in given and role != adder
-        ]
+    for role in ANSWERS:
         path = run / f"answers-{role}.json"
         path.write_text(
-            json.dumps(answers, indent=2) + "\n", encoding="utf-8", newline="\n"
+            json.dumps(answers_for(role), indent=2) + "\n",
+            encoding="utf-8",
+            newline="\n",
         )
         paths[role] = path
     return paths
+
+
+#: The refusal sub-plant for `decision-log.md Process: #181`: one of
+#: `BAD_CITE_ROLE`'s answers has its sources replaced by this one, whose page
+#: is real and whose line is past the end of it, so the cite does not resolve.
+#: `check --answers` and `turn` each refuse the round for it, and the turn
+#: writes nothing.
+BAD_CITE = {"cite": "fib.py:999", "verbatim": "def wrapper(n):"}
+
+#: Whose answers the sub-plant spoils, and which of them. The place is one the
+#: role already answers with sources, so the only thing that changes is where
+#: the evidence is cited from.
+BAD_CITE_ROLE = "block-context"
+BAD_CITE_ADDRESS = "fib.py@a2"
+
+
+def write_bad_cite_answers(run: Path) -> Path:
+    """Write `BAD_CITE_ROLE`'s answers with one source cited past a file's end.
+
+    Every other answer in the file is the one `write_answers` writes, so a
+    refusal of this file is a refusal of the cite and of nothing else.
+
+    Args:
+        run: the run directory the smoke script writes into.
+
+    Returns:
+        The path written, `answers-<role>-bad-cite.json`.
+    """
+    answers = [
+        {**one, "sources": [dict(BAD_CITE)]}
+        if one["address"] == BAD_CITE_ADDRESS
+        else one
+        for one in answers_for(BAD_CITE_ROLE)
+    ]
+    path = run / f"answers-{BAD_CITE_ROLE}-bad-cite.json"
+    path.write_text(
+        json.dumps(answers, indent=2) + "\n", encoding="utf-8", newline="\n"
+    )
+    return path
 
 
 #: What the proof's `fib.py` must read once the chain closes, written out by

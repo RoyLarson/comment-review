@@ -185,6 +185,21 @@ $WrapExpectedDir = Join-Path $Run 'wrap-expected'
 $CollideDraftDir = Join-Path $Run 'collide-draft'
 $CollideExpectedDir = Join-Path $Run 'collide-expected'
 
+# The root refusal sub-plant (Process #178): a second tree holding the same
+# fixture, a binder over it, and the copy distribute seeds from that binder.
+# The three paths below it are what a refused collate must not write.
+$OtherDir = Join-Path $Run 'other'
+$OtherBinderFile = Join-Path $Run 'other-binder.json'
+$OtherCopiesDir = Join-Path $Run 'other-copies'
+$OtherChiefFile = Join-Path $Run 'other-chief.json'
+$OtherProofFile = Join-Path $Run 'other-proof.json'
+$OtherBatchFile = Join-Path $Run 'other-batch.json'
+
+# The cite refusal sub-plant (Process #181), and what a refused turn must not
+# write.
+$BadCiteProofFile = Join-Path $Run 'bad-cite-proof.json'
+$BadCiteBatchFile = Join-Path $Run 'bad-cite-batch.json'
+
 # Each entry is one stage's work, and the chain as this script leaves it ends
 # at diff. Each block runs in its own scope, so a variable a stage assigns is
 # gone when the next stage starts: what a later stage reads is a path above,
@@ -853,6 +868,51 @@ $Stages = [ordered]@{
         ) + $copies + @(
             '--out', $ChiefFile, '--proof-out', $Proof0File, '--batch-out', $Batch1File
         ))
+        # Process #178, beside the main line: the same fixture written to a
+        # second tree, gathered, and a copy seeded from that binder. Handed to
+        # `collate` alongside the four real copies it is one copy from another
+        # tree, whose addresses answer to another address space, and the round
+        # rolls back. The copy is unruled, so the report also carries one line
+        # per place it left alone; what is asserted is the root line, the exit
+        # code, and that nothing was written.
+        New-Item -ItemType Directory -Path $OtherDir | Out-Null
+        Invoke-Checked -Stage 'other fixture' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_fixture, write_rate_fixture; root = Path(sys.argv[1]); write_fixture(root); write_rate_fixture(root)',
+            $OtherDir
+        )
+        Invoke-Checked -Stage 'other gather' -CommandLine ($Launcher + @(
+            $Cmd.gather, '--repo', $OtherDir, '--out', $OtherBinderFile,
+            (Join-Path $OtherDir 'fib.py'), (Join-Path $OtherDir 'rate.py')
+        ))
+        Invoke-Checked -Stage 'other distribute' -CommandLine ($Launcher + @(
+            $Cmd.distribute, '--topology', $TopologyFile, '--stage', '4',
+            '--binder', $OtherBinderFile, '--out-dir', $OtherCopiesDir
+        ))
+        $otherCopy = @(Get-ChildItem -LiteralPath $OtherCopiesDir -File | Where-Object {
+            (Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json).role -eq 'ownership-context'
+        })[0].FullName
+        $mismatched = $Launcher + @(
+            $Cmd.collate, '--stage', '4', '--binder', $BinderFile
+        ) + $copies + @('--edit-copy', $otherCopy) + @(
+            '--out', $OtherChiefFile, '--proof-out', $OtherProofFile,
+            '--batch-out', $OtherBatchFile
+        )
+        $refused = Invoke-Checked -Stage 'collate from two trees refused' -Expect 1 -Capture -CommandLine $mismatched
+        if (-not (($refused -join "`n").Contains('copies from different trees share no address space'))) {
+            Write-Host 'stage failed: collate from two trees refused'
+            Write-Host 'expected a refusal naming the two trees; collate printed:'
+            $refused | Out-Host
+            Write-Host "command: $(Format-CommandLine $mismatched)"
+            exit 1
+        }
+        foreach ($written in @($OtherChiefFile, $OtherProofFile, $OtherBatchFile)) {
+            if (Test-Path -LiteralPath $written) {
+                Write-Host 'stage failed: collate from two trees refused'
+                Write-Host "a rolled-back collate wrote $written"
+                exit 1
+            }
+        }
     }
     # One turn. `write_answers` writes each role's answers to the batch
     # `collate` sent, from `ANSWERS` in smoke_fixture.py. `check --answers`
@@ -883,6 +943,50 @@ $Stages = [ordered]@{
                 $Cmd.check, '--answers', $answerFile[$role], '--sent', $Batch1File,
                 '--role', $role
             ))
+        }
+        # Process #181, beside the main line: the same role's answers with one
+        # source cited past the end of the page it names. An answer's sources
+        # are verified before the fold, as a mark's are, so `check --answers`
+        # names it and `turn` refuses the whole round for it and writes
+        # nothing.
+        $badCite = Invoke-Checked -Stage 'plant-bad-cite' -Capture -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_bad_cite_answers; print(write_bad_cite_answers(Path(sys.argv[1])))',
+            $Run
+        )
+        $badCiteFile = @($badCite)[-1]
+        $badCheck = $Launcher + @(
+            $Cmd.check, '--answers', $badCiteFile, '--sent', $Batch1File,
+            '--role', 'block-context'
+        )
+        $refused = Invoke-Checked -Stage 'check answers bad cite refused' -Expect 1 -Capture -CommandLine $badCheck
+        if (-not (($refused -join "`n").Contains('names a line past the end of the file'))) {
+            Write-Host 'stage failed: check answers bad cite refused'
+            Write-Host 'expected a refusal naming the cite that does not resolve; check printed:'
+            $refused | Out-Host
+            Write-Host "command: $(Format-CommandLine $badCheck)"
+            exit 1
+        }
+        $badAnswers = foreach ($role in $Roles) {
+            '--answers', ($role -eq 'block-context' ? "$role=$badCiteFile" : "$role=$($answerFile[$role])")
+        }
+        $badTurn = $Launcher + @($Cmd.turn, '--proof', $Proof0File) + $badAnswers + @(
+            '--proof-out', $BadCiteProofFile, '--batch-out', $BadCiteBatchFile
+        )
+        $refused = Invoke-Checked -Stage 'turn bad cite refused' -Expect 1 -Capture -CommandLine $badTurn
+        if (-not (($refused -join "`n").Contains('names a line past the end of the file'))) {
+            Write-Host 'stage failed: turn bad cite refused'
+            Write-Host 'expected a refusal naming the cite that does not resolve; turn printed:'
+            $refused | Out-Host
+            Write-Host "command: $(Format-CommandLine $badTurn)"
+            exit 1
+        }
+        foreach ($written in @($BadCiteProofFile, $BadCiteBatchFile)) {
+            if (Test-Path -LiteralPath $written) {
+                Write-Host 'stage failed: turn bad cite refused'
+                Write-Host "a rolled-back turn wrote $written"
+                exit 1
+            }
         }
         $answers = foreach ($role in $Roles) { '--answers', "$role=$($answerFile[$role])" }
         Invoke-Checked -Stage 'turn' -Expect 4 -CommandLine ($Launcher + @(
