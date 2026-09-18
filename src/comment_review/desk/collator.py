@@ -258,9 +258,7 @@ def source_problems(where: str, mark: Mark, root: Path, cache: Cache) -> list[st
     return cited_problems(where, mark.sources, root, cache)
 
 
-def cited_problems(
-    where: str, sources: object, root: Path, cache: Cache
-) -> list[str]:
+def cited_problems(where: str, sources: object, root: Path, cache: Cache) -> list[str]:
     """Every source in this list, checked against the file it cites.
 
     !! IT WALKS THE SOURCES AS HANDED. Each entry is typed `object` and

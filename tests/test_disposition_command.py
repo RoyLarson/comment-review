@@ -13,7 +13,9 @@ from helpers import (
     DOS,
     TWO,
     a_clean,
+    a_move,
     a_query,
+    deal,
     disposition,
     entries_of,
     held_open,
@@ -134,6 +136,56 @@ class TestTheChiefRules:
         assert "unsettlable m.py@b2: block-context asks the human" in out
         assert [m.address for m in entries_of(the_chief(tmp_path))] == ["m.py@b1"]
         assert place_on(_closed(tmp_path), "m.py@b2")["state"] == "unsettlable"
+
+
+class TestAMoveHeldForTheHuman:
+    """A move a role sent to the human prints as one entry naming both ends --
+    `decision-log.md Process: #155` and `#182`. The author approves or refuses
+    the move whole, so the paragraph dropped at one place and added at the
+    other are one question, not two.
+    """
+
+    TEXTS = {"m.py@b1": "# one\n# two\n# three\n", "m.py@b2": "# four\n# five\n# six\n"}
+    #: block-context moves b1's middle line to b2, which reads with it at the
+    #: end; function-context puts the origin to the human, so both ends are
+    #: held and the chief rules neither.
+    PLANT = {
+        "block-context": {
+            "m.py@b1": a_move(
+                "m.py@b1",
+                "m.py@b2",
+                change="# two\n",
+                reads="# four\n# five\n# six\n# two",
+            ),
+            "m.py@b2": a_clean("m.py@b2"),
+        },
+        "function-context": {
+            "m.py@b1": a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY),
+            "m.py@b2": a_clean("m.py@b2"),
+        },
+    }
+
+    def _closed(self, tmp_path, monkeypatch, capsys):
+        deal(tmp_path, monkeypatch, capsys, self.PLANT, self.TEXTS)
+        return disposition(tmp_path, monkeypatch, capsys, [], proof="proof0.json")
+
+    def test_both_ends_are_one_entry(self, tmp_path, monkeypatch, capsys):
+        code, out = self._closed(tmp_path, monkeypatch, capsys)
+        assert code == collate_command.OK, out
+        assert out.count("unsettlable ") == 1, out
+        assert (
+            "unsettlable m.py@b1 and m.py@b2: function-context asks the human" in out
+        ), out
+
+    def test_the_move_rides_with_the_entry(self, tmp_path, monkeypatch, capsys):
+        """`test_disposition_prints_the_drop_with_the_held_origin` asked this
+        of the old flow: the role that asks is not the role that moved, so the
+        entry names the move as well as the question."""
+        _code, out = self._closed(tmp_path, monkeypatch, capsys)
+        assert (
+            "block-context's move drops the paragraph at m.py@b1 and adds it at"
+            " m.py@b2, one move" in out
+        ), out
 
 
 class TestRefusals:
