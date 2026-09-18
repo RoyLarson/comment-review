@@ -193,8 +193,17 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
         here = decided.get(name)
         if not here:
             continue
+        # Set in the page's own place order. A cue the page does not carry
+        # sorts last rather than raising: the write end is what refuses it,
+        # by name, and a console face here would hand over a traceback.
         order = list(page.cues.places)
-        here.sort(key=lambda place: order.index(cue_of(place.address).cue))
+        here.sort(
+            key=lambda place: (
+                order.index(cue_of(place.address).cue)
+                if cue_of(place.address).cue in order
+                else len(order)
+            )
+        )
         schedules.append(
             Schedule(
                 path=rel,
