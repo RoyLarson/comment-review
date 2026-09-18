@@ -315,7 +315,12 @@ def chief_mark(place: "Place") -> Mark:
         # would make the row set nothing where the fold decided something.
         raw_text=text,
         instruction=Instruction.ADD,
-        claim={"missing": text.splitlines()[0], "anchor": f"`{place.anchor}`"},
+        # The anchor NAMED in backticks, which is what the parse requires --
+        # and a place's anchor is a line of code, indented where the code is.
+        # Backticked as it stands, a mark at any indented place is one the
+        # parse refuses, and the chief's own decision is then carried on a
+        # mark nothing downstream can read.
+        claim={"missing": text.splitlines()[0], "anchor": f"`{place.anchor.strip()}`"},
         reason=reason,
         sources=sources,
         change=text,

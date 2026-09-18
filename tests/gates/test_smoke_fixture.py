@@ -226,8 +226,9 @@ class TestWriteTextsWritesWhatTheScriptReads(unittest.TestCase):
 
 class TestWriteAnswersWritesWhatTheScriptReads(unittest.TestCase):
     """`write_answers` writes one file per role the smoke script's turn stage
-    names, each holding that role's answers from `ANSWERS` and a `clean` at
-    every `ADDED` place those leave out, and nothing else."""
+    names, each holding that role's answers from `ANSWERS` and a `clean`
+    carrying `CLEAN_REASON` at every `ADDED` place those leave out, and
+    nothing else."""
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -256,7 +257,10 @@ class TestWriteAnswersWritesWhatTheScriptReads(unittest.TestCase):
             by_address = {entry.pop("address"): entry for entry in written}
             self.assertEqual(len(by_address), len(written), role)
             cleans = {
-                address: {"instruction": "clean"}
+                address: {
+                    "instruction": "clean",
+                    "reason": smoke_fixture.CLEAN_REASON,
+                }
                 for address in smoke_fixture.ADDED
                 if address not in given
             }

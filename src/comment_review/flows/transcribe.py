@@ -179,6 +179,19 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
     pages, unreadable = _pages_of(copy, repo)
     if unreadable:
         raise CannotTranscribe(tuple(unreadable))
+    # A mark the envelope could not read is a decision nobody can write, and
+    # the fold below never sees it -- `Sheet.refused` holds it instead of
+    # `Sheet.marks`. Transcribing the rest would drop that place from the
+    # docket without a word, which is how a landing goes missing from a run
+    # that reports nothing wrong.
+    refused = [
+        f"{copy.role} {one.where}: {why}"
+        for sheet in copy.sheets
+        for one in sheet.refused
+        for why in one.reasons
+    ]
+    if refused:
+        raise CannotTranscribe(tuple(refused))
     bases: dict[str, str] = {}
     anchors: dict[str, str] = {}
     for name, (_rel, page) in pages.items():

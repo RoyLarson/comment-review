@@ -10,6 +10,7 @@ the result (`decision-log.md Process: #171` and the design of 2026-09-14).
 from dataclasses import dataclass, field
 
 from comment_review.desk.answers.answer import Question
+from comment_review.desk.answers.table import ANSWERS, Effect
 from comment_review.desk.evaluate.passes import evaluate, pair_moves
 from comment_review.desk.evaluate.place import Place
 from comment_review.desk.evaluate.state import CARRIED, State
@@ -55,14 +56,8 @@ class Fold:
                     )
                 )
             elif place.state is State.UNSETTLABLE:
-                for one in place.filed:
-                    if (
-                        INSTRUCTIONS[one.mark.instruction].pairs(one.mark)
-                        is Stance.UNSETTLABLE
-                    ):
-                        self.events.append(
-                            events.Unsettlable(address, one.role, one.mark.reason)
-                        )
+                for role, reason in _asking_the_human(place):
+                    self.events.append(events.Unsettlable(address, role, reason))
             else:
                 self.events.append(events.Settled(address, place.text))
             # A note is reported wherever it is found, whatever the place
@@ -95,6 +90,34 @@ def asked(place: Place) -> tuple[str, ...]:
     if place.question is Question.ESCALATION:
         return tuple(sorted(place.sides))
     return tuple(sorted(set(place.sides) | set(place.readers)))
+
+
+def _asking_the_human(place: Place) -> list[tuple[str, str]]:
+    """Who put this place to the human, and why -- a mark's query or an answer's.
+
+    A place reaches the human either way: a role files a query the first time
+    it reads the page, or answers a turn with one. Both are somebody on record
+    asking, so both are named, and a place made unsettlable in a turn is
+    reported rather than counted (`decision-log.md Process: #90`).
+
+    Args:
+        place: a place the fold found unsettlable.
+
+    Returns:
+        `(role, reason)` in the order they were written -- the marks filed
+        there first, then each turn's answers in turn order.
+    """
+    out = [
+        (one.role, one.mark.reason)
+        for one in place.filed
+        if INSTRUCTIONS[one.mark.instruction].pairs(one.mark) is Stance.UNSETTLABLE
+    ]
+    for _turn, by_role in sorted(place.answers.items()):
+        for role, answer in sorted(by_role.items()):
+            row = ANSWERS.get((answer.question, answer.name))
+            if row is not None and row.effect(answer) is Effect.UNSETTLABLE:
+                out.append((role, answer.reason))
+    return out
 
 
 def _by_role(reasons: tuple[str, ...]) -> dict[str, tuple[str, ...]]:

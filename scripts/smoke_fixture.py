@@ -254,12 +254,11 @@ LANDINGS: dict[str, Landing] = {
         text='        """Count each call, then pass it through."""',
         line=13,
     ),
-    # collate escalates b9. In the turn block-context holds its correction
-    # and module-context withdraws its own, which leaves block-context's a
-    # lone mark and the place still carried forward; disposition recasts it
-    # in the chief's own words -- no mark call's --true and no turn answer
-    # carries this text, so it reaches the proof only inline in
-    # dispositions.json.
+    # collate escalates b9. In the turn block-context and module-context each
+    # hold their correction, so two texts still stand at the place and it is
+    # carried forward again; disposition recasts it in the chief's own words
+    # -- no mark call's --true and no turn answer carries this text, so it
+    # reaches the proof only inline in dispositions.json.
     "fib.py@b9": Landing(
         "text",
         route="disposition",
@@ -274,10 +273,9 @@ LANDINGS: dict[str, Landing] = {
     # the move vacates its own address, and the fold settles it; the text it
     # carried now lives at b0.
     "fib.py@b1": Landing("removed", route="mark"),
-    # collate escalates a3. In the turn block-context and function-context
-    # withdraw and module-context holds, which leaves module-context's a
-    # lone correction and the place still carried forward; disposition
-    # keeps the original over it.
+    # collate escalates a3. In the turn block-context withdraws and the other
+    # two each hold, so two texts still stand at the place and it is carried
+    # forward; disposition keeps the original over both.
     "fib.py@a3": Landing("kept", route="disposition"),
     # block-context's query settles nothing and rides to the end; a1 is left
     # as it was.
@@ -412,10 +410,11 @@ ADDED = (
 
 #: Each role's answers to the batch `collate` sends for the turn, keyed by
 #: address and holding only the fields the role fills; `turn` lays them over
-#: the slot it sent. An escalation (`c1`, `b9`, `a3`) takes `hold`,
-#: `withdraw`, `correct` or `patch`, and a composition `clean`, `query`,
-#: `correct` or `patch`; each of the eight is planted at least once, and a
-#: role answers `clean` at every place in `ADDED` this gives it nothing for.
+#: the place it is asking about. An escalation (`c1`, `b9`, `a3`) takes
+#: `hold`, `withdraw`, `correct` or `patch`, and a composition `clean`,
+#: `query`, `correct` or `patch`; each of the eight is planted at least once,
+#: and a role answers `clean` at every place in `ADDED` this gives it nothing
+#: for.
 #: A composition `query` is planted in each of its three shapes:
 #: human-review-necessary at `b15`, where it keeps the add off the page, and
 #: outside-my-role at `a2` and unable-to-determine at `b17`, where it
@@ -424,6 +423,16 @@ ADDED = (
 #: `rate.py@b1`, whose base is a real paragraph, and at the empty places of
 #: two `add`s, `b8` and `c3`, where each quotes the add's text -- the text the
 #: turn sent (`Process: #115`). What each answer makes land is in `LANDINGS`.
+#:
+#: A composition goes to every role that read the page, so `rate.py@b1` is
+#: asked of the two roles that proposed nothing there as well. Each abstains
+#: with a deferring `query`: a `clean` there would take the composed text as
+#: that role's own side, against the two sides the answers reword, and the
+#: place would stay contested rather than settling on the text they agree on.
+#:
+#: An escalation the answers leave one side standing settles on that side, so
+#: the two places the chief rules -- `b9` and `a3` -- keep two sides through
+#: the turn, and the withdraw planted at `a3` is one of three answers there.
 ANSWERS: dict[str, dict[str, dict]] = {
     "block-context": {
         "fib.py@c1": {
@@ -484,8 +493,8 @@ ANSWERS: dict[str, dict[str, dict]] = {
             "change": LANDINGS["fib.py@c1"].text,
         },
         "fib.py@a3": {
-            "instruction": "withdraw",
-            "reason": "the signature is described well enough as it stands",
+            "instruction": "hold",
+            "reason": "starting at is where the docstring's own count begins",
         },
         "fib.py@b8": {
             "instruction": "correct",
@@ -506,8 +515,8 @@ ANSWERS: dict[str, dict[str, dict]] = {
     },
     "module-context": {
         "fib.py@b9": {
-            "instruction": "withdraw",
-            "reason": "tracks and watches say the same, so mine adds nothing",
+            "instruction": "hold",
+            "reason": "tracks is the verb the module's own counter uses",
         },
         "fib.py@a3": {
             "instruction": "hold",
@@ -518,6 +527,16 @@ ANSWERS: dict[str, dict[str, dict]] = {
             "claim": {"from": "matching fn's own", "to": "in step with fn's own"},
             "reason": "in step with reads more plainly than matching",
             "change": "  # keeps wrapper's name and doc in step with fn's own",
+        },
+        "rate.py@b1": {
+            "instruction": "query",
+            "claim": {
+                "shape": "outside-my-role",
+                "attempted": "read the composed paragraph against the guard below it",
+                "settles": "block-context",
+            },
+            "reason": "how one function's guard is worded is not my remit",
+            "sources": [{"cite": "rate.py:5", "verbatim": "if total == 0:"}],
         },
     },
     "ownership-context": {
@@ -530,6 +549,16 @@ ANSWERS: dict[str, dict[str, dict]] = {
             },
             "reason": "the code does not say whether the module's foot wants a note",
             "sources": [{"cite": "fib.py:34", "verbatim": "print(fib(10), CALLS)"}],
+        },
+        "rate.py@b1": {
+            "instruction": "query",
+            "claim": {
+                "shape": "outside-my-role",
+                "attempted": "read the composed paragraph against the guard below it",
+                "settles": "block-context",
+            },
+            "reason": "which words this paragraph uses is not my remit",
+            "sources": [{"cite": "rate.py:5", "verbatim": "if total == 0:"}],
         },
     },
 }
@@ -647,13 +676,18 @@ def write_texts(run: Path) -> dict[str, Path]:
     return paths
 
 
+#: What a role says when it adopts the text the turn sent it. Every answer
+#: owes a reason, a `clean` included, so the auto-filled ones carry this.
+CLEAN_REASON = "the paragraph the turn sent reads as one; I have nothing to add"
+
+
 def write_answers(run: Path) -> dict[str, Path]:
     """Write each role's answers to the turn's batch, one file per role.
 
     A role's file, `answers-<role>.json`, lists `{"address", **fields}` for
-    each place `ANSWERS` answers for it, then `{"address", "instruction":
-    "clean"}` for every place in `ADDED` it does not -- one answer for each
-    slot the plant expects the batch to send the role. `check --answers`
+    each place `ANSWERS` answers for it, then a `clean` carrying
+    `CLEAN_REASON` for every place in `ADDED` it does not -- one answer for
+    each slot the plant expects the batch to send the role. `check --answers`
     refuses a file that leaves a sent slot unanswered or answers one that
     was never sent.
 
@@ -668,7 +702,7 @@ def write_answers(run: Path) -> dict[str, Path]:
     for role, given in ANSWERS.items():
         answers = [{"address": address, **fields} for address, fields in given.items()]
         answers += [
-            {"address": address, "instruction": "clean"}
+            {"address": address, "instruction": "clean", "reason": CLEAN_REASON}
             for address in ADDED
             if address not in given
         ]

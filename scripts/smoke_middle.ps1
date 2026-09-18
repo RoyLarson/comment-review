@@ -856,14 +856,15 @@ $Stages = [ordered]@{
     }
     # One turn. `write_answers` writes each role's answers to the batch
     # `collate` sent, from `ANSWERS` in smoke_fixture.py. `check --answers`
-    # reads each file against that batch and the proof it went out with, and
-    # exits 1 on a slot left unanswered; `turn` reports such a slot and folds
-    # past it, so its exit code cannot say the same. Then `turn` applies all
-    # four roles' answers and folds again. The answers leave b8 and c3
-    # escalated -- each holds an add beside another role's answer to it, two
-    # texts at one place after the turn -- and a3 and b9 re-read, each a lone
-    # correction, so `turn`, whose exit codes are `collate`'s, exits 4:
-    # escalation outranks re-read.
+    # reads each file against that batch alone -- the slot it was sent
+    # carries the question its answer is read against -- and exits 1 on a
+    # slot left unanswered, which `turn` refuses the whole round for. Then
+    # `turn` folds all four roles' answers onto the places the proof carries;
+    # it reads neither the binder nor the batch, since the places say who
+    # each was put to. The answers leave b8 and c3 holding an add beside
+    # another role's answer to it, and a3 and b9 two corrections each, so
+    # four places are still carried forward and `turn`, whose exit codes are
+    # `collate`'s, exits 4.
     turn = {
         Invoke-Checked -Stage 'plant-answers' -CommandLine @(
             'uv', 'run', 'python', '-c',
@@ -877,12 +878,12 @@ $Stages = [ordered]@{
             $answerFile[$role] = Join-Path $Run "answers-$role.json"
             Invoke-Checked -Stage "check answers $role" -CommandLine ($Launcher + @(
                 $Cmd.check, '--answers', $answerFile[$role], '--sent', $Batch1File,
-                '--role', $role, '--proof', $Proof0File
+                '--role', $role
             ))
         }
         $answers = foreach ($role in $Roles) { '--answers', "$role=$($answerFile[$role])" }
         Invoke-Checked -Stage 'turn' -Expect 4 -CommandLine ($Launcher + @(
-            $Cmd.turn, '--proof', $Proof0File, '--binder', $BinderFile, '--sent', $Batch1File
+            $Cmd.turn, '--proof', $Proof0File
         ) + $answers + @(
             '--proof-out', $Proof1File, '--batch-out', $Batch2File
         ))
@@ -893,7 +894,7 @@ $Stages = [ordered]@{
     # `DISPOSITIONS` in smoke_fixture.py.
     disposition = {
         Invoke-Checked -Stage 'disposition' -CommandLine ($Launcher + @(
-            $Cmd.disposition, '--proof', $Proof1File, '--binder', $BinderFile,
+            $Cmd.disposition, '--proof', $Proof1File,
             '--dispositions', $DispositionsFile, '--out', $ChiefFinalFile,
             '--proof-out', $FinalFile
         ))

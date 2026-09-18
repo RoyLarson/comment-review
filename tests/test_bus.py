@@ -375,6 +375,58 @@ def test_a_disposition_at_a_place_the_answers_settled_is_refused(tmp_path):
     assert ("copy-chief", PLACE, "not carried forward") in _refusals(out)
 
 
+def test_a_place_an_answer_holds_for_the_human_is_named_for_the_asking(tmp_path):
+    """`decision-log.md Process: #90`: a human-review query rides to the end
+    of the review to be asked. A role may raise one in a turn as well as on
+    its first reading, and the place it holds is named either way."""
+    collated = _collated(
+        tmp_path,
+        {
+            "block-context": {
+                PLACE: a_correct_setting(PLACE, "one", "# ONE\n# two\n# three"),
+                "m.py@b2": a_clean("m.py@b2"),
+            },
+            "function-context": {
+                PLACE: a_correct_setting(PLACE, "three", "# one\n# two\n# THREE"),
+                "m.py@b2": a_clean("m.py@b2"),
+            },
+        },
+    )
+    assert _state_at(collated.proof, PLACE) == "composed"
+    out, result = handle(
+        AnswersReturned(
+            collated.proof,
+            {
+                "block-context": [
+                    _answer(
+                        PLACE,
+                        "query",
+                        "which of the two the author meant is theirs to say",
+                        claim={
+                            "shape": "human-review-necessary",
+                            "attempted": "read both texts against the code",
+                            "settles": "human",
+                        },
+                    )
+                ],
+                "function-context": [
+                    _answer(PLACE, "clean", "the two read as one paragraph")
+                ],
+            },
+        )
+    )
+    assert result is not None, out
+    assert _state_at(result.proof, PLACE) == "unsettlable"
+    assert (
+        events.Unsettlable(
+            PLACE,
+            "block-context",
+            "which of the two the author meant is theirs to say",
+        )
+        in out
+    )
+
+
 def test_an_advisory_note_is_reported_again_after_a_turn(tmp_path):
     """`decision-log.md Process: #177`: a note is a fact about a mark, so a
     fold that re-derives the place from its record derives the note with it."""
