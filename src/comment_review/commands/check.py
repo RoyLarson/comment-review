@@ -54,8 +54,7 @@ from comment_review.desk.collator import (
     verify_report,
 )
 from comment_review.desk.containers import EditCopy
-from comment_review.flows._turn import contracts
-from comment_review.flows.answers import answers_of, slots_of
+from comment_review.flows.answers import answers_of, contracts, slots_of
 from comment_review.flows.fill import (
     composition_problems,
     page_text_at,
@@ -263,8 +262,8 @@ def main() -> int:
     args = ap.parse_args()
 
     if args.contract:
-        # ! GENERATED, NEVER HAND-WRITTEN -- T19. The game's first brief typed
-        # the contract by hand and got `query` wrong.
+        # ! GENERATED, NEVER HAND-WRITTEN. The game's first brief typed the
+        # contract by hand and got `query` wrong.
         print(json.dumps(contracts(), indent=2))
         return OK
     if args.answers:

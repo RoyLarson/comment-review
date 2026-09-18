@@ -9,6 +9,8 @@ see `docs/superpowers/specs/2026-09-08-the-middle-chain-smoke-design.md`,
 """
 
 import json
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -32,6 +34,7 @@ from comment_review.desk.mark import (  # noqa: E402
     derived_change,
     first_word_dropped,
 )
+from comment_review.flows.fill import marks_on, touched_by  # noqa: E402
 from comment_review.flows.page_for import page_of  # noqa: E402
 
 
@@ -226,8 +229,8 @@ class TestEveryRowOfTheThreeTablesIsPlanted(unittest.TestCase):
     ! IT READS THE PLANT'S TABLES AND NOT THE SCRIPT. A row named nowhere in
     them is a row the smoke cannot be driving, whatever `smoke_middle.ps1`
     types; what holds those tables to what the script places is the smoke
-    itself, and `tests/test_differential_collate.py` over the copies one run
-    leaves behind.
+    itself, and `TestTheCopiesFileWhatTheLandingTableSays` below, over the
+    copies one run leaves behind.
     """
 
     def test_every_instruction_is_filed_at_some_place(self):
@@ -271,6 +274,52 @@ class TestEveryRowOfTheThreeTablesIsPlanted(unittest.TestCase):
         }
         self.assertIn(ORIGINAL, sides)
         self.assertTrue(sides - {ORIGINAL}, "taken_in is never ruled for a role's side")
+
+
+class TestTheCopiesFileWhatTheLandingTableSays(unittest.TestCase):
+    """`LANDINGS`' `filed` against the copies one real plant leaves behind.
+
+    The row-coverage gate above reads that field to say which rows of the
+    three tables the smoke reaches, and a field nothing checks would say so
+    whether or not the `mark` calls still place them. The copies are what the
+    calls placed. It ran beside the old fold's differential until that was
+    deleted with the fold; the run is the same one, stopped after `mark`.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        if shutil.which("pwsh") is None:
+            raise unittest.SkipTest("pwsh is not on PATH")
+        done = subprocess.run(
+            [
+                "pwsh",
+                "-NoProfile",
+                "-File",
+                str(ROOT / "scripts" / "smoke_middle.ps1"),
+                "-Stop",
+                "mark",
+            ],
+            capture_output=True,
+            text=True,
+            cwd=str(ROOT),
+        )
+        assert done.returncode == 0, done.stdout + done.stderr
+        lines = [line.strip() for line in done.stdout.splitlines() if line.strip()]
+        assert lines, done.stdout + done.stderr
+        cls.run_dir = Path(lines[-1])
+
+    def test_the_copies_file_what_the_landing_table_says_they_do(self):
+        placed: dict[str, set] = {}
+        for path in sorted((self.run_dir / "copies").glob("*.json")):
+            copy = json.loads(path.read_text(encoding="utf-8"))
+            for mark in marks_on(copy):
+                for address, _touch in touched_by(mark):
+                    placed.setdefault(address, set()).add(str(mark.instruction))
+        said = {
+            address: set(landing.filed)
+            for address, landing in smoke_fixture.LANDINGS.items()
+        }
+        self.assertEqual(placed, said)
 
 
 class TestTheSecondStageRulesTheRevisesOwnPlaces(unittest.TestCase):

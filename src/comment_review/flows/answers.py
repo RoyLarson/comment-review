@@ -2,6 +2,7 @@
 
     slots_of(loaded, role)                -> the slots, whatever shape they came in
     answers_of(role, sent, returned, why) -> (address -> Answer, the problems)
+    contracts()                           -> the shapes a role is handed
 
 `flows.bus` derives what a role was asked from the places the proof carries;
 `commands/check.py` reads the same question off the batch that went out. Both
@@ -18,9 +19,24 @@ the same question written down twice.
 from collections.abc import Callable
 from pathlib import Path
 
-from comment_review.desk.answers.answer import Answer
+from comment_review.desk.answers.answer import Answer, Question
+from comment_review.desk.answers.table import ANSWERS
 from comment_review.desk.collator import Cache, Problem, cited_problems
-from comment_review.desk.marks.mark import filled
+from comment_review.desk.marks.mark import allowed, filled
+
+#: What each field of an answer is, in the words `Answer.deserialize` checks
+#: by. The parse asks whether a field is filled and not what it means, so a
+#: role handed the names alone has been told half of the contract.
+ANSWER_FIELDS = {
+    "address": "copied from the slot",
+    "anchor": "copied from the slot",
+    "instruction": "one of the answers this question admits",
+    "reason": "owed, prose",
+    "change": "the WHOLE updated paragraph as raw text; owed by the answers"
+    " `owes_change` names and absent for the others",
+    "sources": "the evidence, each `{cite, verbatim}`, resolved against the tree"
+    " the slot was read from",
+}
 
 
 def slots_of(loaded: object, role: str) -> list:
@@ -129,3 +145,35 @@ def answers_of(
             continue
         out[address] = answer
     return out, problems
+
+
+def contracts() -> dict:
+    """The shapes a role is handed, generated from the tables, never hand-typed.
+
+    A stage-4c `Mark`, from the marks table, and one entry per question a turn
+    asks, from the answers table -- the same rows `Answer.deserialize` reads an
+    answer against, so the contract cannot say a thing the parse does not.
+    `commands/check.py --contract` prints them; publishing them in the brief is
+    the agents lane's.
+
+    ! GENERATED BECAUSE A HAND-TYPED ONE WAS WRONG. The game's first brief
+    typed the contract by hand and got `query` wrong, which cost a turn.
+
+    Returns:
+        `stage_4c_mark` -> the mark's own shape; one entry per question,
+        naming the answers that question admits, which of them owe a `change`,
+        and what each field is.
+    """
+    out: dict = {"stage_4c_mark": allowed()}
+    for question in Question:
+        rows = {
+            name: row for (asked, name), row in ANSWERS.items() if asked is question
+        }
+        out[str(question)] = {
+            "instruction": sorted(rows),
+            "owes_change": sorted(
+                name for name, row in rows.items() if row.owes_change
+            ),
+            "fields": ANSWER_FIELDS,
+        }
+    return out

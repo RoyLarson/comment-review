@@ -1,7 +1,9 @@
-"""The answers table: what a role's answer in a turn does to its own proposal."""
+"""The answers table: what a role's answer in a turn does to its own proposal,
+and the contract that publishes the table's own sets."""
 
 from comment_review.desk.answers.answer import Answer, Question
 from comment_review.desk.answers.table import ANSWERS, Effect
+from comment_review.flows.answers import contracts
 
 
 def _answer(question: Question, name: str, **fields) -> Answer:
@@ -75,3 +77,18 @@ def test_an_answer_is_read_against_its_question():
         },
     )
     assert got is None and "needs a `change`" in why[0]
+
+
+def test_the_contracts_are_the_tables_own_sets():
+    """Ported from `tests/test_turn.py`, which read the same three shapes off
+    the old `DiffMark`. They come off the answers table now, so a row added to
+    it reaches `check --contract` with no edit here or there."""
+    got = contracts()
+    assert set(got) == {"stage_4c_mark", "escalation", "composition"}
+    assert got["escalation"]["instruction"] == ["correct", "hold", "patch", "withdraw"]
+    assert got["escalation"]["owes_change"] == ["correct", "patch"]
+    assert got["composition"]["instruction"] == ["clean", "correct", "patch", "query"]
+    assert got["composition"]["owes_change"] == ["correct", "patch"]
+    assert got["stage_4c_mark"]["instruction"] == sorted(
+        ["add", "clean", "correct", "drop", "move", "patch", "query"]
+    )
