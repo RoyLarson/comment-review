@@ -351,10 +351,11 @@ def _synthetic_binder(addresses: list[str]) -> Binder:
 def a_binder_over(paragraphs: dict[str, str]) -> Binder:
     """A binder whose rows carry REAL paragraph text, keyed by address.
 
-    ! WRITTEN IN TASK 10, for `tests/test_collate.py`. `_synthetic_binder`
-    seeds every row with an empty `raw_text`, which is enough for `places()`
-    -- it groups by address and reads no text -- and not enough for a compose,
-    whose whole subject is the base.
+    ! WRITTEN IN TASK 10, for the fold's own cases; `tests/test_bus.py` and
+    `tests/test_collate_command.py` are what drive it now. `_synthetic_binder`
+    seeds every row with an empty `raw_text`, which is enough to group marks
+    by address -- that reads no text -- and not enough for a compose, whose
+    whole subject is the base.
 
     Args:
         paragraphs: `path@cue` -> the paragraph at that place.
@@ -554,8 +555,8 @@ def marks_of(sheet: Sheet) -> list[Mark]:
 def entries_of(copy: EditCopy) -> list[Mark]:
     """Every mark on a copy, flattened, in sheet then mark order.
 
-    ! IT REPLACES `[m for s in got.chief.sheets for m in s.marks]`, which stood
-    at thirteen sites in `tests/test_collate.py` alone.
+    ! IT REPLACES `[m for s in copy.sheets for m in s.marks]`, which stood at
+    thirteen sites in the old fold's test file alone.
     """
     return [mark for sheet in copy.sheets for mark in marks_of(sheet)]
 

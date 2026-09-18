@@ -109,24 +109,37 @@ on 2026-08-24.
 
 Measured 2026-09-04 on `feat/the-mark-and-the-collator` after SP-4, P9: one
 exact-string mutation per check, the module's own test file run, the source
-restored from memory. A MISSED row is a finding; the one found is now a test.
+restored from memory. A missed row was a finding; the one found became a test.
 
-| module | the check mutated | caught by |
+**The mutation run is of its date, and the modules it ran over are gone.** The
+old middle was deleted 2026-09-18 (`0e2ff82a`), taking `desk/determined.py`,
+`desk/diff_mark.py`, `flows/collate.py`, `flows/turn.py` and their four test
+files with it. **What the checks ASK survives the rebuild**, so the table is
+kept and re-pointed: each row names where that question is settled now and the
+test read to confirm it. **Nothing here claims a mutation was re-run against
+the new modules.** Re-running it means one exact-string mutation per row
+against the module in the middle column, and it is the way to find out whether
+a row's new home really bites -- which is a measurement this table would then
+carry its own date for.
+
+| what the check asks | settled now in | read to confirm |
 | --- | --- | --- |
-| `desk/determined.py` | a role's answer is refused by name | `test_determined.py` |
-| `desk/determined.py` | a null mark stands only for the original | `test_determined.py` |
-| `desk/diff_mark.py` | correct and patch owe a change | `test_diff_mark.py` |
-| `desk/diff_mark.py` | an unanswered slot is refused, not read as a withdraw | `test_diff_mark.py` |
-| `flows/turn.py` | an unanswered sent slot is refused | `test_turn.py` |
-| `flows/turn.py` | an address never sent is refused | `test_turn.py` |
-| `flows/turn.py` | an earlier Determined is kept over this fold's | `test_turn.py` |
-| `flows/turn.py` | disposition refuses an unruled place | `test_turn.py` |
-| `flows/collate.py` | agreement needs byte-identical text | `test_collate.py` |
-| `flows/collate.py` | a lone mark goes back when another role marked | `test_turn.py` |
-| `flows/collate.py` | a human-review query holds a place that would have resolved | `test_collate.py`, MISSED on the first run and the test written for it |
-| `desk/collator.py` | a deferring query's role is out of the place | `test_collate.py` |
-| `commands/check.py` | check exits BROKEN on a refused answer | `test_check_command.py` |
-| `commands/check.py` | check exits BROKEN on a place left alone | `test_check_command.py` |
+| a role's answer is refused by name | `desk/answers/answer.py` | `test_answers.py::test_an_answer_is_read_against_its_question` -- `clean` under an escalation gives "not an answer to an escalation" |
+| the chief's own ruling refuses a role's answer name | `desk/dispositions/disposition.py` | `test_dispositions.py::test_a_disposition_is_read_by_name` -- `correct` gives "a role's answer" |
+| a null mark stands only for the original | `desk/dispositions/table.py` | `test_dispositions.py::test_taken_in_closes_a_carried_place_with_one_sides_text_or_the_original` -- the `original` side sets `None`, and `test_disposition_command.py::test_a_taken_in_of_the_original_writes_no_entry` is the same through the command |
+| correct and patch owe a change | `desk/answers/table.py` | `test_answers.py::test_the_escalation_answers` (the `owes_change` flags) and `::test_an_answer_is_read_against_its_question` (a `correct` with none gives "needs a `change`") |
+| a query answer owes the shape its effect reads | `desk/answers/answer.py` | `test_answers.py::test_a_query_answer_with_no_shape_is_refused_rather_than_read_as_deferring` |
+| an unanswered slot is refused, not read as a withdraw | `flows/answers.py` | `test_turn_command.py::test_an_unanswered_slot_is_BROKEN_and_nothing_is_written` and `::test_a_slot_left_unanswered_beside_an_answered_one_is_BROKEN` |
+| a role that was asked and returned nothing is refused | `flows/bus.py` | `test_bus.py::test_a_role_that_was_asked_and_answered_nothing_is_refused` |
+| an address never sent is refused | `flows/bus.py` | `test_bus.py::test_an_answer_at_a_place_no_turn_carried_is_refused` and `::test_an_answer_from_a_role_the_place_was_not_put_to_is_refused` |
+| a place an earlier fold settled is not re-opened | `desk/evaluate/passes.py` | `test_turn_command.py::TestOnceSettledAlwaysSettled::test_a_place_the_first_fold_settled_still_reads_the_same_after_a_turn` -- across two processes, the place is derived again from the same marks |
+| the chief's close refuses an unruled place | `flows/bus.py` | `test_disposition_command.py::TestRefusals::test_an_unruled_place_is_BROKEN_naming_it_and_its_roles` |
+| agreement needs byte-identical text | `desk/evaluate/passes.py` | `test_passes.py::test_two_proposals_of_one_text_agree` against `::test_two_proposals_on_one_sentence_contest` |
+| a lone mark goes back to the roles that read the page | `desk/evaluate/passes.py` | `test_passes.py::TestATextEveryReaderMustHaveSeen::test_a_lone_correct_against_three_cleans_is_composed_and_asked_of_them` |
+| a human-review query holds a place that would have resolved | `desk/evaluate/passes.py` | `test_passes.py::test_a_human_review_query_makes_the_place_unsettlable_whatever_else_is_there` -- it is the row found MISSED on the 2026-09-04 run |
+| a deferring query's role is out of the place | `desk/marks/table.py` | `test_marks_table.py::test_only_a_deferring_query_defers` and `test_passes.py::TestATextEveryReaderMustHaveSeen::test_a_role_that_filed_only_a_query_is_not_waited_on` |
+| check exits BROKEN on a refused answer | `commands/check.py` | `test_check_command.py::TestABatchIsHeldToWhatTheTurnRefuses::test_what_the_turn_refuses_is_named_here_too` |
+| check exits BROKEN on a place left alone | `commands/check.py` | `test_check_command.py::TestACopy::test_a_place_left_alone_is_named` |
 
 ## The three xfails are a tripwire
 
