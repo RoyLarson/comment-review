@@ -131,13 +131,6 @@ def test_every_row_names_the_answers_a_turn_may_give_on_it():
             )
 
 
-def test_add_rereads_and_only_add_rereads():
-    """Ruling R4 (decision-log.md Process #116 and #121): an add is carried
-    forward for every role that read its page."""
-    for instruction, row in INSTRUCTIONS.items():
-        assert row.rereads == (instruction is Instruction.ADD), instruction
-
-
 def test_owes_destination_is_derived_from_touches_not_set_beside_it():
     """A row cannot state `owes_destination` and `touches` in disagreement --
     `__post_init__` derives the first from the second every time, so passing

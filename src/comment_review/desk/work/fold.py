@@ -9,12 +9,10 @@ the result (`decision-log.md Process: #171` and the design of 2026-09-14).
 
 from dataclasses import dataclass, field
 
-from comment_review.desk.answers.answer import Question
-from comment_review.desk.answers.table import ANSWERS, Effect
 from comment_review.desk.evaluate.passes import evaluate, pair_moves
 from comment_review.desk.evaluate.place import Place
 from comment_review.desk.evaluate.state import CARRIED, State
-from comment_review.desk.marks.table import INSTRUCTIONS, Stance
+from comment_review.desk.marks.table import Touch
 from comment_review.desk.work import events
 
 
@@ -40,7 +38,7 @@ class Fold:
         chief to read, not a reason to give up the round.
         """
         for place in self.places.values():
-            evaluate(place, self.turn)
+            evaluate(place, self.turn, self.places.get(place.partner or ""))
         pair_moves(self.places)
         refused = 0
         for address in sorted(self.places):
@@ -56,8 +54,15 @@ class Fold:
                     )
                 )
             elif place.state is State.UNSETTLABLE:
-                for role, reason in _asking_the_human(place):
-                    self.events.append(events.Unsettlable(address, role, reason))
+                held = _held_with(place, self.places)
+                if held is None or _prints(place, held):
+                    partner = held.address if held is not None else ""
+                    move = _held_move(place)
+                    for one in place.asking:
+                        role, _, reason = one.partition(": ")
+                        self.events.append(
+                            events.Unsettlable(address, role, reason, partner, move)
+                        )
             else:
                 self.events.append(events.Settled(address, place.text))
             # A note is reported wherever it is found, whatever the place
@@ -75,49 +80,74 @@ class Fold:
 def asked(place: Place) -> tuple[str, ...]:
     """Who a carried-forward place is put to, in role order.
 
-    An escalation is put to the roles that proposed a text, since it asks
-    each of them about the others' proposals. Anything else carried forward
-    is put to those roles and to every role that read the place's page --
-    Ruling R4, `decision-log.md Process: #116` and `#121`: an add is carried
-    forward for every role that read its page.
+    The pass that carried it forward decided this: a text is put to the roles
+    that have not accepted it, and a place with no one text yet to the roles
+    that hold the texts (`desk.evaluate.passes.owed_a_say`,
+    `decision-log.md Process: #180`). Reading it back rather than deriving it
+    again is what keeps the rule in one place.
 
     Args:
         place: a place the fold is carrying forward.
 
     Returns:
-        The roles, sorted, so two runs over one place name them in one order.
+        The roles, as the pass recorded them. Empty where nothing is carried
+        forward, and for a place whose record predates the field, which is
+        why the batch and the unanswered check both read this one function.
     """
-    if place.question is Question.ESCALATION:
-        return tuple(sorted(place.sides))
-    return tuple(sorted(set(place.sides) | set(place.readers)))
+    return place.owed
 
 
-def _asking_the_human(place: Place) -> list[tuple[str, str]]:
-    """Who put this place to the human, and why -- a mark's query or an answer's.
-
-    A place reaches the human either way: a role files a query the first time
-    it reads the page, or answers a turn with one. Both are somebody on record
-    asking, so both are named, and a place made unsettlable in a turn is
-    reported rather than counted (`decision-log.md Process: #90`).
+def _held_with(place: Place, places: dict[str, Place]) -> Place | None:
+    """The other end of a move held for the human at both of its ends.
 
     Args:
-        place: a place the fold found unsettlable.
+        place: an unsettlable place.
+        places: the fold's places, where its partner is looked up.
 
     Returns:
-        `(role, reason)` in the order they were written -- the marks filed
-        there first, then each turn's answers in turn order.
+        The partner, where the two name each other and it is held too; None
+        otherwise, which is a place that stands on its own.
     """
-    out = [
-        (one.role, one.mark.reason)
-        for one in place.filed
-        if INSTRUCTIONS[one.mark.instruction].pairs(one.mark) is Stance.UNSETTLABLE
-    ]
-    for _turn, by_role in sorted(place.answers.items()):
-        for role, answer in sorted(by_role.items()):
-            row = ANSWERS.get((answer.question, answer.name))
-            if row is not None and row.effect(answer) is Effect.UNSETTLABLE:
-                out.append((role, answer.reason))
-    return out
+    other = places.get(place.partner or "")
+    if other is None or other.partner != place.address:
+        return None
+    return other if other.state is State.UNSETTLABLE else None
+
+
+def _prints(place: Place, other: Place) -> bool:
+    """Which end of a held move carries the entry -- the origin, where it can tell.
+
+    The two ends are one entry (`decision-log.md Process: #155` and `#182`),
+    so exactly one of them emits it. The origin is the end the paragraph
+    leaves, which is where the author reads the move from; where neither end
+    or both hold the origin of a move, the earlier address decides, so the
+    choice is the same on every run.
+    """
+    mine = any(one.touch is Touch.ORIGIN for one in place.filed)
+    theirs = any(one.touch is Touch.ORIGIN for one in other.filed)
+    if mine != theirs:
+        return mine
+    return place.address < other.address
+
+
+def _held_move(place: Place) -> events.HeldMove | None:
+    """The move this place is an end of, as the entry names it.
+
+    The touch says which end this is, so the two addresses come from the
+    place and its partner rather than from a claim read here.
+    """
+    for one in place.filed:
+        if not place.partner:
+            continue
+        if one.touch is Touch.ORIGIN:
+            return events.HeldMove(
+                one.role, one.mark.reason, place.address, place.partner
+            )
+        if one.touch is Touch.DESTINATION:
+            return events.HeldMove(
+                one.role, one.mark.reason, place.partner, place.address
+            )
+    return None
 
 
 def _by_role(reasons: tuple[str, ...]) -> dict[str, tuple[str, ...]]:

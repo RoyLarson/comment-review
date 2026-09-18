@@ -13,8 +13,11 @@ what the chief should be told about a mark that is not a problem with it --
 read once, by the evaluator, and reported without changing a state
 (`Process: #177`).
 
-`rereads` is True on `add` alone: an add is carried forward for every role
-that read its page, per `decision-log.md Process: #116` and `#121`.
+An `add` going back to every role that read its page (`Process: #116`) was a
+row of its own here, `rereads`, until `#180`: a text settles only once every
+role that read the place has accepted it, which carries an add to those roles
+for the same reason it carries any other lone proposal. The evaluator asks
+that of every row, so no row answers it.
 """
 
 from collections.abc import Callable
@@ -169,10 +172,6 @@ class Row:
     substantive: bool = True
     may_empty: bool = False
     needs_anchor: bool = False
-    #: Set True on `add` alone -- Ruling R4, `decision-log.md Process: #116`
-    #: and `#121`: an add is carried forward for every role that read its
-    #: page, not only the role that filed it.
-    rereads: bool = False
     #: True where `raw_text` is the paragraph as it will read and the role
     #: writes it, rather than the seeded paragraph as it stands --
     #: `decision-log.md Process: #175` and `#176`. `flows.fill` takes it from
@@ -231,7 +230,6 @@ INSTRUCTIONS: dict[Instruction, Row] = {
         sets=_the_raw_text,
         reads=_add_reads,
         needs_anchor=True,
-        rereads=True,
         carries_raw_text=True,
     ),
     Instruction.MOVE: Row(

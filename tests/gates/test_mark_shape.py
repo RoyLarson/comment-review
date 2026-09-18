@@ -141,7 +141,6 @@ FIELD_FOR = {
     "empty change allowed": "may_empty",
     "anchor named in backticks": "needs_anchor",
     "destination addressable": "owes_destination",
-    "rereads": "rereads",
     "carries raw text": "carries_raw_text",
 }
 

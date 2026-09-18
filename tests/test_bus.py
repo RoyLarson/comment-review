@@ -12,7 +12,9 @@ from helpers import (
     returned,
 )
 
+from comment_review.desk.answers.answer import Question
 from comment_review.desk.evaluate.place import Place
+from comment_review.desk.evaluate.state import State
 from comment_review.desk.mark import Shape
 from comment_review.desk.work import events
 from comment_review.flows.bus import (
@@ -46,10 +48,18 @@ TWO_ROLES = {
 }
 
 
-def test_a_committed_fold_says_what_it_settled(tmp_path):
+def test_a_committed_fold_says_what_it_settled_and_what_it_carries(tmp_path):
+    """`decision-log.md Process: #180`: the place the other role read but has
+    not seen a text for is carried to it; the place they both cleaned settles
+    on the paragraph as it stands."""
     out, result = handle(_message(tmp_path, TWO_ROLES))
-    assert events.Settled("m.py@b1", CORRECTED) in out
     assert events.Settled("m.py@b2", None) in out
+    assert (
+        events.CarriedForward(
+            "m.py@b1", State.COMPOSED, Question.COMPOSITION, ("function-context",)
+        )
+        in out
+    )
     assert events.Committed(2) in out
     assert result is not None
 
@@ -169,6 +179,12 @@ TWO_SIDES = {
     },
 }
 
+#: The two sides alone, with no third role reading the page: what the two
+#: settle between them settles, since nobody else is owed a say (`#180`).
+JUST_THE_TWO = {
+    role: marks for role, marks in TWO_SIDES.items() if role != "module-context"
+}
+
 #: One role's human-review query and nothing else: the fold settles `b1` and
 #: leaves `b2` for the human, carrying neither forward.
 A_QUERY_FOR_THE_HUMAN = {
@@ -231,17 +247,31 @@ def _refusals(out):
     ]
 
 
-def test_a_hold_and_a_withdraw_leave_one_side_and_the_place_stands(tmp_path):
+def _held_and_withdrawn():
+    return {
+        "block-context": [_answer(PLACE, "hold", "mine reads correctly")],
+        "function-context": [_answer(PLACE, "withdraw", "theirs is better")],
+    }
+
+
+def test_a_hold_and_a_withdraw_leave_one_side_and_it_goes_to_the_role_that_cleaned(
+    tmp_path,
+):
+    """`decision-log.md Process: #180`: the role that withdrew has had its
+    say; the role that was clean at the first fold has seen no text, and the
+    one side left is put to it."""
     collated = _collated(tmp_path)
-    out, result = handle(
-        AnswersReturned(
-            collated.proof,
-            {
-                "block-context": [_answer(PLACE, "hold", "mine reads correctly")],
-                "function-context": [_answer(PLACE, "withdraw", "theirs is better")],
-            },
-        )
-    )
+    out, result = handle(AnswersReturned(collated.proof, _held_and_withdrawn()))
+    assert result is not None, out
+    assert _state_at(result.proof, PLACE) == "composed"
+    assert result.batch is not None
+    assert sorted(result.batch) == ["module-context"]
+    assert result.batch["module-context"][0]["raw_text"] == CORRECTED
+
+
+def test_a_hold_and_a_withdraw_settle_the_place_where_nobody_else_read_it(tmp_path):
+    collated = _collated(tmp_path, JUST_THE_TWO)
+    out, result = handle(AnswersReturned(collated.proof, _held_and_withdrawn()))
     assert result is not None, out
     assert events.Settled(PLACE, CORRECTED) in out
     assert _state_at(result.proof, PLACE) == "stands"
@@ -338,7 +368,7 @@ def test_a_role_this_turn_asked_nothing_of_is_refused_by_name(tmp_path):
 
 
 def test_a_second_turn_reads_the_first_turns_answers_and_its_own(tmp_path):
-    collated = _collated(tmp_path)
+    collated = _collated(tmp_path, JUST_THE_TWO)
     _out, held = handle(AnswersReturned(collated.proof, _both_hold()))
     assert held is not None
     out, result = handle(
@@ -356,16 +386,8 @@ def test_a_second_turn_reads_the_first_turns_answers_and_its_own(tmp_path):
 
 
 def test_a_disposition_at_a_place_the_answers_settled_is_refused(tmp_path):
-    collated = _collated(tmp_path)
-    _out, settled = handle(
-        AnswersReturned(
-            collated.proof,
-            {
-                "block-context": [_answer(PLACE, "hold", "mine reads correctly")],
-                "function-context": [_answer(PLACE, "withdraw", "theirs is better")],
-            },
-        )
-    )
+    collated = _collated(tmp_path, JUST_THE_TWO)
+    _out, settled = handle(AnswersReturned(collated.proof, _held_and_withdrawn()))
     assert settled is not None
     out, result = handle(
         DispositionsWritten(

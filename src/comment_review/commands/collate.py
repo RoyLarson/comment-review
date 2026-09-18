@@ -66,6 +66,44 @@ def _refused(why: list[str]) -> int:
     return UNREADABLE
 
 
+def _for_the_human(event) -> list[str]:
+    """One unsettlable place as the lines 7a asks the human from.
+
+    Who asks and why, then the move the place is an end of where it is one.
+    A move held at both ends is one entry naming both, so the author approves
+    or refuses the move whole (`decision-log.md Process: #155` and `#182`);
+    held at one end, the entry says which end it is, since the paragraph
+    leaving is a different question from the paragraph arriving.
+
+    Args:
+        event: an `Unsettlable`, as the fold emits it -- one per move, not
+            one per place.
+
+    Returns:
+        The line, and the move's own line under it where there is a move.
+    """
+    where = f"{event.address} and {event.partner}" if event.partner else event.address
+    out = [f"unsettlable {where}: {event.role} asks the human -- {event.reason}"]
+    move = event.move
+    if move is None:
+        return out
+    if event.partner:
+        out.append(
+            f"  and {move.role}'s move drops the paragraph at {move.origin} and adds"
+            f" it at {move.destination}, one move -- {move.reason}"
+        )
+    elif move.origin == event.address:
+        out.append(
+            f"  and {move.role}'s move drops the paragraph there -- {move.reason}"
+        )
+    else:
+        out.append(
+            f"  and {move.role}'s move from {move.origin} adds the paragraph there"
+            f" -- {move.reason}"
+        )
+    return out
+
+
 def _lines(event: object) -> list[str]:
     """One event as the lines a reader sees, or none where it reports nothing.
 
@@ -81,10 +119,7 @@ def _lines(event: object) -> list[str]:
         roles = ", ".join(event.roles)
         return [f"{event.state} {event.address}: {roles} ({event.question})"]
     if isinstance(event, events.Unsettlable):
-        return [
-            f"unsettlable {event.address}: {event.role} asks the human"
-            f" -- {event.reason}"
-        ]
+        return _for_the_human(event)
     if isinstance(event, events.Settled):
         return [f"stet {event.address}"]
     # `Advised` prints under its own heading, after the places -- see `_print`.

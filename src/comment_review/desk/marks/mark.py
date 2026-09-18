@@ -63,11 +63,11 @@ A 22-field scheme entered this file on 2026-08-27 during a port that was
 never proposed and never approved -- `decision-log.md Process: #37`. `Row`
 carried only what `docs/the-mark.md` approved for that reason. T1 of
 `docs/superpowers/plans/2026-09-14-the-middle-rebuilt.md` moved it to
-`desk.marks.table` and gave it `touches`, `sets`, `reads`, `pairs`, `answers`
-and `rereads` -- fields the marks table needs -- and added the matching rows
+`desk.marks.table` and gave it `touches`, `sets`, `reads`, `pairs` and
+`answers` -- fields the marks table needs -- and added the matching rows
 to `docs/the-mark.md`'s own classifiers and flags tables in the same change,
 so `tests/gates/test_mark_shape.py` still refuses a field that is not one
-of the spec's own, now fourteen for `Row` as well as eight for `Mark`.
+of the spec's own, for `Row` as well as the eight for `Mark`.
 
 !! AND `Mark` REPLACED `problems(where, mark: dict)` ON 2026-08-29. Nothing
 parsed a mark, so the seven fields existed as prose plus string literals at

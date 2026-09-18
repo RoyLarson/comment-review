@@ -225,12 +225,14 @@ LANDINGS: dict[str, Landing] = {
     ),
     # collate escalates c1: block-context and function-context each replace
     # the same `false`. In the turn block-context corrects its change to
-    # this text and function-context patches its own to the same, so the
-    # fold settles the two as one text. `marked` is block-context's
-    # first-round change, which the turn replaced.
+    # this text and function-context patches its own to the same, so the two
+    # sides come to one text -- which the two roles that cleaned c1 have
+    # still not seen, so the place is carried forward to them
+    # (`Process: #180`) and the chief takes the text in. `marked` is
+    # block-context's first-round change, which the turn replaced.
     "fib.py@c1": Landing(
         "text",
-        route="turn",
+        route="disposition",
         text="  # every call, cached or not",
         claim={"false": "memoised or not", "true": "cached or not"},
         marked="  # every entry, cached or not",
@@ -396,17 +398,19 @@ LANDINGS: dict[str, Landing] = {
 #: unless the address that comes back is this one.
 ADDRESSER_ROW = "fib.py@b15"
 
-#: The places `collate` carries forward at an `add`. The turn's batch sends
-#: each to all four roles, since an `add`'s place is re-read by every role
-#: that read its page.
-ADDED = (
-    "fib.py@a0",
-    "fib.py@b8",
-    "fib.py@c3",
-    "fib.py@a2",
-    "fib.py@b17",
-    "fib.py@b15",
-)
+#: The places `collate` carries forward at an `add`, and whose add each is.
+#: The turn's batch sends each to every other role that read the page: a text
+#: settles once every role that read the place has accepted it, and the role
+#: that proposed it has (`decision-log.md Process: #180`), so the adding role
+#: is not asked about its own add.
+ADDED = {
+    "fib.py@a0": "block-context",
+    "fib.py@b8": "block-context",
+    "fib.py@c3": "function-context",
+    "fib.py@a2": "function-context",
+    "fib.py@b17": "module-context",
+    "fib.py@b15": "module-context",
+}
 
 #: Each role's answers to the batch `collate` sends for the turn, keyed by
 #: address and holding only the fields the role fills; `turn` lays them over
@@ -493,8 +497,8 @@ ANSWERS: dict[str, dict[str, dict]] = {
             "change": LANDINGS["fib.py@c1"].text,
         },
         "fib.py@a3": {
-            "instruction": "hold",
-            "reason": "starting at is where the docstring's own count begins",
+            "instruction": "withdraw",
+            "reason": "the signature is described well enough as it stands",
         },
         "fib.py@b8": {
             "instruction": "correct",
@@ -515,8 +519,8 @@ ANSWERS: dict[str, dict[str, dict]] = {
     },
     "module-context": {
         "fib.py@b9": {
-            "instruction": "hold",
-            "reason": "tracks is the verb the module's own counter uses",
+            "instruction": "withdraw",
+            "reason": "tracks and watches say the same, so mine adds nothing",
         },
         "fib.py@a3": {
             "instruction": "hold",
@@ -563,13 +567,23 @@ ANSWERS: dict[str, dict[str, dict]] = {
     },
 }
 
-#: The chief's own rulings over the four places the turn leaves carried
-#: forward -- `a3` and `b9`, each left a lone correction, and `b8` and `c3`,
-#: each holding an `add` beside another role's answer to it -- `LANDINGS`
-#: above names what each one makes land; this names how. A carried-forward
-#: place with no entry here is refused by `disposition`, by name, and so is
-#: an entry for a place that is not carried forward.
+#: The chief's own rulings over the five places the turn leaves carried
+#: forward -- `a3` and `b9`, each left a lone correction, `c1`, where the two
+#: sides met on one text the other two roles have not seen, and `b8` and
+#: `c3`, each holding an `add` beside another role's answer to it --
+#: `LANDINGS` above names what each one makes land; this names how. A
+#: carried-forward place with no entry here is refused by `disposition`, by
+#: name, and so is an entry for a place that is not carried forward.
 DISPOSITIONS = [
+    {
+        "address": "fib.py@c1",
+        "answer": "taken_in",
+        "side": "block-context",
+        "reason": (
+            "block-context and function-context came to one wording in the "
+            "turn, and it says what the counter counts"
+        ),
+    },
     {
         "address": "fib.py@a3",
         "answer": "taken_in",
@@ -686,10 +700,10 @@ def write_answers(run: Path) -> dict[str, Path]:
 
     A role's file, `answers-<role>.json`, lists `{"address", **fields}` for
     each place `ANSWERS` answers for it, then a `clean` carrying
-    `CLEAN_REASON` for every place in `ADDED` it does not -- one answer for
-    each slot the plant expects the batch to send the role. `check --answers`
-    refuses a file that leaves a sent slot unanswered or answers one that
-    was never sent.
+    `CLEAN_REASON` for every place in `ADDED` it does not -- except its own
+    add, which it is not asked about -- one answer for each slot the plant
+    expects the batch to send the role. `check --answers` refuses a file that
+    leaves a sent slot unanswered or answers one that was never sent.
 
     Args:
         run: the run directory the smoke script writes into. Not created
@@ -703,8 +717,8 @@ def write_answers(run: Path) -> dict[str, Path]:
         answers = [{"address": address, **fields} for address, fields in given.items()]
         answers += [
             {"address": address, "instruction": "clean", "reason": CLEAN_REASON}
-            for address in ADDED
-            if address not in given
+            for address, adder in ADDED.items()
+            if address not in given and role != adder
         ]
         path = run / f"answers-{role}.json"
         path.write_text(

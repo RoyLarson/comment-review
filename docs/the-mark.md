@@ -248,15 +248,19 @@ to THIS FILE first.
 | **pairs** | how a mark of this row stands toward the others at its place | a function of the mark |
 | **answers** | which answers a turn may give where this row proposes | a list of names |
 
-**The flags, and there are six:**
+**The flags, and there are five:**
 
     not substantive        clean alone. It is the NULL mark and the coverage record
     empty change allowed   drop alone, where the claim names the whole paragraph
     anchor named in backticks   add alone, and it is a FORM check on `claim.anchor`
     destination addressable     move alone
-    rereads                 add alone -- carried forward for every role that read its page
     carries raw text        add and move -- the paragraph as it will read is the role's to
                             write, not the seed's
+
+There were six until `decision-log.md Process: #180`. `rereads` was True on `add`
+alone and carried an add forward for every role that read its page; a text now
+settles only once every role that read the place has accepted it, which carries
+an add to those roles along with every other lone proposal, so no row is asked.
 
 !! **THE COLUMN COUNT IN THIS HEADING AND THE FLAG COUNT IN THE LABEL ABOVE ARE BOTH READ
 BY THE GATE**, and their sum must equal the names these two tables state. Same rule as the

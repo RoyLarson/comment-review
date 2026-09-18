@@ -45,6 +45,18 @@ class Place:
     #: from each row's `notes`, and it never decides a state
     #: (`decision-log.md Process: #177`).
     notes: tuple[str, ...] = ()
+    #: Who put this place to the human and why, as `"<role>: <reason>"` -- the
+    #: shape `reasons` and `notes` take. The pass that sets `UNSETTLABLE` fills
+    #: it, from the query that asked or from the answer that did, and
+    #: `desk.work.fold.Fold.run` reports one entry per line
+    #: (`decision-log.md Process: #90`).
+    asking: tuple[str, ...] = ()
+    #: The roles this place's text still owes a say to, in role order. A text
+    #: settles only once every role that read the place has proposed it or
+    #: accepted it (`decision-log.md Process: #180`), so a place carried
+    #: forward names here who has not, and `desk.work.fold.asked` sends it to
+    #: them. Empty on a place nothing is carried forward for.
+    owed: tuple[str, ...] = ()
     question: Question | None = None
     partner: str | None = None
 
@@ -69,6 +81,8 @@ class Place:
             "sides": dict(self.sides),
             "reasons": list(self.reasons),
             "notes": list(self.notes),
+            "asking": list(self.asking),
+            "owed": list(self.owed),
             "question": str(self.question) if self.question else None,
             "partner": self.partner,
         }
@@ -119,6 +133,8 @@ class Place:
                 sides=dict(data.get("sides") or {}),
                 reasons=tuple(data.get("reasons") or ()),
                 notes=tuple(data.get("notes") or ()),
+                asking=tuple(data.get("asking") or ()),
+                owed=tuple(data.get("owed") or ()),
                 question=Question(question) if question else None,
                 partner=data.get("partner"),
             ),

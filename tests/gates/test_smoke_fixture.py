@@ -261,7 +261,7 @@ class TestWriteAnswersWritesWhatTheScriptReads(unittest.TestCase):
                     "instruction": "clean",
                     "reason": smoke_fixture.CLEAN_REASON,
                 }
-                for address in smoke_fixture.ADDED
-                if address not in given
+                for address, adder in smoke_fixture.ADDED.items()
+                if address not in given and role != adder
             }
             self.assertEqual(by_address, {**given, **cleans}, role)

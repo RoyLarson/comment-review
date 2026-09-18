@@ -176,21 +176,117 @@ class TestSeveralOfOneRolesMarksAtOnePlace:
         assert got.reasons == ()
 
 
-def test_a_lone_proposal_stands():
-    place = _place(
-        Filed(
-            "a",
-            _mark(
-                Instruction.CORRECT,
-                change="# one\n# 2\n# three\n",
-                claim={"false": "two", "true": "2"},
-            ),
-            Touch.OWN,
-        ),
-        Filed("b", _mark(Instruction.CLEAN), Touch.OWN),
+def _a_correct(change="# one\n# 2\n# three\n", false="two", true="2"):
+    return _mark(
+        Instruction.CORRECT, change=change, claim={"false": false, "true": true}
     )
+
+
+def test_a_lone_proposal_no_one_else_read_stands():
+    """`decision-log.md Process: #180`: the rule waits on the roles that read
+    the place, and here there are none."""
+    place = _place(Filed("a", _a_correct(), Touch.OWN))
+    place.readers = ("a",)
     got = marks_pass(place)
     assert got.state is State.STANDS and got.text == "# one\n# 2\n# three\n"
+    assert got.owed == ()
+
+
+class TestATextEveryReaderMustHaveSeen:
+    """`decision-log.md Process: #180`, the one invariant: a place settles on a
+    text only when every role that read it, a role that filed only a query
+    excluded, has proposed that text or accepted it."""
+
+    def _three_cleans(self) -> Place:
+        place = _place(
+            Filed("a", _a_correct(), Touch.OWN),
+            Filed("b", _mark(Instruction.CLEAN), Touch.OWN),
+            Filed("c", _mark(Instruction.CLEAN), Touch.OWN),
+            Filed("d", _mark(Instruction.CLEAN), Touch.OWN),
+        )
+        place.readers = ("a", "b", "c", "d")
+        return place
+
+    def test_a_lone_correct_against_three_cleans_is_composed_and_asked_of_them(self):
+        got = marks_pass(self._three_cleans())
+        assert got.state is State.COMPOSED and got.text == "# one\n# 2\n# three\n"
+        assert got.question is Question.COMPOSITION
+        assert got.owed == ("b", "c", "d")
+
+    def test_their_cleans_settle_it(self):
+        place = marks_pass(self._three_cleans())
+        place.answers[1] = {
+            role: _answer("clean", question=Question.COMPOSITION) for role in "bcd"
+        }
+        got = answers_pass(place, 1)
+        assert got.state is State.AGREED and got.text == "# one\n# 2\n# three\n"
+        assert got.owed == ()
+
+    def test_a_role_that_filed_only_a_query_is_not_waited_on(self):
+        place = _place(
+            Filed("a", _a_correct(), Touch.OWN),
+            Filed(
+                "b",
+                _mark(Instruction.QUERY, claim={"shape": str(Shape.OUTSIDE_MY_ROLE)}),
+                Touch.OWN,
+            ),
+        )
+        place.readers = ("a", "b")
+        got = marks_pass(place)
+        assert got.state is State.STANDS and got.owed == ()
+
+    def test_one_hold_and_a_withdrawal_go_to_the_roles_that_were_never_asked(self):
+        """The role that withdrew has had its say and holds no position; the
+        roles that were clean at the first fold have seen no text yet."""
+        place = _place(
+            Filed("a", _a_correct(), Touch.OWN),
+            Filed("b", _a_correct("# one\n# II\n# three\n", true="II"), Touch.OWN),
+            Filed("c", _mark(Instruction.CLEAN), Touch.OWN),
+            Filed("d", _mark(Instruction.CLEAN), Touch.OWN),
+        )
+        place.readers = ("a", "b", "c", "d")
+        contested = marks_pass(place)
+        assert contested.state is State.CONTESTED and contested.owed == ("a", "b")
+        place.answers[1] = {"a": _answer("hold"), "b": _answer("withdraw")}
+        got = answers_pass(place, 1)
+        assert got.state is State.COMPOSED and got.text == "# one\n# 2\n# three\n"
+        assert got.owed == ("c", "d")
+
+    def test_an_add_is_carried_to_the_roles_that_read_its_page(self):
+        """What `Row.rereads` carried until `#180` -- the same case, decided by
+        the one invariant: the roles that read the page have not seen the
+        text, so the add is put to them."""
+        add = _mark(
+            Instruction.ADD,
+            raw_text="# new paragraph\n",
+            claim={"missing": "a paragraph", "anchor": "`x`"},
+        )
+        place = _place(Filed("a", add, Touch.OWN), base="")
+        place.readers = ("a", "b")
+        got = marks_pass(place)
+        assert got.state is State.COMPOSED and got.text == "# new paragraph\n"
+        assert got.question is Question.COMPOSITION and got.owed == ("b",)
+
+    def test_a_deferring_query_beside_an_add_settles_it(self):
+        """`decision-log.md Process: #121`, which the invariant keeps: the one
+        role that could have opposed the add abstains, so nothing is owed."""
+        add = _mark(
+            Instruction.ADD,
+            raw_text="# new paragraph\n",
+            claim={"missing": "a paragraph", "anchor": "`x`"},
+        )
+        place = _place(
+            Filed("a", add, Touch.OWN),
+            Filed(
+                "b",
+                _mark(Instruction.QUERY, claim={"shape": str(Shape.OUTSIDE_MY_ROLE)}),
+                Touch.OWN,
+            ),
+            base="",
+        )
+        place.readers = ("a", "b")
+        got = marks_pass(place)
+        assert got.state is State.STANDS and got.text == "# new paragraph\n"
 
 
 def test_two_proposals_of_one_text_agree():
@@ -290,20 +386,6 @@ def test_a_moves_two_places_take_one_state():
     assert places["m.py@b5"].state is State.CONTESTED
 
 
-def test_a_lone_add_composes_even_alone():
-    """Ruling R4: an `add` is carried forward and composes on its own text,
-    even where it is the place's only proposal -- it does not stand.
-    """
-    add = _mark(
-        Instruction.ADD,
-        raw_text="# new paragraph\n",
-        claim={"missing": "a paragraph", "anchor": "`x`"},
-    )
-    got = marks_pass(_place(Filed("a", add, Touch.OWN), base=""))
-    assert got.state is State.COMPOSED and got.text == "# new paragraph\n"
-    assert got.question is Question.COMPOSITION
-
-
 def _contested() -> Place:
     a = _mark(
         Instruction.CORRECT,
@@ -318,11 +400,11 @@ def _contested() -> Place:
     return marks_pass(_place(Filed("a", a, Touch.OWN), Filed("b", b, Touch.OWN)))
 
 
-def _answer(name, change="", claim=None):
+def _answer(name, change="", claim=None, question=Question.ESCALATION):
     return Answer(
         address="m.py@b1",
         anchor="x = 1",
-        question=Question.ESCALATION,
+        question=question,
         name=name,
         reason="r",
         change=change,

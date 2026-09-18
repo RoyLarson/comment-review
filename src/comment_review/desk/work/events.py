@@ -23,12 +23,41 @@ class CarriedForward(NamedTuple):
     roles: tuple[str, ...]
 
 
+class HeldMove(NamedTuple):
+    """The move an unsettlable place is an end of, for the entry that names it.
+
+    Attributes:
+        role: who filed the move.
+        reason: the move's own reason, which is what the author is shown.
+        origin: the place the paragraph leaves.
+        destination: the place it arrives at.
+    """
+
+    role: str
+    reason: str
+    origin: str
+    destination: str
+
+
 class Unsettlable(NamedTuple):
-    """One role's mark at one place that no turn can resolve."""
+    """One place no turn can resolve, and who put it to the human.
+
+    Attributes:
+        address: the place.
+        role: who asks the human -- the role whose query holds the place, or
+            whose answer did.
+        reason: why, in that role's own words.
+        partner: the other end, where this place is one end of a move held at
+            both (`decision-log.md Process: #155` and `#182`). The two ends
+            are one entry, emitted once, so the author rules the move whole.
+        move: the move this place is an end of, where it is one.
+    """
 
     address: str
     role: str
     reason: str
+    partner: str = ""
+    move: HeldMove | None = None
 
 
 class Advised(NamedTuple):

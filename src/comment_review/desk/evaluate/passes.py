@@ -106,7 +106,99 @@ def sides_of(place: Place) -> tuple[dict[str, str | None], tuple[str, ...]]:
     return sides, tuple(reasons)
 
 
-def marks_pass(place: Place) -> Place:
+def _defers(filed: list[Filed]) -> bool:
+    """Whether every one of one role's marks here declines to hold a view.
+
+    A `query` defers, to another role or to the human, and stays out of the
+    reckoning for the rest of the review (`decision-log.md Process: #121`).
+    Two classifiers say so together: the row's stance, which is not a
+    proposal, and its `substantive`, which separates a query from the null
+    mark -- a `clean` reports that nothing was found in the paragraph as it
+    stands, which is not a refusal to hold a view about somebody's proposal.
+
+    Args:
+        filed: one role's marks at one place, never empty.
+
+    Returns:
+        True where the role is not waited on for its say here.
+    """
+    return all(
+        INSTRUCTIONS[one.mark.instruction].pairs(one.mark) is not Stance.PROPOSES
+        and INSTRUCTIONS[one.mark.instruction].substantive
+        for one in filed
+    )
+
+
+def _by_role(place: Place) -> dict[str, list[Filed]]:
+    """One role's marks at one place, by role."""
+    out: dict[str, list[Filed]] = {}
+    for one in place.filed:
+        out.setdefault(one.role, []).append(one)
+    return out
+
+
+def _deferring(place: Place | None) -> set[str]:
+    """The roles that hold no view at this place, because they filed only queries."""
+    if place is None:
+        return set()
+    return {role for role, filed in _by_role(place).items() if _defers(filed)}
+
+
+def owed_a_say(
+    place: Place,
+    text: str,
+    sides: dict[str, str],
+    partner: Place | None = None,
+    turn: int = 0,
+) -> tuple[str, ...]:
+    """The roles that have not accepted `text`, whose say it still owes.
+
+    `decision-log.md Process: #180`: a place settles on a text only when every
+    role that read it has proposed that text or answered `clean` to it. A role
+    is owed a say unless one of three things is true of it:
+
+        it filed only a query   it defers, either shape (`Process: #121`)
+        its side is this text   it proposed it, or its answer replaced or
+                                accepted its way to it
+        it answered and holds   it was asked, and withdrew or abstained; it
+        no side                 has had its say and holds no position now
+
+    Args:
+        place: the place being settled, carrying its readers, what was filed
+            and every turn's answers.
+        text: the one text the sides have come to.
+        sides: role -> the text that role proposes, as the pass holds them.
+        partner: the other end, where this place is one end of a move. A move
+            is one mark at two places, so a role that defers at either end
+            defers on the move (`Process: #137` and `#138`) -- otherwise a
+            role that queried the origin would be waited on at a destination
+            it never marked.
+        turn: the turn being decided. Only answers up to it count: the marks
+            pass decides the place as it stood before any turn, and a role
+            whose answer has not been applied yet has not had its say.
+
+    Returns:
+        The roles owed a say, sorted, so two runs name them in one order.
+        Empty where the text may settle.
+    """
+    filed_by = _by_role(place)
+    answered = {
+        role for at, by_role in place.answers.items() if at <= turn for role in by_role
+    }
+    deferring = _deferring(place) | _deferring(partner)
+    out = []
+    for role in set(place.readers) | set(filed_by):
+        if role in deferring:
+            continue
+        if sides.get(role) == text:
+            continue
+        if role not in sides and role in answered:
+            continue
+        out.append(role)
+    return tuple(sorted(out))
+
+
+def marks_pass(place: Place, partner: Place | None = None) -> Place:
     """The place's state from the marks filed there, and what to advise on them.
 
     The notes are collected first and kept whatever the state turns out to
@@ -114,6 +206,11 @@ def marks_pass(place: Place) -> Place:
     to one state rather than another (`decision-log.md Process: #177`).
     Collected here rather than once per fold so that re-evaluating a place
     from its own record derives them again with everything else.
+
+    Args:
+        place: the place to evaluate.
+        partner: the other end, where this place is one end of a move --
+            see `owed_a_say`, which is what reads it.
     """
     place.notes = tuple(
         f"{one.role}: {note}"
@@ -141,34 +238,24 @@ def marks_pass(place: Place) -> Place:
     # query beside a proposal, and the place goes to the human on the query
     # whatever else it holds. Its side is recorded all the same, so what it
     # proposed is not lost behind the question.
-    if any(
-        INSTRUCTIONS[one.mark.instruction].pairs(one.mark) is Stance.UNSETTLABLE
+    asking = tuple(
+        f"{one.role}: {one.mark.reason}"
         for one in place.filed
-    ):
-        return _set(place, State.UNSETTLABLE, sides=sides)
-    # Ruling R4, `decision-log.md Process: #116` and `#121`: an `add` is
-    # carried forward for every role that read the page, so it composes on
-    # its own text even where it is the only proposal at this place --
-    # never falling through to the "one proposal stands" branch below.
-    reread = next(
-        (one for one in place.filed if INSTRUCTIONS[one.mark.instruction].rereads),
-        None,
+        if INSTRUCTIONS[one.mark.instruction].pairs(one.mark) is Stance.UNSETTLABLE
     )
-    if reread is not None:
-        row = INSTRUCTIONS[reread.mark.instruction]
-        text = row.sets(reread.mark, reread.touch, place.base)
-        return _set(
-            place,
-            State.COMPOSED,
-            text=text,
-            sides=dict(proposals),
-            question=Question.COMPOSITION,
-        )
-    return _from_sides(place, sides)
+    if asking:
+        return _set(place, State.UNSETTLABLE, sides=sides, asking=asking)
+    return _from_sides(place, sides, partner)
 
 
 def pair_moves(places: dict[str, Place]) -> None:
-    """A move's two places take one state: the worse of the two."""
+    """A move's two places take one state: the worse of the two.
+
+    An end that takes the other's state takes what that state is read with:
+    the question a turn asks about it and the roles it is asked of, where it
+    has none of its own. Without them an end carried forward by its partner
+    would go out asking nobody.
+    """
     order = [
         State.REFUSED,
         State.UNSETTLABLE,
@@ -187,14 +274,26 @@ def pair_moves(places: dict[str, Place]) -> None:
         )
         for end in (place, other):
             if end.state is not worst:
+                taken = other if end is place else place
                 end.state = worst
                 end.reasons = end.reasons + tuple(
                     r for r in (place.reasons + other.reasons) if r not in end.reasons
                 )
+                if worst in CARRIED:
+                    end.question = end.question or taken.question
+                    end.owed = end.owed or taken.owed
+                if worst is State.UNSETTLABLE:
+                    end.asking = end.asking or taken.asking
 
 
-def answers_pass(place: Place, turn: int) -> Place:
-    """Narrow a carried-forward place by the roles' answers at `turn`."""
+def answers_pass(place: Place, turn: int, partner: Place | None = None) -> Place:
+    """Narrow a carried-forward place by the roles' answers at `turn`.
+
+    Args:
+        place: the place, carrying what the marks pass left and the answers.
+        turn: which turn's answers to apply.
+        partner: the other end of a move, as `marks_pass` takes it.
+    """
     if place.state not in CARRIED:
         return place
     answers = place.answers.get(turn, {})
@@ -211,14 +310,14 @@ def answers_pass(place: Place, turn: int) -> Place:
             )
         effect = row.effect(answer)
         if effect is Effect.UNSETTLABLE:
-            return _set(place, State.UNSETTLABLE)
+            return _set(place, State.UNSETTLABLE, asking=(f"{role}: {answer.reason}",))
         if effect is Effect.REMOVES:
             sides.pop(role, None)
         elif effect is Effect.REPLACES:
             sides[role] = answer.change
         elif effect is Effect.ACCEPTS and place.text is not None:
             sides[role] = place.text
-    return _from_sides(place, sides)
+    return _from_sides(place, sides, partner, turn)
 
 
 def dispositions_pass(place: Place) -> Place:
@@ -248,37 +347,91 @@ def dispositions_pass(place: Place) -> Place:
     return _set(place, State.STANDS, text=text)
 
 
-def evaluate(place: Place, turn: int = 0) -> Place:
-    """Run the marks pass, every turn's answers pass, then the dispositions pass."""
-    marks_pass(place)
+def evaluate(place: Place, turn: int = 0, partner: Place | None = None) -> Place:
+    """Run the marks pass, every turn's answers pass, then the dispositions pass.
+
+    Args:
+        place: the place to decide, from its own record alone.
+        turn: the turn to decide it at -- every answer up to it is applied.
+        partner: the other end, where this place is one end of a move. The
+            fold hands it over because a move is one mark at two places and
+            the roles owed a say about it are the same at both ends.
+    """
+    marks_pass(place, partner)
     for t in range(1, turn + 1):
-        answers_pass(place, t)
+        answers_pass(place, t, partner)
     return dispositions_pass(place)
 
 
-def _from_sides(place: Place, sides: dict[str, str]) -> Place:
+def _from_sides(
+    place: Place,
+    sides: dict[str, str],
+    partner: Place | None = None,
+    turn: int = 0,
+) -> Place:
+    """The place's state from the one text its sides hold, or from their disagreement.
+
+    A text every role owed a say has accepted settles here; a text some have
+    not seen is carried forward to exactly those roles, as a composition
+    (`decision-log.md Process: #180`). It is the same question at the first
+    fold and after a turn, so both reach it here rather than each keeping a
+    rule of its own -- which is what made an `add` a special case before.
+    """
     distinct = set(sides.values())
     if not sides:
         return _set(place, State.STANDS)
     if len(distinct) == 1:
         text = next(iter(distinct))
+        owed = owed_a_say(place, text, sides, partner, turn)
+        if owed:
+            return _set(
+                place,
+                State.COMPOSED,
+                text=text,
+                sides=sides,
+                question=Question.COMPOSITION,
+                owed=owed,
+            )
         state = State.STANDS if len(sides) == 1 else State.AGREED
         return _set(place, state, text=text)
     try:
         composed = compose(place.base, sides)
     except CannotCompose:
-        return _set(place, State.CONTESTED, sides=sides, question=Question.ESCALATION)
+        return _set(
+            place,
+            State.CONTESTED,
+            sides=sides,
+            question=Question.ESCALATION,
+            # The sides are who is asked: a place with no one text yet is put
+            # to the roles that hold the texts, and the roles that have seen
+            # none of them are owed their say once one text is left.
+            owed=tuple(sorted(sides)),
+        )
     return _set(
-        place, State.COMPOSED, text=composed, sides=sides, question=Question.COMPOSITION
+        place,
+        State.COMPOSED,
+        text=composed,
+        sides=sides,
+        question=Question.COMPOSITION,
+        owed=owed_a_say(place, composed, sides, partner, turn),
     )
 
 
 def _set(
-    place: Place, state: State, text=None, sides=None, reasons=(), question=None
+    place: Place,
+    state: State,
+    text=None,
+    sides=None,
+    reasons=(),
+    question=None,
+    asking=(),
+    owed=(),
 ) -> Place:
     place.state = state
     place.text = text
     place.sides = sides or {}
     place.reasons = reasons
+    place.asking = asking
+    place.owed = owed
     place.question = question
     return place
