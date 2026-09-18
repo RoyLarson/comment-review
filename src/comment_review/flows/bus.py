@@ -15,7 +15,7 @@ own base text and the middle decides from the record alone, opening no page
 (`decision-log.md Process: #62`).
 """
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import NamedTuple
 
@@ -325,12 +325,14 @@ def _on_answers(message: AnswersReturned) -> tuple[list, Result | None]:
             for address, place in carried.items()
             if role in asked(place)
         }
-        answers, why = answers_of(
-            role,
-            sent,
-            slots_of(message.answers.get(role, []), role),
-            _unsent(places, role),
-        )
+        returned = slots_of(message.answers.get(role, []), role)
+        # A file handed in for a role this turn asked nothing of, holding
+        # nothing: every other case names a place, and this one has none to
+        # name, so it is reported against the file itself.
+        if not sent and not returned:
+            problems.append(Problem(role, "", "no slots were sent to this role"))
+            continue
+        answers, why = answers_of(role, sent, returned, _unsent(places, role))
         problems += why
         given[role] = answers
     if problems:
@@ -341,7 +343,7 @@ def _on_answers(message: AnswersReturned) -> tuple[list, Result | None]:
     return _commit(message.proof, places, turn)
 
 
-def _unsent(places: dict[str, Place], role: str):
+def _unsent(places: dict[str, Place], role: str) -> Callable[[str], str]:
     """Why an answer at `address` is not this role's to write, for `answers_of`."""
 
     def why(address: str) -> str:

@@ -328,6 +328,15 @@ def test_a_role_that_was_asked_and_answered_nothing_is_refused(tmp_path):
     assert ("function-context", PLACE, "unanswered") in _refusals(out)
 
 
+def test_a_role_this_turn_asked_nothing_of_is_refused_by_name(tmp_path):
+    collated = _collated(tmp_path)
+    answers = _both_hold()
+    answers["module-context"] = []
+    out, result = handle(AnswersReturned(collated.proof, answers))
+    assert result is None
+    assert ("module-context", "", "no slots were sent to this role") in _refusals(out)
+
+
 def test_a_second_turn_reads_the_first_turns_answers_and_its_own(tmp_path):
     collated = _collated(tmp_path)
     _out, held = handle(AnswersReturned(collated.proof, _both_hold()))
