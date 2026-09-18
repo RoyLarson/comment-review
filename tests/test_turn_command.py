@@ -285,7 +285,7 @@ class TestRefusals:
                 reason="stands",
             ),
         )
-        assert code == collate_command.CARRIED_AND_UNRULED, out
+        assert code == command.CARRIED_AND_UNRULED, out
         assert "unanswered" in out
         assert (tmp_path / "proof1.json").exists()
 
@@ -327,7 +327,7 @@ class TestRefusals:
         )
         assert "escalated m.py@b1" in out
         assert "function-context m.py@b2" in out and "unanswered" in out
-        assert code == collate_command.CARRIED_AND_UNRULED == 7, out
+        assert code == command.CARRIED_AND_UNRULED == 7, out
         assert (tmp_path / "proof1.json").exists()
 
     def test_a_proof_that_is_not_one_is_UNREADABLE(self, tmp_path, monkeypatch, capsys):

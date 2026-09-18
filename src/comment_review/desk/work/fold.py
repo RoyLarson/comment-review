@@ -44,12 +44,10 @@ class Fold:
                 for role, reasons in _by_role(place.reasons).items():
                     self.events.append(events.Refused(role, address, reasons))
             elif place.state in CARRIED:
-                if place.question is Question.ESCALATION:
-                    roles = tuple(sorted(place.sides))
-                else:
-                    roles = tuple(sorted(set(place.sides) | set(place.readers)))
                 self.events.append(
-                    events.CarriedForward(address, place.state, place.question, roles)
+                    events.CarriedForward(
+                        address, place.state, place.question, asked(place)
+                    )
                 )
             elif place.state is State.UNSETTLABLE:
                 for one in place.filed:
@@ -68,6 +66,26 @@ class Fold:
         self.committed = True
         self.events.append(events.Committed(len(self.places)))
         return self
+
+
+def asked(place: Place) -> tuple[str, ...]:
+    """Who a carried-forward place is put to, in role order.
+
+    An escalation is put to the roles that proposed a text, since it asks
+    each of them about the others' proposals. Anything else carried forward
+    is put to those roles and to every role that read the place's page --
+    Ruling R4, `decision-log.md Process: #116` and `#121`: an add is carried
+    forward for every role that read its page.
+
+    Args:
+        place: a place the fold is carrying forward.
+
+    Returns:
+        The roles, sorted, so two runs over one place name them in one order.
+    """
+    if place.question is Question.ESCALATION:
+        return tuple(sorted(place.sides))
+    return tuple(sorted(set(place.sides) | set(place.readers)))
 
 
 def _by_role(reasons: tuple[str, ...]) -> dict[str, tuple[str, ...]]:

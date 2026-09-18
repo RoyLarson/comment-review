@@ -15,14 +15,14 @@ from helpers import (
     a_correct_setting,
     a_query,
     a_real_binder_over,
-    an_add,
     copies_over,
     entries_of,
 )
 
 from comment_review.commands import collate as command
-from comment_review.desk.determined import Answer
-from comment_review.desk.diff_mark import DIFF, ESCALATION, QUESTION
+from comment_review.desk.answers.answer import Question
+from comment_review.desk.evaluate.place import Place
+from comment_review.desk.evaluate.state import State
 from comment_review.desk.mark import Shape
 from comment_review.flows.proof_io import load_proof
 
@@ -63,39 +63,11 @@ TWO_ROLES = (
 )
 
 
-class TestTheDroppedList:
-    """`decision-log.md Process: #163`: the list reaches the chief under its own
-    heading in the report, and carries no exit code of its own."""
-
-    def test_a_run_whose_only_finding_is_the_list_exits_as_it_did(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        code, out = run(
-            tmp_path,
-            {
-                "block-context": {
-                    "m.py@b1": a_correct_setting("m.py@b1", "two", "# one\n# TWO\n")
-                }
-            },
-            monkeypatch,
-            capsys,
-        )
-        assert code == 0, out
-        assert (
-            "for the chief -- each correct below drops words its claim never named:"
-            in out
-        )
-        assert (
-            "block-context m.py@b1: its change drops 'three', which its claim never"
-            " names" in out
-        )
-
-
 class TestStageCoverage:
     """P26: a dispatch the topology named that returned no copy is reported.
 
-    `decision-log.md Process: #63`: coverage has its own list and its own
-    exit code, and the places that did come back still settle.
+    The fold is a Unit of Work, so the report routes back to the role and the
+    round rolls back: a stage that is short a dispatch has not been folded.
     """
 
     def test_a_dispatch_that_returned_nothing_is_named_with_its_count(
@@ -110,10 +82,9 @@ class TestStageCoverage:
             "--topology",
             str(tmp_path / "t.toml"),
         )
-        assert code == command.COVERAGE, out
+        assert code == command.BROKEN, out
         assert "stage 4c: function-context returned 0 of 1 dispatches" in out
-        # ! The places that came back still settle -- the chief copy is written.
-        assert (tmp_path / "chief.json").exists()
+        assert not (tmp_path / "chief.json").exists()
 
     def test_every_dispatch_returned_is_no_report(self, tmp_path, monkeypatch, capsys):
         (tmp_path / "t.toml").write_text(TWO_ROLES, encoding="utf-8")
@@ -159,14 +130,26 @@ class TestExitCodes:
         )
         assert code == 0
 
-    def test_a_reread_exits_three(self, tmp_path, monkeypatch, capsys):
-        code, _out = run(
+    def test_a_composition_exits_three(self, tmp_path, monkeypatch, capsys):
+        code, out = run(
             tmp_path,
-            {"block-context": {"m.py@b1": an_add("m.py@b1")}},
+            {
+                "block-context": {
+                    "m.py@b1": a_correct_setting(
+                        "m.py@b1", "one", "# 1\n# two\n# three"
+                    )
+                },
+                "function-context": {
+                    "m.py@b1": a_correct_setting(
+                        "m.py@b1", "three", "# one\n# two\n# 3"
+                    )
+                },
+            },
             monkeypatch,
             capsys,
         )
-        assert code == 3
+        assert code == 3, out
+        assert "composed m.py@b1" in out
 
     def test_an_escalation_exits_four(self, tmp_path, monkeypatch, capsys):
         code, _out = run(
@@ -184,37 +167,37 @@ class TestExitCodes:
         )
         assert code == 4
 
-    def test_escalation_beats_reread_when_both_are_present(
+    def test_escalation_beats_composition_when_both_are_present(
         self, tmp_path, monkeypatch, capsys
     ):
-        """Proves the ORDER `main` checks, not just its result: `if
-        got.escalations: return ESCALATIONS` sits before `if got.rereads:
-        return REREADS`, so a run holding both reports 4, never 3.
+        """Proves the ORDER `main` checks, not just its result: the escalation
+        branch of `_code_for` sits before the composition branch, so a run
+        holding both reports 4, never 3.
 
-        !! DRIVEN THROUGH THE REAL FLOW, not a hand-built `Collated` -- a
+        !! DRIVEN THROUGH THE REAL FOLD, not a hand-built event list -- a
         stage CAN produce both at once, on two different addresses of one
-        page: `m.py@b1` gets two `correct` marks ruling on the same sentence
-        with different `change`s (an escalation, per `desk.collator._outcome`
-        -- `_identical` refuses since the changes disagree), and `m.py@b2`
-        gets one `add` (a re-read, per the same function's `add` rule, which
-        fires regardless of how many marks are owing at that place).
-
-        Confirmed to FAIL if the two `if` branches in `commands/collate.py`
-        are swapped -- see the task report for the swapped-branch run.
+        page: at `m.py@b1` two `correct` marks replace the same clause with
+        different text, which composes into nothing and contests; at
+        `m.py@b2` two `correct` marks touch clauses the other left alone,
+        which composes.
         """
         binder = a_real_binder_over(
-            tmp_path / "repo", {"m.py@b1": BASE, "m.py@b2": "# four\n# five\n# six\n"}
+            tmp_path / "repo", {"m.py@b1": BASE, "m.py@b2": "# four\n# five\n# six"}
         )
         copies = copies_over(
             binder,
             {
                 "block-context": {
                     "m.py@b1": a_correct_setting("m.py@b1", "two", "# a\n"),
-                    "m.py@b2": an_add("m.py@b2"),
+                    "m.py@b2": a_correct_setting(
+                        "m.py@b2", "four", "# 4\n# five\n# six"
+                    ),
                 },
                 "function-context": {
                     "m.py@b1": a_correct_setting("m.py@b1", "two", "# b\n"),
-                    "m.py@b2": a_clean("m.py@b2"),
+                    "m.py@b2": a_correct_setting(
+                        "m.py@b2", "six", "# four\n# five\n# 6"
+                    ),
                 },
             },
         )
@@ -241,8 +224,8 @@ class TestExitCodes:
         out = capsys.readouterr().out
         # ! BOTH OUTCOMES REACHED, so a failure of this precondition (rather
         # than of the order itself) is distinguishable from the real claim.
-        assert "escalated" in out
-        assert "re-read" in out
+        assert "contested m.py@b1" in out
+        assert "composed m.py@b2" in out
         assert code == 4
 
     def test_a_broken_mark_exits_one(self, tmp_path, monkeypatch, capsys):
@@ -322,57 +305,22 @@ class TestExitCodes:
         assert "role" in out.out.lower()
         assert not (tmp_path / "chief.json").exists()
 
-    def test_mismatched_roots_exit_one_naming_the_reason(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        """`desk.proof.MismatchedRoot`, raised by `master_proof_of()` inside
-        `flows.collate.collate` on the second copy's disagreeing `read_from`.
-        """
-        binder = a_binder_over({"m.py@b1": BASE})
-        copies = copies_over(
-            binder,
-            {
-                "block-context": {"m.py@b1": a_correct("m.py@b1")},
-                "function-context": {"m.py@b1": a_correct("m.py@b1", 2)},
-            },
-        )
-        copies[1]["read_from"] = {"root": "somewhere/else", "revise": 0}
-        binder_path = tmp_path / "binder.json"
-        binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
-        paths = []
-        for i, copy in enumerate(copies):
-            path = tmp_path / f"copy{i}.json"
-            path.write_text(json.dumps(copy), encoding="utf-8")
-            paths.append(str(path))
-        argv = [
-            "collate",
-            "--stage",
-            "4c",
-            "--binder",
-            str(binder_path),
-            "--out",
-            str(tmp_path / "chief.json"),
-        ]
-        for path in paths:
-            argv += ["--edit-copy", path]
-        monkeypatch.setattr("sys.argv", argv)
-        code = command.main()
-        err = capsys.readouterr().err
-        assert code == 1
-        assert "somewhere/else" in err
-
-    def test_a_refusal_still_prints_the_problems_the_pass_found(
+    def test_every_copys_findings_are_printed_not_just_the_first(
         self, tmp_path, monkeypatch, capsys
     ):
         """Finding #6 of the 2026-08-30 review, by RUNNING the real CLI.
 
         !! MEASURED BEFORE THE FIX: exit 1, **stdout EMPTY**, and only the
-        REFUSED line on stderr. `collate` accumulates its `Problem`s into a
-        local list and only reaches `return Collated(...)` past `master_proof_of`, so a
+        REFUSED line on stderr. `collate` accumulated its `Problem`s into a
+        local list and only reached its return past `master_proof_of`, so a
         refusal there made every one of them unrecoverable -- **one role's
         incompatible header blocking routing for every other role**, which is
         the opposite of Roy's rule that the errors stack so each can be fixed or
         sent back to the role that owes it.
+
+        ! THE INCOMPATIBLE HEADER IS NO LONGER WHAT REFUSES. The Unit of Work
+        reaches no `master_proof_of`, so this drives the rule on two broken
+        marks instead: each role must read its own line.
         """
         binder = a_binder_over({"m.py@b1": BASE})
         copies = copies_over(
@@ -382,9 +330,8 @@ class TestExitCodes:
                 "function-context": {"m.py@b1": a_correct("m.py@b1", 2)},
             },
         )
-        # one ROUTABLE problem, and one copy that cannot be reconciled with it
-        copies[0]["sheets"][0]["marks"][0]["claim"] = {}
-        copies[1]["read_from"] = {"root": "somewhere/else", "revise": 0}
+        for copy in copies:
+            copy["sheets"][0]["marks"][0]["claim"] = {}
         binder_path = tmp_path / "binder.json"
         binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
         argv = [
@@ -404,9 +351,8 @@ class TestExitCodes:
         code = command.main()
         out = capsys.readouterr()
         assert code == 1
-        assert "block-context" in out.out
-        assert "m.py@b1" in out.out
-        assert "somewhere/else" in out.err
+        assert "block-context m.py@b1:" in out.out
+        assert "function-context m.py@b1:" in out.out
         assert not (tmp_path / "chief.json").exists()
 
     def test_a_copy_missing_read_from_exits_one_not_a_traceback(
@@ -453,14 +399,18 @@ class TestExitCodes:
         assert "read_from" in out.out
         assert not (tmp_path / "chief.json").exists()
 
-    def test_drift_alone_exits_five_and_still_writes_the_chief(
+    def test_drift_refuses_the_round_and_writes_no_chief(
         self, tmp_path, monkeypatch, capsys
     ):
-        """`desk.collator.drift_in`'s ruling is that the COPY is never
-        discarded over drift -- the chief is still written -- but before this
-        fix `main` gave no exit-code signal that a drifted place fed the
-        output: it returned 0, indistinguishable from a run with nothing to
-        report at all."""
+        """A returned `raw_text` that is not the seeded one reaches the fold as
+        a problem, so the round rolls back and nothing is written.
+
+        !! IT EXITED 5 AND WROTE THE CHIEF UNTIL THE FOLD BECAME A UNIT OF
+        WORK, on `desk.collator.drift_in`'s ruling that the copy is never
+        discarded over drift. That ruling is about the COPY; what changed is
+        that a fold now commits every place or none, so a problem found
+        before it opens refuses the round rather than riding beside it with a
+        code of its own."""
         binder = a_real_binder_over(tmp_path / "repo", {"m.py@b1": BASE})
         copies = copies_over(
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
@@ -486,24 +436,23 @@ class TestExitCodes:
             ],
         )
         code = command.main()
-        assert code == command.DRIFT
-        assert code == 5
-        assert out_path.exists()
+        out = capsys.readouterr().out
+        assert code == command.BROKEN
+        assert "block-context m.py@b1:" in out
+        assert not out_path.exists()
 
-    def test_a_short_shard_exits_six_and_still_writes_the_chief(
+    def test_a_short_shard_is_named_and_refuses_the_round(
         self, tmp_path, monkeypatch, capsys
     ):
-        """`Process: #63` AT THE BOUNDARY WHERE THE FIX WAS MADE.
+        """A role whose copy does not carry every address it was handed is
+        named by the addresses it is missing, and the round rolls back.
 
-        !! MEASURED 2026-08-31, BEFORE IT: coverage findings rode in
-        `got.problems`, `main` returned BROKEN on a non-empty `problems` before
-        writing, and a round that settled `m.py@b1` threw that settled mark
-        away. The ruling says a missing answer ROUTES and does not VOID the
-        round -- *the places that did come back still settle*.
-
-        ! IT WAS VERIFIED ONLY AT FLOW LEVEL UNTIL NOW. `TestShardCoverage`
-        asserts `Collated.coverage`, which cannot see the command's exit code
-        or whether the file was written -- and those two ARE the fix.
+        !! IT EXITED 6 AND WROTE THE CHIEF UNTIL THE FOLD BECAME A UNIT OF
+        WORK, on `Process: #63` -- a missing answer ROUTES and does not VOID
+        the round. The routing is unchanged: the line still names the role and
+        every address it owes. What changed is that a fold commits every place
+        or none, so the places that did come back are not settled over a
+        question nobody answered.
         """
         root = tmp_path / "repo"
         binder = a_real_binder_over(root, {"m.py@b1": BASE, "m.py@b5": BASE})
@@ -534,15 +483,9 @@ class TestExitCodes:
         )
         code = command.main()
         out = capsys.readouterr().out
-        assert code == command.COVERAGE
-        assert code == 6
-        assert code != command.BROKEN
+        assert code == command.BROKEN
         assert "missing m.py@b5" in out
-        # !! THE HALF THE FLOW-LEVEL TEST CANNOT SEE: the round still settled.
-        assert out_path.exists()
-        chief = json.loads(out_path.read_text(encoding="utf-8"))
-        settled = [m["address"] for s in chief["sheets"] for m in s["marks"]]
-        assert settled == ["m.py@b1"]
+        assert not out_path.exists()
 
     def test_AN_ADDRESS_LESS_ENTRY_NAMES_ITS_PAGE_rather_than_the_whole_copy(
         self, tmp_path, monkeypatch, capsys
@@ -587,7 +530,7 @@ class TestExitCodes:
         assert "(the copy): this mark" not in out
         assert "(the copy): a mark must be an object" not in out
 
-    def test_a_place_HANDED_TO_A_ROLE_AND_NOT_RULED_ON_is_named_and_exits_six(
+    def test_a_place_HANDED_TO_A_ROLE_AND_NOT_RULED_ON_is_named_and_refuses(
         self, tmp_path, monkeypatch, capsys
     ):
         """!! MEASURED 2026-09-01, AND IT EXITED `OK`. A role that keeps every
@@ -604,9 +547,10 @@ class TestExitCodes:
         `{'module-context': ['m.py@b5', 'm.py@b7']}` and this command threw it
         away. That is why the fix is a report and a code, not a new check.
 
-        ! IT TAKES `COVERAGE` DELIBERATELY -- see the constant. Both mean this
-        role owes an answer at this address, and a code exists so a caller can
-        branch on something it would act on differently.
+        ! IT TOOK `COVERAGE` UNTIL THE FOLD BECAME A UNIT OF WORK, and takes
+        `BROKEN` now: a place nobody ruled on is a question the fold cannot
+        answer, so it refuses the round rather than settling the rest around
+        it. The line a task agent reads is word for word the one it was.
         """
         root = tmp_path / "repo"
         binder = a_real_binder_over(root, {"m.py@b1": BASE, "m.py@b5": BASE})
@@ -637,25 +581,29 @@ class TestExitCodes:
         )
         code = command.main()
         out = capsys.readouterr().out
-        assert code == command.COVERAGE
+        assert code == command.BROKEN
         assert code != command.OK, "a silently short round used to exit 0"
         # ! THE ADDRESS AND THE ROLE, so the task agent can send it back.
         assert "block-context m.py@b5: handed to this role and not ruled on" in out
         # ! AND THE PLACE THAT *WAS* RULED ON IS NOT NAMED -- a report that
         # listed every address would be a list nobody reads.
         assert "m.py@b1: handed to this role" not in out
-        # ! THE ROUND STILL SETTLES, `Process: #63`.
-        assert out_path.exists()
+        assert not out_path.exists()
 
-    def test_an_escalation_beside_an_unruled_place_exits_its_own_code(
+    def test_an_unruled_place_refuses_a_round_that_would_have_escalated(
         self, tmp_path, monkeypatch, capsys
     ):
         """`decision-log.md Process: #112`, `collate-command-defects` T21.
 
-        Two roles correct `m.py@b1` to different texts, an escalation, and
-        function-context leaves `m.py@b5` as it was handed, an unruled place.
-        The escalation's code sends a task agent to rule at max turns and
-        names no unruled place, so the case exits a code of its own.
+        Two roles correct `m.py@b1` to different texts, which would contest,
+        and function-context leaves `m.py@b5` as it was handed, an unruled
+        place. A place nobody ruled on is found before the fold opens, so the
+        round rolls back and the contest is never reached: there is no round
+        to carry it forward into.
+
+        !! IT EXITED `CARRIED_AND_UNRULED` (7) UNTIL THE FOLD BECAME A UNIT OF
+        WORK, which is what `Process: #112` asked for while a round could
+        settle around a place a role still owed. It cannot now.
         """
         root = tmp_path / "repo"
         binder = a_real_binder_over(root, {"m.py@b1": BASE, "m.py@b5": BASE})
@@ -689,11 +637,11 @@ class TestExitCodes:
         monkeypatch.setattr("sys.argv", argv)
         code = command.main()
         out = capsys.readouterr().out
-        assert "escalated m.py@b1" in out
         assert "function-context m.py@b5: handed to this role and not ruled on" in out
-        assert code not in (command.ESCALATIONS, command.COVERAGE), out
-        assert code == command.CARRIED_AND_UNRULED == 7
-        assert (tmp_path / "chief.json").exists()
+        assert code != command.ESCALATIONS, out
+        assert code == command.BROKEN
+        assert "contested m.py@b1" not in out
+        assert not (tmp_path / "chief.json").exists()
 
     def test_an_unreadable_input_exits_two(self, tmp_path, monkeypatch, capsys):
         monkeypatch.setattr(
@@ -778,10 +726,11 @@ class TestTheStateBetweenTurnsOnDisk:
         assert why == []
         assert proof is not None
         assert proof.turns == ()
-        assert [d.address for d in proof.determined] == ["m.py@b1"]
-        assert proof.determined[0].answer is Answer.STET
-        assert proof.determined[0].turn == 0
-        assert proof.unsettlable == ()
+        assert [p["address"] for p in proof.places] == ["m.py@b1"]
+        place, why = Place.deserialize("the place", proof.places[0])
+        assert place is not None, why
+        assert place.state is State.STANDS
+        assert place.text == proof.places[0]["text"]
 
     def test_the_proof_carries_the_copies_as_they_stand(
         self, tmp_path, monkeypatch, capsys
@@ -821,8 +770,13 @@ class TestTheStateBetweenTurnsOnDisk:
         for slots in batch.values():
             (slot,) = slots
             assert slot["address"] == "m.py@b1"
-            assert slot[QUESTION] == ESCALATION
-            assert slot[DIFF]
+            assert slot["question"] == str(Question.ESCALATION)
+            # ! EVERY SIDE ON EVERY SLOT, so a role reads the text it is being
+            # asked about beside its own.
+            assert slot["sides"] == {
+                "block-context": "# a\n",
+                "function-context": "# b\n",
+            }
 
     def test_batch_out_writes_nothing_when_nothing_is_carried_forward(
         self, tmp_path, monkeypatch, capsys
@@ -834,23 +788,33 @@ class TestTheStateBetweenTurnsOnDisk:
         assert code == command.OK, out
         assert not batch_path.exists()
 
-    def test_an_unsettlable_place_rides_on_the_proof_without_its_marks(
+    def test_an_unsettlable_place_is_reported_and_rides_on_the_proof(
         self, tmp_path, monkeypatch, capsys
     ):
-        """`Process: #90`: the human's query rides with the set. On the wire it
-        is `{address, roles, query}` -- the `Placed` marks are the fold's."""
+        """`Process: #90`: the human's query rides with the set, and the place
+        it holds settles for nobody else.
+
+        ! IT RODE IN `MasterProof.unsettlable` UNTIL THE FOLD BECAME A UNIT OF
+        WORK, as `{address, roles, query}`. The place itself carries the state
+        now, so there is one list rather than a list and a summary of it, and
+        the run says on the console who asked and why.
+        """
         proof_path = tmp_path / "proof.json"
         asked = {
             "block-context": {
                 "m.py@b1": a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY)
             }
         }
-        run(tmp_path, asked, monkeypatch, capsys, "--proof-out", str(proof_path))
+        _code, out = run(
+            tmp_path, asked, monkeypatch, capsys, "--proof-out", str(proof_path)
+        )
+        assert "unsettlable m.py@b1: block-context asks the human -- " in out
         proof, why = load_proof(proof_path)
         assert proof is not None, why
-        (place,) = proof.unsettlable
-        assert place["address"] == "m.py@b1"
-        assert place["roles"] == ["block-context"]
-        assert place["query"]["role"] == "block-context"
-        assert "marks" not in place
-        assert proof.determined == ()
+        (entry,) = proof.places
+        place, why = Place.deserialize("the place", entry)
+        assert place is not None, why
+        assert place.address == "m.py@b1"
+        assert place.state is State.UNSETTLABLE
+        assert place.text is None
+        assert [one.role for one in place.filed] == ["block-context"]

@@ -536,6 +536,11 @@ class MasterProof:
             place is a move's origin and `add` where it is a move's
             destination (`flows.turn.proof_after`), carried as it came, like
             `turns`; `wire: False` for the same reason.
+        places: every place one fold of this stage decided, as
+            `desk.evaluate.place.Place.serialize` writes one, read back by
+            `Place.deserialize`. `flows.bus` writes it; empty until such a
+            fold has run, and off the wire dict a seed writes, like the
+            three above.
     """
 
     stage: str
@@ -544,6 +549,7 @@ class MasterProof:
     turns: tuple[dict, ...] = field(default=(), metadata={"wire": False})
     determined: tuple[Determined, ...] = field(default=(), metadata={"wire": False})
     unsettlable: tuple[dict, ...] = field(default=(), metadata={"wire": False})
+    places: tuple[dict, ...] = field(default=(), metadata={"wire": False})
 
     @property
     def turn(self) -> int:
@@ -680,6 +686,14 @@ class MasterProof:
             if isinstance(raw_unsettlable, list)
             else ()
         )
+        # A key an older proof does not carry reads as no places at all, the
+        # same default `turns` and `unsettlable` take above.
+        raw_places = data.get("places")
+        places = (
+            tuple(p for p in raw_places if isinstance(p, dict))
+            if isinstance(raw_places, list)
+            else ()
+        )
         raw_determined = data.get("determined")
         determined: list[Determined] = []
         if isinstance(raw_determined, list):
@@ -699,6 +713,7 @@ class MasterProof:
                 turns=turns,
                 determined=tuple(determined),
                 unsettlable=unsettlable,
+                places=places,
             ),
             [],
         )
@@ -712,4 +727,5 @@ class MasterProof:
             "turns": [dict(t) for t in self.turns],
             "determined": [d.serialize() for d in self.determined],
             "unsettlable": [dict(u) for u in self.unsettlable],
+            "places": [dict(p) for p in self.places],
         }

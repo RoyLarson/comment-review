@@ -47,7 +47,8 @@ from comment_review.flows._collate import Collated, collate
 from comment_review.flows.distribute import seed
 from comment_review.flows.fill import fill
 from comment_review.flows.page_for import page_of, source_of
-from comment_review.flows.proof_io import load_proof
+from comment_review.flows.proof_io import load_proof, save_batch, save_proof
+from comment_review.flows.turn import batch_for, proof_after
 
 #: `src/comment_review/desk/` -- the source `a_small_real_tree` copies from.
 #: Any package with a handful of ordinary Python files would do; this one was
@@ -831,8 +832,24 @@ def deal(
 
     The binder is over real pages written to `tmp_path / "repo"`, which the
     commands read as its root.
+
+    !! THE COMMAND DEALS THE HAND AND THE OLD FOLD WRITES WHAT THE TURN READS,
+    which is two folds over one set of copies and is deliberately temporary.
+    `collate` folds through the Unit of Work since T3 of
+    `docs/superpowers/plans/2026-09-14-the-middle-rebuilt.md`, so the proof it
+    writes carries decided PLACES and its batch carries a place's sides --
+    neither of which `flows.turn.run_turn` reads. `turn` and `disposition`
+    still fold through `flows._collate`, so the hand they are dealt is that
+    fold's, and this writes `proof0.json` and `batch1.json` from it. T4 of
+    that plan moves both commands onto the bus; the second half of this
+    function goes with them.
+
+    ! THE EXIT CODE IS THE COMMAND'S, not the old fold's. It is what a caller
+    of `collate` reads, and every case here contests a place, where the two
+    folds agree on the code.
     """
-    binder = a_real_binder_over(tmp_path / "repo", texts or {"m.py@b1": BASE})
+    root = tmp_path / "repo"
+    binder = a_real_binder_over(root, texts or {"m.py@b1": BASE})
     copies = copies_over(binder, by_role)
     (tmp_path / "binder.json").write_text(
         json.dumps(binder.serialize()), encoding="utf-8"
@@ -844,16 +861,18 @@ def deal(
         str(tmp_path / "binder.json"),
         "--out",
         str(tmp_path / "chief0.json"),
-        "--proof-out",
-        str(tmp_path / "proof0.json"),
-        "--batch-out",
-        str(tmp_path / "batch1.json"),
     ]
     for i, copy in enumerate(copies):
         path = tmp_path / f"copy{i}.json"
         path.write_text(json.dumps(copy), encoding="utf-8")
         argv += ["--edit-copy", str(path)]
     code, _out = run_command(monkeypatch, capsys, collate_command, *argv)
+
+    got = collate("4c", copies, binder, root)
+    if got.proof is not None:
+        save_proof(tmp_path / "proof0.json", proof_after(got, root=root))
+    if got.escalations or got.rereads:
+        save_batch(tmp_path / "batch1.json", batch_for(got))
     return code
 
 

@@ -19,7 +19,9 @@ names it: a proof fresh from `collate` carries no turns, so its first turn is
 
 ! THE EXIT CODES AND THE REPORT ARE `collate`'s, imported rather than
 re-spelled, so a caller branching on a code branches once; every file is read
-through `flows.proof_io`, so a refusal has one wording.
+through `flows.proof_io`, so a refusal has one wording. ! THREE OF THE CODES
+ARE THIS COMMAND'S OWN since `collate` moved onto the Unit of Work -- see
+`DRIFT`, `COVERAGE` and `CARRIED_AND_UNRULED` below.
 """
 
 import argparse
@@ -28,9 +30,6 @@ from pathlib import Path
 
 from comment_review.commands.collate import (
     BROKEN,
-    CARRIED_AND_UNRULED,
-    COVERAGE,
-    DRIFT,
     ESCALATIONS,
     OK,
     RECONCILE_ERRORS,
@@ -48,6 +47,16 @@ from comment_review.flows.proof_io import (
     save_proof,
 )
 from comment_review.flows.turn import batch_for, proof_after, run_turn
+
+#: The three codes the old fold still exits, declared here because `collate`
+#: no longer does. It folds through the Unit of Work, where drift, a short
+#: shard and a place a role left unruled are each found before the fold opens
+#: and refuse the round; this command still calls `flows._collate`, which
+#: reports all three beside a written proof. They keep their numbers, so a
+#: caller branching on a turn's exit code branches as it did.
+DRIFT = 5
+COVERAGE = 6
+CARRIED_AND_UNRULED = 7
 
 
 def main() -> int:

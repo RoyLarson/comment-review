@@ -40,7 +40,6 @@ from helpers import (
 )
 
 from comment_review.binder.binder import Binder
-from comment_review.commands import collate as collate_command
 from comment_review.commands import proof as proof_command
 from comment_review.commands import turn as turn_command
 from comment_review.commands.collate import BROKEN, OK
@@ -2670,40 +2669,15 @@ class TestAHeldDestinationNoCopyHasASheetFor:
     """A held move destination whose page no copy has a sheet for --
     `Process: #155` and `#161`.
 
-    `flows.turn.proof_after` cannot seed that end's `add`, so `collate` and
-    `turn` each refuse the proof: the test asserts BROKEN, the refusal on
-    stderr, and that neither command writes a file.
-    """
+    `flows.turn.proof_after` cannot seed that end's `add`, so `turn` refuses
+    the proof: the test asserts BROKEN, the refusal on stderr, and that the
+    command writes no file.
 
-    def test_collate_refuses_and_writes_nothing(self, tmp_path, monkeypatch, capsys):
-        one = _a_move_held_where_no_copy_has_the_page(tmp_path)
-        assert one.proof is not None
-        copies = []
-        for copy in one.proof.edit_copies:
-            path = tmp_path / f"copy-{copy.role}.json"
-            path.write_text(json.dumps(copy.serialize()), encoding="utf-8")
-            copies += ["--edit-copy", str(path)]
-        code, out = run_command(
-            monkeypatch,
-            capsys,
-            collate_command,
-            "--stage",
-            "4c",
-            "--binder",
-            str(tmp_path / "binder.json"),
-            *copies,
-            "--out",
-            str(tmp_path / "chief.json"),
-            "--proof-out",
-            str(tmp_path / "proof.json"),
-            "--repo",
-            str(tmp_path),
-            with_stderr=True,
-        )
-        assert code == BROKEN, out
-        assert "REFUSED: the master proof cannot be written" in out
-        assert not (tmp_path / "chief.json").exists()
-        assert not (tmp_path / "proof.json").exists()
+    ! IT ASSERTED THE SAME OF `collate` UNTIL THAT COMMAND MOVED ONTO THE UNIT
+    OF WORK, T3 of `docs/superpowers/plans/2026-09-14-the-middle-rebuilt.md`.
+    `collate` reaches no `proof_after`, so the refusal has no raiser on that
+    side and the case is the turn's alone.
+    """
 
     def test_turn_refuses_and_writes_nothing(self, tmp_path, monkeypatch, capsys):
         _a_move_held_where_no_copy_has_the_page(tmp_path)
