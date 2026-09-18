@@ -117,8 +117,7 @@ patch      from, to         from       yes      NO        wording alone -- nothi
                                                           settles it
 add        missing,         --         yes      yes       the anchor is named in
            anchor                                         backticks
-move       from, to         --         the      yes       the `to` must be ADDRESSABLE
-                                       COMPOSITE
+move       from, to         --         yes      yes       the `to` must be ADDRESSABLE
 ```
 
 ## `move` is TWO OPERATIONS UNDER ONE LABEL, AND IT IS INDIVISIBLE
@@ -137,21 +136,22 @@ Mark because the drop is determinable from the sentence that had to be supplied.
 `raw_text` now holds the edited text from the agent that means that we also know where to add
 the text."*
 
-! **THIS SECTION USED TO SAY `change` CARRIED BOTH TEXTS** -- *"the origin as it reads once the
-prose has left, and the destination as it reads once the prose arrives. Both raw text, in one
-`change`."* That is the half that moved. `change` carries the DESTINATION's text; **the origin's
-delete is DERIVED, not carried**, because a move's origin has exactly one outcome and the
-sentence that had to be supplied is what determines it.
+**`change` is the snippet and `raw_text` is the destination paragraph** --
+`decision-log.md Process: #172` and `#175`, which supersede the two readings this section
+carried before: *"the origin as it reads once the prose has left, and the destination as it
+reads once the prose arrives. Both raw text, in one `change`"*, and then `change` as the
+destination's text with the origin's delete derived from nothing.
 
 | | |
 | --- | --- |
-| **the origin** | derived -- the prose leaves, and nothing has to say so |
-| **the destination** | `change`, the text as it arrives |
-| **where it lands** | known, because `raw_text` carries what the agent edited |
+| **`change`** | the moved text itself, subtracted from the origin's paragraph exactly once |
+| **the origin** | derived -- what that subtraction leaves, a paragraph or nothing |
+| **the destination** | `raw_text`, the paragraph as it will read with the snippet in |
 
-! **WHAT SHIPPED IS THIS SHAPE.** `desk/mark.py::text_at` returns `None` at a move's origin and
-the `change` at its destination -- one `Mark`, both ends -- landed `586c13a`, with
-`TestTextAtOneEndOfAMark` asserting each end.
+**So a partial move is expressible, which is what `#172` was asked for.** One sentence leaves
+and the rest stays: the origin keeps the remainder, and the destination keeps every word of
+what was already there and every word of the snippet. `desk/marks/table.py`'s `move` row states
+both rules, and `flows/fill.py` runs them before a mark is placed.
 
 !! **ATOMICITY IS UNCHANGED AND IS WHAT `Process: #56` WAS ABOUT.** *"You don't want to say it
 can move and it can't complete the move because 1/2 is rejected"* is a rule about how the mark
@@ -164,8 +164,12 @@ yet** -- an enumerated set of them would be a guess wearing the shape of a speci
 
 | the premise | what falsifies it |
 | --- | --- |
-| a move's origin has ONE outcome, so the delete needs no carrying | any origin that must READ differently after the prose leaves |
-| `raw_text` carries the agent's edited text, so the destination is known | any destination the edited text does not locate |
+| the snippet appears in the origin's paragraph exactly once, so the remainder is derivable | any origin whose remainder is not what taking the snippet out leaves |
+| `raw_text` carries the destination paragraph, so both ends are known | any destination whose text one mark cannot state |
+
+**The first premise replaced one `#172` falsified** -- *"a move's origin has ONE outcome, so
+the delete needs no carrying"*. A partial move leaves a paragraph behind, so the origin has as
+many outcomes as there are snippets, and the mark now carries the one that decides it.
 
 ! **ANYTHING THAT FALSIFIES EITHER REOPENS IT, AND SO DOES ANYTHING NEITHER PREMISE ANTICIPATED.**
 A single `Mark` has not been run against a real corpus of moves, and the composite is what it
@@ -213,7 +217,7 @@ instruction set and the cli help."* This file is the instruction set.
 | `correct` | the false clause and the true one, and a `sources` entry carrying the line that settles it. ! The FALSE half is checked against the paragraph -- if it is not there, the finding is on the wrong one |
 | `patch` | the sentence as it stands and the rewrite. ! `from` is checked against the paragraph. A `patch` needs no source: the claim is already true, and only its wording is at issue |
 | `add` | the text that is missing and the anchor NAMED IN BACKTICKS. ! The word "anchor" is not an anchor -- name the declaration. Which SIDE is the address's to say, never the claim's |
-| `move` | where the prose sits now and where it belongs -- another line, another file, or out of the code entirely. ! These are PLACES, not text: the same two key names in `change` mean the resulting PARAGRAPHS |
+| `move` | where the prose sits now and where it belongs -- another line, another file, or out of the code entirely. These are places, not text: the text itself is `change`, the snippet taken out of the origin, and `raw_text` is the destination paragraph as it will read |
 
 !! **IT WAS LOST ONCE ALREADY, ON 2026-08-28, AND THE MECHANISM IS WORTH KNOWING.** This prose used
 to live in a `payload` field on each row. Deleting that field was right -- a row carries no prose --

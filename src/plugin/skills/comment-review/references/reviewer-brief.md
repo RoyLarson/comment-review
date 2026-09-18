@@ -145,7 +145,11 @@ python <skill>/scripts/comment-review.py mark --edit-copy <EDIT COPY from your p
 - **`change` is built for you** where the instruction quotes a clause -- `correct`, `patch`,
   `drop` -- by substituting that clause inside the slot's own `raw_text`. So the clause you
   quote must sit in the paragraph EXACTLY ONCE: it is one statement, and a clause found twice
-  or nowhere is refused. `add` and `move` quote nothing, so they take `--change`.
+  or nowhere is refused. `add` and `move` quote nothing: they take `--change`, the text that
+  arrives, and `--raw-text`, the paragraph as it will read once that text is in.
+- **`--raw-text` is owed on every `move`**, and on an `add` at a place that already holds
+  prose. At an empty place the two are the same text, so leave it off. Every other
+  instruction takes its paragraph from the page and is refused a `--raw-text`.
 - **A source is `--cite path:line`**, repeatable. `--verbatim` and `--ran` each bind to the
   `--cite` before them. Leave `--verbatim` off and the cited line is read out of the file
   for you; give it only where the text you mean is not that line.
@@ -191,6 +195,10 @@ IS the state your `address` and your `anchor` were taken from, and the state the
 Leave them alone; a mismatch there means the file was edited, not that you misquoted. ! The
 `anchor` is there to be GREPPED -- it names the declaration the gather resolved, and is empty
 where none was.
+
+**An `add` and a `move` are the exception, and only for `raw_text`.** Nothing on the page says
+what a place will read once text arrives there, so you write it with `--raw-text` and `mark`
+checks it keeps every word already there. `address` and `anchor` stay the tool's on every row.
 
 ### The five fields you fill
 
@@ -347,7 +355,7 @@ claimed the table was generated, when no such script existed anywhere in the tre
 | `correct` | `false`, `true` | the false clause and the true one, and a `sources` entry carrying the line that settles it. ! The FALSE half is checked against the paragraph -- if it is not there, the finding is on the wrong one |
 | `patch` | `from`, `to` | the sentence as it stands and the rewrite. ! `from` is checked against the paragraph. A `patch` needs no source: the claim is already true, and only its wording is at issue |
 | `add` | `missing`, `anchor` | the text that is missing and the anchor NAMED IN BACKTICKS. ! The word "anchor" is not an anchor -- name the declaration. Which SIDE is the address's to say, never the claim's |
-| `move` | `from`, `to` | where the prose sits now and where it belongs -- another line, another file, or out of the code entirely. ! These are PLACES, not text: the same two key names in `change` mean the resulting PARAGRAPHS |
+| `move` | `from`, `to` | where the prose sits now and where it belongs -- another line, another file, or out of the code entirely. These are places, not text: the text itself is `change`, the snippet taken out of the origin, and `raw_text` is the destination paragraph as it will read |
 
 <!-- END GENERATED -->
 
@@ -360,24 +368,26 @@ two instructions: a `patch` sentence is TRUE and merely reads badly. A neutral f
 ! **A `move`'s halves are PLACES, not text** -- from where it sits, to where it belongs. It is
 the one edit whose `claim` names no sentence, because the paragraph is what identifies the prose.
 
-!! **A `move` changes TWO paragraphs, so its `change` carries BOTH -- and this is the only instruction
-where `change` is not a single paragraph.** Write them labelled:
+**A `move` changes two paragraphs, and it names them in two fields.** `--change` is the
+snippet that leaves, and it must sit in the origin's paragraph exactly once; `--raw-text` is
+the destination paragraph as it will read, keeping every word already there and every word of
+the snippet. Both are whole raw text, so both usually go by `@path`:
 
-```text
-change      to:   # the destination paragraph, as it reads once the prose arrives
-                  # ...including the lines already there.
-            from: # the origin paragraph, as it reads once the prose has left.
+```bash
+python <skill>/scripts/comment-review.py mark --edit-copy <EDIT COPY> --repo <REPO ROOT> \
+  --address <the origin> --instruction move --from <the origin> --to <the destination> \
+  --change @snippet.txt --raw-text @destination.txt \
+  --reason "why it belongs there" --cite path:line
 ```
 
-! **`to:` is required. `from:` may be omitted, and omitting it ASSERTS the WHOLE paragraph moved** --
-that nothing is left behind to show. Nothing can tell a whole-paragraph move from a partial one by
-inspection, so you say which by what you supply. ! If a sentence leaves and the rest stays,
-`from:` is how the chief learns what the remainder reads like; without it, the paragraph is
-applied as if it emptied.
+**What is left at the origin is derived, and you never write it**: the snippet taken out of
+the paragraph is what stands there, which is the whole paragraph gone when the snippet is the
+whole paragraph, and the remainder when one sentence leaves. So a partial move and a whole one
+are told apart by what the snippet holds, not by a second field.
 
-! These are `claim`'s two words used again, and they mean something different here: in `claim`
-they are PLACES, in `change` they are the two resulting PARAGRAPHS. The field you are writing
-decides which.
+**An `add` takes the same two fields.** `--change` is the text you add and `--raw-text` the
+paragraph as it will read with it in -- which keeps every word of the prose already there, in
+order.
 
 #### Does a TRUE sentence earn its place?
 
