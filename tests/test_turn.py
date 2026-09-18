@@ -1,4 +1,4 @@
-"""`flows.turn`. The loop `docs/the-turn.md` describes, run over
+"""`flows._turn`. The loop `docs/the-turn.md` describes, run over
 the real `collate()`: a batch answered, applied, folded again; the chief at
 max turns.
 
@@ -33,7 +33,6 @@ from helpers import (
     an_add_at_an_empty_place,
     binder_of,
     copies_over,
-    disposition,
     entries_of,
     placed_as_the_old_turn_reads_it,
     proof_at,
@@ -42,9 +41,6 @@ from helpers import (
 
 from comment_review.binder.binder import Binder
 from comment_review.commands import proof as proof_command
-from comment_review.commands import turn as turn_command
-from comment_review.commands.collate import BROKEN, OK
-from comment_review.commands.disposition import _put_to_the_human
 from comment_review.desk.containers import MasterProof
 from comment_review.desk.determined import CHIEF, ORIGINAL, Answer
 from comment_review.desk.diff_mark import COMPOSITION, ESCALATION, QUESTION, batch_of
@@ -57,13 +53,7 @@ from comment_review.desk.mark import (
 )
 from comment_review.docket.docket import Docket
 from comment_review.flows._collate import collate
-from comment_review.flows.distribute import seed
-from comment_review.flows.fill import fill
-from comment_review.flows.mark_errors import Revisit
-from comment_review.flows.page_for import page_of
-from comment_review.flows.proof_io import load_proof, save_proof
-from comment_review.flows.transcribe import docket_of
-from comment_review.flows.turn import (
+from comment_review.flows._turn import (
     batch_for,
     close,
     contracts,
@@ -73,6 +63,17 @@ from comment_review.flows.turn import (
     rule_at_max_turns,
     run_turn,
 )
+from comment_review.flows.distribute import seed
+from comment_review.flows.fill import fill
+from comment_review.flows.mark_errors import Revisit
+from comment_review.flows.page_for import page_of
+from comment_review.flows.proof_io import (
+    load_binder,
+    load_proof,
+    save_copy,
+    save_proof,
+)
+from comment_review.flows.transcribe import docket_of
 
 BASE = "# one\n# two\n# three\n"
 TWO = "# one\n# TWO\n# three\n"
@@ -2231,8 +2232,45 @@ def _the_chief_rules_each_end(root, monkeypatch, capsys, origin: dict, to: dict)
     )
 
 
+def _closed(root, rulings: list, proof: str = "proof1.json"):
+    """This flow's own close over `proof` -- `refold`, each ruling, `close`.
+
+    ! IN PROCESS, WHERE IT RAN THROUGH THE `disposition` COMMAND UNTIL THAT
+    COMMAND FOLDED THROUGH THE UNIT OF WORK. The command rules the places a
+    Unit of Work decided, and this flow writes none of them onto a proof, so
+    the chief's copy and the closed proof are written here instead, under the
+    names the command wrote them under.
+
+    Args:
+        root: the checkout holding `binder.json` and `proof`.
+        rulings: the chief's, one per place carried to max turns.
+        proof: the file the last proof is read from.
+    """
+    last, why = load_proof(root / proof)
+    assert last is not None, why
+    binder, why = load_binder(root / "binder.json")
+    assert binder is not None, why
+    got = refold(last, binder, root)
+    ruled = [
+        rule_at_max_turns(
+            got,
+            one["address"],
+            Answer(one["answer"]),
+            str(one.get("side", "")),
+            str(one.get("reason", "")),
+            last.turn,
+            prose=str(one.get("prose", "")),
+        )
+        for one in rulings
+    ]
+    closed, chief = close(got, ruled, last.turns, root)
+    save_copy(root / "chief.json", chief)
+    save_proof(root / "final.json", closed)
+    return closed
+
+
 def _disposed(root, monkeypatch, capsys, rulings: list, proof: str = "proof1.json"):
-    """`disposition` over `proof` with the chief's `rulings`, then
+    """This flow's close over `proof` with the chief's `rulings`, then
     `proof --to-docket`.
 
     Args:
@@ -2240,16 +2278,13 @@ def _disposed(root, monkeypatch, capsys, rulings: list, proof: str = "proof1.jso
         monkeypatch: pytest's, for `run_command`.
         capsys: pytest's, for `run_command`.
         rulings: the chief's, one per place carried to max turns.
-        proof: the file `disposition` reads the last proof from.
+        proof: the file the last proof is read from.
 
     Returns:
         `(the chief's copy, the closed proof, the docket)`, each read back
-        from the JSON its command wrote.
+        from the JSON it was written to.
     """
-    code, out = disposition(root, monkeypatch, capsys, rulings, proof)
-    assert code == OK, out
-    closed, why = load_proof(root / "final.json")
-    assert closed is not None, why
+    closed = _closed(root, rulings, proof)
     code, out = run_command(
         monkeypatch,
         capsys,
@@ -2590,27 +2625,17 @@ class TestAMoveWhoseOriginIsHeldForTheHuman:
         rendered = json.dumps(held)
         assert any(f'"instruction": "{one}"' in rendered for one in ("move", "drop"))
 
-    def test_disposition_prints_the_drop_with_the_held_origin(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        rulings = _the_origin_held_at_max_turns(tmp_path)
-        code, out = disposition(tmp_path, monkeypatch, capsys, rulings, "proof2.json")
-        assert code == OK, out
-        assert f"unsettlable {MOVED_FROM}: function-context asks the human" in out
-        assert "block-context's move drops the paragraph there" in out
-
 
 class TestAMoveHeldAtBothEnds:
     """A move whose mover's query holds both its ends for the human --
     `no-command-for-the-middle` T96, `Process: #138` and `#155`.
 
     Turn 1 answers block-context's slot at one end of its move with a
-    `human-review-necessary` query and every other slot `clean`, as T84's
-    and T72's tests do, so both ends are unsettlable, and `disposition`
-    closes the proof with nothing carried forward. The test asserts that
-    the origin's entry carries the move's `drop` and the destination's its
-    `add` of the moved text, and that `disposition` prints the two ends as
-    one move under one entry, whichever end's entry comes first.
+    `human-review-necessary` query and every other slot `clean`, so both
+    ends are unsettlable and the close carries nothing forward. The test
+    asserts that the origin's entry on the closed proof carries the move's
+    `drop` and the destination's its `add` of the moved text, so whoever
+    asks the human has both halves of the one move in hand.
     """
 
     @pytest.mark.parametrize(
@@ -2620,9 +2645,7 @@ class TestAMoveHeldAtBothEnds:
             pytest.param(EMPTY_PLACE, id="asked-at-the-destination"),
         ],
     )
-    def test_both_ends_go_to_the_author_as_one_move(
-        self, tmp_path, monkeypatch, capsys, asked_at
-    ):
+    def test_both_ends_go_to_the_author_as_one_move(self, tmp_path, asked_at):
         binder, got = _a_lone_move(tmp_path, MOVED_TEXT)
         batch = batch_of(got.escalations, got.rereads)
         asked = _a_movers_query(Shape.HUMAN_REVIEW_NECESSARY)
@@ -2634,10 +2657,7 @@ class TestAMoveHeldAtBothEnds:
         )
         turns = ({"turn": 1, "sent": batch},)
         save_proof(tmp_path / "proof1.json", proof_after(one, turns, root=tmp_path))
-        code, out = disposition(tmp_path, monkeypatch, capsys, [])
-        assert code == OK, out
-        closed, why = load_proof(tmp_path / "final.json")
-        assert closed is not None, why
+        closed = _closed(tmp_path, [])
         held = {place["address"]: place for place in closed.unsettlable}
         assert sorted(held) == [MOVED_FROM, EMPTY_PLACE]
         drop = held[MOVED_FROM]["drop"]
@@ -2648,20 +2668,6 @@ class TestAMoveHeldAtBothEnds:
         mark, why = Mark.deserialize(EMPTY_PLACE, riding)
         assert mark is not None, why
         assert (mark.instruction, mark.change) == (Instruction.ADD, MOVED_TEXT)
-        header = f"unsettlable {MOVED_FROM} and {EMPTY_PLACE}: block-context asks"
-        assert out.count("unsettlable ") == 1, out
-        assert header in out, out
-        assert (
-            f"block-context's move drops the paragraph at {MOVED_FROM}"
-            f" and adds it at {EMPTY_PLACE}" in out
-        ), out
-        for order in (closed.unsettlable, closed.unsettlable[::-1]):
-            entries = [
-                line
-                for line in _put_to_the_human(order)
-                if line.startswith("unsettlable ")
-            ]
-            assert entries == [f"{header} the human -- {asked['reason']}"], order
 
 
 def _a_move_held_where_no_copy_has_the_page(root):
@@ -2712,43 +2718,17 @@ class TestAHeldDestinationNoCopyHasASheetFor:
     """A held move destination whose page no copy has a sheet for --
     `Process: #155` and `#161`.
 
-    `flows.turn.proof_after` cannot seed that end's `add`, so `turn` refuses
-    the proof: the test asserts BROKEN, the refusal on stderr, and that the
-    command writes no file.
-
-    ! IT ASSERTED THE SAME OF `collate` UNTIL THAT COMMAND MOVED ONTO THE UNIT
-    OF WORK. `collate` reaches no `proof_after`, so the refusal has no raiser
-    on that side and the case is the turn's alone.
+    `proof_after` reads that end's page to write the `add` riding with the
+    held place, and raises where no copy has a sheet for it. The command
+    that turned this into a refusal is gone: a turn folds through the Unit
+    of Work, which writes no such entry and reads no page, so what is left
+    to assert is the flow's own raise.
     """
 
-    def test_turn_refuses_and_writes_nothing(self, tmp_path, monkeypatch, capsys):
-        _a_move_held_where_no_copy_has_the_page(tmp_path)
-        code, out = run_command(
-            monkeypatch,
-            capsys,
-            turn_command,
-            "--proof",
-            str(tmp_path / "proof0.json"),
-            "--binder",
-            str(tmp_path / "binder.json"),
-            "--sent",
-            str(tmp_path / "sent.json"),
-            "--answers",
-            f"block-context={tmp_path / 'block-context.json'}",
-            "--answers",
-            f"function-context={tmp_path / 'function-context.json'}",
-            "--proof-out",
-            str(tmp_path / "proof1.json"),
-            "--batch-out",
-            str(tmp_path / "batch2.json"),
-            "--repo",
-            str(tmp_path),
-            with_stderr=True,
-        )
-        assert code == BROKEN, out
-        assert "REFUSED: the master proof cannot be written" in out
-        assert not (tmp_path / "proof1.json").exists()
-        assert not (tmp_path / "batch2.json").exists()
+    def test_the_proof_cannot_be_written(self, tmp_path):
+        one = _a_move_held_where_no_copy_has_the_page(tmp_path)
+        with pytest.raises(ValueError):
+            proof_after(one, ({"turn": 1},), root=tmp_path)
 
 
 def _two_places():

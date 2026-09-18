@@ -30,7 +30,7 @@ STILL_OLD = {
     "desk/determined.py",
     "desk/diff_mark.py",
     "flows/_collate.py",
-    "flows/turn.py",
+    "flows/_turn.py",
 }
 NAMES = re.compile(
     r"\bInstruction\.[A-Z_]+\b|\bDiffInstruction\.[A-Z_]+\b|\bAnswer\.[A-Z_]+\b"

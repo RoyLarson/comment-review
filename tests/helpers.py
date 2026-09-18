@@ -47,8 +47,7 @@ from comment_review.flows._collate import Collated, collate
 from comment_review.flows.distribute import seed
 from comment_review.flows.fill import fill, place_on_the_page, quoted_sources
 from comment_review.flows.page_for import page_of, source_of
-from comment_review.flows.proof_io import load_proof, save_batch, save_proof
-from comment_review.flows.turn import batch_for, proof_after
+from comment_review.flows.proof_io import load_proof
 
 #: `src/comment_review/desk/` -- the source `a_small_real_tree` copies from.
 #: Any package with a handful of ordinary Python files would do; this one was
@@ -897,23 +896,18 @@ def merged(*by_roles: dict) -> dict:
 def deal(
     tmp_path, monkeypatch, capsys, by_role: dict, texts: dict | None = None
 ) -> int:
-    """`collate` over `by_role`: binder.json, proof0.json, batch1.json, chief0.json.
+    """`collate` over `by_role`: binder.json, chief0.json, proof0.json, batch1.json.
 
     The binder is over real pages written to `tmp_path / "repo"`, which the
     commands read as its root.
 
-    !! THE COMMAND DEALS THE HAND AND THE OLD FOLD WRITES WHAT THE TURN READS,
-    which is two folds over one set of copies and is deliberately temporary.
-    `collate` folds through the Unit of Work, so the proof it writes carries
-    decided PLACES and its batch carries a place's sides -- neither of which
-    `flows.turn.run_turn` reads. `turn` and `disposition` still fold through
-    `flows._collate`, so the hand they are dealt is that fold's, and this
-    writes `proof0.json` and `batch1.json` from it. The second half of this
-    function goes once those two commands fold through the bus as well.
+    ! ONE FOLD, THE COMMAND'S OWN. `collate --proof-out --batch-out` writes
+    the state between turns and the first turn's batch, and `turn` reads both
+    from there -- so the hand a turn is dealt is the hand `collate` dealt,
+    with nothing folded twice.
 
-    ! THE EXIT CODE IS THE COMMAND'S, not the old fold's. It is what a caller
-    of `collate` reads, and every case here contests a place, where the two
-    folds agree on the code.
+    Returns:
+        `collate`'s exit code, which is what a caller of it reads.
     """
     root = tmp_path / "repo"
     binder = a_real_binder_over(root, texts or {"m.py@b1": BASE})
@@ -928,18 +922,16 @@ def deal(
         str(tmp_path / "binder.json"),
         "--out",
         str(tmp_path / "chief0.json"),
+        "--proof-out",
+        str(tmp_path / "proof0.json"),
+        "--batch-out",
+        str(tmp_path / "batch1.json"),
     ]
     for i, copy in enumerate(copies):
         path = tmp_path / f"copy{i}.json"
         path.write_text(json.dumps(copy), encoding="utf-8")
         argv += ["--edit-copy", str(path)]
     code, _out = run_command(monkeypatch, capsys, collate_command, *argv)
-
-    got = collate("4c", copies, binder, root)
-    if got.proof is not None:
-        save_proof(tmp_path / "proof0.json", proof_after(got, root=root))
-    if got.escalations or got.rereads:
-        save_batch(tmp_path / "batch1.json", batch_for(got))
     return code
 
 
@@ -959,14 +951,15 @@ def answer(tmp_path, n: int, role: str, address: str, **fields) -> str:
 def turn(
     tmp_path, monkeypatch, capsys, n: int, *answers: str, proof: str = ""
 ) -> tuple[int, str]:
-    """`turn` n: proof<n-1> and batch<n> in, proof<n> and batch<n+1> out."""
+    """`turn` n: proof<n-1> in, proof<n> and batch<n+1> out.
+
+    `batch<n>` is what the answers were written against, and `answer` reads
+    it; the command itself reads the proof alone, which says what each place
+    was put to.
+    """
     argv = [
         "--proof",
         proof or str(tmp_path / f"proof{n - 1}.json"),
-        "--binder",
-        str(tmp_path / "binder.json"),
-        "--sent",
-        str(tmp_path / f"batch{n}.json"),
         "--proof-out",
         str(tmp_path / f"proof{n}.json"),
         "--batch-out",
@@ -1009,8 +1002,6 @@ def disposition(
         disposition_command,
         "--proof",
         str(tmp_path / proof),
-        "--binder",
-        str(tmp_path / "binder.json"),
         "--dispositions",
         str(tmp_path / "dispositions.json"),
         "--out",
@@ -1025,6 +1016,25 @@ def proof_at(tmp_path, n: int) -> MasterProof:
     got, why = load_proof(tmp_path / f"proof{n}.json")
     assert got is not None, why
     return got
+
+
+def place_on(proof: MasterProof, address: str) -> dict:
+    """One place the proof carries, as `Place.serialize` wrote it.
+
+    Args:
+        proof: a master proof read back, as `proof_at` returns one.
+        address: the place to find.
+
+    Returns:
+        The entry, which a test reads `state`, `text` or `answers` off.
+
+    Raises:
+        AssertionError: the proof carries no place at that address.
+    """
+    for entry in proof.places:
+        if entry.get("address") == address:
+            return entry
+    raise AssertionError(f"{address} is not on this proof")
 
 
 def the_chief(tmp_path) -> EditCopy:

@@ -1,9 +1,8 @@
 """The `check` command: what the fold would refuse, named before the send.
 
 ! IT RUNS `main()` IN-PROCESS with a built argv. Inputs are real -- a binder
-from `a_binder_over`, copies from the real `seed`, batches from the real
-`batch_of` over the real `collate`, and the proof each batch went out with
-from `proof_after`.
+from `a_binder_over`, copies from the real `seed`, and batches from the fold
+itself, as `flows.bus` sends them out.
 
 ! WHERE THE EXPECTATIONS COME FROM: the 2026-08-17 ruling that a role edits
 the seeded template and a CLI validates it
@@ -16,7 +15,6 @@ unanswered slot, a `patch` meant as *keep my patch*, a batch keyed by role
 import json
 
 from helpers import (
-    EMPTY_PLACE,
     REPO,
     a_binder_over,
     a_clean,
@@ -24,15 +22,13 @@ from helpers import (
     a_correct_setting,
     a_move,
     a_real_binder_over,
-    an_add_at_an_empty_place,
     copies_over,
+    returned,
 )
 
 from comment_review.commands import check as command
-from comment_review.desk.diff_mark import batch_of
-from comment_review.flows._collate import collate
-from comment_review.flows.proof_io import save_batch, save_proof
-from comment_review.flows.turn import batch_for, proof_after, run_turn
+from comment_review.desk.work.events import Refused
+from comment_review.flows.bus import AnswersReturned, CopiesReturned, handle
 
 BASE = "# one\n# two\n# three\n"
 
@@ -142,34 +138,41 @@ class TestACopy:
         assert err
 
 
+def _folded(tmp_path):
+    """One real escalation through the bus: the proof and the batch it sends."""
+    root = tmp_path / "repo"
+    binder = a_real_binder_over(root, {"m.py@b1": BASE})
+    copies = [
+        returned(wire)
+        for wire in copies_over(
+            binder,
+            {
+                "block-context": {
+                    "m.py@b1": a_correct_setting(
+                        "m.py@b1", "two", "# one\n# TWO\n# three"
+                    )
+                },
+                "function-context": {
+                    "m.py@b1": a_correct_setting(
+                        "m.py@b1", "two", "# one\n# dos\n# three"
+                    )
+                },
+            },
+        )
+    ]
+    out, result = handle(CopiesReturned("4c", copies, binder, root, None))
+    assert result is not None and result.batch, out
+    return result
+
+
 def _batch_file(tmp_path, answered_by_role: dict):
     """A real batch over a real escalation, with the given roles' slots
     written back as `answered_by_role` says -- a dict of field updates, or
     the string "role-keyed" to write the batch shape instead of a list."""
-    binder = a_binder_over({"m.py@b1": BASE})
-    copies = copies_over(
-        binder,
-        {
-            "block-context": {
-                "m.py@b1": a_correct_setting(
-                    "m.py@b1", "two", "# one\n# TWO\n# three\n"
-                )
-            },
-            "function-context": {
-                "m.py@b1": a_correct_setting(
-                    "m.py@b1", "two", "# one\n# dos\n# three\n"
-                )
-            },
-        },
-    )
-    got = collate("4c", copies, binder, root=REPO)
-    batch = batch_of(got.escalations, got.rereads)
+    result = _folded(tmp_path)
+    batch = result.batch
     (tmp_path / "batch.json").write_text(json.dumps(batch), encoding="utf-8")
-    save_proof(tmp_path / "proof.json", proof_after(got, root=tmp_path))
-    paths = {
-        "sent": str(tmp_path / "batch.json"),
-        "proof": str(tmp_path / "proof.json"),
-    }
+    paths = {"sent": str(tmp_path / "batch.json")}
     for role, how in answered_by_role.items():
         slots = batch[role]
         if how == "role-keyed":
@@ -196,8 +199,6 @@ class TestABatch:
             paths["sent"],
             "--role",
             "block-context",
-            "--proof",
-            paths["proof"],
         )
         assert code == 0
         assert "1 answered, 0" in out
@@ -213,8 +214,6 @@ class TestABatch:
             paths["sent"],
             "--role",
             "block-context",
-            "--proof",
-            paths["proof"],
         )
         assert code == 1
         assert "unanswered" in out
@@ -234,8 +233,6 @@ class TestABatch:
             paths["sent"],
             "--role",
             "block-context",
-            "--proof",
-            paths["proof"],
         )
         assert code == 1
         assert "patch needs a `change`" in out
@@ -253,8 +250,6 @@ class TestABatch:
             paths["sent"],
             "--role",
             "block-context",
-            "--proof",
-            paths["proof"],
         )
         # ! The slots are the seeded ones, unanswered -- so BROKEN, but for the
         # right reason: the shape was read, and the slot inside it was empty.
@@ -272,8 +267,6 @@ class TestABatch:
             paths["sent"],
             "--role",
             "module-context",
-            "--proof",
-            paths["proof"],
         )
         assert code == 1
         assert "no slots were sent to module-context" in out
@@ -287,75 +280,73 @@ class TestABatch:
         assert "--role" in err and "--sent" in err
 
 
-def _gapped_files(tmp_path, answered: dict):
-    """A real fold over an `add` at an empty place, written as `collate`
-    writes it -- `proof0.json` and `batch1.json` -- plus one answers file per
-    role in `answered`: that role's sent slots with its fields laid over."""
-    binder, got = an_add_at_an_empty_place(tmp_path)
-    batch = batch_for(got)
-    save_proof(tmp_path / "proof0.json", proof_after(got, root=tmp_path))
-    save_batch(tmp_path / "batch1.json", batch)
-    answers = {
-        role: [{**slot, **fields} for slot in batch[role]]
-        for role, fields in answered.items()
-    }
-    paths = {}
-    for role, slots in answers.items():
-        path = tmp_path / f"answers_{role}.json"
-        path.write_text(json.dumps(slots), encoding="utf-8")
-        paths[role] = str(path)
-    return binder, got, batch, answers, paths
+def _answers_file(tmp_path, role, entries):
+    path = tmp_path / f"answers_{role}.json"
+    path.write_text(json.dumps(entries), encoding="utf-8")
+    return str(path)
 
 
-def _check(monkeypatch, capsys, tmp_path, paths, role):
+def _check(monkeypatch, capsys, tmp_path, path, role):
     return _run(
         monkeypatch,
         capsys,
         "--answers",
-        paths[role],
+        path,
         "--sent",
-        str(tmp_path / "batch1.json"),
+        str(tmp_path / "batch.json"),
         "--role",
         role,
-        "--proof",
-        str(tmp_path / "proof0.json"),
     )
 
 
-class TestABatchIsAppliedAsTheTurnAppliesIt:
-    """`check --answers` runs what `run_turn` runs for one role's answers, over
-    the copies on the proof the batch went out with --
-    `no-command-for-the-middle` T31."""
+class TestABatchIsHeldToWhatTheTurnRefuses:
+    """`check --answers` refuses one role's file for what the turn would refuse
+    it for: both read it through `flows.answers.answers_of`, against the slots
+    that went out -- `no-command-for-the-middle` T31."""
 
     def test_answers_the_turn_takes_exit_zero(self, tmp_path, monkeypatch, capsys):
-        clean = {"instruction": "clean"}
-        *_, paths = _gapped_files(
-            tmp_path, {"block-context": clean, "function-context": clean}
-        )
-        for role in ("block-context", "function-context"):
-            code, out, _ = _check(monkeypatch, capsys, tmp_path, paths, role)
+        result = _folded(tmp_path)
+        (tmp_path / "batch.json").write_text(json.dumps(result.batch), encoding="utf-8")
+        answers = {
+            role: [{"address": "m.py@b1", "instruction": "hold", "reason": "mine"}]
+            for role in result.batch
+        }
+        for role, entries in answers.items():
+            path = _answers_file(tmp_path, role, entries)
+            code, out, _ = _check(monkeypatch, capsys, tmp_path, path, role)
             assert code == 0, out
             assert "1 answered, 0 the fold would refuse" in out
+        out, turned = handle(AnswersReturned(result.proof, answers))
+        assert turned is not None, out
 
-    def test_what_the_turn_refuses_is_named(self, tmp_path, monkeypatch, capsys):
-        """An answer at a place the role's copy holds no slot for is placed
-        from the page, so with the page gone from the checkout the turn refuses
-        it when it applies the answer -- and `check` names the same refusal."""
-        clean = {"instruction": "clean"}
-        binder, got, batch, answers, paths = _gapped_files(
-            tmp_path, {"block-context": clean, "function-context": clean}
-        )
-        (tmp_path / "m.py").unlink()
-        turned = run_turn(
-            proof_after(got, root=tmp_path), binder, tmp_path, batch, answers
-        )
-        refused = [p for p in turned.revisit if p.role == "function-context"]
-        assert [p.address for p in refused] == [EMPTY_PLACE]
-        code, out, _ = _check(monkeypatch, capsys, tmp_path, paths, "function-context")
+    def test_what_the_turn_refuses_is_named_here_too(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """One role answers at a place the batch never sent it -- which the
+        turn refuses the whole round for, and which `check` names before the
+        send."""
+        result = _folded(tmp_path)
+        (tmp_path / "batch.json").write_text(json.dumps(result.batch), encoding="utf-8")
+        answers = {
+            "block-context": [
+                {"address": "m.py@b1", "instruction": "hold", "reason": "mine"},
+                {"address": "m.py@b9", "instruction": "hold", "reason": "and this"},
+            ],
+            "function-context": [
+                {"address": "m.py@b1", "instruction": "hold", "reason": "mine"}
+            ],
+        }
+        path = _answers_file(tmp_path, "block-context", answers["block-context"])
+        code, out, _ = _check(monkeypatch, capsys, tmp_path, path, "block-context")
         assert code == 1
-        for one in refused:
-            for reason in one.reasons:
-                assert f"{one.role} {one.where}: {reason}" in out
+        assert "block-context m.py@b9" in out
+        events, turned = handle(AnswersReturned(result.proof, answers))
+        assert turned is None
+        assert any(
+            one.role == "block-context" and one.address == "m.py@b9"
+            for one in events
+            if isinstance(one, Refused)
+        )
 
 
 class TestTheContract:

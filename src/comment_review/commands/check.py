@@ -2,7 +2,6 @@
 
     comment_review check --edit-copy copy.json [--binder B.json] [--repo R]
     comment_review check --answers answers.json --sent batch.json --role block-context
-        --proof proof.json [--repo R]
     comment_review check --contract
 
 A role writes its copy or its batch answers with its file-write tool and runs
@@ -31,15 +30,14 @@ alone or wrote unreadably (`flows.mark_errors`), and, with `--binder`, source
 verification, drift, and whether each address and each move's destination
 names a place its page carries (`desk.collator.verify_report`, `drift_in`,
 `flows.collate.resolution_problems` -- the fold's own). For a
-BATCH: `flows.turn.take_answers`, the call `run_turn` makes for each role --
-every answer paired to the slot the flow SENT, by address (`parse_answers`,
-T27), then written into that role's copy on the proof (`apply`). So `--sent`
-is the batch that went out, `--proof` the proof it went out with, and
-`--repo` the checkout a page is read from, by default the proof's own
-`read_from.root`; nothing is saved. Source verification of what an answer
-cites is the fold's, and is not run for a batch.
-The shape a role hands back is read the way the flow reads it
-(`flows.turn.slots_of`): a list of slots, `{role: [slots]}`, or a lone slot.
+BATCH: `flows.answers.answers_of`, the call the turn makes for each role --
+every answer paired to the slot that went out at its address, and read against
+that slot's own question. So `--sent` is the batch that went out; nothing is
+saved. A slot left unanswered, an answer at an address the batch never sent
+this role, and an answer the question does not admit are each named here,
+which is what the turn refuses the round for.
+The shape a role hands back is read the way the fold reads it
+(`flows.answers.slots_of`): a list of slots, `{role: [slots]}`, or a lone slot.
 """
 
 import argparse
@@ -56,6 +54,8 @@ from comment_review.desk.collator import (
 )
 from comment_review.desk.containers import EditCopy
 from comment_review.flows._collate import resolution_problems, texts_at
+from comment_review.flows._turn import contracts
+from comment_review.flows.answers import answers_of, slots_of
 from comment_review.flows.fill import (
     composition_problems,
     page_text_at,
@@ -66,10 +66,8 @@ from comment_review.flows.proof_io import (
     load_batch,
     load_binder,
     load_copy,
-    load_proof,
     load_value,
 )
-from comment_review.flows.turn import contracts, slots_of, take_answers
 
 #: Exit codes -- `distribute`'s 0/1/2. `BROKEN` is anything the fold would
 #: refuse or send back; `UNREADABLE` is a file that is not an object at all.
@@ -167,30 +165,38 @@ def _check_copy(path: str, binder_path: str | None, repo: str | None) -> int:
     return BROKEN if found else OK
 
 
-def _check_answers(
-    path: str, sent_path: str, role: str, proof_path: str, repo: str | None
-) -> int:
+def _never_sent(address: str) -> str:
+    """Why an answer at an address outside the batch is refused, for `answers_of`.
+
+    The batch is all this command reads, so it can say only that the address
+    is not among the slots this role was handed. The turn, which has the
+    places in hand, says which of the two it is -- a place nothing carries
+    forward, or one put to other roles.
+    """
+    return "never sent to this role"
+
+
+def _check_answers(path: str, sent_path: str, role: str) -> int:
     loaded, why = load_value(Path(path))
     if why:
         return _refused(why)
     batch, why = load_batch(Path(sent_path))
     if why:
         return _refused(why)
-    proof, why = load_proof(Path(proof_path))
-    if proof is None:
-        return _refused(why)
-    sent = slots_of(batch, role)
-    if not sent:
+    slots = slots_of(batch, role)
+    if not slots:
         print(f"{sent_path}: no slots were sent to {role}")
         return BROKEN
-    root = Path(repo) if repo else Path(proof.read_from["root"])
-    copies = [copy.serialize() for copy in proof.edit_copies]
-    answers, revisit = take_answers(copies, role, sent, loaded, root)
-    for one in revisit:
-        for reason in one.reasons:
-            print(f"{one.role} {one.where}: {reason}")
-    print(f"{path}: {len(answers)} answered, {len(revisit)} the fold would refuse")
-    return BROKEN if revisit else OK
+    sent = {
+        str(slot["address"]): slot
+        for slot in slots
+        if isinstance(slot, dict) and slot.get("address")
+    }
+    answers, problems = answers_of(role, sent, slots_of(loaded, role), _never_sent)
+    for one in problems:
+        print(f"{one.role} {one.address or '(the batch)'}: {one.message}")
+    print(f"{path}: {len(answers)} answered, {len(problems)} the fold would refuse")
+    return BROKEN if problems else OK
 
 
 def main() -> int:
@@ -199,7 +205,7 @@ def main() -> int:
     Returns:
         `OK` when nothing would be refused or sent back; `BROKEN` when
         something would, each named on stdout; `UNREADABLE` when the file is
-        not a JSON object or list, or the binder or the proof is not one.
+        not a JSON object or list, or the binder or the batch is not one.
     """
     ap = argparse.ArgumentParser(description=__doc__)
     what = ap.add_mutually_exclusive_group(required=True)
@@ -217,19 +223,13 @@ def main() -> int:
         "--sent", metavar="PATH", help="the batch that went out (with --answers)"
     )
     ap.add_argument(
-        "--proof",
-        metavar="PATH",
-        help="the master proof the batch went out with (with --answers)",
-    )
-    ap.add_argument(
         "--binder",
         help="the binder the copy was seeded from; adds source verification and drift",
     )
     ap.add_argument(
         "--repo",
-        help="the checkout a `sources` cite resolves against, and with --answers"
-        " the one a page is read from (default: the binder's or the proof's own"
-        " read_from.root)",
+        help="the checkout a `sources` cite resolves against "
+        "(default: the binder's own read_from.root)",
     )
     args = ap.parse_args()
 
@@ -239,10 +239,10 @@ def main() -> int:
         print(json.dumps(contracts(), indent=2))
         return OK
     if args.answers:
-        if not args.role or not args.sent or not args.proof:
-            print("check --answers needs --role, --sent and --proof", file=sys.stderr)
+        if not args.role or not args.sent:
+            print("check --answers needs --role and --sent", file=sys.stderr)
             return UNREADABLE
-        return _check_answers(args.answers, args.sent, args.role, args.proof, args.repo)
+        return _check_answers(args.answers, args.sent, args.role)
     return _check_copy(args.edit_copy, args.binder, args.repo)
 
 

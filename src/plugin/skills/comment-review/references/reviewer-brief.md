@@ -603,13 +603,13 @@ only when there is nothing. It writes nothing. **Fix your copy and run it again 
 reports nothing** -- `mark --withdraw` takes back a mark it names, and `mark` places the ruling
 again; a copy that fails at the fold is a copy you did not check.
 
-Over a batch's answers it takes `--answers`, with `--role`, `--sent` and `--proof`:
+Over a batch's answers it takes `--answers`, with `--role` and `--sent`:
 
 ```bash
 python <skill>/scripts/comment-review.py check --answers <ANSWERS from your packet> \
-  --sent <BATCH from your packet> --role <your role> --proof <PROOF from your packet> --repo .
+  --sent <BATCH from your packet> --role <your role>
 ```
 
-It pairs each answer to the slot you were sent, by address, and applies it to your copy on the
-proof as the turn would, saving nothing. It names every slot left unanswered and every answer the
+It pairs each answer to the slot you were sent, by address, and reads it against that slot's own
+question, as the turn does, saving nothing. It names every slot left unanswered and every answer the
 fold would refuse, and exits 0 only when there is none -- fix your answers and run it again.

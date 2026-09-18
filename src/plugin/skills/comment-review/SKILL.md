@@ -717,16 +717,16 @@ last batch out and folds what comes back:
 
    ```bash
    python <skill>/scripts/comment-review.py check --answers <run-dir>/answers1_<role>.json \
-     --sent <run-dir>/batch1.json --role <role> --proof <run-dir>/proof0.json --repo .
+     --sent <run-dir>/batch1.json --role <role>
    ```
 
 3. **Fold them**, with one `--answers` for every role the batch named:
 
    ```bash
-   python <skill>/scripts/comment-review.py turn --proof <run-dir>/proof0.json --binder <run-dir>/binder.json \
-     --sent <run-dir>/batch1.json --answers block-context=<run-dir>/answers1_block-context.json \
+   python <skill>/scripts/comment-review.py turn --proof <run-dir>/proof0.json \
+     --answers block-context=<run-dir>/answers1_block-context.json \
      --answers function-context=<run-dir>/answers1_function-context.json \
-     --proof-out <run-dir>/proof1.json --batch-out <run-dir>/batch2.json --repo .
+     --proof-out <run-dir>/proof1.json --batch-out <run-dir>/batch2.json
    ```
 
 `turn` exits the codes in the table above, and each asks of you what it asks after `collate`,
@@ -750,8 +750,8 @@ Write them to `<run-dir>/dispositions.json` as a list -- `[{"address", "answer",
 "prose"}]`, `reason` owed on every one -- then close the proof:
 
 ```bash
-python <skill>/scripts/comment-review.py disposition --proof <run-dir>/proof0.json --binder <run-dir>/binder.json \
-  --repo . --dispositions <run-dir>/dispositions.json --out <run-dir>/chief.json --proof-out <run-dir>/final.json
+python <skill>/scripts/comment-review.py disposition --proof <run-dir>/proof0.json \
+  --dispositions <run-dir>/dispositions.json --out <run-dir>/chief.json --proof-out <run-dir>/final.json
 ```
 
 `--proof` is the last proof written: `proof0.json` when no turn ran, the last turn's otherwise.

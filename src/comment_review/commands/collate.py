@@ -29,7 +29,6 @@ from pathlib import Path
 from comment_review.desk.answers.answer import Question
 from comment_review.desk.containers import EditCopy
 from comment_review.desk.evaluate.state import CARRIED, State
-from comment_review.desk.proof import MismatchedRoot
 from comment_review.desk.topology import read as read_topology
 from comment_review.desk.work import events
 from comment_review.flows.bus import CopiesReturned, handle
@@ -44,49 +43,20 @@ from comment_review.flows.proof_io import (
 #: Exit codes, extending `distribute`'s own 0/1/2 with the two outcomes a
 #: caller branches on. `main` checks the escalation before the composition, so
 #: a run holding both reports the escalation: it is the stronger claim on a
-#: person's attention.
+#: person's attention. `turn` and `disposition` exit these same five, since
+#: all three fold through the Unit of Work and a caller branching on a code
+#: branches once.
 #: !! THERE WERE THREE MORE UNTIL THE FOLD BECAME A UNIT OF WORK -- `DRIFT` 5,
 #: `COVERAGE` 6 and `CARRIED_AND_UNRULED` 7. Each named a finding that routed
-#: back to a role without voiding the round, and there is no such finding left
-#: here: drift, a short shard and a place a role left unruled are all found
-#: before the fold opens, so each is a `Refused` and the round rolls back.
-#: `commands/turn.py` still exits all three, because it still runs the old
-#: fold; it declares them itself.
+#: back to a role without voiding the round, and there is no such finding left:
+#: drift, a short shard, a place a role left unruled and a slot a role left
+#: unanswered are all found before the fold opens, so each is a `Refused` and
+#: the round rolls back.
 OK = 0
 BROKEN = 1
 UNREADABLE = 2
 REREADS = 3
 ESCALATIONS = 4
-
-#: The ways a stage cannot be reconciled at all, as against a mark that broke a
-#: rule. They mean the SET cannot be read, so none is routable back to one role
-#: the way a `Problem` is -- they exit `BROKEN` with the reason on stderr.
-#: ! NOTHING THIS COMMAND CALLS RAISES ONE ANY MORE. `commands/turn.py` and
-#: `commands/disposition.py` import this tuple and both still call the old
-#: fold, which holds the one `desk.proof.master_proof_of` call left.
-#: ! BOUND TO A NAME because no `except` in a shipped file holds a tuple
-#: literal; see `machine/exceptions.py`.
-RECONCILE_ERRORS = (MismatchedRoot,)
-
-
-def _report(problems: list) -> None:
-    """Every routable `Problem` on stdout, one per line.
-
-    ! ITS CALLERS ARE `commands/turn.py` AND `commands/disposition.py`, which
-    still fold through `flows._collate` and so still hold `Problem` lists.
-    This command holds none: the bus reports a problem as a `Refused` event,
-    which `_lines` renders. The two spellings meet when those commands move
-    onto the bus.
-
-    ! `(the copy)` STANDS IN FOR AN EMPTY ADDRESS, which is what a problem about
-    the whole document carries -- a missing `role`, a bad `read_from`, a sheet
-    the envelope refused, a role short of its shard. There is no place to name,
-    and a blank column reads as a missing value rather than as a fact about the
-    copy.
-    """
-    for problem in problems:
-        where = problem.address or "(the copy)"
-        print(f"{problem.role} {where}: {problem.message}")
 
 
 def _refused(why: list[str]) -> int:

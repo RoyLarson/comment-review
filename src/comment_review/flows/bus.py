@@ -15,6 +15,7 @@ own base text and the middle decides from the record alone, opening no page
 (`decision-log.md Process: #62`).
 """
 
+from collections.abc import Mapping
 from pathlib import Path
 from typing import NamedTuple
 
@@ -75,7 +76,7 @@ class AnswersReturned(NamedTuple):
     """
 
     proof: MasterProof
-    answers: dict[str, object]
+    answers: Mapping[str, object]
 
 
 class DispositionsWritten(NamedTuple):
@@ -280,6 +281,30 @@ def _places_on(proof: MasterProof) -> tuple[dict[str, Place], list[Problem]]:
     return places, problems
 
 
+def turn_of(proof: MasterProof) -> int:
+    """The turn a proof stands at -- the last one any of its places answered.
+
+    0 fresh from the first fold, and one more for each turn folded over it.
+    The next turn is this plus one, derived from the record so that nothing
+    counts turns of its own.
+
+    Args:
+        proof: a master proof, as a fold wrote it.
+
+    Returns:
+        The highest turn any place records an answer at, 0 where none does.
+    """
+    return max(
+        (
+            int(at)
+            for entry in proof.places
+            if isinstance(entry, dict)
+            for at in (entry.get("answers") or {})
+        ),
+        default=0,
+    )
+
+
 def _on_answers(message: AnswersReturned) -> tuple[list, Result | None]:
     """One turn's answers written onto the places, then folded again.
 
@@ -291,7 +316,7 @@ def _on_answers(message: AnswersReturned) -> tuple[list, Result | None]:
     """
     places, problems = _places_on(message.proof)
     carried = {a: p for a, p in places.items() if p.state in CARRIED}
-    turn = 1 + max((t for p in places.values() for t in p.answers), default=0)
+    turn = turn_of(message.proof) + 1
     given: dict[str, dict[str, Answer]] = {}
     roles = {role for place in carried.values() for role in asked(place)}
     for role in sorted(roles | set(message.answers)):
@@ -364,8 +389,7 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
             )
     if problems:
         return _rolled_back(problems)
-    turn = max((t for p in places.values() for t in p.answers), default=0)
-    return _commit(message.proof, places, turn)
+    return _commit(message.proof, places, turn_of(message.proof))
 
 
 def _rolled_back(problems: list[Problem]) -> tuple[list, None]:

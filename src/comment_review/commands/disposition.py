@@ -1,114 +1,47 @@
-r"""The `disposition` command: the chief's dispositions close a stage's collate.
+r"""The `disposition` command: the chief's rulings close a stage's fold.
 
-    comment_review disposition --proof P.json --binder B.json --dispositions D.json \\
-        --out chief.json --proof-out final.json [--repo R]
+    comment_review disposition --proof P.json --dispositions D.json \\
+        --out chief.json --proof-out final.json
 
-The work is `flows.turn` -- `refold`, `rule_at_max_turns`, `close` -- and this is
-only the console face of it. `Process: #78`: the task agent's
-max turns ends them; `#87`: every place still carried forward gets the chief's
-own `taken_in` or `recast`, one Determined per resolved place, and the
-chief's `edit_copy` is derived from the whole set.
+The work is `flows.bus`: this loads the proof and the rulings, sends one
+`DispositionsWritten`, prints the events the fold produced, and saves the
+chief's copy and the closed proof. `Process: #78`: the task agent's max turns
+ends the roles' part; `#87`: every place still carried forward takes the
+chief's own ruling, and the chief's `edit_copy` is derived from every place
+the fold decided.
 
     dispositions.json  [{"address", "answer", "side", "reason", "prose"}]
-                   answer: taken_in | recast. side: a role, or "original",
-                   for a taken_in. prose: the chief's own paragraph, for a
+                   answer: taken-in or recast. side: a role, or the original,
+                   for a taken-in. prose: the chief's own paragraph, for a
                    recast.
 
 !! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
 A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`.
 
-Nothing survives max turns without a disposition, T17. A carried-forward
-place with no ruling is refused by name, with its roles, and nothing is written -- the
-refusal is the whole answer, so the caller rules and runs again.
+Nothing survives the chief's ruling unruled. A carried-forward place with no
+ruling is refused by name, with the roles it was put to, and nothing is
+written -- the refusal is the whole answer, so the caller rules and runs
+again.
 
 ! THE UNSETTLABLE PLACES ARE PRINTED, NOT RULED -- `Process: #90`. A
 human-review query rides with the set to the end and is asked of the human
-after everything else has settled; this is the end, so each is named here
-for that asking, and none is on the chief's copy.
+after everything else has settled; this is the end, so each is named here for
+that asking, and none is on the chief's copy. A ruling at one of them is
+refused, as at any place the fold does not carry forward.
 """
 
 import argparse
 import sys
 from pathlib import Path
 
-from comment_review.commands.collate import BROKEN, OK, _refused, _report
-from comment_review.desk.determined import Answer
-from comment_review.flows._collate import CannotCollate
+from comment_review.commands.collate import _code_for, _counted, _print, _refused
+from comment_review.flows.bus import DispositionsWritten, handle, turn_of
 from comment_review.flows.proof_io import (
-    load_binder,
     load_proof,
     load_value,
     save_copy,
     save_proof,
 )
-from comment_review.flows.turn import close, refold, rule_at_max_turns
-
-
-def _put_to_the_human(places: tuple[dict, ...]) -> list[str]:
-    """The lines naming each unsettlable place, from which 7a asks the human.
-
-    Each place is one entry: who asks the human and why, then the end of a
-    move the place holds -- the move's `drop` at its origin, its `add` at
-    its destination. A move held at both ends is one entry naming both
-    places, its drop and its add on one line, so the author approves or
-    refuses the move whole (`Process: #155`); a query at the destination
-    that is not the origin's is named on it as well.
-    """
-    lines: list[str] = []
-    joined = {
-        one["address"]
-        for one in places
-        for held in places
-        if "drop" in held
-        and one.get("add", {}).get("from") == held["address"]
-        and one["add"].get("role") == held["drop"].get("role")
-    }
-    for place in places:
-        address = place["address"]
-        if address in joined:
-            continue
-        query = place.get("query", {})
-        drop = place.get("drop")
-        other = next(
-            (
-                one
-                for one in places
-                if drop is not None
-                and one.get("add", {}).get("from") == address
-                and one["add"].get("role") == drop.get("role")
-            ),
-            None,
-        )
-        where = address if other is None else f"{address} and {other['address']}"
-        lines.append(
-            f"unsettlable {where}: {query.get('role', '?')} asks the human"
-            f" -- {query.get('reason', '')}"
-        )
-        if other is not None and drop is not None:
-            theirs = other.get("query", {})
-            if theirs != query:
-                lines.append(
-                    f"  and {theirs.get('role', '?')} asks the human at"
-                    f" {other['address']} -- {theirs.get('reason', '')}"
-                )
-            lines.append(
-                f"  and {drop.get('role', '?')}'s move drops the paragraph at"
-                f" {address} and adds it at {other['address']}, one move"
-                f" -- {drop.get('reason', '')}"
-            )
-            continue
-        if drop is not None:
-            lines.append(
-                f"  and {drop.get('role', '?')}'s move drops the paragraph there"
-                f" -- {drop.get('reason', '')}"
-            )
-        added = place.get("add")
-        if added is not None:
-            lines.append(
-                f"  and {added.get('role', '?')}'s move from {added.get('from', '?')}"
-                f" adds the paragraph there -- {added.get('reason', '')}"
-            )
-    return lines
 
 
 def main() -> int:
@@ -117,43 +50,35 @@ def main() -> int:
     Returns:
         `UNREADABLE` when a file is not what it says; `BROKEN` when a ruling
         cannot be applied or a place is left unruled, each named, nothing
-        written; `OK` with the chief's copy and the final proof written.
+        written; `OK` with the chief's copy and the closed proof written.
     """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument(
-        "--proof", required=True, help="the master proof as the last turn wrote it"
-    )
-    ap.add_argument(
-        "--binder", required=True, help="the binder the copies were seeded from"
+        "--proof", required=True, help="the master proof as the last fold wrote it"
     )
     ap.add_argument(
         "--dispositions",
         required=True,
-        help="the chief's dispositions, one per carried-forward place",
+        help="the chief's rulings, one per carried-forward place",
     )
     ap.add_argument("--out", required=True, help="where to write the chief's edit_copy")
     ap.add_argument(
         "--proof-out",
         required=True,
-        help="where to write the closed proof -- every Determined, the chief's too",
-    )
-    ap.add_argument(
-        "--repo",
-        help="the checkout a `sources` cite resolves against "
-        "(default: the binder's own read_from.root)",
+        help="where to write the closed proof -- every place as the chief left it",
     )
     args = ap.parse_args()
 
     proof, why = load_proof(Path(args.proof))
     if proof is None:
         return _refused(why)
-    binder, why = load_binder(Path(args.binder))
-    if binder is None:
-        return _refused(why)
     rulings, why = load_value(Path(args.dispositions))
     if why:
         return _refused(why)
-    rows: list[dict] = (
+    # ! THE SHAPE OF THE FILE IS THIS COMMAND'S, THE SHAPE OF A RULING THE
+    # TABLE'S. A list of objects is what the flag promises; what each object
+    # owes is `Disposition.deserialize`'s, and the fold reports each.
+    rows: list = (
         [r for r in rulings if isinstance(r, dict)] if isinstance(rulings, list) else []
     )
     if not isinstance(rulings, list) or len(rows) != len(rulings):
@@ -161,68 +86,26 @@ def main() -> int:
             [f"{args.dispositions}: the dispositions are a list of objects"]
         )
 
-    root = Path(args.repo) if args.repo else binder.root
-    turn = proof.turn
-    try:
-        got = refold(proof, binder, root)
-    except CannotCollate as refusal:
-        _report(refusal.problems)
-        print(
-            f"REFUSED: the proof could not be reconciled -- {refusal}", file=sys.stderr
-        )
-        return BROKEN
-    _report(got.problems)
-    if got.problems or got.proof is None:
-        return BROKEN
+    out, result = handle(DispositionsWritten(proof, rows))
+    _print(out)
+    if result is None:
+        return _code_for(out)
 
-    # !! EVERY RULING IS TRIED AND EVERY REFUSAL NAMED before anything is
-    # written, so one bad ruling does not hide the next -- the same reason the
-    # fold stacks its problems rather than raising on the first.
-    ruled = []
-    refused = 0
-    for i, data in enumerate(rows, 1):
-        where = f"ruling {i} ({data.get('address', '?')})"
-        named = data.get("answer")
-        if named not in set(Answer):
-            print(f"{where}: `answer` must be one of {', '.join(sorted(Answer))}")
-            refused += 1
-            continue
-        try:
-            ruled.append(
-                rule_at_max_turns(
-                    got,
-                    str(data.get("address", "")),
-                    Answer(named),
-                    str(data.get("side", "")),
-                    str(data.get("reason", "")),
-                    turn,
-                    prose=str(data.get("prose", "")),
-                )
-            )
-        except ValueError as err:
-            print(f"{where}: {err}")
-            refused += 1
-    if refused:
-        return BROKEN
-    try:
-        closed, chief = close(got, ruled, proof.turns, root)
-    except ValueError as err:
-        print(str(err))
-        return BROKEN
-
-    save_copy(Path(args.out), chief)
-    save_proof(Path(args.proof_out), closed)
-    places = sum(len(sheet.marks) for sheet in chief.sheets)
-    print(f"{args.out}: the chief's copy, {places} places")
+    # !! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE FLOW'S --
+    # `decision-log.md Process: #65`, `#67`, as `collate` saves.
+    # ! A COMMITTED `DispositionsWritten` ALWAYS CARRIES A CHIEF COPY -- the
+    # field is optional because another handler on this bus may have no copy
+    # to write, and the guard is what says so rather than an assertion.
+    if result.chief is not None:
+        save_copy(Path(args.out), result.chief)
+        places = sum(len(sheet.marks) for sheet in result.chief.sheets)
+        print(f"{args.out}: the chief's copy, {places} places")
+    save_proof(Path(args.proof_out), result.proof)
     print(
-        f"{args.proof_out}: the proof closed at turn {turn} --"
-        f" {len(closed.determined)} determined, {len(closed.unsettlable)} unsettlable"
+        f"{args.proof_out}: the proof closed at turn {turn_of(result.proof)} --"
+        f" {_counted(result.proof.places)}"
     )
-    for one in closed.determined:
-        print(f"{one.answer} {one.address}: {one.side} ({one.how}, turn {one.turn})")
-    for line in _put_to_the_human(closed.unsettlable):
-        print(line)
-    return OK
+    return _code_for(out)
 
 
 if __name__ == "__main__":

@@ -19,6 +19,7 @@ from collections.abc import Callable
 
 from comment_review.desk.answers.answer import Answer
 from comment_review.desk.collator import Problem
+from comment_review.desk.marks.mark import filled
 
 
 def slots_of(loaded: object, role: str) -> list:
@@ -59,7 +60,8 @@ def answers_of(
     Every sent slot contributes to exactly one of the two: an `Answer` at its
     address, or a `Problem`. An unanswered slot is refused by name and never
     read as a withdrawal -- the null answer must be written by a hand
-    (`decision-log.md Process: #22`).
+    (`decision-log.md Process: #22`). A slot handed back as it was sent,
+    carrying no instruction, is unanswered as surely as one never returned.
 
     Args:
         role: whose answers these are.
@@ -92,7 +94,7 @@ def answers_of(
     out: dict[str, Answer] = {}
     for address, slot in sent.items():
         entry = answered.get(address)
-        if entry is None:
+        if entry is None or not filled(entry.get("instruction")):
             problems.append(Problem(role, address, "unanswered"))
             continue
         answer, why = Answer.deserialize(

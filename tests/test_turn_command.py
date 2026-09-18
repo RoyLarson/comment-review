@@ -4,6 +4,11 @@
 and over the REAL chain: `collate --proof-out --batch-out` deals the hand, the
 answers are the sent slots with their fields filled, and `turn` folds them.
 `P4` of `docs/plans/0.2.4-the-turn-as-commands.md`.
+
+! THE PROOF IS WHAT THE TURN READS. It carries the places the last fold
+decided, so what a role owes, and what its answer is read against, come off
+the proof rather than off the batch -- the batch is what the answers were
+written on, and `answer` below reads it for that.
 """
 
 import json
@@ -17,19 +22,21 @@ from helpers import (
     contested,
     deal,
     merged,
+    place_on,
     proof_at,
     turn,
 )
 
+# ! THE EXIT CODES ARE `collate`'s, and this reads them there. All three
+# commands fold through the Unit of Work and exit the same five, so a test
+# naming them anywhere else would be asserting a second copy of the contract.
 from comment_review.commands import collate as collate_command
-from comment_review.commands import turn as command
-from comment_review.desk.determined import Answer
 
 ROLES = HAND_ROLES
 
 
 class TestOneTurn:
-    def test_two_corrects_that_converge_are_a_stet_at_turn_1_and_exit_OK(
+    def test_two_corrects_that_converge_settle_the_place_and_exit_OK(
         self, tmp_path, monkeypatch, capsys
     ):
         assert deal(tmp_path, monkeypatch, capsys, contested("m.py@b1")) == 4
@@ -56,15 +63,18 @@ class TestOneTurn:
                 reason="stands",
             ),
         )
-        assert code == command.OK, out
-        proof = proof_at(tmp_path, 1)
-        (ruled,) = proof.determined
-        assert ruled.address == "m.py@b1"
-        assert ruled.answer is Answer.STET
-        assert ruled.turn == 1
+        assert code == collate_command.OK, out
+        place = place_on(proof_at(tmp_path, 1), "m.py@b1")
+        assert place["state"] == "agreed"
+        assert place["text"] == DOS
         assert not (tmp_path / "batch2.json").exists()
 
-    def test_the_turn_record_lands_on_the_proof(self, tmp_path, monkeypatch, capsys):
+    def test_each_roles_answer_lands_on_the_place_it_answered(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """The place is the record: a turn writes each role's answer onto it
+        under the turn's own number, and the next fold derives the place from
+        that record."""
         deal(tmp_path, monkeypatch, capsys, contested("m.py@b1"))
         turn(
             tmp_path,
@@ -89,14 +99,12 @@ class TestOneTurn:
                 reason="stands",
             ),
         )
-        proof = proof_at(tmp_path, 1)
-        (record,) = proof.turns
-        assert record["turn"] == 1
-        assert sorted(record["sent"]) == list(ROLES)
-        assert sorted(record["returned"]) == list(ROLES)
-        assert record["revisit"] == []
+        answers = place_on(proof_at(tmp_path, 1), "m.py@b1")["answers"]
+        assert sorted(answers) == ["1"]
+        assert sorted(answers["1"]) == list(ROLES)
+        assert answers["1"]["block-context"]["instruction"] == "correct"
 
-    def test_two_holds_stay_escalated_and_the_next_batch_is_written(
+    def test_two_holds_stay_contested_and_the_next_batch_is_written(
         self, tmp_path, monkeypatch, capsys
     ):
         deal(tmp_path, monkeypatch, capsys, contested("m.py@b1"))
@@ -122,13 +130,13 @@ class TestOneTurn:
                 reason="mine",
             ),
         )
-        assert code == command.ESCALATIONS, out
-        assert "escalated m.py@b1" in out
-        assert proof_at(tmp_path, 1).determined == ()
+        assert code == collate_command.ESCALATIONS, out
+        assert "contested m.py@b1" in out
+        assert place_on(proof_at(tmp_path, 1), "m.py@b1")["state"] == "contested"
         batch2 = json.loads((tmp_path / "batch2.json").read_text(encoding="utf-8"))
         assert sorted(batch2) == list(ROLES)
 
-    def test_the_turn_number_is_the_records_length_plus_one(
+    def test_the_turn_number_counts_the_answers_already_on_the_places(
         self, tmp_path, monkeypatch, capsys
     ):
         deal(tmp_path, monkeypatch, capsys, contested("m.py@b1"))
@@ -177,20 +185,20 @@ class TestOneTurn:
                 reason="stands",
             ),
         )
-        assert code == command.OK, out
-        proof = proof_at(tmp_path, 2)
-        assert [r["turn"] for r in proof.turns] == [1, 2]
-        (ruled,) = proof.determined
-        assert ruled.turn == 2
+        assert code == collate_command.OK, out
+        assert "after turn 2" in out
+        place = place_on(proof_at(tmp_path, 2), "m.py@b1")
+        assert sorted(place["answers"]) == ["1", "2"]
+        assert place["text"] == DOS
 
 
-class TestOnceStetAlwaysStet:
-    def test_an_earlier_stet_keeps_its_turn_across_the_command_boundary(
+class TestOnceSettledAlwaysSettled:
+    def test_a_place_the_first_fold_settled_still_reads_the_same_after_a_turn(
         self, tmp_path, monkeypatch, capsys
     ):
-        """`Process: #91`, across two processes: `earlier` is the proof's own
-        `determined`, read back off disk, so the place settled at the first
-        fold still says turn 0 after a turn settled the other."""
+        """`Process: #91`, across two processes. The place is the record, so a
+        place the first fold settled is derived again from the same marks and
+        comes to the same text -- it is in no batch and no turn touches it."""
         texts = {"m.py@b1": BASE, "m.py@b2": "# four\n# five\n# six\n"}
         cinco = "# four\n# cinco\n# six\n"
         by_role = merged(
@@ -198,8 +206,12 @@ class TestOnceStetAlwaysStet:
             contested("m.py@b2", "five", "# four\n# FIVE\n# six\n", cinco),
         )
         assert deal(tmp_path, monkeypatch, capsys, by_role, texts) == 4
-        before = proof_at(tmp_path, 0)
-        assert [(d.address, d.turn) for d in before.determined] == [("m.py@b1", 0)]
+        before = place_on(proof_at(tmp_path, 0), "m.py@b1")
+        assert before["state"] == "agreed"
+        batch1 = json.loads((tmp_path / "batch1.json").read_text(encoding="utf-8"))
+        assert all(
+            slot["address"] == "m.py@b2" for slots in batch1.values() for slot in slots
+        )
         code, out = turn(
             tmp_path,
             monkeypatch,
@@ -223,12 +235,10 @@ class TestOnceStetAlwaysStet:
                 reason="stands",
             ),
         )
-        assert code == command.OK, out
+        assert code == collate_command.OK, out
         after = proof_at(tmp_path, 1)
-        assert [(d.address, d.turn) for d in after.determined] == [
-            ("m.py@b1", 0),
-            ("m.py@b2", 1),
-        ]
+        assert place_on(after, "m.py@b1") == before
+        assert place_on(after, "m.py@b2")["text"] == cinco
 
 
 class TestRefusals:
@@ -258,18 +268,17 @@ class TestRefusals:
                 reason="stands",
             ),
         )
-        assert code == command.BROKEN, out
+        assert code == collate_command.BROKEN, out
         assert "block-context m.py@b1" in out
         assert not (tmp_path / "proof1.json").exists()
         assert not (tmp_path / "batch2.json").exists()
 
-    def test_an_unanswered_slot_exits_7_and_the_proof_is_written(
+    def test_an_unanswered_slot_is_BROKEN_and_nothing_is_written(
         self, tmp_path, monkeypatch, capsys
     ):
-        """Unanswered is not unreadable -- `Revisit.unreadable` is False -- so
-        the proof is written and the place is still escalated. A place carried
-        forward while a role owes an answer exits 7 (`decision-log.md Process:
-        #133`)."""
+        """An answer nobody wrote is not a withdrawal (`Process: #22`), so the
+        round is void rather than folded past: the proof would otherwise carry
+        a place decided without the ruling its own record says is owed."""
         deal(tmp_path, monkeypatch, capsys, contested("m.py@b1"))
         code, out = turn(
             tmp_path,
@@ -285,17 +294,15 @@ class TestRefusals:
                 reason="stands",
             ),
         )
-        assert code == command.CARRIED_AND_UNRULED, out
-        assert "unanswered" in out
-        assert (tmp_path / "proof1.json").exists()
+        assert code == collate_command.BROKEN, out
+        assert "block-context m.py@b1: unanswered" in out
+        assert not (tmp_path / "proof1.json").exists()
 
-    def test_a_place_carried_forward_beside_an_unruled_one_exits_7(
+    def test_a_slot_left_unanswered_beside_an_answered_one_is_BROKEN(
         self, tmp_path, monkeypatch, capsys
     ):
-        """`decision-log.md Process: #133`, `no-command-for-the-middle` T66:
-        `turn` exits 7 where `collate` does. Both roles hold at `m.py@b1`, so
-        the fold carries it forward, and function-context leaves `m.py@b2`
-        unanswered, a place it still owes."""
+        """Both roles answer at `m.py@b1` and function-context leaves
+        `m.py@b2`, a place it was put to, unanswered."""
         texts = {"m.py@b1": BASE, "m.py@b2": "# four\n# five\n# six\n"}
         by_role = merged(
             contested("m.py@b1"),
@@ -325,10 +332,9 @@ class TestRefusals:
                 reason="mine",
             ),
         )
-        assert "escalated m.py@b1" in out
-        assert "function-context m.py@b2" in out and "unanswered" in out
-        assert code == command.CARRIED_AND_UNRULED == 7, out
-        assert (tmp_path / "proof1.json").exists()
+        assert code == collate_command.BROKEN, out
+        assert "function-context m.py@b2: unanswered" in out
+        assert not (tmp_path / "proof1.json").exists()
 
     def test_a_proof_that_is_not_one_is_UNREADABLE(self, tmp_path, monkeypatch, capsys):
         deal(tmp_path, monkeypatch, capsys, contested("m.py@b1"))
