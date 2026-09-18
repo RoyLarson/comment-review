@@ -4788,3 +4788,21 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `change`, and the paragraph as it will read, with that text in, as its `raw_text`. At an empty
   place the two are the same text; at a place holding prose, `raw_text` keeps every word of the
   prose already there (`Process: #132`) and every word of the snippet, in order.
+
+- **#177.** **The dropped-words list stays advisory in the rebuilt fold** (Roy, 2026-09-18, asked
+  after `9b09c234` switched `collate` onto the Unit of Work and the list `#163` ruled in went
+  with the old fold).
+
+  Offered -- an advisory event, a refusal through the row's `reads` like `#175` and `#176`, or
+  dropping the list -- Roy chose the advisory event. So the `correct` row carries the rule, the
+  fold reports it as an event of its own and rolls nothing back for it, and `collate` prints it
+  under its own heading for the chief, as `#163` has it.
+
+- **#178.** **Copies gathered from different roots are refused by the bus** (Roy, 2026-09-18, the
+  same question round).
+
+  The old fold raised `MismatchedRoot`; the collate handler took `read_from` from the first copy
+  and compared nothing. Offered restoring it or recording it retired, Roy chose restoring it. So
+  the handler refuses where the copies' `read_from` differ -- one refusal per odd copy, then the
+  rollback -- for the reason the old refusal gave: copies from different trees share no address
+  space.
