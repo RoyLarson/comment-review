@@ -324,3 +324,72 @@ is now `addresser.py` with the same flags.
 purpose**, each for its own reason -- see `evidence/README.md` for the one that needed a note
 saying from which commit the terms changed.
 
+## Reconciliation -- the fold, the turn, `Determined` and `DiffMark`
+
+**Deleted 2026-09-18, `0e2ff82a`.** How one stage's returned copies became the copy chief's own
+before the middle was rebuilt. Five modules went together:
+
+| what it did | where it lived |
+| --- | --- |
+| grouped every ruled mark of a `master_proof` by the addresses it lands on, then ruled each group `settled`, `escalations` or `rereads` | `desk/collator.py`'s `places`, `Placed`, `Reconciled`, `reconcile`, `_outcome`, `_join_moves`, `_touches` |
+| the eleven-act fold -- envelope, check, coverage, verify, drift, dropped, assemble, place, reconcile, resolve, order -- returning a `Collated` | `flows/collate.py`, latterly `flows/_collate.py` |
+| the turn loop: a batch out, the roles' answers back, the fold run again, the chief's dispositions, the close | `flows/turn.py`, latterly `flows/_turn.py` -- `run_turn`, `refold`, `apply`, `proof_after`, `determined_chief`, `batch_for`, `close` |
+| the chief's ruling at a resolved place, as a record of its own | `desk/determined.py` -- `Determined`, `Answer`, `CHIEF`, `ORIGINAL` |
+| the answer a role gave to an escalated place, and the batch it rode in | `desk/diff_mark.py` -- `DiffMark`, `DiffInstruction`, `batch_of`, `parse_batch` |
+
+**What replaced it is a place, and a fold over places.** The rules that were branches in those
+modules are rows in **three tables** -- `desk/marks/table.py`, `desk/answers/table.py`,
+`desk/dispositions/table.py` -- and nothing outside the three names a row, which
+`tests/gates/test_tables_name_the_rows.py` holds over the whole tree. A **place**
+(`desk/evaluate/place.py`) carries its own base, the marks filed on it, its answers by turn and
+the chief's disposition, and comes to one of **six states**: `stands`, `agreed`, `composed`,
+`contested`, `unsettlable`, `refused`. Three **passes** (`desk/evaluate/passes.py`) take it there
+-- `marks_pass`, `answers_pass`, `dispositions_pass` -- with `pair_moves` giving a move's two
+places one state. The **Unit of Work** (`desk/work/fold.py`) evaluates every place and commits or
+rolls back whole, emitting events rather than lists. The **bus** (`flows/bus.py`) is the one
+entry: `CopiesReturned`, `AnswersReturned`, `DispositionsWritten`, one handler each, and
+`collate`, `turn` and `disposition` each send one message.
+
+### What the differential measured before it was deleted
+
+**`tests/test_differential_collate.py` folded one real stage of four roles' copies through both
+folds and compared every place.** It went with the old fold, which it could not run without; its
+last result, 2026-09-18, over the smoke's own plant:
+
+- **22 addresses compared, and 17 agreed exactly** -- same settled text, same carry-forward.
+- **The old fold reported no problems** and determined 9 places; the new fold settled 10 and
+  carried 11 forward, refusing nothing and committing.
+- **The two unsettlable places were the same two**, `fib.py@a1` and `store.py@b5`.
+- **The one advisory was the same one**: `block-context` at `store.py@c5`, where the `correct`
+  carries its own change rather than the one its claim derives.
+- **Five differences, each explained by a ruling, and no other:**
+
+| address | why |
+| --- | --- |
+| `fib.py@b1`, `store.py@b1`, `store.py@b3` | rulings `#172` and `#175`: a move's `change` is the snippet it takes and its `raw_text` is the destination's text as it will stand, so the origin keeps what the snippet left behind. The old fold carried one mark under both addresses and settled the origin to the destination's text |
+| `fib.py@c12` | ruling `#174`: a place every role cleaned is decided and alters nothing, so the new fold settles it with no text where the old recorded no ruling for it at all |
+| `store.py@b8` | rulings `#155` and `#182`: a move a role holds for the human is held at both ends, so the new fold takes the destination out of what it carries and reports the pair as one question. The old fold held the origin alone and carried the destination forward |
+
+### Reading an old artifact
+
+**A `master_proof` written before the rebuild carries three keys nothing reads now** -- `turns`,
+`determined` and `unsettlable`. `MasterProof.deserialize` names the keys it wants, so those three
+are **neither refused nor read**: the proof loads, and they are dropped. What they held:
+
+| old key | where the same fact lives |
+| --- | --- |
+| `turns` -- one record per turn, `{turn, sent, returned, revisit}` | each place's own `answers`, keyed by turn. `flows.bus.turn_of` reads the highest turn any place answered at, so nothing counts turns of its own |
+| `determined` -- the chief's ruling per resolved place | the place's `state` and `text`, with its `disposition` where the chief ruled it |
+| `unsettlable` -- `{address, roles, query}` per place riding to the human | the place's state, `unsettlable`, and its `asking` |
+
+**A batch written before the rebuild carries a `diff` and no `sides`.** The old batch rendered a
+`diff3` conflict per slot; the new one sends `{address, anchor, question, raw_text, sides,
+instruction, read_from}`, where `sides` is role -> that role's proposed text and `question` is
+`escalation` or `composition`. An old batch handed to `turn` is refused at `flows.answers`, which
+reads the question off the slot it was sent with.
+
+**A role's answer file is unchanged in shape.** It was a `DiffMark` -- `{address, anchor,
+instruction, reason, change}` -- and an `Answer` reads the same keys, under a `question` the slot
+carries rather than the answer. `hold`, `withdraw`, `correct` and `patch` still name the four
+answers to an escalation; `check --contract` prints the sets from the tables themselves.
+
