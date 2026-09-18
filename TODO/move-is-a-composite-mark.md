@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 3 of 25 tasks closed
+Progress: 4 of 25 tasks closed
 Owner:    backend
 Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -219,5 +219,6 @@ and now there is one object that cannot be half-held.
         > 2026-09-14 oc1 and oc2 spelled the labels two ways; mark takes any text
         > 2026-09-14 reviewers reported 11 partial moves; each composed by script
         > 2026-09-14 evidence: OneDrive/comment-review-feedback/2026-09-14-self-run
-- [~] T25 | Implement a move whose --change is the snippet, removed exactly from
-      the origin and inserted at the destination, per Process 172
+- [x] T25 | a move's change is the snippet, removed once from the origin; raw_text is the destination text; docket_of writes both ends | e538ea92 | Implement
+      a move whose --change is the snippet, removed exactly from the origin and
+      inserted at the destination, per Process 172
