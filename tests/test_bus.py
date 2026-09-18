@@ -15,7 +15,7 @@ from helpers import (
 from comment_review.desk.answers.answer import Question
 from comment_review.desk.evaluate.place import Place
 from comment_review.desk.evaluate.state import State
-from comment_review.desk.mark import Shape
+from comment_review.desk.marks.mark import Shape
 from comment_review.desk.work import events
 from comment_review.flows.bus import (
     AnswersReturned,

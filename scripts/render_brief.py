@@ -32,7 +32,7 @@ SRC = ROOT / "src"
 sys.path.insert(0, str(SRC))
 os.environ["PYTHONPATH"] = str(SRC)
 
-from comment_review.desk.mark import INSTRUCTIONS  # noqa: E402
+from comment_review.desk.marks.table import INSTRUCTIONS  # noqa: E402
 
 SPEC_PATH = ROOT / "docs" / "the-mark.md"
 BRIEF_PATH = ROOT / "src/plugin/skills/comment-review/references/reviewer-brief.md"

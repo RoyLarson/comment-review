@@ -55,7 +55,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from comment_review.desk.mark import INSTRUCTIONS
+from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.flows.fill import fill, withdraw
 from comment_review.flows.proof_io import load_copy, save_wire
 from comment_review.machine import constants, exceptions

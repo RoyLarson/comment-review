@@ -17,7 +17,7 @@ import pytest
 from conftest import SAMPLE
 from helpers import a_binder_over, a_small_real_tree, binder_of
 
-from comment_review.desk.mark import Mark, untouched
+from comment_review.desk.marks.mark import Mark, untouched
 from comment_review.flows.distribute import seed
 from comment_review.flows.fill import fill, withdraw
 

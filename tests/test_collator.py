@@ -40,10 +40,10 @@ from comment_review.desk.collator import (
     verify_report,
 )
 from comment_review.desk.containers import EditCopy
-from comment_review.desk.mark import Instruction, Mark
-from comment_review.flows._collate import texts_at
+from comment_review.desk.marks.mark import Instruction, Mark
 from comment_review.flows.distribute import seed
 from comment_review.flows.mark_errors import mark_errors
+from comment_review.flows.verify import texts_at
 from comment_review.reading.addresser import address_for
 
 DESK = ROOT / "src" / "comment_review" / "desk"

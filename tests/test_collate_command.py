@@ -23,7 +23,7 @@ from comment_review.commands import collate as command
 from comment_review.desk.answers.answer import Question
 from comment_review.desk.evaluate.place import Place
 from comment_review.desk.evaluate.state import State
-from comment_review.desk.mark import Shape
+from comment_review.desk.marks.mark import Shape
 from comment_review.flows.proof_io import load_proof
 
 BASE = "# one\n# two\n# three\n"
@@ -834,7 +834,6 @@ class TestTheStateBetweenTurnsOnDisk:
         proof, why = load_proof(proof_path)
         assert why == []
         assert proof is not None
-        assert proof.turns == ()
         assert [p["address"] for p in proof.places] == ["m.py@b1"]
         place, why = Place.deserialize("the place", proof.places[0])
         assert place is not None, why

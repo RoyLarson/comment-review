@@ -25,7 +25,7 @@ from helpers import (
 
 from comment_review.commands import collate as collate_command
 from comment_review.desk.dispositions.disposition import ORIGINAL
-from comment_review.desk.mark import Shape
+from comment_review.desk.marks.mark import Shape
 from comment_review.flows.proof_io import load_proof
 
 RECAST = "# one\n# both\n# three\n"

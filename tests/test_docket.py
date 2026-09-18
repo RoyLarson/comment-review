@@ -41,15 +41,24 @@ import json
 import pytest
 from helpers import a_correct, a_drop, a_master_proof, a_move
 
-from comment_review.desk.collator import reconcile
 from comment_review.desk.containers import MasterProof
+from comment_review.desk.work import events
+from comment_review.desk.work.fold import Fold
 from comment_review.docket.docket import Alteration, Docket, Schedule
+from comment_review.flows.places import places_of
 from comment_review.flows.revise import _set_by
 from comment_review.machine.json_object import object_of
 
 #: One ordinary alteration, for the cases whose subject is a SCHEDULE's own
 #: fields rather than what any particular mark transcribes to.
 A_ROW = Alteration(cue="b1", text="# new")
+
+#: The two paragraphs the move cases below stand on -- the sentence that
+#: travels, and what is already at the place it travels to. A move's snippet
+#: must be in its origin's paragraph and its destination text must keep every
+#: word of both, so these are the bases the fold is handed.
+SNIPPET = "# the sentence that moves\n"
+AT_THE_DESTINATION = "# a different sentence\n"
 
 
 def _refused_reasons(proof) -> list[str]:
@@ -67,6 +76,42 @@ def _refused_reasons(proof) -> list[str]:
         for one in sheet.refused
         for reason in one.reasons
     ]
+
+
+def _fold(proof, bases: dict | None = None):
+    """The fold over the proof's copies -- what `desk.collator.reconcile` answered.
+
+    ! THESE CASES ASKED RECONCILIATION WHICH PLACES SETTLED, and the fold is
+    what answers that now, so they ask the step that decides it.
+
+    Args:
+        proof: a master proof, from `helpers.a_master_proof`.
+        bases: address -> the paragraph as it stands, which a synthetic
+            binder's rows do not carry. Empty where the case's subject is a
+            mark the parse already refused.
+    """
+    copies = list(proof.edit_copies)
+    anchors = {
+        mark.address: mark.anchor
+        for copy in copies
+        for sheet in copy.sheets
+        for mark in sheet.marks
+    }
+    return Fold(places_of(copies, bases or {}, anchors), turn=0).run()
+
+
+def _settled(proof, bases: dict | None = None) -> list[str]:
+    """Every address the fold settles -- what `reconcile().settled` listed.
+
+    Read off the events rather than off `decided`, which holds every place the
+    fold saw: a move's origin carries the remainder it would be left with even
+    where the pair is carried forward, so a text there is not a settlement.
+    """
+    return sorted(
+        one.address
+        for one in _fold(proof, bases).events
+        if isinstance(one, events.Settled)
+    )
 
 
 def read(text: str):
@@ -360,22 +405,23 @@ def test_a_settled_move_DELETES_its_origin_and_writes_its_destination():
     destination"*. Writing `change` at both ends is the duplication the one
     instruction exists to prevent.
 
-    !! ASSERTED ON RECONCILIATION HERE, AND ON TRANSCRIPTION IN
+    !! ASSERTED ON THE FOLD HERE, AND ON TRANSCRIPTION IN
     `TestDocketOf::test_one_move_mark_yields_two_alterations`. What this file
-    says is the shape the other test depends on: `settled` carries the move at
-    BOTH addresses, and both entries hold the SAME `Mark` -- `_join_moves`
-    keying one mark twice so neither end can settle without the other.
+    says is the shape the other test depends on: the fold decides the move at
+    BOTH addresses, neither able to come out decided without the other.
 
     ! WHICH IS WHY ONE COPY ENTRY IS ENOUGH DOWNSTREAM. The mark carries
     `claim.to`, so a transcription reading a single entry can still write both
-    ends; it does not need reconciliation's two keys.
+    ends; it does not need two keys.
     """
-    proof = a_master_proof({"block-context": {"m.py@a0": a_move("m.py@a0", "m.py@a8")}})
-    settled = reconcile(proof).settled
-    assert sorted(one["address"] for one in settled) == ["m.py@a0", "m.py@a8"]
-    marks = {id(one["marks"][0].mark) for one in settled}
-    assert len(marks) == 1, "both ends must hold one mark, not two"
-    assert settled[0]["marks"][0].mark.claim["to"] == "m.py@a8"
+    move = a_move(
+        "m.py@a0", "m.py@a8", change=SNIPPET, reads=AT_THE_DESTINATION + SNIPPET
+    )
+    proof = a_master_proof({"block-context": {"m.py@a0": move}})
+    fold = _fold(proof, {"m.py@a0": SNIPPET, "m.py@a8": AT_THE_DESTINATION})
+    assert sorted(fold.decided) == ["m.py@a0", "m.py@a8"]
+    assert fold.decided["m.py@a0"].text == ""
+    assert fold.decided["m.py@a8"].text == AT_THE_DESTINATION + SNIPPET
 
 
 def test_a_change_in_the_RETIRED_ARRAY_FORM_never_reaches_the_docket():
@@ -398,11 +444,11 @@ def test_a_change_in_the_RETIRED_ARRAY_FORM_never_reaches_the_docket():
     mark["change"] = [mark["change"]]
     proof = a_master_proof({"block-context": {"m.py@b1": mark}})
     assert _refused_reasons(proof), "the array form must not read as a mark"
-    #: ! ASKED OF RECONCILIATION SINCE `P55`. A refused entry never becomes a
-    #: `Mark`, so nothing settles and no copy can carry it forward -- which is
+    #: ! ASKED OF THE FOLD SINCE `P55`. A refused entry never becomes a `Mark`,
+    #: so the fold decides nothing and no copy can carry it forward -- which is
     #: the same claim the docket assertion made, one step earlier and with no
     #: transcription in between.
-    assert reconcile(proof).settled == []
+    assert _settled(proof) == []
 
 
 def test_an_EMPTY_change_refuses_where_the_instruction_may_not_empty():
@@ -410,7 +456,7 @@ def test_an_EMPTY_change_refuses_where_the_instruction_may_not_empty():
     mark["change"] = ""
     proof = a_master_proof({"block-context": {"m.py@b1": mark}})
     assert _refused_reasons(proof)
-    assert reconcile(proof).settled == []
+    assert _settled(proof) == []
 
 
 def test_an_EMPTY_change_IS_the_delete_where_the_row_may_empty():
@@ -420,14 +466,14 @@ def test_an_EMPTY_change_IS_the_delete_where_the_row_may_empty():
 
     !! THE OTHER HALF IS `TestDocketOf::test_a_drop_is_written_as_a_delete`,
     which asserts the `Alteration(cue, text=None)` this used to. What stays here
-    is that the empty change SETTLES rather than being refused -- the pair the
+    is that the empty change is DECIDED rather than refused -- the pair the
     test above it makes sense against.
     """
     mark = a_drop("m.py@b1")
     mark["change"] = ""
     proof = a_master_proof({"block-context": {"m.py@b1": mark}})
     assert not _refused_reasons(proof)
-    assert [one["address"] for one in reconcile(proof).settled] == ["m.py@b1"]
+    assert _settled(proof) == ["m.py@b1"]
 
 
 def test_NO_DOCKET_CARRIES_ONE_END_OF_A_MOVE():
@@ -437,13 +483,24 @@ def test_NO_DOCKET_CARRIES_ONE_END_OF_A_MOVE():
     passes either way because only prose moved."""
     proof = a_master_proof(
         {
-            "block-context": {"m.py@a0": a_move("m.py@a0", "m.py@a8")},
+            "block-context": {
+                "m.py@a0": a_move(
+                    "m.py@a0",
+                    "m.py@a8",
+                    change=SNIPPET,
+                    reads=AT_THE_DESTINATION + SNIPPET,
+                )
+            },
             "module-context": {"m.py@a8": a_correct("m.py@a8", "a different sentence")},
         }
     )
-    #: ! ASKED OF RECONCILIATION SINCE `P55`. `_join_moves` gives both ends the
-    #: STRONGEST outcome either reached, so a collision at the destination pulls
-    #: the origin out of `settled` with it. Nothing settles, so no copy carries
-    #: the move and no docket can be built holding one end -- the claim is the
-    #: same, asked of the step that decides it.
-    assert reconcile(proof).settled == []
+    #: ! ASKED OF THE FOLD SINCE `P55`. A move's two places take one state, so
+    #: a collision at the destination pulls the origin with it. Nothing is
+    #: decided, so no copy carries the move and no docket can be built holding
+    #: one end -- the claim is the same, asked of the step that decides it.
+    bases = {"m.py@a0": SNIPPET, "m.py@a8": AT_THE_DESTINATION}
+    assert _settled(proof, bases) == []
+    refused = [
+        one for one in _fold(proof, bases).events if isinstance(one, events.Refused)
+    ]
+    assert refused == [], "the pair must be carried forward, not refused"

@@ -71,8 +71,7 @@ from dataclasses import dataclass, field, fields
 from typing import NamedTuple
 
 from comment_review.binder.binder import _read_from_problem
-from comment_review.desk.determined import Determined
-from comment_review.desk.mark import Mark, filled, untouched, without_location
+from comment_review.desk.marks.mark import Mark, filled, untouched, without_location
 
 
 def _wire_fields(cls) -> list[str]:
@@ -519,46 +518,28 @@ class MasterProof:
         read_from: taken from the first copy; `desk.proof.master_proof_of` refuses a set
             that disagrees.
         edit_copies: one per role, or one per SHARD under fan-out.
-        turns: the record of each turn of this stage's collate, in order --
-            what went out and what came back. `Process: #87`: the master
-            proof is the state between turns. One dict per turn, `{turn,
-            sent, returned, revisit}` as `commands/turn.py` writes it; empty
-            until a turn runs, and carried as it came.
-        determined: the copy chief's ruling at every resolved place --
-            `desk.determined.Determined`, `Process: #87`. Empty until a fold
-            has recorded them.
-            ! BOTH ARE `wire: False`: `seed` writes the three fields `master_proof_of`
-            takes from a copy, and these two are written by a fold, later.
-            `serialize` carries them; `deserialize` reads them where present.
-        unsettlable: every place a human-review query holds, riding to the
-            end of the review to be asked of the human -- `Process: #90`.
-            One dict per place, `{address, roles, query}`, `drop` where the
-            place is a move's origin and `add` where it is a move's
-            destination (`flows.turn.proof_after`), carried as it came, like
-            `turns`; `wire: False` for the same reason.
         places: every place one fold of this stage decided, as
             `desk.evaluate.place.Place.serialize` writes one, read back by
             `Place.deserialize`. `flows.bus` writes it; empty until such a
-            fold has run, and off the wire dict a seed writes, like the
-            three above.
+            fold has run.
+            ! IT IS `wire: False`: `seed` writes the three fields
+            `master_proof_of` takes from a copy, and this one is written by a
+            fold, later. `serialize` carries it; `deserialize` reads it where
+            present.
+
+    !! THREE FIELDS WENT WITH THE OLD MIDDLE -- `turns`, `determined` and
+    `unsettlable`, and with them the `turn` property that counted `turns`. Each
+    place now carries its own answers, its own state and who it is asked of, so
+    the proof's places say what turn it stands at (`flows.bus.turn_of`), what
+    was ruled, and what rides to the human. A proof on disk carrying the three
+    old keys is neither refused nor read: `deserialize` names the keys it
+    wants, so those are dropped and the proof reads back without them.
     """
 
     stage: str
     read_from: dict
     edit_copies: tuple[EditCopy, ...]
-    turns: tuple[dict, ...] = field(default=(), metadata={"wire": False})
-    determined: tuple[Determined, ...] = field(default=(), metadata={"wire": False})
-    unsettlable: tuple[dict, ...] = field(default=(), metadata={"wire": False})
     places: tuple[dict, ...] = field(default=(), metadata={"wire": False})
-
-    @property
-    def turn(self) -> int:
-        """The turn this proof stands at.
-
-        0 fresh from the first fold, then one per record in `turns`. The next
-        turn is this plus one, derived here so no caller counts the record.
-        """
-        return len(self.turns)
 
     @classmethod
     def seed(cls, stage: str, read_from: dict, edit_copies: list) -> dict:
@@ -671,48 +652,21 @@ class MasterProof:
         # the same absent-stage case instead.
         raw_stage = data.get("stage")
         stage = raw_stage if isinstance(raw_stage, str) else ""
-        # ! BOTH ABSENT AND EMPTY READ AS EMPTY. A proof written before
-        # `Process: #87` carries neither key, and one written after carries
-        # both; `turns` is carried as it came.
-        raw_turns = data.get("turns")
-        turns = (
-            tuple(t for t in raw_turns if isinstance(t, dict))
-            if isinstance(raw_turns, list)
-            else ()
-        )
-        raw_unsettlable = data.get("unsettlable")
-        unsettlable = (
-            tuple(u for u in raw_unsettlable if isinstance(u, dict))
-            if isinstance(raw_unsettlable, list)
-            else ()
-        )
-        # A key an older proof does not carry reads as no places at all, the
-        # same default `turns` and `unsettlable` take above.
+        # ! BOTH ABSENT AND EMPTY READ AS EMPTY. A proof written before the
+        # first fold carries no `places` key, and one written after carries
+        # it; either way an entry that is not an object is dropped, and
+        # `Place.deserialize` rules on the rest where a reader wants them.
         raw_places = data.get("places")
         places = (
             tuple(p for p in raw_places if isinstance(p, dict))
             if isinstance(raw_places, list)
             else ()
         )
-        raw_determined = data.get("determined")
-        determined: list[Determined] = []
-        if isinstance(raw_determined, list):
-            for i, raw in enumerate(raw_determined, 1):
-                one, why = Determined.deserialize(f"{where}: determined {i}", raw)
-                if one is None:
-                    problems += why
-                else:
-                    determined.append(one)
-        if problems:
-            return None, problems
         return (
             MasterProof(
                 stage=stage,
                 read_from={**read_from} if isinstance(read_from, dict) else {},
                 edit_copies=tuple(copies),
-                turns=turns,
-                determined=tuple(determined),
-                unsettlable=unsettlable,
                 places=places,
             ),
             [],
@@ -724,8 +678,5 @@ class MasterProof:
             "stage": self.stage,
             "read_from": {**self.read_from},
             "edit_copies": [copy.serialize() for copy in self.edit_copies],
-            "turns": [dict(t) for t in self.turns],
-            "determined": [d.serialize() for d in self.determined],
-            "unsettlable": [dict(u) for u in self.unsettlable],
             "places": [dict(p) for p in self.places],
         }

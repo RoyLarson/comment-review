@@ -74,15 +74,14 @@ from pathlib import Path
 from comment_review.desk.collator import cite_at
 from comment_review.desk.evaluate.passes import composed_side, proposing
 from comment_review.desk.evaluate.place import Filed
-from comment_review.desk.mark import (
-    INSTRUCTIONS,
+from comment_review.desk.marks.mark import (
     Instruction,
     Mark,
     derived_change,
     filled,
     untouched,
 )
-from comment_review.desk.marks.table import Row, Touch
+from comment_review.desk.marks.table import INSTRUCTIONS, Row, Touch
 from comment_review.flows.page_for import page_of
 from comment_review.machine import constants
 from comment_review.machine.exceptions import READ_ERRORS

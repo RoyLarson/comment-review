@@ -15,13 +15,14 @@ and not beside either test module.
 `tests/test_stage_root.py`.
 
 ! `a_master_proof`, `a_correct`, `a_move`, `a_clean`, `a_query` and `an_add`
-were added in Task 9, for `tests/test_reconcile.py` -- Tasks 9 through 12 all
-share them. Every mark is built through `desk.mark.INSTRUCTIONS`, never as a
+were added in Task 9, for the reconciliation cases, and several files share
+them. Every mark is built through `desk.marks.table.INSTRUCTIONS`, never as a
 hand-typed literal, so a changed row breaks a helper loudly instead of
 letting it drift.
 
 ! `a_binder_over`, `copies_over` and `a_correct_setting` were added in Task 10,
-for `tests/test_collate.py`.
+for the fold's own cases; `tests/test_bus.py` and `tests/test_verify.py` are
+what drive them now.
 """
 
 import json
@@ -34,18 +35,11 @@ from comment_review.commands import collate as collate_command
 from comment_review.commands import disposition as disposition_command
 from comment_review.commands import turn as turn_command
 from comment_review.desk.containers import EditCopy, MasterProof, Sheet
-from comment_review.desk.mark import (
-    ANCHOR_EXAMPLE,
-    INSTRUCTIONS,
-    Instruction,
-    Mark,
-    Shape,
-)
+from comment_review.desk.marks.mark import ANCHOR_EXAMPLE, Instruction, Mark, Shape
+from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof import master_proof_of
 from comment_review.docket.docket import Docket
-from comment_review.flows._collate import Collated, collate
 from comment_review.flows.distribute import seed
-from comment_review.flows.fill import fill, place_on_the_page, quoted_sources
 from comment_review.flows.page_for import page_of, source_of
 from comment_review.flows.proof_io import load_proof
 
@@ -505,55 +499,6 @@ def _quoting_the_real_text(mark: dict, entry: dict) -> dict:
     return {**mark, "claim": {**claim, key: base}}
 
 
-def placed_as_the_old_turn_reads_it(copy: dict, ruling: dict, root: Path) -> dict:
-    """One ruling written onto the slot it names, seeding one from the page.
-
-    It is not through `flows.fill`, and the reason is a superseded shape.
-    `fill` places a mark as `decision-log.md Process: #172`, `#175` and `#176`
-    have it: a `move`'s `change` is the snippet it subtracts from its origin
-    and its `raw_text` the destination paragraph as it will read, and an
-    `add`'s `raw_text` is the paragraph as it will read. `flows.turn` and
-    `flows._collate` read `change` as the destination's own text and
-    `raw_text` as the paragraph the place was seeded with, so no one mark
-    satisfies both, and a fixture for those two flows is written in the shape
-    they read.
-
-    It goes with them. `tests/test_fill.py` and `tests/test_mark_command.py`
-    are where what `mark` places is asserted; this exists only while a flow
-    that reads the older shape is still in the tree.
-
-    Args:
-        copy: a role's edit_copy as its wire dict, which this mutates.
-        ruling: the mark, carrying at least `address` and `instruction`. Its
-            `sources` are quoted the way `fill` quotes them, so a fixture
-            names a `cite` and no `verbatim`.
-        root: the checkout the page and the cited lines are read from.
-
-    Returns:
-        The entry now on the copy.
-    """
-    marks, seeded, why = place_on_the_page([copy], ruling["address"], root)
-    assert marks is not None, why
-    entry = dict(ruling)
-    if "sources" in entry:
-        quoted, why = quoted_sources(root, entry["sources"])
-        assert quoted is not None, why
-        entry["sources"] = quoted
-    at = next(
-        (
-            i
-            for i, one in enumerate(marks)
-            if isinstance(one, dict) and one.get("address") == ruling["address"]
-        ),
-        None,
-    )
-    if at is None:
-        marks.append({**seeded, **entry})
-        return marks[-1]
-    marks[at].update(entry)
-    return marks[at]
-
-
 def _without_sheet(copy: dict, path: str) -> dict:
     """`copy` with the sheet for `path` removed -- a role that skipped a page.
 
@@ -806,49 +751,6 @@ def an_add(address: str) -> dict:
             "anchor": ANCHOR_EXAMPLE,
         },
     )
-
-
-#: A real page whose `b3`, the gap above `w = 4`, holds no prose -- so the
-#: binder does not carry it and no seeded copy has a slot there.
-GAPPED_PAGE = "x = 1\n# one\n# two\n# three\ny = 2\nz = 3\nw = 4\n"
-EMPTY_PLACE = "m.py@b3"
-ADDED_TEXT = "# w is 4 because the fixture says so\n"
-
-
-def an_add_at_an_empty_place(root: Path) -> tuple[Binder, Collated]:
-    """A fold over one `add` at an empty place on a real page, as `mark` leaves it.
-
-    `GAPPED_PAGE` is written to `root/m.py`. block-context adds at
-    `EMPTY_PLACE`, which the binder does not carry, and both roles clean the
-    one place it does. `fill` places the add, so only block-context's copy
-    holds a slot there.
-
-    Returns:
-        `(binder, the fold)` -- the fold carrying `EMPTY_PLACE` as its one
-        re-read, sent to both roles.
-    """
-    (root / "m.py").write_text(GAPPED_PAGE, encoding="utf-8")
-    binder = binder_of(root, 0)
-    assert EMPTY_PLACE not in {p.address for p in binder.paragraphs}
-    copies = [seed(binder, role) for role in ("block-context", "function-context")]
-    for copy in copies:
-        for paragraph in binder.paragraphs:
-            clean = {"address": paragraph.address, "instruction": "clean"}
-            _, why = fill(copy, clean, root)
-            assert why == []
-    added = {
-        "address": EMPTY_PLACE,
-        "instruction": "add",
-        "claim": {"missing": "why w is 4", "anchor": "`w`"},
-        "reason": "the constant is explained nowhere",
-        "sources": [{"cite": "m.py:7"}],
-        "change": ADDED_TEXT,
-    }
-    placed_as_the_old_turn_reads_it(copies[0], added, root)
-    got = collate("4c", copies, binder, root=root)
-    assert [e["address"] for e in got.rereads] == [EMPTY_PLACE]
-    assert got.rereads[0]["roles"] == ["block-context", "function-context"]
-    return binder, got
 
 
 # -- the hand driver: a review from the console, over `tmp_path` ----------------

@@ -39,7 +39,7 @@ own half.
 from comment_review.binder.addresses import handed
 from comment_review.binder.binder import Binder
 from comment_review.desk.containers import EditCopy, Sheet
-from comment_review.desk.mark import Mark
+from comment_review.desk.marks.mark import Mark
 
 
 def seed(binder: Binder, role: str) -> dict:

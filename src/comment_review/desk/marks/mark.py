@@ -106,8 +106,9 @@ if TYPE_CHECKING:
 class Instruction(StrEnum):
     """The seven, closed. `docs/the-mark.md` is the spec; this only names them.
 
-    ! Value derived from the member name via `_generate_next_value_`, so
-    `Instruction.CLEAN == "clean"` holds without a hand-typed string.
+    ! Value derived from the member name via `_generate_next_value_`: each
+    member equals its own name lower-cased, with no hand-typed string beside
+    it, so a member renamed cannot keep an older wire value by accident.
     """
 
     @staticmethod

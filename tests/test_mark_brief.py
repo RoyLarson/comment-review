@@ -10,7 +10,7 @@ retyped. Every mark below is keyed `instruction`, which is what the brief
 publishes and what the code read as `mark` until 2026-08-29.
 """
 
-from comment_review.desk.mark import Instruction, Mark, allowed
+from comment_review.desk.marks.mark import Instruction, Mark, allowed
 
 # The brief's published table, reviewer-brief.md:280-288, copied by hand.
 BRIEF = {

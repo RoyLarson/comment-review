@@ -22,9 +22,8 @@ import pytest
 from test_mark_brief import BRIEF
 
 from comment_review.desk.containers import Sheet
-from comment_review.desk.mark import (
+from comment_review.desk.marks.mark import (
     ANCHOR_EXAMPLE,
-    INSTRUCTIONS,
     QUERY_SHAPES,
     Instruction,
     Mark,
@@ -33,6 +32,7 @@ from comment_review.desk.mark import (
     untouched,
     without_location,
 )
+from comment_review.desk.marks.table import INSTRUCTIONS
 
 
 def problems(where: str, entry: object) -> list[str]:

@@ -1,4 +1,4 @@
-"""SOURCE-VERIFICATION and RECONCILIATION: marks against the tree, then each other.
+"""SOURCE-VERIFICATION: one role's marks against the tree they were read from.
 
     known_addresses()          every address the binder carries
     base_texts()               every address -> the paragraph the binder
@@ -15,18 +15,15 @@
                                is not the one `base_texts` named for its
                                address
     tally()                    how many of each instruction the edit_copy carries
-    places()                   every ruled mark of a master_proof, grouped by
-                               every address it lands on
-    reconcile()                each place -> settled, escalation or re-read
 
-!! FOUR KINDS OF CHECK, AND WHAT EACH NEEDS IS WHAT SEPARATES THEM. NAMED BY
-MEMBER, NOT BY FILE-ORDER RANGE -- `desk/mark.py` answers everything a mark
-can be judged by on its own. One kind needs the PAGE the role read and the
+!! THREE KINDS OF CHECK, AND WHAT EACH NEEDS IS WHAT SEPARATES THEM. NAMED BY
+MEMBER, NOT BY FILE-ORDER RANGE -- `desk/marks/mark.py` answers everything a
+mark can be judged by on its own. One kind needs the PAGE the role read and the
 FILES it cited: `claim_verbatim_problems`, `source_problems`,
 `source_verification` and `verify_report` measure a mark against the texts
-the flow reads off the page and the batch it sent, and against those files
--- never a mark's own `raw_text`, the base a party being checked could have
-altered. ! WHETHER THE ADDRESS IS ONE
+`flows.verify` reads off the page, and against those files -- never a mark's
+own `raw_text`, the base a party being checked could have altered.
+! WHETHER THE ADDRESS IS ONE
 THE BINDER CARRIES IS NOT ASKED, since 2026-09-05 -- `decision-log.md Process:
 #97`. The binder is filtered to the places holding prose, so an `add` cites a
 place it dropped and a `move` may cite a file it never held; the write end
@@ -36,73 +33,64 @@ back against what was handed out, and reads `binder.addresses.handed` for that.
 One kind needs only the report itself, and nothing outside it (`Problem`,
 `tally`) -- `decision-log.md Process: #54` put them here because they ask
 about the SET, and one mark cannot answer for the set alone. ! TWO MORE
-STOOD IN THAT GROUP UNTIL `P52`; `flows.mark_errors` answers what they did. One
-kind needs the marks the OTHER roles handed back (`places`, `reconcile`).
-A FOURTH kind compares what came back against what went
+STOOD IN THAT GROUP UNTIL `P52`; `flows.mark_errors` answers what they did.
+A THIRD kind compares what came back against what went
 out: `drift_in`, which needs both the returned report and the base
 `base_texts` derived from the binder it was seeded from -- checking the
 SAME field of the SAME entry at two different times, what it was seeded
 with against what came back, rather than checking a claim against evidence
-(the first kind) or one role's mark against another's (the third).
-Nothing above `places` compares two marks, and nothing below `verify_report`
-opens a file.
+(the first kind). Nothing below `verify_report` opens a file.
 
-!! AND THEY REFUSE DIFFERENTLY. Verification and coverage both RETURN a
-`Problem` per broken rule, so a whole report is checked in one pass and every
-problem is read at once. ! VERIFICATION RETURNED SENTENCES UNTIL 2026-08-31,
-each opening with the mark it was about; `P25` gave it a production caller and
-`Problem` is what a caller can ROUTE -- see that type, and `verify_report`.
-One of coverage's is about the COPY rather than about any one mark: an entry
-that is not an object produces a `Problem` carrying `address=""`, with nothing
-in the message naming a mark at all. Reconciliation RAISES -- `MalformedMark`
--- because a mark it cannot read is a mark it cannot group, and a place grouped
-wrongly is settled wrongly.
+!! HOW ONE ROLE'S MARKS MEET ANOTHER'S IS NOT ASKED HERE AT ALL. It was:
+`places` grouped a master proof's marks by the addresses they land on and
+`reconcile` ruled each group settled, escalated or re-read, raising
+`MalformedMark` where an entry would not parse. `flows.places.places_of`
+builds the places now and `desk.evaluate` rules them, from each place's own
+record, and an entry that will not parse is `Sheet.refused` before either
+runs.
+
+!! EVERYTHING HERE RETURNS A `Problem` PER BROKEN RULE, so a whole report is
+checked in one pass and every problem is read at once. ! IT RETURNED SENTENCES
+UNTIL 2026-08-31, each opening with the mark it was about; `P25` gave it a
+production caller and `Problem` is what a caller can ROUTE -- see that type,
+and `verify_report`. One `Problem` is about the COPY rather than about any one
+mark: an entry that is not an object produces one carrying `address=""`, with
+nothing in the message naming a mark at all.
 
 !! EVERY FUNCTION HERE TAKES A CONTAINER, NEVER A WIRE DICT, since 2026-08-31
 -- `P42`, `decision-log.md Process: #65`. `verify_report`, `drift_in` and
-`tally` take an `EditCopy`; `places`, `reconcile` and `_roles_of_stage`
-take a `MasterProof`.
+`tally` take an `EditCopy`.
 
-!! AND THE DOCKET IS NOT BUILT HERE ANY MORE, since `P55`. `docket_from` and
+!! AND THE DOCKET IS NOT BUILT HERE, since `P55`. `docket_from` and
 `_real_pages` lived in this file and imported `Alteration`, `Schedule` and
 `Docket` -- the only MIDDLE-to-WRITE-END import in the tree. The transcription
-is `flows/revise.py::docket_of`, which takes an `EditCopy` rather than a
-`(Reconciled, MasterProof)` pair, because a FLOW may reach both ends and neither
-end may reach the other. `decision-log.md Process: #76`.
-! WHAT WENT WITH THE SIGNATURES is every re-derivation of the same walk --
-`report.get("sheets")`, `isinstance(sheets, list)`, `sheet.get("marks") if
-isinstance(sheet, dict)` -- which stood at five sites in this file, and
-`UnnamedRole`, which `EditCopy.deserialize` makes unconstructable.
+is `flows/revise.py::docket_of`, which takes an `EditCopy`, because a FLOW may
+reach both ends and neither end may reach the other. `decision-log.md Process:
+#76`.
 
-!! AND THE THREE VERIFICATION QUESTIONS ARE NOW ASKED IN PRODUCTION, which
+!! AND THE THREE VERIFICATION QUESTIONS ARE ASKED IN PRODUCTION, which
 this file's prose assumed the opposite of until 2026-08-31.
-`flows.collate.collate` calls `verify_report` per copy; `grep -rn
-"verify_report" src/` returns a caller outside this module, where before it
-returned only sentences inside it. `decision-log.md Process: #58`, `P25`.
-
-! WHAT IS STILL OWED IS T7: `MasterProof.deserialize` compares `read_from` against
-`copies[0]` only, never 2..N.
+`flows.bus` calls `verify_report` per copy; `grep -rn "verify_report" src/`
+returns a caller outside this module, where before it returned only sentences
+inside it. `decision-log.md Process: #58`, `P25`.
 """
 
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import NamedTuple
 
 from comment_review.binder.binder import Binder
-from comment_review.desk.containers import EditCopy, MasterProof
-from comment_review.desk.mark import (
-    INSTRUCTIONS,
+from comment_review.desk.containers import EditCopy
+from comment_review.desk.marks.mark import (
     Instruction,
     Mark,
-    Shape,
     filled,
     without_location,
 )
+from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.machine import constants
 from comment_review.machine.exceptions import READ_ERRORS
 from comment_review.machine.repo import can_escape, read_raw
-from comment_review.reading.addresser import cue_of, flatten
 
 #: How far from the line a `source` cites its `verbatim` may sit, in lines, on
 #: either side. A role reads a paragraph and cites the line it was looking at,
@@ -559,391 +547,3 @@ def tally(copy: EditCopy) -> dict[Instruction, int]:
         for mark in sheet.marks:
             counts[mark.instruction] += 1
     return {name: n for name, n in counts.items() if n}
-
-
-def _touches(mark: Mark) -> list[str]:
-    """Every address this one mark lands on.
-
-    Its own `address`, and for a `move` its `claim.to` as well -- a move is a
-    delete at one end and a write at the other, so it is present at BOTH places
-    when marks are grouped and can meet whatever another role marked there.
-
-    Returns:
-        One address, or two. Empty for a mark carrying none; never the same
-        address twice, so a `move` whose destination is its own origin gives
-        one.
-    """
-    touched = []
-    if mark.address:
-        touched.append(mark.address)
-    if mark.instruction is Instruction.MOVE:
-        destination = mark.claim.get("to")
-        if isinstance(destination, str) and destination and destination not in touched:
-            touched.append(destination)
-    return touched
-
-
-#: !! `MalformedMark` IS DELETED, `P51`. It said *"reconciliation REFUSES where
-#: verification REPORTS"*, on the reasoning that a mark whose shape is
-#: unreadable cannot be grouped by the place it touches, and a place grouped
-#: wrongly is settled wrongly. ! THAT REASONING STILL HOLDS AND IS NOW
-#: STRUCTURAL: an unreadable entry never becomes a `Mark`, so `places` has
-#: nothing to group wrongly and no raise to make. Where it goes instead is
-#: `Sheet.refused` -- an address and its reasons, routed to the role that wrote
-#: it, `decision-log.md Process: #72`.
-
-
-class Placed(NamedTuple):
-    """One mark and the role whose `edit_copy` it came back in.
-
-    ! `role` IS THE EDIT_COPY'S, NOT THE MARK'S. `Mark` carries no such field,
-    and the pair is what makes a place answerable: whether it settles turns on
-    how many marks reached it, and the entry that records it names the roles.
-
-    Attributes:
-        mark: one role's ruling, through `desk.mark.parse`.
-        role: the name on the `edit_copy` this mark came back in.
-    """
-
-    mark: Mark
-    role: str
-
-
-def places(proof: MasterProof) -> dict[str, list[Placed]]:
-    """Every ruled mark of a master_proof, grouped by every address it lands on.
-
-    A mark lands under its own `address`; a `move` lands under its destination
-    as well, so the destination's group holds the move alongside anything
-    another role marked there. A role's `query` at either end of its own
-    move lands under the other end as well: it is filed against the move
-    (`decision-log.md Process: #137` and `#138`), so a
-    `human-review-necessary` query holds both ends for the human and a
-    deferring query abstains at both.
-
-    Args:
-        proof: a parsed master_proof, as `desk.proof.master_proof_of` returns one.
-
-    Returns:
-        address -> the `Placed`s touching it, in the order the copies, their
-        sheets and their marks were walked. An address nobody ruled on is
-        absent rather than empty.
-
-    !! IT RAISED `MalformedMark` UNTIL `P51`, AND CANNOT NOW. `Sheet.marks`
-    holds marks that parsed, so there is no unreadable entry left to meet here
-    -- and `flows.collate._reconcilable`, whose whole job was dropping them
-    before this ran, went with the raise. ! THE REFUSAL DID NOT WEAKEN: an
-    entry that will not parse is `Sheet.refused`, which routes to the role that
-    wrote it instead of stopping the stage.
-    """
-    out: dict[str, list[Placed]] = {}
-    for copy in proof.edit_copies:
-        marks = [mark for sheet in copy.sheets for mark in sheet.marks]
-        for mark in marks:
-            placed = Placed(mark, copy.role)
-            for address in (*_touches(mark), *_filed_against(mark, marks)):
-                out.setdefault(address, []).append(placed)
-    return out
-
-
-def _filed_against(mark: Mark, marks: list[Mark]) -> list[str]:
-    """The other end of the move a role's `query` at one of its ends is filed against.
-
-    `decision-log.md Process: #137` and `#138`. A query at a move's
-    destination lands under its origin, and one at a move's origin under its
-    destination. Each needs the copy to hold exactly one such move.
-
-    Args:
-        mark: one mark on a role's copy.
-        marks: every mark on that copy.
-
-    Returns:
-        Where `mark` is a `query`: the origin of the one `move` on the copy
-        whose `claim.to` is the query's address, and the destination of the
-        one `move` whose own address it is. Empty otherwise.
-    """
-    if mark.instruction is not Instruction.QUERY:
-        return []
-    moves = [other for other in marks if other.instruction is Instruction.MOVE]
-    origins = [move.address for move in moves if move.claim.get("to") == mark.address]
-    destinations = [
-        to
-        for move in moves
-        if move.address == mark.address
-        and isinstance(to := move.claim.get("to"), str)
-        and to
-    ]
-    return [
-        *(origins if len(origins) == 1 else []),
-        *(destinations if len(destinations) == 1 else []),
-    ]
-
-
-class Reconciled(NamedTuple):
-    """What reconciliation decided about each place, in three lists.
-
-    Every entry is `{"address": str, "roles": sorted list[str], "marks":
-    list[Placed]}`, and `marks` holds only the marks that OWE A CHANGE -- so a
-    place where every role returned a `clean` or a `query` produces no entry at
-    all, in any of the three.
-
-    Attributes:
-        settled: one owing mark, nothing composed with it -- a composition of
-            ONE side. Its `roles` are every role that marked the place with
-            anything but a `query`, because the fold sends it back to them
-            before it stands (`decision-log.md Process: #89`); it is no longer
-            the list a transcription reads at turn 0.
-        escalations: two or more owing marks that all rule on the SAME
-            sentence -- two answers to one question.
-        rereads: every other place with more than one owing mark, plus every
-            place an `add` touches.
-    """
-
-    settled: list[dict]
-    escalations: list[dict]
-    rereads: list[dict]
-
-
-def _owes_change(mark: Mark) -> bool:
-    return INSTRUCTIONS[mark.instruction].owes_change
-
-
-def _sentence_key(mark: Mark) -> object:
-    """What two marks at one place are compared ON -- the sentence each rules on.
-
-    The row's `quotes_original` names the claim key holding it. Where the row
-    quotes no existing sentence -- `add` and `move`, the two owing rows that
-    carry "" -- this returns `id(mark)`, which nothing else can equal, so two
-    of them at one place are never found to have named the SAME sentence and
-    the place is re-read rather than escalated.
-    """
-    key = INSTRUCTIONS[mark.instruction].quotes_original
-    if key:
-        return mark.claim.get(key)
-    return id(mark)
-
-
-def _roles_of_stage(proof: MasterProof, path: str) -> set[str]:
-    """Every role of this proof whose edit_copy holds a sheet for one page.
-
-    Args:
-        proof: a parsed master_proof, as `places` reads one.
-        path: the FLATTENED path, as an address carries it. Each sheet states a
-            real repo path, so it is `flatten`ed to compare.
-
-    Returns:
-        The role names. ! A ROLE SHARDED ONTO OTHER PAGES IS NOT AMONG THEM,
-        so widening a place to "the roles of the stage" reaches only the roles
-        that actually read this file.
-    """
-    return {
-        copy.role
-        for copy in proof.edit_copies
-        if any(flatten(sheet.path) == path for sheet in copy.sheets)
-    }
-
-
-#: The three outcomes, WEAKEST FIRST. `_join_moves` takes `max` by this order,
-#: so an escalation beats a re-read and a re-read beats a settlement; `reconcile`
-#: keys its own three lists by these same names.
-OUTCOMES = ("settled", "rereads", "escalations")
-
-
-def _outcome(
-    proof: MasterProof, address: str, owing: list[Placed], marks: list[Placed]
-) -> tuple[str, dict]:
-    """Which outcome one place gets, and the entry that records it.
-
-    Asked in this order, first match winning:
-
-        an `add` among them   RE-READ, and the roles widen to every role of
-                              the stage that read this page -- two adds at two
-                              addresses never meet under per-place grouping, so
-                              nothing narrower can see a comment added twice
-        one owing mark        SETTLED -- and its roles are every role that
-                              marked the place with anything but a `query`,
-                              since the fold sends a lone mark back to them
-                              (`decision-log.md Process: #89`)
-        one text              ESCALATION -- every mark carries the same
-                              `change`, so the fold settles it as agreed
-                              (`decision-log.md Process: #88`), whatever
-                              instruction or sentence each carried
-        one sentence key      ESCALATION -- every mark rules on the same
-                              sentence, so they answer each other
-        anything else         RE-READ -- marks on different sentences of one
-                              paragraph, which compose or do not, and this
-                              step cannot say which
-
-    And whatever the outcome, a role whose mark here is a DEFERRING query --
-    `outside-my-role`, `unable-to-determine` -- is out of `roles`: it has
-    abstained from this place for the review (`decision-log.md Process:
-    #90`). A `human-review-necessary` query is the flow's to set aside,
-    place and all; this step does not see the difference.
-
-    Args:
-        proof: the parsed master_proof, read only to widen an `add`'s roles.
-        address: the place being decided. Its path is what an `add` widens over.
-        owing: the marks at this place that owe a change. Never empty --
-            `reconcile` does not call this for a place with none.
-        marks: every mark at this place, `owing` included -- what a settled
-            entry's roles are read from.
-
-    Returns:
-        `(one of OUTCOMES, {"address", "roles", "marks"})`, `roles` sorted and
-        `marks` the `owing` list as given.
-    """
-    roles = {placed.role for placed in owing}
-    if any(placed.mark.instruction is Instruction.ADD for placed in owing):
-        roles |= _roles_of_stage(proof, cue_of(address).path)
-        kind = "rereads"
-    elif len(owing) == 1:
-        kind = "settled"
-        roles = {
-            placed.role
-            for placed in marks
-            if placed.mark.instruction is not Instruction.QUERY
-        }
-    elif (
-        all(INSTRUCTIONS[placed.mark.instruction].quotes_original for placed in owing)
-        and len({placed.mark.change for placed in owing}) == 1
-    ):
-        # ! ONLY MARKS THAT QUOTE AN ORIGINAL. An `add` or a `move` carries no
-        # sentence, and two moves into one place from two origins carrying one
-        # text are two edits, not one agreement -- the same reason
-        # `_sentence_key` gives them `id(mark)`.
-        kind = "escalations"
-    elif len({_sentence_key(placed.mark) for placed in owing}) == 1:
-        kind = "escalations"
-    else:
-        kind = "rereads"
-    deferring = {
-        placed.role
-        for placed in marks
-        if placed.mark.instruction is Instruction.QUERY
-        and placed.mark.claim.get("shape") != Shape.HUMAN_REVIEW_NECESSARY
-    }
-    roles -= deferring
-    return kind, {"address": address, "roles": sorted(roles), "marks": owing}
-
-
-def _join_moves(outcomes: dict[str, tuple[str, dict]]) -> None:
-    """Give both ends of every `move` the same outcome. MUTATES `outcomes`.
-
-    !! A `move` IS ONE INSTRUCTION AT TWO PLACES -- a delete at the origin and
-    a write at the destination -- so an end settled while the other escalated
-    would apply half of it: the paragraph read twice, or deleted and never
-    rewritten. Each pair takes the STRONGEST outcome either end reached, by
-    `OUTCOMES` order.
-
-    !! A PROMOTED END'S ENTRY IS REBUILT FROM BOTH ENDS' `roles` AND `marks`,
-    not only re-labelled with the stronger `kind`. Until 2026-08-30 a promoted
-    end kept its own single-role entry, so a reader of `reconcile()`'s
-    `rereads` or `escalations` -- or of `commands/collate.py`'s printout --
-    saw the WEAKER end named for carry-forward with no trace of the role or
-    mark that forced it there. MEASURED: a `move`'s origin, ruled by one role
-    alone and settled on its own, is pulled to `rereads` because another role
-    also ruled at the destination -- and the origin's entry named only the
-    mover, never the role that collided at the far end. The union is taken
-    over BOTH ends because either can hold information the other lacks: the
-    destination's own entry already carries what touched it, but a mark at
-    the ORIGIN that touches no other place -- another role's `correct` on the
-    same paragraph the move is emptying -- is invisible from the destination
-    unless it is carried across too.
-
-    ! EACH END KEEPS ITS OWN `address`. Only `kind`, `roles` and `marks` are
-    shared; the entry at each end still names that end.
-
-    ! IT RUNS TO A FIXED POINT, because moves chain: one move's destination can
-    be another move's origin, and promoting the first pair can promote the
-    second. The loop stops on the pass that changes nothing.
-
-    The pairs are walked in address order. Where two moves share an end, the
-    pair promoted last decides which marks lead that end's entry, and so the
-    text `desk.diff_mark.batch_of` sends there, so the order is the same in
-    every process -- `no-command-for-the-middle` T97.
-
-    !! PROVISIONAL. Roy, 2026-08-30, ruling AGAINST the shape this whole
-    function joins: *"A move needs to be what it is and that is a composite
-    Mark - Drop Here Add There. They have to go together ... Nothing else
-    acts on two places at once."* This function exists because today's `move`
-    is ONE `Mark` touching two addresses, so "settle at one end, escalate at
-    the other" is a state this module has to notice and repair after the
-    fact -- a promotion hack. Once a move is a composite of two ordinary
-    marks (a `drop`, an `add`), each with its own `address`, atomicity is
-    STRUCTURAL: nothing groups two addresses under one mark to begin with, so
-    there is no split outcome to detect or merge, and this function -- the
-    whole of `_join_moves` -- has nothing left to do. The composite is a
-    separate scope; this fix only stops the promoted-entry data loss within
-    today's shape.
-
-    Args:
-        outcomes: address -> `(kind, entry)`, as `_outcome` built each. Both
-            ends of a move are present, since a move owes a change and so is
-            owing at each place it touches.
-    """
-    ends_of = {
-        tuple(_touches(placed.mark))
-        for _, entry in outcomes.values()
-        for placed in entry["marks"]
-        if placed.mark.instruction is Instruction.MOVE
-        and len(_touches(placed.mark)) > 1
-    }
-    changed = True
-    while changed:
-        changed = False
-        for ends in sorted(ends_of):
-            kinds = [outcomes[end][0] for end in ends]
-            strongest = max(kinds, key=OUTCOMES.index)
-            if len(set(kinds)) == 1:
-                continue
-            roles: set[str] = set()
-            marks: list[Placed] = []
-            seen: set[tuple[str, int]] = set()
-            for end in ends:
-                _, entry = outcomes[end]
-                roles.update(entry["roles"])
-                for placed in entry["marks"]:
-                    key = (placed.role, id(placed.mark))
-                    if key not in seen:
-                        seen.add(key)
-                        marks.append(placed)
-            sorted_roles = sorted(roles)
-            for end in ends:
-                address = outcomes[end][1]["address"]
-                outcomes[end] = (
-                    strongest,
-                    {"address": address, "roles": sorted_roles, "marks": marks},
-                )
-            changed = True
-
-
-def reconcile(proof: MasterProof) -> Reconciled:
-    """Every place a role ruled on, decided -- settled, escalated or re-read.
-
-    !! ONLY THE MARKS THAT OWE A CHANGE TAKE PART.
-    `INSTRUCTIONS[...].owes_change` is False for `clean` and `query`, so
-    neither can turn a place another role settled into a contest, and a place
-    holding nothing else produces no entry in any of the three lists.
-
-    Args:
-        proof: a parsed master_proof, as `places` reads one.
-
-    Returns:
-        A `Reconciled`. Entries keep the order `places` grouped the addresses
-        in, split across the three lists.
-
-    Raises:
-        MalformedMark: from `places`.
-    """
-    outcomes: dict[str, tuple[str, dict]] = {}
-    for address, marks in places(proof).items():
-        owing = [placed for placed in marks if _owes_change(placed.mark)]
-        if owing:
-            outcomes[address] = _outcome(proof, address, owing, marks)
-    _join_moves(outcomes)
-    settled: list[dict] = []
-    escalations: list[dict] = []
-    rereads: list[dict] = []
-    into = {"settled": settled, "escalations": escalations, "rereads": rereads}
-    for kind, entry in outcomes.values():
-        into[kind].append(entry)
-    return Reconciled(settled, escalations, rereads)

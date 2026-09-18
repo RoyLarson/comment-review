@@ -17,7 +17,7 @@ from conftest import run_command
 from helpers import a_binder_over
 
 from comment_review.commands import mark as command
-from comment_review.desk.mark import Mark
+from comment_review.desk.marks.mark import Mark
 from comment_review.flows.distribute import seed
 
 BASE = "# one\n# two\n# three\n"

@@ -36,7 +36,7 @@ import json
 import sys
 from pathlib import Path
 
-from comment_review.desk.mark import allowed
+from comment_review.desk.marks.mark import allowed
 from comment_review.desk.stages import ROLES
 from comment_review.desk.topology import read as read_topology
 from comment_review.desk.topology import seeded_from_problem

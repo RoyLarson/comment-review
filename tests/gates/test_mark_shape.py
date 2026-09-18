@@ -19,7 +19,8 @@ import re
 import pytest
 from conftest import ROOT
 
-from comment_review.desk.mark import INSTRUCTIONS, Instruction, Mark, Row
+from comment_review.desk.marks.mark import Instruction, Mark
+from comment_review.desk.marks.table import INSTRUCTIONS, Row
 
 SPEC = (ROOT / "docs" / "the-mark.md").read_text(encoding="utf-8")
 

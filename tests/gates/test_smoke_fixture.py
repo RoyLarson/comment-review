@@ -27,13 +27,13 @@ from comment_review.desk.dispositions.disposition import ORIGINAL  # noqa: E402
 from comment_review.desk.dispositions.table import (  # noqa: E402
     DISPOSITIONS as DISPOSITION_ROWS,
 )
-from comment_review.desk.mark import (  # noqa: E402
-    INSTRUCTIONS,
+from comment_review.desk.marks.mark import (  # noqa: E402
     Instruction,
     Shape,
     derived_change,
     first_word_dropped,
 )
+from comment_review.desk.marks.table import INSTRUCTIONS  # noqa: E402
 from comment_review.flows.fill import marks_on, touched_by  # noqa: E402
 from comment_review.flows.page_for import page_of  # noqa: E402
 

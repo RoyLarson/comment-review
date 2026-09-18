@@ -33,7 +33,7 @@ from helpers import a_binder_over, returned
 
 from comment_review.commands.collate import main as collate_main
 from comment_review.desk.collator import tally
-from comment_review.desk.mark import Mark, untouched
+from comment_review.desk.marks.mark import Mark, untouched
 from comment_review.flows.mark_errors import mark_errors
 
 BRIEF_PATH = ROOT / "src/plugin/skills/comment-review/references/reviewer-brief.md"
