@@ -8,11 +8,11 @@
 answer one role's file through `answers_of`, so a file the check passes is a
 file the turn takes, and a refusal has one wording.
 
-! THE SENT SLOT CARRIES THE QUESTION, NEVER THE RETURNED ONE -- `Answer`
-belongs to one of two questions and a role writes neither. A returned entry
-contributes its answer fields alone; the question comes from the place the
-turn is asking about, or from the slot the batch sent, which is the same
-question written down twice.
+The sent slot carries the question and the returned one never does: an
+`Answer` belongs to one of two questions and a role writes neither. A
+returned entry contributes its answer fields alone; the question comes from
+the place the turn is asking about, or from the slot the batch sent, which is
+the same question written down twice.
 """
 
 from collections.abc import Callable

@@ -23,7 +23,7 @@ ruling is refused by name, with the roles it was put to, and nothing is
 written -- the refusal is the whole answer, so the caller rules and runs
 again.
 
-! THE UNSETTLABLE PLACES ARE PRINTED, NOT RULED -- `Process: #90`. A
+The unsettlable places are printed and not ruled (`Process: #90`). A
 human-review query rides with the set to the end and is asked of the human
 after everything else has settled; this is the end, so each is named here for
 that asking, and none is on the chief's copy. A ruling at one of them is
@@ -75,9 +75,9 @@ def main() -> int:
     rulings, why = load_value(Path(args.dispositions))
     if why:
         return _refused(why)
-    # ! THE SHAPE OF THE FILE IS THIS COMMAND'S, THE SHAPE OF A RULING THE
-    # TABLE'S. A list of objects is what the flag promises; what each object
-    # owes is `Disposition.deserialize`'s, and the fold reports each.
+    # The shape of the file is this command's and the shape of a ruling is the
+    # table's: a list of objects is what the flag promises, and what each
+    # object owes is `Disposition.deserialize`'s, which the fold reports.
     rows: list = (
         [r for r in rulings if isinstance(r, dict)] if isinstance(rulings, list) else []
     )
@@ -91,11 +91,11 @@ def main() -> int:
     if result is None:
         return _code_for(out)
 
-    # !! THE SERIALIZE IS THE CONTAINER'S AND THE DUMP IS THE FLOW'S --
-    # `decision-log.md Process: #65`, `#67`, as `collate` saves.
-    # ! A COMMITTED `DispositionsWritten` ALWAYS CARRIES A CHIEF COPY -- the
-    # field is optional because another handler on this bus may have no copy
-    # to write, and the guard is what says so rather than an assertion.
+    # The serialize is the container's and the dump is the flow's
+    # (`decision-log.md Process: #65`, `#67`), as `collate` saves. A committed
+    # `DispositionsWritten` always carries a chief copy; the field is optional
+    # because another handler on this bus may have no copy to write, and the
+    # guard is what says so rather than an assertion.
     if result.chief is not None:
         save_copy(Path(args.out), result.chief)
         places = sum(len(sheet.marks) for sheet in result.chief.sheets)

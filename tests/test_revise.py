@@ -159,6 +159,33 @@ class TestDocketOf:
             "the snippet is not in the origin" in one for one in raised.value.reasons
         )
 
+    def test_a_mark_the_envelope_refused_stops_the_docket(self, tmp_path):
+        """A mark that would not read is on no sheet the fold walks, so
+        transcribing the rest would drop that place from the docket without a
+        word -- which is how a landing goes missing from a run that reports
+        nothing wrong. Measured on the chief's own copy, whose synthesized add
+        at an empty place carried an anchor the parse refuses."""
+        root = tmp_path / "repo"
+        copy = a_copy(
+            root,
+            "block-context",
+            {"m.py@b1": "# a paragraph\n", "m.py@b2": "# another\n"},
+            {
+                "m.py@b1": a_correct_setting("m.py@b1", "a paragraph", "# corrected"),
+                "m.py@b2": a_clean("m.py@b2"),
+            },
+        )
+        wire = copy.serialize()
+        for sheet in wire["sheets"]:
+            for mark in sheet["marks"]:
+                if mark["address"] == "m.py@b2":
+                    mark["instruction"] = "add"
+                    mark["claim"] = {"missing": "a note", "anchor": "no backticks"}
+        with pytest.raises(CannotTranscribe) as raised:
+            docket_of(returned(wire, "chief"), root)
+        assert any("m.py@b2" in one for one in raised.value.reasons)
+        assert any("anchor" in one for one in raised.value.reasons)
+
     def _a_correction_and_a_move_into_it(self, root, reads: str):
         """One role correcting `m.py@b1` and moving `m.py@b2`'s comment into it.
 
