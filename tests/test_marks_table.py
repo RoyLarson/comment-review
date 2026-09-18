@@ -259,3 +259,83 @@ def test_chief_mark_synthesizes_a_drop_when_the_decided_text_is_empty():
     assert got.claim == {"drop": BASE}
     assert got.change == ""
     assert got.raw_text == BASE
+
+
+def test_chief_mark_does_not_turn_on_the_order_the_copies_were_handed_over():
+    """The same place, built from the same two copies dispatched two ways.
+
+    !! `places_of` APPENDS IN THE ORDER THE COPIES CAME, which is the order a
+    command's `--edit-copy` flags happened to be typed in. Both of this
+    function's answers used to ride on that: which of two marks setting one
+    text is returned, and the order the sources stand in on a synthesized
+    mark. It reads the filed marks in role order instead, so one hand of
+    copies gives one mark however it was dealt.
+
+    ! IT IS `tests/test_collate.py::TestTheChiefsCopy::
+    test_sources_and_reason_AGREE_on_the_roles_ORDER` ASKED OF THE NEW PATH.
+    That case measured the old fold's composed mark against "the order
+    `edit_copies` happened to be handed in, which is not a property of the
+    data"; it went with the fold, and this is the claim it was making.
+    """
+    zebra = _mark(
+        Instruction.CORRECT,
+        claim={"false": "two", "true": "2"},
+        change="# one\n# 2\n# three\n",
+        sources=({"cite": "zebra.py:1", "verbatim": "x = 1"},),
+    )
+    apple = _mark(
+        Instruction.CORRECT,
+        claim={"false": "three", "true": "3"},
+        change="# one\n# two\n# 3\n",
+        sources=({"cite": "apple.py:1", "verbatim": "y = 2"},),
+    )
+    composed = "# one\n# 2\n# 3\n"
+
+    def at(filed: list) -> Mark:
+        return chief_mark(
+            Place(
+                address="m.py@b1",
+                anchor="x = 1",
+                base=BASE,
+                filed=filed,
+                text=composed,
+            )
+        )
+
+    dealt = [
+        Filed("zebra-context", zebra, Touch.OWN),
+        Filed("apple-context", apple, Touch.OWN),
+    ]
+    assert at(dealt) == at(list(reversed(dealt)))
+    # `Mark.sources` is `tuple[object, ...]` deliberately -- a source that is
+    # not an object is carried so `source_problems` can refuse it by name -- so
+    # a test reading `cite` off one says it is reading a well-formed source.
+    cites = []
+    for source in at(dealt).sources:
+        assert isinstance(source, dict), source
+        # Declared, not narrowed -- `ty` loses an isinstance narrow at the
+        # subscript, the same reason `EditCopy.deserialize` gives.
+        held: dict = source
+        cites.append(held["cite"])
+    assert cites == ["apple.py:1", "zebra.py:1"]
+
+
+def test_chief_mark_takes_in_the_first_side_by_role_where_two_set_one_text():
+    """The other half: two roles whose marks both set the decided text. The
+    one returned is the first by role, not the first dealt."""
+    text = "# one\n# 2\n# three\n"
+    fields = {"claim": {"false": "two", "true": "2"}, "change": text}
+    zebra = _mark(Instruction.CORRECT, reason="zebra's", **fields)
+    apple = _mark(Instruction.CORRECT, reason="apple's", **fields)
+    dealt = [
+        Filed("zebra-context", zebra, Touch.OWN),
+        Filed("apple-context", apple, Touch.OWN),
+    ]
+
+    def at(filed: list) -> Mark:
+        return chief_mark(
+            Place(address="m.py@b1", anchor="x = 1", base=BASE, filed=filed, text=text)
+        )
+
+    assert at(dealt).reason == "apple's"
+    assert at(list(reversed(dealt))).reason == "apple's"

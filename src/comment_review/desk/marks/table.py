@@ -251,6 +251,32 @@ INSTRUCTIONS: dict[Instruction, Row] = {
 }
 
 
+def _in_role_order(place: "Place") -> list:
+    """This place's filed marks, by role, then as that role filed them.
+
+    !! THE ORDER IS A PROPERTY OF THE DATA, NOT OF THE DISPATCH.
+    `flows.places.places_of` appends in the order the copies were handed over,
+    which is the order a command's `--edit-copy` flags happened to be typed in.
+    Reading `place.filed` as it stands makes both of `chief_mark`'s answers
+    turn on that: which of two marks setting the same text is returned, and
+    the order of the sources carried onto a synthesized mark.
+
+    ! IT REPLACES A CHECK THE OLD FOLD HAD. `tests/test_collate.py::
+    TestTheChiefsCopy::test_sources_and_reason_AGREE_on_the_roles_ORDER`
+    asserted the same thing of the composed mark that flow built, against
+    "the order `edit_copies` happened to be handed in, which is not a
+    property of the data".
+
+    Args:
+        place: the place whose marks are being read.
+
+    Returns:
+        The `Filed` entries, sorted by role. `sorted` is stable, so each
+        role's own marks keep the order it filed them in.
+    """
+    return sorted(place.filed, key=lambda one: one.role)
+
+
 def chief_mark(place: "Place") -> Mark:
     """The chief's mark at one decided place -- the side taken in, or synthesized.
 
@@ -259,6 +285,10 @@ def chief_mark(place: "Place") -> Mark:
     unchanged. Otherwise synthesizes one: a drop where the decided text is
     empty, a correct where the base held a paragraph, an add where it did
     not.
+
+    The marks are read in role order, so which mark is returned and which
+    order its sources stand in are the same on every run -- see
+    `_in_role_order`.
 
     Args:
         place: a decided place -- `place.text` is not None.
@@ -272,7 +302,8 @@ def chief_mark(place: "Place") -> Mark:
             the fold already decided a text for; `chief_copy_of` filters
             those out before calling this.
     """
-    for filed in place.filed:
+    filed_marks = _in_role_order(place)
+    for filed in filed_marks:
         row = INSTRUCTIONS[filed.mark.instruction]
         if row.sets(filed.mark, filed.touch, place.base) == place.text:
             return filed.mark
@@ -289,7 +320,7 @@ def chief_mark(place: "Place") -> Mark:
     # without them is one the parse refuses -- and the chief read those marks
     # to decide the text, so they are what stands behind it. Deduped in
     # place, since a source is a dict and cannot go through a set.
-    cited = [source for one in place.filed for source in one.mark.sources]
+    cited = [source for one in filed_marks for source in one.mark.sources]
     sources = tuple(s for i, s in enumerate(cited) if s not in cited[:i])
     if text == "":
         return Mark(
