@@ -1242,7 +1242,8 @@ $Stages = [ordered]@{
         Invoke-Checked -Stage 'second correct' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $secondCopy, '--address', 'fib.py@a0',
             '--instruction', 'correct',
-            '--false', 'why it is counted', '--true', 'why the count matters',
+            '--false', "@$(Join-Path $Run 'second-a0-false.txt')",
+            '--true', "@$(Join-Path $Run 'second-a0-true.txt')",
             '--reason', 'what the count is for is the point, not that it happens',
             '--cite', 'fib.py:1', '--repo', $ProofDir
         ))

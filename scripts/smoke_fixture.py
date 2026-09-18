@@ -1334,20 +1334,34 @@ SECOND_CLEAN = (
 )
 
 
-def write_second_plant(run: Path) -> Path:
-    """Write the second stage's clean list, for the smoke script to loop over.
+def write_second_plant(run: Path) -> dict[str, Path]:
+    """Write the second stage's clause files and its clean list.
+
+    One file per key of `SECOND_CLAIM`, which the stage's `mark` call passes
+    by `@path` as every other clause in the plant is passed, and
+    `second-clean.json`, which the smoke script loops over. Named with the
+    stage's own prefix rather than through `file_for`, since the revise
+    spells its addresses the way the original does and a file named for
+    `fib.py@a0` would be the first stage's to name.
 
     Args:
         run: the run directory the smoke script writes into.
 
     Returns:
-        The path written, `second-clean.json`.
+        one path per file written, keyed by the `SECOND_CLAIM` key, plus
+        `"clean"` for `second-clean.json`.
     """
-    path = run / "second-clean.json"
-    path.write_text(
+    paths = {}
+    for key, value in SECOND_CLAIM.items():
+        path = run / f"second-a0-{key}.txt"
+        path.write_text(value, encoding="utf-8", newline="\n")
+        paths[key] = path
+    clean = run / "second-clean.json"
+    clean.write_text(
         json.dumps(list(SECOND_CLEAN)) + "\n", encoding="utf-8", newline="\n"
     )
-    return path
+    paths["clean"] = clean
+    return paths
 
 
 #: What the second stage's proof must read, written out by hand from

@@ -18,6 +18,7 @@ from conftest import ROOT
 
 sys.path.insert(0, str(ROOT / "scripts"))
 import smoke_fixture  # noqa: E402
+from smoke_fixture import write_second_plant as smoke_second_plant  # noqa: E402
 
 from comment_review.desk.answers.table import ANSWERS as ANSWER_ROWS  # noqa: E402
 from comment_review.desk.dispositions.disposition import ORIGINAL  # noqa: E402
@@ -303,6 +304,25 @@ class TestTheSecondStageRulesTheRevisesOwnPlaces(unittest.TestCase):
         false = smoke_fixture.SECOND_CLAIM["false"]
         self.assertIn(false, smoke_fixture.EXPECTED)
         self.assertNotIn(false, smoke_fixture.FIXTURE)
+
+    def test_write_second_plant_writes_the_clauses_and_the_clean_list(self):
+        """The stage's `mark` call reads its clauses by `@path`, as every
+        other clause in the plant does, so the script spells no clause of its
+        own beside the table's."""
+        with tempfile.TemporaryDirectory() as tmp:
+            run = Path(tmp)
+            paths = smoke_second_plant(run)
+            self.assertEqual(set(paths), {*smoke_fixture.SECOND_CLAIM, "clean"})
+            for key, value in smoke_fixture.SECOND_CLAIM.items():
+                self.assertEqual(paths[key], run / f"second-a0-{key}.txt", key)
+                self.assertEqual(paths[key].read_bytes().decode("utf-8"), value, key)
+            self.assertEqual(paths["clean"], run / "second-clean.json")
+            listed = json.loads(paths["clean"].read_bytes())
+            self.assertEqual(listed, list(smoke_fixture.SECOND_CLEAN))
+            self.assertEqual(
+                {p.name for p in run.iterdir()},
+                {p.name for p in paths.values()},
+            )
 
     def test_the_second_expected_keeps_what_the_first_stage_left_alone(self):
         """A paragraph neither stage changed is still on the page: the defect
