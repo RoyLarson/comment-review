@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 7 tasks closed
+Progress: 3 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-14 (docs/superpowers/specs/2026-09-14-the-middle-rebuilt-design.md)
@@ -19,8 +19,9 @@ The middle folds through three tables, an evaluator and a Unit of Work.
       nothing else names a row
 - [x] T2 | desk/evaluate holds Place, the six states and marks_pass, answers_pass, dispositions_pass and evaluate; tests/test_passes.py and tests/test_place.py | 90b80310 | Implement
       the place, its six states and the three passes in desk/evaluate
-- [ ] T3 | Implement the Unit of Work in desk/work and the bus in flows, and
-      switch collate to it
+- [x] T3 | desk/work holds the Fold and its events, flows/bus.py the collate handler; commands/collate.py folds through it; tests/test_bus.py, test_fold.py | b2538cb5 | Implement
+      the Unit of Work in desk/work and the bus in flows, and switch collate to
+      it
         > 2026-09-14 Fold and events landed at 1ef041f3; bus and collate switch remain
 - [ ] T4 | Implement the turn and disposition handlers and switch both commands
       to the bus
