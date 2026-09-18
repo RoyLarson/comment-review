@@ -353,20 +353,56 @@ def dispositions_pass(place: Place) -> Place:
     return _set(place, State.STANDS, text=text)
 
 
-def evaluate(place: Place, turn: int = 0, partner: Place | None = None) -> Place:
-    """Run the marks pass, every turn's answers pass, then the dispositions pass.
+def decide(places: dict[str, Place], turn: int = 0) -> dict[str, Place]:
+    """Every place decided, in the one order the passes may run in.
+
+    The marks and then each turn's answers, per place; `pair_moves`, which
+    gives a move's two ends their one state; the chief's dispositions; and
+    `pair_moves` again, so an end the chief's ruling refused takes its partner
+    with it.
+
+    !! THE DISPOSITIONS PASS READS THE PAIRED STATE, AND DID NOT UNTIL
+    2026-09-18. It ran inside a per-place `evaluate` with the pairing after
+    all of them, so the chief's ruling was measured against the state an end
+    reaches ALONE. MEASURED through the commands: a move whose origin nobody
+    else marked is `agreed` by itself and `contested` once paired, so a run
+    that reported both ends contested, put them to both roles and wrote
+    `contested` on the proof then refused every ruling the chief made with
+    *"taken_in cannot close a place that is agreed"* -- at a place its own
+    report had just called contested. The chief could not close a contested
+    move at all.
+
+    !! AND IT IS A FUNCTION OF THE PLACES, NOT OF ONE PLACE, for that reason.
+    `evaluate(place, turn, partner)` was the entry point and its order was the
+    defect; a caller holding one place cannot pair anything, so there is no
+    single-place entry left to call in the wrong order. The passes stay public
+    and a test drives them one at a time; what is gone is the function that
+    looked like the whole sequence and was not.
 
     Args:
-        place: the place to decide, from its own record alone.
-        turn: the turn to decide it at -- every answer up to it is applied.
-        partner: the other end, where this place is one end of a move. The
-            fold hands it over because a move is one mark at two places and
-            the roles owed a say about it are the same at both ends.
+        places: address -> the place, each from its own record. Mutated in
+            place and returned, as the passes themselves do.
+        turn: the turn to decide at -- every answer up to it is applied.
+
+    Returns:
+        `places`, decided.
     """
-    marks_pass(place, partner)
-    for t in range(1, turn + 1):
-        answers_pass(place, t, partner)
-    return dispositions_pass(place)
+    for place in places.values():
+        partner = places.get(place.partner or "")
+        marks_pass(place, partner)
+        for t in range(1, turn + 1):
+            answers_pass(place, t, partner)
+    pair_moves(places)
+    for place in places.values():
+        dispositions_pass(place)
+    # ! THE SECOND PAIRING IS THE CHIEF'S OWN REFUSAL TRAVELLING. Two ends the
+    # chief closed are both `stands`, so it changes nothing there -- the guard
+    # only touches an end whose state is not the worse of the two, and each
+    # keeps the text its own ruling set. What it carries is a ruling the pass
+    # refused: a move refused at one end rolls back both, as it does when the
+    # refusal comes from the marks.
+    pair_moves(places)
+    return places
 
 
 def _from_sides(
@@ -399,7 +435,14 @@ def _from_sides(
                 owed=owed,
             )
         state = State.STANDS if len(sides) == 1 else State.AGREED
-        return _set(place, state, text=text)
+        # !! THE SIDES ARE KEPT, AND WERE DROPPED HERE UNTIL 2026-09-18. They
+        # are what the roles proposed, which is a fact about the marks and not
+        # about the state the place came to -- and a move's origin that stands
+        # alone is carried forward by its partner, where the chief's
+        # `taken_in` names a side and found none to name. MEASURED: the ruling
+        # was refused with *"'block-context' proposed nothing here"* at a
+        # place that role had moved a paragraph out of.
+        return _set(place, state, text=text, sides=sides)
     try:
         composed = compose(place.base, sides)
     except CannotCompose:

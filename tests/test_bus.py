@@ -6,6 +6,7 @@ from helpers import (
     a_clean,
     a_correct_citing,
     a_correct_setting,
+    a_move,
     a_query,
     a_real_binder_over,
     copies_over,
@@ -306,6 +307,102 @@ def test_a_recast_at_a_still_contested_place_puts_the_chiefs_prose_on_its_copy(
     assert closed.chief is not None
     assert _changes_on(closed.chief) == [RECAST]
     assert _state_at(closed.proof, PLACE) == "stands"
+
+
+#: block-context moves b1's middle line to b2, which reads with it at the end;
+#: function-context corrects b2, contesting the destination and pairing the
+#: origin to it. Both ends are carried forward and the chief rules them.
+A_CONTESTED_MOVE = {
+    "block-context": {
+        PLACE: a_move(PLACE, "m.py@b2", change="# two\n", reads=OTHER + "# two\n"),
+        "m.py@b2": a_clean("m.py@b2"),
+    },
+    "function-context": {
+        PLACE: a_clean(PLACE),
+        "m.py@b2": a_correct_setting("m.py@b2", "five", "# four\n# 5\n# six"),
+    },
+}
+#: The origin's paragraph with the moved line taken out of it.
+REMAINDER = "# one\n# three"
+MOVED_TO = OTHER + "# two\n"
+CHIEFS_OWN = OTHER + "# two, as the chief words it\n"
+
+
+def _ruling(address, name, **fields):
+    return {"address": address, "answer": name, "reason": "the chief's", **fields}
+
+
+def test_the_chief_closes_a_contested_move_at_each_of_its_ends(tmp_path):
+    """!! THE ORIGIN IS THE CASE. Nobody marked it but the mover, so it
+    reaches `stands` alone and is carried forward only because its partner
+    is. The dispositions pass read that un-paired state until 2026-09-18 and
+    refused every ruling the chief made with *"cannot close a place that is
+    agreed"* -- at a place this same handler had just reported contested.
+    """
+    collated = _collated(tmp_path, A_CONTESTED_MOVE)
+    assert _state_at(collated.proof, PLACE) == "contested"
+    assert _state_at(collated.proof, "m.py@b2") == "contested"
+    out, closed = handle(
+        DispositionsWritten(
+            collated.proof,
+            [
+                _ruling(PLACE, "taken_in", side="block-context"),
+                _ruling("m.py@b2", "taken_in", side="block-context"),
+            ],
+        )
+    )
+    assert closed is not None, out
+    assert events.Settled(PLACE, REMAINDER) in out
+    assert events.Settled("m.py@b2", MOVED_TO) in out
+    assert _state_at(closed.proof, PLACE) == "stands"
+    assert _state_at(closed.proof, "m.py@b2") == "stands"
+
+
+def test_the_chief_may_take_a_moves_origin_in_and_recast_its_destination(tmp_path):
+    collated = _collated(tmp_path, A_CONTESTED_MOVE)
+    out, closed = handle(
+        DispositionsWritten(
+            collated.proof,
+            [
+                _ruling(PLACE, "taken_in", side="block-context"),
+                _ruling("m.py@b2", "recast", prose=CHIEFS_OWN),
+            ],
+        )
+    )
+    assert closed is not None, out
+    assert closed.chief is not None
+    assert events.Settled(PLACE, REMAINDER) in out
+    assert events.Settled("m.py@b2", CHIEFS_OWN) in out
+    # The chief's copy writes the pair as the two rulings decided it, and the
+    # move is not taken in: its destination closed on the chief's own prose
+    # rather than on what the move sets there, so writing the move would land
+    # a paragraph the chief ruled against.
+    placed = [
+        (mark.address, str(mark.instruction), mark.change)
+        for sheet in closed.chief.sheets
+        for mark in sheet.marks
+    ]
+    assert placed == [
+        (PLACE, "correct", REMAINDER),
+        ("m.py@b2", "correct", CHIEFS_OWN),
+    ]
+
+
+def test_a_move_ruled_at_one_end_only_is_refused_for_the_other(tmp_path):
+    collated = _collated(tmp_path, A_CONTESTED_MOVE)
+    out, closed = handle(
+        DispositionsWritten(
+            collated.proof, [_ruling(PLACE, "taken_in", side="block-context")]
+        )
+    )
+    assert closed is None
+    assert (
+        "copy-chief",
+        "m.py@b2",
+        "carried forward and not ruled on -- it was put to block-context,"
+        " function-context",
+    ) in _refusals(out)
+    assert any(isinstance(one, events.RolledBack) for one in out)
 
 
 def test_a_disposition_at_an_unsettlable_place_is_refused(tmp_path):

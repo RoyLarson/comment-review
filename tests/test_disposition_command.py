@@ -36,8 +36,13 @@ from comment_review.desk.marks.mark import Instruction, Shape
 from comment_review.flows.distribute import seed
 from comment_review.flows.fill import fill
 from comment_review.flows.proof_io import load_proof
+from comment_review.flows.transcribe import docket_of
 
 RECAST = "# one\n# both\n# three\n"
+
+
+def _taken_in(address: str, side: str, reason: str) -> dict:
+    return {"address": address, "answer": "taken_in", "side": side, "reason": reason}
 
 
 def _closed(tmp_path):
@@ -197,15 +202,20 @@ class TestAMoveHeldForTheHuman:
         ), out
 
 
-class TestAContestedMoveIsRuledWhole:
-    """A move's two places take one state, so the chief owes a ruling at both.
+class TestTheChiefRulesEachEndOfAMove:
+    """The chief's ruling at each end of a contested move takes effect there.
 
-    Ported from `tests/test_turn.py::TestTheChiefRulesEachEndOfAMove`, which
-    asked the old flow whether a ruling at one end took effect on its own.
-    What the new path holds is the half below: a ruling at one end alone
-    leaves the other carried forward and unruled, and the round is refused by
-    name. Whether the chief may rule the two ends DIFFERENTLY is an open
-    question -- see the task report; it is not asserted here either way.
+    Ported from `tests/test_turn.py::TestTheChiefRulesEachEndOfAMove`, and
+    restored 2026-09-18. A move's two places take one state, so the chief owes
+    a ruling at both; what each end closes on is its own ruling's, and the two
+    need not name one side.
+
+    !! THE ORIGIN IS THE CASE. Nobody marked it but the mover, so it reaches
+    `stands` alone and is carried forward only because its partner is. The
+    dispositions pass ran before `pair_moves` and read that un-paired state,
+    so every ruling the chief made was refused with *"cannot close a place
+    that is agreed"* -- at a place the same run had just reported contested.
+    `desk.evaluate.passes.decide` is the order now.
     """
 
     TEXTS = {"m.py@b1": "# one\n# two\n# three\n", "m.py@b2": "# four\n# five\n# six\n"}
@@ -226,12 +236,21 @@ class TestAContestedMoveIsRuledWhole:
             "m.py@b2": a_correct_setting("m.py@b2", "five", "# four\n# 5\n# six\n"),
         },
     }
+    #: The origin's paragraph with the moved line taken out of it, and the
+    #: destination's as the move says it will read.
+    REMAINDER = "# one\n# three"
+    MOVED_TO = "# four\n# five\n# six\n# two\n"
+    CHIEFS_OWN = "# four\n# five\n# six\n# two, as the chief words it\n"
+
+    def _ruled(self, tmp_path, monkeypatch, capsys, rulings):
+        deal(tmp_path, monkeypatch, capsys, self.PLANT, self.TEXTS)
+        return disposition(tmp_path, monkeypatch, capsys, rulings, proof="proof0.json")
 
     def test_both_ends_are_carried_forward_together(
         self, tmp_path, monkeypatch, capsys
     ):
         """The case has to be able to fail: the chief is owed a ruling at two
-        places, not one."""
+        places, not one, and both are contested before anything rules them."""
         code = deal(tmp_path, monkeypatch, capsys, self.PLANT, self.TEXTS)
         assert code == collate_command.ESCALATIONS
         proof, why = load_proof(tmp_path / "proof0.json")
@@ -241,27 +260,101 @@ class TestAContestedMoveIsRuledWhole:
             "m.py@b2": "contested",
         }
 
-    def test_a_ruling_at_one_end_alone_is_BROKEN_naming_the_other(
+    def test_a_taken_in_at_each_end_closes_the_move(
         self, tmp_path, monkeypatch, capsys
     ):
-        deal(tmp_path, monkeypatch, capsys, self.PLANT, self.TEXTS)
-        code, out = disposition(
+        code, out = self._ruled(
             tmp_path,
             monkeypatch,
             capsys,
             [
-                {
-                    "address": "m.py@b1",
-                    "answer": "taken_in",
-                    "side": "block-context",
-                    "reason": "the move stands",
-                }
+                _taken_in("m.py@b1", "block-context", "the move stands"),
+                _taken_in("m.py@b2", "block-context", "and it lands here"),
             ],
-            proof="proof0.json",
+        )
+        assert code == collate_command.OK, out
+        closed = _closed(tmp_path)
+        assert place_on(closed, "m.py@b1")["text"] == self.REMAINDER
+        assert place_on(closed, "m.py@b2")["text"] == self.MOVED_TO
+        # One entry: `chief_mark` gives the same taken-in mark from either
+        # place, so the move reaches the chief's copy once.
+        assert [
+            (m.address, str(m.instruction)) for m in entries_of(the_chief(tmp_path))
+        ] == [("m.py@b1", "move")]
+
+    def test_a_taken_in_at_one_end_and_a_recast_at_the_other(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        code, out = self._ruled(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            [
+                _taken_in("m.py@b1", "block-context", "the move stands"),
+                {
+                    "address": "m.py@b2",
+                    "answer": "recast",
+                    "reason": "neither wording carries it",
+                    "prose": self.CHIEFS_OWN,
+                },
+            ],
+        )
+        assert code == collate_command.OK, out
+        closed = _closed(tmp_path)
+        assert place_on(closed, "m.py@b1")["text"] == self.REMAINDER
+        assert place_on(closed, "m.py@b2")["text"] == self.CHIEFS_OWN
+        # The move is NOT taken in: its destination closed on the chief's own
+        # prose rather than on what the move sets there, so writing the move
+        # would land a paragraph the chief ruled against. Each end is written
+        # from its own decided text instead.
+        assert [
+            (m.address, str(m.instruction), m.change)
+            for m in entries_of(the_chief(tmp_path))
+        ] == [
+            ("m.py@b1", "correct", self.REMAINDER),
+            ("m.py@b2", "correct", self.CHIEFS_OWN),
+        ]
+
+    def test_the_docket_sets_each_end_as_its_own_ruling_decided_it(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """The chief's copy through `flows.transcribe.docket_of`, which is what
+        `proof --to-docket` runs: the origin keeps what the snippet left and
+        the destination takes the chief's own paragraph."""
+        self._ruled(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            [
+                _taken_in("m.py@b1", "block-context", "the move stands"),
+                {
+                    "address": "m.py@b2",
+                    "answer": "recast",
+                    "reason": "neither wording carries it",
+                    "prose": self.CHIEFS_OWN,
+                },
+            ],
+        )
+        docket = docket_of(the_chief(tmp_path), tmp_path / "repo")
+        (schedule,) = docket.schedules
+        assert [(one.cue, one.text) for one in schedule.alterations] == [
+            ("b1", self.REMAINDER),
+            ("b2", self.CHIEFS_OWN),
+        ]
+
+    def test_a_ruling_at_one_end_alone_is_BROKEN_naming_the_other(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        code, out = self._ruled(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            [_taken_in("m.py@b1", "block-context", "the move stands")],
         )
         assert code == collate_command.BROKEN, out
         assert "copy-chief m.py@b2: carried forward and not ruled on" in out, out
         assert not (tmp_path / "final.json").exists()
+        assert not (tmp_path / "chief.json").exists()
 
 
 #: The two paragraphs the add cases stand between: `m.py@b2` is the gap they

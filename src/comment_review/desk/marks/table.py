@@ -277,7 +277,49 @@ def _in_role_order(place: "Place") -> list:
     return sorted(place.filed, key=lambda one: one.role)
 
 
-def chief_mark(place: "Place") -> Mark:
+def _sets_both_ends(filed, place: "Place", partner: "Place | None") -> bool:
+    """Whether this mark sets the decided text at BOTH the places it touches.
+
+    !! A MARK TAKEN IN AT ONE PLACE IS PLACED AT EVERY PLACE IT TOUCHES, so
+    taking in a `move` at its origin writes its destination too. That is right
+    only while the destination closed on what the move sets there. The chief
+    rules the two ends with two dispositions and may recast one of them, and
+    then the move is not what happened: the origin must be written as its own
+    remainder instead, or the chief's copy carries a move to a place that is
+    about to hold different prose. MEASURED 2026-09-18, before this: a
+    `taken_in` at the origin beside a `recast` at the destination put a `move`
+    and a `correct` on the chief's copy, both landing at the destination, and
+    `flows.transcribe.docket_of` refused the copy -- *"its marks here edit the
+    same sentence and do not compose"* -- so the chief's own ruling reached no
+    docket.
+
+    Args:
+        filed: one `Filed` entry at `place`.
+        place: the place being written.
+        partner: the other end, where this place is one end of a move.
+
+    Returns:
+        True for a mark that touches its own place alone, which is every row
+        but `move`. For a two-place mark, whether the partner is decided and
+        its text is what this mark sets there.
+    """
+    row = INSTRUCTIONS[filed.mark.instruction]
+    if row.touches == (Touch.OWN,):
+        return True
+    if partner is None or partner.text is None:
+        return False
+    # Compared by value, not by identity: a place read back off a proof
+    # deserializes its own marks, so the one mark filed at both ends of a move
+    # is two equal objects once the stage has crossed the wire.
+    return any(
+        INSTRUCTIONS[one.mark.instruction].sets(one.mark, one.touch, partner.base)
+        == partner.text
+        for one in partner.filed
+        if one.mark == filed.mark
+    )
+
+
+def chief_mark(place: "Place", partner: "Place | None" = None) -> Mark:
     """The chief's mark at one decided place -- the side taken in, or synthesized.
 
     Returns the filed mark whose row sets `place.text` at this place, where
@@ -288,10 +330,14 @@ def chief_mark(place: "Place") -> Mark:
 
     The marks are read in role order, so which mark is returned and which
     order its sources stand in are the same on every run -- see
-    `_in_role_order`.
+    `_in_role_order`. A mark that touches two places is taken in only where
+    both of them closed on what it sets -- see `_sets_both_ends`.
 
     Args:
         place: a decided place -- `place.text` is not None.
+        partner: the other end, where this place is one end of a move. Without
+            it a two-place mark is never taken in, so a caller that has the
+            other end hands it over.
 
     Returns:
         The taken-in `Mark`, or a synthesized one whose `reason` names the
@@ -305,7 +351,9 @@ def chief_mark(place: "Place") -> Mark:
     filed_marks = _in_role_order(place)
     for filed in filed_marks:
         row = INSTRUCTIONS[filed.mark.instruction]
-        if row.sets(filed.mark, filed.touch, place.base) == place.text:
+        if row.sets(filed.mark, filed.touch, place.base) != place.text:
+            continue
+        if _sets_both_ends(filed, place, partner):
             return filed.mark
 
     text = place.text

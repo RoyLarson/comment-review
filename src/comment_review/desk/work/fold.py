@@ -1,15 +1,21 @@
 """The Unit of Work: one fold over the places of a stage.
 
-It evaluates every place, pairs a move's two ends, and commits -- every place
-decided, no place refused -- or rolls back, in which case the flow saves
-nothing and the events are the report. It reads no file and knows no
-container of the read or write end; the flow derives the places and saves
-the result (`decision-log.md Process: #171` and the design of 2026-09-14).
+It hands the places to `desk.evaluate.passes.decide`, which runs the passes in
+their one order, and commits -- every place decided, no place refused -- or
+rolls back, in which case the flow saves nothing and the events are the
+report. It reads no file and knows no container of the read or write end; the
+flow derives the places and saves the result (`decision-log.md Process: #171`
+and the design of 2026-09-14).
+
+! THE ORDER IS `decide`'s AND NOT THIS MODULE'S, since 2026-09-18. This ran
+the passes per place and paired afterwards, which put the chief's disposition
+before the pairing and made a contested move impossible to close; the sequence
+lives with the passes now, where nothing can call them in another order.
 """
 
 from dataclasses import dataclass, field
 
-from comment_review.desk.evaluate.passes import evaluate, pair_moves
+from comment_review.desk.evaluate.passes import decide
 from comment_review.desk.evaluate.place import Place
 from comment_review.desk.evaluate.state import CARRIED, State
 from comment_review.desk.marks.table import Touch
@@ -31,15 +37,13 @@ class Fold:
         return self.places if self.committed else {}
 
     def run(self) -> "Fold":
-        """Evaluate every place, pair a move's two ends, commit or roll back.
+        """Decide every place, then commit or roll back.
 
         A place that carries advisory notes reports them beside whatever it
         came to, and the fold commits over them: an `Advised` is for the
         chief to read, not a reason to give up the round.
         """
-        for place in self.places.values():
-            evaluate(place, self.turn, self.places.get(place.partner or ""))
-        pair_moves(self.places)
+        decide(self.places, self.turn)
         refused = 0
         for address in sorted(self.places):
             place = self.places[address]

@@ -73,7 +73,10 @@ def chief_copy_of(
     A move reached from both of its places (its origin and its destination)
     contributes one entry: `chief_mark` returns the same taken-in `Mark` --
     whose own `address` is always the origin -- from either place, so a mark
-    equal to one already placed on that page is skipped.
+    equal to one already placed on that page is skipped. It is taken in only
+    where both ends closed on what it sets, which is why the partner is
+    handed over: a move whose destination the chief recast is not what
+    happened, and each end is then written from its own decided text.
 
     Args:
         decided: address -> the `Place` the fold settled it at.
@@ -91,7 +94,7 @@ def chief_copy_of(
         place = decided[address]
         if place.text is None:
             continue
-        mark = chief_mark(place)
+        mark = chief_mark(place, decided.get(place.partner or ""))
         placed = by_path.setdefault(cue_of(mark.address).path, [])
         if mark not in placed:
             placed.append(mark)

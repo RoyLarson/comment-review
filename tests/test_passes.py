@@ -4,8 +4,8 @@ from comment_review.desk.answers.answer import Answer, Question
 from comment_review.desk.dispositions.disposition import ORIGINAL, Disposition
 from comment_review.desk.evaluate.passes import (
     answers_pass,
+    decide,
     dispositions_pass,
-    evaluate,
     marks_pass,
     pair_moves,
     sides_of,
@@ -577,14 +577,120 @@ def test_a_disposition_on_an_unsettlable_place_is_refused():
     assert got.state is State.REFUSED and "unsettlable" in got.reasons[0]
 
 
-def test_evaluate_runs_the_three_in_order():
+def test_decide_runs_the_passes_in_order():
     place = _contested()
     place.answers[1] = {"a": _answer("hold"), "b": _answer("hold")}
     place.disposition = Disposition(
         address="m.py@b1", name="taken_in", side="a", prose="", reason="r"
     )
-    got = evaluate(place, turn=1)
+    got = decide({"m.py@b1": place}, turn=1)["m.py@b1"]
     assert got.state is State.STANDS and got.text == "# one\n# 2\n# three\n"
+
+
+def test_decide_pairs_a_moves_ends_before_the_chief_rules_them():
+    """!! THE ORDER IS THE WHOLE SUBJECT. A move's origin nobody else marked
+    is `agreed` by itself and `contested` once paired, so a disposition read
+    before the pairing is measured against a state no report ever showed --
+    which is how the chief came to be refused at a place the run had just
+    called contested.
+
+    The origin's state before pairing is asserted, so the case cannot pass by
+    the two ends happening to agree.
+    """
+    move = _mark(
+        Instruction.MOVE,
+        change="# two\n",
+        raw_text="# four\n# two\n# five\n",
+        claim={"from": "m.py@b1", "to": "m.py@b5"},
+    )
+    other = _mark(
+        Instruction.CORRECT,
+        change="# four\n# 5\n",
+        claim={"false": "five", "true": "5"},
+        address="m.py@b5",
+    )
+    origin = _place(Filed("a", move, Touch.ORIGIN))
+    destination = _place(
+        Filed("a", move, Touch.DESTINATION),
+        Filed("b", other, Touch.OWN),
+        base="# four\n# five\n",
+        address="m.py@b5",
+    )
+    origin.partner, destination.partner = "m.py@b5", "m.py@b1"
+    assert marks_pass(_place(Filed("a", move, Touch.ORIGIN))).state is State.STANDS
+    places = {"m.py@b1": origin, "m.py@b5": destination}
+    for address, place in places.items():
+        place.disposition = Disposition(
+            address=address, name="taken_in", side="a", prose="", reason="r"
+        )
+    decide(places)
+    assert places["m.py@b1"].state is State.STANDS
+    assert places["m.py@b5"].state is State.STANDS
+
+
+def test_decide_carries_a_refused_ruling_to_the_other_end_of_the_move():
+    """The second pairing: a ruling the dispositions pass refuses takes its
+    partner with it, as a refusal from the marks does."""
+    move = _mark(
+        Instruction.MOVE,
+        change="# two\n",
+        raw_text="# four\n# two\n# five\n",
+        claim={"from": "m.py@b1", "to": "m.py@b5"},
+    )
+    other = _mark(
+        Instruction.CORRECT,
+        change="# four\n# 5\n",
+        claim={"false": "five", "true": "5"},
+        address="m.py@b5",
+    )
+    origin = _place(Filed("a", move, Touch.ORIGIN))
+    destination = _place(
+        Filed("a", move, Touch.DESTINATION),
+        Filed("b", other, Touch.OWN),
+        base="# four\n# five\n",
+        address="m.py@b5",
+    )
+    origin.partner, destination.partner = "m.py@b5", "m.py@b1"
+    origin.disposition = Disposition(
+        address="m.py@b1", name="taken_in", side="a", prose="", reason="r"
+    )
+    # A side that proposed nothing at the destination: the pass refuses it.
+    destination.disposition = Disposition(
+        address="m.py@b5", name="taken_in", side="nobody", prose="", reason="r"
+    )
+    places = decide({"m.py@b1": origin, "m.py@b5": destination})
+    assert places["m.py@b5"].state is State.REFUSED
+    assert places["m.py@b1"].state is State.REFUSED
+
+
+def test_decide_leaves_a_held_move_holding_both_ends_and_deciding_no_text():
+    """`decision-log.md Process: #182`, against the reorder: the pairing still
+    runs before anything could close either end, and a held move decides no
+    text at either."""
+    move = _mark(
+        Instruction.MOVE,
+        change=BASE,
+        raw_text=BASE,
+        claim={"from": "m.py@b1", "to": "m.py@b5"},
+    )
+    query = _mark(
+        Instruction.QUERY,
+        claim={
+            "shape": str(Shape.HUMAN_REVIEW_NECESSARY),
+            "attempted": "read it",
+            "settles": "human",
+        },
+    )
+    origin = _place(Filed("a", move, Touch.ORIGIN), Filed("b", query, Touch.OWN))
+    destination = _place(
+        Filed("a", move, Touch.DESTINATION), base="", address="m.py@b5"
+    )
+    origin.partner, destination.partner = "m.py@b5", "m.py@b1"
+    places = decide({"m.py@b1": origin, "m.py@b5": destination})
+    assert places["m.py@b1"].state is State.UNSETTLABLE
+    assert places["m.py@b5"].state is State.UNSETTLABLE
+    assert places["m.py@b5"].text is None
+    assert places["m.py@b1"].text is None
 
 
 def test_a_correct_that_drops_an_unnamed_word_is_noted_and_still_settles():
