@@ -4883,3 +4883,43 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   the answer and disposition vocabularies are as ruled to date and no further. Out of scope then
   and out now: addresses for external documents and a move out of the code (`#173`), and `stet`
   as a disposition row.
+
+- **#184.** **The write end reads the proof's decided places** (Roy, 2026-09-18, on the final
+  review of the rebuilt middle, finding C2).
+
+  The proof holds each place's decided text; the chief's copy restated it as marks, found or
+  synthesized, and `proof --copy` folded those marks again. Five defects were that second copy
+  failing to reproduce the first, the last a synthesized `correct` over `patch`-only sides that
+  carried no source and would not parse. Offered -- the write end reads the proof's decided
+  places, or the chief's copy stays the input and the mark is repaired -- Roy chose the decided
+  places. So `proof` transcribes each decided place whose text differs from its base, as the
+  design of 2026-09-14 said; the chief's copy is the readable record of what was decided and no
+  longer an input; `proof --copy` stays for a role's own draft.
+
+- **#185.** **`drift_in` goes, as `#62` ruled** (Roy, 2026-09-18, the same round, finding D3).
+
+  It compared a returned mark's `raw_text` with the binder's paragraph -- two JSON values, no
+  page and no sha -- and since `9b09c234` it rolled the round back. Offered deleting it or
+  keeping it under another name as a check on a hand-edited copy, Roy chose deleting it.
+
+- **#186.** **A short shard or an unruled place rolls the round back** (Roy, 2026-09-18, the
+  same round, finding D4).
+
+  `#63`, `#112` and `#133` had a missing copy or an unruled place route back to the role while
+  the places that did come back settled and the chief's copy was written. The rebuilt fold
+  commits every place or none, and `9b09c234` made both refusals without the question being put
+  to Roy. Asked now -- all or nothing, or settling what came back -- Roy chose all or nothing.
+  So the role is named, nothing is written, and `collate` runs again over the repaired copies;
+  the exit-code halves of `#63`, `#112` and `#133` are superseded, and what each says about
+  naming the role that owes stands.
+
+- **#187.** **The fold's base is the page's text, as `#125` ruled** (Roy, 2026-09-18, the same
+  round, finding D5).
+
+  The collate handler handed the fold the binder's paragraph text, and an empty string for a
+  place the binder lacks, so an `add` or a `move` there was measured against nothing and first
+  refused at `proof`, after the author approved. `#125`'s drop was recorded nowhere. Offered --
+  the binder's text with a refusal for a place it lacks, or the page per `#125` -- Roy chose the
+  page. So the collate handler reads each touched place's text from the page, as `mark`,
+  `check` and `proof` do; the turn and the disposition go on reading the places the proof
+  carries.
