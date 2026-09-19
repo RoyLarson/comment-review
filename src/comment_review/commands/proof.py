@@ -1,12 +1,16 @@
 """The `proof` command: its argument parsing and its exit code.
 
     comment_review proof --proof P.json --repo . --out DIR
+    comment_review proof --proof P.json --only ADDRESS --repo . --out DIR
 
 The work is `flows.revise.pull`; this is only the console face of it.
 
 The input is the closed master proof, ruled `decision-log.md Process: #184`:
 its decided places are what the write end sets. `--copy` takes a role's own
 edit_copy instead, for that role's own draft.
+
+`--only` is the author's partial approval, ruled `Process: #192`: the places
+they approved, named over that same proof, and nothing set anywhere else.
 
 !! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
 A COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `decision-log.md Process: #12`.
@@ -86,6 +90,19 @@ def main() -> int:
         "--from-docket",
         help="JSON: a docket a --to-docket run wrote -- skips the transcribe",
     )
+    # !! `--only` IS THE PARTIAL APPROVAL -- `decision-log.md Process: #192`.
+    # The author approves some decided places and not others, and what they
+    # ruled is a set of addresses over the proof rather than a second
+    # artifact. Repeatable, and a place it does not name is left as the page
+    # has it.
+    ap.add_argument(
+        "--only",
+        action="append",
+        default=[],
+        metavar="ADDRESS",
+        help="set this decided place alone; repeat for each place the author"
+        " approved (requires --proof)",
+    )
     # !! `--to-docket` STOPS THE RUN AT THE TRANSCRIBE -- `P58`, Roy 2026-09-02:
     # *"we add a --from-docket, --to-docket flags that allow the flow to
     # start/stop in the middle of the flow."* It is also what gives
@@ -113,6 +130,13 @@ def main() -> int:
             "REFUSED: --from-docket and --to-docket are the two ends of the"
             " transcribe, and naming both leaves nothing to run"
         )
+        return 2
+    # ! `--only` FILTERS PLACES, AND ONLY A PROOF HAS ANY. A copy holds marks
+    # and a docket holds alterations already chosen, so the flag has nothing
+    # to filter on either -- an input error rather than a refusal further
+    # down, where it would read as a fact about the file.
+    if args.only and not args.proof:
+        print("REFUSED: --only names places of a closed proof, so it needs --proof")
         return 2
     # !! ONE FORK, ASKED ONCE: is a revise being pulled, or does the run stop at
     # the docket? Every `--out` rule below belongs to the pulling path alone,
@@ -202,8 +226,10 @@ def main() -> int:
         # same console face reports it here as below.
         proof, problems = MasterProof.deserialize(source, loaded)
         try:
-            held = (
-                transcribe.docket_of_proof(proof, repo) if proof is not None else None
+            transcribed = (
+                transcribe.docket_of_proof(proof, repo, only=tuple(args.only) or None)
+                if proof is not None
+                else None
             )
         except transcribe.CannotTranscribe as refused:
             print(
@@ -212,6 +238,13 @@ def main() -> int:
             for line in refused.reasons:
                 print(line)
             return 1
+        held = transcribed.docket if transcribed is not None else None
+        # ! A PLACE THE AUTHOR APPROVED THAT DRAWS NO `<path> -> <draft>` LINE
+        # IS NAMED HERE, or the run says nothing at all about a place they
+        # ruled on. It stands on the text already there, or it is held for
+        # the human and carries no text; neither is a refusal.
+        for address in transcribed.sets_nothing if transcribed else ():
+            print(f"approved {address}: nothing to set")
     else:
         copy, problems = EditCopy.deserialize(source, loaded)
         # The transcribe folds, so it can refuse, and it could not until the

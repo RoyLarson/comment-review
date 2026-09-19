@@ -9,9 +9,13 @@ import json
 import pytest
 from conftest import SAMPLE, SRC, build, run_command
 from helpers import (
+    BASE,
     BOTH_FIXED,
+    TWO,
     TYPOS,
+    a_clean,
     a_correct,
+    a_correct_setting,
     answer,
     copies_over,
     deal,
@@ -345,6 +349,28 @@ def a_closed_proof(tmp_path, monkeypatch, capsys):
     return tmp_path / "proof1.json", tmp_path / "repo"
 
 
+def a_closed_proof_with_a_place_that_stands(tmp_path, monkeypatch, capsys):
+    """One place corrected and one left standing, settled at the first fold.
+
+    The filter's cases need a place the write end sets nothing at, which
+    `a_closed_proof` above has none of: its one place carries a text.
+    """
+    code = deal(
+        tmp_path,
+        monkeypatch,
+        capsys,
+        {
+            "block-context": {
+                "m.py@b1": a_correct_setting("m.py@b1", "two", TWO),
+                "m.py@b2": a_clean("m.py@b2"),
+            }
+        },
+        {"m.py@b1": BASE, "m.py@b2": "# four\n"},
+    )
+    assert code == collate_command.OK
+    return tmp_path / "proof0.json", tmp_path / "repo"
+
+
 class TestProofTakesAClosedProof:
     """`--proof` is the write end's input: the decided places the fold closed
     on, transcribed straight -- `decision-log.md Process: #184`.
@@ -435,6 +461,101 @@ class TestProofTakesAClosedProof:
         assert code == 2, out
         assert "CANNOT READ THE PROOF" in out
         assert not (tmp_path / "r1").exists()
+
+    def test_only_sets_the_named_place_and_leaves_the_rest(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """`decision-log.md Process: #192`: a partial approval is a place
+        filter on the closed proof. The place named is set; the place the
+        author did not approve is left as the page has it."""
+        proof, repo = a_closed_proof(tmp_path, monkeypatch, capsys)
+        code, out = run_command(
+            monkeypatch,
+            capsys,
+            proof_command,
+            "--proof",
+            str(proof),
+            "--repo",
+            str(repo),
+            "--only",
+            PLACE,
+            "--out",
+            str(tmp_path / "r1"),
+        )
+        assert code == 0, out
+        assert BOTH_FIXED in (tmp_path / "r1" / "m.py").read_text(encoding="utf-8")
+
+    def test_an_only_the_proof_does_not_carry_is_refused_by_name(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        proof, repo = a_closed_proof(tmp_path, monkeypatch, capsys)
+        code, out = run_command(
+            monkeypatch,
+            capsys,
+            proof_command,
+            "--proof",
+            str(proof),
+            "--repo",
+            str(repo),
+            "--only",
+            "m.py@b9",
+            "--out",
+            str(tmp_path / "r1"),
+        )
+        assert code == 1, out
+        assert "m.py@b9" in out
+        assert not (tmp_path / "r1").exists()
+
+    def test_a_named_place_with_nothing_to_set_is_named_on_stdout(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """Approving a place that stands on the text already there is not a
+        refusal, and it draws no `<path> -> <draft>` line either -- so the
+        run says so, or the author is told nothing about a place they ruled
+        on. `--only` is repeatable, and this run names two places."""
+        proof, repo = a_closed_proof_with_a_place_that_stands(
+            tmp_path, monkeypatch, capsys
+        )
+        code, out = run_command(
+            monkeypatch,
+            capsys,
+            proof_command,
+            "--proof",
+            str(proof),
+            "--repo",
+            str(repo),
+            "--only",
+            "m.py@b1",
+            "--only",
+            "m.py@b2",
+            "--out",
+            str(tmp_path / "r1"),
+        )
+        assert code == 0, out
+        assert "m.py@b2" in out
+        assert TWO in (tmp_path / "r1" / "m.py").read_text(encoding="utf-8")
+
+    def test_only_without_a_proof_is_an_argument_error(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """! IT FILTERS THE PROOF'S PLACES, and a copy has none: a run naming
+        `--only` beside `--copy` asked for something this command cannot do,
+        which is an input error rather than a refusal further down."""
+        code, out = run_command(
+            monkeypatch,
+            capsys,
+            proof_command,
+            "--copy",
+            "c.json",
+            "--repo",
+            ".",
+            "--only",
+            "m.py@b1",
+            "--out",
+            str(tmp_path / "r1"),
+        )
+        assert code == 2, out
+        assert "--only" in out and "--proof" in out
 
     @pytest.mark.parametrize("other", ["--copy", "--from-docket"])
     def test_the_proof_is_exclusive_with_the_other_inputs(

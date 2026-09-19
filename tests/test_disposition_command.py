@@ -336,7 +336,7 @@ class TestTheChiefRulesEachEndOfAMove:
                 },
             ],
         )
-        docket = docket_of_proof(_closed(tmp_path), tmp_path / "repo")
+        docket = docket_of_proof(_closed(tmp_path), tmp_path / "repo").docket
         (schedule,) = docket.schedules
         assert [(one.cue, one.text) for one in schedule.alterations] == [
             ("b1", self.REMAINDER),

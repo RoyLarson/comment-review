@@ -2,6 +2,7 @@
 
     docket_of(copy, repo)        one edit_copy, folded
     docket_of_proof(proof, repo) one closed master proof, read
+    docket_of_proof(proof, repo, only=(...))   the approved places of one
 
 Two inputs, one output, and they differ in where the decision comes from. A
 copy is folded here: its marks are turned into places
@@ -10,6 +11,11 @@ each place the fold settled a text for becomes one alteration. A closed proof
 already holds every place the fold decided, so nothing is folded again -- the
 places are read back and each whose text differs from its base becomes one
 alteration.
+
+`only` is the author's partial approval -- `decision-log.md Process: #192`.
+The author approves some decided places and not others, and what they ruled on
+is a set of addresses over the proof the fold closed rather than a second
+artifact pruned by hand.
 
 The proof is what the write end reads, ruled `decision-log.md Process: #184`.
 The chief's copy restated the same decisions as marks, found or synthesized,
@@ -49,6 +55,7 @@ was offered and declined, because it would put a middle type in
 """
 
 from pathlib import Path
+from typing import NamedTuple
 
 from comment_review.binder.page import Page
 from comment_review.desk.containers import EditCopy, MasterProof
@@ -78,6 +85,24 @@ class CannotTranscribe(Exception):
         """Hold the fold's own reasons and say them in the message too."""
         super().__init__("; ".join(reasons))
         self.reasons = reasons
+
+
+class Transcription(NamedTuple):
+    """One closed proof transcribed: what the write end sets, and what it does not.
+
+    Attributes:
+        docket: one schedule per page a text is to be set on.
+        sets_nothing: the approved places this transcription sets nothing at,
+            in the order they were named. A place standing on the text
+            already there and a place held for the human both come here: the
+            author ruled on each, and neither leaves the write end anything
+            to do, so a run that said only how many pages it drafted would
+            say nothing at all about them. Empty where no filter was given,
+            since a blanket approval names no place.
+    """
+
+    docket: Docket
+    sets_nothing: tuple[str, ...] = ()
 
 
 def _touched(mark: Mark) -> tuple[str, ...]:
@@ -366,7 +391,87 @@ def _unclosed(places: list[Place]) -> list[str]:
     ]
 
 
-def docket_of_proof(proof: MasterProof, repo: Path) -> Docket:
+def _sets(place: Place) -> bool:
+    """Whether the write end has anything to set at this place.
+
+    A place the fold decided no text for is nothing to set, and so is one
+    whose decided text is the paragraph already there (`decision-log.md
+    Process: #174`). Both the docket below and the report of what an approval
+    leaves undone read this, so the two cannot come to different answers
+    about one place.
+    """
+    return place.text is not None and place.text != place.base
+
+
+def _approved(
+    places: list[Place], only: tuple[str, ...]
+) -> tuple[list[Place], list[str], tuple[str, ...]]:
+    """The approved places alone, the reasons a name is refused, and what sets nothing.
+
+    `decision-log.md Process: #192`. Two refusals, and both are all or
+    nothing: a partial approval that set the places it could and reported
+    the rest would draft a tree the author never approved.
+
+    An address the proof does not carry is the first. Nothing was decided
+    there, so nothing was approved there, and the name is likelier a
+    mistyped address than a ruling -- transcribing the rest would set what
+    was named correctly and say nothing about what was not.
+
+    One end of a move without the other is the second. A move is one
+    decision at two places, and the two ends hold separate texts: the origin
+    as the moved snippet leaves it, the destination as it reads with the
+    snippet in. Setting the origin alone drops the paragraph and adds it
+    nowhere; setting the destination alone writes it in both places. The end
+    that is missing is what the reason names, since that is what the author
+    has to approve for the move to be set.
+
+    Args:
+        places: every place the proof carries, parsed and closed.
+        only: the addresses the author approved, in the order they were
+            named. A repeat is one approval.
+
+    Returns:
+        `(the approved places, the reasons, the approved places that set
+        nothing)`. The places keep the proof's own order, since that is the
+        order the schedules come out in; a non-empty second half means
+        nothing is to be set at all.
+    """
+    by_address = {place.address: place for place in places}
+    named = list(dict.fromkeys(only))
+    wanted = set(named)
+    problems = [
+        f"{CHIEF} {address}: this proof carries no place here, so nothing"
+        " was decided to approve"
+        for address in named
+        if address not in by_address
+    ]
+    for address in named:
+        place = by_address.get(address)
+        if place is None:
+            continue
+        # The pair names itself, the way `desk.work.fold._held_with` reads
+        # one: a place records its partner and the partner records it back.
+        other = by_address.get(place.partner or "")
+        if other is None or other.partner != address or other.address in wanted:
+            continue
+        if _sets(place) or _sets(other):
+            problems.append(
+                f"{CHIEF} {address}: {other.address} is the other end of this"
+                " move and is not approved -- one end alone writes the"
+                " paragraph twice or loses it"
+            )
+    if problems:
+        return [], problems, ()
+    return (
+        [place for place in places if place.address in wanted],
+        [],
+        tuple(address for address in named if not _sets(by_address[address])),
+    )
+
+
+def docket_of_proof(
+    proof: MasterProof, repo: Path, only: tuple[str, ...] | None = None
+) -> Transcription:
     """One closed master proof, transcribed into the docket the write chain reads.
 
     `decision-log.md Process: #184`: the proof holds each place's decided
@@ -380,24 +485,29 @@ def docket_of_proof(proof: MasterProof, repo: Path) -> Docket:
         repo: the checkout whose pages the write end sets. Each page is read
             for its own place order and for the anchor at a place carrying
             none.
+        only: the places the author approved, where they approved some and
+            not others (`Process: #192`). None is the blanket approval: every
+            place the proof decided.
 
     Returns:
-        A `Docket` -- one `Schedule` per page a text was decided on, each
-        naming that page's own path and the sha the run read it at, and the
-        chief as the role, since the fold is what decided these places. One
-        alteration per place whose decided text differs from the paragraph
-        already there, with an emptied place written as the `None` the write
-        end reads as a delete.
+        A `Transcription`. Its docket holds one `Schedule` per page a text
+        was decided on, each naming that page's own path and the sha the run
+        read it at, and the chief as the role, since the fold is what decided
+        these places. One alteration per place whose decided text differs
+        from the paragraph already there, with an emptied place written as
+        the `None` the write end reads as a delete.
 
         A place the fold decided no text for gets none, and neither does one
         standing on the text already there (`Process: #174`): there is
-        nothing to set at either.
+        nothing to set at either. Where `only` named such a place, it is on
+        `sets_nothing` instead.
 
     Raises:
         CannotTranscribe: a place will not parse, a place is still carried
-            forward or refused, or a page a decided place sits on cannot be
-            read here. Nothing it reported can be set, and the reasons are
-            the report.
+            forward or refused, `only` names an address the proof does not
+            carry or one end of a move without the other, or a page a decided
+            place sits on cannot be read here. Nothing it reported can be
+            set, and the reasons are the report.
     """
     places, problems = _places_on(proof)
     if problems:
@@ -405,10 +515,15 @@ def docket_of_proof(proof: MasterProof, repo: Path) -> Docket:
     unclosed = _unclosed(places)
     if unclosed:
         raise CannotTranscribe(tuple(unclosed))
+    sets_nothing: tuple[str, ...] = ()
+    if only is not None:
+        places, problems, sets_nothing = _approved(places, only)
+        if problems:
+            raise CannotTranscribe(tuple(problems))
 
     decided: dict[str, list[Place]] = {}
     for place in places:
-        if place.text is not None and place.text != place.base:
+        if _sets(place):
             decided.setdefault(cue_of(place.address).path, []).append(place)
     touched = {
         name: sorted(place.address for place in here) for name, here in decided.items()
@@ -425,4 +540,6 @@ def docket_of_proof(proof: MasterProof, repo: Path) -> Docket:
     pages, unreadable = _pages_of(repo, known, touched, CHIEF, "places")
     if unreadable:
         raise CannotTranscribe(tuple(unreadable))
-    return Docket(schedules=_schedules_of(pages, decided, shas, CHIEF))
+    return Transcription(
+        Docket(schedules=_schedules_of(pages, decided, shas, CHIEF)), sets_nothing
+    )
