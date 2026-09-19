@@ -292,6 +292,29 @@ was recast is not what happened.
 the text at the end that took it, so nothing is written to a page while the question is open;
 `desk.work.fold._prints` emits the entry once, from the origin.
 
+## What the write end reads
+
+**The closed proof, and the places it decided** -- `decision-log.md Process: #184`.
+`proof --proof <the closed proof>` transcribes one alteration per place whose decided text
+differs from the paragraph already there, in each page's own place order, with an emptied place
+written as the delete; `flows.transcribe.docket_of_proof` is that step. It refuses, naming each
+place: one still carried forward or refused -- such a text has not settled (`Process: #180`), so
+a proof holding one is not closed -- one that will not read back, and a page a decided place
+sits on that the checkout cannot open.
+
+**The chief's copy is the record of what was decided, and nothing reads it back.** `collate`
+and `disposition` write it with `--out`; no command loads one. It restates each decision as a
+mark -- the side taken in, or one synthesized where no side set the decided text -- and folding
+those marks a second time made the docket depend on that restatement reproducing the fold.
+Measured 2026-09-18: two roles patching one paragraph settle on a composition no filed mark
+sets, `patch` owes no sources, and the synthesized `correct` carried none -- so `proof --copy`
+over the chief's copy answered *"copy-chief m.py@b1: needs at least one source"* and the
+decided text reached no docket.
+
+**`proof --copy` stays, for a role's own draft.** A role's copy holds that role's marks and
+nobody else's, and drafting it is how one stage's output becomes the revise the next stage
+reads (`Process: #76`).
+
 ## The Unit of Work, and the events
 
 **One fold over one stage's places, in `desk/work/fold.py`.** `Fold(places, turn).run()` hands
@@ -325,8 +348,12 @@ and on commit builds what the stage saves.
 | message | what it reads | what a commit leaves |
 | --- | --- | --- |
 | `CopiesReturned` | one stage's parsed copies, the binder, the checkout, the topology where there is one | the master proof at turn 0, the chief's copy, the first batch |
-| `AnswersReturned` | the last proof and each role's answers, and the checkout a cite resolves against | the next proof, the chief's copy, the next batch |
+| `AnswersReturned` | the last proof and each role's answers, and the checkout a cite resolves against | the next proof and the next batch |
 | `DispositionsWritten` | the last proof and the chief's rulings | the closed proof and the chief's copy |
+
+**A turn builds a chief's copy and saves none.** `flows.bus._on_answers` returns one on its
+`Result`, the way the other two handlers do, and `commands/turn.py` has no `--out` to write it
+with. `collate` and `disposition` are the two commands that save one.
 
 **Everything a copy can be wrong about on its own is found before the fold opens.** A quote
 that is not in its paragraph, a cite that resolves against nothing, an address no page carries,
@@ -422,7 +449,8 @@ fold deleted (`0e2ff82a`).
 | | |
 | --- | --- |
 | disagreements collected at the fold | `flows.places.places_of`, `desk.evaluate.passes.marks_pass` |
-| the chief's edit copy | `flows.places.chief_copy_of`, from the decided places |
+| the chief's edit copy | `flows.places.chief_copy_of`, from the decided places -- the record, read by nothing |
+| the docket the write end sets from | `flows.transcribe.docket_of_proof`, from the closed proof's places |
 | a role states the paragraph it wants | `Mark.change`, raw text |
 | the answer a role gives in a turn | `desk/answers/` -- `Answer`, and the eight rows |
 | the batch send-out | `flows.bus._batch_of`, one slot per carried-forward place per role asked |
@@ -467,3 +495,4 @@ fold deleted (`0e2ff82a`).
 | one end of a move settles with the move, not before it | `Process: #190` | `desk.evaluate.passes.answers_pass`, `owed_a_say` |
 | the dropped-words list is advisory | `Process: #163`, `#177` | `desk.marks.table._correct_notes`, `events.Advised` |
 | copies from different trees are refused | `Process: #178` | `flows.bus._root_problems` |
+| the write end reads the proof's decided places | `Process: #184` | `flows.transcribe.docket_of_proof`, `commands/proof.py` |
