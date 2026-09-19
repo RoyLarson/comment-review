@@ -356,8 +356,10 @@ python <skill>/scripts/comment-review.py gather --repo . --out <run-dir>/binder.
 ```
 
 **One file, and every stage up to the fold reads it.** The BINDER is what those stages'
-commands take -- `distribute` seeds each reviewer's copy from it, and `collate`, `turn` and
-`disposition` fold against it. A reviewer is handed the binder and its own seeded copy, and nothing else
+commands take -- `distribute` seeds each reviewer's copy from it, and `collate` folds against
+it. `turn` and `disposition` take no binder: each place on the master proof carries its own
+base text and names the roles it was put to, so what a role owes is read off the proof.
+A reviewer is handed the binder and its own seeded copy, and nothing else
 is made for it: the copy carries each prose paragraph's text in its slot, and the binder is what
 the reviewer's `addresser` and `check` calls take.
 
@@ -545,6 +547,12 @@ packet**: a role split two ways is two agents of that role, each handed its own 
 stage's order comes from the topology and the topology's order from 1.9; you run this once per
 stage, and no command sequences the stages for you.
 
+**A stage whose `reads` names a revise is seeded from that revise, and the binder must be the
+one gathered from it.** Gather the revise first -- `gather --repo <revise root> --revise <n>
+--out <run-dir>/binder2.json <paths...>` -- then hand `distribute` that binder and `--revise
+<revise root>`. Handing it the original's binder is refused at exit `2`, naming the revise the
+stage reads. A stage whose `reads` is `"original"` takes no `--revise`.
+
 !! **A REVIEWER FILLS A FORM; IT DOES NOT COMPOSE A DOCUMENT.** Each slot arrives carrying the
 `address`, the `anchor` and the paragraph's `raw_text`, with `instruction` null, and the
 reviewer sets the fields that are its own. **Hand each agent two absolute paths, and it reads
@@ -657,12 +665,13 @@ Pass one `--edit-copy` for every file `distribute` printed -- a role split three
 
 | exit | it means | what you do |
 |---|---|---|
-| `0` | every place the roles marked resolved on its own | go on; `chief0.json` is the chief's copy |
-| `1` BROKEN | a copy broke a rule, or the set cannot be reconciled -- nothing written | every line it printed names a role and a place; send each back to that role, which takes the mark back with `mark --withdraw --address <place>` and places its ruling again; re-check, re-run |
+| `0` | every place the roles marked settled on its own | go on; `chief0.json` is the chief's copy |
+| `1` BROKEN | the round rolled back and **nothing was written** -- a copy that is not a copy, a role short of its shard, a place a role left unruled, a copy gathered from another tree, or a mark the fold refused | every line it printed names a role and a place; send each back to that role, which takes the mark back with `mark --withdraw --address <place>` and places its ruling again; re-check, re-run |
 | `2` UNREADABLE | a file is not what it says | fix the invocation |
 | `3` REREADS, `4` ESCALATIONS | places carried forward -- the roles did not agree | **rule at max turns**, below |
-| `5` DRIFT, `6` COVERAGE | a returned `raw_text` is not the seeded one, or a role left places unruled | the chief's copy is written; the printed places go back to their role once; say in the proposal what was left short |
-| `7` `CARRIED_AND_UNRULED` | places carried forward, and a role left a place unruled | the printed unruled places go back to their role once, as for `6`; the carried-forward places are what a `3` or `4` asks of you |
+
+**There is no partial outcome.** The fold commits every place or none, so a run that wrote
+`chief0.json` refused nothing, and a run that refused anything wrote no file at all.
 
 Every line that opens with a role reads `<role> <place>: <reason>`, the place `(the copy)` for a
 problem with the whole copy. **That is your work list for sending
@@ -688,16 +697,20 @@ read.**
 an incorrect one. The ruling at max turns, and the order below, remain yours.
 
 **What the fold settles on its own.** A place every role read `clean` STANDS. A place one role
-marked and no other role marked against is that role's mark, taken in. A place two or more roles
-marked with byte-identical `change` text is their agreement, taken in -- agreement is the TEXT
-alone, whatever instruction each used. Each is a `stet` on the master proof, and the chief's
-copy carries the mark that stands.
+marked, at an address no other role read, is that role's mark, taken in. A place two or more
+roles marked with byte-identical `change` text is their agreement, taken in -- agreement is
+the TEXT alone, whatever instruction each used. **A text no role contradicted is still not
+settled until every role that read the place has proposed it or answered `clean` to it**, so
+one role's correction against three `clean`s goes back to those three. Each settled place
+prints as `stet <place>` and carries its text on the master proof, and the chief's copy
+carries the mark that stands.
 
-**What it carries forward, and prints as `escalated` or `re-read`, one line each with the roles
-that marked it:** two or more marks ruling on ONE sentence with different answers (an
-escalation); marks on different sentences of one paragraph that could be composed, a lone mark
-other roles marked against, every place an `add` touches, and every end of a `move` in a cycle
-(a re-read). !! **A CONFLICT IS ON ONE SENTENCE. Two marks on two different sentences COMPOSE**,
+**What it carries forward, one line each with the roles it is put to:** a place prints as
+`contested <place>: <roles> (escalation)` where two or more marks rule on ONE sentence with
+different answers, and as `composed <place>: <roles> (composition)` where marks on different
+sentences of one paragraph compose, or where one text is on the table that a role which read
+the place has not accepted yet. A `move`'s two ends take one state, so both are carried or
+neither is. !! **A CONFLICT IS ON ONE SENTENCE. Two marks on two different sentences COMPOSE**,
 and the fold composes them and carries the composition forward for a reading.
 
 **What it sets aside:** a place any role marked `query` with the shape `human-review-necessary`.
@@ -729,11 +742,13 @@ last batch out and folds what comes back:
      --proof-out <run-dir>/proof1.json --batch-out <run-dir>/batch2.json --repo .
    ```
 
-`turn` exits the codes in the table above, and each asks of you what it asks after `collate`,
-except that a place carried forward while a turn is left goes out in the next turn rather than
-to your ruling. The next turn reads `proof1.json` and sends `batch2.json`; a turn that carries
-nothing forward writes no batch, and there is no next turn to run. The last proof a turn wrote
-is the one `disposition` closes.
+`turn` exits the codes in the table above -- it imports them from `collate` rather than
+spelling its own -- and each asks of you what it asks after `collate`, except that a place
+carried forward while a turn is left goes out in the next turn rather than to your ruling. A
+slot a role left unanswered is a `1`: the round rolls back, nothing is written, and the
+named role answers before you run it again. The next turn reads `proof1.json` and sends
+`batch2.json`; a turn that carries nothing forward writes no batch, and there is no next turn
+to run. The last proof a turn wrote is the one `disposition` closes.
 
 ### Ruling at max turns -- you are the copy chief
 
@@ -756,14 +771,15 @@ python <skill>/scripts/comment-review.py disposition --proof <run-dir>/proof0.js
 
 `--proof` is the last proof written: `proof0.json` when no turn ran, the last turn's otherwise.
 
-**`disposition` refuses a carried-forward place with no ruling, by name and with its roles, and writes
-nothing** -- rule it and run again. Otherwise it prints what it wrote -- `<out>: the chief's
-copy, <n> places` and `<proof-out>: the proof closed at turn <t> -- <n> determined, <m>
-unsettlable` -- then one line per ruling, `<answer> <place>: <side> (<how>, turn <t>)`, then one
-entry per unsettlable place: `unsettlable <place>: <role> asks the human -- <reason>`, with an
-indented `and ...` line for a move's drop or add held there. A move held at both ends is one
-entry, `unsettlable <origin> and <destination>: ...`, whose last line reads `and <role>'s move
-drops the paragraph at <origin> and adds it at <destination>, one move -- <reason>`.
+**`disposition` refuses a carried-forward place with no ruling, by name and with its roles,
+and writes nothing** -- rule it and run again. Otherwise it prints the places first: `stet
+<place>` for every place it closed, then one entry per unsettlable place, `unsettlable
+<place>: <role> asks the human -- <reason>`, with an indented `and ...` line for a move's drop
+or add held there. A move held at both ends is one entry, `unsettlable <origin> and
+<destination>: ...`, whose last line reads `and <role>'s move drops the paragraph at <origin>
+and adds it at <destination>, one move -- <reason>`. Then the two files it wrote: `<out>: the
+chief's copy, <n> places` and `<proof-out>: the proof closed at turn <t> -- <n> places -- <s>
+settled, <u> unsettlable, <c> carried forward`, where a close leaves the last count at 0.
 `chief.json` is the chief's `edit_copy`, one mark per resolved
 place, and it is what stages 6 and 7 read. ! `--stage` is `4` throughout: the four roles ran
 in one stage.

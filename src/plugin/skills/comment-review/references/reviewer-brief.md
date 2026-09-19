@@ -339,7 +339,7 @@ its surrounding paragraph, and it is required for all of these but `clean` and `
 propose no text, so there is nothing for the chief to take in.
 
 !! **THE TABLE BELOW IS GENERATED, FROM TWO SOURCES** -- the `claim` keys from `INSTRUCTIONS`
-in `desk/mark.py` (`claim_all`, stated once per row), and the "what they carry" prose from
+in `desk/marks/table.py` (`claim_all`, stated once per row), and the "what they carry" prose from
 `docs/the-mark.md`'s "What each instruction owes" table, written by a human. Edit the row or
 the spec, never this table; `uv run python scripts/render_brief.py --write` regenerates it, and
 a test refuses a brief whose table disagrees with a fresh render, or where the two sources name
@@ -560,9 +560,10 @@ can reach the same or different decisions per sentence. Report what your role se
 A run that takes turns sends each role a **batch**: one slot for every place the fold carried
 forward that the role owes. Your packet names the batch, your role, the master proof it went
 out with, and the path to write your answers to. Each slot carries the place's `address` and
-`anchor`, its `question`, and `marks` -- every mark already at the place, each naming its
-`role`, yours among them if you marked it -- with `diff` setting them against the base. Leave
-what the slot carries as sent and add only your answer.
+`anchor`, its `question`, `raw_text` -- the text being put to you -- `sides`, which is each
+role's own proposed text by role, yours among them if you proposed one, and `read_from`, the
+tree your citations resolve against. Leave what the slot carries as sent and add only your
+answer.
 
 **Answer every slot.** An unanswered one is refused, never read as a withdrawal. `mark` fills a
 copy, not a batch: write your answers with your file-write tool, as a list of the slots you were

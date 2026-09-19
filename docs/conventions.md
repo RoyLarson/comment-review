@@ -265,6 +265,22 @@ know the other area's rules, so the rules end up stated twice and one copy goes 
     MIDDLE -> WRITE END   desk/collator.py      Alteration, Schedule, Docket
     WRITE END -> READ END results/compositor.py Page, page_for
 
+**Three of the four stand; one is superseded.** Re-measured 2026-09-18, after the middle was
+rebuilt, by the same walk over every `from comment_review` import under `desk/` and `results/`:
+
+| the crossing | the import today | |
+| --- | --- | --- |
+| middle -> read end | `desk/collator.py:82`, `Binder` | stands |
+| middle -> read end | `desk/containers.py:74`, `_read_from_problem` | stands |
+| middle -> write end | none | gone with `P55` |
+| write end -> read end | `results/compositor.py:61`, `Page`, `page_for` | stands |
+
+`docket_from` and `_real_pages` left `collator.py` under `P55`, and the transcription is
+`flows/transcribe.py::docket_of`, a flow. `collator.py` does not import `_read_from_problem`
+either, and had stopped before the rebuild began. **The rebuilt middle adds no crossing of its
+own** -- `desk/marks/`, `desk/answers/`, `desk/dispositions/`, `desk/evaluate/` and
+`desk/work/` import `desk` and the leaves, and nothing else.
+
 **A type is coupling, not only A CONSTRUCTOR.** `desk/collator.py` takes a `Binder` as a
 PARAMETER -- it never builds one -- and that is still the middle knowing what the read end's
 artifact is. What it actually needs is a set of addresses and a map of base texts, which the
