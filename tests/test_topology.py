@@ -139,26 +139,30 @@ def test_a_binder_that_says_it_read_the_original_is_refused():
     assert "5" in why and "0" in why
 
 
-#: A stage row carrying the three keys a compacting stage needs, as a run's
-#: author writes them -- `decision-log.md Process: #193`. The expectation is
-#: that ruling's own words: the stage is dealt the `b` and `c` places whose
-#: text runs over the cap, and its role files the edit instructions.
+#: An editorial stage, and after it a stage row carrying the three keys a
+#: compacting stage needs, as a run's author writes them -- `decision-log.md
+#: Process: #193`. The expectation is that ruling's own words: the stage
+#: reads the revise the stage before it pulled, is dealt the `b` and `c`
+#: places whose text runs over the cap, and its role files the edit
+#: instructions.
 COMPACTING = (
-    '[[stage]]\nname="6"\nkind="editorial"\nreads="original"\n'
+    '[[stage]]\nname="4"\nkind="editorial"\nreads="original"\n'
+    '[[stage.dispatch]]\nrole="ownership-context"\n'
+    '[[stage]]\nname="6"\nkind="editorial"\nreads="revise:4"\n'
     "cap=2\nseries=['b','c']\nadmits=['patch','drop','add','clean']\n"
     '[[stage.dispatch]]\nrole="block-context"\n'
 )
 
 
-def _one(text: str) -> Stage:
+def _last(text: str) -> Stage:
     stages, why = read(text)
     assert why == "", why
-    (stage,) = stages
-    return stage
+    return stages[-1]
 
 
 def test_the_three_keys_are_read_onto_the_stage():
-    stage = _one(COMPACTING)
+    stage = _last(COMPACTING)
+    assert stage.reads == "revise:4"
     assert stage.cap == 2
     assert stage.series == ("b", "c")
     assert stage.admits == ("patch", "drop", "add", "clean")
@@ -167,11 +171,28 @@ def test_the_three_keys_are_read_onto_the_stage():
 def test_an_ordinary_stage_carries_none_of_them():
     """An ordinary stage deals every place a role is handed and admits every
     instruction, which is what an absent key means."""
-    stage = _one(
+    stage = _last(
         '[[stage]]\nname="4"\nkind="editorial"\nreads="original"\n'
         '[[stage.dispatch]]\nrole="block-context"\n'
     )
     assert (stage.cap, stage.series, stage.admits) == (0, (), ())
+
+
+def test_the_three_keys_do_not_depend_on_what_the_stage_reads():
+    """They narrow what a stage is dealt of the tree it was seeded from, and
+    which tree that is is `reads`. A compacting stage over a revise is the
+    use `#193` ruled, not the only row they fit."""
+    stage = _last(
+        '[[stage]]\nname="4"\nkind="editorial"\nreads="original"\n'
+        "cap=2\nseries=['b']\nadmits=['patch']\n"
+        '[[stage.dispatch]]\nrole="block-context"\n'
+    )
+    assert (stage.reads, stage.cap, stage.series, stage.admits) == (
+        "original",
+        2,
+        ("b",),
+        ("patch",),
+    )
 
 
 def test_a_cap_that_is_not_a_positive_whole_number_is_refused():

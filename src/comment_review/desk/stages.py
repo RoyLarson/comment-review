@@ -205,7 +205,15 @@ class Stage(NamedTuple):
         admits: the instructions this stage's roles may file, by name. Empty
             admits every one of them, which is every stage that ran before
             `#193`. `commands/mark.py` and `commands/check.py` read it off
-            the copy the seed stamped it onto.
+            the copy the seed stamped it onto, and `flows.bus._on_copies`
+            holds the returned marks to this row.
+
+    ! THE THREE NARROW ANY STAGE, AND NONE OF THEM ASKS WHAT IT READS.
+    `#193` is the use they were built for -- a compacting stage over a
+    revise, dealt the `b` and `c` places over a cap -- but a stage reading
+    the original may carry them too, and a stage reading a revise may carry
+    none. What a stage is seeded FROM is `reads`, and what it is dealt OF
+    that is these.
     """
 
     name: str

@@ -32,6 +32,13 @@ which is what makes one behave as it did before the ruling --
 `desk.stages.deals` reads the first two and `flows.distribute.seed` narrows
 the copy by them.
 
+! **THEY ARE INDEPENDENT OF `reads`, AND NOTHING HERE PAIRS THEM.** A
+compacting stage is one use of the three -- the use `#193` ruled, over a
+revise -- and a stage reading `"original"` may narrow what it deals in the
+same way. Which tree a stage is seeded from and which of that tree's places
+it is dealt are two questions, so a row answering one is never required to
+answer the other.
+
 ! **`reads` ENFORCES SECTION 2'S "BARRIER".** A `"revise:<name>"` value may
 only name a stage that appears EARLIER in the file's own `[[stage]]` order
 and whose `kind` is `"editorial"` -- a forward reference is refused, and an

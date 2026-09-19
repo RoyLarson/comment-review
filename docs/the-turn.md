@@ -471,11 +471,18 @@ instructions onto the `edit_copy`, as `read_from` carries the tree it was cut fr
 and not correct` -- and `commands/check.py` holds a hand-written copy to the same rule without
 the run's topology beside it.
 
-**Compaction is the stage these were built for.** It reads the revise the review's proof
-pulled, is dealt the `b` and `c` places whose text runs over the cap, files the edit
+**Compaction is the stage these were built for, and it runs before the author is shown
+anything.** Roy, 2026-09-19: the editorial stages' proof is pulled into a scratch revise, the
+compacting stage reads that revise, and the revise its own proof pulls is the galley the author
+approves. It is dealt the `b` and `c` places whose text runs over the cap, files the edit
 instructions with `mark`, and its copy is folded and set like any stage's. A docstring is never
 dealt, so nothing has to refuse one; length is no concern of the four editorial roles, whose
 remit is that a comment is correct, true and current at whatever length that takes.
+
+**The three keys are independent of `reads`.** Which tree a stage is seeded from and which of
+that tree's places it is dealt are two questions: a stage reading `"original"` may narrow what
+it deals, and a stage reading a revise may narrow nothing. `#193` is the use they were built
+for, not the only row they fit.
 
 ## What this does to stages 4 and 5
 
