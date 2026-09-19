@@ -8,9 +8,19 @@ import json
 
 import pytest
 from conftest import SAMPLE, SRC, build, run_command
-from helpers import a_correct, copies_over
+from helpers import (
+    BOTH_FIXED,
+    TYPOS,
+    a_correct,
+    answer,
+    copies_over,
+    deal,
+    patched,
+    turn,
+)
 
 from comment_review.binder.binder import bind
+from comment_review.commands import collate as collate_command
 from comment_review.commands import proof as proof_command
 from comment_review.docket.docket import Docket
 
@@ -291,6 +301,161 @@ class TestProofTakesAnEditCopy:
         assert code == 2
         assert "CANNOT READ" in out
         assert not (tmp_path / "r1").exists()
+
+
+#: The one place the proof cases deal, and the roles that patch it.
+PLACE = "m.py@b1"
+HANDS = ("block-context", "function-context")
+
+
+def a_stage_dealt(tmp_path, monkeypatch, capsys) -> int:
+    """Two roles patching one paragraph, folded once: `proof0.json`.
+
+    The two patch different lines, so the place composes and is carried
+    forward to each of them -- `decision-log.md Process: #180`.
+    """
+    return deal(tmp_path, monkeypatch, capsys, patched(PLACE), {PLACE: TYPOS})
+
+
+def a_closed_proof(tmp_path, monkeypatch, capsys):
+    """That stage settled by a turn in which both roles accept: `proof1.json`.
+
+    Returns:
+        `(the closed proof, the repo its addresses answer to)`.
+    """
+    assert a_stage_dealt(tmp_path, monkeypatch, capsys) == collate_command.REREADS
+    code, out = turn(
+        tmp_path,
+        monkeypatch,
+        capsys,
+        1,
+        *[
+            answer(
+                tmp_path,
+                1,
+                role,
+                PLACE,
+                instruction="clean",
+                reason="that reads right",
+            )
+            for role in HANDS
+        ],
+    )
+    assert code == collate_command.OK, out
+    return tmp_path / "proof1.json", tmp_path / "repo"
+
+
+class TestProofTakesAClosedProof:
+    """`--proof` is the write end's input: the decided places the fold closed
+    on, transcribed straight -- `decision-log.md Process: #184`.
+
+    The text these cases land is one no filed mark sets and that no
+    synthesized mark could carry, since `patch` owes no sources.
+    """
+
+    def test_a_closed_proof_pulls_a_revise(self, tmp_path, monkeypatch, capsys):
+        proof, repo = a_closed_proof(tmp_path, monkeypatch, capsys)
+        code, out = run_command(
+            monkeypatch,
+            capsys,
+            proof_command,
+            "--proof",
+            str(proof),
+            "--repo",
+            str(repo),
+            "--out",
+            str(tmp_path / "r1"),
+        )
+        assert code == 0, out
+        drafted = (tmp_path / "r1" / "m.py").read_text(encoding="utf-8")
+        assert BOTH_FIXED in drafted
+
+    def test_to_docket_over_a_proof_writes_a_docket_and_stops(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        proof, repo = a_closed_proof(tmp_path, monkeypatch, capsys)
+        where = tmp_path / "d.json"
+        code, out = run_command(
+            monkeypatch,
+            capsys,
+            proof_command,
+            "--proof",
+            str(proof),
+            "--repo",
+            str(repo),
+            "--to-docket",
+            str(where),
+        )
+        assert code == 0, out
+        docket, why = Docket.deserialize(str(where), json.loads(where.read_text()))
+        assert docket is not None, why
+        (schedule,) = docket.schedules
+        assert schedule.path == "m.py"
+        assert [one.text for one in schedule.alterations] == [BOTH_FIXED]
+
+    def test_a_proof_still_carrying_a_place_forward_is_refused(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """The fold has not settled that text, so there is nothing to set and
+        no revise is pulled. The place is named on stdout."""
+        assert a_stage_dealt(tmp_path, monkeypatch, capsys) == collate_command.REREADS
+        code, out = run_command(
+            monkeypatch,
+            capsys,
+            proof_command,
+            "--proof",
+            str(tmp_path / "proof0.json"),
+            "--repo",
+            str(tmp_path / "repo"),
+            "--out",
+            str(tmp_path / "r1"),
+        )
+        assert code == 1, out
+        assert "REFUSED" in out and PLACE in out
+        assert not (tmp_path / "r1").exists()
+
+    def test_a_proof_that_will_not_read_reports_and_writes_nothing(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        bad = tmp_path / "proof.json"
+        bad.write_text('{"edit_copies": 7}', encoding="utf-8", newline="")
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        code, out = run_command(
+            monkeypatch,
+            capsys,
+            proof_command,
+            "--proof",
+            str(bad),
+            "--repo",
+            str(repo),
+            "--out",
+            str(tmp_path / "r1"),
+        )
+        assert code == 2, out
+        assert "CANNOT READ THE PROOF" in out
+        assert not (tmp_path / "r1").exists()
+
+    @pytest.mark.parametrize("other", ["--copy", "--from-docket"])
+    def test_the_proof_is_exclusive_with_the_other_inputs(
+        self, tmp_path, monkeypatch, capsys, other
+    ):
+        """One run has one input, and argparse states it rather than a
+        hand-written check."""
+        with pytest.raises(SystemExit):
+            run_command(
+                monkeypatch,
+                capsys,
+                proof_command,
+                "--proof",
+                "p.json",
+                other,
+                "x.json",
+                "--repo",
+                ".",
+                "--out",
+                str(tmp_path / "r1"),
+            )
 
 
 def _tree(tmp_path):

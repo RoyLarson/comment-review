@@ -713,6 +713,22 @@ def a_correct_setting(address: str, sentence: object, change: str) -> dict:
     return mark
 
 
+def a_patch(address: str, was: str, now: str, change: str) -> dict:
+    """A `patch` mark: `claim.from` is `was`, `claim.to` is `now`.
+
+    `change` is the whole paragraph as it will read, the way every row that
+    owes one carries it.
+
+    The row owes no sources, which is what makes it the input
+    `decision-log.md Process: #184` was ruled on: a text decided over patches
+    alone has none behind it, and a mark synthesized to carry that text is one
+    the parse refuses.
+    """
+    mark = _mark(Instruction.PATCH, address, {"from": was, "to": now})
+    mark["change"] = change
+    return mark
+
+
 def a_move(origin: str, destination: str, change: str = "", reads: str = "") -> dict:
     """A `move` mark -- `origin` as its own `address`, `destination` as
     `claim.to`. `collator.places()` must group it into both.
@@ -797,6 +813,30 @@ def agreed(address: str) -> dict:
     """Two roles correcting the same sentence to the same text -- a stet at once."""
     return {
         role: {address: a_correct_setting(address, "two", DOS)} for role in HAND_ROLES
+    }
+
+
+#: A paragraph with a typo on its first line and another on its last, and a
+#: line between them neither role touches. Two sides editing abutting lines
+#: are one span and refuse together (`machine.differences.compose`), so the
+#: middle line is what lets the two patches below compose.
+TYPOS = "# teh count\n# of the items\n# adn the sum\n"
+FIRST_FIXED = "# the count\n# of the items\n# adn the sum"
+LAST_FIXED = "# teh count\n# of the items\n# and the sum"
+BOTH_FIXED = "# the count\n# of the items\n# and the sum"
+
+
+def patched(address: str) -> dict:
+    """Two roles patching different lines of one paragraph.
+
+    `patch` is the row that owes no sources, so the composition these two come
+    to has none behind it -- the hand `decision-log.md Process: #184` was
+    ruled on. Composed, accepted and read from the decided place, that text
+    reaches the docket; restated as one mark, it carried no source.
+    """
+    return {
+        "block-context": {address: a_patch(address, "teh", "the", FIRST_FIXED)},
+        "function-context": {address: a_patch(address, "adn", "and", LAST_FIXED)},
     }
 
 

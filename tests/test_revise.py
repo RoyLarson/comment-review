@@ -4,12 +4,18 @@
 `.superpowers/sdd/2026-08-28-the-mark-and-the-revise/task-8-brief.md`.
 """
 
+import json
 import shutil
 import stat
 from pathlib import Path
 
 import pytest
 from helpers import (
+    BASE,
+    BOTH_FIXED,
+    FIRST_FIXED,
+    TWO,
+    TYPOS,
     a_clean,
     a_correct,
     a_correct_setting,
@@ -17,19 +23,33 @@ from helpers import (
     a_docket_whose_claim_is_not_in_the_page,
     a_drop,
     a_move,
+    a_patch,
     a_query,
     a_real_binder_over,
     a_small_real_tree,
+    answer,
     copies_over,
+    deal,
+    disposition,
     entries_of,
+    patched,
+    proof_at,
     returned,
+    turn,
 )
 
-from comment_review.desk.containers import EditCopy
+from comment_review.commands import collate as collate_command
+from comment_review.desk.containers import EditCopy, MasterProof
+from comment_review.desk.marks.mark import Shape
 from comment_review.flows import proof_setter
 from comment_review.flows.page_for import page_of
+from comment_review.flows.proof_io import load_proof
 from comment_review.flows.revise import AddressesMoved, _set_by, pull
-from comment_review.flows.transcribe import CannotTranscribe, docket_of
+from comment_review.flows.transcribe import (
+    CannotTranscribe,
+    docket_of,
+    docket_of_proof,
+)
 
 
 def a_copy(root: Path, role: str, paragraphs: dict[str, str], marks: dict) -> EditCopy:
@@ -399,6 +419,372 @@ class TestDocketOf:
             {"m.py@b1": a_clean("m.py@b1"), "m.py@b2": a_query("m.py@b2")},
         )
         assert docket_of(copy, root).schedules == ()
+
+
+#: The paragraph `patched` puts its two typos in, at the one place these
+#: cases deal.
+TYPO_TEXTS = {"m.py@b1": TYPOS}
+TWO_PATCHES = patched("m.py@b1")
+#: Both roles patch the same line instead, so the two will not compose and the
+#: place is contested for the chief to rule.
+SAME_LINE = {
+    "block-context": {"m.py@b1": a_patch("m.py@b1", "teh", "the", FIRST_FIXED)},
+    "function-context": {
+        "m.py@b1": a_patch(
+            "m.py@b1", "count", "total", "# teh total\n# of the items\n# adn the sum"
+        )
+    },
+}
+RECAST_THERE = "# the total count\n# of the items\n# and the sum\n"
+
+#: Two paragraphs with an empty place between them: `m.py@b2` holds no prose,
+#: so the binder does not carry it and no seeded copy has a slot there.
+GAPPED = {"m.py@b1": "# one\n# two\n# three\n", "m.py@b3": "# four\n# five\n# six\n"}
+THE_GAP = "m.py@b2"
+ADDED = "# the gap wants a sentence\n"
+THE_ADD = {
+    "address": THE_GAP,
+    "instruction": "add",
+    "claim": {"missing": "why the gap is here", "anchor": "`v2`"},
+    "reason": "the gap is explained nowhere",
+    "sources": [{"cite": "m.py:1"}],
+    "change": ADDED,
+}
+_CLEAN_ABOVE = {"address": "m.py@b1", "instruction": "clean", "reason": "reads true"}
+_CLEAN_BELOW = {"address": "m.py@b3", "instruction": "clean", "reason": "reads true"}
+
+#: One role moves the middle line of `m.py@b1` into `m.py@b2` and certifies
+#: the destination, so every place it was handed is ruled.
+MOVED = {"m.py@b1": "# one\n# two\n# three\n", "m.py@b2": "# four\n# five\n# six\n"}
+REMAINDER = "# one\n# three"
+MOVED_TO = "# four\n# five\n# six\n# two\n"
+
+
+def the_closed_proof(tmp_path, name: str = "final.json") -> MasterProof:
+    """One proof off disk, read back the way `proof --proof` reads one."""
+    proof, why = load_proof(tmp_path / name)
+    assert proof is not None, why
+    return proof
+
+
+class TestDocketOfProof:
+    """The closed proof's decided places, as the docket the write chain reads.
+
+    `decision-log.md Process: #184`: the proof holds each place's decided
+    text, so the write end transcribes those places rather than folding the
+    chief's marks a second time. What the chief's copy says about the same
+    decisions is the readable record and is no longer an input.
+    """
+
+    def _closed(self, tmp_path, monkeypatch, capsys, by_role=None, **kwargs):
+        """collate over one hand that settles at the first fold."""
+        code = deal(tmp_path, monkeypatch, capsys, by_role, **kwargs)
+        assert code == collate_command.OK
+        return proof_at(tmp_path, 0), tmp_path / "repo"
+
+    def test_two_patches_that_compose_reach_the_docket(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """The decided text is a composition no filed mark sets, and every
+        mark behind it is a row that owes no sources. Read from the place, the
+        text reaches the docket; restated as a mark, it carried no source and
+        the parse refused it."""
+        assert deal(tmp_path, monkeypatch, capsys, TWO_PATCHES, TYPO_TEXTS) == (
+            collate_command.REREADS
+        )
+        code, out = turn(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            1,
+            answer(
+                tmp_path,
+                1,
+                "block-context",
+                "m.py@b1",
+                instruction="clean",
+                reason="that reads right",
+            ),
+            answer(
+                tmp_path,
+                1,
+                "function-context",
+                "m.py@b1",
+                instruction="clean",
+                reason="that reads right",
+            ),
+        )
+        assert code == collate_command.OK, out
+        docket = docket_of_proof(proof_at(tmp_path, 1), tmp_path / "repo")
+        (schedule,) = docket.schedules
+        assert [(one.cue, one.text) for one in schedule.alterations] == [
+            ("b1", BOTH_FIXED)
+        ]
+
+    def test_a_recast_over_patches_alone_reaches_the_docket(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """The same case with the chief deciding it: the two patches will not
+        compose, the chief writes its own paragraph, and nothing filed here
+        brought a source for a synthesized mark to carry."""
+        assert deal(tmp_path, monkeypatch, capsys, SAME_LINE, TYPO_TEXTS) == (
+            collate_command.ESCALATIONS
+        )
+        code, out = disposition(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            [
+                {
+                    "address": "m.py@b1",
+                    "answer": "recast",
+                    "reason": "neither patch carries it",
+                    "prose": RECAST_THERE,
+                }
+            ],
+            proof="proof0.json",
+        )
+        assert code == collate_command.OK, out
+        docket = docket_of_proof(the_closed_proof(tmp_path), tmp_path / "repo")
+        (schedule,) = docket.schedules
+        assert [(one.cue, one.text) for one in schedule.alterations] == [
+            ("b1", RECAST_THERE)
+        ]
+
+    def test_a_settled_correction_is_one_alteration(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        proof, repo = self._closed(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            {"block-context": {"m.py@b1": a_correct_setting("m.py@b1", "two", TWO)}},
+            texts={"m.py@b1": BASE},
+        )
+        (schedule,) = docket_of_proof(proof, repo).schedules
+        assert schedule.path == "m.py"
+        assert [(one.cue, one.text) for one in schedule.alterations] == [("b1", TWO)]
+
+    def test_the_schedule_carries_the_page_and_the_sha_the_run_read(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        proof, repo = self._closed(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            {"block-context": {"m.py@b1": a_correct_setting("m.py@b1", "two", TWO)}},
+            texts={"m.py@b1": BASE},
+        )
+        (sheet,) = proof.edit_copies[0].sheets
+        (schedule,) = docket_of_proof(proof, repo).schedules
+        assert (schedule.path, schedule.sha) == (sheet.path, sheet.sha)
+
+    def test_an_emptied_place_is_the_delete_the_write_end_reads(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """A place the fold decided an empty text for is the `None` the write
+        end reads as a delete, the same as on a role's own copy."""
+        proof, repo = self._closed(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            {"block-context": {"m.py@b1": {**a_drop("m.py@b1", "two"), "change": ""}}},
+            texts={"m.py@b1": BASE},
+        )
+        (schedule,) = docket_of_proof(proof, repo).schedules
+        assert [(one.cue, one.text) for one in schedule.alterations] == [("b1", None)]
+
+    def test_an_add_at_an_empty_place_lands_there(self, tmp_path, monkeypatch, capsys):
+        """The place holds no prose, so the binder carries it nowhere and the
+        ruling was placed from the page. Its decided text is still a place on
+        the proof and still one alteration."""
+        proof, repo = self._closed(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            texts=GAPPED,
+            placed={"block-context": [_CLEAN_ABOVE, _CLEAN_BELOW, THE_ADD]},
+        )
+        (schedule,) = docket_of_proof(proof, repo).schedules
+        assert [(one.cue, one.text) for one in schedule.alterations] == [("b2", ADDED)]
+
+    def test_a_move_sets_each_end_from_its_own_place(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """Two places, two decided texts, and neither is read off the other:
+        the origin keeps what the snippet left and the destination takes the
+        paragraph the move says it will read with."""
+        proof, repo = self._closed(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            {
+                "block-context": {
+                    "m.py@b1": a_move(
+                        "m.py@b1", "m.py@b2", change="# two\n", reads=MOVED_TO
+                    ),
+                    "m.py@b2": a_clean("m.py@b2"),
+                }
+            },
+            texts=MOVED,
+        )
+        (schedule,) = docket_of_proof(proof, repo).schedules
+        assert [(one.cue, one.text) for one in schedule.alterations] == [
+            ("b1", REMAINDER),
+            ("b2", MOVED_TO),
+        ]
+
+    def test_a_move_onto_a_page_no_copy_holds_a_sheet_for_is_scheduled(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """The destination is on a page the stage never gathered, so no sheet
+        records a sha for it. The page is read out of the checkout and the sha
+        it was read at is what the schedule carries."""
+        repo = tmp_path / "repo"
+        repo.mkdir(parents=True, exist_ok=True)
+        (repo / "n.py").write_text("v0 = 0\nv1 = 1\n", encoding="utf-8", newline="\n")
+        proof, repo = self._closed(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            {
+                "block-context": {
+                    "m.py@b1": a_move(
+                        "m.py@b1",
+                        "n.py@b0",
+                        change="# one\n# two\n# three",
+                        reads="# one\n# two\n# three",
+                    )
+                }
+            },
+            texts={"m.py@b1": BASE},
+        )
+        page, why = page_of(repo / "n.py", rel="n.py")
+        assert page is not None, why
+        docket = docket_of_proof(proof, repo)
+        assert [one.path for one in docket.schedules] == ["m.py", "n.py"]
+        landed = docket.schedules[1]
+        assert landed.sha == page.sha
+        assert [(one.cue, one.text, one.anchor) for one in landed.alterations] == [
+            ("b0", "# one\n# two\n# three", page.cues.places["b0"])
+        ]
+
+    def test_a_place_that_stands_on_its_base_gets_no_alteration(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """`decision-log.md Process: #174`. A place nobody proposed a text for
+        and a place whose decided text is the paragraph already there are both
+        nothing to set, and a page with neither gets no schedule."""
+        proof, repo = self._closed(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            {
+                "block-context": {
+                    "m.py@b1": a_clean("m.py@b1"),
+                    "m.py@b2": a_correct_setting("m.py@b2", "five", "# four\n# five"),
+                }
+            },
+            texts={"m.py@b1": BASE, "m.py@b2": "# four\n# five\n"},
+        )
+        assert docket_of_proof(proof, repo).schedules == ()
+
+    def test_a_place_held_for_the_human_sets_nothing_at_either_end(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """A move one role put to the author is held at both ends, and an
+        unsettlable place carries no text -- so the closed proof asks the write
+        end for nothing there. Nothing is carried forward, so the fold has
+        nothing to put to a turn and the chief has nothing left to rule."""
+        assert (
+            deal(
+                tmp_path,
+                monkeypatch,
+                capsys,
+                {
+                    "block-context": {
+                        "m.py@b1": a_move(
+                            "m.py@b1", "m.py@b2", change="# two\n", reads=MOVED_TO
+                        ),
+                        "m.py@b2": a_clean("m.py@b2"),
+                    },
+                    "function-context": {
+                        "m.py@b1": a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY),
+                        "m.py@b2": a_clean("m.py@b2"),
+                    },
+                },
+                MOVED,
+            )
+            == collate_command.OK
+        )
+        code, out = disposition(tmp_path, monkeypatch, capsys, [], proof="proof0.json")
+        assert code == collate_command.OK, out
+        proof = the_closed_proof(tmp_path)
+        assert {entry["address"]: entry["state"] for entry in proof.places} == {
+            "m.py@b1": "unsettlable",
+            "m.py@b2": "unsettlable",
+        }
+        assert docket_of_proof(proof, tmp_path / "repo").schedules == ()
+
+    @pytest.mark.parametrize(
+        ("by_role", "code", "state"),
+        [
+            (TWO_PATCHES, collate_command.REREADS, "composed"),
+            (SAME_LINE, collate_command.ESCALATIONS, "contested"),
+        ],
+    )
+    def test_a_proof_still_carrying_a_place_forward_is_a_refusal(
+        self, tmp_path, monkeypatch, capsys, by_role, code, state
+    ):
+        """`decision-log.md Process: #180`: a carried-forward text has not
+        settled, so a proof holding one is not closed and nothing on it is the
+        write end's to set. The place is named."""
+        assert deal(tmp_path, monkeypatch, capsys, by_role, TYPO_TEXTS) == code
+        with pytest.raises(CannotTranscribe) as raised:
+            docket_of_proof(proof_at(tmp_path, 0), tmp_path / "repo")
+        (why,) = raised.value.reasons
+        assert "m.py@b1" in why and state in why
+
+    def test_a_place_that_will_not_read_is_a_refusal(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """A place is parsed before it is transcribed, the way a returned
+        copy's marks are. One that will not parse is named, and no page is
+        set from what is left."""
+        self._closed(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            {"block-context": {"m.py@b1": a_correct_setting("m.py@b1", "two", TWO)}},
+            texts={"m.py@b1": BASE},
+        )
+        wire = json.loads((tmp_path / "proof0.json").read_text(encoding="utf-8"))
+        wire["places"][0]["filed"][0]["instruction"] = "not an instruction"
+        proof, why = MasterProof.deserialize("hand-edited", wire)
+        assert proof is not None, why
+        with pytest.raises(CannotTranscribe) as raised:
+            docket_of_proof(proof, tmp_path / "repo")
+        assert any("m.py@b1" in one for one in raised.value.reasons)
+
+    def test_a_page_this_checkout_cannot_read_is_a_refusal(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """A decided place whose page this checkout cannot answer for would be
+        dropped from the docket without a word, which is how a landing goes
+        missing from a run that reports nothing wrong."""
+        proof, repo = self._closed(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            {"block-context": {"m.py@b1": a_correct_setting("m.py@b1", "two", TWO)}},
+            texts={"m.py@b1": BASE},
+        )
+        (repo / "m.py").unlink()
+        with pytest.raises(CannotTranscribe) as raised:
+            docket_of_proof(proof, repo)
+        (why,) = raised.value.reasons
+        assert why.startswith("copy-chief m.py: ")
+        assert "m.py@b1" in why
 
 
 def test_the_revise_holds_only_the_docket_page_as_drafted(tmp_path):

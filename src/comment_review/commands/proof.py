@@ -1,8 +1,12 @@
 """The `proof` command: its argument parsing and its exit code.
 
-    comment_review proof --copy C.json --repo . --out DIR
+    comment_review proof --proof P.json --repo . --out DIR
 
 The work is `flows.revise.pull`; this is only the console face of it.
+
+The input is the closed master proof, ruled `decision-log.md Process: #184`:
+its decided places are what the write end sets. `--copy` takes a role's own
+edit_copy instead, for that role's own draft.
 
 !! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
 A COMMAND EXPOSES A FLOW. Ruled 2026-08-24 -- `decision-log.md Process: #12`.
@@ -30,7 +34,7 @@ import argparse
 import json
 from pathlib import Path
 
-from comment_review.desk.containers import EditCopy
+from comment_review.desk.containers import EditCopy, MasterProof
 from comment_review.docket.docket import Docket
 from comment_review.flows import revise, transcribe
 from comment_review.machine import exceptions
@@ -62,10 +66,21 @@ def main() -> int:
     # BELOW the transcribe, at the docket a `--to-docket` run stopped on. Both
     # together would name two inputs for one run, and argparse states that
     # itself rather than leaving it to a hand-written check.
+    # !! `--proof` IS THE WRITE END'S INPUT -- `decision-log.md Process: #184`.
+    # A closed master proof holds every place the fold decided, so the
+    # transcribe reads those places. The chief's copy restated the same
+    # decisions as marks, and folding them again made this command depend on
+    # that restatement reproducing the fold exactly. `--copy` stays for a
+    # role's own draft, which is the artifact it was written for.
     source = ap.add_mutually_exclusive_group(required=True)
     source.add_argument(
+        "--proof",
+        help="JSON: a closed master_proof -- its decided places are what is set",
+    )
+    source.add_argument(
         "--copy",
-        help='JSON: an edit_copy -- {"role", "read_from", "sheets"}',
+        help='JSON: an edit_copy -- {"role", "read_from", "sheets"} -- for a'
+        " role's own draft",
     )
     source.add_argument(
         "--from-docket",
@@ -161,11 +176,11 @@ def main() -> int:
     # reason string from one call, and a caller wanting to answer them
     # differently had to match on the message.
     #
-    # ! BOTH INPUTS TAKE THE SAME THREE STEPS; only the container differs. The
+    # ! EVERY INPUT TAKES THE SAME THREE STEPS; only the container differs. The
     # noun in each message is the flag the caller passed, so a reason names the
     # thing they handed over rather than an internal type.
-    source = args.from_docket or args.copy
-    noun = "DOCKET" if args.from_docket else "COPY"
+    source = args.from_docket or args.proof or args.copy
+    noun = "DOCKET" if args.from_docket else "PROOF" if args.proof else "COPY"
     try:
         text = Path(source).read_text(encoding="utf-8")
     except exceptions.READ_ERRORS as e:
@@ -181,6 +196,22 @@ def main() -> int:
     # document with three bad pages took three runs to fix.
     if args.from_docket:
         held, problems = Docket.deserialize(source, loaded)
+    elif args.proof:
+        # The transcribe refuses a proof that has not closed, one whose
+        # places will not read back, and a page it cannot open -- so the
+        # same console face reports it here as below.
+        proof, problems = MasterProof.deserialize(source, loaded)
+        try:
+            held = (
+                transcribe.docket_of_proof(proof, repo) if proof is not None else None
+            )
+        except transcribe.CannotTranscribe as refused:
+            print(
+                "REFUSED: the proof decided nothing that can be set -- nothing written"
+            )
+            for line in refused.reasons:
+                print(line)
+            return 1
     else:
         copy, problems = EditCopy.deserialize(source, loaded)
         # The transcribe folds, so it can refuse, and it could not until the

@@ -1,13 +1,25 @@
-"""TRANSCRIBE -- one edit_copy, folded, as the docket the write chain reads.
+"""TRANSCRIBE -- decided places, as the docket the write chain reads.
 
-    docket_of(copy, repo) -> Docket
+    docket_of(copy, repo)        one edit_copy, folded
+    docket_of_proof(proof, repo) one closed master proof, read
 
-It folds, and that is what makes it a transcription of decided places. The
-copy's marks are turned into places (`flows.places.places_of`), the Unit of
-Work decides every one of them, and each place the fold settled a text for
-becomes one alteration. Nothing here reads a mark's `change` or asks which end
-of a `move` it is looking at: the marks table answered both when the fold ran,
-and a place carries one text whatever produced it.
+Two inputs, one output, and they differ in where the decision comes from. A
+copy is folded here: its marks are turned into places
+(`flows.places.places_of`), the Unit of Work decides every one of them, and
+each place the fold settled a text for becomes one alteration. A closed proof
+already holds every place the fold decided, so nothing is folded again -- the
+places are read back and each whose text differs from its base becomes one
+alteration.
+
+The proof is what the write end reads, ruled `decision-log.md Process: #184`.
+The chief's copy restated the same decisions as marks, found or synthesized,
+and folding those marks a second time made the docket depend on that restatement
+reproducing the first fold exactly. `docket_of` stays for a role's own draft,
+which is the artifact it was written for.
+
+Neither path reads a mark's `change` or asks which end of a `move` it is
+looking at: the marks table answered both when the fold ran, and a place
+carries one text whatever produced it.
 
 A rolled-back fold is a refusal, not an empty docket. `CannotTranscribe`
 carries the events' own reasons, and `commands/proof.py` prints them. An empty
@@ -39,7 +51,10 @@ was offered and declined, because it would put a middle type in
 from pathlib import Path
 
 from comment_review.binder.page import Page
-from comment_review.desk.containers import EditCopy
+from comment_review.desk.containers import EditCopy, MasterProof
+from comment_review.desk.dispositions.disposition import CHIEF
+from comment_review.desk.evaluate.place import Place
+from comment_review.desk.evaluate.state import CARRIED, State
 from comment_review.desk.marks.mark import Mark
 from comment_review.desk.marks.table import INSTRUCTIONS, Touch
 from comment_review.desk.work import events
@@ -106,24 +121,31 @@ def _touched_by_page(copy: EditCopy) -> dict[str, list[str]]:
 
 
 def _pages_of(
-    copy: EditCopy, repo: Path
+    repo: Path, known: list[str], touched: dict[str, list[str]], who: str, noun: str
 ) -> tuple[dict[str, tuple[str, Page]], list[str]]:
-    """Every page this copy's marks touch, read from `repo`, and what would not read.
+    """Every page a transcription writes at, read from `repo`, and what would not read.
 
-    A page a mark writes at and this checkout cannot answer for is a refusal
-    rather than an omission: its marks would decide nothing, its page would
-    get no schedule, and the copy would draft as though those rulings had
-    never been made. A page the copy holds a sheet for but files no mark on
-    is not missed, since nothing was going to be set there.
+    A page this checkout cannot answer for is a refusal rather than an
+    omission: it would get no schedule, and the run would draft as though the
+    rulings there had never been made. A page named among `known` and written
+    at by nothing is not missed, since nothing was going to be set there.
+
+    Args:
+        repo: the checkout every page is read from.
+        known: the real relative paths the input records -- a copy's sheets,
+            or a proof's. They are what `unflatten` inverts a flattened name
+            against, and their order is the order the schedules come out in.
+        touched: flattened page name -> the addresses to be set there.
+        who: whose transcription this is, for the reasons -- a role, or the
+            chief where a fold decided the places.
+        noun: what is owed at those addresses, for the reasons.
 
     Returns:
         `(the flattened page name -> (its real relative path, the page), the
-        reasons)`, the pages in the copy's own sheet order and then in the
-        order a destination first names one the copy has no sheet for. A
-        reason names the role, the page and every address on it.
+        reasons)`, the pages in `known`'s order and then in the order
+        `touched` first names one that is not among them. A reason names
+        `who`, the page and every address on it.
     """
-    known = [sheet.path for sheet in copy.sheets]
-    touched = _touched_by_page(copy)
     names = [flatten(path) for path in known] + list(touched)
     out: dict[str, tuple[str, Page]] = {}
     refused: list[str] = []
@@ -143,10 +165,77 @@ def _pages_of(
             out[name] = (rel, page)
         elif name in touched:
             refused.append(
-                f"{copy.role} {rel or name}: this checkout has no page here, so"
-                f" the marks at {', '.join(touched[name])} cannot be set"
+                f"{who} {rel or name}: this checkout has no page here, so"
+                f" the {noun} at {', '.join(touched[name])} cannot be set"
             )
     return out, refused
+
+
+def _schedules_of(
+    pages: dict[str, tuple[str, Page]],
+    decided: dict[str, list[Place]],
+    shas: dict[str, str],
+    role: str,
+) -> tuple[Schedule, ...]:
+    """One schedule per page a text was decided on, each page's places in order.
+
+    Args:
+        pages: what `_pages_of` returned -- the flattened name -> (the real
+            relative path, the page).
+        decided: flattened page name -> the places to set there, in any order.
+        shas: flattened page name -> the sha recorded for it, where one was.
+        role: the role written onto every schedule -- the copy a docket was
+            pulled from, or the chief where a fold decided the places.
+
+    Returns:
+        The schedules, in `pages`' own order. A page with nothing to set gets
+        none, since an empty schedule would tell the write end to set a page
+        from nothing.
+    """
+    schedules: list[Schedule] = []
+    for name, (rel, page) in pages.items():
+        here = decided.get(name)
+        if not here:
+            continue
+        # Set in the page's own place order. A cue the page does not carry
+        # sorts last rather than raising: the write end is what refuses it,
+        # by name, and a console face here would hand over a traceback.
+        order = list(page.cues.places)
+        here.sort(
+            key=lambda place: (
+                order.index(cue_of(place.address).cue)
+                if cue_of(place.address).cue in order
+                else len(order)
+            )
+        )
+        schedules.append(
+            Schedule(
+                path=rel,
+                # The recorded sha where the input carries one, since that is
+                # the bytes its addresses were taken from. A page only a
+                # move's destination names was never gathered and so has no
+                # recorded sha; the page read here is the only one there is.
+                sha=shas.get(name, page.sha),
+                alterations=tuple(
+                    Alteration(
+                        cue=cue_of(place.address).cue,
+                        text=place.text or None,
+                        # The anchor the role returned wins, and the page's
+                        # stands where the place holds none -- a move's
+                        # destination, which no mark is addressed to. The
+                        # write end refuses an alteration whose anchor is not
+                        # the page's there (`decision-log.md Process: #134`),
+                        # and that check has something to refuse only while
+                        # what reaches it is the anchor the role returned.
+                        anchor=place.anchor
+                        or page.cues.places.get(cue_of(place.address).cue, ""),
+                    )
+                    for place in here
+                ),
+                role=role,
+            )
+        )
+    return tuple(schedules)
 
 
 def docket_of(copy: EditCopy, repo: Path) -> Docket:
@@ -176,7 +265,13 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
             fold rolled back. Nothing it reported can be set, and the reasons
             are the report.
     """
-    pages, unreadable = _pages_of(copy, repo)
+    pages, unreadable = _pages_of(
+        repo,
+        [sheet.path for sheet in copy.sheets],
+        _touched_by_page(copy),
+        copy.role,
+        "marks",
+    )
     if unreadable:
         raise CannotTranscribe(tuple(unreadable))
     # A mark the envelope could not read is a decision nobody can write, and
@@ -226,45 +321,111 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
             )
         )
 
-    decided: dict[str, list] = {}
+    decided: dict[str, list[Place]] = {}
     for address, place in fold.decided.items():
         if place.text is not None:
             decided.setdefault(cue_of(address).path, []).append(place)
 
     shas = {flatten(sheet.path): sheet.sha for sheet in copy.sheets}
-    schedules = []
-    for name, (rel, page) in pages.items():
-        here = decided.get(name)
-        if not here:
-            continue
-        # Set in the page's own place order. A cue the page does not carry
-        # sorts last rather than raising: the write end is what refuses it,
-        # by name, and a console face here would hand over a traceback.
-        order = list(page.cues.places)
-        here.sort(
-            key=lambda place: (
-                order.index(cue_of(place.address).cue)
-                if cue_of(place.address).cue in order
-                else len(order)
-            )
-        )
-        schedules.append(
-            Schedule(
-                path=rel,
-                # The sheet's sha where the copy carries one, since that is
-                # the bytes its addresses were taken from. A page only a
-                # move's destination names has no sheet and so no recorded
-                # sha, and the page read here is the only one there is.
-                sha=shas.get(name, page.sha),
-                alterations=tuple(
-                    Alteration(
-                        cue=cue_of(place.address).cue,
-                        text=place.text or None,
-                        anchor=place.anchor,
-                    )
-                    for place in here
-                ),
-                role=copy.role,
-            )
-        )
-    return Docket(schedules=tuple(schedules))
+    return Docket(schedules=_schedules_of(pages, decided, shas, copy.role))
+
+
+def _places_on(proof: MasterProof) -> tuple[list[Place], list[str]]:
+    """Every place this proof carries, parsed, and every reason one would not.
+
+    A place is read back the way a returned copy's marks are, and one that
+    will not parse is named rather than dropped: transcribing the rest would
+    take that place out of the docket without a word, which is how a landing
+    goes missing from a run that reports nothing wrong.
+
+    Returns:
+        `(the places, the reasons)`, the places in the proof's own order.
+    """
+    places: list[Place] = []
+    problems: list[str] = []
+    for i, entry in enumerate(proof.places, 1):
+        where = str(entry.get("address") or "") or f"place {i}"
+        place, why = Place.deserialize(f"{CHIEF} {where}", entry)
+        if place is None:
+            problems += why
+        else:
+            places.append(place)
+    return places, problems
+
+
+def _unclosed(places: list[Place]) -> list[str]:
+    """One reason per place this proof has not finished deciding.
+
+    A carried-forward text has not settled (`decision-log.md Process: #180`)
+    and a refused place rolled its own round back, so neither is the write
+    end's to set. A docket holding the settled places beside them would draft
+    part of a stage as though the rest had been ruled on.
+    """
+    return [
+        f"{CHIEF} {place.address}: {place.state} -- this proof is not closed,"
+        " so nothing on it has settled"
+        for place in places
+        if place.state in CARRIED or place.state is State.REFUSED
+    ]
+
+
+def docket_of_proof(proof: MasterProof, repo: Path) -> Docket:
+    """One closed master proof, transcribed into the docket the write chain reads.
+
+    `decision-log.md Process: #184`: the proof holds each place's decided
+    text, so the write end reads those places. Nothing is folded here and no
+    mark is read for what it sets -- the fold has already ruled on that, and
+    the place carries the answer.
+
+    Args:
+        proof: a closed master proof, already through
+            `MasterProof.deserialize`.
+        repo: the checkout whose pages the write end sets. Each page is read
+            for its own place order and for the anchor at a place carrying
+            none.
+
+    Returns:
+        A `Docket` -- one `Schedule` per page a text was decided on, each
+        naming that page's own path and the sha the run read it at, and the
+        chief as the role, since the fold is what decided these places. One
+        alteration per place whose decided text differs from the paragraph
+        already there, with an emptied place written as the `None` the write
+        end reads as a delete.
+
+        A place the fold decided no text for gets none, and neither does one
+        standing on the text already there (`Process: #174`): there is
+        nothing to set at either.
+
+    Raises:
+        CannotTranscribe: a place will not parse, a place is still carried
+            forward or refused, or a page a decided place sits on cannot be
+            read here. Nothing it reported can be set, and the reasons are
+            the report.
+    """
+    places, problems = _places_on(proof)
+    if problems:
+        raise CannotTranscribe(tuple(problems))
+    unclosed = _unclosed(places)
+    if unclosed:
+        raise CannotTranscribe(tuple(unclosed))
+
+    decided: dict[str, list[Place]] = {}
+    for place in places:
+        if place.text is not None and place.text != place.base:
+            decided.setdefault(cue_of(place.address).path, []).append(place)
+    touched = {
+        name: sorted(place.address for place in here) for name, here in decided.items()
+    }
+    # The pages the run recorded, in the order it recorded them, with the sha
+    # each was read at. A page every copy holds a sheet for is named once.
+    known: list[str] = []
+    shas: dict[str, str] = {}
+    for copy in proof.edit_copies:
+        for sheet in copy.sheets:
+            if sheet.path not in known:
+                known.append(sheet.path)
+                shas[flatten(sheet.path)] = sheet.sha
+    pages, unreadable = _pages_of(repo, known, touched, CHIEF, "places")
+    if unreadable:
+        raise CannotTranscribe(tuple(unreadable))
+    return Docket(schedules=_schedules_of(pages, decided, shas, CHIEF))
