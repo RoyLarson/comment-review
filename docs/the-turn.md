@@ -123,7 +123,7 @@ Nothing outside the three names an instruction, an answer or a disposition, whic
 | table | rows | what a row answers |
 | --- | --- | --- |
 | `desk/marks/table.py` | the seven instructions | the `claim` keys and which one quotes the paragraph; which places it `touches`; what it `sets` at a touch; what it `reads` as a problem; what it `notes` for the chief; how it `pairs` with the others; which `answers` a turn may give on it |
-| `desk/answers/table.py` | eight, keyed by `(question, name)` | which question it answers, its `effect` on the role's own side, whether it owes a `change`, and the `claim` keys it owes |
+| `desk/answers/table.py` | eight, keyed by `(question, name)` | which question it answers, its `effect` on the role's own side, whether that effect `reaches_partner` -- the other place of a two-place mark the answering role filed -- whether it owes a `change`, and the `claim` keys it owes |
 | `desk/dispositions/table.py` | `taken_in` and `recast` | which states it `closes`, what it `owes`, and the text it `sets` |
 
 **The `Row` shape is declared once**, in `desk/marks/table.py`, and the other two tables have
@@ -139,10 +139,12 @@ for a place the fold settled on its own -- see *What each command prints*, below
 
 `desk.evaluate.passes.decide(places, turn)` is the whole sequence and the only entry:
 
-    for each place    marks_pass, then answers_pass once per turn up to `turn`
-    pair_moves        a move's two ends take the worse of their two states
-    for each place    dispositions_pass
-    pair_moves        again
+    for each place     marks_pass, then answers_pass once per turn up to `turn`
+    pair_moves         a move's two ends take the worse of their two states
+    for each place     dispositions_pass
+    pair_moves         again
+    refuse_half_moves  a move whose filer holds a side at one of its ends and
+                       none at the other is refused back to that role
 
 **The dispositions pass reads the paired state, and did not until 2026-09-18.** A move's origin
 that nobody else marked is `agreed` on its own and `contested` once paired, so with the pass
@@ -218,6 +220,21 @@ code's name is `escalation`.
     clean       accepts    the side becomes the text that was put to it
     query       abstains   unless its `claim.shape` is `human-review-necessary`,
                            which makes the place unsettlable
+
+**A `withdraw` on a move reaches both of its ends, and it is the one answer that crosses** --
+`decision-log.md Process: #129`, `#152` and `#153`. A move is one mark at two places, so the
+role that filed it holds a side at both or at neither: `withdraw` at either end takes its side
+off both, and a side another role holds there only because it answered `clean` to the withdrawn
+text goes with it, that acceptance having nothing left to hold. The reach is the row's
+`reaches_partner` and it is read wherever the mark was filed, including at an end this fold is
+not otherwise narrowing -- `desk.evaluate.passes.answers_pass`.
+
+**A `correct` or a `patch` lands at the end it was written at.** The two ends hold different
+texts -- the origin its paragraph with the snippet gone, the destination its paragraph with the
+snippet in -- so neither can be carried to the other, and `#129` rules the replacement changes
+the move's text where it is given. A role that withdraws at one end and replaces at the other
+leaves the move half done, and `desk.evaluate.passes.refuse_half_moves` sends it back naming
+both addresses rather than committing one half of it.
 
 **Only `clean` and `query` owe no `change`**, and that is read off the row's `owes_change`
 rather than from a list anybody typed. `check --contract` prints the two questions, the answers
@@ -427,5 +444,6 @@ fold deleted (`0e2ff82a`).
 | one role's marks at one place compose | `Process: #179` | `desk.evaluate.passes.composed_side` |
 | an answer's sources are verified before the fold | `Process: #181` | `flows.answers.answers_of` |
 | a held move is one entry naming both ends | `Process: #155`, `#182` | `desk.work.fold._prints`, `commands.collate._for_the_human` |
+| a mover's answer at either end reaches the move whole | `Process: #129`, `#152`, `#153` | `desk.answers.table.AnswerRow.reaches_partner`, `desk.evaluate.passes.answers_pass` and `refuse_half_moves` |
 | the dropped-words list is advisory | `Process: #163`, `#177` | `desk.marks.table._correct_notes`, `events.Advised` |
 | copies from different trees are refused | `Process: #178` | `flows.bus._root_problems` |

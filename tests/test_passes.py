@@ -693,6 +693,231 @@ def test_decide_leaves_a_held_move_holding_both_ends_and_deciding_no_text():
     assert places["m.py@b1"].text is None
 
 
+class TestAnAnswerReachesBothEndsOfTheMove:
+    """`decision-log.md Process: #129`, `#152` and `#153`: a move is one mark
+    at two places, and an answer its filer gives at either end reaches the
+    move whole rather than the place it was written at.
+
+    Measured 2026-09-18 before this: the mover withdrew at its origin, the
+    destination kept the mover's side, and the moved sentence settled at both
+    places -- the paragraph on the page twice.
+    """
+
+    MOVED = "# two\n"
+    LANDING = "# four\n# five\n"
+    LANDED = "# four\n# two\n# five\n"
+    #: The same landing with the snippet run onto the line the other role
+    #: rewrites, so the two texts will not compose and the destination is the
+    #: contested end.
+    LANDED_ON_THE_LINE = "# four\n# five and two\n"
+    REMAINDER = "# one\n# three\n"
+    CORRECTED = "# one\n# TWO\n# three\n"
+
+    def _move(self, reads: str = "", change: str = "") -> Mark:
+        return _mark(
+            Instruction.MOVE,
+            change=change or self.MOVED,
+            raw_text=reads or self.LANDED,
+            claim={"from": "m.py@b1", "to": "m.py@b5"},
+        )
+
+    def _pair(self, *, move: Mark, at_origin=(), at_destination=(), readers=("a", "b")):
+        """The two ends of one move, each holding whatever else was filed."""
+        origin = _place(Filed("a", move, Touch.ORIGIN), *at_origin)
+        destination = _place(
+            Filed("a", move, Touch.DESTINATION),
+            *at_destination,
+            base=self.LANDING,
+            address="m.py@b5",
+        )
+        origin.partner, destination.partner = "m.py@b5", "m.py@b1"
+        origin.readers = destination.readers = readers
+        return {"m.py@b1": origin, "m.py@b5": destination}
+
+    def _contested_origin(self, move: Mark | None = None) -> dict:
+        """The reviewer's case: the mover's origin, corrected by another role
+        on the sentence the move takes away, so the origin is an escalation
+        put to both and the destination a composition put to the other role."""
+        return self._pair(
+            move=move or self._move(),
+            at_origin=(
+                Filed("b", _a_correct(change=self.CORRECTED, true="TWO"), Touch.OWN),
+            ),
+        )
+
+    def test_the_origin_is_the_escalation_and_the_destination_the_composition(self):
+        places = self._contested_origin()
+        marks_pass(places["m.py@b1"], places["m.py@b5"])
+        marks_pass(places["m.py@b5"], places["m.py@b1"])
+        assert places["m.py@b1"].state is State.CONTESTED
+        assert places["m.py@b1"].owed == ("a", "b")
+        assert places["m.py@b5"].state is State.COMPOSED
+        assert places["m.py@b5"].owed == ("b",)
+
+    def test_a_withdrawal_at_the_origin_takes_the_move_off_the_destination(self):
+        places = self._contested_origin()
+        places["m.py@b1"].answers[1] = {"a": _answer("withdraw"), "b": _answer("hold")}
+        places["m.py@b5"].answers[1] = {
+            "b": _answer("clean", question=Question.COMPOSITION)
+        }
+        decide(places, turn=1)
+        assert places["m.py@b1"].text == self.CORRECTED
+        assert places["m.py@b5"].state is State.STANDS
+        assert places["m.py@b5"].text is None
+        assert places["m.py@b5"].sides == {}
+
+    def test_a_hold_at_the_origin_keeps_the_move_at_both_ends(self):
+        places = self._contested_origin()
+        places["m.py@b1"].answers[1] = {"a": _answer("hold"), "b": _answer("withdraw")}
+        places["m.py@b5"].answers[1] = {
+            "b": _answer("clean", question=Question.COMPOSITION)
+        }
+        decide(places, turn=1)
+        assert places["m.py@b1"].text == self.REMAINDER
+        assert places["m.py@b5"].text == self.LANDED
+        assert places["m.py@b5"].sides["a"] == self.LANDED
+
+    def test_the_other_roles_withdrawal_reaches_nothing(self):
+        """Only the mark's own filer answers for the move: the role that
+        withdraws its correction at the origin leaves the move standing."""
+        places = self._contested_origin()
+        places["m.py@b1"].answers[1] = {"a": _answer("hold"), "b": _answer("withdraw")}
+        places["m.py@b5"].answers[1] = {
+            "b": _answer("clean", question=Question.COMPOSITION)
+        }
+        decide(places, turn=1)
+        assert places["m.py@b1"].sides == {"a": self.REMAINDER}
+        assert places["m.py@b5"].sides["a"] == self.LANDED
+
+    def test_a_withdrawal_at_the_destination_takes_the_move_off_the_origin(self):
+        """The destination is the contested end here, so it is where the mover
+        is asked -- and `#129` is the ruling on that end by name."""
+        places = self._pair(
+            move=self._move(reads=self.LANDED_ON_THE_LINE),
+            at_destination=(
+                Filed(
+                    "c",
+                    _mark(
+                        Instruction.CORRECT,
+                        change="# four\n# 5\n",
+                        claim={"false": "five", "true": "5"},
+                        address="m.py@b5",
+                    ),
+                    Touch.OWN,
+                ),
+            ),
+            readers=("a", "c"),
+        )
+        marks_pass(places["m.py@b5"], places["m.py@b1"])
+        assert places["m.py@b5"].state is State.CONTESTED
+        assert places["m.py@b5"].owed == ("a", "c")
+        places["m.py@b5"].answers[1] = {"a": _answer("withdraw"), "c": _answer("hold")}
+        decide(places, turn=1)
+        assert places["m.py@b5"].sides == {"c": "# four\n# 5\n"}
+        assert places["m.py@b1"].sides == {}
+        assert places["m.py@b1"].text is None
+
+    def test_a_withdrawn_whole_paragraph_move_leaves_the_origin_its_paragraph(self):
+        """A move that takes the whole paragraph sets the origin to "", the
+        delete -- so a withdrawal that did not reach the origin would leave
+        the paragraph deleted at one end and added at the other."""
+        places = self._contested_origin(
+            move=self._move(change=BASE, reads=self.LANDING + BASE)
+        )
+        assert marks_pass(places["m.py@b1"]).sides["a"] == ""
+        places["m.py@b1"].answers[1] = {"a": _answer("withdraw"), "b": _answer("hold")}
+        places["m.py@b5"].answers[1] = {
+            "b": _answer("clean", question=Question.COMPOSITION)
+        }
+        decide(places, turn=1)
+        assert places["m.py@b1"].text == self.CORRECTED
+        assert places["m.py@b5"].text is None
+
+    def test_a_partial_move_that_stands_keeps_the_origins_remainder(self):
+        """`decision-log.md Process: #172`: the origin's result is its
+        paragraph with the snippet removed exactly, which is what the pair
+        settles on where the mover holds."""
+        places = self._pair(move=self._move(), readers=("a",))
+        decide(places)
+        assert places["m.py@b1"].text == self.REMAINDER
+        assert places["m.py@b5"].text == self.LANDED
+
+    def test_a_destination_that_stands_alone_still_loses_a_withdrawn_move(self):
+        """The reach is a fact about the mark, not about the state the other
+        end reached: a destination no other role read stands on the move's
+        text by itself, and the withdrawal takes it off there too."""
+        places = self._contested_origin()
+        places["m.py@b5"].readers = ("a",)
+        assert marks_pass(places["m.py@b5"]).state is State.STANDS
+        places["m.py@b1"].answers[1] = {"a": _answer("withdraw"), "b": _answer("hold")}
+        decide(places, turn=1)
+        assert places["m.py@b5"].text is None
+        assert places["m.py@b1"].text == self.CORRECTED
+
+    def test_a_move_answered_one_way_at_one_end_and_another_at_the_other_is_refused(
+        self,
+    ):
+        """The mover withdraws at the origin and replaces at the destination
+        in one turn: the move is neither withdrawn nor made, so it goes back
+        to the role rather than landing half."""
+        places = self._pair(
+            move=self._move(reads=self.LANDED_ON_THE_LINE),
+            at_origin=(
+                Filed("b", _a_correct(change=self.CORRECTED, true="TWO"), Touch.OWN),
+            ),
+            at_destination=(
+                Filed(
+                    "c",
+                    _mark(
+                        Instruction.CORRECT,
+                        change="# four\n# 5\n",
+                        claim={"false": "five", "true": "5"},
+                        address="m.py@b5",
+                    ),
+                    Touch.OWN,
+                ),
+            ),
+            readers=("a", "b", "c"),
+        )
+        places["m.py@b1"].answers[1] = {
+            "a": _answer("withdraw"),
+            "b": _answer("hold"),
+        }
+        places["m.py@b5"].answers[1] = {
+            "a": _answer("correct", change="# four\n# five and 2\n"),
+            "c": _answer("hold"),
+        }
+        decide(places, turn=1)
+        assert places["m.py@b1"].state is State.REFUSED
+        assert places["m.py@b5"].state is State.REFUSED
+        (why,) = places["m.py@b5"].reasons
+        assert why.startswith("a: ")
+        assert "m.py@b1" in why and "m.py@b5" in why
+
+    def test_a_held_move_is_not_a_half_move(self):
+        """An end an answer holds for the human keeps no sides of its own,
+        and its partner keeps both -- which is the shape the half-move guard
+        must not read as a move landing at one end. The move rides to the
+        author whole (`decision-log.md Process: #155`)."""
+        places = self._contested_origin()
+        places["m.py@b1"].answers[1] = {"a": _answer("hold"), "b": _answer("hold")}
+        places["m.py@b5"].answers[1] = {
+            "b": _answer(
+                "query",
+                question=Question.COMPOSITION,
+                claim={
+                    "shape": str(Shape.HUMAN_REVIEW_NECESSARY),
+                    "attempted": "read it",
+                    "settles": "human",
+                },
+            )
+        }
+        decide(places, turn=1)
+        assert places["m.py@b1"].state is State.UNSETTLABLE
+        assert places["m.py@b5"].state is State.UNSETTLABLE
+        assert places["m.py@b1"].text is None and places["m.py@b5"].text is None
+
+
 def test_a_correct_that_drops_an_unnamed_word_is_noted_and_still_settles():
     """`decision-log.md Process: #163` and `#177`: the words a change drops
     that its claim never named are advisory, so the place settles on the

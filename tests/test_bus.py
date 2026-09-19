@@ -405,6 +405,78 @@ def test_a_move_ruled_at_one_end_only_is_refused_for_the_other(tmp_path):
     assert any(isinstance(one, events.RolledBack) for one in out)
 
 
+#: block-context moves b1's middle line to b2; function-context rewrites that
+#: same line where it stands. The origin is an escalation put to both roles,
+#: and the destination a composition put to the role that did not move it --
+#: so the origin is the only place the mover can answer.
+A_MOVE_ITS_ORIGIN_CONTESTS = {
+    "block-context": {
+        PLACE: a_move(PLACE, "m.py@b2", change="# two\n", reads=OTHER + "# two\n"),
+        "m.py@b2": a_clean("m.py@b2"),
+    },
+    "function-context": {
+        PLACE: a_correct_setting(PLACE, "two", CORRECTED),
+        "m.py@b2": a_clean("m.py@b2"),
+    },
+}
+
+
+def test_a_mover_withdrawing_at_its_origin_takes_the_move_off_the_destination(tmp_path):
+    """`decision-log.md Process: #129`: an answer at either end reaches the
+    move whole. Two turns, because the destination settles on the moved text
+    in the first and the mover withdraws in the second -- and the sentence
+    must then be on the page once, in the wording the other role gave it,
+    where it already was.
+    """
+    collated = _collated(tmp_path, A_MOVE_ITS_ORIGIN_CONTESTS)
+    assert _state_at(collated.proof, PLACE) == "contested"
+    assert _state_at(collated.proof, "m.py@b2") == "contested"
+    assert collated.batch is not None
+    assert sorted(one["address"] for one in collated.batch["block-context"]) == [PLACE]
+    out, first = handle(
+        AnswersReturned(
+            collated.proof,
+            {
+                "block-context": [_answer(PLACE, "hold", "it belongs at b2")],
+                "function-context": [
+                    _answer(PLACE, "hold", "it belongs here, reworded"),
+                    _answer("m.py@b2", "clean", "it reads with the line in"),
+                ],
+            },
+            tmp_path / "repo",
+        )
+    )
+    assert first is not None, out
+    assert first.batch is not None
+    out, second = handle(
+        AnswersReturned(
+            first.proof,
+            {
+                # The destination settled in the first turn and is carried
+                # forward by its partner alone, which is why its slots ask
+                # an escalation and why neither answer there decides
+                # anything: what takes the move off it is the withdrawal
+                # written at the origin.
+                "block-context": [
+                    _answer(PLACE, "withdraw", "reworded where it stands, it reads"),
+                    _answer("m.py@b2", "hold", "nothing of mine to change here"),
+                ],
+                "function-context": [
+                    _answer(PLACE, "hold", "mine stands"),
+                    _answer("m.py@b2", "hold", "as before"),
+                ],
+            },
+            tmp_path / "repo",
+        )
+    )
+    assert second is not None, out
+    assert events.Settled(PLACE, CORRECTED) in out
+    assert events.Settled("m.py@b2", None) in out
+    assert second.batch is None
+    assert second.chief is not None
+    assert _changes_on(second.chief) == [CORRECTED]
+
+
 def test_a_disposition_at_an_unsettlable_place_is_refused(tmp_path):
     collated = _collated(tmp_path, A_QUERY_FOR_THE_HUMAN)
     out, result = handle(
