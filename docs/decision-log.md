@@ -4969,3 +4969,26 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   partial case -- Roy chose the filter. So `proof --proof <closed proof> --only <address>`,
   repeatable, transcribes those decided places alone and refuses an address the proof does not
   carry.
+
+- **#193.** **Compaction is a stage over the revise, dealt only the places over the cap** (Roy,
+  2026-09-19, superseding `#191` the day it was ruled and built, `f6dae09f`).
+
+  Asked whether the `compact` command should refuse a docstring place, Roy: *"How about we just
+  pass the b places as marks for the agent to edit after rebinding. Then they only get to patch,
+  drop, add, the edits"*. And on having it said back as a stage: *"That is verifiably a better
+  design to have it be a stage after everything is resolved. It can also be limited to the b
+  places that are over the limit so that reduces the workload even more to only those places
+  that require editing."* On the three details: *"because trailing line comments in other
+  languages can become multiline paragraphs I think we have to include c as well"*; *"only
+  touching places that are over the length limit - all other places are automatically clean for
+  this role"*; and *"They should be explicitly excluded from the prior roles requirements
+  because they need the comments to be correct, true, current, ... and how ever many lines that
+  initially takes is what it is. This step is about summarizing the text correctly"*.
+
+  So compaction is an ordinary stage that reads the revise the review's proof pulled: the
+  pages are gathered again, the compacting role is dealt a copy holding only the `b` and `c`
+  places whose text runs over the cap, it files the edit instructions with `mark`, and its
+  copy is folded and set like any stage's. A docstring is never dealt, so nothing has to refuse
+  one. Length is no concern of the four editorial roles: their remit is that a comment is
+  correct, true and current at whatever length that takes. `#191`'s command goes; `#192`
+  stands.
