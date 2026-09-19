@@ -80,6 +80,19 @@ class Settled(NamedTuple):
     text: str | None
 
 
+class Compacted(NamedTuple):
+    """One place whose decided text a compaction replaced, and what it now reads.
+
+    Stage 6 condenses text the fold already decided, so this reports an edit
+    to a decided place rather than a decision (`decision-log.md Process:
+    #191`). Every place is named, so a capped run can be read against the
+    text the author is about to approve.
+    """
+
+    address: str
+    text: str
+
+
 class Committed(NamedTuple):
     """The fold committed: every place decided, none refused."""
 
@@ -93,5 +106,12 @@ class RolledBack(NamedTuple):
 
 
 Event = (
-    Refused | CarriedForward | Unsettlable | Advised | Settled | Committed | RolledBack
+    Refused
+    | CarriedForward
+    | Unsettlable
+    | Advised
+    | Settled
+    | Compacted
+    | Committed
+    | RolledBack
 )

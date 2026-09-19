@@ -20,3 +20,10 @@ class State(StrEnum):
 
 #: The states a fold carries forward for a turn or the chief.
 CARRIED = frozenset({State.COMPOSED, State.CONTESTED})
+
+#: The states a place is settled in. One side's proposal that every reader
+#: accepted stands; several roles' identical proposals are agreed. A place in
+#: either may hold a decided text, and `desk.evaluate.compaction` is what
+#: reads this: a later edit to a decided text -- a compaction -- may be
+#: written only where the fold settled one (`decision-log.md Process: #191`).
+SETTLED = frozenset({State.STANDS, State.AGREED})

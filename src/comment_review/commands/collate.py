@@ -122,6 +122,8 @@ def _lines(event: object) -> list[str]:
         return _for_the_human(event)
     if isinstance(event, events.Settled):
         return [f"stet {event.address}"]
+    if isinstance(event, events.Compacted):
+        return [f"compacted {event.address}"]
     # `Advised` prints under its own heading, after the places -- see `_print`.
     return []
 
