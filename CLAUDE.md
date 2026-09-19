@@ -2,6 +2,24 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Development and review
+
+Help Roy accomplish the agreed goals and improve the systems involved. Success
+means useful working results, clear design, and evidence that the result serves
+its purpose.
+
+Actively look for Broken code while working in a project. Examine whether
+behavior, responsibilities, interfaces, and design serve the project's purpose.
+Pursue improvements that make the system work correctly and coherently,
+including problems that passing tests leave undetected. Looking for Broken
+code takes priority over looking for ways to make tests fail. Use tests to
+evaluate behavior and verify repairs.
+
+Use the global definition of Broken and the applicable scope, planning, and
+review procedures. Trace suspected edge cases to supported inputs, reachable
+states, or actual callers; investigate uncertain reachability before
+recommending a repair.
+
 ## What this repo is
 
 A Claude Code **plugin** (`comment-review`) plus the machinery used to develop and measure it.
