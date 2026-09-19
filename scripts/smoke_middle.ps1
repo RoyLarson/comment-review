@@ -3,10 +3,13 @@
 # composes: a binder, a topology, seeded copies, the planted marks, the
 # fold's proof, two turns in which every role answers what the fold carried
 # forward, the chief's dispositions closing what the turns still carry
-# forward, the docket `proof` transcribes from the closed copy, and the
+# forward, the compaction stage 6 writes onto one decided place, the docket
+# `proof` transcribes from the closed proof, and the
 # revise `proof` pulls from that docket. The diff stage compares that revise
 # with the text smoke_fixture.py says the plant makes land, and passes
-# only when the two are identical. The last stage runs a second editorial
+# only when the two are identical. The partial stage runs the same closed
+# proof through the author's approval of two of its places and diffs the one
+# page that leaves. The last stage runs a second editorial
 # stage over that revise -- the topology says it reads it -- and diffs its
 # proof the same way.
 # Provisional -- it drives a prototype surface and may be thrown away once
@@ -26,7 +29,8 @@ $PSNativeCommandUseErrorActionPreference = $false
 $Cmd = @{
     gather = 'gather'; topology = 'topology'; distribute = 'distribute'
     mark = 'mark'; check = 'check'; collate = 'collate'; turn = 'turn'
-    disposition = 'disposition'; proof = 'proof'; addresser = 'addresser'
+    disposition = 'disposition'; compact = 'compact'; proof = 'proof'
+    addresser = 'addresser'
 }
 
 # The launcher every comment-review command runs through, written once so
@@ -184,9 +188,23 @@ $Batch3File = Join-Path $Run 'batch3.json'
 $DispositionsFile = Join-Path $Run 'dispositions.json'
 $ChiefFinalFile = Join-Path $Run 'chief-final.json'
 $FinalFile = Join-Path $Run 'final.json'
+# Stage 6: the condensed text, the proof it is written onto, and the sub-plant
+# whose compaction is refused -- the two paths below it are what that refusal
+# must not write (Process #191).
+$CompactionsFile = Join-Path $Run 'compactions.json'
+$CompactProofFile = Join-Path $Run 'final-compact.json'
+$CompactRefusedFile = Join-Path $Run 'compactions-refused.json'
+$CompactRefusedProofFile = Join-Path $Run 'final-compact-refused.json'
 $DocketFile = Join-Path $Run 'docket.json'
 $ProofDir = Join-Path $Run 'proof'
 $ExpectedDir = Join-Path $Run 'expected'
+# The partial approval (Process #192): the places the author approved, the
+# revise `proof --only` pulls for them, the page that revise must hold, and
+# the revise root the half-a-move refusal must not create.
+$ApprovalFile = Join-Path $Run 'approval.json'
+$PartialDir = Join-Path $Run 'partial'
+$PartialExpectedDir = Join-Path $Run 'partial-expected'
+$HalfAMoveDir = Join-Path $Run 'half-a-move'
 $RoleDraftDir = Join-Path $Run 'role-draft'
 $RoleExpectedDir = Join-Path $Run 'role-expected'
 $CollideCopyFile = Join-Path $Run 'collide-copy.json'
@@ -1267,16 +1285,54 @@ $Stages = [ordered]@{
             '--proof-out', $FinalFile
         ))
     }
+    # Stage 6 condenses text the fold already decided, so `compact` writes the
+    # condensed paragraph onto the place that holds it and leaves a new proof
+    # (ruling #191). The one place condensed is `COMPACTED` in
+    # smoke_fixture.py, whose condensed text is written there by hand and is
+    # what RATE_EXPECTED carries -- so the diff below fails if the write end
+    # sets the paragraph at full length. The sub-plant hands the same text to
+    # a place that stands on the paragraph already there: it settled on no
+    # text, so there is nothing to condense and nothing is written.
+    compact = {
+        Invoke-Checked -Stage 'plant-compaction' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_compaction; write_compaction(Path(sys.argv[1]))',
+            $Run
+        )
+        Invoke-Checked -Stage 'compact' -CommandLine ($Launcher + @(
+            $Cmd.compact, '--proof', $FinalFile, '--compacted', $CompactionsFile,
+            '--proof-out', $CompactProofFile
+        ))
+        $standsOnItsBase = $Launcher + @(
+            $Cmd.compact, '--proof', $FinalFile, '--compacted', $CompactRefusedFile,
+            '--proof-out', $CompactRefusedProofFile
+        )
+        $refused = Invoke-Checked -Stage 'compact at a place that stands refused' -Expect 1 -Capture -CommandLine $standsOnItsBase
+        if (-not (($refused -join "`n").Contains('nothing here to condense'))) {
+            Write-Host 'stage failed: compact at a place that stands refused'
+            Write-Host 'expected a refusal naming what the place settled on; compact printed:'
+            $refused | Out-Host
+            Write-Host "command: $(Format-CommandLine $standsOnItsBase)"
+            exit 1
+        }
+        if (Test-Path -LiteralPath $CompactRefusedProofFile) {
+            Write-Host 'stage failed: compact at a place that stands refused'
+            Write-Host "a refused compaction wrote $CompactRefusedProofFile"
+            exit 1
+        }
+    }
     # `proof --to-docket` transcribes the closed proof's decided places into a
     # docket and stops (ruling #184). `proof --from-docket` then reads that
     # docket as the write end reads one, and pulls it into a revise of the
     # original tree at $ProofDir, which must not exist yet -- so a docket the
-    # write end refuses stops the smoke at proof-from-docket. $ChiefFinalFile
-    # is still written by the disposition stage above, as the record of what
-    # was decided; nothing downstream reads it back.
+    # write end refuses stops the smoke at proof-from-docket. The proof it
+    # reads is the compacted one: what the author approves is what the write
+    # end sets, so a run where stage 6 ran sets the condensed text.
+    # $ChiefFinalFile is still written by the disposition stage above, as the
+    # record of what was decided; nothing downstream reads it back.
     proof = {
         Invoke-Checked -Stage 'proof-to-docket' -CommandLine ($Launcher + @(
-            $Cmd.proof, '--proof', $FinalFile, '--repo', $OriginalDir,
+            $Cmd.proof, '--proof', $CompactProofFile, '--repo', $OriginalDir,
             '--to-docket', $DocketFile
         ))
         Invoke-Checked -Stage 'proof-from-docket' -CommandLine ($Launcher + @(
@@ -1303,6 +1359,60 @@ $Stages = [ordered]@{
         ) -OnFailure {
             Write-Host 'what the chain did -- the original against the proof:'
             & git -c core.autocrlf=false --no-pager diff --no-index -- $OriginalDir $ProofDir | Out-Host
+        }
+    }
+    # The partial approval, beside the main line and over the same closed
+    # proof (ruling #192): the author approved two of its decided places, so
+    # `proof --only` sets those and nothing else. Its revise holds `store.py`
+    # alone -- the only page those two places sit on -- and the diff is
+    # against a page written by hand as the fixture with those two places set,
+    # so a run that set a third place, or set neither, fails here. The
+    # sub-plant names one end of the move the chief took in at both ends: a
+    # move is one decision at two places, and setting one end alone would
+    # write the paragraph twice or lose it.
+    partial = {
+        Invoke-Checked -Stage 'plant-approval' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_approval; write_approval(Path(sys.argv[1]))',
+            $Run
+        )
+        $approval = Get-Content -LiteralPath $ApprovalFile -Raw | ConvertFrom-Json
+        $only = @()
+        foreach ($address in $approval.approved) {
+            $only += @('--only', $address)
+        }
+        Invoke-Checked -Stage 'partial approval' -CommandLine ($Launcher + @(
+            $Cmd.proof, '--proof', $CompactProofFile, '--repo', $OriginalDir
+        ) + $only + @('--out', $PartialDir))
+        New-Item -ItemType Directory -Path $PartialExpectedDir | Out-Null
+        Invoke-Checked -Stage 'partial expected' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_partial_expected; write_partial_expected(Path(sys.argv[1]))',
+            $PartialExpectedDir
+        )
+        Invoke-Checked -Stage 'partial diff' -CommandLine @(
+            'git', '-c', 'core.autocrlf=false', '--no-pager', 'diff', '--no-index', '--',
+            $PartialExpectedDir, $PartialDir
+        ) -OnFailure {
+            Write-Host 'what the partial approval did -- the original against it:'
+            & git -c core.autocrlf=false --no-pager diff --no-index -- $OriginalDir $PartialDir | Out-Host
+        }
+        $halfAMove = $Launcher + @(
+            $Cmd.proof, '--proof', $CompactProofFile, '--repo', $OriginalDir,
+            '--only', $approval.'half-a-move', '--out', $HalfAMoveDir
+        )
+        $refused = Invoke-Checked -Stage 'only one end of a move refused' -Expect 1 -Capture -CommandLine $halfAMove
+        if (-not (($refused -join "`n").Contains('the other end of this move'))) {
+            Write-Host 'stage failed: only one end of a move refused'
+            Write-Host 'expected a refusal naming the end left out; proof printed:'
+            $refused | Out-Host
+            Write-Host "command: $(Format-CommandLine $halfAMove)"
+            exit 1
+        }
+        if (Test-Path -LiteralPath $HalfAMoveDir) {
+            Write-Host 'stage failed: only one end of a move refused'
+            Write-Host "a refused approval pulled a revise into $HalfAMoveDir"
+            exit 1
         }
     }
     # The second stage, which reads what the first one pulled. Its topology row
