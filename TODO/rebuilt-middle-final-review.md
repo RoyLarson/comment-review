@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 41 tasks closed
+Progress: 4 of 42 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -17,8 +17,9 @@ The rebuilt middle's final review.
 - [x] T1 | AnswerRow.reaches_partner: a mover's withdrawal reaches its move's other end; refuse_half_moves; Process 188 to 190; tests/test_passes.py, test_bus.py | 9ee20904 | Fix
       a mover's answer at one end of a move so it reaches the other; refuse a
       commit that leaves a move half done (B1, Broken)
-- [ ] T2 | Fix a chief mark synthesized over patch-only sides so it parses; it
-      is a correct with no sources today (H1, Broken)
+- [x] T2 | two patches composed and settled reach the docket through proof --proof; tests/test_revise.py TestDocketOfProof; the chief's copy is no longer an input | af3e115d | Fix
+      a chief mark synthesized over patch-only sides so it parses; it is a
+      correct with no sources today (H1, Broken)
 - [ ] T3 | Decide whether drift_in goes per Process 62 or 62 is superseded; it
       voids the round today (D3, Broken)
 - [ ] T4 | Make the marks row say where a two-place mark's other end is; five
@@ -35,8 +36,9 @@ The rebuilt middle's final review.
       address so the first origin goes unpaired (B4)
 - [ ] T10 | Fix collate writing composed and contested text to the chief's copy
       and printing it as resolved (C1)
-- [ ] T11 | Make docket_of read the proof's decided places, as the design says,
-      not re-fold the chief's marks (C2)
+- [x] T11 | flows/transcribe.py docket_of_proof and proof --proof read the closed proof's decided places (Process 184); dockets byte-identical to --copy on the smoke | 8f6d0fd3 | Make
+      docket_of read the proof's decided places, as the design says, not re-fold
+      the chief's marks (C2)
 - [ ] T12 | Move desk's two binder imports out: collator.py takes a Binder,
       containers.py a private binder name (D1)
 - [ ] T13 | Correct 'no handler reads a page' in flows/bus.py and
@@ -98,3 +100,5 @@ The rebuilt middle's final review.
 - [x] T41 | the smoke's main line runs a second turn; store.py plants a contested move its mover withdraws, the sentence landing once | baed3d73 | Add
       a smoke plant of a move answered by its mover across two turns; B1, B2 and
       B4 sat outside the smoke (H3)
+- [ ] T42 | Implement compaction onto a closed proof's places and a place filter
+      on proof, per Process 191 and 192
