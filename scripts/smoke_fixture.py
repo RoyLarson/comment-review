@@ -193,6 +193,23 @@ STORE_FIXTURE = (
     "def seen(log, key):\n"
     "    # True when the key is in the log. Every lookup goes through this store.\n"
     "    return key in log\n"
+    "\n"
+    "\n"
+    "def summary(log, found):\n"
+    '    """Two numbers, one line.\n'
+    "\n"
+    "    The report prints the count and the share, in that order.\n"
+    '    """\n'
+    "    # The store keeps every lookup it has ever answered, and the count\n"
+    "    # is what the report prints at the end of the day. Nothing is ever\n"
+    "    # removed from it, so the number only goes up.\n"
+    "    counted = kept(log)\n"
+    "    # Rounded twice.\n"
+    "    share = part(log, found)\n"
+    "    # The share is printed beside the count, and the two are read\n"
+    "    # together: a count with no share says nothing about the store,\n"
+    "    # and a share with no count says nothing about the day.\n"
+    "    return counted, share  # both, in order\n"
 )
 
 
@@ -519,16 +536,20 @@ LANDINGS: dict[str, Landing] = {
     # both ends ride to the end unruled and the paragraph stays where it is
     # (`Process: #182`).
     "store.py@b5": Landing("kept", route="query", filed=("move", "query")),
-    # and its destination, the closing gap after the last line of code, which
-    # stays empty for the same reason. `marked` is the paragraph the move
-    # carries, which its `mark` call passes as both `--change` and
+    # and its destination, the empty gap between the last two functions,
+    # which stays empty for the same reason. `marked` is the paragraph the
+    # move carries, which its `mark` call passes as both `--change` and
     # `--raw-text`: the whole paragraph leaves, so the two are one text.
+    # ! IT WAS THE CLOSING GAP UNTIL `summary` WAS APPENDED for the
+    # compacting stage, and the case it plants is a move held for the human
+    # at both ends (`Process: #182`) rather than anything about the file's
+    # end -- `fib.py@b17` is the closing-gap plant.
     "store.py@b12": Landing(
         "kept",
         route="query",
         filed=("move",),
         marked="    # Rounded before it is printed.",
-        line=28,
+        line=31,
     ),
     # the contested move's origin: block-context moves the whole paragraph up
     # to `b8`, the gap above the declaration it describes, and
@@ -612,6 +633,18 @@ LANDINGS: dict[str, Landing] = {
         marked="# Every lookup goes through this store.",
         line=26,
     ),
+    # `summary`'s five places, which every role cleans: length is no concern
+    # of the four editorial roles (`decision-log.md Process: #193`, Roy: they
+    # need the comments to be correct, true and current, and however many
+    # lines that takes is what it is). They stand as the fixture has them and
+    # reach the revise unchanged, which is where the compacting stage reads
+    # them: `b13` and `b15` run over its cap and are dealt, and the docstring
+    # `a7`, the one-line `b14` and the trailing `c15` are not.
+    "store.py@a7": Landing("kept", route="mark", filed=("clean",)),
+    "store.py@b13": Landing("kept", route="mark", filed=("clean",)),
+    "store.py@b14": Landing("kept", route="mark", filed=("clean",)),
+    "store.py@b15": Landing("kept", route="mark", filed=("clean",)),
+    "store.py@c15": Landing("kept", route="mark", filed=("clean",)),
 }
 
 #: The `LANDINGS` entry smoke_middle.ps1 marks without spelling its address:
@@ -1366,7 +1399,9 @@ RATE_EXPECTED = (
 #: comment with no blank line between them. `b11` keeps both its sentences,
 #: the second in block-context's wording, and `b10` is empty: the move that
 #: would have taken that sentence away was withdrawn by its own filer in the
-#: second turn, so neither end of it lands either.
+#: second turn, so neither end of it lands either. `summary` is untouched by
+#: this stage -- every role cleans its five places -- and it is what the
+#: compacting stage reads out of this revise.
 STORE_EXPECTED = (
     "def kept(log):\n"
     "    # Every lookup is recorded.\n"
@@ -1398,6 +1433,23 @@ STORE_EXPECTED = (
     "def seen(log, key):\n"
     "    # True when the key is in the log. Each lookup goes through this store.\n"
     "    return key in log\n"
+    "\n"
+    "\n"
+    "def summary(log, found):\n"
+    '    """Two numbers, one line.\n'
+    "\n"
+    "    The report prints the count and the share, in that order.\n"
+    '    """\n'
+    "    # The store keeps every lookup it has ever answered, and the count\n"
+    "    # is what the report prints at the end of the day. Nothing is ever\n"
+    "    # removed from it, so the number only goes up.\n"
+    "    counted = kept(log)\n"
+    "    # Rounded twice.\n"
+    "    share = part(log, found)\n"
+    "    # The share is printed beside the count, and the two are read\n"
+    "    # together: a count with no share says nothing about the store,\n"
+    "    # and a share with no count says nothing about the day.\n"
+    "    return counted, share  # both, in order\n"
 )
 
 
@@ -1503,6 +1555,23 @@ ROLE_STORE_DRAFT = (
     "def seen(log, key):\n"
     "    # True when the key is in the log. Every lookup goes through this store.\n"
     "    return key in log\n"
+    "\n"
+    "\n"
+    "def summary(log, found):\n"
+    '    """Two numbers, one line.\n'
+    "\n"
+    "    The report prints the count and the share, in that order.\n"
+    '    """\n'
+    "    # The store keeps every lookup it has ever answered, and the count\n"
+    "    # is what the report prints at the end of the day. Nothing is ever\n"
+    "    # removed from it, so the number only goes up.\n"
+    "    counted = kept(log)\n"
+    "    # Rounded twice.\n"
+    "    share = part(log, found)\n"
+    "    # The share is printed beside the count, and the two are read\n"
+    "    # together: a count with no share says nothing about the store,\n"
+    "    # and a share with no count says nothing about the day.\n"
+    "    return counted, share  # both, in order\n"
 )
 
 
@@ -1832,7 +1901,131 @@ PARTIAL_EXPECTED = (
     "def seen(log, key):\n"
     "    # True when the key is in the log. Every lookup goes through this store.\n"
     "    return key in log\n"
+    "\n"
+    "\n"
+    "def summary(log, found):\n"
+    '    """Two numbers, one line.\n'
+    "\n"
+    "    The report prints the count and the share, in that order.\n"
+    '    """\n'
+    "    # The store keeps every lookup it has ever answered, and the count\n"
+    "    # is what the report prints at the end of the day. Nothing is ever\n"
+    "    # removed from it, so the number only goes up.\n"
+    "    counted = kept(log)\n"
+    "    # Rounded twice.\n"
+    "    share = part(log, found)\n"
+    "    # The share is printed beside the count, and the two are read\n"
+    "    # together: a count with no share says nothing about the store,\n"
+    "    # and a share with no count says nothing about the day.\n"
+    "    return counted, share  # both, in order\n"
 )
+
+
+#: The compacting stage: a third stage reading the revise the first stage's
+#: proof pulled, dealt the `b` and `c` places whose text runs over a cap of
+#: two lines, and admitting the edit instructions and `clean`
+#: (`decision-log.md Process: #193`). Its row is appended to the topology the
+#: `topology --build` call writes, which is where a run's author would type
+#: it.
+COMPACTING_STAGE = "6"
+COMPACTING_ROLE = "block-context"
+COMPACTING_CAP = 2
+COMPACTING_ROW = (
+    "\n"
+    "[[stage]]\n"
+    f'name = "{COMPACTING_STAGE}"\n'
+    'kind = "editorial"\n'
+    'reads = "revise:4"\n'
+    f"cap = {COMPACTING_CAP}\n"
+    'series = ["b", "c"]\n'
+    'admits = ["patch", "drop", "add", "clean"]\n'
+    "  [[stage.dispatch]]\n"
+    f'  role = "{COMPACTING_ROLE}"\n'
+)
+
+#: `summary`'s five places, which the first stage's four roles clean and the
+#: compacting stage reads out of the revise. They carry the same addresses in
+#: both trees: `summary` is appended below everything the first stage edits.
+UNTOUCHED = (
+    "store.py@a7",
+    "store.py@b13",
+    "store.py@b14",
+    "store.py@b15",
+    "store.py@c15",
+)
+
+#: The two of them the stage deals: over the cap, and in a series it names.
+#: The docstring `a7` runs to four lines and is not dealt because `a` is not
+#: in the series; `b14` and `c15` stand on one line each.
+DEALT = ("store.py@b13", "store.py@b15")
+
+#: The paragraph at `b13`, as `STORE_FIXTURE` writes it and as the revise
+#: still holds it -- the `claim.from` of the one `patch`, which quotes the
+#: whole paragraph because the whole paragraph is what a condensation
+#: replaces. `tests/gates/test_smoke_fixture.py` holds it to the fixture.
+OVER_THE_CAP = (
+    "    # The store keeps every lookup it has ever answered, and the count\n"
+    "    # is what the report prints at the end of the day. Nothing is ever\n"
+    "    # removed from it, so the number only goes up."
+)
+
+#: What the compacting role condenses `b13` to, written out by hand -- the
+#: `claim.to` of that patch.
+CONDENSED = (
+    "    # Every lookup is kept, so the count the report prints\n"
+    "    # at the end of the day only goes up."
+)
+
+#: And why it leaves `b15` at length: a paragraph that cannot come under the
+#: cap is reported, never cut (`references/compact.md`), which for a dealt
+#: place is a `clean` carrying the reason.
+KEPT_AT_LENGTH = (
+    "each sentence here is the reason for the next, and cutting one leaves"
+    " the other two unexplained"
+)
+
+#: The instruction the stage does not admit, planted to be refused by `mark`.
+REFUSED_INSTRUCTION = "correct"
+
+
+def write_compacting(run: Path) -> dict[str, Path]:
+    """Write the compacting stage's plant: its table, and the patch's clauses.
+
+    Args:
+        run: the run directory the smoke script writes into.
+
+    Returns:
+        `{"table": compacting.json, "from": the paragraph as it stands,
+        "to": the condensed paragraph}`. The script reads the table for the
+        stage's row, the places it deals, and the places every role cleans in
+        the first stage; the two clause files are what its `mark` call passes
+        by `@path`.
+    """
+    table = run / "compacting.json"
+    table.write_text(
+        json.dumps(
+            {
+                "stage": COMPACTING_STAGE,
+                "role": COMPACTING_ROLE,
+                "row": COMPACTING_ROW,
+                "untouched": list(UNTOUCHED),
+                "dealt": list(DEALT),
+                "patched": DEALT[0],
+                "kept": DEALT[1],
+                "reason": KEPT_AT_LENGTH,
+                "refused": REFUSED_INSTRUCTION,
+            }
+        ),
+        encoding="utf-8",
+        newline="\n",
+    )
+    clauses = {
+        "from": (run / "compacting-from.txt", OVER_THE_CAP),
+        "to": (run / "compacting-to.txt", CONDENSED),
+    }
+    for path, text in clauses.values():
+        path.write_text(text, encoding="utf-8", newline="\n")
+    return {"table": table, **{key: path for key, (path, _t) in clauses.items()}}
 
 
 def write_approval(run: Path) -> Path:
@@ -1855,6 +2048,78 @@ def write_approval(run: Path) -> Path:
         encoding="utf-8",
         newline="\n",
     )
+    return path
+
+
+#: What the compacting stage's proof must hold as `store.py`: the revise's
+#: own page with `b13` condensed and nothing else touched. Its `b15` stands
+#: at three lines, which is the place the role reported rather than cut, and
+#: the docstring `a7` stands at four, which the stage was never dealt.
+COMPACTED_EXPECTED = (
+    "def kept(log):\n"
+    "    # Every lookup is recorded.\n"
+    "    return len(log)\n"
+    "\n"
+    "\n"
+    "def missed(log, found):\n"
+    "    # A miss is a lookup the store had no answer for.\n"
+    "    # Entries are never removed.\n"
+    "    return kept(log) - found\n"
+    "\n"
+    "\n"
+    "def part(log, found):\n"
+    "    # Rounded before it is printed.\n"
+    "    return round(found / kept(log), 2)"
+    "  # two decimal places, as the report asks\n"
+    "\n"
+    "\n"
+    "def empty(log):\n"
+    "    # True when the store has answered nothing yet.\n"
+    "    return kept(log) == 0\n"
+    "\n"
+    "\n"
+    "# The number of lookups the store has seen.\n"
+    "def total(log):\n"
+    "    return kept(log)\n"
+    "\n"
+    "\n"
+    "def seen(log, key):\n"
+    "    # True when the key is in the log. Each lookup goes through this store.\n"
+    "    return key in log\n"
+    "\n"
+    "\n"
+    "def summary(log, found):\n"
+    '    """Two numbers, one line.\n'
+    "\n"
+    "    The report prints the count and the share, in that order.\n"
+    '    """\n'
+    "    # Every lookup is kept, so the count the report prints\n"
+    "    # at the end of the day only goes up.\n"
+    "    counted = kept(log)\n"
+    "    # Rounded twice.\n"
+    "    share = part(log, found)\n"
+    "    # The share is printed beside the count, and the two are read\n"
+    "    # together: a count with no share says nothing about the store,\n"
+    "    # and a share with no count says nothing about the day.\n"
+    "    return counted, share  # both, in order\n"
+)
+
+
+def write_compacted_expected(root: Path) -> Path:
+    """Write `COMPACTED_EXPECTED` to `root / "store.py"`, as `write_expected` writes.
+
+    One page and no other: the compacting stage's docket schedules the page
+    its one condensed place sits on, and a revise holds only what its docket
+    schedules.
+
+    Args:
+        root: the directory to write into. Not created here.
+
+    Returns:
+        The path written.
+    """
+    path = root / "store.py"
+    path.write_text(COMPACTED_EXPECTED, encoding="utf-8", newline="\n")
     return path
 
 

@@ -203,6 +203,29 @@ class TestTheLandingTableAgreesWithTheFixture(unittest.TestCase):
             dropped = first_word_dropped(rest, landing.text or "")
             self.assertEqual(dropped, word, address)
 
+    def test_the_compacting_plants_places_are_where_the_fixture_puts_them(self):
+        """`decision-log.md Process: #193`. The compacting stage is dealt the
+        places over its cap and no other, so the plant's own table has to
+        agree with the fixture about which places those are -- and about the
+        paragraph its one `patch` quotes, which it spells out to pass by
+        `@path`."""
+        by_cue = {cue_of(p): p for p in self.pages["store.py"].paragraphs if p.text}
+        dealt = {
+            f"store.py@{cue}"
+            for cue, p in by_cue.items()
+            if cue[0] in ("b", "c") and p.lines > smoke_fixture.COMPACTING_CAP
+        }
+        self.assertEqual(dealt, set(smoke_fixture.DEALT))
+        self.assertEqual(
+            {f"store.py@{cue}" for cue in by_cue} & set(smoke_fixture.UNTOUCHED),
+            set(smoke_fixture.UNTOUCHED),
+        )
+        patched = by_cue[smoke_fixture.DEALT[0].split("@")[1]]
+        self.assertEqual(patched.raw_text, smoke_fixture.OVER_THE_CAP)
+        self.assertLessEqual(
+            len(smoke_fixture.CONDENSED.splitlines()), smoke_fixture.COMPACTING_CAP
+        )
+
     def test_each_landing_at_an_empty_place_names_the_line_it_is_set_against(self):
         """A landing names a `line` exactly where its fixture left its place
         empty, and it is the line the place's anchor sits on in the page built

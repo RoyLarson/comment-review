@@ -235,6 +235,20 @@ $SecondDocketFile = Join-Path $Run 'docket2.json'
 $SecondProofDir = Join-Path $Run 'proof2'
 $SecondExpectedDir = Join-Path $Run 'second-expected'
 
+# The compacting stage (Process #193): its plant, the binder gathered over the
+# first stage's revise, the copy it is dealt, and what its own proof pulls.
+# The refusal sub-plant needs no path of its own -- `mark` writes nothing on a
+# ruling it refuses.
+$CompactingStage = '6'
+$CompactingFile = Join-Path $Run 'compacting.json'
+$CompactingBinderFile = Join-Path $Run 'binder3.json'
+$CompactingCopiesDir = Join-Path $Run 'copies3'
+$CompactingChiefFile = Join-Path $Run 'chief3.json'
+$CompactingProofFile = Join-Path $Run 'proof3.json'
+$CompactingDocketFile = Join-Path $Run 'docket3.json'
+$CompactingProofDir = Join-Path $Run 'proof3'
+$CompactingExpectedDir = Join-Path $Run 'compacted-expected'
+
 # The one-liner that writes the three fixture files into a directory, used by
 # the fixture stage and by the second tree the root refusal sub-plant gathers.
 $WriteFixtures = 'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_fixture, write_rate_fixture, write_store_fixture; root = Path(sys.argv[1]); write_fixture(root); write_rate_fixture(root); write_store_fixture(root)'
@@ -270,6 +284,19 @@ $Stages = [ordered]@{
             '--stage', ('4=' + ($Roles -join ',')),
             '--stage', ($SecondStage + '=' + $SecondRole)
         ))
+        # And a third, appended by hand, because the three keys a compacting
+        # stage carries are not what `--build`'s directives spell (Process
+        # #193). It reads the FIRST stage's revise, where the pages the plant
+        # writes over-cap prose on are; `topology --verify` below reads the
+        # whole file, so the appended row is held to the same parse as the
+        # built ones.
+        Invoke-Checked -Stage 'plant-compacting' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_compacting; write_compacting(Path(sys.argv[1]))',
+            $Run
+        )
+        $row = (Get-Content -LiteralPath $CompactingFile -Raw | ConvertFrom-Json).row
+        [System.IO.File]::AppendAllText($TopologyFile, $row)
         Invoke-Checked -Stage 'topology-verify' -CommandLine ($Launcher + @(
             $Cmd.topology, '--verify', $TopologyFile, '--binder', $BinderFile
         ))
@@ -314,6 +341,10 @@ $Stages = [ordered]@{
             'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_texts; write_texts(Path(sys.argv[1]))',
             $Run
         )
+        # The places `summary` adds, which every role cleans below. The
+        # compacting stage's plant was written at the topology stage, which
+        # needed its row; this reads the one value the mark stage wants.
+        $Untouched = (Get-Content -LiteralPath $CompactingFile -Raw | ConvertFrom-Json).untouched
         # One file per text a `mark` call below plants from
         # `smoke_fixture.LANDINGS` -- written above by `write_texts`, named
         # here to match its own naming rather than read back from it. A
@@ -938,6 +969,19 @@ $Stages = [ordered]@{
                 '--cite', 'store.py:28', '--repo', $OriginalDir
             ))
         }
+        # `summary`'s five places, which this stage leaves alone: length is no
+        # concern of the four editorial roles (Process #193), so each of them
+        # cleans all five and the paragraphs reach the revise as the fixture
+        # wrote them. The compacting stage below is what reads them, and two
+        # of the five are what it deals.
+        foreach ($address in $Untouched) {
+            foreach ($role in $Roles) {
+                Invoke-Checked -Stage "mark $address $role clean" -CommandLine ($Launcher + @(
+                    $Cmd.mark, '--edit-copy', $CopyFile[$role], '--address', $address,
+                    '--instruction', 'clean', '--repo', $OriginalDir
+                ))
+            }
+        }
     }
     # `check` over each of the four copies, before `collate`, whose exit code
     # cannot say the same: collate is expected to exit 4 below, and in its
@@ -1456,6 +1500,106 @@ $Stages = [ordered]@{
         ) -OnFailure {
             Write-Host 'what the second stage did -- the revise against its proof:'
             & git -c core.autocrlf=false --no-pager diff --no-index -- $ProofDir $SecondProofDir | Out-Host
+        }
+    }
+    # The compacting stage (Process #193), reading the first stage's revise as
+    # its row says. Its binder is gathered over that revise's store.py, whose
+    # last function the plant wrote with prose on both sides of the cap; the
+    # stage is dealt the two `b` places over it and nothing else, and the copy
+    # is what says so. The role condenses one with a `patch` quoting the whole
+    # paragraph and leaves the other at length with a `clean` carrying the
+    # reason, which is what compact.md asks of a paragraph that cannot come
+    # under the cap. A `correct` there is refused by `mark`, naming the stage.
+    compacting = {
+        $plant = Get-Content -LiteralPath $CompactingFile -Raw | ConvertFrom-Json
+        Invoke-Checked -Stage 'compacting gather' -CommandLine ($Launcher + @(
+            $Cmd.gather, '--repo', $ProofDir, '--revise', '1',
+            '--out', $CompactingBinderFile, (Join-Path $ProofDir 'store.py')
+        ))
+        Invoke-Checked -Stage 'compacting distribute' -CommandLine ($Launcher + @(
+            $Cmd.distribute, '--topology', $TopologyFile, '--stage', $CompactingStage,
+            '--binder', $CompactingBinderFile, '--revise', $ProofDir,
+            '--out-dir', $CompactingCopiesDir
+        ))
+        $copy = @(Get-ChildItem -LiteralPath $CompactingCopiesDir -File)[0].FullName
+        $held = Get-Content -LiteralPath $copy -Raw | ConvertFrom-Json
+        # The deal is the assertion: the copy holds a slot at each place over
+        # the cap and at no other, so a stage dealt everything, or nothing,
+        # fails here rather than at the diff.
+        $slots = @($held.sheets | ForEach-Object { $_.marks } | ForEach-Object { $_.address })
+        if (($slots -join ',') -ne ($plant.dealt -join ',')) {
+            Write-Host 'stage failed: compacting distribute'
+            Write-Host "expected slots at $($plant.dealt -join ', '); the copy holds: $($slots -join ', ')"
+            Write-Host "copy: $copy"
+            exit 1
+        }
+        if ($held.stage -ne $CompactingStage) {
+            Write-Host 'stage failed: compacting distribute'
+            Write-Host "the copy names stage '$($held.stage)', not '$CompactingStage'"
+            exit 1
+        }
+        Invoke-Checked -Stage 'compacting patch' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $copy, '--address', $plant.patched,
+            '--instruction', 'patch',
+            '--from', "@$(Join-Path $Run 'compacting-from.txt')",
+            '--to', "@$(Join-Path $Run 'compacting-to.txt')",
+            '--reason', 'three lines state what two state, and the cap is two',
+            '--repo', $ProofDir
+        ))
+        Invoke-Checked -Stage 'compacting clean' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $copy, '--address', $plant.kept,
+            '--instruction', 'clean', '--reason', $plant.reason, '--repo', $ProofDir
+        ))
+        # The instruction the row does not admit. `mark` refuses it as it
+        # places, so the copy is left exactly as the two rulings above left
+        # it -- which the check below is what proves.
+        $notAdmitted = $Launcher + @(
+            $Cmd.mark, '--edit-copy', $copy, '--address', $plant.patched,
+            '--instruction', $plant.refused,
+            '--false', 'Nothing is ever', '--true', 'Nothing is',
+            '--reason', 'the sentence reads shorter', '--cite', 'store.py:34',
+            '--repo', $ProofDir
+        )
+        $refused = Invoke-Checked -Stage 'compacting correct refused' -Expect 1 -Capture -CommandLine $notAdmitted
+        if (-not (($refused -join "`n").Contains("stage $CompactingStage admits"))) {
+            Write-Host 'stage failed: compacting correct refused'
+            Write-Host 'expected a refusal naming the stage and what it admits; mark printed:'
+            $refused | Out-Host
+            Write-Host "command: $(Format-CommandLine $notAdmitted)"
+            exit 1
+        }
+        Invoke-Checked -Stage 'compacting check' -CommandLine ($Launcher + @(
+            $Cmd.check, '--edit-copy', $copy, '--binder', $CompactingBinderFile,
+            '--repo', $ProofDir
+        ))
+        # One role read each place, so each proposal stands with nothing to
+        # carry forward and no turn to run (Process #180). collate exits 0.
+        Invoke-Checked -Stage 'compacting collate' -CommandLine ($Launcher + @(
+            $Cmd.collate, '--stage', $CompactingStage, '--binder', $CompactingBinderFile,
+            '--topology', $TopologyFile, '--repo', $ProofDir,
+            '--edit-copy', $copy, '--out', $CompactingChiefFile,
+            '--proof-out', $CompactingProofFile
+        ))
+        Invoke-Checked -Stage 'compacting proof-to-docket' -CommandLine ($Launcher + @(
+            $Cmd.proof, '--proof', $CompactingProofFile, '--repo', $ProofDir,
+            '--to-docket', $CompactingDocketFile
+        ))
+        Invoke-Checked -Stage 'compacting proof-from-docket' -CommandLine ($Launcher + @(
+            $Cmd.proof, '--from-docket', $CompactingDocketFile, '--repo', $ProofDir,
+            '--out', $CompactingProofDir
+        ))
+        New-Item -ItemType Directory -Path $CompactingExpectedDir | Out-Null
+        Invoke-Checked -Stage 'compacting expected' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_compacted_expected; write_compacted_expected(Path(sys.argv[1]))',
+            $CompactingExpectedDir
+        )
+        Invoke-Checked -Stage 'compacting diff' -CommandLine @(
+            'git', '-c', 'core.autocrlf=false', '--no-pager', 'diff', '--no-index', '--',
+            $CompactingExpectedDir, $CompactingProofDir
+        ) -OnFailure {
+            Write-Host 'what the compacting stage did -- the revise against its proof:'
+            & git -c core.autocrlf=false --no-pager diff --no-index -- $ProofDir $CompactingProofDir | Out-Host
         }
     }
 }
