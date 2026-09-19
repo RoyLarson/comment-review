@@ -1267,14 +1267,16 @@ $Stages = [ordered]@{
             '--proof-out', $FinalFile
         ))
     }
-    # `proof --to-docket` transcribes the closed chief copy into a docket and
-    # stops. `proof --from-docket` then reads that docket as the write end
-    # reads one, and pulls it into a revise of the original tree at
-    # $ProofDir, which must not exist yet -- so a docket the write end
-    # refuses stops the smoke at proof-from-docket.
+    # `proof --to-docket` transcribes the closed proof's decided places into a
+    # docket and stops (ruling #184). `proof --from-docket` then reads that
+    # docket as the write end reads one, and pulls it into a revise of the
+    # original tree at $ProofDir, which must not exist yet -- so a docket the
+    # write end refuses stops the smoke at proof-from-docket. $ChiefFinalFile
+    # is still written by the disposition stage above, as the record of what
+    # was decided; nothing downstream reads it back.
     proof = {
         Invoke-Checked -Stage 'proof-to-docket' -CommandLine ($Launcher + @(
-            $Cmd.proof, '--copy', $ChiefFinalFile, '--repo', $OriginalDir,
+            $Cmd.proof, '--proof', $FinalFile, '--repo', $OriginalDir,
             '--to-docket', $DocketFile
         ))
         Invoke-Checked -Stage 'proof-from-docket' -CommandLine ($Launcher + @(
@@ -1371,7 +1373,7 @@ $Stages = [ordered]@{
             '--proof-out', $SecondProofFile
         ))
         Invoke-Checked -Stage 'second proof-to-docket' -CommandLine ($Launcher + @(
-            $Cmd.proof, '--copy', $SecondChiefFile, '--repo', $ProofDir,
+            $Cmd.proof, '--proof', $SecondProofFile, '--repo', $ProofDir,
             '--to-docket', $SecondDocketFile
         ))
         Invoke-Checked -Stage 'second proof-from-docket' -CommandLine ($Launcher + @(
