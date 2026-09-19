@@ -295,12 +295,9 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
                 bases[paragraph.address] = paragraph.raw_text
         for cue, anchor in page.cues.places.items():
             anchors[f"{name}@{cue}"] = anchor
-    # A mark's own anchor wins at its own address, and the page's stands only
-    # where no mark names the place -- a move's destination. The write end
-    # refuses an alteration whose anchor is not the page's there
-    # (`decision-log.md Process: #134`), and that check has something to
-    # refuse only while what reaches it is the anchor the role returned:
-    # taken from the page here, it would compare the page with itself.
+    # A mark's own anchor wins at its own address, so a place the fold builds
+    # carries what the role returned rather than what the page holds --
+    # `_schedules_of` states what that is for.
     anchors.update(
         {
             mark.address: mark.anchor
