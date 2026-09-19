@@ -2028,6 +2028,28 @@ def write_compacting(run: Path) -> dict[str, Path]:
     return {"table": table, **{key: path for key, (path, _t) in clauses.items()}}
 
 
+def widen(copy: Path, out: Path) -> Path:
+    """One edit_copy again, with `correct` added to what it says it admits.
+
+    The hole this plants is a role editing the one field `commands/mark.py`
+    and `commands/check.py` read: with `correct` on the copy's own `admits`,
+    both let the ruling through, and `collate` is what holds the marks to the
+    stage's row instead (`decision-log.md Process: #193`).
+
+    Args:
+        copy: the copy `distribute` dealt, as it stands.
+        out: where the widened copy is written. Never over `copy`: the smoke
+            goes on to use that one.
+
+    Returns:
+        The path written.
+    """
+    held = json.loads(copy.read_text(encoding="utf-8"))
+    held["admits"] = [*held.get("admits", []), REFUSED_INSTRUCTION]
+    out.write_text(json.dumps(held, indent=2), encoding="utf-8", newline="\n")
+    return out
+
+
 def write_approval(run: Path) -> Path:
     """Write the author's partial approval -- the addresses `--only` names.
 

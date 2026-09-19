@@ -32,7 +32,7 @@ from comment_review.desk.containers import EditCopy, MasterProof, Sheet
 from comment_review.desk.dispositions.disposition import CHIEF, Disposition
 from comment_review.desk.evaluate.place import Place
 from comment_review.desk.evaluate.state import CARRIED
-from comment_review.desk.stages import Stage
+from comment_review.desk.stages import Stage, not_admitted
 from comment_review.desk.work import events
 from comment_review.desk.work.fold import Fold, asked
 from comment_review.flows.answers import answers_of, slots_of
@@ -172,6 +172,7 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     ]
     problems += coverage_problems(copies, binder, message.topology)
     problems += _root_problems(copies)
+    problems += _admitted_problems(copies, message.topology)
     if message.topology is not None:
         problems += stage_problems(message.topology, copies)
     if problems:
@@ -230,6 +231,64 @@ def _root_problems(copies: list[EditCopy]) -> list[Problem]:
         for copy in copies[1:]
         if copy.read_from != first
     ]
+
+
+def _admitted_problems(copies: list[EditCopy], stage: Stage | None) -> list[Problem]:
+    """One `Problem` per mark filed under an instruction its stage does not admit.
+
+    `decision-log.md Process: #193`. `commands/mark.py` refuses one as it is
+    placed and `commands/check.py` refuses one on a copy written by hand, and
+    both read the copy's own `admits` -- which is a field on a document a role
+    writes. The row is where a stage's admitted set is decided, so the copies
+    are held to it here, where they are in hand together with the row they
+    were dealt under.
+
+    Args:
+        copies: the parsed copies, as they came back.
+        stage: the row they were dealt under, where the caller has it. None
+            leaves the copy's own `admits` as the only statement there is.
+
+    Returns:
+        One `Problem` per refused mark, at that mark's address, and one per
+        copy whose own `admits` disagrees with the row, with no address --
+        that finding is about the document. Empty where every mark is one its
+        stage admits.
+
+    ! THE FIELD IS COMPARED, NOT TRUSTED. A copy that widened its `admits`
+    passes both commands that read it, and one that cleared the field reads
+    as every instruction wherever it is asked; comparing it with the row is
+    what makes either loud instead of silent.
+
+    ! AND WITHOUT A ROW THE COPY'S OWN SET STILL BINDS, so this is never
+    weaker than `check` over the same copy.
+    """
+    problems: list[Problem] = []
+    for copy in copies:
+        admits = tuple(stage.admits) if stage is not None else copy.admits
+        named = stage.name if stage is not None else copy.stage
+        if stage is not None and copy.admits != tuple(stage.admits):
+            problems.append(
+                Problem(
+                    copy.role,
+                    "",
+                    f"says it may file {_named(copy.admits)}, and stage"
+                    f" {stage.name}'s row admits {_named(stage.admits)} -- what a"
+                    " stage admits is the row's, not the copy's",
+                )
+            )
+        problems += [
+            Problem(copy.role, mark.address, why)
+            for sheet in copy.sheets
+            for mark in sheet.marks
+            for why in [not_admitted(named, admits, str(mark.instruction))]
+            if why
+        ]
+    return problems
+
+
+def _named(admits: tuple[str, ...]) -> str:
+    """What a set of admitted instructions is called in a reason."""
+    return ", ".join(admits) if admits else "every instruction"
 
 
 def _pages_of(copies: list[EditCopy]) -> list[Sheet]:

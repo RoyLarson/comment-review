@@ -248,6 +248,11 @@ $CompactingProofFile = Join-Path $Run 'proof3.json'
 $CompactingDocketFile = Join-Path $Run 'docket3.json'
 $CompactingProofDir = Join-Path $Run 'proof3'
 $CompactingExpectedDir = Join-Path $Run 'compacted-expected'
+# The widened-copy sub-plant (Process #193): a copy that added `correct` to
+# what it says it admits, and the two paths a refused collate must not write.
+$WidenedCopyFile = Join-Path $Run 'copy3-widened.json'
+$WidenedChiefFile = Join-Path $Run 'chief3-widened.json'
+$WidenedProofFile = Join-Path $Run 'proof3-widened.json'
 
 # The one-liner that writes the three fixture files into a directory, used by
 # the fixture stage and by the second tree the root refusal sub-plant gathers.
@@ -1538,6 +1543,48 @@ $Stages = [ordered]@{
             Write-Host "the copy names stage '$($held.stage)', not '$CompactingStage'"
             exit 1
         }
+        # The widened copy, taken before the two rulings below: a role that
+        # adds `correct` to its own copy's `admits` gets it past `mark`,
+        # which reads that field, so `collate` is what holds the marks to the
+        # stage's row. Placed on its own copy, so the one the stage returns
+        # is untouched.
+        Invoke-Checked -Stage 'plant-widened' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import widen; widen(Path(sys.argv[1]), Path(sys.argv[2]))',
+            $copy, $WidenedCopyFile
+        )
+        Invoke-Checked -Stage 'widened correct placed' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $WidenedCopyFile, '--address', $plant.patched,
+            '--instruction', $plant.refused,
+            '--false', 'Nothing is ever', '--true', 'Nothing is',
+            '--reason', 'the sentence reads shorter', '--cite', 'store.py:40',
+            '--repo', $ProofDir
+        ))
+        Invoke-Checked -Stage 'widened clean placed' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $WidenedCopyFile, '--address', $plant.kept,
+            '--instruction', 'clean', '--reason', $plant.reason, '--repo', $ProofDir
+        ))
+        $widened = $Launcher + @(
+            $Cmd.collate, '--stage', $CompactingStage, '--binder', $CompactingBinderFile,
+            '--topology', $TopologyFile, '--repo', $ProofDir,
+            '--edit-copy', $WidenedCopyFile, '--out', $WidenedChiefFile,
+            '--proof-out', $WidenedProofFile
+        )
+        $refused = Invoke-Checked -Stage 'collate over a widened copy refused' -Expect 1 -Capture -CommandLine $widened
+        if (-not (($refused -join "`n").Contains("stage $CompactingStage admits"))) {
+            Write-Host 'stage failed: collate over a widened copy refused'
+            Write-Host 'expected a refusal naming the stage and what it admits; collate printed:'
+            $refused | Out-Host
+            Write-Host "command: $(Format-CommandLine $widened)"
+            exit 1
+        }
+        foreach ($written in @($WidenedChiefFile, $WidenedProofFile)) {
+            if (Test-Path -LiteralPath $written) {
+                Write-Host 'stage failed: collate over a widened copy refused'
+                Write-Host "a refused collate wrote $written"
+                exit 1
+            }
+        }
         Invoke-Checked -Stage 'compacting patch' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $copy, '--address', $plant.patched,
             '--instruction', 'patch',
@@ -1557,7 +1604,7 @@ $Stages = [ordered]@{
             $Cmd.mark, '--edit-copy', $copy, '--address', $plant.patched,
             '--instruction', $plant.refused,
             '--false', 'Nothing is ever', '--true', 'Nothing is',
-            '--reason', 'the sentence reads shorter', '--cite', 'store.py:34',
+            '--reason', 'the sentence reads shorter', '--cite', 'store.py:40',
             '--repo', $ProofDir
         )
         $refused = Invoke-Checked -Stage 'compacting correct refused' -Expect 1 -Capture -CommandLine $notAdmitted

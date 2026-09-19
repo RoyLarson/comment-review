@@ -29,7 +29,9 @@ from comment_review.flows.proof_io import load_proof
 BASE = "# one\n# two\n# three\n"
 
 
-def run(tmp_path, marks_by_role, monkeypatch, capsys, *extra):
+def run(tmp_path, marks_by_role, monkeypatch, capsys, *extra, on_copy=None):
+    """`collate` over one page's copies. `on_copy` is laid over each copy as
+    it is written, which is how a role hand-edits one before returning it."""
     binder = a_real_binder_over(tmp_path / "repo", {"m.py@b1": BASE})
     copies = copies_over(binder, marks_by_role)
     binder_path = tmp_path / "binder.json"
@@ -37,7 +39,7 @@ def run(tmp_path, marks_by_role, monkeypatch, capsys, *extra):
     paths = []
     for i, copy in enumerate(copies):
         path = tmp_path / f"copy{i}.json"
-        path.write_text(json.dumps(copy), encoding="utf-8")
+        path.write_text(json.dumps({**copy, **(on_copy or {})}), encoding="utf-8")
         paths.append(str(path))
     argv = [
         "collate",
@@ -180,6 +182,59 @@ class TestStageCoverage:
             str(tmp_path / "t.toml"),
         )
         assert code == command.UNREADABLE
+
+
+#: A compacting stage's row over the same page: dealt the `b` places over two
+#: lines, admitting the edit instructions -- `decision-log.md Process: #193`.
+COMPACTING = (
+    '[[stage]]\nname = "4c"\nkind = "editorial"\n'
+    'cap = 2\nseries = ["b"]\nadmits = ["patch", "drop", "add", "clean"]\n'
+    '  [[stage.dispatch]]\n  role = "block-context"\n'
+)
+
+
+class TestWhatTheStageAdmits:
+    """The row is what a mark is held to, and the copy is not where that is
+    decided (`decision-log.md Process: #193`).
+
+    `mark` and `check` read the copy's own `admits`, which is the field a role
+    can edit; this is the door the fold opens behind, where the copies are
+    already in hand together with the row they were dealt under.
+    """
+
+    def test_a_copy_that_widened_its_own_admits_is_BROKEN_by_name(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        (tmp_path / "t.toml").write_text(COMPACTING, encoding="utf-8")
+        code, out = run(
+            tmp_path,
+            {"block-context": {"m.py@b1": a_correct("m.py@b1")}},
+            monkeypatch,
+            capsys,
+            "--topology",
+            str(tmp_path / "t.toml"),
+            on_copy={"stage": "4c", "admits": ["patch", "correct"]},
+        )
+        assert code == command.BROKEN, out
+        assert "stage 4c admits patch, drop, add, clean, and not correct" in out
+        assert "block-context (the copy):" in out
+        assert not (tmp_path / "chief.json").exists()
+
+    def test_the_same_copy_under_no_topology_is_held_to_its_own_admits(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """Without a row there is nothing else to hold a mark to, and the
+        copy's own field is what `check` would have used -- so `collate` is
+        never weaker than `check`."""
+        code, out = run(
+            tmp_path,
+            {"block-context": {"m.py@b1": a_correct("m.py@b1")}},
+            monkeypatch,
+            capsys,
+            on_copy={"stage": "6", "admits": ["patch", "drop", "add", "clean"]},
+        )
+        assert code == command.BROKEN, out
+        assert "stage 6 admits patch, drop, add, clean, and not correct" in out
 
 
 class TestExitCodes:

@@ -7,6 +7,7 @@ from helpers import (
     a_correct_citing,
     a_correct_setting,
     a_move,
+    a_patch,
     a_query,
     a_real_binder_over,
     copies_over,
@@ -17,6 +18,7 @@ from comment_review.desk.answers.answer import Question
 from comment_review.desk.evaluate.place import Place
 from comment_review.desk.evaluate.state import State
 from comment_review.desk.marks.mark import Shape
+from comment_review.desk.stages import Dispatch, Kind, Role, Stage
 from comment_review.desk.work import events
 from comment_review.flows.bus import (
     AnswersReturned,
@@ -110,6 +112,109 @@ def test_a_copy_from_another_tree_rolls_the_fold_back(tmp_path):
     assert "somewhere/else" in refused[0].reasons[0]
     assert any(isinstance(one, events.RolledBack) for one in out)
     assert not any(isinstance(one, events.Settled) for one in out)
+
+
+#: A stage dealt the `b` places over a cap of two lines, admitting the edit
+#: instructions -- `decision-log.md Process: #193`. Its dispatch is the one
+#: role these cases return a copy for.
+COMPACTING = Stage(
+    name="6",
+    kind=Kind.EDITORIAL,
+    reads="revise:4",
+    dispatches=(Dispatch(Role.BLOCK_CONTEXT, ()),),
+    cap=2,
+    series=("b",),
+    admits=("patch", "drop", "add", "clean"),
+)
+
+
+def _dealt(tmp_path, by_role, admits=("patch", "drop", "add", "clean"), stage="6"):
+    """One copy of a compacting stage, as a role hand-edits it before returning.
+
+    The copy is seeded for real and its `admits` is then written over, which
+    is the whole subject: a role that widens or clears its own copy's field
+    has changed the only thing `mark` and `check` read.
+    """
+    message = _message(tmp_path, by_role)
+    message.copies[0] = replace(message.copies[0], stage=stage, admits=admits)
+    # ! `_replace`, NOT `dataclasses.replace`: a message is a NamedTuple.
+    return message._replace(topology=COMPACTING)
+
+
+#: One role's marks over a page of two places, one of them an instruction the
+#: compacting stage does not admit.
+A_CORRECT = {
+    "block-context": {
+        "m.py@b1": a_correct_setting("m.py@b1", "two", CORRECTED),
+        "m.py@b2": a_clean("m.py@b2"),
+    }
+}
+
+
+def test_a_copy_that_widened_its_own_admits_is_refused_at_the_fold(tmp_path):
+    """`decision-log.md Process: #193`. What a stage admits is the topology's
+    row, and a copy is not where it is decided: a role that added `correct`
+    to its own copy's `admits` passes `mark` and `check`, which read that
+    field, and is refused here -- twice, once for the field and once for the
+    mark it let through."""
+    out, result = handle(_dealt(tmp_path, A_CORRECT, admits=("patch", "correct")))
+    assert result is None
+    refused = [one for one in out if isinstance(one, events.Refused)]
+    assert [one.address for one in refused] == ["", "m.py@b1"]
+    assert all(one.role == "block-context" for one in refused)
+    assert "correct" in refused[0].reasons[0] and "6" in refused[0].reasons[0]
+    assert "and not correct" in refused[1].reasons[0]
+    assert any(isinstance(one, events.RolledBack) for one in out)
+
+
+def test_a_copy_that_cleared_its_own_admits_is_refused_at_the_fold(tmp_path):
+    """An empty `admits` reads as *every instruction* wherever it is asked, so
+    clearing the field is how a copy escapes the rule. The row is what it is
+    held to."""
+    out, result = handle(_dealt(tmp_path, A_CORRECT, admits=()))
+    assert result is None
+    refused = [one for one in out if isinstance(one, events.Refused)]
+    assert [one.address for one in refused] == ["", "m.py@b1"]
+
+
+def test_a_copy_that_agrees_with_the_row_folds(tmp_path):
+    """! THE CONTROL. The same hand, with the marks the row admits, commits --
+    so what the two cases above refuse is the instruction and the field, not
+    the stage."""
+    hand = {
+        "block-context": {
+            "m.py@b1": a_patch("m.py@b1", "two", "2", "# one\n# 2\n# three"),
+            "m.py@b2": a_clean("m.py@b2"),
+        }
+    }
+    out, result = handle(_dealt(tmp_path, hand))
+    assert result is not None, [one for one in out if isinstance(one, events.Refused)]
+
+
+def test_without_a_topology_the_copys_own_admits_still_binds(tmp_path):
+    """`collate` is never weaker than `check`: without a row there is nothing
+    else to hold a mark to, and the copy's own field is what `check` would
+    have used."""
+    message = _message(tmp_path, A_CORRECT)
+    message.copies[0] = replace(
+        message.copies[0], stage="6", admits=("patch", "drop", "add", "clean")
+    )
+    out, result = handle(message)
+    assert result is None
+    refused = [one for one in out if isinstance(one, events.Refused)]
+    assert [one.address for one in refused] == ["m.py@b1"]
+    assert "and not correct" in refused[0].reasons[0]
+
+
+def test_an_ordinary_stage_admits_every_instruction(tmp_path):
+    """A copy carrying no `admits`, under a row carrying none, is every stage
+    that ran before the ruling."""
+    ordinary = COMPACTING._replace(
+        cap=0, series=(), admits=(), name="4", reads="original"
+    )
+    message = _message(tmp_path, A_CORRECT)._replace(topology=ordinary)
+    _out, result = handle(message)
+    assert result is not None
 
 
 def test_a_correct_that_drops_an_unnamed_word_is_advised_and_the_fold_commits(tmp_path):
