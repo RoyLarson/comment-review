@@ -147,7 +147,6 @@ def owed_a_say(
     sides: dict[str, str],
     partner: Place | None = None,
     turn: int = 0,
-    withdrew: set[str] | None = None,
 ) -> tuple[str, ...]:
     """The roles that have not accepted `text`, whose say it still owes.
 
@@ -160,6 +159,15 @@ def owed_a_say(
                                 accepted its way to it
         it answered and holds   it was asked, and withdrew or abstained; it
         no side                 has had its say and holds no position now
+
+    **A role that withdrew at the other end of its own move answered under the
+    third of those**, and the answer is filed at the end it was written at, so
+    this place cannot see it in its own record: `_withdrew_at_the_partner`
+    names those roles and they count as having answered here
+    (`Process: #129`, `#190`). Derived from the place, its partner and the
+    turn, which this already takes, rather than handed in -- the answers pass
+    reads the same function for the sides it takes off, so the rule is reached
+    one way.
 
     Args:
         place: the place being settled, carrying its readers, what was filed
@@ -174,13 +182,6 @@ def owed_a_say(
         turn: the turn being decided. Only answers up to it count: the marks
             pass decides the place as it stood before any turn, and a role
             whose answer has not been applied yet has not had its say.
-        withdrew: the roles whose withdrawal reached this place from the
-            move's other end, which is the third case above arriving from
-            somewhere this place cannot see: the answer is recorded at the end
-            it was written at, and it is this end's answer too
-            (`Process: #129`, `#190`). Without it the destination of a move
-            goes back to the mover asking about a move the mover has already
-            withdrawn.
 
     Returns:
         The roles owed a say, sorted, so two runs name them in one order.
@@ -189,7 +190,7 @@ def owed_a_say(
     filed_by = _by_role(place)
     answered = {
         role for at, by_role in place.answers.items() if at <= turn for role in by_role
-    } | (withdrew or set())
+    } | _withdrew_at_the_partner(place, partner, turn)
     deferring = _deferring(place) | _deferring(partner)
     out = []
     for role in set(place.readers) | set(filed_by):
@@ -336,6 +337,18 @@ def _withdrew_at_the_partner(
     the roles are what `owed_a_say` needs for as long as the place is open
     (`Process: #190`).
 
+    So a withdrawal is never undone by a later turn, where an acceptance is --
+    `_accepting` lets a later `REPLACES` or `REMOVES` take the acceptance back,
+    and nothing here takes a withdrawal back. It cannot arise in the fold's own
+    flow: a role that answered and holds no side is not asked at that place
+    again (`owed_a_say`), and `flows.bus._on_answers` refuses an answer at a
+    place the role was not put to, so there is no later answer of its to read.
+    MEASURED, on a proof that carries one anyway: where the place it was
+    written at has settled it is not read at all (`Process: #91`), and where
+    that place is still carried forward the side comes back at that end alone
+    and `refuse_half_moves` refuses the pair -- *"its answers leave the move
+    half done"* -- rather than letting one half commit.
+
     Args:
         place: the end being decided.
         partner: the other end, where there is one.
@@ -451,12 +464,21 @@ def answers_pass(place: Place, turn: int, partner: Place | None = None) -> Place
     # words -- which is the ruling's last clause and is read off the sides
     # that survive: a role withdrawn above holds none, and a role whose side
     # is an acceptance proposes nothing.
+    #
+    # !! READ AFTER THIS TURN'S OWN ANSWERS, AND THE ORDER IS THE RULE.
+    # MEASURED by moving these four lines above the loop: the proposal that
+    # protects an acceptance may be written in the same turn as the
+    # withdrawal, and read before the loop the only texts here are the ones
+    # that turn is about to replace -- three cases of
+    # `tests/test_passes.py::TestAnAnswerReachesBothEndsOfTheMove` fail, the
+    # acceptance dropped where a `correct` restores its text and kept where
+    # nothing does.
     accepting = _accepting(place, turn)
     proposed = {text for role, text in sides.items() if role not in accepting}
     for role in accepting:
         if sides.get(role) in gone - proposed:
             sides.pop(role)
-    return _from_sides(place, sides, partner, turn, withdrew)
+    return _from_sides(place, sides, partner, turn)
 
 
 def dispositions_pass(place: Place) -> Place:
@@ -604,7 +626,6 @@ def _from_sides(
     sides: dict[str, str],
     partner: Place | None = None,
     turn: int = 0,
-    withdrew: set[str] | None = None,
 ) -> Place:
     """The place's state from the one text its sides hold, or from their disagreement.
 
@@ -613,17 +634,13 @@ def _from_sides(
     (`decision-log.md Process: #180`). It is the same question at the first
     fold and after a turn, so both reach it here rather than each keeping a
     rule of its own -- which is what made an `add` a special case before.
-
-    `withdrew` is `owed_a_say`'s, and only the answers pass has one: the marks
-    pass runs before any answer, so nothing has reached this place from the
-    move's other end yet.
     """
     distinct = set(sides.values())
     if not sides:
         return _set(place, State.STANDS)
     if len(distinct) == 1:
         text = next(iter(distinct))
-        owed = owed_a_say(place, text, sides, partner, turn, withdrew)
+        owed = owed_a_say(place, text, sides, partner, turn)
         if owed:
             return _set(
                 place,
@@ -661,7 +678,7 @@ def _from_sides(
         text=composed,
         sides=sides,
         question=Question.COMPOSITION,
-        owed=owed_a_say(place, composed, sides, partner, turn, withdrew),
+        owed=owed_a_say(place, composed, sides, partner, turn),
     )
 
 

@@ -972,6 +972,48 @@ class TestAnAnswerReachesBothEndsOfTheMove:
         assert places["m.py@b5"].text == self.LANDED
         assert places["m.py@b5"].sides == {"q": self.LANDED, "b": self.LANDED}
 
+    def test_a_proposal_arriving_with_the_withdrawal_keeps_the_acceptance(self):
+        """`#188`'s last clause where the proposal that protects the
+        acceptance is written in the same turn as the withdrawal: the
+        acceptance was given in turn 1, and in turn 2 the mover withdraws at
+        the origin while another role corrects the destination to the moved
+        text word for word. Another role does propose that text, so the
+        acceptance stands and the place settles on it.
+
+        It is why the drop runs after the turn's own answers: read before
+        them, the only text proposed here is the one that role is about to
+        replace, and the acceptance goes.
+        """
+        landed = self.LANDED_ON_THE_LINE
+        places = self._pair(
+            move=self._move(reads=landed),
+            at_origin=(
+                Filed("b", _a_correct(change=self.CORRECTED, true="TWO"), Touch.OWN),
+            ),
+            readers=("a", "b", "q"),
+        )
+        places["m.py@b1"].answers[1] = {"a": _answer("hold"), "b": _answer("hold")}
+        places["m.py@b5"].answers[1] = {
+            "b": _answer("clean", question=Question.COMPOSITION),
+            "q": _answer(
+                "patch", change="# four\n# 5\n", question=Question.COMPOSITION
+            ),
+        }
+        places["m.py@b1"].answers[2] = {"a": _answer("withdraw"), "b": _answer("hold")}
+        places["m.py@b5"].answers[2] = {
+            "q": _answer("correct", change=landed),
+            "b": _answer("hold"),
+        }
+        decide(places, turn=2)
+        assert places["m.py@b5"].sides == {"b": landed, "q": landed}
+        assert places["m.py@b5"].text == landed
+        # The mover holds no side here and is asked nothing. What the pair is
+        # still open for is the origin, which owes its third reader a say on
+        # the text one withdrawal left standing there -- `owed` is that,
+        # travelling to this end with the paired state.
+        assert places["m.py@b5"].owed == ("q",)
+        assert places["m.py@b1"].owed == ("q",)
+
     def test_the_destination_does_not_ask_the_withdrawing_mover_again(self):
         """`Process: #190`: the mover answered at the origin and the answer is
         this place's too, so the destination waits on nobody for it -- and it
