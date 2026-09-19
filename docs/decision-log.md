@@ -4948,3 +4948,24 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   the reach applied only to an end still carried forward -- Roy chose that an end settles with
   the move. So `#91` does not cover one end of a move whose other end is still open; without
   this a destination that settles first keeps the text of a move its mover then withdraws.
+
+- **#191.** **Compaction writes onto the proof's places** (Roy, 2026-09-19, asked after
+  `af3e115d` made `proof --proof` read the closed proof's decided places, `#184`).
+
+  Stage 6 replaced each mark's `change` on the chief's copy, which the write end no longer
+  reads, so a capped run would have compacted every paragraph and then drafted the uncompacted
+  text. Offered -- a command that rewrites the decided text at settled places of a closed proof,
+  deferring stage 6, or stage 7 reading the chief's copy where a cap ran -- Roy chose the
+  command. So the decided text lives on the place and a later edit to it is made there: the
+  command takes the compacted texts by address and writes a new proof, refusing an address the
+  proof does not carry and a place that did not settle on a text.
+
+- **#192.** **A partial approval is a place filter on `proof`** (Roy, 2026-09-19, the same
+  round).
+
+  A blanket approval is `proof --proof` over the closed proof; a partial one was
+  `approved.json`, the chief's copy pruned to the approved marks, through `proof --copy`.
+  Offered -- a place filter on `proof`, a proof pruned by hand, or keeping `--copy` for the
+  partial case -- Roy chose the filter. So `proof --proof <closed proof> --only <address>`,
+  repeatable, transcribes those decided places alone and refuses an address the proof does not
+  carry.
