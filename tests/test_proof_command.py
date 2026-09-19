@@ -438,6 +438,7 @@ class TestProofTakesAClosedProof:
         )
         assert code == 1, out
         assert "REFUSED" in out and PLACE in out
+        assert "the proof decided nothing that can be set" in out
         assert not (tmp_path / "r1").exists()
 
     def test_a_proof_that_will_not_read_reports_and_writes_nothing(
@@ -505,6 +506,11 @@ class TestProofTakesAClosedProof:
         assert code == 1, out
         assert "m.py@b9" in out
         assert not (tmp_path / "r1").exists()
+        # ! ITS OWN OPENER. The proof decided everything it holds; what could
+        # not be honoured is the list of places -- so this must not read as a
+        # fact about the proof.
+        assert "the approval names a place this proof cannot set" in out
+        assert "the proof decided nothing that can be set" not in out
 
     def test_a_named_place_with_nothing_to_set_is_named_on_stdout(
         self, tmp_path, monkeypatch, capsys

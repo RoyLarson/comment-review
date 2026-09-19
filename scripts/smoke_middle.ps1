@@ -1356,7 +1356,7 @@ $Stages = [ordered]@{
             '--only', $approval.'half-a-move', '--out', $HalfAMoveDir
         )
         $refused = Invoke-Checked -Stage 'only one end of a move refused' -Expect 1 -Capture -CommandLine $halfAMove
-        if (-not (($refused -join "`n").Contains('the other end of this move'))) {
+        if (-not (($refused -join "`n").Contains('the other end of a move'))) {
             Write-Host 'stage failed: only one end of a move refused'
             Write-Host 'expected a refusal naming the end left out; proof printed:'
             $refused | Out-Host

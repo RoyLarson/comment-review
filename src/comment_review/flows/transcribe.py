@@ -4,13 +4,18 @@
     docket_of_proof(proof, repo) one closed master proof, read
     docket_of_proof(proof, repo, only=(...))   the approved places of one
 
-Two inputs, one output, and they differ in where the decision comes from. A
-copy is folded here: its marks are turned into places
-(`flows.places.places_of`), the Unit of Work decides every one of them, and
-each place the fold settled a text for becomes one alteration. A closed proof
-already holds every place the fold decided, so nothing is folded again -- the
-places are read back and each whose text differs from its base becomes one
-alteration.
+Two inputs, and they differ in where the decision comes from. A copy is folded
+here: its marks are turned into places (`flows.places.places_of`), the Unit of
+Work decides every one of them, and each place the fold settled a text for
+becomes one alteration. A closed proof already holds every place the fold
+decided, so nothing is folded again -- the places are read back and each whose
+text differs from its base becomes one alteration.
+
+They answer differently, and the reason is the filter. `docket_of` hands back
+the `Docket`; `docket_of_proof` hands back a `Transcription`, which is that
+docket and the approved places it sets nothing at. Only a partial approval
+names places, so only that path has anything to say about a place it was
+asked for and set nothing at.
 
 `only` is the author's partial approval -- `decision-log.md Process: #192`.
 The author approves some decided places and not others, and what they ruled on
@@ -61,7 +66,7 @@ from comment_review.binder.page import Page
 from comment_review.desk.containers import EditCopy, MasterProof
 from comment_review.desk.dispositions.disposition import CHIEF
 from comment_review.desk.evaluate.place import Place
-from comment_review.desk.evaluate.state import CARRIED, State
+from comment_review.desk.evaluate.state import SETTLED, State
 from comment_review.desk.marks.mark import Mark
 from comment_review.desk.marks.table import INSTRUCTIONS, Touch
 from comment_review.desk.work import events
@@ -85,6 +90,19 @@ class CannotTranscribe(Exception):
         """Hold the fold's own reasons and say them in the message too."""
         super().__init__("; ".join(reasons))
         self.reasons = reasons
+
+
+class CannotApprove(CannotTranscribe):
+    """The approval named a place this proof cannot set, and nothing is set.
+
+    ! IT IS ITS OWN CLASS SO THE CONSOLE CAN SAY SO. Every other refusal here
+    is about the proof -- it has not closed, a place will not read back, a
+    page cannot be opened -- and the command opens those with *the proof
+    decided nothing that can be set*. That sentence is false of an approval
+    the proof cannot honour: the proof decided plenty, and what could not be
+    honoured is the list of places it was handed (`decision-log.md Process:
+    #192`).
+    """
 
 
 class Transcription(NamedTuple):
@@ -382,12 +400,19 @@ def _unclosed(places: list[Place]) -> list[str]:
     and a refused place rolled its own round back, so neither is the write
     end's to set. A docket holding the settled places beside them would draft
     part of a stage as though the rest had been ruled on.
+
+    ! `UNSETTLABLE` IS NEITHER SETTLED NOR UNFINISHED, and that is why it is
+    the one state this admits without a text: the place rides to the human
+    with its question (`Process: #90`) and carries nothing to set. What is
+    settled is `desk.evaluate.state.SETTLED`, which `commands/collate._counted`
+    reads as well -- this named the states it refused until #193's round, and
+    a seventh state would have had to be added in both places.
     """
     return [
         f"{CHIEF} {place.address}: {place.state} -- this proof is not closed,"
         " so nothing on it has settled"
         for place in places
-        if place.state in CARRIED or place.state is State.REFUSED
+        if place.state not in SETTLED and place.state is not State.UNSETTLABLE
     ]
 
 
@@ -417,13 +442,22 @@ def _approved(
     mistyped address than a ruling -- transcribing the rest would set what
     was named correctly and say nothing about what was not.
 
-    One end of a move without the other is the second. A move is one
-    decision at two places, and the two ends hold separate texts: the origin
-    as the moved snippet leaves it, the destination as it reads with the
-    snippet in. Setting the origin alone drops the paragraph and adds it
-    nowhere; setting the destination alone writes it in both places. The end
-    that is missing is what the reason names, since that is what the author
-    has to approve for the move to be set.
+    One end of a move without the other is the second. The two ends hold
+    separate texts -- the origin as the moved snippet leaves it, the
+    destination as it reads with the snippet in -- and the paragraph travels
+    between them: setting the origin alone drops it and adds it nowhere,
+    and setting the destination alone writes it in both places. The end that
+    is missing is what the reason names, since that is what the author has to
+    approve for the move to be set.
+
+    ! THE REASON SAYS WHAT THE PARAGRAPH DOES, NOT HOW THE PAIR WAS RULED.
+    The chief may rule the two ends differently -- a `taken_in` at one and a
+    `recast` at the other (`docs/the-turn.md`, what the chief rules) -- so by
+    the time a proof closes they are two decided texts rather than one
+    ruling. Calling them one move in the refusal would be false on those
+    runs; where the paragraph goes is true on all of them. The pair is still
+    refused there, and the cost of the conservative case -- an end whose
+    decided text is the paragraph already there -- is one more `--only`.
 
     Args:
         places: every place the proof carries, parsed and closed.
@@ -456,9 +490,10 @@ def _approved(
             continue
         if _sets(place) or _sets(other):
             problems.append(
-                f"{CHIEF} {address}: {other.address} is the other end of this"
-                " move and is not approved -- one end alone writes the"
-                " paragraph twice or loses it"
+                f"{CHIEF} {address}: {other.address} is the other end of a"
+                " move filed here and is not approved -- the paragraph travels"
+                " between the two, so setting one alone leaves it in both"
+                " places or in neither"
             )
     if problems:
         return [], problems, ()
@@ -519,7 +554,7 @@ def docket_of_proof(
     if only is not None:
         places, problems, sets_nothing = _approved(places, only)
         if problems:
-            raise CannotTranscribe(tuple(problems))
+            raise CannotApprove(tuple(problems))
 
     decided: dict[str, list[Place]] = {}
     for place in places:

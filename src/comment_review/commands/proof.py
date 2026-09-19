@@ -231,6 +231,19 @@ def main() -> int:
                 if proof is not None
                 else None
             )
+        # ! THE APPROVAL'S REFUSALS OPEN WITH THEIR OWN SENTENCE, and shared
+        # the proof's until `#192` was reviewed. *The proof decided nothing
+        # that can be set* is false where the proof decided everything and
+        # the list of places could not be honoured, so the two are told
+        # apart by the exception rather than by the reader.
+        except transcribe.CannotApprove as refused:
+            print(
+                "REFUSED: the approval names a place this proof cannot set"
+                " -- nothing written"
+            )
+            for line in refused.reasons:
+                print(line)
+            return 1
         except transcribe.CannotTranscribe as refused:
             print(
                 "REFUSED: the proof decided nothing that can be set -- nothing written"

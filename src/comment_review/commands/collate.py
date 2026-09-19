@@ -28,7 +28,7 @@ from pathlib import Path
 
 from comment_review.desk.answers.answer import Question
 from comment_review.desk.containers import EditCopy
-from comment_review.desk.evaluate.state import CARRIED, State
+from comment_review.desk.evaluate.state import CARRIED, SETTLED, State
 from comment_review.desk.topology import read as read_topology
 from comment_review.desk.work import events
 from comment_review.flows.bus import CopiesReturned, handle
@@ -182,15 +182,19 @@ def _counted(places: tuple[dict, ...]) -> str:
         places: `MasterProof.places`, as `Place.serialize` writes each.
 
     Returns:
-        `"N places -- S settled, U unsettlable, C carried forward"`. Settled
-        is every state that is neither, which after a commit is `stands` and
-        `agreed`.
+        `"N places -- S settled, U unsettlable, C carried forward"`.
+
+    ! SETTLED IS COUNTED, NOT SUBTRACTED, since `decision-log.md Process:
+    #193`'s round. It read `len(states) - carried - unsettlable`, which is a
+    third statement of which states are settled -- `desk.evaluate.state.SETTLED`
+    is the one both this and `flows.transcribe._unclosed` read.
     """
     states = [str(place.get("state") or "") for place in places]
     carried = sum(1 for state in states if state in CARRIED)
     unsettlable = sum(1 for state in states if state == State.UNSETTLABLE)
+    settled = sum(1 for state in states if state in SETTLED)
     return (
-        f"{len(states)} places -- {len(states) - carried - unsettlable} settled,"
+        f"{len(states)} places -- {settled} settled,"
         f" {unsettlable} unsettlable, {carried} carried forward"
     )
 
