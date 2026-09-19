@@ -170,7 +170,7 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
         Problem(one.role, one.where, "; ".join(one.reasons))
         for one in mark_errors(copies)
     ]
-    problems += coverage_problems(copies, binder)
+    problems += coverage_problems(copies, binder, message.topology)
     problems += _root_problems(copies)
     if message.topology is not None:
         problems += stage_problems(message.topology, copies)

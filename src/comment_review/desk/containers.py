@@ -415,30 +415,57 @@ class EditCopy:
         read_from: `{root, revise}` -- which tree this copy was gathered from.
             `decision-log.md Process: #34`: the field exists so a later role can
             know it holds a REVISE and not the original.
+        stage: the stage this copy was dealt in, as the run's topology names
+            it, or "" where the seed was handed no stage. A refusal names it,
+            so a role reads which stage's row refused its ruling.
+        admits: the instructions this stage's roles may file, by name, or
+            empty for every one of them (`decision-log.md Process: #193`).
+            ! IT RIDES ON THE COPY FOR THE REASON `read_from` DOES: the rule
+            is about the artifact in hand, so `commands/mark.py` and
+            `commands/check.py` hold a copy to it without being handed the
+            run's topology beside it.
         sheets: one per page.
     """
 
     role: str
     read_from: dict
     sheets: tuple[Sheet, ...]
+    stage: str = ""
+    admits: tuple[str, ...] = ()
 
     @classmethod
-    def seed(cls, role: str, read_from: dict, sheets: list) -> dict:
+    def seed(
+        cls,
+        role: str,
+        read_from: dict,
+        sheets: list,
+        stage: str = "",
+        admits: list | None = None,
+    ) -> dict:
         """One edit_copy as the wire dict `flows.distribute.seed` hands out.
 
         Args:
             role: the editorial role this copy is for.
             read_from: `{root, revise}` -- which tree it was gathered from.
             sheets: one `Sheet.seed` dict per page.
+            stage: the stage being dealt, or "" where the caller names none.
+            admits: the instructions its roles may file, or None for all.
 
         Returns:
-            `{role, read_from, sheets}`. ! `read_from` IS COPIED, NOT ALIASED,
-            as `bind`, `seed` and `master_proof_of` all do with this field: a caller
-            mutating its own dict afterward cannot change what this copy holds.
+            `{role, read_from, sheets, stage, admits}`. ! `read_from` IS
+            COPIED, NOT ALIASED, as `bind`, `seed` and `master_proof_of` all
+            do with this field: a caller mutating its own dict afterward
+            cannot change what this copy holds.
         """
         return _written(
             cls,
-            {"role": role, "read_from": {**read_from}, "sheets": list(sheets)},
+            {
+                "role": role,
+                "read_from": {**read_from},
+                "sheets": list(sheets),
+                "stage": stage,
+                "admits": list(admits or []),
+            },
         )
 
     @classmethod
@@ -492,6 +519,14 @@ class EditCopy:
                 # change what a parsed copy already holds.
                 read_from={**checked["read_from"]},
                 sheets=tuple(sheets),
+                # ! BOTH READ WHERE PRESENT AND DEFAULTED WHERE NOT. A copy
+                # written before `#193`, and one from a stage whose row says
+                # nothing more, carries neither -- and an ordinary stage is
+                # exactly the case where both are empty.
+                stage=str(checked.get("stage") or ""),
+                admits=tuple(
+                    one for one in (checked.get("admits") or []) if isinstance(one, str)
+                ),
             ),
             [],
         )
@@ -506,6 +541,8 @@ class EditCopy:
             "role": self.role,
             "read_from": {**self.read_from},
             "sheets": [sheet.serialize() for sheet in self.sheets],
+            "stage": self.stage,
+            "admits": list(self.admits),
         }
 
 

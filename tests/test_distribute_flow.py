@@ -4,11 +4,67 @@ import ast
 import re
 from pathlib import Path
 
-from helpers import binder_of
+from helpers import a_binder_over, binder_of
 
 from comment_review.binder.binder import VERSION, Binder
+from comment_review.desk.stages import Kind, Stage
 from comment_review.flows.distribute import seed
 from comment_review.reading.addresser import flatten
+
+#: A stage dealt the `b` and `c` places over a cap of two lines, and admitting
+#: the edit instructions -- `decision-log.md Process: #193`.
+COMPACTING = Stage(
+    name="6",
+    kind=Kind.EDITORIAL,
+    reads="revise:4",
+    cap=2,
+    series=("b", "c"),
+    admits=("patch", "drop", "add", "clean"),
+)
+
+#: One page whose `b1` runs over that cap and whose `b2` does not.
+OVER_AND_UNDER = {"m.py@b1": "# one\n# two\n# three", "m.py@b2": "# short"}
+
+
+def _addresses(copy: dict) -> list[str]:
+    return [mark["address"] for sheet in copy["sheets"] for mark in sheet["marks"]]
+
+
+def test_a_stage_that_deals_by_a_cap_seeds_the_over_cap_places_alone():
+    binder = a_binder_over(OVER_AND_UNDER)
+    assert _addresses(seed(binder, "block-context", COMPACTING)) == ["m.py@b1"]
+
+
+def test_without_a_stage_every_place_a_role_is_handed_is_seeded():
+    """An ordinary stage behaves exactly as it did before the three keys: the
+    seed is what a role was always handed."""
+    binder = a_binder_over(OVER_AND_UNDER)
+    assert _addresses(seed(binder, "block-context")) == ["m.py@b1", "m.py@b2"]
+
+
+def test_a_stage_that_deals_nothing_seeds_a_copy_with_no_slots():
+    """Every place is under the cap, so the stage has nothing to condense.
+    The copy still carries its page, so the run goes on and says so rather
+    than leaving the caller a missing file to interpret."""
+    binder = a_binder_over({"m.py@b1": "# short", "m.py@b2": "# also short"})
+    copy = seed(binder, "block-context", COMPACTING)
+    assert _addresses(copy) == []
+    assert [sheet["path"] for sheet in copy["sheets"]] == ["m.py"]
+
+
+def test_the_copy_carries_the_stage_and_what_it_admits():
+    """`mark` and `check` refuse an instruction the stage does not admit, and
+    what they read is the copy in hand -- as `read_from` is what tells a role
+    it holds a revise (`decision-log.md Process: #34`)."""
+    copy = seed(a_binder_over(OVER_AND_UNDER), "block-context", COMPACTING)
+    assert copy["stage"] == "6"
+    assert copy["admits"] == ["patch", "drop", "add", "clean"]
+
+
+def test_an_ordinary_stages_copy_names_no_stage_and_admits_everything():
+    copy = seed(a_binder_over(OVER_AND_UNDER), "block-context")
+    assert (copy["stage"], copy["admits"]) == ("", [])
+
 
 # !! ABSOLUTE, matching `tests/test_binder_records_its_root.py`'s own `DESK` --
 # a relative `Path("src/comment_review/desk")` only rglobs correctly when the

@@ -23,6 +23,15 @@ this module implements specifies a `Stage` NamedTuple of its own; `Stage`
 already exists in `desk/stages.py`; this module evolves that one in place
 instead of declaring a second same-named type in one package.
 
+! **THREE KEYS SAY WHAT A STAGE DEALS AND WHAT ITS ROLES MAY FILE** --
+`cap`, `series` and `admits`, `decision-log.md Process: #193`. Each is
+optional and each is checked against the set that defines it rather than
+against a list kept here: a series letter against `reading.series`, an
+instruction name against the marks table. Absent on every ordinary stage,
+which is what makes one behave as it did before the ruling --
+`desk.stages.deals` reads the first two and `flows.distribute.seed` narrows
+the copy by them.
+
 ! **`reads` ENFORCES SECTION 2'S "BARRIER".** A `"revise:<name>"` value may
 only name a stage that appears EARLIER in the file's own `[[stage]]` order
 and whose `kind` is `"editorial"` -- a forward reference is refused, and an
@@ -41,7 +50,9 @@ exactly one shard of each role). Those need a binder; `read` takes only
 
 import tomllib
 
+from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.stages import ROLES, Dispatch, Kind, Role, Stage
+from comment_review.reading.series import ADDRESSED
 
 _KINDS = {"editorial": Kind.EDITORIAL, "enriching": Kind.ENRICHING}
 
@@ -115,6 +126,22 @@ def read(text: str) -> tuple[list[Stage], str]:
                 "is format only, not built (Process: #50)"
             )
 
+        cap, why_cap = _cap(name, raw)
+        if why_cap:
+            return [], why_cap
+
+        series, why_series = _listed(
+            name, raw, "series", ADDRESSED, "a series a place is addressed in"
+        )
+        if why_series:
+            return [], why_series
+
+        admits, why_admits = _listed(
+            name, raw, "admits", tuple(INSTRUCTIONS), "one of the instructions"
+        )
+        if why_admits:
+            return [], why_admits
+
         raw_dispatches = raw.get("dispatch")
         if not isinstance(raw_dispatches, list) or not raw_dispatches:
             return [], f"stage {name!r}: key 'dispatch' is missing or empty"
@@ -147,12 +174,54 @@ def read(text: str) -> tuple[list[Stage], str]:
                 kind=kind,
                 reads=reads,
                 carries=tuple(raw_carries),
+                cap=cap,
+                series=series,
+                admits=admits,
                 dispatches=tuple(dispatches),
             )
         )
         kind_by_name[name] = kind
 
     return stages, ""
+
+
+def _cap(name: str, raw: dict) -> tuple[int, str]:
+    """A stage's `cap`, in lines, or the one reason it is not a cap.
+
+    `decision-log.md Process: #193`. Absent is 0, which asks nothing about a
+    place's length. ! A TOML BOOLEAN IS AN `int` IN PYTHON, so `cap = true`
+    would otherwise read as a cap of one line.
+    """
+    given = raw.get("cap", 0)
+    if isinstance(given, bool) or not isinstance(given, int) or given < 0:
+        return 0, f"stage {name!r}: key 'cap' must be a whole number of lines"
+    return given, ""
+
+
+def _listed(
+    name: str, raw: dict, key: str, known: tuple[str, ...], what: str
+) -> tuple[tuple[str, ...], str]:
+    """A stage's `series` or `admits`, checked against the set that defines it.
+
+    Neither key names a rule of this module's own: the series letters are
+    `reading.series`'s, and the instruction names are the marks table's, so a
+    row naming something outside either is refused by the value it typed
+    rather than by a list kept here (`decision-log.md Process: #193`).
+
+    Returns:
+        `(the values, "")`, or `((), the reason)`. An absent key is `()`,
+        which asks nothing.
+    """
+    given = raw.get(key, [])
+    if not isinstance(given, list) or not all(isinstance(one, str) for one in given):
+        return (), f"stage {name!r}: key {key!r} must be a list of strings"
+    outside = [one for one in given if one not in known]
+    if outside:
+        return (), (
+            f"stage {name!r}: key {key!r} names {outside[0]!r}, which is not"
+            f" {what} -- it holds: {', '.join(known)}"
+        )
+    return tuple(given), ""
 
 
 def seeded_from_problem(stage: Stage, revise: str, read_from: dict) -> str:

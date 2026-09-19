@@ -28,7 +28,7 @@ from comment_review.binder.page import Page
 from comment_review.desk.collator import Problem
 from comment_review.desk.containers import EditCopy
 from comment_review.desk.marks.table import INSTRUCTIONS
-from comment_review.desk.stages import Stage
+from comment_review.desk.stages import Stage, deals
 from comment_review.flows.page_for import page_of
 from comment_review.machine.repo import can_escape
 from comment_review.reading.addresser import Cues, cue_of, unflatten
@@ -211,7 +211,9 @@ def _text_at(address: str, paths: list[str], root: Path, pages: PageCache) -> st
     )
 
 
-def coverage_problems(edit_copies: list[EditCopy], binder: Binder) -> list[Problem]:
+def coverage_problems(
+    edit_copies: list[EditCopy], binder: Binder, stage: Stage | None = None
+) -> list[Problem]:
     """One `Problem` per role whose copies do not carry the binder's addresses.
 
     !! `flows.fan_out.fan` REFUSES AT THE DISPATCH AND NOTHING READ THE RETURN.
@@ -232,6 +234,12 @@ def coverage_problems(edit_copies: list[EditCopy], binder: Binder) -> list[Probl
     Args:
         edit_copies: the copies as they came back, already parsed.
         binder: the binder they were seeded from.
+        stage: the stage they were dealt in, where the caller has the row.
+            A stage that deals part of the binder is owed that part and no
+            more -- `decision-log.md Process: #193`, Roy: only the places over
+            the length limit are touched, and all the others are
+            automatically clean for this role. None measures against every
+            place a role is handed, which is what an ordinary stage deals.
 
     Returns:
         One `Problem` per short role, naming every address that role did not
@@ -241,10 +249,19 @@ def coverage_problems(edit_copies: list[EditCopy], binder: Binder) -> list[Probl
 
     ! AN EMPTY BINDER YIELDS NOTHING. There is no address to be missing, and a
     run over one is what `tests/test_brief_worked_example.py` drives.
+
+    ! A STAGE THAT DEALS PART OF THE BINDER AND IS COLLATED WITHOUT ITS ROW
+    IS REPORTED SHORT, and correctly: nothing else in the run says which
+    places were dealt, so a caller that names no topology is asking this to
+    measure against the whole binder.
     """
     # ! THE PLACES A ROLE WAS HANDED, not every address the binder carries --
     # `binder.addresses.handed` is the one definition, and the seed reads it too.
-    known = frozenset(b.address for b in handed(binder.paragraphs))
+    # ! AND NARROWED BY THE SAME `deals` THE SEED USED, so the two cannot
+    # disagree about which places a stage dealt.
+    known = frozenset(
+        b.address for b in handed(binder.paragraphs) if stage is None or deals(stage, b)
+    )
     if not known:
         return []
     # !! ALL THREE KINDS COUNT AS CARRIED, and that is the whole point of this

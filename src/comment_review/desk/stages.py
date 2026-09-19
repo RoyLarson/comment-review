@@ -10,9 +10,11 @@
     ROLES           the companion to `Role` -- membership is asked of THIS
     Dispatch        one role dispatched within a stage, and the pages it sees
     Stage           one row: a name and a kind, plus (once a run's topology
-                    names them) what it reads, what it carries, and its
-                    dispatches -- each dispatch names the role that runs
+                    names them) what it reads, what it carries, what it deals
+                    and admits, and its dispatches -- each dispatch names the
+                    role that runs
     pulls_revise    is this stage's output followed by a revise?
+    deals           does this stage deal this place to the role it dispatches?
 
 !! NO MODULE-LEVEL ALIAS OF A MEMBER, AND THERE WERE TWO UNTIL 2026-08-28:
 `EDITORIAL = Kind.EDITORIAL` beside `ENRICHING = Kind.ENRICHING`. Roy:
@@ -93,6 +95,9 @@ T3. A stage's roles now come from `[d.role for d in stage.dispatches]`.
 
 from enum import StrEnum, auto
 from typing import NamedTuple
+
+from comment_review.reading.addresser import cue_of
+from comment_review.reading.paragraph import Paragraph
 
 
 class Kind(StrEnum):
@@ -188,6 +193,19 @@ class Stage(NamedTuple):
             topology file order. Set by `topology.py`; defaults to `()`.
             A stage's roles are `[d.role for d in stage.dispatches]` --
             there is no separate `roles` field.
+        cap: the length, in lines, a place's text must run over for this
+            stage to deal it. 0 -- the default, and what an absent key reads
+            as -- asks nothing about length. `decision-log.md Process: #193`.
+        series: the series this stage deals, by letter. Empty deals every
+            series a role is handed. A compacting stage names `b` and `c`:
+            Roy, 2026-09-19, *"because trailing line comments in other
+            languages can become multiline paragraphs I think we have to
+            include c as well"*, and a docstring is never dealt, so nothing
+            downstream has to refuse one.
+        admits: the instructions this stage's roles may file, by name. Empty
+            admits every one of them, which is every stage that ran before
+            `#193`. `commands/mark.py` and `commands/check.py` read it off
+            the copy the seed stamped it onto.
     """
 
     name: str
@@ -195,6 +213,13 @@ class Stage(NamedTuple):
     reads: str = "original"
     carries: tuple[str, ...] = ()
     dispatches: tuple[Dispatch, ...] = ()
+    # ! APPENDED, NOT SLOTTED IN BESIDE `reads`, though that is where they
+    # belong by subject: a `Stage` is a NamedTuple and several callers build
+    # one positionally, so an earlier field would silently become their
+    # `dispatches`.
+    cap: int = 0
+    series: tuple[str, ...] = ()
+    admits: tuple[str, ...] = ()
 
 
 def pulls_revise(stage: Stage) -> bool:
@@ -210,3 +235,59 @@ def pulls_revise(stage: Stage) -> bool:
     reachable only from a `Stage` a caller builds itself.
     """
     return stage.kind == Kind.EDITORIAL
+
+
+def deals(stage: Stage, paragraph: Paragraph) -> bool:
+    """Does this stage deal this place to the role it dispatches?
+
+    `decision-log.md Process: #193`. Two questions, each asked only where the
+    row states it: is this place's series one the stage names, and does its
+    text run over the stage's cap. A stage naming neither deals every place a
+    role is handed, which is every stage that ran before that ruling.
+
+    Args:
+        stage: the row, as a run's topology states it.
+        paragraph: one place a role would be handed -- a binder's row, or a
+            page's own paragraph. Both carry the address the series is read
+            off and the line count the page put on them.
+
+    Returns:
+        Whether the seed gives this place a slot. A place holding no prose
+        counts 0 lines, so it is never over a cap.
+
+    ! THE COUNT IS THE PAGE'S, not a second count taken here.
+    `binder.page` fills `lines` from the paragraph's own raw text when a
+    binder is read back, and the lexer fills it when a page is built, so what
+    this compares is what the page says the paragraph stands on.
+    """
+    if stage.series and cue_of(paragraph.address).series not in stage.series:
+        return False
+    return not stage.cap or paragraph.lines > stage.cap
+
+
+def not_admitted(stage: str, admits: tuple[str, ...], instruction: str) -> str:
+    """Why this stage's roles may not file this instruction, or "".
+
+    `decision-log.md Process: #193`, Roy on the compacting role: *"Then they
+    only get to patch, drop, add, the edits"*. A stage that admits nothing in
+    particular admits every instruction, which is every stage the topology
+    says nothing more about.
+
+    Args:
+        stage: the stage the copy was dealt in, for the reason. "" where the
+            copy names none.
+        admits: the instruction names the stage's row carries. Empty admits
+            all of them.
+        instruction: the name the role filed.
+
+    Returns:
+        The one reason, naming the stage and what it admits, or "".
+
+    ! IT COMPARES VALUES AND NAMES NO ROW. Which instructions exist is
+    `desk.marks.table`'s, and a stage's row carries their names as data --
+    `desk.topology` is what refuses a name that is not one of them.
+    """
+    if not admits or instruction in admits:
+        return ""
+    whose = f"stage {stage}" if stage else "this copy's stage"
+    return f"{whose} admits {', '.join(admits)}, and not {instruction}"

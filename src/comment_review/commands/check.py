@@ -54,6 +54,7 @@ from comment_review.desk.collator import (
     verify_report,
 )
 from comment_review.desk.containers import EditCopy
+from comment_review.desk.stages import not_admitted
 from comment_review.flows.answers import answers_of, contracts, slots_of
 from comment_review.flows.fill import (
     composition_problems,
@@ -143,6 +144,16 @@ def _check_copy(path: str, binder_path: str | None, repo: str | None) -> int:
         for reason in one.reasons:
             print(f"{one.role} {one.where}: {reason}")
             found += 1
+    # ! WHAT THE STAGE ADMITS, ASKED OF A COPY WRITTEN BY HAND -- the same
+    # `desk.stages.not_admitted` `flows.fill` asks as a ruling is placed
+    # (`decision-log.md Process: #193`). It needs no binder, so it runs on
+    # every check rather than under `--binder`: the copy carries the rule.
+    for sheet in copy.sheets:
+        for one in sheet.marks:
+            why = not_admitted(copy.stage, copy.admits, str(one.instruction))
+            if why:
+                print(f"{copy.role} {one.address}: {why}")
+                found += 1
     if binder_path:
         binder, why = load_binder(Path(binder_path))
         if binder is None:

@@ -77,6 +77,66 @@ CORRECT: tuple[str, ...] = (
 )
 
 
+#: What a compacting stage admits -- `decision-log.md Process: #193`, Roy:
+#: *"Then they only get to patch, drop, add, the edits"*, and `clean` for a
+#: dealt paragraph the role cannot condense without cutting evidence.
+ADMITTED = ("patch", "drop", "add", "clean")
+
+
+class TestAStageAdmitsSomeInstructionsAndNotOthers:
+    """A stage's row says what its roles may file, and the copy carries it.
+
+    `mark` refuses the rest as it places, so a role learns the rule from the
+    refusal rather than from the fold, three commands later.
+    """
+
+    @pytest.fixture
+    def dealt(self, tmp_path, monkeypatch, capsys) -> _Run:
+        run = _Run(tmp_path, monkeypatch, capsys)
+        copy = run.copy()
+        run.copy_path.write_text(
+            json.dumps({**copy, "stage": "6", "admits": list(ADMITTED)}),
+            encoding="utf-8",
+        )
+        return run
+
+    def test_an_instruction_the_stage_does_not_admit_is_refused_by_name(self, dealt):
+        code, out = dealt(*CORRECT)
+        assert code == command.BROKEN, out
+        assert "correct" in out
+        assert "6" in out
+        for admitted in ADMITTED:
+            assert admitted in out
+
+    def test_nothing_is_placed_by_a_refused_ruling(self, dealt):
+        dealt(*CORRECT)
+        assert dealt.copy()["sheets"][0]["marks"][0]["instruction"] is None
+
+    def test_an_instruction_it_admits_is_placed(self, dealt):
+        code, out = dealt(
+            "--address",
+            "m.py@b1",
+            "--instruction",
+            "patch",
+            "--from",
+            "# one\n# two\n# three",
+            "--to",
+            "# one and two",
+            "--reason",
+            "three lines where one says it",
+            "--change",
+            "# one and two",
+        )
+        assert code == command.OK, out
+        assert dealt.copy()["sheets"][0]["marks"][0]["instruction"] == "patch"
+
+    def test_a_copy_naming_no_stage_admits_every_instruction(self, run):
+        """An ordinary stage's copy carries no `admits`, and the seven
+        instructions are what its role may file, as before."""
+        code, out = run(*CORRECT)
+        assert code == command.OK, out
+
+
 class TestARulingIsPlaced:
     def test_a_correct_lands_with_its_change_derived_and_its_line_quoted(self, run):
         code, out = run(*CORRECT)

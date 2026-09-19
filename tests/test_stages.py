@@ -16,10 +16,15 @@ through `desk/topology.py`'s `read()` -- `desk/stages.py` holds no `STAGES`
 literal to read it from (`TODO/topology-is-a-source-edit.md` T3).
 """
 
+from dataclasses import replace
 from pathlib import Path
 
-from comment_review.desk.stages import ROLES, Kind, Stage, pulls_revise
+from conftest import build
+
+from comment_review.desk.stages import ROLES, Kind, Stage, deals, pulls_revise
 from comment_review.desk.topology import read as read_topology
+from comment_review.reading.addresser import cue_of
+from comment_review.reading.paragraph import Paragraph
 
 FIXTURE = Path(__file__).parent / "fixtures" / "topologies" / "4a-then-4c.toml"
 
@@ -90,3 +95,91 @@ def test_only_an_editorial_stage_pulls_a_revise():
     # stage 3, not in this topology. `stages.py` says so rather than implying
     # the enum is exercised.
     assert not pulls_revise(Stage("annotate", Kind.ENRICHING))
+
+
+#: A page holding one place of each series the deal asks about: a module
+#: docstring of three lines, a comment run of three, a comment run of one, and
+#: a trailing comment. INPUT FROM THE REAL PAGE BUILDER, so what a paragraph
+#: says about its own lines is what the page says.
+SOURCE = (
+    '"""One subject.\n\nStated over three lines.\n"""\n'
+    "x = 1\n"
+    "# one\n"
+    "# two\n"
+    "# three\n"
+    "y = 2\n"
+    "# short\n"
+    "z = 3  # beside\n"
+)
+
+#: The stage a compacting run declares -- `decision-log.md Process: #193`: the
+#: `b` and `c` places whose text runs over a cap of two lines.
+COMPACTING = Stage(
+    name="6",
+    kind=Kind.EDITORIAL,
+    reads="revise:4",
+    cap=2,
+    series=("b", "c"),
+    admits=("patch", "drop", "add", "clean"),
+)
+
+
+def _places() -> dict[str, Paragraph]:
+    """The page's prose paragraphs, by the cue each sits at."""
+    page = build(SOURCE)
+    return {
+        cue_of(p.address).cue: p for p in page.paragraphs if p.address and p.raw_text
+    }
+
+
+def test_an_ordinary_stage_deals_every_place():
+    """A stage naming no cap and no series is every stage that ran before
+    #193, and it deals what a role is handed."""
+    ordinary = Stage(name="4", kind=Kind.EDITORIAL)
+    assert all(deals(ordinary, place) for place in _places().values())
+
+
+def test_a_place_over_the_cap_in_a_named_series_is_dealt():
+    places = _places()
+    over = places["b1"]
+    assert over.lines == 3
+    assert deals(COMPACTING, over)
+
+
+def test_a_place_at_or_under_the_cap_is_not_dealt():
+    """Roy, 2026-09-19: only the places over the length limit are touched,
+    and all the others are automatically clean for this role."""
+    under = _places()["b2"]
+    assert under.lines == 1
+    assert not deals(COMPACTING, under)
+
+
+def test_a_docstring_is_never_dealt_however_long_it_runs():
+    """`a` is not in the stage's series, so no docstring is dealt and nothing
+    downstream has to refuse one."""
+    doc = _places()["a0"]
+    assert doc.lines > COMPACTING.cap
+    assert not deals(COMPACTING, doc)
+
+
+def test_a_trailing_comment_over_the_cap_is_dealt():
+    """Roy, the same day: a trailing line comment in another language can
+    become a multiline paragraph, so `c` is dealt by the same rule. Python
+    writes one on a single line, so the three-line case is that paragraph
+    with the lines another language's would hold."""
+    beside = _places()["c2"]
+    assert not deals(COMPACTING, beside)
+    spanning = replace(beside, raw_lines=["# one", "# two", "# three"], lines=3)
+    assert deals(COMPACTING, spanning)
+
+
+def test_a_cap_with_no_series_asks_only_the_length():
+    capped = Stage(name="6", kind=Kind.EDITORIAL, cap=2)
+    dealt = {cue for cue, place in _places().items() if deals(capped, place)}
+    assert dealt == {"a0", "b1"}
+
+
+def test_a_series_with_no_cap_asks_only_the_series():
+    listed = Stage(name="6", kind=Kind.EDITORIAL, series=("c",))
+    dealt = {cue for cue, place in _places().items() if deals(listed, place)}
+    assert dealt == {"c2"}

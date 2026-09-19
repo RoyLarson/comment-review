@@ -27,6 +27,7 @@ from helpers import (
 
 from comment_review.desk.collator import Cache, known_addresses, verify_report
 from comment_review.desk.marks.mark import Mark
+from comment_review.desk.stages import Kind, Stage
 from comment_review.flows.page_for import page_of
 from comment_review.flows.verify import (
     coverage_problems,
@@ -282,6 +283,30 @@ class TestShardCoverage:
         message = coverage_problems([kept], binder)[0].message
         assert message.startswith("missing m.py@b5"), message
         assert message.index("missing") < message.index("answered for"), message
+
+    def test_coverage_follows_what_the_stage_dealt(self):
+        """`decision-log.md Process: #193`, Roy: only the places over the
+        length limit are touched, and all the others are automatically clean
+        for this role. So a copy holding the dealt place alone is complete,
+        and it is measured against the deal rather than against every place
+        the binder carries -- which is what this asked before the stage could
+        narrow it.
+        """
+        stage = Stage(
+            name="6", kind=Kind.EDITORIAL, cap=2, series=("b",), admits=("patch",)
+        )
+        binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": "# short"})
+        copies = copies_over(binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}})
+        dealt = returned(_keeping_only(copies[0], ["m.py@b1"]))
+        assert coverage_problems([dealt], binder, stage) == []
+        # ! AND IT STILL BITES INSIDE THE DEAL. A role that dropped a place the
+        # stage did deal is as short as it ever was.
+        binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})
+        copies = copies_over(binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}})
+        short = returned(_keeping_only(copies[0], ["m.py@b1"]))
+        found = coverage_problems([short], binder, stage)
+        assert [p.role for p in found] == ["block-context"]
+        assert "m.py@b5" in found[0].message
 
     def test_two_shards_of_one_role_cover_the_binder_between_them(self):
         """!! COMPARED PER COPY THIS REPORTS EVERY FAN-OUT SHARD AS INCOMPLETE.

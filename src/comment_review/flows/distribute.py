@@ -1,6 +1,7 @@
 """DISTRIBUTE -- hand each role an edit_copy to fill.
 
-    seed(binder, role)     one entry per row, ADDRESS ALREADY WRITTEN
+    seed(binder, role)            one entry per row, ADDRESS ALREADY WRITTEN
+    seed(binder, role, stage)     one entry per row that stage DEALS
 
 !! NAMED FOR THE ACT, NOT THE ARTIFACT, since 2026-08-30. Roy: *"a flow named
 mark reads like it is doing something that it is probably not doing"* -- and
@@ -40,14 +41,21 @@ from comment_review.binder.addresses import handed
 from comment_review.binder.binder import Binder
 from comment_review.desk.containers import EditCopy, Sheet
 from comment_review.desk.marks.mark import Mark
+from comment_review.desk.stages import Stage, deals
 
 
-def seed(binder: Binder, role: str) -> dict:
+def seed(binder: Binder, role: str, stage: Stage | None = None) -> dict:
     """A fillable edit_copy for one role, one sheet per page in the binder.
 
     Args:
         binder: the deserialized binder, as the command's load produced it.
         role: the editorial role this edit_copy is for.
+        stage: the stage being seeded, where the caller has the row. A stage
+            that names a cap or a series is dealt those places alone --
+            `desk.stages.deals` is that rule, and `decision-log.md Process:
+            #193` is why a compacting stage sees nothing else. None deals
+            every place the role is handed, which is every stage the topology
+            states nothing more about.
 
     Returns:
         `{"role": ..., "read_from": ..., "sheets": [...]}` -- `read_from` is
@@ -94,9 +102,20 @@ def seed(binder: Binder, role: str) -> dict:
     # !! ONE SLOT PER PLACE A ROLE IS HANDED, and `handed` is the one definition
     # of that -- the coverage count in `flows.verify` reads the same one, so
     # the two cannot disagree about the `f` series.
+    #
+    # ! AND THE STAGE NARROWS THAT SET, never widens it: `deals` is asked of
+    # the places `handed` already allows, so a stage cannot deal the file's
+    # own matter by naming its series.
+    #
+    # ! A PAGE THE STAGE DEALS NOTHING ON KEEPS ITS SHEET, holding no slot.
+    # The sheet records the page and the sha it was read at, which the proof
+    # reads back; dropping the page here would leave the run unable to say
+    # what it was cut from.
     return EditCopy.seed(
         role=role,
         read_from=binder.read_from,
+        stage=stage.name if stage else "",
+        admits=list(stage.admits) if stage else [],
         sheets=[
             Sheet.seed(
                 path=page.path,
@@ -104,6 +123,7 @@ def seed(binder: Binder, role: str) -> dict:
                 marks=[
                     Mark.seed(b.address, b.anchor, b.raw_text)
                     for b in handed(page.paragraphs)
+                    if stage is None or deals(stage, b)
                 ],
             )
             for page in binder.pages

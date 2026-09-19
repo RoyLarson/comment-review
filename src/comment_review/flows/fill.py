@@ -82,6 +82,7 @@ from comment_review.desk.marks.mark import (
     untouched,
 )
 from comment_review.desk.marks.table import INSTRUCTIONS, Row, Touch
+from comment_review.desk.stages import not_admitted
 from comment_review.flows.page_for import page_of
 from comment_review.machine import constants
 from comment_review.machine.exceptions import READ_ERRORS
@@ -460,6 +461,16 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
     named = entry.get("instruction")
     if not isinstance(named, str) or named not in INSTRUCTIONS:
         return None, [f"`instruction` must be one of {', '.join(sorted(INSTRUCTIONS))}"]
+    # ! WHAT THE STAGE ADMITS IS ASKED BEFORE ANYTHING IS BUILT, and the copy
+    # is what carries it (`decision-log.md Process: #193`). A role learns the
+    # rule from the refusal here rather than from the fold, three commands
+    # later -- and `commands/check.py` asks the same function of a copy
+    # written by hand.
+    why_stage = not_admitted(
+        str(copy.get("stage") or ""), tuple(copy.get("admits") or ()), named
+    )
+    if why_stage:
+        return None, [why_stage]
     instruction = Instruction(named)
     row = INSTRUCTIONS[instruction]
 

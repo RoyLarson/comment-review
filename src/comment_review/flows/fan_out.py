@@ -105,7 +105,7 @@ def fan(binder: Binder, stage: Stage) -> list[dict]:
     shape, and it silently dropped `version`.
     """
     return [
-        seed(replace(binder, pages=tuple(matched)), dispatch.role)
+        seed(replace(binder, pages=tuple(matched)), dispatch.role, stage)
         for dispatch, matched in partition(binder, stage)
     ]
 

@@ -137,3 +137,64 @@ def test_a_binder_that_says_it_read_the_original_is_refused():
     # that was never told which revise it is says 0, the original.
     why = seeded_from_problem(SECOND, "/pulled", {"root": "/pulled", "revise": 0})
     assert "5" in why and "0" in why
+
+
+#: A stage row carrying the three keys a compacting stage needs, as a run's
+#: author writes them -- `decision-log.md Process: #193`. The expectation is
+#: that ruling's own words: the stage is dealt the `b` and `c` places whose
+#: text runs over the cap, and its role files the edit instructions.
+COMPACTING = (
+    '[[stage]]\nname="6"\nkind="editorial"\nreads="original"\n'
+    "cap=2\nseries=['b','c']\nadmits=['patch','drop','add','clean']\n"
+    '[[stage.dispatch]]\nrole="block-context"\n'
+)
+
+
+def _one(text: str) -> Stage:
+    stages, why = read(text)
+    assert why == "", why
+    (stage,) = stages
+    return stage
+
+
+def test_the_three_keys_are_read_onto_the_stage():
+    stage = _one(COMPACTING)
+    assert stage.cap == 2
+    assert stage.series == ("b", "c")
+    assert stage.admits == ("patch", "drop", "add", "clean")
+
+
+def test_an_ordinary_stage_carries_none_of_them():
+    """An ordinary stage deals every place a role is handed and admits every
+    instruction, which is what an absent key means."""
+    stage = _one(
+        '[[stage]]\nname="4"\nkind="editorial"\nreads="original"\n'
+        '[[stage.dispatch]]\nrole="block-context"\n'
+    )
+    assert (stage.cap, stage.series, stage.admits) == (0, (), ())
+
+
+def test_a_cap_that_is_not_a_positive_whole_number_is_refused():
+    for value in ('"2"', "true", "-1", "2.5"):
+        stages, why = read(COMPACTING.replace("cap=2", f"cap={value}"))
+        assert stages == [] and "cap" in why, value
+
+
+def test_a_series_that_names_no_series_is_refused():
+    stages, why = read(COMPACTING.replace("series=['b','c']", "series=['z']"))
+    assert stages == [] and "'z'" in why
+
+
+def test_a_series_that_is_not_a_list_of_strings_is_refused():
+    stages, why = read(COMPACTING.replace("series=['b','c']", "series='b'"))
+    assert stages == [] and "series" in why
+
+
+def test_an_admits_naming_no_instruction_is_refused():
+    stages, why = read(COMPACTING.replace("'patch'", "'condense'"))
+    assert stages == [] and "condense" in why
+
+
+def test_an_admits_that_is_not_a_list_of_strings_is_refused():
+    stages, why = read(COMPACTING.replace("admits=['patch',", "admits=[2,"))
+    assert stages == [] and "admits" in why
