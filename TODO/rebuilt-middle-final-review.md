@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 41 tasks closed
+Progress: 2 of 41 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -14,8 +14,9 @@ The rebuilt middle's final review.
 
 ## Tasks
 
-- [ ] T1 | Fix a mover's answer at one end of a move so it reaches the other;
-      refuse a commit that leaves a move half done (B1, Broken)
+- [x] T1 | AnswerRow.reaches_partner: a mover's withdrawal reaches its move's other end; refuse_half_moves; Process 188 to 190; tests/test_passes.py, test_bus.py | 9ee20904 | Fix
+      a mover's answer at one end of a move so it reaches the other; refuse a
+      commit that leaves a move half done (B1, Broken)
 - [ ] T2 | Fix a chief mark synthesized over patch-only sides so it parses; it
       is a correct with no sources today (H1, Broken)
 - [ ] T3 | Decide whether drift_in goes per Process 62 or 62 is superseded; it
@@ -94,5 +95,6 @@ The rebuilt middle's final review.
       --contract omits it (G5)
 - [ ] T40 | Measure a place the binder does not hold: an add or move there
       passes collate and is first refused at proof (H2)
-- [ ] T41 | Add a smoke plant of a move answered by its mover across two turns;
-      B1, B2 and B4 sat outside the smoke (H3)
+- [x] T41 | the smoke's main line runs a second turn; store.py plants a contested move its mover withdraws, the sentence landing once | baed3d73 | Add
+      a smoke plant of a move answered by its mover across two turns; B1, B2 and
+      B4 sat outside the smoke (H3)
