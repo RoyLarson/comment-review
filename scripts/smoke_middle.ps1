@@ -1,8 +1,8 @@
 # Drives the middle stages of the comment-review chain over a fixture tree,
 # for a smoke check that the chain from gather through proof still
 # composes: a binder, a topology, seeded copies, the planted marks, the
-# fold's proof, one turn in which every role answers what the fold carried
-# forward, the chief's dispositions closing what the turn still carries
+# fold's proof, two turns in which every role answers what the fold carried
+# forward, the chief's dispositions closing what the turns still carry
 # forward, the docket `proof` transcribes from the closed copy, and the
 # revise `proof` pulls from that docket. The diff stage compares that revise
 # with the text smoke_fixture.py says the plant makes land, and passes
@@ -177,6 +177,10 @@ $Proof0File = Join-Path $Run 'proof0.json'
 $Batch1File = Join-Path $Run 'batch1.json'
 $Proof1File = Join-Path $Run 'proof1.json'
 $Batch2File = Join-Path $Run 'batch2.json'
+# The second turn's own outputs. `proof2.json` belongs to the second editorial
+# stage further down, so the proof this turn writes is named for the turn.
+$TurnTwoProofFile = Join-Path $Run 'proof-turn2.json'
+$Batch3File = Join-Path $Run 'batch3.json'
 $DispositionsFile = Join-Path $Run 'dispositions.json'
 $ChiefFinalFile = Join-Path $Run 'chief-final.json'
 $FinalFile = Join-Path $Run 'final.json'
@@ -327,6 +331,8 @@ $Stages = [ordered]@{
             store_b8 = Join-Path $Run 'store-b8.txt'
             store_b9 = Join-Path $Run 'store-b9.txt'
             store_b10 = Join-Path $Run 'store-b10.txt'
+            store_b11 = Join-Path $Run 'store-b11.txt'
+            store_b12 = Join-Path $Run 'store-b12.txt'
             store_b7_false = Join-Path $Run 'store-b7-false.txt'
             store_b7_true = Join-Path $Run 'store-b7-true.txt'
             store_c5_false = Join-Path $Run 'store-c5-false.txt'
@@ -783,15 +789,15 @@ $Stages = [ordered]@{
             ))
         }
         # store.py@b5 -- the move a role holds for the human. module-context
-        # moves the whole paragraph to store.py@b10, the closing gap, so its
+        # moves the whole paragraph to store.py@b12, the closing gap, so its
         # `--change` and its `--raw-text` are one text; block-context reads
         # the same place and marks a human-review query. Both ends of the
         # move then ride to the end unruled and print as one entry naming
         # both (Process #182). The other two roles defer.
         Invoke-Checked -Stage 'mark store.py@b5 module-context move' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', 'store.py@b5',
-            '--instruction', 'move', '--from', 'store.py@b5', '--to', 'store.py@b10',
-            '--change', "@$($LandingFile.store_b10)", '--raw-text', "@$($LandingFile.store_b10)",
+            '--instruction', 'move', '--from', 'store.py@b5', '--to', 'store.py@b12',
+            '--change', "@$($LandingFile.store_b12)", '--raw-text', "@$($LandingFile.store_b12)",
             '--reason', 'rounding is the last thing the module does and reads as its closing note',
             '--cite', 'store.py:12', '--repo', $OriginalDir
         ))
@@ -885,6 +891,41 @@ $Stages = [ordered]@{
                 '--settles', 'block-context',
                 '--reason', 'where this note belongs on the page is not my remit',
                 '--cite', 'store.py:22', '--repo', $OriginalDir
+            ))
+        }
+        # store.py@b11 -- the move its own filer withdraws. module-context
+        # takes the paragraph's second sentence to store.py@b10, the gap above
+        # the declaration; block-context rewords that same sentence where it
+        # stands. The two texts do not compose, so the origin is an escalation
+        # put to both, and the destination is a composition put to
+        # block-context alone -- the two roles that defer at the origin defer
+        # on the move, so nothing is owed them at its other end. Both roles
+        # hold in the first turn; in the second, module-context withdraws at
+        # the origin and the move is off at both of its ends (Process #129),
+        # which is what the smoke ran no second turn to reach until
+        # 2026-09-18.
+        Invoke-Checked -Stage 'mark store.py@b11 module-context move' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', 'store.py@b11',
+            '--instruction', 'move', '--from', 'store.py@b11', '--to', 'store.py@b10',
+            '--change', "@$($LandingFile.store_b11)", '--raw-text', "@$($LandingFile.store_b10)",
+            '--reason', 'the sentence is about the store as a whole, not about this lookup',
+            '--cite', 'store.py:28', '--repo', $OriginalDir
+        ))
+        Invoke-Checked -Stage 'mark store.py@b11 block-context correct' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'store.py@b11',
+            '--instruction', 'correct',
+            '--false', 'Every lookup', '--true', 'Each lookup',
+            '--reason', 'the function is handed one key, so one lookup is what it answers',
+            '--cite', 'store.py:28', '--repo', $OriginalDir
+        ))
+        foreach ($role in @('ownership-context', 'function-context')) {
+            Invoke-Checked -Stage "mark store.py@b11 $role query" -CommandLine ($Launcher + @(
+                $Cmd.mark, '--edit-copy', $CopyFile[$role], '--address', 'store.py@b11',
+                '--instruction', 'query', '--shape', 'outside-my-role',
+                '--attempted', 'read the paragraph against the code at this place',
+                '--settles', 'block-context',
+                '--reason', 'which of the two sentences belongs here is not my remit',
+                '--cite', 'store.py:28', '--repo', $OriginalDir
             ))
         }
     }
@@ -1104,7 +1145,7 @@ $Stages = [ordered]@{
             }
         }
     }
-    # One turn. `write_answers` writes each role's answers to the batch
+    # The first turn. `write_answers` writes each role's answers to the batch
     # `collate` sent, from `ANSWERS` in smoke_fixture.py. `check --answers`
     # reads each file against that batch alone -- the slot it was sent
     # carries the question its answer is read against -- and exits 1 on a
@@ -1112,9 +1153,9 @@ $Stages = [ordered]@{
     # `turn` folds all four roles' answers onto the places the proof carries;
     # it reads neither the binder nor the batch, since the places say who
     # each was put to. The answers leave b8 and c3 holding an add beside
-    # another role's answer to it, and a3 and b9 two corrections each, so
-    # four places are still carried forward and `turn`, whose exit codes are
-    # `collate`'s, exits 4.
+    # another role's answer to it, a3, b9 and c1 with texts no role has taken,
+    # and the two moves whose ends are still open, so nine places are carried
+    # forward and `turn`, whose exit codes are `collate`'s, exits 4.
     turn = {
         Invoke-Checked -Stage 'plant-answers' -CommandLine @(
             'uv', 'run', 'python', '-c',
@@ -1185,13 +1226,43 @@ $Stages = [ordered]@{
             '--proof-out', $Proof1File, '--batch-out', $Batch2File
         ))
     }
-    # `disposition` folds the chief's rulings over the places the turn left
-    # carried forward into the closed proof. The rulings are
+    # The second turn, over the batch the first one wrote. `write_answers2`
+    # writes each role's answers from `ANSWERS2` in smoke_fixture.py, which
+    # answers every slot that batch carries by name. It is where the withdrawn
+    # move is answered: its mover held at the origin in the first turn and
+    # withdraws here, so the move comes off both of its ends -- including the
+    # destination, which settled on the moved text in the first turn and is
+    # carried forward only by its partner. Every other place the batch asks
+    # about is one the chief rules below, and the answers keep each of them
+    # carried forward, so `turn` exits 4 again.
+    turn2 = {
+        Invoke-Checked -Stage 'plant-answers2' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_answers2; write_answers2(Path(sys.argv[1]))',
+            $Run
+        )
+        $answerFile = @{}
+        foreach ($role in $Roles) {
+            $answerFile[$role] = Join-Path $Run "answers2-$role.json"
+            Invoke-Checked -Stage "check answers2 $role" -CommandLine ($Launcher + @(
+                $Cmd.check, '--answers', $answerFile[$role], '--sent', $Batch2File,
+                '--role', $role
+            ))
+        }
+        $answers = foreach ($role in $Roles) { '--answers', "$role=$($answerFile[$role])" }
+        Invoke-Checked -Stage 'turn2' -Expect 4 -CommandLine ($Launcher + @(
+            $Cmd.turn, '--proof', $Proof1File
+        ) + $answers + @(
+            '--proof-out', $TurnTwoProofFile, '--batch-out', $Batch3File
+        ))
+    }
+    # `disposition` folds the chief's rulings over the places the second turn
+    # left carried forward into the closed proof. The rulings are
     # dispositions.json, which `write_texts` wrote at the mark stage from
     # `DISPOSITIONS` in smoke_fixture.py.
     disposition = {
         Invoke-Checked -Stage 'disposition' -CommandLine ($Launcher + @(
-            $Cmd.disposition, '--proof', $Proof1File,
+            $Cmd.disposition, '--proof', $TurnTwoProofFile,
             '--dispositions', $DispositionsFile, '--out', $ChiefFinalFile,
             '--proof-out', $FinalFile
         ))

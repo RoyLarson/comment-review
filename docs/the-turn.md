@@ -345,14 +345,14 @@ and the round rolls back.
 
 **The events print first, in address order; what was written prints after.** These lines are
 from `pwsh -NoProfile -File scripts/smoke_middle.ps1`, 2026-09-18, which exits 0 and whose
-`collate` and `turn` are each expected to exit 4:
+`collate` and both of whose turns are each expected to exit 4:
 
     composed fib.py@a0: function-context, module-context, ownership-context (composition)
     contested fib.py@a3: block-context, function-context, module-context (escalation)
     stet fib.py@b0
     unsettlable fib.py@a1: block-context asks the human -- the docstring and the decorator disagree about what counts
-    unsettlable store.py@b5 and store.py@b10: block-context asks the human -- whether this note belongs beside the code or at the foot is the author's call
-      and module-context's move drops the paragraph at store.py@b5 and adds it at store.py@b10, one move -- rounding is the last thing the module does and reads as its closing note
+    unsettlable store.py@b5 and store.py@b12: block-context asks the human -- whether this note belongs beside the code or at the foot is the author's call
+      and module-context's move drops the paragraph at store.py@b5 and adds it at store.py@b12, one move -- rounding is the last thing the module does and reads as its closing note
     for the chief -- each correct below drops words its claim never named:
     block-context store.py@c5: its change drops 'wants', which its claim never names
 
@@ -366,15 +366,18 @@ from `pwsh -NoProfile -File scripts/smoke_middle.ps1`, 2026-09-18, which exits 0
 
 **Then the files, one line each, and only on a commit:**
 
-    <out>: 16 places resolved                                       collate
-    <proof-out>: the master proof -- 26 places -- 10 settled, 3 unsettlable, 13 carried forward
-    <batch-out>: turn 1's batch -- block-context 10, function-context 10, module-context 7, ownership-context 8
+    <out>: 17 places resolved                                       collate
+    <proof-out>: the master proof -- 28 places -- 10 settled, 3 unsettlable, 15 carried forward
+    <batch-out>: turn 1's batch -- block-context 12, function-context 10, module-context 8, ownership-context 8
 
-    <proof-out>: the master proof after turn 1 -- 26 places -- 15 settled, 4 unsettlable, 7 carried forward   turn
-    <batch-out>: turn 2's batch -- block-context 4, function-context 5, module-context 3, ownership-context 5
+    <proof-out>: the master proof after turn 1 -- 28 places -- 15 settled, 4 unsettlable, 9 carried forward   turn
+    <batch-out>: turn 2's batch -- block-context 6, function-context 5, module-context 5, ownership-context 5
 
-    <out>: the chief's copy, 17 places                              disposition
-    <proof-out>: the proof closed at turn 1 -- 26 places -- 22 settled, 4 unsettlable, 0 carried forward
+    <proof-out>: the master proof after turn 2 -- 28 places -- 17 settled, 4 unsettlable, 7 carried forward   turn
+    <batch-out>: turn 3's batch -- block-context 6, function-context 6, module-context 4, ownership-context 5
+
+    <out>: the chief's copy, 18 places                              disposition
+    <proof-out>: the proof closed at turn 2 -- 28 places -- 24 settled, 4 unsettlable, 0 carried forward
 
 **Nothing carried forward is no batch rather than an empty one.** A file holding `{}` would be
 handed to roles as a turn with nothing in it, so `--batch-out` writes only where the fold
