@@ -498,6 +498,24 @@ what a batch is, what each question asks and which answers it may give, and uses
 Whether the term crosses over is unruled; the drift check reads `turn` as a word wherever it
 appears, including ordinary English, so adding it is a measured change rather than a row.
 
+## `handed` and `dealt` -- two questions about the same slot
+
+**A place a role is HANDED is one a role may ever rule on; a place a stage DEALS it is one this
+stage gives it.** Two questions, and the second is always a subset of the first
+(`decision-log.md Process: #193`).
+
+| the word | what it names | where it is asked |
+| --- | --- | --- |
+| **`handed`** | addressed, and not the file's own matter. The `f` series states no constraint the code could contradict, so no role rules on one | `binder.addresses.handed`, since 2026-08-20 |
+| **`dealt`** | of those, the places this stage's row selects -- its series, over its cap | `desk.stages.deals`, since #193 |
+
+**Both are asked at the seed and at the coverage count**, in that order, so a stage cannot deal
+what no role may be handed, and a role is not owed a ruling at a place its stage never dealt.
+
+**Neither belongs in `vocabulary.toml`.** That file holds what agents are GIVEN, and no agent
+file uses either word: a role reads its copy, which holds the places and says nothing about how
+they were chosen. `cap` is in it already, for the compact role, and is not restated here.
+
 ## ownership -- settled, and deliberately not emitted
 
 **The relation: which anchor best justifies holding a comment.** `anchor` is the code position,

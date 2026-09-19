@@ -436,6 +436,47 @@ from `pwsh -NoProfile -File scripts/smoke_middle.ps1`, 2026-09-18, which exits 0
 handed to roles as a turn with nothing in it, so `--batch-out` writes only where the fold
 carried something forward, and a turn that carries nothing is the last one there is to run.
 
+## What a stage deals, and what its roles may file
+
+**Three keys on a topology stage row, and each is optional** -- `decision-log.md Process: #193`.
+Absent on every ordinary stage, which is what makes one deal every place a role is handed and
+admit every instruction, as every stage did before that ruling.
+
+| key | what it says | read by |
+| --- | --- | --- |
+| `cap` | the length, in lines, a place's text must run over to be dealt | `desk.stages.deals` |
+| `series` | which series this stage deals, by letter | `desk.stages.deals` |
+| `admits` | which instructions its roles may file, by name | `desk.stages.not_admitted` |
+
+`desk/topology.py` checks each against the set that defines it -- a letter against
+`reading.series`, an instruction name against the marks table -- so a row naming something
+outside either is refused by the value it typed.
+
+**A place is dealt where its series is one the stage names and its own lines run over the cap.**
+The count is the page's own `lines`, which `binder.page` fills from the paragraph's raw text
+when a binder is read back and the lexer fills when a page is built; a place holding no prose
+counts none, so it is never over a cap.
+
+**The deal is narrowed in two places and stated in one.** `flows.distribute.seed` gives a slot
+to the places the stage deals, and `flows.verify.coverage_problems` measures a returned copy
+against the same `deals` -- Roy, 2026-09-19: *"only touching places that are over the length
+limit - all other places are automatically clean for this role."* A page a stage deals nothing
+on keeps its sheet and no slot, and `distribute` prints `0 places for <role> to rule on`.
+A stage that deals part of the binder and is collated without `--topology` is reported short of
+its coverage, and correctly: nothing else in the run says what was dealt.
+
+**What a role may file rides on the copy.** The seed stamps the stage's name and its admitted
+instructions onto the `edit_copy`, as `read_from` carries the tree it was cut from, so
+`flows.fill` refuses a ruling as `mark` places it -- `stage 6 admits patch, drop, add, clean,
+and not correct` -- and `commands/check.py` holds a hand-written copy to the same rule without
+the run's topology beside it.
+
+**Compaction is the stage these were built for.** It reads the revise the review's proof
+pulled, is dealt the `b` and `c` places whose text runs over the cap, files the edit
+instructions with `mark`, and its copy is folded and set like any stage's. A docstring is never
+dealt, so nothing has to refuse one; length is no concern of the four editorial roles, whose
+remit is that a comment is correct, true and current at whatever length that takes.
+
 ## What this does to stages 4 and 5
 
 Roy, 2026-09-02: *"I think it also collapses stages 4 and 5 a lot because the copy-chief is not
@@ -464,6 +505,8 @@ fold deleted (`0e2ff82a`).
 | the chief's edit copy | `flows.places.chief_copy_of`, from the decided places -- the record, read by nothing |
 | the docket the write end sets from | `flows.transcribe.docket_of_proof`, from the closed proof's places |
 | the author's partial approval | `flows.transcribe._approved`, reached through `docket_of_proof`'s `only`; the flag is `proof --only` |
+| which places a stage deals | `desk.stages.deals`, read by `flows.distribute.seed` and `flows.verify.coverage_problems` |
+| which instructions its roles may file | `desk.stages.not_admitted`, read by `flows.fill.fill` and `commands/check.py` |
 | a role states the paragraph it wants | `Mark.change`, raw text |
 | the answer a role gives in a turn | `desk/answers/` -- `Answer`, and the eight rows |
 | the batch send-out | `flows.bus._batch_of`, one slot per carried-forward place per role asked |
@@ -510,3 +553,4 @@ fold deleted (`0e2ff82a`).
 | copies from different trees are refused | `Process: #178` | `flows.bus._root_problems` |
 | the write end reads the proof's decided places | `Process: #184` | `flows.transcribe.docket_of_proof`, `commands/proof.py` |
 | a partial approval is a place filter on `proof` | `Process: #192` | `flows.transcribe._approved`, `commands/proof.py` |
+| compaction is a stage, dealt the places over its cap | `Process: #193` | `desk/topology.py`'s three keys, `desk.stages.deals` and `not_admitted` |
