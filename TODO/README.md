@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (112)
+### open  (113)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -294,6 +294,7 @@ that changed a published name or rule:
 | [a-machine-context-raises-query-and-clean](a-machine-context-raises-query-and-clean.md) | backend | yes | 0/8 | annotate carries two subjects -- it extracts index keys, and it flags claims it cannot settle. The second half becomes a context that marks like a role. |
 | [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | -- | 8/12 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
 | [prove-unchanged-line-endings-follow-a-sibling](prove-unchanged-line-endings-follow-a-sibling.md) | backend | -- | 0/2 | On a checkout with core.autocrlf=true, git writes a checked-out text file with CRLF while its blob stays LF, and a file git never rewrote can still be LF. prove_unchanged compares an edited file's line endings with one untouched sibling, so a CRLF file whose sibling is a one-line LF __init__.py FAILs though the write kept every ending and the AST comparison passes. The check should hold the file to its own pre-edit endings. |
+| [rebuilt-middle-final-review](rebuilt-middle-final-review.md) | backend | -- | 0/41 | Every finding of the final review of the rebuilt middle, Broken first. The three Broken ones hold the branch from merging out. |
 
 ### in-progress  (18)
 
