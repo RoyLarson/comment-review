@@ -22,10 +22,10 @@ class State(StrEnum):
 CARRIED = frozenset({State.COMPOSED, State.CONTESTED})
 
 #: The states a place has settled in. One side's proposal that every reader
-#: accepted STANDS; several roles' identical proposals are AGREED, and a
+#: accepted `stands`; several roles' identical proposals are `agreed`, and a
 #: place the roles left alone stands on the paragraph already there.
 #:
-#: !! IT IS THE ONE STATEMENT OF SETTLED, and there were three. `_counted` in
+#: It is the one statement of settled, and there were three. `_counted` in
 #: `commands/collate.py` counted it by subtracting the carried and the
 #: unsettlable from the whole, and `flows.transcribe._unclosed` named the two
 #: carried states and `REFUSED` -- so a seventh state would have had to be

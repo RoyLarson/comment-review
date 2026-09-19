@@ -99,8 +99,8 @@ def test_only_an_editorial_stage_pulls_a_revise():
 
 #: A page holding one place of each series the deal asks about: a module
 #: docstring of three lines, a comment run of three, a comment run of one, and
-#: a trailing comment. INPUT FROM THE REAL PAGE BUILDER, so what a paragraph
-#: says about its own lines is what the page says.
+#: a trailing comment. The input is the real page builder's, so what a
+#: paragraph says about its own lines is what the page says.
 SOURCE = (
     '"""One subject.\n\nStated over three lines.\n"""\n'
     "x = 1\n"

@@ -95,7 +95,7 @@ class CannotTranscribe(Exception):
 class CannotApprove(CannotTranscribe):
     """The approval named a place this proof cannot set, and nothing is set.
 
-    ! IT IS ITS OWN CLASS SO THE CONSOLE CAN SAY SO. Every other refusal here
+    It is its own class so the console can say so. Every other refusal here
     is about the proof -- it has not closed, a place will not read back, a
     page cannot be opened -- and the command opens those with *the proof
     decided nothing that can be set*. That sentence is false of an approval
@@ -401,7 +401,7 @@ def _unclosed(places: list[Place]) -> list[str]:
     end's to set. A docket holding the settled places beside them would draft
     part of a stage as though the rest had been ruled on.
 
-    ! `UNSETTLABLE` IS NEITHER SETTLED NOR UNFINISHED, and that is why it is
+    `UNSETTLABLE` is neither settled nor unfinished, and that is why it is
     the one state this admits without a text: the place rides to the human
     with its question (`Process: #90`) and carries nothing to set. What is
     settled is `desk.evaluate.state.SETTLED`, which `commands/collate._counted`
@@ -450,7 +450,7 @@ def _approved(
     is missing is what the reason names, since that is what the author has to
     approve for the move to be set.
 
-    ! THE REASON SAYS WHAT THE PARAGRAPH DOES, NOT HOW THE PAIR WAS RULED.
+    The reason says what the paragraph does, not how the pair was ruled.
     The chief may rule the two ends differently -- a `taken_in` at one and a
     `recast` at the other (`docs/the-turn.md`, what the chief rules) -- so by
     the time a proof closes they are two decided texts rather than one

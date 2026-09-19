@@ -254,13 +254,13 @@ def _admitted_problems(copies: list[EditCopy], stage: Stage | None) -> list[Prob
         that finding is about the document. Empty where every mark is one its
         stage admits.
 
-    ! THE FIELD IS COMPARED, NOT TRUSTED. A copy that widened its `admits`
-    passes both commands that read it, and one that cleared the field reads
-    as every instruction wherever it is asked; comparing it with the row is
-    what makes either loud instead of silent.
+    The field is compared rather than trusted. A copy that widened its
+    `admits` passes both commands that read it, and one that cleared the
+    field reads as every instruction wherever it is asked; comparing it with
+    the row is what makes either loud instead of silent.
 
-    ! AND WITHOUT A ROW THE COPY'S OWN SET STILL BINDS, so this is never
-    weaker than `check` over the same copy.
+    Without a row the copy's own set still binds, so this is never weaker
+    than `check` over the same copy.
     """
     problems: list[Problem] = []
     for copy in copies:

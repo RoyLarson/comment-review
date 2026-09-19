@@ -506,9 +506,9 @@ class TestProofTakesAClosedProof:
         assert code == 1, out
         assert "m.py@b9" in out
         assert not (tmp_path / "r1").exists()
-        # ! ITS OWN OPENER. The proof decided everything it holds; what could
-        # not be honoured is the list of places -- so this must not read as a
-        # fact about the proof.
+        # Its own opener: the proof decided everything it holds, and what
+        # could not be honoured is the list of places -- so this must not
+        # read as a fact about the proof.
         assert "the approval names a place this proof cannot set" in out
         assert "the proof decided nothing that can be set" not in out
 
@@ -544,7 +544,7 @@ class TestProofTakesAClosedProof:
     def test_only_without_a_proof_is_an_argument_error(
         self, tmp_path, monkeypatch, capsys
     ):
-        """! IT FILTERS THE PROOF'S PLACES, and a copy has none: a run naming
+        """It filters the proof's places, and a copy has none: a run naming
         `--only` beside `--copy` asked for something this command cannot do,
         which is an input error rather than a refusal further down."""
         code, out = run_command(

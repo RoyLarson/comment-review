@@ -90,7 +90,7 @@ def main() -> int:
         "--from-docket",
         help="JSON: a docket a --to-docket run wrote -- skips the transcribe",
     )
-    # !! `--only` IS THE PARTIAL APPROVAL -- `decision-log.md Process: #192`.
+    # `--only` is the partial approval -- `decision-log.md Process: #192`.
     # The author approves some decided places and not others, and what they
     # ruled is a set of addresses over the proof rather than a second
     # artifact. Repeatable, and a place it does not name is left as the page
@@ -131,7 +131,7 @@ def main() -> int:
             " transcribe, and naming both leaves nothing to run"
         )
         return 2
-    # ! `--only` FILTERS PLACES, AND ONLY A PROOF HAS ANY. A copy holds marks
+    # `--only` filters places, and only a proof has any. A copy holds marks
     # and a docket holds alterations already chosen, so the flag has nothing
     # to filter on either -- an input error rather than a refusal further
     # down, where it would read as a fact about the file.
@@ -231,7 +231,7 @@ def main() -> int:
                 if proof is not None
                 else None
             )
-        # ! THE APPROVAL'S REFUSALS OPEN WITH THEIR OWN SENTENCE, and shared
+        # The approval's refusals open with their own sentence, and shared
         # the proof's until `#192` was reviewed. *The proof decided nothing
         # that can be set* is false where the proof decided everything and
         # the list of places could not be honoured, so the two are told
@@ -252,8 +252,8 @@ def main() -> int:
                 print(line)
             return 1
         held = transcribed.docket if transcribed is not None else None
-        # ! A PLACE THE AUTHOR APPROVED THAT DRAWS NO `<path> -> <draft>` LINE
-        # IS NAMED HERE, or the run says nothing at all about a place they
+        # A place the author approved that draws no `<path> -> <draft>` line
+        # is named here, or the run says nothing at all about a place they
         # ruled on. It stands on the text already there, or it is held for
         # the human and carries no text; neither is a refusal.
         for address in transcribed.sets_nothing if transcribed else ():

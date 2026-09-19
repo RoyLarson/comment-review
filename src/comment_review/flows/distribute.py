@@ -103,11 +103,11 @@ def seed(binder: Binder, role: str, stage: Stage | None = None) -> dict:
     # of that -- the coverage count in `flows.verify` reads the same one, so
     # the two cannot disagree about the `f` series.
     #
-    # ! AND THE STAGE NARROWS THAT SET, never widens it: `deals` is asked of
+    # And the stage narrows that set, never widens it: `deals` is asked of
     # the places `handed` already allows, so a stage cannot deal the file's
     # own matter by naming its series.
     #
-    # ! A PAGE THE STAGE DEALS NOTHING ON KEEPS ITS SHEET, holding no slot.
+    # A page the stage deals nothing on keeps its sheet, holding no slot.
     # The sheet records the page and the sha it was read at, which the proof
     # reads back; dropping the page here would leave the run unable to say
     # what it was cut from.

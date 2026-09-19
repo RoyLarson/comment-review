@@ -6,7 +6,7 @@ dealt a copy holding only the `b` and `c` places whose text runs over the cap,
 it files the edit instructions with `mark`, and its copy is folded and set
 like any stage's.
 
-! DRIVEN THROUGH THE COMMANDS' OWN `main()`, so what this asserts is what a
+Driven through the commands' own `main()`, so what this asserts is what a
 run does: nothing here calls the fold or the write end directly.
 """
 
@@ -210,7 +210,7 @@ def test_the_condensed_text_folds_and_is_set(tmp_path, monkeypatch, capsys):
 def test_an_ordinary_stage_over_the_same_binder_deals_both_places(
     tmp_path, monkeypatch, capsys
 ):
-    """! THE CONTROL. Without the three keys the same binder hands the role
+    """The control: without the three keys the same binder hands the role
     every place it ever held, so the narrowing above is the row's doing and
     not the fixture's."""
     _root, copy = _run(tmp_path, monkeypatch, capsys, None)

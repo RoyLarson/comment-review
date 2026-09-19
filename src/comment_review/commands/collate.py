@@ -184,10 +184,11 @@ def _counted(places: tuple[dict, ...]) -> str:
     Returns:
         `"N places -- S settled, U unsettlable, C carried forward"`.
 
-    ! SETTLED IS COUNTED, NOT SUBTRACTED, since `decision-log.md Process:
-    #193`'s round. It read `len(states) - carried - unsettlable`, which is a
-    third statement of which states are settled -- `desk.evaluate.state.SETTLED`
-    is the one both this and `flows.transcribe._unclosed` read.
+    Settled is counted rather than subtracted, since `decision-log.md
+    Process: #193`'s round. It read `len(states) - carried - unsettlable`,
+    which is a third statement of which states are settled --
+    `desk.evaluate.state.SETTLED` is the one both this and
+    `flows.transcribe._unclosed` read.
     """
     states = [str(place.get("state") or "") for place in places]
     carried = sum(1 for state in states if state in CARRIED)

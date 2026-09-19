@@ -420,10 +420,11 @@ class EditCopy:
             so a role reads which stage's row refused its ruling.
         admits: the instructions this stage's roles may file, by name, or
             empty for every one of them (`decision-log.md Process: #193`).
-            ! IT RIDES ON THE COPY FOR THE REASON `read_from` DOES: the rule
+            It rides on the copy for the reason `read_from` does: the rule
             is about the artifact in hand, so `commands/mark.py` and
             `commands/check.py` hold a copy to it without being handed the
-            run's topology beside it.
+            run's topology beside it. `flows.bus._on_copies` holds the
+            returned marks to the stage's own row instead.
         sheets: one per page.
     """
 
@@ -519,10 +520,10 @@ class EditCopy:
                 # change what a parsed copy already holds.
                 read_from={**checked["read_from"]},
                 sheets=tuple(sheets),
-                # ! BOTH READ WHERE PRESENT AND DEFAULTED WHERE NOT. A copy
-                # written before `#193`, and one from a stage whose row says
-                # nothing more, carries neither -- and an ordinary stage is
-                # exactly the case where both are empty.
+                # Both are read where present and defaulted where not. A
+                # copy written before `#193`, and one from a stage whose row
+                # says nothing more, carries neither -- and an ordinary
+                # stage is exactly the case where both are empty.
                 stage=str(checked.get("stage") or ""),
                 admits=tuple(
                     one for one in (checked.get("admits") or []) if isinstance(one, str)

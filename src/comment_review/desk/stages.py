@@ -208,12 +208,12 @@ class Stage(NamedTuple):
             the copy the seed stamped it onto, and `flows.bus._on_copies`
             holds the returned marks to this row.
 
-    ! THE THREE NARROW ANY STAGE, AND NONE OF THEM ASKS WHAT IT READS.
-    `#193` is the use they were built for -- a compacting stage over a
-    revise, dealt the `b` and `c` places over a cap -- but a stage reading
-    the original may carry them too, and a stage reading a revise may carry
-    none. What a stage is seeded FROM is `reads`, and what it is dealt OF
-    that is these.
+    The three narrow any stage, and none of them asks what it reads. `#193`
+    is the use they were built for -- a compacting stage over a revise,
+    dealt the `b` and `c` places over a cap -- but a stage reading the
+    original may carry them too, and a stage reading a revise may carry
+    none. Which tree a stage is seeded from is `reads`; which of that tree's
+    places it is dealt is these.
     """
 
     name: str
@@ -221,10 +221,10 @@ class Stage(NamedTuple):
     reads: str = "original"
     carries: tuple[str, ...] = ()
     dispatches: tuple[Dispatch, ...] = ()
-    # ! APPENDED, NOT SLOTTED IN BESIDE `reads`, though that is where they
-    # belong by subject: a `Stage` is a NamedTuple and several callers build
-    # one positionally, so an earlier field would silently become their
-    # `dispatches`.
+    # Appended rather than slotted in beside `reads`, though that is where
+    # they belong by subject: a `Stage` is a NamedTuple and several callers
+    # build one positionally, so an earlier field would silently become
+    # their `dispatches`.
     cap: int = 0
     series: tuple[str, ...] = ()
     admits: tuple[str, ...] = ()
@@ -263,10 +263,10 @@ def deals(stage: Stage, paragraph: Paragraph) -> bool:
         Whether the seed gives this place a slot. A place holding no prose
         counts 0 lines, so it is never over a cap.
 
-    ! THE COUNT IS THE PAGE'S, not a second count taken here.
-    `binder.page` fills `lines` from the paragraph's own raw text when a
-    binder is read back, and the lexer fills it when a page is built, so what
-    this compares is what the page says the paragraph stands on.
+    The count is the page's, not a second count taken here. `binder.page`
+    fills `lines` from the paragraph's own raw text when a binder is read
+    back, and the lexer fills it when a page is built, so what this compares
+    is what the page says the paragraph stands on.
     """
     if stage.series and cue_of(paragraph.address).series not in stage.series:
         return False
@@ -291,7 +291,7 @@ def not_admitted(stage: str, admits: tuple[str, ...], instruction: str) -> str:
     Returns:
         The one reason, naming the stage and what it admits, or "".
 
-    ! IT COMPARES VALUES AND NAMES NO ROW. Which instructions exist is
+    It compares values and names no row. Which instructions exist is
     `desk.marks.table`'s, and a stage's row carries their names as data --
     `desk.topology` is what refuses a name that is not one of them.
     """

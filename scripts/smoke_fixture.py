@@ -540,10 +540,10 @@ LANDINGS: dict[str, Landing] = {
     # which stays empty for the same reason. `marked` is the paragraph the
     # move carries, which its `mark` call passes as both `--change` and
     # `--raw-text`: the whole paragraph leaves, so the two are one text.
-    # ! IT WAS THE CLOSING GAP UNTIL `summary` WAS APPENDED for the
-    # compacting stage, and the case it plants is a move held for the human
-    # at both ends (`Process: #182`) rather than anything about the file's
-    # end -- `fib.py@b17` is the closing-gap plant.
+    # It was the closing gap until `summary` was appended for the compacting
+    # stage, and the case it plants is a move held for the human at both
+    # ends (`Process: #182`) rather than anything about the file's end --
+    # `fib.py@b17` is the closing-gap plant.
     "store.py@b12": Landing(
         "kept",
         route="query",

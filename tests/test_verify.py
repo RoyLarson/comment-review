@@ -299,7 +299,7 @@ class TestShardCoverage:
         copies = copies_over(binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}})
         dealt = returned(_keeping_only(copies[0], ["m.py@b1"]))
         assert coverage_problems([dealt], binder, stage) == []
-        # ! AND IT STILL BITES INSIDE THE DEAL. A role that dropped a place the
+        # And it still bites inside the deal: a role that dropped a place the
         # stage did deal is as short as it ever was.
         binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})
         copies = copies_over(binder, {"block-context": {"m.py@b1": a_clean("m.py@b1")}})

@@ -461,7 +461,7 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
     named = entry.get("instruction")
     if not isinstance(named, str) or named not in INSTRUCTIONS:
         return None, [f"`instruction` must be one of {', '.join(sorted(INSTRUCTIONS))}"]
-    # ! WHAT THE STAGE ADMITS IS ASKED BEFORE ANYTHING IS BUILT, and the copy
+    # What the stage admits is asked before anything is built, and the copy
     # is what carries it (`decision-log.md Process: #193`). A role learns the
     # rule from the refusal here rather than from the fold, three commands
     # later -- and `commands/check.py` asks the same function of a copy

@@ -250,14 +250,14 @@ def coverage_problems(
     ! AN EMPTY BINDER YIELDS NOTHING. There is no address to be missing, and a
     run over one is what `tests/test_brief_worked_example.py` drives.
 
-    ! A STAGE THAT DEALS PART OF THE BINDER AND IS COLLATED WITHOUT ITS ROW
-    IS REPORTED SHORT, and correctly: nothing else in the run says which
-    places were dealt, so a caller that names no topology is asking this to
-    measure against the whole binder.
+    A stage that deals part of the binder and is collated without its row is
+    reported short, and correctly: nothing else in the run says which places
+    were dealt, so a caller that names no topology is asking this to measure
+    against the whole binder.
     """
     # ! THE PLACES A ROLE WAS HANDED, not every address the binder carries --
     # `binder.addresses.handed` is the one definition, and the seed reads it too.
-    # ! AND NARROWED BY THE SAME `deals` THE SEED USED, so the two cannot
+    # And narrowed by the same `deals` the seed used, so the two cannot
     # disagree about which places a stage dealt.
     known = frozenset(
         b.address for b in handed(binder.paragraphs) if stage is None or deals(stage, b)

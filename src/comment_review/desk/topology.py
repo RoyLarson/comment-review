@@ -23,21 +23,19 @@ this module implements specifies a `Stage` NamedTuple of its own; `Stage`
 already exists in `desk/stages.py`; this module evolves that one in place
 instead of declaring a second same-named type in one package.
 
-! **THREE KEYS SAY WHAT A STAGE DEALS AND WHAT ITS ROLES MAY FILE** --
-`cap`, `series` and `admits`, `decision-log.md Process: #193`. Each is
-optional and each is checked against the set that defines it rather than
-against a list kept here: a series letter against `reading.series`, an
-instruction name against the marks table. Absent on every ordinary stage,
-which is what makes one behave as it did before the ruling --
-`desk.stages.deals` reads the first two and `flows.distribute.seed` narrows
-the copy by them.
+Three keys say what a stage deals and what its roles may file -- `cap`,
+`series` and `admits`, `decision-log.md Process: #193`. Each is optional and
+each is checked against the set that defines it rather than against a list
+kept here: a series letter against `reading.series`, an instruction name
+against the marks table. Absent on every ordinary stage, which is what makes
+one behave as it did before the ruling -- `desk.stages.deals` reads the
+first two and `flows.distribute.seed` narrows the copy by them.
 
-! **THEY ARE INDEPENDENT OF `reads`, AND NOTHING HERE PAIRS THEM.** A
-compacting stage is one use of the three -- the use `#193` ruled, over a
-revise -- and a stage reading `"original"` may narrow what it deals in the
-same way. Which tree a stage is seeded from and which of that tree's places
-it is dealt are two questions, so a row answering one is never required to
-answer the other.
+They are independent of `reads`, and nothing here pairs them. A compacting
+stage is one use of the three -- the use `#193` ruled, over a revise -- and
+a stage reading `"original"` may narrow what it deals in the same way. Which
+tree a stage is seeded from and which of that tree's places it is dealt are
+two questions, so a row answering one is never required to answer the other.
 
 ! **`reads` ENFORCES SECTION 2'S "BARRIER".** A `"revise:<name>"` value may
 only name a stage that appears EARLIER in the file's own `[[stage]]` order
@@ -196,7 +194,7 @@ def _cap(name: str, raw: dict) -> tuple[int, str]:
     """A stage's `cap`, in lines, or the one reason it is not a cap.
 
     `decision-log.md Process: #193`. Absent is 0, which asks nothing about a
-    place's length. ! A TOML BOOLEAN IS AN `int` IN PYTHON, so `cap = true`
+    place's length. A TOML boolean is an `int` in Python, so `cap = true`
     would otherwise read as a cap of one line.
     """
     given = raw.get("cap", 0)

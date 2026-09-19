@@ -900,7 +900,7 @@ class TestOnlyTheApprovedPlaces:
     def test_both_ends_of_a_move_together_are_transcribed(
         self, tmp_path, monkeypatch, capsys
     ):
-        """! THE PAIR IS WHAT THE REFUSAL ABOVE ASKS FOR, so the case that
+        """The pair is what the refusal above asks for, so the case that
         names both ends must land both -- otherwise the refusal would be
         demanding something the filter cannot do."""
         proof, repo = self._closed(

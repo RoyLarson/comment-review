@@ -137,7 +137,7 @@ def _dealt(tmp_path, by_role, admits=("patch", "drop", "add", "clean"), stage="6
     """
     message = _message(tmp_path, by_role)
     message.copies[0] = replace(message.copies[0], stage=stage, admits=admits)
-    # ! `_replace`, NOT `dataclasses.replace`: a message is a NamedTuple.
+    # `_replace` rather than `dataclasses.replace`: a message is a NamedTuple.
     return message._replace(topology=COMPACTING)
 
 
@@ -178,7 +178,7 @@ def test_a_copy_that_cleared_its_own_admits_is_refused_at_the_fold(tmp_path):
 
 
 def test_a_copy_that_agrees_with_the_row_folds(tmp_path):
-    """! THE CONTROL. The same hand, with the marks the row admits, commits --
+    """The control: the same hand, with the marks the row admits, commits --
     so what the two cases above refuse is the instruction and the field, not
     the stage."""
     hand = {

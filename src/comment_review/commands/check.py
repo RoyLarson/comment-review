@@ -144,7 +144,7 @@ def _check_copy(path: str, binder_path: str | None, repo: str | None) -> int:
         for reason in one.reasons:
             print(f"{one.role} {one.where}: {reason}")
             found += 1
-    # ! WHAT THE STAGE ADMITS, ASKED OF A COPY WRITTEN BY HAND -- the same
+    # What the stage admits, asked of a copy written by hand -- the same
     # `desk.stages.not_admitted` `flows.fill` asks as a ruling is placed
     # (`decision-log.md Process: #193`). It needs no binder, so it runs on
     # every check rather than under `--binder`: the copy carries the rule.
