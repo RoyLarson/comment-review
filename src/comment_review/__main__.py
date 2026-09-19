@@ -43,7 +43,6 @@ class Command(StrEnum):
     CARRY = auto()
     CHECK = auto()
     COLLATE = auto()
-    COMPACT = auto()
     COMPOSITOR = auto()
     DISPOSITION = auto()
     DISTRIBUTE = auto()

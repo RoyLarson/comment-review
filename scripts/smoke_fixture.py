@@ -36,12 +36,10 @@ for the smoke script's `diff` stage. `ROLE_DRAFT` and `ROLE_RATE_DRAFT` are
 what `proof --copy` drafts from `DRAFTED_ROLE`'s own copy before the fold, and
 `write_role_draft` writes them for the smoke script's `draft` stage.
 
-`COMPACTED_TEXT` is stage 6's own hand-back, written here by hand: the
-paragraph at `COMPACTED`, condensed, which `write_compaction` hands the
-`compact` command and which `RATE_EXPECTED` carries. `APPROVED` is the
-partial approval `proof --only` sets alone, `PARTIAL_EXPECTED` is the one
-page that run must leave, and `write_approval` writes the addresses for the
-script to read rather than have it spell them itself.
+`APPROVED` is the partial approval `proof --only` sets alone,
+`PARTIAL_EXPECTED` is the one page that run must leave, and `write_approval`
+writes the addresses for the script to read rather than have it spell them
+itself.
 """
 
 import json
@@ -1331,19 +1329,18 @@ EXPECTED = (
 
 
 #: What the proof's `rate.py` must read once the chain closes, written out by
-#: hand the same way from `RATE_FIXTURE`, `LANDINGS`, `ANSWERS` and
-#: `COMPACTED_TEXT`. `c3` lands as many lines as it held, so the line the
-#: patched trailing comment sits on changes. `b1` lands two lines where it
-#: held three: the fold decided all three -- the first and last from the two
-#: corrections, the middle from the turn's answers -- and stage 6 condensed
-#: that decision to `COMPACTED_TEXT`, which is what the write end sets.
-#: In `share` the dropped comment is gone and so is
+#: hand the same way from `RATE_FIXTURE`, `LANDINGS` and `ANSWERS`. `b1` and
+#: `c3` each land as many lines as they held, so in `rate` four lines change:
+#: the paragraph's first and last, which the two corrections touched, its
+#: middle, which the turn's answers reword, and the line the patched
+#: trailing comment sits on. In `share` the dropped comment is gone and so is
 #: the blank line below it, the leading `b5` owned: `set_page` sets no
 #: leading after a place a drop vacated. The two blank lines above `share`
 #: are the leading `c3` owns, which a `c` keeps whatever sits beside it.
 RATE_EXPECTED = (
     "def rate(hits, total):\n"
-    "    # No calls give a zero rate. The rate is\n"
+    "    # No calls give a zero rate: nothing\n"
+    "    # was put to the cache. The rate is\n"
     "    # hits over total, never more than one.\n"
     "    if total == 0:\n"
     "        return 0.0\n"
@@ -1786,23 +1783,6 @@ def write_second_expected(root: Path) -> Path:
     return path
 
 
-#: The place stage 6 condenses, and the paragraph it hands back. `rate.py@b1`
-#: is the one landing long enough to cut: three comment lines, whose second
-#: says again, as a reason, what the first already states. The condensed text
-#: is written here by hand, as every other expected text in this file is, and
-#: `RATE_EXPECTED` above is what says it reaches the page.
-COMPACTED = "rate.py@b1"
-COMPACTED_TEXT = (
-    "    # No calls give a zero rate. The rate is\n"
-    "    # hits over total, never more than one."
-)
-
-#: The compaction the smoke plants to be refused: a place that stands on the
-#: paragraph already there settled on no text, so there is nothing here to
-#: condense (`decision-log.md Process: #191`). `fib.py@c12` is that place --
-#: every role read it and none proposed a word.
-COMPACT_REFUSED = "fib.py@c12"
-
 #: The places the author approves in the partial approval, and the one whose
 #: approval is refused. `store.py@b7` and `store.py@c5` are settled places on
 #: one page with no move between them, so the run that sets them leaves a
@@ -1853,30 +1833,6 @@ PARTIAL_EXPECTED = (
     "    # True when the key is in the log. Every lookup goes through this store.\n"
     "    return key in log\n"
 )
-
-
-def write_compaction(run: Path) -> dict[str, Path]:
-    """Write stage 6's hand-back, and the one the `compact` command refuses.
-
-    Args:
-        run: the run directory the smoke script writes into.
-
-    Returns:
-        `{"compacted": the texts to write, "refused": the texts a place that
-        settled on none would take}`, each a list of
-        `{"address", "change"}` -- the shape stage 6 hands back.
-    """
-    paths = {
-        "compacted": (run / "compactions.json", COMPACTED),
-        "refused": (run / "compactions-refused.json", COMPACT_REFUSED),
-    }
-    for path, address in paths.values():
-        path.write_text(
-            json.dumps([{"address": address, "change": COMPACTED_TEXT}]),
-            encoding="utf-8",
-            newline="\n",
-        )
-    return {key: path for key, (path, _address) in paths.items()}
 
 
 def write_approval(run: Path) -> Path:

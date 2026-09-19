@@ -3,19 +3,11 @@
     CopiesReturned       one stage's copies, back from the roles
     AnswersReturned      one turn's answers, back from the roles
     DispositionsWritten  the chief's rulings on what is still carried forward
-    CompactionsReturned  stage 6's condensed text for places already decided
 
 Each handler checks what its message carries, derives the places, opens a
 Fold, and on commit builds what the stage saves. A command sends one message
 and prints the events; nothing here reads or writes a file, and nothing here
 names a row of the three tables.
-
-`CompactionsReturned` is the one that opens no Fold, and it is the one
-message that decides nothing: the places it writes to are settled, and a
-shorter wording of a decided text is not a ruling to take again
-(`decision-log.md Process: #191`). It commits or rolls back as the others
-do, because writing some condensed paragraphs and not others would leave
-the proof with nothing saying which is which.
 
 No handler reads a page. A place carries its own base text, so what the fold
 decides comes from the record alone (`decision-log.md Process: #62`); the one
@@ -38,7 +30,6 @@ from comment_review.desk.collator import (
 )
 from comment_review.desk.containers import EditCopy, MasterProof, Sheet
 from comment_review.desk.dispositions.disposition import CHIEF, Disposition
-from comment_review.desk.evaluate.compaction import compacted
 from comment_review.desk.evaluate.place import Place
 from comment_review.desk.evaluate.state import CARRIED
 from comment_review.desk.stages import Stage
@@ -113,22 +104,6 @@ class DispositionsWritten(NamedTuple):
 
     proof: MasterProof
     dispositions: list
-
-
-class CompactionsReturned(NamedTuple):
-    """Stage 6's condensed text, back from the compact pass and ready to write.
-
-    Attributes:
-        proof: the proof the fold closed -- its decided places are what a
-            compaction rewrites, and every other field of a place is carried
-            on untouched.
-        compactions: one `{"address", "change"}` per place the pass
-            condensed. A place it names that settled on no text is refused,
-            and so is an address the proof does not carry.
-    """
-
-    proof: MasterProof
-    compactions: list
 
 
 class Result(NamedTuple):
@@ -438,40 +413,6 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
     return _commit(message.proof, places, turn_of(message.proof))
 
 
-#: Who a problem with the condensed text is filed against. It is not a role
-#: and not the chief: stage 6 reads a place's decided text and hands back a
-#: shorter one, so what is being refused is that hand-back.
-THE_COMPACTION = "the compaction"
-
-
-def _on_compactions(message: CompactionsReturned) -> tuple[list, Result | None]:
-    """Stage 6's condensed text written onto the places it names, or refused.
-
-    No fold runs. The places are settled, and `desk.evaluate.compaction` is
-    what rules on which of them a compacted text may be written onto; a place
-    this message does not name keeps every field it had, the named ones keep
-    all but their text, and the proof is written again with the stage and the
-    copies it came with.
-    """
-    places, problems = _places_on(message.proof)
-    texts, refused = compacted(places, message.compactions)
-    problems += [Problem(THE_COMPACTION, where, why) for where, why in refused]
-    if problems:
-        return _rolled_back(problems)
-    out: list = []
-    for address in sorted(texts):
-        places[address].text = texts[address]
-        out.append(events.Compacted(address, texts[address]))
-    out.append(events.Committed(len(texts)))
-    next_proof = MasterProof(
-        stage=message.proof.stage,
-        read_from={**message.proof.read_from},
-        edit_copies=message.proof.edit_copies,
-        places=tuple(place.serialize() for place in places.values()),
-    )
-    return out, Result(next_proof, None, None)
-
-
 def _rolled_back(problems: list[Problem]) -> tuple[list, None]:
     """Every problem as its own `Refused`, then the rollback -- nothing saved."""
     out: list = [
@@ -554,5 +495,4 @@ HANDLERS = {
     CopiesReturned: _on_copies,
     AnswersReturned: _on_answers,
     DispositionsWritten: _on_dispositions,
-    CompactionsReturned: _on_compactions,
 }

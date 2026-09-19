@@ -292,40 +292,6 @@ was recast is not what happened.
 the text at the end that took it, so nothing is written to a page while the question is open;
 `desk.work.fold._prints` emits the entry once, from the origin.
 
-## What a compaction writes
-
-**The condensed text, onto the place that decided it** -- `decision-log.md Process: #191`.
-Stage 6 shortens text the fold has already settled, so
-`compact --proof <the closed proof> --compacted <[{address, change}]> --proof-out <a new proof>`
-writes each condensed paragraph onto its place and leaves everything else that place holds --
-its state, its sides, the marks filed there, its disposition -- as it was. The proof it reads is
-not written over: that is the record of what was decided at full length, and the command
-refuses a `--proof-out` naming it.
-
-**Four refusals, and any one of them rolls the round back.** They are
-`desk/evaluate/compaction.py`'s:
-
-| the compaction names | why it is refused |
-| --- | --- |
-| an address the proof does not carry | nothing was decided there to condense |
-| a place that settled on no text | it stands on the paragraph already there |
-| a place that has not settled | carried forward, held for the human, or refused |
-| an empty text where the place decided one | compaction condenses; it does not delete |
-
-`state.SETTLED` -- `stands` and `agreed` -- is the pair of states a compacted text may be
-written in, and `state.CARRIED` is the pair it may not.
-
-**A move's two ends may be condensed apart.** Each end carries its own text and
-`docket_of_proof` sets each from its own place, so a shorter wording at one end changes nothing
-about what the other end writes. Approving one end alone is the case where that is not true,
-below.
-
-**`CompactionsReturned` opens no fold.** The places are settled, and a shorter wording of a
-decided text is not a ruling to take again: the handler writes the texts, emits one `Compacted`
-per place and builds the next proof. It commits every place or none, as the three folding
-messages do, because a proof holding some condensed paragraphs and some at full length would
-have nothing saying which is which.
-
 ## What the write end reads
 
 **The closed proof, and the places it decided** -- `decision-log.md Process: #184`.
@@ -378,7 +344,6 @@ opens no file and knows no container of the read or write end.
 | `Unsettlable` | the address, who asks the human and why, the partner where a move is held at both ends, and the move itself as a `HeldMove` |
 | `Advised` | what one role is told about one place without being refused for it |
 | `Settled` | one place the fold decided, and the text if any |
-| `Compacted` | one place whose decided text a compaction replaced, and what it now reads |
 | `Committed` | the count of places decided |
 | `RolledBack` | the count of reasons, and nothing saved |
 
@@ -386,7 +351,7 @@ opens no file and knows no container of the read or write end.
 `notes` cell reports a change that drops words the claim never named; the fold emits an
 `Advised` and commits over it.
 
-## The bus -- four messages, one handler each
+## The bus -- three messages, one handler each
 
 `flows/bus.py` is in-process and synchronous: a dict of message type to handler, not
 infrastructure. A handler checks what its message carries, derives the places, opens a `Fold`,
@@ -397,10 +362,6 @@ and on commit builds what the stage saves.
 | `CopiesReturned` | one stage's parsed copies, the binder, the checkout, the topology where there is one | the master proof at turn 0, the chief's copy, the first batch |
 | `AnswersReturned` | the last proof and each role's answers, and the checkout a cite resolves against | the next proof and the next batch |
 | `DispositionsWritten` | the last proof and the chief's rulings | the closed proof and the chief's copy |
-| `CompactionsReturned` | the closed proof and stage 6's condensed texts | the proof carrying them, and no copy |
-
-**Three of the four open a `Fold`.** `CompactionsReturned` is the exception and the reason is
-above: its places are settled, so there is nothing to decide again.
 
 **A turn builds a chief's copy and saves none.** `flows.bus._on_answers` returns one on its
 `Result`, the way the other two handlers do, and `commands/turn.py` has no `--out` to write it
@@ -419,9 +380,7 @@ a file an answer cites.
 ## What each command prints, and what it exits
 
 **Five exit codes, and all three commands share them**, so a caller branching on a code branches
-once. `commands/collate.py` declares them and `turn` and `disposition` import them. `compact`
-imports them too and reaches three: it carries nothing forward, so `REREADS` and `ESCALATIONS`
-are not outcomes it has.
+once. `commands/collate.py` declares them and `turn` and `disposition` import them.
 
 | code | name | what it means |
 | --- | --- | --- |
@@ -454,7 +413,6 @@ from `pwsh -NoProfile -File scripts/smoke_middle.ps1`, 2026-09-18, which exits 0
 | --- | --- |
 | `<state> <address>: <roles> (<question>)` | `CarriedForward` |
 | `stet <address>` | `Settled` |
-| `compacted <address>` | `Compacted`, from `compact` alone |
 | `unsettlable <address>: <role> asks the human -- <reason>` | `Unsettlable`, with the partner's address joined by `and` where a move is held at both ends, and an indented `and ...` line for the move |
 | `<role> <address>: <reason>`, the address `(the copy)` where there is none | `Refused` |
 | the `for the chief` heading, then `<role> <address>: <note>` | `Advised`, printed last and on every path, a rollback included |
@@ -505,7 +463,6 @@ fold deleted (`0e2ff82a`).
 | disagreements collected at the fold | `flows.places.places_of`, `desk.evaluate.passes.marks_pass` |
 | the chief's edit copy | `flows.places.chief_copy_of`, from the decided places -- the record, read by nothing |
 | the docket the write end sets from | `flows.transcribe.docket_of_proof`, from the closed proof's places |
-| stage 6's condensed text, written onto a place | `desk.evaluate.compaction.compacted`, `flows.bus._on_compactions`; the command is `compact` |
 | the author's partial approval | `flows.transcribe._approved`, reached through `docket_of_proof`'s `only`; the flag is `proof --only` |
 | a role states the paragraph it wants | `Mark.change`, raw text |
 | the answer a role gives in a turn | `desk/answers/` -- `Answer`, and the eight rows |
@@ -552,5 +509,4 @@ fold deleted (`0e2ff82a`).
 | the dropped-words list is advisory | `Process: #163`, `#177` | `desk.marks.table._correct_notes`, `events.Advised` |
 | copies from different trees are refused | `Process: #178` | `flows.bus._root_problems` |
 | the write end reads the proof's decided places | `Process: #184` | `flows.transcribe.docket_of_proof`, `commands/proof.py` |
-| compaction writes onto the proof's places | `Process: #191` | `desk/evaluate/compaction.py`, `flows.bus._on_compactions`, `commands/compact.py` |
 | a partial approval is a place filter on `proof` | `Process: #192` | `flows.transcribe._approved`, `commands/proof.py` |
