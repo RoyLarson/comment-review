@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 42 tasks closed
+Progress: 5 of 42 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -100,5 +100,6 @@ The rebuilt middle's final review.
 - [x] T41 | the smoke's main line runs a second turn; store.py plants a contested move its mover withdraws, the sentence landing once | baed3d73 | Add
       a smoke plant of a move answered by its mover across two turns; B1, B2 and
       B4 sat outside the smoke (H3)
-- [ ] T42 | Implement compaction onto a closed proof's places and a place filter
-      on proof, per Process 191 and 192
+- [x] T42 | proof --only (Process 192); compaction is a stage: Stage cap, series and admits, desk/stages.py deals, collate holds marks to the row (Process 193); the compact command removed | eaf52803 | Implement
+      compaction onto a closed proof's places and a place filter on proof, per
+      Process 191 and 192
