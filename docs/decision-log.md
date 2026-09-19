@@ -4923,3 +4923,28 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   page. So the collate handler reads each touched place's text from the page, as `mark`,
   `check` and `proof` do; the turn and the disposition go on reading the places the proof
   carries.
+
+- **#188.** **An acceptance of a withdrawn move's text goes with the move** (Roy, 2026-09-18,
+  asked after `2c130830` made a mover's withdrawal reach its move's other end, `#129`).
+
+  A role that answered `clean` to the moved text at the destination holds that text as its
+  side. Offered -- the side goes with the move, or it stands as a side like any other and the
+  text can land under the accepting role's name -- Roy chose that it goes. So a `clean` is a
+  stance toward a proposal: with the move withdrawn nothing is left to accept, and the
+  destination returns to its base unless another role still proposes that text itself.
+
+- **#189.** **A move answered `withdraw` at one end and replaced at the other is refused back
+  to the role** (Roy, 2026-09-18, the same round).
+
+  The withdrawal reaches the far end and the replacement puts the role's side back there, so
+  the move is neither withdrawn nor made. Offered -- a refusal naming both ends, as `#154`
+  sends back an ambiguous move, or the withdrawal winning -- Roy chose the refusal.
+
+- **#190.** **One end of a move settles with the move, not before it** (Roy, 2026-09-18, the
+  same round).
+
+  The withdrawal is applied at a move's other end even where that end had settled on its own,
+  one step past `#91`. Offered -- a move's end settles with the move, or `#91` kept strict and
+  the reach applied only to an end still carried forward -- Roy chose that an end settles with
+  the move. So `#91` does not cover one end of a move whose other end is still open; without
+  this a destination that settles first keeps the text of a move its mover then withdraws.
