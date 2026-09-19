@@ -32,7 +32,7 @@ from comment_review.commands import collate as collate_command
 from comment_review.desk.dispositions.disposition import ORIGINAL
 from comment_review.desk.marks.mark import Instruction, Shape
 from comment_review.flows.proof_io import load_proof
-from comment_review.flows.transcribe import docket_of
+from comment_review.flows.transcribe import docket_of_proof
 
 RECAST = "# one\n# both\n# three\n"
 
@@ -314,9 +314,14 @@ class TestTheChiefRulesEachEndOfAMove:
     def test_the_docket_sets_each_end_as_its_own_ruling_decided_it(
         self, tmp_path, monkeypatch, capsys
     ):
-        """The chief's copy through `flows.transcribe.docket_of`, which is what
-        `proof --to-docket` runs: the origin keeps what the snippet left and
-        the destination takes the chief's own paragraph."""
+        """The closed proof through `flows.transcribe.docket_of_proof`, which
+        is what `proof --proof` runs: the origin keeps what the snippet left
+        and the destination takes the chief's own paragraph.
+
+        It read the chief's copy until `decision-log.md Process: #184`. What
+        it asserts is that the chief's ruling reaches the docket, and the
+        decided places are where that is now read from.
+        """
         self._ruled(
             tmp_path,
             monkeypatch,
@@ -331,7 +336,7 @@ class TestTheChiefRulesEachEndOfAMove:
                 },
             ],
         )
-        docket = docket_of(the_chief(tmp_path), tmp_path / "repo")
+        docket = docket_of_proof(_closed(tmp_path), tmp_path / "repo")
         (schedule,) = docket.schedules
         assert [(one.cue, one.text) for one in schedule.alterations] == [
             ("b1", self.REMAINDER),
