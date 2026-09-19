@@ -765,6 +765,9 @@ class TestAnAnswerReachesBothEndsOfTheMove:
         assert places["m.py@b5"].state is State.STANDS
         assert places["m.py@b5"].text is None
         assert places["m.py@b5"].sides == {}
+        # Nothing is owed here, the mover included: it answered at the other
+        # end and the answer was this place's too (`Process: #190`).
+        assert places["m.py@b5"].owed == ()
 
     def test_a_hold_at_the_origin_keeps_the_move_at_both_ends(self):
         places = self._contested_origin()
@@ -893,6 +896,96 @@ class TestAnAnswerReachesBothEndsOfTheMove:
         (why,) = places["m.py@b5"].reasons
         assert why.startswith("a: ")
         assert "m.py@b1" in why and "m.py@b5" in why
+
+    def _also_proposing_the_landing(self, *, from_role: str) -> dict:
+        """The reviewer's case for `#188`'s last clause: a second role that
+        proposes the landing text itself, by its own move or by a `correct`
+        whose change is word for word what the move sets there."""
+        if from_role == "move":
+            return self._pair(
+                move=self._move(),
+                at_origin=(
+                    Filed(
+                        "b", _a_correct(change=self.CORRECTED, true="TWO"), Touch.OWN
+                    ),
+                    Filed("z", self._move(), Touch.ORIGIN),
+                ),
+                at_destination=(Filed("z", self._move(), Touch.DESTINATION),),
+                readers=("a", "b", "z"),
+            )
+        return self._pair(
+            move=self._move(),
+            at_origin=(
+                Filed("b", _a_correct(change=self.CORRECTED, true="TWO"), Touch.OWN),
+                # The role that proposes the landing text reads the origin and
+                # declares it outside its remit, so nothing is owed it there.
+                Filed(
+                    "q",
+                    _mark(
+                        Instruction.QUERY,
+                        claim={"shape": str(Shape.OUTSIDE_MY_ROLE)},
+                    ),
+                    Touch.OWN,
+                ),
+            ),
+            at_destination=(
+                Filed(
+                    "q",
+                    _mark(
+                        Instruction.CORRECT,
+                        change=self.LANDED,
+                        claim={"false": "# four", "true": "# four\n# two"},
+                        address="m.py@b5",
+                    ),
+                    Touch.OWN,
+                ),
+            ),
+            readers=("a", "b", "q"),
+        )
+
+    def test_an_acceptance_stands_where_a_second_move_still_proposes_the_text(self):
+        """`decision-log.md Process: #188`, its last clause: the acceptance
+        goes with the withdrawn move unless another role still proposes that
+        text itself. Here the other role filed the same move and held it."""
+        places = self._also_proposing_the_landing(from_role="move")
+        places["m.py@b1"].answers[1] = {
+            "a": _answer("withdraw"),
+            "b": _answer("hold"),
+            "z": _answer("hold"),
+        }
+        places["m.py@b5"].answers[1] = {
+            "b": _answer("clean", question=Question.COMPOSITION)
+        }
+        decide(places, turn=1)
+        assert places["m.py@b5"].text == self.LANDED
+        assert places["m.py@b5"].sides == {"z": self.LANDED, "b": self.LANDED}
+
+    def test_an_acceptance_stands_where_a_correct_proposes_the_same_words(self):
+        """The same clause where the surviving proposal is not a move at all:
+        one role corrected the destination to what the move sets there."""
+        places = self._also_proposing_the_landing(from_role="correct")
+        places["m.py@b1"].answers[1] = {"a": _answer("withdraw"), "b": _answer("hold")}
+        places["m.py@b5"].answers[1] = {
+            "b": _answer("clean", question=Question.COMPOSITION)
+        }
+        decide(places, turn=1)
+        assert places["m.py@b5"].text == self.LANDED
+        assert places["m.py@b5"].sides == {"q": self.LANDED, "b": self.LANDED}
+
+    def test_the_destination_does_not_ask_the_withdrawing_mover_again(self):
+        """`Process: #190`: the mover answered at the origin and the answer is
+        this place's too, so the destination waits on nobody for it -- and it
+        cannot see that answer, which is recorded at the end it was written
+        at. Measured before this: the destination came back `composed`, asking
+        a role that had already answered, at the other end."""
+        places = self._also_proposing_the_landing(from_role="correct")
+        places["m.py@b1"].answers[1] = {"a": _answer("withdraw"), "b": _answer("hold")}
+        places["m.py@b5"].answers[1] = {
+            "b": _answer("clean", question=Question.COMPOSITION)
+        }
+        decide(places, turn=1)
+        assert places["m.py@b5"].owed == ()
+        assert places["m.py@b5"].state is State.AGREED
 
     def test_a_held_move_is_not_a_half_move(self):
         """An end an answer holds for the human keeps no sides of its own,

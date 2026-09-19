@@ -63,7 +63,9 @@ class AnswerRow:
             because the two ends hold different texts -- the origin its
             paragraph with the snippet gone and the destination its paragraph
             with the snippet in -- so it lands at the end it was written at,
-            which is what `#129` rules it does there.
+            which is what `#129` rules it does there. One of each in one turn
+            leaves the move half done and is refused back to the role
+            (`#189`, `desk.evaluate.passes.refuse_half_moves`).
     """
 
     question: Question

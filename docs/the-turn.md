@@ -224,17 +224,31 @@ code's name is `escalation`.
 **A `withdraw` on a move reaches both of its ends, and it is the one answer that crosses** --
 `decision-log.md Process: #129`, `#152` and `#153`. A move is one mark at two places, so the
 role that filed it holds a side at both or at neither: `withdraw` at either end takes its side
-off both, and a side another role holds there only because it answered `clean` to the withdrawn
-text goes with it, that acceptance having nothing left to hold. The reach is the row's
-`reaches_partner` and it is read wherever the mark was filed, including at an end this fold is
-not otherwise narrowing -- `desk.evaluate.passes.answers_pass`.
+off both. The reach is the row's `reaches_partner` and it is read wherever the mark was filed,
+including at an end this fold is not otherwise narrowing -- one end of a move settles with the
+move and not before it, which is `#190` and one step past `#91`
+(`desk.evaluate.passes.answers_pass`).
+
+**A side another role holds there only because it answered `clean` goes with the move** --
+`#188`. A `clean` is a stance toward a proposal, so with the move withdrawn there is nothing
+left to accept and the place returns to its base -- **unless another role still proposes that
+text itself**, a second move or a `correct` that came to the same words, in which case the
+acceptance stands on that proposal instead. What survives is read off the sides: a role that
+withdrew holds none, and a role whose own side is an acceptance proposes nothing.
+
+**And the role that withdrew is not asked again at the other end** -- `#190`. Its answer is
+recorded at the end it was written at, so the other end cannot see it; `owed_a_say` is handed
+the roles the reach brought, and counts each as having had its say here. Without that the
+destination of a withdrawn move goes back to the mover as a composition, asking about a move
+the mover has already withdrawn.
 
 **A `correct` or a `patch` lands at the end it was written at.** The two ends hold different
 texts -- the origin its paragraph with the snippet gone, the destination its paragraph with the
 snippet in -- so neither can be carried to the other, and `#129` rules the replacement changes
 the move's text where it is given. A role that withdraws at one end and replaces at the other
 leaves the move half done, and `desk.evaluate.passes.refuse_half_moves` sends it back naming
-both addresses rather than committing one half of it.
+both addresses rather than committing one half of it -- `#189`, which reads it as `#154` reads
+an ambiguous move: a conflict that goes back to the role.
 
 **Only `clean` and `query` owe no `change`**, and that is read off the row's `owes_change`
 rather than from a list anybody typed. `check --contract` prints the two questions, the answers
@@ -447,6 +461,9 @@ fold deleted (`0e2ff82a`).
 | one role's marks at one place compose | `Process: #179` | `desk.evaluate.passes.composed_side` |
 | an answer's sources are verified before the fold | `Process: #181` | `flows.answers.answers_of` |
 | a held move is one entry naming both ends | `Process: #155`, `#182` | `desk.work.fold._prints`, `commands.collate._for_the_human` |
-| a mover's answer at either end reaches the move whole | `Process: #129`, `#152`, `#153` | `desk.answers.table.AnswerRow.reaches_partner`, `desk.evaluate.passes.answers_pass` and `refuse_half_moves` |
+| a mover's answer at either end reaches the move whole | `Process: #129`, `#152`, `#153` | `desk.answers.table.AnswerRow.reaches_partner`, `desk.evaluate.passes.answers_pass` |
+| an acceptance of a withdrawn move's text goes with it, unless another role proposes that text | `Process: #188` | `desk.evaluate.passes.answers_pass`, `_accepting` |
+| a withdrawal at one end beside a replacement at the other is refused back to the role | `Process: #189` | `desk.evaluate.passes.refuse_half_moves` |
+| one end of a move settles with the move, not before it | `Process: #190` | `desk.evaluate.passes.answers_pass`, `owed_a_say` |
 | the dropped-words list is advisory | `Process: #163`, `#177` | `desk.marks.table._correct_notes`, `events.Advised` |
 | copies from different trees are refused | `Process: #178` | `flows.bus._root_problems` |

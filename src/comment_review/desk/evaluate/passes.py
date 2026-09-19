@@ -147,6 +147,7 @@ def owed_a_say(
     sides: dict[str, str],
     partner: Place | None = None,
     turn: int = 0,
+    withdrew: set[str] | None = None,
 ) -> tuple[str, ...]:
     """The roles that have not accepted `text`, whose say it still owes.
 
@@ -173,6 +174,13 @@ def owed_a_say(
         turn: the turn being decided. Only answers up to it count: the marks
             pass decides the place as it stood before any turn, and a role
             whose answer has not been applied yet has not had its say.
+        withdrew: the roles whose withdrawal reached this place from the
+            move's other end, which is the third case above arriving from
+            somewhere this place cannot see: the answer is recorded at the end
+            it was written at, and it is this end's answer too
+            (`Process: #129`, `#190`). Without it the destination of a move
+            goes back to the mover asking about a move the mover has already
+            withdrawn.
 
     Returns:
         The roles owed a say, sorted, so two runs name them in one order.
@@ -181,7 +189,7 @@ def owed_a_say(
     filed_by = _by_role(place)
     answered = {
         role for at, by_role in place.answers.items() if at <= turn for role in by_role
-    }
+    } | (withdrew or set())
     deferring = _deferring(place) | _deferring(partner)
     out = []
     for role in set(place.readers) | set(filed_by):
@@ -311,10 +319,10 @@ def _one_mark_at_both(role: str, place: Place, partner: Place) -> bool:
     return any(one.mark in mine for one in partner.filed if one.role == role)
 
 
-def _withdrawn_by_the_partner(
+def _withdrew_at_the_partner(
     place: Place, partner: Place | None, turn: int
-) -> dict[str, str]:
-    """Role -> the side this place loses to that role's answer at the other end.
+) -> set[str]:
+    """The roles whose answer at the other end of their own move reaches here.
 
     `decision-log.md Process: #129`, `#152` and `#153`: a move is one mark at
     two places and an answer its filer gives at either end reaches the move
@@ -322,25 +330,31 @@ def _withdrawn_by_the_partner(
     name read here; a withdrawal is the one that does, and it takes the
     filer's side off the place it was not written at as well.
 
+    Every turn up to `turn` is read, not `turn` alone: the answer stays on the
+    partner's record, and a role that withdrew its move in an earlier turn has
+    still withdrawn it in this one. Taking a side off twice does nothing, and
+    the roles are what `owed_a_say` needs for as long as the place is open
+    (`Process: #190`).
+
     Args:
         place: the end being decided.
         partner: the other end, where there is one.
-        turn: the turn whose answers are being applied.
+        turn: the last turn whose answers are applied.
 
     Returns:
-        role -> the text that role's side held here, for each role that
-        withdrew at the other end of a mark it filed at both. Empty where
-        the place has no partner, or nothing crossed.
+        The roles that withdrew at the other end of a mark they filed at both
+        places. Empty where the place has no partner, or nothing crossed.
     """
     if partner is None:
-        return {}
-    out: dict[str, str] = {}
-    for role, answer in partner.answers.get(turn, {}).items():
-        row = ANSWERS.get((answer.question, answer.name))
-        if row is None or not row.reaches_partner:
-            continue
-        if role in place.sides and _one_mark_at_both(role, place, partner):
-            out[role] = place.sides[role]
+        return set()
+    out: set[str] = set()
+    for at in sorted(one for one in partner.answers if one <= turn):
+        for role, answer in partner.answers[at].items():
+            row = ANSWERS.get((answer.question, answer.name))
+            if row is None or not row.reaches_partner:
+                continue
+            if _one_mark_at_both(role, place, partner):
+                out.add(role)
     return out
 
 
@@ -351,6 +365,10 @@ def _accepting(place: Place, turn: int) -> set[str]:
     that side is a stance toward somebody else's proposal. A later answer that
     replaces or removes it makes the side the role's own again, or none; a
     `hold` leaves it as it stands, acceptance and all.
+
+    `decision-log.md Process: #188` is what reads this: an acceptance of a
+    withdrawn move's text goes with the move, and a proposal of the same text
+    does not.
 
     Args:
         place: the place, carrying every turn's answers.
@@ -385,8 +403,8 @@ def answers_pass(place: Place, turn: int, partner: Place | None = None) -> Place
     place this fold is not otherwise narrowing. A move is one mark at two
     places and an answer at either end reaches it whole (`Process: #129`), so
     the reach is a fact about the mark rather than about the state this end
-    came to on its own -- a destination that stands by itself loses the
-    move as surely as one still being composed does.
+    came to on its own: one end of a move settles with the move and not before
+    it, which is `Process: #190` and one step past `#91`.
 
     Args:
         place: the place, carrying what the marks pass left and the answers.
@@ -395,20 +413,13 @@ def answers_pass(place: Place, turn: int, partner: Place | None = None) -> Place
     """
     if place.state in (State.UNSETTLABLE, State.REFUSED):
         return place
-    withdrawn = _withdrawn_by_the_partner(place, partner, turn)
-    if place.state not in CARRIED and not withdrawn:
+    withdrew = _withdrew_at_the_partner(place, partner, turn)
+    if place.state not in CARRIED and not withdrew:
         return place
     sides = dict(place.sides)
-    gone = set(withdrawn.values())
-    for role in withdrawn:
+    gone = {place.sides[role] for role in withdrew if role in place.sides}
+    for role in withdrew:
         sides.pop(role, None)
-    # An acceptance of a withdrawn text has nothing left to hold: the role
-    # took the text that was put to it rather than proposing one, and the
-    # proposal behind it is off the place. Left standing, it is what carries a
-    # withdrawn move onto the page under another role's name.
-    for role in _accepting(place, turn):
-        if sides.get(role) in gone:
-            sides.pop(role)
     # A place the fold has already settled is narrowed by nothing else
     # (`Process: #91`); what reached it above came from the move's other end.
     answers = place.answers.get(turn, {}) if place.state in CARRIED else {}
@@ -430,12 +441,22 @@ def answers_pass(place: Place, turn: int, partner: Place | None = None) -> Place
         elif effect is Effect.REPLACES:
             sides[role] = answer.change
         elif effect is Effect.ACCEPTS and place.text is not None:
-            # Not a text withdrawn from the move's other end this turn: the
-            # role is accepting what was put to it, and that is no longer
-            # proposed here.
-            if place.text not in gone:
-                sides[role] = place.text
-    return _from_sides(place, sides, partner, turn)
+            sides[role] = place.text
+    # An acceptance of a withdrawn move's text goes with the move
+    # (`decision-log.md Process: #188`): a `clean` is a stance toward a
+    # proposal, so with the move off the place there is nothing left to
+    # accept, and a side left standing on it is what carries a withdrawn move
+    # onto the page under another role's name. Unless another role proposes
+    # that text itself -- a second move, or a `correct` that came to the same
+    # words -- which is the ruling's last clause and is read off the sides
+    # that survive: a role withdrawn above holds none, and a role whose side
+    # is an acceptance proposes nothing.
+    accepting = _accepting(place, turn)
+    proposed = {text for role, text in sides.items() if role not in accepting}
+    for role in accepting:
+        if sides.get(role) in gone - proposed:
+            sides.pop(role)
+    return _from_sides(place, sides, partner, turn, withdrew)
 
 
 def dispositions_pass(place: Place) -> Place:
@@ -477,7 +498,9 @@ def refuse_half_moves(places: dict[str, Place]) -> None:
     It is reachable through one shape: a role answering its own move two ways
     in one turn. The withdrawal reaches the other end (`answers_pass`) and a
     `correct` or `patch` at that end puts the role's side back there, so the
-    move is neither withdrawn nor made and the round goes back to the role.
+    move is neither withdrawn nor made and the round goes back to the role --
+    `decision-log.md Process: #189`, which reads that pair as `#154` reads an
+    ambiguous move rather than letting the withdrawal win.
 
     An end held for the human or already refused is left alone. The first
     decides no text at either end and rides to the author as one move
@@ -581,6 +604,7 @@ def _from_sides(
     sides: dict[str, str],
     partner: Place | None = None,
     turn: int = 0,
+    withdrew: set[str] | None = None,
 ) -> Place:
     """The place's state from the one text its sides hold, or from their disagreement.
 
@@ -589,13 +613,17 @@ def _from_sides(
     (`decision-log.md Process: #180`). It is the same question at the first
     fold and after a turn, so both reach it here rather than each keeping a
     rule of its own -- which is what made an `add` a special case before.
+
+    `withdrew` is `owed_a_say`'s, and only the answers pass has one: the marks
+    pass runs before any answer, so nothing has reached this place from the
+    move's other end yet.
     """
     distinct = set(sides.values())
     if not sides:
         return _set(place, State.STANDS)
     if len(distinct) == 1:
         text = next(iter(distinct))
-        owed = owed_a_say(place, text, sides, partner, turn)
+        owed = owed_a_say(place, text, sides, partner, turn, withdrew)
         if owed:
             return _set(
                 place,
@@ -633,7 +661,7 @@ def _from_sides(
         text=composed,
         sides=sides,
         question=Question.COMPOSITION,
-        owed=owed_a_say(place, composed, sides, partner, turn),
+        owed=owed_a_say(place, composed, sides, partner, turn, withdrew),
     )
 
 
