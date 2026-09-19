@@ -1,8 +1,9 @@
 # The mark -- the shape, and the classifiers that are allowed to exist
 
 !! **THIS FILE IS THE SOURCE.** A mark's fields, and the classifiers that decide what each
-instruction owes, are stated HERE and nowhere else. `desk/mark.py` implements this file;
-`reviewer-brief.md` publishes it to a role. **Neither of them defines it.**
+instruction owes, are stated HERE and nowhere else. `desk/marks/mark.py` and
+`desk/marks/table.py` implement this file; `reviewer-brief.md` publishes it to a role.
+**Neither of them defines it.**
 
 !! **IT EXISTS BECAUSE THE SHAPE HAD NO OWNING FILE, AND SOMETHING ELSE BECAME THE SPEC.**
 Roy, 2026-08-28: *"None of those were part of the accepted shape of the mark structure or any part
@@ -44,7 +45,7 @@ superseding ruling applied rather than annotated.
 BOTH.** `tests/gates/test_mark_shape.py` takes the count from the heading's own word and
 asserts the table holds that many, then asserts the dataclass carries exactly those names
 in that order. **No count is typed in the test**, so adding a field means editing this
-file and `desk/mark.py` together -- which is the only form of the check that cannot be
+file and `desk/marks/mark.py` together -- which is the only form of the check that cannot be
 satisfied by editing the code alone.
 
 !! **`claim` IS THE SPEC AND `change` IS THE RESULT.** Roy, 2026-08-17: *"the change is what allows
@@ -62,8 +63,9 @@ rest of the stages."*
 | the role returns | `change` -- the same paragraph as it should read |
 
 ! **THE TWO DIFF DIRECTLY, AND THAT IS THE WHOLE REASON.** Every stage downstream is a diff of one
-against the other: source-verification, the `diff3` conflict where `raw_text` is the base and each
-role's `change` a side, `taken_in`, and the revise. A line array has to be joined before any of
+against the other: source-verification, the fold's composition of the roles' texts over one base
+(`machine.differences.compose`, which takes `raw_text` as the base and each role's `change` as a
+side), `taken_in`, and the revise. A line array has to be joined before any of
 them can run, and a sentence cannot be placed at all.
 
 !! **AND THE HOLE THIS CLOSES IS MEASURED.** Roy, 2026-08-28: *"The original had it as one sentence
@@ -87,10 +89,10 @@ CHANGE ... a clear chain of custody on the reasoning and the required actions."*
 2026-08-29: *"the agent emits the 'mark', the 'instruction' was ... the action that turned the mark
 into an actionable thing."* A `Mark.mark` is the self-nesting that made this ambiguous -- the enum
 was already `Instruction` and `reviewer-brief.md` already published `instruction`, so this file and
-`desk/mark.py` are what moved.
+`desk/marks/mark.py` are what moved.
 
-! **AND THE COST OF THE DISAGREEMENT WAS MEASURED BEFORE IT WAS FIXED.** `desk/mark.py` read the key
-`mark` while the brief published `instruction`, and `flows/marks.py` skipped any entry whose `mark`
+! **AND THE COST OF THE DISAGREEMENT WAS MEASURED BEFORE IT WAS FIXED.** `desk/marks/mark.py` read the key
+`mark` while the brief published `instruction`, and the distribute flow skipped any entry whose `mark`
 key was absent -- so **the brief's own worked example passed `mark --check` at exit 0, counted as a
 place nobody looked at.** A reviewer following the brief produced findings that vanished in silence.
 `tests/test_brief_worked_example.py` is what keeps that from returning.
@@ -178,7 +180,7 @@ failure as though it were the only one: *"it could fail any number of ways and a
 you can come up with a closed set of failure modes is silly."*
 
 ! [`move-is-a-composite-mark`](../TODO/move-is-a-composite-mark.md) is written against the
-two-`Mark` composite and is 0 of 21, so it is the file this determination reaches first.
+two-`Mark` composite, so it is the file this determination reaches first.
 
 !! **AND THE REASON IT IS ONE INSTRUCTION IS ATOMICITY, NOT TIDINESS.** Filed as a `drop` and an
 `add`, the two halves can be judged separately -- and **half a move is a defect neither half
@@ -190,11 +192,11 @@ now says it twice. **Nothing downstream would know the pair was meant to be one 
 | stage | the rule |
 | --- | --- |
 | **source-verification** | both ends are checked; a failure at either refuses the mark |
-| **reconciliation** | a `move` escalated at EITHER place escalates WHOLE. It may not be settled at one end and escalated at the other |
+| **the fold** | a `move`'s two places take one state, the worse of the two -- `desk.evaluate.passes.pair_moves`. It may not be settled at one end and carried forward at the other, and a refusal at either refuses both |
 | **the revise step** | a role answering a `move` answers for both ends. There is no half `hold` |
 | **the write chain** | both paragraphs are set, or neither is |
 
-! **THIS IS WHAT [`collate-buckets-a-move-at-one-end`](../TODO/collate-buckets-a-move-at-one-end.md)
+! **THIS IS WHAT [`collate-buckets-a-move-at-one-end`](../TODO/completed/collate-buckets-a-move-at-one-end.md)
 IS ABOUT**, and it is now a rule rather than a bug report: a `move` is grouped by every place it
 TOUCHES, because being seen at only one of them is how half of it gets settled.
 
@@ -313,10 +315,20 @@ includes an external_address-able item."* **Three legal destinations:**
                                     binder, citable via `carry`
     an external address             a coordinate in a file this system does not SET
 
-! **WHAT THE CODE ENFORCED WAS NARROWER, and two consequences were measured**: a `move` into an
-empty place was REFUSED, the same wall `add` hit; and an external destination was allowed by
-FALLING THROUGH rather than by being recognised, so *legitimately external* and *malformed* were
-indistinguishable.
+**What the code enforces today is the first row alone, and that is a ruling rather than a gap.**
+`decision-log.md Process: #173`, Roy 2026-09-14: *"1) is temporary - the move or add or anything
+else is part of anything addressable. Still need to work on addresses for external documentss"*.
+So a destination must be `path@cue` on a gathered page; `mark` and `check` refuse anything else
+by name and tell the role to file a `human-review-necessary` query naming it, and the refusal is
+marked provisional in the code. The second and third rows are what the rule returns to once
+external documents have addresses.
+
+**Superseded 2026-09-18 -- the two consequences measured before that ruling.** A `move` into an
+empty place was refused, the same wall `add` hit; and an external destination was allowed by
+falling through rather than by being recognised, so a legitimately external destination and a
+malformed one were indistinguishable. Both are closed: `scripts/smoke_middle.ps1` plants a move
+into a page's closing gap, which the fold carries, and a move out of the code, which `mark`
+refuses by name at exit 1.
 
 ## The one contradiction the set can express
 

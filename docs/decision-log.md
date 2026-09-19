@@ -4852,3 +4852,34 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   one place and added at the other -- and the switched commands printed two unsettlable lines.
   Roy chose one entry per move. So two places that partner each other print as one line naming
   the origin and the destination, in `collate`, `turn` and `disposition` alike.
+
+- **#183.** **The middle is rebuilt, and the old one is deleted** (landed 2026-09-18, on
+  `feat/the-middle-rebuilt`; the design is
+  `docs/superpowers/specs/2026-09-14-the-middle-rebuilt-design.md`, approved section by section
+  with Roy on 2026-09-14).
+
+  Sixty-seven commits, `4610640e` -- the plan -- to `29b7b0d6`. What replaced what:
+
+  | old | new |
+  | --- | --- |
+  | `flows/collate.py` -- the eleven-act fold, the chief copy, the move order | `desk/evaluate/`, `desk/work/`, `flows/bus.py`, `flows/places.py` |
+  | `flows/turn.py` -- the answers, the refold, the rule at max turns, the close | the answers and dispositions tables, the passes, and two handlers on the bus |
+  | `desk/collator.py`'s reconciliation half | the marks pass; the module keeps source verification and drift |
+  | `desk/determined.py` | the decided place, on the master proof |
+  | `desk/diff_mark.py` | `desk/answers/` |
+  | `desk/mark.py`'s `INSTRUCTIONS` and `text_at` | `desk/marks/table.py`; `text_at` deleted |
+
+  The rules that were branches are rows in three tables, and nothing outside the three names a
+  row. A place comes to one of six states; three passes take it there in the one order `decide`
+  runs them; one fold commits every place or none. `collate`, `turn` and `disposition` parse,
+  send one message, print the events and exit one of five codes -- `DRIFT`, `COVERAGE` and
+  `CARRIED_AND_UNRULED` went, because every finding they named is now found before the fold
+  opens and rolls the round back. `docs/the-turn.md` is what this behaves like; `docs/history.md`
+  holds what the deleted modules did and how to read an artifact one of them wrote.
+
+  It carries `#172` to `#182`: `#172` to `#176` were ruled as the design was written and `#177`
+  to `#182` as the tasks landed. The design's own provisional list is unchanged and still
+  provisional -- the single-`Mark` move, the states a place may be left in short of settling, and
+  the answer and disposition vocabularies are as ruled to date and no further. Out of scope then
+  and out now: addresses for external documents and a move out of the code (`#173`), and `stet`
+  as a disposition row.

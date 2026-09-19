@@ -55,6 +55,9 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 | `mark` (the COMMAND, `flows/marks.py`, `Command.MARK`) | -> **`distribute`**, in `6187f71`. The command hands each role an EMPTY `edit_copy` and takes the filled one back; it produces no mark and rules on nothing. One stem named both a role's RULING and the machinery that circulates the forms, so `mark --seed` read as *make a mark* when it means *give out the blanks*. ! The NOUN IS LIVE and is defined in the shipped vocabulary -- this retires the command sense only, which is the shape `owner` (the census field) and `marks` (the census's) took before it |
 | `re-review` (stages 5b and 6b, `references/re-review.md`) | -> **revise**. The printer's word, and the code had already adopted it -- `flows/revise.pull`, `read_from.revise` -- for the second proof pulled after the marked corrections are set. 5b and 6b set a galley of the edited text and send it back to be read: that IS a revise. Roy, 2026-09-04; `decision-log.md Vocabulary: #32`. ! The rename lands as one objective, gate entry last -- `TODO/re-review-is-retired-for-revise.md` |
 | `record` (the JSON object a reviewer fills) | -> **mark**, in a **sheet**, in an **edit copy**. `record.py` left for the prototype on 2026-08-25 and the container ruling (`Vocabulary: #28`) named the object; the brief and `vocabulary.toml` said `record` until 2026-09-05 |
+| `Determined` | -> the **place** itself. It was the chief's ruling at one resolved place, one per place on the master proof; a place carries its own `state`, `text` and `disposition` now, and `desk/determined.py` was deleted 2026-09-18 with the rest of the old middle -- `docs/history.md`, *Reconciliation* |
+| `DiffMark` | -> **`Answer`**, `desk/answers/answer.py`. What a role hands back in a turn. The closed set is the same four on an escalation; it is read against the question the slot carries rather than against a set of its own, so the composition's four are separate rows |
+| `Collated` | -> the fold's **events**. It was what the old fold returned, carrying its escalations, rereads and unsettlable places as lists; `desk.work.fold.Fold` emits one event per place and commits or rolls back whole, and the commands print from the events alone |
 | `census` | -> **gather** for the stage, the act and the command; **binder** for what it hands over. `gather` has been stage 2's word since 2026-08-23 and a second `gather` had taken it for the master proof, now `master_proof_of`. `censused` -> gathered, and where the lexer classified a line, **read**. No alias. Roy, 2026-09-04; `decision-log.md Vocabulary: #34` |
 
 ## Held in reserve -- publishing's word for something we already have
@@ -88,7 +91,7 @@ system has a different problem with each.
 
 | publishing's word | what it names there | ours |
 | --- | --- | --- |
-| **collating** | transferring every hand's marks onto ONE proof. Where two marks conflict, both go down and the conflict is left visible. It decides nothing | `collator.py`, ruled 2026-08-23 (`decision-log.md Vocabulary: #11`) and still to be built. It rules on nothing by design |
+| **collating** | transferring every hand's marks onto ONE proof. Where two marks conflict, both go down and the conflict is left visible. It decides nothing | ruled 2026-08-23 (`decision-log.md Vocabulary: #11`), and built 2026-09-18 as `flows.places.places_of` with the fold over the places it builds. The 2026-08-23 row said `collator.py` and *"still to be built"*; `desk/collator.py` keeps the source-verification and drift half alone, and its name is the open half of that ruling |
 | **master proof** | the single copy every mark has been collated onto, and the one the house then works from | **`master_proof`**, ruled 2026-08-29 (`decision-log.md Vocabulary: #28`). It is what `verdicts.py` printed before that module left for `prototype/` |
 | **editor** | who reads the master proof and decides what stands | **the COPY CHIEF**, ruled 2026-08-23. Stage 5 APPLY, performed by the task agent today and getting an agent file of its own |
 
@@ -121,7 +124,8 @@ names coverage gaps, and hands every conflict up -- so whatever it is called, it
 - **`distribute` is the BROADCAST half, and it pairs with `collate`.** Ruled 2026-08-30. Roy:
   *"the broadcasting part seems like distribute, the bringin back together seems like
   collate."* One round is two acts: `flows/distribute.py` hands each role its own `edit_copy`
-  of the binder, `flows/collate.py` folds the filled copies back into one. It was
+  of the binder, and the `collate` command folds the filled copies back into one -- one
+  `CopiesReturned` on `flows/bus.py`, since the middle was rebuilt. It was
   `flows/marks.py`, named for the artifact it carried rather than the act it performs -- see
   the retired table, which keeps `mark` the NOUN live and retires only the command sense.
 
@@ -170,19 +174,39 @@ uses the word. Neither term is reviewer-facing yet -- `desk.marks.table.Touch` a
 read by the middle, not by an editorial role's prompt -- so the drift check would refuse a term no
 role's text carries. Add them once an agents-lane task puts the word in a reviewer's own file.
 
-### `place` and `pass` -- the evaluator's own words, recorded here first
+### The evaluator's own words -- `place`, `pass`, and what the fold prints
 
-T2 of `docs/superpowers/plans/2026-09-14-the-middle-rebuilt.md` gave `desk.evaluate` two more:
+`docs/superpowers/plans/2026-09-14-the-middle-rebuilt.md` gave `desk.evaluate` the first two, and
+the rest of that plan gave the middle the ones under them. None is in `vocabulary.toml`.
 
 - **`place`** -- the aggregate the middle decides: one address, its base text, every mark filed
-  against it, and the state, text and sides that follow from those marks. `desk.evaluate.place.Place`.
-- **`pass`** -- one table applied to a place. The marks pass reads `desk.marks.table` over a
-  place's filed marks and sets its state; later tasks add the turn pass and the disposition pass,
-  each reading its own table the same way.
+  against it, each turn's answers, the chief's ruling where there is one, and the state, text and
+  sides that follow. `desk.evaluate.place.Place`.
+- **`pass`** -- one table applied to a place. `marks_pass`, `answers_pass` and
+  `dispositions_pass` each read their own table, and `desk.evaluate.passes.decide` is the one
+  order they may run in.
+- **`state`** -- what a pass leaves a place in, one of six: `stands`, `agreed`, `composed`,
+  `contested`, `unsettlable`, `refused`. `desk.evaluate.state.State`.
+- **`side`** -- the one text a role proposes at a place, whatever number of marks it filed there.
+  `place.sides` is role -> that text; it is what a batch slot carries and what a `taken_in` names.
+- **carried forward** -- a place the fold did not settle, `composed` or `contested`, which goes
+  out in the next batch or to the chief. `desk.evaluate.state.CARRIED` is the pair.
+- **held for the human** -- an `unsettlable` place. No role's answer and no chief's ruling closes
+  it; it rides to the author at 7a.
+- **advisory note** -- what the chief is told about a mark without the mark being refused for it.
+  `decision-log.md Process: #177`. The console prints these under their own heading, after the
+  places.
 
-Same rule as `stance` and `touch` above: do not add either to `vocabulary.toml` until a role's own
-text uses the word. Neither is reviewer-facing yet -- a place and a pass are read and written by
-the middle, never by an editorial role's prompt.
+**This section said neither `place` nor `pass` was reviewer-facing, and `place` is.** Measured
+2026-09-18 over `reviewer-brief.md` and the six agent files, counting each term as
+`check_vocabulary.term_used` counts it: `place` 60 uses across all six files, `carried forward`
+one, in the brief's *When you are sent a batch*. `advisory note` appears in none of them, and
+`pass`, `state`, `side` and `settled` appear only in their ordinary English senses.
+
+Same rule as `stance` and `touch` above: a term crosses to `vocabulary.toml` the day it is a
+role's word. For `place` that day has come and the crossing is a measured change rather than a
+row, because the drift check then asks every role's text for it and refuses the term for any role
+not given it.
 
 ## The middle has four containers -- `master_proof`, `edit_copy`, `sheet`, `mark`
 
@@ -398,9 +422,17 @@ false attribution is most expensive, and it is the file with no reader but him.*
 **Three words, the copy chief's, and they split by whether the roles ever agreed.** `stet` and
 `taken in` were ruled 2026-08-24 and `recast` on 2026-08-30 (`Vocabulary: #29`); what each names
 was re-ruled 2026-09-04 (`Process: #87`), and the 2026-08-24 glosses below are kept as
-SUPERSEDED. All three are ADOPTED rather than held in reserve. They are the answers of one
-chief-only object, `Determined`, one per resolved place on the master proof -- not `Mark`
-instructions, since no role may give any of them.
+SUPERSEDED. All three are ADOPTED rather than held in reserve. None is a `Mark` instruction,
+since no role may give any of them.
+
+**Two of the three are rows of `desk/dispositions/table.py` and the third is not.** `taken in`
+and `recast` are what the chief writes at a place the fold carried forward, and
+`Disposition.deserialize` refuses any other name. `stet` has no row: it is what the console
+prints for a place the fold settled on its own, which is the program setting it on the chief's
+behalf, and a `stet` the chief writes waits on
+[`TODO/no-mark-for-let-it-stand.md`](../TODO/no-mark-for-let-it-stand.md). The chief-only object
+that carried all three answers, `Determined`, went with the old middle on 2026-09-18 --
+[`history.md`](history.md), *Reconciliation*.
 
 | the word | what it names | who says it |
 | --- | --- | --- |
@@ -448,7 +480,7 @@ Vocabulary: #32` and `#33`; `turn` is ADOPTED rather than held in reserve.
 | --- | --- | --- |
 | **`revise`** | the corrected proof, pulled after the marked corrections are set -- and the reading of it. Stages 5b and 6b are revises | at a stage boundary; `flows/revise.pull`, `read_from.revise` |
 | **`round`** | one distribute-then-collate: each role is handed its `edit_copy`, the filled copies are folded back | a stage's own cycle |
-| **`turn`** | one batch-rule-recollate: the disagreements go out to the roles, come back as DiffMarks, and what resolved joins the chief's copy | INSIDE one collate, before any pull. A round may hold several turns |
+| **`turn`** | one batch-answer-fold: every place carried forward goes out to the roles it is owed to, comes back as answers, and the places are folded again | INSIDE one collate, before any pull. A round may hold several turns |
 
 !! **THE COUNTER IS `turn`, AND THE CAP IS NOT IN THE CODE.** Turn one, turn two; how many are
 allowed is what the task agent is told -- `decision-log.md Process: #78`. `read_from.revise`
@@ -459,9 +491,12 @@ author turn*. `query round` was the trade's exact phrase for the copy desk's bac
 collided twice; `pass` is loose across this repo; `hearing` is the register `jurisdiction` ->
 `remit` refused. Roy, 2026-09-04: *"turn seems to be the best considering the alternatives."*
 
-! **Not yet in `vocabulary.toml`.** That file holds what a role is GIVEN, and no role is handed
-a turn until the DiffMark brief exists -- `a-revise-answer-has-no-artifact` T19. It goes in
-with that, not before.
+**Not in `vocabulary.toml`, and the reason it was kept out no longer holds.** That file holds
+what a role is given, and the bar this section set was that no role is handed a turn until the
+answer brief exists. It exists: `reviewer-brief.md`'s *When you are sent a batch* tells a role
+what a batch is, what each question asks and which answers it may give, and uses the word.
+Whether the term crosses over is unruled; the drift check reads `turn` as a word wherever it
+appears, including ordinary English, so adding it is a measured change rather than a row.
 
 ## ownership -- settled, and deliberately not emitted
 
