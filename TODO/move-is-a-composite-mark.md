@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 16 of 33 tasks closed
+Progress: 17 of 33 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -259,8 +259,9 @@ and now there is one object that cannot be half-held.
       both ends, replacing Place.partner and the pair passes
 - [ ] T28 | Implement the split of an agreed move into the mover drop and add as
       ordinary marks, per Process 195 item 3
-- [ ] T29 | Implement the placement slot in the turn batch, naming both ends and
-      put to every reader of either page
+- [x] T29 | placement slot per open move to every owed reader; tests/test_bus.py TestAMovesPlacementIsAskedOnce | 758c6704f99b047a472fdbcd3784ab36fb7349bb | Implement
+      the placement slot in the turn batch, naming both ends and put to every
+      reader of either page
 - [ ] T30 | Update the chief disposition: placement once on an unresolved move,
       words alone on a split one, per Process 195 item 4
 - [ ] T31 | Delete reaches_partner, refuse_half_moves and the Process 189 guard
