@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 24 of 33 tasks closed
+Progress: 24 of 34 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -277,3 +277,5 @@ and now there is one object that cannot be half-held.
       and its four verbs; agents lane
 - [ ] T33 | Update the-mark.md and the-turn.md from the Process 195 pointers to
       the built shape
+- [ ] T34 | Remove the placement-row exclusion from
+      tests/gates/test_smoke_fixture.py once the smoke plants placement answers
