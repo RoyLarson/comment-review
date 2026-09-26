@@ -39,7 +39,7 @@ from comment_review.desk.collator import (
 from comment_review.desk.containers import EditCopy
 from comment_review.desk.marks.mark import Instruction, Mark
 from comment_review.flows.distribute import seed
-from comment_review.flows.mark_errors import NOT_RULED, mark_errors
+from comment_review.flows.mark_errors import mark_errors
 from comment_review.flows.verify import texts_at
 from comment_review.reading.addresser import address_for
 
@@ -148,6 +148,11 @@ def _ruled_places(copy) -> int:
     is derived here, from the container, where the tests that assert it live.
     """
     return sum(len(sheet.marks) + len(sheet.refused) for sheet in copy.sheets)
+
+
+def _unruled(copy) -> set[str]:
+    """The places the parse sorted as handed out and not ruled on."""
+    return {address for sheet in copy.sheets for address in sheet.unruled}
 
 
 def test_known_addresses_carries_the_real_row():
@@ -526,7 +531,7 @@ class TestAnAbsentAddressIsNotRefused:
         # mark is the address -- `an_add`'s default cites this checkout.
         cite = {"cite": "mark.py:1", "verbatim": line_of(repo / "mark.py", 1)}
         wire["sheets"][0]["marks"].append(
-            {**an_add(absent), "sources": [cite], "anchor": "", "raw_text": ""}
+            {**an_add(absent, reads=""), "sources": [cite], "anchor": ""}
         )
         copy = returned(wire)
         problems = verify_report(copy, _texts(copy, binder, repo), repo, {})
@@ -544,14 +549,17 @@ class TestProblemsAreRoutable:
         copy = returned(wire)
         # A freshly seeded copy leaves every other place unruled, and those
         # are revisits too; this case is about the entry the role got wrong.
-        found = [one for one in mark_errors([copy]) if NOT_RULED not in one.reasons]
+        found = [
+            one for one in mark_errors([copy]) if one.address not in _unruled(copy)
+        ]
         # An entry a role wrote and got wrong still counts as ruled, so it is
         # not reported as a place nobody answered.
         assert _ruled_places(copy) == 1
         assert [(one.role, one.address) for one in found] == [
             ("block-context", entry["address"])
         ]
-        assert all(reason for reason in found[0].reasons)
+        assert found[0].reasons, "a malformed entry names what it broke"
+        assert all(reason for reason in found[0].reasons), found[0].reasons
 
     def test_every_broken_mark_in_a_sheet_is_reported_not_only_the_first(
         self, tmp_path
@@ -563,7 +571,9 @@ class TestProblemsAreRoutable:
         for entry in marks[:2]:
             entry.update({"instruction": "correct", "claim": {}})
         copy = returned(wire)
-        found = [one for one in mark_errors([copy]) if NOT_RULED not in one.reasons]
+        found = [
+            one for one in mark_errors([copy]) if one.address not in _unruled(copy)
+        ]
         assert _ruled_places(copy) == 2
         assert {one.address for one in found} == {e["address"] for e in marks[:2]}
 

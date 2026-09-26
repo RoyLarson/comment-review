@@ -19,8 +19,10 @@ from helpers import (
     a_query,
     a_real_binder_over,
     an_add,
+    contested,
     copies_over,
     entries_of,
+    merged,
 )
 
 from comment_review.commands import collate as command
@@ -839,7 +841,7 @@ class TestTheReport:
         `m.py@b1` would settle on its own; the add at `m.py@b2` drops a word
         of the paragraph already there, which its row refuses at the fold.
         """
-        dropping = {**an_add("m.py@b2"), "raw_text": "# one\n# three\n"}
+        dropping = an_add("m.py@b2", reads="# one\n# three\n")
         code, out = run(
             tmp_path,
             {"block-context": {"m.py@b1": a_clean("m.py@b1"), "m.py@b2": dropping}},
@@ -865,23 +867,22 @@ class TestTheReport:
         places["m.py@b4"] = BASE
 
         def marks(at_b4: dict) -> dict:
-            return {
-                "block-context": {
-                    "m.py@b1": a_clean("m.py@b1"),
-                    "m.py@b2": a_correct_setting("m.py@b2", "two", "# a\n"),
-                    "m.py@b3": a_query("m.py@b3", Shape.HUMAN_REVIEW_NECESSARY),
-                    "m.py@b4": at_b4,
+            return merged(
+                contested("m.py@b2", one="# a\n", other="# b\n"),
+                {
+                    "block-context": {
+                        "m.py@b1": a_clean("m.py@b1"),
+                        "m.py@b3": a_query("m.py@b3", Shape.HUMAN_REVIEW_NECESSARY),
+                        "m.py@b4": at_b4,
+                    },
+                    "function-context": {
+                        address: a_clean(address)
+                        for address in ("m.py@b1", "m.py@b3", "m.py@b4")
+                    },
                 },
-                "function-context": {
-                    "m.py@b1": a_clean("m.py@b1"),
-                    "m.py@b2": a_correct_setting("m.py@b2", "two", "# b\n"),
-                    "m.py@b3": a_clean("m.py@b3"),
-                    "m.py@b4": a_clean("m.py@b4"),
-                },
-            }
+            )
 
         committed = tmp_path / "committed"
-        committed.mkdir()
         code, out = run(
             committed,
             marks(a_clean("m.py@b4")),
@@ -895,7 +896,7 @@ class TestTheReport:
         assert "unsettlable m.py@b3" in out
         assert command.FOR_THE_CHIEF in out
 
-        dropping = {**an_add("m.py@b4"), "raw_text": "# one\n# three\n"}
+        dropping = an_add("m.py@b4", reads="# one\n# three\n")
         code, out = run(tmp_path, marks(dropping), monkeypatch, capsys, places=places)
         assert code == command.BROKEN, out
         assert out.splitlines() == [

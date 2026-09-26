@@ -886,8 +886,8 @@ def test_an_add_over_prose_in_an_ungathered_file_that_drops_a_word_is_refused(
     )
     _ungathered_page(tmp_path)
     add = {
-        **Mark.seed("n.py@b1", "v1 = 1", "# seven\n# a new line"),
-        **an_add("n.py@b1"),
+        **Mark.seed("n.py@b1", "v1 = 1", ""),
+        **an_add("n.py@b1", reads="# seven\n# a new line"),
         "change": "# a new line",
     }
     copy = message.copies[0]

@@ -1,13 +1,22 @@
 """places_of derives places from the roles' copies; chief_copy_of derives the
 copy chief's own copy from what the fold decided at each place."""
 
-from helpers import a_binder_over, a_clean, a_correct, a_move, copies_over, returned
+from helpers import (
+    a_binder_over,
+    a_clean,
+    a_correct,
+    a_move,
+    a_real_binder_over,
+    copies_over,
+    returned,
+    seed,
+)
 
 from comment_review.desk.containers import Sheet
-from comment_review.desk.evaluate.place import Place
+from comment_review.desk.evaluate.place import Filed, Place
 from comment_review.desk.marks.mark import Instruction
-from comment_review.desk.marks.table import INSTRUCTIONS, Row, Touch
-from comment_review.flows.fill import composition_problems, row_problems
+from comment_review.desk.marks.table import INSTRUCTIONS, Row, Touch, _sets_both_ends
+from comment_review.flows.fill import composition_problems, fill, row_problems
 from comment_review.flows.on_the_page import Held
 from comment_review.flows.places import bases_and_anchors, chief_copy_of, places_of
 from comment_review.flows.transcribe import _touched_by_page
@@ -136,6 +145,7 @@ def test_every_reader_of_where_a_mark_writes_asks_the_row(monkeypatch, tmp_path)
     With `Row.places` sending a move's destination somewhere its claim does
     not name, every flow that walks a mark's places follows the row: a reader
     that still decided the places for itself would land at `m.py@b5`.
+    `_sets_both_ends`, the eighth reader, has its own case below.
     """
     binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE, "m.py@b7": BASE})
     wire = copies_over(
@@ -160,6 +170,41 @@ def test_every_reader_of_where_a_mark_writes_asks_the_row(monkeypatch, tmp_path)
     assert asked == ["m.py@b1", "m.py@b7"]
     assert _touched_by_page(copies[0]) == {"m.py": ["m.py@b1", "m.py@b7"]}
 
-    unresolved = resolution_problems(copies[0], [], tmp_path, {})
-    assert any("m.py@b7" in one.message for one in unresolved)
-    assert not any("m.py@b5" in one.message for one in unresolved)
+    resolved: list[str] = []
+    monkeypatch.setattr(
+        "comment_review.flows.verify._unresolved",
+        lambda address, *_: resolved.append(address) or "",
+    )
+    assert resolution_problems(copies[0], [], tmp_path, {}) == []
+    assert resolved == ["m.py@b1", "m.py@b7"]
+
+    # `fill` refuses a composition only at the places the row says this mark
+    # writes, so a refusal at the destination the claim names is not its.
+    monkeypatch.setattr(
+        "comment_review.flows.fill.composition_problems",
+        lambda role, marks, base_at: [("m.py@b5", "at b5"), ("m.py@b7", "at b7")],
+    )
+    real = a_real_binder_over(
+        tmp_path / "repo", {"m.py@b1": BASE, "m.py@b5": BASE, "m.py@b7": "# seven\n"}
+    )
+    entry = a_move("m.py@b1", "m.py@b5", change="# two", reads="# seven\n# two")
+    placed, why = fill(seed(real, "block-context"), entry, tmp_path / "repo")
+    assert placed is None
+    assert why == ["m.py@b7: at b7"]
+
+
+def test_sets_both_ends_asks_the_row_where_a_mark_writes(monkeypatch):
+    """A move writes at two places, so without its partner it is not taken in
+    at one; a row saying the mark writes at this place alone is taken at its
+    word."""
+    move = returned(
+        copies_over(
+            a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE}),
+            {"block-context": {"m.py@b1": a_move("m.py@b1", "m.py@b5")}},
+        )[0]
+    )
+    filed = Filed("block-context", move.sheets[0].marks[0], Touch.ORIGIN)
+    place = Place(address="m.py@b1", anchor="x = 1", base=BASE, filed=[filed])
+    assert _sets_both_ends(filed, place, None) is False
+    monkeypatch.setattr(Row, "places", lambda self, mark: (("m.py@b1", Touch.OWN),))
+    assert _sets_both_ends(filed, place, None) is True

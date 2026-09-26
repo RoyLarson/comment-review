@@ -731,7 +731,7 @@ def a_patch(address: str, was: str, now: str, change: str) -> dict:
 
 def a_move(origin: str, destination: str, change: str = "", reads: str = "") -> dict:
     """A `move` mark -- `origin` as its own `address`, `destination` as
-    `claim.to`. `collator.places()` must group it into both.
+    `claim.to`. `desk.marks.table.Row.places` files it at both.
 
     Args:
         origin: the mark's own address.
@@ -808,10 +808,18 @@ def a_query(address: str, shape: Shape = Shape.UNABLE_TO_DETERMINE) -> dict:
     )
 
 
-def an_add(address: str) -> dict:
+def an_add(address: str, reads: str | None = None) -> dict:
     """An `add` mark -- `claim.anchor` NAMED IN BACKTICKS, using
-    `desk.marks.mark.ANCHOR_EXAMPLE` rather than a hand-typed name."""
-    return _mark(
+    `desk.marks.mark.ANCHOR_EXAMPLE` rather than a hand-typed name.
+
+    Args:
+        address: the mark's own address.
+        reads: the paragraph as it will read, with the added text in
+            (`decision-log.md Process: #176`), as `a_move` takes its
+            destination's. None leaves `raw_text` to the slot the mark is
+            laid over.
+    """
+    mark = _mark(
         Instruction.ADD,
         address,
         {
@@ -819,6 +827,9 @@ def an_add(address: str) -> dict:
             "anchor": ANCHOR_EXAMPLE,
         },
     )
+    if reads is not None:
+        mark["raw_text"] = reads
+    return mark
 
 
 # -- the hand driver: a review from the console, over `tmp_path` ----------------
