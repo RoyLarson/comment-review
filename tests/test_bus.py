@@ -903,13 +903,16 @@ def test_an_add_over_prose_in_an_ungathered_file_that_drops_a_word_is_refused(
     ) in _refusals(out)
 
 
-def test_two_moves_into_one_ungathered_place_compose_on_different_sentences(
+def test_a_move_and_an_add_into_one_ungathered_place_compose_on_different_sentences(
     tmp_path,
 ):
-    """Each role's destination text keeps the paragraph there and adds a
-    different line, so the two compose against the page's paragraph. Measured
-    against nothing, every line of each would be new and the two would
-    contest."""
+    """Each role's text keeps the paragraph there and adds a different line,
+    so the two compose against the page's paragraph. Measured against
+    nothing, every line of each would be new and the two would contest.
+
+    Two moves into one place were this case's two sides until a place two
+    moves touch was refused (`test_two_roles_moving_two_paragraphs_into_one_
+    place_are_both_refused_there`); an `add` is the second side instead."""
     message = _message(
         tmp_path,
         {
@@ -921,19 +924,112 @@ def test_two_moves_into_one_ungathered_place_compose_on_different_sentences(
             },
             "function-context": {
                 PLACE: a_clean(PLACE),
-                "m.py@b2": a_move(
-                    "m.py@b2",
-                    "n.py@b1",
-                    change="# six",
-                    reads=UNGATHERED + "\n# six",
-                ),
+                "m.py@b2": a_clean("m.py@b2"),
             },
         },
     )
     _ungathered_page(tmp_path)
+    add = {
+        **Mark.seed("n.py@b1", "v1 = 1", ""),
+        **an_add("n.py@b1", reads=UNGATHERED + "\n# six"),
+        "change": "# six",
+    }
+    sheet, why = Sheet.deserialize("n.py", {"path": "n.py", "sha": "", "marks": [add]})
+    assert sheet is not None, why
+    copy = message.copies[1]
+    message.copies[1] = replace(copy, sheets=(*copy.sheets, sheet))
     out, result = handle(message)
     assert result is not None, _refusals(out)
     assert _state_at(result.proof, "n.py@b1") != "contested"
+
+
+# -- a place two moves touch (the move's partner is one slot per place) --------
+
+
+def _moving(tmp_path, block: dict, function: dict):
+    """Both roles over `m.py`'s b1, b2, b5 and b7, each marking `clean` where
+    its own marks name nothing."""
+    places = {
+        "m.py@b1": BASE,
+        "m.py@b2": OTHER,
+        "m.py@b5": "# nine",
+        "m.py@b7": "# seven",
+    }
+    root = tmp_path / "repo"
+    binder = a_real_binder_over(root, places)
+    by_role = {
+        role: {**{address: a_clean(address) for address in places}, **marks}
+        for role, marks in (("block-context", block), ("function-context", function))
+    }
+    copies = [returned(wire) for wire in copies_over(binder, by_role)]
+    return handle(CopiesReturned("4c", copies, binder, root, None))
+
+
+def test_two_roles_moving_one_paragraph_to_two_destinations_are_both_refused(
+    tmp_path,
+):
+    """A move's ends are paired by `Place.partner`, one to a place, so the
+    origin could be paired with one destination only and the other move
+    would land under the wrong pairing. The origin is refused for both roles
+    and nothing settles."""
+    out, result = _moving(
+        tmp_path,
+        {PLACE: a_move(PLACE, "m.py@b5", change="# two\n", reads="# nine\n# two\n")},
+        {PLACE: a_move(PLACE, "m.py@b7", change="# two\n", reads="# seven\n# two\n")},
+    )
+    assert result is None
+    both = (
+        "two moves touch this place and a place pairs with one other end --"
+        " block-context's move m.py@b1 -> m.py@b5, function-context's move"
+        " m.py@b1 -> m.py@b7; withdraw one"
+    )
+    assert _refusals(out) == [
+        ("block-context", PLACE, both),
+        ("function-context", PLACE, both),
+    ]
+    assert not [one for one in out if isinstance(one, events.Settled)]
+
+
+def test_two_roles_moving_two_paragraphs_into_one_place_are_both_refused_there(
+    tmp_path,
+):
+    """`decision-log.md Process: #154` sends back one role's two moves to one
+    place; two roles' are refused the same way, since the place can pair with
+    only one of the two origins."""
+    out, result = _moving(
+        tmp_path,
+        {PLACE: a_move(PLACE, "m.py@b5", change="# two\n", reads="# nine\n# two\n")},
+        {
+            "m.py@b2": a_move(
+                "m.py@b2", "m.py@b5", change="# five\n", reads="# nine\n# five\n"
+            )
+        },
+    )
+    assert result is None
+    both = (
+        "two moves touch this place and a place pairs with one other end --"
+        " block-context's move m.py@b1 -> m.py@b5, function-context's move"
+        " m.py@b2 -> m.py@b5; withdraw one"
+    )
+    assert _refusals(out) == [
+        ("block-context", "m.py@b5", both),
+        ("function-context", "m.py@b5", both),
+    ]
+
+
+def test_one_roles_move_alone_still_pairs_its_two_ends(tmp_path):
+    out, result = _moving(
+        tmp_path,
+        {PLACE: a_move(PLACE, "m.py@b5", change="# two\n", reads="# nine\n# two\n")},
+        {},
+    )
+    assert result is not None, _refusals(out)
+    partners = {
+        one["address"]: one["partner"]
+        for one in result.proof.places
+        if one["address"] in (PLACE, "m.py@b5")
+    }
+    assert partners == {PLACE: "m.py@b5", "m.py@b5": PLACE}
 
 
 def test_a_move_into_a_file_this_checkout_does_not_hold_is_refused_by_name(

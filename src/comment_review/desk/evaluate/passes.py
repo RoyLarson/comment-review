@@ -225,6 +225,9 @@ def marks_pass(place: Place, partner: Place | None = None) -> Place:
             one.mark, one.touch, place.base
         )
     )
+    crossed = _moves_crossing(place)
+    if crossed:
+        return _set(place, State.REFUSED, reasons=crossed)
     reasons = []
     for one in place.filed:
         row = INSTRUCTIONS[one.mark.instruction]
@@ -252,6 +255,46 @@ def marks_pass(place: Place, partner: Place | None = None) -> Place:
     if asking:
         return _set(place, State.UNSETTLABLE, sides=sides, asking=asking)
     return _from_sides(place, sides, partner)
+
+
+def _moves_crossing(place: Place) -> tuple[str, ...]:
+    """One reason per role whose two-place mark here meets another's.
+
+    A move's two ends are paired by `Place.partner`, and a place holds one
+    partner. Two marks that each write here and at a different second place
+    -- two moves out of one origin, or two into one place, `decision-log.md
+    Process: #154` -- can have only one of their other ends paired with this
+    one, so the second move would land under the wrong pairing. Until the move
+    is redesigned the place is refused for each role that filed one, naming
+    every such mark, as `composed_side` names a pair that will not compose.
+    It runs in `marks_pass`, before `pair_moves` reads a partner.
+
+    Marks writing the same two places are one pairing, however many filed
+    them, so two roles making one move are not refused here.
+
+    Returns:
+        `"<role>: <why>"`, one per role in role order, or an empty tuple.
+    """
+    ends: dict[frozenset[str], list[Filed]] = {}
+    for one in place.filed:
+        written = INSTRUCTIONS[one.mark.instruction].places(one.mark)
+        if len(written) > 1:
+            ends.setdefault(frozenset(where for where, _ in written), []).append(one)
+    if len(ends) < 2:
+        return ()
+    filed = [one for group in ends.values() for one in group]
+    named = ", ".join(
+        f"{one.role}'s {one.mark.instruction} "
+        + " -> ".join(
+            where for where, _ in INSTRUCTIONS[one.mark.instruction].places(one.mark)
+        )
+        for one in sorted(filed, key=lambda one: one.role)
+    )
+    return tuple(
+        f"{role}: two moves touch this place and a place pairs with one other"
+        f" end -- {named}; withdraw one"
+        for role in sorted({one.role for one in filed})
+    )
 
 
 def pair_moves(places: dict[str, Place]) -> None:
@@ -288,6 +331,11 @@ def pair_moves(places: dict[str, Place]) -> None:
     for address, place in places.items():
         other = places.get(place.partner or "")
         if other is None or other.partner != address:
+            continue
+        # A place two moves touch has no one partner to take a state from or
+        # give one to; whichever it names is the pairing `_moves_crossing`
+        # refused it for, so the refusal stays where the moves meet.
+        if _moves_crossing(place) or _moves_crossing(other):
             continue
         worst = min(
             (place.state, other.state),
