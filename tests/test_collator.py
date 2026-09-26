@@ -39,7 +39,7 @@ from comment_review.desk.collator import (
 from comment_review.desk.containers import EditCopy
 from comment_review.desk.marks.mark import Instruction, Mark
 from comment_review.flows.distribute import seed
-from comment_review.flows.mark_errors import mark_errors
+from comment_review.flows.mark_errors import NOT_RULED, mark_errors
 from comment_review.flows.verify import texts_at
 from comment_review.reading.addresser import address_for
 
@@ -534,6 +534,39 @@ class TestAnAbsentAddressIsNotRefused:
 
 
 class TestProblemsAreRoutable:
+    def test_a_malformed_entry_is_routed_by_its_role_and_its_address(self, tmp_path):
+        """Roy, 2026-08-30: "the errors should be stacked and capable of being
+        read off correctly so that each can be fixed or sent back to the role."
+        A sentence cannot be routed; a role and an address can."""
+        wire = seed(binder_of(a_small_real_tree(tmp_path), 0), "block-context")
+        entry = wire["sheets"][0]["marks"][0]
+        entry.update({"instruction": "correct", "claim": {}})
+        copy = returned(wire)
+        # A freshly seeded copy leaves every other place unruled, and those
+        # are revisits too; this case is about the entry the role got wrong.
+        found = [one for one in mark_errors([copy]) if NOT_RULED not in one.reasons]
+        # An entry a role wrote and got wrong still counts as ruled, so it is
+        # not reported as a place nobody answered.
+        assert _ruled_places(copy) == 1
+        assert [(one.role, one.address) for one in found] == [
+            ("block-context", entry["address"])
+        ]
+        assert all(reason for reason in found[0].reasons)
+
+    def test_every_broken_mark_in_a_sheet_is_reported_not_only_the_first(
+        self, tmp_path
+    ):
+        # The sheet is whichever one carries two places: `a_small_real_tree`'s
+        # `__init__.py` page sorts first and holds a single row.
+        wire = seed(binder_of(a_small_real_tree(tmp_path), 0), "block-context")
+        marks = next(s["marks"] for s in wire["sheets"] if len(s["marks"]) >= 2)
+        for entry in marks[:2]:
+            entry.update({"instruction": "correct", "claim": {}})
+        copy = returned(wire)
+        found = [one for one in mark_errors([copy]) if NOT_RULED not in one.reasons]
+        assert _ruled_places(copy) == 2
+        assert {one.address for one in found} == {e["address"] for e in marks[:2]}
+
     def test_an_entry_THAT_IS_NOT_AN_OBJECT_carries_an_empty_address(self, tmp_path):
         """The one copy-level `Problem` `problems_in` still raises on its own.
 
