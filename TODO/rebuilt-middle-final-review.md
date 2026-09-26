@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 43 tasks closed
+Progress: 10 of 45 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -57,6 +57,7 @@ The rebuilt middle's final review.
       and only a test reads it (E1)
 - [ ] T18 | Correct docstrings that describe the old design as live:
       master_proof_of, mark.parse, Revisit.unreadable (F1)
+        > 2026-09-25 Revisit.unreadable went with T43; the rest of F1 stands
 - [ ] T19 | Correct disposition --help: it says taken-in and the parse accepts
       taken_in only (G1)
 - [ ] T20 | Correct the advisory heading in commands/collate.py so it names no
@@ -110,3 +111,7 @@ The rebuilt middle's final review.
 - [x] T43 | Revisit.unreadable deleted with its writers; the two claims its tests carried are tested again | b4be6db2 | Delete
       Revisit.unreadable; nothing outside the tests reads it (E2, Roy
       2026-09-25)
+- [ ] T44 | Fix a move to its own paragraph spelled in another path case: it
+      passes and the write end deletes the paragraph (code-review 2026-09-25)
+- [ ] T45 | Pair a move's two ends on the filing, not the place; two moves out
+      of one origin leave the first unpaired (code-review 2026-09-25)
