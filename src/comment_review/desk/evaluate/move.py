@@ -255,10 +255,16 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
 
 
 def _is_this_move(one: Filed, move: Move) -> bool:
+    """Whether this filing writes this move's origin and destination, in that order.
+
+    Ordered, not as a set of two addresses: a move the other way between the
+    same two places is another move, and settling this one leaves it filed.
+    """
     written = INSTRUCTIONS[one.mark.instruction].places(one.mark)
-    return {where for where, _ in written} == {move.origin, move.destination} and len(
-        written
-    ) > 1
+    return (move.origin, Touch.ORIGIN) in written and (
+        move.destination,
+        Touch.DESTINATION,
+    ) in written
 
 
 def settle_ends(move: Move, places: dict[str, Place]) -> None:
@@ -267,8 +273,9 @@ def settle_ends(move: Move, places: dict[str, Place]) -> None:
     AGREED: each remaining mover's filing becomes its `drop` at the origin
     and `add` at the destination (`Row.splits`), and a mover that withdrew
     comes off. WITHDRAWN: every filing of this move comes off. A split the
-    row declines -- the snippet is not in the origin -- leaves the move
-    filed, so the origin's own read refuses it.
+    row declines -- the snippet is not in the origin exactly once -- makes
+    the placement REFUSED, with one reason per declined mover, and writes
+    nothing, so `hold_ends` refuses both ends.
     """
     if move.placement not in FINAL:
         return
@@ -276,8 +283,9 @@ def settle_ends(move: Move, places: dict[str, Place]) -> None:
     if origin is None or destination is None:
         return
     halves: dict[str, tuple[Mark, Mark]] = {}
+    declined: list[str] = []
     if move.placement is Placement.AGREED:
-        for role, mark in move.movers.items():
+        for role, mark in sorted(move.movers.items()):
             row = INSTRUCTIONS[mark.instruction]
             split = (
                 row.splits(mark, origin.base, destination.anchor)
@@ -285,8 +293,15 @@ def settle_ends(move: Move, places: dict[str, Place]) -> None:
                 else None
             )
             if split is None:
-                return
-            halves[role] = split
+                declined.append(
+                    f"{role}: its move cannot be split -- the snippet is not in"
+                    f" {move.origin}'s paragraph exactly once"
+                )
+            else:
+                halves[role] = split
+    if declined:
+        move.placement, move.reasons = Placement.REFUSED, tuple(declined)
+        return
     for end, index in ((origin, 0), (destination, 1)):
         kept = [one for one in end.filed if not _is_this_move(one, move)]
         added = [

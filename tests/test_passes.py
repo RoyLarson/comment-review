@@ -200,6 +200,27 @@ class TestSeveralOfOneRolesMarksAtOnePlace:
         assert "restate the paragraph with both" in why[0]
         assert "withdraw one" not in why[0]
 
+    def test_two_moves_out_of_one_origin_on_one_line_still_say_withdraw_one(self):
+        """At an origin each text is a remainder, not an arrival: there is no
+        paragraph holding both to restate."""
+        first = _mark(
+            Instruction.MOVE,
+            change="# two\n",
+            raw_text="# four\n# two\n# five\n",
+            claim={"from": "m.py@b1", "to": "m.py@b5"},
+        )
+        second = _mark(
+            Instruction.MOVE,
+            change="# one\n# two\n",
+            raw_text="# seven\n# one\n# two\n",
+            claim={"from": "m.py@b1", "to": "m.py@b7"},
+        )
+        place = _place(
+            Filed("a", first, Touch.ORIGIN), Filed("a", second, Touch.ORIGIN)
+        )
+        _sides, why = sides_of(place)
+        assert len(why) == 1 and "withdraw one" in why[0]
+
     def test_a_correct_and_a_patch_on_one_sentence_still_say_withdraw_one(self):
         corr = _mark(
             Instruction.CORRECT,
@@ -548,11 +569,11 @@ class TestAMoveIsDecidedBeforeItsEnds:
     LANDED = "# four\n# two\n# five\n"
     REMAINDER = "# one\n# three\n"
 
-    def _places(self, readers=("a", "b"), change=None):
+    def _places(self, readers=("a", "b"), change=None, landed=None):
         move = _mark(
             Instruction.MOVE,
             change=change or self.MOVED,
-            raw_text=self.LANDED,
+            raw_text=landed or self.LANDED,
             claim={"from": "m.py@b1", "to": "m.py@b5"},
         )
         origin = _place(Filed("a", move, Touch.ORIGIN))
@@ -631,12 +652,94 @@ class TestAMoveIsDecidedBeforeItsEnds:
             assert end.state is State.UNSETTLABLE and end.text is None
 
     def test_a_snippet_not_in_the_origin_is_refused_at_both_ends_and_not_split(self):
-        """Review Focus 5."""
-        places, moves = self._places(readers=("a",), change="# nine\n")
+        """Review Focus 5. The landing keeps every word of the destination and
+        the snippet, so the destination's own read has nothing to refuse: the
+        refusal there comes from the split the row declined."""
+        places, moves = self._places(
+            readers=("a",), change="# nine\n", landed="# four\n# nine\n# five\n"
+        )
         decide(places, moves)
+        assert moves["m.py@b1 -> m.py@b5"].placement is Placement.REFUSED
         for end in places.values():
             assert end.state is State.REFUSED
             assert end.filed[0].mark.instruction is Instruction.MOVE
+            assert any(
+                why.startswith("a: its move cannot be split") for why in end.reasons
+            )
+
+    def _stetted(self, disposition=None):
+        """A move `b` stetted in turn 1, both ends' words accepted, and the
+        chief's ruling, if any, at the destination."""
+        places, moves = self._places()
+        decide(places, moves)
+        moves["m.py@b1 -> m.py@b5"].answers[1] = {"b": self._placement("stet")}
+        for end in places.values():
+            end.answers[1] = {"b": _answer("clean", question=Question.COMPOSITION)}
+        places["m.py@b5"].disposition = disposition
+        decide(places, moves, turn=1)
+        return places, moves
+
+    def test_a_ruling_refused_at_one_end_of_an_unsplit_move_refuses_the_other(self):
+        ruling = Disposition(
+            address="m.py@b5", name="taken_in", side="nobody", prose="", reason="r"
+        )
+        places, _moves = self._stetted(ruling)
+        assert places["m.py@b5"].state is State.REFUSED
+        assert places["m.py@b1"].state is State.REFUSED
+
+    def test_an_end_refused_on_its_own_refuses_the_other_end_of_an_open_move(self):
+        places, moves = self._places()
+        unreadable = _mark(
+            Instruction.ADD, change="# six\n", raw_text="# six\n", address="m.py@b5"
+        )
+        places["m.py@b5"].filed.append(Filed("b", unreadable, Touch.OWN))
+        decide(places, moves)
+        assert moves["m.py@b1 -> m.py@b5"].placement is Placement.OPEN
+        assert places["m.py@b5"].state is State.REFUSED
+        assert places["m.py@b1"].state is State.REFUSED
+
+
+def test_an_agreed_move_leaves_the_reverse_move_between_its_places_filed():
+    """Two moves between one pair of places, in opposite directions, are two
+    moves: agreeing one splits it alone, and the other stays filed and open."""
+    forward = _mark(
+        Instruction.MOVE,
+        change="# two\n",
+        raw_text="# four\n# two\n# five\n",
+        claim={"from": "m.py@b1", "to": "m.py@b5"},
+    )
+    reverse = _mark(
+        Instruction.MOVE,
+        change="# four\n",
+        raw_text="# one\n# four\n# two\n# three\n",
+        claim={"from": "m.py@b5", "to": "m.py@b1"},
+        address="m.py@b5",
+    )
+    origin = _place(
+        Filed("a", forward, Touch.ORIGIN), Filed("c", reverse, Touch.DESTINATION)
+    )
+    destination = _place(
+        Filed("a", forward, Touch.DESTINATION),
+        Filed("c", reverse, Touch.ORIGIN),
+        base="# four\n# five\n",
+        address="m.py@b5",
+    )
+    destination.anchor = "y = 5"
+    origin.readers = destination.readers = ("a", "c")
+    places = {"m.py@b1": origin, "m.py@b5": destination}
+    moves = moves_in(places)
+    decide(places, moves)
+    moves["m.py@b1 -> m.py@b5"].answers[1] = {
+        "c": _answer("agree", question=Question.PLACEMENT)
+    }
+    decide(places, moves, turn=1)
+    assert moves["m.py@b1 -> m.py@b5"].placement is Placement.AGREED
+    assert moves["m.py@b5 -> m.py@b1"].placement is Placement.OPEN
+    for end in places.values():
+        assert any(
+            one.role == "c" and one.mark.instruction is Instruction.MOVE
+            for one in end.filed
+        )
 
 
 def test_a_correct_that_drops_an_unnamed_word_is_noted_and_still_settles():

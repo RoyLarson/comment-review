@@ -12,7 +12,7 @@ from comment_review.desk.evaluate.move import (
 )
 from comment_review.desk.evaluate.place import Filed, Place
 from comment_review.desk.evaluate.state import CARRIED, State
-from comment_review.desk.marks.table import INSTRUCTIONS, Stance
+from comment_review.desk.marks.table import INSTRUCTIONS, Stance, Touch
 from comment_review.machine.differences import CannotCompose, compose
 
 
@@ -79,9 +79,12 @@ def composed_side(
         # Marks whose rows set their own `raw_text` -- each a paragraph as it
         # will read (`decision-log.md Process: #196`) -- are all wanted, so
         # the role is asked for one paragraph holding both rather than to
-        # give one up.
+        # give one up. Not at a move's origin, where the text is a remainder
+        # rather than an arrival and there is no paragraph holding both.
         whole = all(
-            INSTRUCTIONS[one.mark.instruction].carries_raw_text for one in filed
+            INSTRUCTIONS[one.mark.instruction].carries_raw_text
+            and one.touch is not Touch.ORIGIN
+            for one in filed
         )
         ask = (
             "restate the paragraph with both texts in it as one mark"
