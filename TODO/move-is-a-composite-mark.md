@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 15 of 33 tasks closed
+Progress: 16 of 33 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -252,8 +252,9 @@ and now there is one object that cannot be half-held.
 - [x] T25 | a move's change is the snippet, removed once from the origin; raw_text is the destination text; docket_of writes both ends | e538ea92 | Implement
       a move whose --change is the snippet, removed exactly from the origin and
       inserted at the destination, per Process 172
-- [ ] T26 | Implement a placement Question in desk/answers with agree, stet,
-      withdraw and query rows, per Process 195 item 6
+- [x] T26 | Question.PLACEMENT and its four rows; check --contract prints them | 00100e259b095be181a5816ca0ee3065ef295167 | Implement
+      a placement Question in desk/answers with agree, stet, withdraw and query
+      rows, per Process 195 item 6
 - [ ] T27 | Implement the move as one aggregate holding the placement state and
       both ends, replacing Place.partner and the pair passes
 - [ ] T28 | Implement the split of an agreed move into the mover drop and add as
