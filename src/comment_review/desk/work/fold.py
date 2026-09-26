@@ -11,14 +11,16 @@ and the design of 2026-09-14).
 the passes per place and paired afterwards, which put the chief's disposition
 before the pairing and made a contested move impossible to close; the sequence
 lives with the passes now, where nothing can call them in another order.
+Each move's placement is decided before its places are (`decision-log.md
+Process: #195`).
 """
 
 from dataclasses import dataclass, field
 
+from comment_review.desk.evaluate.move import UNDECIDED, Move, Placement
 from comment_review.desk.evaluate.passes import decide
 from comment_review.desk.evaluate.place import Place
 from comment_review.desk.evaluate.state import CARRIED, State
-from comment_review.desk.marks.table import Touch
 from comment_review.desk.work import events
 
 
@@ -27,6 +29,7 @@ class Fold:
     """One stage's places, folded to a commit or a rollback in one pass."""
 
     places: dict[str, Place]
+    moves: dict[str, Move] = field(default_factory=dict)
     turn: int = 0
     events: list = field(default_factory=list)
     committed: bool = False
@@ -35,6 +38,11 @@ class Fold:
     def decided(self) -> dict[str, Place]:
         """The places, if committed -- empty on a rollback, nothing to save."""
         return self.places if self.committed else {}
+
+    @property
+    def decided_moves(self) -> dict[str, Move]:
+        """The moves, if committed -- empty on a rollback, nothing to save."""
+        return self.moves if self.committed else {}
 
     def run(self) -> "Fold":
         """Decide every place, then commit or roll back.
@@ -47,30 +55,35 @@ class Fold:
         (`desk.work.events`): the refusals are gathered apart from what a
         commit reports, and only a commit reports the second list.
         """
-        decide(self.places, turn=self.turn)
+        decide(self.places, self.moves, self.turn)
         refusals: list = []
         on_commit: list = []
+        held_ends = {
+            end
+            for move in self.moves.values()
+            if move.placement is Placement.HELD
+            for end in (move.origin, move.destination)
+        }
         for address in sorted(self.places):
             place = self.places[address]
             if place.state is State.REFUSED:
                 for role, reasons in _by_role(place.reasons).items():
                     refusals.append(events.Refused(role, address, reasons))
             elif place.state in CARRIED:
-                on_commit.append(
-                    events.CarriedForward(
-                        address, place.state, place.question, asked(place)
+                # An end the hold carried for its move alone names nobody:
+                # the move's own event asks for it, below.
+                if asked(place):
+                    on_commit.append(
+                        events.CarriedForward(
+                            address, place.state, place.question, asked(place)
+                        )
                     )
-                )
             elif place.state is State.UNSETTLABLE:
-                held = _held_with(place, self.places)
-                if held is None or _prints(place, held):
-                    partner = held.address if held is not None else ""
-                    move = _held_move(place)
+                # A held move's ends are one entry, emitted from the move below.
+                if address not in held_ends:
                     for one in place.asking:
                         role, _, reason = one.partition(": ")
-                        on_commit.append(
-                            events.Unsettlable(address, role, reason, partner, move)
-                        )
+                        on_commit.append(events.Unsettlable(address, role, reason))
             else:
                 on_commit.append(events.Settled(address, place.text))
             # A place's notes go with what a commit reports, whatever state
@@ -78,6 +91,25 @@ class Fold:
             # #177`.
             for role, notes in _by_role(place.notes).items():
                 on_commit.append(events.Advised(role, address, notes))
+        for key in sorted(self.moves):
+            move = self.moves[key]
+            if move.placement in UNDECIDED:
+                on_commit.append(
+                    events.PlacementCarried(
+                        move.origin, move.destination, move.placement, move.owed
+                    )
+                )
+            elif move.placement is Placement.HELD:
+                mover = min(move.movers) if move.movers else ""
+                reason = move.movers[mover].reason if mover else ""
+                held = events.HeldMove(mover, reason, move.origin, move.destination)
+                for one in move.asking:
+                    role, _, why = one.partition(": ")
+                    on_commit.append(
+                        events.Unsettlable(
+                            move.origin, role, why, move.destination, held
+                        )
+                    )
         self.events += refusals
         if refusals:
             reasons = sum(len(one.reasons) for one in refusals)
@@ -107,59 +139,6 @@ def asked(place: Place) -> tuple[str, ...]:
         why the batch and the unanswered check both read this one function.
     """
     return place.owed
-
-
-def _held_with(place: Place, places: dict[str, Place]) -> Place | None:
-    """The other end of a move held for the human at both of its ends.
-
-    Args:
-        place: an unsettlable place.
-        places: the fold's places, where its partner is looked up.
-
-    Returns:
-        The partner, where the two name each other and it is held too; None
-        otherwise, which is a place that stands on its own.
-    """
-    other = places.get(place.partner or "")
-    if other is None or other.partner != place.address:
-        return None
-    return other if other.state is State.UNSETTLABLE else None
-
-
-def _prints(place: Place, other: Place) -> bool:
-    """Which end of a held move carries the entry -- the origin, where it can tell.
-
-    The two ends are one entry (`decision-log.md Process: #155` and `#182`),
-    so exactly one of them emits it. The origin is the end the paragraph
-    leaves, which is where the author reads the move from; where neither end
-    or both hold the origin of a move, the earlier address decides, so the
-    choice is the same on every run.
-    """
-    mine = any(one.touch is Touch.ORIGIN for one in place.filed)
-    theirs = any(one.touch is Touch.ORIGIN for one in other.filed)
-    if mine != theirs:
-        return mine
-    return place.address < other.address
-
-
-def _held_move(place: Place) -> events.HeldMove | None:
-    """The move this place is an end of, as the entry names it.
-
-    The touch says which end this is, so the two addresses come from the
-    place and its partner rather than from a claim read here.
-    """
-    for one in place.filed:
-        if not place.partner:
-            continue
-        if one.touch is Touch.ORIGIN:
-            return events.HeldMove(
-                one.role, one.mark.reason, place.address, place.partner
-            )
-        if one.touch is Touch.DESTINATION:
-            return events.HeldMove(
-                one.role, one.mark.reason, place.partner, place.address
-            )
-    return None
 
 
 def _by_role(reasons: tuple[str, ...]) -> dict[str, tuple[str, ...]]:

@@ -9,6 +9,7 @@ settled, nobody is asked about a place, and a note has no copy to go with
 from typing import NamedTuple
 
 from comment_review.desk.answers.answer import Question
+from comment_review.desk.evaluate.move import Placement
 from comment_review.desk.evaluate.state import State
 
 
@@ -32,8 +33,22 @@ class CarriedForward(NamedTuple):
     roles: tuple[str, ...]
 
 
+class PlacementCarried(NamedTuple):
+    """A move whose placement the fold could not settle -- asked of `roles` next turn.
+
+    `decision-log.md Process: #195`. `open` is put to the readers who have
+    not answered; `contested` to its movers and the roles that stetted it.
+    A committed fold's only, as the module docstring says.
+    """
+
+    origin: str
+    destination: str
+    placement: Placement
+    roles: tuple[str, ...]
+
+
 class HeldMove(NamedTuple):
-    """The move an unsettlable place is an end of, for the entry that names it.
+    """A move held for the human, for the `Unsettlable` entry that names it.
 
     Attributes:
         role: who filed the move.
@@ -54,14 +69,15 @@ class Unsettlable(NamedTuple):
     A committed fold's only, as the module docstring says.
 
     Attributes:
-        address: the place.
+        address: the place; for a held move, its origin.
         role: who asks the human -- the role whose query holds the place, or
             whose answer did.
         reason: why, in that role's own words.
-        partner: the other end, where this place is one end of a move held at
-            both (`decision-log.md Process: #155` and `#182`). The two ends
-            are one entry, emitted once, so the author rules the move whole.
-        move: the move this place is an end of, where it is one.
+        partner: a held move's destination; empty for a place held alone. A
+            held move is one entry, emitted from the move rather than from
+            either end (`decision-log.md Process: #195`), so the author rules
+            the move whole.
+        move: the held move, where the entry is one.
     """
 
     address: str
@@ -113,5 +129,12 @@ class RolledBack(NamedTuple):
 
 
 Event = (
-    Refused | CarriedForward | Unsettlable | Advised | Settled | Committed | RolledBack
+    Refused
+    | CarriedForward
+    | PlacementCarried
+    | Unsettlable
+    | Advised
+    | Settled
+    | Committed
+    | RolledBack
 )

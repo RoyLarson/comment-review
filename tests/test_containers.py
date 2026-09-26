@@ -380,3 +380,21 @@ class TestAnAddressLessEntryIsStillFindable:
         assert sheet is not None
         assert sheet.unruled == ("m.py@b1",)
         assert sheet.refused == ()
+
+
+def test_a_master_proof_carries_its_moves_and_reads_back_one_written_before_them():
+    """Review Focus 2: a proof written before moves existed still reads."""
+    proof = MasterProof(
+        stage="4c",
+        read_from={},
+        edit_copies=(),
+        places=(),
+        moves=({"origin": "m.py@b1", "destination": "m.py@b5"},),
+    )
+    back, why = MasterProof.deserialize("4c", proof.serialize())
+    assert why == [] and back is not None and back.moves == proof.moves
+    older = {**proof.serialize()}
+    del older["moves"]
+    older["places"] = [{"address": "m.py@b1", "partner": "m.py@b5"}]
+    back, why = MasterProof.deserialize("4c", older)
+    assert why == [] and back is not None and back.moves == ()
