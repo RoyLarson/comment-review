@@ -62,13 +62,11 @@ class Revisit(NamedTuple):
         unreadable: True where a role WROTE here and the entry would not parse;
             False where nobody wrote here at all.
 
-            !! IT EXISTS BECAUSE THE EXIT CODE BRANCHES ON IT, which is what
-            makes it necessary rather than descriptive. `commands/collate.py`
-            returns `BROKEN` for a mark that would not read and `COVERAGE` for a
-            place left unanswered, or `CARRIED_AND_UNRULED` where places are
-            also carried forward -- the second routes back without voiding the
-            round (`Process: #63`) and the first does not. Without this the two
-            are one list and the command cannot tell them apart.
+            The exit code no longer branches on it. `commands/collate.py`
+            had a code for a place left unanswered that routed back without
+            voiding the round; both cases now roll the round back and exit
+            `BROKEN` (`decision-log.md Process: #186`), and nothing outside the
+            tests reads this field.
             ! THE TWO ARE NOT THE SAME FACT, which `desk.marks.mark.untouched`'s own
             docstring already forbids conflating: a malformed mark means a role
             DID rule here and got the shape wrong.

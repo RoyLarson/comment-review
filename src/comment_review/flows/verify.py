@@ -244,8 +244,9 @@ def coverage_problems(
     Returns:
         One `Problem` per short role, naming every address that role did not
         carry, sorted so a reader can re-derive the list. Empty where every
-        role is complete. ! REPORTED, NOT RAISED -- `Process: #63`: the places
-        that did come back still settle.
+        role is complete. Reported rather than raised, so the findings stack;
+        each one rolls the round back, and none of the places that did come
+        back settles (`Process: #186`).
 
     ! AN EMPTY BINDER YIELDS NOTHING. There is no address to be missing, and a
     run over one is what `tests/test_brief_worked_example.py` drives.
@@ -301,9 +302,10 @@ def coverage_problems(
             #
             # ! AN ADDRESS THE BINDER NEVER HELD IS NOT REPORTED AT ALL --
             # `Process: #97`. A role may cite a place the filter dropped or a
-            # file the run never gathered, and only the write end can say
-            # whether the page has it. This counts what came back against
-            # what was handed out, and nothing more.
+            # file the run never gathered; whether the page has it is
+            # `resolution_problems`' question, which reads the page. This
+            # counts what came back against what was handed out, and nothing
+            # more.
             out.append(
                 Problem(
                     role,
