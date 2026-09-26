@@ -29,7 +29,6 @@ from helpers import (
 )
 
 from comment_review.desk.collator import (
-    base_texts,
     claim_verbatim_problems,
     known_addresses,
     source_problems,
@@ -457,15 +456,9 @@ class TestVerifyReport:
         assert any("instruction" in reason for one in found for reason in one.reasons)
 
 
-class TestTheBaseIsTheBinders:
+class TestTheBaseIsThePages:
     """D10 -- the quote check reads the page, never a mark's own returned
     `raw_text`."""
-
-    def test_base_texts_keys_every_address_the_binder_carries(self, tmp_path):
-        binder = binder_of(a_small_real_tree(tmp_path), 0)
-        base = base_texts(binder)
-        carried = {b.address for b in binder.paragraphs if b.address}
-        assert set(base) == carried
 
     def test_verify_report_measures_the_claim_against_the_PAGE(self, tmp_path):
         """A mark whose `claim.false` is absent from the page's paragraph is

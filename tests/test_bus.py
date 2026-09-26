@@ -10,14 +10,16 @@ from helpers import (
     a_patch,
     a_query,
     a_real_binder_over,
+    an_add,
     copies_over,
     returned,
 )
 
 from comment_review.desk.answers.answer import Question
+from comment_review.desk.containers import Sheet
 from comment_review.desk.evaluate.place import Place
 from comment_review.desk.evaluate.state import State
-from comment_review.desk.marks.mark import Shape
+from comment_review.desk.marks.mark import Mark, Shape
 from comment_review.desk.stages import Dispatch, Kind, Role, Stage
 from comment_review.desk.work import events
 from comment_review.flows.bus import (
@@ -807,4 +809,150 @@ def test_an_advisory_note_is_reported_again_after_a_turn(tmp_path):
     assert [(one.role, one.address) for one in advised] == [("block-context", PLACE)]
     assert advised[0].notes == (
         "its change drops 'three', which its claim never names",
+    )
+
+
+# -- the fold's base is the page's text (`decision-log.md Process: #187`) ------
+
+#: The paragraph at `n.py@b1`, a file the run did not gather: the binder holds
+#: no row for it, so the page is the only thing that knows what is there.
+UNGATHERED = "# seven\n# eight"
+
+
+def _ungathered_page(tmp_path, text=UNGATHERED):
+    """`n.py`, written beside the binder's pages and not gathered.
+
+    Laid out the way `a_real_binder_over` lays a page, so its one comment is
+    at `b1` and sits above `v1 = 1`.
+    """
+    root = tmp_path / "repo"
+    root.mkdir(parents=True, exist_ok=True)
+    (root / "n.py").write_text(
+        f"v0 = 0\n{text}\nv1 = 1\n", encoding="utf-8", newline="\n"
+    )
+
+
+def _moved_into_n(tmp_path, reads):
+    """block-context moves b1's middle line into `n.py@b1`, reading `reads`."""
+    message = _message(
+        tmp_path,
+        {
+            "block-context": {
+                PLACE: a_move(PLACE, "n.py@b1", change="# two\n", reads=reads),
+                "m.py@b2": a_clean("m.py@b2"),
+            }
+        },
+    )
+    _ungathered_page(tmp_path)
+    return message
+
+
+def test_a_move_into_an_ungathered_file_that_drops_a_word_is_refused(tmp_path):
+    """The destination text is measured against the page's paragraph there,
+    not against the empty string a binder without that file would give."""
+    out, result = handle(_moved_into_n(tmp_path, "# seven\n# two\n"))
+    assert result is None
+    assert (
+        "block-context",
+        "n.py@b1",
+        "the destination text does not keep 'eight'",
+    ) in _refusals(out)
+    assert any(isinstance(one, events.RolledBack) for one in out)
+
+
+def test_a_move_into_an_ungathered_file_that_keeps_every_word_folds(tmp_path):
+    """The control: the same move, keeping the paragraph already there. The
+    destination carries the page's anchor, which no mark there supplies."""
+    out, result = handle(_moved_into_n(tmp_path, "# seven\n# eight\n# two"))
+    assert result is not None, _refusals(out)
+    place = next(one for one in result.proof.places if one["address"] == "n.py@b1")
+    assert place["base"] == UNGATHERED
+    assert place["anchor"] == "v1 = 1"
+
+
+def test_an_add_over_prose_in_an_ungathered_file_that_drops_a_word_is_refused(
+    tmp_path,
+):
+    """An `add` at a place the binder does not hold, on a sheet the copy
+    carries for that page, is held to the prose the page has there."""
+    message = _message(
+        tmp_path,
+        {
+            "block-context": {
+                PLACE: a_clean(PLACE),
+                "m.py@b2": a_clean("m.py@b2"),
+            }
+        },
+    )
+    _ungathered_page(tmp_path)
+    add = {
+        **Mark.seed("n.py@b1", "v1 = 1", "# seven\n# a new line"),
+        **an_add("n.py@b1"),
+        "change": "# a new line",
+    }
+    copy = message.copies[0]
+    sheet, why = Sheet.deserialize("n.py", {"path": "n.py", "sha": "", "marks": [add]})
+    assert sheet is not None, why
+    message.copies[0] = replace(copy, sheets=(*copy.sheets, sheet))
+    out, result = handle(message)
+    assert result is None
+    assert (
+        "block-context",
+        "n.py@b1",
+        "the text does not keep 'eight'",
+    ) in _refusals(out)
+
+
+def test_two_moves_into_one_ungathered_place_compose_on_different_sentences(
+    tmp_path,
+):
+    """Each role's destination text keeps the paragraph there and adds a
+    different line, so the two compose against the page's paragraph. Measured
+    against nothing, every line of each would be new and the two would
+    contest."""
+    message = _message(
+        tmp_path,
+        {
+            "block-context": {
+                PLACE: a_move(
+                    PLACE, "n.py@b1", change="# two\n", reads="# two\n" + UNGATHERED
+                ),
+                "m.py@b2": a_clean("m.py@b2"),
+            },
+            "function-context": {
+                PLACE: a_clean(PLACE),
+                "m.py@b2": a_move(
+                    "m.py@b2",
+                    "n.py@b1",
+                    change="# six",
+                    reads=UNGATHERED + "\n# six",
+                ),
+            },
+        },
+    )
+    _ungathered_page(tmp_path)
+    out, result = handle(message)
+    assert result is not None, _refusals(out)
+    assert _state_at(result.proof, "n.py@b1") != "contested"
+
+
+def test_a_move_into_a_file_this_checkout_does_not_hold_is_refused_by_name(
+    tmp_path,
+):
+    """A page a mark touches that cannot be read is refused before the fold
+    opens, naming the page, in the one wording every reader of a page uses."""
+    message = _message(
+        tmp_path,
+        {
+            "block-context": {
+                PLACE: a_move(PLACE, "gone.py@b1", change="# two\n", reads="# two"),
+                "m.py@b2": a_clean("m.py@b2"),
+            }
+        },
+    )
+    out, result = handle(message)
+    assert result is None
+    reasons = [reason for _role, address, reason in _refusals(out) if address == PLACE]
+    assert any("no page can be read at gone.py" in reason for reason in reasons), (
+        reasons
     )

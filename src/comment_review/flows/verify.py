@@ -1,80 +1,65 @@
 """What one stage's returned copies can be wrong about against the pages.
 
+    copy_problems        one copy against the pages and the files it cites
     texts_at             every text a quote on one copy may be in
     resolution_problems  a ruled mark whose address resolves against no page
     coverage_problems    a role whose copies do not carry the binder's addresses
     stage_problems       a dispatch the topology named that never came back
 
-Each of the four asks a question the desk cannot: `desk.marks.mark.parse`
-holds no binder, no page and no filesystem, so whether an address names a
-place a real page carries, and whether a role carried back everything it was
-handed, are settled here instead.
+Each asks a question the desk cannot: `desk.marks.mark.parse` holds no
+binder, no page and no filesystem, so whether an address names a place a real
+page carries, and whether a role carried back everything it was handed, are
+settled here instead.
 
-`flows.bus` runs all four before it opens a fold; `commands/check.py` runs the
-first two so a role learns before it returns its copy what the fold would
-refuse. Every finding is a `desk.collator.Problem` -- reported, never raised,
-so the findings stack and each can be sent back to the role that owes it.
+`flows.bus` runs `copy_problems` over every copy, then the two coverage
+checks, before it opens a fold; `commands/check.py` runs `copy_problems` over
+the one copy it is handed, so a role learns before it returns its copy what
+the fold would refuse. Every finding is a `desk.collator.Problem` -- reported,
+never raised, so the findings stack and each can be sent back to the role
+that owes it.
 
-One page is read once per stage. The caller owns a `PageCache` and hands the
-same one to every copy, as it keeps one `desk.collator.Cache` for the files
-the marks cite.
+One page is read once per stage. The caller owns a
+`flows.on_the_page.PageCache` and hands the same one to every copy, as it
+keeps one `desk.collator.Cache` for the files the marks cite.
 """
 
 from pathlib import Path
 
 from comment_review.binder.addresses import handed
 from comment_review.binder.binder import Binder
-from comment_review.binder.page import Page
-from comment_review.desk.collator import Problem
+from comment_review.desk.collator import Cache, Problem, verify_report
 from comment_review.desk.containers import EditCopy
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.stages import Stage, deals
-from comment_review.flows.page_for import page_of
-from comment_review.machine.repo import can_escape
-from comment_review.reading.addresser import Cues, cue_of, unflatten
-
-#: One path -> the real page, or `None` where this checkout holds no readable
-#: page there. Shared across a stage's copies, the same shape as
-#: `desk.collator.Cache` for a cited file: a page eight roles' marks touch is
-#: read once.
-PageCache = dict[str, Page | None]
+from comment_review.flows.on_the_page import PageCache, held_at, no_page, page_named
+from comment_review.reading.addresser import cue_of
 
 
-def _page_at(real: str, root: Path, cache: PageCache) -> Page | None:
-    """One path's page, read at most once per stage, or `None` where none reads.
+def copy_problems(
+    copy: EditCopy, paths: list[str], root: Path, cache: Cache, pages: PageCache
+) -> list[Problem]:
+    """What one copy is wrong about against the pages and the files it cites.
 
-    A path that would land outside `root` once joined to it -- absolute,
-    carrying a drive, or climbing with `..` -- answers `None` and nothing is
-    opened. The path comes from a mark's address, which a role wrote, and
-    `desk.collator.source_problems` keeps the same guard for a cited path.
-    """
-    if real not in cache:
-        page = None
-        if not can_escape(real):
-            page, _why = page_of(root / real, rel=real)
-        cache[real] = page
-    return cache[real]
-
-
-def _page_cues(real: str, root: Path, cache: PageCache) -> Cues | None:
-    """One path's real places, filled or not -- read at most once per stage.
-
-    The binder cannot answer this, which is why the file is opened: the
-    binder is redacted to the places holding prose, so a real empty place is
-    one it rightly lacks (`Process: #97`). `page_of` rebuilds the page, which
-    carries every place a series has, filled or not.
+    Source verification over the texts the page holds at each mark's place
+    (`desk.collator.verify_report`, `texts_at`), then the resolution check.
+    `flows.bus` runs it over every copy of a stage before it opens a fold, and
+    `commands/check.py` runs it over the one copy it is handed, so the two
+    hold a copy to one list.
 
     Args:
-        real: the page's real repo path, unflattened.
-        root: the checkout this path is read from.
-        cache: shared across the stage's copies.
+        copy: one parsed edit_copy, as it came back.
+        paths: the binder's own page paths, for `flows.on_the_page.real_path`.
+        root: the checkout every page and every cited file is read from.
+        cache: the cited files, shared across the stage's copies.
+        pages: the pages, shared across the stage's copies.
 
     Returns:
-        The page's `Cues`, or `None` where `real` could not be turned into a
-        page at `root`, which `resolution_problems` reports.
+        Every problem found, source verification's first.
     """
-    page = _page_at(real, root, cache)
-    return page.cues if page is not None else None
+    return [
+        *verify_report(copy, texts_at(copy, paths, root, pages), root, cache),
+        *resolution_problems(copy, paths, root, pages),
+    ]
 
 
 def resolution_problems(
@@ -83,11 +68,11 @@ def resolution_problems(
     """One `Problem` per ruled mark whose address resolves against no page.
 
     An address resolves when a page can be read at its path and that page
-    carries its cue. Where `_page_cues` answers `None` -- this checkout holds
-    no readable page at `real` -- the address resolves against nothing and is
-    reported, as a quote there is refused (`decision-log.md Process: #122`).
-    An address the binder lacks is not thereby unresolved: the page is read,
-    not the binder (`Process: #97`).
+    carries its cue. Where this checkout holds no readable page there, the
+    address resolves against nothing and is reported, as a quote there is
+    refused (`decision-log.md Process: #122`). An address the binder lacks is
+    not thereby unresolved: the page is read, not the binder (`Process: #97`),
+    and the page carries every place a series has, filled or not.
 
     A `move`'s `claim.to` is an address as well, and resolves the same way
     (`Process: #111`). A destination that is not `path@cue` resolves against
@@ -99,7 +84,7 @@ def resolution_problems(
 
     Args:
         copy: one parsed edit_copy, as it came back.
-        paths: the binder's own page paths, for `unflatten`.
+        paths: the binder's own page paths, for `flows.on_the_page.real_path`.
         root: the checkout every page is read from.
         cache: shared across the stage's copies, keyed by real path.
 
@@ -143,18 +128,17 @@ def _unresolved(address: str, paths: list[str], root: Path, cache: PageCache) ->
 
     Args:
         address: a mark's own address, or a `move`'s `claim.to`.
-        paths: the binder's own page paths, for `unflatten`.
+        paths: the binder's own page paths, for `flows.on_the_page.real_path`.
         root: the checkout every page is read from.
         cache: shared across the stage's copies, keyed by real path.
     """
     addr = cue_of(address)
     if not addr.path or not addr.cue:
         return "it is not a `path@cue` address"
-    real = unflatten(addr.path, paths) or addr.path
-    cues = _page_cues(real, root, cache)
-    if cues is None:
-        return f"no page can be read at {real}"
-    if addr.cue not in cues.places:
+    real, page = page_named(addr.path, paths, root, cache)
+    if page is None:
+        return no_page(real)
+    if addr.cue not in page.cues.places:
         return f"{real} carries no place {addr.cue!r}"
     return ""
 
@@ -170,7 +154,7 @@ def texts_at(
 
     Args:
         copy: one parsed edit_copy.
-        paths: the binder's own page paths, for `unflatten`.
+        paths: the binder's own page paths, for `flows.on_the_page.real_path`.
         root: the checkout every page is read from.
         pages: shared across the stage's copies, keyed by real path.
 
@@ -185,30 +169,8 @@ def texts_at(
         for mark in sheet.marks:
             if mark.address in out:
                 continue
-            out[mark.address] = (_text_at(mark.address, paths, root, pages),)
+            out[mark.address] = (held_at(mark.address, paths, root, pages).text,)
     return out
-
-
-def _text_at(address: str, paths: list[str], root: Path, pages: PageCache) -> str:
-    """The page's text at `address`, read through the stage's page cache.
-
-    "" where no page can be read at the address's path, or the page holds
-    nothing at its place (`decision-log.md Process: #119`, `#125`).
-    """
-    addr = cue_of(address)
-    page = None
-    if addr.path:
-        page = _page_at(unflatten(addr.path, paths) or addr.path, root, pages)
-    if page is None:
-        return ""
-    return next(
-        (
-            b.raw_text
-            for b in page.paragraphs
-            if b.address and cue_of(b.address).cue == addr.cue
-        ),
-        "",
-    )
 
 
 def coverage_problems(

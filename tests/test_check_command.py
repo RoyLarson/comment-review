@@ -130,6 +130,32 @@ class TestACopy:
         assert code == 1
         assert "m.py@b1" in out and "carries no place 'b99'" in out, out
 
+    def test_with_a_binder_a_move_into_an_ungathered_file_is_held_to_its_page(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """`decision-log.md Process: #187`. The destination's paragraph is read
+        off the page, not off the binder, which holds no row for a file the run
+        did not gather -- so a destination text that drops a word of what is
+        already there is named here, as the fold names it."""
+        root = tmp_path / "repo"
+        binder = a_real_binder_over(root, {"m.py@b1": BASE})
+        (root / "n.py").write_text(
+            "v0 = 0\n# seven\n# eight\nv1 = 1\n", encoding="utf-8", newline="\n"
+        )
+        move = a_move("m.py@b1", "n.py@b1", change="# two\n", reads="# seven\n# two\n")
+        copy = copies_over(binder, {"block-context": {"m.py@b1": move}})[0]
+        path = tmp_path / "copy.json"
+        path.write_text(json.dumps(copy), encoding="utf-8")
+        binder_path = tmp_path / "binder.json"
+        binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
+        code, out, _ = _run(
+            monkeypatch, capsys, "--edit-copy", str(path), "--binder", str(binder_path)
+        )
+        assert code == 1
+        assert "block-context m.py@b1: the destination text does not keep 'eight'" in (
+            out
+        ), out
+
     def test_a_file_that_is_not_json_exits_two(self, tmp_path, monkeypatch, capsys):
         path = tmp_path / "copy.json"
         path.write_text("not json", encoding="utf-8")

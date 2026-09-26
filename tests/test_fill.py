@@ -270,9 +270,9 @@ class TestAnAddressWithNoSlotIsAppendedToItsSheet:
 
     def test_the_anchor_comes_from_the_page_not_the_entry(self, copy, root):
         """The base is the system's, never the party being checked. It is
-        the rule `desk/collator.base_texts` states for base texts, one layer
-        up: an entry's own `anchor` is what a role invented, not what the
-        page carries at that place."""
+        the rule the fold holds a place's base to (`decision-log.md Process:
+        #187`), one layer up: an entry's own `anchor` is what a role invented,
+        not what the page carries at that place."""
         entry = {
             "address": "m.py@b3",
             "instruction": "add",
@@ -348,6 +348,24 @@ class TestAMoveCarriesItsSnippetAndTheDestinationsText:
         placed, why = fill(copy, entry, root)
         assert placed is None
         assert len(why) == 1 and "`raw_text`" in why[0]
+
+    def test_a_destination_in_a_file_the_copy_holds_no_sheet_for_is_read(self, root):
+        """`decision-log.md Process: #187`: the destination's paragraph is read
+        off the page whether or not the copy holds a sheet for it, so a move
+        into a file the run did not gather is held to the words already
+        there."""
+        copy, origin = self._origin(root)
+        (root / "n.py").write_text(
+            "v0 = 0\n# seven\n# eight\nv1 = 1\n", encoding="utf-8", newline="\n"
+        )
+        entry = self._a_move(
+            origin,
+            claim={"from": origin, "to": "n.py@b1"},
+            raw_text="# seven\n# two\n",
+        )
+        placed, why = fill(copy, entry, root)
+        assert placed is None
+        assert why == [f"{origin}: the destination text does not keep 'eight'"]
 
 
 class TestARowThatDoesNotCarryItsOwnRawTextIsRefusedOne:

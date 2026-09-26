@@ -72,10 +72,9 @@ from comment_review.desk.marks.table import INSTRUCTIONS, Touch
 from comment_review.desk.work import events
 from comment_review.desk.work.fold import Fold
 from comment_review.docket.docket import Alteration, Docket, Schedule
-from comment_review.flows.page_for import page_of
-from comment_review.flows.places import places_of
-from comment_review.machine.repo import can_escape
-from comment_review.reading.addresser import SEPARATOR, cue_of, flatten, unflatten
+from comment_review.flows.on_the_page import PageCache, held_at, no_page, page_named
+from comment_review.flows.places import bases_and_anchors, places_of
+from comment_review.reading.addresser import cue_of, flatten
 
 
 class CannotTranscribe(Exception):
@@ -135,18 +134,6 @@ def _touched(mark: Mark) -> tuple[str, ...]:
     )
 
 
-def _real_path(name: str, known: list[str]) -> str:
-    """The real relative path a flattened address half names.
-
-    `unflatten` answers from the paths in hand, which is every page the copy
-    holds a sheet for. A `move`'s destination may be on a page it holds none
-    for -- the chief's copy files a move under its origin's page -- and the
-    flattened form is invertible by construction, since `gather` refuses a
-    path holding the separator, so the plain substitution answers there.
-    """
-    return unflatten(name, known) or name.replace(SEPARATOR, "/")
-
-
 def _touched_by_page(copy: EditCopy) -> dict[str, list[str]]:
     """The flattened page name -> every address this copy's marks write there.
 
@@ -164,7 +151,12 @@ def _touched_by_page(copy: EditCopy) -> dict[str, list[str]]:
 
 
 def _pages_of(
-    repo: Path, known: list[str], touched: dict[str, list[str]], who: str, noun: str
+    repo: Path,
+    known: list[str],
+    touched: dict[str, list[str]],
+    who: str,
+    noun: str,
+    cache: PageCache,
 ) -> tuple[dict[str, tuple[str, Page]], list[str]]:
     """Every page a transcription writes at, read from `repo`, and what would not read.
 
@@ -176,12 +168,14 @@ def _pages_of(
     Args:
         repo: the checkout every page is read from.
         known: the real relative paths the input records -- a copy's sheets,
-            or a proof's. They are what `unflatten` inverts a flattened name
-            against, and their order is the order the schedules come out in.
+            or a proof's. They are what a flattened name is turned back into
+            a path against (`flows.on_the_page.real_path`), and their order is
+            the order the schedules come out in.
         touched: flattened page name -> the addresses to be set there.
         who: whose transcription this is, for the reasons -- a role, or the
             chief where a fold decided the places.
         noun: what is owed at those addresses, for the reasons.
+        cache: the pages read, which the caller may read places off again.
 
     Returns:
         `(the flattened page name -> (its real relative path, the page), the
@@ -189,27 +183,16 @@ def _pages_of(
         `touched` first names one that is not among them. A reason names
         `who`, the page and every address on it.
     """
-    names = [flatten(path) for path in known] + list(touched)
     out: dict[str, tuple[str, Page]] = {}
     refused: list[str] = []
-    # A page the copy holds a sheet for and files a mark on is named twice,
-    # so what has been read already is tracked rather than tested for on
-    # `out` -- which a page that would not read never reaches.
-    seen: set[str] = set()
-    for name in names:
-        if name in seen:
-            continue
-        seen.add(name)
-        rel = _real_path(name, known)
-        page = None
-        if rel and not can_escape(rel):
-            page, _why = page_of(repo / rel, rel=rel)
+    for name in dict.fromkeys([flatten(path) for path in known] + list(touched)):
+        rel, page = page_named(name, known, repo, cache)
         if page is not None:
             out[name] = (rel, page)
         elif name in touched:
             refused.append(
-                f"{who} {rel or name}: this checkout has no page here, so"
-                f" the {noun} at {', '.join(touched[name])} cannot be set"
+                f"{who} {rel or name}: {no_page(rel or name)}, so the {noun} at"
+                f" {', '.join(touched[name])} cannot be set"
             )
     return out, refused
 
@@ -263,15 +246,12 @@ def _schedules_of(
                     Alteration(
                         cue=cue_of(place.address).cue,
                         text=place.text or None,
-                        # The anchor the role returned wins, and the page's
-                        # stands where the place holds none -- a move's
-                        # destination, which no mark is addressed to. The
-                        # write end refuses an alteration whose anchor is not
-                        # the page's there (`decision-log.md Process: #134`),
-                        # and that check has something to refuse only while
-                        # what reaches it is the anchor the role returned.
-                        anchor=place.anchor
-                        or page.cues.places.get(cue_of(place.address).cue, ""),
+                        # The place's own anchor, which `bases_and_anchors`
+                        # set when the places were built: the role's at a
+                        # mark's own address and the page's at a move's
+                        # destination. The write end refuses one that is not
+                        # the page's (`decision-log.md Process: #134`).
+                        anchor=place.anchor,
                     )
                     for place in here
                 ),
@@ -286,16 +266,17 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
 
     Args:
         copy: a returned edit_copy, already through `EditCopy.deserialize`.
-        repo: the checkout whose pages the write end sets. Every base and
-            every anchor is read from it, so what the fold measures a mark
-            against is the page rather than the mark's own account of it.
+        repo: the checkout whose pages the write end sets. Every base is read
+            from it, so what the fold measures a mark against is the page
+            rather than the mark's own account of it.
 
     Returns:
         A `Docket` -- one `Schedule` per page the fold decided a text on, each
-        naming that page's own path and sha and the copy's own role. An alteration
-        carries the page's anchor at its place (`decision-log.md Process:
-        #134` and `#135`) and its text, with an emptied place written as the
-        `None` the write end reads as a delete.
+        naming that page's own path and sha and the copy's own role. An
+        alteration carries the anchor at its place -- the role's at a mark's
+        own address, the page's at a move's destination (`decision-log.md
+        Process: #134` and `#135`) -- and its text, with an emptied place
+        written as the `None` the write end reads as a delete.
 
         A place the fold decided no text for gets no alteration: a `clean` and
         a `query` propose none, and neither does a place every role left
@@ -308,12 +289,10 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
             fold rolled back. Nothing it reported can be set, and the reasons
             are the report.
     """
+    known = [sheet.path for sheet in copy.sheets]
+    cache: PageCache = {}
     pages, unreadable = _pages_of(
-        repo,
-        [sheet.path for sheet in copy.sheets],
-        _touched_by_page(copy),
-        copy.role,
-        "marks",
+        repo, known, _touched_by_page(copy), copy.role, "marks", cache
     )
     if unreadable:
         raise CannotTranscribe(tuple(unreadable))
@@ -330,26 +309,9 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
     ]
     if refused:
         raise CannotTranscribe(tuple(refused))
-    bases: dict[str, str] = {}
-    anchors: dict[str, str] = {}
-    for name, (_rel, page) in pages.items():
-        for paragraph in page.paragraphs:
-            if paragraph.address:
-                bases[paragraph.address] = paragraph.raw_text
-        for cue, anchor in page.cues.places.items():
-            anchors[f"{name}@{cue}"] = anchor
-    # A mark's own anchor wins at its own address, so a place the fold builds
-    # carries what the role returned rather than what the page holds --
-    # `_schedules_of` states what that is for.
-    anchors.update(
-        {
-            mark.address: mark.anchor
-            for sheet in copy.sheets
-            for mark in sheet.marks
-            if mark.address
-        }
+    bases, anchors = bases_and_anchors(
+        [copy], lambda address: held_at(address, known, repo, cache)
     )
-
     fold = Fold(places_of([copy], bases, anchors)).run()
     if not fold.committed:
         raise CannotTranscribe(
@@ -518,8 +480,8 @@ def docket_of_proof(
         proof: a closed master proof, already through
             `MasterProof.deserialize`.
         repo: the checkout whose pages the write end sets. Each page is read
-            for its own place order and for the anchor at a place carrying
-            none.
+            for its own place order; every place on the proof carries the
+            anchor the collate handler gave it.
         only: the places the author approved, where they approved some and
             not others (`Process: #192`). None is the blanket approval: every
             place the proof decided.
@@ -572,7 +534,7 @@ def docket_of_proof(
             if sheet.path not in known:
                 known.append(sheet.path)
                 shas[flatten(sheet.path)] = sheet.sha
-    pages, unreadable = _pages_of(repo, known, touched, CHIEF, "places")
+    pages, unreadable = _pages_of(repo, known, touched, CHIEF, "places", {})
     if unreadable:
         raise CannotTranscribe(tuple(unreadable))
     return Transcription(

@@ -3,7 +3,6 @@ copy chief's own copy from what the fold decided at each place."""
 
 from helpers import a_binder_over, a_clean, a_correct, a_move, copies_over, returned
 
-from comment_review.desk.collator import base_texts
 from comment_review.desk.containers import Sheet
 from comment_review.desk.evaluate.place import Place
 from comment_review.desk.marks.mark import Instruction
@@ -13,13 +12,23 @@ from comment_review.flows.places import chief_copy_of, places_of
 BASE = "# one\n# two\n# three\n"
 
 
+def _binder_bases(binder) -> dict[str, str]:
+    """The binder's paragraph at each address it carries.
+
+    These binders are built over no real page, so the text they seeded is the
+    only base there is; the flow reads the page (`decision-log.md Process:
+    #187`), which is `tests/test_bus.py`'s subject rather than this file's.
+    """
+    return {b.address: b.raw_text for b in binder.paragraphs if b.address}
+
+
 def test_a_move_yields_two_places_that_partner_each_other():
     binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})
     wire = copies_over(
         binder, {"block-context": {"m.py@b1": a_move("m.py@b1", "m.py@b5")}}
     )
     copies = [returned(w) for w in wire]
-    places = places_of(copies, base_texts(binder), {})
+    places = places_of(copies, _binder_bases(binder), {})
     assert set(places) == {"m.py@b1", "m.py@b5"}
     assert places["m.py@b1"].partner == "m.py@b5"
     assert places["m.py@b5"].partner == "m.py@b1"
@@ -37,7 +46,7 @@ def test_a_clean_and_a_correct_on_one_address_land_as_two_filed_on_one_place():
         },
     )
     copies = [returned(w) for w in wire]
-    places = places_of(copies, base_texts(binder), {})
+    places = places_of(copies, _binder_bases(binder), {})
     assert set(places) == {"m.py@b1"}
     place = places["m.py@b1"]
     assert {f.role for f in place.filed} == {"block-context", "function-context"}
@@ -54,7 +63,7 @@ def test_readers_are_every_role_whose_copy_holds_a_sheet_for_the_page():
         },
     )
     copies = [returned(w) for w in wire]
-    places = places_of(copies, base_texts(binder), {})
+    places = places_of(copies, _binder_bases(binder), {})
     assert places["m.py@b1"].readers == ("block-context", "function-context")
 
 
@@ -64,7 +73,7 @@ def test_a_taken_in_move_writes_one_mark_at_its_origin_and_none_at_its_destinati
     move["change"] = "# two\n"
     wire = copies_over(binder, {"block-context": {"one.py@b1": move}})
     copies = [returned(w) for w in wire]
-    places = places_of(copies, base_texts(binder), {})
+    places = places_of(copies, _binder_bases(binder), {})
 
     origin, destination = places["one.py@b1"], places["two.py@b1"]
     move_mark = origin.filed[0].mark

@@ -4,11 +4,49 @@ The flow's half of the middle: it knows EditCopy and Sheet, which desk does
 not, and hands desk plain places.
 """
 
+from collections.abc import Callable
+
 from comment_review.desk.containers import EditCopy, Sheet
 from comment_review.desk.evaluate.place import Filed, Place
 from comment_review.desk.marks.mark import Mark
 from comment_review.desk.marks.table import INSTRUCTIONS, Touch, chief_mark
+from comment_review.flows.fill import touched_by
+from comment_review.flows.on_the_page import Held
 from comment_review.reading.addresser import cue_of, flatten
+
+
+def bases_and_anchors(
+    copies: list[EditCopy], held: Callable[[str], Held]
+) -> tuple[dict[str, str], dict[str, str]]:
+    """The base text and the anchor of every place the copies' marks touch.
+
+    The base is the page's text at the place, whether or not the binder holds
+    it (`decision-log.md Process: #187`, `#125`), so a move into a file the
+    run did not gather is measured against the paragraph already there.
+
+    The anchor is the page's, except at a mark's own address, where it is the
+    one the role returned: the write end checks an alteration's anchor
+    against the page's and refuses one that differs (`Process: #134`), which
+    it can only do while what reaches it is the role's. A move's destination
+    has no mark of its own, so it takes the page's.
+
+    Args:
+        copies: the roles' returned copies, or the one copy a draft folds.
+        held: address -> what the page holds there, through the caller's own
+            page cache (`flows.on_the_page.held_at`).
+
+    Returns:
+        `(address -> base, address -> anchor)`, for `places_of`.
+    """
+    marks = [mark for copy in copies for sheet in copy.sheets for mark in sheet.marks]
+    bases: dict[str, str] = {}
+    anchors: dict[str, str] = {}
+    for mark in marks:
+        for address, _touch in touched_by(mark):
+            if address not in bases:
+                bases[address], anchors[address] = held(address)
+    anchors.update({mark.address: mark.anchor for mark in marks if mark.address})
+    return bases, anchors
 
 
 def places_of(
@@ -23,8 +61,8 @@ def places_of(
 
     Args:
         copies: the roles' returned copies for this stage.
-        bases: `desk.collator.base_texts(binder)`.
-        anchors: the page's anchors, by address.
+        bases: each touched place's text, as `bases_and_anchors` reads it.
+        anchors: each touched place's anchor, the same way.
 
     Returns:
         address -> the `Place` built there.

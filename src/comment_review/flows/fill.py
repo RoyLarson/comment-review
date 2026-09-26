@@ -46,8 +46,9 @@ a role reads the reasons and calls again.
                              empty place, which the binder does not carry, and
                              the page's prose at an `f` place, which no role
                              is handed. The base is the page's, never the
-                             role's own entry -- `desk.collator.base_texts`'s
-                             rule for base texts, applied one layer up.
+                             role's own entry -- the rule the fold holds a
+                             place's base to (`decision-log.md Process:
+                             #187`), applied one layer up.
     no slot, no such page    refused
     no slot, no such place   refused -- the page carries every place, absent
                              and present, so a cue it does not hold names
@@ -83,6 +84,7 @@ from comment_review.desk.marks.mark import (
 )
 from comment_review.desk.marks.table import INSTRUCTIONS, Row, Touch
 from comment_review.desk.stages import not_admitted
+from comment_review.flows.on_the_page import held_at
 from comment_review.flows.page_for import page_of
 from comment_review.machine import constants
 from comment_review.machine.exceptions import READ_ERRORS
@@ -336,14 +338,26 @@ def composition_problems(
 def page_text_at(copies: list[dict], address: str, root: Path | None) -> str:
     """The page's paragraph at `address`, or "" where no page answers for it.
 
+    The page is read whether or not any of `copies` holds a sheet for it, as
+    the collate handler reads it (`decision-log.md Process: #187`): a move
+    may land in a file the run did not gather, and the paragraph already
+    there is what its destination text is held to.
+
     An empty answer is not a claim that the place is empty, and nothing here
     turns an unreadable page into a refusal: an address no page resolves is
     `flows.verify.resolution_problems`' finding, which `check` and the fold
     both run, and reporting it twice would refuse at `mark` what the parity
     case (`no-command-for-the-middle` T99) exists to have `check` name.
     """
-    marks, seeded, _why = place_on_the_page(copies, address, root)
-    return str(seeded.get("raw_text", "")) if marks is not None else ""
+    if root is None:
+        return ""
+    paths = [
+        str(sheet.get("path", ""))
+        for copy in copies
+        for sheet in copy.get("sheets", [])
+        if isinstance(sheet, dict)
+    ]
+    return held_at(address, paths, root, {}).text
 
 
 def _base_beside(copy: dict, seeded: dict, address: str, root: Path | None) -> str:

@@ -28,8 +28,9 @@ was flattened. Each cost a turn. All are named here, before the send.
 For a COPY: the envelope (`EditCopy.deserialize`), every place the role left
 alone or wrote unreadably (`flows.mark_errors`), and, with `--binder`, source
 verification and whether each address and each move's destination names a
-place its page carries (`desk.collator.verify_report`,
-`flows.verify.resolution_problems` -- the fold's own). For a
+place its page carries (`flows.verify.copy_problems`, the call the fold makes
+for every copy), and what each mark's row finds against the page's text at
+the places it writes (`flows.fill.row_problems`, `composition_problems`). For a
 BATCH: `flows.answers.answers_of`, the call the turn makes for each role --
 every answer paired to the slot that went out at its address, and read against
 that slot's own question. So `--sent` is the batch that went out, whose slots
@@ -46,23 +47,20 @@ import json
 import sys
 from pathlib import Path
 
-from comment_review.desk.collator import Cache, Problem, verify_report
+from comment_review.desk.collator import Cache, Problem
 from comment_review.desk.containers import EditCopy
 from comment_review.desk.stages import not_admitted
 from comment_review.flows.answers import answers_of, contracts, slots_of
-from comment_review.flows.fill import (
-    composition_problems,
-    page_text_at,
-    row_problems,
-)
+from comment_review.flows.fill import composition_problems, row_problems
 from comment_review.flows.mark_errors import mark_errors
+from comment_review.flows.on_the_page import PageCache, held_at
 from comment_review.flows.proof_io import (
     load_batch,
     load_binder,
     load_copy,
     load_value,
 )
-from comment_review.flows.verify import resolution_problems, texts_at
+from comment_review.flows.verify import copy_problems
 
 #: Exit codes -- `distribute`'s 0/1/2. `BROKEN` is anything the fold would
 #: refuse or send back; `UNREADABLE` is a file that is not an object at all.
@@ -79,7 +77,7 @@ def _refused(why: list[str]) -> int:
 
 
 def _row_problems(
-    copy: EditCopy, loaded: dict, texts: dict, root: Path
+    copy: EditCopy, paths: list[str], root: Path, pages: PageCache
 ) -> list[Problem]:
     """What each mark's own row finds against the pages -- `mark`'s own check.
 
@@ -87,25 +85,22 @@ def _row_problems(
     write its copy with its file-write tool rather than placing each ruling
     through `mark`, and the rows are what decide a `move`'s snippet and an
     `add`'s paragraph (`decision-log.md Process: #172`, `#175`, `#176`), so
-    a hand-written copy is held to what `mark` enforces on the way in.
+    a hand-written copy is held to what `mark` enforces on the way in. Each
+    place is measured against the page's text there, as the fold measures
+    it (`#187`), whether or not the binder holds that place or its file.
 
     Args:
         copy: one parsed edit_copy.
-        loaded: the same copy as its wire dict, which `place_on_the_page`
-            reads a sheet off for a place no mark's own address names.
-        texts: `flows.verify.texts_at`'s map, whose first text at each
-            address is the page's own -- already read once for the stage.
+        paths: the binder's own page paths.
         root: the checkout every page is read from.
+        pages: the pages already read for this copy's other checks.
 
     Returns:
         One `Problem` per finding, in sheet then mark order.
     """
-    bases = {address: held[0] for address, held in texts.items()}
 
     def base_at(address: str) -> str:
-        if address not in bases:
-            bases[address] = page_text_at([loaded], address, root)
-        return bases[address]
+        return held_at(address, paths, root, pages).text
 
     out = [
         Problem(copy.role, mark.address, why)
@@ -154,12 +149,11 @@ def _check_copy(path: str, binder_path: str | None, repo: str | None) -> int:
             return _refused(why)
         root = Path(repo) if repo else binder.root
         cache: Cache = {}
+        pages: PageCache = {}
         paths = [page.path for page in binder.pages]
-        texts = texts_at(copy, paths, root, {})
         for problem in (
-            *verify_report(copy, texts, root, cache),
-            *resolution_problems(copy, paths, root, {}),
-            *_row_problems(copy, loaded, texts, root),
+            *copy_problems(copy, paths, root, cache, pages),
+            *_row_problems(copy, paths, root, pages),
         ):
             print(
                 f"{problem.role} {problem.address or '(the copy)'}: {problem.message}"

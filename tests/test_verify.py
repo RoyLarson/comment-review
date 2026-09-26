@@ -164,7 +164,7 @@ class TestAnAddressOutsideTheCheckoutIsNotRead:
             read.append(page_path.resolve())
             return page_of(page_path, *args, **kwargs)
 
-        monkeypatch.setattr("comment_review.flows.verify.page_of", recording)
+        monkeypatch.setattr("comment_review.flows.on_the_page.page_of", recording)
         copy = returned(wire)
         paths = [page.path for page in binder.pages]
         cache: dict = {}

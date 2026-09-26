@@ -1,8 +1,6 @@
 """SOURCE-VERIFICATION: one role's marks against the tree they were read from.
 
     known_addresses()          every address the binder carries
-    base_texts()               every address -> the paragraph the binder
-                               seeded there
     claim_verbatim_problems()  the sentence the claim quotes is really in a
                                text at its place
     source_problems()          every `cite` resolves inside the checkout, and
@@ -23,8 +21,9 @@ own `raw_text`, the base a party being checked could have altered.
 ! WHETHER THE ADDRESS IS ONE
 THE BINDER CARRIES IS NOT ASKED, since 2026-09-05 -- `decision-log.md Process:
 #97`. The binder is filtered to the places holding prose, so an `add` cites a
-place it dropped and a `move` may cite a file it never held; the write end
-opens the page and is the one thing that can say whether the place exists.
+place it dropped and a `move` may cite a file it never held;
+`flows.verify.resolution_problems` opens the page and says whether the place
+exists.
 `known_addresses` stays for the revise diff; the coverage count asks what came
 back against what was handed out, and reads `binder.addresses.handed` for that.
 One kind needs only the report itself, and nothing outside it (`Problem`,
@@ -109,31 +108,6 @@ def known_addresses(binder: Binder) -> frozenset[str]:
         The addresses. A row carrying an empty one is dropped.
     """
     return frozenset(b.address for b in binder.paragraphs if b.address)
-
-
-def base_texts(binder: Binder) -> dict[str, str]:
-    """Every address the binder carries -> the paragraph it seeded there.
-
-    `flows.bus` hands it to the fold as each place's base. It is the binder's,
-    never a returned mark's: `raw_text` is seeded and comes back on the mark,
-    so reading it off the mark would measure against text the party being
-    checked supplied. `docs/gates.md` holds the measured case: the round-trip
-    identity scored 699 of 699 on its first run by rebuilding each file from
-    line positions it had just read out of that file.
-
-    A quoted clause is not checked against it. The binder is the seed for
-    what can be ruled on, not every place or file that can be, so the flow
-    reads the page's text at a mark's place and hands it to
-    `claim_verbatim_problems` -- `decision-log.md Process: #119`.
-
-    Args:
-        binder: the deserialized binder.
-
-    Returns:
-        address -> that place's `raw_text`. A row carrying no address is
-        dropped, matching `known_addresses`.
-    """
-    return {b.address: b.raw_text for b in binder.paragraphs if b.address}
 
 
 def claim_verbatim_problems(

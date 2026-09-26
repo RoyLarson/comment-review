@@ -6,13 +6,17 @@
 
 Each handler checks what its message carries, derives the places, opens a
 Fold, and on commit builds what the stage saves. A command sends one message
-and prints the events; nothing here reads or writes a file, and nothing here
-names a row of the three tables.
+and prints the events; nothing here writes a file, and nothing here names a
+row of the three tables.
 
-No handler reads a page. A place carries its own base text, so what the fold
-decides comes from the record alone (`decision-log.md Process: #62`); the one
-file a later message opens is a file an answer cites, which is verified as a
-mark's citation is (`Process: #181`).
+What each handler reads. The collate handler reads the pages its copies'
+marks touch: to check an address and a quote against the page
+(`decision-log.md Process: #119`, `#122`) and to take each place's base text
+and anchor from it (`#187`, `#125`). It and the turn handler read a file a
+mark or an answer cites, to verify the citation (`#181`). The disposition
+handler reads nothing. None of them asks whether a page changed since it was gathered
+(`#62`); once the places are built, the fold decides from them alone, and the
+turn and the disposition take their places off the proof.
 """
 
 from collections.abc import Callable, Mapping
@@ -21,12 +25,7 @@ from typing import NamedTuple
 
 from comment_review.binder.binder import Binder
 from comment_review.desk.answers.answer import Answer
-from comment_review.desk.collator import (
-    Cache,
-    Problem,
-    base_texts,
-    verify_report,
-)
+from comment_review.desk.collator import Cache, Problem
 from comment_review.desk.containers import EditCopy, MasterProof, Sheet
 from comment_review.desk.dispositions.disposition import CHIEF, Disposition
 from comment_review.desk.evaluate.place import Place
@@ -36,13 +35,12 @@ from comment_review.desk.work import events
 from comment_review.desk.work.fold import Fold, asked
 from comment_review.flows.answers import answers_of, slots_of
 from comment_review.flows.mark_errors import mark_errors
-from comment_review.flows.places import chief_copy_of, places_of
+from comment_review.flows.on_the_page import PageCache, held_at
+from comment_review.flows.places import bases_and_anchors, chief_copy_of, places_of
 from comment_review.flows.verify import (
-    PageCache,
+    copy_problems,
     coverage_problems,
-    resolution_problems,
     stage_problems,
-    texts_at,
 )
 
 
@@ -54,9 +52,10 @@ class CopiesReturned(NamedTuple):
         copies: one parsed copy per role, or per shard under fan-out. The
             envelope parse is the command's, so a document that is not a
             copy never reaches here.
-        binder: the binder they were seeded from -- the base each place is
-            measured against, and the page paths an address resolves through.
-        root: the checkout a cite and a page are read from.
+        binder: the binder they were seeded from -- the page paths an
+            address resolves through, and the places each role was handed.
+        root: the checkout a cite and a page are read from, and so where
+            each place's base text comes from.
         topology: the stage as the topology declares it, where the caller
             has one. Without it nothing can know a dispatch was owed.
     """
@@ -143,10 +142,14 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     the other copies were not gathered from -- is found before the fold
     opens, because none of it is a question about how the roles' rulings
     meet. Each becomes one `Refused`, and the fold never runs.
+
+    Each place's base text and anchor are then read off the page, as `mark`,
+    `check` and `proof` read them (`decision-log.md Process: #187`), so an
+    `add` or a `move` at a place the binder lacks is measured here against
+    the paragraph already there rather than first at the write end.
     """
     binder, root, copies = message.binder, message.root, message.copies
     paths = [page.path for page in binder.pages]
-    bases = base_texts(binder)
     out: list = []
     # ! ONE CACHE OF EACH FOR THE WHOLE STAGE, not one per copy: the roles cite
     # the same evidence and mark the same pages, so a per-copy cache reads one
@@ -155,9 +158,7 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     page_cache: PageCache = {}
     problems: list[Problem] = []
     for copy in copies:
-        texts = texts_at(copy, paths, root, page_cache)
-        problems += verify_report(copy, texts, root, cache)
-        problems += resolution_problems(copy, paths, root, page_cache)
+        problems += copy_problems(copy, paths, root, cache, page_cache)
     # ! `where` RATHER THAN `address`, and the two differ in one case only:
     # an entry that named no place. `where` is that entry's own address
     # wherever it has one, and the page and the entry's position where it has
@@ -179,7 +180,10 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
         out.append(events.RolledBack(len(problems)))
         return out, None
 
-    fold = Fold(places_of(copies, bases, _anchors_of(copies)), turn=0).run()
+    bases, anchors = bases_and_anchors(
+        copies, lambda address: held_at(address, paths, root, page_cache)
+    )
+    fold = Fold(places_of(copies, bases, anchors), turn=0).run()
     out += fold.events
     if not fold.committed:
         return out, None
@@ -306,16 +310,6 @@ def _pages_of(copies: list[EditCopy]) -> list[Sheet]:
                 seen.add(sheet.path)
                 out.append(sheet)
     return out
-
-
-def _anchors_of(copies: list[EditCopy]) -> dict[str, str]:
-    """The anchor each address's marks carry, for the places built from them."""
-    return {
-        mark.address: mark.anchor
-        for copy in copies
-        for sheet in copy.sheets
-        for mark in sheet.marks
-    }
 
 
 #: Who a problem with the proof itself is filed against. It is not a role and
