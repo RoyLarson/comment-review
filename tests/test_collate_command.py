@@ -30,6 +30,7 @@ from comment_review.desk.answers.answer import Question
 from comment_review.desk.evaluate.place import Place
 from comment_review.desk.evaluate.state import State
 from comment_review.desk.marks.mark import Shape
+from comment_review.desk.work import events
 from comment_review.flows.proof_io import load_proof
 
 BASE = "# one\n# two\n# three\n"
@@ -1052,3 +1053,16 @@ class TestTheStateBetweenTurnsOnDisk:
         assert place.state is State.UNSETTLABLE
         assert place.text is None
         assert [one.role for one in place.filed] == ["block-context"]
+
+
+def test_an_undecided_move_prints_one_line_and_sets_the_exit_code():
+    from comment_review.commands.collate import ESCALATIONS, REREADS, _code_for, _lines
+    from comment_review.desk.evaluate.move import Placement
+
+    opened = events.PlacementCarried("m.py@b1", "m.py@b5", Placement.OPEN, ("b",))
+    contested = events.PlacementCarried(
+        "m.py@b1", "m.py@b5", Placement.CONTESTED, ("a", "b")
+    )
+    assert _lines(opened) == ["open m.py@b1 -> m.py@b5: b (placement)"]
+    assert _code_for([opened, events.Committed(2)]) == REREADS
+    assert _code_for([contested, events.Committed(2)]) == ESCALATIONS

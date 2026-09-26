@@ -872,37 +872,11 @@ class TestOnlyTheApprovedPlaces:
         )
         assert docket_of_proof(proof, repo).sets_nothing == ()
 
-    def test_one_end_of_a_settled_move_is_a_refusal_naming_the_other(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        """A move is one decision at two places. Approving the origin alone
-        would drop the paragraph and add it nowhere; approving the
-        destination alone would write it at both. The missing end is named."""
-        proof, repo = self._closed(
-            tmp_path,
-            monkeypatch,
-            capsys,
-            {
-                "block-context": {
-                    "m.py@b1": a_move(
-                        "m.py@b1", "m.py@b2", change="# two\n", reads=MOVED_TO
-                    ),
-                    "m.py@b2": a_clean("m.py@b2"),
-                }
-            },
-            MOVED,
-        )
-        with pytest.raises(CannotTranscribe) as raised:
-            docket_of_proof(proof, repo, only=("m.py@b1",))
-        (why,) = raised.value.reasons
-        assert "m.py@b2" in why
-
     def test_both_ends_of_a_move_together_are_transcribed(
         self, tmp_path, monkeypatch, capsys
     ):
-        """The pair is what the refusal above asks for, so the case that
-        names both ends must land both -- otherwise the refusal would be
-        demanding something the filter cannot do."""
+        """A move's two ends are approved each on its own (D8): the case
+        naming both lands both, one decided text per place."""
         proof, repo = self._closed(
             tmp_path,
             monkeypatch,

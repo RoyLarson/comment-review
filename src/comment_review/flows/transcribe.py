@@ -382,31 +382,15 @@ def _approved(
 ) -> tuple[list[Place], list[str], tuple[str, ...]]:
     """The approved places alone, the reasons a name is refused, and what sets nothing.
 
-    `decision-log.md Process: #192`. Two refusals, and both are all or
-    nothing: a partial approval that set the places it could and reported
-    the rest would draft a tree the author never approved.
+    `decision-log.md Process: #192`. One refusal: an address the proof does
+    not carry. Nothing was decided there, so nothing was approved there, and
+    the name is likelier a mistyped address than a ruling -- transcribing the
+    rest would set what was named correctly and say nothing about what was
+    not.
 
-    An address the proof does not carry is the first. Nothing was decided
-    there, so nothing was approved there, and the name is likelier a
-    mistyped address than a ruling -- transcribing the rest would set what
-    was named correctly and say nothing about what was not.
-
-    One end of a move without the other is the second. The two ends hold
-    separate texts -- the origin as the moved snippet leaves it, the
-    destination as it reads with the snippet in -- and the paragraph travels
-    between them: setting the origin alone drops it and adds it nowhere,
-    and setting the destination alone writes it in both places. The end that
-    is missing is what the reason names, since that is what the author has to
-    approve for the move to be set.
-
-    The reason says what the paragraph does, not how the pair was ruled.
-    The chief may rule the two ends differently -- a `taken_in` at one and a
-    `recast` at the other (`docs/the-turn.md`, what the chief rules) -- so by
-    the time a proof closes they are two decided texts rather than one
-    ruling. Calling them one move in the refusal would be false on those
-    runs; where the paragraph goes is true on all of them. The pair is still
-    refused there, and the cost of the conservative case -- an end whose
-    decided text is the paragraph already there -- is one more `--only`.
+    A move's two ends are approved each on its own: an agreed move reaches
+    the proof as a `drop` and an `add` (`decision-log.md Process: #195` item
+    5), and a held one sets nothing at either end.
 
     Args:
         places: every place the proof carries, parsed and closed.
@@ -428,22 +412,6 @@ def _approved(
         for address in named
         if address not in by_address
     ]
-    for address in named:
-        place = by_address.get(address)
-        if place is None:
-            continue
-        # The pair names itself, the way `desk.work.fold._held_with` reads
-        # one: a place records its partner and the partner records it back.
-        other = by_address.get(place.partner or "")
-        if other is None or other.partner != address or other.address in wanted:
-            continue
-        if _sets(place) or _sets(other):
-            problems.append(
-                f"{CHIEF} {address}: {other.address} is the other end of a"
-                " move filed here and is not approved -- the paragraph travels"
-                " between the two, so setting one alone leaves it in both"
-                " places or in neither"
-            )
     if problems:
         return [], problems, ()
     return (

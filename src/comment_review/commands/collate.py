@@ -28,6 +28,7 @@ from pathlib import Path
 
 from comment_review.desk.answers.answer import Question
 from comment_review.desk.containers import EditCopy
+from comment_review.desk.evaluate.move import Placement
 from comment_review.desk.evaluate.state import CARRIED, SETTLED, State
 from comment_review.desk.topology import read as read_topology
 from comment_review.desk.work import events
@@ -121,6 +122,12 @@ def _lines(event: object) -> list[str]:
         return [f"{event.state} {event.address}: {roles} ({event.question})"]
     if isinstance(event, events.Unsettlable):
         return _for_the_human(event)
+    if isinstance(event, events.PlacementCarried):
+        roles = ", ".join(event.roles)
+        return [
+            f"{event.placement} {event.origin} -> {event.destination}:"
+            f" {roles} (placement)"
+        ]
     if isinstance(event, events.Settled):
         return [f"stet {event.address}"]
     # `Advised` prints under its own heading, after the places -- see `_print`.
@@ -158,15 +165,19 @@ def _code_for(out: list) -> int:
 
     A rollback is `BROKEN`: nothing was saved, and every reason is on stdout
     beside the role that owes it. Otherwise the strongest claim on a person's
-    attention wins -- an escalation over a composition, and `OK` where the
-    fold carried nothing forward.
+    attention wins -- an escalation over a contested placement over a
+    composition or an open placement, and `OK` where the fold carried
+    nothing forward.
     """
     if any(isinstance(one, events.RolledBack) for one in out):
         return BROKEN
     carried = [one for one in out if isinstance(one, events.CarriedForward)]
+    placements = [one for one in out if isinstance(one, events.PlacementCarried)]
     if any(one.question is Question.ESCALATION for one in carried):
         return ESCALATIONS
-    if any(one.question is Question.COMPOSITION for one in carried):
+    if any(one.placement is Placement.CONTESTED for one in placements):
+        return ESCALATIONS
+    if placements or any(one.question is Question.COMPOSITION for one in carried):
         return REREADS
     return OK
 
