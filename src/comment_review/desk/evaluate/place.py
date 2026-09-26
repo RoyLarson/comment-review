@@ -58,7 +58,6 @@ class Place:
     #: them. Empty on a place nothing is carried forward for.
     owed: tuple[str, ...] = ()
     question: Question | None = None
-    partner: str | None = None
 
     def serialize(self) -> dict:
         """This place's own fields, as a dict keyed by this class's own field names."""
@@ -84,7 +83,6 @@ class Place:
             "asking": list(self.asking),
             "owed": list(self.owed),
             "question": str(self.question) if self.question else None,
-            "partner": self.partner,
         }
 
     @classmethod
@@ -136,7 +134,6 @@ class Place:
                 asking=tuple(data.get("asking") or ()),
                 owed=tuple(data.get("owed") or ()),
                 question=Question(question) if question else None,
-                partner=data.get("partner"),
             ),
             [],
         )

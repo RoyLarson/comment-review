@@ -1,9 +1,15 @@
-"""The three passes, and the pairing of a move's two places."""
+"""The three passes over a place, run after each move's placement is decided."""
 
 from comment_review.desk.answers.answer import Question
 from comment_review.desk.answers.table import ANSWERS, Effect
 from comment_review.desk.dispositions.disposition import CHIEF, ORIGINAL
 from comment_review.desk.dispositions.table import DISPOSITIONS
+from comment_review.desk.evaluate.move import (
+    Move,
+    hold_ends,
+    placement_pass,
+    settle_ends,
+)
 from comment_review.desk.evaluate.place import Filed, Place
 from comment_review.desk.evaluate.state import CARRIED, State
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
@@ -70,9 +76,21 @@ def composed_side(
     try:
         return compose(base, texts), []
     except CannotCompose:
+        # Marks whose rows set their own `raw_text` -- each a paragraph as it
+        # will read (`decision-log.md Process: #196`) -- are all wanted, so
+        # the role is asked for one paragraph holding both rather than to
+        # give one up.
+        whole = all(
+            INSTRUCTIONS[one.mark.instruction].carries_raw_text for one in filed
+        )
+        ask = (
+            "restate the paragraph with both texts in it as one mark"
+            if whole
+            else "withdraw one"
+        )
         return None, [
             f"{role}: its marks here edit the same sentence and do not compose"
-            f" -- {', '.join(_named(one) for one in filed)}; withdraw one"
+            f" -- {', '.join(_named(one) for one in filed)}; {ask}"
         ]
 
 
@@ -145,7 +163,6 @@ def owed_a_say(
     place: Place,
     text: str,
     sides: dict[str, str],
-    partner: Place | None = None,
     turn: int = 0,
 ) -> tuple[str, ...]:
     """The roles that have not accepted `text`, whose say it still owes.
@@ -160,25 +177,11 @@ def owed_a_say(
         it answered and holds   it was asked, and withdrew or abstained; it
         no side                 has had its say and holds no position now
 
-    **A role that withdrew at the other end of its own move answered under the
-    third of those**, and the answer is filed at the end it was written at, so
-    this place cannot see it in its own record: `_withdrew_at_the_partner`
-    names those roles and they count as having answered here
-    (`Process: #129`, `#190`). Derived from the place, its partner and the
-    turn, which this already takes, rather than handed in -- the answers pass
-    reads the same function for the sides it takes off, so the rule is reached
-    one way.
-
     Args:
         place: the place being settled, carrying its readers, what was filed
             and every turn's answers.
         text: the one text the sides have come to.
         sides: role -> the text that role proposes, as the pass holds them.
-        partner: the other end, where this place is one end of a move. A move
-            is one mark at two places, so a role that defers at either end
-            defers on the move (`Process: #137` and `#138`) -- otherwise a
-            role that queried the origin would be waited on at a destination
-            it never marked.
         turn: the turn being decided. Only answers up to it count: the marks
             pass decides the place as it stood before any turn, and a role
             whose answer has not been applied yet has not had its say.
@@ -190,8 +193,8 @@ def owed_a_say(
     filed_by = _by_role(place)
     answered = {
         role for at, by_role in place.answers.items() if at <= turn for role in by_role
-    } | _withdrew_at_the_partner(place, partner, turn)
-    deferring = _deferring(place) | _deferring(partner)
+    }
+    deferring = _deferring(place)
     out = []
     for role in set(place.readers) | set(filed_by):
         if role in deferring:
@@ -204,7 +207,7 @@ def owed_a_say(
     return tuple(sorted(out))
 
 
-def marks_pass(place: Place, partner: Place | None = None) -> Place:
+def marks_pass(place: Place) -> Place:
     """The place's state from the marks filed there, and what to advise on them.
 
     The notes are collected first and kept whatever the state turns out to
@@ -215,8 +218,6 @@ def marks_pass(place: Place, partner: Place | None = None) -> Place:
 
     Args:
         place: the place to evaluate.
-        partner: the other end, where this place is one end of a move --
-            see `owed_a_say`, which is what reads it.
     """
     place.notes = tuple(
         f"{one.role}: {note}"
@@ -225,9 +226,6 @@ def marks_pass(place: Place, partner: Place | None = None) -> Place:
             one.mark, one.touch, place.base
         )
     )
-    crossed = _moves_crossing(place)
-    if crossed:
-        return _set(place, State.REFUSED, reasons=crossed)
     reasons = []
     for one in place.filed:
         row = INSTRUCTIONS[one.mark.instruction]
@@ -254,237 +252,24 @@ def marks_pass(place: Place, partner: Place | None = None) -> Place:
     )
     if asking:
         return _set(place, State.UNSETTLABLE, sides=sides, asking=asking)
-    return _from_sides(place, sides, partner)
+    return _from_sides(place, sides)
 
 
-def _moves_crossing(place: Place) -> tuple[str, ...]:
-    """One reason per role whose two-place mark here meets another's.
-
-    A move's two ends are paired by `Place.partner`, and a place holds one
-    partner. Two marks that each write here and at a different second place
-    -- two moves out of one origin, or two into one place, `decision-log.md
-    Process: #154` -- can have only one of their other ends paired with this
-    one, so the second move would land under the wrong pairing. Until the move
-    is redesigned the place is refused for each role that filed one, naming
-    every such mark, as `composed_side` names a pair that will not compose.
-    It runs in `marks_pass`, before `pair_moves` reads a partner.
-
-    Marks writing the same two places are one pairing, however many filed
-    them, so two roles making one move are not refused here.
-
-    Returns:
-        `"<role>: <why>"`, one per role in role order, or an empty tuple.
-    """
-    ends: dict[frozenset[str], list[Filed]] = {}
-    for one in place.filed:
-        written = INSTRUCTIONS[one.mark.instruction].places(one.mark)
-        if len(written) > 1:
-            ends.setdefault(frozenset(where for where, _ in written), []).append(one)
-    if len(ends) < 2:
-        return ()
-    filed = [one for group in ends.values() for one in group]
-    named = ", ".join(
-        f"{one.role}'s {one.mark.instruction} "
-        + " -> ".join(
-            where for where, _ in INSTRUCTIONS[one.mark.instruction].places(one.mark)
-        )
-        for one in sorted(filed, key=lambda one: one.role)
-    )
-    return tuple(
-        f"{role}: two moves touch this place and a place pairs with one other"
-        f" end -- {named}; withdraw one"
-        for role in sorted({one.role for one in filed})
-    )
-
-
-def pair_moves(places: dict[str, Place]) -> None:
-    """A move's two places take one state: the worse of the two.
-
-    An end that takes the other's state takes what that state is read with:
-    the question a turn asks about it and the roles it is asked of, where it
-    has none of its own. Without them an end carried forward by its partner
-    would go out asking nobody.
-
-    An end that has a question of its own keeps it, so a paired place's state
-    and its question are read separately: the state says how the move stands,
-    the question says what this end's roles are asked, and an answer is read
-    against the question alone. A destination can be carried forward contested,
-    its partner's state, while it still asks a composition of the roles that
-    have not seen its text.
-
-    And an end held for the human decides no text, as `marks_pass` decides
-    none where the query was filed. A text left on the end that took the
-    state is read downstream as a place the fold decided
-    (`flows.places.chief_copy_of` takes every place carrying one), so the move
-    the human was asked to rule would be written to the page while the
-    question was still open -- measured 2026-09-18 on the smoke's held move,
-    which landed at both ends.
-    """
-    order = [
-        State.REFUSED,
-        State.UNSETTLABLE,
-        State.CONTESTED,
-        State.COMPOSED,
-        State.AGREED,
-        State.STANDS,
-    ]
-    for address, place in places.items():
-        other = places.get(place.partner or "")
-        if other is None or other.partner != address:
-            continue
-        # A place two moves touch has no one partner to take a state from or
-        # give one to; whichever it names is the pairing `_moves_crossing`
-        # refused it for, so the refusal stays where the moves meet.
-        if _moves_crossing(place) or _moves_crossing(other):
-            continue
-        worst = min(
-            (place.state, other.state),
-            key=lambda s: order.index(s) if s else len(order),
-        )
-        for end in (place, other):
-            if end.state is not worst:
-                taken = other if end is place else place
-                end.state = worst
-                end.reasons = end.reasons + tuple(
-                    r for r in (place.reasons + other.reasons) if r not in end.reasons
-                )
-                if worst in CARRIED:
-                    end.question = end.question or taken.question
-                    end.owed = end.owed or taken.owed
-                if worst is State.UNSETTLABLE:
-                    end.asking = end.asking or taken.asking
-                    end.text = None
-
-
-def _one_mark_at_both(role: str, place: Place, partner: Place) -> bool:
-    """Whether one mark of this role's is filed at both of these places.
-
-    A move is one mark at two places, so the entry at the origin and the entry
-    at the destination carry the same mark. Compared by value, not by
-    identity: a place read back off a proof deserializes its own marks, so the
-    one mark is two equal objects once the stage has crossed the wire.
-    """
-    mine = [one.mark for one in place.filed if one.role == role]
-    return any(one.mark in mine for one in partner.filed if one.role == role)
-
-
-def _withdrew_at_the_partner(
-    place: Place, partner: Place | None, turn: int
-) -> set[str]:
-    """The roles whose answer at the other end of their own move reaches here.
-
-    `decision-log.md Process: #129`, `#152` and `#153`: a move is one mark at
-    two places and an answer its filer gives at either end reaches the move
-    whole. Which answers cross is the answers row's `reaches_partner`, not a
-    name read here; a withdrawal is the one that does, and it takes the
-    filer's side off the place it was not written at as well.
-
-    Every turn up to `turn` is read, not `turn` alone: the answer stays on the
-    partner's record, and a role that withdrew its move in an earlier turn has
-    still withdrawn it in this one. Taking a side off twice does nothing, and
-    the roles are what `owed_a_say` needs for as long as the place is open
-    (`Process: #190`).
-
-    So a withdrawal is never undone by a later turn, where an acceptance is --
-    `_accepting` lets a later `REPLACES` or `REMOVES` take the acceptance back,
-    and nothing here takes a withdrawal back. It cannot arise in the fold's own
-    flow: a role that answered and holds no side is not asked at that place
-    again (`owed_a_say`), and `flows.bus._on_answers` refuses an answer at a
-    place the role was not put to, so there is no later answer of its to read.
-    MEASURED, on a proof that carries one anyway: where the place it was
-    written at has settled it is not read at all (`Process: #91`), and where
-    that place is still carried forward the side comes back at that end alone
-    and `refuse_half_moves` refuses the pair -- *"its answers leave the move
-    half done"* -- rather than letting one half commit.
-
-    Args:
-        place: the end being decided.
-        partner: the other end, where there is one.
-        turn: the last turn whose answers are applied.
-
-    Returns:
-        The roles that withdrew at the other end of a mark they filed at both
-        places. Empty where the place has no partner, or nothing crossed.
-    """
-    if partner is None:
-        return set()
-    out: set[str] = set()
-    for at in sorted(one for one in partner.answers if one <= turn):
-        for role, answer in partner.answers[at].items():
-            row = ANSWERS.get((answer.question, answer.name))
-            if row is None or not row.reaches_partner:
-                continue
-            if _one_mark_at_both(role, place, partner):
-                out.add(role)
-    return out
-
-
-def _accepting(place: Place, turn: int) -> set[str]:
-    """The roles whose side here was accepted from another rather than proposed.
-
-    A `clean` takes the text that was put to the role (`Effect.ACCEPTS`), so
-    that side is a stance toward somebody else's proposal. A later answer that
-    replaces or removes it makes the side the role's own again, or none; a
-    `hold` leaves it as it stands, acceptance and all.
-
-    `decision-log.md Process: #188` is what reads this: an acceptance of a
-    withdrawn move's text goes with the move, and a proposal of the same text
-    does not.
-
-    Args:
-        place: the place, carrying every turn's answers.
-        turn: the turn being decided -- answers after it are not read, as
-            `owed_a_say` does not read them.
-
-    Returns:
-        The roles, for the caller to ask about a side it is taking off.
-    """
-    out: set[str] = set()
-    for at in sorted(one for one in place.answers if one <= turn):
-        for role, answer in place.answers[at].items():
-            row = ANSWERS.get((answer.question, answer.name))
-            if row is None:
-                continue
-            effect = row.effect(answer)
-            if effect is Effect.ACCEPTS:
-                out.add(role)
-            elif effect in (Effect.REPLACES, Effect.REMOVES):
-                out.discard(role)
-    return out
-
-
-def answers_pass(place: Place, turn: int, partner: Place | None = None) -> Place:
+def answers_pass(place: Place, turn: int) -> Place:
     """Narrow a carried-forward place by the roles' answers at `turn`.
 
     A place held for the human or refused is left as it is, whatever was
     answered: the first rides to the author (`decision-log.md Process: #90`)
     and the second is rolling the round back.
 
-    !! A WITHDRAWAL AT THE OTHER END OF A MOVE IS READ HERE TOO, and at a
-    place this fold is not otherwise narrowing. A move is one mark at two
-    places and an answer at either end reaches it whole (`Process: #129`), so
-    the reach is a fact about the mark rather than about the state this end
-    came to on its own: one end of a move settles with the move and not before
-    it, which is `Process: #190` and one step past `#91`.
-
     Args:
         place: the place, carrying what the marks pass left and the answers.
         turn: which turn's answers to apply.
-        partner: the other end of a move, as `marks_pass` takes it.
     """
-    if place.state in (State.UNSETTLABLE, State.REFUSED):
-        return place
-    withdrew = _withdrew_at_the_partner(place, partner, turn)
-    if place.state not in CARRIED and not withdrew:
+    if place.state not in CARRIED:
         return place
     sides = dict(place.sides)
-    gone = {place.sides[role] for role in withdrew if role in place.sides}
-    for role in withdrew:
-        sides.pop(role, None)
-    # A place the fold has already settled is narrowed by nothing else
-    # (`Process: #91`); what reached it above came from the move's other end.
-    answers = place.answers.get(turn, {}) if place.state in CARRIED else {}
-    for role, answer in answers.items():
+    for role, answer in place.answers.get(turn, {}).items():
         row = ANSWERS.get((answer.question, answer.name))
         if row is None:
             return _set(
@@ -503,30 +288,7 @@ def answers_pass(place: Place, turn: int, partner: Place | None = None) -> Place
             sides[role] = answer.change
         elif effect is Effect.ACCEPTS and place.text is not None:
             sides[role] = place.text
-    # An acceptance of a withdrawn move's text goes with the move
-    # (`decision-log.md Process: #188`): a `clean` is a stance toward a
-    # proposal, so with the move off the place there is nothing left to
-    # accept, and a side left standing on it is what carries a withdrawn move
-    # onto the page under another role's name. Unless another role proposes
-    # that text itself -- a second move, or a `correct` that came to the same
-    # words -- which is the ruling's last clause and is read off the sides
-    # that survive: a role withdrawn above holds none, and a role whose side
-    # is an acceptance proposes nothing.
-    #
-    # !! READ AFTER THIS TURN'S OWN ANSWERS, AND THE ORDER IS THE RULE.
-    # MEASURED by moving these four lines above the loop: the proposal that
-    # protects an acceptance may be written in the same turn as the
-    # withdrawal, and read before the loop the only texts here are the ones
-    # that turn is about to replace -- three cases of
-    # `tests/test_passes.py::TestAnAnswerReachesBothEndsOfTheMove` fail, the
-    # acceptance dropped where a `correct` restores its text and kept where
-    # nothing does.
-    accepting = _accepting(place, turn)
-    proposed = {text for role, text in sides.items() if role not in accepting}
-    for role in accepting:
-        if sides.get(role) in gone - proposed:
-            sides.pop(role)
-    return _from_sides(place, sides, partner, turn)
+    return _from_sides(place, sides, turn)
 
 
 def dispositions_pass(place: Place) -> Place:
@@ -556,125 +318,46 @@ def dispositions_pass(place: Place) -> Place:
     return _set(place, State.STANDS, text=text)
 
 
-def refuse_half_moves(places: dict[str, Place]) -> None:
-    """Refuse a move whose filer holds a side at one of its ends and none at the other.
+def decide(
+    places: dict[str, Place], moves: "dict[str, Move] | None" = None, turn: int = 0
+) -> dict[str, Place]:
+    """Every move's placement, then every place, in the one order they run in.
 
-    A move is one mark at two places, so the role that filed it holds a side
-    at both of them or at neither: the origin's paragraph with the snippet
-    gone is only right where the destination's paragraph with the snippet in
-    is right too. A commit takes no move half done, and this is where the fold
-    finds one.
-
-    It is reachable through one shape: a role answering its own move two ways
-    in one turn. The withdrawal reaches the other end (`answers_pass`) and a
-    `correct` or `patch` at that end puts the role's side back there, so the
-    move is neither withdrawn nor made and the round goes back to the role --
-    `decision-log.md Process: #189`, which reads that pair as `#154` reads an
-    ambiguous move rather than letting the withdrawal win.
-
-    An end held for the human or already refused is left alone. The first
-    decides no text at either end and rides to the author as one move
-    (`decision-log.md Process: #155`), and an answer that holds a place keeps
-    no sides there, which is the same shape as a side that went.
-
-    So is a pair the chief has ruled at either end: `dispositions_pass` closes
-    the end it names and keeps no sides there, so the ruled end and the
-    unruled one would read as a move half done. A carried-forward place the
-    chief left unruled is refused by name in `flows.bus._on_dispositions`,
-    which is the check that case belongs to.
-    """
-    for address in sorted(places):
-        place = places[address]
-        other = places.get(place.partner or "")
-        if other is None or other.partner != address:
-            continue
-        if _OUTSIDE_THE_GUARD & {place.state, other.state}:
-            continue
-        if place.disposition is not None or other.disposition is not None:
-            continue
-        for role in sorted({one.role for one in place.filed}):
-            if not _one_mark_at_both(role, place, other):
-                continue
-            if (role in place.sides) == (role in other.sides):
-                continue
-            held, lost = (address, other.address)
-            if role not in place.sides:
-                held, lost = lost, held
-            reason = (
-                f"{role}: its answers leave the move half done -- its side"
-                f" stands at {held} and is gone at {lost}; an answer at either"
-                " end reaches the move whole, so withdraw it at both or keep"
-                " it at both"
-            )
-            _set(place, State.REFUSED, reasons=(reason,))
-            _set(other, State.REFUSED, reasons=(reason,))
-            break
-
-
-#: The states `refuse_half_moves` asks nothing of -- see its own docstring.
-_OUTSIDE_THE_GUARD = frozenset({State.UNSETTLABLE, State.REFUSED})
-
-
-def decide(places: dict[str, Place], turn: int = 0) -> dict[str, Place]:
-    """Every place decided, in the one order the passes may run in.
-
-    The marks and then each turn's answers, per place; `pair_moves`, which
-    gives a move's two ends their one state; the chief's dispositions;
-    `pair_moves` again, so an end the chief's ruling refused takes its partner
-    with it; and `refuse_half_moves`, which is what the commit asks about a
-    move -- last, so it reads the sides every other pass has left.
-
-    !! THE DISPOSITIONS PASS READS THE PAIRED STATE, AND DID NOT UNTIL
-    2026-09-18. It ran inside a per-place `evaluate` with the pairing after
-    all of them, so the chief's ruling was measured against the state an end
-    reaches ALONE. MEASURED through the commands: a move whose origin nobody
-    else marked is `agreed` by itself and `contested` once paired, so a run
-    that reported both ends contested, put them to both roles and wrote
-    `contested` on the proof then refused every ruling the chief made with
-    *"taken_in cannot close a place that is agreed"* -- at a place its own
-    report had just called contested. The chief could not close a contested
-    move at all.
-
-    !! AND IT IS A FUNCTION OF THE PLACES, NOT OF ONE PLACE, for that reason.
-    `evaluate(place, turn, partner)` was the entry point and its order was the
-    defect; a caller holding one place cannot pair anything, so there is no
-    single-place entry left to call in the wrong order. The passes stay public
-    and a test drives them one at a time; what is gone is the function that
-    looked like the whole sequence and was not.
+    `decision-log.md Process: #195`: a move is a placement claim decided once
+    for the pair before either end's words. So each move's placement pass
+    runs first and a final one is written onto the two place records -- the
+    split, or the withdrawal. Then each place's marks and answers, as for any
+    one-place mark; then every move not yet final holds its two ends; then
+    the chief's dispositions; then the hold again, so a ruling refused at one
+    end of an unsplit move refuses the other.
 
     Args:
-        places: address -> the place, each from its own record. Mutated in
-            place and returned, as the passes themselves do.
+        places: address -> place, each from its own record. Mutated.
+        moves: key -> move, from `desk.evaluate.move.moves_in`. Mutated.
+            None where the caller has none, which is every place alone.
         turn: the turn to decide at -- every answer up to it is applied.
 
     Returns:
         `places`, decided.
     """
+    moves = {} if moves is None else moves
+    for move in moves.values():
+        placement_pass(move, places, turn)
+        settle_ends(move, places)
     for place in places.values():
-        partner = places.get(place.partner or "")
-        marks_pass(place, partner)
+        marks_pass(place)
         for t in range(1, turn + 1):
-            answers_pass(place, t, partner)
-    pair_moves(places)
+            answers_pass(place, t)
+    for move in moves.values():
+        hold_ends(move, places)
     for place in places.values():
         dispositions_pass(place)
-    # ! THE SECOND PAIRING IS THE CHIEF'S OWN REFUSAL TRAVELLING. Two ends the
-    # chief closed are both `stands`, so it changes nothing there -- the guard
-    # only touches an end whose state is not the worse of the two, and each
-    # keeps the text its own ruling set. What it carries is a ruling the pass
-    # refused: a move refused at one end rolls back both, as it does when the
-    # refusal comes from the marks.
-    pair_moves(places)
-    refuse_half_moves(places)
+    for move in moves.values():
+        hold_ends(move, places)
     return places
 
 
-def _from_sides(
-    place: Place,
-    sides: dict[str, str],
-    partner: Place | None = None,
-    turn: int = 0,
-) -> Place:
+def _from_sides(place: Place, sides: dict[str, str], turn: int = 0) -> Place:
     """The place's state from the one text its sides hold, or from their disagreement.
 
     A text every role owed a say has accepted settles here; a text some have
@@ -688,7 +371,7 @@ def _from_sides(
         return _set(place, State.STANDS)
     if len(distinct) == 1:
         text = next(iter(distinct))
-        owed = owed_a_say(place, text, sides, partner, turn)
+        owed = owed_a_say(place, text, sides, turn)
         if owed:
             return _set(
                 place,
@@ -702,7 +385,8 @@ def _from_sides(
         # !! THE SIDES ARE KEPT, AND WERE DROPPED HERE UNTIL 2026-09-18. They
         # are what the roles proposed, which is a fact about the marks and not
         # about the state the place came to -- and a move's origin that stands
-        # alone is carried forward by its partner, where the chief's
+        # alone is carried forward by `move.hold_ends` while the move's
+        # placement is not final, where the chief's
         # `taken_in` names a side and found none to name. MEASURED: the ruling
         # was refused with *"'block-context' proposed nothing here"* at a
         # place that role had moved a paragraph out of.
@@ -726,7 +410,7 @@ def _from_sides(
         text=composed,
         sides=sides,
         question=Question.COMPOSITION,
-        owed=owed_a_say(place, composed, sides, partner, turn),
+        owed=owed_a_say(place, composed, sides, turn),
     )
 
 

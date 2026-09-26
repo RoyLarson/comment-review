@@ -2,16 +2,16 @@
 
 from comment_review.desk.answers.answer import Answer, Question
 from comment_review.desk.dispositions.disposition import ORIGINAL, Disposition
+from comment_review.desk.evaluate.move import Placement, moves_in
 from comment_review.desk.evaluate.passes import (
     answers_pass,
     decide,
     dispositions_pass,
     marks_pass,
-    pair_moves,
     sides_of,
 )
 from comment_review.desk.evaluate.place import Filed, Place
-from comment_review.desk.evaluate.state import State
+from comment_review.desk.evaluate.state import CARRIED, State
 from comment_review.desk.marks.mark import Instruction, Mark, Shape
 from comment_review.desk.marks.table import Touch
 
@@ -175,6 +175,47 @@ class TestSeveralOfOneRolesMarksAtOnePlace:
         assert got.sides == {"a": "# five\n# one\n# 2\n# three\n"}
         assert got.reasons == ()
 
+    def test_two_adds_on_one_line_are_sent_back_to_be_restated_together(self):
+        base = "# four\n# five\n"
+        first = _mark(
+            Instruction.ADD,
+            change="# two\n",
+            raw_text="# four\n# two\n# five\n",
+            address="m.py@b5",
+        )
+        second = _mark(
+            Instruction.ADD,
+            change="# six\n",
+            raw_text="# four\n# six\n# five\n",
+            address="m.py@b5",
+        )
+        place = _place(
+            Filed("a", first, Touch.OWN),
+            Filed("a", second, Touch.OWN),
+            base=base,
+            address="m.py@b5",
+        )
+        _sides, why = sides_of(place)
+        assert len(why) == 1
+        assert "restate the paragraph with both" in why[0]
+        assert "withdraw one" not in why[0]
+
+    def test_a_correct_and_a_patch_on_one_sentence_still_say_withdraw_one(self):
+        corr = _mark(
+            Instruction.CORRECT,
+            change="# one\n# 2\n# three\n",
+            claim={"false": "two", "true": "2"},
+        )
+        patch = _mark(
+            Instruction.PATCH,
+            change="# one\n# II\n# three\n",
+            claim={"from": "two", "to": "II"},
+        )
+        _sides, why = sides_of(
+            _place(Filed("a", corr, Touch.OWN), Filed("a", patch, Touch.OWN))
+        )
+        assert len(why) == 1 and "withdraw one" in why[0]
+
 
 def _a_correct(change="# one\n# 2\n# three\n", false="two", true="2"):
     return _mark(
@@ -267,32 +308,6 @@ class TestATextEveryReaderMustHaveSeen:
         assert got.state is State.COMPOSED and got.text == "# new paragraph\n"
         assert got.question is Question.COMPOSITION and got.owed == ("b",)
 
-    def test_a_role_deferring_at_one_end_of_a_move_defers_at_the_other(self):
-        """A move is one mark at two places (`decision-log.md Process: #137`
-        and `#138`), so a role that queried its origin is not waited on at a
-        destination it never marked -- which is what the differential caught,
-        on a move's landing place that every role had read."""
-        move = _mark(
-            Instruction.MOVE,
-            change="# two\n",
-            raw_text="# four\n# two\n# five\n",
-            claim={"from": "m.py@b1", "to": "m.py@b5"},
-        )
-        deferred = _mark(Instruction.QUERY, claim={"shape": str(Shape.OUTSIDE_MY_ROLE)})
-        origin = _place(Filed("a", move, Touch.ORIGIN), Filed("b", deferred, Touch.OWN))
-        landing = _place(
-            Filed("a", move, Touch.DESTINATION),
-            base="# four\n# five\n",
-            address="m.py@b5",
-        )
-        for end, other in ((origin, landing), (landing, origin)):
-            end.readers = ("a", "b")
-            end.partner = other.address
-        assert marks_pass(landing).owed == ("b",)
-        assert marks_pass(landing, origin).state is State.STANDS
-        assert marks_pass(landing, origin).owed == ()
-        assert marks_pass(origin, landing).owed == ()
-
     def test_a_deferring_query_beside_an_add_settles_it(self):
         """`decision-log.md Process: #121`, which the invariant keeps: the one
         role that could have opposed the add abstains, so nothing is owed."""
@@ -381,69 +396,6 @@ def test_a_mark_its_row_cannot_read_refuses_the_place_and_names_the_role():
     assert got.reasons == (
         "a: the snippet is not in the origin's paragraph: '# six\\n'",
     )
-
-
-def test_a_moves_two_places_take_one_state():
-    move = _mark(
-        Instruction.MOVE,
-        change="# two\n",
-        raw_text="# four\n# two\n# five\n",
-        claim={"from": "m.py@b1", "to": "m.py@b5"},
-    )
-    origin = marks_pass(_place(Filed("a", move, Touch.ORIGIN)))
-    other = _mark(
-        Instruction.CORRECT,
-        change="# four\n# 5\n",
-        claim={"false": "five", "true": "5"},
-        address="m.py@b5",
-    )
-    destination = marks_pass(
-        _place(
-            Filed("a", move, Touch.DESTINATION),
-            Filed("b", other, Touch.OWN),
-            base="# four\n# five\n",
-            address="m.py@b5",
-        )
-    )
-    origin.partner, destination.partner = "m.py@b5", "m.py@b1"
-    places = {"m.py@b1": origin, "m.py@b5": destination}
-    pair_moves(places)
-    assert places["m.py@b1"].state is State.CONTESTED
-    assert places["m.py@b5"].state is State.CONTESTED
-
-
-def test_an_end_held_for_the_human_by_its_partner_decides_no_text():
-    """A move held at one end is held at both, and nothing is decided at
-    either: a text left on the end that took the state reads downstream as a
-    place the fold decided (`flows.places.chief_copy_of`), so the move the
-    human was asked about would be written to the page anyway."""
-    move = _mark(
-        Instruction.MOVE,
-        change=BASE,
-        raw_text=BASE,
-        claim={"from": "m.py@b1", "to": "m.py@b5"},
-    )
-    query = _mark(
-        Instruction.QUERY,
-        claim={
-            "shape": str(Shape.HUMAN_REVIEW_NECESSARY),
-            "attempted": "read it",
-            "settles": "human",
-        },
-    )
-    origin = marks_pass(
-        _place(Filed("a", move, Touch.ORIGIN), Filed("b", query, Touch.OWN))
-    )
-    destination = marks_pass(
-        _place(Filed("a", move, Touch.DESTINATION), base="", address="m.py@b5")
-    )
-    assert destination.state is State.STANDS and destination.text == BASE
-    origin.partner, destination.partner = "m.py@b5", "m.py@b1"
-    places = {"m.py@b1": origin, "m.py@b5": destination}
-    pair_moves(places)
-    assert places["m.py@b5"].state is State.UNSETTLABLE
-    assert places["m.py@b5"].text is None
-    assert places["m.py@b5"].asking == ("b: r",)
 
 
 def _contested() -> Place:
@@ -587,470 +539,104 @@ def test_decide_runs_the_passes_in_order():
     assert got.state is State.STANDS and got.text == "# one\n# 2\n# three\n"
 
 
-def test_decide_pairs_a_moves_ends_before_the_chief_rules_them():
-    """!! THE ORDER IS THE WHOLE SUBJECT. A move's origin nobody else marked
-    is `agreed` by itself and `contested` once paired, so a disposition read
-    before the pairing is measured against a state no report ever showed --
-    which is how the chief came to be refused at a place the run had just
-    called contested.
-
-    The origin's state before pairing is asserted, so the case cannot pass by
-    the two ends happening to agree.
-    """
-    move = _mark(
-        Instruction.MOVE,
-        change="# two\n",
-        raw_text="# four\n# two\n# five\n",
-        claim={"from": "m.py@b1", "to": "m.py@b5"},
-    )
-    other = _mark(
-        Instruction.CORRECT,
-        change="# four\n# 5\n",
-        claim={"false": "five", "true": "5"},
-        address="m.py@b5",
-    )
-    origin = _place(Filed("a", move, Touch.ORIGIN))
-    destination = _place(
-        Filed("a", move, Touch.DESTINATION),
-        Filed("b", other, Touch.OWN),
-        base="# four\n# five\n",
-        address="m.py@b5",
-    )
-    origin.partner, destination.partner = "m.py@b5", "m.py@b1"
-    assert marks_pass(_place(Filed("a", move, Touch.ORIGIN))).state is State.STANDS
-    places = {"m.py@b1": origin, "m.py@b5": destination}
-    for address, place in places.items():
-        place.disposition = Disposition(
-            address=address, name="taken_in", side="a", prose="", reason="r"
-        )
-    decide(places)
-    assert places["m.py@b1"].state is State.STANDS
-    assert places["m.py@b5"].state is State.STANDS
-
-
-def test_decide_carries_a_refused_ruling_to_the_other_end_of_the_move():
-    """The second pairing: a ruling the dispositions pass refuses takes its
-    partner with it, as a refusal from the marks does."""
-    move = _mark(
-        Instruction.MOVE,
-        change="# two\n",
-        raw_text="# four\n# two\n# five\n",
-        claim={"from": "m.py@b1", "to": "m.py@b5"},
-    )
-    other = _mark(
-        Instruction.CORRECT,
-        change="# four\n# 5\n",
-        claim={"false": "five", "true": "5"},
-        address="m.py@b5",
-    )
-    origin = _place(Filed("a", move, Touch.ORIGIN))
-    destination = _place(
-        Filed("a", move, Touch.DESTINATION),
-        Filed("b", other, Touch.OWN),
-        base="# four\n# five\n",
-        address="m.py@b5",
-    )
-    origin.partner, destination.partner = "m.py@b5", "m.py@b1"
-    origin.disposition = Disposition(
-        address="m.py@b1", name="taken_in", side="a", prose="", reason="r"
-    )
-    # A side that proposed nothing at the destination: the pass refuses it.
-    destination.disposition = Disposition(
-        address="m.py@b5", name="taken_in", side="nobody", prose="", reason="r"
-    )
-    places = decide({"m.py@b1": origin, "m.py@b5": destination})
-    assert places["m.py@b5"].state is State.REFUSED
-    assert places["m.py@b1"].state is State.REFUSED
-
-
-def test_decide_leaves_a_held_move_holding_both_ends_and_deciding_no_text():
-    """`decision-log.md Process: #182`, against the reorder: the pairing still
-    runs before anything could close either end, and a held move decides no
-    text at either."""
-    move = _mark(
-        Instruction.MOVE,
-        change=BASE,
-        raw_text=BASE,
-        claim={"from": "m.py@b1", "to": "m.py@b5"},
-    )
-    query = _mark(
-        Instruction.QUERY,
-        claim={
-            "shape": str(Shape.HUMAN_REVIEW_NECESSARY),
-            "attempted": "read it",
-            "settles": "human",
-        },
-    )
-    origin = _place(Filed("a", move, Touch.ORIGIN), Filed("b", query, Touch.OWN))
-    destination = _place(
-        Filed("a", move, Touch.DESTINATION), base="", address="m.py@b5"
-    )
-    origin.partner, destination.partner = "m.py@b5", "m.py@b1"
-    places = decide({"m.py@b1": origin, "m.py@b5": destination})
-    assert places["m.py@b1"].state is State.UNSETTLABLE
-    assert places["m.py@b5"].state is State.UNSETTLABLE
-    assert places["m.py@b5"].text is None
-    assert places["m.py@b1"].text is None
-
-
-class TestAnAnswerReachesBothEndsOfTheMove:
-    """`decision-log.md Process: #129`, `#152` and `#153`: a move is one mark
-    at two places, and an answer its filer gives at either end reaches the
-    move whole rather than the place it was written at.
-
-    Measured 2026-09-18 before this: the mover withdrew at its origin, the
-    destination kept the mover's side, and the moved sentence settled at both
-    places -- the paragraph on the page twice.
-    """
+class TestAMoveIsDecidedBeforeItsEnds:
+    """`decision-log.md Process: #195`: the placement is decided once for the
+    pair, and the ends are decided as ordinary places after it."""
 
     MOVED = "# two\n"
     LANDING = "# four\n# five\n"
     LANDED = "# four\n# two\n# five\n"
-    #: The same landing with the snippet run onto the line the other role
-    #: rewrites, so the two texts will not compose and the destination is the
-    #: contested end.
-    LANDED_ON_THE_LINE = "# four\n# five and two\n"
     REMAINDER = "# one\n# three\n"
-    CORRECTED = "# one\n# TWO\n# three\n"
 
-    def _move(self, reads: str = "", change: str = "") -> Mark:
-        return _mark(
+    def _places(self, readers=("a", "b"), change=None):
+        move = _mark(
             Instruction.MOVE,
             change=change or self.MOVED,
-            raw_text=reads or self.LANDED,
+            raw_text=self.LANDED,
             claim={"from": "m.py@b1", "to": "m.py@b5"},
         )
-
-    def _pair(self, *, move: Mark, at_origin=(), at_destination=(), readers=("a", "b")):
-        """The two ends of one move, each holding whatever else was filed."""
-        origin = _place(Filed("a", move, Touch.ORIGIN), *at_origin)
+        origin = _place(Filed("a", move, Touch.ORIGIN))
         destination = _place(
-            Filed("a", move, Touch.DESTINATION),
-            *at_destination,
-            base=self.LANDING,
-            address="m.py@b5",
+            Filed("a", move, Touch.DESTINATION), base=self.LANDING, address="m.py@b5"
         )
-        origin.partner, destination.partner = "m.py@b5", "m.py@b1"
+        destination.anchor = "y = 5"
         origin.readers = destination.readers = readers
-        return {"m.py@b1": origin, "m.py@b5": destination}
+        places = {"m.py@b1": origin, "m.py@b5": destination}
+        return places, moves_in(places)
 
-    def _contested_origin(self, move: Mark | None = None) -> dict:
-        """The reviewer's case: the mover's origin, corrected by another role
-        on the sentence the move takes away, so the origin is an escalation
-        put to both and the destination a composition put to the other role."""
-        return self._pair(
-            move=move or self._move(),
-            at_origin=(
-                Filed("b", _a_correct(change=self.CORRECTED, true="TWO"), Touch.OWN),
-            ),
-        )
+    def _placement(self, name, claim=None):
+        return _answer(name, claim=claim, question=Question.PLACEMENT)
 
-    def test_the_origin_is_the_escalation_and_the_destination_the_composition(self):
-        places = self._contested_origin()
-        marks_pass(places["m.py@b1"], places["m.py@b5"])
-        marks_pass(places["m.py@b5"], places["m.py@b1"])
-        assert places["m.py@b1"].state is State.CONTESTED
-        assert places["m.py@b1"].owed == ("a", "b")
-        assert places["m.py@b5"].state is State.COMPOSED
-        assert places["m.py@b5"].owed == ("b",)
+    def test_a_move_only_its_mover_read_splits_and_settles_at_turn_0(self):
+        places, moves = self._places(readers=("a",))
+        decide(places, moves)
+        origin, destination = places["m.py@b1"], places["m.py@b5"]
+        assert [one.mark.instruction for one in origin.filed] == [Instruction.DROP]
+        assert [one.mark.instruction for one in destination.filed] == [Instruction.ADD]
+        assert (origin.state, origin.text) == (State.STANDS, self.REMAINDER)
+        assert (destination.state, destination.text) == (State.STANDS, self.LANDED)
 
-    def test_a_withdrawal_at_the_origin_takes_the_move_off_the_destination(self):
-        places = self._contested_origin()
-        places["m.py@b1"].answers[1] = {"a": _answer("withdraw"), "b": _answer("hold")}
-        places["m.py@b5"].answers[1] = {
-            "b": _answer("clean", question=Question.COMPOSITION)
-        }
-        decide(places, turn=1)
-        assert places["m.py@b1"].text == self.CORRECTED
-        assert places["m.py@b5"].state is State.STANDS
-        assert places["m.py@b5"].text is None
-        assert places["m.py@b5"].sides == {}
-        # Nothing is owed here, the mover included: it answered at the other
-        # end and the answer was this place's too (`Process: #190`).
-        assert places["m.py@b5"].owed == ()
+    def test_an_open_move_keeps_both_ends_open_and_asks_their_words_too(self):
+        places, moves = self._places()
+        decide(places, moves)
+        assert moves["m.py@b1 -> m.py@b5"].placement is Placement.OPEN
+        for end in places.values():
+            assert end.state is State.COMPOSED and end.owed == ("b",)
 
-    def test_a_hold_at_the_origin_keeps_the_move_at_both_ends(self):
-        places = self._contested_origin()
-        places["m.py@b1"].answers[1] = {"a": _answer("hold"), "b": _answer("withdraw")}
-        places["m.py@b5"].answers[1] = {
-            "b": _answer("clean", question=Question.COMPOSITION)
-        }
-        decide(places, turn=1)
+    def test_agree_and_clean_in_one_turn_split_and_settle_it(self):
+        places, moves = self._places()
+        decide(places, moves)
+        moves["m.py@b1 -> m.py@b5"].answers[1] = {"b": self._placement("agree")}
+        for end in places.values():
+            end.answers[1] = {"b": _answer("clean", question=Question.COMPOSITION)}
+        decide(places, moves, turn=1)
         assert places["m.py@b1"].text == self.REMAINDER
         assert places["m.py@b5"].text == self.LANDED
-        assert places["m.py@b5"].sides["a"] == self.LANDED
+        assert all(end.state is State.AGREED for end in places.values())
+        assert places["m.py@b5"].filed[0].mark.instruction is Instruction.ADD
 
-    def test_the_other_roles_withdrawal_reaches_nothing(self):
-        """Only the mark's own filer answers for the move: the role that
-        withdraws its correction at the origin leaves the move standing."""
-        places = self._contested_origin()
-        places["m.py@b1"].answers[1] = {"a": _answer("hold"), "b": _answer("withdraw")}
-        places["m.py@b5"].answers[1] = {
-            "b": _answer("clean", question=Question.COMPOSITION)
-        }
-        decide(places, turn=1)
-        assert places["m.py@b1"].sides == {"a": self.REMAINDER}
-        assert places["m.py@b5"].sides["a"] == self.LANDED
+    def test_a_stet_holds_both_ends_whatever_their_words_came_to(self):
+        places, moves = self._places()
+        decide(places, moves)
+        moves["m.py@b1 -> m.py@b5"].answers[1] = {"b": self._placement("stet")}
+        for end in places.values():
+            end.answers[1] = {"b": _answer("clean", question=Question.COMPOSITION)}
+        decide(places, moves, turn=1)
+        assert moves["m.py@b1 -> m.py@b5"].placement is Placement.CONTESTED
+        for end in places.values():
+            assert end.state in CARRIED and end.owed == ()
+            assert end.filed[0].mark.instruction is Instruction.MOVE
 
-    def test_a_withdrawal_at_the_destination_takes_the_move_off_the_origin(self):
-        """The destination is the contested end here, so it is where the mover
-        is asked -- and `#129` is the ruling on that end by name."""
-        places = self._pair(
-            move=self._move(reads=self.LANDED_ON_THE_LINE),
-            at_destination=(
-                Filed(
-                    "c",
-                    _mark(
-                        Instruction.CORRECT,
-                        change="# four\n# 5\n",
-                        claim={"false": "five", "true": "5"},
-                        address="m.py@b5",
-                    ),
-                    Touch.OWN,
-                ),
-            ),
-            readers=("a", "c"),
-        )
-        marks_pass(places["m.py@b5"], places["m.py@b1"])
-        assert places["m.py@b5"].state is State.CONTESTED
-        assert places["m.py@b5"].owed == ("a", "c")
-        places["m.py@b5"].answers[1] = {"a": _answer("withdraw"), "c": _answer("hold")}
-        decide(places, turn=1)
-        assert places["m.py@b5"].sides == {"c": "# four\n# 5\n"}
-        assert places["m.py@b1"].sides == {}
-        assert places["m.py@b1"].text is None
-
-    def test_a_withdrawn_whole_paragraph_move_leaves_the_origin_its_paragraph(self):
-        """A move that takes the whole paragraph sets the origin to "", the
-        delete -- so a withdrawal that did not reach the origin would leave
-        the paragraph deleted at one end and added at the other."""
-        places = self._contested_origin(
-            move=self._move(change=BASE, reads=self.LANDING + BASE)
-        )
-        assert marks_pass(places["m.py@b1"]).sides["a"] == ""
-        places["m.py@b1"].answers[1] = {"a": _answer("withdraw"), "b": _answer("hold")}
-        places["m.py@b5"].answers[1] = {
-            "b": _answer("clean", question=Question.COMPOSITION)
-        }
-        decide(places, turn=1)
-        assert places["m.py@b1"].text == self.CORRECTED
-        assert places["m.py@b5"].text is None
-
-    def test_a_partial_move_that_stands_keeps_the_origins_remainder(self):
-        """`decision-log.md Process: #172`: the origin's result is its
-        paragraph with the snippet removed exactly, which is what the pair
-        settles on where the mover holds."""
-        places = self._pair(move=self._move(), readers=("a",))
-        decide(places)
-        assert places["m.py@b1"].text == self.REMAINDER
-        assert places["m.py@b5"].text == self.LANDED
-
-    def test_a_destination_that_stands_alone_still_loses_a_withdrawn_move(self):
-        """The reach is a fact about the mark, not about the state the other
-        end reached: a destination no other role read stands on the move's
-        text by itself, and the withdrawal takes it off there too."""
-        places = self._contested_origin()
-        places["m.py@b5"].readers = ("a",)
-        assert marks_pass(places["m.py@b5"]).state is State.STANDS
-        places["m.py@b1"].answers[1] = {"a": _answer("withdraw"), "b": _answer("hold")}
-        decide(places, turn=1)
-        assert places["m.py@b5"].text is None
-        assert places["m.py@b1"].text == self.CORRECTED
-
-    def test_a_move_answered_one_way_at_one_end_and_another_at_the_other_is_refused(
-        self,
-    ):
-        """The mover withdraws at the origin and replaces at the destination
-        in one turn: the move is neither withdrawn nor made, so it goes back
-        to the role rather than landing half."""
-        places = self._pair(
-            move=self._move(reads=self.LANDED_ON_THE_LINE),
-            at_origin=(
-                Filed("b", _a_correct(change=self.CORRECTED, true="TWO"), Touch.OWN),
-            ),
-            at_destination=(
-                Filed(
-                    "c",
-                    _mark(
-                        Instruction.CORRECT,
-                        change="# four\n# 5\n",
-                        claim={"false": "five", "true": "5"},
-                        address="m.py@b5",
-                    ),
-                    Touch.OWN,
-                ),
-            ),
-            readers=("a", "b", "c"),
-        )
-        places["m.py@b1"].answers[1] = {
-            "a": _answer("withdraw"),
-            "b": _answer("hold"),
-        }
-        places["m.py@b5"].answers[1] = {
-            "a": _answer("correct", change="# four\n# five and 2\n"),
-            "c": _answer("hold"),
-        }
-        decide(places, turn=1)
-        assert places["m.py@b1"].state is State.REFUSED
-        assert places["m.py@b5"].state is State.REFUSED
-        (why,) = places["m.py@b5"].reasons
-        assert why.startswith("a: ")
-        assert "m.py@b1" in why and "m.py@b5" in why
-
-    def _also_proposing_the_landing(self, *, from_role: str) -> dict:
-        """The reviewer's case for `#188`'s last clause: a second role that
-        proposes the landing text itself, by its own move or by a `correct`
-        whose change is word for word what the move sets there."""
-        if from_role == "move":
-            return self._pair(
-                move=self._move(),
-                at_origin=(
-                    Filed(
-                        "b", _a_correct(change=self.CORRECTED, true="TWO"), Touch.OWN
-                    ),
-                    Filed("z", self._move(), Touch.ORIGIN),
-                ),
-                at_destination=(Filed("z", self._move(), Touch.DESTINATION),),
-                readers=("a", "b", "z"),
-            )
-        return self._pair(
-            move=self._move(),
-            at_origin=(
-                Filed("b", _a_correct(change=self.CORRECTED, true="TWO"), Touch.OWN),
-                # The role that proposes the landing text reads the origin and
-                # declares it outside its remit, so nothing is owed it there.
-                Filed(
-                    "q",
-                    _mark(
-                        Instruction.QUERY,
-                        claim={"shape": str(Shape.OUTSIDE_MY_ROLE)},
-                    ),
-                    Touch.OWN,
-                ),
-            ),
-            at_destination=(
-                Filed(
-                    "q",
-                    _mark(
-                        Instruction.CORRECT,
-                        change=self.LANDED,
-                        claim={"false": "# four", "true": "# four\n# two"},
-                        address="m.py@b5",
-                    ),
-                    Touch.OWN,
-                ),
-            ),
-            readers=("a", "b", "q"),
+    def test_the_movers_withdraw_takes_the_move_off_both_ends(self):
+        places, moves = self._places()
+        decide(places, moves)
+        moves["m.py@b1 -> m.py@b5"].answers[1] = {"a": self._placement("withdraw")}
+        decide(places, moves, turn=1)
+        assert all(end.filed == [] for end in places.values())
+        assert all(
+            end.state is State.STANDS and end.text is None for end in places.values()
         )
 
-    def test_an_acceptance_stands_where_a_second_move_still_proposes_the_text(self):
-        """`decision-log.md Process: #188`, its last clause: the acceptance
-        goes with the withdrawn move unless another role still proposes that
-        text itself. Here the other role filed the same move and held it."""
-        places = self._also_proposing_the_landing(from_role="move")
-        places["m.py@b1"].answers[1] = {
-            "a": _answer("withdraw"),
-            "b": _answer("hold"),
-            "z": _answer("hold"),
+    def test_a_held_move_holds_both_ends_and_decides_no_text(self):
+        places, moves = self._places()
+        decide(places, moves)
+        human = {
+            "shape": str(Shape.HUMAN_REVIEW_NECESSARY),
+            "attempted": "a",
+            "settles": "b",
         }
-        places["m.py@b5"].answers[1] = {
-            "b": _answer("clean", question=Question.COMPOSITION)
-        }
-        decide(places, turn=1)
-        assert places["m.py@b5"].text == self.LANDED
-        assert places["m.py@b5"].sides == {"z": self.LANDED, "b": self.LANDED}
+        moves["m.py@b1 -> m.py@b5"].answers[1] = {"b": self._placement("query", human)}
+        decide(places, moves, turn=1)
+        for end in places.values():
+            assert end.state is State.UNSETTLABLE and end.text is None
 
-    def test_an_acceptance_stands_where_a_correct_proposes_the_same_words(self):
-        """The same clause where the surviving proposal is not a move at all:
-        one role corrected the destination to what the move sets there."""
-        places = self._also_proposing_the_landing(from_role="correct")
-        places["m.py@b1"].answers[1] = {"a": _answer("withdraw"), "b": _answer("hold")}
-        places["m.py@b5"].answers[1] = {
-            "b": _answer("clean", question=Question.COMPOSITION)
-        }
-        decide(places, turn=1)
-        assert places["m.py@b5"].text == self.LANDED
-        assert places["m.py@b5"].sides == {"q": self.LANDED, "b": self.LANDED}
-
-    def test_a_proposal_arriving_with_the_withdrawal_keeps_the_acceptance(self):
-        """`#188`'s last clause where the proposal that protects the
-        acceptance is written in the same turn as the withdrawal: the
-        acceptance was given in turn 1, and in turn 2 the mover withdraws at
-        the origin while another role corrects the destination to the moved
-        text word for word. Another role does propose that text, so the
-        acceptance stands and the place settles on it.
-
-        It is why the drop runs after the turn's own answers: read before
-        them, the only text proposed here is the one that role is about to
-        replace, and the acceptance goes.
-        """
-        landed = self.LANDED_ON_THE_LINE
-        places = self._pair(
-            move=self._move(reads=landed),
-            at_origin=(
-                Filed("b", _a_correct(change=self.CORRECTED, true="TWO"), Touch.OWN),
-            ),
-            readers=("a", "b", "q"),
-        )
-        places["m.py@b1"].answers[1] = {"a": _answer("hold"), "b": _answer("hold")}
-        places["m.py@b5"].answers[1] = {
-            "b": _answer("clean", question=Question.COMPOSITION),
-            "q": _answer(
-                "patch", change="# four\n# 5\n", question=Question.COMPOSITION
-            ),
-        }
-        places["m.py@b1"].answers[2] = {"a": _answer("withdraw"), "b": _answer("hold")}
-        places["m.py@b5"].answers[2] = {
-            "q": _answer("correct", change=landed),
-            "b": _answer("hold"),
-        }
-        decide(places, turn=2)
-        assert places["m.py@b5"].sides == {"b": landed, "q": landed}
-        assert places["m.py@b5"].text == landed
-        # The mover holds no side here and is asked nothing. What the pair is
-        # still open for is the origin, which owes its third reader a say on
-        # the text one withdrawal left standing there -- `owed` is that,
-        # travelling to this end with the paired state.
-        assert places["m.py@b5"].owed == ("q",)
-        assert places["m.py@b1"].owed == ("q",)
-
-    def test_the_destination_does_not_ask_the_withdrawing_mover_again(self):
-        """`Process: #190`: the mover answered at the origin and the answer is
-        this place's too, so the destination waits on nobody for it -- and it
-        cannot see that answer, which is recorded at the end it was written
-        at. Measured before this: the destination came back `composed`, asking
-        a role that had already answered, at the other end."""
-        places = self._also_proposing_the_landing(from_role="correct")
-        places["m.py@b1"].answers[1] = {"a": _answer("withdraw"), "b": _answer("hold")}
-        places["m.py@b5"].answers[1] = {
-            "b": _answer("clean", question=Question.COMPOSITION)
-        }
-        decide(places, turn=1)
-        assert places["m.py@b5"].owed == ()
-        assert places["m.py@b5"].state is State.AGREED
-
-    def test_a_held_move_is_not_a_half_move(self):
-        """An end an answer holds for the human keeps no sides of its own,
-        and its partner keeps both -- which is the shape the half-move guard
-        must not read as a move landing at one end. The move rides to the
-        author whole (`decision-log.md Process: #155`)."""
-        places = self._contested_origin()
-        places["m.py@b1"].answers[1] = {"a": _answer("hold"), "b": _answer("hold")}
-        places["m.py@b5"].answers[1] = {
-            "b": _answer(
-                "query",
-                question=Question.COMPOSITION,
-                claim={
-                    "shape": str(Shape.HUMAN_REVIEW_NECESSARY),
-                    "attempted": "read it",
-                    "settles": "human",
-                },
-            )
-        }
-        decide(places, turn=1)
-        assert places["m.py@b1"].state is State.UNSETTLABLE
-        assert places["m.py@b5"].state is State.UNSETTLABLE
-        assert places["m.py@b1"].text is None and places["m.py@b5"].text is None
+    def test_a_snippet_not_in_the_origin_is_refused_at_both_ends_and_not_split(self):
+        """Review Focus 5."""
+        places, moves = self._places(readers=("a",), change="# nine\n")
+        decide(places, moves)
+        for end in places.values():
+            assert end.state is State.REFUSED
+            assert end.filed[0].mark.instruction is Instruction.MOVE
 
 
 def test_a_correct_that_drops_an_unnamed_word_is_noted_and_still_settles():

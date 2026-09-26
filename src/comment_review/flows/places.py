@@ -54,8 +54,7 @@ def places_of(
     """One place per address any copy's mark touches, readers filled in.
 
     A mark is filed at every place its row says it writes at
-    (`desk.marks.table.Row.places`), with the touch it has there. Where one
-    mark writes at two places, each names the other as `partner`.
+    (`desk.marks.table.Row.places`), with the touch it has there.
     `readers` is every role whose copy holds a sheet for the address's page
     (Ruling R4: an add is carried forward for every role that read the page).
 
@@ -89,13 +88,8 @@ def places_of(
                 # none, so the mark opens no place here. That is deliberate:
                 # there is no place to open, and `Row.places` is also why
                 # `flows.verify.resolution_problems` never sees one to resolve.
-                written = INSTRUCTIONS[mark.instruction].places(mark)
-                for address, touch in written:
-                    place = at(address)
-                    place.filed.append(Filed(copy.role, mark, touch))
-                    for other, _touch in written:
-                        if other != address:
-                            place.partner = other
+                for address, touch in INSTRUCTIONS[mark.instruction].places(mark):
+                    at(address).filed.append(Filed(copy.role, mark, touch))
 
     for address, place in places.items():
         page = cue_of(address).path
@@ -110,13 +104,8 @@ def chief_copy_of(
 ) -> EditCopy:
     """The copy chief's edit_copy, one mark per place the fold decided a text for.
 
-    A move reached from both of its places (its origin and its destination)
-    contributes one entry: `chief_mark` returns the same taken-in `Mark` --
-    whose own `address` is always the origin -- from either place, so a mark
-    equal to one already placed on that page is skipped. It is taken in only
-    where both ends closed on what it sets, which is why the partner is
-    handed over: a move whose destination the chief recast is not what
-    happened, and each end is then written from its own decided text.
+    A move reaches this as the `drop` and `add` the fold split it into
+    (`decision-log.md Process: #195`), each placed on its own page.
 
     Args:
         decided: address -> the `Place` the fold settled it at.
@@ -134,7 +123,7 @@ def chief_copy_of(
         place = decided[address]
         if place.text is None:
             continue
-        mark = chief_mark(place, decided.get(place.partner or ""))
+        mark = chief_mark(place)
         placed = by_path.setdefault(cue_of(mark.address).path, [])
         if mark not in placed:
             placed.append(mark)

@@ -463,6 +463,31 @@ def test_chief_mark_takes_in_the_first_side_by_role_where_two_set_one_text():
     assert at(list(reversed(dealt))).reason == "apple's"
 
 
+def test_a_mark_writing_two_places_is_never_the_chiefs_mark_whole():
+    """Before P3 the chief rules a move's ends one at a time, so each end is
+    written from its own decided text -- a move taken whole at one end would
+    land at an end the chief may have recast."""
+    move = Mark(
+        address="m.py@b1",
+        anchor="x = 1",
+        raw_text="# four\n# two\n# five\n",
+        instruction=Instruction.MOVE,
+        claim={"from": "m.py@b1", "to": "m.py@b5"},
+        reason="r",
+        sources=({"cite": "m.py:1", "verbatim": "v0 = 0"},),
+        change="# two\n",
+    )
+    place = Place(
+        address="m.py@b1",
+        anchor="x = 1",
+        base="# one\n# two\n# three\n",
+        filed=[Filed("a", move, Touch.ORIGIN)],
+        text="# one\n# three\n",
+    )
+    got = chief_mark(place)
+    assert got.instruction is not Instruction.MOVE and got.change == "# one\n# three\n"
+
+
 class TestTheSplit:
     """`decision-log.md Process: #195` item 3: an agreed move becomes the
     mover's `drop` at the origin and `add` at the destination, ordinary marks

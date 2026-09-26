@@ -47,7 +47,7 @@ class Fold:
         (`desk.work.events`): the refusals are gathered apart from what a
         commit reports, and only a commit reports the second list.
         """
-        decide(self.places, self.turn)
+        decide(self.places, turn=self.turn)
         refusals: list = []
         on_commit: list = []
         for address in sorted(self.places):

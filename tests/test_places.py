@@ -13,9 +13,9 @@ from helpers import (
 )
 
 from comment_review.desk.containers import Sheet
-from comment_review.desk.evaluate.place import Filed, Place
+from comment_review.desk.evaluate.place import Place
 from comment_review.desk.marks.mark import Instruction
-from comment_review.desk.marks.table import INSTRUCTIONS, Row, Touch, _sets_both_ends
+from comment_review.desk.marks.table import Row, Touch
 from comment_review.flows.fill import composition_problems, fill, row_problems
 from comment_review.flows.on_the_page import Held
 from comment_review.flows.places import bases_and_anchors, chief_copy_of, places_of
@@ -35,7 +35,7 @@ def _binder_bases(binder) -> dict[str, str]:
     return {b.address: b.raw_text for b in binder.paragraphs if b.address}
 
 
-def test_a_move_yields_two_places_that_partner_each_other():
+def test_a_move_is_filed_at_its_origin_and_at_its_destination():
     binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})
     wire = copies_over(
         binder, {"block-context": {"m.py@b1": a_move("m.py@b1", "m.py@b5")}}
@@ -43,8 +43,6 @@ def test_a_move_yields_two_places_that_partner_each_other():
     copies = [returned(w) for w in wire]
     places = places_of(copies, _binder_bases(binder), {})
     assert set(places) == {"m.py@b1", "m.py@b5"}
-    assert places["m.py@b1"].partner == "m.py@b5"
-    assert places["m.py@b5"].partner == "m.py@b1"
     assert [f.touch for f in places["m.py@b1"].filed] == [Touch.ORIGIN]
     assert [f.touch for f in places["m.py@b5"].filed] == [Touch.DESTINATION]
 
@@ -78,31 +76,6 @@ def test_readers_are_every_role_whose_copy_holds_a_sheet_for_the_page():
     copies = [returned(w) for w in wire]
     places = places_of(copies, _binder_bases(binder), {})
     assert places["m.py@b1"].readers == ("block-context", "function-context")
-
-
-def test_a_taken_in_move_writes_one_mark_at_its_origin_and_none_at_its_destination():
-    binder = a_binder_over({"one.py@b1": BASE, "two.py@b1": "# four\n# five\n"})
-    move = a_move("one.py@b1", "two.py@b1")
-    move["change"] = "# two\n"
-    wire = copies_over(binder, {"block-context": {"one.py@b1": move}})
-    copies = [returned(w) for w in wire]
-    places = places_of(copies, _binder_bases(binder), {})
-
-    origin, destination = places["one.py@b1"], places["two.py@b1"]
-    move_mark = origin.filed[0].mark
-    row = INSTRUCTIONS[Instruction.MOVE]
-    origin.text = row.sets(move_mark, Touch.ORIGIN, origin.base)
-    destination.text = row.sets(move_mark, Touch.DESTINATION, destination.base)
-
-    sheets = [
-        Sheet(path="one.py", sha="0" * 40, marks=()),
-        Sheet(path="two.py", sha="0" * 40, marks=()),
-    ]
-    copy = chief_copy_of(places, "copy-chief", {"root": ".", "revise": 0}, sheets)
-
-    by_path = {sheet.path: sheet.marks for sheet in copy.sheets}
-    assert len(by_path.get("one.py", ())) == 1
-    assert "two.py" not in by_path
 
 
 def test_chief_copy_of_synthesizes_a_correct_for_a_decided_place():
@@ -145,7 +118,6 @@ def test_every_reader_of_where_a_mark_writes_asks_the_row(monkeypatch, tmp_path)
     With `Row.places` sending a move's destination somewhere its claim does
     not name, every flow that walks a mark's places follows the row: a reader
     that still decided the places for itself would land at `m.py@b5`.
-    `_sets_both_ends`, the eighth reader, has its own case below.
     """
     binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE, "m.py@b7": BASE})
     wire = copies_over(
@@ -160,7 +132,6 @@ def test_every_reader_of_where_a_mark_writes_asks_the_row(monkeypatch, tmp_path)
     assert set(bases) == {"m.py@b1", "m.py@b7"}
     places = places_of(copies, _binder_bases(binder), {})
     assert set(places) == {"m.py@b1", "m.py@b7"}
-    assert places["m.py@b1"].partner == "m.py@b7"
 
     asked: list[str] = []
     row_problems(mark, lambda address: asked.append(address) or BASE)
@@ -191,20 +162,3 @@ def test_every_reader_of_where_a_mark_writes_asks_the_row(monkeypatch, tmp_path)
     placed, why = fill(seed(real, "block-context"), entry, tmp_path / "repo")
     assert placed is None
     assert why == ["m.py@b7: at b7"]
-
-
-def test_sets_both_ends_asks_the_row_where_a_mark_writes(monkeypatch):
-    """A move writes at two places, so without its partner it is not taken in
-    at one; a row saying the mark writes at this place alone is taken at its
-    word."""
-    move = returned(
-        copies_over(
-            a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE}),
-            {"block-context": {"m.py@b1": a_move("m.py@b1", "m.py@b5")}},
-        )[0]
-    )
-    filed = Filed("block-context", move.sheets[0].marks[0], Touch.ORIGIN)
-    place = Place(address="m.py@b1", anchor="x = 1", base=BASE, filed=[filed])
-    assert _sets_both_ends(filed, place, None) is False
-    monkeypatch.setattr(Row, "places", lambda self, mark: (("m.py@b1", Touch.OWN),))
-    assert _sets_both_ends(filed, place, None) is True

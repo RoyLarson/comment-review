@@ -68,26 +68,12 @@ class AnswerRow:
             that stops for a person and one that does not. The parse refuses
             the absence now, and `flows.answers.contracts` publishes the keys
             off this field, so nothing hand-types them.
-        reaches_partner: whether this answer, given by the role that filed a
-            two-place mark, takes effect at the mark's other place as well as
-            at the one it was written at. A move is one mark at two places and
-            an answer at either end reaches the move whole
-            (`decision-log.md Process: #129`, `#152`, `#153`), so the
-            withdrawal carries: the mark is off, and the role holds no side at
-            either place it wrote. A replacement does not carry a text across,
-            because the two ends hold different texts -- the origin its
-            paragraph with the snippet gone and the destination its paragraph
-            with the snippet in -- so it lands at the end it was written at,
-            which is what `#129` rules it does there. One of each in one turn
-            leaves the move half done and is refused back to the role
-            (`#189`, `desk.evaluate.passes.refuse_half_moves`).
     """
 
     question: Question
     effect: Callable[[Any], Effect]
     owes_change: bool = False
     claim_all: tuple[str, ...] = ()
-    reaches_partner: bool = False
 
 
 ANSWERS: dict[tuple[Question, str], AnswerRow] = {
@@ -95,7 +81,7 @@ ANSWERS: dict[tuple[Question, str], AnswerRow] = {
         Question.ESCALATION, _always(Effect.KEEPS)
     ),
     (Question.ESCALATION, "withdraw"): AnswerRow(
-        Question.ESCALATION, _always(Effect.REMOVES), reaches_partner=True
+        Question.ESCALATION, _always(Effect.REMOVES)
     ),
     (Question.ESCALATION, "correct"): AnswerRow(
         Question.ESCALATION, _always(Effect.REPLACES), True
