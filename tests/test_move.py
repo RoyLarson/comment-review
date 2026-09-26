@@ -232,3 +232,19 @@ def test_a_recorded_moves_answers_survive_being_found_again():
     again = moves_in(places, {move.key: move})
     assert again[move.key].answers == {1: {"b": _answer("stet")}}
     assert set(again[move.key].movers) == {"a"}
+
+
+def test_a_pass_run_twice_on_one_move_comes_to_the_same_placement():
+    """A fold re-runs the pass each turn from the record; replaying an
+    applied withdrawal must not read it as another role's."""
+    places = _ends()
+    second = _move()
+    places[ORIGIN].filed.append(Filed("b", second, Touch.ORIGIN))
+    places[DESTINATION].filed.append(Filed("b", second, Touch.DESTINATION))
+    (move,) = moves_in(places).values()
+    move.answers[1] = {"a": _answer("withdraw")}
+    assert placement_pass(move, places, 1).placement is Placement.OPEN
+    assert set(move.movers) == {"b"}
+    move.answers[2] = {"b": _answer("withdraw")}
+    again = placement_pass(move, places, 2)
+    assert again.placement is Placement.WITHDRAWN and again.movers == {}

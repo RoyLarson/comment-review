@@ -63,6 +63,10 @@ class Move:
 
     origin: str
     destination: str
+    #: Every role that filed this move, as the places show it. `movers` is
+    #: the roles still holding the move after withdrawals, recomputed by each
+    #: placement pass from `filed`; neither is serialized.
+    filed: dict[str, Mark] = field(default_factory=dict)
     movers: dict[str, Mark] = field(default_factory=dict)
     readers: tuple[str, ...] = ()
     answers: dict[int, dict[str, Answer]] = field(default_factory=dict)
@@ -148,7 +152,7 @@ def moves_in(
     """
     out: dict[str, Move] = dict(recorded or {})
     for move in out.values():
-        move.movers = {}
+        move.filed = {}
     for place in places.values():
         for one in place.filed:
             if one.touch is not Touch.ORIGIN:
@@ -161,12 +165,13 @@ def moves_in(
                 continue
             key = key_of(place.address, destination)
             move = out.setdefault(key, Move(place.address, destination))
-            move.movers[one.role] = one.mark
+            move.filed[one.role] = one.mark
     for move in out.values():
         ends = (places.get(move.origin), places.get(move.destination))
         move.readers = tuple(
             sorted({role for end in ends if end for role in end.readers})
         )
+        move.movers = dict(move.filed)
     return out
 
 
@@ -200,7 +205,7 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
             if stance is Stance.UNSETTLABLE:
                 asking.append(f"{one.role}: {one.mark.reason}")
     deferring = {role for role, held in stances.items() if held == {Stance.DEFERS}}
-    movers = dict(move.movers)
+    movers = dict(move.filed)
     accepted: set[str] = set()
     stetted: set[str] = set()
     reasons: list[str] = []
