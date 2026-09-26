@@ -6,8 +6,12 @@ from helpers import a_binder_over, a_clean, a_correct, a_move, copies_over, retu
 from comment_review.desk.containers import Sheet
 from comment_review.desk.evaluate.place import Place
 from comment_review.desk.marks.mark import Instruction
-from comment_review.desk.marks.table import INSTRUCTIONS, Touch
-from comment_review.flows.places import chief_copy_of, places_of
+from comment_review.desk.marks.table import INSTRUCTIONS, Row, Touch
+from comment_review.flows.fill import composition_problems, row_problems
+from comment_review.flows.on_the_page import Held
+from comment_review.flows.places import bases_and_anchors, chief_copy_of, places_of
+from comment_review.flows.transcribe import _touched_by_page
+from comment_review.flows.verify import resolution_problems
 
 BASE = "# one\n# two\n# three\n"
 
@@ -124,3 +128,38 @@ def test_chief_copy_of_synthesizes_a_drop_for_an_empty_decided_text():
     assert len(marks) == 1
     assert marks[0].instruction is Instruction.DROP
     assert marks[0].change == ""
+
+
+def test_every_reader_of_where_a_mark_writes_asks_the_row(monkeypatch, tmp_path):
+    """The row is the one definition of which places a mark writes at.
+
+    With `Row.places` sending a move's destination somewhere its claim does
+    not name, every flow that walks a mark's places follows the row: a reader
+    that still decided the places for itself would land at `m.py@b5`.
+    """
+    binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE, "m.py@b7": BASE})
+    wire = copies_over(
+        binder, {"block-context": {"m.py@b1": a_move("m.py@b1", "m.py@b5")}}
+    )
+    copies = [returned(w) for w in wire]
+    mark = copies[0].sheets[0].marks[0]
+    elsewhere = (("m.py@b1", Touch.ORIGIN), ("m.py@b7", Touch.DESTINATION))
+    monkeypatch.setattr(Row, "places", lambda self, mark: elsewhere)
+
+    bases, _anchors = bases_and_anchors(copies, lambda address: Held(BASE, "x = 1"))
+    assert set(bases) == {"m.py@b1", "m.py@b7"}
+    places = places_of(copies, _binder_bases(binder), {})
+    assert set(places) == {"m.py@b1", "m.py@b7"}
+    assert places["m.py@b1"].partner == "m.py@b7"
+
+    asked: list[str] = []
+    row_problems(mark, lambda address: asked.append(address) or BASE)
+    assert asked == ["m.py@b1", "m.py@b7"]
+    asked.clear()
+    composition_problems("r", [mark, mark], lambda a: asked.append(a) or BASE)
+    assert asked == ["m.py@b1", "m.py@b7"]
+    assert _touched_by_page(copies[0]) == {"m.py": ["m.py@b1", "m.py@b7"]}
+
+    unresolved = resolution_problems(copies[0], [], tmp_path, {})
+    assert any("m.py@b7" in one.message for one in unresolved)
+    assert not any("m.py@b5" in one.message for one in unresolved)

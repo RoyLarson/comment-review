@@ -67,8 +67,7 @@ from comment_review.desk.containers import EditCopy, MasterProof
 from comment_review.desk.dispositions.disposition import CHIEF
 from comment_review.desk.evaluate.place import Place
 from comment_review.desk.evaluate.state import SETTLED, State
-from comment_review.desk.marks.mark import Mark
-from comment_review.desk.marks.table import INSTRUCTIONS, Touch
+from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.work import events
 from comment_review.desk.work.fold import Fold
 from comment_review.docket.docket import Alteration, Docket, Schedule
@@ -122,28 +121,16 @@ class Transcription(NamedTuple):
     sets_nothing: tuple[str, ...] = ()
 
 
-def _touched(mark: Mark) -> tuple[str, ...]:
-    """Every address this one mark writes at, as its row states them.
-
-    A `move` is the row with two touches, and its destination is `claim.to`;
-    every other row writes at the mark's own address alone.
-    """
-    return tuple(
-        str(mark.claim.get("to", "")) if touch is Touch.DESTINATION else mark.address
-        for touch in INSTRUCTIONS[mark.instruction].touches
-    )
-
-
 def _touched_by_page(copy: EditCopy) -> dict[str, list[str]]:
     """The flattened page name -> every address this copy's marks write there.
 
     Sorted within a page, so two runs over one copy name them in one order.
-    A mark carrying no address -- the one row that may -- names no page.
+    Where a mark writes is its row's answer (`desk.marks.table.Row.places`).
     """
     out: dict[str, list[str]] = {}
     for sheet in copy.sheets:
         for mark in sheet.marks:
-            for address in _touched(mark):
+            for address, _touch in INSTRUCTIONS[mark.instruction].places(mark):
                 name = cue_of(address).path
                 if name and address not in out.setdefault(name, []):
                     out[name].append(address)

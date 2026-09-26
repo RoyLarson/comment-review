@@ -29,7 +29,7 @@ from comment_review.binder.addresses import handed
 from comment_review.binder.binder import Binder
 from comment_review.desk.collator import Cache, Problem, verify_report
 from comment_review.desk.containers import EditCopy
-from comment_review.desk.marks.table import INSTRUCTIONS
+from comment_review.desk.marks.table import INSTRUCTIONS, Touch
 from comment_review.desk.stages import Stage, deals
 from comment_review.flows.on_the_page import PageCache, held_at, no_page, page_named
 from comment_review.reading.addresser import cue_of
@@ -98,28 +98,30 @@ def resolution_problems(
     out: list[Problem] = []
     for sheet in copy.sheets:
         for mark in sheet.marks:
-            addr = cue_of(mark.address)
-            if addr.path and addr.cue:
-                why = _unresolved(mark.address, paths, root, cache)
-                if why:
-                    out.append(
-                        Problem(
-                            copy.role,
-                            mark.address,
-                            f"resolves against no page -- {why}",
+            for where, touch in INSTRUCTIONS[mark.instruction].places(mark):
+                if touch is Touch.DESTINATION:
+                    why = _unresolved(where, paths, root, cache)
+                    if why:
+                        out.append(
+                            Problem(
+                                copy.role,
+                                mark.address,
+                                f"`claim.to` {where!r} resolves against no page"
+                                f" -- {why}",
+                            )
                         )
-                    )
-            if INSTRUCTIONS[mark.instruction].owes_destination:
-                to = str(mark.claim.get("to", ""))
-                why = _unresolved(to, paths, root, cache)
-                if why:
-                    out.append(
-                        Problem(
-                            copy.role,
-                            mark.address,
-                            f"`claim.to` {to!r} resolves against no page -- {why}",
+                    continue
+                addr = cue_of(where)
+                if addr.path and addr.cue:
+                    why = _unresolved(where, paths, root, cache)
+                    if why:
+                        out.append(
+                            Problem(
+                                copy.role,
+                                where,
+                                f"resolves against no page -- {why}",
+                            )
                         )
-                    )
     return out
 
 

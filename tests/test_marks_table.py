@@ -160,6 +160,27 @@ def test_owes_destination_is_derived_from_touches_not_set_beside_it():
     assert Row(touches=(Touch.OWN,), owes_destination=True).owes_destination is False
 
 
+def test_a_move_writes_at_its_origin_and_at_its_destination():
+    mark = _mark(Instruction.MOVE, claim={"from": "m.py@b1", "to": "m.py@b5"})
+    assert INSTRUCTIONS[Instruction.MOVE].places(mark) == (
+        ("m.py@b1", Touch.ORIGIN),
+        ("m.py@b5", Touch.DESTINATION),
+    )
+
+
+def test_every_other_row_writes_at_its_own_address_alone():
+    for instruction, row in INSTRUCTIONS.items():
+        if instruction is Instruction.MOVE:
+            continue
+        assert row.places(_mark(instruction)) == (("m.py@b1", Touch.OWN),), instruction
+
+
+def test_a_mark_with_no_address_writes_nowhere():
+    """`clean` is the one row a mark may carry no address for."""
+    mark = _mark(Instruction.CLEAN, address="")
+    assert INSTRUCTIONS[Instruction.CLEAN].places(mark) == ()
+
+
 def test_chief_mark_returns_the_filed_mark_that_set_the_decided_text():
     """Ruling R5: the side taken in is returned as-is, not resynthesized."""
     mark = _mark(

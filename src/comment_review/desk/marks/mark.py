@@ -834,6 +834,12 @@ def _names_a_place(value: object) -> bool:
     return bool(got.path and got.cue)
 
 
+#: The claim key that names a two-place mark's destination. `desk.marks.table.
+#: Row.places` reads the destination through it, and `_destination_problems`,
+#: below, checks the same key before a mark is built.
+DESTINATION_KEY = "to"
+
+
 def _destination_problems(where: str, address: object, claim: object) -> list[str]:
     """WHERE a `move` sends the paragraph, checked against where it already IS.
 
@@ -860,7 +866,7 @@ def _destination_problems(where: str, address: object, claim: object) -> list[st
     """
     if not isinstance(claim, dict) or not isinstance(address, str):
         return []
-    destination = claim.get("to")
+    destination = claim.get(DESTINATION_KEY)
     if not isinstance(destination, str):
         return []
     if destination.strip() and destination.strip() == address.strip():

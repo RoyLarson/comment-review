@@ -243,7 +243,7 @@ to THIS FILE first.
 | **verbatim** | which ONE claim key is checked word-for-word against the paragraph | a name, or none |
 | **change** | whether a change is owed, and for `move` that it shows both ends | owed / not owed |
 | **sources** | whether sources are owed | owed / not owed |
-| **touches** | which places -- own, origin, destination -- the row writes | a list of place names |
+| **touches** | which places -- own, origin, destination -- the row writes. A destination is the address `claim.to` names and the others are the mark's own `address`; `Row.places` is the one reading of both | a list of place names |
 | **sets** | the text a mark of this row writes at one touch, given its base | a function of the mark, the touch and the base |
 | **reads** | the problems a mark of this row has at one touch, against its base | a function of the mark, the touch and the base |
 | **notes** | what the chief is told about a mark of this row that is not a problem with it | a function of the mark, the touch and the base |

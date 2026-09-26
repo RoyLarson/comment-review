@@ -34,7 +34,7 @@ from comment_review.desk.marks.mark import (  # noqa: E402
     first_word_dropped,
 )
 from comment_review.desk.marks.table import INSTRUCTIONS  # noqa: E402
-from comment_review.flows.fill import marks_on, touched_by  # noqa: E402
+from comment_review.flows.fill import marks_on  # noqa: E402
 from comment_review.flows.page_for import page_of  # noqa: E402
 
 
@@ -336,7 +336,7 @@ class TestTheCopiesFileWhatTheLandingTableSays(unittest.TestCase):
         for path in sorted((self.run_dir / "copies").glob("*.json")):
             copy = json.loads(path.read_text(encoding="utf-8"))
             for mark in marks_on(copy):
-                for address, _touch in touched_by(mark):
+                for address, _touch in INSTRUCTIONS[mark.instruction].places(mark):
                     placed.setdefault(address, set()).add(str(mark.instruction))
         said = {
             address: set(landing.filed)

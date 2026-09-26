@@ -26,7 +26,13 @@ from enum import StrEnum, auto
 from typing import TYPE_CHECKING, Any
 
 from comment_review.desk.dispositions.disposition import CHIEF
-from comment_review.desk.marks.mark import Instruction, Mark, Shape, first_word_dropped
+from comment_review.desk.marks.mark import (
+    DESTINATION_KEY,
+    Instruction,
+    Mark,
+    Shape,
+    first_word_dropped,
+)
 
 if TYPE_CHECKING:
     # Type-only: `place` imports `INSTRUCTIONS`, `Stance` and `Touch` from this
@@ -202,6 +208,25 @@ class Row:
         """
         object.__setattr__(self, "owes_destination", Touch.DESTINATION in self.touches)
 
+    def places(self, mark: Mark) -> tuple[tuple[str, Touch], ...]:
+        """Every place a mark of this row writes at, with which touch each is.
+
+        This is the one answer to where a mark writes; every flow that walks a
+        mark's places asks it. `touches` names the places, in order. A
+        destination is the address the claim names under `DESTINATION_KEY`,
+        and every other touch is the mark's own address. A place with no
+        address is left out, so a mark that may carry none writes nowhere.
+        """
+        out = []
+        for touch in self.touches:
+            if touch is Touch.DESTINATION:
+                where = str(mark.claim.get(DESTINATION_KEY, ""))
+            else:
+                where = mark.address
+            if where:
+                out.append((where, touch))
+        return tuple(out)
+
 
 INSTRUCTIONS: dict[Instruction, Row] = {
     Instruction.CLEAN: Row(
@@ -297,12 +322,12 @@ def _sets_both_ends(filed, place: "Place", partner: "Place | None") -> bool:
         partner: the other end, where this place is one end of a move.
 
     Returns:
-        True for a mark that touches its own place alone, which is every row
-        but `move`. For a two-place mark, whether the partner is decided and
-        its text is what this mark sets there.
+        True for a mark that writes at this place alone. For a mark that also
+        writes elsewhere, whether the partner is decided and its text is what
+        this mark sets there.
     """
     row = INSTRUCTIONS[filed.mark.instruction]
-    if row.touches == (Touch.OWN,):
+    if all(where == place.address for where, _touch in row.places(filed.mark)):
         return True
     if partner is None or partner.text is None:
         return False

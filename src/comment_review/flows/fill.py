@@ -6,7 +6,6 @@
     row_problems(mark, base_at) -> what the mark's row finds against its bases
     composition_problems(role, marks, base_at) -> the places its own marks
                                                   will not compose at
-    touched_by(mark) -> every place it writes at, and which touch that is
     marks_on(copy) -> every entry on it that parses as a mark
     quoted_sources(root, sources) -> each source with its `verbatim` read in
     page_text_at(copies, address, root) -> the page's paragraph at one place
@@ -82,7 +81,7 @@ from comment_review.desk.marks.mark import (
     filled,
     untouched,
 )
-from comment_review.desk.marks.table import INSTRUCTIONS, Row, Touch
+from comment_review.desk.marks.table import INSTRUCTIONS, Row
 from comment_review.desk.stages import not_admitted
 from comment_review.flows.on_the_page import held_at
 from comment_review.flows.page_for import page_of
@@ -253,28 +252,10 @@ def row_problems(mark: Mark, base_at: Callable[[str], str]) -> list[str]:
         The row's own messages, in the order its touches are stated. Empty
         where the row finds nothing.
     """
+    row = INSTRUCTIONS[mark.instruction]
     out: list[str] = []
-    for address, touch in touched_by(mark):
-        out += INSTRUCTIONS[mark.instruction].reads(mark, touch, base_at(address))
-    return out
-
-
-def touched_by(mark: Mark) -> list[tuple[str, Touch]]:
-    """Every place this mark writes at, with which of its touches that is.
-
-    The row states the touches; a destination is `claim.to` and every other
-    touch is the mark's own address. A place with no address is left out --
-    the one row that may carry none writes nowhere.
-    """
-    out = []
-    for touch in INSTRUCTIONS[mark.instruction].touches:
-        where = (
-            str(mark.claim.get("to", ""))
-            if touch is Touch.DESTINATION
-            else mark.address
-        )
-        if where:
-            out.append((where, touch))
+    for address, touch in row.places(mark):
+        out += row.reads(mark, touch, base_at(address))
     return out
 
 
@@ -323,7 +304,7 @@ def composition_problems(
     """
     at: dict[str, list[Filed]] = {}
     for mark in marks:
-        for address, touch in touched_by(mark):
+        for address, touch in INSTRUCTIONS[mark.instruction].places(mark):
             at.setdefault(address, []).append(Filed(role, mark, touch))
     out: list[tuple[str, str]] = []
     for address, filed in at.items():
@@ -549,7 +530,7 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
     # this mark touches are asked about: a pair the copy already held
     # elsewhere is not this ruling's doing, and refusing it here would leave
     # the role no call that lands.
-    mine = {where for where, _touch in touched_by(parsed)}
+    mine = {where for where, _touch in INSTRUCTIONS[parsed.instruction].places(parsed)}
     doubled = [
         f"{where}: {why}"
         for where, why in composition_problems(
