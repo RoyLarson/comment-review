@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 10 of 45 tasks closed
+Progress: 11 of 45 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -34,8 +34,9 @@ The rebuilt middle's final review.
       answers are stored and ignored (B2)
 - [ ] T8 | Fix a held move queried at both ends so the one entry carries both;
       the second never reaches the author (B3)
-- [ ] T9 | Decide what two moves onto one place are; Place.partner holds one
-      address so the first origin goes unpaired (B4)
+- [x] T9 | Process 196: two moves onto one place are two placements; texts compose | 0b17ff17200a4cf901677700087daa5467f7c37c | Decide
+      what two moves onto one place are; Place.partner holds one address so the
+      first origin goes unpaired (B4)
         > 2026-09-26 Process 195: the move is one aggregate; composite TODO T27
 - [ ] T10 | Fix collate writing composed and contested text to the chief's copy
       and printing it as resolved (C1)
