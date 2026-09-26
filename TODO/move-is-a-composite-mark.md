@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 24 of 34 tasks closed
+Progress: 26 of 34 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -148,7 +148,8 @@ and now there is one object that cannot be half-held.
       the provisional single-mark move handling in `flows/collate.py` and the
       kind-promotion in `desk/collator.py` `_join_moves` once the composite
       makes them unreachable. Verify: both are gone and the suite stays green.
-- [ ] T9 | Implement a MOVE REGION in the edit copy's shape, distinct from the
+- [-] T9 | The move aggregate reads the move from its origin slot; no separate region was needed (P8, P2) | 0e15fbb1f2f4e3dedf85cde8a26e7a611eecee0c | Implement
+      a MOVE REGION in the edit copy's shape, distinct from the
       one-slot-per-place marks, and declare it in `desk/containers.py`. RULED
       2026-08-30 -- the destination is NOT seeded; a move gets its own spot.
       Verify: `parse_edit_copy` accepts a copy carrying a move in that region
@@ -228,14 +229,14 @@ and now there is one object that cannot be half-held.
       sheet of one role. Verify: a copy holding a cross-file move's origin half
       with no destination half is refused by name, and one holding both passes
       -- today `parse_edit_copy` looks at no marks at all.
-- [ ] T21 | Implement the public classifier and slice accessor in
-      `results/differences.py` that tasks 3, 4 and 5 need --
-      `delete`/`insert`/`replace`/nothing for one base-side pair, and the text
-      each side removed and added -- at a granularity finer than whole lines.
-      Verify: a `move` carrying ONE SENTENCE out of a paragraph classifies as a
-      deletion at the origin and the removed text is recoverable, where today's
-      line opcodes report a single `replace` and the removed text appears in no
-      opcode.
+- [-] T21 | The split derives both halves from one snippet; the row reads check them, no finer classifier needed | 0e15fbb1f2f4e3dedf85cde8a26e7a611eecee0c | Implement
+      the public classifier and slice accessor in `results/differences.py` that
+      tasks 3, 4 and 5 need -- `delete`/`insert`/`replace`/nothing for one
+      base-side pair, and the text each side removed and added -- at a
+      granularity finer than whole lines. Verify: a `move` carrying ONE SENTENCE
+      out of a paragraph classifies as a deletion at the origin and the removed
+      text is recoverable, where today's line opcodes report a single `replace`
+      and the removed text appears in no opcode.
         > 2026-09-26 differences.py is under machine/ now
 - [x] T22 | FINISHED -- mark refuses a non-path@cue destination, routed per #173 | 42987afd | Refuse
       a move's `claim.to` that names no recognized address. Verify: a bare prose

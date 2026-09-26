@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 12 of 45 tasks closed
+Progress: 16 of 45 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -30,10 +30,12 @@ The rebuilt middle's final review.
       carry it, so check applies it to a hand-written copy (A3)
 - [ ] T6 | Fix a taken_in naming copy-chief: disposition exits on a KeyError;
       the row should say which sides it admits (A4)
-- [ ] T7 | Fix an end carried forward by its partner: it is sent a slot whose
-      answers are stored and ignored (B2)
-- [ ] T8 | Fix a held move queried at both ends so the one entry carries both;
-      the second never reaches the author (B3)
+- [-] T7 | Place.partner is gone; an end is no longer carried forward by its partner (Process 195) | 0e15fbb1f2f4e3dedf85cde8a26e7a611eecee0c | Fix
+      an end carried forward by its partner: it is sent a slot whose answers are
+      stored and ignored (B2)
+- [-] T8 | A held move is one aggregate and emits one entry; human queries move before the fold (Process 197) | f95537fea2a2f029ea53bdb1712d82837f600a43 | Fix
+      a held move queried at both ends so the one entry carries both; the second
+      never reaches the author (B3)
 - [x] T9 | Process 196: two moves onto one place are two placements; texts compose | 0b17ff17200a4cf901677700087daa5467f7c37c | Decide
       what two moves onto one place are; Place.partner holds one address so the
       first origin goes unpaired (B4)
@@ -74,8 +76,9 @@ The rebuilt middle's final review.
       then asked an escalation (B6)
 - [ ] T25 | Make answers_pass keep the sides on unsettlable as marks_pass does
       (B7)
-- [ ] T26 | Correct the design's 'never ruled apart'; Process 139 lets the chief
-      rule a move's ends apart (B8)
+- [-] T26 | Process 195 narrowed 139: the chief rules words per end; the pair coupling this named is gone | 0e15fbb1f2f4e3dedf85cde8a26e7a611eecee0c | Correct
+      the design's 'never ruled apart'; Process 139 lets the chief rule a move's
+      ends apart (B8)
         > 2026-09-26 Process 195: apart on words, once on placement
 - [ ] T27 | Give rollback one producer; the bus builds two without a Fold and
       commands/collate.py a third (C3)
@@ -114,8 +117,9 @@ The rebuilt middle's final review.
 - [x] T43 | Revisit.unreadable deleted with its writers; the two claims its tests carried are tested again | b4be6db2 | Delete
       Revisit.unreadable; nothing outside the tests reads it (E2, Roy
       2026-09-25)
-- [ ] T44 | Fix a move to its own paragraph spelled in another path case: it
-      passes and the write end deletes the paragraph (code-review 2026-09-25)
+- [x] T44 | reading.addresser.folded compares destination to address; cad7f7d1 | cad7f7d1382eb5d7a8988a20b9cd43b3be1688a5 | Fix
+      a move to its own paragraph spelled in another path case: it passes and
+      the write end deletes the paragraph (code-review 2026-09-25)
 - [x] T45 | a move is keyed by its own two addresses; two out of one origin are two moves | 29b3e6931a00471f692374897f4ead9910639c72 | Pair
       a move's two ends on the filing, not the place; two moves out of one
       origin leave the first unpaired (code-review 2026-09-25)
