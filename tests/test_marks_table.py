@@ -1,8 +1,14 @@
 """The marks table: what each row sets, refuses and pairs as."""
 
+import re
+
+import pytest
+from helpers import a_real_binder_over, returned, seed
+
 from comment_review.desk.evaluate.place import Filed, Place
 from comment_review.desk.marks.mark import Instruction, Mark
 from comment_review.desk.marks.table import INSTRUCTIONS, Row, Stance, Touch, chief_mark
+from comment_review.flows.verify import resolution_problems
 
 
 def _mark(instruction: Instruction, **fields) -> Mark:
@@ -155,9 +161,47 @@ def test_owes_destination_is_derived_from_touches_not_set_beside_it():
     """A row cannot state `owes_destination` and `touches` in disagreement --
     `__post_init__` derives the first from the second every time, so passing
     a literal for it is overwritten rather than kept."""
-    assert Row(touches=(Touch.ORIGIN, Touch.DESTINATION)).owes_destination is True
+    moving = Row(
+        claim_all=("to",),
+        names_destination="to",
+        touches=(Touch.ORIGIN, Touch.DESTINATION),
+    )
+    assert moving.owes_destination is True
     assert Row().owes_destination is False
     assert Row(touches=(Touch.OWN,), owes_destination=True).owes_destination is False
+
+
+@pytest.mark.parametrize(
+    ("fields", "named"),
+    [
+        pytest.param(
+            {"touches": (Touch.ORIGIN, Touch.DESTINATION)},
+            "a destination touch and no destination key",
+            id="a-destination-with-no-key",
+        ),
+        pytest.param(
+            {"claim_all": ("to",), "names_destination": "to"},
+            "a destination key and no destination touch",
+            id="a-key-with-no-destination",
+        ),
+        pytest.param(
+            {
+                "claim_all": ("from",),
+                "names_destination": "to",
+                "touches": (Touch.ORIGIN, Touch.DESTINATION),
+            },
+            "`to`, which its claim keys do not name",
+            id="a-key-the-claim-does-not-carry",
+        ),
+    ],
+)
+def test_a_row_whose_destination_key_and_touches_disagree_is_refused(fields, named):
+    """`places` reads the destination under the key and the parse checks the
+    key only where `touches` names a destination, so a row stating one
+    without the other writes a destination nothing checks, or checks one
+    nothing writes."""
+    with pytest.raises(ValueError, match=re.escape(named)):
+        Row(**fields)
 
 
 def test_a_move_writes_at_its_origin_and_at_its_destination():
@@ -168,16 +212,60 @@ def test_a_move_writes_at_its_origin_and_at_its_destination():
     )
 
 
+#: A row naming its destination under a key other than the shipped one.
+THERE = Row(
+    claim_all=("from", "there"),
+    names_destination="there",
+    touches=(Touch.ORIGIN, Touch.DESTINATION),
+)
+
+
 def test_the_destination_is_read_under_the_key_the_row_names():
     """The row states which claim key names its destination, the way
     `quotes_original` states which one quotes."""
     assert INSTRUCTIONS[Instruction.MOVE].names_destination == "to"
-    row = Row(touches=(Touch.ORIGIN, Touch.DESTINATION), names_destination="there")
     mark = _mark(Instruction.MOVE, claim={"to": "m.py@b5", "there": "m.py@b9"})
-    assert row.places(mark) == (
+    assert THERE.places(mark) == (
         ("m.py@b1", Touch.ORIGIN),
         ("m.py@b9", Touch.DESTINATION),
     )
+
+
+def test_a_refusal_about_the_destination_names_the_rows_own_key(tmp_path, monkeypatch):
+    """The parse's two destination refusals and resolution's spell the key
+    the row names, as `derived_change` spells `quotes_original`."""
+    monkeypatch.setitem(INSTRUCTIONS, Instruction.MOVE, THERE)
+    entry = {
+        "address": "m.py@b1",
+        "instruction": "move",
+        "claim": {"from": "m.py@b1", "there": "m.py@b1"},
+        "reason": "a reason",
+        "sources": [{"cite": "m.py:1", "verbatim": "x = 1"}],
+        "change": "# two",
+        "raw_text": BASE,
+    }
+    _, onto_itself = Mark.deserialize("w", entry)
+    _, not_a_place = Mark.deserialize(
+        "w", {**entry, "claim": {"from": "m.py@b1", "there": "b9"}}
+    )
+    assert [*onto_itself, *not_a_place] == [
+        "w: `claim.there` is this mark's own `address` -- a move to where the"
+        " paragraph already is deletes it and writes nothing back",
+        "w: `claim.there` 'b9' is not a `path@cue` place -- a destination on a"
+        " gathered page is its full address, as the addresser prints it, and one"
+        " outside the code is not carried yet (`decision-log.md Process: #173`):"
+        " file a `human-review-necessary` query here naming it instead",
+    ]
+
+    binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
+    wire = seed(binder, "block-context")
+    wire["sheets"][0]["marks"][0].update(
+        {**entry, "claim": {"from": "m.py@b1", "there": "m.py@b9"}}
+    )
+    problems = resolution_problems(returned(wire), ["m.py"], tmp_path, {})
+    assert [p.message for p in problems] == [
+        "`claim.there` 'm.py@b9' resolves against no page -- m.py carries no place 'b9'"
+    ]
 
 
 def test_every_other_row_writes_at_its_own_address_alone():

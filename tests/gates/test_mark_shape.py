@@ -206,13 +206,25 @@ def test_the_row_carries_only_what_the_spec_allows():
     assert have == allowed_names(), sorted(have ^ allowed_names())
 
 
+def _named_by_the_shape(shape: str) -> set[str]:
+    """The fields whose classifier row states `shape` in the spec's shape column.
+
+    Each row reads `| **name** | what it decides | shape |`; the shape is the
+    last cell.
+    """
+    rows = re.findall(r"^\| \*\*([^*]+)\*\* \|.*\| ([^|]+) \|$", _SECTION, re.MULTILINE)
+    return {FIELD_FOR[name] for name, stated in rows if stated.strip() == shape}
+
+
 def test_no_field_carries_prose():
-    """A row states facts. A sentence for a human is not a fact about the row."""
+    """A row states facts. A sentence for a human is not a fact about the row.
+
+    The one string a row may hold is a claim key's name, and the spec says
+    which classifiers are one: those whose shape reads "a name, or none"."""
+    names = _named_by_the_shape("a name, or none")
+    assert names, "no classifier in the spec reads 'a name, or none'"
     for f in dataclasses.fields(Row):
-        assert f.type is not str or f.name in {
-            "quotes_original",
-            "names_destination",
-        }, f.name
+        assert f.type is not str or f.name in names, f.name
 
 
 # === Per-instruction agreement: the spec's own table against `INSTRUCTIONS`.
@@ -250,10 +262,11 @@ _OWES_HEADER, _OWES_ROWS = _OWES_LINES[0], _OWES_LINES[2:]
 #: BOTH the claim column ("anchor") and the flags column ("NAMED IN
 #: BACKTICKS") on the same physical line, which an indent-only match cannot
 #: tell apart.
-_OWES_CELLS = ("name", "claim", "verbatim", "change", "sources", "flags")
+_OWES_CELLS = ("name", "claim", "verbatim", "destination", "change", "sources", "flags")
 _OWES_COLUMNS = (
     "claim carries",
     "verbatim",
+    "destination",
     "change",
     "sources",
     "the row's own flags",
@@ -272,7 +285,7 @@ def _slice_row(line: str) -> dict[str, str]:
 
 
 def _owes_table() -> dict[str, dict[str, str]]:
-    """One entry per instruction: the table's five cells, as raw strings.
+    """One entry per instruction: the table's six cells, as raw strings.
 
     A cell that wraps (`query`'s claim keys, `move`'s `change`, several
     rows' flags column) continues on a line sliced at the same column
@@ -304,8 +317,8 @@ def _claim_all_from(cell: str) -> tuple[str, ...]:
     return tuple(p.strip() for p in cell.split(",") if p.strip())
 
 
-def _quotes_original_from(cell: str) -> str:
-    """ "--" quotes nothing; otherwise the cell names the claim key verbatim."""
+def _key_from(cell: str) -> str:
+    """ "--" names no key; otherwise the cell names the claim key verbatim."""
     cell = cell.strip()
     return "" if cell == "--" else cell
 
@@ -329,26 +342,14 @@ def test_the_owes_table_claim_keys_agree_with_the_row(name):
 
 @pytest.mark.parametrize("name", sorted(INSTRUCTIONS))
 def test_the_owes_table_verbatim_agrees_with_the_row(name):
-    got = _quotes_original_from(OWES_TABLE[name]["verbatim"])
+    got = _key_from(OWES_TABLE[name]["verbatim"])
     assert got == INSTRUCTIONS[name].quotes_original
 
 
-def test_the_destination_key_the_spec_states_is_the_rows():
-    """The classifiers table states the one destination key and the row that
-    carries it -- "`to`, on `move`" -- so every row's `names_destination`
-    is read against it, and no other row may carry one."""
-    stated = _found(
-        re.search(
-            r"^\| \*\*destination key\*\* \|.*?`(\w+)`, on `(\w+)` \|",
-            _SECTION,
-            re.MULTILINE,
-        ),
-        "the destination key row (| **destination key** | ... `key`, on `row` |)",
-    )
-    key, owner = stated.group(1), stated.group(2)
-    for name, row in INSTRUCTIONS.items():
-        want = key if name == owner else ""
-        assert row.names_destination == want, name
+@pytest.mark.parametrize("name", sorted(INSTRUCTIONS))
+def test_the_owes_table_destination_agrees_with_the_row(name):
+    got = _key_from(OWES_TABLE[name]["destination"])
+    assert got == INSTRUCTIONS[name].names_destination
 
 
 @pytest.mark.parametrize("name", sorted(INSTRUCTIONS))

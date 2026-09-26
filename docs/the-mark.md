@@ -103,23 +103,23 @@ place nobody looked at.** A reviewer following the brief produced findings that 
 substantive, **unless its row says otherwise.**
 
 ```
-           claim carries    verbatim   change   sources   the row's own flags
---------------------------------------------------------------------------------------
-clean      --               --         no       no        not substantive. The NULL
-                                                          mark, and the coverage record
-query      shape,           --         no       YES       --
+           claim carries    verbatim   destination   change   sources   the row's own flags
+----------------------------------------------------------------------------------------------------
+clean      --               --         --            no       no        not substantive. The NULL
+                                                                        mark, and the coverage record
+query      shape,           --         --            no       YES       --
            attempted,
            settles
-drop       drop             drop       yes      yes       an empty change IS the edit
-                                                          where the claim names the
-                                                          whole paragraph
-correct    false, true      false      yes      yes       --
-patch      from, to         from       yes      NO        wording alone -- nothing
-                                                          outside the paragraph
-                                                          settles it
-add        missing,         --         yes      yes       the anchor is named in
-           anchor                                         backticks
-move       from, to         --         yes      yes       the `to` must be ADDRESSABLE
+drop       drop             drop       --            yes      yes       an empty change IS the edit
+                                                                        where the claim names the
+                                                                        whole paragraph
+correct    false, true      false      --            yes      yes       --
+patch      from, to         from       --            yes      NO        wording alone -- nothing
+                                                                        outside the paragraph
+                                                                        settles it
+add        missing,         --         --            yes      yes       the anchor is named in
+           anchor                                                       backticks
+move       from, to         --         to            yes      yes       the `to` must be ADDRESSABLE
 ```
 
 ## `move` is TWO OPERATIONS UNDER ONE LABEL, AND IT IS INDIVISIBLE

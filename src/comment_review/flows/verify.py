@@ -80,14 +80,16 @@ def resolution_problems(
     not thereby unresolved: the page is read, not the binder (`Process: #97`),
     and the page carries every place a series has, filled or not.
 
-    A `move`'s `claim.to` is an address as well, and resolves the same way
-    (`Process: #111`). An address that is not `path@cue` resolves against
-    nothing -- `path@cue` is the only address built (`Addressing: #21`) --
-    and one resolves only as it is printed: the binder's spelling of its
-    path, or the checkout's for a page the binder lacks, and the page's
-    spelling of its cue. A case slip or stray whitespace is refused, naming
-    the printed address; a file system that ignores case would otherwise open
-    the page, and the docket would carry it as a second page.
+    The address a row names its destination under -- `claim.to` on a `move`,
+    `desk.marks.table.Row.names_destination` -- is an address as well, and
+    resolves the same way (`Process: #111`). An address that is not
+    `path@cue` resolves against nothing -- `path@cue` is the only address
+    built (`Addressing: #21`) -- and one resolves only as it is printed: the
+    binder's spelling of its path, or the checkout's for a page the binder
+    lacks, and the page's spelling of its cue. A case slip or stray
+    whitespace is refused, naming the printed address; a file system that
+    ignores case would otherwise open the page, and the docket would carry it
+    as a second page.
 
     Verify: an invented cue is refused, a valid empty place is not -- the case
     `Process: #97` settled, restated against the real page rather than the
@@ -101,16 +103,17 @@ def resolution_problems(
 
     Returns:
         One `Problem` per mark whose path no page can be read at, or whose
-        cue its page does not carry, and one per `move` whose `claim.to`
-        fails the same way, at the move's own address, in sheet then mark
-        order. A mark with no address has no place to resolve:
-        `desk.marks.table.Row.places` leaves it out, and `clean` is the one
-        row that may carry none.
+        cue its page does not carry, and one per mark whose destination
+        fails the same way, at the mark's own address and naming the claim
+        key it was read under, in sheet then mark order. A mark with no
+        address has no place to resolve: `desk.marks.table.Row.places` leaves
+        it out, and `clean` is the one row that may carry none.
     """
     out: list[Problem] = []
     for sheet in copy.sheets:
         for mark in sheet.marks:
-            for where, touch in INSTRUCTIONS[mark.instruction].places(mark):
+            row = INSTRUCTIONS[mark.instruction]
+            for where, touch in row.places(mark):
                 why = _unresolved(where, paths, root, cache)
                 if not why:
                     continue
@@ -119,7 +122,8 @@ def resolution_problems(
                         Problem(
                             copy.role,
                             mark.address,
-                            f"`claim.to` {where!r} resolves against no page -- {why}",
+                            f"`claim.{row.names_destination}` {where!r} resolves"
+                            f" against no page -- {why}",
                         )
                     )
                 else:
@@ -137,7 +141,7 @@ def _unresolved(address: str, paths: list[str], root: Path, cache: PageCache) ->
     missing page or cue.
 
     Args:
-        address: a mark's own address, or a `move`'s `claim.to`.
+        address: a mark's own address, or the destination its row names.
         paths: the binder's own page paths, for `flows.on_the_page.real_path`.
         root: the checkout every page is read from.
         cache: shared across the stage's copies, keyed by real path.

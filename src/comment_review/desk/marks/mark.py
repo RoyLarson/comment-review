@@ -874,7 +874,7 @@ def _destination_problems(
     # file system that ignores case, and the delete lands without the write.
     if folded(destination) and folded(destination) == folded(address):
         return [
-            f"{where}: `claim.to` is this mark's own `address` -- a move to "
+            f"{where}: `claim.{key}` is this mark's own `address` -- a move to "
             "where the paragraph already is deletes it and writes nothing back"
         ]
     # PROVISIONAL, `decision-log.md Process: #173`: a destination that is not a
@@ -884,7 +884,7 @@ def _destination_problems(
     # have addresses, a move to one of them is carried.
     if destination.strip() and not _names_a_place(destination):
         return [
-            f"{where}: `claim.to` {destination!r} is not a `path@cue` place -- a"
+            f"{where}: `claim.{key}` {destination!r} is not a `path@cue` place -- a"
             " destination on a gathered page is its full address, as the addresser"
             " prints it, and one outside the code is not carried yet"
             " (`decision-log.md Process: #173`): file a `human-review-necessary`"

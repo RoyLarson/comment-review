@@ -197,15 +197,35 @@ class Row:
     owes_destination: bool = False
 
     def __post_init__(self) -> None:
-        """Derive `owes_destination` from `touches`, overwriting any literal.
+        """Derive `owes_destination` from `touches`, and refuse a key that disagrees.
 
         The dataclass is frozen, so this is the one place allowed to set a
         field after construction. `owes_destination` is a fact about
         `touches`, not a second fact a row author could state differently --
         deriving it here is what keeps the two from drifting apart, the way
         a stored copy next to its source could.
+
+        `names_destination` is the other half of the same fact, and cannot be
+        derived: `places` reads the destination under it, and the parse checks
+        it only where `touches` names a destination. So a row with a
+        destination touch names a key its claim carries, and a row without
+        one names none.
+
+        Raises:
+            ValueError: the row names a destination touch and no key, a key
+                and no destination touch, or a key `claim_all` does not name.
         """
-        object.__setattr__(self, "owes_destination", Touch.DESTINATION in self.touches)
+        owes = Touch.DESTINATION in self.touches
+        object.__setattr__(self, "owes_destination", owes)
+        if owes and not self.names_destination:
+            raise ValueError("a row with a destination touch and no destination key")
+        if self.names_destination and not owes:
+            raise ValueError("a row with a destination key and no destination touch")
+        if self.names_destination and self.names_destination not in self.claim_all:
+            raise ValueError(
+                f"a row whose destination key is `{self.names_destination}`,"
+                " which its claim keys do not name"
+            )
 
     def places(self, mark: Mark) -> tuple[tuple[str, Touch], ...]:
         """Every place a mark of this row writes at, with which touch each is.
