@@ -5132,3 +5132,19 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   holding one end only) rather than choosing between its two options: the question is settled
   before any end is held. What carries the answer back to the roles -- the "plus something" -- is
   not yet designed.
+
+- **#198.** **The human's answers are one file, one section per query, naming the role that asked**
+  (Roy, 2026-09-26, on `human-questions-before-the-fold` T1).
+
+  Offered -- a small answers file the task agent writes after asking the human with the question
+  tool, keyed by the place or move each query was about; `collate` and `turn` refuse to fold while
+  a human query has no entry; each asking role gets its slot back with the answer attached and
+  replaces its query with a real mark or answer -- Roy: *"This works"*, and: *"I would say it
+  should also state the agent that brought it up so that each can quickly find the answers it
+  needs. Semi structured markdown or toml file like would make the sections easy for the agents to
+  cross-reference just in case"*.
+
+  So each section carries the role that asked, the place or move it asked about, the question and
+  the human's answer. The format is TOML, one `[[answer]]` table per query: the standard library
+  reads it (`tomllib`) where markdown would need a parser of its own, and it keeps the sections a
+  role scans for its own name.
