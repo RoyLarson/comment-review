@@ -2187,3 +2187,75 @@ def write_expected(root: Path) -> tuple[Path, Path, Path]:
     store = root / "store.py"
     store.write_text(STORE_EXPECTED, encoding="utf-8", newline="\n")
     return fib, rate, store
+
+
+#: A fourth file, beside the three but never gathered: the binder holds no
+#: row for it, so only its page knows the paragraph at `b1`.
+NOTES_FIXTURE = (
+    "LOGGED = True\n# The count is kept here for the report.\nREPORTED = True\n"
+)
+#: The paragraph at `notes.py@b1`, which the planted move must keep.
+NOTES_PARAGRAPH = "# The count is kept here for the report."
+#: Where the planted move lands: a place in the ungathered file.
+UNGATHERED_DESTINATION = "notes.py@b1"
+#: A line of `store.py`'s whose paragraph the planted move takes.
+UNGATHERED_SNIPPET_LINE = "    # True when the store has answered nothing at all."
+#: The line `collate` must print for the planted move (`decision-log.md
+#: Process: #187`): its destination text drops the last word of the paragraph
+#: already there.
+UNGATHERED_REFUSAL = (
+    f"block-context {UNGATHERED_DESTINATION}: the destination text does not"
+    " keep 'report'"
+)
+
+
+def write_ungathered_plant(copy: Path, root: Path) -> Path:
+    """Rule a seeded copy whole, with one move into a file the run did not gather.
+
+    Every slot is ruled `clean` but one, the `store.py` paragraph holding
+    `UNGATHERED_SNIPPET_LINE`, which moves to `UNGATHERED_DESTINATION`. Its
+    destination text keeps the snippet and drops the last word of
+    `NOTES_PARAGRAPH`, so the move is refused by its row only where the fold
+    measures it against the page's paragraph there. Written by hand, as a
+    role writes its copy with its file-write tool: `mark` reads the same page
+    and would refuse the move before it was placed.
+
+    Args:
+        copy: a copy `distribute --seed` wrote over the smoke's binder,
+            rewritten in place.
+        root: the tree `collate --repo` reads, already holding the three
+            fixture files. `notes.py` is written into it here.
+
+    Returns:
+        The copy's path.
+    """
+    (root / "notes.py").write_text(NOTES_FIXTURE, encoding="utf-8", newline="\n")
+    held = json.loads(copy.read_text(encoding="utf-8"))
+    line = STORE_FIXTURE.splitlines().index(UNGATHERED_SNIPPET_LINE) + 1
+    for sheet in held["sheets"]:
+        for slot in sheet["marks"]:
+            if slot["raw_text"] == UNGATHERED_SNIPPET_LINE:
+                slot.update(
+                    {
+                        "instruction": "move",
+                        "claim": {
+                            "from": slot["address"],
+                            "to": UNGATHERED_DESTINATION,
+                        },
+                        "reason": "the note belongs with the count it describes",
+                        "sources": [
+                            {
+                                "cite": f"store.py:{line}",
+                                "verbatim": UNGATHERED_SNIPPET_LINE.strip(),
+                            }
+                        ],
+                        "change": UNGATHERED_SNIPPET_LINE,
+                        "raw_text": NOTES_PARAGRAPH.removesuffix(" report.")
+                        + "\n"
+                        + UNGATHERED_SNIPPET_LINE,
+                    }
+                )
+            else:
+                slot.update({"instruction": "clean", "reason": CLEAN_REASON})
+    copy.write_text(json.dumps(held, indent=2), encoding="utf-8", newline="\n")
+    return copy

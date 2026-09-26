@@ -217,6 +217,16 @@ $OtherChiefFile = Join-Path $Run 'other-chief.json'
 $OtherProofFile = Join-Path $Run 'other-proof.json'
 $OtherBatchFile = Join-Path $Run 'other-batch.json'
 
+# The ungathered-destination sub-plant (Process #187): a tree holding the
+# three fixture files and a fourth the binder never gathered, a copy seeded
+# from the smoke's binder and ruled by hand, and the three paths a refused
+# collate must not write.
+$UngatheredDir = Join-Path $Run 'ungathered'
+$UngatheredCopyFile = Join-Path $Run 'ungathered-copy.json'
+$UngatheredChiefFile = Join-Path $Run 'ungathered-chief.json'
+$UngatheredProofFile = Join-Path $Run 'ungathered-proof.json'
+$UngatheredBatchFile = Join-Path $Run 'ungathered-batch.json'
+
 # The cite refusal sub-plant (Process #181), and what a refused turn must not
 # write.
 $BadCiteProofFile = Join-Path $Run 'bad-cite-proof.json'
@@ -1199,6 +1209,52 @@ $Stages = [ordered]@{
         foreach ($written in @($OtherChiefFile, $OtherProofFile, $OtherBatchFile)) {
             if (Test-Path -LiteralPath $written) {
                 Write-Host 'stage failed: collate from two trees refused'
+                Write-Host "a rolled-back collate wrote $written"
+                exit 1
+            }
+        }
+        # Process #187, beside the main line: a move into a file the binder
+        # never gathered, whose destination text drops a word of the
+        # paragraph already there. `collate --repo` reads a tree holding the
+        # three fixture files and that fourth one; the copy is every slot
+        # ruled clean but the move. The fold measures the destination against
+        # the page's paragraph, so the move's own row refuses it and the round
+        # rolls back. What is asserted is that line, the exit code, and that
+        # nothing was written.
+        New-Item -ItemType Directory -Path $UngatheredDir | Out-Null
+        Invoke-Checked -Stage 'ungathered fixture' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            $WriteFixtures,
+            $UngatheredDir
+        )
+        Invoke-Checked -Stage 'ungathered seed' -CommandLine ($Launcher + @(
+            $Cmd.distribute, '--seed', '--binder', $BinderFile,
+            '--role', 'block-context', '--out', $UngatheredCopyFile
+        ))
+        Invoke-Checked -Stage 'ungathered plant' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_ungathered_plant; write_ungathered_plant(Path(sys.argv[1]), Path(sys.argv[2]))',
+            $UngatheredCopyFile, $UngatheredDir
+        )
+        $refusal = (& uv run python -c 'import sys; sys.path.insert(0, "scripts"); from smoke_fixture import UNGATHERED_REFUSAL; print(UNGATHERED_REFUSAL)')
+        $ungathered = $Launcher + @(
+            $Cmd.collate, '--stage', '4', '--binder', $BinderFile,
+            '--repo', $UngatheredDir, '--edit-copy', $UngatheredCopyFile,
+            '--out', $UngatheredChiefFile, '--proof-out', $UngatheredProofFile,
+            '--batch-out', $UngatheredBatchFile
+        )
+        $refused = Invoke-Checked -Stage 'collate a move into an ungathered file refused' -Expect 1 -Capture -CommandLine $ungathered
+        if (-not (@($refused) -contains $refusal)) {
+            Write-Host 'stage failed: collate a move into an ungathered file refused'
+            Write-Host "expected the line: $refusal"
+            Write-Host 'collate printed:'
+            $refused | Out-Host
+            Write-Host "command: $(Format-CommandLine $ungathered)"
+            exit 1
+        }
+        foreach ($written in @($UngatheredChiefFile, $UngatheredProofFile, $UngatheredBatchFile)) {
+            if (Test-Path -LiteralPath $written) {
+                Write-Host 'stage failed: collate a move into an ungathered file refused'
                 Write-Host "a rolled-back collate wrote $written"
                 exit 1
             }
