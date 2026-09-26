@@ -187,6 +187,15 @@ two-`Mark` composite, so it is the file this determination reaches first.
 reports**: prose deleted from a place and never landed, or landed and never removed, so the file
 now says it twice. **Nothing downstream would know the pair was meant to be one thing.**
 
+**RULED 2026-09-26, `decision-log.md Process: #195` -- both shapes, at different times.** A
+move is a placement claim and nothing else. It is one `Mark` while the placement is open, and
+travels whole as the table below binds; once every reader of either page has agreed the
+placement it is split into the mover's `drop` at the origin and `add` at the destination, and
+the two ends are ordinary places from then on, at the fold and at the write end. Placement is
+a question of its own, with `agree`, `stet`, `withdraw` and `query` as its answers. **The code
+does not do this yet** -- [`move-is-a-composite-mark`](../TODO/move-is-a-composite-mark.md) is
+refiled against it.
+
 **What that binds, everywhere the mark is handled:**
 
 | stage | the rule |

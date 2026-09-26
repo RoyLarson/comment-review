@@ -4333,6 +4333,12 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   supposed to be looking at the total composition by then and maybe the drop is correct but the
   words on the add are still bad"*.
 
+  **Narrowed 2026-09-26 by `#195`.** The independence is of the WORDS at each end. Placement
+  is one ruling for the pair, `taken_in` or `original`, given only on a move still unresolved
+  at max turns; on an accepted move the chief sees the `drop` and the `add` and has no say in
+  the move. The case recorded above -- original at the origin, the move at the destination --
+  is not a legal pair of rulings under it.
+
 - **#140.** **When the move branch merges** (Roy, 2026-09-13: five rounds on
   `feat/a-move-resolves-at-both-ends` had each turned up a few more edges of a move; round 5 left
   `no-command-for-the-middle` T88, a reworded move every role cleans never settling, and T89, a
@@ -5003,3 +5009,81 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   per-place lines kept as a report of how the round would have gone -- Roy chose the refusals
   alone. The role reads its refusals, repairs its copy, and `collate` runs again. `#177`
   stands for what a note is: it is reported by a committed fold and rolls nothing back.
+
+- **#195.** **A move is a placement claim, settled once for the pair, then split into a `drop`
+  and an `add`; placement has its own question and its own verbs** (Roy, 2026-09-26, after a
+  table of the move's two ends against the one-place marks showed `#139`, `#155` and `#192`
+  answering three cases of one unstated rule, each from the case in front of it).
+
+  Roy: *"So the problem with bringing this to me one at a time is the inconsistency in the
+  rulings or a lack of complete understanding of the base ruling ... These to me are an
+  indication we should have a more base rule to guide the design and why I chose some if
+  those"*. The base rule, his words:
+
+  > *"The move is about, is this comment located correctly regardless of whether it is worded
+  > well or is truthful or accurate or current or any of the other qualifiers that we want at
+  > the end of the review. Given that statement what we care is that there is agreement that
+  > the statement should have moved, and if there is agreement that the statement should have
+  > moved, then we don't care anymore how each end needs to be reworded to make the end
+  > statements be in line with the qualifiers. Any collisions in that need to be understood
+  > and worked through but the entire move cancellation should no longer need to be on the
+  > table. It is part of the reason why ownership context goes first, because moves have
+  > priority."*
+
+  **Six items, each read back and confirmed or corrected in the same session.**
+
+  1. A move claims one thing: the paragraph is located wrongly and belongs at the
+     destination. It claims nothing about the wording, truth or currency of either end.
+  2. Placement is agreed under `#180`: every role that read either page has accepted the pair
+     of addresses. A `correct` or `patch` at either end accepts the placement and disputes only
+     the words. Roy: *"I think your statement about #180 reads correctly."*
+  3. Once placement is accepted the move cannot be cancelled by any later actor. Roy: *"I
+     think after the move is accepted it should be split into the composite drop/add pair"*.
+     The one mark becomes two ordinary marks filed by the mover: a `drop` at the origin, claim
+     the snippet, change the remainder; and an `add` at the destination, change the snippet,
+     `raw_text` the arrival paragraph. Each end is then an ordinary place, at the fold and at
+     the write end alike. So the one-`Mark` determination of 2026-09-02 and `#56`'s composite
+     are each right at a different time: one mark while placement is open, two once it closes.
+  4. What the chief sees depends on where placement stands at max turns. Roy: *"if the move
+     itself is not resolved then it gets to choose and then apply an appropriate recast,
+     taken-in, ... to the ends individually. If the move is already accepted then it only is
+     ruling on the rewording on each end individually. It does not get a say in the move."*
+     And, correcting a reading that took the second sentence as general: *"that was for when a
+     move was accepted not in general. When a move is not resolved it sees the move"*. So an
+     unresolved move reaches the chief as the `move`, and the chief rules placement once for
+     the pair, `taken_in` or `original`, then each end's words; an accepted move reaches the
+     chief only as its `drop` and `add`, and the chief rules words at each end alone.
+     **`#139` narrows to wording.**
+  5. After the split the two ends are set and approved each on its own. Offered a
+     both-or-neither rule at the write end carrying `#192` past the split, Roy: *"That is
+     false by the time it gets there. Both have been rewritten and the drop has been
+     applied/patched over... and the add has been corrected/patched,... There is no way for
+     them to be isolated and restated in a consistent manor by saying they both have to be
+     applied or neither."* **`#192`'s pair refusal narrows to a move still held as one mark**,
+     `#155`, where the author rules placement.
+  6. Placement is a third question, beside `composition` and `escalation`, put once per move
+     to every role that read either page, with verbs of its own. Shown that a reader other
+     than the mover had no answer refusing a move short of a human-review query -- `withdraw`
+     takes off the answering role's own side, `correct` and `patch` accept the placement --
+     Roy: *"Looks like we need a set of verbs for dealing with moves independently of the
+     other marks"*. The four, named by what they do, the trade's word where it has one:
+
+     | verb | who | what it does to the placement |
+     | --- | --- | --- |
+     | `agree` | any reader | accepts it; says nothing about the words |
+     | `stet` | any reader | refuses it: the paragraph stays where it is |
+     | `withdraw` | the mover | takes the move off both ends (`#129`, `#152`), moved to this row |
+     | `query` | any reader | `human-review-necessary` holds both ends for the author; the deferring shape abstains |
+
+     Offered -- a `stet` makes the placement contested, carried forward as one mark for the
+     chief to rule under item 4; or a `stet` kills the move, one reader's refusal ending it as
+     the mover's `withdraw` does -- Roy: *"The first option for stet"*.
+
+  **What follows in the code, none of it built at this entry.** The move becomes one
+  aggregate holding the placement state and its two ends, in place of `Place.partner` and the
+  cross-reaching passes -- `pair_moves` run twice, `refuse_half_moves`, `_moves_crossing`,
+  `_withdrew_at_the_partner`, `_sets_both_ends`, `_held_with`, `_prints`. A wording answer can
+  no longer half-withdraw a move, so `reaches_partner` and `#189` have nothing to guard. The
+  turn's batch carries a placement slot naming both ends beside the per-place slots. The
+  split writes the mover's `drop` and `add` as ordinary marks. `TODO/move-is-a-composite-mark.md`
+  is refiled against this shape.

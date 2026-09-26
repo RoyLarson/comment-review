@@ -288,6 +288,13 @@ a `recast` at the other puts two, each end written from its own decided text.
 only where its partner closed on what that mark sets there, because a move whose destination
 was recast is not what happened.
 
+**Narrowed 2026-09-26 -- `decision-log.md Process: #195`, not yet built.** The chief rules
+placement once for the pair, and only on a move still unresolved at max turns; an accepted
+move has been split into its `drop` and `add` before the chief sees it, and the chief rules
+the words at each end alone. A reader answers a move's placement on a question of its own,
+`agree`, `stet`, `withdraw` or `query`, beside the composition or escalation it answers on
+the words. What this section describes is the code as it stands.
+
 **A move held for the human is held at both ends and prints as one entry** --
 `decision-log.md Process: #155` and `#182`. `pair_moves` gives the pair one state and clears
 the text at the end that took it, so nothing is written to a page while the question is open;
