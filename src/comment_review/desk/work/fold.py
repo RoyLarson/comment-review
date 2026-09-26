@@ -43,8 +43,11 @@ class Fold:
         came to, and the fold commits over them: an `Advised` is for the
         chief to read, not a reason to give up the round.
 
-        A rollback reports no `Settled`: it commits nothing, so no place
-        settled, whatever it would have come to in a round that committed.
+        A rollback reports its refusals and itself, and nothing else. It
+        commits nothing, so no chief's copy, proof or batch is written: a
+        place that would have settled did not, nobody is asked about one that
+        would have been carried forward or held for the author, and a note
+        for the chief's copy has no copy to go with.
         """
         decide(self.places, self.turn)
         refused = 0
@@ -78,7 +81,7 @@ class Fold:
             for role, notes in _by_role(place.notes).items():
                 found.append(events.Advised(role, address, notes))
         if refused:
-            self.events += [one for one in found if not isinstance(one, events.Settled)]
+            self.events += [one for one in found if isinstance(one, events.Refused)]
             self.events.append(events.RolledBack(refused))
             return self
         self.events += found

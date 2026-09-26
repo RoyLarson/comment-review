@@ -838,6 +838,57 @@ class TestTheReport:
         assert "block-context m.py@b2: the text does not keep 'two'" in out
         assert "stet" not in out
 
+    def test_a_rolled_back_round_prints_its_refusals_and_nothing_else(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """A rollback writes no chief's copy, no proof and no batch, so a
+        settled, a contested and an unsettlable place are not reported: each
+        line would say something happens that does not.
+
+        The same copies with the refused place ruled `clean` instead commit
+        and print all three, which is what shows the rollback withheld them.
+        """
+        places = {address: BASE for address in ("m.py@b1", "m.py@b2", "m.py@b3")}
+        places["m.py@b4"] = BASE
+
+        def marks(at_b4: dict) -> dict:
+            return {
+                "block-context": {
+                    "m.py@b1": a_clean("m.py@b1"),
+                    "m.py@b2": a_correct_setting("m.py@b2", "two", "# a\n"),
+                    "m.py@b3": a_query("m.py@b3", Shape.HUMAN_REVIEW_NECESSARY),
+                    "m.py@b4": at_b4,
+                },
+                "function-context": {
+                    "m.py@b1": a_clean("m.py@b1"),
+                    "m.py@b2": a_correct_setting("m.py@b2", "two", "# b\n"),
+                    "m.py@b3": a_clean("m.py@b3"),
+                    "m.py@b4": a_clean("m.py@b4"),
+                },
+            }
+
+        committed = tmp_path / "committed"
+        committed.mkdir()
+        code, out = run(
+            committed,
+            marks(a_clean("m.py@b4")),
+            monkeypatch,
+            capsys,
+            places=places,
+        )
+        assert code == command.ESCALATIONS, out
+        assert "stet m.py@b1" in out
+        assert "contested m.py@b2" in out
+        assert "unsettlable m.py@b3" in out
+
+        dropping = {**an_add("m.py@b4"), "raw_text": "# one\n# three\n"}
+        code, out = run(tmp_path, marks(dropping), monkeypatch, capsys, places=places)
+        assert code == command.BROKEN, out
+        assert out.splitlines() == [
+            "block-context m.py@b4: the text does not keep 'two'"
+        ]
+        assert not (tmp_path / "chief.json").exists()
+
 
 class TestTheGateSeesIt:
     def test_collate_is_in_COMMANDS(self):

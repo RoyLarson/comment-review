@@ -15,7 +15,11 @@ class Refused(NamedTuple):
 
 
 class CarriedForward(NamedTuple):
-    """A place the fold could not settle alone -- asked of `roles` next turn."""
+    """A place the fold could not settle alone -- asked of `roles` next turn.
+
+    Emitted by a committed fold only: a rollback writes no batch, so nobody
+    is asked.
+    """
 
     address: str
     state: State
@@ -42,6 +46,9 @@ class HeldMove(NamedTuple):
 class Unsettlable(NamedTuple):
     """One place no turn can resolve, and who put it to the human.
 
+    Emitted by a committed fold only: a rollback writes no proof, so the
+    author is not asked.
+
     Attributes:
         address: the place.
         role: who asks the human -- the role whose query holds the place, or
@@ -65,7 +72,8 @@ class Advised(NamedTuple):
 
     It reports and decides nothing: a place carrying notes takes whatever
     state its marks give it, and a fold that emits one still commits
-    (`decision-log.md Process: #177`).
+    (`decision-log.md Process: #177`). Emitted by a committed fold only: a
+    note is for the chief's copy, and a rollback writes none.
     """
 
     role: str
@@ -74,7 +82,11 @@ class Advised(NamedTuple):
 
 
 class Settled(NamedTuple):
-    """One place a committed fold decided, and the text it settled on, if any."""
+    """One place a fold decided, and the text it settled on, if any.
+
+    Emitted by a committed fold only: a rollback commits nothing, so nothing
+    settled.
+    """
 
     address: str
     text: str | None

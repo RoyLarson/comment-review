@@ -137,9 +137,9 @@ def _print(out: list) -> None:
     """Every event's own lines on stdout, the advisory notes last.
 
     A note is for the chief and changes nothing, so it sits under its own
-    heading below the places rather than between them -- and it prints on
-    every path, a rollback included, because it is a fact about a mark
-    whatever became of the round.
+    heading below the places rather than between them. A fold that rolls
+    back emits none (`desk.work.fold.Fold.run`), so the heading prints only
+    over a committed round.
     """
     for event in out:
         for line in _lines(event):
