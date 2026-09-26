@@ -686,6 +686,18 @@ class TestAMoveIsDecidedBeforeItsEnds:
         places, _moves = self._stetted(ruling)
         assert places["m.py@b5"].state is State.REFUSED
         assert places["m.py@b1"].state is State.REFUSED
+        refused = "copy-chief: 'nobody' proposed nothing here"
+        assert refused in places["m.py@b5"].reasons
+        assert refused in places["m.py@b1"].reasons
+
+    def test_a_ruled_end_of_a_contested_move_is_left_as_ruled(self):
+        ruling = Disposition(
+            address="m.py@b5", name="taken_in", side="a", prose="", reason="r"
+        )
+        places, _moves = self._stetted(ruling)
+        assert places["m.py@b5"].state is State.STANDS
+        assert places["m.py@b5"].text == self.LANDED
+        assert places["m.py@b1"].state in CARRIED
 
     def test_an_end_refused_on_its_own_refuses_the_other_end_of_an_open_move(self):
         places, moves = self._places()

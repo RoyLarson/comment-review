@@ -311,14 +311,25 @@ def settle_ends(move: Move, places: dict[str, Place]) -> None:
         end.filed = kept + added
 
 
-def hold_ends(move: Move, places: dict[str, Place]) -> None:
+def hold_ends(move: Move, places: dict[str, Place], ruled: bool = False) -> None:
     """Hold a move's two ends to its placement while it is not final.
 
     HELD: both ends ride to the author and decide no text. REFUSED, or either
     end refused on its own: both are refused, with every reason. OPEN or
     CONTESTED: an end that would settle is carried with nobody asked about
     its words, since the paragraph may not be moving; an end already carried
-    keeps its own question. An end the chief ruled on is left as ruled.
+    keeps its own question.
+
+    `ruled` says whether the chief's dispositions pass has run. Before it,
+    every end of an undecided move is carried, whether or not a ruling is on
+    its record, so the chief's ruling has a carried place to close -- a
+    ruling finds a settled end and is refused otherwise. After it, an end
+    carrying a ruling is left as ruled.
+
+    Args:
+        move: the move whose ends are held.
+        places: the fold's places, where its two ends are read. Mutated.
+        ruled: True once `dispositions_pass` has run over the places.
     """
     if move.placement in FINAL:
         return
@@ -345,5 +356,7 @@ def hold_ends(move: Move, places: dict[str, Place]) -> None:
             end.reasons = tuple(dict.fromkeys(reasons))
         return
     for end in ends:
-        if end.disposition is None and end.state in SETTLED:
+        if ruled and end.disposition is not None:
+            continue
+        if end.state in SETTLED:
             end.state, end.owed, end.question = State.COMPOSED, (), None

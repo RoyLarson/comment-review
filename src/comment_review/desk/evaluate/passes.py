@@ -329,10 +329,12 @@ def decide(
     `decision-log.md Process: #195`: a move is a placement claim decided once
     for the pair before either end's words. So each move's placement pass
     runs first and a final one is written onto the two place records -- the
-    split, or the withdrawal. Then each place's marks and answers, as for any
-    one-place mark; then every move not yet final holds its two ends; then
-    the chief's dispositions; then the hold again, so a ruling refused at one
-    end of an unsplit move refuses the other.
+    split, or the withdrawal; a split the row declines refuses the move
+    instead. Then each place's marks and answers, as for any one-place mark;
+    then every move not yet final holds its two ends, carrying each so the
+    chief has a place to rule; then the chief's dispositions; then the hold
+    again with `ruled=True`, which leaves a ruled end as ruled and makes a
+    ruling refused at one end of an unsplit move refuse the other.
 
     Args:
         places: address -> place, each from its own record. Mutated.
@@ -352,11 +354,11 @@ def decide(
         for t in range(1, turn + 1):
             answers_pass(place, t)
     for move in moves.values():
-        hold_ends(move, places)
+        hold_ends(move, places, ruled=False)
     for place in places.values():
         dispositions_pass(place)
     for move in moves.values():
-        hold_ends(move, places)
+        hold_ends(move, places, ruled=True)
     return places
 
 
