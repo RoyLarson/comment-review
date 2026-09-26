@@ -32,6 +32,8 @@ from comment_review.desk.marks.mark import QUERY_SHAPES, allowed, filled
 ANSWER_FIELDS = {
     "address": "copied from the slot",
     "anchor": "copied from the slot",
+    "to": "copied from the slot where it carries one -- a placement slot's"
+    " destination; absent on the others",
     "instruction": "one of the answers this question admits",
     "reason": "owed, prose",
     "change": "the whole updated paragraph as raw text; owed by the answers"

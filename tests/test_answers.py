@@ -284,3 +284,39 @@ def test_a_placement_and_a_composition_at_one_origin_are_two_answers(tmp_path):
     assert problems == []
     assert got["m.py@b1"].name == "clean"
     assert got["m.py@b1 -> m.py@b5"].name == "agree"
+
+
+def test_a_placement_answer_built_from_the_contract_is_taken_at_its_move(tmp_path):
+    """A role copies from the slot the fields the contract says are copied
+    from it, and writes the rest. For a placement slot that has to include
+    `to`, or its answer keys at the origin and is refused."""
+    from comment_review.flows.answers import answers_of, slot_key
+
+    fields = contracts()["placement"]["fields"]
+    assert "to" in fields
+    slot = {
+        "address": "m.py@b1",
+        "to": "m.py@b5",
+        "anchor": "x = 1",
+        "question": "placement",
+        "movers": ["block-context"],
+        "snippet": "# two\n",
+        "raw_text": "# four\n# two\n",
+        "instruction": None,
+    }
+    copied = {
+        name: slot[name]
+        for name, meaning in fields.items()
+        if meaning.startswith("copied from the slot") and name in slot
+    }
+    answer = {**copied, "instruction": "agree", "reason": "it reads there"}
+    got, problems = answers_of(
+        "module-context",
+        {slot_key(slot): {"question": "placement", "anchor": "x = 1"}},
+        [answer],
+        lambda a: "not sent",
+        tmp_path,
+        {},
+    )
+    assert problems == []
+    assert got["m.py@b1 -> m.py@b5"].name == "agree"

@@ -352,7 +352,7 @@ def _places_on(proof: MasterProof) -> tuple[dict[str, Place], list[Problem]]:
 
 
 def turn_of(proof: MasterProof) -> int:
-    """The turn a proof stands at -- the last one any of its places answered.
+    """The turn a proof stands at -- the last one any place or move answered.
 
     0 fresh from the first fold, and one more for each turn folded over it.
     The next turn is this plus one, derived from the record so that nothing

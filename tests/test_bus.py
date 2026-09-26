@@ -1006,6 +1006,7 @@ class TestAMovesPlacementIsAskedOnce:
     def test_the_other_reader_is_sent_one_placement_slot(self, tmp_path):
         message, _root = _a_move_two_roles_read(tmp_path)
         _out, result = handle(message)
+        assert result is not None
         batch = _slots_of(result)
         slots = [s for s in batch["module-context"] if s["question"] == "placement"]
         assert [(s["address"], s["to"]) for s in slots] == [("m.py@b1", "m.py@b2")]
@@ -1013,14 +1014,13 @@ class TestAMovesPlacementIsAskedOnce:
         assert "block-context" not in batch or not [
             s for s in batch["block-context"] if s["question"] == "placement"
         ]
-        assert result is not None
         assert [m["placement"] for m in result.proof.moves] == ["open"]
 
     def test_agree_and_clean_land_the_paragraph_once(self, tmp_path):
         message, root = _a_move_two_roles_read(tmp_path)
         _out, first = handle(message)
-        answers = _answered(first, _placement_or_clean("agree"))
         assert first is not None
+        answers = _answered(first, _placement_or_clean("agree"))
         out, result = handle(AnswersReturned(first.proof, answers, root))
         assert result is not None, out
         assert result.chief is not None
@@ -1035,11 +1035,11 @@ class TestAMovesPlacementIsAskedOnce:
     def test_a_stet_puts_it_to_the_mover_and_the_stetter(self, tmp_path):
         message, root = _a_move_two_roles_read(tmp_path)
         _out, first = handle(message)
-        answers = _answered(first, _placement_or_clean("stet"))
         assert first is not None
+        answers = _answered(first, _placement_or_clean("stet"))
         _out, result = handle(AnswersReturned(first.proof, answers, root))
-        batch = _slots_of(result)
         assert result is not None
+        batch = _slots_of(result)
         assert [m["placement"] for m in result.proof.moves] == ["contested"]
         for role in ("block-context", "module-context"):
             assert [s["to"] for s in batch[role] if s["question"] == "placement"] == [
@@ -1052,15 +1052,15 @@ class TestAMovesPlacementIsAskedOnce:
         that turn all the same."""
         message, root = _a_move_two_roles_read(tmp_path)
         _out, first = handle(message)
-        answers = _answered(first, _placement_or_clean("stet"))
         assert first is not None
+        answers = _answered(first, _placement_or_clean("stet"))
         _out, second = handle(AnswersReturned(first.proof, answers, root))
         batch = _slots_of(second)
         assert {s["question"] for slots in batch.values() for s in slots} == {
             "placement"
         }
-        answers = _answered(second, lambda s: "stet")
         assert second is not None
+        answers = _answered(second, lambda s: "stet")
         out, third = handle(AnswersReturned(second.proof, answers, root))
         assert third is not None, out
         assert turn_of(third.proof) == 2
@@ -1069,8 +1069,8 @@ class TestAMovesPlacementIsAskedOnce:
         """Review Focus 4."""
         message, root = _a_move_two_roles_read(tmp_path)
         _out, first = handle(message)
-        answers = _answered(first, _placement_or_clean("agree"))
         assert first is not None
+        answers = _answered(first, _placement_or_clean("agree"))
         stray = {
             "address": "m.py@b1",
             "to": "m.py@b2",

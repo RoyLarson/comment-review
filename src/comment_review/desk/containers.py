@@ -572,9 +572,10 @@ class MasterProof:
 
     !! THREE FIELDS WENT WITH THE OLD MIDDLE -- `turns`, `determined` and
     `unsettlable`, and with them the `turn` property that counted `turns`. Each
-    place now carries its own answers, its own state and who it is asked of, so
-    the proof's places say what turn it stands at (`flows.bus.turn_of`), what
-    was ruled, and what rides to the human. A proof on disk carrying the three
+    place now carries its own answers, its own state and who it is asked of, as
+    each move carries its placement answers. So the proof's places and moves
+    say what turn it stands at (`flows.bus.turn_of`), and its places say what
+    was ruled and what rides to the human. A proof on disk carrying the three
     old keys is neither refused nor read: `deserialize` names the keys it
     wants, so those are dropped and the proof reads back without them.
     """
