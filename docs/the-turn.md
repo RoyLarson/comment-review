@@ -92,7 +92,8 @@ carried-forward place the chief left unruled, so the close cannot happen with on
 ## The place, and the six states
 
 **A place is the aggregate the middle decides** -- `desk/evaluate/place.py`. It carries its
-address and anchor, its base text as the page held it, the roles whose copies held that page
+address and anchor, its base text as the page holds it (read by the collate handler, below), the
+roles whose copies held that page
 (`readers`), every mark filed on it with the role that filed it and which end of a move it is
 (`filed`), each turn's answers by role, the chief's disposition where there is one, and what
 the passes decide: `state`, `text`, `sides`, `reasons`, `notes`, `asking`, `owed`, `question`
@@ -371,11 +372,34 @@ with. `collate` and `disposition` are the two commands that save one.
 that is not in its paragraph, a cite that resolves against nothing, an address no page carries,
 a place a role left unruled, a role short of its shard, and a copy gathered from a tree the
 others were not (`Process: #178`) each become one `Refused`, and the fold never runs. None of
-them is a question about how the roles' rulings meet.
+them is a question about how the roles' rulings meet. A short shard and an unruled place roll
+the whole round back like the rest: the role is named, nothing is written, and `collate` runs
+again over the repaired copies (`Process: #186`). `flows.verify.copy_problems` is the list one
+copy is held to against the pages, and `check --binder` runs the same call before the send.
 
-**No handler reads a page.** A place carries its own base text, so what the fold decides comes
-from the record alone -- `decision-log.md Process: #62`. The one file a later message opens is
-a file an answer cites.
+**What each handler reads.**
+
+| handler | what it opens | why |
+| --- | --- | --- |
+| `CopiesReturned` (`collate`) | the pages its copies' marks touch, and the files a mark cites | to check each address and quote against the page (`Process: #119`, `#122`), to take each place's base text and anchor from it (`#187`, `#125`), and to verify each citation |
+| `AnswersReturned` (`turn`) | the files an answer cites | to verify the citation (`#181`); its places come off the proof |
+| `DispositionsWritten` (`disposition`) | nothing | its places come off the proof |
+
+**The collate handler reads the base off the page, not the binder** -- `Process: #187`, which
+restores `#125`. The binder is the seed for what a role is handed, not every place a mark may
+touch: a move may land in a file the run did not gather. Measured against the binder, such a
+place had the base `""`, so a destination text that dropped a word of the paragraph already there
+passed `mark`, `check`, `collate` and the turns, and `proof` drafted it. `flows.on_the_page` is the one
+reader of what a page holds at an address; `check`, `collate` and `proof` read through it, and
+`mark` does for every place but the slot it seeds, so the four measure a mark against the same
+text. A place's anchor is read the same
+way, except at a mark's own address, where it is the anchor the role returned, since the write
+end checks that one against the page's (`#134`).
+
+**Nothing asks whether a page changed** -- `Process: #62`, `#185`. Reading the page for a base
+is not a drift check: nothing compares what a role was seeded with against what came back, and
+nothing compares the page against the binder. Once the places are built, the fold decides from
+them alone.
 
 ## What each command prints, and what it exits
 
@@ -512,6 +536,7 @@ fold deleted (`0e2ff82a`).
 | the chief's edit copy | `flows.places.chief_copy_of`, from the decided places -- the record, read by nothing |
 | the docket the write end sets from | `flows.transcribe.docket_of_proof`, from the closed proof's places |
 | the author's partial approval | `flows.transcribe._approved`, reached through `docket_of_proof`'s `only`; the flag is `proof --only` |
+| what a page holds at an address -- the base and anchor a place is built on | `flows.on_the_page.held_at`, read by `flows.places.bases_and_anchors`, `flows.verify`, `flows.fill.page_text_at` and `commands/check.py` |
 | which places a stage deals | `desk.stages.deals`, read by `flows.distribute.seed` and `flows.verify.coverage_problems` |
 | which instructions its roles may file | `desk.stages.not_admitted`, read by `flows.fill.fill` and `commands/check.py` |
 | a role states the paragraph it wants | `Mark.change`, raw text |
@@ -559,5 +584,8 @@ fold deleted (`0e2ff82a`).
 | the dropped-words list is advisory | `Process: #163`, `#177` | `desk.marks.table._correct_notes`, `events.Advised` |
 | copies from different trees are refused | `Process: #178` | `flows.bus._root_problems` |
 | the write end reads the proof's decided places | `Process: #184` | `flows.transcribe.docket_of_proof`, `commands/proof.py` |
+| no drift check: nothing asks whether a page changed | `Process: #62`, `#185` | nothing; `drift_in` is deleted |
+| a short shard or an unruled place rolls the round back | `Process: #186` | `flows.verify.coverage_problems`, `flows.mark_errors`, `flows.bus._on_copies` |
+| the fold's base is the page's text | `Process: #125`, `#187` | `flows.on_the_page`, `flows.places.bases_and_anchors`, `flows.bus._on_copies` |
 | a partial approval is a place filter on `proof` | `Process: #192` | `flows.transcribe._approved`, `commands/proof.py` |
 | compaction is a stage, dealt the places over its cap | `Process: #193` | `desk/topology.py`'s three keys, `desk.stages.deals` and `not_admitted` |
