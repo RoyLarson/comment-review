@@ -2,19 +2,30 @@
 
 ```
 Status:   decision-needed
-Progress: 4 of 25 tasks closed
+Progress: 15 of 33 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
           a singular one, after a review measured both of its ends corrupted)
 Updated:  2026-08-30 — Task 9 was the only question owed and Roy answered it 2026-08-30:
           no seeded destination, separate semantics, a move gets its own spot in the
           edit copies. Task 9 is now an implement box.
+Refiled:  2026-09-26 — against `decision-log.md Process: #195`. Eleven tasks named
+          `flows/collate.py` and `desk.collator` code deleted with `#183`, or a
+          both-or-neither rule `#195` removes, and are superseded. T1, T3, T4, T5 and
+          T6 stand as the split of an agreed move. T26 to T33 are the placement
+          question, the move aggregate and the split.
 ```
 
 ## Objective
 
-A move is a composite mark and the code cannot express one.
+A move is a placement claim, settled once for the pair, then split into the mover's
+`drop` and `add` -- `decision-log.md Process: #195`, 2026-09-26. The one `Mark` of `#172`
+and `#175` carries it while the placement is open; the composite below is what it becomes
+once every reader of either page has agreed. Placement is a question of its own, `agree`,
+`stet`, `withdraw` and `query`, and a `stet` makes the move contested for the chief.
+
+The argument below is the 2026-08-30 filing, kept as the case for the composite half.
 
 !! **RULED 2026-08-30 -- `decision-log.md Process: #56`.** Roy: *"A move needs to be what
 it is and that is a composite Mark - Drop Here Add There. They have to go together and the
@@ -100,79 +111,95 @@ and now there is one object that cannot be half-held.
         > 2026-09-02 atomicity is unchanged; one Mark satisfies it with no pair to keep
         > 2026-09-02 raw_text holds the edited text, so the destination is known
         > 2026-09-02 shipped as text_at at 586c13a -- do not work this file yet
-- [ ] T2 | Implement the facade so a consumer iterating entries needs no move-
-      awareness. Verify: `flows.collate._chief_copy` writes TWO entries for one
-      move, at two distinct addresses, and a test asserts the destination
-      entry's address is the DESTINATION -- it reads the origin today, measured.
+        > 2026-09-26 Process 195 item 3: the split lands on an agreed placement
+- [-] T2 | Names flows.collate or desk.collator code deleted with Process 183; the move takes Process 195 shape | 54318a4b | Implement
+      the facade so a consumer iterating entries needs no move- awareness.
+      Verify: `flows.collate._chief_copy` writes TWO entries for one move, at
+      two distinct addresses, and a test asserts the destination entry's address
+      is the DESTINATION -- it reads the origin today, measured.
 - [ ] T3 | Implement the pure-deletion check on the origin half: the diff from
       the seeded `raw_text` to `change` carries no insertion. Verify: a move
       whose origin text gains a word is refused BY NAME, and the test goes red
       when the check is replaced with a no-op.
+        > 2026-09-26 Process 195: the drop half of the split
 - [ ] T4 | Implement the pure-addition check on the destination half. Verify: a
       move whose destination text loses a word is refused by name, and the test
       goes red when the check is replaced with a no-op.
+        > 2026-09-26 Process 195: the add half of the split
 - [ ] T5 | Implement the pair check: the text deleted at the origin EQUALS the
       text added at the destination. Verify: a move that drops one sentence and
       adds a different one is refused by name; a move that carries the same
       sentence across passes.
+        > 2026-09-26 Process 195: the pair check at the split
 - [ ] T6 | Update `docs/the-mark.md` to the composite shape, superseding the
       sentence reading that `change` carries both paragraphs as raw text in one
       field. Verify: `tests/gates/test_mark_shape.py` reads the amended headings
       and passes without a hand-edited count.
-- [ ] T7 | Update `tests/helpers.py` so `a_move` builds the composite. Verify:
-      no helper builds a move whose `change` is a single string, and every move
-      test that changes is corrected rather than deleted.
-- [ ] T8 | Delete the provisional single-mark move handling in
-      `flows/collate.py` and the kind-promotion in `desk/collator.py`
-      `_join_moves` once the composite makes them unreachable. Verify: both are
-      gone and the suite stays green.
+        > 2026-09-26 Process 195: one Mark open, drop and add once agreed
+- [-] T7 | A move is one Mark with a string change while placement is open, Process 172 and 195; the composite exists only after the split | 54318a4b | Update
+      `tests/helpers.py` so `a_move` builds the composite. Verify: no helper
+      builds a move whose `change` is a single string, and every move test that
+      changes is corrected rather than deleted.
+- [-] T8 | Names flows.collate or desk.collator code deleted with Process 183; the move takes Process 195 shape | 54318a4b | Delete
+      the provisional single-mark move handling in `flows/collate.py` and the
+      kind-promotion in `desk/collator.py` `_join_moves` once the composite
+      makes them unreachable. Verify: both are gone and the suite stays green.
 - [ ] T9 | Implement a MOVE REGION in the edit copy's shape, distinct from the
       one-slot-per-place marks, and declare it in `desk/containers.py`. RULED
       2026-08-30 -- the destination is NOT seeded; a move gets its own spot.
       Verify: `parse_edit_copy` accepts a copy carrying a move in that region
       and refuses a move written into a per-place slot; a test asserts an edit
       copy whose only ruling is a move round-trips.
-- [ ] T10 | Implement a refusal in `flows.collate._composition` for any owing
-      set holding a `move`, so a relocation is never rewritten as a `correct`.
-      Verify: two roles returning the same `move m.py@b1 -> m.py@b5` with
-      `change == base` leave the move in `resolved` and reach `_move_order`;
-      today both ends compose to no-op `correct`s and `order`, `rereads` and
-      `problems` all come back empty.
-- [ ] T11 | Implement a both-ends-or-neither rule in `flows.collate._resolve`,
-      so a `move` that resolves at its origin and refuses at its destination is
-      carried forward whole rather than half-applied. Verify: a move whose two
-      ends have different-length bases -- five lines at `m.py@b1`, one at
-      `m.py@b5` -- leaves neither end in `resolved`; today the origin reaches
-      the chief's copy as a `correct` while the destination goes to `rereads`.
-- [ ] T12 | Update the `_pair_moves` note at `flows/collate.py:230-241`, which
-      names `desk.collator._join_moves` as the guard that makes the withdrawal
-      branch unreachable. Verify: the note states that `_join_moves` equalises
-      the OUTCOME while `_resolve` resolves each end independently against a
-      per-end base, and no sentence in the file claims equal outcomes imply
-      equal resolutions.
-- [ ] T13 | Implement a fix for `desk.collator._join_moves` unioning `marks`
-      across two ends whose base paragraphs differ, so no entry carries a mark
-      whose `change` belongs to another address. Verify: `alpha` moving `a.py@b1
-      -> a.py@b3` and `bravo` moving `a.py@b2 -> a.py@b3` do not produce two
-      fabricated `correct`s swapping the paragraphs at b1 and b2 with
-      `problems`, `drift` and `escalations` all empty; today they do.
-- [ ] T14 | Update `desk.collator._join_moves` so both ends of one joined pair
-      receive the same `roles` and `marks` order. Verify: the two ends of one
-      move report identical lists; today `a0` gets `['block-context',
-      'module-context']` while `a8` and `a16` get the reverse, and
-      `_composition` reads `owing[0].mark.anchor`.
-- [?] T15 | Decide whether the far end's roles should reach a reader of one end of a
-      move through a separate reader-facing field, leaving `marks` as the marks at THIS
-      place? `_join_moves:883` skips the union whenever both ends' kinds agree, so a
-      move with a collider at each end shows `a.py@b1 roles=['alpha','bravo']` and
-      `a.py@b2 roles=['alpha','chi']` -- the loss its own `!!` at 838-842 exists to
-      prevent -- while widening the union widens the measured corruption above, an entry
-      carrying a mark whose `change` belongs to another address.
-- [ ] T16 | Update `desk.collator._join_moves`'s opening illustration at lines
-      823-826, which names an end settled while the other escalated -- a state
-      no run reaches, because `_sentence_key` returns `id(mark)` for a `move`.
-      Verify: the illustration is the settled/reread case its own MEASURED
-      example at 834-838 uses, and any unreachable state is marked as such.
+        > 2026-09-26 Process 60 stands; where the one open Mark sits is unruled
+- [-] T10 | Names flows.collate or desk.collator code deleted with Process 183; the move takes Process 195 shape | 54318a4b | Implement
+      a refusal in `flows.collate._composition` for any owing set holding a
+      `move`, so a relocation is never rewritten as a `correct`. Verify: two
+      roles returning the same `move m.py@b1 -> m.py@b5` with `change == base`
+      leave the move in `resolved` and reach `_move_order`; today both ends
+      compose to no-op `correct`s and `order`, `rereads` and `problems` all come
+      back empty.
+- [-] T11 | Names flows.collate or desk.collator code deleted with Process 183; the move takes Process 195 shape | 54318a4b | Implement
+      a both-ends-or-neither rule in `flows.collate._resolve`, so a `move` that
+      resolves at its origin and refuses at its destination is carried forward
+      whole rather than half-applied. Verify: a move whose two ends have
+      different-length bases -- five lines at `m.py@b1`, one at `m.py@b5` --
+      leaves neither end in `resolved`; today the origin reaches the chief's
+      copy as a `correct` while the destination goes to `rereads`.
+- [-] T12 | Names flows.collate or desk.collator code deleted with Process 183; the move takes Process 195 shape | 54318a4b | Update
+      the `_pair_moves` note at `flows/collate.py:230-241`, which names
+      `desk.collator._join_moves` as the guard that makes the withdrawal branch
+      unreachable. Verify: the note states that `_join_moves` equalises the
+      OUTCOME while `_resolve` resolves each end independently against a per-end
+      base, and no sentence in the file claims equal outcomes imply equal
+      resolutions.
+- [-] T13 | Names flows.collate or desk.collator code deleted with Process 183; the move takes Process 195 shape | 54318a4b | Implement
+      a fix for `desk.collator._join_moves` unioning `marks` across two ends
+      whose base paragraphs differ, so no entry carries a mark whose `change`
+      belongs to another address. Verify: `alpha` moving `a.py@b1 -> a.py@b3`
+      and `bravo` moving `a.py@b2 -> a.py@b3` do not produce two fabricated
+      `correct`s swapping the paragraphs at b1 and b2 with `problems`, `drift`
+      and `escalations` all empty; today they do.
+- [-] T14 | Names flows.collate or desk.collator code deleted with Process 183; the move takes Process 195 shape | 54318a4b | Update
+      `desk.collator._join_moves` so both ends of one joined pair receive the
+      same `roles` and `marks` order. Verify: the two ends of one move report
+      identical lists; today `a0` gets `['block-context', 'module-context']`
+      while `a8` and `a16` get the reverse, and `_composition` reads
+      `owing[0].mark.anchor`.
+- [-] T15 | Names flows.collate or desk.collator code deleted with Process 183; the move takes Process 195 shape | 54318a4b | Decide
+      whether the far end's roles should reach a reader of one end of a move
+      through a separate reader-facing field, leaving `marks` as the marks at
+      THIS place? `_join_moves:883` skips the union whenever both ends' kinds
+      agree, so a move with a collider at each end shows `a.py@b1
+      roles=['alpha','bravo']` and `a.py@b2 roles=['alpha','chi']` -- the loss
+      its own `!!` at 838-842 exists to prevent -- while widening the union
+      widens the measured corruption above, an entry carrying a mark whose
+      `change` belongs to another address.
+- [-] T16 | Names flows.collate or desk.collator code deleted with Process 183; the move takes Process 195 shape | 54318a4b | Update
+      `desk.collator._join_moves`'s opening illustration at lines 823-826, which
+      names an end settled while the other escalated -- a state no run reaches,
+      because `_sentence_key` returns `id(mark)` for a `move`. Verify: the
+      illustration is the settled/reread case its own MEASURED example at
+      834-838 uses, and any unreachable state is marked as such.
 - [-] T17 | SUPERSEDED, reworded -- path@cue is not the only addressable destination. Addressing 21 | 0c40fa5 | Implement
       the FORM check on a `move`'s destination in `_destination_problems`, so a
       `claim.to` that is not `path@cue` is refused by name rather than falling
@@ -190,7 +217,9 @@ and now there is one object that cannot be half-held.
       cell the `Row` type cannot express stops being flattened to a bool.
       Verify: the gate goes red when the spec's `move` change cell is edited,
       and passes on the composite wording task 6 of this file lands.
-- [ ] T20 | Implement the both-ends-or-neither check for a move in
+        > 2026-09-26 Process 195: the cell reads one Mark, then two
+- [-] T20 | No both-or-neither check: one Mark before the split, two ordinary places after it, Process 195 item 5 | 54318a4b | Implement
+      the both-ends-or-neither check for a move in
       `desk.containers.parse_edit_copy`, which is the only level that sees every
       sheet of one role. Verify: a copy holding a cross-file move's origin half
       with no destination half is refused by name, and one holding both passes
@@ -203,6 +232,7 @@ and now there is one object that cannot be half-held.
       deletion at the origin and the removed text is recoverable, where today's
       line opcodes report a single `replace` and the removed text appears in no
       opcode.
+        > 2026-09-26 differences.py is under machine/ now
 - [x] T22 | FINISHED -- mark refuses a non-path@cue destination, routed per #173 | 42987afd | Refuse
       a move's `claim.to` that names no recognized address. Verify: a bare prose
       destination is refused; `path@cue` passes
@@ -222,3 +252,19 @@ and now there is one object that cannot be half-held.
 - [x] T25 | a move's change is the snippet, removed once from the origin; raw_text is the destination text; docket_of writes both ends | e538ea92 | Implement
       a move whose --change is the snippet, removed exactly from the origin and
       inserted at the destination, per Process 172
+- [ ] T26 | Implement a placement Question in desk/answers with agree, stet,
+      withdraw and query rows, per Process 195 item 6
+- [ ] T27 | Implement the move as one aggregate holding the placement state and
+      both ends, replacing Place.partner and the pair passes
+- [ ] T28 | Implement the split of an agreed move into the mover drop and add as
+      ordinary marks, per Process 195 item 3
+- [ ] T29 | Implement the placement slot in the turn batch, naming both ends and
+      put to every reader of either page
+- [ ] T30 | Update the chief disposition: placement once on an unresolved move,
+      words alone on a split one, per Process 195 item 4
+- [ ] T31 | Delete reaches_partner, refuse_half_moves and the Process 189 guard
+      once a wording answer cannot half-withdraw a move
+- [ ] T32 | Update reviewer-brief.md and SKILL.md to name the placement question
+      and its four verbs; agents lane
+- [ ] T33 | Update the-mark.md and the-turn.md from the Process 195 pointers to
+      the built shape

@@ -36,6 +36,7 @@ The rebuilt middle's final review.
       the second never reaches the author (B3)
 - [ ] T9 | Decide what two moves onto one place are; Place.partner holds one
       address so the first origin goes unpaired (B4)
+        > 2026-09-26 Process 195: the move is one aggregate; composite TODO T27
 - [ ] T10 | Fix collate writing composed and contested text to the chief's copy
       and printing it as resolved (C1)
 - [x] T11 | flows/transcribe.py docket_of_proof and proof --proof read the closed proof's decided places (Process 184); dockets byte-identical to --copy on the smoke | 8f6d0fd3 | Make
@@ -74,6 +75,7 @@ The rebuilt middle's final review.
       (B7)
 - [ ] T26 | Correct the design's 'never ruled apart'; Process 139 lets the chief
       rule a move's ends apart (B8)
+        > 2026-09-26 Process 195: apart on words, once on placement
 - [ ] T27 | Give rollback one producer; the bus builds two without a Fold and
       commands/collate.py a third (C3)
 - [ ] T28 | Carry the counts and the turn on an event; two commands re-derive
@@ -115,3 +117,4 @@ The rebuilt middle's final review.
       passes and the write end deletes the paragraph (code-review 2026-09-25)
 - [ ] T45 | Pair a move's two ends on the filing, not the place; two moves out
       of one origin leave the first unpaired (code-review 2026-09-25)
+        > 2026-09-26 Process 195: the pair lives on the move aggregate; T27 there
