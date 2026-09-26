@@ -274,7 +274,10 @@ class TestEveryRowOfTheThreeTablesIsPlanted(unittest.TestCase):
         planted.add(("composition", "clean"))
         # Placement answers require moves; the smoke fixture tests single-place edits.
         from comment_review.desk.answers.answer import Question
-        expected = {(str(q), name) for q, name in ANSWER_ROWS if q != Question.PLACEMENT}
+
+        expected = {
+            (str(q), name) for q, name in ANSWER_ROWS if q != Question.PLACEMENT
+        }
         self.assertEqual(planted, expected)
 
     def test_every_query_shape_is_answered(self):
