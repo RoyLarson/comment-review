@@ -168,6 +168,18 @@ def test_a_move_writes_at_its_origin_and_at_its_destination():
     )
 
 
+def test_the_destination_is_read_under_the_key_the_row_names():
+    """The row states which claim key names its destination, the way
+    `quotes_original` states which one quotes."""
+    assert INSTRUCTIONS[Instruction.MOVE].names_destination == "to"
+    row = Row(touches=(Touch.ORIGIN, Touch.DESTINATION), names_destination="there")
+    mark = _mark(Instruction.MOVE, claim={"to": "m.py@b5", "there": "m.py@b9"})
+    assert row.places(mark) == (
+        ("m.py@b1", Touch.ORIGIN),
+        ("m.py@b9", Touch.DESTINATION),
+    )
+
+
 def test_every_other_row_writes_at_its_own_address_alone():
     for instruction, row in INSTRUCTIONS.items():
         if instruction is Instruction.MOVE:

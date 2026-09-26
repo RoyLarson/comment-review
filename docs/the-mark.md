@@ -231,7 +231,7 @@ the true one, and a `sources` entry carrying the line that settles it."*
 the next thing that reads it silently gets a worse answer. ! `add`'s sentence ended *"never the
 payload's"* and now reads *"never the claim's"*: the old word named the field that was removed.
 
-## The classifiers -- ten COLUMNS and a closed list of flags
+## The classifiers -- eleven COLUMNS and a closed list of flags
 
 !! **THIS IS THE PART THAT WAS MISSING, AND ITS ABSENCE IS WHAT LET TWENTY-TWO FIELDS IN.** A row
 may state these and nothing else -- **sixteen things, and no prose.** A new classifier is a change
@@ -241,9 +241,10 @@ to THIS FILE first.
 | --- | --- | --- |
 | **claim keys** | every key `claim` must carry, in one list | a list of names |
 | **verbatim** | which ONE claim key is checked word-for-word against the paragraph | a name, or none |
+| **destination key** | which ONE claim key names the address a destination touch writes at -- `to`, on `move` | a name, or none |
 | **change** | whether a change is owed, and for `move` that it shows both ends | owed / not owed |
 | **sources** | whether sources are owed | owed / not owed |
-| **touches** | which places -- own, origin, destination -- the row writes. A destination is the address `claim.to` names and the others are the mark's own `address`; `Row.places` is the one reading of both | a list of place names |
+| **touches** | which places -- own, origin, destination -- the row writes. A destination is the address the claim names under the destination key and the others are the mark's own `address`; `Row.places` is the one reading of both | a list of place names |
 | **sets** | the text a mark of this row writes at one touch, given its base | a function of the mark, the touch and the base |
 | **reads** | the problems a mark of this row has at one touch, against its base | a function of the mark, the touch and the base |
 | **notes** | what the chief is told about a mark of this row that is not a problem with it | a function of the mark, the touch and the base |

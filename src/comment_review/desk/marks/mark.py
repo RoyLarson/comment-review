@@ -371,7 +371,7 @@ class Mark:
         out += _claim_problems(where, instruction, entry.get("claim"))
         if spec.owes_destination:
             out += _destination_problems(
-                where, entry.get("address"), entry.get("claim")
+                where, entry.get("address"), entry.get("claim"), spec.names_destination
             )
         if spec.owes_sources:
             out += _source_problems(where, entry.get("sources"))
@@ -834,13 +834,9 @@ def _names_a_place(value: object) -> bool:
     return bool(got.path and got.cue)
 
 
-#: The claim key that names a two-place mark's destination. `desk.marks.table.
-#: Row.places` reads the destination through it, and `_destination_problems`,
-#: below, checks the same key before a mark is built.
-DESTINATION_KEY = "to"
-
-
-def _destination_problems(where: str, address: object, claim: object) -> list[str]:
+def _destination_problems(
+    where: str, address: object, claim: object, key: str
+) -> list[str]:
     """WHERE a `move` sends the paragraph, checked against where it already IS.
 
     !! A DESTINATION EQUAL TO THE ORIGIN IS REFUSED, and it is the half of
@@ -858,15 +854,17 @@ def _destination_problems(where: str, address: object, claim: object) -> list[st
         where: how to name this mark in a message.
         address: the mark's own `address`, as the entry carried it.
         claim: the mark's `claim`, as the entry carried it.
+        key: the claim key the row names its destination under
+            (`desk.marks.table.Row.names_destination`).
 
     Returns:
         One message, or an empty list. A claim that is not an object, or a
-        `to` that is not a filled string, says nothing here -- `_claim_problems`
+        destination that is not a filled string, says nothing here -- `_claim_problems`
         is what refuses those, and this step has nothing to compare.
     """
     if not isinstance(claim, dict) or not isinstance(address, str):
         return []
-    destination = claim.get(DESTINATION_KEY)
+    destination = claim.get(key)
     if not isinstance(destination, str):
         return []
     if destination.strip() and destination.strip() == address.strip():

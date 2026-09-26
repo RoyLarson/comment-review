@@ -130,6 +130,7 @@ _SECTION = _found(
 FIELD_FOR = {
     "claim keys": "claim_all",
     "verbatim": "quotes_original",
+    "destination key": "names_destination",
     "change": "owes_change",
     "sources": "owes_sources",
     "touches": "touches",
@@ -208,7 +209,10 @@ def test_the_row_carries_only_what_the_spec_allows():
 def test_no_field_carries_prose():
     """A row states facts. A sentence for a human is not a fact about the row."""
     for f in dataclasses.fields(Row):
-        assert f.type is not str or f.name in {"quotes_original"}, f.name
+        assert f.type is not str or f.name in {
+            "quotes_original",
+            "names_destination",
+        }, f.name
 
 
 # === Per-instruction agreement: the spec's own table against `INSTRUCTIONS`.
@@ -327,6 +331,24 @@ def test_the_owes_table_claim_keys_agree_with_the_row(name):
 def test_the_owes_table_verbatim_agrees_with_the_row(name):
     got = _quotes_original_from(OWES_TABLE[name]["verbatim"])
     assert got == INSTRUCTIONS[name].quotes_original
+
+
+def test_the_destination_key_the_spec_states_is_the_rows():
+    """The classifiers table states the one destination key and the row that
+    carries it -- "`to`, on `move`" -- so every row's `names_destination`
+    is read against it, and no other row may carry one."""
+    stated = _found(
+        re.search(
+            r"^\| \*\*destination key\*\* \|.*?`(\w+)`, on `(\w+)` \|",
+            _SECTION,
+            re.MULTILINE,
+        ),
+        "the destination key row (| **destination key** | ... `key`, on `row` |)",
+    )
+    key, owner = stated.group(1), stated.group(2)
+    for name, row in INSTRUCTIONS.items():
+        want = key if name == owner else ""
+        assert row.names_destination == want, name
 
 
 @pytest.mark.parametrize("name", sorted(INSTRUCTIONS))

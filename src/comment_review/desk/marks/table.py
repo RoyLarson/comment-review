@@ -26,13 +26,7 @@ from enum import StrEnum, auto
 from typing import TYPE_CHECKING, Any
 
 from comment_review.desk.dispositions.disposition import CHIEF
-from comment_review.desk.marks.mark import (
-    DESTINATION_KEY,
-    Instruction,
-    Mark,
-    Shape,
-    first_word_dropped,
-)
+from comment_review.desk.marks.mark import Instruction, Mark, Shape, first_word_dropped
 
 if TYPE_CHECKING:
     # Type-only: `place` imports `INSTRUCTIONS`, `Stance` and `Touch` from this
@@ -173,6 +167,11 @@ class Row:
 
     claim_all: tuple[str, ...] = ()
     quotes_original: str = ""
+    #: The claim key that names the address a destination touch writes at,
+    #: "" for a row with no destination. `places` reads the destination under
+    #: it, and the parse checks the same key (`desk.marks.mark.
+    #: _destination_problems`).
+    names_destination: str = ""
     touches: tuple[Touch, ...] = (Touch.OWN,)
     sets: Sets = _nothing
     reads: Reads = _no_problems
@@ -213,14 +212,14 @@ class Row:
 
         This is the one answer to where a mark writes; every flow that walks a
         mark's places asks it. `touches` names the places, in order. A
-        destination is the address the claim names under `DESTINATION_KEY`,
+        destination is the address the claim names under `names_destination`,
         and every other touch is the mark's own address. A place with no
         address is left out, so a mark that may carry none writes nowhere.
         """
         out = []
         for touch in self.touches:
             if touch is Touch.DESTINATION:
-                where = str(mark.claim.get(DESTINATION_KEY, ""))
+                where = str(mark.claim.get(self.names_destination, ""))
             else:
                 where = mark.address
             if where:
@@ -266,6 +265,7 @@ INSTRUCTIONS: dict[Instruction, Row] = {
     ),
     Instruction.MOVE: Row(
         claim_all=("from", "to"),
+        names_destination="to",
         touches=(Touch.ORIGIN, Touch.DESTINATION),
         sets=_move_sets,
         reads=_move_reads,
