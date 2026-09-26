@@ -5122,8 +5122,10 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   Then something can tell the agents the response and they can modify their response. This can
   be done using the current question ask ... system Claude already uses plus something"*.
 
-  So a `human-review-necessary` query, filed as a mark or given as an answer, no longer rides
-  through the fold to the author at 7a. The task agent asks the human it before `collate` or
+  And, in the same message: *"That goes for all human queries these should"*. So every
+  `human-review-necessary` query -- filed as a mark at stage 4 or given as an answer in a turn,
+  about a move or about any place's words, including the one a move out of the code becomes
+  under `#173` -- no longer rides through the fold to the author at 7a. The task agent asks the human it before `collate` or
   `turn` folds the stage, with the question tool Claude Code already provides; the human's answer
   is recorded and handed back to the roles, who revise their mark or answer in its light; then
   the fold runs. It supersedes the Task 4 interim of the plan above (a wording human-review answer
