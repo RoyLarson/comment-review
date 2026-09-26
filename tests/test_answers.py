@@ -46,6 +46,62 @@ def test_the_composition_answers():
     )
 
 
+def test_the_placement_answers():
+    """`decision-log.md Process: #195` item 6: a move's placement is a question
+    of its own, and its four answers act on the move, not on a side."""
+    p = Question.PLACEMENT
+    assert ANSWERS[(p, "agree")].effect(_answer(p, "agree")) is Effect.ACCEPTS
+    assert ANSWERS[(p, "stet")].effect(_answer(p, "stet")) is Effect.CONTESTS
+    assert ANSWERS[(p, "withdraw")].effect(_answer(p, "withdraw")) is Effect.REMOVES
+    deferring = _answer(p, "query", claim={"shape": "outside-my-role"})
+    human = _answer(p, "query", claim={"shape": "human-review-necessary"})
+    assert ANSWERS[(p, "query")].effect(deferring) is Effect.ABSTAINS
+    assert ANSWERS[(p, "query")].effect(human) is Effect.UNSETTLABLE
+    # A placement answer is about where the paragraph goes; none rewrites it.
+    assert not any(row.owes_change for (asked, _), row in ANSWERS.items() if asked is p)
+    assert {name for asked, name in ANSWERS if asked is p} == {
+        "agree",
+        "stet",
+        "withdraw",
+        "query",
+    }
+
+
+def test_a_placement_answer_is_read_against_its_question():
+    got, why = Answer.deserialize(
+        "m.py@b1",
+        {
+            "address": "m.py@b1",
+            "question": "placement",
+            "instruction": "stet",
+            "reason": "r",
+        },
+    )
+    assert why == [] and got is not None and got.name == "stet"
+    for name in ("hold", "correct", "patch", "clean"):
+        got, why = Answer.deserialize(
+            "m.py@b1",
+            {
+                "address": "m.py@b1",
+                "question": "placement",
+                "instruction": name,
+                "reason": "r",
+            },
+        )
+        assert got is None and "not an answer to a placement" in why[0], name
+    for question in ("escalation", "composition"):
+        got, why = Answer.deserialize(
+            "m.py@b1",
+            {
+                "address": "m.py@b1",
+                "question": question,
+                "instruction": "stet",
+                "reason": "r",
+            },
+        )
+        assert got is None and "not an answer to" in why[0], question
+
+
 def test_an_answer_is_read_against_its_question():
     got, why = Answer.deserialize(
         "m.py@b1",
@@ -153,11 +209,14 @@ def test_the_contracts_are_the_tables_own_sets():
     so a row added to it reaches `check --contract` with no edit here or
     there."""
     got = contracts()
-    assert set(got) == {"stage_4c_mark", "escalation", "composition"}
+    assert set(got) == {"stage_4c_mark", "escalation", "composition", "placement"}
     assert got["escalation"]["instruction"] == ["correct", "hold", "patch", "withdraw"]
     assert got["escalation"]["owes_change"] == ["correct", "patch"]
     assert got["composition"]["instruction"] == ["clean", "correct", "patch", "query"]
     assert got["composition"]["owes_change"] == ["correct", "patch"]
+    assert got["placement"]["instruction"] == ["agree", "query", "stet", "withdraw"]
+    assert got["placement"]["owes_change"] == []
+    assert got["placement"]["claim"]["query"] == ["shape", "attempted", "settles"]
     assert got["stage_4c_mark"]["instruction"] == sorted(
         ["add", "clean", "correct", "drop", "move", "patch", "query"]
     )
@@ -182,7 +241,7 @@ def test_the_contract_names_every_claim_key_the_parse_reads():
     assert set(got["escalation"]["claim"]) == {"hold", "withdraw", "correct", "patch"}
     assert got["escalation"]["claim"]["correct"] == []
     assert got["escalation"]["values"] == {}
-    for question in ("escalation", "composition"):
+    for question in ("escalation", "composition", "placement"):
         assert "claim" in got[question]["fields"], question
 
 
