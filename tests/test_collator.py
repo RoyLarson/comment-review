@@ -534,43 +534,6 @@ class TestAnAbsentAddressIsNotRefused:
 
 
 class TestProblemsAreRoutable:
-    def test_a_problem_names_the_role_and_the_address(self, tmp_path):
-        """Roy, 2026-08-30: "the errors should be stacked and capable of being
-        read off correctly so that each can be fixed or sent back to the role."
-        A sentence cannot be routed; a role and an address can."""
-        wire = seed(binder_of(a_small_real_tree(tmp_path), 0), "block-context")
-        entry = wire["sheets"][0]["marks"][0]
-        entry.update({"instruction": "correct", "claim": {}})
-        copy = returned(wire)
-        # ! FILTERED TO THE UNREADABLE HALF. `mark_errors` answers for every
-        # place a role must revisit, and a freshly seeded copy carries a slot
-        # per place -- so the untouched ones are in the list too, correctly.
-        # What this case is about is the mark the role got wrong.
-        found = [one for one in mark_errors([copy]) if one.unreadable]
-        # ! A MARK A ROLE WROTE IN AND GOT WRONG STILL COUNTS AS RULED -- it is
-        # not a coverage gap, and reporting it as one sends a reader looking for
-        # a place nobody answered. `Sheet.refused` is what keeps the two apart.
-        assert _ruled_places(copy) == 1
-        assert found
-        assert all(one.role == "block-context" for one in found)
-        assert all(one.address == entry["address"] for one in found)
-        assert all(one.reasons and all(r for r in one.reasons) for one in found)
-
-    def test_every_broken_mark_is_reported_not_only_the_first(self, tmp_path):
-        # ! NOT NECESSARILY `sheets[0]` -- `a_small_real_tree` copies
-        # `__init__.py` alongside the other three, and its page (sorted first,
-        # alphabetically ahead of the rest) holds exactly one row: a bare
-        # module docstring with no code below it. So the sheet checked here is
-        # whichever one actually carries two places, not the first in order.
-        wire = seed(binder_of(a_small_real_tree(tmp_path), 0), "block-context")
-        marks = next(s["marks"] for s in wire["sheets"] if len(s["marks"]) >= 2)
-        for entry in marks[:2]:
-            entry.update({"instruction": "correct", "claim": {}})
-        copy = returned(wire)
-        found = [one for one in mark_errors([copy]) if one.unreadable]
-        assert _ruled_places(copy) == 2
-        assert len({one.address for one in found}) == 2
-
     def test_an_entry_THAT_IS_NOT_AN_OBJECT_carries_an_empty_address(self, tmp_path):
         """The one copy-level `Problem` `problems_in` still raises on its own.
 

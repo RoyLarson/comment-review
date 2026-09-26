@@ -59,24 +59,12 @@ class Revisit(NamedTuple):
             ! ALL OF THEM TOGETHER, which is the half `Process: #72` asks for
             beyond the address -- one malformed `correct` breaks four rules, and
             a role fixing them one per round is three more round trips.
-        unreadable: True where a role WROTE here and the entry would not parse;
-            False where nobody wrote here at all.
-
-            The exit code no longer branches on it. `commands/collate.py`
-            had a code for a place left unanswered that routed back without
-            voiding the round; both cases now roll the round back and exit
-            `BROKEN` (`decision-log.md Process: #186`), and nothing outside the
-            tests reads this field.
-            ! THE TWO ARE NOT THE SAME FACT, which `desk.marks.mark.untouched`'s own
-            docstring already forbids conflating: a malformed mark means a role
-            DID rule here and got the shape wrong.
     """
 
     role: str
     address: str
     where: str
     reasons: tuple[str, ...]
-    unreadable: bool
 
 
 def mark_errors(edit_copies: list[EditCopy]) -> list[Revisit]:
@@ -101,7 +89,7 @@ def mark_errors(edit_copies: list[EditCopy]) -> list[Revisit]:
         this returns `Revisit` and not a container.
     """
     out = [
-        Revisit(copy.role, one.address, one.where, one.reasons, unreadable=True)
+        Revisit(copy.role, one.address, one.where, one.reasons)
         for copy in edit_copies
         for sheet in copy.sheets
         for one in sheet.refused
@@ -109,7 +97,7 @@ def mark_errors(edit_copies: list[EditCopy]) -> list[Revisit]:
         # ! AN UNRULED PLACE ALWAYS HAS AN ADDRESS, so `where` is that address.
         # `Sheet.deserialize` refuses an untouched entry that names none rather
         # than counting it a coverage gap -- see `_sorted_entries`.
-        Revisit(copy.role, address, address, (NOT_RULED,), unreadable=False)
+        Revisit(copy.role, address, address, (NOT_RULED,))
         for copy in edit_copies
         for sheet in copy.sheets
         for address in sheet.unruled
