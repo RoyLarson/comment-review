@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 43 tasks closed
+Progress: 8 of 43 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -20,8 +20,9 @@ The rebuilt middle's final review.
 - [x] T2 | two patches composed and settled reach the docket through proof --proof; tests/test_revise.py TestDocketOfProof; the chief's copy is no longer an input | af3e115d | Fix
       a chief mark synthesized over patch-only sides so it parses; it is a
       correct with no sources today (H1, Broken)
-- [ ] T3 | Decide whether drift_in goes per Process 62 or 62 is superseded; it
-      voids the round today (D3, Broken)
+- [x] T3 | drift_in deleted with its tests per Process 185; every surviving drift statement corrected | ae7a45be | Decide
+      whether drift_in goes per Process 62 or 62 is superseded; it voids the
+      round today (D3, Broken)
 - [ ] T4 | Make the marks row say where a two-place mark's other end is; five
       sites read claim.to and one function is written twice (A1, A2)
 - [ ] T5 | Move who owes raw_text from flows/fill.py into the two rows that
@@ -43,10 +44,12 @@ The rebuilt middle's final review.
       containers.py a private binder name (D1)
 - [ ] T13 | Correct 'no handler reads a page' in flows/bus.py and
       docs/the-turn.md; the collate path reads pages under review (D2)
-- [ ] T14 | Decide whether coverage and an unruled place void the round; Process
-      63, 112 and 133 are reversed with no ruling (D4)
-- [ ] T15 | Decide which base the fold composes over; Process 125 says the page
-      and the bus hands it the binder's text (D5)
+- [x] T14 | Process 186: the prose says a short shard and an unruled place roll the round back; verify.py and mark_errors.py corrected | b4846ba9 | Decide
+      whether coverage and an unruled place void the round; Process 63, 112 and
+      133 are reversed with no ruling (D4)
+- [x] T15 | the fold's base is the page's text per Process 187; flows/on_the_page.py is the one page reader; mark, check and collate refuse the ungathered move | 2cc1dfed | Decide
+      which base the fold composes over; Process 125 says the page and the bus
+      hands it the binder's text (D5)
 - [ ] T16 | Move the ten rules held in flows and commands into desk, and hold
       check's pre-fold list equal to the bus's (D6)
 - [ ] T17 | Delete Row.answers or give it a reader; three docs call it a rule
