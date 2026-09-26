@@ -1,4 +1,10 @@
-"""What a fold says as it runs. The commands print from these and nothing else."""
+"""What a fold says as it runs. The commands print from these and nothing else.
+
+A rollback emits its `Refused` events and a `RolledBack`, and nothing else: it
+commits nothing and writes no chief's copy, proof or batch, so no place is
+settled, nobody is asked about a place, and a note has no copy to go with
+(`desk.work.fold.Fold.run`). Every other event here is a committed fold's.
+"""
 
 from typing import NamedTuple
 
@@ -17,8 +23,7 @@ class Refused(NamedTuple):
 class CarriedForward(NamedTuple):
     """A place the fold could not settle alone -- asked of `roles` next turn.
 
-    Emitted by a committed fold only: a rollback writes no batch, so nobody
-    is asked.
+    A committed fold's only, as the module docstring says.
     """
 
     address: str
@@ -46,8 +51,7 @@ class HeldMove(NamedTuple):
 class Unsettlable(NamedTuple):
     """One place no turn can resolve, and who put it to the human.
 
-    Emitted by a committed fold only: a rollback writes no proof, so the
-    author is not asked.
+    A committed fold's only, as the module docstring says.
 
     Attributes:
         address: the place.
@@ -72,8 +76,8 @@ class Advised(NamedTuple):
 
     It reports and decides nothing: a place carrying notes takes whatever
     state its marks give it, and a fold that emits one still commits
-    (`decision-log.md Process: #177`). Emitted by a committed fold only: a
-    note is for the chief's copy, and a rollback writes none.
+    (`decision-log.md Process: #177`). A committed fold's only, as the module
+    docstring says.
     """
 
     role: str
@@ -84,8 +88,7 @@ class Advised(NamedTuple):
 class Settled(NamedTuple):
     """One place a fold decided, and the text it settled on, if any.
 
-    Emitted by a committed fold only: a rollback commits nothing, so nothing
-    settled.
+    A committed fold's only, as the module docstring says.
     """
 
     address: str
@@ -99,7 +102,12 @@ class Committed(NamedTuple):
 
 
 class RolledBack(NamedTuple):
-    """The fold rolled back: at least one place refused, nothing saved."""
+    """The fold rolled back: at least one refusal, nothing saved.
+
+    `reasons` counts the reasons across the `Refused` events before it, which
+    is what every producer counts: the fold, `flows.bus` and the collate
+    command's envelope check.
+    """
 
     reasons: int
 

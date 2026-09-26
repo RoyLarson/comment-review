@@ -439,7 +439,7 @@ from `pwsh -NoProfile -File scripts/smoke_middle.ps1`, 2026-09-18, which exits 0
 | `stet <address>` | `Settled` |
 | `unsettlable <address>: <role> asks the human -- <reason>` | `Unsettlable`, with the partner's address joined by `and` where a move is held at both ends, and an indented `and ...` line for the move |
 | `<role> <address>: <reason>`, the address `(the copy)` where there is none | `Refused` |
-| the `for the chief` heading, then `<role> <address>: <note>` | `Advised`, printed last and on every path, a rollback included |
+| the `for the chief` heading, then `<role> <address>: <note>` | `Advised`, printed last, and only over a commit: `Fold.run` reports a rollback's refusals and nothing else. A note itself still rolls nothing back (`Process: #177`) |
 
 **Then the files, one line each, and only on a commit:**
 

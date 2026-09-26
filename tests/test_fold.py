@@ -77,6 +77,106 @@ def test_one_refused_place_rolls_the_fold_back():
     assert isinstance(fold.events[-1], events.RolledBack)
 
 
+def test_a_rollback_reports_its_refusals_and_nothing_else():
+    """A rollback commits nothing, so beside a refused place nothing settles,
+    nobody is asked about a carried or a held place, and a note has no chief's
+    copy to go with. Each of those would be reported on a commit.
+
+    The rollback counts reasons, as the bus and the collate command count
+    theirs: two roles refused at one place are two."""
+    committed = Fold(_a_place_of_each_kind()).run()
+    assert [type(e).__name__ for e in committed.events] == [
+        "Settled",
+        "CarriedForward",
+        "Unsettlable",
+        "Settled",
+        "Advised",
+        "Committed",
+    ]
+
+    places = _a_place_of_each_kind()
+    places["m.py@b5"] = _place(
+        "m.py@b5",
+        *(
+            Filed(
+                role,
+                _mark(
+                    Instruction.MOVE,
+                    "# six\n",
+                    {"from": "m.py@b5", "to": "m.py@b9"},
+                    "m.py@b5",
+                ),
+                Touch.ORIGIN,
+            )
+            for role in ("a", "b")
+        ),
+    )
+    fold = Fold(places).run()
+    assert not fold.committed
+    assert [type(e).__name__ for e in fold.events] == [
+        "Refused",
+        "Refused",
+        "RolledBack",
+    ], fold.events
+    assert fold.events[-1] == events.RolledBack(reasons=2)
+
+
+def _a_place_of_each_kind() -> dict:
+    """Four places, unfolded: one that settles, one carried forward, one held
+    for the human, and one that settles with a note for the chief."""
+    return {
+        "m.py@b1": _place("m.py@b1", Filed("a", _mark(Instruction.CLEAN), Touch.OWN)),
+        "m.py@b2": _place(
+            "m.py@b2",
+            Filed(
+                "a",
+                _mark(
+                    Instruction.CORRECT,
+                    "# one\n# 2\n# three\n",
+                    {"false": "two", "true": "2"},
+                    "m.py@b2",
+                ),
+                Touch.OWN,
+            ),
+            Filed(
+                "b",
+                _mark(
+                    Instruction.CORRECT,
+                    "# one\n# II\n# three\n",
+                    {"false": "two", "true": "II"},
+                    "m.py@b2",
+                ),
+                Touch.OWN,
+            ),
+        ),
+        "m.py@b3": _place(
+            "m.py@b3",
+            Filed(
+                "a",
+                _mark(
+                    Instruction.QUERY,
+                    claim={"shape": str(Shape.HUMAN_REVIEW_NECESSARY)},
+                    address="m.py@b3",
+                ),
+                Touch.OWN,
+            ),
+        ),
+        "m.py@b4": _place(
+            "m.py@b4",
+            Filed(
+                "a",
+                _mark(
+                    Instruction.CORRECT,
+                    "# one\n# TWO\n",
+                    {"false": "two", "true": "TWO"},
+                    "m.py@b4",
+                ),
+                Touch.OWN,
+            ),
+        ),
+    }
+
+
 def test_a_carried_and_an_unsettlable_place_are_reported_and_the_fold_commits():
     a = _mark(
         Instruction.CORRECT, "# one\n# 2\n# three\n", {"false": "two", "true": "2"}

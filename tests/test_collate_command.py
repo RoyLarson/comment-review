@@ -893,6 +893,7 @@ class TestTheReport:
         assert "stet m.py@b1" in out
         assert "contested m.py@b2" in out
         assert "unsettlable m.py@b3" in out
+        assert command.FOR_THE_CHIEF in out
 
         dropping = {**an_add("m.py@b4"), "raw_text": "# one\n# three\n"}
         code, out = run(tmp_path, marks(dropping), monkeypatch, capsys, places=places)

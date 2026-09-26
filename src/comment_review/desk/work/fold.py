@@ -43,23 +43,20 @@ class Fold:
         came to, and the fold commits over them: an `Advised` is for the
         chief to read, not a reason to give up the round.
 
-        A rollback reports its refusals and itself, and nothing else. It
-        commits nothing, so no chief's copy, proof or batch is written: a
-        place that would have settled did not, nobody is asked about one that
-        would have been carried forward or held for the author, and a note
-        for the chief's copy has no copy to go with.
+        A rollback reports its refusals and itself, and nothing else
+        (`desk.work.events`): the refusals are gathered apart from what a
+        commit reports, and only a commit reports the second list.
         """
         decide(self.places, self.turn)
-        refused = 0
-        found: list = []
+        refusals: list = []
+        on_commit: list = []
         for address in sorted(self.places):
             place = self.places[address]
             if place.state is State.REFUSED:
-                refused += 1
                 for role, reasons in _by_role(place.reasons).items():
-                    found.append(events.Refused(role, address, reasons))
+                    refusals.append(events.Refused(role, address, reasons))
             elif place.state in CARRIED:
-                found.append(
+                on_commit.append(
                     events.CarriedForward(
                         address, place.state, place.question, asked(place)
                     )
@@ -71,20 +68,22 @@ class Fold:
                     move = _held_move(place)
                     for one in place.asking:
                         role, _, reason = one.partition(": ")
-                        found.append(
+                        on_commit.append(
                             events.Unsettlable(address, role, reason, partner, move)
                         )
             else:
-                found.append(events.Settled(address, place.text))
-            # A note is reported wherever it is found, whatever the place
-            # came to, and nothing branches on it -- `Process: #177`.
+                on_commit.append(events.Settled(address, place.text))
+            # A place's notes go with what a commit reports, whatever state
+            # the place came to, and nothing branches on them -- `Process:
+            # #177`.
             for role, notes in _by_role(place.notes).items():
-                found.append(events.Advised(role, address, notes))
-        if refused:
-            self.events += [one for one in found if isinstance(one, events.Refused)]
-            self.events.append(events.RolledBack(refused))
+                on_commit.append(events.Advised(role, address, notes))
+        self.events += refusals
+        if refusals:
+            reasons = sum(len(one.reasons) for one in refusals)
+            self.events.append(events.RolledBack(reasons))
             return self
-        self.events += found
+        self.events += on_commit
         self.committed = True
         self.events.append(events.Committed(len(self.places)))
         return self
