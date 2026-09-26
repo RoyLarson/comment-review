@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 17 of 33 tasks closed
+Progress: 24 of 33 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -99,11 +99,12 @@ and now there is one object that cannot be half-held.
 
 ## Tasks
 
-- [ ] T1 | Implement a move as a COMPOSITE of two ordinary marks -- a `drop` at
-      the origin carrying the remainder, an `add` at the destination carrying
-      the arrival text -- each with a plain `str` `change`. Verify: a
-      spec-following move parses; a test asserts each half is an ordinary Mark
-      that `_change_problems` accepts with no second shape added to it.
+- [x] T1 | split halves are ordinary Marks the parse takes; test_marks_table TestTheSplit | 29b3e6931a00471f692374897f4ead9910639c72 | Implement
+      a move as a COMPOSITE of two ordinary marks -- a `drop` at the origin
+      carrying the remainder, an `add` at the destination carrying the arrival
+      text -- each with a plain `str` `change`. Verify: a spec-following move
+      parses; a test asserts each half is an ordinary Mark that
+      `_change_problems` accepts with no second shape added to it.
         > 2026-09-02 PROVISIONALLY SETTLED the other way -- see docs/the-mark.md
         > 2026-09-02 one Mark carries a move: the origin delete is DERIVED, not carried
         > 2026-09-02 the drop is determinable from the sentence that had to be supplied
@@ -117,19 +118,22 @@ and now there is one object that cannot be half-held.
       Verify: `flows.collate._chief_copy` writes TWO entries for one move, at
       two distinct addresses, and a test asserts the destination entry's address
       is the DESTINATION -- it reads the origin today, measured.
-- [ ] T3 | Implement the pure-deletion check on the origin half: the diff from
-      the seeded `raw_text` to `change` carries no insertion. Verify: a move
-      whose origin text gains a word is refused BY NAME, and the test goes red
-      when the check is replaced with a no-op.
+- [x] T3 | origin half is base minus the snippet by construction; a snippet not in it does not split | 29b3e6931a00471f692374897f4ead9910639c72 | Implement
+      the pure-deletion check on the origin half: the diff from the seeded
+      `raw_text` to `change` carries no insertion. Verify: a move whose origin
+      text gains a word is refused BY NAME, and the test goes red when the check
+      is replaced with a no-op.
         > 2026-09-26 Process 195: the drop half of the split
-- [ ] T4 | Implement the pure-addition check on the destination half. Verify: a
-      move whose destination text loses a word is refused by name, and the test
-      goes red when the check is replaced with a no-op.
+- [x] T4 | the add row refuses an arrival that loses a landing word; TestTheSplit | 29b3e6931a00471f692374897f4ead9910639c72 | Implement
+      the pure-addition check on the destination half. Verify: a move whose
+      destination text loses a word is refused by name, and the test goes red
+      when the check is replaced with a no-op.
         > 2026-09-26 Process 195: the add half of the split
-- [ ] T5 | Implement the pair check: the text deleted at the origin EQUALS the
-      text added at the destination. Verify: a move that drops one sentence and
-      adds a different one is refused by name; a move that carries the same
-      sentence across passes.
+- [x] T5 | drop.claim.drop == add.change: one snippet makes both halves | 29b3e6931a00471f692374897f4ead9910639c72 | Implement
+      the pair check: the text deleted at the origin EQUALS the text added at
+      the destination. Verify: a move that drops one sentence and adds a
+      different one is refused by name; a move that carries the same sentence
+      across passes.
         > 2026-09-26 Process 195: the pair check at the split
 - [ ] T6 | Update `docs/the-mark.md` to the composite shape, superseding the
       sentence reading that `change` carries both paragraphs as raw text in one
@@ -255,17 +259,20 @@ and now there is one object that cannot be half-held.
 - [x] T26 | Question.PLACEMENT and its four rows; check --contract prints them | 00100e259b095be181a5816ca0ee3065ef295167 | Implement
       a placement Question in desk/answers with agree, stet, withdraw and query
       rows, per Process 195 item 6
-- [ ] T27 | Implement the move as one aggregate holding the placement state and
-      both ends, replacing Place.partner and the pair passes
-- [ ] T28 | Implement the split of an agreed move into the mover drop and add as
-      ordinary marks, per Process 195 item 3
+- [x] T27 | desk/evaluate/move.py Move and placement_pass; decide runs it first; no .partner read in src | 29b3e6931a00471f692374897f4ead9910639c72 | Implement
+      the move as one aggregate holding the placement state and both ends,
+      replacing Place.partner and the pair passes
+- [x] T28 | Row.splits on move; settle_ends writes the drop and add on agreement | 29b3e6931a00471f692374897f4ead9910639c72 | Implement
+      the split of an agreed move into the mover drop and add as ordinary marks,
+      per Process 195 item 3
 - [x] T29 | placement slot per open move to every owed reader; tests/test_bus.py TestAMovesPlacementIsAskedOnce | 758c6704f99b047a472fdbcd3784ab36fb7349bb | Implement
       the placement slot in the turn batch, naming both ends and put to every
       reader of either page
 - [ ] T30 | Update the chief disposition: placement once on an unresolved move,
       words alone on a split one, per Process 195 item 4
-- [ ] T31 | Delete reaches_partner, refuse_half_moves and the Process 189 guard
-      once a wording answer cannot half-withdraw a move
+- [x] T31 | reaches_partner, refuse_half_moves and the 189 guard deleted | 29b3e6931a00471f692374897f4ead9910639c72 | Delete
+      reaches_partner, refuse_half_moves and the Process 189 guard once a
+      wording answer cannot half-withdraw a move
 - [ ] T32 | Update reviewer-brief.md and SKILL.md to name the placement question
       and its four verbs; agents lane
 - [ ] T33 | Update the-mark.md and the-turn.md from the Process 195 pointers to

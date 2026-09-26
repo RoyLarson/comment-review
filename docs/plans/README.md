@@ -1,6 +1,6 @@
 | plan | status | T closed | P closed |
 | --- | --- | ---: | ---: |
-| [0.2.4-a-move-is-a-placement-claim](0.2.4-a-move-is-a-placement-claim.md) | in-progress | 3/17 | 2/9 |
+| [0.2.4-a-move-is-a-placement-claim](0.2.4-a-move-is-a-placement-claim.md) | in-progress | 11/17 | 4/9 |
 | [0.2.4-an-f-correction-is-raised-alone](0.2.4-an-f-correction-is-raised-alone.md) | decision-needed | 0/3 | 0/5 |
 | [0.2.4-block-is-two-senses](0.2.4-block-is-two-senses.md) | in-progress | 7/7 | 7/7 |
 | [0.2.4-plugins-is-a-release-artifact](0.2.4-plugins-is-a-release-artifact.md) | in-progress | 6/6 | 7/7 |

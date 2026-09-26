@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 11 of 45 tasks closed
+Progress: 12 of 45 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -116,6 +116,7 @@ The rebuilt middle's final review.
       2026-09-25)
 - [ ] T44 | Fix a move to its own paragraph spelled in another path case: it
       passes and the write end deletes the paragraph (code-review 2026-09-25)
-- [ ] T45 | Pair a move's two ends on the filing, not the place; two moves out
-      of one origin leave the first unpaired (code-review 2026-09-25)
+- [x] T45 | a move is keyed by its own two addresses; two out of one origin are two moves | 29b3e6931a00471f692374897f4ead9910639c72 | Pair
+      a move's two ends on the filing, not the place; two moves out of one
+      origin leave the first unpaired (code-review 2026-09-25)
         > 2026-09-26 Process 195: the pair lives on the move aggregate; T27 there
