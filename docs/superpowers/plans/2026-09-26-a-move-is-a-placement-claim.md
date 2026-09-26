@@ -16,7 +16,7 @@
 | --- | --- | --- | --- |
 | P7 | Task 1 | end of Task 1 | `move-is-a-composite-mark` T26 |
 | P1 | Task 6 | end of Task 6 | `move-is-a-composite-mark` T29 |
-| P8 | Tasks 2, 4, 5, 7 | end of Task 7 | `move-is-a-composite-mark` T27; `rebuilt-middle-final-review` T45, and T9 if Roy confirms D5 |
+| P8 | Tasks 2, 4, 5, 7 | end of Task 7 | `move-is-a-composite-mark` T27; `rebuilt-middle-final-review` T45 and T9 (T9 on the #196 decision commit) |
 | P2 | Tasks 3, 4 | end of Task 7 | `move-is-a-composite-mark` T28, T1, T3, T4, T5, T31 |
 
 P8 and P2 tick together because the aggregate and the split replace one set of functions (`pair_moves` and the partner reach): neither half leaves the suite green alone.
@@ -27,7 +27,7 @@ P8 and P2 tick together because the aggregate and the split replace one set of f
 - **D2.** A move no other role read is agreed at turn 0 and split in the same fold. This is the 4a case: ownership-context runs alone, so its moves land before 4c reads the revise.
 - **D3.** While placement is open or contested, both ends keep the move filed as today and keep their own wording questions; an end that would settle is held carried, with no one asked about its words, until placement closes. A chief's ruling at an end is not held (the interim until P3 builds the placement ruling).
 - **D4.** The split rewrites the place record: the move filing becomes the mover's `drop` at the origin and `add` at the destination, `Touch.OWN`. The next fold, the proof and the chief's copy see only those. A withdrawal removes the filing the same way. Both are final.
-- **D5.** A move is identified by its own two addresses, not by a place. Two moves out of one origin, and two different roles' moves into one place, are separate moves whose texts compose at the shared place like any two proposals. One role's two moves into one place stay refused (#154). This is the answer `rebuilt-middle-final-review` T9 asks for, so T9 closes only on Roy's confirmation.
+- **D5 -- RULED, `decision-log.md Process: #196`.** Every move is its own placement, keyed by its own two addresses, however many share a place or a role; `#154` is superseded. Two of one role's `add`s at one place compose under `#179`, and are refused back only where they edit the same line -- with a message telling the role to restate the arrival paragraph with both snippets, not to withdraw one. This answers `rebuilt-middle-final-review` T9.
 - **D6.** Placement answers and the placement state persist on `MasterProof.moves`, beside `places`.
 - **D7.** A `stet` contests the move (#195 item 6). A contested move is put again each turn to its movers and the roles that stetted: a mover may `withdraw`, a stetter may `agree`. A `withdraw` from a role that did not file the move is refused by name.
 - **D8.** `proof --only`'s pair refusal is deleted, not narrowed: a held move decides no text at either end, so there is nothing for it to refuse, and an agreed move has no pair rule (#195 item 5).
@@ -168,8 +168,7 @@ git commit -F <tick message file>
   - `key_of(origin: str, destination: str) -> str` returning `"<origin> -> <destination>"`.
   - `@dataclass class Move` with `origin`, `destination`, `movers: dict[str, Mark]`, `readers: tuple[str, ...]`, `answers: dict[int, dict[str, Answer]]`, `placement: Placement | None`, `owed`, `asking`, `reasons` (tuples of str), property `key`, `serialize() -> dict`, classmethod `deserialize(where, entry) -> tuple[Move | None, list[str]]`.
   - `moves_in(places: dict[str, Place], recorded: dict[str, Move] | None = None) -> dict[str, Move]`.
-  - `one_role_twice(moves: dict[str, Move]) -> dict[str, tuple[str, ...]]` -- move key -> refusal reasons.
-  - `placement_pass(move: Move, places: dict[str, Place], turn: int, refused: tuple[str, ...] = ()) -> Move`.
+  - `placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move`.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -188,7 +187,6 @@ from comment_review.desk.evaluate.move import (
     Move,
     Placement,
     moves_in,
-    one_role_twice,
     placement_pass,
 )
 from comment_review.desk.evaluate.place import Filed, Place
@@ -362,29 +360,36 @@ def test_a_move_round_trips():
     assert back.answers == move.answers and back.owed == move.owed
 
 
-def test_one_roles_two_moves_into_one_place_are_refused():
-    """#154."""
-    places = _ends()
+def _two_into_one_place(second_mover: str) -> dict[str, Place]:
+    places = _ends(readers=("a",) if second_mover == "a" else ("a", "b"))
     second = _move(origin="m.py@b3")
     places["m.py@b3"] = Place(
-        address="m.py@b3", anchor="z = 3", base=BASE, filed=[Filed("a", second, Touch.ORIGIN)]
+        address="m.py@b3",
+        anchor="z = 3",
+        base=BASE,
+        readers=places[ORIGIN].readers,
+        filed=[Filed(second_mover, second, Touch.ORIGIN)],
     )
-    places[DESTINATION].filed.append(Filed("a", second, Touch.DESTINATION))
-    refused = one_role_twice(moves_in(places))
-    assert set(refused) == {"m.py@b1 -> m.py@b5", "m.py@b3 -> m.py@b5"}
+    places[DESTINATION].filed.append(Filed(second_mover, second, Touch.DESTINATION))
+    return places
 
 
-def test_two_roles_moves_into_one_place_are_two_moves_and_neither_is_refused():
-    """D5: a move is its own two addresses; the texts compose at the place."""
-    places = _ends()
-    second = _move(origin="m.py@b3")
-    places["m.py@b3"] = Place(
-        address="m.py@b3", anchor="z = 3", base=BASE, filed=[Filed("b", second, Touch.ORIGIN)]
-    )
-    places[DESTINATION].filed.append(Filed("b", second, Touch.DESTINATION))
+def test_two_roles_moves_into_one_place_are_two_placements():
+    """#196: a move is its own two addresses, whoever filed the other."""
+    places = _two_into_one_place("b")
     moves = moves_in(places)
     assert set(moves) == {"m.py@b1 -> m.py@b5", "m.py@b3 -> m.py@b5"}
-    assert one_role_twice(moves) == {}
+    assert moves["m.py@b1 -> m.py@b5"].movers.keys() == {"a"}
+    assert moves["m.py@b3 -> m.py@b5"].movers.keys() == {"b"}
+
+
+def test_one_roles_two_moves_into_one_place_are_each_agreed_on_their_own():
+    """#196 supersedes #154: two pieces of one passage, or two addresses,
+    may belong at one place, and neither placement is refused for the other."""
+    places = _two_into_one_place("a")
+    moves = moves_in(places)
+    decided = [placement_pass(move, places, 0) for move in moves.values()]
+    assert [move.placement for move in decided] == [Placement.AGREED, Placement.AGREED]
 
 
 def test_a_recorded_moves_answers_survive_being_found_again():
@@ -418,7 +423,7 @@ that read either page, and decided here before either end's words are:
     CONTESTED   a reader answered `stet`; carried forward for the chief
     WITHDRAWN   every mover withdrew it -- final; the filing comes off
     HELD        a human-review query was filed at an end, or answered
-    REFUSED     an answer this question does not take, or #154
+    REFUSED     an answer this question does not take
 
 A move is identified by its own two addresses (`key_of`), never by a place:
 two moves through one place are two moves.
@@ -577,38 +582,8 @@ def moves_in(
     return out
 
 
-def one_role_twice(moves: dict[str, Move]) -> dict[str, tuple[str, ...]]:
-    """The moves `decision-log.md Process: #154` sends back: one role's two into one place.
-
-    The order and wording of two paragraphs one role lands at one place are
-    ambiguous, so both moves are refused back to that role. Two roles' moves
-    into one place are not this: each is its own move, and their texts
-    compose at the place as any two proposals do.
-
-    Returns:
-        key -> the reasons, for every move one role filed into a place it
-        also filed another move into.
-    """
-    by_landing: dict[tuple[str, str], list[Move]] = {}
-    for move in moves.values():
-        for role in move.movers:
-            by_landing.setdefault((role, move.destination), []).append(move)
-    out: dict[str, tuple[str, ...]] = {}
-    for (role, destination), same in by_landing.items():
-        if len(same) < 2:
-            continue
-        named = ", ".join(sorted(move.key for move in same))
-        reason = (
-            f"{role}: two of its moves land at {destination} -- {named}; their"
-            " order and wording are ambiguous, so file one move carrying both"
-        )
-        for move in same:
-            out[move.key] = out.get(move.key, ()) + (reason,)
-    return out
-
-
 def placement_pass(
-    move: Move, places: dict[str, Place], turn: int, refused: tuple[str, ...] = ()
+    move: Move, places: dict[str, Place], turn: int
 ) -> Move:
     """Decide one move's placement from what was filed at its ends and answered.
 
@@ -621,8 +596,6 @@ def placement_pass(
         move: the move, its movers and readers from `moves_in`.
         places: the fold's places, where its two ends are read.
         turn: the last turn whose placement answers are applied.
-        refused: reasons another rule refuses this move for, as
-            `one_role_twice` gives them.
 
     Returns:
         `move`, decided.
@@ -642,7 +615,7 @@ def placement_pass(
     movers = dict(move.movers)
     accepted: set[str] = set()
     stetted: set[str] = set()
-    reasons = list(refused)
+    reasons: list[str] = []
     for at in sorted(t for t in move.answers if t <= turn):
         for role, answer in move.answers[at].items():
             row = ANSWERS.get((answer.question, answer.name))
@@ -874,7 +847,7 @@ Expected: all pass. If `test_each_half_is_an_ordinary_mark_the_parse_takes` fail
 - Test: `tests/test_passes.py`, `tests/test_places.py`, `tests/test_marks_table.py`, `tests/test_place.py`
 
 **Interfaces:**
-- Consumes: `Move`, `Placement`, `moves_in`, `one_role_twice`, `placement_pass` (Task 2); `Row.splits` (Task 3).
+- Consumes: `Move`, `Placement`, `moves_in`, `placement_pass` (Task 2); `Row.splits` (Task 3).
 - Produces:
   - `decide(places: dict[str, Place], moves: dict[str, Move] | None = None, turn: int = 0) -> dict[str, Place]` -- mutates `moves` too.
   - `marks_pass(place)`, `answers_pass(place, turn)`, `owed_a_say(place, text, sides, turn=0)` -- no `partner` argument.
@@ -1166,9 +1139,8 @@ def decide(
         `places`, decided.
     """
     moves = {} if moves is None else moves
-    refused = one_role_twice(moves)
     for move in moves.values():
-        placement_pass(move, places, turn, refused.get(move.key, ()))
+        placement_pass(move, places, turn)
         settle_ends(move, places)
     for place in places.values():
         marks_pass(place)
@@ -1183,7 +1155,7 @@ def decide(
     return places
 ```
 
-with `from comment_review.desk.evaluate.move import Move, hold_ends, one_role_twice, placement_pass, settle_ends` at the top. If that import cycles (`move.py` imports nothing from `passes.py`, so it should not), move the import under `TYPE_CHECKING` for `Move` only.
+with `from comment_review.desk.evaluate.move import Move, hold_ends, placement_pass, settle_ends` at the top. If that import cycles (`move.py` imports nothing from `passes.py`, so it should not), move the import under `TYPE_CHECKING` for `Move` only.
 
 - [ ] **Step 5: Delete `Place.partner`, `AnswerRow.reaches_partner`, `_sets_both_ends`**
 
@@ -1203,6 +1175,38 @@ with `from comment_review.desk.evaluate.move import Move, hold_ends, one_role_tw
 
 and the docstring sentence about `_sets_both_ends` becomes: *"A mark writing two places is never returned whole: an agreed move has been split into one-place marks already (`Process: #195`), and an unsplit one is written end by end from each end's decided text."*
 - `flows/places.py`: in `places_of`, delete the `for other, _touch in written:` loop and the sentence *"Where one mark writes at two places, each names the other as `partner`."*; in `chief_copy_of`, call `chief_mark(place)` and replace the docstring's move paragraph with *"A move reaches this as the `drop` and `add` the fold split it into (`decision-log.md Process: #195`), each placed on its own page."*
+
+- [ ] **Step 5b: Say what to do when one role's two arrivals meet on one line**
+
+`decision-log.md Process: #196`: one role's two moves into one place are two placements, and
+their two `add`s compose under `#179`. Where they edit the same line, `composed_side` refuses
+them back to the role -- and its message says *"withdraw one"*, which is wrong when both
+moves are wanted. Add to `TestSeveralOfOneRolesMarksAtOnePlace` in `tests/test_passes.py`:
+
+```python
+    def test_two_adds_on_one_line_are_sent_back_to_be_restated_together(self):
+        base = "# four\n# five\n"
+        first = _mark(Instruction.ADD, change="# two\n", raw_text="# four\n# two\n# five\n",
+                      address="m.py@b5")
+        second = _mark(Instruction.ADD, change="# six\n", raw_text="# four\n# six\n# five\n",
+                       address="m.py@b5")
+        place = _place(Filed("a", first, Touch.OWN), Filed("a", second, Touch.OWN),
+                       base=base, address="m.py@b5")
+        _sides, why = sides_of(place)
+        assert len(why) == 1
+        assert "restate the paragraph with both" in why[0]
+        assert "withdraw one" not in why[0]
+
+    def test_a_correct_and_a_patch_on_one_sentence_still_say_withdraw_one(self):
+        corr = _mark(Instruction.CORRECT, change="# one\n# 2\n# three\n",
+                     claim={"false": "two", "true": "2"})
+        patch = _mark(Instruction.PATCH, change="# one\n# II\n# three\n",
+                      claim={"from": "two", "to": "II"})
+        _sides, why = sides_of(_place(Filed("a", corr, Touch.OWN), Filed("a", patch, Touch.OWN)))
+        assert len(why) == 1 and "withdraw one" in why[0]
+```
+
+Run it and see the first fail on the message. Then in `composed_side` (`desk/evaluate/passes.py`), word the refusal by what the marks are: where every mark in `filed` is one whose row sets its `raw_text` (the rows with `carries_raw_text`, which are `add` and `move`), the reason ends `-- {named}; restate the paragraph with both texts in it as one mark`; otherwise it keeps `-- {named}; withdraw one`. Read the flag off `INSTRUCTIONS[one.mark.instruction].carries_raw_text`, so no row is named.
 
 - [ ] **Step 6: Run the tests**
 
@@ -1727,7 +1731,7 @@ git add TODO docs/plans
 git commit -F <tick message file>
 ```
 
-`rebuilt-middle-final-review` T9 is a decision box. Close it with `todo finish ... --statement 'Roy confirmed D5 ...'` citing the decision-log commit only after Roy confirms D5 and the ruling is recorded; otherwise leave it `[ ]`.
+`rebuilt-middle-final-review` T9 is a decision box and closed on the `#196` decision commit before Task 2 ran; nothing to do for it here.
 
 ---
 
@@ -1735,5 +1739,5 @@ git commit -F <tick message file>
 
 - **Spec coverage.** #195 items 1-3 and 6 are Tasks 1-4 and 6; item 5 is Task 7's D8; item 4 (the chief) is board P3 and out of this document, with D3 and `chief_mark`'s change as the interim. Board P7, P8, P1, P2 each have a task and a tick step.
 - **Placeholders.** Commit message files are named by content, not supplied verbatim; every code step carries its code.
-- **Names used across tasks.** `Placement`, `UNDECIDED`, `FINAL`, `key_of`, `Move.key`, `moves_in`, `one_role_twice`, `placement_pass`, `settle_ends`, `hold_ends`, `Row.splits`, `PlacementCarried`, `Fold.decided_moves`, `MasterProof.moves`, `slot_key`.
+- **Names used across tasks.** `Placement`, `UNDECIDED`, `FINAL`, `key_of`, `Move.key`, `moves_in`, `placement_pass`, `settle_ends`, `hold_ends`, `Row.splits`, `PlacementCarried`, `Fold.decided_moves`, `MasterProof.moves`, `slot_key`.
 - **Review Focus.** Each of the five has its test in the owning task: 1 in Task 6, 2 in Task 5, 3 in Task 3, 4 in Task 6, 5 in Task 4.

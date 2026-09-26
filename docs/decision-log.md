@@ -4540,6 +4540,9 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   Roy: *"the answer reaches both but it is a conflict that has to be sent back because the order
   and wording are ambiguous and probably need editing"*.
 
+  **Superseded 2026-09-26 by `#196`.** Each move is its own placement; a wording collision
+  between two of one role's arrivals goes back under `#179`.
+
 - **#155.** **A held move's two ends go to the author as one move** (Roy, 2026-09-13, on T90's
   other end: a held origin now carries the move's `drop` to 7a, while a held destination carries
   no `add`, so approving the drop alone would lose the paragraph).
@@ -5087,3 +5090,23 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   turn's batch carries a placement slot naming both ends beside the per-place slots. The
   split writes the mover's `drop` and `add` as ordinary marks. `TODO/move-is-a-composite-mark.md`
   is refiled against this shape.
+
+- **#196.** **Every move is its own placement, however many share a place or a role; `#154` is
+  superseded** (Roy, 2026-09-26, reading the implementation plan for `#195`, which had carried
+  `#154`'s refusal of one role's two moves into one place forward unexamined).
+
+  Roy: *"One role's two moves into one place stay refused under #154? Why would this be the
+  case? One comment piece could be from another part of the passage and the other from another
+  part of the passage. Or there could be two separate addresses that need to be moved to the
+  same place."*
+
+  `#154`'s reason was that one answer at the shared place reached both moves and which move's
+  text the batch showed varied with the hash seed. Under `#195` a move is keyed by its own two
+  addresses and answered on its own placement slot, so that reason is gone. Asked whether to
+  record `#154` as superseded -- each move its own placement; two `add`s one role lands at one
+  place composing under `#179`, and refused back only where they edit the same line, with the
+  message telling the role to restate the arrival paragraph with both snippets rather than to
+  withdraw one -- Roy: *"Yes obviously"*.
+
+  It also answers `rebuilt-middle-final-review` T9, *what two moves onto one place are*: two
+  moves, whatever roles filed them, whose texts compose at the place like any two proposals.
