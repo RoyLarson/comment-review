@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 8 of 43 tasks closed
+Progress: 10 of 43 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -23,8 +23,9 @@ The rebuilt middle's final review.
 - [x] T3 | drift_in deleted with its tests per Process 185; every surviving drift statement corrected | ae7a45be | Decide
       whether drift_in goes per Process 62 or 62 is superseded; it voids the
       round today (D3, Broken)
-- [ ] T4 | Make the marks row say where a two-place mark's other end is; five
-      sites read claim.to and one function is written twice (A1, A2)
+- [x] T4 | Row.places and Row.names_destination are the one statement of which places a mark writes at; touched_by, _touched and the claim.to reads are gone; the gate holds the doc's key to the row | e0a39ccb | Make
+      the marks row say where a two-place mark's other end is; five sites read
+      claim.to and one function is written twice (A1, A2)
 - [ ] T5 | Move who owes raw_text from flows/fill.py into the two rows that
       carry it, so check applies it to a hand-written copy (A3)
 - [ ] T6 | Fix a taken_in naming copy-chief: disposition exits on a KeyError;
@@ -106,5 +107,6 @@ The rebuilt middle's final review.
 - [x] T42 | proof --only (Process 192); compaction is a stage: Stage cap, series and admits, desk/stages.py deals, collate holds marks to the row (Process 193); the compact command removed | eaf52803 | Implement
       compaction onto a closed proof's places and a place filter on proof, per
       Process 191 and 192
-- [ ] T43 | Delete Revisit.unreadable; nothing outside the tests reads it (E2,
-      Roy 2026-09-25)
+- [x] T43 | Revisit.unreadable deleted with its writers; the two claims its tests carried are tested again | b4be6db2 | Delete
+      Revisit.unreadable; nothing outside the tests reads it (E2, Roy
+      2026-09-25)
