@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 0 of 5 tasks closed
+Progress: 1 of 5 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-09-26 (Process 197)
 ```
 
@@ -14,8 +14,9 @@ A human question is asked before the fold.
 
 ## Tasks
 
-- [?] T1 | Decide what records the human answer and carries it back to the
-      roles, per Process 197
+- [x] T1 | Process 198: TOML answers file, one [[answer]] per query naming the role that asked | 778b93456c5e705408a66aeb2c004bb22c2cfe3f | Decide
+      what records the human answer and carries it back to the roles, per
+      Process 197
 - [ ] T2 | Implement a check that lists every human-review query in the returned
       copies or answers before collate or turn folds
 - [ ] T3 | Implement the record of the human answer and its hand-back to the
