@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 42 tasks closed
+Progress: 5 of 43 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -103,3 +103,5 @@ The rebuilt middle's final review.
 - [x] T42 | proof --only (Process 192); compaction is a stage: Stage cap, series and admits, desk/stages.py deals, collate holds marks to the row (Process 193); the compact command removed | eaf52803 | Implement
       compaction onto a closed proof's places and a place filter on proof, per
       Process 191 and 192
+- [ ] T43 | Delete Revisit.unreadable; nothing outside the tests reads it (E2,
+      Roy 2026-09-25)
