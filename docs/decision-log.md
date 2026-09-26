@@ -4992,3 +4992,14 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   one. Length is no concern of the four editorial roles: their remit is that a comment is
   correct, true and current at whatever length that takes. `#191`'s command goes; `#192`
   stands.
+
+- **#194.** **A fold that rolls back reports its refusals and nothing else** (Roy, 2026-09-25,
+  asked after `e6037f6d` withheld every per-place event but `Refused` on a rollback and the
+  code review of that unit found the change recorded nowhere).
+
+  A rolled-back fold commits nothing: no place settled, no batch was written for a place
+  carried forward, no proof holds a place for the author, no chief's copy carries a note. So
+  a line saying any of those is false on stdout. Offered -- the refusals alone, or the
+  per-place lines kept as a report of how the round would have gone -- Roy chose the refusals
+  alone. The role reads its refusals, repairs its copy, and `collate` runs again. `#177`
+  stands for what a note is: it is reported by a committed fold and rolls nothing back.
