@@ -349,6 +349,18 @@ class TestAMoveCarriesItsSnippetAndTheDestinationsText:
         assert placed is None
         assert len(why) == 1 and "`raw_text`" in why[0]
 
+    def test_a_move_onto_its_own_place_in_another_case_is_refused(self, root):
+        """The file system here may ignore case, so the destination names the
+        origin's own paragraph; placed, the move deleted it and wrote nothing
+        back."""
+        copy, origin = self._origin(root)
+        before = json.dumps(copy)
+        entry = self._a_move(origin, claim={"from": origin, "to": origin.upper()})
+        placed, why = fill(copy, entry, root)
+        assert placed is None
+        assert len(why) == 1 and "is this mark's own `address`" in why[0], why
+        assert json.dumps(copy) == before
+
     def test_a_destination_in_a_file_the_copy_holds_no_sheet_for_is_read(self, root):
         """`decision-log.md Process: #187`: the destination's paragraph is read
         off the page whether or not the copy holds a sheet for it, so a move

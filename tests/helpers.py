@@ -756,6 +756,44 @@ def a_move(origin: str, destination: str, change: str = "", reads: str = "") -> 
     return mark
 
 
+#: The kinds `a_misspelled_address` builds.
+MISSPELLINGS = ("case", "bare-cue", "padded")
+
+
+def a_misspelled_address(kind: str) -> tuple[dict, dict, list, str]:
+    """One copy whose only fault is an address spelled otherwise than printed.
+
+    `case` is a move onto its own paragraph with the path's case changed,
+    which a file system that ignores case opens as the same page. `bare-cue`
+    is a `clean` added at a cue with no path. `padded` is a move whose
+    destination carries a trailing space.
+
+    Args:
+        kind: one of `MISSPELLINGS`.
+
+    Returns:
+        `(the page's paragraphs by address, block-context's marks by seeded
+        address, entries appended to its sheet, a phrase the refusal holds)`,
+        for `a_real_binder_over` and `copies_over`.
+    """
+    places = {"m.py@b1": BASE, "m.py@b5": "# dest para.\n"}
+    marks = {address: a_clean(address) for address in places}
+    appended: list = []
+    if kind == "case":
+        marks["m.py@b1"] = a_move("m.py@b1", "M.py@b1", change="# two", reads=BASE)
+        named = "`claim.to` is this mark's own `address`"
+    elif kind == "bare-cue":
+        appended.append(a_clean("b1"))
+        named = "b1: resolves against no page -- it is not a `path@cue` address"
+    else:
+        assert kind == "padded", kind
+        marks["m.py@b1"] = a_move(
+            "m.py@b1", "m.py@b5 ", change="# two", reads="# dest para. two"
+        )
+        named = "it is spelled otherwise than the page prints it, 'm.py@b5'"
+    return places, marks, appended, named
+
+
 def a_query(address: str, shape: Shape = Shape.UNABLE_TO_DETERMINE) -> dict:
     """A `query` mark in one of the three `Shape`s -- default
     `unable-to-determine`, the one a collate step can act on."""

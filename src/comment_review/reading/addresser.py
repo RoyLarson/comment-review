@@ -1015,3 +1015,16 @@ def cue_of(address: str) -> Address:
     """An address split into its flattened path and its cue, or two blanks."""
     path, sep, where = address.rpartition("@")
     return Address(path, where) if sep else Address("", "")
+
+
+def folded(address: str) -> str:
+    """`address`, or either half of one, trimmed and case-folded.
+
+    Two spellings that fold alike name one place on a checkout whose file
+    system ignores case, and a role that retypes an address rather than
+    copying it differs from the printed one in exactly these ways. It is for
+    comparing two spellings, never for storing one: an address is held to the
+    spelling the binder or its page prints (`flows.verify.resolution_problems`),
+    and this is how a misspelling of one place is told from another place.
+    """
+    return address.strip().casefold()

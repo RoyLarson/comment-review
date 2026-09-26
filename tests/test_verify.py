@@ -127,6 +127,77 @@ class TestAnAddressMustResolveAgainstAPage:
         assert [p for p in _resolution(wire, binder, repo) if p.address == origin] == []
 
 
+class TestAnAddressIsHeldToThePrintedSpelling:
+    """An address resolves only as the binder, or the page it names, prints it.
+
+    A role copies an address from the binder, and one it retypes can differ
+    from every printed address in the case of its path or in whitespace. A
+    file system that ignores case still opens the page, so a case slip read
+    as resolving and reached the docket as a second page. Each misspelling is
+    refused here, naming the spelling the page prints.
+    """
+
+    PLACES = {"m.py@b1": QUOTED, "m.py@b5": "# dest para."}
+
+    def _problems(self, root, *entries):
+        """`resolution_problems` over block-context's copy, `entries` appended
+        to its sheet beside a `clean` on every seeded slot."""
+        binder = a_real_binder_over(root, self.PLACES)
+        wire = seed(binder, "block-context")
+        for slot in wire["sheets"][0]["marks"]:
+            slot.update(a_clean(slot["address"]))
+        wire["sheets"][0]["marks"].extend(entries)
+        return _resolution(wire, binder, root)
+
+    def test_an_own_address_in_another_case_is_refused(self, tmp_path):
+        problems = self._problems(tmp_path, a_clean("M.py@b1"))
+        assert [(p.address, p.message) for p in problems] == [
+            (
+                "M.py@b1",
+                "resolves against no page -- it is spelled otherwise than the"
+                " page prints it, 'm.py@b1'",
+            )
+        ]
+
+    @pytest.mark.parametrize("spelled", ["m.py@b5 ", " m.py@b5", "M.py@b5"])
+    def test_a_destination_spelled_otherwise_is_refused(self, tmp_path, spelled):
+        move = a_move("m.py@b1", spelled, change="# two", reads="# dest para. two")
+        problems = self._problems(tmp_path, move)
+        assert [(p.address, p.message) for p in problems] == [
+            (
+                "m.py@b1",
+                f"`claim.to` {spelled!r} resolves against no page -- it is spelled"
+                " otherwise than the page prints it, 'm.py@b5'",
+            )
+        ]
+
+    def test_a_page_the_binder_lacks_is_held_to_the_checkouts_spelling(self, tmp_path):
+        (tmp_path / "n.py").write_text(
+            "v0 = 0\n# seven\nv1 = 1\n", encoding="utf-8", newline="\n"
+        )
+        move = a_move("m.py@b1", "N.py@b1", change="# two", reads="# seven\n# two")
+        problems = self._problems(tmp_path, move)
+        assert [p.message for p in problems] == [
+            "`claim.to` 'N.py@b1' resolves against no page -- it is spelled"
+            " otherwise than the page prints it, 'n.py@b1'"
+        ]
+
+    def test_a_page_the_binder_lacks_resolves_as_that_page_prints_it(self, tmp_path):
+        (tmp_path / "n.py").write_text(
+            "v0 = 0\n# seven\nv1 = 1\n", encoding="utf-8", newline="\n"
+        )
+        move = a_move("m.py@b1", "n.py@b1", change="# two", reads="# seven\n# two")
+        assert self._problems(tmp_path, move) == []
+
+    def test_a_bare_cue_is_refused_on_a_clean(self, tmp_path):
+        """A `clean` is the one row the parse lets carry an address that is
+        not `path@cue`, so resolution is what names it."""
+        problems = self._problems(tmp_path, a_clean("b1"))
+        assert [(p.address, p.message) for p in problems] == [
+            ("b1", "resolves against no page -- it is not a `path@cue` address")
+        ]
+
+
 class TestAnAddressOutsideTheCheckoutIsNotRead:
     """`collate-flow-defects` T14.
 

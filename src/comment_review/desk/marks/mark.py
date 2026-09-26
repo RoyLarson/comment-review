@@ -92,7 +92,7 @@ from dataclasses import dataclass, fields
 from enum import StrEnum, auto
 from typing import TYPE_CHECKING, TypeGuard
 
-from comment_review.reading.addresser import cue_of
+from comment_review.reading.addresser import cue_of, folded
 
 if TYPE_CHECKING:
     # Type-only: `table` imports `Instruction` and `Shape` from this module,
@@ -826,12 +826,14 @@ def _names_a_place(value: object) -> bool:
     """Whether `value` is a `path@cue` address -- a page, and a place on it.
 
     `reading.addresser.cue_of` is the one parse of an address, and it answers
-    two blanks for anything that is not one, a bare cue included.
+    two blanks for anything that is not one, a bare cue included. The value is
+    asked as it will be stored; whether it is spelled as the page prints it is
+    `flows.verify.resolution_problems`' question.
     """
     if not isinstance(value, str):
         return False
-    got = cue_of(value.strip())
-    return bool(got.path and got.cue)
+    got = cue_of(value)
+    return bool(got.path.strip() and got.cue.strip())
 
 
 def _destination_problems(
@@ -867,7 +869,10 @@ def _destination_problems(
     destination = claim.get(key)
     if not isinstance(destination, str):
         return []
-    if destination.strip() and destination.strip() == address.strip():
+    # Folded, not compared as typed: a destination differing from the origin
+    # only in case or surrounding whitespace names the same paragraph on a
+    # file system that ignores case, and the delete lands without the write.
+    if folded(destination) and folded(destination) == folded(address):
         return [
             f"{where}: `claim.to` is this mark's own `address` -- a move to "
             "where the paragraph already is deletes it and writes nothing back"

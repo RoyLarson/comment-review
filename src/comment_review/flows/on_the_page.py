@@ -2,6 +2,7 @@
 
     PageCache                             real path -> the page, or None
     real_path(name, paths)                the real path a flattened page name names
+    printed_name(name, paths, root)       that name as the binder or checkout prints it
     page_named(name, paths, root, cache)  that path, and its page or None
     held_at(address, paths, root, cache)  the text and the anchor at one place
     no_page(real)                         the one sentence for a page that will not read
@@ -25,13 +26,20 @@ does not ask that at any granularity (`#62`, `#185`); it reads the page as the
 checkout holds it.
 """
 
+import os
 from pathlib import Path
 from typing import NamedTuple
 
 from comment_review.binder.page import Page
 from comment_review.flows.page_for import page_of
 from comment_review.machine.repo import can_escape
-from comment_review.reading.addresser import SEPARATOR, cue_of, unflatten
+from comment_review.reading.addresser import (
+    SEPARATOR,
+    cue_of,
+    flatten,
+    folded,
+    unflatten,
+)
 
 #: One real path -> its page, or None where this checkout holds no readable
 #: page there. A caller keeps one per stage and hands it to every read, so a
@@ -69,6 +77,51 @@ def real_path(name: str, paths: list[str]) -> str:
         The real path. It is not checked against the checkout here.
     """
     return unflatten(name, paths) or name.replace(SEPARATOR, "/")
+
+
+def printed_name(name: str, paths: list[str], root: Path) -> str:
+    """A flattened page name as the binder or the checkout prints it.
+
+    The binder's own spelling answers first: a name it holds exactly is
+    returned as it is, and otherwise the one binder path that folds alike
+    (`reading.addresser.folded`). A page the binder lacks is found in the
+    checkout, one directory at a time, preferring an entry spelled exactly.
+
+    Args:
+        name: the path half of an address, as a role wrote it.
+        paths: the binder's own page paths.
+        root: the checkout a page outside the binder is looked for in.
+
+    Returns:
+        The flattened path as printed, or "" where neither the binder nor the
+        checkout holds exactly one path that folds to `name`, or the path
+        would land outside `root`.
+    """
+    printed = [flatten(p) for p in paths]
+    if name in printed:
+        return name
+    alike = {one for one in printed if folded(one) == folded(name)}
+    if alike:
+        return alike.pop() if len(alike) == 1 else ""
+    real = name.strip().replace(SEPARATOR, "/")
+    if not real or can_escape(real):
+        return ""
+    here, spelled = root, []
+    for part in real.split("/"):
+        try:
+            entries = os.listdir(here)
+        except OSError:
+            return ""
+        hits = (
+            [part]
+            if part in entries
+            else [e for e in entries if folded(e) == folded(part)]
+        )
+        if len(hits) != 1:
+            return ""
+        spelled.append(hits[0])
+        here = here / hits[0]
+    return flatten("/".join(spelled))
 
 
 def page_named(

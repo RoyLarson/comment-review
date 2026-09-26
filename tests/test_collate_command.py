@@ -6,13 +6,16 @@ way the rest of this suite asks a question it can ask directly.
 
 import json
 
+import pytest
 from helpers import (
+    MISSPELLINGS,
     REPO,
     _keeping_only,
     a_binder_over,
     a_clean,
     a_correct,
     a_correct_setting,
+    a_misspelled_address,
     a_query,
     a_real_binder_over,
     an_add,
@@ -31,14 +34,24 @@ BASE = "# one\n# two\n# three\n"
 
 
 def run(
-    tmp_path, marks_by_role, monkeypatch, capsys, *extra, on_copy=None, places=None
+    tmp_path,
+    marks_by_role,
+    monkeypatch,
+    capsys,
+    *extra,
+    on_copy=None,
+    places=None,
+    appended=(),
 ):
     """`collate` over one page's copies. `on_copy` is laid over each copy as
     it is written, which is how a role hand-edits one before returning it.
     `places` is the page's paragraphs by address, one at `m.py@b1` unless a
-    case names more."""
+    case names more. `appended` entries are added to each copy's first sheet,
+    as a role adds a mark at a place it was not handed a slot for."""
     binder = a_real_binder_over(tmp_path / "repo", places or {"m.py@b1": BASE})
     copies = copies_over(binder, marks_by_role)
+    for copy in copies:
+        copy["sheets"][0]["marks"].extend(appended)
     binder_path = tmp_path / "binder.json"
     binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
     paths = []
@@ -888,6 +901,27 @@ class TestTheReport:
             "block-context m.py@b4: the text does not keep 'two'"
         ]
         assert not (tmp_path / "chief.json").exists()
+
+
+@pytest.mark.parametrize("kind", MISSPELLINGS)
+def test_an_address_spelled_otherwise_than_printed_rolls_the_round_back(
+    tmp_path, monkeypatch, capsys, kind
+):
+    """Each misspelling is refused by name and nothing reaches a chief's copy:
+    the case slip reached the docket as a second page, and the bare cue filed
+    a place with no base and no readers."""
+    places, marks, appended, named = a_misspelled_address(kind)
+    code, out = run(
+        tmp_path,
+        {"block-context": marks},
+        monkeypatch,
+        capsys,
+        places=places,
+        appended=appended,
+    )
+    assert code == command.BROKEN, out
+    assert named in out, out
+    assert not (tmp_path / "chief.json").exists()
 
 
 class TestTheGateSeesIt:

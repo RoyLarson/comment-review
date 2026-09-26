@@ -14,12 +14,15 @@ unanswered slot, a `patch` meant as *keep my patch*, a batch keyed by role
 
 import json
 
+import pytest
 from helpers import (
+    MISSPELLINGS,
     REPO,
     a_binder_over,
     a_clean,
     a_correct,
     a_correct_setting,
+    a_misspelled_address,
     a_move,
     a_real_binder_over,
     copies_over,
@@ -162,6 +165,28 @@ class TestACopy:
         code, _, err = _run(monkeypatch, capsys, "--edit-copy", str(path))
         assert code == 2
         assert err
+
+
+@pytest.mark.parametrize("kind", MISSPELLINGS)
+def test_an_address_spelled_otherwise_than_printed_is_named(
+    tmp_path, monkeypatch, capsys, kind
+):
+    """`check` names each misspelling the fold refuses, so none passes here
+    at exit 0 and is refused a round later."""
+    places, marks, appended, named = a_misspelled_address(kind)
+    root = tmp_path / "repo"
+    binder = a_real_binder_over(root, places)
+    copy = copies_over(binder, {"block-context": marks})[0]
+    copy["sheets"][0]["marks"].extend(appended)
+    path = tmp_path / "copy.json"
+    path.write_text(json.dumps(copy), encoding="utf-8")
+    binder_path = tmp_path / "binder.json"
+    binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
+    code, out, _ = _run(
+        monkeypatch, capsys, "--edit-copy", str(path), "--binder", str(binder_path)
+    )
+    assert code == 1, out
+    assert named in out, out
 
 
 def _folded(tmp_path):

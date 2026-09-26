@@ -547,6 +547,17 @@ def test_a_move_onto_its_own_address_is_refused_by_name():
     assert "`claim.to` is this mark's own `address`" in why[0]
 
 
+@pytest.mark.parametrize("spelled", ["M.py@b1", "m.py@b1 ", " m.py@B1"])
+def test_a_move_onto_its_own_address_spelled_otherwise_is_refused(spelled):
+    """A case slip names the same page on a file system that ignores case, and
+    such a move reached the docket as two schedules for one file: the delete
+    at the origin landed and the restoring write was lost."""
+    mark, why = Mark.deserialize("m.py@b1", _a_move_to(spelled))
+    assert mark is None
+    assert len(why) == 1
+    assert "`claim.to` is this mark's own `address`" in why[0]
+
+
 def test_a_move_to_a_different_address_still_parses():
     """The guard must not refuse an ordinary move -- the one that names a real
     second place."""

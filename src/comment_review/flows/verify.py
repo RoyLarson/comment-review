@@ -31,8 +31,14 @@ from comment_review.desk.collator import Cache, Problem, verify_report
 from comment_review.desk.containers import EditCopy
 from comment_review.desk.marks.table import INSTRUCTIONS, Touch
 from comment_review.desk.stages import Stage, deals
-from comment_review.flows.on_the_page import PageCache, held_at, no_page, page_named
-from comment_review.reading.addresser import cue_of
+from comment_review.flows.on_the_page import (
+    PageCache,
+    held_at,
+    no_page,
+    page_named,
+    printed_name,
+)
+from comment_review.reading.addresser import address_for, cue_of, folded
 
 
 def copy_problems(
@@ -75,8 +81,13 @@ def resolution_problems(
     and the page carries every place a series has, filled or not.
 
     A `move`'s `claim.to` is an address as well, and resolves the same way
-    (`Process: #111`). A destination that is not `path@cue` resolves against
-    nothing -- `path@cue` is the only address built (`Addressing: #21`).
+    (`Process: #111`). An address that is not `path@cue` resolves against
+    nothing -- `path@cue` is the only address built (`Addressing: #21`) --
+    and one resolves only as it is printed: the binder's spelling of its
+    path, or the checkout's for a page the binder lacks, and the page's
+    spelling of its cue. A case slip or stray whitespace is refused, naming
+    the printed address; a file system that ignores case would otherwise open
+    the page, and the docket would carry it as a second page.
 
     Verify: an invented cue is refused, a valid empty place is not -- the case
     `Process: #97` settled, restated against the real page rather than the
@@ -92,41 +103,38 @@ def resolution_problems(
         One `Problem` per mark whose path no page can be read at, or whose
         cue its page does not carry, and one per `move` whose `claim.to`
         fails the same way, at the move's own address, in sheet then mark
-        order. An empty address is skipped -- `clean` is the one row a mark
-        may carry none for, and there is no place to resolve.
+        order. A mark with no address has no place to resolve:
+        `desk.marks.table.Row.places` leaves it out, and `clean` is the one
+        row that may carry none.
     """
     out: list[Problem] = []
     for sheet in copy.sheets:
         for mark in sheet.marks:
             for where, touch in INSTRUCTIONS[mark.instruction].places(mark):
-                if touch is Touch.DESTINATION:
-                    why = _unresolved(where, paths, root, cache)
-                    if why:
-                        out.append(
-                            Problem(
-                                copy.role,
-                                mark.address,
-                                f"`claim.to` {where!r} resolves against no page"
-                                f" -- {why}",
-                            )
-                        )
+                why = _unresolved(where, paths, root, cache)
+                if not why:
                     continue
-                addr = cue_of(where)
-                if addr.path and addr.cue:
-                    why = _unresolved(where, paths, root, cache)
-                    if why:
-                        out.append(
-                            Problem(
-                                copy.role,
-                                where,
-                                f"resolves against no page -- {why}",
-                            )
+                if touch is Touch.DESTINATION:
+                    out.append(
+                        Problem(
+                            copy.role,
+                            mark.address,
+                            f"`claim.to` {where!r} resolves against no page -- {why}",
                         )
+                    )
+                else:
+                    out.append(
+                        Problem(copy.role, where, f"resolves against no page -- {why}")
+                    )
     return out
 
 
 def _unresolved(address: str, paths: list[str], root: Path, cache: PageCache) -> str:
     """Why `address` resolves against no page, or "" where it resolves.
+
+    The page and the place are found under `reading.addresser.folded`, so a
+    misspelling is named with the address it misspells rather than as a
+    missing page or cue.
 
     Args:
         address: a mark's own address, or a `move`'s `claim.to`.
@@ -137,11 +145,16 @@ def _unresolved(address: str, paths: list[str], root: Path, cache: PageCache) ->
     addr = cue_of(address)
     if not addr.path or not addr.cue:
         return "it is not a `path@cue` address"
-    real, page = page_named(addr.path, paths, root, cache)
+    name = printed_name(addr.path, paths, root) or addr.path
+    real, page = page_named(name, paths, root, cache)
     if page is None:
         return no_page(real)
-    if addr.cue not in page.cues.places:
+    cue = next((c for c in page.cues.places if folded(c) == folded(addr.cue)), "")
+    if not cue:
         return f"{real} carries no place {addr.cue!r}"
+    printed = address_for(name, cue)
+    if address != printed:
+        return f"it is spelled otherwise than the page prints it, {printed!r}"
     return ""
 
 
