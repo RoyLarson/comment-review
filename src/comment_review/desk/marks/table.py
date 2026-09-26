@@ -71,6 +71,7 @@ Sets = Callable[[Any, Touch, str], str | None]
 Reads = Callable[[Any, Touch, str], list[str]]
 Notes = Callable[[Any, Touch, str], list[str]]
 Pairs = Callable[[Any], Stance]
+Splits = Callable[[Any, str, str], "tuple[Any, Any] | None"]
 
 
 def _nothing(mark, touch, base):
@@ -117,6 +118,46 @@ def _move_reads(mark, touch, base):
     if dropped is not None:
         return [f"the destination text does not keep {dropped!r}"]
     return []
+
+
+def _move_splits(mark, origin_base, destination_anchor):
+    """An agreed move as the mover's `drop` at the origin and `add` at the destination.
+
+    `decision-log.md Process: #195` item 3. Both halves come from the one
+    snippet, so the text the origin loses is the text the destination gains
+    by construction; each keeps the move's reason and sources. None where the
+    snippet is not in the origin's paragraph exactly once -- the move's own
+    read refuses that, and a split would hide it.
+
+    An add's claim names its anchor in backticks and the parse refuses an
+    empty name, so a landing with no code line names its address.
+    """
+    remainder = _without_once(origin_base, mark.change)
+    if remainder is None:
+        return None
+    destination = str(mark.claim.get("to", ""))
+    named = destination_anchor.strip() or destination
+    drop = Mark(
+        address=mark.address,
+        anchor=mark.anchor,
+        raw_text=origin_base,
+        instruction=Instruction.DROP,
+        claim={"drop": mark.change},
+        reason=mark.reason,
+        sources=mark.sources,
+        change=remainder,
+    )
+    add = Mark(
+        address=destination,
+        anchor=destination_anchor,
+        raw_text=mark.raw_text,
+        instruction=Instruction.ADD,
+        claim={"missing": mark.change.strip().splitlines()[0], "anchor": f"`{named}`"},
+        reason=mark.reason,
+        sources=mark.sources,
+        change=mark.change,
+    )
+    return drop, add
 
 
 def _correct_notes(mark, touch, base):
@@ -180,6 +221,9 @@ class Row:
     #: changes no place's state -- `decision-log.md Process: #177`.
     notes: Notes = _no_notes
     pairs: Pairs = _proposes
+    #: How an agreed mark of this row becomes one-place marks
+    #: (`decision-log.md Process: #195`). None for every row but `move`.
+    splits: Splits | None = None
     answers: tuple[str, ...] = ESCALATION_ANSWERS
     owes_change: bool = True
     owes_sources: bool = True
@@ -289,6 +333,7 @@ INSTRUCTIONS: dict[Instruction, Row] = {
         touches=(Touch.ORIGIN, Touch.DESTINATION),
         sets=_move_sets,
         reads=_move_reads,
+        splits=_move_splits,
         carries_raw_text=True,
     ),
 }

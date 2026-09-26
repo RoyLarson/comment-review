@@ -138,6 +138,7 @@ FIELD_FOR = {
     "reads": "reads",
     "notes": "notes",
     "pairs": "pairs",
+    "splits": "splits",
     "answers": "answers",
     "not substantive": "substantive",
     "empty change allowed": "may_empty",

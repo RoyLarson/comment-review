@@ -240,7 +240,7 @@ the true one, and a `sources` entry carrying the line that settles it."*
 the next thing that reads it silently gets a worse answer. ! `add`'s sentence ended *"never the
 payload's"* and now reads *"never the claim's"*: the old word named the field that was removed.
 
-## The classifiers -- eleven COLUMNS and a closed list of flags
+## The classifiers -- twelve COLUMNS and a closed list of flags
 
 !! **THIS IS THE PART THAT WAS MISSING, AND ITS ABSENCE IS WHAT LET TWENTY-TWO FIELDS IN.** A row
 may state these and nothing else -- **sixteen things, and no prose.** A new classifier is a change
@@ -258,6 +258,7 @@ to THIS FILE first.
 | **reads** | the problems a mark of this row has at one touch, against its base | a function of the mark, the touch and the base |
 | **notes** | what the chief is told about a mark of this row that is not a problem with it | a function of the mark, the touch and the base |
 | **pairs** | how a mark of this row stands toward the others at its place | a function of the mark |
+| **splits** | how an agreed mark of this row becomes one-place marks, once every reader has agreed its placement (`decision-log.md Process: #195`) | a function of the mark, the origin's base and the destination's anchor, or none |
 | **answers** | which answers a turn may give where this row proposes | a list of names |
 
 **The flags, and there are five:**

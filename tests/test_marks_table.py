@@ -1,5 +1,6 @@
 """The marks table: what each row sets, refuses and pairs as."""
 
+import dataclasses
 import re
 
 import pytest
@@ -460,3 +461,88 @@ def test_chief_mark_takes_in_the_first_side_by_role_where_two_set_one_text():
 
     assert at(dealt).reason == "apple's"
     assert at(list(reversed(dealt))).reason == "apple's"
+
+
+class TestTheSplit:
+    """`decision-log.md Process: #195` item 3: an agreed move becomes the
+    mover's `drop` at the origin and `add` at the destination, ordinary marks
+    each end reads on its own from then on."""
+
+    BASE = "# one\n# two\n# three\n"
+    LANDING = "# four\n# five\n"
+    LANDED = "# four\n# two\n# five\n"
+
+    def _move(self, change="# two\n") -> Mark:
+        return Mark(
+            address="m.py@b1",
+            anchor="x = 1",
+            raw_text=self.LANDED,
+            instruction=Instruction.MOVE,
+            claim={"from": "m.py@b1", "to": "m.py@b5"},
+            reason="it belongs with five",
+            sources=({"cite": "m.py:5", "verbatim": "v5 = 5"},),
+            change=change,
+        )
+
+    def _split(self, anchor="y = 5", change="# two\n"):
+        move = self._move(change)
+        row = INSTRUCTIONS[move.instruction]
+        assert row.splits is not None
+        return row.splits(move, self.BASE, anchor)
+
+    def test_only_the_move_row_splits(self):
+        assert [i for i, row in INSTRUCTIONS.items() if row.splits] == [
+            Instruction.MOVE
+        ]
+
+    def test_the_drop_leaves_the_remainder_and_the_add_lands_the_arrival(self):
+        drop, add = self._split()
+        assert (drop.instruction, drop.address) == (Instruction.DROP, "m.py@b1")
+        assert drop.claim == {"drop": "# two\n"} and drop.change == "# one\n# three\n"
+        assert (add.instruction, add.address) == (Instruction.ADD, "m.py@b5")
+        assert add.raw_text == self.LANDED and add.change == "# two\n"
+        assert add.anchor == "y = 5" and add.claim["anchor"] == "`y = 5`"
+        assert drop.reason == add.reason == "it belongs with five"
+        assert drop.sources == add.sources == self._move().sources
+
+    def test_each_half_is_an_ordinary_mark_the_parse_takes(self):
+        """T1: no second shape of `change` -- each half is a plain string."""
+        for half in self._split():
+            back, why = Mark.deserialize("half", half.serialize())
+            assert why == [] and back == half
+
+    def test_each_half_sets_its_end_through_its_own_row(self):
+        """T3 and T5: the text removed at the origin is the text the add
+        carries, by construction -- both come from the one snippet."""
+        drop, add = self._split()
+        assert (
+            INSTRUCTIONS[drop.instruction].sets(drop, Touch.OWN, self.BASE)
+            == "# one\n# three\n"
+        )
+        assert (
+            INSTRUCTIONS[add.instruction].sets(add, Touch.OWN, self.LANDING)
+            == self.LANDED
+        )
+        assert drop.claim["drop"] == add.change
+
+    def test_an_arrival_that_loses_a_word_of_the_landing_is_refused(self):
+        """T4: the add row's own read refuses it by the word it lost."""
+        _drop, add = self._split()
+        lost = dataclasses.replace(add, raw_text="# four\n# two\n")
+        why = INSTRUCTIONS[lost.instruction].reads(lost, Touch.OWN, self.LANDING)
+        assert why and "five" in why[0]
+
+    def test_a_snippet_not_in_the_origin_does_not_split(self):
+        assert self._split(change="# nine\n") is None
+
+    def test_a_landing_with_no_code_line_names_the_address_as_its_anchor(self):
+        """D9 and Review Focus 3: an empty anchor would be refused by the
+        parse, so the add names its destination instead, and still reads back
+        off a place."""
+        _drop, add = self._split(anchor="")
+        assert add.claim["anchor"] == "`m.py@b5`"
+        place = Place(
+            address="m.py@b5", anchor="", base="", filed=[Filed("a", add, Touch.OWN)]
+        )
+        back, why = Place.deserialize("p", place.serialize())
+        assert why == [] and back is not None and back.filed[0].mark == add
