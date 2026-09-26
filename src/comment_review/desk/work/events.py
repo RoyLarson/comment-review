@@ -74,7 +74,7 @@ class Advised(NamedTuple):
 
 
 class Settled(NamedTuple):
-    """One place the fold decided, and the text it settled on, if any."""
+    """One place a committed fold decided, and the text it settled on, if any."""
 
     address: str
     text: str | None

@@ -15,6 +15,7 @@ from helpers import (
     a_correct_setting,
     a_query,
     a_real_binder_over,
+    an_add,
     copies_over,
     entries_of,
 )
@@ -29,10 +30,14 @@ from comment_review.flows.proof_io import load_proof
 BASE = "# one\n# two\n# three\n"
 
 
-def run(tmp_path, marks_by_role, monkeypatch, capsys, *extra, on_copy=None):
+def run(
+    tmp_path, marks_by_role, monkeypatch, capsys, *extra, on_copy=None, places=None
+):
     """`collate` over one page's copies. `on_copy` is laid over each copy as
-    it is written, which is how a role hand-edits one before returning it."""
-    binder = a_real_binder_over(tmp_path / "repo", {"m.py@b1": BASE})
+    it is written, which is how a role hand-edits one before returning it.
+    `places` is the page's paragraphs by address, one at `m.py@b1` unless a
+    case names more."""
+    binder = a_real_binder_over(tmp_path / "repo", places or {"m.py@b1": BASE})
     copies = copies_over(binder, marks_by_role)
     binder_path = tmp_path / "binder.json"
     binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
@@ -812,6 +817,26 @@ class TestTheReport:
             capsys,
         )
         assert "escalation" not in out.lower() or "0 escalation" in out.lower()
+
+    def test_a_rolled_back_round_names_its_refusal_and_settles_nothing(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """A rollback commits nothing, so no place is reported as standing.
+
+        `m.py@b1` would settle on its own; the add at `m.py@b2` drops a word
+        of the paragraph already there, which its row refuses at the fold.
+        """
+        dropping = {**an_add("m.py@b2"), "raw_text": "# one\n# three\n"}
+        code, out = run(
+            tmp_path,
+            {"block-context": {"m.py@b1": a_clean("m.py@b1"), "m.py@b2": dropping}},
+            monkeypatch,
+            capsys,
+            places={"m.py@b1": BASE, "m.py@b2": BASE},
+        )
+        assert code == command.BROKEN, out
+        assert "block-context m.py@b2: the text does not keep 'two'" in out
+        assert "stet" not in out
 
 
 class TestTheGateSeesIt:

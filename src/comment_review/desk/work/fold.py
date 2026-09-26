@@ -42,17 +42,21 @@ class Fold:
         A place that carries advisory notes reports them beside whatever it
         came to, and the fold commits over them: an `Advised` is for the
         chief to read, not a reason to give up the round.
+
+        A rollback reports no `Settled`: it commits nothing, so no place
+        settled, whatever it would have come to in a round that committed.
         """
         decide(self.places, self.turn)
         refused = 0
+        found: list = []
         for address in sorted(self.places):
             place = self.places[address]
             if place.state is State.REFUSED:
                 refused += 1
                 for role, reasons in _by_role(place.reasons).items():
-                    self.events.append(events.Refused(role, address, reasons))
+                    found.append(events.Refused(role, address, reasons))
             elif place.state in CARRIED:
-                self.events.append(
+                found.append(
                     events.CarriedForward(
                         address, place.state, place.question, asked(place)
                     )
@@ -64,18 +68,20 @@ class Fold:
                     move = _held_move(place)
                     for one in place.asking:
                         role, _, reason = one.partition(": ")
-                        self.events.append(
+                        found.append(
                             events.Unsettlable(address, role, reason, partner, move)
                         )
             else:
-                self.events.append(events.Settled(address, place.text))
+                found.append(events.Settled(address, place.text))
             # A note is reported wherever it is found, whatever the place
             # came to, and nothing branches on it -- `Process: #177`.
             for role, notes in _by_role(place.notes).items():
-                self.events.append(events.Advised(role, address, notes))
+                found.append(events.Advised(role, address, notes))
         if refused:
+            self.events += [one for one in found if not isinstance(one, events.Settled)]
             self.events.append(events.RolledBack(refused))
             return self
+        self.events += found
         self.committed = True
         self.events.append(events.Committed(len(self.places)))
         return self
