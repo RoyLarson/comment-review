@@ -5110,3 +5110,23 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
 
   It also answers `rebuilt-middle-final-review` T9, *what two moves onto one place are*: two
   moves, whatever roles filed them, whose texts compose at the place like any two proposals.
+
+- **#197.** **A human-review question is asked and answered before the fold, and the roles are
+  told the answer** (Roy, 2026-09-26, asked to confirm or reverse the interim that a human-review
+  answer to one end's wording holds only that end while the move's placement stays open -- the
+  interim the whole-branch review of `feat/a-move-is-a-placement-claim` showed could land a
+  paragraph in both places, now refused at the write end).
+
+  Roy: *"We need to modify what the task-agent does and the system does for human questions. For
+  any human queries these should be asked and answered before the fold and turn is executed.
+  Then something can tell the agents the response and they can modify their response. This can
+  be done using the current question ask ... system Claude already uses plus something"*.
+
+  So a `human-review-necessary` query, filed as a mark or given as an answer, no longer rides
+  through the fold to the author at 7a. The task agent asks the human it before `collate` or
+  `turn` folds the stage, with the question tool Claude Code already provides; the human's answer
+  is recorded and handed back to the roles, who revise their mark or answer in its light; then
+  the fold runs. It supersedes the Task 4 interim of the plan above (a wording human-review answer
+  holding one end only) rather than choosing between its two options: the question is settled
+  before any end is held. What carries the answer back to the roles -- the "plus something" -- is
+  not yet designed.
