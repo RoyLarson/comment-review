@@ -199,24 +199,18 @@ class TestAMoveHeldForTheHuman:
 
 
 class TestTheChiefRulesEachEndOfAMove:
-    """The chief's ruling at each end of a contested move takes effect there.
+    """The chief's ruling at each end of an undecided move takes effect there.
 
     Ported from `tests/test_turn.py::TestTheChiefRulesEachEndOfAMove`, and
-    restored 2026-09-18. A move's two places take one state, so the chief owes
-    a ruling at both; what each end closes on is its own ruling's, and the two
-    need not name one side.
-
-    !! THE ORIGIN IS THE CASE. Nobody marked it but the mover, so it reaches
-    `stands` alone and is carried forward only because its partner is. The
-    dispositions pass ran before `pair_moves` and read that un-paired state,
-    so every ruling the chief made was refused with *"cannot close a place
-    that is agreed"* -- at a place the same run had just reported contested.
-    `desk.evaluate.passes.decide` is the order now.
+    restored 2026-09-18. Until the chief's own placement ruling exists, the
+    chief rules a move's two ends one by one (`decision-log.md Process: #195`
+    item 4), and a move ruled at both ends is closed; what each end closes on
+    is its own ruling's, and the two need not name one side.
     """
 
     TEXTS = {"m.py@b1": "# one\n# two\n# three\n", "m.py@b2": "# four\n# five\n# six\n"}
     #: block-context moves b1's middle line to b2; function-context corrects
-    #: b2, which contests the destination and pulls the origin with it.
+    #: b2, contesting the destination's words, and is owed the placement.
     PLANT = {
         "block-context": {
             "m.py@b1": a_move(
@@ -242,20 +236,6 @@ class TestTheChiefRulesEachEndOfAMove:
         deal(tmp_path, monkeypatch, capsys, self.PLANT, self.TEXTS)
         return disposition(tmp_path, monkeypatch, capsys, rulings, proof="proof0.json")
 
-    def test_both_ends_are_carried_forward_together(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        """The case has to be able to fail: the chief is owed a ruling at two
-        places, not one, and both are contested before anything rules them."""
-        code = deal(tmp_path, monkeypatch, capsys, self.PLANT, self.TEXTS)
-        assert code == collate_command.ESCALATIONS
-        proof, why = load_proof(tmp_path / "proof0.json")
-        assert proof is not None, why
-        assert {entry["address"]: entry["state"] for entry in proof.places} == {
-            "m.py@b1": "contested",
-            "m.py@b2": "contested",
-        }
-
     def test_a_taken_in_at_each_end_closes_the_move(
         self, tmp_path, monkeypatch, capsys
     ):
@@ -272,11 +252,15 @@ class TestTheChiefRulesEachEndOfAMove:
         closed = _closed(tmp_path)
         assert place_on(closed, "m.py@b1")["text"] == self.REMAINDER
         assert place_on(closed, "m.py@b2")["text"] == self.MOVED_TO
-        # One entry: `chief_mark` gives the same taken-in mark from either
-        # place, so the move reaches the chief's copy once.
+        # Each end is written from its own decided text: the chief ruled the
+        # move end by end, so its copy holds one mark per end.
         assert [
-            (m.address, str(m.instruction)) for m in entries_of(the_chief(tmp_path))
-        ] == [("m.py@b1", "move")]
+            (m.address, str(m.instruction), m.change)
+            for m in entries_of(the_chief(tmp_path))
+        ] == [
+            ("m.py@b1", "correct", self.REMAINDER),
+            ("m.py@b2", "correct", self.MOVED_TO),
+        ]
 
     def test_a_taken_in_at_one_end_and_a_recast_at_the_other(
         self, tmp_path, monkeypatch, capsys

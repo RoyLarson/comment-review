@@ -50,7 +50,7 @@ from pathlib import Path
 from comment_review.desk.collator import Cache, Problem
 from comment_review.desk.containers import EditCopy
 from comment_review.desk.stages import not_admitted
-from comment_review.flows.answers import answers_of, contracts, slots_of
+from comment_review.flows.answers import answers_of, contracts, slot_key, slots_of
 from comment_review.flows.fill import composition_problems, row_problems
 from comment_review.flows.mark_errors import mark_errors
 from comment_review.flows.on_the_page import PageCache, held_at
@@ -210,7 +210,7 @@ def _check_answers(path: str, sent_path: str, role: str, repo: str | None) -> in
         print(f"{sent_path}: no slots were sent to {role}")
         return BROKEN
     sent = {
-        str(slot["address"]): slot
+        slot_key(slot): slot
         for slot in slots
         if isinstance(slot, dict) and slot.get("address")
     }

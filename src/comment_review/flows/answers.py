@@ -1,7 +1,8 @@
 """One role's answers to a turn, read against the slots that went out to it.
 
     slots_of(loaded, role)                -> the slots, whatever shape they came in
-    answers_of(role, sent, returned, why) -> (address -> Answer, the problems)
+    slot_key(entry)                       -> which slot an entry answers
+    answers_of(role, sent, returned, why) -> (slot key -> Answer, the problems)
     contracts()                           -> the shapes a role is handed
 
 `flows.bus` derives what a role was asked from the places the proof carries;
@@ -10,7 +11,7 @@ answer one role's file through `answers_of`, so a file the check passes is a
 file the turn takes, and a refusal has one wording.
 
 The sent slot carries the question and the returned one never does: an
-`Answer` belongs to one of two questions and a role writes neither. A
+`Answer` belongs to one of three questions and a role writes none of them. A
 returned entry contributes its answer fields alone; the question comes from
 the place the turn is asking about, or from the slot the batch sent, which is
 the same question written down twice.
@@ -22,6 +23,7 @@ from pathlib import Path
 from comment_review.desk.answers.answer import Answer, Question
 from comment_review.desk.answers.table import ANSWERS
 from comment_review.desk.collator import Cache, Problem, cited_problems
+from comment_review.desk.evaluate.move import key_of
 from comment_review.desk.marks.mark import QUERY_SHAPES, allowed, filled
 
 #: What each field of an answer is, in the words `Answer.deserialize` checks
@@ -43,6 +45,18 @@ ANSWER_FIELDS = {
 #: contract publishes the same one under the same name (`desk.marks.mark.
 #: allowed`), and both read `QUERY_SHAPES` rather than spelling it twice.
 ANSWER_VALUES = {"shape": [str(one) for one in QUERY_SHAPES]}
+
+
+def slot_key(entry: dict) -> str:
+    """Which slot an entry answers: its address, or its move where it names one.
+
+    A placement is asked of a move, at its origin's address, so a role can be
+    asked a placement and a composition at one address in one turn. The move
+    slot carries `to`, and the two are told apart by it.
+    """
+    address = str(entry.get("address") or "")
+    to = entry.get("to")
+    return key_of(address, str(to)) if address and to else address
 
 
 def slots_of(loaded: object, role: str) -> list:
@@ -90,8 +104,8 @@ def answers_of(
 
     Args:
         role: whose answers these are.
-        sent: address -> the slot that went out there, carrying `question`
-            and, where the caller has one, `anchor`.
+        sent: slot key -> the slot that went out there (`slot_key`),
+            carrying `question` and, where the caller has one, `anchor`.
         returned: the entries as they came back, through `slots_of`.
         unsent: given an address outside `sent`, the reason an entry there is
             refused. Only the caller knows why the address is not this role's
@@ -103,7 +117,7 @@ def answers_of(
             several answers cite is read once.
 
     Returns:
-        `(address -> Answer, the problems)`, the problems in slot order after
+        `(slot key -> Answer, the problems)`, the problems in slot order after
         the entries that named no slot.
     """
     answered: dict[str, dict] = {}
@@ -112,7 +126,7 @@ def answers_of(
         if not isinstance(entry, dict):
             problems.append(Problem(role, "", f"answer {i} is not an object"))
             continue
-        address = str(entry.get("address") or "")
+        address = slot_key(entry)
         if not address:
             problems.append(Problem(role, "", f"answer {i} names no address"))
             continue

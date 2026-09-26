@@ -263,3 +263,24 @@ def test_every_claim_key_the_contract_names_is_one_the_parse_demands():
             got, why = Answer.deserialize("m.py@b1", {**entry, "claim": claim})
             assert got is None, (name, key)
             assert any(f"needs `claim.{key}`" in one for one in why), (name, key, why)
+
+
+def test_a_placement_and_a_composition_at_one_origin_are_two_answers(tmp_path):
+    """Review Focus 1: both are asked of one role at one address in one turn."""
+    from comment_review.flows.answers import answers_of, slot_key
+
+    sent = {
+        "m.py@b1": {"question": "composition", "anchor": "x = 1"},
+        slot_key({"address": "m.py@b1", "to": "m.py@b5"}): {
+            "question": "placement",
+            "anchor": "x = 1",
+        },
+    }
+    returned = [
+        {"address": "m.py@b1", "instruction": "clean", "reason": "r"},
+        {"address": "m.py@b1", "to": "m.py@b5", "instruction": "agree", "reason": "r"},
+    ]
+    got, problems = answers_of("b", sent, returned, lambda a: "not sent", tmp_path, {})
+    assert problems == []
+    assert got["m.py@b1"].name == "clean"
+    assert got["m.py@b1 -> m.py@b5"].name == "agree"
