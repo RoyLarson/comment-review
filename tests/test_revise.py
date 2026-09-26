@@ -246,7 +246,7 @@ class TestDocketOf:
         with pytest.raises(CannotTranscribe) as raised:
             docket_of(copy, root)
         # Both ends of the move report it: a move is refused whole, so
-        # `pair_moves` carries the origin's reasons to the destination.
+        # `desk.evaluate.move.hold_ends` refuses both ends with every reason.
         at_the_place = [
             why
             for why in raised.value.reasons

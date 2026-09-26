@@ -124,9 +124,7 @@ def chief_copy_of(
         if place.text is None:
             continue
         mark = chief_mark(place)
-        placed = by_path.setdefault(cue_of(mark.address).path, [])
-        if mark not in placed:
-            placed.append(mark)
+        by_path.setdefault(cue_of(mark.address).path, []).append(mark)
 
     out = []
     for sheet in sheets:

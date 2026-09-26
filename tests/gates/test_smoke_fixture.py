@@ -22,6 +22,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import smoke_fixture  # noqa: E402
 from smoke_fixture import write_second_plant as smoke_second_plant  # noqa: E402
 
+from comment_review.desk.answers.answer import Question  # noqa: E402
 from comment_review.desk.answers.table import ANSWERS as ANSWER_ROWS  # noqa: E402
 from comment_review.desk.dispositions.disposition import ORIGINAL  # noqa: E402
 from comment_review.desk.dispositions.table import (  # noqa: E402
@@ -273,8 +274,7 @@ class TestEveryRowOfTheThreeTablesIsPlanted(unittest.TestCase):
         # The `clean`s `write_answers` fills in are not in `ANSWERS` itself.
         planted.add(("composition", "clean"))
         # Placement answers require moves; the smoke fixture tests single-place edits.
-        from comment_review.desk.answers.answer import Question
-
+        # Removed by TODO/move-is-a-composite-mark.md T34.
         expected = {
             (str(q), name) for q, name in ANSWER_ROWS if q != Question.PLACEMENT
         }

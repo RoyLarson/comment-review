@@ -65,6 +65,7 @@ from typing import NamedTuple
 from comment_review.binder.page import Page
 from comment_review.desk.containers import EditCopy, MasterProof
 from comment_review.desk.dispositions.disposition import CHIEF
+from comment_review.desk.evaluate.move import UNDECIDED, Move, ruled_at_both_ends
 from comment_review.desk.evaluate.place import Place
 from comment_review.desk.evaluate.state import SETTLED, State
 from comment_review.desk.marks.table import INSTRUCTIONS
@@ -342,6 +343,46 @@ def _places_on(proof: MasterProof) -> tuple[list[Place], list[str]]:
     return places, problems
 
 
+def _moves_on(proof: MasterProof) -> tuple[list[Move], list[str]]:
+    """Every move this proof records, parsed, and every reason one would not.
+
+    A move that will not parse is named, as a place is by `_places_on`: the
+    write end cannot tell whether an unreadable move is still open, so
+    transcribing around it could set one end of a move and not the other.
+
+    Returns:
+        `(the moves, the reasons)`, the moves in the proof's own order.
+    """
+    moves: list[Move] = []
+    problems: list[str] = []
+    for i, entry in enumerate(proof.moves):
+        move, why = Move.deserialize(f"{CHIEF} move {i}", entry)
+        if move is None:
+            problems += why
+        else:
+            moves.append(move)
+    return moves, problems
+
+
+def _open_moves(moves: list[Move], places: list[Place]) -> list[str]:
+    """One reason per move whose placement is undecided at an unruled end.
+
+    A move whose placement is in `UNDECIDED` is closed only where the chief
+    has ruled both of its ends (`desk.evaluate.move.ruled_at_both_ends`,
+    `decision-log.md Process: #195` item 4). A proof can commit with one end
+    ruled and the other `UNSETTLABLE`, which `_unclosed` admits; transcribing
+    it would set the arrival at the destination while the origin keeps the
+    paragraph.
+    """
+    by_address = {place.address: place for place in places}
+    return [
+        f"{CHIEF} {move.key}: the placement of this move is {move.placement} and"
+        " the chief has not ruled both of its ends, so this proof is not closed"
+        for move in moves
+        if move.placement in UNDECIDED and not ruled_at_both_ends(move, by_address)
+    ]
+
+
 def _unclosed(places: list[Place]) -> list[str]:
     """One reason per place this proof has not finished deciding.
 
@@ -455,16 +496,19 @@ def docket_of_proof(
         `sets_nothing` instead.
 
     Raises:
-        CannotTranscribe: a place will not parse, a place is still carried
-            forward or refused, `only` names an address the proof does not
-            carry or one end of a move without the other, or a page a decided
-            place sits on cannot be read here. Nothing it reported can be
-            set, and the reasons are the report.
+        CannotTranscribe: a place or a move will not parse, a place is still
+            carried forward or refused, a move's placement is undecided and
+            the chief has not ruled both of its ends, `only` names an address
+            the proof does not carry, or a page a decided place sits on cannot
+            be read here. Nothing it reported can be set, and the reasons are
+            the report.
     """
     places, problems = _places_on(proof)
+    moves, why = _moves_on(proof)
+    problems += why
     if problems:
         raise CannotTranscribe(tuple(problems))
-    unclosed = _unclosed(places)
+    unclosed = _unclosed(places) + _open_moves(moves, places)
     if unclosed:
         raise CannotTranscribe(tuple(unclosed))
     sets_nothing: tuple[str, ...] = ()

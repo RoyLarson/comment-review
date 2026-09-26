@@ -2,6 +2,7 @@
 
 from dataclasses import replace
 
+import pytest
 from helpers import (
     a_clean,
     a_correct_citing,
@@ -29,6 +30,7 @@ from comment_review.flows.bus import (
     handle,
     turn_of,
 )
+from comment_review.flows.transcribe import CannotTranscribe, docket_of_proof
 
 BASE = "# one\n# two\n# three"
 OTHER = "# four\n# five\n# six"
@@ -1085,3 +1087,88 @@ class TestAMovesPlacementIsAskedOnce:
             "m.py@b1 -> m.py@b2",
             "not put to block-context -- this move is put to module-context",
         ) in _refusals(out)
+
+
+#: A `query` answer that puts its place to the human.
+_TO_THE_HUMAN = {
+    "claim": {
+        "shape": "human-review-necessary",
+        "attempted": "read both texts",
+        "settles": "human",
+    }
+}
+
+
+def _taken_in(*addresses):
+    """The chief's ruling at each of `addresses`, taking block-context's text."""
+    return [
+        {"address": a, "answer": "taken_in", "side": "block-context", "reason": "r"}
+        for a in addresses
+    ]
+
+
+class TestAnOpenMoveIsNotTranscribed:
+    """A move whose placement is undecided closes only when the chief has
+    ruled both of its ends (`desk.evaluate.move.ruled_at_both_ends`). The
+    write end reads the proof's moves and refuses one that is still open, so
+    the paragraph cannot land at one end while the other keeps it."""
+
+    def test_a_contested_move_ruled_at_one_end_is_refused(self, tmp_path):
+        """The origin is put to the human, so the chief can rule the
+        destination alone; the proof commits with the move contested."""
+        message, root = _a_move_two_roles_read(tmp_path)
+        _out, first = handle(message)
+        assert first is not None
+        answers = {
+            role: [
+                {**slot, "instruction": "stet", "reason": "r"}
+                if slot["question"] == "placement"
+                else {**slot, "instruction": "query", "reason": "r", **_TO_THE_HUMAN}
+                if slot["address"] == "m.py@b1"
+                else {**slot, "instruction": "clean", "reason": "r"}
+                for slot in slots
+            ]
+            for role, slots in _slots_of(first).items()
+        }
+        out, second = handle(AnswersReturned(first.proof, answers, root))
+        assert second is not None, out
+        out, closed = handle(DispositionsWritten(second.proof, _taken_in("m.py@b2")))
+        assert closed is not None, out
+        assert [m["placement"] for m in closed.proof.moves] == ["contested"]
+        with pytest.raises(CannotTranscribe) as raised:
+            docket_of_proof(closed.proof, root)
+        (why,) = raised.value.reasons
+        assert why.startswith("copy-chief m.py@b1 -> m.py@b2: "), why
+        assert "contested" in why and "not closed" in why
+
+    def _ruled_at_both_ends(self, tmp_path):
+        """A contested move whose two ends the chief rules together."""
+        message, root = _a_move_two_roles_read(tmp_path)
+        _out, first = handle(message)
+        assert first is not None
+        answers = _answered(first, _placement_or_clean("stet"))
+        out, second = handle(AnswersReturned(first.proof, answers, root))
+        assert second is not None, out
+        out, closed = handle(
+            DispositionsWritten(second.proof, _taken_in("m.py@b1", "m.py@b2"))
+        )
+        assert closed is not None, out
+        return closed.proof, root
+
+    def test_a_contested_move_ruled_at_both_ends_is_transcribed(self, tmp_path):
+        proof, root = self._ruled_at_both_ends(tmp_path)
+        assert [m["placement"] for m in proof.moves] == ["contested"]
+        (schedule,) = docket_of_proof(proof, root).docket.schedules
+        assert [(one.cue, one.text) for one in schedule.alterations] == [
+            ("b1", "# one\n# three"),
+            ("b2", ARRIVAL),
+        ]
+
+    def test_a_move_that_will_not_read_is_refused(self, tmp_path):
+        proof, root = self._ruled_at_both_ends(tmp_path)
+        broken = replace(proof, moves=({"origin": "m.py@b1"},))
+        with pytest.raises(CannotTranscribe) as raised:
+            docket_of_proof(broken, root)
+        assert any("destination" in why for why in raised.value.reasons), (
+            raised.value.reasons
+        )
