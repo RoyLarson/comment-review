@@ -439,7 +439,7 @@ def copies_over(binder: Binder, by_role: dict) -> list[dict]:
 
     ! WRITTEN IN TASK 10. `a_master_proof` builds its own synthetic binder per
     role; this seeds every role from ONE binder, which is what `collate` is
-    handed and what the drift check measures against.
+    handed.
 
     Args:
         binder: the binder every copy is seeded from.
@@ -580,7 +580,7 @@ def returned(wire: dict, where: str = "copy") -> EditCopy:
     A test builds the wire dict a role hands back -- `flows.distribute.seed`,
     then whatever the case writes into a slot -- and this is the boundary
     the fold runs it through before the per-mark checks,
-    `verify_report`, `drift_in`, `unruled` or `tally` sees it.
+    `verify_report`, `unruled` or `tally` sees it.
 
     ! IT ASSERTS THE PARSE SUCCEEDED, so a fixture that has quietly stopped
     being a well-formed copy fails HERE, naming the field, rather than as a

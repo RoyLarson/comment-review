@@ -559,48 +559,6 @@ class TestExitCodes:
         assert "read_from" in out.out
         assert not (tmp_path / "chief.json").exists()
 
-    def test_drift_refuses_the_round_and_writes_no_chief(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        """A returned `raw_text` that is not the seeded one reaches the fold as
-        a problem, so the round rolls back and nothing is written.
-
-        !! IT EXITED 5 AND WROTE THE CHIEF UNTIL THE FOLD BECAME A UNIT OF
-        WORK, on `desk.collator.drift_in`'s ruling that the copy is never
-        discarded over drift. That ruling is about the COPY; what changed is
-        that a fold now commits every place or none, so a problem found
-        before it opens refuses the round rather than riding beside it with a
-        code of its own."""
-        binder = a_real_binder_over(tmp_path / "repo", {"m.py@b1": BASE})
-        copies = copies_over(
-            binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
-        )
-        copies[0]["sheets"][0]["marks"][0]["raw_text"] = "# not what was seeded\n"
-        binder_path = tmp_path / "binder.json"
-        binder_path.write_text(json.dumps(binder.serialize()), encoding="utf-8")
-        copy_path = tmp_path / "copy.json"
-        copy_path.write_text(json.dumps(copies[0]), encoding="utf-8")
-        out_path = tmp_path / "chief.json"
-        monkeypatch.setattr(
-            "sys.argv",
-            [
-                "collate",
-                "--stage",
-                "4c",
-                "--binder",
-                str(binder_path),
-                "--out",
-                str(out_path),
-                "--edit-copy",
-                str(copy_path),
-            ],
-        )
-        code = command.main()
-        out = capsys.readouterr().out
-        assert code == command.BROKEN
-        assert "block-context m.py@b1:" in out
-        assert not out_path.exists()
-
     def test_a_short_shard_is_named_and_refuses_the_round(
         self, tmp_path, monkeypatch, capsys
     ):

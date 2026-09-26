@@ -392,9 +392,9 @@ once. `commands/collate.py` declares them and `turn` and `disposition` import th
 
 **There were three more until the fold became a Unit of Work**: `DRIFT` 5, `COVERAGE` 6 and
 `CARRIED_AND_UNRULED` 7. Each named a finding that routed back to a role without voiding the
-round, and there is no such finding left -- drift, a short shard, a place a role left unruled
-and a slot a role left unanswered are all found before the fold opens, so each is a `Refused`
-and the round rolls back.
+round, and there is no such finding left. Drift is not measured at all (`decision-log.md
+Process: #185`). A short shard, a place a role left unruled and a slot a role left unanswered
+are found before the fold opens, so each is a `Refused` and the round rolls back (`#186`).
 
 **The events print first, in address order; what was written prints after.** These lines are
 from `pwsh -NoProfile -File scripts/smoke_middle.ps1`, 2026-09-18, which exits 0 and whose

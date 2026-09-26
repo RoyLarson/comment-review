@@ -27,8 +27,8 @@ was flattened. Each cost a turn. All are named here, before the send.
 
 For a COPY: the envelope (`EditCopy.deserialize`), every place the role left
 alone or wrote unreadably (`flows.mark_errors`), and, with `--binder`, source
-verification, drift, and whether each address and each move's destination
-names a place its page carries (`desk.collator.verify_report`, `drift_in`,
+verification and whether each address and each move's destination names a
+place its page carries (`desk.collator.verify_report`,
 `flows.verify.resolution_problems` -- the fold's own). For a
 BATCH: `flows.answers.answers_of`, the call the turn makes for each role --
 every answer paired to the slot that went out at its address, and read against
@@ -46,13 +46,7 @@ import json
 import sys
 from pathlib import Path
 
-from comment_review.desk.collator import (
-    Cache,
-    Problem,
-    base_texts,
-    drift_in,
-    verify_report,
-)
+from comment_review.desk.collator import Cache, Problem, verify_report
 from comment_review.desk.containers import EditCopy
 from comment_review.desk.stages import not_admitted
 from comment_review.flows.answers import answers_of, contracts, slots_of
@@ -164,7 +158,6 @@ def _check_copy(path: str, binder_path: str | None, repo: str | None) -> int:
         texts = texts_at(copy, paths, root, {})
         for problem in (
             *verify_report(copy, texts, root, cache),
-            *drift_in(copy, base_texts(binder)),
             *resolution_problems(copy, paths, root, {}),
             *_row_problems(copy, loaded, texts, root),
         ):
@@ -262,7 +255,8 @@ def main() -> int:
     )
     ap.add_argument(
         "--binder",
-        help="the binder the copy was seeded from; adds source verification and drift",
+        help="the binder the copy was seeded from; adds source verification and"
+        " the checks each mark's row makes against the pages",
     )
     ap.add_argument(
         "--repo",

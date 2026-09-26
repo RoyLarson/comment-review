@@ -104,10 +104,6 @@ def test_collate_reads_it_as_a_ruled_mark_and_reports_only_what_it_cannot_resolv
 ):
     """The command a role's output actually meets, end to end.
 
-    ! `--binder` carries no page for `redacted_pkg:billing:rates.py@b47`, so
-    `drift_in`'s `address not in base` skip fires and nothing is compared --
-    the drift check is not what this test is about.
-
     ! THE ADDRESS NAMES ITS PAGE SINCE `mark-defects` T1. The example carried
     the bare cue `b47`, which names a place on no page and which the mark's
     parse now refuses; the seeder writes the full address, so the example

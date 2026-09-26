@@ -11,12 +11,9 @@
     verify_report()            those three, over every ruled mark of one
                                edit_copy
     Problem                    one thing wrong with one mark, named to route
-    drift_in()                 every ruled mark whose returned `raw_text`
-                               is not the one `base_texts` named for its
-                               address
     tally()                    how many of each instruction the edit_copy carries
 
-!! THREE KINDS OF CHECK, AND WHAT EACH NEEDS IS WHAT SEPARATES THEM. NAMED BY
+!! TWO KINDS OF CHECK, AND WHAT EACH NEEDS IS WHAT SEPARATES THEM. NAMED BY
 MEMBER, NOT BY FILE-ORDER RANGE -- `desk/marks/mark.py` answers everything a
 mark can be judged by on its own. One kind needs the PAGE the role read and the
 FILES it cited: `claim_verbatim_problems`, `source_problems`,
@@ -34,12 +31,9 @@ One kind needs only the report itself, and nothing outside it (`Problem`,
 `tally`) -- `decision-log.md Process: #54` put them here because they ask
 about the SET, and one mark cannot answer for the set alone. ! TWO MORE
 STOOD IN THAT GROUP UNTIL `P52`; `flows.mark_errors` answers what they did.
-A THIRD kind compares what came back against what went
-out: `drift_in`, which needs both the returned report and the base
-`base_texts` derived from the binder it was seeded from -- checking the
-SAME field of the SAME entry at two different times, what it was seeded
-with against what came back, rather than checking a claim against evidence
-(the first kind). Nothing below `verify_report` opens a file.
+Nothing here compares a returned `raw_text` with what was seeded: the middle
+does not ask whether a page changed, so there is no drift check
+(`decision-log.md Process: #62`, `#185`).
 
 !! HOW ONE ROLE'S MARKS MEET ANOTHER'S IS NOT ASKED HERE AT ALL. It was:
 `places` grouped a master proof's marks by the addresses they land on and
@@ -58,8 +52,8 @@ mark: an entry that is not an object produces one carrying `address=""`, with
 nothing in the message naming a mark at all.
 
 !! EVERY FUNCTION HERE TAKES A CONTAINER, NEVER A WIRE DICT, since 2026-08-31
--- `P42`, `decision-log.md Process: #65`. `verify_report`, `drift_in` and
-`tally` take an `EditCopy`.
+-- `P42`, `decision-log.md Process: #65`. `verify_report` and `tally` take an
+`EditCopy`.
 
 !! AND THE DOCKET IS NOT BUILT HERE, since `P55`. `docket_from` and
 `_real_pages` lived in this file and imported `Alteration`, `Schedule` and
@@ -120,12 +114,12 @@ def known_addresses(binder: Binder) -> frozenset[str]:
 def base_texts(binder: Binder) -> dict[str, str]:
     """Every address the binder carries -> the paragraph it seeded there.
 
-    The base the drift check measures against. It is the
-    binder's, never a returned mark's: `raw_text` is seeded and comes back on
-    the mark, so reading it off the mark would measure against text the party
-    being checked supplied. `docs/gates.md` holds the measured case: the
-    round-trip identity scored 699 of 699 on its first run by rebuilding each
-    file from line positions it had just read out of that file.
+    `flows.bus` hands it to the fold as each place's base. It is the binder's,
+    never a returned mark's: `raw_text` is seeded and comes back on the mark,
+    so reading it off the mark would measure against text the party being
+    checked supplied. `docs/gates.md` holds the measured case: the round-trip
+    identity scored 699 of 699 on its first run by rebuilding each file from
+    line positions it had just read out of that file.
 
     A quoted clause is not checked against it. The binder is the seed for
     what can be ruled on, not every place or file that can be, so the flow
@@ -361,9 +355,10 @@ class Problem:
     each opening with a `where`, and a caller cannot route on a sentence -- so
     the role and the address ride beside the message.
 
-    ! THERE IS NO `kind` FIELD. The three questions -- is this mark well formed,
-    did its base drift, did anyone rule here -- stay three separate lists. A
-    `kind` would only restate which list a Problem is already in.
+    ! THERE IS NO `kind` FIELD. The questions -- is this mark well formed, is
+    what it quotes and cites really there, did anyone rule here -- stay
+    separate lists. A `kind` would only restate which list a Problem is
+    already in.
 
     Attributes:
         role: the `edit_copy` this came back in -- WHO to send it back to.
@@ -425,8 +420,7 @@ def verify_report(
     which parsed every entry already -- so a malformed mark came back **twice
     with a BYTE-IDENTICAL message**, measured on an emptied `claim`:
     `m.py@b1: correct needs `claim` to carry false, true (missing false, true)`,
-    reported once by each. That is not two vocabularies for one fact, which
-    `drift_in` already forbids; it is the same sentence twice.
+    reported once by each -- the same sentence twice.
 
     ! SO THE TWO QUESTIONS THIS FUNCTION OWNS ARE THE ONLY ONES IT ANSWERS --
     is the quoted sentence really in the paragraph, does every `cite` resolve.
@@ -482,50 +476,6 @@ def verify_report(
 #: a role wrote in and got WRONG still counts as ruled, and is not a coverage gap
 #: -- survives in `tests/test_collator.py::_ruled_places`, derived from the
 #: container where the cases that assert it live.
-
-
-def drift_in(copy: EditCopy, base: dict[str, str]) -> list[Problem]:
-    """Every ruled mark whose returned `raw_text` is not the one it was handed.
-
-    ! REPORTED, NOT REFUSED. The tree can move between `seed` and the return,
-    which is an ordinary thing rather than a malformed copy -- so a whole copy
-    is never discarded over it. What a run must not do is compose over a base
-    nobody sanctioned, which `base_texts` prevents separately.
-
-    ! AN UNTOUCHED SLOT IS SKIPPED. Nobody wrote there, so nothing drifted.
-
-    ! AN ADDRESS THE BINDER DOES NOT CARRY IS NOT DRIFT EITHER. Nothing was
-    seeded there, so nothing came back changed -- and nothing refuses it,
-    `Process: #97`: an `add` cites a place the filter dropped.
-
-    Neither is a row that writes its own `raw_text`. On `add` and `move` the
-    field is the paragraph as it will read, which the role composes
-    (`Process: #175`, `#176`), so it is expected to differ from the base and
-    says nothing about whether the tree moved. Every other row still carries
-    the seeded paragraph back and is measured against it.
-
-    Args:
-        copy: one parsed edit_copy, as it came back.
-        base: `base_texts` of the binder it was seeded from.
-
-    Returns:
-        One `Problem` per drifted place, in sheet then mark order.
-    """
-    # ! AN UNTOUCHED SLOT AND AN UNREADABLE ENTRY ARE BOTH ALREADY ELSEWHERE,
-    # so this walks rulings and tests neither -- `P51`.
-    return [
-        Problem(
-            copy.role,
-            mark.address,
-            "`raw_text` is not the paragraph this place was seeded "
-            "with -- the copy came back with a different base",
-        )
-        for sheet in copy.sheets
-        for mark in sheet.marks
-        if not INSTRUCTIONS[mark.instruction].carries_raw_text
-        and mark.address in base
-        and mark.raw_text != base[mark.address]
-    ]
 
 
 def tally(copy: EditCopy) -> dict[Instruction, int]:

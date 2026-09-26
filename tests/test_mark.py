@@ -473,12 +473,9 @@ def test_the_mark_carries_the_raw_text_the_row_seeded():
 
 
 def test_a_mark_that_lost_its_raw_text_still_parses():
-    """!! AN ABSENT `raw_text` IS NOT A SHAPE PROBLEM. It is seeded, so its
-    absence is DRIFT -- a copy that did not come back with what it was handed
-    -- and `decision-log.md` D10 of the SP-1 spec rules drift REPORTED, by the
-    collator, never refused at the boundary. Refusing an absent field here
-    while a CHANGED field is only reported would be two treatments of one
-    problem."""
+    """An absent `raw_text` is not a shape problem. It is seeded, and the base
+    a mark is measured against is never this field, so the boundary has
+    nothing to refuse (`decision-log.md Process: #185`)."""
     mark, why = Mark.deserialize(
         "m.py@b1", {"address": "m.py@b1", "instruction": "clean"}
     )

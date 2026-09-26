@@ -25,7 +25,6 @@ from comment_review.desk.collator import (
     Cache,
     Problem,
     base_texts,
-    drift_in,
     verify_report,
 )
 from comment_review.desk.containers import EditCopy, MasterProof, Sheet
@@ -159,7 +158,6 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
         texts = texts_at(copy, paths, root, page_cache)
         problems += verify_report(copy, texts, root, cache)
         problems += resolution_problems(copy, paths, root, page_cache)
-        problems += drift_in(copy, bases)
     # ! `where` RATHER THAN `address`, and the two differ in one case only:
     # an entry that named no place. `where` is that entry's own address
     # wherever it has one, and the page and the entry's position where it has

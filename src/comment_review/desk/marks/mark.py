@@ -190,9 +190,10 @@ class Mark:
     It went out on every slot and `parse` dropped it, so one of the three
     seeded fields could not be written from this class's own names -- which is
     what left a dict literal in `flows/distribute.py` that a rename could not reach.
-    ! WHAT COMES BACK IS NOT THE BASE. The binder's row is; a returned
-    `raw_text` that differs from it is DRIFT, which `desk.collator.drift_in`
-    reports.
+    ! WHAT COMES BACK IS NOT THE BASE. The page's text at the place is. On a
+    row that does not write its own `raw_text` the field is carried back and
+    nothing in the desk reads it; no check compares it with what was seeded
+    (`decision-log.md Process: #185`).
 
     Attributes:
         address: `path@cue`. WHICH PLACE -- seeded, copied from the row, never
@@ -202,8 +203,7 @@ class Mark:
             the gather resolved none.
         raw_text: the paragraph as it stands -- seeded, and what a role's
             `change` is a rewrite of. ! CARRIED, NEVER TRUSTED AS THE BASE:
-            a quote is checked against the page's text at the place, and
-            drift against the binder's, through `collator.base_texts`.
+            a quote is checked against the page's text at the place.
         instruction: one of the seven, as an `Instruction` member, so
             `INSTRUCTIONS[mark.instruction]` resolves with no cast.
         claim: the surgical spec -- structured keys, per instruction. Which
@@ -317,11 +317,10 @@ class Mark:
 
         Args:
             where: how to name this mark in a message -- an address, or a position.
-            entry: one role's ruling on one place, as it came back. ! AN ABSENT
-                `raw_text` IS NOT REFUSED -- it is seeded, so its absence is drift
-                rather than a malformed shape, and `desk.collator.drift_in` is
-                what rules on it. Refusing an absent field here while a CHANGED one
-                is only reported would be two treatments of one problem.
+            entry: one role's ruling on one place, as it came back. An absent
+                `raw_text` is not refused. It is seeded, and the base a mark is
+                measured against is never this field; a row that writes its
+                own `raw_text` is held to what it wrote by that row's `reads`.
 
         Returns:
             `(Mark, [])` or `(None, [one message per broken rule])`, in the order a

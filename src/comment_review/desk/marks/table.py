@@ -184,9 +184,7 @@ class Row:
     #: True where `raw_text` is the paragraph as it will read and the role
     #: writes it, rather than the seeded paragraph as it stands --
     #: `decision-log.md Process: #175` and `#176`. `flows.fill` takes it from
-    #: the entry for these rows and from the page for every other, and
-    #: `desk.collator.drift_in` asks nothing of it here, since it is not the
-    #: base the place was seeded with.
+    #: the entry for these rows and from the page for every other.
     carries_raw_text: bool = False
     #: Derived from `touches` in `__post_init__`, below -- never set by a row
     #: literal. The default here is only what a `Row()` with no `touches`
