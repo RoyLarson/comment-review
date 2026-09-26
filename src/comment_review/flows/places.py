@@ -85,6 +85,10 @@ def places_of(
         )
         for sheet in copy.sheets:
             for mark in sheet.marks:
+                # A `clean` may carry no address, and `places` then returns
+                # none, so the mark opens no place here. That is deliberate:
+                # `flows.verify.resolution_problems` skips an empty address on
+                # the same grounds, since there is no place to resolve.
                 written = INSTRUCTIONS[mark.instruction].places(mark)
                 for address, touch in written:
                     place = at(address)
