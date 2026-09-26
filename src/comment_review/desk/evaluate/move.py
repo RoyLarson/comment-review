@@ -360,3 +360,22 @@ def hold_ends(move: Move, places: dict[str, Place], ruled: bool = False) -> None
             continue
         if end.state in SETTLED:
             end.state, end.owed, end.question = State.COMPOSED, (), None
+
+
+def ruled_at_both_ends(move: Move, places: dict[str, Place]) -> bool:
+    """Whether the chief has ruled both of a move's ends.
+
+    Until the chief's placement ruling exists, the chief rules a move's ends
+    one by one (`decision-log.md Process: #195` item 4). A move with both ends
+    ruled is closed, and nothing asks its placement again.
+
+    Args:
+        move: the move.
+        places: the fold's places, where its two ends are read.
+
+    Returns:
+        True where both ends are among `places` and each carries a
+        disposition; False otherwise.
+    """
+    ends = (places.get(move.origin), places.get(move.destination))
+    return all(end is not None and end.disposition is not None for end in ends)

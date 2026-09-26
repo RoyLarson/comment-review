@@ -699,6 +699,31 @@ class TestAMoveIsDecidedBeforeItsEnds:
         assert places["m.py@b5"].text == self.LANDED
         assert places["m.py@b1"].state in CARRIED
 
+    def test_the_chief_may_take_the_origin_in_and_recast_the_destination(self):
+        """Each end is closed by its own disposition, so the two texts need
+        not come from one side."""
+        recast = "# four\n# five\n# two, as the chief words it\n"
+        places, moves = self._places()
+        decide(places, moves)
+        moves["m.py@b1 -> m.py@b5"].answers[1] = {"b": self._placement("stet")}
+        for end in places.values():
+            end.answers[1] = {"b": _answer("clean", question=Question.COMPOSITION)}
+        places["m.py@b1"].disposition = Disposition(
+            address="m.py@b1", name="taken_in", side="a", prose="", reason="r"
+        )
+        places["m.py@b5"].disposition = Disposition(
+            address="m.py@b5",
+            name="recast",
+            side="copy-chief",
+            prose=recast,
+            reason="r",
+        )
+        decide(places, moves, turn=1)
+        assert moves["m.py@b1 -> m.py@b5"].placement is Placement.CONTESTED
+        origin, destination = places["m.py@b1"], places["m.py@b5"]
+        assert (origin.state, origin.text) == (State.STANDS, self.REMAINDER)
+        assert (destination.state, destination.text) == (State.STANDS, recast)
+
     def test_an_end_refused_on_its_own_refuses_the_other_end_of_an_open_move(self):
         places, moves = self._places()
         unreadable = _mark(

@@ -2,6 +2,8 @@
 
 from dataclasses import replace
 
+from comment_review.desk.answers.answer import Answer, Question
+from comment_review.desk.dispositions.disposition import Disposition
 from comment_review.desk.evaluate.move import Placement, moves_in
 from comment_review.desk.evaluate.place import Filed, Place
 from comment_review.desk.evaluate.state import State
@@ -310,6 +312,39 @@ def test_a_held_move_is_one_unsettlable_naming_both_ends():
     assert held[0].move == events.HeldMove(
         "a", "it belongs with five", "m.py@b1", "m.py@b5"
     )
+
+
+def test_a_contested_move_the_chief_ruled_at_both_ends_asks_no_placement():
+    """`b` stets the move in turn 1 and accepts both ends' words; the chief
+    rules each end. Until the chief's placement ruling exists, that closes the
+    move, so nothing puts its placement to the roles again."""
+    places, moves = _a_move_between(("a", "b"))
+
+    def answer(address, question, name):
+        return Answer(
+            address=address,
+            anchor="x = 1",
+            question=question,
+            name=name,
+            reason="r",
+            claim={},
+        )
+
+    moves["m.py@b1 -> m.py@b5"].answers[1] = {
+        "b": answer("m.py@b1", Question.PLACEMENT, "stet")
+    }
+    for address, place in places.items():
+        place.answers[1] = {"b": answer(address, Question.COMPOSITION, "clean")}
+        place.disposition = Disposition(
+            address=address, name="taken_in", side="a", prose="", reason="r"
+        )
+    fold = Fold(places, moves, turn=1).run()
+    assert fold.decided_moves["m.py@b1 -> m.py@b5"].placement is Placement.CONTESTED
+    assert [type(e).__name__ for e in fold.events] == [
+        "Settled",
+        "Settled",
+        "Committed",
+    ], fold.events
 
 
 def test_a_rolled_back_fold_decides_no_move():

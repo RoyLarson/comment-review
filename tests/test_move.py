@@ -6,11 +6,13 @@ that read either page, before either end's words are.
 """
 
 from comment_review.desk.answers.answer import Answer, Question
+from comment_review.desk.dispositions.disposition import Disposition
 from comment_review.desk.evaluate.move import (
     Move,
     Placement,
     moves_in,
     placement_pass,
+    ruled_at_both_ends,
 )
 from comment_review.desk.evaluate.place import Filed, Place
 from comment_review.desk.marks.mark import Instruction, Mark, Shape
@@ -90,6 +92,25 @@ def _decided(places, answers=None, turn=1) -> Move:
     if answers:
         move.answers[turn] = answers
     return placement_pass(move, places, turn)
+
+
+def _ruling(address: str) -> Disposition:
+    return Disposition(address=address, name="taken_in", side="a", prose="", reason="r")
+
+
+def test_a_move_the_chief_ruled_at_both_ends_is_ruled_at_both_ends():
+    places = _ends()
+    (move,) = moves_in(places).values()
+    places[ORIGIN].disposition = _ruling(ORIGIN)
+    places[DESTINATION].disposition = _ruling(DESTINATION)
+    assert ruled_at_both_ends(move, places)
+
+
+def test_a_move_the_chief_ruled_at_one_end_is_not():
+    places = _ends()
+    (move,) = moves_in(places).values()
+    places[DESTINATION].disposition = _ruling(DESTINATION)
+    assert not ruled_at_both_ends(move, places)
 
 
 def test_a_move_is_found_by_its_own_two_addresses():
