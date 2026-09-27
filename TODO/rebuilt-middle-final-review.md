@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 16 of 45 tasks closed
+Progress: 20 of 45 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -28,8 +28,9 @@ The rebuilt middle's final review.
       claim.to and one function is written twice (A1, A2)
 - [ ] T5 | Move who owes raw_text from flows/fill.py into the two rows that
       carry it, so check applies it to a hand-written copy (A3)
-- [ ] T6 | Fix a taken_in naming copy-chief: disposition exits on a KeyError;
-      the row should say which sides it admits (A4)
+- [x] T6 | a taken_in naming copy-chief is refused by name, not a KeyError | 2a5e2730cee1049f22ecf0bc8f2e243c204afb98 | Fix
+      a taken_in naming copy-chief: disposition exits on a KeyError; the row
+      should say which sides it admits (A4)
 - [-] T7 | Place.partner is gone; an end is no longer carried forward by its partner (Process 195) | 0e15fbb1f2f4e3dedf85cde8a26e7a611eecee0c | Fix
       an end carried forward by its partner: it is sent a slot whose answers are
       stored and ignored (B2)
@@ -40,8 +41,9 @@ The rebuilt middle's final review.
       what two moves onto one place are; Place.partner holds one address so the
       first origin goes unpaired (B4)
         > 2026-09-26 Process 195: the move is one aggregate; composite TODO T27
-- [ ] T10 | Fix collate writing composed and contested text to the chief's copy
-      and printing it as resolved (C1)
+- [x] T10 | the chief copy holds settled places only; composed text stays on the proof | 2a5e2730cee1049f22ecf0bc8f2e243c204afb98 | Fix
+      collate writing composed and contested text to the chief's copy and
+      printing it as resolved (C1)
 - [x] T11 | flows/transcribe.py docket_of_proof and proof --proof read the closed proof's decided places (Process 184); dockets byte-identical to --copy on the smoke | 8f6d0fd3 | Make
       docket_of read the proof's decided places, as the design says, not re-fold
       the chief's marks (C2)
@@ -62,8 +64,9 @@ The rebuilt middle's final review.
 - [ ] T18 | Correct docstrings that describe the old design as live:
       master_proof_of, mark.parse, Revisit.unreadable (F1)
         > 2026-09-25 Revisit.unreadable went with T43; the rest of F1 stands
-- [ ] T19 | Correct disposition --help: it says taken-in and the parse accepts
-      taken_in only (G1)
+- [x] T19 | disposition docstring and help say taken_in | 2a5e2730cee1049f22ecf0bc8f2e243c204afb98 | Correct
+      disposition --help: it says taken-in and the parse accepts taken_in only
+      (G1)
 - [ ] T20 | Correct the advisory heading in commands/collate.py so it names no
       row (A5)
 - [ ] T21 | Note what the tables gate does not catch: single quotes, instruction
@@ -104,8 +107,9 @@ The rebuilt middle's final review.
       rereads went (G3)
 - [ ] T38 | Delete the-turn.md's 'a run cannot spin'; no code holds a cap, so
       nothing can check it (G4)
-- [ ] T39 | Publish raw_text in the mark's contract for add and move; check
-      --contract omits it (G5)
+- [x] T39 | check --contract names raw_text and the rows that write it | 2a5e2730cee1049f22ecf0bc8f2e243c204afb98 | Publish
+      raw_text in the mark's contract for add and move; check --contract omits
+      it (G5)
 - [ ] T40 | Measure a place the binder does not hold: an add or move there
       passes collate and is first refused at proof (H2)
 - [x] T41 | the smoke's main line runs a second turn; store.py plants a contested move its mover withdraws, the sentence landing once | baed3d73 | Add
