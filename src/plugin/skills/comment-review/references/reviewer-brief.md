@@ -27,8 +27,7 @@ which is where every boundary defect this system has paid for came from.
 
 You **report** your findings per your editorial role's remit.
 You have been handed a vocabulary -- the words this system uses to work on code
-documentation and comments. It includes the EDIT MARKS, which are what this pass
-produces and the only thing it produces.
+documentation and comments. It includes the MARKS, which are what this pass produces.
 
 ## Two lists
 
