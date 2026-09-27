@@ -483,3 +483,9 @@ class TestTheGateSeesIt:
         )
         assert code == collate_command.OK, out
         assert [m.change for m in entries_of(the_chief(tmp_path))] == [TWO]
+
+
+def test_the_help_names_the_answer_the_parse_accepts():
+    import comment_review.commands.disposition as disposition
+
+    assert "taken-in" not in (disposition.__doc__ or "")

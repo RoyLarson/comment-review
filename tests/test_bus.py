@@ -84,13 +84,62 @@ def test_a_committed_fold_carries_its_places_on_the_proof(tmp_path):
         assert place.serialize() == entry
 
 
-def test_the_chief_copy_holds_one_mark_at_the_settled_place(tmp_path):
+def test_the_proof_holds_the_composed_places_text_the_chief_copy_does_not(tmp_path):
+    """`m.py@b1` is `composed`, not settled -- block-context proposes
+    `CORRECTED` and function-context, having only cleaned it, is still owed a
+    say (`decision-log.md Process: #184`) -- so the chief's copy carries no
+    mark there; its text is the closed proof's.
+
+    SUPERSEDES `test_the_chief_copy_holds_one_mark_at_the_settled_place`,
+    which asserted this composed place's mark on the chief's copy -- true
+    before T10 filtered `chief_copy_of` to `SETTLED` places, and this
+    place's own state was never one of them."""
     _out, result = handle(_message(tmp_path, TWO_ROLES))
     assert result is not None
     assert result.chief is not None
     marks = [mark for sheet in result.chief.sheets for mark in sheet.marks]
-    assert [mark.address for mark in marks] == ["m.py@b1"]
-    assert marks[0].change == CORRECTED
+    assert marks == []
+    place = next(p for p in result.proof.places if p["address"] == "m.py@b1")
+    assert place["state"] == "composed"
+    assert place["text"] == CORRECTED
+
+
+COMPOSE_ROLES = {
+    "block-context": {
+        "m.py@b1": a_correct_setting("m.py@b1", "one", "# ONE\n# two\n# three"),
+        "m.py@b2": a_clean("m.py@b2"),
+    },
+    "function-context": {
+        "m.py@b1": a_correct_setting("m.py@b1", "three", "# one\n# two\n# THREE"),
+        "m.py@b2": a_clean("m.py@b2"),
+    },
+}
+COMPOSED = "# ONE\n# two\n# THREE"
+
+
+def test_a_composed_place_carries_no_mark_on_the_chief_copy(tmp_path):
+    """`decision-log.md Process: #184`: a composed place's working text is the
+    closed proof's, not the chief's copy's -- the two roles here correct
+    different sentences of the same paragraph, compose to one text, and are
+    both still owed a say on it, so the place is `composed` rather than
+    settled."""
+    out, result = handle(_message(tmp_path, COMPOSE_ROLES))
+    assert result is not None
+    assert (
+        events.CarriedForward(
+            "m.py@b1",
+            State.COMPOSED,
+            Question.COMPOSITION,
+            ("block-context", "function-context"),
+        )
+        in out
+    )
+    assert result.chief is not None
+    marks = [mark for sheet in result.chief.sheets for mark in sheet.marks]
+    assert [mark.address for mark in marks] == []
+    place = next(p for p in result.proof.places if p["address"] == "m.py@b1")
+    assert place["state"] == "composed"
+    assert place["text"] == COMPOSED
 
 
 def test_a_copy_from_another_tree_rolls_the_fold_back(tmp_path):

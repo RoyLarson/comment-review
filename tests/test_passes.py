@@ -550,6 +550,16 @@ def test_a_disposition_on_an_unsettlable_place_is_refused():
     assert got.state is State.REFUSED and "unsettlable" in got.reasons[0]
 
 
+def test_a_taken_in_naming_the_chief_is_refused_by_name():
+    place = _contested()
+    place.disposition = Disposition(
+        address="m.py@b1", name="taken_in", side="copy-chief", prose="", reason="r"
+    )
+    got = dispositions_pass(place)
+    assert got.state is State.REFUSED
+    assert "the chief's own prose is a recast" in got.reasons[0]
+
+
 def test_decide_runs_the_passes_in_order():
     place = _contested()
     place.answers[1] = {"a": _answer("hold"), "b": _answer("hold")}

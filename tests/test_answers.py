@@ -222,6 +222,15 @@ def test_the_contracts_are_the_tables_own_sets():
     )
 
 
+def test_the_mark_contract_names_who_writes_raw_text():
+    """A role following the contract writes an add's and a move's raw_text;
+    the parse refuses either without it (`decision-log.md Process: #175`,
+    `#176`)."""
+    got = contracts()["stage_4c_mark"]["raw_text"]
+    assert got["owed_by"] == ["add", "move"]
+    assert "as it will read" in got["is"]
+
+
 def test_the_contract_names_every_claim_key_the_parse_reads():
     """The keys, and the closed set `shape` takes, published where the role
     that must write them reads. The old contract carried both, off the mark's
