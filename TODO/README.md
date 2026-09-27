@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (114)
+### open  (115)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -296,6 +296,7 @@ that changed a published name or rule:
 | [prove-unchanged-line-endings-follow-a-sibling](prove-unchanged-line-endings-follow-a-sibling.md) | backend | -- | 0/2 | On a checkout with core.autocrlf=true, git writes a checked-out text file with CRLF while its blob stays LF, and a file git never rewrote can still be LF. prove_unchanged compares an edited file's line endings with one untouched sibling, so a CRLF file whose sibling is a one-line LF __init__.py FAILs though the write kept every ending and the AST comparison passes. The check should hold the file to its own pre-edit endings. |
 | [rebuilt-middle-final-review](rebuilt-middle-final-review.md) | backend | -- | 16/45 | Every finding of the final review of the rebuilt middle, Broken first. The three Broken ones hold the branch from merging out. |
 | [human-questions-before-the-fold](human-questions-before-the-fold.md) | backend | -- | 1/5 | A human question is asked before the fold |
+| [exit-codes-are-an-enum](exit-codes-are-an-enum.md) | backend | -- | 0/5 | Exit codes are written in thirteen places |
 
 ### in-progress  (18)
 
