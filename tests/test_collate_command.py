@@ -1064,6 +1064,22 @@ class TestAHumanQuestion:
         assert f"{human}: not TOML" in out
         assert not (tmp_path / "chief.json").exists()
 
+    def test_a_human_file_that_is_missing_is_unreadable_and_named_once(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        code, out = run(
+            tmp_path,
+            self.ASKED,
+            monkeypatch,
+            capsys,
+            "--human",
+            str(tmp_path / "missing.toml"),
+            with_stderr=True,
+        )
+        assert code == command.UNREADABLE, out
+        assert out.count("missing.toml") == 1, out
+        assert not (tmp_path / "chief.json").exists()
+
 
 def test_a_human_question_prints_what_to_do_and_exits_asks_the_human():
     from comment_review.commands.collate import (

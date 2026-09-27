@@ -92,7 +92,8 @@ def _human_answers(path: str | None) -> tuple[tuple[HumanAnswer, ...], list[str]
     try:
         text = Path(path).read_text(encoding="utf-8")
     except OSError as exc:
-        return (), [f"{path}: {exc}"]
+        # An OSError's own string names the file it could not open.
+        return (), [str(exc)]
     answers, problems = read_answers(text, path)
     if problems:
         return (), problems

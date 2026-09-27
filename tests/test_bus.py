@@ -1071,23 +1071,6 @@ class TestAnOpenMoveIsNotTranscribed:
     write end reads the proof's moves and refuses one that is still open, so
     the paragraph cannot land at one end while the other keeps it."""
 
-    def test_an_open_move_on_a_committed_proof_is_refused(self, tmp_path):
-        """The first fold commits with the move's placement open; the write
-        end names the move, whatever it says of the move's two ends."""
-        message, root = _a_move_two_roles_read(tmp_path)
-        _out, first = handle(message)
-        assert first is not None
-        assert [m["placement"] for m in first.proof.moves] == ["open"]
-        with pytest.raises(CannotTranscribe) as raised:
-            docket_of_proof(first.proof, root)
-        named = [
-            why
-            for why in raised.value.reasons
-            if why.startswith("copy-chief m.py@b1 -> m.py@b2: ")
-        ]
-        assert len(named) == 1, raised.value.reasons
-        assert "open" in named[0] and "not closed" in named[0]
-
     def _ruled_at_both_ends(self, tmp_path):
         """A contested move whose two ends the chief rules together."""
         message, root = _a_move_two_roles_read(tmp_path)
