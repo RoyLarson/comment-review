@@ -1210,7 +1210,9 @@ class TestAHumanQuestionIsAskedBeforeTheFold:
     def test_a_human_answer_in_a_turn_rolls_the_turn_back_naming_its_move(
         self, tmp_path
     ):
-        """Review Focus 1 (the placement half)."""
+        """Review Focus 1 (the placement half). The same role also puts a
+        human question at a composition slot, so each is named under its own
+        key -- the move's key and the place's address."""
         message, root = _a_move_two_roles_read(tmp_path)
         _out, first = handle(message)
         assert first is not None and first.batch is not None
@@ -1221,7 +1223,7 @@ class TestAHumanQuestionIsAskedBeforeTheFold:
         }
 
         def answer_for(slot):
-            if slot["question"] == "placement":
+            if slot["question"] == "placement" or slot["address"] == "m.py@b2":
                 return {
                     **slot,
                     "instruction": "query",
@@ -1237,7 +1239,8 @@ class TestAHumanQuestionIsAskedBeforeTheFold:
         assert result is None
         asks = [e for e in out if isinstance(e, events.AsksTheHuman)]
         assert [(e.role, e.at) for e in asks] == [
-            ("module-context", "m.py@b1 -> m.py@b2")
+            ("module-context", "m.py@b1 -> m.py@b2"),
+            ("module-context", "m.py@b2"),
         ]
 
     def test_a_human_query_beside_a_refusal_reports_both(self, tmp_path):
