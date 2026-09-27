@@ -122,4 +122,4 @@ that nothing the signature cannot express is missing from the prose.**
 
 ## Return
 
-Report as the brief specifies.
+Your edit copy, every slot ruled, with `check` exiting 0 or 5.

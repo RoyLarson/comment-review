@@ -126,5 +126,5 @@ you can certify.
 
 ## Return
 
-Report as the brief specifies. Where a paragraph is outside your role, that is `query` with the
-reason stated, never a word of your own.
+Your edit copy, every slot ruled, with `check` exiting 0 or 5. A paragraph outside your role
+takes a `query` of shape `outside-my-role`, with the reason.

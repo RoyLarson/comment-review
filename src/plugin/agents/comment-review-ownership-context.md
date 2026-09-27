@@ -107,4 +107,4 @@ sentence, not `clean`.
 
 ## Return
 
-Report as the brief specifies.
+Your edit copy, every slot ruled, with `check` exiting 0 or 5.

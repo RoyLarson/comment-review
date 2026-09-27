@@ -114,4 +114,4 @@ sentence is `correct`, the true one is `clean`. Two sentences, two instructions.
 
 ## Return
 
-Report as the brief specifies.
+Your edit copy, every slot ruled, with `check` exiting 0 or 5.

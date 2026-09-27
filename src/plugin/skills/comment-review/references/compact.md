@@ -63,6 +63,8 @@ python <script> mark --edit-copy <copy> --address <address> --instruction query 
   --settles "<the answer that would settle it>" --reason "<the question>" --cite <path>:<line>
 ```
 
+A clause you find false is a finding for the author too; ask it the same way.
+
 `check` then exits 5, which tells you your part is done; the task agent asks the author and
 hands you the answer to finish the slot.
 
