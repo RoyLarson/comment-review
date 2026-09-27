@@ -236,10 +236,8 @@ Each ruling is one of two answers:
 | `recast` | you write the paragraph yourself | `prose`: your paragraph, as raw text |
 
 A `correct` outranks any number of `clean`s. Where two placements name different destinations,
-`ownership-context`'s governs. Before each `recast`, and over each `taken_in` text, run the
-residue check in [`references/residue-check.md`](references/residue-check.md) on the whole
-paragraph. Verify every clause you keep: each path it cites is tracked, each name exists, and
-each count re-derives.
+`ownership-context`'s governs. Verify every clause you keep: each path it cites is tracked,
+each name exists, and each count re-derives.
 
 Write the rulings to `<run-dir>/dispositions.json` as a list of
 `{"address", "answer", "side", "reason", "prose"}`, with a `reason` on each, then close the
@@ -271,7 +269,7 @@ kind = "editorial"
 reads = "revise:4"
 cap = <cap>
 series = ["b", "c"]
-admits = ["patch", "drop", "add", "clean"]
+admits = ["patch", "drop", "add", "clean", "query"]
   [[stage.dispatch]]
   role = "block-context"
 ```
@@ -352,8 +350,8 @@ A `query` shaped `human-review-necessary` is a question for the author, which yo
 stage 5. Two marks on the same sentence in different files are one finding; rule them
 together.
 
-**The condenser** returns its copy with each over-cap paragraph patched shorter, or marked
-`clean` with what holds it at length.
+**The condenser** returns its edit copy, checked, each over-cap paragraph patched shorter,
+marked `clean` with what holds it at length, or holding a question for the author.
 
 **The proofreader** returns each page as done or with the sections to bring to the author,
 and lists separately every defect that predates this run.
