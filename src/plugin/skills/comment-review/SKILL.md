@@ -25,7 +25,7 @@ take it from the absolute path you were given. Every command runs through
 `<skill>/scripts/comment-review.py`, and `--help` after a command's name gives its flags.
 Give each run its own `<run-dir>`, and write every file with the command's `--out` flag.
 
-**Arguments.** `cap` is the most lines one comment paragraph may hold; use the number given,
+**What you are given.** `cap` is the most lines one comment paragraph may hold; use the number given,
 or the one the repo publishes, and when neither exists the run has no cap. `target` is a path
 that sets the scope in place of the diff. `style` is the style sheet from an earlier run.
 
@@ -42,6 +42,28 @@ that sets the scope in place of the diff. `style` is the style sheet from an ear
 | 7a | set and present | `proof`, then you | the proof pages and the proposal in front of the author |
 | 7b | write | the author, then you | the accepted text in the working tree, its code proved unchanged |
 | 8 | review | the proofreader | a reading of the finished pages |
+
+## What passes between the stages
+
+Each stage hands the next one of these, and the commands read and write them by name:
+
+| structure | what it holds | made by | read by |
+|---|---|---|---|
+| **binder** | every page in scope; each paragraph with its address, anchor, lines and text | `gather` | `topology`, `distribute`, `check`, `collate`, `addresser` |
+| **topology** | each stage's roles and the pages each dispatch covers | `topology` | `distribute`, `collate` |
+| **edit copy** | one dispatch's slots, one per place it was dealt, each holding that role's mark | `distribute`, filled with `mark` | `check`, `collate` |
+| **master proof** | every place: its base text, the marks on it, and whether it is settled or carried forward | `collate`, `turn`, `disposition` | `turn`, `disposition`, `proof` |
+| **batch** | one slot per carried-forward place, for each role it is put to | `collate`, `turn` | the roles, in a turn |
+| **dispositions** | your ruling at each carried-forward place | you | `disposition` |
+| **chief's copy** | one mark per resolved place | `collate`, `disposition` | you, when you present |
+| **docket** | every alteration to be set, as one schedule per page | `proof`, from a closed proof | the compositor |
+| **schedule** | one page's alterations, with the page's path and the sha it was read at | the docket | the compositor |
+| **alteration** | one place and what is set there: its replacement text, or its deletion | the schedule | the compositor |
+| **proof pages** | the pages as set, each beside the original it was set from | `proof` | the author, stage 6, stage 7b |
+
+`proof` transcribes the closed proof into a docket, and the compositor sets each schedule's
+alterations onto a copy of its page. `proof --to-docket <file>` writes the docket out without
+setting it.
 
 ## The goals of the steps
 
@@ -110,7 +132,7 @@ python <skill>/scripts/comment-review.py topology --build --binder <run-dir>/bin
 ```
 
 `--build` verifies what it writes and exits 0 when the topology fits the binder. On exit 1 it
-prints one misfit per line; change the `--stage` argument and build again.
+prints one misfit per line; change the `--stage` value and build again.
 
 To look up a place, ask the addresser; each series is counted separately:
 
