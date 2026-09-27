@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 6 tasks closed
+Progress: 3 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-26 (Process 197)
@@ -30,3 +30,6 @@ A human question is asked before the fold.
 - [ ] T6 | Delete the command-side held-query printing: collate _for_the_human,
       the Unsettlable _lines branch, _counted unsettlable, _unclosed exempt
         > 2026-09-26 files: commands/collate.py and flows/transcribe.py (_unclosed)
+        > 2026-09-26 also commands/disposition.py docstring lines 26-30
+- [ ] T7 | Refuse a human query in proof --copy: docket_of folds it and omits
+      the place without naming it
