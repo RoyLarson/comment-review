@@ -1,152 +1,72 @@
-# The COMPACT pass -- stage 6
+# Stage 6 -- compact
 
-Loaded by the task agent **after every paragraph is edited (stage 5) and BEFORE the author is
-asked to approve anything (stage 7)**. Never by a reviewer.
+You are the condenser. Every paragraph you are dealt is already true, in the right place and
+current -- each `correct` and `move` it needed landed at stage 5. Your work is to bring each one within the cap while it keeps every true, necessary
+and checkable sentence.
 
-!! **Nothing is on disk when this runs.** You are condensing PROPOSED text, not a file. That
-is the point of the slot: the author must rule on the text that will actually be written, and
-compacting after their approval would hand them one comment and write another.
+## What you are handed
 
-## Why this is a separate pass over the whole tree
+- **Your edit copy.** It holds one slot for each comment paragraph whose text runs over the
+  cap -- `b` places, the comment runs between lines of code, and `c` places, the comments
+  beside a line. Each slot carries the paragraph's address, its anchor and its text as the
+  proof pages set it.
+- **The original.** The file in the repo root is the paragraph as it stood when the run
+  began.
+- **The cap**, in lines, and the work markers the repo exempts from it.
+- **The style sheet.**
+- **The paths:** your copy, the binder of the proof pages, the proof pages root, and the
+  helper script.
 
-By the end of stage 5 every paragraph is **true, in the right place, and stripped of history**.
-Only then is it safe to ask how short it can be, and only then can the question be answered
-correctly -- because **compaction decisions depend on the final state of the tree, not of one
-paragraph**:
+## How you condense a paragraph
 
-- a `move` relocates prose *between* paragraphs, so a paragraph condensed before the move lands is
-  condensed against a picture that is about to change;
-- naming an **owner** collapses N restatements into one plus N pointers -- the restatements only
-  become compactable once the owner exists;
-- a paragraph that looks over-length often shrinks to nothing once the duplicated claim it carries
-  is corrected somewhere else.
+1. Read the paragraph as it stands on the proof pages, and the same place in the original.
+2. Ask first whether it is long because it states one instance of a rule it could state
+   once, generally. When it is, mark it `clean` and give that as the reason; the next review
+   round rewrites it.
+3. Otherwise remove what repeats: a hedge, an aside, a line that restates the line below it.
+4. Count the result. A work marker line (`TODO`, `FIXME`, `HACK`, `XXX`, `BUG`, or the markers
+   the repo exempts) is free; each line after it counts.
 
-Condensing per-paragraph during APPLY gets all three wrong, and each error looks like a
-successful edit.
+A comment run directly above a declaration, in a language that documents a declaration by
+the comment above it (Go, Ruby), is that declaration's documentation. Mark it `clean` with
+that reason.
 
-! **If any paragraph is still marked incorrect or misplaced, stage 6 has not started yet.** Finish
-stage 5.
+## How you record it
 
-!! **An ESCALATED `query` does not block this pass, and must not.** Its destination is the
-author, who is first reached at 7a -- *after* this stage. Read as "unresolved blocks stage 6", a
-capped run holding one externally-unsettleable query could never legally reach approval.
-Measured on a real run: two such queries, both settleable only inside a dependency outside the
-checkout. **Compact the paragraphs whose instructions are closed; carry an escalated query's paragraph at
-its full length and say why.**
+File one ruling per slot with `mark`. `<script>` is the helper path your packet gives. Write
+each multi-line value to a file with your file-write tool and pass it as `@path`:
 
-## ! This pass exists only to apply a CAP
+```bash
+python <script> mark --edit-copy <copy> --address <address> --instruction patch \
+  --from @<file holding the paragraph> --to @<file holding the condensed text> --reason "<why>"
+```
 
-**If no cap applies, this pass does not run at all.** Stage 5 already removed everything
-false, historical and unnecessary, so what stands is true, current, local and load-bearing.
-Absent a cap, "long" is not a defect and there is nothing here to do -- go straight to
-approval.
+When every slot holds a ruling, check the copy; exit 0 means it is ready:
 
-**Only shorten prose that is already correct.** This pass may not change a claim, relocate a
-paragraph, drop a constraint, or resolve anything stage 5 left open. If compacting makes you want
-to do any of those, APPLY was not finished -- go back, or file it for the next run.
+```bash
+python <script> check --edit-copy <copy> --binder <binder> --repo <proof pages root>
+```
 
-!! **ASK FIRST WHETHER THE PARAGRAPH IS LONG BECAUSE IT IS SPECIFIC.** A paragraph stating ONE INSTANCE
-of a rule it could state generally is over-length for a reason cutting cannot reach.
-**Generalising costs nothing; cutting an over-specified paragraph keeps the defect and loses
-evidence.**
+| the paragraph | your instruction |
+|---|---|
+| condensed within the cap | `patch`, with `--from` the whole paragraph and `--to` the condensed text, each as `@path` |
+| a sentence that the rest already states | `drop`, with the sentence |
+| held at length by what it must keep | `clean`, with a reason naming what holds it there |
+| held at length by a question only the author can answer | `query`, below |
 
-! **Report it rather than cutting it.** Altitude is a claim about what the sentence SAYS, which
-is stage 5's and the reviewers', not this pass's -- so an over-specified paragraph is one you hand
-back, the same as a paragraph you cannot bring under the cap.
+A paragraph that stays over the cap because every sentence is evidence is usually a rule the
+code has no single owner for. Ask the author, naming the owner you can see:
 
-! Measured: an instance-level sentence plus an imported argument ran to EIGHT lines
-where the rule-level version ran to six with **nothing cut** -- the rule, four named functions,
-both test files, the exception, its cause, its failure condition and a document pointer all
-survived. Handed the eight-line version, this pass would have been asked to cut from a paragraph
-where every remaining sentence was true and evidenced, which is the trade this file forbids
-below. It would have reported the paragraph at length, correctly, **and been reporting the wrong
-problem.**
+```bash
+python <script> mark --edit-copy <copy> --address <address> --instruction query \
+  --shape human-review-necessary --attempted "<what you tried>" \
+  --settles "<the answer that would settle it>" --reason "<the question>" --cite <path>:<line>
+```
 
-## Per paragraph
+`check` then exits 5, which tells you your part is done; the task agent asks the author and
+hands you the answer to finish the slot.
 
-1. **Take the ORIGINAL prose from the PRE-EDIT REF** 1.1 recorded --
-   `git show <pre-edit-ref>:<path>`. Nothing has been written yet at this stage, so it is also
-   what is on disk; read the blob rather than your scratch copy.
-   You are checking against what the paragraph has ever said, not against your own last edit.
-   ! The blob is authoritative and cannot be lost to an interruption; keep the scratch copy
-   only as a convenience.
-2. **Cut, do not re-author.** For a paragraph one or two lines over, remove the single
-   least-checkable line -- a hedge, an aside, a line restating the line below it. A paragraph
-   that is one line over gets re-authored into prose that was already true, current and
-   on-subject.
-   ! The four refusals still bind, and the least-checkable line is often a paragraph's only
-   refusal or the evidence for its surviving claim. If so it is not the line to cut, and the
-   paragraph reports at length.
-3. **Re-run the residue check** on the condensed text against that same original: is anything
-   in it **true & necessary & checkable** that the condensed version does not contain -- and
-   does the condensed version still pass the four refusals (not the only record of its fact;
-   not what makes a surviving claim falsifiable; not a positional refusal aimed at a future
-   editor; and what remains is still a proposition)?
-4. **If it fails, put it back and try again.**
+## What you return
 
-! **Checking against your own EDITED text instead of the original defeats the check.** The
-edit already dropped things legitimately; checking against it lets a second, illegitimate drop
-through unnoticed. **The original is the baseline, twice.**
-
-**The paragraph's place decides whether this pass may touch it at all.** The gather gives each
-paragraph its address, its anchor, its start and end line and its text, and no kind; the
-address's series is what tells a comment from documentation:
-
-| the place | governed by | what this pass may do |
-| --- | --- | --- |
-| `b` or `c` -- a comment run, or a trailing comment | **length** -- the cap counts lines in one comment run | cut it to the cap, except as below |
-| `a` -- a declaration's documentation, wherever the language puts it | **format** -- the convention resolved at 1.3 | **nothing.** Long is not a violation |
-
-! **A work marker LINE is free of the cap** -- `TODO`, `FIXME`, `HACK`, `XXX`, `BUG`, or
-whatever the run context names. Its CONTINUATION lines are charged, so six lines plus a
-`TODO:` is six. Charge the marker line and the quickest route to green is deleting a pointer to
-filed work: quick to do and expensive to have done, because the work is still needed and
-nothing names it any more.
-
-**A cap never applies to a docstring.** Without the place in front of you, a 107-line numpydoc
-docstring and a 7-line `#` run look like the same over-length problem, and cutting the first to
-six destroys documentation that was never in violation.
-
-**A comment run at a `b` place whose anchor is a declaration may be that declaration's
-documentation** in a language that attaches documentation by position, such as Go or Ruby,
-where the gather cannot always separate a doc run from an ordinary one. Do not infer which from
-the text, and do not cut it: carry it at length and say why. Measured: a three-line Go export
-doc counted as over a cap of two.
-
-**This is the input contract, and it is deliberately narrow:** the paragraph's address and anchor, the original paragraph, the
-edited text, the cap, the style sheet. Not the reasoning that produced the edit. An agent that
-never saw the argument cannot keep a sentence because it remembers writing it -- which is what
-makes this pass safe. ! **It IS a separate subagent --
-`comment-review:comment-review-compact` -- not an optional handoff.** The
-contract only buys anything if the reader is not the writer.
-
-## When a paragraph cannot come under the cap
-
-**STOP and report it** -- the paragraph, its true length, and what holds it there. Do not resolve
-the conflict by cutting.
-
-! **A paragraph that cannot be made both correct and short is a finding about the CODE** --
-usually a rule with no owning function, so every site performing part of it re-explains the
-whole. Trimming the comment treats the symptom. Report it, name the owner if you can see one,
-and leave it.
-
-! **Never cut evidence to bring a paragraph under the cap.** Between a comment that is over the cap and one
-that is in-cap and unfalsifiable, **the over-cap one is correct and the in-cap one is a defect
-wearing a passing grade.**
-
-## Rails
-
-Every rail in `write.md` still applies. One is specific to this pass:
-
-**Do not condense a paragraph into the shape of its neighbours.** Matching surrounding style is how
-a sentence survives review by resembling what is around it rather than by being needed.
-Measured: a paraphrase reached for the word its sibling functions legitimately use, so the
-wrong word read as house style and the result was wrong on two independent axes.
-
-## Report
-
-Paragraphs condensed, paragraphs left at length with the reason, and the final longest paragraph. A paragraph
-you could not condense is a finding, not a silence.
-
-**No code check here** -- that check runs at stage 7a, and no pass writes over a file under
-review. What you hand back is the text stage 7a will put in front of the author.
+Your edit copy, every slot ruled, with `check` exiting 0 or 5. The task agent folds it with
+`collate`, as it folds every edit copy, and sets the result.
