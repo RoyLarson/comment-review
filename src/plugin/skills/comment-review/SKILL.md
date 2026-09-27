@@ -27,12 +27,12 @@ Structure and fact first, then truth, then fit, then the page.
 | 4 | **MARK** | 4 reviewers | one filled `edit_copy` per role, checked. Read-only, nothing under the repo written |
 | 5 | **COLLATE and DISPOSITION** | `collate`, then the task agent as **copy chief** | the copies folded; what they agreed on stands, what they did not is ruled at max turns; the chief's `edit_copy` holds one mark per resolved place with its **full-length** text |
 | 6 | **COMPACT** | task agent | that text cut to the cap -- **skipped entirely if there is no cap** |
-| 7a | **APPROVAL -- present** | task agent, then `proof` and the **compositor**, then stage 8 | the final text set as a galley -- a copy of each page, nothing under the repo touched -- read by stage 8, then in front of the author with stage 8's findings and the places only the author can settle; **the run stops here** |
+| 7a | **APPROVAL -- present** | task agent, then `proof` and the **compositor**, then stage 8 | the final text set as a galley -- a copy of each page, nothing under the repo touched -- read by stage 8, then in front of the author with stage 8's findings; **the run stops here** |
 | 7b | **APPROVAL -- write** | **author**, then task agent and `proof` | the approved text set in temporary files for the author to diff and read through, byte-for-byte as approved; nothing under the repo written |
 | 8 | **REVIEW** | `comment-review-review` | the galley's pages read as a reader would read them, before the author sees the proposal |
 
-!! **THIS IS THE BASELINE SHAPE, RULED 2026-09-04: every role reads ONCE, the copies fold ONCE,
-and nothing goes back to a role except a copy the checker refused.** No revise is pulled
+**This is the baseline shape: every role reads once, the copies fold once, and nothing goes
+back to a role except a copy the checker refused or the human's answer to its query.** No revise is pulled
 between stages and no batch of disagreements is sent out for a second reading. The `turn`
 command exists for that second reading and is the next experiment, run only when you are told
 a number of turns above zero -- see stage 5. What the baseline measures is how far one read
@@ -73,9 +73,8 @@ belongs ten lines down, in another file, or out of the code altogether is payloa
 second instruction. The reason it belongs there goes in `reason`, which every mark already
 has. **Availability keys on the destination, never on the instruction.** A relocation into
 tracked code needs nothing outside it and is never withheld. A destination outside the code --
-or in a file this run never gathered -- is not carried yet (`decision-log.md Process: #173`):
-`mark` refuses it, and the role files a `human-review-necessary` query naming it instead, which
-reaches the author at 7a (`#169`).
+or in a file this run never gathered -- is not carried yet: `mark` refuses it, and the role files
+a `human-review-necessary` query naming it instead.
 
 A reviewer's instruction is only usable if it carries its payload. That contract is the
 reviewers', and [`references/reviewer-brief.md`](references/reviewer-brief.md) holds it --
@@ -97,7 +96,7 @@ destroyed the finding.
 load-bearing. Length is not one of its questions, and a run that returns long correct prose
 has succeeded.
 
-! **Measured 2026-08-17, with no second reading of the prose in the pipeline:** a run reached
+! **Measured with no second reading of the prose in the pipeline:** a run reached
 stage 8 with ruff clean, the AST PROVEN and 1103 tests green, and stage 8 returned twelve
 findings -- two of them the system replacing prose with something CHECKABLY FALSE. **That is
 the number this baseline is measured against**, and the reason stage 5 runs the residue check
@@ -235,9 +234,8 @@ rather than picking the stricter answer for everything: told UNAVAILABLE everywh
 withholds a legal `move` on the half that has a destination; told the tree everywhere, it emits
 instructions pointing at a tree that is not there.
 
-**A `move` out of the code is not carried yet, tree or no tree** (`Process: #173`): a paragraph
-that belongs outside the code reaches the author as a `human-review-necessary` query naming
-where it belongs (`#169`), never a `drop`. A `move` to a destination inside tracked code is
+**A `move` out of the code is not carried yet, tree or no tree** -- see *The seven
+instructions*. A `move` to a destination inside tracked code is
 unaffected and always available. Where the tree is absent, say so at stage 1 and again in the
 proposal, and offer the human the one-line alternative (create the tree, or name another
 destination). This matters because the matrix routes
@@ -402,8 +400,7 @@ must never see it.
 lines of code is addressed, empty ones included, because an `add` is a finding about prose that
 is MISSING and the mark needs an ADDRESS to carry it. They are ADDRESSABLE, not ACCOUNTABLE: the
 binder carries only the places holding prose unless `--include-absent` asks for the rest, and
-the collator computes coverage over what the binder carries. Re-measured 2026-08-19: the
-gather over its own command is 1,607 paragraphs, 118 of them prose.
+the collator computes coverage over what the binder carries.
 
 ! **Give the binder a path unique to THIS run.** Two concurrent reviews sharing one scratch
 filename overwrite each other between writing and reading, and nothing downstream can tell.
@@ -629,11 +626,8 @@ python <skill>/scripts/comment-review.py check --edit-copy <run-dir>/copies/<sta
   --binder <run-dir>/binder.json --repo .
 ```
 
-It names everything the fold would send back -- a slot left null, a mark that will not read, a
-claim quoting a sentence that is not in its paragraph, a cite whose line does not match, a
-`raw_text` that is not the one the slot was seeded with -- and exits 0 only when there is
-nothing. The brief tells each role to run the same command before it returns, so a copy that
-still fails here is one the role did not check.
+It names everything the fold would send back and exits with the codes in `collate`'s table
+under stage 5. Exit `5` means its only findings are human questions, and the copy is complete.
 
 !! **A COPY THE CHECK REFUSES GOES BACK TO ITS OWN ROLE WITH THE LINES IT PRINTED, never
 repaired by you.** A mark you fixed is a finding you authored. Send it back once with the
@@ -666,9 +660,11 @@ Pass one `--edit-copy` for every file `distribute` printed -- a role split three
 | exit | it means | what you do |
 |---|---|---|
 | `0` | every place the roles marked settled on its own | go on; `chief0.json` is the chief's copy |
-| `1` BROKEN | the round rolled back and **nothing was written** -- a copy that is not a copy, a role short of its shard, a place a role left unruled, a copy gathered from another tree, or a mark the fold refused | every line it printed names a role and a place; send each back to that role, which takes the mark back with `mark --withdraw --address <place>` and places its ruling again; re-check, re-run |
+| `1` BROKEN | the round rolled back and **nothing was written** -- a copy that is not a copy, a role short of its shard, a place a role left unruled, a copy gathered from another tree, or a mark the fold refused | every line it printed names a role and a place; send each back to that role, which takes the mark back with `mark --withdraw --address <place>` and places its ruling again; re-check, re-run. Ask an `asks the human` line among them as at `5` |
 | `2` UNREADABLE | a file is not what it says | fix the invocation |
-| `3` REREADS, `4` ESCALATIONS | places carried forward -- the roles did not agree | **rule at max turns**, below |
+| `3` REREADS | places or moves carried forward `3` is a composition or an `open` placement | **rule at max turns**, below |
+|`4` ESCALATIONS | `4` is a contested sentence or a `contested` placement | **rule at max turns**, below |
+| `5` ASKS_THE_HUMAN | the round rolled back on human questions alone, and **nothing was written** | ask each, below, then re-run with `--human` |
 
 **There is no partial outcome.** The fold commits every place or none, so a run that wrote
 `chief0.json` refused nothing, and a run that refused anything wrote no file at all.
@@ -709,13 +705,40 @@ carries the mark that stands.
 `contested <place>: <roles> (escalation)` where two or more marks rule on ONE sentence with
 different answers, and as `composed <place>: <roles> (composition)` where marks on different
 sentences of one paragraph compose, or where one text is on the table that a role which read
-the place has not accepted yet. A `move`'s two ends take one state, so both are carried or
-neither is. !! **A CONFLICT IS ON ONE SENTENCE. Two marks on two different sentences COMPOSE**,
-and the fold composes them and carries the composition forward for a reading.
+the place has not accepted yet. **A conflict is any overlapping changes; two marks on two different
+segments compose**, and the fold carries the composition forward for a reading.
 
-**What it sets aside:** a place any role marked `query` with the shape `human-review-necessary`.
-It is UNSETTLABLE by the roles or by you, rides on the master proof, and is put to the author at
-7a. A `query` of the other two shapes is that role abstaining from the place.
+**A `move` is one placement for its two places**, put to every role that read either page. It
+prints as `open <origin> -> <destination>: <roles> (placement)` while a role owed a say has not
+answered, and as `contested <origin> -> <destination>: <roles> (placement)` once a role answered
+`stet`. Its two ends are asked about their words in the same turn. Once every role owed a say
+agrees, the fold splits it into the mover's `drop` at the origin and `add` at the destination,
+each an ordinary place.
+
+**What it stops for: a human question.** A `query` of the shape `human-review-necessary`, in a
+copy or in a turn's answers, is asked of the human before the stage folds. A `query` of the
+other two shapes is that role abstaining from the place. For each line reading `asks the human
+<at>: <role> -- <question>`:
+
+1. **Ask it with `AskUserQuestion`.** `<at>` is a place, or a move as `<origin> ->
+   <destination>`. Show the paragraph at `<at>`, both ends for a move, and the query's
+   `attempted` from the role's copy or answers file.
+2. **Record the answer** in `<run-dir>/human.toml`, one section per question, kept for the whole
+   run:
+
+   ```toml
+   [[answer]]
+   role = "<the role the line names>"
+   at = "<the place or move the line names>"
+   question = "<the question the line names>"
+   answer = "<the human's answer>"
+   ```
+
+3. **Send the role the file's path and its `[[answer]]` sections**, with its copy, or its
+   answers file in a turn.
+4. **Run `collate` or `turn` again** with the same inputs and `--human <run-dir>/human.toml`. An
+   `answered by the human` line exits `5` until its role has replaced the query; send that role
+   its section again.
 
 ### A turn, when you are told to run turns
 
@@ -742,9 +765,9 @@ last batch out and folds what comes back:
      --proof-out <run-dir>/proof1.json --batch-out <run-dir>/batch2.json --repo .
    ```
 
-`turn` exits the codes in the table above -- it imports them from `collate` rather than
-spelling its own -- and each asks of you what it asks after `collate`, except that a place
-carried forward while a turn is left goes out in the next turn rather than to your ruling. A
+`turn` exits the codes in the table above, and each asks of you what it asks after `collate`,
+except that a place or a placement carried forward while a turn is left goes out in the next
+turn rather than to your ruling. A
 slot a role left unanswered is a `1`: the round rolls back, nothing is written, and the
 named role answers before you run it again. The next turn reads `proof1.json` and sends
 `batch2.json`; a turn that carries nothing forward writes no batch, and there is no next turn
@@ -771,15 +794,17 @@ python <skill>/scripts/comment-review.py disposition --proof <run-dir>/proof0.js
 
 `--proof` is the last proof written: `proof0.json` when no turn ran, the last turn's otherwise.
 
+**Rule both ends of a move whose placement is still `open` or `contested`.** Decide the
+placement, then rule both ends from it: the mover's side at both takes the move, and `original`
+at both keeps the paragraph where it is. Either end may instead be a `recast`, your own wording
+once the placement is decided. `disposition` refuses an end left unruled. A move already agreed
+reaches you as its `drop` and its `add`, each ruled as any other place.
+
 **`disposition` refuses a carried-forward place with no ruling, by name and with its roles,
-and writes nothing** -- rule it and run again. Otherwise it prints the places first: `stet
-<place>` for every place it closed, then one entry per unsettlable place, `unsettlable
-<place>: <role> asks the human -- <reason>`, with an indented `and ...` line for a move's drop
-or add held there. A move held at both ends is one entry, `unsettlable <origin> and
-<destination>: ...`, whose last line reads `and <role>'s move drops the paragraph at <origin>
-and adds it at <destination>, one move -- <reason>`. Then the two files it wrote: `<out>: the
-chief's copy, <n> places` and `<proof-out>: the proof closed at turn <t> -- <n> places -- <s>
-settled, <u> unsettlable, <c> carried forward`, where a close leaves the last count at 0.
+and writes nothing** -- rule it and run again. Otherwise it prints `stet <place>` for every
+place it closed, then the two files it wrote: `<out>: the chief's copy, <n> places` and
+`<proof-out>: the proof closed at turn <t> -- <n> places -- <s> settled, <u> unsettlable, <c>
+carried forward`.
 `chief.json` is the chief's `edit_copy`, one mark per resolved
 place, and it is what stages 6 and 7 read. ! `--stage` is `4` throughout: the four roles ran
 in one stage.
@@ -932,13 +957,6 @@ python <skill>/scripts/comment-review.py taken_in --original . --revise <run-dir
 
 State **raised / clean**, which places you ruled at max turns and how, and the longest paragraph
 that will remain.
-
-!! **THE UNSETTLABLE PLACES ARE THE AUTHOR'S, AND THIS IS WHERE THEY ARE ASKED.** `disposition` printed
-each one with the role that raised it and its reason; put every one to the author here, after
-everything else, as the questions they are. Nothing is proposed for them but a held move: an
-entry naming a move's drop and its add is one move, put to the author as the paragraph leaving
-its origin and arriving at its destination, with the text it carries -- the `change` of that
-place's `add` in `final.json`'s `unsettlable` list -- and approved or refused whole.
 
 Put each settled `correct` from stage 5's `for the chief` list to the author here too, with the
 words its change drops.

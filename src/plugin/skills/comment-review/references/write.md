@@ -51,9 +51,6 @@ nothing on the pages under review, and a run leaves the tree exactly as it found
    python <skill>/scripts/comment-review.py taken_in --original . --revise <run-dir>/approved
    ```
 
-**A held move the author approved is not on `chief.json`**, so `proof` cannot set it: tell the
-author it was approved and not set.
-
 ## Rails
 
 **Never change a line of code, a docstring's MEANING, or a string literal.** Correcting a
@@ -64,8 +61,8 @@ literal is REPORTED, never applied** -- hand it to the human as a code concern.
 !! **A HEREDOC is raw text, and it is the one that reaches the prose itself.** Passing
 replacement text through `<<'PY'` or any shell here-document hands it to two parsers before it
 lands: `\n` inside the new comment collapses into a real newline and breaks the sentence
-mid-token, and on Windows the redirect can write UTF-16. Measured in two independent sessions on
-2026-08-17, one of them while quoting this rail. No code check can see it -- the damage is in
+mid-token, and on Windows the redirect can write UTF-16. Measured in two independent sessions,
+one of them while quoting this rail. No code check can see it -- the damage is in
 prose and the code is unchanged. Write `approved.json` with your file-write tool, never through
 a heredoc or a shell redirect.
 

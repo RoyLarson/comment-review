@@ -42,7 +42,7 @@ Refuse a removal unless **all four** also hold. Each was measured as a cut later
 and each passes `true & necessary & checkable` cleanly.
 
 !! **WRITE AN ANSWER TO ALL FOUR, one line each, for every sentence you remove.** One answer is
-not the check. Measured 2026-08-17, on the first run to reach stage 7b: an agent wrote *"the
+not the check. Measured on the first run to reach stage 7b: an agent wrote *"the
 dropped sentences survive verbatim at :1221-1225"* -- a clean pass on the FIRST refusal -- and
 never asked the second. What it cut was the provenance that made the surviving claim
 falsifiable, which is what the second refusal is for. Both were in front of it; it answered one

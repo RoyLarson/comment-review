@@ -40,8 +40,7 @@ placements disagree, yours governs at the fold.
 1. **Is this statement specifically about THIS piece of code?**
 2. **Is this statement about any specific piece of code or documentation IN THIS PROJECT?**
 
-Roy, 2026-08-18. Both are settled by evidence, and a wrong answer to either is a defect you
-own.
+Both are settled by evidence, and a wrong answer to either is a defect.
 
 ! **What you do NOT rule on is the truth of what the sentence ASSERTS** -- the count, the
 bound, the units, the worked example. That is `block-context`'s, `function-context`'s and

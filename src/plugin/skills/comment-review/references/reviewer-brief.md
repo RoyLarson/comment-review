@@ -320,9 +320,8 @@ has no address, and no instruction reaches it. **If one is wrong, raise it as a 
 ### Code concerns
 
 A code concern is a `query` with the shape `human-review-necessary`, on the paragraph the code
-sits with, its `reason` the one line that names the problem. It rides to the author with every
-other place only the author can settle, and no instruction reaches the code. See "The subject is
-the prose, not the program" below for what belongs there.
+sits with. Its `reason` is the one line that names the problem. See "The subject is the prose,
+not the program" below for what belongs there.
 
 ### The instructions, and what each one MUST carry
 
@@ -415,7 +414,7 @@ would decide worse without it. Both axes are satisfied and the sentence is still
 ! **A number can be WRONG; an over-specified sentence can only be NARROW**, and nothing else in
 this pass measures narrowness.
 
-! Measured 2026-08-17: one run caught *"Six call sites"* and *"Four kinds"* -- countable claims,
+! Measured: one run caught *"Six call sites"* and *"Four kinds"* -- countable claims,
 which a count settles -- and missed, in the same file, a sentence describing one
 positional column by name where the rule it stands for governs every column after any insertion.
 **Generalising it lost nothing**: the rule, the four functions it names, both test files, the
@@ -443,20 +442,14 @@ unbounded as "robust"**, so the sentence refusing the claim fails the same test.
 down or another file -- both `move`, and which one goes in the payload. Say what is wrong in
 `reason`.
 
-**A destination outside the code is not carried yet** (`decision-log.md Process: #173`): `mark`
-refuses a `to` that is not a `path@cue` place. A paragraph that belongs outside the code is a
-`query` of the shape `human-review-necessary` at its origin, naming where it belongs; it reaches
-the author with the other places only the author can settle.
+**A destination outside the code is not carried yet**: `mark` refuses a `to` that is not a
+`path@cue` place. For a paragraph that belongs outside the code, or in a file this run did not
+cue, file a `query` of the shape `human-review-necessary` at its origin, naming where it belongs.
 
 !! **`to:` IS AN ADDRESS when the destination is on a page THIS RUN CUED, and it is
 RESOLVED.** Ask for it the same way an `add` does -- `--file <path> --line LINE --series a|b|c`. A
 destination naming a LINE on such a page is refused, and so is an address the binder does not
 carry.
-
-**A file the run never cued has no places, so a move into it has no address either.** The run
-cues the files the change touched, and everything else is outside this run's addresses. Until
-external documents have them (`Process: #173`), a move into such a file takes the same route as
-a destination outside the code: a `human-review-necessary` query at the origin, naming the file.
 
 **The destination may hold no prose, and that is ordinary.** A paragraph can move to a gap with
 no comment in it or a declaration with no docstring: those are places with addresses, not
@@ -480,17 +473,15 @@ constraint -- and none of those is your role's question unless your role file sa
 still required to open the code that would settle it; on every other instruction your `sources` proves
 you did. `query` is what you emit when you did and it was still not enough.
 
-!! **Three shapes reach it, and your `claim` must NAME which one -- in these exact words.** They
-are keyed on WHO RESOLVES IT, not on where the missing evidence lives. The three are findings
-rather than admissions, and they route differently: the first two are you abstaining from the
-place, the third rides to the author. Nothing downstream can tell them apart if you do not say
-which:
+**Name the shape in your `claim`.** Each shape is a finding, not an
+admission, and is keyed on who resolves the place:
 
 - **outside-my-role** -- deferred to another agent's problem.
 - **unable-to-determine** -- *"don't know why but maybe another agent figured it out."*
 - **human-review-necessary** -- *"genuinely contradictory statements and/or code and only system
-  level intent might disambiguate it."* The place is UNSETTLABLE by any role or by the chief; it
-  is put to the author after everything else has settled. A code concern takes this shape.
+  level intent might disambiguate it."* The task agent asks the human before the stage or turn
+  folds and hands you the answer -- see *Before you return: run the check*. A code concern takes
+  this shape.
 
 ! **A claim you could not settle and marked `clean` is worse than the same claim marked
 `query`.** `clean` certifies; `query` asks.
@@ -565,28 +556,37 @@ role's own proposed text by role, yours among them if you proposed one, and `rea
 tree your citations resolve against. Leave what the slot carries as sent and add only your
 answer.
 
-**Answer every slot.** An unanswered one is refused, never read as a withdrawal. `mark` fills a
-copy, not a batch: write your answers with your file-write tool, as a list of the slots you were
-sent. The `question` names which of two kinds a slot is, and `check --contract` prints the shape
-each takes.
+**Answer every slot.** An unanswered one is refused. `mark` fills a copy, not a batch: write
+your answers with your file-write tool, as a list of the slots you were sent. `check --contract`
+prints the shape each answer takes.
 
 **An `escalation` asks whether your finding still stands.** Answer with a `reason` and one of
 four: `hold` keeps your mark as it stands, `withdraw` takes it back, and `correct` or `patch`
 replaces its text with `change`, the whole updated paragraph as raw text, which `hold` and
-`withdraw` do not carry. No answer here takes a `claim` or `sources`. Where the place is either
-end of your own `move`, the answer reaches the move: a `correct` or `patch` changes its text and
-a `withdraw` withdraws it (`decision-log.md Process: #129`).
+`withdraw` do not carry. No answer here takes a `claim` or `sources`.
 
 **A `composition` asks whether the slot's `raw_text` is right** -- the composed text, or the one
 mark's. Answer `clean`, `query`, `correct` or `patch`, each with the fields and `claim` keys it
 takes in your copy. A `clean` accepts the text. A `correct`'s `false` or a `patch`'s `from`
-quotes a sentence of that text, not of the original (`Process: #115`). A `query`'s `shape` is
+quotes a sentence of that text, not of the original. A `query`'s `shape` is
 one of the three under `query` specific rules: `outside-my-role`, `unable-to-determine` or
 `human-review-necessary`.
 
 **At an `add`'s empty place**, where the add is another role's, the slot's text is the add's.
-Your `clean` there is agreement (`Process: #116`), and a query of either deferring shape,
-`outside-my-role` or `unable-to-determine`, abstains and lets the add settle (`Process: #121`).
+Your `clean` there is agreement, and a query of either deferring shape, `outside-my-role` or
+`unable-to-determine`, abstains and lets the add settle.
+
+**A `placement` asks whether a move's paragraph belongs at its destination**, not whether
+either end is worded well. Its slot carries `address`, the origin; `to`, the destination;
+`movers`; `snippet`, the text that leaves; and `raw_text`, the paragraph it arrives as. Answer
+with a `reason` and one of:
+
+| answer | who may give it | what it does |
+| --- | --- | --- |
+| `agree` | any role sent the slot | accepts the placement |
+| `stet` | any role sent the slot | refuses the placement; the copy chief rules the move |
+| `withdraw` | a role that filed the move | withdraws the move; refused from any other role |
+| `query` | any role sent the slot | `human-review-necessary` goes to the human; the other two shapes abstain |
 
 ## Before you return: run the check
 
@@ -599,10 +599,9 @@ python <skill>/scripts/comment-review.py check --edit-copy <EDIT COPY from your 
 ```
 
 It names every slot you left `null`, every mark that will not read, every `claim` quoting a
-sentence that is not in its paragraph, and every cite whose line does not match, and it exits 0
-only when there is nothing. It writes nothing. **Fix your copy and run it again until it
-reports nothing** -- `mark --withdraw` takes back a mark it names, and `mark` places the ruling
-again; a copy that fails at the fold is a copy you did not check.
+sentence that is not in its paragraph, and every cite whose line does not match. **Fix your
+copy and run it again until it exits 0.** Exit 5 means its only findings are your
+`human-review-necessary` queries: your part is done, so hand the copy back.
 
 Over a batch's answers it takes `--answers`, with `--role` and `--sent`:
 
@@ -612,5 +611,11 @@ python <skill>/scripts/comment-review.py check --answers <ANSWERS from your pack
 ```
 
 It pairs each answer to the slot you were sent, by address, and reads it against that slot's own
-question, as the turn does, saving nothing. It names every slot left unanswered and every answer the
-fold would refuse, and exits 0 only when there is none -- fix your answers and run it again.
+question, as the turn does. It names every slot left unanswered and every answer the fold would
+refuse. Fix your answers and run it again until it exits 0 or, as on a copy, 5.
+
+**When the task agent hands you the human's answer to your query** -- an `[[answer]]` section
+naming your role, the place or move `at`, your question and the answer -- replace that query
+with the mark or answer the human's answer settles. In a copy, run `mark --withdraw --address
+<at>` and place every ruling at that address again. In a batch, rewrite your answer at that
+slot. Then run the check again.

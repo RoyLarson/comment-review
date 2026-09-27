@@ -54,7 +54,7 @@ evidence.**
 is stage 5's and the reviewers', not this pass's -- so an over-specified paragraph is one you hand
 back, the same as a paragraph you cannot bring under the cap.
 
-! Measured 2026-08-17: an instance-level sentence plus an imported argument ran to EIGHT lines
+! Measured: an instance-level sentence plus an imported argument ran to EIGHT lines
 where the rule-level version ran to six with **nothing cut** -- the rule, four named functions,
 both test files, the exception, its cause, its failure condition and a document pointer all
 survived. Handed the eight-line version, this pass would have been asked to cut from a paragraph
