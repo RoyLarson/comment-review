@@ -24,12 +24,14 @@ from helpers import (
     a_correct_setting,
     a_misspelled_address,
     a_move,
+    a_query,
     a_real_binder_over,
     copies_over,
     returned,
 )
 
 from comment_review.commands import check as command
+from comment_review.desk.marks.mark import Shape
 from comment_review.desk.work.events import Refused
 from comment_review.flows.bus import AnswersReturned, CopiesReturned, handle
 
@@ -165,6 +167,52 @@ class TestACopy:
         code, _, err = _run(monkeypatch, capsys, "--edit-copy", str(path))
         assert code == 2
         assert err
+
+
+class TestAHumanQuestionInACopy:
+    """`decision-log.md Process: #197`: a human question is named here as the
+    fold names it, and `--human` says whether the answers file answers it."""
+
+    def _asking(self, tmp_path):
+        path, _ = _copy_file(
+            tmp_path,
+            {
+                "m.py@b1": a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY),
+                "m.py@b5": a_clean("m.py@b5"),
+            },
+        )
+        return path
+
+    def test_an_unanswered_query_is_named_as_asking_the_human(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        code, out, _ = _run(monkeypatch, capsys, "--edit-copy", self._asking(tmp_path))
+        assert code == command.BROKEN, out
+        assert "asks the human m.py@b1: block-context -- " in out
+        assert "1 thing(s)" in out
+
+    def test_an_answered_query_is_named_with_its_answer(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        path = self._asking(tmp_path)
+        human = tmp_path / "human.toml"
+        human.write_text(
+            "[[answer]]\n"
+            'role = "block-context"\n'
+            'at = "m.py@b1"\n'
+            'question = "q"\n'
+            'answer = "Keep it."\n',
+            encoding="utf-8",
+        )
+        code, out, _ = _run(
+            monkeypatch, capsys, "--edit-copy", path, "--human", str(human)
+        )
+        assert code == command.BROKEN, out
+        assert (
+            "answered by the human m.py@b1: block-context -- Keep it.; block-context"
+            " replaces this query with its mark or answer"
+        ) in out
+        assert "asks the human" not in out
 
 
 @pytest.mark.parametrize("kind", MISSPELLINGS)

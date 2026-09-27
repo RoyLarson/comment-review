@@ -12,7 +12,10 @@
                     edit_copy per dispatch, refusing an overlap or a gap
     marks          hands a role an edit_copy to fill, and checks what comes
                     back against every rule `desk/marks/mark.py` settles
-    turn           a batch answered, applied to the copies, folded again --
+    human          finds a human question in the copies or a turn's answers,
+                    before the fold, and reads the human's answers file
+                    (`Process: #197`, `#198`)
+    turn          a batch answered, applied to the copies, folded again --
                     and the master proof as the state between turns
     proof_io       that proof on disk: the load and the save, raw JSON at
                     those two ends only (`Process: #65`, `#67`)

@@ -40,7 +40,6 @@ from helpers import (
 
 from comment_review.commands import collate as collate_command
 from comment_review.desk.containers import EditCopy, MasterProof
-from comment_review.desk.marks.mark import Shape
 from comment_review.flows import proof_setter
 from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_proof
@@ -688,43 +687,6 @@ class TestDocketOfProof:
             texts={"m.py@b1": BASE, "m.py@b2": "# four\n# five\n"},
         )
         assert docket_of_proof(proof, repo).docket.schedules == ()
-
-    def test_a_place_held_for_the_human_sets_nothing_at_either_end(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        """A move one role put to the author is held at both ends, and an
-        unsettlable place carries no text -- so the closed proof asks the write
-        end for nothing there. Nothing is carried forward, so the fold has
-        nothing to put to a turn and the chief has nothing left to rule."""
-        assert (
-            deal(
-                tmp_path,
-                monkeypatch,
-                capsys,
-                {
-                    "block-context": {
-                        "m.py@b1": a_move(
-                            "m.py@b1", "m.py@b2", change="# two\n", reads=MOVED_TO
-                        ),
-                        "m.py@b2": a_clean("m.py@b2"),
-                    },
-                    "function-context": {
-                        "m.py@b1": a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY),
-                        "m.py@b2": a_clean("m.py@b2"),
-                    },
-                },
-                MOVED,
-            )
-            == collate_command.OK
-        )
-        code, out = disposition(tmp_path, monkeypatch, capsys, [], proof="proof0.json")
-        assert code == collate_command.OK, out
-        proof = the_closed_proof(tmp_path)
-        assert {entry["address"]: entry["state"] for entry in proof.places} == {
-            "m.py@b1": "unsettlable",
-            "m.py@b2": "unsettlable",
-        }
-        assert docket_of_proof(proof, tmp_path / "repo").docket.schedules == ()
 
     @pytest.mark.parametrize(
         ("by_role", "code", "state"),

@@ -1,7 +1,9 @@
 """The `check` command: what the fold would refuse, named before a role returns it.
 
     comment_review check --edit-copy copy.json [--binder B.json] [--repo R]
+        [--human answers.toml]
     comment_review check --answers answers.json --sent batch.json --role block-context
+        [--human answers.toml]
     comment_review check --contract
 
 A role writes its copy or its batch answers with its file-write tool and runs
@@ -40,6 +42,12 @@ the question does not admit, and a `cite` that does not resolve are each named
 here, which is what the turn refuses the round for.
 The shape a role hands back is read the way the fold reads it
 (`flows.answers.slots_of`): a list of slots, `{role: [slots]}`, or a lone slot.
+
+In either mode a human question -- a `human-review-necessary` query, filed as
+a mark or given as an answer -- is named as `collate` and `turn` print it, and
+counts as something the fold would send back (`decision-log.md Process:
+#197`). `--human` names the human's answers file (`#198`); a question it
+answers is printed with the answer.
 """
 
 import argparse
@@ -47,11 +55,20 @@ import json
 import sys
 from pathlib import Path
 
+from comment_review.commands.collate import _human_answers, _lines
 from comment_review.desk.collator import Cache, Problem
 from comment_review.desk.containers import EditCopy
 from comment_review.desk.stages import not_admitted
+from comment_review.desk.work.events import AsksTheHuman
 from comment_review.flows.answers import answers_of, contracts, slot_key, slots_of
 from comment_review.flows.fill import composition_problems, row_problems
+from comment_review.flows.human import (
+    HumanAnswer,
+    HumanQuery,
+    answered,
+    queries_in_answers,
+    queries_in_copies,
+)
 from comment_review.flows.mark_errors import mark_errors
 from comment_review.flows.on_the_page import PageCache, held_at
 from comment_review.flows.proof_io import (
@@ -119,7 +136,28 @@ def _row_problems(
     ]
 
 
-def _check_copy(path: str, binder_path: str | None, repo: str | None) -> int:
+def _asks_the_human(queries: list[HumanQuery], human: tuple[HumanAnswer, ...]) -> int:
+    """Each human question as the fold prints it, and how many there were.
+
+    `decision-log.md Process: #197`: the fold rolls back on each, so each is
+    one thing it would send back -- the human's answer where `human` holds
+    none yet, the role's replacement for its query where it does.
+    """
+    for query, answer in answered(queries, list(human)):
+        event = AsksTheHuman(
+            query.role, query.at, query.question, answer.answer if answer else ""
+        )
+        for line in _lines(event):
+            print(line)
+    return len(queries)
+
+
+def _check_copy(
+    path: str,
+    binder_path: str | None,
+    repo: str | None,
+    human: tuple[HumanAnswer, ...] = (),
+) -> int:
     loaded, why = load_copy(Path(path))
     if why:
         return _refused(why)
@@ -159,6 +197,7 @@ def _check_copy(path: str, binder_path: str | None, repo: str | None) -> int:
                 f"{problem.role} {problem.address or '(the copy)'}: {problem.message}"
             )
             found += 1
+    found += _asks_the_human(queries_in_copies([copy]), human)
     print(f"{path}: {found} thing(s) the fold would send back")
     return BROKEN if found else OK
 
@@ -198,7 +237,13 @@ def _root_of(repo: str | None, sent: dict[str, dict]) -> Path:
     return Path(".")
 
 
-def _check_answers(path: str, sent_path: str, role: str, repo: str | None) -> int:
+def _check_answers(
+    path: str,
+    sent_path: str,
+    role: str,
+    repo: str | None,
+    human: tuple[HumanAnswer, ...] = (),
+) -> int:
     loaded, why = load_value(Path(path))
     if why:
         return _refused(why)
@@ -220,8 +265,12 @@ def _check_answers(path: str, sent_path: str, role: str, repo: str | None) -> in
     )
     for one in problems:
         print(f"{one.role} {one.address or '(the batch)'}: {one.message}")
-    print(f"{path}: {len(answers)} answered, {len(problems)} the fold would refuse")
-    return BROKEN if problems else OK
+    asked = _asks_the_human(queries_in_answers({role: answers}), human)
+    print(
+        f"{path}: {len(answers)} answered, {len(problems) + asked} the fold would"
+        " refuse"
+    )
+    return BROKEN if problems or asked else OK
 
 
 def main() -> int:
@@ -258,6 +307,13 @@ def main() -> int:
         " the binder's own read_from.root by default, and with --answers the"
         " one the sent slots name",
     )
+    ap.add_argument(
+        "--human",
+        metavar="PATH",
+        help="the human's answers file, TOML, one [[answer]] per question"
+        " (Process 198); with it, a human question it answers is named with"
+        " the answer",
+    )
     args = ap.parse_args()
 
     if args.contract:
@@ -265,12 +321,15 @@ def main() -> int:
         # contract by hand and got `query` wrong.
         print(json.dumps(contracts(), indent=2))
         return OK
+    human, why = _human_answers(args.human)
+    if why:
+        return _refused(why)
     if args.answers:
         if not args.role or not args.sent:
             print("check --answers needs --role and --sent", file=sys.stderr)
             return UNREADABLE
-        return _check_answers(args.answers, args.sent, args.role, args.repo)
-    return _check_copy(args.edit_copy, args.binder, args.repo)
+        return _check_answers(args.answers, args.sent, args.role, args.repo, human)
+    return _check_copy(args.edit_copy, args.binder, args.repo, human)
 
 
 if __name__ == "__main__":
