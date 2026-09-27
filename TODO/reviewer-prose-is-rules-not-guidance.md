@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 13 tasks closed
+Progress: 5 of 16 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-06 (Roy, 2026-09-06, on reading the ownership-context agent file and
@@ -60,3 +60,9 @@ The reviewer prose is rules and punishments, not guidance toward a good result.
 - [ ] T13 | Verify each instruction for each stage for each role against the
       cli-flow's actual inputs and results. Verify: each disagreement is named
         > 2026-09-08 The brief asked for leading the compositor supplies; no gate saw it
+- [ ] T14 | Rewrite SKILL.md in five parts, about 250 lines, each thing stated
+      by what it does; verify wc -l and test_skill_commands green
+- [ ] T15 | Update write.md, review.md, compact.md, residue-check.md to the
+      commands' --help; verify 7a and 7b name proof --proof and --only
+- [ ] T16 | Add a gate that 7a and 7b prose invoke proof with --proof, not
+      --copy; verify it fails on the current SKILL.md first
