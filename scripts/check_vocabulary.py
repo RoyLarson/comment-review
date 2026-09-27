@@ -269,6 +269,15 @@ BRIEF = ("brief", "reviewer-brief.md")
 # The key every role's list is extended with. Not a role.
 EVERY_AGENT = "all"
 
+# The one role with no agent file. The task agent runs from SKILL.md and loads
+# `write.md` at stage 7b; every other reference it names is handed to another
+# agent, so its text is those two.
+TASK_AGENT = "task-agent"
+TASK_AGENT_READS = (
+    REFERENCES.parent / "SKILL.md",
+    REFERENCES / "write.md",
+)
+
 READ_ERRORS = (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError)
 
 
@@ -279,6 +288,8 @@ def term_used(text: str, term: str) -> bool:
 
 def text_for(role: str) -> str | None:
     """Everything one role reads: its agent file, and the reference it names."""
+    if role == TASK_AGENT:
+        return "\n".join(f.read_text(encoding="utf-8") for f in TASK_AGENT_READS)
     agent = AGENTS / f"comment-review-{role}.md"
     if not agent.exists():
         return None
