@@ -46,9 +46,8 @@ reads this"*. The run context reports the task agent's probe, and a reviewer can
 with no LSP tool, settle the claim by grep and say so in `ran`.
 
 !! **A server settles a FACT, never an INSTRUCTION.** "This name exists" and "three files call it"
-are inputs to your judgement, not a substitute for it. And a server that is ABSENT proves
-nothing: if the context does not say one answered, do not assume it -- report what you could
-not check rather than reporting it clean.
+are inputs to your judgement, not a substitute for it. A claim you could not settle by a
+server or by grep takes a `query` of shape `unable-to-determine`.
 
 ## Read your edit copy end to end
 
