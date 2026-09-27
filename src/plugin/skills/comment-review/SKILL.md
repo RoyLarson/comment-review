@@ -112,10 +112,14 @@ Work from the git repository at the repo root, and pass `--repo` to every comman
    documentation format the tree actually uses: module docstring, function docstring and,
    where the repo is consistent, comments. Write each template out with its slots, measured
    from the docstrings in the tree.
-5. **Reviewers.** Confirm the agents `comment-review:comment-review-*` resolve. When they are
+5. **Check command.** Find how the repo proves its code compiles -- its CI config, Makefile,
+   `package.json` or `pyproject.toml` -- and record one command per language in scope, for
+   example `python -m compileall -q .`, `tsc --noEmit`, `cargo check`, `go build ./...`. Stage
+   7b runs it.
+6. **Reviewers.** Confirm the agents `comment-review:comment-review-*` resolve. When they are
    unavailable, dispatch general-purpose agents in their place, giving each the absolute path
    of its role file from the installed plugin, and say so in the proposal.
-6. **Language servers.** Where you have an LSP tool, call `documentSymbol` once on one file of
+7. **Language servers.** Where you have an LSP tool, call `documentSymbol` once on one file of
    each language in scope, and record which languages answered. Where you have no LSP tool,
    record that no probe was possible.
 
@@ -334,22 +338,9 @@ accept none.
 
 ### Stage 7b -- write
 
-Load [`references/write.md`](references/write.md) and follow it. For an author who accepts
-all of it, copy each `<draft>` over its `<path>`. For an author who names places, set those
-places alone and copy what that prints:
-
-```bash
-python <skill>/scripts/comment-review.py proof --repo . --proof <run-dir>/final.json \
-  --only <address> --only <address> --out <run-dir>/accepted
-```
-
-Then prove the code in every page you wrote is unchanged from the pre-edit ref:
-
-```bash
-python <skill>/scripts/comment-review.py prove_unchanged --base <pre-edit ref> --repo . <paths written>
-```
-
-`git diff` now shows the author exactly what the run changed.
+Load [`references/write.md`](references/write.md) and follow it. It compiles the accepted
+drafts in a temporary worktree, writes them into the working tree, and proves their code
+unchanged. `git diff` then shows the author exactly what the run changed.
 
 ### Stage 8 -- review
 
