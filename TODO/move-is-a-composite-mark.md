@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 31 of 39 tasks closed
+Progress: 32 of 39 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -278,8 +278,9 @@ and now there is one object that cannot be half-held.
 - [x] T31 | reaches_partner, refuse_half_moves and the 189 guard deleted | 29b3e6931a00471f692374897f4ead9910639c72 | Delete
       reaches_partner, refuse_half_moves and the Process 189 guard once a
       wording answer cannot half-withdraw a move
-- [ ] T32 | Update reviewer-brief.md and SKILL.md to name the placement question
-      and its four verbs; agents lane
+- [x] T32 | reviewer-brief.md and SKILL.md name the placement question and its four answers | 328efac3f6fca9bc191368f5e29a2eec4cb092b2 | Update
+      reviewer-brief.md and SKILL.md to name the placement question and its four
+      verbs; agents lane
 - [-] T33 | Refiled as T36, off this plan by Roy 2026-09-26: run agents do not read these docs | e35ed761cb5dded09c3dbe6556d7f8f01aee6595 | Update
       the-mark.md and the-turn.md from the Process 195 pointers to the built
       shape

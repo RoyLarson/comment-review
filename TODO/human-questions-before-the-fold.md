@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 3 of 7 tasks closed
+Progress: 4 of 7 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-26 (Process 197)
@@ -23,8 +23,9 @@ A human question is asked before the fold.
 - [x] T3 | TOML answers file read by --human; the answer rides on the refusal to the asking role | 14c9ddde5fe7350ee3597c053575ecf6a47ce19d | Implement
       the record of the human answer and its hand-back to the role that asked,
       so it can revise its mark or answer
-- [ ] T4 | Update SKILL.md so the task agent asks each human-review query with
-      the question tool before collate and turn; agents lane
+- [x] T4 | SKILL.md asks each human query with AskUserQuestion before collate and turn | 328efac3f6fca9bc191368f5e29a2eec4cb092b2 | Update
+      SKILL.md so the task agent asks each human-review query with the question
+      tool before collate and turn; agents lane
 - [ ] T5 | Delete the write-end refusal of a move open at an unruled end once no
       human-review query reaches the fold
 - [ ] T6 | Delete the command-side held-query printing: collate _for_the_human,
