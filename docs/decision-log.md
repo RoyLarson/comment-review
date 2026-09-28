@@ -5228,3 +5228,29 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   tool and so the likelihood that the marks get filled out in an invalid way is significantly
   reduced."* Offered one bundle of the mark, answer and disposition validators in place of three
   parameters on each parser: *"yes on the bundle"*.
+
+- **#205.** **An agreed move stays filed at both ends; nothing splits it into a `drop` and an
+  `add`** (Roy, 2026-09-28, on `0.2.4-the-proof-is-one-unit` P8). Shown that the split halves are
+  the one kind of mark no role wrote, and so the one exception to a proof whose places point at
+  their marks instead of repeating them, Roy: *"If the move is agreed it stays and the actual
+  writing add/drop can be put on the edit copy later. That would make the move an 'agree only'
+  system not a writeable mark which might make things easier."* Offered that the move row
+  already sets what the split does at each end -- the remainder at the origin, the arrival at
+  the destination -- so each end is decided as an ordinary place against the move itself:
+  *"Yes"*. **It supersedes the mechanism of `#195` item 3**, the split, and keeps its rule: once
+  the placement is agreed nothing cancels the move, and each end's words are decided on their
+  own.
+
+- **#206.** **Each instruction, answer and ruling is its own type, and owns its fields,
+  serialization and the checks on itself; what one does to a page stays in `desk`** (Roy,
+  2026-09-28, on the same plan's P3 and P4, superseding `#203`'s handed-in validator). Roy:
+  *"while we call all of the different actions Marks we really have CleanMark QueryMark
+  CorrectMark PatchMark MoveMark AddMark DropMark And each of those have their own representation
+  and serialization And they should own their validation We can dispatch a Mark to the correct
+  mark type"*. Offered that the table's page-facing columns -- `sets`, `reads`, `notes`, `pairs`,
+  `answers` -- are verbs about a mark in context, kept in `desk` and chosen by type (a), or
+  methods on each type (b): *"1 a) agree and I was going to say that before I read your proposal.
+  The check about facts in the mark that apply to the page(s) edits should be in desk.marks"*.
+  Offered dispatch by a `match` on the instruction in one reading function rather than
+  overriding `__new__` on a frozen dataclass: *"agree"*. Offered the same for answers and
+  rulings: *"seems like a good idea"*.
