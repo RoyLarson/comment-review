@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (116)
+### open  (118)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -298,6 +298,8 @@ that changed a published name or rule:
 | [human-questions-before-the-fold](human-questions-before-the-fold.md) | backend | -- | 4/7 | A human question is asked before the fold |
 | [exit-codes-are-an-enum](exit-codes-are-an-enum.md) | backend | -- | 0/5 | Exit codes are written in thirteen places |
 | [command-help-carries-history](command-help-carries-history.md) | backend | -- | 0/1 | Command help carries development history |
+| [vocabulary-has-one-source](vocabulary-has-one-source.md) | systems | -- | 0/2 | Vocabulary has one source |
+| [p5-self-run-findings](p5-self-run-findings.md) | systems | -- | 0/5 | The P5 self-run findings |
 
 ### in-progress  (18)
 
