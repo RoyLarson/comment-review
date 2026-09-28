@@ -16,6 +16,11 @@ class Filed:
     role: str
     mark: Mark
     touch: Touch
+    #: The origin address of the agreed move this mark is a half of, set by
+    #: `desk.evaluate.move.settle_ends` when it splits the move. A reason names
+    #: the move the role filed rather than a half it never wrote. Empty for a
+    #: mark the role filed itself.
+    split_from: str = ""
 
 
 @dataclass
@@ -67,7 +72,12 @@ class Place:
             "base": self.base,
             "readers": list(self.readers),
             "filed": [
-                {"role": f.role, "touch": str(f.touch), **f.mark.serialize()}
+                {
+                    "role": f.role,
+                    "touch": str(f.touch),
+                    "split_from": f.split_from,
+                    **f.mark.serialize(),
+                }
                 for f in self.filed
             ],
             "answers": {
@@ -99,7 +109,12 @@ class Place:
                 problems += why
                 continue
             filed.append(
-                Filed(str(one.get("role")), mark, Touch(str(one.get("touch"))))
+                Filed(
+                    str(one.get("role")),
+                    mark,
+                    Touch(str(one.get("touch"))),
+                    str(one.get("split_from") or ""),
+                )
             )
         answers: dict[int, dict[str, Answer]] = {}
         for turn, by in (data.get("answers") or {}).items():

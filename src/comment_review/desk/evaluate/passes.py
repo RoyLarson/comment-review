@@ -34,8 +34,11 @@ def _named(one: Filed) -> str:
 
     The address is the mark's own, not the place's: a mark reaching a place is
     not always addressed to it, since a move is filed at its destination under
-    its origin's address, and a role fixing the pair has to find both.
+    its origin's address, and a role fixing the pair has to find both. A half
+    of a split move is named as the move, which is the mark the role filed.
     """
+    if one.split_from:
+        return f"its move at {one.split_from}"
     return f"its {one.mark.instruction} at {one.mark.address}"
 
 

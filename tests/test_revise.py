@@ -40,6 +40,7 @@ from helpers import (
 
 from comment_review.commands import collate as collate_command
 from comment_review.desk.containers import EditCopy, MasterProof
+from comment_review.desk.marks.mark import Shape
 from comment_review.flows import proof_setter
 from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_proof
@@ -132,6 +133,28 @@ class TestDocketOf:
             ("b0", "# a paragraph"),
             ("b1", None),
         ]
+
+    def test_a_move_whose_destination_cannot_settle_writes_neither_end(self, tmp_path):
+        """A move's two ends are one decision, so the fold holds the move
+        whole when its destination cannot settle. Folded as two unrelated
+        places, the origin settled as a removal and the destination as
+        nothing, and the docket deleted the snippet without landing it."""
+        root = tmp_path / "repo"
+        copy = a_copy(
+            root,
+            "block-context",
+            {"m.py@b1": "# a paragraph\n", "m.py@b2": "# another\n"},
+            {
+                "m.py@b1": a_move(
+                    "m.py@b1",
+                    "m.py@b2",
+                    change="# a paragraph",
+                    reads="# a paragraph\n# another",
+                ),
+                "m.py@b2": a_query("m.py@b2", Shape.HUMAN_REVIEW_NECESSARY),
+            },
+        )
+        assert docket_of(copy, root).schedules == ()
 
     def test_a_move_onto_a_page_this_copy_holds_no_sheet_for_is_scheduled(
         self, tmp_path
@@ -258,16 +281,13 @@ class TestDocketOf:
         copy = self._a_correction_and_a_move_into_it(root, "# one\n# two # five")
         with pytest.raises(CannotTranscribe) as raised:
             docket_of(copy, root)
-        # Both ends of the move report it: a move is refused whole, so
-        # `desk.evaluate.move.hold_ends` refuses both ends with every reason.
-        at_the_place = [
-            why
-            for why in raised.value.reasons
-            if why.startswith("block-context m.py@b1: ")
-        ]
-        assert len(at_the_place) == 1, raised.value.reasons
-        assert "its correct at m.py@b1" in at_the_place[0]
-        assert "its move at m.py@b2" in at_the_place[0]
+        # The move has one mover, so it is agreed and split before the place
+        # is decided; its add collides with the correction at b1, and the
+        # reason names the move the role filed, not the add it never wrote.
+        (why,) = raised.value.reasons
+        assert why.startswith("block-context m.py@b1: ")
+        assert "its correct at m.py@b1" in why
+        assert "its move at m.py@b2" in why
 
     def test_a_page_this_checkout_cannot_read_is_a_refusal(self, tmp_path):
         """A page a mark writes at that the checkout has no page for would

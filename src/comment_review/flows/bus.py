@@ -211,7 +211,7 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
         copies, lambda address: held_at(address, paths, root, page_cache)
     )
     places = places_of(copies, bases, anchors)
-    fold = Fold(places, moves_in(places), turn=0).run()
+    fold = Fold(places, turn=0).run()
     out += fold.events
     if not fold.committed:
         return out, None
@@ -528,12 +528,7 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
             )
     if problems:
         return _rolled_back(problems)
-    return _commit(
-        message.proof,
-        places,
-        moves_in(places, recorded),
-        turn_of(message.proof),
-    )
+    return _commit(message.proof, places, recorded, turn_of(message.proof))
 
 
 def _rolled_back(
@@ -565,7 +560,7 @@ def _asks(
 def _commit(
     proof: MasterProof,
     places: dict[str, Place],
-    moves: dict[str, Move],
+    recorded: dict[str, Move],
     turn: int,
 ) -> tuple[list, Result | None]:
     """The fold over the places and moves as they now stand, and what a commit saves.
@@ -576,15 +571,16 @@ def _commit(
             the fold decided replaces its places and its moves.
         places: the places, each carrying whatever this message wrote onto
             it. `Fold` evaluates every one of them from its own record.
-        moves: the moves on those places (`moves_in`), each carrying the
-            placement answers this message wrote onto it.
+        recorded: the moves as the proof recorded them, each carrying the
+            placement answers this message wrote onto it. The fold finds the
+            moves on the places itself and keeps what these record.
         turn: the turn the fold stands at -- every answer up to it is applied.
 
     Returns:
         `(the events, the result)`, the result being None on a rollback.
     """
     out: list = []
-    fold = Fold(places, moves, turn=turn).run()
+    fold = Fold(places, recorded, turn=turn).run()
     out += fold.events
     if not fold.committed:
         return out, None

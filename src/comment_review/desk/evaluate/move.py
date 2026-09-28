@@ -305,7 +305,7 @@ def settle_ends(move: Move, places: dict[str, Place]) -> None:
     for end, index in ((origin, 0), (destination, 1)):
         kept = [one for one in end.filed if not _is_this_move(one, move)]
         added = [
-            Filed(role, split[index], Touch.OWN)
+            Filed(role, split[index], Touch.OWN, move.origin)
             for role, split in sorted(halves.items())
         ]
         end.filed = kept + added

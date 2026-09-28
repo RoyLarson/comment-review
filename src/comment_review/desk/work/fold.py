@@ -21,6 +21,7 @@ from comment_review.desk.evaluate.move import (
     UNDECIDED,
     Move,
     Placement,
+    moves_in,
     ruled_at_both_ends,
 )
 from comment_review.desk.evaluate.passes import decide
@@ -31,13 +32,24 @@ from comment_review.desk.work import events
 
 @dataclass
 class Fold:
-    """One stage's places, folded to a commit or a rollback in one pass."""
+    """One stage's places, folded to a commit or a rollback in one pass.
+
+    The fold finds its moves on its own places (`moves_in`), so a move's two
+    ends are decided as one move whoever builds the fold. `recorded` is what
+    the proof last saved of each move -- its placement and the answers on it
+    -- and is empty at a stage's first fold.
+    """
 
     places: dict[str, Place]
-    moves: dict[str, Move] = field(default_factory=dict)
+    recorded: dict[str, Move] = field(default_factory=dict)
     turn: int = 0
     events: list = field(default_factory=list)
     committed: bool = False
+    moves: dict[str, Move] = field(init=False)
+
+    def __post_init__(self) -> None:
+        """Find the moves filed on these places, keeping what `recorded` holds."""
+        self.moves = moves_in(self.places, self.recorded)
 
     @property
     def decided(self) -> dict[str, Place]:
