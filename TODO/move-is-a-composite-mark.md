@@ -320,7 +320,7 @@ and now there is one object that cannot be half-held.
 - [x] T46 | is_open in desk/evaluate/move.py, called at all five sites; suite green | 5fc5b8b7 | Implement
       is_open(move, places) in desk/evaluate/move.py and use it at all five
       sites; grep finds UNDECIDED tested nowhere else
-- [x] T47 | One defect gives one Refused and RolledBack(1); tests failed first | 69d58b18 | Report
+- [x] T47 | One defect gives one Refused and RolledBack(1); tests failed first | 7a31a68e | Report
       a refused move once, from the move, each reason at its own end; a test:
       one defect gives one Refused and RolledBack(1)
 - [-] T48 | Order-independent at f2fd9405: 36 runs, only filing order differs | f2fd9405 | Decide
