@@ -25,11 +25,10 @@ the stage, the root and what the binder says about itself.
 !! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
 A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`.
 
-!! `--check` LEFT 2026-08-30 AND IS `collate`'s FIRST ACT. `desk.collator.places`
-already raises on an entry `parse` refuses, so a malformed copy could never be
-folded; what a separate command added was the chance to fold WITHOUT EVER HAVING
-RUN THE CHECK. ! The cost: a role can no longer validate its own returned copy
-alone -- the whole stage's copies must be in hand. No caller does that today.
+This command seeds and does not check. `collate` checks every copy before it
+folds, so a malformed copy is never folded; the `check` command checks one
+returned copy on its own, which is how a role validates its copy before handing
+it back.
 """
 
 import argparse

@@ -135,7 +135,14 @@ def _move_splits(mark, origin_base, destination_anchor):
     remainder = _without_once(origin_base, mark.change)
     if remainder is None:
         return None
-    destination = str(mark.claim.get("to", ""))
+    destination = next(
+        (
+            where
+            for where, touch in INSTRUCTIONS[mark.instruction].places(mark)
+            if touch is Touch.DESTINATION
+        ),
+        "",
+    )
     named = destination_anchor.strip() or destination
     drop = Mark(
         address=mark.address,
