@@ -312,7 +312,7 @@ class Landing(NamedTuple):
     and keyed as `mark`'s flags name them -- `false` and `true` for
     `fib.py`'s corrections `c6` and `c1`, `from` and `to` for `rate.py`'s
     patch `c3`. `mark` needs both to derive the change itself
-    (`desk.marks.mark.derived_change` replaces the quoted clause with the other in
+    (`desk.marks.rules.derived_change` replaces the quoted clause with the other in
     the paragraph the row seeded), and the smoke script passes each by
     `@path` from the file `write_texts` writes for it.
 

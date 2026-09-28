@@ -54,7 +54,7 @@ class Revisit(NamedTuple):
             ! THE TWO ARE SEPARATE BECAUSE ONE CAN BE EMPTY AND THE OTHER MUST
             NOT BE. A reader needs somewhere to look even for an entry the
             system cannot route; a router needs to know when there is nowhere.
-        reasons: every rule the entry broke, as `desk.marks.mark.parse` worded them,
+        reasons: every rule the entry broke, as `desk.marks.rules.validate` worded them,
             or the one sentence `NOT_RULED` for a place nobody wrote in.
             ! ALL OF THEM TOGETHER, which is the half `Process: #72` asks for
             beyond the address -- one malformed `correct` breaks four rules, and

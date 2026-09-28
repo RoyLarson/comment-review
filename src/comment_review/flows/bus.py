@@ -34,6 +34,7 @@ from comment_review.desk.answers.answer import Answer, Question
 from comment_review.desk.collator import Cache, Problem
 from comment_review.desk.dispositions.disposition import CHIEF, Disposition
 from comment_review.desk.evaluate.move import moves_in
+from comment_review.desk.marks.rules import validate
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.move import Move, is_open, key_of
@@ -359,7 +360,7 @@ def _places_on(proof: MasterProof) -> tuple[dict[str, Place], list[Problem]]:
     for i, entry in enumerate(proof.places):
         where = str(entry.get("address") or "") if isinstance(entry, dict) else ""
         where = where or f"place {i}"
-        place, why = Place.deserialize(where, entry)
+        place, why = Place.deserialize(where, entry, validate)
         if place is None:
             problems += [
                 Problem(THE_PROOF, where, one.removeprefix(f"{where}: ")) for one in why

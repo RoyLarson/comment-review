@@ -26,7 +26,7 @@ from helpers import (
 )
 
 from comment_review.desk.collator import Cache, known_addresses, verify_report
-from comment_review.desk.marks.mark import Mark
+from comment_review.desk.proof.mark import Mark
 from comment_review.desk.stages import Kind, Stage
 from comment_review.flows.page_for import page_of
 from comment_review.flows.verify import (

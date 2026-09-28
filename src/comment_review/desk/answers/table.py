@@ -13,7 +13,7 @@ from enum import StrEnum, auto
 from typing import Any
 
 from comment_review.desk.answers.answer import Question
-from comment_review.desk.marks.mark import Shape
+from comment_review.desk.proof.mark import Shape
 
 
 class Effect(StrEnum):

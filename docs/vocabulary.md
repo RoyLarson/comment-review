@@ -170,7 +170,7 @@ sets:
   evaluator built on later tasks asks of a row.
 
 Same rule as `copy chief` above: do not add either to `vocabulary.toml` until a role's own text
-uses the word. Neither term is reviewer-facing yet -- `desk.marks.table.Touch` and `.Stance` are
+uses the word. Neither term is reviewer-facing yet -- `desk.proof.mark.Touch` and `desk.marks.table.Stance` are
 read by the middle, not by an editorial role's prompt -- so the drift check would refuse a term no
 role's text carries. Add them once an agents-lane task puts the word in a reviewer's own file.
 

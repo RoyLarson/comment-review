@@ -6,8 +6,9 @@ import re
 import pytest
 from helpers import a_real_binder_over, returned, seed
 
-from comment_review.desk.marks.mark import Instruction, Mark
-from comment_review.desk.marks.table import INSTRUCTIONS, Row, Stance, Touch, chief_mark
+from comment_review.desk.marks.rules import validate
+from comment_review.desk.marks.table import INSTRUCTIONS, Row, Stance, chief_mark
+from comment_review.desk.proof.mark import Instruction, Mark, Touch, read_mark
 from comment_review.desk.proof.place import Filed, Place
 from comment_review.flows.verify import resolution_problems
 
@@ -114,7 +115,7 @@ def test_an_add_sets_its_raw_text_and_keeps_the_prose_already_there():
 
 
 def test_stances():
-    from comment_review.desk.marks.mark import Shape
+    from comment_review.desk.proof.mark import Shape
 
     assert (
         INSTRUCTIONS[Instruction.CLEAN].pairs(_mark(Instruction.CLEAN))
@@ -135,7 +136,7 @@ def test_stances():
 def test_only_a_deferring_query_defers():
     """`decision-log.md Process: #121` and `#180`: a role that defers is not
     waited on, and a `clean` is -- so no other row may take that stance."""
-    from comment_review.desk.marks.mark import Shape
+    from comment_review.desk.proof.mark import Shape
 
     deferring = [
         instruction
@@ -245,9 +246,9 @@ def test_a_refusal_about_the_destination_names_the_rows_own_key(tmp_path, monkey
         "change": "# two",
         "raw_text": BASE,
     }
-    _, onto_itself = Mark.deserialize("w", entry)
-    _, not_a_place = Mark.deserialize(
-        "w", {**entry, "claim": {"from": "m.py@b1", "there": "b9"}}
+    _, onto_itself = read_mark("w", entry, validate)
+    _, not_a_place = read_mark(
+        "w", {**entry, "claim": {"from": "m.py@b1", "there": "b9"}}, validate
     )
     assert [*onto_itself, *not_a_place] == [
         "w: `claim.there` is this mark's own `address` -- a move to where the"
@@ -357,7 +358,7 @@ def test_chief_mark_synthesizes_over_a_side_composed_from_two_marks():
     # The filed marks' evidence, deduped: what the chief read to decide the
     # text, and what the parse demands of the row it synthesized.
     assert got.sources == cited
-    again, why = Mark.deserialize(got.address, got.serialize())
+    again, why = read_mark(got.address, got.serialize(), validate)
     assert why == [] and again == got
 
 
@@ -533,7 +534,7 @@ class TestTheSplit:
     def test_each_half_is_an_ordinary_mark_the_parse_takes(self):
         """T1: no second shape of `change` -- each half is a plain string."""
         for half in self._split():
-            back, why = Mark.deserialize("half", half.serialize())
+            back, why = read_mark("half", half.serialize(), validate)
             assert why == [] and back == half
 
     def test_each_half_sets_its_end_through_its_own_row(self):
@@ -569,5 +570,5 @@ class TestTheSplit:
         place = Place(
             address="m.py@b5", anchor="", base="", filed=[Filed("a", add, Touch.OWN)]
         )
-        back, why = Place.deserialize("p", place.serialize())
+        back, why = Place.deserialize("p", place.serialize(), validate)
         assert why == [] and back is not None and back.filed[0].mark == add

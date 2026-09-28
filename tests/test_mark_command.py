@@ -17,7 +17,8 @@ from conftest import run_command
 from helpers import a_binder_over
 
 from comment_review.commands import mark as command
-from comment_review.desk.marks.mark import Mark
+from comment_review.desk.marks.rules import validate
+from comment_review.desk.proof.mark import read_mark
 from comment_review.flows.distribute import seed
 
 BASE = "# one\n# two\n# three\n"
@@ -146,7 +147,7 @@ class TestARulingIsPlaced:
         assert slot["instruction"] == "correct"
         assert slot["change"] == "# one\n# 2\n# three\n"
         assert slot["sources"] == [{"cite": "m.py:5", "verbatim": "y = 2"}]
-        mark, why = Mark.deserialize("m.py@b1", slot)
+        mark, why = read_mark("m.py@b1", slot, validate)
         assert why == [] and mark is not None
 
     def test_the_other_slot_is_still_null(self, run):

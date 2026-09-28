@@ -25,7 +25,7 @@ when the edit_copy comes back is a COVERAGE GAP, which is a different thing from
 `clean`: `clean` says a role read this and had nothing to report.
 
 !! AND A COVERAGE GAP IS NOT THE SAME AS A MARK THAT NAMES NO INSTRUCTION.
-`desk.marks.mark.untouched` is what tells them apart, and this flow read
+`desk.proof.mark.untouched` is what tells them apart, and this flow read
 `mark.get("mark") is None` until 2026-08-29 -- which said YES to both, so a
 filled-in mark whose ruling key the code did not recognise was dropped before
 `parse` saw it and recounted as a place nobody looked at.
@@ -33,14 +33,14 @@ filled-in mark whose ruling key the code did not recognise was dropped before
 !! WHAT THIS FLOW DOES NOT DO IS CHECK A CLAIM AGAINST THE PAGE. Whether
 `claim.false` appears VERBATIM in the paragraph, whether a `move`'s destination
 is addressable -- both need the page the role read, and both belong to
-SOURCE-VERIFICATION in `collator`. `desk.marks.mark.parse` says the same about its
+SOURCE-VERIFICATION in `collator`. `desk.marks.rules.validate` says the same about its
 own half.
 """
 
 from comment_review.binder.addresses import handed
 from comment_review.binder.binder import Binder
-from comment_review.desk.marks.mark import Mark
 from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.mark import Mark
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.stages import Stage, deals
 
@@ -65,7 +65,7 @@ def seed(binder: Binder, role: str, stage: Stage | None = None) -> dict:
         and `sha`, plus its `marks` -- one per row on that page, holding the
         `address`, `anchor` and `raw_text` copied from the row, and
         `instruction: None` for the role to fill. ! THE SLOT IS BUILT BY
-        `desk.marks.mark.Mark.seed`, from the mark's own field names, so a
+        `desk.proof.mark.Mark.seed`, from the mark's own field names, so a
         renamed field breaks there rather than leaving this module writing
         the old key.
 

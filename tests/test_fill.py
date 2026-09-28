@@ -17,7 +17,8 @@ import pytest
 from conftest import SAMPLE
 from helpers import a_binder_over, a_small_real_tree, binder_of
 
-from comment_review.desk.marks.mark import Mark, untouched
+from comment_review.desk.marks.rules import validate
+from comment_review.desk.proof.mark import read_mark, untouched
 from comment_review.flows.distribute import seed
 from comment_review.flows.fill import fill, withdraw
 
@@ -97,7 +98,7 @@ class TestAnUntouchedSlotIsFilledInPlace:
     def test_what_lands_is_a_mark_the_parse_accepts(self, copy, root):
         placed, why = fill(copy, _a_correct(), root)
         assert why == []
-        mark, problems = Mark.deserialize("m.py@b1", placed)
+        mark, problems = read_mark("m.py@b1", placed, validate)
         assert problems == [] and mark is not None
 
 

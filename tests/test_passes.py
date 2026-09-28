@@ -10,8 +10,7 @@ from comment_review.desk.evaluate.passes import (
     marks_pass,
     sides_of,
 )
-from comment_review.desk.marks.mark import Instruction, Mark, Shape
-from comment_review.desk.marks.table import Touch
+from comment_review.desk.proof.mark import Instruction, Mark, Shape, Touch
 from comment_review.desk.proof.move import Placement
 from comment_review.desk.proof.place import Filed, Place
 from comment_review.desk.proof.state import State

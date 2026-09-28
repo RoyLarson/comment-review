@@ -12,7 +12,7 @@ from helpers import (
 )
 
 from comment_review.desk.answers.answer import Answer, Question
-from comment_review.desk.marks.mark import Shape
+from comment_review.desk.proof.mark import Shape
 from comment_review.flows.human import (
     HumanAnswer,
     HumanQuery,

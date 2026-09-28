@@ -23,27 +23,12 @@ that of every row, so no row answers it.
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum, auto
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from comment_review.desk.dispositions.disposition import CHIEF
-from comment_review.desk.marks.mark import Instruction, Mark, Shape, first_word_dropped
-
-if TYPE_CHECKING:
-    # Type-only: `desk.proof.place` imports `Touch` from this module, so a
-    # runtime import here would cycle back to it.
-    from comment_review.desk.proof.place import Place
-
-
-class Touch(StrEnum):
-    """Which of the places a mark writes is being asked about."""
-
-    @staticmethod
-    def _generate_next_value_(name, start, count, last_values):
-        return name.lower()
-
-    OWN = auto()
-    ORIGIN = auto()
-    DESTINATION = auto()
+from comment_review.desk.marks.rules import first_word_dropped
+from comment_review.desk.proof.mark import Instruction, Mark, Shape, Touch
+from comment_review.desk.proof.place import Place
 
 
 class Stance(StrEnum):
@@ -217,7 +202,7 @@ class Row:
     quotes_original: str = ""
     #: The claim key that names the address a destination touch writes at,
     #: "" for a row with no destination. `places` reads the destination under
-    #: it, and the parse checks the same key (`desk.marks.mark.
+    #: it, and the rule check reads the same key (`desk.marks.rules.
     #: _destination_problems`).
     names_destination: str = ""
     touches: tuple[Touch, ...] = (Touch.OWN,)

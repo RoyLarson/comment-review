@@ -3,8 +3,8 @@
     _wire_fields(cls)       the field names on the wire, in the class's order
     _written(cls, values)   `values` as the wire dict, refusing a wrong key set
 
-!! THE WIRE STAYS DICTS. Each parse has `desk.marks.mark.parse`'s own contract --
-`(T, [])` or `(None, [one message per broken rule])` -- so a caller holds a
+!! THE WIRE STAYS DICTS. Each parse has `desk.proof.mark.read_mark`'s own
+contract -- `(T, [])` or `(None, [one message per broken rule])` -- so a caller holds a
 checked object rather than re-deriving the same keys with `isinstance`
 ladders.
 
@@ -12,10 +12,10 @@ ladders.
 `EditCopy.seed` write a container from the class's own field names through
 `_written` -- `Process: #64` -- and each class's `deserialize` reads one back.
 Renaming a field breaks at construction rather than folding to a default one
-module away, which is `desk.marks.mark.Mark.seed`'s guard one level up.
+module away, which is `desk.proof.mark.Mark.seed`'s guard one level up.
 
 !!! **`seed` RETURNS THE WIRE DICT AND THAT IS CORRECT** -- `Process: #66`. A
-seed is an EMPTY FORM, not an instance: `desk.marks.mark.Mark.seed` writes three of
+seed is an EMPTY FORM, not an instance: `desk.proof.mark.Mark.seed` writes three of
 `Mark`'s eight fields plus `instruction: None`, and typing that as a `Mark`
 would need five optionals, at which point holding a `Mark` would stop meaning
 the ruling is complete. **The split is `parse` versus `seed`, not container
@@ -50,7 +50,7 @@ def _written(cls, values: dict) -> dict:
     """One container as the wire dict, keyed by `cls`'s OWN field names.
 
     !! THE WRITE HALF OF THE ROUND TRIP LIVES WITH THE READ HALF, ruled
-    `decision-log.md Process: #64`. It is `desk.marks.mark.Mark.seed`'s guard one
+    `decision-log.md Process: #64`. It is `desk.proof.mark.Mark.seed`'s guard one
     level up: every producer spelled these keys as literals, so renaming a
     field left another module writing the old key and NOTHING could notice --
     `Sheet.deserialize` folds an absent `sha` to `""` and reports no problem, where

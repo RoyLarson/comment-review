@@ -13,8 +13,8 @@ from helpers import (
 )
 
 from comment_review.desk.evaluate.move import _is_this_move, moves_in
-from comment_review.desk.marks.mark import Instruction
-from comment_review.desk.marks.table import INSTRUCTIONS, Row, Touch, chief_mark
+from comment_review.desk.marks.table import INSTRUCTIONS, Row, chief_mark
+from comment_review.desk.proof.mark import Instruction, Touch
 from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.proof.state import State

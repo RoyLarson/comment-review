@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from comment_review.binder.binder import _read_from_problem
 from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.mark import Validator
 
 
 @dataclass(frozen=True)
@@ -46,13 +47,14 @@ class MasterProof:
 
     @classmethod
     def deserialize(
-        cls, where: str, data: object
+        cls, where: str, data: object, validate: Validator
     ) -> "tuple[MasterProof | None, list[str]]":
         """One master_proof and every copy under it, checked.
 
         Args:
             where: how to name this proof in a message -- its stage label.
             data: a master_proof, as `serialize` writes one.
+            validate: the rule check every copy's ruled entries are held to.
 
         Returns:
             `(MasterProof, [])` or `(None, [messages])`. Every bad copy is
@@ -76,7 +78,7 @@ class MasterProof:
         copies: list[EditCopy] = []
         problems: list[str] = []
         for i, raw in enumerate(raw_copies, 1):
-            copy, why = EditCopy.deserialize(f"{where}: edit_copy {i}", raw)
+            copy, why = EditCopy.deserialize(f"{where}: edit_copy {i}", raw, validate)
             if copy is None:
                 problems += why
             else:

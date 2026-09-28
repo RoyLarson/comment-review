@@ -26,7 +26,7 @@ so the ordinary case is inline.
 `--from --to` for a `patch` or a `move`, `--drop`, `--missing --anchor` for an
 `add`, `--shape --attempted --settles` for a `query`. A flag the instruction's
 row does not carry is refused by name, and a missing one is named by
-`desk.marks.mark.Mark.deserialize`, so a role learns the contract from the refusal.
+`desk.marks.rules.validate`, so a role learns the contract from the refusal.
 
 ! A SOURCE IS `--cite`, AND `--verbatim` OR `--ran` BINDS TO THE `--cite`
 BEFORE IT. Ruled 2026-09-07. A `--cite` with no `--verbatim` has the cited

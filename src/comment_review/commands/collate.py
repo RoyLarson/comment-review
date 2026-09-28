@@ -30,6 +30,7 @@ import sys
 from pathlib import Path
 
 from comment_review.desk.answers.answer import Question
+from comment_review.desk.marks.rules import validate
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.move import Placement
 from comment_review.desk.proof.state import CARRIED, SETTLED, State
@@ -286,7 +287,7 @@ def _envelope(documents: list) -> tuple[list[EditCopy], list]:
     copies: list[EditCopy] = []
     refused: list = []
     for path, document in documents:
-        parsed, why = EditCopy.deserialize(path, document)
+        parsed, why = EditCopy.deserialize(path, document, validate)
         if why:
             named = document.get("role") if isinstance(document, dict) else None
             who = named if isinstance(named, str) and named else path

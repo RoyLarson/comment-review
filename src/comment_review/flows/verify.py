@@ -6,7 +6,7 @@
     coverage_problems    a role whose copies do not carry the binder's addresses
     stage_problems       a dispatch the topology named that never came back
 
-Each asks a question the desk cannot: `desk.marks.mark.parse` holds no
+Each asks a question the desk cannot: `desk.marks.rules.validate` holds no
 binder, no page and no filesystem, so whether an address names a place a real
 page carries, and whether a role carried back everything it was handed, are
 settled here instead.
@@ -28,8 +28,9 @@ from pathlib import Path
 from comment_review.binder.addresses import handed
 from comment_review.binder.binder import Binder
 from comment_review.desk.collator import Cache, Problem, verify_report
-from comment_review.desk.marks.table import INSTRUCTIONS, Touch
+from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.mark import Touch
 from comment_review.desk.stages import Stage, deals
 from comment_review.flows.on_the_page import (
     PageCache,

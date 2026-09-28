@@ -11,7 +11,7 @@
     fan_out        splits a binder by a stage's dispatches -- one seeded
                     edit_copy per dispatch, refusing an overlap or a gap
     marks          hands a role an edit_copy to fill, and checks what comes
-                    back against every rule `desk/marks/mark.py` settles
+                    back against every rule `desk/marks/rules.py` settles
     human          finds a human question in the copies or a turn's answers,
                     before the fold, and reads the human's answers file
                     (`Process: #197`, `#198`)

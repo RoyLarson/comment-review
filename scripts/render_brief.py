@@ -4,7 +4,7 @@
     uv run python scripts/render_brief.py --write
 
 !! TWO SOURCES, AND THE SCRIPT INVENTS NEITHER. The instruction names and the
-`claim` keys are a fact the code owns -- `INSTRUCTIONS` in `desk/marks/mark.py`,
+`claim` keys are a fact the code owns -- `INSTRUCTIONS` in `desk/marks/table.py`,
 each row's `claim_all`. The prose naming WHAT a claim carries is a fact the
 spec owns -- `docs/the-mark.md`'s "What each instruction owes" table, the
 row's own flags column, written by a human. This script JOINS the two on the
@@ -100,7 +100,7 @@ def render() -> str:
     spec_names = set(prose)
     if code_names != spec_names:
         raise SystemExit(
-            "render_brief: INSTRUCTIONS (desk/marks/mark.py) and docs/the-mark.md "
+            "render_brief: INSTRUCTIONS (desk/marks/table.py) and docs/the-mark.md "
             "name different instructions -- code only: "
             f"{sorted(code_names - spec_names)}, spec only: "
             f"{sorted(spec_names - code_names)}"

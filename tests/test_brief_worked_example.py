@@ -33,7 +33,8 @@ from helpers import a_binder_over, returned
 
 from comment_review.commands.collate import main as collate_main
 from comment_review.desk.collator import tally
-from comment_review.desk.marks.mark import Mark, untouched
+from comment_review.desk.marks.rules import validate
+from comment_review.desk.proof.mark import read_mark, untouched
 from comment_review.flows.mark_errors import mark_errors
 
 BRIEF_PATH = ROOT / "src/plugin/skills/comment-review/references/reviewer-brief.md"
@@ -75,7 +76,7 @@ def test_the_example_is_not_read_as_an_untouched_slot():
 
 
 def test_the_examples_mark_parses():
-    mark, why = Mark.deserialize("the brief's example", ENTRY)
+    mark, why = read_mark("the brief's example", ENTRY, validate)
     assert why == []
     assert mark is not None
     assert mark.instruction == ENTRY["instruction"]
@@ -178,7 +179,7 @@ def test_dropping_a_field_the_example_fills_is_refused(key):
     in turn and the mark must be refused."""
     broken = dict(ENTRY)
     del broken[key]
-    mark, why = Mark.deserialize("the brief's example", broken)
+    mark, why = read_mark("the brief's example", broken, validate)
     assert mark is None and why != []
 
 
@@ -188,6 +189,6 @@ def test_the_retired_key_name_is_refused_by_name():
     old = {k: v for k, v in ENTRY.items() if k != "instruction"}
     old["mark"] = ENTRY["instruction"]
     assert not untouched(old)
-    mark, why = Mark.deserialize("the brief's example", old)
+    mark, why = read_mark("the brief's example", old, validate)
     assert mark is None
     assert any("instruction" in message for message in why)

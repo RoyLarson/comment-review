@@ -33,7 +33,7 @@ from helpers import (
 )
 
 from comment_review.commands import check as command
-from comment_review.desk.marks.mark import Shape
+from comment_review.desk.proof.mark import Shape
 from comment_review.desk.work.events import Refused
 from comment_review.flows.bus import AnswersReturned, CopiesReturned, handle
 

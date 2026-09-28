@@ -13,6 +13,7 @@ from conftest import PKG, SAMPLE, build, by_cue, cue, docket_from
 from helpers import a_move, copies_over, entries_of, returned
 
 from comment_review.binder.binder import bind
+from comment_review.desk.marks.rules import validate
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.flows import page_for as page_for_mod
@@ -484,7 +485,7 @@ class TestTheWriteEndChecksAMarksAnchor:
         )
         if anchor is not None:
             slot["anchor"] = anchor
-        copy, why = EditCopy.deserialize("copy", wire)
+        copy, why = EditCopy.deserialize("copy", wire, validate)
         assert copy is not None, why
         return copy
 

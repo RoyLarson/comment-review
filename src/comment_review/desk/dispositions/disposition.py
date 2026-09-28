@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, fields
 
-from comment_review.desk.marks.mark import filled
+from comment_review.desk.proof.mark import filled
 
 ORIGINAL = "original"
 CHIEF = "copy-chief"

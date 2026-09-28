@@ -28,7 +28,7 @@ mark-tool.md`. This is that script, and `commands/mark.py` exposes it.
 
 !! ONE RULING PER CALL, AND IT WRITES NOTHING UNTIL EVERY CHECK HAS PASSED.
 The entry is built whole -- placed, derived, quoted -- and then run through
-`desk.marks.mark.Mark.deserialize`, the same boundary the fold applies; only a mark
+`desk.marks.rules.validate`, the same boundary the fold applies; only a mark
 that parses lands on the copy. A refusal leaves the copy exactly as it was, so
 a role reads the reasons and calls again.
 
@@ -62,7 +62,7 @@ says why: a role's copy mid-fill holds slots nobody has ruled on, and
 `Sheet.serialize` writes only the rulings, so parsing the copy to save it would
 drop every null slot -- the coverage the seeded shape exists to keep.
 
-! THE FLOW READS THE CHECKOUT AND THE DESK DOES NOT. `desk.marks.mark.derived_change`
+! THE FLOW READS THE CHECKOUT AND THE DESK DOES NOT. `desk.marks.rules.derived_change`
 is the pure half -- the paragraph and the claim in, the change out -- and the
 cited line is read here, through `machine.repo.read_raw`, the same reader and
 the same splitter `desk.collator.source_problems` will check the result with.
@@ -73,14 +73,15 @@ from pathlib import Path
 
 from comment_review.desk.collator import cite_at
 from comment_review.desk.evaluate.passes import composed_side, proposing
-from comment_review.desk.marks.mark import (
+from comment_review.desk.marks.rules import derived_change, validate
+from comment_review.desk.marks.table import INSTRUCTIONS, Row
+from comment_review.desk.proof.mark import (
     Instruction,
     Mark,
-    derived_change,
     filled,
+    read_mark,
     untouched,
 )
-from comment_review.desk.marks.table import INSTRUCTIONS, Row
 from comment_review.desk.proof.place import Filed
 from comment_review.desk.stages import not_admitted
 from comment_review.flows.on_the_page import held_at
@@ -273,7 +274,7 @@ def marks_on(copy: dict) -> list[Mark]:
         for entry in sheet.get("marks") or []:
             if untouched(entry):
                 continue
-            mark, _why = Mark.deserialize("", entry)
+            mark, _why = read_mark("", entry, validate)
             if mark is not None:
                 out.append(mark)
     return out
@@ -512,7 +513,7 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
             return None, why
         mark["sources"] = quoted
 
-    parsed, why = Mark.deserialize(address, mark)
+    parsed, why = read_mark(address, mark, validate)
     if parsed is None:
         return None, why
 

@@ -27,7 +27,7 @@ from enum import StrEnum, auto
 
 from comment_review.desk.answers.answer import Answer
 from comment_review.desk.dispositions.disposition import Disposition
-from comment_review.desk.marks.mark import Mark
+from comment_review.desk.proof.mark import Mark
 
 
 class Placement(StrEnum):

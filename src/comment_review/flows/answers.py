@@ -23,7 +23,8 @@ from pathlib import Path
 from comment_review.desk.answers.answer import Answer, Question
 from comment_review.desk.answers.table import ANSWERS
 from comment_review.desk.collator import Cache, Problem, cited_problems
-from comment_review.desk.marks.mark import QUERY_SHAPES, allowed, filled
+from comment_review.desk.marks.rules import allowed
+from comment_review.desk.proof.mark import QUERY_SHAPES, filled
 from comment_review.desk.proof.move import key_of
 
 #: What each field of an answer is, in the words `Answer.deserialize` checks
@@ -44,7 +45,7 @@ ANSWER_FIELDS = {
 }
 
 #: The field whose value is itself a closed set, and that set. The mark's own
-#: contract publishes the same one under the same name (`desk.marks.mark.
+#: contract publishes the same one under the same name (`desk.marks.rules.
 #: allowed`), and both read `QUERY_SHAPES` rather than spelling it twice.
 ANSWER_VALUES = {"shape": [str(one) for one in QUERY_SHAPES]}
 

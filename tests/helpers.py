@@ -34,9 +34,10 @@ from comment_review.binder.binder import VERSION, Binder, bind
 from comment_review.commands import collate as collate_command
 from comment_review.commands import disposition as disposition_command
 from comment_review.commands import turn as turn_command
-from comment_review.desk.marks.mark import ANCHOR_EXAMPLE, Instruction, Mark, Shape
+from comment_review.desk.marks.rules import ANCHOR_EXAMPLE, validate
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.mark import Instruction, Mark, Shape
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.docket.docket import Docket
@@ -52,14 +53,12 @@ from comment_review.flows.proof_io import load_proof
 _DESK = Path(__file__).resolve().parents[1] / "src" / "comment_review" / "desk"
 
 #: A real citation `a_correct`, `a_move`, `a_query` and `an_add` reuse for
-#: `sources` -- `desk/marks/mark.py`'s own first line, read once at import
-#: time. `desk/marks/mark.py` moved to `desk/marks/mark.py` in T1 of
-#: `docs/superpowers/plans/2026-09-14-the-middle-rebuilt.md`, taking its
-#: comment paragraphs with it; the shim left behind is thirteen lines of
-#: imports, with no filled `b` row for `a_docket_over` to find.
-_MARK_PY_CITE = "src/comment_review/desk/marks/mark.py:1"
+#: `sources` -- `desk/proof/mark.py`'s own first line, read once at import
+#: time. The file is the mark's own module and holds filled `b` rows for
+#: `a_docket_over` to find.
+_MARK_PY_CITE = "src/comment_review/desk/proof/mark.py:1"
 _MARK_PY_LINE_1 = (
-    (_DESK / "marks" / "mark.py").read_text(encoding="utf-8").splitlines()[0]
+    (_DESK / "proof" / "mark.py").read_text(encoding="utf-8").splitlines()[0]
 )
 
 #: The sentence `a_drop` and `a_correct` quote when a caller names none. It is
@@ -153,15 +152,14 @@ def a_small_real_tree(tmp_path: Path) -> Path:
     ! REAL SOURCE, NEVER A HAND-AUTHORED LITERAL -- `CLAUDE.md`'s ruling for
     this suite. `mark.py` keeps its own flat name in the written repo so a
     docket over "mark.py" names a file that is actually there, though its
-    content is read from `desk/marks/mark.py` now that the move landed --
-    which is where it lives since the move. The
+    content is read from `desk/proof/mark.py`, where `Mark` lives. The
     other three are along so `test_revise.py`'s own case can show a page the
     docket does not name is missing from the revise, per `decision-log.md
     Process: #117`.
     """
     repo = tmp_path / "repo"
     repo.mkdir()
-    (repo / "mark.py").write_bytes((_DESK / "marks" / "mark.py").read_bytes())
+    (repo / "mark.py").write_bytes((_DESK / "proof" / "mark.py").read_bytes())
     for name in ("stages.py", "collator.py", "__init__.py"):
         (repo / name).write_bytes((_DESK / name).read_bytes())
     return repo
@@ -410,7 +408,7 @@ def a_real_binder_over(root: Path, paragraphs: dict[str, str]) -> Binder:
     root.mkdir(parents=True, exist_ok=True)
     cited = root / _MARK_PY_CITE.rpartition(":")[0]
     cited.parent.mkdir(parents=True, exist_ok=True)
-    cited.write_bytes((_DESK / "marks" / "mark.py").read_bytes())
+    cited.write_bytes((_DESK / "proof" / "mark.py").read_bytes())
     by_path: dict[str, dict[int, str]] = {}
     for address, text in paragraphs.items():
         path, _, place = address.partition("@")
@@ -480,7 +478,7 @@ def _quoting_the_real_text(mark: dict, entry: dict) -> dict:
     !! MEASURED 2026-08-31, WHEN `P25` GAVE THE CLAIM A READER. `a_correct`'s
     default sentence -- `"the paragraph's own claim"` -- is in no paragraph any
     helper builds, so **every mark built from that default carried a claim that
-    was never true of its own base**. Nothing could see it: `desk.marks.mark.parse`
+    was never true of its own base**. Nothing could see it: `desk.marks.rules.validate`
     imports no binder and no page, so the sentence was unfalsifiable until
     `desk.collator.claim_verbatim_problems` ran in the flow.
 
@@ -588,7 +586,7 @@ def returned(wire: dict, where: str = "copy") -> EditCopy:
     being a well-formed copy fails HERE, naming the field, rather than as a
     surprising result from the function under test.
     """
-    copy, why = EditCopy.deserialize(where, wire)
+    copy, why = EditCopy.deserialize(where, wire, validate)
     assert copy is not None, why
     return copy
 
@@ -716,7 +714,7 @@ def a_correct(address: str, sentence: object = _PLACEHOLDER_SENTENCE) -> dict:
 
     ! `sentence` IS COERCED TO A STRING, so a caller may pass a bare
     discriminator (`sentence=0`, `sentence=2`) to say only *a different
-    sentence from the other mark's*. `desk.marks.mark.parse` requires a filled
+    sentence from the other mark's*. `desk.marks.rules.validate` requires a filled
     STRING, and `0` is neither.
     """
     return _mark(
@@ -835,7 +833,7 @@ def a_query(address: str, shape: Shape = Shape.UNABLE_TO_DETERMINE) -> dict:
 
 def an_add(address: str, reads: str | None = None) -> dict:
     """An `add` mark -- `claim.anchor` NAMED IN BACKTICKS, using
-    `desk.marks.mark.ANCHOR_EXAMPLE` rather than a hand-typed name.
+    `desk.marks.rules.ANCHOR_EXAMPLE` rather than a hand-typed name.
 
     Args:
         address: the mark's own address.

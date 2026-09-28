@@ -12,7 +12,7 @@
     tally()                    how many of each instruction the edit_copy carries
 
 !! TWO KINDS OF CHECK, AND WHAT EACH NEEDS IS WHAT SEPARATES THEM. NAMED BY
-MEMBER, NOT BY FILE-ORDER RANGE -- `desk/marks/mark.py` answers everything a
+MEMBER, NOT BY FILE-ORDER RANGE -- `desk/marks/rules.py` answers everything a
 mark can be judged by on its own. One kind needs the PAGE the role read and the
 FILES it cited: `claim_verbatim_problems`, `source_problems`,
 `source_verification` and `verify_report` measure a mark against the texts
@@ -73,14 +73,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from comment_review.binder.binder import Binder
-from comment_review.desk.marks.mark import (
-    Instruction,
-    Mark,
-    filled,
-    without_location,
-)
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.mark import Instruction, Mark, filled, without_location
 from comment_review.machine import constants
 from comment_review.machine.exceptions import READ_ERRORS
 from comment_review.machine.repo import can_escape, read_raw
@@ -127,7 +122,7 @@ def claim_verbatim_problems(
 
     Args:
         where: how to name this mark in a message -- its address, or a position.
-        mark: one role's ruling, already through `desk.marks.mark.parse`.
+        mark: one role's ruling, already through `desk.marks.rules.validate`.
         texts: every text at this place the quote may be in, as the flow reads
             them (`decision-log.md Process: #119`): the page's text at the
             mark's address, whether or not the binder holds that place or its
@@ -139,8 +134,8 @@ def claim_verbatim_problems(
 
     Returns:
         One message, or an empty list. A key that is absent, is not a string,
-        or holds only whitespace says nothing here -- `desk.marks.mark.parse` is what
-        refuses those, and this step has nothing to compare.
+        or holds only whitespace says nothing here -- `desk.marks.rules.validate`
+        is what refuses those, and this step has nothing to compare.
     """
     key = INSTRUCTIONS[mark.instruction].quotes_original
     if not key:
@@ -234,7 +229,7 @@ def cited_problems(where: str, sources: object, root: Path, cache: Cache) -> lis
 
     ! A SOURCE WITH NO USABLE `cite` IS PASSED OVER, and so is one with no
     usable `verbatim` once its cite has resolved. Whether a source was OWED at
-    all is `desk.marks.mark.parse`'s question, off `INSTRUCTIONS[...].owes_sources`;
+    all is `desk.marks.rules.validate`'s question, off `INSTRUCTIONS[...].owes_sources`;
     this step rules only on what it can resolve.
 
     Args:
@@ -308,7 +303,7 @@ def source_verification(
 
     Args:
         where: how to name this mark in a message -- its address, or a position.
-        mark: one role's ruling, already through `desk.marks.mark.parse`.
+        mark: one role's ruling, already through `desk.marks.rules.validate`.
         texts: every text at this place the quoted sentence may be in -- see
             `claim_verbatim_problems`.
         root: the checkout every `cite` is resolved against.
@@ -325,9 +320,9 @@ class Problem:
 
     !! STRUCTURED RATHER THAN A SENTENCE, ruled by Roy 2026-08-30: *"the errors
     should be stacked and capable of being read off correctly so that each can
-    be fixed or sent back to the role."* `desk.marks.mark.parse` returns flat strings
-    each opening with a `where`, and a caller cannot route on a sentence -- so
-    the role and the address ride beside the message.
+    be fixed or sent back to the role."* `desk.marks.rules.validate` returns
+    flat strings each opening with a `where`, and a caller cannot route on a
+    sentence -- so the role and the address ride beside the message.
 
     ! THERE IS NO `kind` FIELD. The questions -- is this mark well formed, is
     what it quotes and cites really there, did anyone rule here -- stay
@@ -385,7 +380,7 @@ def verify_report(
         because it is the one that holds the copy and therefore the role.
 
     !! AN UNTOUCHED SLOT IS SKIPPED, and so is AN UNPARSEABLE ENTRY -- the
-    second only since 2026-08-31. The first is `desk.marks.mark.untouched`: a
+    second only since 2026-08-31. The first is `desk.proof.mark.untouched`: a
     coverage gap, a place no role wrote in. The second has no `Mark` to check,
     and its parse messages belong to `flows.mark_errors`.
 

@@ -64,6 +64,7 @@ from typing import NamedTuple
 
 from comment_review.binder.page import Page
 from comment_review.desk.dispositions.disposition import CHIEF
+from comment_review.desk.marks.rules import validate
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
@@ -336,7 +337,7 @@ def _places_on(proof: MasterProof) -> tuple[list[Place], list[str]]:
     problems: list[str] = []
     for i, entry in enumerate(proof.places, 1):
         where = str(entry.get("address") or "") or f"place {i}"
-        place, why = Place.deserialize(f"{CHIEF} {where}", entry)
+        place, why = Place.deserialize(f"{CHIEF} {where}", entry, validate)
         if place is None:
             problems += why
         else:

@@ -5,7 +5,8 @@ from comment_review.desk.answers.table import ANSWERS, Effect
 from comment_review.desk.dispositions.disposition import CHIEF, ORIGINAL
 from comment_review.desk.dispositions.table import DISPOSITIONS
 from comment_review.desk.evaluate.move import hold_ends, placement_pass, settle_ends
-from comment_review.desk.marks.table import INSTRUCTIONS, Stance, Touch
+from comment_review.desk.marks.table import INSTRUCTIONS, Stance
+from comment_review.desk.proof.mark import Touch
 from comment_review.desk.proof.move import Move
 from comment_review.desk.proof.place import Filed, Place
 from comment_review.desk.proof.state import CARRIED, State

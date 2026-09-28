@@ -4,8 +4,7 @@ from dataclasses import dataclass, field
 
 from comment_review.desk.answers.answer import Answer, Question
 from comment_review.desk.dispositions.disposition import Disposition
-from comment_review.desk.marks.mark import Mark
-from comment_review.desk.marks.table import Touch
+from comment_review.desk.proof.mark import Mark, Touch, Validator, read_mark
 from comment_review.desk.proof.state import State
 
 
@@ -96,15 +95,20 @@ class Place:
         }
 
     @classmethod
-    def deserialize(cls, where: str, entry: object) -> "tuple[Place | None, list[str]]":
-        """One entry becomes a `Place`, or becomes named problems."""
+    def deserialize(
+        cls, where: str, entry: object, validate: Validator
+    ) -> "tuple[Place | None, list[str]]":
+        """One entry becomes a `Place`, or becomes named problems.
+
+        Each filed mark is read through `read_mark` and held to `validate`.
+        """
         if not isinstance(entry, dict):
             return None, [f"{where}: a place must be an object"]
         data: dict = entry
         problems: list[str] = []
         filed = []
         for i, one in enumerate(data.get("filed") or []):
-            mark, why = Mark.deserialize(f"{where} mark {i}", one)
+            mark, why = read_mark(f"{where} mark {i}", one, validate)
             if mark is None:
                 problems += why
                 continue

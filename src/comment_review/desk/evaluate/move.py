@@ -12,8 +12,8 @@ The move itself -- its fields, its placements and its name -- is
 from comment_review.desk.answers.answer import Question
 from comment_review.desk.answers.table import ANSWERS, Effect
 from comment_review.desk.dispositions.disposition import CHIEF, ORIGINAL, Disposition
-from comment_review.desk.marks.mark import Mark
-from comment_review.desk.marks.table import INSTRUCTIONS, Stance, Touch
+from comment_review.desk.marks.table import INSTRUCTIONS, Stance
+from comment_review.desk.proof.mark import Mark, Touch
 from comment_review.desk.proof.move import FINAL, UNDECIDED, Move, Placement, key_of
 from comment_review.desk.proof.place import Filed, Place
 from comment_review.desk.proof.state import State

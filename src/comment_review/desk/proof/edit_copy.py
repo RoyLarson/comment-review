@@ -8,7 +8,7 @@ There is no second shape and no second parse.
 from dataclasses import dataclass
 
 from comment_review.binder.binder import _read_from_problem
-from comment_review.desk.marks.mark import filled
+from comment_review.desk.proof.mark import Validator, filled
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.proof.wire import _written
 
@@ -80,7 +80,7 @@ class EditCopy:
 
     @classmethod
     def deserialize(
-        cls, where: str, data: object
+        cls, where: str, data: object, validate: Validator
     ) -> "tuple[EditCopy | None, list[str]]":
         """One edit_copy and every sheet under it, checked.
 
@@ -91,6 +91,7 @@ class EditCopy:
         Args:
             where: how to name this copy in a message.
             data: one edit_copy, as `flows.distribute.seed` builds one.
+            validate: the rule check every sheet's ruled entries are held to.
 
         Returns:
             `(EditCopy, [])` or `(None, [messages])`.
@@ -114,7 +115,7 @@ class EditCopy:
         sheets: list[Sheet] = []
         problems: list[str] = []
         for i, raw in enumerate(raw_sheets, 1):
-            sheet, why = Sheet.deserialize(f"{where}: {role} sheet {i}", raw)
+            sheet, why = Sheet.deserialize(f"{where}: {role} sheet {i}", raw, validate)
             if sheet is None:
                 problems += why
             else:

@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field, fields
 from enum import StrEnum, auto
 
-from comment_review.desk.marks.mark import filled
+from comment_review.desk.proof.mark import filled
 
 
 class Question(StrEnum):

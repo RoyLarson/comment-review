@@ -16,7 +16,7 @@ and in `flows`; this package holds the objects alone.
 `decision-log.md Vocabulary: #30`. `docs/the-mark.md` exists because an agent
 AUTHORS a mark, so a mark's shape must be published to a role. No agent ever
 authors a container, so the type is where the shape lives, the way
-`desk/marks/mark.py` defines `Mark`.
+`desk/proof/mark.py` defines `Mark`.
 
     write   flows.distribute.seed, flows.places.chief_copy_of,
             flows.bus

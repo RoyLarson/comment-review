@@ -28,13 +28,12 @@ from comment_review.desk.dispositions.disposition import ORIGINAL  # noqa: E402
 from comment_review.desk.dispositions.table import (  # noqa: E402
     DISPOSITIONS as DISPOSITION_ROWS,
 )
-from comment_review.desk.marks.mark import (  # noqa: E402
-    Instruction,
-    Shape,
+from comment_review.desk.marks.rules import (  # noqa: E402
     derived_change,
     first_word_dropped,
 )
 from comment_review.desk.marks.table import INSTRUCTIONS  # noqa: E402
+from comment_review.desk.proof.mark import Instruction, Shape  # noqa: E402
 from comment_review.flows.answers import slot_key  # noqa: E402
 from comment_review.flows.fill import marks_on  # noqa: E402
 from comment_review.flows.human import HumanAnswer, read_answers  # noqa: E402
@@ -120,7 +119,7 @@ WIDER = {"store.py@c5": "wants"}
 class TestTheLandingTableAgreesWithTheFixture(unittest.TestCase):
     """`LANDINGS` against the pages built from `FIXTURE` and `RATE_FIXTURE`:
     a landing carrying a `claim` has as its `Landing.marked`, or else its
-    `Landing.text`, what `desk.marks.mark.derived_change` makes of its fixture's
+    `Landing.text`, what `desk.marks.rules.derived_change` makes of its fixture's
     paragraph at that address, and a landing at an empty place names the
     line its place is set against -- so the table cannot drift from what the
     fixtures hold.

@@ -5,7 +5,7 @@
     NO_PLACE          the refusal for an untouched entry naming no place
 
 !! `Sheet.marks` HOLDS `Mark`s SINCE `P51`, and was `tuple[object, ...]` --
-an entry that is not an object was CARRIED so `desk.marks.mark.parse` could refuse it
+an entry that is not an object was CARRIED so the mark parse could refuse it
 by name rather than have it vanish. `_sorted_entries` refuses it at the parse
 instead, into `Sheet.refused`, so nothing vanishes and nothing downstream has to
 re-read a raw entry. ! `Mark.sources` IS STILL `object` for the original
@@ -15,7 +15,14 @@ reason; the two are no longer the same case.
 from dataclasses import dataclass, field
 from typing import NamedTuple
 
-from comment_review.desk.marks.mark import Mark, filled, untouched, without_location
+from comment_review.desk.proof.mark import (
+    Mark,
+    Validator,
+    filled,
+    read_mark,
+    untouched,
+    without_location,
+)
 from comment_review.desk.proof.wire import _written
 
 
@@ -45,7 +52,8 @@ class Refused(NamedTuple):
             in `marks` reported `block-context (the copy): this mark: a mark
             must be an object`, naming neither the page nor the entry, so a role
             could not find what to fix.
-        reasons: every rule the entry broke, as `Mark.deserialize` worded them.
+        reasons: every rule the entry broke, as `read_mark` worded them --
+            the structural read's, or the validator's it was handed.
             ! ALL OF THEM, not the first -- one malformed `correct` breaks four,
             and a role fixing one at a time is three more round trips.
     """
@@ -64,6 +72,7 @@ NO_PLACE = "an untouched slot must carry the `address` it was seeded with"
 def _sorted_entries(
     path: str,
     marks: list,
+    validate: Validator,
 ) -> "tuple[list[Mark], list[str], list[Refused]]":
     """One sheet's entries, split into the three kinds a returned sheet holds.
 
@@ -80,12 +89,14 @@ def _sorted_entries(
             to say which page it sits on.
         marks: the sheet's `marks` list, as it came back. Entries are whatever
             JSON held -- an object, a string, a number.
+        validate: the rule check each ruled entry is held to, through
+            `read_mark`.
 
     Returns:
         `(ruled, unruled, refused)`.
 
         ruled: one `Mark` per entry that parsed.
-        unruled: the ADDRESS of every untouched entry -- `desk.marks.mark.untouched`,
+        unruled: the ADDRESS of every untouched entry -- `desk.proof.mark.untouched`,
             a place nobody wrote in. ! IT IS ASKED FIRST, because an untouched
             entry does not parse either: `Mark.deserialize` refuses its
             `instruction: None` with *"must be one of add, clean, ..."*, which
@@ -124,7 +135,7 @@ def _sorted_entries(
             else:
                 refused.append(Refused("", where, (NO_PLACE,)))
             continue
-        mark, why = Mark.deserialize(where, entry)
+        mark, why = read_mark(where, entry, validate)
         if mark is None:
             # ! THE LOCATOR IS A FIELD, SO IT IS NOT ALSO A PREFIX -- T3 of
             # `collate-command-defects`. `where` went IN to name the mark in
@@ -163,7 +174,7 @@ class Sheet:
         marks: one `Mark` per place a role RULED on, in the order they came
             back.
         unruled: the address of every place handed to the role and left
-            untouched -- `desk.marks.mark.untouched`. A coverage gap, not an error.
+            untouched -- `desk.proof.mark.untouched`. A coverage gap, not an error.
         refused: one `Refused` per entry that is neither untouched nor
             parseable. ! IT IS NOT FATAL TO THE SHEET, and that is what keeps
             one role's bad mark from blocking the stage: the fold
@@ -211,12 +222,16 @@ class Sheet:
         )
 
     @classmethod
-    def deserialize(cls, where: str, data: object) -> "tuple[Sheet | None, list[str]]":
+    def deserialize(
+        cls, where: str, data: object, validate: Validator
+    ) -> "tuple[Sheet | None, list[str]]":
         """One sheet, checked.
 
         Args:
             where: how to name this sheet in a message.
             data: one entry of an edit_copy's `sheets`, as it came back.
+            validate: the rule check each ruled entry is held to; an entry
+                that breaks a rule goes to `refused` with its messages.
 
         Returns:
             `(Sheet, [])` or `(None, [messages])`. An absent OR a null `sha` is
@@ -274,7 +289,7 @@ class Sheet:
         # it from reading as the settled shape.
         raw_sha = data.get("sha")
         sha = raw_sha if isinstance(raw_sha, str) else ""
-        ruled, unruled, refused = _sorted_entries(path, marks)
+        ruled, unruled, refused = _sorted_entries(path, marks, validate)
         return (
             Sheet(
                 path=path,
