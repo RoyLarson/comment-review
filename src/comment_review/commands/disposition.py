@@ -41,7 +41,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from comment_review.commands.collate import _code_for, _counted, _print, _refused
+from comment_review.commands.collate import OK, _code_for, _counted, _print, _refused
 from comment_review.flows.bus import DispositionsWritten, handle, turn_of
 from comment_review.flows.proof_io import (
     load_proof,
@@ -108,11 +108,18 @@ def main() -> int:
         places = sum(len(sheet.marks) for sheet in result.chief.sheets)
         print(f"{args.out}: the chief's copy, {places} places")
     save_proof(Path(args.proof_out), result.proof)
-    print(
-        f"{args.proof_out}: the proof closed at turn {turn_of(result.proof)} --"
-        f" {_counted(result.proof.places)}"
-    )
-    return _code_for(out)
+    code = _code_for(out)
+    # A placement ruling can leave its move's ends carried forward, for the
+    # chief to rule by running this again on the proof it just wrote.
+    turn, counted = turn_of(result.proof), _counted(result.proof.places)
+    if code == OK:
+        print(f"{args.proof_out}: the proof closed at turn {turn} -- {counted}")
+    else:
+        print(
+            f"{args.proof_out}: the proof at turn {turn} is not closed -- {counted};"
+            " rule what it carries and run disposition again on it"
+        )
+    return code
 
 
 if __name__ == "__main__":

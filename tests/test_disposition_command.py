@@ -166,6 +166,9 @@ class TestTheChiefRulesAMoveThenItsEnds:
     ):
         code, out = self._placed(tmp_path, monkeypatch, capsys)
         assert code in (collate_command.REREADS, collate_command.ESCALATIONS), out
+        # The ends are carried, so the proof it writes is not closed yet.
+        assert "the proof closed" not in out, out
+        assert "the proof at turn 0 is not closed" in out, out
         placed = _closed(tmp_path)
         assert [m["placement"] for m in placed.moves] == ["agreed"]
         assert place_on(placed, "m.py@b1")["state"] == "composed"
