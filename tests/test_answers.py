@@ -308,9 +308,13 @@ def test_a_placement_answer_built_from_the_contract_is_taken_at_its_move(tmp_pat
         "to": "m.py@b5",
         "anchor": "x = 1",
         "question": "placement",
-        "movers": ["block-context"],
-        "snippet": "# two\n",
-        "raw_text": "# four\n# two\n",
+        "movers": [
+            {
+                "role": "block-context",
+                "snippet": "# two\n",
+                "raw_text": "# four\n# two\n",
+            }
+        ],
         "instruction": None,
     }
     copied = {

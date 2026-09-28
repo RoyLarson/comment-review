@@ -1072,7 +1072,9 @@ class TestAMovesPlacementIsAskedOnce:
         batch = _slots_of(result)
         slots = [s for s in batch["module-context"] if s["question"] == "placement"]
         assert [(s["address"], s["to"]) for s in slots] == [("m.py@b1", "m.py@b2")]
-        assert slots[0]["raw_text"] == ARRIVAL and slots[0]["snippet"] == "# two\n"
+        assert slots[0]["movers"] == [
+            {"role": "block-context", "snippet": "# two\n", "raw_text": ARRIVAL}
+        ]
         assert "block-context" not in batch or not [
             s for s in batch["block-context"] if s["question"] == "placement"
         ]
@@ -1099,6 +1101,42 @@ class TestAMovesPlacementIsAskedOnce:
             (m.instruction, m.address) for s in result.chief.sheets for m in s.marks
         ]
         assert sorted(chief) == [("add", "m.py@b2"), ("drop", "m.py@b1")]
+
+    def test_every_mover_of_a_move_is_in_its_placement_slot(self, tmp_path):
+        """Two roles move text between the same two places, each taking its
+        own snippet (`Process: #196`). The one slot puts both to the reader,
+        not the lowest-named mover's alone."""
+        root = tmp_path / "repo"
+        binder = a_real_binder_over(root, {"m.py@b1": MOVED_FROM, "m.py@b2": OTHER})
+        also = "# four\n# three\n# five\n# six"
+        by_role = {
+            "block-context": {
+                "m.py@b1": a_move(
+                    "m.py@b1", "m.py@b2", change="# two\n", reads=ARRIVAL
+                ),
+                "m.py@b2": a_clean("m.py@b2"),
+            },
+            "function-context": {
+                "m.py@b1": a_move("m.py@b1", "m.py@b2", change="# three", reads=also),
+                "m.py@b2": a_clean("m.py@b2"),
+            },
+            "module-context": {
+                "m.py@b1": a_clean("m.py@b1"),
+                "m.py@b2": a_clean("m.py@b2"),
+            },
+        }
+        copies = [returned(wire) for wire in copies_over(binder, by_role)]
+        out, result = handle(CopiesReturned("4c", copies, binder, root, None))
+        assert result is not None, out
+        (slot,) = [
+            s
+            for s in _slots_of(result)["module-context"]
+            if s["question"] == "placement"
+        ]
+        assert slot["movers"] == [
+            {"role": "block-context", "snippet": "# two\n", "raw_text": ARRIVAL},
+            {"role": "function-context", "snippet": "# three", "raw_text": also},
+        ]
 
     def test_a_stet_puts_it_to_the_mover_and_the_stetter(self, tmp_path):
         message, root = _a_move_two_roles_read(tmp_path)

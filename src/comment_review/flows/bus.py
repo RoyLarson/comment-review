@@ -672,8 +672,9 @@ def _batch_of(
     """Role -> one slot per carried-forward place that role is asked about.
 
     And one slot per move whose placement is undecided, for each role it is
-    put to (`decision-log.md Process: #195`): the move's two addresses, the
-    snippet and the paragraph it arrives as.
+    put to (`decision-log.md Process: #195`): the move's two addresses and,
+    for every role that filed it, the snippet and the paragraph it arrives as
+    (`Process: #196`) -- the roles may have moved different text.
 
     Every slot carries the tree the copies were read from, as an edit_copy and
     a master proof each carry their own: a role hands the slot back as it was
@@ -706,8 +707,10 @@ def _batch_of(
                 }
             )
     for move in moves:
-        mover = min(move.movers) if move.movers else ""
-        mark = move.movers.get(mover)
+        movers = [
+            {"role": role, "snippet": mark.change, "raw_text": mark.raw_text}
+            for role, mark in sorted(move.movers.items())
+        ]
         origin = places.get(move.origin)
         for role in move.owed:
             batch.setdefault(role, []).append(
@@ -716,9 +719,7 @@ def _batch_of(
                     "to": move.destination,
                     "anchor": origin.anchor if origin else "",
                     "question": str(Question.PLACEMENT),
-                    "movers": sorted(move.movers),
-                    "snippet": mark.change if mark else "",
-                    "raw_text": mark.raw_text if mark else "",
+                    "movers": [dict(one) for one in movers],
                     "instruction": None,
                     "read_from": {**read_from},
                 }

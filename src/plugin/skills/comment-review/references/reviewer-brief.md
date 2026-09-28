@@ -360,8 +360,9 @@ were sent; `check --contract` prints the shape each answer takes.
 - **At an `add`'s empty place**, where the add is another role's, the slot's text is the add's.
   Your `clean` agrees; an `outside-my-role` or `unable-to-determine` query abstains.
 - **A `placement`** asks whether a move's paragraph belongs at its destination. Its slot
-  carries `address`, the origin; `to`, the destination; `movers`; `snippet`, the text that
-  leaves; and `raw_text`, the paragraph it arrives as. Answer with a `reason` and one of:
+  carries `address`, the origin; `to`, the destination; and `movers`, one entry for each role
+  that filed the move, with its `snippet`, the text that leaves, and its `raw_text`, the
+  paragraph it arrives as. Answer with a `reason` and one of:
 
 | answer | who gives it | what it does |
 | --- | --- | --- |
