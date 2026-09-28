@@ -2,6 +2,7 @@
 
 from dataclasses import replace
 
+import pytest
 from helpers import (
     VALIDATORS,
     a_clean,
@@ -195,7 +196,7 @@ def _dealt(tmp_path, by_role, admits=("patch", "drop", "add", "clean"), stage="6
     message = _message(tmp_path, by_role)
     message.copies[0] = replace(message.copies[0], stage=stage, admits=admits)
     # `_replace` rather than `dataclasses.replace`: a message is a NamedTuple.
-    return message._replace(topology=COMPACTING)
+    return message._replace(stage=COMPACTING.name, topology=COMPACTING)
 
 
 #: One role's marks over a page of two places, one of them an instruction the
@@ -256,11 +257,33 @@ def test_without_a_topology_the_copys_own_admits_still_binds(tmp_path):
     message.copies[0] = replace(
         message.copies[0], stage="6", admits=("patch", "drop", "add", "clean")
     )
-    out, result = handle(message)
+    out, result = handle(message._replace(stage="6"))
     assert result is None
     refused = [one for one in out if isinstance(one, events.Refused)]
     assert [one.address for one in refused] == ["m.py@b1"]
     assert "and not correct" in refused[0].reasons[0]
+
+
+@pytest.mark.parametrize("topology", [None, COMPACTING])
+def test_a_copy_dealt_in_another_stage_is_refused_by_name(tmp_path, topology):
+    """A copy folds only in the stage it was dealt in: one that says stage 6
+    handed to stage 4c is refused naming the copy's role, whether or not the
+    caller has the topology."""
+    hand = {
+        "block-context": {
+            "m.py@b1": a_patch("m.py@b1", "two", "2", "# one\n# 2\n# three"),
+            "m.py@b2": a_clean("m.py@b2"),
+        }
+    }
+    message = _message(tmp_path, hand)
+    message.copies[0] = replace(
+        message.copies[0], stage="6", admits=("patch", "drop", "add", "clean")
+    )
+    out, result = handle(message._replace(topology=topology))
+    assert result is None
+    refused = [one for one in out if isinstance(one, events.Refused)]
+    assert [(one.role, one.address) for one in refused] == [("block-context", "")]
+    assert "stage '6'" in refused[0].reasons[0] and "4c" in refused[0].reasons[0]
 
 
 def test_an_ordinary_stage_admits_every_instruction(tmp_path):

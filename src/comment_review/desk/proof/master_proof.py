@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from comment_review.binder.binder import _read_from_problem
 from comment_review.desk.proof.edit_copy import EditCopy
-from comment_review.desk.proof.mark import filled
+from comment_review.desk.proof.mark import filled, read_text
 from comment_review.desk.proof.move import Move
 from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.validators import Validators
@@ -141,12 +141,10 @@ class MasterProof:
         ]
         if disagree:
             return None, disagree
-        # ! `.get("stage", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT. A `"stage":
-        # null` reaching here is a PRESENT key holding None, so `.get` returns
-        # None and `str(None)` is the four-character word "None" -- folded into
-        # the same absent-stage case instead.
-        raw_stage = data.get("stage")
-        stage = raw_stage if isinstance(raw_stage, str) else ""
+        # Read as an edit_copy's is: absent or null is "", any other type is
+        # refused rather than turned into a string.
+        stage, why = read_text(f"{where}: master_proof", "stage", data.get("stage"))
+        problems += why
         places, why = _places_in(where, data.get("places", []), validators)
         problems += why
         moves, why = _moves_in(where, data.get("moves", []), validators)

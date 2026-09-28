@@ -8,7 +8,13 @@ There is no second shape and no second parse.
 from dataclasses import dataclass
 
 from comment_review.binder.binder import _read_from_problem
-from comment_review.desk.proof.mark import filled
+from comment_review.desk.proof.mark import (
+    Instruction,
+    a_type,
+    filled,
+    read_member,
+    read_text,
+)
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.proof.validators import Validators
 from comment_review.desk.proof.wire import _written
@@ -27,9 +33,11 @@ class EditCopy:
             know it holds a REVISE and not the original.
         stage: the stage this copy was dealt in, as the run's topology names
             it, or "" where the seed was handed no stage. A refusal names it,
-            so a role reads which stage's row refused its ruling.
+            so a role reads which stage's row refused its ruling, and the
+            collate handler folds a copy only in the stage it names.
         admits: the instructions this stage's roles may file, by name, or
             empty for every one of them (`decision-log.md Process: #193`).
+            Each is one of the seven instructions.
             It rides on the copy for the reason `read_from` does: the rule
             is about the artifact in hand, so `commands/mark.py` and
             `commands/check.py` hold a copy to it without being handed the
@@ -95,7 +103,12 @@ class EditCopy:
             validators: the rule checks every sheet's ruled entries are held to.
 
         Returns:
-            `(EditCopy, [])` or `(None, [messages])`.
+            `(EditCopy, [])` or `(None, [messages])`. A `stage` that is not a
+            string, an `admits` that is not a list, and an `admits` entry that
+            names no instruction are each refused by name. An absent or null
+            `stage` reads as "", no stage named; an absent or null `admits` as
+            empty, every instruction admitted -- what a copy seeded without a
+            stage row carries.
         """
         if not isinstance(data, dict):
             return None, [f"{where}: an edit_copy must be an object"]
@@ -123,6 +136,10 @@ class EditCopy:
                 problems += why
             else:
                 sheets.append(sheet)
+        stage, why = read_text(f"{where}: {role}", "stage", checked.get("stage"))
+        problems += why
+        admits, why = _admits_of(f"{where}: {role}", checked.get("admits"))
+        problems += why
         if problems:
             return None, problems
         return (
@@ -133,14 +150,8 @@ class EditCopy:
                 # dict cannot change what a parsed copy already holds.
                 read_from={**checked["read_from"]},
                 sheets=tuple(sheets),
-                # Both are read where present and defaulted where not. A
-                # copy written before `#193`, and one from a stage whose row
-                # says nothing more, carries neither -- and an ordinary
-                # stage is exactly the case where both are empty.
-                stage=str(checked.get("stage") or ""),
-                admits=tuple(
-                    one for one in (checked.get("admits") or []) if isinstance(one, str)
-                ),
+                stage=stage,
+                admits=admits,
             ),
             [],
         )
@@ -158,3 +169,24 @@ class EditCopy:
             "stage": self.stage,
             "admits": list(self.admits),
         }
+
+
+def _admits_of(where: str, value: object) -> "tuple[tuple[str, ...], list[str]]":
+    """A copy's `admits`, each entry one of the seven, or one problem per bad one.
+
+    Absent or null is empty -- every instruction admitted.
+    """
+    if value is None:
+        return (), []
+    if not isinstance(value, list):
+        return (), [
+            f"{where}: `admits` must be a list of instructions, not {a_type(value)}"
+        ]
+    admits: list[str] = []
+    problems: list[str] = []
+    for one in value:
+        member, why = read_member(where, "admits", one, Instruction)
+        problems += why
+        if member is not None:
+            admits.append(str(member))
+    return tuple(admits), problems

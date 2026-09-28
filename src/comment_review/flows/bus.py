@@ -203,6 +203,7 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     ]
     problems += coverage_problems(copies, binder, message.topology)
     problems += _root_problems(copies)
+    problems += _dealt_problems(copies, message.stage)
     problems += _admitted_problems(copies, message.topology)
     if message.topology is not None:
         problems += stage_problems(message.topology, copies)
@@ -261,6 +262,30 @@ def _root_problems(copies: list[EditCopy]) -> list[Problem]:
         )
         for copy in copies[1:]
         if copy.read_from != first
+    ]
+
+
+def _dealt_problems(copies: list[EditCopy], stage: str) -> list[Problem]:
+    """One `Problem` per copy dealt in a stage other than the one being folded.
+
+    A copy folds only in the stage it was dealt in: its `admits` and its
+    places are that stage's, so a stage-6 copy handed to stage 4 would be
+    held to the wrong row -- and without a topology, to none. A copy that
+    names no stage (`""`, seeded without a row) is not compared.
+
+    Returns:
+        One `Problem` per copy whose own `stage` names another, with no
+        address -- the finding is about the document.
+    """
+    return [
+        Problem(
+            copy.role,
+            "",
+            f"was dealt in stage {copy.stage!r}, and this is stage {stage!r} -- a"
+            " copy folds only in the stage it was dealt in",
+        )
+        for copy in copies
+        if copy.stage and copy.stage != stage
     ]
 
 

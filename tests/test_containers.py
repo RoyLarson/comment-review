@@ -250,6 +250,30 @@ class TestWhatItRefuses:
         assert got is None, bad
         assert "read_from" in why[0], bad
 
+    def test_admits_given_as_a_string_is_refused(self, tmp_path):
+        copy = a_real_copy(tmp_path)
+        copy["admits"] = "patch"
+        got, why = EditCopy.deserialize("copy 1", copy, VALIDATORS)
+        assert got is None
+        assert why == [
+            "copy 1: block-context: `admits` must be a list of instructions, not a str"
+        ]
+
+    @pytest.mark.parametrize("bad", [5, "fix"])
+    def test_admits_naming_no_instruction_is_refused_by_name(self, tmp_path, bad):
+        copy = a_real_copy(tmp_path)
+        copy["admits"] = ["patch", bad]
+        got, why = EditCopy.deserialize("copy 1", copy, VALIDATORS)
+        assert got is None
+        assert len(why) == 1 and f"`admits` {bad!r} is not one of" in why[0], why
+
+    def test_a_stage_that_is_not_a_string_is_refused(self, tmp_path):
+        copy = a_real_copy(tmp_path)
+        copy["stage"] = 7
+        got, why = EditCopy.deserialize("copy 1", copy, VALIDATORS)
+        assert got is None
+        assert why == ["copy 1: block-context: `stage` must be a string, not an int"]
+
     def test_an_edit_copy_reports_EVERY_bad_sheet_not_just_the_first(self, tmp_path):
         copy = a_real_copy(tmp_path)
         copy["sheets"] = [{"sha": "a"}, {"sha": "b"}]

@@ -13,6 +13,8 @@
                        which is NOT a mark that failed to name an instruction
     filled()           a string with something in it
     as_text()          a string field as a record holds it
+    read_text()        a string field a record uses, or a problem
+    a_type()           a value's type, with its article, for a message
     read_member()      a closed-set field as a record holds it, or a problem
     without_location() one refusal with its `where` prefix removed
 
@@ -359,6 +361,25 @@ def read_member(
         if member == value:
             return member, []
     return None, [f"{where}: `{name}` {value!r} is not one of {', '.join(kind)}"]
+
+
+def a_type(value: object) -> str:
+    """`value`'s type name with its article -- "a str", "an int" -- for a message."""
+    name = type(value).__name__
+    return f"{'an' if name[:1] in 'aeiou' else 'a'} {name}"
+
+
+def read_text(where: str, name: str, value: object) -> "tuple[str, list[str]]":
+    """A string field a record uses: the string, or one problem naming the field.
+
+    Absent or null reads as "", which is what the field says when nothing was
+    given. Any other type is refused rather than turned into a string.
+    """
+    if value is None:
+        return "", []
+    if isinstance(value, str):
+        return value, []
+    return "", [f"{where}: `{name}` must be a string, not {a_type(value)}"]
 
 
 def as_text(value: object) -> str:
