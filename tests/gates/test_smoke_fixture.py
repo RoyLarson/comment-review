@@ -177,6 +177,7 @@ class TestTheLandingTableAgreesWithTheFixture(unittest.TestCase):
         self.assertEqual(
             set(claimed),
             {
+                "fib.py@a1",
                 "fib.py@c6",
                 "fib.py@c1",
                 "rate.py@c3",
@@ -390,9 +391,23 @@ class TestTheCopiesFileWhatTheLandingTableSays(unittest.TestCase):
             for mark in marks_on(copy):
                 for address, _touch in INSTRUCTIONS[mark.instruction].places(mark):
                     placed.setdefault(address, set()).add(str(mark.instruction))
+        # A landing with nothing filed is a place only a replacement files,
+        # after the mark stage this run stops at -- and only that.
+        replaced = {
+            one["address"]
+            for marks in smoke_fixture.REPLACED_MARKS.values()
+            for one in marks
+        }
+        unfiled = {
+            address
+            for address, landing in smoke_fixture.LANDINGS.items()
+            if not landing.filed
+        }
+        self.assertLessEqual(unfiled, replaced)
         said = {
             address: set(landing.filed)
             for address, landing in smoke_fixture.LANDINGS.items()
+            if landing.filed
         }
         self.assertEqual(placed, said)
 
@@ -477,6 +492,7 @@ class TestWriteTextsWritesWhatTheScriptReads(unittest.TestCase):
             return claim[key]
 
         clauses = {
+            "fib.py@a1": ("false", "true"),
             "fib.py@c6": ("false", "true"),
             "fib.py@c1": ("false", "true"),
             "rate.py@c3": ("from", "to"),
@@ -491,7 +507,9 @@ class TestWriteTextsWritesWhatTheScriptReads(unittest.TestCase):
             for address, keys in clauses.items()
             for key in keys
         }
-        carried = [f"fib.py@{cue}" for cue in ("b0", "a2", "b8", "b17", "b15", "c3")]
+        carried = [
+            f"fib.py@{cue}" for cue in ("b0", "a2", "b8", "b17", "b15", "c3", "c5")
+        ]
         carried += [f"fib.py@{cue}" for cue in ("c12", "a0")]
         carried += [
             f"store.py@{cue}" for cue in ("b1", "b3", "b8", "b9", "b10", "b11", "b12")
@@ -505,6 +523,7 @@ class TestWriteTextsWritesWhatTheScriptReads(unittest.TestCase):
         others = {
             "dispositions": "dispositions.json",
             "addresser-row": "addresser-row.json",
+            "code-concern": "code-concern.json",
         }
 
         self.assertEqual(set(paths), set(texts) | set(others))
@@ -523,6 +542,9 @@ class TestWriteTextsWritesWhatTheScriptReads(unittest.TestCase):
         self.assertEqual(
             json.loads(paths["addresser-row"].read_bytes()),
             {"address": "fib.py@b15", "line": 33},
+        )
+        self.assertEqual(
+            json.loads(paths["code-concern"].read_bytes()), smoke_fixture.CODE_CONCERN
         )
 
 
@@ -602,12 +624,54 @@ class TestWriteHumanWritesWhatTheCommandsRead(unittest.TestCase):
             self.assertEqual(self.read(path), wanted, stage)
         replaced = json.loads((self.run_dir / "human-replaced.json").read_bytes())
         self.assertEqual(
-            replaced,
-            [
-                {"role": smoke_fixture.ASKER, "address": a, "instruction": i}
-                for a, i in smoke_fixture.REPLACED_MARKS.items()
-            ],
+            [one["query"] for one in replaced], list(smoke_fixture.REPLACED_MARKS)
         )
+        for one in replaced:
+            self.assertEqual(one["role"], smoke_fixture.ASKER)
+            planted = smoke_fixture.REPLACED_MARKS[one["query"]]
+            self.assertEqual(len(one["marks"]), len(planted), one["query"])
+            for written, mark in zip(one["marks"], planted, strict=True):
+                self.assertEqual(written["address"], mark["address"])
+                args = written["args"]
+                flags = dict(zip(args[::2], args[1::2], strict=True))
+                self.assertEqual(list(flags), list(mark["flags"]))
+                for flag, value in mark["flags"].items():
+                    if value.startswith("@"):
+                        path = Path(flags[flag][1:])
+                        self.assertEqual(path, self.run_dir / value[1:], flag)
+                    else:
+                        self.assertEqual(flags[flag], value, flag)
+
+    def test_the_code_concern_is_answered_add_a_todo_and_replaced_by_a_todo(self):
+        """`decision-log.md Process: #199`: the code concern is a
+        human-review query whose `settles` is `code concern`, the author
+        answers it `add a TODO`, and the role replaces it with a ruling on the
+        paragraph and an `add` whose text is a `TODO:` comment -- which is the
+        text the expected page carries."""
+        concern = smoke_fixture.CODE_CONCERN
+        self.assertEqual(concern["settles"], "code concern")
+        self.assertEqual(concern["shape"], str(Shape.HUMAN_REVIEW_NECESSARY))
+        answers = [
+            one
+            for asked in smoke_fixture.HUMAN.values()
+            for one in asked
+            if one["at"] == concern["address"]
+        ]
+        self.assertEqual(len(answers), 1)
+        self.assertEqual(answers[0]["answer"], "add a TODO")
+        self.assertEqual(answers[0]["question"], concern["reason"])
+        marks = smoke_fixture.REPLACED_MARKS[concern["address"]]
+        by_instruction = {one["flags"]["--instruction"]: one for one in marks}
+        self.assertEqual(set(by_instruction), {"correct", "add"})
+        self.assertEqual(by_instruction["correct"]["address"], concern["address"])
+        add = by_instruction["add"]
+        self.assertEqual(
+            add["flags"]["--change"], "@" + smoke_fixture.file_for(add["address"])
+        )
+        todo = smoke_fixture.LANDINGS[add["address"]].text
+        assert todo is not None
+        self.assertTrue(todo.lstrip().startswith("# TODO: "), todo)
+        self.assertIn("        global CALLS" + todo + "\n", smoke_fixture.EXPECTED)
 
     def test_replace_answers_swaps_the_query_and_nothing_else(self):
         smoke_fixture.write_answers(self.run_dir)

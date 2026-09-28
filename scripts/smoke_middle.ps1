@@ -544,16 +544,20 @@ $Stages = [ordered]@{
             '--reason', 'the decorator is why wrapper still looks like fn',
             '--cite', 'fib.py:12', '--repo', $OriginalDir
         ))
-        # a1 -- a human query. block-context raises it; the other three have
-        # nothing to add. `check` names it and the collate stage has the
-        # author answer it and block-context replace it before the fold.
-        Invoke-Checked -Stage 'mark a1 block-context query' -CommandLine ($Launcher + @(
-            $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@a1',
-            '--instruction', 'query', '--shape', 'human-review-necessary',
-            '--attempted', 'read the docstring against what logged and wrapper do',
-            '--settles', 'human',
-            '--reason', 'the docstring and the decorator disagree about what counts',
-            '--cite', 'fib.py:10', '--repo', $OriginalDir
+        # a1 -- the code concern (Process #199), read from code-concern.json,
+        # which `write_texts` wrote from `CODE_CONCERN`: a human-review query
+        # whose `settles` reads `code concern`. block-context raises it; the
+        # other three have nothing to add. `check` names it, and the collate
+        # stage has the author answer it `add a TODO` and block-context
+        # replace it with a correct and the TODO before the fold.
+        $concern = Get-Content -LiteralPath (Join-Path $Run 'code-concern.json') -Raw | ConvertFrom-Json
+        Invoke-Checked -Stage "mark $($concern.address) block-context code concern" -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', $concern.address,
+            '--instruction', 'query', '--shape', $concern.shape,
+            '--attempted', $concern.attempted,
+            '--settles', $concern.settles,
+            '--reason', $concern.reason,
+            '--cite', $concern.cite, '--repo', $OriginalDir
         ))
         foreach ($role in @('ownership-context', 'function-context', 'module-context')) {
             Invoke-Checked -Stage "mark a1 $role clean" -CommandLine ($Launcher + @(
@@ -1248,8 +1252,10 @@ $Stages = [ordered]@{
     # TOML answers file; `collate --human` still rolls the round back while a
     # query stands, exit 5, printing each question with its answer and
     # writing nothing. block-context then replaces each query as
-    # human-replaced.json says -- `mark --withdraw`, then the mark it files in
-    # its place -- `check` passes its copy, and `collate` folds.
+    # human-replaced.json says -- `mark --withdraw`, then the marks it files
+    # in its place: for the code concern answered `add a TODO`, a correct of
+    # the docstring and the TODO's add in the margin of `global CALLS`
+    # (Process #199) -- `check` passes its copy, and `collate` folds.
     collate = {
         $copies = foreach ($role in $Roles) { '--edit-copy', $CopyFile[$role] }
         $collateLine = $Launcher + @(
@@ -1269,14 +1275,15 @@ $Stages = [ordered]@{
         )
         Assert-NotWritten -Stage 'collate asks the human' -Paths @($ChiefFile, $Proof0File, $Batch1File)
         foreach ($one in (Get-Content -LiteralPath $HumanReplacedFile -Raw | ConvertFrom-Json)) {
-            Invoke-Checked -Stage "replace $($one.address) $($one.role) query" -CommandLine ($Launcher + @(
-                $Cmd.mark, '--edit-copy', $CopyFile[$one.role], '--address', $one.address,
+            Invoke-Checked -Stage "replace $($one.query) $($one.role) query" -CommandLine ($Launcher + @(
+                $Cmd.mark, '--edit-copy', $CopyFile[$one.role], '--address', $one.query,
                 '--withdraw'
             ))
-            Invoke-Checked -Stage "replace $($one.address) $($one.role) $($one.instruction)" -CommandLine ($Launcher + @(
-                $Cmd.mark, '--edit-copy', $CopyFile[$one.role], '--address', $one.address,
-                '--instruction', $one.instruction, '--repo', $OriginalDir
-            ))
+            foreach ($placed in $one.marks) {
+                Invoke-Checked -Stage "replace $($one.query) $($one.role) at $($placed.address)" -CommandLine ($Launcher + @(
+                    $Cmd.mark, '--edit-copy', $CopyFile[$one.role], '--address', $placed.address
+                ) + @($placed.args) + @('--repo', $OriginalDir))
+            }
         }
         Invoke-Checked -Stage 'check block-context replaced' -CommandLine ($Launcher + @(
             $Cmd.check, '--edit-copy', $CopyFile['block-context'], '--binder', $BinderFile,

@@ -396,13 +396,39 @@ LANDINGS: dict[str, Landing] = {
     # two each hold, so two texts still stand at the place and it is carried
     # forward; disposition keeps the original over both.
     "fib.py@a3": Landing("kept", route="disposition", filed=("correct", "clean")),
-    # block-context's human-review query stops `check` and `collate` until
-    # the author answers it (`Process: #197`); the answer in `HUMAN` says the
-    # docstring is right, so block-context replaces its query with the
-    # `clean` in `REPLACED_MARKS`, all four roles have cleaned, and the fold
-    # settles a1 as it was. `filed` is what the mark stage places, before the
-    # replacement.
-    "fib.py@a1": Landing("kept", route="mark", filed=("query", "clean")),
+    # the code concern, `CODE_CONCERN`: block-context's human-review query,
+    # settled by `code concern`, stops `check` and `collate` until the author
+    # answers it (`Process: #197`, `#199`). The answer in `HUMAN` is `add a
+    # TODO`, so block-context replaces its query with the marks in
+    # `REPLACED_MARKS`: this `correct`, which makes the docstring say where
+    # the count goes, and the TODO at `fib.py@c5`. The other three cleaned
+    # a1, so the corrected text is one none of them has seen and it is
+    # carried to them as a composition; each cleans it in the turn and it
+    # settles. `filed` is what the mark stage places, before the replacement.
+    "fib.py@a1": Landing(
+        "text",
+        route="turn",
+        filed=("query", "clean"),
+        text='    """Count each call into CALLS and pass it through."""',
+        claim={
+            "false": "Count each call and",
+            "true": "Count each call into CALLS and",
+        },
+    ),
+    # the code concern's TODO, in the margin of `global CALLS` -- the one line
+    # the concern is about. block-context adds it in place of its query; no
+    # mark stage files it, so `filed` is empty. The other three read the
+    # page, so the add is carried to them as a composition, and each cleans
+    # it in the turn.
+    "fib.py@c5": Landing(
+        "text",
+        route="turn",
+        text=(
+            "  # TODO: every function logged wraps adds to this one CALLS;"
+            " count each on its own"
+        ),
+        line=14,
+    ),
     # block-context's add, on an absent b above `return wrapper`, indented
     # to logged's own body depth. In the turn function-context answers the
     # composition with a correct and the other two roles clean it, so an add
@@ -694,7 +720,9 @@ ADDRESSER_ROW = "fib.py@b15"
 #: so the text a move brings to an empty place is a text the page's other
 #: readers have not seen, and each is asked about it -- `fib.py@b0` once the
 #: move there is agreed and split at the fold, the other three while their
-#: moves' placements are still open.
+#: moves' placements are still open. The last two are the marks the code
+#: concern's asker files in place of its query (`REPLACED_MARKS`), a
+#: `correct` the other three had cleaned and an `add` at an empty place.
 PROPOSED = {
     "fib.py@a0": "block-context",
     "fib.py@b8": "block-context",
@@ -707,6 +735,8 @@ PROPOSED = {
     "store.py@b8": "block-context",
     "store.py@b10": "module-context",
     "store.py@b12": "module-context",
+    "fib.py@a1": "block-context",
+    "fib.py@c5": "block-context",
 }
 
 #: The places `collate` carries forward as an escalation -- two texts at one
@@ -1257,8 +1287,9 @@ def write_texts(run: Path) -> dict[str, Path]:
 
     Returns:
         one path per file written, keyed by the address (`"<address>:<key>"`
-        for each `claim` key), plus `"dispositions"` for `dispositions.json`
-        and `"addresser-row"` for `addresser-row.json`.
+        for each `claim` key), plus `"dispositions"` for `dispositions.json`,
+        `"addresser-row"` for `addresser-row.json` and `"code-concern"` for
+        code-concern.json, which holds `CODE_CONCERN`.
     """
     paths: dict[str, Path] = {}
     recast = {d["address"] for d in DISPOSITIONS if d["answer"] == "recast"}
@@ -1294,6 +1325,12 @@ def write_texts(run: Path) -> dict[str, Path]:
     row = {"address": ADDRESSER_ROW, "line": LANDINGS[ADDRESSER_ROW].line}
     row_path.write_text(json.dumps(row) + "\n", encoding="utf-8", newline="\n")
     paths["addresser-row"] = row_path
+
+    concern_path = run / "code-concern.json"
+    concern_path.write_text(
+        json.dumps(CODE_CONCERN) + "\n", encoding="utf-8", newline="\n"
+    )
+    paths["code-concern"] = concern_path
     return paths
 
 
@@ -1380,23 +1417,41 @@ def write_answers2(run: Path) -> dict[str, Path]:
 #: The role that puts every human question in the plant.
 ASKER = "block-context"
 
+#: The one code concern the plant raises (`decision-log.md Process: #199`):
+#: what the code should be, which no instruction rules on, filed as a
+#: `human-review-necessary` query on the paragraph the code sits with, its
+#: `settles` reading `code concern` and its `reason` the one line naming the
+#: problem. `logged` is a decorator any function may take, and every function
+#: it wraps adds to the one module-wide `CALLS`. `write_texts` writes it as
+#: code-concern.json, which the smoke script's `mark` call reads.
+CODE_CONCERN = {
+    "address": "fib.py@a1",
+    "shape": "human-review-necessary",
+    "attempted": "read the docstring against what logged and wrapper do",
+    "settles": "code concern",
+    "reason": "logged counts every function it wraps into the one module-wide CALLS",
+    "cite": "fib.py:14",
+}
+
+#: The author's answer to a code concern that asks for a TODO -- one of the
+#: three the reviewer brief names.
+ADD_A_TODO = "add a TODO"
+
 #: The author's answers to the human questions, as the task agent records
 #: them in the TOML answers file (`decision-log.md Process: #198`), keyed by
 #: the command they stop. A `human-review-necessary` query stops `check`,
 #: `collate` and `turn` until its role replaces it (`Process: #197`): the two
 #: filed as marks stop `collate`, and the one given as an answer stops the
 #: first `turn`. Each `question` is the query's own reason, as the commands
-#: print it; `at` is the place it was asked at.
+#: print it; `at` is the place it was asked at. The code concern is answered
+#: `add a TODO`.
 HUMAN: dict[str, list[dict[str, str]]] = {
     "collate": [
         {
             "role": ASKER,
-            "at": "fib.py@a1",
-            "question": "the docstring and the decorator disagree about what counts",
-            "answer": (
-                "They agree: logged counts every call it passes through, so the"
-                " docstring stands."
-            ),
+            "at": CODE_CONCERN["address"],
+            "question": CODE_CONCERN["reason"],
+            "answer": ADD_A_TODO,
         },
         {
             "role": ASKER,
@@ -1418,14 +1473,50 @@ HUMAN: dict[str, list[dict[str, str]]] = {
     ],
 }
 
+#: Where the code concern's TODO goes: the margin of `global CALLS`, the one
+#: line that makes the count module-wide, since a concern about one line goes
+#: in that line's margin (the reviewer brief, "The subject is the prose").
+TODO_AT = "fib.py@c5"
+
 #: What the asking role files in place of each query it filed as a mark,
-#: once the author has answered it: `mark --withdraw` at the place, then this
-#: instruction there. Both are `clean`: at `fib.py@a1` the author says the
-#: docstring stands, and at `store.py@b5` the words are right and where they
-#: sit is the placement's question, which the role then answers `stet` in the
-#: turn (`ANSWERS`). The smoke script files each from the instruction alone,
-#: which a `clean` needs nothing beyond.
-REPLACED_MARKS = {"fib.py@a1": "clean", "store.py@b5": "clean"}
+#: once the author has answered it: `mark --withdraw` at the query's place,
+#: then each mark here, as its `mark` flags. A flag value `@<name>` is a file
+#: `write_texts` writes into the run, and `write_human` spells it as that
+#: file's path.
+#:
+#: At the code concern, answered `add a TODO`: the `correct` that makes the
+#: docstring true of the code as it stands -- it counts into `CALLS` -- and an
+#: `add` of the `TODO:` comment at `TODO_AT`, naming the concern. At
+#: `store.py@b5`, a `clean`: the words are right, and where they sit is the
+#: placement's question, which the role then answers `stet` in the turn
+#: (`ANSWERS`).
+REPLACED_MARKS: dict[str, tuple[dict, ...]] = {
+    CODE_CONCERN["address"]: (
+        {
+            "address": CODE_CONCERN["address"],
+            "flags": {
+                "--instruction": "correct",
+                "--false": "@" + file_for(CODE_CONCERN["address"], "false"),
+                "--true": "@" + file_for(CODE_CONCERN["address"], "true"),
+                "--reason": "wrapper adds each call to the module's CALLS",
+                "--cite": "fib.py:15",
+            },
+        },
+        {
+            "address": TODO_AT,
+            "flags": {
+                "--instruction": "add",
+                "--missing": "nothing says every logged function shares one count",
+                "--anchor": "`global CALLS`",
+                "--anchor-line": "        global CALLS",
+                "--change": "@" + file_for(TODO_AT),
+                "--reason": "the author asked for a TODO naming the code concern",
+                "--cite": "fib.py:14",
+            },
+        },
+    ),
+    "store.py@b5": ({"address": "store.py@b5", "flags": {"--instruction": "clean"}},),
+}
 
 #: And what it answers in place of the query it gave in the first turn: the
 #: author wants the note at `fib.py@b15`, so the role takes the add's text.
@@ -1451,6 +1542,24 @@ def toml_string(value: str) -> str:
     return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
+def mark_args(run: Path, flags: dict[str, str]) -> list[str]:
+    """One replacement mark's flags as `mark` takes them, in order.
+
+    Args:
+        run: the run directory `write_texts` wrote the `@<name>` files into.
+        flags: flag -> value, as `REPLACED_MARKS` holds them.
+
+    Returns:
+        `[flag, value, ...]`, with a value `@<name>` spelled `@<run>/<name>`.
+    """
+    args: list[str] = []
+    for flag, value in flags.items():
+        if value.startswith("@"):
+            value = "@" + str(run / value[1:])
+        args += [flag, value]
+    return args
+
+
 def write_human(run: Path, stage: str) -> Path:
     """Write the author's answers file as it stands once `stage` has asked.
 
@@ -1458,9 +1567,10 @@ def write_human(run: Path, stage: str) -> Path:
     answers, and at `turn` the turn's are added below them, so the earlier
     ones stay as the record of questions already worked through. `human.toml`
     holds one `[[answer]]` table per answer; `human-replaced.json` holds
-    `REPLACED_MARKS` as `[{"role", "address", "instruction"}]`, which the
-    smoke script reads to withdraw and replace each query rather than
-    spelling the places itself.
+    `REPLACED_MARKS` as `[{"role", "query", "marks": [{"address", "args"}]}]`,
+    each `args` the flags in order with every `@<name>` spelled as its path
+    in `run`, which the smoke script reads to withdraw and replace each query
+    rather than spelling the places itself.
 
     Args:
         run: the run directory the smoke script writes into.
@@ -1479,8 +1589,15 @@ def write_human(run: Path, stage: str) -> Path:
     path = run / "human.toml"
     path.write_text("\n".join(tables), encoding="utf-8", newline="\n")
     replaced = [
-        {"role": ASKER, "address": address, "instruction": instruction}
-        for address, instruction in REPLACED_MARKS.items()
+        {
+            "role": ASKER,
+            "query": query,
+            "marks": [
+                {"address": one["address"], "args": mark_args(run, one["flags"])}
+                for one in marks
+            ],
+        }
+        for query, marks in REPLACED_MARKS.items()
     ]
     (run / "human-replaced.json").write_text(
         json.dumps(replaced) + "\n", encoding="utf-8", newline="\n"
@@ -1585,12 +1702,14 @@ EXPECTED = (
     "\n"
     "\n"
     "def logged(fn):\n"
-    '    """Count each call and pass it through."""\n'
+    '    """Count each call into CALLS and pass it through."""\n'
     "\n"
     "    @functools.wraps(fn)  # copies fn's name and docstring onto wrapper\n"
     "    def wrapper(n):\n"
     '        """Count each call, then pass it through."""\n'
-    "        global CALLS\n"
+    "        global CALLS"
+    "  # TODO: every function logged wraps adds to this one CALLS;"
+    " count each on its own\n"
     "        CALLS += 1  # the decorator's only job\n"
     "        return fn(n)\n"
     "\n"
@@ -2010,6 +2129,7 @@ SECOND_CLEAN = (
     "fib.py@a1",
     "fib.py@c3",
     "fib.py@a2",
+    "fib.py@c5",
     "fib.py@c6",
     "fib.py@b8",
     "fib.py@b9",
@@ -2067,12 +2187,14 @@ SECOND_EXPECTED = (
     "\n"
     "\n"
     "def logged(fn):\n"
-    '    """Count each call and pass it through."""\n'
+    '    """Count each call into CALLS and pass it through."""\n'
     "\n"
     "    @functools.wraps(fn)  # copies fn's name and docstring onto wrapper\n"
     "    def wrapper(n):\n"
     '        """Count each call, then pass it through."""\n'
-    "        global CALLS\n"
+    "        global CALLS"
+    "  # TODO: every function logged wraps adds to this one CALLS;"
+    " count each on its own\n"
     "        CALLS += 1  # the decorator's only job\n"
     "        return fn(n)\n"
     "\n"
