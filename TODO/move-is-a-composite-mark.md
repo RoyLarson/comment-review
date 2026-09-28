@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 34 of 40 tasks closed
+Progress: 34 of 41 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -301,3 +301,5 @@ and now there is one object that cannot be half-held.
       whether a correct or patch at a move end accepts the placement (Process
       195 item 2) or earns a placement question, as the code asks
         > 2026-09-27 smoke: collate asks function-context at store.py@b9 -> b8
+- [ ] T41 | Reproduce two roles moving one paragraph to different destinations,
+      each accepting the other; verify the snippet lands once or file the fix

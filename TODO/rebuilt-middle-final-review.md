@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 20 of 45 tasks closed
+Progress: 20 of 46 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -128,3 +128,5 @@ The rebuilt middle's final review.
       a move's two ends on the filing, not the place; two moves out of one
       origin leave the first unpaired (code-review 2026-09-25)
         > 2026-09-26 Process 195: the pair lives on the move aggregate; T27 there
+- [ ] T46 | Correct events.py so AsksTheHuman is said to come before the fold,
+      not from Fold.run; verify the module docstring says so
