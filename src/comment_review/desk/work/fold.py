@@ -18,11 +18,10 @@ Process: #195`).
 from dataclasses import dataclass, field
 
 from comment_review.desk.evaluate.move import (
-    UNDECIDED,
     Move,
     Placement,
+    is_open,
     moves_in,
-    ruled_at_both_ends,
 )
 from comment_review.desk.evaluate.passes import decide
 from comment_review.desk.evaluate.place import Place
@@ -86,9 +85,11 @@ class Fold:
             if place.state is State.REFUSED:
                 for role, reasons in _by_role(place.reasons).items():
                     refusals.append(events.Refused(role, address, reasons))
+            elif place.state is State.TO_COME:
+                # An end waiting on its move asks nothing: the move's own
+                # `PlacementCarried`, below, is what is put to the roles.
+                pass
             elif place.state in CARRIED:
-                # An end the hold carried for its move alone names nobody:
-                # the move's own event asks for it, below.
                 if asked(place):
                     on_commit.append(
                         events.CarriedForward(
@@ -110,9 +111,12 @@ class Fold:
                 on_commit.append(events.Advised(role, address, notes))
         for key in sorted(self.moves):
             move = self.moves[key]
-            if move.placement in UNDECIDED:
-                if ruled_at_both_ends(move, self.places):
-                    continue
+            if move.placement is Placement.REFUSED:
+                # The move's own reasons, once, at its own key; an end's
+                # reasons were reported at that end.
+                for role, reasons in _by_role(move.reasons).items():
+                    refusals.append(events.Refused(role, key, reasons))
+            elif is_open(move):
                 on_commit.append(
                     events.PlacementCarried(
                         move.origin, move.destination, move.placement, move.owed

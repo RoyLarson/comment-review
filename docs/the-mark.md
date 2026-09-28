@@ -192,18 +192,18 @@ move is a placement claim and nothing else. It is one `Mark` while the placement
 travels whole as the table below binds; once every reader of either page has agreed the
 placement it is split into the mover's `drop` at the origin and `add` at the destination, and
 the two ends are ordinary places from then on, at the fold and at the write end. Placement is
-a question of its own, with `agree`, `stet`, `withdraw` and `query` as its answers. **The code
-does not do this yet** -- [`move-is-a-composite-mark`](../TODO/move-is-a-composite-mark.md) is
-refiled against it.
+a question of its own, with `agree`, `stet`, `withdraw` and `query` as its answers, or the
+chief's placement ruling where the roles leave it undecided (`#201`).
+`desk.evaluate.move.settle_ends` performs the split with the row's `splits`.
 
 **What that binds, everywhere the mark is handled:**
 
 | stage | the rule |
 | --- | --- |
 | **source-verification** | both ends are checked; a failure at either refuses the mark |
-| **the fold** | a `move`'s two places take one state, the worse of the two -- `desk.evaluate.passes.pair_moves`. It may not be settled at one end and carried forward at the other, and a refusal at either refuses both |
-| **the revise step** | a role answering a `move` answers for both ends. There is no half `hold` |
-| **the write chain** | both paragraphs are set, or neither is |
+| **the fold** | while the placement is undecided both places are `to-come` and decide no text (`desk.evaluate.move.hold_ends`); a refusal at either refuses both. Once agreed, the `drop` and `add` are ordinary marks at their places |
+| **the revise step** | a role answers a move's placement once, for the pair, in one slot. There is no half `hold` |
+| **the write chain** | a proof holding an undecided move is not closed (`flows.transcribe._open_moves`), so neither end is set; once split, each end is set as its own place |
 
 ! **THIS IS WHAT [`collate-buckets-a-move-at-one-end`](../TODO/completed/collate-buckets-a-move-at-one-end.md)
 IS ABOUT**, and it is now a rule rather than a bug report: a `move` is grouped by every place it

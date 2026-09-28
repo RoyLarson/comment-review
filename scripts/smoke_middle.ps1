@@ -166,6 +166,7 @@ $OriginalDir = Join-Path $Run 'original'
 $FixtureFile = Join-Path $OriginalDir 'fib.py'
 $RateFile = Join-Path $OriginalDir 'rate.py'
 $StoreFile = Join-Path $OriginalDir 'store.py'
+$TallyFile = Join-Path $OriginalDir 'tally.py'
 $BinderFile = Join-Path $Run 'binder.json'
 $TopologyFile = Join-Path $Run 'topology.toml'
 $CopiesDir = Join-Path $Run 'copies'
@@ -185,6 +186,11 @@ $Batch2File = Join-Path $Run 'batch2.json'
 $TurnTwoProofFile = Join-Path $Run 'proof-turn2.json'
 $Batch3File = Join-Path $Run 'batch3.json'
 $DispositionsFile = Join-Path $Run 'dispositions.json'
+# The chief's first ruling leaves the ends of the move it split carried: what
+# that call writes, and the rulings the second call takes on its proof.
+$ChiefPlacedFile = Join-Path $Run 'chief-placed.json'
+$PlacedFile = Join-Path $Run 'placed.json'
+$EndsFile = Join-Path $Run 'dispositions-ends.json'
 $ChiefFinalFile = Join-Path $Run 'chief-final.json'
 $FinalFile = Join-Path $Run 'final.json'
 $DocketFile = Join-Path $Run 'docket.json'
@@ -271,9 +277,9 @@ $WidenedCopyFile = Join-Path $Run 'copy3-widened.json'
 $WidenedChiefFile = Join-Path $Run 'chief3-widened.json'
 $WidenedProofFile = Join-Path $Run 'proof3-widened.json'
 
-# The one-liner that writes the three fixture files into a directory, used by
+# The one-liner that writes the four fixture files into a directory, used by
 # the fixture stage and by the second tree the root refusal sub-plant gathers.
-$WriteFixtures = 'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_fixture, write_rate_fixture, write_store_fixture; root = Path(sys.argv[1]); write_fixture(root); write_rate_fixture(root); write_store_fixture(root)'
+$WriteFixtures = 'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_fixture, write_rate_fixture, write_store_fixture, write_tally_fixture; root = Path(sys.argv[1]); write_fixture(root); write_rate_fixture(root); write_store_fixture(root); write_tally_fixture(root)'
 
 # Stops the script unless every line in -Expected is one of the lines a
 # command printed, whole. A command's report names each human question on a
@@ -353,7 +359,7 @@ $Stages = [ordered]@{
     gather = {
         Invoke-Checked -Stage 'gather' -CommandLine ($Launcher + @(
             $Cmd.gather, '--repo', $OriginalDir, '--out', $BinderFile,
-            $FixtureFile, $RateFile, $StoreFile
+            $FixtureFile, $RateFile, $StoreFile, $TallyFile
         ))
     }
     topology = {
@@ -460,6 +466,8 @@ $Stages = [ordered]@{
             store_b7_true = Join-Path $Run 'store-b7-true.txt'
             store_c5_false = Join-Path $Run 'store-c5-false.txt'
             store_c5_true = Join-Path $Run 'store-c5-true.txt'
+            tally_b1 = Join-Path $Run 'tally-b1.txt'
+            tally_b3 = Join-Path $Run 'tally-b3.txt'
         }
         # a0 -- the module docstring, already filled. block-context adds over
         # it: `--change` is the text it adds and `--raw-text` the docstring as
@@ -916,14 +924,15 @@ $Stages = [ordered]@{
                 '--cite', 'store.py:7', '--repo', $OriginalDir
             ))
         }
-        # store.py@b5 -- the held placement. module-context moves the whole
-        # paragraph to store.py@b12, the gap between the last two
+        # store.py@b5 -- the contested placement. module-context moves the
+        # whole paragraph to store.py@b12, the gap between the last two
         # functions, so its `--change` and its `--raw-text` are one text;
         # block-context reads the same place and marks a human-review query.
         # The collate stage has the author answer it and block-context
         # replace it with a clean, which leaves it owed a say on the
-        # placement; it stets the move in both turns and the chief rules
-        # each end in DISPOSITIONS. The other two roles defer.
+        # placement; it stets the move in both turns, and the chief rules the
+        # placement once, for the original, in DISPOSITIONS (Process #201).
+        # The other two roles defer.
         Invoke-Checked -Stage 'mark store.py@b5 module-context move' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', 'store.py@b5',
             '--instruction', 'move', '--from', 'store.py@b5', '--to', 'store.py@b12',
@@ -993,12 +1002,13 @@ $Stages = [ordered]@{
         }
         # store.py@b9 -- the agreed move. block-context moves the whole
         # paragraph up to store.py@b8, the gap above the declaration it
-        # describes; function-context rewords it where it stands. The two
-        # texts do not compose, so the origin is an escalation, and
-        # function-context is owed a say on the placement. It agrees in the
-        # first turn, the move is split into block-context's drop at b9 and
-        # add at b8, and the chief rules the drop against the rewording in
-        # DISPOSITIONS (Process #195).
+        # describes; function-context rewords it where it stands, so it is
+        # owed a say on the placement, and both ends are to come until the
+        # placement is decided (Process #200, #201). It agrees in the first
+        # turn, the move is split into block-context's drop at b9 and add at
+        # b8, and the second turn asks each end: the three other roles clean
+        # the add, and the drop against the rewording is an escalation the
+        # chief rules in DISPOSITIONS (Process #195).
         Invoke-Checked -Stage 'mark store.py@b9 block-context move' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'store.py@b9',
             '--instruction', 'move', '--from', 'store.py@b9', '--to', 'store.py@b8',
@@ -1026,12 +1036,14 @@ $Stages = [ordered]@{
         # store.py@b11 -- the move its own filer withdraws. module-context
         # takes the paragraph's second sentence to store.py@b10, the gap above
         # the declaration; block-context rewords that same sentence where it
-        # stands. The two texts do not compose, so the origin is an escalation
-        # put to both, and block-context is owed a say on the placement -- the
-        # two roles that defer at the origin defer on the move. block-context
-        # stets it in the first turn, so it is put again to both roles; in
-        # the second, module-context withdraws it and the move is off at both
-        # of its ends (Process #129, #195).
+        # stands, so it is owed a say on the placement -- the two roles that
+        # defer at the origin defer on the move -- and both ends are to come
+        # while the placement is undecided. block-context stets it in the
+        # first turn, so it is put again to both roles; in the second,
+        # module-context withdraws it and the move is off at both of its ends
+        # (Process #129, #195). The origin's rewording is then a text
+        # module-context has not seen, carried past the last turn, and the
+        # chief takes it in in DISPOSITIONS.
         Invoke-Checked -Stage 'mark store.py@b11 module-context move' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', 'store.py@b11',
             '--instruction', 'move', '--from', 'store.py@b11', '--to', 'store.py@b10',
@@ -1068,6 +1080,51 @@ $Stages = [ordered]@{
                     '--instruction', 'clean', '--repo', $OriginalDir
                 ))
             }
+        }
+        # tally.py@b1 -- the chief's two-step ruling. module-context takes the
+        # paragraph's second sentence to tally.py@b3, the comment in
+        # `repeats`, as the partial move at store.py@b1 does, and cleans b3
+        # beside its own move. function-context corrects b3 where it stands
+        # and cleans b1, and block-context cleans both, so each is owed a say
+        # on the placement; ownership-context defers at both. block-context
+        # stets the move in both turns, so it is contested when the turns are
+        # spent: the chief takes module-context's side, which splits the move
+        # and leaves both ends carried, and then rules each end.
+        Invoke-Checked -Stage 'mark tally.py@b1 module-context move' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', 'tally.py@b1',
+            '--instruction', 'move', '--from', 'tally.py@b1', '--to', 'tally.py@b3',
+            '--change', "@$($LandingFile.tally_b1)", '--raw-text', "@$($LandingFile.tally_b3)",
+            '--reason', 'a repeat is what repeats counts, so the sentence defines it there',
+            '--cite', 'tally.py:7', '--repo', $OriginalDir
+        ))
+        Invoke-Checked -Stage 'mark tally.py@b3 module-context clean' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', 'tally.py@b3',
+            '--instruction', 'clean', '--repo', $OriginalDir
+        ))
+        Invoke-Checked -Stage 'mark tally.py@b3 function-context correct' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['function-context'], '--address', 'tally.py@b3',
+            '--instruction', 'correct',
+            '--false', 'asked again', '--true', 'asked for a key again',
+            '--reason', 'a lookup that repeats asks for a key, not for anything at all',
+            '--cite', 'tally.py:8', '--repo', $OriginalDir
+        ))
+        Invoke-Checked -Stage 'mark tally.py@b1 function-context clean' -CommandLine ($Launcher + @(
+            $Cmd.mark, '--edit-copy', $CopyFile['function-context'], '--address', 'tally.py@b1',
+            '--instruction', 'clean', '--repo', $OriginalDir
+        ))
+        foreach ($address in @('tally.py@b1', 'tally.py@b3')) {
+            Invoke-Checked -Stage "mark $address block-context clean" -CommandLine ($Launcher + @(
+                $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', $address,
+                '--instruction', 'clean', '--repo', $OriginalDir
+            ))
+            Invoke-Checked -Stage "mark $address ownership-context query" -CommandLine ($Launcher + @(
+                $Cmd.mark, '--edit-copy', $CopyFile['ownership-context'], '--address', $address,
+                '--instruction', 'query', '--shape', 'outside-my-role',
+                '--attempted', 'read the paragraph against the code at this place',
+                '--settles', 'block-context',
+                '--reason', 'which function a sentence about repeats belongs to is not my remit',
+                '--cite', 'tally.py:2', '--repo', $OriginalDir
+            ))
         }
     }
     # `check` over each of the four copies, before `collate`, whose exit code
@@ -1306,7 +1363,7 @@ $Stages = [ordered]@{
         Invoke-Checked -Stage 'other gather' -CommandLine ($Launcher + @(
             $Cmd.gather, '--repo', $OtherDir, '--out', $OtherBinderFile,
             (Join-Path $OtherDir 'fib.py'), (Join-Path $OtherDir 'rate.py'),
-            (Join-Path $OtherDir 'store.py')
+            (Join-Path $OtherDir 'store.py'), (Join-Path $OtherDir 'tally.py')
         ))
         Invoke-Checked -Stage 'other distribute' -CommandLine ($Launcher + @(
             $Cmd.distribute, '--topology', $TopologyFile, '--stage', '4',
@@ -1391,11 +1448,13 @@ $Stages = [ordered]@{
     # `turn` folds all four roles' answers onto the places the proof carries;
     # it reads neither the binder nor the batch, since the places say who
     # each was put to. The answers also settle the placement of each move the
-    # fold left open: one agreed and split, two stetted and contested. They
-    # leave b8 and c3 holding an add beside another role's answer to it, a3,
-    # b9 and c1 with texts no role has taken, store.py@b9 and b11 with two
-    # texts each, and the ends of the two contested moves, so places are
-    # carried forward and `turn`, whose exit codes are `collate`'s, exits 4.
+    # fold left open: one agreed and split, two stetted and contested. No
+    # slot is sent at an end of those moves, which are to come while their
+    # placements are undecided. The answers leave b8 and c3 holding an add
+    # beside another role's answer to it, a3, b9 and c1 with texts no role
+    # has taken, the split's two ends newly asked of the roles that have not
+    # seen them, and the two contested moves, so places are carried forward
+    # and `turn`, whose exit codes are `collate`'s, exits 4.
     turn = {
         Invoke-Checked -Stage 'plant-answers' -CommandLine @(
             'uv', 'run', 'python', '-c',
@@ -1508,9 +1567,13 @@ $Stages = [ordered]@{
     # move is answered: stetted in the first turn, its placement is put again
     # to its mover, which withdraws it here, so the move comes off both of
     # its ends, and to the role that stetted, which defers with a placement
-    # query. The held placement is put again too, and stays contested. Every
-    # other place the batch asks about is one the chief rules below, and the
-    # answers keep each of them carried forward, so `turn` exits 4 again.
+    # query; the withdrawn move's origin then carries a rewording its mover
+    # has not seen. The other contested placement is put again too, and
+    # stays contested. The agreed move's ends are asked here: the add at
+    # store.py@b8 is cleaned and settles, and the drop at store.py@b9 is held
+    # against the rewording. Every other place the batch asks about is one
+    # the chief rules below, and the answers keep each of them carried
+    # forward, so `turn` exits 4 again.
     turn2 = {
         Invoke-Checked -Stage 'plant-answers2' -CommandLine @(
             'uv', 'run', 'python', '-c',
@@ -1533,13 +1596,28 @@ $Stages = [ordered]@{
         ))
     }
     # `disposition` folds the chief's rulings over the places the second turn
-    # left carried forward into the closed proof. The rulings are
-    # dispositions.json, which `write_texts` wrote at the mark stage from
-    # `DISPOSITIONS` in smoke_fixture.py.
+    # left carried forward, and its rulings on the two placements it left
+    # undecided, in two calls. The first takes dispositions.json, which
+    # `write_texts` wrote at the mark stage from `DISPOSITIONS` in
+    # smoke_fixture.py. Its ruling on store.py@b5's placement keeps the
+    # paragraph where it is, and both ends settle; its ruling on
+    # tally.py@b1's takes the mover's side, which splits the move and leaves
+    # both ends carried forward: the drop's remainder at the origin is a
+    # text the roles that cleaned it have not seen, and at the destination
+    # the split's add composes with function-context's correction into one
+    # they have not seen either. So the call commits its proof and exits 3,
+    # as `collate` does with a place composed. The second call takes that
+    # proof and dispositions-ends.json, `ENDS`, which rules the two ends, and
+    # closes the proof with exit 0.
     disposition = {
-        Invoke-Checked -Stage 'disposition' -CommandLine ($Launcher + @(
+        Invoke-Checked -Stage 'disposition placements' -Expect 3 -CommandLine ($Launcher + @(
             $Cmd.disposition, '--proof', $TurnTwoProofFile,
-            '--dispositions', $DispositionsFile, '--out', $ChiefFinalFile,
+            '--dispositions', $DispositionsFile, '--out', $ChiefPlacedFile,
+            '--proof-out', $PlacedFile
+        ))
+        Invoke-Checked -Stage 'disposition ends' -CommandLine ($Launcher + @(
+            $Cmd.disposition, '--proof', $PlacedFile,
+            '--dispositions', $EndsFile, '--out', $ChiefFinalFile,
             '--proof-out', $FinalFile
         ))
     }

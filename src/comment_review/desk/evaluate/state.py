@@ -1,10 +1,10 @@
-"""The six states a place can be in once evaluated."""
+"""The seven states a place can be in once evaluated."""
 
 from enum import StrEnum, auto
 
 
 class State(StrEnum):
-    """The six a place can be in once evaluated."""
+    """The seven a place can be in once evaluated."""
 
     @staticmethod
     def _generate_next_value_(name, start, count, last_values):
@@ -16,6 +16,10 @@ class State(StrEnum):
     CONTESTED = auto()
     UNSETTLABLE = auto()
     REFUSED = auto()
+    #: An end of a move whose placement is undecided. Its text waits on the
+    #: placement: it decides none, asks no role anything, and takes no ruling,
+    #: and once the placement is decided the end is evaluated as any place.
+    TO_COME = "to-come"
 
 
 #: The states a fold carries forward for a turn or the chief.

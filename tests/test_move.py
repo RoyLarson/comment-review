@@ -12,7 +12,6 @@ from comment_review.desk.evaluate.move import (
     Placement,
     moves_in,
     placement_pass,
-    ruled_at_both_ends,
 )
 from comment_review.desk.evaluate.place import Filed, Place
 from comment_review.desk.marks.mark import Instruction, Mark, Shape
@@ -94,23 +93,50 @@ def _decided(places, answers=None, turn=1) -> Move:
     return placement_pass(move, places, turn)
 
 
-def _ruling(address: str) -> Disposition:
-    return Disposition(address=address, name="taken_in", side="a", prose="", reason="r")
+def _placement_ruling(side: str) -> Disposition:
+    return Disposition(
+        address=ORIGIN,
+        name="taken_in",
+        side=side,
+        prose="",
+        reason="r",
+        to=DESTINATION,
+    )
 
 
-def test_a_move_the_chief_ruled_at_both_ends_is_ruled_at_both_ends():
+def _ruled(side: str, answers=None) -> Move:
+    """A move `b` stetted, carrying the chief's placement ruling for `side`."""
     places = _ends()
     (move,) = moves_in(places).values()
-    places[ORIGIN].disposition = _ruling(ORIGIN)
-    places[DESTINATION].disposition = _ruling(DESTINATION)
-    assert ruled_at_both_ends(move, places)
+    move.answers[1] = answers or {"b": _answer("stet")}
+    move.disposition = _placement_ruling(side)
+    return placement_pass(move, places, 1)
 
 
-def test_a_move_the_chief_ruled_at_one_end_is_not():
-    places = _ends()
-    (move,) = moves_in(places).values()
-    places[DESTINATION].disposition = _ruling(DESTINATION)
-    assert not ruled_at_both_ends(move, places)
+def test_the_chief_taking_in_the_mover_agrees_the_move():
+    move = _ruled("a")
+    assert (move.placement, set(move.movers), move.owed) == (
+        Placement.AGREED,
+        {"a"},
+        (),
+    )
+
+
+def test_the_chief_taking_in_the_original_keeps_the_paragraph_where_it_is():
+    move = _ruled("original")
+    assert (move.placement, move.movers) == (Placement.WITHDRAWN, {})
+
+
+def test_a_placement_ruling_for_a_role_that_filed_no_move_is_refused():
+    move = _ruled("b")
+    assert move.placement is Placement.REFUSED
+    assert "'b' filed no move here" in move.reasons[0]
+
+
+def test_a_placement_ruling_on_a_held_move_is_refused():
+    move = _ruled("a", answers={"b": _answer("query", HUMAN)})
+    assert move.placement is Placement.REFUSED
+    assert "held takes no ruling" in move.reasons[0]
 
 
 def test_a_move_is_found_by_its_own_two_addresses():
@@ -204,6 +230,7 @@ def test_an_agreed_move_stays_agreed():
 
 def test_a_move_round_trips():
     move = _decided(_ends(), {"b": _answer("stet")})
+    move.disposition = _placement_ruling("a")
     back, why = Move.deserialize("m", move.serialize())
     assert why == [] and back is not None
     assert (back.origin, back.destination, back.placement) == (
@@ -212,6 +239,7 @@ def test_a_move_round_trips():
         Placement.CONTESTED,
     )
     assert back.answers == move.answers and back.owed == move.owed
+    assert back.disposition == move.disposition
 
 
 def _two_into_one_place(second_mover: str) -> dict[str, Place]:

@@ -241,7 +241,7 @@ def _counted(places: tuple[dict, ...]) -> str:
         places: `MasterProof.places`, as `Place.serialize` writes each.
 
     Returns:
-        `"N places -- S settled, U unsettlable, C carried forward"`.
+        `"N places -- S settled, U unsettlable, C carried forward, T to come"`.
 
     Settled is counted rather than subtracted, since `decision-log.md
     Process: #193`'s round. It read `len(states) - carried - unsettlable`,
@@ -253,9 +253,10 @@ def _counted(places: tuple[dict, ...]) -> str:
     carried = sum(1 for state in states if state in CARRIED)
     unsettlable = sum(1 for state in states if state == State.UNSETTLABLE)
     settled = sum(1 for state in states if state in SETTLED)
+    to_come = sum(1 for state in states if state == State.TO_COME)
     return (
         f"{len(states)} places -- {settled} settled,"
-        f" {unsettlable} unsettlable, {carried} carried forward"
+        f" {unsettlable} unsettlable, {carried} carried forward, {to_come} to come"
     )
 
 

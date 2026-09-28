@@ -116,19 +116,19 @@ class TestTheChiefRules:
         assert place_on(_closed(tmp_path), "m.py@b1")["text"] == RECAST
 
 
-class TestTheChiefRulesEachEndOfAMove:
-    """The chief's ruling at each end of an undecided move takes effect there.
+class TestTheChiefRulesAMoveThenItsEnds:
+    """The chief rules an undecided move's placement once, then its ends.
 
-    Ported from `tests/test_turn.py::TestTheChiefRulesEachEndOfAMove`, and
-    restored 2026-09-18. Until the chief's own placement ruling exists, the
-    chief rules a move's two ends one by one (`decision-log.md Process: #195`
-    item 4), and a move ruled at both ends is closed; what each end closes on
-    is its own ruling's, and the two need not name one side.
+    `decision-log.md Process: #195` item 4 and `#201`: the placement ruling
+    names the move by its two addresses and splits or withdraws it; each end
+    is then an ordinary place, and one that needs words is carried back to
+    the chief, who rules it with `disposition` on the proof the first ruling
+    wrote.
     """
 
     TEXTS = {"m.py@b1": "# one\n# two\n# three\n", "m.py@b2": "# four\n# five\n# six\n"}
     #: block-context moves b1's middle line to b2; function-context corrects
-    #: b2, contesting the destination's words, and is owed the placement.
+    #: b2 and is owed the placement.
     PLANT = {
         "block-context": {
             "m.py@b1": a_move(
@@ -144,120 +144,88 @@ class TestTheChiefRulesEachEndOfAMove:
             "m.py@b2": a_correct_setting("m.py@b2", "five", "# four\n# 5\n# six\n"),
         },
     }
-    #: The origin's paragraph with the moved line taken out of it, and the
-    #: destination's as the move says it will read.
+    PLACEMENT = {
+        "address": "m.py@b1",
+        "to": "m.py@b2",
+        "answer": "taken_in",
+        "side": "block-context",
+        "reason": "the line belongs with five",
+    }
+    #: The origin's paragraph with the moved line taken out of it.
     REMAINDER = "# one\n# three"
-    MOVED_TO = "# four\n# five\n# six\n# two\n"
-    CHIEFS_OWN = "# four\n# five\n# six\n# two, as the chief words it\n"
+    CHIEFS_OWN = "# four\n# 5\n# six\n# two, as the chief words it\n"
 
-    def _ruled(self, tmp_path, monkeypatch, capsys, rulings):
+    def _placed(self, tmp_path, monkeypatch, capsys):
         deal(tmp_path, monkeypatch, capsys, self.PLANT, self.TEXTS)
-        return disposition(tmp_path, monkeypatch, capsys, rulings, proof="proof0.json")
-
-    def test_a_taken_in_at_each_end_closes_the_move(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        code, out = self._ruled(
-            tmp_path,
-            monkeypatch,
-            capsys,
-            [
-                _taken_in("m.py@b1", "block-context", "the move stands"),
-                _taken_in("m.py@b2", "block-context", "and it lands here"),
-            ],
+        return disposition(
+            tmp_path, monkeypatch, capsys, [self.PLACEMENT], proof="proof0.json"
         )
-        assert code == collate_command.OK, out
-        closed = _closed(tmp_path)
-        assert place_on(closed, "m.py@b1")["text"] == self.REMAINDER
-        assert place_on(closed, "m.py@b2")["text"] == self.MOVED_TO
-        # Each end is written from its own decided text: the chief ruled the
-        # move end by end, so its copy holds one mark per end.
-        assert [
-            (m.address, str(m.instruction), m.change)
-            for m in entries_of(the_chief(tmp_path))
-        ] == [
-            ("m.py@b1", "correct", self.REMAINDER),
-            ("m.py@b2", "correct", self.MOVED_TO),
-        ]
 
-    def test_a_taken_in_at_one_end_and_a_recast_at_the_other(
+    def test_the_placement_ruling_splits_the_move_and_carries_its_ends(
         self, tmp_path, monkeypatch, capsys
     ):
-        code, out = self._ruled(
+        code, out = self._placed(tmp_path, monkeypatch, capsys)
+        assert code in (collate_command.REREADS, collate_command.ESCALATIONS), out
+        # The ends are carried, so the proof it writes is not closed yet.
+        assert "the proof closed" not in out, out
+        assert "the proof at turn 0 is not closed" in out, out
+        placed = _closed(tmp_path)
+        assert [m["placement"] for m in placed.moves] == ["agreed"]
+        assert place_on(placed, "m.py@b1")["state"] == "composed"
+        assert place_on(placed, "m.py@b2")["state"] in ("composed", "contested")
+
+    def test_then_each_end_closes_on_its_own_ruling(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        self._placed(tmp_path, monkeypatch, capsys)
+        code, out = disposition(
             tmp_path,
             monkeypatch,
             capsys,
             [
-                _taken_in("m.py@b1", "block-context", "the move stands"),
+                _taken_in("m.py@b1", "block-context", "the remainder reads true"),
                 {
                     "address": "m.py@b2",
                     "answer": "recast",
-                    "reason": "neither wording carries it",
+                    "reason": "the arrival and the correction together",
                     "prose": self.CHIEFS_OWN,
                 },
             ],
+            proof="final.json",
         )
         assert code == collate_command.OK, out
         closed = _closed(tmp_path)
         assert place_on(closed, "m.py@b1")["text"] == self.REMAINDER
         assert place_on(closed, "m.py@b2")["text"] == self.CHIEFS_OWN
-        # The move is NOT taken in: its destination closed on the chief's own
-        # prose rather than on what the move sets there, so writing the move
-        # would land a paragraph the chief ruled against. Each end is written
-        # from its own decided text instead.
-        assert [
-            (m.address, str(m.instruction), m.change)
-            for m in entries_of(the_chief(tmp_path))
-        ] == [
-            ("m.py@b1", "correct", self.REMAINDER),
-            ("m.py@b2", "correct", self.CHIEFS_OWN),
-        ]
-
-    def test_the_docket_sets_each_end_as_its_own_ruling_decided_it(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        """The closed proof through `flows.transcribe.docket_of_proof`, which
-        is what `proof --proof` runs: the origin keeps what the snippet left
-        and the destination takes the chief's own paragraph.
-
-        It read the chief's copy until `decision-log.md Process: #184`. What
-        it asserts is that the chief's ruling reaches the docket, and the
-        decided places are where that is now read from.
-        """
-        self._ruled(
-            tmp_path,
-            monkeypatch,
-            capsys,
-            [
-                _taken_in("m.py@b1", "block-context", "the move stands"),
-                {
-                    "address": "m.py@b2",
-                    "answer": "recast",
-                    "reason": "neither wording carries it",
-                    "prose": self.CHIEFS_OWN,
-                },
-            ],
-        )
-        docket = docket_of_proof(_closed(tmp_path), tmp_path / "repo").docket
+        docket = docket_of_proof(closed, tmp_path / "repo").docket
         (schedule,) = docket.schedules
         assert [(one.cue, one.text) for one in schedule.alterations] == [
             ("b1", self.REMAINDER),
             ("b2", self.CHIEFS_OWN),
         ]
 
-    def test_a_ruling_at_one_end_alone_is_BROKEN_naming_the_other(
+    def test_an_undecided_move_with_no_placement_ruling_is_BROKEN_naming_it(
         self, tmp_path, monkeypatch, capsys
     ):
-        code, out = self._ruled(
+        deal(tmp_path, monkeypatch, capsys, self.PLANT, self.TEXTS)
+        code, out = disposition(tmp_path, monkeypatch, capsys, [], proof="proof0.json")
+        assert code == collate_command.BROKEN, out
+        assert "copy-chief m.py@b1 -> m.py@b2: the placement of this move" in out
+        assert not (tmp_path / "final.json").exists()
+
+    def test_a_ruling_at_an_end_of_an_undecided_move_is_BROKEN(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        deal(tmp_path, monkeypatch, capsys, self.PLANT, self.TEXTS)
+        code, out = disposition(
             tmp_path,
             monkeypatch,
             capsys,
-            [_taken_in("m.py@b1", "block-context", "the move stands")],
+            [self.PLACEMENT, _taken_in("m.py@b2", "block-context", "too soon")],
+            proof="proof0.json",
         )
         assert code == collate_command.BROKEN, out
-        assert "copy-chief m.py@b2: carried forward and not ruled on" in out, out
-        assert not (tmp_path / "final.json").exists()
-        assert not (tmp_path / "chief.json").exists()
+        assert "copy-chief m.py@b2: an end of an undecided move" in out
 
 
 #: The two paragraphs the add cases stand between: `m.py@b2` is the gap they

@@ -11,7 +11,7 @@ from comment_review.desk.evaluate.passes import (
     sides_of,
 )
 from comment_review.desk.evaluate.place import Filed, Place
-from comment_review.desk.evaluate.state import CARRIED, State
+from comment_review.desk.evaluate.state import State
 from comment_review.desk.marks.mark import Instruction, Mark, Shape
 from comment_review.desk.marks.table import Touch
 
@@ -607,35 +607,41 @@ class TestAMoveIsDecidedBeforeItsEnds:
         assert (origin.state, origin.text) == (State.STANDS, self.REMAINDER)
         assert (destination.state, destination.text) == (State.STANDS, self.LANDED)
 
-    def test_an_open_move_keeps_both_ends_open_and_asks_their_words_too(self):
+    def test_an_open_moves_ends_are_to_come_and_ask_nothing(self):
+        """`Process: #200`: an end's words wait on its move's placement."""
         places, moves = self._places()
         decide(places, moves)
         assert moves["m.py@b1 -> m.py@b5"].placement is Placement.OPEN
         for end in places.values():
-            assert end.state is State.COMPOSED and end.owed == ("b",)
+            assert (end.state, end.text, end.owed) == (State.TO_COME, None, ())
 
-    def test_agree_and_clean_in_one_turn_split_and_settle_it(self):
+    def test_agree_then_clean_split_and_settle_it(self):
+        """The placement is agreed in one turn; the split's halves are then
+        put to the reader that has not seen them, and its `clean` settles."""
         places, moves = self._places()
         decide(places, moves)
         moves["m.py@b1 -> m.py@b5"].answers[1] = {"b": self._placement("agree")}
-        for end in places.values():
-            end.answers[1] = {"b": _answer("clean", question=Question.COMPOSITION)}
         decide(places, moves, turn=1)
+        assert all(end.owed == ("b",) for end in places.values())
+        for end in places.values():
+            end.answers[2] = {"b": _answer("clean", question=Question.COMPOSITION)}
+        # Each fold finds its moves again on its places, as `Fold` does; the
+        # split left no move filed, so the agreed move is carried as recorded.
+        moves = moves_in(places, moves)
+        decide(places, moves, turn=2)
         assert places["m.py@b1"].text == self.REMAINDER
         assert places["m.py@b5"].text == self.LANDED
         assert all(end.state is State.AGREED for end in places.values())
         assert places["m.py@b5"].filed[0].mark.instruction is Instruction.ADD
 
-    def test_a_stet_holds_both_ends_whatever_their_words_came_to(self):
+    def test_a_stet_keeps_both_ends_to_come(self):
         places, moves = self._places()
         decide(places, moves)
         moves["m.py@b1 -> m.py@b5"].answers[1] = {"b": self._placement("stet")}
-        for end in places.values():
-            end.answers[1] = {"b": _answer("clean", question=Question.COMPOSITION)}
         decide(places, moves, turn=1)
         assert moves["m.py@b1 -> m.py@b5"].placement is Placement.CONTESTED
         for end in places.values():
-            assert end.state in CARRIED and end.owed == ()
+            assert (end.state, end.owed) == (State.TO_COME, ())
             assert end.filed[0].mark.instruction is Instruction.MOVE
 
     def test_the_movers_withdraw_takes_the_move_off_both_ends(self):
@@ -663,61 +669,54 @@ class TestAMoveIsDecidedBeforeItsEnds:
 
     def test_a_snippet_not_in_the_origin_is_refused_at_both_ends_and_not_split(self):
         """Review Focus 5. The landing keeps every word of the destination and
-        the snippet, so the destination's own read has nothing to refuse: the
-        refusal there comes from the split the row declined."""
+        the snippet, so the destination's own read has nothing to refuse: it
+        is refused with its move, and the reason is the origin's read alone."""
         places, moves = self._places(
             readers=("a",), change="# nine\n", landed="# four\n# nine\n# five\n"
         )
         decide(places, moves)
         assert moves["m.py@b1 -> m.py@b5"].placement is Placement.REFUSED
+        assert moves["m.py@b1 -> m.py@b5"].reasons == ()
         for end in places.values():
             assert end.state is State.REFUSED
             assert end.filed[0].mark.instruction is Instruction.MOVE
-            assert any(
-                why.startswith("a: its move cannot be split") for why in end.reasons
-            )
+        assert places["m.py@b1"].reasons == (
+            "a: the snippet is not in the origin's paragraph: '# nine\\n'",
+        )
+        assert places["m.py@b5"].reasons == ()
 
-    def _stetted(self, disposition=None):
-        """A move `b` stetted in turn 1, both ends' words accepted, and the
-        chief's ruling, if any, at the destination."""
+    def _stetted(self):
+        """A move `b` stetted in turn 1: contested, both ends `to-come`."""
         places, moves = self._places()
         decide(places, moves)
         moves["m.py@b1 -> m.py@b5"].answers[1] = {"b": self._placement("stet")}
-        for end in places.values():
-            end.answers[1] = {"b": _answer("clean", question=Question.COMPOSITION)}
-        places["m.py@b5"].disposition = disposition
-        decide(places, moves, turn=1)
         return places, moves
 
-    def test_a_ruling_refused_at_one_end_of_an_unsplit_move_refuses_the_other(self):
-        ruling = Disposition(
-            address="m.py@b5", name="taken_in", side="nobody", prose="", reason="r"
-        )
-        places, _moves = self._stetted(ruling)
-        assert places["m.py@b5"].state is State.REFUSED
-        assert places["m.py@b1"].state is State.REFUSED
-        refused = "copy-chief: 'nobody' proposed nothing here"
-        assert refused in places["m.py@b5"].reasons
-        assert refused in places["m.py@b1"].reasons
-
-    def test_a_ruled_end_of_a_contested_move_is_left_as_ruled(self):
-        ruling = Disposition(
+    def test_a_ruling_at_an_end_of_an_undecided_move_is_refused(self):
+        places, moves = self._stetted()
+        places["m.py@b5"].disposition = Disposition(
             address="m.py@b5", name="taken_in", side="a", prose="", reason="r"
         )
-        places, _moves = self._stetted(ruling)
-        assert places["m.py@b5"].state is State.STANDS
-        assert places["m.py@b5"].text == self.LANDED
-        assert places["m.py@b1"].state in CARRIED
+        decide(places, moves, turn=1)
+        assert places["m.py@b5"].state is State.REFUSED
+        assert places["m.py@b5"].reasons == (
+            "copy-chief: taken_in cannot close a place that is to-come",
+        )
 
-    def test_the_chief_may_take_the_origin_in_and_recast_the_destination(self):
-        """Each end is closed by its own disposition, so the two texts need
-        not come from one side."""
+    def test_the_chief_rules_the_placement_and_then_each_ends_words(self):
+        """The placement ruling splits the move; each end is then an ordinary
+        place, closed by its own ruling, so the two texts need not come from
+        one side."""
         recast = "# four\n# five\n# two, as the chief words it\n"
-        places, moves = self._places()
-        decide(places, moves)
-        moves["m.py@b1 -> m.py@b5"].answers[1] = {"b": self._placement("stet")}
-        for end in places.values():
-            end.answers[1] = {"b": _answer("clean", question=Question.COMPOSITION)}
+        places, moves = self._stetted()
+        moves["m.py@b1 -> m.py@b5"].disposition = Disposition(
+            address="m.py@b1",
+            name="taken_in",
+            side="a",
+            prose="",
+            reason="r",
+            to="m.py@b5",
+        )
         places["m.py@b1"].disposition = Disposition(
             address="m.py@b1", name="taken_in", side="a", prose="", reason="r"
         )
@@ -729,7 +728,7 @@ class TestAMoveIsDecidedBeforeItsEnds:
             reason="r",
         )
         decide(places, moves, turn=1)
-        assert moves["m.py@b1 -> m.py@b5"].placement is Placement.CONTESTED
+        assert moves["m.py@b1 -> m.py@b5"].placement is Placement.AGREED
         origin, destination = places["m.py@b1"], places["m.py@b5"]
         assert (origin.state, origin.text) == (State.STANDS, self.REMAINDER)
         assert (destination.state, destination.text) == (State.STANDS, recast)

@@ -65,7 +65,7 @@ from typing import NamedTuple
 from comment_review.binder.page import Page
 from comment_review.desk.containers import EditCopy, MasterProof
 from comment_review.desk.dispositions.disposition import CHIEF
-from comment_review.desk.evaluate.move import UNDECIDED, Move, ruled_at_both_ends
+from comment_review.desk.evaluate.move import Move, is_open
 from comment_review.desk.evaluate.place import Place
 from comment_review.desk.evaluate.state import SETTLED, State
 from comment_review.desk.marks.table import INSTRUCTIONS
@@ -364,22 +364,19 @@ def _moves_on(proof: MasterProof) -> tuple[list[Move], list[str]]:
     return moves, problems
 
 
-def _open_moves(moves: list[Move], places: list[Place]) -> list[str]:
-    """One reason per move whose placement is undecided at an unruled end.
+def _open_moves(moves: list[Move]) -> list[str]:
+    """One reason per move whose placement is still to be decided.
 
-    A move whose placement is in `UNDECIDED` is closed only where the chief
-    has ruled both of its ends (`desk.evaluate.move.ruled_at_both_ends`,
-    `decision-log.md Process: #195` item 4). A proof can commit with one end
-    ruled and the other `UNSETTLABLE`, which `_unclosed` admits; transcribing
-    it would set the arrival at the destination while the origin keeps the
-    paragraph.
+    An open move (`desk.evaluate.move.is_open`) keeps the proof from closing:
+    neither end has a text until the placement is decided, by the roles or
+    by the chief's placement ruling (`decision-log.md Process: #195` item 4),
+    so transcribing around it would set one end of a move and not the other.
     """
-    by_address = {place.address: place for place in places}
     return [
         f"{CHIEF} {move.key}: the placement of this move is {move.placement} and"
-        " the chief has not ruled both of its ends, so this proof is not closed"
+        " not ruled on, so this proof is not closed"
         for move in moves
-        if move.placement in UNDECIDED and not ruled_at_both_ends(move, by_address)
+        if is_open(move)
     ]
 
 
@@ -508,7 +505,7 @@ def docket_of_proof(
     problems += why
     if problems:
         raise CannotTranscribe(tuple(problems))
-    unclosed = _unclosed(places) + _open_moves(moves, places)
+    unclosed = _unclosed(places) + _open_moves(moves)
     if unclosed:
         raise CannotTranscribe(tuple(unclosed))
     sets_nothing: tuple[str, ...] = ()

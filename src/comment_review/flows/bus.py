@@ -35,13 +35,13 @@ from comment_review.desk.collator import Cache, Problem
 from comment_review.desk.containers import EditCopy, MasterProof, Sheet
 from comment_review.desk.dispositions.disposition import CHIEF, Disposition
 from comment_review.desk.evaluate.move import (
-    UNDECIDED,
     Move,
+    is_open,
+    key_of,
     moves_in,
-    ruled_at_both_ends,
 )
 from comment_review.desk.evaluate.place import Place
-from comment_review.desk.evaluate.state import CARRIED
+from comment_review.desk.evaluate.state import CARRIED, State
 from comment_review.desk.stages import Stage, not_admitted
 from comment_review.desk.work import events
 from comment_review.desk.work.fold import Fold, asked
@@ -417,11 +417,7 @@ def _on_answers(message: AnswersReturned) -> tuple[list, Result | None]:
     recorded, why = _moves_on(message.proof)
     problems += why
     moves = moves_in(places, recorded)
-    open_moves = {
-        key: move
-        for key, move in moves.items()
-        if move.placement in UNDECIDED and not ruled_at_both_ends(move, places)
-    }
+    open_moves = {key: move for key, move in moves.items() if is_open(move)}
     carried = {a: p for a, p in places.items() if p.state in CARRIED}
     turn = turn_of(message.proof) + 1
     given: dict[str, dict[str, Answer]] = {}
@@ -475,7 +471,7 @@ def _unsent(
     def why(address: str) -> str:
         move = moves.get(address)
         if move is not None:
-            if move.placement not in UNDECIDED or ruled_at_both_ends(move, places):
+            if not is_open(move):
                 return "not an open move"
             return f"not put to {role} -- this move is put to {', '.join(move.owed)}"
         place = places.get(address)
@@ -487,16 +483,24 @@ def _unsent(
 
 
 def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]:
-    """The chief's rulings written onto the places, then folded to a close.
+    """The chief's rulings written onto the moves and places, then folded.
 
     Nothing survives the chief's ruling unruled, and nothing is ruled on
-    twice: a place carried forward with no ruling is refused by name and with
-    the roles it was put to, and a ruling at a place the roles settled, or
-    that rides to the human, is refused as well.
+    twice. A ruling naming a move (`to`) rules its placement, and every move
+    still undecided takes one (`decision-log.md Process: #195` item 4). A
+    place carried forward takes a ruling on its words, and one with none is
+    refused by name and with the roles it was put to. A ruling at a place the
+    roles settled, that rides to the human, or that waits on its move is
+    refused as well.
+
+    A placement ruling splits or withdraws its move, and an end that then
+    needs words is carried forward in what this commits, for the chief to
+    rule on the proof it writes.
     """
     places, problems = _places_on(message.proof)
     recorded, why = _moves_on(message.proof)
     problems += why
+    moves = moves_in(places, recorded)
     for i, entry in enumerate(message.dispositions, 1):
         named = str(entry.get("address") or "") if isinstance(entry, dict) else ""
         where = named or f"ruling {i}"
@@ -506,29 +510,53 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
                 Problem(CHIEF, where, one.removeprefix(f"{where}: ")) for one in why
             ]
             continue
+        if disposition.to:
+            key = key_of(disposition.address, disposition.to)
+            move = moves.get(key)
+            if move is None or not is_open(move):
+                problems.append(Problem(CHIEF, key, "not an open move"))
+                continue
+            move.disposition = disposition
+            continue
         place = places.get(disposition.address)
+        if place is not None and place.state is State.TO_COME:
+            problems.append(
+                Problem(
+                    CHIEF,
+                    disposition.address,
+                    "an end of an undecided move -- rule the move's placement,"
+                    " and this end's words once it is split",
+                )
+            )
+            continue
         if place is None or place.state not in CARRIED:
             problems.append(Problem(CHIEF, disposition.address, "not carried forward"))
             continue
         place.disposition = disposition
+    for key in sorted(moves):
+        move = moves[key]
+        if is_open(move) and move.disposition is None:
+            problems.append(
+                Problem(
+                    CHIEF,
+                    key,
+                    f"the placement of this move is {move.placement} and not ruled on",
+                )
+            )
     for address in sorted(places):
         place = places[address]
         if place.state in CARRIED and place.disposition is None:
-            put_to = asked(place)
             problems.append(
                 Problem(
                     CHIEF,
                     address,
                     "carried forward and not ruled on -- it was put to "
-                    f"{', '.join(put_to)}"
-                    if put_to
-                    else "carried forward and not ruled on -- it waits on the"
-                    " placement of a move it is an end of",
+                    f"{', '.join(asked(place))}",
                 )
             )
     if problems:
         return _rolled_back(problems)
-    return _commit(message.proof, places, recorded, turn_of(message.proof))
+    return _commit(message.proof, places, moves, turn_of(message.proof))
 
 
 def _rolled_back(
@@ -600,14 +628,13 @@ def _commit(
 def _undecided(fold: Fold) -> list[Move]:
     """The moves this fold carries forward, in key order.
 
-    A move the chief has ruled at both ends is closed and is left out, as the
-    fold leaves its `PlacementCarried` out (`move.ruled_at_both_ends`).
+    Only an open move is carried (`desk.evaluate.move.is_open`), as the fold
+    reports a `PlacementCarried` for an open move alone.
     """
     return [
         fold.decided_moves[key]
         for key in sorted(fold.decided_moves)
-        if fold.decided_moves[key].placement in UNDECIDED
-        and not ruled_at_both_ends(fold.decided_moves[key], fold.decided)
+        if is_open(fold.decided_moves[key])
     ]
 
 
@@ -645,8 +672,9 @@ def _batch_of(
     """Role -> one slot per carried-forward place that role is asked about.
 
     And one slot per move whose placement is undecided, for each role it is
-    put to (`decision-log.md Process: #195`): the move's two addresses, the
-    snippet and the paragraph it arrives as.
+    put to (`decision-log.md Process: #195`): the move's two addresses and,
+    for every role that filed it, the snippet and the paragraph it arrives as
+    (`Process: #196`) -- the roles may have moved different text.
 
     Every slot carries the tree the copies were read from, as an edit_copy and
     a master proof each carry their own: a role hands the slot back as it was
@@ -679,8 +707,10 @@ def _batch_of(
                 }
             )
     for move in moves:
-        mover = min(move.movers) if move.movers else ""
-        mark = move.movers.get(mover)
+        movers = [
+            {"role": role, "snippet": mark.change, "raw_text": mark.raw_text}
+            for role, mark in sorted(move.movers.items())
+        ]
         origin = places.get(move.origin)
         for role in move.owed:
             batch.setdefault(role, []).append(
@@ -689,9 +719,7 @@ def _batch_of(
                     "to": move.destination,
                     "anchor": origin.anchor if origin else "",
                     "question": str(Question.PLACEMENT),
-                    "movers": sorted(move.movers),
-                    "snippet": mark.change if mark else "",
-                    "raw_text": mark.raw_text if mark else "",
+                    "movers": [dict(one) for one in movers],
                     "instruction": None,
                     "read_from": {**read_from},
                 }

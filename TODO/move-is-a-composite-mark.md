@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 36 of 49 tasks closed
+Progress: 45 of 49 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -287,12 +287,15 @@ and now there is one object that cannot be half-held.
 - [x] T34 | Placement exclusion removed; every answer row planted; smoke exits 0 | 9502a208b3bd9061ff794ab6825f14e29713b54d | Remove
       the placement-row exclusion from tests/gates/test_smoke_fixture.py once
       the smoke plants placement answers
-- [ ] T35 | Update the chief disposition: placement once on an unresolved move,
-      words alone on a split one, per Process 195 item 4
-- [ ] T36 | Update the-mark.md and the-turn.md from the Process 195 pointers to
-      the built shape
-- [ ] T37 | Update docs/the-mark.md to the two shapes, one Mark while open and a
-      drop and add once agreed; the mark-shape gate passes
+- [x] T35 | Chief rules placement via to; ends then ruled on; tests pass | 8aede1a8 | Update
+      the chief disposition: placement once on an unresolved move, words alone
+      on a split one, per Process 195 item 4
+- [x] T36 | the-mark.md and the-turn.md state the built move; no removed function named | f8a14820 | Update
+      the-mark.md and the-turn.md from the Process 195 pointers to the built
+      shape
+- [x] T37 | the-mark.md states one Mark while open, drop and add once split; gate passes | f8a14820 | Update
+      docs/the-mark.md to the two shapes, one Mark while open and a drop and add
+      once agreed; the mark-shape gate passes
 - [ ] T38 | Delete claim.from from the move row, or refuse a move whose
       claim.from names a place other than its address
 - [ ] T39 | Update _owed_from in tests/gates/test_mark_shape.py so the move
@@ -309,16 +312,23 @@ and now there is one object that cannot be half-held.
 - [x] T43 | Filed.split_from names the move; round-trip test fails without it | a17bdd0a | Name
       the move a split half came from in a refusal, not the add or drop the role
       never filed; the round trip keeps it
-- [ ] T44 | Reproduce an end's wording put to the roles before its move's
-      placement settles, then hold it until placement settles per Process 200
-- [ ] T45 | Declare a held state set before the marks pass, replacing hold_ends'
-      empty-owed marker; grep finds no reader inferring it from owed
+- [x] T44 | Open move's ends ask nothing; test failed first, passes | 8aede1a8 | Reproduce
+      an end's wording put to the roles before its move's placement settles,
+      then hold it until placement settles per Process 200
+- [x] T45 | State.TO_COME set by hold_ends; no reader infers a hold from owed | 8aede1a8 | Declare
+      a held state set before the marks pass, replacing hold_ends' empty-owed
+      marker; grep finds no reader inferring it from owed
         > 2026-09-28 Review 2026-09-27 R1: no single owner of a move's lifecycle
-- [ ] T46 | Implement is_open(move, places) in desk/evaluate/move.py and use it
-      at all five sites; grep finds UNDECIDED tested nowhere else
-- [ ] T47 | Report a refused move once, from the move, each reason at its own
-      end; a test: one defect gives one Refused and RolledBack(1)
-- [ ] T48 | Decide every move's placement before settling any end; a test
-      folding the same moves in reversed order gets the same outcome
-- [ ] T49 | Put every mover of a move in its placement slot, not min(movers); a
-      test: two movers with different snippets both appear
+- [x] T46 | is_open in desk/evaluate/move.py, called at all five sites; suite green | 5fc5b8b7 | Implement
+      is_open(move, places) in desk/evaluate/move.py and use it at all five
+      sites; grep finds UNDECIDED tested nowhere else
+- [x] T47 | One defect gives one Refused and RolledBack(1); tests failed first | 7a31a68e | Report
+      a refused move once, from the move, each reason at its own end; a test:
+      one defect gives one Refused and RolledBack(1)
+- [-] T48 | Order-independent at f2fd9405: 36 runs, only filing order differs | f2fd9405 | Decide
+      every move's placement before settling any end; a test folding the same
+      moves in reversed order gets the same outcome
+        > 2026-09-28 Every proposing stance is PROPOSES; a split moves no placement
+- [x] T49 | Placement slot lists every mover with snippet and arrival; test failed first | ebc76452 | Put
+      every mover of a move in its placement slot, not min(movers); a test: two
+      movers with different snippets both appear

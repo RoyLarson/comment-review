@@ -10,10 +10,17 @@ ends the roles' part; `#87`: every place still carried forward takes the
 chief's own ruling, and the chief's `edit_copy` is derived from every place
 the fold decided.
 
-    dispositions.json  [{"address", "answer", "side", "reason", "prose"}]
+    dispositions.json  [{"address", "answer", "side", "reason", "prose", "to"}]
                    answer: taken_in or recast. side: a role, or the original,
                    for a taken_in. prose: the chief's own paragraph, for a
-                   recast.
+                   recast. to: a move's destination, on a ruling of its
+                   placement -- address the origin, side the mover or the
+                   original.
+
+Every undecided move takes a placement ruling, and its ends take none until
+it has one. A placement ruling moves the paragraph or keeps it, and each end
+is then an ordinary place: one that needs words is carried forward in what
+this writes, for the chief to rule by running this again on that proof.
 
 !! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
 A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`.
@@ -34,7 +41,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from comment_review.commands.collate import _code_for, _counted, _print, _refused
+from comment_review.commands.collate import OK, _code_for, _counted, _print, _refused
 from comment_review.flows.bus import DispositionsWritten, handle, turn_of
 from comment_review.flows.proof_io import (
     load_proof,
@@ -101,11 +108,18 @@ def main() -> int:
         places = sum(len(sheet.marks) for sheet in result.chief.sheets)
         print(f"{args.out}: the chief's copy, {places} places")
     save_proof(Path(args.proof_out), result.proof)
-    print(
-        f"{args.proof_out}: the proof closed at turn {turn_of(result.proof)} --"
-        f" {_counted(result.proof.places)}"
-    )
-    return _code_for(out)
+    code = _code_for(out)
+    # A placement ruling can leave its move's ends carried forward, for the
+    # chief to rule by running this again on the proof it just wrote.
+    turn, counted = turn_of(result.proof), _counted(result.proof.places)
+    if code == OK:
+        print(f"{args.proof_out}: the proof closed at turn {turn} -- {counted}")
+    else:
+        print(
+            f"{args.proof_out}: the proof at turn {turn} is not closed -- {counted};"
+            " rule what it carries and run disposition again on it"
+        )
+    return code
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 """`scripts/smoke_fixture.py`: `fib.py`'s fixture yields every series, with
 more than one member in each -- a series of one never exercises its ordinals --
-the landing table agrees with all three fixture files, and `write_texts` and
+the landing table agrees with all four fixture files, and `write_texts` and
 `write_answers` write what the smoke script reads.
 
 The series are read off the real page builder, `flows/page_for.page_of` --
@@ -133,12 +133,14 @@ class TestTheLandingTableAgreesWithTheFixture(unittest.TestCase):
             "fib.py": smoke_fixture.FIXTURE,
             "rate.py": smoke_fixture.RATE_FIXTURE,
             "store.py": smoke_fixture.STORE_FIXTURE,
+            "tally.py": smoke_fixture.TALLY_FIXTURE,
         }
         self.pages = {}
         for path in (
             smoke_fixture.write_fixture(root),
             smoke_fixture.write_rate_fixture(root),
             smoke_fixture.write_store_fixture(root),
+            smoke_fixture.write_tally_fixture(root),
         ):
             page, why = page_of(path, rel=path.name)
             assert page is not None, why
@@ -352,6 +354,76 @@ class TestEveryRowOfTheThreeTablesIsPlanted(unittest.TestCase):
         self.assertTrue(sides - {ORIGINAL}, "taken_in is never ruled for a role's side")
 
 
+def normalized(text: str) -> str:
+    """Prose with its comment markers dropped and its whitespace collapsed,
+    lowercased, so a sentence reads the same however a paragraph wraps it."""
+    return " ".join(text.replace("#", " ").split()).lower()
+
+
+class TestTheChiefRulesAPlacementForItsMoverThenItsEnds(unittest.TestCase):
+    """`decision-log.md Process: #195` item 4 and `#201`: an undecided move
+    reaches the chief as a placement, ruled once with `to`; taken in for a
+    mover it splits, and each end is then ruled in a second `disposition`
+    call. The plant carries one such move, and these read its tables."""
+
+    def setUp(self):
+        self.moves = [
+            one
+            for one in smoke_fixture.DISPOSITIONS
+            if "to" in one and one["side"] != ORIGINAL
+        ]
+
+    def test_a_placement_is_taken_in_for_a_mover_of_a_contested_move(self):
+        """Contested when the turns are spent: some role stets its placement
+        in the last turn, and the side taken in is a role that answered it."""
+        self.assertTrue(self.moves, "no placement is ruled for a mover")
+        for one in self.moves:
+            key = str(one["address"]) + smoke_fixture.MOVE_KEY + str(one["to"])
+            last = {
+                role: str(given[key]["instruction"])
+                for role, given in smoke_fixture.ANSWERS2.items()
+                if key in given
+            }
+            self.assertIn("stet", last.values(), key)
+            origin = smoke_fixture.LANDINGS[str(one["address"])]
+            self.assertIn("move", origin.filed, key)
+
+    def test_ends_rules_both_ends_of_each_such_move_and_nothing_else(self):
+        """The second call rules exactly the ends the first one split, and
+        the first call rules neither -- a ruling at a to-come end is refused."""
+        ends = {one["address"] for one in smoke_fixture.ENDS}
+        split = {end for one in self.moves for end in (one["address"], one["to"])}
+        self.assertEqual(ends, split)
+        first = {
+            one["address"] for one in smoke_fixture.DISPOSITIONS if "to" not in one
+        }
+        self.assertFalse(ends & first)
+        for one in smoke_fixture.ENDS:
+            self.assertNotIn("to", one)
+
+    def test_the_snippet_lands_once_and_each_end_as_the_chief_ruled_it(self):
+        """The moved sentence leaves the origin and reads once on the page,
+        and each end's landing is what `ENDS` makes of it."""
+        expected = {"tally.py": smoke_fixture.TALLY_EXPECTED}
+        for one in self.moves:
+            origin = smoke_fixture.LANDINGS[str(one["address"])]
+            destination = smoke_fixture.LANDINGS[str(one["to"])]
+            page = expected[str(one["address"]).split("@")[0]]
+            assert origin.marked is not None and origin.text is not None
+            assert destination.text is not None
+            snippet = normalized(origin.marked).removeprefix("a ")
+            self.assertEqual(normalized(page).count(snippet), 1, one["address"])
+            self.assertNotIn(snippet, normalized(origin.text))
+            self.assertIn(origin.text + "\n", page)
+            self.assertIn(destination.text + "\n", page)
+            recast = {
+                r["address"]: r["prose"]
+                for r in smoke_fixture.ENDS
+                if r["answer"] == "recast"
+            }
+            self.assertEqual(recast.get(one["to"], destination.text), destination.text)
+
+
 class TestTheCopiesFileWhatTheLandingTableSays(unittest.TestCase):
     """`LANDINGS`' `filed` against the copies one real plant leaves behind.
 
@@ -514,6 +586,7 @@ class TestWriteTextsWritesWhatTheScriptReads(unittest.TestCase):
         carried += [
             f"store.py@{cue}" for cue in ("b1", "b3", "b8", "b9", "b10", "b11", "b12")
         ]
+        carried += [f"tally.py@{cue}" for cue in ("b1", "b3")]
         for address in carried:
             landing = landings[address]
             stem, cue = address.split(".")[0], address.split("@")[1]
@@ -522,6 +595,7 @@ class TestWriteTextsWritesWhatTheScriptReads(unittest.TestCase):
             texts[address] = (f"{stem}-{cue}.txt", held)
         others = {
             "dispositions": "dispositions.json",
+            "ends": "dispositions-ends.json",
             "addresser-row": "addresser-row.json",
             "code-concern": "code-concern.json",
         }
@@ -539,6 +613,7 @@ class TestWriteTextsWritesWhatTheScriptReads(unittest.TestCase):
         self.assertEqual(
             json.loads(paths["dispositions"].read_bytes()), smoke_fixture.DISPOSITIONS
         )
+        self.assertEqual(json.loads(paths["ends"].read_bytes()), smoke_fixture.ENDS)
         self.assertEqual(
             json.loads(paths["addresser-row"].read_bytes()),
             {"address": "fib.py@b15", "line": 33},
