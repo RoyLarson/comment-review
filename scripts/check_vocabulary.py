@@ -1,9 +1,10 @@
 """The shipped vocabulary holds: complete, and honest about who needs what.
 
-    python scripts/check_vocabulary.py
+    uv run python scripts/check_vocabulary.py
 
-`references/vocabulary.toml` is the single source for the terms agents receive,
-and `scripts/vocabulary.py` emits each role's set into its prompt. Four checks,
+`src/comment_review/references/vocabulary.toml` is the single source for the
+terms agents receive, and the task agent hands each role the entries its
+`[roles]` row lists. Four checks,
 and each exists because the thing it looks for had already gone wrong unnoticed:
 
   COMPLETE  Every key a role is given has a definition, and no definition is
@@ -22,17 +23,7 @@ and each exists because the thing it looks for had already gone wrong unnoticed:
 
 ! The role -> files mapping is DERIVED, not listed here: an agent file names the
 document it is told to read, so this reads it out of the tree. A listed copy
-would go stale exactly the way the term lists did. ! It matches the DOCUMENT,
-never a path -- a shipped file naming its own location sends the agent to the
-installed plugin rather than to the absolute path it was handed.
-
-! It once also checked `file:line` citations in the vocabulary SURVEY documents.
-Those documents are gone -- they were the apparatus for finding the terms, and
-the terms are settled -- so the check went with them.
-
-!! ONE HANDED DOCUMENT IS DELIBERATELY NOT DERIVED, and `NOT_DERIVED`
-below names it and says why. It is stated there rather than here because
-the exclusion used to happen by accident.
+would go stale exactly the way the term lists did.
 
 Exits nonzero if any check finds something.
 """
@@ -63,11 +54,7 @@ RETIRED = {
     # names a position WITHIN a page, so `b3` was never any folio. The error
     # shipped as a DEFINITION -- *"a leaf's number in publishing, which is what
     # it is here"* -- and reviewers were given it.
-    "folio": "cue",
-    "folios": "cues",
-    "foliation": "cues",
-    "foliator": "addresser",
-    "foliate": "cue",
+    #
     # !! `leaf` IS NOT HERE AND THAT IS DELIBERATE. The PAGE sense went with the
     # rest -- one sheet carries TWO pages, so it was neither the page nor the
     # cue, and a file has no verso. But the DEPENDENCY-GRAPH sense is live and
@@ -75,8 +62,12 @@ RETIRED = {
     # the word would refuse that, and `leaves` is an ordinary English verb --
     # measured 2026-08-23, it fired on 15 sentences reading *"leaves it
     # unaccounted for"*. ! The two senses are declared polysemy; see
-    # `docs/vocabulary.md` and `TODO/leaf-means-two-things.md`.
-    #
+    # `docs/vocabulary.md` and `TODO/completed/leaf-means-two-things.md`.
+    "folio": "cue",
+    "folios": "cues",
+    "foliation": "cues",
+    "foliator": "addresser",
+    "foliate": "cue",
     # !! `join` AS A NOUN IS RETIRED, 2026-08-27. Roy: *"'The join' was too
     # ambiguous. It didn't define anything and you used it as a shortcut that
     # could have meant many different operations."* MEASURED: 202 live uses
@@ -84,9 +75,9 @@ RETIRED = {
     # structures, checking a mark against its page, a git merge, and ordinary
     # English. `decision-log.md Vocabulary: #19`.
     #
-    # ! THE VERB IS LIVE AND NECESSARY -- `"".join(...)` appears 28 times in the
-    # shipped tree -- so `.join(` is declared below rather than the word being
-    # left out of this table. The `(?![\w-])` in `check_retired` already spares
+    # ! THE VERB IS LIVE AND NECESSARY, so `.join(` is declared below rather
+    # than the word being left out of this table. The `(?![A-Za-z0-9-])` in
+    # `check_retired` already spares
     # `joins`, `joined` and `joining`; only the bare noun is refused.
     "join": "the collator",
     # !! `verdict` IS RETIRED, 2026-08-27. Roy: *"I also don't like the term
@@ -95,7 +86,7 @@ RETIRED = {
     # `decision-log.md Vocabulary: #17`.
     #
     # ! THE PLURAL IS A SEPARATE ROW, same as `block`/`blocks` above: the
-    # `(?![\w-])` boundary that spares `.join(`'s live VERB forms also spares
+    # `(?![A-Za-z0-9-])` boundary that spares `.join(`'s live VERB forms also spares
     # `verdicts` from the singular entry, and that sparing is wrong here --
     # the plural NOUN is exactly as retired as the singular, with no live verb
     # sense to protect.
@@ -104,7 +95,7 @@ RETIRED = {
     # !! `census` IS RETIRED, 2026-09-04 -- `decision-log.md Vocabulary: #34`.
     # `gather` has been stage 2's word since 2026-08-23; the command, the act
     # and the module take it, and what the gather hands over is the BINDER.
-    # ! FOUR ROWS, as `verdict`/`verdicts`: the `(?![\w-])` boundary spares
+    # ! FOUR ROWS, as `verdict`/`verdicts`: the `(?![A-Za-z0-9-])` boundary spares
     # every derived form from the bare entry, and none of them is live.
     "census": "gather, or binder for what it hands over",
     "censused": "gathered",
@@ -118,57 +109,42 @@ RETIRED = {
 # files to make it easy."*
 #
 # ! A file carrying this marker is EXEMPT WHOLE, which is why the code that
-# needs it was moved out first: `held.py` reads a format that no longer ships
-# and must say `BLOCK`, because that is the line marker in reports already on
-# disk. Renaming it there made 173 of 173 held records unreadable, measured
-# 2026-08-19. Exempting a line rather than a file would let the retired word
+# needs it was moved out first: no file under `src/` carries the marker
+# today. Exempting a line rather than a file would let the retired word
 # creep back into a file that is about the CURRENT representation, one
 # suppression at a time.
-NOQA = "# noqa: vocabulary"
+NOQA = "# noqa: vocabulary"  # TODO: no file under src/ carries this marker
 
 # !! A RETIRED WORD *NAMED* IS NOT A RETIRED WORD *USED*, and the difference is
 # the backticks. `paragraph`'s own definition says *"`block` was the older word
-# for it"*, and `page.py` explains what `block` meant before -- both are how this
+# for it"*, which is how this
 # repo keeps an error legible instead of erasing it, which is the same rule that
 # keeps a SUPERSEDED task checked rather than deleted. A sentence that USES the
 # word to mean the thing is what this catches.
+#
+# TODO: `blocks`, `block=`, `BLOCK `, `_block(`, `compose_block(` and `pCST`
+# match nothing under src/; remove them from MENTION.
 MENTION = (
     "`block`",
     "`blocks`",
     "`block=",
     "`BLOCK`",
     "`BLOCK ",
-    # ! Two identifiers from a REVIEWED codebase, quoted by `block-context` as
-    # the measured case of a substring count sweeping in a longer name. They
-    # are what that run saw, and renaming them would falsify the measurement.
+    # ! Two identifiers from a REVIEWED codebase, once quoted by `block-context`
+    # as the measured case of a substring count sweeping in a longer name. No
+    # file under `src/` holds them today; the TODO above MENTION removes them.
     "`_block(`",
     "`compose_block(`",
     "`pCST`",
     "`census`",
 )
 
-# !! A QUOTATION IS NOT AN EXEMPTION, AND THERE IS NOTHING TO EXEMPT. Ruled by
-# Roy, 2026-08-23: *"It simply isn't necessary to know the history to understand
-# the code. It is a bad habit to think it needs it."* A shipped file states what
-# the code does NOW. A ruling quoted in the words it was made in is history, and
-# history is in the git commits for whoever wants it.
-#
-# ! A CITATION IS THE SAME PROSE ONE INDIRECTION ALONG. Pointing a comment at an
-# entry that holds the old wording keeps the history in reach of the code, which
-# is the thing the rule exists to stop. The comment states the rule and the
-# reason it is that way; neither needs a date, an attribution or a link.
-#
-# ! THE COST OF THE ALTERNATIVE IS THE MECHANISM `README.md`'s *Why* records: a
-# dead term is a CONTEXT ANCHOR, and quotation marks do not stop a word reaching
-# an LLM's attention. A human reads the marks and discounts the word, which is
-# exactly the imprecision an agent does not share.
-
 # ! And these are not the retired term at all, by exact form:
-#   block-context   a ROLE NAME -- an agent id, a filename, a `--reviewers`
-#                   value, and the stem every held report is filed under
+#   block-context   a ROLE NAME -- an agent id, a filename, and a `[roles]` key in
+#                   `vocabulary.toml`
 #   TEXT BLOCK      a Java language feature
-#   block: int      the DEPRECATED 0.2.x record index on `Finding`, which names
-#                   a field in reports already written. `.block` and `block=`
+#   block: int      a record index on `Finding`, a class no file under
+#                   `src/` defines. `.block` and `block=`
 #                   are the same field read and written.
 #
 # !! FOUR MORE LIVE SENSES, DECLARED 2026-08-23 AFTER THE GATE BOUGHT ITS GREEN
@@ -179,7 +155,7 @@ MENTION = (
 # SKILL.md's verdict table read *"it PARAGRAPHS every other verdict"*, the
 # `block-context` agent was told its own role was `PARAGRAPH-CONTEXT`, and
 # `prove_unchanged` described *"a Java text PARAGRAPH"* -- a language feature
-# that does not exist. Five sites, filed as `the-rename-corrupted-live-prose`.
+# that does not exist.
 #
 # ! THIS IS THE FAILURE `docs/gates.md` NAMES FROM THE OTHER SIDE: the run was
 # green because the SUBJECT was bent to the check. A word with several senses
@@ -199,11 +175,15 @@ MENTION = (
 # `vocabulary.toml` states the sense beside `paragraph`. Declared here by the
 # three identifiers, because the scan otherwise reads the word inside them as
 # the retired noun.
+#
+# TODO: `block: int`, `"BLOCK"`, `.block`, `block=` and the three `verdict`
+# phrases below match no file under `src/` once the entries above them are
+# removed; delete them.
 NOT_THE_TERM = (
-    # ! Python's own str.join -- the VERB, and 28 sites in the shipped tree.
+    # ! Python's own str.join -- the VERB, and 64 uses in the shipped tree.
     ".join(",
     # ! The same VERB in this tree's own names: the lexer's `_join`, which
-    # joins a run's lines, and the collator's `_join_moves`. The retired word
+    # joins a run's lines. The retired word
     # is the NOUN.
     "_join",
     # ! The role name, and its spelling as an enum member in `desk/stages.py`.
@@ -225,8 +205,9 @@ NOT_THE_TERM = (
 )
 REFERENCES = REPO / "src/plugin/skills/comment-review/references"
 # !! THE TOML IS PACKAGE DATA AND DOES NOT SIT BESIDE THE `.md` REFERENCES.
-# `vocabulary.py` reads it relative to its own `__file__`, so it travels with
-# the code; the `.md` files are read by AGENTS, not by any script, and live
+# It ships inside the `comment_review` package, and SKILL.md has the
+# task agent read it there; the `.md` files are read by AGENTS and by this
+# gate, not by any shipped code, and live
 # with the rest of the plugin's prose under `src/plugin/`.
 EMITTED = REPO / "src/comment_review/references/vocabulary.toml"
 
@@ -245,34 +226,22 @@ RETIRED_HEADING = "## Retired"
 # their prompt -- are matched on the word.
 READS = re.compile(r"`([\w-]+\.md)`")
 
-# !! HANDED TO A ROLE AND DELIBERATELY NOT DERIVED. `re-review.md` reaches the
-# four editorial roles in a round-2 message the way the brief reaches them in
-# round 1, so the rule above says it should be part of their text. Deriving it
-# adds exactly one term to all four -- `cap` -- and those are the roles the cap
-# is never passed to, because length is not an editorial role. A per-role
-# vocabulary is one list, so a document's terms cannot be handed minus one.
-#
-# !! IT IS NAMED HERE BECAUSE IT WAS EXCLUDED BY ACCIDENT. Nothing referred to
-# the file: the four reviewer agents happen not to name it in backticks, so
-# `text_for` never reached it. Adding it to an agent file -- which the round-2
-# protocol arguably calls for -- would have started the derivation and failed
-# the gate over `cap`, with the reason sitting in a docstring nobody reads at
-# that moment.
-#
-# ! The cost is that this file's own terms are checked by nothing, and it
-# introduces one: `galley`, defined inline there for that reason. The deeper
-# answer is to split it by audience -- the task agent learns when a round fires,
-# the role learns what it is given, and `cap` is in the task agent's half.
+# File names `text_for` subtracts from the references an agent file names.
+# `re-review.md` is not in `REFERENCES` and no agent file names it, so this
+# excludes nothing today.
+# TODO: `re-review.md` does not exist, so NOT_DERIVED excludes nothing; remove it.
 NOT_DERIVED = frozenset({"re-review.md"})
 BRIEF = ("brief", "reviewer-brief.md")
 
 # The key every role's list is extended with. Not a role.
 EVERY_AGENT = "all"
 
-# The one role with no agent file. The task agent runs from SKILL.md and loads
+# The one role with no agent file.
+TASK_AGENT = "task-agent"
+
+# The task agent runs from SKILL.md and loads
 # `write.md` at stage 7b; every other reference it names is handed to another
 # agent, so its text is those two.
-TASK_AGENT = "task-agent"
 TASK_AGENT_READS = (
     REFERENCES.parent / "SKILL.md",
     REFERENCES / "write.md",
@@ -287,7 +256,11 @@ def term_used(text: str, term: str) -> bool:
 
 
 def text_for(role: str) -> str | None:
-    """Everything one role reads: its agent file, and the reference it names."""
+    """Everything one role reads: its agent file and the references it names.
+
+    Those are each backticked `.md` the agent file names, the brief when the
+    agent file mentions one, and the reference named for its role.
+    """
     if role == TASK_AGENT:
         return "\n".join(f.read_text(encoding="utf-8") for f in TASK_AGENT_READS)
     agent = AGENTS / f"comment-review-{role}.md"
@@ -321,14 +294,19 @@ def check_complete(definitions: dict[str, str], roles: dict[str, list[str]]) -> 
         print(f"vocabulary.toml  NO RECIPIENT   {term!r} is defined for nobody")
         holes += 1
     # ! The shared row is not a role; every other key is. Counted rather than
-    # assumed, so a second non-role key would not silently shift the number.
+    # assumed, so a missing shared row does not shift the
+    # number, though a second non-role key would still count as a role.
     roles_n = len([r for r in roles if r != EVERY_AGENT])
     print(f"\n{len(definitions)} definitions across {roles_n} roles, {holes} holes.")
     return holes
 
 
 def check_drift(definitions: dict[str, str], roles: dict[str, list[str]]) -> int:
-    """Report every term a role is given but never uses, and the reverse."""
+    """Report every way the roles, their agent files and their terms drift.
+
+    Each term a role is given but never uses, and the reverse; each agent file
+    with no role row, and each role row with no agent file. Returns how many.
+    """
     shared = set(roles.get(EVERY_AGENT, []))
     drift = 0
     # !! EVERY AGENT FILE, not every row of the table. Enumerating from
@@ -394,11 +372,11 @@ def check_duplicate(definitions: dict[str, str]) -> int:
     read the second, and the gap survived a session that was about the anchor.
 
     ! The doc is the record of what CHANGED. A term still in use is defined
-    where it is EMITTED from and nowhere else, which is the rule
-    `scripts/vocabulary.py` already states and nothing enforced.
+    where it is EMITTED from and nowhere else, which is the rule this function enforces.
 
     Returns:
-        How many shipped terms the doc defines a second time.
+        How many shipped terms the doc defines a second time, or 1 when the doc
+        cannot be read.
     """
     try:
         text = DOC.read_text(encoding="utf-8")
@@ -420,7 +398,8 @@ def check_duplicate(definitions: dict[str, str]) -> int:
 def check_retired() -> int:
     """No shipped file uses a retired word, unless it declares the exemption.
 
-    ! It reads what SHIPS only -- `src/`, wholesale. `docs/` records what was
+    ! It reads what SHIPS only -- every `.md`, `.py` and `.toml` file
+    under `src/`. `docs/` records what was
     decided and when, and `tests/` names fixtures after the format they exercise;
     neither is handed to an agent, and rewriting the record is how a record
     stops being one.
@@ -450,12 +429,10 @@ def check_retired() -> int:
 
 
 def main() -> int:
-    """Run both checks; exit nonzero if either found something."""
+    """Run all four checks; exit nonzero if any found something."""
     # ! A Windows console is cp1252; one non-ASCII glyph in this program's own
     # output kills the run. Every CLI in this repo carries this, and
-    # `tests/test_shipped_cli_encoding.py` is the gate -- it globbed only the
-    # shipped `plugins/` scripts until 2026-08-17, which is how four of these
-    # went without it.
+    # `tests/gates/test_shipped_cli_encoding.py` is the gate.
     reconfigure = getattr(sys.stdout, "reconfigure", None)
     if callable(reconfigure):
         reconfigure(encoding="utf-8", errors="replace")
