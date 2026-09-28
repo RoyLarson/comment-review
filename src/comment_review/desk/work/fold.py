@@ -111,7 +111,12 @@ class Fold:
                 on_commit.append(events.Advised(role, address, notes))
         for key in sorted(self.moves):
             move = self.moves[key]
-            if is_open(move):
+            if move.placement is Placement.REFUSED:
+                # The move's own reasons, once, at its own key; an end's
+                # reasons were reported at that end.
+                for role, reasons in _by_role(move.reasons).items():
+                    refusals.append(events.Refused(role, key, reasons))
+            elif is_open(move):
                 on_commit.append(
                     events.PlacementCarried(
                         move.origin, move.destination, move.placement, move.owed

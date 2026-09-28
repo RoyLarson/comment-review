@@ -277,6 +277,47 @@ def _a_move_between(readers):
     return places, moves_in(places)
 
 
+def test_a_moves_snippet_missing_from_its_origin_is_one_refusal():
+    """One defect, reported once: the origin's own read names it at the
+    origin, and neither the declined split nor the other end repeats it."""
+    places, _moves = _a_move_between(("a",))
+    places["m.py@b1"].base = "# one\n# three\n"
+    fold = Fold(places).run()
+    assert fold.events == [
+        events.Refused(
+            "a",
+            "m.py@b1",
+            ("the snippet is not in the origin's paragraph: '# two\\n'",),
+        ),
+        events.RolledBack(1),
+    ]
+
+
+def test_a_refused_placement_is_one_refusal_at_the_move():
+    """A reason the move itself was refused for is the move's, so it is
+    reported once, at the move's own key, and not at each of its ends."""
+    places, moves = _a_move_between(("a", "b"))
+    moves["m.py@b1 -> m.py@b5"].answers[1] = {
+        "b": Answer(
+            address="m.py@b1",
+            anchor="x = 1",
+            question=Question.COMPOSITION,
+            name="clean",
+            reason="r",
+            claim={},
+        )
+    }
+    fold = Fold(places, moves, turn=1).run()
+    assert fold.events == [
+        events.Refused(
+            "b",
+            "m.py@b1 -> m.py@b5",
+            ("clean is not an answer to a placement",),
+        ),
+        events.RolledBack(1),
+    ]
+
+
 def test_an_open_move_is_reported_once_with_whom_it_is_put_to():
     places, moves = _a_move_between(("a", "b"))
     fold = Fold(places, moves).run()

@@ -669,19 +669,21 @@ class TestAMoveIsDecidedBeforeItsEnds:
 
     def test_a_snippet_not_in_the_origin_is_refused_at_both_ends_and_not_split(self):
         """Review Focus 5. The landing keeps every word of the destination and
-        the snippet, so the destination's own read has nothing to refuse: the
-        refusal there comes from the split the row declined."""
+        the snippet, so the destination's own read has nothing to refuse: it
+        is refused with its move, and the reason is the origin's read alone."""
         places, moves = self._places(
             readers=("a",), change="# nine\n", landed="# four\n# nine\n# five\n"
         )
         decide(places, moves)
         assert moves["m.py@b1 -> m.py@b5"].placement is Placement.REFUSED
+        assert moves["m.py@b1 -> m.py@b5"].reasons == ()
         for end in places.values():
             assert end.state is State.REFUSED
             assert end.filed[0].mark.instruction is Instruction.MOVE
-            assert any(
-                why.startswith("a: its move cannot be split") for why in end.reasons
-            )
+        assert places["m.py@b1"].reasons == (
+            "a: the snippet is not in the origin's paragraph: '# nine\\n'",
+        )
+        assert places["m.py@b5"].reasons == ()
 
     def _stetted(self):
         """A move `b` stetted in turn 1: contested, both ends `to-come`."""

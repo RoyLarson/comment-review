@@ -322,8 +322,9 @@ def settle_ends(move: Move, places: dict[str, Place]) -> None:
     and `add` at the destination (`Row.splits`), and a mover that withdrew
     comes off. WITHDRAWN: every filing of this move comes off. A split the
     row declines -- the snippet is not in the origin exactly once -- makes
-    the placement REFUSED, with one reason per declined mover, and writes
-    nothing, so `hold_ends` refuses both ends.
+    the placement REFUSED and writes nothing, so `hold_ends` refuses both
+    ends. It adds no reason: the move's own read at the origin tests the same
+    snippet against the same paragraph, and names the defect there.
     """
     if move.placement not in FINAL:
         return
@@ -331,7 +332,6 @@ def settle_ends(move: Move, places: dict[str, Place]) -> None:
     if origin is None or destination is None:
         return
     halves: dict[str, tuple[Mark, Mark]] = {}
-    declined: list[str] = []
     if move.placement is Placement.AGREED:
         for role, mark in sorted(move.movers.items()):
             row = INSTRUCTIONS[mark.instruction]
@@ -341,15 +341,9 @@ def settle_ends(move: Move, places: dict[str, Place]) -> None:
                 else None
             )
             if split is None:
-                declined.append(
-                    f"{role}: its move cannot be split -- the snippet is not in"
-                    f" {move.origin}'s paragraph exactly once"
-                )
-            else:
-                halves[role] = split
-    if declined:
-        move.placement, move.reasons = Placement.REFUSED, tuple(declined)
-        return
+                move.placement = Placement.REFUSED
+                return
+            halves[role] = split
     for end, index in ((origin, 0), (destination, 1)):
         kept = [one for one in end.filed if not _is_this_move(one, move)]
         added = [
@@ -363,7 +357,8 @@ def hold_ends(move: Move, places: dict[str, Place]) -> None:
     """Hold a move's two ends to its placement while it is not final.
 
     HELD: both ends ride to the author and decide no text. REFUSED, or either
-    end refused on its own: both are refused, with every reason. OPEN or
+    end refused on its own: both are refused, each keeping only its own
+    reasons -- the move's are reported once, from the move. OPEN or
     CONTESTED: both ends are `to-come` -- each decides no text and asks no
     role anything until the placement is decided (`Process: #200`). A
     ruling at one of them is refused: its words are ruled against the
@@ -392,10 +387,8 @@ def hold_ends(move: Move, places: dict[str, Place]) -> None:
         end.state is State.REFUSED for end in ends
     )
     if refused:
-        reasons = move.reasons + tuple(r for end in ends for r in end.reasons)
         for end in ends:
             end.state, end.text = State.REFUSED, None
-            end.reasons = tuple(dict.fromkeys(reasons))
         return
     for end in ends:
         end.state, end.text, end.question, end.owed = State.TO_COME, None, None, ()
