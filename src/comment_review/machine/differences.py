@@ -5,18 +5,15 @@ One module, three operations over a base and its sides:
     unified(before, after, path)   the unified diff, one side against another
     diff3(base, sides)             the base with every edited span wrapped
     compose(base, sides)           the base with every side's edit applied,
-                                    where no two sides touched one span
+                                    refused where two sides' edits meet
 
 !! `diff3` RENDERS AND `compose` ACTS, and the pair is the reason both live
 here. `diff3` wraps every span at least one side edited, even where only one
-side touched it, so a person can read what each side did. `compose` acts on
-the DISJOINTNESS that render only shows, and refuses where two sides met.
+side touched it, so a person can read what each side did. `compose` applies
+the edits, and refuses where two sides' edits meet.
 
-
-
-`difflib` ships
-no diff3 of its own; this builds the merge from `SequenceMatcher` opcodes,
-base against each side.
+Both read `SequenceMatcher` opcodes, base against each side, because `difflib`
+ships no diff3 of its own.
 """
 
 import difflib
@@ -64,9 +61,8 @@ _Opcode = tuple[Literal["replace", "delete", "insert", "equal"], int, int, int, 
 def diff3(base: str, sides: dict[str, str]) -> list[str]:
     """The base paragraph plus every role's edit, in `diff3` form.
 
-    !! N-WAY, NOT THREE-WAY. Nothing outside
-    `tests/` calls it. `sides` may carry any
-    number of entries.
+    !! N-WAY, NOT THREE-WAY. `sides` may carry any number of roles, and each
+    is diffed against `base`.
 
     Args:
         base: the paragraph's `raw_text` before any of these edits.
@@ -120,24 +116,23 @@ def diff3(base: str, sides: dict[str, str]) -> list[str]:
     return out
 
 
-class CannotCompose(Exception):  # TODO: no caller reads the message it names
+# TODO: hand the message to the place the refusal is recorded on, or stop
+# building it -- both catches in `desk/evaluate/passes.py` discard it.
+class CannotCompose(Exception):
     """Two sides' edits met under the rule `compose` states, so no composition exists.
 
     !! RAISED, NOT RETURNED AS A SENTINEL, so a caller cannot mistake a refusal
     for text. A composed paragraph and "no composition" are different kinds of
     answer, and an empty string is a legal paragraph -- `drop`'s.
 
-    ! IT NAMES THE SPAN AND THE SIDES. A refusal a caller can only report as
-    "it did not work" cannot be sent back to anybody, which is what
-    `decision-log.md Process: #51` asks of every step that leaves work undone.
+    The message names the base lines the meeting edits span and the two sides.
+    `desk/evaluate/passes.py` catches the refusal without reading the message;
+    only the tests read it.
     """
 
 
 def compose(base: str, sides: dict[str, str]) -> str:
     """The base with every side's edit applied, where no two sides met.
-
-    This applies every side's edits where no two sides met, and refuses where
-    they did.
 
     ! A SIDE THAT CHANGED NOTHING AT A SPAN IS NOT A PARTY TO IT. Only a side's
     non-`equal` opcodes are its edits, so three roles of which one edited
@@ -148,9 +143,9 @@ def compose(base: str, sides: dict[str, str]) -> str:
             THE RUN SEEDED, never a `raw_text` that came back on a mark -- a
             check that reads its base off the thing it is checking cannot
             disagree with it.
-        sides: a name for each side -> that side's proposed text -- a role's
-            `change`, or one mark's text when a role's own marks compose, both whole
-            paragraphs as raw text (`decision-log.md Vocabulary: #27`).
+        sides: a name for each side -> that side's proposed text, a whole
+            paragraph as raw text: a role's `change`, or one mark's text when
+            a role's own marks compose.
 
     Returns:
         The composed paragraph. An empty `sides` returns `base` unchanged --
@@ -259,10 +254,11 @@ def _conflict_spans(
 def _touching_roles(
     opcodes: dict[str, list[_Opcode]], roles: list[str], start: int, end: int
 ) -> list[str]:
-    """Roles that edit inside `[start, end)`, in `roles` order.
+    """Roles that edit the base span from `start` to `end`, in `roles` order.
 
-    A non-`equal` opcode counts inside the half-open range; an insert counts at
-    any position from `start` to `end` inclusive.
+    A non-`equal` opcode counts when it overlaps the half-open range
+    `[start, end)`; an insert counts at any position from `start` to `end`
+    inclusive.
 
     A role missing from the result left this span identical to `base` -- its
     content there IS the base text, so the conflict span says nothing about
@@ -301,9 +297,9 @@ def _side_slice(
 
     !! AN `insert` OPCODE HAS `i1 == i2` AND IS TESTED THE WAY `_touching_roles`
     TESTS IT -- `start <= i1 <= end`, the closed test a zero-width position
-    needs. A half-open overlap test (`i2 <= start or i1 >= end`) is FALSE for
-    every empty base range, so one shared test dropped every pure insert.
-
+    needs. The half-open test the other opcodes take (`i2 <= start or
+    i1 >= end`) would skip an insert at either edge of the span, and a span
+    that holds only an insert is all edge.
 
     ! THE TWO TESTS CANNOT MEET AT ONE SPAN'S EDGE. `_conflict_spans` merges
     whenever `start <= merged[-1][1]`, so no two spans it returns are adjacent,

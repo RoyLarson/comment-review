@@ -27,7 +27,7 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 | `reanchor` | -> **`move`**. A relocation is ONE judgment; the destination is payload |
 | `HOME` | -> **owner**. It named the same site under a second stem |
 | `jurisdiction` | -> **remit**. Judicial on an editorial system |
-| `join` (the NOUN) | -> **the collator**. A database word, and it carried FIVE referents at once -- see `decision-log.md Vocabulary: #19`. ! The VERB is live: `"".join(...)` is Python's own, and `.join(` is declared in `check_vocabulary.py` |
+| `join` (the NOUN) | -> **the collator**. A database word, and it carried FIVE referents at once -- see `decision-log.md Vocabulary: #19`. ! The VERB is live: `"".join(...)` is Python's own, and `.join(` is declared in `scripts/retired_words.toml` |
 | `signature` (the CODE CHECK's) | -> **fingerprint**. `signature` means a function's, only |
 | `residue` (the string) | -> **stripped**. The prose check keeps the word |
 | `owner` (the census field) | -> **anchor**. It is a position, not a judgement |
