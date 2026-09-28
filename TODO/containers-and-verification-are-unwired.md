@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 23 of 55 tasks closed
+Progress: 24 of 55 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -356,8 +356,9 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       staying in desk/evaluate; nothing in desk/proof imports desk/evaluate
 - [ ] T50 | Move the Mark object into desk/proof/, its parse and table staying
       in desk/marks; nothing in desk/proof imports desk/marks
-- [ ] T51 | Delete desk/proof.py, whose builder only tests call, and build test
-      proofs the way the bus does; tests green after
+- [x] T51 | desk/proof.py deleted; tests build proofs through the bus; 1992 pass | 89aceae5 | Delete
+      desk/proof.py, whose builder only tests call, and build test proofs the
+      way the bus does; tests green after
 - [ ] T52 | Store each mark once on the master proof, not again on every place;
       the round trip holds and the proof file shrinks
 - [ ] T53 | Refuse an EditCopy whose stage or admits is malformed instead of
