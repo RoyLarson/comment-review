@@ -53,7 +53,7 @@ finding = "One ruling on one sentence, emitted as a MARK."
 sheet = "One page inside an edit copy: the file's path, the sha it was read at, and the marks on it."
 "copy chief" = "Who folds the roles' edit copies into one set of edits and rules where they disagree -- the task agent, at max turns. It rules only where the roles never settled, and there are two rulings: take one side's text in, the original being a side, or recast the paragraph in its own prose. No role may give either."
 remit ="The categories of claim a role rules on -- as against verifying, which is what it does to them."
-"editorial role" = "One of the four scopes a reviewer reads for: ownership-context, block-context, function-context, module-context."
+"editorial role" = "One of the four desks a reviewer sits at, each named by its role id: the notes editor (ownership-context), the fact-check editor (block-context), the line editor (function-context) and the developmental editor (module-context)."
 reviewer = "The identifier for an editorial role, in flags, filenames and report stems."
 
 # --- what a reviewer judges --------------------------------------------------
@@ -104,6 +104,7 @@ dispositions = "The copy chief's rulings, one per carried-forward place: `taken_
 interval = "A gap between two lines of code that holds no prose -- a `b` place with nothing in it."
 margin = "The room BESIDE a line of code -- a `c` place with nothing in it, which is any code line carrying no trailing comment."
 undocumented = "A declaration with no docstring -- an `a` place with nothing in it."
+"dark-matter" = "A file with none of its own matter -- an `f` place with nothing in it."
 
 # --- comments that share a line with code ------------------------------------
 "trailing comment" = "Prose after the statement on its own line, about that statement. Its address is a `c`, and its anchor is the code before it."
@@ -156,6 +157,10 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
 # The four editorial roles: what the shared brief used to state in passing.
 "ownership-context" = [
   "add",
+  "comment run",
+  "dark-matter",
+  "style sheet",
+  "template",
   "address",
   "batch",
   "master proof",
@@ -200,6 +205,10 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
 ]
 "block-context" = [
   "add",
+  "comment run",
+  "dark-matter",
+  "style sheet",
+  "template",
   "address",
   "batch",
   "master proof",
@@ -243,6 +252,10 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
 ]
 "function-context" = [
   "add",
+  "comment run",
+  "dark-matter",
+  "style sheet",
+  "template",
   "address",
   "batch",
   "master proof",
@@ -287,6 +300,10 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
 ]
 "module-context" = [
   "add",
+  "comment run",
+  "dark-matter",
+  "style sheet",
+  "template",
   "address",
   "batch",
   "master proof",
