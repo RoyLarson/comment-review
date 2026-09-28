@@ -505,52 +505,100 @@ def _stetted(tmp_path):
     return turned
 
 
-def test_the_chief_closes_a_contested_move_at_each_of_its_ends(tmp_path):
-    """The origin is carried only because its move is undecided: nobody asks
-    its words, and the chief's ruling is what closes it."""
+def test_an_undecided_moves_ends_are_to_come_and_ask_nothing(tmp_path):
+    """A move's placement is settled before the marks around it, so neither
+    end of an undecided move is asked about its words: the one question put
+    to the roles is the placement."""
+    collated = _collated(tmp_path, A_CONTESTED_MOVE)
+    assert _state_at(collated.proof, PLACE) == "to-come"
+    assert _state_at(collated.proof, "m.py@b2") == "to-come"
+    assert collated.batch is not None
+    slots = [slot for slots in collated.batch.values() for slot in slots]
+    assert {slot["question"] for slot in slots} == {"placement"}
+
+
+#: block-context moves b1's middle line to b2; function-context corrects b1's
+#: last line, which reads differently with the move taken out.
+A_MOVE_BESIDE_A_CORRECTION = {
+    "block-context": {
+        PLACE: a_move(PLACE, "m.py@b2", change="# two\n", reads=OTHER + "# two\n"),
+        "m.py@b2": a_clean("m.py@b2"),
+    },
+    "function-context": {
+        PLACE: a_correct_setting(PLACE, "three", "# one\n# two\n# 3"),
+        "m.py@b2": a_clean("m.py@b2"),
+    },
+}
+
+
+def _turn(result, root, answer_for):
+    """One turn: every slot the batch holds answered by `answer_for(role, slot)`."""
+    assert result.batch is not None
+    answers = {
+        role: [
+            _answer(
+                slot["address"],
+                answer_for(role, slot),
+                "r",
+                **({"to": slot["to"]} if "to" in slot else {}),
+            )
+            for slot in slots
+        ]
+        for role, slots in result.batch.items()
+    }
+    out, turned = handle(AnswersReturned(result.proof, answers, root))
+    assert turned is not None, out
+    return turned
+
+
+def test_a_withdrawn_moves_origin_is_put_to_the_role_that_has_not_seen_it(tmp_path):
+    """While the move is open its origin asks nothing, so no role accepts a
+    text the move's outcome may change. Once the mover withdraws, the origin
+    holds the correction alone, and the mover has never been shown it: the
+    place is carried to that role, not settled on an answer to another text."""
+    root = tmp_path / "repo"
+    collated = _collated(tmp_path, A_MOVE_BESIDE_A_CORRECTION)
+    words = {"composition": "clean", "escalation": "hold"}
+    stetted = _turn(
+        collated,
+        root,
+        lambda role, slot: words.get(slot["question"], "stet"),
+    )
+    withdrawn = _turn(
+        stetted,
+        root,
+        lambda role, slot: words.get(
+            slot["question"], "withdraw" if role == "block-context" else "stet"
+        ),
+    )
+    assert [m["placement"] for m in withdrawn.proof.moves] == ["withdrawn"]
+    assert _state_at(withdrawn.proof, PLACE) == "composed"
+    (origin,) = [p for p in withdrawn.proof.places if p["address"] == PLACE]
+    assert origin["owed"] == ["block-context"]
+
+
+def test_the_chief_rules_a_moves_placement_then_its_ends(tmp_path):
+    """The chief rules an undecided move once, for the pair; the move splits,
+    and an end that then needs words is carried back to the chief, who rules
+    it on the proof the placement ruling wrote. The snippet lands once."""
     turned = _stetted(tmp_path)
-    assert _state_at(turned.proof, PLACE) == "composed"
-    assert _state_at(turned.proof, "m.py@b2") == "contested"
-    out, closed = handle(
+    out, placed = handle(
         DispositionsWritten(
             turned.proof,
-            [
-                _ruling(PLACE, "taken_in", side="block-context"),
-                _ruling("m.py@b2", "taken_in", side="block-context"),
-            ],
+            [_ruling(PLACE, "taken_in", to="m.py@b2", side="block-context")],
         )
     )
-    assert closed is not None, out
-    assert events.Settled(PLACE, REMAINDER) in out
-    assert events.Settled("m.py@b2", MOVED_TO) in out
-    assert _state_at(closed.proof, PLACE) == "stands"
-    assert _state_at(closed.proof, "m.py@b2") == "stands"
-
-
-def test_a_move_the_chief_ruled_at_both_ends_asks_no_placement(tmp_path):
-    """Until the chief's own placement ruling exists, a move ruled at both
-    ends is closed (`decision-log.md Process: #195` item 4): the batch holds
-    no placement slot for it, though its placement is still `contested`."""
-    turned = _stetted(tmp_path)
-    out, closed = handle(
-        DispositionsWritten(
-            turned.proof,
-            [
-                _ruling(PLACE, "taken_in", side="block-context"),
-                _ruling("m.py@b2", "taken_in", side="block-context"),
-            ],
-        )
+    assert placed is not None, out
+    assert [m["placement"] for m in placed.proof.moves] == ["agreed"]
+    carried = sorted(
+        one.address for one in out if isinstance(one, events.CarriedForward)
     )
-    assert closed is not None, out
-    assert [m["placement"] for m in closed.proof.moves] == ["contested"]
-    assert closed.batch is None
-
-
-def test_the_chief_may_take_a_moves_origin_in_and_recast_its_destination(tmp_path):
-    turned = _stetted(tmp_path)
+    # Both ends now hold the split's halves, which function-context has not
+    # seen, so each is carried back to the chief for its words.
+    assert carried == [PLACE, "m.py@b2"]
     out, closed = handle(
         DispositionsWritten(
-            turned.proof,
+            placed.proof,
             [
                 _ruling(PLACE, "taken_in", side="block-context"),
                 _ruling("m.py@b2", "recast", prose=CHIEFS_OWN),
@@ -558,60 +606,55 @@ def test_the_chief_may_take_a_moves_origin_in_and_recast_its_destination(tmp_pat
         )
     )
     assert closed is not None, out
-    assert closed.chief is not None
     assert events.Settled(PLACE, REMAINDER) in out
     assert events.Settled("m.py@b2", CHIEFS_OWN) in out
-    # The chief's copy writes the pair as the two rulings decided it, and the
-    # move is not taken in: its destination closed on the chief's own prose
-    # rather than on what the move sets there, so writing the move would land
-    # a paragraph the chief ruled against.
-    placed = [
-        (mark.address, str(mark.instruction), mark.change)
-        for sheet in closed.chief.sheets
-        for mark in sheet.marks
-    ]
-    assert placed == [
-        (PLACE, "correct", REMAINDER),
-        ("m.py@b2", "correct", CHIEFS_OWN),
-    ]
+    texts = [p["text"] for p in closed.proof.places]
+    assert sum(text.count("# two") for text in texts if text) == 1
 
 
-def test_a_move_ruled_at_one_end_only_is_refused_for_the_other(tmp_path):
+def test_a_ruling_at_an_end_of_an_undecided_move_is_refused(tmp_path):
+    """An end's words are ruled against its move's outcome, so a ruling at an
+    end whose move is still undecided has nothing to close."""
     turned = _stetted(tmp_path)
     out, closed = handle(
         DispositionsWritten(
-            turned.proof, [_ruling(PLACE, "taken_in", side="block-context")]
+            turned.proof,
+            [
+                _ruling(PLACE, "taken_in", to="m.py@b2", side="block-context"),
+                _ruling("m.py@b2", "taken_in", side="block-context"),
+            ],
         )
     )
     assert closed is None
     assert (
         "copy-chief",
         "m.py@b2",
-        "carried forward and not ruled on -- it was put to block-context,"
-        " function-context",
+        "an end of an undecided move -- rule the move's placement,"
+        " and this end's words once it is split",
     ) in _refusals(out)
-    assert any(isinstance(one, events.RolledBack) for one in out)
 
 
-def test_an_end_carried_for_its_moves_placement_alone_is_named_for_the_move(
-    tmp_path,
-):
-    """The origin is put to nobody: it is carried because its move is
-    undecided, so an unruled origin names the move rather than an empty list
-    of roles."""
+def test_an_undecided_move_with_no_placement_ruling_is_refused_by_name(tmp_path):
     turned = _stetted(tmp_path)
-    out, closed = handle(
-        DispositionsWritten(
-            turned.proof, [_ruling("m.py@b2", "taken_in", side="block-context")]
-        )
-    )
+    out, closed = handle(DispositionsWritten(turned.proof, []))
     assert closed is None
     assert (
         "copy-chief",
-        PLACE,
-        "carried forward and not ruled on -- it waits on the placement of a move"
-        " it is an end of",
+        f"{PLACE} -> m.py@b2",
+        "the placement of this move is contested and not ruled on",
     ) in _refusals(out)
+
+
+def test_a_placement_ruling_of_original_keeps_the_paragraph_where_it_is(tmp_path):
+    turned = _stetted(tmp_path)
+    out, placed = handle(
+        DispositionsWritten(
+            turned.proof,
+            [_ruling(PLACE, "taken_in", to="m.py@b2", side="original")],
+        )
+    )
+    assert placed is not None, out
+    assert [m["placement"] for m in placed.proof.moves] == ["withdrawn"]
 
 
 def test_an_answer_at_a_place_no_turn_carried_is_refused(tmp_path):
@@ -1036,11 +1079,17 @@ class TestAMovesPlacementIsAskedOnce:
         assert [m["placement"] for m in result.proof.moves] == ["open"]
 
     def test_agree_and_clean_land_the_paragraph_once(self, tmp_path):
+        """The placement is agreed first; the split's two halves are then put
+        to the reader that has not seen them, and its `clean` settles both."""
         message, root = _a_move_two_roles_read(tmp_path)
         _out, first = handle(message)
         assert first is not None
         answers = _answered(first, _placement_or_clean("agree"))
-        out, result = handle(AnswersReturned(first.proof, answers, root))
+        out, agreed = handle(AnswersReturned(first.proof, answers, root))
+        assert agreed is not None, out
+        assert [m["placement"] for m in agreed.proof.moves] == ["agreed"]
+        answers = _answered(agreed, _placement_or_clean("agree"))
+        out, result = handle(AnswersReturned(agreed.proof, answers, root))
         assert result is not None, out
         assert result.chief is not None
         texts = {p["address"]: p["text"] for p in result.proof.places}
@@ -1115,28 +1164,37 @@ def _taken_in(*addresses):
 
 
 class TestAnOpenMoveIsNotTranscribed:
-    """A move whose placement is undecided closes only when the chief has
-    ruled both of its ends (`desk.evaluate.move.ruled_at_both_ends`). The
-    write end reads the proof's moves and refuses one that is still open, so
-    the paragraph cannot land at one end while the other keeps it."""
+    """A move whose placement is undecided closes only on the chief's
+    placement ruling. The write end reads the proof's moves and refuses one
+    that is still open, so the paragraph cannot land at one end while the
+    other keeps it."""
 
-    def _ruled_at_both_ends(self, tmp_path):
-        """A contested move whose two ends the chief rules together."""
+    def _ruled(self, tmp_path):
+        """A contested move the chief takes in, then its two ends' words."""
         message, root = _a_move_two_roles_read(tmp_path)
         _out, first = handle(message)
         assert first is not None
         answers = _answered(first, _placement_or_clean("stet"))
         out, second = handle(AnswersReturned(first.proof, answers, root))
         assert second is not None, out
+        placement = {
+            "address": "m.py@b1",
+            "to": "m.py@b2",
+            "answer": "taken_in",
+            "side": "block-context",
+            "reason": "r",
+        }
+        out, placed = handle(DispositionsWritten(second.proof, [placement]))
+        assert placed is not None, out
         out, closed = handle(
-            DispositionsWritten(second.proof, _taken_in("m.py@b1", "m.py@b2"))
+            DispositionsWritten(placed.proof, _taken_in("m.py@b1", "m.py@b2"))
         )
         assert closed is not None, out
         return closed.proof, root
 
-    def test_a_contested_move_ruled_at_both_ends_is_transcribed(self, tmp_path):
-        proof, root = self._ruled_at_both_ends(tmp_path)
-        assert [m["placement"] for m in proof.moves] == ["contested"]
+    def test_a_contested_move_the_chief_ruled_is_transcribed(self, tmp_path):
+        proof, root = self._ruled(tmp_path)
+        assert [m["placement"] for m in proof.moves] == ["agreed"]
         (schedule,) = docket_of_proof(proof, root).docket.schedules
         assert [(one.cue, one.text) for one in schedule.alterations] == [
             ("b1", "# one\n# three"),
@@ -1144,7 +1202,7 @@ class TestAnOpenMoveIsNotTranscribed:
         ]
 
     def test_a_move_that_will_not_read_is_refused(self, tmp_path):
-        proof, root = self._ruled_at_both_ends(tmp_path)
+        proof, root = self._ruled(tmp_path)
         broken = replace(proof, moves=({"origin": "m.py@b1"},))
         with pytest.raises(CannotTranscribe) as raised:
             docket_of_proof(broken, root)
@@ -1210,9 +1268,10 @@ class TestAHumanQuestionIsAskedBeforeTheFold:
     def test_a_human_answer_in_a_turn_rolls_the_turn_back_naming_its_move(
         self, tmp_path
     ):
-        """Review Focus 1 (the placement half). The same role also puts a
-        human question at a composition slot, so each is named under its own
-        key -- the move's key and the place's address."""
+        """Review Focus 1. A human question answered at a placement slot is
+        named by the move's key, and one at a composition slot by the place's
+        address -- the second asked once the move is agreed, since an end of
+        an open move is `to-come` and asks nothing."""
         message, root = _a_move_two_roles_read(tmp_path)
         _out, first = handle(message)
         assert first is not None and first.batch is not None
@@ -1222,24 +1281,36 @@ class TestAHumanQuestionIsAskedBeforeTheFold:
             "settles": "the author",
         }
 
-        def answer_for(slot):
-            if slot["question"] == "placement" or slot["address"] == "m.py@b2":
-                return {
-                    **slot,
-                    "instruction": "query",
-                    "reason": "ask the author",
-                    "claim": human_query,
-                }
-            return {**slot, "instruction": "clean", "reason": "r"}
+        def asking(question):
+            def answer_for(slot):
+                if slot["question"] == question:
+                    return {
+                        **slot,
+                        "instruction": "query",
+                        "reason": "ask the author",
+                        "claim": human_query,
+                    }
+                return {**slot, "instruction": "clean", "reason": "r"}
 
-        answers = {
-            role: [answer_for(s) for s in slots] for role, slots in first.batch.items()
-        }
-        out, result = handle(AnswersReturned(first.proof, answers, root))
-        assert result is None
-        asks = [e for e in out if isinstance(e, events.AsksTheHuman)]
-        assert [(e.role, e.at) for e in asks] == [
-            ("module-context", "m.py@b1 -> m.py@b2"),
+            return answer_for
+
+        def asks_in(result, question):
+            assert result.batch is not None
+            answer_for = asking(question)
+            answers = {
+                role: [answer_for(s) for s in slots]
+                for role, slots in result.batch.items()
+            }
+            out, turned = handle(AnswersReturned(result.proof, answers, root))
+            assert turned is None
+            return [(e.role, e.at) for e in out if isinstance(e, events.AsksTheHuman)]
+
+        assert asks_in(first, "placement") == [("module-context", "m.py@b1 -> m.py@b2")]
+        answers = _answered(first, _placement_or_clean("agree"))
+        out, agreed = handle(AnswersReturned(first.proof, answers, root))
+        assert agreed is not None, out
+        assert asks_in(agreed, "composition") == [
+            ("module-context", "m.py@b1"),
             ("module-context", "m.py@b2"),
         ]
 

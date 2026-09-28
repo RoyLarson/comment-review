@@ -85,9 +85,11 @@ class Fold:
             if place.state is State.REFUSED:
                 for role, reasons in _by_role(place.reasons).items():
                     refusals.append(events.Refused(role, address, reasons))
+            elif place.state is State.TO_COME:
+                # An end waiting on its move asks nothing: the move's own
+                # `PlacementCarried`, below, is what is put to the roles.
+                pass
             elif place.state in CARRIED:
-                # An end the hold carried for its move alone names nobody:
-                # the move's own event asks for it, below.
                 if asked(place):
                     on_commit.append(
                         events.CarriedForward(
@@ -109,7 +111,7 @@ class Fold:
                 on_commit.append(events.Advised(role, address, notes))
         for key in sorted(self.moves):
             move = self.moves[key]
-            if is_open(move, self.places):
+            if is_open(move):
                 on_commit.append(
                     events.PlacementCarried(
                         move.origin, move.destination, move.placement, move.owed

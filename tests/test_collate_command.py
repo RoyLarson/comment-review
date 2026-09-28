@@ -958,7 +958,9 @@ class TestTheStateBetweenTurnsOnDisk:
         # ! THE SUMMARY COUNTS THE PLACES BY WHAT THEY CAME TO. A bare place
         # count says nothing a reader can act on, which is what it said for
         # one commit.
-        assert "1 places -- 1 settled, 0 unsettlable, 0 carried forward" in out
+        assert (
+            "1 places -- 1 settled, 0 unsettlable, 0 carried forward, 0 to come" in out
+        )
         proof, why = load_proof(proof_path)
         assert why == []
         assert proof is not None

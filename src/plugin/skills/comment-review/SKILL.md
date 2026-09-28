@@ -257,8 +257,10 @@ end when a turn writes no batch or the count is reached.
 first. Rule in this order, because each step builds on the one before:
 
 1. `query` -- resolve what it asks.
-2. `move` and `drop` -- settle where the prose lives. For a move, decide the placement, then
-   rule both ends from it.
+2. `move` and `drop` -- settle where the prose lives. A move prints as
+   `<placement> <origin> -> <destination>`, and its two ends are *to come*: they wait on the
+   placement and take no ruling. Rule the placement with a ruling that carries `to`: `taken_in`
+   with `side` the mover, which moves the paragraph, or `original`, which keeps it where it is.
 3. `correct` -- fix what is false, against the code at the place the prose now sits.
 4. `patch` -- improve the wording of text now known to be true.
 5. `add` -- insert new text at its anchor.
@@ -275,16 +277,19 @@ A `correct` outranks any number of `clean`s. Where two placements name different
 each name exists, and each count re-derives.
 
 Write the rulings to `<run-dir>/dispositions.json` as a list of
-`{"address", "answer", "side", "reason", "prose"}`, with a `reason` on each, then close the
-proof:
+`{"address", "answer", "side", "reason", "prose"}`, with a `reason` on each and `"to"` added on
+a placement ruling (`address` the origin, `to` the destination), then close the proof:
 
 ```bash
 python <skill>/scripts/comment-review.py disposition --proof <last proof written> \
   --dispositions <run-dir>/dispositions.json --out <run-dir>/chief.json --proof-out <run-dir>/final.json
 ```
 
-It names any carried-forward place still unruled, and writes when every place has a ruling.
-`final.json` is the closed proof.
+It names any move or carried-forward place still unruled, and writes when every one has a ruling.
+A placement ruling moves the paragraph or keeps it, and each end is then read as an ordinary
+place; when `disposition` exits `3` or `4`, those ends are carried forward. Rule them from the
+code at each end, and run `disposition` again with `--proof <run-dir>/final.json`. `final.json`
+is the closed proof once it exits `0`.
 
 ### Stage 6 -- compact, when a cap applies
 

@@ -1,4 +1,4 @@
-"""What the chief rules at a carried-forward place."""
+"""What the chief rules at a carried-forward place, or on an undecided move."""
 
 from dataclasses import dataclass, fields
 
@@ -10,13 +10,17 @@ CHIEF = "copy-chief"
 
 @dataclass(frozen=True)
 class Disposition:
-    """One chief's ruling on one carried-forward place."""
+    """One chief's ruling on one carried-forward place, or on one move's placement."""
 
     address: str
     name: str
     side: str
     prose: str
     reason: str
+    #: A placement ruling names the move by its two addresses, as a placement
+    #: answer does: `address` is the origin and `to` the destination. Empty on
+    #: a ruling at a place.
+    to: str = ""
 
     def serialize(self) -> dict:
         """This ruling as a docket carries it, keyed by this class's own field names."""
@@ -63,6 +67,7 @@ class Disposition:
                 side=str(data.get("side") or row.side),
                 prose=str(data.get("prose") or ""),
                 reason=str(data.get("reason") or ""),
+                to=str(data.get("to") or ""),
             ),
             [],
         )

@@ -10,10 +10,17 @@ ends the roles' part; `#87`: every place still carried forward takes the
 chief's own ruling, and the chief's `edit_copy` is derived from every place
 the fold decided.
 
-    dispositions.json  [{"address", "answer", "side", "reason", "prose"}]
+    dispositions.json  [{"address", "answer", "side", "reason", "prose", "to"}]
                    answer: taken_in or recast. side: a role, or the original,
                    for a taken_in. prose: the chief's own paragraph, for a
-                   recast.
+                   recast. to: a move's destination, on a ruling of its
+                   placement -- address the origin, side the mover or the
+                   original.
+
+Every undecided move takes a placement ruling, and its ends take none until
+it has one. A placement ruling moves the paragraph or keeps it, and each end
+is then an ordinary place: one that needs words is carried forward in what
+this writes, for the chief to rule by running this again on that proof.
 
 !! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
 A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`.

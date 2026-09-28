@@ -96,9 +96,10 @@ alteration = "One place, and what the compositor sets there: its replacement tex
 
 # --- what carries the work between the stages --------------------------------
 topology = "Which roles each stage dispatches, in what order, how many ways each role is split, and the pages each dispatch covers. A stage may also name a cap, the series it deals and the instructions it admits. `topology --build` writes one that fits the binder."
-"master proof" = "Every place the fold has seen: its base text, the marks on it, and its state -- settled, carried forward, or unsettlable. `collate` writes it, each `turn` and `disposition` advance it, and it is closed when every place is decided."
+"master proof" = "Every place the fold has seen: its base text, the marks on it, and its state -- settled, carried forward, to come, or unsettlable. `collate` writes it, each `turn` and `disposition` advance it, and it is closed when every place is decided."
 batch = "One slot for each carried-forward place, for each role it is put to, sent out in a turn."
-dispositions = "The copy chief's rulings, one per carried-forward place: `taken_in` a side's text, or `recast` in the chief's own prose."
+dispositions = "The copy chief's rulings: one per undecided move, `taken_in` a mover's side or the original, and one per carried-forward place, `taken_in` a side's text or `recast` in the chief's own prose."
+"to come" = "An end of a move whose placement is not yet decided -- the trade's TK. It holds no text, asks no role anything, and takes no ruling; once the placement is decided it is read as any place."
 
 # --- the empty places, which are what an `add` cites -------------------------
 interval = "A gap between two lines of code that holds no prose -- a `b` place with nothing in it."
@@ -150,6 +151,7 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "sheet",
   "style sheet",
   "template",
+  "to come",
   "topology",
   "width",
 ]
