@@ -232,10 +232,9 @@ def _root_problems(copies: list[EditCopy]) -> list[Problem]:
 
     Two copies from different trees have no fold between them: their
     addresses answer to different address spaces, so an `a0` in one tells
-    nothing about the `a0` in the other. `desk.proof.master_proof_of` raised
-    `MismatchedRoot` for this and the handler reaches no `master_proof_of`,
-    so the comparison is here -- ruled back in as `decision-log.md Process:
-    #178`.
+    nothing about the `a0` in the other. `_on_copies` takes the proof's
+    `read_from` from the first copy, so the comparison is here --
+    `decision-log.md Process: #178`.
 
     Reported rather than raised, like everything else the handler finds: a
     refusal that raises empties the report for every other role, measured

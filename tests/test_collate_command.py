@@ -452,11 +452,8 @@ class TestExitCodes:
         """`decision-log.md Process: #178`: two copies gathered from different
         trees share no address space, so the handler refuses the round.
 
-        ! THE OLD FOLD RAISED `desk.proof.MismatchedRoot` from `master_proof_of`
-        and the command caught it onto stderr. The handler reaches no
-        `master_proof_of`, so the comparison is `flows.bus._root_problems` and
-        the reason routes to the role that owes it, on stdout, like every
-        other finding."""
+        The comparison is `flows.bus._root_problems`, and the reason routes to
+        the role that owes it, on stdout, like every other finding."""
         binder = a_binder_over({"m.py@b1": BASE})
         copies = copies_over(
             binder,
@@ -492,19 +489,10 @@ class TestExitCodes:
     def test_every_copys_findings_are_printed_not_just_the_first(
         self, tmp_path, monkeypatch, capsys
     ):
-        """Finding #6 of the 2026-08-30 review, by RUNNING the real CLI.
-
-        !! MEASURED BEFORE THE FIX: exit 1, **stdout EMPTY**, and only the
-        REFUSED line on stderr. `collate` accumulated its `Problem`s into a
-        local list and only reached its return past `master_proof_of`, so a
-        refusal there made every one of them unrecoverable -- **one role's
-        incompatible header blocking routing for every other role**, which is
-        the opposite of Roy's rule that the errors stack so each can be fixed or
-        sent back to the role that owes it.
-
-        ! THE INCOMPATIBLE HEADER IS NO LONGER WHAT REFUSES. The Unit of Work
-        reaches no `master_proof_of`, so this drives the rule on two broken
-        marks instead: each role must read its own line.
+        """Every role's findings are printed, by RUNNING the real CLI: one
+        role's refusal must not block routing for every other role, so the
+        errors stack and each can be fixed or sent back to the role that owes
+        it. Two broken marks, one per role: each role must read its own line.
         """
         binder = a_binder_over({"m.py@b1": BASE})
         copies = copies_over(
@@ -542,13 +530,9 @@ class TestExitCodes:
     def test_a_copy_missing_read_from_exits_one_not_a_traceback(
         self, tmp_path, monkeypatch, capsys
     ):
-        """`desk.proof.master_proof_of`'s bare `copy["read_from"]` raises `KeyError` by
-        design (its own `Raises:` calls this intentional), and until this fix
-        that `KeyError` was not in `RECONCILE_ERRORS` -- so it escaped `main`
-        uncaught, past this module's own promise that "a raise is not a
-        refusal". Confirmed BEFORE the fix: `command.main()` raised `KeyError`
-        out of this test rather than returning, with an eight-frame traceback
-        -- see the task report for that run's output.
+        """A copy with no `read_from` is refused by the envelope parse
+        (`EditCopy.deserialize`) and reported on stdout with exit 1 -- a raise
+        is not a refusal, so no traceback escapes `main`.
         """
         binder = a_binder_over({"m.py@b1": BASE})
         copies = copies_over(
@@ -576,10 +560,6 @@ class TestExitCodes:
         code = command.main()
         out = capsys.readouterr()
         assert code == 1
-        # !! ALSO MOVED TO stdout ON 2026-08-31, and the history above still
-        # holds -- the `KeyError` was real and escaping. The envelope parse now
-        # names an absent `read_from` before `master_proof_of` is reached, so the
-        # `RECONCILE_ERRORS` catch is no longer what answers this input.
         assert "read_from" in out.out
         assert not (tmp_path / "chief.json").exists()
 

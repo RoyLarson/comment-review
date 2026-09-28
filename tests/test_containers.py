@@ -1,21 +1,21 @@
 """The containers parse what the real chain builds, and refuse what it cannot.
 
 ! INPUTS ARE REAL -- a binder from `bind` over a real tree, seeded by the real
-`seed`, assembled by the real `master_proof_of`. A literal appears only where MALFORMED
-is the input, which is what the refusals are about.
+`seed`, and a master proof built by the real bus from the copies it folded. A
+literal appears only where MALFORMED is the input, which is what the refusals
+are about.
 """
 
 from dataclasses import fields
 
 import pytest
-from helpers import a_clean, a_small_real_tree, binder_of, returned
+from helpers import a_clean, a_master_proof, a_small_real_tree, binder_of
 
 from comment_review.desk.containers import (
     EditCopy,
     MasterProof,
     Sheet,
 )
-from comment_review.desk.proof import master_proof_of
 from comment_review.flows.distribute import seed
 
 
@@ -52,9 +52,9 @@ class TestTheWriteHalfLivesWithTheRead:
         assert set(row) == {f.name for f in fields(EditCopy)}
 
     def test_a_master_proof_is_written_with_every_WIRE_field_the_class_declares(self):
-        """`turns` and `determined` are off the wire since `Process: #87`: a fold
-        writes them later, so `seed` -- which writes what `master_proof_of` takes from a
-        copy -- cannot. Same rule as the sheet's `unruled` and `refused`."""
+        """`places` and `moves` are off the wire: a fold writes them, so `seed`
+        -- which writes the three fields a proof takes from its copies -- cannot.
+        Same rule as the sheet's `unruled` and `refused`."""
         row = MasterProof.seed(stage="4c", read_from={}, edit_copies=[])
         wire = {f.name for f in fields(MasterProof) if f.metadata.get("wire", True)}
         assert set(row) == wire
@@ -124,19 +124,21 @@ class TestWhatTheChainBuilds:
         carried = {p.path for p in binder.pages}
         assert {s.path for s in copy.sheets} == carried
 
-    def test_a_master_proof_gather_built_parses(self, tmp_path):
-        """! THE ROUND TRIP, NOT A PARSE OF A DICT, since `P42`. `master_proof_of`
-        RETURNS a `MasterProof`, so what is read back here is that container's
-        own `serialize` -- which is the stronger claim: the write half and the
-        read half agree over the real producer."""
-        binder = binder_of(a_small_real_tree(tmp_path), 0)
-        copies = [
-            returned(seed(binder, "block-context")),
-            returned(seed(binder, "function-context")),
-        ]
-        proof, why = MasterProof.deserialize(
-            "4c", master_proof_of("4c", copies).serialize()
+    def test_a_master_proof_the_bus_built_parses(self, tmp_path):
+        """! THE ROUND TRIP, NOT A PARSE OF A DICT. The bus's `_on_copies`
+        builds a `MasterProof`, so what is read back here is that container's
+        own `serialize` -- the write half and the read half agree over the real
+        producer. The proof holds every copy in the order the stage returned
+        them, under the `read_from` the binder recorded."""
+        root = tmp_path / "repo"
+        built = a_master_proof(
+            root,
+            {
+                "block-context": {"m.py@b1": a_clean("m.py@b1")},
+                "function-context": {"m.py@b1": a_clean("m.py@b1")},
+            },
         )
+        proof, why = MasterProof.deserialize("4c", built.serialize())
         assert why == []
         assert isinstance(proof, MasterProof)
         assert proof.stage == "4c"
@@ -144,6 +146,7 @@ class TestWhatTheChainBuilds:
             "block-context",
             "function-context",
         ]
+        assert proof.read_from == {"root": str(root), "revise": 0}
 
     def test_the_chiefs_copy_parses_as_an_ORDINARY_edit_copy(self, tmp_path):
         """`decision-log.md Vocabulary: #30`: the chief's copy is the same
@@ -176,8 +179,8 @@ class TestAnEmptyProofStillHoldsItsHeader:
         assert problems != []
 
     def test_an_empty_proof_with_an_empty_read_from_is_still_admitted(self):
-        """`master_proof_of` itself produces this shape -- the docstring's reasoning for
-        admitting `{}` was sound, and only the other five values were not."""
+        """The bus's `_on_copies` produces this shape for a stage with no
+        copies, so `{}` is admitted and only the other five values are not."""
         parsed, problems = MasterProof.deserialize(
             "p", {"stage": "4c", "edit_copies": [], "read_from": {}}
         )
@@ -185,12 +188,12 @@ class TestAnEmptyProofStillHoldsItsHeader:
         assert parsed is not None
         assert parsed.read_from == {}
 
-    def test_what_gather_writes_for_no_copies_still_parses(self):
+    def test_what_the_bus_writes_for_no_copies_still_parses(self, tmp_path):
         """The round trip, so the admission above is measured against the real
         producer rather than against a literal that agrees with it."""
-        parsed, problems = MasterProof.deserialize(
-            "4c", master_proof_of("4c", []).serialize()
-        )
+        built = a_master_proof(tmp_path / "repo", {})
+        assert built.edit_copies == () and built.read_from == {}
+        parsed, problems = MasterProof.deserialize("4c", built.serialize())
         assert problems == []
         assert parsed is not None
 
@@ -257,13 +260,11 @@ class TestWhatItRefuses:
     def test_a_master_proof_whose_read_from_disagrees_with_the_first_copy(
         self, tmp_path
     ):
-        """`desk.proof.master_proof_of` refuses this same disagreement with
-        `MismatchedRoot` before a master_proof is ever built -- a proof
-        reaching `MasterProof.deserialize` with one is malformed, not merely
-        unusual."""
-        binder = binder_of(a_small_real_tree(tmp_path), 0)
-        proof = master_proof_of(
-            "4c", [returned(seed(binder, "block-context"))]
+        """The bus takes a proof's `read_from` from its first copy, so a proof
+        reaching `MasterProof.deserialize` with one that disagrees is
+        malformed, not merely unusual."""
+        proof = a_master_proof(
+            tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
         ).serialize()
         proof["read_from"] = {"root": "somewhere else", "revise": 99}
         got, why = MasterProof.deserialize("4c", proof)
@@ -273,9 +274,8 @@ class TestWhatItRefuses:
     def test_a_master_proof_whose_read_from_is_malformed(self, tmp_path):
         """The same shape check `_read_from_problem` runs for an edit_copy,
         reused here for the master_proof's own `read_from` field."""
-        binder = binder_of(a_small_real_tree(tmp_path), 0)
-        proof = master_proof_of(
-            "4c", [returned(seed(binder, "block-context"))]
+        proof = a_master_proof(
+            tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
         ).serialize()
         proof["read_from"] = {"root": proof["read_from"]["root"]}
         got, why = MasterProof.deserialize("4c", proof)
@@ -283,10 +283,9 @@ class TestWhatItRefuses:
         assert "`revise`" in why[0]
 
     def test_a_master_proof_WITH_NO_EDIT_COPIES_still_parses(self):
-        """`desk.proof.master_proof_of`'s own contract: an empty `edit_copies` assembles
-        to `read_from={}`, since there is no first copy to take it from --
-        that is not the disagreement or malformed shape the two cases above
-        refuse."""
+        """An empty `edit_copies` reads back with `read_from={}`, the shape the
+        bus writes when there is no first copy to take it from -- not the
+        disagreement or malformed shape the two cases above refuse."""
         got, why = MasterProof.deserialize("4c", {"stage": "4c", "edit_copies": []})
         assert why == []
         assert got is not None

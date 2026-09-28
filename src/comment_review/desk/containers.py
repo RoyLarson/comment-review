@@ -39,14 +39,15 @@ flow CARRIES between its load and its save; a seed is emitted AT a save --
 is handed -- so the dict is where that ruling puts it.
 
     write   flows.distribute.seed, flows.places.chief_copy_of,
-            flows.bus, desk.proof.master_proof_of
+            flows.bus
     read    commands/collate.py, at its inbound boundary, and
             flows.proof_io.load_proof
 
 ! THE PARSES HAD NO PRODUCTION CALLER UNTIL 2026-08-31, and this file said so
-for as long as that was true. `P21` closed it: `collate` runs `EditCopy.deserialize`
-over every returned copy and `MasterProof.deserialize` over what `master_proof_of`
-builds, so **every refusal declared below can now fire.**
+for as long as that was true. `P21` closed it: `collate` runs
+`EditCopy.deserialize` over every returned copy, and `turn`, `disposition` and
+`proof` run `MasterProof.deserialize` over every proof they read, so **every
+refusal declared below can now fire.**
 
 !! THIS FILE STATES WHAT THE TWO BOUNDARIES ARE, AND NOTHING ELSE RESTATES IT.
 A container guards the **ENVELOPE** -- is this document the shape a copy must
@@ -454,8 +455,8 @@ class EditCopy:
 
         Returns:
             `{role, read_from, sheets, stage, admits}`. ! `read_from` IS
-            COPIED, NOT ALIASED, as `bind`, `seed` and `master_proof_of` all
-            do with this field: a caller mutating its own dict afterward
+            COPIED, NOT ALIASED, as `bind`, `seed` and the bus's `_on_copies`
+            all do with this field: a caller mutating its own dict afterward
             cannot change what this copy holds.
         """
         return _written(
@@ -515,9 +516,9 @@ class EditCopy:
         return (
             EditCopy(
                 role=role,
-                # ! COPIED, NOT ALIASED -- `bind`, `seed` and `master_proof_of` all
-                # do the same with this field, so a caller mutating its own dict cannot
-                # change what a parsed copy already holds.
+                # ! COPIED, NOT ALIASED -- `bind`, `seed` and the bus's `_on_copies`
+                # all do the same with this field, so a caller mutating its own
+                # dict cannot change what a parsed copy already holds.
                 read_from={**checked["read_from"]},
                 sheets=tuple(sheets),
                 # Both are read where present and defaulted where not. A
@@ -554,17 +555,18 @@ class MasterProof:
     Attributes:
         stage: the label the copies were dispatched under -- `SKILL.md`'s "4a",
             "4c".
-        read_from: taken from the first copy; `desk.proof.master_proof_of` refuses a set
-            that disagrees.
+        read_from: taken from the first copy by the bus's `_on_copies`, and `{}`
+            where there is none; `flows.bus._root_problems` refuses a set of
+            copies that disagree, and `deserialize` a proof whose own
+            `read_from` disagrees with its first copy's.
         edit_copies: one per role, or one per SHARD under fan-out.
         places: every place one fold of this stage decided, as
             `desk.evaluate.place.Place.serialize` writes one, read back by
             `Place.deserialize`. `flows.bus` writes it; empty until such a
             fold has run.
-            ! IT IS `wire: False`: `seed` writes the three fields
-            `master_proof_of` takes from a copy, and this one is written by a
-            fold, later. `serialize` carries it; `deserialize` reads it where
-            present.
+            ! IT IS `wire: False`: `seed` writes the three fields a proof
+            takes from its copies, and this one is written by a fold.
+            `serialize` carries it; `deserialize` reads it where present.
         moves: every move one fold of this stage decided, as
             `desk.evaluate.move.Move.serialize` writes one. `wire: False`, like
             `places`, and absent from a proof written before
@@ -588,12 +590,11 @@ class MasterProof:
 
     @classmethod
     def seed(cls, stage: str, read_from: dict, edit_copies: list) -> dict:
-        """One master_proof as the wire dict `desk.proof.master_proof_of` returns.
+        """One master_proof as a wire dict, before any fold has written places.
 
         Args:
             stage: the label these copies were dispatched under.
-            read_from: taken from the first copy by `master_proof_of`, which refuses a
-                set that disagrees.
+            read_from: the tree the copies were gathered from.
             edit_copies: one `EditCopy.seed` dict per role, or per SHARD under
                 fan-out. Held in the order given: nothing is sorted, nothing is
                 dropped.
@@ -618,21 +619,21 @@ class MasterProof:
 
         Args:
             where: how to name this proof in a message -- its stage label.
-            data: a master_proof, as `desk.proof.master_proof_of` returns one.
+            data: a master_proof, as `serialize` writes one.
 
         Returns:
             `(MasterProof, [])` or `(None, [messages])`. Every bad copy is
             reported, and so is a `read_from` that fails `_read_from_problem` --
             the same check `EditCopy.deserialize` runs on an edit_copy's own field --
-            or that disagrees with the first edit_copy's, which is the
-            disagreement `desk.proof.master_proof_of` itself refuses with
-            `MismatchedRoot` before a master_proof is ever built.
+            or that disagrees with the first edit_copy's -- the bus's
+            `_on_copies` takes a proof's `read_from` from its first copy, so a
+            proof that disagrees was not built by it.
 
             ! THE SHAPE CHECK RUNS WHETHER OR NOT THERE ARE COPIES, since
             2026-08-31; the COMPARISON needs a first copy and still only runs
             where there is one. The single exemption is an empty proof whose
-            `read_from` is `{}` or absent, which is what `master_proof_of` writes
-            when it had no first copy to take one from.
+            `read_from` is `{}` or absent, which is what `_on_copies` writes
+            when it has no first copy to take one from.
         """
         if not isinstance(data, dict):
             return None, [f"{where}: a master_proof must be an object"]
@@ -668,10 +669,11 @@ class MasterProof:
         # the header checks it explained. The measurement is stated here now,
         # where the code it justifies is.
         #
-        # ! `{}` IS STILL ADMITTED, AND ONLY FOR AN EMPTY PROOF. `master_proof_of`
-        # writes it when there is no first copy to take a `read_from` from, so
-        # refusing it would refuse a shape the producer itself makes. That is the
-        # one exemption; it is not a licence for every other value.
+        # ! `{}` IS STILL ADMITTED, AND ONLY FOR AN EMPTY PROOF. The bus's
+        # `_on_copies` writes it when there is no first copy to take a
+        # `read_from` from, so refusing it would refuse a shape the producer
+        # itself makes. That is the one exemption; it is not a licence for
+        # every other value.
         #
         # !! THE DEFAULT IS WHAT SEPARATES AN ABSENT KEY FROM A NULL ONE, and the
         # two must not be folded together here. `.get("read_from", {})` returns `{}`
@@ -725,7 +727,7 @@ class MasterProof:
         )
 
     def serialize(self) -> dict:
-        """This master_proof as the wire dict, the shape `master_proof_of` returns."""
+        """This master_proof as the wire dict `deserialize` reads back."""
         return {
             "stage": self.stage,
             "read_from": {**self.read_from},

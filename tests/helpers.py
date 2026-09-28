@@ -14,8 +14,8 @@ and not beside either test module.
 ! `a_docket_that_rewrites` and `the_row_for` were added in Task 10, for
 `tests/test_stage_root.py`.
 
-! `a_master_proof`, `a_correct`, `a_move`, `a_clean`, `a_query` and `an_add`
-were added in Task 9, for the reconciliation cases, and several files share
+! `a_master_proof`, `returned_copies`, `a_correct`, `a_move`, `a_clean`,
+`a_query` and `an_add` serve the reconciliation cases, and several files share
 them. Every mark is built through `desk.marks.table.INSTRUCTIONS`, never as a
 hand-typed literal, so a changed row breaks a helper loudly instead of
 letting it drift.
@@ -37,8 +37,8 @@ from comment_review.commands import turn as turn_command
 from comment_review.desk.containers import EditCopy, MasterProof, Sheet
 from comment_review.desk.marks.mark import ANCHOR_EXAMPLE, Instruction, Mark, Shape
 from comment_review.desk.marks.table import INSTRUCTIONS
-from comment_review.desk.proof import master_proof_of
 from comment_review.docket.docket import Docket
+from comment_review.flows.bus import CopiesReturned, handle
 from comment_review.flows.distribute import seed
 from comment_review.flows.fill import fill
 from comment_review.flows.page_for import page_of, source_of
@@ -437,7 +437,7 @@ def a_real_binder_over(root: Path, paragraphs: dict[str, str]) -> Binder:
 def copies_over(binder: Binder, by_role: dict) -> list[dict]:
     """One real seeded `edit_copy` per role, each overlaid with that role's marks.
 
-    ! WRITTEN IN TASK 10. `a_master_proof` builds its own synthetic binder per
+    ! WRITTEN IN TASK 10. `returned_copies` builds its own synthetic binder per
     role; this seeds every role from ONE binder, which is what `collate` is
     handed.
 
@@ -591,25 +591,50 @@ def returned(wire: dict, where: str = "copy") -> EditCopy:
     return copy
 
 
-def a_master_proof(by_role: dict) -> MasterProof:
-    """A `master_proof`, composed through the real `seed()` and `master_proof_of()`.
+def a_master_proof(root: Path, by_role: dict) -> MasterProof:
+    """A `master_proof`, as the bus builds one from a stage's returned copies.
+
+    Every place `by_role` names is written under `root` holding `BASE`
+    (`a_real_binder_over`); each role's copy is seeded from that one binder and
+    overlaid with its marks (`copies_over`), parsed (`returned`), and handed to
+    `flows.bus.handle` as one `CopiesReturned` -- the message
+    `commands/collate.py` sends. What comes back is the proof the committed
+    fold built.
 
     Args:
-        by_role: role name -> {address: mark}, one mark per place that role
-            rules on, built by `a_correct`, `a_move`, `a_clean`, `a_query` or
-            `an_add`.
+        root: the directory the pages are written into.
+        by_role: role name -> {`path@b<n>`: mark}, one mark per place that role
+            rules on. An empty map is a stage with no copies.
 
     Returns:
-        The `MasterProof` `desk.proof.master_proof_of` returns. One `edit_copy` per
-        role, seeded for real over a synthetic binder sized to that role's own
-        addresses, then each seeded entry overlaid with the caller's mark --
-        the same `entry.update(...)` pattern `tests/test_collator.py` uses over
-        a real one.
+        `Result.proof` from the committed fold.
 
-    ! IT RUNS THE REAL PARSE BETWEEN THE TWO, exactly as the command
-    does since `P42`: `seed` writes the wire dict a role is handed, and
-    `master_proof_of` takes the parsed `EditCopy`. A fixture that skipped the parse
-    would hand `master_proof_of` a shape production cannot produce.
+    Raises:
+        AssertionError: the bus rolled the stage back, naming its events.
+    """
+    paragraphs = {address: BASE for marks in by_role.values() for address in marks}
+    binder = a_real_binder_over(root, paragraphs or {"m.py@b1": BASE})
+    copies = [returned(wire, wire["role"]) for wire in copies_over(binder, by_role)]
+    out, result = handle(CopiesReturned("4c", copies, binder, root))
+    assert result is not None, out
+    return result.proof
+
+
+def returned_copies(by_role: dict) -> list[EditCopy]:
+    """One parsed `edit_copy` per role, for a case that folds the copies itself.
+
+    Each role's copy is seeded over a synthetic binder sized to that role's own
+    addresses, each seeded entry updated with the caller's mark as written, and
+    the result parsed through `EditCopy.deserialize`. No page is read and
+    nothing is checked against one, so a case may hand in a mark the bus would
+    refuse and ask what the parse or the fold makes of it.
+
+    Args:
+        by_role: role name -> {address: mark}, built by `a_correct`, `a_move`,
+            `a_clean`, `a_query` or `an_add`.
+
+    Returns:
+        The copies, in `by_role` order.
     """
     copies = []
     for role, marks_by_address in by_role.items():
@@ -619,10 +644,8 @@ def a_master_proof(by_role: dict) -> MasterProof:
                 mark = marks_by_address.get(entry["address"])
                 if mark is not None:
                     entry.update(mark)
-        copy, why = EditCopy.deserialize(role, wire)
-        assert copy is not None, why
-        copies.append(copy)
-    return master_proof_of("4c", copies)
+        copies.append(returned(wire, role))
+    return copies
 
 
 def _mark(instruction: Instruction, address: str, claim: dict) -> dict:

@@ -40,7 +40,7 @@ the fold is what set it.
 import json
 
 import pytest
-from helpers import a_correct, a_drop, a_master_proof, a_move
+from helpers import a_correct, a_drop, a_master_proof, a_move, returned_copies
 
 from comment_review.desk.containers import MasterProof
 from comment_review.desk.work import events
@@ -62,7 +62,7 @@ SNIPPET = "# the sentence that moves\n"
 AT_THE_DESTINATION = "# a different sentence\n"
 
 
-def _refused_reasons(proof) -> list[str]:
+def _refused_reasons(copies) -> list[str]:
     """Every reason the parse gave for an entry it would not read as a mark.
 
     ! IT IS WHAT A RAISE USED TO BE. `places` raised `MalformedMark` on the
@@ -72,36 +72,35 @@ def _refused_reasons(proof) -> list[str]:
     """
     return [
         reason
-        for copy in proof.edit_copies
+        for copy in copies
         for sheet in copy.sheets
         for one in sheet.refused
         for reason in one.reasons
     ]
 
 
-def _fold(proof, bases: dict | None = None):
-    """The fold over the proof's copies: which places it comes out of decided.
+def _fold(copies, bases: dict | None = None):
+    """The fold over the copies: which places it comes out of decided.
 
     ! THESE CASES ASKED THE DESK WHICH PLACES SETTLED, and the fold is what
     answers that now, so they ask the step that decides it.
 
     Args:
-        proof: a master proof, from `helpers.a_master_proof`.
+        copies: parsed edit_copies, from `helpers.returned_copies`.
         bases: address -> the paragraph as it stands, which a synthetic
             binder's rows do not carry. Empty where the case's subject is a
             mark the parse already refused.
     """
-    copies = list(proof.edit_copies)
     anchors = {
         mark.address: mark.anchor
         for copy in copies
         for sheet in copy.sheets
         for mark in sheet.marks
     }
-    return Fold(places_of(copies, bases or {}, anchors), turn=0).run()
+    return Fold(places_of(list(copies), bases or {}, anchors), turn=0).run()
 
 
-def _settled(proof, bases: dict | None = None) -> list[str]:
+def _settled(copies, bases: dict | None = None) -> list[str]:
     """Every address the fold settles.
 
     Read off the events rather than off `decided`, which holds every place the
@@ -110,7 +109,7 @@ def _settled(proof, bases: dict | None = None) -> list[str]:
     """
     return sorted(
         one.address
-        for one in _fold(proof, bases).events
+        for one in _fold(copies, bases).events
         if isinstance(one, events.Settled)
     )
 
@@ -341,7 +340,7 @@ class TestTheDocketsOwnPages:
 #: `ownership-context` copy through and asserts the role that comes out.
 
 
-def test_a_null_sha_reads_as_ABSENT_not_the_word_None():
+def test_a_null_sha_reads_as_ABSENT_not_the_word_None(tmp_path):
     """!! `.get("sha", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT. A sheet
     carrying `"sha": null` arrives with the key PRESENT and holding None, so
     `.get` returns None and `str(None)` is the four-character word "None" --
@@ -358,7 +357,7 @@ def test_a_null_sha_reads_as_ABSENT_not_the_word_None():
     it instead of two.
     """
     wire = a_master_proof(
-        {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
+        tmp_path / "repo", {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
     ).serialize()
     wire["edit_copies"][0]["sheets"][0]["sha"] = None
     proof, why = MasterProof.deserialize("4c", wire)
@@ -418,8 +417,8 @@ def test_a_settled_move_DELETES_its_origin_and_writes_its_destination():
     move = a_move(
         "m.py@a0", "m.py@a8", change=SNIPPET, reads=AT_THE_DESTINATION + SNIPPET
     )
-    proof = a_master_proof({"block-context": {"m.py@a0": move}})
-    fold = _fold(proof, {"m.py@a0": SNIPPET, "m.py@a8": AT_THE_DESTINATION})
+    copies = returned_copies({"block-context": {"m.py@a0": move}})
+    fold = _fold(copies, {"m.py@a0": SNIPPET, "m.py@a8": AT_THE_DESTINATION})
     assert sorted(fold.decided) == ["m.py@a0", "m.py@a8"]
     assert fold.decided["m.py@a0"].text == ""
     assert fold.decided["m.py@a8"].text == AT_THE_DESTINATION + SNIPPET
@@ -443,21 +442,21 @@ def test_a_change_in_the_RETIRED_ARRAY_FORM_never_reaches_the_docket():
     """
     mark = a_correct("m.py@b1")
     mark["change"] = [mark["change"]]
-    proof = a_master_proof({"block-context": {"m.py@b1": mark}})
-    assert _refused_reasons(proof), "the array form must not read as a mark"
+    copies = returned_copies({"block-context": {"m.py@b1": mark}})
+    assert _refused_reasons(copies), "the array form must not read as a mark"
     #: ! ASKED OF THE FOLD SINCE `P55`. A refused entry never becomes a `Mark`,
     #: so the fold decides nothing and no copy can carry it forward -- which is
     #: the same claim the docket assertion made, one step earlier and with no
     #: transcription in between.
-    assert _settled(proof) == []
+    assert _settled(copies) == []
 
 
 def test_an_EMPTY_change_refuses_where_the_instruction_may_not_empty():
     mark = a_correct("m.py@b1")
     mark["change"] = ""
-    proof = a_master_proof({"block-context": {"m.py@b1": mark}})
-    assert _refused_reasons(proof)
-    assert _settled(proof) == []
+    copies = returned_copies({"block-context": {"m.py@b1": mark}})
+    assert _refused_reasons(copies)
+    assert _settled(copies) == []
 
 
 def test_an_EMPTY_change_IS_the_delete_where_the_row_may_empty():
@@ -472,9 +471,9 @@ def test_an_EMPTY_change_IS_the_delete_where_the_row_may_empty():
     """
     mark = a_drop("m.py@b1")
     mark["change"] = ""
-    proof = a_master_proof({"block-context": {"m.py@b1": mark}})
-    assert not _refused_reasons(proof)
-    assert _settled(proof) == ["m.py@b1"]
+    copies = returned_copies({"block-context": {"m.py@b1": mark}})
+    assert not _refused_reasons(copies)
+    assert _settled(copies) == ["m.py@b1"]
 
 
 def test_NO_DOCKET_CARRIES_ONE_END_OF_A_MOVE():
@@ -482,7 +481,7 @@ def test_NO_DOCKET_CARRIES_ONE_END_OF_A_MOVE():
     WHOLE, so **no docket ever carries one end of one**. Half-applied, it is
     invisible downstream -- both dockets read, both set, and `prove_unchanged`
     passes either way because only prose moved."""
-    proof = a_master_proof(
+    copies = returned_copies(
         {
             "block-context": {
                 "m.py@a0": a_move(
@@ -500,8 +499,8 @@ def test_NO_DOCKET_CARRIES_ONE_END_OF_A_MOVE():
     #: decided, so no copy carries the move and no docket can be built holding
     #: one end -- the claim is the same, asked of the step that decides it.
     bases = {"m.py@a0": SNIPPET, "m.py@a8": AT_THE_DESTINATION}
-    assert _settled(proof, bases) == []
+    assert _settled(copies, bases) == []
     refused = [
-        one for one in _fold(proof, bases).events if isinstance(one, events.Refused)
+        one for one in _fold(copies, bases).events if isinstance(one, events.Refused)
     ]
     assert refused == [], "the pair must be carried forward, not refused"

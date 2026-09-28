@@ -24,13 +24,15 @@ from comment_review.flows.proof_io import (
 )
 
 
-def a_proof():
-    return a_master_proof({"block-context": {"m.py@b1": a_correct("m.py@b1")}})
+def a_proof(tmp_path):
+    return a_master_proof(
+        tmp_path / "repo", {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
+    )
 
 
 class TestTheRoundTrip:
     def test_what_save_writes_load_reads_back_equal(self, tmp_path):
-        proof = a_proof()
+        proof = a_proof(tmp_path)
         save_proof(tmp_path / "p.json", proof)
         got, why = load_proof(tmp_path / "p.json")
         assert why == []
@@ -40,7 +42,7 @@ class TestTheRoundTrip:
         """No second shape: what is on disk is `MasterProof.serialize`."""
         import json
 
-        proof = a_proof()
+        proof = a_proof(tmp_path)
         save_proof(tmp_path / "p.json", proof)
         on_disk = json.loads((tmp_path / "p.json").read_text(encoding="utf-8"))
         assert on_disk == proof.serialize()

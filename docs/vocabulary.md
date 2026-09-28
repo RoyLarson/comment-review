@@ -58,7 +58,7 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 | `Determined` | -> the **place** itself. It was the chief's ruling at one resolved place, one per place on the master proof; a place carries its own `state`, `text` and `disposition` now, and `desk/determined.py` was deleted 2026-09-18 with the rest of the old middle -- `docs/history.md`, *Reconciliation* |
 | `DiffMark` | -> **`Answer`**, `desk/answers/answer.py`. What a role hands back in a turn. The closed set is the same four on an escalation; it is read against the question the slot carries rather than against a set of its own, so the composition's four are separate rows |
 | `Collated` | -> the fold's **events**. It was what the old fold returned, carrying its escalations, rereads and unsettlable places as lists; `desk.work.fold.Fold` emits one event per place and commits or rolls back whole, and the commands print from the events alone |
-| `census` | -> **gather** for the stage, the act and the command; **binder** for what it hands over. `gather` has been stage 2's word since 2026-08-23 and a second `gather` had taken it for the master proof, now `master_proof_of`. `censused` -> gathered, and where the lexer classified a line, **read**. No alias. Roy, 2026-09-04; `decision-log.md Vocabulary: #34` |
+| `census` | -> **gather** for the stage, the act and the command; **binder** for what it hands over. `gather` has been stage 2's word since 2026-08-23 and a second `gather` had taken it for building the master proof, which `flows.bus` does now. `censused` -> gathered, and where the lexer classified a line, **read**. No alias. Roy, 2026-09-04; `decision-log.md Vocabulary: #34` |
 
 ## Held in reserve -- publishing's word for something we already have
 
