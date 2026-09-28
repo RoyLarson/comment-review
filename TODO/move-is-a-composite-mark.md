@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 34 of 41 tasks closed
+Progress: 36 of 49 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -303,3 +303,22 @@ and now there is one object that cannot be half-held.
         > 2026-09-27 smoke: collate asks function-context at store.py@b9 -> b8
 - [ ] T41 | Reproduce two roles moving one paragraph to different destinations,
       each accepting the other; verify the snippet lands once or file the fix
+- [x] T42 | Fold runs moves_in over its own places; the docket test failed first, passes now | a17bdd0a | Derive
+      a fold's moves from its own places, so proof --copy cannot delete a move's
+      origin and land nothing; the test fails first
+- [x] T43 | Filed.split_from names the move; round-trip test fails without it | a17bdd0a | Name
+      the move a split half came from in a refusal, not the add or drop the role
+      never filed; the round trip keeps it
+- [ ] T44 | Reproduce an end's wording put to the roles before its move's
+      placement settles, then hold it until placement settles per Process 200
+- [ ] T45 | Declare a held state set before the marks pass, replacing hold_ends'
+      empty-owed marker; grep finds no reader inferring it from owed
+        > 2026-09-28 Review 2026-09-27 R1: no single owner of a move's lifecycle
+- [ ] T46 | Implement is_open(move, places) in desk/evaluate/move.py and use it
+      at all five sites; grep finds UNDECIDED tested nowhere else
+- [ ] T47 | Report a refused move once, from the move, each reason at its own
+      end; a test: one defect gives one Refused and RolledBack(1)
+- [ ] T48 | Decide every move's placement before settling any end; a test
+      folding the same moves in reversed order gets the same outcome
+- [ ] T49 | Put every mover of a move in its placement slot, not min(movers); a
+      test: two movers with different snippets both appear
