@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 32 of 39 tasks closed
+Progress: 33 of 39 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -284,8 +284,9 @@ and now there is one object that cannot be half-held.
 - [-] T33 | Refiled as T36, off this plan by Roy 2026-09-26: run agents do not read these docs | e35ed761cb5dded09c3dbe6556d7f8f01aee6595 | Update
       the-mark.md and the-turn.md from the Process 195 pointers to the built
       shape
-- [ ] T34 | Remove the placement-row exclusion from
-      tests/gates/test_smoke_fixture.py once the smoke plants placement answers
+- [x] T34 | Placement exclusion removed; every answer row planted; smoke exits 0 | 9502a208b3bd9061ff794ab6825f14e29713b54d | Remove
+      the placement-row exclusion from tests/gates/test_smoke_fixture.py once
+      the smoke plants placement answers
 - [ ] T35 | Update the chief disposition: placement once on an unresolved move,
       words alone on a split one, per Process 195 item 4
 - [ ] T36 | Update the-mark.md and the-turn.md from the Process 195 pointers to
