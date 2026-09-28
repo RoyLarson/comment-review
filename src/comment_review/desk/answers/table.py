@@ -1,4 +1,11 @@
-"""The answers table: eight rows, four per question."""
+"""The answers table: twelve rows, four per question.
+
+The escalation and composition rows act on the answering role's own side at a
+place. The placement rows act on a move (`decision-log.md Process: #195`):
+`agree` accepts where the paragraph goes, `stet` refuses it and the move is
+contested for the chief, `withdraw` takes the move off both of its ends, and
+`query` holds both ends for the author or abstains, by its shape.
+"""
 
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -10,7 +17,14 @@ from comment_review.desk.marks.mark import Shape
 
 
 class Effect(StrEnum):
-    """What an answer does to its own proposal, once the row reads it."""
+    """What an answer does to the thing it answers about, once the row reads it.
+
+    On an escalation or a composition that thing is the role's own side at the
+    place. On a placement it is the move: `ACCEPTS` and `REMOVES` read the
+    same way there, and `CONTESTS` is the placement's own -- the paragraph
+    stays where it is by this role's reading, so the move is carried forward
+    for the chief rather than agreed (`decision-log.md Process: #195`).
+    """
 
     @staticmethod
     def _generate_next_value_(name, start, count, last_values):
@@ -22,6 +36,7 @@ class Effect(StrEnum):
     ACCEPTS = auto()
     ABSTAINS = auto()
     UNSETTLABLE = auto()
+    CONTESTS = auto()
 
 
 def _always(effect: Effect) -> Callable[[Any], Effect]:
@@ -53,26 +68,12 @@ class AnswerRow:
             that stops for a person and one that does not. The parse refuses
             the absence now, and `flows.answers.contracts` publishes the keys
             off this field, so nothing hand-types them.
-        reaches_partner: whether this answer, given by the role that filed a
-            two-place mark, takes effect at the mark's other place as well as
-            at the one it was written at. A move is one mark at two places and
-            an answer at either end reaches the move whole
-            (`decision-log.md Process: #129`, `#152`, `#153`), so the
-            withdrawal carries: the mark is off, and the role holds no side at
-            either place it wrote. A replacement does not carry a text across,
-            because the two ends hold different texts -- the origin its
-            paragraph with the snippet gone and the destination its paragraph
-            with the snippet in -- so it lands at the end it was written at,
-            which is what `#129` rules it does there. One of each in one turn
-            leaves the move half done and is refused back to the role
-            (`#189`, `desk.evaluate.passes.refuse_half_moves`).
     """
 
     question: Question
     effect: Callable[[Any], Effect]
     owes_change: bool = False
     claim_all: tuple[str, ...] = ()
-    reaches_partner: bool = False
 
 
 ANSWERS: dict[tuple[Question, str], AnswerRow] = {
@@ -80,7 +81,7 @@ ANSWERS: dict[tuple[Question, str], AnswerRow] = {
         Question.ESCALATION, _always(Effect.KEEPS)
     ),
     (Question.ESCALATION, "withdraw"): AnswerRow(
-        Question.ESCALATION, _always(Effect.REMOVES), reaches_partner=True
+        Question.ESCALATION, _always(Effect.REMOVES)
     ),
     (Question.ESCALATION, "correct"): AnswerRow(
         Question.ESCALATION, _always(Effect.REPLACES), True
@@ -101,5 +102,19 @@ ANSWERS: dict[tuple[Question, str], AnswerRow] = {
     ),
     (Question.COMPOSITION, "patch"): AnswerRow(
         Question.COMPOSITION, _always(Effect.REPLACES), True
+    ),
+    (Question.PLACEMENT, "agree"): AnswerRow(
+        Question.PLACEMENT, _always(Effect.ACCEPTS)
+    ),
+    (Question.PLACEMENT, "stet"): AnswerRow(
+        Question.PLACEMENT, _always(Effect.CONTESTS)
+    ),
+    (Question.PLACEMENT, "withdraw"): AnswerRow(
+        Question.PLACEMENT, _always(Effect.REMOVES)
+    ),
+    (Question.PLACEMENT, "query"): AnswerRow(
+        Question.PLACEMENT,
+        _query_effect,
+        claim_all=("shape", "attempted", "settles"),
     ),
 }

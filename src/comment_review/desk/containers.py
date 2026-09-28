@@ -565,12 +565,17 @@ class MasterProof:
             `master_proof_of` takes from a copy, and this one is written by a
             fold, later. `serialize` carries it; `deserialize` reads it where
             present.
+        moves: every move one fold of this stage decided, as
+            `desk.evaluate.move.Move.serialize` writes one. `wire: False`, like
+            `places`, and absent from a proof written before
+            `decision-log.md Process: #195`.
 
     !! THREE FIELDS WENT WITH THE OLD MIDDLE -- `turns`, `determined` and
     `unsettlable`, and with them the `turn` property that counted `turns`. Each
-    place now carries its own answers, its own state and who it is asked of, so
-    the proof's places say what turn it stands at (`flows.bus.turn_of`), what
-    was ruled, and what rides to the human. A proof on disk carrying the three
+    place now carries its own answers, its own state and who it is asked of, as
+    each move carries its placement answers. So the proof's places and moves
+    say what turn it stands at (`flows.bus.turn_of`), and its places say what
+    was ruled and what rides to the human. A proof on disk carrying the three
     old keys is neither refused nor read: `deserialize` names the keys it
     wants, so those are dropped and the proof reads back without them.
     """
@@ -579,6 +584,7 @@ class MasterProof:
     read_from: dict
     edit_copies: tuple[EditCopy, ...]
     places: tuple[dict, ...] = field(default=(), metadata={"wire": False})
+    moves: tuple[dict, ...] = field(default=(), metadata={"wire": False})
 
     @classmethod
     def seed(cls, stage: str, read_from: dict, edit_copies: list) -> dict:
@@ -701,12 +707,19 @@ class MasterProof:
             if isinstance(raw_places, list)
             else ()
         )
+        raw_moves = data.get("moves")
+        moves = (
+            tuple(m for m in raw_moves if isinstance(m, dict))
+            if isinstance(raw_moves, list)
+            else ()
+        )
         return (
             MasterProof(
                 stage=stage,
                 read_from={**read_from} if isinstance(read_from, dict) else {},
                 edit_copies=tuple(copies),
                 places=places,
+                moves=moves,
             ),
             [],
         )
@@ -718,4 +731,5 @@ class MasterProof:
             "read_from": {**self.read_from},
             "edit_copies": [copy.serialize() for copy in self.edit_copies],
             "places": [dict(p) for p in self.places],
+            "moves": [dict(m) for m in self.moves],
         }

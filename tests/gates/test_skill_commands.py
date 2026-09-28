@@ -39,16 +39,16 @@ INVOCATION = re.compile(r"comment-review\.py\s+(\S+)")
 FLAG = re.compile(r"--[\w-]+")
 
 
-def _invocations() -> list[tuple[str, list[str], str, int]]:
+def _invocations(paths=AGENT_FACING) -> list[tuple[str, list[str], str, int]]:
     """`(command name, flags found beside it, filename, 1-based line)` for
-    every invocation in the agent-facing files.
+    every invocation in `paths`, the agent-facing files by default.
 
     ! A CONTINUATION LINE (ending `\\`) IS JOINED IN, so a flag on the second
     line of a two-line invocation -- `proof --repo . --from-docket D.json \\` then
     `  --out DIR` -- is not missed.
     """
     found: list[tuple[str, list[str], str, int]] = []
-    for path in AGENT_FACING:
+    for path in paths:
         lines = path.read_text(encoding="utf-8").splitlines()
         i = 0
         while i < len(lines):
@@ -121,3 +121,27 @@ def test_every_flag_named_beside_it_is_accepted_by_that_command():
             if flag not in accepted:
                 bad.append((flag, name, path, line))
     assert not bad, f"flag not accepted by its command's own parser: {bad}"
+
+
+#: The files the task agent reads. Stages 7a and 7b set pages from the closed
+#: master proof, so every `proof` they run takes `--proof`; `--copy` sets one
+#: role's own draft, which the brief hands the reviewers.
+TASK_AGENT_FILES = (
+    SKILL_DIR / "SKILL.md",
+    SKILL_DIR / "references" / "write.md",
+)
+
+
+def proof_from_a_copy(paths=TASK_AGENT_FILES) -> list[tuple[list[str], str, int]]:
+    """Every `proof` invocation in `paths` that sets pages from something
+    other than the master proof: `(its flags, filename, 1-based line)`."""
+    return [
+        (flags, path, line)
+        for name, flags, path, line in _invocations(paths)
+        if name == "proof" and ("--proof" not in flags or "--copy" in flags)
+    ]
+
+
+def test_the_task_agent_sets_pages_from_the_master_proof():
+    bad = proof_from_a_copy()
+    assert not bad, f"a task-agent `proof` that does not read --proof: {bad}"

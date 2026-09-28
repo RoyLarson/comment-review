@@ -7,7 +7,14 @@ from comment_review.desk.marks.mark import filled
 
 
 class Question(StrEnum):
-    """The two things a turn asks a role about a mark it already filed."""
+    """The three things a turn asks a role.
+
+    An `escalation` and a `composition` are asked of a place, about the text
+    there. A `placement` is asked of a move, about the pair of addresses, once
+    per open move to every role that read either page -- `decision-log.md
+    Process: #195`. Its answers act on the move and none of them rewrites a
+    paragraph.
+    """
 
     @staticmethod
     def _generate_next_value_(name, start, count, last_values):
@@ -15,6 +22,7 @@ class Question(StrEnum):
 
     ESCALATION = auto()
     COMPOSITION = auto()
+    PLACEMENT = auto()
 
 
 def _claim_problems(

@@ -1,6 +1,10 @@
 """The Unit of Work: every place decided, or nothing."""
 
+from dataclasses import replace
+
+from comment_review.desk.answers.answer import Answer, Question
 from comment_review.desk.dispositions.disposition import Disposition
+from comment_review.desk.evaluate.move import Placement, moves_in
 from comment_review.desk.evaluate.place import Filed, Place
 from comment_review.desk.evaluate.state import State
 from comment_review.desk.marks.mark import Instruction, Mark, Shape
@@ -205,26 +209,6 @@ def test_a_carried_and_an_unsettlable_place_are_reported_and_the_fold_commits():
     assert carried.state is State.CONTESTED and carried.roles == ("a", "b")
 
 
-def test_a_move_refused_at_one_end_rolls_back_both():
-    move = _mark(
-        Instruction.MOVE,
-        "# two\n",
-        {"from": "m.py@b1", "to": "m.py@b5"},
-        raw_text="# four\n# five\n",
-    )
-    origin = _place("m.py@b1", Filed("a", move, Touch.ORIGIN))
-    destination = _place(
-        "m.py@b5", Filed("a", move, Touch.DESTINATION), base="# four\n# five\n"
-    )
-    origin.partner, destination.partner = "m.py@b5", "m.py@b1"
-    fold = Fold({"m.py@b1": origin, "m.py@b5": destination}).run()
-    assert not fold.committed
-    assert {e.address for e in fold.events if isinstance(e, events.Refused)} == {
-        "m.py@b1",
-        "m.py@b5",
-    }
-
-
 def test_an_advised_place_is_reported_and_the_fold_commits():
     """`decision-log.md Process: #177`: a note is for the chief to read, not a
     reason to give up the round."""
@@ -247,98 +231,6 @@ def test_an_advised_place_is_reported_and_the_fold_commits():
     assert advised.notes == ("its change drops 'three', which its claim never names",)
 
 
-def _a_contested_move():
-    """block-context moves b1's middle line to b5; function-context corrects
-    b5, which contests the destination and pairs the origin to it.
-
-    Returns:
-        `{address -> Place}`, unfolded, with each end's `partner` set.
-    """
-    move = _mark(
-        Instruction.MOVE,
-        "# two\n",
-        {"from": "m.py@b1", "to": "m.py@b5"},
-        raw_text="# four\n# five\n# two\n",
-    )
-    other = _mark(
-        Instruction.CORRECT,
-        "# four\n# 5\n",
-        {"false": "five", "true": "5"},
-        address="m.py@b5",
-    )
-    origin = _place("m.py@b1", Filed("block-context", move, Touch.ORIGIN))
-    destination = _place(
-        "m.py@b5",
-        Filed("block-context", move, Touch.DESTINATION),
-        Filed("function-context", other, Touch.OWN),
-        base="# four\n# five\n",
-    )
-    origin.partner, destination.partner = "m.py@b5", "m.py@b1"
-    return {"m.py@b1": origin, "m.py@b5": destination}
-
-
-def _ruled(address: str, name: str, **fields) -> Disposition:
-    """One of the chief's rulings, through the real parse.
-
-    ! NOT BUILT DIRECTLY. `Disposition.deserialize` is what fills a `recast`'s
-    `side` from its own row, so a hand-built one carries `""` and is refused
-    for proposing nothing -- a shape the command cannot produce.
-    """
-    got, why = Disposition.deserialize(
-        address, {"address": address, "answer": name, "reason": "the chief's", **fields}
-    )
-    assert got is not None, why
-    return got
-
-
-def test_the_chief_closes_a_contested_move_with_a_ruling_at_each_end():
-    """!! THE ORIGIN IS THE CASE. It reaches `stands` on its own -- nobody
-    marked it but the mover -- and is carried forward only because its
-    partner is, so a disposition read before the pairing was measured against
-    `agreed` and refused. Both ends are ruled here, and each takes the text
-    its own ruling decided.
-    """
-    places = _a_contested_move()
-    # The case has to be able to fail: unruled, this pair is carried forward.
-    assert Fold(_a_contested_move()).run().events[0].state is State.CONTESTED
-    for address, place in places.items():
-        place.disposition = _ruled(address, "taken_in", side="block-context")
-    fold = Fold(places).run()
-    assert fold.committed, fold.events
-    assert [type(e).__name__ for e in fold.events] == [
-        "Settled",
-        "Settled",
-        "Committed",
-    ]
-    assert fold.decided["m.py@b1"].text == "# one\n# three\n"
-    assert fold.decided["m.py@b5"].text == "# four\n# five\n# two\n"
-
-
-def test_the_chief_may_take_one_end_in_and_recast_the_other():
-    """The two ends are ruled by their own dispositions, so the texts they
-    close on need not come from one side."""
-    places = _a_contested_move()
-    recast = "# four\n# five\n# two, as the chief words it\n"
-    places["m.py@b1"].disposition = _ruled("m.py@b1", "taken_in", side="block-context")
-    places["m.py@b5"].disposition = _ruled("m.py@b5", "recast", prose=recast)
-    fold = Fold(places).run()
-    assert fold.committed, fold.events
-    assert fold.decided["m.py@b1"].text == "# one\n# three\n"
-    assert fold.decided["m.py@b5"].text == recast
-
-
-def test_a_move_ruled_at_one_end_only_is_still_carried_at_both():
-    """The fold does not invent the missing ruling. The place the chief left
-    alone stays carried forward, and so does the end it is paired to -- which
-    is what `flows.bus` refuses by name before it ever folds."""
-    places = _a_contested_move()
-    places["m.py@b1"].disposition = _ruled("m.py@b1", "taken_in", side="block-context")
-    fold = Fold(places).run()
-    assert fold.committed, fold.events
-    carried = {e.address for e in fold.events if isinstance(e, events.CarriedForward)}
-    assert carried == {"m.py@b1", "m.py@b5"}
-
-
 def test_a_composed_place_carries_forward_every_reader_beyond_its_sides():
     a = _mark(
         Instruction.CORRECT, "# 1\n# two\n# three\n", {"false": "one", "true": "1"}
@@ -354,3 +246,111 @@ def test_a_composed_place_carries_forward_every_reader_beyond_its_sides():
     carried = fold.events[0]
     assert isinstance(carried, events.CarriedForward)
     assert carried.state is State.COMPOSED and carried.roles == ("a", "b", "c")
+
+
+def _a_move_between(readers):
+    move = Mark(
+        address="m.py@b1",
+        anchor="x = 1",
+        raw_text="# four\n# two\n# five\n",
+        instruction=Instruction.MOVE,
+        claim={"from": "m.py@b1", "to": "m.py@b5"},
+        reason="it belongs with five",
+        sources=(),
+        change="# two\n",
+    )
+    origin = Place(
+        address="m.py@b1",
+        anchor="x = 1",
+        base="# one\n# two\n# three\n",
+        readers=readers,
+        filed=[Filed("a", move, Touch.ORIGIN)],
+    )
+    destination = Place(
+        address="m.py@b5",
+        anchor="y = 5",
+        base="# four\n# five\n",
+        readers=readers,
+        filed=[Filed("a", move, Touch.DESTINATION)],
+    )
+    places = {"m.py@b1": origin, "m.py@b5": destination}
+    return places, moves_in(places)
+
+
+def test_an_open_move_is_reported_once_with_whom_it_is_put_to():
+    places, moves = _a_move_between(("a", "b"))
+    fold = Fold(places, moves).run()
+    carried = [e for e in fold.events if isinstance(e, events.PlacementCarried)]
+    assert carried == [
+        events.PlacementCarried("m.py@b1", "m.py@b5", Placement.OPEN, ("b",))
+    ]
+    assert fold.decided_moves["m.py@b1 -> m.py@b5"].placement is Placement.OPEN
+
+
+def test_a_held_move_is_one_unsettlable_naming_both_ends():
+    places, moves = _a_move_between(("a", "b"))
+    human = {
+        "shape": str(Shape.HUMAN_REVIEW_NECESSARY),
+        "attempted": "a",
+        "settles": "b",
+    }
+    query = Mark(
+        address="m.py@b5",
+        anchor="y = 5",
+        raw_text="# four\n# five\n",
+        instruction=Instruction.QUERY,
+        claim=human,
+        reason="ask",
+        sources=(),
+        change="",
+    )
+    places["m.py@b5"].filed.append(Filed("b", query, Touch.OWN))
+    fold = Fold(places, moves).run()
+    held = [e for e in fold.events if isinstance(e, events.Unsettlable)]
+    assert len(held) == 1
+    assert (held[0].address, held[0].partner) == ("m.py@b1", "m.py@b5")
+    assert held[0].move == events.HeldMove(
+        "a", "it belongs with five", "m.py@b1", "m.py@b5"
+    )
+
+
+def test_a_contested_move_the_chief_ruled_at_both_ends_asks_no_placement():
+    """`b` stets the move in turn 1 and accepts both ends' words; the chief
+    rules each end. Until the chief's placement ruling exists, that closes the
+    move, so nothing puts its placement to the roles again."""
+    places, moves = _a_move_between(("a", "b"))
+
+    def answer(address, question, name):
+        return Answer(
+            address=address,
+            anchor="x = 1",
+            question=question,
+            name=name,
+            reason="r",
+            claim={},
+        )
+
+    moves["m.py@b1 -> m.py@b5"].answers[1] = {
+        "b": answer("m.py@b1", Question.PLACEMENT, "stet")
+    }
+    for address, place in places.items():
+        place.answers[1] = {"b": answer(address, Question.COMPOSITION, "clean")}
+        place.disposition = Disposition(
+            address=address, name="taken_in", side="a", prose="", reason="r"
+        )
+    fold = Fold(places, moves, turn=1).run()
+    assert fold.decided_moves["m.py@b1 -> m.py@b5"].placement is Placement.CONTESTED
+    assert [type(e).__name__ for e in fold.events] == [
+        "Settled",
+        "Settled",
+        "Committed",
+    ], fold.events
+
+
+def test_a_rolled_back_fold_decides_no_move():
+    places, moves = _a_move_between(("a",))
+    places["m.py@b1"].filed[0] = Filed(
+        "a", replace(places["m.py@b1"].filed[0].mark, change="# nine\n"), Touch.ORIGIN
+    )
+    fold = Fold(places, moves_in(places)).run()
+    assert not fold.committed and fold.decided_moves == {}

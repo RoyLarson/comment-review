@@ -66,7 +66,6 @@ def test_a_place_round_trips_through_serialize():
         sides={"a": "# one\n# 2\n# three\n"},
         reasons=(),
         question=None,
-        partner=None,
     )
     got, problems = Place.deserialize("m.py@b1", place.serialize())
     assert problems == []

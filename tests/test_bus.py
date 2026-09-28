@@ -2,8 +2,10 @@
 
 from dataclasses import replace
 
+import pytest
 from helpers import (
     a_clean,
+    a_correct,
     a_correct_citing,
     a_correct_setting,
     a_move,
@@ -27,7 +29,10 @@ from comment_review.flows.bus import (
     CopiesReturned,
     DispositionsWritten,
     handle,
+    turn_of,
 )
+from comment_review.flows.human import HumanAnswer
+from comment_review.flows.transcribe import CannotTranscribe, docket_of_proof
 
 BASE = "# one\n# two\n# three"
 OTHER = "# four\n# five\n# six"
@@ -79,13 +84,62 @@ def test_a_committed_fold_carries_its_places_on_the_proof(tmp_path):
         assert place.serialize() == entry
 
 
-def test_the_chief_copy_holds_one_mark_at_the_settled_place(tmp_path):
+def test_the_proof_holds_the_composed_places_text_the_chief_copy_does_not(tmp_path):
+    """`m.py@b1` is `composed`, not settled -- block-context proposes
+    `CORRECTED` and function-context, having only cleaned it, is still owed a
+    say (`decision-log.md Process: #184`) -- so the chief's copy carries no
+    mark there; its text is the closed proof's.
+
+    SUPERSEDES `test_the_chief_copy_holds_one_mark_at_the_settled_place`,
+    which asserted this composed place's mark on the chief's copy -- true
+    before T10 filtered `chief_copy_of` to `SETTLED` places, and this
+    place's own state was never one of them."""
     _out, result = handle(_message(tmp_path, TWO_ROLES))
     assert result is not None
     assert result.chief is not None
     marks = [mark for sheet in result.chief.sheets for mark in sheet.marks]
-    assert [mark.address for mark in marks] == ["m.py@b1"]
-    assert marks[0].change == CORRECTED
+    assert marks == []
+    place = next(p for p in result.proof.places if p["address"] == "m.py@b1")
+    assert place["state"] == "composed"
+    assert place["text"] == CORRECTED
+
+
+COMPOSE_ROLES = {
+    "block-context": {
+        "m.py@b1": a_correct_setting("m.py@b1", "one", "# ONE\n# two\n# three"),
+        "m.py@b2": a_clean("m.py@b2"),
+    },
+    "function-context": {
+        "m.py@b1": a_correct_setting("m.py@b1", "three", "# one\n# two\n# THREE"),
+        "m.py@b2": a_clean("m.py@b2"),
+    },
+}
+COMPOSED = "# ONE\n# two\n# THREE"
+
+
+def test_a_composed_place_carries_no_mark_on_the_chief_copy(tmp_path):
+    """`decision-log.md Process: #184`: a composed place's working text is the
+    closed proof's, not the chief's copy's -- the two roles here correct
+    different sentences of the same paragraph, compose to one text, and are
+    both still owed a say on it, so the place is `composed` rather than
+    settled."""
+    out, result = handle(_message(tmp_path, COMPOSE_ROLES))
+    assert result is not None
+    assert (
+        events.CarriedForward(
+            "m.py@b1",
+            State.COMPOSED,
+            Question.COMPOSITION,
+            ("block-context", "function-context"),
+        )
+        in out
+    )
+    assert result.chief is not None
+    marks = [mark for sheet in result.chief.sheets for mark in sheet.marks]
+    assert [mark.address for mark in marks] == []
+    place = next(p for p in result.proof.places if p["address"] == "m.py@b1")
+    assert place["state"] == "composed"
+    assert place["text"] == COMPOSED
 
 
 def test_a_copy_from_another_tree_rolls_the_fold_back(tmp_path):
@@ -293,19 +347,6 @@ JUST_THE_TWO = {
     role: marks for role, marks in TWO_SIDES.items() if role != "module-context"
 }
 
-#: One role's human-review query and nothing else: the fold settles `b1` and
-#: leaves `b2` for the human, carrying neither forward.
-A_QUERY_FOR_THE_HUMAN = {
-    "block-context": {
-        PLACE: a_clean(PLACE),
-        "m.py@b2": a_query("m.py@b2", Shape.HUMAN_REVIEW_NECESSARY),
-    },
-    "function-context": {
-        PLACE: a_clean(PLACE),
-        "m.py@b2": a_clean("m.py@b2"),
-    },
-}
-
 
 def _collated(tmp_path, by_role=None):
     """What a committed `CopiesReturned` left, which a turn reads."""
@@ -417,8 +458,8 @@ def test_a_recast_at_a_still_contested_place_puts_the_chiefs_prose_on_its_copy(
 
 
 #: block-context moves b1's middle line to b2, which reads with it at the end;
-#: function-context corrects b2, contesting the destination and pairing the
-#: origin to it. Both ends are carried forward and the chief rules them.
+#: function-context corrects b2, contesting the destination's words, and is
+#: owed a say on the move's placement.
 A_CONTESTED_MOVE = {
     "block-context": {
         PLACE: a_move(PLACE, "m.py@b2", change="# two\n", reads=OTHER + "# two\n"),
@@ -439,19 +480,40 @@ def _ruling(address, name, **fields):
     return {"address": address, "answer": name, "reason": "the chief's", **fields}
 
 
-def test_the_chief_closes_a_contested_move_at_each_of_its_ends(tmp_path):
-    """!! THE ORIGIN IS THE CASE. Nobody marked it but the mover, so it
-    reaches `stands` alone and is carried forward only because its partner
-    is. The dispositions pass read that un-paired state until 2026-09-18 and
-    refused every ruling the chief made with *"cannot close a place that is
-    agreed"* -- at a place this same handler had just reported contested.
-    """
+def _stetted(tmp_path):
+    """`A_CONTESTED_MOVE` after one turn: function-context stets the move's
+    placement and takes the origin's remainder, and both roles hold at the
+    destination. The move is contested, so the chief rules its two ends."""
     collated = _collated(tmp_path, A_CONTESTED_MOVE)
-    assert _state_at(collated.proof, PLACE) == "contested"
-    assert _state_at(collated.proof, "m.py@b2") == "contested"
+    answers = {
+        role: [
+            _answer(
+                slot["address"],
+                {"placement": "stet", "composition": "clean"}.get(
+                    slot["question"], "hold"
+                ),
+                "r",
+                **({"to": slot["to"]} if "to" in slot else {}),
+            )
+            for slot in slots
+        ]
+        for role, slots in collated.batch.items()
+    }
+    out, turned = handle(AnswersReturned(collated.proof, answers, tmp_path / "repo"))
+    assert turned is not None, out
+    assert [m["placement"] for m in turned.proof.moves] == ["contested"]
+    return turned
+
+
+def test_the_chief_closes_a_contested_move_at_each_of_its_ends(tmp_path):
+    """The origin is carried only because its move is undecided: nobody asks
+    its words, and the chief's ruling is what closes it."""
+    turned = _stetted(tmp_path)
+    assert _state_at(turned.proof, PLACE) == "composed"
+    assert _state_at(turned.proof, "m.py@b2") == "contested"
     out, closed = handle(
         DispositionsWritten(
-            collated.proof,
+            turned.proof,
             [
                 _ruling(PLACE, "taken_in", side="block-context"),
                 _ruling("m.py@b2", "taken_in", side="block-context"),
@@ -465,11 +527,30 @@ def test_the_chief_closes_a_contested_move_at_each_of_its_ends(tmp_path):
     assert _state_at(closed.proof, "m.py@b2") == "stands"
 
 
-def test_the_chief_may_take_a_moves_origin_in_and_recast_its_destination(tmp_path):
-    collated = _collated(tmp_path, A_CONTESTED_MOVE)
+def test_a_move_the_chief_ruled_at_both_ends_asks_no_placement(tmp_path):
+    """Until the chief's own placement ruling exists, a move ruled at both
+    ends is closed (`decision-log.md Process: #195` item 4): the batch holds
+    no placement slot for it, though its placement is still `contested`."""
+    turned = _stetted(tmp_path)
     out, closed = handle(
         DispositionsWritten(
-            collated.proof,
+            turned.proof,
+            [
+                _ruling(PLACE, "taken_in", side="block-context"),
+                _ruling("m.py@b2", "taken_in", side="block-context"),
+            ],
+        )
+    )
+    assert closed is not None, out
+    assert [m["placement"] for m in closed.proof.moves] == ["contested"]
+    assert closed.batch is None
+
+
+def test_the_chief_may_take_a_moves_origin_in_and_recast_its_destination(tmp_path):
+    turned = _stetted(tmp_path)
+    out, closed = handle(
+        DispositionsWritten(
+            turned.proof,
             [
                 _ruling(PLACE, "taken_in", side="block-context"),
                 _ruling("m.py@b2", "recast", prose=CHIEFS_OWN),
@@ -496,10 +577,10 @@ def test_the_chief_may_take_a_moves_origin_in_and_recast_its_destination(tmp_pat
 
 
 def test_a_move_ruled_at_one_end_only_is_refused_for_the_other(tmp_path):
-    collated = _collated(tmp_path, A_CONTESTED_MOVE)
+    turned = _stetted(tmp_path)
     out, closed = handle(
         DispositionsWritten(
-            collated.proof, [_ruling(PLACE, "taken_in", side="block-context")]
+            turned.proof, [_ruling(PLACE, "taken_in", side="block-context")]
         )
     )
     assert closed is None
@@ -512,96 +593,25 @@ def test_a_move_ruled_at_one_end_only_is_refused_for_the_other(tmp_path):
     assert any(isinstance(one, events.RolledBack) for one in out)
 
 
-#: block-context moves b1's middle line to b2; function-context rewrites that
-#: same line where it stands. The origin is an escalation put to both roles,
-#: and the destination a composition put to the role that did not move it --
-#: so the origin is the only place the mover can answer.
-A_MOVE_ITS_ORIGIN_CONTESTS = {
-    "block-context": {
-        PLACE: a_move(PLACE, "m.py@b2", change="# two\n", reads=OTHER + "# two\n"),
-        "m.py@b2": a_clean("m.py@b2"),
-    },
-    "function-context": {
-        PLACE: a_correct_setting(PLACE, "two", CORRECTED),
-        "m.py@b2": a_clean("m.py@b2"),
-    },
-}
-
-
-def test_a_mover_withdrawing_at_its_origin_takes_the_move_off_the_destination(tmp_path):
-    """`decision-log.md Process: #129`: an answer at either end reaches the
-    move whole. Two turns, because the destination settles on the moved text
-    in the first and the mover withdraws in the second -- and the sentence
-    must then be on the page once, in the wording the other role gave it,
-    where it already was.
-    """
-    collated = _collated(tmp_path, A_MOVE_ITS_ORIGIN_CONTESTS)
-    assert _state_at(collated.proof, PLACE) == "contested"
-    assert _state_at(collated.proof, "m.py@b2") == "contested"
-    assert collated.batch is not None
-    assert sorted(one["address"] for one in collated.batch["block-context"]) == [PLACE]
-    out, first = handle(
-        AnswersReturned(
-            collated.proof,
-            {
-                "block-context": [_answer(PLACE, "hold", "it belongs at b2")],
-                "function-context": [
-                    _answer(PLACE, "hold", "it belongs here, reworded"),
-                    _answer("m.py@b2", "clean", "it reads with the line in"),
-                ],
-            },
-            tmp_path / "repo",
-        )
-    )
-    assert first is not None, out
-    assert first.batch is not None
-    out, second = handle(
-        AnswersReturned(
-            first.proof,
-            {
-                # The destination settled in the first turn and is carried
-                # forward by its partner alone, which is why its slots ask
-                # an escalation and why neither answer there decides
-                # anything: what takes the move off it is the withdrawal
-                # written at the origin.
-                "block-context": [
-                    _answer(PLACE, "withdraw", "reworded where it stands, it reads"),
-                    _answer("m.py@b2", "hold", "nothing of mine to change here"),
-                ],
-                "function-context": [
-                    _answer(PLACE, "hold", "mine stands"),
-                    _answer("m.py@b2", "hold", "as before"),
-                ],
-            },
-            tmp_path / "repo",
-        )
-    )
-    assert second is not None, out
-    assert events.Settled(PLACE, CORRECTED) in out
-    assert events.Settled("m.py@b2", None) in out
-    assert second.batch is None
-    assert second.chief is not None
-    assert _changes_on(second.chief) == [CORRECTED]
-
-
-def test_a_disposition_at_an_unsettlable_place_is_refused(tmp_path):
-    collated = _collated(tmp_path, A_QUERY_FOR_THE_HUMAN)
-    out, result = handle(
+def test_an_end_carried_for_its_moves_placement_alone_is_named_for_the_move(
+    tmp_path,
+):
+    """The origin is put to nobody: it is carried because its move is
+    undecided, so an unruled origin names the move rather than an empty list
+    of roles."""
+    turned = _stetted(tmp_path)
+    out, closed = handle(
         DispositionsWritten(
-            collated.proof,
-            [
-                {
-                    "address": "m.py@b2",
-                    "answer": "taken_in",
-                    "side": "block-context",
-                    "reason": "ruling on it anyway",
-                }
-            ],
+            turned.proof, [_ruling("m.py@b2", "taken_in", side="block-context")]
         )
     )
-    assert result is None
-    assert ("copy-chief", "m.py@b2", "not carried forward") in _refusals(out)
-    assert any(isinstance(one, events.RolledBack) for one in out)
+    assert closed is None
+    assert (
+        "copy-chief",
+        PLACE,
+        "carried forward and not ruled on -- it waits on the placement of a move"
+        " it is an end of",
+    ) in _refusals(out)
 
 
 def test_an_answer_at_a_place_no_turn_carried_is_refused(tmp_path):
@@ -732,10 +742,10 @@ def test_a_disposition_at_a_place_the_answers_settled_is_refused(tmp_path):
     assert ("copy-chief", PLACE, "not carried forward") in _refusals(out)
 
 
-def test_a_place_an_answer_holds_for_the_human_is_named_for_the_asking(tmp_path):
-    """`decision-log.md Process: #90`: a human-review query rides to the end
-    of the review to be asked. A role may raise one in a turn as well as on
-    its first reading, and the place it holds is named either way."""
+def test_a_human_question_answered_at_a_place_rolls_the_turn_back(tmp_path):
+    """`decision-log.md Process: #197`: a human-review query is asked before
+    the fold, whether a role raises it on its first reading or in a turn. The
+    turn rolls back naming the role, the place and the question."""
     collated = _collated(
         tmp_path,
         {
@@ -773,16 +783,15 @@ def test_a_place_an_answer_holds_for_the_human_is_named_for_the_asking(tmp_path)
             tmp_path / "repo",
         )
     )
-    assert result is not None, out
-    assert _state_at(result.proof, PLACE) == "unsettlable"
-    assert (
-        events.Unsettlable(
-            PLACE,
+    assert result is None
+    assert [e for e in out if isinstance(e, events.AsksTheHuman)] == [
+        events.AsksTheHuman(
             "block-context",
+            PLACE,
             "which of the two the author meant is theirs to say",
         )
-        in out
-    )
+    ]
+    assert out[-1] == events.RolledBack(1)
 
 
 def test_an_advisory_note_is_reported_again_after_a_turn(tmp_path):
@@ -855,7 +864,7 @@ def test_a_move_into_an_ungathered_file_that_drops_a_word_is_refused(tmp_path):
     assert (
         "block-context",
         "n.py@b1",
-        "the destination text does not keep 'eight'",
+        "the text does not keep 'eight'",
     ) in _refusals(out)
     assert any(isinstance(one, events.RolledBack) for one in out)
 
@@ -908,11 +917,7 @@ def test_a_move_and_an_add_into_one_ungathered_place_compose_on_different_senten
 ):
     """Each role's text keeps the paragraph there and adds a different line,
     so the two compose against the page's paragraph. Measured against
-    nothing, every line of each would be new and the two would contest.
-
-    Two moves into one place were this case's two sides until a place two
-    moves touch was refused (`test_two_roles_moving_two_paragraphs_into_one_
-    place_are_both_refused_there`); an `add` is the second side instead."""
+    nothing, every line of each would be new and the two would contest."""
     message = _message(
         tmp_path,
         {
@@ -943,95 +948,6 @@ def test_a_move_and_an_add_into_one_ungathered_place_compose_on_different_senten
     assert _state_at(result.proof, "n.py@b1") != "contested"
 
 
-# -- a place two moves touch (the move's partner is one slot per place) --------
-
-
-def _moving(tmp_path, block: dict, function: dict):
-    """Both roles over `m.py`'s b1, b2, b5 and b7, each marking `clean` where
-    its own marks name nothing."""
-    places = {
-        "m.py@b1": BASE,
-        "m.py@b2": OTHER,
-        "m.py@b5": "# nine",
-        "m.py@b7": "# seven",
-    }
-    root = tmp_path / "repo"
-    binder = a_real_binder_over(root, places)
-    by_role = {
-        role: {**{address: a_clean(address) for address in places}, **marks}
-        for role, marks in (("block-context", block), ("function-context", function))
-    }
-    copies = [returned(wire) for wire in copies_over(binder, by_role)]
-    return handle(CopiesReturned("4c", copies, binder, root, None))
-
-
-def test_two_roles_moving_one_paragraph_to_two_destinations_are_both_refused(
-    tmp_path,
-):
-    """A move's ends are paired by `Place.partner`, one to a place, so the
-    origin could be paired with one destination only and the other move
-    would land under the wrong pairing. The origin is refused for both roles
-    and nothing settles."""
-    out, result = _moving(
-        tmp_path,
-        {PLACE: a_move(PLACE, "m.py@b5", change="# two\n", reads="# nine\n# two\n")},
-        {PLACE: a_move(PLACE, "m.py@b7", change="# two\n", reads="# seven\n# two\n")},
-    )
-    assert result is None
-    both = (
-        "two moves touch this place and a place pairs with one other end --"
-        " block-context's move m.py@b1 -> m.py@b5, function-context's move"
-        " m.py@b1 -> m.py@b7; withdraw one"
-    )
-    assert _refusals(out) == [
-        ("block-context", PLACE, both),
-        ("function-context", PLACE, both),
-    ]
-    assert not [one for one in out if isinstance(one, events.Settled)]
-
-
-def test_two_roles_moving_two_paragraphs_into_one_place_are_both_refused_there(
-    tmp_path,
-):
-    """`decision-log.md Process: #154` sends back one role's two moves to one
-    place; two roles' are refused the same way, since the place can pair with
-    only one of the two origins."""
-    out, result = _moving(
-        tmp_path,
-        {PLACE: a_move(PLACE, "m.py@b5", change="# two\n", reads="# nine\n# two\n")},
-        {
-            "m.py@b2": a_move(
-                "m.py@b2", "m.py@b5", change="# five\n", reads="# nine\n# five\n"
-            )
-        },
-    )
-    assert result is None
-    both = (
-        "two moves touch this place and a place pairs with one other end --"
-        " block-context's move m.py@b1 -> m.py@b5, function-context's move"
-        " m.py@b2 -> m.py@b5; withdraw one"
-    )
-    assert _refusals(out) == [
-        ("block-context", "m.py@b5", both),
-        ("function-context", "m.py@b5", both),
-    ]
-
-
-def test_one_roles_move_alone_still_pairs_its_two_ends(tmp_path):
-    out, result = _moving(
-        tmp_path,
-        {PLACE: a_move(PLACE, "m.py@b5", change="# two\n", reads="# nine\n# two\n")},
-        {},
-    )
-    assert result is not None, _refusals(out)
-    partners = {
-        one["address"]: one["partner"]
-        for one in result.proof.places
-        if one["address"] in (PLACE, "m.py@b5")
-    }
-    assert partners == {PLACE: "m.py@b5", "m.py@b5": PLACE}
-
-
 def test_a_move_into_a_file_this_checkout_does_not_hold_is_refused_by_name(
     tmp_path,
 ):
@@ -1052,3 +968,299 @@ def test_a_move_into_a_file_this_checkout_does_not_hold_is_refused_by_name(
     assert any("no page can be read at gone.py" in reason for reason in reasons), (
         reasons
     )
+
+
+# -- a move's placement, asked once for its pair (`Process: #195`) ------------
+
+MOVED_FROM = "# one\n# two\n# three"
+ARRIVAL = "# four\n# two\n# five\n# six"
+
+
+def _a_move_two_roles_read(tmp_path):
+    root = tmp_path / "repo"
+    binder = a_real_binder_over(root, {"m.py@b1": MOVED_FROM, "m.py@b2": OTHER})
+    by_role = {
+        "block-context": {
+            "m.py@b1": a_move("m.py@b1", "m.py@b2", change="# two\n", reads=ARRIVAL),
+            "m.py@b2": a_clean("m.py@b2"),
+        },
+        "module-context": {
+            "m.py@b1": a_clean("m.py@b1"),
+            "m.py@b2": a_clean("m.py@b2"),
+        },
+    }
+    copies = [returned(wire) for wire in copies_over(binder, by_role)]
+    return CopiesReturned("4c", copies, binder, root, None), root
+
+
+def _answering(batch_slots, answer_for):
+    out = []
+    for slot in batch_slots:
+        name = answer_for(slot)
+        out.append({**slot, "instruction": name, "reason": "r"})
+    return out
+
+
+def _slots_of(result):
+    """A committed result's batch, which these cases expect to hold slots."""
+    assert result is not None and result.batch is not None
+    return result.batch
+
+
+def _answered(result, answer_for):
+    """Every slot of `result`'s batch, answered by `answer_for`."""
+    return {
+        role: _answering(slots, answer_for) for role, slots in _slots_of(result).items()
+    }
+
+
+def _placement_or_clean(placement):
+    """An answer-for that answers each placement `placement` and the rest `clean`."""
+    return lambda s: placement if s["question"] == "placement" else "clean"
+
+
+class TestAMovesPlacementIsAskedOnce:
+    """`decision-log.md Process: #195`, board P1."""
+
+    def test_the_other_reader_is_sent_one_placement_slot(self, tmp_path):
+        message, _root = _a_move_two_roles_read(tmp_path)
+        _out, result = handle(message)
+        assert result is not None
+        batch = _slots_of(result)
+        slots = [s for s in batch["module-context"] if s["question"] == "placement"]
+        assert [(s["address"], s["to"]) for s in slots] == [("m.py@b1", "m.py@b2")]
+        assert slots[0]["raw_text"] == ARRIVAL and slots[0]["snippet"] == "# two\n"
+        assert "block-context" not in batch or not [
+            s for s in batch["block-context"] if s["question"] == "placement"
+        ]
+        assert [m["placement"] for m in result.proof.moves] == ["open"]
+
+    def test_agree_and_clean_land_the_paragraph_once(self, tmp_path):
+        message, root = _a_move_two_roles_read(tmp_path)
+        _out, first = handle(message)
+        assert first is not None
+        answers = _answered(first, _placement_or_clean("agree"))
+        out, result = handle(AnswersReturned(first.proof, answers, root))
+        assert result is not None, out
+        assert result.chief is not None
+        texts = {p["address"]: p["text"] for p in result.proof.places}
+        assert texts["m.py@b1"] == "# one\n# three"
+        assert texts["m.py@b2"] == ARRIVAL
+        chief = [
+            (m.instruction, m.address) for s in result.chief.sheets for m in s.marks
+        ]
+        assert sorted(chief) == [("add", "m.py@b2"), ("drop", "m.py@b1")]
+
+    def test_a_stet_puts_it_to_the_mover_and_the_stetter(self, tmp_path):
+        message, root = _a_move_two_roles_read(tmp_path)
+        _out, first = handle(message)
+        assert first is not None
+        answers = _answered(first, _placement_or_clean("stet"))
+        _out, result = handle(AnswersReturned(first.proof, answers, root))
+        assert result is not None
+        batch = _slots_of(result)
+        assert [m["placement"] for m in result.proof.moves] == ["contested"]
+        for role in ("block-context", "module-context"):
+            assert [s["to"] for s in batch[role] if s["question"] == "placement"] == [
+                "m.py@b2"
+            ]
+
+    def test_a_turn_that_asks_only_placements_is_counted(self, tmp_path):
+        """The second turn's slots are the contested move's alone, so its
+        answers are recorded on the move and on no place; the proof stands at
+        that turn all the same."""
+        message, root = _a_move_two_roles_read(tmp_path)
+        _out, first = handle(message)
+        assert first is not None
+        answers = _answered(first, _placement_or_clean("stet"))
+        _out, second = handle(AnswersReturned(first.proof, answers, root))
+        batch = _slots_of(second)
+        assert {s["question"] for slots in batch.values() for s in slots} == {
+            "placement"
+        }
+        assert second is not None
+        answers = _answered(second, lambda s: "stet")
+        out, third = handle(AnswersReturned(second.proof, answers, root))
+        assert third is not None, out
+        assert turn_of(third.proof) == 2
+
+    def test_a_placement_answer_from_a_role_not_asked_is_refused(self, tmp_path):
+        """Review Focus 4."""
+        message, root = _a_move_two_roles_read(tmp_path)
+        _out, first = handle(message)
+        assert first is not None
+        answers = _answered(first, _placement_or_clean("agree"))
+        stray = {
+            "address": "m.py@b1",
+            "to": "m.py@b2",
+            "instruction": "agree",
+            "reason": "r",
+        }
+        answers.setdefault("block-context", []).append(stray)
+        out, result = handle(AnswersReturned(first.proof, answers, root))
+        assert result is None
+        assert (
+            "block-context",
+            "m.py@b1 -> m.py@b2",
+            "not put to block-context -- this move is put to module-context",
+        ) in _refusals(out)
+
+
+def _taken_in(*addresses):
+    """The chief's ruling at each of `addresses`, taking block-context's text."""
+    return [
+        {"address": a, "answer": "taken_in", "side": "block-context", "reason": "r"}
+        for a in addresses
+    ]
+
+
+class TestAnOpenMoveIsNotTranscribed:
+    """A move whose placement is undecided closes only when the chief has
+    ruled both of its ends (`desk.evaluate.move.ruled_at_both_ends`). The
+    write end reads the proof's moves and refuses one that is still open, so
+    the paragraph cannot land at one end while the other keeps it."""
+
+    def _ruled_at_both_ends(self, tmp_path):
+        """A contested move whose two ends the chief rules together."""
+        message, root = _a_move_two_roles_read(tmp_path)
+        _out, first = handle(message)
+        assert first is not None
+        answers = _answered(first, _placement_or_clean("stet"))
+        out, second = handle(AnswersReturned(first.proof, answers, root))
+        assert second is not None, out
+        out, closed = handle(
+            DispositionsWritten(second.proof, _taken_in("m.py@b1", "m.py@b2"))
+        )
+        assert closed is not None, out
+        return closed.proof, root
+
+    def test_a_contested_move_ruled_at_both_ends_is_transcribed(self, tmp_path):
+        proof, root = self._ruled_at_both_ends(tmp_path)
+        assert [m["placement"] for m in proof.moves] == ["contested"]
+        (schedule,) = docket_of_proof(proof, root).docket.schedules
+        assert [(one.cue, one.text) for one in schedule.alterations] == [
+            ("b1", "# one\n# three"),
+            ("b2", ARRIVAL),
+        ]
+
+    def test_a_move_that_will_not_read_is_refused(self, tmp_path):
+        proof, root = self._ruled_at_both_ends(tmp_path)
+        broken = replace(proof, moves=({"origin": "m.py@b1"},))
+        with pytest.raises(CannotTranscribe) as raised:
+            docket_of_proof(broken, root)
+        assert any("destination" in why for why in raised.value.reasons), (
+            raised.value.reasons
+        )
+
+
+# -- a human question is asked before the fold (`Process: #197`) -------------
+
+
+def _with_a_human_query(tmp_path):
+    root = tmp_path / "repo"
+    binder = a_real_binder_over(root, {"m.py@b1": BASE, "m.py@b2": OTHER})
+    by_role = {
+        "block-context": {
+            "m.py@b1": a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY),
+            "m.py@b2": a_clean("m.py@b2"),
+        },
+        "module-context": {
+            "m.py@b1": a_clean("m.py@b1"),
+            "m.py@b2": a_clean("m.py@b2"),
+        },
+    }
+    copies = [returned(wire) for wire in copies_over(binder, by_role)]
+    return binder, root, copies
+
+
+class TestAHumanQuestionIsAskedBeforeTheFold:
+    """`decision-log.md Process: #197`: no human question reaches a fold."""
+
+    def test_an_unanswered_human_query_rolls_the_stage_back_naming_it(self, tmp_path):
+        binder, root, copies = _with_a_human_query(tmp_path)
+        out, result = handle(CopiesReturned("4c", copies, binder, root, None))
+        assert result is None
+        asks = [e for e in out if isinstance(e, events.AsksTheHuman)]
+        assert [(e.role, e.at, e.answer) for e in asks] == [
+            ("block-context", "m.py@b1", "")
+        ]
+        assert isinstance(out[-1], events.RolledBack)
+        assert not any(isinstance(e, events.Refused) for e in out)
+
+    def test_an_answered_query_still_rolls_back_and_carries_the_answer(self, tmp_path):
+        binder, root, copies = _with_a_human_query(tmp_path)
+        human = (HumanAnswer("block-context", "m.py@b1", "q", "Keep it."),)
+        out, result = handle(CopiesReturned("4c", copies, binder, root, None, human))
+        assert result is None
+        (ask,) = [e for e in out if isinstance(e, events.AsksTheHuman)]
+        assert ask.answer == "Keep it."
+
+    def test_once_the_role_replaces_its_query_the_stage_folds(self, tmp_path):
+        root = tmp_path / "repo"
+        binder = a_real_binder_over(root, {"m.py@b1": BASE, "m.py@b2": OTHER})
+        by_role = {
+            role: {"m.py@b1": a_clean("m.py@b1"), "m.py@b2": a_clean("m.py@b2")}
+            for role in ("block-context", "module-context")
+        }
+        copies = [returned(wire) for wire in copies_over(binder, by_role)]
+        human = (HumanAnswer("block-context", "m.py@b1", "q", "Keep it."),)
+        _out, result = handle(CopiesReturned("4c", copies, binder, root, None, human))
+        assert result is not None
+
+    def test_a_human_answer_in_a_turn_rolls_the_turn_back_naming_its_move(
+        self, tmp_path
+    ):
+        """Review Focus 1 (the placement half). The same role also puts a
+        human question at a composition slot, so each is named under its own
+        key -- the move's key and the place's address."""
+        message, root = _a_move_two_roles_read(tmp_path)
+        _out, first = handle(message)
+        assert first is not None and first.batch is not None
+        human_query = {
+            "shape": "human-review-necessary",
+            "attempted": "read both",
+            "settles": "the author",
+        }
+
+        def answer_for(slot):
+            if slot["question"] == "placement" or slot["address"] == "m.py@b2":
+                return {
+                    **slot,
+                    "instruction": "query",
+                    "reason": "ask the author",
+                    "claim": human_query,
+                }
+            return {**slot, "instruction": "clean", "reason": "r"}
+
+        answers = {
+            role: [answer_for(s) for s in slots] for role, slots in first.batch.items()
+        }
+        out, result = handle(AnswersReturned(first.proof, answers, root))
+        assert result is None
+        asks = [e for e in out if isinstance(e, events.AsksTheHuman)]
+        assert [(e.role, e.at) for e in asks] == [
+            ("module-context", "m.py@b1 -> m.py@b2"),
+            ("module-context", "m.py@b2"),
+        ]
+
+    def test_a_human_query_beside_a_refusal_reports_both(self, tmp_path):
+        """Review Focus 4."""
+        binder, root, copies = _with_a_human_query(tmp_path)
+        broken = [
+            returned(w)
+            for w in copies_over(
+                binder,
+                {
+                    "module-context": {
+                        "m.py@b1": a_correct("m.py@b1", "a sentence that is not there"),
+                        "m.py@b2": a_clean("m.py@b2"),
+                    }
+                },
+            )
+        ]
+        out, result = handle(
+            CopiesReturned("4c", [copies[0], *broken], binder, root, None)
+        )
+        assert result is None
+        assert any(isinstance(e, events.Refused) for e in out)
+        assert any(isinstance(e, events.AsksTheHuman) for e in out)

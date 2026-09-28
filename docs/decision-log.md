@@ -4540,6 +4540,9 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   Roy: *"the answer reaches both but it is a conflict that has to be sent back because the order
   and wording are ambiguous and probably need editing"*.
 
+  **Superseded 2026-09-26 by `#196`.** Each move is its own placement; a wording collision
+  between two of one role's arrivals goes back under `#179`.
+
 - **#155.** **A held move's two ends go to the author as one move** (Roy, 2026-09-13, on T90's
   other end: a held origin now carries the move's `drop` to 7a, while a held destination carries
   no `add`, so approving the drop alone would lose the paragraph).
@@ -5087,3 +5090,95 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   turn's batch carries a placement slot naming both ends beside the per-place slots. The
   split writes the mover's `drop` and `add` as ordinary marks. `TODO/move-is-a-composite-mark.md`
   is refiled against this shape.
+
+- **#196.** **Every move is its own placement, however many share a place or a role; `#154` is
+  superseded** (Roy, 2026-09-26, reading the implementation plan for `#195`, which had carried
+  `#154`'s refusal of one role's two moves into one place forward unexamined).
+
+  Roy: *"One role's two moves into one place stay refused under #154? Why would this be the
+  case? One comment piece could be from another part of the passage and the other from another
+  part of the passage. Or there could be two separate addresses that need to be moved to the
+  same place."*
+
+  `#154`'s reason was that one answer at the shared place reached both moves and which move's
+  text the batch showed varied with the hash seed. Under `#195` a move is keyed by its own two
+  addresses and answered on its own placement slot, so that reason is gone. Asked whether to
+  record `#154` as superseded -- each move its own placement; two `add`s one role lands at one
+  place composing under `#179`, and refused back only where they edit the same line, with the
+  message telling the role to restate the arrival paragraph with both snippets rather than to
+  withdraw one -- Roy: *"Yes obviously"*.
+
+  It also answers `rebuilt-middle-final-review` T9, *what two moves onto one place are*: two
+  moves, whatever roles filed them, whose texts compose at the place like any two proposals.
+
+- **#197.** **A human-review question is asked and answered before the fold, and the roles are
+  told the answer** (Roy, 2026-09-26, asked to confirm or reverse the interim that a human-review
+  answer to one end's wording holds only that end while the move's placement stays open -- the
+  interim the whole-branch review of `feat/a-move-is-a-placement-claim` showed could land a
+  paragraph in both places, now refused at the write end).
+
+  Roy: *"We need to modify what the task-agent does and the system does for human questions. For
+  any human queries these should be asked and answered before the fold and turn is executed.
+  Then something can tell the agents the response and they can modify their response. This can
+  be done using the current question ask ... system Claude already uses plus something"*.
+
+  And, in the same message: *"That goes for all human queries these should"*. So every
+  `human-review-necessary` query -- filed as a mark at stage 4 or given as an answer in a turn,
+  about a move or about any place's words, including the one a move out of the code becomes
+  under `#173` -- no longer rides through the fold to the author at 7a. The task agent asks the human it before `collate` or
+  `turn` folds the stage, with the question tool Claude Code already provides; the human's answer
+  is recorded and handed back to the roles, who revise their mark or answer in its light; then
+  the fold runs. It supersedes the Task 4 interim of the plan above (a wording human-review answer
+  holding one end only) rather than choosing between its two options: the question is settled
+  before any end is held. What carries the answer back to the roles -- the "plus something" -- is
+  not yet designed.
+
+- **#198.** **The human's answers are one file, one section per query, naming the role that asked**
+  (Roy, 2026-09-26, on `human-questions-before-the-fold` T1).
+
+  Offered -- a small answers file the task agent writes after asking the human with the question
+  tool, keyed by the place or move each query was about; `collate` and `turn` refuse to fold while
+  a human query has no entry; each asking role gets its slot back with the answer attached and
+  replaces its query with a real mark or answer -- Roy: *"This works"*, and: *"I would say it
+  should also state the agent that brought it up so that each can quickly find the answers it
+  needs. Semi structured markdown or toml file like would make the sections easy for the agents to
+  cross-reference just in case"*.
+
+  So each section carries the role that asked, the place or move it asked about, the question and
+  the human's answer. The format is TOML, one `[[answer]]` table per query: the standard library
+  reads it (`tomllib`) where markdown would need a parser of its own, and it keeps the sections a
+  role scans for its own name.
+
+- **#199.** **A code concern is a human question with three answers, and "add a TODO" lands it as
+  prose beside its subject** (Roy, 2026-09-27, on `a-role-with-no-code-out-damages-the-prose`
+  T1, taking up his own 2026-08-28 candidate recorded there: *"put TODO statements in the
+  appropriate interval/margin prose. If accepted by a human."*).
+
+  Offered -- a code concern stays a `human-review-necessary` query, marked by `settles` reading
+  `code concern`; the task agent asks it with three answers, `add a TODO` (the default), `not a
+  concern` and `leave it`; on each the role files the ruling that makes the paragraph true of
+  the code as it stands, and on `add a TODO` also an `add` of a `TODO:` comment -- Roy: *"go
+  ahead, probe mark first"*. On where the TODO goes, after the first draft placed it in a line's
+  margin: *"It can be in the comment above. If the explanation is long like [two TODO lines
+  naming line ranges] It is better that this statement be congruent in reading and usually
+  close the the entirety of subject instead of split"*.
+
+  So a role describes a code problem and the author chooses; a code change is never proposed as
+  a mark. The TODO is addressed prose, so it is re-read against a later tree and becomes a false
+  claim once the code is fixed. The probe found `mark` refusing a role's `add` into a paragraph
+  it also corrects, though the two rule on different sentences: `mark-defects` T28.
+
+- **#200.** **A move's placement is settled before the marks around it; a mark at either end does
+  not accept it** (Roy, 2026-09-27, on `move-is-a-composite-mark` T40, raised when the smoke's
+  plant found the code asking a correcting reader the placement question that `#195` item 2 said
+  its `correct` had already answered). **It supersedes the second sentence of `#195` item 2**,
+  *"A `correct` or `patch` at either end accepts the placement and disputes only the words."*
+
+  Roy: *"A move is resolved first then corrections at either end are resolved against the move
+  outcome. That has to be the way it works and another mark around a move is a constested move
+  until the move is settled. then the split add/drop are settled against the other mark"*.
+
+  So every reader with a mark at either end is asked the placement, as the code does: the smoke
+  shows `collate` putting `store.py@b9 -> store.py@b8` to function-context, whose `correct` sits
+  at `b9`. Once the placement is settled the move splits, and its `drop` and `add` are settled
+  against the other marks at each end as ordinary places.

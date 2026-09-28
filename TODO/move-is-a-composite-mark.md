@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 15 of 33 tasks closed
+Progress: 34 of 40 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -99,11 +99,12 @@ and now there is one object that cannot be half-held.
 
 ## Tasks
 
-- [ ] T1 | Implement a move as a COMPOSITE of two ordinary marks -- a `drop` at
-      the origin carrying the remainder, an `add` at the destination carrying
-      the arrival text -- each with a plain `str` `change`. Verify: a
-      spec-following move parses; a test asserts each half is an ordinary Mark
-      that `_change_problems` accepts with no second shape added to it.
+- [x] T1 | split halves are ordinary Marks the parse takes; test_marks_table TestTheSplit | 29b3e6931a00471f692374897f4ead9910639c72 | Implement
+      a move as a COMPOSITE of two ordinary marks -- a `drop` at the origin
+      carrying the remainder, an `add` at the destination carrying the arrival
+      text -- each with a plain `str` `change`. Verify: a spec-following move
+      parses; a test asserts each half is an ordinary Mark that
+      `_change_problems` accepts with no second shape added to it.
         > 2026-09-02 PROVISIONALLY SETTLED the other way -- see docs/the-mark.md
         > 2026-09-02 one Mark carries a move: the origin delete is DERIVED, not carried
         > 2026-09-02 the drop is determinable from the sentence that had to be supplied
@@ -117,24 +118,28 @@ and now there is one object that cannot be half-held.
       Verify: `flows.collate._chief_copy` writes TWO entries for one move, at
       two distinct addresses, and a test asserts the destination entry's address
       is the DESTINATION -- it reads the origin today, measured.
-- [ ] T3 | Implement the pure-deletion check on the origin half: the diff from
-      the seeded `raw_text` to `change` carries no insertion. Verify: a move
-      whose origin text gains a word is refused BY NAME, and the test goes red
-      when the check is replaced with a no-op.
+- [x] T3 | origin half is base minus the snippet by construction; a snippet not in it does not split | 29b3e6931a00471f692374897f4ead9910639c72 | Implement
+      the pure-deletion check on the origin half: the diff from the seeded
+      `raw_text` to `change` carries no insertion. Verify: a move whose origin
+      text gains a word is refused BY NAME, and the test goes red when the check
+      is replaced with a no-op.
         > 2026-09-26 Process 195: the drop half of the split
-- [ ] T4 | Implement the pure-addition check on the destination half. Verify: a
-      move whose destination text loses a word is refused by name, and the test
-      goes red when the check is replaced with a no-op.
+- [x] T4 | the add row refuses an arrival that loses a landing word; TestTheSplit | 29b3e6931a00471f692374897f4ead9910639c72 | Implement
+      the pure-addition check on the destination half. Verify: a move whose
+      destination text loses a word is refused by name, and the test goes red
+      when the check is replaced with a no-op.
         > 2026-09-26 Process 195: the add half of the split
-- [ ] T5 | Implement the pair check: the text deleted at the origin EQUALS the
-      text added at the destination. Verify: a move that drops one sentence and
-      adds a different one is refused by name; a move that carries the same
-      sentence across passes.
+- [x] T5 | drop.claim.drop == add.change: one snippet makes both halves | 29b3e6931a00471f692374897f4ead9910639c72 | Implement
+      the pair check: the text deleted at the origin EQUALS the text added at
+      the destination. Verify: a move that drops one sentence and adds a
+      different one is refused by name; a move that carries the same sentence
+      across passes.
         > 2026-09-26 Process 195: the pair check at the split
-- [ ] T6 | Update `docs/the-mark.md` to the composite shape, superseding the
-      sentence reading that `change` carries both paragraphs as raw text in one
-      field. Verify: `tests/gates/test_mark_shape.py` reads the amended headings
-      and passes without a hand-edited count.
+- [-] T6 | Refiled as T37, off this plan by Roy 2026-09-26: spec wording, not needed to test | e35ed761cb5dded09c3dbe6556d7f8f01aee6595 | Update
+      `docs/the-mark.md` to the composite shape, superseding the sentence
+      reading that `change` carries both paragraphs as raw text in one field.
+      Verify: `tests/gates/test_mark_shape.py` reads the amended headings and
+      passes without a hand-edited count.
         > 2026-09-26 Process 195: one Mark open, drop and add once agreed
 - [-] T7 | A move is one Mark with a string change while placement is open, Process 172 and 195; the composite exists only after the split | 54318a4b | Update
       `tests/helpers.py` so `a_move` builds the composite. Verify: no helper
@@ -144,7 +149,8 @@ and now there is one object that cannot be half-held.
       the provisional single-mark move handling in `flows/collate.py` and the
       kind-promotion in `desk/collator.py` `_join_moves` once the composite
       makes them unreachable. Verify: both are gone and the suite stays green.
-- [ ] T9 | Implement a MOVE REGION in the edit copy's shape, distinct from the
+- [-] T9 | The move aggregate reads the move from its origin slot; no separate region was needed (P8, P2) | 0e15fbb1f2f4e3dedf85cde8a26e7a611eecee0c | Implement
+      a MOVE REGION in the edit copy's shape, distinct from the
       one-slot-per-place marks, and declare it in `desk/containers.py`. RULED
       2026-08-30 -- the destination is NOT seeded; a move gets its own spot.
       Verify: `parse_edit_copy` accepts a copy carrying a move in that region
@@ -207,16 +213,18 @@ and now there is one object that cannot be half-held.
       -- the destination `reviewer-brief.md` offers a role -- is refused; today
       it parses with zero problems and the docket carries the origin's delete
       plus a page naming no file and no place.
-- [ ] T18 | Delete `claim.from` from the `move` row, or hold it equal to the
-      mark's own `address`. Verify: `grep -rn '"from"' src/comment_review/`
-      shows the key gone, or a move whose `claim.from` names a place other than
-      its `address` is refused by name -- today `parse` returns no problems and
-      `_touches` reports `address` and `claim.to` only.
-- [ ] T19 | Update `_owed_from` at `tests/gates/test_mark_shape.py:305-307`,
-      which normalises the spec's `the COMPOSITE` cell to `True`, so the one
-      cell the `Row` type cannot express stops being flattened to a bool.
-      Verify: the gate goes red when the spec's `move` change cell is edited,
-      and passes on the composite wording task 6 of this file lands.
+- [-] T18 | Refiled as T38, off this plan by Roy 2026-09-26: claim.from is unread, not needed to test | e35ed761cb5dded09c3dbe6556d7f8f01aee6595 | Delete
+      `claim.from` from the `move` row, or hold it equal to the mark's own
+      `address`. Verify: `grep -rn '"from"' src/comment_review/` shows the key
+      gone, or a move whose `claim.from` names a place other than its `address`
+      is refused by name -- today `parse` returns no problems and `_touches`
+      reports `address` and `claim.to` only.
+- [-] T19 | Refiled as T39, off this plan by Roy 2026-09-26: a gate cell, not needed to test | e35ed761cb5dded09c3dbe6556d7f8f01aee6595 | Update
+      `_owed_from` at `tests/gates/test_mark_shape.py:305-307`, which normalises
+      the spec's `the COMPOSITE` cell to `True`, so the one cell the `Row` type
+      cannot express stops being flattened to a bool. Verify: the gate goes red
+      when the spec's `move` change cell is edited, and passes on the composite
+      wording task 6 of this file lands.
         > 2026-09-26 Process 195: the cell reads one Mark, then two
 - [-] T20 | No both-or-neither check: one Mark before the split, two ordinary places after it, Process 195 item 5 | 54318a4b | Implement
       the both-ends-or-neither check for a move in
@@ -224,14 +232,14 @@ and now there is one object that cannot be half-held.
       sheet of one role. Verify: a copy holding a cross-file move's origin half
       with no destination half is refused by name, and one holding both passes
       -- today `parse_edit_copy` looks at no marks at all.
-- [ ] T21 | Implement the public classifier and slice accessor in
-      `results/differences.py` that tasks 3, 4 and 5 need --
-      `delete`/`insert`/`replace`/nothing for one base-side pair, and the text
-      each side removed and added -- at a granularity finer than whole lines.
-      Verify: a `move` carrying ONE SENTENCE out of a paragraph classifies as a
-      deletion at the origin and the removed text is recoverable, where today's
-      line opcodes report a single `replace` and the removed text appears in no
-      opcode.
+- [-] T21 | The split derives both halves from one snippet; the row reads check them, no finer classifier needed | 0e15fbb1f2f4e3dedf85cde8a26e7a611eecee0c | Implement
+      the public classifier and slice accessor in `results/differences.py` that
+      tasks 3, 4 and 5 need -- `delete`/`insert`/`replace`/nothing for one
+      base-side pair, and the text each side removed and added -- at a
+      granularity finer than whole lines. Verify: a `move` carrying ONE SENTENCE
+      out of a paragraph classifies as a deletion at the origin and the removed
+      text is recoverable, where today's line opcodes report a single `replace`
+      and the removed text appears in no opcode.
         > 2026-09-26 differences.py is under machine/ now
 - [x] T22 | FINISHED -- mark refuses a non-path@cue destination, routed per #173 | 42987afd | Refuse
       a move's `claim.to` that names no recognized address. Verify: a bare prose
@@ -252,19 +260,44 @@ and now there is one object that cannot be half-held.
 - [x] T25 | a move's change is the snippet, removed once from the origin; raw_text is the destination text; docket_of writes both ends | e538ea92 | Implement
       a move whose --change is the snippet, removed exactly from the origin and
       inserted at the destination, per Process 172
-- [ ] T26 | Implement a placement Question in desk/answers with agree, stet,
-      withdraw and query rows, per Process 195 item 6
-- [ ] T27 | Implement the move as one aggregate holding the placement state and
-      both ends, replacing Place.partner and the pair passes
-- [ ] T28 | Implement the split of an agreed move into the mover drop and add as
-      ordinary marks, per Process 195 item 3
-- [ ] T29 | Implement the placement slot in the turn batch, naming both ends and
-      put to every reader of either page
-- [ ] T30 | Update the chief disposition: placement once on an unresolved move,
+- [x] T26 | Question.PLACEMENT and its four rows; check --contract prints them | 00100e259b095be181a5816ca0ee3065ef295167 | Implement
+      a placement Question in desk/answers with agree, stet, withdraw and query
+      rows, per Process 195 item 6
+- [x] T27 | desk/evaluate/move.py Move and placement_pass; decide runs it first; no .partner read in src | 29b3e6931a00471f692374897f4ead9910639c72 | Implement
+      the move as one aggregate holding the placement state and both ends,
+      replacing Place.partner and the pair passes
+- [x] T28 | Row.splits on move; settle_ends writes the drop and add on agreement | 29b3e6931a00471f692374897f4ead9910639c72 | Implement
+      the split of an agreed move into the mover drop and add as ordinary marks,
+      per Process 195 item 3
+- [x] T29 | placement slot per open move to every owed reader; tests/test_bus.py TestAMovesPlacementIsAskedOnce | 758c6704f99b047a472fdbcd3784ab36fb7349bb | Implement
+      the placement slot in the turn batch, naming both ends and put to every
+      reader of either page
+- [-] T30 | Refiled as T35, off this plan by Roy 2026-09-26: the beta needs no chief placement ruling | e35ed761cb5dded09c3dbe6556d7f8f01aee6595 | Update
+      the chief disposition: placement once on an unresolved move, words alone
+      on a split one, per Process 195 item 4
+- [x] T31 | reaches_partner, refuse_half_moves and the 189 guard deleted | 29b3e6931a00471f692374897f4ead9910639c72 | Delete
+      reaches_partner, refuse_half_moves and the Process 189 guard once a
+      wording answer cannot half-withdraw a move
+- [x] T32 | reviewer-brief.md and SKILL.md name the placement question and its four answers | 328efac3f6fca9bc191368f5e29a2eec4cb092b2 | Update
+      reviewer-brief.md and SKILL.md to name the placement question and its four
+      verbs; agents lane
+- [-] T33 | Refiled as T36, off this plan by Roy 2026-09-26: run agents do not read these docs | e35ed761cb5dded09c3dbe6556d7f8f01aee6595 | Update
+      the-mark.md and the-turn.md from the Process 195 pointers to the built
+      shape
+- [x] T34 | Placement exclusion removed; every answer row planted; smoke exits 0 | 9502a208b3bd9061ff794ab6825f14e29713b54d | Remove
+      the placement-row exclusion from tests/gates/test_smoke_fixture.py once
+      the smoke plants placement answers
+- [ ] T35 | Update the chief disposition: placement once on an unresolved move,
       words alone on a split one, per Process 195 item 4
-- [ ] T31 | Delete reaches_partner, refuse_half_moves and the Process 189 guard
-      once a wording answer cannot half-withdraw a move
-- [ ] T32 | Update reviewer-brief.md and SKILL.md to name the placement question
-      and its four verbs; agents lane
-- [ ] T33 | Update the-mark.md and the-turn.md from the Process 195 pointers to
+- [ ] T36 | Update the-mark.md and the-turn.md from the Process 195 pointers to
       the built shape
+- [ ] T37 | Update docs/the-mark.md to the two shapes, one Mark while open and a
+      drop and add once agreed; the mark-shape gate passes
+- [ ] T38 | Delete claim.from from the move row, or refuse a move whose
+      claim.from names a place other than its address
+- [ ] T39 | Update _owed_from in tests/gates/test_mark_shape.py so the move
+      change cell is read, not flattened to a bool
+- [x] T40 | Roy ruled: placement settles first; a mark at either end does not accept it; Process 200 | 32ea5562 | Decide
+      whether a correct or patch at a move end accepts the placement (Process
+      195 item 2) or earns a placement question, as the code asks
+        > 2026-09-27 smoke: collate asks function-context at store.py@b9 -> b8

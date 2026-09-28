@@ -222,13 +222,13 @@ instruction set and the cli help."* This file is the instruction set.
 
 | instruction | what the `claim` carries |
 | --- | --- |
-| `clean` | nothing. Name your role and stop -- `clean` proposes no text, so there is nothing for the apply step to apply |
-| `query` | the SHAPE in these exact words, the check you ATTEMPTED, and what WOULD settle it. All three are checked as SHAPE and none as truth; the claim itself is checked by nothing, so the other three are all that stands behind the ruling |
-| `drop` | the sentence, verbatim, as it stands in the paragraph. ! It is CHECKED against the page, so a paraphrase is refused |
-| `correct` | the false clause and the true one, and a `sources` entry carrying the line that settles it. ! The FALSE half is checked against the paragraph -- if it is not there, the finding is on the wrong one |
-| `patch` | the sentence as it stands and the rewrite. ! `from` is checked against the paragraph. A `patch` needs no source: the claim is already true, and only its wording is at issue |
-| `add` | the text that is missing and the anchor NAMED IN BACKTICKS. ! The word "anchor" is not an anchor -- name the declaration. Which SIDE is the address's to say, never the claim's |
-| `move` | where the prose sits now and where it belongs -- another line, another file, or out of the code entirely. These are places, not text: the text itself is `change`, the snippet taken out of the origin, and `raw_text` is the destination paragraph as it will read |
+| `clean` | nothing; `clean` proposes no text |
+| `query` | the shape, in exactly one of its three names; the check you attempted; and what would settle it. These three are what stand behind the ruling |
+| `drop` | the sentence, verbatim, as it stands in the paragraph, where it is checked |
+| `correct` | the false clause and the true one, with a `sources` entry carrying the line that settles it. The false clause is checked against the paragraph |
+| `patch` | the sentence as it stands and its rewrite; `from` is checked against the paragraph. The claim is already true, so a `patch` needs no source |
+| `add` | the text that is missing, and the declaration it belongs to, named in backticks. The address says which side of the declaration |
+| `move` | the origin's address and the destination's -- places, not text. The text that leaves is `change`, and `raw_text` is the destination paragraph as it will read |
 
 !! **IT WAS LOST ONCE ALREADY, ON 2026-08-28, AND THE MECHANISM IS WORTH KNOWING.** This prose used
 to live in a `payload` field on each row. Deleting that field was right -- a row carries no prose --
@@ -240,7 +240,7 @@ the true one, and a `sources` entry carrying the line that settles it."*
 the next thing that reads it silently gets a worse answer. ! `add`'s sentence ended *"never the
 payload's"* and now reads *"never the claim's"*: the old word named the field that was removed.
 
-## The classifiers -- eleven COLUMNS and a closed list of flags
+## The classifiers -- twelve COLUMNS and a closed list of flags
 
 !! **THIS IS THE PART THAT WAS MISSING, AND ITS ABSENCE IS WHAT LET TWENTY-TWO FIELDS IN.** A row
 may state these and nothing else -- **sixteen things, and no prose.** A new classifier is a change
@@ -258,6 +258,7 @@ to THIS FILE first.
 | **reads** | the problems a mark of this row has at one touch, against its base | a function of the mark, the touch and the base |
 | **notes** | what the chief is told about a mark of this row that is not a problem with it | a function of the mark, the touch and the base |
 | **pairs** | how a mark of this row stands toward the others at its place | a function of the mark |
+| **splits** | how an agreed mark of this row becomes one-place marks, once every reader has agreed its placement (`decision-log.md Process: #195`) | a function of the mark, the origin's base and the destination's anchor, or none |
 | **answers** | which answers a turn may give where this row proposes | a list of names |
 
 **The flags, and there are five:**

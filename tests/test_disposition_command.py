@@ -18,7 +18,6 @@ from helpers import (
     a_clean,
     a_correct_setting,
     a_move,
-    a_query,
     deal,
     disposition,
     entries_of,
@@ -30,7 +29,7 @@ from helpers import (
 
 from comment_review.commands import collate as collate_command
 from comment_review.desk.dispositions.disposition import ORIGINAL
-from comment_review.desk.marks.mark import Instruction, Shape
+from comment_review.desk.marks.mark import Instruction
 from comment_review.flows.proof_io import load_proof
 from comment_review.flows.transcribe import docket_of_proof
 
@@ -116,107 +115,20 @@ class TestTheChiefRules:
         assert [m.change for m in entries_of(the_chief(tmp_path))] == [RECAST]
         assert place_on(_closed(tmp_path), "m.py@b1")["text"] == RECAST
 
-    def test_an_unsettlable_place_is_printed_for_the_human_and_not_ruled(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        texts = {"m.py@b1": BASE, "m.py@b2": "# four\n# five\n# six\n"}
-        # function-context cleans m.py@b2, so the turn owes no answer there and
-        # exits as the escalation at m.py@b1 alone, which `held_open` asserts.
-        asked = {
-            "block-context": {
-                "m.py@b2": a_query("m.py@b2", Shape.HUMAN_REVIEW_NECESSARY)
-            },
-            "function-context": {"m.py@b2": a_clean("m.py@b2")},
-        }
-        held_open(tmp_path, monkeypatch, capsys, asked, texts)
-        code, out = disposition(
-            tmp_path,
-            monkeypatch,
-            capsys,
-            [
-                {
-                    "address": "m.py@b1",
-                    "answer": "taken_in",
-                    "side": "block-context",
-                    "reason": "r",
-                }
-            ],
-        )
-        assert code == collate_command.OK, out
-        assert "unsettlable m.py@b2: block-context asks the human" in out
-        assert [m.address for m in entries_of(the_chief(tmp_path))] == ["m.py@b1"]
-        assert place_on(_closed(tmp_path), "m.py@b2")["state"] == "unsettlable"
-
-
-class TestAMoveHeldForTheHuman:
-    """A move a role sent to the human prints as one entry naming both ends --
-    `decision-log.md Process: #155` and `#182`. The author approves or refuses
-    the move whole, so the paragraph dropped at one place and added at the
-    other are one question, not two.
-    """
-
-    TEXTS = {"m.py@b1": "# one\n# two\n# three\n", "m.py@b2": "# four\n# five\n# six\n"}
-    #: block-context moves b1's middle line to b2, which reads with it at the
-    #: end; function-context puts the origin to the human, so both ends are
-    #: held and the chief rules neither.
-    PLANT = {
-        "block-context": {
-            "m.py@b1": a_move(
-                "m.py@b1",
-                "m.py@b2",
-                change="# two\n",
-                reads="# four\n# five\n# six\n# two",
-            ),
-            "m.py@b2": a_clean("m.py@b2"),
-        },
-        "function-context": {
-            "m.py@b1": a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY),
-            "m.py@b2": a_clean("m.py@b2"),
-        },
-    }
-
-    def _closed(self, tmp_path, monkeypatch, capsys):
-        deal(tmp_path, monkeypatch, capsys, self.PLANT, self.TEXTS)
-        return disposition(tmp_path, monkeypatch, capsys, [], proof="proof0.json")
-
-    def test_both_ends_are_one_entry(self, tmp_path, monkeypatch, capsys):
-        code, out = self._closed(tmp_path, monkeypatch, capsys)
-        assert code == collate_command.OK, out
-        assert out.count("unsettlable ") == 1, out
-        assert (
-            "unsettlable m.py@b1 and m.py@b2: function-context asks the human" in out
-        ), out
-
-    def test_the_move_rides_with_the_entry(self, tmp_path, monkeypatch, capsys):
-        """`test_disposition_prints_the_drop_with_the_held_origin` asked this
-        of the old flow: the role that asks is not the role that moved, so the
-        entry names the move as well as the question."""
-        _code, out = self._closed(tmp_path, monkeypatch, capsys)
-        assert (
-            "block-context's move drops the paragraph at m.py@b1 and adds it at"
-            " m.py@b2, one move" in out
-        ), out
-
 
 class TestTheChiefRulesEachEndOfAMove:
-    """The chief's ruling at each end of a contested move takes effect there.
+    """The chief's ruling at each end of an undecided move takes effect there.
 
     Ported from `tests/test_turn.py::TestTheChiefRulesEachEndOfAMove`, and
-    restored 2026-09-18. A move's two places take one state, so the chief owes
-    a ruling at both; what each end closes on is its own ruling's, and the two
-    need not name one side.
-
-    !! THE ORIGIN IS THE CASE. Nobody marked it but the mover, so it reaches
-    `stands` alone and is carried forward only because its partner is. The
-    dispositions pass ran before `pair_moves` and read that un-paired state,
-    so every ruling the chief made was refused with *"cannot close a place
-    that is agreed"* -- at a place the same run had just reported contested.
-    `desk.evaluate.passes.decide` is the order now.
+    restored 2026-09-18. Until the chief's own placement ruling exists, the
+    chief rules a move's two ends one by one (`decision-log.md Process: #195`
+    item 4), and a move ruled at both ends is closed; what each end closes on
+    is its own ruling's, and the two need not name one side.
     """
 
     TEXTS = {"m.py@b1": "# one\n# two\n# three\n", "m.py@b2": "# four\n# five\n# six\n"}
     #: block-context moves b1's middle line to b2; function-context corrects
-    #: b2, which contests the destination and pulls the origin with it.
+    #: b2, contesting the destination's words, and is owed the placement.
     PLANT = {
         "block-context": {
             "m.py@b1": a_move(
@@ -242,20 +154,6 @@ class TestTheChiefRulesEachEndOfAMove:
         deal(tmp_path, monkeypatch, capsys, self.PLANT, self.TEXTS)
         return disposition(tmp_path, monkeypatch, capsys, rulings, proof="proof0.json")
 
-    def test_both_ends_are_carried_forward_together(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        """The case has to be able to fail: the chief is owed a ruling at two
-        places, not one, and both are contested before anything rules them."""
-        code = deal(tmp_path, monkeypatch, capsys, self.PLANT, self.TEXTS)
-        assert code == collate_command.ESCALATIONS
-        proof, why = load_proof(tmp_path / "proof0.json")
-        assert proof is not None, why
-        assert {entry["address"]: entry["state"] for entry in proof.places} == {
-            "m.py@b1": "contested",
-            "m.py@b2": "contested",
-        }
-
     def test_a_taken_in_at_each_end_closes_the_move(
         self, tmp_path, monkeypatch, capsys
     ):
@@ -272,11 +170,15 @@ class TestTheChiefRulesEachEndOfAMove:
         closed = _closed(tmp_path)
         assert place_on(closed, "m.py@b1")["text"] == self.REMAINDER
         assert place_on(closed, "m.py@b2")["text"] == self.MOVED_TO
-        # One entry: `chief_mark` gives the same taken-in mark from either
-        # place, so the move reaches the chief's copy once.
+        # Each end is written from its own decided text: the chief ruled the
+        # move end by end, so its copy holds one mark per end.
         assert [
-            (m.address, str(m.instruction)) for m in entries_of(the_chief(tmp_path))
-        ] == [("m.py@b1", "move")]
+            (m.address, str(m.instruction), m.change)
+            for m in entries_of(the_chief(tmp_path))
+        ] == [
+            ("m.py@b1", "correct", self.REMAINDER),
+            ("m.py@b2", "correct", self.MOVED_TO),
+        ]
 
     def test_a_taken_in_at_one_end_and_a_recast_at_the_other(
         self, tmp_path, monkeypatch, capsys
@@ -494,16 +396,14 @@ class TestRefusals:
     def test_a_ruling_at_a_place_nothing_carries_forward_is_BROKEN(
         self, tmp_path, monkeypatch, capsys
     ):
-        """The unsettlable place rides to the human (`Process: #90`), and a
-        settled one is closed; neither is the chief's to rule."""
+        """A place the roles settled is closed, so it is not the chief's to
+        rule."""
         texts = {"m.py@b1": BASE, "m.py@b2": "# four\n# five\n# six\n"}
-        asked = {
-            "block-context": {
-                "m.py@b2": a_query("m.py@b2", Shape.HUMAN_REVIEW_NECESSARY)
-            },
+        settled = {
+            "block-context": {"m.py@b2": a_clean("m.py@b2")},
             "function-context": {"m.py@b2": a_clean("m.py@b2")},
         }
-        held_open(tmp_path, monkeypatch, capsys, asked, texts)
+        held_open(tmp_path, monkeypatch, capsys, settled, texts)
         code, out = disposition(
             tmp_path,
             monkeypatch,
@@ -583,3 +483,9 @@ class TestTheGateSeesIt:
         )
         assert code == collate_command.OK, out
         assert [m.change for m in entries_of(the_chief(tmp_path))] == [TWO]
+
+
+def test_the_help_names_the_answer_the_parse_accepts():
+    import comment_review.commands.disposition as disposition
+
+    assert "taken-in" not in (disposition.__doc__ or "")

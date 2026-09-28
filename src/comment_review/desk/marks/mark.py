@@ -609,7 +609,8 @@ def allowed() -> dict:
         `instruction` -> the seven; `claim` -> the keys each instruction's claim must
         carry; `values` -> the fields whose value is itself a closed set;
         `scope_shape` -> the one shape that is a boundary report rather than
-        work; `anchor_form` -> the form an `add`'s anchor takes;
+        work; `anchor_form` -> the form an `add`'s anchor takes; `raw_text` ->
+        which instructions write it, and what it means where they do;
         `edit_copy_header` -> the keys an `edit_copy` carries beside its sheets.
 
     !! IT WAS `sheet_header`, AND BOTH THE NAME AND ITS TWO DESCRIPTIONS WERE
@@ -646,6 +647,17 @@ def allowed() -> dict:
         # are: a template that constrains a field without saying what is allowed
         # has only moved the guessing.
         "anchor_form": f"the anchor NAMED in backticks, e.g. {ANCHOR_EXAMPLE}",
+        # Who writes `raw_text` rather than copying it: the rows whose
+        # `carries_raw_text` is set (`decision-log.md Process: #175`, `#176`).
+        "raw_text": {
+            "owed_by": sorted(
+                name for name, spec in INSTRUCTIONS.items() if spec.carries_raw_text
+            ),
+            "is": (
+                "the paragraph as it will read, with your text in, in the"
+                " page's own form"
+            ),
+        },
         "source_keys": {"required": ["cite", "verbatim"], "optional": ["ran"]},
         "edit_copy_header": {
             "role": "the role this edit_copy was seeded for",

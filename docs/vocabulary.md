@@ -27,7 +27,7 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 | `reanchor` | -> **`move`**. A relocation is ONE judgment; the destination is payload |
 | `HOME` | -> **owner**. It named the same site under a second stem |
 | `jurisdiction` | -> **remit**. Judicial on an editorial system |
-| `join` (the NOUN) | -> **the collator**. A database word, and it carried FIVE referents at once -- see `decision-log.md Vocabulary: #19`. ! The VERB is live: `"".join(...)` is Python's own, and `.join(` is declared in `check_vocabulary.py` |
+| `join` (the NOUN) | -> **the collator**. A database word, and it carried FIVE referents at once -- see `decision-log.md Vocabulary: #19`. ! The VERB is live: `"".join(...)` is Python's own, and `.join(` is declared in `scripts/retired_words.toml` |
 | `signature` (the CODE CHECK's) | -> **fingerprint**. `signature` means a function's, only |
 | `residue` (the string) | -> **stripped**. The prose check keeps the word |
 | `owner` (the census field) | -> **anchor**. It is a position, not a judgement |
@@ -304,11 +304,10 @@ added 2026-08-31 (`1d9314d`) and deleted the same day, after Roy: *"So you inven
 'row' for something that is a Paragraph."* A `Binder` holds `Page`s or `RedactedPage`s, and
 both hold `Paragraph`s.
 
-| term | what it is |
-| --- | --- |
-| **alteration** | One change at one address: the new text for that place, or `null` to delete what is there. A change to type **already set**, which is what the word means in the trade -- so it is what the compositor acts on, never a proposal. |
-| **schedule** | Every alteration for ONE page, carrying that page's path and the sha it was read at. A page holds the prose; a schedule holds what it becomes. |
-| **docket** | The artifact the desk hands the write chain: every schedule, one per page. In print production a docket is the instruction paperwork that travels with a job, which is what this is. |
+**`alteration`, `schedule` and `docket` are defined in
+`src/comment_review/references/vocabulary.toml`**, where the task agent is handed them. In the
+trade an alteration is a change to type already set, and a docket is the instruction paperwork
+that travels with a job.
 
 !! **`alteration` REPLACES `notations`, WHICH WAS A STAND-IN AND SAID SO.** Roy, 2026-08-25, when
 it was named: *"It is a prototype or stand in for what might need to be built ... We need the

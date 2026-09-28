@@ -11,8 +11,8 @@ chief's own ruling, and the chief's `edit_copy` is derived from every place
 the fold decided.
 
     dispositions.json  [{"address", "answer", "side", "reason", "prose"}]
-                   answer: taken-in or recast. side: a role, or the original,
-                   for a taken-in. prose: the chief's own paragraph, for a
+                   answer: taken_in or recast. side: a role, or the original,
+                   for a taken_in. prose: the chief's own paragraph, for a
                    recast.
 
 !! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;

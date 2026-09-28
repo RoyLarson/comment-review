@@ -8,6 +8,7 @@ from collections.abc import Callable
 
 from comment_review.desk.containers import EditCopy, Sheet
 from comment_review.desk.evaluate.place import Filed, Place
+from comment_review.desk.evaluate.state import SETTLED
 from comment_review.desk.marks.mark import Mark
 from comment_review.desk.marks.table import INSTRUCTIONS, chief_mark
 from comment_review.flows.on_the_page import Held
@@ -54,8 +55,7 @@ def places_of(
     """One place per address any copy's mark touches, readers filled in.
 
     A mark is filed at every place its row says it writes at
-    (`desk.marks.table.Row.places`), with the touch it has there. Where one
-    mark writes at two places, each names the other as `partner`.
+    (`desk.marks.table.Row.places`), with the touch it has there.
     `readers` is every role whose copy holds a sheet for the address's page
     (Ruling R4: an add is carried forward for every role that read the page).
 
@@ -89,13 +89,8 @@ def places_of(
                 # none, so the mark opens no place here. That is deliberate:
                 # there is no place to open, and `Row.places` is also why
                 # `flows.verify.resolution_problems` never sees one to resolve.
-                written = INSTRUCTIONS[mark.instruction].places(mark)
-                for address, touch in written:
-                    place = at(address)
-                    place.filed.append(Filed(copy.role, mark, touch))
-                    for other, _touch in written:
-                        if other != address:
-                            place.partner = other
+                for address, touch in INSTRUCTIONS[mark.instruction].places(mark):
+                    at(address).filed.append(Filed(copy.role, mark, touch))
 
     for address, place in places.items():
         page = cue_of(address).path
@@ -108,15 +103,17 @@ def places_of(
 def chief_copy_of(
     decided: dict[str, Place], role: str, read_from: dict, sheets: list[Sheet]
 ) -> EditCopy:
-    """The copy chief's edit_copy, one mark per place the fold decided a text for.
+    """The copy chief's edit_copy, one mark per SETTLED place the fold decided.
 
-    A move reached from both of its places (its origin and its destination)
-    contributes one entry: `chief_mark` returns the same taken-in `Mark` --
-    whose own `address` is always the origin -- from either place, so a mark
-    equal to one already placed on that page is skipped. It is taken in only
-    where both ends closed on what it sets, which is why the partner is
-    handed over: a move whose destination the chief recast is not what
-    happened, and each end is then written from its own decided text.
+    A move reaches this as the `drop` and `add` the fold split it into
+    (`decision-log.md Process: #195`), each placed on its own page.
+
+    !! A COMPOSED OR CONTESTED PLACE CARRIES NO MARK HERE. Its working text is
+    the proof's, not the chief's copy's: the write end reads the closed
+    proof's places (`decision-log.md Process: #184`), so filtering this copy
+    to `SETTLED` places changes no docket, and it is what the field this
+    function fills is answerable for -- a place still owed a say from some
+    role is not the chief's ruling to publish as one.
 
     Args:
         decided: address -> the `Place` the fold settled it at.
@@ -127,17 +124,17 @@ def chief_copy_of(
             output sheet keeps the input sheet's real `path` and `sha`.
 
     Returns:
-        The chief's `EditCopy`, one sheet per page that holds a mark.
+        The chief's `EditCopy`, one sheet per page that holds a mark, for
+        every place whose `state` is in `SETTLED` and whose `text` is not
+        None.
     """
     by_path: dict[str, list[Mark]] = {}
     for address in sorted(decided):
         place = decided[address]
-        if place.text is None:
+        if place.state not in SETTLED or place.text is None:
             continue
-        mark = chief_mark(place, decided.get(place.partner or ""))
-        placed = by_path.setdefault(cue_of(mark.address).path, [])
-        if mark not in placed:
-            placed.append(mark)
+        mark = chief_mark(place)
+        by_path.setdefault(cue_of(mark.address).path, []).append(mark)
 
     out = []
     for sheet in sheets:

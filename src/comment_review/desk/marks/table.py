@@ -71,6 +71,7 @@ Sets = Callable[[Any, Touch, str], str | None]
 Reads = Callable[[Any, Touch, str], list[str]]
 Notes = Callable[[Any, Touch, str], list[str]]
 Pairs = Callable[[Any], Stance]
+Splits = Callable[[Any, str, str], "tuple[Any, Any] | None"]
 
 
 def _nothing(mark, touch, base):
@@ -117,6 +118,46 @@ def _move_reads(mark, touch, base):
     if dropped is not None:
         return [f"the destination text does not keep {dropped!r}"]
     return []
+
+
+def _move_splits(mark, origin_base, destination_anchor):
+    """An agreed move as the mover's `drop` at the origin and `add` at the destination.
+
+    `decision-log.md Process: #195` item 3. Both halves come from the one
+    snippet, so the text the origin loses is the text the destination gains
+    by construction; each keeps the move's reason and sources. None where the
+    snippet is not in the origin's paragraph exactly once -- the move's own
+    read refuses that, and a split would hide it.
+
+    An add's claim names its anchor in backticks and the parse refuses an
+    empty name, so a landing with no code line names its address.
+    """
+    remainder = _without_once(origin_base, mark.change)
+    if remainder is None:
+        return None
+    destination = str(mark.claim.get("to", ""))
+    named = destination_anchor.strip() or destination
+    drop = Mark(
+        address=mark.address,
+        anchor=mark.anchor,
+        raw_text=origin_base,
+        instruction=Instruction.DROP,
+        claim={"drop": mark.change},
+        reason=mark.reason,
+        sources=mark.sources,
+        change=remainder,
+    )
+    add = Mark(
+        address=destination,
+        anchor=destination_anchor,
+        raw_text=mark.raw_text,
+        instruction=Instruction.ADD,
+        claim={"missing": mark.change.strip().splitlines()[0], "anchor": f"`{named}`"},
+        reason=mark.reason,
+        sources=mark.sources,
+        change=mark.change,
+    )
+    return drop, add
 
 
 def _correct_notes(mark, touch, base):
@@ -180,6 +221,9 @@ class Row:
     #: changes no place's state -- `decision-log.md Process: #177`.
     notes: Notes = _no_notes
     pairs: Pairs = _proposes
+    #: How an agreed mark of this row becomes one-place marks
+    #: (`decision-log.md Process: #195`). None for every row but `move`.
+    splits: Splits | None = None
     answers: tuple[str, ...] = ESCALATION_ANSWERS
     owes_change: bool = True
     owes_sources: bool = True
@@ -289,6 +333,7 @@ INSTRUCTIONS: dict[Instruction, Row] = {
         touches=(Touch.ORIGIN, Touch.DESTINATION),
         sets=_move_sets,
         reads=_move_reads,
+        splits=_move_splits,
         carries_raw_text=True,
     ),
 }
@@ -320,49 +365,7 @@ def _in_role_order(place: "Place") -> list:
     return sorted(place.filed, key=lambda one: one.role)
 
 
-def _sets_both_ends(filed, place: "Place", partner: "Place | None") -> bool:
-    """Whether this mark sets the decided text at BOTH the places it touches.
-
-    !! A MARK TAKEN IN AT ONE PLACE IS PLACED AT EVERY PLACE IT TOUCHES, so
-    taking in a `move` at its origin writes its destination too. That is right
-    only while the destination closed on what the move sets there. The chief
-    rules the two ends with two dispositions and may recast one of them, and
-    then the move is not what happened: the origin must be written as its own
-    remainder instead, or the chief's copy carries a move to a place that is
-    about to hold different prose. MEASURED 2026-09-18, before this: a
-    `taken_in` at the origin beside a `recast` at the destination put a `move`
-    and a `correct` on the chief's copy, both landing at the destination, and
-    `flows.transcribe.docket_of` refused the copy -- *"its marks here edit the
-    same sentence and do not compose"* -- so the chief's own ruling reached no
-    docket.
-
-    Args:
-        filed: one `Filed` entry at `place`.
-        place: the place being written.
-        partner: the other end, where this place is one end of a move.
-
-    Returns:
-        True for a mark that writes at this place alone. For a mark that also
-        writes elsewhere, whether the partner is decided and its text is what
-        this mark sets there.
-    """
-    row = INSTRUCTIONS[filed.mark.instruction]
-    if all(where == place.address for where, _touch in row.places(filed.mark)):
-        return True
-    if partner is None or partner.text is None:
-        return False
-    # Compared by value, not by identity: a place read back off a proof
-    # deserializes its own marks, so the one mark filed at both ends of a move
-    # is two equal objects once the stage has crossed the wire.
-    return any(
-        INSTRUCTIONS[one.mark.instruction].sets(one.mark, one.touch, partner.base)
-        == partner.text
-        for one in partner.filed
-        if one.mark == filed.mark
-    )
-
-
-def chief_mark(place: "Place", partner: "Place | None" = None) -> Mark:
+def chief_mark(place: "Place") -> Mark:
     """The chief's mark at one decided place -- the side taken in, or synthesized.
 
     Returns the filed mark whose row sets `place.text` at this place, where
@@ -373,14 +376,12 @@ def chief_mark(place: "Place", partner: "Place | None" = None) -> Mark:
 
     The marks are read in role order, so which mark is returned and which
     order its sources stand in are the same on every run -- see
-    `_in_role_order`. A mark that touches two places is taken in only where
-    both of them closed on what it sets -- see `_sets_both_ends`.
+    `_in_role_order`. A mark writing two places is never returned whole: an
+    agreed move has been split into one-place marks already (`Process: #195`),
+    and an unsplit one is written end by end from each end's decided text.
 
     Args:
         place: a decided place -- `place.text` is not None.
-        partner: the other end, where this place is one end of a move. Without
-            it a two-place mark is never taken in, so a caller that has the
-            other end hands it over.
 
     Returns:
         The taken-in `Mark`, or a synthesized one whose `reason` names the
@@ -394,9 +395,9 @@ def chief_mark(place: "Place", partner: "Place | None" = None) -> Mark:
     filed_marks = _in_role_order(place)
     for filed in filed_marks:
         row = INSTRUCTIONS[filed.mark.instruction]
-        if row.sets(filed.mark, filed.touch, place.base) != place.text:
+        if len(row.places(filed.mark)) > 1:
             continue
-        if _sets_both_ends(filed, place, partner):
+        if row.sets(filed.mark, filed.touch, place.base) == place.text:
             return filed.mark
 
     text = place.text

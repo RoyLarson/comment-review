@@ -2,7 +2,7 @@
 
 ```
 Status:   deferred
-Progress: 0 of 5 tasks closed
+Progress: 1 of 6 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-19 (Roy approving the desk names while the paragraph rename landed,
@@ -83,3 +83,6 @@ that scope closing, not work overtaken.
 - [ ] T5 | T5 -- Rename the role in `docs/` and `CLAUDE.md`'s command block.
       Verify: only the held-run paths T1 ruled on keep an old name in `docs/`
       and `CLAUDE.md`.
+- [x] T6 | Each role file opens with its desk; SKILL.md and vocabulary name the desks | eab60741 | Update
+      agent files, SKILL.md and vocabulary to name each role by its desk,
+      keeping the ids; verify each role file opens with its desk

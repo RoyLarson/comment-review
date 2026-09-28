@@ -46,6 +46,62 @@ def test_the_composition_answers():
     )
 
 
+def test_the_placement_answers():
+    """`decision-log.md Process: #195` item 6: a move's placement is a question
+    of its own, and its four answers act on the move, not on a side."""
+    p = Question.PLACEMENT
+    assert ANSWERS[(p, "agree")].effect(_answer(p, "agree")) is Effect.ACCEPTS
+    assert ANSWERS[(p, "stet")].effect(_answer(p, "stet")) is Effect.CONTESTS
+    assert ANSWERS[(p, "withdraw")].effect(_answer(p, "withdraw")) is Effect.REMOVES
+    deferring = _answer(p, "query", claim={"shape": "outside-my-role"})
+    human = _answer(p, "query", claim={"shape": "human-review-necessary"})
+    assert ANSWERS[(p, "query")].effect(deferring) is Effect.ABSTAINS
+    assert ANSWERS[(p, "query")].effect(human) is Effect.UNSETTLABLE
+    # A placement answer is about where the paragraph goes; none rewrites it.
+    assert not any(row.owes_change for (asked, _), row in ANSWERS.items() if asked is p)
+    assert {name for asked, name in ANSWERS if asked is p} == {
+        "agree",
+        "stet",
+        "withdraw",
+        "query",
+    }
+
+
+def test_a_placement_answer_is_read_against_its_question():
+    got, why = Answer.deserialize(
+        "m.py@b1",
+        {
+            "address": "m.py@b1",
+            "question": "placement",
+            "instruction": "stet",
+            "reason": "r",
+        },
+    )
+    assert why == [] and got is not None and got.name == "stet"
+    for name in ("hold", "correct", "patch", "clean"):
+        got, why = Answer.deserialize(
+            "m.py@b1",
+            {
+                "address": "m.py@b1",
+                "question": "placement",
+                "instruction": name,
+                "reason": "r",
+            },
+        )
+        assert got is None and "not an answer to a placement" in why[0], name
+    for question in ("escalation", "composition"):
+        got, why = Answer.deserialize(
+            "m.py@b1",
+            {
+                "address": "m.py@b1",
+                "question": question,
+                "instruction": "stet",
+                "reason": "r",
+            },
+        )
+        assert got is None and "not an answer to" in why[0], question
+
+
 def test_an_answer_is_read_against_its_question():
     got, why = Answer.deserialize(
         "m.py@b1",
@@ -153,14 +209,26 @@ def test_the_contracts_are_the_tables_own_sets():
     so a row added to it reaches `check --contract` with no edit here or
     there."""
     got = contracts()
-    assert set(got) == {"stage_4c_mark", "escalation", "composition"}
+    assert set(got) == {"stage_4c_mark", "escalation", "composition", "placement"}
     assert got["escalation"]["instruction"] == ["correct", "hold", "patch", "withdraw"]
     assert got["escalation"]["owes_change"] == ["correct", "patch"]
     assert got["composition"]["instruction"] == ["clean", "correct", "patch", "query"]
     assert got["composition"]["owes_change"] == ["correct", "patch"]
+    assert got["placement"]["instruction"] == ["agree", "query", "stet", "withdraw"]
+    assert got["placement"]["owes_change"] == []
+    assert got["placement"]["claim"]["query"] == ["shape", "attempted", "settles"]
     assert got["stage_4c_mark"]["instruction"] == sorted(
         ["add", "clean", "correct", "drop", "move", "patch", "query"]
     )
+
+
+def test_the_mark_contract_names_who_writes_raw_text():
+    """A role following the contract writes an add's and a move's raw_text;
+    the parse refuses either without it (`decision-log.md Process: #175`,
+    `#176`)."""
+    got = contracts()["stage_4c_mark"]["raw_text"]
+    assert got["owed_by"] == ["add", "move"]
+    assert "as it will read" in got["is"]
 
 
 def test_the_contract_names_every_claim_key_the_parse_reads():
@@ -182,7 +250,7 @@ def test_the_contract_names_every_claim_key_the_parse_reads():
     assert set(got["escalation"]["claim"]) == {"hold", "withdraw", "correct", "patch"}
     assert got["escalation"]["claim"]["correct"] == []
     assert got["escalation"]["values"] == {}
-    for question in ("escalation", "composition"):
+    for question in ("escalation", "composition", "placement"):
         assert "claim" in got[question]["fields"], question
 
 
@@ -204,3 +272,60 @@ def test_every_claim_key_the_contract_names_is_one_the_parse_demands():
             got, why = Answer.deserialize("m.py@b1", {**entry, "claim": claim})
             assert got is None, (name, key)
             assert any(f"needs `claim.{key}`" in one for one in why), (name, key, why)
+
+
+def test_a_placement_and_a_composition_at_one_origin_are_two_answers(tmp_path):
+    """Review Focus 1: both are asked of one role at one address in one turn."""
+    from comment_review.flows.answers import answers_of, slot_key
+
+    sent = {
+        "m.py@b1": {"question": "composition", "anchor": "x = 1"},
+        slot_key({"address": "m.py@b1", "to": "m.py@b5"}): {
+            "question": "placement",
+            "anchor": "x = 1",
+        },
+    }
+    returned = [
+        {"address": "m.py@b1", "instruction": "clean", "reason": "r"},
+        {"address": "m.py@b1", "to": "m.py@b5", "instruction": "agree", "reason": "r"},
+    ]
+    got, problems = answers_of("b", sent, returned, lambda a: "not sent", tmp_path, {})
+    assert problems == []
+    assert got["m.py@b1"].name == "clean"
+    assert got["m.py@b1 -> m.py@b5"].name == "agree"
+
+
+def test_a_placement_answer_built_from_the_contract_is_taken_at_its_move(tmp_path):
+    """A role copies from the slot the fields the contract says are copied
+    from it, and writes the rest. For a placement slot that has to include
+    `to`, or its answer keys at the origin and is refused."""
+    from comment_review.flows.answers import answers_of, slot_key
+
+    fields = contracts()["placement"]["fields"]
+    assert "to" in fields
+    slot = {
+        "address": "m.py@b1",
+        "to": "m.py@b5",
+        "anchor": "x = 1",
+        "question": "placement",
+        "movers": ["block-context"],
+        "snippet": "# two\n",
+        "raw_text": "# four\n# two\n",
+        "instruction": None,
+    }
+    copied = {
+        name: slot[name]
+        for name, meaning in fields.items()
+        if meaning.startswith("copied from the slot") and name in slot
+    }
+    answer = {**copied, "instruction": "agree", "reason": "it reads there"}
+    got, problems = answers_of(
+        "module-context",
+        {slot_key(slot): {"question": "placement", "anchor": "x = 1"}},
+        [answer],
+        lambda a: "not sent",
+        tmp_path,
+        {},
+    )
+    assert problems == []
+    assert got["m.py@b1 -> m.py@b5"].name == "agree"
