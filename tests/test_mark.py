@@ -258,7 +258,7 @@ def test_the_structural_read_admits_what_only_the_rules_refuse():
     del entry["reason"]
     mark, why = Mark.deserialize("here", entry)
     assert why == [] and mark is not None
-    assert validate("here", mark, entry) == ["here: correct needs a `reason`"]
+    assert validate("here", mark) == ["here: correct needs a `reason`"]
     sheet, why = Sheet.deserialize(
         "s", {"path": "m.py", "sha": "a", "marks": [entry]}, validate
     )
@@ -331,29 +331,6 @@ class TestTheRulesBite:
         """A role returns `clean` over most of the binder."""
         assert problems("here", {"instruction": "clean"}) == []
 
-    def test_clean_still_accepts_a_MISSING_claim(self):
-        """! `clean`'s row names no key, so absent is not malformed -- this
-        pins the case `test_a_MALFORMED_clean_claim_is_refused` below must not
-        break."""
-        assert problems("here", {"instruction": "clean"}) == []
-
-    def test_a_MALFORMED_clean_claim_is_refused(self):
-        """!! `clean` PROPOSES NO KEYS, WHICH IS NOT THE SAME AS NO SHAPE.
-        Before this, `_claim_problems` returned early on `clean` (its row
-        names no `claim_all`) without checking `claim`'s type at all, so a
-        `claim` holding a bare string was silently coerced to `{}` two frames
-        up in `parse` rather than refused."""
-        bad = well_formed("clean")
-        bad["claim"] = "not an object at all"
-        assert any("claim" in p for p in problems("here", bad))
-
-    def test_a_clean_carrying_a_change_is_refused(self):
-        """`no-command-for-the-middle` T60: `clean` proposes no text, so a
-        filled `change` on one is refused rather than carried."""
-        bad = well_formed("clean")
-        bad["change"] = "# a paragraph no role proposed"
-        assert any("change" in p for p in problems("here", bad))
-
     def test_an_empty_claim_key_is_not_an_answer(self):
         bad = well_formed("correct")
         bad["claim"]["false"] = "   "
@@ -363,7 +340,7 @@ class TestTheRulesBite:
         """!! THE FORM THIS GATE DEMANDED UNTIL 2026-08-29, while the brief
         mandated raw text -- `TODO/change-is-raw-text-not-lines.md`. A role
         written against the retired rule is told so, rather than accepted for
-        a release: the message names RAW TEXT and what arrived instead."""
+        a release: the message names RAW TEXT as what is owed."""
         bad = well_formed("correct")
         bad["change"] = ["# one line, in the retired array form"]
         assert any("RAW TEXT" in p for p in problems("here", bad))

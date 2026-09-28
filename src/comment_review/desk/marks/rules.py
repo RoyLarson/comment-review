@@ -73,8 +73,11 @@ ANCHOR_NAME = re.compile(r"`[^`\s][^`]*`")
 ANCHOR_EXAMPLE = "`compute_rates`"
 
 
-def validate(where: str, mark: Mark, entry: dict) -> list[str]:
+def validate(where: str, mark: Mark) -> list[str]:
     """Every rule `mark`'s instruction's row states that the mark breaks.
+
+    A rule asks only of a field the row takes; a field the row does not take is
+    never refused (`decision-log.md Process: #204`).
 
     What is NOT checked here, because it needs the page the role read: whether
     the address resolves, and whether a quoted sentence is really in the
@@ -84,13 +87,12 @@ def validate(where: str, mark: Mark, entry: dict) -> list[str]:
 
     Args:
         where: how to name this mark in a message -- an address, or a position.
-        mark: the entry as `desk.proof.mark.Mark.deserialize` read it; its
-            `instruction` is what selects the row.
-        entry: the same entry as it came back. The fields are read from it, so
-            a value of the wrong type is named rather than read as empty. An
-            absent `raw_text` is not refused. It is seeded, and the base a mark
-            is measured against is never this field; a row that writes its own
-            `raw_text` is held to what it wrote by that row's `reads`.
+        mark: the entry as `desk.proof.mark.Mark.deserialize` read it, a
+            field of the wrong type already read as absent; its `instruction`
+            is what selects the row. An absent `raw_text` is not refused. It is
+            seeded, and the base a mark is measured against is never this
+            field; a row that writes its own `raw_text` is held to what it wrote
+            by that row's `reads`.
 
     Returns:
         One message per broken rule, in the order a reader would meet them;
@@ -105,33 +107,29 @@ def validate(where: str, mark: Mark, entry: dict) -> list[str]:
     # !! `reason` AND `address` ARE OWED BY DEFAULT; ONLY `clean` DEVIATES, and
     # `clean` is the one row `substantive` is False for -- so that flag is what
     # both this function and `_claim_problems` below key off of.
-    if spec.substantive and not filled(entry.get("address")):
+    if spec.substantive and not filled(mark.address):
         # !! COPIED FROM THE ROW, NEVER BUILT. Measured 2026-08-27: with a
         # one-file binder every fanned-out agent wrote a bare cue, and 62 of 78
         # marks came back unqualified -- `a0` then means four different places.
         out.append(f"{where}: {instruction} needs the `address`, copied from the row")
-    elif spec.substantive and not _names_a_place(entry.get("address")):
+    elif spec.substantive and not _names_a_place(mark.address):
         # `mark-defects` T1: `filled` passed a bare cue, which names a
         # place on no page.
         out.append(
             f"{where}: {instruction} needs its full `path@cue` address, copied"
-            f" from the row -- {entry.get('address')!r} names a place on no page"
+            f" from the row -- {mark.address!r} names a place on no page"
         )
-    if spec.substantive and not filled(entry.get("reason")):
+    if spec.substantive and not filled(mark.reason):
         out.append(f"{where}: {instruction} needs a `reason`")
-    out += _claim_problems(where, instruction, entry.get("claim"))
+    out += _claim_problems(where, instruction, mark.claim)
     if spec.owes_destination:
         out += _destination_problems(
-            where, entry.get("address"), entry.get("claim"), spec.names_destination
+            where, mark.address, mark.claim, spec.names_destination
         )
     if spec.owes_sources:
-        out += _source_problems(where, entry.get("sources"))
+        out += _source_problems(where, mark.sources)
     if spec.owes_change:
-        out += _change_problems(
-            where, instruction, spec, entry.get("change"), entry.get("anchor")
-        )
-    if not spec.substantive and filled(entry.get("change")):
-        out.append(f"{where}: {instruction} proposes no text, so carries no `change`")
+        out += _change_problems(where, instruction, spec, mark.change, mark.anchor)
     return out
 
 
@@ -345,43 +343,25 @@ def allowed() -> dict:
     }
 
 
-def _claim_problems(where: str, instruction: Instruction, claim: object) -> list[str]:
+def _claim_problems(where: str, instruction: Instruction, claim: dict) -> list[str]:
     """Whether `claim` carries the keys this instruction's row demands.
 
     ! READS `spec.claim_all` DIRECTLY. With every key an instruction owes
-    stated once in that one list, there is nothing left to derive it from.
+    stated once in that one list, there is nothing left to derive it from. A
+    row that names no key -- `clean` -- asks nothing of `claim`.
 
     Args:
         where: how to name this mark in a message -- an address, or a position.
         instruction: already resolved to a member by `Mark.deserialize`;
             `validate` is its only caller.
-        claim: the entry's `claim`, unvalidated.
-
-    !! `clean` (`spec.claim_all == ()`) STILL GETS ITS SHAPE CHECKED, and did
-    not until 2026-08-30. `clean` proposes no text and its row names no key, so
-    an ABSENT or empty `claim` is correctly nothing to report on -- but a
-    `claim` present and holding a string, a list or a number is not an empty
-    answer, it is a MALFORMED one, and the early return let it through
-    unexamined to be silently coerced to `{}` by `Mark.deserialize`. This is
-    deliberately not looking at KEYS for `clean` -- there are none to look
-    for -- and not the same as not looking at SHAPE at all.
+        claim: the mark's `claim`; `{}` where the entry carried none, or one
+            that is not an object.
     """
     from comment_review.desk.marks.table import INSTRUCTIONS
 
     spec = INSTRUCTIONS[instruction]
     if not spec.claim_all:
-        if claim is not None and not isinstance(claim, dict):
-            return [
-                f"{where}: {instruction} needs `claim` to be an object or "
-                f"absent, not a {type(claim).__name__}"
-            ]
         return []
-    if not isinstance(claim, dict):
-        return [
-            f"{where}: {instruction} needs a `claim` object carrying "
-            f"{', '.join(spec.claim_all)}"
-        ]
-
     out = []
     missing = [k for k in spec.claim_all if not filled(claim.get(k))]
     if missing:
@@ -404,7 +384,7 @@ def _claim_problems(where: str, instruction: Instruction, claim: object) -> list
     return out
 
 
-def _source_problems(where: str, sources: object) -> list[str]:
+def _source_problems(where: str, sources: tuple[object, ...]) -> list[str]:
     """Each source is a `{cite, verbatim}` pair, and may carry `ran`.
 
     !! PAIRS, NOT STRINGS. Measured 2026-08-27: roles returned `path:line | text`,
@@ -417,7 +397,7 @@ def _source_problems(where: str, sources: object) -> list[str]:
     WHAT was seen and never HOW, so an instruction from a bad run is indistinguishable
     from a good one.
     """
-    if not isinstance(sources, list) or not sources:
+    if not sources:
         return [f"{where}: needs at least one source"]
     out = []
     for i, source in enumerate(sources):
@@ -432,7 +412,7 @@ def _source_problems(where: str, sources: object) -> list[str]:
 
 
 def _change_problems(
-    where: str, instruction: Instruction, spec: "Row", change: object, anchor: object
+    where: str, instruction: Instruction, spec: "Row", change: str | None, anchor: str
 ) -> list[str]:
     """Whether `change` is the updated paragraph, as RAW TEXT.
 
@@ -443,11 +423,9 @@ def _change_problems(
     a diff of one against the other, and a line array has to be joined before
     any of them can run.
 
-    ! THE ARRAY FORM IS REFUSED BY NAME rather than accepted for a release.
-    It was what this gate demanded until 2026-08-29 while the brief mandated
-    raw text -- the disagreement `TODO/change-is-raw-text-not-lines.md` was
-    filed on -- so a list arriving here is a role written against the retired
-    rule, and saying so is the only message that helps.
+    ! A `change` that is absent or not a string -- the retired line array
+    among them -- is None on the mark, and is refused with the one message
+    that names what is owed: the paragraph as RAW TEXT.
 
     ! AN EMPTY STRING IS THE EDIT on `drop`, the one row `may_empty` is True
     for, where the claim names the whole paragraph.
@@ -462,10 +440,10 @@ def _change_problems(
     is refused: the anchor is the line of code the place sits on, and a change
     is the paragraph alone (`collator-defects` T35).
     """
-    if not isinstance(change, str):
+    if change is None:
         return [
             f"{where}: {instruction} needs `change` as the updated paragraph in "
-            f"RAW TEXT, not a {type(change).__name__}"
+            "RAW TEXT"
         ]
     if not filled(change) and not spec.may_empty:
         return [f"{where}: {instruction} needs `change` to hold the new text"]
@@ -493,9 +471,7 @@ def _names_a_place(value: object) -> bool:
     return bool(got.path.strip() and got.cue.strip())
 
 
-def _destination_problems(
-    where: str, address: object, claim: object, key: str
-) -> list[str]:
+def _destination_problems(where: str, address: str, claim: dict, key: str) -> list[str]:
     """WHERE a `move` sends the paragraph, checked against where it already IS.
 
     !! A DESTINATION EQUAL TO THE ORIGIN IS REFUSED, and it is the half of
@@ -511,18 +487,16 @@ def _destination_problems(
 
     Args:
         where: how to name this mark in a message.
-        address: the mark's own `address`, as the entry carried it.
-        claim: the mark's `claim`, as the entry carried it.
+        address: the mark's own `address`.
+        claim: the mark's `claim`.
         key: the claim key the row names its destination under
             (`desk.marks.table.Row.names_destination`).
 
     Returns:
-        One message, or an empty list. A claim that is not an object, or a
-        destination that is not a filled string, says nothing here -- `_claim_problems`
-        is what refuses those, and this step has nothing to compare.
+        One message, or an empty list. A destination that is not a string says
+        nothing here -- `_claim_problems` is what refuses a missing one, and
+        this step has nothing to compare.
     """
-    if not isinstance(claim, dict) or not isinstance(address, str):
-        return []
     destination = claim.get(key)
     if not isinstance(destination, str):
         return []

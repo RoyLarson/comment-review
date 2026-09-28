@@ -94,7 +94,7 @@ from comment_review.reading.addresser import cue_of, unflatten
 #: The fields a role decides, in the order a mark carries them. `address` is
 #: how the entry is placed; `anchor` is never read off the entry at all --
 #: a slot that must be created takes its anchor from the page. `raw_text` is
-#: read only for a row whose `carries_raw_text` is True, and refused on every
+#: read only for a row whose `carries_raw_text` is True, and ignored on every
 #: other row -- see `_composed_text`.
 ROLE_FIELDS = ("claim", "reason", "sources", "change")
 
@@ -392,21 +392,17 @@ def _composed_text(
     destination always owes one, since the paragraph it describes is at the
     other end and nothing here stands in for it. A row that does not owes one
     only where the place already holds prose -- at an empty place the snippet
-    and the paragraph as it will read are the same text.
+    and the paragraph as it will read are the same text. On a row that does not
+    carry its own `raw_text`, a `raw_text` in the entry is ignored and the seed's
+    text is placed (`decision-log.md Process: #204`).
 
     Returns:
         `(the text, [])`, or `(None, [one message])`. The text is the seeded
         paragraph for every row that composes none.
     """
-    given = entry.get("raw_text")
     if not row.carries_raw_text:
-        if filled(given) and given != seeded["raw_text"]:
-            return None, [
-                f"{seeded['address']}: {instruction} takes no `raw_text` -- the"
-                " paragraph is seeded from the page, and only a row that writes"
-                " the paragraph as it will read carries one"
-            ]
         return seeded["raw_text"], []
+    given = entry.get("raw_text")
     if filled(given):
         return str(given), []
     if row.owes_destination:

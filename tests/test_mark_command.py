@@ -290,11 +290,6 @@ class TestAnAddAndAMoveCarryTheParagraphAsItWillRead:
         assert slot["change"] == "# two\n"
         assert slot["raw_text"] == "# two\n"
 
-    def test_a_correct_given_a_raw_text_is_refused(self, run):
-        code, out = run(*CORRECT, "--raw-text", "# one\n# 2\n# three\n")
-        assert code == command.BROKEN
-        assert "`raw_text`" in out
-
 
 class TestARefusalWritesNothing:
     def test_a_claim_flag_the_row_does_not_carry(self, run):

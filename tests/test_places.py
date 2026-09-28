@@ -207,7 +207,7 @@ def test_every_reader_of_where_a_mark_writes_asks_the_row(monkeypatch, tmp_path)
     # destination the row names.
     move = places["m.py@b1"].filed[0].mark
     splits = INSTRUCTIONS[Instruction.MOVE].splits
-    assert splits is not None
+    assert splits is not None and move.change is not None
     split = splits(move, BASE + move.change, "y = 2")
     assert split is not None
     assert [half.address for half in split] == ["m.py@b1", "m.py@b7"]

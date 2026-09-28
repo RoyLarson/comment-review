@@ -188,9 +188,11 @@ class Mark:
         change: the RESULT -- the updated paragraph, as RAW TEXT. Roy,
             2026-08-28: *"`change` needs to be the updated paragraph as raw
             text not lines or sentences. This will make it easier to diff per
-            the rest of the stages."* Empty where the row owes no change, and
-            on a `drop` whose claim names the whole paragraph, where an empty
-            change IS the edit.
+            the rest of the stages."* Empty on a `drop` whose claim names the
+            whole paragraph, where an empty change IS the edit. None where the
+            entry carried no `change`, or one that is not a string -- kept
+            apart from "" so a row that owes a change can refuse a missing one
+            rather than read it as a deletion.
     """
 
     address: str
@@ -200,7 +202,7 @@ class Mark:
     claim: dict
     reason: str
     sources: tuple[object, ...]
-    change: str
+    change: str | None
 
     #: The fields SEEDED onto every slot before a role sees it -- written by
     #: `seed`, copied back unchanged, and read here by `deserialize`.
@@ -257,10 +259,14 @@ class Mark:
         Returns:
             A dict `deserialize` accepts and returns an equal `Mark` from.
             `instruction` is written as its string value, since that is what
-            the wire carries and what `deserialize` reads.
+            the wire carries and what `deserialize` reads. A `change` of None
+            is left off, which is how a role writes a mark with no change and
+            what `deserialize` reads back as None.
         """
         entry = {f.name: getattr(self, f.name) for f in fields(self)}
         entry["instruction"] = str(self.instruction)
+        if self.change is None:
+            del entry["change"]
         entry["claim"] = dict(self.claim)
         entry["sources"] = list(self.sources)
         return entry
@@ -271,8 +277,10 @@ class Mark:
 
         The entry must be an object naming one of the seven instructions. Every
         other field is read as the type the record holds, and a field of another
-        type is read as empty. Nothing is asked of the row the instruction
-        names: whether the mark keeps that row's rules is
+        type is read as absent -- `""`, `{}` or `()`, and None for `change`. A
+        field the instruction's row does not take is read the same way and
+        never refused (`decision-log.md Process: #204`). Nothing is asked of
+        the row: whether the mark keeps that row's rules is
         `desk.marks.rules.validate`'s question, and `read_mark` asks the two in
         order.
 
@@ -304,33 +312,34 @@ class Mark:
             ]
 
         instruction = Instruction(named)
-        claim = entry.get("claim")
-        sources = entry.get("sources")
-        change = entry.get("change")
+        claim = data.get("claim")
+        sources = data.get("sources")
+        change = data.get("change")
         return (
             Mark(
-                address=str(entry.get("address") or ""),
-                anchor=str(entry.get("anchor") or ""),
-                raw_text=str(entry.get("raw_text") or ""),
+                address=_text(data.get("address")),
+                anchor=_text(data.get("anchor")),
+                raw_text=_text(data.get("raw_text")),
                 instruction=instruction,
                 # ! COPIED, NOT ALIASED -- a `Mark` is frozen, and sharing the
                 # caller's own containers would leave it mutable through them.
                 claim=dict(claim) if isinstance(claim, dict) else {},
-                reason=str(entry.get("reason") or ""),
+                reason=_text(data.get("reason")),
                 sources=tuple(sources) if isinstance(sources, list) else (),
-                change=change if isinstance(change, str) else "",
+                change=change if isinstance(change, str) else None,
             ),
             [],
         )
 
 
-#: A check of one mark against the rules its instruction's row states: the
-#: resolved `Mark`, and the entry as it came back, which the rules read where the
-#: record cannot tell two entries apart -- a `claim` that is a string from one
-#: that is absent, a `change` of the wrong type from an empty one, an `address`
-#: or `reason` that is not a string from a filled one. Returns one message per
-#: broken rule, in the order a reader meets them.
-Validator = Callable[[str, "Mark", dict], list[str]]
+def _text(value: object) -> str:
+    """A string field as the record holds it: the string, or "" for anything else."""
+    return value if isinstance(value, str) else ""
+
+
+#: A check of one mark against the rules its instruction's row states. Returns
+#: one message per broken rule, in the order a reader meets them.
+Validator = Callable[[str, "Mark"], list[str]]
 
 
 def read_mark(
@@ -351,11 +360,9 @@ def read_mark(
         `(Mark, [])` or `(None, [one message per broken rule])`.
     """
     mark, why = Mark.deserialize(where, entry)
-    # `Mark.deserialize` refuses anything that is not an object, so the second
-    # test only narrows `entry` for the call below.
-    if mark is None or not isinstance(entry, dict):
+    if mark is None:
         return None, why
-    problems = validate(where, mark, entry)
+    problems = validate(where, mark)
     if problems:
         return None, problems
     return mark, []
