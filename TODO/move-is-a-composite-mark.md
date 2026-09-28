@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 40 of 49 tasks closed
+Progress: 41 of 49 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -322,7 +322,9 @@ and now there is one object that cannot be half-held.
       sites; grep finds UNDECIDED tested nowhere else
 - [ ] T47 | Report a refused move once, from the move, each reason at its own
       end; a test: one defect gives one Refused and RolledBack(1)
-- [ ] T48 | Decide every move's placement before settling any end; a test
-      folding the same moves in reversed order gets the same outcome
+- [-] T48 | Order-independent at f2fd9405: 36 runs, only filing order differs | f2fd9405 | Decide
+      every move's placement before settling any end; a test folding the same
+      moves in reversed order gets the same outcome
+        > 2026-09-28 Every proposing stance is PROPOSES; a split moves no placement
 - [ ] T49 | Put every mover of a move in its placement slot, not min(movers); a
       test: two movers with different snippets both appear
