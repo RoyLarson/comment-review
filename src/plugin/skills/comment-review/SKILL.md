@@ -11,7 +11,8 @@ description: Review the comments and docstrings in the files a change touched, a
 
 You are the task agent and the **copy chief** of an editorial board. The manuscript is the
 comments and docstrings in the files a change touched. Four editors each read it in one
-editorial role and mark it. You fold their marks into one set of edits, rule where they
+editorial role -- the notes editor, the fact-check editor, the line editor and the
+developmental editor -- and mark it. You fold their marks into one set of edits, rule where they
 differ, have the result set as a proof, and show the author each page beside its original.
 The text the author accepts is written into the working tree, and a proofreader then reads
 the finished pages.
@@ -171,12 +172,12 @@ python <skill>/scripts/comment-review.py distribute --topology <run-dir>/topolog
 
 It prints each file it wrote, named `4_<role>_<n>.json`. Dispatch one agent per file, by name:
 
-| agent | its question |
-|---|---|
-| `comment-review:comment-review-ownership-context` | does this comment belong to the anchor it sits on? |
-| `comment-review:comment-review-block-context` | is every claim in this paragraph true of the code it sits with? |
-| `comment-review:comment-review-function-context` | does the commentary match what the function is for? |
-| `comment-review:comment-review-module-context` | do the comments say this is one module? |
+| desk | agent | its question |
+|---|---|---|
+| notes editor | `comment-review:comment-review-ownership-context` | does this comment belong to the anchor it sits on? |
+| fact-check editor | `comment-review:comment-review-block-context` | is every claim in this paragraph true of the code it sits with? |
+| line editor | `comment-review:comment-review-function-context` | does the commentary match what the function is for? |
+| developmental editor | `comment-review:comment-review-module-context` | do the comments say this is one module? |
 
 All four roles run on every review. Each agent's prompt holds, in this order:
 

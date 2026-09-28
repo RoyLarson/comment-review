@@ -105,9 +105,8 @@ place your binder leaves out, which a mark may still cite. `--series f` prints b
 file's own places; choose between them by address. You ask with a line number and answer with
 an address.
 
-Your copy carries no `f` slot. When you find a comment paragraph filed at an `f` place, ask the
-addresser for its address and mark it there, or `move` it to a `b` place; the human approves
-each change to an `f` place individually.
+Your copy carries no `f` slot. The notes editor, `ownership-context`, checks every file's `f`
+places, and the human approves each change to one individually.
 
 ## The Edit Copy
 
