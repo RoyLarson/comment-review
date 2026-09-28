@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 24 of 55 tasks closed
+Progress: 25 of 55 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -349,8 +349,9 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       a batch verify of the schedule against its pages before any page is set,
       reporting every unmatched address at once
         > 2026-09-08 reset refuses per page while setting; one bad address per run
-- [ ] T48 | Move Sheet, EditCopy and MasterProof from desk/containers.py into
-      desk/proof/ and delete containers.py; suite green before and after
+- [x] T48 | Sheet, EditCopy, MasterProof in desk/proof; containers.py deleted; 1992 pass | 64d8931c | Move
+      Sheet, EditCopy and MasterProof from desk/containers.py into desk/proof/
+      and delete containers.py; suite green before and after
         > 2026-09-28 Review 2026-09-27 R5; Process #202
 - [ ] T49 | Move Place, Filed and Move records into desk/proof/, their passes
       staying in desk/evaluate; nothing in desk/proof imports desk/evaluate
