@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 42 of 49 tasks closed
+Progress: 43 of 49 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -327,5 +327,6 @@ and now there is one object that cannot be half-held.
       every move's placement before settling any end; a test folding the same
       moves in reversed order gets the same outcome
         > 2026-09-28 Every proposing stance is PROPOSES; a split moves no placement
-- [ ] T49 | Put every mover of a move in its placement slot, not min(movers); a
-      test: two movers with different snippets both appear
+- [x] T49 | Placement slot lists every mover with snippet and arrival; test failed first | ebc76452 | Put
+      every mover of a move in its placement slot, not min(movers); a test: two
+      movers with different snippets both appear
