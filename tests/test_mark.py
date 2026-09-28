@@ -21,7 +21,6 @@ from pathlib import Path
 import pytest
 from test_mark_brief import BRIEF
 
-from comment_review.desk.containers import Sheet
 from comment_review.desk.marks.mark import (
     ANCHOR_EXAMPLE,
     QUERY_SHAPES,
@@ -33,6 +32,7 @@ from comment_review.desk.marks.mark import (
     without_location,
 )
 from comment_review.desk.marks.table import INSTRUCTIONS
+from comment_review.desk.proof.sheet import Sheet
 
 
 def problems(where: str, entry: object) -> list[str]:

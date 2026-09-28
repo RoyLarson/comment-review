@@ -42,7 +42,7 @@ import json
 import pytest
 from helpers import a_correct, a_drop, a_master_proof, a_move, returned_copies
 
-from comment_review.desk.containers import MasterProof
+from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.work import events
 from comment_review.desk.work.fold import Fold
 from comment_review.docket.docket import Alteration, Docket, Schedule

@@ -39,8 +39,9 @@ own half.
 
 from comment_review.binder.addresses import handed
 from comment_review.binder.binder import Binder
-from comment_review.desk.containers import EditCopy, Sheet
 from comment_review.desk.marks.mark import Mark
+from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.stages import Stage, deals
 
 

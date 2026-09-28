@@ -39,8 +39,9 @@ from helpers import (
 )
 
 from comment_review.commands import collate as collate_command
-from comment_review.desk.containers import EditCopy, MasterProof
 from comment_review.desk.marks.mark import Shape
+from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.flows import proof_setter
 from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_proof

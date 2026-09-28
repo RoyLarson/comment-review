@@ -11,7 +11,7 @@ import json
 from helpers import REPO, a_binder_over, a_correct, a_master_proof, copies_over
 
 from comment_review.binder.binder import Binder
-from comment_review.desk.containers import EditCopy
+from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.flows.proof_io import (
     load_batch,
     load_binder,

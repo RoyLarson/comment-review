@@ -63,12 +63,13 @@ from pathlib import Path
 from typing import NamedTuple
 
 from comment_review.binder.page import Page
-from comment_review.desk.containers import EditCopy, MasterProof
 from comment_review.desk.dispositions.disposition import CHIEF
 from comment_review.desk.evaluate.move import Move, is_open
 from comment_review.desk.evaluate.place import Place
 from comment_review.desk.evaluate.state import SETTLED, State
 from comment_review.desk.marks.table import INSTRUCTIONS
+from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.work import events
 from comment_review.desk.work.fold import Fold
 from comment_review.docket.docket import Alteration, Docket, Schedule

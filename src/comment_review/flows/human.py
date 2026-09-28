@@ -21,8 +21,8 @@ from typing import NamedTuple
 
 from comment_review.desk.answers.answer import Answer
 from comment_review.desk.answers.table import ANSWERS, Effect
-from comment_review.desk.containers import EditCopy
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
+from comment_review.desk.proof.edit_copy import EditCopy
 
 
 class HumanQuery(NamedTuple):

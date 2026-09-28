@@ -11,11 +11,9 @@ from dataclasses import fields
 import pytest
 from helpers import a_clean, a_master_proof, a_small_real_tree, binder_of
 
-from comment_review.desk.containers import (
-    EditCopy,
-    MasterProof,
-    Sheet,
-)
+from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.master_proof import MasterProof
+from comment_review.desk.proof.sheet import Sheet
 from comment_review.flows.distribute import seed
 
 
@@ -51,16 +49,16 @@ class TestTheWriteHalfLivesWithTheRead:
         row = EditCopy.seed(role="block-context", read_from={"root": "."}, sheets=[])
         assert set(row) == {f.name for f in fields(EditCopy)}
 
-    def test_a_master_proof_is_written_with_every_WIRE_field_the_class_declares(self):
-        """`places` and `moves` are off the wire: a fold writes them, so `seed`
-        -- which writes the three fields a proof takes from its copies -- cannot.
-        Same rule as the sheet's `unruled` and `refused`."""
-        row = MasterProof.seed(stage="4c", read_from={}, edit_copies=[])
-        wire = {f.name for f in fields(MasterProof) if f.metadata.get("wire", True)}
-        assert set(row) == wire
-        assert wire < {f.name for f in fields(MasterProof)}, (
-            "some field must be off the wire"
+    def test_a_master_proof_is_written_with_every_field_the_class_declares(
+        self, tmp_path
+    ):
+        """A proof the bus built, written: every field is on the wire, `places`
+        and `moves` included, since the fold that fills them is what builds the
+        proof."""
+        proof = a_master_proof(
+            tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
         )
+        assert set(proof.serialize()) == {f.name for f in fields(MasterProof)}
 
     def test_what_seed_writes_is_what_parse_reads_back_for_a_FILLED_copy(
         self, tmp_path

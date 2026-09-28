@@ -64,8 +64,10 @@ KNOWN = {
     "desk/collator.py: comment_review.binder.binder",
     # MIDDLE -> READ END. `_read_from_problem` is PRIVATE to `binder` while
     # `read_from` sits on a binder, on every `edit_copy` and on a `master_proof`
-    # -- one definition, reachable by only one of its three owners.
-    "desk/containers.py: comment_review.binder.binder",
+    # -- one definition, reachable by only one of its three owners. Both proof
+    # objects that parse a `read_from` import it.
+    "desk/proof/edit_copy.py: comment_review.binder.binder",
+    "desk/proof/master_proof.py: comment_review.binder.binder",
     # WRITE END -> READ END. `results/compositor.py` reads `Page` and `page_for`.
     "results/compositor.py: comment_review.binder.page",
 }
@@ -83,7 +85,7 @@ def crossings(forbidden: dict | None = None) -> set[str]:
                 parts = node.module.split(".")
                 if len(parts) > 1 and parts[0] == "comment_review":
                     if parts[1] in may_not:
-                        found.add(f"{area}/{path.name}: {node.module}")
+                        found.add(f"{path.relative_to(SRC).as_posix()}: {node.module}")
     return found
 
 

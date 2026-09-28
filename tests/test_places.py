@@ -12,12 +12,12 @@ from helpers import (
     seed,
 )
 
-from comment_review.desk.containers import Sheet
 from comment_review.desk.evaluate.move import _is_this_move, moves_in
 from comment_review.desk.evaluate.place import Place
 from comment_review.desk.evaluate.state import State
 from comment_review.desk.marks.mark import Instruction
 from comment_review.desk.marks.table import INSTRUCTIONS, Row, Touch, chief_mark
+from comment_review.desk.proof.sheet import Sheet
 from comment_review.flows.fill import composition_problems, fill, row_problems
 from comment_review.flows.on_the_page import Held
 from comment_review.flows.places import bases_and_anchors, chief_copy_of, places_of

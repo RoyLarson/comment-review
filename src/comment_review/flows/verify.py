@@ -28,8 +28,8 @@ from pathlib import Path
 from comment_review.binder.addresses import handed
 from comment_review.binder.binder import Binder
 from comment_review.desk.collator import Cache, Problem, verify_report
-from comment_review.desk.containers import EditCopy
 from comment_review.desk.marks.table import INSTRUCTIONS, Touch
+from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.stages import Stage, deals
 from comment_review.flows.on_the_page import (
     PageCache,

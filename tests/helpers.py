@@ -34,9 +34,11 @@ from comment_review.binder.binder import VERSION, Binder, bind
 from comment_review.commands import collate as collate_command
 from comment_review.commands import disposition as disposition_command
 from comment_review.commands import turn as turn_command
-from comment_review.desk.containers import EditCopy, MasterProof, Sheet
 from comment_review.desk.marks.mark import ANCHOR_EXAMPLE, Instruction, Mark, Shape
 from comment_review.desk.marks.table import INSTRUCTIONS
+from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.master_proof import MasterProof
+from comment_review.desk.proof.sheet import Sheet
 from comment_review.docket.docket import Docket
 from comment_review.flows.bus import CopiesReturned, handle
 from comment_review.flows.distribute import seed

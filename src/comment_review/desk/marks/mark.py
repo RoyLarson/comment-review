@@ -530,7 +530,7 @@ def derived_change(
         return None, []
     if not isinstance(claim, dict):
         return None, [f"{instruction} needs `claim.{key}` to derive its change"]
-    # ! DECLARED, NOT NARROWED -- `desk.containers.EditCopy.deserialize` states
+    # ! DECLARED, NOT NARROWED -- `desk.proof.edit_copy.EditCopy.deserialize` states
     # why: `ty` loses an `isinstance` narrow past a branch, and the reads below
     # sit past two.
     data: dict = claim

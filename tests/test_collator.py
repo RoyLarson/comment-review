@@ -36,8 +36,8 @@ from comment_review.desk.collator import (
     tally,
     verify_report,
 )
-from comment_review.desk.containers import EditCopy
 from comment_review.desk.marks.mark import Instruction, Mark
+from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.flows.distribute import seed
 from comment_review.flows.mark_errors import mark_errors
 from comment_review.flows.verify import texts_at

@@ -30,9 +30,9 @@ import sys
 from pathlib import Path
 
 from comment_review.desk.answers.answer import Question
-from comment_review.desk.containers import EditCopy
 from comment_review.desk.evaluate.move import Placement
 from comment_review.desk.evaluate.state import CARRIED, SETTLED, State
+from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.topology import read as read_topology
 from comment_review.desk.work import events
 from comment_review.flows.bus import CopiesReturned, handle
@@ -265,7 +265,7 @@ def _envelope(documents: list) -> tuple[list[EditCopy], list]:
 
     !! THE ENVELOPE IS PARSED HERE AND A FAILURE IS REPORTED RATHER THAN
     RAISED -- `P21`, `decision-log.md Process: #57`. What the two boundaries
-    are is stated once, in `desk/containers.py`'s module docstring. What is
+    are is stated once, in `desk/proof/__init__.py`'s module docstring. What is
     this command's own is the ORDER and the response: envelope first, because
     a document that is not a copy has no contents to rule on, and every
     refusal printed beside whoever owes it rather than raised past the rest.
