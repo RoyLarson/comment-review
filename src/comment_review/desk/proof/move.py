@@ -22,12 +22,12 @@ A move is identified by its own two addresses (`key_of`), never by a place:
 two moves through one place are two moves.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import StrEnum, auto
 
-from comment_review.desk.proof.answer import Answer, read_answer
+from comment_review.desk.proof.answer import Answer, read_answers
 from comment_review.desk.proof.disposition import Disposition, read_disposition
-from comment_review.desk.proof.mark import Mark
+from comment_review.desk.proof.mark import Mark, read_member
 from comment_review.desk.proof.validators import Validators
 
 
@@ -92,6 +92,15 @@ class Move:
         """This move's name, from its own two addresses."""
         return key_of(self.origin, self.destination)
 
+    def recorded(self) -> "Move":
+        """This move as a proof records it, without what a fold derives.
+
+        `filed`, `readers` and `movers` are read off the places by each fold
+        and are not serialized, so a proof holds the move without them -- the
+        move `deserialize` reads back from what `serialize` wrote.
+        """
+        return replace(self, filed={}, movers={}, readers=())
+
     def serialize(self) -> dict:
         """This move's recorded fields, keyed by this class's own field names."""
         return {
@@ -126,31 +135,28 @@ class Move:
         if not isinstance(destination, str) or not destination:
             return None, [f"{where}: a move needs its `destination`"]
         problems: list[str] = []
-        answers: dict[int, dict[str, Answer]] = {}
-        for turn, by in (data.get("answers") or {}).items():
-            for role, raw in by.items():
-                answer, why = read_answer(
-                    f"{where} turn {turn} {role}", raw, validators.answer
-                )
-                if answer is None:
-                    problems += why
-                else:
-                    answers.setdefault(int(turn), {})[role] = answer
+        answers, why = read_answers(where, data.get("answers"), validators.answer)
+        problems += why
         disposition = None
         if data.get("disposition") is not None:
             disposition, why = read_disposition(
                 where, data["disposition"], validators.disposition
             )
             problems += why
-        if problems:
+        placement: Placement | None = Placement.OPEN
+        if data.get("placement"):
+            placement, why = read_member(
+                where, "placement", data["placement"], Placement
+            )
+            problems += why
+        if problems or placement is None:
             return None, problems
-        placement = data.get("placement")
         return (
             cls(
                 origin=origin,
                 destination=destination,
                 answers=answers,
-                placement=Placement(placement) if placement else Placement.OPEN,
+                placement=placement,
                 owed=tuple(data.get("owed") or ()),
                 asking=tuple(data.get("asking") or ()),
                 reasons=tuple(data.get("reasons") or ()),

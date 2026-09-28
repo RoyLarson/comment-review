@@ -26,6 +26,7 @@ from helpers import (
 from comment_review.binder.binder import bind
 from comment_review.commands import collate as collate_command
 from comment_review.commands import proof as proof_command
+from comment_review.commands import turn as turn_command
 from comment_review.docket.docket import Docket
 
 
@@ -369,6 +370,46 @@ def a_closed_proof_with_a_place_that_stands(tmp_path, monkeypatch, capsys):
     )
     assert code == collate_command.OK
     return tmp_path / "proof0.json", tmp_path / "repo"
+
+
+def test_a_bad_place_is_named_the_same_by_every_command_that_reads_the_proof(
+    tmp_path, monkeypatch, capsys
+):
+    """A place that will not read is named where the proof is read, so `turn`
+    and `proof` refuse the same file with the same line."""
+    assert a_stage_dealt(tmp_path, monkeypatch, capsys) == collate_command.REREADS
+    path = tmp_path / "proof0.json"
+    wire = json.loads(path.read_text(encoding="utf-8"))
+    assert len(wire["places"]) == 1
+    wire["places"].append("not a place")
+    path.write_text(json.dumps(wire), encoding="utf-8")
+    named = f"{path}: place 2: a place must be an object"
+
+    code, out = run_command(
+        monkeypatch,
+        capsys,
+        turn_command,
+        "--proof",
+        str(path),
+        "--proof-out",
+        str(tmp_path / "proof1.json"),
+        "--batch-out",
+        str(tmp_path / "batch2.json"),
+        with_stderr=True,
+    )
+    assert code != 0 and named in out, out
+    code, out = run_command(
+        monkeypatch,
+        capsys,
+        proof_command,
+        "--proof",
+        str(path),
+        "--repo",
+        str(tmp_path / "repo"),
+        "--out",
+        str(tmp_path / "r1"),
+    )
+    assert code != 0 and named in out, out
 
 
 class TestProofTakesAClosedProof:

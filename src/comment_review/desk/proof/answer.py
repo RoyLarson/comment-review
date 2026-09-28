@@ -3,6 +3,7 @@
     Question       the three things a turn asks a role
     Answer         one answer; `name` is its row, `instruction` on the wire
     read_answer()  an entry read as an `Answer`, then held to a validator
+    read_answers() a record's answers, turn -> role -> answer, each read
 
 `Answer.deserialize` reads an entry's structure: it refuses an entry that is
 not an object or asks no `Question`, and reads a field of the wrong type as
@@ -107,3 +108,47 @@ def read_answer(
     if problems:
         return None, problems
     return answer, []
+
+
+def read_answers(
+    where: str, raw: object, validate: AnswerValidator
+) -> "tuple[dict[int, dict[str, Answer]], list[str]]":
+    """A place's or a move's answers, turn -> role -> answer, each read and checked.
+
+    Args:
+        where: how to name the record in a message.
+        raw: the record's `answers` as it came back; absent or empty is none.
+        validate: the rule check each answer is held to, through `read_answer`.
+
+    Returns:
+        `(turn -> role -> Answer, the problems)`. A turn key that is not a
+        number, a turn that is not an object, and an answer that will not read
+        are each named; the answers that read are kept either way.
+    """
+    answers: dict[int, dict[str, Answer]] = {}
+    if not raw:
+        return answers, []
+    if not isinstance(raw, dict):
+        return answers, [
+            f"{where}: `answers` must be an object of turn -> role -> answer"
+        ]
+    problems: list[str] = []
+    for turn, by in raw.items():
+        # A JSON key is a string; one written from memory may be an int.
+        try:
+            at = int(str(turn))
+        except ValueError:
+            problems.append(f"{where}: answers at turn {turn!r} -- a turn is a number")
+            continue
+        if not isinstance(by, dict):
+            problems.append(
+                f"{where}: answers at turn {turn} must be an object of role -> answer"
+            )
+            continue
+        for role, one in by.items():
+            answer, why = read_answer(f"{where} turn {turn} {role}", one, validate)
+            if answer is None:
+                problems += why
+            else:
+                answers.setdefault(at, {})[str(role)] = answer
+    return answers, problems

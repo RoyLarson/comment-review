@@ -10,7 +10,6 @@ import pytest
 from helpers import (
     MISSPELLINGS,
     REPO,
-    VALIDATORS,
     _keeping_only,
     a_binder_over,
     a_clean,
@@ -29,7 +28,6 @@ from helpers import (
 from comment_review.commands import collate as command
 from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.mark import Shape
-from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.state import State
 from comment_review.desk.work import events
 from comment_review.flows.proof_io import load_proof
@@ -945,11 +943,10 @@ class TestTheStateBetweenTurnsOnDisk:
         proof, why = load_proof(proof_path)
         assert why == []
         assert proof is not None
-        assert [p["address"] for p in proof.places] == ["m.py@b1"]
-        place, why = Place.deserialize("the place", proof.places[0], VALIDATORS)
-        assert place is not None, why
+        assert [p.address for p in proof.places] == ["m.py@b1"]
+        (place,) = proof.places
         assert place.state is State.STANDS
-        assert place.text == proof.places[0]["text"]
+        assert place.text is not None
 
     def test_the_proof_carries_the_copies_as_they_stand(
         self, tmp_path, monkeypatch, capsys

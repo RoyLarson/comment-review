@@ -759,10 +759,8 @@ class TestDocketOfProof:
         wire = json.loads((tmp_path / "proof0.json").read_text(encoding="utf-8"))
         wire["places"][0]["filed"][0]["instruction"] = "not an instruction"
         proof, why = MasterProof.deserialize("hand-edited", wire, VALIDATORS)
-        assert proof is not None, why
-        with pytest.raises(CannotTranscribe) as raised:
-            docket_of_proof(proof, tmp_path / "repo")
-        assert any("m.py@b1" in one for one in raised.value.reasons)
+        assert proof is None
+        assert any("place 1 at m.py@b1" in one for one in why), why
 
     def test_a_page_this_checkout_cannot_read_is_a_refusal(
         self, tmp_path, monkeypatch, capsys

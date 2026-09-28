@@ -32,6 +32,7 @@ from pathlib import Path
 from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.move import Placement
+from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.state import CARRIED, SETTLED, State
 from comment_review.desk.topology import read as read_topology
 from comment_review.desk.work import events
@@ -230,7 +231,7 @@ def _code_for(out: list) -> int:
     return OK
 
 
-def _counted(places: tuple[dict, ...]) -> str:
+def _counted(places: tuple[Place, ...]) -> str:
     """What the written proof holds, by the state each of its places came to.
 
     ! IT READ `N determined, M unsettlable` OFF THE OLD FOLD'S OWN LISTS, and
@@ -239,7 +240,7 @@ def _counted(places: tuple[dict, ...]) -> str:
     are read back off the states the proof records.
 
     Args:
-        places: `MasterProof.places`, as `Place.serialize` writes each.
+        places: `MasterProof.places`.
 
     Returns:
         `"N places -- S settled, U unsettlable, C carried forward, T to come"`.
@@ -250,7 +251,7 @@ def _counted(places: tuple[dict, ...]) -> str:
     `desk.proof.state.SETTLED` is the one both this and
     `flows.transcribe._unclosed` read.
     """
-    states = [str(place.get("state") or "") for place in places]
+    states = [str(place.state or "") for place in places]
     carried = sum(1 for state in states if state in CARRIED)
     unsettlable = sum(1 for state in states if state == State.UNSETTLABLE)
     settled = sum(1 for state in states if state in SETTLED)

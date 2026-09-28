@@ -13,6 +13,7 @@ from helpers import VALIDATORS, a_clean, a_master_proof, a_small_real_tree, bind
 
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
+from comment_review.desk.proof.move import Move
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.flows.distribute import seed
 
@@ -403,7 +404,7 @@ def test_a_master_proof_carries_its_moves_and_reads_back_one_written_before_them
         read_from={},
         edit_copies=(),
         places=(),
-        moves=({"origin": "m.py@b1", "destination": "m.py@b5"},),
+        moves=(Move("m.py@b1", "m.py@b5"),),
     )
     back, why = MasterProof.deserialize("4c", proof.serialize(), VALIDATORS)
     assert why == [] and back is not None and back.moves == proof.moves
@@ -412,3 +413,49 @@ def test_a_master_proof_carries_its_moves_and_reads_back_one_written_before_them
     older["places"] = [{"address": "m.py@b1", "partner": "m.py@b5"}]
     back, why = MasterProof.deserialize("4c", older, VALIDATORS)
     assert why == [] and back is not None and back.moves == ()
+
+
+class TestEveryBadRecordIsNamed:
+    """A proof's places and moves are read where the proof is read, and an
+    entry that will not read refuses the proof by name rather than leaving it
+    with fewer places."""
+
+    def test_a_place_that_is_not_an_object_is_named(self, tmp_path):
+        wire = a_master_proof(
+            tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
+        ).serialize()
+        wire["places"].append("not a place")
+        got, why = MasterProof.deserialize("p.json", wire, VALIDATORS)
+        assert got is None
+        assert why == ["p.json: place 2: a place must be an object"]
+
+    @pytest.mark.parametrize("key", ["places", "moves"])
+    def test_a_record_list_that_is_not_a_list_is_refused(self, tmp_path, key):
+        wire = a_master_proof(
+            tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
+        ).serialize()
+        wire[key] = {"m.py@b1": {}}
+        got, why = MasterProof.deserialize("p.json", wire, VALIDATORS)
+        assert got is None
+        assert why == [f"p.json: master_proof's `{key}` must be a list"]
+
+    def test_a_filed_mark_with_an_unknown_touch_is_named(self, tmp_path):
+        wire = a_master_proof(
+            tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
+        ).serialize()
+        wire["places"][0]["filed"][0]["touch"] = "sideways"
+        got, why = MasterProof.deserialize("p.json", wire, VALIDATORS)
+        assert got is None
+        assert why == [
+            "p.json: place 1 at m.py@b1 mark 1: `touch` 'sideways' is not one of"
+            " own, origin, destination"
+        ]
+
+    def test_the_places_and_moves_are_read_as_records(self, tmp_path):
+        proof = a_master_proof(
+            tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
+        )
+        back, why = MasterProof.deserialize("p.json", proof.serialize(), VALIDATORS)
+        assert why == [] and back is not None
+        assert [place.address for place in back.places] == ["m.py@b1"]
+        assert back.serialize() == proof.serialize()

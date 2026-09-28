@@ -170,7 +170,7 @@ class TestTheChiefRulesAMoveThenItsEnds:
         assert "the proof closed" not in out, out
         assert "the proof at turn 0 is not closed" in out, out
         placed = _closed(tmp_path)
-        assert [m["placement"] for m in placed.moves] == ["agreed"]
+        assert [m.placement for m in placed.moves] == ["agreed"]
         assert place_on(placed, "m.py@b1")["state"] == "composed"
         assert place_on(placed, "m.py@b2")["state"] in ("composed", "contested")
 

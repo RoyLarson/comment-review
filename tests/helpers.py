@@ -1087,8 +1087,8 @@ def place_on(proof: MasterProof, address: str) -> dict:
         AssertionError: the proof carries no place at that address.
     """
     for entry in proof.places:
-        if entry.get("address") == address:
-            return entry
+        if entry.address == address:
+            return entry.serialize()
     raise AssertionError(f"{address} is not on this proof")
 
 

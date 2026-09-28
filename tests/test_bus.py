@@ -2,7 +2,6 @@
 
 from dataclasses import replace
 
-import pytest
 from helpers import (
     VALIDATORS,
     a_clean,
@@ -20,6 +19,7 @@ from helpers import (
 
 from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.mark import Mark, Shape
+from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.proof.state import State
@@ -33,7 +33,7 @@ from comment_review.flows.bus import (
     turn_of,
 )
 from comment_review.flows.human import HumanAnswer
-from comment_review.flows.transcribe import CannotTranscribe, docket_of_proof
+from comment_review.flows.transcribe import docket_of_proof
 
 BASE = "# one\n# two\n# three"
 OTHER = "# four\n# five\n# six"
@@ -80,9 +80,9 @@ def test_a_committed_fold_carries_its_places_on_the_proof(tmp_path):
     assert result is not None
     assert len(result.proof.places) == 2
     for entry in result.proof.places:
-        place, why = Place.deserialize("a place", entry, VALIDATORS)
+        place, why = Place.deserialize("a place", entry.serialize(), VALIDATORS)
         assert place is not None, why
-        assert place.serialize() == entry
+        assert place == entry
 
 
 def test_the_proof_holds_the_composed_places_text_the_chief_copy_does_not(tmp_path):
@@ -100,9 +100,9 @@ def test_the_proof_holds_the_composed_places_text_the_chief_copy_does_not(tmp_pa
     assert result.chief is not None
     marks = [mark for sheet in result.chief.sheets for mark in sheet.marks]
     assert marks == []
-    place = next(p for p in result.proof.places if p["address"] == "m.py@b1")
-    assert place["state"] == "composed"
-    assert place["text"] == CORRECTED
+    place = next(p for p in result.proof.places if p.address == "m.py@b1")
+    assert place.state == "composed"
+    assert place.text == CORRECTED
 
 
 COMPOSE_ROLES = {
@@ -138,9 +138,9 @@ def test_a_composed_place_carries_no_mark_on_the_chief_copy(tmp_path):
     assert result.chief is not None
     marks = [mark for sheet in result.chief.sheets for mark in sheet.marks]
     assert [mark.address for mark in marks] == []
-    place = next(p for p in result.proof.places if p["address"] == "m.py@b1")
-    assert place["state"] == "composed"
-    assert place["text"] == COMPOSED
+    place = next(p for p in result.proof.places if p.address == "m.py@b1")
+    assert place.state == "composed"
+    assert place.text == COMPOSED
 
 
 def test_a_copy_from_another_tree_rolls_the_fold_back(tmp_path):
@@ -371,16 +371,16 @@ def _both_hold(address=PLACE):
 def _state_at(proof, address):
     """The state the proof records for one place."""
     for entry in proof.places:
-        if entry["address"] == address:
-            return entry["state"]
+        if entry.address == address:
+            return entry.state
     raise AssertionError(f"{address} is not on the proof")
 
 
 def _answers_at(proof, address):
     """The turns the proof records answers at, for one place."""
     for entry in proof.places:
-        if entry["address"] == address:
-            return entry["answers"]
+        if entry.address == address:
+            return entry.serialize()["answers"]
     raise AssertionError(f"{address} is not on the proof")
 
 
@@ -502,7 +502,7 @@ def _stetted(tmp_path):
     }
     out, turned = handle(AnswersReturned(collated.proof, answers, tmp_path / "repo"))
     assert turned is not None, out
-    assert [m["placement"] for m in turned.proof.moves] == ["contested"]
+    assert [m.placement for m in turned.proof.moves] == ["contested"]
     return turned
 
 
@@ -572,10 +572,10 @@ def test_a_withdrawn_moves_origin_is_put_to_the_role_that_has_not_seen_it(tmp_pa
             slot["question"], "withdraw" if role == "block-context" else "stet"
         ),
     )
-    assert [m["placement"] for m in withdrawn.proof.moves] == ["withdrawn"]
+    assert [m.placement for m in withdrawn.proof.moves] == ["withdrawn"]
     assert _state_at(withdrawn.proof, PLACE) == "composed"
-    (origin,) = [p for p in withdrawn.proof.places if p["address"] == PLACE]
-    assert origin["owed"] == ["block-context"]
+    (origin,) = [p for p in withdrawn.proof.places if p.address == PLACE]
+    assert origin.owed == ("block-context",)
 
 
 def test_the_chief_rules_a_moves_placement_then_its_ends(tmp_path):
@@ -590,7 +590,7 @@ def test_the_chief_rules_a_moves_placement_then_its_ends(tmp_path):
         )
     )
     assert placed is not None, out
-    assert [m["placement"] for m in placed.proof.moves] == ["agreed"]
+    assert [m.placement for m in placed.proof.moves] == ["agreed"]
     carried = sorted(
         one.address for one in out if isinstance(one, events.CarriedForward)
     )
@@ -609,7 +609,7 @@ def test_the_chief_rules_a_moves_placement_then_its_ends(tmp_path):
     assert closed is not None, out
     assert events.Settled(PLACE, REMAINDER) in out
     assert events.Settled("m.py@b2", CHIEFS_OWN) in out
-    texts = [p["text"] for p in closed.proof.places]
+    texts = [p.text for p in closed.proof.places]
     assert sum(text.count("# two") for text in texts if text) == 1
 
 
@@ -655,7 +655,7 @@ def test_a_placement_ruling_of_original_keeps_the_paragraph_where_it_is(tmp_path
         )
     )
     assert placed is not None, out
-    assert [m["placement"] for m in placed.proof.moves] == ["withdrawn"]
+    assert [m.placement for m in placed.proof.moves] == ["withdrawn"]
 
 
 def test_an_answer_at_a_place_no_turn_carried_is_refused(tmp_path):
@@ -918,9 +918,9 @@ def test_a_move_into_an_ungathered_file_that_keeps_every_word_folds(tmp_path):
     destination carries the page's anchor, which no mark there supplies."""
     out, result = handle(_moved_into_n(tmp_path, "# seven\n# eight\n# two"))
     assert result is not None, _refusals(out)
-    place = next(one for one in result.proof.places if one["address"] == "n.py@b1")
-    assert place["base"] == UNGATHERED
-    assert place["anchor"] == "v1 = 1"
+    place = next(one for one in result.proof.places if one.address == "n.py@b1")
+    assert place.base == UNGATHERED
+    assert place.anchor == "v1 = 1"
 
 
 def test_an_add_over_prose_in_an_ungathered_file_that_drops_a_word_is_refused(
@@ -1083,7 +1083,7 @@ class TestAMovesPlacementIsAskedOnce:
         assert "block-context" not in batch or not [
             s for s in batch["block-context"] if s["question"] == "placement"
         ]
-        assert [m["placement"] for m in result.proof.moves] == ["open"]
+        assert [m.placement for m in result.proof.moves] == ["open"]
 
     def test_agree_and_clean_land_the_paragraph_once(self, tmp_path):
         """The placement is agreed first; the split's two halves are then put
@@ -1094,12 +1094,12 @@ class TestAMovesPlacementIsAskedOnce:
         answers = _answered(first, _placement_or_clean("agree"))
         out, agreed = handle(AnswersReturned(first.proof, answers, root))
         assert agreed is not None, out
-        assert [m["placement"] for m in agreed.proof.moves] == ["agreed"]
+        assert [m.placement for m in agreed.proof.moves] == ["agreed"]
         answers = _answered(agreed, _placement_or_clean("agree"))
         out, result = handle(AnswersReturned(agreed.proof, answers, root))
         assert result is not None, out
         assert result.chief is not None
-        texts = {p["address"]: p["text"] for p in result.proof.places}
+        texts = {p.address: p.text for p in result.proof.places}
         assert texts["m.py@b1"] == "# one\n# three"
         assert texts["m.py@b2"] == ARRIVAL
         chief = [
@@ -1151,7 +1151,7 @@ class TestAMovesPlacementIsAskedOnce:
         _out, result = handle(AnswersReturned(first.proof, answers, root))
         assert result is not None
         batch = _slots_of(result)
-        assert [m["placement"] for m in result.proof.moves] == ["contested"]
+        assert [m.placement for m in result.proof.moves] == ["contested"]
         for role in ("block-context", "module-context"):
             assert [s["to"] for s in batch[role] if s["question"] == "placement"] == [
                 "m.py@b2"
@@ -1237,7 +1237,7 @@ class TestAnOpenMoveIsNotTranscribed:
 
     def test_a_contested_move_the_chief_ruled_is_transcribed(self, tmp_path):
         proof, root = self._ruled(tmp_path)
-        assert [m["placement"] for m in proof.moves] == ["agreed"]
+        assert [m.placement for m in proof.moves] == ["agreed"]
         (schedule,) = docket_of_proof(proof, root).docket.schedules
         assert [(one.cue, one.text) for one in schedule.alterations] == [
             ("b1", "# one\n# three"),
@@ -1245,13 +1245,12 @@ class TestAnOpenMoveIsNotTranscribed:
         ]
 
     def test_a_move_that_will_not_read_is_refused(self, tmp_path):
-        proof, root = self._ruled(tmp_path)
-        broken = replace(proof, moves=({"origin": "m.py@b1"},))
-        with pytest.raises(CannotTranscribe) as raised:
-            docket_of_proof(broken, root)
-        assert any("destination" in why for why in raised.value.reasons), (
-            raised.value.reasons
-        )
+        proof, _root = self._ruled(tmp_path)
+        wire = proof.serialize()
+        wire["moves"] = [{"origin": "m.py@b1"}]
+        got, why = MasterProof.deserialize("p.json", wire, VALIDATORS)
+        assert got is None
+        assert why == ["p.json: move 1: a move needs its `destination`"]
 
 
 # -- a human question is asked before the fold (`Process: #197`) -------------

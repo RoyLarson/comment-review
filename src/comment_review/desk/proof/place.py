@@ -2,9 +2,9 @@
 
 from dataclasses import dataclass, field
 
-from comment_review.desk.proof.answer import Answer, Question, read_answer
+from comment_review.desk.proof.answer import Answer, Question, read_answers
 from comment_review.desk.proof.disposition import Disposition, read_disposition
-from comment_review.desk.proof.mark import Mark, Touch, read_mark
+from comment_review.desk.proof.mark import Mark, Touch, read_mark, read_member
 from comment_review.desk.proof.state import State
 from comment_review.desk.proof.validators import Validators
 
@@ -109,39 +109,42 @@ class Place:
         data: dict = entry
         problems: list[str] = []
         filed = []
-        for i, one in enumerate(data.get("filed") or []):
+        for i, one in enumerate(data.get("filed") or [], 1):
             mark, why = read_mark(f"{where} mark {i}", one, validators.mark)
             if mark is None:
+                problems += why
+                continue
+            touch, why = read_member(
+                f"{where} mark {i}", "touch", one.get("touch"), Touch
+            )
+            if touch is None:
                 problems += why
                 continue
             filed.append(
                 Filed(
                     str(one.get("role")),
                     mark,
-                    Touch(str(one.get("touch"))),
+                    touch,
                     str(one.get("split_from") or ""),
                 )
             )
-        answers: dict[int, dict[str, Answer]] = {}
-        for turn, by in (data.get("answers") or {}).items():
-            for role, raw in by.items():
-                answer, why = read_answer(
-                    f"{where} turn {turn} {role}", raw, validators.answer
-                )
-                if answer is None:
-                    problems += why
-                else:
-                    answers.setdefault(int(turn), {})[role] = answer
+        answers, why = read_answers(where, data.get("answers"), validators.answer)
+        problems += why
         disposition = None
         if data.get("disposition") is not None:
             disposition, why = read_disposition(
                 where, data["disposition"], validators.disposition
             )
             problems += why
+        state = question = None
+        if data.get("state"):
+            state, why = read_member(where, "state", data["state"], State)
+            problems += why
+        if data.get("question"):
+            question, why = read_member(where, "question", data["question"], Question)
+            problems += why
         if problems:
             return None, problems
-        state = data.get("state")
-        question = data.get("question")
         return (
             cls(
                 address=str(data.get("address") or ""),
@@ -151,14 +154,14 @@ class Place:
                 filed=filed,
                 answers=answers,
                 disposition=disposition,
-                state=State(state) if state else None,
+                state=state,
                 text=data.get("text"),
                 sides=dict(data.get("sides") or {}),
                 reasons=tuple(data.get("reasons") or ()),
                 notes=tuple(data.get("notes") or ()),
                 asking=tuple(data.get("asking") or ()),
                 owed=tuple(data.get("owed") or ()),
-                question=Question(question) if question else None,
+                question=question,
             ),
             [],
         )

@@ -294,3 +294,41 @@ def test_a_pass_run_twice_on_one_move_comes_to_the_same_placement():
     move.answers[2] = {"b": _answer("withdraw")}
     again = placement_pass(move, places, 2)
     assert again.placement is Placement.WITHDRAWN and again.movers == {}
+
+
+def test_a_placement_outside_its_set_is_named():
+    got, problems = Move.deserialize(
+        "move 1",
+        {"origin": ORIGIN, "destination": DESTINATION, "placement": "sideways"},
+        VALIDATORS,
+    )
+    assert got is None
+    assert problems == [
+        "move 1: `placement` 'sideways' is not one of open, agreed, contested,"
+        " withdrawn, held, refused"
+    ]
+
+
+def test_an_answer_at_a_turn_that_is_not_a_number_is_named():
+    """A turn key is read as an integer; one that is not is a problem named at
+    the move, not a `ValueError` out of the read."""
+    got, problems = Move.deserialize(
+        "move 1",
+        {
+            "origin": ORIGIN,
+            "destination": DESTINATION,
+            "answers": {
+                "first": {
+                    "block-context": {
+                        "address": "m.py@b1",
+                        "question": "composition",
+                        "instruction": "clean",
+                        "reason": "r",
+                    }
+                }
+            },
+        },
+        VALIDATORS,
+    )
+    assert got is None
+    assert problems == ["move 1: answers at turn 'first' -- a turn is a number"]

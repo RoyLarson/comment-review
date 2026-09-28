@@ -4,6 +4,9 @@ from dataclasses import dataclass
 
 from comment_review.binder.binder import _read_from_problem
 from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.mark import filled
+from comment_review.desk.proof.move import Move
+from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.validators import Validators
 
 
@@ -19,15 +22,13 @@ class MasterProof:
             copies that disagree, and `deserialize` a proof whose own
             `read_from` disagrees with its first copy's.
         edit_copies: one per role, or one per SHARD under fan-out.
-        places: every place one fold of this stage decided, as
-            `desk.proof.place.Place.serialize` writes one, read back by
-            `Place.deserialize`. `flows.bus` writes it; empty until such a
-            fold has run. `serialize` carries it; `deserialize` reads it where
-            present.
-        moves: every move one fold of this stage decided, as
-            `desk.proof.move.Move.serialize` writes one. Carried and read
-            like `places`, and absent from a proof written before
-            `decision-log.md Process: #195`.
+        places: every place one fold of this stage decided. `flows.bus`
+            writes it; empty until such a fold has run. Each is read by
+            `Place.deserialize` where the proof is read, so a reader of the
+            proof holds places, not their wire.
+        moves: every move one fold of this stage decided, as the proof records
+            it (`Move.recorded`). Read like `places`, and absent from a proof
+            written before `decision-log.md Process: #195`.
 
     !! THREE FIELDS WENT WITH THE OLD MIDDLE -- `turns`, `determined` and
     `unsettlable`, and with them the `turn` property that counted `turns`. Each
@@ -42,8 +43,8 @@ class MasterProof:
     stage: str
     read_from: dict
     edit_copies: tuple[EditCopy, ...]
-    places: tuple[dict, ...] = ()
-    moves: tuple[dict, ...] = ()
+    places: tuple[Place, ...] = ()
+    moves: tuple[Move, ...] = ()
 
     @classmethod
     def deserialize(
@@ -69,6 +70,13 @@ class MasterProof:
             where there is one. The single exemption is an empty proof whose
             `read_from` is `{}` or absent, which is what `_on_copies` writes
             when it has no first copy to take one from.
+
+            Every place and every move is read here, and one that will not read
+            is named by its position -- `place 2`, `move 1` -- and, for a
+            place, its address, so every command that reads the proof names a
+            bad entry the same way. A `places` or `moves` that is not a list is
+            refused; an absent one is empty, as a proof written before the
+            first fold carries neither.
         """
         if not isinstance(data, dict):
             return None, [f"{where}: a master_proof must be an object"]
@@ -134,22 +142,12 @@ class MasterProof:
         # the same absent-stage case instead.
         raw_stage = data.get("stage")
         stage = raw_stage if isinstance(raw_stage, str) else ""
-        # ! BOTH ABSENT AND EMPTY READ AS EMPTY. A proof written before the
-        # first fold carries no `places` key, and one written after carries
-        # it; either way an entry that is not an object is dropped, and
-        # `Place.deserialize` rules on the rest where a reader wants them.
-        raw_places = data.get("places")
-        places = (
-            tuple(p for p in raw_places if isinstance(p, dict))
-            if isinstance(raw_places, list)
-            else ()
-        )
-        raw_moves = data.get("moves")
-        moves = (
-            tuple(m for m in raw_moves if isinstance(m, dict))
-            if isinstance(raw_moves, list)
-            else ()
-        )
+        places, why = _places_in(where, data.get("places", []), validators)
+        problems += why
+        moves, why = _moves_in(where, data.get("moves", []), validators)
+        problems += why
+        if problems:
+            return None, problems
         return (
             MasterProof(
                 stage=stage,
@@ -167,6 +165,42 @@ class MasterProof:
             "stage": self.stage,
             "read_from": {**self.read_from},
             "edit_copies": [copy.serialize() for copy in self.edit_copies],
-            "places": [dict(p) for p in self.places],
-            "moves": [dict(m) for m in self.moves],
+            "places": [place.serialize() for place in self.places],
+            "moves": [move.serialize() for move in self.moves],
         }
+
+
+def _places_in(
+    where: str, raw: object, validators: Validators
+) -> "tuple[tuple[Place, ...], list[str]]":
+    """A proof's `places`, each read, and one message per entry that will not."""
+    if not isinstance(raw, list):
+        return (), [f"{where}: master_proof's `places` must be a list"]
+    places: list[Place] = []
+    problems: list[str] = []
+    for i, entry in enumerate(raw, 1):
+        address = entry.get("address") if isinstance(entry, dict) else None
+        at = f"{where}: place {i}" + (f" at {address}" if filled(address) else "")
+        place, why = Place.deserialize(at, entry, validators)
+        if place is None:
+            problems += why
+        else:
+            places.append(place)
+    return tuple(places), problems
+
+
+def _moves_in(
+    where: str, raw: object, validators: Validators
+) -> "tuple[tuple[Move, ...], list[str]]":
+    """A proof's `moves`, each read, and one message per entry that will not."""
+    if not isinstance(raw, list):
+        return (), [f"{where}: master_proof's `moves` must be a list"]
+    moves: list[Move] = []
+    problems: list[str] = []
+    for i, entry in enumerate(raw, 1):
+        move, why = Move.deserialize(f"{where}: move {i}", entry, validators)
+        if move is None:
+            problems += why
+        else:
+            moves.append(move)
+    return tuple(moves), problems

@@ -13,6 +13,7 @@
                        which is NOT a mark that failed to name an instruction
     filled()           a string with something in it
     as_text()          a string field as a record holds it
+    read_member()      a closed-set field as a record holds it, or a problem
     without_location() one refusal with its `where` prefix removed
 
 `Mark.deserialize` reads an entry's structure and asks nothing of the marks
@@ -65,7 +66,7 @@ self-nesting that made this ambiguous.
 from collections.abc import Callable
 from dataclasses import dataclass, fields
 from enum import StrEnum, auto
-from typing import TypeGuard
+from typing import TypeGuard, TypeVar
 
 
 class Instruction(StrEnum):
@@ -331,6 +332,33 @@ class Mark:
             ),
             [],
         )
+
+
+#: A closed set a record field takes.
+E = TypeVar("E", bound=StrEnum)
+
+
+def read_member(
+    where: str, name: str, value: object, kind: type[E]
+) -> "tuple[E | None, list[str]]":
+    """`value` as the member of `kind` it names, or one problem naming the field.
+
+    Asked member by member, never as `value in kind`, which raises on Python
+    3.11 for a value that is not a member.
+
+    Args:
+        where: how to name the record in a message.
+        name: the field's own name, for the message.
+        value: the field as it came back.
+        kind: the closed set the field takes.
+
+    Returns:
+        `(member, [])`, or `(None, [one message naming the set])`.
+    """
+    for member in kind:
+        if member == value:
+            return member, []
+    return None, [f"{where}: `{name}` {value!r} is not one of {', '.join(kind)}"]
 
 
 def as_text(value: object) -> str:

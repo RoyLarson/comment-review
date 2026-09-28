@@ -91,3 +91,41 @@ def test_deserialize_refuses_a_place_that_is_not_an_object():
     got, problems = Place.deserialize("m.py@b1", "not a place", VALIDATORS)
     assert got is None
     assert problems == ["m.py@b1: a place must be an object"]
+
+
+def test_a_state_or_question_outside_its_set_is_named():
+    got, problems = Place.deserialize(
+        "m.py@b1",
+        {"address": "m.py@b1", "state": "limbo", "question": "why"},
+        VALIDATORS,
+    )
+    assert got is None
+    assert problems == [
+        "m.py@b1: `state` 'limbo' is not one of stands, agreed, composed,"
+        " contested, unsettlable, refused, to-come",
+        "m.py@b1: `question` 'why' is not one of escalation, composition, placement",
+    ]
+
+
+def test_an_answer_at_a_turn_that_is_not_a_number_is_named():
+    """A turn key is read as an integer; one that is not is a problem named at
+    the place, not a `ValueError` out of the read."""
+    got, problems = Place.deserialize(
+        "m.py@b1",
+        {
+            "address": "m.py@b1",
+            "answers": {
+                "first": {
+                    "block-context": {
+                        "address": "m.py@b1",
+                        "question": "composition",
+                        "instruction": "clean",
+                        "reason": "r",
+                    }
+                }
+            },
+        },
+        VALIDATORS,
+    )
+    assert got is None
+    assert problems == ["m.py@b1: answers at turn 'first' -- a turn is a number"]
