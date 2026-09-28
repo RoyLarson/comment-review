@@ -5202,3 +5202,14 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   verbs of them (Mark the object vs to mark the verb). Uses and verbs parts should be part of
   desk/ but the object model could be elsewhere. That is what I see from Binder and Docket as
   well"*.
+
+- **#203.** **A mark is read by its own `deserialize` and checked against the rules by a
+  validator the proof's parsers are handed** (Roy, 2026-09-28, on `0.2.4-the-proof-is-one-unit`
+  P3). `Mark.deserialize` applied the marks table's rules, and `Sheet` and `Place` called it
+  inside their own parse, so moving the object left the proof importing the rules. Offered a
+  rule check passed in as a required parameter (recommended), a separate rule step in the flows,
+  moving the object alone, or a reader registered at import time; the rule check was proposed as
+  `desk.marks.mark.parse`. Roy chose the first, and named it: *"desk.marks.mark.parse Should be
+  something more like desk.marks.rules.verify or validate ... I don't think it specifically
+  should be parsing. I think that is up to the Mark serialize/deserialize but having it
+  validated correctly matters"*.
