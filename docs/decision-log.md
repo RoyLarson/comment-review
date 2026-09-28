@@ -5167,3 +5167,18 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   a mark. The TODO is addressed prose, so it is re-read against a later tree and becomes a false
   claim once the code is fixed. The probe found `mark` refusing a role's `add` into a paragraph
   it also corrects, though the two rule on different sentences: `mark-defects` T28.
+
+- **#200.** **A move's placement is settled before the marks around it; a mark at either end does
+  not accept it** (Roy, 2026-09-27, on `move-is-a-composite-mark` T40, raised when the smoke's
+  plant found the code asking a correcting reader the placement question that `#195` item 2 said
+  its `correct` had already answered). **It supersedes the second sentence of `#195` item 2**,
+  *"A `correct` or `patch` at either end accepts the placement and disputes only the words."*
+
+  Roy: *"A move is resolved first then corrections at either end are resolved against the move
+  outcome. That has to be the way it works and another mark around a move is a constested move
+  until the move is settled. then the split add/drop are settled against the other mark"*.
+
+  So every reader with a mark at either end is asked the placement, as the code does: the smoke
+  shows `collate` putting `store.py@b9 -> store.py@b8` to function-context, whose `correct` sits
+  at `b9`. Once the placement is settled the move splits, and its `drop` and `add` are settled
+  against the other marks at each end as ordinary places.
