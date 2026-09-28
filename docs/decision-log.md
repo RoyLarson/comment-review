@@ -5182,3 +5182,11 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   shows `collate` putting `store.py@b9 -> store.py@b8` to function-context, whose `correct` sits
   at `b9`. Once the placement is settled the move splits, and its `drop` and `add` are settled
   against the other marks at each end as ordinary places.
+
+- **#201.** **An end of an undecided move is `to-come`, and the chief rules the placement before
+  the ends in the same unit** (Roy, 2026-09-28, on `0.2.4-a-move-owns-its-lifecycle` P2 and P9).
+  Offered a seventh place state for an end whose text waits on its move's placement -- carried
+  forward, asking nothing -- named for the trade's TK, material not yet available, or plainly
+  `waiting`; and offered landing the held state (P2) with the chief's placement ruling (P9),
+  since once the ends wait the chief can no longer close an undecided move by ruling its ends'
+  words. Roy: *"1 - to come works 2 - P2 and P9 together works"*.
