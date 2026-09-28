@@ -276,7 +276,26 @@ class TestWhatItRefuses:
         proof["read_from"] = {"root": "somewhere else", "revise": 99}
         got, why = MasterProof.deserialize("4c", proof, VALIDATORS)
         assert got is None
-        assert "disagrees with the first edit_copy's" in why[0]
+        assert "4c: edit_copy 1's `read_from`" in why[0]
+
+    def test_a_later_copy_from_another_revise_is_refused_by_name(self, tmp_path):
+        """Every copy's `read_from` is held to the proof's, not the first
+        copy's alone: a second copy gathered from revise 1 while the first
+        names revise 0 answers to another tree."""
+        proof = a_master_proof(
+            tmp_path / "repo",
+            {
+                "block-context": {"m.py@b1": a_clean("m.py@b1")},
+                "function-context": {"m.py@b1": a_clean("m.py@b1")},
+            },
+        ).serialize()
+        proof["edit_copies"][1]["read_from"] = {
+            **proof["read_from"],
+            "revise": 1,
+        }
+        got, why = MasterProof.deserialize("4c", proof, VALIDATORS)
+        assert got is None
+        assert len(why) == 1 and "4c: edit_copy 2's `read_from`" in why[0], why
 
     def test_a_master_proof_whose_read_from_is_malformed(self, tmp_path):
         """The same shape check `_read_from_problem` runs for an edit_copy,

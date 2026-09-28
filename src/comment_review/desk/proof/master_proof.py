@@ -19,8 +19,8 @@ class MasterProof:
             "4c".
         read_from: taken from the first copy by the bus's `_on_copies`, and `{}`
             where there is none; `flows.bus._root_problems` refuses a set of
-            copies that disagree, and `deserialize` a proof whose own
-            `read_from` disagrees with its first copy's.
+            copies that disagree, and `deserialize` a proof any of whose copies
+            disagrees with its own `read_from`.
         edit_copies: one per role, or one per SHARD under fan-out.
         places: every place one fold of this stage decided. `flows.bus`
             writes it; empty until such a fold has run. Each is read by
@@ -61,15 +61,17 @@ class MasterProof:
             `(MasterProof, [])` or `(None, [messages])`. Every bad copy is
             reported, and so is a `read_from` that fails `_read_from_problem` --
             the same check `EditCopy.deserialize` runs on an edit_copy's own field --
-            or that disagrees with the first edit_copy's -- the bus's
-            `_on_copies` takes a proof's `read_from` from its first copy, so a
-            proof that disagrees was not built by it.
+            and every edit_copy whose `read_from` disagrees with the proof's is
+            named, as `edit_copy {i}`: the bus's `_on_copies` takes a proof's
+            `read_from` from its first copy and refuses copies that disagree,
+            so a proof holding one was not built by it, and a copy from another
+            tree would give the docket a sha from that tree.
 
             ! THE SHAPE CHECK RUNS WHETHER OR NOT THERE ARE COPIES, since
-            2026-08-31; the COMPARISON needs a first copy and still only runs
-            where there is one. The single exemption is an empty proof whose
-            `read_from` is `{}` or absent, which is what `_on_copies` writes
-            when it has no first copy to take one from.
+            2026-08-31; the COMPARISON needs copies and runs over each. The
+            single exemption is an empty proof whose `read_from` is `{}` or
+            absent, which is what `_on_copies` writes when it has no first copy
+            to take one from.
 
             Every place and every move is read here, and one that will not read
             is named by its position -- `place 2`, `move 1` -- and, for a
@@ -129,13 +131,16 @@ class MasterProof:
             why_header = _read_from_problem(data)
             if why_header:
                 return None, [f"{where}: master_proof's {why_header}"]
-        # !! THE COMPARISON AGAINST THE FIRST COPY STILL NEEDS ONE. An empty proof
-        # has no first copy to disagree with.
-        if copies and read_from != copies[0].read_from:
-            return None, [
-                f"{where}: `read_from` {read_from!r} disagrees with the "
-                f"first edit_copy's {copies[0].read_from!r}"
-            ]
+        # Every copy is held to the proof's `read_from`, not the first alone. An
+        # empty proof has no copy to disagree with.
+        disagree = [
+            f"{where}: edit_copy {i}'s `read_from` {copy.read_from!r} disagrees"
+            f" with the master_proof's {read_from!r}"
+            for i, copy in enumerate(copies, 1)
+            if copy.read_from != read_from
+        ]
+        if disagree:
+            return None, disagree
         # ! `.get("stage", "")` DEFAULTS ONLY WHEN THE KEY IS ABSENT. A `"stage":
         # null` reaching here is a PRESENT key holding None, so `.get` returns
         # None and `str(None)` is the four-character word "None" -- folded into
