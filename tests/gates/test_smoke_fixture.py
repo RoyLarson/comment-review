@@ -35,7 +35,9 @@ from comment_review.desk.marks.mark import (  # noqa: E402
     first_word_dropped,
 )
 from comment_review.desk.marks.table import INSTRUCTIONS  # noqa: E402
+from comment_review.flows.answers import slot_key  # noqa: E402
 from comment_review.flows.fill import marks_on  # noqa: E402
+from comment_review.flows.human import HumanAnswer, read_answers  # noqa: E402
 from comment_review.flows.page_for import page_of  # noqa: E402
 
 
@@ -266,19 +268,37 @@ class TestEveryRowOfTheThreeTablesIsPlanted(unittest.TestCase):
         self.assertEqual(planted, {str(one) for one in INSTRUCTIONS})
 
     def test_every_answer_is_given_under_the_question_it_answers(self):
+        """The first turn's answers, and the second turn's placements: a
+        placement is answered by move in either turn, so `question_at` reads
+        its question off the key, while a place's question in the second turn
+        is whatever the first left it carried as, which `ESCALATED` does not
+        record."""
         planted = {
-            (smoke_fixture.question_at(address), str(fields["instruction"]))
-            for given in smoke_fixture.ANSWERS.values()
-            for address, fields in given.items()
+            (smoke_fixture.question_at(key), str(fields["instruction"]))
+            for table in (smoke_fixture.ANSWERS, smoke_fixture.ANSWERS2)
+            for given in table.values()
+            for key, fields in given.items()
+            if table is smoke_fixture.ANSWERS or smoke_fixture.MOVE_KEY in key
         }
         # The `clean`s `write_answers` fills in are not in `ANSWERS` itself.
         planted.add(("composition", "clean"))
-        # Placement answers require moves; the smoke fixture tests single-place edits.
-        # Removed by TODO/move-is-a-composite-mark.md T34.
-        expected = {
-            (str(q), name) for q, name in ANSWER_ROWS if q != Question.PLACEMENT
+        self.assertEqual(planted, {(str(q), name) for q, name in ANSWER_ROWS})
+
+    def test_each_placement_is_keyed_by_a_move_the_plant_files(self):
+        """A placement answer's key names a move some role files: its origin
+        is a place whose `filed` holds a `move`, and so is its destination."""
+        keys = {
+            key
+            for table in (smoke_fixture.ANSWERS, smoke_fixture.ANSWERS2)
+            for given in table.values()
+            for key in given
+            if smoke_fixture.question_at(key) == str(Question.PLACEMENT)
         }
-        self.assertEqual(planted, expected)
+        self.assertTrue(keys)
+        for key in keys:
+            origin, destination = key.split(smoke_fixture.MOVE_KEY)
+            for end in (origin, destination):
+                self.assertIn("move", smoke_fixture.LANDINGS[end].filed, key)
 
     def test_every_query_shape_is_answered(self):
         """A `query` is one answer row and two effects, which the shape
@@ -292,6 +312,32 @@ class TestEveryRowOfTheThreeTablesIsPlanted(unittest.TestCase):
             if fields["instruction"] == "query"
         }
         self.assertEqual(planted, {str(one) for one in Shape})
+
+    def test_every_human_question_is_answered_and_replaced(self):
+        """Each question `HUMAN` answers is one the plant asks -- a
+        human-review query in `ANSWERS` or at a place the mark stage queries
+        -- and each is replaced once answered, in `REPLACED_MARKS` or
+        `REPLACED_ANSWERS`, so no query reaches the fold (`decision-log.md
+        Process: #197`)."""
+        human = [one for asked in smoke_fixture.HUMAN.values() for one in asked]
+        asked_in_answers = {
+            (role, key)
+            for role, given in smoke_fixture.ANSWERS.items()
+            for key, fields in given.items()
+            if fields.get("claim", {}).get("shape") == str(Shape.HUMAN_REVIEW_NECESSARY)
+        }
+        replaced = {
+            (smoke_fixture.ASKER, address) for address in smoke_fixture.REPLACED_MARKS
+        } | {
+            (role, key)
+            for role, given in smoke_fixture.REPLACED_ANSWERS.items()
+            for key in given
+        }
+        answered = {(one["role"], one["at"]) for one in human}
+        self.assertEqual(answered, replaced)
+        self.assertLessEqual(asked_in_answers, answered)
+        for address in smoke_fixture.REPLACED_MARKS:
+            self.assertIn("query", smoke_fixture.LANDINGS[address].filed, address)
 
     def test_every_disposition_is_ruled_and_taken_in_takes_both_sides(self):
         ruled = {str(one["answer"]) for one in smoke_fixture.DISPOSITIONS}
@@ -510,7 +556,12 @@ class TestWriteAnswersWritesWhatTheScriptReads(unittest.TestCase):
         for role, given in smoke_fixture.ANSWERS.items():
             self.assertEqual(paths[role], self.run_dir / f"answers-{role}.json", role)
             written = json.loads(paths[role].read_bytes())
-            by_address = {entry.pop("address"): entry for entry in written}
+            # A placement is written at its move's origin with the destination
+            # as `to`, so one role can answer a place and a move out of it.
+            by_address = {slot_key(entry): entry for entry in written}
+            for entry in written:
+                entry.pop("address")
+                entry.pop("to", None)
             self.assertEqual(len(by_address), len(written), role)
             cleans = {
                 address: {
@@ -521,3 +572,54 @@ class TestWriteAnswersWritesWhatTheScriptReads(unittest.TestCase):
                 if address not in given and role != proposer
             }
             self.assertEqual(by_address, {**given, **cleans}, role)
+
+
+class TestWriteHumanWritesWhatTheCommandsRead(unittest.TestCase):
+    """`write_human` writes the answers file `collate`, `turn` and `check`
+    read with `--human`, read here by the same `flows.human.read_answers`
+    they read it with, and grown one command's answers at a time; and
+    `replace_answers` swaps the asking role's query for its replacement and
+    nothing else."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.run_dir = Path(self.tmp.name)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def read(self, path: Path) -> list[HumanAnswer]:
+        answers, problems = read_answers(path.read_text(encoding="utf-8"), str(path))
+        self.assertEqual(problems, [])
+        return answers
+
+    def test_each_stage_writes_its_own_answers_and_every_earlier_one(self):
+        wanted: list[HumanAnswer] = []
+        for stage, asked in smoke_fixture.HUMAN.items():
+            wanted += [HumanAnswer(**one) for one in asked]
+            path = smoke_fixture.write_human(self.run_dir, stage)
+            self.assertEqual(path, self.run_dir / "human.toml")
+            self.assertEqual(self.read(path), wanted, stage)
+        replaced = json.loads((self.run_dir / "human-replaced.json").read_bytes())
+        self.assertEqual(
+            replaced,
+            [
+                {"role": smoke_fixture.ASKER, "address": a, "instruction": i}
+                for a, i in smoke_fixture.REPLACED_MARKS.items()
+            ],
+        )
+
+    def test_replace_answers_swaps_the_query_and_nothing_else(self):
+        smoke_fixture.write_answers(self.run_dir)
+        paths = smoke_fixture.replace_answers(self.run_dir)
+        for role, replaced in smoke_fixture.REPLACED_ANSWERS.items():
+            written = json.loads(paths[role].read_bytes())
+            before = smoke_fixture.answers_for(role)
+            self.assertEqual(len(written), len(before), role)
+            for now, was in zip(written, before, strict=True):
+                if slot_key(was) in replaced:
+                    self.assertEqual(
+                        now, {"address": was["address"], **replaced[slot_key(was)]}
+                    )
+                else:
+                    self.assertEqual(now, was)

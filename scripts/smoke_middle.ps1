@@ -192,11 +192,18 @@ $ProofDir = Join-Path $Run 'proof'
 $ExpectedDir = Join-Path $Run 'expected'
 # The partial approval (Process #192): the places the author approved, the
 # revise `proof --only` pulls for them, the page that revise must hold, and
-# the revise root the half-a-move refusal must not create.
+# the same two for the approval of one end of an agreed move alone
+# (Process #195 item 5).
 $ApprovalFile = Join-Path $Run 'approval.json'
 $PartialDir = Join-Path $Run 'partial'
 $PartialExpectedDir = Join-Path $Run 'partial-expected'
-$HalfAMoveDir = Join-Path $Run 'half-a-move'
+$OneEndDir = Join-Path $Run 'one-end'
+$OneEndExpectedDir = Join-Path $Run 'one-end-expected'
+# The author's answers to the roles' human questions (Process #197, #198):
+# the TOML answers file `collate`, `turn` and `check` read with --human, and
+# the places whose query the asking role replaces once it is answered.
+$HumanFile = Join-Path $Run 'human.toml'
+$HumanReplacedFile = Join-Path $Run 'human-replaced.json'
 $RoleDraftDir = Join-Path $Run 'role-draft'
 $RoleExpectedDir = Join-Path $Run 'role-expected'
 $CollideCopyFile = Join-Path $Run 'collide-copy.json'
@@ -267,6 +274,66 @@ $WidenedProofFile = Join-Path $Run 'proof3-widened.json'
 # The one-liner that writes the three fixture files into a directory, used by
 # the fixture stage and by the second tree the root refusal sub-plant gathers.
 $WriteFixtures = 'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_fixture, write_rate_fixture, write_store_fixture; root = Path(sys.argv[1]); write_fixture(root); write_rate_fixture(root); write_store_fixture(root)'
+
+# Stops the script unless every line in -Expected is one of the lines a
+# command printed, whole. A command's report names each human question on a
+# line of its own, so a line matched whole is the question and its answer as
+# the command put them, not a fragment that could sit inside another line.
+function Assert-Lines {
+    param(
+        [Parameter(Mandatory)] [string]$Stage,
+        [Parameter(Mandatory)] [AllowEmptyCollection()] [string[]]$Printed,
+        [Parameter(Mandatory)] [string[]]$Expected,
+        [Parameter(Mandatory)] [string[]]$CommandLine
+    )
+    $missing = @($Expected | Where-Object { @($Printed) -notcontains $_ })
+    if ($missing.Count -gt 0) {
+        Write-Host "stage failed: $Stage"
+        Write-Host 'expected the lines:'
+        $missing | ForEach-Object { Write-Host "  $_" }
+        Write-Host 'the command printed:'
+        $Printed | Out-Host
+        Write-Host "command: $(Format-CommandLine $CommandLine)"
+        exit 1
+    }
+}
+
+# Stops the script if a command that rolled back wrote any of -Paths.
+function Assert-NotWritten {
+    param(
+        [Parameter(Mandatory)] [string]$Stage,
+        [Parameter(Mandatory)] [string[]]$Paths
+    )
+    foreach ($written in $Paths) {
+        if (Test-Path -LiteralPath $written) {
+            Write-Host "stage failed: $Stage"
+            Write-Host "a rolled-back command wrote $written"
+            exit 1
+        }
+    }
+}
+
+# The lines a command prints for the human questions `write_human` answers
+# up to -Stage: `asks the human <at>: <role> -- <question>; <tail>` before
+# the answer is recorded, `answered by the human <at>: <role> -- <answer>;
+# <tail>` once it is. The tail is the command's own, so each caller names it,
+# writing {role} where the command names the role that asked.
+function Get-HumanLines {
+    param(
+        [Parameter(Mandatory)] [string]$Stage,
+        [Parameter(Mandatory)] [ValidateSet('asks', 'answered')] [string]$As,
+        [Parameter(Mandatory)] [string]$Tail
+    )
+    $json = & uv run python -c 'import json, sys; sys.path.insert(0, "scripts"); from smoke_fixture import HUMAN; print(json.dumps(HUMAN[sys.argv[1]]))' $Stage
+    foreach ($one in ($json | ConvertFrom-Json)) {
+        $end = $Tail.Replace('{role}', $one.role)
+        if ($As -eq 'asks') {
+            "asks the human $($one.at): $($one.role) -- $($one.question); $end"
+        } else {
+            "answered by the human $($one.at): $($one.role) -- $($one.answer); $end"
+        }
+    }
+}
 
 # Each entry is one stage's work, and the chain as this script leaves it ends
 # at diff. Each block runs in its own scope, so a variable a stage assigns is
@@ -477,8 +544,9 @@ $Stages = [ordered]@{
             '--reason', 'the decorator is why wrapper still looks like fn',
             '--cite', 'fib.py:12', '--repo', $OriginalDir
         ))
-        # a1 -- the human query nothing settles. block-context raises it; the
-        # other three have nothing to add.
+        # a1 -- a human query. block-context raises it; the other three have
+        # nothing to add. `check` names it and the collate stage has the
+        # author answer it and block-context replace it before the fold.
         Invoke-Checked -Stage 'mark a1 block-context query' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'fib.py@a1',
             '--instruction', 'query', '--shape', 'human-review-necessary',
@@ -844,12 +912,14 @@ $Stages = [ordered]@{
                 '--cite', 'store.py:7', '--repo', $OriginalDir
             ))
         }
-        # store.py@b5 -- the move a role holds for the human. module-context
-        # moves the whole paragraph to store.py@b12, the closing gap, so its
-        # `--change` and its `--raw-text` are one text; block-context reads
-        # the same place and marks a human-review query. Both ends of the
-        # move then ride to the end unruled and print as one entry naming
-        # both (Process #182). The other two roles defer.
+        # store.py@b5 -- the held placement. module-context moves the whole
+        # paragraph to store.py@b12, the gap between the last two
+        # functions, so its `--change` and its `--raw-text` are one text;
+        # block-context reads the same place and marks a human-review query.
+        # The collate stage has the author answer it and block-context
+        # replace it with a clean, which leaves it owed a say on the
+        # placement; it stets the move in both turns and the chief rules
+        # each end in DISPOSITIONS. The other two roles defer.
         Invoke-Checked -Stage 'mark store.py@b5 module-context move' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', 'store.py@b5',
             '--instruction', 'move', '--from', 'store.py@b5', '--to', 'store.py@b12',
@@ -917,14 +987,14 @@ $Stages = [ordered]@{
                 '--cite', 'store.py:13', '--repo', $OriginalDir
             ))
         }
-        # store.py@b9 -- the contested move. block-context moves the whole
+        # store.py@b9 -- the agreed move. block-context moves the whole
         # paragraph up to store.py@b8, the gap above the declaration it
         # describes; function-context rewords it where it stands. The two
-        # texts do not compose, so the origin is an escalation, and a move's
-        # two places take one state, so the destination is carried with it.
-        # Both roles hold in the turn and the chief rules each end in
-        # DISPOSITIONS -- which is what a run could not do until 2026-09-18,
-        # when the dispositions pass read a state the pairing had not reached.
+        # texts do not compose, so the origin is an escalation, and
+        # function-context is owed a say on the placement. It agrees in the
+        # first turn, the move is split into block-context's drop at b9 and
+        # add at b8, and the chief rules the drop against the rewording in
+        # DISPOSITIONS (Process #195).
         Invoke-Checked -Stage 'mark store.py@b9 block-context move' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'store.py@b9',
             '--instruction', 'move', '--from', 'store.py@b9', '--to', 'store.py@b8',
@@ -953,13 +1023,11 @@ $Stages = [ordered]@{
         # takes the paragraph's second sentence to store.py@b10, the gap above
         # the declaration; block-context rewords that same sentence where it
         # stands. The two texts do not compose, so the origin is an escalation
-        # put to both, and the destination is a composition put to
-        # block-context alone -- the two roles that defer at the origin defer
-        # on the move, so nothing is owed them at its other end. Both roles
-        # hold in the first turn; in the second, module-context withdraws at
-        # the origin and the move is off at both of its ends (Process #129),
-        # which is what the smoke ran no second turn to reach until
-        # 2026-09-18.
+        # put to both, and block-context is owed a say on the placement -- the
+        # two roles that defer at the origin defer on the move. block-context
+        # stets it in the first turn, so it is put again to both roles; in
+        # the second, module-context withdraws it and the move is off at both
+        # of its ends (Process #129, #195).
         Invoke-Checked -Stage 'mark store.py@b11 module-context move' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', 'store.py@b11',
             '--instruction', 'move', '--from', 'store.py@b11', '--to', 'store.py@b10',
@@ -1003,11 +1071,25 @@ $Stages = [ordered]@{
     # exit codes an escalation outranks a place a role left unruled, so a
     # copy short of a ruling would still meet that expectation. `check`
     # exits 1 on it.
+    #
+    # block-context's copy holds the two human-review queries the mark stage
+    # planted, at fib.py@a1 and store.py@b5, and nothing else the fold would
+    # send back, so `check` names each question and exits 5 (ASKS_THE_HUMAN)
+    # rather than 1: the role's part is done, and the task agent asks the
+    # author before `collate` folds (Process #197). The other three exit 0.
     check = {
         foreach ($role in $Roles) {
-            Invoke-Checked -Stage "check $role" -CommandLine ($Launcher + @(
+            $checkCopy = $Launcher + @(
                 $Cmd.check, '--edit-copy', $CopyFile[$role], '--binder', $BinderFile
-            ))
+            )
+            if ($role -ne 'block-context') {
+                Invoke-Checked -Stage "check $role" -CommandLine $checkCopy
+                continue
+            }
+            $printed = Invoke-Checked -Stage "check $role asks the human" -Expect 5 -Capture -CommandLine $checkCopy
+            Assert-Lines -Stage "check $role asks the human" -Printed $printed -CommandLine $checkCopy -Expected @(
+                Get-HumanLines -Stage 'collate' -As 'asks' -Tail "this is the role's part done -- hand the copy back, and the task agent asks it"
+            )
         }
         # no-command-for-the-middle T99: check resolves a move's destination
         # against the real page, as collate does. A copy of module-context's
@@ -1160,13 +1242,47 @@ $Stages = [ordered]@{
     # turn's batch. The plant's disagreements make this exit 4 (escalation
     # outranks re-read in `collate`'s own exit-code contract) rather than 0;
     # `turn` below is the other stage that `-Expect`s something else.
+    #
+    # Before it folds, the two human questions `check` named are answered
+    # (Process #197, #198). `write_human` records the author's answers in the
+    # TOML answers file; `collate --human` still rolls the round back while a
+    # query stands, exit 5, printing each question with its answer and
+    # writing nothing. block-context then replaces each query as
+    # human-replaced.json says -- `mark --withdraw`, then the mark it files in
+    # its place -- `check` passes its copy, and `collate` folds.
     collate = {
         $copies = foreach ($role in $Roles) { '--edit-copy', $CopyFile[$role] }
-        Invoke-Checked -Stage 'collate' -Expect 4 -CommandLine ($Launcher + @(
+        $collateLine = $Launcher + @(
             $Cmd.collate, '--stage', '4', '--binder', $BinderFile, '--topology', $TopologyFile
         ) + $copies + @(
-            '--out', $ChiefFile, '--proof-out', $Proof0File, '--batch-out', $Batch1File
+            '--out', $ChiefFile, '--proof-out', $Proof0File, '--batch-out', $Batch1File,
+            '--human', $HumanFile
+        )
+        Invoke-Checked -Stage 'plant-human' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_human; write_human(Path(sys.argv[1]), "collate")',
+            $Run
+        )
+        $printed = Invoke-Checked -Stage 'collate asks the human' -Expect 5 -Capture -CommandLine $collateLine
+        Assert-Lines -Stage 'collate asks the human' -Printed $printed -CommandLine $collateLine -Expected @(
+            Get-HumanLines -Stage 'collate' -As 'answered' -Tail '{role} replaces this query with its mark or answer'
+        )
+        Assert-NotWritten -Stage 'collate asks the human' -Paths @($ChiefFile, $Proof0File, $Batch1File)
+        foreach ($one in (Get-Content -LiteralPath $HumanReplacedFile -Raw | ConvertFrom-Json)) {
+            Invoke-Checked -Stage "replace $($one.address) $($one.role) query" -CommandLine ($Launcher + @(
+                $Cmd.mark, '--edit-copy', $CopyFile[$one.role], '--address', $one.address,
+                '--withdraw'
+            ))
+            Invoke-Checked -Stage "replace $($one.address) $($one.role) $($one.instruction)" -CommandLine ($Launcher + @(
+                $Cmd.mark, '--edit-copy', $CopyFile[$one.role], '--address', $one.address,
+                '--instruction', $one.instruction, '--repo', $OriginalDir
+            ))
+        }
+        Invoke-Checked -Stage 'check block-context replaced' -CommandLine ($Launcher + @(
+            $Cmd.check, '--edit-copy', $CopyFile['block-context'], '--binder', $BinderFile,
+            '--human', $HumanFile
         ))
+        Invoke-Checked -Stage 'collate' -Expect 4 -CommandLine $collateLine
         # Process #178, beside the main line: the same fixture written to a
         # second tree, gathered, and a copy seeded from that binder. Handed to
         # `collate` alongside the four real copies it is one copy from another
@@ -1267,10 +1383,12 @@ $Stages = [ordered]@{
     # slot left unanswered, which `turn` refuses the whole round for. Then
     # `turn` folds all four roles' answers onto the places the proof carries;
     # it reads neither the binder nor the batch, since the places say who
-    # each was put to. The answers leave b8 and c3 holding an add beside
-    # another role's answer to it, a3, b9 and c1 with texts no role has taken,
-    # and the two moves whose ends are still open, so nine places are carried
-    # forward and `turn`, whose exit codes are `collate`'s, exits 4.
+    # each was put to. The answers also settle the placement of each move the
+    # fold left open: one agreed and split, two stetted and contested. They
+    # leave b8 and c3 holding an add beside another role's answer to it, a3,
+    # b9 and c1 with texts no role has taken, store.py@b9 and b11 with two
+    # texts each, and the ends of the two contested moves, so places are
+    # carried forward and `turn`, whose exit codes are `collate`'s, exits 4.
     turn = {
         Invoke-Checked -Stage 'plant-answers' -CommandLine @(
             'uv', 'run', 'python', '-c',
@@ -1285,10 +1403,20 @@ $Stages = [ordered]@{
             # No --repo: the slots the batch sent name the tree they were read
             # from, so the check resolves an answer's citations against it
             # without being told where the checkout is.
-            Invoke-Checked -Stage "check answers $role" -CommandLine ($Launcher + @(
+            $checkAnswers = $Launcher + @(
                 $Cmd.check, '--answers', $answerFile[$role], '--sent', $Batch1File,
                 '--role', $role
-            ))
+            )
+            if ($role -ne 'block-context') {
+                Invoke-Checked -Stage "check answers $role" -CommandLine $checkAnswers
+                continue
+            }
+            # block-context answers fib.py@b15 with a human-review query, which
+            # `check` names and exits 5 for, as it did for the copy.
+            $printed = Invoke-Checked -Stage "check answers $role asks the human" -Expect 5 -Capture -CommandLine $checkAnswers
+            Assert-Lines -Stage "check answers $role asks the human" -Printed $printed -CommandLine $checkAnswers -Expected @(
+                Get-HumanLines -Stage 'turn' -As 'asks' -Tail "this is the role's part done -- hand the copy back, and the task agent asks it"
+            )
         }
         # Process #181, beside the main line: the same role's answers with one
         # source cited past the end of the page it names. An answer's sources
@@ -1334,22 +1462,48 @@ $Stages = [ordered]@{
                 exit 1
             }
         }
+        # The human question the turn's answers put, answered before the turn
+        # folds (Process #197, #198), as collate's were: the author's answer
+        # is added to the answers file, `turn --human` rolls back with exit 5
+        # and writes nothing while the query stands, block-context rewrites
+        # its answer as `REPLACED_ANSWERS` says, `check` passes the file, and
+        # the turn folds.
         $answers = foreach ($role in $Roles) { '--answers', "$role=$($answerFile[$role])" }
-        Invoke-Checked -Stage 'turn' -Expect 4 -CommandLine ($Launcher + @(
+        $turnLine = $Launcher + @(
             $Cmd.turn, '--proof', $Proof0File
         ) + $answers + @(
-            '--proof-out', $Proof1File, '--batch-out', $Batch2File
+            '--proof-out', $Proof1File, '--batch-out', $Batch2File, '--human', $HumanFile
+        )
+        Invoke-Checked -Stage 'plant-human-turn' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_human; write_human(Path(sys.argv[1]), "turn")',
+            $Run
+        )
+        $printed = Invoke-Checked -Stage 'turn asks the human' -Expect 5 -Capture -CommandLine $turnLine
+        Assert-Lines -Stage 'turn asks the human' -Printed $printed -CommandLine $turnLine -Expected @(
+            Get-HumanLines -Stage 'turn' -As 'answered' -Tail '{role} replaces this query with its mark or answer'
+        )
+        Assert-NotWritten -Stage 'turn asks the human' -Paths @($Proof1File, $Batch2File)
+        Invoke-Checked -Stage 'replace-answers' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import replace_answers; replace_answers(Path(sys.argv[1]))',
+            $Run
+        )
+        Invoke-Checked -Stage 'check answers block-context replaced' -CommandLine ($Launcher + @(
+            $Cmd.check, '--answers', $answerFile['block-context'], '--sent', $Batch1File,
+            '--role', 'block-context', '--human', $HumanFile
         ))
+        Invoke-Checked -Stage 'turn' -Expect 4 -CommandLine $turnLine
     }
     # The second turn, over the batch the first one wrote. `write_answers2`
     # writes each role's answers from `ANSWERS2` in smoke_fixture.py, which
     # answers every slot that batch carries by name. It is where the withdrawn
-    # move is answered: its mover held at the origin in the first turn and
-    # withdraws here, so the move comes off both of its ends -- including the
-    # destination, which settled on the moved text in the first turn and is
-    # carried forward only by its partner. Every other place the batch asks
-    # about is one the chief rules below, and the answers keep each of them
-    # carried forward, so `turn` exits 4 again.
+    # move is answered: stetted in the first turn, its placement is put again
+    # to its mover, which withdraws it here, so the move comes off both of
+    # its ends, and to the role that stetted, which defers with a placement
+    # query. The held placement is put again too, and stays contested. Every
+    # other place the batch asks about is one the chief rules below, and the
+    # answers keep each of them carried forward, so `turn` exits 4 again.
     turn2 = {
         Invoke-Checked -Stage 'plant-answers2' -CommandLine @(
             'uv', 'run', 'python', '-c',
@@ -1425,10 +1579,8 @@ $Stages = [ordered]@{
     # `proof --only` sets those and nothing else. Its revise holds `store.py`
     # alone -- the only page those two places sit on -- and the diff is
     # against a page written by hand as the fixture with those two places set,
-    # so a run that set a third place, or set neither, fails here. The
-    # sub-plant names one end of the move the chief took in at both ends: a
-    # move is one decision at two places, and setting one end alone would
-    # write the paragraph twice or lose it.
+    # so a run that set a third place, or set neither, fails here. A second
+    # approval names one end of the agreed move alone, which is set as named.
     partial = {
         Invoke-Checked -Stage 'plant-approval' -CommandLine @(
             'uv', 'run', 'python', '-c',
@@ -1456,22 +1608,27 @@ $Stages = [ordered]@{
             Write-Host 'what the partial approval did -- the original against it:'
             & git -c core.autocrlf=false --no-pager diff --no-index -- $OriginalDir $PartialDir | Out-Host
         }
-        $halfAMove = $Launcher + @(
+        # One end of the agreed move alone. After the split its two ends are
+        # a `drop` and an `add`, approved each on its own (Process #195 item
+        # 5), so `proof --only` sets the arrival it names and leaves the
+        # departure it does not, and the diff is against the fixture with
+        # that one place set.
+        Invoke-Checked -Stage 'one end approved' -CommandLine ($Launcher + @(
             $Cmd.proof, '--proof', $FinalFile, '--repo', $OriginalDir,
-            '--only', $approval.'half-a-move', '--out', $HalfAMoveDir
+            '--only', $approval.'one-end', '--out', $OneEndDir
+        ))
+        New-Item -ItemType Directory -Path $OneEndExpectedDir | Out-Null
+        Invoke-Checked -Stage 'one end expected' -CommandLine @(
+            'uv', 'run', 'python', '-c',
+            'import sys; sys.path.insert(0, "scripts"); from pathlib import Path; from smoke_fixture import write_one_end_expected; write_one_end_expected(Path(sys.argv[1]))',
+            $OneEndExpectedDir
         )
-        $refused = Invoke-Checked -Stage 'only one end of a move refused' -Expect 1 -Capture -CommandLine $halfAMove
-        if (-not (($refused -join "`n").Contains('the other end of a move'))) {
-            Write-Host 'stage failed: only one end of a move refused'
-            Write-Host 'expected a refusal naming the end left out; proof printed:'
-            $refused | Out-Host
-            Write-Host "command: $(Format-CommandLine $halfAMove)"
-            exit 1
-        }
-        if (Test-Path -LiteralPath $HalfAMoveDir) {
-            Write-Host 'stage failed: only one end of a move refused'
-            Write-Host "a refused approval pulled a revise into $HalfAMoveDir"
-            exit 1
+        Invoke-Checked -Stage 'one end diff' -CommandLine @(
+            'git', '-c', 'core.autocrlf=false', '--no-pager', 'diff', '--no-index', '--',
+            $OneEndExpectedDir, $OneEndDir
+        ) -OnFailure {
+            Write-Host 'what approving one end did -- the original against it:'
+            & git -c core.autocrlf=false --no-pager diff --no-index -- $OriginalDir $OneEndDir | Out-Host
         }
     }
     # The second stage, which reads what the first one pulled. Its topology row
