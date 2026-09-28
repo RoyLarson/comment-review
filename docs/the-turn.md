@@ -89,17 +89,18 @@ carried-forward place the chief left unruled, so the close cannot happen with on
 
 ---
 
-## The place, and the six states
+## The place, and the seven states
 
 **A place is the aggregate the middle decides** -- `desk/evaluate/place.py`. It carries its
 address and anchor, its base text as the page holds it (read by the collate handler, below), the
 roles whose copies held that page
 (`readers`), every mark filed on it with the role that filed it and which end of a move it is
 (`filed`), each turn's answers by role, the chief's disposition where there is one, and what
-the passes decide: `state`, `text`, `sides`, `reasons`, `notes`, `asking`, `owed`, `question`
-and `partner`.
+the passes decide: `state`, `text`, `sides`, `reasons`, `notes`, `asking`, `owed` and
+`question`. A move is an aggregate of its own, over its two places --
+`desk/evaluate/move.py`, below.
 
-**The six states are `desk/evaluate/state.py`'s own closed set.**
+**The seven states are `desk/evaluate/state.py`'s own closed set.**
 
 | state | when a place is in it | what becomes of it |
 | --- | --- | --- |
@@ -109,6 +110,7 @@ and `partner`.
 | `contested` | proposals that will not compose against the base | carried forward, asking an `escalation` |
 | `unsettlable` | a `query` of shape `human-review-necessary` is filed here, or an answer of that shape is given | rides to the author; no later pass changes it |
 | `refused` | a mark or an answer its table will not read | back to the role, and the fold rolls back |
+| `to-come` | an end of a move whose placement is undecided | waits on the placement; holds no text, is put to no role, takes no ruling |
 
 **Carried forward is `composed` and `contested`, and the set has a name.**
 `desk.evaluate.state.CARRIED` is those two, and every reader of "is this still open" asks it:
@@ -124,7 +126,7 @@ Nothing outside the three names an instruction, an answer or a disposition, whic
 | table | rows | what a row answers |
 | --- | --- | --- |
 | `desk/marks/table.py` | the seven instructions | the `claim` keys and which one quotes the paragraph; which places it `touches`; what it `sets` at a touch; what it `reads` as a problem; what it `notes` for the chief; how it `pairs` with the others; which `answers` a turn may give on it |
-| `desk/answers/table.py` | eight, keyed by `(question, name)` | which question it answers, its `effect` on the role's own side, whether that effect `reaches_partner` -- the other place of a two-place mark the answering role filed -- whether it owes a `change`, and the `claim` keys it owes |
+| `desk/answers/table.py` | twelve, keyed by `(question, name)` | which question it answers, its `effect` on the role's own side or on the move, whether it owes a `change`, and the `claim` keys it owes |
 | `desk/dispositions/table.py` | `taken_in` and `recast` | which states it `closes`, what it `owes`, and the text it `sets` |
 
 **The `Row` shape is declared once**, in `desk/marks/table.py`, and the other two tables have
@@ -138,30 +140,25 @@ for a place the fold settled on its own -- see *What each command prints*, below
 
 ## The passes, and the one order they run in
 
-`desk.evaluate.passes.decide(places, turn)` is the whole sequence and the only entry:
+`desk.evaluate.passes.decide(places, moves, turn)` is the whole sequence and the only entry:
 
+    for each move      placement_pass, with the chief's placement ruling where
+                       there is one; then settle_ends, which splits an agreed
+                       move into its drop and add, or takes a withdrawn one off
     for each place     marks_pass, then answers_pass once per turn up to `turn`
-    pair_moves         a move's two ends take the worse of their two states
+    for each move      hold_ends: an undecided move's ends are `to-come`; a
+                       held one's are unsettlable; a refused one refuses both
     for each place     dispositions_pass
-    pair_moves         again
-    refuse_half_moves  a move whose filer holds a side at one of its ends and
-                       none at the other is refused back to that role
 
-**The dispositions pass reads the paired state, and did not until 2026-09-18.** A move's origin
-that nobody else marked is `agreed` on its own and `contested` once paired, so with the pass
-running before the pairing the chief's ruling was measured against a state its own report had
-not printed: a run reported both ends contested, put them to both roles, wrote `contested` on
-the proof, and then refused every ruling with *"taken_in cannot close a place that is agreed"*.
-The chief could not close a contested move at all.
+**A move's placement is decided before either end's words** -- `decision-log.md Process: #195`
+and `#200`. So the placement pass and the split run first, and the ends are then read as
+ordinary places; `hold_ends` runs after them and before the chief's pass, so a `to-come` end is
+what the chief's pass sees, and a ruling there is refused rather than closing words the move's
+outcome may change.
 
-**And `decide` takes the places, not one place**, for that reason. A caller holding one place
-cannot pair anything, so there is no single-place entry left to call in the wrong order. The
-three passes stay public and `tests/test_passes.py` drives them one at a time.
-
-**The second pairing is the chief's own refusal travelling.** Two ends the chief closed are
-both `stands`, so the guard touches neither and each keeps the text its own ruling set. What it
-carries is a ruling `dispositions_pass` refused: a move refused at one end rolls back both, as
-it does when the refusal comes from the marks.
+**And `decide` takes the places and the moves together.** `desk.work.fold.Fold` finds the moves
+on its own places (`moves_in`), so a caller cannot fold a move's two ends as unrelated places.
+The passes stay public and `tests/test_passes.py` drives them one at a time.
 
 ## A text settles only when every role that read the place has had its say
 
@@ -200,16 +197,17 @@ text; marks on the same sentence do not compose and are refused back to that rol
 with *"withdraw one"*. A mark that proposes no text stands beside them: a `query` sends the
 place to the human from one role as it does from any.
 
-## The two questions a turn asks
+## The three questions a turn asks
 
-`desk.answers.answer.Question` is a closed set of two, and a slot carries which one it is.
+`desk.answers.answer.Question` is a closed set of three, and a slot carries which one it is.
 `decision-log.md Process: #49` split the turn in two and called the second *conflict*; the
-code's name is `escalation`.
+code's name is `escalation`. The third, `placement`, is asked of a move (`Process: #195`).
 
 | the question | when it is asked | the answers |
 | --- | --- | --- |
 | `composition` | this text is what the fold came to, and you have not accepted it | `clean`, `query`, `correct`, `patch` |
 | `escalation` | two or more proposals here will not compose | `hold`, `withdraw`, `correct`, `patch` |
+| `placement` | a move's placement is undecided and you are owed a say on it | `agree`, `stet`, `withdraw` (its mover), `query` |
 
 **What each answer does to the role's own side** is the row's `effect`
 (`desk.answers.table.Effect`), and it is the whole of what an answer means to the fold:
@@ -222,37 +220,17 @@ code's name is `escalation`.
     query       abstains   unless its `claim.shape` is `human-review-necessary`,
                            which makes the place unsettlable
 
-**A `withdraw` on a move reaches both of its ends, and it is the one answer that crosses** --
-`decision-log.md Process: #129`, `#152` and `#153`. A move is one mark at two places, so the
-role that filed it holds a side at both or at neither: `withdraw` at either end takes its side
-off both. The reach is the row's `reaches_partner` and it is read wherever the mark was filed,
-including at an end this fold is not otherwise narrowing -- one end of a move settles with the
-move and not before it, which is `#190` and one step past `#91`
-(`desk.evaluate.passes.answers_pass`).
-
-**A side another role holds there only because it answered `clean` goes with the move** --
-`#188`. A `clean` is a stance toward a proposal, so with the move withdrawn there is nothing
-left to accept and the place returns to its base -- **unless another role still proposes that
-text itself**, a second move or a `correct` that came to the same words, in which case the
-acceptance stands on that proposal instead. What survives is read off the sides: a role that
-withdrew holds none, and a role whose own side is an acceptance proposes nothing.
-
-**And the role that withdrew is not asked again at the other end** -- `#190`. Its answer is
-recorded at the end it was written at, so the other end cannot see it; `owed_a_say` is handed
-the roles the reach brought, and counts each as having had its say here. Without that the
-destination of a withdrawn move goes back to the mover as a composition, asking about a move
-the mover has already withdrawn.
-
-**A `correct` or a `patch` lands at the end it was written at.** The two ends hold different
-texts -- the origin its paragraph with the snippet gone, the destination its paragraph with the
-snippet in -- so neither can be carried to the other, and `#129` rules the replacement changes
-the move's text where it is given. A role that withdraws at one end and replaces at the other
-leaves the move half done, and `desk.evaluate.passes.refuse_half_moves` sends it back naming
-both addresses rather than committing one half of it -- `#189`, which reads it as `#154` reads
-an ambiguous move: a conflict that goes back to the role.
+**A move is answered on the move, once, for the pair** -- `decision-log.md Process: #195`.
+The placement slot names both addresses and every mover's snippet and arrival, and its answer is
+recorded on the move rather than at either end. `agree` accepts the placement, `stet` contests
+it for the chief, a mover's `withdraw` takes the move off both ends, and a `query` of shape
+`human-review-necessary` holds both ends for the author. No answer at an end reaches the move:
+while the placement is undecided the ends are `to-come` and are put to nobody (`#200`), so there
+is no end answer to reach it. Once the move is split, a `correct` or a `patch` at an end is an
+answer on that place alone, like any other.
 
 **Only `clean` and `query` owe no `change`**, and that is read off the row's `owes_change`
-rather than from a list anybody typed. `check --contract` prints the two questions, the answers
+rather than from a list anybody typed. `check --contract` prints the three questions, the answers
 each admits, which owe a change and the `claim` keys each owes, all generated from this table by
 `flows.answers.contracts`.
 
@@ -281,24 +259,30 @@ side that proposed nothing here. `flows.bus._on_dispositions` refuses a ruling a
 nothing carries forward, and refuses a carried-forward place left unruled, naming the roles it
 was put to. Any refusal rolls the round back and nothing is written.
 
-**The chief rules each end of a move, and may rule them differently.** A `taken_in` at both
-ends puts one entry on the chief's copy, the `move` at its origin; a `taken_in` at one end and
-a `recast` at the other puts two, each end written from its own decided text.
-`desk.marks.table._sets_both_ends` is what decides between them: a two-place mark is taken in
-only where its partner closed on what that mark sets there, because a move whose destination
-was recast is not what happened.
+**The chief rules an undecided move's placement once, then its ends** --
+`decision-log.md Process: #195` item 4, `#200` and `#201`. While a move's placement is open or
+contested, both of its ends are `to-come`: each holds no text, is put to no role and takes no
+ruling (`desk.evaluate.move.hold_ends`). A reader answers the placement on a question of its
+own, `agree`, `stet`, `withdraw` or `query`, in one slot for the pair that names every mover.
 
-**Narrowed 2026-09-26 -- `decision-log.md Process: #195`, not yet built.** The chief rules
-placement once for the pair, and only on a move still unresolved at max turns; an accepted
-move has been split into its `drop` and `add` before the chief sees it, and the chief rules
-the words at each end alone. A reader answers a move's placement on a question of its own,
-`agree`, `stet`, `withdraw` or `query`, beside the composition or escalation it answers on
-the words. What this section describes is the code as it stands.
+| ruling | what it carries | what it does to the move |
+| --- | --- | --- |
+| `taken_in` | `to`, the destination, and `side` -- a mover | agrees the move as that mover filed it, and splits it |
+| `taken_in` | `to`, and `side` -- `original` | withdraws the move; the paragraph stays where it is |
 
-**A move held for the human is held at both ends and prints as one entry** --
-`decision-log.md Process: #155` and `#182`. `pair_moves` gives the pair one state and clears
-the text at the end that took it, so nothing is written to a page while the question is open;
-`desk.work.fold._prints` emits the entry once, from the origin.
+The ruling is addressed by the move's origin and carries `to`; `desk.evaluate.move._ruled`
+applies it in the placement pass. `flows.bus._on_dispositions` refuses an undecided move left
+unruled, naming it by its two addresses, and a ruling at a `to-come` end. Once the placement is
+decided the move is split into the mover's `drop` and `add`, and each end is an ordinary place:
+one that needs words is carried forward in what `disposition` writes, and the chief rules it by
+running `disposition` again on that proof. A move the roles agreed reaches the chief only as its
+`drop` and `add`, and the chief rules the words at each end alone.
+
+**A move held for the human is held at both ends and reported from the move** --
+`decision-log.md Process: #155` and `#182`. `hold_ends` makes both ends `unsettlable` with no
+text, so nothing is written to a page while the question is open, and `desk.work.fold.Fold.run`
+reports the held move from the move, naming both ends. **A refused move is reported once, from
+the move**: its own reasons at its two addresses, and an end's own reasons at that end.
 
 ## What the write end reads
 
@@ -583,11 +567,12 @@ fold deleted (`0e2ff82a`).
 | a text settles only once every reader has proposed or accepted it | `Process: #180` | `desk.evaluate.passes.owed_a_say` |
 | one role's marks at one place compose | `Process: #179` | `desk.evaluate.passes.composed_side` |
 | an answer's sources are verified before the fold | `Process: #181` | `flows.answers.answers_of` |
-| a held move is one entry naming both ends | `Process: #155`, `#182` | `desk.work.fold._prints`, `commands.collate._for_the_human` |
-| a mover's answer at either end reaches the move whole | `Process: #129`, `#152`, `#153` | `desk.answers.table.AnswerRow.reaches_partner`, `desk.evaluate.passes.answers_pass` |
-| an acceptance of a withdrawn move's text goes with it, unless another role proposes that text | `Process: #188` | `desk.evaluate.passes.answers_pass`, `_accepting` |
-| a withdrawal at one end beside a replacement at the other is refused back to the role | `Process: #189` | `desk.evaluate.passes.refuse_half_moves` |
-| one end of a move settles with the move, not before it | `Process: #190` | `desk.evaluate.passes.answers_pass`, `owed_a_say` |
+| a held move is one entry naming both ends | `Process: #155`, `#182` | `desk.work.fold.Fold.run`, `commands.collate._for_the_human` |
+| a move's placement is one question for the pair, answered on the move | `Process: #195` | `desk.evaluate.move.placement_pass`, `flows.bus._batch_of` |
+| an acceptance of a withdrawn move's text goes with it | `Process: #188` | superseded by `#200`: an end asks nothing while its move is open, so no text is accepted before the placement settles |
+| a withdrawal at one end beside a replacement at the other is refused | `Process: #189` | superseded by `#195`: a withdrawal is a placement answer on the move, and nothing withdraws half of one |
+| one end of a move settles with the move, not before it | `Process: #190`, `#200`, `#201` | `desk.evaluate.move.hold_ends`, the `to-come` state |
+| the chief rules an undecided move's placement once, then its ends | `Process: #195` item 4, `#201` | `desk.evaluate.move._ruled`, `flows.bus._on_dispositions` |
 | the dropped-words list is advisory | `Process: #163`, `#177` | `desk.marks.table._correct_notes`, `events.Advised` |
 | copies from different trees are refused | `Process: #178` | `flows.bus._root_problems` |
 | the write end reads the proof's decided places | `Process: #184` | `flows.transcribe.docket_of_proof`, `commands/proof.py` |
