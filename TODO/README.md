@@ -270,7 +270,7 @@ that changed a published name or rule:
 | [strip-before-review-experiment](strip-before-review-experiment.md) | agents | yes | 0/5 | the `collator.py` prose was deleted whole and rewritten by an agent that could read only the code -- it found three defects the old prose never mentioned and named two things the code cannot say; whether that beats editing in place is untested |
 | [collator-defects](collator-defects.md) | backend | -- | 18/43 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
 | [staged-chain-untested](staged-chain-untested.md) | backend | -- | 3/5 | the four-stage chain runs and the edits accumulate, proven 2026-08-30 -- but no test in the suite drives it, and the only committed fan-out topology refuses any tree but this repo's |
-| [containers-and-verification-are-unwired](containers-and-verification-are-unwired.md) | backend | -- | 31/56 | The containers and the source-verification half are wired to nothing |
+| [containers-and-verification-are-unwired](containers-and-verification-are-unwired.md) | backend | -- | 31/60 | The containers and the source-verification half are wired to nothing |
 | [mark-holds-spec-and-parse](mark-holds-spec-and-parse.md) | backend | -- | 0/6 | mark.py holds the instruction spec and the boundary parse at one scope |
 | [ty-cannot-see-the-tests](ty-cannot-see-the-tests.md) | systems (the gate) - backend (the test fixes) | -- | 1/5 | The type gate is scoped to src and cannot see the tests |
 | [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | -- | 0/6 | A present-but-null key becomes the four characters None |
@@ -352,7 +352,7 @@ that changed a published name or rule:
 | [null-is-not-a-decision](null-is-not-a-decision.md) | backend | yes | 0/2 | `null` is the delete signal, and it is also what a failed serialisation writes |
 | [strip-and-fill-the-markers](strip-and-fill-the-markers.md) | backend | yes | 0/9 | A role is handed the paragraph with its `#`/`"""` markers and indentation, and must reproduce them exactly in `change`. Measured 2026-08-29: three consecutive attempts by an agent with full context broke the file, and each failure read as a defect in the setter |
 | [task-agent-vocabulary-home](task-agent-vocabulary-home.md) | agents (the instructions) - backend (the enum they derive from) | yes | 2/6 | The task agent has no vocabulary home and is never told the command set |
-| [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | -- | 45/49 | A move is a composite mark and the code cannot express one |
+| [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | -- | 45/50 | A move is a composite mark and the code cannot express one |
 
 ### in flight  (0)
 

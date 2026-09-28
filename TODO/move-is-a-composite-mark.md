@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 45 of 49 tasks closed
+Progress: 45 of 50 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -332,3 +332,5 @@ and now there is one object that cannot be half-held.
 - [x] T49 | Placement slot lists every mover with snippet and arrival; test failed first | ebc76452 | Put
       every mover of a move in its placement slot, not min(movers); a test: two
       movers with different snippets both appear
+- [ ] T50 | Find a move's snippet at the origin by its words, then rewrap the
+      remainder with the language's comment markers (review 04:1, 01:3)

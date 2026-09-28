@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 31 of 56 tasks closed
+Progress: 31 of 60 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -376,3 +376,11 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
 - [x] T56 | types read in deserialize, unused fields ignored; validate takes the Mark | aa9ccfeb | Move
       a mark's type checks into Mark.deserialize and ignore fields a row does
       not take (Process 204); validate takes the Mark alone
+- [ ] T57 | Make each answer its own type the same way (Process 206); the
+      Validators answer member and answers/rules.validate go
+- [ ] T58 | Make each ruling its own type the same way (Process 206); the
+      Validators bundle and every rules.validate go
+- [ ] T59 | Make each instruction a mark type owning its fields, serialization
+      and self-checks, read by one match (Process 206); wire unchanged
+- [ ] T60 | Remove the split of an agreed move, leaving it filed at both ends
+      (Process 205); a test first shows the move sets each end as the halves did
