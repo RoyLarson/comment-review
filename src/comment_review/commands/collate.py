@@ -2,7 +2,7 @@ r"""The `collate` command: its argument parsing, its report and its exit code.
 
     comment_review collate --stage 4c --binder B.json --out chief.json \\
         --edit-copy a.json --edit-copy b.json \\
-        [--proof-out proof.json] [--batch-out batch1.json]
+        [--proof-out proof.json] [--batch-out batch1.json] [--human answers.toml]
 
 The work is `flows.bus`: this loads what the message names, sends one
 `CopiesReturned`, prints the events the fold produced, and saves what a
@@ -20,6 +20,9 @@ the verb that runs the turn is `TODO/no-command-for-the-middle.md` T16.
 The fold commits or it rolls back, so the report is the events and nothing
 else: a place the fold refused is a `Refused` and the round writes nothing,
 and a place it decided is a `Settled`, a `CarriedForward` or an `Unsettlable`.
+A human question rolls the round back too, printed as what is owed next --
+the human's answer, or the asking role's replacement for its query
+(`Process: #197`).
 """
 
 import argparse
@@ -33,6 +36,7 @@ from comment_review.desk.evaluate.state import CARRIED, SETTLED, State
 from comment_review.desk.topology import read as read_topology
 from comment_review.desk.work import events
 from comment_review.flows.bus import CopiesReturned, handle
+from comment_review.flows.human import HumanAnswer, read_answers
 from comment_review.flows.proof_io import (
     load_binder,
     load_copy,
@@ -44,7 +48,7 @@ from comment_review.flows.proof_io import (
 #: Exit codes, extending `distribute`'s own 0/1/2 with the two outcomes a
 #: caller branches on. `main` checks the escalation before the composition, so
 #: a run holding both reports the escalation: it is the stronger claim on a
-#: person's attention. `turn` and `disposition` exit these same five, since
+#: person's attention. `turn` and `disposition` exit these same codes, since
 #: all three fold through the Unit of Work and a caller branching on a code
 #: branches once.
 #: !! THERE WERE THREE MORE UNTIL THE FOLD BECAME A UNIT OF WORK -- `DRIFT` 5,
@@ -59,6 +63,8 @@ BROKEN = 1
 UNREADABLE = 2
 REREADS = 3
 ESCALATIONS = 4
+# A rollback holding human questions and nothing else (`Process: #197`).
+ASKS_THE_HUMAN = 5
 
 
 def _refused(why: list[str]) -> int:
@@ -66,6 +72,32 @@ def _refused(why: list[str]) -> int:
     for line in why:
         print(line, file=sys.stderr)
     return UNREADABLE
+
+
+def _human_answers(path: str | None) -> tuple[tuple[HumanAnswer, ...], list[str]]:
+    """The `--human` answers file, read, or the reasons it will not read.
+
+    Shared with `turn` and `check`, which take the same flag.
+
+    Args:
+        path: what `--human` said, or None where it was not given.
+
+    Returns:
+        `(the answers, [])`; `((), [])` for None; `((), problems)` where the
+        file cannot be opened or any section will not read -- a caller hands
+        the problems to `_refused`.
+    """
+    if path is None:
+        return (), []
+    try:
+        text = Path(path).read_text(encoding="utf-8")
+    except OSError as exc:
+        # An OSError's own string names the file it could not open.
+        return (), [str(exc)]
+    answers, problems = read_answers(text, path)
+    if problems:
+        return (), problems
+    return tuple(answers), []
 
 
 def _for_the_human(event) -> list[str]:
@@ -114,6 +146,16 @@ def _lines(event: object) -> list[str]:
     `Advised` has a line and a heading of its own, which `_print` writes
     after the places.
     """
+    if isinstance(event, events.AsksTheHuman):
+        if event.answer:
+            return [
+                f"answered by the human {event.at}: {event.role} -- {event.answer};"
+                f" {event.role} replaces this query with its mark or answer"
+            ]
+        return [
+            f"asks the human {event.at}: {event.role} -- {event.question}; ask it,"
+            f" record the answer in the answers file, and send it back to {event.role}"
+        ]
     if isinstance(event, events.Refused):
         where = event.address or "(the copy)"
         return [f"{event.role} {where}: {reason}" for reason in event.reasons]
@@ -163,13 +205,18 @@ def _print(out: list) -> None:
 def _code_for(out: list) -> int:
     """The exit code one fold's events come to.
 
-    A rollback is `BROKEN`: nothing was saved, and every reason is on stdout
-    beside the role that owes it. Otherwise the strongest claim on a person's
-    attention wins -- an escalation over a contested placement over a
-    composition or an open placement, and `OK` where the fold carried
-    nothing forward.
+    A rollback is `BROKEN` where any `Refused` is in `out`, and
+    `ASKS_THE_HUMAN` where it holds human questions and no refusal: nothing
+    was saved, and every reason is on stdout beside the role that owes it.
+    Otherwise the strongest claim on a person's attention wins -- an
+    escalation over a contested placement over a composition or an open
+    placement, and `OK` where the fold carried nothing forward.
     """
     if any(isinstance(one, events.RolledBack) for one in out):
+        if any(isinstance(one, events.Refused) for one in out):
+            return BROKEN
+        if any(isinstance(one, events.AsksTheHuman) for one in out):
+            return ASKS_THE_HUMAN
         return BROKEN
     carried = [one for one in out if isinstance(one, events.CarriedForward)]
     placements = [one for one in out if isinstance(one, events.PlacementCarried)]
@@ -252,12 +299,13 @@ def main() -> int:
     """Fold one stage's returned copies, report, and say what is left.
 
     Returns:
-        One of `OK`, `BROKEN`, `UNREADABLE`, `REREADS` or `ESCALATIONS`.
-        `UNREADABLE` is a file or an argument that is not what it says, and
-        nothing is read past it. `BROKEN` is a rollback: a document that is
-        not a copy, or a place the fold refused. The chief's copy, the proof
-        and the batch are written only on a commit, so a `BROKEN` run writes
-        none of them.
+        One of `OK`, `BROKEN`, `UNREADABLE`, `REREADS`, `ESCALATIONS` or
+        `ASKS_THE_HUMAN`. `UNREADABLE` is a file or an argument that is not
+        what it says, and nothing is read past it. `BROKEN` is a rollback: a
+        document that is not a copy, or a place the fold refused.
+        `ASKS_THE_HUMAN` is a rollback holding human questions and nothing
+        else. The chief's copy, the proof and the batch are written only on a
+        commit, so neither rollback writes any of them.
     """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--stage", required=True, help="the stage label, e.g. 4c")
@@ -299,6 +347,12 @@ def main() -> int:
         metavar="PATH",
         help="where to write the first turn's batch, one slot per carried-forward"
         " place per role; nothing is written when nothing is carried forward",
+    )
+    ap.add_argument(
+        "--human",
+        metavar="PATH",
+        help="the human's answers file, TOML, one [[answer]] per question"
+        " (Process 198)",
     )
     args = ap.parse_args()
 
@@ -342,13 +396,19 @@ def main() -> int:
                 [f"stage {args.stage!r} is not in the topology -- it holds: {known}"]
             )
 
+    human, why = _human_answers(args.human)
+    if why:
+        return _refused(why)
+
     copies, refused = _envelope(documents)
     if refused:
         out = [*refused, events.RolledBack(len(refused))]
         _print(out)
         return _code_for(out)
 
-    out, result = handle(CopiesReturned(args.stage, copies, binder, root, dispatches))
+    out, result = handle(
+        CopiesReturned(args.stage, copies, binder, root, dispatches, human)
+    )
     _print(out)
     if result is None:
         return _code_for(out)

@@ -2,7 +2,7 @@ r"""The `turn` command: one turn of a stage's fold, from the console.
 
     comment_review turn --proof P.json \\
         --answers block-context=a.json --answers function-context=b.json \\
-        --proof-out P2.json [--batch-out B2.json]
+        --proof-out P2.json [--batch-out B2.json] [--human answers.toml]
 
 The work is `flows.bus`: this loads the proof and each role's answers, sends
 one `AnswersReturned`, prints the events the fold produced, and saves what a
@@ -26,14 +26,23 @@ Neither the binder nor the batch is read here. The places on the proof carry
 their own base text and say who each was put to, so what a role owes is read
 off the proof rather than off the batch that went out, and no page is opened.
 `--repo` is the checkout an answer's own citations resolve against, which is
-verified before the fold as a mark's is (`Process: #181`).
+verified before the fold as a mark's is (`Process: #181`). `--human` is the
+human's answers file (`Process: #198`): a human question given as an answer
+rolls the turn back until the role replaces it, and the file's answer to it
+is printed beside it (`Process: #197`).
 """
 
 import argparse
 import sys
 from pathlib import Path
 
-from comment_review.commands.collate import _code_for, _counted, _print, _refused
+from comment_review.commands.collate import (
+    _code_for,
+    _counted,
+    _human_answers,
+    _print,
+    _refused,
+)
 from comment_review.flows.bus import AnswersReturned, handle, turn_of
 from comment_review.flows.proof_io import (
     load_proof,
@@ -50,7 +59,9 @@ def main() -> int:
         One of `collate`'s codes. `UNREADABLE` is a file or an argument that
         is not what it says, and nothing is read past it. `BROKEN` is a
         rollback: an answer the fold refused, a place a role left unanswered,
-        or a place the fold could not decide -- nothing is written. Otherwise
+        or a place the fold could not decide -- nothing is written.
+        `ASKS_THE_HUMAN` is a rollback holding human questions and nothing
+        else, and writes nothing either. Otherwise
         `ESCALATIONS`, `REREADS` or `OK`, with the proof written and the next
         batch beside it while a place is carried forward.
     """
@@ -82,6 +93,12 @@ def main() -> int:
         help="the checkout an answer's `sources` cite resolves against "
         "(default: the proof's own read_from.root)",
     )
+    ap.add_argument(
+        "--human",
+        metavar="PATH",
+        help="the human's answers file, TOML, one [[answer]] per question"
+        " (Process 198)",
+    )
     args = ap.parse_args()
 
     proof, why = load_proof(Path(args.proof))
@@ -96,12 +113,15 @@ def main() -> int:
         if why:
             return _refused(why)
         answers[role] = value
+    human, why = _human_answers(args.human)
+    if why:
+        return _refused(why)
 
     # The proof names the tree its copies were gathered from, which is the one
     # their citations were written against, so a caller that passed it to
     # `gather` does not pass it again.
     root = Path(args.repo) if args.repo else Path(str(proof.read_from.get("root", ".")))
-    out, result = handle(AnswersReturned(proof, answers, root))
+    out, result = handle(AnswersReturned(proof, answers, root, human))
     _print(out)
     if result is None:
         return _code_for(out)

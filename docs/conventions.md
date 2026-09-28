@@ -394,6 +394,26 @@ filing mistake as much as work overtaken: move the tasks to their home, then
 
 ---
 
+## Shipped prose states what the code does now
+
+**A quotation is not an exemption, and there is nothing to exempt.** Roy, 2026-08-23: *"It
+simply isn't necessary to know the history to understand the code. It is a bad habit to think
+it needs it."* A shipped file states what the code does now. A ruling quoted in the words it was
+made in is history, and history is in the git commits for whoever wants it.
+
+**A citation is the same prose one indirection along.** Pointing a comment at an entry that
+holds the old wording keeps the history in reach of the code, which is the thing the rule exists
+to stop. The comment states the rule and the reason it is that way; neither needs a date, an
+attribution or a link.
+
+**The cost of the alternative is the mechanism `README.md`'s *Why* records:** a dead term is a
+context anchor, and quotation marks do not stop a word reaching an LLM's attention. A human
+reads the marks and discounts the word, which is exactly the imprecision an agent does not
+share.
+
+This stood above `NOT_THE_TERM` in `scripts/check_vocabulary.py` until 2026-09-27, when a
+comment-review run found nothing there enforcing it and Roy ruled that it lives here.
+
 ## Working agreements
 
 - **Name the lane and ask.** A one-line question costs less than a change the owning lane has to

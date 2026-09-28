@@ -40,7 +40,6 @@ from helpers import (
 
 from comment_review.commands import collate as collate_command
 from comment_review.desk.containers import EditCopy, MasterProof
-from comment_review.desk.marks.mark import Shape
 from comment_review.flows import proof_setter
 from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_proof
@@ -237,12 +236,26 @@ class TestDocketOf:
             ("b2", None),
         ]
 
-    def test_two_of_one_roles_marks_on_one_sentence_are_a_refusal(self, tmp_path):
-        """The move lands below instead, which rewrites the paragraph's last
-        line -- the line the correction rewrites. Two marks, one sentence, and
-        the role is told which two."""
+    def test_a_move_landing_below_the_line_a_correction_rewrites_composes(
+        self, tmp_path
+    ):
+        """`mark-defects` T28: the move's comment arrives on a line of its own
+        after the paragraph's last line, which the correction rewrites. An
+        insert at the edge of a rewrite has one order, so the place takes both."""
         root = tmp_path / "repo"
         copy = self._a_correction_and_a_move_into_it(root, "# one\n# two\n# five")
+        schedule = docket_of(copy, root).schedules[0]
+        assert [(one.cue, one.text) for one in schedule.alterations] == [
+            ("b1", "# one\n# 2\n# five"),
+            ("b2", None),
+        ]
+
+    def test_two_of_one_roles_marks_on_one_sentence_are_a_refusal(self, tmp_path):
+        """The move's comment is run onto the paragraph's last line instead,
+        which rewrites the line the correction rewrites. Two marks, one
+        sentence, and the role is told which two."""
+        root = tmp_path / "repo"
+        copy = self._a_correction_and_a_move_into_it(root, "# one\n# two # five")
         with pytest.raises(CannotTranscribe) as raised:
             docket_of(copy, root)
         # Both ends of the move report it: a move is refused whole, so
@@ -688,43 +701,6 @@ class TestDocketOfProof:
             texts={"m.py@b1": BASE, "m.py@b2": "# four\n# five\n"},
         )
         assert docket_of_proof(proof, repo).docket.schedules == ()
-
-    def test_a_place_held_for_the_human_sets_nothing_at_either_end(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        """A move one role put to the author is held at both ends, and an
-        unsettlable place carries no text -- so the closed proof asks the write
-        end for nothing there. Nothing is carried forward, so the fold has
-        nothing to put to a turn and the chief has nothing left to rule."""
-        assert (
-            deal(
-                tmp_path,
-                monkeypatch,
-                capsys,
-                {
-                    "block-context": {
-                        "m.py@b1": a_move(
-                            "m.py@b1", "m.py@b2", change="# two\n", reads=MOVED_TO
-                        ),
-                        "m.py@b2": a_clean("m.py@b2"),
-                    },
-                    "function-context": {
-                        "m.py@b1": a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY),
-                        "m.py@b2": a_clean("m.py@b2"),
-                    },
-                },
-                MOVED,
-            )
-            == collate_command.OK
-        )
-        code, out = disposition(tmp_path, monkeypatch, capsys, [], proof="proof0.json")
-        assert code == collate_command.OK, out
-        proof = the_closed_proof(tmp_path)
-        assert {entry["address"]: entry["state"] for entry in proof.places} == {
-            "m.py@b1": "unsettlable",
-            "m.py@b2": "unsettlable",
-        }
-        assert docket_of_proof(proof, tmp_path / "repo").docket.schedules == ()
 
     @pytest.mark.parametrize(
         ("by_role", "code", "state"),

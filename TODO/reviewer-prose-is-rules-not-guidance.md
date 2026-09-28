@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 13 tasks closed
+Progress: 10 of 17 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-06 (Roy, 2026-09-06, on reading the ownership-context agent file and
@@ -21,10 +21,12 @@ The reviewer prose is rules and punishments, not guidance toward a good result.
 - [ ] T1 | Measure the brief and the four role files: lines, marked lines, and
       sentences that prohibit against sentences that describe a good mark.
         > 2026-09-06 The 2026-09-06 prompt was 47,000 characters per role.
-- [ ] T2 | Rewrite reviewer-brief.md to guide a role toward a good mark: what to
-      read, what a finding is, then the format; each gate stated once.
-- [ ] T3 | Rewrite comment-review-ownership-context.md the same way, then the
-      other three role files.
+- [x] T2 | Brief rewritten to 371 lines, stated positively; pytest green | a9d9de96 | Rewrite
+      reviewer-brief.md to guide a role toward a good mark: what to read, what a
+      finding is, then the format; each gate stated once.
+- [x] T3 | Four role files rewritten positively, each opening with its desk; pytest green | 1563fc58 | Rewrite
+      comment-review-ownership-context.md the same way, then the other three
+      role files.
 - [ ] T4 | Measure the rewrite on the same target as the 2026-09-06 run: the
       same binder, the four copies compared to that run's.
         > 2026-09-06 Copies of that run: the scratchpad run-2026-09-06 directory.
@@ -60,3 +62,14 @@ The reviewer prose is rules and punishments, not guidance toward a good result.
 - [ ] T13 | Verify each instruction for each stage for each role against the
       cli-flow's actual inputs and results. Verify: each disagreement is named
         > 2026-09-08 The brief asked for leading the compositor supplies; no gate saw it
+- [-] T14 | SKILL.md rewritten in five parts at 376 lines, accepted by Roy; test_skill_commands green | c68a61a4 | Rewrite
+      SKILL.md in five parts, about 250 lines, each thing stated by what it
+      does; verify wc -l and test_skill_commands green
+- [x] T15 | 7a and 7b name proof --proof and --only; residue-check.md removed by Roy | e0b63f48 | Update
+      write.md, review.md, compact.md, residue-check.md to the commands' --help;
+      verify 7a and 7b name proof --proof and --only
+- [x] T16 | Gate refuses a task-agent proof without --proof; names SKILL.md:932 and write.md:42 at 328efac3 | 309a03d2936a089861bc0dcfd0776652cc05b06d | Add
+      a gate that 7a and 7b prose invoke proof with --proof, not --copy; verify
+      it fails on the current SKILL.md first
+- [ ] T17 | Update ownership-context to rule a correct or patch on text it
+      moves, once mark-defects T27 lands; verify its file names both

@@ -148,6 +148,28 @@ class TestASecondRulingComposesWithTheFirstOrIsRefused:
         assert "withdraw one" in why[0]
         assert json.dumps(copy) == before
 
+    def test_an_add_after_the_paragraph_composes_with_a_correct_in_it(self, root):
+        """`mark-defects` T28, the shape a code-concern TODO takes: a role
+        corrects one sentence and adds a line after the paragraph. A seeded
+        `raw_text` ends without a newline, and the added line must read as
+        an insert rather than as a rewrite of the line the correct is beside."""
+        base = "# one\n# two\n# three"
+        copy = seed(a_binder_over({"m.py@b1": base}), "block-context")
+        _, why = fill(copy, _a_correct(claim={"false": "two", "true": "2"}), root)
+        assert why == []
+        todo = "# TODO: count the three in one place."
+        add = {
+            "address": "m.py@b1",
+            "instruction": "add",
+            "claim": {"missing": todo, "anchor": "`y = 2`"},
+            "reason": "the author asked for the concern as a TODO",
+            "sources": [{"cite": "m.py:5"}],
+            "change": todo,
+            "raw_text": base + "\n" + todo,
+        }
+        placed, why = fill(copy, add, root)
+        assert why == [] and placed is not None
+
     def test_a_pair_elsewhere_on_the_copy_does_not_refuse_this_ruling(self, copy, root):
         """Only the places this ruling touches are asked about. A pair the
         copy already held somewhere else is not this ruling's doing, and

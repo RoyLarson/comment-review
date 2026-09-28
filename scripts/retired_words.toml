@@ -1,0 +1,177 @@
+# The retired-word tables `check_vocabulary.py` reads for its RETIRED check.
+#
+# Every entry carries `why`: what the entry is and why it is listed. The loader
+# refuses an entry without one. `docs/vocabulary.md`'s Retired table is the
+# human record of each rename; this file is what the gate enforces.
+
+# The per-file exemption. A file carrying the marker is exempt whole: exempting
+# a line would let a retired word return to a file one suppression at a time.
+[noqa]
+marker = "# noqa: vocabulary"
+why = """\
+The escape hatch for a file about an older representation rather than the \
+current one. No file under src/ carries it; it stays so such a file has a \
+declared way out other than editing this table."""
+
+# A retired word and the word a shipped file says instead. The scan matches the
+# word bounded by anything but a letter, digit or hyphen, so a plural or derived
+# form is a separate entry: the bare entry does not match it.
+[[retired]]
+word = "block"
+instead = "paragraph"
+why = """\
+The noun for one unit of prose. Its definition, the interval between two \
+lines of code, is untrue of a prose file."""
+
+[[retired]]
+word = "blocks"
+instead = "paragraphs"
+why = "The plural of `block`."
+
+[[retired]]
+word = "listing"
+instead = "binder"
+why = """\
+The text report a reviewer read. A reviewer reads the binder and its seeded \
+edit copy."""
+
+[[retired]]
+word = "pcst"
+instead = "page"
+why = """\
+Named one file's classified lines after a syntax tree, which they are not."""
+
+[[retired]]
+word = "folio"
+instead = "cue"
+why = """\
+A folio numbers a leaf or a page. The `@` half of an address names a position \
+within a page, so a cue is not a folio. `leaf` is not listed: its page sense \
+went with this entry, but its dependency-graph sense is live, and `leaves` is \
+an ordinary English verb."""
+
+[[retired]]
+word = "folios"
+instead = "cues"
+why = "The plural of `folio`."
+
+[[retired]]
+word = "foliation"
+instead = "cues"
+why = "Numbering by folio; the addresser assigns cues."
+
+[[retired]]
+word = "foliator"
+instead = "addresser"
+why = "The name for what assigned folios; the addresser assigns cues."
+
+[[retired]]
+word = "foliate"
+instead = "cue"
+why = "The verb form of `folio`."
+
+[[retired]]
+word = "join"
+instead = "the collator"
+why = """\
+The noun carried several referents at once, among them linking two data \
+structures, checking a mark against its page, and a git merge. The verb is \
+live; `.join(` and `_join` are declared under not_the_term, and the boundary \
+already spares `joins`, `joined` and `joining`."""
+
+[[retired]]
+word = "verdict"
+instead = "instruction"
+why = """\
+A mark is the object, and its `instruction` is one of the seven. The word \
+also collided with `finding`."""
+
+[[retired]]
+word = "verdicts"
+instead = "instructions"
+why = "The plural of `verdict`. It has no live verb sense to spare."
+
+[[retired]]
+word = "census"
+instead = "gather, or binder for what it hands over"
+why = """\
+Stage 2's word is `gather`, for the command, the act and the module; what \
+the gather hands over is the binder."""
+
+[[retired]]
+word = "censused"
+instead = "gathered"
+why = "A derived form of `census`."
+
+[[retired]]
+word = "censuses"
+instead = "gathers"
+why = "The plural of `census`."
+
+[[retired]]
+word = "censusing"
+instead = "gathering"
+why = "A derived form of `census`."
+
+# A retired word named in backticks is quoted, not used. A record of a rename
+# has to name the old word, so these forms are stripped before the scan.
+[[mention]]
+form = "`block`"
+why = "`paragraph`'s definition names `block` as the older word for it."
+
+[[mention]]
+form = "`BLOCK`"
+why = "`reading/paragraph.py` names the `BLOCK` index an `add` once required."
+
+[[mention]]
+form = "`census`"
+why = "`flows/__init__.py` names `census` as the retired name of `gather`."
+
+# Exact strings that contain a retired word and are not it. A word with several
+# senses needs each live sense declared here; otherwise the gate reads correct
+# prose as a defect, and the cheapest way to satisfy it is to make the prose
+# wrong. The forms are stripped in this order before the scan.
+[[not_the_term]]
+form = ".join("
+why = "Python's str.join, the verb."
+
+[[not_the_term]]
+form = "_join"
+why = "The lexer's `_join`, which joins a run's lines: the verb."
+
+[[not_the_term]]
+form = "block-context"
+why = """\
+A role name: an agent id, a filename, and a `[roles]` key in \
+`vocabulary.toml`."""
+
+[[not_the_term]]
+form = "BLOCK_CONTEXT"
+why = "The same role, as a member of the stage enum in `desk/stages.py`."
+
+[[not_the_term]]
+form = "TEXT BLOCK"
+why = "A Java language feature."
+
+[[not_the_term]]
+form = "block_comment"
+why = """\
+`language.py`'s code symbols that say which series the lines they enclose \
+belong to, such as `/*` with `*/`. This sense of `block` is live and \
+`vocabulary.toml` states it beside `paragraph`."""
+
+[[not_the_term]]
+form = "doc_block"
+why = "The same live sense, for a doc comment's symbols such as `/**`."
+
+[[not_the_term]]
+form = "in_block"
+why = "The lexer's record of which block-comment pair is currently open."
+
+[[not_the_term]]
+form = '__main__":` block'
+why = "A Python code block, the language's own term."
+
+[[not_the_term]]
+form = "Java text block"
+why = "The Java language feature, in lower case."

@@ -17,9 +17,15 @@ mark or an answer cites, to verify the citation (`#181`). The disposition
 handler reads nothing. None of them asks whether a page changed since it was gathered
 (`#62`); once the places are built, the fold decides from them alone, and the
 turn and the disposition take their places off the proof.
+
+The collate and turn handlers also check for a human question -- a
+`human-review-necessary` query filed as a mark or given as an answer -- and
+roll back while one stands, until the role replaces it (`#197`). The human's
+answers file (`#198`) rides on the message, and each answer rides on the
+`AsksTheHuman` for the question it answers.
 """
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from typing import NamedTuple
 
@@ -40,6 +46,13 @@ from comment_review.desk.stages import Stage, not_admitted
 from comment_review.desk.work import events
 from comment_review.desk.work.fold import Fold, asked
 from comment_review.flows.answers import answers_of, slots_of
+from comment_review.flows.human import (
+    HumanAnswer,
+    HumanQuery,
+    answered,
+    queries_in_answers,
+    queries_in_copies,
+)
 from comment_review.flows.mark_errors import mark_errors
 from comment_review.flows.on_the_page import PageCache, held_at
 from comment_review.flows.places import bases_and_anchors, chief_copy_of, places_of
@@ -64,6 +77,9 @@ class CopiesReturned(NamedTuple):
             each place's base text comes from.
         topology: the stage as the topology declares it, where the caller
             has one. Without it nothing can know a dispatch was owed.
+        human: the human's answers file, read (`decision-log.md Process:
+            #198`) -- each answer rides on the `AsksTheHuman` for the query
+            it answers.
     """
 
     stage: str
@@ -71,6 +87,7 @@ class CopiesReturned(NamedTuple):
     binder: Binder
     root: Path
     topology: Stage | None = None
+    human: tuple[HumanAnswer, ...] = ()
 
 
 class AnswersReturned(NamedTuple):
@@ -88,11 +105,15 @@ class AnswersReturned(NamedTuple):
             the record alone, and what an answer cites as its evidence is
             held to the check a mark's citation is held to
             (`decision-log.md Process: #181`).
+        human: the human's answers file, read (`decision-log.md Process:
+            #198`) -- each answer rides on the `AsksTheHuman` for the query
+            it answers.
     """
 
     proof: MasterProof
     answers: Mapping[str, object]
     root: Path
+    human: tuple[HumanAnswer, ...] = ()
 
 
 class DispositionsWritten(NamedTuple):
@@ -147,7 +168,9 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     carries, a place a role left unruled, a role short of its shard, a tree
     the other copies were not gathered from -- is found before the fold
     opens, because none of it is a question about how the roles' rulings
-    meet. Each becomes one `Refused`, and the fold never runs.
+    meet. Each becomes one `Refused`, and the fold never runs. A human
+    question rolls the stage back as well, as one `AsksTheHuman` each
+    (`decision-log.md Process: #197`).
 
     Each place's base text and anchor are then read off the page, as `mark`,
     `check` and `proof` read them (`decision-log.md Process: #187`), so an
@@ -180,11 +203,9 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     problems += _admitted_problems(copies, message.topology)
     if message.topology is not None:
         problems += stage_problems(message.topology, copies)
-    if problems:
-        for one in problems:
-            out.append(events.Refused(one.role, one.address, (one.message,)))
-        out.append(events.RolledBack(len(problems)))
-        return out, None
+    asks = _asks(queries_in_copies(copies), message.human)
+    if problems or asks:
+        return _rolled_back(problems, asks)
 
     bases, anchors = bases_and_anchors(
         copies, lambda address: held_at(address, paths, root, page_cache)
@@ -383,7 +404,9 @@ def _on_answers(message: AnswersReturned) -> tuple[list, Result | None]:
     about, and nothing else may answer: an entry at a place no turn carries
     forward, or at one this role was not asked about, is refused, and so is a
     slot left unanswered. Each refusal voids the round, as a copy's does, so
-    a proof is never written over an answer that was not read.
+    a proof is never written over an answer that was not read. A human
+    question given as an answer rolls the turn back too, as one
+    `AsksTheHuman` each (`decision-log.md Process: #197`).
 
     A move whose placement is undecided, and which the chief has not ruled at
     both ends, is asked of each role in its `owed` as one slot keyed by the
@@ -434,8 +457,9 @@ def _on_answers(message: AnswersReturned) -> tuple[list, Result | None]:
         )
         problems += why
         given[role] = answers
-    if problems:
-        return _rolled_back(problems)
+    asks = _asks(queries_in_answers(given), message.human)
+    if problems or asks:
+        return _rolled_back(problems, asks)
     for role, answers in given.items():
         for key, answer in answers.items():
             target = moves[key].answers if key in moves else places[key].answers
@@ -512,13 +536,30 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
     )
 
 
-def _rolled_back(problems: list[Problem]) -> tuple[list, None]:
-    """Every problem as its own `Refused`, then the rollback -- nothing saved."""
+def _rolled_back(
+    problems: list[Problem], asks: Sequence[events.AsksTheHuman] = ()
+) -> tuple[list, None]:
+    """Every problem as its own `Refused`, then `asks`, then the rollback.
+
+    Nothing is saved. The rollback counts one reason per problem and one per
+    human question.
+    """
     out: list = [
         events.Refused(one.role, one.address, (one.message,)) for one in problems
     ]
-    out.append(events.RolledBack(len(problems)))
+    out += asks
+    out.append(events.RolledBack(len(problems) + len(asks)))
     return out, None
+
+
+def _asks(
+    queries: list[HumanQuery], human: tuple[HumanAnswer, ...]
+) -> list[events.AsksTheHuman]:
+    """One `AsksTheHuman` per human question, with the human's answer where given."""
+    return [
+        events.AsksTheHuman(q.role, q.at, q.question, a.answer if a else "")
+        for q, a in answered(queries, list(human))
+    ]
 
 
 def _commit(

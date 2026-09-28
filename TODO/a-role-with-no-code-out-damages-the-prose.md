@@ -2,9 +2,9 @@
 
 ```
 Status:   decision-needed
-Progress: 1 of 10 tasks closed
+Progress: 5 of 12 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-23 (2026-08-23, Roy: 'we can't tell the agents to review all of this
           and not give them an out for properly resolving the issues. Several times they
           were overly restricted by what they could do and that caused tension in the
@@ -108,6 +108,12 @@ more than one subject"* and lists three triggers, the third being *"a summary li
 describes one half of what the file contains"*. The section names no verdict, so the role
 reached for the only one it had.
 
+**T1 ruled 2026-09-27, `decision-log.md Process: #199`:** a role describes a code problem as a
+`human-review-necessary` query whose `settles` reads `code concern`; the author answers `add a
+TODO`, `not a concern` or `leave it`, and on `add a TODO` the role adds a `TODO:` comment beside
+the whole of its subject. No code change is proposed as a mark, and no `code_concerns` field
+carries it.
+
 ! **What T1 decides.** Today a role can only DESCRIBE the problem in `code_concerns`; Roy's
 vision is that a code change is SUGGESTED. That is a scope decision, not a wording fix, and it
 decides the shape the backend half has to carry.
@@ -147,10 +153,12 @@ is open, so *"effectiveness unchanged"* has no grader.
 
 ## Tasks
 
-- [?] T1 | T1 -- * RULE what a role may propose when the right fix is a CODE
-      change -- describe it, or suggest it. Verify: the ruling is recorded in
-      the Objective here.
-- [ ] T2 | T2 -- Record T1's ruling in
+- [x] T1 | Roy ruled: code concern is a human query, three answers, TODO beside its subject; Process 199 | 4df9982d | T1
+      -- * RULE what a role may propose when the right fix is a CODE change --
+      describe it, or suggest it. Verify: the ruling is recorded in the
+      Objective here.
+- [x] T2 | Ruling stated in code-concerns-cannot-carry-a-proposed-change Objective | 4df9982d | T2
+      -- Record T1's ruling in
       `code-concerns-cannot-carry-a-proposed-change.md`, the backend file it
       gates. Verify: that file states it.
 - [ ] T3 | T3 -- Name `code_concerns` in `comment-review-ownership-context.md`.
@@ -176,3 +184,9 @@ is open, so *"effectiveness unchanged"* has no grader.
 - [x] T10 | FINISHED | unknown | T10 -- NOT A TASK. The PASS CRITERION --
       *"recommendations improved"* -- is a judgement, not an observation a
       stranger can repeat. Kept in full in the Objective.
+- [x] T11 | Brief table and placement rule; SKILL.md offers the three answers | 4df9982d | Update
+      the brief and SKILL.md with the three code-concern answers and the TODO
+      placement; verify both name add a TODO
+- [x] T12 | Smoke plants a code concern answered add a TODO; the TODO lands at fib.py@c5; smoke exits 0 | 8cc885142d075e1c177464188ecb6f9124fb5348 | Implement
+      a smoke plant of a code concern answered add a TODO; verify the smoke
+      lands the TODO line and exits 0

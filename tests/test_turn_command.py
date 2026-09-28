@@ -13,15 +13,18 @@ written on, and `answer` below reads it for that.
 
 import json
 
+from conftest import run_command
 from helpers import (
     BASE,
     DOS,
     HAND_ROLES,
+    TYPOS,
     agreed,
     answer,
     contested,
     deal,
     merged,
+    patched,
     place_on,
     proof_at,
     turn,
@@ -31,6 +34,7 @@ from helpers import (
 # commands fold through the Unit of Work and exit the same five, so a test
 # naming them anywhere else would be asserting a second copy of the contract.
 from comment_review.commands import collate as collate_command
+from comment_review.commands import turn as turn_command
 
 ROLES = HAND_ROLES
 
@@ -355,6 +359,75 @@ class TestRefusals:
         # ! A bare path where `ROLE=PATH` is owed.
         code, _out = turn(tmp_path, monkeypatch, capsys, 1, str(tmp_path / "nope.json"))
         assert code == collate_command.UNREADABLE
+
+
+class TestAHumanQuestion:
+    """`decision-log.md Process: #197` and `#198`: a human question given as
+    an answer stops the turn before the fold, and `--human` is the answers
+    file it is read from."""
+
+    QUERY = {
+        "instruction": "query",
+        "reason": "which of the two the author meant is theirs to say",
+        "claim": {
+            "shape": "human-review-necessary",
+            "attempted": "read both texts against the code",
+            "settles": "the author",
+        },
+    }
+
+    def _answers(self, tmp_path, monkeypatch, capsys) -> list[str]:
+        """Two patches on different lines compose, and a composition admits a
+        `query` answer where an escalation does not."""
+        code = deal(
+            tmp_path, monkeypatch, capsys, patched("m.py@b1"), {"m.py@b1": TYPOS}
+        )
+        assert code == collate_command.REREADS
+        return [
+            answer(tmp_path, 1, "block-context", "m.py@b1", **self.QUERY),
+            answer(
+                tmp_path,
+                1,
+                "function-context",
+                "m.py@b1",
+                instruction="clean",
+                reason="the two read as one paragraph",
+            ),
+        ]
+
+    def test_a_human_query_exits_asks_the_human_and_writes_nothing(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        answers = self._answers(tmp_path, monkeypatch, capsys)
+        code, out = turn(tmp_path, monkeypatch, capsys, 1, *answers)
+        assert code == collate_command.ASKS_THE_HUMAN, out
+        assert "asks the human m.py@b1: block-context -- " in out
+        assert not (tmp_path / "proof1.json").exists()
+        assert not (tmp_path / "batch2.json").exists()
+
+    def test_a_human_file_that_is_not_toml_is_unreadable(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """Review Focus 3."""
+        answers = self._answers(tmp_path, monkeypatch, capsys)
+        human = tmp_path / "human.toml"
+        human.write_text("[[answer]\nrole = ", encoding="utf-8")
+        argv = [
+            "--proof",
+            str(tmp_path / "proof0.json"),
+            "--proof-out",
+            str(tmp_path / "proof1.json"),
+            "--human",
+            str(human),
+        ]
+        for one in answers:
+            argv += ["--answers", one]
+        code, out = run_command(
+            monkeypatch, capsys, turn_command, *argv, with_stderr=True
+        )
+        assert code == collate_command.UNREADABLE, out
+        assert f"{human}: not TOML" in out
+        assert not (tmp_path / "proof1.json").exists()
 
 
 class TestTheGateSeesIt:

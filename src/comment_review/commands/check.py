@@ -1,7 +1,9 @@
 """The `check` command: what the fold would refuse, named before a role returns it.
 
     comment_review check --edit-copy copy.json [--binder B.json] [--repo R]
+        [--human answers.toml]
     comment_review check --answers answers.json --sent batch.json --role block-context
+        [--human answers.toml]
     comment_review check --contract
 
 A role writes its copy or its batch answers with its file-write tool and runs
@@ -40,6 +42,16 @@ the question does not admit, and a `cite` that does not resolve are each named
 here, which is what the turn refuses the round for.
 The shape a role hands back is read the way the fold reads it
 (`flows.answers.slots_of`): a list of slots, `{role: [slots]}`, or a lone slot.
+
+In either mode a human question -- a `human-review-necessary` query, filed as
+a mark or given as an answer -- is named and counted apart from what the fold
+would send back (`decision-log.md Process: #197`). The reader here is the
+role that filed it, which cannot ask the human, so an unanswered one tells it
+its part is done; where the human questions are the only findings the exit is
+`ASKS_THE_HUMAN`, as `collate` and `turn` exit, and not `BROKEN`, which would
+invite the role to turn a real question into a clean. `--human` names the
+human's answers file (`#198`); a question it answers is printed with the
+answer, as `collate` prints it.
 """
 
 import argparse
@@ -47,11 +59,20 @@ import json
 import sys
 from pathlib import Path
 
+from comment_review.commands.collate import ASKS_THE_HUMAN, _human_answers, _lines
 from comment_review.desk.collator import Cache, Problem
 from comment_review.desk.containers import EditCopy
 from comment_review.desk.stages import not_admitted
+from comment_review.desk.work.events import AsksTheHuman
 from comment_review.flows.answers import answers_of, contracts, slot_key, slots_of
 from comment_review.flows.fill import composition_problems, row_problems
+from comment_review.flows.human import (
+    HumanAnswer,
+    HumanQuery,
+    answered,
+    queries_in_answers,
+    queries_in_copies,
+)
 from comment_review.flows.mark_errors import mark_errors
 from comment_review.flows.on_the_page import PageCache, held_at
 from comment_review.flows.proof_io import (
@@ -62,8 +83,10 @@ from comment_review.flows.proof_io import (
 )
 from comment_review.flows.verify import copy_problems
 
-#: Exit codes -- `distribute`'s 0/1/2. `BROKEN` is anything the fold would
-#: refuse or send back; `UNREADABLE` is a file that is not an object at all.
+#: Exit codes -- `distribute`'s 0/1/2, and `collate`'s `ASKS_THE_HUMAN`.
+#: `BROKEN` is anything the fold would refuse or send back; `UNREADABLE` is a
+#: file that is not an object at all; `ASKS_THE_HUMAN` is human questions and
+#: nothing else.
 OK = 0
 BROKEN = 1
 UNREADABLE = 2
@@ -119,7 +142,56 @@ def _row_problems(
     ]
 
 
-def _check_copy(path: str, binder_path: str | None, repo: str | None) -> int:
+def _for_the_role(query: HumanQuery) -> str:
+    """An unanswered human question, as the role that filed it reads it.
+
+    `collate` and `turn` print the same question for the task agent, whose
+    part is to ask it and record the answer (`commands.collate._lines`). The
+    reader of `check` is the role, which cannot ask the human: its part ends
+    at filing the question, so this line says so rather than handing it the
+    task agent's instruction (`decision-log.md Process: #197`).
+    """
+    return (
+        f"asks the human {query.at}: {query.role} -- {query.question}; this is the"
+        " role's part done -- hand the copy back, and the task agent asks it"
+    )
+
+
+def _asks_the_human(queries: list[HumanQuery], human: tuple[HumanAnswer, ...]) -> int:
+    """Each human question, printed for the role, and how many there were.
+
+    `decision-log.md Process: #197`: the fold rolls back on each. An
+    unanswered one is the role's part done (`_for_the_role`); an answered one
+    is printed as `collate` prints it, which is addressed to the role -- it
+    replaces its query with its mark or answer.
+    """
+    for query, answer in answered(queries, list(human)):
+        if answer is None:
+            print(_for_the_role(query))
+            continue
+        event = AsksTheHuman(query.role, query.at, query.question, answer.answer)
+        for line in _lines(event):
+            print(line)
+    return len(queries)
+
+
+def _exit(found: int, asked: int) -> int:
+    """The exit code for what was found and how many human questions were asked.
+
+    `BROKEN` where anything but a human question was found, `ASKS_THE_HUMAN`
+    where only human questions were, and `OK` where nothing was.
+    """
+    if found:
+        return BROKEN
+    return ASKS_THE_HUMAN if asked else OK
+
+
+def _check_copy(
+    path: str,
+    binder_path: str | None,
+    repo: str | None,
+    human: tuple[HumanAnswer, ...] = (),
+) -> int:
     loaded, why = load_copy(Path(path))
     if why:
         return _refused(why)
@@ -159,8 +231,12 @@ def _check_copy(path: str, binder_path: str | None, repo: str | None) -> int:
                 f"{problem.role} {problem.address or '(the copy)'}: {problem.message}"
             )
             found += 1
-    print(f"{path}: {found} thing(s) the fold would send back")
-    return BROKEN if found else OK
+    asked = _asks_the_human(queries_in_copies([copy]), human)
+    print(
+        f"{path}: {found} thing(s) the fold would send back, {asked} question(s)"
+        " for the human"
+    )
+    return _exit(found, asked)
 
 
 def _never_sent(address: str) -> str:
@@ -198,7 +274,13 @@ def _root_of(repo: str | None, sent: dict[str, dict]) -> Path:
     return Path(".")
 
 
-def _check_answers(path: str, sent_path: str, role: str, repo: str | None) -> int:
+def _check_answers(
+    path: str,
+    sent_path: str,
+    role: str,
+    repo: str | None,
+    human: tuple[HumanAnswer, ...] = (),
+) -> int:
     loaded, why = load_value(Path(path))
     if why:
         return _refused(why)
@@ -220,8 +302,12 @@ def _check_answers(path: str, sent_path: str, role: str, repo: str | None) -> in
     )
     for one in problems:
         print(f"{one.role} {one.address or '(the batch)'}: {one.message}")
-    print(f"{path}: {len(answers)} answered, {len(problems)} the fold would refuse")
-    return BROKEN if problems else OK
+    asked = _asks_the_human(queries_in_answers({role: answers}), human)
+    print(
+        f"{path}: {len(answers)} answered, {len(problems)} the fold would refuse,"
+        f" {asked} question(s) for the human"
+    )
+    return _exit(len(problems), asked)
 
 
 def main() -> int:
@@ -229,8 +315,10 @@ def main() -> int:
 
     Returns:
         `OK` when nothing would be refused or sent back; `BROKEN` when
-        something would, each named on stdout; `UNREADABLE` when the file is
-        not a JSON object or list, or the binder or the batch is not one.
+        something would, each named on stdout; `ASKS_THE_HUMAN` when the only
+        findings are human questions, each named on stdout -- the role's part
+        is done; `UNREADABLE` when the file is not a JSON object or list, or
+        the binder or the batch is not one.
     """
     ap = argparse.ArgumentParser(description=__doc__)
     what = ap.add_mutually_exclusive_group(required=True)
@@ -258,6 +346,13 @@ def main() -> int:
         " the binder's own read_from.root by default, and with --answers the"
         " one the sent slots name",
     )
+    ap.add_argument(
+        "--human",
+        metavar="PATH",
+        help="the human's answers file, TOML, one [[answer]] per question"
+        " (Process 198); with it, a human question it answers is named with"
+        " the answer",
+    )
     args = ap.parse_args()
 
     if args.contract:
@@ -265,12 +360,15 @@ def main() -> int:
         # contract by hand and got `query` wrong.
         print(json.dumps(contracts(), indent=2))
         return OK
+    human, why = _human_answers(args.human)
+    if why:
+        return _refused(why)
     if args.answers:
         if not args.role or not args.sent:
             print("check --answers needs --role and --sent", file=sys.stderr)
             return UNREADABLE
-        return _check_answers(args.answers, args.sent, args.role, args.repo)
-    return _check_copy(args.edit_copy, args.binder, args.repo)
+        return _check_answers(args.answers, args.sent, args.role, args.repo, human)
+    return _check_copy(args.edit_copy, args.binder, args.repo, human)
 
 
 if __name__ == "__main__":

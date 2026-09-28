@@ -45,12 +45,14 @@ def run(
     on_copy=None,
     places=None,
     appended=(),
+    with_stderr=False,
 ):
     """`collate` over one page's copies. `on_copy` is laid over each copy as
     it is written, which is how a role hand-edits one before returning it.
     `places` is the page's paragraphs by address, one at `m.py@b1` unless a
     case names more. `appended` entries are added to each copy's first sheet,
-    as a role adds a mark at a place it was not handed a slot for."""
+    as a role adds a mark at a place it was not handed a slot for.
+    `with_stderr` returns stderr after stdout, for a refusal printed there."""
     binder = a_real_binder_over(tmp_path / "repo", places or {"m.py@b1": BASE})
     copies = copies_over(binder, marks_by_role)
     for copy in copies:
@@ -76,7 +78,8 @@ def run(
         argv += ["--edit-copy", path]
     monkeypatch.setattr("sys.argv", argv)
     code = command.main()
-    return code, capsys.readouterr().out
+    got = capsys.readouterr()
+    return code, got.out + got.err if with_stderr else got.out
 
 
 TWO_ROLES = (
@@ -858,11 +861,11 @@ class TestTheReport:
         self, tmp_path, monkeypatch, capsys
     ):
         """A rollback writes no chief's copy, no proof and no batch, so a
-        settled, a contested and an unsettlable place are not reported: each
-        line would say something happens that does not.
+        settled and a contested place are not reported: each line would say
+        something happens that does not.
 
         The same copies with the refused place ruled `clean` instead commit
-        and print all three, which is what shows the rollback withheld them.
+        and print both, which is what shows the rollback withheld them.
         """
         places = {address: BASE for address in ("m.py@b1", "m.py@b2", "m.py@b3")}
         places["m.py@b4"] = BASE
@@ -873,7 +876,7 @@ class TestTheReport:
                 {
                     "block-context": {
                         "m.py@b1": a_clean("m.py@b1"),
-                        "m.py@b3": a_query("m.py@b3", Shape.HUMAN_REVIEW_NECESSARY),
+                        "m.py@b3": a_clean("m.py@b3"),
                         "m.py@b4": at_b4,
                     },
                     "function-context": {
@@ -894,7 +897,6 @@ class TestTheReport:
         assert code == command.ESCALATIONS, out
         assert "stet m.py@b1" in out
         assert "contested m.py@b2" in out
-        assert "unsettlable m.py@b3" in out
         assert command.FOR_THE_CHIEF in out
 
         dropping = an_add("m.py@b4", reads="# one\n# three\n")
@@ -1022,37 +1024,84 @@ class TestTheStateBetweenTurnsOnDisk:
         assert code == command.OK, out
         assert not batch_path.exists()
 
-    def test_an_unsettlable_place_is_reported_and_rides_on_the_proof(
+
+class TestAHumanQuestion:
+    """`decision-log.md Process: #197` and `#198`: a human question stops the
+    stage before the fold, and `--human` is the answers file it is read from."""
+
+    ASKED = {
+        "block-context": {"m.py@b1": a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY)}
+    }
+
+    def test_a_human_query_exits_asks_the_human_and_writes_nothing(
         self, tmp_path, monkeypatch, capsys
     ):
-        """`Process: #90`: the human's query rides with the set, and the place
-        it holds settles for nobody else.
-
-        ! IT RODE IN `MasterProof.unsettlable` UNTIL THE FOLD BECAME A UNIT OF
-        WORK, as `{address, roles, query}`. The place itself carries the state
-        now, so there is one list rather than a list and a summary of it, and
-        the run says on the console who asked and why.
-        """
         proof_path = tmp_path / "proof.json"
-        asked = {
-            "block-context": {
-                "m.py@b1": a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY)
-            }
-        }
-        _code, out = run(
-            tmp_path, asked, monkeypatch, capsys, "--proof-out", str(proof_path)
+        code, out = run(
+            tmp_path, self.ASKED, monkeypatch, capsys, "--proof-out", str(proof_path)
         )
-        assert "unsettlable m.py@b1: block-context asks the human -- " in out
-        assert "1 places -- 0 settled, 1 unsettlable, 0 carried forward" in out
-        proof, why = load_proof(proof_path)
-        assert proof is not None, why
-        (entry,) = proof.places
-        place, why = Place.deserialize("the place", entry)
-        assert place is not None, why
-        assert place.address == "m.py@b1"
-        assert place.state is State.UNSETTLABLE
-        assert place.text is None
-        assert [one.role for one in place.filed] == ["block-context"]
+        assert code == command.ASKS_THE_HUMAN, out
+        assert "asks the human m.py@b1: block-context -- " in out
+        assert not (tmp_path / "chief.json").exists()
+        assert not proof_path.exists()
+
+    def test_a_human_file_that_is_not_toml_is_unreadable(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """Review Focus 3."""
+        human = tmp_path / "human.toml"
+        human.write_text("[[answer]\nrole = ", encoding="utf-8")
+        code, out = run(
+            tmp_path,
+            self.ASKED,
+            monkeypatch,
+            capsys,
+            "--human",
+            str(human),
+            with_stderr=True,
+        )
+        assert code == command.UNREADABLE, out
+        assert f"{human}: not TOML" in out
+        assert not (tmp_path / "chief.json").exists()
+
+    def test_a_human_file_that_is_missing_is_unreadable_and_named_once(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        code, out = run(
+            tmp_path,
+            self.ASKED,
+            monkeypatch,
+            capsys,
+            "--human",
+            str(tmp_path / "missing.toml"),
+            with_stderr=True,
+        )
+        assert code == command.UNREADABLE, out
+        assert out.count("missing.toml") == 1, out
+        assert not (tmp_path / "chief.json").exists()
+
+
+def test_a_human_question_prints_what_to_do_and_exits_asks_the_human():
+    from comment_review.commands.collate import (
+        ASKS_THE_HUMAN,
+        BROKEN,
+        _code_for,
+        _lines,
+    )
+
+    open_ = events.AsksTheHuman("block-context", "m.py@b1", "Is it true?")
+    done = events.AsksTheHuman("block-context", "m.py@b1", "Is it true?", "Yes.")
+    assert _lines(open_) == [
+        "asks the human m.py@b1: block-context -- Is it true?; ask it, record the"
+        " answer in the answers file, and send it back to block-context"
+    ]
+    assert _lines(done) == [
+        "answered by the human m.py@b1: block-context -- Yes.; block-context"
+        " replaces this query with its mark or answer"
+    ]
+    assert _code_for([open_, events.RolledBack(1)]) == ASKS_THE_HUMAN
+    refused = events.Refused("module-context", "m.py@b1", ("bad",))
+    assert _code_for([refused, open_, events.RolledBack(2)]) == BROKEN
 
 
 def test_an_undecided_move_prints_one_line_and_sets_the_exit_code():

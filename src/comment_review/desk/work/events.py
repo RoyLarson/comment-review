@@ -1,6 +1,7 @@
 """What a fold says as it runs. The commands print from these and nothing else.
 
-A rollback emits its `Refused` events and a `RolledBack`, and nothing else: it
+A rollback emits its `Refused` and `AsksTheHuman` events and a `RolledBack`,
+and nothing else: it
 commits nothing and writes no chief's copy, proof or batch, so no place is
 settled, nobody is asked about a place, and a note has no copy to go with
 (`desk.work.fold.Fold.run`). Every other event here is a committed fold's.
@@ -19,6 +20,21 @@ class Refused(NamedTuple):
     role: str
     address: str
     reasons: tuple[str, ...]
+
+
+class AsksTheHuman(NamedTuple):
+    """One question a role put to the human, found before the fold ran.
+
+    `decision-log.md Process: #197`: a human question never folds, so it rolls
+    the stage or the turn back like a refusal, and says what is owed next --
+    the human's answer where there is none yet (`answer` empty), or, where the
+    answers file holds it, the role's replacement for its query.
+    """
+
+    role: str
+    at: str
+    question: str
+    answer: str = ""
 
 
 class CarriedForward(NamedTuple):
@@ -118,11 +134,11 @@ class Committed(NamedTuple):
 
 
 class RolledBack(NamedTuple):
-    """The fold rolled back: at least one refusal, nothing saved.
+    """The fold rolled back: at least one refusal or human question, nothing saved.
 
-    `reasons` counts the reasons across the `Refused` events before it, which
-    is what every producer counts: the fold, `flows.bus` and the collate
-    command's envelope check.
+    `reasons` counts the reasons across the `Refused` events before it and one
+    per `AsksTheHuman`, which is what every producer counts: the fold,
+    `flows.bus` and the collate command's envelope check.
     """
 
     reasons: int
@@ -130,6 +146,7 @@ class RolledBack(NamedTuple):
 
 Event = (
     Refused
+    | AsksTheHuman
     | CarriedForward
     | PlacementCarried
     | Unsettlable

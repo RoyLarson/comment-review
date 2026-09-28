@@ -14,6 +14,7 @@ from helpers import (
 
 from comment_review.desk.containers import Sheet
 from comment_review.desk.evaluate.place import Place
+from comment_review.desk.evaluate.state import State
 from comment_review.desk.marks.mark import Instruction
 from comment_review.desk.marks.table import Row, Touch
 from comment_review.flows.fill import composition_problems, fill, row_problems
@@ -79,7 +80,9 @@ def test_readers_are_every_role_whose_copy_holds_a_sheet_for_the_page():
 
 
 def test_chief_copy_of_synthesizes_a_correct_for_a_decided_place():
-    place = Place(address="m.py@b1", anchor="x = 1", base=BASE, text="# x\n")
+    place = Place(
+        address="m.py@b1", anchor="x = 1", base=BASE, text="# x\n", state=State.STANDS
+    )
     sheets = [Sheet(path="m.py", sha="0" * 40, marks=())]
     copy = chief_copy_of(
         {"m.py@b1": place}, "copy-chief", {"root": ".", "revise": 0}, sheets
@@ -92,7 +95,22 @@ def test_chief_copy_of_synthesizes_a_correct_for_a_decided_place():
 
 
 def test_chief_copy_of_writes_no_mark_for_a_place_whose_text_is_none():
-    place = Place(address="m.py@b1", anchor="x = 1", base=BASE, text=None)
+    place = Place(
+        address="m.py@b1", anchor="x = 1", base=BASE, text=None, state=State.STANDS
+    )
+    sheets = [Sheet(path="m.py", sha="0" * 40, marks=())]
+    copy = chief_copy_of(
+        {"m.py@b1": place}, "copy-chief", {"root": ".", "revise": 0}, sheets
+    )
+    assert copy.sheets == ()
+
+
+def test_chief_copy_of_writes_no_mark_for_a_composed_place():
+    """A composed place still owes some role a say -- its working text is the
+    proof's, not the chief's copy's (`decision-log.md Process: #184`)."""
+    place = Place(
+        address="m.py@b1", anchor="x = 1", base=BASE, text="# x\n", state=State.COMPOSED
+    )
     sheets = [Sheet(path="m.py", sha="0" * 40, marks=())]
     copy = chief_copy_of(
         {"m.py@b1": place}, "copy-chief", {"root": ".", "revise": 0}, sheets
@@ -101,7 +119,9 @@ def test_chief_copy_of_writes_no_mark_for_a_place_whose_text_is_none():
 
 
 def test_chief_copy_of_synthesizes_a_drop_for_an_empty_decided_text():
-    place = Place(address="m.py@b1", anchor="x = 1", base=BASE, text="")
+    place = Place(
+        address="m.py@b1", anchor="x = 1", base=BASE, text="", state=State.STANDS
+    )
     sheets = [Sheet(path="m.py", sha="0" * 40, marks=())]
     copy = chief_copy_of(
         {"m.py@b1": place}, "copy-chief", {"root": ".", "revise": 0}, sheets

@@ -18,18 +18,22 @@ import pytest
 from helpers import (
     MISSPELLINGS,
     REPO,
+    TYPOS,
     a_binder_over,
     a_clean,
     a_correct,
     a_correct_setting,
     a_misspelled_address,
     a_move,
+    a_query,
     a_real_binder_over,
     copies_over,
+    patched,
     returned,
 )
 
 from comment_review.commands import check as command
+from comment_review.desk.marks.mark import Shape
 from comment_review.desk.work.events import Refused
 from comment_review.flows.bus import AnswersReturned, CopiesReturned, handle
 
@@ -165,6 +169,78 @@ class TestACopy:
         code, _, err = _run(monkeypatch, capsys, "--edit-copy", str(path))
         assert code == 2
         assert err
+
+
+class TestAHumanQuestionInACopy:
+    """`decision-log.md Process: #197`: a human question is named here as the
+    fold names it, and `--human` says whether the answers file answers it."""
+
+    def _asking(self, tmp_path):
+        path, _ = _copy_file(
+            tmp_path,
+            {
+                "m.py@b1": a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY),
+                "m.py@b5": a_clean("m.py@b5"),
+            },
+        )
+        return path
+
+    def test_an_unanswered_query_alone_is_the_roles_part_done(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        """The reader is the role that filed it, which cannot ask the human --
+        so the line tells it to hand the copy back, and the exit is not
+        `BROKEN`, which would invite it to turn the question into a clean."""
+        code, out, _ = _run(monkeypatch, capsys, "--edit-copy", self._asking(tmp_path))
+        assert code == command.ASKS_THE_HUMAN, out
+        assert (
+            "asks the human m.py@b1: block-context -- "
+            + a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY)["reason"]
+            + "; this is the role's part done -- hand the copy back, and the task"
+            " agent asks it"
+        ) in out, out
+        assert "record the answer in the answers file" not in out
+        assert "0 thing(s) the fold would send back, 1 question(s) for the human" in (
+            out
+        ), out
+
+    def test_an_unanswered_query_beside_another_finding_is_broken(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        path, _ = _copy_file(
+            tmp_path,
+            {"m.py@b1": a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY)},
+        )
+        code, out, _ = _run(monkeypatch, capsys, "--edit-copy", path)
+        assert code == command.BROKEN, out
+        assert "m.py@b5" in out and "not ruled on" in out
+        assert "this is the role's part done" in out
+        assert "1 thing(s) the fold would send back, 1 question(s) for the human" in (
+            out
+        ), out
+
+    def test_an_answered_query_is_named_with_its_answer(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        path = self._asking(tmp_path)
+        human = tmp_path / "human.toml"
+        human.write_text(
+            "[[answer]]\n"
+            'role = "block-context"\n'
+            'at = "m.py@b1"\n'
+            'question = "q"\n'
+            'answer = "Keep it."\n',
+            encoding="utf-8",
+        )
+        code, out, _ = _run(
+            monkeypatch, capsys, "--edit-copy", path, "--human", str(human)
+        )
+        assert code == command.ASKS_THE_HUMAN, out
+        assert (
+            "answered by the human m.py@b1: block-context -- Keep it.; block-context"
+            " replaces this query with its mark or answer"
+        ) in out
+        assert "asks the human" not in out
 
 
 @pytest.mark.parametrize("kind", MISSPELLINGS)
@@ -466,6 +542,50 @@ class TestABatchIsHeldToWhatTheTurnRefuses:
             AnswersReturned(result.proof, answers, tmp_path / "repo")
         )
         assert turned is None
+
+
+def _composed(tmp_path):
+    """Two patches on different lines of one place: a composition, which
+    admits a `query` answer where an escalation does not."""
+    root = tmp_path / "repo"
+    binder = a_real_binder_over(root, {"m.py@b1": TYPOS})
+    copies = [returned(wire) for wire in copies_over(binder, patched("m.py@b1"))]
+    out, result = handle(CopiesReturned("4c", copies, binder, root, None))
+    assert result is not None and result.batch, out
+    return result
+
+
+def test_a_human_question_alone_in_answers_is_the_roles_part_done(
+    tmp_path, monkeypatch, capsys
+):
+    """`--answers` holds a human question to the same exit `--edit-copy` does:
+    the role's part is done, and it is the task agent who asks."""
+    result = _composed(tmp_path)
+    (tmp_path / "batch.json").write_text(json.dumps(result.batch), encoding="utf-8")
+    (slot,) = result.batch["block-context"]
+    path = _answers_file(
+        tmp_path,
+        "block-context",
+        [
+            {
+                **slot,
+                "instruction": "query",
+                "reason": "which the author meant is theirs to say",
+                "claim": {
+                    "shape": "human-review-necessary",
+                    "attempted": "read both texts against the code",
+                    "settles": "the author",
+                },
+            }
+        ],
+    )
+    code, out, _ = _check(monkeypatch, capsys, tmp_path, path, "block-context")
+    assert code == command.ASKS_THE_HUMAN, out
+    assert (
+        "asks the human m.py@b1: block-context -- which the author meant is theirs"
+        " to say; this is the role's part done"
+    ) in out, out
+    assert "1 answered, 0 the fold would refuse, 1 question(s) for the human" in out
 
 
 class TestTheContract:

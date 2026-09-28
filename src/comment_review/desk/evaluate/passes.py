@@ -295,7 +295,13 @@ def answers_pass(place: Place, turn: int) -> Place:
 
 
 def dispositions_pass(place: Place) -> Place:
-    """Close a carried-forward place on the chief's ruling."""
+    """Close a carried-forward place on the chief's ruling.
+
+    A ruling that names the chief's own side (`CHIEF`) where its row does not
+    fix that side -- every row but `recast` -- is refused by name, rather than
+    reaching `row.sets` and failing to find `copy-chief` among the roles'
+    proposed `sides`.
+    """
     if place.disposition is None:
         return place
     row = DISPOSITIONS[place.disposition.name]
@@ -306,6 +312,15 @@ def dispositions_pass(place: Place) -> Place:
             reasons=(
                 f"copy-chief: {place.disposition.name} cannot close a place "
                 f"that is {place.state}",
+            ),
+        )
+    if place.disposition.side == CHIEF and row.side != CHIEF:
+        return _set(
+            place,
+            State.REFUSED,
+            reasons=(
+                f"copy-chief: {place.disposition.name} takes a role's side or the"
+                f" original; the chief's own prose is a recast",
             ),
         )
     if place.disposition.side not in place.sides and place.disposition.side not in (
