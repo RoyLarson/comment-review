@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 29 of 56 tasks closed
+Progress: 30 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -137,11 +137,12 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       objects, one whose `marks` is a string, and one that kept 1 of its 4
       seeded slots are each reported by name; today all four give `problems ==
       []` against a binder carrying `m.py@b1..b4`.
-- [ ] T7 | Implement the comparison of EVERY edit copy's `read_from` in
-      `parse_master_proof`, as `desk.proof.gather` does. Verify: a proof whose
-      second copy was censused from revise 1 while the first names revise 0 is
-      refused by name -- today it returns zero problems, while `gather` raises
-      `MismatchedRoot` on the identical two copies.
+- [x] T7 | every copy's read_from compared and named; test failed first | 184de484 | Implement
+      the comparison of EVERY edit copy's `read_from` in `parse_master_proof`,
+      as `desk.proof.gather` does. Verify: a proof whose second copy was
+      censused from revise 1 while the first names revise 0 is refused by name
+      -- today it returns zero problems, while `gather` raises `MismatchedRoot`
+      on the identical two copies.
 - [ ] T8 | Update the two sentences in `desk/containers.py` that describe
       `desk.proof.gather`'s check as this parse's -- the prose at lines 197-202
       and the `MasterProof.read_from` declaration at 94-96. Verify: no sentence
