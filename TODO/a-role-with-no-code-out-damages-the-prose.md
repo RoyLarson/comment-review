@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 4 of 11 tasks closed
+Progress: 4 of 12 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-08-23 (2026-08-23, Roy: 'we can't tell the agents to review all of this
@@ -187,3 +187,5 @@ is open, so *"effectiveness unchanged"* has no grader.
 - [x] T11 | Brief table and placement rule; SKILL.md offers the three answers | 4df9982d | Update
       the brief and SKILL.md with the three code-concern answers and the TODO
       placement; verify both name add a TODO
+- [ ] T12 | Implement a smoke plant of a code concern answered add a TODO;
+      verify the smoke lands the TODO line and exits 0
