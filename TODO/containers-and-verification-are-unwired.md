@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 26 of 55 tasks closed
+Progress: 27 of 55 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -356,8 +356,9 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
 - [x] T49 | Place, Filed, Move, State in desk/proof; no evaluate import there | 8acce6c1 | Move
       Place, Filed and Move records into desk/proof/, their passes staying in
       desk/evaluate; nothing in desk/proof imports desk/evaluate
-- [ ] T50 | Move the Mark object into desk/proof/, its parse and table staying
-      in desk/marks; nothing in desk/proof imports desk/marks
+- [x] T50 | Mark object in desk/proof, rules in desk/marks/rules; no marks import in proof | d71f7826 | Move
+      the Mark object into desk/proof/, its parse and table staying in
+      desk/marks; nothing in desk/proof imports desk/marks
 - [x] T51 | desk/proof.py deleted; tests build proofs through the bus; 1992 pass | 89aceae5 | Delete
       desk/proof.py, whose builder only tests call, and build test proofs the
       way the bus does; tests green after
