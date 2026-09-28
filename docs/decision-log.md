@@ -5190,3 +5190,15 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   `waiting`; and offered landing the held state (P2) with the chief's placement ruling (P9),
   since once the ends wait the chief can no longer close an undecided move by ruling its ends'
   words. Roy: *"1 - to come works 2 - P2 and P9 together works"*.
+
+- **#202.** **The master proof's pieces are collected in `desk/proof/`; an object model and the
+  verbs that act on it are separate concerns** (Roy, 2026-09-28, on the 2026-09-27 review's
+  packaging question). Offered a top-level `proof/` beside `binder/` and `docket/`, either
+  importing the middle's record types or taking them with it, since the proof is built from
+  `desk`'s own records where the binder and docket are not. Roy: *"Lets put it in desk/proof for
+  now and collect its pieces together. We can pull them out to another package later if I still
+  consider this a bad pattern later."* And on why the question arose: *"It seems like there are
+  the data types themselves and then there is the way the system builds, uses, and considers the
+  verbs of them (Mark the object vs to mark the verb). Uses and verbs parts should be part of
+  desk/ but the object model could be elsewhere. That is what I see from Binder and Docket as
+  well"*.
