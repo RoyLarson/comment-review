@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 27 of 56 tasks closed
+Progress: 28 of 56 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -370,5 +370,6 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       desk/proof.py; the grep comes back empty
 - [ ] T55 | Move the Answer and Disposition objects into desk/proof/, their
       parse and tables staying in their packages; desk/proof imports neither
-- [ ] T56 | Move a mark's type checks into Mark.deserialize and ignore fields a
-      row does not take (Process 204); validate takes the Mark alone
+- [x] T56 | types read in deserialize, unused fields ignored; validate takes the Mark | aa9ccfeb | Move
+      a mark's type checks into Mark.deserialize and ignore fields a row does
+      not take (Process 204); validate takes the Mark alone
