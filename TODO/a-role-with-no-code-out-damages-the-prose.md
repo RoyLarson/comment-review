@@ -2,9 +2,9 @@
 
 ```
 Status:   decision-needed
-Progress: 1 of 10 tasks closed
+Progress: 4 of 11 tasks closed
 Owner:    agents
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-08-23 (2026-08-23, Roy: 'we can't tell the agents to review all of this
           and not give them an out for properly resolving the issues. Several times they
           were overly restricted by what they could do and that caused tension in the
@@ -153,10 +153,12 @@ is open, so *"effectiveness unchanged"* has no grader.
 
 ## Tasks
 
-- [?] T1 | T1 -- * RULE what a role may propose when the right fix is a CODE
-      change -- describe it, or suggest it. Verify: the ruling is recorded in
-      the Objective here.
-- [ ] T2 | T2 -- Record T1's ruling in
+- [x] T1 | Roy ruled: code concern is a human query, three answers, TODO beside its subject; Process 199 | 4df9982d | T1
+      -- * RULE what a role may propose when the right fix is a CODE change --
+      describe it, or suggest it. Verify: the ruling is recorded in the
+      Objective here.
+- [x] T2 | Ruling stated in code-concerns-cannot-carry-a-proposed-change Objective | 4df9982d | T2
+      -- Record T1's ruling in
       `code-concerns-cannot-carry-a-proposed-change.md`, the backend file it
       gates. Verify: that file states it.
 - [ ] T3 | T3 -- Name `code_concerns` in `comment-review-ownership-context.md`.
@@ -182,3 +184,6 @@ is open, so *"effectiveness unchanged"* has no grader.
 - [x] T10 | FINISHED | unknown | T10 -- NOT A TASK. The PASS CRITERION --
       *"recommendations improved"* -- is a judgement, not an observation a
       stranger can repeat. Kept in full in the Objective.
+- [x] T11 | Brief table and placement rule; SKILL.md offers the three answers | 4df9982d | Update
+      the brief and SKILL.md with the three code-concern answers and the TODO
+      placement; verify both name add a TODO
