@@ -13,10 +13,11 @@ from helpers import (
 )
 
 from comment_review.desk.containers import Sheet
+from comment_review.desk.evaluate.move import _is_this_move, moves_in
 from comment_review.desk.evaluate.place import Place
 from comment_review.desk.evaluate.state import State
 from comment_review.desk.marks.mark import Instruction
-from comment_review.desk.marks.table import Row, Touch
+from comment_review.desk.marks.table import Row, Touch, chief_mark
 from comment_review.flows.fill import composition_problems, fill, row_problems
 from comment_review.flows.on_the_page import Held
 from comment_review.flows.places import bases_and_anchors, chief_copy_of, places_of
@@ -182,3 +183,22 @@ def test_every_reader_of_where_a_mark_writes_asks_the_row(monkeypatch, tmp_path)
     placed, why = fill(seed(real, "block-context"), entry, tmp_path / "repo")
     assert placed is None
     assert why == ["m.py@b7: at b7"]
+
+    # The move aggregate is keyed by the destination the row names, and knows
+    # the filing as that move; a reader of the claim would key it at b5.
+    moves = moves_in(places)
+    assert set(moves) == {"m.py@b1 -> m.py@b7"}
+    assert _is_this_move(places["m.py@b1"].filed[0], moves["m.py@b1 -> m.py@b7"])
+
+    # The chief asks the row how many places a mark writes.
+    consulted: list[str] = []
+
+    def recorded(self, mark):
+        consulted.append(mark.address)
+        return elsewhere
+
+    monkeypatch.setattr(Row, "places", recorded)
+    decided = places["m.py@b1"]
+    decided.text = "# decided"
+    chief_mark(decided)
+    assert consulted == ["m.py@b1"]
