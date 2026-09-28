@@ -29,9 +29,9 @@ from comment_review.desk.dispositions.disposition import CHIEF
 from comment_review.desk.marks.mark import Instruction, Mark, Shape, first_word_dropped
 
 if TYPE_CHECKING:
-    # Type-only: `place` imports `INSTRUCTIONS`, `Stance` and `Touch` from this
-    # module, so a runtime import here would cycle back to it.
-    from comment_review.desk.evaluate.place import Place
+    # Type-only: `desk.proof.place` imports `Touch` from this module, so a
+    # runtime import here would cycle back to it.
+    from comment_review.desk.proof.place import Place
 
 
 class Touch(StrEnum):

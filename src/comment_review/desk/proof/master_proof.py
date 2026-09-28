@@ -19,12 +19,12 @@ class MasterProof:
             `read_from` disagrees with its first copy's.
         edit_copies: one per role, or one per SHARD under fan-out.
         places: every place one fold of this stage decided, as
-            `desk.evaluate.place.Place.serialize` writes one, read back by
+            `desk.proof.place.Place.serialize` writes one, read back by
             `Place.deserialize`. `flows.bus` writes it; empty until such a
             fold has run. `serialize` carries it; `deserialize` reads it where
             present.
         moves: every move one fold of this stage decided, as
-            `desk.evaluate.move.Move.serialize` writes one. Carried and read
+            `desk.proof.move.Move.serialize` writes one. Carried and read
             like `places`, and absent from a proof written before
             `decision-log.md Process: #195`.
 

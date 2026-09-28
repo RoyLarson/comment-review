@@ -23,8 +23,8 @@ from pathlib import Path
 from comment_review.desk.answers.answer import Answer, Question
 from comment_review.desk.answers.table import ANSWERS
 from comment_review.desk.collator import Cache, Problem, cited_problems
-from comment_review.desk.evaluate.move import key_of
 from comment_review.desk.marks.mark import QUERY_SHAPES, allowed, filled
+from comment_review.desk.proof.move import key_of
 
 #: What each field of an answer is, in the words `Answer.deserialize` checks
 #: by. The parse asks whether a field is filled and not what it means, so a

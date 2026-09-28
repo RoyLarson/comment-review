@@ -18,10 +18,10 @@ from helpers import (
 )
 
 from comment_review.desk.answers.answer import Question
-from comment_review.desk.evaluate.place import Place
-from comment_review.desk.evaluate.state import State
 from comment_review.desk.marks.mark import Mark, Shape
+from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.sheet import Sheet
+from comment_review.desk.proof.state import State
 from comment_review.desk.stages import Dispatch, Kind, Role, Stage
 from comment_review.desk.work import events
 from comment_review.flows.bus import (

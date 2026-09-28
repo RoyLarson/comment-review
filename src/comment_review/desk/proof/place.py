@@ -4,9 +4,9 @@ from dataclasses import dataclass, field
 
 from comment_review.desk.answers.answer import Answer, Question
 from comment_review.desk.dispositions.disposition import Disposition
-from comment_review.desk.evaluate.state import State
 from comment_review.desk.marks.mark import Mark
 from comment_review.desk.marks.table import Touch
+from comment_review.desk.proof.state import State
 
 
 @dataclass

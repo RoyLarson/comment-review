@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from comment_review.desk.dispositions.disposition import CHIEF, ORIGINAL
-from comment_review.desk.evaluate.state import CARRIED, State
+from comment_review.desk.proof.state import CARRIED, State
 
 Sets = Callable[[Any, str, dict[str, str]], str | None]
 

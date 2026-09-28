@@ -30,9 +30,9 @@ import sys
 from pathlib import Path
 
 from comment_review.desk.answers.answer import Question
-from comment_review.desk.evaluate.move import Placement
-from comment_review.desk.evaluate.state import CARRIED, SETTLED, State
 from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.move import Placement
+from comment_review.desk.proof.state import CARRIED, SETTLED, State
 from comment_review.desk.topology import read as read_topology
 from comment_review.desk.work import events
 from comment_review.flows.bus import CopiesReturned, handle
@@ -246,7 +246,7 @@ def _counted(places: tuple[dict, ...]) -> str:
     Settled is counted rather than subtracted, since `decision-log.md
     Process: #193`'s round. It read `len(states) - carried - unsettlable`,
     which is a third statement of which states are settled --
-    `desk.evaluate.state.SETTLED` is the one both this and
+    `desk.proof.state.SETTLED` is the one both this and
     `flows.transcribe._unclosed` read.
     """
     states = [str(place.get("state") or "") for place in places]

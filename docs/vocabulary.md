@@ -181,12 +181,12 @@ the rest of that plan gave the middle the ones under them. None is in `vocabular
 
 - **`place`** -- the aggregate the middle decides: one address, its base text, every mark filed
   against it, each turn's answers, the chief's ruling where there is one, and the state, text and
-  sides that follow. `desk.evaluate.place.Place`.
+  sides that follow. `desk.proof.place.Place`.
 - **`pass`** -- one table applied to a place. `marks_pass`, `answers_pass` and
   `dispositions_pass` each read their own table, and `desk.evaluate.passes.decide` is the one
   order they may run in.
 - **`state`** -- what a pass leaves a place in, one of seven: `stands`, `agreed`, `composed`,
-  `contested`, `unsettlable`, `refused`, `to-come`. `desk.evaluate.state.State`.
+  `contested`, `unsettlable`, `refused`, `to-come`. `desk.proof.state.State`.
 - **to come** -- an end of a move whose placement is undecided, the trade's TK: it holds no
   text, asks no role anything and takes no ruling, and is read as any place once the placement
   is decided. Not carried forward -- the move is. In `vocabulary.toml` for the task agent, who
@@ -194,7 +194,7 @@ the rest of that plan gave the middle the ones under them. None is in `vocabular
 - **`side`** -- the one text a role proposes at a place, whatever number of marks it filed there.
   `place.sides` is role -> that text; it is what a batch slot carries and what a `taken_in` names.
 - **carried forward** -- a place the fold did not settle, `composed` or `contested`, which goes
-  out in the next batch or to the chief. `desk.evaluate.state.CARRIED` is the pair.
+  out in the next batch or to the chief. `desk.proof.state.CARRIED` is the pair.
 - **held for the human** -- an `unsettlable` place. No role's answer and no chief's ruling closes
   it; it rides to the author at 7a.
 - **advisory note** -- what the chief is told about a mark without the mark being refused for it.

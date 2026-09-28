@@ -2,7 +2,7 @@
 
 from comment_review.desk.answers.answer import Answer, Question
 from comment_review.desk.dispositions.disposition import ORIGINAL, Disposition
-from comment_review.desk.evaluate.move import Placement, moves_in
+from comment_review.desk.evaluate.move import moves_in
 from comment_review.desk.evaluate.passes import (
     answers_pass,
     decide,
@@ -10,10 +10,11 @@ from comment_review.desk.evaluate.passes import (
     marks_pass,
     sides_of,
 )
-from comment_review.desk.evaluate.place import Filed, Place
-from comment_review.desk.evaluate.state import State
 from comment_review.desk.marks.mark import Instruction, Mark, Shape
 from comment_review.desk.marks.table import Touch
+from comment_review.desk.proof.move import Placement
+from comment_review.desk.proof.place import Filed, Place
+from comment_review.desk.proof.state import State
 
 BASE = "# one\n# two\n# three\n"
 

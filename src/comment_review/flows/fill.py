@@ -73,7 +73,6 @@ from pathlib import Path
 
 from comment_review.desk.collator import cite_at
 from comment_review.desk.evaluate.passes import composed_side, proposing
-from comment_review.desk.evaluate.place import Filed
 from comment_review.desk.marks.mark import (
     Instruction,
     Mark,
@@ -82,6 +81,7 @@ from comment_review.desk.marks.mark import (
     untouched,
 )
 from comment_review.desk.marks.table import INSTRUCTIONS, Row
+from comment_review.desk.proof.place import Filed
 from comment_review.desk.stages import not_admitted
 from comment_review.flows.on_the_page import held_at
 from comment_review.flows.page_for import page_of

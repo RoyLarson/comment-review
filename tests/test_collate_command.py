@@ -27,9 +27,9 @@ from helpers import (
 
 from comment_review.commands import collate as command
 from comment_review.desk.answers.answer import Question
-from comment_review.desk.evaluate.place import Place
-from comment_review.desk.evaluate.state import State
 from comment_review.desk.marks.mark import Shape
+from comment_review.desk.proof.place import Place
+from comment_review.desk.proof.state import State
 from comment_review.desk.work import events
 from comment_review.flows.proof_io import load_proof
 
@@ -1088,7 +1088,7 @@ def test_a_human_question_prints_what_to_do_and_exits_asks_the_human():
 
 def test_an_undecided_move_prints_one_line_and_sets_the_exit_code():
     from comment_review.commands.collate import ESCALATIONS, REREADS, _code_for, _lines
-    from comment_review.desk.evaluate.move import Placement
+    from comment_review.desk.proof.move import Placement
 
     opened = events.PlacementCarried("m.py@b1", "m.py@b5", Placement.OPEN, ("b",))
     contested = events.PlacementCarried(

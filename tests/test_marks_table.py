@@ -6,9 +6,9 @@ import re
 import pytest
 from helpers import a_real_binder_over, returned, seed
 
-from comment_review.desk.evaluate.place import Filed, Place
 from comment_review.desk.marks.mark import Instruction, Mark
 from comment_review.desk.marks.table import INSTRUCTIONS, Row, Stance, Touch, chief_mark
+from comment_review.desk.proof.place import Filed, Place
 from comment_review.flows.verify import resolution_problems
 
 

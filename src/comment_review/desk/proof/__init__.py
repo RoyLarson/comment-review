@@ -1,8 +1,11 @@
-"""The master proof's objects -- the sheet, the edit_copy, the master_proof.
+"""The master proof's objects -- its containers and the records a fold decides.
 
     sheet.Sheet               one PAGE's marks, with that page's path and sha
     edit_copy.EditCopy        one ROLE's sheets, with the binder it was seeded from
-    master_proof.MasterProof  one STAGE's edit_copies
+    master_proof.MasterProof  one STAGE's edit_copies, places and moves
+    place.Place, place.Filed  one address and everything filed or ruled at it
+    move.Move, move.Placement one placement claim over two places
+    state.State               the state a place is in once evaluated
     wire                      the seed half of the round trip, for Sheet and EditCopy
 
 Each object's `deserialize` is the boundary parse for it and everything under

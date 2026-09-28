@@ -17,15 +17,11 @@ Process: #195`).
 
 from dataclasses import dataclass, field
 
-from comment_review.desk.evaluate.move import (
-    Move,
-    Placement,
-    is_open,
-    moves_in,
-)
+from comment_review.desk.evaluate.move import moves_in
 from comment_review.desk.evaluate.passes import decide
-from comment_review.desk.evaluate.place import Place
-from comment_review.desk.evaluate.state import CARRIED, State
+from comment_review.desk.proof.move import Move, Placement, is_open
+from comment_review.desk.proof.place import Place
+from comment_review.desk.proof.state import CARRIED, State
 from comment_review.desk.work import events
 
 

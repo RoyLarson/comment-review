@@ -182,7 +182,7 @@ class Mark:
     front of them. `docs/the-mark.md`, "The fields -- eight", holds Roy's own
     sentence for it, in the register that ruling was given in.
 
-    ! `role` IS NOT A FIELD, and `desk.evaluate.place.Filed` is what carries
+    ! `role` IS NOT A FIELD, and `desk.proof.place.Filed` is what carries
     the pair. It belongs to the `edit_copy` a mark came back in, not to the
     mark.
 

@@ -845,7 +845,7 @@ ESCALATED = (
 
 
 #: What joins a move's origin to its destination in a key of `ANSWERS` and
-#: `ANSWERS2` -- the spelling `desk.evaluate.move.key_of` gives a move, which
+#: `ANSWERS2` -- the spelling `desk.proof.move.key_of` gives a move, which
 #: is how `check` and `turn` name a placement slot.
 MOVE_KEY = " -> "
 

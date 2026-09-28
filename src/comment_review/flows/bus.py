@@ -33,17 +33,13 @@ from comment_review.binder.binder import Binder
 from comment_review.desk.answers.answer import Answer, Question
 from comment_review.desk.collator import Cache, Problem
 from comment_review.desk.dispositions.disposition import CHIEF, Disposition
-from comment_review.desk.evaluate.move import (
-    Move,
-    is_open,
-    key_of,
-    moves_in,
-)
-from comment_review.desk.evaluate.place import Place
-from comment_review.desk.evaluate.state import CARRIED, State
+from comment_review.desk.evaluate.move import moves_in
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
+from comment_review.desk.proof.move import Move, is_open, key_of
+from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.sheet import Sheet
+from comment_review.desk.proof.state import CARRIED, State
 from comment_review.desk.stages import Stage, not_admitted
 from comment_review.desk.work import events
 from comment_review.desk.work.fold import Fold, asked
@@ -629,7 +625,7 @@ def _commit(
 def _undecided(fold: Fold) -> list[Move]:
     """The moves this fold carries forward, in key order.
 
-    Only an open move is carried (`desk.evaluate.move.is_open`), as the fold
+    Only an open move is carried (`desk.proof.move.is_open`), as the fold
     reports a `PlacementCarried` for an open move alone.
     """
     return [

@@ -2,7 +2,7 @@
 
 from comment_review.desk.dispositions.disposition import CHIEF, Disposition
 from comment_review.desk.dispositions.table import DISPOSITIONS
-from comment_review.desk.evaluate.state import State
+from comment_review.desk.proof.state import State
 
 
 def test_taken_in_closes_a_carried_place_with_one_sides_text_or_the_original():

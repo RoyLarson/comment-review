@@ -7,15 +7,11 @@ that read either page, before either end's words are.
 
 from comment_review.desk.answers.answer import Answer, Question
 from comment_review.desk.dispositions.disposition import Disposition
-from comment_review.desk.evaluate.move import (
-    Move,
-    Placement,
-    moves_in,
-    placement_pass,
-)
-from comment_review.desk.evaluate.place import Filed, Place
+from comment_review.desk.evaluate.move import moves_in, placement_pass
 from comment_review.desk.marks.mark import Instruction, Mark, Shape
 from comment_review.desk.marks.table import Touch
+from comment_review.desk.proof.move import Move, Placement
+from comment_review.desk.proof.place import Filed, Place
 
 ORIGIN, DESTINATION = "m.py@b1", "m.py@b5"
 BASE = "# one\n# two\n# three\n"
