@@ -7,9 +7,10 @@ marks at one place one side between them, which is a composition that can
 refuse and so belongs where the reasons are read.
 """
 
-from comment_review.desk.answers.answer import Answer, Question
-from comment_review.desk.dispositions.disposition import ORIGINAL, Disposition
-from comment_review.desk.marks.rules import validate
+from helpers import VALIDATORS
+
+from comment_review.desk.proof.answer import Answer, Question
+from comment_review.desk.proof.disposition import ORIGINAL, Disposition
 from comment_review.desk.proof.mark import Instruction, Mark, Touch
 from comment_review.desk.proof.place import Filed, Place
 from comment_review.desk.proof.state import State
@@ -81,12 +82,12 @@ def test_a_place_round_trips_through_serialize():
         reasons=(),
         question=None,
     )
-    got, problems = Place.deserialize("m.py@b1", place.serialize(), validate)
+    got, problems = Place.deserialize("m.py@b1", place.serialize(), VALIDATORS)
     assert problems == []
     assert got == place
 
 
 def test_deserialize_refuses_a_place_that_is_not_an_object():
-    got, problems = Place.deserialize("m.py@b1", "not a place", validate)
+    got, problems = Place.deserialize("m.py@b1", "not a place", VALIDATORS)
     assert got is None
     assert problems == ["m.py@b1: a place must be an object"]

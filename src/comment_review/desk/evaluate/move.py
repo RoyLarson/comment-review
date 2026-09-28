@@ -9,10 +9,11 @@ The move itself -- its fields, its placements and its name -- is
 `desk.proof.move`.
 """
 
-from comment_review.desk.answers.answer import Question
 from comment_review.desk.answers.table import ANSWERS, Effect
-from comment_review.desk.dispositions.disposition import CHIEF, ORIGINAL, Disposition
+from comment_review.desk.dispositions.rules import side_of
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
+from comment_review.desk.proof.answer import Question
+from comment_review.desk.proof.disposition import CHIEF, ORIGINAL, Disposition
 from comment_review.desk.proof.mark import Mark, Touch
 from comment_review.desk.proof.move import FINAL, UNDECIDED, Move, Placement, key_of
 from comment_review.desk.proof.place import Filed, Place
@@ -152,17 +153,17 @@ def _ruled(move: Move, ruling: Disposition) -> None:
             Placement.REFUSED,
             (f"{CHIEF}: a placement that is {move.placement} takes no ruling",),
         )
-    elif ruling.side == ORIGINAL:
+    elif side_of(ruling) == ORIGINAL:
         move.movers, move.placement = {}, Placement.WITHDRAWN
-    elif ruling.side in move.movers:
-        move.movers = {ruling.side: move.movers[ruling.side]}
+    elif side_of(ruling) in move.movers:
+        move.movers = {side_of(ruling): move.movers[side_of(ruling)]}
         move.placement = Placement.AGREED
     else:
         move.placement, move.reasons = (
             Placement.REFUSED,
             (
                 f"{CHIEF}: a placement is taken in from a mover or the original,"
-                f" and {ruling.side!r} filed no move here",
+                f" and {side_of(ruling)!r} filed no move here",
             ),
         )
     move.owed = ()

@@ -2,9 +2,9 @@
 
 from dataclasses import replace
 
-from comment_review.desk.answers.answer import Answer, Question
-from comment_review.desk.dispositions.disposition import Disposition
 from comment_review.desk.evaluate.move import moves_in
+from comment_review.desk.proof.answer import Answer, Question
+from comment_review.desk.proof.disposition import Disposition
 from comment_review.desk.proof.mark import Instruction, Mark, Shape, Touch
 from comment_review.desk.proof.move import Placement
 from comment_review.desk.proof.place import Filed, Place

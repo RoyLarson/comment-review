@@ -10,6 +10,7 @@ import pytest
 from helpers import (
     MISSPELLINGS,
     REPO,
+    VALIDATORS,
     _keeping_only,
     a_binder_over,
     a_clean,
@@ -26,8 +27,7 @@ from helpers import (
 )
 
 from comment_review.commands import collate as command
-from comment_review.desk.answers.answer import Question
-from comment_review.desk.marks.rules import validate
+from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.mark import Shape
 from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.state import State
@@ -946,7 +946,7 @@ class TestTheStateBetweenTurnsOnDisk:
         assert why == []
         assert proof is not None
         assert [p["address"] for p in proof.places] == ["m.py@b1"]
-        place, why = Place.deserialize("the place", proof.places[0], validate)
+        place, why = Place.deserialize("the place", proof.places[0], VALIDATORS)
         assert place is not None, why
         assert place.state is State.STANDS
         assert place.text == proof.places[0]["text"]

@@ -4,7 +4,7 @@ import dataclasses
 import re
 
 import pytest
-from helpers import a_real_binder_over, returned, seed
+from helpers import VALIDATORS, a_real_binder_over, returned, seed
 
 from comment_review.desk.marks.rules import validate
 from comment_review.desk.marks.table import INSTRUCTIONS, Row, Stance, chief_mark
@@ -570,5 +570,5 @@ class TestTheSplit:
         place = Place(
             address="m.py@b5", anchor="", base="", filed=[Filed("a", add, Touch.OWN)]
         )
-        back, why = Place.deserialize("p", place.serialize(), validate)
+        back, why = Place.deserialize("p", place.serialize(), VALIDATORS)
         assert why == [] and back is not None and back.filed[0].mark == add

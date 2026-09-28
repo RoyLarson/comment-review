@@ -19,6 +19,7 @@ import json
 from pathlib import Path
 
 import pytest
+from helpers import VALIDATORS
 from test_mark_brief import BRIEF
 
 from comment_review.desk.marks.rules import (
@@ -260,7 +261,7 @@ def test_the_structural_read_admits_what_only_the_rules_refuse():
     assert why == [] and mark is not None
     assert validate("here", mark) == ["here: correct needs a `reason`"]
     sheet, why = Sheet.deserialize(
-        "s", {"path": "m.py", "sha": "a", "marks": [entry]}, validate
+        "s", {"path": "m.py", "sha": "a", "marks": [entry]}, VALIDATORS
     )
     assert why == [] and sheet is not None and sheet.marks == ()
     assert sheet.refused[0].reasons == ("correct needs a `reason`",)
@@ -648,7 +649,7 @@ class TestAStoredReasonDoesNotRepeatItsLocator:
                     "not an object",
                 ],
             },
-            validate,
+            VALIDATORS,
         )
         assert why == []
         assert sheet is not None

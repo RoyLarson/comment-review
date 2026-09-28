@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from enum import StrEnum, auto
 from typing import Any
 
-from comment_review.desk.answers.answer import Question
+from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.mark import Shape
 
 
@@ -65,9 +65,10 @@ class AnswerRow:
             `_query_effect` asks a `query`'s `claim["shape"]` to tell a place
             held for the human from a role standing aside, and a missing key
             fell to the second silently -- the difference between a review
-            that stops for a person and one that does not. The parse refuses
-            the absence now, and `flows.answers.contracts` publishes the keys
-            off this field, so nothing hand-types them.
+            that stops for a person and one that does not.
+            `desk.answers.rules.validate` refuses the absence, and
+            `flows.answers.contracts` publishes the keys off this field, so
+            nothing hand-types them.
     """
 
     question: Question

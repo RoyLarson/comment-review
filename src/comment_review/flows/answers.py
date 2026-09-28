@@ -20,15 +20,16 @@ the same question written down twice.
 from collections.abc import Callable
 from pathlib import Path
 
-from comment_review.desk.answers.answer import Answer, Question
 from comment_review.desk.answers.table import ANSWERS
 from comment_review.desk.collator import Cache, Problem, cited_problems
 from comment_review.desk.marks.rules import allowed
+from comment_review.desk.proof.answer import Answer, Question, read_answer
 from comment_review.desk.proof.mark import QUERY_SHAPES, filled
 from comment_review.desk.proof.move import key_of
+from comment_review.flows.validators import VALIDATORS
 
-#: What each field of an answer is, in the words `Answer.deserialize` checks
-#: by. The parse asks whether a field is filled and not what it means, so a
+#: What each field of an answer is, in the words `desk.answers.rules.validate`
+#: checks by. The check asks whether a field is filled and not what it means, so a
 #: role handed the names alone has been told half of the contract.
 ANSWER_FIELDS = {
     "address": "copied from the slot",
@@ -144,13 +145,14 @@ def answers_of(
         if entry is None or not filled(entry.get("instruction")):
             problems.append(Problem(role, address, "unanswered"))
             continue
-        answer, why = Answer.deserialize(
+        answer, why = read_answer(
             address,
             {
                 **entry,
                 "question": slot.get("question"),
                 "anchor": entry.get("anchor") or slot.get("anchor", ""),
             },
+            VALIDATORS.answer,
         )
         if answer is None:
             # The location is the `Problem`'s own two fields, so it is taken
@@ -174,8 +176,8 @@ def contracts() -> dict:
     """The shapes a role is handed, generated from the tables, never hand-typed.
 
     A stage-4c `Mark`, from the marks table, and one entry per question a turn
-    asks, from the answers table -- the same rows `Answer.deserialize` reads an
-    answer against, so the contract cannot say a thing the parse does not.
+    asks, from the answers table -- the same rows `desk.answers.rules.validate`
+    holds an answer to, so the contract cannot say a thing the check does not.
     `commands/check.py --contract` prints them; publishing them in the brief is
     the agents lane's.
 

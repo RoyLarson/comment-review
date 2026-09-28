@@ -30,11 +30,13 @@ from pathlib import Path
 from typing import NamedTuple
 
 from comment_review.binder.binder import Binder
-from comment_review.desk.answers.answer import Answer, Question
 from comment_review.desk.collator import Cache, Problem
-from comment_review.desk.dispositions.disposition import CHIEF, Disposition
 from comment_review.desk.evaluate.move import moves_in
-from comment_review.desk.marks.rules import validate
+from comment_review.desk.proof.answer import Answer, Question
+from comment_review.desk.proof.disposition import (
+    CHIEF,
+    read_disposition,
+)
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.move import Move, is_open, key_of
@@ -55,6 +57,7 @@ from comment_review.flows.human import (
 from comment_review.flows.mark_errors import mark_errors
 from comment_review.flows.on_the_page import PageCache, held_at
 from comment_review.flows.places import bases_and_anchors, chief_copy_of, places_of
+from comment_review.flows.validators import VALIDATORS
 from comment_review.flows.verify import (
     copy_problems,
     coverage_problems,
@@ -360,7 +363,7 @@ def _places_on(proof: MasterProof) -> tuple[dict[str, Place], list[Problem]]:
     for i, entry in enumerate(proof.places):
         where = str(entry.get("address") or "") if isinstance(entry, dict) else ""
         where = where or f"place {i}"
-        place, why = Place.deserialize(where, entry, validate)
+        place, why = Place.deserialize(where, entry, VALIDATORS)
         if place is None:
             problems += [
                 Problem(THE_PROOF, where, one.removeprefix(f"{where}: ")) for one in why
@@ -502,7 +505,7 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
     for i, entry in enumerate(message.dispositions, 1):
         named = str(entry.get("address") or "") if isinstance(entry, dict) else ""
         where = named or f"ruling {i}"
-        disposition, why = Disposition.deserialize(where, entry)
+        disposition, why = read_disposition(where, entry, VALIDATORS.disposition)
         if disposition is None:
             problems += [
                 Problem(CHIEF, where, one.removeprefix(f"{where}: ")) for one in why
@@ -651,7 +654,7 @@ def _moves_on(proof: MasterProof) -> tuple[dict[str, Move], list[Problem]]:
     problems: list[Problem] = []
     for i, entry in enumerate(proof.moves):
         where = f"move {i}"
-        move, why = Move.deserialize(where, entry)
+        move, why = Move.deserialize(where, entry, VALIDATORS)
         if move is None:
             problems += [
                 Problem(THE_PROOF, where, one.removeprefix(f"{where}: ")) for one in why

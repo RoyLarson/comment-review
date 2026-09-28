@@ -1,7 +1,5 @@
 """The marks pass: from the marks filed at a place to its state and text."""
 
-from comment_review.desk.answers.answer import Answer, Question
-from comment_review.desk.dispositions.disposition import ORIGINAL, Disposition
 from comment_review.desk.evaluate.move import moves_in
 from comment_review.desk.evaluate.passes import (
     answers_pass,
@@ -10,6 +8,8 @@ from comment_review.desk.evaluate.passes import (
     marks_pass,
     sides_of,
 )
+from comment_review.desk.proof.answer import Answer, Question
+from comment_review.desk.proof.disposition import ORIGINAL, Disposition
 from comment_review.desk.proof.mark import Instruction, Mark, Shape, Touch
 from comment_review.desk.proof.move import Placement
 from comment_review.desk.proof.place import Filed, Place

@@ -23,6 +23,7 @@ from comment_review.desk.proof.mark import (
     untouched,
     without_location,
 )
+from comment_review.desk.proof.validators import Validators
 from comment_review.desk.proof.wire import _written
 
 
@@ -223,15 +224,16 @@ class Sheet:
 
     @classmethod
     def deserialize(
-        cls, where: str, data: object, validate: Validator
+        cls, where: str, data: object, validators: Validators
     ) -> "tuple[Sheet | None, list[str]]":
         """One sheet, checked.
 
         Args:
             where: how to name this sheet in a message.
             data: one entry of an edit_copy's `sheets`, as it came back.
-            validate: the rule check each ruled entry is held to; an entry
-                that breaks a rule goes to `refused` with its messages.
+            validators: the rule checks; each ruled entry is held to its
+                `mark` member, and an entry that breaks a rule goes to
+                `refused` with its messages.
 
         Returns:
             `(Sheet, [])` or `(None, [messages])`. An absent OR a null `sha` is
@@ -289,7 +291,7 @@ class Sheet:
         # it from reading as the settled shape.
         raw_sha = data.get("sha")
         sha = raw_sha if isinstance(raw_sha, str) else ""
-        ruled, unruled, refused = _sorted_entries(path, marks, validate)
+        ruled, unruled, refused = _sorted_entries(path, marks, validators.mark)
         return (
             Sheet(
                 path=path,

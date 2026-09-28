@@ -22,9 +22,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import smoke_fixture  # noqa: E402
 from smoke_fixture import write_second_plant as smoke_second_plant  # noqa: E402
 
-from comment_review.desk.answers.answer import Question  # noqa: E402
 from comment_review.desk.answers.table import ANSWERS as ANSWER_ROWS  # noqa: E402
-from comment_review.desk.dispositions.disposition import ORIGINAL  # noqa: E402
 from comment_review.desk.dispositions.table import (  # noqa: E402
     DISPOSITIONS as DISPOSITION_ROWS,
 )
@@ -33,6 +31,8 @@ from comment_review.desk.marks.rules import (  # noqa: E402
     first_word_dropped,
 )
 from comment_review.desk.marks.table import INSTRUCTIONS  # noqa: E402
+from comment_review.desk.proof.answer import Question  # noqa: E402
+from comment_review.desk.proof.disposition import ORIGINAL  # noqa: E402
 from comment_review.desk.proof.mark import Instruction, Shape  # noqa: E402
 from comment_review.flows.answers import slot_key  # noqa: E402
 from comment_review.flows.fill import marks_on  # noqa: E402

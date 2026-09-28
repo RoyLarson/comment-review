@@ -2,10 +2,11 @@
 
 from dataclasses import dataclass, field
 
-from comment_review.desk.answers.answer import Answer, Question
-from comment_review.desk.dispositions.disposition import Disposition
-from comment_review.desk.proof.mark import Mark, Touch, Validator, read_mark
+from comment_review.desk.proof.answer import Answer, Question, read_answer
+from comment_review.desk.proof.disposition import Disposition, read_disposition
+from comment_review.desk.proof.mark import Mark, Touch, read_mark
 from comment_review.desk.proof.state import State
+from comment_review.desk.proof.validators import Validators
 
 
 @dataclass
@@ -96,11 +97,12 @@ class Place:
 
     @classmethod
     def deserialize(
-        cls, where: str, entry: object, validate: Validator
+        cls, where: str, entry: object, validators: Validators
     ) -> "tuple[Place | None, list[str]]":
         """One entry becomes a `Place`, or becomes named problems.
 
-        Each filed mark is read through `read_mark` and held to `validate`.
+        Each filed mark, each answer and the chief's ruling is read by its
+        own reader and held to the matching member of `validators`.
         """
         if not isinstance(entry, dict):
             return None, [f"{where}: a place must be an object"]
@@ -108,7 +110,7 @@ class Place:
         problems: list[str] = []
         filed = []
         for i, one in enumerate(data.get("filed") or []):
-            mark, why = read_mark(f"{where} mark {i}", one, validate)
+            mark, why = read_mark(f"{where} mark {i}", one, validators.mark)
             if mark is None:
                 problems += why
                 continue
@@ -123,14 +125,18 @@ class Place:
         answers: dict[int, dict[str, Answer]] = {}
         for turn, by in (data.get("answers") or {}).items():
             for role, raw in by.items():
-                answer, why = Answer.deserialize(f"{where} turn {turn} {role}", raw)
+                answer, why = read_answer(
+                    f"{where} turn {turn} {role}", raw, validators.answer
+                )
                 if answer is None:
                     problems += why
                 else:
                     answers.setdefault(int(turn), {})[role] = answer
         disposition = None
         if data.get("disposition") is not None:
-            disposition, why = Disposition.deserialize(where, data["disposition"])
+            disposition, why = read_disposition(
+                where, data["disposition"], validators.disposition
+            )
             problems += why
         if problems:
             return None, problems

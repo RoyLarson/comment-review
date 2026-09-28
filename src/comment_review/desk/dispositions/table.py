@@ -4,7 +4,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from comment_review.desk.dispositions.disposition import CHIEF, ORIGINAL
+from comment_review.desk.proof.disposition import CHIEF, ORIGINAL
 from comment_review.desk.proof.state import CARRIED, State
 
 Sets = Callable[[Any, str, dict[str, str]], str | None]
@@ -28,9 +28,9 @@ class DispositionRow:
     owes: tuple[str, ...]
     sets: Sets
     #: The side this row fixes -- `CHIEF` on the recast row, "" where the
-    #: ruling names its own side. `Disposition.deserialize` reads this as the
-    #: default so the row, not a hand-typed check on `name`, is the one place
-    #: that names "recast" outside this table.
+    #: ruling names its own side. `desk.dispositions.rules.side_of` reads this
+    #: as the default so the row, not a hand-typed check on `name`, is the one
+    #: place that names "recast" outside this table.
     side: str = ""
 
 

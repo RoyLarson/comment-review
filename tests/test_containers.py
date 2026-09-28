@@ -9,9 +9,8 @@ are about.
 from dataclasses import fields
 
 import pytest
-from helpers import a_clean, a_master_proof, a_small_real_tree, binder_of
+from helpers import VALIDATORS, a_clean, a_master_proof, a_small_real_tree, binder_of
 
-from comment_review.desk.marks.rules import validate
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.sheet import Sheet
@@ -77,11 +76,11 @@ class TestTheWriteHalfLivesWithTheRead:
         for sheet in wire["sheets"]:
             for entry in sheet["marks"]:
                 entry.update(a_clean(entry["address"]))
-        copy, why = EditCopy.deserialize("copy 1", wire, validate)
+        copy, why = EditCopy.deserialize("copy 1", wire, VALIDATORS)
         assert why == []
         assert copy is not None
         assert any(sheet.marks for sheet in copy.sheets), "nothing ruled to trip on"
-        again, why = EditCopy.deserialize("copy 1", copy.serialize(), validate)
+        again, why = EditCopy.deserialize("copy 1", copy.serialize(), VALIDATORS)
         assert why == []
         assert again == copy
 
@@ -93,7 +92,7 @@ class TestTheWriteHalfLivesWithTheRead:
         makes a seeded mark an empty FORM, and an empty form is not a `Mark`;
         the parse says so by putting its address in `unruled`.
         """
-        copy, why = EditCopy.deserialize("copy 1", a_real_copy(tmp_path), validate)
+        copy, why = EditCopy.deserialize("copy 1", a_real_copy(tmp_path), VALIDATORS)
         assert why == []
         assert copy is not None
         assert not any(sheet.marks for sheet in copy.sheets)
@@ -107,7 +106,7 @@ class TestTheWriteHalfLivesWithTheRead:
 
 class TestWhatTheChainBuilds:
     def test_an_edit_copy_seed_built_parses(self, tmp_path):
-        copy, why = EditCopy.deserialize("copy 1", a_real_copy(tmp_path), validate)
+        copy, why = EditCopy.deserialize("copy 1", a_real_copy(tmp_path), VALIDATORS)
         assert why == []
         assert isinstance(copy, EditCopy)
         assert copy.role == "block-context"
@@ -118,7 +117,7 @@ class TestWhatTheChainBuilds:
         repo = a_small_real_tree(tmp_path)
         binder = binder_of(repo, 0)
         copy, why = EditCopy.deserialize(
-            "copy 1", seed(binder, "block-context"), validate
+            "copy 1", seed(binder, "block-context"), VALIDATORS
         )
         assert why == []
         assert copy is not None
@@ -139,7 +138,7 @@ class TestWhatTheChainBuilds:
                 "function-context": {"m.py@b1": a_clean("m.py@b1")},
             },
         )
-        proof, why = MasterProof.deserialize("4c", built.serialize(), validate)
+        proof, why = MasterProof.deserialize("4c", built.serialize(), VALIDATORS)
         assert why == []
         assert isinstance(proof, MasterProof)
         assert proof.stage == "4c"
@@ -154,7 +153,7 @@ class TestWhatTheChainBuilds:
         shape. There is no second type and no second parse."""
         copy = a_real_copy(tmp_path)
         copy["role"] = "copy-chief"
-        got, why = EditCopy.deserialize("the chief's", copy, validate)
+        got, why = EditCopy.deserialize("the chief's", copy, VALIDATORS)
         assert why == []
         assert got is not None
         assert got.role == "copy-chief"
@@ -175,7 +174,7 @@ class TestAnEmptyProofStillHoldsItsHeader:
     @pytest.mark.parametrize("junk", ["oops", None, 7, [], {"root": 7}, {"junk": 1}])
     def test_an_empty_proof_still_holds_its_read_from_to_a_shape(self, junk):
         _, problems = MasterProof.deserialize(
-            "p", {"stage": "4c", "edit_copies": [], "read_from": junk}, validate
+            "p", {"stage": "4c", "edit_copies": [], "read_from": junk}, VALIDATORS
         )
         assert problems != []
 
@@ -183,7 +182,7 @@ class TestAnEmptyProofStillHoldsItsHeader:
         """The bus's `_on_copies` produces this shape for a stage with no
         copies, so `{}` is admitted and only the other five values are not."""
         parsed, problems = MasterProof.deserialize(
-            "p", {"stage": "4c", "edit_copies": [], "read_from": {}}, validate
+            "p", {"stage": "4c", "edit_copies": [], "read_from": {}}, VALIDATORS
         )
         assert problems == []
         assert parsed is not None
@@ -194,25 +193,27 @@ class TestAnEmptyProofStillHoldsItsHeader:
         producer rather than against a literal that agrees with it."""
         built = a_master_proof(tmp_path / "repo", {})
         assert built.edit_copies == () and built.read_from == {}
-        parsed, problems = MasterProof.deserialize("4c", built.serialize(), validate)
+        parsed, problems = MasterProof.deserialize("4c", built.serialize(), VALIDATORS)
         assert problems == []
         assert parsed is not None
 
 
 class TestWhatItRefuses:
     def test_a_sheet_that_is_not_an_object(self):
-        sheet, why = Sheet.deserialize("sheet 1", "m.py", validate)
+        sheet, why = Sheet.deserialize("sheet 1", "m.py", VALIDATORS)
         assert sheet is None
         assert "must be an object" in why[0]
 
     def test_a_sheet_with_no_path(self):
-        sheet, why = Sheet.deserialize("sheet 1", {"sha": "abc", "marks": []}, validate)
+        sheet, why = Sheet.deserialize(
+            "sheet 1", {"sha": "abc", "marks": []}, VALIDATORS
+        )
         assert sheet is None
         assert "`path`" in why[0]
 
     def test_a_sheet_whose_marks_are_not_a_list(self):
         sheet, why = Sheet.deserialize(
-            "sheet 1", {"path": "m.py", "marks": {}}, validate
+            "sheet 1", {"path": "m.py", "marks": {}}, VALIDATORS
         )
         assert sheet is None
         assert "`marks` list" in why[0]
@@ -220,7 +221,7 @@ class TestWhatItRefuses:
     def test_an_edit_copy_with_no_role(self, tmp_path):
         copy = a_real_copy(tmp_path)
         del copy["role"]
-        got, why = EditCopy.deserialize("copy 1", copy, validate)
+        got, why = EditCopy.deserialize("copy 1", copy, VALIDATORS)
         assert got is None
         assert "`role`" in why[0]
 
@@ -244,20 +245,20 @@ class TestWhatItRefuses:
         """
         copy = a_real_copy(tmp_path)
         copy["read_from"] = bad
-        got, why = EditCopy.deserialize("copy 1", copy, validate)
+        got, why = EditCopy.deserialize("copy 1", copy, VALIDATORS)
         assert got is None, bad
         assert "read_from" in why[0], bad
 
     def test_an_edit_copy_reports_EVERY_bad_sheet_not_just_the_first(self, tmp_path):
         copy = a_real_copy(tmp_path)
         copy["sheets"] = [{"sha": "a"}, {"sha": "b"}]
-        got, why = EditCopy.deserialize("copy 1", copy, validate)
+        got, why = EditCopy.deserialize("copy 1", copy, VALIDATORS)
         assert got is None
         assert len(why) == 2
 
     def test_a_master_proof_whose_edit_copies_are_not_a_list(self):
         proof, why = MasterProof.deserialize(
-            "4c", {"stage": "4c", "edit_copies": {}}, validate
+            "4c", {"stage": "4c", "edit_copies": {}}, VALIDATORS
         )
         assert proof is None
         assert "`edit_copies` list" in why[0]
@@ -272,7 +273,7 @@ class TestWhatItRefuses:
             tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
         ).serialize()
         proof["read_from"] = {"root": "somewhere else", "revise": 99}
-        got, why = MasterProof.deserialize("4c", proof, validate)
+        got, why = MasterProof.deserialize("4c", proof, VALIDATORS)
         assert got is None
         assert "disagrees with the first edit_copy's" in why[0]
 
@@ -283,7 +284,7 @@ class TestWhatItRefuses:
             tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
         ).serialize()
         proof["read_from"] = {"root": proof["read_from"]["root"]}
-        got, why = MasterProof.deserialize("4c", proof, validate)
+        got, why = MasterProof.deserialize("4c", proof, VALIDATORS)
         assert got is None
         assert "`revise`" in why[0]
 
@@ -292,7 +293,7 @@ class TestWhatItRefuses:
         bus writes when there is no first copy to take it from -- not the
         disagreement or malformed shape the two cases above refuse."""
         got, why = MasterProof.deserialize(
-            "4c", {"stage": "4c", "edit_copies": []}, validate
+            "4c", {"stage": "4c", "edit_copies": []}, VALIDATORS
         )
         assert why == []
         assert got is not None
@@ -307,7 +308,7 @@ class TestANullFieldIsAbsentNotTheWordNone:
 
     def test_a_null_sha(self):
         sheet, why = Sheet.deserialize(
-            "sheet 1", {"path": "m.py", "sha": None, "marks": []}, validate
+            "sheet 1", {"path": "m.py", "sha": None, "marks": []}, VALIDATORS
         )
         assert why == []
         assert sheet is not None
@@ -315,7 +316,7 @@ class TestANullFieldIsAbsentNotTheWordNone:
 
     def test_a_null_stage(self):
         proof, why = MasterProof.deserialize(
-            "4c", {"stage": None, "edit_copies": []}, validate
+            "4c", {"stage": None, "edit_copies": []}, VALIDATORS
         )
         assert why == []
         assert proof is not None
@@ -351,7 +352,7 @@ class TestAnAddressLessEntryIsStillFindable:
         sheet, why = Sheet.deserialize(
             "s",
             {"path": "m.py", "sha": "a", "marks": [{}, {}, "not an object"]},
-            validate,
+            VALIDATORS,
         )
         assert why == []
         assert sheet is not None
@@ -369,7 +370,7 @@ class TestAnAddressLessEntryIsStillFindable:
         sheet, why = Sheet.deserialize(
             "s",
             {"path": "m.py", "sha": "a", "marks": [{"instruction": None}]},
-            validate,
+            VALIDATORS,
         )
         assert why == []
         assert sheet is not None
@@ -387,7 +388,7 @@ class TestAnAddressLessEntryIsStillFindable:
                 "sha": "a",
                 "marks": [{"address": "m.py@b1", "instruction": None}],
             },
-            validate,
+            VALIDATORS,
         )
         assert why == []
         assert sheet is not None
@@ -404,10 +405,10 @@ def test_a_master_proof_carries_its_moves_and_reads_back_one_written_before_them
         places=(),
         moves=({"origin": "m.py@b1", "destination": "m.py@b5"},),
     )
-    back, why = MasterProof.deserialize("4c", proof.serialize(), validate)
+    back, why = MasterProof.deserialize("4c", proof.serialize(), VALIDATORS)
     assert why == [] and back is not None and back.moves == proof.moves
     older = {**proof.serialize()}
     del older["moves"]
     older["places"] = [{"address": "m.py@b1", "partner": "m.py@b5"}]
-    back, why = MasterProof.deserialize("4c", older, validate)
+    back, why = MasterProof.deserialize("4c", older, VALIDATORS)
     assert why == [] and back is not None and back.moves == ()

@@ -61,7 +61,6 @@ from pathlib import Path
 
 from comment_review.commands.collate import ASKS_THE_HUMAN, _human_answers, _lines
 from comment_review.desk.collator import Cache, Problem
-from comment_review.desk.marks.rules import validate
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.stages import not_admitted
 from comment_review.desk.work.events import AsksTheHuman
@@ -82,6 +81,7 @@ from comment_review.flows.proof_io import (
     load_copy,
     load_value,
 )
+from comment_review.flows.validators import VALIDATORS
 from comment_review.flows.verify import copy_problems
 
 #: Exit codes -- `distribute`'s 0/1/2, and `collate`'s `ASKS_THE_HUMAN`.
@@ -196,7 +196,7 @@ def _check_copy(
     loaded, why = load_copy(Path(path))
     if why:
         return _refused(why)
-    copy, problems = EditCopy.deserialize(path, loaded, validate)
+    copy, problems = EditCopy.deserialize(path, loaded, VALIDATORS)
     if copy is None:
         for line in problems:
             print(line)

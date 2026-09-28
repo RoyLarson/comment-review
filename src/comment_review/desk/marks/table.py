@@ -25,8 +25,8 @@ from dataclasses import dataclass
 from enum import StrEnum, auto
 from typing import Any
 
-from comment_review.desk.dispositions.disposition import CHIEF
 from comment_review.desk.marks.rules import first_word_dropped
+from comment_review.desk.proof.disposition import CHIEF
 from comment_review.desk.proof.mark import Instruction, Mark, Shape, Touch
 from comment_review.desk.proof.place import Place
 

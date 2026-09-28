@@ -73,7 +73,7 @@ from pathlib import Path
 
 from comment_review.desk.collator import cite_at
 from comment_review.desk.evaluate.passes import composed_side, proposing
-from comment_review.desk.marks.rules import derived_change, validate
+from comment_review.desk.marks.rules import derived_change
 from comment_review.desk.marks.table import INSTRUCTIONS, Row
 from comment_review.desk.proof.mark import (
     Instruction,
@@ -86,6 +86,7 @@ from comment_review.desk.proof.place import Filed
 from comment_review.desk.stages import not_admitted
 from comment_review.flows.on_the_page import held_at
 from comment_review.flows.page_for import page_of
+from comment_review.flows.validators import VALIDATORS
 from comment_review.machine import constants
 from comment_review.machine.exceptions import READ_ERRORS
 from comment_review.machine.repo import can_escape, read_raw
@@ -274,7 +275,7 @@ def marks_on(copy: dict) -> list[Mark]:
         for entry in sheet.get("marks") or []:
             if untouched(entry):
                 continue
-            mark, _why = read_mark("", entry, validate)
+            mark, _why = read_mark("", entry, VALIDATORS.mark)
             if mark is not None:
                 out.append(mark)
     return out
@@ -509,7 +510,7 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
             return None, why
         mark["sources"] = quoted
 
-    parsed, why = read_mark(address, mark, validate)
+    parsed, why = read_mark(address, mark, VALIDATORS.mark)
     if parsed is None:
         return None, why
 

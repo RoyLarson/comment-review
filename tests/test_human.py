@@ -11,7 +11,7 @@ from helpers import (
     returned,
 )
 
-from comment_review.desk.answers.answer import Answer, Question
+from comment_review.desk.proof.answer import Answer, Question
 from comment_review.desk.proof.mark import Shape
 from comment_review.flows.human import (
     HumanAnswer,

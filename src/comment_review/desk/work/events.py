@@ -9,7 +9,7 @@ settled, nobody is asked about a place, and a note has no copy to go with
 
 from typing import NamedTuple
 
-from comment_review.desk.answers.answer import Question
+from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.move import Placement
 from comment_review.desk.proof.state import State
 

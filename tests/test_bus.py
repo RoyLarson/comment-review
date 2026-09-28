@@ -4,6 +4,7 @@ from dataclasses import replace
 
 import pytest
 from helpers import (
+    VALIDATORS,
     a_clean,
     a_correct,
     a_correct_citing,
@@ -17,8 +18,7 @@ from helpers import (
     returned,
 )
 
-from comment_review.desk.answers.answer import Question
-from comment_review.desk.marks.rules import validate
+from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.mark import Mark, Shape
 from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.sheet import Sheet
@@ -80,7 +80,7 @@ def test_a_committed_fold_carries_its_places_on_the_proof(tmp_path):
     assert result is not None
     assert len(result.proof.places) == 2
     for entry in result.proof.places:
-        place, why = Place.deserialize("a place", entry, validate)
+        place, why = Place.deserialize("a place", entry, VALIDATORS)
         assert place is not None, why
         assert place.serialize() == entry
 
@@ -945,7 +945,7 @@ def test_an_add_over_prose_in_an_ungathered_file_that_drops_a_word_is_refused(
     }
     copy = message.copies[0]
     sheet, why = Sheet.deserialize(
-        "n.py", {"path": "n.py", "sha": "", "marks": [add]}, validate
+        "n.py", {"path": "n.py", "sha": "", "marks": [add]}, VALIDATORS
     )
     assert sheet is not None, why
     message.copies[0] = replace(copy, sheets=(*copy.sheets, sheet))
@@ -986,7 +986,7 @@ def test_a_move_and_an_add_into_one_ungathered_place_compose_on_different_senten
         "change": "# six",
     }
     sheet, why = Sheet.deserialize(
-        "n.py", {"path": "n.py", "sha": "", "marks": [add]}, validate
+        "n.py", {"path": "n.py", "sha": "", "marks": [add]}, VALIDATORS
     )
     assert sheet is not None, why
     copy = message.copies[1]

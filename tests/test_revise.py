@@ -16,6 +16,7 @@ from helpers import (
     FIRST_FIXED,
     TWO,
     TYPOS,
+    VALIDATORS,
     a_clean,
     a_correct,
     a_correct_setting,
@@ -39,7 +40,6 @@ from helpers import (
 )
 
 from comment_review.commands import collate as collate_command
-from comment_review.desk.marks.rules import validate
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import Shape
 from comment_review.desk.proof.master_proof import MasterProof
@@ -758,7 +758,7 @@ class TestDocketOfProof:
         )
         wire = json.loads((tmp_path / "proof0.json").read_text(encoding="utf-8"))
         wire["places"][0]["filed"][0]["instruction"] = "not an instruction"
-        proof, why = MasterProof.deserialize("hand-edited", wire, validate)
+        proof, why = MasterProof.deserialize("hand-edited", wire, VALIDATORS)
         assert proof is not None, why
         with pytest.raises(CannotTranscribe) as raised:
             docket_of_proof(proof, tmp_path / "repo")

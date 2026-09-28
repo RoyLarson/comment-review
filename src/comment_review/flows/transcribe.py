@@ -63,9 +63,8 @@ from pathlib import Path
 from typing import NamedTuple
 
 from comment_review.binder.page import Page
-from comment_review.desk.dispositions.disposition import CHIEF
-from comment_review.desk.marks.rules import validate
 from comment_review.desk.marks.table import INSTRUCTIONS
+from comment_review.desk.proof.disposition import CHIEF
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.move import Move, is_open
@@ -76,6 +75,7 @@ from comment_review.desk.work.fold import Fold
 from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.flows.on_the_page import PageCache, held_at, no_page, page_named
 from comment_review.flows.places import bases_and_anchors, places_of
+from comment_review.flows.validators import VALIDATORS
 from comment_review.reading.addresser import cue_of, flatten
 
 
@@ -337,7 +337,7 @@ def _places_on(proof: MasterProof) -> tuple[list[Place], list[str]]:
     problems: list[str] = []
     for i, entry in enumerate(proof.places, 1):
         where = str(entry.get("address") or "") or f"place {i}"
-        place, why = Place.deserialize(f"{CHIEF} {where}", entry, validate)
+        place, why = Place.deserialize(f"{CHIEF} {where}", entry, VALIDATORS)
         if place is None:
             problems += why
         else:
@@ -358,7 +358,7 @@ def _moves_on(proof: MasterProof) -> tuple[list[Move], list[str]]:
     moves: list[Move] = []
     problems: list[str] = []
     for i, entry in enumerate(proof.moves):
-        move, why = Move.deserialize(f"{CHIEF} move {i}", entry)
+        move, why = Move.deserialize(f"{CHIEF} move {i}", entry, VALIDATORS)
         if move is None:
             problems += why
         else:

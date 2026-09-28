@@ -1,11 +1,12 @@
 """The three passes over a place, run after each move's placement is decided."""
 
-from comment_review.desk.answers.answer import Question
 from comment_review.desk.answers.table import ANSWERS, Effect
-from comment_review.desk.dispositions.disposition import CHIEF, ORIGINAL
+from comment_review.desk.dispositions.rules import side_of
 from comment_review.desk.dispositions.table import DISPOSITIONS
 from comment_review.desk.evaluate.move import hold_ends, placement_pass, settle_ends
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
+from comment_review.desk.proof.answer import Question
+from comment_review.desk.proof.disposition import CHIEF, ORIGINAL
 from comment_review.desk.proof.mark import Touch
 from comment_review.desk.proof.move import Move
 from comment_review.desk.proof.place import Filed, Place
@@ -305,6 +306,7 @@ def dispositions_pass(place: Place) -> Place:
     if place.disposition is None:
         return place
     row = DISPOSITIONS[place.disposition.name]
+    side = side_of(place.disposition)
     if place.state not in row.closes:
         return _set(
             place,
@@ -314,7 +316,7 @@ def dispositions_pass(place: Place) -> Place:
                 f"that is {place.state}",
             ),
         )
-    if place.disposition.side == CHIEF and row.side != CHIEF:
+    if side == CHIEF and row.side != CHIEF:
         return _set(
             place,
             State.REFUSED,
@@ -323,14 +325,11 @@ def dispositions_pass(place: Place) -> Place:
                 f" original; the chief's own prose is a recast",
             ),
         )
-    if place.disposition.side not in place.sides and place.disposition.side not in (
-        ORIGINAL,
-        CHIEF,
-    ):
+    if side not in place.sides and side not in (ORIGINAL, CHIEF):
         return _set(
             place,
             State.REFUSED,
-            reasons=(f"copy-chief: {place.disposition.side!r} proposed nothing here",),
+            reasons=(f"copy-chief: {side!r} proposed nothing here",),
         )
     text = row.sets(place.disposition, place.base, place.sides)
     return _set(place, State.STANDS, text=text)

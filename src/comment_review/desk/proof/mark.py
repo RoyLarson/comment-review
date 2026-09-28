@@ -12,6 +12,7 @@
     untouched()        a seeded slot no role has written in -- the coverage gap,
                        which is NOT a mark that failed to name an instruction
     filled()           a string with something in it
+    as_text()          a string field as a record holds it
     without_location() one refusal with its `where` prefix removed
 
 `Mark.deserialize` reads an entry's structure and asks nothing of the marks
@@ -317,14 +318,14 @@ class Mark:
         change = data.get("change")
         return (
             Mark(
-                address=_text(data.get("address")),
-                anchor=_text(data.get("anchor")),
-                raw_text=_text(data.get("raw_text")),
+                address=as_text(data.get("address")),
+                anchor=as_text(data.get("anchor")),
+                raw_text=as_text(data.get("raw_text")),
                 instruction=instruction,
                 # ! COPIED, NOT ALIASED -- a `Mark` is frozen, and sharing the
                 # caller's own containers would leave it mutable through them.
                 claim=dict(claim) if isinstance(claim, dict) else {},
-                reason=_text(data.get("reason")),
+                reason=as_text(data.get("reason")),
                 sources=tuple(sources) if isinstance(sources, list) else (),
                 change=change if isinstance(change, str) else None,
             ),
@@ -332,8 +333,11 @@ class Mark:
         )
 
 
-def _text(value: object) -> str:
-    """A string field as the record holds it: the string, or "" for anything else."""
+def as_text(value: object) -> str:
+    """A string field as a record holds it: the string, or "" for anything else.
+
+    `decision-log.md Process: #204`: a field of the wrong type is read as absent.
+    """
     return value if isinstance(value, str) else ""
 
 

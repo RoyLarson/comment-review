@@ -8,10 +8,16 @@ in one wording, since every command reads through here (T17 of
 
 import json
 
-from helpers import REPO, a_binder_over, a_correct, a_master_proof, copies_over
+from helpers import (
+    REPO,
+    VALIDATORS,
+    a_binder_over,
+    a_correct,
+    a_master_proof,
+    copies_over,
+)
 
 from comment_review.binder.binder import Binder
-from comment_review.desk.marks.rules import validate
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.flows.proof_io import (
     load_batch,
@@ -94,7 +100,7 @@ class TestTheOtherArtifacts:
         (wire,) = copies_over(
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
-        copy, why = EditCopy.deserialize("c", wire, validate)
+        copy, why = EditCopy.deserialize("c", wire, VALIDATORS)
         assert copy is not None, why
         save_copy(tmp_path / "c.json", copy)
         loaded, why = load_copy(tmp_path / "c.json")

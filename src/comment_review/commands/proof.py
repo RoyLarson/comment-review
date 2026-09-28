@@ -38,11 +38,11 @@ import argparse
 import json
 from pathlib import Path
 
-from comment_review.desk.marks.rules import validate
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.docket.docket import Docket
 from comment_review.flows import revise, transcribe
+from comment_review.flows.validators import VALIDATORS
 from comment_review.machine import exceptions
 from comment_review.machine.json_object import object_of
 from comment_review.machine.repo import undraftable, write_raw
@@ -226,7 +226,7 @@ def main() -> int:
         # The transcribe refuses a proof that has not closed, one whose
         # places will not read back, and a page it cannot open -- so the
         # same console face reports it here as below.
-        proof, problems = MasterProof.deserialize(source, loaded, validate)
+        proof, problems = MasterProof.deserialize(source, loaded, VALIDATORS)
         try:
             transcribed = (
                 transcribe.docket_of_proof(proof, repo, only=tuple(args.only) or None)
@@ -261,7 +261,7 @@ def main() -> int:
         for address in transcribed.sets_nothing if transcribed else ():
             print(f"approved {address}: nothing to set")
     else:
-        copy, problems = EditCopy.deserialize(source, loaded, validate)
+        copy, problems = EditCopy.deserialize(source, loaded, VALIDATORS)
         # The transcribe folds, so it can refuse, and it could not until the
         # marks table decided what a mark sets. `docket_of` runs the Unit of
         # Work over the copy's own places, so a mark whose row cannot read it

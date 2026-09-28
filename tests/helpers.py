@@ -34,7 +34,7 @@ from comment_review.binder.binder import VERSION, Binder, bind
 from comment_review.commands import collate as collate_command
 from comment_review.commands import disposition as disposition_command
 from comment_review.commands import turn as turn_command
-from comment_review.desk.marks.rules import ANCHOR_EXAMPLE, validate
+from comment_review.desk.marks.rules import ANCHOR_EXAMPLE
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import Instruction, Mark, Shape
@@ -46,6 +46,7 @@ from comment_review.flows.distribute import seed
 from comment_review.flows.fill import fill
 from comment_review.flows.page_for import page_of, source_of
 from comment_review.flows.proof_io import load_proof
+from comment_review.flows.validators import VALIDATORS
 
 #: `src/comment_review/desk/` -- the source `a_small_real_tree` copies from.
 #: Any package with a handful of ordinary Python files would do; this one was
@@ -586,7 +587,7 @@ def returned(wire: dict, where: str = "copy") -> EditCopy:
     being a well-formed copy fails HERE, naming the field, rather than as a
     surprising result from the function under test.
     """
-    copy, why = EditCopy.deserialize(where, wire, validate)
+    copy, why = EditCopy.deserialize(where, wire, VALIDATORS)
     assert copy is not None, why
     return copy
 

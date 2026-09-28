@@ -1,8 +1,10 @@
 """The answers table: what a role's answer in a turn does to its own proposal,
 and the contract that publishes the table's own sets."""
 
-from comment_review.desk.answers.answer import Answer, Question
+from helpers import VALIDATORS
+
 from comment_review.desk.answers.table import ANSWERS, Effect
+from comment_review.desk.proof.answer import Answer, Question, read_answer
 from comment_review.flows.answers import contracts
 
 
@@ -68,7 +70,7 @@ def test_the_placement_answers():
 
 
 def test_a_placement_answer_is_read_against_its_question():
-    got, why = Answer.deserialize(
+    got, why = read_answer(
         "m.py@b1",
         {
             "address": "m.py@b1",
@@ -76,10 +78,11 @@ def test_a_placement_answer_is_read_against_its_question():
             "instruction": "stet",
             "reason": "r",
         },
+        VALIDATORS.answer,
     )
     assert why == [] and got is not None and got.name == "stet"
     for name in ("hold", "correct", "patch", "clean"):
-        got, why = Answer.deserialize(
+        got, why = read_answer(
             "m.py@b1",
             {
                 "address": "m.py@b1",
@@ -87,10 +90,11 @@ def test_a_placement_answer_is_read_against_its_question():
                 "instruction": name,
                 "reason": "r",
             },
+            VALIDATORS.answer,
         )
         assert got is None and "not an answer to a placement" in why[0], name
     for question in ("escalation", "composition"):
-        got, why = Answer.deserialize(
+        got, why = read_answer(
             "m.py@b1",
             {
                 "address": "m.py@b1",
@@ -98,12 +102,13 @@ def test_a_placement_answer_is_read_against_its_question():
                 "instruction": "stet",
                 "reason": "r",
             },
+            VALIDATORS.answer,
         )
         assert got is None and "not an answer to" in why[0], question
 
 
 def test_an_answer_is_read_against_its_question():
-    got, why = Answer.deserialize(
+    got, why = read_answer(
         "m.py@b1",
         {
             "address": "m.py@b1",
@@ -111,9 +116,10 @@ def test_an_answer_is_read_against_its_question():
             "instruction": "hold",
             "reason": "r",
         },
+        VALIDATORS.answer,
     )
     assert why == [] and got is not None and got.name == "hold"
-    got, why = Answer.deserialize(
+    got, why = read_answer(
         "m.py@b1",
         {
             "address": "m.py@b1",
@@ -121,9 +127,10 @@ def test_an_answer_is_read_against_its_question():
             "instruction": "clean",
             "reason": "r",
         },
+        VALIDATORS.answer,
     )
     assert got is None and "not an answer to an escalation" in why[0]
-    got, why = Answer.deserialize(
+    got, why = read_answer(
         "m.py@b1",
         {
             "address": "m.py@b1",
@@ -131,6 +138,7 @@ def test_an_answer_is_read_against_its_question():
             "instruction": "correct",
             "reason": "r",
         },
+        VALIDATORS.answer,
     )
     assert got is None and "needs a `change`" in why[0]
 
@@ -146,7 +154,7 @@ def test_a_query_answer_with_no_shape_is_refused_rather_than_read_as_deferring()
     """
     c = Question.COMPOSITION
     for claim in ({}, {"shape": ""}, {"attempted": "read it", "settles": "the chief"}):
-        got, why = Answer.deserialize(
+        got, why = read_answer(
             "m.py@b1",
             {
                 "address": "m.py@b1",
@@ -155,10 +163,11 @@ def test_a_query_answer_with_no_shape_is_refused_rather_than_read_as_deferring()
                 "reason": "r",
                 "claim": claim,
             },
+            VALIDATORS.answer,
         )
         assert got is None, claim
         assert any("needs `claim.shape`" in one for one in why), why
-    got, why = Answer.deserialize(
+    got, why = read_answer(
         "m.py@b1",
         {
             "address": "m.py@b1",
@@ -171,10 +180,11 @@ def test_a_query_answer_with_no_shape_is_refused_rather_than_read_as_deferring()
                 "settles": "the chief",
             },
         },
+        VALIDATORS.answer,
     )
     assert why == [] and got is not None
     assert ANSWERS[(c, "query")].effect(got) is Effect.ABSTAINS
-    got, why = Answer.deserialize(
+    got, why = read_answer(
         "m.py@b1",
         {
             "address": "m.py@b1",
@@ -183,13 +193,14 @@ def test_a_query_answer_with_no_shape_is_refused_rather_than_read_as_deferring()
             "reason": "r",
             "claim": {"shape": "outside-my-role"},
         },
+        VALIDATORS.answer,
     )
     assert got is None and "not an answer to an escalation" in why[0]
 
 
 def test_an_answer_whose_row_owes_no_claim_keys_takes_any_claim():
     for claim in ({}, {"anything": "at all"}, "not an object"):
-        got, why = Answer.deserialize(
+        got, why = read_answer(
             "m.py@b1",
             {
                 "address": "m.py@b1",
@@ -198,6 +209,7 @@ def test_an_answer_whose_row_owes_no_claim_keys_takes_any_claim():
                 "reason": "r",
                 "claim": claim,
             },
+            VALIDATORS.answer,
         )
         assert why == [], (claim, why)
         assert got is not None
@@ -264,12 +276,14 @@ def test_every_claim_key_the_contract_names_is_one_the_parse_demands():
         entry = {**given, "instruction": name, "claim": dict.fromkeys(keys, "x")}
         if row.owes_change:
             entry["change"] = "# x"
-        got, why = Answer.deserialize("m.py@b1", entry)
+        got, why = read_answer("m.py@b1", entry, VALIDATORS.answer)
         assert why == [], (name, why)
         assert got is not None
         for key in keys:
             claim = {k: v for k, v in entry["claim"].items() if k != key}
-            got, why = Answer.deserialize("m.py@b1", {**entry, "claim": claim})
+            got, why = read_answer(
+                "m.py@b1", {**entry, "claim": claim}, VALIDATORS.answer
+            )
             assert got is None, (name, key)
             assert any(f"needs `claim.{key}`" in one for one in why), (name, key, why)
 

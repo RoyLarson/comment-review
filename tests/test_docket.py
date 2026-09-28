@@ -40,9 +40,15 @@ the fold is what set it.
 import json
 
 import pytest
-from helpers import a_correct, a_drop, a_master_proof, a_move, returned_copies
+from helpers import (
+    VALIDATORS,
+    a_correct,
+    a_drop,
+    a_master_proof,
+    a_move,
+    returned_copies,
+)
 
-from comment_review.desk.marks.rules import validate
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.work import events
 from comment_review.desk.work.fold import Fold
@@ -361,7 +367,7 @@ def test_a_null_sha_reads_as_ABSENT_not_the_word_None(tmp_path):
         tmp_path / "repo", {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
     ).serialize()
     wire["edit_copies"][0]["sheets"][0]["sha"] = None
-    proof, why = MasterProof.deserialize("4c", wire, validate)
+    proof, why = MasterProof.deserialize("4c", wire, VALIDATORS)
     assert proof is not None, why
     #: ! ASSERTED ON THE SHEET, NOT ON A DOCKET, since `P55`. The fold is
     #: `Sheet.deserialize`'s and always was -- `_real_pages` merely read the
