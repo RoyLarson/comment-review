@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 2 tasks closed
+Progress: 1 of 2 tasks closed
 Owner:    systems
 Requires-Roy: false
 Raised:   2026-09-27 (P5 self-run, Roy 2026-09-27)
@@ -24,8 +24,8 @@ T1 is the step for now; T2 is the destination.
 
 ## Tasks
 
-- [ ] T1 | Move RETIRED, MENTION, NOT_THE_TERM and NOQA into
-      scripts/retired_words.toml; verify check_vocabulary reads it and its gate
-      tests pass
+- [x] T1 | Tables in scripts/retired_words.toml, each entry with a why; gate 16 words, 0 uses; suite green | d336d460133770c007444b2616dfc3f89d788a95 | Move
+      RETIRED, MENTION, NOT_THE_TERM and NOQA into scripts/retired_words.toml;
+      verify check_vocabulary reads it and its gate tests pass
 - [ ] T2 | Make docs/vocabulary.md the one vocabulary source and have release.py
       build vocabulary.toml and the retired words from it
