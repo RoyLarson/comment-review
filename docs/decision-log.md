@@ -5213,3 +5213,18 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   something more like desk.marks.rules.verify or validate ... I don't think it specifically
   should be parsing. I think that is up to the Mark serialize/deserialize but having it
   validated correctly matters"*.
+
+- **#204.** **A field a row does not take is ignored, not refused; and the three record kinds'
+  rules travel as one bundle** (Roy, 2026-09-28, on `0.2.4-the-proof-is-one-unit` P3 and P4).
+  Shown that `validate` still read the raw entry because type checks lived there, and offered
+  moving them into `deserialize` with one row-dependent check -- `clean` refusing a string
+  `claim` -- staying a rule, Roy chose the move and struck the check: *"this is silly ... because
+  then for every other mark you have to write a test that every of configuration doesn't take any
+  configuration setting from any other mark type thing, and then that expands to a list of all
+  other potential words that could be used as identifiers, which if you start counting gets
+  really big for no reason. The simple answer is to ignore the keys that do not match the
+  expected input."* And: *"that test was written before there was a tool to fill in marks so
+  maybe checking was worth it, I don't think so it was negative engineering, but now there is a
+  tool and so the likelihood that the marks get filled out in an invalid way is significantly
+  reduced."* Offered one bundle of the mark, answer and disposition validators in place of three
+  parameters on each parser: *"yes on the bundle"*.
