@@ -2,7 +2,7 @@
 
 ```
 Status:   decision-needed
-Progress: 43 of 49 tasks closed
+Progress: 45 of 49 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
@@ -290,10 +290,12 @@ and now there is one object that cannot be half-held.
 - [x] T35 | Chief rules placement via to; ends then ruled on; tests pass | 8aede1a8 | Update
       the chief disposition: placement once on an unresolved move, words alone
       on a split one, per Process 195 item 4
-- [ ] T36 | Update the-mark.md and the-turn.md from the Process 195 pointers to
-      the built shape
-- [ ] T37 | Update docs/the-mark.md to the two shapes, one Mark while open and a
-      drop and add once agreed; the mark-shape gate passes
+- [x] T36 | the-mark.md and the-turn.md state the built move; no removed function named | f8a14820 | Update
+      the-mark.md and the-turn.md from the Process 195 pointers to the built
+      shape
+- [x] T37 | the-mark.md states one Mark while open, drop and add once split; gate passes | f8a14820 | Update
+      docs/the-mark.md to the two shapes, one Mark while open and a drop and add
+      once agreed; the mark-shape gate passes
 - [ ] T38 | Delete claim.from from the move row, or refuse a move whose
       claim.from names a place other than its address
 - [ ] T39 | Update _owed_from in tests/gates/test_mark_shape.py so the move
