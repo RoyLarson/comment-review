@@ -138,11 +138,12 @@ def compose(base: str, sides: dict[str, str]) -> str:
     !! THIS IS THE ARITHMETIC HALF OF `diff3`, and the pair is why both live
     here. `diff3` wraps every span at least one side edited, EVEN WHERE ONLY ONE
     SIDE TOUCHED IT, because its job is to show a person what each side did.
-    This applies exactly those single-side spans and refuses the rest.
+    This applies every side's edits where no two sides met, and refuses where
+    they did.
 
-    ! A SIDE THAT CHANGED NOTHING AT A SPAN IS NOT A PARTY TO IT.
-    `_touching_roles` returns only the roles with a non-`equal` opcode there, so
-    three roles of which one edited compose to that one's text.
+    ! A SIDE THAT CHANGED NOTHING AT A SPAN IS NOT A PARTY TO IT. Only a side's
+    non-`equal` opcodes are its edits, so three roles of which one edited
+    compose to that one's text.
 
     Args:
         base: the paragraph before any of these edits. !! IT MUST BE THE TEXT
@@ -156,11 +157,12 @@ def compose(base: str, sides: dict[str, str]) -> str:
         The composed paragraph. An empty `sides` returns `base` unchanged --
         nothing was proposed, so nothing is applied.
 
-    ! TOUCHING COUNTS AS MEETING, NOT ONLY OVERLAPPING. `_conflict_spans`
-    merges spans that abut, so two sides editing ADJACENT base lines are one
-    span with two touching roles and refuse together. That is conservative by
-    intent -- the interleaving of two abutting rewrites is not arithmetic --
-    and it means disjoint here is stricter than different lines.
+    ! TWO SIDES MEET where their edits share a base line, where two rewrites
+    sit on adjacent lines, where two inserts sit at one position, or where one
+    side inserts inside lines the other rewrites. Adjacent rewrites meet
+    because they can be two halves of one wrapped sentence; two inserts at one
+    position have no order. An insert at the edge of another side's rewrite
+    has one order, the base's, and composes (`mark-defects` T28).
 
     ! AN UNTERMINATED PARAGRAPH IS DIFFED AS IF TERMINATED. A `raw_text` ends
     without a newline, so a line added after it would otherwise read as a
@@ -180,31 +182,49 @@ def compose(base: str, sides: dict[str, str]) -> str:
     return composed if terminated else composed.removesuffix("\n")
 
 
+#: One side's edit: `(role, i1, i2, the lines it puts in base[i1:i2]'s place)`.
+_Edit = tuple[str, int, int, list[str]]
+
+
+def _meet(a: _Edit, b: _Edit) -> bool:
+    """Whether two sides' edits meet, under the rule `compose` states."""
+    _, a1, a2, _ = a
+    _, b1, b2, _ = b
+    if a1 == a2 and b1 == b2:
+        return a1 == b1
+    if a1 == a2:
+        return b1 < a1 < b2
+    if b1 == b2:
+        return a1 < b1 < a2
+    return a1 <= b2 and b1 <= a2
+
+
 def _compose_lines(base: str, sides: dict[str, str]) -> str:
     """`compose` over a base whose every line ends in a newline, the last included."""
     base_lines = base.splitlines(True)
-    roles = sorted(sides)
-    sides_lines = {role: sides[role].splitlines(True) for role in roles}
-    opcodes: dict[str, list[_Opcode]] = {
-        role: difflib.SequenceMatcher(None, base_lines, sides_lines[role]).get_opcodes()
-        for role in roles
-    }
-
+    edits: list[_Edit] = []
+    for role in sorted(sides):
+        side_lines = sides[role].splitlines(True)
+        matcher = difflib.SequenceMatcher(None, base_lines, side_lines)
+        for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+            if tag != "equal":
+                edits.append((role, i1, i2, side_lines[j1:j2]))
+    for i, a in enumerate(edits):
+        for b in edits[i + 1 :]:
+            if a[0] != b[0] and _meet(a, b):
+                start, end = min(a[1], b[1]), max(a[2], b[2])
+                raise CannotCompose(
+                    f"base lines {start + 1}-{max(end, start + 1)} were edited by "
+                    f"{', '.join(sorted({a[0], b[0]}))} -- no composition"
+                )
+    # An insert at a position goes before a rewrite that starts there.
+    edits.sort(key=lambda edit: (edit[1], edit[1] != edit[2]))
     out: list[str] = []
     at = 0
-    for start, end in _conflict_spans(opcodes, roles):
-        touching = _touching_roles(opcodes, roles, start, end)
-        if len(touching) != 1:
-            raise CannotCompose(
-                f"base lines {start + 1}-{end} were edited by "
-                f"{', '.join(touching)} -- no composition"
-            )
-        out.extend(base_lines[at:start])
-        role = touching[0]
-        out.extend(
-            _side_slice(base_lines, sides_lines[role], opcodes[role], start, end)
-        )
-        at = end
+    for _role, i1, i2, lines in edits:
+        out.extend(base_lines[at:i1])
+        out.extend(lines)
+        at = i2
     out.extend(base_lines[at:])
     return "".join(out)
 

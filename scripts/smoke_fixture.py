@@ -1896,10 +1896,12 @@ COLLIDE_RATE_BASE = (
 #: into that role's one side (`decision-log.md Process: #179`).
 COLLIDE_RATE_B1 = COLLIDE_SNIPPET + "\n" + COLLIDE_RATE_BASE
 
-#: And what it reads with the snippet below it instead, which keeps the same
-#: words and does not compose: the paragraph's last line carries no newline,
-#: so a line after it rewrites that line -- the one the `correct` rewrites.
-COLLIDE_SAME_SENTENCE = COLLIDE_RATE_BASE + "\n" + COLLIDE_SNIPPET
+#: And what it reads with the snippet run onto the paragraph's last line
+#: instead, which keeps the same words and does not compose: that line is
+#: rewritten, beside the line the `correct` rewrites, and two rewrites of
+#: adjacent lines meet. A snippet on a line of its own below the paragraph
+#: is an insert, and would compose.
+COLLIDE_SAME_SENTENCE = COLLIDE_RATE_BASE + " " + COLLIDE_SNIPPET.strip()
 
 
 def write_collide_plant(run: Path) -> tuple[Path, Path]:

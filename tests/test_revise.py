@@ -236,12 +236,26 @@ class TestDocketOf:
             ("b2", None),
         ]
 
-    def test_two_of_one_roles_marks_on_one_sentence_are_a_refusal(self, tmp_path):
-        """The move lands below instead, which rewrites the paragraph's last
-        line -- the line the correction rewrites. Two marks, one sentence, and
-        the role is told which two."""
+    def test_a_move_landing_below_the_line_a_correction_rewrites_composes(
+        self, tmp_path
+    ):
+        """`mark-defects` T28: the move's comment arrives on a line of its own
+        after the paragraph's last line, which the correction rewrites. An
+        insert at the edge of a rewrite has one order, so the place takes both."""
         root = tmp_path / "repo"
         copy = self._a_correction_and_a_move_into_it(root, "# one\n# two\n# five")
+        schedule = docket_of(copy, root).schedules[0]
+        assert [(one.cue, one.text) for one in schedule.alterations] == [
+            ("b1", "# one\n# 2\n# five"),
+            ("b2", None),
+        ]
+
+    def test_two_of_one_roles_marks_on_one_sentence_are_a_refusal(self, tmp_path):
+        """The move's comment is run onto the paragraph's last line instead,
+        which rewrites the line the correction rewrites. Two marks, one
+        sentence, and the role is told which two."""
+        root = tmp_path / "repo"
+        copy = self._a_correction_and_a_move_into_it(root, "# one\n# two # five")
         with pytest.raises(CannotTranscribe) as raised:
             docket_of(copy, root)
         # Both ends of the move report it: a move is refused whole, so

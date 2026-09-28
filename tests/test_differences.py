@@ -396,6 +396,49 @@ class TestCompose:
         }
         assert compose(base, sides) == "# ONE\n# two\n# TODO: three"
 
+    def test_a_line_added_right_after_an_edited_last_line_composes(self):
+        """`mark-defects` T28: a correct on the paragraph's last sentence and
+        a TODO added right after it. An insert at the edge of another side's
+        rewrite has one order, the base's, so the two do not meet."""
+        base = "# one\n# two"
+        sides = {
+            "correct": "# one\n# TWO",
+            "add": "# one\n# two\n# TODO: three",
+        }
+        assert compose(base, sides) == "# one\n# TWO\n# TODO: three"
+
+    def test_a_line_added_right_before_an_edited_line_lands_before_it(self):
+        base = "# one\n# two\n"
+        sides = {
+            "correct": "# one\n# TWO\n",
+            "add": "# one\n# INSERTED\n# two\n",
+        }
+        assert compose(base, sides) == "# one\n# INSERTED\n# TWO\n"
+
+    def test_two_edits_on_adjacent_lines_still_refuse(self):
+        """Two rewrites of adjacent lines can be two halves of one wrapped
+        sentence, so they still meet."""
+        base = "# one\n# two\n"
+        sides = {"a": "# ONE\n# two\n", "b": "# one\n# TWO\n"}
+        with pytest.raises(CannotCompose):
+            compose(base, sides)
+
+    def test_two_lines_added_at_one_position_refuse(self):
+        """Two inserts at one position have no order of their own."""
+        base = "# one\n# two\n"
+        sides = {"a": "# one\n# A\n# two\n", "b": "# one\n# B\n# two\n"}
+        with pytest.raises(CannotCompose):
+            compose(base, sides)
+
+    def test_a_line_added_inside_another_sides_rewrite_refuses(self):
+        base = "# one\n# two\n# three\n"
+        sides = {
+            "rewrite": "# ONE\n# TWO\n# three\n",
+            "add": "# one\n# INSERTED\n# two\n# three\n",
+        }
+        with pytest.raises(CannotCompose):
+            compose(base, sides)
+
     def test_an_unterminated_paragraph_stays_unterminated(self):
         base = "# one\n# two"
         assert compose(base, {"correct": "# ONE\n# two"}) == "# ONE\n# two"

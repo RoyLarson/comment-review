@@ -1168,12 +1168,12 @@ $Stages = [ordered]@{
             Write-Host "command: $(Format-CommandLine $discards)"
             exit 1
         }
-        # The same comment BELOW the paragraph keeps every word, so the row
-        # takes it -- and the paragraph's last line carries no newline, so a
-        # line after it rewrites that line, which is the line the role's own
-        # correct rewrites. Two of one role's marks on one sentence do not
-        # compose, and `mark` refuses at placing time what the fold would
-        # refuse at the fold (Process #179).
+        # The same comment run onto the paragraph's last line keeps every
+        # word, so the row takes it -- and it rewrites that line, beside the
+        # line the role's own correct rewrites. Two rewrites of adjacent lines
+        # meet, so two of one role's marks there do not compose, and `mark`
+        # refuses at placing time what the fold would refuse at the fold
+        # (Process #179).
         $sameSentence = $collideMove + @(
             '--raw-text', "@$(Join-Path $Run 'collide-same-sentence.txt')"
         )
