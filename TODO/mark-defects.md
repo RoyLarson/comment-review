@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 19 of 26 tasks closed
+Progress: 19 of 27 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -257,3 +257,6 @@ cites as its measured example of a field answering neither necessary nor purpose
       an add whose change is the snippet and whose raw_text is the paragraph as
       it will read, per Process 176
         > 2026-09-14 Roy: the location and the snippet and the destination raw text
+- [ ] T27 | Implement a role correct or patch at a place composing with its own
+      move there, applied at the destination; verify mark accepts both
+        > 2026-09-27 mark refuses: its marks do not compose -- withdraw one

@@ -222,7 +222,7 @@ that changed a published name or rule:
 | [fixtures-do-not-test-the-shape](fixtures-do-not-test-the-shape.md) | testing | -- | 1/5 | A per-language fixture can pass without exercising the shape its language is measured on |
 | [drop-the-column](drop-the-column.md) | backend | -- | 7/9 | the column is len(anchor)+1 everywhere; the address system answers what it was added for |
 | [held-runs-need-a-one-off-migration](held-runs-need-a-one-off-migration.md) | testing | -- | 2/5 | the report cannot name a place, but the recorded hash can -- a script, not a feature |
-| [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | agents | -- | 0/5 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |
+| [the-roles-are-named-for-what-they-read](the-roles-are-named-for-what-they-read.md) | agents | -- | 0/6 | block-context etc. become the editorial desks; unlike `block` these ARE on the wire |
 | [lookup-parses-whole-census](lookup-parses-whole-census.md) | backend | -- | 4/14 | A lookup is O(project), not O(file) -- 1.1s per lookup extrapolated at 500k lines; sharding or batching fixes it, re-lexing trades away staleness detection |
 | [verdicts-is-the-join](verdicts-is-the-join.md) | backend | -- | 8/12 | The VERDICTS table lives in record.py; verdicts.py is the collator and 43 sites say so |
 | [census-row-carries-empty-fields](census-row-carries-empty-fields.md) | backend | -- | 12/17 | A census row carries 19 fields and an empty place fills 7, with three different spellings of absent |
@@ -275,7 +275,7 @@ that changed a published name or rule:
 | [ty-cannot-see-the-tests](ty-cannot-see-the-tests.md) | systems (the gate) - backend (the test fixes) | -- | 1/5 | The type gate is scoped to src and cannot see the tests |
 | [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | -- | 0/6 | A present-but-null key becomes the four characters None |
 | [collate-flow-defects](collate-flow-defects.md) | backend | -- | 4/16 | Twelve defects in `flows/collate.py`, from a review of one file |
-| [mark-defects](mark-defects.md) | backend | -- | 19/26 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
+| [mark-defects](mark-defects.md) | backend | -- | 19/27 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
 | [binder-defects](binder-defects.md) | backend | -- | 7/25 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
 | [docket-defects](docket-defects.md) | backend | -- | 5/11 | Six defects in docket.py, and one discards an approved page at exit 0 |
 | [collate-command-defects](collate-command-defects.md) | backend | -- | 5/21 | Sixteen defects in `commands/collate.py`, measured by running it |
@@ -290,7 +290,7 @@ that changed a published name or rule:
 | [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 4/6 | re-review is retired for revise |
 | [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 33/41 | The agents files name the new CLI and say how to use it |
-| [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 5/16 | The reviewer prose is rules and punishments, not guidance toward a good result |
+| [reviewer-prose-is-rules-not-guidance](reviewer-prose-is-rules-not-guidance.md) | agents | -- | 5/17 | The reviewer prose is rules and punishments, not guidance toward a good result |
 | [a-machine-context-raises-query-and-clean](a-machine-context-raises-query-and-clean.md) | backend | yes | 0/8 | annotate carries two subjects -- it extracts index keys, and it flags claims it cannot settle. The second half becomes a context that marks like a role. |
 | [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | -- | 8/12 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
 | [prove-unchanged-line-endings-follow-a-sibling](prove-unchanged-line-endings-follow-a-sibling.md) | backend | -- | 0/2 | On a checkout with core.autocrlf=true, git writes a checked-out text file with CRLF while its blob stays LF, and a file git never rewrote can still be LF. prove_unchanged compares an edited file's line endings with one untouched sibling, so a CRLF file whose sibling is a one-line LF __init__.py FAILs though the write kept every ending and the AST comparison passes. The check should hold the file to its own pre-edit endings. |

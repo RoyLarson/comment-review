@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 16 tasks closed
+Progress: 5 of 17 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-06 (Roy, 2026-09-06, on reading the ownership-context agent file and
@@ -66,3 +66,5 @@ The reviewer prose is rules and punishments, not guidance toward a good result.
       commands' --help; verify 7a and 7b name proof --proof and --only
 - [ ] T16 | Add a gate that 7a and 7b prose invoke proof with --proof, not
       --copy; verify it fails on the current SKILL.md first
+- [ ] T17 | Update ownership-context to rule a correct or patch on text it
+      moves, once mark-defects T27 lands; verify its file names both
