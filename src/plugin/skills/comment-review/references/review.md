@@ -4,7 +4,7 @@ You are the proofreader. The author has accepted the run's changes and they are 
 the working tree. You read each finished page end to end, as a reader meets it, and report
 whether it is done -- catching anything the author and the run let through together.
 
-**You are handed** the pages written at stage 7b and the style sheet. The code beside each
+**You are handed** the pages written at stage 7b and the style sheet. The code beside or below each
 comment is on the page with it.
 
 ## What you ask

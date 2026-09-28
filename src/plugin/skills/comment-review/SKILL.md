@@ -80,7 +80,7 @@ setting it.
 4. **Mark** gives each paragraph four independent readings. Each role reads alone, so two
    roles that agree corroborate each other.
 5. **Collate** settles what the roles agreed on. You rule on the rest, so every place ends
-   with one text that is true of the code beside it, at whatever length that takes.
+   with one text that is true of the code beside or below it, at whatever length that takes.
 6. **Compact** shortens the paragraphs that run over the cap, keeping every true, necessary
    and checkable sentence.
 7. **Set and present** puts the final text on copies of the pages, proves the code is
@@ -249,7 +249,7 @@ with `check --answers <file> --sent <batch> --role <role> --repo .`; and folds t
 --batch-out <run-dir>/batch<t+1>.json --repo .`. `turn` exits with the same codes. The turns
 end when a turn writes no batch or the count is reached.
 
-**Ruling.** Rule on every place still carried forward, reading the code beside each paragraph
+**Ruling.** Rule on every place still carried forward, reading the code beside or below each paragraph
 first. Rule in this order, because each step builds on the one before:
 
 1. `query` -- resolve what it asks.
