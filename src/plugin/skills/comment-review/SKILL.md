@@ -349,9 +349,11 @@ unchanged. `git diff` then shows the author exactly what the run changed.
 ### Stage 8 -- review
 
 Dispatch `comment-review:comment-review-review` with the pages written at 7b and the style
-sheet, and paste [`references/review.md`](references/review.md) into its prompt whole. Bring
-its findings to the author: each page reported done, and each section it names as something
-to fix.
+sheet, and paste [`references/review.md`](references/review.md) into its prompt whole.
+
+Bring its findings to the author, who chooses for each page: done, a new comment-review round
+with the findings as its input, or an immediate fix. Start the round or make the fix only on
+the author's answer.
 
 ## What to expect from the other agents
 
