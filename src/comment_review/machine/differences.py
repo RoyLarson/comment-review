@@ -162,10 +162,26 @@ def compose(base: str, sides: dict[str, str]) -> str:
     intent -- the interleaving of two abutting rewrites is not arithmetic --
     and it means disjoint here is stricter than different lines.
 
+    ! AN UNTERMINATED PARAGRAPH IS DIFFED AS IF TERMINATED. A `raw_text` ends
+    without a newline, so a line added after it would otherwise read as a
+    rewrite of the last line, and meet an edit on the line above it. The
+    newline is added to the base and to every side for the diff, and taken off
+    the composed paragraph again.
+
     Raises:
         CannotCompose: some span was edited by two or more sides, naming the
             base lines and every side that touched them.
     """
+    terminated = not base or base.endswith("\n")
+    if not terminated:
+        base += "\n"
+        sides = {role: side + "\n" for role, side in sides.items()}
+    composed = _compose_lines(base, sides)
+    return composed if terminated else composed.removesuffix("\n")
+
+
+def _compose_lines(base: str, sides: dict[str, str]) -> str:
+    """`compose` over a base whose every line ends in a newline, the last included."""
     base_lines = base.splitlines(True)
     roles = sorted(sides)
     sides_lines = {role: sides[role].splitlines(True) for role in roles}

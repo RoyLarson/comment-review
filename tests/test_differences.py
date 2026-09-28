@@ -382,3 +382,20 @@ class TestCompose:
             "function-context": "# a\n# b\n# c\n# D\n",
         }
         assert compose(base, sides) == "# a\n# INSERTED\n# b\n# c\n# D\n"
+
+    def test_a_line_added_after_an_unterminated_paragraph_composes_with_an_edit_above(
+        self,
+    ):
+        """A `raw_text` ends without a newline, so a line added after it must
+        read as an insert, not as a rewrite of the last line: the edit on the
+        first line and the added line are on different sentences."""
+        base = "# one\n# two"
+        sides = {
+            "correct": "# ONE\n# two",
+            "add": "# one\n# two\n# TODO: three",
+        }
+        assert compose(base, sides) == "# ONE\n# two\n# TODO: three"
+
+    def test_an_unterminated_paragraph_stays_unterminated(self):
+        base = "# one\n# two"
+        assert compose(base, {"correct": "# ONE\n# two"}) == "# ONE\n# two"
