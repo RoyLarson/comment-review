@@ -304,7 +304,27 @@ you examined and one of three shapes, keyed on who resolves it:
 Every instruction rules on a comment. Resolving a claim against its code is the core of the
 work: reading an assertion to see whether it can fail, grepping a literal, counting call
 sites. What the code should be is a code concern: a `query` of shape `human-review-necessary`
-on the paragraph the code sits with, its `reason` the one line naming the problem.
+on the paragraph the code sits with, its `reason` the one line naming the problem, and its
+`settles` reading `code concern`.
+
+The author answers a code concern with one of three rulings, and you replace your query with
+what it asks for:
+
+| the author answers | you file |
+| --- | --- |
+| add a TODO | the ruling that makes the paragraph true of the code as it stands, and an `add` of a `TODO:` comment naming the concern, placed beside the whole of the code it is about |
+| not a concern | the ruling that makes the paragraph true of the code as it stands; where the prose leaves out why the code is this way, a `patch` or `add` that says why |
+| leave it | the ruling that makes the paragraph true of the code as it stands |
+
+A TODO reads as one statement, next to the whole of its subject. A concern about one line goes
+in that line's margin. A concern that spans lines or subjects goes in the comment above them,
+where one reading covers all of it:
+
+```python
+# TODO: lines 23-35 handle parsing and lines 36-40 handle storage; split them.
+```
+
+Once the code changes, the TODO is a claim the next review checks like any other.
 
 | comment finding | code concern |
 | --- | --- |

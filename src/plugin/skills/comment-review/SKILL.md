@@ -230,7 +230,10 @@ the author at 7a.
 
 **Human questions.** Each line `asks the human <at>: <role> -- <question>` is one question.
 Ask it with `AskUserQuestion`, showing the paragraph at `<at>` (both ends for a move) and the
-query's `attempted` text from the role's copy. Record each answer in `<run-dir>/human.toml`:
+query's `attempted` text from the role's copy. A query whose `settles` reads `code concern` is
+a code concern: offer the author three answers -- `add a TODO` (first, as the default),
+`not a concern` and `leave it` -- and record the one chosen; the role knows what each asks of
+it. Record each answer in `<run-dir>/human.toml`:
 
 ```toml
 [[answer]]

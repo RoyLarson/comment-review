@@ -108,6 +108,12 @@ more than one subject"* and lists three triggers, the third being *"a summary li
 describes one half of what the file contains"*. The section names no verdict, so the role
 reached for the only one it had.
 
+**T1 ruled 2026-09-27, `decision-log.md Process: #199`:** a role describes a code problem as a
+`human-review-necessary` query whose `settles` reads `code concern`; the author answers `add a
+TODO`, `not a concern` or `leave it`, and on `add a TODO` the role adds a `TODO:` comment beside
+the whole of its subject. No code change is proposed as a mark, and no `code_concerns` field
+carries it.
+
 ! **What T1 decides.** Today a role can only DESCRIBE the problem in `code_concerns`; Roy's
 vision is that a code change is SUGGESTED. That is a scope decision, not a wording fix, and it
 decides the shape the backend half has to carry.

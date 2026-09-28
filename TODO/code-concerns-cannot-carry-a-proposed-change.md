@@ -54,6 +54,12 @@ Updated:  2026-08-28 — SEE THE DOUBLE-BIND NOTE ON `a-role-with-no-code-out-da
 
 ## Objective
 
+**The ruling this file waited on landed 2026-09-27, `decision-log.md Process: #199`:** a code
+concern is a `human-review-necessary` query whose `settles` reads `code concern`, answered by the
+author with `add a TODO`, `not a concern` or `leave it`; `add a TODO` lands as a `TODO:` comment
+the role adds beside the subject. No `code_concerns` field carries it, so the shape this file
+proposes has no subject.
+
 A reviewer that finds a CODE problem has one channel for it, and it carries almost nothing.
 `code_concerns` is published in the brief as *"a list of strings, one line each, no verdict"*
 (`reviewer-brief.md:255`); `record.py:883` seeds it empty and `held.py:190` reads it back as

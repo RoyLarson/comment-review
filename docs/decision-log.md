@@ -5148,3 +5148,22 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   the human's answer. The format is TOML, one `[[answer]]` table per query: the standard library
   reads it (`tomllib`) where markdown would need a parser of its own, and it keeps the sections a
   role scans for its own name.
+
+- **#199.** **A code concern is a human question with three answers, and "add a TODO" lands it as
+  prose beside its subject** (Roy, 2026-09-27, on `a-role-with-no-code-out-damages-the-prose`
+  T1, taking up his own 2026-08-28 candidate recorded there: *"put TODO statements in the
+  appropriate interval/margin prose. If accepted by a human."*).
+
+  Offered -- a code concern stays a `human-review-necessary` query, marked by `settles` reading
+  `code concern`; the task agent asks it with three answers, `add a TODO` (the default), `not a
+  concern` and `leave it`; on each the role files the ruling that makes the paragraph true of
+  the code as it stands, and on `add a TODO` also an `add` of a `TODO:` comment -- Roy: *"go
+  ahead, probe mark first"*. On where the TODO goes, after the first draft placed it in a line's
+  margin: *"It can be in the comment above. If the explanation is long like [two TODO lines
+  naming line ranges] It is better that this statement be congruent in reading and usually
+  close the the entirety of subject instead of split"*.
+
+  So a role describes a code problem and the author chooses; a code change is never proposed as
+  a mark. The TODO is addressed prose, so it is re-read against a later tree and becomes a false
+  claim once the code is fixed. The probe found `mark` refusing a role's `add` into a paragraph
+  it also corrects, though the two rule on different sentences: `mark-defects` T28.
