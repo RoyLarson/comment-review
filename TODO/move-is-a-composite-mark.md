@@ -2,9 +2,9 @@
 
 ```
 Status:   decision-needed
-Progress: 33 of 39 tasks closed
+Progress: 33 of 40 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-08-30 (2026-08-30, Roy ruling that a move is a composite mark rather than
           a singular one, after a review measured both of its ends corrupted)
 Updated:  2026-08-30 — Task 9 was the only question owed and Roy answered it 2026-08-30:
@@ -297,3 +297,7 @@ and now there is one object that cannot be half-held.
       claim.from names a place other than its address
 - [ ] T39 | Update _owed_from in tests/gates/test_mark_shape.py so the move
       change cell is read, not flattened to a bool
+- [?] T40 | Decide whether a correct or patch at a move end accepts the
+      placement (Process 195 item 2) or earns a placement question, as the code
+      asks
+        > 2026-09-27 smoke: collate asks function-context at store.py@b9 -> b8

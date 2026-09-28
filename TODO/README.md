@@ -278,7 +278,7 @@ that changed a published name or rule:
 | [mark-defects](mark-defects.md) | backend | -- | 19/28 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
 | [binder-defects](binder-defects.md) | backend | -- | 7/25 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
 | [docket-defects](docket-defects.md) | backend | -- | 5/11 | Six defects in docket.py, and one discards an approved page at exit 0 |
-| [collate-command-defects](collate-command-defects.md) | backend | -- | 5/21 | Sixteen defects in `commands/collate.py`, measured by running it |
+| [collate-command-defects](collate-command-defects.md) | backend | -- | 5/22 | Sixteen defects in `commands/collate.py`, measured by running it |
 | [differences-defects](differences-defects.md) | backend | -- | 0/10 | Ten defects in `results/differences.py`, none of them in its arithmetic |
 | [plans-name-no-todo-tasks](plans-name-no-todo-tasks.md) | systems | yes | 0/4 | Six 0.2.4 plans carry no heading naming the TODO tasks they close |
 | [index-and-glossary-for-roles](index-and-glossary-for-roles.md) | agents | yes | 0/1 | Hand a reviewer the name index and the glossary rather than leaving it to grep |
@@ -350,7 +350,7 @@ that changed a published name or rule:
 | [null-is-not-a-decision](null-is-not-a-decision.md) | backend | yes | 0/2 | `null` is the delete signal, and it is also what a failed serialisation writes |
 | [strip-and-fill-the-markers](strip-and-fill-the-markers.md) | backend | yes | 0/9 | A role is handed the paragraph with its `#`/`"""` markers and indentation, and must reproduce them exactly in `change`. Measured 2026-08-29: three consecutive attempts by an agent with full context broke the file, and each failure read as a defect in the setter |
 | [task-agent-vocabulary-home](task-agent-vocabulary-home.md) | agents (the instructions) - backend (the enum they derive from) | yes | 2/6 | The task agent has no vocabulary home and is never told the command set |
-| [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | -- | 33/39 | A move is a composite mark and the code cannot express one |
+| [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | yes | 33/40 | A move is a composite mark and the code cannot express one |
 
 ### in flight  (0)
 

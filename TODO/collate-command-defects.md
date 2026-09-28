@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 5 of 21 tasks closed
+Progress: 5 of 22 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `commands/collate.py` driven by
@@ -187,3 +187,5 @@ under `utf8_console()`.
       a collate exit code of its own for places carried forward alongside a
       place left unruled
         > 2026-09-11 Process 112; test: an escalation plus an unruled slot exits it
+- [ ] T22 | Fix turn naming 7 of the 10 places it counts as carried forward;
+      each end of a contested move is named on its own line
