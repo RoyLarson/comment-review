@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 9 of 17 tasks closed
+Progress: 10 of 17 tasks closed
 Owner:    agents
 Requires-Roy: false
 Raised:   2026-09-06 (Roy, 2026-09-06, on reading the ownership-context agent file and
@@ -68,7 +68,8 @@ The reviewer prose is rules and punishments, not guidance toward a good result.
 - [x] T15 | 7a and 7b name proof --proof and --only; residue-check.md removed by Roy | e0b63f48 | Update
       write.md, review.md, compact.md, residue-check.md to the commands' --help;
       verify 7a and 7b name proof --proof and --only
-- [ ] T16 | Add a gate that 7a and 7b prose invoke proof with --proof, not
-      --copy; verify it fails on the current SKILL.md first
+- [x] T16 | Gate refuses a task-agent proof without --proof; names SKILL.md:932 and write.md:42 at 328efac3 | 309a03d2936a089861bc0dcfd0776652cc05b06d | Add
+      a gate that 7a and 7b prose invoke proof with --proof, not --copy; verify
+      it fails on the current SKILL.md first
 - [ ] T17 | Update ownership-context to rule a correct or patch on text it
       moves, once mark-defects T27 lands; verify its file names both
