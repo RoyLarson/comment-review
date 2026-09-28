@@ -18,11 +18,10 @@ Process: #195`).
 from dataclasses import dataclass, field
 
 from comment_review.desk.evaluate.move import (
-    UNDECIDED,
     Move,
     Placement,
+    is_open,
     moves_in,
-    ruled_at_both_ends,
 )
 from comment_review.desk.evaluate.passes import decide
 from comment_review.desk.evaluate.place import Place
@@ -110,9 +109,7 @@ class Fold:
                 on_commit.append(events.Advised(role, address, notes))
         for key in sorted(self.moves):
             move = self.moves[key]
-            if move.placement in UNDECIDED:
-                if ruled_at_both_ends(move, self.places):
-                    continue
+            if is_open(move, self.places):
                 on_commit.append(
                     events.PlacementCarried(
                         move.origin, move.destination, move.placement, move.owed

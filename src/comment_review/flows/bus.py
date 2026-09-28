@@ -35,10 +35,9 @@ from comment_review.desk.collator import Cache, Problem
 from comment_review.desk.containers import EditCopy, MasterProof, Sheet
 from comment_review.desk.dispositions.disposition import CHIEF, Disposition
 from comment_review.desk.evaluate.move import (
-    UNDECIDED,
     Move,
+    is_open,
     moves_in,
-    ruled_at_both_ends,
 )
 from comment_review.desk.evaluate.place import Place
 from comment_review.desk.evaluate.state import CARRIED
@@ -417,11 +416,7 @@ def _on_answers(message: AnswersReturned) -> tuple[list, Result | None]:
     recorded, why = _moves_on(message.proof)
     problems += why
     moves = moves_in(places, recorded)
-    open_moves = {
-        key: move
-        for key, move in moves.items()
-        if move.placement in UNDECIDED and not ruled_at_both_ends(move, places)
-    }
+    open_moves = {key: move for key, move in moves.items() if is_open(move, places)}
     carried = {a: p for a, p in places.items() if p.state in CARRIED}
     turn = turn_of(message.proof) + 1
     given: dict[str, dict[str, Answer]] = {}
@@ -475,7 +470,7 @@ def _unsent(
     def why(address: str) -> str:
         move = moves.get(address)
         if move is not None:
-            if move.placement not in UNDECIDED or ruled_at_both_ends(move, places):
+            if not is_open(move, places):
                 return "not an open move"
             return f"not put to {role} -- this move is put to {', '.join(move.owed)}"
         place = places.get(address)
@@ -600,14 +595,13 @@ def _commit(
 def _undecided(fold: Fold) -> list[Move]:
     """The moves this fold carries forward, in key order.
 
-    A move the chief has ruled at both ends is closed and is left out, as the
-    fold leaves its `PlacementCarried` out (`move.ruled_at_both_ends`).
+    Only an open move is carried (`desk.evaluate.move.is_open`), as the fold
+    reports a `PlacementCarried` for an open move alone.
     """
     return [
         fold.decided_moves[key]
         for key in sorted(fold.decided_moves)
-        if fold.decided_moves[key].placement in UNDECIDED
-        and not ruled_at_both_ends(fold.decided_moves[key], fold.decided)
+        if is_open(fold.decided_moves[key], fold.decided)
     ]
 
 

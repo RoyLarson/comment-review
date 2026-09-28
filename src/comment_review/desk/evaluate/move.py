@@ -28,7 +28,7 @@ from comment_review.desk.marks.table import INSTRUCTIONS, Stance, Touch
 
 
 class Placement(StrEnum):
-    """Where one move's placement stands, once the pass has read it."""
+    """Where one move's placement stands; `OPEN` until the pass decides it."""
 
     @staticmethod
     def _generate_next_value_(name, start, count, last_values):
@@ -73,7 +73,8 @@ class Move:
     movers: dict[str, Mark] = field(default_factory=dict)
     readers: tuple[str, ...] = ()
     answers: dict[int, dict[str, Answer]] = field(default_factory=dict)
-    placement: Placement | None = None
+    #: A move is open until the placement pass decides it.
+    placement: Placement = Placement.OPEN
     owed: tuple[str, ...] = ()
     asking: tuple[str, ...] = ()
     reasons: tuple[str, ...] = ()
@@ -92,7 +93,7 @@ class Move:
                 str(t): {r: a.serialize() for r, a in by.items()}
                 for t, by in self.answers.items()
             },
-            "placement": str(self.placement) if self.placement else None,
+            "placement": str(self.placement),
             "owed": list(self.owed),
             "asking": list(self.asking),
             "reasons": list(self.reasons),
@@ -126,7 +127,7 @@ class Move:
                 origin=origin,
                 destination=destination,
                 answers=answers,
-                placement=Placement(placement) if placement else None,
+                placement=Placement(placement) if placement else Placement.OPEN,
                 owed=tuple(data.get("owed") or ()),
                 asking=tuple(data.get("asking") or ()),
                 reasons=tuple(data.get("reasons") or ()),
@@ -379,3 +380,17 @@ def ruled_at_both_ends(move: Move, places: dict[str, Place]) -> bool:
     """
     ends = (places.get(move.origin), places.get(move.destination))
     return all(end is not None and end.disposition is not None for end in ends)
+
+
+def is_open(move: Move, places: dict[str, Place]) -> bool:
+    """Whether a move's placement is still to be decided.
+
+    A move is open while its placement is undecided and the chief has not
+    ruled both of its ends. An open move is put to the roles owed a say on
+    it, carried forward by the fold, and keeps a proof from closing.
+
+    Args:
+        move: the move.
+        places: the fold's places, where its two ends are read.
+    """
+    return move.placement in UNDECIDED and not ruled_at_both_ends(move, places)

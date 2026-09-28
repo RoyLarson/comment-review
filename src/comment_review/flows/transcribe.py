@@ -65,7 +65,7 @@ from typing import NamedTuple
 from comment_review.binder.page import Page
 from comment_review.desk.containers import EditCopy, MasterProof
 from comment_review.desk.dispositions.disposition import CHIEF
-from comment_review.desk.evaluate.move import UNDECIDED, Move, ruled_at_both_ends
+from comment_review.desk.evaluate.move import Move, is_open
 from comment_review.desk.evaluate.place import Place
 from comment_review.desk.evaluate.state import SETTLED, State
 from comment_review.desk.marks.table import INSTRUCTIONS
@@ -367,9 +367,9 @@ def _moves_on(proof: MasterProof) -> tuple[list[Move], list[str]]:
 def _open_moves(moves: list[Move], places: list[Place]) -> list[str]:
     """One reason per move whose placement is undecided at an unruled end.
 
-    A move whose placement is in `UNDECIDED` is closed only where the chief
-    has ruled both of its ends (`desk.evaluate.move.ruled_at_both_ends`,
-    `decision-log.md Process: #195` item 4). A proof can commit with one end
+    An open move (`desk.evaluate.move.is_open`) keeps the proof from closing:
+    its placement is undecided and the chief has not ruled both of its ends
+    (`decision-log.md Process: #195` item 4). A proof can commit with one end
     ruled and the other `UNSETTLABLE`, which `_unclosed` admits; transcribing
     it would set the arrival at the destination while the origin keeps the
     paragraph.
@@ -379,7 +379,7 @@ def _open_moves(moves: list[Move], places: list[Place]) -> list[str]:
         f"{CHIEF} {move.key}: the placement of this move is {move.placement} and"
         " the chief has not ruled both of its ends, so this proof is not closed"
         for move in moves
-        if move.placement in UNDECIDED and not ruled_at_both_ends(move, by_address)
+        if is_open(move, by_address)
     ]
 
 
