@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 0 of 6 tasks closed
+Progress: 1 of 6 tasks closed
 Owner:    backend
-Requires-Roy: true
+Requires-Roy: false
 Raised:   2026-09-03 (systems)
 ```
 
@@ -65,4 +65,6 @@ way changes real code, so it is asked rather than inferred.
       check
 - [ ] T4 | Move read_raw out of results.prove_unchanged
 - [ ] T5 | Move the cited-source read out of desk.collator into the flow
-- [?] T6 | Decide whether commands may reach the machine, or only flows
+- [x] T6 | Ruled: only flows import machine; recorded as Process #207 | 2150eafe | Decide
+      whether commands may reach the machine, or only flows
+        > 2026-09-28 Roy: only flows; commands pass strings to flows (#207)
