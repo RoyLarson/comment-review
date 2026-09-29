@@ -95,7 +95,8 @@ carried-forward place the chief left unruled, so the close cannot happen with on
 address and anchor, its base text as the page holds it (read by the collate handler, below), the
 roles whose copies held that page
 (`readers`), every mark filed on it with the role that filed it and which end of a move it is
-(`filed`), each turn's answers by role, the chief's disposition where there is one, and what
+(`filed`) -- on the proof, a pointer to the mark where its edit_copy holds it, `{copy, sheet,
+mark, touch}`, so each mark is stored once -- each turn's answers by role, the chief's disposition where there is one, and what
 the passes decide: `state`, `text`, `sides`, `reasons`, `notes`, `asking`, `owed` and
 `question`. A move is an aggregate of its own, over its two places --
 `desk/evaluate/move.py`, below.

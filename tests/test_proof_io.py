@@ -44,6 +44,18 @@ class TestTheRoundTrip:
         assert why == []
         assert got == proof
 
+    def test_a_read_proof_saves_to_the_same_file(self, tmp_path):
+        """Each mark is stored once and each place points at it, so reading a
+        proof and saving it again writes the file it was read from, byte for
+        byte."""
+        save_proof(tmp_path / "p.json", a_proof(tmp_path))
+        got, why = load_proof(tmp_path / "p.json")
+        assert why == [] and got is not None
+        save_proof(tmp_path / "again.json", got)
+        assert (tmp_path / "again.json").read_bytes() == (
+            tmp_path / "p.json"
+        ).read_bytes()
+
     def test_the_file_is_the_containers_own_wire(self, tmp_path):
         """No second shape: what is on disk is `MasterProof.serialize`."""
         import json

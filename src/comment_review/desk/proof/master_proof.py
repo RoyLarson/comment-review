@@ -74,7 +74,9 @@ class MasterProof:
             Every place and every move is read here, and one that will not read
             is named by its position -- `place 2`, `move 1` -- and, for a
             place, its address, so every command that reads the proof names a
-            bad entry the same way. A `places` or `moves` that is not a list is
+            bad entry the same way. A place's filed marks point into the
+            copies, which are read first, and a copy entry that will not read
+            refuses the proof. A `places` or `moves` that is not a list is
             refused; an absent one is empty, as a proof written before the
             first fold carries neither.
         """
@@ -91,6 +93,17 @@ class MasterProof:
                 problems += why
             else:
                 copies.append(copy)
+        # A proof's copies hold only marks that read -- `Sheet.serialize`
+        # writes a sheet's marks and nothing else -- so a place's pointer lands
+        # on the mark it was written for. An entry that will not read would
+        # shift every mark after it, and is refused here by name.
+        problems += [
+            f"{where}: edit_copy {i}: {one.where}: {reason}"
+            for i, copy in enumerate(copies, 1)
+            for sheet in copy.sheets
+            for one in sheet.refused
+            for reason in one.reasons
+        ]
         if problems:
             return None, problems
         read_from = data.get("read_from")
@@ -143,7 +156,7 @@ class MasterProof:
         # refused rather than turned into a string.
         stage, why = read_text(f"{where}: master_proof", "stage", data.get("stage"))
         problems += why
-        places, why = _places_in(where, data.get("places", []))
+        places, why = _places_in(where, data.get("places", []), tuple(copies))
         problems += why
         moves, why = _moves_in(where, data.get("moves", []))
         problems += why
@@ -171,8 +184,13 @@ class MasterProof:
         }
 
 
-def _places_in(where: str, raw: object) -> "tuple[tuple[Place, ...], list[str]]":
-    """A proof's `places`, each read, and one message per entry that will not."""
+def _places_in(
+    where: str, raw: object, copies: tuple[EditCopy, ...]
+) -> "tuple[tuple[Place, ...], list[str]]":
+    """A proof's `places`, each read against its copies.
+
+    One message is named per entry that will not read.
+    """
     if not isinstance(raw, list):
         return (), [f"{where}: master_proof's `places` must be a list"]
     places: list[Place] = []
@@ -180,7 +198,7 @@ def _places_in(where: str, raw: object) -> "tuple[tuple[Place, ...], list[str]]"
     for i, entry in enumerate(raw, 1):
         address = entry.get("address") if isinstance(entry, dict) else None
         at = f"{where}: place {i}" + (f" at {address}" if filled(address) else "")
-        place, why = Place.deserialize(at, entry)
+        place, why = Place.deserialize(at, entry, copies)
         if place is None:
             problems += why
         else:

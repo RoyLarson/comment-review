@@ -1,20 +1,43 @@
-"""A place: the aggregate the middle decides."""
+"""A place: the aggregate the middle decides.
+
+    Filed   one role's mark, filed at a place, and where the proof holds it
+    Place   one address, its base text, and everything filed or ruled there
+
+A mark is stored once on a master proof, in the edit_copy that carries it. A
+place's filed entry points at it -- `{"copy", "sheet", "mark", "touch"}`, each
+index counted from 1 as the proof's own messages count them -- and the role is
+the copy's.
+"""
 
 from dataclasses import dataclass, field
 
 from comment_review.desk.proof.answer import Answer, Question, read_answers
 from comment_review.desk.proof.disposition import Disposition, read_disposition
-from comment_review.desk.proof.mark import Mark, Touch, read_mark, read_member
+from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.mark import Mark, Touch, read_member
 from comment_review.desk.proof.state import State
+
+#: The keys of a filed entry's pointer, in the order they are written.
+POINTER = ("copy", "sheet", "mark")
 
 
 @dataclass
 class Filed:
-    """One role's mark, filed at a place, and which end of it this is about."""
+    """One role's mark, filed at a place, and which end of it this is about.
+
+    Attributes:
+        role: the role whose copy carries the mark.
+        mark: the mark itself.
+        touch: which of the places the mark writes this one is.
+        source: where the proof holds the mark -- its copy, sheet and mark,
+            each counted from 1 -- or None for a mark filed without a proof,
+            which a place holding it cannot be written for.
+    """
 
     role: str
     mark: Mark
     touch: Touch
+    source: tuple[int, int, int] | None = None
 
 
 @dataclass
@@ -65,14 +88,7 @@ class Place:
             "anchor": self.anchor,
             "base": self.base,
             "readers": list(self.readers),
-            "filed": [
-                {
-                    "role": f.role,
-                    "touch": str(f.touch),
-                    **f.mark.serialize(),
-                }
-                for f in self.filed
-            ],
+            "filed": [_pointer(self.address, f) for f in self.filed],
             "answers": {
                 str(t): {r: a.serialize() for r, a in by.items()}
                 for t, by in self.answers.items()
@@ -89,11 +105,19 @@ class Place:
         }
 
     @classmethod
-    def deserialize(cls, where: str, entry: object) -> "tuple[Place | None, list[str]]":
+    def deserialize(
+        cls, where: str, entry: object, copies: tuple[EditCopy, ...]
+    ) -> "tuple[Place | None, list[str]]":
         """One entry becomes a `Place`, or becomes named problems.
 
-        Each filed mark, each answer and the chief's ruling is read into its
-        own type.
+        Each filed entry is resolved to the mark `copies` already hold, which
+        is not read again, and takes its role from the copy. Each answer and
+        the chief's ruling is read into its own type.
+
+        Args:
+            where: how to name this place in a message.
+            entry: one place, as `serialize` writes it.
+            copies: the proof's edit_copies, already read.
         """
         if not isinstance(entry, dict):
             return None, [f"{where}: a place must be an object"]
@@ -101,17 +125,11 @@ class Place:
         problems: list[str] = []
         filed = []
         for i, one in enumerate(data.get("filed") or [], 1):
-            mark, why = read_mark(f"{where} mark {i}", one)
-            if mark is None:
+            got, why = _resolved(f"{where} mark {i}", one, copies)
+            if got is None:
                 problems += why
-                continue
-            touch, why = read_member(
-                f"{where} mark {i}", "touch", one.get("touch"), Touch
-            )
-            if touch is None:
-                problems += why
-                continue
-            filed.append(Filed(str(one.get("role")), mark, touch))
+            else:
+                filed.append(got)
         answers, why = read_answers(where, data.get("answers"))
         problems += why
         disposition = None
@@ -147,3 +165,62 @@ class Place:
             ),
             [],
         )
+
+
+def _pointer(address: str, filed: Filed) -> dict:
+    """One filed entry as the proof writes it: where its mark is, and the touch.
+
+    Raises:
+        ValueError: the mark was filed without a place on a proof to point at.
+    """
+    if filed.source is None:
+        raise ValueError(
+            f"{address}: {filed.role}'s {filed.mark.instruction} was filed with no"
+            " place on the proof to point at"
+        )
+    return {**dict(zip(POINTER, filed.source, strict=True)), "touch": str(filed.touch)}
+
+
+def _index(where: str, name: str, value: object) -> "tuple[int | None, list[str]]":
+    """One pointer index: a whole number from 1, or one problem naming it."""
+    if isinstance(value, int) and not isinstance(value, bool) and value >= 1:
+        return value, []
+    return None, [f"{where}: `{name}` {value!r} is not a whole number from 1"]
+
+
+def _resolved(
+    where: str, entry: object, copies: tuple[EditCopy, ...]
+) -> "tuple[Filed | None, list[str]]":
+    """One filed entry resolved against the proof's copies, or named problems.
+
+    A mark written inline -- the whole mark on the place -- is refused by name:
+    the copies are its one home.
+    """
+    if not isinstance(entry, dict):
+        return None, [f"{where}: a filed entry must be an object"]
+    data: dict = entry
+    if "instruction" in data and not any(key in data for key in POINTER):
+        return None, [
+            f"{where}: a filed mark is written inline; a proof names its copy's"
+            " mark by `copy`, `sheet` and `mark`"
+        ]
+    problems: list[str] = []
+    indices: list[int] = []
+    for key in POINTER:
+        got, why = _index(where, key, data.get(key))
+        problems += why
+        if got is not None:
+            indices.append(got)
+    touch, why = read_member(where, "touch", data.get("touch"), Touch)
+    problems += why
+    if problems or touch is None:
+        return None, problems
+    c, s, m = indices
+    try:
+        copy = copies[c - 1]
+        mark = copy.sheets[s - 1].marks[m - 1]
+    except IndexError:
+        return None, [
+            f"{where}: copy {c}, sheet {s}, mark {m} names no mark on this proof"
+        ]
+    return Filed(copy.role, mark, touch, (c, s, m)), []

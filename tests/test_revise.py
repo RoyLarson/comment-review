@@ -742,12 +742,12 @@ class TestDocketOfProof:
         (why,) = raised.value.reasons
         assert "m.py@b1" in why and state in why
 
-    def test_a_place_that_will_not_read_is_a_refusal(
+    def test_a_proof_whose_mark_will_not_read_is_a_refusal(
         self, tmp_path, monkeypatch, capsys
     ):
-        """A place is parsed before it is transcribed, the way a returned
-        copy's marks are. One that will not parse is named, and no page is
-        set from what is left."""
+        """A proof is parsed before it is transcribed, the way a returned
+        copy's marks are. A mark that will not parse -- held once, in its
+        copy -- is named, and no page is set from what is left."""
         self._closed(
             tmp_path,
             monkeypatch,
@@ -756,10 +756,10 @@ class TestDocketOfProof:
             texts={"m.py@b1": BASE},
         )
         wire = json.loads((tmp_path / "proof0.json").read_text(encoding="utf-8"))
-        wire["places"][0]["filed"][0]["instruction"] = "not an instruction"
+        wire["edit_copies"][0]["sheets"][0]["marks"][0]["instruction"] = "stet"
         proof, why = MasterProof.deserialize("hand-edited", wire)
         assert proof is None
-        assert any("place 1 at m.py@b1" in one for one in why), why
+        assert any("edit_copy 1: m.py@b1" in one for one in why), why
 
     def test_a_page_this_checkout_cannot_read_is_a_refusal(
         self, tmp_path, monkeypatch, capsys

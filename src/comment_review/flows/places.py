@@ -56,7 +56,9 @@ def places_of(
     """One place per address any copy's mark touches, readers filled in.
 
     A mark is filed at every place its row says it writes at
-    (`desk.marks.table.Row.places`), with the touch it has there.
+    (`desk.marks.table.Row.places`), with the touch it has there and its
+    position in `copies` -- copy, sheet and mark, each counted from 1 -- which
+    is where a master proof holding these copies in this order stores it.
     `readers` is every role whose copy holds a sheet for the address's page
     (Ruling R4: an add is carried forward for every role that read the page).
 
@@ -80,18 +82,18 @@ def places_of(
         return places[address]
 
     pages_by_role: dict[str, set[str]] = {}
-    for copy in copies:
+    for c, copy in enumerate(copies, 1):
         pages_by_role.setdefault(copy.role, set()).update(
             flatten(sheet.path) for sheet in copy.sheets
         )
-        for sheet in copy.sheets:
-            for mark in sheet.marks:
+        for s, sheet in enumerate(copy.sheets, 1):
+            for m, mark in enumerate(sheet.marks, 1):
                 # A `clean` may carry no address, and `places` then returns
                 # none, so the mark opens no place here. That is deliberate:
                 # there is no place to open, and `Row.places` is also why
                 # `flows.verify.resolution_problems` never sees one to resolve.
                 for address, touch in INSTRUCTIONS[mark.instruction].places(mark):
-                    at(address).filed.append(Filed(copy.role, mark, touch))
+                    at(address).filed.append(Filed(copy.role, mark, touch, (c, s, m)))
 
     for address, place in places.items():
         page = cue_of(address).path

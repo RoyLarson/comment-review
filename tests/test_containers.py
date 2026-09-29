@@ -489,6 +489,78 @@ class TestEveryBadRecordIsNamed:
             " own, origin, destination"
         ]
 
+    def _one_place(self, tmp_path) -> dict:
+        return a_master_proof(
+            tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
+        ).serialize()
+
+    def test_a_filed_mark_is_a_pointer_to_its_copys_mark(self, tmp_path):
+        """Each mark is stored once, in its edit_copy; a place names it."""
+        wire = self._one_place(tmp_path)
+        assert wire["places"][0]["filed"] == [
+            {"copy": 1, "sheet": 1, "mark": 1, "touch": "own"}
+        ]
+        proof, why = MasterProof.deserialize("p.json", wire)
+        assert why == [] and proof is not None
+        (filed,) = proof.places[0].filed
+        assert filed.mark is proof.edit_copies[0].sheets[0].marks[0]
+        assert filed.role == proof.edit_copies[0].role
+
+    def test_a_pointer_to_no_mark_is_named_where_it_sits(self, tmp_path):
+        wire = self._one_place(tmp_path)
+        wire["places"][0]["filed"][0] = {
+            "copy": 4,
+            "sheet": 1,
+            "mark": 9,
+            "touch": "own",
+        }
+        got, why = MasterProof.deserialize("p.json", wire)
+        assert got is None
+        assert why == [
+            "p.json: place 1 at m.py@b1 mark 1: copy 4, sheet 1, mark 9 names no"
+            " mark on this proof"
+        ]
+
+    @pytest.mark.parametrize("value", [0, -1, "1", 1.0, True, None])
+    def test_a_pointer_index_that_is_not_a_whole_number_from_1_is_named(
+        self, tmp_path, value
+    ):
+        wire = self._one_place(tmp_path)
+        wire["places"][0]["filed"][0]["sheet"] = value
+        got, why = MasterProof.deserialize("p.json", wire)
+        assert got is None
+        assert why == [
+            f"p.json: place 1 at m.py@b1 mark 1: `sheet` {value!r} is not a whole"
+            " number from 1"
+        ]
+
+    def test_a_filed_mark_written_inline_is_refused_by_name(self, tmp_path):
+        wire = self._one_place(tmp_path)
+        wire["places"][0]["filed"][0] = {
+            "role": "block-context",
+            "touch": "own",
+            **a_clean("m.py@b1"),
+        }
+        got, why = MasterProof.deserialize("p.json", wire)
+        assert got is None
+        assert why == [
+            "p.json: place 1 at m.py@b1 mark 1: a filed mark is written inline;"
+            " a proof names its copy's mark by `copy`, `sheet` and `mark`"
+        ]
+
+    def test_a_copy_entry_that_will_not_read_refuses_the_proof(self, tmp_path):
+        """A proof's copies hold only marks that read, so every pointer lands
+        where it was written; an entry that does not read is named rather than
+        left to shift the marks after it."""
+        wire = self._one_place(tmp_path)
+        wire["edit_copies"][0]["sheets"][0]["marks"][0]["instruction"] = "stet"
+        got, why = MasterProof.deserialize("p.json", wire)
+        assert got is None
+        assert why == [
+            "p.json: edit_copy 1: m.py@b1: `instruction` must be one of add, clean,"
+            " correct, drop, move, patch, query"
+        ]
+
     def test_the_places_and_moves_are_read_as_records(self, tmp_path):
         proof = a_master_proof(
             tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}

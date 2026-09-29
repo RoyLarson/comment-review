@@ -7,12 +7,15 @@ marks at one place one side between them, which is a composition that can
 refuse and so belongs where the reasons are read.
 """
 
+import pytest
 from helpers import a_typed_answer, a_typed_mark, a_typed_ruling
 
 from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.disposition import ORIGINAL
+from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import Instruction, Touch
 from comment_review.desk.proof.place import Filed, Place
+from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.proof.state import State
 
 BASE = "# one\n# two\n# three\n"
@@ -54,22 +57,28 @@ def test_a_place_round_trips_through_serialize():
         prose="",
         reason="the base already says this",
     )
+    drop = _mark(
+        Instruction.DROP,
+        claim={"drop": "# three"},
+        sources=({"cite": "m.py:1", "verbatim": "x = 1"},),
+    )
+    # Each mark is held by its role's copy; the place points at it there.
+    copies = tuple(
+        EditCopy(
+            role=role,
+            read_from={"root": ".", "revise": 0},
+            sheets=(Sheet(path="m.py", sha="0" * 40, marks=(mark,)),),
+        )
+        for role, mark in (("a", corr), ("b", drop))
+    )
     place = Place(
         address="m.py@b1",
         anchor="x = 1",
         base=BASE,
         readers=("a", "b"),
         filed=[
-            Filed("a", corr, Touch.OWN),
-            Filed(
-                "b",
-                _mark(
-                    Instruction.DROP,
-                    claim={"drop": "# three"},
-                    sources=({"cite": "m.py:1", "verbatim": "x = 1"},),
-                ),
-                Touch.OWN,
-            ),
+            Filed("a", corr, Touch.OWN, (1, 1, 1)),
+            Filed("b", drop, Touch.OWN, (2, 1, 1)),
         ],
         answers={1: {"a": answer}},
         disposition=disposition,
@@ -79,20 +88,34 @@ def test_a_place_round_trips_through_serialize():
         reasons=(),
         question=None,
     )
-    got, problems = Place.deserialize("m.py@b1", place.serialize())
+    got, problems = Place.deserialize("m.py@b1", place.serialize(), copies)
     assert problems == []
     assert got == place
 
 
+def test_a_place_with_a_mark_filed_without_a_proof_is_not_written():
+    """A filed mark is written as where the proof holds it, so one filed with
+    no source has nothing to be written as."""
+    mark = _mark(Instruction.CLEAN)
+    place = Place(
+        address="m.py@b1",
+        anchor="x = 1",
+        base=BASE,
+        filed=[Filed("a", mark, Touch.OWN)],
+    )
+    with pytest.raises(ValueError, match="filed with no place on the proof"):
+        place.serialize()
+
+
 def test_deserialize_refuses_a_place_that_is_not_an_object():
-    got, problems = Place.deserialize("m.py@b1", "not a place")
+    got, problems = Place.deserialize("m.py@b1", "not a place", ())
     assert got is None
     assert problems == ["m.py@b1: a place must be an object"]
 
 
 def test_a_state_or_question_outside_its_set_is_named():
     got, problems = Place.deserialize(
-        "m.py@b1", {"address": "m.py@b1", "state": "limbo", "question": "why"}
+        "m.py@b1", {"address": "m.py@b1", "state": "limbo", "question": "why"}, ()
     )
     assert got is None
     assert problems == [
@@ -120,6 +143,7 @@ def test_an_answer_at_a_turn_that_is_not_a_number_is_named():
                 }
             },
         },
+        (),
     )
     assert got is None
     assert problems == ["m.py@b1: answers at turn 'first' -- a turn is a number"]

@@ -81,7 +81,9 @@ def test_a_committed_fold_carries_its_places_on_the_proof(tmp_path):
     assert result is not None
     assert len(result.proof.places) == 2
     for entry in result.proof.places:
-        place, why = Place.deserialize("a place", entry.serialize())
+        place, why = Place.deserialize(
+            "a place", entry.serialize(), result.proof.edit_copies
+        )
         assert place is not None, why
         assert place == entry
 
