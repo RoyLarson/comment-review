@@ -13,7 +13,7 @@
 | [0.2.4-the-mark-and-the-collator](0.2.4-the-mark-and-the-collator.md) | in-progress | 31/31 | 21/21 |
 | [0.2.4-the-middle-rebuilt](0.2.4-the-middle-rebuilt.md) | in-progress | 47/47 | 17/18 |
 | [0.2.4-the-placement-branch-runs](0.2.4-the-placement-branch-runs.md) | closed | 22/22 | 12/12 |
-| [0.2.4-the-proof-is-one-unit](0.2.4-the-proof-is-one-unit.md) | in-progress | 15/15 | 15/15 |
+| [0.2.4-the-proof-is-one-unit](0.2.4-the-proof-is-one-unit.md) | closed | 15/15 | 15/15 |
 | [0.2.4-the-turn-as-commands](0.2.4-the-turn-as-commands.md) | in-progress | 14/14 | 10/10 |
 | [0.2.4-the-vocabulary-gate-is-asserted](0.2.4-the-vocabulary-gate-is-asserted.md) | in-progress | 1/1 | 2/2 |
 | [0.2.4-what-a-reviewer-is-handed](0.2.4-what-a-reviewer-is-handed.md) | in-progress | 12/24 | 3/4 |
