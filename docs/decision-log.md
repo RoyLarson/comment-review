@@ -5254,3 +5254,19 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   Offered dispatch by a `match` on the instruction in one reading function rather than
   overriding `__new__` on a frozen dataclass: *"agree"*. Offered the same for answers and
   rulings: *"seems like a good idea"*.
+
+- **#207.** **Only a flow imports `machine`; commands are the command line alone; `machine`
+  holds the checkout's I/O and nothing else** (Roy, 2026-09-28, correcting the area table in
+  `docs/conventions.md`, which listed `machine` as a leaf any area may read). Roy: *"nothing
+  but flows are allowed to import machine."* Asked whether that includes the commands: *"yes -
+  commands are the cli and only the cli commands. This might be pedantic but I think they pass
+  in the stringly typed things into flows and subflows know how to turn those stringly types
+  things into concrete things"*. Shown that `machine` also holds `constants` and `exceptions`,
+  which are not I/O: *"yes to constants, exceptions"* leaving it; `differences`, pure text
+  comparison, leaves with them. Asked whether the ends may read `reading`: *"yes. I originally
+  thought no but then I realized it would be silly to work around the addresser issue not being
+  available."* On `concordance`: *"i am pretty certain that its information is going to end up
+  only in the binder or its own data structure. The best we have been able to tell is that it
+  builds an index cross-ref table once all hooked together and the proper place for that is
+  would naturally be part of the binder but rebuilding that in the binder each time is also
+  silly."*
