@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 36 of 60 tasks closed
+Progress: 37 of 60 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -369,8 +369,9 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
 - [x] T53 | malformed stage or admits refused; copy folded only in its stage | 3f2fb963 | Refuse
       an EditCopy whose stage or admits is malformed instead of coercing it; a
       failing test first
-- [ ] T54 | Update every doc and vocabulary entry naming desk/containers.py or
-      desk/proof.py; the grep comes back empty
+- [x] T54 | live docs name the new homes; grep empty but for history files | 704274c0 | Update
+      every doc and vocabulary entry naming desk/containers.py or desk/proof.py;
+      the grep comes back empty
 - [x] T55 | Answer, Disposition in desk/proof; rules modules; Validators bundle | 6a3bd059 | Move
       the Answer and Disposition objects into desk/proof/, their parse and
       tables staying in their packages; desk/proof imports neither
