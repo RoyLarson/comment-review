@@ -362,7 +362,9 @@ were sent; `check --contract` prints the shape each answer takes.
 - **A `placement`** asks whether a move's paragraph belongs at its destination. Its slot
   carries `address`, the origin; `to`, the destination; and `movers`, one entry for each role
   that filed the move, with its `snippet`, the text that leaves, and its `raw_text`, the
-  paragraph it arrives as. Answer with a `reason` and one of:
+  paragraph it arrives as. Read both ends before you answer: `agree` says the origin reads
+  right with the snippet gone and the destination reads right with it arrived. Answer with a
+  `reason` and one of:
 
 | answer | who gives it | what it does |
 | --- | --- | --- |
