@@ -36,6 +36,13 @@ from comment_review.commands import collate as collate_command
 from comment_review.commands import disposition as disposition_command
 from comment_review.commands import turn as turn_command
 from comment_review.desk.marks.table import INSTRUCTIONS
+from comment_review.desk.proof.answer import (
+    Answer,
+    QueryAnswer,
+    Question,
+    Rewrite,
+    answer_type,
+)
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import (
     ANCHOR_EXAMPLE,
@@ -727,6 +734,41 @@ def a_typed_mark(
             return MoveMark(
                 **common, change=change, from_=got.get("from", ""), to=got.get("to", "")
             )
+
+
+def a_typed_answer(
+    *,
+    address: str,
+    anchor: str,
+    question: Question,
+    name: str,
+    reason: str,
+    change: str = "",
+    claim: dict | None = None,
+    sources: tuple = (),
+) -> Answer:
+    """An answer of `name`'s type, BUILT rather than read -- for a case that
+    hands a pass an answer directly. Nothing is checked: the question need not
+    be one the type takes, and a `query` with no shape is `unable-to-determine`.
+    """
+    kind = answer_type(name)
+    assert kind is not None, name
+    got = dict(claim or {})
+    own: dict[str, Any] = {}
+    if issubclass(kind, Rewrite):
+        own["change"] = change
+    if kind is QueryAnswer:
+        own["shape"] = Shape(got.get("shape", Shape.UNABLE_TO_DETERMINE))
+        own["attempted"] = got.get("attempted", "")
+        own["settles"] = got.get("settles", "")
+    return kind(
+        address=address,
+        anchor=anchor,
+        question=question,
+        reason=reason,
+        sources=sources,
+        **own,
+    )
 
 
 def _mark(instruction: Instruction, address: str, claim: dict) -> dict:

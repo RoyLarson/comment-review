@@ -101,9 +101,8 @@ class Place:
     ) -> "tuple[Place | None, list[str]]":
         """One entry becomes a `Place`, or becomes named problems.
 
-        Each filed mark is read into its own type, and each answer and the
-        chief's ruling by its own reader, held to the matching member of
-        `validators`.
+        Each filed mark and each answer is read into its own type, and the
+        chief's ruling by its own reader, held to `validators.disposition`.
         """
         if not isinstance(entry, dict):
             return None, [f"{where}: a place must be an object"]
@@ -129,7 +128,7 @@ class Place:
                     str(one.get("split_from") or ""),
                 )
             )
-        answers, why = read_answers(where, data.get("answers"), validators.answer)
+        answers, why = read_answers(where, data.get("answers"))
         problems += why
         disposition = None
         if data.get("disposition") is not None:

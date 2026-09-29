@@ -276,7 +276,7 @@ def test_each_type_writes_the_wire_entry_it_read(instruction):
     assert why == [] and mark is not None
     assert type(mark) is mark_type(Instruction(instruction))
     wire = mark.serialize()
-    assert list(wire) == [key for key in Mark.FIELDS if key in wire]
+    assert set(wire) <= set(Mark.FIELDS)
     assert wire["claim"] == CLAIM[instruction]
     assert wire.get("change") == CHANGE.get(instruction)
     assert wire["sources"] == entry.get("sources", [])

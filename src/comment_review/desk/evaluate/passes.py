@@ -5,7 +5,7 @@ from comment_review.desk.dispositions.rules import side_of
 from comment_review.desk.dispositions.table import DISPOSITIONS
 from comment_review.desk.evaluate.move import hold_ends, placement_pass, settle_ends
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
-from comment_review.desk.proof.answer import Question
+from comment_review.desk.proof.answer import Question, Rewrite
 from comment_review.desk.proof.disposition import CHIEF, ORIGINAL
 from comment_review.desk.proof.mark import Touch
 from comment_review.desk.proof.move import Move
@@ -288,7 +288,7 @@ def answers_pass(place: Place, turn: int) -> Place:
             return _set(place, State.UNSETTLABLE, asking=(f"{role}: {answer.reason}",))
         if effect is Effect.REMOVES:
             sides.pop(role, None)
-        elif effect is Effect.REPLACES:
+        elif effect is Effect.REPLACES and isinstance(answer, Rewrite):
             sides[role] = answer.change
         elif effect is Effect.ACCEPTS and place.text is not None:
             sides[role] = place.text

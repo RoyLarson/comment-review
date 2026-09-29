@@ -1,25 +1,72 @@
 """The answers table: what a role's answer in a turn does to its own proposal,
 and the contract that publishes the table's own sets."""
 
+from typing import Any
+
+import pytest
+from helpers import a_typed_answer
+
 from comment_review.desk.answers.table import ANSWERS, Effect
-from comment_review.desk.proof.answer import Answer, Question, read_answer
+from comment_review.desk.proof.answer import (
+    Answer,
+    Question,
+    Rewrite,
+    answer_type,
+    read_answer,
+)
 from comment_review.flows.answers import contracts
-from comment_review.flows.validators import VALIDATORS
 
 
 def _answer(question: Question, name: str, **fields) -> Answer:
-    base = {
+    base: dict[str, Any] = {
         "address": "m.py@b1",
         "anchor": "x = 1",
         "question": question,
         "name": name,
         "reason": "a reason",
-        "change": "",
-        "claim": {},
-        "sources": (),
     }
     base.update(fields)
-    return Answer(**base)
+    return a_typed_answer(**base)
+
+
+def _kind(name: str) -> type[Answer]:
+    kind = answer_type(name)
+    assert kind is not None, name
+    return kind
+
+
+def test_every_row_of_the_table_is_an_answer_type_and_its_question():
+    """The table's `(question, name)` keys and the types' `asked` state one
+    set from two sides, so the two are held equal."""
+    typed = {(question, name) for _, name in ANSWERS for question in _kind(name).asked}
+    assert typed == set(ANSWERS)
+    assert answer_type("stet-it") is None
+
+
+@pytest.mark.parametrize(("question", "name"), sorted(ANSWERS))
+def test_each_answer_writes_the_wire_entry_it_read(question, name):
+    """The wire is unchanged by the types: every key a turn carried is
+    written back, and it reads back as the same answer."""
+    kind = _kind(name)
+    entry = {
+        "address": "m.py@b1",
+        "anchor": "x = 1",
+        "question": str(question),
+        "reason": "r",
+        "change": "# x" if kind.owes_change else "",
+        "claim": {
+            key: "outside-my-role" if key == "shape" else "x" for key in kind.claim_all
+        },
+        "sources": [{"cite": "m.py:1", "verbatim": "x = 1"}],
+        "instruction": name,
+    }
+    got, why = read_answer("m.py@b1", entry)
+    assert why == [] and type(got) is kind
+    assert got is not None
+    assert got.serialize() == entry
+    again, why = read_answer("m.py@b1", got.serialize())
+    assert why == [] and again == got
+    assert isinstance(got, Rewrite) is kind.owes_change
 
 
 def test_the_escalation_answers():
@@ -30,8 +77,8 @@ def test_the_escalation_answers():
         ANSWERS[(e, "correct")].effect(_answer(e, "correct", change="# x"))
         is Effect.REPLACES
     )
-    assert ANSWERS[(e, "patch")].owes_change is True
-    assert ANSWERS[(e, "hold")].owes_change is False
+    assert _kind("patch").owes_change is True
+    assert _kind("hold").owes_change is False
 
 
 def test_the_composition_answers():
@@ -59,7 +106,7 @@ def test_the_placement_answers():
     assert ANSWERS[(p, "query")].effect(deferring) is Effect.ABSTAINS
     assert ANSWERS[(p, "query")].effect(human) is Effect.UNSETTLABLE
     # A placement answer is about where the paragraph goes; none rewrites it.
-    assert not any(row.owes_change for (asked, _), row in ANSWERS.items() if asked is p)
+    assert not any(_kind(name).owes_change for asked, name in ANSWERS if asked is p)
     assert {name for asked, name in ANSWERS if asked is p} == {
         "agree",
         "stet",
@@ -77,7 +124,6 @@ def test_a_placement_answer_is_read_against_its_question():
             "instruction": "stet",
             "reason": "r",
         },
-        VALIDATORS.answer,
     )
     assert why == [] and got is not None and got.name == "stet"
     for name in ("hold", "correct", "patch", "clean"):
@@ -89,7 +135,6 @@ def test_a_placement_answer_is_read_against_its_question():
                 "instruction": name,
                 "reason": "r",
             },
-            VALIDATORS.answer,
         )
         assert got is None and "not an answer to a placement" in why[0], name
     for question in ("escalation", "composition"):
@@ -101,7 +146,6 @@ def test_a_placement_answer_is_read_against_its_question():
                 "instruction": "stet",
                 "reason": "r",
             },
-            VALIDATORS.answer,
         )
         assert got is None and "not an answer to" in why[0], question
 
@@ -115,7 +159,6 @@ def test_an_answer_is_read_against_its_question():
             "instruction": "hold",
             "reason": "r",
         },
-        VALIDATORS.answer,
     )
     assert why == [] and got is not None and got.name == "hold"
     got, why = read_answer(
@@ -126,7 +169,6 @@ def test_an_answer_is_read_against_its_question():
             "instruction": "clean",
             "reason": "r",
         },
-        VALIDATORS.answer,
     )
     assert got is None and "not an answer to an escalation" in why[0]
     got, why = read_answer(
@@ -137,7 +179,6 @@ def test_an_answer_is_read_against_its_question():
             "instruction": "correct",
             "reason": "r",
         },
-        VALIDATORS.answer,
     )
     assert got is None and "needs a `change`" in why[0]
 
@@ -162,7 +203,6 @@ def test_a_query_answer_with_no_shape_is_refused_rather_than_read_as_deferring()
                 "reason": "r",
                 "claim": claim,
             },
-            VALIDATORS.answer,
         )
         assert got is None, claim
         assert any("needs `claim.shape`" in one for one in why), why
@@ -179,7 +219,6 @@ def test_a_query_answer_with_no_shape_is_refused_rather_than_read_as_deferring()
                 "settles": "the chief",
             },
         },
-        VALIDATORS.answer,
     )
     assert why == [] and got is not None
     assert ANSWERS[(c, "query")].effect(got) is Effect.ABSTAINS
@@ -192,9 +231,29 @@ def test_a_query_answer_with_no_shape_is_refused_rather_than_read_as_deferring()
             "reason": "r",
             "claim": {"shape": "outside-my-role"},
         },
-        VALIDATORS.answer,
     )
     assert got is None and "not an answer to an escalation" in why[0]
+
+
+@pytest.mark.parametrize("question", ["composition", "placement"])
+def test_a_query_answer_whose_shape_is_not_one_of_the_three_is_refused(question):
+    """A mistyped `human-review-necessary` would otherwise read as deferring --
+    a place nobody waits on -- instead of going to the author. Refused as a
+    query mark's shape is, in the same words, so `_query_effect` only ever
+    sees one of the three."""
+    entry = {
+        "address": "m.py@b1",
+        "question": question,
+        "instruction": "query",
+        "reason": "r",
+        "claim": {"shape": "human-review", "attempted": "a", "settles": "s"},
+    }
+    got, why = read_answer("m.py@b1", entry)
+    assert got is None
+    assert why == [
+        "m.py@b1: query needs `claim.shape` to be one of outside-my-role,"
+        " unable-to-determine, human-review-necessary"
+    ]
 
 
 def test_an_answer_whose_row_owes_no_claim_keys_takes_any_claim():
@@ -208,7 +267,6 @@ def test_an_answer_whose_row_owes_no_claim_keys_takes_any_claim():
                 "reason": "r",
                 "claim": claim,
             },
-            VALIDATORS.answer,
         )
         assert why == [], (claim, why)
         assert got is not None
@@ -270,19 +328,19 @@ def test_every_claim_key_the_contract_names_is_one_the_parse_demands():
     without it is refused for. Read off the contract rather than typed here,
     so a row that gains a key is covered with no edit."""
     given = {"address": "m.py@b1", "question": "composition", "reason": "r"}
-    for name, keys in contracts()["composition"]["claim"].items():
-        row = ANSWERS[(Question.COMPOSITION, name)]
-        entry = {**given, "instruction": name, "claim": dict.fromkeys(keys, "x")}
-        if row.owes_change:
+    published = contracts()["composition"]
+    for name, keys in published["claim"].items():
+        # A key whose value is a closed set takes the first the contract names.
+        claim = {key: published["values"].get(key, ["x"])[0] for key in keys}
+        entry = {**given, "instruction": name, "claim": claim}
+        if _kind(name).owes_change:
             entry["change"] = "# x"
-        got, why = read_answer("m.py@b1", entry, VALIDATORS.answer)
+        got, why = read_answer("m.py@b1", entry)
         assert why == [], (name, why)
         assert got is not None
         for key in keys:
             claim = {k: v for k, v in entry["claim"].items() if k != key}
-            got, why = read_answer(
-                "m.py@b1", {**entry, "claim": claim}, VALIDATORS.answer
-            )
+            got, why = read_answer("m.py@b1", {**entry, "claim": claim})
             assert got is None, (name, key)
             assert any(f"needs `claim.{key}`" in one for one in why), (name, key, why)
 

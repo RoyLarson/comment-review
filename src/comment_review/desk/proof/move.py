@@ -135,7 +135,7 @@ class Move:
         if not isinstance(destination, str) or not destination:
             return None, [f"{where}: a move needs its `destination`"]
         problems: list[str] = []
-        answers, why = read_answers(where, data.get("answers"), validators.answer)
+        answers, why = read_answers(where, data.get("answers"))
         problems += why
         disposition = None
         if data.get("disposition") is not None:

@@ -5,7 +5,7 @@ nothing else, so its placement is decided once for the pair, by every role
 that read either page, before either end's words are.
 """
 
-from helpers import a_typed_mark
+from helpers import a_typed_answer, a_typed_mark
 
 from comment_review.desk.evaluate.move import moves_in, placement_pass
 from comment_review.desk.proof.answer import Answer, Question
@@ -74,7 +74,7 @@ def _ends(*, readers=("a", "b"), at_origin=(), at_destination=()) -> dict[str, P
 
 
 def _answer(name: str, claim=None) -> Answer:
-    return Answer(
+    return a_typed_answer(
         address=ORIGIN,
         anchor="x = 1",
         question=Question.PLACEMENT,
@@ -206,7 +206,7 @@ def test_a_role_deferring_at_either_end_is_not_owed_the_placement():
 
 
 def test_an_answer_to_another_question_is_refused():
-    wrong = Answer(
+    wrong = a_typed_answer(
         address=ORIGIN,
         anchor="x = 1",
         question=Question.COMPOSITION,

@@ -2,10 +2,10 @@
 
 from dataclasses import replace
 
-from helpers import a_typed_mark
+from helpers import a_typed_answer, a_typed_mark
 
 from comment_review.desk.evaluate.move import moves_in
-from comment_review.desk.proof.answer import Answer, Question
+from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.disposition import Disposition
 from comment_review.desk.proof.mark import Instruction, Shape, Touch
 from comment_review.desk.proof.move import Placement
@@ -300,7 +300,7 @@ def test_a_refused_placement_is_one_refusal_at_the_move():
     reported once, at the move's own key, and not at each of its ends."""
     places, moves = _a_move_between(("a", "b"))
     moves["m.py@b1 -> m.py@b5"].answers[1] = {
-        "b": Answer(
+        "b": a_typed_answer(
             address="m.py@b1",
             anchor="x = 1",
             question=Question.COMPOSITION,
@@ -364,7 +364,7 @@ def test_a_contested_move_the_chief_ruled_asks_no_placement():
     places, moves = _a_move_between(("a", "b"))
     move = moves["m.py@b1 -> m.py@b5"]
     move.answers[1] = {
-        "b": Answer(
+        "b": a_typed_answer(
             address="m.py@b1",
             anchor="x = 1",
             question=Question.PLACEMENT,

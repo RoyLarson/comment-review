@@ -1,6 +1,6 @@
 """The marks pass: from the marks filed at a place to its state and text."""
 
-from helpers import a_typed_mark
+from helpers import a_typed_answer, a_typed_mark
 
 from comment_review.desk.evaluate.move import moves_in
 from comment_review.desk.evaluate.passes import (
@@ -10,7 +10,7 @@ from comment_review.desk.evaluate.passes import (
     marks_pass,
     sides_of,
 )
-from comment_review.desk.proof.answer import Answer, Question
+from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.disposition import ORIGINAL, Disposition
 from comment_review.desk.proof.mark import Instruction, Mark, Shape, Touch
 from comment_review.desk.proof.move import Placement
@@ -436,7 +436,7 @@ def _contested() -> Place:
 
 
 def _answer(name, change="", claim=None, question=Question.ESCALATION):
-    return Answer(
+    return a_typed_answer(
         address="m.py@b1",
         anchor="x = 1",
         question=question,
@@ -498,12 +498,14 @@ def test_answers_pass_leaves_a_place_that_is_not_carried_forward_alone():
     assert (got.state, got.text, got.reasons) == (state, text, reasons)
 
 
-def test_answers_pass_refuses_an_unknown_answer_name():
+def test_answers_pass_refuses_an_answer_its_question_does_not_take():
+    """A name no answer has cannot be built as one; an answer built for a
+    question its type does not take reaches the table as no row."""
     place = _contested()
-    place.answers[1] = {"a": _answer("not-a-real-answer")}
+    place.answers[1] = {"a": _answer("clean")}
     got = answers_pass(place, 1)
     assert got.state is State.REFUSED
-    assert got.reasons == ("a: not-a-real-answer is not an answer to escalation",)
+    assert got.reasons == ("a: clean is not an answer to escalation",)
 
 
 def test_a_taken_in_on_the_original_side_stands_on_the_base():

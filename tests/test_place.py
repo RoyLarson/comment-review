@@ -7,9 +7,9 @@ marks at one place one side between them, which is a composition that can
 refuse and so belongs where the reasons are read.
 """
 
-from helpers import a_typed_mark
+from helpers import a_typed_answer, a_typed_mark
 
-from comment_review.desk.proof.answer import Answer, Question
+from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.disposition import ORIGINAL, Disposition
 from comment_review.desk.proof.mark import Instruction, Touch
 from comment_review.desk.proof.place import Filed, Place
@@ -41,7 +41,7 @@ def test_a_place_round_trips_through_serialize():
         claim={"false": "two", "true": "2"},
         sources=({"cite": "m.py:1", "verbatim": "two"},),
     )
-    answer = Answer(
+    answer = a_typed_answer(
         address="m.py@b1",
         anchor="x = 1",
         question=Question.ESCALATION,
