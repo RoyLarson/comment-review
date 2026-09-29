@@ -237,11 +237,17 @@ not a permission.
 
 | area | packages | may import |
 | --- | --- | --- |
+| machine | `machine` -- the checkout's I/O, nothing else | nothing in this package |
+| leaf | `reading`, `differences`, `constants`, `exceptions` | other leaves only |
+| index | `concordance` | a leaf; flows read it |
 | read end | `binder` | a leaf |
 | middle | `desk` | a leaf |
 | write end | `docket`, `results` | a leaf |
-| neither | `flows`, `commands` | anything -- they run the steps |
-| leaf | `machine`, `reading`, `concordance` | nothing above them |
+| flow | `flows` | anything; **the only area that imports `machine`** |
+| command line | `commands` | `flows` and the leaves: a command turns its arguments into a flow's inputs |
+
+`concordance` builds a cross-reference index once for the run; where that index lives, beside
+the binder or in a structure of its own, is still open.
 
 - **Down to a leaf is one definition with several readers; across is two areas that must
   then agree**, and the rule ends up stated twice, with one copy going stale.
