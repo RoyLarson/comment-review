@@ -22,19 +22,18 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import smoke_fixture  # noqa: E402
 from smoke_fixture import write_second_plant as smoke_second_plant  # noqa: E402
 
-from comment_review.desk.answers.answer import Question  # noqa: E402
 from comment_review.desk.answers.table import ANSWERS as ANSWER_ROWS  # noqa: E402
-from comment_review.desk.dispositions.disposition import ORIGINAL  # noqa: E402
 from comment_review.desk.dispositions.table import (  # noqa: E402
     DISPOSITIONS as DISPOSITION_ROWS,
 )
-from comment_review.desk.marks.mark import (  # noqa: E402
-    Instruction,
-    Shape,
+from comment_review.desk.marks.rules import (  # noqa: E402
     derived_change,
     first_word_dropped,
 )
 from comment_review.desk.marks.table import INSTRUCTIONS  # noqa: E402
+from comment_review.desk.proof.answer import Question  # noqa: E402
+from comment_review.desk.proof.disposition import ORIGINAL  # noqa: E402
+from comment_review.desk.proof.mark import Instruction, Shape  # noqa: E402
 from comment_review.flows.answers import slot_key  # noqa: E402
 from comment_review.flows.fill import marks_on  # noqa: E402
 from comment_review.flows.human import HumanAnswer, read_answers  # noqa: E402
@@ -120,7 +119,7 @@ WIDER = {"store.py@c5": "wants"}
 class TestTheLandingTableAgreesWithTheFixture(unittest.TestCase):
     """`LANDINGS` against the pages built from `FIXTURE` and `RATE_FIXTURE`:
     a landing carrying a `claim` has as its `Landing.marked`, or else its
-    `Landing.text`, what `desk.marks.mark.derived_change` makes of its fixture's
+    `Landing.text`, what `desk.marks.rules.derived_change` makes of its fixture's
     paragraph at that address, and a landing at an empty place names the
     line its place is set against -- so the table cannot drift from what the
     fixtures hold.
@@ -363,7 +362,7 @@ def normalized(text: str) -> str:
 class TestTheChiefRulesAPlacementForItsMoverThenItsEnds(unittest.TestCase):
     """`decision-log.md Process: #195` item 4 and `#201`: an undecided move
     reaches the chief as a placement, ruled once with `to`; taken in for a
-    mover it splits, and each end is then ruled in a second `disposition`
+    mover it is agreed, and each end is then ruled in a second `disposition`
     call. The plant carries one such move, and these read its tables."""
 
     def setUp(self):
@@ -389,7 +388,7 @@ class TestTheChiefRulesAPlacementForItsMoverThenItsEnds(unittest.TestCase):
             self.assertIn("move", origin.filed, key)
 
     def test_ends_rules_both_ends_of_each_such_move_and_nothing_else(self):
-        """The second call rules exactly the ends the first one split, and
+        """The second call rules exactly the ends the first one agreed, and
         the first call rules neither -- a ruling at a to-come end is refused."""
         ends = {one["address"] for one in smoke_fixture.ENDS}
         split = {end for one in self.moves for end in (one["address"], one["to"])}

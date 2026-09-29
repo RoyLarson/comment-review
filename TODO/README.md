@@ -270,7 +270,7 @@ that changed a published name or rule:
 | [strip-before-review-experiment](strip-before-review-experiment.md) | agents | yes | 0/5 | the `collator.py` prose was deleted whole and rewritten by an agent that could read only the code -- it found three defects the old prose never mentioned and named two things the code cannot say; whether that beats editing in place is untested |
 | [collator-defects](collator-defects.md) | backend | -- | 18/43 | four defects in `desk/collator.py`, all found by an agent writing the file's prose from the code alone: a `move` onto its own address becomes a bare delete, a multi-line `verbatim` from a CRLF file can never match, the source cache is keyed without its root, and a malformed cite raises where the half is meant to report |
 | [staged-chain-untested](staged-chain-untested.md) | backend | -- | 3/5 | the four-stage chain runs and the edits accumulate, proven 2026-08-30 -- but no test in the suite drives it, and the only committed fan-out topology refuses any tree but this repo's |
-| [containers-and-verification-are-unwired](containers-and-verification-are-unwired.md) | backend | -- | 23/54 | The containers and the source-verification half are wired to nothing |
+| [containers-and-verification-are-unwired](containers-and-verification-are-unwired.md) | backend | -- | 37/60 | The containers and the source-verification half are wired to nothing |
 | [mark-holds-spec-and-parse](mark-holds-spec-and-parse.md) | backend | -- | 0/6 | mark.py holds the instruction spec and the boundary parse at one scope |
 | [ty-cannot-see-the-tests](ty-cannot-see-the-tests.md) | systems (the gate) - backend (the test fixes) | -- | 1/5 | The type gate is scoped to src and cannot see the tests |
 | [null-becomes-the-word-none](null-becomes-the-word-none.md) | backend | -- | 0/6 | A present-but-null key becomes the four characters None |
@@ -294,7 +294,7 @@ that changed a published name or rule:
 | [a-machine-context-raises-query-and-clean](a-machine-context-raises-query-and-clean.md) | backend | yes | 0/8 | annotate carries two subjects -- it extracts index keys, and it flags claims it cannot settle. The second half becomes a context that marks like a role. |
 | [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | -- | 8/12 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
 | [prove-unchanged-line-endings-follow-a-sibling](prove-unchanged-line-endings-follow-a-sibling.md) | backend | -- | 0/2 | On a checkout with core.autocrlf=true, git writes a checked-out text file with CRLF while its blob stays LF, and a file git never rewrote can still be LF. prove_unchanged compares an edited file's line endings with one untouched sibling, so a CRLF file whose sibling is a one-line LF __init__.py FAILs though the write kept every ending and the AST comparison passes. The check should hold the file to its own pre-edit endings. |
-| [rebuilt-middle-final-review](rebuilt-middle-final-review.md) | backend | -- | 20/46 | Every finding of the final review of the rebuilt middle, Broken first. The three Broken ones hold the branch from merging out. |
+| [rebuilt-middle-final-review](rebuilt-middle-final-review.md) | backend | -- | 21/46 | Every finding of the final review of the rebuilt middle, Broken first. The three Broken ones hold the branch from merging out. |
 | [human-questions-before-the-fold](human-questions-before-the-fold.md) | backend | -- | 4/7 | A human question is asked before the fold |
 | [exit-codes-are-an-enum](exit-codes-are-an-enum.md) | backend | -- | 0/5 | Exit codes are written in thirteen places |
 | [command-help-carries-history](command-help-carries-history.md) | backend | -- | 0/1 | Command help carries development history |
@@ -352,7 +352,7 @@ that changed a published name or rule:
 | [null-is-not-a-decision](null-is-not-a-decision.md) | backend | yes | 0/2 | `null` is the delete signal, and it is also what a failed serialisation writes |
 | [strip-and-fill-the-markers](strip-and-fill-the-markers.md) | backend | yes | 0/9 | A role is handed the paragraph with its `#`/`"""` markers and indentation, and must reproduce them exactly in `change`. Measured 2026-08-29: three consecutive attempts by an agent with full context broke the file, and each failure read as a defect in the setter |
 | [task-agent-vocabulary-home](task-agent-vocabulary-home.md) | agents (the instructions) - backend (the enum they derive from) | yes | 2/6 | The task agent has no vocabulary home and is never told the command set |
-| [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | -- | 45/49 | A move is a composite mark and the code cannot express one |
+| [move-is-a-composite-mark](move-is-a-composite-mark.md) | backend | -- | 45/50 | A move is a composite mark and the code cannot express one |
 
 ### in flight  (0)
 

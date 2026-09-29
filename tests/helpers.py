@@ -14,8 +14,8 @@ and not beside either test module.
 ! `a_docket_that_rewrites` and `the_row_for` were added in Task 10, for
 `tests/test_stage_root.py`.
 
-! `a_master_proof`, `a_correct`, `a_move`, `a_clean`, `a_query` and `an_add`
-were added in Task 9, for the reconciliation cases, and several files share
+! `a_master_proof`, `returned_copies`, `a_correct`, `a_move`, `a_clean`,
+`a_query` and `an_add` serve the reconciliation cases, and several files share
 them. Every mark is built through `desk.marks.table.INSTRUCTIONS`, never as a
 hand-typed literal, so a changed row breaks a helper loudly instead of
 letting it drift.
@@ -27,6 +27,7 @@ what drive them now.
 
 import json
 from pathlib import Path
+from typing import Any
 
 from conftest import ROOT, cue, run_command
 
@@ -34,11 +35,38 @@ from comment_review.binder.binder import VERSION, Binder, bind
 from comment_review.commands import collate as collate_command
 from comment_review.commands import disposition as disposition_command
 from comment_review.commands import turn as turn_command
-from comment_review.desk.containers import EditCopy, MasterProof, Sheet
-from comment_review.desk.marks.mark import ANCHOR_EXAMPLE, Instruction, Mark, Shape
 from comment_review.desk.marks.table import INSTRUCTIONS
-from comment_review.desk.proof import master_proof_of
+from comment_review.desk.proof.answer import (
+    Answer,
+    QueryAnswer,
+    Question,
+    Rewrite,
+    answer_type,
+)
+from comment_review.desk.proof.disposition import (
+    Disposition,
+    RecastRuling,
+    disposition_type,
+)
+from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.mark import (
+    ANCHOR_EXAMPLE,
+    AddMark,
+    CleanMark,
+    CorrectMark,
+    DropMark,
+    Instruction,
+    Mark,
+    MoveMark,
+    PatchMark,
+    QueryMark,
+    Shape,
+    mark_type,
+)
+from comment_review.desk.proof.master_proof import MasterProof
+from comment_review.desk.proof.sheet import Sheet
 from comment_review.docket.docket import Docket
+from comment_review.flows.bus import CopiesReturned, handle
 from comment_review.flows.distribute import seed
 from comment_review.flows.fill import fill
 from comment_review.flows.page_for import page_of, source_of
@@ -50,14 +78,12 @@ from comment_review.flows.proof_io import load_proof
 _DESK = Path(__file__).resolve().parents[1] / "src" / "comment_review" / "desk"
 
 #: A real citation `a_correct`, `a_move`, `a_query` and `an_add` reuse for
-#: `sources` -- `desk/marks/mark.py`'s own first line, read once at import
-#: time. `desk/marks/mark.py` moved to `desk/marks/mark.py` in T1 of
-#: `docs/superpowers/plans/2026-09-14-the-middle-rebuilt.md`, taking its
-#: comment paragraphs with it; the shim left behind is thirteen lines of
-#: imports, with no filled `b` row for `a_docket_over` to find.
-_MARK_PY_CITE = "src/comment_review/desk/marks/mark.py:1"
+#: `sources` -- `desk/proof/mark.py`'s own first line, read once at import
+#: time. The file is the mark's own module and holds filled `b` rows for
+#: `a_docket_over` to find.
+_MARK_PY_CITE = "src/comment_review/desk/proof/mark.py:1"
 _MARK_PY_LINE_1 = (
-    (_DESK / "marks" / "mark.py").read_text(encoding="utf-8").splitlines()[0]
+    (_DESK / "proof" / "mark.py").read_text(encoding="utf-8").splitlines()[0]
 )
 
 #: The sentence `a_drop` and `a_correct` quote when a caller names none. It is
@@ -151,15 +177,14 @@ def a_small_real_tree(tmp_path: Path) -> Path:
     ! REAL SOURCE, NEVER A HAND-AUTHORED LITERAL -- `CLAUDE.md`'s ruling for
     this suite. `mark.py` keeps its own flat name in the written repo so a
     docket over "mark.py" names a file that is actually there, though its
-    content is read from `desk/marks/mark.py` now that the move landed --
-    which is where it lives since the move. The
+    content is read from `desk/proof/mark.py`, where `Mark` lives. The
     other three are along so `test_revise.py`'s own case can show a page the
     docket does not name is missing from the revise, per `decision-log.md
     Process: #117`.
     """
     repo = tmp_path / "repo"
     repo.mkdir()
-    (repo / "mark.py").write_bytes((_DESK / "marks" / "mark.py").read_bytes())
+    (repo / "mark.py").write_bytes((_DESK / "proof" / "mark.py").read_bytes())
     for name in ("stages.py", "collator.py", "__init__.py"):
         (repo / name).write_bytes((_DESK / name).read_bytes())
     return repo
@@ -408,7 +433,7 @@ def a_real_binder_over(root: Path, paragraphs: dict[str, str]) -> Binder:
     root.mkdir(parents=True, exist_ok=True)
     cited = root / _MARK_PY_CITE.rpartition(":")[0]
     cited.parent.mkdir(parents=True, exist_ok=True)
-    cited.write_bytes((_DESK / "marks" / "mark.py").read_bytes())
+    cited.write_bytes((_DESK / "proof" / "mark.py").read_bytes())
     by_path: dict[str, dict[int, str]] = {}
     for address, text in paragraphs.items():
         path, _, place = address.partition("@")
@@ -437,7 +462,7 @@ def a_real_binder_over(root: Path, paragraphs: dict[str, str]) -> Binder:
 def copies_over(binder: Binder, by_role: dict) -> list[dict]:
     """One real seeded `edit_copy` per role, each overlaid with that role's marks.
 
-    ! WRITTEN IN TASK 10. `a_master_proof` builds its own synthetic binder per
+    ! WRITTEN IN TASK 10. `returned_copies` builds its own synthetic binder per
     role; this seeds every role from ONE binder, which is what `collate` is
     handed.
 
@@ -478,7 +503,7 @@ def _quoting_the_real_text(mark: dict, entry: dict) -> dict:
     !! MEASURED 2026-08-31, WHEN `P25` GAVE THE CLAIM A READER. `a_correct`'s
     default sentence -- `"the paragraph's own claim"` -- is in no paragraph any
     helper builds, so **every mark built from that default carried a claim that
-    was never true of its own base**. Nothing could see it: `desk.marks.mark.parse`
+    was never true of its own base**. Nothing could see it: a mark's own read
     imports no binder and no page, so the sentence was unfalsifiable until
     `desk.collator.claim_verbatim_problems` ran in the flow.
 
@@ -493,7 +518,7 @@ def _quoting_the_real_text(mark: dict, entry: dict) -> dict:
 
     !! THE KEY COMES FROM `quotes_original`, NOT FROM THE WORD `false`, and was
     keyed to `false` for one commit. `desk.collator.claim_verbatim_problems`
-    reads `INSTRUCTIONS[mark.instruction].quotes_original` -- `claim.drop` for a
+    reads the type's `quotes_original` -- `claim.drop` for a
     `drop`, `claim.false` for a `correct`, `claim.from` for a `patch` -- and
     `a_drop` defaults to the SAME placeholder. Keyed to one row's field name,
     the fix covered `correct` and left the next `drop` driven through `collate`
@@ -501,8 +526,8 @@ def _quoting_the_real_text(mark: dict, entry: dict) -> dict:
     """
     claim = mark.get("claim")
     instruction = mark.get("instruction")
-    row = INSTRUCTIONS.get(instruction) if instruction is not None else None
-    key = row.quotes_original if row is not None else None
+    named = instruction in INSTRUCTIONS
+    key = mark_type(Instruction(instruction)).quotes_original if named else None
     if not key or not isinstance(claim, dict):
         return mark
     if claim.get(key) != _PLACEHOLDER_SENTENCE:
@@ -565,6 +590,12 @@ def marks_of(sheet: Sheet) -> list[Mark]:
     return list(sheet.marks)
 
 
+def changes_of(marks: list[Mark]) -> list[str | None]:
+    """Each mark's `change` as its wire entry carries it -- None for a type
+    that carries none."""
+    return [mark.serialize().get("change") for mark in marks]
+
+
 def entries_of(copy: EditCopy) -> list[Mark]:
     """Every mark on a copy, flattened, in sheet then mark order.
 
@@ -591,25 +622,50 @@ def returned(wire: dict, where: str = "copy") -> EditCopy:
     return copy
 
 
-def a_master_proof(by_role: dict) -> MasterProof:
-    """A `master_proof`, composed through the real `seed()` and `master_proof_of()`.
+def a_master_proof(root: Path, by_role: dict) -> MasterProof:
+    """A `master_proof`, as the bus builds one from a stage's returned copies.
+
+    Every place `by_role` names is written under `root` holding `BASE`
+    (`a_real_binder_over`); each role's copy is seeded from that one binder and
+    overlaid with its marks (`copies_over`), parsed (`returned`), and handed to
+    `flows.bus.handle` as one `CopiesReturned` -- the message
+    `commands/collate.py` sends. What comes back is the proof the committed
+    fold built.
 
     Args:
-        by_role: role name -> {address: mark}, one mark per place that role
-            rules on, built by `a_correct`, `a_move`, `a_clean`, `a_query` or
-            `an_add`.
+        root: the directory the pages are written into.
+        by_role: role name -> {`path@b<n>`: mark}, one mark per place that role
+            rules on. An empty map is a stage with no copies.
 
     Returns:
-        The `MasterProof` `desk.proof.master_proof_of` returns. One `edit_copy` per
-        role, seeded for real over a synthetic binder sized to that role's own
-        addresses, then each seeded entry overlaid with the caller's mark --
-        the same `entry.update(...)` pattern `tests/test_collator.py` uses over
-        a real one.
+        `Result.proof` from the committed fold.
 
-    ! IT RUNS THE REAL PARSE BETWEEN THE TWO, exactly as the command
-    does since `P42`: `seed` writes the wire dict a role is handed, and
-    `master_proof_of` takes the parsed `EditCopy`. A fixture that skipped the parse
-    would hand `master_proof_of` a shape production cannot produce.
+    Raises:
+        AssertionError: the bus rolled the stage back, naming its events.
+    """
+    paragraphs = {address: BASE for marks in by_role.values() for address in marks}
+    binder = a_real_binder_over(root, paragraphs or {"m.py@b1": BASE})
+    copies = [returned(wire, wire["role"]) for wire in copies_over(binder, by_role)]
+    out, result = handle(CopiesReturned("4c", copies, binder, root))
+    assert result is not None, out
+    return result.proof
+
+
+def returned_copies(by_role: dict) -> list[EditCopy]:
+    """One parsed `edit_copy` per role, for a case that folds the copies itself.
+
+    Each role's copy is seeded over a synthetic binder sized to that role's own
+    addresses, each seeded entry updated with the caller's mark as written, and
+    the result parsed through `EditCopy.deserialize`. No page is read and
+    nothing is checked against one, so a case may hand in a mark the bus would
+    refuse and ask what the parse or the fold makes of it.
+
+    Args:
+        by_role: role name -> {address: mark}, built by `a_correct`, `a_move`,
+            `a_clean`, `a_query` or `an_add`.
+
+    Returns:
+        The copies, in `by_role` order.
     """
     copies = []
     for role, marks_by_address in by_role.items():
@@ -619,20 +675,132 @@ def a_master_proof(by_role: dict) -> MasterProof:
                 mark = marks_by_address.get(entry["address"])
                 if mark is not None:
                     entry.update(mark)
-        copy, why = EditCopy.deserialize(role, wire)
-        assert copy is not None, why
-        copies.append(copy)
-    return master_proof_of("4c", copies)
+        copies.append(returned(wire, role))
+    return copies
+
+
+def a_typed_mark(
+    instruction: Instruction,
+    *,
+    address: str = "m.py@b1",
+    anchor: str = "x = 1",
+    raw_text: str = "",
+    claim: dict | None = None,
+    reason: str = "r",
+    sources: tuple[object, ...] = (),
+    change: str = "",
+) -> Mark:
+    """A mark of `instruction`'s type, BUILT rather than read.
+
+    For a case that hands a table verb or a fold a mark directly, the way the
+    chief builds one. Nothing is checked: a claim key left out is
+    "", and a `query` with no shape is `unable-to-determine`. A case asking
+    what the read refuses goes through `read_mark` instead.
+    """
+    got = dict(claim or {})
+    common: dict[str, Any] = {
+        "address": address,
+        "anchor": anchor,
+        "raw_text": raw_text,
+        "reason": reason,
+        "sources": sources,
+    }
+    match instruction:
+        case Instruction.CLEAN:
+            return CleanMark(**common)
+        case Instruction.QUERY:
+            return QueryMark(
+                **common,
+                shape=Shape(got.get("shape", Shape.UNABLE_TO_DETERMINE)),
+                attempted=got.get("attempted", ""),
+                settles=got.get("settles", ""),
+            )
+        case Instruction.DROP:
+            return DropMark(**common, change=change, drop=got.get("drop", ""))
+        case Instruction.CORRECT:
+            return CorrectMark(
+                **common,
+                change=change,
+                false=got.get("false", ""),
+                true=got.get("true", ""),
+            )
+        case Instruction.PATCH:
+            return PatchMark(
+                **common, change=change, from_=got.get("from", ""), to=got.get("to", "")
+            )
+        case Instruction.ADD:
+            return AddMark(
+                **common,
+                change=change,
+                missing=got.get("missing", ""),
+                named_anchor=got.get("anchor", ""),
+            )
+        case Instruction.MOVE:
+            return MoveMark(
+                **common, change=change, from_=got.get("from", ""), to=got.get("to", "")
+            )
+
+
+def a_typed_answer(
+    *,
+    address: str,
+    anchor: str,
+    question: Question,
+    name: str,
+    reason: str,
+    change: str = "",
+    claim: dict | None = None,
+    sources: tuple = (),
+) -> Answer:
+    """An answer of `name`'s type, BUILT rather than read -- for a case that
+    hands a pass an answer directly. Nothing is checked: the question need not
+    be one the type takes, and a `query` with no shape is `unable-to-determine`.
+    """
+    kind = answer_type(name)
+    assert kind is not None, name
+    got = dict(claim or {})
+    own: dict[str, Any] = {}
+    if issubclass(kind, Rewrite):
+        own["change"] = change
+    if kind is QueryAnswer:
+        own["shape"] = Shape(got.get("shape", Shape.UNABLE_TO_DETERMINE))
+        own["attempted"] = got.get("attempted", "")
+        own["settles"] = got.get("settles", "")
+    return kind(
+        address=address,
+        anchor=anchor,
+        question=question,
+        reason=reason,
+        sources=sources,
+        **own,
+    )
+
+
+def a_typed_ruling(
+    *,
+    address: str,
+    name: str,
+    side: str = "",
+    prose: str = "",
+    reason: str = "r",
+    to: str = "",
+) -> Disposition:
+    """A ruling of `name`'s type, BUILT rather than read -- for a case that
+    hands a pass a ruling directly. Nothing is checked."""
+    kind = disposition_type(name)
+    assert kind is not None, name
+    own: dict[str, Any] = {"prose": prose} if kind is RecastRuling else {}
+    return kind(address=address, side=side, reason=reason, to=to, **own)
 
 
 def _mark(instruction: Instruction, address: str, claim: dict) -> dict:
-    """One mark, its required fields read off `INSTRUCTIONS[instruction]` --
-    never hand-typed, so a row changed under this helper breaks it loudly.
+    """One mark, its required fields read off the instruction's type --
+    never hand-typed, so a type changed under this helper breaks it loudly.
 
     Args:
         instruction: which of the seven.
         address: this mark's own `address`.
-        claim: exactly the keys `INSTRUCTIONS[instruction].claim_all` names.
+        claim: exactly the keys the type's `claim_all` names.
 
     Returns:
         A mark carrying `address`, `instruction`, `reason`, `claim`, and
@@ -643,7 +811,7 @@ def _mark(instruction: Instruction, address: str, claim: dict) -> dict:
         AssertionError: `claim` does not carry exactly the keys the row's
             `claim_all` demands.
     """
-    spec = INSTRUCTIONS[instruction]
+    spec = mark_type(instruction)
     if set(claim) != set(spec.claim_all):
         raise AssertionError(
             f"{instruction}: claim needs {sorted(spec.claim_all)}, got {sorted(claim)}"
@@ -680,7 +848,7 @@ def a_clean(address: str) -> dict:
 
 
 def a_drop(address: str, sentence: str = _PLACEHOLDER_SENTENCE) -> dict:
-    """A `drop` mark -- the one row `INSTRUCTIONS[...].may_empty` is True for,
+    """A `drop` mark -- the one type `may_empty` is True for,
     so an empty `change` on it is the edit rather than a missing one."""
     return _mark(Instruction.DROP, address, {"drop": sentence})
 
@@ -691,8 +859,8 @@ def a_correct(address: str, sentence: object = _PLACEHOLDER_SENTENCE) -> dict:
 
     ! `sentence` IS COERCED TO A STRING, so a caller may pass a bare
     discriminator (`sentence=0`, `sentence=2`) to say only *a different
-    sentence from the other mark's*. `desk.marks.mark.parse` requires a filled
-    STRING, and `0` is neither.
+    sentence from the other mark's*. A mark's read requires a filled STRING,
+    and `0` is neither.
     """
     return _mark(
         Instruction.CORRECT,
@@ -810,7 +978,7 @@ def a_query(address: str, shape: Shape = Shape.UNABLE_TO_DETERMINE) -> dict:
 
 def an_add(address: str, reads: str | None = None) -> dict:
     """An `add` mark -- `claim.anchor` NAMED IN BACKTICKS, using
-    `desk.marks.mark.ANCHOR_EXAMPLE` rather than a hand-typed name.
+    `desk.marks.rules.ANCHOR_EXAMPLE` rather than a hand-typed name.
 
     Args:
         address: the mark's own address.
@@ -1063,8 +1231,8 @@ def place_on(proof: MasterProof, address: str) -> dict:
         AssertionError: the proof carries no place at that address.
     """
     for entry in proof.places:
-        if entry.get("address") == address:
-            return entry
+        if entry.address == address:
+            return entry.serialize()
     raise AssertionError(f"{address} is not on this proof")
 
 

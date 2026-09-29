@@ -52,11 +52,11 @@ has `docs/history.md`, which is the file for it.
 doesn't belong in the new records.py. It belongs in the desk/ i think."*
 
 ! **`marks` IS THE HALF THAT NEEDS NOTHING LOADED.** Whether `claim.false` is a
-key is answerable from the mark alone, and `marks.mark.parse` settles it the
-moment a mark comes back -- turning the entry into a `Mark` or into named
-problems, with no third outcome. Whether that sentence is really IN the paragraph
-needs the text at the place, which the flow reads off the page, and the file a
-`source` cites -- that is
+key is answerable from the mark alone, and `proof.mark.read_mark` settles it
+the moment a mark comes back, reading the entry into its instruction's type or
+into named problems, with no third outcome. Whether that
+sentence is really IN the paragraph needs the text at the place, which the flow
+reads off the page, and the file a `source` cites -- that is
 `collator.source_verification`, which reads no page and at most one file per
 citation, through a per-file cache.
 

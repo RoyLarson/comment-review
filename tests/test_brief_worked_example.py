@@ -1,7 +1,7 @@
 """T7 -- the brief's OWN worked example, run through `collate`.
 
 !! THE DEFECT THIS EXISTS FOR, MEASURED 2026-08-29. `reviewer-brief.md` keys a
-mark's ruling `instruction` and `desk/marks/mark.py` read `mark`, so the example the
+mark's ruling `instruction` and the mark's reader read `mark`, so the example the
 brief publishes for a role to copy passed `mark --check` AT EXIT 0 -- as
 UNRULED. `problems_in` skipped any entry whose `mark` key was absent and
 counted it as a place nobody looked at. **A reviewer following the brief
@@ -33,7 +33,7 @@ from helpers import a_binder_over, returned
 
 from comment_review.commands.collate import main as collate_main
 from comment_review.desk.collator import tally
-from comment_review.desk.marks.mark import Mark, untouched
+from comment_review.desk.proof.mark import read_mark, untouched
 from comment_review.flows.mark_errors import mark_errors
 
 BRIEF_PATH = ROOT / "src/plugin/skills/comment-review/references/reviewer-brief.md"
@@ -75,11 +75,11 @@ def test_the_example_is_not_read_as_an_untouched_slot():
 
 
 def test_the_examples_mark_parses():
-    mark, why = Mark.deserialize("the brief's example", ENTRY)
+    mark, why = read_mark("the brief's example", ENTRY)
     assert why == []
     assert mark is not None
     assert mark.instruction == ENTRY["instruction"]
-    assert mark.change == ENTRY["change"]
+    assert mark.serialize()["change"] == ENTRY["change"]
 
 
 def test_the_example_is_ONE_RULED_MARK_and_owes_nothing():
@@ -178,7 +178,7 @@ def test_dropping_a_field_the_example_fills_is_refused(key):
     in turn and the mark must be refused."""
     broken = dict(ENTRY)
     del broken[key]
-    mark, why = Mark.deserialize("the brief's example", broken)
+    mark, why = read_mark("the brief's example", broken)
     assert mark is None and why != []
 
 
@@ -188,6 +188,6 @@ def test_the_retired_key_name_is_refused_by_name():
     old = {k: v for k, v in ENTRY.items() if k != "instruction"}
     old["mark"] = ENTRY["instruction"]
     assert not untouched(old)
-    mark, why = Mark.deserialize("the brief's example", old)
+    mark, why = read_mark("the brief's example", old)
     assert mark is None
     assert any("instruction" in message for message in why)

@@ -22,6 +22,7 @@ from conftest import ROOT
 from helpers import (
     a_correct,
     a_small_real_tree,
+    a_typed_mark,
     an_add,
     binder_of,
     pages_of,
@@ -36,8 +37,8 @@ from comment_review.desk.collator import (
     tally,
     verify_report,
 )
-from comment_review.desk.containers import EditCopy
-from comment_review.desk.marks.mark import Instruction, Mark
+from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.mark import Instruction, Mark, read_mark
 from comment_review.flows.distribute import seed
 from comment_review.flows.mark_errors import mark_errors
 from comment_review.flows.verify import texts_at
@@ -111,7 +112,7 @@ def _well_formed() -> Mark:
     read the entry by key until then, which is what let `INSTRUCTIONS.get(...)`
     be handed a `str` at ten sites.
     """
-    mark, why = Mark.deserialize("the collator fixture", _entry())
+    mark, why = read_mark("the collator fixture", _entry())
     assert why == [], why
     assert mark is not None
     return mark
@@ -138,7 +139,7 @@ def _ruled_places(copy) -> int:
     """How many places a role WROTE IN -- ruled marks and refused entries both.
 
     !! A MARK A ROLE GOT WRONG STILL COUNTS, and that is the claim, not the
-    arithmetic. `desk.marks.mark.untouched`'s own docstring forbids conflating *nobody
+    arithmetic. `desk.proof.mark.untouched`'s own docstring forbids conflating *nobody
     wrote here* with *someone wrote here and got the shape wrong*; counting only
     `marks` would report the second as a coverage gap and send a reader looking
     for a place nobody answered.
@@ -167,17 +168,17 @@ class TestClaimVerbatimProblems:
 
     def test_add_and_query_quote_nothing(self):
         """`add`'s `missing` and `query`'s `shape` are not checked this way --
-        `Row.quotes_original` is empty for both, so neither is measured
+        `quotes_original` is empty for both types, so neither is measured
         against the paragraph even when it names nothing in it."""
-        add = a_mark(instruction="add", claim={"missing": "x", "anchor": "`f`"})
-        query = a_mark(instruction="query", claim={"shape": "outside-my-role"})
+        add = a_typed_mark(Instruction.ADD, claim={"missing": "x", "anchor": "`f`"})
+        query = a_typed_mark(Instruction.QUERY, claim={"shape": "outside-my-role"})
         assert claim_verbatim_problems("here", add, (RAW_TEXT,)) == []
         assert claim_verbatim_problems("here", query, (RAW_TEXT,)) == []
 
     def test_a_missing_claim_key_is_not_this_checks_question(self):
-        """`desk.marks.mark.parse` already refuses a `correct` with no `false`;
+        """A `correct` with no `false` is refused by its own read;
         source-verification has nothing to compare and says nothing."""
-        assert claim_verbatim_problems("here", a_mark(claim={}), (RAW_TEXT,)) == []
+        assert claim_verbatim_problems("here", a_mark(false=""), (RAW_TEXT,)) == []
 
 
 class TestSourceProblems:
@@ -412,7 +413,7 @@ def _filled(overrides: dict) -> EditCopy:
 class TestVerifyReport:
     def test_a_freshly_seeded_sheet_has_nothing_to_refuse(self):
         """Every entry is still `instruction: None` and nothing else written
-        -- `desk.marks.mark.untouched`, a coverage gap rather than a problem this
+        -- `desk.proof.mark.untouched`, a coverage gap rather than a problem this
         step reports."""
         copy = returned(seed(BINDER, "block-context"))
         assert verify_report(copy, _texts(copy), ROOT, {}) == []
@@ -444,7 +445,7 @@ class TestVerifyReport:
         """!! SUPERSEDED TWICE, AND THE DISTINCTION IT NAMED STILL HOLDS.
 
         It read `test_..._is_reported_not_skipped` and asserted `verify_report`
-        contributed `desk.marks.mark.parse`'s messages -- right while this function
+        contributed the per-mark rule check's messages -- right while this function
         had no production caller. `P25` put it in the flow beside the per-mark
         check, so a malformed mark came back TWICE with a byte-identical
         message. Then `P52` made `flows.mark_errors` the one assembler.
@@ -497,10 +498,8 @@ class TestEachCheckCanFire:
 
     def test_t3_3_a_paraphrase_of_the_false_clause_is_refused(self):
         bad = a_mark(
-            claim={
-                "false": "a paraphrase, not the paragraph's own words",
-                "true": "the corrected sentence",
-            }
+            false="a paraphrase, not the paragraph's own words",
+            true="the corrected sentence",
         )
         problems = claim_verbatim_problems("here", bad, (RAW_TEXT,))
         assert problems
@@ -584,7 +583,7 @@ class TestProblemsAreRoutable:
         which deleted the copy's `role` -- a shape `EditCopy.deserialize` now
         refuses before this function can be called at all (`P42`). What that
         test asserted about a MISSING ROLE is
-        `tests/test_containers.py::TestAnEditCopyThatIsNotOne::
+        `tests/test_containers.py::TestWhatItRefuses::
         test_an_edit_copy_with_no_role`; what it asserted about the empty
         `address` field is asserted here, over the case that survives.
 
@@ -628,8 +627,9 @@ def test_the_error_flow_reads_every_sheet_not_just_the_first():
 #: `EditCopy.deserialize` decides it and `P42` made that the only door. The six
 #: values it drove -- `{"junk": 1}`, `{"root": 7, "revise": "x"}`, `{}`,
 #: `"oops"`, `None`, `[]` -- are asserted against the parse in
-#: `tests/test_containers.py::TestAnEditCopyThatIsNotOne`, which is where the
-#: rule now lives.
+#: `tests/test_containers.py::TestWhatItRefuses::
+#: test_an_edit_copy_whose_read_from_is_the_wrong_SHAPE`, against the parse
+#: that holds the rule.
 
 
 def test_a_copy_carrying_a_code_concern_validates():
@@ -661,7 +661,7 @@ def test_tally_counts_a_ruled_mark_wherever_its_sheet_sits():
     #
     # !! THE MARK IS BUILT BY `a_correct` SINCE `P51`, AND THAT IS A FINDING
     # RATHER THAN A FIXTURE REPAIR. It was a hand-written dict carrying
-    # `"sources": []`, which `desk.marks.mark.parse` REFUSES -- *"needs at least one
+    # `"sources": []`, which the mark's own read REFUSES -- *"needs at least one
     # source"*. The old `tally` counted it anyway, because it read the
     # `instruction` string off the entry and never parsed it: **it was counting
     # marks that are not marks**. Counting `Sheet.marks` cannot, so the fixture

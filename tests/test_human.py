@@ -7,12 +7,13 @@ from helpers import (
     a_clean,
     a_query,
     a_real_binder_over,
+    a_typed_answer,
     copies_over,
     returned,
 )
 
-from comment_review.desk.answers.answer import Answer, Question
-from comment_review.desk.marks.mark import Shape
+from comment_review.desk.proof.answer import Question
+from comment_review.desk.proof.mark import Shape
 from comment_review.flows.human import (
     HumanAnswer,
     HumanQuery,
@@ -36,7 +37,7 @@ def _answer(name, shape="", question=Question.COMPOSITION, at="m.py@b1"):
         if shape
         else {}
     )
-    return Answer(
+    return a_typed_answer(
         address=at,
         anchor="v0 = 0",
         question=question,

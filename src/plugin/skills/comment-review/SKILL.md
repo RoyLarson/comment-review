@@ -259,8 +259,10 @@ first. Rule in this order, because each step builds on the one before:
 1. `query` -- resolve what it asks.
 2. `move` and `drop` -- settle where the prose lives. A move prints as
    `<placement> <origin> -> <destination>`, and its two ends are *to come*: they wait on the
-   placement and take no ruling. Rule the placement with a ruling that carries `to`: `taken_in`
-   with `side` the mover, which moves the paragraph, or `original`, which keeps it where it is.
+   placement and take no ruling. Read both ends against their code first: taking a move in says
+   the origin reads right without the snippet and the destination reads right with it. Rule the
+   placement with a ruling that carries `to`: `taken_in` with `side` the mover, which moves the
+   paragraph, or `original`, which keeps it where it is.
 3. `correct` -- fix what is false, against the code at the place the prose now sits.
 4. `patch` -- improve the wording of text now known to be true.
 5. `add` -- insert new text at its anchor.

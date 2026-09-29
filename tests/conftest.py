@@ -37,9 +37,10 @@ FULL page -- fences included -- and none of what a binder carries.
 
 !! NEITHER THE VERDICTS NOR THE RECORD IS TOUCHED -- neither exists in `src/`,
 only in `prototype/`, which does not run. Roy: *"There is code there none of it
-is correct so testing it is solidifying wrong."* ! `desk/marks/mark.py` is the
-EXCEPTION, since 2026-08-28: `tests/test_mark.py` and `tests/test_mark_brief.py`
-test it directly, once the port's own defect
+is correct so testing it is solidifying wrong."* ! The mark --
+`desk/proof/mark.py` and `desk/marks/rules.py` -- is the EXCEPTION, since
+2026-08-28: `tests/test_mark.py` and `tests/test_mark_brief.py` test it
+directly, once the port's own defect
 (`TODO/the-ported-mark-does-not-fit-the-brief.md`) made it worth testing.
 `desk/external_address.py` remains untouched here.
 

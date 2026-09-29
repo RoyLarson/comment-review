@@ -20,14 +20,20 @@ the same question written down twice.
 from collections.abc import Callable
 from pathlib import Path
 
-from comment_review.desk.answers.answer import Answer, Question
 from comment_review.desk.answers.table import ANSWERS
 from comment_review.desk.collator import Cache, Problem, cited_problems
-from comment_review.desk.evaluate.move import key_of
-from comment_review.desk.marks.mark import QUERY_SHAPES, allowed, filled
+from comment_review.desk.marks.rules import allowed
+from comment_review.desk.proof.answer import (
+    Answer,
+    Question,
+    answer_type,
+    read_answer,
+)
+from comment_review.desk.proof.mark import QUERY_SHAPES, filled
+from comment_review.desk.proof.move import key_of
 
-#: What each field of an answer is, in the words `Answer.deserialize` checks
-#: by. The parse asks whether a field is filled and not what it means, so a
+#: What each field of an answer is, in the words an answer's own read
+#: checks by. The check asks whether a field is filled and not what it means, so a
 #: role handed the names alone has been told half of the contract.
 ANSWER_FIELDS = {
     "address": "copied from the slot",
@@ -44,7 +50,7 @@ ANSWER_FIELDS = {
 }
 
 #: The field whose value is itself a closed set, and that set. The mark's own
-#: contract publishes the same one under the same name (`desk.marks.mark.
+#: contract publishes the same one under the same name (`desk.marks.rules.
 #: allowed`), and both read `QUERY_SHAPES` rather than spelling it twice.
 ANSWER_VALUES = {"shape": [str(one) for one in QUERY_SHAPES]}
 
@@ -143,7 +149,7 @@ def answers_of(
         if entry is None or not filled(entry.get("instruction")):
             problems.append(Problem(role, address, "unanswered"))
             continue
-        answer, why = Answer.deserialize(
+        answer, why = read_answer(
             address,
             {
                 **entry,
@@ -173,8 +179,9 @@ def contracts() -> dict:
     """The shapes a role is handed, generated from the tables, never hand-typed.
 
     A stage-4c `Mark`, from the marks table, and one entry per question a turn
-    asks, from the answers table -- the same rows `Answer.deserialize` reads an
-    answer against, so the contract cannot say a thing the parse does not.
+    asks, from the answers table and each answer's type -- the same facts an
+    answer's own read holds it to, so the contract cannot say a thing the
+    check does not.
     `commands/check.py --contract` prints them; publishing them in the brief is
     the agents lane's.
 
@@ -182,7 +189,7 @@ def contracts() -> dict:
     typed the contract by hand and got `query` wrong, which cost a turn.
 
     !! IT PUBLISHES EVERY KEY THE PARSE READS, AND THAT IS THE WHOLE POINT.
-    `claim` is derived from each row's `claim_all`, so an answer whose effect
+    `claim` is derived from each type's `claim_all`, so an answer whose effect
     turns on a claim key -- a `query`'s `shape`, which decides whether the
     place is held for a person -- is handed to the role that must write it. A
     contract naming an answer without naming what it owes has published half
@@ -197,15 +204,17 @@ def contracts() -> dict:
     """
     out: dict = {"stage_4c_mark": allowed()}
     for question in Question:
-        rows = {
-            name: row for (asked, name), row in ANSWERS.items() if asked is question
+        kinds = {
+            name: kind
+            for (asked, name) in ANSWERS
+            if asked is question and (kind := answer_type(name)) is not None
         }
-        claims = {name: list(row.claim_all) for name, row in rows.items()}
+        claims = {name: list(kind.claim_all) for name, kind in kinds.items()}
         named = {key for keys in claims.values() for key in keys}
         out[str(question)] = {
-            "instruction": sorted(rows),
+            "instruction": sorted(kinds),
             "owes_change": sorted(
-                name for name, row in rows.items() if row.owes_change
+                name for name, kind in kinds.items() if kind.owes_change
             ),
             "claim": claims,
             "values": {

@@ -72,22 +72,22 @@ def apply_unified(before: str, diff_lines: list[str]) -> str:
 
 def test_the_rendered_diff_reproduces_the_revise():
     # !! THE SUBSTITUTED TEXT IS REAL, GREPPED OFF THE FILE ITSELF -- `CLAUDE.md`'s
-    # ruling against a hand-authored fixture. `marks/mark.py:692`'s own docstring
-    # reads "carries the keys this instruction's row demands".
-    rel = "src/comment_review/desk/marks/mark.py"
+    # ruling against a hand-authored fixture. `marks/rules.py`'s `derived_change`
+    # docstring reads "THE QUOTED CLAUSE IS ONE STATEMENT".
+    rel = "src/comment_review/desk/marks/rules.py"
     before = (_REPO_ROOT / rel).read_text(encoding="utf-8")
-    needle = "the keys this instruction's row demands"
+    needle = "THE QUOTED CLAUSE IS ONE STATEMENT"
     assert needle in before
-    after = before.replace(needle, "the keys THIS instruction's row demands", 1)
+    after = before.replace(needle, "THE QUOTED CLAUSE IS one STATEMENT", 1)
     lines = unified(before, after, rel)
     assert apply_unified(before, lines) == after  # a checked literal round trip
 
 
 def test_no_difference_renders_no_lines():
-    text = (_REPO_ROOT / "src/comment_review/desk/marks/mark.py").read_text(
+    text = (_REPO_ROOT / "src/comment_review/desk/marks/rules.py").read_text(
         encoding="utf-8"
     )
-    assert unified(text, text, "mark.py") == []
+    assert unified(text, text, "rules.py") == []
 
 
 def test_the_path_names_both_sides():

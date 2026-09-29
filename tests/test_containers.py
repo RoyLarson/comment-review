@@ -1,21 +1,20 @@
 """The containers parse what the real chain builds, and refuse what it cannot.
 
 ! INPUTS ARE REAL -- a binder from `bind` over a real tree, seeded by the real
-`seed`, assembled by the real `master_proof_of`. A literal appears only where MALFORMED
-is the input, which is what the refusals are about.
+`seed`, and a master proof built by the real bus from the copies it folded. A
+literal appears only where MALFORMED is the input, which is what the refusals
+are about.
 """
 
 from dataclasses import fields
 
 import pytest
-from helpers import a_clean, a_small_real_tree, binder_of, returned
+from helpers import a_clean, a_master_proof, a_small_real_tree, binder_of
 
-from comment_review.desk.containers import (
-    EditCopy,
-    MasterProof,
-    Sheet,
-)
-from comment_review.desk.proof import master_proof_of
+from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.master_proof import MasterProof
+from comment_review.desk.proof.move import Move
+from comment_review.desk.proof.sheet import Sheet
 from comment_review.flows.distribute import seed
 
 
@@ -51,16 +50,16 @@ class TestTheWriteHalfLivesWithTheRead:
         row = EditCopy.seed(role="block-context", read_from={"root": "."}, sheets=[])
         assert set(row) == {f.name for f in fields(EditCopy)}
 
-    def test_a_master_proof_is_written_with_every_WIRE_field_the_class_declares(self):
-        """`turns` and `determined` are off the wire since `Process: #87`: a fold
-        writes them later, so `seed` -- which writes what `master_proof_of` takes from a
-        copy -- cannot. Same rule as the sheet's `unruled` and `refused`."""
-        row = MasterProof.seed(stage="4c", read_from={}, edit_copies=[])
-        wire = {f.name for f in fields(MasterProof) if f.metadata.get("wire", True)}
-        assert set(row) == wire
-        assert wire < {f.name for f in fields(MasterProof)}, (
-            "some field must be off the wire"
+    def test_a_master_proof_is_written_with_every_field_the_class_declares(
+        self, tmp_path
+    ):
+        """A proof the bus built, written: every field is on the wire, `places`
+        and `moves` included, since the fold that fills them is what builds the
+        proof."""
+        proof = a_master_proof(
+            tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
         )
+        assert set(proof.serialize()) == {f.name for f in fields(MasterProof)}
 
     def test_what_seed_writes_is_what_parse_reads_back_for_a_FILLED_copy(
         self, tmp_path
@@ -118,25 +117,30 @@ class TestWhatTheChainBuilds:
     def test_every_sheet_names_a_page_the_binder_carried(self, tmp_path):
         repo = a_small_real_tree(tmp_path)
         binder = binder_of(repo, 0)
-        copy, why = EditCopy.deserialize("copy 1", seed(binder, "block-context"))
+        copy, why = EditCopy.deserialize(
+            "copy 1",
+            seed(binder, "block-context"),
+        )
         assert why == []
         assert copy is not None
         carried = {p.path for p in binder.pages}
         assert {s.path for s in copy.sheets} == carried
 
-    def test_a_master_proof_gather_built_parses(self, tmp_path):
-        """! THE ROUND TRIP, NOT A PARSE OF A DICT, since `P42`. `master_proof_of`
-        RETURNS a `MasterProof`, so what is read back here is that container's
-        own `serialize` -- which is the stronger claim: the write half and the
-        read half agree over the real producer."""
-        binder = binder_of(a_small_real_tree(tmp_path), 0)
-        copies = [
-            returned(seed(binder, "block-context")),
-            returned(seed(binder, "function-context")),
-        ]
-        proof, why = MasterProof.deserialize(
-            "4c", master_proof_of("4c", copies).serialize()
+    def test_a_master_proof_the_bus_built_parses(self, tmp_path):
+        """! THE ROUND TRIP, NOT A PARSE OF A DICT. The bus's `_on_copies`
+        builds a `MasterProof`, so what is read back here is that container's
+        own `serialize` -- the write half and the read half agree over the real
+        producer. The proof holds every copy in the order the stage returned
+        them, under the `read_from` the binder recorded."""
+        root = tmp_path / "repo"
+        built = a_master_proof(
+            root,
+            {
+                "block-context": {"m.py@b1": a_clean("m.py@b1")},
+                "function-context": {"m.py@b1": a_clean("m.py@b1")},
+            },
         )
+        proof, why = MasterProof.deserialize("4c", built.serialize())
         assert why == []
         assert isinstance(proof, MasterProof)
         assert proof.stage == "4c"
@@ -144,6 +148,7 @@ class TestWhatTheChainBuilds:
             "block-context",
             "function-context",
         ]
+        assert proof.read_from == {"root": str(root), "revise": 0}
 
     def test_the_chiefs_copy_parses_as_an_ORDINARY_edit_copy(self, tmp_path):
         """`decision-log.md Vocabulary: #30`: the chief's copy is the same
@@ -176,8 +181,8 @@ class TestAnEmptyProofStillHoldsItsHeader:
         assert problems != []
 
     def test_an_empty_proof_with_an_empty_read_from_is_still_admitted(self):
-        """`master_proof_of` itself produces this shape -- the docstring's reasoning for
-        admitting `{}` was sound, and only the other five values were not."""
+        """The bus's `_on_copies` produces this shape for a stage with no
+        copies, so `{}` is admitted and only the other five values are not."""
         parsed, problems = MasterProof.deserialize(
             "p", {"stage": "4c", "edit_copies": [], "read_from": {}}
         )
@@ -185,12 +190,12 @@ class TestAnEmptyProofStillHoldsItsHeader:
         assert parsed is not None
         assert parsed.read_from == {}
 
-    def test_what_gather_writes_for_no_copies_still_parses(self):
+    def test_what_the_bus_writes_for_no_copies_still_parses(self, tmp_path):
         """The round trip, so the admission above is measured against the real
         producer rather than against a literal that agrees with it."""
-        parsed, problems = MasterProof.deserialize(
-            "4c", master_proof_of("4c", []).serialize()
-        )
+        built = a_master_proof(tmp_path / "repo", {})
+        assert built.edit_copies == () and built.read_from == {}
+        parsed, problems = MasterProof.deserialize("4c", built.serialize())
         assert problems == []
         assert parsed is not None
 
@@ -202,12 +207,18 @@ class TestWhatItRefuses:
         assert "must be an object" in why[0]
 
     def test_a_sheet_with_no_path(self):
-        sheet, why = Sheet.deserialize("sheet 1", {"sha": "abc", "marks": []})
+        sheet, why = Sheet.deserialize(
+            "sheet 1",
+            {"sha": "abc", "marks": []},
+        )
         assert sheet is None
         assert "`path`" in why[0]
 
     def test_a_sheet_whose_marks_are_not_a_list(self):
-        sheet, why = Sheet.deserialize("sheet 1", {"path": "m.py", "marks": {}})
+        sheet, why = Sheet.deserialize(
+            "sheet 1",
+            {"path": "m.py", "marks": {}},
+        )
         assert sheet is None
         assert "`marks` list" in why[0]
 
@@ -242,6 +253,30 @@ class TestWhatItRefuses:
         assert got is None, bad
         assert "read_from" in why[0], bad
 
+    def test_admits_given_as_a_string_is_refused(self, tmp_path):
+        copy = a_real_copy(tmp_path)
+        copy["admits"] = "patch"
+        got, why = EditCopy.deserialize("copy 1", copy)
+        assert got is None
+        assert why == [
+            "copy 1: block-context: `admits` must be a list of instructions, not a str"
+        ]
+
+    @pytest.mark.parametrize("bad", [5, "fix"])
+    def test_admits_naming_no_instruction_is_refused_by_name(self, tmp_path, bad):
+        copy = a_real_copy(tmp_path)
+        copy["admits"] = ["patch", bad]
+        got, why = EditCopy.deserialize("copy 1", copy)
+        assert got is None
+        assert len(why) == 1 and f"`admits` {bad!r} is not one of" in why[0], why
+
+    def test_a_stage_that_is_not_a_string_is_refused(self, tmp_path):
+        copy = a_real_copy(tmp_path)
+        copy["stage"] = 7
+        got, why = EditCopy.deserialize("copy 1", copy)
+        assert got is None
+        assert why == ["copy 1: block-context: `stage` must be a string, not an int"]
+
     def test_an_edit_copy_reports_EVERY_bad_sheet_not_just_the_first(self, tmp_path):
         copy = a_real_copy(tmp_path)
         copy["sheets"] = [{"sha": "a"}, {"sha": "b"}]
@@ -257,25 +292,41 @@ class TestWhatItRefuses:
     def test_a_master_proof_whose_read_from_disagrees_with_the_first_copy(
         self, tmp_path
     ):
-        """`desk.proof.master_proof_of` refuses this same disagreement with
-        `MismatchedRoot` before a master_proof is ever built -- a proof
-        reaching `MasterProof.deserialize` with one is malformed, not merely
-        unusual."""
-        binder = binder_of(a_small_real_tree(tmp_path), 0)
-        proof = master_proof_of(
-            "4c", [returned(seed(binder, "block-context"))]
+        """The bus takes a proof's `read_from` from its first copy, so a proof
+        reaching `MasterProof.deserialize` with one that disagrees is
+        malformed, not merely unusual."""
+        proof = a_master_proof(
+            tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
         ).serialize()
         proof["read_from"] = {"root": "somewhere else", "revise": 99}
         got, why = MasterProof.deserialize("4c", proof)
         assert got is None
-        assert "disagrees with the first edit_copy's" in why[0]
+        assert "4c: edit_copy 1's `read_from`" in why[0]
+
+    def test_a_later_copy_from_another_revise_is_refused_by_name(self, tmp_path):
+        """Every copy's `read_from` is held to the proof's, not the first
+        copy's alone: a second copy gathered from revise 1 while the first
+        names revise 0 answers to another tree."""
+        proof = a_master_proof(
+            tmp_path / "repo",
+            {
+                "block-context": {"m.py@b1": a_clean("m.py@b1")},
+                "function-context": {"m.py@b1": a_clean("m.py@b1")},
+            },
+        ).serialize()
+        proof["edit_copies"][1]["read_from"] = {
+            **proof["read_from"],
+            "revise": 1,
+        }
+        got, why = MasterProof.deserialize("4c", proof)
+        assert got is None
+        assert len(why) == 1 and "4c: edit_copy 2's `read_from`" in why[0], why
 
     def test_a_master_proof_whose_read_from_is_malformed(self, tmp_path):
         """The same shape check `_read_from_problem` runs for an edit_copy,
         reused here for the master_proof's own `read_from` field."""
-        binder = binder_of(a_small_real_tree(tmp_path), 0)
-        proof = master_proof_of(
-            "4c", [returned(seed(binder, "block-context"))]
+        proof = a_master_proof(
+            tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
         ).serialize()
         proof["read_from"] = {"root": proof["read_from"]["root"]}
         got, why = MasterProof.deserialize("4c", proof)
@@ -283,10 +334,9 @@ class TestWhatItRefuses:
         assert "`revise`" in why[0]
 
     def test_a_master_proof_WITH_NO_EDIT_COPIES_still_parses(self):
-        """`desk.proof.master_proof_of`'s own contract: an empty `edit_copies` assembles
-        to `read_from={}`, since there is no first copy to take it from --
-        that is not the disagreement or malformed shape the two cases above
-        refuse."""
+        """An empty `edit_copies` reads back with `read_from={}`, the shape the
+        bus writes when there is no first copy to take it from -- not the
+        disagreement or malformed shape the two cases above refuse."""
         got, why = MasterProof.deserialize("4c", {"stage": "4c", "edit_copies": []})
         assert why == []
         assert got is not None
@@ -301,7 +351,8 @@ class TestANullFieldIsAbsentNotTheWordNone:
 
     def test_a_null_sha(self):
         sheet, why = Sheet.deserialize(
-            "sheet 1", {"path": "m.py", "sha": None, "marks": []}
+            "sheet 1",
+            {"path": "m.py", "sha": None, "marks": []},
         )
         assert why == []
         assert sheet is not None
@@ -341,7 +392,8 @@ class TestAnAddressLessEntryIsStillFindable:
 
     def test_a_bare_string_is_located_by_page_and_position(self):
         sheet, why = Sheet.deserialize(
-            "s", {"path": "m.py", "sha": "a", "marks": [{}, {}, "not an object"]}
+            "s",
+            {"path": "m.py", "sha": "a", "marks": [{}, {}, "not an object"]},
         )
         assert why == []
         assert sheet is not None
@@ -357,7 +409,8 @@ class TestAnAddressLessEntryIsStillFindable:
         carried back.
         """
         sheet, why = Sheet.deserialize(
-            "s", {"path": "m.py", "sha": "a", "marks": [{"instruction": None}]}
+            "s",
+            {"path": "m.py", "sha": "a", "marks": [{"instruction": None}]},
         )
         assert why == []
         assert sheet is not None
@@ -389,7 +442,7 @@ def test_a_master_proof_carries_its_moves_and_reads_back_one_written_before_them
         read_from={},
         edit_copies=(),
         places=(),
-        moves=({"origin": "m.py@b1", "destination": "m.py@b5"},),
+        moves=(Move("m.py@b1", "m.py@b5"),),
     )
     back, why = MasterProof.deserialize("4c", proof.serialize())
     assert why == [] and back is not None and back.moves == proof.moves
@@ -398,3 +451,121 @@ def test_a_master_proof_carries_its_moves_and_reads_back_one_written_before_them
     older["places"] = [{"address": "m.py@b1", "partner": "m.py@b5"}]
     back, why = MasterProof.deserialize("4c", older)
     assert why == [] and back is not None and back.moves == ()
+
+
+class TestEveryBadRecordIsNamed:
+    """A proof's places and moves are read where the proof is read, and an
+    entry that will not read refuses the proof by name rather than leaving it
+    with fewer places."""
+
+    def test_a_place_that_is_not_an_object_is_named(self, tmp_path):
+        wire = a_master_proof(
+            tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
+        ).serialize()
+        wire["places"].append("not a place")
+        got, why = MasterProof.deserialize("p.json", wire)
+        assert got is None
+        assert why == ["p.json: place 2: a place must be an object"]
+
+    @pytest.mark.parametrize("key", ["places", "moves"])
+    def test_a_record_list_that_is_not_a_list_is_refused(self, tmp_path, key):
+        wire = a_master_proof(
+            tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
+        ).serialize()
+        wire[key] = {"m.py@b1": {}}
+        got, why = MasterProof.deserialize("p.json", wire)
+        assert got is None
+        assert why == [f"p.json: master_proof's `{key}` must be a list"]
+
+    def test_a_filed_mark_with_an_unknown_touch_is_named(self, tmp_path):
+        wire = a_master_proof(
+            tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
+        ).serialize()
+        wire["places"][0]["filed"][0]["touch"] = "sideways"
+        got, why = MasterProof.deserialize("p.json", wire)
+        assert got is None
+        assert why == [
+            "p.json: place 1 at m.py@b1 mark 1: `touch` 'sideways' is not one of"
+            " own, origin, destination"
+        ]
+
+    def _one_place(self, tmp_path) -> dict:
+        return a_master_proof(
+            tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
+        ).serialize()
+
+    def test_a_filed_mark_is_a_pointer_to_its_copys_mark(self, tmp_path):
+        """Each mark is stored once, in its edit_copy; a place names it."""
+        wire = self._one_place(tmp_path)
+        assert wire["places"][0]["filed"] == [
+            {"copy": 1, "sheet": 1, "mark": 1, "touch": "own"}
+        ]
+        proof, why = MasterProof.deserialize("p.json", wire)
+        assert why == [] and proof is not None
+        (filed,) = proof.places[0].filed
+        assert filed.mark is proof.edit_copies[0].sheets[0].marks[0]
+        assert filed.role == proof.edit_copies[0].role
+
+    def test_a_pointer_to_no_mark_is_named_where_it_sits(self, tmp_path):
+        wire = self._one_place(tmp_path)
+        wire["places"][0]["filed"][0] = {
+            "copy": 4,
+            "sheet": 1,
+            "mark": 9,
+            "touch": "own",
+        }
+        got, why = MasterProof.deserialize("p.json", wire)
+        assert got is None
+        assert why == [
+            "p.json: place 1 at m.py@b1 mark 1: copy 4, sheet 1, mark 9 names no"
+            " mark on this proof"
+        ]
+
+    @pytest.mark.parametrize("value", [0, -1, "1", 1.0, True, None])
+    def test_a_pointer_index_that_is_not_a_whole_number_from_1_is_named(
+        self, tmp_path, value
+    ):
+        wire = self._one_place(tmp_path)
+        wire["places"][0]["filed"][0]["sheet"] = value
+        got, why = MasterProof.deserialize("p.json", wire)
+        assert got is None
+        assert why == [
+            f"p.json: place 1 at m.py@b1 mark 1: `sheet` {value!r} is not a whole"
+            " number from 1"
+        ]
+
+    def test_a_filed_mark_written_inline_is_refused_by_name(self, tmp_path):
+        wire = self._one_place(tmp_path)
+        wire["places"][0]["filed"][0] = {
+            "role": "block-context",
+            "touch": "own",
+            **a_clean("m.py@b1"),
+        }
+        got, why = MasterProof.deserialize("p.json", wire)
+        assert got is None
+        assert why == [
+            "p.json: place 1 at m.py@b1 mark 1: a filed mark is written inline;"
+            " a proof names its copy's mark by `copy`, `sheet` and `mark`"
+        ]
+
+    def test_a_copy_entry_that_will_not_read_refuses_the_proof(self, tmp_path):
+        """A proof's copies hold only marks that read, so every pointer lands
+        where it was written; an entry that does not read is named rather than
+        left to shift the marks after it."""
+        wire = self._one_place(tmp_path)
+        wire["edit_copies"][0]["sheets"][0]["marks"][0]["instruction"] = "stet"
+        got, why = MasterProof.deserialize("p.json", wire)
+        assert got is None
+        assert why == [
+            "p.json: edit_copy 1: m.py@b1: `instruction` must be one of add, clean,"
+            " correct, drop, move, patch, query"
+        ]
+
+    def test_the_places_and_moves_are_read_as_records(self, tmp_path):
+        proof = a_master_proof(
+            tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
+        )
+        back, why = MasterProof.deserialize("p.json", proof.serialize())
+        assert why == [] and back is not None
+        assert [place.address for place in back.places] == ["m.py@b1"]
+        assert back.serialize() == proof.serialize()

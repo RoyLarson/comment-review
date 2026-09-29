@@ -1,11 +1,15 @@
-"""The dispositions table: what the chief may close, and the text it sets."""
+"""The dispositions table: what the chief may close, and the text it sets.
+
+What a ruling owes, and the side it takes where it names none, are its type's,
+in `desk.proof.disposition`; the table is keyed by the ruling's name.
+"""
 
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from comment_review.desk.dispositions.disposition import CHIEF, ORIGINAL
-from comment_review.desk.evaluate.state import CARRIED, State
+from comment_review.desk.proof.disposition import ORIGINAL, RecastRuling
+from comment_review.desk.proof.state import CARRIED, State
 
 Sets = Callable[[Any, str, dict[str, str]], str | None]
 
@@ -16,25 +20,19 @@ def _a_sides_text(disposition, base, sides):
     return sides[disposition.side]
 
 
-def _the_prose(disposition, base, sides):
+def _the_prose(disposition: RecastRuling, base, sides):
     return disposition.prose
 
 
 @dataclass(frozen=True)
 class DispositionRow:
-    """One disposition, as every reader sees it."""
+    """One disposition, as a reader of what it does at a place sees it."""
 
     closes: frozenset[State]
-    owes: tuple[str, ...]
     sets: Sets
-    #: The side this row fixes -- `CHIEF` on the recast row, "" where the
-    #: ruling names its own side. `Disposition.deserialize` reads this as the
-    #: default so the row, not a hand-typed check on `name`, is the one place
-    #: that names "recast" outside this table.
-    side: str = ""
 
 
 DISPOSITIONS: dict[str, DispositionRow] = {
-    "taken_in": DispositionRow(CARRIED, ("side",), _a_sides_text),
-    "recast": DispositionRow(CARRIED, ("prose",), _the_prose, side=CHIEF),
+    "taken_in": DispositionRow(CARRIED, _a_sides_text),
+    "recast": DispositionRow(CARRIED, _the_prose),
 }

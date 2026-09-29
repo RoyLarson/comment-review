@@ -92,10 +92,10 @@ def fan(binder: Binder, stage: Stage) -> list[dict]:
     with no `read_from` returned shards carrying `read_from={}` and raised
     nothing, while `seed(binder, role)` on the same binder raised `KeyError`.
 
-    ! AND EVERY SHARD AGREED ON `{}`, so `desk.proof.master_proof_of`'s `MismatchedRoot`
-    could not fire either -- the ambiguity surfaced four steps later at
-    the per-copy check, blamed on the role, after four agents had read and filled
-    the shards.
+    ! AND EVERY SHARD AGREED ON `{}`, so the root comparison
+    (`flows.bus._root_problems`) could not fire either -- the ambiguity surfaced
+    four steps later at the per-copy check, blamed on the role, after four
+    agents had read and filled the shards.
 
     !! `replace` IS WHAT MAKES THAT UNAVAILABLE NOW, rather than a rule to
     remember. A shard is THIS binder over fewer pages, so it is built by

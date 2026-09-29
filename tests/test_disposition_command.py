@@ -18,6 +18,7 @@ from helpers import (
     a_clean,
     a_correct_setting,
     a_move,
+    changes_of,
     deal,
     disposition,
     entries_of,
@@ -28,8 +29,8 @@ from helpers import (
 )
 
 from comment_review.commands import collate as collate_command
-from comment_review.desk.dispositions.disposition import ORIGINAL
-from comment_review.desk.marks.mark import Instruction
+from comment_review.desk.proof.disposition import ORIGINAL
+from comment_review.desk.proof.mark import Instruction
 from comment_review.flows.proof_io import load_proof
 from comment_review.flows.transcribe import docket_of_proof
 
@@ -67,7 +68,7 @@ class TestTheChiefRules:
         assert code == collate_command.OK, out
         chief = the_chief(tmp_path)
         assert chief.role == "copy-chief"
-        assert [m.change for m in entries_of(chief)] == [DOS]
+        assert changes_of(entries_of(chief)) == [DOS]
         place = place_on(_closed(tmp_path), "m.py@b1")
         assert place["state"] == "stands"
         assert place["text"] == DOS
@@ -112,7 +113,7 @@ class TestTheChiefRules:
             ],
         )
         assert code == collate_command.OK, out
-        assert [m.change for m in entries_of(the_chief(tmp_path))] == [RECAST]
+        assert changes_of(entries_of(the_chief(tmp_path))) == [RECAST]
         assert place_on(_closed(tmp_path), "m.py@b1")["text"] == RECAST
 
 
@@ -120,7 +121,7 @@ class TestTheChiefRulesAMoveThenItsEnds:
     """The chief rules an undecided move's placement once, then its ends.
 
     `decision-log.md Process: #195` item 4 and `#201`: the placement ruling
-    names the move by its two addresses and splits or withdraws it; each end
+    names the move by its two addresses and agrees or withdraws it; each end
     is then an ordinary place, and one that needs words is carried back to
     the chief, who rules it with `disposition` on the proof the first ruling
     wrote.
@@ -161,7 +162,7 @@ class TestTheChiefRulesAMoveThenItsEnds:
             tmp_path, monkeypatch, capsys, [self.PLACEMENT], proof="proof0.json"
         )
 
-    def test_the_placement_ruling_splits_the_move_and_carries_its_ends(
+    def test_the_placement_ruling_agrees_the_move_and_carries_its_ends(
         self, tmp_path, monkeypatch, capsys
     ):
         code, out = self._placed(tmp_path, monkeypatch, capsys)
@@ -170,7 +171,7 @@ class TestTheChiefRulesAMoveThenItsEnds:
         assert "the proof closed" not in out, out
         assert "the proof at turn 0 is not closed" in out, out
         placed = _closed(tmp_path)
-        assert [m["placement"] for m in placed.moves] == ["agreed"]
+        assert [m.placement for m in placed.moves] == ["agreed"]
         assert place_on(placed, "m.py@b1")["state"] == "composed"
         assert place_on(placed, "m.py@b2")["state"] in ("composed", "contested")
 
@@ -345,7 +346,7 @@ class TestTheChiefRecastsAnAdd:
         assert [(m.address, m.instruction) for m in marks] == [
             (EMPTY_PLACE, Instruction.ADD)
         ]
-        assert marks[0].change == RECAST_THERE
+        assert changes_of(marks) == [RECAST_THERE]
         assert place_on(_closed(tmp_path), EMPTY_PLACE)["text"] == RECAST_THERE
 
 
@@ -450,7 +451,7 @@ class TestTheGateSeesIt:
             ],
         )
         assert code == collate_command.OK, out
-        assert [m.change for m in entries_of(the_chief(tmp_path))] == [TWO]
+        assert changes_of(entries_of(the_chief(tmp_path))) == [TWO]
 
 
 def test_the_help_names_the_answer_the_parse_accepts():

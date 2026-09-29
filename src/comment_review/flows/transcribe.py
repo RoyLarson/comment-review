@@ -63,12 +63,13 @@ from pathlib import Path
 from typing import NamedTuple
 
 from comment_review.binder.page import Page
-from comment_review.desk.containers import EditCopy, MasterProof
-from comment_review.desk.dispositions.disposition import CHIEF
-from comment_review.desk.evaluate.move import Move, is_open
-from comment_review.desk.evaluate.place import Place
-from comment_review.desk.evaluate.state import SETTLED, State
 from comment_review.desk.marks.table import INSTRUCTIONS
+from comment_review.desk.proof.disposition import CHIEF
+from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.master_proof import MasterProof
+from comment_review.desk.proof.move import Move, is_open
+from comment_review.desk.proof.place import Place
+from comment_review.desk.proof.state import SETTLED, State
 from comment_review.desk.work import events
 from comment_review.desk.work.fold import Fold
 from comment_review.docket.docket import Alteration, Docket, Schedule
@@ -320,54 +321,10 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
     return Docket(schedules=_schedules_of(pages, decided, shas, copy.role))
 
 
-def _places_on(proof: MasterProof) -> tuple[list[Place], list[str]]:
-    """Every place this proof carries, parsed, and every reason one would not.
-
-    A place is read back the way a returned copy's marks are, and one that
-    will not parse is named rather than dropped: transcribing the rest would
-    take that place out of the docket without a word, which is how a landing
-    goes missing from a run that reports nothing wrong.
-
-    Returns:
-        `(the places, the reasons)`, the places in the proof's own order.
-    """
-    places: list[Place] = []
-    problems: list[str] = []
-    for i, entry in enumerate(proof.places, 1):
-        where = str(entry.get("address") or "") or f"place {i}"
-        place, why = Place.deserialize(f"{CHIEF} {where}", entry)
-        if place is None:
-            problems += why
-        else:
-            places.append(place)
-    return places, problems
-
-
-def _moves_on(proof: MasterProof) -> tuple[list[Move], list[str]]:
-    """Every move this proof records, parsed, and every reason one would not.
-
-    A move that will not parse is named, as a place is by `_places_on`: the
-    write end cannot tell whether an unreadable move is still open, so
-    transcribing around it could set one end of a move and not the other.
-
-    Returns:
-        `(the moves, the reasons)`, the moves in the proof's own order.
-    """
-    moves: list[Move] = []
-    problems: list[str] = []
-    for i, entry in enumerate(proof.moves):
-        move, why = Move.deserialize(f"{CHIEF} move {i}", entry)
-        if move is None:
-            problems += why
-        else:
-            moves.append(move)
-    return moves, problems
-
-
 def _open_moves(moves: list[Move]) -> list[str]:
     """One reason per move whose placement is still to be decided.
 
-    An open move (`desk.evaluate.move.is_open`) keeps the proof from closing:
+    An open move (`desk.proof.move.is_open`) keeps the proof from closing:
     neither end has a text until the placement is decided, by the roles or
     by the chief's placement ruling (`decision-log.md Process: #195` item 4),
     so transcribing around it would set one end of a move and not the other.
@@ -391,7 +348,7 @@ def _unclosed(places: list[Place]) -> list[str]:
     `UNSETTLABLE` is neither settled nor unfinished, and that is why it is
     the one state this admits without a text: the place rides to the human
     with its question (`Process: #90`) and carries nothing to set. What is
-    settled is `desk.evaluate.state.SETTLED`, which `commands/collate._counted`
+    settled is `desk.proof.state.SETTLED`, which `commands/collate._counted`
     reads as well -- this named the states it refused until #193's round, and
     a seventh state would have had to be added in both places.
     """
@@ -493,19 +450,16 @@ def docket_of_proof(
         `sets_nothing` instead.
 
     Raises:
-        CannotTranscribe: a place or a move will not parse, a place is still
-            carried forward or refused, a move's placement is undecided and
-            the chief has not ruled both of its ends, `only` names an address
-            the proof does not carry, or a page a decided place sits on cannot
-            be read here. Nothing it reported can be set, and the reasons are
-            the report.
+        CannotTranscribe: a place is still carried forward or refused, a
+            move's placement is undecided and the chief has not ruled both of
+            its ends, `only` names an address the proof does not carry, or a
+            page a decided place sits on cannot be read here. Nothing it
+            reported can be set, and the reasons are the report. A place or a
+            move that will not read never reaches here: `MasterProof.deserialize`
+            refuses the proof and names it.
     """
-    places, problems = _places_on(proof)
-    moves, why = _moves_on(proof)
-    problems += why
-    if problems:
-        raise CannotTranscribe(tuple(problems))
-    unclosed = _unclosed(places) + _open_moves(moves)
+    places = list(proof.places)
+    unclosed = _unclosed(places) + _open_moves(list(proof.moves))
     if unclosed:
         raise CannotTranscribe(tuple(unclosed))
     sets_nothing: tuple[str, ...] = ()

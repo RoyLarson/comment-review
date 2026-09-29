@@ -4,7 +4,7 @@
     uv run python scripts/render_brief.py --write
 
 !! TWO SOURCES, AND THE SCRIPT INVENTS NEITHER. The instruction names and the
-`claim` keys are a fact the code owns -- `INSTRUCTIONS` in `desk/marks/mark.py`,
+`claim` keys are a fact the code owns -- `INSTRUCTIONS` in `desk/marks/table.py`,
 each row's `claim_all`. The prose naming WHAT a claim carries is a fact the
 spec owns -- `docs/the-mark.md`'s "What each instruction owes" table, the
 row's own flags column, written by a human. This script JOINS the two on the
@@ -33,6 +33,7 @@ sys.path.insert(0, str(SRC))
 os.environ["PYTHONPATH"] = str(SRC)
 
 from comment_review.desk.marks.table import INSTRUCTIONS  # noqa: E402
+from comment_review.desk.proof.mark import mark_type  # noqa: E402
 
 SPEC_PATH = ROOT / "docs" / "the-mark.md"
 BRIEF_PATH = ROOT / "src/plugin/skills/comment-review/references/reviewer-brief.md"
@@ -100,7 +101,7 @@ def render() -> str:
     spec_names = set(prose)
     if code_names != spec_names:
         raise SystemExit(
-            "render_brief: INSTRUCTIONS (desk/marks/mark.py) and docs/the-mark.md "
+            "render_brief: INSTRUCTIONS (desk/marks/table.py) and docs/the-mark.md "
             "name different instructions -- code only: "
             f"{sorted(code_names - spec_names)}, spec only: "
             f"{sorted(spec_names - code_names)}"
@@ -110,8 +111,9 @@ def render() -> str:
         "| instruction | `claim` keys | what they carry |",
         "| --- | --- | --- |",
     ]
-    for name, spec in INSTRUCTIONS.items():
-        lines.append(f"| `{name}` | {_claim_cell(spec.claim_all)} | {prose[name]} |")
+    for name in INSTRUCTIONS:
+        claim = _claim_cell(mark_type(name).claim_all)
+        lines.append(f"| `{name}` | {claim} | {prose[name]} |")
     return "\n".join(lines)
 
 

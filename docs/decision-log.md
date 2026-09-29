@@ -5202,3 +5202,55 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   verbs of them (Mark the object vs to mark the verb). Uses and verbs parts should be part of
   desk/ but the object model could be elsewhere. That is what I see from Binder and Docket as
   well"*.
+
+- **#203.** **A mark is read by its own `deserialize` and checked against the rules by a
+  validator the proof's parsers are handed** (Roy, 2026-09-28, on `0.2.4-the-proof-is-one-unit`
+  P3). `Mark.deserialize` applied the marks table's rules, and `Sheet` and `Place` called it
+  inside their own parse, so moving the object left the proof importing the rules. Offered a
+  rule check passed in as a required parameter (recommended), a separate rule step in the flows,
+  moving the object alone, or a reader registered at import time; the rule check was proposed as
+  `desk.marks.mark.parse`. Roy chose the first, and named it: *"desk.marks.mark.parse Should be
+  something more like desk.marks.rules.verify or validate ... I don't think it specifically
+  should be parsing. I think that is up to the Mark serialize/deserialize but having it
+  validated correctly matters"*.
+
+- **#204.** **A field a row does not take is ignored, not refused; and the three record kinds'
+  rules travel as one bundle** (Roy, 2026-09-28, on `0.2.4-the-proof-is-one-unit` P3 and P4).
+  Shown that `validate` still read the raw entry because type checks lived there, and offered
+  moving them into `deserialize` with one row-dependent check -- `clean` refusing a string
+  `claim` -- staying a rule, Roy chose the move and struck the check: *"this is silly ... because
+  then for every other mark you have to write a test that every of configuration doesn't take any
+  configuration setting from any other mark type thing, and then that expands to a list of all
+  other potential words that could be used as identifiers, which if you start counting gets
+  really big for no reason. The simple answer is to ignore the keys that do not match the
+  expected input."* And: *"that test was written before there was a tool to fill in marks so
+  maybe checking was worth it, I don't think so it was negative engineering, but now there is a
+  tool and so the likelihood that the marks get filled out in an invalid way is significantly
+  reduced."* Offered one bundle of the mark, answer and disposition validators in place of three
+  parameters on each parser: *"yes on the bundle"*.
+
+- **#205.** **An agreed move stays filed at both ends; nothing splits it into a `drop` and an
+  `add`** (Roy, 2026-09-28, on `0.2.4-the-proof-is-one-unit` P8). Shown that the split halves are
+  the one kind of mark no role wrote, and so the one exception to a proof whose places point at
+  their marks instead of repeating them, Roy: *"If the move is agreed it stays and the actual
+  writing add/drop can be put on the edit copy later. That would make the move an 'agree only'
+  system not a writeable mark which might make things easier."* Offered that the move row
+  already sets what the split does at each end -- the remainder at the origin, the arrival at
+  the destination -- so each end is decided as an ordinary place against the move itself:
+  *"Yes"*. **It supersedes the mechanism of `#195` item 3**, the split, and keeps its rule: once
+  the placement is agreed nothing cancels the move, and each end's words are decided on their
+  own.
+
+- **#206.** **Each instruction, answer and ruling is its own type, and owns its fields,
+  serialization and the checks on itself; what one does to a page stays in `desk`** (Roy,
+  2026-09-28, on the same plan's P3 and P4, superseding `#203`'s handed-in validator). Roy:
+  *"while we call all of the different actions Marks we really have CleanMark QueryMark
+  CorrectMark PatchMark MoveMark AddMark DropMark And each of those have their own representation
+  and serialization And they should own their validation We can dispatch a Mark to the correct
+  mark type"*. Offered that the table's page-facing columns -- `sets`, `reads`, `notes`, `pairs`,
+  `answers` -- are verbs about a mark in context, kept in `desk` and chosen by type (a), or
+  methods on each type (b): *"1 a) agree and I was going to say that before I read your proposal.
+  The check about facts in the mark that apply to the page(s) edits should be in desk.marks"*.
+  Offered dispatch by a `match` on the instruction in one reading function rather than
+  overriding `__new__` on a frozen dataclass: *"agree"*. Offered the same for answers and
+  rulings: *"seems like a good idea"*.

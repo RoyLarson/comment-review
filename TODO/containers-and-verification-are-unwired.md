@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 23 of 54 tasks closed
+Progress: 37 of 60 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -137,11 +137,12 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       objects, one whose `marks` is a string, and one that kept 1 of its 4
       seeded slots are each reported by name; today all four give `problems ==
       []` against a binder carrying `m.py@b1..b4`.
-- [ ] T7 | Implement the comparison of EVERY edit copy's `read_from` in
-      `parse_master_proof`, as `desk.proof.gather` does. Verify: a proof whose
-      second copy was censused from revise 1 while the first names revise 0 is
-      refused by name -- today it returns zero problems, while `gather` raises
-      `MismatchedRoot` on the identical two copies.
+- [x] T7 | every copy's read_from compared and named; test failed first | 184de484 | Implement
+      the comparison of EVERY edit copy's `read_from` in `parse_master_proof`,
+      as `desk.proof.gather` does. Verify: a proof whose second copy was
+      censused from revise 1 while the first names revise 0 is refused by name
+      -- today it returns zero problems, while `gather` raises `MismatchedRoot`
+      on the identical two copies.
 - [ ] T8 | Update the two sentences in `desk/containers.py` that describe
       `desk.proof.gather`'s check as this parse's -- the prose at lines 197-202
       and the `MasterProof.read_from` declaration at 94-96. Verify: no sentence
@@ -349,18 +350,43 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
       a batch verify of the schedule against its pages before any page is set,
       reporting every unmatched address at once
         > 2026-09-08 reset refuses per page while setting; one bad address per run
-- [ ] T48 | Move Sheet, EditCopy and MasterProof from desk/containers.py into
-      desk/proof/ and delete containers.py; suite green before and after
+- [x] T48 | Sheet, EditCopy, MasterProof in desk/proof; containers.py deleted; 1992 pass | 64d8931c | Move
+      Sheet, EditCopy and MasterProof from desk/containers.py into desk/proof/
+      and delete containers.py; suite green before and after
         > 2026-09-28 Review 2026-09-27 R5; Process #202
-- [ ] T49 | Move Place, Filed and Move records into desk/proof/, their passes
-      staying in desk/evaluate; nothing in desk/proof imports desk/evaluate
-- [ ] T50 | Move the Mark object into desk/proof/, its parse and table staying
-      in desk/marks; nothing in desk/proof imports desk/marks
-- [ ] T51 | Delete desk/proof.py, whose builder only tests call, and build test
-      proofs the way the bus does; tests green after
-- [ ] T52 | Store each mark once on the master proof, not again on every place;
-      the round trip holds and the proof file shrinks
-- [ ] T53 | Refuse an EditCopy whose stage or admits is malformed instead of
-      coercing it; a failing test first
-- [ ] T54 | Update every doc and vocabulary entry naming desk/containers.py or
-      desk/proof.py; the grep comes back empty
+- [x] T49 | Place, Filed, Move, State in desk/proof; no evaluate import there | 8acce6c1 | Move
+      Place, Filed and Move records into desk/proof/, their passes staying in
+      desk/evaluate; nothing in desk/proof imports desk/evaluate
+- [x] T50 | Mark object in desk/proof, rules in desk/marks/rules; no marks import in proof | d71f7826 | Move
+      the Mark object into desk/proof/, its parse and table staying in
+      desk/marks; nothing in desk/proof imports desk/marks
+- [x] T51 | desk/proof.py deleted; tests build proofs through the bus; 1992 pass | 89aceae5 | Delete
+      desk/proof.py, whose builder only tests call, and build test proofs the
+      way the bus does; tests green after
+- [x] T52 | filed entries point at copy marks; final.json 189334 to 136027 bytes | a9381d3a | Store
+      each mark once on the master proof, not again on every place; the round
+      trip holds and the proof file shrinks
+- [x] T53 | malformed stage or admits refused; copy folded only in its stage | 3f2fb963 | Refuse
+      an EditCopy whose stage or admits is malformed instead of coercing it; a
+      failing test first
+- [x] T54 | live docs name the new homes; grep empty but for history files | 704274c0 | Update
+      every doc and vocabulary entry naming desk/containers.py or desk/proof.py;
+      the grep comes back empty
+- [x] T55 | Answer, Disposition in desk/proof; rules modules; Validators bundle | 6a3bd059 | Move
+      the Answer and Disposition objects into desk/proof/, their parse and
+      tables staying in their packages; desk/proof imports neither
+- [x] T56 | types read in deserialize, unused fields ignored; validate takes the Mark | aa9ccfeb | Move
+      a mark's type checks into Mark.deserialize and ignore fields a row does
+      not take (Process 204); validate takes the Mark alone
+- [x] T57 | eight answer types own their checks; one match reads them | c634813d | Make
+      each answer its own type the same way (Process 206); the Validators answer
+      member and answers/rules.validate go
+- [x] T58 | ruling types own their checks; Validators bundle and rules modules gone | 535c783c | Make
+      each ruling its own type the same way (Process 206); the Validators bundle
+      and every rules.validate go
+- [x] T59 | seven mark types own their fields and checks; one match reads them | 167c7f13 | Make
+      each instruction a mark type owning its fields, serialization and
+      self-checks, read by one match (Process 206); wire unchanged
+- [x] T60 | agreed move stays filed; split removed; equivalence tested first | 7726827a | Remove
+      the split of an agreed move, leaving it filed at both ends (Process 205);
+      a test first shows the move sets each end as the halves did

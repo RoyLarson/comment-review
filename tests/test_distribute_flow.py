@@ -86,10 +86,10 @@ def test_a_seeded_row_carries_the_paragraph_bytes():
     # `next()` returned whichever the walk visited first. The page is named in
     # full, and the seeded address is flattened because it sits in a
     # sub-package.
-    real = str(Path("marks") / "mark.py")
+    real = str(Path("marks") / "rules.py")
     marks_page = next(s for s in sheet["sheets"] if s["path"] == real)
     row = next(r for r in marks_page["marks"] if r["address"] == f"{flatten(real)}@a0")
-    source = (DESK / "marks" / "mark.py").read_text(encoding="utf-8")
+    source = (DESK / "marks" / "rules.py").read_text(encoding="utf-8")
     assert row["raw_text"] in source
 
 

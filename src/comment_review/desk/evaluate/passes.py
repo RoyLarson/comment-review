@@ -1,18 +1,15 @@
 """The three passes over a place, run after each move's placement is decided."""
 
-from comment_review.desk.answers.answer import Question
 from comment_review.desk.answers.table import ANSWERS, Effect
-from comment_review.desk.dispositions.disposition import CHIEF, ORIGINAL
 from comment_review.desk.dispositions.table import DISPOSITIONS
-from comment_review.desk.evaluate.move import (
-    Move,
-    hold_ends,
-    placement_pass,
-    settle_ends,
-)
-from comment_review.desk.evaluate.place import Filed, Place
-from comment_review.desk.evaluate.state import CARRIED, State
-from comment_review.desk.marks.table import INSTRUCTIONS, Stance, Touch
+from comment_review.desk.evaluate.move import hold_ends, placement_pass, settle_ends
+from comment_review.desk.marks.table import INSTRUCTIONS, Stance
+from comment_review.desk.proof.answer import Question, Rewrite
+from comment_review.desk.proof.disposition import CHIEF, ORIGINAL
+from comment_review.desk.proof.mark import Touch
+from comment_review.desk.proof.move import Move
+from comment_review.desk.proof.place import Filed, Place
+from comment_review.desk.proof.state import CARRIED, State
 from comment_review.machine.differences import CannotCompose, compose
 
 
@@ -34,11 +31,8 @@ def _named(one: Filed) -> str:
 
     The address is the mark's own, not the place's: a mark reaching a place is
     not always addressed to it, since a move is filed at its destination under
-    its origin's address, and a role fixing the pair has to find both. A half
-    of a split move is named as the move, which is the mark the role filed.
+    its origin's address, and a role fixing the pair has to find both.
     """
-    if one.split_from:
-        return f"its move at {one.split_from}"
     return f"its {one.mark.instruction} at {one.mark.address}"
 
 
@@ -290,7 +284,7 @@ def answers_pass(place: Place, turn: int) -> Place:
             return _set(place, State.UNSETTLABLE, asking=(f"{role}: {answer.reason}",))
         if effect is Effect.REMOVES:
             sides.pop(role, None)
-        elif effect is Effect.REPLACES:
+        elif effect is Effect.REPLACES and isinstance(answer, Rewrite):
             sides[role] = answer.change
         elif effect is Effect.ACCEPTS and place.text is not None:
             sides[role] = place.text
@@ -308,6 +302,7 @@ def dispositions_pass(place: Place) -> Place:
     if place.disposition is None:
         return place
     row = DISPOSITIONS[place.disposition.name]
+    side = place.disposition.taken_side
     if place.state not in row.closes:
         return _set(
             place,
@@ -317,7 +312,7 @@ def dispositions_pass(place: Place) -> Place:
                 f"that is {place.state}",
             ),
         )
-    if place.disposition.side == CHIEF and row.side != CHIEF:
+    if side == CHIEF and place.disposition.default_side != CHIEF:
         return _set(
             place,
             State.REFUSED,
@@ -326,14 +321,11 @@ def dispositions_pass(place: Place) -> Place:
                 f" original; the chief's own prose is a recast",
             ),
         )
-    if place.disposition.side not in place.sides and place.disposition.side not in (
-        ORIGINAL,
-        CHIEF,
-    ):
+    if side not in place.sides and side not in (ORIGINAL, CHIEF):
         return _set(
             place,
             State.REFUSED,
-            reasons=(f"copy-chief: {place.disposition.side!r} proposed nothing here",),
+            reasons=(f"copy-chief: {side!r} proposed nothing here",),
         )
     text = row.sets(place.disposition, place.base, place.sides)
     return _set(place, State.STANDS, text=text)
@@ -347,11 +339,12 @@ def decide(
     `decision-log.md Process: #195`: a move is a placement claim decided once
     for the pair before either end's words. So each move's placement pass
     runs first, with the chief's placement ruling where there is one, and a
-    final one is written onto the two place records -- the split, or the
-    withdrawal; a split the row declines refuses the move instead. Then each
-    place's marks and answers, as for any one-place mark; then every move not
-    yet final holds its two ends `to-come` (`Process: #200`); then the
-    chief's dispositions, which a `to-come` end does not take.
+    final one takes off the filings that no longer stand (`Process: #205`):
+    an agreed move stays filed at both ends, and each end is then decided
+    against it as an ordinary place. Then each place's marks and answers, as
+    for any one-place mark; then every move not yet final holds its two ends
+    `to-come` (`Process: #200`); then the chief's dispositions, which a
+    `to-come` end does not take.
 
     Args:
         places: address -> place, each from its own record. Mutated.

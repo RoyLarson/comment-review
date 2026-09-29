@@ -27,9 +27,9 @@ have made a script that fills it in for them."* `TODO/a-role-writes-its-own-
 mark-tool.md`. This is that script, and `commands/mark.py` exposes it.
 
 !! ONE RULING PER CALL, AND IT WRITES NOTHING UNTIL EVERY CHECK HAS PASSED.
-The entry is built whole -- placed, derived, quoted -- and then run through
-`desk.marks.mark.Mark.deserialize`, the same boundary the fold applies; only a mark
-that parses lands on the copy. A refusal leaves the copy exactly as it was, so
+The entry is built whole -- placed, derived, quoted -- and then read into its
+type by `desk.proof.mark.read_mark`, the same boundary the fold applies; only a
+mark that parses lands on the copy. A refusal leaves the copy exactly as it was, so
 a role reads the reasons and calls again.
 
 ! WHERE A RULING LANDS is decided by what the copy already holds at the address:
@@ -62,7 +62,7 @@ says why: a role's copy mid-fill holds slots nobody has ruled on, and
 `Sheet.serialize` writes only the rulings, so parsing the copy to save it would
 drop every null slot -- the coverage the seeded shape exists to keep.
 
-! THE FLOW READS THE CHECKOUT AND THE DESK DOES NOT. `desk.marks.mark.derived_change`
+! THE FLOW READS THE CHECKOUT AND THE DESK DOES NOT. `desk.marks.rules.derived_change`
 is the pure half -- the paragraph and the claim in, the change out -- and the
 cited line is read here, through `machine.repo.read_raw`, the same reader and
 the same splitter `desk.collator.source_problems` will check the result with.
@@ -73,15 +73,18 @@ from pathlib import Path
 
 from comment_review.desk.collator import cite_at
 from comment_review.desk.evaluate.passes import composed_side, proposing
-from comment_review.desk.evaluate.place import Filed
-from comment_review.desk.marks.mark import (
+from comment_review.desk.marks.rules import derived_change
+from comment_review.desk.marks.table import INSTRUCTIONS, Row
+from comment_review.desk.proof.mark import (
+    BlankMark,
     Instruction,
     Mark,
-    derived_change,
     filled,
+    mark_type,
+    read_mark,
     untouched,
 )
-from comment_review.desk.marks.table import INSTRUCTIONS, Row
+from comment_review.desk.proof.place import Filed
 from comment_review.desk.stages import not_admitted
 from comment_review.flows.on_the_page import held_at
 from comment_review.flows.page_for import page_of
@@ -93,7 +96,7 @@ from comment_review.reading.addresser import cue_of, unflatten
 #: The fields a role decides, in the order a mark carries them. `address` is
 #: how the entry is placed; `anchor` is never read off the entry at all --
 #: a slot that must be created takes its anchor from the page. `raw_text` is
-#: read only for a row whose `carries_raw_text` is True, and refused on every
+#: read only for a row whose `carries_raw_text` is True, and ignored on every
 #: other row -- see `_composed_text`.
 ROLE_FIELDS = ("claim", "reason", "sources", "change")
 
@@ -177,7 +180,8 @@ def place_on_the_page(
     raw_text = next(
         (p.raw_text for p in page.paragraphs if cue_of(p.address).cue == cue), ""
     )
-    return marks, Mark.seed(address, page.cues.anchor_of(cue), raw_text), []
+    slot = BlankMark(address, page.cues.anchor_of(cue), raw_text)
+    return marks, slot.serialize(), []
 
 
 def quoted_sources(root: Path | None, sources: object) -> tuple[list | None, list[str]]:
@@ -273,7 +277,7 @@ def marks_on(copy: dict) -> list[Mark]:
         for entry in sheet.get("marks") or []:
             if untouched(entry):
                 continue
-            mark, _why = Mark.deserialize("", entry)
+            mark, _why = read_mark("", entry)
             if mark is not None:
                 out.append(mark)
     return out
@@ -375,9 +379,9 @@ def _seeded_beside(
     if row is not None and row.carries_raw_text:
         marks, from_page, why = place_on_the_page([copy], address, root)
         return (from_page, []) if marks is not None else (None, why)
-    return Mark.seed(
+    return BlankMark(
         address, str(slot.get("anchor") or ""), str(slot.get("raw_text") or "")
-    ), []
+    ).serialize(), []
 
 
 def _composed_text(
@@ -391,24 +395,20 @@ def _composed_text(
     destination always owes one, since the paragraph it describes is at the
     other end and nothing here stands in for it. A row that does not owes one
     only where the place already holds prose -- at an empty place the snippet
-    and the paragraph as it will read are the same text.
+    and the paragraph as it will read are the same text. On a row that does not
+    carry its own `raw_text`, a `raw_text` in the entry is ignored and the seed's
+    text is placed (`decision-log.md Process: #204`).
 
     Returns:
         `(the text, [])`, or `(None, [one message])`. The text is the seeded
         paragraph for every row that composes none.
     """
-    given = entry.get("raw_text")
     if not row.carries_raw_text:
-        if filled(given) and given != seeded["raw_text"]:
-            return None, [
-                f"{seeded['address']}: {instruction} takes no `raw_text` -- the"
-                " paragraph is seeded from the page, and only a row that writes"
-                " the paragraph as it will read carries one"
-            ]
         return seeded["raw_text"], []
+    given = entry.get("raw_text")
     if filled(given):
         return str(given), []
-    if row.owes_destination:
+    if mark_type(instruction).owes_destination:
         return None, [
             f"{seeded['address']}: {instruction} needs `raw_text` (--raw-text)"
             " -- the destination paragraph as it will read, with the moved"
@@ -439,7 +439,7 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
 
     Returns:
         `(mark, [])` -- the dict now on the copy -- or `(None, [messages])` with
-        the copy untouched. The messages are `Mark.deserialize`'s own wording
+        the copy untouched. The messages are `read_mark`'s own wording
         where the parse is what refused, so a role learns the contract from the
         refusal.
 
@@ -493,7 +493,7 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
         if why:
             return None, why
         if derived is None:
-            if row.owes_change:
+            if mark_type(instruction).owes_change:
                 return None, [
                     f"{instruction} needs `change` -- its row quotes no clause to "
                     "derive it from"
@@ -512,11 +512,11 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
             return None, why
         mark["sources"] = quoted
 
-    parsed, why = Mark.deserialize(address, mark)
+    parsed, why = read_mark(address, mark)
     if parsed is None:
         return None, why
 
-    # The row reads the pages last, after the parse: `Mark.deserialize` is
+    # The row reads the pages last, after the parse: `read_mark` is
     # what settles a destination that is not addressable at all, and a row
     # asked to read against a place no address names has nothing to say.
     def base_at(where: str) -> str:
@@ -607,6 +607,6 @@ def withdraw(
         del marks[i]
     if not filled(raw_text) or address.partition("@")[2].startswith("f"):
         return {}, []
-    slot = Mark.seed(address, anchor, raw_text)
+    slot = BlankMark(address, anchor, raw_text).serialize()
     marks.insert(here[0], slot)
     return slot, []

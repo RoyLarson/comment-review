@@ -17,7 +17,7 @@ import pytest
 from conftest import SAMPLE
 from helpers import a_binder_over, a_small_real_tree, binder_of
 
-from comment_review.desk.marks.mark import Mark, untouched
+from comment_review.desk.proof.mark import read_mark, untouched
 from comment_review.flows.distribute import seed
 from comment_review.flows.fill import fill, withdraw
 
@@ -97,7 +97,7 @@ class TestAnUntouchedSlotIsFilledInPlace:
     def test_what_lands_is_a_mark_the_parse_accepts(self, copy, root):
         placed, why = fill(copy, _a_correct(), root)
         assert why == []
-        mark, problems = Mark.deserialize("m.py@b1", placed)
+        mark, problems = read_mark("m.py@b1", placed)
         assert problems == [] and mark is not None
 
 
@@ -400,24 +400,6 @@ class TestAMoveCarriesItsSnippetAndTheDestinationsText:
         placed, why = fill(copy, entry, root)
         assert placed is None
         assert why == [f"{origin}: the destination text does not keep 'eight'"]
-
-
-class TestARowThatDoesNotCarryItsOwnRawTextIsRefusedOne:
-    """Every row but `add` and `move` takes its `raw_text` from the page, so a
-    role supplying one has misread what the field is for and is told so."""
-
-    def test_a_correct_carrying_a_raw_text_is_refused(self, copy, root):
-        before = json.dumps(copy)
-        entry = _a_correct(raw_text="# one\n# 2\n# three\n")
-        placed, why = fill(copy, entry, root)
-        assert placed is None
-        assert len(why) == 1 and "`raw_text`" in why[0]
-        assert json.dumps(copy) == before
-
-    def test_a_raw_text_equal_to_the_seeded_one_is_not_a_refusal(self, copy, root):
-        placed, why = fill(copy, _a_correct(raw_text=BASE), root)
-        assert why == [] and placed is not None
-        assert placed["raw_text"] == BASE
 
 
 class TestAnAddAtAPlaceHoldingProseKeepsItsWords:

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 20 of 46 tasks closed
+Progress: 21 of 46 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -91,8 +91,9 @@ The rebuilt middle's final review.
       (C5)
 - [ ] T30 | Decide what the chief's copy is on a turn; it is built every turn
       and never saved (C6)
-- [ ] T31 | Make MasterProof.places typed, and stop encoding a role into
-      reasons, notes and asking as strings (D7)
+- [x] T31 | places and moves typed, read once, every bad entry named; tests failed first | cfec876a | Make
+      MasterProof.places typed, and stop encoding a role into reasons, notes and
+      asking as strings (D7)
 - [ ] T32 | Delete what nothing reads: AnswerRow.question, three event fields,
       desk/proof.py, diff3, tally, mark --anchor-line (E2)
 - [ ] T33 | Reduce rules stated twice: mismatched roots, the copy-chief string,

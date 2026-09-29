@@ -5,17 +5,14 @@ nothing else, so its placement is decided once for the pair, by every role
 that read either page, before either end's words are.
 """
 
-from comment_review.desk.answers.answer import Answer, Question
-from comment_review.desk.dispositions.disposition import Disposition
-from comment_review.desk.evaluate.move import (
-    Move,
-    Placement,
-    moves_in,
-    placement_pass,
-)
-from comment_review.desk.evaluate.place import Filed, Place
-from comment_review.desk.marks.mark import Instruction, Mark, Shape
-from comment_review.desk.marks.table import Touch
+from helpers import a_typed_answer, a_typed_mark, a_typed_ruling
+
+from comment_review.desk.evaluate.move import moves_in, placement_pass
+from comment_review.desk.proof.answer import Answer, Question
+from comment_review.desk.proof.disposition import Disposition
+from comment_review.desk.proof.mark import Instruction, Mark, Shape, Touch
+from comment_review.desk.proof.move import Move, Placement
+from comment_review.desk.proof.place import Filed, Place
 
 ORIGIN, DESTINATION = "m.py@b1", "m.py@b5"
 BASE = "# one\n# two\n# three\n"
@@ -34,11 +31,11 @@ DEFERRING = {
 
 
 def _mark(instruction, address=ORIGIN, change="", raw_text=BASE, claim=None) -> Mark:
-    return Mark(
+    return a_typed_mark(
+        instruction,
         address=address,
         anchor="x = 1",
         raw_text=raw_text,
-        instruction=instruction,
         claim=claim or {},
         reason="r",
         sources=(),
@@ -76,7 +73,7 @@ def _ends(*, readers=("a", "b"), at_origin=(), at_destination=()) -> dict[str, P
 
 
 def _answer(name: str, claim=None) -> Answer:
-    return Answer(
+    return a_typed_answer(
         address=ORIGIN,
         anchor="x = 1",
         question=Question.PLACEMENT,
@@ -94,7 +91,7 @@ def _decided(places, answers=None, turn=1) -> Move:
 
 
 def _placement_ruling(side: str) -> Disposition:
-    return Disposition(
+    return a_typed_ruling(
         address=ORIGIN,
         name="taken_in",
         side=side,
@@ -208,7 +205,7 @@ def test_a_role_deferring_at_either_end_is_not_owed_the_placement():
 
 
 def test_an_answer_to_another_question_is_refused():
-    wrong = Answer(
+    wrong = a_typed_answer(
         address=ORIGIN,
         anchor="x = 1",
         question=Question.COMPOSITION,
@@ -220,7 +217,7 @@ def test_an_answer_to_another_question_is_refused():
 
 
 def test_an_agreed_move_stays_agreed():
-    """D4: agreement is final -- the split has already been written."""
+    """D4: agreement is final -- each end is decided against it."""
     places = _ends()
     (move,) = moves_in(places).values()
     move.placement = Placement.AGREED
@@ -297,3 +294,39 @@ def test_a_pass_run_twice_on_one_move_comes_to_the_same_placement():
     move.answers[2] = {"b": _answer("withdraw")}
     again = placement_pass(move, places, 2)
     assert again.placement is Placement.WITHDRAWN and again.movers == {}
+
+
+def test_a_placement_outside_its_set_is_named():
+    got, problems = Move.deserialize(
+        "move 1",
+        {"origin": ORIGIN, "destination": DESTINATION, "placement": "sideways"},
+    )
+    assert got is None
+    assert problems == [
+        "move 1: `placement` 'sideways' is not one of open, agreed, contested,"
+        " withdrawn, held, refused"
+    ]
+
+
+def test_an_answer_at_a_turn_that_is_not_a_number_is_named():
+    """A turn key is read as an integer; one that is not is a problem named at
+    the move, not a `ValueError` out of the read."""
+    got, problems = Move.deserialize(
+        "move 1",
+        {
+            "origin": ORIGIN,
+            "destination": DESTINATION,
+            "answers": {
+                "first": {
+                    "block-context": {
+                        "address": "m.py@b1",
+                        "question": "composition",
+                        "instruction": "clean",
+                        "reason": "r",
+                    }
+                }
+            },
+        },
+    )
+    assert got is None
+    assert problems == ["move 1: answers at turn 'first' -- a turn is a number"]

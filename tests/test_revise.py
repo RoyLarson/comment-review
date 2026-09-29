@@ -39,8 +39,9 @@ from helpers import (
 )
 
 from comment_review.commands import collate as collate_command
-from comment_review.desk.containers import EditCopy, MasterProof
-from comment_review.desk.marks.mark import Shape
+from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.mark import Shape
+from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.flows import proof_setter
 from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_proof
@@ -281,9 +282,9 @@ class TestDocketOf:
         copy = self._a_correction_and_a_move_into_it(root, "# one\n# two # five")
         with pytest.raises(CannotTranscribe) as raised:
             docket_of(copy, root)
-        # The move has one mover, so it is agreed and split before the place
-        # is decided; its add collides with the correction at b1, and the
-        # reason names the move the role filed, not the add it never wrote.
+        # The move has one mover, so it is agreed before the place is
+        # decided; its arrival collides with the correction at b1, and the
+        # reason names the move the role filed.
         (why,) = raised.value.reasons
         assert why.startswith("block-context m.py@b1: ")
         assert "its correct at m.py@b1" in why
@@ -741,12 +742,12 @@ class TestDocketOfProof:
         (why,) = raised.value.reasons
         assert "m.py@b1" in why and state in why
 
-    def test_a_place_that_will_not_read_is_a_refusal(
+    def test_a_proof_whose_mark_will_not_read_is_a_refusal(
         self, tmp_path, monkeypatch, capsys
     ):
-        """A place is parsed before it is transcribed, the way a returned
-        copy's marks are. One that will not parse is named, and no page is
-        set from what is left."""
+        """A proof is parsed before it is transcribed, the way a returned
+        copy's marks are. A mark that will not parse -- held once, in its
+        copy -- is named, and no page is set from what is left."""
         self._closed(
             tmp_path,
             monkeypatch,
@@ -755,12 +756,10 @@ class TestDocketOfProof:
             texts={"m.py@b1": BASE},
         )
         wire = json.loads((tmp_path / "proof0.json").read_text(encoding="utf-8"))
-        wire["places"][0]["filed"][0]["instruction"] = "not an instruction"
+        wire["edit_copies"][0]["sheets"][0]["marks"][0]["instruction"] = "stet"
         proof, why = MasterProof.deserialize("hand-edited", wire)
-        assert proof is not None, why
-        with pytest.raises(CannotTranscribe) as raised:
-            docket_of_proof(proof, tmp_path / "repo")
-        assert any("m.py@b1" in one for one in raised.value.reasons)
+        assert proof is None
+        assert any("edit_copy 1: m.py@b1" in one for one in why), why
 
     def test_a_page_this_checkout_cannot_read_is_a_refusal(
         self, tmp_path, monkeypatch, capsys

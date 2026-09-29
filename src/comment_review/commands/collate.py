@@ -29,10 +29,11 @@ import argparse
 import sys
 from pathlib import Path
 
-from comment_review.desk.answers.answer import Question
-from comment_review.desk.containers import EditCopy
-from comment_review.desk.evaluate.move import Placement
-from comment_review.desk.evaluate.state import CARRIED, SETTLED, State
+from comment_review.desk.proof.answer import Question
+from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.move import Placement
+from comment_review.desk.proof.place import Place
+from comment_review.desk.proof.state import CARRIED, SETTLED, State
 from comment_review.desk.topology import read as read_topology
 from comment_review.desk.work import events
 from comment_review.flows.bus import CopiesReturned, handle
@@ -229,7 +230,7 @@ def _code_for(out: list) -> int:
     return OK
 
 
-def _counted(places: tuple[dict, ...]) -> str:
+def _counted(places: tuple[Place, ...]) -> str:
     """What the written proof holds, by the state each of its places came to.
 
     ! IT READ `N determined, M unsettlable` OFF THE OLD FOLD'S OWN LISTS, and
@@ -238,7 +239,7 @@ def _counted(places: tuple[dict, ...]) -> str:
     are read back off the states the proof records.
 
     Args:
-        places: `MasterProof.places`, as `Place.serialize` writes each.
+        places: `MasterProof.places`.
 
     Returns:
         `"N places -- S settled, U unsettlable, C carried forward, T to come"`.
@@ -246,10 +247,10 @@ def _counted(places: tuple[dict, ...]) -> str:
     Settled is counted rather than subtracted, since `decision-log.md
     Process: #193`'s round. It read `len(states) - carried - unsettlable`,
     which is a third statement of which states are settled --
-    `desk.evaluate.state.SETTLED` is the one both this and
+    `desk.proof.state.SETTLED` is the one both this and
     `flows.transcribe._unclosed` read.
     """
-    states = [str(place.get("state") or "") for place in places]
+    states = [str(place.state or "") for place in places]
     carried = sum(1 for state in states if state in CARRIED)
     unsettlable = sum(1 for state in states if state == State.UNSETTLABLE)
     settled = sum(1 for state in states if state in SETTLED)
@@ -265,7 +266,7 @@ def _envelope(documents: list) -> tuple[list[EditCopy], list]:
 
     !! THE ENVELOPE IS PARSED HERE AND A FAILURE IS REPORTED RATHER THAN
     RAISED -- `P21`, `decision-log.md Process: #57`. What the two boundaries
-    are is stated once, in `desk/containers.py`'s module docstring. What is
+    are is stated once, in `desk/proof/__init__.py`'s module docstring. What is
     this command's own is the ORDER and the response: envelope first, because
     a document that is not a copy has no contents to rule on, and every
     refusal printed beside whoever owes it rather than raised past the rest.

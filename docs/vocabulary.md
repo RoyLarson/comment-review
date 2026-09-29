@@ -56,9 +56,9 @@ here**, and `scripts/check_vocabulary.py` refuses a live term defined in both pl
 | `re-review` (stages 5b and 6b, `references/re-review.md`) | -> **revise**. The printer's word, and the code had already adopted it -- `flows/revise.pull`, `read_from.revise` -- for the second proof pulled after the marked corrections are set. 5b and 6b set a galley of the edited text and send it back to be read: that IS a revise. Roy, 2026-09-04; `decision-log.md Vocabulary: #32`. ! The rename lands as one objective, gate entry last -- `TODO/re-review-is-retired-for-revise.md` |
 | `record` (the JSON object a reviewer fills) | -> **mark**, in a **sheet**, in an **edit copy**. `record.py` left for the prototype on 2026-08-25 and the container ruling (`Vocabulary: #28`) named the object; the brief and `vocabulary.toml` said `record` until 2026-09-05 |
 | `Determined` | -> the **place** itself. It was the chief's ruling at one resolved place, one per place on the master proof; a place carries its own `state`, `text` and `disposition` now, and `desk/determined.py` was deleted 2026-09-18 with the rest of the old middle -- `docs/history.md`, *Reconciliation* |
-| `DiffMark` | -> **`Answer`**, `desk/answers/answer.py`. What a role hands back in a turn. The closed set is the same four on an escalation; it is read against the question the slot carries rather than against a set of its own, so the composition's four are separate rows |
+| `DiffMark` | -> **`Answer`**, `desk/proof/answer.py`. What a role hands back in a turn. The closed set is the same four on an escalation; it is read against the question the slot carries rather than against a set of its own, so the composition's four are separate rows |
 | `Collated` | -> the fold's **events**. It was what the old fold returned, carrying its escalations, rereads and unsettlable places as lists; `desk.work.fold.Fold` emits one event per place and commits or rolls back whole, and the commands print from the events alone |
-| `census` | -> **gather** for the stage, the act and the command; **binder** for what it hands over. `gather` has been stage 2's word since 2026-08-23 and a second `gather` had taken it for the master proof, now `master_proof_of`. `censused` -> gathered, and where the lexer classified a line, **read**. No alias. Roy, 2026-09-04; `decision-log.md Vocabulary: #34` |
+| `census` | -> **gather** for the stage, the act and the command; **binder** for what it hands over. `gather` has been stage 2's word since 2026-08-23 and a second `gather` had taken it for building the master proof, which `flows.bus` does now. `censused` -> gathered, and where the lexer classified a line, **read**. No alias. Roy, 2026-09-04; `decision-log.md Vocabulary: #34` |
 
 ## Held in reserve -- publishing's word for something we already have
 
@@ -170,7 +170,7 @@ sets:
   evaluator built on later tasks asks of a row.
 
 Same rule as `copy chief` above: do not add either to `vocabulary.toml` until a role's own text
-uses the word. Neither term is reviewer-facing yet -- `desk.marks.table.Touch` and `.Stance` are
+uses the word. Neither term is reviewer-facing yet -- `desk.proof.mark.Touch` and `desk.marks.table.Stance` are
 read by the middle, not by an editorial role's prompt -- so the drift check would refuse a term no
 role's text carries. Add them once an agents-lane task puts the word in a reviewer's own file.
 
@@ -181,12 +181,12 @@ the rest of that plan gave the middle the ones under them. None is in `vocabular
 
 - **`place`** -- the aggregate the middle decides: one address, its base text, every mark filed
   against it, each turn's answers, the chief's ruling where there is one, and the state, text and
-  sides that follow. `desk.evaluate.place.Place`.
+  sides that follow. `desk.proof.place.Place`.
 - **`pass`** -- one table applied to a place. `marks_pass`, `answers_pass` and
   `dispositions_pass` each read their own table, and `desk.evaluate.passes.decide` is the one
   order they may run in.
 - **`state`** -- what a pass leaves a place in, one of seven: `stands`, `agreed`, `composed`,
-  `contested`, `unsettlable`, `refused`, `to-come`. `desk.evaluate.state.State`.
+  `contested`, `unsettlable`, `refused`, `to-come`. `desk.proof.state.State`.
 - **to come** -- an end of a move whose placement is undecided, the trade's TK: it holds no
   text, asks no role anything and takes no ruling, and is read as any place once the placement
   is decided. Not carried forward -- the move is. In `vocabulary.toml` for the task agent, who
@@ -194,7 +194,7 @@ the rest of that plan gave the middle the ones under them. None is in `vocabular
 - **`side`** -- the one text a role proposes at a place, whatever number of marks it filed there.
   `place.sides` is role -> that text; it is what a batch slot carries and what a `taken_in` names.
 - **carried forward** -- a place the fold did not settle, `composed` or `contested`, which goes
-  out in the next batch or to the chief. `desk.evaluate.state.CARRIED` is the pair.
+  out in the next batch or to the chief. `desk.proof.state.CARRIED` is the pair.
 - **held for the human** -- an `unsettlable` place. No role's answer and no chief's ruling closes
   it; it rides to the author at 7a.
 - **advisory note** -- what the chief is told about a mark without the mark being refused for it.

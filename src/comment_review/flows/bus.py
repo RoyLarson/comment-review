@@ -26,22 +26,24 @@ answers file (`#198`) rides on the message, and each answer rides on the
 """
 
 from collections.abc import Callable, Mapping, Sequence
+from copy import deepcopy
 from pathlib import Path
 from typing import NamedTuple
 
 from comment_review.binder.binder import Binder
-from comment_review.desk.answers.answer import Answer, Question
 from comment_review.desk.collator import Cache, Problem
-from comment_review.desk.containers import EditCopy, MasterProof, Sheet
-from comment_review.desk.dispositions.disposition import CHIEF, Disposition
-from comment_review.desk.evaluate.move import (
-    Move,
-    is_open,
-    key_of,
-    moves_in,
+from comment_review.desk.evaluate.move import moves_in
+from comment_review.desk.proof.answer import Answer, Question
+from comment_review.desk.proof.disposition import (
+    CHIEF,
+    read_disposition,
 )
-from comment_review.desk.evaluate.place import Place
-from comment_review.desk.evaluate.state import CARRIED, State
+from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.proof.master_proof import MasterProof
+from comment_review.desk.proof.move import Move, is_open, key_of
+from comment_review.desk.proof.place import Place
+from comment_review.desk.proof.sheet import Sheet
+from comment_review.desk.proof.state import CARRIED, State
 from comment_review.desk.stages import Stage, not_admitted
 from comment_review.desk.work import events
 from comment_review.desk.work.fold import Fold, asked
@@ -200,6 +202,7 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     ]
     problems += coverage_problems(copies, binder, message.topology)
     problems += _root_problems(copies)
+    problems += _dealt_problems(copies, message.stage)
     problems += _admitted_problems(copies, message.topology)
     if message.topology is not None:
         problems += stage_problems(message.topology, copies)
@@ -220,8 +223,8 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
         stage=message.stage,
         read_from={**read_from},
         edit_copies=tuple(copies),
-        places=tuple(place.serialize() for place in fold.decided.values()),
-        moves=tuple(move.serialize() for move in fold.decided_moves.values()),
+        places=tuple(fold.decided.values()),
+        moves=tuple(move.recorded() for move in fold.decided_moves.values()),
     )
     chief = chief_copy_of(fold.decided, "copy-chief", read_from, _pages_of(copies))
     return out, Result(proof, chief, _batch_or_none(fold, read_from))
@@ -232,10 +235,9 @@ def _root_problems(copies: list[EditCopy]) -> list[Problem]:
 
     Two copies from different trees have no fold between them: their
     addresses answer to different address spaces, so an `a0` in one tells
-    nothing about the `a0` in the other. `desk.proof.master_proof_of` raised
-    `MismatchedRoot` for this and the handler reaches no `master_proof_of`,
-    so the comparison is here -- ruled back in as `decision-log.md Process:
-    #178`.
+    nothing about the `a0` in the other. `_on_copies` takes the proof's
+    `read_from` from the first copy, so the comparison is here --
+    `decision-log.md Process: #178`.
 
     Reported rather than raised, like everything else the handler finds: a
     refusal that raises empties the report for every other role, measured
@@ -259,6 +261,30 @@ def _root_problems(copies: list[EditCopy]) -> list[Problem]:
         )
         for copy in copies[1:]
         if copy.read_from != first
+    ]
+
+
+def _dealt_problems(copies: list[EditCopy], stage: str) -> list[Problem]:
+    """One `Problem` per copy dealt in a stage other than the one being folded.
+
+    A copy folds only in the stage it was dealt in: its `admits` and its
+    places are that stage's, so a stage-6 copy handed to stage 4 would be
+    held to the wrong row -- and without a topology, to none. A copy that
+    names no stage (`""`, seeded without a row) is not compared.
+
+    Returns:
+        One `Problem` per copy whose own `stage` names another, with no
+        address -- the finding is about the document.
+    """
+    return [
+        Problem(
+            copy.role,
+            "",
+            f"was dealt in stage {copy.stage!r}, and this is stage {stage!r} -- a"
+            " copy folds only in the stage it was dealt in",
+        )
+        for copy in copies
+        if copy.stage and copy.stage != stage
     ]
 
 
@@ -339,37 +365,14 @@ def _pages_of(copies: list[EditCopy]) -> list[Sheet]:
     return out
 
 
-#: Who a problem with the proof itself is filed against. It is not a role and
-#: not the chief: the file was written by a fold, so nobody is being asked to
-#: correct a ruling -- the document is being refused.
-THE_PROOF = "the master proof"
+def _places_on(proof: MasterProof) -> dict[str, Place]:
+    """The proof's places, by address, as copies a fold may write on.
 
-
-def _places_on(proof: MasterProof) -> tuple[dict[str, Place], list[Problem]]:
-    """The proof's places, read back, or one `Problem` per reason they are not.
-
-    Args:
-        proof: the master proof a turn or the chief is folding again.
-
-    Returns:
-        `(address -> Place, the problems)`. An entry that will not read back
-        is named by its own address where it has one, and by its position
-        where it does not; the proof is nobody's copy, so the problem is
-        filed against the document rather than against a role.
+    The fold writes answers, rulings and states onto the places it is handed,
+    so it is handed copies: the proof the message carried stays as it was
+    written whether this fold commits or rolls back.
     """
-    places: dict[str, Place] = {}
-    problems: list[Problem] = []
-    for i, entry in enumerate(proof.places):
-        where = str(entry.get("address") or "") if isinstance(entry, dict) else ""
-        where = where or f"place {i}"
-        place, why = Place.deserialize(where, entry)
-        if place is None:
-            problems += [
-                Problem(THE_PROOF, where, one.removeprefix(f"{where}: ")) for one in why
-            ]
-        else:
-            places[place.address] = place
-    return places, problems
+    return {place.address: deepcopy(place) for place in proof.places}
 
 
 def turn_of(proof: MasterProof) -> int:
@@ -387,12 +390,7 @@ def turn_of(proof: MasterProof) -> int:
         none does. A turn may ask only placements, so a move's answers count.
     """
     return max(
-        (
-            int(at)
-            for entry in (*proof.places, *proof.moves)
-            if isinstance(entry, dict)
-            for at in (entry.get("answers") or {})
-        ),
+        (at for record in (*proof.places, *proof.moves) for at in record.answers),
         default=0,
     )
 
@@ -413,10 +411,9 @@ def _on_answers(message: AnswersReturned) -> tuple[list, Result | None]:
     move (`flows.answers.slot_key`); the answer is written onto the move, not
     onto either end (`decision-log.md Process: #195`).
     """
-    places, problems = _places_on(message.proof)
-    recorded, why = _moves_on(message.proof)
-    problems += why
-    moves = moves_in(places, recorded)
+    places = _places_on(message.proof)
+    moves = moves_in(places, _moves_on(message.proof))
+    problems: list[Problem] = []
     open_moves = {key: move for key, move in moves.items() if is_open(move)}
     carried = {a: p for a, p in places.items() if p.state in CARRIED}
     turn = turn_of(message.proof) + 1
@@ -493,18 +490,17 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
     roles settled, that rides to the human, or that waits on its move is
     refused as well.
 
-    A placement ruling splits or withdraws its move, and an end that then
+    A placement ruling agrees or withdraws its move, and an end that then
     needs words is carried forward in what this commits, for the chief to
     rule on the proof it writes.
     """
-    places, problems = _places_on(message.proof)
-    recorded, why = _moves_on(message.proof)
-    problems += why
-    moves = moves_in(places, recorded)
+    places = _places_on(message.proof)
+    moves = moves_in(places, _moves_on(message.proof))
+    problems: list[Problem] = []
     for i, entry in enumerate(message.dispositions, 1):
         named = str(entry.get("address") or "") if isinstance(entry, dict) else ""
         where = named or f"ruling {i}"
-        disposition, why = Disposition.deserialize(where, entry)
+        disposition, why = read_disposition(where, entry)
         if disposition is None:
             problems += [
                 Problem(CHIEF, where, one.removeprefix(f"{where}: ")) for one in why
@@ -525,7 +521,7 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
                     CHIEF,
                     disposition.address,
                     "an end of an undecided move -- rule the move's placement,"
-                    " and this end's words once it is split",
+                    " and this end's words once it is placed",
                 )
             )
             continue
@@ -616,8 +612,8 @@ def _commit(
         stage=proof.stage,
         read_from={**proof.read_from},
         edit_copies=proof.edit_copies,
-        places=tuple(place.serialize() for place in fold.decided.values()),
-        moves=tuple(move.serialize() for move in fold.decided_moves.values()),
+        places=tuple(fold.decided.values()),
+        moves=tuple(move.recorded() for move in fold.decided_moves.values()),
     )
     chief = chief_copy_of(
         fold.decided, CHIEF, proof.read_from, _pages_of(list(proof.edit_copies))
@@ -628,7 +624,7 @@ def _commit(
 def _undecided(fold: Fold) -> list[Move]:
     """The moves this fold carries forward, in key order.
 
-    Only an open move is carried (`desk.evaluate.move.is_open`), as the fold
+    Only an open move is carried (`desk.proof.move.is_open`), as the fold
     reports a `PlacementCarried` for an open move alone.
     """
     return [
@@ -647,20 +643,9 @@ def _batch_or_none(fold: Fold, read_from: dict) -> dict[str, list[dict]] | None:
     return _batch_of(carried, moves, fold.decided, read_from)
 
 
-def _moves_on(proof: MasterProof) -> tuple[dict[str, Move], list[Problem]]:
-    """The proof's recorded moves, and one `Problem` per reason one will not read."""
-    moves: dict[str, Move] = {}
-    problems: list[Problem] = []
-    for i, entry in enumerate(proof.moves):
-        where = f"move {i}"
-        move, why = Move.deserialize(where, entry)
-        if move is None:
-            problems += [
-                Problem(THE_PROOF, where, one.removeprefix(f"{where}: ")) for one in why
-            ]
-        else:
-            moves[move.key] = move
-    return moves, problems
+def _moves_on(proof: MasterProof) -> dict[str, Move]:
+    """The proof's recorded moves, by key, as copies a fold may write on."""
+    return {move.key: deepcopy(move) for move in proof.moves}
 
 
 def _batch_of(

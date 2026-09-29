@@ -33,7 +33,7 @@ the fold's own report for that reason.
 
 from typing import NamedTuple
 
-from comment_review.desk.containers import EditCopy
+from comment_review.desk.proof.edit_copy import EditCopy
 
 #: What a place a role was handed and left alone is reported as. It is the one
 #: sentence for that case, so a reader meets the same words wherever it is
@@ -54,7 +54,7 @@ class Revisit(NamedTuple):
             ! THE TWO ARE SEPARATE BECAUSE ONE CAN BE EMPTY AND THE OTHER MUST
             NOT BE. A reader needs somewhere to look even for an entry the
             system cannot route; a router needs to know when there is nowhere.
-        reasons: every rule the entry broke, as `desk.marks.mark.parse` worded them,
+        reasons: every rule the entry broke, as its type's read worded them,
             or the one sentence `NOT_RULED` for a place nobody wrote in.
             ! ALL OF THEM TOGETHER, which is the half `Process: #72` asks for
             beyond the address -- one malformed `correct` breaks four rules, and
@@ -73,7 +73,7 @@ def mark_errors(edit_copies: list[EditCopy]) -> list[Revisit]:
     Args:
         edit_copies: the parsed copies, as `flows.bus` holds them
             after its envelope pass. ! PARSED, because that is what sorted each
-            entry: `desk.containers.Sheet` carries `unruled` and `refused`, and
+            entry: `desk.proof.sheet.Sheet` carries `unruled` and `refused`, and
             this flow reads them rather than re-deciding what an entry was.
 
     Returns:

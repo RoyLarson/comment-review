@@ -17,7 +17,7 @@ from conftest import run_command
 from helpers import a_binder_over
 
 from comment_review.commands import mark as command
-from comment_review.desk.marks.mark import Mark
+from comment_review.desk.proof.mark import read_mark
 from comment_review.flows.distribute import seed
 
 BASE = "# one\n# two\n# three\n"
@@ -146,7 +146,7 @@ class TestARulingIsPlaced:
         assert slot["instruction"] == "correct"
         assert slot["change"] == "# one\n# 2\n# three\n"
         assert slot["sources"] == [{"cite": "m.py:5", "verbatim": "y = 2"}]
-        mark, why = Mark.deserialize("m.py@b1", slot)
+        mark, why = read_mark("m.py@b1", slot)
         assert why == [] and mark is not None
 
     def test_the_other_slot_is_still_null(self, run):
@@ -288,11 +288,6 @@ class TestAnAddAndAMoveCarryTheParagraphAsItWillRead:
         slot = run.copy()["sheets"][0]["marks"][0]
         assert slot["change"] == "# two\n"
         assert slot["raw_text"] == "# two\n"
-
-    def test_a_correct_given_a_raw_text_is_refused(self, run):
-        code, out = run(*CORRECT, "--raw-text", "# one\n# 2\n# three\n")
-        assert code == command.BROKEN
-        assert "`raw_text`" in out
 
 
 class TestARefusalWritesNothing:

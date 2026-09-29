@@ -2,13 +2,14 @@
 
 from dataclasses import replace
 
-from comment_review.desk.answers.answer import Answer, Question
-from comment_review.desk.dispositions.disposition import Disposition
-from comment_review.desk.evaluate.move import Placement, moves_in
-from comment_review.desk.evaluate.place import Filed, Place
-from comment_review.desk.evaluate.state import State
-from comment_review.desk.marks.mark import Instruction, Mark, Shape
-from comment_review.desk.marks.table import Touch
+from helpers import a_typed_answer, a_typed_mark, a_typed_ruling
+
+from comment_review.desk.evaluate.move import moves_in
+from comment_review.desk.proof.answer import Question
+from comment_review.desk.proof.mark import Instruction, Shape, Touch
+from comment_review.desk.proof.move import Placement
+from comment_review.desk.proof.place import Filed, Place
+from comment_review.desk.proof.state import State
 from comment_review.desk.work import events
 from comment_review.desk.work.fold import Fold
 
@@ -16,11 +17,11 @@ BASE = "# one\n# two\n# three\n"
 
 
 def _mark(instruction, change="", claim=None, address="m.py@b1", raw_text=BASE):
-    return Mark(
+    return a_typed_mark(
+        instruction,
         address=address,
         anchor="x = 1",
         raw_text=raw_text,
-        instruction=instruction,
         claim=claim or {},
         reason="r",
         sources=(),
@@ -249,11 +250,11 @@ def test_a_composed_place_carries_forward_every_reader_beyond_its_sides():
 
 
 def _a_move_between(readers):
-    move = Mark(
+    move = a_typed_mark(
+        Instruction.MOVE,
         address="m.py@b1",
         anchor="x = 1",
         raw_text="# four\n# two\n# five\n",
-        instruction=Instruction.MOVE,
         claim={"from": "m.py@b1", "to": "m.py@b5"},
         reason="it belongs with five",
         sources=(),
@@ -279,7 +280,7 @@ def _a_move_between(readers):
 
 def test_a_moves_snippet_missing_from_its_origin_is_one_refusal():
     """One defect, reported once: the origin's own read names it at the
-    origin, and neither the declined split nor the other end repeats it."""
+    origin, and the other end does not repeat it."""
     places, _moves = _a_move_between(("a",))
     places["m.py@b1"].base = "# one\n# three\n"
     fold = Fold(places).run()
@@ -298,7 +299,7 @@ def test_a_refused_placement_is_one_refusal_at_the_move():
     reported once, at the move's own key, and not at each of its ends."""
     places, moves = _a_move_between(("a", "b"))
     moves["m.py@b1 -> m.py@b5"].answers[1] = {
-        "b": Answer(
+        "b": a_typed_answer(
             address="m.py@b1",
             anchor="x = 1",
             question=Question.COMPOSITION,
@@ -335,11 +336,11 @@ def test_a_held_move_is_one_unsettlable_naming_both_ends():
         "attempted": "a",
         "settles": "b",
     }
-    query = Mark(
+    query = a_typed_mark(
+        Instruction.QUERY,
         address="m.py@b5",
         anchor="y = 5",
         raw_text="# four\n# five\n",
-        instruction=Instruction.QUERY,
         claim=human,
         reason="ask",
         sources=(),
@@ -362,7 +363,7 @@ def test_a_contested_move_the_chief_ruled_asks_no_placement():
     places, moves = _a_move_between(("a", "b"))
     move = moves["m.py@b1 -> m.py@b5"]
     move.answers[1] = {
-        "b": Answer(
+        "b": a_typed_answer(
             address="m.py@b1",
             anchor="x = 1",
             question=Question.PLACEMENT,
@@ -371,7 +372,7 @@ def test_a_contested_move_the_chief_ruled_asks_no_placement():
             claim={},
         )
     }
-    move.disposition = Disposition(
+    move.disposition = a_typed_ruling(
         address="m.py@b1",
         name="taken_in",
         side="a",
@@ -380,7 +381,7 @@ def test_a_contested_move_the_chief_ruled_asks_no_placement():
         to="m.py@b5",
     )
     for address, place in places.items():
-        place.disposition = Disposition(
+        place.disposition = a_typed_ruling(
             address=address, name="taken_in", side="a", prose="", reason="r"
         )
     fold = Fold(places, moves, turn=1).run()

@@ -8,10 +8,16 @@ in one wording, since every command reads through here (T17 of
 
 import json
 
-from helpers import REPO, a_binder_over, a_correct, a_master_proof, copies_over
+from helpers import (
+    REPO,
+    a_binder_over,
+    a_correct,
+    a_master_proof,
+    copies_over,
+)
 
 from comment_review.binder.binder import Binder
-from comment_review.desk.containers import EditCopy
+from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.flows.proof_io import (
     load_batch,
     load_binder,
@@ -24,23 +30,37 @@ from comment_review.flows.proof_io import (
 )
 
 
-def a_proof():
-    return a_master_proof({"block-context": {"m.py@b1": a_correct("m.py@b1")}})
+def a_proof(tmp_path):
+    return a_master_proof(
+        tmp_path / "repo", {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
+    )
 
 
 class TestTheRoundTrip:
     def test_what_save_writes_load_reads_back_equal(self, tmp_path):
-        proof = a_proof()
+        proof = a_proof(tmp_path)
         save_proof(tmp_path / "p.json", proof)
         got, why = load_proof(tmp_path / "p.json")
         assert why == []
         assert got == proof
 
+    def test_a_read_proof_saves_to_the_same_file(self, tmp_path):
+        """Each mark is stored once and each place points at it, so reading a
+        proof and saving it again writes the file it was read from, byte for
+        byte."""
+        save_proof(tmp_path / "p.json", a_proof(tmp_path))
+        got, why = load_proof(tmp_path / "p.json")
+        assert why == [] and got is not None
+        save_proof(tmp_path / "again.json", got)
+        assert (tmp_path / "again.json").read_bytes() == (
+            tmp_path / "p.json"
+        ).read_bytes()
+
     def test_the_file_is_the_containers_own_wire(self, tmp_path):
         """No second shape: what is on disk is `MasterProof.serialize`."""
         import json
 
-        proof = a_proof()
+        proof = a_proof(tmp_path)
         save_proof(tmp_path / "p.json", proof)
         on_disk = json.loads((tmp_path / "p.json").read_text(encoding="utf-8"))
         assert on_disk == proof.serialize()

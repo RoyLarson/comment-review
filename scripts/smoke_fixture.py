@@ -30,7 +30,7 @@ role's answers to the batches of the two turns the smoke script runs, and
 `REPLACED_ANSWERS` are what each asking role files in place of its question
 once it is answered. `DISPOSITIONS` is the chief's own ruling over every
 place the turns leave carried forward, and `ENDS` its ruling over the ends a
-placement ruling in `DISPOSITIONS` splits and leaves carried.
+placement ruling in `DISPOSITIONS` agrees and leaves carried.
 `write_texts` writes the files the smoke script's `mark` calls read by
 `@path` -- a file for every text a `mark` call carries, one per clause where
 `mark` derives the change from a claim -- plus `dispositions.json`,
@@ -170,7 +170,7 @@ def write_rate_fixture(root: Path) -> Path:
 #: forward to those three as a composition; `c5`, the trailing comment whose
 #: `correct` writes a change wider than its claim; `b9`, the comment one role
 #: moves up to `b8` while another rewords it where it stands -- the move the
-#: other role agrees to, so it is split and the chief rules the rewording
+#: other role agrees to, so it is agreed and the chief rules the rewording
 #: against the departure; and `b11`, the comment whose second sentence one
 #: role moves to `b10` while another rewords that sentence where it stands --
 #: the move its own filer withdraws in the second turn, so the sentence lands
@@ -250,7 +250,7 @@ def write_store_fixture(root: Path) -> Path:
 #: `b3`, the comment in `repeats`, which function-context corrects where it
 #: stands. block-context stets the move in both turns, so its placement is
 #: still contested when the turns are spent; the chief takes the mover's
-#: side, which splits the move and leaves both ends carried forward, and
+#: side, which agrees the move and leaves both ends carried forward, and
 #: then rules each end on the proof that first ruling wrote.
 TALLY_FIXTURE = (
     "def tally(log):\n"
@@ -312,7 +312,7 @@ class Landing(NamedTuple):
     and keyed as `mark`'s flags name them -- `false` and `true` for
     `fib.py`'s corrections `c6` and `c1`, `from` and `to` for `rate.py`'s
     patch `c3`. `mark` needs both to derive the change itself
-    (`desk.marks.mark.derived_change` replaces the quoted clause with the other in
+    (`desk.marks.rules.derived_change` replaces the quoted clause with the other in
     the paragraph the row seeded), and the smoke script passes each by
     `@path` from the file `write_texts` writes for it.
 
@@ -393,10 +393,10 @@ LANDINGS: dict[str, Landing] = {
     ),
     # the move's --change: b1's paragraph relocates to b0, unchanged. The
     # three roles that read the page defer at b1, so nobody else is owed a
-    # say on the placement and the fold agrees the move and splits it into
-    # ownership-context's `drop` at b1 and `add` at b0 (`Process: #195`). The
-    # add is a text the other three have not seen, so b0 is carried to them
-    # as a composition; each cleans it in the turn and it settles. b0's gap
+    # say on the placement and the fold agrees the move, which stays filed at
+    # b1 and b0 (`Process: #205`). Its arrival at b0 is a text the other three
+    # have not seen, so b0 is carried to them as a composition; each cleans
+    # it in the turn and it settles. b0's gap
     # sits above `import functools`.
     "fib.py@b0": Landing(
         "text",
@@ -434,8 +434,9 @@ LANDINGS: dict[str, Landing] = {
     # the drop vacates b14, and the fold settles it; nothing replaces the
     # dropped paragraph.
     "fib.py@b14": Landing("removed", route="mark", filed=("drop", "query")),
-    # the move vacates its own address: the split leaves the mover's `drop`
-    # here, which the fold settles; the text it carried now lives at b0.
+    # the move vacates its own address: the agreed move sets the empty
+    # remainder here, which the fold settles; the text it carried now lives
+    # at b0.
     "fib.py@b1": Landing("removed", route="mark", filed=("move", "query")),
     # collate escalates a3. In the turn block-context withdraws and the other
     # two each hold, so two texts still stand at the place and it is carried
@@ -598,8 +599,8 @@ LANDINGS: dict[str, Landing] = {
     # `change` is the snippet and the origin keeps what the snippet left
     # behind (`Process: #172`). The other three roles mark a scope-declaring
     # query at both ends rather than clean, so nobody else is owed a say on
-    # the placement: the fold agrees the move, splits it, and settles each
-    # end. `marked` is that snippet, which the move's `mark` call carries as
+    # the placement: the fold agrees the move and settles each end against
+    # it. `marked` is that snippet, which the move's `mark` call carries as
     # `--change`.
     "store.py@b1": Landing(
         "text",
@@ -652,11 +653,11 @@ LANDINGS: dict[str, Landing] = {
     # rewords it where it stands. function-context, a reader that does not
     # defer, is owed a say on the placement, and while it is open both ends
     # are to come and ask nothing (`Process: #200`, `#201`). It answers
-    # `agree` in the first turn, so the move is split into block-context's
-    # `drop` here and `add` at `b8` (`Process: #195`); in the second turn the
-    # drop and the rewording stand as two texts that do not compose, the
-    # place is an escalation, both roles hold, and the chief takes the drop
-    # in, which empties the origin. `marked` is the paragraph the move
+    # `agree` in the first turn, so the move is agreed and stays filed here
+    # and at `b8` (`Process: #205`); in the second turn the move's empty
+    # remainder and the rewording stand as two texts that do not compose, the
+    # place is an escalation, both roles hold, and the chief takes the
+    # mover's side in, which empties the origin. `marked` is the paragraph the move
     # carries -- the whole of it leaves, so its `--change` and its
     # `--raw-text` differ only in the indentation the destination reads with.
     "store.py@b9": Landing(
@@ -665,7 +666,7 @@ LANDINGS: dict[str, Landing] = {
         filed=("move", "correct", "query"),
         marked="    # The number of lookups the store has seen.",
     ),
-    # and its destination, the gap above `def total`: the split's `add` lands
+    # and its destination, the gap above `def total`: the agreed move lands
     # the paragraph at the declaration's own indentation, the three roles
     # that have not seen it are asked it as a composition in the second
     # turn, and each cleans it, so it settles there.
@@ -757,11 +758,10 @@ LANDINGS: dict[str, Landing] = {
     # function-context, owed a say for its correction at `b3`, agrees in the
     # first. The placement is contested when the turns are spent and both
     # ends are to come, so the chief rules the placement first, taking
-    # module-context's side: the move splits into its `drop` here and its
-    # `add` at `b3`, and the drop's remainder is a text the two roles that
-    # cleaned `b1` have not seen, so the origin is carried forward as a
-    # composition. The
-    # chief takes the drop in on the proof that ruling wrote. `marked` is the
+    # module-context's side: the move is agreed and stays filed here and at
+    # `b3`, and its remainder here is a text the two roles that cleaned `b1`
+    # have not seen, so the origin is carried forward as a composition. The
+    # chief takes the mover's side in on the proof that ruling wrote. `marked` is the
     # snippet, which the move's `mark` call carries as `--change`.
     "tally.py@b1": Landing(
         "text",
@@ -770,7 +770,7 @@ LANDINGS: dict[str, Landing] = {
         text="    # Each key is counted once.",
         marked=" A repeat asks for a key already counted.",
     ),
-    # and its destination, where the split's `add` -- the paragraph with the
+    # and its destination, where the move's arrival -- the paragraph with the
     # snippet on a line below it, the move's `--raw-text` -- stands beside
     # function-context's correction of the paragraph's own words. The two
     # edit different lines and compose, into a text none of block-, function-
@@ -808,9 +808,9 @@ ADDRESSER_ROW = "fib.py@b15"
 #: the proposing role is not asked about its own proposal. Six are `add`s, at
 #: places no other role was handed a slot for; `store.py@b7` is a `correct`
 #: the other three roles cleaned, which is the same rule reaching a place they
-#: all read. `fib.py@b0` is the destination of a move the fold agrees and
-#: splits: the `add` it leaves there is a text the page's other readers have
-#: not seen, so each is asked about it. The ends of a move whose placement
+#: all read. `fib.py@b0` is the destination of a move the fold agrees: the
+#: arrival it sets there is a text the page's other readers have not seen,
+#: so each is asked about it. The ends of a move whose placement
 #: is still undecided are to come and ask nothing (`decision-log.md Process:
 #: #201`), so no other move's destination is here. The last two are the marks
 #: the code concern's asker files in place of its query (`REPLACED_MARKS`), a
@@ -835,7 +835,7 @@ PROPOSED = {
 #: smoke is what holds this to the fold rather than this table standing alone.
 #: No end of a move is here: while its placement is undecided an end is to
 #: come and is sent no slot (`desk.evaluate.move.hold_ends`), and the ends a
-#: turn splits or releases are asked in the turn after, which `ANSWERS2`
+#: turn agrees or releases are asked in the turn after, which `ANSWERS2`
 #: answers by name.
 ESCALATED = (
     "fib.py@c1",
@@ -845,7 +845,7 @@ ESCALATED = (
 
 
 #: What joins a move's origin to its destination in a key of `ANSWERS` and
-#: `ANSWERS2` -- the spelling `desk.evaluate.move.key_of` gives a move, which
+#: `ANSWERS2` -- the spelling `desk.proof.move.key_of` gives a move, which
 #: is how `check` and `turn` name a placement slot.
 MOVE_KEY = " -> "
 
@@ -902,12 +902,13 @@ def slot_of(key: str, fields: dict) -> dict:
 #: abstains and the add settles (`Process: #121`).
 #: The first turn's placements are the four moves the fold left open, each
 #: put to the readers that neither filed it nor deferred at either end:
-#: function-context `agree`s to `store.py@b9`'s, so it is split; and
+#: function-context `agree`s to `store.py@b9`'s, so it is agreed; and
 #: block-context `stet`s `store.py@b11`'s, `store.py@b5`'s and
 #: `tally.py@b1`'s, so each is contested and put again in the second turn --
 #: the last although function-context, the other reader owed a say there,
 #: `agree`s. The eight ends of those moves are to come, so this turn sends no
-#: slot at any of them; the split's two ends are asked in the second turn.
+#: slot at any of them; the agreed move's two ends are asked in the second
+#: turn.
 #: A composition `correct` and a composition `patch` are planted on
 #: `rate.py@b1`, whose base is a real paragraph, and at the empty places of
 #: two `add`s, `b8` and `c3`, where each quotes the add's text -- the text the
@@ -1020,7 +1021,7 @@ ANSWERS: dict[str, dict[str, dict]] = {
             "change": LANDINGS["rate.py@b1"].text,
         },
         # The agreed move's placement, which this role agrees to, so the move
-        # is split in this turn; its ends are asked in the next.
+        # is agreed in this turn; its ends are asked in the next.
         "store.py@b9 -> store.py@b8": {
             "instruction": "agree",
             "reason": "what total is for is read above the declaration",
@@ -1098,11 +1099,11 @@ ANSWERS: dict[str, dict[str, dict]] = {
 #: mover `agree`s while block-context `stet`s again, so each is still
 #: contested and reaches the chief.
 #:
-#: The agreed move was split in the first turn, so its two ends are asked
-#: here: the `add` at `store.py@b8` as a composition to the three roles that
-#: have not seen it, each of which cleans it, and the `drop` at `store.py@b9`
-#: as an escalation against function-context's rewording, which both roles
-#: hold.
+#: The move was agreed in the first turn, so its two ends are asked here:
+#: its arrival at `store.py@b8` as a composition to the three roles that have
+#: not seen it, each of which cleans it, and its empty remainder at
+#: `store.py@b9` as an escalation against function-context's rewording, which
+#: both roles hold.
 #:
 #: Every other place the second turn asks about is one the chief rules in
 #: `DISPOSITIONS`, and each answer here keeps it carried forward so that it
@@ -1238,7 +1239,7 @@ ANSWERS2: dict[str, dict[str, dict]] = {
 #: forward and the two moves they leave undecided -- `a3`, `b9` and `c1`, each
 #: left with texts no role has taken; `b8` and `c3`, each holding an `add`
 #: beside another role's answer to it; `store.py@b9`, where the agreed move's
-#: `drop` stands against a rewording; `store.py@b11`, the withdrawn move's
+#: empty remainder stands against a rewording; `store.py@b11`, the withdrawn move's
 #: origin, whose rewording the mover has not seen; and the two contested
 #: placements, each ruled once for its move with its destination as `to` --
 #: `LANDINGS` above names what each one makes land; this names how. A
@@ -1246,7 +1247,7 @@ ANSWERS2: dict[str, dict[str, dict]] = {
 #: `disposition`, by name, and so is an entry for a place that is not carried
 #: forward. `store.py@b5`'s placement is ruled for the original, and its two
 #: ends settle with nothing left proposing at either; `tally.py@b1`'s is
-#: ruled for its mover, which splits it and leaves both ends carried, so
+#: ruled for its mover, which agrees it and leaves both ends carried, so
 #: this call exits with places still carried and `ENDS` below closes them.
 DISPOSITIONS = [
     {
@@ -1292,10 +1293,11 @@ DISPOSITIONS = [
             "what wraps copies instead"
         ),
     },
-    # The agreed move's origin, where the split left block-context's `drop`
-    # against function-context's rewording. The chief takes the drop in, so
-    # the paragraph leaves the body; its `add` at `store.py@b8` settled in the
-    # turn that agreed the move, and is not the chief's to rule.
+    # The agreed move's origin, where block-context's move sets an empty
+    # remainder against function-context's rewording. The chief takes the
+    # mover's side in, so the paragraph leaves the body; its arrival at
+    # `store.py@b8` settled in the turn after the move was agreed, and is not
+    # the chief's to rule.
     {
         "address": "store.py@b9",
         "answer": "taken_in",
@@ -1334,7 +1336,7 @@ DISPOSITIONS = [
         "reason": "the author wants the note beside the rounding it describes",
     },
     # The other contested placement, ruled for its mover. Taking
-    # module-context's side splits the move, and both of its ends are carried
+    # module-context's side agrees the move, and both of its ends are carried
     # forward as compositions to be ruled in `ENDS`, so this call commits its
     # proof and exits 3.
     {
@@ -1347,11 +1349,12 @@ DISPOSITIONS = [
 ]
 
 #: The chief's second ruling, over the ends the placement ruling on
-#: `tally.py@b1 -> tally.py@b3` split and left carried forward. `disposition`
+#: `tally.py@b1 -> tally.py@b3` agreed and left carried forward. `disposition`
 #: takes it on the proof the first call wrote (`decision-log.md Process:
-#: #195` item 4, `#201`): the origin takes the mover's `drop` in, keeping the
-#: first sentence, and the destination is recast in the chief's own words,
-#: holding function-context's correction and the moved sentence once.
+#: #195` item 4, `#201`): the origin takes the mover's side in -- the move's
+#: remainder, keeping the first sentence -- and the destination is recast in
+#: the chief's own words, holding function-context's correction and the moved
+#: sentence once.
 ENDS = [
     {
         "address": "tally.py@b1",
@@ -1909,8 +1912,8 @@ RATE_EXPECTED = (
 #: stetted on the author's answer and the chief ruled its placement for the
 #: original, so neither end of it lands. `b7` reads with the correction three roles
 #: cleaned their way to in the turn, and `c5` with the change its own role
-#: wrote. `b9` is empty and `b8` holds its paragraph: the move was agreed and
-#: split, and the chief took its `drop` in over the rewording, so the comment
+#: wrote. `b9` is empty and `b8` holds its paragraph: the move was agreed,
+#: and the chief took its mover's side in over the rewording, so the comment
 #: leaves the body and stands above the declaration at the declaration's own
 #: indentation -- the
 #: one place here that IS vacated, which is why `def total` follows its
@@ -1973,7 +1976,8 @@ STORE_EXPECTED = (
 
 #: What the proof's `tally.py` must read once the chain closes, written out by
 #: hand from `TALLY_FIXTURE`, `LANDINGS` and `ENDS`. `b1` keeps its first
-#: sentence: the chief agreed the move and then took its `drop` in. `b3`
+#: sentence: the chief agreed the move and then took its mover's side in.
+#: `b3`
 #: reads as the chief recast it, holding function-context's correction and
 #: the moved sentence, which lands there once and nowhere else.
 TALLY_EXPECTED = (
@@ -2413,10 +2417,10 @@ APPROVED = ("store.py@b7", "store.py@c5")
 
 #: And the second partial approval: one end of the agreed move alone, its
 #: arrival at `store.py@b8` without its departure from `store.py@b9`. An
-#: agreed move reaches the proof as its mover's `drop` and `add`, and after
-#: the split the two ends are approved each on its own (`decision-log.md
-#: Process: #195` item 5), so the approval is set as named rather than
-#: refused for the end it leaves out.
+#: agreed move's two ends are two places of the proof, each decided on its
+#: own (`decision-log.md Process: #205`), so each is approved on its own and
+#: the approval is set as named rather than refused for the end it leaves
+#: out.
 ONE_END = "store.py@b8"
 
 
@@ -2481,9 +2485,9 @@ PARTIAL_EXPECTED = (
 #: What `proof --only ONE_END` must leave as `store.py`: `STORE_FIXTURE` with
 #: the agreed move's arrival set above `def total` at the declaration's own
 #: indentation, and every other line untouched -- including the paragraph at
-#: `b9` the move departs from, whose `drop` is not approved here. The
-#: paragraph therefore stands twice, which is what approving one end of a
-#: split move alone sets (`decision-log.md Process: #195` item 5).
+#: `b9` the move departs from, whose empty remainder is not approved here.
+#: The paragraph therefore stands twice, which is what approving one end of
+#: an agreed move alone sets (`decision-log.md Process: #195` item 5).
 ONE_END_EXPECTED = STORE_FIXTURE.replace(
     "def total(log):\n",
     "# The number of lookups the store has seen.\ndef total(log):\n",
@@ -2792,11 +2796,11 @@ UNGATHERED_SNIPPET_LINE = "    # True when the store has answered nothing at all
 #: The line `collate` must print for the planted move (`decision-log.md
 #: Process: #187`): its destination text drops the last word of the paragraph
 #: already there. The copy is the only one folded, so no other role read
-#: either page and the fold agrees the move and splits it at once
-#: (`Process: #195`); what refuses the destination is the split's `add`,
-#: whose row names the text it sets there rather than a destination.
+#: either page and the fold agrees the move at once; the move stays filed at
+#: its destination (`Process: #205`), and its own row refuses the text there.
 UNGATHERED_REFUSAL = (
-    f"block-context {UNGATHERED_DESTINATION}: the text does not keep 'report'"
+    f"block-context {UNGATHERED_DESTINATION}: the destination text does not keep"
+    " 'report'"
 )
 
 

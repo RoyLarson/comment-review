@@ -1,156 +1,22 @@
-"""A move: one placement claim over two places, and the pass that decides it.
+"""The passes that find a move on the places and decide its placement.
 
-`decision-log.md Process: #195`. A move claims that a paragraph is located
-wrongly and belongs at its destination, and nothing about the wording of
-either end. So its placement is one question for the pair, put to every role
-that read either page, and decided here before either end's words are:
+    moves_in         every move filed on the places, with its movers and readers
+    placement_pass   one move's placement, from what was filed and answered
+    settle_ends      a final placement, written onto the two place records
+    hold_ends        an undecided placement, held on its two ends
 
-    OPEN        a reader owed a say has not answered it
-    AGREED      every reader owed a say agreed, or the chief took a mover's
-                side -- final; the move is split
-    CONTESTED   a reader answered `stet`; carried forward for the chief
-    WITHDRAWN   every mover withdrew it, or the chief kept the original --
-                final; the filing comes off
-    HELD        a human-review query was filed at an end, or answered
-    REFUSED     an answer or a ruling this question does not take
-
-While the placement is undecided both ends are `to-come`: neither decides a
-text or asks a role anything (`Process: #200`), and once the placement is
-final each end is evaluated as any place.
-
-A move is identified by its own two addresses (`key_of`), never by a place:
-two moves through one place are two moves.
+The move itself -- its fields, its placements and its name -- is
+`desk.proof.move`.
 """
 
-from dataclasses import dataclass, field
-from enum import StrEnum, auto
-
-from comment_review.desk.answers.answer import Answer, Question
 from comment_review.desk.answers.table import ANSWERS, Effect
-from comment_review.desk.dispositions.disposition import CHIEF, ORIGINAL, Disposition
-from comment_review.desk.evaluate.place import Filed, Place
-from comment_review.desk.evaluate.state import State
-from comment_review.desk.marks.mark import Mark
-from comment_review.desk.marks.table import INSTRUCTIONS, Stance, Touch
-
-
-class Placement(StrEnum):
-    """Where one move's placement stands; `OPEN` until the pass decides it."""
-
-    @staticmethod
-    def _generate_next_value_(name, start, count, last_values):
-        return name.lower()
-
-    OPEN = auto()
-    AGREED = auto()
-    CONTESTED = auto()
-    WITHDRAWN = auto()
-    HELD = auto()
-    REFUSED = auto()
-
-
-#: The placements a fold carries forward, to a turn or to the chief.
-UNDECIDED = frozenset({Placement.OPEN, Placement.CONTESTED})
-#: The placements no later answer changes: the record has been rewritten.
-FINAL = frozenset({Placement.AGREED, Placement.WITHDRAWN})
-
-
-def key_of(origin: str, destination: str) -> str:
-    """One move's name, from its own two addresses."""
-    return f"{origin} -> {destination}"
-
-
-@dataclass
-class Move:
-    """One move's placement, the roles that filed it, and what they were asked.
-
-    `filed` and `readers` are derived from the places each fold by
-    `moves_in`; `movers` is set from `filed` there and recomputed by each
-    `placement_pass`, less the roles that withdrew. None of the three is
-    serialized; the answers and what the pass decided are, so a turn knows
-    which moves are still open and whom to ask.
-    """
-
-    origin: str
-    destination: str
-    #: Every role that filed this move, as the places show it. `movers` is
-    #: the roles still holding the move after withdrawals, recomputed by each
-    #: placement pass from `filed`; neither is serialized.
-    filed: dict[str, Mark] = field(default_factory=dict)
-    movers: dict[str, Mark] = field(default_factory=dict)
-    readers: tuple[str, ...] = ()
-    answers: dict[int, dict[str, Answer]] = field(default_factory=dict)
-    #: A move is open until the placement pass decides it.
-    placement: Placement = Placement.OPEN
-    owed: tuple[str, ...] = ()
-    asking: tuple[str, ...] = ()
-    reasons: tuple[str, ...] = ()
-    #: The chief's ruling on this move's placement: `taken_in` a mover's side
-    #: agrees the move as that mover filed it, `taken_in` the original keeps
-    #: the paragraph where it is.
-    disposition: Disposition | None = None
-
-    @property
-    def key(self) -> str:
-        """This move's name, from its own two addresses."""
-        return key_of(self.origin, self.destination)
-
-    def serialize(self) -> dict:
-        """This move's recorded fields, keyed by this class's own field names."""
-        return {
-            "origin": self.origin,
-            "destination": self.destination,
-            "answers": {
-                str(t): {r: a.serialize() for r, a in by.items()}
-                for t, by in self.answers.items()
-            },
-            "placement": str(self.placement),
-            "owed": list(self.owed),
-            "asking": list(self.asking),
-            "reasons": list(self.reasons),
-            "disposition": self.disposition.serialize() if self.disposition else None,
-        }
-
-    @classmethod
-    def deserialize(cls, where: str, entry: object) -> "tuple[Move | None, list[str]]":
-        """One recorded entry becomes a `Move`, or becomes named problems."""
-        if not isinstance(entry, dict):
-            return None, [f"{where}: a move must be an object"]
-        data: dict = entry
-        origin, destination = data.get("origin"), data.get("destination")
-        if not isinstance(origin, str) or not origin:
-            return None, [f"{where}: a move needs its `origin`"]
-        if not isinstance(destination, str) or not destination:
-            return None, [f"{where}: a move needs its `destination`"]
-        problems: list[str] = []
-        answers: dict[int, dict[str, Answer]] = {}
-        for turn, by in (data.get("answers") or {}).items():
-            for role, raw in by.items():
-                answer, why = Answer.deserialize(f"{where} turn {turn} {role}", raw)
-                if answer is None:
-                    problems += why
-                else:
-                    answers.setdefault(int(turn), {})[role] = answer
-        disposition = None
-        if data.get("disposition") is not None:
-            disposition, why = Disposition.deserialize(where, data["disposition"])
-            problems += why
-        if problems:
-            return None, problems
-        placement = data.get("placement")
-        return (
-            cls(
-                origin=origin,
-                destination=destination,
-                answers=answers,
-                placement=Placement(placement) if placement else Placement.OPEN,
-                owed=tuple(data.get("owed") or ()),
-                asking=tuple(data.get("asking") or ()),
-                reasons=tuple(data.get("reasons") or ()),
-                disposition=disposition,
-            ),
-            [],
-        )
+from comment_review.desk.marks.table import INSTRUCTIONS, Stance
+from comment_review.desk.proof.answer import Question
+from comment_review.desk.proof.disposition import CHIEF, ORIGINAL, Disposition
+from comment_review.desk.proof.mark import MoveMark, Touch
+from comment_review.desk.proof.move import FINAL, UNDECIDED, Move, Placement, key_of
+from comment_review.desk.proof.place import Filed, Place
+from comment_review.desk.proof.state import State
 
 
 def moves_in(
@@ -158,9 +24,9 @@ def moves_in(
 ) -> dict[str, Move]:
     """Every move filed on these places, carrying what the record holds of each.
 
-    A move is found at its origin, where it is filed with `Touch.ORIGIN`, and
-    named by its two addresses. A move the record holds and no place files
-    any longer -- agreed and split, or withdrawn -- keeps its record with no
+    A move is a `MoveMark` found at its origin, where it is filed with
+    `Touch.ORIGIN`, and named by its two addresses. A move the record holds
+    and no place files any longer -- withdrawn -- keeps its record with no
     movers, so its final placement is still reported.
 
     Args:
@@ -176,9 +42,10 @@ def moves_in(
         move.filed = {}
     for place in places.values():
         for one in place.filed:
-            if one.touch is not Touch.ORIGIN:
+            mark = one.mark
+            if one.touch is not Touch.ORIGIN or not isinstance(mark, MoveMark):
                 continue
-            written = INSTRUCTIONS[one.mark.instruction].places(one.mark)
+            written = INSTRUCTIONS[mark.instruction].places(mark)
             destination = next(
                 (where for where, touch in written if touch is Touch.DESTINATION), ""
             )
@@ -186,7 +53,7 @@ def moves_in(
                 continue
             key = key_of(place.address, destination)
             move = out.setdefault(key, Move(place.address, destination))
-            move.filed[one.role] = one.mark
+            move.filed[one.role] = mark
     for move in out.values():
         ends = (places.get(move.origin), places.get(move.destination))
         move.readers = tuple(
@@ -279,24 +146,24 @@ def _ruled(move: Move, ruling: Disposition) -> None:
 
     Only an undecided move takes one. The original keeps the paragraph where
     it is; a mover's side agrees the move as that mover filed it, and any
-    other mover's filing comes off with the split.
+    other mover's filing comes off when the placement is settled.
     """
     if move.placement not in UNDECIDED:
         move.placement, move.reasons = (
             Placement.REFUSED,
             (f"{CHIEF}: a placement that is {move.placement} takes no ruling",),
         )
-    elif ruling.side == ORIGINAL:
+    elif ruling.taken_side == ORIGINAL:
         move.movers, move.placement = {}, Placement.WITHDRAWN
-    elif ruling.side in move.movers:
-        move.movers = {ruling.side: move.movers[ruling.side]}
+    elif ruling.taken_side in move.movers:
+        move.movers = {ruling.taken_side: move.movers[ruling.taken_side]}
         move.placement = Placement.AGREED
     else:
         move.placement, move.reasons = (
             Placement.REFUSED,
             (
                 f"{CHIEF}: a placement is taken in from a mover or the original,"
-                f" and {ruling.side!r} filed no move here",
+                f" and {ruling.taken_side!r} filed no move here",
             ),
         )
     move.owed = ()
@@ -316,53 +183,41 @@ def _is_this_move(one: Filed, move: Move) -> bool:
 
 
 def settle_ends(move: Move, places: dict[str, Place]) -> None:
-    """Write a final placement onto the two place records.
+    """Take off the two ends the filings a final placement no longer stands on.
 
-    AGREED: each remaining mover's filing becomes its `drop` at the origin
-    and `add` at the destination (`Row.splits`), and a mover that withdrew
-    comes off. WITHDRAWN: every filing of this move comes off. A split the
-    row declines -- the snippet is not in the origin exactly once -- makes
-    the placement REFUSED and writes nothing, so `hold_ends` refuses both
-    ends. It adds no reason: the move's own read at the origin tests the same
-    snippet against the same paragraph, and names the defect there.
+    `decision-log.md Process: #205`: an agreed move stays filed at both ends,
+    and each end is decided against the move itself -- its row sets the
+    remainder at the origin and the arrival at the destination. AGREED: a
+    mover the placement did not keep -- one that withdrew, or one the chief
+    did not take in (`Process: #196`) -- comes off. WITHDRAWN: every filing
+    of this move comes off. Nothing is added.
     """
     if move.placement not in FINAL:
         return
-    origin, destination = places.get(move.origin), places.get(move.destination)
-    if origin is None or destination is None:
-        return
-    halves: dict[str, tuple[Mark, Mark]] = {}
-    if move.placement is Placement.AGREED:
-        for role, mark in sorted(move.movers.items()):
-            row = INSTRUCTIONS[mark.instruction]
-            split = (
-                row.splits(mark, origin.base, destination.anchor)
-                if row.splits
-                else None
-            )
-            if split is None:
-                move.placement = Placement.REFUSED
-                return
-            halves[role] = split
-    for end, index in ((origin, 0), (destination, 1)):
-        kept = [one for one in end.filed if not _is_this_move(one, move)]
-        added = [
-            Filed(role, split[index], Touch.OWN, move.origin)
-            for role, split in sorted(halves.items())
+    for end in (places.get(move.origin), places.get(move.destination)):
+        if end is None:
+            continue
+        end.filed = [
+            one
+            for one in end.filed
+            if not _is_this_move(one, move)
+            or (move.placement is Placement.AGREED and one.role in move.movers)
         ]
-        end.filed = kept + added
 
 
 def hold_ends(move: Move, places: dict[str, Place]) -> None:
     """Hold a move's two ends to its placement while it is not final.
 
-    HELD: both ends ride to the author and decide no text. REFUSED, or either
-    end refused on its own: both are refused, each keeping only its own
-    reasons -- the move's are reported once, from the move. OPEN or
-    CONTESTED: both ends are `to-come` -- each decides no text and asks no
-    role anything until the placement is decided (`Process: #200`). A
-    ruling at one of them is refused: its words are ruled against the
-    move's outcome, once there is one.
+    HELD: each end not refused on its own rides to the author and decides no
+    text. OPEN, CONTESTED or REFUSED: each end not refused on its own is
+    `to-come` -- it decides no text and asks no role anything until the
+    placement is decided (`Process: #200`). A ruling at one of them is
+    refused: its words are ruled against the move's outcome, once there is
+    one.
+
+    A refusal is not carried from one end to the other, nor from the move to
+    its ends: the fold is one unit of work, and any refusal -- an end's, at
+    that end, or the move's, once at the move -- rolls the whole round back.
 
     Args:
         move: the move whose ends are held.
@@ -375,6 +230,8 @@ def hold_ends(move: Move, places: dict[str, Place]) -> None:
     ]
     if move.placement is Placement.HELD:
         for end in ends:
+            if end.state is State.REFUSED:
+                continue
             end.state, end.text, end.question, end.owed = (
                 State.UNSETTLABLE,
                 None,
@@ -383,22 +240,11 @@ def hold_ends(move: Move, places: dict[str, Place]) -> None:
             )
             end.asking = end.asking or move.asking
         return
-    refused = move.placement is Placement.REFUSED or any(
-        end.state is State.REFUSED for end in ends
-    )
-    if refused:
-        for end in ends:
-            end.state, end.text = State.REFUSED, None
-        return
     for end in ends:
-        end.state, end.text, end.question, end.owed = State.TO_COME, None, None, ()
-
-
-def is_open(move: Move) -> bool:
-    """Whether a move's placement is still to be decided.
-
-    An open move is put to the roles owed a say on it, carried forward by
-    the fold, waits on the chief's placement ruling at the end of the turns,
-    and keeps a proof from closing.
-    """
-    return move.placement in UNDECIDED
+        if end.state is not State.REFUSED:
+            end.state, end.text, end.question, end.owed = (
+                State.TO_COME,
+                None,
+                None,
+                (),
+            )

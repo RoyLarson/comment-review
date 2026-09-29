@@ -227,71 +227,31 @@ for it. That is the same trap as *a purpose first stated in a review*, one level
 the code produces the justification; here, the leftover field produces the design that then
 justifies it.
 
-### No direct coupling between the ends and the middle. A flow is neither
+### Areas are isolated: an end or the middle reaches down, never across
 
-Roy, 2026-08-31, in two sentences one after the other: *"The flows can reach into the other
-containers to either create them or have them create themselves. This keeps things from
-having import circles and keeps a single definition for what a thing is."* And then the
-rule those serve: *"No direct coupling inside of ends and middle, flows are neither they run
-the steps."*
+The packages fall into areas, and each area imports only what this table allows. Isolation
+keeps each area's concepts in one place, so work in one area does not have to learn another's
+rules. It is required, and `tests/test_areas.py` enforces it: an import across areas fails the
+gate unless it is on the gate's known list, and an entry on that list is a defect to remove,
+not a permission.
 
-| | area | may import |
+| area | packages | may import |
 | --- | --- | --- |
-| **READ END** | `binder` | a leaf |
-| **MIDDLE** | `desk` | a leaf |
-| **WRITE END** | `docket`, `results` | a leaf |
-| **NEITHER** | `flows`, `commands` | anything -- **they run the steps** |
-| **LEAF** | `machine`, `reading`, `concordance` | nothing above them |
+| read end | `binder` | a leaf |
+| middle | `desk` | a leaf |
+| write end | `docket`, `results` | a leaf |
+| neither | `flows`, `commands` | anything -- they run the steps |
+| leaf | `machine`, `reading`, `concordance` | nothing above them |
 
-!! **An end or the middle reaches down, never across.** Down to a leaf is one definition
-reached by two owners -- `binder` and `desk` both read `reading.series`, which is what
-`series.py`'s header describes: the addresser and the lexer take their halves from one leaf
-**"instead of from each other"*. Across is two areas that must then agree.
-
-**AND `HAVE THEM CREATE THEMSELVES` is the other half.** A flow may build a container
-from parts, or hand a container what it needs and let it construct itself. What it may not
-do is let a THIRD module do either -- that is what keeps `deserialize` and the constructor
-answerable to one file.
-
-**The two halves of the reason are separate and both bite.** A cycle is the loud one, and
-this tree has NONE today -- measured 2026-08-31 by walking every `ImportFrom` under
-`src/comment_review/`. The quiet one is the DEFINITION: a module that reaches across has to
-know the other area's rules, so the rules end up stated twice and one copy goes stale.
-
-**MEASURED the same day -- FOUR COUPLINGS**, filed rather than fixed in passing:
-
-    MIDDLE -> READ END    desk/collator.py      Binder, _read_from_problem
-    MIDDLE -> READ END    desk/containers.py    _read_from_problem
-    MIDDLE -> WRITE END   desk/collator.py      Alteration, Schedule, Docket
-    WRITE END -> READ END results/compositor.py Page, page_for
-
-**Three of the four stand; one is superseded.** Re-measured 2026-09-18, after the middle was
-rebuilt, by the same walk over every `from comment_review` import under `desk/` and `results/`:
-
-| the crossing | the import today | |
-| --- | --- | --- |
-| middle -> read end | `desk/collator.py:82`, `Binder` | stands |
-| middle -> read end | `desk/containers.py:74`, `_read_from_problem` | stands |
-| middle -> write end | none | gone with `P55` |
-| write end -> read end | `results/compositor.py:61`, `Page`, `page_for` | stands |
-
-`docket_from` and `_real_pages` left `collator.py` under `P55`, and the transcription is
-`flows/transcribe.py::docket_of`, a flow. `collator.py` does not import `_read_from_problem`
-either, and had stopped before the rebuild began. **The rebuilt middle adds no crossing of its
-own** -- `desk/marks/`, `desk/answers/`, `desk/dispositions/`, `desk/evaluate/` and
-`desk/work/` import `desk` and the leaves, and nothing else.
-
-**A type is coupling, not only A CONSTRUCTOR.** `desk/collator.py` takes a `Binder` as a
-PARAMETER -- it never builds one -- and that is still the middle knowing what the read end's
-artifact is. What it actually needs is a set of addresses and a map of base texts, which the
-FLOW can derive and hand over. An earlier wording of this section called the fault
-**"sideways construction"* and so did not name this one at all.
-
-**The second is the `SINGLE DEFINITION` half failing in the other direction.** `read_from`
-is `{root, revise}` and it sits on a binder, on every `edit_copy` and on a `master_proof` --
-one at each end and one in the middle -- while the function that rules on its shape is
-PRIVATE to `binder`. The definition IS single; it lives where only one of its three owners
-can reach it without crossing.
+- **Down to a leaf is one definition with several readers; across is two areas that must
+  then agree**, and the rule ends up stated twice, with one copy going stale.
+- **A flow builds a container from its parts, or hands a container what it needs to build
+  itself.** No third module builds another area's container.
+- **A type is coupling too.** A function that needs another area's object does not import
+  its type: the reading side declares a `Protocol` of exactly what it reads, and `ty`
+  checks every caller against it. When `ty` reports a mismatch, the fix belongs on the
+  reader's side -- its `Protocol` states what it reads -- never an import of the other
+  area's type to make the check pass.
 
 -> [`decision-log.md`](decision-log.md), *Process*.
 
