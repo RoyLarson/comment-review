@@ -261,7 +261,7 @@ def main() -> int:
         for address in transcribed.sets_nothing if transcribed else ():
             print(f"approved {address}: nothing to set")
     else:
-        copy, problems = EditCopy.deserialize(source, loaded, VALIDATORS)
+        copy, problems = EditCopy.deserialize(source, loaded)
         # The transcribe folds, so it can refuse, and it could not until the
         # marks table decided what a mark sets. `docket_of` runs the Unit of
         # Work over the copy's own places, so a mark whose row cannot read it

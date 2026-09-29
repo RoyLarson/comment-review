@@ -1,31 +1,32 @@
 """The marks table: what each row sets, refuses and pairs as."""
 
 import dataclasses
-import re
+from typing import Any, ClassVar
 
 import pytest
-from helpers import VALIDATORS, a_real_binder_over, returned, seed
+from helpers import a_real_binder_over, a_typed_mark, returned, seed
 
-from comment_review.desk.marks.rules import validate
-from comment_review.desk.marks.table import INSTRUCTIONS, Row, Stance, chief_mark
-from comment_review.desk.proof.mark import Instruction, Mark, Touch, read_mark
+from comment_review.desk.marks.table import INSTRUCTIONS, Stance, chief_mark
+from comment_review.desk.proof.mark import (
+    AddMark,
+    Amendment,
+    CorrectMark,
+    DropMark,
+    Instruction,
+    Mark,
+    Touch,
+    mark_type,
+    read_mark,
+)
 from comment_review.desk.proof.place import Filed, Place
+from comment_review.flows.validators import VALIDATORS
 from comment_review.flows.verify import resolution_problems
 
 
 def _mark(instruction: Instruction, **fields) -> Mark:
-    base = {
-        "address": "m.py@b1",
-        "anchor": "x = 1",
-        "raw_text": "# one\n# two\n# three\n",
-        "instruction": instruction,
-        "claim": {},
-        "reason": "a reason",
-        "sources": (),
-        "change": "",
-    }
+    base: dict[str, Any] = {"raw_text": "# one\n# two\n# three\n", "reason": "a reason"}
     base.update(fields)
-    return Mark(**base)
+    return a_typed_mark(instruction, **base)
 
 
 BASE = "# one\n# two\n# three\n"
@@ -109,7 +110,10 @@ def test_an_add_sets_its_raw_text_and_keeps_the_prose_already_there():
     assert row.sets(mark, Touch.OWN, BASE) == mark.raw_text
     assert row.reads(mark, Touch.OWN, BASE) == []
     dropping = _mark(
-        Instruction.ADD, claim=mark.claim, change="# why\n", raw_text="# why\n# one\n"
+        Instruction.ADD,
+        claim={"missing": "why", "anchor": "`x`"},
+        change="# why\n",
+        raw_text="# why\n# one\n",
     )
     assert row.reads(dropping, Touch.OWN, BASE) == ["the text does not keep 'two'"]
 
@@ -159,54 +163,42 @@ def test_every_row_names_the_answers_a_turn_may_give_on_it():
             )
 
 
-def test_owes_destination_is_derived_from_touches_not_set_beside_it():
-    """A row cannot state `owes_destination` and `touches` in disagreement --
-    `__post_init__` derives the first from the second every time, so passing
-    a literal for it is overwritten rather than kept."""
-    moving = Row(
-        claim_all=("to",),
-        names_destination="to",
-        touches=(Touch.ORIGIN, Touch.DESTINATION),
-    )
-    assert moving.owes_destination is True
-    assert Row().owes_destination is False
-    assert Row(touches=(Touch.OWN,), owes_destination=True).owes_destination is False
-
-
-@pytest.mark.parametrize(
-    ("fields", "named"),
-    [
-        pytest.param(
-            {"touches": (Touch.ORIGIN, Touch.DESTINATION)},
-            "a destination touch and no destination key",
-            id="a-destination-with-no-key",
-        ),
-        pytest.param(
-            {"claim_all": ("to",), "names_destination": "to"},
-            "a destination key and no destination touch",
-            id="a-key-with-no-destination",
-        ),
-        pytest.param(
-            {
-                "claim_all": ("from",),
-                "names_destination": "to",
-                "touches": (Touch.ORIGIN, Touch.DESTINATION),
-            },
-            "`to`, which its claim keys do not name",
-            id="a-key-the-claim-does-not-carry",
-        ),
-    ],
-)
-def test_a_row_whose_destination_key_and_touches_disagree_is_refused(fields, named):
-    """`places` reads the destination under the key and the parse checks the
-    key only where `touches` names a destination, so a row stating one
-    without the other writes a destination nothing checks, or checks one
+def test_a_destination_touch_is_on_exactly_the_rows_whose_type_names_one():
+    """`places` writes at the destination a row's touches name, and the type's
+    read checks a destination only where its type names one -- so the two
+    disagreeing would write a destination nothing checks, or check one
     nothing writes."""
-    with pytest.raises(ValueError, match=re.escape(named)):
-        Row(**fields)
+    for instruction, row in INSTRUCTIONS.items():
+        kind = mark_type(instruction)
+        assert (Touch.DESTINATION in row.touches) is kind.owes_destination, instruction
+        assert bool(kind.names_destination) is kind.owes_destination, instruction
+
+
+def test_owes_destination_is_derived_from_the_destination_key():
+    """A type states its destination key, never `owes_destination` beside it."""
+
+    class Elsewhere(Amendment):
+        claim_all: ClassVar[tuple[str, ...]] = ("from", "there")
+        names_destination: ClassVar[str] = "there"
+
+    class Nowhere(Amendment):
+        owes_destination: ClassVar[bool] = True
+
+    assert Elsewhere.owes_destination is True
+    assert Nowhere.owes_destination is False
+
+
+def test_a_type_naming_a_key_its_claim_does_not_carry_is_refused():
+    with pytest.raises(TypeError, match="`to`, which its claim keys do not carry"):
+
+        class Stray(Amendment):
+            claim_all: ClassVar[tuple[str, ...]] = ("from",)
+            names_destination: ClassVar[str] = "to"
 
 
 def test_a_move_writes_at_its_origin_and_at_its_destination():
+    """The destination is the claim key the type names -- `to`."""
+    assert mark_type(Instruction.MOVE).names_destination == "to"
     mark = _mark(Instruction.MOVE, claim={"from": "m.py@b1", "to": "m.py@b5"})
     assert INSTRUCTIONS[Instruction.MOVE].places(mark) == (
         ("m.py@b1", Touch.ORIGIN),
@@ -214,46 +206,24 @@ def test_a_move_writes_at_its_origin_and_at_its_destination():
     )
 
 
-#: A row naming its destination under a key other than the shipped one.
-THERE = Row(
-    claim_all=("from", "there"),
-    names_destination="there",
-    touches=(Touch.ORIGIN, Touch.DESTINATION),
-)
-
-
-def test_the_destination_is_read_under_the_key_the_row_names():
-    """The row states which claim key names its destination, the way
-    `quotes_original` states which one quotes."""
-    assert INSTRUCTIONS[Instruction.MOVE].names_destination == "to"
-    mark = _mark(Instruction.MOVE, claim={"to": "m.py@b5", "there": "m.py@b9"})
-    assert THERE.places(mark) == (
-        ("m.py@b1", Touch.ORIGIN),
-        ("m.py@b9", Touch.DESTINATION),
-    )
-
-
-def test_a_refusal_about_the_destination_names_the_rows_own_key(tmp_path, monkeypatch):
-    """The parse's two destination refusals and resolution's spell the key
-    the row names, as `derived_change` spells `quotes_original`."""
-    monkeypatch.setitem(INSTRUCTIONS, Instruction.MOVE, THERE)
+def test_a_refusal_about_the_destination_names_the_types_own_key(tmp_path):
+    """The read's two destination refusals and resolution's spell the key the
+    type names, as `derived_change` spells `quotes_original`."""
     entry = {
         "address": "m.py@b1",
         "instruction": "move",
-        "claim": {"from": "m.py@b1", "there": "m.py@b1"},
+        "claim": {"from": "m.py@b1", "to": "m.py@b1"},
         "reason": "a reason",
         "sources": [{"cite": "m.py:1", "verbatim": "x = 1"}],
         "change": "# two",
         "raw_text": BASE,
     }
-    _, onto_itself = read_mark("w", entry, validate)
-    _, not_a_place = read_mark(
-        "w", {**entry, "claim": {"from": "m.py@b1", "there": "b9"}}, validate
-    )
+    _, onto_itself = read_mark("w", entry)
+    _, not_a_place = read_mark("w", {**entry, "claim": {"from": "m.py@b1", "to": "b9"}})
     assert [*onto_itself, *not_a_place] == [
-        "w: `claim.there` is this mark's own `address` -- a move to where the"
+        "w: `claim.to` is this mark's own `address` -- a move to where the"
         " paragraph already is deletes it and writes nothing back",
-        "w: `claim.there` 'b9' is not a `path@cue` place -- a destination on a"
+        "w: `claim.to` 'b9' is not a `path@cue` place -- a destination on a"
         " gathered page is its full address, as the addresser prints it, and one"
         " outside the code is not carried yet (`decision-log.md Process: #173`):"
         " file a `human-review-necessary` query here naming it instead",
@@ -262,11 +232,11 @@ def test_a_refusal_about_the_destination_names_the_rows_own_key(tmp_path, monkey
     binder = a_real_binder_over(tmp_path, {"m.py@b1": BASE})
     wire = seed(binder, "block-context")
     wire["sheets"][0]["marks"][0].update(
-        {**entry, "claim": {"from": "m.py@b1", "there": "m.py@b9"}}
+        {**entry, "claim": {"from": "m.py@b1", "to": "m.py@b9"}}
     )
     problems = resolution_problems(returned(wire), ["m.py"], tmp_path, {})
     assert [p.message for p in problems] == [
-        "`claim.there` 'm.py@b9' resolves against no page -- m.py carries no place 'b9'"
+        "`claim.to` 'm.py@b9' resolves against no page -- m.py carries no place 'b9'"
     ]
 
 
@@ -314,8 +284,8 @@ def test_chief_mark_synthesizes_a_correct_when_no_filed_mark_set_the_text():
         text="# different\n",
     )
     got = chief_mark(place)
-    assert got.instruction is Instruction.CORRECT
-    assert got.claim == {"false": BASE, "true": "# different\n"}
+    assert isinstance(got, CorrectMark)
+    assert got.serialize()["claim"] == {"false": BASE, "true": "# different\n"}
     assert got.change == "# different\n"
     assert got.raw_text == BASE
 
@@ -353,20 +323,21 @@ def test_chief_mark_synthesizes_over_a_side_composed_from_two_marks():
         for one in place.filed
     )
     got = chief_mark(place)
+    assert isinstance(got, CorrectMark)
     assert got.change == composed
     assert got.raw_text == BASE
     # The filed marks' evidence, deduped: what the chief read to decide the
     # text, and what the parse demands of the row it synthesized.
     assert got.sources == cited
-    again, why = read_mark(got.address, got.serialize(), validate)
+    again, why = read_mark(got.address, got.serialize())
     assert why == [] and again == got
 
 
 def test_chief_mark_synthesizes_an_add_over_an_empty_base():
     place = Place(address="m.py@b1", anchor="x = 1", base="", filed=[], text="# new\n")
     got = chief_mark(place)
-    assert got.instruction is Instruction.ADD
-    assert got.claim == {"missing": "# new", "anchor": "`x = 1`"}
+    assert isinstance(got, AddMark)
+    assert got.serialize()["claim"] == {"missing": "# new", "anchor": "`x = 1`"}
     assert got.change == "# new\n"
     # Process #176: an add's `raw_text` is the paragraph as it will read, and
     # its row sets that text at the place. The base is empty here, so the two
@@ -378,8 +349,8 @@ def test_chief_mark_synthesizes_an_add_over_an_empty_base():
 def test_chief_mark_synthesizes_a_drop_when_the_decided_text_is_empty():
     place = Place(address="m.py@b1", anchor="x = 1", base=BASE, filed=[], text="")
     got = chief_mark(place)
-    assert got.instruction is Instruction.DROP
-    assert got.claim == {"drop": BASE}
+    assert isinstance(got, DropMark)
+    assert got.serialize()["claim"] == {"drop": BASE}
     assert got.change == ""
     assert got.raw_text == BASE
 
@@ -468,11 +439,11 @@ def test_a_mark_writing_two_places_is_never_the_chiefs_mark_whole():
     """Before P3 the chief rules a move's ends one at a time, so each end is
     written from its own decided text -- a move taken whole at one end would
     land at an end the chief may have recast."""
-    move = Mark(
+    move = a_typed_mark(
+        Instruction.MOVE,
         address="m.py@b1",
         anchor="x = 1",
         raw_text="# four\n# two\n# five\n",
-        instruction=Instruction.MOVE,
         claim={"from": "m.py@b1", "to": "m.py@b5"},
         reason="r",
         sources=({"cite": "m.py:1", "verbatim": "v0 = 0"},),
@@ -486,7 +457,8 @@ def test_a_mark_writing_two_places_is_never_the_chiefs_mark_whole():
         text="# one\n# three\n",
     )
     got = chief_mark(place)
-    assert got.instruction is not Instruction.MOVE and got.change == "# one\n# three\n"
+    assert isinstance(got, Amendment) and got.instruction is not Instruction.MOVE
+    assert got.change == "# one\n# three\n"
 
 
 class TestTheSplit:
@@ -499,11 +471,11 @@ class TestTheSplit:
     LANDED = "# four\n# two\n# five\n"
 
     def _move(self, change="# two\n") -> Mark:
-        return Mark(
+        return a_typed_mark(
+            Instruction.MOVE,
             address="m.py@b1",
             anchor="x = 1",
             raw_text=self.LANDED,
-            instruction=Instruction.MOVE,
             claim={"from": "m.py@b1", "to": "m.py@b5"},
             reason="it belongs with five",
             sources=({"cite": "m.py:5", "verbatim": "v5 = 5"},),
@@ -524,17 +496,18 @@ class TestTheSplit:
     def test_the_drop_leaves_the_remainder_and_the_add_lands_the_arrival(self):
         drop, add = self._split()
         assert (drop.instruction, drop.address) == (Instruction.DROP, "m.py@b1")
-        assert drop.claim == {"drop": "# two\n"} and drop.change == "# one\n# three\n"
+        assert isinstance(drop, DropMark) and isinstance(add, AddMark)
+        assert drop.drop == "# two\n" and drop.change == "# one\n# three\n"
         assert (add.instruction, add.address) == (Instruction.ADD, "m.py@b5")
         assert add.raw_text == self.LANDED and add.change == "# two\n"
-        assert add.anchor == "y = 5" and add.claim["anchor"] == "`y = 5`"
+        assert add.anchor == "y = 5" and add.named_anchor == "`y = 5`"
         assert drop.reason == add.reason == "it belongs with five"
         assert drop.sources == add.sources == self._move().sources
 
     def test_each_half_is_an_ordinary_mark_the_parse_takes(self):
         """T1: no second shape of `change` -- each half is a plain string."""
         for half in self._split():
-            back, why = read_mark("half", half.serialize(), validate)
+            back, why = read_mark("half", half.serialize())
             assert why == [] and back == half
 
     def test_each_half_sets_its_end_through_its_own_row(self):
@@ -549,7 +522,7 @@ class TestTheSplit:
             INSTRUCTIONS[add.instruction].sets(add, Touch.OWN, self.LANDING)
             == self.LANDED
         )
-        assert drop.claim["drop"] == add.change
+        assert drop.drop == add.change
 
     def test_an_arrival_that_loses_a_word_of_the_landing_is_refused(self):
         """T4: the add row's own read refuses it by the word it lost."""
@@ -566,7 +539,7 @@ class TestTheSplit:
         parse, so the add names its destination instead, and still reads back
         off a place."""
         _drop, add = self._split(anchor="")
-        assert add.claim["anchor"] == "`m.py@b5`"
+        assert add.named_anchor == "`m.py@b5`"
         place = Place(
             address="m.py@b5", anchor="", base="", filed=[Filed("a", add, Touch.OWN)]
         )

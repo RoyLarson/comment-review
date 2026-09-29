@@ -1,7 +1,7 @@
 # The mark -- the shape, and the classifiers that are allowed to exist
 
 !! **THIS FILE IS THE SOURCE.** A mark's fields, and the classifiers that decide what each
-instruction owes, are stated HERE and nowhere else. `desk/marks/mark.py` and
+instruction owes, are stated HERE and nowhere else. `desk/proof/mark.py` and
 `desk/marks/table.py` implement this file; `reviewer-brief.md` publishes it to a role.
 **Neither of them defines it.**
 
@@ -43,9 +43,9 @@ superseding ruling applied rather than annotated.
 
 !! **THE NUMBER IN THIS HEADING AND THE ROWS IN THIS TABLE MUST AGREE, AND A GATE READS
 BOTH.** `tests/gates/test_mark_shape.py` takes the count from the heading's own word and
-asserts the table holds that many, then asserts the dataclass carries exactly those names
-in that order. **No count is typed in the test**, so adding a field means editing this
-file and `desk/marks/mark.py` together -- which is the only form of the check that cannot be
+asserts the table holds that many, then asserts `Mark.FIELDS` -- the wire entry every mark
+type writes -- is exactly those names in that order. **No count is typed in the test**, so
+adding a field means editing this file and `desk/proof/mark.py` together -- which is the only form of the check that cannot be
 satisfied by editing the code alone.
 
 !! **`claim` IS THE SPEC AND `change` IS THE RESULT.** Roy, 2026-08-17: *"the change is what allows
@@ -260,6 +260,12 @@ to THIS FILE first.
 | **pairs** | how a mark of this row stands toward the others at its place | a function of the mark |
 | **splits** | how an agreed mark of this row becomes one-place marks, once every reader has agreed its placement (`decision-log.md Process: #195`) | a function of the mark, the origin's base and the destination's anchor, or none |
 | **answers** | which answers a turn may give where this row proposes | a list of names |
+
+**Each classifier has one home.** What a mark's own read needs -- claim keys, verbatim,
+destination key, change, sources, and every flag but *carries raw text* -- is a class
+attribute of the instruction's type in `desk/proof/mark.py`. What a mark does at a place --
+touches, sets, reads, notes, pairs, splits, answers, and *carries raw text* -- is a field of
+the row in `desk/marks/table.py`. The gate reads both homes.
 
 **The flags, and there are five:**
 

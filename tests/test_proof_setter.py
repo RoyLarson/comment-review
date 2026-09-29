@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 from conftest import PKG, SAMPLE, build, by_cue, cue, docket_from
-from helpers import VALIDATORS, a_move, copies_over, entries_of, returned
+from helpers import a_move, copies_over, entries_of, returned
 
 from comment_review.binder.binder import bind
 from comment_review.desk.proof.edit_copy import EditCopy
@@ -484,7 +484,7 @@ class TestTheWriteEndChecksAMarksAnchor:
         )
         if anchor is not None:
             slot["anchor"] = anchor
-        copy, why = EditCopy.deserialize("copy", wire, VALIDATORS)
+        copy, why = EditCopy.deserialize("copy", wire)
         assert copy is not None, why
         return copy
 

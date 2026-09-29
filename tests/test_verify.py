@@ -26,7 +26,7 @@ from helpers import (
 )
 
 from comment_review.desk.collator import Cache, known_addresses, verify_report
-from comment_review.desk.proof.mark import Mark
+from comment_review.desk.proof.mark import BlankMark
 from comment_review.desk.stages import Kind, Stage
 from comment_review.flows.page_for import page_of
 from comment_review.flows.verify import (
@@ -123,7 +123,7 @@ class TestAnAddressMustResolveAgainstAPage:
         moved = [
             m for s in returned(wire).sheets for m in s.marks if m.address == origin
         ]
-        assert [m.claim.get("to") for m in moved] == [absent]
+        assert [m.destination for m in moved] == [absent]
         assert [p for p in _resolution(wire, binder, repo) if p.address == origin] == []
 
 
@@ -221,7 +221,7 @@ class TestAnAddressOutsideTheCheckoutIsNotRead:
         wire = seed(binder, "block-context")
         wire["sheets"][0]["marks"][0].update(a_clean("m.py@b1"))
         correct = {
-            **Mark.seed(address, "", ""),
+            **BlankMark(address, "", "").serialize(),
             "instruction": "correct",
             "claim": {"false": "# two", "true": "# 2"},
             "reason": "written for the containment check",
@@ -267,7 +267,7 @@ class TestAQuoteIsCheckedAgainstThePage:
         wire = seed(binder, "block-context")
         wire["sheets"][0]["marks"][0].update(a_clean("a.py@b1"))
         correct = {
-            **Mark.seed("b.py@b1", "", ""),
+            **BlankMark("b.py@b1", "", "").serialize(),
             "instruction": "correct",
             "claim": {"false": false, "true": "# 2"},
             "reason": "written for the quote check",

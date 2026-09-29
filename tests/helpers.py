@@ -27,6 +27,7 @@ what drive them now.
 
 import json
 from pathlib import Path
+from typing import Any
 
 from conftest import ROOT, cue, run_command
 
@@ -34,10 +35,22 @@ from comment_review.binder.binder import VERSION, Binder, bind
 from comment_review.commands import collate as collate_command
 from comment_review.commands import disposition as disposition_command
 from comment_review.commands import turn as turn_command
-from comment_review.desk.marks.rules import ANCHOR_EXAMPLE
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.edit_copy import EditCopy
-from comment_review.desk.proof.mark import Instruction, Mark, Shape
+from comment_review.desk.proof.mark import (
+    ANCHOR_EXAMPLE,
+    AddMark,
+    CleanMark,
+    CorrectMark,
+    DropMark,
+    Instruction,
+    Mark,
+    MoveMark,
+    PatchMark,
+    QueryMark,
+    Shape,
+    mark_type,
+)
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.docket.docket import Docket
@@ -46,7 +59,6 @@ from comment_review.flows.distribute import seed
 from comment_review.flows.fill import fill
 from comment_review.flows.page_for import page_of, source_of
 from comment_review.flows.proof_io import load_proof
-from comment_review.flows.validators import VALIDATORS
 
 #: `src/comment_review/desk/` -- the source `a_small_real_tree` copies from.
 #: Any package with a handful of ordinary Python files would do; this one was
@@ -479,7 +491,7 @@ def _quoting_the_real_text(mark: dict, entry: dict) -> dict:
     !! MEASURED 2026-08-31, WHEN `P25` GAVE THE CLAIM A READER. `a_correct`'s
     default sentence -- `"the paragraph's own claim"` -- is in no paragraph any
     helper builds, so **every mark built from that default carried a claim that
-    was never true of its own base**. Nothing could see it: `desk.marks.rules.validate`
+    was never true of its own base**. Nothing could see it: a mark's own read
     imports no binder and no page, so the sentence was unfalsifiable until
     `desk.collator.claim_verbatim_problems` ran in the flow.
 
@@ -494,7 +506,7 @@ def _quoting_the_real_text(mark: dict, entry: dict) -> dict:
 
     !! THE KEY COMES FROM `quotes_original`, NOT FROM THE WORD `false`, and was
     keyed to `false` for one commit. `desk.collator.claim_verbatim_problems`
-    reads `INSTRUCTIONS[mark.instruction].quotes_original` -- `claim.drop` for a
+    reads the type's `quotes_original` -- `claim.drop` for a
     `drop`, `claim.false` for a `correct`, `claim.from` for a `patch` -- and
     `a_drop` defaults to the SAME placeholder. Keyed to one row's field name,
     the fix covered `correct` and left the next `drop` driven through `collate`
@@ -502,8 +514,8 @@ def _quoting_the_real_text(mark: dict, entry: dict) -> dict:
     """
     claim = mark.get("claim")
     instruction = mark.get("instruction")
-    row = INSTRUCTIONS.get(instruction) if instruction is not None else None
-    key = row.quotes_original if row is not None else None
+    named = instruction in INSTRUCTIONS
+    key = mark_type(Instruction(instruction)).quotes_original if named else None
     if not key or not isinstance(claim, dict):
         return mark
     if claim.get(key) != _PLACEHOLDER_SENTENCE:
@@ -566,6 +578,12 @@ def marks_of(sheet: Sheet) -> list[Mark]:
     return list(sheet.marks)
 
 
+def changes_of(marks: list[Mark]) -> list[str | None]:
+    """Each mark's `change` as its wire entry carries it -- None for a type
+    that carries none."""
+    return [mark.serialize().get("change") for mark in marks]
+
+
 def entries_of(copy: EditCopy) -> list[Mark]:
     """Every mark on a copy, flattened, in sheet then mark order.
 
@@ -587,7 +605,7 @@ def returned(wire: dict, where: str = "copy") -> EditCopy:
     being a well-formed copy fails HERE, naming the field, rather than as a
     surprising result from the function under test.
     """
-    copy, why = EditCopy.deserialize(where, wire, VALIDATORS)
+    copy, why = EditCopy.deserialize(where, wire)
     assert copy is not None, why
     return copy
 
@@ -649,14 +667,76 @@ def returned_copies(by_role: dict) -> list[EditCopy]:
     return copies
 
 
+def a_typed_mark(
+    instruction: Instruction,
+    *,
+    address: str = "m.py@b1",
+    anchor: str = "x = 1",
+    raw_text: str = "",
+    claim: dict | None = None,
+    reason: str = "r",
+    sources: tuple[object, ...] = (),
+    change: str = "",
+) -> Mark:
+    """A mark of `instruction`'s type, BUILT rather than read.
+
+    For a case that hands a table verb or a fold a mark directly, the way the
+    split and the chief build one. Nothing is checked: a claim key left out is
+    "", and a `query` with no shape is `unable-to-determine`. A case asking
+    what the read refuses goes through `read_mark` instead.
+    """
+    got = dict(claim or {})
+    common: dict[str, Any] = {
+        "address": address,
+        "anchor": anchor,
+        "raw_text": raw_text,
+        "reason": reason,
+        "sources": sources,
+    }
+    match instruction:
+        case Instruction.CLEAN:
+            return CleanMark(**common)
+        case Instruction.QUERY:
+            return QueryMark(
+                **common,
+                shape=Shape(got.get("shape", Shape.UNABLE_TO_DETERMINE)),
+                attempted=got.get("attempted", ""),
+                settles=got.get("settles", ""),
+            )
+        case Instruction.DROP:
+            return DropMark(**common, change=change, drop=got.get("drop", ""))
+        case Instruction.CORRECT:
+            return CorrectMark(
+                **common,
+                change=change,
+                false=got.get("false", ""),
+                true=got.get("true", ""),
+            )
+        case Instruction.PATCH:
+            return PatchMark(
+                **common, change=change, from_=got.get("from", ""), to=got.get("to", "")
+            )
+        case Instruction.ADD:
+            return AddMark(
+                **common,
+                change=change,
+                missing=got.get("missing", ""),
+                named_anchor=got.get("anchor", ""),
+            )
+        case Instruction.MOVE:
+            return MoveMark(
+                **common, change=change, from_=got.get("from", ""), to=got.get("to", "")
+            )
+
+
 def _mark(instruction: Instruction, address: str, claim: dict) -> dict:
-    """One mark, its required fields read off `INSTRUCTIONS[instruction]` --
-    never hand-typed, so a row changed under this helper breaks it loudly.
+    """One mark, its required fields read off the instruction's type --
+    never hand-typed, so a type changed under this helper breaks it loudly.
 
     Args:
         instruction: which of the seven.
         address: this mark's own `address`.
-        claim: exactly the keys `INSTRUCTIONS[instruction].claim_all` names.
+        claim: exactly the keys the type's `claim_all` names.
 
     Returns:
         A mark carrying `address`, `instruction`, `reason`, `claim`, and
@@ -667,7 +747,7 @@ def _mark(instruction: Instruction, address: str, claim: dict) -> dict:
         AssertionError: `claim` does not carry exactly the keys the row's
             `claim_all` demands.
     """
-    spec = INSTRUCTIONS[instruction]
+    spec = mark_type(instruction)
     if set(claim) != set(spec.claim_all):
         raise AssertionError(
             f"{instruction}: claim needs {sorted(spec.claim_all)}, got {sorted(claim)}"
@@ -704,7 +784,7 @@ def a_clean(address: str) -> dict:
 
 
 def a_drop(address: str, sentence: str = _PLACEHOLDER_SENTENCE) -> dict:
-    """A `drop` mark -- the one row `INSTRUCTIONS[...].may_empty` is True for,
+    """A `drop` mark -- the one type `may_empty` is True for,
     so an empty `change` on it is the edit rather than a missing one."""
     return _mark(Instruction.DROP, address, {"drop": sentence})
 
@@ -715,8 +795,8 @@ def a_correct(address: str, sentence: object = _PLACEHOLDER_SENTENCE) -> dict:
 
     ! `sentence` IS COERCED TO A STRING, so a caller may pass a bare
     discriminator (`sentence=0`, `sentence=2`) to say only *a different
-    sentence from the other mark's*. `desk.marks.rules.validate` requires a filled
-    STRING, and `0` is neither.
+    sentence from the other mark's*. A mark's read requires a filled STRING,
+    and `0` is neither.
     """
     return _mark(
         Instruction.CORRECT,

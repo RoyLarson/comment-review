@@ -72,13 +72,13 @@ def apply_unified(before: str, diff_lines: list[str]) -> str:
 
 def test_the_rendered_diff_reproduces_the_revise():
     # !! THE SUBSTITUTED TEXT IS REAL, GREPPED OFF THE FILE ITSELF -- `CLAUDE.md`'s
-    # ruling against a hand-authored fixture. `marks/rules.py`'s `_claim_problems`
-    # docstring reads "carries the keys this instruction's row demands".
+    # ruling against a hand-authored fixture. `marks/rules.py`'s `derived_change`
+    # docstring reads "THE QUOTED CLAUSE IS ONE STATEMENT".
     rel = "src/comment_review/desk/marks/rules.py"
     before = (_REPO_ROOT / rel).read_text(encoding="utf-8")
-    needle = "the keys this instruction's row demands"
+    needle = "THE QUOTED CLAUSE IS ONE STATEMENT"
     assert needle in before
-    after = before.replace(needle, "the keys THIS instruction's row demands", 1)
+    after = before.replace(needle, "THE QUOTED CLAUSE IS one STATEMENT", 1)
     lines = unified(before, after, rel)
     assert apply_unified(before, lines) == after  # a checked literal round trip
 

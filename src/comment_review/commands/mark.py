@@ -25,8 +25,8 @@ so the ordinary case is inline.
 ! THE CLAIM'S KEYS ARE FLAGS BY NAME -- `--false --true` for a `correct`,
 `--from --to` for a `patch` or a `move`, `--drop`, `--missing --anchor` for an
 `add`, `--shape --attempted --settles` for a `query`. A flag the instruction's
-row does not carry is refused by name, and a missing one is named by
-`desk.marks.rules.validate`, so a role learns the contract from the refusal.
+type does not carry is refused by name, and a missing one is named by the
+type's own read, so a role learns the contract from the refusal.
 
 ! A SOURCE IS `--cite`, AND `--verbatim` OR `--ran` BINDS TO THE `--cite`
 BEFORE IT. Ruled 2026-09-07. A `--cite` with no `--verbatim` has the cited
@@ -56,6 +56,7 @@ import sys
 from pathlib import Path
 
 from comment_review.desk.marks.table import INSTRUCTIONS
+from comment_review.desk.proof.mark import Instruction, mark_type
 from comment_review.flows.fill import fill, withdraw
 from comment_review.flows.proof_io import load_copy, save_wire
 from comment_review.machine import constants, exceptions
@@ -67,11 +68,11 @@ OK = 0
 BROKEN = 1
 UNREADABLE = 2
 
-#: Every claim key any row names, in the order `docs/the-mark.md` lists the
-#: rows. Each is a flag; which ones an instruction accepts is its row's
-#: `claim_all`.
+#: Every claim key any type names, in the order `docs/the-mark.md` lists the
+#: instructions. Each is a flag; which ones an instruction accepts is its
+#: type's `claim_all`.
 CLAIM_FLAGS = tuple(
-    dict.fromkeys(key for spec in INSTRUCTIONS.values() for key in spec.claim_all)
+    dict.fromkeys(key for name in INSTRUCTIONS for key in mark_type(name).claim_all)
 )
 
 #: The prefix that says "read this value from a file".
@@ -147,8 +148,8 @@ def _expanded(argv: list[str]) -> tuple[list[str], list[str]]:
 
 
 def _entry(args: argparse.Namespace) -> tuple[dict, list[str]]:
-    """The ruling as `flows.fill` takes it, or the claim flags the row refuses."""
-    spec = INSTRUCTIONS[args.instruction]
+    """The ruling as `flows.fill` takes it, or the claim flags the type refuses."""
+    spec = mark_type(Instruction(args.instruction))
     given = {key: getattr(args, key) for key in CLAIM_FLAGS if getattr(args, key)}
     stray = sorted(set(given) - set(spec.claim_all))
     if stray:

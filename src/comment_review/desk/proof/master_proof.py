@@ -88,7 +88,7 @@ class MasterProof:
         copies: list[EditCopy] = []
         problems: list[str] = []
         for i, raw in enumerate(raw_copies, 1):
-            copy, why = EditCopy.deserialize(f"{where}: edit_copy {i}", raw, validators)
+            copy, why = EditCopy.deserialize(f"{where}: edit_copy {i}", raw)
             if copy is None:
                 problems += why
             else:

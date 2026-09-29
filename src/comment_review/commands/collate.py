@@ -45,7 +45,6 @@ from comment_review.flows.proof_io import (
     save_copy,
     save_proof,
 )
-from comment_review.flows.validators import VALIDATORS
 
 #: Exit codes, extending `distribute`'s own 0/1/2 with the two outcomes a
 #: caller branches on. `main` checks the escalation before the composition, so
@@ -288,7 +287,7 @@ def _envelope(documents: list) -> tuple[list[EditCopy], list]:
     copies: list[EditCopy] = []
     refused: list = []
     for path, document in documents:
-        parsed, why = EditCopy.deserialize(path, document, VALIDATORS)
+        parsed, why = EditCopy.deserialize(path, document)
         if why:
             named = document.get("role") if isinstance(document, dict) else None
             who = named if isinstance(named, str) and named else path

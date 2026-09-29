@@ -5,7 +5,7 @@ nothing else, so its placement is decided once for the pair, by every role
 that read either page, before either end's words are.
 """
 
-from helpers import VALIDATORS
+from helpers import a_typed_mark
 
 from comment_review.desk.evaluate.move import moves_in, placement_pass
 from comment_review.desk.proof.answer import Answer, Question
@@ -13,6 +13,7 @@ from comment_review.desk.proof.disposition import Disposition
 from comment_review.desk.proof.mark import Instruction, Mark, Shape, Touch
 from comment_review.desk.proof.move import Move, Placement
 from comment_review.desk.proof.place import Filed, Place
+from comment_review.flows.validators import VALIDATORS
 
 ORIGIN, DESTINATION = "m.py@b1", "m.py@b5"
 BASE = "# one\n# two\n# three\n"
@@ -31,11 +32,11 @@ DEFERRING = {
 
 
 def _mark(instruction, address=ORIGIN, change="", raw_text=BASE, claim=None) -> Mark:
-    return Mark(
+    return a_typed_mark(
+        instruction,
         address=address,
         anchor="x = 1",
         raw_text=raw_text,
-        instruction=instruction,
         claim=claim or {},
         reason="r",
         sources=(),

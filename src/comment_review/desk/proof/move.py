@@ -27,7 +27,7 @@ from enum import StrEnum, auto
 
 from comment_review.desk.proof.answer import Answer, read_answers
 from comment_review.desk.proof.disposition import Disposition, read_disposition
-from comment_review.desk.proof.mark import Mark, read_member
+from comment_review.desk.proof.mark import MoveMark, read_member
 from comment_review.desk.proof.validators import Validators
 
 
@@ -73,8 +73,8 @@ class Move:
     #: Every role that filed this move, as the places show it. `movers` is
     #: the roles still holding the move after withdrawals, recomputed by each
     #: placement pass from `filed`; neither is serialized.
-    filed: dict[str, Mark] = field(default_factory=dict)
-    movers: dict[str, Mark] = field(default_factory=dict)
+    filed: dict[str, MoveMark] = field(default_factory=dict)
+    movers: dict[str, MoveMark] = field(default_factory=dict)
     readers: tuple[str, ...] = ()
     answers: dict[int, dict[str, Answer]] = field(default_factory=dict)
     #: A move is open until the placement pass decides it.

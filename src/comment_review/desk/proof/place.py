@@ -101,8 +101,9 @@ class Place:
     ) -> "tuple[Place | None, list[str]]":
         """One entry becomes a `Place`, or becomes named problems.
 
-        Each filed mark, each answer and the chief's ruling is read by its
-        own reader and held to the matching member of `validators`.
+        Each filed mark is read into its own type, and each answer and the
+        chief's ruling by its own reader, held to the matching member of
+        `validators`.
         """
         if not isinstance(entry, dict):
             return None, [f"{where}: a place must be an object"]
@@ -110,7 +111,7 @@ class Place:
         problems: list[str] = []
         filed = []
         for i, one in enumerate(data.get("filed") or [], 1):
-            mark, why = read_mark(f"{where} mark {i}", one, validators.mark)
+            mark, why = read_mark(f"{where} mark {i}", one)
             if mark is None:
                 problems += why
                 continue

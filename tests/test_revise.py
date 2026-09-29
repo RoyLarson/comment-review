@@ -16,7 +16,6 @@ from helpers import (
     FIRST_FIXED,
     TWO,
     TYPOS,
-    VALIDATORS,
     a_clean,
     a_correct,
     a_correct_setting,
@@ -52,6 +51,7 @@ from comment_review.flows.transcribe import (
     docket_of,
     docket_of_proof,
 )
+from comment_review.flows.validators import VALIDATORS
 
 
 def a_copy(root: Path, role: str, paragraphs: dict[str, str], marks: dict) -> EditCopy:

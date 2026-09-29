@@ -4,7 +4,6 @@ from dataclasses import replace
 
 import pytest
 from helpers import (
-    VALIDATORS,
     a_clean,
     a_correct,
     a_correct_citing,
@@ -19,7 +18,7 @@ from helpers import (
 )
 
 from comment_review.desk.proof.answer import Question
-from comment_review.desk.proof.mark import Mark, Shape
+from comment_review.desk.proof.mark import BlankMark, Shape
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.sheet import Sheet
@@ -35,6 +34,7 @@ from comment_review.flows.bus import (
 )
 from comment_review.flows.human import HumanAnswer
 from comment_review.flows.transcribe import docket_of_proof
+from comment_review.flows.validators import VALIDATORS
 
 BASE = "# one\n# two\n# three"
 OTHER = "# four\n# five\n# six"
@@ -962,13 +962,14 @@ def test_an_add_over_prose_in_an_ungathered_file_that_drops_a_word_is_refused(
     )
     _ungathered_page(tmp_path)
     add = {
-        **Mark.seed("n.py@b1", "v1 = 1", ""),
+        **BlankMark("n.py@b1", "v1 = 1", "").serialize(),
         **an_add("n.py@b1", reads="# seven\n# a new line"),
         "change": "# a new line",
     }
     copy = message.copies[0]
     sheet, why = Sheet.deserialize(
-        "n.py", {"path": "n.py", "sha": "", "marks": [add]}, VALIDATORS
+        "n.py",
+        {"path": "n.py", "sha": "", "marks": [add]},
     )
     assert sheet is not None, why
     message.copies[0] = replace(copy, sheets=(*copy.sheets, sheet))
@@ -1004,12 +1005,13 @@ def test_a_move_and_an_add_into_one_ungathered_place_compose_on_different_senten
     )
     _ungathered_page(tmp_path)
     add = {
-        **Mark.seed("n.py@b1", "v1 = 1", ""),
+        **BlankMark("n.py@b1", "v1 = 1", "").serialize(),
         **an_add("n.py@b1", reads=UNGATHERED + "\n# six"),
         "change": "# six",
     }
     sheet, why = Sheet.deserialize(
-        "n.py", {"path": "n.py", "sha": "", "marks": [add]}, VALIDATORS
+        "n.py",
+        {"path": "n.py", "sha": "", "marks": [add]},
     )
     assert sheet is not None, why
     copy = message.copies[1]

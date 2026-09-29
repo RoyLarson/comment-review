@@ -10,7 +10,6 @@ import json
 
 from helpers import (
     REPO,
-    VALIDATORS,
     a_binder_over,
     a_correct,
     a_master_proof,
@@ -100,7 +99,7 @@ class TestTheOtherArtifacts:
         (wire,) = copies_over(
             binder, {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
         )
-        copy, why = EditCopy.deserialize("c", wire, VALIDATORS)
+        copy, why = EditCopy.deserialize("c", wire)
         assert copy is not None, why
         save_copy(tmp_path / "c.json", copy)
         loaded, why = load_copy(tmp_path / "c.json")

@@ -1,8 +1,11 @@
-"""Nothing outside the three tables names a row.
+"""Nothing outside the tables and the mark types names a row.
 
-The whole tree is held to it. An exemption list carried the old middle while
-its replacement was built, and it emptied when the last of those modules was
-deleted; a module exempted again is the defect this gate exists to refuse.
+The three tables state what each instruction, answer and ruling does at a
+place; `desk/proof/mark.py` states what each instruction's mark is, one type
+per instruction and the one `match` that picks it (`decision-log.md Process:
+#206`). The whole tree is held to it. An exemption list carried the old middle
+while its replacement was built, and it emptied when the last of those modules
+was deleted; a module exempted again is the defect this gate exists to refuse.
 """
 
 import re
@@ -14,6 +17,7 @@ TABLES = {
     ROOT / "desk" / "marks" / "table.py",
     ROOT / "desk" / "answers" / "table.py",
     ROOT / "desk" / "dispositions" / "table.py",
+    ROOT / "desk" / "proof" / "mark.py",
 }
 NAMES = re.compile(
     r"\bInstruction\.[A-Z_]+\b|\bAnswer\.[A-Z_]+\b"

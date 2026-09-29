@@ -33,14 +33,14 @@ filled-in mark whose ruling key the code did not recognise was dropped before
 !! WHAT THIS FLOW DOES NOT DO IS CHECK A CLAIM AGAINST THE PAGE. Whether
 `claim.false` appears VERBATIM in the paragraph, whether a `move`'s destination
 is addressable -- both need the page the role read, and both belong to
-SOURCE-VERIFICATION in `collator`. `desk.marks.rules.validate` says the same about its
-own half.
+SOURCE-VERIFICATION in `collator`. A mark's own read, `desk.proof.mark.read_mark`,
+checks the half that needs no page.
 """
 
 from comment_review.binder.addresses import handed
 from comment_review.binder.binder import Binder
 from comment_review.desk.proof.edit_copy import EditCopy
-from comment_review.desk.proof.mark import Mark
+from comment_review.desk.proof.mark import BlankMark
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.stages import Stage, deals
 
@@ -65,9 +65,9 @@ def seed(binder: Binder, role: str, stage: Stage | None = None) -> dict:
         and `sha`, plus its `marks` -- one per row on that page, holding the
         `address`, `anchor` and `raw_text` copied from the row, and
         `instruction: None` for the role to fill. ! THE SLOT IS BUILT BY
-        `desk.proof.mark.Mark.seed`, from the mark's own field names, so a
-        renamed field breaks there rather than leaving this module writing
-        the old key.
+        `desk.proof.mark.BlankMark`, from its own field names, so a renamed
+        field breaks there rather than leaving this module writing the old
+        key.
 
     !! ABSENT IS REFUSED AT THE BOUNDARY, AND WAS DEFAULTED TO `{}` UNTIL
     2026-08-28. `bind` refuses a binder that cannot say which root it read; this
@@ -122,7 +122,7 @@ def seed(binder: Binder, role: str, stage: Stage | None = None) -> dict:
                 path=page.path,
                 sha=page.sha,
                 marks=[
-                    Mark.seed(b.address, b.anchor, b.raw_text)
+                    BlankMark(b.address, b.anchor, b.raw_text).serialize()
                     for b in handed(page.paragraphs)
                     if stage is None or deals(stage, b)
                 ],

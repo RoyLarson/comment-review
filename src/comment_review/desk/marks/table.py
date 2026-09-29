@@ -1,9 +1,11 @@
 """The marks table: one row per instruction, and every reader asks the row.
 
-A row says what a mark's claim carries, which places the mark touches, what
-text it sets at each, what problems it has against its base, how it pairs
-with other marks at a place, and which answers a turn may give on it. Nothing
-outside this module names an instruction; a gate holds that.
+A row says which places a mark touches, what text it sets at each, what
+problems it has against its base, how it pairs with other marks at a place,
+and which answers a turn may give on it. What a mark's claim carries, and
+every other fact its own read needs, is its type's, in `desk.proof.mark`; the
+table is keyed by instruction, which each type names, and its callables take
+the typed mark.
 
 `sets` returns None where the mark sets nothing (`decision-log.md Process:
 #174`), "" for a delete, else the text. `reads` returns the problems the row
@@ -27,7 +29,17 @@ from typing import Any
 
 from comment_review.desk.marks.rules import first_word_dropped
 from comment_review.desk.proof.disposition import CHIEF
-from comment_review.desk.proof.mark import Instruction, Mark, Shape, Touch
+from comment_review.desk.proof.mark import (
+    AddMark,
+    CorrectMark,
+    DropMark,
+    Instruction,
+    Mark,
+    MoveMark,
+    QueryMark,
+    Shape,
+    Touch,
+)
 from comment_review.desk.proof.place import Place
 
 
@@ -105,7 +117,7 @@ def _move_reads(mark, touch, base):
     return []
 
 
-def _move_splits(mark, origin_base, destination_anchor):
+def _move_splits(mark: MoveMark, origin_base: str, destination_anchor: str):
     """An agreed move as the mover's `drop` at the origin and `add` at the destination.
 
     `decision-log.md Process: #195` item 3. Both halves come from the one
@@ -129,30 +141,29 @@ def _move_splits(mark, origin_base, destination_anchor):
         "",
     )
     named = destination_anchor.strip() or destination
-    drop = Mark(
+    drop = DropMark(
         address=mark.address,
         anchor=mark.anchor,
         raw_text=origin_base,
-        instruction=Instruction.DROP,
-        claim={"drop": mark.change},
         reason=mark.reason,
         sources=mark.sources,
         change=remainder,
+        drop=mark.change,
     )
-    add = Mark(
+    add = AddMark(
         address=destination,
         anchor=destination_anchor,
         raw_text=mark.raw_text,
-        instruction=Instruction.ADD,
-        claim={"missing": mark.change.strip().splitlines()[0], "anchor": f"`{named}`"},
         reason=mark.reason,
         sources=mark.sources,
         change=mark.change,
+        missing=mark.change.strip().splitlines()[0],
+        named_anchor=f"`{named}`",
     )
     return drop, add
 
 
-def _correct_notes(mark, touch, base):
+def _correct_notes(mark: CorrectMark, touch, base):
     """The words a `correct` drops from its base that its claim never named.
 
     The claim's `false` clause is the part of the paragraph the mark says it
@@ -162,7 +173,7 @@ def _correct_notes(mark, touch, base):
     it and the place settles either way (`decision-log.md Process: #163` and
     `#177`).
     """
-    rest = base.replace(str(mark.claim.get("false", "")), "", 1)
+    rest = base.replace(mark.false, "", 1)
     word = first_word_dropped(rest, mark.change)
     if word is None:
         return []
@@ -185,8 +196,8 @@ def _abstains(mark):
     return Stance.ABSTAINS
 
 
-def _query_stance(mark):
-    if mark.claim.get("shape") == str(Shape.HUMAN_REVIEW_NECESSARY):
+def _query_stance(mark: QueryMark):
+    if mark.shape is Shape.HUMAN_REVIEW_NECESSARY:
         return Stance.UNSETTLABLE
     return Stance.DEFERS
 
@@ -196,15 +207,8 @@ ESCALATION_ANSWERS = ("hold", "withdraw", "correct", "patch")
 
 @dataclass(frozen=True)
 class Row:
-    """One instruction, as every reader sees it."""
+    """One instruction, as every reader of a mark at a place sees it."""
 
-    claim_all: tuple[str, ...] = ()
-    quotes_original: str = ""
-    #: The claim key that names the address a destination touch writes at,
-    #: "" for a row with no destination. `places` reads the destination under
-    #: it, and the rule check reads the same key (`desk.marks.rules.
-    #: _destination_problems`).
-    names_destination: str = ""
     touches: tuple[Touch, ...] = (Touch.OWN,)
     sets: Sets = _nothing
     reads: Reads = _no_problems
@@ -217,111 +221,38 @@ class Row:
     #: (`decision-log.md Process: #195`). None for every row but `move`.
     splits: Splits | None = None
     answers: tuple[str, ...] = ESCALATION_ANSWERS
-    owes_change: bool = True
-    owes_sources: bool = True
-    substantive: bool = True
-    may_empty: bool = False
-    needs_anchor: bool = False
     #: True where `raw_text` is the paragraph as it will read and the role
     #: writes it, rather than the seeded paragraph as it stands --
     #: `decision-log.md Process: #175` and `#176`. `flows.fill` takes it from
     #: the entry for these rows and from the page for every other.
     carries_raw_text: bool = False
-    #: Derived from `touches` in `__post_init__`, below -- never set by a row
-    #: literal. The default here is only what a `Row()` with no `touches`
-    #: argument gets before the derivation runs.
-    owes_destination: bool = False
-
-    def __post_init__(self) -> None:
-        """Derive `owes_destination` from `touches`, and refuse a key that disagrees.
-
-        The dataclass is frozen, so this is the one place allowed to set a
-        field after construction. `owes_destination` is a fact about
-        `touches`, not a second fact a row author could state differently --
-        deriving it here is what keeps the two from drifting apart, the way
-        a stored copy next to its source could.
-
-        `names_destination` is the other half of the same fact, and cannot be
-        derived: `places` reads the destination under it, and the parse checks
-        it only where `touches` names a destination. So a row with a
-        destination touch names a key its claim carries, and a row without
-        one names none.
-
-        Raises:
-            ValueError: the row names a destination touch and no key, a key
-                and no destination touch, or a key `claim_all` does not name.
-        """
-        owes = Touch.DESTINATION in self.touches
-        object.__setattr__(self, "owes_destination", owes)
-        if owes and not self.names_destination:
-            raise ValueError("a row with a destination touch and no destination key")
-        if self.names_destination and not owes:
-            raise ValueError("a row with a destination key and no destination touch")
-        if self.names_destination and self.names_destination not in self.claim_all:
-            raise ValueError(
-                f"a row whose destination key is `{self.names_destination}`,"
-                " which its claim keys do not name"
-            )
 
     def places(self, mark: Mark) -> tuple[tuple[str, Touch], ...]:
         """Every place a mark of this row writes at, with which touch each is.
 
         This is the one answer to where a mark writes; every flow that walks a
         mark's places asks it. `touches` names the places, in order. A
-        destination is the address the claim names under `names_destination`,
-        and every other touch is the mark's own address. A place with no
-        address is left out, so a mark that may carry none writes nowhere.
+        destination is the address the mark sends its paragraph to
+        (`Mark.destination`), and every other touch is the mark's own address.
+        A place with no address is left out, so a mark that may carry none
+        writes nowhere.
         """
         out = []
         for touch in self.touches:
-            if touch is Touch.DESTINATION:
-                where = str(mark.claim.get(self.names_destination, ""))
-            else:
-                where = mark.address
+            where = mark.destination if touch is Touch.DESTINATION else mark.address
             if where:
                 out.append((where, touch))
         return tuple(out)
 
 
 INSTRUCTIONS: dict[Instruction, Row] = {
-    Instruction.CLEAN: Row(
-        pairs=_abstains,
-        answers=(),
-        owes_change=False,
-        owes_sources=False,
-        substantive=False,
-    ),
-    Instruction.QUERY: Row(
-        claim_all=("shape", "attempted", "settles"),
-        pairs=_query_stance,
-        answers=(),
-        owes_change=False,
-    ),
-    Instruction.DROP: Row(
-        claim_all=("drop",), quotes_original="drop", sets=_the_change, may_empty=True
-    ),
-    Instruction.CORRECT: Row(
-        claim_all=("false", "true"),
-        quotes_original="false",
-        sets=_the_change,
-        notes=_correct_notes,
-    ),
-    Instruction.PATCH: Row(
-        claim_all=("from", "to"),
-        quotes_original="from",
-        sets=_the_change,
-        owes_sources=False,
-    ),
-    Instruction.ADD: Row(
-        claim_all=("missing", "anchor"),
-        sets=_the_raw_text,
-        reads=_add_reads,
-        needs_anchor=True,
-        carries_raw_text=True,
-    ),
+    Instruction.CLEAN: Row(pairs=_abstains, answers=()),
+    Instruction.QUERY: Row(pairs=_query_stance, answers=()),
+    Instruction.DROP: Row(sets=_the_change),
+    Instruction.CORRECT: Row(sets=_the_change, notes=_correct_notes),
+    Instruction.PATCH: Row(sets=_the_change),
+    Instruction.ADD: Row(sets=_the_raw_text, reads=_add_reads, carries_raw_text=True),
     Instruction.MOVE: Row(
-        claim_all=("from", "to"),
-        names_destination="to",
         touches=(Touch.ORIGIN, Touch.DESTINATION),
         sets=_move_sets,
         reads=_move_reads,
@@ -407,28 +338,27 @@ def chief_mark(place: "Place") -> Mark:
     cited = [source for one in filed_marks for source in one.mark.sources]
     sources = tuple(s for i, s in enumerate(cited) if s not in cited[:i])
     if text == "":
-        return Mark(
+        return DropMark(
             address=place.address,
             anchor=place.anchor,
             raw_text=place.base,
-            instruction=Instruction.DROP,
-            claim={"drop": place.base},
             reason=reason,
             sources=sources,
             change="",
+            drop=place.base,
         )
     if place.base:
-        return Mark(
+        return CorrectMark(
             address=place.address,
             anchor=place.anchor,
             raw_text=place.base,
-            instruction=Instruction.CORRECT,
-            claim={"false": place.base, "true": text},
             reason=reason,
             sources=sources,
             change=text,
+            false=place.base,
+            true=text,
         )
-    return Mark(
+    return AddMark(
         address=place.address,
         anchor=place.anchor,
         # An `add`'s `raw_text` is the paragraph as it will read, which its
@@ -436,14 +366,14 @@ def chief_mark(place: "Place") -> Mark:
         # base here is empty, so that is the decided text itself; writing ""
         # would make the row set nothing where the fold decided something.
         raw_text=text,
-        instruction=Instruction.ADD,
-        # The anchor NAMED in backticks, which is what the parse requires --
-        # and a place's anchor is a line of code, indented where the code is.
-        # Backticked as it stands, a mark at any indented place is one the
-        # parse refuses, and the chief's own decision is then carried on a
-        # mark nothing downstream can read.
-        claim={"missing": text.splitlines()[0], "anchor": f"`{place.anchor.strip()}`"},
         reason=reason,
         sources=sources,
         change=text,
+        missing=text.splitlines()[0],
+        # The anchor NAMED in backticks, which is what the read requires --
+        # and a place's anchor is a line of code, indented where the code is.
+        # Backticked as it stands, a mark at any indented place is one the
+        # read refuses, and the chief's own decision is then carried on a
+        # mark nothing downstream can read.
+        named_anchor=f"`{place.anchor.strip()}`",
     )

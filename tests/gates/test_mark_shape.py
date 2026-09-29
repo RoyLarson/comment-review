@@ -5,22 +5,26 @@ what it cost to have no file able to refuse a field: a 22-field classifier
 scheme entered `desk/marks/mark.py` during a port that was never proposed and never
 approved, because nothing could name what the row was allowed to carry.
 
-!! TWO TABLES, TWO TYPES. `Row` answers "The classifiers"; `Mark` answers "The
-fields -- eight". Both are READ out of the spec here, never restated -- adding
-a row to either table fails this file until the type follows, which is the only
-form of the check that cannot be satisfied by editing the code alone.
+!! TWO TABLES. "The fields -- eight" is the wire entry every mark type writes,
+`Mark.FIELDS`. "The classifiers" are split between two homes: what a mark's own
+read needs is a class attribute on its type (`desk.proof.mark`), and what a
+mark does at a place is a field of the marks table's `Row`. Both tables are
+READ out of the spec here, never restated -- adding a row to either fails this
+file until the code follows, which is the only form of the check that cannot
+be satisfied by editing the code alone.
 
     uv run pytest -q tests/gates/test_mark_shape.py
 """
 
 import dataclasses
 import re
+from typing import ClassVar, get_origin, get_type_hints
 
 import pytest
 from conftest import ROOT
 
 from comment_review.desk.marks.table import INSTRUCTIONS, Row
-from comment_review.desk.proof.mark import Instruction, Mark
+from comment_review.desk.proof.mark import Instruction, Mark, mark_type
 
 SPEC = (ROOT / "docs" / "the-mark.md").read_text(encoding="utf-8")
 
@@ -97,9 +101,9 @@ def test_the_mark_carries_exactly_the_fields_the_spec_NAMES():
     2026-08-29: *"mark.py should define a Mark that follows 'the_mark.md' that
     is not negotiable."* A test restating the eight could only confirm, and a
     restated field name is exactly how `mark` and `instruction` came to name
-    one thing in two files."""
-    have = [f.name for f in dataclasses.fields(Mark)]
-    assert have == _field_names()
+    one thing in two files. `Mark.FIELDS` is what every type's `serialize`
+    writes; which fields, not their order, is what the spec fixes."""
+    assert set(Mark.FIELDS) == set(_field_names())
 
 
 def test_no_field_is_spelled_two_ways():
@@ -202,9 +206,31 @@ def test_every_mapped_phrase_is_in_the_spec():
     assert set(FIELD_FOR) == set(_classifier_names()) | set(_flag_names())
 
 
-def test_the_row_carries_only_what_the_spec_allows():
-    have = {f.name for f in dataclasses.fields(Row)}
+#: The classifiers a mark's type carries: every class attribute `Mark` declares
+#: as a `ClassVar`, less `instruction`, which names the type rather than
+#: classifying it.
+TYPE_FACTS = {
+    name
+    for name, hint in get_type_hints(Mark).items()
+    if get_origin(hint) is ClassVar and name != "instruction"
+}
+
+
+def test_the_row_and_the_type_carry_only_what_the_spec_allows():
+    """Every classifier the spec states has exactly one home -- a field of
+    `Row` or a class attribute of the mark types -- and neither carries one
+    the spec does not state."""
+    row = {f.name for f in dataclasses.fields(Row)}
+    assert not row & TYPE_FACTS, sorted(row & TYPE_FACTS)
+    have = row | TYPE_FACTS
     assert have == allowed_names(), sorted(have ^ allowed_names())
+
+
+def _fact(name: str, field: str) -> object:
+    """One instruction's classifier, read from whichever home carries it."""
+    if field in TYPE_FACTS:
+        return getattr(mark_type(Instruction(name)), field)
+    return getattr(INSTRUCTIONS[Instruction(name)], field)
 
 
 def _named_by_the_shape(shape: str) -> set[str]:
@@ -226,6 +252,9 @@ def test_no_field_carries_prose():
     assert names, "no classifier in the spec reads 'a name, or none'"
     for f in dataclasses.fields(Row):
         assert f.type is not str or f.name in names, f.name
+    hints = get_type_hints(Mark)
+    for name in TYPE_FACTS:
+        assert hints[name] != ClassVar[str] or name in names, name
 
 
 # === Per-instruction agreement: the spec's own table against `INSTRUCTIONS`.
@@ -338,24 +367,24 @@ def test_the_owes_table_names_the_same_rows():
 
 @pytest.mark.parametrize("name", sorted(INSTRUCTIONS))
 def test_the_owes_table_claim_keys_agree_with_the_row(name):
-    assert _claim_all_from(OWES_TABLE[name]["claim"]) == INSTRUCTIONS[name].claim_all
+    assert _claim_all_from(OWES_TABLE[name]["claim"]) == _fact(name, "claim_all")
 
 
 @pytest.mark.parametrize("name", sorted(INSTRUCTIONS))
 def test_the_owes_table_verbatim_agrees_with_the_row(name):
     got = _key_from(OWES_TABLE[name]["verbatim"])
-    assert got == INSTRUCTIONS[name].quotes_original
+    assert got == _fact(name, "quotes_original")
 
 
 @pytest.mark.parametrize("name", sorted(INSTRUCTIONS))
 def test_the_owes_table_destination_agrees_with_the_row(name):
     got = _key_from(OWES_TABLE[name]["destination"])
-    assert got == INSTRUCTIONS[name].names_destination
+    assert got == _fact(name, "names_destination")
 
 
 @pytest.mark.parametrize("name", sorted(INSTRUCTIONS))
 def test_the_owes_table_change_agrees_with_the_row(name):
-    assert _owed_from(OWES_TABLE[name]["change"]) == INSTRUCTIONS[name].owes_change
+    assert _owed_from(OWES_TABLE[name]["change"]) == _fact(name, "owes_change")
 
 
 @pytest.mark.parametrize("name", sorted(INSTRUCTIONS))
@@ -363,7 +392,7 @@ def test_the_owes_table_sources_agree_with_the_row(name):
     """The `patch` case specifically -- see the module-level note above this
     section: this exact cell/flag pair shipped out of agreement once and
     fatally refused every compliant `patch`, re-confirmed twice."""
-    assert _owed_from(OWES_TABLE[name]["sources"]) == INSTRUCTIONS[name].owes_sources
+    assert _owed_from(OWES_TABLE[name]["sources"]) == _fact(name, "owes_sources")
 
 
 #: The block's own wrapped description text, phrase -> full explanation
@@ -419,7 +448,7 @@ def test_the_flags_block_names_agree_with_the_row(phrase):
     owners = _flag_owners(_flag_descriptions()[phrase], names)
     assert owners, f"{phrase!r} names no instruction in its own description"
     for name in names:
-        got = getattr(INSTRUCTIONS[name], field)
+        got = _fact(name, field)
         want = (name not in owners) if field in _INVERTED else (name in owners)
         assert got == want, f"{name}.{field} is {got}, {phrase!r} says {want}"
 

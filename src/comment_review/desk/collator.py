@@ -110,11 +110,11 @@ def claim_verbatim_problems(
 ) -> list[str]:
     """Whether the sentence this mark's claim quotes is really in a text at its place.
 
-    !! WHICH KEY HOLDS IT IS READ OFF THE ROW, never branched on the
-    instruction: `INSTRUCTIONS[...].quotes_original` names it -- `claim.drop`
-    for a `drop`, `claim.false` for a `correct`, `claim.from` for a `patch` --
-    and is "" for the rows that quote no existing sentence, which are passed
-    over here entirely.
+    !! THE MARK SAYS WHICH CLAUSE IT QUOTES, never branched on the
+    instruction: `Mark.quoted` is it, and the type's `quotes_original` names
+    the key -- `claim.drop` for a `drop`, `claim.false` for a `correct`,
+    `claim.from` for a `patch`. A type that quotes no existing sentence quotes
+    "", and is passed over here entirely.
 
     It passes when one of `texts` holds the quote, by a substring test over
     each whole text: the quoted text may run across several of its lines, and
@@ -122,7 +122,7 @@ def claim_verbatim_problems(
 
     Args:
         where: how to name this mark in a message -- its address, or a position.
-        mark: one role's ruling, already through `desk.marks.rules.validate`.
+        mark: one role's ruling, already read into its type.
         texts: every text at this place the quote may be in, as the flow reads
             them (`decision-log.md Process: #119`): the page's text at the
             mark's address, whether or not the binder holds that place or its
@@ -133,18 +133,16 @@ def claim_verbatim_problems(
             checking cannot disagree with it.
 
     Returns:
-        One message, or an empty list. A key that is absent, is not a string,
-        or holds only whitespace says nothing here -- `desk.marks.rules.validate`
-        is what refuses those, and this step has nothing to compare.
+        One message, or an empty list.
     """
-    key = INSTRUCTIONS[mark.instruction].quotes_original
-    if not key:
-        return []
-    value = mark.claim.get(key)
+    value = mark.quoted
     if not filled(value):
         return []
     if not any(value in text for text in texts):
-        return [f"{where}: `claim.{key}` is not in the paragraph at this place"]
+        return [
+            f"{where}: `claim.{mark.quotes_original}` is not in the paragraph at"
+            " this place"
+        ]
     return []
 
 
@@ -229,7 +227,7 @@ def cited_problems(where: str, sources: object, root: Path, cache: Cache) -> lis
 
     ! A SOURCE WITH NO USABLE `cite` IS PASSED OVER, and so is one with no
     usable `verbatim` once its cite has resolved. Whether a source was OWED at
-    all is `desk.marks.rules.validate`'s question, off `INSTRUCTIONS[...].owes_sources`;
+    all is the mark's own read's question, off its type's `owes_sources`;
     this step rules only on what it can resolve.
 
     Args:
@@ -303,7 +301,7 @@ def source_verification(
 
     Args:
         where: how to name this mark in a message -- its address, or a position.
-        mark: one role's ruling, already through `desk.marks.rules.validate`.
+        mark: one role's ruling, already read into its type.
         texts: every text at this place the quoted sentence may be in -- see
             `claim_verbatim_problems`.
         root: the checkout every `cite` is resolved against.
@@ -320,7 +318,7 @@ class Problem:
 
     !! STRUCTURED RATHER THAN A SENTENCE, ruled by Roy 2026-08-30: *"the errors
     should be stacked and capable of being read off correctly so that each can
-    be fixed or sent back to the role."* `desk.marks.rules.validate` returns
+    be fixed or sent back to the role."* `desk.proof.mark.read_mark` returns
     flat strings each opening with a `where`, and a caller cannot route on a
     sentence -- so the role and the address ride beside the message.
 
@@ -412,10 +410,10 @@ def verify_report(
     out: list[Problem] = []
     for sheet in copy.sheets:
         # !! IT WALKS PARSED MARKS AND PARSES NOTHING, since `P51`. This held
-        # its own untouched test, its own `mark {n}` fallback and its own
-        # `Mark.deserialize` -- one of the four sites that each parsed every
-        # ruled entry. `Sheet.marks` holds only what ruled, so an untouched
-        # slot and an unparseable entry are both already elsewhere.
+        # its own untouched test, its own `mark {n}` fallback and its own mark
+        # parse -- one of the four sites that each parsed every ruled entry.
+        # `Sheet.marks` holds only what ruled, so an untouched slot and an
+        # unparseable entry are both already elsewhere.
         for mark in sheet.marks:
             # ! THE ADDRESS IS `Problem.address`, SO IT IS NOT ALSO THE OPENING
             # OF EVERY MESSAGE -- T3 of `collate-command-defects`. The three

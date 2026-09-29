@@ -14,7 +14,7 @@ from comment_review.desk.dispositions.rules import side_of
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
 from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.disposition import CHIEF, ORIGINAL, Disposition
-from comment_review.desk.proof.mark import Mark, Touch
+from comment_review.desk.proof.mark import Mark, MoveMark, Touch
 from comment_review.desk.proof.move import FINAL, UNDECIDED, Move, Placement, key_of
 from comment_review.desk.proof.place import Filed, Place
 from comment_review.desk.proof.state import State
@@ -25,10 +25,10 @@ def moves_in(
 ) -> dict[str, Move]:
     """Every move filed on these places, carrying what the record holds of each.
 
-    A move is found at its origin, where it is filed with `Touch.ORIGIN`, and
-    named by its two addresses. A move the record holds and no place files
-    any longer -- agreed and split, or withdrawn -- keeps its record with no
-    movers, so its final placement is still reported.
+    A move is a `MoveMark` found at its origin, where it is filed with
+    `Touch.ORIGIN`, and named by its two addresses. A move the record holds
+    and no place files any longer -- agreed and split, or withdrawn -- keeps
+    its record with no movers, so its final placement is still reported.
 
     Args:
         places: address -> place, as the fold holds them.
@@ -43,9 +43,10 @@ def moves_in(
         move.filed = {}
     for place in places.values():
         for one in place.filed:
-            if one.touch is not Touch.ORIGIN:
+            mark = one.mark
+            if one.touch is not Touch.ORIGIN or not isinstance(mark, MoveMark):
                 continue
-            written = INSTRUCTIONS[one.mark.instruction].places(one.mark)
+            written = INSTRUCTIONS[mark.instruction].places(mark)
             destination = next(
                 (where for where, touch in written if touch is Touch.DESTINATION), ""
             )
@@ -53,7 +54,7 @@ def moves_in(
                 continue
             key = key_of(place.address, destination)
             move = out.setdefault(key, Move(place.address, destination))
-            move.filed[one.role] = one.mark
+            move.filed[one.role] = mark
     for move in out.values():
         ends = (places.get(move.origin), places.get(move.destination))
         move.readers = tuple(

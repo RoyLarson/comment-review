@@ -1,5 +1,7 @@
 """The marks pass: from the marks filed at a place to its state and text."""
 
+from helpers import a_typed_mark
+
 from comment_review.desk.evaluate.move import moves_in
 from comment_review.desk.evaluate.passes import (
     answers_pass,
@@ -19,11 +21,11 @@ BASE = "# one\n# two\n# three\n"
 
 
 def _mark(instruction, change="", raw_text=BASE, claim=None, address="m.py@b1"):
-    return Mark(
+    return a_typed_mark(
+        instruction,
         address=address,
         anchor="x = 1",
         raw_text=raw_text,
-        instruction=instruction,
         claim=claim or {},
         reason="r",
         sources=(),

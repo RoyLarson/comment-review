@@ -1,11 +1,10 @@
 """The answers table: what a role's answer in a turn does to its own proposal,
 and the contract that publishes the table's own sets."""
 
-from helpers import VALIDATORS
-
 from comment_review.desk.answers.table import ANSWERS, Effect
 from comment_review.desk.proof.answer import Answer, Question, read_answer
 from comment_review.flows.answers import contracts
+from comment_review.flows.validators import VALIDATORS
 
 
 def _answer(question: Question, name: str, **fields) -> Answer:

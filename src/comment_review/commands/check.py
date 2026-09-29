@@ -81,7 +81,6 @@ from comment_review.flows.proof_io import (
     load_copy,
     load_value,
 )
-from comment_review.flows.validators import VALIDATORS
 from comment_review.flows.verify import copy_problems
 
 #: Exit codes -- `distribute`'s 0/1/2, and `collate`'s `ASKS_THE_HUMAN`.
@@ -196,7 +195,7 @@ def _check_copy(
     loaded, why = load_copy(Path(path))
     if why:
         return _refused(why)
-    copy, problems = EditCopy.deserialize(path, loaded, VALIDATORS)
+    copy, problems = EditCopy.deserialize(path, loaded)
     if copy is None:
         for line in problems:
             print(line)

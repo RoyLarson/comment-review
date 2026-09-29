@@ -18,6 +18,7 @@ from helpers import (
     a_clean,
     a_correct_setting,
     a_move,
+    changes_of,
     deal,
     disposition,
     entries_of,
@@ -67,7 +68,7 @@ class TestTheChiefRules:
         assert code == collate_command.OK, out
         chief = the_chief(tmp_path)
         assert chief.role == "copy-chief"
-        assert [m.change for m in entries_of(chief)] == [DOS]
+        assert changes_of(entries_of(chief)) == [DOS]
         place = place_on(_closed(tmp_path), "m.py@b1")
         assert place["state"] == "stands"
         assert place["text"] == DOS
@@ -112,7 +113,7 @@ class TestTheChiefRules:
             ],
         )
         assert code == collate_command.OK, out
-        assert [m.change for m in entries_of(the_chief(tmp_path))] == [RECAST]
+        assert changes_of(entries_of(the_chief(tmp_path))) == [RECAST]
         assert place_on(_closed(tmp_path), "m.py@b1")["text"] == RECAST
 
 
@@ -345,7 +346,7 @@ class TestTheChiefRecastsAnAdd:
         assert [(m.address, m.instruction) for m in marks] == [
             (EMPTY_PLACE, Instruction.ADD)
         ]
-        assert marks[0].change == RECAST_THERE
+        assert changes_of(marks) == [RECAST_THERE]
         assert place_on(_closed(tmp_path), EMPTY_PLACE)["text"] == RECAST_THERE
 
 
@@ -450,7 +451,7 @@ class TestTheGateSeesIt:
             ],
         )
         assert code == collate_command.OK, out
-        assert [m.change for m in entries_of(the_chief(tmp_path))] == [TWO]
+        assert changes_of(entries_of(the_chief(tmp_path))) == [TWO]
 
 
 def test_the_help_names_the_answer_the_parse_accepts():

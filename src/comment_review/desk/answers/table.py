@@ -57,8 +57,8 @@ class AnswerRow:
         question: which of the two this answer answers.
         effect: what it does to the role's own proposal.
         owes_change: whether it owes a `change`.
-        claim_all: every key its `claim` must carry, as the marks table's own
-            `Row.claim_all` states it for a mark. Empty for a row whose claim
+        claim_all: every key its `claim` must carry, as a mark type's own
+            `claim_all` states it for a mark. Empty for a row whose claim
             is nothing to this table.
 
             !! IT IS WHAT `effect` READS, STATED WHERE A READER CAN FIND IT.

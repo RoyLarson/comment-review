@@ -6,7 +6,7 @@
     coverage_problems    a role whose copies do not carry the binder's addresses
     stage_problems       a dispatch the topology named that never came back
 
-Each asks a question the desk cannot: `desk.marks.rules.validate` holds no
+Each asks a question the desk cannot: a mark's own read holds no
 binder, no page and no filesystem, so whether an address names a place a real
 page carries, and whether a role carried back everything it was handed, are
 settled here instead.
@@ -81,8 +81,8 @@ def resolution_problems(
     not thereby unresolved: the page is read, not the binder (`Process: #97`),
     and the page carries every place a series has, filled or not.
 
-    The address a row names its destination under -- `claim.to` on a `move`,
-    `desk.marks.table.Row.names_destination` -- is an address as well, and
+    The address a mark names its destination under -- `claim.to` on a
+    `move`, its type's `names_destination` -- is an address as well, and
     resolves the same way (`Process: #111`). An address that is not
     `path@cue` resolves against nothing -- `path@cue` is the only address
     built (`Addressing: #21`) -- and one resolves only as it is printed: the
@@ -123,7 +123,7 @@ def resolution_problems(
                         Problem(
                             copy.role,
                             mark.address,
-                            f"`claim.{row.names_destination}` {where!r} resolves"
+                            f"`claim.{mark.names_destination}` {where!r} resolves"
                             f" against no page -- {why}",
                         )
                     )

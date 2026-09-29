@@ -12,18 +12,19 @@ ladders.
 `EditCopy.seed` write a container from the class's own field names through
 `_written` -- `Process: #64` -- and each class's `deserialize` reads one back.
 Renaming a field breaks at construction rather than folding to a default one
-module away, which is `desk.proof.mark.Mark.seed`'s guard one level up.
+module away, which `desk.proof.mark.BlankMark` holds one level down by writing
+a slot from its own field names.
 
 !!! **`seed` RETURNS THE WIRE DICT AND THAT IS CORRECT** -- `Process: #66`. A
-seed is an EMPTY FORM, not an instance: `desk.proof.mark.Mark.seed` writes three of
-`Mark`'s eight fields plus `instruction: None`, and typing that as a `Mark`
-would need five optionals, at which point holding a `Mark` would stop meaning
-the ruling is complete. **The split is `parse` versus `seed`, not container
+seed is an EMPTY FORM, not a ruling: `desk.proof.mark.BlankMark` writes three of
+a mark's eight fields plus `instruction: None`, and is its own type rather than
+a `Mark` with five optionals, so holding a `Mark` still means the ruling is
+complete. **The split is `parse` versus `seed`, not container
 versus dict** -- a parse answers *is this a filled, well-formed X* and returns
 the type; a seed answers *what does an unfilled X look like on the wire*.
 
 ! **THIS PARAGRAPH SAID THE OPPOSITE FOR ABOUT AN HOUR ON 2026-08-31**, claiming
-`Process: #65` overrode the return type and citing `Mark`'s `seed`/`serialize`
+`Process: #65` overrode the return type and citing the mark's seed/`serialize`
 split as the precedent. **Both of those return dicts.** `#65` governs what a
 flow CARRIES between its load and its save; a seed is emitted AT a save --
 `flows.distribute.seed` builds one and the command writes it as the JSON a role
@@ -50,11 +51,10 @@ def _written(cls, values: dict) -> dict:
     """One container as the wire dict, keyed by `cls`'s OWN field names.
 
     !! THE WRITE HALF OF THE ROUND TRIP LIVES WITH THE READ HALF, ruled
-    `decision-log.md Process: #64`. It is `desk.proof.mark.Mark.seed`'s guard one
-    level up: every producer spelled these keys as literals, so renaming a
-    field left another module writing the old key and NOTHING could notice --
-    `Sheet.deserialize` folds an absent `sha` to `""` and reports no problem, where
-    `Mark.seed` raises at the point the row is built.
+    `decision-log.md Process: #64`: every producer spelled these keys as
+    literals, so renaming a field left another module writing the old key and
+    NOTHING could notice -- `Sheet.deserialize` folds an absent `sha` to `""`
+    and reports no problem.
 
     Args:
         cls: the container dataclass being written.

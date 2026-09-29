@@ -2,10 +2,12 @@
 
 from dataclasses import replace
 
+from helpers import a_typed_mark
+
 from comment_review.desk.evaluate.move import moves_in
 from comment_review.desk.proof.answer import Answer, Question
 from comment_review.desk.proof.disposition import Disposition
-from comment_review.desk.proof.mark import Instruction, Mark, Shape, Touch
+from comment_review.desk.proof.mark import Instruction, Shape, Touch
 from comment_review.desk.proof.move import Placement
 from comment_review.desk.proof.place import Filed, Place
 from comment_review.desk.proof.state import State
@@ -16,11 +18,11 @@ BASE = "# one\n# two\n# three\n"
 
 
 def _mark(instruction, change="", claim=None, address="m.py@b1", raw_text=BASE):
-    return Mark(
+    return a_typed_mark(
+        instruction,
         address=address,
         anchor="x = 1",
         raw_text=raw_text,
-        instruction=instruction,
         claim=claim or {},
         reason="r",
         sources=(),
@@ -249,11 +251,11 @@ def test_a_composed_place_carries_forward_every_reader_beyond_its_sides():
 
 
 def _a_move_between(readers):
-    move = Mark(
+    move = a_typed_mark(
+        Instruction.MOVE,
         address="m.py@b1",
         anchor="x = 1",
         raw_text="# four\n# two\n# five\n",
-        instruction=Instruction.MOVE,
         claim={"from": "m.py@b1", "to": "m.py@b5"},
         reason="it belongs with five",
         sources=(),
@@ -335,11 +337,11 @@ def test_a_held_move_is_one_unsettlable_naming_both_ends():
         "attempted": "a",
         "settles": "b",
     }
-    query = Mark(
+    query = a_typed_mark(
+        Instruction.QUERY,
         address="m.py@b5",
         anchor="y = 5",
         raw_text="# four\n# five\n",
-        instruction=Instruction.QUERY,
         claim=human,
         reason="ask",
         sources=(),

@@ -1,11 +1,10 @@
 """The dispositions table: what the chief may close, and what text it sets."""
 
-from helpers import VALIDATORS
-
 from comment_review.desk.dispositions.rules import side_of
 from comment_review.desk.dispositions.table import DISPOSITIONS
 from comment_review.desk.proof.disposition import CHIEF, Disposition, read_disposition
 from comment_review.desk.proof.state import State
+from comment_review.flows.validators import VALIDATORS
 
 
 def test_taken_in_closes_a_carried_place_with_one_sides_text_or_the_original():

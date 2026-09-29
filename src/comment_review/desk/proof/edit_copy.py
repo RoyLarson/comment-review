@@ -16,7 +16,6 @@ from comment_review.desk.proof.mark import (
     read_text,
 )
 from comment_review.desk.proof.sheet import Sheet
-from comment_review.desk.proof.validators import Validators
 from comment_review.desk.proof.wire import _written
 
 
@@ -89,7 +88,7 @@ class EditCopy:
 
     @classmethod
     def deserialize(
-        cls, where: str, data: object, validators: Validators
+        cls, where: str, data: object
     ) -> "tuple[EditCopy | None, list[str]]":
         """One edit_copy and every sheet under it, checked.
 
@@ -100,7 +99,6 @@ class EditCopy:
         Args:
             where: how to name this copy in a message.
             data: one edit_copy, as `flows.distribute.seed` builds one.
-            validators: the rule checks every sheet's ruled entries are held to.
 
         Returns:
             `(EditCopy, [])` or `(None, [messages])`. A `stage` that is not a
@@ -129,9 +127,7 @@ class EditCopy:
         sheets: list[Sheet] = []
         problems: list[str] = []
         for i, raw in enumerate(raw_sheets, 1):
-            sheet, why = Sheet.deserialize(
-                f"{where}: {role} sheet {i}", raw, validators
-            )
+            sheet, why = Sheet.deserialize(f"{where}: {role} sheet {i}", raw)
             if sheet is None:
                 problems += why
             else:

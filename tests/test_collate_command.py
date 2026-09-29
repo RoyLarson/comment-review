@@ -19,6 +19,7 @@ from helpers import (
     a_query,
     a_real_binder_over,
     an_add,
+    changes_of,
     contested,
     copies_over,
     entries_of,
@@ -965,7 +966,7 @@ class TestTheStateBetweenTurnsOnDisk:
         proof, why = load_proof(proof_path)
         assert proof is not None, why
         assert [c.role for c in proof.edit_copies] == list(self.CONTESTED)
-        changes = {c.role: [m.change for m in entries_of(c)] for c in proof.edit_copies}
+        changes = {c.role: changes_of(entries_of(c)) for c in proof.edit_copies}
         assert changes == {"block-context": ["# a\n"], "function-context": ["# b\n"]}
 
     def test_batch_out_is_written_when_a_place_is_carried_forward(

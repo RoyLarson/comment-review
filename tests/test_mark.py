@@ -19,20 +19,18 @@ import json
 from pathlib import Path
 
 import pytest
-from helpers import VALIDATORS
 from test_mark_brief import BRIEF
 
-from comment_review.desk.marks.rules import (
-    ANCHOR_EXAMPLE,
-    allowed,
-    derived_change,
-    validate,
-)
+from comment_review.desk.marks.rules import allowed, derived_change
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.mark import (
+    ANCHOR_EXAMPLE,
     QUERY_SHAPES,
+    BlankMark,
+    CorrectMark,
     Instruction,
     Mark,
+    mark_type,
     read_mark,
     untouched,
     without_location,
@@ -48,7 +46,7 @@ def problems(where: str, entry: object) -> list[str]:
     two are checked together in `TestTheParseHasNoThirdOutcome` below rather
     than at every call site.
     """
-    return read_mark(where, entry, validate)[1]
+    return read_mark(where, entry)[1]
 
 
 MARKS_PATH = (
@@ -175,7 +173,7 @@ class TestTheTableIsTheContract:
     def test_only_clean_is_not_substantive(self):
         """`clean` is the null mark; every other instruction asks something
         of the apply step."""
-        not_substantive = [n for n, s in INSTRUCTIONS.items() if not s.substantive]
+        not_substantive = [n for n in INSTRUCTIONS if not mark_type(n).substantive]
         assert not_substantive == ["clean"]
 
 
@@ -212,7 +210,7 @@ class TestTheParseHasNoThirdOutcome:
 
     @pytest.mark.parametrize("instruction", sorted(BRIEF))
     def test_an_accepted_entry_yields_a_mark_and_no_problems(self, instruction):
-        mark, why = read_mark("here", well_formed(instruction), validate)
+        mark, why = read_mark("here", well_formed(instruction))
         assert why == []
         assert mark is not None
         assert mark.instruction == instruction
@@ -221,50 +219,89 @@ class TestTheParseHasNoThirdOutcome:
     def test_a_refused_entry_yields_problems_and_NO_mark(self, instruction):
         broken = well_formed(instruction)
         del broken["instruction"]
-        mark, why = read_mark("here", broken, validate)
+        mark, why = read_mark("here", broken)
         assert mark is None
         assert why != []
 
     def test_the_mark_carries_the_claim_the_entry_wrote(self):
-        mark, _ = read_mark("here", well_formed("correct"), validate)
-        assert mark is not None
-        assert mark.claim == CLAIM["correct"]
+        mark, _ = read_mark("here", well_formed("correct"))
+        assert isinstance(mark, CorrectMark)
+        assert (mark.false, mark.true) == (
+            CLAIM["correct"]["false"],
+            CLAIM["correct"]["true"],
+        )
+        assert mark.serialize()["claim"] == CLAIM["correct"]
         assert mark.change == CHANGE["correct"]
 
     def test_the_claim_is_COPIED_so_the_frozen_mark_cannot_be_mutated_through_it(
         self,
     ):
         entry = well_formed("correct")
-        mark, _ = read_mark("here", entry, validate)
-        assert mark is not None
+        mark, _ = read_mark("here", entry)
+        assert isinstance(mark, CorrectMark)
         entry["claim"]["false"] = "changed after the parse"
-        assert mark.claim["false"] == CLAIM["correct"]["false"]
+        assert mark.false == CLAIM["correct"]["false"]
 
     def test_an_instruction_typed_as_a_string_resolves_a_row_with_no_cast(self):
         """!! WHAT TASK 3 BUYS. `INSTRUCTIONS` is keyed on `Instruction`, and
         every consumer handed it a `str` -- ten `str`-into-`dict[Instruction,
         Row]` errors in `desk/collator.py` alone. A parsed mark's
         `instruction` IS the member."""
-        mark, _ = read_mark("here", well_formed("correct"), validate)
+        mark, _ = read_mark("here", well_formed("correct"))
         assert mark is not None
-        assert INSTRUCTIONS[mark.instruction].quotes_original == "false"
+        assert INSTRUCTIONS[mark.instruction] is INSTRUCTIONS[Instruction.CORRECT]
+        assert mark.quotes_original == "false"
 
 
-def test_the_structural_read_admits_what_only_the_rules_refuse():
-    """`decision-log.md Process: #203`. `Mark.deserialize` reads the structure
-    and asks nothing of the row; a `correct` with no `reason` is a mark of a
-    named instruction, and it is `validate` that refuses it -- and a sheet
-    handed `validate` refuses it with the validator's own wording."""
+def test_reading_an_entry_into_its_type_IS_the_check():
+    """`decision-log.md Process: #206`. There is no structural read that
+    admits what a rule then refuses: a `correct` with no `reason` is not a
+    `CorrectMark`, and a sheet stores the read's own wording for it."""
     entry = well_formed("correct")
     del entry["reason"]
-    mark, why = Mark.deserialize("here", entry)
-    assert why == [] and mark is not None
-    assert validate("here", mark) == ["here: correct needs a `reason`"]
-    sheet, why = Sheet.deserialize(
-        "s", {"path": "m.py", "sha": "a", "marks": [entry]}, VALIDATORS
-    )
+    mark, why = read_mark("here", entry)
+    assert mark is None
+    assert why == ["here: correct needs a `reason`"]
+    sheet, why = Sheet.deserialize("s", {"path": "m.py", "sha": "a", "marks": [entry]})
     assert why == [] and sheet is not None and sheet.marks == ()
     assert sheet.refused[0].reasons == ("correct needs a `reason`",)
+
+
+@pytest.mark.parametrize("instruction", sorted(BRIEF))
+def test_each_type_writes_the_wire_entry_it_read(instruction):
+    """The wire is unchanged by the types: what a role wrote is what the mark
+    writes back, key for key, and it reads back as the same mark."""
+    entry = well_formed(instruction)
+    mark, why = read_mark("here", entry)
+    assert why == [] and mark is not None
+    assert type(mark) is mark_type(Instruction(instruction))
+    wire = mark.serialize()
+    assert list(wire) == [key for key in Mark.FIELDS if key in wire]
+    assert wire["claim"] == CLAIM[instruction]
+    assert wire.get("change") == CHANGE.get(instruction)
+    assert wire["sources"] == entry.get("sources", [])
+    again, why = read_mark("here", wire)
+    assert why == [] and again == mark
+
+
+@pytest.mark.parametrize("instruction", sorted(BRIEF))
+def test_the_quoted_clause_is_the_claim_key_the_type_names(instruction):
+    """`Mark.quoted` and `quotes_original` state one fact twice -- the value
+    and the key it sits under -- so the two are held equal here."""
+    mark, _ = read_mark("here", well_formed(instruction))
+    assert mark is not None
+    key = mark.quotes_original
+    assert mark.quoted == (mark.serialize()["claim"][key] if key else "")
+
+
+def test_a_field_the_type_does_not_take_is_ignored_not_refused():
+    """`decision-log.md Process: #204`: a `clean` handed a `change` and a claim
+    is read, and writes neither back."""
+    entry = {**well_formed("clean"), "change": "# text", "claim": {"false": "x"}}
+    mark, why = read_mark("here", entry)
+    assert why == [] and mark is not None
+    assert "change" not in mark.serialize()
+    assert mark.serialize()["claim"] == {}
 
 
 class TestUntouchedIsNotTheSameAsUnruled:
@@ -294,7 +331,7 @@ class TestUntouchedIsNotTheSameAsUnruled:
     def test_what_is_not_untouched_is_refused_by_NAME(self):
         entry = well_formed("correct")
         entry["instruction"] = None
-        mark, why = read_mark("here", entry, validate)
+        mark, why = read_mark("here", entry)
         assert mark is None
         assert any("instruction" in message for message in why)
 
@@ -465,7 +502,7 @@ def test_the_mark_carries_the_raw_text_the_row_seeded():
         "raw_text": "# the paragraph as it stands\n",
         "instruction": "clean",
     }
-    mark, why = read_mark("m.py@b1", entry, validate)
+    mark, why = read_mark("m.py@b1", entry)
     assert why == []
     assert mark is not None
     assert mark.raw_text == "# the paragraph as it stands\n"
@@ -475,16 +512,14 @@ def test_a_mark_that_lost_its_raw_text_still_parses():
     """An absent `raw_text` is not a shape problem. It is seeded, and the base
     a mark is measured against is never this field, so the boundary has
     nothing to refuse (`decision-log.md Process: #185`)."""
-    mark, why = read_mark(
-        "m.py@b1", {"address": "m.py@b1", "instruction": "clean"}, validate
-    )
+    mark, why = read_mark("m.py@b1", {"address": "m.py@b1", "instruction": "clean"})
     assert why == []
     assert mark is not None
     assert mark.raw_text == ""
 
 
 def test_seed_builds_the_slot_from_the_marks_own_names():
-    row = Mark.seed("m.py@b1", "def f(x):", "# as it stands\n")
+    row = BlankMark("m.py@b1", "def f(x):", "# as it stands\n").serialize()
     assert row == {
         "address": "m.py@b1",
         "anchor": "def f(x):",
@@ -493,15 +528,19 @@ def test_seed_builds_the_slot_from_the_marks_own_names():
     }
 
 
-def test_seed_refuses_a_name_the_mark_does_not_declare(monkeypatch):
-    """!! THE POINT OF THE FUNCTION, AND THE ONLY WAY IT CAN FAIL. `P35` asks
-    that a renamed field break AT CONSTRUCTION rather than leave another
-    module writing the old key -- so `SEEDED` is checked against the
-    dataclass's own fields every call, and this proves that check fires."""
-    monkeypatch.setattr(Mark, "SEEDED", ("address", "anchor", "raw_txt"))
-    with pytest.raises(AttributeError) as caught:
-        Mark.seed("m.py@b1", "def f(x):", "# as it stands\n")
-    assert "raw_txt" in str(caught.value)
+def test_a_filled_slot_reads_back_the_fields_it_was_seeded_with():
+    """A renamed field breaks HERE rather than one module away: a slot's keys
+    are `BlankMark`'s own field names, and a role that fills it in hands back
+    an entry the mark's read takes those three from."""
+    slot = BlankMark("m.py@b1", "def f(x):", "# as it stands\n").serialize()
+    assert untouched(slot)
+    mark, why = read_mark("m.py@b1", {**slot, "instruction": "clean"})
+    assert why == [] and mark is not None
+    assert (mark.address, mark.anchor, mark.raw_text) == (
+        "m.py@b1",
+        "def f(x):",
+        "# as it stands\n",
+    )
 
 
 def test_serialize_round_trips_through_deserialize():
@@ -517,10 +556,10 @@ def test_serialize_round_trips_through_deserialize():
         "sources": [{"cite": "m.py:1", "verbatim": "def f(x):"}],
         "change": "# as it should read\n",
     }
-    mark, why = read_mark("m.py@b1", entry, validate)
+    mark, why = read_mark("m.py@b1", entry)
     assert why == []
     assert mark is not None
-    again, why_again = read_mark("m.py@b1", mark.serialize(), validate)
+    again, why_again = read_mark("m.py@b1", mark.serialize())
     assert why_again == []
     assert again == mark
 
@@ -540,7 +579,7 @@ def test_a_move_onto_its_own_address_is_refused_by_name():
         "sources": [{"cite": "m.py:1", "verbatim": "def f(x):"}],
         "change": "# a paragraph\n",
     }
-    mark, why = read_mark("m.py@b1", entry, validate)
+    mark, why = read_mark("m.py@b1", entry)
     assert mark is None
     assert len(why) == 1
     assert "`claim.to` is this mark's own `address`" in why[0]
@@ -551,7 +590,7 @@ def test_a_move_onto_its_own_address_spelled_otherwise_is_refused(spelled):
     """A case slip names the same page on a file system that ignores case, and
     such a move reached the docket as two schedules for one file: the delete
     at the origin landed and the restoring write was lost."""
-    mark, why = read_mark("m.py@b1", _a_move_to(spelled), validate)
+    mark, why = read_mark("m.py@b1", _a_move_to(spelled))
     assert mark is None
     assert len(why) == 1
     assert "`claim.to` is this mark's own `address`" in why[0]
@@ -570,7 +609,7 @@ def test_a_move_to_a_different_address_still_parses():
         "sources": [{"cite": "m.py:1", "verbatim": "def f(x):"}],
         "change": "# a paragraph\n",
     }
-    mark, why = read_mark("m.py@b1", entry, validate)
+    mark, why = read_mark("m.py@b1", entry)
     assert why == []
     assert mark is not None
 
@@ -596,7 +635,7 @@ def test_a_move_out_of_the_code_is_refused_and_routed_to_a_query():
     `check` accepted and `collate` refused. Refused here, the role is told to
     file a human-review query naming where the paragraph belongs."""
     for destination in ("docs/history.md", "src/pkg/mod.py:1"):
-        mark, why = read_mark("m.py@b1", _a_move_to(destination), validate)
+        mark, why = read_mark("m.py@b1", _a_move_to(destination))
         assert mark is None, destination
         assert len(why) == 1, why
         assert repr(destination) in why[0]
@@ -607,7 +646,7 @@ def test_a_move_out_of_the_code_is_refused_and_routed_to_a_query():
 def test_a_move_to_a_bare_cue_is_refused():
     """A cue with no path names a place on no page -- the self-run's four
     same-file destinations. The full address is what the addresser prints."""
-    mark, why = read_mark("m.py@b1", _a_move_to("b8"), validate)
+    mark, why = read_mark("m.py@b1", _a_move_to("b8"))
     assert mark is None
     assert "`path@cue`" in why[0], why
 
@@ -616,7 +655,7 @@ def test_a_substantive_mark_whose_address_names_no_page_is_refused():
     """`mark-defects` T1. `filled()` asked only for a non-blank string, so a
     bare cue -- the form measured at 62 of 78 marks on 2026-08-27 -- parsed,
     and `cue_of("b1")` answers `Address('', '')`."""
-    mark, why = read_mark("b1", {**_a_move_to("m.py@b8"), "address": "b1"}, validate)
+    mark, why = read_mark("b1", {**_a_move_to("m.py@b8"), "address": "b1"})
     assert mark is None
     assert any("full `path@cue` address" in one for one in why), why
 
@@ -649,7 +688,6 @@ class TestAStoredReasonDoesNotRepeatItsLocator:
                     "not an object",
                 ],
             },
-            VALIDATORS,
         )
         assert why == []
         assert sheet is not None

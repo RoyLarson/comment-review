@@ -41,7 +41,6 @@ import json
 
 import pytest
 from helpers import (
-    VALIDATORS,
     a_correct,
     a_drop,
     a_master_proof,
@@ -55,6 +54,7 @@ from comment_review.desk.work.fold import Fold
 from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.flows.places import places_of
 from comment_review.flows.revise import _set_by
+from comment_review.flows.validators import VALIDATORS
 from comment_review.machine.json_object import object_of
 
 #: One ordinary alteration, for the cases whose subject is a SCHEDULE's own
@@ -467,7 +467,7 @@ def test_an_EMPTY_change_refuses_where_the_instruction_may_not_empty():
 
 
 def test_an_EMPTY_change_IS_the_delete_where_the_row_may_empty():
-    """`drop` is the one row `INSTRUCTIONS[...].may_empty` is True for, which
+    """`drop` is the one type `may_empty` is True for, which
     is what the refusal above is read from rather than from a named
     instruction.
 

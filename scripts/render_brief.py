@@ -33,6 +33,7 @@ sys.path.insert(0, str(SRC))
 os.environ["PYTHONPATH"] = str(SRC)
 
 from comment_review.desk.marks.table import INSTRUCTIONS  # noqa: E402
+from comment_review.desk.proof.mark import mark_type  # noqa: E402
 
 SPEC_PATH = ROOT / "docs" / "the-mark.md"
 BRIEF_PATH = ROOT / "src/plugin/skills/comment-review/references/reviewer-brief.md"
@@ -110,8 +111,9 @@ def render() -> str:
         "| instruction | `claim` keys | what they carry |",
         "| --- | --- | --- |",
     ]
-    for name, spec in INSTRUCTIONS.items():
-        lines.append(f"| `{name}` | {_claim_cell(spec.claim_all)} | {prose[name]} |")
+    for name in INSTRUCTIONS:
+        claim = _claim_cell(mark_type(name).claim_all)
+        lines.append(f"| `{name}` | {claim} | {prose[name]} |")
     return "\n".join(lines)
 
 

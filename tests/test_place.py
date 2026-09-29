@@ -7,13 +7,14 @@ marks at one place one side between them, which is a composition that can
 refuse and so belongs where the reasons are read.
 """
 
-from helpers import VALIDATORS
+from helpers import a_typed_mark
 
 from comment_review.desk.proof.answer import Answer, Question
 from comment_review.desk.proof.disposition import ORIGINAL, Disposition
-from comment_review.desk.proof.mark import Instruction, Mark, Touch
+from comment_review.desk.proof.mark import Instruction, Touch
 from comment_review.desk.proof.place import Filed, Place
 from comment_review.desk.proof.state import State
+from comment_review.flows.validators import VALIDATORS
 
 BASE = "# one\n# two\n# three\n"
 
@@ -21,11 +22,11 @@ BASE = "# one\n# two\n# three\n"
 def _mark(
     instruction, change="", raw_text=BASE, claim=None, address="m.py@b1", sources=()
 ):
-    return Mark(
+    return a_typed_mark(
+        instruction,
         address=address,
         anchor="x = 1",
         raw_text=raw_text,
-        instruction=instruction,
         claim=claim or {},
         reason="r",
         sources=sources,

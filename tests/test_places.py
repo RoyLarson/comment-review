@@ -14,7 +14,13 @@ from helpers import (
 
 from comment_review.desk.evaluate.move import _is_this_move, moves_in
 from comment_review.desk.marks.table import INSTRUCTIONS, Row, chief_mark
-from comment_review.desk.proof.mark import Instruction, Touch
+from comment_review.desk.proof.mark import (
+    CorrectMark,
+    DropMark,
+    Instruction,
+    MoveMark,
+    Touch,
+)
 from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.proof.state import State
@@ -90,9 +96,9 @@ def test_chief_copy_of_synthesizes_a_correct_for_a_decided_place():
     )
     marks = [m for sheet in copy.sheets for m in sheet.marks]
     assert len(marks) == 1
-    assert marks[0].instruction is Instruction.CORRECT
+    assert isinstance(marks[0], CorrectMark)
     assert marks[0].change == "# x\n"
-    assert marks[0].claim["false"] == BASE
+    assert marks[0].false == BASE
 
 
 def test_chief_copy_of_writes_no_mark_for_a_place_whose_text_is_none():
@@ -129,7 +135,7 @@ def test_chief_copy_of_synthesizes_a_drop_for_an_empty_decided_text():
     )
     marks = [m for sheet in copy.sheets for m in sheet.marks]
     assert len(marks) == 1
-    assert marks[0].instruction is Instruction.DROP
+    assert isinstance(marks[0], DropMark)
     assert marks[0].change == ""
 
 
@@ -207,7 +213,7 @@ def test_every_reader_of_where_a_mark_writes_asks_the_row(monkeypatch, tmp_path)
     # destination the row names.
     move = places["m.py@b1"].filed[0].mark
     splits = INSTRUCTIONS[Instruction.MOVE].splits
-    assert splits is not None and move.change is not None
+    assert splits is not None and isinstance(move, MoveMark)
     split = splits(move, BASE + move.change, "y = 2")
     assert split is not None
     assert [half.address for half in split] == ["m.py@b1", "m.py@b7"]
