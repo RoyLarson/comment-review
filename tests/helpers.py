@@ -693,7 +693,7 @@ def a_typed_mark(
     """A mark of `instruction`'s type, BUILT rather than read.
 
     For a case that hands a table verb or a fold a mark directly, the way the
-    split and the chief build one. Nothing is checked: a claim key left out is
+    chief builds one. Nothing is checked: a claim key left out is
     "", and a `query` with no shape is `unable-to-determine`. A case asking
     what the read refuses goes through `read_mark` instead.
     """

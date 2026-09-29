@@ -35,7 +35,6 @@ from comment_review.desk.proof.mark import (
     DropMark,
     Instruction,
     Mark,
-    MoveMark,
     QueryMark,
     Shape,
     Touch,
@@ -68,7 +67,6 @@ Sets = Callable[[Any, Touch, str], str | None]
 Reads = Callable[[Any, Touch, str], list[str]]
 Notes = Callable[[Any, Touch, str], list[str]]
 Pairs = Callable[[Any], Stance]
-Splits = Callable[[Any, str, str], "tuple[Any, Any] | None"]
 
 
 def _nothing(mark, touch, base):
@@ -115,52 +113,6 @@ def _move_reads(mark, touch, base):
     if dropped is not None:
         return [f"the destination text does not keep {dropped!r}"]
     return []
-
-
-def _move_splits(mark: MoveMark, origin_base: str, destination_anchor: str):
-    """An agreed move as the mover's `drop` at the origin and `add` at the destination.
-
-    `decision-log.md Process: #195` item 3. Both halves come from the one
-    snippet, so the text the origin loses is the text the destination gains
-    by construction; each keeps the move's reason and sources. None where the
-    snippet is not in the origin's paragraph exactly once -- the move's own
-    read refuses that, and a split would hide it.
-
-    An add's claim names its anchor in backticks and the parse refuses an
-    empty name, so a landing with no code line names its address.
-    """
-    remainder = _without_once(origin_base, mark.change)
-    if remainder is None:
-        return None
-    destination = next(
-        (
-            where
-            for where, touch in INSTRUCTIONS[mark.instruction].places(mark)
-            if touch is Touch.DESTINATION
-        ),
-        "",
-    )
-    named = destination_anchor.strip() or destination
-    drop = DropMark(
-        address=mark.address,
-        anchor=mark.anchor,
-        raw_text=origin_base,
-        reason=mark.reason,
-        sources=mark.sources,
-        change=remainder,
-        drop=mark.change,
-    )
-    add = AddMark(
-        address=destination,
-        anchor=destination_anchor,
-        raw_text=mark.raw_text,
-        reason=mark.reason,
-        sources=mark.sources,
-        change=mark.change,
-        missing=mark.change.strip().splitlines()[0],
-        named_anchor=f"`{named}`",
-    )
-    return drop, add
 
 
 def _correct_notes(mark: CorrectMark, touch, base):
@@ -217,9 +169,6 @@ class Row:
     #: changes no place's state -- `decision-log.md Process: #177`.
     notes: Notes = _no_notes
     pairs: Pairs = _proposes
-    #: How an agreed mark of this row becomes one-place marks
-    #: (`decision-log.md Process: #195`). None for every row but `move`.
-    splits: Splits | None = None
     answers: tuple[str, ...] = ESCALATION_ANSWERS
     #: True where `raw_text` is the paragraph as it will read and the role
     #: writes it, rather than the seeded paragraph as it stands --
@@ -256,7 +205,6 @@ INSTRUCTIONS: dict[Instruction, Row] = {
         touches=(Touch.ORIGIN, Touch.DESTINATION),
         sets=_move_sets,
         reads=_move_reads,
-        splits=_move_splits,
         carries_raw_text=True,
     ),
 }
@@ -299,9 +247,9 @@ def chief_mark(place: "Place") -> Mark:
 
     The marks are read in role order, so which mark is returned and which
     order its sources stand in are the same on every run -- see
-    `_in_role_order`. A mark writing two places is never returned whole: an
-    agreed move has been split into one-place marks already (`Process: #195`),
-    and an unsplit one is written end by end from each end's decided text.
+    `_in_role_order`. A mark writing two places is never returned: an agreed
+    move stays filed at both ends (`Process: #205`), and each end is written
+    from its own decided text.
 
     Args:
         place: a decided place -- `place.text` is not None.

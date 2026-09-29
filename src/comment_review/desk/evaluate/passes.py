@@ -31,11 +31,8 @@ def _named(one: Filed) -> str:
 
     The address is the mark's own, not the place's: a mark reaching a place is
     not always addressed to it, since a move is filed at its destination under
-    its origin's address, and a role fixing the pair has to find both. A half
-    of a split move is named as the move, which is the mark the role filed.
+    its origin's address, and a role fixing the pair has to find both.
     """
-    if one.split_from:
-        return f"its move at {one.split_from}"
     return f"its {one.mark.instruction} at {one.mark.address}"
 
 
@@ -342,11 +339,12 @@ def decide(
     `decision-log.md Process: #195`: a move is a placement claim decided once
     for the pair before either end's words. So each move's placement pass
     runs first, with the chief's placement ruling where there is one, and a
-    final one is written onto the two place records -- the split, or the
-    withdrawal; a split the row declines refuses the move instead. Then each
-    place's marks and answers, as for any one-place mark; then every move not
-    yet final holds its two ends `to-come` (`Process: #200`); then the
-    chief's dispositions, which a `to-come` end does not take.
+    final one takes off the filings that no longer stand (`Process: #205`):
+    an agreed move stays filed at both ends, and each end is then decided
+    against it as an ordinary place. Then each place's marks and answers, as
+    for any one-place mark; then every move not yet final holds its two ends
+    `to-come` (`Process: #200`); then the chief's dispositions, which a
+    `to-come` end does not take.
 
     Args:
         places: address -> place, each from its own record. Mutated.

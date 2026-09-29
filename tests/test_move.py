@@ -217,7 +217,7 @@ def test_an_answer_to_another_question_is_refused():
 
 
 def test_an_agreed_move_stays_agreed():
-    """D4: agreement is final -- the split has already been written."""
+    """D4: agreement is final -- each end is decided against it."""
     places = _ends()
     (move,) = moves_in(places).values()
     move.placement = Placement.AGREED

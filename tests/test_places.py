@@ -13,12 +13,10 @@ from helpers import (
 )
 
 from comment_review.desk.evaluate.move import _is_this_move, moves_in
-from comment_review.desk.marks.table import INSTRUCTIONS, Row, chief_mark
+from comment_review.desk.marks.table import Row, chief_mark
 from comment_review.desk.proof.mark import (
     CorrectMark,
     DropMark,
-    Instruction,
-    MoveMark,
     Touch,
 )
 from comment_review.desk.proof.place import Place
@@ -208,12 +206,3 @@ def test_every_reader_of_where_a_mark_writes_asks_the_row(monkeypatch, tmp_path)
     decided.text = "# decided"
     chief_mark(decided)
     assert consulted == ["m.py@b1"]
-
-    # An agreed move splits into a drop at its origin and an add at the
-    # destination the row names.
-    move = places["m.py@b1"].filed[0].mark
-    splits = INSTRUCTIONS[Instruction.MOVE].splits
-    assert splits is not None and isinstance(move, MoveMark)
-    split = splits(move, BASE + move.change, "y = 2")
-    assert split is not None
-    assert [half.address for half in split] == ["m.py@b1", "m.py@b7"]

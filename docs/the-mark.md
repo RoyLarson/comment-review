@@ -189,21 +189,22 @@ now says it twice. **Nothing downstream would know the pair was meant to be one 
 
 **RULED 2026-09-26, `decision-log.md Process: #195` -- both shapes, at different times.** A
 move is a placement claim and nothing else. It is one `Mark` while the placement is open, and
-travels whole as the table below binds; once every reader of either page has agreed the
-placement it is split into the mover's `drop` at the origin and `add` at the destination, and
-the two ends are ordinary places from then on, at the fold and at the write end. Placement is
-a question of its own, with `agree`, `stet`, `withdraw` and `query` as its answers, or the
-chief's placement ruling where the roles leave it undecided (`#201`).
-`desk.evaluate.move.settle_ends` performs the split with the row's `splits`.
+travels whole as the table below binds. Placement is a question of its own, with `agree`,
+`stet`, `withdraw` and `query` as its answers, or the chief's placement ruling where the roles
+leave it undecided (`#201`). **Once agreed, the move stays filed at both ends**
+(`decision-log.md Process: #205`, which supersedes `#195`'s split into a `drop` and an `add`):
+each end is decided as an ordinary place against the move itself, whose row sets the remainder
+at the origin and the arrival at the destination. `desk.evaluate.move.settle_ends` takes off
+only the filings a final placement no longer stands on.
 
 **What that binds, everywhere the mark is handled:**
 
 | stage | the rule |
 | --- | --- |
 | **source-verification** | both ends are checked; a failure at either refuses the mark |
-| **the fold** | while the placement is undecided both places are `to-come` and decide no text (`desk.evaluate.move.hold_ends`); a refusal at either refuses both. Once agreed, the `drop` and `add` are ordinary marks at their places |
+| **the fold** | while the placement is undecided both places are `to-come` and decide no text (`desk.evaluate.move.hold_ends`); once agreed, each end is decided against the move filed there. The fold is one unit of work: any refusal -- at either end, or at the move -- rolls the whole round back, so neither end is saved without the other |
 | **the revise step** | a role answers a move's placement once, for the pair, in one slot. There is no half `hold` |
-| **the write chain** | a proof holding an undecided move is not closed (`flows.transcribe._open_moves`), so neither end is set; once split, each end is set as its own place |
+| **the write chain** | a proof holding an undecided move is not closed (`flows.transcribe._open_moves`), so neither end is set; once agreed, each end is set as its own place |
 
 ! **THIS IS WHAT [`collate-buckets-a-move-at-one-end`](../TODO/completed/collate-buckets-a-move-at-one-end.md)
 IS ABOUT**, and it is now a rule rather than a bug report: a `move` is grouped by every place it
@@ -240,7 +241,7 @@ the true one, and a `sources` entry carrying the line that settles it."*
 the next thing that reads it silently gets a worse answer. ! `add`'s sentence ended *"never the
 payload's"* and now reads *"never the claim's"*: the old word named the field that was removed.
 
-## The classifiers -- twelve COLUMNS and a closed list of flags
+## The classifiers -- eleven COLUMNS and a closed list of flags
 
 !! **THIS IS THE PART THAT WAS MISSING, AND ITS ABSENCE IS WHAT LET TWENTY-TWO FIELDS IN.** A row
 may state these and nothing else -- **sixteen things, and no prose.** A new classifier is a change
@@ -258,13 +259,12 @@ to THIS FILE first.
 | **reads** | the problems a mark of this row has at one touch, against its base | a function of the mark, the touch and the base |
 | **notes** | what the chief is told about a mark of this row that is not a problem with it | a function of the mark, the touch and the base |
 | **pairs** | how a mark of this row stands toward the others at its place | a function of the mark |
-| **splits** | how an agreed mark of this row becomes one-place marks, once every reader has agreed its placement (`decision-log.md Process: #195`) | a function of the mark, the origin's base and the destination's anchor, or none |
 | **answers** | which answers a turn may give where this row proposes | a list of names |
 
 **Each classifier has one home.** What a mark's own read needs -- claim keys, verbatim,
 destination key, change, sources, and every flag but *carries raw text* -- is a class
 attribute of the instruction's type in `desk/proof/mark.py`. What a mark does at a place --
-touches, sets, reads, notes, pairs, splits, answers, and *carries raw text* -- is a field of
+touches, sets, reads, notes, pairs, answers, and *carries raw text* -- is a field of
 the row in `desk/marks/table.py`. The gate reads both homes.
 
 **The flags, and there are five:**

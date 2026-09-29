@@ -13,7 +13,7 @@ from comment_review.desk.answers.table import ANSWERS, Effect
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
 from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.disposition import CHIEF, ORIGINAL, Disposition
-from comment_review.desk.proof.mark import Mark, MoveMark, Touch
+from comment_review.desk.proof.mark import MoveMark, Touch
 from comment_review.desk.proof.move import FINAL, UNDECIDED, Move, Placement, key_of
 from comment_review.desk.proof.place import Filed, Place
 from comment_review.desk.proof.state import State
@@ -26,8 +26,8 @@ def moves_in(
 
     A move is a `MoveMark` found at its origin, where it is filed with
     `Touch.ORIGIN`, and named by its two addresses. A move the record holds
-    and no place files any longer -- agreed and split, or withdrawn -- keeps
-    its record with no movers, so its final placement is still reported.
+    and no place files any longer -- withdrawn -- keeps its record with no
+    movers, so its final placement is still reported.
 
     Args:
         places: address -> place, as the fold holds them.
@@ -146,7 +146,7 @@ def _ruled(move: Move, ruling: Disposition) -> None:
 
     Only an undecided move takes one. The original keeps the paragraph where
     it is; a mover's side agrees the move as that mover filed it, and any
-    other mover's filing comes off with the split.
+    other mover's filing comes off when the placement is settled.
     """
     if move.placement not in UNDECIDED:
         move.placement, move.reasons = (
@@ -183,53 +183,41 @@ def _is_this_move(one: Filed, move: Move) -> bool:
 
 
 def settle_ends(move: Move, places: dict[str, Place]) -> None:
-    """Write a final placement onto the two place records.
+    """Take off the two ends the filings a final placement no longer stands on.
 
-    AGREED: each remaining mover's filing becomes its `drop` at the origin
-    and `add` at the destination (`Row.splits`), and a mover that withdrew
-    comes off. WITHDRAWN: every filing of this move comes off. A split the
-    row declines -- the snippet is not in the origin exactly once -- makes
-    the placement REFUSED and writes nothing, so `hold_ends` refuses both
-    ends. It adds no reason: the move's own read at the origin tests the same
-    snippet against the same paragraph, and names the defect there.
+    `decision-log.md Process: #205`: an agreed move stays filed at both ends,
+    and each end is decided against the move itself -- its row sets the
+    remainder at the origin and the arrival at the destination. AGREED: a
+    mover the placement did not keep -- one that withdrew, or one the chief
+    did not take in (`Process: #196`) -- comes off. WITHDRAWN: every filing
+    of this move comes off. Nothing is added.
     """
     if move.placement not in FINAL:
         return
-    origin, destination = places.get(move.origin), places.get(move.destination)
-    if origin is None or destination is None:
-        return
-    halves: dict[str, tuple[Mark, Mark]] = {}
-    if move.placement is Placement.AGREED:
-        for role, mark in sorted(move.movers.items()):
-            row = INSTRUCTIONS[mark.instruction]
-            split = (
-                row.splits(mark, origin.base, destination.anchor)
-                if row.splits
-                else None
-            )
-            if split is None:
-                move.placement = Placement.REFUSED
-                return
-            halves[role] = split
-    for end, index in ((origin, 0), (destination, 1)):
-        kept = [one for one in end.filed if not _is_this_move(one, move)]
-        added = [
-            Filed(role, split[index], Touch.OWN, move.origin)
-            for role, split in sorted(halves.items())
+    for end in (places.get(move.origin), places.get(move.destination)):
+        if end is None:
+            continue
+        end.filed = [
+            one
+            for one in end.filed
+            if not _is_this_move(one, move)
+            or (move.placement is Placement.AGREED and one.role in move.movers)
         ]
-        end.filed = kept + added
 
 
 def hold_ends(move: Move, places: dict[str, Place]) -> None:
     """Hold a move's two ends to its placement while it is not final.
 
-    HELD: both ends ride to the author and decide no text. REFUSED, or either
-    end refused on its own: both are refused, each keeping only its own
-    reasons -- the move's are reported once, from the move. OPEN or
-    CONTESTED: both ends are `to-come` -- each decides no text and asks no
-    role anything until the placement is decided (`Process: #200`). A
-    ruling at one of them is refused: its words are ruled against the
-    move's outcome, once there is one.
+    HELD: each end not refused on its own rides to the author and decides no
+    text. OPEN, CONTESTED or REFUSED: each end not refused on its own is
+    `to-come` -- it decides no text and asks no role anything until the
+    placement is decided (`Process: #200`). A ruling at one of them is
+    refused: its words are ruled against the move's outcome, once there is
+    one.
+
+    A refusal is not carried from one end to the other, nor from the move to
+    its ends: the fold is one unit of work, and any refusal -- an end's, at
+    that end, or the move's, once at the move -- rolls the whole round back.
 
     Args:
         move: the move whose ends are held.
@@ -242,6 +230,8 @@ def hold_ends(move: Move, places: dict[str, Place]) -> None:
     ]
     if move.placement is Placement.HELD:
         for end in ends:
+            if end.state is State.REFUSED:
+                continue
             end.state, end.text, end.question, end.owed = (
                 State.UNSETTLABLE,
                 None,
@@ -250,12 +240,11 @@ def hold_ends(move: Move, places: dict[str, Place]) -> None:
             )
             end.asking = end.asking or move.asking
         return
-    refused = move.placement is Placement.REFUSED or any(
-        end.state is State.REFUSED for end in ends
-    )
-    if refused:
-        for end in ends:
-            end.state, end.text = State.REFUSED, None
-        return
     for end in ends:
-        end.state, end.text, end.question, end.owed = State.TO_COME, None, None, ()
+        if end.state is not State.REFUSED:
+            end.state, end.text, end.question, end.owed = (
+                State.TO_COME,
+                None,
+                None,
+                (),
+            )

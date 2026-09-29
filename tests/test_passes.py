@@ -602,12 +602,18 @@ class TestAMoveIsDecidedBeforeItsEnds:
     def _placement(self, name, claim=None):
         return _answer(name, claim=claim, question=Question.PLACEMENT)
 
-    def test_a_move_only_its_mover_read_splits_and_settles_at_turn_0(self):
+    def test_a_move_only_its_mover_read_settles_at_turn_0_still_filed(self):
+        """`Process: #205`: agreed, the move stays filed at both ends, and each
+        end is decided against it."""
         places, moves = self._places(readers=("a",))
         decide(places, moves)
         origin, destination = places["m.py@b1"], places["m.py@b5"]
-        assert [one.mark.instruction for one in origin.filed] == [Instruction.DROP]
-        assert [one.mark.instruction for one in destination.filed] == [Instruction.ADD]
+        assert [(one.mark.instruction, one.touch) for one in origin.filed] == [
+            (Instruction.MOVE, Touch.ORIGIN)
+        ]
+        assert [(one.mark.instruction, one.touch) for one in destination.filed] == [
+            (Instruction.MOVE, Touch.DESTINATION)
+        ]
         assert (origin.state, origin.text) == (State.STANDS, self.REMAINDER)
         assert (destination.state, destination.text) == (State.STANDS, self.LANDED)
 
@@ -619,9 +625,9 @@ class TestAMoveIsDecidedBeforeItsEnds:
         for end in places.values():
             assert (end.state, end.text, end.owed) == (State.TO_COME, None, ())
 
-    def test_agree_then_clean_split_and_settle_it(self):
-        """The placement is agreed in one turn; the split's halves are then
-        put to the reader that has not seen them, and its `clean` settles."""
+    def test_agree_then_clean_settle_it(self):
+        """The placement is agreed in one turn; each end's text is then put
+        to the reader that has not seen it, and its `clean` settles."""
         places, moves = self._places()
         decide(places, moves)
         moves["m.py@b1 -> m.py@b5"].answers[1] = {"b": self._placement("agree")}
@@ -630,13 +636,13 @@ class TestAMoveIsDecidedBeforeItsEnds:
         for end in places.values():
             end.answers[2] = {"b": _answer("clean", question=Question.COMPOSITION)}
         # Each fold finds its moves again on its places, as `Fold` does; the
-        # split left no move filed, so the agreed move is carried as recorded.
+        # agreed move is still filed, and keeps its recorded placement.
         moves = moves_in(places, moves)
         decide(places, moves, turn=2)
         assert places["m.py@b1"].text == self.REMAINDER
         assert places["m.py@b5"].text == self.LANDED
         assert all(end.state is State.AGREED for end in places.values())
-        assert places["m.py@b5"].filed[0].mark.instruction is Instruction.ADD
+        assert places["m.py@b5"].filed[0].mark.instruction is Instruction.MOVE
 
     def test_a_stet_keeps_both_ends_to_come(self):
         places, moves = self._places()
@@ -671,24 +677,6 @@ class TestAMoveIsDecidedBeforeItsEnds:
         for end in places.values():
             assert end.state is State.UNSETTLABLE and end.text is None
 
-    def test_a_snippet_not_in_the_origin_is_refused_at_both_ends_and_not_split(self):
-        """Review Focus 5. The landing keeps every word of the destination and
-        the snippet, so the destination's own read has nothing to refuse: it
-        is refused with its move, and the reason is the origin's read alone."""
-        places, moves = self._places(
-            readers=("a",), change="# nine\n", landed="# four\n# nine\n# five\n"
-        )
-        decide(places, moves)
-        assert moves["m.py@b1 -> m.py@b5"].placement is Placement.REFUSED
-        assert moves["m.py@b1 -> m.py@b5"].reasons == ()
-        for end in places.values():
-            assert end.state is State.REFUSED
-            assert end.filed[0].mark.instruction is Instruction.MOVE
-        assert places["m.py@b1"].reasons == (
-            "a: the snippet is not in the origin's paragraph: '# nine\\n'",
-        )
-        assert places["m.py@b5"].reasons == ()
-
     def _stetted(self):
         """A move `b` stetted in turn 1: contested, both ends `to-come`."""
         places, moves = self._places()
@@ -708,7 +696,7 @@ class TestAMoveIsDecidedBeforeItsEnds:
         )
 
     def test_the_chief_rules_the_placement_and_then_each_ends_words(self):
-        """The placement ruling splits the move; each end is then an ordinary
+        """The placement ruling agrees the move; each end is then an ordinary
         place, closed by its own ruling, so the two texts need not come from
         one side."""
         recast = "# four\n# five\n# two, as the chief words it\n"
@@ -737,21 +725,10 @@ class TestAMoveIsDecidedBeforeItsEnds:
         assert (origin.state, origin.text) == (State.STANDS, self.REMAINDER)
         assert (destination.state, destination.text) == (State.STANDS, recast)
 
-    def test_an_end_refused_on_its_own_refuses_the_other_end_of_an_open_move(self):
-        places, moves = self._places()
-        unreadable = _mark(
-            Instruction.ADD, change="# six\n", raw_text="# six\n", address="m.py@b5"
-        )
-        places["m.py@b5"].filed.append(Filed("b", unreadable, Touch.OWN))
-        decide(places, moves)
-        assert moves["m.py@b1 -> m.py@b5"].placement is Placement.OPEN
-        assert places["m.py@b5"].state is State.REFUSED
-        assert places["m.py@b1"].state is State.REFUSED
-
 
 def test_an_agreed_move_leaves_the_reverse_move_between_its_places_filed():
     """Two moves between one pair of places, in opposite directions, are two
-    moves: agreeing one splits it alone, and the other stays filed and open."""
+    moves: agreeing one settles it alone, and the other stays filed and open."""
     forward = _mark(
         Instruction.MOVE,
         change="# two\n",

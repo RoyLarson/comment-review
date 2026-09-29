@@ -362,7 +362,7 @@ def normalized(text: str) -> str:
 class TestTheChiefRulesAPlacementForItsMoverThenItsEnds(unittest.TestCase):
     """`decision-log.md Process: #195` item 4 and `#201`: an undecided move
     reaches the chief as a placement, ruled once with `to`; taken in for a
-    mover it splits, and each end is then ruled in a second `disposition`
+    mover it is agreed, and each end is then ruled in a second `disposition`
     call. The plant carries one such move, and these read its tables."""
 
     def setUp(self):
@@ -388,7 +388,7 @@ class TestTheChiefRulesAPlacementForItsMoverThenItsEnds(unittest.TestCase):
             self.assertIn("move", origin.filed, key)
 
     def test_ends_rules_both_ends_of_each_such_move_and_nothing_else(self):
-        """The second call rules exactly the ends the first one split, and
+        """The second call rules exactly the ends the first one agreed, and
         the first call rules neither -- a ruling at a to-come end is refused."""
         ends = {one["address"] for one in smoke_fixture.ENDS}
         split = {end for one in self.moves for end in (one["address"], one["to"])}

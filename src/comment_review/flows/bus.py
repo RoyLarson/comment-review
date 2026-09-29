@@ -490,7 +490,7 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
     roles settled, that rides to the human, or that waits on its move is
     refused as well.
 
-    A placement ruling splits or withdraws its move, and an end that then
+    A placement ruling agrees or withdraws its move, and an end that then
     needs words is carried forward in what this commits, for the chief to
     rule on the proof it writes.
     """
@@ -521,7 +521,7 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
                     CHIEF,
                     disposition.address,
                     "an end of an undecided move -- rule the move's placement,"
-                    " and this end's words once it is split",
+                    " and this end's words once it is placed",
                 )
             )
             continue

@@ -17,8 +17,9 @@ from helpers import (
     returned,
 )
 
+from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.answer import Question
-from comment_review.desk.proof.mark import BlankMark, Shape
+from comment_review.desk.proof.mark import BlankMark, Shape, Touch
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.sheet import Sheet
@@ -601,8 +602,8 @@ def test_a_withdrawn_moves_origin_is_put_to_the_role_that_has_not_seen_it(tmp_pa
 
 
 def test_the_chief_rules_a_moves_placement_then_its_ends(tmp_path):
-    """The chief rules an undecided move once, for the pair; the move splits,
-    and an end that then needs words is carried back to the chief, who rules
+    """The chief rules an undecided move once, for the pair; the move is
+    agreed, and an end that then needs words is carried back to the chief, who rules
     it on the proof the placement ruling wrote. The snippet lands once."""
     turned = _stetted(tmp_path)
     out, placed = handle(
@@ -616,8 +617,8 @@ def test_the_chief_rules_a_moves_placement_then_its_ends(tmp_path):
     carried = sorted(
         one.address for one in out if isinstance(one, events.CarriedForward)
     )
-    # Both ends now hold the split's halves, which function-context has not
-    # seen, so each is carried back to the chief for its words.
+    # Both ends now hold texts the agreed move sets, which function-context
+    # has not seen, so each is carried back to the chief for its words.
     assert carried == [PLACE, "m.py@b2"]
     out, closed = handle(
         DispositionsWritten(
@@ -653,7 +654,7 @@ def test_a_ruling_at_an_end_of_an_undecided_move_is_refused(tmp_path):
         "copy-chief",
         "m.py@b2",
         "an end of an undecided move -- rule the move's placement,"
-        " and this end's words once it is split",
+        " and this end's words once it is placed",
     ) in _refusals(out)
 
 
@@ -930,7 +931,7 @@ def test_a_move_into_an_ungathered_file_that_drops_a_word_is_refused(tmp_path):
     assert (
         "block-context",
         "n.py@b1",
-        "the text does not keep 'eight'",
+        "the destination text does not keep 'eight'",
     ) in _refusals(out)
     assert any(isinstance(one, events.RolledBack) for one in out)
 
@@ -1110,8 +1111,8 @@ class TestAMovesPlacementIsAskedOnce:
         assert [m.placement for m in result.proof.moves] == ["open"]
 
     def test_agree_and_clean_land_the_paragraph_once(self, tmp_path):
-        """The placement is agreed first; the split's two halves are then put
-        to the reader that has not seen them, and its `clean` settles both."""
+        """The placement is agreed first; each end's text is then put to the
+        reader that has not seen it, and its `clean` settles both."""
         message, root = _a_move_two_roles_read(tmp_path)
         _out, first = handle(message)
         assert first is not None
@@ -1126,10 +1127,14 @@ class TestAMovesPlacementIsAskedOnce:
         texts = {p.address: p.text for p in result.proof.places}
         assert texts["m.py@b1"] == "# one\n# three"
         assert texts["m.py@b2"] == ARRIVAL
-        chief = [
-            (m.instruction, m.address) for s in result.chief.sheets for m in s.marks
-        ]
-        assert sorted(chief) == [("add", "m.py@b2"), ("drop", "m.py@b1")]
+        # The chief's copy carries one mark per end, each setting that end's
+        # decided text at its own place.
+        chief = {m.address: m for s in result.chief.sheets for m in s.marks}
+        assert set(chief) == {"m.py@b1", "m.py@b2"}
+        bases = {p.address: p.base for p in result.proof.places}
+        for address, mark in chief.items():
+            row = INSTRUCTIONS[mark.instruction]
+            assert row.sets(mark, Touch.OWN, bases[address]) == texts[address]
 
     def test_every_mover_of_a_move_is_in_its_placement_slot(self, tmp_path):
         """Two roles move text between the same two places, each taking its

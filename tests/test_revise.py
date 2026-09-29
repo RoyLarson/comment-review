@@ -282,9 +282,9 @@ class TestDocketOf:
         copy = self._a_correction_and_a_move_into_it(root, "# one\n# two # five")
         with pytest.raises(CannotTranscribe) as raised:
             docket_of(copy, root)
-        # The move has one mover, so it is agreed and split before the place
-        # is decided; its add collides with the correction at b1, and the
-        # reason names the move the role filed, not the add it never wrote.
+        # The move has one mover, so it is agreed before the place is
+        # decided; its arrival collides with the correction at b1, and the
+        # reason names the move the role filed.
         (why,) = raised.value.reasons
         assert why.startswith("block-context m.py@b1: ")
         assert "its correct at m.py@b1" in why

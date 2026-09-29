@@ -7,7 +7,7 @@ that read either page, and decided here before either end's words are:
 
     OPEN        a reader owed a say has not answered it
     AGREED      every reader owed a say agreed, or the chief took a mover's
-                side -- final; the move is split
+                side -- final; the move stays filed at both ends
     CONTESTED   a reader answered `stet`; carried forward for the chief
     WITHDRAWN   every mover withdrew it, or the chief kept the original --
                 final; the filing comes off

@@ -106,8 +106,9 @@ def chief_copy_of(
 ) -> EditCopy:
     """The copy chief's edit_copy, one mark per SETTLED place the fold decided.
 
-    A move reaches this as the `drop` and `add` the fold split it into
-    (`decision-log.md Process: #195`), each placed on its own page.
+    An agreed move reaches this as its two ends, each an ordinary settled
+    place (`decision-log.md Process: #205`): `chief_mark` writes each end from
+    its own decided text, on its own page.
 
     !! A COMPOSED OR CONTESTED PLACE CARRIES NO MARK HERE. Its working text is
     the proof's, not the chief's copy's: the write end reads the closed

@@ -143,16 +143,17 @@ for a place the fold settled on its own -- see *What each command prints*, below
 `desk.evaluate.passes.decide(places, moves, turn)` is the whole sequence and the only entry:
 
     for each move      placement_pass, with the chief's placement ruling where
-                       there is one; then settle_ends, which splits an agreed
-                       move into its drop and add, or takes a withdrawn one off
+                       there is one; then settle_ends, which takes a withdrawn
+                       move off both ends and an agreed move's untaken movers off
     for each place     marks_pass, then answers_pass once per turn up to `turn`
-    for each move      hold_ends: an undecided move's ends are `to-come`; a
-                       held one's are unsettlable; a refused one refuses both
+    for each move      hold_ends: an undecided move's ends are `to-come`,
+                       except an end refused on its own; a held one's are
+                       unsettlable
     for each place     dispositions_pass
 
 **A move's placement is decided before either end's words** -- `decision-log.md Process: #195`
-and `#200`. So the placement pass and the split run first, and the ends are then read as
-ordinary places; `hold_ends` runs after them and before the chief's pass, so a `to-come` end is
+and `#200`. So the placement pass and its settling run first, and the ends are then read as
+ordinary places -- an agreed move's against the move still filed there (`#205`); `hold_ends` runs after them and before the chief's pass, so a `to-come` end is
 what the chief's pass sees, and a ruling there is refused rather than closing words the move's
 outcome may change.
 
@@ -226,7 +227,7 @@ recorded on the move rather than at either end. `agree` accepts the placement, `
 it for the chief, a mover's `withdraw` takes the move off both ends, and a `query` of shape
 `human-review-necessary` holds both ends for the author. No answer at an end reaches the move:
 while the placement is undecided the ends are `to-come` and are put to nobody (`#200`), so there
-is no end answer to reach it. Once the move is split, a `correct` or a `patch` at an end is an
+is no end answer to reach it. Once the move is agreed, a `correct` or a `patch` at an end is an
 answer on that place alone, like any other.
 
 **Only `clean` and `query` owe no `change`**, and that is read off the row's `owes_change`
@@ -267,16 +268,16 @@ own, `agree`, `stet`, `withdraw` or `query`, in one slot for the pair that names
 
 | ruling | what it carries | what it does to the move |
 | --- | --- | --- |
-| `taken_in` | `to`, the destination, and `side` -- a mover | agrees the move as that mover filed it, and splits it |
+| `taken_in` | `to`, the destination, and `side` -- a mover | agrees the move as that mover filed it; any other mover's filing comes off |
 | `taken_in` | `to`, and `side` -- `original` | withdraws the move; the paragraph stays where it is |
 
 The ruling is addressed by the move's origin and carries `to`; `desk.evaluate.move._ruled`
 applies it in the placement pass. `flows.bus._on_dispositions` refuses an undecided move left
 unruled, naming it by its two addresses, and a ruling at a `to-come` end. Once the placement is
-decided the move is split into the mover's `drop` and `add`, and each end is an ordinary place:
-one that needs words is carried forward in what `disposition` writes, and the chief rules it by
-running `disposition` again on that proof. A move the roles agreed reaches the chief only as its
-`drop` and `add`, and the chief rules the words at each end alone.
+decided the move stays filed at both ends, and each end is an ordinary place decided against it
+(`#205`): one that needs words is carried forward in what `disposition` writes, and the chief
+rules it by running `disposition` again on that proof. The chief rules the words at each end
+alone.
 
 **A move held for the human is held at both ends and reported from the move** --
 `decision-log.md Process: #155` and `#182`. `hold_ends` makes both ends `unsettlable` with no

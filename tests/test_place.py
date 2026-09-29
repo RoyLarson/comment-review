@@ -61,8 +61,6 @@ def test_a_place_round_trips_through_serialize():
         readers=("a", "b"),
         filed=[
             Filed("a", corr, Touch.OWN),
-            # A half of a split move keeps the move it came from across a save,
-            # so a later turn's refusal still names the move the role filed.
             Filed(
                 "b",
                 _mark(
@@ -71,7 +69,6 @@ def test_a_place_round_trips_through_serialize():
                     sources=({"cite": "m.py:1", "verbatim": "x = 1"},),
                 ),
                 Touch.OWN,
-                "m.py@b1",
             ),
         ],
         answers={1: {"a": answer}},

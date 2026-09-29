@@ -121,7 +121,7 @@ class TestTheChiefRulesAMoveThenItsEnds:
     """The chief rules an undecided move's placement once, then its ends.
 
     `decision-log.md Process: #195` item 4 and `#201`: the placement ruling
-    names the move by its two addresses and splits or withdraws it; each end
+    names the move by its two addresses and agrees or withdraws it; each end
     is then an ordinary place, and one that needs words is carried back to
     the chief, who rules it with `disposition` on the proof the first ruling
     wrote.
@@ -162,7 +162,7 @@ class TestTheChiefRulesAMoveThenItsEnds:
             tmp_path, monkeypatch, capsys, [self.PLACEMENT], proof="proof0.json"
         )
 
-    def test_the_placement_ruling_splits_the_move_and_carries_its_ends(
+    def test_the_placement_ruling_agrees_the_move_and_carries_its_ends(
         self, tmp_path, monkeypatch, capsys
     ):
         code, out = self._placed(tmp_path, monkeypatch, capsys)

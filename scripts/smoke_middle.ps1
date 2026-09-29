@@ -186,7 +186,7 @@ $Batch2File = Join-Path $Run 'batch2.json'
 $TurnTwoProofFile = Join-Path $Run 'proof-turn2.json'
 $Batch3File = Join-Path $Run 'batch3.json'
 $DispositionsFile = Join-Path $Run 'dispositions.json'
-# The chief's first ruling leaves the ends of the move it split carried: what
+# The chief's first ruling leaves the ends of the move it agreed carried: what
 # that call writes, and the rulings the second call takes on its proof.
 $ChiefPlacedFile = Join-Path $Run 'chief-placed.json'
 $PlacedFile = Join-Path $Run 'placed.json'
@@ -1005,10 +1005,10 @@ $Stages = [ordered]@{
         # describes; function-context rewords it where it stands, so it is
         # owed a say on the placement, and both ends are to come until the
         # placement is decided (Process #200, #201). It agrees in the first
-        # turn, the move is split into block-context's drop at b9 and add at
-        # b8, and the second turn asks each end: the three other roles clean
-        # the add, and the drop against the rewording is an escalation the
-        # chief rules in DISPOSITIONS (Process #195).
+        # turn, the move is agreed and stays filed at b9 and b8, and the second
+        # turn asks each end: the three other roles clean the arrival at b8,
+        # and the empty remainder at b9 against the rewording is an escalation
+        # the chief rules in DISPOSITIONS (Process #205).
         Invoke-Checked -Stage 'mark store.py@b9 block-context move' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['block-context'], '--address', 'store.py@b9',
             '--instruction', 'move', '--from', 'store.py@b9', '--to', 'store.py@b8',
@@ -1088,7 +1088,7 @@ $Stages = [ordered]@{
         # and cleans b1, and block-context cleans both, so each is owed a say
         # on the placement; ownership-context defers at both. block-context
         # stets the move in both turns, so it is contested when the turns are
-        # spent: the chief takes module-context's side, which splits the move
+        # spent: the chief takes module-context's side, which agrees the move
         # and leaves both ends carried, and then rules each end.
         Invoke-Checked -Stage 'mark tally.py@b1 module-context move' -CommandLine ($Launcher + @(
             $Cmd.mark, '--edit-copy', $CopyFile['module-context'], '--address', 'tally.py@b1',
@@ -1448,12 +1448,12 @@ $Stages = [ordered]@{
     # `turn` folds all four roles' answers onto the places the proof carries;
     # it reads neither the binder nor the batch, since the places say who
     # each was put to. The answers also settle the placement of each move the
-    # fold left open: one agreed and split, two stetted and contested. No
+    # fold left open: one agreed, two stetted and contested. No
     # slot is sent at an end of those moves, which are to come while their
     # placements are undecided. The answers leave b8 and c3 holding an add
     # beside another role's answer to it, a3, b9 and c1 with texts no role
-    # has taken, the split's two ends newly asked of the roles that have not
-    # seen them, and the two contested moves, so places are carried forward
+    # has taken, the agreed move's two ends newly asked of the roles that
+    # have not seen them, and the two contested moves, so places are carried forward
     # and `turn`, whose exit codes are `collate`'s, exits 4.
     turn = {
         Invoke-Checked -Stage 'plant-answers' -CommandLine @(
@@ -1569,9 +1569,9 @@ $Stages = [ordered]@{
     # its ends, and to the role that stetted, which defers with a placement
     # query; the withdrawn move's origin then carries a rewording its mover
     # has not seen. The other contested placement is put again too, and
-    # stays contested. The agreed move's ends are asked here: the add at
-    # store.py@b8 is cleaned and settles, and the drop at store.py@b9 is held
-    # against the rewording. Every other place the batch asks about is one
+    # stays contested. The agreed move's ends are asked here: its arrival at
+    # store.py@b8 is cleaned and settles, and its empty remainder at
+    # store.py@b9 is held against the rewording. Every other place the batch asks about is one
     # the chief rules below, and the answers keep each of them carried
     # forward, so `turn` exits 4 again.
     turn2 = {
@@ -1601,10 +1601,10 @@ $Stages = [ordered]@{
     # `write_texts` wrote at the mark stage from `DISPOSITIONS` in
     # smoke_fixture.py. Its ruling on store.py@b5's placement keeps the
     # paragraph where it is, and both ends settle; its ruling on
-    # tally.py@b1's takes the mover's side, which splits the move and leaves
-    # both ends carried forward: the drop's remainder at the origin is a
+    # tally.py@b1's takes the mover's side, which agrees the move and leaves
+    # both ends carried forward: the move's remainder at the origin is a
     # text the roles that cleaned it have not seen, and at the destination
-    # the split's add composes with function-context's correction into one
+    # its arrival composes with function-context's correction into one
     # they have not seen either. So the call commits its proof and exits 3,
     # as `collate` does with a place composed. The second call takes that
     # proof and dispositions-ends.json, `ENDS`, which rules the two ends, and
@@ -1693,9 +1693,9 @@ $Stages = [ordered]@{
             Write-Host 'what the partial approval did -- the original against it:'
             & git -c core.autocrlf=false --no-pager diff --no-index -- $OriginalDir $PartialDir | Out-Host
         }
-        # One end of the agreed move alone. After the split its two ends are
-        # a `drop` and an `add`, approved each on its own (Process #195 item
-        # 5), so `proof --only` sets the arrival it names and leaves the
+        # One end of the agreed move alone. Its two ends are two places,
+        # each decided and approved on its own (Process #205, #195 item 5),
+        # so `proof --only` sets the arrival it names and leaves the
         # departure it does not, and the diff is against the fixture with
         # that one place set.
         Invoke-Checked -Stage 'one end approved' -CommandLine ($Launcher + @(

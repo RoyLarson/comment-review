@@ -280,7 +280,7 @@ def _a_move_between(readers):
 
 def test_a_moves_snippet_missing_from_its_origin_is_one_refusal():
     """One defect, reported once: the origin's own read names it at the
-    origin, and neither the declined split nor the other end repeats it."""
+    origin, and the other end does not repeat it."""
     places, _moves = _a_move_between(("a",))
     places["m.py@b1"].base = "# one\n# three\n"
     fold = Fold(places).run()
