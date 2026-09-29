@@ -124,11 +124,11 @@ carry its own date for.
 
 | what the check asks | settled now in | read to confirm |
 | --- | --- | --- |
-| a role's answer is refused by name | `desk/answers/rules.py` | `test_answers.py::test_an_answer_is_read_against_its_question` -- `clean` under an escalation gives "not an answer to an escalation" |
+| a role's answer is refused by name | `desk/proof/answer.py` | `test_answers.py::test_an_answer_is_read_against_its_question` -- `clean` under an escalation gives "not an answer to an escalation" |
 | the chief's own ruling refuses a role's answer name | `desk/proof/disposition.py` | `test_dispositions.py::test_a_disposition_is_read_by_name` -- `correct` gives "a role's answer" |
 | a null mark stands only for the original | `desk/dispositions/table.py` | `test_dispositions.py::test_taken_in_closes_a_carried_place_with_one_sides_text_or_the_original` -- the `original` side sets `None`, and `test_disposition_command.py::test_a_taken_in_of_the_original_writes_no_entry` is the same through the command |
-| correct and patch owe a change | `desk/answers/table.py` | `test_answers.py::test_the_escalation_answers` (the `owes_change` flags) and `::test_an_answer_is_read_against_its_question` (a `correct` with none gives "needs a `change`") |
-| a query answer owes the shape its effect reads | `desk/answers/rules.py` | `test_answers.py::test_a_query_answer_with_no_shape_is_refused_rather_than_read_as_deferring` |
+| correct and patch owe a change | `desk/proof/answer.py` | `test_answers.py::test_the_escalation_answers` (the `owes_change` flags) and `::test_an_answer_is_read_against_its_question` (a `correct` with none gives "needs a `change`") |
+| a query answer owes the shape its effect reads | `desk/proof/answer.py` | `test_answers.py::test_a_query_answer_with_no_shape_is_refused_rather_than_read_as_deferring` |
 | an unanswered slot is refused, not read as a withdraw | `flows/answers.py` | `test_turn_command.py::test_an_unanswered_slot_is_BROKEN_and_nothing_is_written` and `::test_a_slot_left_unanswered_beside_an_answered_one_is_BROKEN` |
 | a role that was asked and returned nothing is refused | `flows/bus.py` | `test_bus.py::test_a_role_that_was_asked_and_answered_nothing_is_refused` |
 | an address never sent is refused | `flows/bus.py` | `test_bus.py::test_an_answer_at_a_place_no_turn_carried_is_refused` and `::test_an_answer_from_a_role_the_place_was_not_put_to_is_refused` |

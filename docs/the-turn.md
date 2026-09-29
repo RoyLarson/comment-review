@@ -79,7 +79,7 @@ applies its own ruling to the final piece and puts that in the copy-chiefs edit 
 
 **The chief may be the task agent wearing that hat.** The role is a seat, not a separate
 dispatch -- which is how `flows.places.chief_copy_of` is called, with
-`desk.dispositions.disposition.CHIEF`, the string `copy-chief`.
+`desk.proof.disposition.CHIEF`, the string `copy-chief`.
 
 **This is what makes the loop terminate without a code cap.**
 `a-revise-answer-has-no-artifact` T2 asked it as *"with no bound, send it back is a loop."*
@@ -91,7 +91,7 @@ carried-forward place the chief left unruled, so the close cannot happen with on
 
 ## The place, and the seven states
 
-**A place is the aggregate the middle decides** -- `desk/evaluate/place.py`. It carries its
+**A place is the aggregate the middle decides** -- `desk/proof/place.py`. It carries its
 address and anchor, its base text as the page holds it (read by the collate handler, below), the
 roles whose copies held that page
 (`readers`), every mark filed on it with the role that filed it and which end of a move it is
@@ -99,9 +99,9 @@ roles whose copies held that page
 mark, touch}`, so each mark is stored once -- each turn's answers by role, the chief's disposition where there is one, and what
 the passes decide: `state`, `text`, `sides`, `reasons`, `notes`, `asking`, `owed` and
 `question`. A move is an aggregate of its own, over its two places --
-`desk/evaluate/move.py`, below.
+`desk/proof/move.py`, and the passes that decide it `desk/evaluate/move.py`, below.
 
-**The seven states are `desk/evaluate/state.py`'s own closed set.**
+**The seven states are `desk/proof/state.py`'s own closed set.**
 
 | state | when a place is in it | what becomes of it |
 | --- | --- | --- |
@@ -114,7 +114,7 @@ the passes decide: `state`, `text`, `sides`, `reasons`, `notes`, `asking`, `owed
 | `to-come` | an end of a move whose placement is undecided | waits on the placement; holds no text, is put to no role, takes no ruling |
 
 **Carried forward is `composed` and `contested`, and the set has a name.**
-`desk.evaluate.state.CARRIED` is those two, and every reader of "is this still open" asks it:
+`desk.proof.state.CARRIED` is those two, and every reader of "is this still open" asks it:
 the bus builds the batch from it, refuses an answer at a place outside it, and the
 dispositions table's `closes` is that same set.
 
@@ -201,7 +201,7 @@ place to the human from one role as it does from any.
 
 ## The three questions a turn asks
 
-`desk.answers.answer.Question` is a closed set of three, and a slot carries which one it is.
+`desk.proof.answer.Question` is a closed set of three, and a slot carries which one it is.
 `decision-log.md Process: #49` split the turn in two and called the second *conflict*; the
 code's name is `escalation`. The third, `placement`, is asked of a move (`Process: #195`).
 
@@ -558,7 +558,7 @@ fold deleted (`0e2ff82a`).
 | the turn is structural, max turns is the agent's | `decision-log.md Process: #78` | nothing enforces a cap; `flows.bus.turn_of` counts |
 | an answer is its own artifact, with its own closed sets | `Process: #22` | `desk/answers/` |
 | the composition re-read, and its passes | `Process: #49` | `desk/answers/table.py`; the second question is spelled `escalation` |
-| `change` is the wanted paragraph as raw text | Roy, 2026-08-28; [`the-mark.md`](the-mark.md) | `desk/marks/mark.py` |
+| `change` is the wanted paragraph as raw text | Roy, 2026-08-28; [`the-mark.md`](the-mark.md) | `desk/proof/mark.py` |
 | an escalation and a composition take different answer sets | `Process: #86` | `desk/answers/table.py`, keyed by question |
 | the chief's ruling closes a place, one per carried-forward place | `Process: #87` | `desk/dispositions/` |
 | agreement is the text alone, and it takes every owing mark | `Process: #88` | `desk.evaluate.passes._from_sides` |

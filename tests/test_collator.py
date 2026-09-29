@@ -583,7 +583,7 @@ class TestProblemsAreRoutable:
         which deleted the copy's `role` -- a shape `EditCopy.deserialize` now
         refuses before this function can be called at all (`P42`). What that
         test asserted about a MISSING ROLE is
-        `tests/test_containers.py::TestAnEditCopyThatIsNotOne::
+        `tests/test_containers.py::TestWhatItRefuses::
         test_an_edit_copy_with_no_role`; what it asserted about the empty
         `address` field is asserted here, over the case that survives.
 
@@ -627,8 +627,9 @@ def test_the_error_flow_reads_every_sheet_not_just_the_first():
 #: `EditCopy.deserialize` decides it and `P42` made that the only door. The six
 #: values it drove -- `{"junk": 1}`, `{"root": 7, "revise": "x"}`, `{}`,
 #: `"oops"`, `None`, `[]` -- are asserted against the parse in
-#: `tests/test_containers.py::TestAnEditCopyThatIsNotOne`, which is where the
-#: rule now lives.
+#: `tests/test_containers.py::TestWhatItRefuses::
+#: test_an_edit_copy_whose_read_from_is_the_wrong_SHAPE`, against the parse
+#: that holds the rule.
 
 
 def test_a_copy_carrying_a_code_concern_validates():

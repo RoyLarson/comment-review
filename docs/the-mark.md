@@ -89,9 +89,9 @@ CHANGE ... a clear chain of custody on the reasoning and the required actions."*
 2026-08-29: *"the agent emits the 'mark', the 'instruction' was ... the action that turned the mark
 into an actionable thing."* A `Mark.mark` is the self-nesting that made this ambiguous -- the enum
 was already `Instruction` and `reviewer-brief.md` already published `instruction`, so this file and
-`desk/marks/mark.py` are what moved.
+the mark's reader -- `desk/proof/mark.py` today -- are what moved.
 
-! **AND THE COST OF THE DISAGREEMENT WAS MEASURED BEFORE IT WAS FIXED.** `desk/marks/mark.py` read the key
+! **AND THE COST OF THE DISAGREEMENT WAS MEASURED BEFORE IT WAS FIXED.** The mark's reader read the key
 `mark` while the brief published `instruction`, and the distribute flow skipped any entry whose `mark`
 key was absent -- so **the brief's own worked example passed `mark --check` at exit 0, counted as a
 place nobody looked at.** A reviewer following the brief produced findings that vanished in silence.
