@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 35 of 60 tasks closed
+Progress: 36 of 60 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -363,8 +363,9 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
 - [x] T51 | desk/proof.py deleted; tests build proofs through the bus; 1992 pass | 89aceae5 | Delete
       desk/proof.py, whose builder only tests call, and build test proofs the
       way the bus does; tests green after
-- [ ] T52 | Store each mark once on the master proof, not again on every place;
-      the round trip holds and the proof file shrinks
+- [x] T52 | filed entries point at copy marks; final.json 189334 to 136027 bytes | a9381d3a | Store
+      each mark once on the master proof, not again on every place; the round
+      trip holds and the proof file shrinks
 - [x] T53 | malformed stage or admits refused; copy folded only in its stage | 3f2fb963 | Refuse
       an EditCopy whose stage or admits is malformed instead of coercing it; a
       failing test first
