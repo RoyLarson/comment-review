@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 6 tasks closed
+Progress: 1 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-03 (systems)
@@ -49,11 +49,11 @@ file carries no `sha` and may be read.* **That permission was about WHAT may be
 read, not about WHO reads it.** Under `#80` the read still happens; the flow
 performs it and hands the text to `verify_report`.
 
-! **T6 IS OPEN AND IS ROY'S.** His sentence says *only flow*, and
-`conventions.md` puts `flows` and `commands` together as neither end nor middle.
-Four command sites do I/O today -- `commands/census.py:163`,
-`commands/proof.py:206`, `commands/prove_unchanged.py:84-85`. Reading it either
-way changes real code, so it is asked rather than inferred.
+**T6 is ruled: only a flow imports `machine`** (`decision-log.md Process: #207`).
+A command is the command line alone: it passes its arguments into a flow, and the
+flow turns them into what it needs. `machine` holds the checkout's I/O and nothing
+else, so `differences`, `constants` and `exceptions` leave it for leaves of their
+own.
 
 ## Tasks
 
@@ -68,3 +68,11 @@ way changes real code, so it is asked rather than inferred.
 - [x] T6 | Ruled: only flows import machine; recorded as Process #207 | 2150eafe | Decide
       whether commands may reach the machine, or only flows
         > 2026-09-28 Roy: only flows; commands pass strings to flows (#207)
+- [ ] T7 | Move differences, constants and exceptions out of machine into
+      top-level leaves (Process 207); machine keeps repo and json_object
+- [ ] T8 | Route every command's machine import through a flow (Process 207);
+      grep finds no commands module importing machine
+- [ ] T9 | Move concordance's machine reads, walk_files and git, into the flow
+      that calls it; grep finds no concordance import of machine
+- [ ] T10 | Move the git call out of results.prove_unchanged into the flow; grep
+      finds no results import of machine.repo
