@@ -7,14 +7,13 @@ marks at one place one side between them, which is a composition that can
 refuse and so belongs where the reasons are read.
 """
 
-from helpers import a_typed_answer, a_typed_mark
+from helpers import a_typed_answer, a_typed_mark, a_typed_ruling
 
 from comment_review.desk.proof.answer import Question
-from comment_review.desk.proof.disposition import ORIGINAL, Disposition
+from comment_review.desk.proof.disposition import ORIGINAL
 from comment_review.desk.proof.mark import Instruction, Touch
 from comment_review.desk.proof.place import Filed, Place
 from comment_review.desk.proof.state import State
-from comment_review.flows.validators import VALIDATORS
 
 BASE = "# one\n# two\n# three\n"
 
@@ -48,7 +47,7 @@ def test_a_place_round_trips_through_serialize():
         name="hold",
         reason="the prose is right as it stands",
     )
-    disposition = Disposition(
+    disposition = a_typed_ruling(
         address="m.py@b1",
         name="taken_in",
         side=ORIGINAL,
@@ -83,22 +82,20 @@ def test_a_place_round_trips_through_serialize():
         reasons=(),
         question=None,
     )
-    got, problems = Place.deserialize("m.py@b1", place.serialize(), VALIDATORS)
+    got, problems = Place.deserialize("m.py@b1", place.serialize())
     assert problems == []
     assert got == place
 
 
 def test_deserialize_refuses_a_place_that_is_not_an_object():
-    got, problems = Place.deserialize("m.py@b1", "not a place", VALIDATORS)
+    got, problems = Place.deserialize("m.py@b1", "not a place")
     assert got is None
     assert problems == ["m.py@b1: a place must be an object"]
 
 
 def test_a_state_or_question_outside_its_set_is_named():
     got, problems = Place.deserialize(
-        "m.py@b1",
-        {"address": "m.py@b1", "state": "limbo", "question": "why"},
-        VALIDATORS,
+        "m.py@b1", {"address": "m.py@b1", "state": "limbo", "question": "why"}
     )
     assert got is None
     assert problems == [
@@ -126,7 +123,6 @@ def test_an_answer_at_a_turn_that_is_not_a_number_is_named():
                 }
             },
         },
-        VALIDATORS,
     )
     assert got is None
     assert problems == ["m.py@b1: answers at turn 'first' -- a turn is a number"]

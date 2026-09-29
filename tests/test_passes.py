@@ -1,6 +1,6 @@
 """The marks pass: from the marks filed at a place to its state and text."""
 
-from helpers import a_typed_answer, a_typed_mark
+from helpers import a_typed_answer, a_typed_mark, a_typed_ruling
 
 from comment_review.desk.evaluate.move import moves_in
 from comment_review.desk.evaluate.passes import (
@@ -11,7 +11,7 @@ from comment_review.desk.evaluate.passes import (
     sides_of,
 )
 from comment_review.desk.proof.answer import Question
-from comment_review.desk.proof.disposition import ORIGINAL, Disposition
+from comment_review.desk.proof.disposition import ORIGINAL
 from comment_review.desk.proof.mark import Instruction, Mark, Shape, Touch
 from comment_review.desk.proof.move import Placement
 from comment_review.desk.proof.place import Filed, Place
@@ -510,7 +510,7 @@ def test_answers_pass_refuses_an_answer_its_question_does_not_take():
 
 def test_a_taken_in_on_the_original_side_stands_on_the_base():
     place = _contested()
-    place.disposition = Disposition(
+    place.disposition = a_typed_ruling(
         address="m.py@b1", name="taken_in", side=ORIGINAL, prose="", reason="r"
     )
     got = dispositions_pass(place)
@@ -520,7 +520,7 @@ def test_a_taken_in_on_the_original_side_stands_on_the_base():
 
 def test_a_taken_in_closes_a_contested_place_on_one_side():
     place = _contested()
-    place.disposition = Disposition(
+    place.disposition = a_typed_ruling(
         address="m.py@b1", name="taken_in", side="b", prose="", reason="r"
     )
     got = dispositions_pass(place)
@@ -529,7 +529,7 @@ def test_a_taken_in_closes_a_contested_place_on_one_side():
 
 def test_a_recast_closes_it_on_the_chiefs_prose():
     place = _contested()
-    place.disposition = Disposition(
+    place.disposition = a_typed_ruling(
         address="m.py@b1",
         name="recast",
         side="copy-chief",
@@ -543,7 +543,7 @@ def test_a_recast_closes_it_on_the_chiefs_prose():
 def test_a_disposition_on_an_unsettlable_place_is_refused():
     q = _mark(Instruction.QUERY, claim={"shape": str(Shape.HUMAN_REVIEW_NECESSARY)})
     place = marks_pass(_place(Filed("a", q, Touch.OWN)))
-    place.disposition = Disposition(
+    place.disposition = a_typed_ruling(
         address="m.py@b1",
         name="recast",
         side="copy-chief",
@@ -556,7 +556,7 @@ def test_a_disposition_on_an_unsettlable_place_is_refused():
 
 def test_a_taken_in_naming_the_chief_is_refused_by_name():
     place = _contested()
-    place.disposition = Disposition(
+    place.disposition = a_typed_ruling(
         address="m.py@b1", name="taken_in", side="copy-chief", prose="", reason="r"
     )
     got = dispositions_pass(place)
@@ -567,7 +567,7 @@ def test_a_taken_in_naming_the_chief_is_refused_by_name():
 def test_decide_runs_the_passes_in_order():
     place = _contested()
     place.answers[1] = {"a": _answer("hold"), "b": _answer("hold")}
-    place.disposition = Disposition(
+    place.disposition = a_typed_ruling(
         address="m.py@b1", name="taken_in", side="a", prose="", reason="r"
     )
     got = decide({"m.py@b1": place}, turn=1)["m.py@b1"]
@@ -698,7 +698,7 @@ class TestAMoveIsDecidedBeforeItsEnds:
 
     def test_a_ruling_at_an_end_of_an_undecided_move_is_refused(self):
         places, moves = self._stetted()
-        places["m.py@b5"].disposition = Disposition(
+        places["m.py@b5"].disposition = a_typed_ruling(
             address="m.py@b5", name="taken_in", side="a", prose="", reason="r"
         )
         decide(places, moves, turn=1)
@@ -713,7 +713,7 @@ class TestAMoveIsDecidedBeforeItsEnds:
         one side."""
         recast = "# four\n# five\n# two, as the chief words it\n"
         places, moves = self._stetted()
-        moves["m.py@b1 -> m.py@b5"].disposition = Disposition(
+        moves["m.py@b1 -> m.py@b5"].disposition = a_typed_ruling(
             address="m.py@b1",
             name="taken_in",
             side="a",
@@ -721,10 +721,10 @@ class TestAMoveIsDecidedBeforeItsEnds:
             reason="r",
             to="m.py@b5",
         )
-        places["m.py@b1"].disposition = Disposition(
+        places["m.py@b1"].disposition = a_typed_ruling(
             address="m.py@b1", name="taken_in", side="a", prose="", reason="r"
         )
-        places["m.py@b5"].disposition = Disposition(
+        places["m.py@b5"].disposition = a_typed_ruling(
             address="m.py@b5",
             name="recast",
             side="copy-chief",

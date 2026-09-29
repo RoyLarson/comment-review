@@ -58,7 +58,6 @@ from comment_review.flows.human import (
 from comment_review.flows.mark_errors import mark_errors
 from comment_review.flows.on_the_page import PageCache, held_at
 from comment_review.flows.places import bases_and_anchors, chief_copy_of, places_of
-from comment_review.flows.validators import VALIDATORS
 from comment_review.flows.verify import (
     copy_problems,
     coverage_problems,
@@ -501,7 +500,7 @@ def _on_dispositions(message: DispositionsWritten) -> tuple[list, Result | None]
     for i, entry in enumerate(message.dispositions, 1):
         named = str(entry.get("address") or "") if isinstance(entry, dict) else ""
         where = named or f"ruling {i}"
-        disposition, why = read_disposition(where, entry, VALIDATORS.disposition)
+        disposition, why = read_disposition(where, entry)
         if disposition is None:
             problems += [
                 Problem(CHIEF, where, one.removeprefix(f"{where}: ")) for one in why

@@ -5,7 +5,7 @@ nothing else, so its placement is decided once for the pair, by every role
 that read either page, before either end's words are.
 """
 
-from helpers import a_typed_answer, a_typed_mark
+from helpers import a_typed_answer, a_typed_mark, a_typed_ruling
 
 from comment_review.desk.evaluate.move import moves_in, placement_pass
 from comment_review.desk.proof.answer import Answer, Question
@@ -13,7 +13,6 @@ from comment_review.desk.proof.disposition import Disposition
 from comment_review.desk.proof.mark import Instruction, Mark, Shape, Touch
 from comment_review.desk.proof.move import Move, Placement
 from comment_review.desk.proof.place import Filed, Place
-from comment_review.flows.validators import VALIDATORS
 
 ORIGIN, DESTINATION = "m.py@b1", "m.py@b5"
 BASE = "# one\n# two\n# three\n"
@@ -92,7 +91,7 @@ def _decided(places, answers=None, turn=1) -> Move:
 
 
 def _placement_ruling(side: str) -> Disposition:
-    return Disposition(
+    return a_typed_ruling(
         address=ORIGIN,
         name="taken_in",
         side=side,
@@ -229,7 +228,7 @@ def test_an_agreed_move_stays_agreed():
 def test_a_move_round_trips():
     move = _decided(_ends(), {"b": _answer("stet")})
     move.disposition = _placement_ruling("a")
-    back, why = Move.deserialize("m", move.serialize(), VALIDATORS)
+    back, why = Move.deserialize("m", move.serialize())
     assert why == [] and back is not None
     assert (back.origin, back.destination, back.placement) == (
         ORIGIN,
@@ -301,7 +300,6 @@ def test_a_placement_outside_its_set_is_named():
     got, problems = Move.deserialize(
         "move 1",
         {"origin": ORIGIN, "destination": DESTINATION, "placement": "sideways"},
-        VALIDATORS,
     )
     assert got is None
     assert problems == [
@@ -329,7 +327,6 @@ def test_an_answer_at_a_turn_that_is_not_a_number_is_named():
                 }
             },
         },
-        VALIDATORS,
     )
     assert got is None
     assert problems == ["move 1: answers at turn 'first' -- a turn is a number"]

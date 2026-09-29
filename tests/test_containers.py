@@ -16,7 +16,6 @@ from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.move import Move
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.flows.distribute import seed
-from comment_review.flows.validators import VALIDATORS
 
 
 def a_real_copy(tmp_path, role="block-context"):
@@ -141,7 +140,7 @@ class TestWhatTheChainBuilds:
                 "function-context": {"m.py@b1": a_clean("m.py@b1")},
             },
         )
-        proof, why = MasterProof.deserialize("4c", built.serialize(), VALIDATORS)
+        proof, why = MasterProof.deserialize("4c", built.serialize())
         assert why == []
         assert isinstance(proof, MasterProof)
         assert proof.stage == "4c"
@@ -177,7 +176,7 @@ class TestAnEmptyProofStillHoldsItsHeader:
     @pytest.mark.parametrize("junk", ["oops", None, 7, [], {"root": 7}, {"junk": 1}])
     def test_an_empty_proof_still_holds_its_read_from_to_a_shape(self, junk):
         _, problems = MasterProof.deserialize(
-            "p", {"stage": "4c", "edit_copies": [], "read_from": junk}, VALIDATORS
+            "p", {"stage": "4c", "edit_copies": [], "read_from": junk}
         )
         assert problems != []
 
@@ -185,7 +184,7 @@ class TestAnEmptyProofStillHoldsItsHeader:
         """The bus's `_on_copies` produces this shape for a stage with no
         copies, so `{}` is admitted and only the other five values are not."""
         parsed, problems = MasterProof.deserialize(
-            "p", {"stage": "4c", "edit_copies": [], "read_from": {}}, VALIDATORS
+            "p", {"stage": "4c", "edit_copies": [], "read_from": {}}
         )
         assert problems == []
         assert parsed is not None
@@ -196,7 +195,7 @@ class TestAnEmptyProofStillHoldsItsHeader:
         producer rather than against a literal that agrees with it."""
         built = a_master_proof(tmp_path / "repo", {})
         assert built.edit_copies == () and built.read_from == {}
-        parsed, problems = MasterProof.deserialize("4c", built.serialize(), VALIDATORS)
+        parsed, problems = MasterProof.deserialize("4c", built.serialize())
         assert problems == []
         assert parsed is not None
 
@@ -286,9 +285,7 @@ class TestWhatItRefuses:
         assert len(why) == 2
 
     def test_a_master_proof_whose_edit_copies_are_not_a_list(self):
-        proof, why = MasterProof.deserialize(
-            "4c", {"stage": "4c", "edit_copies": {}}, VALIDATORS
-        )
+        proof, why = MasterProof.deserialize("4c", {"stage": "4c", "edit_copies": {}})
         assert proof is None
         assert "`edit_copies` list" in why[0]
 
@@ -302,7 +299,7 @@ class TestWhatItRefuses:
             tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
         ).serialize()
         proof["read_from"] = {"root": "somewhere else", "revise": 99}
-        got, why = MasterProof.deserialize("4c", proof, VALIDATORS)
+        got, why = MasterProof.deserialize("4c", proof)
         assert got is None
         assert "4c: edit_copy 1's `read_from`" in why[0]
 
@@ -321,7 +318,7 @@ class TestWhatItRefuses:
             **proof["read_from"],
             "revise": 1,
         }
-        got, why = MasterProof.deserialize("4c", proof, VALIDATORS)
+        got, why = MasterProof.deserialize("4c", proof)
         assert got is None
         assert len(why) == 1 and "4c: edit_copy 2's `read_from`" in why[0], why
 
@@ -332,7 +329,7 @@ class TestWhatItRefuses:
             tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
         ).serialize()
         proof["read_from"] = {"root": proof["read_from"]["root"]}
-        got, why = MasterProof.deserialize("4c", proof, VALIDATORS)
+        got, why = MasterProof.deserialize("4c", proof)
         assert got is None
         assert "`revise`" in why[0]
 
@@ -340,9 +337,7 @@ class TestWhatItRefuses:
         """An empty `edit_copies` reads back with `read_from={}`, the shape the
         bus writes when there is no first copy to take it from -- not the
         disagreement or malformed shape the two cases above refuse."""
-        got, why = MasterProof.deserialize(
-            "4c", {"stage": "4c", "edit_copies": []}, VALIDATORS
-        )
+        got, why = MasterProof.deserialize("4c", {"stage": "4c", "edit_copies": []})
         assert why == []
         assert got is not None
         assert got.read_from == {}
@@ -364,9 +359,7 @@ class TestANullFieldIsAbsentNotTheWordNone:
         assert sheet.sha == ""
 
     def test_a_null_stage(self):
-        proof, why = MasterProof.deserialize(
-            "4c", {"stage": None, "edit_copies": []}, VALIDATORS
-        )
+        proof, why = MasterProof.deserialize("4c", {"stage": None, "edit_copies": []})
         assert why == []
         assert proof is not None
         assert proof.stage == ""
@@ -451,12 +444,12 @@ def test_a_master_proof_carries_its_moves_and_reads_back_one_written_before_them
         places=(),
         moves=(Move("m.py@b1", "m.py@b5"),),
     )
-    back, why = MasterProof.deserialize("4c", proof.serialize(), VALIDATORS)
+    back, why = MasterProof.deserialize("4c", proof.serialize())
     assert why == [] and back is not None and back.moves == proof.moves
     older = {**proof.serialize()}
     del older["moves"]
     older["places"] = [{"address": "m.py@b1", "partner": "m.py@b5"}]
-    back, why = MasterProof.deserialize("4c", older, VALIDATORS)
+    back, why = MasterProof.deserialize("4c", older)
     assert why == [] and back is not None and back.moves == ()
 
 
@@ -470,7 +463,7 @@ class TestEveryBadRecordIsNamed:
             tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
         ).serialize()
         wire["places"].append("not a place")
-        got, why = MasterProof.deserialize("p.json", wire, VALIDATORS)
+        got, why = MasterProof.deserialize("p.json", wire)
         assert got is None
         assert why == ["p.json: place 2: a place must be an object"]
 
@@ -480,7 +473,7 @@ class TestEveryBadRecordIsNamed:
             tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
         ).serialize()
         wire[key] = {"m.py@b1": {}}
-        got, why = MasterProof.deserialize("p.json", wire, VALIDATORS)
+        got, why = MasterProof.deserialize("p.json", wire)
         assert got is None
         assert why == [f"p.json: master_proof's `{key}` must be a list"]
 
@@ -489,7 +482,7 @@ class TestEveryBadRecordIsNamed:
             tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
         ).serialize()
         wire["places"][0]["filed"][0]["touch"] = "sideways"
-        got, why = MasterProof.deserialize("p.json", wire, VALIDATORS)
+        got, why = MasterProof.deserialize("p.json", wire)
         assert got is None
         assert why == [
             "p.json: place 1 at m.py@b1 mark 1: `touch` 'sideways' is not one of"
@@ -500,7 +493,7 @@ class TestEveryBadRecordIsNamed:
         proof = a_master_proof(
             tmp_path / "repo", {"block-context": {"m.py@b1": a_clean("m.py@b1")}}
         )
-        back, why = MasterProof.deserialize("p.json", proof.serialize(), VALIDATORS)
+        back, why = MasterProof.deserialize("p.json", proof.serialize())
         assert why == [] and back is not None
         assert [place.address for place in back.places] == ["m.py@b1"]
         assert back.serialize() == proof.serialize()

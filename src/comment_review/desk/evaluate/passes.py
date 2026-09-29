@@ -1,7 +1,6 @@
 """The three passes over a place, run after each move's placement is decided."""
 
 from comment_review.desk.answers.table import ANSWERS, Effect
-from comment_review.desk.dispositions.rules import side_of
 from comment_review.desk.dispositions.table import DISPOSITIONS
 from comment_review.desk.evaluate.move import hold_ends, placement_pass, settle_ends
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
@@ -306,7 +305,7 @@ def dispositions_pass(place: Place) -> Place:
     if place.disposition is None:
         return place
     row = DISPOSITIONS[place.disposition.name]
-    side = side_of(place.disposition)
+    side = place.disposition.taken_side
     if place.state not in row.closes:
         return _set(
             place,
@@ -316,7 +315,7 @@ def dispositions_pass(place: Place) -> Place:
                 f"that is {place.state}",
             ),
         )
-    if side == CHIEF and row.side != CHIEF:
+    if side == CHIEF and place.disposition.default_side != CHIEF:
         return _set(
             place,
             State.REFUSED,

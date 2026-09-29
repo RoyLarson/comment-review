@@ -7,7 +7,6 @@ from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import filled, read_text
 from comment_review.desk.proof.move import Move
 from comment_review.desk.proof.place import Place
-from comment_review.desk.proof.validators import Validators
 
 
 @dataclass(frozen=True)
@@ -48,14 +47,13 @@ class MasterProof:
 
     @classmethod
     def deserialize(
-        cls, where: str, data: object, validators: Validators
+        cls, where: str, data: object
     ) -> "tuple[MasterProof | None, list[str]]":
         """One master_proof and every copy under it, checked.
 
         Args:
             where: how to name this proof in a message -- its stage label.
             data: a master_proof, as `serialize` writes one.
-            validators: the rule checks every copy's ruled entries are held to.
 
         Returns:
             `(MasterProof, [])` or `(None, [messages])`. Every bad copy is
@@ -145,9 +143,9 @@ class MasterProof:
         # refused rather than turned into a string.
         stage, why = read_text(f"{where}: master_proof", "stage", data.get("stage"))
         problems += why
-        places, why = _places_in(where, data.get("places", []), validators)
+        places, why = _places_in(where, data.get("places", []))
         problems += why
-        moves, why = _moves_in(where, data.get("moves", []), validators)
+        moves, why = _moves_in(where, data.get("moves", []))
         problems += why
         if problems:
             return None, problems
@@ -173,9 +171,7 @@ class MasterProof:
         }
 
 
-def _places_in(
-    where: str, raw: object, validators: Validators
-) -> "tuple[tuple[Place, ...], list[str]]":
+def _places_in(where: str, raw: object) -> "tuple[tuple[Place, ...], list[str]]":
     """A proof's `places`, each read, and one message per entry that will not."""
     if not isinstance(raw, list):
         return (), [f"{where}: master_proof's `places` must be a list"]
@@ -184,7 +180,7 @@ def _places_in(
     for i, entry in enumerate(raw, 1):
         address = entry.get("address") if isinstance(entry, dict) else None
         at = f"{where}: place {i}" + (f" at {address}" if filled(address) else "")
-        place, why = Place.deserialize(at, entry, validators)
+        place, why = Place.deserialize(at, entry)
         if place is None:
             problems += why
         else:
@@ -192,16 +188,14 @@ def _places_in(
     return tuple(places), problems
 
 
-def _moves_in(
-    where: str, raw: object, validators: Validators
-) -> "tuple[tuple[Move, ...], list[str]]":
+def _moves_in(where: str, raw: object) -> "tuple[tuple[Move, ...], list[str]]":
     """A proof's `moves`, each read, and one message per entry that will not."""
     if not isinstance(raw, list):
         return (), [f"{where}: master_proof's `moves` must be a list"]
     moves: list[Move] = []
     problems: list[str] = []
     for i, entry in enumerate(raw, 1):
-        move, why = Move.deserialize(f"{where}: move {i}", entry, validators)
+        move, why = Move.deserialize(f"{where}: move {i}", entry)
         if move is None:
             problems += why
         else:

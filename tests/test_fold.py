@@ -2,11 +2,10 @@
 
 from dataclasses import replace
 
-from helpers import a_typed_answer, a_typed_mark
+from helpers import a_typed_answer, a_typed_mark, a_typed_ruling
 
 from comment_review.desk.evaluate.move import moves_in
 from comment_review.desk.proof.answer import Question
-from comment_review.desk.proof.disposition import Disposition
 from comment_review.desk.proof.mark import Instruction, Shape, Touch
 from comment_review.desk.proof.move import Placement
 from comment_review.desk.proof.place import Filed, Place
@@ -373,7 +372,7 @@ def test_a_contested_move_the_chief_ruled_asks_no_placement():
             claim={},
         )
     }
-    move.disposition = Disposition(
+    move.disposition = a_typed_ruling(
         address="m.py@b1",
         name="taken_in",
         side="a",
@@ -382,7 +381,7 @@ def test_a_contested_move_the_chief_ruled_asks_no_placement():
         to="m.py@b5",
     )
     for address, place in places.items():
-        place.disposition = Disposition(
+        place.disposition = a_typed_ruling(
             address=address, name="taken_in", side="a", prose="", reason="r"
         )
     fold = Fold(places, moves, turn=1).run()

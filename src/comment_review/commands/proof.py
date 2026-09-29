@@ -42,7 +42,6 @@ from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.docket.docket import Docket
 from comment_review.flows import revise, transcribe
-from comment_review.flows.validators import VALIDATORS
 from comment_review.machine import exceptions
 from comment_review.machine.json_object import object_of
 from comment_review.machine.repo import undraftable, write_raw
@@ -226,7 +225,7 @@ def main() -> int:
         # The transcribe refuses a proof that has not closed, one whose
         # places will not read back, and a page it cannot open -- so the
         # same console face reports it here as below.
-        proof, problems = MasterProof.deserialize(source, loaded, VALIDATORS)
+        proof, problems = MasterProof.deserialize(source, loaded)
         try:
             transcribed = (
                 transcribe.docket_of_proof(proof, repo, only=tuple(args.only) or None)

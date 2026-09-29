@@ -10,7 +10,6 @@ The move itself -- its fields, its placements and its name -- is
 """
 
 from comment_review.desk.answers.table import ANSWERS, Effect
-from comment_review.desk.dispositions.rules import side_of
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
 from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.disposition import CHIEF, ORIGINAL, Disposition
@@ -154,17 +153,17 @@ def _ruled(move: Move, ruling: Disposition) -> None:
             Placement.REFUSED,
             (f"{CHIEF}: a placement that is {move.placement} takes no ruling",),
         )
-    elif side_of(ruling) == ORIGINAL:
+    elif ruling.taken_side == ORIGINAL:
         move.movers, move.placement = {}, Placement.WITHDRAWN
-    elif side_of(ruling) in move.movers:
-        move.movers = {side_of(ruling): move.movers[side_of(ruling)]}
+    elif ruling.taken_side in move.movers:
+        move.movers = {ruling.taken_side: move.movers[ruling.taken_side]}
         move.placement = Placement.AGREED
     else:
         move.placement, move.reasons = (
             Placement.REFUSED,
             (
                 f"{CHIEF}: a placement is taken in from a mover or the original,"
-                f" and {side_of(ruling)!r} filed no move here",
+                f" and {ruling.taken_side!r} filed no move here",
             ),
         )
     move.owed = ()

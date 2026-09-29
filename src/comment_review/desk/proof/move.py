@@ -28,7 +28,6 @@ from enum import StrEnum, auto
 from comment_review.desk.proof.answer import Answer, read_answers
 from comment_review.desk.proof.disposition import Disposition, read_disposition
 from comment_review.desk.proof.mark import MoveMark, read_member
-from comment_review.desk.proof.validators import Validators
 
 
 class Placement(StrEnum):
@@ -118,13 +117,10 @@ class Move:
         }
 
     @classmethod
-    def deserialize(
-        cls, where: str, entry: object, validators: Validators
-    ) -> "tuple[Move | None, list[str]]":
+    def deserialize(cls, where: str, entry: object) -> "tuple[Move | None, list[str]]":
         """One recorded entry becomes a `Move`, or becomes named problems.
 
-        Each answer and the chief's ruling is read by its own reader and held
-        to the matching member of `validators`.
+        Each answer and the chief's ruling is read into its own type.
         """
         if not isinstance(entry, dict):
             return None, [f"{where}: a move must be an object"]
@@ -139,9 +135,7 @@ class Move:
         problems += why
         disposition = None
         if data.get("disposition") is not None:
-            disposition, why = read_disposition(
-                where, data["disposition"], validators.disposition
-            )
+            disposition, why = read_disposition(where, data["disposition"])
             problems += why
         placement: Placement | None = Placement.OPEN
         if data.get("placement"):

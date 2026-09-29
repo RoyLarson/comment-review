@@ -134,7 +134,7 @@ their own row types built to the same idea: a frozen dataclass whose cells are v
 functions, never prose.
 
 **`stet` is not a disposition row today.** `DISPOSITIONS` holds two names, and
-`Disposition.deserialize` refuses any other by name. The word is still what the console prints
+`desk.proof.disposition.read_disposition` refuses any other by name. The word is still what the console prints
 for a place the fold settled on its own -- see *What each command prints*, below -- and a
 `stet` the chief emits waits on `TODO/no-mark-for-let-it-stand.md`.
 

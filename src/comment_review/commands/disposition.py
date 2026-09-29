@@ -84,7 +84,7 @@ def main() -> int:
         return _refused(why)
     # The shape of the file is this command's and the shape of a ruling is the
     # table's: a list of objects is what the flag promises, and what each
-    # object owes is `desk.dispositions.rules.validate`'s, which the fold
+    # object owes is its ruling type's own read, which the fold
     # reports.
     rows: list = (
         [r for r in rulings if isinstance(r, dict)] if isinstance(rulings, list) else []

@@ -19,7 +19,6 @@ from comment_review.desk.proof.mark import (
     read_mark,
 )
 from comment_review.desk.proof.place import Filed, Place
-from comment_review.flows.validators import VALIDATORS
 from comment_review.flows.verify import resolution_problems
 
 
@@ -543,5 +542,5 @@ class TestTheSplit:
         place = Place(
             address="m.py@b5", anchor="", base="", filed=[Filed("a", add, Touch.OWN)]
         )
-        back, why = Place.deserialize("p", place.serialize(), VALIDATORS)
+        back, why = Place.deserialize("p", place.serialize())
         assert why == [] and back is not None and back.filed[0].mark == add

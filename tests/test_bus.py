@@ -34,7 +34,6 @@ from comment_review.flows.bus import (
 )
 from comment_review.flows.human import HumanAnswer
 from comment_review.flows.transcribe import docket_of_proof
-from comment_review.flows.validators import VALIDATORS
 
 BASE = "# one\n# two\n# three"
 OTHER = "# four\n# five\n# six"
@@ -81,7 +80,7 @@ def test_a_committed_fold_carries_its_places_on_the_proof(tmp_path):
     assert result is not None
     assert len(result.proof.places) == 2
     for entry in result.proof.places:
-        place, why = Place.deserialize("a place", entry.serialize(), VALIDATORS)
+        place, why = Place.deserialize("a place", entry.serialize())
         assert place is not None, why
         assert place == entry
 
@@ -1273,7 +1272,7 @@ class TestAnOpenMoveIsNotTranscribed:
         proof, _root = self._ruled(tmp_path)
         wire = proof.serialize()
         wire["moves"] = [{"origin": "m.py@b1"}]
-        got, why = MasterProof.deserialize("p.json", wire, VALIDATORS)
+        got, why = MasterProof.deserialize("p.json", wire)
         assert got is None
         assert why == ["p.json: move 1: a move needs its `destination`"]
 

@@ -51,7 +51,6 @@ from comment_review.flows.transcribe import (
     docket_of,
     docket_of_proof,
 )
-from comment_review.flows.validators import VALIDATORS
 
 
 def a_copy(root: Path, role: str, paragraphs: dict[str, str], marks: dict) -> EditCopy:
@@ -758,7 +757,7 @@ class TestDocketOfProof:
         )
         wire = json.loads((tmp_path / "proof0.json").read_text(encoding="utf-8"))
         wire["places"][0]["filed"][0]["instruction"] = "not an instruction"
-        proof, why = MasterProof.deserialize("hand-edited", wire, VALIDATORS)
+        proof, why = MasterProof.deserialize("hand-edited", wire)
         assert proof is None
         assert any("place 1 at m.py@b1" in one for one in why), why
 

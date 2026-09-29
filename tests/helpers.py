@@ -43,6 +43,11 @@ from comment_review.desk.proof.answer import (
     Rewrite,
     answer_type,
 )
+from comment_review.desk.proof.disposition import (
+    Disposition,
+    RecastRuling,
+    disposition_type,
+)
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import (
     ANCHOR_EXAMPLE,
@@ -769,6 +774,23 @@ def a_typed_answer(
         sources=sources,
         **own,
     )
+
+
+def a_typed_ruling(
+    *,
+    address: str,
+    name: str,
+    side: str = "",
+    prose: str = "",
+    reason: str = "r",
+    to: str = "",
+) -> Disposition:
+    """A ruling of `name`'s type, BUILT rather than read -- for a case that
+    hands a pass a ruling directly. Nothing is checked."""
+    kind = disposition_type(name)
+    assert kind is not None, name
+    own: dict[str, Any] = {"prose": prose} if kind is RecastRuling else {}
+    return kind(address=address, side=side, reason=reason, to=to, **own)
 
 
 def _mark(instruction: Instruction, address: str, claim: dict) -> dict:

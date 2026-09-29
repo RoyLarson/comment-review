@@ -6,7 +6,6 @@ from comment_review.desk.proof.answer import Answer, Question, read_answers
 from comment_review.desk.proof.disposition import Disposition, read_disposition
 from comment_review.desk.proof.mark import Mark, Touch, read_mark, read_member
 from comment_review.desk.proof.state import State
-from comment_review.desk.proof.validators import Validators
 
 
 @dataclass
@@ -96,13 +95,11 @@ class Place:
         }
 
     @classmethod
-    def deserialize(
-        cls, where: str, entry: object, validators: Validators
-    ) -> "tuple[Place | None, list[str]]":
+    def deserialize(cls, where: str, entry: object) -> "tuple[Place | None, list[str]]":
         """One entry becomes a `Place`, or becomes named problems.
 
-        Each filed mark and each answer is read into its own type, and the
-        chief's ruling by its own reader, held to `validators.disposition`.
+        Each filed mark, each answer and the chief's ruling is read into its
+        own type.
         """
         if not isinstance(entry, dict):
             return None, [f"{where}: a place must be an object"]
@@ -132,9 +129,7 @@ class Place:
         problems += why
         disposition = None
         if data.get("disposition") is not None:
-            disposition, why = read_disposition(
-                where, data["disposition"], validators.disposition
-            )
+            disposition, why = read_disposition(where, data["disposition"])
             problems += why
         state = question = None
         if data.get("state"):

@@ -54,7 +54,6 @@ from comment_review.desk.work.fold import Fold
 from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.flows.places import places_of
 from comment_review.flows.revise import _set_by
-from comment_review.flows.validators import VALIDATORS
 from comment_review.machine.json_object import object_of
 
 #: One ordinary alteration, for the cases whose subject is a SCHEDULE's own
@@ -367,7 +366,7 @@ def test_a_null_sha_reads_as_ABSENT_not_the_word_None(tmp_path):
         tmp_path / "repo", {"block-context": {"m.py@b1": a_correct("m.py@b1")}}
     ).serialize()
     wire["edit_copies"][0]["sheets"][0]["sha"] = None
-    proof, why = MasterProof.deserialize("4c", wire, VALIDATORS)
+    proof, why = MasterProof.deserialize("4c", wire)
     assert proof is not None, why
     #: ! ASSERTED ON THE SHEET, NOT ON A DOCKET, since `P55`. The fold is
     #: `Sheet.deserialize`'s and always was -- `_real_pages` merely read the
