@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 34 of 60 tasks closed
+Progress: 35 of 60 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -385,5 +385,6 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
 - [x] T59 | seven mark types own their fields and checks; one match reads them | 167c7f13 | Make
       each instruction a mark type owning its fields, serialization and
       self-checks, read by one match (Process 206); wire unchanged
-- [ ] T60 | Remove the split of an agreed move, leaving it filed at both ends
-      (Process 205); a test first shows the move sets each end as the halves did
+- [x] T60 | agreed move stays filed; split removed; equivalence tested first | 7726827a | Remove
+      the split of an agreed move, leaving it filed at both ends (Process 205);
+      a test first shows the move sets each end as the halves did
