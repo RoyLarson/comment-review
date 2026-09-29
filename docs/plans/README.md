@@ -11,7 +11,7 @@
 | [0.2.4-the-commands-for-the-middle](0.2.4-the-commands-for-the-middle.md) | in-progress | 10/11 | 53/61 |
 | [0.2.4-the-listing-goes](0.2.4-the-listing-goes.md) | in-progress | 7/7 | 4/4 |
 | [0.2.4-the-mark-and-the-collator](0.2.4-the-mark-and-the-collator.md) | in-progress | 31/31 | 21/21 |
-| [0.2.4-the-middle-rebuilt](0.2.4-the-middle-rebuilt.md) | in-progress | 47/47 | 17/18 |
+| [0.2.4-the-middle-rebuilt](0.2.4-the-middle-rebuilt.md) | in-progress | 47/48 | 17/24 |
 | [0.2.4-the-placement-branch-runs](0.2.4-the-placement-branch-runs.md) | closed | 22/22 | 12/12 |
 | [0.2.4-the-proof-is-one-unit](0.2.4-the-proof-is-one-unit.md) | closed | 15/15 | 15/15 |
 | [0.2.4-the-turn-as-commands](0.2.4-the-turn-as-commands.md) | in-progress | 14/14 | 10/10 |
