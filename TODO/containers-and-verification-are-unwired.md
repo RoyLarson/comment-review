@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 33 of 60 tasks closed
+Progress: 34 of 60 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, Roy ruling that containers are wired and that the
@@ -379,8 +379,9 @@ task 9 of [`move-is-a-composite-mark`](move-is-a-composite-mark.md).
 - [x] T57 | eight answer types own their checks; one match reads them | c634813d | Make
       each answer its own type the same way (Process 206); the Validators answer
       member and answers/rules.validate go
-- [ ] T58 | Make each ruling its own type the same way (Process 206); the
-      Validators bundle and every rules.validate go
+- [x] T58 | ruling types own their checks; Validators bundle and rules modules gone | 535c783c | Make
+      each ruling its own type the same way (Process 206); the Validators bundle
+      and every rules.validate go
 - [x] T59 | seven mark types own their fields and checks; one match reads them | 167c7f13 | Make
       each instruction a mark type owning its fields, serialization and
       self-checks, read by one match (Process 206); wire unchanged
