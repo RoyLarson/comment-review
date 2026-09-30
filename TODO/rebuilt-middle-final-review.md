@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 21 of 46 tasks closed
+Progress: 21 of 52 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -61,6 +61,7 @@ The rebuilt middle's final review.
       check's pre-fold list equal to the bus's (D6)
 - [ ] T17 | Delete Row.answers or give it a reader; three docs call it a rule
       and only a test reads it (E1)
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, Row.answers
 - [ ] T18 | Correct docstrings that describe the old design as live:
       master_proof_of, mark.parse, Revisit.unreadable (F1)
         > 2026-09-25 Revisit.unreadable went with T43; the rest of F1 stands
@@ -73,12 +74,14 @@ The rebuilt middle's final review.
       strings, Shape, Touch, a one-row property (A6)
 - [ ] T22 | Move chief_mark out of the gate-exempt table module or narrow the
       exemption; ninety lines of non-row logic (A7)
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 4
 - [ ] T23 | Define stands once; it means nothing proposed, a lone proposal
       nobody is owed, and closed by the chief (B5)
 - [ ] T24 | Decide whether a reader that answered clean becomes a side and is
       then asked an escalation (B6)
 - [ ] T25 | Make answers_pass keep the sides on unsettlable as marks_pass does
       (B7)
+        > 2026-09-30 Process 197 conflicts; see docs/reviews/2026-09-30-r2-r3.md
 - [-] T26 | Process 195 narrowed 139: the chief rules words per end; the pair coupling this named is gone | 0e15fbb1f2f4e3dedf85cde8a26e7a611eecee0c | Correct
       the design's 'never ruled apart'; Process 139 lets the chief rule a move's
       ends apart (B8)
@@ -91,6 +94,7 @@ The rebuilt middle's final review.
       (C5)
 - [ ] T30 | Decide what the chief's copy is on a turn; it is built every turn
       and never saved (C6)
+        > 2026-09-30 Purpose ruled 184; implementation: collate-flow-defects T17
 - [x] T31 | places and moves typed, read once, every bad entry named; tests failed first | cfec876a | Make
       MasterProof.places typed, and stop encoding a role into reasons, notes and
       asking as strings (D7)
@@ -131,3 +135,19 @@ The rebuilt middle's final review.
         > 2026-09-26 Process 195: the pair lives on the move aggregate; T27 there
 - [ ] T46 | Correct events.py so AsksTheHuman is said to come before the fold,
       not from Fold.run; verify the module docstring says so
+        > 2026-09-30 Evidence: docs/reviews/2026-09-30-r2-r3.md, R2-C
+- [ ] T47 | Make stage reports own events emitted before and during a fold
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r2-r3.md, R2-C
+- [ ] T48 | Make identical edits compose once while retaining genuine conflicts
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r2-r3.md, R3-A
+- [ ] T49 | Make a role convergent marks and moves compose without discarding
+      their identities
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r2-r3.md, R3-B
+- [ ] T50 | Make a composition deferral remove the answering role stale side
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r2-r3.md, R3-C
+- [ ] T51 | Give place and placement answers exhaustive effect contracts with
+      explicit deferral
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r2-r3.md, R3-D
+- [ ] T52 | Reject undecided chief-synthesis input before selecting a filed
+      clean or query mark
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 4

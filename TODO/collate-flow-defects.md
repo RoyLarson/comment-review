@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 16 tasks closed
+Progress: 4 of 25 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `flows/collate.py` on the collate-
@@ -187,3 +187,29 @@ eight acts while `Collated` has eight attributes, so the two it omits -- `unrule
 - [x] T16 | collate.py _page_cues and the test_collate class docstring state why the page is read, with no history | 7097ee5a | Update
       the history narration in added lines at collate.py:802 and
       test_collate.py:1107
+- [ ] T17 | Publish the complete chief resolution at close, including arrivals
+      outside gathered pages
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 1
+- [ ] T18 | Represent a chief resolution over patch-only evidence without
+      writing an unreadable correct
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 2
+- [ ] T19 | Represent a chief arrival without a populated anchor without writing
+      an unreadable add
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 3
+- [ ] T20 | Refuse duplicate chief rulings for the same place or move before
+      applying either
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 6
+- [ ] T21 | Refuse duplicate role answers at one slot while retaining distinct
+      questions at one address
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 7
+- [ ] T22 | Match human answers to their exact question and refuse duplicate
+      matching sections
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 8
+- [ ] T23 | Record the chief ruling reason in its readable resolved record
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 5
+- [ ] T24 | Validate returned mark anchors without discarding any role before
+      reporting a mismatch
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 9
+- [ ] T25 | Correct the flow module map and live-path docstrings identified by
+      the September review
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, standalone

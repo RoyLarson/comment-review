@@ -2,9 +2,9 @@
 
 ```
 Status:   open
-Progress: 8 of 12 tasks closed
+Progress: 8 of 14 tasks closed
 Owner:    backend
-Requires-Roy: false
+Requires-Roy: true
 Raised:   2026-09-08 (Roy 2026-09-08: implementing the recast workflow for the cli the
           copy-chief uses to resolve the final pieces is a good todo, and cap is a bad
           name for it)
@@ -24,6 +24,7 @@ The copy chief has no workflow for recasting the places that never settled.
 - [ ] T2 | Implement the chief's recast end to end: its own prose at a place,
       reachable when a compose refused
         > 2026-09-08 Held for review after a run, per KISS; not a prerequisite for T1
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r4.md, E
 - [ ] T3 | Verify the docket records the chief as who set a recast, which
       rule_at_cap already sides as CHIEF
 - [ ] T4 | Implement the count a run reports: how many recasts were made, and
@@ -56,3 +57,9 @@ The copy chief has no workflow for recasting the places that never settled.
 - [x] T12 | rule_at_max_turns parses the chief recast when it builds it and refuses one that does not parse, so disposition exits BROKEN and writes nothing, per Process 161 | e381df74 | Update
       disposition so a chief's recast that does not parse is refused rather than
       written at exit 0, per Process 161
+- [ ] T13 | Generate the chief ruling contract from ruling types and publish it
+      through check
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r4.md, D
+- [?] T14 | Decide whether correct and patch answers require initial-mark claims
+      and evidence
+        > 2026-09-30 Decision: docs/reviews/2026-09-30-r4.md, Genuine ruling

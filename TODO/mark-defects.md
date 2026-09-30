@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 20 of 28 tasks closed
+Progress: 20 of 33 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -264,3 +264,18 @@ cites as its measured example of a field answering neither necessary nor purpose
       mark refusing a role add into a paragraph it also corrects; they rule on
       different sentences and should compose
         > 2026-09-27 repro: correct then add same place; do not compose
+- [ ] T29 | Validate supplied source entries through one source contract before
+      resolving mark and answer citations
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r4.md, A
+- [ ] T30 | Enforce one quoted statement consistently for derived and supplied
+      mark changes
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r4.md, B
+- [ ] T31 | Publish stage and admits in the edit-copy contract from their owning
+      type
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r4.md, C
+- [ ] T32 | Use language-specific comment markers when rewrapping derived mark
+      changes
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r4.md, F
+- [ ] T33 | Restore a withdrawn slot only when its stage originally dealt that
+      place
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, 06:6

@@ -298,6 +298,7 @@ and now there is one object that cannot be half-held.
       once agreed; the mark-shape gate passes
 - [ ] T38 | Delete claim.from from the move row, or refuse a move whose
       claim.from names a place other than its address
+        > 2026-09-30 Evidence and checks: docs/reviews/2026-09-30-r4.md, move tasks
 - [ ] T39 | Update _owed_from in tests/gates/test_mark_shape.py so the move
       change cell is read, not flattened to a bool
 - [x] T40 | Roy ruled: placement settles first; a mark at either end does not accept it; Process 200 | 32ea5562 | Decide
@@ -334,3 +335,4 @@ and now there is one object that cannot be half-held.
       movers with different snippets both appear
 - [ ] T50 | Find a move's snippet at the origin by its words, then rewrap the
       remainder with the language's comment markers (review 04:1, 01:3)
+        > 2026-09-30 Evidence and checks: docs/reviews/2026-09-30-r4.md, move tasks

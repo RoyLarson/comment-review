@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 7 tasks closed
+Progress: 4 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-26 (Process 197)
@@ -32,5 +32,11 @@ A human question is asked before the fold.
       the Unsettlable _lines branch, _counted unsettlable, _unclosed exempt
         > 2026-09-26 files: commands/collate.py and flows/transcribe.py (_unclosed)
         > 2026-09-26 also commands/disposition.py docstring lines 26-30
+        > 2026-09-30 Dependencies: docs/reviews/2026-09-30-r2-r3.md, R2-A
 - [ ] T7 | Refuse a human query in proof --copy: docket_of folds it and omits
       the place without naming it
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r2-r3.md, R2-B
+- [ ] T8 | Delete the fold human-question states and events so only query-free
+      editorial records can commit
+        > 2026-09-30 Criteria: docs/reviews/2026-09-30-r2-r3.md, R2-A
+        > 2026-09-30 Query-free means no human-review-necessary query
