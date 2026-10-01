@@ -193,12 +193,17 @@ def test_later_placement_deferral_relinquishes_the_prior_vote(prior, shape):
 
 
 @pytest.mark.parametrize("shape", (Shape.OUTSIDE_MY_ROLE, Shape.UNABLE_TO_DETERMINE))
-def test_a_deferring_mover_keeps_its_filing_but_owes_no_contested_placement_answer(shape):
+def test_a_deferring_mover_keeps_its_filing_but_owes_no_contested_placement_answer(
+    shape,
+):
     places = _ends()
     (move,) = moves_in(places).values()
     filing = move.filed["a"]
     move.answers[1] = {"b": _answer("stet")}
-    move.answers[2] = {"a": _answer("query", {**DEFERRING, "shape": str(shape)}), "b": _answer("stet")}
+    move.answers[2] = {
+        "a": _answer("query", {**DEFERRING, "shape": str(shape)}),
+        "b": _answer("stet"),
+    }
     got = placement_pass(move, places, 2)
     assert got.placement is Placement.CONTESTED and got.owed == ("b",)
     assert got.filed["a"] is filing and got.movers["a"] is filing

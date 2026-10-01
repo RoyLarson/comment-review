@@ -699,9 +699,23 @@ def test_a_mover_deferral_is_not_redispatched_after_proof_reload(tmp_path, shape
     assert result.batch is not None
     answers = {
         role: [
-            _answer(slot["address"], "query" if role == "block-context" else "stet", "defer" if role == "block-context" else "keep it",
+            _answer(
+                slot["address"],
+                "query" if role == "block-context" else "stet",
+                "defer" if role == "block-context" else "keep it",
                 to=slot["to"],
-                **({"claim": {"shape": shape, "attempted": "read", "settles": "function-context"}} if role == "block-context" else {}))
+                **(
+                    {
+                        "claim": {
+                            "shape": shape,
+                            "attempted": "read",
+                            "settles": "function-context",
+                        }
+                    }
+                    if role == "block-context"
+                    else {}
+                ),
+            )
             for slot in slots
         ]
         for role, slots in result.batch.items()
@@ -717,11 +731,22 @@ def test_a_mover_deferral_is_not_redispatched_after_proof_reload(tmp_path, shape
     assert set(deferred.batch) == {"function-context"}
     assert move.answers[2]["block-context"].serialize()["claim"]["shape"] == shape
     for place in reloaded.places:
-        assert any(one.role == "block-context" and isinstance(one.mark, MoveMark) for one in place.filed)
-    out, next_turn = handle(AnswersReturned(reloaded, {"function-context": [
-        _answer(slot["address"], "stet", "keep it", to=slot["to"])
-        for slot in deferred.batch["function-context"]
-    ]}, tmp_path / "repo"))
+        assert any(
+            one.role == "block-context" and isinstance(one.mark, MoveMark)
+            for one in place.filed
+        )
+    out, next_turn = handle(
+        AnswersReturned(
+            reloaded,
+            {
+                "function-context": [
+                    _answer(slot["address"], "stet", "keep it", to=slot["to"])
+                    for slot in deferred.batch["function-context"]
+                ]
+            },
+            tmp_path / "repo",
+        )
+    )
     assert next_turn is not None and next_turn.batch is not None, out
     assert set(next_turn.batch) == {"function-context"}
     assert next_turn.proof.moves[0].owed == ("function-context",)
