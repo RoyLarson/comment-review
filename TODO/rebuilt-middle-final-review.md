@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 24 of 52 tasks closed
+Progress: 25 of 52 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -100,6 +100,7 @@ The rebuilt middle's final review.
       asking as strings (D7)
 - [ ] T32 | Delete what nothing reads: AnswerRow.question, three event fields,
       desk/proof.py, diff3, tally, mark --anchor-line (E2)
+        > 2026-09-30 R3 retired AnswerRow.question; other named dead fields remain
 - [ ] T33 | Reduce rules stated twice: mismatched roots, the copy-chief string,
       marks by role, a ruling refused twice (E3)
 - [ ] T34 | Correct flows.revise.docket_of to flows.transcribe.docket_of on five
@@ -148,8 +149,9 @@ The rebuilt middle's final review.
 - [x] T50 | Composition behavior verified including acceptance, stale-side deferral and persisted proof | 3e8d57c24e0502cf0a9c2cd2b440986ac6598f79 | Make
       a composition deferral remove the answering role stale side
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r2-r3.md, R3-C
-- [ ] T51 | Give place and placement answers exhaustive effect contracts with
-      explicit deferral
+- [x] T51 | Side and placement effects use distinct typed rows and exhaustive reducers with explicit deferral and human classification | 4788737558196af379a70a54a61ab8c10e1ceda8 | Give
+      place and placement answers exhaustive effect contracts with explicit
+      deferral
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r2-r3.md, R3-D
 - [ ] T52 | Reject undecided chief-synthesis input before selecting a filed
       clean or query mark
