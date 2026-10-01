@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 21 of 52 tasks closed
+Progress: 22 of 52 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -140,8 +140,9 @@ The rebuilt middle's final review.
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r2-r3.md, R2-C
 - [ ] T48 | Make identical edits compose once while retaining genuine conflicts
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r2-r3.md, R3-A
-- [ ] T49 | Make a role convergent marks and moves compose without discarding
-      their identities
+- [x] T49 | Same-role equal filings and two-origin moves retain original identities through reload | 7b6ca44a21e1f41ba8b81a69ddbbf85846c806ee | Make
+      a role convergent marks and moves compose without discarding their
+      identities
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r2-r3.md, R3-B
 - [ ] T50 | Make a composition deferral remove the answering role stale side
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r2-r3.md, R3-C
