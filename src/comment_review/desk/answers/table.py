@@ -1,9 +1,12 @@
 """Twelve answer rows, with separate effects for a side and a placement.
 
 Escalation and composition answers act on the answering role's side at a
-place. Placement answers act on its vote about a move. A deferring query
-relinquishes that position; a human query requires the author's answer before
-the production fold (`decision-log.md Process: #197`).
+place. Placement answers act on its vote about a move.
+
+ANSWERS is populated at import with the question/name dispatch rows shared by
+side and placement reduction, answer contracts, and asks_human. Production
+consumers read it; reducer tests temporarily replace entries with monkeypatch
+to exercise refusal paths.
 """
 
 from collections.abc import Callable

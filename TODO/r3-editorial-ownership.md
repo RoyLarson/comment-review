@@ -17,3 +17,4 @@ Remove duplicated answer-table operation prose.
 - [ ] T1 | Remove duplicated operation prose at
       src/comment_review/desk/answers/table.py:3 and verify the retained module
       contract
+        > 2026-09-30 Approved wording: decision-log.md Process: #208
