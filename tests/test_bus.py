@@ -194,7 +194,11 @@ def test_two_moves_and_a_composition_deferral_write_the_expected_page(
     }
     pulled = pull(docket_of_proof(proof, root).docket, root, tmp_path / "revise", 1)
     assert pulled.refusals == []
-    expected = b"v0 = 0\n# one\nv1 = 1\n# two\nv2 = 2\n# first\n# second\n# destination\nv3 = 3\n# ONE\n# two\n# THREE\nv4 = 4\n"
+    expected = (
+        b"v0 = 0\n# one\nv1 = 1\n# two\nv2 = 2\n"
+        b"# first\n# second\n# destination\nv3 = 3\n"
+        b"# ONE\n# two\n# THREE\nv4 = 4\n"
+    )
     assert (pulled.root / "m.py").read_bytes() == expected
     assert (root / "m.py").read_bytes() == original_bytes
 
