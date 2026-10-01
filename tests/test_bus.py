@@ -96,7 +96,9 @@ def test_two_moves_keep_both_origins_and_one_arrival_after_proof_reload(
 
 @pytest.mark.parametrize("reverse", (False, True))
 @pytest.mark.parametrize("shape", ("outside-my-role", "unable-to-determine"))
-def test_two_moves_and_a_composition_deferral_write_the_expected_page(tmp_path, reverse, shape):
+def test_two_moves_and_a_composition_deferral_write_the_expected_page(
+    tmp_path, reverse, shape
+):
     root = tmp_path / "repo"
     paragraphs = {
         "m.py@b1": "# one\n# first",
@@ -121,8 +123,19 @@ def test_two_moves_and_a_composition_deferral_write_the_expected_page(tmp_path, 
         "module-context": {address: a_clean(address) for address in paragraphs},
     }
     if reverse:
-        by_role = {role: dict(reversed(list(marks.items()))) for role, marks in reversed(list(by_role.items()))}
-    out, result = handle(CopiesReturned("4c", [returned(wire) for wire in copies_over(binder, by_role)], binder, root, None))
+        by_role = {
+            role: dict(reversed(list(marks.items())))
+            for role, marks in reversed(list(by_role.items()))
+        }
+    out, result = handle(
+        CopiesReturned(
+            "4c",
+            [returned(wire) for wire in copies_over(binder, by_role)],
+            binder,
+            root,
+            None,
+        )
+    )
     assert result is not None and result.batch is not None, out
     assert len(result.proof.moves) == 2
     answers = {}
@@ -130,9 +143,27 @@ def test_two_moves_and_a_composition_deferral_write_the_expected_page(tmp_path, 
         answers[role] = []
         for slot in slots:
             defer = role == "block-context" and slot["address"] == "m.py@b4"
-            entry = _answer(slot["address"], "query" if defer else "agree" if slot["question"] == "placement" else "clean", "defer" if defer else "accept",
+            entry = _answer(
+                slot["address"],
+                "query"
+                if defer
+                else "agree"
+                if slot["question"] == "placement"
+                else "clean",
+                "defer" if defer else "accept",
                 **({"to": slot["to"]} if "to" in slot else {}),
-                **({"claim": {"shape": shape, "attempted": "read", "settles": "function-context"}} if defer else {}))
+                **(
+                    {
+                        "claim": {
+                            "shape": shape,
+                            "attempted": "read",
+                            "settles": "function-context",
+                        }
+                    }
+                    if defer
+                    else {}
+                ),
+            )
             answers[role].append(entry)
     out, placed = handle(AnswersReturned(result.proof, answers, root))
     assert placed is not None and placed.batch is not None, out
@@ -143,14 +174,24 @@ def test_two_moves_and_a_composition_deferral_write_the_expected_page(tmp_path, 
     deferred = next(place for place in reloaded.places if place.address == "m.py@b4")
     assert "block-context" not in deferred.sides and deferred.owed == ()
     assert deferred.answers[1]["block-context"].serialize()["claim"]["shape"] == shape
-    assert {slot["address"] for slots in placed.batch.values() for slot in slots} == {"m.py@b1", "m.py@b2", "m.py@b3"}
-    clean_answers = {role: [_answer(slot["address"], "clean", "accept") for slot in slots] for role, slots in placed.batch.items()}
+    assert {slot["address"] for slots in placed.batch.values() for slot in slots} == {
+        "m.py@b1",
+        "m.py@b2",
+        "m.py@b3",
+    }
+    clean_answers = {
+        role: [_answer(slot["address"], "clean", "accept") for slot in slots]
+        for role, slots in placed.batch.items()
+    }
     out, closed = handle(AnswersReturned(reloaded, clean_answers, root))
     assert closed is not None and closed.batch is None, out
     save_proof(path, closed.proof)
     proof, why = load_proof(path)
     assert proof is not None, why
-    assert {move.key for move in proof.moves} == {"m.py@b1 -> m.py@b3", "m.py@b2 -> m.py@b3"}
+    assert {move.key for move in proof.moves} == {
+        "m.py@b1 -> m.py@b3",
+        "m.py@b2 -> m.py@b3",
+    }
     pulled = pull(docket_of_proof(proof, root).docket, root, tmp_path / "revise", 1)
     assert pulled.refusals == []
     expected = b"v0 = 0\n# one\nv1 = 1\n# two\nv2 = 2\n# first\n# second\n# destination\nv3 = 3\n# ONE\n# two\n# THREE\nv4 = 4\n"
