@@ -70,8 +70,9 @@ def test_every_admitted_row_classifies_its_answer_with_its_own_subject(key, expe
     )
     assert row.effect(answer) is expected
     assert asks_human(answer) is False
+    field_name = "effect"
     with pytest.raises(FrozenInstanceError):
-        row.effect = lambda answer: expected
+        setattr(row, field_name, row.effect)
 
 
 @pytest.mark.parametrize("question", (Question.COMPOSITION, Question.PLACEMENT))
