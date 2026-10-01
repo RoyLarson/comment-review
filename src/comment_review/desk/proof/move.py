@@ -128,11 +128,11 @@ class Move:
         if not isinstance(destination, str) or not destination:
             return None, [f"{where}: a move needs its `destination`"]
         where = f"{where} at {key_of(origin, destination)}"
-        if data.get("asking"):
-            return None, [
-                f"{where}: retired human-held asking lifecycle is not admitted"
-            ]
         problems: list[str] = []
+        if data.get("asking"):
+            problems.append(
+                f"{where}: retired human-held asking lifecycle is not admitted"
+            )
         answers, why = read_answers(where, data.get("answers"))
         problems += why
         disposition = None

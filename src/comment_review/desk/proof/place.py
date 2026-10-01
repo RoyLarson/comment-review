@@ -115,11 +115,11 @@ class Place:
         if not isinstance(entry, dict):
             return None, [f"{where}: a place must be an object"]
         data: dict = entry
-        if data.get("asking"):
-            return None, [
-                f"{where}: retired human-held asking lifecycle is not admitted"
-            ]
         problems: list[str] = []
+        if data.get("asking"):
+            problems.append(
+                f"{where}: retired human-held asking lifecycle is not admitted"
+            )
         filed = []
         for i, one in enumerate(data.get("filed") or [], 1):
             got, why = _resolved(f"{where} mark {i}", one, copies)

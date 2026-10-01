@@ -209,6 +209,31 @@ def test_a_human_query_rolls_back_beside_a_carried_place():
     assert (fold.events[0].role, fold.events[0].address) == ("a", "m.py@b5")
 
 
+def test_a_human_query_and_ruling_keep_every_original_refusal_in_the_report():
+    question = _mark(
+        Instruction.QUERY,
+        claim={"shape": str(Shape.HUMAN_REVIEW_NECESSARY)},
+    )
+    query = replace(question, reason="Who owns this?")
+    bad_move = _mark(Instruction.MOVE, "# six\n", {"to": "m.py@b5"})
+    place = _place(
+        "m.py@b1", Filed("a", query, Touch.OWN), Filed("b", bad_move, Touch.ORIGIN)
+    )
+    place.disposition = a_typed_ruling(
+        address=place.address,
+        name="recast",
+        side="copy-chief",
+        prose="# mine",
+        reason="r",
+    )
+    fold = Fold({place.address: place}).run()
+    assert not fold.committed and fold.decided == {}
+    refused = {e.role: e.reasons for e in fold.events if isinstance(e, events.Refused)}
+    assert "Who owns this?" in str(refused["a"])
+    assert "snippet is not in the origin" in str(refused["b"])
+    assert "cannot close a place that is refused" in str(refused["copy-chief"])
+
+
 def test_an_advised_place_is_reported_and_the_fold_commits():
     """`decision-log.md Process: #177`: a note is for the chief to read, not a
     reason to give up the round."""

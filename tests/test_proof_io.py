@@ -69,8 +69,9 @@ class TestTheRoundTrip:
 
 class TestEveryFailureIsNamed:
     @pytest.mark.parametrize("kind", ["place", "move"])
+    @pytest.mark.parametrize("with_asking", [False, True])
     def test_a_human_held_proof_is_rejected_by_name_state_and_address(
-        self, tmp_path, kind
+        self, tmp_path, kind, with_asking
     ):
         wire = a_proof(tmp_path).serialize()
         if kind == "place":
@@ -81,12 +82,16 @@ class TestEveryFailureIsNamed:
                 {"origin": "m.py@b1", "destination": "m.py@b2", "placement": "held"}
             ]
             old_state = "held"
+        if with_asking:
+            wire["places" if kind == "place" else "moves"][0]["asking"] = [
+                "block-context: Who owns this?"
+            ]
         source = tmp_path / "old-proof.json"
         source.write_text(json.dumps(wire), encoding="utf-8")
         got, why = load_proof(source)
         assert got is None
         assert any(
-            "old-proof.json" in one and "m.py@b1" in one and old_state in one
+            "old-proof.json" in one and "m.py@b1" in one and repr(old_state) in one
             for one in why
         )
 

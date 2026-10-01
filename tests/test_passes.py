@@ -500,6 +500,28 @@ def test_a_human_side_answer_refuses_direct_evaluation(state):
     assert any("a: " in why and "Who owns this?" in why for why in got.reasons)
 
 
+def test_a_human_answer_keeps_an_earlier_mark_refusal():
+    place = _place()
+    place.state = State.REFUSED
+    place.reasons = ("b: the snippet is not in the origin's paragraph",)
+    place.answers[1] = {
+        "a": a_typed_answer(
+            address=place.address,
+            anchor=place.anchor,
+            question=Question.COMPOSITION,
+            name="query",
+            reason="Who owns this?",
+            claim={"shape": "human-review-necessary"},
+        )
+    }
+    got = answers_pass(place, 1)
+    assert got.state is State.REFUSED
+    assert "b: the snippet is not in the origin's paragraph" in got.reasons
+    assert any("a: " in why and "Who owns this?" in why for why in got.reasons)
+    first = got.reasons
+    assert answers_pass(place, 1).reasons == first
+
+
 def test_a_human_review_query_refuses_the_place_whatever_else_is_there():
     q = _mark(Instruction.QUERY, claim={"shape": str(Shape.HUMAN_REVIEW_NECESSARY)})
     c = _mark(

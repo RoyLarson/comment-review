@@ -279,7 +279,9 @@ def answers_pass(place: Place, turn: int) -> Place:
         if isinstance(answer, QueryAnswer) and asks_human(answer)
     )
     if human:
-        return _set(place, State.REFUSED, reasons=human)
+        return _set(
+            place, State.REFUSED, reasons=tuple(dict.fromkeys((*place.reasons, *human)))
+        )
     if place.state not in CARRIED:
         return place
     sides = dict(place.sides)
@@ -350,6 +352,7 @@ def dispositions_pass(place: Place) -> Place:
             place,
             State.REFUSED,
             reasons=(
+                *place.reasons,
                 f"copy-chief: {place.disposition.name} cannot close a place "
                 f"that is {place.state}",
             ),
