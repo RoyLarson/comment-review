@@ -283,7 +283,7 @@ def answers_pass(place: Place, turn: int) -> Place:
         effect = row.effect(answer)
         if effect is Effect.UNSETTLABLE:
             return _set(place, State.UNSETTLABLE, asking=(f"{role}: {answer.reason}",))
-        if effect is Effect.REMOVES:
+        if effect in (Effect.REMOVES, Effect.ABSTAINS):
             sides.pop(role, None)
         elif effect is Effect.REPLACES and isinstance(answer, Rewrite):
             sides[role] = answer.change

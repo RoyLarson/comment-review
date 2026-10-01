@@ -34,6 +34,7 @@ from comment_review.flows.bus import (
     turn_of,
 )
 from comment_review.flows.human import HumanAnswer
+from comment_review.flows.proof_io import load_proof, save_proof
 from comment_review.flows.transcribe import docket_of_proof
 
 BASE = "# one\n# two\n# three"
@@ -621,6 +622,33 @@ def _turn(result, root, answer_for):
     out, turned = handle(AnswersReturned(result.proof, answers, root))
     assert turned is not None, out
     return turned
+
+
+@pytest.mark.parametrize("shape", ("outside-my-role", "unable-to-determine"))
+def test_composition_deferral_survives_disk_reload_without_repeat_dispatch(tmp_path, shape):
+    by_role = dict(COMPOSE_ROLES)
+    by_role["module-context"] = {PLACE: a_clean(PLACE), "m.py@b2": a_clean("m.py@b2")}
+    collated = _collated(tmp_path, by_role)
+    out, turned = handle(AnswersReturned(collated.proof, {
+        "block-context": [_answer(PLACE, "query", "defer", claim={
+            "shape": shape, "attempted": "read", "settles": "function-context"
+        })],
+        "function-context": [_answer(PLACE, "clean", "accept")],
+        "module-context": [_answer(PLACE, "clean", "accept")],
+    }, tmp_path / "repo"))
+    assert turned is not None, out
+    path = tmp_path / "proof.json"
+    save_proof(path, turned.proof)
+    reloaded, why = load_proof(path)
+    assert reloaded is not None, why
+    place = next(p for p in reloaded.places if p.address == PLACE)
+    assert "block-context" not in place.sides
+    assert place.answers[1]["block-context"].name == "query"
+    assert place.owed == ()
+    assert turned.batch is None
+    out, refolded = handle(AnswersReturned(reloaded, {}, tmp_path / "repo"))
+    assert refolded is not None, out
+    assert refolded.batch is None
 
 
 def test_a_withdrawn_moves_origin_is_put_to_the_role_that_has_not_seen_it(tmp_path):

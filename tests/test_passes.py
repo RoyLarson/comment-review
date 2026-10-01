@@ -1,5 +1,6 @@
 """The marks pass: from the marks filed at a place to its state and text."""
 
+import pytest
 from helpers import a_typed_answer, a_typed_mark, a_typed_ruling
 
 from comment_review.desk.evaluate.move import moves_in
@@ -271,6 +272,49 @@ def _a_correct(change="# one\n# 2\n# three\n", false="two", true="2"):
     return _mark(
         Instruction.CORRECT, change=change, claim={"false": false, "true": true}
     )
+
+
+def _compatible_proposals():
+    place = _place(
+        Filed("a", _a_correct("# ONE\n# two\n# three\n", "one", "ONE"), Touch.OWN),
+        Filed("b", _a_correct("# one\n# two\n# THREE\n", "three", "THREE"), Touch.OWN),
+        Filed("c", _mark(Instruction.CLEAN), Touch.OWN),
+    )
+    place.readers = ("a", "b", "c")
+    return place
+
+
+def test_shared_edit_plus_extra_still_requires_acceptance_of_unseen_text():
+    place = _compatible_proposals()
+    place.filed[1] = Filed(
+        "b", _a_correct("# ONE\n# two\n# THREE\n", "one", "ONE"), Touch.OWN
+    )
+    got = marks_pass(place)
+    assert got.state is State.COMPOSED
+    assert got.text == "# ONE\n# two\n# THREE\n"
+    assert got.owed == ("a", "c")
+
+
+@pytest.mark.parametrize("shape", (Shape.OUTSIDE_MY_ROLE, Shape.UNABLE_TO_DETERMINE))
+def test_composition_deferral_removes_only_its_side_and_keeps_other_readers_owed(shape):
+    place = marks_pass(_compatible_proposals())
+    other_side = place.sides["b"]
+    answer = _answer("query", claim={"shape": str(shape)}, question=Question.COMPOSITION)
+    place.answers[1] = {"a": answer}
+    got = answers_pass(place, 1)
+    assert got.sides == {"b": other_side}
+    assert got.answers[1]["a"] is answer
+    assert got.state is State.COMPOSED and got.owed == ("c",)
+
+
+def test_future_deferral_cannot_change_an_earlier_fold():
+    place = _compatible_proposals()
+    place.answers[2] = {
+        "a": _answer("query", claim={"shape": str(Shape.OUTSIDE_MY_ROLE)}, question=Question.COMPOSITION)
+    }
+    got = decide({place.address: place}, turn=1)[place.address]
+    assert set(got.sides) == {"a", "b"}
+    assert got.owed == ("a", "b", "c")
 
 
 def test_a_lone_proposal_no_one_else_read_stands():
