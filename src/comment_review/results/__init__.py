@@ -4,10 +4,8 @@
     compositor       SETS that page as text, top to bottom. Decides nothing
     prove_unchanged  the executable code is byte-identical
 
-`differences` moved to `comment_review.machine.differences`, T2 of
-`docs/superpowers/plans/2026-09-14-the-middle-rebuilt.md`: it renders and
-composes two texts with no file I/O, so it is a leaf, not a write-end module,
-and `desk` needed to reach it without crossing into this area.
+The top-level `comment_review.differences` leaf renders and composes texts
+without file I/O. It is shared by the middle and the command line.
 
 !! THE GALLEY EDITS AND THE COMPOSITOR SETS, AND THEY ARE TWO ROLES. Roy,
 2026-08-21: *"galley gets the old page - updates the old page with the

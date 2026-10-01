@@ -1035,7 +1035,7 @@ def agreed(address: str) -> dict:
 
 #: A paragraph with a typo on its first line and another on its last, and a
 #: line between them neither role touches. Two sides editing abutting lines
-#: are one span and refuse together (`machine.differences.compose`), so the
+#: are one span and refuse together (`differences.compose`), so the
 #: middle line is what lets the two patches below compose.
 TYPOS = "# teh count\n# of the items\n# adn the sum\n"
 FIRST_FIXED = "# the count\n# of the items\n# adn the sum"
