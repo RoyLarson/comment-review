@@ -260,9 +260,8 @@ def marks_pass(place: Place) -> Place:
 def answers_pass(place: Place, turn: int) -> Place:
     """Narrow a carried-forward place by the roles' answers at `turn`.
 
-    A place held for the human or refused is left as it is, whatever was
-    answered: the first rides to the author (`decision-log.md Process: #90`)
-    and the second is rolling the round back.
+    A human-query answer refuses the place before any side is reduced.
+    Other answers apply only to carried-forward places.
 
     Every admitted side effect has a case. A deferral removes the role's
     side while keeping its answer; unrelated readers still owe acceptance.

@@ -1,10 +1,8 @@
-"""The seven states a place can be in once evaluated."""
-
 from enum import StrEnum, auto
 
 
 class State(StrEnum):
-    """The seven a place can be in once evaluated."""
+    """What evaluation decided at one place."""
 
     @staticmethod
     def _generate_next_value_(name, start, count, last_values):
@@ -27,12 +25,6 @@ CARRIED = frozenset({State.COMPOSED, State.CONTESTED})
 #: The states a place has settled in. One side's proposal that every reader
 #: accepted `stands`; several roles' identical proposals are `agreed`, and a
 #: place the roles left alone stands on the paragraph already there.
-#:
-#: It is the one statement of settled, and there were three. `_counted` in
-#: `commands/collate.py` counted it by subtracting the carried and the
-#: unsettlable from the whole, and `flows.transcribe._unclosed` named the two
-#: carried states and `REFUSED` -- so a seventh state would have had to be
-#: added to three places that never mention each other. Both read this now,
-#: and `UNSETTLABLE` is the one state that is neither settled nor unfinished:
-#: it rides to the human with its question and carries no text.
+#: `commands.collate._counted` and `flows.transcribe._unclosed` read this
+#: same set to count settled places and refuse an unfinished proof.
 SETTLED = frozenset({State.STANDS, State.AGREED})

@@ -5,19 +5,13 @@
 # summarised and nothing is restated anywhere else: a shipped file that USES a term
 # does not also define it.
 #
-# [definitions]  term -> what it means. One line each, and each one is what some
-#                site in the tree used to say in passing.
+# [definitions]  term -> what it means. One definition per line.
 # [roles]        role -> the terms it is given, KEYS ONLY. A term wanted by three
 #                roles is listed three times and written once; `all` is the set every
 #                agent gets, so a role never repeats those.
 #
-# Which terms a role gets was MEASURED from the text that role actually reads --
-# its own agent file, plus the reference it is told to open -- not judged.
-#
-# This file holds what AGENTS are given, and it is the OFFICIAL definition of
-# every term in it. A word this system stopped using is recorded in
-# `docs/vocabulary.md`, which does not ship and is never a second place to look
-# a live term up -- `scripts/check_vocabulary.py` refuses one defined in both.
+# Each role receives the terms used in its agent file and required references.
+# This file defines the terms supplied to agents.
 
 [definitions]
 
@@ -96,7 +90,7 @@ alteration = "One place, and what the compositor sets there: its replacement tex
 
 # --- what carries the work between the stages --------------------------------
 topology = "Which roles each stage dispatches, in what order, how many ways each role is split, and the pages each dispatch covers. A stage may also name a cap, the series it deals and the instructions it admits. `topology --build` writes one that fits the binder."
-"master proof" = "Every place the fold has seen: its base text, the marks on it, and its state -- settled, carried forward, to come, or unsettlable. `collate` writes it, each `turn` and `disposition` advance it, and it is closed when every place is decided."
+"master proof" = "Every place the fold has seen: its base text, the marks on it, and its state -- settled, carried forward, or to come. `collate` writes it, each `turn` and `disposition` advance it, and it is closed when every place is decided."
 batch = "One slot for each carried-forward place, for each role it is put to, sent out in a turn."
 dispositions = "The copy chief's rulings: one per undecided move, `taken_in` a mover's side or the original, and one per carried-forward place, `taken_in` a side's text or `recast` in the chief's own prose."
 "to come" = "An end of a move whose placement is not yet decided -- the trade's TK. It holds no text, asks no role anything, and takes no ruling; once the placement is decided it is read as any place."
@@ -156,7 +150,7 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "width",
 ]
 
-# The four editorial roles: what the shared brief used to state in passing.
+# Terms supplied to each editorial role.
 "ownership-context" = [
   "add",
   "comment run",

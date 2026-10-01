@@ -254,9 +254,7 @@ def main() -> int:
             return 1
         held = transcribed.docket if transcribed is not None else None
         # A place the author approved that draws no `<path> -> <draft>` line
-        # is named here, or the run says nothing at all about a place they
-        # ruled on. It stands on the text already there, or it is held for
-        # the human and carries no text; neither is a refusal.
+        # is named here.
         for address in transcribed.sets_nothing if transcribed else ():
             print(f"approved {address}: nothing to set")
     else:

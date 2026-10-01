@@ -185,8 +185,8 @@ the rest of that plan gave the middle the ones under them. None is in `vocabular
 - **`pass`** -- one table applied to a place. `marks_pass`, `answers_pass` and
   `dispositions_pass` each read their own table, and `desk.evaluate.passes.decide` is the one
   order they may run in.
-- **`state`** -- what a pass leaves a place in, one of seven: `stands`, `agreed`, `composed`,
-  `contested`, `unsettlable`, `refused`, `to-come`. `desk.proof.state.State`.
+- **`state`** -- what a pass leaves a place in: `stands`, `agreed`, `composed`,
+  `contested`, `refused`, `to-come`. `desk.proof.state.State`.
 - **to come** -- an end of a move whose placement is undecided, the trade's TK: it holds no
   text, asks no role anything and takes no ruling, and is read as any place once the placement
   is decided. Not carried forward -- the move is. In `vocabulary.toml` for the task agent, who

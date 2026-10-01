@@ -84,7 +84,7 @@ def test_one_refused_place_rolls_the_fold_back():
 
 def test_a_rollback_reports_its_refusals_and_nothing_else():
     """A rollback commits nothing, so beside a refused place nothing settles,
-    nobody is asked about a carried or a held place, and a note has no chief's
+    nobody is asked about a carried place, and a note has no chief's
     copy to go with. Each of those would be reported on a commit.
 
     The rollback counts reasons, as the bus and the collate command count

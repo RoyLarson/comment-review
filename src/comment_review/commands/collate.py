@@ -202,7 +202,7 @@ def _counted(places: tuple[Place, ...]) -> str:
         places: `MasterProof.places`.
 
     Returns:
-        `"N places -- S settled, U unsettlable, C carried forward, T to come"`.
+        `"N places -- S settled, C carried forward, T to come"`.
 
     Settled is counted rather than subtracted, since `decision-log.md
     Process: #193`'s round. It read `len(states) - carried - unsettlable`,

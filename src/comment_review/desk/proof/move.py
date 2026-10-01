@@ -11,7 +11,6 @@ that read either page, and decided here before either end's words are:
     CONTESTED   a reader answered `stet`; carried forward for the chief
     WITHDRAWN   every mover withdrew it, or the chief kept the original --
                 final; the filing comes off
-    HELD        a human-review query was filed at an end, or answered
     REFUSED     an answer or a ruling this question does not take
 
 While the placement is undecided both ends are `to-come`: neither decides a

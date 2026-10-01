@@ -88,7 +88,7 @@ class CannotTranscribe(Exception):
     """
 
     def __init__(self, reasons: tuple[str, ...]) -> None:
-        """Hold the fold's own reasons and say them in the message too."""
+        """Hold every refusal and say it in the message too."""
         super().__init__("; ".join(reasons))
         self.reasons = reasons
 
@@ -388,10 +388,6 @@ def _approved(
     the name is likelier a mistyped address than a ruling -- transcribing the
     rest would set what was named correctly and say nothing about what was
     not.
-
-    A move's two ends are approved each on its own: an agreed move reaches
-    the proof as a `drop` and an `add` (`decision-log.md Process: #195` item
-    5), and a held one sets nothing at either end.
 
     Args:
         places: every place the proof carries, parsed and closed.
