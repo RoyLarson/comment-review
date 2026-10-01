@@ -320,6 +320,44 @@ def test_diff3_keeps_every_side_when_several_roles_conflict_at_one_place(tmp_pat
 
 
 class TestCompose:
+    @pytest.mark.parametrize("ending", ("\n", ""))
+    def test_identical_replacements_apply_once(self, ending):
+        base = "# one\n# two" + ending
+        side = "# ONE\n# two" + ending
+        assert compose(base, {"a": side, "b": side}) == side
+
+    def test_identical_deletions_apply_once(self):
+        assert compose("# one\n# two\n", {"a": "# two\n", "b": "# two\n"}) == "# two\n"
+
+    @pytest.mark.parametrize("base", ("", "# one\n"))
+    def test_identical_insertions_apply_once(self, base):
+        side = "# inserted\n" + base
+        assert compose(base, {"a": side, "b": side}) == side
+
+    def test_shared_edit_and_independent_edit_apply_once(self):
+        base = "# one\n# two\n# three\n# four\n"
+        assert compose(
+            base,
+            {
+                "a": "# ONE\n# two\n# three\n# four\n",
+                "b": "# ONE\n# two\n# three\n# FOUR\n",
+            },
+        ) == "# ONE\n# two\n# three\n# FOUR\n"
+
+    def test_three_equal_proposers_are_input_order_independent(self):
+        sides = {role: "# inserted\n" for role in ("a", "b", "c")}
+        assert compose("", sides) == "# inserted\n"
+        assert compose("", dict(reversed(list(sides.items())))) == "# inserted\n"
+
+    def test_equal_operations_keep_all_proposers_in_a_real_conflict(self):
+        with pytest.raises(CannotCompose) as caught:
+            compose(
+                "# base\n",
+                {"alpha": "# equal\n", "bravo": "# equal\n", "charlie": "# rival\n"},
+            )
+        named = str(caught.value).split("edited by ")[1].split(" -- ")[0]
+        assert set(named.split(", ")) == {"alpha", "bravo", "charlie"}
+
     def test_two_edits_on_different_lines_merge(self):
         base = "# one\n# two\n# three\n"
         sides = {

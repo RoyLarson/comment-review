@@ -125,14 +125,14 @@ class CannotCompose(Exception):
     for text. A composed paragraph and "no composition" are different kinds of
     answer, and an empty string is a legal paragraph -- `drop`'s.
 
-    The message names the base lines the meeting edits span and the two sides.
+    The message names the base lines the meeting edits span and their proposers.
     `desk/evaluate/passes.py` catches the refusal without reading the message;
     only the tests read it.
     """
 
 
 def compose(base: str, sides: dict[str, str]) -> str:
-    """The base with every side's edit applied, where no two sides met.
+    """The base with each distinct edit applied once, unless edits compete.
 
     ! A SIDE THAT CHANGED NOTHING AT A SPAN IS NOT A PARTY TO IT. Only a side's
     non-`equal` opcodes are its edits, so three roles of which one edited
@@ -151,7 +151,10 @@ def compose(base: str, sides: dict[str, str]) -> str:
         The composed paragraph. An empty `sides` returns `base` unchanged --
         nothing was proposed, so nothing is applied.
 
-    ! TWO SIDES MEET where their edits share a base line, where two rewrites
+    Equal edits share a base span and replacement lines. They apply once;
+    their proposer names remain available if a different edit conflicts.
+
+    ! TWO DIFFERENT EDITS MEET where they share a base line, where two rewrites
     sit on adjacent lines, where two inserts sit at one position, or where one
     side inserts inside lines the other rewrites. Adjacent rewrites meet
     because they can be two halves of one wrapped sentence; two inserts at one
@@ -165,8 +168,8 @@ def compose(base: str, sides: dict[str, str]) -> str:
     the composed paragraph again.
 
     Raises:
-        CannotCompose: two sides' edits met, naming the base lines the first
-            meeting pair spans and those two sides.
+        CannotCompose: different edits met, naming the base lines the first
+            meeting pair spans and every proposer of those edits.
     """
     terminated = not base or base.endswith("\n")
     if not terminated:
@@ -176,8 +179,8 @@ def compose(base: str, sides: dict[str, str]) -> str:
     return composed if terminated else composed.removesuffix("\n")
 
 
-#: One side's edit: `(role, i1, i2, the lines it puts in base[i1:i2]'s place)`.
-_Edit = tuple[str, int, int, list[str]]
+#: One distinct edit: its proposers, base span, and replacement lines.
+_Edit = tuple[frozenset[str], int, int, tuple[str, ...]]
 
 
 def _meet(a: _Edit, b: _Edit) -> bool:
@@ -196,20 +199,25 @@ def _meet(a: _Edit, b: _Edit) -> bool:
 def _compose_lines(base: str, sides: dict[str, str]) -> str:
     """`compose` over a base whose every line ends in a newline, the last included."""
     base_lines = base.splitlines(True)
-    edits: list[_Edit] = []
+    by_operation: dict[tuple[int, int, tuple[str, ...]], set[str]] = {}
     for role in sorted(sides):
         side_lines = sides[role].splitlines(True)
         matcher = difflib.SequenceMatcher(None, base_lines, side_lines)
         for tag, i1, i2, j1, j2 in matcher.get_opcodes():
             if tag != "equal":
-                edits.append((role, i1, i2, side_lines[j1:j2]))
+                operation = (i1, i2, tuple(side_lines[j1:j2]))
+                by_operation.setdefault(operation, set()).add(role)
+    edits: list[_Edit] = [
+        (frozenset(roles), i1, i2, lines)
+        for (i1, i2, lines), roles in by_operation.items()
+    ]
     for i, a in enumerate(edits):
         for b in edits[i + 1 :]:
-            if a[0] != b[0] and _meet(a, b):
+            if len(a[0] | b[0]) > 1 and _meet(a, b):
                 start, end = min(a[1], b[1]), max(a[2], b[2])
                 raise CannotCompose(
                     f"base lines {start + 1}-{max(end, start + 1)} were edited by "
-                    f"{', '.join(sorted({a[0], b[0]}))} -- no composition"
+                    f"{', '.join(sorted(a[0] | b[0]))} -- no composition"
                 )
     # An insert at a position goes before a rewrite that starts there.
     edits.sort(key=lambda edit: (edit[1], edit[1] != edit[2]))
