@@ -86,7 +86,9 @@ ANSWERS: dict[tuple[Question, str], SideAnswerRow | PlacementAnswerRow] = {
     (Question.COMPOSITION, "patch"): SideAnswerRow(_always(SideEffect.REPLACES)),
     (Question.PLACEMENT, "agree"): PlacementAnswerRow(_always(PlacementEffect.ACCEPTS)),
     (Question.PLACEMENT, "stet"): PlacementAnswerRow(_always(PlacementEffect.CONTESTS)),
-    (Question.PLACEMENT, "withdraw"): PlacementAnswerRow(_always(PlacementEffect.REMOVES)),
+    (Question.PLACEMENT, "withdraw"): PlacementAnswerRow(
+        _always(PlacementEffect.REMOVES)
+    ),
     (Question.PLACEMENT, "query"): PlacementAnswerRow(_placement_query_effect),
 }
 

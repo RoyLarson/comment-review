@@ -11,7 +11,6 @@ import pytest
 from helpers import a_typed_answer, a_typed_mark, a_typed_ruling
 
 from comment_review.desk.answers.table import ANSWERS
-
 from comment_review.desk.evaluate.move import moves_in, placement_pass
 from comment_review.desk.proof.answer import Answer, Question
 from comment_review.desk.proof.disposition import Disposition
@@ -194,7 +193,9 @@ def test_later_placement_deferral_relinquishes_the_prior_vote(prior, shape):
 
 
 def test_placement_reducer_refuses_a_side_row_injected_at_a_placement_key(monkeypatch):
-    monkeypatch.setitem(ANSWERS, (Question.PLACEMENT, "agree"), ANSWERS[(Question.COMPOSITION, "clean")])
+    monkeypatch.setitem(
+        ANSWERS, (Question.PLACEMENT, "agree"), ANSWERS[(Question.COMPOSITION, "clean")]
+    )
     got = _decided(_ends(), {"b": _answer("agree")})
     assert got.placement is Placement.REFUSED
     assert "placement row" in got.reasons[0]
@@ -202,7 +203,9 @@ def test_placement_reducer_refuses_a_side_row_injected_at_a_placement_key(monkey
 
 def test_placement_reducer_refuses_an_unknown_effect(monkeypatch):
     key = (Question.PLACEMENT, "agree")
-    monkeypatch.setitem(ANSWERS, key, replace(ANSWERS[key], effect=lambda answer: object()))
+    monkeypatch.setitem(
+        ANSWERS, key, replace(ANSWERS[key], effect=lambda answer: object())
+    )
     got = _decided(_ends(), {"b": _answer("agree")})
     assert got.placement is Placement.REFUSED
     assert "placement effect" in got.reasons[0]

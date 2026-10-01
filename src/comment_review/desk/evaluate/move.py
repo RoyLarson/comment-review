@@ -11,7 +11,11 @@ The move itself -- its fields, its placements and its name -- is
 
 from typing import assert_never
 
-from comment_review.desk.answers.table import ANSWERS, PlacementAnswerRow, PlacementEffect
+from comment_review.desk.answers.table import (
+    ANSWERS,
+    PlacementAnswerRow,
+    PlacementEffect,
+)
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
 from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.disposition import CHIEF, ORIGINAL, Disposition
@@ -129,8 +133,8 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
                         movers.pop(role)
                     else:
                         reasons.append(
-                            f"{role}: only the role that filed a move withdraws it -- stet"
-                            " it to keep the paragraph where it is"
+                            f"{role}: only the role that filed a move withdraws it --"
+                            " stet it to keep the paragraph where it is"
                         )
                 case PlacementEffect.HUMAN_QUERY:
                     asking.append(f"{role}: {answer.reason}")

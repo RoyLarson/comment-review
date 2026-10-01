@@ -24,7 +24,6 @@ from comment_review.desk.proof.answer import (
 )
 from comment_review.flows.answers import contracts
 
-
 EXPECTED_EFFECTS = {
     (Question.ESCALATION, "hold"): SideEffect.KEEPS,
     (Question.ESCALATION, "withdraw"): SideEffect.REMOVES,
@@ -44,10 +43,19 @@ EXPECTED_EFFECTS = {
 def test_admitted_rows_are_exactly_the_independent_contract():
     assert set(ANSWERS) == set(EXPECTED_EFFECTS)
     assert {effect.name for effect in SideEffect} == {
-        "KEEPS", "REMOVES", "REPLACES", "ACCEPTS", "DEFERS", "HUMAN_QUERY"
+        "KEEPS",
+        "REMOVES",
+        "REPLACES",
+        "ACCEPTS",
+        "DEFERS",
+        "HUMAN_QUERY",
     }
     assert {effect.name for effect in PlacementEffect} == {
-        "ACCEPTS", "CONTESTS", "REMOVES", "DEFERS", "HUMAN_QUERY"
+        "ACCEPTS",
+        "CONTESTS",
+        "REMOVES",
+        "DEFERS",
+        "HUMAN_QUERY",
     }
     assert SideEffect.ACCEPTS != PlacementEffect.ACCEPTS
 
@@ -57,15 +65,19 @@ def test_every_admitted_row_classifies_its_answer_with_its_own_subject(key, expe
     question, name = key
     answer = _answer(question, name, change="# x", claim={"shape": "outside-my-role"})
     row = ANSWERS[key]
-    assert isinstance(row, PlacementAnswerRow if question is Question.PLACEMENT else SideAnswerRow)
+    assert isinstance(
+        row, PlacementAnswerRow if question is Question.PLACEMENT else SideAnswerRow
+    )
     assert row.effect(answer) is expected
     assert asks_human(answer) is False
     with pytest.raises(FrozenInstanceError):
-        setattr(row, "effect", lambda answer: expected)
+        row.effect = lambda answer: expected
 
 
 @pytest.mark.parametrize("question", (Question.COMPOSITION, Question.PLACEMENT))
-@pytest.mark.parametrize("shape", ("outside-my-role", "unable-to-determine", "human-review-necessary"))
+@pytest.mark.parametrize(
+    "shape", ("outside-my-role", "unable-to-determine", "human-review-necessary")
+)
 def test_human_classification_follows_the_query_row_for_each_subject(question, shape):
     answer = _answer(question, "query", claim={"shape": shape})
     assert asks_human(answer) is (shape == "human-review-necessary")
@@ -74,7 +86,9 @@ def test_human_classification_follows_the_query_row_for_each_subject(question, s
 @pytest.mark.parametrize("question", (Question.COMPOSITION, Question.PLACEMENT))
 def test_query_effect_requires_a_query_payload(question):
     with pytest.raises(ValueError, match="requires QueryAnswer"):
-        ANSWERS[(question, "query")].effect(_answer(question, "clean" if question is Question.COMPOSITION else "agree"))
+        ANSWERS[(question, "query")].effect(
+            _answer(question, "clean" if question is Question.COMPOSITION else "agree")
+        )
 
 
 def _answer(question: Question, name: str, **fields) -> Answer:
@@ -160,7 +174,10 @@ def test_the_placement_answers():
     p = Question.PLACEMENT
     assert ANSWERS[(p, "agree")].effect(_answer(p, "agree")) is PlacementEffect.ACCEPTS
     assert ANSWERS[(p, "stet")].effect(_answer(p, "stet")) is PlacementEffect.CONTESTS
-    assert ANSWERS[(p, "withdraw")].effect(_answer(p, "withdraw")) is PlacementEffect.REMOVES
+    assert (
+        ANSWERS[(p, "withdraw")].effect(_answer(p, "withdraw"))
+        is PlacementEffect.REMOVES
+    )
     deferring = _answer(p, "query", claim={"shape": "outside-my-role"})
     human = _answer(p, "query", claim={"shape": "human-review-necessary"})
     assert ANSWERS[(p, "query")].effect(deferring) is PlacementEffect.DEFERS

@@ -73,7 +73,11 @@ def test_two_moves_keep_both_origins_and_one_arrival_after_proof_reload(
     destination = next(place for place in reloaded.places if place.address == "m.py@b3")
     arrivals = [one for one in destination.filed if one.touch is Touch.DESTINATION]
     assert len(arrivals) == 2
-    assert {one.mark.address: one.mark.change for one in arrivals if isinstance(one.mark, MoveMark)} == {
+    assert {
+        one.mark.address: one.mark.change
+        for one in arrivals
+        if isinstance(one.mark, MoveMark)
+    } == {
         "m.py@b1": "# first",
         "m.py@b2": "# second",
     }
@@ -670,27 +674,63 @@ def test_composition_deferral_survives_disk_reload_without_repeat_dispatch(
 
 
 @pytest.mark.parametrize("human_question", ("composition", "placement"))
-def test_mixed_answers_route_human_queries_before_the_production_fold(tmp_path, monkeypatch, human_question):
+def test_mixed_answers_route_human_queries_before_the_production_fold(
+    tmp_path, monkeypatch, human_question
+):
     root = tmp_path / "repo"
-    binder = a_real_binder_over(root, {"m.py@b1": BASE, "m.py@b2": OTHER, "m.py@b3": BASE})
+    binder = a_real_binder_over(
+        root, {"m.py@b1": BASE, "m.py@b2": OTHER, "m.py@b3": BASE}
+    )
     by_role = {
         "block-context": {
-            "m.py@b1": a_move("m.py@b1", "m.py@b2", change="# two\n", reads=OTHER + "\n# two"),
+            "m.py@b1": a_move(
+                "m.py@b1", "m.py@b2", change="# two\n", reads=OTHER + "\n# two"
+            ),
             "m.py@b2": a_clean("m.py@b2"),
             "m.py@b3": a_correct_setting("m.py@b3", "one", "# ONE\n# two\n# three"),
         },
-        "function-context": {address: a_clean(address) for address in ("m.py@b1", "m.py@b2", "m.py@b3")},
+        "function-context": {
+            address: a_clean(address) for address in ("m.py@b1", "m.py@b2", "m.py@b3")
+        },
     }
-    out, collated = handle(CopiesReturned("4c", [returned(wire) for wire in copies_over(binder, by_role)], binder, root, None))
+    out, collated = handle(
+        CopiesReturned(
+            "4c",
+            [returned(wire) for wire in copies_over(binder, by_role)],
+            binder,
+            root,
+            None,
+        )
+    )
     assert collated is not None and collated.batch is not None, out
     slots = collated.batch["function-context"]
     assert {slot["question"] for slot in slots} == {"composition", "placement"}
-    answers = {"function-context": [
-        _answer(slot["address"], "query" if slot["question"] == human_question else "agree" if slot["question"] == "placement" else "clean", "ask" if slot["question"] == human_question else "accept",
-            **({"to": slot["to"]} if "to" in slot else {}),
-            **({"claim": {"shape": "human-review-necessary", "attempted": "read", "settles": "author"}} if slot["question"] == human_question else {}))
-        for slot in slots
-    ]}
+    answers = {
+        "function-context": [
+            _answer(
+                slot["address"],
+                "query"
+                if slot["question"] == human_question
+                else "agree"
+                if slot["question"] == "placement"
+                else "clean",
+                "ask" if slot["question"] == human_question else "accept",
+                **({"to": slot["to"]} if "to" in slot else {}),
+                **(
+                    {
+                        "claim": {
+                            "shape": "human-review-necessary",
+                            "attempted": "read",
+                            "settles": "author",
+                        }
+                    }
+                    if slot["question"] == human_question
+                    else {}
+                ),
+            )
+            for slot in slots
+        ]
+    }
     from comment_review.flows import bus
 
     def must_not_fold(self):

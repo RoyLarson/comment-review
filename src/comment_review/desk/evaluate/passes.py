@@ -297,14 +297,24 @@ def answers_pass(place: Place, turn: int) -> Place:
                 sides.pop(role, None)
             case SideEffect.REPLACES:
                 if not isinstance(answer, Rewrite):
-                    return _set(place, State.REFUSED, reasons=(f"{role}: replacement requires Rewrite",))
+                    return _set(
+                        place,
+                        State.REFUSED,
+                        reasons=(f"{role}: replacement requires Rewrite",),
+                    )
                 sides[role] = answer.change
             case SideEffect.ACCEPTS:
                 if place.text is None:
-                    return _set(place, State.REFUSED, reasons=(f"{role}: acceptance requires composed text",))
+                    return _set(
+                        place,
+                        State.REFUSED,
+                        reasons=(f"{role}: acceptance requires composed text",),
+                    )
                 sides[role] = place.text
             case SideEffect.HUMAN_QUERY:
-                return _set(place, State.UNSETTLABLE, asking=(f"{role}: {answer.reason}",))
+                return _set(
+                    place, State.UNSETTLABLE, asking=(f"{role}: {answer.reason}",)
+                )
             case _:
                 assert_never(effect)
     return _from_sides(place, sides, turn)
