@@ -62,8 +62,8 @@ from pathlib import Path
 from comment_review.commands.collate import ASKS_THE_HUMAN, _human_answers, _lines
 from comment_review.desk.collator import Cache, Problem
 from comment_review.desk.proof.edit_copy import EditCopy
+from comment_review.desk.report import AsksTheHuman
 from comment_review.desk.stages import not_admitted
-from comment_review.desk.work.events import AsksTheHuman
 from comment_review.flows.answers import answers_of, contracts, slot_key, slots_of
 from comment_review.flows.fill import composition_problems, row_problems
 from comment_review.flows.human import (

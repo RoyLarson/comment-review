@@ -16,12 +16,12 @@ same places, measured against it before it was removed.
 import pytest
 from helpers import a_typed_answer, a_typed_mark, a_typed_ruling
 
+from comment_review.desk import report as events
 from comment_review.desk.evaluate.move import moves_in
 from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.mark import Instruction, Shape, Touch
 from comment_review.desk.proof.place import Filed, Place
 from comment_review.desk.proof.state import State
-from comment_review.desk.work import events
 from comment_review.desk.work.fold import Fold
 
 ORIGIN, DESTINATION = "m.py@b1", "m.py@b5"

@@ -31,6 +31,7 @@ from pathlib import Path
 from typing import NamedTuple
 
 from comment_review.binder.binder import Binder
+from comment_review.desk import report as events
 from comment_review.desk.collator import Cache, Problem
 from comment_review.desk.evaluate.move import moves_in
 from comment_review.desk.proof.answer import Answer, Question
@@ -45,7 +46,6 @@ from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.proof.state import CARRIED, State
 from comment_review.desk.stages import Stage, not_admitted
-from comment_review.desk.work import events
 from comment_review.desk.work.fold import Fold, asked
 from comment_review.flows.answers import answers_of, slots_of
 from comment_review.flows.human import (

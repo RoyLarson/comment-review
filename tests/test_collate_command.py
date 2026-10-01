@@ -27,10 +27,10 @@ from helpers import (
 )
 
 from comment_review.commands import collate as command
+from comment_review.desk import report as events
 from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.mark import Shape
 from comment_review.desk.proof.state import State
-from comment_review.desk.work import events
 from comment_review.flows.proof_io import load_proof
 
 BASE = "# one\n# two\n# three\n"

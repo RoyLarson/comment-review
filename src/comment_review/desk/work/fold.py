@@ -17,12 +17,12 @@ Process: #195`).
 
 from dataclasses import dataclass, field
 
+from comment_review.desk import report as events
 from comment_review.desk.evaluate.move import moves_in
 from comment_review.desk.evaluate.passes import decide
 from comment_review.desk.proof.move import Move, Placement, is_open
 from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.state import CARRIED, State
-from comment_review.desk.work import events
 
 
 @dataclass
@@ -64,7 +64,7 @@ class Fold:
         chief to read, not a reason to give up the round.
 
         A rollback reports its refusals and itself, and nothing else
-        (`desk.work.events`): the refusals are gathered apart from what a
+        (`desk.report`): the refusals are gathered apart from what a
         commit reports, and only a commit reports the second list.
         """
         decide(self.places, self.moves, self.turn)

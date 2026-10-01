@@ -29,13 +29,13 @@ import argparse
 import sys
 from pathlib import Path
 
+from comment_review.desk import report as events
 from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.move import Placement
 from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.state import CARRIED, SETTLED, State
 from comment_review.desk.topology import read as read_topology
-from comment_review.desk.work import events
 from comment_review.flows.bus import CopiesReturned, handle
 from comment_review.flows.human import HumanAnswer, read_answers
 from comment_review.flows.proof_io import (
@@ -148,7 +148,7 @@ def _print(out: list) -> None:
 
     A note is for the chief and changes nothing, so it sits under its own
     heading below the places rather than between them. Only a committed fold
-    emits one (`desk.work.events`), so the heading prints only over a
+    emits one (`desk.report`), so the heading prints only over a
     committed round.
     """
     for event in out:

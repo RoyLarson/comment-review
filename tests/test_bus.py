@@ -17,6 +17,7 @@ from helpers import (
     returned,
 )
 
+from comment_review.desk import report as events
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.mark import BlankMark, MoveMark, Shape, Touch
@@ -25,7 +26,6 @@ from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.proof.state import State
 from comment_review.desk.stages import Dispatch, Kind, Role, Stage
-from comment_review.desk.work import events
 from comment_review.flows.bus import (
     AnswersReturned,
     CopiesReturned,
