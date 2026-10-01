@@ -12,7 +12,7 @@ from conftest import PKG, SAMPLE, build, cue, docket_from
 from comment_review.binder.binder import bind
 from comment_review.flows import page_for as page_for_mod
 from comment_review.flows import proof_setter
-from comment_review.machine import exceptions
+from comment_review import exceptions
 
 
 def address(binder, path: str, series: str = "b") -> str:

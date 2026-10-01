@@ -56,7 +56,7 @@ from itertools import pairwise
 from pathlib import Path
 
 from comment_review import constants
-from comment_review.machine import exceptions
+from comment_review import exceptions
 from comment_review.reading.addresser import (
     COVERS,
     DECLARED,

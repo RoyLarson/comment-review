@@ -16,7 +16,7 @@ re-spelling the read and its error handling at the call site.
 from pathlib import Path
 
 from comment_review.binder.page import Page, page_for
-from comment_review.machine import exceptions
+from comment_review import exceptions
 from comment_review.machine.repo import Source, read_source
 from comment_review.reading.lexer import language_for
 

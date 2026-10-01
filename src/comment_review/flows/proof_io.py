@@ -32,7 +32,7 @@ from pathlib import Path
 from comment_review.binder.binder import Binder
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
-from comment_review.machine import exceptions
+from comment_review import exceptions
 from comment_review.machine.json_object import object_of
 from comment_review.machine.repo import write_raw
 

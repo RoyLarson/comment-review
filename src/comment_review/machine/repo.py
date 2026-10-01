@@ -24,7 +24,7 @@ import subprocess
 from pathlib import Path
 from typing import NamedTuple
 
-from comment_review.machine import exceptions
+from comment_review import exceptions
 
 # A virtualenv in the tree POISONS the name corpus: every installed package's
 # methods become "known", so a real obituary is HIDDEN because some library

@@ -33,7 +33,7 @@ from enum import IntEnum
 from pathlib import Path
 
 from comment_review import constants
-from comment_review.machine import exceptions
+from comment_review import exceptions
 from comment_review.reading.language import (
     BY_EXT,
     LANGUAGES,

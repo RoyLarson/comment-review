@@ -12,7 +12,7 @@ from contextlib import redirect_stdout
 from pathlib import Path
 
 from comment_review.concordance.referrers import _grep, tokens_for
-from comment_review.machine import exceptions
+from comment_review import exceptions
 from comment_review.machine.repo import git_ls_files
 
 

@@ -60,7 +60,7 @@ from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.mark import Instruction, mark_type
 from comment_review.flows.fill import fill, withdraw
 from comment_review.flows.proof_io import load_copy, save_wire
-from comment_review.machine import exceptions
+from comment_review import exceptions
 from comment_review.machine.repo import read_raw
 
 #: Exit codes -- `check`'s. `BROKEN` is a ruling the flow refused, with the

@@ -60,7 +60,7 @@ from pathlib import Path
 
 from comment_review import constants
 from comment_review.binder.page import Page, page_for
-from comment_review.machine import exceptions
+from comment_review import exceptions
 from comment_review.machine.repo import read_source, write_raw
 from comment_review.reading.addresser import GAP, ON, cue_of
 
