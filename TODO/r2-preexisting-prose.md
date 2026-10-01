@@ -17,3 +17,4 @@ Correct pre-existing move and fold-helper prose.
 - [ ] T1 | Name evaluate/move as placement-pass owner; verify proof/move
         > 2026-10-01 proof/move.py:1,6 says pass lives here; evaluate/move owns it
 - [ ] T2 | Describe ordinary deferral in fold helper; verify test_fold
+        > 2026-10-01 test_fold.py:130 calls an ordinary deferral held for human
