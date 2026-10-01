@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 25 of 52 tasks closed
+Progress: 26 of 52 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -79,8 +79,8 @@ The rebuilt middle's final review.
       nobody is owed, and closed by the chief (B5)
 - [ ] T24 | Decide whether a reader that answered clean becomes a side and is
       then asked an escalation (B6)
-- [ ] T25 | Make answers_pass keep the sides on unsettlable as marks_pass does
-      (B7)
+- [-] T25 | Human-held state removed under human-questions T8 | 340997703708b016c5505bbb1c31c4eb067bec76 | Make
+      answers_pass keep the sides on unsettlable as marks_pass does (B7)
         > 2026-09-30 Process 197 conflicts; see docs/reviews/2026-09-30-r2-r3.md
 - [-] T26 | Process 195 narrowed 139: the chief rules words per end; the pair coupling this named is gone | 0e15fbb1f2f4e3dedf85cde8a26e7a611eecee0c | Correct
       the design's 'never ruled apart'; Process 139 lets the chief rule a move's

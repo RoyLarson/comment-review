@@ -1,8 +1,8 @@
 # A human question is asked before the fold
 
 ```
-Status:   open
-Progress: 5 of 8 tasks closed
+Status:   closed
+Progress: 8 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-26 (Process 197)
@@ -26,10 +26,12 @@ A human question is asked before the fold.
 - [x] T4 | SKILL.md asks each human query with AskUserQuestion before collate and turn | 328efac3f6fca9bc191368f5e29a2eec4cb092b2 | Update
       SKILL.md so the task agent asks each human-review query with the question
       tool before collate and turn; agents lane
-- [ ] T5 | Delete the write-end refusal of a move open at an unruled end once no
+- [-] T5 | Human-held deletion obsolete; open placement refusal retained | 340997703708b016c5505bbb1c31c4eb067bec76 | Delete
+      the write-end refusal of a move open at an unruled end once no
       human-review query reaches the fold
-- [ ] T6 | Delete the command-side held-query printing: collate _for_the_human,
-      the Unsettlable _lines branch, _counted unsettlable, _unclosed exempt
+- [x] T6 | Held output removed; ordinary refusal controls passed | 340997703708b016c5505bbb1c31c4eb067bec76 | Delete
+      the command-side held-query printing: collate _for_the_human, the
+      Unsettlable _lines branch, _counted unsettlable, _unclosed exempt
         > 2026-09-26 files: commands/collate.py and flows/transcribe.py (_unclosed)
         > 2026-09-26 also commands/disposition.py docstring lines 26-30
         > 2026-09-30 Dependencies: docs/reviews/2026-09-30-r2-r3.md, R2-A
@@ -37,7 +39,8 @@ A human question is asked before the fold.
       a human query in proof --copy: docket_of folds it and omits the place
       without naming it
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r2-r3.md, R2-B
-- [ ] T8 | Delete the fold human-question states and events so only query-free
-      editorial records can commit
+- [x] T8 | Human-held states removed; 2139 tests passed | 340997703708b016c5505bbb1c31c4eb067bec76 | Delete
+      the fold human-question states and events so only query-free editorial
+      records can commit
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r2-r3.md, R2-A
         > 2026-09-30 Query-free means no human-review-necessary query
