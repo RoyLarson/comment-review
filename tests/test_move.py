@@ -5,7 +5,12 @@ nothing else, so its placement is decided once for the pair, by every role
 that read either page, before either end's words are.
 """
 
+from dataclasses import replace
+
+import pytest
 from helpers import a_typed_answer, a_typed_mark, a_typed_ruling
+
+from comment_review.desk.answers.table import ANSWERS
 
 from comment_review.desk.evaluate.move import moves_in, placement_pass
 from comment_review.desk.proof.answer import Answer, Question
@@ -173,6 +178,34 @@ def test_a_stetter_who_later_agrees_closes_it():
     move.answers[1] = {"b": _answer("stet"), "a": _answer("agree")}
     move.answers[2] = {"b": _answer("agree"), "a": _answer("agree")}
     assert placement_pass(move, places, 2).placement is Placement.AGREED
+
+
+@pytest.mark.parametrize("prior", ("stet", "agree"))
+@pytest.mark.parametrize("shape", (Shape.OUTSIDE_MY_ROLE, Shape.UNABLE_TO_DETERMINE))
+def test_later_placement_deferral_relinquishes_the_prior_vote(prior, shape):
+    places = _ends(readers=("a", "b", "c"))
+    (move,) = moves_in(places).values()
+    move.answers[1] = {"b": _answer(prior)}
+    move.answers[2] = {"b": _answer("query", {**DEFERRING, "shape": str(shape)})}
+    got = placement_pass(move, places, 2)
+    assert got.placement is Placement.OPEN and got.owed == ("c",)
+    assert got.answers[1]["b"].name == prior
+    assert got.answers[2]["b"].name == "query"
+
+
+def test_placement_reducer_refuses_a_side_row_injected_at_a_placement_key(monkeypatch):
+    monkeypatch.setitem(ANSWERS, (Question.PLACEMENT, "agree"), ANSWERS[(Question.COMPOSITION, "clean")])
+    got = _decided(_ends(), {"b": _answer("agree")})
+    assert got.placement is Placement.REFUSED
+    assert "placement row" in got.reasons[0]
+
+
+def test_placement_reducer_refuses_an_unknown_effect(monkeypatch):
+    key = (Question.PLACEMENT, "agree")
+    monkeypatch.setitem(ANSWERS, key, replace(ANSWERS[key], effect=lambda answer: object()))
+    got = _decided(_ends(), {"b": _answer("agree")})
+    assert got.placement is Placement.REFUSED
+    assert "placement effect" in got.reasons[0]
 
 
 def test_the_movers_withdraw_withdraws_it():

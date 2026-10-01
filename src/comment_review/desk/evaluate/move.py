@@ -9,7 +9,9 @@ The move itself -- its fields, its placements and its name -- is
 `desk.proof.move`.
 """
 
-from comment_review.desk.answers.table import ANSWERS, Effect
+from typing import assert_never
+
+from comment_review.desk.answers.table import ANSWERS, PlacementAnswerRow, PlacementEffect
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
 from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.disposition import CHIEF, ORIGINAL, Disposition
@@ -71,6 +73,9 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
     ends defers; an answer up to `turn` narrows them. A final placement is
     left as it is.
 
+    Each later vote replaces the role's earlier vote. Deferral removes its
+    prior acceptance or contest and leaves other readers owing their say.
+
     Args:
         move: the move, its movers and readers from `moves_in`.
         places: the fold's places, where its two ends are read.
@@ -103,24 +108,38 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
             if row is None or answer.question is not Question.PLACEMENT:
                 reasons.append(f"{role}: {answer.name} is not an answer to a placement")
                 continue
+            if not isinstance(row, PlacementAnswerRow):
+                reasons.append(f"{role}: expected a placement row")
+                continue
             effect = row.effect(answer)
-            if effect is Effect.ACCEPTS:
-                accepted.add(role)
-                stetted.discard(role)
-            elif effect is Effect.CONTESTS:
-                stetted.add(role)
-                accepted.discard(role)
-            elif effect is Effect.REMOVES and role in movers:
-                movers.pop(role)
-            elif effect is Effect.REMOVES:
-                reasons.append(
-                    f"{role}: only the role that filed a move withdraws it -- stet"
-                    " it to keep the paragraph where it is"
-                )
-            elif effect is Effect.UNSETTLABLE:
-                asking.append(f"{role}: {answer.reason}")
-            elif effect is Effect.ABSTAINS:
-                deferring.add(role)
+            if not isinstance(effect, PlacementEffect):
+                reasons.append(f"{role}: invalid placement effect")
+                continue
+            match effect:
+                case PlacementEffect.ACCEPTS:
+                    accepted.add(role)
+                    stetted.discard(role)
+                    deferring.discard(role)
+                case PlacementEffect.CONTESTS:
+                    stetted.add(role)
+                    accepted.discard(role)
+                    deferring.discard(role)
+                case PlacementEffect.REMOVES:
+                    if role in movers:
+                        movers.pop(role)
+                    else:
+                        reasons.append(
+                            f"{role}: only the role that filed a move withdraws it -- stet"
+                            " it to keep the paragraph where it is"
+                        )
+                case PlacementEffect.HUMAN_QUERY:
+                    asking.append(f"{role}: {answer.reason}")
+                case PlacementEffect.DEFERS:
+                    accepted.discard(role)
+                    stetted.discard(role)
+                    deferring.add(role)
+                case _:
+                    assert_never(effect)
     move.movers = movers
     move.reasons, move.asking, move.owed = tuple(reasons), (), ()
     if reasons:

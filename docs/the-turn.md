@@ -212,21 +212,23 @@ code's name is `escalation`. The third, `placement`, is asked of a move (`Proces
 | `placement` | a move's placement is undecided and you are owed a say on it | `agree`, `stet`, `withdraw` (its mover), `query` |
 
 **What each answer does to the role's own side** is the row's `effect`
-(`desk.answers.table.Effect`), and it is the whole of what an answer means to the fold:
+(`desk.answers.table.SideEffect`):
 
     hold        keeps      the side stands as it was
     withdraw    removes    the side is taken off the place
     correct     replaces   the side becomes the answer's `change`
     patch       replaces   the same
     clean       accepts    the side becomes the text that was put to it
-    query       abstains   unless its `claim.shape` is `human-review-necessary`,
-                           which makes the place unsettlable
+    query       defers     removes the role's side; human-review-necessary
+                           asks the author before the production fold
 
 **A move is answered on the move, once, for the pair** -- `decision-log.md Process: #195`.
 The placement slot names both addresses and every mover's snippet and arrival, and its answer is
 recorded on the move rather than at either end. `agree` accepts the placement, `stet` contests
 it for the chief, a mover's `withdraw` takes the move off both ends, and a `query` of shape
-`human-review-necessary` holds both ends for the author. No answer at an end reaches the move:
+`human-review-necessary` asks the author before the production fold. The placement rows use
+`desk.answers.table.PlacementEffect`; either other query shape relinquishes the role's prior
+placement vote. No answer at an end reaches the move:
 while the placement is undecided the ends are `to-come` and are put to nobody (`#200`), so there
 is no end answer to reach it. Once the move is agreed, a `correct` or a `patch` at an end is an
 answer on that place alone, like any other.
@@ -564,7 +566,7 @@ fold deleted (`0e2ff82a`).
 | agreement is the text alone, and it takes every owing mark | `Process: #88` | `desk.evaluate.passes._from_sides` |
 | a lone owing mark goes back to every role that marked but a query | `Process: #89` | superseded by `#180` as a rule of its own; it is the invariant's case |
 | an `add` goes back to every role that read the page | `Process: #116` | superseded by `#180` the same way; the `rereads` cell is gone |
-| a human-review query rides and is asked last; the other shapes abstain | `Process: #90`, `#121` | `desk.marks.table._query_stance`, `desk.answers.table._query_effect` |
+| a human query is asked before the fold; the other shapes defer | `Process: #121`, `#197` | `desk.marks.table._query_stance`, `desk.answers.table.asks_human` |
 | once settled, always settled, for the review; nothing persists across runs | `Process: #91` | `desk.evaluate.passes.answers_pass`, which narrows only a carried-forward place |
 | a text settles only once every reader has proposed or accepted it | `Process: #180` | `desk.evaluate.passes.owed_a_say` |
 | one role's marks at one place compose | `Process: #179` | `desk.evaluate.passes.composed_side` |

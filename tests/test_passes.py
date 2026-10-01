@@ -1,8 +1,11 @@
 """The marks pass: from the marks filed at a place to its state and text."""
 
+from dataclasses import replace
+
 import pytest
 from helpers import a_typed_answer, a_typed_mark, a_typed_ruling
 
+from comment_review.desk.answers.table import ANSWERS
 from comment_review.desk.evaluate.move import moves_in
 from comment_review.desk.evaluate.passes import (
     answers_pass,
@@ -522,6 +525,55 @@ def _answer(name, change="", claim=None, question=Question.ESCALATION):
         change=change,
         claim=claim or {},
     )
+
+
+def test_side_reducer_refuses_a_placement_row_injected_at_a_side_key(monkeypatch):
+    key = (Question.ESCALATION, "hold")
+    monkeypatch.setitem(ANSWERS, key, ANSWERS[(Question.PLACEMENT, "agree")])
+    place = _contested()
+    place.answers[1] = {"a": _answer("hold")}
+    got = answers_pass(place, 1)
+    assert got.state is State.REFUSED and "side row" in got.reasons[0]
+
+
+def test_side_reducer_refuses_an_unknown_effect(monkeypatch):
+    key = (Question.ESCALATION, "hold")
+    monkeypatch.setitem(ANSWERS, key, replace(ANSWERS[key], effect=lambda answer: object()))
+    place = _contested()
+    place.answers[1] = {"a": _answer("hold")}
+    got = answers_pass(place, 1)
+    assert got.state is State.REFUSED and "side effect" in got.reasons[0]
+
+
+def test_side_reducer_refuses_replacement_without_a_rewrite(monkeypatch):
+    monkeypatch.setitem(ANSWERS, (Question.ESCALATION, "hold"), ANSWERS[(Question.ESCALATION, "correct")])
+    place = _contested()
+    place.answers[1] = {"a": _answer("hold")}
+    got = answers_pass(place, 1)
+    assert got.state is State.REFUSED and "Rewrite" in got.reasons[0]
+
+
+@pytest.mark.parametrize("question,name,state,owed", (
+    (Question.ESCALATION, "hold", State.CONTESTED, ("a", "b")),
+    (Question.ESCALATION, "withdraw", State.STANDS, ()),
+    (Question.ESCALATION, "correct", State.AGREED, ()),
+    (Question.ESCALATION, "patch", State.AGREED, ()),
+    (Question.COMPOSITION, "clean", State.COMPOSED, ("b", "c")),
+    (Question.COMPOSITION, "query", State.COMPOSED, ("c",)),
+    (Question.COMPOSITION, "correct", State.COMPOSED, ("c",)),
+    (Question.COMPOSITION, "patch", State.COMPOSED, ("c",)),
+))
+def test_every_side_answer_row_changes_the_place_as_its_contract_requires(question, name, state, owed):
+    place = _contested() if question is Question.ESCALATION else marks_pass(_compatible_proposals())
+    original_a, other_side, composed = place.sides["a"], place.sides["b"], place.text
+    place.answers[1] = {"a": _answer(name, change=other_side, claim={"shape": str(Shape.OUTSIDE_MY_ROLE)}, question=question)}
+    got = answers_pass(place, 1)
+    expected_a = {"hold": original_a, "clean": composed, "correct": other_side, "patch": other_side}.get(name)
+    expected_sides = {"b": other_side}
+    if expected_a is not None:
+        expected_sides["a"] = expected_a
+    assert got.sides == expected_sides
+    assert got.state is state and got.owed == owed
 
 
 def test_a_withdrawal_leaves_the_other_side_standing():

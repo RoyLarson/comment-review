@@ -1,108 +1,106 @@
-"""The answers table: twelve rows, four per question.
+"""Twelve answer rows, with separate effects for a side and a placement.
 
-The escalation and composition rows act on the answering role's own side at a
-place. The placement rows act on a move (`decision-log.md Process: #195`):
-`agree` accepts where the paragraph goes, `stet` refuses it and the move is
-contested for the chief, `withdraw` takes the move off both of its ends, and
-`query` holds both ends for the author or abstains, by its shape.
+Escalation and composition answers act on the answering role's side at a
+place. Placement answers act on its vote about a move. A deferring query
+relinquishes that position; a human query requires the author's answer before
+the production fold (`decision-log.md Process: #197`).
 """
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from enum import StrEnum, auto
-from typing import Any
+from enum import Enum, auto
+from typing import TypeVar
 
-from comment_review.desk.proof.answer import QueryAnswer, Question
+from comment_review.desk.proof.answer import Answer, QueryAnswer, Question
 from comment_review.desk.proof.mark import Shape
 
 
-class Effect(StrEnum):
-    """What an answer does to the thing it answers about, once the row reads it.
-
-    On an escalation or a composition that thing is the role's own side at the
-    place. On a placement it is the move: `ACCEPTS` and `REMOVES` read the
-    same way there, and `CONTESTS` is the placement's own -- the paragraph
-    stays where it is by this role's reading, so the move is carried forward
-    for the chief rather than agreed (`decision-log.md Process: #195`).
-    """
-
-    @staticmethod
-    def _generate_next_value_(name, start, count, last_values):
-        return name.lower()
+class SideEffect(Enum):
+    """The complete set of operations on the answering role's side."""
 
     KEEPS = auto()
     REMOVES = auto()
     REPLACES = auto()
     ACCEPTS = auto()
-    ABSTAINS = auto()
-    UNSETTLABLE = auto()
+    DEFERS = auto()
+    HUMAN_QUERY = auto()
+
+
+class PlacementEffect(Enum):
+    """The complete set of operations on a role's placement position."""
+
+    ACCEPTS = auto()
     CONTESTS = auto()
+    REMOVES = auto()
+    DEFERS = auto()
+    HUMAN_QUERY = auto()
 
 
-def _always(effect: Effect) -> Callable[[Any], Effect]:
+_Effect = TypeVar("_Effect", SideEffect, PlacementEffect)
+
+
+def _always(effect: _Effect) -> Callable[[Answer], _Effect]:
     return lambda answer: effect
 
 
-def _query_effect(answer: QueryAnswer) -> Effect:
-    """Held for the author on `human-review-necessary`; standing aside otherwise.
-
-    The answer's read refuses a shape outside the three, so a mistyped
-    `human-review-necessary` never reaches here to be read as standing aside.
-    """
+def _side_query_effect(answer: Answer) -> SideEffect:
+    """Classify a typed query as a deferral or a question for the author."""
+    if not isinstance(answer, QueryAnswer):
+        raise ValueError("a side query effect requires QueryAnswer")
     if answer.shape is Shape.HUMAN_REVIEW_NECESSARY:
-        return Effect.UNSETTLABLE
-    return Effect.ABSTAINS
+        return SideEffect.HUMAN_QUERY
+    return SideEffect.DEFERS
+
+
+def _placement_query_effect(answer: Answer) -> PlacementEffect:
+    """Classify a typed placement query without giving it a side effect."""
+    if not isinstance(answer, QueryAnswer):
+        raise ValueError("a placement query effect requires QueryAnswer")
+    if answer.shape is Shape.HUMAN_REVIEW_NECESSARY:
+        return PlacementEffect.HUMAN_QUERY
+    return PlacementEffect.DEFERS
 
 
 @dataclass(frozen=True)
-class AnswerRow:
-    """One answer to one question, as a reader of what it does sees it.
+class SideAnswerRow:
+    """An escalation or composition answer's operation on its role's side."""
 
-    What the answer owes -- its `change`, its claim keys -- is its type's, in
-    `desk.proof.answer`; the type's read refuses an answer missing one, which
-    is what `_query_effect` relies on to tell a place held for the human from
-    a role standing aside.
-
-    Attributes:
-        question: which of the three this answer answers.
-        effect: what it does to the role's own proposal, or to the move.
-    """
-
-    question: Question
-    effect: Callable[[Any], Effect]
+    effect: Callable[[Answer], SideEffect]
 
 
-ANSWERS: dict[tuple[Question, str], AnswerRow] = {
-    (Question.ESCALATION, "hold"): AnswerRow(
-        Question.ESCALATION, _always(Effect.KEEPS)
-    ),
-    (Question.ESCALATION, "withdraw"): AnswerRow(
-        Question.ESCALATION, _always(Effect.REMOVES)
-    ),
-    (Question.ESCALATION, "correct"): AnswerRow(
-        Question.ESCALATION, _always(Effect.REPLACES)
-    ),
-    (Question.ESCALATION, "patch"): AnswerRow(
-        Question.ESCALATION, _always(Effect.REPLACES)
-    ),
-    (Question.COMPOSITION, "clean"): AnswerRow(
-        Question.COMPOSITION, _always(Effect.ACCEPTS)
-    ),
-    (Question.COMPOSITION, "query"): AnswerRow(Question.COMPOSITION, _query_effect),
-    (Question.COMPOSITION, "correct"): AnswerRow(
-        Question.COMPOSITION, _always(Effect.REPLACES)
-    ),
-    (Question.COMPOSITION, "patch"): AnswerRow(
-        Question.COMPOSITION, _always(Effect.REPLACES)
-    ),
-    (Question.PLACEMENT, "agree"): AnswerRow(
-        Question.PLACEMENT, _always(Effect.ACCEPTS)
-    ),
-    (Question.PLACEMENT, "stet"): AnswerRow(
-        Question.PLACEMENT, _always(Effect.CONTESTS)
-    ),
-    (Question.PLACEMENT, "withdraw"): AnswerRow(
-        Question.PLACEMENT, _always(Effect.REMOVES)
-    ),
-    (Question.PLACEMENT, "query"): AnswerRow(Question.PLACEMENT, _query_effect),
+@dataclass(frozen=True)
+class PlacementAnswerRow:
+    """A placement answer's operation on a move, never on its end's text."""
+
+    effect: Callable[[Answer], PlacementEffect]
+
+
+ANSWERS: dict[tuple[Question, str], SideAnswerRow | PlacementAnswerRow] = {
+    (Question.ESCALATION, "hold"): SideAnswerRow(_always(SideEffect.KEEPS)),
+    (Question.ESCALATION, "withdraw"): SideAnswerRow(_always(SideEffect.REMOVES)),
+    (Question.ESCALATION, "correct"): SideAnswerRow(_always(SideEffect.REPLACES)),
+    (Question.ESCALATION, "patch"): SideAnswerRow(_always(SideEffect.REPLACES)),
+    (Question.COMPOSITION, "clean"): SideAnswerRow(_always(SideEffect.ACCEPTS)),
+    (Question.COMPOSITION, "query"): SideAnswerRow(_side_query_effect),
+    (Question.COMPOSITION, "correct"): SideAnswerRow(_always(SideEffect.REPLACES)),
+    (Question.COMPOSITION, "patch"): SideAnswerRow(_always(SideEffect.REPLACES)),
+    (Question.PLACEMENT, "agree"): PlacementAnswerRow(_always(PlacementEffect.ACCEPTS)),
+    (Question.PLACEMENT, "stet"): PlacementAnswerRow(_always(PlacementEffect.CONTESTS)),
+    (Question.PLACEMENT, "withdraw"): PlacementAnswerRow(_always(PlacementEffect.REMOVES)),
+    (Question.PLACEMENT, "query"): PlacementAnswerRow(_placement_query_effect),
 }
+
+
+def asks_human(answer: Answer) -> bool:
+    """Whether the answer's row requires a human reply before the fold."""
+    row = ANSWERS.get((answer.question, answer.name))
+    if row is None:
+        return False
+    effect = row.effect(answer)
+    if isinstance(row, SideAnswerRow):
+        if not isinstance(effect, SideEffect):
+            raise ValueError("a side row requires a side effect")
+        return effect is SideEffect.HUMAN_QUERY
+    if not isinstance(effect, PlacementEffect):
+        raise ValueError("a placement row requires a placement effect")
+    return effect is PlacementEffect.HUMAN_QUERY

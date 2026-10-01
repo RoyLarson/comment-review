@@ -19,7 +19,7 @@ from helpers import (
 
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.answer import Question
-from comment_review.desk.proof.mark import BlankMark, Shape, Touch
+from comment_review.desk.proof.mark import BlankMark, MoveMark, Shape, Touch
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.sheet import Sheet
@@ -72,7 +72,8 @@ def test_two_moves_keep_both_origins_and_one_arrival_after_proof_reload(
     }
     destination = next(place for place in reloaded.places if place.address == "m.py@b3")
     arrivals = [one for one in destination.filed if one.touch is Touch.DESTINATION]
-    assert {one.mark.address: one.mark.change for one in arrivals} == {
+    assert len(arrivals) == 2
+    assert {one.mark.address: one.mark.change for one in arrivals if isinstance(one.mark, MoveMark)} == {
         "m.py@b1": "# first",
         "m.py@b2": "# second",
     }
@@ -666,6 +667,42 @@ def test_composition_deferral_survives_disk_reload_without_repeat_dispatch(
     out, refolded = handle(AnswersReturned(reloaded, {}, tmp_path / "repo"))
     assert refolded is not None, out
     assert refolded.batch is None
+
+
+@pytest.mark.parametrize("human_question", ("composition", "placement"))
+def test_mixed_answers_route_human_queries_before_the_production_fold(tmp_path, monkeypatch, human_question):
+    root = tmp_path / "repo"
+    binder = a_real_binder_over(root, {"m.py@b1": BASE, "m.py@b2": OTHER, "m.py@b3": BASE})
+    by_role = {
+        "block-context": {
+            "m.py@b1": a_move("m.py@b1", "m.py@b2", change="# two\n", reads=OTHER + "\n# two"),
+            "m.py@b2": a_clean("m.py@b2"),
+            "m.py@b3": a_correct_setting("m.py@b3", "one", "# ONE\n# two\n# three"),
+        },
+        "function-context": {address: a_clean(address) for address in ("m.py@b1", "m.py@b2", "m.py@b3")},
+    }
+    out, collated = handle(CopiesReturned("4c", [returned(wire) for wire in copies_over(binder, by_role)], binder, root, None))
+    assert collated is not None and collated.batch is not None, out
+    slots = collated.batch["function-context"]
+    assert {slot["question"] for slot in slots} == {"composition", "placement"}
+    answers = {"function-context": [
+        _answer(slot["address"], "query" if slot["question"] == human_question else "agree" if slot["question"] == "placement" else "clean", "ask" if slot["question"] == human_question else "accept",
+            **({"to": slot["to"]} if "to" in slot else {}),
+            **({"claim": {"shape": "human-review-necessary", "attempted": "read", "settles": "author"}} if slot["question"] == human_question else {}))
+        for slot in slots
+    ]}
+    from comment_review.flows import bus
+
+    def must_not_fold(self):
+        pytest.fail("a human query reached the production fold")
+
+    monkeypatch.setattr(bus.Fold, "run", must_not_fold)
+    out, result = handle(AnswersReturned(collated.proof, answers, root))
+    assert result is None
+    asks = [one for one in out if isinstance(one, events.AsksTheHuman)]
+    expected_at = "m.py@b1 -> m.py@b2" if human_question == "placement" else "m.py@b3"
+    assert asks == [events.AsksTheHuman("function-context", expected_at, "ask", "")]
+    assert not any(isinstance(one, events.Committed) for one in out)
 
 
 def test_a_withdrawn_moves_origin_is_put_to_the_role_that_has_not_seen_it(tmp_path):

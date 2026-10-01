@@ -1,6 +1,8 @@
 """The three passes over a place, run after each move's placement is decided."""
 
-from comment_review.desk.answers.table import ANSWERS, Effect
+from typing import assert_never
+
+from comment_review.desk.answers.table import ANSWERS, SideAnswerRow, SideEffect
 from comment_review.desk.dispositions.table import DISPOSITIONS
 from comment_review.desk.evaluate.move import hold_ends, placement_pass, settle_ends
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
@@ -263,6 +265,9 @@ def answers_pass(place: Place, turn: int) -> Place:
     answered: the first rides to the author (`decision-log.md Process: #90`)
     and the second is rolling the round back.
 
+    Every admitted side effect has a case. A deferral removes the role's
+    side while keeping its answer; unrelated readers still owe acceptance.
+
     Args:
         place: the place, carrying what the marks pass left and the answers.
         turn: which turn's answers to apply.
@@ -280,15 +285,28 @@ def answers_pass(place: Place, turn: int) -> Place:
                     f"{role}: {answer.name} is not an answer to {answer.question}",
                 ),
             )
+        if not isinstance(row, SideAnswerRow) or answer.question is Question.PLACEMENT:
+            return _set(place, State.REFUSED, reasons=(f"{role}: expected a side row",))
         effect = row.effect(answer)
-        if effect is Effect.UNSETTLABLE:
-            return _set(place, State.UNSETTLABLE, asking=(f"{role}: {answer.reason}",))
-        if effect in (Effect.REMOVES, Effect.ABSTAINS):
-            sides.pop(role, None)
-        elif effect is Effect.REPLACES and isinstance(answer, Rewrite):
-            sides[role] = answer.change
-        elif effect is Effect.ACCEPTS and place.text is not None:
-            sides[role] = place.text
+        if not isinstance(effect, SideEffect):
+            return _set(place, State.REFUSED, reasons=(f"{role}: invalid side effect",))
+        match effect:
+            case SideEffect.KEEPS:
+                pass
+            case SideEffect.REMOVES | SideEffect.DEFERS:
+                sides.pop(role, None)
+            case SideEffect.REPLACES:
+                if not isinstance(answer, Rewrite):
+                    return _set(place, State.REFUSED, reasons=(f"{role}: replacement requires Rewrite",))
+                sides[role] = answer.change
+            case SideEffect.ACCEPTS:
+                if place.text is None:
+                    return _set(place, State.REFUSED, reasons=(f"{role}: acceptance requires composed text",))
+                sides[role] = place.text
+            case SideEffect.HUMAN_QUERY:
+                return _set(place, State.UNSETTLABLE, asking=(f"{role}: {answer.reason}",))
+            case _:
+                assert_never(effect)
     return _from_sides(place, sides, turn)
 
 

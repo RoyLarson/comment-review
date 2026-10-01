@@ -19,7 +19,7 @@ effect an answer has -- so no row is named here.
 import tomllib
 from typing import NamedTuple
 
-from comment_review.desk.answers.table import ANSWERS, Effect
+from comment_review.desk.answers.table import asks_human
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
 from comment_review.desk.proof.answer import Answer
 from comment_review.desk.proof.edit_copy import EditCopy
@@ -71,8 +71,7 @@ def queries_in_answers(given: dict[str, dict[str, Answer]]) -> list[HumanQuery]:
     out = []
     for role in sorted(given):
         for at, answer in sorted(given[role].items()):
-            row = ANSWERS.get((answer.question, answer.name))
-            if row is not None and row.effect(answer) is Effect.UNSETTLABLE:
+            if asks_human(answer):
                 out.append(HumanQuery(role, at, answer.reason))
     return out
 
