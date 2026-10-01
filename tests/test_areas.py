@@ -117,9 +117,23 @@ def test_a_leaf_file_crossing_is_detected(tmp_path, monkeypatch):
 @pytest.mark.parametrize("leaf", ("differences", "constants", "exceptions"))
 def test_pure_helpers_reach_no_higher_area(leaf):
     assert (SRC / f"{leaf}.py").is_file()
-    assert crossings(
-        {f"{leaf}.py": ("machine", "binder", "desk", "docket", "results", "flows", "commands", "concordance")}
-    ) == set()
+    assert (
+        crossings(
+            {
+                f"{leaf}.py": (
+                    "machine",
+                    "binder",
+                    "desk",
+                    "docket",
+                    "results",
+                    "flows",
+                    "commands",
+                    "concordance",
+                )
+            }
+        )
+        == set()
+    )
 
 
 def test_no_area_reaches_across_except_the_three_still_open(found):
