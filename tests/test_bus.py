@@ -693,6 +693,40 @@ def _stetted(tmp_path):
     return turned
 
 
+@pytest.mark.parametrize("shape", ("outside-my-role", "unable-to-determine"))
+def test_a_mover_deferral_is_not_redispatched_after_proof_reload(tmp_path, shape):
+    result = _stetted(tmp_path)
+    assert result.batch is not None
+    answers = {
+        role: [
+            _answer(slot["address"], "query" if role == "block-context" else "stet", "defer" if role == "block-context" else "keep it",
+                to=slot["to"],
+                **({"claim": {"shape": shape, "attempted": "read", "settles": "function-context"}} if role == "block-context" else {}))
+            for slot in slots
+        ]
+        for role, slots in result.batch.items()
+    }
+    out, deferred = handle(AnswersReturned(result.proof, answers, tmp_path / "repo"))
+    assert deferred is not None and deferred.batch is not None, out
+    path = tmp_path / "proof.json"
+    save_proof(path, deferred.proof)
+    reloaded, why = load_proof(path)
+    assert reloaded is not None, why
+    (move,) = reloaded.moves
+    assert move.placement is not None and move.owed == ("function-context",)
+    assert set(deferred.batch) == {"function-context"}
+    assert move.answers[2]["block-context"].serialize()["claim"]["shape"] == shape
+    for place in reloaded.places:
+        assert any(one.role == "block-context" and isinstance(one.mark, MoveMark) for one in place.filed)
+    out, next_turn = handle(AnswersReturned(reloaded, {"function-context": [
+        _answer(slot["address"], "stet", "keep it", to=slot["to"])
+        for slot in deferred.batch["function-context"]
+    ]}, tmp_path / "repo"))
+    assert next_turn is not None and next_turn.batch is not None, out
+    assert set(next_turn.batch) == {"function-context"}
+    assert next_turn.proof.moves[0].owed == ("function-context",)
+
+
 def test_an_undecided_moves_ends_are_to_come_and_ask_nothing(tmp_path):
     """A move's placement is settled before the marks around it, so neither
     end of an undecided move is asked about its words: the one question put

@@ -154,7 +154,7 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
         move.placement, move.asking = Placement.HELD, tuple(asking)
     elif stetted:
         move.placement = Placement.CONTESTED
-        move.owed = tuple(sorted(set(movers) | stetted))
+        move.owed = tuple(sorted((set(movers) | stetted) - deferring))
     else:
         owed = set(move.readers) - set(movers) - deferring - accepted
         move.owed = tuple(sorted(owed))
