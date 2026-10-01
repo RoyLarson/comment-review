@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (119)
+### open  (121)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -301,6 +301,8 @@ that changed a published name or rule:
 | [vocabulary-has-one-source](vocabulary-has-one-source.md) | systems | -- | 1/2 | Vocabulary has one source |
 | [p5-self-run-findings](p5-self-run-findings.md) | systems | -- | 1/5 | The P5 self-run findings |
 | [r3-plan-completeness](r3-plan-completeness.md) | backend | -- | 7/8 | Close verified omissions before implementing the R3 subplan |
+| [r3-editorial-ownership](r3-editorial-ownership.md) | roy | -- | 0/1 | Remove duplicated answer-table operation prose |
+| [r3-editorial-module](r3-editorial-module.md) | roy | -- | 0/1 | Document the shared answer registry |
 
 ### in-progress  (18)
 
