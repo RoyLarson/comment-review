@@ -5,7 +5,7 @@
 | [0.2.4-an-f-correction-is-raised-alone](0.2.4-an-f-correction-is-raised-alone.md) | decision-needed | 0/3 | 0/5 |
 | [0.2.4-block-is-two-senses](0.2.4-block-is-two-senses.md) | in-progress | 7/7 | 7/7 |
 | [0.2.4-plugins-is-a-release-artifact](0.2.4-plugins-is-a-release-artifact.md) | in-progress | 6/6 | 7/7 |
-| [0.2.4-r3-composition-and-answer-resolution](0.2.4-r3-composition-and-answer-resolution.md) | in-progress | 12/13 | 62/64 |
+| [0.2.4-r3-composition-and-answer-resolution](0.2.4-r3-composition-and-answer-resolution.md) | in-progress | 12/14 | 62/66 |
 | [0.2.4-rework-the-binder-hands-the-repo](0.2.4-rework-the-binder-hands-the-repo.md) | in-progress | 6/6 | 5/5 |
 | [0.2.4-the-agents-read-the-cli](0.2.4-the-agents-read-the-cli.md) | in-progress | 261/263 | 16/19 |
 | [0.2.4-the-cli-carries-a-real-run](0.2.4-the-cli-carries-a-real-run.md) | in-progress | 21/26 | 8/15 |
