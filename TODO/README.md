@@ -286,7 +286,7 @@ that changed a published name or rule:
 | [stage-4b-is-undefined](stage-4b-is-undefined.md) | agents | -- | 1/6 | the 4a/4c split promises a resolved placement that nothing produces |
 | [citations-resolve-to-no-object](citations-resolve-to-no-object.md) | systems | -- | 0/1 | Find the four commit citations that resolve to no object |
 | [row-was-never-retired](row-was-never-retired.md) | backend | yes | 0/5 | Retire row everywhere -- the type, the wire key and the prose |
-| [only-a-flow-reaches-the-machine](only-a-flow-reaches-the-machine.md) | backend | -- | 1/10 | Route every machine read and write through a flow |
+| [only-a-flow-reaches-the-machine](only-a-flow-reaches-the-machine.md) | backend | -- | 2/10 | Route every machine read and write through a flow |
 | [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 4/6 | re-review is retired for revise |
 | [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 33/41 | The agents files name the new CLI and say how to use it |

@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 1 of 10 tasks closed
+Progress: 2 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-03 (systems)
@@ -68,8 +68,9 @@ own.
 - [x] T6 | Ruled: only flows import machine; recorded as Process #207 | 2150eafe | Decide
       whether commands may reach the machine, or only flows
         > 2026-09-28 Roy: only flows; commands pass strings to flows (#207)
-- [ ] T7 | Move differences, constants and exceptions out of machine into
-      top-level leaves (Process 207); machine keeps repo and json_object
+- [x] T7 | Three pure helpers relocated with imports and boundary checks | 0fa50229d32ab835ed324e6d9b9d2949185211aa | Move
+      differences, constants and exceptions out of machine into top-level leaves
+      (Process 207); machine keeps repo and json_object
 - [ ] T8 | Route every command's machine import through a flow (Process 207);
       grep finds no commands module importing machine
 - [ ] T9 | Move concordance's machine reads, walk_files and git, into the flow
