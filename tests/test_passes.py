@@ -299,7 +299,9 @@ def test_shared_edit_plus_extra_still_requires_acceptance_of_unseen_text():
 def test_composition_deferral_removes_only_its_side_and_keeps_other_readers_owed(shape):
     place = marks_pass(_compatible_proposals())
     other_side = place.sides["b"]
-    answer = _answer("query", claim={"shape": str(shape)}, question=Question.COMPOSITION)
+    answer = _answer(
+        "query", claim={"shape": str(shape)}, question=Question.COMPOSITION
+    )
     place.answers[1] = {"a": answer}
     got = answers_pass(place, 1)
     assert got.sides == {"b": other_side}
@@ -310,7 +312,11 @@ def test_composition_deferral_removes_only_its_side_and_keeps_other_readers_owed
 def test_future_deferral_cannot_change_an_earlier_fold():
     place = _compatible_proposals()
     place.answers[2] = {
-        "a": _answer("query", claim={"shape": str(Shape.OUTSIDE_MY_ROLE)}, question=Question.COMPOSITION)
+        "a": _answer(
+            "query",
+            claim={"shape": str(Shape.OUTSIDE_MY_ROLE)},
+            question=Question.COMPOSITION,
+        )
     }
     got = decide({place.address: place}, turn=1)[place.address]
     assert set(got.sides) == {"a", "b"}

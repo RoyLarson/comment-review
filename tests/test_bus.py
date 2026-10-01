@@ -625,17 +625,34 @@ def _turn(result, root, answer_for):
 
 
 @pytest.mark.parametrize("shape", ("outside-my-role", "unable-to-determine"))
-def test_composition_deferral_survives_disk_reload_without_repeat_dispatch(tmp_path, shape):
+def test_composition_deferral_survives_disk_reload_without_repeat_dispatch(
+    tmp_path, shape
+):
     by_role = dict(COMPOSE_ROLES)
     by_role["module-context"] = {PLACE: a_clean(PLACE), "m.py@b2": a_clean("m.py@b2")}
     collated = _collated(tmp_path, by_role)
-    out, turned = handle(AnswersReturned(collated.proof, {
-        "block-context": [_answer(PLACE, "query", "defer", claim={
-            "shape": shape, "attempted": "read", "settles": "function-context"
-        })],
-        "function-context": [_answer(PLACE, "clean", "accept")],
-        "module-context": [_answer(PLACE, "clean", "accept")],
-    }, tmp_path / "repo"))
+    out, turned = handle(
+        AnswersReturned(
+            collated.proof,
+            {
+                "block-context": [
+                    _answer(
+                        PLACE,
+                        "query",
+                        "defer",
+                        claim={
+                            "shape": shape,
+                            "attempted": "read",
+                            "settles": "function-context",
+                        },
+                    )
+                ],
+                "function-context": [_answer(PLACE, "clean", "accept")],
+                "module-context": [_answer(PLACE, "clean", "accept")],
+            },
+            tmp_path / "repo",
+        )
+    )
     assert turned is not None, out
     path = tmp_path / "proof.json"
     save_proof(path, turned.proof)
