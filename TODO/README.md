@@ -299,7 +299,7 @@ that changed a published name or rule:
 | [command-help-carries-history](command-help-carries-history.md) | backend | -- | 0/1 | Command help carries development history |
 | [vocabulary-has-one-source](vocabulary-has-one-source.md) | systems | -- | 1/2 | Vocabulary has one source |
 | [p5-self-run-findings](p5-self-run-findings.md) | systems | -- | 1/5 | The P5 self-run findings |
-| [r2-prose-review](r2-prose-review.md) | backend | -- | 0/6 | Correct R2 proposed lifecycle wording after editorial review |
+| [r2-prose-review](r2-prose-review.md) | backend | -- | 2/6 | Correct R2 proposed lifecycle wording after editorial review |
 | [r2-preexisting-prose](r2-preexisting-prose.md) | backend | -- | 0/2 | Correct pre-existing move and fold-helper prose |
 | [r2-whole-move-approval](r2-whole-move-approval.md) | backend | -- | 0/1 | Approve moves as indivisible units |
 | [r2-proposal-clarity](r2-proposal-clarity.md) | backend | -- | 0/10 | Simplify remaining R2 proposal wording |
@@ -482,3 +482,4 @@ the reason is inside the file.
 | [human-questions-before-the-fold](completed/human-questions-before-the-fold.md) | 7 finished, 1 superseded |
 | [r2-legacy-state-diagnostics](completed/r2-legacy-state-diagnostics.md) | 1 finished |
 | [r2-refusal-evidence](completed/r2-refusal-evidence.md) | 1 finished |
+| [r2-approved-prose](completed/r2-approved-prose.md) | 1 finished |
