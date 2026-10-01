@@ -93,9 +93,9 @@ def test_recast_sets_the_chiefs_prose():
     assert TakenInRuling.owes == ("side",)
 
 
-def test_no_disposition_closes_an_unsettlable_place():
+def test_no_disposition_closes_a_refused_place():
     for row in DISPOSITIONS.values():
-        assert State.UNSETTLABLE not in row.closes
+        assert State.REFUSED not in row.closes
 
 
 def test_a_disposition_is_read_by_name():

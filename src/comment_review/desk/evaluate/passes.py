@@ -2,11 +2,16 @@
 
 from typing import assert_never
 
-from comment_review.desk.answers.table import ANSWERS, SideAnswerRow, SideEffect
+from comment_review.desk.answers.table import (
+    ANSWERS,
+    SideAnswerRow,
+    SideEffect,
+    asks_human,
+)
 from comment_review.desk.dispositions.table import DISPOSITIONS
 from comment_review.desk.evaluate.move import hold_ends, placement_pass, settle_ends
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
-from comment_review.desk.proof.answer import Question, Rewrite
+from comment_review.desk.proof.answer import QueryAnswer, Question, Rewrite
 from comment_review.desk.proof.disposition import CHIEF, ORIGINAL
 from comment_review.desk.proof.mark import Touch
 from comment_review.desk.proof.move import Move
@@ -232,6 +237,11 @@ def marks_pass(place: Place) -> Place:
     reasons = []
     for one in place.filed:
         row = INSTRUCTIONS[one.mark.instruction]
+        if row.pairs(one.mark) is Stance.UNSETTLABLE:
+            reasons.append(
+                f"{one.role}: human query must be replaced before folding: "
+                f"{one.mark.reason}"
+            )
         reasons += [
             f"{one.role}: {why}" for why in row.reads(one.mark, one.touch, place.base)
         ]
@@ -244,17 +254,6 @@ def marks_pass(place: Place) -> Place:
         role: text if text is not None else place.base
         for role, text in proposals.items()
     }
-    # Asked of every mark filed here, not one per role: a role may file a
-    # query beside a proposal, and the place goes to the human on the query
-    # whatever else it holds. Its side is recorded all the same, so what it
-    # proposed is not lost behind the question.
-    asking = tuple(
-        f"{one.role}: {one.mark.reason}"
-        for one in place.filed
-        if INSTRUCTIONS[one.mark.instruction].pairs(one.mark) is Stance.UNSETTLABLE
-    )
-    if asking:
-        return _set(place, State.UNSETTLABLE, sides=sides, asking=asking)
     return _from_sides(place, sides)
 
 
@@ -272,6 +271,15 @@ def answers_pass(place: Place, turn: int) -> Place:
         place: the place, carrying what the marks pass left and the answers.
         turn: which turn's answers to apply.
     """
+    human = tuple(
+        f"{role}: human query must be replaced before folding: {answer.reason}"
+        for at, answers in place.answers.items()
+        if at <= turn
+        for role, answer in answers.items()
+        if isinstance(answer, QueryAnswer) and asks_human(answer)
+    )
+    if human:
+        return _set(place, State.REFUSED, reasons=human)
     if place.state not in CARRIED:
         return place
     sides = dict(place.sides)
@@ -313,7 +321,12 @@ def answers_pass(place: Place, turn: int) -> Place:
                 sides[role] = place.text
             case SideEffect.HUMAN_QUERY:
                 return _set(
-                    place, State.UNSETTLABLE, asking=(f"{role}: {answer.reason}",)
+                    place,
+                    State.REFUSED,
+                    reasons=(
+                        f"{role}: human query must be replaced before folding: "
+                        f"{answer.reason}",
+                    ),
                 )
             case _:
                 assert_never(effect)
@@ -463,14 +476,12 @@ def _set(
     sides=None,
     reasons=(),
     question=None,
-    asking=(),
     owed=(),
 ) -> Place:
     place.state = state
     place.text = text
     place.sides = sides or {}
     place.reasons = reasons
-    place.asking = asking
     place.owed = owed
     place.question = question
     return place

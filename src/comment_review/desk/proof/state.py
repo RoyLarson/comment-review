@@ -14,7 +14,6 @@ class State(StrEnum):
     AGREED = auto()
     COMPOSED = auto()
     CONTESTED = auto()
-    UNSETTLABLE = auto()
     REFUSED = auto()
     #: An end of a move whose placement is undecided. Its text waits on the
     #: placement: it decides none, asks no role anything, and takes no ruling,

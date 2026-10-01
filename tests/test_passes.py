@@ -184,10 +184,7 @@ class TestSeveralOfOneRolesMarksAtOnePlace:
         assert got.sides["a"] == "# five\n# one\n# 2\n# three\n"
         assert got.sides["b"] == "# one\n# TWO\n# three\n"
 
-    def test_a_query_beside_a_proposal_holds_the_place_and_keeps_the_side(self):
-        """A mark that proposes no text stands beside the ones that do, and
-        behaves as it would from any role: the human's query holds the place,
-        and what the role proposed is still recorded."""
+    def test_a_human_query_beside_a_proposal_refuses_the_place(self):
         place = self._place_with("a", "a", self.ABOVE)
         place.filed.append(
             Filed(
@@ -204,9 +201,8 @@ class TestSeveralOfOneRolesMarksAtOnePlace:
             )
         )
         got = marks_pass(place)
-        assert got.state is State.UNSETTLABLE
-        assert got.sides == {"a": "# five\n# one\n# 2\n# three\n"}
-        assert got.reasons == ()
+        assert got.state is State.REFUSED and got.text is None
+        assert any("a: " in why and "human" in why for why in got.reasons)
 
     def test_two_adds_on_one_line_are_sent_back_to_be_restated_together(self):
         base = "# four\n# five\n"
@@ -479,7 +475,32 @@ def test_two_proposals_on_different_sentences_compose():
     assert got.state is State.COMPOSED and got.text == "# 1\n# two\n# 3\n"
 
 
-def test_a_human_review_query_makes_the_place_unsettlable_whatever_else_is_there():
+@pytest.mark.parametrize("state", [State.COMPOSED, State.STANDS])
+def test_a_human_side_answer_refuses_direct_evaluation(state):
+    place = _place()
+    place.state = state
+    place.text = "# proposed"
+    place.sides = {"a": "# proposed"}
+    place.answers[1] = {
+        "a": a_typed_answer(
+            address=place.address,
+            anchor=place.anchor,
+            question=Question.COMPOSITION,
+            name="query",
+            reason="Who owns this?",
+            claim={
+                "shape": "human-review-necessary",
+                "attempted": "read",
+                "settles": "author",
+            },
+        )
+    }
+    got = answers_pass(place, 1)
+    assert got.state is State.REFUSED and got.text is None
+    assert any("a: " in why and "Who owns this?" in why for why in got.reasons)
+
+
+def test_a_human_review_query_refuses_the_place_whatever_else_is_there():
     q = _mark(Instruction.QUERY, claim={"shape": str(Shape.HUMAN_REVIEW_NECESSARY)})
     c = _mark(
         Instruction.CORRECT,
@@ -487,7 +508,8 @@ def test_a_human_review_query_makes_the_place_unsettlable_whatever_else_is_there
         claim={"false": "two", "true": "2"},
     )
     got = marks_pass(_place(Filed("a", q, Touch.OWN), Filed("b", c, Touch.OWN)))
-    assert got.state is State.UNSETTLABLE
+    assert got.state is State.REFUSED and got.text is None
+    assert any("a: " in why and "human" in why for why in got.reasons)
 
 
 def test_a_mark_its_row_cannot_read_refuses_the_place_and_names_the_role():
@@ -696,7 +718,7 @@ def test_a_recast_closes_it_on_the_chiefs_prose():
     assert got.state is State.STANDS and got.text == "# mine\n"
 
 
-def test_a_disposition_on_an_unsettlable_place_is_refused():
+def test_a_disposition_cannot_override_a_human_query_refusal():
     q = _mark(Instruction.QUERY, claim={"shape": str(Shape.HUMAN_REVIEW_NECESSARY)})
     place = marks_pass(_place(Filed("a", q, Touch.OWN)))
     place.disposition = a_typed_ruling(
@@ -707,7 +729,7 @@ def test_a_disposition_on_an_unsettlable_place_is_refused():
         reason="r",
     )
     got = dispositions_pass(place)
-    assert got.state is State.REFUSED and "unsettlable" in got.reasons[0]
+    assert got.state is State.REFUSED and got.text is None
 
 
 def test_a_taken_in_naming_the_chief_is_refused_by_name():
@@ -820,7 +842,7 @@ class TestAMoveIsDecidedBeforeItsEnds:
             end.state is State.STANDS and end.text is None for end in places.values()
         )
 
-    def test_a_held_move_holds_both_ends_and_decides_no_text(self):
+    def test_a_human_placement_answer_refuses_the_move(self):
         places, moves = self._places()
         decide(places, moves)
         human = {
@@ -830,8 +852,10 @@ class TestAMoveIsDecidedBeforeItsEnds:
         }
         moves["m.py@b1 -> m.py@b5"].answers[1] = {"b": self._placement("query", human)}
         decide(places, moves, turn=1)
-        for end in places.values():
-            assert end.state is State.UNSETTLABLE and end.text is None
+        move = moves["m.py@b1 -> m.py@b5"]
+        assert move.placement is Placement.REFUSED
+        assert any("b: " in why and "human" in why for why in move.reasons)
+        assert all(end.text is None for end in places.values())
 
     def _stetted(self):
         """A move `b` stetted in turn 1: contested, both ends `to-come`."""

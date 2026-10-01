@@ -69,7 +69,7 @@ from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.move import Move, is_open
 from comment_review.desk.proof.place import Place
-from comment_review.desk.proof.state import SETTLED, State
+from comment_review.desk.proof.state import SETTLED
 from comment_review.desk.work import events
 from comment_review.desk.work.fold import Fold
 from comment_review.docket.docket import Alteration, Docket, Schedule
@@ -362,7 +362,7 @@ def _unclosed(places: list[Place]) -> list[str]:
         f"{CHIEF} {place.address}: {place.state} -- this proof is not closed,"
         " so nothing on it has settled"
         for place in places
-        if place.state not in SETTLED and place.state is not State.UNSETTLABLE
+        if place.state not in SETTLED
     ]
 
 

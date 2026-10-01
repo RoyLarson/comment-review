@@ -8,6 +8,7 @@ in one wording, since every command reads through here (T17 of
 
 import json
 
+import pytest
 from helpers import (
     REPO,
     a_binder_over,
@@ -67,6 +68,53 @@ class TestTheRoundTrip:
 
 
 class TestEveryFailureIsNamed:
+    @pytest.mark.parametrize("kind", ["place", "move"])
+    def test_a_human_held_proof_is_rejected_by_name_state_and_address(
+        self, tmp_path, kind
+    ):
+        wire = a_proof(tmp_path).serialize()
+        if kind == "place":
+            wire["places"][0]["state"] = "unsettlable"
+            old_state = "unsettlable"
+        else:
+            wire["moves"] = [
+                {"origin": "m.py@b1", "destination": "m.py@b2", "placement": "held"}
+            ]
+            old_state = "held"
+        source = tmp_path / "old-proof.json"
+        source.write_text(json.dumps(wire), encoding="utf-8")
+        got, why = load_proof(source)
+        assert got is None
+        assert any(
+            "old-proof.json" in one and "m.py@b1" in one and old_state in one
+            for one in why
+        )
+
+    @pytest.mark.parametrize("kind", ["place", "move"])
+    def test_a_retired_asking_lifecycle_is_not_silently_reinterpreted(
+        self, tmp_path, kind
+    ):
+        wire = a_proof(tmp_path).serialize()
+        if kind == "place":
+            wire["places"][0]["asking"] = ["block-context: Who owns this?"]
+        else:
+            wire["moves"] = [
+                {
+                    "origin": "m.py@b1",
+                    "destination": "m.py@b2",
+                    "placement": "agreed",
+                    "asking": ["block-context: Who owns this?"],
+                }
+            ]
+        source = tmp_path / "old-proof.json"
+        source.write_text(json.dumps(wire), encoding="utf-8")
+        got, why = load_proof(source)
+        assert got is None
+        assert any(
+            "old-proof.json" in one and "m.py@b1" in one and "asking" in one
+            for one in why
+        )
+
     def test_a_missing_file(self, tmp_path):
         got, why = load_proof(tmp_path / "nope.json")
         assert got is None

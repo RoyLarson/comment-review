@@ -63,46 +63,6 @@ class PlacementCarried(NamedTuple):
     roles: tuple[str, ...]
 
 
-class HeldMove(NamedTuple):
-    """A move held for the human, for the `Unsettlable` entry that names it.
-
-    Attributes:
-        role: who filed the move.
-        reason: the move's own reason, which is what the author is shown.
-        origin: the place the paragraph leaves.
-        destination: the place it arrives at.
-    """
-
-    role: str
-    reason: str
-    origin: str
-    destination: str
-
-
-class Unsettlable(NamedTuple):
-    """One place no turn can resolve, and who put it to the human.
-
-    A committed fold's only, as the module docstring says.
-
-    Attributes:
-        address: the place; for a held move, its origin.
-        role: who asks the human -- the role whose query holds the place, or
-            whose answer did.
-        reason: why, in that role's own words.
-        partner: a held move's destination; empty for a place held alone. A
-            held move is one entry, emitted from the move rather than from
-            either end (`decision-log.md Process: #195`), so the author rules
-            the move whole.
-        move: the held move, where the entry is one.
-    """
-
-    address: str
-    role: str
-    reason: str
-    partner: str = ""
-    move: HeldMove | None = None
-
-
 class Advised(NamedTuple):
     """What one role is told about one place without being refused for it.
 
@@ -149,7 +109,6 @@ Event = (
     | AsksTheHuman
     | CarriedForward
     | PlacementCarried
-    | Unsettlable
     | Advised
     | Settled
     | Committed

@@ -298,34 +298,32 @@ ROLLED_BACK = {
             ),
         ],
     ),
-    # Held for the author: the end refused by its own read stays refused.
-    "held-a-snippet-not-in-the-origin": (
+    "human-query-and-a-snippet-not-in-the-origin": (
         lambda: _fold(
             _places(BASE, LANDING, {"a": MISPLACED}, ("a", "b")),
             answers={"b": _placement("query", HUMAN)},
             turn=1,
         ),
-        [("a", ORIGIN, (NOT_IN_THE_ORIGIN,))],
+        [
+            ("a", ORIGIN, (NOT_IN_THE_ORIGIN,)),
+            ("b", KEY, ("human query must be replaced before folding: r",)),
+        ],
     ),
 }
 
 
-def test_a_held_move_with_nothing_refused_commits_asking_the_author_once():
-    """The held move is reported from the move, naming both ends, and its
-    ends are unsettlable with no text."""
+def test_a_human_placement_answer_rolls_back_naming_the_move():
     places = _places(BASE, LANDING, {"a": _move("# two\n", LANDED)}, ("a", "b"))
     recorded = moves_in(places)
     recorded[KEY].answers[1] = {"b": _placement("query", HUMAN)}
     fold = Fold(places, recorded, turn=1).run()
-    assert fold.committed
+    assert not fold.committed
     assert [
-        (one.address, one.role, one.reason, one.partner)
+        (one.address, one.role, one.reasons)
         for one in fold.events
-        if isinstance(one, events.Unsettlable)
-    ] == [(ORIGIN, "b", "r", DESTINATION)]
-    assert {
-        address: (place.state, place.text) for address, place in fold.decided.items()
-    } == {ORIGIN: (State.UNSETTLABLE, None), DESTINATION: (State.UNSETTLABLE, None)}
+        if isinstance(one, events.Refused)
+    ] == [(KEY, "b", ("human query must be replaced before folding: r",))]
+    assert fold.decided == {} and fold.decided_moves == {}
 
 
 @pytest.mark.parametrize("case", sorted(ROLLED_BACK))

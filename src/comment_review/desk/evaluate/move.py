@@ -15,9 +15,10 @@ from comment_review.desk.answers.table import (
     ANSWERS,
     PlacementAnswerRow,
     PlacementEffect,
+    asks_human,
 )
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
-from comment_review.desk.proof.answer import Question
+from comment_review.desk.proof.answer import QueryAnswer, Question
 from comment_review.desk.proof.disposition import CHIEF, ORIGINAL, Disposition
 from comment_review.desk.proof.mark import MoveMark, Touch
 from comment_review.desk.proof.move import FINAL, UNDECIDED, Move, Placement, key_of
@@ -88,24 +89,36 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
     Returns:
         `move`, decided.
     """
-    if move.placement in FINAL:
-        return move
     ends = [
         end for end in (places.get(move.origin), places.get(move.destination)) if end
     ]
     stances: dict[str, set[Stance]] = {}
-    asking: list[str] = []
+    reasons: list[str] = []
     for end in ends:
         for one in end.filed:
             stance = INSTRUCTIONS[one.mark.instruction].pairs(one.mark)
             stances.setdefault(one.role, set()).add(stance)
             if stance is Stance.UNSETTLABLE:
-                asking.append(f"{one.role}: {one.mark.reason}")
+                reasons.append(
+                    f"{one.role}: human query must be replaced before folding: "
+                    f"{one.mark.reason}"
+                )
+    reasons += [
+        f"{role}: human query must be replaced before folding: {answer.reason}"
+        for at, answers in move.answers.items()
+        if at <= turn
+        for role, answer in answers.items()
+        if isinstance(answer, QueryAnswer) and asks_human(answer)
+    ]
+    if reasons:
+        move.placement, move.reasons, move.owed = Placement.REFUSED, tuple(reasons), ()
+        return move
+    if move.placement in FINAL:
+        return move
     deferring = {role for role, held in stances.items() if held == {Stance.DEFERS}}
     movers = dict(move.filed)
     accepted: set[str] = set()
     stetted: set[str] = set()
-    reasons: list[str] = []
     for at in sorted(t for t in move.answers if t <= turn):
         for role, answer in move.answers[at].items():
             row = ANSWERS.get((answer.question, answer.name))
@@ -137,7 +150,10 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
                             " stet it to keep the paragraph where it is"
                         )
                 case PlacementEffect.HUMAN_QUERY:
-                    asking.append(f"{role}: {answer.reason}")
+                    reasons.append(
+                        f"{role}: human query must be replaced before folding: "
+                        f"{answer.reason}"
+                    )
                 case PlacementEffect.DEFERS:
                     accepted.discard(role)
                     stetted.discard(role)
@@ -145,13 +161,11 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
                 case _:
                     assert_never(effect)
     move.movers = movers
-    move.reasons, move.asking, move.owed = tuple(reasons), (), ()
+    move.reasons, move.owed = tuple(reasons), ()
     if reasons:
         move.placement = Placement.REFUSED
     elif not movers:
         move.placement = Placement.WITHDRAWN
-    elif asking:
-        move.placement, move.asking = Placement.HELD, tuple(asking)
     elif stetted:
         move.placement = Placement.CONTESTED
         move.owed = tuple(sorted((set(movers) | stetted) - deferring))
@@ -251,18 +265,6 @@ def hold_ends(move: Move, places: dict[str, Place]) -> None:
     ends = [
         end for end in (places.get(move.origin), places.get(move.destination)) if end
     ]
-    if move.placement is Placement.HELD:
-        for end in ends:
-            if end.state is State.REFUSED:
-                continue
-            end.state, end.text, end.question, end.owed = (
-                State.UNSETTLABLE,
-                None,
-                None,
-                (),
-            )
-            end.asking = end.asking or move.asking
-        return
     for end in ends:
         if end.state is not State.REFUSED:
             end.state, end.text, end.question, end.owed = (
