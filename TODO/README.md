@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (117)
+### open  (119)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -299,6 +299,8 @@ that changed a published name or rule:
 | [command-help-carries-history](command-help-carries-history.md) | backend | -- | 0/1 | Command help carries development history |
 | [vocabulary-has-one-source](vocabulary-has-one-source.md) | systems | -- | 1/2 | Vocabulary has one source |
 | [p5-self-run-findings](p5-self-run-findings.md) | systems | -- | 1/5 | The P5 self-run findings |
+| [r2-prose-review](r2-prose-review.md) | backend | -- | 0/6 | Correct R2 proposed lifecycle wording after editorial review |
+| [r2-preexisting-prose](r2-preexisting-prose.md) | backend | -- | 0/2 | Correct pre-existing move and fold-helper prose |
 
 ### in-progress  (18)
 
@@ -476,3 +478,5 @@ the reason is inside the file.
 | [r3-editorial-module](completed/r3-editorial-module.md) | 1 finished |
 | [r3-plan-completeness](completed/r3-plan-completeness.md) | 8 finished |
 | [human-questions-before-the-fold](completed/human-questions-before-the-fold.md) | 7 finished, 1 superseded |
+| [r2-legacy-state-diagnostics](completed/r2-legacy-state-diagnostics.md) | 1 finished |
+| [r2-refusal-evidence](completed/r2-refusal-evidence.md) | 1 finished |
