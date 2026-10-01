@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (120)
+### open  (121)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -302,6 +302,7 @@ that changed a published name or rule:
 | [r2-prose-review](r2-prose-review.md) | backend | -- | 0/6 | Correct R2 proposed lifecycle wording after editorial review |
 | [r2-preexisting-prose](r2-preexisting-prose.md) | backend | -- | 0/2 | Correct pre-existing move and fold-helper prose |
 | [r2-whole-move-approval](r2-whole-move-approval.md) | backend | -- | 0/1 | Approve moves as indivisible units |
+| [r2-proposal-clarity](r2-proposal-clarity.md) | backend | -- | 0/10 | Simplify remaining R2 proposal wording |
 
 ### in-progress  (18)
 
