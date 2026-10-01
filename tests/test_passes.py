@@ -87,6 +87,33 @@ class TestSeveralOfOneRolesMarksAtOnePlace:
             claim={"false": "two", "true": "2"},
         )
 
+    def test_equal_filings_make_one_side_without_discarding_a_filing(self):
+        first = self._a_correct()
+        second = self._a_correct()
+        place = _place(Filed("a", first, Touch.OWN), Filed("a", second, Touch.OWN))
+        assert sides_of(place) == ({"a": "# one\n# 2\n# three\n"}, ())
+        assert [one.mark for one in place.filed] == [first, second]
+
+    def test_incompatible_arrivals_request_raw_text_on_each_original_move(self):
+        first = self._a_move_landing("# five\n" + BASE)
+        second = _mark(
+            Instruction.MOVE,
+            address="m.py@b7",
+            change="# seven\n",
+            raw_text="# seven\n" + BASE,
+            claim={"from": "m.py@b7", "to": "m.py@b1"},
+        )
+        place = _place(
+            Filed("a", first, Touch.DESTINATION),
+            Filed("a", second, Touch.DESTINATION),
+        )
+        _sides, why = sides_of(place)
+        assert len(why) == 1
+        assert "as one mark" not in why[0]
+        assert "each original mark" in why[0] and "raw_text" in why[0]
+        assert "change" in why[0] and "from" in why[0] and "to" in why[0]
+        assert [one.mark for one in place.filed] == [first, second]
+
     def _a_move_landing(self, reads: str) -> Mark:
         return _mark(
             Instruction.MOVE,

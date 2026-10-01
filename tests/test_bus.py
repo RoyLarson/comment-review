@@ -41,6 +41,46 @@ OTHER = "# four\n# five\n# six"
 CORRECTED = "# one\n# TWO\n# three"
 
 
+@pytest.mark.parametrize("reverse", (False, True))
+def test_two_moves_keep_both_origins_and_one_arrival_after_proof_reload(tmp_path, reverse):
+    root = tmp_path / "repo"
+    paragraphs = {
+        "m.py@b1": "# one\n# first",
+        "m.py@b2": "# two\n# second",
+        "m.py@b3": "# destination",
+    }
+    binder = a_real_binder_over(root, paragraphs)
+    arrival = "# first\n# second\n# destination"
+    marks = {
+        "m.py@b1": a_move("m.py@b1", "m.py@b3", change="# first", reads=arrival),
+        "m.py@b2": a_move("m.py@b2", "m.py@b3", change="# second", reads=arrival),
+        "m.py@b3": a_clean("m.py@b3"),
+    }
+    if reverse:
+        marks = dict(reversed(list(marks.items())))
+    copies = [returned(wire) for wire in copies_over(binder, {"block-context": marks})]
+    out, result = handle(CopiesReturned("4c", copies, binder, root, None))
+    assert result is not None, _refusals(out)
+    reloaded, why = MasterProof.deserialize("proof", result.proof.serialize())
+    assert reloaded is not None, why
+    assert {move.key for move in reloaded.moves} == {
+        "m.py@b1 -> m.py@b3", "m.py@b2 -> m.py@b3"
+    }
+    destination = next(place for place in reloaded.places if place.address == "m.py@b3")
+    arrivals = [one for one in destination.filed if one.touch is Touch.DESTINATION]
+    assert {one.mark.address: one.mark.change for one in arrivals} == {
+        "m.py@b1": "# first", "m.py@b2": "# second"
+    }
+    for one in arrivals:
+        assert one.source is not None
+        copy, sheet, mark = one.source
+        assert one.mark is reloaded.edit_copies[copy - 1].sheets[sheet - 1].marks[mark - 1]
+    schedules = docket_of_proof(reloaded, root).docket.schedules
+    assert {one.cue: one.text for schedule in schedules for one in schedule.alterations} == {
+        "b1": "# one\n", "b2": "# two\n", "b3": arrival
+    }
+
+
 def _message(tmp_path, by_role):
     root = tmp_path / "repo"
     binder = a_real_binder_over(root, {"m.py@b1": BASE, "m.py@b2": OTHER})

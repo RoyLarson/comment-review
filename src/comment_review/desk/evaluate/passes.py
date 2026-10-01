@@ -43,9 +43,9 @@ def composed_side(
 
     `decision-log.md Process: #179`: a role's own marks compose the way two
     roles' do. One proposing mark sets the side by itself. Two or more compose
-    against the base, each keyed by the mark it came from, so marks on
-    different sentences become one text and marks on the same sentence are
-    refused back to the role rather than one of them silently standing.
+    against the base, each keyed by the mark it came from. Equal edits apply
+    once without discarding their filings; competing edits are refused back
+    to the role rather than one of them silently standing.
 
     Args:
         role: whose marks these are, for the reason.
@@ -84,7 +84,8 @@ def composed_side(
             for one in filed
         )
         ask = (
-            "restate the paragraph with both texts in it as one mark"
+            "restate the paragraph with both texts in each original mark's raw_text;"
+            " keep each move's own change, from and to"
             if whole
             else "withdraw one"
         )
