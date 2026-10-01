@@ -336,13 +336,16 @@ class TestCompose:
 
     def test_shared_edit_and_independent_edit_apply_once(self):
         base = "# one\n# two\n# three\n# four\n"
-        assert compose(
-            base,
-            {
-                "a": "# ONE\n# two\n# three\n# four\n",
-                "b": "# ONE\n# two\n# three\n# FOUR\n",
-            },
-        ) == "# ONE\n# two\n# three\n# FOUR\n"
+        assert (
+            compose(
+                base,
+                {
+                    "a": "# ONE\n# two\n# three\n# four\n",
+                    "b": "# ONE\n# two\n# three\n# FOUR\n",
+                },
+            )
+            == "# ONE\n# two\n# three\n# FOUR\n"
+        )
 
     def test_three_equal_proposers_are_input_order_independent(self):
         sides = {role: "# inserted\n" for role in ("a", "b", "c")}
