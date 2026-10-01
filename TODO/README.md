@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (119)
+### open  (118)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -300,7 +300,6 @@ that changed a published name or rule:
 | [command-help-carries-history](command-help-carries-history.md) | backend | -- | 0/1 | Command help carries development history |
 | [vocabulary-has-one-source](vocabulary-has-one-source.md) | systems | -- | 1/2 | Vocabulary has one source |
 | [p5-self-run-findings](p5-self-run-findings.md) | systems | -- | 1/5 | The P5 self-run findings |
-| [r3-plan-completeness](r3-plan-completeness.md) | backend | -- | 7/8 | Close verified omissions before implementing the R3 subplan |
 
 ### in-progress  (18)
 
@@ -476,3 +475,4 @@ the reason is inside the file.
 | [r3-placement-deferral-review](completed/r3-placement-deferral-review.md) | 1 finished |
 | [r3-editorial-ownership](completed/r3-editorial-ownership.md) | 1 finished |
 | [r3-editorial-module](completed/r3-editorial-module.md) | 1 finished |
+| [r3-plan-completeness](completed/r3-plan-completeness.md) | 8 finished |

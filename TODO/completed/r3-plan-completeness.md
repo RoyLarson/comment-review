@@ -1,8 +1,8 @@
 # Complete R3 plan coverage
 
 ```
-Status:   open
-Progress: 7 of 8 tasks closed
+Status:   closed
+Progress: 8 of 8 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-30 (2026-09-30 R3 brainstorming plan review)
@@ -28,6 +28,7 @@ Complete R3 plan coverage.
       the R3 placement-deferral vote-clearing regression
 - [x] T7 | Required work is explicitly tracked by P63 | ed8020a2 | Define the R3
       conflict-provenance regression after deduplication
-- [ ] T8 | Correct the R3 dependency description to name its active steps
+- [x] T8 | Description names active steps under Process 209 exception | fe767eaee181c736ee9fed9cad81bfb3135f8e80 | Correct
+      the R3 dependency description to name its active steps
         > 2026-09-30 Blocked: job-board 0.11.2 cannot update existing plan descriptions
         > 2026-09-30 One-time manual exception: decision-log.md Process: #209
