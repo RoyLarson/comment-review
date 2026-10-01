@@ -72,11 +72,11 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
+from comment_review import constants
 from comment_review.binder.binder import Binder
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import Instruction, Mark, filled, without_location
-from comment_review import constants
 from comment_review.machine.exceptions import READ_ERRORS
 from comment_review.machine.repo import can_escape, read_raw
 
