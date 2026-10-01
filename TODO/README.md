@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (121)
+### open  (119)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -301,8 +301,6 @@ that changed a published name or rule:
 | [vocabulary-has-one-source](vocabulary-has-one-source.md) | systems | -- | 1/2 | Vocabulary has one source |
 | [p5-self-run-findings](p5-self-run-findings.md) | systems | -- | 1/5 | The P5 self-run findings |
 | [r3-plan-completeness](r3-plan-completeness.md) | backend | -- | 7/8 | Close verified omissions before implementing the R3 subplan |
-| [r3-editorial-ownership](r3-editorial-ownership.md) | roy | -- | 0/1 | Remove duplicated answer-table operation prose |
-| [r3-editorial-module](r3-editorial-module.md) | roy | -- | 0/1 | Document the shared answer registry |
 
 ### in-progress  (18)
 
@@ -476,3 +474,5 @@ the reason is inside the file.
 | [smoke-drives-one-route](completed/smoke-drives-one-route.md) | 8 finished, 1 superseded |
 | [the-middle-rebuilt](completed/the-middle-rebuilt.md) | 7 finished |
 | [r3-placement-deferral-review](completed/r3-placement-deferral-review.md) | 1 finished |
+| [r3-editorial-ownership](completed/r3-editorial-ownership.md) | 1 finished |
+| [r3-editorial-module](completed/r3-editorial-module.md) | 1 finished |
