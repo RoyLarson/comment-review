@@ -10,7 +10,7 @@ from comment_review.desk.proof.mark import Touch
 from comment_review.desk.proof.move import Move
 from comment_review.desk.proof.place import Filed, Place
 from comment_review.desk.proof.state import CARRIED, State
-from comment_review.machine.differences import CannotCompose, compose
+from comment_review.differences import CannotCompose, compose
 
 
 def proposing(filed: list[Filed]) -> list[Filed]:

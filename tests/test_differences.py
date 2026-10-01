@@ -21,7 +21,7 @@ from pathlib import Path
 import pytest
 from helpers import a_small_real_tree, binder_of
 
-from comment_review.machine.differences import CannotCompose, compose, diff3, unified
+from comment_review.differences import CannotCompose, compose, diff3, unified
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 
