@@ -30,3 +30,4 @@ Complete R3 plan coverage.
       conflict-provenance regression after deduplication
 - [ ] T8 | Correct the R3 dependency description to name its active steps
         > 2026-09-30 Blocked: job-board 0.11.2 cannot update existing plan descriptions
+        > 2026-09-30 One-time manual exception: decision-log.md Process: #209

@@ -5277,3 +5277,8 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   The approved text retains the separate side and placement responsibilities, removes the
   deferral/human-query operation sentence, and names `ANSWERS`' import-time population,
   production readers, and temporary test replacements.
+
+- **#209.** **P64 may receive one manual description update** (Roy, 2026-09-30).
+  Roy: *"For P64 - I authorize you to manually update the description this one time"*.
+  This exception permits correcting the R3 dependency description while job-board lacks
+  that command; task closures and all other plan writes continue through job-board.
