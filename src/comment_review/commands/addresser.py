@@ -14,7 +14,7 @@ from comment_review.binder.addresses import _by_path, resolve, stable, unaddress
 from comment_review.binder.binder import Binder
 from comment_review.flows.page_for import page_of
 from comment_review.flows.proof_io import load_binder
-from comment_review.machine.constants import text_lines
+from comment_review.constants import text_lines
 from comment_review.reading.addresser import (
     DECLARED,
     SERIES,

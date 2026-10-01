@@ -88,7 +88,7 @@ from comment_review.desk.proof.place import Filed
 from comment_review.desk.stages import not_admitted
 from comment_review.flows.on_the_page import held_at
 from comment_review.flows.page_for import page_of
-from comment_review.machine import constants
+from comment_review import constants
 from comment_review.machine.exceptions import READ_ERRORS
 from comment_review.machine.repo import can_escape, read_raw
 from comment_review.reading.addresser import cue_of, unflatten

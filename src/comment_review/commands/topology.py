@@ -27,7 +27,7 @@ from pathlib import Path
 from comment_review.desk.topology import read
 from comment_review.flows.proof_io import load_binder
 from comment_review.flows.topology import Directive, compose, fit
-from comment_review.machine import constants
+from comment_review import constants
 
 
 def _directive(spec: str) -> Directive:

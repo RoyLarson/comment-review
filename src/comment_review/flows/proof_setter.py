@@ -49,7 +49,7 @@ from typing import NamedTuple
 from comment_review.binder.page import Page
 from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.flows.page_for import page_of, source_of
-from comment_review.machine import constants
+from comment_review import constants
 from comment_review.machine.repo import can_escape, undraftable
 from comment_review.reading.addresser import address_for, cue_of
 from comment_review.reading.paragraph import Paragraph
