@@ -60,8 +60,9 @@ def test_admitted_rows_are_exactly_the_independent_contract():
     assert SideEffect.ACCEPTS != PlacementEffect.ACCEPTS
 
 
-@pytest.mark.parametrize("key, expected", EXPECTED_EFFECTS.items())
-def test_every_admitted_row_classifies_its_answer_with_its_own_subject(key, expected):
+@pytest.mark.parametrize("key", sorted(ANSWERS))
+def test_every_admitted_row_classifies_its_answer_with_its_own_subject(key):
+    expected = EXPECTED_EFFECTS[key]
     question, name = key
     answer = _answer(question, name, change="# x", claim={"shape": "outside-my-role"})
     row = ANSWERS[key]

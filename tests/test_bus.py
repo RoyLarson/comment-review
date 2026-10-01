@@ -35,6 +35,7 @@ from comment_review.flows.bus import (
 )
 from comment_review.flows.human import HumanAnswer
 from comment_review.flows.proof_io import load_proof, save_proof
+from comment_review.flows.revise import pull
 from comment_review.flows.transcribe import docket_of_proof
 
 BASE = "# one\n# two\n# three"
@@ -91,6 +92,70 @@ def test_two_moves_keep_both_origins_and_one_arrival_after_proof_reload(
     assert {
         one.cue: one.text for schedule in schedules for one in schedule.alterations
     } == {"b1": "# one\n", "b2": "# two\n", "b3": arrival}
+
+
+@pytest.mark.parametrize("reverse", (False, True))
+@pytest.mark.parametrize("shape", ("outside-my-role", "unable-to-determine"))
+def test_two_moves_and_a_composition_deferral_write_the_expected_page(tmp_path, reverse, shape):
+    root = tmp_path / "repo"
+    paragraphs = {
+        "m.py@b1": "# one\n# first",
+        "m.py@b2": "# two\n# second",
+        "m.py@b3": "# destination",
+        "m.py@b4": BASE,
+    }
+    binder = a_real_binder_over(root, paragraphs)
+    original_bytes = (root / "m.py").read_bytes()
+    arrival = "# first\n# second\n# destination"
+    by_role = {
+        "block-context": {
+            "m.py@b1": a_move("m.py@b1", "m.py@b3", change="# first", reads=arrival),
+            "m.py@b2": a_move("m.py@b2", "m.py@b3", change="# second", reads=arrival),
+            "m.py@b3": a_clean("m.py@b3"),
+            "m.py@b4": a_correct_setting("m.py@b4", "one", "# ONE\n# two\n# three"),
+        },
+        "function-context": {
+            **{address: a_clean(address) for address in paragraphs},
+            "m.py@b4": a_correct_setting("m.py@b4", "three", "# one\n# two\n# THREE"),
+        },
+        "module-context": {address: a_clean(address) for address in paragraphs},
+    }
+    if reverse:
+        by_role = {role: dict(reversed(list(marks.items()))) for role, marks in reversed(list(by_role.items()))}
+    out, result = handle(CopiesReturned("4c", [returned(wire) for wire in copies_over(binder, by_role)], binder, root, None))
+    assert result is not None and result.batch is not None, out
+    assert len(result.proof.moves) == 2
+    answers = {}
+    for role, slots in result.batch.items():
+        answers[role] = []
+        for slot in slots:
+            defer = role == "block-context" and slot["address"] == "m.py@b4"
+            entry = _answer(slot["address"], "query" if defer else "agree" if slot["question"] == "placement" else "clean", "defer" if defer else "accept",
+                **({"to": slot["to"]} if "to" in slot else {}),
+                **({"claim": {"shape": shape, "attempted": "read", "settles": "function-context"}} if defer else {}))
+            answers[role].append(entry)
+    out, placed = handle(AnswersReturned(result.proof, answers, root))
+    assert placed is not None and placed.batch is not None, out
+    path = tmp_path / "proof.json"
+    save_proof(path, placed.proof)
+    reloaded, why = load_proof(path)
+    assert reloaded is not None, why
+    deferred = next(place for place in reloaded.places if place.address == "m.py@b4")
+    assert "block-context" not in deferred.sides and deferred.owed == ()
+    assert deferred.answers[1]["block-context"].serialize()["claim"]["shape"] == shape
+    assert {slot["address"] for slots in placed.batch.values() for slot in slots} == {"m.py@b1", "m.py@b2", "m.py@b3"}
+    clean_answers = {role: [_answer(slot["address"], "clean", "accept") for slot in slots] for role, slots in placed.batch.items()}
+    out, closed = handle(AnswersReturned(reloaded, clean_answers, root))
+    assert closed is not None and closed.batch is None, out
+    save_proof(path, closed.proof)
+    proof, why = load_proof(path)
+    assert proof is not None, why
+    assert {move.key for move in proof.moves} == {"m.py@b1 -> m.py@b3", "m.py@b2 -> m.py@b3"}
+    pulled = pull(docket_of_proof(proof, root).docket, root, tmp_path / "revise", 1)
+    assert pulled.refusals == []
+    expected = b"v0 = 0\n# one\nv1 = 1\n# two\nv2 = 2\n# first\n# second\n# destination\nv3 = 3\n# ONE\n# two\n# THREE\nv4 = 4\n"
+    assert (pulled.root / "m.py").read_bytes() == expected
+    assert (root / "m.py").read_bytes() == original_bytes
 
 
 def _message(tmp_path, by_role):
