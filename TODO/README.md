@@ -300,7 +300,7 @@ that changed a published name or rule:
 | [command-help-carries-history](command-help-carries-history.md) | backend | -- | 0/1 | Command help carries development history |
 | [vocabulary-has-one-source](vocabulary-has-one-source.md) | systems | -- | 1/2 | Vocabulary has one source |
 | [p5-self-run-findings](p5-self-run-findings.md) | systems | -- | 1/5 | The P5 self-run findings |
-| [r3-plan-completeness](r3-plan-completeness.md) | backend | -- | 0/8 | Close verified omissions before implementing the R3 subplan |
+| [r3-plan-completeness](r3-plan-completeness.md) | backend | -- | 7/8 | Close verified omissions before implementing the R3 subplan |
 
 ### in-progress  (18)
 
