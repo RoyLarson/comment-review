@@ -73,6 +73,7 @@ from comment_review.desk.proof.state import SETTLED, State
 from comment_review.desk.work import events
 from comment_review.desk.work.fold import Fold
 from comment_review.docket.docket import Alteration, Docket, Schedule
+from comment_review.flows.human import queries_in_copies
 from comment_review.flows.on_the_page import PageCache, held_at, no_page, page_named
 from comment_review.flows.places import bases_and_anchors, places_of
 from comment_review.reading.addresser import cue_of, flatten
@@ -278,6 +279,11 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
             fold rolled back. Nothing it reported can be set, and the reasons
             are the report.
     """
+    questions = queries_in_copies([copy])
+    if questions:
+        raise CannotTranscribe(
+            tuple(f"{one.role} {one.at}: {one.question}" for one in questions)
+        )
     known = [sheet.path for sheet in copy.sheets]
     cache: PageCache = {}
     pages, unreadable = _pages_of(

@@ -10,6 +10,7 @@ import stat
 from pathlib import Path
 
 import pytest
+from conftest import run_command
 from helpers import (
     BASE,
     BOTH_FIXED,
@@ -39,6 +40,7 @@ from helpers import (
 )
 
 from comment_review.commands import collate as collate_command
+from comment_review.commands import proof as proof_command
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import Shape
 from comment_review.desk.proof.master_proof import MasterProof
@@ -135,11 +137,7 @@ class TestDocketOf:
             ("b1", None),
         ]
 
-    def test_a_move_whose_destination_cannot_settle_writes_neither_end(self, tmp_path):
-        """A move's two ends are one decision, so the fold holds the move
-        whole when its destination cannot settle. Folded as two unrelated
-        places, the origin settled as a removal and the destination as
-        nothing, and the docket deleted the snippet without landing it."""
+    def test_a_move_with_a_human_query_at_its_destination_refuses(self, tmp_path):
         root = tmp_path / "repo"
         copy = a_copy(
             root,
@@ -155,7 +153,98 @@ class TestDocketOf:
                 "m.py@b2": a_query("m.py@b2", Shape.HUMAN_REVIEW_NECESSARY),
             },
         )
-        assert docket_of(copy, root).schedules == ()
+        with pytest.raises(CannotTranscribe) as raised:
+            docket_of(copy, root)
+        assert any("block-context m.py@b2" in why for why in raised.value.reasons)
+
+    @pytest.mark.parametrize("beside_patch", [False, True])
+    def test_human_queries_refuse_before_folding(
+        self, tmp_path, monkeypatch, beside_patch
+    ):
+        root = tmp_path / "repo"
+        questions = {"m.py@b1": "Who owns this?", "m.py@b2": "Is this required?"}
+        marks = {
+            at: {**a_query(at, Shape.HUMAN_REVIEW_NECESSARY), "reason": question}
+            for at, question in questions.items()
+        }
+        if beside_patch:
+            marks["m.py@b3"] = a_patch("m.py@b3", "three", "3", "# 3")
+        copy = a_copy(
+            root,
+            "block-context",
+            {"m.py@b1": "# one\n", "m.py@b2": "# two\n", "m.py@b3": "# three\n"},
+            marks,
+        )
+
+        def must_not_fold(*args, **kwargs):
+            pytest.fail("a human query reached Fold")
+
+        monkeypatch.setattr("comment_review.flows.transcribe.Fold", must_not_fold)
+        with pytest.raises(CannotTranscribe) as raised:
+            docket_of(copy, root)
+        assert len(raised.value.reasons) == len(questions)
+        for at, question in questions.items():
+            assert any(
+                f"block-context {at}" in why and question in why
+                for why in raised.value.reasons
+            )
+
+    @pytest.mark.parametrize(
+        "shape", [Shape.OUTSIDE_MY_ROLE, Shape.UNABLE_TO_DETERMINE]
+    )
+    def test_nonhuman_query_does_not_prevent_a_patch(self, tmp_path, shape):
+        root = tmp_path / "repo"
+        copy = a_copy(
+            root,
+            "block-context",
+            {"m.py@b1": "# one\n", "m.py@b2": "# two\n"},
+            {
+                "m.py@b1": a_query("m.py@b1", shape),
+                "m.py@b2": a_patch("m.py@b2", "two", "2", "# 2"),
+            },
+        )
+        (schedule,) = docket_of(copy, root).schedules
+        assert [(one.cue, one.text) for one in schedule.alterations] == [("b2", "# 2")]
+
+    @pytest.mark.parametrize("stop_at_docket", [False, True])
+    def test_human_query_copy_leaves_no_revise(
+        self, tmp_path, monkeypatch, capsys, stop_at_docket
+    ):
+        root = tmp_path / "repo"
+        question = "Who owns this?"
+        copy = a_copy(
+            root,
+            "block-context",
+            {"m.py@b1": "# one\n", "m.py@b2": "# two\n"},
+            {
+                "m.py@b1": {
+                    **a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY),
+                    "reason": question,
+                },
+                "m.py@b2": a_patch("m.py@b2", "two", "2", "# 2"),
+            },
+        )
+        source = tmp_path / "copy.json"
+        source.write_text(json.dumps(copy.serialize()), encoding="utf-8")
+        before = {path: path.read_bytes() for path in root.rglob("*") if path.is_file()}
+        output = tmp_path / ("docket.json" if stop_at_docket else "revise")
+        code, out = run_command(
+            monkeypatch,
+            capsys,
+            proof_command,
+            "--copy",
+            str(source),
+            "--repo",
+            str(root),
+            "--to-docket" if stop_at_docket else "--out",
+            str(output),
+        )
+        assert code != 0, out
+        assert "block-context m.py@b1" in out and question in out
+        assert not output.exists()
+        assert before == {
+            path: path.read_bytes() for path in root.rglob("*") if path.is_file()
+        }
 
     def test_a_move_onto_a_page_this_copy_holds_no_sheet_for_is_scheduled(
         self, tmp_path
