@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 26 of 52 tasks closed
+Progress: 27 of 52 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -137,7 +137,8 @@ The rebuilt middle's final review.
 - [ ] T46 | Correct events.py so AsksTheHuman is said to come before the fold,
       not from Fold.run; verify the module docstring says so
         > 2026-09-30 Evidence: docs/reviews/2026-09-30-r2-r3.md, R2-C
-- [ ] T47 | Make stage reports own events emitted before and during a fold
+- [x] T47 | Report owns admission and fold events; 205 checks passed | 77a507f9 | Make
+      stage reports own events emitted before and during a fold
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r2-r3.md, R2-C
 - [x] T48 | Composition behavior verified including acceptance, stale-side deferral and persisted proof | 3e8d57c24e0502cf0a9c2cd2b440986ac6598f79 | Make
       identical edits compose once while retaining genuine conflicts
