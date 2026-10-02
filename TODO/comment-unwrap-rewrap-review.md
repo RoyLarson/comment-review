@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 12 of 13 tasks closed
+Progress: 13 of 14 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-02 (review)
@@ -50,5 +50,8 @@ Repair comment wrapping review findings.
 - [x] T12 | Empty block forms add no prose; spanning moves and raw drops pass | 2ac2970c | Recognize
       empty overlapping delimiters in reading/lexer.py:248; test snippets
       spanning /**/ match without spurious prose
-- [ ] T13 | Limit decorative star prefixes in reading/lexer.py:368; test Python
-      docstring, Lua and Ruby bullets survive moves and drops
+- [x] T13 | Python, Lua and Ruby literal bullet move and drop regressions pass | 5b27f6c6 | Limit
+      decorative star prefixes in reading/lexer.py:368; test Python docstring,
+      Lua and Ruby bullets survive moves and drops
+- [ ] T14 | Use Python string-token boundaries in reading/lexer.py:336; test
+      docstring moves and drops preserve adjacent code with matching quotes
