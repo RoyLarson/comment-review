@@ -16,3 +16,4 @@ Hand each agent its assigned binder.
 
 - [ ] T1 | Update reviewer handoff to use its received binder; verify each check
       command names that binder
+        > 2026-10-01 Review: state that both copy and received-binder flags repeat
