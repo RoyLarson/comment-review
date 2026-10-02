@@ -6,8 +6,8 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
-class Comment:
-    """Unwrapped prose and the original paragraph's markers and layout."""
+class Fragment:
+    """Prose inside one comment form, with its original markers and layout."""
 
     raw_text: str
     text: str
@@ -19,11 +19,13 @@ class Comment:
     foot: tuple[str, ...] = ()
     ending: str = ""
     anchor_width: int = 0
+    positions: tuple[int, ...] = ()
+    suffix: str = ""
 
     def wrap(self, text: str) -> str:
-        """Wrap prose within the original width and restore its delimiters."""
+        """Rewrap prose using the original width, keeping words intact."""
         if not text.strip():
-            return ""
+            return self.suffix
         if text == self.text:
             return self.raw_text
         original = self.raw_text.splitlines()
@@ -57,8 +59,21 @@ class Comment:
         separator = "\r\n" if "\r\n" in self.raw_text else "\n"
         return separator.join(out) + self.ending
 
+
+@dataclass(frozen=True)
+class Comment:
+    """The addressed paragraph's comment fragments in their original order."""
+
+    raw_text: str
+    fragments: tuple[Fragment, ...]
+
+    @property
+    def text(self) -> str:
+        """The fragments' prose joined in paragraph order."""
+        return " ".join(part.text for part in self.fragments if part.text)
+
     def without_once(self, snippet: str) -> str | None:
-        """Remove one complete occurrence from the unwrapped prose."""
+        """Return rewrapped text after removing a unique prose match, or None."""
         if not snippet:
             return None
         matches = list(re.finditer(r"(?=" + re.escape(snippet) + r")", self.text))
@@ -80,13 +95,40 @@ class Comment:
             return None
         start = matches[0].start()
         end = start + len(snippet)
-        remaining = []
+        return self._without_range(start, end)
+
+    def without_raw(self, start: int, end: int) -> str:
+        """Remove prose covered by a validated raw-text range and rewrap it."""
+        selected = []
+        raw_offset = prose_offset = 0
+        for part in self.fragments:
+            selected.extend(
+                prose_offset + at
+                for at, position in enumerate(part.positions)
+                if start <= raw_offset + position < end
+            )
+            raw_offset += len(part.raw_text)
+            if part.text:
+                prose_offset += len(part.text) + 1
+        if not selected:
+            return self.raw_text
+        return self._without_range(selected[0], selected[-1] + 1)
+
+    def _without_range(self, start: int, end: int) -> str:
+        rendered = []
         offset = 0
-        for paragraph in self.paragraphs:
-            before = max(0, min(len(paragraph), start - offset))
-            after = max(0, min(len(paragraph), end - offset))
-            kept = re.sub(r"\s+", " ", paragraph[:before] + paragraph[after:]).strip()
-            if kept:
-                remaining.append(kept)
-            offset += len(paragraph) + 1
-        return self.wrap("\n\n".join(remaining))
+        for part in self.fragments:
+            remaining = []
+            for paragraph in part.paragraphs:
+                before = max(0, min(len(paragraph), start - offset))
+                after = max(0, min(len(paragraph), end - offset))
+                kept = re.sub(
+                    r"\s+", " ", paragraph[:before] + paragraph[after:]
+                ).strip()
+                if kept:
+                    remaining.append(kept)
+                offset += len(paragraph) + 1
+            rendered.append(part.wrap("\n\n".join(remaining)))
+        found = re.search(r"[\r\n]+$", self.raw_text)
+        ending = found.group(0) if found else ""
+        return "".join(rendered).rstrip("\r\n") + (ending if any(rendered) else "")

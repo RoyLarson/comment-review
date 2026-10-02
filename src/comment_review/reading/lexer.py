@@ -33,7 +33,7 @@ from enum import IntEnum
 from pathlib import Path
 
 from comment_review import constants, exceptions
-from comment_review.reading.comment import Comment
+from comment_review.reading.comment import Comment, Fragment
 from comment_review.reading.language import (
     BY_EXT,
     LANGUAGES,
@@ -198,18 +198,74 @@ def comment_form(
 ) -> Comment:
     """The assigned paragraph's prose and the form its raw text carries."""
     lang = language_for(path)
-    lines = raw_text.splitlines()
-    ending = (
-        "\r\n" if raw_text.endswith("\r\n") else "\n" if raw_text.endswith("\n") else ""
+    chunks: list[str] = []
+    pending: list[str] = []
+    opened = None
+    depth = 1
+    if lang is not None and lang.name != "python":
+        for line in raw_text.splitlines(keepends=True):
+            if opened is None and not pending and chunks and not line.strip():
+                chunks[-1] += line
+                continue
+            if opened is None:
+                pair = next(
+                    (
+                        pair
+                        for pair in lang.block_comment
+                        if line.lstrip().startswith(pair[0])
+                    ),
+                    None,
+                )
+                if pair is not None:
+                    if pending:
+                        chunks.append("".join(pending))
+                        pending.clear()
+                    opened = pair
+                    tail = line.lstrip()[len(pair[0]) :]
+                    depth = 1
+                else:
+                    tail = line
+            else:
+                tail = line
+            pending.append(line)
+            if opened is not None:
+                ends, depth = run_ends(tail, opened, lang.nests_comments, depth)
+                if ends >= 0:
+                    chunks.append("".join(pending))
+                    pending.clear()
+                    opened = None
+        if pending:
+            chunks.append("".join(pending))
+    else:
+        chunks = [raw_text]
+    parts = tuple(
+        _comment_fragment(path, series, chunk, anchor if n == 0 else "")
+        for n, chunk in enumerate(chunks)
     )
+    return Comment(raw_text, parts)
+
+
+def _comment_fragment(
+    path: Path, series: Series | None, raw_text: str, anchor: str
+) -> Fragment:
+    lang = language_for(path)
+    lines = raw_text.rstrip("\r\n").splitlines()
+    found_ending = re.search(r"[\r\n]+$", raw_text)
+    ending = found_ending.group(0) if found_ending else ""
     if not lines:
-        return Comment(raw_text, "", (), "", "", "", ending=ending)
+        return Fragment(raw_text, "", (), "", "", "", ending=ending)
+    starts = []
+    offset = 0
+    for line in raw_text.rstrip("\r\n").splitlines(keepends=True):
+        starts.append(offset)
+        offset += len(line)
     indent = lines[0][: len(lines[0]) - len(lines[0].lstrip())]
     body = list(lines)
     first = rest = indent
     last = ""
     head: tuple[str, ...] = ()
     foot: tuple[str, ...] = ()
+    suffix = ""
     opened = None
     if lang is not None:
         pairs = [*lang.block_comment]
@@ -245,13 +301,25 @@ def comment_form(
         op, close = opened
         first = indent + op
         body[0] = body[0][len(first) :]
+        starts[0] += len(first)
         closing = body[-1].rfind(close)
         if closing >= 0:
             last = body[-1][closing:]
             body[-1] = body[-1][:closing]
+            after = last[len(close) :]
+            if after.strip():
+                suffix = (
+                    ("\r\n" if "\r\n" in raw_text else "\n") if len(lines) > 1 else ""
+                )
+                suffix += (
+                    lines[-1][: len(lines[-1]) - len(lines[-1].lstrip())]
+                    + after
+                    + ending
+                )
         if not body[0].strip():
             head = (lines[0],)
             body.pop(0)
+            starts.pop(0)
             first = indent
         else:
             space = body[0][: len(body[0]) - len(body[0].lstrip())]
@@ -259,6 +327,7 @@ def comment_form(
         if body and not body[-1].strip() and last:
             foot = (lines[-1],)
             body.pop()
+            starts.pop()
             last = ""
         elif body and last:
             trailing = body[-1][len(body[-1].rstrip()) :]
@@ -271,10 +340,14 @@ def comment_form(
                 rest = found.group(0) or indent
             if head:
                 first = rest
-        body = [
-            re.sub(r"^\s*\* ?", "", line) if op.startswith("/*") else line
-            for line in body
-        ]
+        if op.startswith("/*"):
+            for n, line in enumerate(body):
+                if n == 0 and not head:
+                    continue
+                found = re.match(r"^\s*\* ?", line)
+                if found is not None:
+                    body[n] = line[found.end() :]
+                    starts[n] += found.end()
     elif lang is not None:
         markers = tuple(sorted(lang.line_comment, key=len, reverse=True))
         marker = next((m for m in markers if lines[0].lstrip().startswith(m)), "")
@@ -289,15 +362,31 @@ def comment_form(
                     rest = found.group(0)
                     break
             body = []
-            for line in lines:
+            for n, line in enumerate(lines):
                 stripped = line.lstrip()
                 actual = next((m for m in markers if stripped.startswith(m)), "")
                 body.append(stripped[len(actual) :] if actual else line)
+                if actual:
+                    starts[n] += len(line) - len(stripped) + len(actual)
     sections = re.split(r"\n\s*\n", "\n".join(body))
     paragraphs = tuple(
         _join(section.splitlines(), ()) for section in sections if section.strip()
     )
-    return Comment(
+    positions = []
+    whitespace = None
+    for line, at in zip(body, starts, strict=True):
+        for n, char in enumerate(line):
+            if char.isspace():
+                if positions and whitespace is None:
+                    whitespace = at + n
+            else:
+                if whitespace is not None:
+                    positions.append(whitespace)
+                    whitespace = None
+                positions.append(at + n)
+        if positions and whitespace is None:
+            whitespace = at + len(line)
+    return Fragment(
         raw_text,
         " ".join(paragraphs),
         paragraphs,
@@ -308,6 +397,8 @@ def comment_form(
         foot,
         ending,
         len(anchor) if series is Series.ON else 0,
+        tuple(positions),
+        suffix,
     )
 
 

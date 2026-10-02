@@ -52,8 +52,9 @@ from comment_review.results import compositor, galley
 def test_addressed_comment_unwraps_and_restores_its_form(address, raw, prose):
     form = comment_at(address, raw)
     assert form.text == prose
-    wrapped = form.wrap(prose)
-    assert comment_at(address, wrapped).text == prose
+    wrapped = form.without_once("Move this sentence.")
+    assert wrapped is not None
+    assert comment_at(address, wrapped).text == "Keep this sentence."
     assert max(map(len, wrapped.splitlines())) <= max(map(len, raw.splitlines()))
     assert wrapped.startswith(raw.splitlines()[0].split("Keep")[0])
     if raw.rstrip().endswith("*/"):
@@ -68,7 +69,9 @@ def test_markers_inside_prose_are_kept():
 
 
 def test_an_empty_remainder_removes_the_comment_delimiters():
-    assert comment_at("m.js@b1", "/* The sentence. */").wrap("") == ""
+    assert (
+        comment_at("m.js@b1", "/* The sentence. */").without_once("The sentence.") == ""
+    )
 
 
 @pytest.mark.parametrize(
@@ -227,6 +230,127 @@ def test_nested_block_delimiters_in_prose_remain():
     assert changed is not None
     assert "/* this nested note */" in changed
     assert changed.rstrip().endswith("*/")
+
+
+@pytest.mark.parametrize("instruction", ["move", "drop"])
+@pytest.mark.parametrize(
+    "raw, snippet, expected",
+    [
+        (
+            "/* Keep. Move. */\n// Ending stays here.",
+            "Move.",
+            "/* Keep. */\n// Ending stays here.",
+        ),
+        (
+            "// Keep. Move.\n/* Ending stays here. */",
+            "Move.",
+            "// Keep.\n/* Ending stays here. */",
+        ),
+        (
+            "/* Keep. Move. */\n/* Ending stays here. */",
+            "Move.",
+            "/* Keep. */\n/* Ending stays here. */",
+        ),
+        ("/* *ptr is kept. Move. */", "Move.", "/* *ptr is kept. */"),
+        ("/* Move. */\n// Ending stays here.", "Move.", "// Ending stays here."),
+    ],
+)
+def test_removal_keeps_each_comment_fragment(instruction, raw, snippet, expected):
+    page = build(f"x = 1;\n{raw}\ny = 2;\n", "m.js")
+    paragraph = next(p for p in page if snippet in p.raw_text)
+    if instruction == "move":
+        changed = comment_at(paragraph.address, paragraph.raw_text).without_once(
+            snippet
+        )
+    else:
+        changed, problems = derived_change(
+            Instruction.DROP,
+            {"drop": snippet},
+            paragraph.raw_text,
+            address=paragraph.address,
+        )
+        assert problems == []
+    assert changed == expected
+    assert galley.reset(page, {paragraph.address.split("@")[1]: changed}) == []
+    output = compositor.set_page(page)
+    assert output == f"x = 1;\n{expected}\ny = 2;\n"
+    reread = build(output, "m.js")
+    assert (
+        next(
+            p for p in reread if "Ending" in p.raw_text or "*ptr" in p.raw_text
+        ).address
+        == paragraph.address
+    )
+
+
+@pytest.mark.parametrize("instruction", ["move", "drop"])
+def test_empty_removal_retains_code_after_a_closer(instruction):
+    source = "let x = 1; /* Move.\n */ let y = 2;\nlet z = 3;\n"
+    page = build(source, "m.js")
+    paragraph = next(p for p in page if "Move." in p.raw_text)
+    if instruction == "move":
+        changed = comment_at(
+            paragraph.address, paragraph.raw_text, anchor=paragraph.anchor
+        ).without_once("Move.")
+    else:
+        changed, problems = derived_change(
+            Instruction.DROP,
+            {"drop": "Move."},
+            paragraph.raw_text,
+            address=paragraph.address,
+            anchor=paragraph.anchor,
+        )
+        assert problems == []
+    assert galley.reset(page, {paragraph.address.split("@")[1]: changed}) == []
+    output = compositor.set_page(page)
+    assert "let x = 1;" in output
+    assert "let y = 2;" in output
+    assert "let z = 3;" in output
+    assert "Move." not in output and "/*" not in output and "*/" not in output
+
+
+@pytest.mark.parametrize("instruction", ["move", "drop"])
+def test_removal_keeps_blank_lines_between_comment_forms(instruction):
+    raw = "/* Keep. Move. */\n\n// Ending stays here."
+    if instruction == "move":
+        changed = comment_at("m.js@b1", raw).without_once("Move.")
+    else:
+        changed, problems = derived_change(
+            Instruction.DROP, {"drop": "Move."}, raw, address="m.js@b1"
+        )
+        assert problems == []
+    assert changed == "/* Keep. */\n\n// Ending stays here."
+
+
+def test_move_matches_across_fragment_boundaries():
+    raw = "/* Keep. Move this */\n// sentence. Ending stays."
+    changed = comment_at("m.js@b1", raw).without_once("Move this sentence.")
+    assert changed == "/* Keep. */\n// Ending stays."
+
+
+def test_drop_uses_the_raw_location_when_unwrapped_prose_repeats():
+    raw = "/* Same. */\n// Same."
+    changed, problems = derived_change(
+        Instruction.DROP, {"drop": "/* Same. */"}, raw, address="m.js@b1"
+    )
+    assert problems == []
+    assert changed == "// Same."
+    assert comment_at("m.js@b1", raw).without_once("Same.") is None
+
+
+def test_wrapping_after_a_blank_keeps_the_line_comment_marker():
+    raw = "/* Kept. */\n\n// Move. Ending stays here.\n// More retained prose."
+    form = comment_at("m.js@b1", raw)
+    assert form.text == "Kept. Move. Ending stays here. More retained prose."
+    changed = form.without_once("Move.")
+    assert changed is not None
+    page = build(f"x = 1;\n{raw}\ny = 2;\n", "m.js")
+    paragraph = next(p for p in page if "Move." in p.raw_text)
+    assert galley.reset(page, {paragraph.address.split("@")[1]: changed}) == []
+    output = compositor.set_page(page)
+    reread = build(output, "m.js")
+    assert reread.cues.reading == page.cues.reading
+    assert "// Ending stays here." in output
 
 
 def test_trailing_rewrapping_counts_the_carried_code_anchor():

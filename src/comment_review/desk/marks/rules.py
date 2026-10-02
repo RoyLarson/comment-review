@@ -142,8 +142,8 @@ def derived_change(
         # the text either side of it joined on one line.
         if address:
             form = comment_at(address, base, anchor=anchor)
-            changed_form = comment_at(address, changed)
-            changed = form.wrap("\n\n".join(changed_form.paragraphs))
+            at = base.index(quoted)
+            changed = form.without_raw(at, at + len(quoted))
         else:
             changed = _within(changed, _widest(base))
     return changed, []
