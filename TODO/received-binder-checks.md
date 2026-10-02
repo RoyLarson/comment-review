@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 4 tasks closed
+Progress: 1 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-01 (Roy approved received binders and withdrawal removal)
@@ -14,8 +14,9 @@ Check received binder assignments.
 
 ## Tasks
 
-- [ ] T1 | Distribute paired binders and edit copies; verify shards and stage
-      filters define each assigned review set
+- [x] T1 | Paired binders preserve shards, filters and gathered root; 31 focused tests pass | bdef6af1 | Distribute
+      paired binders and edit copies; verify shards and stage filters define
+      each assigned review set
 - [ ] T2 | Check required rulings against received binders; verify missing and
       unruled places refuse admission
 - [ ] T3 | Remove withdrawn marks from edit copies; verify binder membership
