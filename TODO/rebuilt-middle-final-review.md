@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 28 of 52 tasks closed
+Progress: 29 of 52 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -59,8 +59,9 @@ The rebuilt middle's final review.
       hands it the binder's text (D5)
 - [ ] T16 | Move the ten rules held in flows and commands into desk, and hold
       check's pre-fold list equal to the bus's (D6)
-- [ ] T17 | Delete Row.answers or give it a reader; three docs call it a rule
-      and only a test reads it (E1)
+- [x] T17 | Unused field, constant and declaration test removed; schema aligned; full suite 2170 passed | 72e6eac3 | Delete
+      Row.answers or give it a reader; three docs call it a rule and only a test
+      reads it (E1)
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, Row.answers
 - [ ] T18 | Correct docstrings that describe the old design as live:
       master_proof_of, mark.parse, Revisit.unreadable (F1)
