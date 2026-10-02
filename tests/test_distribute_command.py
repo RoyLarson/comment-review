@@ -125,11 +125,60 @@ def test_a_stage_seeds_one_copy_per_dispatch_in_dispatch_order(
         "4c_block-context_1.json",
         "4c_block-context_2.json",
         "4c_function-context_1.json",
+        "binders",
     ]
     first = json.loads((out / "4c_block-context_1.json").read_text(encoding="utf-8"))
     assert [s["path"] for s in first["sheets"]] == ["a.py"]
     third = json.loads((out / "4c_function-context_1.json").read_text(encoding="utf-8"))
     assert [s["path"] for s in third["sheets"]] == ["a.py", "b.py"]
+
+
+def test_each_dispatched_copy_has_its_received_binder(tmp_path, monkeypatch, capsys):
+    root = _tree(tmp_path, monkeypatch, capsys)
+    out = root / "copies"
+    code, printed = _second(root, monkeypatch, capsys, out)
+    assert code == 0, printed
+    for name, paths in (
+        ("4c_block-context_1.json", ["a.py"]),
+        ("4c_block-context_2.json", ["b.py"]),
+        ("4c_function-context_1.json", ["a.py", "b.py"]),
+    ):
+        binder = json.loads((out / "binders" / name).read_text(encoding="utf-8"))
+        assert [p["path"] for p in binder["pages"]] == paths
+        assert Path(binder["read_from"]["root"]).resolve() == root / "revise"
+        assert binder["read_from"]["revise"] == 1
+        assert str(out / "binders" / name) in printed
+
+
+def test_received_binder_contains_only_stage_assigned_places(
+    tmp_path, monkeypatch, capsys
+):
+    root = _tree(tmp_path, monkeypatch, capsys)
+    for name in ("a.py", "b.py"):
+        (root / "revise" / name).write_text(
+            'x = 0\n# long\n# paragraph\nx = 1\n# short\ndef f():\n'
+            '    """Doc."""\n    pass\n',
+            encoding="utf-8",
+        )
+    _bind(root, monkeypatch, capsys, root / "revise", root / "revise-binder.json", 1)
+    (root / "t.toml").write_text(
+        FOUR_C.replace('name = "4c"', 'name = "4c"\nseries = ["b"]\ncap = 1'),
+        encoding="utf-8",
+    )
+    out = root / "copies"
+    code, printed = _second(root, monkeypatch, capsys, out)
+    assert code == 0, printed
+    for copy_path in out.glob("*.json"):
+        copy = json.loads(copy_path.read_text(encoding="utf-8"))
+        binder = json.loads(
+            (out / "binders" / copy_path.name).read_text(encoding="utf-8")
+        )
+        for page in binder["pages"]:
+            assert [row["cue"] for row in page["rows"]] == ["b1"]
+            assert page["rows"][0]["raw_text"] == "# long\n# paragraph"
+        assert [page["path"] for page in binder["pages"]] == [
+            sheet["path"] for sheet in copy["sheets"]
+        ]
 
 
 def test_a_stage_the_topology_lacks_is_refused_by_name(tmp_path, monkeypatch, capsys):

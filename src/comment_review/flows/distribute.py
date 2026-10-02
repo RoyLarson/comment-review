@@ -37,12 +37,34 @@ SOURCE-VERIFICATION in `collator`. A mark's own read, `desk.proof.mark.read_mark
 checks the half that needs no page.
 """
 
+from dataclasses import replace
+
 from comment_review.binder.addresses import handed
 from comment_review.binder.binder import Binder
+from comment_review.binder.page import RedactedPage
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import BlankMark
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.stages import Stage, deals
+
+
+def assigned_binder(binder: Binder, stage: Stage | None = None) -> Binder:
+    """The binder containing the review places assigned by this stage."""
+    return replace(
+        binder,
+        pages=tuple(
+            RedactedPage(
+                path=page.path,
+                sha=page.sha,
+                paragraphs=[
+                    b
+                    for b in handed(page.paragraphs)
+                    if stage is None or deals(stage, b)
+                ],
+            )
+            for page in binder.pages
+        ),
+    )
 
 
 def seed(binder: Binder, role: str, stage: Stage | None = None) -> dict:

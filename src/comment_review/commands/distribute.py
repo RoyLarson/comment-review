@@ -41,7 +41,7 @@ from comment_review.desk.stages import ROLES
 from comment_review.desk.topology import read as read_topology
 from comment_review.desk.topology import seeded_from_problem
 from comment_review.flows.distribute import seed
-from comment_review.flows.fan_out import OverlappingShards, UncoveredPage, fan
+from comment_review.flows.fan_out import OverlappingShards, UncoveredPage, dealt
 from comment_review.flows.proof_io import load_binder
 
 # ! Bound to a name: a tuple literal in an `except` is what a newer formatter
@@ -163,19 +163,28 @@ def main() -> int:
         # over the whole stage, so a stage that does not fit leaves no copies
         # behind for a role to be handed.
         try:
-            copies = fan(binder, stage)
+            packets = dealt(binder, stage)
         except FAN_REFUSALS as exc:
             print(f"stage {stage.name!r}: {exc}", file=sys.stderr)
             return 2
         out_dir = Path(args.out_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
+        binder_dir = out_dir / "binders"
+        binder_dir.mkdir(parents=True, exist_ok=True)
         seen: dict[str, int] = {}
-        for dispatch, copy in zip(stage.dispatches, copies, strict=True):
+        for dispatch, (received, copy) in zip(stage.dispatches, packets, strict=True):
             n = seen[dispatch.role] = seen.get(dispatch.role, 0) + 1
             where = out_dir / f"{stage.name}_{dispatch.role}_{n}.json"
             where.write_text(_as_json(copy), encoding="utf-8", newline="")
+            binder_path = binder_dir / where.name
+            binder_path.write_text(
+                _as_json(received.serialize()), encoding="utf-8", newline=""
+            )
             places = sum(len(sheet["marks"]) for sheet in copy["sheets"])
-            print(f"{where}: {places} places for {dispatch.role} to rule on")
+            print(
+                f"{where}: {places} places for {dispatch.role} to rule on; "
+                f"binder {binder_path}"
+            )
         return 0
 
     ap.print_usage()
