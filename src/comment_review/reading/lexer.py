@@ -366,7 +366,8 @@ def _comment_fragment(
         rest = indent
         if body:
             sample = body[0] if head else next(iter(body[1:]), "")
-            found = re.match(r"^(\s*\*(?:[ \t]+|$)|\s*)", sample)
+            prefix = r"^(\s*\*(?:[ \t]+|$)|\s*)" if op.startswith("/*") else r"^\s*"
+            found = re.match(prefix, sample)
             if found is not None:
                 rest = found.group(0) or indent
             if head:

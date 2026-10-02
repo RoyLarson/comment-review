@@ -442,6 +442,46 @@ def test_empty_blocks_do_not_interrupt_a_snippet(empty):
     assert form.without_once("Move this sentence.") == "// Ending."
 
 
+@pytest.mark.parametrize("instruction", ["move", "drop"])
+@pytest.mark.parametrize(
+    "name,source,expected",
+    [
+        ("m.lua", "x = 1\n--[[\n* Keep. Move.\n]]\ny = 2\n", "--[[\n* Keep.\n]]"),
+        (
+            "m.rb",
+            "x = 1\n=begin\n* Keep. Move.\n=end\ny = 2\n",
+            "=begin\n* Keep.\n=end",
+        ),
+        (
+            "m.py",
+            'def f():\n    """\n    * Keep. Move.\n    """\n    return 1\n',
+            '    """\n    * Keep.\n    """',
+        ),
+    ],
+)
+def test_literal_bullets_survive_removal(instruction, name, source, expected):
+    page = build(source, name)
+    paragraph = next(p for p in page if "Move." in p.raw_text)
+    if instruction == "move":
+        changed = comment_at(paragraph.address, paragraph.raw_text).without_once(
+            "Move."
+        )
+    else:
+        changed, problems = derived_change(
+            Instruction.DROP,
+            {"drop": "Move."},
+            paragraph.raw_text,
+            address=paragraph.address,
+        )
+        assert problems == []
+    assert changed == expected
+    assert galley.reset(page, {paragraph.address.split("@")[1]: changed}) == []
+    reread = build(compositor.set_page(page), name)
+    remainder = next(p for p in reread if "Keep." in p.raw_text)
+    assert remainder.address == paragraph.address
+    assert comment_at(remainder.address, remainder.raw_text).text == "* Keep."
+
+
 def test_removal_keeps_a_long_word_intact():
     raw = "# abcdefghijklmnopqrstuvwxyz\n# Move. End."
     assert comment_at("pkg:m.py@b1", raw).without_once("Move.") == (
