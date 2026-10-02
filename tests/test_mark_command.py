@@ -195,8 +195,9 @@ class TestARulingIsPlaced:
         code, out = run("--address", "m.py@b1", "--withdraw")
         assert code == command.OK, out
         assert "m.py@b1" in out and "withdrawn" in out
-        slot = run.copy()["sheets"][0]["marks"][0]
-        assert slot["instruction"] is None and "claim" not in slot
+        assert all(
+            mark["address"] != "m.py@b1" for mark in run.copy()["sheets"][0]["marks"]
+        )
 
     def test_withdraw_where_nothing_is_placed_is_refused(self, run):
         code, out = run("--address", "m.py@b1", "--withdraw")

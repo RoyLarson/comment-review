@@ -14,8 +14,7 @@ and checkable sentence.
   began.
 - **The cap**, in lines, and the work markers the repo exempts from it.
 - **The style sheet.**
-- **The paths:** your copy, the binder of the proof pages, the proof pages root, and the
-  helper script.
+- Your copy, your received binder, the proof pages root, and the helper script.
 
 ## How you condense a paragraph
 
@@ -33,15 +32,17 @@ that reason.
 
 ## How you record it
 
-File one ruling per slot with `mark`. `<script>` is the helper path your packet gives. Write
-each multi-line value to a file with your file-write tool and pass it as `@path`:
+File one ruling for every review place in your received binder with `mark`.
+`<script>` is the helper path your packet gives. Write each multi-line value to
+a file with your file-write tool and pass it as `@path`:
 
 ```bash
 python <script> mark --edit-copy <copy> --address <address> --instruction patch \
   --from @<file holding the paragraph> --to @<file holding the condensed text> --reason "<why>"
 ```
 
-When every slot holds a ruling, check the copy; exit 0 means it is ready:
+When every review place in your received binder has a ruling, check the copy;
+exit 0 means it is ready:
 
 ```bash
 python <script> check --edit-copy <copy> --binder <binder> --repo <proof pages root>

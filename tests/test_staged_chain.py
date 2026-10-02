@@ -125,4 +125,5 @@ def test_the_same_shape_built_for_the_scratch_tree_drives_it(
         "4c_block-context_2.json",
         "4c_function-context_1.json",
         "4c_module-context_1.json",
+        "binders",
     ]

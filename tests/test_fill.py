@@ -180,20 +180,19 @@ class TestASecondRulingComposesWithTheFirstOrIsRefused:
         assert why == [] and placed is not None
 
 
-class TestAWithdrawnMarkLeavesTheSlotAsSeeded:
+class TestAWithdrawnMarkIsRemoved:
     """`mark-defects` T24. A second ruling at an address lands beside the
     first, so a role had no way to take back a mark it placed -- and SKILL.md
     sends a refused mark back to the role that wrote it. On the 2026-09-14
     self-run one role edited its copy's JSON by hand to repair eight."""
 
-    def test_a_seeded_slot_is_handed_back_untouched(self, copy, root):
-        seeded = dict(_marks(copy)[0])
+    def test_withdraw_removes_all_rulings_at_the_address(self, copy, root):
         fill(copy, _a_correct(), root)
         fill(copy, _a_correct(claim={"false": "one", "true": "1"}), root)
         left, why = withdraw(copy, "m.py@b1")
         assert why == []
-        assert [m for m in _marks(copy) if m["address"] == "m.py@b1"] == [seeded]
-        assert left is not None and untouched(left)
+        assert [m for m in _marks(copy) if m["address"] == "m.py@b1"] == []
+        assert left == {}
 
     def test_a_ruling_placed_again_is_the_only_one(self, copy, root):
         fill(copy, _a_correct(), root)
@@ -213,14 +212,11 @@ class TestAWithdrawnMarkLeavesTheSlotAsSeeded:
         }
         placed, why = fill(copy, entry, root)
         assert why == [] and placed is not None
-        left, why = withdraw(copy, "m.py@b3", root)
+        left, why = withdraw(copy, "m.py@b3")
         assert why == [] and left == {}
         assert all(m["address"] != "m.py@b3" for m in _marks(copy))
 
-    def test_an_add_over_prose_is_handed_back_the_pages_paragraph(self, root):
-        """A row that carries its own `raw_text` wrote the paragraph as it
-        would read, so the slot's seed is read back off the page rather than
-        off the mark that replaced it."""
+    def test_an_add_over_prose_is_removed_without_reading_the_page(self, root):
         copy = seed(binder_of(root, 0), "block-context")
         slot = dict(_marks(copy)[0])
         added = "# y is 2 because the fixture says so\n"
@@ -235,15 +231,12 @@ class TestAWithdrawnMarkLeavesTheSlotAsSeeded:
         }
         placed, why = fill(copy, entry, root)
         assert why == [] and placed is not None
-        left, why = withdraw(copy, slot["address"], root)
-        assert why == [] and left is not None
-        assert left["raw_text"] == slot["raw_text"]
-        assert untouched(left)
+        (root / "m.py").unlink()
+        left, why = withdraw(copy, slot["address"])
+        assert why == [] and left == {}
+        assert all(m["address"] != slot["address"] for m in _marks(copy))
 
-    def test_a_move_is_handed_back_its_origins_own_paragraph(self, root):
-        """A move's `raw_text` is the destination's text, so the origin's slot
-        is reseeded off the page too -- handing the mark's back would leave
-        the origin holding a paragraph that belongs at the other end."""
+    def test_a_move_is_removed_without_reading_the_page(self, root):
         copy = seed(binder_of(root, 0), "block-context")
         slot = dict(_marks(copy)[0])
         entry = {
@@ -257,11 +250,10 @@ class TestAWithdrawnMarkLeavesTheSlotAsSeeded:
         }
         placed, why = fill(copy, entry, root)
         assert why == [] and placed is not None
-        left, why = withdraw(copy, slot["address"], root)
-        assert why == [] and left is not None
-        assert left["raw_text"] == slot["raw_text"] == "# one\n# two\n# three"
-        assert left["anchor"] == slot["anchor"]
-        assert untouched(left)
+        (root / "m.py").unlink()
+        left, why = withdraw(copy, slot["address"])
+        assert why == [] and left == {}
+        assert all(m["address"] != slot["address"] for m in _marks(copy))
 
     def test_nothing_placed_is_refused_and_the_copy_is_untouched(self, copy):
         before = json.dumps(copy)

@@ -193,6 +193,68 @@ def texts_at(
     return out
 
 
+def required_places(binder: Binder, stage: Stage | None = None) -> frozenset[str]:
+    """The review addresses required by this binder and stage."""
+    return frozenset(
+        b.address for b in handed(binder.paragraphs) if stage is None or deals(stage, b)
+    )
+
+
+def received_problems(
+    copies: list[EditCopy],
+    binders: tuple[Binder, ...],
+    binder: Binder,
+    stage: Stage | None = None,
+) -> list[Problem]:
+    """Check paired binders and their collective coverage of each role's assignment."""
+    if len(copies) != len(binders):
+        return [Problem("", "", "each edit copy needs one received binder")]
+    known = required_places(binder, stage)
+    paths = {page.path for page in binder.pages}
+    by_role: dict[str, set[str]] = {}
+    pages_by_role: dict[str, set[str]] = {}
+    out = []
+    for copy, received in zip(copies, binders, strict=True):
+        assigned = required_places(received)
+        received_paths = {page.path for page in received.pages}
+        if (
+            received.read_from != binder.read_from
+            or copy.read_from != received.read_from
+        ):
+            out.append(
+                Problem(
+                    copy.role,
+                    "",
+                    "received binder and copy name different gathered trees",
+                )
+            )
+        if assigned - known or received_paths - paths:
+            out.append(
+                Problem(copy.role, "", "received binder exceeds the stage assignment")
+            )
+        covered = by_role.setdefault(copy.role, set())
+        covered_pages = pages_by_role.setdefault(copy.role, set())
+        if covered & assigned or covered_pages & received_paths:
+            out.append(
+                Problem(copy.role, "", "received binders overlap within this role")
+            )
+        covered.update(assigned)
+        covered_pages.update(received_paths)
+        out.extend(coverage_problems([copy], received))
+    for role, covered in by_role.items():
+        missing = sorted(known - covered)
+        missing_pages = sorted(paths - pages_by_role[role])
+        if missing or missing_pages:
+            out.append(
+                Problem(
+                    role,
+                    "",
+                    "received binders miss " + ", ".join(missing or missing_pages),
+                )
+            )
+    return out
+
+
 def coverage_problems(
     edit_copies: list[EditCopy], binder: Binder, stage: Stage | None = None
 ) -> list[Problem]:
@@ -242,9 +304,7 @@ def coverage_problems(
     # `binder.addresses.handed` is the one definition, and the seed reads it too.
     # And narrowed by the same `deals` the seed used, so the two cannot
     # disagree about which places a stage dealt.
-    known = frozenset(
-        b.address for b in handed(binder.paragraphs) if stage is None or deals(stage, b)
-    )
+    known = required_places(binder, stage)
     if not known:
         return []
     # !! ALL THREE KINDS COUNT AS CARRIED, and that is the whole point of this

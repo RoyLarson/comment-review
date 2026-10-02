@@ -44,7 +44,7 @@ from fnmatch import fnmatch
 from comment_review.binder.binder import Binder
 from comment_review.binder.page import Page, RedactedPage
 from comment_review.desk.stages import Dispatch, Stage
-from comment_review.flows.distribute import seed
+from comment_review.flows.distribute import assigned_binder, seed
 
 
 class OverlappingShards(Exception):
@@ -104,10 +104,16 @@ def fan(binder: Binder, stage: Stage) -> list[dict]:
     `{"read_from": ..., "pages": ...}` was a THIRD spelling of the binder
     shape, and it silently dropped `version`.
     """
-    return [
-        seed(replace(binder, pages=tuple(matched)), dispatch.role, stage)
-        for dispatch, matched in partition(binder, stage)
-    ]
+    return [copy for _received, copy in dealt(binder, stage)]
+
+
+def dealt(binder: Binder, stage: Stage) -> list[tuple[Binder, dict]]:
+    """Pair each dispatch's received binder with its seeded edit copy."""
+    out = []
+    for dispatch, matched in partition(binder, stage):
+        received = assigned_binder(replace(binder, pages=tuple(matched)), stage)
+        out.append((received, seed(received, dispatch.role, stage)))
+    return out
 
 
 Shard = tuple[Dispatch, list[Page | RedactedPage]]

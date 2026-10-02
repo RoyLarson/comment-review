@@ -19,7 +19,6 @@ from helpers import (
     MISSPELLINGS,
     REPO,
     TYPOS,
-    a_binder_over,
     a_clean,
     a_correct,
     a_correct_setting,
@@ -48,7 +47,7 @@ def _run(monkeypatch, capsys, *argv):
 
 
 def _copy_file(tmp_path, marks, role="block-context"):
-    binder = a_binder_over({"m.py@b1": BASE, "m.py@b5": BASE})
+    binder = a_real_binder_over(tmp_path / "repo", {"m.py@b1": BASE, "m.py@b5": BASE})
     copy = copies_over(binder, {role: marks})[0]
     path = tmp_path / "copy.json"
     path.write_text(json.dumps(copy), encoding="utf-8")
@@ -58,19 +57,19 @@ def _copy_file(tmp_path, marks, role="block-context"):
 
 
 class TestACopy:
-    def test_a_copy_answering_every_place_exits_zero(
-        self, tmp_path, monkeypatch, capsys
-    ):
+    def test_a_copy_requires_its_received_binder(self, tmp_path, monkeypatch, capsys):
         path, _ = _copy_file(
             tmp_path, {"m.py@b1": a_correct("m.py@b1"), "m.py@b5": a_clean("m.py@b5")}
         )
-        code, out, _ = _run(monkeypatch, capsys, "--edit-copy", path)
-        assert code == 0
-        assert "0 thing(s)" in out
+        code, _, err = _run(monkeypatch, capsys, "--edit-copy", path)
+        assert code == command.UNREADABLE
+        assert "--binder" in err
 
     def test_a_place_left_alone_is_named(self, tmp_path, monkeypatch, capsys):
-        path, _ = _copy_file(tmp_path, {"m.py@b1": a_correct("m.py@b1")})
-        code, out, _ = _run(monkeypatch, capsys, "--edit-copy", path)
+        path, binder = _copy_file(tmp_path, {"m.py@b1": a_correct("m.py@b1")})
+        code, out, _ = _run(
+            monkeypatch, capsys, "--edit-copy", path, "--binder", binder
+        )
         assert code == 1
         assert "m.py@b5" in out and "not ruled on" in out
 
@@ -80,10 +79,12 @@ class TestACopy:
         broken = a_correct("m.py@b1")
         del broken["sources"]
         del broken["reason"]
-        path, _ = _copy_file(
+        path, binder = _copy_file(
             tmp_path, {"m.py@b1": broken, "m.py@b5": a_clean("m.py@b5")}
         )
-        code, out, _ = _run(monkeypatch, capsys, "--edit-copy", path)
+        code, out, _ = _run(
+            monkeypatch, capsys, "--edit-copy", path, "--binder", binder
+        )
         assert code == 1
         assert "m.py@b1" in out
         assert "reason" in out and "source" in out
@@ -176,14 +177,14 @@ class TestAHumanQuestionInACopy:
     fold names it, and `--human` says whether the answers file answers it."""
 
     def _asking(self, tmp_path):
-        path, _ = _copy_file(
+        path, binder = _copy_file(
             tmp_path,
             {
                 "m.py@b1": a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY),
                 "m.py@b5": a_clean("m.py@b5"),
             },
         )
-        return path
+        return path, binder
 
     def test_an_unanswered_query_alone_is_the_roles_part_done(
         self, tmp_path, monkeypatch, capsys
@@ -191,7 +192,10 @@ class TestAHumanQuestionInACopy:
         """The reader is the role that filed it, which cannot ask the human --
         so the line tells it to hand the copy back, and the exit is not
         `BROKEN`, which would invite it to turn the question into a clean."""
-        code, out, _ = _run(monkeypatch, capsys, "--edit-copy", self._asking(tmp_path))
+        path, binder = self._asking(tmp_path)
+        code, out, _ = _run(
+            monkeypatch, capsys, "--edit-copy", path, "--binder", binder
+        )
         assert code == command.ASKS_THE_HUMAN, out
         assert (
             "asks the human m.py@b1: block-context -- "
@@ -207,11 +211,13 @@ class TestAHumanQuestionInACopy:
     def test_an_unanswered_query_beside_another_finding_is_broken(
         self, tmp_path, monkeypatch, capsys
     ):
-        path, _ = _copy_file(
+        path, binder = _copy_file(
             tmp_path,
             {"m.py@b1": a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY)},
         )
-        code, out, _ = _run(monkeypatch, capsys, "--edit-copy", path)
+        code, out, _ = _run(
+            monkeypatch, capsys, "--edit-copy", path, "--binder", binder
+        )
         assert code == command.BROKEN, out
         assert "m.py@b5" in out and "not ruled on" in out
         assert "this is the role's part done" in out
@@ -222,7 +228,7 @@ class TestAHumanQuestionInACopy:
     def test_an_answered_query_is_named_with_its_answer(
         self, tmp_path, monkeypatch, capsys
     ):
-        path = self._asking(tmp_path)
+        path, binder = self._asking(tmp_path)
         human = tmp_path / "human.toml"
         human.write_text(
             "[[answer]]\n"
@@ -233,7 +239,14 @@ class TestAHumanQuestionInACopy:
             encoding="utf-8",
         )
         code, out, _ = _run(
-            monkeypatch, capsys, "--edit-copy", path, "--human", str(human)
+            monkeypatch,
+            capsys,
+            "--edit-copy",
+            path,
+            "--binder",
+            binder,
+            "--human",
+            str(human),
         )
         assert code == command.ASKS_THE_HUMAN, out
         assert (

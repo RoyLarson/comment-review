@@ -1,6 +1,6 @@
 """The `check` command: what the fold would refuse, named before a role returns it.
 
-    comment_review check --edit-copy copy.json [--binder B.json] [--repo R]
+    comment_review check --edit-copy copy.json --binder B.json [--repo R]
         [--human answers.toml]
     comment_review check --answers answers.json --sent batch.json --role block-context
         [--human answers.toml]
@@ -27,8 +27,9 @@ my patch*, three batches returned keyed by role instead of as a list, a
 citation whose line did not match, addresses in slash form where the seed
 was flattened. Each cost a turn. All are named here, before the send.
 
-For a COPY: the envelope (`EditCopy.deserialize`), every place the role left
-alone or wrote unreadably (`flows.mark_errors`), and, with `--binder`, source
+For a COPY: the envelope (`EditCopy.deserialize`), missing required rulings
+against the received binder, every assigned place the role left unruled or
+wrote unreadably (`flows.mark_errors`), source
 verification and whether each address and each move's destination names a
 place its page carries (`flows.verify.copy_problems`, the call the fold makes
 for every copy), and what each mark's row finds against the page's text at
@@ -81,7 +82,11 @@ from comment_review.flows.proof_io import (
     load_copy,
     load_value,
 )
-from comment_review.flows.verify import copy_problems
+from comment_review.flows.verify import (
+    copy_problems,
+    coverage_problems,
+    required_places,
+)
 
 #: Exit codes -- `distribute`'s 0/1/2, and `collate`'s `ASKS_THE_HUMAN`.
 #: `BROKEN` is anything the fold would refuse or send back; `UNREADABLE` is a
@@ -200,25 +205,27 @@ def _check_copy(
         for line in problems:
             print(line)
         return BROKEN
+    if not binder_path:
+        return _refused(["check --edit-copy needs --binder to check required rulings"])
+    binder, why = load_binder(Path(binder_path))
+    if binder is None:
+        return _refused(why)
     found = 0
-    for one in mark_errors([copy]):
+    required = [required_places(binder)]
+    for one in mark_errors([copy], required):
         for reason in one.reasons:
             print(f"{one.role} {one.where}: {reason}")
             found += 1
     # What the stage admits, asked of a copy written by hand -- the same
     # `desk.stages.not_admitted` `flows.fill` asks as a ruling is placed
-    # (`decision-log.md Process: #193`). It needs no binder, so it runs on
-    # every check rather than under `--binder`: the copy carries the rule.
+    # The copy carries the stage's instruction contract.
     for sheet in copy.sheets:
         for one in sheet.marks:
             why = not_admitted(copy.stage, copy.admits, str(one.instruction))
             if why:
                 print(f"{copy.role} {one.address}: {why}")
                 found += 1
-    if binder_path:
-        binder, why = load_binder(Path(binder_path))
-        if binder is None:
-            return _refused(why)
+    if binder is not None:
         root = Path(repo) if repo else binder.root
         cache: Cache = {}
         pages: PageCache = {}
@@ -226,9 +233,15 @@ def _check_copy(
         for problem in (
             *copy_problems(copy, paths, root, cache, pages),
             *_row_problems(copy, paths, root, pages),
+            *coverage_problems([copy], binder),
         ):
             print(
                 f"{problem.role} {problem.address or '(the copy)'}: {problem.message}"
+            )
+            found += 1
+        if copy.read_from != binder.read_from:
+            print(
+                f"{copy.role}: copy and received binder name different gathered trees"
             )
             found += 1
     asked = _asks_the_human(queries_in_copies([copy]), human)
@@ -337,8 +350,8 @@ def main() -> int:
     )
     ap.add_argument(
         "--binder",
-        help="the binder the copy was seeded from; adds source verification and"
-        " the checks each mark's row makes against the pages",
+        help="the received binder defining required rulings "
+        "(required with --edit-copy)",
     )
     ap.add_argument(
         "--repo",
