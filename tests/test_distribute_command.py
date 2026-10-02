@@ -156,7 +156,7 @@ def test_received_binder_contains_only_stage_assigned_places(
     root = _tree(tmp_path, monkeypatch, capsys)
     for name in ("a.py", "b.py"):
         (root / "revise" / name).write_text(
-            'x = 0\n# long\n# paragraph\nx = 1\n# short\ndef f():\n'
+            "x = 0\n# long\n# paragraph\nx = 1\n# short\ndef f():\n"
             '    """Doc."""\n    pass\n',
             encoding="utf-8",
         )
