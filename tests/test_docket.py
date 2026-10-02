@@ -48,8 +48,8 @@ from helpers import (
     returned_copies,
 )
 
+from comment_review.desk import report as events
 from comment_review.desk.proof.master_proof import MasterProof
-from comment_review.desk.work import events
 from comment_review.desk.work.fold import Fold
 from comment_review.docket.docket import Alteration, Docket, Schedule
 from comment_review.flows.places import places_of

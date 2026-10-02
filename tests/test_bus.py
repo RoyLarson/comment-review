@@ -17,6 +17,7 @@ from helpers import (
     returned,
 )
 
+from comment_review.desk import report as events
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.mark import BlankMark, MoveMark, Shape, Touch
@@ -25,7 +26,6 @@ from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.proof.state import State
 from comment_review.desk.stages import Dispatch, Kind, Role, Stage
-from comment_review.desk.work import events
 from comment_review.flows.bus import (
     AnswersReturned,
     CopiesReturned,
@@ -88,7 +88,7 @@ def test_two_moves_keep_both_origins_and_one_arrival_after_proof_reload(
         assert (
             one.mark is reloaded.edit_copies[copy - 1].sheets[sheet - 1].marks[mark - 1]
         )
-    schedules = docket_of_proof(reloaded, root).docket.schedules
+    schedules = docket_of_proof(reloaded, root).schedules
     assert {
         one.cue: one.text for schedule in schedules for one in schedule.alterations
     } == {"b1": "# one\n", "b2": "# two\n", "b3": arrival}
@@ -192,7 +192,7 @@ def test_two_moves_and_a_composition_deferral_write_the_expected_page(
         "m.py@b1 -> m.py@b3",
         "m.py@b2 -> m.py@b3",
     }
-    pulled = pull(docket_of_proof(proof, root).docket, root, tmp_path / "revise", 1)
+    pulled = pull(docket_of_proof(proof, root), root, tmp_path / "revise", 1)
     assert pulled.refusals == []
     expected = (
         b"v0 = 0\n# one\nv1 = 1\n# two\nv2 = 2\n"
@@ -1606,7 +1606,7 @@ class TestAnOpenMoveIsNotTranscribed:
     def test_a_contested_move_the_chief_ruled_is_transcribed(self, tmp_path):
         proof, root = self._ruled(tmp_path)
         assert [m.placement for m in proof.moves] == ["agreed"]
-        (schedule,) = docket_of_proof(proof, root).docket.schedules
+        (schedule,) = docket_of_proof(proof, root).schedules
         assert [(one.cue, one.text) for one in schedule.alterations] == [
             ("b1", "# one\n# three"),
             ("b2", ARRIVAL),
@@ -1644,8 +1644,52 @@ def _with_a_human_query(tmp_path):
 class TestAHumanQuestionIsAskedBeforeTheFold:
     """`decision-log.md Process: #197`: no human question reaches a fold."""
 
-    def test_an_unanswered_human_query_rolls_the_stage_back_naming_it(self, tmp_path):
+    @pytest.mark.parametrize("at", ["m.py@b1", "m.py@b2"])
+    def test_a_human_query_at_either_move_end_never_folds(
+        self, tmp_path, monkeypatch, at
+    ):
+        root = tmp_path / "repo"
+        binder = a_real_binder_over(root, {"m.py@b1": BASE, "m.py@b2": OTHER})
+        by_role = {
+            "block-context": {
+                "m.py@b1": a_move(
+                    "m.py@b1", "m.py@b2", change=BASE, reads=BASE + "\n" + OTHER
+                ),
+                "m.py@b2": a_clean("m.py@b2"),
+            },
+            "module-context": {
+                "m.py@b1": a_clean("m.py@b1"),
+                "m.py@b2": a_clean("m.py@b2"),
+                at: {
+                    **a_query(at, Shape.HUMAN_REVIEW_NECESSARY),
+                    "reason": "Where does this belong?",
+                },
+            },
+        }
+        copies = [returned(wire) for wire in copies_over(binder, by_role)]
+
+        def must_not_fold(*args, **kwargs):
+            pytest.fail("a human query at a move end reached Fold")
+
+        monkeypatch.setattr("comment_review.flows.bus.Fold", must_not_fold)
+        out, result = handle(CopiesReturned("4c", copies, binder, root, None))
+        assert result is None
+        assert [
+            (e.role, e.at, e.question)
+            for e in out
+            if isinstance(e, events.AsksTheHuman)
+        ] == [("module-context", at, "Where does this belong?")]
+        assert not any(isinstance(e, events.Committed) for e in out)
+
+    def test_an_unanswered_human_query_rolls_the_stage_back_naming_it(
+        self, tmp_path, monkeypatch
+    ):
         binder, root, copies = _with_a_human_query(tmp_path)
+
+        def must_not_fold(*args, **kwargs):
+            pytest.fail("a human query reached Fold")
+
+        monkeypatch.setattr("comment_review.flows.bus.Fold", must_not_fold)
         out, result = handle(CopiesReturned("4c", copies, binder, root, None))
         assert result is None
         asks = [e for e in out if isinstance(e, events.AsksTheHuman)]
@@ -1676,7 +1720,7 @@ class TestAHumanQuestionIsAskedBeforeTheFold:
         assert result is not None
 
     def test_a_human_answer_in_a_turn_rolls_the_turn_back_naming_its_move(
-        self, tmp_path
+        self, tmp_path, monkeypatch
     ):
         """Review Focus 1. A human question answered at a placement slot is
         named by the move's key, and one at a composition slot by the place's
@@ -1711,8 +1755,15 @@ class TestAHumanQuestionIsAskedBeforeTheFold:
                 role: [answer_for(s) for s in slots]
                 for role, slots in result.batch.items()
             }
-            out, turned = handle(AnswersReturned(result.proof, answers, root))
+            with monkeypatch.context() as guard:
+
+                def must_not_fold(*args, **kwargs):
+                    pytest.fail("a human answer reached Fold")
+
+                guard.setattr("comment_review.flows.bus.Fold", must_not_fold)
+                out, turned = handle(AnswersReturned(result.proof, answers, root))
             assert turned is None
+            assert not any(isinstance(e, events.Committed) for e in out)
             return [(e.role, e.at) for e in out if isinstance(e, events.AsksTheHuman)]
 
         assert asks_in(first, "placement") == [("module-context", "m.py@b1 -> m.py@b2")]
@@ -1724,7 +1775,9 @@ class TestAHumanQuestionIsAskedBeforeTheFold:
             ("module-context", "m.py@b2"),
         ]
 
-    def test_a_human_query_beside_a_refusal_reports_both(self, tmp_path):
+    def test_stage_report_keeps_pre_fold_questions_and_refusals(
+        self, tmp_path, monkeypatch
+    ):
         """Review Focus 4."""
         binder, root, copies = _with_a_human_query(tmp_path)
         broken = [
@@ -1739,9 +1792,16 @@ class TestAHumanQuestionIsAskedBeforeTheFold:
                 },
             )
         ]
+
+        def must_not_fold(*args, **kwargs):
+            pytest.fail("a human query beside a refusal reached Fold")
+
+        monkeypatch.setattr("comment_review.flows.bus.Fold", must_not_fold)
         out, result = handle(
             CopiesReturned("4c", [copies[0], *broken], binder, root, None)
         )
         assert result is None
         assert any(isinstance(e, events.Refused) for e in out)
         assert any(isinstance(e, events.AsksTheHuman) for e in out)
+        assert not any(isinstance(e, events.Committed) for e in out)
+        assert isinstance(out[-1], events.RolledBack)

@@ -1,41 +1,25 @@
-r"""The `collate` command: its argument parsing, its report and its exit code.
+"""Collate returned edit copies and report the stage's outcome.
 
-    comment_review collate --stage 4c --binder B.json --out chief.json \\
-        --edit-copy a.json --edit-copy b.json \\
-        [--proof-out proof.json] [--batch-out batch1.json] [--human answers.toml]
+The report includes `Refused`, `Settled`, `CarriedForward` and
+`PlacementCarried` events. Human questions are reported as `AsksTheHuman`
+before folding.
 
-The work is `flows.bus`: this loads what the message names, sends one
-`CopiesReturned`, prints the events the fold produced, and saves what a
-commit left behind.
-
-!! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
-A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`.
-
-!! EVERY CARRIED-FORWARD PLACE IS NAMED, NEVER COUNTED. `A-T2` of
-`TODO/no-command-for-the-middle.md`: a run that settles 4 of 10 must say what
-became of the other 6. ! `--proof-out` AND `--batch-out` WRITE WHAT CONTINUES
-THEM -- the state between turns and the first turn's batch (`Process: #87`);
-the verb that runs the turn is `TODO/no-command-for-the-middle.md` T16.
-
-The fold commits or it rolls back, so the report is the events and nothing
-else: a place the fold refused is a `Refused` and the round writes nothing,
-and a place it decided is a `Settled`, a `CarriedForward` or an `Unsettlable`.
-A human question rolls the round back too, printed as what is owed next --
-the human's answer, or the asking role's replacement for its query
-(`Process: #197`).
+After a committed fold, the command writes the chief's copy to `--out`.
+Use `--proof-out` to save the master proof and `--batch-out` to save the
+next turn's batch.
 """
 
 import argparse
 import sys
 from pathlib import Path
 
+from comment_review.desk import report as events
 from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.move import Placement
 from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.state import CARRIED, SETTLED, State
 from comment_review.desk.topology import read as read_topology
-from comment_review.desk.work import events
 from comment_review.flows.bus import CopiesReturned, handle
 from comment_review.flows.human import HumanAnswer, read_answers
 from comment_review.flows.proof_io import (
@@ -101,44 +85,6 @@ def _human_answers(path: str | None) -> tuple[tuple[HumanAnswer, ...], list[str]
     return tuple(answers), []
 
 
-def _for_the_human(event) -> list[str]:
-    """One unsettlable place as the lines 7a asks the human from.
-
-    Who asks and why, then the move the place is an end of where it is one.
-    A move held at both ends is one entry naming both, so the author approves
-    or refuses the move whole (`decision-log.md Process: #155` and `#182`);
-    held at one end, the entry says which end it is, since the paragraph
-    leaving is a different question from the paragraph arriving.
-
-    Args:
-        event: an `Unsettlable`, as the fold emits it -- one per move, not
-            one per place.
-
-    Returns:
-        The line, and the move's own line under it where there is a move.
-    """
-    where = f"{event.address} and {event.partner}" if event.partner else event.address
-    out = [f"unsettlable {where}: {event.role} asks the human -- {event.reason}"]
-    move = event.move
-    if move is None:
-        return out
-    if event.partner:
-        out.append(
-            f"  and {move.role}'s move drops the paragraph at {move.origin} and adds"
-            f" it at {move.destination}, one move -- {move.reason}"
-        )
-    elif move.origin == event.address:
-        out.append(
-            f"  and {move.role}'s move drops the paragraph there -- {move.reason}"
-        )
-    else:
-        out.append(
-            f"  and {move.role}'s move from {move.origin} adds the paragraph there"
-            f" -- {move.reason}"
-        )
-    return out
-
-
 def _lines(event: object) -> list[str]:
     """One event as the lines a reader sees, or none where it reports nothing.
 
@@ -163,8 +109,6 @@ def _lines(event: object) -> list[str]:
     if isinstance(event, events.CarriedForward):
         roles = ", ".join(event.roles)
         return [f"{event.state} {event.address}: {roles} ({event.question})"]
-    if isinstance(event, events.Unsettlable):
-        return _for_the_human(event)
     if isinstance(event, events.PlacementCarried):
         roles = ", ".join(event.roles)
         return [
@@ -188,7 +132,7 @@ def _print(out: list) -> None:
 
     A note is for the chief and changes nothing, so it sits under its own
     heading below the places rather than between them. Only a committed fold
-    emits one (`desk.work.events`), so the heading prints only over a
+    emits one (`desk.report`), so the heading prints only over a
     committed round.
     """
     for event in out:
@@ -242,7 +186,7 @@ def _counted(places: tuple[Place, ...]) -> str:
         places: `MasterProof.places`.
 
     Returns:
-        `"N places -- S settled, U unsettlable, C carried forward, T to come"`.
+        `"N places -- S settled, C carried forward, T to come"`.
 
     Settled is counted rather than subtracted, since `decision-log.md
     Process: #193`'s round. It read `len(states) - carried - unsettlable`,
@@ -252,12 +196,11 @@ def _counted(places: tuple[Place, ...]) -> str:
     """
     states = [str(place.state or "") for place in places]
     carried = sum(1 for state in states if state in CARRIED)
-    unsettlable = sum(1 for state in states if state == State.UNSETTLABLE)
     settled = sum(1 for state in states if state in SETTLED)
     to_come = sum(1 for state in states if state == State.TO_COME)
     return (
         f"{len(states)} places -- {settled} settled,"
-        f" {unsettlable} unsettlable, {carried} carried forward, {to_come} to come"
+        f" {carried} carried forward, {to_come} to come"
     )
 
 

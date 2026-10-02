@@ -11,11 +11,7 @@ becomes one alteration. A closed proof already holds every place the fold
 decided, so nothing is folded again -- the places are read back and each whose
 text differs from its base becomes one alteration.
 
-They answer differently, and the reason is the filter. `docket_of` hands back
-the `Docket`; `docket_of_proof` hands back a `Transcription`, which is that
-docket and the approved places it sets nothing at. Only a partial approval
-names places, so only that path has anything to say about a place it was
-asked for and set nothing at.
+Both paths return a `Docket` containing the corrections to apply.
 
 `only` is the author's partial approval -- `decision-log.md Process: #192`.
 The author approves some decided places and not others, and what they ruled on
@@ -60,34 +56,33 @@ was offered and declined, because it would put a middle type in
 """
 
 from pathlib import Path
-from typing import NamedTuple
 
 from comment_review.binder.page import Page
+from comment_review.desk import report as events
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.disposition import CHIEF
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
-from comment_review.desk.proof.move import Move, is_open
+from comment_review.desk.proof.move import Move, Placement, is_open
 from comment_review.desk.proof.place import Place
-from comment_review.desk.proof.state import SETTLED, State
-from comment_review.desk.work import events
+from comment_review.desk.proof.state import SETTLED
 from comment_review.desk.work.fold import Fold
 from comment_review.docket.docket import Alteration, Docket, Schedule
+from comment_review.flows.human import queries_in_copies
 from comment_review.flows.on_the_page import PageCache, held_at, no_page, page_named
 from comment_review.flows.places import bases_and_anchors, places_of
 from comment_review.reading.addresser import cue_of, flatten
 
 
 class CannotTranscribe(Exception):
-    """The fold over this copy rolled back, so it decided nothing to set.
+    """A refusal to transcribe the input.
 
     Attributes:
-        reasons: one line per refusal the fold reported, naming the role, the
-            place and what the row found there.
+        reasons: messages explaining why transcription was refused.
     """
 
     def __init__(self, reasons: tuple[str, ...]) -> None:
-        """Hold the fold's own reasons and say them in the message too."""
+        """Hold every refusal and say it in the message too."""
         super().__init__("; ".join(reasons))
         self.reasons = reasons
 
@@ -103,24 +98,6 @@ class CannotApprove(CannotTranscribe):
     honoured is the list of places it was handed (`decision-log.md Process:
     #192`).
     """
-
-
-class Transcription(NamedTuple):
-    """One closed proof transcribed: what the write end sets, and what it does not.
-
-    Attributes:
-        docket: one schedule per page a text is to be set on.
-        sets_nothing: the approved places this transcription sets nothing at,
-            in the order they were named. A place standing on the text
-            already there and a place held for the human both come here: the
-            author ruled on each, and neither leaves the write end anything
-            to do, so a run that said only how many pages it drafted would
-            say nothing at all about them. Empty where no filter was given,
-            since a blanket approval names no place.
-    """
-
-    docket: Docket
-    sets_nothing: tuple[str, ...] = ()
 
 
 def _touched_by_page(copy: EditCopy) -> dict[str, list[str]]:
@@ -274,10 +251,14 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
         nothing.
 
     Raises:
-        CannotTranscribe: a page a mark writes at cannot be read here, or the
-            fold rolled back. Nothing it reported can be set, and the reasons
-            are the report.
+        CannotTranscribe: a human-review query is present, an edited page is
+            unreadable, or a mark is refused during reading or folding.
     """
+    questions = queries_in_copies([copy])
+    if questions:
+        raise CannotTranscribe(
+            tuple(f"{one.role} {one.at}: {one.question}" for one in questions)
+        )
     known = [sheet.path for sheet in copy.sheets]
     cache: PageCache = {}
     pages, unreadable = _pages_of(
@@ -338,25 +319,15 @@ def _open_moves(moves: list[Move]) -> list[str]:
 
 
 def _unclosed(places: list[Place]) -> list[str]:
-    """One reason per place this proof has not finished deciding.
+    """Refusal reasons for unsettled places.
 
-    A carried-forward text has not settled (`decision-log.md Process: #180`)
-    and a refused place rolled its own round back, so neither is the write
-    end's to set. A docket holding the settled places beside them would draft
-    part of a stage as though the rest had been ruled on.
-
-    `UNSETTLABLE` is neither settled nor unfinished, and that is why it is
-    the one state this admits without a text: the place rides to the human
-    with its question (`Process: #90`) and carries nothing to set. What is
-    settled is `desk.proof.state.SETTLED`, which `commands/collate._counted`
-    reads as well -- this named the states it refused until #193's round, and
-    a seventh state would have had to be added in both places.
+    Each place must have a state in `SETTLED` for the proof to close.
     """
     return [
         f"{CHIEF} {place.address}: {place.state} -- this proof is not closed,"
         " so nothing on it has settled"
         for place in places
-        if place.state not in SETTLED and place.state is not State.UNSETTLABLE
+        if place.state not in SETTLED
     ]
 
 
@@ -365,17 +336,15 @@ def _sets(place: Place) -> bool:
 
     A place the fold decided no text for is nothing to set, and so is one
     whose decided text is the paragraph already there (`decision-log.md
-    Process: #174`). Both the docket below and the report of what an approval
-    leaves undone read this, so the two cannot come to different answers
-    about one place.
+    Process: #174`).
     """
     return place.text is not None and place.text != place.base
 
 
 def _approved(
     places: list[Place], only: tuple[str, ...]
-) -> tuple[list[Place], list[str], tuple[str, ...]]:
-    """The approved places alone, the reasons a name is refused, and what sets nothing.
+) -> tuple[list[Place], list[str]]:
+    """The approved places and the reasons an address is refused.
 
     `decision-log.md Process: #192`. One refusal: an address the proof does
     not carry. Nothing was decided there, so nothing was approved there, and
@@ -383,20 +352,15 @@ def _approved(
     rest would set what was named correctly and say nothing about what was
     not.
 
-    A move's two ends are approved each on its own: an agreed move reaches
-    the proof as a `drop` and an `add` (`decision-log.md Process: #195` item
-    5), and a held one sets nothing at either end.
-
     Args:
         places: every place the proof carries, parsed and closed.
         only: the addresses the author approved, in the order they were
             named. A repeat is one approval.
 
     Returns:
-        `(the approved places, the reasons, the approved places that set
-        nothing)`. The places keep the proof's own order, since that is the
-        order the schedules come out in; a non-empty second half means
-        nothing is to be set at all.
+        `(the approved places, the reasons)`. The places keep the proof's own
+        order, since that is the order the schedules come out in; a non-empty
+        second half means nothing is to be set at all.
     """
     by_address = {place.address: place for place in places}
     named = list(dict.fromkeys(only))
@@ -408,17 +372,16 @@ def _approved(
         if address not in by_address
     ]
     if problems:
-        return [], problems, ()
+        return [], problems
     return (
         [place for place in places if place.address in wanted],
         [],
-        tuple(address for address in named if not _sets(by_address[address])),
     )
 
 
 def docket_of_proof(
     proof: MasterProof, repo: Path, only: tuple[str, ...] | None = None
-) -> Transcription:
+) -> Docket:
     """One closed master proof, transcribed into the docket the write chain reads.
 
     `decision-log.md Process: #184`: the proof holds each place's decided
@@ -437,17 +400,16 @@ def docket_of_proof(
             place the proof decided.
 
     Returns:
-        A `Transcription`. Its docket holds one `Schedule` per page a text
-        was decided on, each naming that page's own path and the sha the run
-        read it at, and the chief as the role, since the fold is what decided
+        A `Docket` holding one `Schedule` per page with an approved correction,
+        each naming that page's own path and the sha the run read it at,
+        and the chief as the role, since the fold is what decided
         these places. One alteration per place whose decided text differs
         from the paragraph already there, with an emptied place written as
         the `None` the write end reads as a delete.
 
         A place the fold decided no text for gets none, and neither does one
         standing on the text already there (`Process: #174`): there is
-        nothing to set at either. Where `only` named such a place, it is on
-        `sets_nothing` instead.
+        nothing to set at either.
 
     Raises:
         CannotTranscribe: a place is still carried forward or refused, a
@@ -462,9 +424,15 @@ def docket_of_proof(
     unclosed = _unclosed(places) + _open_moves(list(proof.moves))
     if unclosed:
         raise CannotTranscribe(tuple(unclosed))
-    sets_nothing: tuple[str, ...] = ()
     if only is not None:
-        places, problems, sets_nothing = _approved(places, only)
+        places, problems = _approved(places, only)
+        approved = set(only)
+        problems.extend(
+            f"{CHIEF} {move.key}: approve both ends of this move together"
+            for move in proof.moves
+            if move.placement is Placement.AGREED
+            and len(approved.intersection((move.origin, move.destination))) == 1
+        )
         if problems:
             raise CannotApprove(tuple(problems))
 
@@ -487,6 +455,4 @@ def docket_of_proof(
     pages, unreadable = _pages_of(repo, known, touched, CHIEF, "places", {})
     if unreadable:
         raise CannotTranscribe(tuple(unreadable))
-    return Transcription(
-        Docket(schedules=_schedules_of(pages, decided, shas, CHIEF)), sets_nothing
-    )
+    return Docket(schedules=_schedules_of(pages, decided, shas, CHIEF))

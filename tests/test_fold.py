@@ -4,13 +4,13 @@ from dataclasses import replace
 
 from helpers import a_typed_answer, a_typed_mark, a_typed_ruling
 
+from comment_review.desk import report as events
 from comment_review.desk.evaluate.move import moves_in
 from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.mark import Instruction, Shape, Touch
 from comment_review.desk.proof.move import Placement
 from comment_review.desk.proof.place import Filed, Place
 from comment_review.desk.proof.state import State
-from comment_review.desk.work import events
 from comment_review.desk.work.fold import Fold
 
 BASE = "# one\n# two\n# three\n"
@@ -84,7 +84,7 @@ def test_one_refused_place_rolls_the_fold_back():
 
 def test_a_rollback_reports_its_refusals_and_nothing_else():
     """A rollback commits nothing, so beside a refused place nothing settles,
-    nobody is asked about a carried or a held place, and a note has no chief's
+    nobody is asked about a carried place, and a note has no chief's
     copy to go with. Each of those would be reported on a commit.
 
     The rollback counts reasons, as the bus and the collate command count
@@ -93,7 +93,7 @@ def test_a_rollback_reports_its_refusals_and_nothing_else():
     assert [type(e).__name__ for e in committed.events] == [
         "Settled",
         "CarriedForward",
-        "Unsettlable",
+        "Settled",
         "Settled",
         "Advised",
         "Committed",
@@ -160,7 +160,7 @@ def _a_place_of_each_kind() -> dict:
                 "a",
                 _mark(
                     Instruction.QUERY,
-                    claim={"shape": str(Shape.HUMAN_REVIEW_NECESSARY)},
+                    claim={"shape": str(Shape.UNABLE_TO_DETERMINE)},
                     address="m.py@b3",
                 ),
                 Touch.OWN,
@@ -182,7 +182,7 @@ def _a_place_of_each_kind() -> dict:
     }
 
 
-def test_a_carried_and_an_unsettlable_place_are_reported_and_the_fold_commits():
+def test_a_human_query_rolls_back_beside_a_carried_place():
     a = _mark(
         Instruction.CORRECT, "# one\n# 2\n# three\n", {"false": "two", "true": "2"}
     )
@@ -203,11 +203,35 @@ def test_a_carried_and_an_unsettlable_place_are_reported_and_the_fold_commits():
         }
     )
     fold.run()
-    assert fold.committed
+    assert not fold.committed and fold.decided == {} and fold.decided_moves == {}
     kinds = [type(e).__name__ for e in fold.events]
-    assert kinds == ["CarriedForward", "Unsettlable", "Committed"]
-    carried = fold.events[0]
-    assert carried.state is State.CONTESTED and carried.roles == ("a", "b")
+    assert kinds == ["Refused", "RolledBack"]
+    assert (fold.events[0].role, fold.events[0].address) == ("a", "m.py@b5")
+
+
+def test_a_human_query_and_ruling_keep_every_original_refusal_in_the_report():
+    question = _mark(
+        Instruction.QUERY,
+        claim={"shape": str(Shape.HUMAN_REVIEW_NECESSARY)},
+    )
+    query = replace(question, reason="Who owns this?")
+    bad_move = _mark(Instruction.MOVE, "# six\n", {"to": "m.py@b5"})
+    place = _place(
+        "m.py@b1", Filed("a", query, Touch.OWN), Filed("b", bad_move, Touch.ORIGIN)
+    )
+    place.disposition = a_typed_ruling(
+        address=place.address,
+        name="recast",
+        side="copy-chief",
+        prose="# mine",
+        reason="r",
+    )
+    fold = Fold({place.address: place}).run()
+    assert not fold.committed and fold.decided == {}
+    refused = {e.role: e.reasons for e in fold.events if isinstance(e, events.Refused)}
+    assert "Who owns this?" in str(refused["a"])
+    assert "snippet is not in the origin" in str(refused["b"])
+    assert "cannot close a place that is refused" in str(refused["copy-chief"])
 
 
 def test_an_advised_place_is_reported_and_the_fold_commits():
@@ -329,7 +353,7 @@ def test_an_open_move_is_reported_once_with_whom_it_is_put_to():
     assert fold.decided_moves["m.py@b1 -> m.py@b5"].placement is Placement.OPEN
 
 
-def test_a_held_move_is_one_unsettlable_naming_both_ends():
+def test_a_human_query_at_a_move_end_rolls_back_the_fold():
     places, moves = _a_move_between(("a", "b"))
     human = {
         "shape": str(Shape.HUMAN_REVIEW_NECESSARY),
@@ -348,12 +372,12 @@ def test_a_held_move_is_one_unsettlable_naming_both_ends():
     )
     places["m.py@b5"].filed.append(Filed("b", query, Touch.OWN))
     fold = Fold(places, moves).run()
-    held = [e for e in fold.events if isinstance(e, events.Unsettlable)]
-    assert len(held) == 1
-    assert (held[0].address, held[0].partner) == ("m.py@b1", "m.py@b5")
-    assert held[0].move == events.HeldMove(
-        "a", "it belongs with five", "m.py@b1", "m.py@b5"
+    assert not fold.committed and fold.decided == {} and fold.decided_moves == {}
+    assert any(
+        isinstance(e, events.Refused) and e.role == "b" and "ask" in str(e.reasons)
+        for e in fold.events
     )
+    assert isinstance(fold.events[-1], events.RolledBack)
 
 
 def test_a_contested_move_the_chief_ruled_asks_no_placement():

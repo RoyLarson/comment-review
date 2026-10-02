@@ -26,17 +26,10 @@ class MasterProof:
             `Place.deserialize` where the proof is read, so a reader of the
             proof holds places, not their wire.
         moves: every move one fold of this stage decided, as the proof records
-            it (`Move.recorded`). Read like `places`, and absent from a proof
-            written before `decision-log.md Process: #195`.
+            it (`Move.recorded`).
 
-    !! THREE FIELDS WENT WITH THE OLD MIDDLE -- `turns`, `determined` and
-    `unsettlable`, and with them the `turn` property that counted `turns`. Each
-    place now carries its own answers, its own state and who it is asked of, as
-    each move carries its placement answers. So the proof's places and moves
-    say what turn it stands at (`flows.bus.turn_of`), and its places say what
-    was ruled and what rides to the human. A proof on disk carrying the three
-    old keys is neither refused nor read: `deserialize` names the keys it
-    wants, so those are dropped and the proof reads back without them.
+    Each place carries its answers, state and owed readers. Each move carries
+    its placement answers. These records determine the proof's turn and rulings.
     """
 
     stage: str

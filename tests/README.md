@@ -136,7 +136,7 @@ carry its own date for.
 | the chief's close refuses an unruled place | `flows/bus.py` | `test_disposition_command.py::TestRefusals::test_an_unruled_place_is_BROKEN_naming_it_and_its_roles` |
 | agreement needs byte-identical text | `desk/evaluate/passes.py` | `test_passes.py::test_two_proposals_of_one_text_agree` against `::test_two_proposals_on_one_sentence_contest` |
 | a lone mark goes back to the roles that read the page | `desk/evaluate/passes.py` | `test_passes.py::TestATextEveryReaderMustHaveSeen::test_a_lone_correct_against_three_cleans_is_composed_and_asked_of_them` |
-| a human-review query holds a place that would have resolved | `desk/evaluate/passes.py` | `test_passes.py::test_a_human_review_query_makes_the_place_unsettlable_whatever_else_is_there` -- it is the row found MISSED on the 2026-09-04 run |
+| a human-review query refuses a place that would have resolved | `desk/evaluate/passes.py` | `test_passes.py::test_a_human_review_query_refuses_the_place_whatever_else_is_there` |
 | a deferring query's role is out of the place | `desk/marks/table.py` | `test_marks_table.py::test_only_a_deferring_query_defers` and `test_passes.py::TestATextEveryReaderMustHaveSeen::test_a_role_that_filed_only_a_query_is_not_waited_on` |
 | check exits BROKEN on a refused answer | `commands/check.py` | `test_check_command.py::TestABatchIsHeldToWhatTheTurnRefuses::test_what_the_turn_refuses_is_named_here_too` |
 | check exits BROKEN on a place left alone | `commands/check.py` | `test_check_command.py::TestACopy::test_a_place_left_alone_is_named` |

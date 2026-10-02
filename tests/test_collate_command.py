@@ -27,10 +27,10 @@ from helpers import (
 )
 
 from comment_review.commands import collate as command
+from comment_review.desk import report as events
 from comment_review.desk.proof.answer import Question
 from comment_review.desk.proof.mark import Shape
 from comment_review.desk.proof.state import State
-from comment_review.desk.work import events
 from comment_review.flows.proof_io import load_proof
 
 BASE = "# one\n# two\n# three\n"
@@ -938,9 +938,7 @@ class TestTheStateBetweenTurnsOnDisk:
         # ! THE SUMMARY COUNTS THE PLACES BY WHAT THEY CAME TO. A bare place
         # count says nothing a reader can act on, which is what it said for
         # one commit.
-        assert (
-            "1 places -- 1 settled, 0 unsettlable, 0 carried forward, 0 to come" in out
-        )
+        assert "1 places -- 1 settled, 0 carried forward, 0 to come" in out
         proof, why = load_proof(proof_path)
         assert why == []
         assert proof is not None
@@ -1017,14 +1015,27 @@ class TestAHumanQuestion:
     def test_a_human_query_exits_asks_the_human_and_writes_nothing(
         self, tmp_path, monkeypatch, capsys
     ):
+        def must_not_fold(*args, **kwargs):
+            pytest.fail("a human query reached Fold")
+
+        monkeypatch.setattr("comment_review.flows.bus.Fold", must_not_fold)
         proof_path = tmp_path / "proof.json"
+        batch_path = tmp_path / "batch.json"
         code, out = run(
-            tmp_path, self.ASKED, monkeypatch, capsys, "--proof-out", str(proof_path)
+            tmp_path,
+            self.ASKED,
+            monkeypatch,
+            capsys,
+            "--proof-out",
+            str(proof_path),
+            "--batch-out",
+            str(batch_path),
         )
         assert code == command.ASKS_THE_HUMAN, out
         assert "asks the human m.py@b1: block-context -- " in out
         assert not (tmp_path / "chief.json").exists()
         assert not proof_path.exists()
+        assert not batch_path.exists()
 
     def test_a_human_file_that_is_not_toml_is_unreadable(
         self, tmp_path, monkeypatch, capsys

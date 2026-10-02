@@ -134,10 +134,10 @@ def test_a_placement_ruling_for_a_role_that_filed_no_move_is_refused():
     assert "'b' filed no move here" in move.reasons[0]
 
 
-def test_a_placement_ruling_on_a_held_move_is_refused():
+def test_a_placement_ruling_cannot_override_a_human_query_refusal():
     move = _ruled("a", answers={"b": _answer("query", HUMAN)})
     assert move.placement is Placement.REFUSED
-    assert "held takes no ruling" in move.reasons[0]
+    assert "human query" in move.reasons[0]
 
 
 def test_a_move_is_found_by_its_own_two_addresses():
@@ -240,15 +240,25 @@ def test_another_roles_withdraw_is_refused_by_name():
     assert "only the role that filed a move withdraws it" in move.reasons[0]
 
 
-def test_a_human_review_query_answer_holds_it():
+def test_a_human_review_query_answer_refuses_it():
     move = _decided(_ends(), {"b": _answer("query", HUMAN)})
-    assert move.placement is Placement.HELD and move.asking == ("b: r",)
+    assert move.placement is Placement.REFUSED
+    assert any("b: " in why and "human" in why for why in move.reasons)
 
 
-def test_a_human_review_query_filed_at_either_end_holds_it():
+@pytest.mark.parametrize("at_origin", [False, True])
+def test_a_human_review_query_filed_at_either_end_refuses_it(at_origin):
     query = _mark(Instruction.QUERY, address=DESTINATION, claim=HUMAN)
-    move = _decided(_ends(at_destination=(Filed("b", query, Touch.OWN),)), turn=0)
-    assert move.placement is Placement.HELD
+    ends = _ends(
+        **{
+            "at_origin" if at_origin else "at_destination": (
+                Filed("b", query, Touch.OWN),
+            )
+        }
+    )
+    move = _decided(ends, turn=0)
+    assert move.placement is Placement.REFUSED
+    assert any("b: " in why and "human" in why for why in move.reasons)
 
 
 def test_a_role_deferring_at_either_end_is_not_owed_the_placement():
@@ -356,8 +366,9 @@ def test_a_placement_outside_its_set_is_named():
     )
     assert got is None
     assert problems == [
-        "move 1: `placement` 'sideways' is not one of open, agreed, contested,"
-        " withdrawn, held, refused"
+        "move 1 at m.py@b1 -> m.py@b5: `placement` 'sideways' is not one of "
+        "open, agreed, contested,"
+        " withdrawn, refused"
     ]
 
 
@@ -382,4 +393,6 @@ def test_an_answer_at_a_turn_that_is_not_a_number_is_named():
         },
     )
     assert got is None
-    assert problems == ["move 1: answers at turn 'first' -- a turn is a number"]
+    assert problems == [
+        "move 1 at m.py@b1 -> m.py@b5: answers at turn 'first' -- a turn is a number"
+    ]

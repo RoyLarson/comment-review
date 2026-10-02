@@ -120,7 +120,7 @@ def test_a_state_or_question_outside_its_set_is_named():
     assert got is None
     assert problems == [
         "m.py@b1: `state` 'limbo' is not one of stands, agreed, composed,"
-        " contested, unsettlable, refused, to-come",
+        " contested, refused, to-come",
         "m.py@b1: `question` 'why' is not one of escalation, composition, placement",
     ]
 
