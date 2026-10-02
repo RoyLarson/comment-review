@@ -163,6 +163,27 @@ class TestComposingAndTakingApart:
 class TestAddressesOnARealPage:
     SRC = '"""Doc."""\n\n# note\ndef f():\n    return 1  # beside\n'
 
+    def test_series_ordinals_empty_places_and_leading_on_a_real_page(self):
+        page = build(
+            '# Front.\n\n"""Module docs."""\n\n# Above.\n'
+            'def f():\n    """Function docs."""\n'
+            "    return 1 # Beside\n\n# Back.\n",
+            "pkg/m.py",
+        )
+        places = by_cue(page)
+        assert set(places) == {"a0", "a1", "b0", "b1", "b2", "c0", "c1", "f0", "f1"}
+        assert places["a0"].raw_text == '"""Module docs."""'
+        assert places["a1"].raw_text == '    """Function docs."""'
+        assert places["b0"].raw_text == "# Above."
+        assert places["c1"].raw_text == " # Beside"
+        assert places["f0"].raw_text == "# Front."
+        assert places["f1"].raw_text == "# Back."
+        empty = {cue for cue, p in places.items() if not p.raw_text}
+        assert empty == {"b1", "b2", "c0"}
+        leading = [p for p in page if p.kind is Kind.LEADING]
+        assert len(leading) == 3
+        assert all(not p.address for p in leading)
+
     def test_every_address_carries_the_page_s_own_path(self):
         page = build(self.SRC, "pkg/m.py")
         for b in page.paragraphs:
