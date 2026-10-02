@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 21 of 33 tasks closed
+Progress: 21 of 34 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -279,3 +279,5 @@ cites as its measured example of a field answering neither necessary nor purpose
 - [-] T33 | Replaced by received-binder-checks T3: withdrawal removes marks; binder checks missing rulings | 06f415f71665525ecb7fd600216dbae7d8c2e6ae | Restore
       a withdrawn slot only when its stage originally dealt that place
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, 06:6
+- [ ] T34 | Reject overlapping quoted ranges in desk/marks/rules.py:131; test
+      dropping aaa from aaaa refuses an ambiguous clause
