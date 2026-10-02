@@ -243,6 +243,20 @@ def test_a_mark_with_no_address_writes_nowhere():
     assert INSTRUCTIONS[Instruction.CLEAN].places(mark) == ()
 
 
+@pytest.mark.parametrize("instruction", [Instruction.CLEAN, Instruction.QUERY])
+def test_chief_mark_rejects_undecided_places_with_non_setting_marks(instruction):
+    mark = _mark(instruction, claim={"shape": "outside-my-role"})
+    place = Place(
+        address="m.py@b1",
+        anchor="x = 1",
+        base=BASE,
+        filed=[Filed("block-context", mark, Touch.OWN)],
+        text=None,
+    )
+    with pytest.raises(ValueError, match="chief_mark needs a place the fold decided"):
+        chief_mark(place)
+
+
 def test_chief_mark_returns_the_filed_mark_that_set_the_decided_text():
     """Ruling R5: the side taken in is returned as-is, not resynthesized."""
     mark = _mark(

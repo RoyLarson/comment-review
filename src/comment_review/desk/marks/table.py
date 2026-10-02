@@ -258,6 +258,12 @@ def chief_mark(place: "Place") -> Mark:
             the fold already decided a text for; `chief_copy_of` filters
             those out before calling this.
     """
+    text = place.text
+    if text is None:
+        raise ValueError(
+            "chief_mark needs a place the fold decided a text for, "
+            f"got None at {place.address!r}"
+        )
     filed_marks = _in_role_order(place)
     for filed in filed_marks:
         row = INSTRUCTIONS[filed.mark.instruction]
@@ -266,12 +272,6 @@ def chief_mark(place: "Place") -> Mark:
         if row.sets(filed.mark, filed.touch, place.base) == place.text:
             return filed.mark
 
-    text = place.text
-    if text is None:
-        raise ValueError(
-            "chief_mark needs a place the fold decided a text for, "
-            f"got None at {place.address!r}"
-        )
     reason = f"{CHIEF}: decided at this place"
     # The evidence the filed marks brought, carried onto the synthesized one:
     # every row that owes a change owes sources too, so a mark handed back
