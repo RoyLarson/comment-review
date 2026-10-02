@@ -8,6 +8,7 @@ import pytest
 from helpers import a_binder_over
 
 from comment_review.desk.topology import read
+from comment_review.flows.fan_out import partition
 from comment_review.flows.topology import compose, fit
 
 FOUR = {f"{n}.py@a0": f"Doc for {n}." for n in "abcd"}
@@ -43,6 +44,31 @@ def test_an_unsplit_role_gets_one_dispatch_with_no_paths():
     text = compose([("4c", [("module-context", 1)])], a_binder_over(FOUR))
     stages, _ = read(text)
     assert [d.paths for d in stages[0].dispatches] == [()]
+
+
+@pytest.mark.parametrize(
+    ("literal", "lookalike"),
+    [
+        ("app/[id]/page.tsx", "app/i/page.tsx"),
+        ("app/[!id]/page.tsx", "app/x/page.tsx"),
+        ("app/file?.tsx", "app/file1.tsx"),
+        ("app/file*.tsx", "app/file-more.tsx"),
+    ],
+)
+def test_composed_dispatches_select_literal_paths_without_claiming_lookalikes(
+    literal, lookalike
+):
+    binder = a_binder_over({f"{literal}@b1": "one", f"{lookalike}@b1": "two"})
+    text = compose([("4c", [("block-context", 2)])], binder)
+    stages, why = read(text)
+    assert not why, why
+    assert fit(stages, binder) == []
+    assert {
+        tuple(page.path for page in pages) for _, pages in partition(binder, stages[0])
+    } == {
+        (literal,),
+        (lookalike,),
+    }
 
 
 @pytest.mark.parametrize(
