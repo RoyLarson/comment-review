@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import pytest
 from conftest import build
 from helpers import a_typed_mark, returned
@@ -132,7 +134,13 @@ def test_a_move_removes_an_unwrapped_sentence_and_preserves_its_form(name, sourc
 
 @pytest.mark.parametrize(
     "snippet",
-    ["not present.", "move this sentence.", "Move this sentence", "this sent"],
+    [
+        "not present.",
+        "move this sentence.",
+        "Move this sentence",
+        "this sent",
+        "Move this sentence.",
+    ],
 )
 def test_move_matching_keeps_case_and_punctuation_and_word_boundaries(snippet):
     form = comment_at("m.py@b1", "# Move this sentence.\n# Move this sentence.\n")
@@ -725,3 +733,99 @@ def test_mark_check_and_proof_agree_for_wrapped_sentences(
     )
     assert [p.anchor for p in again if "@c" in p.address] == expected_anchors
     assert (tmp_path / name).read_text(encoding="utf-8") == source
+
+
+@pytest.mark.parametrize("origin_name,dest_name", [("m.py", "m.rs"), ("m.rs", "m.py")])
+@pytest.mark.parametrize("existing", [False, True])
+def test_cross_language_move_sets_the_supplied_destination_form(
+    tmp_path, origin_name, dest_name, existing
+):
+    def source_for(name, raw):
+        if name.endswith(".rs"):
+            return f"fn main() {{\n    let x = 1;\n{raw}    let y = 2;\n}}\n"
+        return f"x = 1\n{raw}y = 2\n"
+
+    origin_marker = "//" if origin_name.endswith(".rs") else "#"
+    dest_marker = "//" if dest_name.endswith(".rs") else "#"
+    origin_source = source_for(origin_name, f"{origin_marker} Kept. Move.\n")
+    dest_source = source_for(
+        dest_name, f"{dest_marker} Destination stays.\n" if existing else ""
+    )
+    supplied = (
+        "/* Destination stays. Move. */"
+        if dest_name.endswith(".rs")
+        else "# Destination stays. Move."
+    )
+    for name, source in [(origin_name, origin_source), (dest_name, dest_source)]:
+        (tmp_path / name).write_text(source, encoding="utf-8", newline="\n")
+    pages = [build(origin_source, origin_name), build(dest_source, dest_name)]
+    binder = bind(pages, read_from={"root": str(tmp_path), "revise": 0})
+    loaded, problems = Binder.deserialize("binder", binder.serialize())
+    assert problems == [] and loaded is not None
+    origin = next(p for p in loaded.paragraphs if "Kept." in p.raw_text)
+    destination = next(
+        p
+        for p in pages[1]
+        if "@b" in p.address and ("let y" in p.anchor or p.anchor == "y = 2")
+    )
+    assert bool(destination.raw_text) is existing
+    copy = seed(loaded, "block-context")
+    placed, problems = fill(
+        copy,
+        {
+            "address": origin.address,
+            "instruction": "move",
+            "reason": "This sentence belongs at the destination.",
+            "sources": [{"cite": f"{origin_name}:1"}],
+            "claim": {"from": origin.address, "to": destination.address},
+            "change": "Move.",
+            "raw_text": supplied,
+        },
+        tmp_path,
+    )
+    assert problems == [] and placed is not None
+    drafted, refused = proof_setter.run(
+        docket_of(returned(copy), tmp_path),
+        tmp_path,
+        tmp_path.parent / (tmp_path.name + "-draft"),
+    )
+    assert refused == [] and len(drafted) == 2
+    outputs = {p.draft.name: p.draft.read_text(encoding="utf-8") for p in drafted}
+    assert outputs[origin_name] == source_for(origin_name, f"{origin_marker} Kept.\n")
+    reread = build(outputs[dest_name], dest_name)
+    edited = next(p for p in reread if p.address == destination.address)
+    assert edited.raw_text == supplied
+    assert [p.anchor for p in reread if "@c" in p.address] == [
+        p.anchor for p in pages[1] if "@c" in p.address
+    ]
+    for name, original in [(origin_name, origin_source), (dest_name, dest_source)]:
+        assert (tmp_path / name).read_text(encoding="utf-8") == original
+
+
+@pytest.mark.parametrize("prose", ["Kept.", "Move. Move."])
+def test_refused_move_leaves_the_edit_copy_unchanged(tmp_path, prose):
+    source = f"x = 1\n# {prose}\ny = 2\n# Destination stays.\nz = 3\n"
+    (tmp_path / "m.py").write_text(source, encoding="utf-8")
+    page = build(source, "m.py")
+    binder = bind([page], read_from={"root": str(tmp_path), "revise": 0})
+    copy = seed(binder, "block-context")
+    before = deepcopy(copy)
+    origin = next(p for p in page if p.raw_text == f"# {prose}")
+    destination = next(p for p in page if "Destination stays." in p.raw_text)
+    placed, problems = fill(
+        copy,
+        {
+            "address": origin.address,
+            "instruction": "move",
+            "reason": "This sentence belongs at the destination.",
+            "sources": [{"cite": "m.py:1"}],
+            "claim": {"from": origin.address, "to": destination.address},
+            "change": "Move.",
+            "raw_text": "# Destination stays. Move.",
+        },
+        tmp_path,
+    )
+    assert placed is None
+    assert any("snippet is not in the origin's paragraph" in p for p in problems)
+    assert copy == before
+    assert (tmp_path / "m.py").read_text(encoding="utf-8") == source
