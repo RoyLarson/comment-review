@@ -195,8 +195,8 @@ the rest of that plan gave the middle the ones under them. None is in `vocabular
   `place.sides` is role -> that text; it is what a batch slot carries and what a `taken_in` names.
 - **carried forward** -- a place the fold did not settle, `composed` or `contested`, which goes
   out in the next batch or to the chief. `desk.proof.state.CARRIED` is the pair.
-- **held for the human** -- an `unsettlable` place. No role's answer and no chief's ruling closes
-  it; it rides to the author at 7a.
+- **human question** -- a query requiring the human's answer. The asking role replaces the
+  query with a mark or answer reflecting that response before folding.
 - **advisory note** -- what the chief is told about a mark without the mark being refused for it.
   `decision-log.md Process: #177`. The console prints these under their own heading, after the
   places.

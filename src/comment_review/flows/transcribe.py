@@ -75,11 +75,10 @@ from comment_review.reading.addresser import cue_of, flatten
 
 
 class CannotTranscribe(Exception):
-    """The fold over this copy rolled back, so it decided nothing to set.
+    """A refusal to transcribe the input.
 
     Attributes:
-        reasons: one line per refusal the fold reported, naming the role, the
-            place and what the row found there.
+        reasons: messages explaining why transcription was refused.
     """
 
     def __init__(self, reasons: tuple[str, ...]) -> None:
@@ -252,9 +251,8 @@ def docket_of(copy: EditCopy, repo: Path) -> Docket:
         nothing.
 
     Raises:
-        CannotTranscribe: a page a mark writes at cannot be read here, or the
-            fold rolled back. Nothing it reported can be set, and the reasons
-            are the report.
+        CannotTranscribe: a human-review query is present, an edited page is
+            unreadable, or a mark is refused during reading or folding.
     """
     questions = queries_in_copies([copy])
     if questions:
@@ -321,19 +319,9 @@ def _open_moves(moves: list[Move]) -> list[str]:
 
 
 def _unclosed(places: list[Place]) -> list[str]:
-    """One reason per place this proof has not finished deciding.
+    """Refusal reasons for unsettled places.
 
-    A carried-forward text has not settled (`decision-log.md Process: #180`)
-    and a refused place rolled its own round back, so neither is the write
-    end's to set. A docket holding the settled places beside them would draft
-    part of a stage as though the rest had been ruled on.
-
-    `UNSETTLABLE` is neither settled nor unfinished, and that is why it is
-    the one state this admits without a text: the place rides to the human
-    with its question (`Process: #90`) and carries nothing to set. What is
-    settled is `desk.proof.state.SETTLED`, which `commands/collate._counted`
-    reads as well -- this named the states it refused until #193's round, and
-    a seventh state would have had to be added in both places.
+    Each place must have a state in `SETTLED` for the proof to close.
     """
     return [
         f"{CHIEF} {place.address}: {place.state} -- this proof is not closed,"

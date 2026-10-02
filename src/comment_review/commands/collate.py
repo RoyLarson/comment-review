@@ -1,28 +1,12 @@
-r"""The `collate` command: its argument parsing, its report and its exit code.
+"""Collate returned edit copies and report the stage's outcome.
 
-    comment_review collate --stage 4c --binder B.json --out chief.json \\
-        --edit-copy a.json --edit-copy b.json \\
-        [--proof-out proof.json] [--batch-out batch1.json] [--human answers.toml]
+The report includes `Refused`, `Settled`, `CarriedForward` and
+`PlacementCarried` events. Human questions are reported as `AsksTheHuman`
+before folding.
 
-The work is `flows.bus`: this loads what the message names, sends one
-`CopiesReturned`, prints the events the fold produced, and saves what a
-commit left behind.
-
-!! A MODULE DOES ONE JOB AND HAS NO CLI; A FLOW CALLS MODULES;
-A COMMAND EXPOSES A FLOW. `decision-log.md Process: #12`.
-
-!! EVERY CARRIED-FORWARD PLACE IS NAMED, NEVER COUNTED. `A-T2` of
-`TODO/no-command-for-the-middle.md`: a run that settles 4 of 10 must say what
-became of the other 6. ! `--proof-out` AND `--batch-out` WRITE WHAT CONTINUES
-THEM -- the state between turns and the first turn's batch (`Process: #87`);
-the verb that runs the turn is `TODO/no-command-for-the-middle.md` T16.
-
-The fold commits or it rolls back, so the report is the events and nothing
-else: a place the fold refused is a `Refused` and the round writes nothing,
-and a place it decided is a `Settled`, a `CarriedForward` or an `Unsettlable`.
-A human question rolls the round back too, printed as what is owed next --
-the human's answer, or the asking role's replacement for its query
-(`Process: #197`).
+After a committed fold, the command writes the chief's copy to `--out`.
+Use `--proof-out` to save the master proof and `--batch-out` to save the
+next turn's batch.
 """
 
 import argparse

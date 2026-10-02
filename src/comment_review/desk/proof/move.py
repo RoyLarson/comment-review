@@ -11,7 +11,7 @@ that read either page, and decided here before either end's words are:
     CONTESTED   a reader answered `stet`; carried forward for the chief
     WITHDRAWN   every mover withdrew it, or the chief kept the original --
                 final; the filing comes off
-    REFUSED     an answer or a ruling this question does not take
+    REFUSED     a human-review query or an invalid placement answer or ruling
 
 While the placement is undecided both ends are `to-come`: neither decides a
 text or asks a role anything (`Process: #200`), and once the placement is

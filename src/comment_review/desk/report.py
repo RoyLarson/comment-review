@@ -1,10 +1,10 @@
-"""What a fold says as it runs. The commands print from these and nothing else.
+"""Stage reports rendered by the commands.
 
-A rollback emits its `Refused` and `AsksTheHuman` events and a `RolledBack`,
-and nothing else: it
-commits nothing and writes no chief's copy, proof or batch, so no place is
-settled, nobody is asked about a place, and a note has no copy to go with
-(`desk.work.fold.Fold.run`). Every other event here is a committed fold's.
+Before folding, the stage reports refusals as `Refused` and human questions
+as `AsksTheHuman`. A rollback is reported as `RolledBack`.
+
+A committed fold reports settled and carried-forward places, move
+placements and advisory notes.
 """
 
 from typing import NamedTuple

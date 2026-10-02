@@ -245,16 +245,8 @@ def settle_ends(move: Move, places: dict[str, Place]) -> None:
 def hold_ends(move: Move, places: dict[str, Place]) -> None:
     """Hold a move's two ends to its placement while it is not final.
 
-    HELD: each end not refused on its own rides to the author and decides no
-    text. OPEN, CONTESTED or REFUSED: each end not refused on its own is
-    `to-come` -- it decides no text and asks no role anything until the
-    placement is decided (`Process: #200`). A ruling at one of them is
-    refused: its words are ruled against the move's outcome, once there is
-    one.
-
-    A refusal is not carried from one end to the other, nor from the move to
-    its ends: the fold is one unit of work, and any refusal -- an end's, at
-    that end, or the move's, once at the move -- rolls the whole round back.
+    While placement is unresolved, ends marked `refused` retain that state.
+    The remaining ends become `to-come`, with their text and questions cleared.
 
     Args:
         move: the move whose ends are held.

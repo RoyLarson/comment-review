@@ -346,9 +346,6 @@ all = ["paragraph", "sentence", "clause", "finding", "move"]
   "width",
 ]
 
-# Stage 6 and stage 8 never read the shared brief, so they are given theirs here.
-# ! `sheet` is given to both because the drift check reads `style sheet` as a use
-# of it -- declared polysemy, the same way `docs/vocabulary.md` records it.
 compact = [
   "address",
   "anchor",
