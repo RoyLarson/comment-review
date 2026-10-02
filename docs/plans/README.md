@@ -4,7 +4,7 @@
 | [0.2.4-a-move-owns-its-lifecycle](0.2.4-a-move-owns-its-lifecycle.md) | closed | 9/9 | 9/9 |
 | [0.2.4-an-f-correction-is-raised-alone](0.2.4-an-f-correction-is-raised-alone.md) | decision-needed | 0/3 | 0/5 |
 | [0.2.4-block-is-two-senses](0.2.4-block-is-two-senses.md) | in-progress | 7/7 | 7/7 |
-| [0.2.4-comment-unwrap-rewrap](0.2.4-comment-unwrap-rewrap.md) | open | 0/2 | 0/4 |
+| [0.2.4-comment-unwrap-rewrap](0.2.4-comment-unwrap-rewrap.md) | in-progress | 0/2 | 0/22 |
 | [0.2.4-plugins-is-a-release-artifact](0.2.4-plugins-is-a-release-artifact.md) | in-progress | 6/6 | 7/7 |
 | [0.2.4-r2-human-questions-before-the-fold](0.2.4-r2-human-questions-before-the-fold.md) | closed | 29/29 | 32/32 |
 | [0.2.4-r3-composition-and-answer-resolution](0.2.4-r3-composition-and-answer-resolution.md) | closed | 16/16 | 68/68 |
