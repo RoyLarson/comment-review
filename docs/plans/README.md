@@ -7,7 +7,7 @@
 | [0.2.4-plugins-is-a-release-artifact](0.2.4-plugins-is-a-release-artifact.md) | in-progress | 6/6 | 7/7 |
 | [0.2.4-r2-human-questions-before-the-fold](0.2.4-r2-human-questions-before-the-fold.md) | closed | 29/29 | 32/32 |
 | [0.2.4-r3-composition-and-answer-resolution](0.2.4-r3-composition-and-answer-resolution.md) | closed | 16/16 | 68/68 |
-| [0.2.4-received-binder-checks](0.2.4-received-binder-checks.md) | in-progress | 4/6 | 3/5 |
+| [0.2.4-received-binder-checks](0.2.4-received-binder-checks.md) | in-progress | 5/6 | 3/5 |
 | [0.2.4-rework-the-binder-hands-the-repo](0.2.4-rework-the-binder-hands-the-repo.md) | in-progress | 6/6 | 5/5 |
 | [0.2.4-the-agents-read-the-cli](0.2.4-the-agents-read-the-cli.md) | in-progress | 261/263 | 16/19 |
 | [0.2.4-the-cli-carries-a-real-run](0.2.4-the-cli-carries-a-real-run.md) | in-progress | 21/26 | 8/15 |
