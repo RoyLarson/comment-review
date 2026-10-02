@@ -21,8 +21,9 @@ class Fragment:
     anchor_width: int = 0
     positions: tuple[int, ...] = ()
     suffix: str = ""
+    gaps: tuple[tuple[str, ...], ...] = ()
 
-    def wrap(self, text: str) -> str:
+    def wrap(self, text: str, kept: tuple[int, ...] = ()) -> str:
         """Rewrap prose using the original width, keeping words intact."""
         if not text.strip():
             return self.suffix
@@ -37,9 +38,10 @@ class Fragment:
         )
         out = list(self.head)
         sections = re.split(r"\n\s*\n", text.strip())
-        for section in sections:
+        for n, section in enumerate(sections):
             if len(out) > len(self.head):
-                out.append(self.rest.rstrip())
+                original = kept[n] if kept else n
+                out.extend(self.gaps[original - 1])
             first = self.first if len(out) == len(self.head) else self.rest
             padding = " " * self.anchor_width if not out else ""
             wrapped = textwrap.wrap(
@@ -98,7 +100,7 @@ class Comment:
         return self._without_range(start, end)
 
     def without_raw(self, start: int, end: int) -> str:
-        """Remove prose covered by a validated raw-text range and rewrap it."""
+        """Remove prose in a raw-text range and rewrap what remains."""
         selected = []
         raw_offset = prose_offset = 0
         for part in self.fragments:
@@ -119,7 +121,8 @@ class Comment:
         offset = 0
         for part in self.fragments:
             remaining = []
-            for paragraph in part.paragraphs:
+            kept_indices = []
+            for n, paragraph in enumerate(part.paragraphs):
                 before = max(0, min(len(paragraph), start - offset))
                 after = max(0, min(len(paragraph), end - offset))
                 kept = re.sub(
@@ -127,8 +130,9 @@ class Comment:
                 ).strip()
                 if kept:
                     remaining.append(kept)
+                    kept_indices.append(n)
                 offset += len(paragraph) + 1
-            rendered.append(part.wrap("\n\n".join(remaining)))
+            rendered.append(part.wrap("\n\n".join(remaining), tuple(kept_indices)))
         found = re.search(r"[\r\n]+$", self.raw_text)
         ending = found.group(0) if found else ""
         return "".join(rendered).rstrip("\r\n") + (ending if any(rendered) else "")

@@ -202,10 +202,14 @@ def comment_form(
     pending: list[str] = []
     opened = None
     depth = 1
+    line_marker = ""
     if lang is not None and lang.name != "python":
         for line in raw_text.splitlines(keepends=True):
             if opened is None and not pending and chunks and not line.strip():
                 chunks[-1] += line
+                continue
+            if opened is None and pending and not line.strip():
+                pending.append(line)
                 continue
             if opened is None:
                 pair = next(
@@ -224,6 +228,18 @@ def comment_form(
                     tail = line.lstrip()[len(pair[0]) :]
                     depth = 1
                 else:
+                    marker = next(
+                        (
+                            m
+                            for m in sorted(lang.line_comment, key=len, reverse=True)
+                            if line.lstrip().startswith(m)
+                        ),
+                        "",
+                    )
+                    if pending and marker != line_marker:
+                        chunks.append("".join(pending))
+                        pending.clear()
+                    line_marker = marker
                     tail = line
             else:
                 tail = line
@@ -302,7 +318,12 @@ def _comment_fragment(
         first = indent + op
         body[0] = body[0][len(first) :]
         starts[0] += len(first)
-        closing = body[-1].rfind(close)
+        if lang is not None and lang.name != "python":
+            pair = next(p for p in lang.block_comment if op.startswith(p[0]))
+            ends, _ = run_ends(raw_text[len(first) :], pair, lang.nests_comments)
+            closing = len(first) + ends - len(close) - starts[-1] if ends >= 0 else -1
+        else:
+            closing = body[-1].rfind(close)
         if closing >= 0:
             last = body[-1][closing:]
             body[-1] = body[-1][:closing]
@@ -335,7 +356,7 @@ def _comment_fragment(
         rest = indent
         if body:
             sample = body[0] if head else next(iter(body[1:]), "")
-            found = re.match(r"^(\s*\* ?|\s*)", sample)
+            found = re.match(r"^(\s*\*(?:[ \t]+|$)|\s*)", sample)
             if found is not None:
                 rest = found.group(0) or indent
             if head:
@@ -344,7 +365,7 @@ def _comment_fragment(
             for n, line in enumerate(body):
                 if n == 0 and not head:
                     continue
-                found = re.match(r"^\s*\* ?", line)
+                found = re.match(r"^\s*\*(?:[ \t]+|$)", line)
                 if found is not None:
                     body[n] = line[found.end() :]
                     starts[n] += found.end()
@@ -372,6 +393,18 @@ def _comment_fragment(
     paragraphs = tuple(
         _join(section.splitlines(), ()) for section in sections if section.strip()
     )
+    gaps = []
+    blank = []
+    seen = False
+    for line, at in zip(body, starts, strict=True):
+        if not line.strip():
+            if seen:
+                blank.append(lines[raw_text.count("\n", 0, at)])
+        else:
+            if blank:
+                gaps.append(tuple(blank))
+                blank.clear()
+            seen = True
     positions = []
     whitespace = None
     for line, at in zip(body, starts, strict=True):
@@ -399,6 +432,7 @@ def _comment_fragment(
         len(anchor) if series is Series.ON else 0,
         tuple(positions),
         suffix,
+        tuple(gaps),
     )
 
 

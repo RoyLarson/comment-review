@@ -353,6 +353,64 @@ def test_wrapping_after_a_blank_keeps_the_line_comment_marker():
     assert "// Ending stays here." in output
 
 
+@pytest.mark.parametrize("instruction", ["move", "drop"])
+@pytest.mark.parametrize(
+    "name,raw,snippet,expected",
+    [
+        (
+            "m.js",
+            '/* Kept. Move.\n */ let y = "*/";',
+            "Move.",
+            '/* Kept.\n */ let y = "*/";',
+        ),
+        (
+            "m.ini",
+            "# Keep. Move.\n; Ending stays.",
+            "Move.",
+            "# Keep.\n; Ending stays.",
+        ),
+        (
+            "m.rs",
+            "/// Keep. Move.\n// Ending stays.",
+            "Move.",
+            "/// Keep.\n// Ending stays.",
+        ),
+        ("m.js", "/*\n*ptr is kept. Move.\n*/", "*ptr is kept.", "/*\nMove.\n*/"),
+        (
+            "m.py",
+            "# Keep. Move.\n#\n#\n# Ending stays.",
+            "Move.",
+            "# Keep.\n#\n#\n# Ending stays.",
+        ),
+    ],
+)
+def test_removal_respects_marker_and_closer_boundaries(
+    instruction, name, raw, snippet, expected
+):
+    page = build(f"x = 1;\n{raw}\ny = 2;\n", name)
+    paragraph = next(p for p in page if snippet in p.raw_text)
+    if instruction == "move":
+        changed = comment_at(paragraph.address, paragraph.raw_text).without_once(
+            snippet
+        )
+    else:
+        changed, problems = derived_change(
+            Instruction.DROP,
+            {"drop": snippet},
+            paragraph.raw_text,
+            address=paragraph.address,
+        )
+        assert problems == []
+    assert changed == expected
+
+
+def test_removal_retains_unmarked_blanks_between_line_comments():
+    raw = "// Keep. Move.\n\n\n// Ending stays."
+    assert comment_at("m.rs@b1", raw).without_once("Move.") == (
+        "// Keep.\n\n\n// Ending stays."
+    )
+
+
 def test_trailing_rewrapping_counts_the_carried_code_anchor():
     source = (
         "let value = 100; /* Kept. Move.\n * Longer ending stays here. */\nlet y = 2;\n"
@@ -368,13 +426,35 @@ def test_trailing_rewrapping_counts_the_carried_code_anchor():
 
 
 @pytest.mark.parametrize("instruction", ["move", "drop"])
-def test_mark_check_and_proof_agree_for_wrapped_sentences(tmp_path, instruction):
-    source = (
-        "x = 0\n# Kept. Move this\n# sentence. Ending stays.\ny = 1\n"
-        "# Destination stays.\nz = 2\n"
-    )
-    (tmp_path / "m.py").write_text(source, encoding="utf-8", newline="\n")
-    page = build(source)
+@pytest.mark.parametrize(
+    "name,raw,quote,dest",
+    [
+        (
+            "m.py",
+            "# Kept. Move this\n# sentence. Ending stays.",
+            " Move this\n# sentence.",
+            "#",
+        ),
+        (
+            "m.rs",
+            "// Kept. Move this\n// sentence.\n\n\n/// Ending stays.",
+            " Move this\n// sentence.",
+            "//",
+        ),
+        (
+            "m.js",
+            "/* Kept. Move this\n * sentence. */\n// Ending stays.",
+            " Move this\n * sentence.",
+            "//",
+        ),
+    ],
+)
+def test_mark_check_and_proof_agree_for_wrapped_sentences(
+    tmp_path, instruction, name, raw, quote, dest
+):
+    source = f"x = 0\n{raw}\ny = 1\n{dest} Destination stays.\nz = 2\n"
+    (tmp_path / name).write_text(source, encoding="utf-8", newline="\n")
+    page = build(source, name)
     binder = bind([page], read_from={"root": str(tmp_path), "revise": 0})
     loaded, problems = Binder.deserialize("binder", binder.serialize())
     assert problems == [] and loaded is not None
@@ -385,16 +465,16 @@ def test_mark_check_and_proof_agree_for_wrapped_sentences(tmp_path, instruction)
         "address": origin.address,
         "instruction": instruction,
         "reason": "This sentence belongs at the destination.",
-        "sources": [{"cite": "m.py:1"}],
+        "sources": [{"cite": f"{name}:1"}],
     }
     if instruction == "move":
         entry.update(
             claim={"from": origin.address, "to": destination.address},
             change="Move this sentence.",
-            raw_text="# Destination stays. Move this sentence.",
+            raw_text=f"{dest} Destination stays. Move this sentence.",
         )
     else:
-        entry["claim"] = {"drop": " Move this\n# sentence."}
+        entry["claim"] = {"drop": quote}
     placed, problems = fill(copy, entry, tmp_path)
     assert problems == [] and placed is not None
     mark, problems = read_mark(origin.address, placed)
@@ -407,14 +487,10 @@ def test_mark_check_and_proof_agree_for_wrapped_sentences(tmp_path, instruction)
     )
     assert refused == [] and len(drafted) == 1
     output = drafted[0].draft.read_text(encoding="utf-8")
-    again = build(output)
+    again = build(output, name)
     remainder = next(p for p in again if p.address == origin.address)
     assert (
         comment_at(remainder.address, remainder.raw_text).text == "Kept. Ending stays."
     )
-    assert [line for line in output.splitlines() if not line.startswith("#")] == [
-        "x = 0",
-        "y = 1",
-        "z = 2",
-    ]
-    assert (tmp_path / "m.py").read_text(encoding="utf-8") == source
+    assert [p.anchor for p in again if "@c" in p.address] == ["x = 0", "y = 1", "z = 2"]
+    assert (tmp_path / name).read_text(encoding="utf-8") == source
