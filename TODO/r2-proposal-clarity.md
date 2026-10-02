@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 0 of 10 tasks closed
+Progress: 1 of 10 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-01 (Roy-prose-review)
@@ -24,7 +24,8 @@ Simplify remaining R2 proposal wording.
         > 2026-10-01 commands/collate.py:20
 - [ ] T5 | Simplify transcription-failure description; verify proposal 14
         > 2026-10-01 flows/transcribe.py:83
-- [ ] T6 | Define sets_nothing without reporting rhetoric; verify proposal 16
+- [-] T6 | SUPERSEDED by r2-docket-only.md:T1; field and wrapper removed | 69b5717c3cfab103e6cccc8a06de97dd42a38b65 | Define
+      sets_nothing without reporting rhetoric; verify proposal 16
         > 2026-10-01 flows/transcribe.py:113
 - [ ] T7 | Describe transcription refusal directly; verify proposal 17
         > 2026-10-01 flows/transcribe.py:277
