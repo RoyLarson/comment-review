@@ -10,6 +10,7 @@ placements and advisory notes.
 from typing import NamedTuple
 
 from comment_review.desk.proof.answer import Question
+from comment_review.desk.proof.disposition import Disposition
 from comment_review.desk.proof.move import Placement
 from comment_review.desk.proof.state import State
 
@@ -85,6 +86,7 @@ class Settled(NamedTuple):
 
     address: str
     text: str | None
+    disposition: Disposition | None = None
 
 
 class Committed(NamedTuple):

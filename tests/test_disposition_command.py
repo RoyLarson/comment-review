@@ -48,6 +48,31 @@ def _closed(tmp_path):
 
 
 class TestTheChiefRules:
+    def test_a_chief_ruling_and_a_role_settlement_keep_distinct_labels(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        settled = {
+            role: {"m.py@b2": a_clean("m.py@b2")}
+            for role in ("block-context", "function-context")
+        }
+        held_open(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            settled,
+            {"m.py@b1": BASE, "m.py@b2": "# four\n# five\n# six\n"},
+        )
+        code, out = disposition(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            [_taken_in("m.py@b1", "function-context", "theirs reads better")],
+        )
+        assert code == collate_command.OK, out
+        assert "taken_in m.py@b1: function-context -- theirs reads better" in out
+        assert "stet m.py@b2" in out
+        assert "stet m.py@b1" not in out
+
     def test_a_taken_in_side_stands_on_the_chief_and_the_proof_closes(
         self, tmp_path, monkeypatch, capsys
     ):
@@ -66,6 +91,8 @@ class TestTheChiefRules:
             ],
         )
         assert code == collate_command.OK, out
+        assert "taken_in m.py@b1: function-context -- theirs reads better" in out
+        assert "stet m.py@b1" not in out
         chief = the_chief(tmp_path)
         assert chief.role == "copy-chief"
         assert changes_of(entries_of(chief)) == [DOS]
@@ -92,6 +119,8 @@ class TestTheChiefRules:
             ],
         )
         assert code == collate_command.OK, out
+        assert "taken_in m.py@b1: original -- neither improves it" in out
+        assert "stet m.py@b1" not in out
         assert entries_of(the_chief(tmp_path)) == []
         place = place_on(_closed(tmp_path), "m.py@b1")
         assert place["disposition"]["side"] == ORIGINAL
@@ -113,6 +142,8 @@ class TestTheChiefRules:
             ],
         )
         assert code == collate_command.OK, out
+        assert "recast m.py@b1: copy-chief -- both half right" in out
+        assert "stet m.py@b1" not in out
         assert changes_of(entries_of(the_chief(tmp_path))) == [RECAST]
         assert place_on(_closed(tmp_path), "m.py@b1")["text"] == RECAST
 

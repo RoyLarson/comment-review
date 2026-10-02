@@ -116,6 +116,11 @@ def _lines(event: object) -> list[str]:
             f" {roles} (placement)"
         ]
     if isinstance(event, events.Settled):
+        ruling = event.disposition
+        if ruling is not None:
+            return [
+                f"{ruling.name} {event.address}: {ruling.taken_side} -- {ruling.reason}"
+            ]
         return [f"stet {event.address}"]
     # `Advised` prints under its own heading, after the places -- see `_print`.
     return []

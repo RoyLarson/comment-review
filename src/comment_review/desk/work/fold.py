@@ -87,7 +87,7 @@ class Fold:
                         )
                     )
             else:
-                on_commit.append(events.Settled(address, place.text))
+                on_commit.append(events.Settled(address, place.text, place.disposition))
             # A place's notes go with what a commit reports, whatever state
             # the place came to, and nothing branches on them -- `Process:
             # #177`.

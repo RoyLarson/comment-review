@@ -969,8 +969,9 @@ def test_the_chief_rules_a_moves_placement_then_its_ends(tmp_path):
         )
     )
     assert closed is not None, out
-    assert events.Settled(PLACE, REMAINDER) in out
-    assert events.Settled("m.py@b2", CHIEFS_OWN) in out
+    ruled = {p.address: p.disposition for p in closed.proof.places}
+    assert events.Settled(PLACE, REMAINDER, ruled[PLACE]) in out
+    assert events.Settled("m.py@b2", CHIEFS_OWN, ruled["m.py@b2"]) in out
     texts = [p.text for p in closed.proof.places]
     assert sum(text.count("# two") for text in texts if text) == 1
 
