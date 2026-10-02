@@ -902,6 +902,91 @@ class TestOnlyTheApprovedPlaces:
         assert code == collate_command.OK
         return proof_at(tmp_path, 0), tmp_path / "repo"
 
+    def _closed_move(self, tmp_path, monkeypatch, capsys, destination="m.py@b2"):
+        return self._closed(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            {
+                "block-context": {
+                    "m.py@b1": a_move(
+                        "m.py@b1", destination, change="# two\n", reads=MOVED_TO
+                    ),
+                    destination: a_clean(destination),
+                }
+            },
+            {"m.py@b1": MOVED["m.py@b1"], destination: MOVED["m.py@b2"]},
+        )
+
+    @pytest.mark.parametrize("end", ["m.py@b1", "m.py@b2"])
+    def test_approving_only_one_move_end_refuses_transcription(
+        self, tmp_path, monkeypatch, capsys, end
+    ):
+        proof, repo = self._closed_move(tmp_path, monkeypatch, capsys)
+        before = (repo / "m.py").read_bytes()
+        with pytest.raises(CannotTranscribe) as raised:
+            docket_of_proof(proof, repo, only=(end,))
+        assert any(
+            "m.py@b1" in why and "m.py@b2" in why and "both ends" in why
+            for why in raised.value.reasons
+        )
+        assert (repo / "m.py").read_bytes() == before
+
+    @pytest.mark.parametrize("end", ["m.py@b1", "n.py@b1"])
+    def test_half_a_cross_file_move_is_refused(
+        self, tmp_path, monkeypatch, capsys, end
+    ):
+        proof, repo = self._closed_move(tmp_path, monkeypatch, capsys, "n.py@b1")
+        with pytest.raises(CannotTranscribe) as raised:
+            docket_of_proof(proof, repo, only=(end,))
+        assert any(
+            "m.py@b1" in why and "n.py@b1" in why and "both ends" in why
+            for why in raised.value.reasons
+        )
+
+    def test_a_whole_cross_file_move_is_transcribed(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        proof, repo = self._closed_move(tmp_path, monkeypatch, capsys, "n.py@b1")
+        docket = docket_of_proof(proof, repo, only=("m.py@b1", "n.py@b1")).docket
+        assert {
+            (schedule.path, alteration.text)
+            for schedule in docket.schedules
+            for alteration in schedule.alterations
+        } == {("m.py", REMAINDER), ("n.py", MOVED_TO)}
+
+    def test_omitting_both_move_ends_schedules_neither(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        proof, repo = self._closed_move(tmp_path, monkeypatch, capsys)
+        assert docket_of_proof(proof, repo, only=()).docket.schedules == ()
+
+    @pytest.mark.parametrize("end", ["m.py@b1", "m.py@b2"])
+    @pytest.mark.parametrize("output", ["--to-docket", "--out"])
+    def test_the_command_writes_nothing_for_half_a_move_approval(
+        self, tmp_path, monkeypatch, capsys, end, output
+    ):
+        _proof, repo = self._closed_move(tmp_path, monkeypatch, capsys)
+        before = (repo / "m.py").read_bytes()
+        destination = tmp_path / ("docket.json" if output == "--to-docket" else "r1")
+        code, report = run_command(
+            monkeypatch,
+            capsys,
+            proof_command,
+            "--proof",
+            str(tmp_path / "proof0.json"),
+            "--repo",
+            str(repo),
+            "--only",
+            end,
+            output,
+            str(destination),
+        )
+        assert code == 1, report
+        assert "m.py@b1" in report and "m.py@b2" in report and "both ends" in report
+        assert not destination.exists()
+        assert (repo / "m.py").read_bytes() == before
+
     def test_the_named_place_alone_is_transcribed(self, tmp_path, monkeypatch, capsys):
         proof, repo = self._closed(
             tmp_path, monkeypatch, capsys, TWO_CORRECTIONS, TWO_PLACES
@@ -959,8 +1044,6 @@ class TestOnlyTheApprovedPlaces:
     def test_both_ends_of_a_move_together_are_transcribed(
         self, tmp_path, monkeypatch, capsys
     ):
-        """A move's two ends are approved each on its own (D8): the case
-        naming both lands both, one decided text per place."""
         proof, repo = self._closed(
             tmp_path,
             monkeypatch,

@@ -68,7 +68,7 @@ from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.disposition import CHIEF
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
-from comment_review.desk.proof.move import Move, is_open
+from comment_review.desk.proof.move import Move, Placement, is_open
 from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.state import SETTLED
 from comment_review.desk.work.fold import Fold
@@ -467,6 +467,13 @@ def docket_of_proof(
     sets_nothing: tuple[str, ...] = ()
     if only is not None:
         places, problems, sets_nothing = _approved(places, only)
+        approved = set(only)
+        problems.extend(
+            f"{CHIEF} {move.key}: approve both ends of this move together"
+            for move in proof.moves
+            if move.placement is Placement.AGREED
+            and len(approved.intersection((move.origin, move.destination))) == 1
+        )
         if problems:
             raise CannotApprove(tuple(problems))
 
