@@ -244,7 +244,7 @@ def main() -> int:
             print(line, file=sys.stderr)
         return UNREADABLE
     if args.withdraw:
-        _, why = withdraw(copy, args.address, Path(args.repo) if args.repo else None)
+        _, why = withdraw(copy, args.address)
         if why:
             for line in why:
                 print(line)

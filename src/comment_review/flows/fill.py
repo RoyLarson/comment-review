@@ -550,34 +550,20 @@ def fill(copy: dict, entry: dict, root: Path | None) -> tuple[dict | None, list[
     return mark, []
 
 
-def withdraw(
-    copy: dict, address: str, root: Path | None = None
-) -> tuple[dict | None, list[str]]:
+def withdraw(copy: dict, address: str) -> tuple[dict | None, list[str]]:
     """Every ruling the copy holds at `address`, taken back.
 
-    `mark-defects` T24. A second ruling at an address lands beside the first,
-    so a role had no way to take back a mark it placed -- and a refused mark is
-    sent back to the role that wrote it, which then had nothing to fix it with
-    but the JSON. A place the seed gave a slot -- one holding prose, outside
-    the file's own matter, which is never seeded -- keeps one untouched slot,
-    as it was handed; a place the role created for an `add` at an empty place
-    is left with nothing, as it was before.
-
-    The seed is read off the page where any ruling at the place wrote its own
-    `raw_text` -- `add` and `move` carry the paragraph as it will read
-    (`decision-log.md Process: #175`, `#176`), so handing that back would seed
-    the place with a paragraph the page never held. That read needs `root`,
-    and without one the withdrawal is refused rather than guessed at.
+    Remove every ruling at the address. Check uses the received binder to
+    determine whether that place still requires a ruling.
 
     Args:
         copy: a role's edit_copy as its wire dict. MUTATED on success, and only
             then.
         address: `path@cue`, as the slot carries it.
-        root: the checkout the page is read from, where one has to be.
 
     Returns:
-        `(the slot left, [])`, `({}, [])` where the place is left with no slot,
-        or `(None, [message])` with the copy untouched where nothing is placed.
+        `({}, [])` on removal, or `(None, [message])` with the copy untouched
+        where nothing is placed.
     """
     marks, _ = _slot_at(copy, address)
     if marks is None:
@@ -589,24 +575,6 @@ def withdraw(
     ]
     if all(untouched(marks[i]) for i in here):
         return None, [f"{address}: nothing is placed there to withdraw"]
-    first = marks[here[0]]
-    anchor = str(first.get("anchor") or "")
-    raw_text = str(first.get("raw_text") or "")
-    composed = [
-        i
-        for i in here
-        if (row := _row_of(marks[i].get("instruction"))) is not None
-        and row.carries_raw_text
-    ]
-    if composed:
-        on_page, from_page, why = place_on_the_page([copy], address, root)
-        if on_page is None:
-            return None, why
-        anchor, raw_text = from_page["anchor"], from_page["raw_text"]
     for i in reversed(here):
         del marks[i]
-    if not filled(raw_text) or address.partition("@")[2].startswith("f"):
-        return {}, []
-    slot = BlankMark(address, anchor, raw_text).serialize()
-    marks.insert(here[0], slot)
-    return slot, []
+    return {}, []

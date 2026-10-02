@@ -10,6 +10,7 @@ from comment_review.desk import report as events
 from comment_review.desk.stages import Dispatch, Kind, Role, Stage
 from comment_review.flows.bus import CopiesReturned, handle
 from comment_review.flows.distribute import assigned_binder, seed
+from comment_review.flows.fill import withdraw
 
 
 def _shards(tmp_path):
@@ -58,6 +59,38 @@ def test_check_detects_a_deleted_assigned_ruling(tmp_path, monkeypatch, capsys):
     assert code == check.BROKEN
     assert "m.py@b1" in out and "missing" in out
     assert "n.py@b1" not in out
+
+
+@pytest.mark.parametrize("assigned", [True, False])
+def test_withdrawal_obligation_comes_from_the_received_binder(
+    tmp_path, monkeypatch, capsys, assigned
+):
+    binder, received, wires, _ = _shards(tmp_path)
+    wire = wires[0]
+    address = "m.py@b1" if assigned else "n.py@b1"
+    if not assigned:
+        wire["sheets"].extend(wires[1]["sheets"])
+    removed, why = withdraw(wire, address)
+    assert removed == {} and not why
+    assert all(m["address"] != address for s in wire["sheets"] for m in s["marks"])
+    path = tmp_path / "copy.json"
+    path.write_text(json.dumps(wire), encoding="utf-8")
+    shard = tmp_path / "received.json"
+    shard.write_text(json.dumps(received[0].serialize()), encoding="utf-8")
+    code, out = run_command(
+        monkeypatch,
+        capsys,
+        check,
+        "--edit-copy",
+        str(path),
+        "--binder",
+        str(shard),
+        "--repo",
+        str(binder.root),
+    )
+    assert code == (check.BROKEN if assigned else check.OK), out
+    if assigned:
+        assert address in out and "missing" in out
 
 
 def test_check_ignores_an_unassigned_blank(tmp_path, monkeypatch, capsys):
