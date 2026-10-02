@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (119)
+### open  (118)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -300,7 +300,6 @@ that changed a published name or rule:
 | [vocabulary-has-one-source](vocabulary-has-one-source.md) | systems | -- | 1/2 | Vocabulary has one source |
 | [p5-self-run-findings](p5-self-run-findings.md) | systems | -- | 1/5 | The P5 self-run findings |
 | [r2-preexisting-prose](r2-preexisting-prose.md) | backend | -- | 0/2 | Correct pre-existing move and fold-helper prose |
-| [received-binder-handoff](received-binder-handoff.md) | agents | -- | 0/1 | Hand each agent its assigned binder |
 
 ### in-progress  (18)
 
@@ -486,3 +485,4 @@ the reason is inside the file.
 | [r2-proposal-clarity](completed/r2-proposal-clarity.md) | 9 finished, 1 superseded |
 | [r2-prose-review](completed/r2-prose-review.md) | 6 finished |
 | [received-binder-checks](completed/received-binder-checks.md) | 4 finished |
+| [received-binder-handoff](completed/received-binder-handoff.md) | 1 finished |
