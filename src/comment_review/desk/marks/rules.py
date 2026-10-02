@@ -24,6 +24,7 @@ from comment_review.desk.proof.mark import (
     filled,
     mark_type,
 )
+from comment_review.desk.proof.source import contract as source_contract
 from comment_review.reading.addresser import cue_of
 from comment_review.reading.comment import Comment
 from comment_review.reading.lexer import comment_form
@@ -244,7 +245,7 @@ def allowed() -> dict:
                 " page's own form"
             ),
         },
-        "source_keys": {"required": ["cite", "verbatim"], "optional": ["ran"]},
+        "source_keys": source_contract(),
         "edit_copy_header": {
             "role": "the role this edit_copy was seeded for",
             "read_from": (

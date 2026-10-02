@@ -31,6 +31,7 @@ from comment_review.desk.proof.answer import (
 )
 from comment_review.desk.proof.mark import QUERY_SHAPES, filled
 from comment_review.desk.proof.move import key_of
+from comment_review.desk.proof.source import contract as source_contract
 
 #: What each field of an answer is, in the words an answer's own read
 #: checks by. The check asks whether a field is filled and not what it means, so a
@@ -221,5 +222,6 @@ def contracts() -> dict:
                 key: value for key, value in ANSWER_VALUES.items() if key in named
             },
             "fields": ANSWER_FIELDS,
+            "source_keys": source_contract(),
         }
     return out

@@ -86,6 +86,7 @@ from comment_review.desk.proof.mark import (
     untouched,
 )
 from comment_review.desk.proof.place import Filed
+from comment_review.desk.proof.source import entry_problems
 from comment_review.desk.stages import not_admitted
 from comment_review.exceptions import READ_ERRORS
 from comment_review.flows.on_the_page import held_at
@@ -198,10 +199,13 @@ def quoted_sources(root: Path | None, sources: object) -> tuple[list | None, lis
         return None, ["`sources` must be a list of `{cite, verbatim}` objects"]
     out: list = []
     for i, source in enumerate(sources, 1):
-        if not isinstance(source, dict):
-            return None, [f"source {i} must be an object with `cite` and `verbatim`"]
+        shape = entry_problems(f"source {i}", source, completing=True)
+        if shape:
+            return None, shape
+        assert isinstance(source, dict)
         cite = source.get("cite")
-        if filled(source.get("verbatim")) or not filled(cite):
+        assert isinstance(cite, str)
+        if filled(source.get("verbatim")):
             out.append(dict(source))
             continue
         parsed = cite_at(cite)
@@ -234,6 +238,10 @@ def quoted_sources(root: Path | None, sources: object) -> tuple[list | None, lis
                 f"source {i}: the line {cite!r} names is blank; give `verbatim`"
             ]
         out.append({**source, "verbatim": verbatim})
+    for i, source in enumerate(out, 1):
+        shape = entry_problems(f"source {i}", source)
+        if shape:
+            return None, shape
     return out, []
 
 

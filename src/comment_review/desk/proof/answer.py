@@ -23,6 +23,7 @@ from enum import StrEnum, auto
 from typing import Any, ClassVar, Self
 
 from comment_review.desk.proof.mark import QUERY_SHAPES, Shape, as_text, filled
+from comment_review.desk.proof.source import problems as source_entry_problems
 
 
 class Question(StrEnum):
@@ -123,6 +124,7 @@ class Answer:
         given = data.get("claim")
         claim: dict = dict(given) if isinstance(given, dict) else {}
         listed = data.get("sources")
+        sources = tuple(listed) if isinstance(listed, list) else ()
         out: list[str] = []
         if not filled(address):
             out.append(f"{where}: {cls.name} needs the `address`")
@@ -136,6 +138,7 @@ class Answer:
             if not filled(claim.get(key))
         ]
         out += cls._value_problems(where, claim)
+        out += source_entry_problems(where, sources)
         if out:
             return None, out
         return (
@@ -144,7 +147,7 @@ class Answer:
                 anchor=as_text(data.get("anchor")),
                 question=question,
                 reason=reason,
-                sources=tuple(listed) if isinstance(listed, list) else (),
+                sources=sources,
                 **cls._own(claim, change),
             ),
             [],

@@ -199,7 +199,7 @@ class TestSourceProblems:
         bad = a_mark(sources=("src/mod.py:12 | def thing()",))
         problems = source_problems("here", bad, ROOT, {})
         assert problems
-        assert "not an object" in problems[0]
+        assert "must be an object" in problems[0]
 
     def test_a_cite_into_an_unreadable_file_is_refused(self):
         bad = a_mark(
