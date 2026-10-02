@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 4 of 10 tasks closed
+Progress: 8 of 12 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-02 (review)
@@ -30,11 +30,19 @@ Repair comment wrapping review findings.
       wrapped returns; verify success and refusal paths
 - [ ] T6 | Locate the real block closer in reading/lexer.py:305; test closer
       text in following code survives moves and drops
-- [ ] T7 | Clarify reading/comment.py:100 without_raw docstring to name the
-      remaining prose; verify its input precondition and output
-- [ ] T8 | Split line-marker forms in reading/lexer.py:196; test mixed INI and
-      Rust markers retain their original forms
-- [ ] T9 | Distinguish literal continuation stars in reading/lexer.py:347; test
-      *ptr matches and drops without retaining its star
-- [ ] T10 | Record blank comment separators in reading/comment.py:117; test
-      moves and drops retain repeated blank lines
+- [x] T7 | Remaining prose named explicitly; four prose reviews found no issues | 19539398 | Clarify
+      reading/comment.py:100 without_raw docstring to name the remaining prose;
+      verify its input precondition and output
+- [x] T8 | INI and Rust mixed markers retain their forms in move and drop tests | 19539398 | Split
+      line-marker forms in reading/lexer.py:196; test mixed INI and Rust markers
+      retain their original forms
+- [x] T9 | Pointer prose matches and drops without retaining its literal star | 19539398 | Distinguish
+      literal continuation stars in reading/lexer.py:347; test *ptr matches and
+      drops without retaining its star
+- [x] T10 | Repeated marked blank lines survive move and drop regressions | 19539398 | Record
+      blank comment separators in reading/comment.py:117; test moves and drops
+      retain repeated blank lines
+- [ ] T11 | Separate trailing whitespace lines in reading/lexer.py:248; test
+      block closer removal and exact matching retain blank separators
+- [ ] T12 | Recognize empty overlapping delimiters in reading/lexer.py:248; test
+      snippets spanning /**/ match without spurious prose
