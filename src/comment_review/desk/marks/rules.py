@@ -14,6 +14,7 @@ with `desk.marks.table`'s own import of `first_word_dropped` from here.
 
 import re
 import textwrap
+from pathlib import Path
 
 from comment_review.desk.proof.mark import (
     ANCHOR_EXAMPLE,
@@ -23,6 +24,17 @@ from comment_review.desk.proof.mark import (
     filled,
     mark_type,
 )
+from comment_review.reading.addresser import cue_of
+from comment_review.reading.comment import Comment
+from comment_review.reading.lexer import comment_form
+from comment_review.reading.series import Series
+
+
+def comment_at(address: str, raw_text: str, *, anchor: str = "") -> Comment:
+    """The assigned form and prose carried by this address's raw text."""
+    named = cue_of(address)
+    return comment_form(Path(named.path), Series.of(named.cue), raw_text, anchor)
+
 
 #: A word, as the keep-the-prose check counts one: a run of letters and
 #: digits. Punctuation, whitespace and the underscore only separate words.
@@ -49,7 +61,12 @@ def first_word_dropped(prose: str, change: str) -> str | None:
 
 
 def derived_change(
-    instruction: Instruction, claim: object, base: str
+    instruction: Instruction,
+    claim: object,
+    base: str,
+    *,
+    address: str = "",
+    anchor: str = "",
 ) -> tuple[str | None, list[str]]:
     """The `change` this claim implies, built from the paragraph it rules on.
 
@@ -79,6 +96,8 @@ def derived_change(
             refuses a missing key by name; this reports only what stops the
             derivation.
         base: the paragraph the row seeded at this place.
+        address: the seeded place, used to recover its assigned comment form.
+        anchor: the carried code beside a trailing comment.
 
     Returns:
         `(text, [])` -- the paragraph with the one substitution made, "" where
@@ -121,7 +140,12 @@ def derived_change(
     if not others:
         # `mark-defects` T25: a dropped clause that spans a line break leaves
         # the text either side of it joined on one line.
-        changed = _within(changed, _widest(base))
+        if address:
+            form = comment_at(address, base, anchor=anchor)
+            changed_form = comment_at(address, changed)
+            changed = form.wrap("\n\n".join(changed_form.paragraphs))
+        else:
+            changed = _within(changed, _widest(base))
     return changed, []
 
 

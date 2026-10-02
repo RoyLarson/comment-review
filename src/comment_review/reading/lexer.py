@@ -33,6 +33,7 @@ from enum import IntEnum
 from pathlib import Path
 
 from comment_review import constants, exceptions
+from comment_review.reading.comment import Comment
 from comment_review.reading.language import (
     BY_EXT,
     LANGUAGES,
@@ -190,6 +191,124 @@ def _join(lines: list[str], markers: tuple[str, ...] = ("#",)) -> str:
                 break
         out.append(s)
     return re.sub(r"\s+", " ", " ".join(out)).strip()
+
+
+def comment_form(
+    path: Path, series: Series | None, raw_text: str, anchor: str = ""
+) -> Comment:
+    """The assigned paragraph's prose and the form its raw text carries."""
+    lang = language_for(path)
+    lines = raw_text.splitlines()
+    ending = (
+        "\r\n" if raw_text.endswith("\r\n") else "\n" if raw_text.endswith("\n") else ""
+    )
+    if not lines:
+        return Comment(raw_text, "", (), "", "", "", ending=ending)
+    indent = lines[0][: len(lines[0]) - len(lines[0].lstrip())]
+    body = list(lines)
+    first = rest = indent
+    last = ""
+    head: tuple[str, ...] = ()
+    foot: tuple[str, ...] = ()
+    opened = None
+    if lang is not None:
+        pairs = [*lang.block_comment]
+        pairs += [
+            (doc, close)
+            for doc in lang.doc_block
+            for op, close in lang.block_comment
+            if doc.startswith(op)
+        ]
+        opened = next(
+            (
+                pair
+                for pair in sorted(pairs, key=lambda p: len(p[0]), reverse=True)
+                if lines[0].lstrip().startswith(pair[0])
+            ),
+            None,
+        )
+    if (
+        lang is not None
+        and lang.name == "python"
+        and series is Series.DECLARED
+        and re.match(r"(?i)[rub]*(\"\"\"|'''|\"|')", raw_text.lstrip())
+    ):
+        tokens = tokenize.generate_tokens(io.StringIO(raw_text.lstrip()).readline)
+        token = next((one for one in tokens if one.type == tokenize.STRING), None)
+        if token is not None:
+            opening = re.match(r"(?i)[rub]*(\"\"\"|'''|\"|')", token.string)
+            if opening is not None:
+                op = opening.group(0)
+                close = opening.group(1)
+                opened = op, close
+    if opened is not None:
+        op, close = opened
+        first = indent + op
+        body[0] = body[0][len(first) :]
+        closing = body[-1].rfind(close)
+        if closing >= 0:
+            last = body[-1][closing:]
+            body[-1] = body[-1][:closing]
+        if not body[0].strip():
+            head = (lines[0],)
+            body.pop(0)
+            first = indent
+        else:
+            space = body[0][: len(body[0]) - len(body[0].lstrip())]
+            first += space
+        if body and not body[-1].strip() and last:
+            foot = (lines[-1],)
+            body.pop()
+            last = ""
+        elif body and last:
+            trailing = body[-1][len(body[-1].rstrip()) :]
+            last = trailing + last
+        rest = indent
+        if body:
+            sample = body[0] if head else next(iter(body[1:]), "")
+            found = re.match(r"^(\s*\* ?|\s*)", sample)
+            if found is not None:
+                rest = found.group(0) or indent
+            if head:
+                first = rest
+        body = [
+            re.sub(r"^\s*\* ?", "", line) if op.startswith("/*") else line
+            for line in body
+        ]
+    elif lang is not None:
+        markers = tuple(sorted(lang.line_comment, key=len, reverse=True))
+        marker = next((m for m in markers if lines[0].lstrip().startswith(m)), "")
+        if marker:
+            lead = indent + marker
+            following = lines[0][len(lead) :]
+            first = lead + following[: len(following) - len(following.lstrip())]
+            rest = first
+            for line in lines[1:]:
+                found = re.match(r"^\s*" + re.escape(marker) + r"[ \t]*", line)
+                if found is not None and line[found.end() :].strip():
+                    rest = found.group(0)
+                    break
+            body = []
+            for line in lines:
+                stripped = line.lstrip()
+                actual = next((m for m in markers if stripped.startswith(m)), "")
+                body.append(stripped[len(actual) :] if actual else line)
+    sections = re.split(r"\n\s*\n", "\n".join(body))
+    paragraphs = tuple(
+        _join(section.splitlines(), ()) for section in sections if section.strip()
+    )
+    return Comment(
+        raw_text,
+        " ".join(paragraphs),
+        paragraphs,
+        first,
+        rest,
+        last,
+        head,
+        foot,
+        ending,
+        len(anchor) if series is Series.ON else 0,
+    )
 
 
 # !! HOW FAR PAST THE OPENING QUOTE AN ESCAPED CHARACTER MAY CLOSE. `'\n'` closes
