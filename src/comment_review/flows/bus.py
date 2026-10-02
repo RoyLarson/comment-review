@@ -61,6 +61,8 @@ from comment_review.flows.places import bases_and_anchors, chief_copy_of, places
 from comment_review.flows.verify import (
     copy_problems,
     coverage_problems,
+    received_problems,
+    required_places,
     stage_problems,
 )
 
@@ -90,6 +92,7 @@ class CopiesReturned(NamedTuple):
     root: Path
     topology: Stage | None = None
     human: tuple[HumanAnswer, ...] = ()
+    binders: tuple[Binder, ...] | None = None
 
 
 class AnswersReturned(NamedTuple):
@@ -196,11 +199,19 @@ def _on_copies(message: CopiesReturned) -> tuple[list, Result | None]:
     # none -- so a reader always has somewhere to look. A `Refused` carrying
     # "" would print as a finding about the whole copy, which is a different
     # fact (`collate-command-defects`, measured 2026-09-01).
+    required = (
+        [required_places(b) for b in message.binders]
+        if message.binders is not None and len(message.binders) == len(copies)
+        else None
+    )
     problems += [
         Problem(one.role, one.where, "; ".join(one.reasons))
-        for one in mark_errors(copies)
+        for one in mark_errors(copies, required)
     ]
-    problems += coverage_problems(copies, binder, message.topology)
+    if message.binders is not None:
+        problems += received_problems(copies, message.binders, binder, message.topology)
+    else:
+        problems += coverage_problems(copies, binder, message.topology)
     problems += _root_problems(copies)
     problems += _dealt_problems(copies, message.stage)
     problems += _admitted_problems(copies, message.topology)

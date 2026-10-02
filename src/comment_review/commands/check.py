@@ -81,7 +81,11 @@ from comment_review.flows.proof_io import (
     load_copy,
     load_value,
 )
-from comment_review.flows.verify import copy_problems
+from comment_review.flows.verify import (
+    copy_problems,
+    coverage_problems,
+    required_places,
+)
 
 #: Exit codes -- `distribute`'s 0/1/2, and `collate`'s `ASKS_THE_HUMAN`.
 #: `BROKEN` is anything the fold would refuse or send back; `UNREADABLE` is a
@@ -200,8 +204,14 @@ def _check_copy(
         for line in problems:
             print(line)
         return BROKEN
+    binder = None
+    if binder_path:
+        binder, why = load_binder(Path(binder_path))
+        if binder is None:
+            return _refused(why)
     found = 0
-    for one in mark_errors([copy]):
+    required = [required_places(binder)] if binder is not None else None
+    for one in mark_errors([copy], required):
         for reason in one.reasons:
             print(f"{one.role} {one.where}: {reason}")
             found += 1
@@ -215,10 +225,7 @@ def _check_copy(
             if why:
                 print(f"{copy.role} {one.address}: {why}")
                 found += 1
-    if binder_path:
-        binder, why = load_binder(Path(binder_path))
-        if binder is None:
-            return _refused(why)
+    if binder is not None:
         root = Path(repo) if repo else binder.root
         cache: Cache = {}
         pages: PageCache = {}
@@ -226,9 +233,15 @@ def _check_copy(
         for problem in (
             *copy_problems(copy, paths, root, cache, pages),
             *_row_problems(copy, paths, root, pages),
+            *coverage_problems([copy], binder),
         ):
             print(
                 f"{problem.role} {problem.address or '(the copy)'}: {problem.message}"
+            )
+            found += 1
+        if copy.read_from != binder.read_from:
+            print(
+                f"{copy.role}: copy and received binder name different gathered trees"
             )
             found += 1
     asked = _asks_the_human(queries_in_copies([copy]), human)

@@ -264,6 +264,13 @@ def main() -> int:
         metavar="PATH",
         help="one role's returned edit_copy; repeat for each",
     )
+    ap.add_argument(
+        "--received-binder",
+        action="append",
+        default=None,
+        metavar="PATH",
+        help="one received binder per edit copy, in the same order; repeat for each",
+    )
     ap.add_argument("--out", required=True, help="where to write the chief's edit_copy")
     ap.add_argument(
         "--topology",
@@ -351,8 +358,27 @@ def main() -> int:
         _print(out)
         return _code_for(out)
 
+    received = None
+    if args.received_binder is not None:
+        if len(args.received_binder) != len(copies):
+            return _refused(["each edit copy needs one received binder"])
+        received = []
+        for path in args.received_binder:
+            one, why = load_binder(Path(path))
+            if one is None:
+                return _refused(why)
+            received.append(one)
+
     out, result = handle(
-        CopiesReturned(args.stage, copies, binder, root, dispatches, human)
+        CopiesReturned(
+            args.stage,
+            copies,
+            binder,
+            root,
+            dispatches,
+            human,
+            tuple(received) if received is not None else None,
+        )
     )
     _print(out)
     if result is None:

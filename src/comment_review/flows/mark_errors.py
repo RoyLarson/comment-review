@@ -67,7 +67,9 @@ class Revisit(NamedTuple):
     reasons: tuple[str, ...]
 
 
-def mark_errors(edit_copies: list[EditCopy]) -> list[Revisit]:
+def mark_errors(
+    edit_copies: list[EditCopy], required: list[frozenset[str]] | None = None
+) -> list[Revisit]:
     """Every place a role must revisit, across one stage's returned copies.
 
     Args:
@@ -75,6 +77,7 @@ def mark_errors(edit_copies: list[EditCopy]) -> list[Revisit]:
             after its envelope pass. ! PARSED, because that is what sorted each
             entry: `desk.proof.sheet.Sheet` carries `unruled` and `refused`, and
             this flow reads them rather than re-deciding what an entry was.
+        required: each copy's assigned addresses, in the same order as the copies.
 
     Returns:
         One `Revisit` per place, in ROLE then ADDRESS order -- so a task agent
@@ -98,9 +101,10 @@ def mark_errors(edit_copies: list[EditCopy]) -> list[Revisit]:
         # `Sheet.deserialize` refuses an untouched entry that names none rather
         # than counting it a coverage gap -- see `_sorted_entries`.
         Revisit(copy.role, address, address, (NOT_RULED,))
-        for copy in edit_copies
+        for i, copy in enumerate(edit_copies)
         for sheet in copy.sheets
         for address in sheet.unruled
+        if required is None or address in required[i]
     ]
     # ! SORTED SO A STRANGER RE-DERIVES THE ORDER. The walk above is copy then
     # sheet then entry, which is an accident of how the stage was assembled;
