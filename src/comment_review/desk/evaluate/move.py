@@ -9,9 +9,16 @@ The move itself -- its fields, its placements and its name -- is
 `desk.proof.move`.
 """
 
-from comment_review.desk.answers.table import ANSWERS, Effect
+from typing import assert_never
+
+from comment_review.desk.answers.table import (
+    ANSWERS,
+    PlacementAnswerRow,
+    PlacementEffect,
+    asks_human,
+)
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
-from comment_review.desk.proof.answer import Question
+from comment_review.desk.proof.answer import QueryAnswer, Question
 from comment_review.desk.proof.disposition import CHIEF, ORIGINAL, Disposition
 from comment_review.desk.proof.mark import MoveMark, Touch
 from comment_review.desk.proof.move import FINAL, UNDECIDED, Move, Placement, key_of
@@ -71,6 +78,9 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
     ends defers; an answer up to `turn` narrows them. A final placement is
     left as it is.
 
+    Each later vote replaces the role's earlier vote. Deferral removes its
+    prior acceptance or contest and leaves other readers owing their say.
+
     Args:
         move: the move, its movers and readers from `moves_in`.
         places: the fold's places, where its two ends are read.
@@ -79,59 +89,86 @@ def placement_pass(move: Move, places: dict[str, Place], turn: int) -> Move:
     Returns:
         `move`, decided.
     """
-    if move.placement in FINAL:
-        return move
     ends = [
         end for end in (places.get(move.origin), places.get(move.destination)) if end
     ]
     stances: dict[str, set[Stance]] = {}
-    asking: list[str] = []
+    reasons: list[str] = []
     for end in ends:
         for one in end.filed:
             stance = INSTRUCTIONS[one.mark.instruction].pairs(one.mark)
             stances.setdefault(one.role, set()).add(stance)
             if stance is Stance.UNSETTLABLE:
-                asking.append(f"{one.role}: {one.mark.reason}")
+                reasons.append(
+                    f"{one.role}: human query must be replaced before folding: "
+                    f"{one.mark.reason}"
+                )
+    reasons += [
+        f"{role}: human query must be replaced before folding: {answer.reason}"
+        for at, answers in move.answers.items()
+        if at <= turn
+        for role, answer in answers.items()
+        if isinstance(answer, QueryAnswer) and asks_human(answer)
+    ]
+    if reasons:
+        move.placement, move.reasons, move.owed = Placement.REFUSED, tuple(reasons), ()
+        return move
+    if move.placement in FINAL:
+        return move
     deferring = {role for role, held in stances.items() if held == {Stance.DEFERS}}
     movers = dict(move.filed)
     accepted: set[str] = set()
     stetted: set[str] = set()
-    reasons: list[str] = []
     for at in sorted(t for t in move.answers if t <= turn):
         for role, answer in move.answers[at].items():
             row = ANSWERS.get((answer.question, answer.name))
             if row is None or answer.question is not Question.PLACEMENT:
                 reasons.append(f"{role}: {answer.name} is not an answer to a placement")
                 continue
+            if not isinstance(row, PlacementAnswerRow):
+                reasons.append(f"{role}: expected a placement row")
+                continue
             effect = row.effect(answer)
-            if effect is Effect.ACCEPTS:
-                accepted.add(role)
-                stetted.discard(role)
-            elif effect is Effect.CONTESTS:
-                stetted.add(role)
-                accepted.discard(role)
-            elif effect is Effect.REMOVES and role in movers:
-                movers.pop(role)
-            elif effect is Effect.REMOVES:
-                reasons.append(
-                    f"{role}: only the role that filed a move withdraws it -- stet"
-                    " it to keep the paragraph where it is"
-                )
-            elif effect is Effect.UNSETTLABLE:
-                asking.append(f"{role}: {answer.reason}")
-            elif effect is Effect.ABSTAINS:
-                deferring.add(role)
+            if not isinstance(effect, PlacementEffect):
+                reasons.append(f"{role}: invalid placement effect")
+                continue
+            match effect:
+                case PlacementEffect.ACCEPTS:
+                    accepted.add(role)
+                    stetted.discard(role)
+                    deferring.discard(role)
+                case PlacementEffect.CONTESTS:
+                    stetted.add(role)
+                    accepted.discard(role)
+                    deferring.discard(role)
+                case PlacementEffect.REMOVES:
+                    if role in movers:
+                        movers.pop(role)
+                    else:
+                        reasons.append(
+                            f"{role}: only the role that filed a move withdraws it --"
+                            " stet it to keep the paragraph where it is"
+                        )
+                case PlacementEffect.HUMAN_QUERY:
+                    reasons.append(
+                        f"{role}: human query must be replaced before folding: "
+                        f"{answer.reason}"
+                    )
+                case PlacementEffect.DEFERS:
+                    accepted.discard(role)
+                    stetted.discard(role)
+                    deferring.add(role)
+                case _:
+                    assert_never(effect)
     move.movers = movers
-    move.reasons, move.asking, move.owed = tuple(reasons), (), ()
+    move.reasons, move.owed = tuple(reasons), ()
     if reasons:
         move.placement = Placement.REFUSED
     elif not movers:
         move.placement = Placement.WITHDRAWN
-    elif asking:
-        move.placement, move.asking = Placement.HELD, tuple(asking)
     elif stetted:
         move.placement = Placement.CONTESTED
-        move.owed = tuple(sorted(set(movers) | stetted))
+        move.owed = tuple(sorted((set(movers) | stetted) - deferring))
     else:
         owed = set(move.readers) - set(movers) - deferring - accepted
         move.owed = tuple(sorted(owed))
@@ -208,16 +245,8 @@ def settle_ends(move: Move, places: dict[str, Place]) -> None:
 def hold_ends(move: Move, places: dict[str, Place]) -> None:
     """Hold a move's two ends to its placement while it is not final.
 
-    HELD: each end not refused on its own rides to the author and decides no
-    text. OPEN, CONTESTED or REFUSED: each end not refused on its own is
-    `to-come` -- it decides no text and asks no role anything until the
-    placement is decided (`Process: #200`). A ruling at one of them is
-    refused: its words are ruled against the move's outcome, once there is
-    one.
-
-    A refusal is not carried from one end to the other, nor from the move to
-    its ends: the fold is one unit of work, and any refusal -- an end's, at
-    that end, or the move's, once at the move -- rolls the whole round back.
+    While placement is unresolved, ends marked `refused` retain that state.
+    The remaining ends become `to-come`, with their text and questions cleared.
 
     Args:
         move: the move whose ends are held.
@@ -228,18 +257,6 @@ def hold_ends(move: Move, places: dict[str, Place]) -> None:
     ends = [
         end for end in (places.get(move.origin), places.get(move.destination)) if end
     ]
-    if move.placement is Placement.HELD:
-        for end in ends:
-            if end.state is State.REFUSED:
-                continue
-            end.state, end.text, end.question, end.owed = (
-                State.UNSETTLABLE,
-                None,
-                None,
-                (),
-            )
-            end.asking = end.asking or move.asking
-        return
     for end in ends:
         if end.state is not State.REFUSED:
             end.state, end.text, end.question, end.owed = (

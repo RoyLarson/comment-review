@@ -38,11 +38,11 @@ import argparse
 import json
 from pathlib import Path
 
+from comment_review import exceptions
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.docket.docket import Docket
 from comment_review.flows import revise, transcribe
-from comment_review.machine import exceptions
 from comment_review.machine.json_object import object_of
 from comment_review.machine.repo import undraftable, write_raw
 
@@ -227,7 +227,7 @@ def main() -> int:
         # same console face reports it here as below.
         proof, problems = MasterProof.deserialize(source, loaded)
         try:
-            transcribed = (
+            held = (
                 transcribe.docket_of_proof(proof, repo, only=tuple(args.only) or None)
                 if proof is not None
                 else None
@@ -252,13 +252,6 @@ def main() -> int:
             for line in refused.reasons:
                 print(line)
             return 1
-        held = transcribed.docket if transcribed is not None else None
-        # A place the author approved that draws no `<path> -> <draft>` line
-        # is named here, or the run says nothing at all about a place they
-        # ruled on. It stands on the text already there, or it is held for
-        # the human and carries no text; neither is a refusal.
-        for address in transcribed.sets_nothing if transcribed else ():
-            print(f"approved {address}: nothing to set")
     else:
         copy, problems = EditCopy.deserialize(source, loaded)
         # The transcribe folds, so it can refuse, and it could not until the

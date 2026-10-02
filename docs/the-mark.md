@@ -64,7 +64,7 @@ rest of the stages."*
 
 ! **THE TWO DIFF DIRECTLY, AND THAT IS THE WHOLE REASON.** Every stage downstream is a diff of one
 against the other: source-verification, the fold's composition of the roles' texts over one base
-(`machine.differences.compose`, which takes `raw_text` as the base and each role's `change` as a
+(`differences.compose`, which takes `raw_text` as the base and each role's `change` as a
 side), `taken_in`, and the revise. A line array has to be joined before any of
 them can run, and a sentence cannot be placed at all.
 

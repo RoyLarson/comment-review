@@ -13,6 +13,7 @@ written on, and `answer` below reads it for that.
 
 import json
 
+import pytest
 from conftest import run_command
 from helpers import (
     BASE,
@@ -399,11 +400,17 @@ class TestAHumanQuestion:
         self, tmp_path, monkeypatch, capsys
     ):
         answers = self._answers(tmp_path, monkeypatch, capsys)
+
+        def must_not_fold(*args, **kwargs):
+            pytest.fail("a human answer reached Fold")
+
+        monkeypatch.setattr("comment_review.flows.bus.Fold", must_not_fold)
         code, out = turn(tmp_path, monkeypatch, capsys, 1, *answers)
         assert code == collate_command.ASKS_THE_HUMAN, out
         assert "asks the human m.py@b1: block-context -- " in out
         assert not (tmp_path / "proof1.json").exists()
         assert not (tmp_path / "batch2.json").exists()
+        assert not (tmp_path / "chief1.json").exists()
 
     def test_a_human_file_that_is_not_toml_is_unreadable(
         self, tmp_path, monkeypatch, capsys

@@ -32,7 +32,7 @@ import tokenize
 from enum import IntEnum
 from pathlib import Path
 
-from comment_review.machine import constants, exceptions
+from comment_review import constants, exceptions
 from comment_review.reading.language import (
     BY_EXT,
     LANGUAGES,

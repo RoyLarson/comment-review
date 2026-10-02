@@ -11,8 +11,7 @@ that read either page, and decided here before either end's words are:
     CONTESTED   a reader answered `stet`; carried forward for the chief
     WITHDRAWN   every mover withdrew it, or the chief kept the original --
                 final; the filing comes off
-    HELD        a human-review query was filed at an end, or answered
-    REFUSED     an answer or a ruling this question does not take
+    REFUSED     a human-review query or an invalid placement answer or ruling
 
 While the placement is undecided both ends are `to-come`: neither decides a
 text or asks a role anything (`Process: #200`), and once the placement is
@@ -41,7 +40,6 @@ class Placement(StrEnum):
     AGREED = auto()
     CONTESTED = auto()
     WITHDRAWN = auto()
-    HELD = auto()
     REFUSED = auto()
 
 
@@ -79,7 +77,6 @@ class Move:
     #: A move is open until the placement pass decides it.
     placement: Placement = Placement.OPEN
     owed: tuple[str, ...] = ()
-    asking: tuple[str, ...] = ()
     reasons: tuple[str, ...] = ()
     #: The chief's ruling on this move's placement: `taken_in` a mover's side
     #: agrees the move as that mover filed it, `taken_in` the original keeps
@@ -111,7 +108,6 @@ class Move:
             },
             "placement": str(self.placement),
             "owed": list(self.owed),
-            "asking": list(self.asking),
             "reasons": list(self.reasons),
             "disposition": self.disposition.serialize() if self.disposition else None,
         }
@@ -130,7 +126,12 @@ class Move:
             return None, [f"{where}: a move needs its `origin`"]
         if not isinstance(destination, str) or not destination:
             return None, [f"{where}: a move needs its `destination`"]
+        where = f"{where} at {key_of(origin, destination)}"
         problems: list[str] = []
+        if data.get("asking"):
+            problems.append(
+                f"{where}: retired human-held asking lifecycle is not admitted"
+            )
         answers, why = read_answers(where, data.get("answers"))
         problems += why
         disposition = None
@@ -152,7 +153,6 @@ class Move:
                 answers=answers,
                 placement=placement,
                 owed=tuple(data.get("owed") or ()),
-                asking=tuple(data.get("asking") or ()),
                 reasons=tuple(data.get("reasons") or ()),
                 disposition=disposition,
             ),

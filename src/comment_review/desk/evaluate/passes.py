@@ -1,16 +1,23 @@
 """The three passes over a place, run after each move's placement is decided."""
 
-from comment_review.desk.answers.table import ANSWERS, Effect
+from typing import assert_never
+
+from comment_review.desk.answers.table import (
+    ANSWERS,
+    SideAnswerRow,
+    SideEffect,
+    asks_human,
+)
 from comment_review.desk.dispositions.table import DISPOSITIONS
 from comment_review.desk.evaluate.move import hold_ends, placement_pass, settle_ends
 from comment_review.desk.marks.table import INSTRUCTIONS, Stance
-from comment_review.desk.proof.answer import Question, Rewrite
+from comment_review.desk.proof.answer import QueryAnswer, Question, Rewrite
 from comment_review.desk.proof.disposition import CHIEF, ORIGINAL
 from comment_review.desk.proof.mark import Touch
 from comment_review.desk.proof.move import Move
 from comment_review.desk.proof.place import Filed, Place
 from comment_review.desk.proof.state import CARRIED, State
-from comment_review.machine.differences import CannotCompose, compose
+from comment_review.differences import CannotCompose, compose
 
 
 def proposing(filed: list[Filed]) -> list[Filed]:
@@ -43,9 +50,9 @@ def composed_side(
 
     `decision-log.md Process: #179`: a role's own marks compose the way two
     roles' do. One proposing mark sets the side by itself. Two or more compose
-    against the base, each keyed by the mark it came from, so marks on
-    different sentences become one text and marks on the same sentence are
-    refused back to the role rather than one of them silently standing.
+    against the base, each keyed by the mark it came from. Equal edits apply
+    once without discarding their filings; competing edits are refused back
+    to the role rather than one of them silently standing.
 
     Args:
         role: whose marks these are, for the reason.
@@ -84,7 +91,8 @@ def composed_side(
             for one in filed
         )
         ask = (
-            "restate the paragraph with both texts in it as one mark"
+            "restate the paragraph with both texts in each original mark's raw_text;"
+            " keep each move's own change, from and to"
             if whole
             else "withdraw one"
         )
@@ -229,6 +237,11 @@ def marks_pass(place: Place) -> Place:
     reasons = []
     for one in place.filed:
         row = INSTRUCTIONS[one.mark.instruction]
+        if row.pairs(one.mark) is Stance.UNSETTLABLE:
+            reasons.append(
+                f"{one.role}: human query must be replaced before folding: "
+                f"{one.mark.reason}"
+            )
         reasons += [
             f"{one.role}: {why}" for why in row.reads(one.mark, one.touch, place.base)
         ]
@@ -241,31 +254,33 @@ def marks_pass(place: Place) -> Place:
         role: text if text is not None else place.base
         for role, text in proposals.items()
     }
-    # Asked of every mark filed here, not one per role: a role may file a
-    # query beside a proposal, and the place goes to the human on the query
-    # whatever else it holds. Its side is recorded all the same, so what it
-    # proposed is not lost behind the question.
-    asking = tuple(
-        f"{one.role}: {one.mark.reason}"
-        for one in place.filed
-        if INSTRUCTIONS[one.mark.instruction].pairs(one.mark) is Stance.UNSETTLABLE
-    )
-    if asking:
-        return _set(place, State.UNSETTLABLE, sides=sides, asking=asking)
     return _from_sides(place, sides)
 
 
 def answers_pass(place: Place, turn: int) -> Place:
     """Narrow a carried-forward place by the roles' answers at `turn`.
 
-    A place held for the human or refused is left as it is, whatever was
-    answered: the first rides to the author (`decision-log.md Process: #90`)
-    and the second is rolling the round back.
+    A human-query answer refuses the place before any side is reduced.
+    Other answers apply only to carried-forward places.
+
+    Every admitted side effect has a case. A deferral removes the role's
+    side while keeping its answer; unrelated readers still owe acceptance.
 
     Args:
         place: the place, carrying what the marks pass left and the answers.
         turn: which turn's answers to apply.
     """
+    human = tuple(
+        f"{role}: human query must be replaced before folding: {answer.reason}"
+        for at, answers in place.answers.items()
+        if at <= turn
+        for role, answer in answers.items()
+        if isinstance(answer, QueryAnswer) and asks_human(answer)
+    )
+    if human:
+        return _set(
+            place, State.REFUSED, reasons=tuple(dict.fromkeys((*place.reasons, *human)))
+        )
     if place.state not in CARRIED:
         return place
     sides = dict(place.sides)
@@ -279,15 +294,43 @@ def answers_pass(place: Place, turn: int) -> Place:
                     f"{role}: {answer.name} is not an answer to {answer.question}",
                 ),
             )
+        if not isinstance(row, SideAnswerRow) or answer.question is Question.PLACEMENT:
+            return _set(place, State.REFUSED, reasons=(f"{role}: expected a side row",))
         effect = row.effect(answer)
-        if effect is Effect.UNSETTLABLE:
-            return _set(place, State.UNSETTLABLE, asking=(f"{role}: {answer.reason}",))
-        if effect is Effect.REMOVES:
-            sides.pop(role, None)
-        elif effect is Effect.REPLACES and isinstance(answer, Rewrite):
-            sides[role] = answer.change
-        elif effect is Effect.ACCEPTS and place.text is not None:
-            sides[role] = place.text
+        if not isinstance(effect, SideEffect):
+            return _set(place, State.REFUSED, reasons=(f"{role}: invalid side effect",))
+        match effect:
+            case SideEffect.KEEPS:
+                pass
+            case SideEffect.REMOVES | SideEffect.DEFERS:
+                sides.pop(role, None)
+            case SideEffect.REPLACES:
+                if not isinstance(answer, Rewrite):
+                    return _set(
+                        place,
+                        State.REFUSED,
+                        reasons=(f"{role}: replacement requires Rewrite",),
+                    )
+                sides[role] = answer.change
+            case SideEffect.ACCEPTS:
+                if place.text is None:
+                    return _set(
+                        place,
+                        State.REFUSED,
+                        reasons=(f"{role}: acceptance requires composed text",),
+                    )
+                sides[role] = place.text
+            case SideEffect.HUMAN_QUERY:
+                return _set(
+                    place,
+                    State.REFUSED,
+                    reasons=(
+                        f"{role}: human query must be replaced before folding: "
+                        f"{answer.reason}",
+                    ),
+                )
+            case _:
+                assert_never(effect)
     return _from_sides(place, sides, turn)
 
 
@@ -308,6 +351,7 @@ def dispositions_pass(place: Place) -> Place:
             place,
             State.REFUSED,
             reasons=(
+                *place.reasons,
                 f"copy-chief: {place.disposition.name} cannot close a place "
                 f"that is {place.state}",
             ),
@@ -434,14 +478,12 @@ def _set(
     sides=None,
     reasons=(),
     question=None,
-    asking=(),
     owed=(),
 ) -> Place:
     place.state = state
     place.text = text
     place.sides = sides or {}
     place.reasons = reasons
-    place.asking = asking
     place.owed = owed
     place.question = question
     return place

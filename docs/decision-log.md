@@ -5270,3 +5270,15 @@ doc that owns it -- [`addressing.md`](addressing.md), [`vocabulary.md`](vocabula
   builds an index cross-ref table once all hooked together and the proper place for that is
   would naturally be part of the binder but rebuilding that in the binder each time is also
   silly."*
+
+- **#208.** **The R3 answer-table overview drops duplicated operation prose and documents
+  the shared registry** (Roy, 2026-09-30). Shown the exact module wording proposed by the
+  editorial review for P67/P68 and asked "Approve the proposed module wording?", Roy: *"yes"*.
+  The approved text retains the separate side and placement responsibilities, removes the
+  deferral/human-query operation sentence, and names `ANSWERS`' import-time population,
+  production readers, and temporary test replacements.
+
+- **#209.** **P64 may receive one manual description update** (Roy, 2026-09-30).
+  Roy: *"For P64 - I authorize you to manually update the description this one time"*.
+  This exception permits correcting the R3 dependency description while job-board lacks
+  that command; task closures and all other plan writes continue through job-board.

@@ -14,7 +14,7 @@ sacrifice rather than the property.
 import pytest
 from conftest import REPLACEMENT, SAMPLE, build, by_cue, cue
 
-from comment_review.machine import exceptions
+from comment_review import exceptions
 from comment_review.results.compositor import line_endings, set_page
 
 #: Every addressed place on the sample, and the subset holding prose. Discovered

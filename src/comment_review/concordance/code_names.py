@@ -10,8 +10,8 @@ checked, so every obituary resolves against itself and the check always passes.
 import ast
 from pathlib import Path
 
+from comment_review import exceptions
 from comment_review.concordance.names import SYMBOLISH
-from comment_review.machine import exceptions
 from comment_review.machine.repo import walk_files
 from comment_review.reading.lexer import NAMED_DEFS, language_for
 

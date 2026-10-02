@@ -10,6 +10,7 @@ import stat
 from pathlib import Path
 
 import pytest
+from conftest import run_command
 from helpers import (
     BASE,
     BOTH_FIXED,
@@ -39,6 +40,7 @@ from helpers import (
 )
 
 from comment_review.commands import collate as collate_command
+from comment_review.commands import proof as proof_command
 from comment_review.desk.proof.edit_copy import EditCopy
 from comment_review.desk.proof.mark import Shape
 from comment_review.desk.proof.master_proof import MasterProof
@@ -135,11 +137,7 @@ class TestDocketOf:
             ("b1", None),
         ]
 
-    def test_a_move_whose_destination_cannot_settle_writes_neither_end(self, tmp_path):
-        """A move's two ends are one decision, so the fold holds the move
-        whole when its destination cannot settle. Folded as two unrelated
-        places, the origin settled as a removal and the destination as
-        nothing, and the docket deleted the snippet without landing it."""
+    def test_a_move_with_a_human_query_at_its_destination_refuses(self, tmp_path):
         root = tmp_path / "repo"
         copy = a_copy(
             root,
@@ -155,7 +153,98 @@ class TestDocketOf:
                 "m.py@b2": a_query("m.py@b2", Shape.HUMAN_REVIEW_NECESSARY),
             },
         )
-        assert docket_of(copy, root).schedules == ()
+        with pytest.raises(CannotTranscribe) as raised:
+            docket_of(copy, root)
+        assert any("block-context m.py@b2" in why for why in raised.value.reasons)
+
+    @pytest.mark.parametrize("beside_patch", [False, True])
+    def test_human_queries_refuse_before_folding(
+        self, tmp_path, monkeypatch, beside_patch
+    ):
+        root = tmp_path / "repo"
+        questions = {"m.py@b1": "Who owns this?", "m.py@b2": "Is this required?"}
+        marks = {
+            at: {**a_query(at, Shape.HUMAN_REVIEW_NECESSARY), "reason": question}
+            for at, question in questions.items()
+        }
+        if beside_patch:
+            marks["m.py@b3"] = a_patch("m.py@b3", "three", "3", "# 3")
+        copy = a_copy(
+            root,
+            "block-context",
+            {"m.py@b1": "# one\n", "m.py@b2": "# two\n", "m.py@b3": "# three\n"},
+            marks,
+        )
+
+        def must_not_fold(*args, **kwargs):
+            pytest.fail("a human query reached Fold")
+
+        monkeypatch.setattr("comment_review.flows.transcribe.Fold", must_not_fold)
+        with pytest.raises(CannotTranscribe) as raised:
+            docket_of(copy, root)
+        assert len(raised.value.reasons) == len(questions)
+        for at, question in questions.items():
+            assert any(
+                f"block-context {at}" in why and question in why
+                for why in raised.value.reasons
+            )
+
+    @pytest.mark.parametrize(
+        "shape", [Shape.OUTSIDE_MY_ROLE, Shape.UNABLE_TO_DETERMINE]
+    )
+    def test_nonhuman_query_does_not_prevent_a_patch(self, tmp_path, shape):
+        root = tmp_path / "repo"
+        copy = a_copy(
+            root,
+            "block-context",
+            {"m.py@b1": "# one\n", "m.py@b2": "# two\n"},
+            {
+                "m.py@b1": a_query("m.py@b1", shape),
+                "m.py@b2": a_patch("m.py@b2", "two", "2", "# 2"),
+            },
+        )
+        (schedule,) = docket_of(copy, root).schedules
+        assert [(one.cue, one.text) for one in schedule.alterations] == [("b2", "# 2")]
+
+    @pytest.mark.parametrize("stop_at_docket", [False, True])
+    def test_human_query_copy_leaves_no_revise(
+        self, tmp_path, monkeypatch, capsys, stop_at_docket
+    ):
+        root = tmp_path / "repo"
+        question = "Who owns this?"
+        copy = a_copy(
+            root,
+            "block-context",
+            {"m.py@b1": "# one\n", "m.py@b2": "# two\n"},
+            {
+                "m.py@b1": {
+                    **a_query("m.py@b1", Shape.HUMAN_REVIEW_NECESSARY),
+                    "reason": question,
+                },
+                "m.py@b2": a_patch("m.py@b2", "two", "2", "# 2"),
+            },
+        )
+        source = tmp_path / "copy.json"
+        source.write_text(json.dumps(copy.serialize()), encoding="utf-8")
+        before = {path: path.read_bytes() for path in root.rglob("*") if path.is_file()}
+        output = tmp_path / ("docket.json" if stop_at_docket else "revise")
+        code, out = run_command(
+            monkeypatch,
+            capsys,
+            proof_command,
+            "--copy",
+            str(source),
+            "--repo",
+            str(root),
+            "--to-docket" if stop_at_docket else "--out",
+            str(output),
+        )
+        assert code != 0, out
+        assert "block-context m.py@b1" in out and question in out
+        assert not output.exists()
+        assert before == {
+            path: path.read_bytes() for path in root.rglob("*") if path.is_file()
+        }
 
     def test_a_move_onto_a_page_this_copy_holds_no_sheet_for_is_scheduled(
         self, tmp_path
@@ -549,7 +638,7 @@ class TestDocketOfProof:
             ),
         )
         assert code == collate_command.OK, out
-        docket = docket_of_proof(proof_at(tmp_path, 1), tmp_path / "repo").docket
+        docket = docket_of_proof(proof_at(tmp_path, 1), tmp_path / "repo")
         (schedule,) = docket.schedules
         assert [(one.cue, one.text) for one in schedule.alterations] == [
             ("b1", BOTH_FIXED)
@@ -579,7 +668,7 @@ class TestDocketOfProof:
             proof="proof0.json",
         )
         assert code == collate_command.OK, out
-        docket = docket_of_proof(the_closed_proof(tmp_path), tmp_path / "repo").docket
+        docket = docket_of_proof(the_closed_proof(tmp_path), tmp_path / "repo")
         (schedule,) = docket.schedules
         assert [(one.cue, one.text) for one in schedule.alterations] == [
             ("b1", RECAST_THERE)
@@ -595,7 +684,7 @@ class TestDocketOfProof:
             {"block-context": {"m.py@b1": a_correct_setting("m.py@b1", "two", TWO)}},
             texts={"m.py@b1": BASE},
         )
-        (schedule,) = docket_of_proof(proof, repo).docket.schedules
+        (schedule,) = docket_of_proof(proof, repo).schedules
         assert schedule.path == "m.py"
         assert [(one.cue, one.text) for one in schedule.alterations] == [("b1", TWO)]
 
@@ -610,7 +699,7 @@ class TestDocketOfProof:
             texts={"m.py@b1": BASE},
         )
         (sheet,) = proof.edit_copies[0].sheets
-        (schedule,) = docket_of_proof(proof, repo).docket.schedules
+        (schedule,) = docket_of_proof(proof, repo).schedules
         assert (schedule.path, schedule.sha) == (sheet.path, sheet.sha)
 
     def test_an_emptied_place_is_the_delete_the_write_end_reads(
@@ -625,7 +714,7 @@ class TestDocketOfProof:
             {"block-context": {"m.py@b1": {**a_drop("m.py@b1", "two"), "change": ""}}},
             texts={"m.py@b1": BASE},
         )
-        (schedule,) = docket_of_proof(proof, repo).docket.schedules
+        (schedule,) = docket_of_proof(proof, repo).schedules
         assert [(one.cue, one.text) for one in schedule.alterations] == [("b1", None)]
 
     def test_an_add_at_an_empty_place_lands_there(self, tmp_path, monkeypatch, capsys):
@@ -639,7 +728,7 @@ class TestDocketOfProof:
             texts=GAPPED,
             placed={"block-context": [_CLEAN_ABOVE, _CLEAN_BELOW, THE_ADD]},
         )
-        (schedule,) = docket_of_proof(proof, repo).docket.schedules
+        (schedule,) = docket_of_proof(proof, repo).schedules
         assert [(one.cue, one.text) for one in schedule.alterations] == [("b2", ADDED)]
 
     def test_a_move_sets_each_end_from_its_own_place(
@@ -662,7 +751,7 @@ class TestDocketOfProof:
             },
             texts=MOVED,
         )
-        (schedule,) = docket_of_proof(proof, repo).docket.schedules
+        (schedule,) = docket_of_proof(proof, repo).schedules
         assert [(one.cue, one.text) for one in schedule.alterations] == [
             ("b1", REMAINDER),
             ("b2", MOVED_TO),
@@ -695,7 +784,7 @@ class TestDocketOfProof:
         )
         page, why = page_of(repo / "n.py", rel="n.py")
         assert page is not None, why
-        docket = docket_of_proof(proof, repo).docket
+        docket = docket_of_proof(proof, repo)
         assert [one.path for one in docket.schedules] == ["m.py", "n.py"]
         landed = docket.schedules[1]
         assert landed.sha == page.sha
@@ -721,7 +810,7 @@ class TestDocketOfProof:
             },
             texts={"m.py@b1": BASE, "m.py@b2": "# four\n# five\n"},
         )
-        assert docket_of_proof(proof, repo).docket.schedules == ()
+        assert docket_of_proof(proof, repo).schedules == ()
 
     @pytest.mark.parametrize(
         ("by_role", "code", "state"),
@@ -813,16 +902,101 @@ class TestOnlyTheApprovedPlaces:
         assert code == collate_command.OK
         return proof_at(tmp_path, 0), tmp_path / "repo"
 
+    def _closed_move(self, tmp_path, monkeypatch, capsys, destination="m.py@b2"):
+        return self._closed(
+            tmp_path,
+            monkeypatch,
+            capsys,
+            {
+                "block-context": {
+                    "m.py@b1": a_move(
+                        "m.py@b1", destination, change="# two\n", reads=MOVED_TO
+                    ),
+                    destination: a_clean(destination),
+                }
+            },
+            {"m.py@b1": MOVED["m.py@b1"], destination: MOVED["m.py@b2"]},
+        )
+
+    @pytest.mark.parametrize("end", ["m.py@b1", "m.py@b2"])
+    def test_approving_only_one_move_end_refuses_transcription(
+        self, tmp_path, monkeypatch, capsys, end
+    ):
+        proof, repo = self._closed_move(tmp_path, monkeypatch, capsys)
+        before = (repo / "m.py").read_bytes()
+        with pytest.raises(CannotTranscribe) as raised:
+            docket_of_proof(proof, repo, only=(end,))
+        assert any(
+            "m.py@b1" in why and "m.py@b2" in why and "both ends" in why
+            for why in raised.value.reasons
+        )
+        assert (repo / "m.py").read_bytes() == before
+
+    @pytest.mark.parametrize("end", ["m.py@b1", "n.py@b1"])
+    def test_half_a_cross_file_move_is_refused(
+        self, tmp_path, monkeypatch, capsys, end
+    ):
+        proof, repo = self._closed_move(tmp_path, monkeypatch, capsys, "n.py@b1")
+        with pytest.raises(CannotTranscribe) as raised:
+            docket_of_proof(proof, repo, only=(end,))
+        assert any(
+            "m.py@b1" in why and "n.py@b1" in why and "both ends" in why
+            for why in raised.value.reasons
+        )
+
+    def test_a_whole_cross_file_move_is_transcribed(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        proof, repo = self._closed_move(tmp_path, monkeypatch, capsys, "n.py@b1")
+        docket = docket_of_proof(proof, repo, only=("m.py@b1", "n.py@b1"))
+        assert {
+            (schedule.path, alteration.text)
+            for schedule in docket.schedules
+            for alteration in schedule.alterations
+        } == {("m.py", REMAINDER), ("n.py", MOVED_TO)}
+
+    def test_omitting_both_move_ends_schedules_neither(
+        self, tmp_path, monkeypatch, capsys
+    ):
+        proof, repo = self._closed_move(tmp_path, monkeypatch, capsys)
+        assert docket_of_proof(proof, repo, only=()).schedules == ()
+
+    @pytest.mark.parametrize("end", ["m.py@b1", "m.py@b2"])
+    @pytest.mark.parametrize("output", ["--to-docket", "--out"])
+    def test_the_command_writes_nothing_for_half_a_move_approval(
+        self, tmp_path, monkeypatch, capsys, end, output
+    ):
+        _proof, repo = self._closed_move(tmp_path, monkeypatch, capsys)
+        before = (repo / "m.py").read_bytes()
+        destination = tmp_path / ("docket.json" if output == "--to-docket" else "r1")
+        code, report = run_command(
+            monkeypatch,
+            capsys,
+            proof_command,
+            "--proof",
+            str(tmp_path / "proof0.json"),
+            "--repo",
+            str(repo),
+            "--only",
+            end,
+            output,
+            str(destination),
+        )
+        assert code == 1, report
+        assert "m.py@b1" in report and "m.py@b2" in report and "both ends" in report
+        assert not destination.exists()
+        assert (repo / "m.py").read_bytes() == before
+
     def test_the_named_place_alone_is_transcribed(self, tmp_path, monkeypatch, capsys):
         proof, repo = self._closed(
             tmp_path, monkeypatch, capsys, TWO_CORRECTIONS, TWO_PLACES
         )
-        whole = docket_of_proof(proof, repo).docket
+        whole = docket_of_proof(proof, repo)
         assert [(one.cue, one.text) for one in whole.schedules[0].alterations] == [
             ("b1", TWO),
             ("b2", "# four\n# FIVE\n# six"),
         ]
-        part = docket_of_proof(proof, repo, only=("m.py@b2",)).docket
+        part = docket_of_proof(proof, repo, only=("m.py@b2",))
         assert [(one.cue, one.text) for one in part.schedules[0].alterations] == [
             ("b2", "# four\n# FIVE\n# six")
         ]
@@ -842,7 +1016,7 @@ class TestOnlyTheApprovedPlaces:
         (why,) = raised.value.reasons
         assert "m.py@b9" in why
 
-    def test_a_named_place_that_sets_nothing_is_approved_and_named(
+    def test_an_unchanged_approved_place_produces_no_alteration(
         self, tmp_path, monkeypatch, capsys
     ):
         """A place standing on the text already there is approved and has
@@ -852,26 +1026,13 @@ class TestOnlyTheApprovedPlaces:
             tmp_path, monkeypatch, capsys, TWO_CORRECTIONS, TWO_PLACES
         )
         done = docket_of_proof(proof, repo, only=("m.py@b1", "m.py@b3"))
-        assert done.sets_nothing == ("m.py@b3",)
-        assert [
-            (one.cue, one.text) for one in done.docket.schedules[0].alterations
-        ] == [("b1", TWO)]
-
-    def test_a_blanket_transcription_names_no_place_as_setting_nothing(
-        self, tmp_path, monkeypatch, capsys
-    ):
-        """Without a filter nobody named a place, so a place that sets nothing
-        is every clean place on the proof and reporting them would be noise."""
-        proof, repo = self._closed(
-            tmp_path, monkeypatch, capsys, TWO_CORRECTIONS, TWO_PLACES
-        )
-        assert docket_of_proof(proof, repo).sets_nothing == ()
+        assert [(one.cue, one.text) for one in done.schedules[0].alterations] == [
+            ("b1", TWO)
+        ]
 
     def test_both_ends_of_a_move_together_are_transcribed(
         self, tmp_path, monkeypatch, capsys
     ):
-        """A move's two ends are approved each on its own (D8): the case
-        naming both lands both, one decided text per place."""
         proof, repo = self._closed(
             tmp_path,
             monkeypatch,
@@ -887,9 +1048,10 @@ class TestOnlyTheApprovedPlaces:
             MOVED,
         )
         done = docket_of_proof(proof, repo, only=("m.py@b1", "m.py@b2"))
-        assert [
-            (one.cue, one.text) for one in done.docket.schedules[0].alterations
-        ] == [("b1", REMAINDER), ("b2", MOVED_TO)]
+        assert [(one.cue, one.text) for one in done.schedules[0].alterations] == [
+            ("b1", REMAINDER),
+            ("b2", MOVED_TO),
+        ]
 
 
 def test_the_revise_holds_only_the_docket_page_as_drafted(tmp_path):

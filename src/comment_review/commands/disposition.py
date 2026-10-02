@@ -30,11 +30,8 @@ ruling is refused by name, with the roles it was put to, and nothing is
 written -- the refusal is the whole answer, so the caller rules and runs
 again.
 
-The unsettlable places are printed and not ruled (`Process: #90`). A
-human-review query rides with the set to the end and is asked of the human
-after everything else has settled; this is the end, so each is named here for
-that asking, and none is on the chief's copy. A ruling at one of them is
-refused, as at any place the fold does not carry forward.
+The human answers the question. The role that asked replaces its query with
+a mark or answer reflecting that response. Folding waits for this replacement.
 """
 
 import argparse

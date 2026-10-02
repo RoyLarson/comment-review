@@ -71,6 +71,7 @@ the same splitter `desk.collator.source_problems` will check the result with.
 from collections.abc import Callable
 from pathlib import Path
 
+from comment_review import constants
 from comment_review.desk.collator import cite_at
 from comment_review.desk.evaluate.passes import composed_side, proposing
 from comment_review.desk.marks.rules import derived_change
@@ -86,10 +87,9 @@ from comment_review.desk.proof.mark import (
 )
 from comment_review.desk.proof.place import Filed
 from comment_review.desk.stages import not_admitted
+from comment_review.exceptions import READ_ERRORS
 from comment_review.flows.on_the_page import held_at
 from comment_review.flows.page_for import page_of
-from comment_review.machine import constants
-from comment_review.machine.exceptions import READ_ERRORS
 from comment_review.machine.repo import can_escape, read_raw
 from comment_review.reading.addresser import cue_of, unflatten
 

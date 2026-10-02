@@ -150,6 +150,7 @@
             # Test names are the documentation here; a docstring per case restates the
             # name and rots separately from it.
             "tests/**" = ["D"]
+            "src/comment_review/desk/proof/state.py" = ["D100"]
 
 # !! THE SCOPE IS CONFIGURED, NOT PASSED ON THE COMMAND LINE. Roy, 2026-08-30:
 # *"Yes ty should pick up the tests as well."* It read

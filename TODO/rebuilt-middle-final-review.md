@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 21 of 52 tasks closed
+Progress: 28 of 52 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -79,8 +79,8 @@ The rebuilt middle's final review.
       nobody is owed, and closed by the chief (B5)
 - [ ] T24 | Decide whether a reader that answered clean becomes a side and is
       then asked an escalation (B6)
-- [ ] T25 | Make answers_pass keep the sides on unsettlable as marks_pass does
-      (B7)
+- [-] T25 | Human-held state removed under human-questions T8 | 340997703708b016c5505bbb1c31c4eb067bec76 | Make
+      answers_pass keep the sides on unsettlable as marks_pass does (B7)
         > 2026-09-30 Process 197 conflicts; see docs/reviews/2026-09-30-r2-r3.md
 - [-] T26 | Process 195 narrowed 139: the chief rules words per end; the pair coupling this named is gone | 0e15fbb1f2f4e3dedf85cde8a26e7a611eecee0c | Correct
       the design's 'never ruled apart'; Process 139 lets the chief rule a move's
@@ -100,6 +100,7 @@ The rebuilt middle's final review.
       asking as strings (D7)
 - [ ] T32 | Delete what nothing reads: AnswerRow.question, three event fields,
       desk/proof.py, diff3, tally, mark --anchor-line (E2)
+        > 2026-09-30 R3 retired AnswerRow.question; other named dead fields remain
 - [ ] T33 | Reduce rules stated twice: mismatched roots, the copy-chief string,
       marks by role, a ruling refused twice (E3)
 - [ ] T34 | Correct flows.revise.docket_of to flows.transcribe.docket_of on five
@@ -133,20 +134,26 @@ The rebuilt middle's final review.
       a move's two ends on the filing, not the place; two moves out of one
       origin leave the first unpaired (code-review 2026-09-25)
         > 2026-09-26 Process 195: the pair lives on the move aggregate; T27 there
-- [ ] T46 | Correct events.py so AsksTheHuman is said to come before the fold,
-      not from Fold.run; verify the module docstring says so
+- [x] T46 | FINISHED; report docstring names pre-fold human questions | 8c7f9f8d3cb4da8518bd4ca07ea5ad3eb7ba5e1d | Correct
+      events.py so AsksTheHuman is said to come before the fold, not from
+      Fold.run; verify the module docstring says so
         > 2026-09-30 Evidence: docs/reviews/2026-09-30-r2-r3.md, R2-C
-- [ ] T47 | Make stage reports own events emitted before and during a fold
+- [x] T47 | Report owns admission and fold events; 205 checks passed | 77a507f9 | Make
+      stage reports own events emitted before and during a fold
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r2-r3.md, R2-C
-- [ ] T48 | Make identical edits compose once while retaining genuine conflicts
+- [x] T48 | Composition behavior verified including acceptance, stale-side deferral and persisted proof | 3e8d57c24e0502cf0a9c2cd2b440986ac6598f79 | Make
+      identical edits compose once while retaining genuine conflicts
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r2-r3.md, R3-A
-- [ ] T49 | Make a role convergent marks and moves compose without discarding
-      their identities
+- [x] T49 | Same-role equal filings and two-origin moves retain original identities through reload | 7b6ca44a21e1f41ba8b81a69ddbbf85846c806ee | Make
+      a role convergent marks and moves compose without discarding their
+      identities
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r2-r3.md, R3-B
-- [ ] T50 | Make a composition deferral remove the answering role stale side
+- [x] T50 | Composition behavior verified including acceptance, stale-side deferral and persisted proof | 3e8d57c24e0502cf0a9c2cd2b440986ac6598f79 | Make
+      a composition deferral remove the answering role stale side
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r2-r3.md, R3-C
-- [ ] T51 | Give place and placement answers exhaustive effect contracts with
-      explicit deferral
+- [x] T51 | Exhaustive subject-specific effects verified including mover and reader deferral through persisted redispatch | a97bb5ded04e28d5372eecac87ea28ddaf3965b5 | Give
+      place and placement answers exhaustive effect contracts with explicit
+      deferral
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r2-r3.md, R3-D
 - [ ] T52 | Reject undecided chief-synthesis input before selecting a filed
       clean or query mark

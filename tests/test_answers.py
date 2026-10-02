@@ -1,12 +1,20 @@
 """The answers table: what a role's answer in a turn does to its own proposal,
 and the contract that publishes the table's own sets."""
 
+from dataclasses import FrozenInstanceError
 from typing import Any
 
 import pytest
 from helpers import a_typed_answer
 
-from comment_review.desk.answers.table import ANSWERS, Effect
+from comment_review.desk.answers.table import (
+    ANSWERS,
+    PlacementAnswerRow,
+    PlacementEffect,
+    SideAnswerRow,
+    SideEffect,
+    asks_human,
+)
 from comment_review.desk.proof.answer import (
     Answer,
     Question,
@@ -15,6 +23,74 @@ from comment_review.desk.proof.answer import (
     read_answer,
 )
 from comment_review.flows.answers import contracts
+
+EXPECTED_EFFECTS = {
+    (Question.ESCALATION, "hold"): SideEffect.KEEPS,
+    (Question.ESCALATION, "withdraw"): SideEffect.REMOVES,
+    (Question.ESCALATION, "correct"): SideEffect.REPLACES,
+    (Question.ESCALATION, "patch"): SideEffect.REPLACES,
+    (Question.COMPOSITION, "clean"): SideEffect.ACCEPTS,
+    (Question.COMPOSITION, "query"): SideEffect.DEFERS,
+    (Question.COMPOSITION, "correct"): SideEffect.REPLACES,
+    (Question.COMPOSITION, "patch"): SideEffect.REPLACES,
+    (Question.PLACEMENT, "agree"): PlacementEffect.ACCEPTS,
+    (Question.PLACEMENT, "stet"): PlacementEffect.CONTESTS,
+    (Question.PLACEMENT, "withdraw"): PlacementEffect.REMOVES,
+    (Question.PLACEMENT, "query"): PlacementEffect.DEFERS,
+}
+
+
+def test_admitted_rows_are_exactly_the_independent_contract():
+    assert set(ANSWERS) == set(EXPECTED_EFFECTS)
+    assert {effect.name for effect in SideEffect} == {
+        "KEEPS",
+        "REMOVES",
+        "REPLACES",
+        "ACCEPTS",
+        "DEFERS",
+        "HUMAN_QUERY",
+    }
+    assert {effect.name for effect in PlacementEffect} == {
+        "ACCEPTS",
+        "CONTESTS",
+        "REMOVES",
+        "DEFERS",
+        "HUMAN_QUERY",
+    }
+    assert SideEffect.ACCEPTS != PlacementEffect.ACCEPTS
+
+
+@pytest.mark.parametrize("key", sorted(ANSWERS))
+def test_every_admitted_row_classifies_its_answer_with_its_own_subject(key):
+    expected = EXPECTED_EFFECTS[key]
+    question, name = key
+    answer = _answer(question, name, change="# x", claim={"shape": "outside-my-role"})
+    row = ANSWERS[key]
+    assert isinstance(
+        row, PlacementAnswerRow if question is Question.PLACEMENT else SideAnswerRow
+    )
+    assert row.effect(answer) is expected
+    assert asks_human(answer) is False
+    field_name = "effect"
+    with pytest.raises(FrozenInstanceError):
+        setattr(row, field_name, row.effect)
+
+
+@pytest.mark.parametrize("question", (Question.COMPOSITION, Question.PLACEMENT))
+@pytest.mark.parametrize(
+    "shape", ("outside-my-role", "unable-to-determine", "human-review-necessary")
+)
+def test_human_classification_follows_the_query_row_for_each_subject(question, shape):
+    answer = _answer(question, "query", claim={"shape": shape})
+    assert asks_human(answer) is (shape == "human-review-necessary")
+
+
+@pytest.mark.parametrize("question", (Question.COMPOSITION, Question.PLACEMENT))
+def test_query_effect_requires_a_query_payload(question):
+    with pytest.raises(ValueError, match="requires QueryAnswer"):
+        ANSWERS[(question, "query")].effect(
+            _answer(question, "clean" if question is Question.COMPOSITION else "agree")
+        )
 
 
 def _answer(question: Question, name: str, **fields) -> Answer:
@@ -71,11 +147,11 @@ def test_each_answer_writes_the_wire_entry_it_read(question, name):
 
 def test_the_escalation_answers():
     e = Question.ESCALATION
-    assert ANSWERS[(e, "hold")].effect(_answer(e, "hold")) is Effect.KEEPS
-    assert ANSWERS[(e, "withdraw")].effect(_answer(e, "withdraw")) is Effect.REMOVES
+    assert ANSWERS[(e, "hold")].effect(_answer(e, "hold")) is SideEffect.KEEPS
+    assert ANSWERS[(e, "withdraw")].effect(_answer(e, "withdraw")) is SideEffect.REMOVES
     assert (
         ANSWERS[(e, "correct")].effect(_answer(e, "correct", change="# x"))
-        is Effect.REPLACES
+        is SideEffect.REPLACES
     )
     assert _kind("patch").owes_change is True
     assert _kind("hold").owes_change is False
@@ -83,14 +159,14 @@ def test_the_escalation_answers():
 
 def test_the_composition_answers():
     c = Question.COMPOSITION
-    assert ANSWERS[(c, "clean")].effect(_answer(c, "clean")) is Effect.ACCEPTS
+    assert ANSWERS[(c, "clean")].effect(_answer(c, "clean")) is SideEffect.ACCEPTS
     deferring = _answer(c, "query", claim={"shape": "outside-my-role"})
     human = _answer(c, "query", claim={"shape": "human-review-necessary"})
-    assert ANSWERS[(c, "query")].effect(deferring) is Effect.ABSTAINS
-    assert ANSWERS[(c, "query")].effect(human) is Effect.UNSETTLABLE
+    assert ANSWERS[(c, "query")].effect(deferring) is SideEffect.DEFERS
+    assert ANSWERS[(c, "query")].effect(human) is SideEffect.HUMAN_QUERY
     assert (
         ANSWERS[(c, "correct")].effect(_answer(c, "correct", change="# x"))
-        is Effect.REPLACES
+        is SideEffect.REPLACES
     )
 
 
@@ -98,13 +174,16 @@ def test_the_placement_answers():
     """`decision-log.md Process: #195` item 6: a move's placement is a question
     of its own, and its four answers act on the move, not on a side."""
     p = Question.PLACEMENT
-    assert ANSWERS[(p, "agree")].effect(_answer(p, "agree")) is Effect.ACCEPTS
-    assert ANSWERS[(p, "stet")].effect(_answer(p, "stet")) is Effect.CONTESTS
-    assert ANSWERS[(p, "withdraw")].effect(_answer(p, "withdraw")) is Effect.REMOVES
+    assert ANSWERS[(p, "agree")].effect(_answer(p, "agree")) is PlacementEffect.ACCEPTS
+    assert ANSWERS[(p, "stet")].effect(_answer(p, "stet")) is PlacementEffect.CONTESTS
+    assert (
+        ANSWERS[(p, "withdraw")].effect(_answer(p, "withdraw"))
+        is PlacementEffect.REMOVES
+    )
     deferring = _answer(p, "query", claim={"shape": "outside-my-role"})
     human = _answer(p, "query", claim={"shape": "human-review-necessary"})
-    assert ANSWERS[(p, "query")].effect(deferring) is Effect.ABSTAINS
-    assert ANSWERS[(p, "query")].effect(human) is Effect.UNSETTLABLE
+    assert ANSWERS[(p, "query")].effect(deferring) is PlacementEffect.DEFERS
+    assert ANSWERS[(p, "query")].effect(human) is PlacementEffect.HUMAN_QUERY
     # A placement answer is about where the paragraph goes; none rewrites it.
     assert not any(_kind(name).owes_change for asked, name in ANSWERS if asked is p)
     assert {name for asked, name in ANSWERS if asked is p} == {
@@ -184,7 +263,7 @@ def test_an_answer_is_read_against_its_question():
 
 
 def test_a_query_answer_with_no_shape_is_refused_rather_than_read_as_deferring():
-    """`_query_effect` reads `claim.shape` to tell a place held for a person
+    """The query row reads `claim.shape` to tell a place held for a person
     from a role standing aside, and a missing key fell to the second -- the
     difference between a review that stops for someone and one that does not.
 
@@ -221,7 +300,7 @@ def test_a_query_answer_with_no_shape_is_refused_rather_than_read_as_deferring()
         },
     )
     assert why == [] and got is not None
-    assert ANSWERS[(c, "query")].effect(got) is Effect.ABSTAINS
+    assert ANSWERS[(c, "query")].effect(got) is SideEffect.DEFERS
     got, why = read_answer(
         "m.py@b1",
         {
@@ -239,7 +318,7 @@ def test_a_query_answer_with_no_shape_is_refused_rather_than_read_as_deferring()
 def test_a_query_answer_whose_shape_is_not_one_of_the_three_is_refused(question):
     """A mistyped `human-review-necessary` would otherwise read as deferring --
     a place nobody waits on -- instead of going to the author. Refused as a
-    query mark's shape is, in the same words, so `_query_effect` only ever
+    query mark's shape is, in the same words, so a query effect only ever
     sees one of the three."""
     entry = {
         "address": "m.py@b1",

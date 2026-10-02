@@ -77,7 +77,9 @@ def crossings(forbidden: dict | None = None) -> set[str]:
     """Every import a module makes into an area that module may not name."""
     found = set()
     for area, may_not in (forbidden or FORBIDDEN).items():
-        for path in sorted((SRC / area).rglob("*.py")):
+        area_path = SRC / area
+        paths = [area_path] if area_path.is_file() else sorted(area_path.rglob("*.py"))
+        for path in paths:
             tree = ast.parse(path.read_text(encoding="utf-8"))
             for node in ast.walk(tree):
                 if not isinstance(node, ast.ImportFrom) or not node.module:
@@ -100,6 +102,38 @@ def found() -> set[str]:
     whole point of it.
     """
     return crossings()
+
+
+def test_a_leaf_file_crossing_is_detected(tmp_path, monkeypatch):
+    (tmp_path / "differences.py").write_text(
+        "from comment_review.desk.proof.place import Place\n", encoding="utf-8"
+    )
+    monkeypatch.setitem(crossings.__globals__, "SRC", tmp_path)
+    assert crossings({"differences.py": ("desk",)}) == {
+        "differences.py: comment_review.desk.proof.place"
+    }
+
+
+@pytest.mark.parametrize("leaf", ("differences", "constants", "exceptions"))
+def test_pure_helpers_reach_no_higher_area(leaf):
+    assert (SRC / f"{leaf}.py").is_file()
+    assert (
+        crossings(
+            {
+                f"{leaf}.py": (
+                    "machine",
+                    "binder",
+                    "desk",
+                    "docket",
+                    "results",
+                    "flows",
+                    "commands",
+                    "concordance",
+                )
+            }
+        )
+        == set()
+    )
 
 
 def test_no_area_reaches_across_except_the_three_still_open(found):

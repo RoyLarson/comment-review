@@ -88,7 +88,7 @@ placed edits from a binder built before `def f():` was renamed and printed
 carries stops that file rather than writing a galley nobody can trust.
 """
 
-from comment_review.machine import constants
+from comment_review import constants
 
 # The one `cue_of`. It answers `(path, cue)`, so every site here reads `.cue`,
 # and it returns two blanks where there is no `@` separator, so a bare `b3` is

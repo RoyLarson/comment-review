@@ -17,15 +17,15 @@ from helpers import (
     returned,
 )
 
+from comment_review.desk import report as events
 from comment_review.desk.marks.table import INSTRUCTIONS
 from comment_review.desk.proof.answer import Question
-from comment_review.desk.proof.mark import BlankMark, Shape, Touch
+from comment_review.desk.proof.mark import BlankMark, MoveMark, Shape, Touch
 from comment_review.desk.proof.master_proof import MasterProof
 from comment_review.desk.proof.place import Place
 from comment_review.desk.proof.sheet import Sheet
 from comment_review.desk.proof.state import State
 from comment_review.desk.stages import Dispatch, Kind, Role, Stage
-from comment_review.desk.work import events
 from comment_review.flows.bus import (
     AnswersReturned,
     CopiesReturned,
@@ -34,11 +34,173 @@ from comment_review.flows.bus import (
     turn_of,
 )
 from comment_review.flows.human import HumanAnswer
+from comment_review.flows.proof_io import load_proof, save_proof
+from comment_review.flows.revise import pull
 from comment_review.flows.transcribe import docket_of_proof
 
 BASE = "# one\n# two\n# three"
 OTHER = "# four\n# five\n# six"
 CORRECTED = "# one\n# TWO\n# three"
+
+
+@pytest.mark.parametrize("reverse", (False, True))
+def test_two_moves_keep_both_origins_and_one_arrival_after_proof_reload(
+    tmp_path, reverse
+):
+    root = tmp_path / "repo"
+    paragraphs = {
+        "m.py@b1": "# one\n# first",
+        "m.py@b2": "# two\n# second",
+        "m.py@b3": "# destination",
+    }
+    binder = a_real_binder_over(root, paragraphs)
+    arrival = "# first\n# second\n# destination"
+    marks = {
+        "m.py@b1": a_move("m.py@b1", "m.py@b3", change="# first", reads=arrival),
+        "m.py@b2": a_move("m.py@b2", "m.py@b3", change="# second", reads=arrival),
+        "m.py@b3": a_clean("m.py@b3"),
+    }
+    if reverse:
+        marks = dict(reversed(list(marks.items())))
+    copies = [returned(wire) for wire in copies_over(binder, {"block-context": marks})]
+    out, result = handle(CopiesReturned("4c", copies, binder, root, None))
+    assert result is not None, _refusals(out)
+    reloaded, why = MasterProof.deserialize("proof", result.proof.serialize())
+    assert reloaded is not None, why
+    assert {move.key for move in reloaded.moves} == {
+        "m.py@b1 -> m.py@b3",
+        "m.py@b2 -> m.py@b3",
+    }
+    destination = next(place for place in reloaded.places if place.address == "m.py@b3")
+    arrivals = [one for one in destination.filed if one.touch is Touch.DESTINATION]
+    assert len(arrivals) == 2
+    assert {
+        one.mark.address: one.mark.change
+        for one in arrivals
+        if isinstance(one.mark, MoveMark)
+    } == {
+        "m.py@b1": "# first",
+        "m.py@b2": "# second",
+    }
+    for one in arrivals:
+        assert one.source is not None
+        copy, sheet, mark = one.source
+        assert (
+            one.mark is reloaded.edit_copies[copy - 1].sheets[sheet - 1].marks[mark - 1]
+        )
+    schedules = docket_of_proof(reloaded, root).schedules
+    assert {
+        one.cue: one.text for schedule in schedules for one in schedule.alterations
+    } == {"b1": "# one\n", "b2": "# two\n", "b3": arrival}
+
+
+@pytest.mark.parametrize("reverse", (False, True))
+@pytest.mark.parametrize("shape", ("outside-my-role", "unable-to-determine"))
+def test_two_moves_and_a_composition_deferral_write_the_expected_page(
+    tmp_path, reverse, shape
+):
+    root = tmp_path / "repo"
+    paragraphs = {
+        "m.py@b1": "# one\n# first",
+        "m.py@b2": "# two\n# second",
+        "m.py@b3": "# destination",
+        "m.py@b4": BASE,
+    }
+    binder = a_real_binder_over(root, paragraphs)
+    original_bytes = (root / "m.py").read_bytes()
+    arrival = "# first\n# second\n# destination"
+    by_role = {
+        "block-context": {
+            "m.py@b1": a_move("m.py@b1", "m.py@b3", change="# first", reads=arrival),
+            "m.py@b2": a_move("m.py@b2", "m.py@b3", change="# second", reads=arrival),
+            "m.py@b3": a_clean("m.py@b3"),
+            "m.py@b4": a_correct_setting("m.py@b4", "one", "# ONE\n# two\n# three"),
+        },
+        "function-context": {
+            **{address: a_clean(address) for address in paragraphs},
+            "m.py@b4": a_correct_setting("m.py@b4", "three", "# one\n# two\n# THREE"),
+        },
+        "module-context": {address: a_clean(address) for address in paragraphs},
+    }
+    if reverse:
+        by_role = {
+            role: dict(reversed(list(marks.items())))
+            for role, marks in reversed(list(by_role.items()))
+        }
+    out, result = handle(
+        CopiesReturned(
+            "4c",
+            [returned(wire) for wire in copies_over(binder, by_role)],
+            binder,
+            root,
+            None,
+        )
+    )
+    assert result is not None and result.batch is not None, out
+    assert len(result.proof.moves) == 2
+    answers = {}
+    for role, slots in result.batch.items():
+        answers[role] = []
+        for slot in slots:
+            defer = role == "block-context" and slot["address"] == "m.py@b4"
+            entry = _answer(
+                slot["address"],
+                "query"
+                if defer
+                else "agree"
+                if slot["question"] == "placement"
+                else "clean",
+                "defer" if defer else "accept",
+                **({"to": slot["to"]} if "to" in slot else {}),
+                **(
+                    {
+                        "claim": {
+                            "shape": shape,
+                            "attempted": "read",
+                            "settles": "function-context",
+                        }
+                    }
+                    if defer
+                    else {}
+                ),
+            )
+            answers[role].append(entry)
+    out, placed = handle(AnswersReturned(result.proof, answers, root))
+    assert placed is not None and placed.batch is not None, out
+    path = tmp_path / "proof.json"
+    save_proof(path, placed.proof)
+    reloaded, why = load_proof(path)
+    assert reloaded is not None, why
+    deferred = next(place for place in reloaded.places if place.address == "m.py@b4")
+    assert "block-context" not in deferred.sides and deferred.owed == ()
+    assert deferred.answers[1]["block-context"].serialize()["claim"]["shape"] == shape
+    assert {slot["address"] for slots in placed.batch.values() for slot in slots} == {
+        "m.py@b1",
+        "m.py@b2",
+        "m.py@b3",
+    }
+    clean_answers = {
+        role: [_answer(slot["address"], "clean", "accept") for slot in slots]
+        for role, slots in placed.batch.items()
+    }
+    out, closed = handle(AnswersReturned(reloaded, clean_answers, root))
+    assert closed is not None and closed.batch is None, out
+    save_proof(path, closed.proof)
+    proof, why = load_proof(path)
+    assert proof is not None, why
+    assert {move.key for move in proof.moves} == {
+        "m.py@b1 -> m.py@b3",
+        "m.py@b2 -> m.py@b3",
+    }
+    pulled = pull(docket_of_proof(proof, root), root, tmp_path / "revise", 1)
+    assert pulled.refusals == []
+    expected = (
+        b"v0 = 0\n# one\nv1 = 1\n# two\nv2 = 2\n"
+        b"# first\n# second\n# destination\nv3 = 3\n"
+        b"# ONE\n# two\n# THREE\nv4 = 4\n"
+    )
+    assert (pulled.root / "m.py").read_bytes() == expected
+    assert (root / "m.py").read_bytes() == original_bytes
 
 
 def _message(tmp_path, by_role):
@@ -531,6 +693,65 @@ def _stetted(tmp_path):
     return turned
 
 
+@pytest.mark.parametrize("shape", ("outside-my-role", "unable-to-determine"))
+def test_a_mover_deferral_is_not_redispatched_after_proof_reload(tmp_path, shape):
+    result = _stetted(tmp_path)
+    assert result.batch is not None
+    answers = {
+        role: [
+            _answer(
+                slot["address"],
+                "query" if role == "block-context" else "stet",
+                "defer" if role == "block-context" else "keep it",
+                to=slot["to"],
+                **(
+                    {
+                        "claim": {
+                            "shape": shape,
+                            "attempted": "read",
+                            "settles": "function-context",
+                        }
+                    }
+                    if role == "block-context"
+                    else {}
+                ),
+            )
+            for slot in slots
+        ]
+        for role, slots in result.batch.items()
+    }
+    out, deferred = handle(AnswersReturned(result.proof, answers, tmp_path / "repo"))
+    assert deferred is not None and deferred.batch is not None, out
+    path = tmp_path / "proof.json"
+    save_proof(path, deferred.proof)
+    reloaded, why = load_proof(path)
+    assert reloaded is not None, why
+    (move,) = reloaded.moves
+    assert move.placement is not None and move.owed == ("function-context",)
+    assert set(deferred.batch) == {"function-context"}
+    assert move.answers[2]["block-context"].serialize()["claim"]["shape"] == shape
+    for place in reloaded.places:
+        assert any(
+            one.role == "block-context" and isinstance(one.mark, MoveMark)
+            for one in place.filed
+        )
+    out, next_turn = handle(
+        AnswersReturned(
+            reloaded,
+            {
+                "function-context": [
+                    _answer(slot["address"], "stet", "keep it", to=slot["to"])
+                    for slot in deferred.batch["function-context"]
+                ]
+            },
+            tmp_path / "repo",
+        )
+    )
+    assert next_turn is not None and next_turn.batch is not None, out
+    assert set(next_turn.batch) == {"function-context"}
+    assert next_turn.proof.moves[0].owed == ("function-context",)
+
+
 def test_an_undecided_moves_ends_are_to_come_and_ask_nothing(tmp_path):
     """A move's placement is settled before the marks around it, so neither
     end of an undecided move is asked about its words: the one question put
@@ -575,6 +796,122 @@ def _turn(result, root, answer_for):
     out, turned = handle(AnswersReturned(result.proof, answers, root))
     assert turned is not None, out
     return turned
+
+
+@pytest.mark.parametrize("shape", ("outside-my-role", "unable-to-determine"))
+def test_composition_deferral_survives_disk_reload_without_repeat_dispatch(
+    tmp_path, shape
+):
+    by_role = dict(COMPOSE_ROLES)
+    by_role["module-context"] = {PLACE: a_clean(PLACE), "m.py@b2": a_clean("m.py@b2")}
+    collated = _collated(tmp_path, by_role)
+    out, turned = handle(
+        AnswersReturned(
+            collated.proof,
+            {
+                "block-context": [
+                    _answer(
+                        PLACE,
+                        "query",
+                        "defer",
+                        claim={
+                            "shape": shape,
+                            "attempted": "read",
+                            "settles": "function-context",
+                        },
+                    )
+                ],
+                "function-context": [_answer(PLACE, "clean", "accept")],
+                "module-context": [_answer(PLACE, "clean", "accept")],
+            },
+            tmp_path / "repo",
+        )
+    )
+    assert turned is not None, out
+    path = tmp_path / "proof.json"
+    save_proof(path, turned.proof)
+    reloaded, why = load_proof(path)
+    assert reloaded is not None, why
+    place = next(p for p in reloaded.places if p.address == PLACE)
+    assert "block-context" not in place.sides
+    assert place.answers[1]["block-context"].name == "query"
+    assert place.owed == ()
+    assert turned.batch is None
+    out, refolded = handle(AnswersReturned(reloaded, {}, tmp_path / "repo"))
+    assert refolded is not None, out
+    assert refolded.batch is None
+
+
+@pytest.mark.parametrize("human_question", ("composition", "placement"))
+def test_mixed_answers_route_human_queries_before_the_production_fold(
+    tmp_path, monkeypatch, human_question
+):
+    root = tmp_path / "repo"
+    binder = a_real_binder_over(
+        root, {"m.py@b1": BASE, "m.py@b2": OTHER, "m.py@b3": BASE}
+    )
+    by_role = {
+        "block-context": {
+            "m.py@b1": a_move(
+                "m.py@b1", "m.py@b2", change="# two\n", reads=OTHER + "\n# two"
+            ),
+            "m.py@b2": a_clean("m.py@b2"),
+            "m.py@b3": a_correct_setting("m.py@b3", "one", "# ONE\n# two\n# three"),
+        },
+        "function-context": {
+            address: a_clean(address) for address in ("m.py@b1", "m.py@b2", "m.py@b3")
+        },
+    }
+    out, collated = handle(
+        CopiesReturned(
+            "4c",
+            [returned(wire) for wire in copies_over(binder, by_role)],
+            binder,
+            root,
+            None,
+        )
+    )
+    assert collated is not None and collated.batch is not None, out
+    slots = collated.batch["function-context"]
+    assert {slot["question"] for slot in slots} == {"composition", "placement"}
+    answers = {
+        "function-context": [
+            _answer(
+                slot["address"],
+                "query"
+                if slot["question"] == human_question
+                else "agree"
+                if slot["question"] == "placement"
+                else "clean",
+                "ask" if slot["question"] == human_question else "accept",
+                **({"to": slot["to"]} if "to" in slot else {}),
+                **(
+                    {
+                        "claim": {
+                            "shape": "human-review-necessary",
+                            "attempted": "read",
+                            "settles": "author",
+                        }
+                    }
+                    if slot["question"] == human_question
+                    else {}
+                ),
+            )
+            for slot in slots
+        ]
+    }
+    from comment_review.flows import bus
+
+    def must_not_fold(self):
+        pytest.fail("a human query reached the production fold")
+
+    monkeypatch.setattr(bus.Fold, "run", must_not_fold)
+    out, result = handle(AnswersReturned(collated.proof, answers, root))
+    assert result is None
+    asks = [one for one in out if isinstance(one, events.AsksTheHuman)]
+    expected_at = "m.py@b1 -> m.py@b2" if human_question == "placement" else "m.py@b3"
+    assert asks == [events.AsksTheHuman("function-context", expected_at, "ask", "")]
+    assert not any(isinstance(one, events.Committed) for one in out)
 
 
 def test_a_withdrawn_moves_origin_is_put_to_the_role_that_has_not_seen_it(tmp_path):
@@ -1269,7 +1606,7 @@ class TestAnOpenMoveIsNotTranscribed:
     def test_a_contested_move_the_chief_ruled_is_transcribed(self, tmp_path):
         proof, root = self._ruled(tmp_path)
         assert [m.placement for m in proof.moves] == ["agreed"]
-        (schedule,) = docket_of_proof(proof, root).docket.schedules
+        (schedule,) = docket_of_proof(proof, root).schedules
         assert [(one.cue, one.text) for one in schedule.alterations] == [
             ("b1", "# one\n# three"),
             ("b2", ARRIVAL),
@@ -1307,8 +1644,52 @@ def _with_a_human_query(tmp_path):
 class TestAHumanQuestionIsAskedBeforeTheFold:
     """`decision-log.md Process: #197`: no human question reaches a fold."""
 
-    def test_an_unanswered_human_query_rolls_the_stage_back_naming_it(self, tmp_path):
+    @pytest.mark.parametrize("at", ["m.py@b1", "m.py@b2"])
+    def test_a_human_query_at_either_move_end_never_folds(
+        self, tmp_path, monkeypatch, at
+    ):
+        root = tmp_path / "repo"
+        binder = a_real_binder_over(root, {"m.py@b1": BASE, "m.py@b2": OTHER})
+        by_role = {
+            "block-context": {
+                "m.py@b1": a_move(
+                    "m.py@b1", "m.py@b2", change=BASE, reads=BASE + "\n" + OTHER
+                ),
+                "m.py@b2": a_clean("m.py@b2"),
+            },
+            "module-context": {
+                "m.py@b1": a_clean("m.py@b1"),
+                "m.py@b2": a_clean("m.py@b2"),
+                at: {
+                    **a_query(at, Shape.HUMAN_REVIEW_NECESSARY),
+                    "reason": "Where does this belong?",
+                },
+            },
+        }
+        copies = [returned(wire) for wire in copies_over(binder, by_role)]
+
+        def must_not_fold(*args, **kwargs):
+            pytest.fail("a human query at a move end reached Fold")
+
+        monkeypatch.setattr("comment_review.flows.bus.Fold", must_not_fold)
+        out, result = handle(CopiesReturned("4c", copies, binder, root, None))
+        assert result is None
+        assert [
+            (e.role, e.at, e.question)
+            for e in out
+            if isinstance(e, events.AsksTheHuman)
+        ] == [("module-context", at, "Where does this belong?")]
+        assert not any(isinstance(e, events.Committed) for e in out)
+
+    def test_an_unanswered_human_query_rolls_the_stage_back_naming_it(
+        self, tmp_path, monkeypatch
+    ):
         binder, root, copies = _with_a_human_query(tmp_path)
+
+        def must_not_fold(*args, **kwargs):
+            pytest.fail("a human query reached Fold")
+
+        monkeypatch.setattr("comment_review.flows.bus.Fold", must_not_fold)
         out, result = handle(CopiesReturned("4c", copies, binder, root, None))
         assert result is None
         asks = [e for e in out if isinstance(e, events.AsksTheHuman)]
@@ -1339,7 +1720,7 @@ class TestAHumanQuestionIsAskedBeforeTheFold:
         assert result is not None
 
     def test_a_human_answer_in_a_turn_rolls_the_turn_back_naming_its_move(
-        self, tmp_path
+        self, tmp_path, monkeypatch
     ):
         """Review Focus 1. A human question answered at a placement slot is
         named by the move's key, and one at a composition slot by the place's
@@ -1374,8 +1755,15 @@ class TestAHumanQuestionIsAskedBeforeTheFold:
                 role: [answer_for(s) for s in slots]
                 for role, slots in result.batch.items()
             }
-            out, turned = handle(AnswersReturned(result.proof, answers, root))
+            with monkeypatch.context() as guard:
+
+                def must_not_fold(*args, **kwargs):
+                    pytest.fail("a human answer reached Fold")
+
+                guard.setattr("comment_review.flows.bus.Fold", must_not_fold)
+                out, turned = handle(AnswersReturned(result.proof, answers, root))
             assert turned is None
+            assert not any(isinstance(e, events.Committed) for e in out)
             return [(e.role, e.at) for e in out if isinstance(e, events.AsksTheHuman)]
 
         assert asks_in(first, "placement") == [("module-context", "m.py@b1 -> m.py@b2")]
@@ -1387,7 +1775,9 @@ class TestAHumanQuestionIsAskedBeforeTheFold:
             ("module-context", "m.py@b2"),
         ]
 
-    def test_a_human_query_beside_a_refusal_reports_both(self, tmp_path):
+    def test_stage_report_keeps_pre_fold_questions_and_refusals(
+        self, tmp_path, monkeypatch
+    ):
         """Review Focus 4."""
         binder, root, copies = _with_a_human_query(tmp_path)
         broken = [
@@ -1402,9 +1792,16 @@ class TestAHumanQuestionIsAskedBeforeTheFold:
                 },
             )
         ]
+
+        def must_not_fold(*args, **kwargs):
+            pytest.fail("a human query beside a refusal reached Fold")
+
+        monkeypatch.setattr("comment_review.flows.bus.Fold", must_not_fold)
         out, result = handle(
             CopiesReturned("4c", [copies[0], *broken], binder, root, None)
         )
         assert result is None
         assert any(isinstance(e, events.Refused) for e in out)
         assert any(isinstance(e, events.AsksTheHuman) for e in out)
+        assert not any(isinstance(e, events.Committed) for e in out)
+        assert isinstance(out[-1], events.RolledBack)

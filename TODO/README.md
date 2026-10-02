@@ -286,7 +286,7 @@ that changed a published name or rule:
 | [stage-4b-is-undefined](stage-4b-is-undefined.md) | agents | -- | 1/6 | the 4a/4c split promises a resolved placement that nothing produces |
 | [citations-resolve-to-no-object](citations-resolve-to-no-object.md) | systems | -- | 0/1 | Find the four commit citations that resolve to no object |
 | [row-was-never-retired](row-was-never-retired.md) | backend | yes | 0/5 | Retire row everywhere -- the type, the wire key and the prose |
-| [only-a-flow-reaches-the-machine](only-a-flow-reaches-the-machine.md) | backend | -- | 1/10 | Route every machine read and write through a flow |
+| [only-a-flow-reaches-the-machine](only-a-flow-reaches-the-machine.md) | backend | -- | 2/10 | Route every machine read and write through a flow |
 | [a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own](a-non-code-document-has-no-read-review-resolve-or-write-chain-of-its-own.md) | backend | -- | 0/2 | A non-code document has no read, review, resolve or write chain of its own |
 | [re-review-is-retired-for-revise](re-review-is-retired-for-revise.md) | agents | -- | 4/6 | re-review is retired for revise |
 | [agents-files-name-the-new-cli](agents-files-name-the-new-cli.md) | agents | -- | 33/41 | The agents files name the new CLI and say how to use it |
@@ -294,12 +294,12 @@ that changed a published name or rule:
 | [a-machine-context-raises-query-and-clean](a-machine-context-raises-query-and-clean.md) | backend | yes | 0/8 | annotate carries two subjects -- it extracts index keys, and it flags claims it cannot settle. The second half becomes a context that marks like a role. |
 | [the-chief-has-no-recast-workflow](the-chief-has-no-recast-workflow.md) | backend | yes | 8/14 | cap applies the chief's rulings and closes the stage, but a recast is written out as a correct, so a recast of an add at an empty place writes nothing and exits 0. |
 | [prove-unchanged-line-endings-follow-a-sibling](prove-unchanged-line-endings-follow-a-sibling.md) | backend | -- | 0/2 | On a checkout with core.autocrlf=true, git writes a checked-out text file with CRLF while its blob stays LF, and a file git never rewrote can still be LF. prove_unchanged compares an edited file's line endings with one untouched sibling, so a CRLF file whose sibling is a one-line LF __init__.py FAILs though the write kept every ending and the AST comparison passes. The check should hold the file to its own pre-edit endings. |
-| [rebuilt-middle-final-review](rebuilt-middle-final-review.md) | backend | -- | 21/52 | Every finding of the final review of the rebuilt middle, Broken first. The three Broken ones hold the branch from merging out. |
-| [human-questions-before-the-fold](human-questions-before-the-fold.md) | backend | -- | 4/8 | A human question is asked before the fold |
+| [rebuilt-middle-final-review](rebuilt-middle-final-review.md) | backend | -- | 28/52 | Every finding of the final review of the rebuilt middle, Broken first. The three Broken ones hold the branch from merging out. |
 | [exit-codes-are-an-enum](exit-codes-are-an-enum.md) | backend | -- | 0/5 | Exit codes are written in thirteen places |
 | [command-help-carries-history](command-help-carries-history.md) | backend | -- | 0/1 | Command help carries development history |
 | [vocabulary-has-one-source](vocabulary-has-one-source.md) | systems | -- | 1/2 | Vocabulary has one source |
 | [p5-self-run-findings](p5-self-run-findings.md) | systems | -- | 1/5 | The P5 self-run findings |
+| [r2-preexisting-prose](r2-preexisting-prose.md) | backend | -- | 0/2 | Correct pre-existing move and fold-helper prose |
 
 ### in-progress  (18)
 
@@ -472,3 +472,15 @@ the reason is inside the file.
 | [brief-forbids-the-full-address](completed/brief-forbids-the-full-address.md) | 3 finished |
 | [smoke-drives-one-route](completed/smoke-drives-one-route.md) | 8 finished, 1 superseded |
 | [the-middle-rebuilt](completed/the-middle-rebuilt.md) | 7 finished |
+| [r3-placement-deferral-review](completed/r3-placement-deferral-review.md) | 1 finished |
+| [r3-editorial-ownership](completed/r3-editorial-ownership.md) | 1 finished |
+| [r3-editorial-module](completed/r3-editorial-module.md) | 1 finished |
+| [r3-plan-completeness](completed/r3-plan-completeness.md) | 8 finished |
+| [human-questions-before-the-fold](completed/human-questions-before-the-fold.md) | 7 finished, 1 superseded |
+| [r2-legacy-state-diagnostics](completed/r2-legacy-state-diagnostics.md) | 1 finished |
+| [r2-refusal-evidence](completed/r2-refusal-evidence.md) | 1 finished |
+| [r2-approved-prose](completed/r2-approved-prose.md) | 1 finished |
+| [r2-whole-move-approval](completed/r2-whole-move-approval.md) | 1 finished |
+| [r2-docket-only](completed/r2-docket-only.md) | 2 finished |
+| [r2-proposal-clarity](completed/r2-proposal-clarity.md) | 9 finished, 1 superseded |
+| [r2-prose-review](completed/r2-prose-review.md) | 6 finished |

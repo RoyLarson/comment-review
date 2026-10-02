@@ -74,7 +74,7 @@ def line_of(path: Path, number: int) -> str:
 
 
 #: A real line of a real file this checkout carries.
-CITED_FILE = "src/comment_review/machine/exceptions.py"
+CITED_FILE = "src/comment_review/exceptions.py"
 CITED_LINE = 57
 CITED_TEXT = line_of(ROOT / CITED_FILE, CITED_LINE)
 

@@ -55,7 +55,7 @@ from dataclasses import field as dataclass_field
 from itertools import pairwise
 from pathlib import Path
 
-from comment_review.machine import constants, exceptions
+from comment_review import constants, exceptions
 from comment_review.reading.addresser import (
     COVERS,
     DECLARED,
