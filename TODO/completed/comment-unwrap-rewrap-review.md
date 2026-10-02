@@ -1,8 +1,8 @@
 # Repair comment wrapping review findings
 
 ```
-Status:   open
-Progress: 14 of 15 tasks closed
+Status:   closed
+Progress: 15 of 15 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-02 (review)
@@ -56,5 +56,6 @@ Repair comment wrapping review findings.
 - [x] T14 | Python token boundaries exclude adjacent quoted code; move and drop regressions pass | 9b53793ef0da8755de72926ab6b09263134fdfb3 | Use
       Python string-token boundaries in reading/lexer.py:336; test docstring
       moves and drops preserve adjacent code with matching quotes
-- [ ] T15 | Handle Python separators in reading/comment.py:29; test
-      whole-docstring moves and drops leave adjacent code valid
+- [x] T15 | Whole docstring moves and drops leave valid adjacent statements; execution regressions pass | 6807dde5f16b722f097631626f02c3243f2f5eef | Handle
+      Python separators in reading/comment.py:29; test whole-docstring moves and
+      drops leave adjacent code valid

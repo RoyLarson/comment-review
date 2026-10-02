@@ -178,7 +178,7 @@ that changed a published name or rule:
 
 ## Open
 
-### open  (120)
+### open  (119)
 
 | file | owner | roy? | done | what |
 | --- | --- | :-: | ---: | --- |
@@ -301,7 +301,6 @@ that changed a published name or rule:
 | [p5-self-run-findings](p5-self-run-findings.md) | systems | -- | 1/5 | The P5 self-run findings |
 | [r2-preexisting-prose](r2-preexisting-prose.md) | backend | -- | 0/2 | Correct pre-existing move and fold-helper prose |
 | [mark-stance-metadata-prose](mark-stance-metadata-prose.md) | backend | -- | 0/2 | Clarify mark stance and reading metadata prose |
-| [comment-unwrap-rewrap-review](comment-unwrap-rewrap-review.md) | backend | -- | 14/15 | Repair comment wrapping review findings |
 
 ### in-progress  (18)
 
@@ -488,3 +487,4 @@ the reason is inside the file.
 | [r2-prose-review](completed/r2-prose-review.md) | 6 finished |
 | [received-binder-checks](completed/received-binder-checks.md) | 4 finished |
 | [received-binder-handoff](completed/received-binder-handoff.md) | 1 finished |
+| [comment-unwrap-rewrap-review](completed/comment-unwrap-rewrap-review.md) | 15 finished |
