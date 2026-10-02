@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 29 of 52 tasks closed
+Progress: 30 of 52 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-09-18 (final whole-branch review of feat/the-middle-rebuilt, 2026-09-18)
@@ -156,6 +156,7 @@ The rebuilt middle's final review.
       place and placement answers exhaustive effect contracts with explicit
       deferral
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r2-r3.md, R3-D
-- [ ] T52 | Reject undecided chief-synthesis input before selecting a filed
-      clean or query mark
+- [x] T52 | Undecided clean and query inputs raise before selection; full suite and review pass | f83451bf49ca8566a57761518a1c9daa4ce16720 | Reject
+      undecided chief-synthesis input before selecting a filed clean or query
+      mark
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r6-r7-r8.md, item 4
