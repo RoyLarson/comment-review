@@ -269,14 +269,16 @@ def main() -> int:
         action="append",
         default=None,
         metavar="PATH",
-        help="one received binder per edit copy, in the same order; repeat for each",
+        help="one received binder per edit copy, in the same order; "
+        "required for shards;"
+        " without these, each copy must cover the whole stage assignment",
     )
     ap.add_argument("--out", required=True, help="where to write the chief's edit_copy")
     ap.add_argument(
         "--topology",
         metavar="PATH",
-        help="the run's topology; with it, a dispatch of --stage that returned"
-        " no copy is refused by name",
+        help="the run's topology defining stage filters and dispatches; required"
+        " for filtered stages and to detect missing dispatches",
     )
     # !! THE ROOT SOURCE VERIFICATION RESOLVES A `cite` AGAINST -- `P25`. It
     # defaults to the binder's own `read_from.root`, which is the tree the

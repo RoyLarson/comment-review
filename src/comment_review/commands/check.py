@@ -204,13 +204,13 @@ def _check_copy(
         for line in problems:
             print(line)
         return BROKEN
-    binder = None
-    if binder_path:
-        binder, why = load_binder(Path(binder_path))
-        if binder is None:
-            return _refused(why)
+    if not binder_path:
+        return _refused(["check --edit-copy needs --binder to check required rulings"])
+    binder, why = load_binder(Path(binder_path))
+    if binder is None:
+        return _refused(why)
     found = 0
-    required = [required_places(binder)] if binder is not None else None
+    required = [required_places(binder)]
     for one in mark_errors([copy], required):
         for reason in one.reasons:
             print(f"{one.role} {one.where}: {reason}")
@@ -350,8 +350,8 @@ def main() -> int:
     )
     ap.add_argument(
         "--binder",
-        help="the binder the copy was seeded from; adds source verification and"
-        " the checks each mark's row makes against the pages",
+        help="the received binder defining required rulings "
+        "(required with --edit-copy)",
     )
     ap.add_argument(
         "--repo",
