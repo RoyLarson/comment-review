@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 21 of 34 tasks closed
+Progress: 22 of 34 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-08-30 (2026-08-30, a code review of `desk/mark.py` that ran `parse`
@@ -273,8 +273,8 @@ cites as its measured example of a field answering neither necessary nor purpose
 - [ ] T31 | Publish stage and admits in the edit-copy contract from their owning
       type
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r4.md, C
-- [ ] T32 | Use language-specific comment markers when rewrapping derived mark
-      changes
+- [x] T32 | Derived raw drops retain language-specific comment forms and adjacent code | 0b6629b2a966d54a570e3b42655eb5f33d5fd6d9 | Use
+      language-specific comment markers when rewrapping derived mark changes
         > 2026-09-30 Criteria: docs/reviews/2026-09-30-r4.md, F
 - [-] T33 | Replaced by received-binder-checks T3: withdrawal removes marks; binder checks missing rulings | 06f415f71665525ecb7fd600216dbae7d8c2e6ae | Restore
       a withdrawn slot only when its stage originally dealt that place
