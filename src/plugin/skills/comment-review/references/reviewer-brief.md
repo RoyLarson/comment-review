@@ -20,8 +20,8 @@ You file every mark yourself, in your one copy, with the `mark` command.
 Your packet gives you:
 
 - `REPO ROOT` -- the checkout every path resolves against.
-- `BINDER` -- every page in scope, each paragraph with its address, anchor, start and end line
-  and text.
+- `BINDER` -- your assigned review places, each with its address, anchor, start
+  and end line and text. Every review place in this binder requires your ruling.
 - `EDIT COPY` -- your copy, holding one slot per paragraph of prose your role is dealt, each
   already carrying that paragraph's `address`, `anchor` and `raw_text`.
 - `FILES UNDER REVIEW` -- the files your marks rule on.
@@ -38,9 +38,8 @@ say so and stop.
 
 ## How you work
 
-1. **Read your copy end to end.** Every slot gets a ruling, one of the seven instructions,
-   and each ruling is its own invocation of `mark`. A ruled slot certifies you considered that
-   paragraph under your remit.
+1. **Read your binder end to end.** Rule on every review place in it with one of
+   the seven instructions. File each ruling with its own invocation of `mark`.
 2. **Open the code for every slot.** `raw_text` tells you where the paragraph is; the code
    beside or below it tells you whether it is true. The file you open is the original: the text as it
    stood when this run began, the same text your addresses and anchors were taken from.

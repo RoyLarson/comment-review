@@ -163,14 +163,15 @@ under review, choose the `REFERENCE ONLY` list.
 
 ### Stage 4 -- mark
 
-Seed one edit copy per dispatch:
+Seed one edit copy and one received binder per dispatch:
 
 ```bash
 python <skill>/scripts/comment-review.py distribute --topology <run-dir>/topology.toml --stage 4 \
   --binder <run-dir>/binder.json --out-dir <run-dir>/copies
 ```
 
-It prints each file it wrote, named `4_<role>_<n>.json`. Dispatch one agent per file, by name:
+It prints each edit copy, named `4_<role>_<n>.json`, and its received binder,
+saved as `copies/binders/4_<role>_<n>.json`. Dispatch one agent per edit copy:
 
 | desk | agent | its question |
 |---|---|---|
@@ -187,7 +188,7 @@ All four roles run on every review. Each agent's prompt holds, in this order:
    role in `[roles]`, plus the `all` list, read fresh from that file.
 3. The packet, every section filled -- `UNAVAILABLE` is a complete answer:
    - `REPO ROOT` -- absolute path
-   - `BINDER` -- absolute path
+   - `BINDER` -- absolute path of this agent's received binder
    - `EDIT COPY` -- absolute path of this agent's own copy
    - `FILES UNDER REVIEW` and `REFERENCE ONLY`
    - `STYLE SHEET`, templates included
@@ -197,7 +198,7 @@ Each agent fills its copy in place and runs `check` on it. When an agent returns
 check yourself:
 
 ```bash
-python <skill>/scripts/comment-review.py check --edit-copy <run-dir>/copies/<file> --binder <run-dir>/binder.json --repo .
+python <skill>/scripts/comment-review.py check --edit-copy <run-dir>/copies/<file> --binder <run-dir>/copies/binders/<file> --repo .
 ```
 
 Exit 0 means the copy is ready to fold. Exit 5 means its only findings are human questions,
@@ -207,9 +208,13 @@ return, fold without it and report that role as unanswered.
 
 ### Stage 5 -- collate, and rule as copy chief
 
+Repeat `--edit-copy` and `--received-binder` for each pair, keeping the binder
+paths in the same order as the copy paths.
+
 ```bash
 python <skill>/scripts/comment-review.py collate --stage 4 --binder <run-dir>/binder.json --repo . \
-  --topology <run-dir>/topology.toml --edit-copy <each copy distribute printed> \
+  --topology <run-dir>/topology.toml \
+  --edit-copy <one returned copy> --received-binder <its received binder> \
   --out <run-dir>/chief0.json --proof-out <run-dir>/proof0.json --batch-out <run-dir>/batch1.json
 ```
 
@@ -317,11 +322,13 @@ admits = ["patch", "drop", "add", "clean", "query"]
 ```
 
 Seed it with `distribute --topology <run-dir>/topology.toml --stage 6 --binder
-<run-dir>/binder6.json --revise <run-dir>/proof4 --out-dir <run-dir>/copies`. The copy holds
-only the comment paragraphs over the cap. Dispatch `comment-review:comment-review-compact` on
-it, with [`references/compact.md`](references/compact.md) pasted whole, the style sheet and the
-cap. Then check, `collate --stage 6` and rule as in stage 5. The closed proof this produces is
-the one stage 7a sets.
+<run-dir>/binder6.json --revise <run-dir>/proof4 --out-dir <run-dir>/copies`.
+Each received binder and edit copy holds only the comment paragraphs over the
+cap. Dispatch `comment-review:comment-review-compact` with its edit copy and
+received binder, `references/compact.md` pasted whole, the style sheet and the
+cap. Check the copy against its received binder, then run `collate --stage 6`
+with the received binders paired with the copies and rule as in stage 5. The
+closed proof this produces is the one stage 7a sets.
 
 ### Stage 7a -- set and present
 
