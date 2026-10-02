@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 13 of 14 tasks closed
+Progress: 14 of 15 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-02 (review)
@@ -53,5 +53,8 @@ Repair comment wrapping review findings.
 - [x] T13 | Python, Lua and Ruby literal bullet move and drop regressions pass | 5b27f6c6 | Limit
       decorative star prefixes in reading/lexer.py:368; test Python docstring,
       Lua and Ruby bullets survive moves and drops
-- [ ] T14 | Use Python string-token boundaries in reading/lexer.py:336; test
-      docstring moves and drops preserve adjacent code with matching quotes
+- [x] T14 | Python token boundaries exclude adjacent quoted code; move and drop regressions pass | 9b53793ef0da8755de72926ab6b09263134fdfb3 | Use
+      Python string-token boundaries in reading/lexer.py:336; test docstring
+      moves and drops preserve adjacent code with matching quotes
+- [ ] T15 | Handle Python separators in reading/comment.py:29; test
+      whole-docstring moves and drops leave adjacent code valid
