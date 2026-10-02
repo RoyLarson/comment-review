@@ -1,11 +1,10 @@
 """The marks table: one row per instruction, and every reader asks the row.
 
 A row says which places a mark touches, what text it sets at each, what
-problems it has against its base, how it pairs with other marks at a place,
-and which answers a turn may give on it. What a mark's claim carries, and
-every other fact its own read needs, is its type's, in `desk.proof.mark`; the
-table is keyed by instruction, which each type names, and its callables take
-the typed mark.
+problems it has against its base, and how it pairs with other marks at a place.
+What a mark's claim carries, and every other fact its own read needs, is its
+type's, in `desk.proof.mark`; the table is keyed by instruction, which each
+type names, and its callables take the typed mark.
 
 `sets` returns None where the mark sets nothing (`decision-log.md Process:
 #174`), "" for a delete, else the text. `reads` returns the problems the row
@@ -154,9 +153,6 @@ def _query_stance(mark: QueryMark):
     return Stance.DEFERS
 
 
-ESCALATION_ANSWERS = ("hold", "withdraw", "correct", "patch")
-
-
 @dataclass(frozen=True)
 class Row:
     """One instruction, as every reader of a mark at a place sees it."""
@@ -169,7 +165,6 @@ class Row:
     #: changes no place's state -- `decision-log.md Process: #177`.
     notes: Notes = _no_notes
     pairs: Pairs = _proposes
-    answers: tuple[str, ...] = ESCALATION_ANSWERS
     #: True where `raw_text` is the paragraph as it will read and the role
     #: writes it, rather than the seeded paragraph as it stands --
     #: `decision-log.md Process: #175` and `#176`. `flows.fill` takes it from
@@ -195,8 +190,8 @@ class Row:
 
 
 INSTRUCTIONS: dict[Instruction, Row] = {
-    Instruction.CLEAN: Row(pairs=_abstains, answers=()),
-    Instruction.QUERY: Row(pairs=_query_stance, answers=()),
+    Instruction.CLEAN: Row(pairs=_abstains),
+    Instruction.QUERY: Row(pairs=_query_stance),
     Instruction.DROP: Row(sets=_the_change),
     Instruction.CORRECT: Row(sets=_the_change, notes=_correct_notes),
     Instruction.PATCH: Row(sets=_the_change),

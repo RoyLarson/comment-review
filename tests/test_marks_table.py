@@ -153,14 +153,6 @@ def test_only_a_deferring_query_defers():
     )
 
 
-def test_every_row_names_the_answers_a_turn_may_give_on_it():
-    for instruction, row in INSTRUCTIONS.items():
-        if row.pairs(_mark(instruction)) is Stance.PROPOSES:
-            assert set(row.answers) == {"hold", "withdraw", "correct", "patch"}, (
-                instruction
-            )
-
-
 def test_a_destination_touch_is_on_exactly_the_rows_whose_type_names_one():
     """`places` writes at the destination a row's touches name, and the type's
     read checks a destination only where its type names one -- so the two

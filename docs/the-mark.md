@@ -241,10 +241,10 @@ the true one, and a `sources` entry carrying the line that settles it."*
 the next thing that reads it silently gets a worse answer. ! `add`'s sentence ended *"never the
 payload's"* and now reads *"never the claim's"*: the old word named the field that was removed.
 
-## The classifiers -- eleven COLUMNS and a closed list of flags
+## The classifiers -- ten COLUMNS and a closed list of flags
 
 !! **THIS IS THE PART THAT WAS MISSING, AND ITS ABSENCE IS WHAT LET TWENTY-TWO FIELDS IN.** A row
-may state these and nothing else -- **sixteen things, and no prose.** A new classifier is a change
+may state these and nothing else -- **fifteen things, and no prose.** A new classifier is a change
 to THIS FILE first.
 
 | classifier | what it decides | shape |
@@ -259,12 +259,11 @@ to THIS FILE first.
 | **reads** | the problems a mark of this row has at one touch, against its base | a function of the mark, the touch and the base |
 | **notes** | what the chief is told about a mark of this row that is not a problem with it | a function of the mark, the touch and the base |
 | **pairs** | how a mark of this row stands toward the others at its place | a function of the mark |
-| **answers** | which answers a turn may give where this row proposes | a list of names |
 
 **Each classifier has one home.** What a mark's own read needs -- claim keys, verbatim,
 destination key, change, sources, and every flag but *carries raw text* -- is a class
 attribute of the instruction's type in `desk/proof/mark.py`. What a mark does at a place --
-touches, sets, reads, notes, pairs, answers, and *carries raw text* -- is a field of
+touches, sets, reads, notes, pairs, and *carries raw text* -- is a field of
 the row in `desk/marks/table.py`. The gate reads both homes.
 
 **The flags, and there are five:**
