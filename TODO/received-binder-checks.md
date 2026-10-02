@@ -2,7 +2,7 @@
 
 ```
 Status:   open
-Progress: 2 of 4 tasks closed
+Progress: 3 of 4 tasks closed
 Owner:    backend
 Requires-Roy: false
 Raised:   2026-10-01 (Roy approved received binders and withdrawal removal)
@@ -20,7 +20,8 @@ Check received binder assignments.
 - [x] T2 | Deleted rulings fail check; paired copies fail admission independently; 166 tests pass | 8b3984ce | Check
       required rulings against received binders; verify missing and unruled
       places refuse admission
-- [ ] T3 | Remove withdrawn marks from edit copies; verify binder membership
-      controls whether check requires a replacement ruling
+- [x] T3 | Withdrawal removes marks without pages or blanks; assigned-place checks require replacement; 76 tests pass | 39e01fc4 | Remove
+      withdrawn marks from edit copies; verify binder membership controls
+      whether check requires a replacement ruling
 - [ ] T4 | Validate role coverage from received shards; verify omissions fail
       and fold and turn preserve input binders
