@@ -278,7 +278,7 @@ that changed a published name or rule:
 | [mark-defects](mark-defects.md) | backend | -- | 21/33 | Eleven defects in `desk/mark.py`, found by running its parse against its own prose |
 | [binder-defects](binder-defects.md) | backend | -- | 7/25 | Eighteen defects in binder.py, and `read` admits four shapes it exists to refuse |
 | [docket-defects](docket-defects.md) | backend | -- | 5/11 | Six defects in docket.py, and one discards an approved page at exit 0 |
-| [collate-command-defects](collate-command-defects.md) | backend | -- | 5/23 | Sixteen defects in `commands/collate.py`, measured by running it |
+| [collate-command-defects](collate-command-defects.md) | backend | -- | 6/23 | Sixteen defects in `commands/collate.py`, measured by running it |
 | [differences-defects](differences-defects.md) | backend | -- | 0/10 | Ten defects in `results/differences.py`, none of them in its arithmetic |
 | [plans-name-no-todo-tasks](plans-name-no-todo-tasks.md) | systems | yes | 0/4 | Six 0.2.4 plans carry no heading naming the TODO tasks they close |
 | [index-and-glossary-for-roles](index-and-glossary-for-roles.md) | agents | yes | 0/1 | Hand a reviewer the name index and the glossary rather than leaving it to grep |
